@@ -1,238 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:58289 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974Ab1LNPeO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 10:34:14 -0500
-Date: Wed, 14 Dec 2011 17:34:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Ming Lei <ming.lei@canonical.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face
- detection
-Message-ID: <20111214153407.GN1967@valkosipuli.localdomain>
+Received: from d1.icnet.pl ([212.160.220.21]:59786 "EHLO d1.icnet.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932535Ab1LERs7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Dec 2011 12:48:59 -0500
+From: Janusz Krzysztofik <jkrzyszt@tis.icnet.pl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] V4L: soc-camera: fix compiler warnings on 64-bit platforms
+Date: Mon, 5 Dec 2011 18:48:13 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Stephen Rothwell <sfr@canb.auug.org.au>
+References: <Pine.LNX.4.64.1112051542430.29177@axis700.grange> <201112051823.44446.jkrzyszt@tis.icnet.pl>
+In-Reply-To: <201112051823.44446.jkrzyszt@tis.icnet.pl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1322838172-11149-6-git-send-email-ming.lei@canonical.com>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112051848.13512.jkrzyszt@tis.icnet.pl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ming,
-
-Thanks for the patchset.
-
-(Dropped a lot of folks from cc --- I doubt Alan Cox or Greg
-Kroah-Hartman have immediate interest towards this.)
-
-On Fri, Dec 02, 2011 at 11:02:50PM +0800, Ming Lei wrote:
-> This patch introduces two new IOCTLs and related data
-> structure defination which will be used by the coming
-> face detection video device.
+On Monday 05 of December 2011 at 18:23:44, Janusz Krzysztofik wrote:
+> On Monday 05 of December 2011 at 16:15:28, Guennadi Liakhovetski wrote:
+> > On 64-bit platforms assigning a pointer to a 32-bit variable causes a
+> > compiler warning and cannot actually work. Soc-camera currently doesn't
+> > support any 64-bit systems, but such platforms can be added in the
+> > and in any case compiler warnings should be avoided.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > 
+> > This is a long-standing warning in the 3.2 kernel. The fix should only 
+> > affect sh-mobile platforms, of which I tested some, and the ov6650 camera 
+> > sensor driver.
+> > 
+> >  drivers/media/video/ov6650.c               |    2 +-
+> >  drivers/media/video/sh_mobile_ceu_camera.c |   34 +++++++++++++++++----------
+> >  drivers/media/video/sh_mobile_csi2.c       |    4 +-
+> >  drivers/media/video/soc_camera.c           |    2 +-
+> >  include/media/soc_camera.h                 |    7 +++++-
+> >  5 files changed, 31 insertions(+), 18 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/ov6650.c b/drivers/media/video/ov6650.c
+> > index 9f2d26b..6806345 100644
+> > --- a/drivers/media/video/ov6650.c
+> > +++ b/drivers/media/video/ov6650.c
+> > @@ -540,7 +540,7 @@ static u8 to_clkrc(struct v4l2_fract *timeperframe,
+> >  static int ov6650_s_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *mf)
+> >  {
+> >  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > -	struct soc_camera_device *icd = (struct soc_camera_device *)sd->grp_id;
+> > +	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
 > 
-> The two IOCTLs and related data structure are used by
-> user space application to retrieve the results of face
-> detection. They can be called after one v4l2_buffer
-> has been ioctl(VIDIOC_DQBUF) and before it will be
-> ioctl(VIDIOC_QBUF).
+> Hi Guennadi,
+> Where is the v4l2_set_subdev_hostdata() supposed to be called from? I 
+> can find it called only from drivers/media/video/s5p-fimc/fimc-mdevice.c 
+> for now, and introduced with your patch into sh_mobile_ceu_camera.c 
+> only. What about other soc_camera host interfaces? Are those supposed to 
+> call v4l2_set_subdev_hostdata() themselves if a sensor is expected to be 
+> calling v4l2_set_subdev_hostdata()? Perhaps the soc_camera framework 
+               ^
+             s/set/get/, sorry.
+
+> should take care of this?
 > 
-> The utility fdif[1] is useing the two IOCTLs to find
-> faces deteced in raw images or video streams.
+> >  	struct soc_camera_sense *sense = icd->sense;
 > 
-> [1],http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
+> Don't we risk a NULL pointer dereference here in case 
+> v4l2_set_subdev_hostdata() was not called?
 > 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->  drivers/media/video/v4l2-ioctl.c |   38 ++++++++++++++++++++
->  include/linux/videodev2.h        |   70 ++++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-ioctl.h       |    6 +++
->  3 files changed, 114 insertions(+), 0 deletions(-)
+> Thanks,
+> Janusz
 > 
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index e1da8fc..fc6266f 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -2140,6 +2140,30 @@ static long __video_do_ioctl(struct file *file,
->  		dbgarg(cmd, "index=%d", b->index);
->  		break;
->  	}
-> +	case VIDIOC_G_FD_RESULT:
-> +	{
-> +		struct v4l2_fd_result *fr = arg;
-> +
-> +		if (!ops->vidioc_g_fd_result)
-> +			break;
-> +
-> +		ret = ops->vidioc_g_fd_result(file, fh, fr);
-> +
-> +		dbgarg(cmd, "index=%d", fr->buf_index);
-> +		break;
-> +	}
-> +	case VIDIOC_G_FD_COUNT:
-> +	{
-> +		struct v4l2_fd_count *fc = arg;
-> +
-> +		if (!ops->vidioc_g_fd_count)
-> +			break;
-> +
-> +		ret = ops->vidioc_g_fd_count(file, fh, fc);
-> +
-> +		dbgarg(cmd, "index=%d", fc->buf_index);
-> +		break;
-> +	}
-
-The patch description tells these ioctls may be called between... what? I'd
-think such information could be better provided as events.
-
-How is face detection enabled or disabled?
-
-Could you detect other objects than faces?
-
-Would events be large enough to deliver you the necessary data? We could
-also consider delivering the information as a data structure on a separate
-plane.
-
->  	default:
->  		if (!ops->vidioc_default)
->  			break;
-> @@ -2234,6 +2258,20 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
->  		}
->  		break;
->  	}
-> +
-> +	case VIDIOC_G_FD_RESULT: {
-> +		struct v4l2_fd_result *fr = parg;
-> +
-> +		if (fr->face_cnt != 0) {
-> +			*user_ptr = (void __user *)fr->fd;
-> +			*kernel_ptr = (void *)&fr->fd;
-> +			*array_size = sizeof(struct v4l2_fd_detection)
-> +				    * fr->face_cnt;
-> +			ret = 1;
-> +		}
-> +		break;
-> +
-> +	}
->  	}
->  
->  	return ret;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 4b752d5..073eb4d 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2160,6 +2160,74 @@ struct v4l2_create_buffers {
->  	__u32			reserved[8];
->  };
->  
-> +/**
-> + * struct v4l2_obj_detection
-> + * @buf_index:	entry, index of v4l2_buffer for face detection
-> + * @centerx:	return, position in x direction of detected object
-> + * @centery:	return, position in y direction of detected object
-> + * @angle:	return, angle of detected object
-> + * 		0 deg ~ 359 deg, vertical is 0 deg, clockwise
-> + * @sizex:	return, size in x direction of detected object
-> + * @sizey:	return, size in y direction of detected object
-> + * @confidence:	return, confidence level of detection result
-> + * 		0: the heighest level, 9: the lowest level
-> + * @reserved:	future extensions
-> + */
-> +struct v4l2_obj_detection {
-> +	__u16		centerx;
-> +	__u16		centery;
-> +	__u16		angle;
-> +	__u16		sizex;
-> +	__u16		sizey;
-> +	__u16		confidence;
-> +	__u32		reserved[4];
-> +};
-> +
-> +#define V4L2_FD_HAS_LEFT_EYE	0x1
-> +#define V4L2_FD_HAS_RIGHT_EYE	0x2
-> +#define V4L2_FD_HAS_MOUTH	0x4
-> +#define V4L2_FD_HAS_FACE	0x8
-> +
-> +/**
-> + * struct v4l2_fd_detection - VIDIOC_G_FD_RESULT argument
-> + * @flag:	return, describe which objects are detected
-> + * @left_eye:	return, left_eye position if detected
-> + * @right_eye:	return, right_eye position if detected
-> + * @mouth_eye:	return, mouth_eye position if detected
-> + * @face:	return, face position if detected
-> + */
-> +struct v4l2_fd_detection {
-> +	__u32	flag;
-> +	struct v4l2_obj_detection	left_eye;
-> +	struct v4l2_obj_detection	right_eye;
-> +	struct v4l2_obj_detection	mouth;
-> +	struct v4l2_obj_detection	face;
-> +};
-> +
-> +/**
-> + * struct v4l2_fd_result - VIDIOC_G_FD_RESULT argument
-> + * @buf_index:	entry, index of v4l2_buffer for face detection
-> + * @face_cnt:	return, how many faces detected from the @buf_index
-> + * @fd:		return, result of faces' detection
-> + */
-> +struct v4l2_fd_result {
-> +	__u32	buf_index;
-> +	__u32	face_cnt;
-> +	__u32	reserved[6];
-> +	struct v4l2_fd_detection *fd;
-
-Aligning structure sizes to a power of two is considered to be a good
-practice.
-
-> +};
-> +
-> +/**
-> + * struct v4l2_fd_count - VIDIOC_G_FD_COUNT argument
-> + * @buf_index:	entry, index of v4l2_buffer for face detection
-> + * @face_cnt:	return, how many faces detected from the @buf_index
-> + */
-> +struct v4l2_fd_count {
-> +	__u32	buf_index;
-> +	__u32	face_cnt;
-> +	__u32	reserved[6];
-> +};
-> +
->  /*
->   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
->   *
-> @@ -2254,6 +2322,8 @@ struct v4l2_create_buffers {
->     versions */
->  #define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
->  #define VIDIOC_PREPARE_BUF	_IOWR('V', 93, struct v4l2_buffer)
-> +#define VIDIOC_G_FD_COUNT	_IOWR('V', 94, struct v4l2_fd_count)
-> +#define VIDIOC_G_FD_RESULT	_IOWR('V', 95, struct v4l2_fd_result)
->  
->  /* Reminder: when adding new ioctls please add support for them to
->     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index 4d1c74a..19f03b0 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -270,6 +270,12 @@ struct v4l2_ioctl_ops {
->  	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
->  					struct v4l2_event_subscription *sub);
->  
-> +	/* Face detect IOCTLs */
-> +	int (*vidioc_g_fd_count) (struct file *file, void *fh,
-> +					struct v4l2_fd_count *arg);
-> +	int (*vidioc_g_fd_result) (struct file *file, void *fh,
-> +					struct v4l2_fd_result *arg);
-> +
->  	/* For other private ioctls */
->  	long (*vidioc_default)	       (struct file *file, void *fh,
->  					bool valid_prio, int cmd, void *arg);
-> -- 
-> 1.7.5.4
+> >  	struct ov6650 *priv = to_ov6650(client);
+> >  	bool half_scale = !is_unscaled_ok(mf->width, mf->height, &priv->rect);
+> > diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
+> > index f390682..c51decf 100644
+> > --- a/drivers/media/video/sh_mobile_ceu_camera.c
+> > +++ b/drivers/media/video/sh_mobile_ceu_camera.c
+> > @@ -566,8 +566,10 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+> >  	ret = sh_mobile_ceu_soft_reset(pcdev);
+> >  
+> >  	csi2_sd = find_csi2(pcdev);
+> > -	if (csi2_sd)
+> > -		csi2_sd->grp_id = (long)icd;
+> > +	if (csi2_sd) {
+> > +		csi2_sd->grp_id = soc_camera_grp_id(icd);
+> > +		v4l2_set_subdev_hostdata(csi2_sd, icd);
+> > +	}
+> >  
+> >  	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
+> >  	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+> > @@ -768,7 +770,7 @@ static struct v4l2_subdev *find_bus_subdev(struct sh_mobile_ceu_dev *pcdev,
+> >  {
+> >  	if (pcdev->csi2_pdev) {
+> >  		struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
+> > -		if (csi2_sd && csi2_sd->grp_id == (u32)icd)
+> > +		if (csi2_sd && csi2_sd->grp_id == soc_camera_grp_id(icd))
+> >  			return csi2_sd;
+> >  	}
+> >  
+> > @@ -1089,8 +1091,9 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
+> >  			/* Try 2560x1920, 1280x960, 640x480, 320x240 */
+> >  			mf.width	= 2560 >> shift;
+> >  			mf.height	= 1920 >> shift;
+> > -			ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
+> > -							 s_mbus_fmt, &mf);
+> > +			ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> > +					soc_camera_grp_id(icd), video,
+> > +					s_mbus_fmt, &mf);
+> >  			if (ret < 0)
+> >  				return ret;
+> >  			shift++;
+> > @@ -1389,7 +1392,8 @@ static int client_s_fmt(struct soc_camera_device *icd,
+> >  	bool ceu_1to1;
+> >  	int ret;
+> >  
+> > -	ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
+> > +	ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> > +					 soc_camera_grp_id(icd), video,
+> >  					 s_mbus_fmt, mf);
+> >  	if (ret < 0)
+> >  		return ret;
+> > @@ -1426,8 +1430,9 @@ static int client_s_fmt(struct soc_camera_device *icd,
+> >  		tmp_h = min(2 * tmp_h, max_height);
+> >  		mf->width = tmp_w;
+> >  		mf->height = tmp_h;
+> > -		ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
+> > -						 s_mbus_fmt, mf);
+> > +		ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> > +					soc_camera_grp_id(icd), video,
+> > +					s_mbus_fmt, mf);
+> >  		dev_geo(dev, "Camera scaled to %ux%u\n",
+> >  			mf->width, mf->height);
+> >  		if (ret < 0) {
+> > @@ -1580,8 +1585,9 @@ static int sh_mobile_ceu_set_crop(struct soc_camera_device *icd,
+> >  	}
+> >  
+> >  	if (interm_width < icd->user_width || interm_height < icd->user_height) {
+> > -		ret = v4l2_device_call_until_err(sd->v4l2_dev, (int)icd, video,
+> > -						 s_mbus_fmt, &mf);
+> > +		ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> > +					soc_camera_grp_id(icd), video,
+> > +					s_mbus_fmt, &mf);
+> >  		if (ret < 0)
+> >  			return ret;
+> >  
+> > @@ -1867,7 +1873,8 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+> >  	mf.code		= xlate->code;
+> >  	mf.colorspace	= pix->colorspace;
+> >  
+> > -	ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video, try_mbus_fmt, &mf);
+> > +	ret = v4l2_device_call_until_err(sd->v4l2_dev, soc_camera_grp_id(icd),
+> > +					 video, try_mbus_fmt, &mf);
+> >  	if (ret < 0)
+> >  		return ret;
+> >  
+> > @@ -1891,8 +1898,9 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
+> >  			 */
+> >  			mf.width = 2560;
+> >  			mf.height = 1920;
+> > -			ret = v4l2_device_call_until_err(sd->v4l2_dev, (long)icd, video,
+> > -							 try_mbus_fmt, &mf);
+> > +			ret = v4l2_device_call_until_err(sd->v4l2_dev,
+> > +					soc_camera_grp_id(icd), video,
+> > +					try_mbus_fmt, &mf);
+> >  			if (ret < 0) {
+> >  				/* Shouldn't actually happen... */
+> >  				dev_err(icd->parent,
+> > diff --git a/drivers/media/video/sh_mobile_csi2.c b/drivers/media/video/sh_mobile_csi2.c
+> > index ea4f047..8a652b5 100644
+> > --- a/drivers/media/video/sh_mobile_csi2.c
+> > +++ b/drivers/media/video/sh_mobile_csi2.c
+> > @@ -143,7 +143,7 @@ static int sh_csi2_s_mbus_config(struct v4l2_subdev *sd,
+> >  				 const struct v4l2_mbus_config *cfg)
+> >  {
+> >  	struct sh_csi2 *priv = container_of(sd, struct sh_csi2, subdev);
+> > -	struct soc_camera_device *icd = (struct soc_camera_device *)sd->grp_id;
+> > +	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+> >  	struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
+> >  	struct v4l2_mbus_config client_cfg = {.type = V4L2_MBUS_CSI2,
+> >  					      .flags = priv->mipi_flags};
+> > @@ -202,7 +202,7 @@ static void sh_csi2_hwinit(struct sh_csi2 *priv)
+> >  static int sh_csi2_client_connect(struct sh_csi2 *priv)
+> >  {
+> >  	struct sh_csi2_pdata *pdata = priv->pdev->dev.platform_data;
+> > -	struct soc_camera_device *icd = (struct soc_camera_device *)priv->subdev.grp_id;
+> > +	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(&priv->subdev);
+> >  	struct v4l2_subdev *client_sd = soc_camera_to_subdev(icd);
+> >  	struct device *dev = v4l2_get_subdevdata(&priv->subdev);
+> >  	struct v4l2_mbus_config cfg;
+> > diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> > index b72580c..8491cf7 100644
+> > --- a/drivers/media/video/soc_camera.c
+> > +++ b/drivers/media/video/soc_camera.c
+> > @@ -1103,7 +1103,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+> >  	}
+> >  
+> >  	sd = soc_camera_to_subdev(icd);
+> > -	sd->grp_id = (long)icd;
+> > +	sd->grp_id = soc_camera_grp_id(icd);
+> >  
+> >  	if (v4l2_ctrl_add_handler(&icd->ctrl_handler, sd->ctrl_handler))
+> >  		goto ectrl;
+> > diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> > index b1377b9..5fb2c3d 100644
+> > --- a/include/media/soc_camera.h
+> > +++ b/include/media/soc_camera.h
+> > @@ -254,7 +254,7 @@ unsigned long soc_camera_apply_board_flags(struct soc_camera_link *icl,
+> >  static inline struct video_device *soc_camera_i2c_to_vdev(const struct i2c_client *client)
+> >  {
+> >  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> > -	struct soc_camera_device *icd = (struct soc_camera_device *)sd->grp_id;
+> > +	struct soc_camera_device *icd = v4l2_get_subdev_hostdata(sd);
+> >  	return icd ? icd->vdev : NULL;
+> >  }
+> >  
+> > @@ -279,6 +279,11 @@ static inline struct soc_camera_device *soc_camera_from_vbq(const struct videobu
+> >  	return container_of(vq, struct soc_camera_device, vb_vidq);
+> >  }
+> >  
+> > +static inline u32 soc_camera_grp_id(const struct soc_camera_device *icd)
+> > +{
+> > +	return (icd->iface << 8) | (icd->devnum + 1);
+> > +}
+> > +
+> >  void soc_camera_lock(struct vb2_queue *vq);
+> >  void soc_camera_unlock(struct vb2_queue *vq);
+> >  
+> > 
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
