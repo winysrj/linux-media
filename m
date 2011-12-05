@@ -1,80 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:57495 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758038Ab1LNVVH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 16:21:07 -0500
-Received: by faar15 with SMTP id r15so1700698faa.19
-        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2011 13:21:05 -0800 (PST)
-Message-ID: <1323897656.3085.12.camel@tvbox>
-Subject: Re: [PATCH] it913x add support for IT9135 9006 devices
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: Adeq <adexmail@tlen.pl>
-Cc: linux-media@vger.kernel.org
-Date: Wed, 14 Dec 2011 21:20:56 +0000
-In-Reply-To: <loom.20111214T071004-336@post.gmane.org>
-References: <1323719580.2235.3.camel@tvbox>
-	 <loom.20111214T071004-336@post.gmane.org>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx1.redhat.com ([209.132.183.28]:57107 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756194Ab1LEMEZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Dec 2011 07:04:25 -0500
+Message-ID: <4EDCB33E.8090100@redhat.com>
+Date: Mon, 05 Dec 2011 10:04:14 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Thierry Reding <thierry.reding@avionic-design.de>
+CC: linuxtv@stefanringel.de, linux-media@vger.kernel.org,
+	d.belimov@gmail.com
+Subject: Re: [PATCH 3/5] tm6000: bugfix interrupt reset
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de> <1322509580-14460-3-git-send-email-linuxtv@stefanringel.de> <20111205072131.GB7341@avionic-0098.mockup.avionic-design.de>
+In-Reply-To: <20111205072131.GB7341@avionic-0098.mockup.avionic-design.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2011-12-14 at 06:13 +0000, Adeq wrote:
-> Malcolm Priestley <tvboxspy <at> gmail.com> writes:
-> 
-> > 
-> > Support for IT1935 9006 devices.
-> > 
-> > 9006 have version 2 type chip.
-> > 
-> > 9006 devices should use dvb-usb-it9135-02.fw firmware.
-> > 
-> > On the device tested the tuner id was set to 0 which meant
-> > the driver used tuner id 0x38. The device functioned normally.
-> > 
-> 
-> Hello,
-> 
-> my device (048d:9006) isn't fully working, here is dmesg log:
-> 
-> [code]
-> [  281.724044] usb 1-3: new high-speed USB device number 10 using ehci_hcd
-> [  281.860585] usb 1-3: New USB device found, idVendor=048d, idProduct=9006
-> [  281.860594] usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> [  281.860601] usb 1-3: Product: DVB-T TV Stick
-> [  281.860607] usb 1-3: Manufacturer: ITE Technologies, Inc.
-> [  281.861694] it913x: Chip Version=02 Chip Type=9135
-> [  281.863193] it913x: Dual mode=0 Remote=1 Tuner Type=0
-> [  281.864444] dvb-usb: found a 'ITE 9135(9006) Generic' in cold state, will try
-> to load a firmware
-> [  281.870053] dvb-usb: downloading firmware from file 'dvb-usb-it9135-02.fw'
-> [  281.870438] it913x: FRM Starting Firmware Download
-> [  282.388032] it913x: FRM Firmware Download Failed (ffffffff)
-> [  282.588116] it913x: Chip Version=79 Chip Type=4af3
-> [  283.224203] it913x: DEV it913x Error
-> [  283.227753] input: ITE Technologies, Inc. DVB-T TV Stick as
+On 05-12-2011 05:21, Thierry Reding wrote:
+> * linuxtv@stefanringel.de wrote:
+>> From: Stefan Ringel<linuxtv@stefanringel.de>
+>>
+>> Signed-off-by: Stefan Ringel<linuxtv@stefanringel.de>
+>
+> Your commit message needs more details. Why do you think this is a bugfix?
+> Also this commit seems to effectively revert (and then partially reimplement)
+> a patch that I posted some months ago.
 
-Try using the following for firmware.
+Thierry,
 
-dd if=dvb-usb-it9135.fw ibs=1 skip=64 count=8128 of=dvb-usb-it9135-01.fw
-dd if=dvb-usb-it9135.fw ibs=1 skip=12866 count=5731 of=dvb-usb-it9135-02.fw
+I noticed this. I tested tm6000 with those changes with both the first gen
+tm5600 devices I have and HVR900H and I didn't notice any bad thing with this
+approach, and changing from one standard to another is now faster.
 
-I have got length of dvb-usb-it9135-02.fw wrong it was changed to 5731.
+So, I decided to apply it (with the remaining patches I've made to
+fix audio for PAL/M and NTSC/M).
 
-However, 5817 should be correct in emulation, but fails with device.
+I also noticed that TM6000_QUIRK_NO_USB_DELAY is not needed anymore
+(still, Stefan's patches didn't remove it completely).
 
-The firmware version should say it913x: Firmware Version 50594048
+Could you please test if the problems you've solved with your approach
+are still occurring?
 
-I will have to check the firmware loader again.
+Regards,
+Mauro
 
-Regards
-
-
-Malcolm
-
-
-
-
+>
+>> ---
+>>   drivers/media/video/tm6000/tm6000-core.c  |   49 -----------------------------
+>>   drivers/media/video/tm6000/tm6000-video.c |   21 ++++++++++--
+>>   2 files changed, 17 insertions(+), 53 deletions(-)
+>>
+>> diff --git a/drivers/media/video/tm6000/tm6000-core.c b/drivers/media/video/tm6000/tm6000-core.c
+>> index c007e6d..920299e 100644
+>> --- a/drivers/media/video/tm6000/tm6000-core.c
+>> +++ b/drivers/media/video/tm6000/tm6000-core.c
+>> @@ -599,55 +599,6 @@ int tm6000_init(struct tm6000_core *dev)
+>>   	return rc;
+>>   }
+>>
+>> -int tm6000_reset(struct tm6000_core *dev)
+>> -{
+>> -	int pipe;
+>> -	int err;
+>> -
+>> -	msleep(500);
+>> -
+>> -	err = usb_set_interface(dev->udev, dev->isoc_in.bInterfaceNumber, 0);
+>> -	if (err<  0) {
+>> -		tm6000_err("failed to select interface %d, alt. setting 0\n",
+>> -				dev->isoc_in.bInterfaceNumber);
+>> -		return err;
+>> -	}
+>> -
+>> -	err = usb_reset_configuration(dev->udev);
+>> -	if (err<  0) {
+>> -		tm6000_err("failed to reset configuration\n");
+>> -		return err;
+>> -	}
+>> -
+>> -	if ((dev->quirks&  TM6000_QUIRK_NO_USB_DELAY) == 0)
+>> -		msleep(5);
+>> -
+>> -	/*
+>> -	 * Not all devices have int_in defined
+>> -	 */
+>> -	if (!dev->int_in.endp)
+>> -		return 0;
+>> -
+>> -	err = usb_set_interface(dev->udev, dev->isoc_in.bInterfaceNumber, 2);
+>> -	if (err<  0) {
+>> -		tm6000_err("failed to select interface %d, alt. setting 2\n",
+>> -				dev->isoc_in.bInterfaceNumber);
+>> -		return err;
+>> -	}
+>> -
+>> -	msleep(5);
+>> -
+>> -	pipe = usb_rcvintpipe(dev->udev,
+>> -			dev->int_in.endp->desc.bEndpointAddress&  USB_ENDPOINT_NUMBER_MASK);
+>> -
+>> -	err = usb_clear_halt(dev->udev, pipe);
+>> -	if (err<  0) {
+>> -		tm6000_err("usb_clear_halt failed: %d\n", err);
+>> -		return err;
+>> -	}
+>> -
+>> -	return 0;
+>> -}
+>>
+>>   int tm6000_set_audio_bitrate(struct tm6000_core *dev, int bitrate)
+>>   {
+>> diff --git a/drivers/media/video/tm6000/tm6000-video.c b/drivers/media/video/tm6000/tm6000-video.c
+>> index 1e5ace0..4db3535 100644
+>> --- a/drivers/media/video/tm6000/tm6000-video.c
+>> +++ b/drivers/media/video/tm6000/tm6000-video.c
+>> @@ -1609,12 +1609,25 @@ static int tm6000_release(struct file *file)
+>>
+>>   		tm6000_uninit_isoc(dev);
+>>
+>> +		/* Stop interrupt USB pipe */
+>> +		tm6000_ir_int_stop(dev);
+>> +
+>> +		usb_reset_configuration(dev->udev);
+>> +
+>> +		if (&dev->int_in)
+>
+> This check is wrong,&dev->int_in will always be true.
+>
+>> +			usb_set_interface(dev->udev,
+>> +			dev->isoc_in.bInterfaceNumber,
+>> +			2);
+>> +		else
+>> +			usb_set_interface(dev->udev,
+>> +			dev->isoc_in.bInterfaceNumber,
+>> +			0);
+>
+> This would need better indentation.
+>
+>> +
+>> +		/* Start interrupt USB pipe */
+>> +		tm6000_ir_int_start(dev);
+>> +
+>
+> Why do you restart the IR interrupt pipe when the device is being released?
+>
+>>   		if (!fh->radio)
+>>   			videobuf_mmap_free(&fh->vb_vidq);
+>> -
+>> -		err = tm6000_reset(dev);
+>> -		if (err<  0)
+>> -			dev_err(&vdev->dev, "reset failed: %d\n", err);
+>>   	}
+>>
+>>   	kfree(fh);
+>
+> I think this whole patch should be much shorter. Something along the lines
+> of:
+>
+> @@ -1609,12 +1609,25 @@ static int tm6000_release(struct file *file)
+>
+>   		tm6000_uninit_isoc(dev);
+>
+> +		/* Stop interrupt USB pipe */
+> +		tm6000_ir_int_stop(dev);
+> +
+>   		if (!fh->radio)
+>   			videobuf_mmap_free(&fh->vb_vidq);
+>
+>
+> Thierry
 
