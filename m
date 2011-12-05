@@ -1,43 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:45368 "EHLO
-	earthlight.etchedpixels.co.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753968Ab1LDOnI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Dec 2011 09:43:08 -0500
-Date: Sun, 4 Dec 2011 14:44:42 +0000
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: VDR User <user.vdr@gmail.com>
-Cc: Walter Van Eetvelt <walter@van.eetvelt.be>,
-	Andreas Oberritter <obi@linuxtv.org>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-Message-ID: <20111204144442.23d65ae8@lxorguk.ukuu.org.uk>
-In-Reply-To: <CAA7C2qgz1GYhVwXwiO5dt09+Mv0719tfCBmK7ud07RZ2VDNxTw@mail.gmail.com>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-	<4ED6C5B8.8040803@linuxtv.org>
-	<4ED75F53.30709@redhat.com>
-	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
-	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
-	<4EDA4AB4.90303@linuxtv.org>
-	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-	<aff8302dd6c3eb047c39d3a2d1fd2382@mail.eetvelt.be>
-	<CAA7C2qgz1GYhVwXwiO5dt09+Mv0719tfCBmK7ud07RZ2VDNxTw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from seiner.com ([66.178.130.209]:52655 "EHLO www.seiner.lan"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754698Ab1LEEVm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 4 Dec 2011 23:21:42 -0500
+Message-ID: <4EDC46D4.6060708@seiner.com>
+Date: Sun, 04 Dec 2011 20:21:40 -0800
+From: Yan Seiner <yan@seiner.com>
+MIME-Version: 1.0
+To: Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: cx231xx kernel oops
+References: <4EDC25F1.4000909@seiner.com> <1323058527.12343.3.camel@palomino.walls.org>
+In-Reply-To: <1323058527.12343.3.camel@palomino.walls.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> While I agree with your more broad view of the issue, I specifically
-> talked about VDR.  AFAIK Klaus has no intention of adding true
-> server/client support to VDR, so for VDR users, this sounds like it
-> could be a working solution without the strict limitations of
-> streamdev.
+Andy Walls wrote:
+> On Sun, 2011-12-04 at 18:01 -0800, Yan Seiner wrote:
+>   
+>> I am experiencing a kernel oops when trying to use a Hauppage USB Live 2 
+>> frame grabber.  The oops is below.
+>>
+>> The system is a SOC 260Mhz Broadcom BCM47XX access point running OpenWRT.
+>>
+>> root@anchor:/# uname -a
+>> Linux anchor 3.0.3 #13 Sun Dec 4 08:04:41 PST 2011 mips GNU/Linux
+>>
+>> The OOPS could be due to the limited hardware or something else.  I'd 
+>> appreciate any suggestions for making this work.  I was hoping with 
+>> hardware compression I could make it work on this platform.  I am 
+>> currently using a Hauppage USB Live (saa7115 based) with no problems but 
+>> with limited resolution.
+>>
+>> cx231xx v4l2 driver loaded.
+>> cx231xx #0: New device Hauppauge Hauppauge Device @ 480 Mbps (2040:c200) with 5 interfaces
+>> cx231xx #0: registering interface 1
+>> cx231xx #0: can't change interface 3 alt no. to 3: Max. Pkt size = 0
+>> cx231xx #0: can't change interface 4 alt no. to 1: Max. Pkt size = 0
+>> cx231xx #0: Identified as Hauppauge USB Live 2 (card=9)
+>> cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+>> cx231xx #0: Changing the i2c master port to 3
+>> cx231xx #0: cx25840 subdev registration failure
+>>     
+>              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> The cx231xx driver requires the cx25840 module.  I'll wager you didn't
+> install it on your router.
+>
+>   
+Right in one.  I did not because it didn't seem to be required - no 
+missing symbols or error messages.  Would a warning to syslog be possible?
 
-So fix Klaus rather than mess up the kernel.
+With 8MB of flash, I remove everything that is not required.
 
-If you are trying to solve a VDR political problem then kernel hacks are
-not the way to go. Someone who cares about it needs to fix VDR, with or
-without its current maintainer.
+--Yan
+
+-- 
+Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions.
+    Albert Einstein
+
