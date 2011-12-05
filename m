@@ -1,60 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:37700 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757339Ab1LOKMQ (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:39751 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754698Ab1LEEPg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 05:12:16 -0500
-Message-ID: <4EE9C7FA.8070607@infradead.org>
-Date: Thu, 15 Dec 2011 08:12:10 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Javier Martin <javier.martin@vista-silicon.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH 1/2] media: tvp5150 Fix default input selection.
-References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 4 Dec 2011 23:15:36 -0500
+Subject: Re: cx231xx kernel oops
+From: Andy Walls <awalls@md.metrocast.net>
+To: Yan Seiner <yan@seiner.com>
+Cc: linux-media@vger.kernel.org
+Date: Sun, 04 Dec 2011 23:15:27 -0500
+In-Reply-To: <4EDC25F1.4000909@seiner.com>
+References: <4EDC25F1.4000909@seiner.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Message-ID: <1323058527.12343.3.camel@palomino.walls.org>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15-12-2011 07:39, Javier Martin wrote:
-> In page 23 of the datasheet of this chip (SLES098A)
-> it is stated that de default input for this chip
-> is Composite AIP1A which is the same as COMPOSITE0
-> in the driver.
+On Sun, 2011-12-04 at 18:01 -0800, Yan Seiner wrote:
+> I am experiencing a kernel oops when trying to use a Hauppage USB Live 2 
+> frame grabber.  The oops is below.
 > 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/tvp5150.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
+> The system is a SOC 260Mhz Broadcom BCM47XX access point running OpenWRT.
 > 
-> diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
-> index e927d25..26cc75b 100644
-> --- a/drivers/media/video/tvp5150.c
-> +++ b/drivers/media/video/tvp5150.c
-> @@ -993,7 +993,7 @@ static int tvp5150_probe(struct i2c_client *c,
->  	}
->  
->  	core->norm = V4L2_STD_ALL;	/* Default is autodetect */
-> -	core->input = TVP5150_COMPOSITE1;
-> +	core->input = TVP5150_COMPOSITE0;
->  	core->enable = 1;
->  
->  	v4l2_ctrl_handler_init(&core->hdl, 4);
-
-Changing this could break em28xx that might be expecting it
-to be set to composite1. On a quick look, the code there seems to be
-doing the right thing: during the probe procedure, it explicitly 
-calls s_routing, in order to initialize the device input to the
-first input type found at the cards structure. So, this patch
-is likely harmless.
-
-Yet, why do you need to change it? Any bridge driver that uses it should
-be doing the same: at initialization, it should set the input to a
-value that it is compatible with the way the device is wired, and not
-to assume a particular arrangement.
+> root@anchor:/# uname -a
+> Linux anchor 3.0.3 #13 Sun Dec 4 08:04:41 PST 2011 mips GNU/Linux
+> 
+> The OOPS could be due to the limited hardware or something else.  I'd 
+> appreciate any suggestions for making this work.  I was hoping with 
+> hardware compression I could make it work on this platform.  I am 
+> currently using a Hauppage USB Live (saa7115 based) with no problems but 
+> with limited resolution.
+> 
+> cx231xx v4l2 driver loaded.
+> cx231xx #0: New device Hauppauge Hauppauge Device @ 480 Mbps (2040:c200) with 5 interfaces
+> cx231xx #0: registering interface 1
+> cx231xx #0: can't change interface 3 alt no. to 3: Max. Pkt size = 0
+> cx231xx #0: can't change interface 4 alt no. to 1: Max. Pkt size = 0
+> cx231xx #0: Identified as Hauppauge USB Live 2 (card=9)
+> cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+> cx231xx #0: Changing the i2c master port to 3
+> cx231xx #0: cx25840 subdev registration failure
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The cx231xx driver requires the cx25840 module.  I'll wager you didn't
+install it on your router.
 
 Regards,
-Mauro
+Andy
+
+
 
