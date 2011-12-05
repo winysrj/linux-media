@@ -1,52 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226Ab1LJEn2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:43:28 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:43:27 -0800 (PST)
+Received: from seiner.com ([66.178.130.209]:50739 "EHLO www.seiner.lan"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932076Ab1LEMbx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Dec 2011 07:31:53 -0500
+Received: from www.seiner.lan ([192.168.128.6] ident=yan)
+	by www.seiner.lan with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <yan@seiner.com>)
+	id 1RXXi4-0004rl-Eb
+	for linux-media@vger.kernel.org; Mon, 05 Dec 2011 04:31:52 -0800
+Message-ID: <4EDCB9B8.4030104@seiner.com>
+Date: Mon, 05 Dec 2011 04:31:52 -0800
+From: Yan Seiner <yan@seiner.com>
 MIME-Version: 1.0
-Date: Sat, 10 Dec 2011 10:13:27 +0530
-Message-ID: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com>
-Subject: v4 [PATCH 06/10] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=f46d0435c068e9e89804b3b58ac0
+To: linux-media@vger.kernel.org
+Subject: Re: cx231xx kernel oops
+References: <4EDC25F1.4000909@seiner.com> <1323058527.12343.3.camel@palomino.walls.org> <4EDC4C84.2030904@seiner.com> <4EDC4E9B.40301@seiner.com> <4EDCB6D1.1060508@seiner.com>
+In-Reply-To: <4EDCB6D1.1060508@seiner.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---f46d0435c068e9e89804b3b58ac0
-Content-Type: text/plain; charset=ISO-8859-1
+Yan Seiner wrote:
+> I'm still seeing a kernel oops on use.
+One more minor point:
 
+Before the kernel oops, I have /dev/video0.  After the oops, I have 
+/dev/video0 and /dev/video1 - probably related to the ehci crash.
 
+-- 
+Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions.
+    Albert Einstein
 
---f46d0435c068e9e89804b3b58ac0
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0006-DVB-Use-a-unique-delivery-system-identifier-for-DVBC.patch"
-Content-Disposition: attachment;
-	filename="0006-DVB-Use-a-unique-delivery-system-identifier-for-DVBC.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-RnJvbSA5MmE3OWExZTBhMWI1NDAzZjA2ZjYwNjYxZjAwZWRlMzY1YjEwMTA4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFRodSwgMjQgTm92IDIwMTEgMTc6MDk6MDkgKzA1MzAKU3ViamVjdDogW1BBVENIIDA2
-LzEwXSBEVkI6IFVzZSBhIHVuaXF1ZSBkZWxpdmVyeSBzeXN0ZW0gaWRlbnRpZmllciBmb3IgRFZC
-Q19BTk5FWF9DLAoganVzdCBsaWtlIGFueSBvdGhlci4gRFZCQ19BTk5FWF9BIGFuZCBEVkJDX0FO
-TkVYX0MgaGF2ZSBzbGlnaHRseQogZGlmZmVyZW50IHBhcmFtZXRlcnMgYW5kIHVzZWQgaW4gMiBn
-ZW9ncmFwaGljYWxseSBkaWZmZXJlbnQKIGxvY2F0aW9ucy4KClNpZ25lZC1vZmYtYnk6IE1hbnUg
-QWJyYWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBpbmNsdWRlL2xpbnV4L2R2Yi9m
-cm9udGVuZC5oIHwgICAgNyArKysrKystCiAxIGZpbGVzIGNoYW5nZWQsIDYgaW5zZXJ0aW9ucygr
-KSwgMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9udGVu
-ZC5oIGIvaW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQuaAppbmRleCBmODBiODYzLi5hM2M3NjIz
-IDEwMDY0NAotLS0gYS9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9udGVuZC5oCisrKyBiL2luY2x1ZGUv
-bGludXgvZHZiL2Zyb250ZW5kLmgKQEAgLTMzNSw3ICszMzUsNyBAQCB0eXBlZGVmIGVudW0gZmVf
-cm9sbG9mZiB7CiAKIHR5cGVkZWYgZW51bSBmZV9kZWxpdmVyeV9zeXN0ZW0gewogCVNZU19VTkRF
-RklORUQsCi0JU1lTX0RWQkNfQU5ORVhfQUMsCisJU1lTX0RWQkNfQU5ORVhfQSwKIAlTWVNfRFZC
-Q19BTk5FWF9CLAogCVNZU19EVkJULAogCVNZU19EU1MsCkBAIC0zNTIsOCArMzUyLDEzIEBAIHR5
-cGVkZWYgZW51bSBmZV9kZWxpdmVyeV9zeXN0ZW0gewogCVNZU19EQUIsCiAJU1lTX0RWQlQyLAog
-CVNZU19UVVJCTywKKwlTWVNfRFZCQ19BTk5FWF9DLAogfSBmZV9kZWxpdmVyeV9zeXN0ZW1fdDsK
-IAorCisjZGVmaW5lIFNZU19EVkJDX0FOTkVYX0FDCVNZU19EVkJDX0FOTkVYX0EKKworCiBzdHJ1
-Y3QgZHR2X2NtZHNfaCB7CiAJY2hhcgkqbmFtZTsJCS8qIEEgZGlzcGxheSBuYW1lIGZvciBkZWJ1
-Z2dpbmcgcHVycG9zZXMgKi8KIAotLSAKMS43LjEKCg==
---f46d0435c068e9e89804b3b58ac0--
