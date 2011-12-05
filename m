@@ -1,160 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35934 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753568Ab1L0BJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:48 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19l8h005550
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:47 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 65/91] [media] s5h1409: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:53 -0200
-Message-Id: <1324948159-23709-66-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-65-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
- <1324948159-23709-56-git-send-email-mchehab@redhat.com>
- <1324948159-23709-57-git-send-email-mchehab@redhat.com>
- <1324948159-23709-58-git-send-email-mchehab@redhat.com>
- <1324948159-23709-59-git-send-email-mchehab@redhat.com>
- <1324948159-23709-60-git-send-email-mchehab@redhat.com>
- <1324948159-23709-61-git-send-email-mchehab@redhat.com>
- <1324948159-23709-62-git-send-email-mchehab@redhat.com>
- <1324948159-23709-63-git-send-email-mchehab@redhat.com>
- <1324948159-23709-64-git-send-email-mchehab@redhat.com>
- <1324948159-23709-65-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:49832 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751455Ab1LEVXw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 16:23:52 -0500
+MIME-Version: 1.0
+In-Reply-To: <CAF6AEGvyWV0DM2fjBbh-TNHiMmiLF4EQDJ6Uu0=NkopM6SXS6g@mail.gmail.com>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+	<1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
+	<201112051718.48324.arnd@arndb.de>
+	<CAF6AEGvyWV0DM2fjBbh-TNHiMmiLF4EQDJ6Uu0=NkopM6SXS6g@mail.gmail.com>
+Date: Mon, 5 Dec 2011 22:23:51 +0100
+Message-ID: <CAKMK7uHw3OpMAtVib=e=s_us9Tx9TebzehGg59d4-g9dUXr+pQ@mail.gmail.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Rob Clark <rob@ti.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Sumit Semwal <sumit.semwal@ti.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, daniel@ffwll.ch,
+	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On Mon, Dec 05, 2011 at 02:46:47PM -0600, Rob Clark wrote:
+> On Mon, Dec 5, 2011 at 11:18 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > In the patch 2, you have a section about migration that mentions that
+> > it is possible to export a buffer that can be migrated after it
+> > is already mapped into one user driver. How does that work when
+> > the physical addresses are mapped into a consumer device already?
+>
+> I think you can do physical migration if you are attached, but
+> probably not if you are mapped.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Yeah, that's very much how I see this, and also why map/unmap (at least
+for simple users like v4l) should only bracket actual usage. GPU memory
+managers need to be able to move around buffers while no one is using
+them.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/s5h1409.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+[snip]
 
-diff --git a/drivers/media/dvb/frontends/s5h1409.c b/drivers/media/dvb/frontends/s5h1409.c
-index f39216c..2641fd5 100644
---- a/drivers/media/dvb/frontends/s5h1409.c
-+++ b/drivers/media/dvb/frontends/s5h1409.c
-@@ -631,9 +631,9 @@ static void s5h1409_set_qam_interleave_mode_legacy(struct dvb_frontend *fe)
- }
- 
- /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
--static int s5h1409_set_frontend(struct dvb_frontend *fe,
--				 struct dvb_frontend_parameters *p)
-+static int s5h1409_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct s5h1409_state *state = fe->demodulator_priv;
- 
- 	dprintk("%s(frequency=%d)\n", __func__, p->frequency);
-@@ -642,7 +642,7 @@ static int s5h1409_set_frontend(struct dvb_frontend *fe,
- 
- 	state->current_frequency = p->frequency;
- 
--	s5h1409_enable_modulation(fe, p->u.vsb.modulation);
-+	s5h1409_enable_modulation(fe, p->modulation);
- 
- 	if (fe->ops.tuner_ops.set_params) {
- 		if (fe->ops.i2c_gate_ctrl)
-@@ -926,12 +926,12 @@ static int s5h1409_read_ber(struct dvb_frontend *fe, u32 *ber)
- }
- 
- static int s5h1409_get_frontend(struct dvb_frontend *fe,
--				struct dvb_frontend_parameters *p)
-+				struct dtv_frontend_properties *p)
- {
- 	struct s5h1409_state *state = fe->demodulator_priv;
- 
- 	p->frequency = state->current_frequency;
--	p->u.vsb.modulation = state->current_modulation;
-+	p->modulation = state->current_modulation;
- 
- 	return 0;
- }
-@@ -996,7 +996,7 @@ error:
- EXPORT_SYMBOL(s5h1409_attach);
- 
- static struct dvb_frontend_ops s5h1409_ops = {
--
-+	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
- 	.info = {
- 		.name			= "Samsung S5H1409 QAM/8VSB Frontend",
- 		.type			= FE_ATSC,
-@@ -1008,8 +1008,8 @@ static struct dvb_frontend_ops s5h1409_ops = {
- 
- 	.init                 = s5h1409_init,
- 	.i2c_gate_ctrl        = s5h1409_i2c_gate_ctrl,
--	.set_frontend_legacy         = s5h1409_set_frontend,
--	.get_frontend_legacy = s5h1409_get_frontend,
-+	.set_frontend         = s5h1409_set_frontend,
-+	.get_frontend         = s5h1409_get_frontend,
- 	.get_tune_settings    = s5h1409_get_tune_settings,
- 	.read_status          = s5h1409_read_status,
- 	.read_ber             = s5h1409_read_ber,
+> >> +     /* allow allocator to take care of cache ops */
+> >> +     void (*sync_sg_for_cpu) (struct dma_buf *, struct device *);
+> >> +     void (*sync_sg_for_device)(struct dma_buf *, struct device *);
+> >
+> > I don't see how this works with multiple consumers: For the streaming
+> > DMA mapping, there must be exactly one owner, either the device or
+> > the CPU. Obviously, this rule needs to be extended when you get to
+> > multiple devices and multiple device drivers, plus possibly user
+> > mappings. Simply assigning the buffer to "the device" from one
+> > driver does not block other drivers from touching the buffer, and
+> > assigning it to "the cpu" does not stop other hardware that the
+> > code calling sync_sg_for_cpu is not aware of.
+> >
+> > The only way to solve this that I can think of right now is to
+> > mandate that the mappings are all coherent (i.e. noncachable
+> > on noncoherent architectures like ARM). If you do that, you no
+> > longer need the sync_sg_for_* calls.
+>
+> My original thinking was that you either need DMABUF_CPU_{PREP,FINI}
+> ioctls and corresponding dmabuf ops, which userspace is required to
+> call before / after CPU access.  Or just remove mmap() and do the
+> mmap() via allocating device and use that device's equivalent
+> DRM_XYZ_GEM_CPU_{PREP,FINI} or DRM_XYZ_GEM_SET_DOMAIN ioctls.  That
+> would give you a way to (a) synchronize with gpu/asynchronous
+> pipeline, (b) synchronize w/ multiple hw devices vs cpu accessing
+> buffer (ie. wait all devices have dma_buf_unmap_attachment'd).  And
+> that gives you a convenient place to do cache operations on
+> noncoherent architecture.
+>
+> I sort of preferred having the DMABUF shim because that lets you pass
+> a buffer around userspace without the receiving code knowing about a
+> device specific API.  But the problem I eventually came around to: if
+> your GL stack (or some other userspace component) is batching up
+> commands before submission to kernel, the buffers you need to wait for
+> completion might not even be submitted yet.  So from kernel
+> perspective they are "ready" for cpu access.  Even though in fact they
+> are not in a consistent state from rendering perspective.  I don't
+> really know a sane way to deal with that.  Maybe the approach instead
+> should be a userspace level API (in libkms/libdrm?) to provide
+> abstraction for userspace access to buffers rather than dealing with
+> this at the kernel level.
+
+Well, there's a reason GL has an explicit flush and extensions for sync
+objects. It's to support such scenarios where the driver batches up gpu
+commands before actually submitting them. Also, recent gpus have all (or
+shortly will grow) multiple execution pipelines, so it's also important
+that you sync up with the right command stream. Syncing up with all of
+them is generally frowned upon for obvious reasons ;-)
+
+So any userspace that interacts with an OpenGL driver needs to take care
+of this anyway. But I think for simpler stuff (v4l) kernel only coherency
+should work and userspace just needs to take care of gl interactions and
+call glflush and friends at the right points. I think we can flesh this
+out precisely when we spec the dmabuf EGL extension ... (or implement one
+of the preexisting ones already around).
+
+On the topic of a coherency model for dmabuf, I think we need to look at
+dma_buf_attachment_map/unmap (and also the mmap variants cpu_start and
+cpu_finish or whatever they might get called) as barriers:
+
+So after a dma_buf_map, all previsously completed dma operations (i.e.
+unmap already called) and any cpu writes (i.e. cpu_finish called) will be
+coherent. Similar rule holds for cpu access through the userspace mmap,
+only writes completed before the cpu_start will show up.
+
+Similar, writes done by the device are only guaranteed to show up after
+the _unmap. Dito for cpu writes and cpu_finish.
+
+In short we always need two function calls to denote the start/end of the
+"critical section".
+
+Any concurrent operations are allowed to yield garbage, meaning any
+combination of the old or either of the newly written contents (i.e.
+non-overlapping writes might not actually all end up in the buffer,
+but instead some old contents). Maybe we even need to loosen that to
+the real "undefined behaviour", but atm I can't think of an example.
+
+-Daniel
 -- 
-1.7.8.352.g876a6
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
