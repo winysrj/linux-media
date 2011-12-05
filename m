@@ -1,90 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:57879 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933026Ab1LFJuj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 04:50:39 -0500
-Date: Tue, 6 Dec 2011 10:49:12 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: linux-media@vger.kernel.org, nicolas.ferre@atmel.com,
-	linux@arm.linux.org.uk, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 2/2] [media] V4L: atmel-isi: add clk_prepare()/clk_unprepare()
- functions
-In-Reply-To: <1322647604-30662-2-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1112061045150.10715@axis700.grange>
-References: <1322647604-30662-1-git-send-email-josh.wu@atmel.com>
- <1322647604-30662-2-git-send-email-josh.wu@atmel.com>
+Received: from mx1.redhat.com ([209.132.183.28]:12422 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756551Ab1LESQT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Dec 2011 13:16:19 -0500
+Message-ID: <4EDD0A6E.7070807@redhat.com>
+Date: Mon, 05 Dec 2011 16:16:14 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: "Zhu, Mingcheng" <mingchen@quicinc.com>
+CC: "hverkuil@xs4all.nl" <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: V4L2 driver node directory structure under /video directory
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <4ED7BBA3.5020002@redhat.com> <CAJbz7-1_Nb8d427bOMzCDbRcvwQ3QjD=2KhdPQS_h_jaYY5J3w@mail.gmail.com> <4ED7E5D7.8070909@redhat.com> <4ED805CB.5020302@linuxtv.org> <4ED8B327.9090505@redhat.com> <CAJbz7-2EVgwPY0wkqPVCoOyH2gM_7pf0DzP-Lf4Y65uZpci9GQ@mail.gmail.com> <4ED90BFD.3040805@redhat.com> <3D233F78EE854A4BA3D34C11AD4FAC1FDD141F@nasanexd01b.na.qualcomm.com>
+In-Reply-To: <3D233F78EE854A4BA3D34C11AD4FAC1FDD141F@nasanexd01b.na.qualcomm.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh
+On 05-12-2011 13:40, Zhu, Mingcheng wrote:
+> Hi Mauro and Hans,
+> For our MSM chipset family we will have multiple capture device drivers. There are two directory layout approaches as:
+> Tree type directory structure:
+>
+>   * /video/msm/camera: for camera driver
+>   * /video/msm/wfd: for our wfd driver
+>   * Etc.
+>
+> Flat directory structure:
+>
+>   * /video/msm: for our existing camera driver
+>   * /video/msm_wfd: for our new wfd driver
+>
+> Both have pros and cons. The tree directory structure groups msm family drivers well but less readable than the flat directory structure. However, the flat directory structure floods the /video directory when all venders add more drivers into it.
+> What approach do you suggest/prefer? Looking forward to getting your reply.
 
-Thanks for the patch, but I'll ask you to fix the same thing in it, that 
-I've fixed for you in the first patch in this series:
+Not sure if I understood your question. If by "msm/camera" you're meaning the
+sensors drivers,  we're currently putting all camera sensors at /drivers/media/video.
+I don't see any reason why those should be under drivers/media/video/msm
+(or whatever inside it). Those drivers should use the V4L2 subdev approach and
+be capable of being re-used on other drivers, as we don't want to have duplicated
+efforts to maintain them at the kernel.
 
-On Wed, 30 Nov 2011, Josh Wu wrote:
+Eventually, we might, in the future, move all of them to some sensor-specific directory.
 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> ---
->  drivers/media/video/atmel-isi.c |   17 ++++++++++++++++-
->  1 files changed, 16 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-> index ea4eef4..5da4381 100644
-> --- a/drivers/media/video/atmel-isi.c
-> +++ b/drivers/media/video/atmel-isi.c
+If you're just referring to two different drivers, it is basically up to you
+to choose whatever fits better. If they don't share any common code, it makes
+sense to have one different directory under /video. We do this already. For example,
+there are several supported Conexant chipsets. Each has their own directory, as they're
+completely independent designs and don't share any code between them (well, except for
+the risc code generator at drivers/media/video/btcx-risc.c that is shared
+by both bttv and cx88 drivers).
 
-[snip]
+On the other hand, if the drivers share several common stuff that are specific
+for the MSM chipset, it is likely better to do:
+.../video/msm/common
+.../video/msm/wfd
+	...
 
-> @@ -978,10 +986,14 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  		goto err_clk_get;
->  	}
->  
-> +	ret = clk_prepare(isi->mck);
-> +	if (ret)
-> +		goto err_set_mck_rate;
-> +
->  	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
->  	ret = clk_set_rate(isi->mck, pdata->mck_hz);
->  	if (ret < 0)
-> -		goto err_set_mck_rate;
-> +		goto err_unprepare_mck;
->  
->  	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
->  				sizeof(struct fbd) * MAX_BUFFER_NUM,
-> @@ -1058,11 +1070,14 @@ err_alloc_ctx:
->  			isi->p_fb_descriptors,
->  			isi->fb_descriptors_phys);
->  err_alloc_descriptors:
-> +err_unprepare_mck:
-> +	clk_unprepare(isi->mck);
->  err_set_mck_rate:
->  	clk_put(isi->mck);
->  err_clk_get:
->  	kfree(isi);
->  err_alloc_isi:
-> +	clk_unprepare(pclk);
->  	clk_put(pclk);
->  
->  	return ret;
+E. g. one directory for each driver, and a common directory with the shared
+modules.
 
-Please, use error label names consistently. As you can see, currently the 
-driver uses the convention
-
-	ret = do_something();
-	if (ret < 0)
-		goto err_do_something;
-
-i.e., the label is called after the operation, that has failed, not after 
-the clean up step, that the control now has to jump to. Please, update 
-your patch to also use this convention.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+Mauro
