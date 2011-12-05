@@ -1,186 +1,305 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65530 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751992Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:32 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9WqU009185
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 84/94] [media] dvb: simplify get_tune_settings() struct
-Date: Fri, 30 Dec 2011 13:08:21 -0200
-Message-Id: <1325257711-12274-85-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:39721 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754250Ab1LEJsX convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Dec 2011 04:48:23 -0500
+MIME-Version: 1.0
+In-Reply-To: <20111202171117.GA27322@phenom.dumpdata.com>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+ <1322816252-19955-2-git-send-email-sumit.semwal@ti.com> <20111202171117.GA27322@phenom.dumpdata.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Mon, 5 Dec 2011 15:18:00 +0530
+Message-ID: <CAB2ybb-G=4igL+XdRgH6oFSFdsBLuCoany4KeNaFfnLEaQzgdw@mail.gmail.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+To: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	t.stanislaws@samsung.com, linux@arm.linux.org.uk, arnd@arndb.de,
+	rob@ti.com, Sumit Semwal <sumit.semwal@linaro.org>,
+	m.szyprowski@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the past, dvb_frontent_parameters were passed inside the
-struct where get_tuner_settings should store their result.
+Hi Konrad,
 
-This is not needed anymore, as all parameters needed are stored
-already at the fe property cache. So, use it, where needed.
+On Fri, Dec 2, 2011 at 10:41 PM, Konrad Rzeszutek Wilk
+<konrad.wilk@oracle.com> wrote:
+> On Fri, Dec 02, 2011 at 02:27:31PM +0530, Sumit Semwal wrote:
+>> This is the first step in defining a dma buffer sharing mechanism.
+>>
+<snip>
+>>
+>> [1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
+>> [2]: http://lwn.net/Articles/454389
+>>
+>> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+>> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+>
+> You have a clone? You only need one SOB.
+:) Thanks for your review - Well, not a clone, but I have two 'employers' :))
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |    3 ---
- drivers/media/dvb/dvb-core/dvb_frontend.h |    1 -
- drivers/media/dvb/frontends/s5h1420.c     |   16 ++++++++--------
- drivers/media/dvb/frontends/stv0299.c     |    9 +++++----
- drivers/media/dvb/frontends/tda10086.c    |   16 +++++++++-------
- 5 files changed, 22 insertions(+), 23 deletions(-)
+I have a rather weird reason for this - I am employed with Texas
+Instruments, but working with Linaro as well. And due to some
+'non-technical' reasons, I need to send this work from @ti.com mail
+ID. At the same time, I would like to acknowledge that this work was
+done as part of the Linaro umbrella, so I put another SOB @linaro.org.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 5bb6c1d..bf733c4 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1977,13 +1977,10 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		fepriv->parameters_out = fepriv->parameters_in;
- 
- 		memset(&fetunesettings, 0, sizeof(struct dvb_frontend_tune_settings));
--		memcpy(&fetunesettings.parameters, parg,
--		       sizeof (struct dvb_frontend_parameters));
- 
- 		/* force auto frequency inversion if requested */
- 		if (dvb_force_auto_inversion) {
- 			fepriv->parameters_in.inversion = INVERSION_AUTO;
--			fetunesettings.parameters.inversion = INVERSION_AUTO;
- 		}
- 		if (fe->ops.info.type == FE_OFDM) {
- 			/* without hierarchical coding code_rate_LP is irrelevant,
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index 23456b3..4b49bcd 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -52,7 +52,6 @@ struct dvb_frontend_tune_settings {
- 	int min_delay_ms;
- 	int step_size;
- 	int max_drift;
--	struct dvb_frontend_parameters parameters;
- };
- 
- struct dvb_frontend;
-diff --git a/drivers/media/dvb/frontends/s5h1420.c b/drivers/media/dvb/frontends/s5h1420.c
-index 3bdfcbe..0726494 100644
---- a/drivers/media/dvb/frontends/s5h1420.c
-+++ b/drivers/media/dvb/frontends/s5h1420.c
-@@ -639,7 +639,6 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe)
- 	dprintk("enter %s\n", __func__);
- 
- 	/* check if we should do a fast-tune */
--	memcpy(&fesettings.parameters, p, sizeof(struct dtv_frontend_properties));
- 	s5h1420_get_tune_settings(fe, &fesettings);
- 	frequency_delta = p->frequency - state->tunedfreq;
- 	if ((frequency_delta > -fesettings.max_drift) &&
-@@ -782,29 +781,30 @@ static int s5h1420_get_frontend(struct dvb_frontend* fe,
- static int s5h1420_get_tune_settings(struct dvb_frontend* fe,
- 				     struct dvb_frontend_tune_settings* fesettings)
- {
--	if (fesettings->parameters.u.qpsk.symbol_rate > 20000000) {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	if (p->symbol_rate > 20000000) {
- 		fesettings->min_delay_ms = 50;
- 		fesettings->step_size = 2000;
- 		fesettings->max_drift = 8000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 12000000) {
-+	} else if (p->symbol_rate > 12000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 1500;
- 		fesettings->max_drift = 9000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 8000000) {
-+	} else if (p->symbol_rate > 8000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 1000;
- 		fesettings->max_drift = 8000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 4000000) {
-+	} else if (p->symbol_rate > 4000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 500;
- 		fesettings->max_drift = 7000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 2000000) {
-+	} else if (p->symbol_rate > 2000000) {
- 		fesettings->min_delay_ms = 200;
--		fesettings->step_size = (fesettings->parameters.u.qpsk.symbol_rate / 8000);
-+		fesettings->step_size = (p->symbol_rate / 8000);
- 		fesettings->max_drift = 14 * fesettings->step_size;
- 	} else {
- 		fesettings->min_delay_ms = 200;
--		fesettings->step_size = (fesettings->parameters.u.qpsk.symbol_rate / 8000);
-+		fesettings->step_size = (p->symbol_rate / 8000);
- 		fesettings->max_drift = 18 * fesettings->step_size;
- 	}
- 
-diff --git a/drivers/media/dvb/frontends/stv0299.c b/drivers/media/dvb/frontends/stv0299.c
-index abf4bff..ad6f3a6 100644
---- a/drivers/media/dvb/frontends/stv0299.c
-+++ b/drivers/media/dvb/frontends/stv0299.c
-@@ -647,14 +647,15 @@ static int stv0299_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
- static int stv0299_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* fesettings)
- {
- 	struct stv0299_state* state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 
- 	fesettings->min_delay_ms = state->config->min_delay_ms;
--	if (fesettings->parameters.u.qpsk.symbol_rate < 10000000) {
--		fesettings->step_size = fesettings->parameters.u.qpsk.symbol_rate / 32000;
-+	if (p->symbol_rate < 10000000) {
-+		fesettings->step_size = p->symbol_rate / 32000;
- 		fesettings->max_drift = 5000;
- 	} else {
--		fesettings->step_size = fesettings->parameters.u.qpsk.symbol_rate / 16000;
--		fesettings->max_drift = fesettings->parameters.u.qpsk.symbol_rate / 2000;
-+		fesettings->step_size = p->symbol_rate / 16000;
-+		fesettings->max_drift = p->symbol_rate / 2000;
- 	}
- 	return 0;
- }
-diff --git a/drivers/media/dvb/frontends/tda10086.c b/drivers/media/dvb/frontends/tda10086.c
-index 81fa57b..cfc6e0e 100644
---- a/drivers/media/dvb/frontends/tda10086.c
-+++ b/drivers/media/dvb/frontends/tda10086.c
-@@ -664,29 +664,31 @@ static int tda10086_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
- 
- static int tda10086_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* fesettings)
- {
--	if (fesettings->parameters.u.qpsk.symbol_rate > 20000000) {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+
-+	if (p->symbol_rate > 20000000) {
- 		fesettings->min_delay_ms = 50;
- 		fesettings->step_size = 2000;
- 		fesettings->max_drift = 8000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 12000000) {
-+	} else if (p->symbol_rate > 12000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 1500;
- 		fesettings->max_drift = 9000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 8000000) {
-+	} else if (p->symbol_rate > 8000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 1000;
- 		fesettings->max_drift = 8000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 4000000) {
-+	} else if (p->symbol_rate > 4000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 500;
- 		fesettings->max_drift = 7000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 2000000) {
-+	} else if (p->symbol_rate > 2000000) {
- 		fesettings->min_delay_ms = 200;
--		fesettings->step_size = (fesettings->parameters.u.qpsk.symbol_rate / 8000);
-+		fesettings->step_size = p->symbol_rate / 8000;
- 		fesettings->max_drift = 14 * fesettings->step_size;
- 	} else {
- 		fesettings->min_delay_ms = 200;
--		fesettings->step_size = (fesettings->parameters.u.qpsk.symbol_rate / 8000);
-+		fesettings->step_size =  p->symbol_rate / 8000;
- 		fesettings->max_drift = 18 * fesettings->step_size;
- 	}
- 
--- 
-1.7.8.352.g876a6
+>
+>
+<snip>
+>> + * Copyright(C) 2011 Linaro Limited. All rights reserved.
+>> + * Author: Sumit Semwal <sumit.semwal@ti.com>
+>
+> OK, so the SOB should be from @ti.com then.
+>
+>> + *
+<snip>
+>> +static int dma_buf_mmap(struct file *file, struct vm_area_struct *vma)
+>> +{
+>> +     struct dma_buf *dmabuf;
+>> +
+>> +     if (!is_dma_buf_file(file))
+>> +             return -EINVAL;
+>> +
+>> +     dmabuf = file->private_data;
+>> +
+>
+> Should you check if dmabuf is NULL and or dmabuf->ops is NULL too?
+>
+> Hm, you probably don't need to check for dmabuf, but from
+> looking at  dma_buf_export one could pass  a NULL for the ops.
+see next comment
+>
+>> +     if (!dmabuf->ops->mmap)
+>> +             return -EINVAL;
+>> +
+>> +     return dmabuf->ops->mmap(dmabuf, vma);
+>> +}
+>> +
+>> +static int dma_buf_release(struct inode *inode, struct file *file)
+>> +{
+>> +     struct dma_buf *dmabuf;
+>> +
+>> +     if (!is_dma_buf_file(file))
+>> +             return -EINVAL;
+>> +
+>> +     dmabuf = file->private_data;
+>> +
+>
+> No checking here for ops or ops->release?
+Hmmm.. you're right, of course. for this common check in mmap and
+release, I guess I'd add it to 'is_dma_buf_file()' helper [maybe call
+it is_valid_dma_buf_file() or something similar]
+>
+<snip>
+>> +
+>> +/**
+>
+> I don't think the ** is anymore the current kernel doc format.
+thanks for catching this :) - will correct.
+>
+>> + * dma_buf_export - Creates a new dma_buf, and associates an anon file
+>> + * with this buffer,so it can be exported.
+>
+> Put a space there.
+ok
+>
+>> + * Also connect the allocator specific data and ops to the buffer.
+>> + *
+>> + * @priv:    [in]    Attach private data of allocator to this buffer
+>> + * @ops:     [in]    Attach allocator-defined dma buf ops to the new buffer.
+>> + * @flags:   [in]    mode flags for the file.
+>> + *
+>> + * Returns, on success, a newly created dma_buf object, which wraps the
+>> + * supplied private data and operations for dma_buf_ops. On failure to
+>> + * allocate the dma_buf object, it can return NULL.
+>
+> "it can" I think the right word is "it will".
+Right.
+>
+>> + *
+>> + */
+>> +struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
+>> +                             int flags)
+>> +{
+>> +     struct dma_buf *dmabuf;
+>> +     struct file *file;
+>> +
+>> +     BUG_ON(!priv || !ops);
+>
+> Whoa. Crash the whole kernel b/c of this? No no. You should
+> use WARN_ON and just return NULL.
+ok
+>
+>> +
+>> +     dmabuf = kzalloc(sizeof(struct dma_buf), GFP_KERNEL);
+>> +     if (dmabuf == NULL)
+>> +             return dmabuf;
+>
+> Hmm, why not return ERR_PTR(-ENOMEM); ?
+ok
+>
+>> +
+>> +     dmabuf->priv = priv;
+>> +     dmabuf->ops = ops;
+>> +
+>> +     file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf, flags);
+>> +
+>> +     dmabuf->file = file;
+>> +
+>> +     mutex_init(&dmabuf->lock);
+>> +     INIT_LIST_HEAD(&dmabuf->attachments);
+>> +
+>> +     return dmabuf;
+>> +}
+>> +EXPORT_SYMBOL(dma_buf_export);
+>
+> _GPL ?
+sure; will change it.
+>
+>> +
+>> +
+>> +/**
+>> + * dma_buf_fd - returns a file descriptor for the given dma_buf
+>> + * @dmabuf:  [in]    pointer to dma_buf for which fd is required.
+>> + *
+>> + * On success, returns an associated 'fd'. Else, returns error.
+>> + */
+>> +int dma_buf_fd(struct dma_buf *dmabuf)
+>> +{
+>> +     int error, fd;
+>> +
+>
+> Should you check if dmabuf is NULL first?
+yes.
+>
+>> +     if (!dmabuf->file)
+>> +             return -EINVAL;
+>> +
+>> +     error = get_unused_fd_flags(0);
+>> +     if (error < 0)
+>> +             return error;
+>> +     fd = error;
+>> +
+>> +     fd_install(fd, dmabuf->file);
+>> +
+>> +     return fd;
+>> +}
+>> +EXPORT_SYMBOL(dma_buf_fd);
+>
+> GPL?
+sure; will change it.
+>> +
+>> +/**
+>> + * dma_buf_get - returns the dma_buf structure related to an fd
+>> + * @fd:      [in]    fd associated with the dma_buf to be returned
+>> + *
+>> + * On success, returns the dma_buf structure associated with an fd; uses
+>> + * file's refcounting done by fget to increase refcount. returns ERR_PTR
+>> + * otherwise.
+>> + */
+>> +struct dma_buf *dma_buf_get(int fd)
+>> +{
+>> +     struct file *file;
+>> +
+>> +     file = fget(fd);
+>> +
+>> +     if (!file)
+>> +             return ERR_PTR(-EBADF);
+>> +
+>> +     if (!is_dma_buf_file(file)) {
+>> +             fput(file);
+>> +             return ERR_PTR(-EINVAL);
+>> +     }
+>> +
+>> +     return file->private_data;
+>> +}
+>> +EXPORT_SYMBOL(dma_buf_get);
+>
+> GPL
+sure; will change it.
+>> +
+>> +/**
+>> + * dma_buf_put - decreases refcount of the buffer
+>> + * @dmabuf:  [in]    buffer to reduce refcount of
+>> + *
+>> + * Uses file's refcounting done implicitly by fput()
+>> + */
+>> +void dma_buf_put(struct dma_buf *dmabuf)
+>> +{
+>> +     BUG_ON(!dmabuf->file);
+>
+> Yikes. BUG_ON? Can't you do WARN_ON and continue on without
+> doing the refcounting?
+ok
+>
+>> +
+>> +     fput(dmabuf->file);
+>> +}
+>> +EXPORT_SYMBOL(dma_buf_put);
+>> +
+>> +/**
+>> + * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
+>> + * calls attach() of dma_buf_ops to allow device-specific attach functionality
+>> + * @dmabuf:  [in]    buffer to attach device to.
+>> + * @dev:     [in]    device to be attached.
+>> + *
+>> + * Returns struct dma_buf_attachment * for this attachment; may return NULL.
+>> + *
+>> + */
+>> +struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+>> +                                             struct device *dev)
+>
+> 'struct device' should be at the same column as 'struct dma_buf' ..
+>
+>> +{
+>> +     struct dma_buf_attachment *attach;
+>> +     int ret;
+>> +
+>> +     BUG_ON(!dmabuf || !dev);
+>
+> Again, BUG_ON...
+will correct
+>
+>> +
+>> +     attach = kzalloc(sizeof(struct dma_buf_attachment), GFP_KERNEL);
+>> +     if (attach == NULL)
+>> +             goto err_alloc;
+>> +
+>> +     mutex_lock(&dmabuf->lock);
+>> +
+>> +     attach->dev = dev;
+>> +     attach->dmabuf = dmabuf;
+>> +     if (dmabuf->ops->attach) {
+>
+> No checking first of dmabuf->ops?
+Attach is told to be a mandatory operation for dmabuf exporter, but I
+understand your point - checking for it won't hurt.
+>
+>> +             ret = dmabuf->ops->attach(dmabuf, dev, attach);
+>> +             if (!ret)
+>> +                     goto err_attach;
+>> +     }
+>> +     list_add(&attach->node, &dmabuf->attachments);
+>> +
+>> +     mutex_unlock(&dmabuf->lock);
+>> +
+>> +err_alloc:
+>> +     return attach;
+>> +err_attach:
+>> +     kfree(attach);
+>> +     mutex_unlock(&dmabuf->lock);
+>> +     return ERR_PTR(ret);
+>> +}
+>> +EXPORT_SYMBOL(dma_buf_attach);
+>
+> GPL
+sure; will change it.
+<snip>
 
+Thanks and regards,
+~Sumit.
