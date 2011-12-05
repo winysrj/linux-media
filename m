@@ -1,41 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from earthlight.etchedpixels.co.uk ([81.2.110.250]:35650 "EHLO
-	pyramind.ukuu.org.uk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754361Ab1LIOYJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 09:24:09 -0500
-Date: Fri, 9 Dec 2011 14:24:05 +0000
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	"Semwal, Sumit" <sumit.semwal@ti.com>, linux@arm.linux.org.uk,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
- sharing mechanism
-Message-ID: <20111209142405.6f371be6@pyramind.ukuu.org.uk>
-In-Reply-To: <201112091413.03736.arnd@arndb.de>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<201112071340.35267.arnd@arndb.de>
-	<CAKMK7uFQiiUbkU-7c3Os0d0FJNyLbqS2HLPRLy3LGnOoCXV5Pw@mail.gmail.com>
-	<201112091413.03736.arnd@arndb.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:56299 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932420Ab1LEPwj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 10:52:39 -0500
+Received: by bkbzv3 with SMTP id zv3so2002574bkb.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2011 07:52:38 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 5 Dec 2011 09:52:38 -0600
+Message-ID: <CANut7vCKHpNLZ9=1i+zLYp0h_a2EEuhnOCHW4U=Sr_xX39i7Sw@mail.gmail.com>
+Subject: which fm cards/hardware work with linux kernel 3.x?
+From: Will Milspec <will.milspec@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> I still don't think that's possible. Please explain how you expect
-> to change the semantics of the streaming mapping API to allow multiple
-> mappers without having explicit serialization points that are visible
-> to all users. For simplicity, let's assume a cache coherent system
+hi all,
 
-I would agree. It's not just about barriers but in many cases where you
-have multiple mappings by hardware devices the actual hardware interface
-is specific to the devices. Just take a look at the fencing in TTM and
-the graphics drivers.
+I'm a linux-media user who for many years used an fm radio card.
 
-Its not something the low level API can deal with, it requires high level
-knowledge.
+After recent kernel updates, fm no longer works.  I frankly, don't
+know enough to determine where the problem lies--whether it's hardware
+or out of date drivers or unmaintained code.
 
-Alan
+FM Radio seems to join the "dustbins of tech" along with teletype,
+wire recorders, and, am radio. For now it's still very helpful for
+legally recording OTA broadcasts.
+
+I'm ready to upgrade my fm card.
+
+If you know a working solution--specific fm cards or usb fm
+receivers-- as well as any software tweaks--please respond to this
+thread or email me directly.
+
+thanks in advance,
+
+will
