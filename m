@@ -1,104 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44828 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755187Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:23 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKMZ2004850
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:22 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 02/28] [media] Update documentation to reflect DVB-C Annex A/C support
-Date: Thu, 22 Dec 2011 09:19:50 -0200
-Message-Id: <1324552816-25704-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-2-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:52359 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751140Ab1LESXc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 13:23:32 -0500
+Received: by ywa9 with SMTP id 9so4548861ywa.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2011 10:23:31 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1321800978-27912-5-git-send-email-mchehab@redhat.com>
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-2-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-3-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-4-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-5-git-send-email-mchehab@redhat.com>
+Date: Mon, 5 Dec 2011 13:23:31 -0500
+Message-ID: <CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com>
+Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE
+ HVR-930C again
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using the same delivery system for both Annex A and
-Annex C, split them into two separate ones. This helps to support
-devices that only support Annex A.
+On Sun, Nov 20, 2011 at 9:56 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+> index ecd1f95..048f489 100644
+> --- a/drivers/media/common/tuners/xc5000.c
+> +++ b/drivers/media/common/tuners/xc5000.c
+> @@ -1004,6 +1004,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+>        struct xc5000_priv *priv = fe->tuner_priv;
+>        int ret = 0;
+>
+> +       mutex_lock(&xc5000_list_mutex);
+> +
+>        if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+>                ret = xc5000_fwupload(fe);
+>                if (ret != XC_RESULT_SUCCESS)
+> @@ -1023,6 +1025,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
+>        /* Default to "CABLE" mode */
+>        ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
+>
+> +       mutex_unlock(&xc5000_list_mutex);
+> +
+>        return ret;
+>  }
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- Documentation/DocBook/media/dvb/dvbproperty.xml |   11 +++++------
- Documentation/DocBook/media/dvb/frontend.xml    |    4 ++--
- 2 files changed, 7 insertions(+), 8 deletions(-)
+What's up with this change?  Is this a bugfix for some race condition?
+ Why is it jammed into a patch for some particular product?
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index b812e31..ffee1fb 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -311,8 +311,6 @@ typedef enum fe_rolloff {
- 	ROLLOFF_20,
- 	ROLLOFF_25,
- 	ROLLOFF_AUTO,
--	ROLLOFF_15, /* DVB-C Annex A */
--	ROLLOFF_13, /* DVB-C Annex C */
- } fe_rolloff_t;
- 		</programlisting>
- 		</section>
-@@ -336,9 +334,10 @@ typedef enum fe_rolloff {
- 		<title>fe_delivery_system type</title>
- 		<para>Possible values: </para>
- <programlisting>
-+
- typedef enum fe_delivery_system {
- 	SYS_UNDEFINED,
--	SYS_DVBC_ANNEX_AC,
-+	SYS_DVBC_ANNEX_A,
- 	SYS_DVBC_ANNEX_B,
- 	SYS_DVBT,
- 	SYS_DSS,
-@@ -355,6 +354,7 @@ typedef enum fe_delivery_system {
- 	SYS_DAB,
- 	SYS_DVBT2,
- 	SYS_TURBO,
-+	SYS_DVBC_ANNEX_C,
- } fe_delivery_system_t;
- </programlisting>
- 		</section>
-@@ -781,7 +781,8 @@ typedef enum fe_hierarchy {
- 	<title>Properties used on cable delivery systems</title>
- 	<section id="dvbc-params">
- 		<title>DVB-C delivery system</title>
--		<para>The DVB-C Annex-A/C is the widely used cable standard. Transmission uses QAM modulation.</para>
-+		<para>The DVB-C Annex-A is the widely used cable standard. Transmission uses QAM modulation.</para>
-+		<para>The DVB-C Annex-C is optimized for 6MHz, and is used in Japan. It supports a subset of the Annex A modulation types, and a roll-off of 0.13, instead of 0.15</para>
- 		<para>The following parameters are valid for DVB-C Annex A/C:</para>
- 		<itemizedlist mark='opencircle'>
- 			<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
-@@ -792,10 +793,8 @@ typedef enum fe_hierarchy {
- 			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
--			<listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
- 		</itemizedlist>
--		<para>The Rolloff of 0.15 (ROLLOFF_15) is assumed, as ITU-T J.83 Annex A is more common. For Annex C, rolloff should be 0.13 (ROLLOFF_13). All other values are invalid.</para>
- 	</section>
- 	<section id="dvbc-annex-b-params">
- 		<title>DVB-C Annex B delivery system</title>
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 61407ea..28d7ea5 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -45,8 +45,8 @@ transmission. The fontend types are given by fe_type_t type, defined as:</para>
-   </row>
-   <row>
-      <entry id="FE_QAM"><constant>FE_QAM</constant></entry>
--     <entry>For DVB-C annex A/C standard</entry>
--     <entry><constant>SYS_DVBC_ANNEX_AC</constant></entry>
-+     <entry>For DVB-C annex A standard</entry>
-+     <entry><constant>SYS_DVBC_ANNEX_A</constant></entry>
-   </row>
-   <row>
-      <entry id="FE_OFDM"><constant>FE_OFDM</constant></entry>
+It seems like a change such as this could significantly change the
+timing of tuner initialization if you have multiple xc5000 based
+products that might have a slow i2c bus.  Was that intentional?
+
+This patch should be NACK'd and resubmitted as it's own bugfix where
+it's implications can be fully understood in the context of all the
+other products that use xc5000.
+
+Devin
+
 -- 
-1.7.8.352.g876a6
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
