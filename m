@@ -1,223 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57192 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752544Ab1LLAbK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 19:31:10 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v3 4/4] v4l: Update subdev drivers to handle framesamples parameter
-Date: Mon, 12 Dec 2011 01:31:23 +0100
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	sakari.ailus@iki.fi, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, m.szyprowski@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <201112061712.30748.laurent.pinchart@ideasonboard.com> <1323453592-17782-1-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1323453592-17782-1-git-send-email-s.nawrocki@samsung.com>
+Received: from seiner.com ([66.178.130.209]:40540 "EHLO www.seiner.lan"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S932124Ab1LEMTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 5 Dec 2011 07:19:31 -0500
+Received: from www.seiner.lan ([192.168.128.6] ident=yan)
+	by www.seiner.lan with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <yan@seiner.com>)
+	id 1RXXW6-0004aO-7I
+	for linux-media@vger.kernel.org; Mon, 05 Dec 2011 04:19:30 -0800
+Message-ID: <4EDCB6D1.1060508@seiner.com>
+Date: Mon, 05 Dec 2011 04:19:29 -0800
+From: Yan Seiner <yan@seiner.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: linux-media@vger.kernel.org
+Subject: Re: cx231xx kernel oops
+References: <4EDC25F1.4000909@seiner.com> <1323058527.12343.3.camel@palomino.walls.org> <4EDC4C84.2030904@seiner.com> <4EDC4E9B.40301@seiner.com>
+In-Reply-To: <4EDC4E9B.40301@seiner.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112120131.24192.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+I'm still seeing a kernel oops on use.
 
-On Friday 09 December 2011 18:59:52 Sylwester Nawrocki wrote:
-> Update the sub-device drivers having a devnode enabled so they properly
-> handle the new framesamples field of struct v4l2_mbus_framefmt.
-> These drivers don't support compressed (entropy encoded) formats so the
-> framesamples field is simply initialized to 0, altogether with the
-> reserved structure member.
-> 
-> There is a few other drivers that expose a devnode (mt9p031, mt9t001,
-> mt9v032), but they already implicitly initialize the new data structure
-> field to 0, so they don't need to be touched.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> Hi,
-> 
-> In this version the whole reserved field in struct v4l2_mbus_framefmt
-> is also cleared, rather than setting only framesamples to 0.
-> 
-> The omap3isp driver changes have been only compile tested.
-> 
-> Thanks,
-> Sylwester
-> ---
->  drivers/media/video/noon010pc30.c         |    5 ++++-
->  drivers/media/video/omap3isp/ispccdc.c    |    2 ++
->  drivers/media/video/omap3isp/ispccp2.c    |    2 ++
->  drivers/media/video/omap3isp/ispcsi2.c    |    2 ++
->  drivers/media/video/omap3isp/isppreview.c |    2 ++
->  drivers/media/video/omap3isp/ispresizer.c |    2 ++
->  drivers/media/video/s5k6aa.c              |    2 ++
->  7 files changed, 16 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/noon010pc30.c
-> b/drivers/media/video/noon010pc30.c index 50838bf..5af9b60 100644
-> --- a/drivers/media/video/noon010pc30.c
-> +++ b/drivers/media/video/noon010pc30.c
-> @@ -519,13 +519,14 @@ static int noon010_get_fmt(struct v4l2_subdev *sd,
-> struct v4l2_subdev_fh *fh, mf = &fmt->format;
-> 
->  	mutex_lock(&info->lock);
-> +	memset(mf, 0, sizeof(mf));
->  	mf->width = info->curr_win->width;
->  	mf->height = info->curr_win->height;
->  	mf->code = info->curr_fmt->code;
->  	mf->colorspace = info->curr_fmt->colorspace;
->  	mf->field = V4L2_FIELD_NONE;
-> -
->  	mutex_unlock(&info->lock);
-> +
->  	return 0;
->  }
-> 
-> @@ -546,12 +547,14 @@ static const struct noon010_format
-> *noon010_try_fmt(struct v4l2_subdev *sd, static int noon010_set_fmt(struct
-> v4l2_subdev *sd, struct v4l2_subdev_fh *fh, struct v4l2_subdev_format
-> *fmt)
->  {
-> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
->  	struct noon010_info *info = to_noon010(sd);
->  	const struct noon010_frmsize *size = NULL;
->  	const struct noon010_format *nf;
->  	struct v4l2_mbus_framefmt *mf;
->  	int ret = 0;
-> 
-> +	memset(&fmt->format + offset, 0, sizeof(fmt->format) - offset);
+Module                  Size  Used by    Not tainted
+cx231xx               124608  0             
+cx2341x                13552  1 cx231xx
+cx25840                35568  1
+rc_core                12640  1 cx231xx
+videobuf_vmalloc        3168  1 cx231xx
+videobuf_core          12384  2 cx231xx,videobuf_vmalloc
 
-I'm not sure this is a good idea, as it will break when a new field will be 
-added to struct v4l2_mbus_framefmt.
 
-Wouldn't it be better to zero the whoel structure in the callers instead ?
+When the modules are loaded:
 
->  	nf = noon010_try_fmt(sd, &fmt->format);
->  	noon010_try_frame_size(&fmt->format, &size);
->  	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
-> diff --git a/drivers/media/video/omap3isp/ispccdc.c
-> b/drivers/media/video/omap3isp/ispccdc.c index b0b0fa5..a608149 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.c
-> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> @@ -1802,6 +1802,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct
-> v4l2_subdev_fh *fh, unsigned int pad, struct v4l2_mbus_framefmt *fmt,
->  		enum v4l2_subdev_format_whence which)
->  {
-> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
->  	struct v4l2_mbus_framefmt *format;
->  	const struct isp_format_info *info;
->  	unsigned int width = fmt->width;
-> @@ -1863,6 +1864,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct
-> v4l2_subdev_fh *fh, */
->  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
->  	fmt->field = V4L2_FIELD_NONE;
-> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/omap3isp/ispccp2.c
-> b/drivers/media/video/omap3isp/ispccp2.c index 904ca8c..a56a6ad 100644
-> --- a/drivers/media/video/omap3isp/ispccp2.c
-> +++ b/drivers/media/video/omap3isp/ispccp2.c
-> @@ -673,6 +673,7 @@ static void ccp2_try_format(struct isp_ccp2_device
-> *ccp2, struct v4l2_mbus_framefmt *fmt,
->  			       enum v4l2_subdev_format_whence which)
->  {
-> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
->  	struct v4l2_mbus_framefmt *format;
-> 
->  	switch (pad) {
-> @@ -711,6 +712,7 @@ static void ccp2_try_format(struct isp_ccp2_device
-> *ccp2,
-> 
->  	fmt->field = V4L2_FIELD_NONE;
->  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
-> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/omap3isp/ispcsi2.c
-> b/drivers/media/video/omap3isp/ispcsi2.c index 0c5f1cb..c41443b 100644
-> --- a/drivers/media/video/omap3isp/ispcsi2.c
-> +++ b/drivers/media/video/omap3isp/ispcsi2.c
-> @@ -846,6 +846,7 @@ csi2_try_format(struct isp_csi2_device *csi2, struct
-> v4l2_subdev_fh *fh, unsigned int pad, struct v4l2_mbus_framefmt *fmt,
->  		enum v4l2_subdev_format_whence which)
->  {
-> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
->  	enum v4l2_mbus_pixelcode pixelcode;
->  	struct v4l2_mbus_framefmt *format;
->  	const struct isp_format_info *info;
-> @@ -888,6 +889,7 @@ csi2_try_format(struct isp_csi2_device *csi2, struct
-> v4l2_subdev_fh *fh, /* RGB, non-interlaced */
->  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
->  	fmt->field = V4L2_FIELD_NONE;
-> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/omap3isp/isppreview.c
-> b/drivers/media/video/omap3isp/isppreview.c index ccb876f..23861c4 100644
-> --- a/drivers/media/video/omap3isp/isppreview.c
-> +++ b/drivers/media/video/omap3isp/isppreview.c
-> @@ -1656,6 +1656,7 @@ static void preview_try_format(struct isp_prev_device
-> *prev, struct v4l2_mbus_framefmt *fmt,
->  			       enum v4l2_subdev_format_whence which)
->  {
-> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
->  	enum v4l2_mbus_pixelcode pixelcode;
->  	struct v4l2_rect *crop;
->  	unsigned int i;
-> @@ -1720,6 +1721,7 @@ static void preview_try_format(struct isp_prev_device
-> *prev, }
-> 
->  	fmt->field = V4L2_FIELD_NONE;
-> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/omap3isp/ispresizer.c
-> b/drivers/media/video/omap3isp/ispresizer.c index 50e593b..fff46e5 100644
-> --- a/drivers/media/video/omap3isp/ispresizer.c
-> +++ b/drivers/media/video/omap3isp/ispresizer.c
-> @@ -1336,6 +1336,7 @@ static void resizer_try_format(struct isp_res_device
-> *res, struct v4l2_mbus_framefmt *fmt,
->  			       enum v4l2_subdev_format_whence which)
->  {
-> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
->  	struct v4l2_mbus_framefmt *format;
->  	struct resizer_ratio ratio;
->  	struct v4l2_rect crop;
-> @@ -1363,6 +1364,7 @@ static void resizer_try_format(struct isp_res_device
-> *res,
-> 
->  	fmt->colorspace = V4L2_COLORSPACE_JPEG;
->  	fmt->field = V4L2_FIELD_NONE;
-> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/s5k6aa.c b/drivers/media/video/s5k6aa.c
-> index 0df7f2a..b9d1f03 100644
-> --- a/drivers/media/video/s5k6aa.c
-> +++ b/drivers/media/video/s5k6aa.c
-> @@ -1070,8 +1070,10 @@ __s5k6aa_get_crop_rect(struct s5k6aa *s5k6aa, struct
-> v4l2_subdev_fh *fh, static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
->  			      struct v4l2_mbus_framefmt *mf)
->  {
-> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
->  	unsigned int index;
-> 
-> +	memset(mf + offset, 0, sizeof(*mf) - offset);
->  	v4l_bound_align_image(&mf->width, S5K6AA_WIN_WIDTH_MIN,
->  			      S5K6AA_WIN_WIDTH_MAX, 1,
->  			      &mf->height, S5K6AA_WIN_HEIGHT_MIN,
+cx231xx v4l2 driver loaded.
+cx231xx #0: New device Hauppauge Hauppauge Device @ 480 Mbps (2040:c200) 
+with 5 interfaces
+cx231xx #0: registering interface 1
+cx231xx #0: can't change interface 3 alt no. to 3: Max. Pkt size = 0
+cx231xx #0: can't change interface 4 alt no. to 1: Max. Pkt size = 0
+cx231xx #0: Identified as Hauppauge USB Live 2 (card=9)
+cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+cx231xx #0: Changing the i2c master port to 3
+cx25840 0-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #0)
+cx25840 0-0044:  Firmware download size changed to 16 bytes max length
+cx25840 0-0044: loaded v4l-cx231xx-avcore-01.fw firmware (16382 bytes)
+cx231xx #0: cx231xx #0: v4l2 driver version 0.0.1
+cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+cx231xx #0: video_mux : 0
+cx231xx #0: do_mode_ctrl_overrides : 0xb000
+cx231xx #0: do_mode_ctrl_overrides NTSC
+cx231xx #0: cx231xx #0/0: registered device video0 [v4l2]
+cx231xx #0: cx231xx #0/0: registered device vbi0
+cx231xx #0: V4L2 device registered as video0 and vbi0
+cx231xx #0: EndPoint Addr 0x84, Alternate settings: 5
+cx231xx #0: Alternate setting 0, max size= 512
+cx231xx #0: Alternate setting 1, max size= 184
+cx231xx #0: Alternate setting 2, max size= 728
+cx231xx #0: Alternate setting 3, max size= 2892
+cx231xx #0: Alternate setting 4, max size= 1800
+cx231xx #0: EndPoint Addr 0x85, Alternate settings: 2
+cx231xx #0: Alternate setting 0, max size= 512
+cx231xx #0: Alternate setting 1, max size= 512
+cx231xx #0: EndPoint Addr 0x86, Alternate settings: 2
+cx231xx #0: Alternate setting 0, max size= 512
+cx231xx #0: Alternate setting 1, max size= 576
+
+And when I try to use it:
+
+root@anchor:/# fswebcam -c /etc/fswebcam
+--- Opening /dev/video0...
+Trying source module v4l2...
+/dev/video0 opened.
+Adjusting resolution from 768x576 to 720x480.
+Delaying 1 seconds.
+--- Capturing frame...
+Skipping frame...
+Timed out waiting for frame!
+Capturing 1 frames...
+Timed out waiting for frame!
+No frames captured.
+
+dmesg shows:
+
+cx231xx #0:  setPowerMode::mode = 48, No Change req.
+cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+cx231xx #0: video_mux : 0
+cx231xx #0: do_mode_ctrl_overrides : 0xb000
+cx231xx #0: do_mode_ctrl_overrides NTSC
+cx231xx #0: cx231xx_stop_stream():: ep_mask = 8
+cx231xx #0: cx231xx_initialize_stream_xfer: set video registers
+cx231xx #0: cx231xx_start_stream():: ep_mask = 8
+ehci_hcd 0000:00:02.2: fatal error
+ehci_hcd 0000:00:02.2: HC died; cleaning up
+ehci_hcd 0000:00:02.2: force halt; handshake c0350024 00004000 00004000 
+-> -145
+ehci_hcd 0000:00:02.2: HC died; cleaning up
+usb 1-1: USB disconnect, device number 3
+usb 1-1.1: USB disconnect, device number 4
+cx231xx #0: UsbInterface::sendCommand, failed with status --19
+cx231xx #0: UsbInterface::sendCommand, failed with status --19
+usb 1-1.2: USB disconnect, device number 5
+pl2303 ttyUSB0: pl2303 converter now disconnected from ttyUSB0
+pl2303 1-1.2:1.0: device disconnected
+usb 1-2: USB disconnect, device number 2
+usb 2-1: new full speed USB device number 2 using ohci_hcd
+usb 2-1: not running at top speed; connect to a high speed hub
+hub 2-1:1.0: USB hub found
+hub 2-1:1.0: 4 ports detected
+usb 3-1: new full speed USB device number 2 using ohci_hcd
+usb 3-1: not running at top speed; connect to a high speed hub
+cx231xx #1: New device Hauppauge Hauppauge Device @ 12 Mbps (2040:c200) 
+with 3 interfaces
+cx231xx #1: registering interface 1
+cx231xx #1: can't change interface 3 alt no. to 3: Max. Pkt size = 0
+usb 3-1: selecting invalid altsetting 3
+cx231xx #1: can't change interface 3 alt no. to 3 (err=-22)
+cx231xx #1: can't change interface 4 alt no. to 1: Max. Pkt size = 0
+cx231xx #1: can't change interface 4 alt no. to 1 (err=-22)
+cx231xx #1: Identified as Hauppauge USB Live 2 (card=9)
+cx231xx #1: cx231xx_dif_set_standard: setStandard to ffffffff
+cx231xx #1: can't change interface 5 alt no. to 0 (err=-22)
+cx231xx #1: Changing the i2c master port to 3
+cx25840 3-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #1)
+cx25840 3-0044:  Firmware download size changed to 16 bytes max length
+cx25840 3-0044: loaded v4l-cx231xx-avcore-01.fw firmware (16382 bytes)
+cx231xx #1: cx231xx #1: v4l2 driver version 0.0.1
+cx231xx #1: cx231xx_dif_set_standard: setStandard to ffffffff
+cx231xx #1: video_mux : 0
+cx231xx #1: do_mode_ctrl_overrides : 0xb000
+cx231xx #1: do_mode_ctrl_overrides NTSC
+cx231xx #1: cx231xx #1/0: registered device video1 [v4l2]
+cx231xx #1: cx231xx #1/0: registered device vbi1
+cx231xx #1: V4L2 device registered as video1 and vbi1
+cx231xx #1: EndPoint Addr 0x84, Alternate settings: 2
+cx231xx #1: Alternate setting 0, max size= 64
+cx231xx #1: Alternate setting 1, max size= 728
+CPU 0 Unable to handle kernel paging request at virtual address 
+00000000, epc == 80f84e5c, ra == 80f84e30
+Oops[#1]:
+Cpu 0
+$ 0   : 00000000 1000fc00 81b9f660 81b9f600
+$ 4   : 80f9ad58 000050a1 ffffffff 00000000
+$ 8   : 0000000a 00000001 00000001 0000000d
+$12   : 000000ff 80e2dbd4 00000030 00000000
+$16   : 80dfc000 80c93000 80fa0000 00000000
+$20   : 00000002 00000000 80dfc0f8 00000001
+$24   : 00000002 801539e0                 
+$28   : 80c52000 80c53a88 80fa0000 80f84e30
+Hi    : 00000000
+Lo    : 00000000
+epc   : 80f84e5c 0x80f84e5c
+    Not tainted
+ra    : 80f84e30 0x80f84e30
+Status: 1000fc03    KERNEL EXL IE
+Cause : 00800008
+BadVA : 00000000
+PrId  : 00029006 (Broadcom BMIPS3300)
+Modules linked in: cx231xx cx2341x cx25840 rc_core videobuf_vmalloc 
+videobuf_core saa7115 usbvision pl2303 v4l2_common videodev usb_storage 
+usbserial i2c_dev i2c_core ohci_hcd nf_nat_irc nf_conntrack_irc 
+nf_nat_ftp nf_conntrack_ftp ipt_MASQUERADE iptable_nat nf_nat 
+xt_conntrack xt_NOTRACK iptable_raw xt_state nf_conntrack_ipv4 
+nf_defrag_ipv4 nf_conntrack ehci_hcd sd_mod ipt_REJECT xt_TCPMSS ipt_LOG 
+xt_comment xt_multiport xt_mac xt_limit iptable_mangle iptable_filter 
+ip_tables xt_tcpudp x_tables tun vfat fat ext4 jbd2 mbcache b43legacy 
+b43 nls_iso8859_1 nls_cp437 mac80211 usbcore scsi_mod nls_base crc16 
+cfg80211 compat input_core arc4 aes_generic crypto_algapi switch_robo 
+switch_core diag
+Process khubd (pid: 601, threadinfo=80c52000, task=81bdf208, tls=00000000)
+Stack : 81bdf238 80dfc000 00000001 000002d8 00002040 0000c200 00000003 
+8011fa58
+        70756148 67756170 61482065 61707075 20656775 69766544 00206563 
+00000000
+        00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000
+        00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000
+        00000000 00000000 00000000 00000000 00000000 00000000 00000000 
+00000000
+        ...
+Call Trace:[<8011fa58>] 0x8011fa58
+[<80c6cd9c>] 0x80c6cd9c
+[<8015db94>] 0x8015db94
+[<8015df14>] 0x8015df14
+[<8015e118>] 0x8015e118
+[<8015e0e8>] 0x8015e0e8
+[<8015cb28>] 0x8015cb28
+[<801197ac>] 0x801197ac
+[<8015dd14>] 0x8015dd14
+[<8015b9e0>] 0x8015b9e0
+[<80c69d54>] 0x80c69d54
+[<80c6bf80>] 0x80c6bf80
+[<800e15a8>] 0x800e15a8
+[<80c72e58>] 0x80c72e58
+[<8015df14>] 0x8015df14
+[<8015e118>] 0x8015e118
+[<8015e0e8>] 0x8015e0e8
+[<8015cb28>] 0x8015cb28
+[<801197ac>] 0x801197ac
+[<8015dd14>] 0x8015dd14
+[<8015b9e0>] 0x8015b9e0
+[<80c63f2c>] 0x80c63f2c
+[<80c64d1c>] 0x80c64d1c
+[<80038150>] 0x80038150
+[<80c63f90>] 0x80c63f90
+[<80037a0c>] 0x80037a0c
+[<800070f0>] 0x800070f0
+[<8003798c>] 0x8003798c
+[<800070e0>] 0x800070e0
+
+
+Code: 00021080  00621021  8c550000 <8ea20000> 02002821  8c42000c  
+0000a021  90460002  a6060c18
+Disabling lock debugging due to kernel taint
+cx231xx #0: cx231xx_stop_stream():: ep_mask = 8
+cx231xx #0: can't change interface 3 alt no. to 0 (err=-22)
+
+hardware is a 260MHz access point running OpenWRT.
+
+root@anchor:/# uname -a
+Linux anchor 3.0.3 #13 Sun Dec 4 08:04:41 PST 2011 mips GNU/Linux
+
 
 -- 
-Regards,
+Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions.
+    Albert Einstein
 
-Laurent Pinchart
