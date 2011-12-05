@@ -1,87 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57988 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752615Ab1LXWEO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 17:04:14 -0500
-Message-ID: <4EF64C5C.1030708@iki.fi>
-Date: Sun, 25 Dec 2011 00:04:12 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:49723 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932481Ab1LEXcw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 18:32:52 -0500
+Received: by bkbzv3 with SMTP id zv3so2530863bkb.19
+        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2011 15:32:51 -0800 (PST)
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Andreas Oberritter <obi@linuxtv.org>
-Subject: Re: [RFCv1] add DTMB support for DVB API
-References: <4EF3A171.3030906@iki.fi> <201112231830.59716.pboettcher@kernellabs.com>
-In-Reply-To: <201112231830.59716.pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfiywqY+U0+t9tget1X09=apDm46GpGCa-_QiGp+JhyLXxQ@mail.gmail.com>
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
+ <1321800978-27912-2-git-send-email-mchehab@redhat.com> <1321800978-27912-3-git-send-email-mchehab@redhat.com>
+ <1321800978-27912-4-git-send-email-mchehab@redhat.com> <1321800978-27912-5-git-send-email-mchehab@redhat.com>
+ <CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com>
+ <4EDD0F01.7040808@redhat.com> <CAGoCfizRuBEgBhfnzyrE=aJD-WMXCz9OmkoEqQCDpqmYXU2=zA@mail.gmail.com>
+ <CAGoCfiywqY+U0+t9tget1X09=apDm46GpGCa-_QiGp+JhyLXxQ@mail.gmail.com>
+From: Eddi De Pieri <eddi@depieri.net>
+Date: Tue, 6 Dec 2011 00:32:30 +0100
+Message-ID: <CAKdnbx7Ayg6AGS-u=z9Pg6pHV6UN_ZiB-kQ1rv78zG9nm+U9TA@mail.gmail.com>
+Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE
+ HVR-930C again
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Mark Lord <kernel@teksavvy.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/23/2011 07:30 PM, Patrick Boettcher wrote:
-> Hi Antti,
->
-> On Thursday, December 22, 2011 10:30:25 PM Antti Palosaari wrote:
->> Rename DMB-TH to DTMB.
+Sorry,  I think I applied follow patch on my tree while I developed
+the driver trying to fix tuner initialization.
+
+http://patchwork.linuxtv.org/patch/6617/
+
+I forgot to remove from my tree after I see that don't solve anything.
+
+Regards
+Eddi
+
+
+On Mon, Dec 5, 2011 at 9:01 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Mon, Dec 5, 2011 at 1:46 PM, Devin Heitmueller
+> <dheitmueller@kernellabs.com> wrote:
+>> On Mon, Dec 5, 2011 at 1:35 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>>> What's up with this change?  Is this a bugfix for some race condition?
+>>>>  Why is it jammed into a patch for some particular product?
+>>>>
+>>>> It seems like a change such as this could significantly change the
+>>>> timing of tuner initialization if you have multiple xc5000 based
+>>>> products that might have a slow i2c bus.  Was that intentional?
+>>>>
+>>>> This patch should be NACK'd and resubmitted as it's own bugfix where
+>>>> it's implications can be fully understood in the context of all the
+>>>> other products that use xc5000.
+>>>
+>>>
+>>> It is too late for nacking the patch, as there are several other patches
+>>> were already applied on the top of it, and we don't rebase the
+>>> linux-media.git tree.
+>>>
+>>> Assuming that this is due to some bug that Eddi picked during xc5000
+>>> init, what it can be done now is to write a patch that would replace
+>>> this xc5000-global mutex lock into a some other per-device locking
+>>> schema.
 >>
->> Add few new values for existing parameters.
+>> At this point we have zero idea why it's there *at all*.  Eddi, can
+>> you comment on what prompted this change?
 >>
->> Add two new parameters, interleaving and carrier.
->> DTMB supports interleavers: 240 and 720.
->> DTMB supports carriers: 1 and 3780.
+>> This patch should not have been accepted in the first place.  It's an
+>> undocumented change on a different driver than is advertised in the
+>> subject line.  Did you review the patch prior to merging?
 >>
->> Signed-off-by: Antti Palosaari<crope@iki.fi>
->> ---
->>    drivers/media/dvb/dvb-core/dvb_frontend.c |   19 ++++++++++++++++++-
->>    drivers/media/dvb/dvb-core/dvb_frontend.h |    3 +++
->>    include/linux/dvb/frontend.h              |   13 +++++++++++--
->>    include/linux/dvb/version.h               |    2 +-
->>    4 files changed, 33 insertions(+), 4 deletions(-)
+>> This change can result in a performance regression for all other
+>> devices using xc5000, and it's not yet clear why it's there in the
+>> first place.  If its use cannot be explained then it should be rolled
+>> back.  If this breaks 930c, then the whole device support series
+>> should be rolled back until somebody can figure out what is going on.
 >>
->> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c
->> b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> index 821b225..ec2cbae 100644
->> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> @@ -924,6 +924,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND +
->> 1] = {
->>    	_DTV_CMD(DTV_CODE_RATE_LP, 1, 0),
->>    	_DTV_CMD(DTV_GUARD_INTERVAL, 1, 0),
->>    	_DTV_CMD(DTV_TRANSMISSION_MODE, 1, 0),
->> +	_DTV_CMD(DTV_CARRIER, 1, 0),
+>> It's crap like this that is the reason that every other week I get
+>> complaints from some user that one of the drivers I wrote support for
+>> worked fine for months/years until they upgraded to the latest kernel.
 >
-> What would you think if instead of adding DTV_CARRIER (which indicates
-> whether we are using single carrier or multi carrier, if I understand it
-> correctly) we add a TRANSMISSION_MODE_SC.
+> Speaking of which, Mark Lord just tried out this change (he has an
+> 800i and 950q - both xc5000 based), and now his DVB stack fails to
+> load.  And yes, he already has the fix to the mutex_unlock()
+> regression which Dan Carpenter found six days ago and which this patch
+> introduced.
 >
-> Then TRANSMISSION_MODE_4K is the multi-carrier mode and TRANSMISSION_MODE_SC
-> is the single-carrier mode. We save a new DTV-command.
+> Devin
 >
-> I'm not making a secret of it, this is how we handled this inside DiBcom and
-> it would simplify the integration of our drivers for this standard. This is
-> planned to be done during the first half of 2012.
->
-> Comments?
-
-I already did that :)
-
-I proposed it yesterday. But as you seems to have problem with your send 
-mail server that reply arrives more than one day late you have sent. 
-Anyhow, nice to see you have ended up same decision.
-
-I named those TRANSMISSION_MODE_C=1 and TRANSMISSION_MODE_C=3780 as 
-those were names used by specification.
-
-The only totally new parameter is interleaver which I didn't find 
-existing one have same meaning.
-
-But look my yesterday mails and reply, I will wait your review under I 
-post new RFC patch. Also I would like to hear Andreas comments.
-
-thanks
-Antti
-
-
-
--- 
-http://palosaari.fi/
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
