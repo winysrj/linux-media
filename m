@@ -1,223 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56090 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755452Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:06 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5vr018679
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 37/47] [media] tuner-simple: use DVBv5 parameters on set_params()
-Date: Sat, 24 Dec 2011 13:50:42 -0200
-Message-Id: <1324741852-26138-38-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-37-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
- <1324741852-26138-10-git-send-email-mchehab@redhat.com>
- <1324741852-26138-11-git-send-email-mchehab@redhat.com>
- <1324741852-26138-12-git-send-email-mchehab@redhat.com>
- <1324741852-26138-13-git-send-email-mchehab@redhat.com>
- <1324741852-26138-14-git-send-email-mchehab@redhat.com>
- <1324741852-26138-15-git-send-email-mchehab@redhat.com>
- <1324741852-26138-16-git-send-email-mchehab@redhat.com>
- <1324741852-26138-17-git-send-email-mchehab@redhat.com>
- <1324741852-26138-18-git-send-email-mchehab@redhat.com>
- <1324741852-26138-19-git-send-email-mchehab@redhat.com>
- <1324741852-26138-20-git-send-email-mchehab@redhat.com>
- <1324741852-26138-21-git-send-email-mchehab@redhat.com>
- <1324741852-26138-22-git-send-email-mchehab@redhat.com>
- <1324741852-26138-23-git-send-email-mchehab@redhat.com>
- <1324741852-26138-24-git-send-email-mchehab@redhat.com>
- <1324741852-26138-25-git-send-email-mchehab@redhat.com>
- <1324741852-26138-26-git-send-email-mchehab@redhat.com>
- <1324741852-26138-27-git-send-email-mchehab@redhat.com>
- <1324741852-26138-28-git-send-email-mchehab@redhat.com>
- <1324741852-26138-29-git-send-email-mchehab@redhat.com>
- <1324741852-26138-30-git-send-email-mchehab@redhat.com>
- <1324741852-26138-31-git-send-email-mchehab@redhat.com>
- <1324741852-26138-32-git-send-email-mchehab@redhat.com>
- <1324741852-26138-33-git-send-email-mchehab@redhat.com>
- <1324741852-26138-34-git-send-email-mchehab@redhat.com>
- <1324741852-26138-35-git-send-email-mchehab@redhat.com>
- <1324741852-26138-36-git-send-email-mchehab@redhat.com>
- <1324741852-26138-37-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from moutng.kundenserver.de ([212.227.17.10]:50889 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753009Ab1LFGv2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 01:51:28 -0500
+Date: Tue, 6 Dec 2011 07:51:19 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Stefan Ringel <linuxtv@stefanringel.de>,
+	linux-media@vger.kernel.org, d.belimov@gmail.com
+Subject: Re: [PATCH 3/5] tm6000: bugfix interrupt reset
+Message-ID: <20111206065119.GA26724@avionic-0098.mockup.avionic-design.de>
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
+ <1322509580-14460-3-git-send-email-linuxtv@stefanringel.de>
+ <20111205072131.GB7341@avionic-0098.mockup.avionic-design.de>
+ <4EDCB33E.8090100@redhat.com>
+ <20111205153800.GA32512@avionic-0098.mockup.avionic-design.de>
+ <4EDD0BBF.3020804@redhat.com>
+ <4EDD235A.9000100@stefanringel.de>
+ <4EDD268E.9010603@redhat.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
+Content-Disposition: inline
+In-Reply-To: <4EDD268E.9010603@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Despite its name, tuner-simple has a complex logic to set freqs ;)
 
-Basically, it can be called by two different ways: via set_params()
-or via calc_regs() callbacks. Both are bound to the DVBv3 API.
-Also, set_params internally calls calc_regs().
+--EVF5PPMfhYS0aIcm
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-In order to get rid of DVBv3 params at set_params(), it shouldn't
-call calc_regs() anymore. The code duplication is very small,
-as most of the code there is just to check for invalid parameters.
+* Mauro Carvalho Chehab wrote:
+> That means that all we need is to get rid of TM6000_QUIRK_NO_USB_DELAY.
 
-With regards to calc_regs(), it should still trust on bandwidth and
-frequency parameters passed via DVBv3, until a later patch fixes
-it.
+I've just reviewed my patches again and it seems that no-USB-delay quirk
+patch was only partially applied. The actual location where it was introduced
+was in tm6000_read_write_usb() to allow the msleep(5) to be skipped, which on
+some devices isn't required and significantly speeds up firmware upload. So I
+don't think we should get rid of it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/tuner-simple.c |   63 ++++++++++++++++++++-------
- 1 files changed, 46 insertions(+), 17 deletions(-)
+If it helps I can rebase the code against your branch (which one would that
+be exactly?) and resend the rest of the series.
 
-diff --git a/drivers/media/common/tuners/tuner-simple.c b/drivers/media/common/tuners/tuner-simple.c
-index 4092200..e6342db 100644
---- a/drivers/media/common/tuners/tuner-simple.c
-+++ b/drivers/media/common/tuners/tuner-simple.c
-@@ -791,24 +791,26 @@ static int simple_set_params(struct dvb_frontend *fe,
- }
- 
- static void simple_set_dvb(struct dvb_frontend *fe, u8 *buf,
--			   const struct dvb_frontend_parameters *params)
-+			   const u32 delsys,
-+			   const u32 frequency,
-+			   const u32 bandwidth)
- {
- 	struct tuner_simple_priv *priv = fe->tuner_priv;
- 
- 	switch (priv->type) {
- 	case TUNER_PHILIPS_FMD1216ME_MK3:
- 	case TUNER_PHILIPS_FMD1216MEX_MK3:
--		if (params->u.ofdm.bandwidth == BANDWIDTH_8_MHZ &&
--		    params->frequency >= 158870000)
-+		if (bandwidth == 8000000 &&
-+		    frequency >= 158870000)
- 			buf[3] |= 0x08;
- 		break;
- 	case TUNER_PHILIPS_TD1316:
- 		/* determine band */
--		buf[3] |= (params->frequency < 161000000) ? 1 :
--			  (params->frequency < 444000000) ? 2 : 4;
-+		buf[3] |= (frequency < 161000000) ? 1 :
-+			  (frequency < 444000000) ? 2 : 4;
- 
- 		/* setup PLL filter */
--		if (params->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
-+		if (bandwidth == 8000000)
- 			buf[3] |= 1 << 3;
- 		break;
- 	case TUNER_PHILIPS_TUV1236D:
-@@ -819,12 +821,11 @@ static void simple_set_dvb(struct dvb_frontend *fe, u8 *buf,
- 		if (dtv_input[priv->nr])
- 			new_rf = dtv_input[priv->nr];
- 		else
--			switch (params->u.vsb.modulation) {
--			case QAM_64:
--			case QAM_256:
-+			switch (delsys) {
-+			case SYS_DVBC_ANNEX_B:
- 				new_rf = 1;
- 				break;
--			case VSB_8:
-+			case SYS_ATSC:
- 			default:
- 				new_rf = 0;
- 				break;
-@@ -838,7 +839,9 @@ static void simple_set_dvb(struct dvb_frontend *fe, u8 *buf,
- }
- 
- static u32 simple_dvb_configure(struct dvb_frontend *fe, u8 *buf,
--				const struct dvb_frontend_parameters *params)
-+				const u32 delsys,
-+				const u32 freq,
-+				const u32 bw)
- {
- 	/* This function returns the tuned frequency on success, 0 on error */
- 	struct tuner_simple_priv *priv = fe->tuner_priv;
-@@ -847,7 +850,7 @@ static u32 simple_dvb_configure(struct dvb_frontend *fe, u8 *buf,
- 	u8 config, cb;
- 	u32 div;
- 	int ret;
--	unsigned frequency = params->frequency / 62500;
-+	u32 frequency = freq / 62500;
- 
- 	if (!tun->stepsize) {
- 		/* tuner-core was loaded before the digital tuner was
-@@ -871,7 +874,7 @@ static u32 simple_dvb_configure(struct dvb_frontend *fe, u8 *buf,
- 	buf[2] = config;
- 	buf[3] = cb;
- 
--	simple_set_dvb(fe, buf, params);
-+	simple_set_dvb(fe, buf, delsys, freq, bw);
- 
- 	tuner_dbg("%s: div=%d | buf=0x%02x,0x%02x,0x%02x,0x%02x\n",
- 		  tun->name, div, buf[0], buf[1], buf[2], buf[3]);
-@@ -884,13 +887,29 @@ static int simple_dvb_calc_regs(struct dvb_frontend *fe,
- 				struct dvb_frontend_parameters *params,
- 				u8 *buf, int buf_len)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys = c->delivery_system;
-+	u32 bw = c->bandwidth_hz;
- 	struct tuner_simple_priv *priv = fe->tuner_priv;
- 	u32 frequency;
- 
- 	if (buf_len < 5)
- 		return -EINVAL;
- 
--	frequency = simple_dvb_configure(fe, buf+1, params);
-+	switch (delsys) {
-+	case SYS_DVBT:
-+	case SYS_DVBT2:
-+		if (params->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
-+			bw = 6000000;
-+		if (params->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
-+			bw = 7000000;
-+		if (params->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
-+			bw = 8000000;
-+		break;
-+	default:
-+		break;
-+	}
-+	frequency = simple_dvb_configure(fe, buf+1, delsys, params->frequency, bw);
- 	if (frequency == 0)
- 		return -EINVAL;
- 
-@@ -906,7 +925,12 @@ static int simple_dvb_calc_regs(struct dvb_frontend *fe,
- static int simple_dvb_set_params(struct dvb_frontend *fe,
- 				 struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys = c->delivery_system;
-+	u32 bw = c->bandwidth_hz;
-+	u32 freq = c->frequency;
- 	struct tuner_simple_priv *priv = fe->tuner_priv;
-+	u32 frequency;
- 	u32 prev_freq, prev_bw;
- 	int ret;
- 	u8 buf[5];
-@@ -917,9 +941,14 @@ static int simple_dvb_set_params(struct dvb_frontend *fe,
- 	prev_freq = priv->frequency;
- 	prev_bw   = priv->bandwidth;
- 
--	ret = simple_dvb_calc_regs(fe, params, buf, 5);
--	if (ret != 5)
--		goto fail;
-+	frequency = simple_dvb_configure(fe, buf+1, delsys, freq, bw);
-+	if (frequency == 0)
-+		return -EINVAL;
-+
-+	buf[0] = priv->i2c_props.addr;
-+
-+	priv->frequency = frequency;
-+	priv->bandwidth = bw;
- 
- 	/* put analog demod in standby when tuning digital */
- 	if (fe->ops.analog_ops.standby)
--- 
-1.7.8.352.g876a6
+Thierry
 
+--EVF5PPMfhYS0aIcm
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk7du2cACgkQZ+BJyKLjJp+7rgCgo/XL8aCZnRl+vRFBKFa8NF1e
+sawAn1vCeQCVGN2EEqV3Pof9dkpfJU3E
+=7Z52
+-----END PGP SIGNATURE-----
+
+--EVF5PPMfhYS0aIcm--
