@@ -1,108 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26705 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:16436 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755798Ab1LGOU3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Dec 2011 09:20:29 -0500
-Message-ID: <4EDF762A.9030604@redhat.com>
-Date: Wed, 07 Dec 2011 12:20:26 -0200
+	id S1751142Ab1LFPkb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 10:40:31 -0500
+Message-ID: <4EDE375B.6010900@redhat.com>
+Date: Tue, 06 Dec 2011 13:40:11 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: gennarone@gmail.com
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/1] xc3028: force reload of DTV7 firmware in VHF band
- with Zarlink demodulator
-References: <4EDE27A0.8060406@gmail.com> <4EDF6640.801@redhat.com> <4EDF6E7E.30200@gmail.com>
-In-Reply-To: <4EDF6E7E.30200@gmail.com>
+To: Kamil Debski <k.debski@samsung.com>
+CC: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
+	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	=?UTF-8?B?J1NlYmFzdGlhbiBEcsO2Z2Un?=
+	<sebastian.droege@collabora.co.uk>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	"'Hans Verkuil'" <hans.verkuil@cisco.com>
+Subject: Re: [RFC] Resolution change support in video codecs in v4l2
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01> <4ED905E0.5020706@redhat.com> <007201ccb118$633ff890$29bfe9b0$%debski@samsung.com> <201112061301.01010.laurent.pinchart@ideasonboard.com> <20111206142821.GC938@valkosipuli.localdomain> <4EDE29AA.8090203@redhat.com> <00de01ccb42a$7cddab70$76990250$%debski@samsung.com>
+In-Reply-To: <00de01ccb42a$7cddab70$76990250$%debski@samsung.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07-12-2011 11:47, Gianluca Gennari wrote:
-> Il 07/12/2011 14:12, Mauro Carvalho Chehab ha scritto:
->> On 06-12-2011 12:33, Gianluca Gennari wrote:
->>> Hi All,
+On 06-12-2011 13:19, Kamil Debski wrote:
+>> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+>> Sent: 06 December 2011 15:42
+>>
+>> On 06-12-2011 12:28, 'Sakari Ailus' wrote:
+>>> Hi all,
 >>>
->>> I have a Terratec Cinergy Hybrid T USB XS stick (USB 0ccd:0042).
->>> This device is made of the following components:
->>> - Empiatech em2880 USB bridge;
->>> - Zarlink zl10353 demodulator;
->>> - Xceive XC3028 tuner;
+>>> On Tue, Dec 06, 2011 at 01:00:59PM +0100, Laurent Pinchart wrote:
+>>> ...
+>>>>>>>>> 2) new requirement is for a bigger buffer. DMA transfers need to be
+>>>>>>>>> stopped before actually writing inside the buffer (otherwise, memory
+>>>>>>>>> will be corrupted).
+>>>>>>>>>
+>>>>>>>>> In this case, all queued buffers should be marked with an error flag.
+>>>>>>>>> So, both V4L2_BUF_FLAG_FORMATCHANGED and V4L2_BUF_FLAG_ERROR should
+>>>>>>>>> raise. The new format should be available via G_FMT.
+>>>>
+>>>> I'd like to reword this as follows:
+>>>>
+>>>> 1. In all cases, the application needs to be informed that the format has
+>>>> changed.
+>>>>
+>>>> V4L2_BUF_FLAG_FORMATCHANGED (or a similar flag) is all we need. G_FMT
+>> will
+>>>> report the new format.
+>>>>
+>>>> 2. In all cases, the application must have the option of reallocating
+>> buffers
+>>>> if it wishes.
+>>>>
+>>>> In order to support this, the driver needs to wait until the application
+>>>> acknowledged the format change before it starts decoding the stream.
+>>>> Otherwise, if the codec started decoding the new stream to the existing
+>>>> buffers by itself, applications wouldn't have the option of freeing the
+>>>> existing buffers and allocating smaller ones.
+>>>>
+>>>> STREAMOFF/STREAMON is one way of acknowledging the format change. I'm not
+>>>> opposed to other ways of doing that, but I think we need an
+>> acknowledgment API
+>>>> to tell the driver to proceed.
 >>>
->>> For this device, the ZARLINK456 define is set to true so it is using the
->>> firmwares with type D2633 for the XC3028 tuner.
+>>> Forcing STRAEMOFF/STRAEMON has two major advantages:
 >>>
->>> I found out that:
->>> 1) the DTV7 firmware works fine in VHF band (bw=7MHz);
->>> 2) the DTV8 firmware works fine in UHF band (bw=8MHz);
->>> 3) the DTV78 firmware works fine in UHF band (bw=8MHz) but it doesn not
->>> work at all in VHF band (bw=7MHz);
+>>> 1) The application will have an ability to free and reallocate buffers if
+>> it
+>>> wishes so, and
 >>>
->>> In fact, when the DTV78 firmware is loaded and I try to tune a VHF
->>> channel, the frequency lock is ciclically acquired for a second and
->>> immediately lost.
->>> So the proposed patch forces a reload of the DTV7 firmware every time a
->>> 7MHz channel is requested.
->>> The only drawback is that channel change from VHF to UHF or viceversa is
->>> slightly slower.
->>> Devices using the D2620 firmwares are unaffected.
+>>> 2) It will get explicit information on the changed format. Alternative
+>> would
+>>> require an additional API to query the format of buffers in cases the
+>>> information isn't implicitly available.
 >>
->> Hi Gianluca,
+>> As already said, a simple flag may give this meaning. Alternatively (or
+>> complementary,
+>> an event may be generated, containing the new format).
+>>>
+>>> If we do not require STRAEMOFF/STREAMON, the stream would have to be
+>> paused
+>>> until the application chooses to continue it after dealing with its
+>> buffers
+>>> and formats.
 >>
->> The issues with firmware DTV78 x DTV7/DTV8 are old. No matter what we do,
->> we end by having troubles, as the issue is Country-dependent. For example,
->> Australia requires a different firmware than Germany, due to the
->> differences
->> on the VHF/UHF bands.
+>> No. STREAMOFF is always used to stop the stream. We can't make it mean
+>> otherwise.
 >>
->> I prefer if you could work into a patch that would add some modprobe
->> parameter
->> to disable the current "autodetection" way, allowing to override the
->> firmware
->> used for VHF and UHF.
->>
->> Thanks,
->> Mauro
->>
+>> So, after calling it, application should assume that frames will be lost,
+>> while
+>> the DMA engine doesn't start again.
 >
-> Hi Mauro,
-> thanks for the feedback. Unfortunately I do not have any info on which
-> kind of firmware is needed on other parts of the world. All I know is
-> what is happening here in Italy, and what I can understand reading the
-> code. I suppose my findings can be extended to the rest of Europe, and
-> maybe Africa and Middle-East.
+> Do you mean all buffers or just those that are queued in hardware?
 
-Even in Europe, there are some differences.
+Of course the ones queued.
 
-> Can you provide a reference about problems in other continents like
-> Australia?
+> What has been processed stays processed, it should not matter to the buffers
+> that have been processed.
 
-All I know is from the constant reports at the ML from users. We used to
-have a developer in Australia, but he moved away, and it seems that he lost
-interest on DVB development, as we were unable to contact him ever since.
+Sure.
+
+> The compressed buffer that is queued in the driver and that caused the resolution
+> change is on the OUTPUT queue.
+
+Not necessarily. If the buffer is smaller than the size needed for the resolution
+change, what is there is trash, as it could be a partially filled buffer or an
+empty buffer, depending if the driver detected about the format change after or
+before start filling it.
+
+> STREMOFF is only done on the CAPTURE queue, so it
+> stays queued and information is retained.
 >
-> Do you think a simple module parameters that allows to enable/disable
-> the usage of the DTV78 firmware would do the trick?
+>  From CAPTURE all processed buffers have already been dequeued, so yes the content of
+> the buffers queued in hw is lost. But this is ok, because after the resolution change
+> the previous frames are not used in prediction.
 
-Perhaps one or two module parameters to allow forcing a certain firmware for
-VHF and UHF.
+No. According with the spec:
 
-> Eventually, do you agree that the default solution should be to DISABLE
-> DTV78 firmware, since this seems to be the more robust solution, and let
-> the user enable it through the kernel parameter if it is working in his
-> country? Or do you prefer the other way around, so by default  DTV78
-> firmware is enabled, and users with problems can disable it through the
-> kernel module parameter?
+	The VIDIOC_STREAMON and VIDIOC_STREAMOFF ioctl start and stop the capture or
+	output process during streaming (memory mapping or user pointer) I/O.
 
-AFAIK, DTV78 should be used in Spain and in Germany. Changing the current
-default doesn't look a good idea, as it will cause regressions, if the new
-way is not backward-compatible.
+	Specifically the capture hardware is disabled and no input buffers are filled
+	(if there are any empty buffers in the incoming queue) until VIDIOC_STREAMON
+	has been called. Accordingly the output hardware is disabled, no video signal
+	is produced until VIDIOC_STREAMON has been called. The ioctl will succeed
+	only when at least one output buffer is in the incoming queue.
 
-> Best regards,
-> Gianluca
+	The VIDIOC_STREAMOFF ioctl, apart of aborting or finishing any DMA in progress,
+	unlocks any user pointer buffers locked in physical memory, and it removes all
+	buffers from the incoming and outgoing queues. That means all images captured
+	but not dequeued yet will be lost, likewise all images enqueued for output
+	but not transmitted yet. I/O returns to the same state as after calling
+	VIDIOC_REQBUFS and can be restarted accordingly.
+
+> My initial idea was to acknowledge the resolution change by G_FMT.
+> Later in our chat it had evolved into S_FMT. Then it mutated into
+> STREAMOFF/STREAMON on the CAPTURE queue.
+
+Why application should ack with it? If the application doesn't ack, it can just send
+a VIDIOC_STREAMOFF. If application doesn't do it, and the buffer size is enough to
+proceed, the hardware should just keep doing the DMA transfers and assume that the
+applications are OK.
+
+>> For things like MPEG decoders, Hans proposed an ioctl, that could use to
+>> pause
+>> and continue the decoding.
 >
+> This still could be useful... But processing will also pause when hw runs out
+> of buffers. It will be resumed after the application consumes/produces new
+> buffers and enqueue them.
+
+No. Capture devices will start loosing frames. For other types, it makes sense to
+implicitly pause/continue.
+
+>>> I'd still return a specific error when the size changes since it's more
+>>> explicit that something is not right, rather than just a flag. But if I'm
+>>> alone in thinking so I won't insist.
+>>>
+>>> Regards,
+>>>
+>
+> Best wishes,
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Kamil Debski
+> Linux Platform Group
+> Samsung Poland R&D Center
+>
 
