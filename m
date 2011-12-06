@@ -1,58 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:54847 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750926Ab1LHMak (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 07:30:40 -0500
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVV00IUCXF280@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Dec 2011 12:30:38 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVV0054MXF1ZC@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Dec 2011 12:30:38 +0000 (GMT)
-Date: Thu, 08 Dec 2011 13:30:37 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-In-reply-to: <201112081130.37875.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	mchehab@redhat.com, m.szyprowski@samsung.com,
-	jonghun.han@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4EE0ADED.6030109@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com>
- <201111291958.48671.laurent.pinchart@ideasonboard.com>
- <4EE083D2.3010102@samsung.com>
- <201112081130.37875.laurent.pinchart@ideasonboard.com>
+Received: from ironport2-out.teksavvy.com ([206.248.154.183]:8049 "EHLO
+	ironport2-out.teksavvy.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752740Ab1LFNEQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 08:04:16 -0500
+Message-ID: <4EDE0FD7.4020603@teksavvy.com>
+Date: Tue, 06 Dec 2011 07:51:35 -0500
+From: Mark Lord <kernel@teksavvy.com>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Eddi De Pieri <eddi@depieri.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE HVR-930C
+ again
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com> <1321800978-27912-2-git-send-email-mchehab@redhat.com> <1321800978-27912-3-git-send-email-mchehab@redhat.com> <1321800978-27912-4-git-send-email-mchehab@redhat.com> <1321800978-27912-5-git-send-email-mchehab@redhat.com> <CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com> <4EDD0F01.7040808@redhat.com> <CAGoCfizRuBEgBhfnzyrE=aJD-WMXCz9OmkoEqQCDpqmYXU2=zA@mail.gmail.com> <CAGoCfiywqY+U0+t9tget1X09=apDm46GpGCa-_QiGp+JhyLXxQ@mail.gmail.com> <CAKdnbx7Ayg6AGS-u=z9Pg6pHV6UN_ZiB-kQ1rv78zG9nm+U9TA@mail.gmail.com> <CAGoCfiwwt898OwmNNwrboT7q5v-sNQuTP6TxCdtY-fFauAyHrA@mail.gmail.com>
+In-Reply-To: <CAGoCfiwwt898OwmNNwrboT7q5v-sNQuTP6TxCdtY-fFauAyHrA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-On 12/08/2011 11:30 AM, Laurent Pinchart wrote:
->> Another use case for control range update would be with an auto-exposure
->> metering spot location controls. An available range for x and y coordinates
->> would depend on selected pixel resolution. If we would have created two
->> controls for (x, y) their range would depend on pixel (width, height)
->> respectively. So when a new format is set such controls would need to get
->> their range updated.
+On 11-12-05 06:47 PM, Devin Heitmueller wrote:
+> On Mon, Dec 5, 2011 at 6:32 PM, Eddi De Pieri <eddi@depieri.net> wrote:
+>> Sorry,  I think I applied follow patch on my tree while I developed
+>> the driver trying to fix tuner initialization.
+>>
+>> http://patchwork.linuxtv.org/patch/6617/
+>>
+>> I forgot to remove from my tree after I see that don't solve anything.
 > 
-> To be honest I'm not sure whether points, and especially rectangles, should be 
-> handled as controls. We have no structure-like control type at the moment, 
-> adding points might be possible, but rectangles would require either 2 point-
-> liek controls or 4 controls (left, top, width, height). I don't really like 
-> that. A new API (possibly based on the selection API ?) might be better.
-
-Indeed, I don't like having 4 controls for specifying a rectangle as well, it
-doesn't just sound right. I was concerned about specifying a point using
-the selection API. But it could be just (left=x, top=y, width=1, height=1).
+> Ok, great.  At least that explains why it's there (since I couldn't
+> figure out how on Earth the patch made sense otherwise).
+> 
+> Eddi, could you please submit a patch removing the offending code?
 
 
---
-Regards,
-Sylwester
+That's good.
+
+But there definitely still is a race between modules in there somewhere.
+The HVR-950Q tuners use several:  xc5000, au8522, au0828, ..
+and unless au0828 is loaded *last*, with a delay before/after,
+the dongles don't always work.  Preloading all of the modules
+before allowing hardware detection seems to help.
+
+Even just changing from a mechanical hard drive to a very fast SSD
+is enough to change the behaviour from not-working to working
+(and sometimes the other way around).
+
+I tried to track this down a couple of years ago,
+and found cross-module calls failing because the
+target functions hadn't been loaded yet.
+But my lack of notes from 2-3 years ago isn't helpful here.
+
+Here's a similar report from 2 years ago, as valid today as it was then:
+
+  http://www.mythtv.org/pipermail/mythtv-users/2010-January/279912.html
+
+Cheers
