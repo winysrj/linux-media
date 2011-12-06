@@ -1,77 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42219 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753856Ab1LBO7N convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 09:59:13 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:43436 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753077Ab1LFVDI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 16:03:08 -0500
+Message-ID: <4EDE8306.6000901@iki.fi>
+Date: Tue, 06 Dec 2011 23:03:02 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4ED8A868.4020005@gmail.com>
-References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
-	<4ED8A868.4020005@gmail.com>
-Date: Fri, 2 Dec 2011 22:59:10 +0800
-Message-ID: <CACVXFVMCPWfThLkqA6Y5mLCAb76Vbw6COiKqE5vTPmFy=NavMw@mail.gmail.com>
-Subject: Re: [RFC PATCH v1 0/7] media&omap4: introduce face detection(FD) driver
-From: Ming Lei <ming.lei@canonical.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Thierry Reding <thierry.reding@avionic-design.de>,
+	linux-media@vger.kernel.org,
+	Stefan Ringel <linuxtv@stefanringel.de>
+Subject: Re: [PATCH 2/2] [media] tm6000: Fix bad indentation.
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de> <1323178776-12305-1-git-send-email-thierry.reding@avionic-design.de> <1323178776-12305-2-git-send-email-thierry.reding@avionic-design.de> <4EDE1F99.6080200@iki.fi> <20111206141316.GB12258@avionic-0098.adnet.avionic-design.de> <4EDE81EB.80800@redhat.com>
+In-Reply-To: <4EDE81EB.80800@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On Fri, Dec 2, 2011 at 6:28 PM, Sylwester Nawrocki <snjw23@gmail.com> wrote:
-> Hi Ming,
+On 12/06/2011 10:58 PM, Mauro Carvalho Chehab wrote:
+> On 06-12-2011 12:13, Thierry Reding wrote:
+>> * Antti Palosaari wrote:
+>>> That question is related to that kind of indentation generally, not
+>>> only that patch.
+>>>
+>>> On 12/06/2011 03:39 PM, Thierry Reding wrote:
+>>>> Function parameters on subsequent lines should never be aligned with
+>>>> the
+>>>> function name but rather be indented.
+>>> [...]
+>>>> usb_set_interface(dev->udev,
+>>>> - dev->isoc_in.bInterfaceNumber,
+>>>> - 0);
+>>>> + dev->isoc_in.bInterfaceNumber, 0);
+>>>
+>>> Which kind of indentation should be used when function params are
+>>> slitted to multiple lines?
 >
-> On 12/02/2011 10:12 AM, Ming Lei wrote:
->> Hi,
->>
->> These v1 patches(against -next tree) introduce v4l2 based face
->> detection(FD) device driver, and enable FD hardware[1] on omap4 SoC..
->> The idea of implementing it on v4l2 is from from Alan Cox, Sylwester
->> and Greg-Kh.
->>
->> For verification purpose, I write one user space utility[2] to
->> test the module and driver, follows its basic functions:
->>
->>       - detect faces in input grayscal picture(PGM raw, 320 by 240)
->>       - detect faces in input y8 format video stream
->>       - plot a rectangle to mark the detected faces, and save it as
->>       another same format picture or video stream
->>
->> Looks the performance of the module is not bad, see some detection
->> results on the link[3][4].
->>
->> Face detection can be used to implement some interesting applications
->> (camera, face unlock, baby monitor, ...).
->>
->> TODO:
->>       - implement FD setting interfaces with v4l2 controls or
->>       ext controls
->>
->> thanks,
->> --
->> Ming Lei
->>
->> [1], Ch9 of OMAP4 Technical Reference Manual
->> [2], http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
->> [3], http://kernel.ubuntu.com/~ming/dev/fdif/output
->> [4], All pictures are taken from http://www.google.com/imghp
->> and converted to pnm from jpeg format, only for test purpose.
->>
+> Documentation/CodingStyle currently says:
 >
-> Could you please resend this series to Linux Media mailing list
-> (linux-media@vger.kernel.org) ? It touches V4L core code and I'm
+> Statements longer than 80 columns will be broken into sensible chunks,
+> unless
+> exceeding 80 columns significantly increases readability and does not hide
+> information. Descendants are always substantially shorter than the
+> parent and
+> are placed substantially to the right. The same applies to function headers
+> with a long argument list. However, never break user-visible strings
+> such as
+> printk messages, because that breaks the ability to grep for them.
+>
+> So, it should be: "substantially to the right" whatever this means.
+>
+>> I don't think this is documented anywhere and there are no hard rules
+>> with
+>> regard to this. I guess anything is fine as long as it is indented at
+>> all.
+>>
+>>> In that case two tabs are used (related to function indentation).
+>>> example:
+>>> ret= function(param1,
+>>> param2);
+>>
+>> I usually use that because it is my text editor's default.
+>>
+>>> Other generally used is only one tab (related to function indentation).
+>>> example:
+>>> ret= function(param1,
+>>> param2);
+>>
+>> I think that's okay as well.
+>
+> One tab can hardly be interpreted as "substantially to the right".
+>
+>>
+>>> And last generally used is multiple tabs + spaces until same
+>>> location where first param is meet (related to function
+>>> indentation). I see that bad since use of tabs, with only spaces I
+>>> see it fine. And this many times leads situation param level are
+>>> actually different whilst originally idea was to put those same
+>>> level.
+>>> example:
+>>> ret= function(param1,
+>>> param2);
+>
+> In practice, this is the most commonly used way, from what I noticed,
+> not only
+> at drivers/media. A good place to look for commonly used CodingStyle are
+> the
+> most used headers at include/linux. As far as I noticed, they all use this
+> style.
 
-Yes, I will resend this series to linux-media mail list, thanks for pointing
-it out.  Of course, the most important mail list is missed for the patches,
-very sorry about it.
+Yes, but it is not correct according to CodingStyle if you use spaces 
+even when mixing with tabs.
 
-thanks,
---
-Ming Lei
+Correct seems to be intend it adding only tabs, as many as possible, 
+still not to exceed 80 char line len limit.
+
+
+>> Whether this works or not always depends on the tab-width. I think most
+>> variations are okay here. Some people like to align them, other people
+>> don't.
+>
+> Tab width is always 8, according with the CodingStyle:
+>
+> "Tabs are 8 characters, and thus indentations are also 8 characters."
+>
+> Regards,
+> Mauro
+>
+
+
+-- 
+http://palosaari.fi/
