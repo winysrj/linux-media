@@ -1,184 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45843 "EHLO mx1.redhat.com"
+Received: from ffm.saftware.de ([83.141.3.46]:52707 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752672Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:32 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Uwf009147
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 61/94] [media] tda10086: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:58 -0200
-Message-Id: <1325257711-12274-62-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S933248Ab1LFNtP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 08:49:15 -0500
+Message-ID: <4EDE1D57.90307@linuxtv.org>
+Date: Tue, 06 Dec 2011 14:49:11 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: HoP <jpetrous@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <CAJbz7-1S6K=sDJFcOM8mMxL3t2JS91k+fHLy4gq868_9eUyS9A@mail.gmail.com> <4EDE1733.8060409@redhat.com>
+In-Reply-To: <4EDE1733.8060409@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On 06.12.2011 14:22, Mauro Carvalho Chehab wrote:
+> On 05-12-2011 22:07, HoP wrote:
+>>> I doubt that scan or w_scan would support it. Even if it supports, that
+>>> would mean that,
+>>> for each ioctl that would be sent to the remote server, the error
+>>> code would
+>>> take 480 ms
+>>> to return. Try to calculate how many time w_scan would work with
+>>> that. The
+>>> calculus is easy:
+>>> see how many ioctl's are called by each frequency and multiply by the
+>>> number
+>>> of frequencies
+>>> that it would be seek. You should then add the delay introduced over
+>>> streaming the data
+>>> from the demux, using the same calculus. This is the additional time
+>>> over a
+>>> local w_scan.
+>>>
+>>> A grouch calculus with scandvb: to tune into a single DVB-C
+>>> frequency, it
+>>> used 45 ioctls.
+>>> Each taking 480 ms round trip would mean an extra delay of 21.6 seconds.
+>>> There are 155
+>>> possible frequencies here. So, imagining that scan could deal with 21.6
+>>> seconds of delay
+>>> for each channel (with it doesn't), the extra delay added by it is 1
+>>> hour
+>>> (45 * 0.48 * 155).
+>>>
+>>> On the other hand, a solution like the one described by Florian would
+>>> introduce a delay of
+>>> 480 ms for the entire scan to happen, as only one data packet would be
+>>> needed to send a
+>>> scan request, and one one stream of packets traveling at 10GB/s would
+>>> bring
+>>> the answer
+>>> back.
+>>
+>> Andreas was excited by your imaginations and calculations, but not me.
+>> Now you again manifested you are not treating me as partner for
+>> discussion.
+>> Otherwise you should try to understand how-that-ugly-hack works.
+>> But you surelly didn't try to do it at all.
+>>
+>> How do you find those 45 ioctls for DVB-C tune?
+> 
+> With strace. See how many ioctl's are called for each tune. Ok, perhaps
+> scandvb
+> is badly written, but if your idea is to support 100% of the
+> applications, you
+> should be prepared for badly written applications.
+> 
+> $strace -e ioctl scandvb dvbc-teste
+> scanning dvbc-teste
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> ioctl(3, FE_GET_INFO, 0x60a640)         = 0
+> initial transponder 573000000 5217000 0 5
+>>>> tune to: 573000000:INVERSION_AUTO:5217000:FEC_NONE:QAM_256
+> ioctl(3, FE_SET_FRONTEND, 0x7fff5f7f2cd0) = 0
+> ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
+> ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
+> ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
+> ioctl(4, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
+> ioctl(5, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
+> ioctl(6, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
+> ioctl(7, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(8, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(9, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(10, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(11, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(12, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(13, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(14, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(15, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(16, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(17, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(18, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(19, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(20, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(21, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(22, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(23, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(24, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
+> ioctl(4, DMX_STOP, 0x1)                 = 0
+> ioctl(15, DMX_STOP, 0x1)                = 0
+> ioctl(11, DMX_STOP, 0x1)                = 0
+> ioctl(22, DMX_STOP, 0x1)                = 0
+> ioctl(17, DMX_STOP, 0x1)                = 0
+> ioctl(16, DMX_STOP, 0x1)                = 0
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+You don't need to wait for write-only operations. Basically all demux
+ioctls are write-only. Since vtunerc is using dvb-core's software demux
+*locally*, errors for invalid arguments etc. will be returned as usual.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda10086.c |   46 ++++++++++++++++----------------
- 1 files changed, 23 insertions(+), 23 deletions(-)
+What's left is one call to FE_SET_FRONTEND for each frequency to tune
+to, and one FE_READ_STATUS for each time the lock status is queried.
+Note that one may use FE_GET_EVENT instead of FE_READ_STATUS to get
+notified of status changes asynchronously if desired.
 
-diff --git a/drivers/media/dvb/frontends/tda10086.c b/drivers/media/dvb/frontends/tda10086.c
-index 8501100..81fa57b 100644
---- a/drivers/media/dvb/frontends/tda10086.c
-+++ b/drivers/media/dvb/frontends/tda10086.c
-@@ -267,7 +267,7 @@ static int tda10086_send_burst (struct dvb_frontend* fe, fe_sec_mini_cmd_t minic
- }
- 
- static int tda10086_set_inversion(struct tda10086_state *state,
--				  struct dvb_frontend_parameters *fe_params)
-+				  struct dtv_frontend_properties *fe_params)
- {
- 	u8 invval = 0x80;
- 
-@@ -292,7 +292,7 @@ static int tda10086_set_inversion(struct tda10086_state *state,
- }
- 
- static int tda10086_set_symbol_rate(struct tda10086_state *state,
--				    struct dvb_frontend_parameters *fe_params)
-+				    struct dtv_frontend_properties *fe_params)
- {
- 	u8 dfn = 0;
- 	u8 afs = 0;
-@@ -303,7 +303,7 @@ static int tda10086_set_symbol_rate(struct tda10086_state *state,
- 	u32 tmp;
- 	u32 bdr;
- 	u32 bdri;
--	u32 symbol_rate = fe_params->u.qpsk.symbol_rate;
-+	u32 symbol_rate = fe_params->symbol_rate;
- 
- 	dprintk ("%s %i\n", __func__, symbol_rate);
- 
-@@ -367,13 +367,13 @@ static int tda10086_set_symbol_rate(struct tda10086_state *state,
- }
- 
- static int tda10086_set_fec(struct tda10086_state *state,
--			    struct dvb_frontend_parameters *fe_params)
-+			    struct dtv_frontend_properties *fe_params)
- {
- 	u8 fecval;
- 
--	dprintk ("%s %i\n", __func__, fe_params->u.qpsk.fec_inner);
-+	dprintk ("%s %i\n", __func__, fe_params->fec_inner);
- 
--	switch(fe_params->u.qpsk.fec_inner) {
-+	switch(fe_params->fec_inner) {
- 	case FEC_1_2:
- 		fecval = 0x00;
- 		break;
-@@ -409,9 +409,9 @@ static int tda10086_set_fec(struct tda10086_state *state,
- 	return 0;
- }
- 
--static int tda10086_set_frontend(struct dvb_frontend* fe,
--				 struct dvb_frontend_parameters *fe_params)
-+static int tda10086_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *fe_params = &fe->dtv_property_cache;
- 	struct tda10086_state *state = fe->demodulator_priv;
- 	int ret;
- 	u32 freq = 0;
-@@ -452,12 +452,12 @@ static int tda10086_set_frontend(struct dvb_frontend* fe,
- 	tda10086_write_mask(state, 0x10, 0x40, 0x40);
- 	tda10086_write_mask(state, 0x00, 0x01, 0x00);
- 
--	state->symbol_rate = fe_params->u.qpsk.symbol_rate;
-+	state->symbol_rate = fe_params->symbol_rate;
- 	state->frequency = fe_params->frequency;
- 	return 0;
- }
- 
--static int tda10086_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *fe_params)
-+static int tda10086_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *fe_params)
- {
- 	struct tda10086_state* state = fe->demodulator_priv;
- 	u8 val;
-@@ -467,7 +467,7 @@ static int tda10086_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_pa
- 	dprintk ("%s\n", __func__);
- 
- 	/* check for invalid symbol rate */
--	if (fe_params->u.qpsk.symbol_rate < 500000)
-+	if (fe_params->symbol_rate < 500000)
- 		return -EINVAL;
- 
- 	/* calculate the updated frequency (note: we convert from Hz->kHz) */
-@@ -516,34 +516,34 @@ static int tda10086_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_pa
- 		tmp |= 0xffffff00;
- 	tmp = (tmp * 480 * (1<<1)) / 128;
- 	tmp = ((state->symbol_rate/1000) * tmp) / (1000000/1000);
--	fe_params->u.qpsk.symbol_rate = state->symbol_rate + tmp;
-+	fe_params->symbol_rate = state->symbol_rate + tmp;
- 
- 	/* the FEC */
- 	val = (tda10086_read_byte(state, 0x0d) & 0x70) >> 4;
- 	switch(val) {
- 	case 0x00:
--		fe_params->u.qpsk.fec_inner = FEC_1_2;
-+		fe_params->fec_inner = FEC_1_2;
- 		break;
- 	case 0x01:
--		fe_params->u.qpsk.fec_inner = FEC_2_3;
-+		fe_params->fec_inner = FEC_2_3;
- 		break;
- 	case 0x02:
--		fe_params->u.qpsk.fec_inner = FEC_3_4;
-+		fe_params->fec_inner = FEC_3_4;
- 		break;
- 	case 0x03:
--		fe_params->u.qpsk.fec_inner = FEC_4_5;
-+		fe_params->fec_inner = FEC_4_5;
- 		break;
- 	case 0x04:
--		fe_params->u.qpsk.fec_inner = FEC_5_6;
-+		fe_params->fec_inner = FEC_5_6;
- 		break;
- 	case 0x05:
--		fe_params->u.qpsk.fec_inner = FEC_6_7;
-+		fe_params->fec_inner = FEC_6_7;
- 		break;
- 	case 0x06:
--		fe_params->u.qpsk.fec_inner = FEC_7_8;
-+		fe_params->fec_inner = FEC_7_8;
- 		break;
- 	case 0x07:
--		fe_params->u.qpsk.fec_inner = FEC_8_9;
-+		fe_params->fec_inner = FEC_8_9;
- 		break;
- 	}
- 
-@@ -701,7 +701,7 @@ static void tda10086_release(struct dvb_frontend* fe)
- }
- 
- static struct dvb_frontend_ops tda10086_ops = {
--
-+	.delsys = { SYS_DVBS },
- 	.info = {
- 		.name     = "Philips TDA10086 DVB-S",
- 		.type     = FE_QPSK,
-@@ -722,8 +722,8 @@ static struct dvb_frontend_ops tda10086_ops = {
- 	.sleep = tda10086_sleep,
- 	.i2c_gate_ctrl = tda10086_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = tda10086_set_frontend,
--	.get_frontend_legacy = tda10086_get_frontend,
-+	.set_frontend = tda10086_set_frontend,
-+	.get_frontend = tda10086_get_frontend,
- 	.get_tune_settings = tda10086_get_tune_settings,
- 
- 	.read_status = tda10086_read_status,
--- 
-1.7.8.352.g876a6
+Btw.: FE_SET_FRONTEND doesn't block either, because the driver callback
+is called from a dvb_frontend's *local* kernel thread.
 
+Regards,
+Andreas
