@@ -1,61 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:63168 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932486Ab1LEWdh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 17:33:37 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:8403 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933430Ab1LFPGY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 10:06:24 -0500
+Message-ID: <4EDE2F61.301@redhat.com>
+Date: Tue, 06 Dec 2011 13:06:09 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <CAF6AEGto-+oSqguuWyPunUbtE65GpNiXh21srQzrChiBQMb1Nw@mail.gmail.com>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
-	<201112051718.48324.arnd@arndb.de>
-	<CAF6AEGvyWV0DM2fjBbh-TNHiMmiLF4EQDJ6Uu0=NkopM6SXS6g@mail.gmail.com>
-	<CAKMK7uHw3OpMAtVib=e=s_us9Tx9TebzehGg59d4-g9dUXr+pQ@mail.gmail.com>
-	<CAF6AEGto-+oSqguuWyPunUbtE65GpNiXh21srQzrChiBQMb1Nw@mail.gmail.com>
-Date: Mon, 5 Dec 2011 23:33:36 +0100
-Message-ID: <CAKMK7uFpQfAkoEqAJc8hX6k_kOsXR=u5O=fgyaNfaDM89cciSw@mail.gmail.com>
-Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Rob Clark <rob@ti.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>, t.stanislaws@samsung.com,
-	linux@arm.linux.org.uk, Arnd Bergmann <arnd@arndb.de>,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	m.szyprowski@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <4EDD2C82.7040804@linuxtv.org> <20111205205554.2caeb496@lxorguk.ukuu.org.uk> <4EDD3583.30405@linuxtv.org> <20111206111829.GB17194@sirena.org.uk> <4EDE0400.1070304@linuxtv.org> <4EDE1457.7070408@redhat.com> <4EDE1A06.1060108@linuxtv.org> <4EDE22F0.30909@redhat.com> <4EDE28EB.7050407@linuxtv.org>
+In-Reply-To: <4EDE28EB.7050407@linuxtv.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 05, 2011 at 04:11:46PM -0600, Rob Clark wrote:
-> On Mon, Dec 5, 2011 at 3:23 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> > On Mon, Dec 05, 2011 at 02:46:47PM -0600, Rob Clark wrote:
-> >> I sort of preferred having the DMABUF shim because that lets you pass
-> >> a buffer around userspace without the receiving code knowing about a
-> >> device specific API.  But the problem I eventually came around to: if
-> >> your GL stack (or some other userspace component) is batching up
-> >> commands before submission to kernel, the buffers you need to wait for
-> >> completion might not even be submitted yet.  So from kernel
-> >> perspective they are "ready" for cpu access.  Even though in fact they
-> >> are not in a consistent state from rendering perspective.  I don't
-> >> really know a sane way to deal with that.  Maybe the approach instead
-> >> should be a userspace level API (in libkms/libdrm?) to provide
-> >> abstraction for userspace access to buffers rather than dealing with
-> >> this at the kernel level.
-> >
-> > Well, there's a reason GL has an explicit flush and extensions for sync
-> > objects. It's to support such scenarios where the driver batches up gpu
-> > commands before actually submitting them.
+On 06-12-2011 12:38, Andreas Oberritter wrote:
+> On 06.12.2011 15:13, Mauro Carvalho Chehab wrote:
+>> O_NONBLOCK
+>>      When opening a FIFO with O_RDONLY or O_WRONLY set:
+>                       ^^^^ This does not apply.
 >
-> Hmm.. what about other non-GL APIs..  maybe vaapi/vdpau or similar?
-> (Or something that I haven't thought of.)
+> [...]
+>
+>>      When opening a block special or character special file that supports
+>> non-blocking opens:
+>>
+>>          If O_NONBLOCK is set, the open() function shall return without
+>> blocking for the device to be ready or available. Subsequent behavior of
+>> the device is device-specific.
+>
+> This is the important part:
+> - It specifies the behaviour of open(), not ioctl(). I don't see a
+> reason why open should block with vtunerc.
+> - Read again: "Subsequent behavior of the device is device-specific."
+>
+>>          If O_NONBLOCK is clear, the open() function shall block the
+>> calling thread until the device is ready or available before returning.
+>>
+>>      Otherwise, the behavior of O_NONBLOCK is unspecified.
+>>
+>> Basically, syscall should not block waiting for some data to be read (or
+>> written).
+>
+> That's because open() does not read or write.
+>
+>> The ioctl definition defines [EAGAIN] error code, if, for any reason, an
+>> ioctl would block.
+>
+> Fine.
+>
+>> Btw, the vtunerc doesn't handle O_NONBLOCK flag. For each DVB ioctl, for
+>> example
+>> read_snr[1], it calls wait_event_interruptible()[2], even if the
+>> application opens
+>> it with O_NONBLOCK flag. So, it is likely that non-blocking-mode
+>> applications
+>> will break.
+>
+> Of course, read operations must wait until the value read is available
+> or an error (e.g. timeout, i/o error) occurs. Whether it's an i2c
+> transfer, an usb transfer or a network transfer doesn't make a
+> difference. Every transfer takes a nonzero amount of time.
 
-They generally all have a concept of when they've actually commited the
-rendering to an X pixmap or egl image. Usually it's rather implicit, e.g.
-the driver will submit any outstanding batches before returning from any
-calls.
--Daniel
--- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+Yes, posix is not 100% clear about what "non block" means for ioctl's, but
+waiting for an event is clearly a block condition. This is different than
+doing something like mdelay() (or even mleep()) in order to wait for an
+specific amount of time for an operation to complete.
+
+A vtunerc => daemon => network transfer =>daemon => vtunerc is a block condition,
+as the network may return in a few ms or may not return and a long
+timeout at the daemon would give an error. Also, as the daemon may be swapped
+to disk (as the daemon runs on userspace), this may even involve other
+blocking operations at the block layer.
+
+> As Honza already demonstrated, in a typical LAN setup, this takes only
+> few milliseconds, which with fast devices may even be faster than some
+> slow local devices using many delays in their driver code.
+>
+> If an application breaks because of that, then it's a bug in the
+> application which may as well be triggered by a local driver and thus
+> needs to be fixed anyway.
+
+It is not a bug in the application. It requested a non-block mode. The driver
+is working in block mode instead. It is a driver's bug.
+
+>>> Mauro, if the network is broken, any application using the network will
+>>> break. No specially designed protocol will fix that.
+>>
+>> A high delay network (even a congested one) is not broken, if it can
+>> still provide the throughput required by the application, and a latency/QoS
+>> that would fit.
+>
+> Then neither vtunerc nor any other application will break. Fine.
+>
+>>> If you want to enforce strict maximum latencies, you can do that in the
+>>> userspace daemon using the vtunerc interface. It has all imaginable
+>>> possibilities to control data flow over the network and to return errors
+>>> to vtunerc.
+>>
+>> Yes, you can do anything you want at the userspace daemon, but the
+>> non-userspace daemon aware applications will know nothing about it, and
+>> this is the flaw on this design: Applications can't negotiate what network
+>> parameters are ok or not for its usecase.
+>
+> How do you negotiate network parameters with your ISP and all involved
+> parties on the internet on the way from your DSL line to some other
+> peer? Let me answer it: You don't.
+
+TCP flow control mechanisms, RSVP, MPLS, IP QoS flags, ICMP messages, etc.
+
+>>> For a DVB API application it doesn't matter whether a tuning
+>>> request fails with EIO because a USB device has been removed, a PCI
+>>> device encountered an I2C error or because the vtuner userspace daemon
+>>> returned an error.
+>>
+>> When you go to network, there are several errors that are transitory.
+>> For example,
+>> a dropped link may cause the routing protocol (RIP, BGP or whatever) to
+>> re-direct
+>> several routes (or, on a LAN, a spanning-tree re-negotiation), causing a
+>> temporary
+>> failure to deliver a few packets. All network-based application are written
+>> to consider temporary failures.
+>
+> I seriously doubt that, unless "consider" means "print an error and
+> exit" or "all" means "some".
+> Anyway, such temporary failures can be handled by the userspace daemon.
+>
+>> This is fundamentally different than an application designed to talk
+>> directly with
+>> the hardware, where an error is generally fatal.
+>
+> Fatal or not, if you return a temporary error code like EAGAIN, for
+> example, that's not the case.
+>
+> Do you recommend applications to just die if an ioctl fails?
+
+Network applications (Youtube, Skype, mplayer, you name it) have
+mechanisms to handle high delays, congestion, etc. Cheating with a non-network
+application to work via the network is not the same as a network-based application.
+You'll never achieve the same result. Only if the network is close to a
+"pure wire" (e. g., no congestion, no packet loss, etc), such solution
+works.
+
+> Btw.: How do you handle firmware uploads via I2C in non-blocking mode?
+> Should applications always fail if a firmware upload that takes longer
+> than some ms, e.g. when tuning to a different delivery system or when
+> the firmware is yet to be loaded before the first ioctl may run?
+
+The right thing to do is to return -EAGAIN for all syscalls while the firmware
+is not loaded. Unfortunately, several driversdon't do the right thing.
+
+Regards,
+Mauro.
