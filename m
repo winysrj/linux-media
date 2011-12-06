@@ -1,64 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1103 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065Ab1LOJme (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 04:42:34 -0500
-Received: from alastor.dyndns.org (215.80-203-102.nextgentel.com [80.203.102.215])
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id pBF9gV0q049877
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 10:42:32 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 53A5811C043D
-	for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 10:42:29 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 PATCH 0/3] Add per-device-node capabilities
-Date: Thu, 15 Dec 2011 10:42:25 +0100
-Message-Id: <1323942148-13503-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:60432 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753967Ab1LFWkA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 17:40:00 -0500
+Message-ID: <4EDE99B3.2010507@gmail.com>
+Date: Tue, 06 Dec 2011 23:39:47 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Ming Lei <ming.lei@canonical.com>
+CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
+ module
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>	<4EDD3DEE.6060506@gmail.com> <CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com> <4EDE90A3.7050900@gmail.com>
+In-Reply-To: <4EDE90A3.7050900@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 12/06/2011 11:01 PM, Sylwester Nawrocki wrote:
+[...]
+>
+> It might be much better as the v4l2 events are associated with the frame
+> sequence. And if we use controls then you get control events for free,
+> and each event carries a frame sequence number int it
+> (http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-dqevent.html).
 
-This patch series adds support for per-device capabilities.
+Oops, just ignore that. The frame sequence number is only available for
+V4L2_EVENT_FRAME_SYNC events.
 
-All comments from the previous RFC PATCH series:
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/40688
-
-have been incorporated and the documentation has been updated.
-
-The only file changed since the previous series was vidioc-querycap.xml.
-
-As far as I am concerned it is ready to be merged for v3.3.
-
-The git request-pull output is below:
-
-The following changes since commit bcc072756e4467dc30e502a311b1c3adec96a0e4:
-
-  [media] STV0900: Query DVB frontend delivery capabilities (2011-12-12 15:04:34 -0200)
-
-are available in the git repository at:
-  git://linuxtv.org/hverkuil/media_tree.git capsv3
-
-Hans Verkuil (3):
-      V4L2: Add per-device-node capabilities
-      vivi: set device_caps.
-      ivtv: setup per-device caps.
-
- Documentation/DocBook/media/v4l/compat.xml         |    9 +++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    9 ++++-
- .../DocBook/media/v4l/vidioc-querycap.xml          |   36 ++++++++++++++++++--
- drivers/media/video/cx231xx/cx231xx-417.c          |    1 -
- drivers/media/video/ivtv/ivtv-driver.h             |    1 +
- drivers/media/video/ivtv/ivtv-ioctl.c              |    7 +++-
- drivers/media/video/ivtv/ivtv-streams.c            |   14 ++++++++
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c         |    1 -
- drivers/media/video/v4l2-ioctl.c                   |    6 ++-
- drivers/media/video/vivi.c                         |    5 ++-
- include/linux/videodev2.h                          |   29 +++++++++++-----
- 11 files changed, 97 insertions(+), 21 deletions(-)
