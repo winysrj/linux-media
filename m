@@ -1,271 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:48019 "EHLO arroyo.ext.ti.com"
+Received: from ffm.saftware.de ([83.141.3.46]:46191 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753974Ab1LZJYk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 04:24:40 -0500
-From: Sumit Semwal <sumit.semwal@ti.com>
-To: <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
-	<linaro-mm-sig@lists.linaro.org>,
-	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>,
-	<arnd@arndb.de>, <airlied@redhat.com>
-CC: <linux@arm.linux.org.uk>, <jesse.barker@linaro.org>,
-	<m.szyprowski@samsung.com>, <rob@ti.com>, <daniel@ffwll.ch>,
-	<t.stanislaws@samsung.com>, <patches@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH 2/3] dma-buf: Documentation for buffer sharing framework
-Date: Mon, 26 Dec 2011 14:53:16 +0530
-Message-ID: <1324891397-10877-3-git-send-email-sumit.semwal@ti.com>
-In-Reply-To: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com>
-References: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com>
+	id S933345Ab1LFOsa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 09:48:30 -0500
+Message-ID: <4EDE2B3B.2080905@linuxtv.org>
+Date: Tue, 06 Dec 2011 15:48:27 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	HoP <jpetrous@gmail.com>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <4EDD2C82.7040804@linuxtv.org> <20111206112153.GC17194@sirena.org.uk> <4EDE0427.2050307@linuxtv.org> <20111206141929.GE17731@opensource.wolfsonmicro.com>
+In-Reply-To: <20111206141929.GE17731@opensource.wolfsonmicro.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for dma buffer sharing framework, explaining the
-various operations, members and API of the dma buffer sharing
-framework.
+On 06.12.2011 15:19, Mark Brown wrote:
+> On Tue, Dec 06, 2011 at 01:01:43PM +0100, Andreas Oberritter wrote:
+>> On 06.12.2011 12:21, Mark Brown wrote:
+>>> On Mon, Dec 05, 2011 at 09:41:38PM +0100, Andreas Oberritter wrote:
+> 
+>>>> Are you serious? Lower networking layers should be transparent to the
+>>>> upper layers. You don't implement VPN or say TCP in all of your
+>>>> applications, do you? These are just some more made-up arguments which
+>>>> don't have anything to do with the use cases I explained earlier.
+> 
+>>> For real time applications it does make a big difference - decisions
+>>> taken at the application level can greatly impact end application
+>>> performance.  For example with VoIP on a LAN you can get great audio
+> 
+>> Can you please explain how this relates to the topic we're discussing?
+> 
+> Your assertatation that applications should ignore the underlying
+> transport (which seems to be a big part of what you're saying) isn't
+> entirely in line with reality.
 
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
-Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
----
- Documentation/dma-buf-sharing.txt |  224 +++++++++++++++++++++++++++++++++++++
- 1 files changed, 224 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/dma-buf-sharing.txt
+Did you notice that we're talking about a very particular application?
 
-diff --git a/Documentation/dma-buf-sharing.txt b/Documentation/dma-buf-sharing.txt
-new file mode 100644
-index 0000000..510eab3
---- /dev/null
-+++ b/Documentation/dma-buf-sharing.txt
-@@ -0,0 +1,224 @@
-+                    DMA Buffer Sharing API Guide
-+                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-+
-+                            Sumit Semwal
-+                <sumit dot semwal at linaro dot org>
-+                 <sumit dot semwal at ti dot com>
-+
-+This document serves as a guide to device-driver writers on what is the dma-buf
-+buffer sharing API, how to use it for exporting and using shared buffers.
-+
-+Any device driver which wishes to be a part of DMA buffer sharing, can do so as
-+either the 'exporter' of buffers, or the 'user' of buffers.
-+
-+Say a driver A wants to use buffers created by driver B, then we call B as the
-+exporter, and A as buffer-user.
-+
-+The exporter
-+- implements and manages operations[1] for the buffer
-+- allows other users to share the buffer by using dma_buf sharing APIs,
-+- manages the details of buffer allocation,
-+- decides about the actual backing storage where this allocation happens,
-+- takes care of any migration of scatterlist - for all (shared) users of this
-+   buffer,
-+
-+The buffer-user
-+- is one of (many) sharing users of the buffer.
-+- doesn't need to worry about how the buffer is allocated, or where.
-+- needs a mechanism to get access to the scatterlist that makes up this buffer
-+   in memory, mapped into its own address space, so it can access the same area
-+   of memory.
-+
-+*IMPORTANT*: [see https://lkml.org/lkml/2011/12/20/211 for more details]
-+For this first version, A buffer shared using the dma_buf sharing API:
-+- *may* be exported to user space using "mmap" *ONLY* by exporter, outside of
-+   this framework.
-+- may be used *ONLY* by importers that do not need CPU access to the buffer.
-+
-+The dma_buf buffer sharing API usage contains the following steps:
-+
-+1. Exporter announces that it wishes to export a buffer
-+2. Userspace gets the file descriptor associated with the exported buffer, and
-+   passes it around to potential buffer-users based on use case
-+3. Each buffer-user 'connects' itself to the buffer
-+4. When needed, buffer-user requests access to the buffer from exporter
-+5. When finished with its use, the buffer-user notifies end-of-DMA to exporter
-+6. when buffer-user is done using this buffer completely, it 'disconnects'
-+   itself from the buffer.
-+
-+
-+1. Exporter's announcement of buffer export
-+
-+   The buffer exporter announces its wish to export a buffer. In this, it
-+   connects its own private buffer data, provides implementation for operations
-+   that can be performed on the exported dma_buf, and flags for the file
-+   associated with this buffer.
-+
-+   Interface:
-+      struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
-+				     size_t size, int flags)
-+
-+   If this succeeds, dma_buf_export allocates a dma_buf structure, and returns a
-+   pointer to the same. It also associates an anonymous file with this buffer,
-+   so it can be exported. On failure to allocate the dma_buf object, it returns
-+   NULL.
-+
-+2. Userspace gets a handle to pass around to potential buffer-users
-+
-+   Userspace entity requests for a file-descriptor (fd) which is a handle to the
-+   anonymous file associated with the buffer. It can then share the fd with other
-+   drivers and/or processes.
-+
-+   Interface:
-+      int dma_buf_fd(struct dma_buf *dmabuf)
-+
-+   This API installs an fd for the anonymous file associated with this buffer;
-+   returns either 'fd', or error.
-+
-+3. Each buffer-user 'connects' itself to the buffer
-+
-+   Each buffer-user now gets a reference to the buffer, using the fd passed to
-+   it.
-+
-+   Interface:
-+      struct dma_buf *dma_buf_get(int fd)
-+
-+   This API will return a reference to the dma_buf, and increment refcount for
-+   it.
-+
-+   After this, the buffer-user needs to attach its device with the buffer, which
-+   helps the exporter to know of device buffer constraints.
-+
-+   Interface:
-+      struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-+                                                struct device *dev)
-+
-+   This API returns reference to an attachment structure, which is then used
-+   for scatterlist operations. It will optionally call the 'attach' dma_buf
-+   operation, if provided by the exporter.
-+
-+   The dma-buf sharing framework does the bookkeeping bits related to managing
-+   the list of all attachments to a buffer.
-+
-+Until this stage, the buffer-exporter has the option to choose not to actually
-+allocate the backing storage for this buffer, but wait for the first buffer-user
-+to request use of buffer for allocation.
-+
-+
-+4. When needed, buffer-user requests access to the buffer
-+
-+   Whenever a buffer-user wants to use the buffer for any DMA, it asks for
-+   access to the buffer using dma_buf_map_attachment API. At least one attach to
-+   the buffer must have happened before map_dma_buf can be called.
-+
-+   Interface:
-+      struct sg_table * dma_buf_map_attachment(struct dma_buf_attachment *,
-+                                         enum dma_data_direction);
-+
-+   This is a wrapper to dma_buf->ops->map_dma_buf operation, which hides the
-+   "dma_buf->ops->" indirection from the users of this interface.
-+
-+   In struct dma_buf_ops, map_dma_buf is defined as
-+      struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *,
-+                                                enum dma_data_direction);
-+
-+   It is one of the buffer operations that must be implemented by the exporter.
-+   It should return the sg_table containing scatterlist for this buffer, mapped
-+   into caller's address space.
-+
-+   If this is being called for the first time, the exporter can now choose to
-+   scan through the list of attachments for this buffer, collate the requirements
-+   of the attached devices, and choose an appropriate backing storage for the
-+   buffer.
-+
-+   Based on enum dma_data_direction, it might be possible to have multiple users
-+   accessing at the same time (for reading, maybe), or any other kind of sharing
-+   that the exporter might wish to make available to buffer-users.
-+
-+   map_dma_buf() operation can return -EINTR if it is interrupted by a signal.
-+
-+
-+5. When finished, the buffer-user notifies end-of-DMA to exporter
-+
-+   Once the DMA for the current buffer-user is over, it signals 'end-of-DMA' to
-+   the exporter using the dma_buf_unmap_attachment API.
-+
-+   Interface:
-+      void dma_buf_unmap_attachment(struct dma_buf_attachment *,
-+                                    struct sg_table *);
-+
-+   This is a wrapper to dma_buf->ops->unmap_dma_buf() operation, which hides the
-+   "dma_buf->ops->" indirection from the users of this interface.
-+
-+   In struct dma_buf_ops, unmap_dma_buf is defined as
-+      void (*unmap_dma_buf)(struct dma_buf_attachment *, struct sg_table *);
-+
-+   unmap_dma_buf signifies the end-of-DMA for the attachment provided. Like
-+   map_dma_buf, this API also must be implemented by the exporter.
-+
-+
-+6. when buffer-user is done using this buffer, it 'disconnects' itself from the
-+   buffer.
-+
-+   After the buffer-user has no more interest in using this buffer, it should
-+   disconnect itself from the buffer:
-+
-+   - it first detaches itself from the buffer.
-+
-+   Interface:
-+      void dma_buf_detach(struct dma_buf *dmabuf,
-+                          struct dma_buf_attachment *dmabuf_attach);
-+
-+   This API removes the attachment from the list in dmabuf, and optionally calls
-+   dma_buf->ops->detach(), if provided by exporter, for any housekeeping bits.
-+
-+   - Then, the buffer-user returns the buffer reference to exporter.
-+
-+   Interface:
-+     void dma_buf_put(struct dma_buf *dmabuf);
-+
-+   This API then reduces the refcount for this buffer.
-+
-+   If, as a result of this call, the refcount becomes 0, the 'release' file
-+   operation related to this fd is called. It calls the dmabuf->ops->release()
-+   operation in turn, and frees the memory allocated for dmabuf when exported.
-+
-+NOTES:
-+- Importance of attach-detach and {map,unmap}_dma_buf operation pairs
-+   The attach-detach calls allow the exporter to figure out backing-storage
-+   constraints for the currently-interested devices. This allows preferential
-+   allocation, and/or migration of pages across different types of storage
-+   available, if possible.
-+
-+   Bracketing of DMA access with {map,unmap}_dma_buf operations is essential
-+   to allow just-in-time backing of storage, and migration mid-way through a
-+   use-case.
-+
-+- Migration of backing storage if needed
-+   If after
-+   - at least one map_dma_buf has happened,
-+   - and the backing storage has been allocated for this buffer,
-+   another new buffer-user intends to attach itself to this buffer, it might
-+   be allowed, if possible for the exporter.
-+
-+   In case it is allowed by the exporter:
-+    if the new buffer-user has stricter 'backing-storage constraints', and the
-+    exporter can handle these constraints, the exporter can just stall on the
-+    map_dma_buf until all outstanding access is completed (as signalled by
-+    unmap_dma_buf).
-+    Once all users have finished accessing and have unmapped this buffer, the
-+    exporter could potentially move the buffer to the stricter backing-storage,
-+    and then allow further {map,unmap}_dma_buf operations from any buffer-user
-+    from the migrated backing-storage.
-+
-+   If the exporter cannot fulfil the backing-storage constraints of the new
-+   buffer-user device as requested, dma_buf_attach() would return an error to
-+   denote non-compatibility of the new buffer-sharing request with the current
-+   buffer.
-+
-+   If the exporter chooses not to allow an attach() operation once a
-+   map_dma_buf() API has been called, it simply returns an error.
-+
-+References:
-+[1] struct dma_buf_ops in include/linux/dma-buf.h
-+[2] All interfaces mentioned above defined in include/linux/dma-buf.h
--- 
-1.7.5.4
-
+VoIP really is totally off-topic. The B in DVB stands for broadcast.
+There's only one direction in which MPEG payload is to be sent (using
+RTP for example). You can't just re-encode the data on the fly without
+loss of information.
