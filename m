@@ -1,74 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16947 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751977Ab1LaKXH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 05:23:07 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBVAN6Ug032140
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 05:23:06 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/3] [media] af9015: convert set_fontend to use DVBv5 parameters
-Date: Sat, 31 Dec 2011 08:23:00 -0200
-Message-Id: <1325326980-27464-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325326980-27464-1-git-send-email-mchehab@redhat.com>
-References: <1325326980-27464-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout4.samsung.com ([203.254.224.34]:52125 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933014Ab1LFIlQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 03:41:16 -0500
+Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LVR00GXYXGFS9G0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Dec 2011 17:41:15 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LVR003QPXGNBG50@mmp2.samsung.com>
+ for linux-media@vger.kernel.org; Tue, 06 Dec 2011 17:41:15 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Peter Korsgaard' <jacmet@sunsite.dk>, mchehab@infradead.org,
+	linux-media@vger.kernel.org
+References: <1323079935-5351-1-git-send-email-jacmet@sunsite.dk>
+In-reply-to: <1323079935-5351-1-git-send-email-jacmet@sunsite.dk>
+Subject: RE: [PATCH] s5p_mfc_enc: fix s/H264/H263/ typo
+Date: Tue, 06 Dec 2011 09:40:31 +0100
+Message-id: <00c801ccb3f2$b9333460$2b999d20$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Peter,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Thank you for your patch!
+I'll include it with the patches we'll be sending to Mauro.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/af9015.c |    5 ++---
- drivers/media/dvb/dvb-usb/af9015.h |    3 +--
- 2 files changed, 3 insertions(+), 5 deletions(-)
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
-index 7b606b7..7959053 100644
---- a/drivers/media/dvb/dvb-usb/af9015.c
-+++ b/drivers/media/dvb/dvb-usb/af9015.c
-@@ -1096,8 +1096,7 @@ error:
- }
- 
- /* override demod callbacks for resource locking */
--static int af9015_af9013_set_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *params)
-+static int af9015_af9013_set_frontend(struct dvb_frontend *fe)
- {
- 	int ret;
- 	struct dvb_usb_adapter *adap = fe->dvb->priv;
-@@ -1106,7 +1105,7 @@ static int af9015_af9013_set_frontend(struct dvb_frontend *fe,
- 	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
- 		return -EAGAIN;
- 
--	ret = priv->set_frontend[adap->id](fe, params);
-+	ret = priv->set_frontend[adap->id](fe);
- 
- 	mutex_unlock(&adap->dev->usb_mutex);
- 
-diff --git a/drivers/media/dvb/dvb-usb/af9015.h b/drivers/media/dvb/dvb-usb/af9015.h
-index 4a12617..f619063 100644
---- a/drivers/media/dvb/dvb-usb/af9015.h
-+++ b/drivers/media/dvb/dvb-usb/af9015.h
-@@ -104,8 +104,7 @@ struct af9015_state {
- 	u8 rc_last[4];
- 
- 	/* for demod callback override */
--	int (*set_frontend[2]) (struct dvb_frontend *fe,
--		struct dvb_frontend_parameters *params);
-+	int (*set_frontend[2]) (struct dvb_frontend *fe);
- 	int (*read_status[2]) (struct dvb_frontend *fe, fe_status_t *status);
- 	int (*init[2]) (struct dvb_frontend *fe);
- 	int (*sleep[2]) (struct dvb_frontend *fe);
--- 
-1.7.8.352.g876a6
+
+> -----Original Message-----
+> From: Peter Korsgaard [mailto:jacmet@gmail.com] On Behalf Of Peter Korsgaard
+> Sent: 05 December 2011 11:12
+> To: k.debski@samsung.com; mchehab@infradead.org; linux-media@vger.kernel.org
+> Cc: Peter Korsgaard
+> Subject: [PATCH] s5p_mfc_enc: fix s/H264/H263/ typo
+> 
+> Signed-off-by: Peter Korsgaard <jacmet@sunsite.dk>
+> ---
+>  drivers/media/video/s5p-mfc/s5p_mfc_enc.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+> index 1e8cdb7..dff9dc7 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc_enc.c
+> @@ -61,7 +61,7 @@ static struct s5p_mfc_fmt formats[] = {
+>  		.num_planes = 1,
+>  	},
+>  	{
+> -		.name = "H264 Encoded Stream",
+> +		.name = "H263 Encoded Stream",
+>  		.fourcc = V4L2_PIX_FMT_H263,
+>  		.codec_mode = S5P_FIMV_CODEC_H263_ENC,
+>  		.type = MFC_FMT_ENC,
+> --
+> 1.7.7.1
 
