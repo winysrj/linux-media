@@ -1,110 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29386 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:47429 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932512Ab1LERjX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Dec 2011 12:39:23 -0500
-Message-ID: <4EDD01BA.40208@redhat.com>
-Date: Mon, 05 Dec 2011 15:39:06 -0200
+	id S1752995Ab1LFU6g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 15:58:36 -0500
+Message-ID: <4EDE81EB.80800@redhat.com>
+Date: Tue, 06 Dec 2011 18:58:19 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: HoP <jpetrous@gmail.com>
-CC: Florian Fainelli <f.fainelli@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
-In-Reply-To: <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
+To: Thierry Reding <thierry.reding@avionic-design.de>
+CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
+	Stefan Ringel <linuxtv@stefanringel.de>
+Subject: Re: [PATCH 2/2] [media] tm6000: Fix bad indentation.
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de> <1323178776-12305-1-git-send-email-thierry.reding@avionic-design.de> <1323178776-12305-2-git-send-email-thierry.reding@avionic-design.de> <4EDE1F99.6080200@iki.fi> <20111206141316.GB12258@avionic-0098.adnet.avionic-design.de>
+In-Reply-To: <20111206141316.GB12258@avionic-0098.adnet.avionic-design.de>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05-12-2011 12:28, HoP wrote:
+On 06-12-2011 12:13, Thierry Reding wrote:
+> * Antti Palosaari wrote:
+>> That question is related to that kind of indentation generally, not
+>> only that patch.
+>>
+>> On 12/06/2011 03:39 PM, Thierry Reding wrote:
+>>> Function parameters on subsequent lines should never be aligned with the
+>>> function name but rather be indented.
+>> [...]
+>>>   			usb_set_interface(dev->udev,
+>>> -			dev->isoc_in.bInterfaceNumber,
+>>> -			0);
+>>> +					dev->isoc_in.bInterfaceNumber, 0);
+>>
+>> Which kind of indentation should be used when function params are
+>> slitted to multiple lines?
 
->> And here is a new hack.
+Documentation/CodingStyle currently says:
+
+	Statements longer than 80 columns will be broken into sensible chunks, unless
+	exceeding 80 columns significantly increases readability and does not hide
+	information. Descendants are always substantially shorter than the parent and
+	are placed substantially to the right. The same applies to function headers
+	with a long argument list. However, never break user-visible strings such as
+	printk messages, because that breaks the ability to grep for them.
+
+So, it should be: "substantially to the right" whatever this means.
+
+> I don't think this is documented anywhere and there are no hard rules with
+> regard to this. I guess anything is fine as long as it is indented at all.
 >
-> I'm really tired from all those "hack, crap, pigback ..." wordings.
+>> In that case two tabs are used (related to function indentation).
+>> example:
+>> 	ret= function(param1,
+>> 			param2);
 >
-> What exactly vtuner aproach does so hackish (other then exposing
-> DVB internals, what is every time made if virtualization support is developing)?
+> I usually use that because it is my text editor's default.
 >
-> The code itself no need to patch any line of vanilla kernel source, it even
-> doesn't change any processing of the rest of kernel, it is very simple
-> driver/code/whatever.
+>> Other generally used is only one tab (related to function indentation).
+>> example:
+>> 	ret= function(param1,
+>> 		param2);
 >
-> I can understand that some developers don't like to get dvb-core opened,
-> I don't agree with them, but I don't really need to fight with them.
-> Its theirs opinion.
-> But even I try to see what is so hackish in vtuner implementation, I don't catch
-> anything. Simplicity? I thought that simplicity is a big advanatge (simple code,
-> easy to analyze). What else?
+> I think that's okay as well.
 
-You solution is called a hack becaus it is used to fool applications to think that a
-remote device is actually a local device. Being it at kernelspace or at userspace
-(with CUSE, LD_PRELOADER of whatever other solution) doesn't change this fact.
+One tab can hardly be interpreted as "substantially to the right".
 
-As applications know nothing about it, they'll still use timeouts and other coding logic
-that fits well for a locally-accessible device, but that won't fit well for a remote
-connection. You should remind that, by remote, this could mean a cross-ethernet
-connection dedicated to it or a 20,000 Km far away machine, using satellite links.
+>
+>> And last generally used is multiple tabs + spaces until same
+>> location where first param is meet (related to function
+>> indentation). I see that bad since use of tabs, with only spaces I
+>> see it fine. And this many times leads situation param level are
+>> actually different whilst originally idea was to put those same
+>> level.
+>> example:
+>> 	ret= function(param1,
+>> 		      param2);
 
-When you put someone via the network, issues like latency,  package drops, IP
-congestion, QoS issues, cryptography, tunneling, etc should be taken into account
-by the application, in order to properly address the network issues.
+In practice, this is the most commonly used way, from what I noticed, not only
+at drivers/media. A good place to look for commonly used CodingStyle are the
+most used headers at include/linux. As far as I noticed, they all use this
+style.
 
-Those network-specific issues affect applications badly, if they're not prepared to
-handle with that, and if the used protocol is not adequate. It is not for a reason that
-there are lots of different protocols designed for streaming broadcast, and a lot of
-money is spent on improving it.
+>
+> Whether this works or not always depends on the tab-width. I think most
+> variations are okay here. Some people like to align them, other people
+> don't.
 
-Can you warrant that 100% of DVB applications you claimed to support will work well
-if a high latency network with a few satellite links is used, even if it has enough
-bandwidth)? If you think so, a typical satellite latency is 240 ms per link, in
-the best case [1]. A round trip takes twice this time.
+Tab width is always 8, according with the CodingStyle:
 
-So, a 10 GB connection with just one satellite link would mean about 480 ms of round trip.
-I doubt that scan or w_scan would support it. Even if it supports, that would mean that,
-for each ioctl that would be sent to the remote server, the error code would take 480 ms
-to return. Try to calculate how many time w_scan would work with that. The calculus is easy:
-see how many ioctl's are called by each frequency and multiply by the number of frequencies
-that it would be seek. You should then add the delay introduced over streaming the data
-from the demux, using the same calculus. This is the additional time over a local w_scan.
-
-A grouch calculus with scandvb: to tune into a single DVB-C frequency, it used 45 ioctls.
-Each taking 480 ms round trip would mean an extra delay of 21.6 seconds. There are 155
-possible frequencies here. So, imagining that scan could deal with 21.6 seconds of delay
-for each channel (with it doesn't), the extra delay added by it is 1 hour (45 * 0.48 * 155).
-
-On the other hand, a solution like the one described by Florian would introduce a delay of
-480 ms for the entire scan to happen, as only one data packet would be needed to send a
-scan request, and one one stream of packets traveling at 10GB/s would bring the answer
-back.
-
-Note: even links without satellite may suffer high delays. The delay introduced by an USB
-modem for a 3G data connection is probably high enough to cause applications like w_scan
-to fail.
-
-Your approach for sure works on your network scenario, but it is a very sensitive to network
-issues, as applications have no idea about the network connection, and would do the wrong
-thing when a network error occurs.
-
-What I'm saying you is that the proper way to address it is to create a library that would
-abstract the DVB operations (scan, tuning, filtering, ...) into a way that it could
-be called either locally or remotely. Then, work with userspace developers to support it.
-
-As I said before, all network-based audio/video stream solutions work this way. They don't
-try to hide themselves by emulating a local device, as this don't work in a general case.
-
-If you succeed to create a clean, properly written DVB library that would work fine for
-remote devices, I'm sure you will be able to convince most application maintainers to use it.
+	"Tabs are 8 characters, and thus indentations are also 8 characters."
 
 Regards,
 Mauro
-
-[1] http://www.satsig.net/latency.htm
-
->
-> Honza
 
