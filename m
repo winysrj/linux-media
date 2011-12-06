@@ -1,71 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from yop.chewa.net ([91.121.105.214]:57066 "EHLO yop.chewa.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752168Ab1LBSDd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 13:03:33 -0500
-Received: from basile.remlab.net (cs27062010.pp.htv.fi [89.27.62.10])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: remi)
-	by yop.chewa.net (Postfix) with ESMTPSA id 36DD611B8
-	for <linux-media@vger.kernel.org>; Fri,  2 Dec 2011 19:03:32 +0100 (CET)
-From: "=?iso-8859-1?q?R=E9mi?= Denis-Courmont" <remi@remlab.net>
-To: linux-media@vger.kernel.org
-Subject: Re: LinuxTV ported to Windows
-Date: Fri, 2 Dec 2011 20:03:28 +0200
-References: <4ED65C46.20502@netup.ru> <CAGoCfiwShvPSgAPHKaxj=sMG-Fs9RdH0_3mLHYWuY96Z33AOag@mail.gmail.com>
-In-Reply-To: <CAGoCfiwShvPSgAPHKaxj=sMG-Fs9RdH0_3mLHYWuY96Z33AOag@mail.gmail.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:58048 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754667Ab1LFPfm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 10:35:42 -0500
+Received: by ggnr5 with SMTP id r5so6398938ggn.19
+        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2011 07:35:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+In-Reply-To: <4EDE34B7.9030609@teksavvy.com>
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-2-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-3-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-4-git-send-email-mchehab@redhat.com>
+	<1321800978-27912-5-git-send-email-mchehab@redhat.com>
+	<CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com>
+	<4EDD0F01.7040808@redhat.com>
+	<CAGoCfizRuBEgBhfnzyrE=aJD-WMXCz9OmkoEqQCDpqmYXU2=zA@mail.gmail.com>
+	<CAGoCfiywqY+U0+t9tget1X09=apDm46GpGCa-_QiGp+JhyLXxQ@mail.gmail.com>
+	<CAKdnbx7Ayg6AGS-u=z9Pg6pHV6UN_ZiB-kQ1rv78zG9nm+U9TA@mail.gmail.com>
+	<CAGoCfiwwt898OwmNNwrboT7q5v-sNQuTP6TxCdtY-fFauAyHrA@mail.gmail.com>
+	<4EDE0FD7.4020603@teksavvy.com>
+	<4EDE1C0C.2060701@redhat.com>
+	<CAGoCfizuMQMz3_ihh1AB2uRUn5-1DkCVju1VFMzOnUkqA+tJJQ@mail.gmail.com>
+	<4EDE34B7.9030609@teksavvy.com>
+Date: Tue, 6 Dec 2011 10:35:41 -0500
+Message-ID: <CAGoCfiyXcpWQ24sEVk1O3x8mHZeOk6BdUS=n9VcMbR-FBQojCA@mail.gmail.com>
+Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE
+ HVR-930C again
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mark Lord <kernel@teksavvy.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201112022003.28737.remi@remlab.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-	Hello,
+On Tue, Dec 6, 2011 at 10:28 AM, Mark Lord <kernel@teksavvy.com> wrote:
+> It's always exhibited races for me here.  I have long since worked around
+> the issue(s), so my own systems currently behave.   But with the newer
+> HVR-950Q revision (B4F0), the issue is far more prevalent than before.
 
-A GPL troll, as the "Vicious Nokia Employee [that got] VLC Removed from Apple 
-App Store" I cannot resist...
+I'll ask around and see if I can find out what they changed in the
+B4F0 revision.
 
-Le mercredi 30 novembre 2011 19:23:26 Devin Heitmueller, vous avez écrit :
-> Am I the only one who thinks this is a legally ambigious grey area?
-> Seems like this could be a violation of the GPL as the driver code in
-> question links against a proprietary kernel.
-
-If you have any doubt, I would suggest you ask the SFLC. They tend to give 
-valuable insights into that sort of problems. It might be intricate and/or not 
-what you want to hear from them though (Been there done that).
-
-> I don't want to start a flame war, but I don't see how this is legal.
-> And you could definitely question whether it goes against the
-> intentions of the original authors to see their GPL driver code being
-> used in non-free operating systems.
-
-As long as the distributed binaries do not include any GPL-incompatible code 
-(presumably from Microsoft), there should be no GPL contamination problem. So 
-it boils down to whether the driver binary has non-GPL code in it. I don't see 
-how the license of the Windows code is relevant, so long as NetUp is not 
-distributing the Windows OS alongside the driver (or vice versa).
-
-And while I do not know the Windows DDK license, I doubt it cares much about 
-the driver license, so long as Microsoft does not need to distribute nor 
-certify the driver.
-
-
-There may however be problems with the toolchain. The driver binary must be 
-recompilable with just the GPL'd source code and "anything that is normally 
-distributed with the operating system". VisualStudio is not distributed with 
-Windows. In fact, it is sold as a separate product, except for restrictive 
-freeware versions.
-
-So unless this driver can be compiled with a GPL-compatible toolchain (and the 
-toolchain is provided by NetUp), it might not be possible to distribute binary 
-copies of the driver.
-
-Then again, I am not a laywer. Someone that cares, please ask SFLC or friends.
+Devin
 
 -- 
-Rémi Denis-Courmont
-http://www.remlab.net/
-http://fi.linkedin.com/in/remidenis
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
