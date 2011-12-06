@@ -1,145 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:36313
-	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932500Ab1LOKSY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 05:18:24 -0500
-Message-ID: <4EE9C95F.2090308@compulab.co.il>
-Date: Thu, 15 Dec 2011 12:18:07 +0200
-From: Igor Grinberg <grinberg@compulab.co.il>
+Received: from mx1.redhat.com ([209.132.183.28]:59883 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933001Ab1LFNnp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 08:43:45 -0500
+Message-ID: <4EDE1C0C.2060701@redhat.com>
+Date: Tue, 06 Dec 2011 11:43:40 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: martin@neutronstar.dyndns.org
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	Hiremath Vaibhav <hvaibhav@ti.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based camera
- board.
-References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org> <4EE86CF7.1010002@compulab.co.il> <1323886442.815408.21905@localhost>
-In-Reply-To: <1323886442.815408.21905@localhost>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mark Lord <kernel@teksavvy.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE HVR-930C
+ again
+References: <1321800978-27912-1-git-send-email-mchehab@redhat.com> <1321800978-27912-2-git-send-email-mchehab@redhat.com> <1321800978-27912-3-git-send-email-mchehab@redhat.com> <1321800978-27912-4-git-send-email-mchehab@redhat.com> <1321800978-27912-5-git-send-email-mchehab@redhat.com> <CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com> <4EDD0F01.7040808@redhat.com> <CAGoCfizRuBEgBhfnzyrE=aJD-WMXCz9OmkoEqQCDpqmYXU2=zA@mail.gmail.com> <CAGoCfiywqY+U0+t9tget1X09=apDm46GpGCa-_QiGp+JhyLXxQ@mail.gmail.com> <CAKdnbx7Ayg6AGS-u=z9Pg6pHV6UN_ZiB-kQ1rv78zG9nm+U9TA@mail.gmail.com> <CAGoCfiwwt898OwmNNwrboT7q5v-sNQuTP6TxCdtY-fFauAyHrA@mail.gmail.com> <4EDE0FD7.4020603@teksavvy.com>
+In-Reply-To: <4EDE0FD7.4020603@teksavvy.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/14/11 20:14, martin@neutronstar.dyndns.org wrote:
-> On Wed, Dec 14, 2011 at 11:31:35AM +0200, Igor Grinberg wrote:
->> Hi Martin,
->>
->> On 12/14/11 03:25, Martin Hostettler wrote:
->>> Adds board support for an MT9M032 based camera to omap3evm.
+On 06-12-2011 10:51, Mark Lord wrote:
+> On 11-12-05 06:47 PM, Devin Heitmueller wrote:
+>> On Mon, Dec 5, 2011 at 6:32 PM, Eddi De Pieri<eddi@depieri.net>  wrote:
+>>> Sorry,  I think I applied follow patch on my tree while I developed
+>>> the driver trying to fix tuner initialization.
 >>>
->>> Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
->>> ---
->>>  arch/arm/mach-omap2/Makefile                |    3 +-
->>>  arch/arm/mach-omap2/board-omap3evm-camera.c |  155 +++++++++++++++++++++++++++
->>>  arch/arm/mach-omap2/board-omap3evm.c        |    4 +
->>>  3 files changed, 161 insertions(+), 1 deletions(-)
->>>  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+>>> http://patchwork.linuxtv.org/patch/6617/
 >>>
->>> Changes in V3
->>>  * Added missing copyright and attribution.
->>>  * switched to gpio_request_array for gpio init.
->>>  * removed device_initcall and added call to omap3_evm_camera_init into omap3_evm_init
->>>
->>> Changes in V2:
->>>  * ported to current mainline
->>>  * Style fixes
->>>  * Fix error handling
->>>
-
-[...]
-
->>> +/**
->>> + * omap3evm_set_mux - Sets mux to enable signal routing to
->>> + *                           different peripherals present on new EVM board
->>> + * @mux_id: enum, mux id to enable
->>> + *
->>> + * Returns 0 for success or a negative error code
->>> + */
->>> +static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
->>> +{
->>> +	/* Set GPIO6 = 1 */
->>> +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
->>> +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
->>> +
->>> +	switch (mux_id) {
->>> +	case MUX_TVP5146:
->>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
->>> +		gpio_set_value(nCAM_VD_SEL, 1);
->>> +		break;
->>> +
->>> +	case MUX_CAMERA_SENSOR:
->>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
->>> +		gpio_set_value(nCAM_VD_SEL, 0);
->>> +		break;
->>> +
->>> +	case MUX_EXP_CAMERA_SENSOR:
->>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
->>> +		break;
->>> +
->>> +	default:
->>> +		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
->>> +		return -EINVAL;
->>> +	}
->>> +
->>> +	return 0;
->>> +}
+>>> I forgot to remove from my tree after I see that don't solve anything.
 >>
->> I don't really care about that, but I don't see any mux
->> being set in the above function so the name and comments
->> are misleading.
-> 
-> There's are video muxes on this board that's controlled by various
-> gpios. It's not a mux in the omap chip if you've expected to see that.
-> 
-> As this is an evaluation board it has a bunch of video connectors that 
-> the user can choose from for different input devices.
-
-I see... Probably a comment explaining that would not hurt here.
-
-[...]
-
->>> +
->>> +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
->>> +	ret = gpio_request_array(setup_gpios, ARRAY_SIZE(setup_gpios));
->>> +	if (ret < 0) {
->>> +		pr_err("omap3evm-camera: Failed to setup camera signal routing.\n");
->>> +		return ret;
->>> +	}
+>> Ok, great.  At least that explains why it's there (since I couldn't
+>> figure out how on Earth the patch made sense otherwise).
 >>
->> It looks like both above calls (gpio_request and mux_init)
->> can be moved to omap3evm_set_mux() function (or a renamed version of it),
->> so all the GPIO stuff will be close to each other instead of requesting
->> in one place and playing with values in another...
-> 
-> I'd like to keep the one time setup and the theoretically run time switchable
-> parts seperate. It doesn't complicate the code and if a brave soul wants to
-> connect different camera modules and switch between them it's a more reviewable
-> patch from here.
+>> Eddi, could you please submit a patch removing the offending code?
+>
+>
+> That's good.
+>
+> But there definitely still is a race between modules in there somewhere.
+> The HVR-950Q tuners use several:  xc5000, au8522, au0828, ..
+> and unless au0828 is loaded *last*, with a delay before/after,
+> the dongles don't always work.  Preloading all of the modules
+> before allowing hardware detection seems to help.
+>
+> Even just changing from a mechanical hard drive to a very fast SSD
+> is enough to change the behaviour from not-working to working
+> (and sometimes the other way around).
+>
+> I tried to track this down a couple of years ago,
+> and found cross-module calls failing because the
+> target functions hadn't been loaded yet.
+> But my lack of notes from 2-3 years ago isn't helpful here.
+>
+> Here's a similar report from 2 years ago, as valid today as it was then:
+>
+>    http://www.mythtv.org/pipermail/mythtv-users/2010-January/279912.html
 
-Ok
+The driver who binds everything is the bridge driver. In your case, it is
+the au0828 driver.
 
-> 
->>
->>> +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
->>
->> So the plan is to add support for the 3 types,
->> but hard code to only one?
->> Can't this be runtime detected somehow?
-> 
-> The mux code came from out of tree drivers. I did want to keep enough
-> information so someone extending this board code for other setups doesn't have a
-> hard time. I can't think of an reliable way to runtime detect what video source
-> a specific use case would want. Ideally someone who needs one of the other
-> video sources should add a more generic solution here. 
+What you're experiencing seems to be some race issue inside it, and not at xc5000.
 
-I'm Ok with it, but usually, stuff that is never used stays out...
-I think the way it should be is to have a platform driver that uses
-a callback to switch between the "muxes" on the extension.
+On a quick look on it, I'm noticing that there's no lock at au0828_usb_probe().
 
-[...]
+Also, it uses a separate lock for analog and for digital:
 
--- 
+	mutex_init(&dev->mutex);
+	mutex_init(&dev->dvb.lock);
+
+Probably, the right thing to do would be to use just one lock for both rising
+it at usb_probe, lowering it just before return 0. This will avoid any open
+operations while the device is not fully initialized. Btw, newer udev's open
+the analog part of the driver just after V4L register, in order to get the
+device capabilities. This is known to cause race conditions, if the locking
+schema is not working properly.
+
 Regards,
-Igor.
+Mauro.
