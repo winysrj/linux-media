@@ -1,100 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5303 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752105Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:27 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Q9W024156
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:26 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 13/94] [media] av7110: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:10 -0200
-Message-Id: <1325257711-12274-14-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43649 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933239Ab1LFMcc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 07:32:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC/PATCH 3/5] v4l: Add V4L2_CID_METERING_MODE camera control
+Date: Tue, 6 Dec 2011 13:32:39 +0100
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	hverkuil@xs4all.nl, riverful.kim@samsung.com,
+	s.nawrocki@samsung.com
+References: <1323011776-15967-1-git-send-email-snjw23@gmail.com> <1323011776-15967-4-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1323011776-15967-4-git-send-email-snjw23@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112061332.40168.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Sylwester,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+On Sunday 04 December 2011 16:16:14 Sylwester Nawrocki wrote:
+> The V4L2_CID_METERING_MODE control allows to determine what method
+> is used by the camera to measure the amount of light available for
+> automatic exposure control.
+> 
+> Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml |   31
+> ++++++++++++++++++++++++++ drivers/media/video/v4l2-ctrls.c             | 
+>   2 +
+>  include/linux/videodev2.h                    |    7 ++++++
+>  3 files changed, 40 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> b/Documentation/DocBook/media/v4l/controls.xml index 5ccb0b0..53d7c08
+> 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -2893,6 +2893,7 @@ mechanical obturation of the sensor and firmware
+> image processing, but the device is not restricted to these methods.
+> Devices that implement the privacy control must support read access and
+> may support write access.</entry> </row>
+> +	  <row><entry></entry></row>
+> 
+>  	  <row>
+>  	    <entry
+> spanname="id"><constant>V4L2_CID_BAND_STOP_FILTER</constant>&nbsp;</entry>
+> @@ -2902,6 +2903,36 @@ camera sensor on or off, or specify its strength.
+> Such band-stop filters can be used, for example, to filter out the
+> fluorescent light component.</entry> </row>
+>  	  <row><entry></entry></row>
+> +
+> +	  <row id="v4l2-metering-mode">
+> +	    <entry
+> spanname="id"><constant>V4L2_CID_METERING_MODE</constant>&nbsp;</entry> +	
+>    <entry>enum&nbsp;v4l2_metering_mode</entry>
+> +	  </row><row><entry spanname="descr">Determines how the camera measures
+> +the amount of light available to expose a frame. Possible values
+> are:</entry> +	  </row>
+> +	  <row>
+> +	    <entrytbl spanname="descr" cols="2">
+> +	      <tbody valign="top">
+> +		<row>
+> +		  <entry><constant>V4L2_METERING_MODE_AVERAGE</constant>&nbsp;</entry>
+> +		  <entry>Use the light information coming from the entire scene
+> +and average giving no weighting to any particular portion of the metered
+> area. +		  </entry>
+> +		</row>
+> +		<row>
+> +		 
+> <entry><constant>V4L2_METERING_MODE_CENTER_WEIGHTED</constant>&nbsp;</entr
+> y> +		  <entry>Average the light information coming from the entire scene
+> +giving priority to the center of the metered area.</entry>
+> +		</row>
+> +		<row>
+> +		  <entry><constant>V4L2_METERING_MODE_SPOT</constant>&nbsp;</entry>
+> +		  <entry>Measure only very small area at the cent-re of the
+> scene.</entry> +		</row>
+> +	      </tbody>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/ttpci/av7110.c |   13 ++++++-------
- drivers/media/dvb/ttpci/av7110.h |    3 +--
- 2 files changed, 7 insertions(+), 9 deletions(-)
+For the last two cases, would it also make sense to specify the center of the 
+weighted area and the spot location ?
 
-diff --git a/drivers/media/dvb/ttpci/av7110.c b/drivers/media/dvb/ttpci/av7110.c
-index c615ed7..e0df729 100644
---- a/drivers/media/dvb/ttpci/av7110.c
-+++ b/drivers/media/dvb/ttpci/av7110.c
-@@ -1971,15 +1971,14 @@ static int av7110_fe_lock_fix(struct av7110* av7110, fe_status_t status)
- 	return ret;
- }
- 
--static int av7110_fe_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
-+static int av7110_fe_set_frontend(struct dvb_frontend *fe)
- {
- 	struct av7110* av7110 = fe->dvb->priv;
- 
- 	int ret = av7110_fe_lock_fix(av7110, 0);
--	if (!ret) {
--		av7110->saved_fe_params = *params;
--		ret = av7110->fe_set_frontend(fe, params);
--	}
-+	if (!ret)
-+		ret = av7110->fe_set_frontend(fe);
-+
- 	return ret;
- }
- 
-@@ -2088,7 +2087,7 @@ static void dvb_s_recover(struct av7110* av7110)
- 	msleep(20);
- 	av7110_fe_set_tone(av7110->fe, av7110->saved_tone);
- 
--	av7110_fe_set_frontend(av7110->fe, &av7110->saved_fe_params);
-+	av7110_fe_set_frontend(av7110->fe);
- }
- 
- static u8 read_pwm(struct av7110* av7110)
-@@ -2283,7 +2282,7 @@ static int frontend_init(struct av7110 *av7110)
- 		FE_FUNC_OVERRIDE(av7110->fe->ops.set_tone, av7110->fe_set_tone, av7110_fe_set_tone);
- 		FE_FUNC_OVERRIDE(av7110->fe->ops.set_voltage, av7110->fe_set_voltage, av7110_fe_set_voltage);
- 		FE_FUNC_OVERRIDE(av7110->fe->ops.dishnetwork_send_legacy_command, av7110->fe_dishnetwork_send_legacy_command, av7110_fe_dishnetwork_send_legacy_command);
--		FE_FUNC_OVERRIDE(av7110->fe->ops.set_frontend_legacy, av7110->fe_set_frontend, av7110_fe_set_frontend);
-+		FE_FUNC_OVERRIDE(av7110->fe->ops.set_frontend, av7110->fe_set_frontend, av7110_fe_set_frontend);
- 
- 		ret = dvb_register_frontend(&av7110->dvb_adapter, av7110->fe);
- 		if (ret < 0) {
-diff --git a/drivers/media/dvb/ttpci/av7110.h b/drivers/media/dvb/ttpci/av7110.h
-index d85b851..16f0e0e 100644
---- a/drivers/media/dvb/ttpci/av7110.h
-+++ b/drivers/media/dvb/ttpci/av7110.h
-@@ -272,7 +272,6 @@ struct av7110 {
- 
- 	/* crash recovery */
- 	void				(*recover)(struct av7110* av7110);
--	struct dvb_frontend_parameters	saved_fe_params;
- 	fe_sec_voltage_t		saved_voltage;
- 	fe_sec_tone_mode_t		saved_tone;
- 	struct dvb_diseqc_master_cmd	saved_master_cmd;
-@@ -286,7 +285,7 @@ struct av7110 {
- 	int (*fe_set_tone)(struct dvb_frontend* fe, fe_sec_tone_mode_t tone);
- 	int (*fe_set_voltage)(struct dvb_frontend* fe, fe_sec_voltage_t voltage);
- 	int (*fe_dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
--	int (*fe_set_frontend)(struct dvb_frontend* fe, struct dvb_frontend_parameters* params);
-+	int (*fe_set_frontend)(struct dvb_frontend* fe);
- };
- 
- 
+> +	    </entrytbl>
+> +	  </row>
+> +	  <row><entry></entry></row>
+> +
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/drivers/media/video/v4l2-ctrls.c
+> b/drivers/media/video/v4l2-ctrls.c index 7d8862f..8d0cd0e 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -577,6 +577,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+>  	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+>  	case V4L2_CID_DO_AUTO_FOCUS:		return "Do Auto Focus";
+> +	case V4L2_CID_METERING_MODE:		return "Metering Mode";
+> 
+>  	/* FM Radio Modulator control */
+>  	/* Keep the order of the 'case's the same as in videodev2.h! */
+> @@ -703,6 +704,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> v4l2_ctrl_type *type, case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+>  	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+> +	case V4L2_CID_METERING_MODE:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+>  	case V4L2_CID_RDS_TX_PS_NAME:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 9acb514..8956ed6 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1626,6 +1626,13 @@ enum v4l2_focus_auto_type {
+> 
+>  #define V4L2_CID_DO_AUTO_FOCUS			(V4L2_CID_CAMERA_CLASS_BASE+19)
+> 
+> +#define V4L2_CID_METERING_MODE			(V4L2_CID_CAMERA_CLASS_BASE+20)
+> +enum v4l2_metering_mode {
+> +	V4L2_METERING_MODE_AVERAGE,
+> +	V4L2_METERING_MODE_CENTER_WEIGHTED,
+> +	V4L2_METERING_MODE_SPOT,
+> +};
+> +
+>  /* FM Modulator class control IDs */
+>  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+>  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+
 -- 
-1.7.8.352.g876a6
+Regards,
 
+Laurent Pinchart
