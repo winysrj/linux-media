@@ -1,79 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:45263 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751459Ab1L3LSy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 06:18:54 -0500
-Received: by eekc4 with SMTP id c4so13507573eek.19
-        for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 03:18:53 -0800 (PST)
-Message-ID: <4EFD9E10.1050407@gmail.com>
-Date: Fri, 30 Dec 2011 12:18:40 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail-pz0-f46.google.com ([209.85.210.46]:33307 "EHLO
+	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932738Ab1LFAHU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 19:07:20 -0500
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "HeungJun, Kim" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com
-Subject: Re: [RFC PATCH 0/4] Add some new camera controls
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <201112281501.25091.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201112281501.25091.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4EDD01BA.40208@redhat.com>
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
+	<4ED6C5B8.8040803@linuxtv.org>
+	<4ED75F53.30709@redhat.com>
+	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
+	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+	<CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com>
+	<4EDC9B17.2080701@gmail.com>
+	<CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
+	<4EDD01BA.40208@redhat.com>
+Date: Tue, 6 Dec 2011 01:07:20 +0100
+Message-ID: <CAJbz7-1S6K=sDJFcOM8mMxL3t2JS91k+fHLy4gq868_9eUyS9A@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: HoP <jpetrous@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Florian Fainelli <f.fainelli@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+> I doubt that scan or w_scan would support it. Even if it supports, that
+> would mean that,
+> for each ioctl that would be sent to the remote server, the error code would
+> take 480 ms
+> to return. Try to calculate how many time w_scan would work with that. The
+> calculus is easy:
+> see how many ioctl's are called by each frequency and multiply by the number
+> of frequencies
+> that it would be seek. You should then add the delay introduced over
+> streaming the data
+> from the demux, using the same calculus. This is the additional time over a
+> local w_scan.
+>
+> A grouch calculus with scandvb: to tune into a single DVB-C frequency, it
+> used 45 ioctls.
+> Each taking 480 ms round trip would mean an extra delay of 21.6 seconds.
+> There are 155
+> possible frequencies here. So, imagining that scan could deal with 21.6
+> seconds of delay
+> for each channel (with it doesn't), the extra delay added by it is 1 hour
+> (45 * 0.48 * 155).
+>
+> On the other hand, a solution like the one described by Florian would
+> introduce a delay of
+> 480 ms for the entire scan to happen, as only one data packet would be
+> needed to send a
+> scan request, and one one stream of packets traveling at 10GB/s would bring
+> the answer
+> back.
 
-On 12/28/2011 03:01 PM, Laurent Pinchart wrote:
-> On Wednesday 28 December 2011 07:23:44 HeungJun, Kim wrote:
->> This RFC patch series include new 4 controls ID for digital camera.
->> I about to suggest these controls by the necessity enabling the M-5MOLS
->> sensor's function, and I hope to discuss this in here.
-> 
-> Thanks for the patches.
-> 
-> The new controls introduced by these patches are very high level. Should they 
-> be put in their own class ? I also think we should specify how those high-
-> level controls interact with low-level controls, otherwise applications will 
-> likely get very confused.
+Andreas was excited by your imaginations and calculations, but not me.
+Now you again manifested you are not treating me as partner for discussion.
+Otherwise you should try to understand how-that-ugly-hack works.
+But you surelly didn't try to do it at all.
 
-I agree we may need a separate control class for those high-level controls.
-They are mostly applicable to software ISP algorithms, run either on digital
-signal processor embedded in the sensor or on a processor being part of an SoC.
+How do you find those 45 ioctls for DVB-C tune? I still see only one ioctl
+FE_SET_FRONTEND or v5+ variant FE_SET_PROPERTY.
 
-Thus we would three levels of controls for camera,
- 1) image source class (lowest possible level), dealing mostly with hardware
-    registers;
- 2) "normal" camera controls (V4L2_CID_CAMERA_CLASS) [2];
- 3) high level camera controls (for camera software algorithms)
+Sorry, but, for example, szap tunes very close to local variant:
 
-plus some camera controls are in the user controls class. I'm not sure why there
-are camera controls in the user control class, perhaps there was no camera
-class yet at the time V4L2_CID_EXPOSURE or V4L2_CID_BACKLIGHT_COMPENSATION were
-added. I might be missing something else.
+# time szap -c channels.conf -x Ocko
+reading channels from file 'channels.conf'
+zapping to 15 'ocko':
+sat 0, frequency = 12168 MHz V, symbolrate 27500000, vpid = 0x00a0,
+apid = 0x0050 sid = 0x1451
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+status 1f | signal d410 | snr d380 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+0.00user 0.00system 0:01.33elapsed 0%CPU (0avgtext+0avgdata 2000maxresident)k
+0inputs+0outputs (0major+171minor)pagefaults 0swaps
 
-I'm afraid a little it might be hard to distinguish if some control should
-belong to 2) or 3), as sensors' logic complexity and advancement varies.
-
-Although I can see an advantage of logically separating controls which have
-influence on one or more other (lower level) controls. And separate control
-class would be helpful in that.
-
-The candidates to such control class might be:
-
-* V4L2_CID_METERING_MODE,
-* V4L2_CID_EXPOSURE_BIAS,
-* V4L2_CID_ISO,
-* V4L2_CID_WHITE_BALANCE_PRESET,
-* V4L2_CID_SCENEMODE,
-* V4L2_CID_WDR,
-* V4L2_CID_ANTISHAKE,
-
-[1] http://patchwork.linuxtv.org/patch/8923/
-[2] http://linuxtv.org/downloads/v4l-dvb-apis/extended-controls.html#camera-controls
-
---
-
-Regards,
-Sylwester
+Honza
