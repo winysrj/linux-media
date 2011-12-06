@@ -1,104 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:34396 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751744Ab1L3VKz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 16:10:55 -0500
-Date: Fri, 30 Dec 2011 23:10:52 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "HeungJun, Kim" <riverful.kim@samsung.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, kyungmin.park@samsung.com
-Subject: Re: [RFC PATCH 3/4] v4l: Add V4L2_CID_WDR button control
-Message-ID: <20111230211051.GZ3677@valkosipuli.localdomain>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <1325053428-2626-4-git-send-email-riverful.kim@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:63502 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933269Ab1LFMEE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 07:04:04 -0500
+Date: Tue, 6 Dec 2011 13:04:00 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] V4L: add convenience macros to the subdevice / Media
+ Controller API
+In-Reply-To: <201112061149.08271.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1112061216300.10715@axis700.grange>
+References: <Pine.LNX.4.64.1109291016250.30865@axis700.grange>
+ <201109291311.37133.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1112060932040.10715@axis700.grange>
+ <201112061149.08271.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1325053428-2626-4-git-send-email-riverful.kim@samsung.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi HeungJun,
+On Tue, 6 Dec 2011, Laurent Pinchart wrote:
 
-On Wed, Dec 28, 2011 at 03:23:47PM +0900, HeungJun, Kim wrote:
-> It adds the new CID for setting White Balance Preset. This CID is provided as
-> button type. This can commands only if the camera turn on/off this function.
+> Hi Guennadi,
 > 
-> Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |   12 ++++++++++++
->  drivers/media/video/v4l2-ctrls.c             |    2 ++
->  include/linux/videodev2.h                    |    2 ++
->  3 files changed, 16 insertions(+), 0 deletions(-)
+> On Tuesday 06 December 2011 09:40:41 Guennadi Liakhovetski wrote:
+> > On Thu, 29 Sep 2011, Laurent Pinchart wrote:
+> > > On Thursday 29 September 2011 10:44:14 Guennadi Liakhovetski wrote:
+> > > > On Thu, 29 Sep 2011, Laurent Pinchart wrote:
+> > > > > On Thursday 29 September 2011 10:18:31 Guennadi Liakhovetski wrote:
+> > > > > > Drivers, that can be built and work with and without
+> > > > > > CONFIG_VIDEO_V4L2_SUBDEV_API, need the v4l2_subdev_get_try_format()
+> > > > > > and v4l2_subdev_get_try_crop() functions, even though their return
+> > > > > > value should never be dereferenced. Also add convenience macros to
+> > > > > > init and clean up subdevice internal media entities.
+> > > > > 
+> > > > > Why don't you just make the drivers depend on
+> > > > > CONFIG_VIDEO_V4L2_SUBDEV_API ? They don't need to actually export a
+> > > > > device node to userspace, but they require the in-kernel API.
+> > > > 
+> > > > Why? Why should the user build and load all the media controller stuff,
+> > > > buy all the in-kernel objects and code to never actually use it? Where
+> > > > OTOH all is needed to avoid that is a couple of NOP macros?
+> > > 
+> > > Because the automatic compatibility layer that will translate video
+> > > operations to pad operations will need to access pads, so subdevs that
+> > > implement a pad- level API need to export it to the bridge, even if the
+> > > bridge is not MC-aware.
+> > 
+> > I might be missing something, but it seems to me, that if
+> > CONFIG_VIDEO_V4L2_SUBDEV_API is not defined, no pads are exported to the
+> > user space (and you mean a compatibility layer in the user space, don't
+> > you?), so, noone will be able to accesss them.
 > 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index afe1845..bed6c66 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -2958,6 +2958,18 @@ it one step further. This is a write-only control.</entry>
->  	  <row><entry></entry></row>
->  
->  	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_WDR</constant></entry>
+> No, I meant a compatibility layer in kernel space. Basically something like 
+> (totally untested)
 
-Just a simple comment: how about V4L2_CID_WIDE_DYNAMIC_RANGE instead? I
-dont't think it'd be too long.
+Aha, so, a "future" layer.
 
-> +	    <entry>button</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Wide Dynamic Range. It makes
-> +	    the image be more clear by adjusting the image's intensity
-> +	    of the illumination. This function can be provided according to
-> +	    the capability of the hardware(sensor or AP's multimedia block).
-> +	    </entry>
-> +	  </row>
-> +
-> +	  <row>
->  	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
->  	    <entry>boolean</entry>
->  	  </row><row><entry spanname="descr">Prevent video from being acquired
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index fef58c2..66110bc 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -598,6 +598,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
->  	case V4L2_CID_PRESET_WHITE_BALANCE:	return "White Balance, Preset";
->  	case V4L2_CID_SCENEMODE:		return "Scenemode";
-> +	case V4L2_CID_WDR:			return "Wide Dynamic Range";
->  
->  	/* FM Radio Modulator control */
->  	/* Keep the order of the 'case's the same as in videodev2.h! */
-> @@ -687,6 +688,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  		break;
->  	case V4L2_CID_PAN_RESET:
->  	case V4L2_CID_TILT_RESET:
-> +	case V4L2_CID_WDR:
->  	case V4L2_CID_FLASH_STROBE:
->  	case V4L2_CID_FLASH_STROBE_STOP:
->  		*type = V4L2_CTRL_TYPE_BUTTON;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index bc14feb..f85ad6c 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1646,6 +1646,8 @@ enum v4l2_scenemode {
->  	V4L2_SCENEMODE_CANDLE = 14,
->  };
->  
-> +#define V4L2_CID_WDR				(V4L2_CID_CAMERA_CLASS_BASE+21)
-> +
->  /* FM Modulator class control IDs */
->  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
->  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
-> -- 
-> 1.7.4.1
+> int v4l2_subdev_get_mbus_format(struct v4l2_subdev *sd, struct 
+> v4l2_mbus_framefmt *format)
+> {
+> 	struct v4l2_subdev_format fmt;
+> 	int ret;
 > 
+> 	ret = v4l2_subdev_call(sd, video, g_mbus_fmt, format);
+> 	if (ret != ENOIOCTLCMD)
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+you mean "-E..."
+
+> 		return ret;
+> 
+> 	fmt.pad = 0;
+> 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> 	fmt.format = *format;
+> 
+> 	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+> 	if (ret < 0 && ret != ENOIOCTLCMD)
+
+You, probably, actually mean "if (!ret)"
+
+> 		*format = fmt.format;
+> 
+> 	return ret;
+> }
+> 
+> Or the other way around, trying pad::get_fmt before video::g_mbus_fmt.
+
+Ok, I understand what you mean now. Any idea when this layer is going to 
+be implemented?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
