@@ -1,59 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:40825 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752551Ab1LaMEe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 07:04:34 -0500
-Received: by iaeh11 with SMTP id h11so26700958iae.19
-        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 04:04:33 -0800 (PST)
-Date: Sat, 31 Dec 2011 06:04:25 -0600
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: David Fries <david@fries.net>
-Cc: Istvan Varga <istvan_v@mailbox.hu>, linux-media@vger.kernel.org,
-	Darron Broad <darron@kewl.org>,
-	Steven Toth <stoth@kernellabs.com>,
-	Uwe Bugla <uwe.bugla@gmx.de>
-Subject: [PATCH 5/9] [media] flexcop: handle errors from dvb_net_init
-Message-ID: <20111231120425.GG16802@elie.Belkin>
-References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
- <20111231115117.GB16802@elie.Belkin>
+Received: from moutng.kundenserver.de ([212.227.17.8]:59776 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933335Ab1LFONU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 09:13:20 -0500
+Date: Tue, 6 Dec 2011 15:13:17 +0100
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Stefan Ringel <linuxtv@stefanringel.de>
+Subject: Re: [PATCH 2/2] [media] tm6000: Fix bad indentation.
+Message-ID: <20111206141316.GB12258@avionic-0098.adnet.avionic-design.de>
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
+ <1323178776-12305-1-git-send-email-thierry.reding@avionic-design.de>
+ <1323178776-12305-2-git-send-email-thierry.reding@avionic-design.de>
+ <4EDE1F99.6080200@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="6sX45UoQRIJXqkqR"
 Content-Disposition: inline
-In-Reply-To: <20111231115117.GB16802@elie.Belkin>
+In-Reply-To: <4EDE1F99.6080200@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Bail out if dvb_net_init encounters an error (for example an
-out-of-memory condition), now that it reports them.
 
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
----
- drivers/media/dvb/b2c2/flexcop.c |    7 ++++++-
- 1 files changed, 6 insertions(+), 1 deletions(-)
+--6sX45UoQRIJXqkqR
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/dvb/b2c2/flexcop.c b/drivers/media/dvb/b2c2/flexcop.c
-index 2df1b0214dcd..ed3f42776fee 100644
---- a/drivers/media/dvb/b2c2/flexcop.c
-+++ b/drivers/media/dvb/b2c2/flexcop.c
-@@ -117,11 +117,16 @@ static int flexcop_dvb_init(struct flexcop_device *fc)
- 		goto err_connect_frontend;
- 	}
- 
--	dvb_net_init(&fc->dvb_adapter, &fc->dvbnet, &fc->demux.dmx);
-+	if ((ret = dvb_net_init(&fc->dvb_adapter, &fc->dvbnet, &fc->demux.dmx)) < 0) {
-+		err("dvb_net_init failed: error %d", ret);
-+		goto err_net;
-+	}
- 
- 	fc->init_state |= FC_STATE_DVB_INIT;
- 	return 0;
- 
-+err_net:
-+	fc->demux.dmx.disconnect_frontend(&fc->demux.dmx);
- err_connect_frontend:
- 	fc->demux.dmx.remove_frontend(&fc->demux.dmx, &fc->mem_frontend);
- err_dmx_add_mem_frontend:
--- 
-1.7.8.2+next.20111228
+* Antti Palosaari wrote:
+> That question is related to that kind of indentation generally, not
+> only that patch.
+>=20
+> On 12/06/2011 03:39 PM, Thierry Reding wrote:
+> >Function parameters on subsequent lines should never be aligned with the
+> >function name but rather be indented.
+> [...]
+> >  			usb_set_interface(dev->udev,
+> >-			dev->isoc_in.bInterfaceNumber,
+> >-			0);
+> >+					dev->isoc_in.bInterfaceNumber, 0);
+>=20
+> Which kind of indentation should be used when function params are
+> slitted to multiple lines?
 
+I don't think this is documented anywhere and there are no hard rules with
+regard to this. I guess anything is fine as long as it is indented at all.
+
+> In that case two tabs are used (related to function indentation).
+> example:
+> 	ret=3D function(param1,
+> 			param2);
+
+I usually use that because it is my text editor's default.
+
+> Other generally used is only one tab (related to function indentation).
+> example:
+> 	ret=3D function(param1,
+> 		param2);
+
+I think that's okay as well.
+
+> And last generally used is multiple tabs + spaces until same
+> location where first param is meet (related to function
+> indentation). I see that bad since use of tabs, with only spaces I
+> see it fine. And this many times leads situation param level are
+> actually different whilst originally idea was to put those same
+> level.
+> example:
+> 	ret=3D function(param1,
+> 		      param2);
+
+Whether this works or not always depends on the tab-width. I think most
+variations are okay here. Some people like to align them, other people
+don't.
+
+Thierry
+
+--6sX45UoQRIJXqkqR
+Content-Type: application/pgp-signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iEYEARECAAYFAk7eIvwACgkQZ+BJyKLjJp/EPwCfUHG1vCG0PgRggqLHQ8bO0F9q
+HgIAn22T3yvpiLGLRLw1+0EowKAXKVxo
+=26tN
+-----END PGP SIGNATURE-----
+
+--6sX45UoQRIJXqkqR--
