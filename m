@@ -1,56 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from web244.extendcp.co.uk ([79.170.40.244]:36885 "EHLO
-	web244.extendcp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752329Ab1LCXbI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2011 18:31:08 -0500
-To: VDR User <user.vdr@gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because of
- worrying about possible =?UTF-8?Q?misusage=3F?=
-MIME-Version: 1.0
-Date: Sat, 03 Dec 2011 23:30:49 +0000
-From: Walter Van Eetvelt <walter@van.eetvelt.be>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-In-Reply-To: <CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <4EDA4AB4.90303@linuxtv.org> <CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-Message-ID: <aff8302dd6c3eb047c39d3a2d1fd2382@mail.eetvelt.be>
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset=UTF-8
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:40013 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751326Ab1LFRhD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 12:37:03 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LVS002Z6M9O02@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Dec 2011 17:37:00 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LVS0032GM9NFN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 06 Dec 2011 17:37:00 +0000 (GMT)
+Date: Tue, 06 Dec 2011 18:36:59 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC v2 4/4] v4l: Update subdev drivers to handle
+ framesamples parameter
+In-reply-to: <201112061712.30748.laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	g.liakhovetski@gmx.de, sakari.ailus@iki.fi,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4EDE52BB.9060400@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-15
+Content-transfer-encoding: 7BIT
+References: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com>
+ <1322734853-8759-5-git-send-email-s.nawrocki@samsung.com>
+ <201112061712.30748.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 3 Dec 2011 09:21:23 -0800, VDR User <user.vdr@gmail.com> wrote:
-...
-> So you could finally use VDR as a server/client setup using vtuner,
-> right? With full OSD, timer, etc? Yes, I'm aware that streamdev
-> exists. It was horrible when I tried it last (a long time ago) and I
-> understand it's gotten better. But it's not a suitable replacement for
-> a real server/client setup. It sounds like using vtuner, this would
-> finally be possible and since Klaus has no intention of ever
-> modernizing VDR into server/client (that I'm aware of), it's also the
-> only suitable option as well.
+Hi Laurent,
+
+On 12/06/2011 05:12 PM, Laurent Pinchart wrote:
+> On Thursday 01 December 2011 11:20:53 Sylwester Nawrocki wrote:
+>> Update the sub-device drivers having a devnode enabled so they properly
+>> handle the new framesamples field of struct v4l2_mbus_framefmt.
+>> These drivers don't support compressed (entropy encoded) formats so the
+>> framesamples field is simply initialized to 0.
 > 
-> Or am I wrong about anything?  If not, I know several users who would
-> like to use this, myself included.
+> Wouldn't it be better to memset the whole structure before filling it ? This 
+> would handle reserved fields as well. One option would be to make the caller 
 
-This is the question on how you provide (live)tv content to multiple users
-and devices.  
-And I think this goes beyond the simple "second PC in the house" where you
-want to watch TV or recordings.  How can you watch streams from your DVB
-device on your small screen Mobile phone/tablet?  Or stream over the
-internet and watch your last night recording when commuting in the train?
-Some commercial solutions are already available for some scenario's.  Also
-free software solutions support for some scenario's, but I think still too
-limited.  
+Sounds like a good improvement to me. Then we wouldn't have to do any
+modifications when in future someone converts the reserved field into
+something useful.
 
-With that in mind, for me the future is for a client server combination
-that can do proper live TV and recording streaming.  
-And technically, a virtual driver is not bringing better user experience
-in the long term I think.  On the contrary, some users would use the
-vtunerc to fill in some of their needs.  This could bring developers to
-work less on client/server application supporting a broader range of use
-cases.  
+> zero the structure, I think that would likely result in a smaller patch.
 
-Walter
+Do you mean to memset the whole structure before v4l2_subdev_call, in
+subdev_do_ioctl() ? I guess no, since it could only be done for get_fmt.
+
+> 
+>> There is a few other drivers that expose a devnode (mt9p031, mt9t001,
+>> mt9v032) but they already implicitly initialize the new data structure
+>> field to 0, so they don't need to be touched.
+
+
+Regards,
+-- 
+Sylwester Nawrocki
+Samsung Poland R&D Center
