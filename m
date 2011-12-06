@@ -1,73 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:62300 "EHLO
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:51325 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753739Ab1LLUQm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 15:16:42 -0500
-Received: by wgbdr13 with SMTP id dr13so12037566wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 12:16:41 -0800 (PST)
+	with ESMTP id S1751507Ab1LFRTC convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 12:19:02 -0500
 MIME-Version: 1.0
-In-Reply-To: <4EE1F507.2000705@redhat.com>
-References: <CAKdnbx5JaCp71kqxH6sO4r35rb28UjOHmL7eD4e7bHtbYFgn5g@mail.gmail.com>
- <4EE08D88.2070806@redhat.com> <4EE0C312.90401@gmail.com> <4EE0D264.4090306@redhat.com>
- <4EE114E6.9040307@redhat.com> <CAKdnbx7mQL+D7Qas38gYR-E3nCoRVGgW-kk_cAE-kV=DYkhEYg@mail.gmail.com>
- <CAKdnbx6-448+3=8ONrcd0pGhbJ1P4vKZPse-RYHGnhkpHfzW8w@mail.gmail.com>
- <4EE1E714.5060908@redhat.com> <4EE1F507.2000705@redhat.com>
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Mon, 12 Dec 2011 21:16:20 +0100
-Message-ID: <CAKdnbx6dP_wXFDDQ_JZPb5uctrqUZDBw9poUfr_-kMTCBxOP1A@mail.gmail.com>
-Subject: Re: HVR-930C DVB-T mode report
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Fredrik Lingvall <fredrik.lingvall@gmail.com>,
-	linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Michael Krufky <mkrufky@kernellabs.com>
+In-Reply-To: <20111206141929.GE17731@opensource.wolfsonmicro.com>
+References: <4ED75F53.30709@redhat.com>
+	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
+	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+	<CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com>
+	<4EDC9B17.2080701@gmail.com>
+	<CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
+	<4EDD01BA.40208@redhat.com>
+	<4EDD2C82.7040804@linuxtv.org>
+	<20111206112153.GC17194@sirena.org.uk>
+	<4EDE0427.2050307@linuxtv.org>
+	<20111206141929.GE17731@opensource.wolfsonmicro.com>
+Date: Tue, 6 Dec 2011 22:49:00 +0530
+Message-ID: <CAHFNz9LR_WcKkbgv9DDpbQNAX65URGLuOdOLo1LULyGPC-8i7g@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	HoP <jpetrous@gmail.com>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi to all,
+On Tue, Dec 6, 2011 at 7:49 PM, Mark Brown
+<broonie@opensource.wolfsonmicro.com> wrote:
+> On Tue, Dec 06, 2011 at 01:01:43PM +0100, Andreas Oberritter wrote:
+>> On 06.12.2011 12:21, Mark Brown wrote:
+>> > On Mon, Dec 05, 2011 at 09:41:38PM +0100, Andreas Oberritter wrote:
+>
+>> >> Are you serious? Lower networking layers should be transparent to the
+>> >> upper layers. You don't implement VPN or say TCP in all of your
+>> >> applications, do you? These are just some more made-up arguments which
+>> >> don't have anything to do with the use cases I explained earlier.
+>
+>> > For real time applications it does make a big difference - decisions
+>> > taken at the application level can greatly impact end application
+>> > performance.  For example with VoIP on a LAN you can get great audio
+>
+>> Can you please explain how this relates to the topic we're discussing?
+>
+> Your assertatation that applications should ignore the underlying
+> transport (which seems to be a big part of what you're saying) isn't
+> entirely in line with reality.
 
-with latest git, w_scan partially working only if adding  -t2  or t3.
+A point to be noted:
 
-It seems that scan quality of w_scan is lower if compared to dvb_app scan
-
-# w_scan -f t -t2 -x >it-Venice-w
-
-# w_scan -f t -t2 -I it-Venice-w >stdout
-wc -l stdout
-73
-
-# w_scan -f t -t3  >stdout
-130 it-Venice-w.stdout
-
-# scan -f1 it-Venice-w -vvvv > it-Venice.stdout
-[..]
-dumping lists (62 services)
-Done.
-
-
-modprobe dvb-core dvb_mfe_wait_time=1
-
-# scan -f1 it-Venice-w -vvvv > it-Venice.stdout
-[..]
-dumping lists (77 services)
-Done.
-
-# w_scan -F -f t -t2 -x -vvvvvvv -a /dev/dvb/adapter0/frontend1 > it-Venice-w_v1
- [...]
-dumping lists (115 services)
-Done.
-
-Using other device (hauppauge hvr-900h)
-# w_scan -f t -x -vvvvvvvvvvvv > it-venice_hvr900h
-[...]
-dumping lists (461 services)
-Done.
-
-I can't figure out why these big differences...
-
-
-regards,
-Eddi
+DVB itself is a network protocol; If you have a satellite network,
+most likely it is a DVB network where the whole network packets
+are encapsulated within DVB (MPEG TS) packets.
