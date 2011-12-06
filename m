@@ -1,83 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:35981 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751007Ab1LFO2a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 09:28:30 -0500
-Date: Tue, 6 Dec 2011 16:28:21 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	'Sebastian =?iso-8859-1?Q?Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-Message-ID: <20111206142821.GC938@valkosipuli.localdomain>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED905E0.5020706@redhat.com>
- <007201ccb118$633ff890$29bfe9b0$%debski@samsung.com>
- <201112061301.01010.laurent.pinchart@ideasonboard.com>
+Received: from ffm.saftware.de ([83.141.3.46]:50954 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933269Ab1LFMBq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 07:01:46 -0500
+Message-ID: <4EDE0427.2050307@linuxtv.org>
+Date: Tue, 06 Dec 2011 13:01:43 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201112061301.01010.laurent.pinchart@ideasonboard.com>
+To: Mark Brown <broonie@opensource.wolfsonmicro.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	HoP <jpetrous@gmail.com>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <4EDD2C82.7040804@linuxtv.org> <20111206112153.GC17194@sirena.org.uk>
+In-Reply-To: <20111206112153.GC17194@sirena.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-
-On Tue, Dec 06, 2011 at 01:00:59PM +0100, Laurent Pinchart wrote:
-...
-> > > >>> 2) new requirement is for a bigger buffer. DMA transfers need to be
-> > > >>> stopped before actually writing inside the buffer (otherwise, memory
-> > > >>> will be corrupted).
-> > > >>>
-> > > >>> In this case, all queued buffers should be marked with an error flag.
-> > > >>> So, both V4L2_BUF_FLAG_FORMATCHANGED and V4L2_BUF_FLAG_ERROR should
-> > > >>> raise. The new format should be available via G_FMT.
+On 06.12.2011 12:21, Mark Brown wrote:
+> On Mon, Dec 05, 2011 at 09:41:38PM +0100, Andreas Oberritter wrote:
+>> On 05.12.2011 18:39, Mauro Carvalho Chehab wrote:
 > 
-> I'd like to reword this as follows:
+>>> When you put someone via the network, issues like latency,  package
+>>> drops, IP
+>>> congestion, QoS issues, cryptography, tunneling, etc should be taken
+>>> into account
+>>> by the application, in order to properly address the network issues.
 > 
-> 1. In all cases, the application needs to be informed that the format has 
-> changed.
+>> Are you serious? Lower networking layers should be transparent to the
+>> upper layers. You don't implement VPN or say TCP in all of your
+>> applications, do you? These are just some more made-up arguments which
+>> don't have anything to do with the use cases I explained earlier.
 > 
-> V4L2_BUF_FLAG_FORMATCHANGED (or a similar flag) is all we need. G_FMT will 
-> report the new format.
-> 
-> 2. In all cases, the application must have the option of reallocating buffers 
-> if it wishes.
-> 
-> In order to support this, the driver needs to wait until the application 
-> acknowledged the format change before it starts decoding the stream. 
-> Otherwise, if the codec started decoding the new stream to the existing 
-> buffers by itself, applications wouldn't have the option of freeing the 
-> existing buffers and allocating smaller ones.
-> 
-> STREAMOFF/STREAMON is one way of acknowledging the format change. I'm not 
-> opposed to other ways of doing that, but I think we need an acknowledgment API 
-> to tell the driver to proceed.
+> For real time applications it does make a big difference - decisions
+> taken at the application level can greatly impact end application
+> performance.  For example with VoIP on a LAN you can get great audio
+> quality by using very little compression at the expense of high
+> bandwidth and you can probably use a very small jitter buffer.  Try
+> doing that over a longer distance or more congested network which drops
+> packets and it becomes useful to use a more commpressed encoding for
+> your data which may have better features for handling packet loss, or to
+> increase your jitter buffer to cope with the less reliable transmit
+> times.
 
-Forcing STRAEMOFF/STRAEMON has two major advantages:
-
-1) The application will have an ability to free and reallocate buffers if it
-wishes so, and
-
-2) It will get explicit information on the changed format. Alternative would
-require an additional API to query the format of buffers in cases the
-information isn't implicitly available.
-
-If we do not require STRAEMOFF/STREAMON, the stream would have to be paused
-until the application chooses to continue it after dealing with its buffers
-and formats.
-
-I'd still return a specific error when the size changes since it's more
-explicit that something is not right, rather than just a flag. But if I'm
-alone in thinking so I won't insist.
-
-Regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Can you please explain how this relates to the topic we're discussing?
