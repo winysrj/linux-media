@@ -1,41 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34967 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752151Ab1LaLPQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 06:15:16 -0500
-Received: by eekc4 with SMTP id c4so14232508eek.19
-        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 03:15:15 -0800 (PST)
-Message-ID: <4EFEEEB7.2020109@gmail.com>
-Date: Sat, 31 Dec 2011 12:15:03 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from ffm.saftware.de ([83.141.3.46]:34167 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933409Ab1LFPFs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 10:05:48 -0500
+Message-ID: <4EDE2F49.3030108@linuxtv.org>
+Date: Tue, 06 Dec 2011 16:05:45 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH FOR 3.3] VIDIOC_LOG_STATUS support for sub-devices
+To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
+ of worrying about possible misusage?
+References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4EDE1733.8060409@redhat.com> <4EDE1D57.90307@linuxtv.org> <201112061619.31357.remi@remlab.net>
+In-Reply-To: <201112061619.31357.remi@remlab.net>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On 06.12.2011 15:19, Rémi Denis-Courmont wrote:
+> Le mardi 6 décembre 2011 15:49:11 Andreas Oberritter, vous avez écrit :
+>> You don't need to wait for write-only operations. Basically all demux
+>> ioctls are write-only. Since vtunerc is using dvb-core's software demux
+>> *locally*, errors for invalid arguments etc. will be returned as usual.
+> 
+> That's a limitation, not a feature.
 
-The following changes since commit 3220eb73c5647af4c1f18e32c12dccb8adbac59d:
+You misunderstood.
 
-  s5p-fimc: Add support for alpha component configuration (2011-12-20 19:46:55
-+0100)
+> You should not transmit unwanted programs over the network, nor copy them to 
+> kernel space.
 
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-samsung v4l_mbus
-
-This one patch enables VIDIOC_LOG_STATUS on subdev nodes.
-
-Sylwester Nawrocki (1):
-      v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
-
- drivers/media/video/v4l2-subdev.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
--- 
-Regards,
-Sylwester
+I agree. And nobody said that this would happen. The software demux
+receives pre-filtered data. Still the ioctls are local. Just a trigger
+to start or stop filters needs to be sent to the remote demux, just like
+a register setting would be needed for a local hardware demux.
