@@ -1,172 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:29224 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750777Ab1L3FVG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 00:21:06 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=UTF-8; format=flowed
-Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LX0001OT471TMI0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 30 Dec 2011 14:21:04 +0900 (KST)
-Received: from [165.213.219.119] by mmp1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTPA id <0LX0006EZ474HQ10@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 30 Dec 2011 14:21:04 +0900 (KST)
-Message-id: <4EFD4A41.6050908@samsung.com>
-Date: Fri, 30 Dec 2011 14:21:05 +0900
-From: "Kim, Heungjun" <riverful.kim@samsung.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, kyungmin.park@samsung.com,
-	'Hans de Goede' <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <201112281451.39399.laurent.pinchart@ideasonboard.com>
- <001101ccc5e7$d9f48620$8ddd9260$%kim@samsung.com>
- <201112300058.01726.laurent.pinchart@ideasonboard.com>
-In-reply-to: <201112300058.01726.laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.17.9]:65370 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932964Ab1LFIIL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 03:08:11 -0500
+Date: Tue, 6 Dec 2011 09:08:05 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PULL] soc-camera fixes for 3.2
+Message-ID: <Pine.LNX.4.64.1112060858340.10715@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro
 
-On 2011년 12월 30일 08:58, Laurent Pinchart wrote:
-> Hi,
->
-> On Thursday 29 December 2011 06:08:07 HeungJun, Kim wrote:
->> On Wednesday, December 28, 2011 10:52 PM Laurent Pinchart wrote:
->>> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
->>>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
->>>>> It adds the new CID for setting White Balance Preset. This CID is
->>>>> provided as menu type using the following items:
->>>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
->>>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
->>>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
->>>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
->>>>> 4 - V4L2_WHITE_BALANCE_SHADE,
->>>> I have been also investigating those white balance presets recently and
->>>> noticed they're also needed for the pwc driver. Looking at
->>>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
->>>>
->>>> const char * const pwc_auto_whitebal_qmenu[] = {
->>>>
->>>> 	"Indoor (Incandescant Lighting) Mode",
->>>> 	"Outdoor (Sunlight) Mode",
->>>> 	"Indoor (Fluorescent Lighting) Mode",
->>>> 	"Manual Mode",
->>>> 	"Auto Mode",
->>>> 	NULL
->>>>
->>>> };
->>>>
->>>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
->>>>
->>>> 	.ops	=&pwc_ctrl_ops,
->>>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
->>>> 	.type	= V4L2_CTRL_TYPE_MENU,
->>>> 	.max	= awb_auto,
->>>> 	.qmenu	= pwc_auto_whitebal_qmenu,
->>>>
->>>> };
->>>>
->>>> ...
->>>>
->>>> 	cfg = pwc_auto_white_balance_cfg;
->>>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
->>>> 	cfg.def = def;
->>>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl,&cfg, NULL);
->>>>
->>>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
->>>> with custom entries. That's interesting... However it works in practice
->>>> and applications have access to what's provided by hardware.
->>>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit
->>>> for that :)
->>>>
->>>> Nevertheless, redefining standard controls in particular drivers sounds
->>>> a little dubious. I wonder if this is a generally agreed approach ?
->>> No agreed with me at least :-)
->> I guess the WBP menu controls of pwc driver is probably defined in the
->> other headers, for users being well known the PWC hardware. So it should
->> be managed separately to videodev2.h. Is it right? Even if the way might
->> be slightly different, it can't avoid to be "managed separately".
->>
->> It means the users being not well known the specific hardware like PWC,
->> have difficulty to use that driver well.
->> And, at least, It doesn't looks generic API for me.
->> In this case, the unfamiliar user with such unique hardware, can use
->> whatever he wants to use finally, after finding&  looking around the
->> headers.
-> I think Sylwester was just pointing the pwc driver out as implementing a
-> custom white balance preset control to make sure we're aware of it, not to
-> advocate such an approach. We need to make sure that the generic white balance
-> preset control can handle the pwc driver's needs.
-Ok, I understand what I miss on your point.
+Here a couple of fixes for 3.2. You've already applied the mt9t112 patch 
+from Dan, but only to your 3.3 branch, it certainly has to go to 3.2 too.
 
->> On the other hand, if the definition is defined in the videodev2.h, or at
->> least the videodev2.h also include separated API's headers(I'm not sure
->> this way, but my real meaning is needed to be consolidated only one way to
->> control hardware, like videodev2.h), it looks more be better.
->>
->> As such meaning, I agreed to Sylwester's word "dubious".
->>
->> But, here's the thing.
->> If the any control suggested does not look general function on camera,
->> and it is used "only at the specific hardware", we should avoid this.
->>
->> As you know, the White Balance Preset is very general camera's feature,
->> and the term's name is also very normal to the digital camera users.
->> Almost digital camera have this function.
->>
->> Probably, Laurent might be concern about such "generality". Am I right?
-> I agree that a generic white balance preset control is needed. I think the
-> documentation should be improved though, to clearly define how the control
-> works.
-So, your point is the documentation which is described how these 
-controls interact previous controls,
-e.g, like WHITE_BALANCE_PRESET as I suggested and previous remained 
-DO/TEMPRATURE, etc.
+The following changes since commit 8e8da023f5af71662867729db5547dc54786093c:
 
->>>> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
->>>> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE
->>>> need to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be
->>>> effective ?
->>> Is the preset a fixed white balance setting, or is it an auto white
->>> balance with the algorithm tuned for a particular configuration ? In the
->>> first case, does it correspond to a fixed white balance temperature
->>> value ?
->>>
->>> [snip]
->>>
->>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
->>>>> b/Documentation/DocBook/media/v4l/controls.xml index c0422c6..350c138
->>>>> 100644
->>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>>>> @@ -2841,6 +2841,44 @@ it one step further. This is a write-only
->>>>> control.</entry>
->>>>>
->>>>>   	</row>
->>>>>   	<row><entry></entry></row>
->>>>>
->>>>> +	<row id="v4l2-preset-white-balance">
->>>>> +	<entry
->>>>> spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp
->>>>> ;</ entry>
->>>> Wouldn't V4L2_CID_WHITE_BALANCE_PRESET be better ?
->>> That's what I was about to say.
->> I saw the controls related with White Balance and most cid's name
->> is V4L2_CID_XXXX_WHITE_BALANCE. So, I just used that name.
->> But, I don't know why the PRESET's position is important.
->> Can anyone explain to me?
->> After I know it, I seems to talk about this subject.
->>
->> Anyway, I guess Laurent had in mind for another class "preset".
-> I'm not sure about the name, but I think it might make sense to put those
-> high-level camera controls in a new class.
->
+  x86: Fix boot failures on older AMD CPU's (2011-12-04 11:57:09 -0800)
 
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git 3.2-rc4-fixes
+
+Dan Carpenter (1):
+      V4L: mt9t112: use after free in mt9t112_probe()
+
+Guennadi Liakhovetski (1):
+      V4L: soc-camera: fix compiler warnings on 64-bit platforms
+
+Janusz Krzysztofik (1):
+      V4L: omap1_camera: fix missing <linux/module.h> include
+
+ drivers/media/video/mt9t112.c              |    4 ++-
+ drivers/media/video/omap1_camera.c         |    1 +
+ drivers/media/video/ov6650.c               |    2 +-
+ drivers/media/video/sh_mobile_ceu_camera.c |   34 +++++++++++++++++----------
+ drivers/media/video/sh_mobile_csi2.c       |    4 +-
+ drivers/media/video/soc_camera.c           |    3 +-
+ include/media/soc_camera.h                 |    7 +++++-
+ 7 files changed, 36 insertions(+), 19 deletions(-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
