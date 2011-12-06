@@ -1,92 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60426 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751701Ab1LaTKo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 14:10:44 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBVJAitC022940
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 14:10:44 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] fs/compat_ioctl: it needs to see the DVBv3 compat stuff
-Date: Sat, 31 Dec 2011 17:09:05 -0200
-Message-Id: <1325358545-15039-1-git-send-email-mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.187]:53373 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933131Ab1LFNjj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 08:39:39 -0500
+From: Thierry Reding <thierry.reding@avionic-design.de>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH 1/2] [media] tm6000: Fix check for interrupt endpoint
+Date: Tue,  6 Dec 2011 14:39:35 +0100
+Message-Id: <1323178776-12305-1-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Only the ioctl core should see the DVBv3 compat stuff, as its
-contents are not available anymore to the drivers.
+Checking for &dev->int_in is useless because it returns the address of
+the embedded struct tm6000_endpoint, which will always be positive and
+therefore true.
 
-As fs/compat_ioctl also handles DVBv3 ioctl's, it needs those
-definitions:
-
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: array type has incomplete element type
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: array type has incomplete element type
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: array type has incomplete element type
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1345: error: initializer element is not constant
-    fs/compat_ioctl.c:1345: error: (near initialization for ‘ioctl_pointer[462]’)
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: array type has incomplete element type
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: array type has incomplete element type
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: array type has incomplete element type
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
-    fs/compat_ioctl.c:1346: error: initializer element is not constant
-    fs/compat_ioctl.c:1346: error: (near initialization for ‘ioctl_pointer[463]’)
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: array type has incomplete element type
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: array type has incomplete element type
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: array type has incomplete element type
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
-    fs/compat_ioctl.c:1347: error: initializer element is not constant
-    fs/compat_ioctl.c:1347: error: (near initialization for ‘ioctl_pointer[464]’)
-
-Reported-by: Michael Krufky <mkrufky@linuxtv.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Thierry Reding <thierry.reding@avionic-design.de>
 ---
- fs/compat_ioctl.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/media/video/tm6000/tm6000-input.c |    2 +-
+ drivers/media/video/tm6000/tm6000-video.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
-index 51352de..32200c2 100644
---- a/fs/compat_ioctl.c
-+++ b/fs/compat_ioctl.c
-@@ -105,6 +105,7 @@
+diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
+index af4bcf5..89e003c 100644
+--- a/drivers/media/video/tm6000/tm6000-input.c
++++ b/drivers/media/video/tm6000/tm6000-input.c
+@@ -426,7 +426,7 @@ int tm6000_ir_init(struct tm6000_core *dev)
+ 	rc->scanmask = 0xffff;
+ 	rc->priv = ir;
+ 	rc->change_protocol = tm6000_ir_change_protocol;
+-	if (&dev->int_in) {
++	if (dev->int_in.endp) {
+ 		rc->open    = __tm6000_ir_int_start;
+ 		rc->close   = __tm6000_ir_int_stop;
+ 		INIT_DELAYED_WORK(&ir->work, tm6000_ir_int_work);
+diff --git a/drivers/media/video/tm6000/tm6000-video.c b/drivers/media/video/tm6000/tm6000-video.c
+index e147d92..87eb909 100644
+--- a/drivers/media/video/tm6000/tm6000-video.c
++++ b/drivers/media/video/tm6000/tm6000-video.c
+@@ -1647,7 +1647,7 @@ static int tm6000_release(struct file *file)
  
- #include <linux/hiddev.h>
+ 		usb_reset_configuration(dev->udev);
  
-+#define __DVB_CORE__
- #include <linux/dvb/audio.h>
- #include <linux/dvb/dmx.h>
- #include <linux/dvb/frontend.h>
+-		if (&dev->int_in)
++		if (dev->int_in.endp)
+ 			usb_set_interface(dev->udev,
+ 			dev->isoc_in.bInterfaceNumber,
+ 			2);
 -- 
-1.7.8.352.g876a6
+1.7.8
 
