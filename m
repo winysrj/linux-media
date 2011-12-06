@@ -1,269 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65012 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753666Ab1L0BJh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:37 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19a7j032629
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:36 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 84/91] [media] dvb: simplify get_tune_settings() struct
-Date: Mon, 26 Dec 2011 23:09:12 -0200
-Message-Id: <1324948159-23709-85-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-84-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
- <1324948159-23709-56-git-send-email-mchehab@redhat.com>
- <1324948159-23709-57-git-send-email-mchehab@redhat.com>
- <1324948159-23709-58-git-send-email-mchehab@redhat.com>
- <1324948159-23709-59-git-send-email-mchehab@redhat.com>
- <1324948159-23709-60-git-send-email-mchehab@redhat.com>
- <1324948159-23709-61-git-send-email-mchehab@redhat.com>
- <1324948159-23709-62-git-send-email-mchehab@redhat.com>
- <1324948159-23709-63-git-send-email-mchehab@redhat.com>
- <1324948159-23709-64-git-send-email-mchehab@redhat.com>
- <1324948159-23709-65-git-send-email-mchehab@redhat.com>
- <1324948159-23709-66-git-send-email-mchehab@redhat.com>
- <1324948159-23709-67-git-send-email-mchehab@redhat.com>
- <1324948159-23709-68-git-send-email-mchehab@redhat.com>
- <1324948159-23709-69-git-send-email-mchehab@redhat.com>
- <1324948159-23709-70-git-send-email-mchehab@redhat.com>
- <1324948159-23709-71-git-send-email-mchehab@redhat.com>
- <1324948159-23709-72-git-send-email-mchehab@redhat.com>
- <1324948159-23709-73-git-send-email-mchehab@redhat.com>
- <1324948159-23709-74-git-send-email-mchehab@redhat.com>
- <1324948159-23709-75-git-send-email-mchehab@redhat.com>
- <1324948159-23709-76-git-send-email-mchehab@redhat.com>
- <1324948159-23709-77-git-send-email-mchehab@redhat.com>
- <1324948159-23709-78-git-send-email-mchehab@redhat.com>
- <1324948159-23709-79-git-send-email-mchehab@redhat.com>
- <1324948159-23709-80-git-send-email-mchehab@redhat.com>
- <1324948159-23709-81-git-send-email-mchehab@redhat.com>
- <1324948159-23709-82-git-send-email-mchehab@redhat.com>
- <1324948159-23709-83-git-send-email-mchehab@redhat.com>
- <1324948159-23709-84-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:36965 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754667Ab1LFPgQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 10:36:16 -0500
+MIME-Version: 1.0
+In-Reply-To: <4EDE2F61.301@redhat.com>
+References: <4ED75F53.30709@redhat.com>
+	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
+	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+	<CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com>
+	<4EDC9B17.2080701@gmail.com>
+	<CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
+	<4EDD01BA.40208@redhat.com>
+	<4EDD2C82.7040804@linuxtv.org>
+	<20111205205554.2caeb496@lxorguk.ukuu.org.uk>
+	<4EDD3583.30405@linuxtv.org>
+	<20111206111829.GB17194@sirena.org.uk>
+	<4EDE0400.1070304@linuxtv.org>
+	<4EDE1457.7070408@redhat.com>
+	<4EDE1A06.1060108@linuxtv.org>
+	<4EDE22F0.30909@redhat.com>
+	<4EDE28EB.7050407@linuxtv.org>
+	<4EDE2F61.301@redhat.com>
+Date: Tue, 6 Dec 2011 21:06:14 +0530
+Message-ID: <CAHFNz9JqrtfvEmgoPeWG3kLAzrqZes9J3yHrAoJG-_JLUuTBcQ@mail.gmail.com>
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the past, dvb_frontent_parameters were passed inside the
-struct where get_tuner_settings should store their result.
+On Tue, Dec 6, 2011 at 8:36 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> On 06-12-2011 12:38, Andreas Oberritter wrote:
+>>
+>> On 06.12.2011 15:13, Mauro Carvalho Chehab wrote:
+>>>
+>>> O_NONBLOCK
+>>>     When opening a FIFO with O_RDONLY or O_WRONLY set:
+>>
+>>                      ^^^^ This does not apply.
+>>
+>> [...]
+>>
+>>>     When opening a block special or character special file that supports
+>>> non-blocking opens:
+>>>
+>>>         If O_NONBLOCK is set, the open() function shall return without
+>>> blocking for the device to be ready or available. Subsequent behavior of
+>>> the device is device-specific.
+>>
+>>
+>> This is the important part:
+>> - It specifies the behaviour of open(), not ioctl(). I don't see a
+>> reason why open should block with vtunerc.
+>> - Read again: "Subsequent behavior of the device is device-specific."
+>>
+>>>         If O_NONBLOCK is clear, the open() function shall block the
+>>> calling thread until the device is ready or available before returning.
+>>>
+>>>     Otherwise, the behavior of O_NONBLOCK is unspecified.
+>>>
+>>> Basically, syscall should not block waiting for some data to be read (or
+>>> written).
+>>
+>>
+>> That's because open() does not read or write.
+>>
+>>> The ioctl definition defines [EAGAIN] error code, if, for any reason, an
+>>> ioctl would block.
+>>
+>>
+>> Fine.
+>>
+>>> Btw, the vtunerc doesn't handle O_NONBLOCK flag. For each DVB ioctl, for
+>>> example
+>>> read_snr[1], it calls wait_event_interruptible()[2], even if the
+>>> application opens
+>>> it with O_NONBLOCK flag. So, it is likely that non-blocking-mode
+>>> applications
+>>> will break.
+>>
+>>
+>> Of course, read operations must wait until the value read is available
+>> or an error (e.g. timeout, i/o error) occurs. Whether it's an i2c
+>> transfer, an usb transfer or a network transfer doesn't make a
+>> difference. Every transfer takes a nonzero amount of time.
+>
+>
+> Yes, posix is not 100% clear about what "non block" means for ioctl's, but
+> waiting for an event is clearly a block condition. This is different than
+> doing something like mdelay() (or even mleep()) in order to wait for an
+> specific amount of time for an operation to complete.
+>
+> A vtunerc => daemon => network transfer =>daemon => vtunerc is a block
+> condition,
+> as the network may return in a few ms or may not return and a long
+> timeout at the daemon would give an error. Also, as the daemon may be
+> swapped
+> to disk (as the daemon runs on userspace), this may even involve other
+> blocking operations at the block layer.
+>
+>
+>> As Honza already demonstrated, in a typical LAN setup, this takes only
+>> few milliseconds, which with fast devices may even be faster than some
+>> slow local devices using many delays in their driver code.
+>>
+>> If an application breaks because of that, then it's a bug in the
+>> application which may as well be triggered by a local driver and thus
+>> needs to be fixed anyway.
+>
+>
+> It is not a bug in the application. It requested a non-block mode. The
+> driver
+> is working in block mode instead. It is a driver's bug.
+>
+>
+>>>> Mauro, if the network is broken, any application using the network will
+>>>> break. No specially designed protocol will fix that.
+>>>
+>>>
+>>> A high delay network (even a congested one) is not broken, if it can
+>>> still provide the throughput required by the application, and a
+>>> latency/QoS
+>>> that would fit.
+>>
+>>
+>> Then neither vtunerc nor any other application will break. Fine.
+>>
+>>>> If you want to enforce strict maximum latencies, you can do that in the
+>>>> userspace daemon using the vtunerc interface. It has all imaginable
+>>>> possibilities to control data flow over the network and to return errors
+>>>> to vtunerc.
+>>>
+>>>
+>>> Yes, you can do anything you want at the userspace daemon, but the
+>>> non-userspace daemon aware applications will know nothing about it, and
+>>> this is the flaw on this design: Applications can't negotiate what
+>>> network
+>>> parameters are ok or not for its usecase.
+>>
+>>
+>> How do you negotiate network parameters with your ISP and all involved
+>> parties on the internet on the way from your DSL line to some other
+>> peer? Let me answer it: You don't.
+>
+>
+> TCP flow control mechanisms, RSVP, MPLS, IP QoS flags, ICMP messages, etc.
+>
 
-This is not needed anymore, as all parameters needed are stored
-already at the fe property cache. So, use it, where needed.
+You would need a Data Link Protocol, which would be PPP of some form
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |    3 ---
- drivers/media/dvb/dvb-core/dvb_frontend.h |    1 -
- drivers/media/dvb/frontends/s5h1420.c     |   16 ++++++++--------
- drivers/media/dvb/frontends/stv0299.c     |    9 +++++----
- drivers/media/dvb/frontends/tda10086.c    |   16 +++++++++-------
- 5 files changed, 22 insertions(+), 23 deletions(-)
+http://en.wikipedia.org/wiki/Point-to-Point_Protocol
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 5bb6c1d..bf733c4 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1977,13 +1977,10 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		fepriv->parameters_out = fepriv->parameters_in;
- 
- 		memset(&fetunesettings, 0, sizeof(struct dvb_frontend_tune_settings));
--		memcpy(&fetunesettings.parameters, parg,
--		       sizeof (struct dvb_frontend_parameters));
- 
- 		/* force auto frequency inversion if requested */
- 		if (dvb_force_auto_inversion) {
- 			fepriv->parameters_in.inversion = INVERSION_AUTO;
--			fetunesettings.parameters.inversion = INVERSION_AUTO;
- 		}
- 		if (fe->ops.info.type == FE_OFDM) {
- 			/* without hierarchical coding code_rate_LP is irrelevant,
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index 23456b3..4b49bcd 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -52,7 +52,6 @@ struct dvb_frontend_tune_settings {
- 	int min_delay_ms;
- 	int step_size;
- 	int max_drift;
--	struct dvb_frontend_parameters parameters;
- };
- 
- struct dvb_frontend;
-diff --git a/drivers/media/dvb/frontends/s5h1420.c b/drivers/media/dvb/frontends/s5h1420.c
-index 3bdfcbe..0726494 100644
---- a/drivers/media/dvb/frontends/s5h1420.c
-+++ b/drivers/media/dvb/frontends/s5h1420.c
-@@ -639,7 +639,6 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe)
- 	dprintk("enter %s\n", __func__);
- 
- 	/* check if we should do a fast-tune */
--	memcpy(&fesettings.parameters, p, sizeof(struct dtv_frontend_properties));
- 	s5h1420_get_tune_settings(fe, &fesettings);
- 	frequency_delta = p->frequency - state->tunedfreq;
- 	if ((frequency_delta > -fesettings.max_drift) &&
-@@ -782,29 +781,30 @@ static int s5h1420_get_frontend(struct dvb_frontend* fe,
- static int s5h1420_get_tune_settings(struct dvb_frontend* fe,
- 				     struct dvb_frontend_tune_settings* fesettings)
- {
--	if (fesettings->parameters.u.qpsk.symbol_rate > 20000000) {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+	if (p->symbol_rate > 20000000) {
- 		fesettings->min_delay_ms = 50;
- 		fesettings->step_size = 2000;
- 		fesettings->max_drift = 8000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 12000000) {
-+	} else if (p->symbol_rate > 12000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 1500;
- 		fesettings->max_drift = 9000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 8000000) {
-+	} else if (p->symbol_rate > 8000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 1000;
- 		fesettings->max_drift = 8000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 4000000) {
-+	} else if (p->symbol_rate > 4000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 500;
- 		fesettings->max_drift = 7000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 2000000) {
-+	} else if (p->symbol_rate > 2000000) {
- 		fesettings->min_delay_ms = 200;
--		fesettings->step_size = (fesettings->parameters.u.qpsk.symbol_rate / 8000);
-+		fesettings->step_size = (p->symbol_rate / 8000);
- 		fesettings->max_drift = 14 * fesettings->step_size;
- 	} else {
- 		fesettings->min_delay_ms = 200;
--		fesettings->step_size = (fesettings->parameters.u.qpsk.symbol_rate / 8000);
-+		fesettings->step_size = (p->symbol_rate / 8000);
- 		fesettings->max_drift = 18 * fesettings->step_size;
- 	}
- 
-diff --git a/drivers/media/dvb/frontends/stv0299.c b/drivers/media/dvb/frontends/stv0299.c
-index abf4bff..ad6f3a6 100644
---- a/drivers/media/dvb/frontends/stv0299.c
-+++ b/drivers/media/dvb/frontends/stv0299.c
-@@ -647,14 +647,15 @@ static int stv0299_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
- static int stv0299_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* fesettings)
- {
- 	struct stv0299_state* state = fe->demodulator_priv;
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 
- 	fesettings->min_delay_ms = state->config->min_delay_ms;
--	if (fesettings->parameters.u.qpsk.symbol_rate < 10000000) {
--		fesettings->step_size = fesettings->parameters.u.qpsk.symbol_rate / 32000;
-+	if (p->symbol_rate < 10000000) {
-+		fesettings->step_size = p->symbol_rate / 32000;
- 		fesettings->max_drift = 5000;
- 	} else {
--		fesettings->step_size = fesettings->parameters.u.qpsk.symbol_rate / 16000;
--		fesettings->max_drift = fesettings->parameters.u.qpsk.symbol_rate / 2000;
-+		fesettings->step_size = p->symbol_rate / 16000;
-+		fesettings->max_drift = p->symbol_rate / 2000;
- 	}
- 	return 0;
- }
-diff --git a/drivers/media/dvb/frontends/tda10086.c b/drivers/media/dvb/frontends/tda10086.c
-index 81fa57b..cfc6e0e 100644
---- a/drivers/media/dvb/frontends/tda10086.c
-+++ b/drivers/media/dvb/frontends/tda10086.c
-@@ -664,29 +664,31 @@ static int tda10086_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
- 
- static int tda10086_get_tune_settings(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* fesettings)
- {
--	if (fesettings->parameters.u.qpsk.symbol_rate > 20000000) {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+
-+	if (p->symbol_rate > 20000000) {
- 		fesettings->min_delay_ms = 50;
- 		fesettings->step_size = 2000;
- 		fesettings->max_drift = 8000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 12000000) {
-+	} else if (p->symbol_rate > 12000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 1500;
- 		fesettings->max_drift = 9000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 8000000) {
-+	} else if (p->symbol_rate > 8000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 1000;
- 		fesettings->max_drift = 8000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 4000000) {
-+	} else if (p->symbol_rate > 4000000) {
- 		fesettings->min_delay_ms = 100;
- 		fesettings->step_size = 500;
- 		fesettings->max_drift = 7000;
--	} else if (fesettings->parameters.u.qpsk.symbol_rate > 2000000) {
-+	} else if (p->symbol_rate > 2000000) {
- 		fesettings->min_delay_ms = 200;
--		fesettings->step_size = (fesettings->parameters.u.qpsk.symbol_rate / 8000);
-+		fesettings->step_size = p->symbol_rate / 8000;
- 		fesettings->max_drift = 14 * fesettings->step_size;
- 	} else {
- 		fesettings->min_delay_ms = 200;
--		fesettings->step_size = (fesettings->parameters.u.qpsk.symbol_rate / 8000);
-+		fesettings->step_size =  p->symbol_rate / 8000;
- 		fesettings->max_drift = 18 * fesettings->step_size;
- 	}
- 
--- 
-1.7.8.352.g876a6
+I don't think, you have much to negotiate there.
 
+Regards,
+Manu
