@@ -1,122 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61308 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751821Ab1LSK6V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 05:58:21 -0500
-Date: Mon, 19 Dec 2011 11:58:12 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-In-Reply-To: <CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1112191155340.23694@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
- <201112191105.25855.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1112191113230.23694@axis700.grange>
- <201112191120.40084.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1112191139560.23694@axis700.grange>
- <CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:33744 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933267Ab1LFN6x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 6 Dec 2011 08:58:53 -0500
+Message-ID: <4EDE1F99.6080200@iki.fi>
+Date: Tue, 06 Dec 2011 15:58:49 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Thierry Reding <thierry.reding@avionic-design.de>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com,
+	Stefan Ringel <linuxtv@stefanringel.de>
+Subject: Re: [PATCH 2/2] [media] tm6000: Fix bad indentation.
+References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de> <1323178776-12305-1-git-send-email-thierry.reding@avionic-design.de> <1323178776-12305-2-git-send-email-thierry.reding@avionic-design.de>
+In-Reply-To: <1323178776-12305-2-git-send-email-thierry.reding@avionic-design.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 19 Dec 2011, javier Martin wrote:
+That question is related to that kind of indentation generally, not only 
+that patch.
 
-> On 19 December 2011 11:41, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> >
-> >> Hi Guennadi,
-> >>
-> >> On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
-> >> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> >> > > On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
-> >> > > > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> >> > > > > On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
-> >> > > > > > On Fri, 16 Dec 2011, Scott Jiang wrote:
-> >> > > > > > > >> How about this implementation? I know it's not for soc, but I
-> >> > > > > > > >> post it to give my idea.
-> >> > > > > > > >> Bridge knows the layout, so it doesn't need to query the
-> >> > > > > > > >> subdevice.
-> >> > > > > > > >
-> >> > > > > > > > Where from? AFAIU, we are talking here about subdevice inputs,
-> >> > > > > > > > right? In this case about various inputs of the TV decoder. How
-> >> > > > > > > > shall the bridge driver know about that?
-> >> > > > > > >
-> >> > > > > > > I have asked this question before. Laurent reply me:
-> >> > > > > > > > >> ENUMINPUT as defined by V4L2 enumerates input connectors
-> >> > > > > > > > >> available on the board. Which inputs the board designer
-> >> > > > > > > > >> hooked up is something that only the top-level V4L driver
-> >> > > > > > > > >> will know. Subdevices do not have that information, so
-> >> > > > > > > > >> enuminputs is not applicable there.
-> >> > > > > > > > >>
-> >> > > > > > > > >> Of course, subdevices do have input pins and output pins,
-> >> > > > > > > > >> but these are assumed to be fixed. With the s_routing ops
-> >> > > > > > > > >> the top level driver selects which input and output pins
-> >> > > > > > > > >> are active. Enumeration of those inputs and outputs
-> >> > > > > > > > >> wouldn't gain you anything as far as I can tell since the
-> >> > > > > > > > >> subdevice simply does not know which inputs/outputs are
-> >> > > > > > > > >> actually hooked up. It's the top level driver that has that
-> >> > > > > > > > >> information (usually passed in through board/card info
-> >> > > > > > > > >> structures).
-> >> > > > > >
-> >> > > > > > Laurent, right, I now remember reading this discussion before. But
-> >> > > > > > I'm not sure I completely agree:-) Yes, you're right - the board
-> >> > > > > > decides which pins are routed to which connectors. And it has to
-> >> > > > > > provide this information to the driver in its platform data. But -
-> >> > > > > > I think, this information should be provided not to the bridge
-> >> > > > > > driver, but to respective subdevice drivers, because only they
-> >> > > > > > know what exactly those interfaces are good for and how to report
-> >> > > > > > them to the bridge or the user, if we decide to also export this
-> >> > > > > > information over the subdevice user-space API.
-> >> > > > > >
-> >> > > > > > So, I would say, the board has to tell the subdevice driver: yes,
-> >> > > > > > your inputs 0 and 1 are routed to external connectors. On input 1
-> >> > > > > > I've put a pullup, it is connected to connector of type X over a
-> >> > > > > > circuit Y, clocked from your output Z, if the driver needs to know
-> >> > > > > > all that. And the subdev driver will just tell the bridge only
-> >> > > > > > what that one needs to know - number of inputs and their
-> >> > > > > > capabilities.
-> >> > > > >
-> >> > > > > That sounds reasonable.
-> >> > > >
-> >> > > > Good, this would mean, we need additional subdevice operations along
-> >> > > > the lines of enum_input and enum_output, and maybe also g_input and
-> >> > > > g_output?
-> >> > >
-> >> > > What about implementing pad support in the subdevice ? Input enumeration
-> >> > > could then be performed without a subdev operation.
-> >> >
-> >> > soc-camera doesn't support pad operations yet.
-> >>
-> >> soc-camera doesn't support enum_input yet either, so you need to implement
-> >> something anyway ;-)
-> >>
-> >> You wouldn't need to call a pad operation here, you would just need to iterate
-> >> through the pads provided by the subdev.
-> >
-> > tvp5150 doesn't implement it either yet. So, I would say, it is a better
-> > solution ATM to fix this functionality independent of the pad-level API.
-> 
-> I agree,
-> I cannot contribute to implement pad-level API stuff since I can't
-> test it with tvp5150.
-> 
-> Would you accept a patch implementing only S_INPUT?
+On 12/06/2011 03:39 PM, Thierry Reding wrote:
+> Function parameters on subsequent lines should never be aligned with the
+> function name but rather be indented.
+[...]
+>   			usb_set_interface(dev->udev,
+> -			dev->isoc_in.bInterfaceNumber,
+> -			0);
+> +					dev->isoc_in.bInterfaceNumber, 0);
 
-Sorry, maybe I'm missing something, but how would it work? I mean, how can 
-we accept from the user any S_INPUT request with index != 0, if we always 
-return only 0 in reply to ENUM_INPUT? Ok, G_INPUT we could implement 
-internally in soc-camera: return 0 by default, then remember last set 
-input number per soc-camera device / subdev. But ENUM_INPUT?...
+Which kind of indentation should be used when function params are 
+slitted to multiple lines?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+In that case two tabs are used (related to function indentation).
+example:
+	ret= function(param1,
+			param2);
+
+Other generally used is only one tab (related to function indentation).
+example:
+	ret= function(param1,
+		param2);
+
+And last generally used is multiple tabs + spaces until same location 
+where first param is meet (related to function indentation). I see that 
+bad since use of tabs, with only spaces I see it fine. And this many 
+times leads situation param level are actually different whilst 
+originally idea was to put those same level.
+example:
+	ret= function(param1,
+		      param2);
+
+
+regards
+Antti
+-- 
+http://palosaari.fi/
