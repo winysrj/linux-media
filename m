@@ -1,207 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utopia.booyaka.com ([72.9.107.138]:38470 "EHLO
-	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751695Ab1LSVsj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 16:48:39 -0500
-Date: Mon, 19 Dec 2011 14:48:38 -0700 (MST)
-From: Paul Walmsley <paul@pwsan.com>
-To: "Cousson, Benoit" <b-cousson@ti.com>
-cc: Ming Lei <ming.lei@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module)
- hwmod
-In-Reply-To: <4EEB5BBC.7050807@ti.com>
-Message-ID: <alpine.DEB.2.00.1112191447270.12660@utopia.booyaka.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com> <1323871214-25435-2-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com> <4EEB5BBC.7050807@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:26705 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755798Ab1LGOU3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Dec 2011 09:20:29 -0500
+Message-ID: <4EDF762A.9030604@redhat.com>
+Date: Wed, 07 Dec 2011 12:20:26 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1471173727-1324331318=:12660"
+To: gennarone@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/1] xc3028: force reload of DTV7 firmware in VHF band
+ with Zarlink demodulator
+References: <4EDE27A0.8060406@gmail.com> <4EDF6640.801@redhat.com> <4EDF6E7E.30200@gmail.com>
+In-Reply-To: <4EDF6E7E.30200@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+On 07-12-2011 11:47, Gianluca Gennari wrote:
+> Il 07/12/2011 14:12, Mauro Carvalho Chehab ha scritto:
+>> On 06-12-2011 12:33, Gianluca Gennari wrote:
+>>> Hi All,
+>>>
+>>> I have a Terratec Cinergy Hybrid T USB XS stick (USB 0ccd:0042).
+>>> This device is made of the following components:
+>>> - Empiatech em2880 USB bridge;
+>>> - Zarlink zl10353 demodulator;
+>>> - Xceive XC3028 tuner;
+>>>
+>>> For this device, the ZARLINK456 define is set to true so it is using the
+>>> firmwares with type D2633 for the XC3028 tuner.
+>>>
+>>> I found out that:
+>>> 1) the DTV7 firmware works fine in VHF band (bw=7MHz);
+>>> 2) the DTV8 firmware works fine in UHF band (bw=8MHz);
+>>> 3) the DTV78 firmware works fine in UHF band (bw=8MHz) but it doesn not
+>>> work at all in VHF band (bw=7MHz);
+>>>
+>>> In fact, when the DTV78 firmware is loaded and I try to tune a VHF
+>>> channel, the frequency lock is ciclically acquired for a second and
+>>> immediately lost.
+>>> So the proposed patch forces a reload of the DTV7 firmware every time a
+>>> 7MHz channel is requested.
+>>> The only drawback is that channel change from VHF to UHF or viceversa is
+>>> slightly slower.
+>>> Devices using the D2620 firmwares are unaffected.
+>>
+>> Hi Gianluca,
+>>
+>> The issues with firmware DTV78 x DTV7/DTV8 are old. No matter what we do,
+>> we end by having troubles, as the issue is Country-dependent. For example,
+>> Australia requires a different firmware than Germany, due to the
+>> differences
+>> on the VHF/UHF bands.
+>>
+>> I prefer if you could work into a patch that would add some modprobe
+>> parameter
+>> to disable the current "autodetection" way, allowing to override the
+>> firmware
+>> used for VHF and UHF.
+>>
+>> Thanks,
+>> Mauro
+>>
+>
+> Hi Mauro,
+> thanks for the feedback. Unfortunately I do not have any info on which
+> kind of firmware is needed on other parts of the world. All I know is
+> what is happening here in Italy, and what I can understand reading the
+> code. I suppose my findings can be extended to the rest of Europe, and
+> maybe Africa and Middle-East.
 
---155748971-1471173727-1324331318=:12660
-Content-Type: TEXT/PLAIN; charset=ISO-8859-15
-Content-Transfer-Encoding: QUOTED-PRINTABLE
+Even in Europe, there are some differences.
 
-Hi Beno=EEt,
+> Can you provide a reference about problems in other continents like
+> Australia?
 
-On Fri, 16 Dec 2011, Cousson, Benoit wrote:
+All I know is from the constant reports at the ML from users. We used to
+have a developer in Australia, but he moved away, and it seems that he lost
+interest on DVB development, as we were unable to contact him ever since.
+>
+> Do you think a simple module parameters that allows to enable/disable
+> the usage of the DTV78 firmware would do the trick?
 
-> On 12/16/2011 6:53 AM, Paul Walmsley wrote:
-> > Hi Beno=EEt
-> >=20
-> > On Wed, 14 Dec 2011, Ming Lei wrote:
-> >=20
-> > > Signed-off-by: Ming Lei<ming.lei@canonical.com>
->=20
-> Acked-by: Benoit Cousson <b-cousson@ti.com>
->=20
-> > > ---
-> > >   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81
-> > > ++++++++++++++++++++++++++++
-> > >   1 files changed, 81 insertions(+), 0 deletions(-)
-> >=20
-> > any comments on this patch?  I'd like to queue it if it looks good to y=
-ou.
->=20
-> It looks good to me. The only minor comment is about fdif location in the=
- list
-> that should be sorted and thus cannot be after wd_timer2.
+Perhaps one or two module parameters to allow forcing a certain firmware for
+VHF and UHF.
 
-Thanks, patch updated to match the script output and queued.  Modified=20
-patch follows.
+> Eventually, do you agree that the default solution should be to DISABLE
+> DTV78 firmware, since this seems to be the more robust solution, and let
+> the user enable it through the kernel parameter if it is working in his
+> country? Or do you prefer the other way around, so by default  DTV78
+> firmware is enabled, and users with problems can disable it through the
+> kernel module parameter?
 
+AFAIK, DTV78 should be used in Spain and in Germany. Changing the current
+default doesn't look a good idea, as it will cause regressions, if the new
+way is not backward-compatible.
 
-- Paul
+> Best regards,
+> Gianluca
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-From: Ming Lei <ming.lei@canonical.com>
-Date: Mon, 19 Dec 2011 14:34:06 -0700
-Subject: [PATCH] ARM: OMAP4: hwmod data: introduce fdif(face detect module)
- hwmod
-
-Add hwmod data for the OMAP4 FDIF IP block.
-
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
-Acked-by: Beno=EEt Cousson <b-cousson@ti.com>
-[paul@pwsan.com: rearranged to match script output; fixed FDIF end address =
-to
- match script data; wrote trivial changelog]
-Signed-off-by: Paul Walmsley <paul@pwsan.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   85 ++++++++++++++++++++++++=
-++++
- 1 files changed, 85 insertions(+), 0 deletions(-)
-
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
-p2/omap_hwmod_44xx_data.c
-index daaf165..3ac4bf6 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
- static struct omap_hwmod omap44xx_dsp_hwmod;
- static struct omap_hwmod omap44xx_dss_hwmod;
- static struct omap_hwmod omap44xx_emif_fw_hwmod;
-+static struct omap_hwmod omap44xx_fdif_hwmod;
- static struct omap_hwmod omap44xx_hsi_hwmod;
- static struct omap_hwmod omap44xx_ipu_hwmod;
- static struct omap_hwmod omap44xx_iss_hwmod;
-@@ -346,6 +347,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system__l=
-3_main_2 =3D {
- =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
- };
-=20
-+/* fdif -> l3_main_2 */
-+static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 =3D {
-+=09.master=09=09=3D &omap44xx_fdif_hwmod,
-+=09.slave=09=09=3D &omap44xx_l3_main_2_hwmod,
-+=09.clk=09=09=3D "l3_div_ck",
-+=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* hsi -> l3_main_2 */
- static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 =3D {
- =09.master=09=09=3D &omap44xx_hsi_hwmod,
-@@ -1797,6 +1806,79 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod =3D=
- {
- };
-=20
- /*
-+ * 'fdif' class
-+ * face detection hw accelerator module
-+ */
-+
-+static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc =3D {
-+=09.rev_offs=09=3D 0x0000,
-+=09.sysc_offs=09=3D 0x0010,
-+=09.sysc_flags=09=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
-+=09=09=09   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-+=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+=09=09=09   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
-+=09.sysc_fields=09=3D &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class omap44xx_fdif_hwmod_class =3D {
-+=09.name=09=3D "fdif",
-+=09.sysc=09=3D &omap44xx_fdif_sysc,
-+};
-+
-+/* fdif */
-+static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] =3D {
-+=09{ .irq =3D 69 + OMAP44XX_IRQ_GIC_START },
-+=09{ .irq =3D -1 }
-+};
-+
-+/* fdif master ports */
-+static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] =3D {
-+=09&omap44xx_fdif__l3_main_2,
-+};
-+
-+static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] =3D {
-+=09{
-+=09=09.pa_start=09=3D 0x4a10a000,
-+=09=09.pa_end=09=09=3D 0x4a10a1ff,
-+=09=09.flags=09=09=3D ADDR_TYPE_RT
-+=09},
-+=09{ }
-+};
-+
-+/* l4_cfg -> fdif */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif =3D {
-+=09.master=09=09=3D &omap44xx_l4_cfg_hwmod,
-+=09.slave=09=09=3D &omap44xx_fdif_hwmod,
-+=09.clk=09=09=3D "l4_div_ck",
-+=09.addr=09=09=3D omap44xx_fdif_addrs,
-+=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* fdif slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] =3D {
-+=09&omap44xx_l4_cfg__fdif,
-+};
-+
-+static struct omap_hwmod omap44xx_fdif_hwmod =3D {
-+=09.name=09=09=3D "fdif",
-+=09.class=09=09=3D &omap44xx_fdif_hwmod_class,
-+=09.clkdm_name=09=3D "iss_clkdm",
-+=09.mpu_irqs=09=3D omap44xx_fdif_irqs,
-+=09.main_clk=09=3D "fdif_fck",
-+=09.prcm =3D {
-+=09=09.omap4 =3D {
-+=09=09=09.clkctrl_offs =3D OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
-+=09=09=09.context_offs =3D OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
-+=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
-+=09=09},
-+=09},
-+=09.slaves=09=09=3D omap44xx_fdif_slaves,
-+=09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_slaves),
-+=09.masters=09=3D omap44xx_fdif_masters,
-+=09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_masters),
-+};
-+
-+/*
-  * 'gpio' class
-  * general purpose io module
-  */
-@@ -5327,6 +5409,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[=
-] =3D {
- =09&omap44xx_dss_rfbi_hwmod,
- =09&omap44xx_dss_venc_hwmod,
-=20
-+=09/* fdif class */
-+=09&omap44xx_fdif_hwmod,
-+
- =09/* gpio class */
- =09&omap44xx_gpio1_hwmod,
- =09&omap44xx_gpio2_hwmod,
---=20
-1.7.7.3
-
---155748971-1471173727-1324331318=:12660--
