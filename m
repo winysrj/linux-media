@@ -1,275 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56233 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757358Ab1LNOB5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 09:01:57 -0500
-From: Ming Lei <ming.lei@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Ming Lei <ming.lei@canonical.com>
-Subject: [RFC PATCH v2 6/8] media: v4l2: introduce two IOCTLs for object detection
-Date: Wed, 14 Dec 2011 22:00:12 +0800
-Message-Id: <1323871214-25435-7-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:37843 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756082Ab1LGSUD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 13:20:03 -0500
+Date: Wed, 7 Dec 2011 20:19:57 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org
+Subject: Re: [PATCH] omap3isp: video: Don't WARN() on unknown pixel formats
+Message-ID: <20111207181957.GF938@valkosipuli.localdomain>
+References: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <201112010026.07592.laurent.pinchart@ideasonboard.com>
+ <20111201143451.GJ29805@valkosipuli.localdomain>
+ <201112071444.12530.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201112071444.12530.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch introduces two new IOCTLs and related data
-structure which will be used by the coming video device
-with object detect capability.
+On Wed, Dec 07, 2011 at 02:44:11PM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
 
-The two IOCTLs and related data structure will be used by
-user space application to retrieve the results of object
-detection.
+Moi,
 
-The utility fdif[1] is useing the two IOCTLs to find
-objects(faces) deteced in raw images or video streams.
+> On Thursday 01 December 2011 15:34:51 Sakari Ailus wrote:
+> > On Thu, Dec 01, 2011 at 12:26:07AM +0100, Laurent Pinchart wrote:
+> > > On Wednesday 30 November 2011 09:35:38 Sakari Ailus wrote:
+> > > > Laurent Pinchart wrote:
+> > > > > On Monday 28 November 2011 17:01:12 Sakari Ailus wrote:
+> > > > >> On Mon, Nov 28, 2011 at 12:37:34PM +0100, Laurent Pinchart wrote:
+> > > > >>> When mapping from a V4L2 pixel format to a media bus format in the
+> > > > >>> VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may
+> > > > >>> be unsupported by the driver. Return a hardcoded format instead of
+> > > > >>> WARN()ing in that case.
+> > > > >>> 
+> > > > >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > >>> ---
+> > > > >>> 
+> > > > >>>  drivers/media/video/omap3isp/ispvideo.c |    8 ++++----
+> > > > >>>  1 files changed, 4 insertions(+), 4 deletions(-)
+> > > > >>> 
+> > > > >>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> > > > >>> b/drivers/media/video/omap3isp/ispvideo.c index d100072..ffe7ce9
+> > > > >>> 100644 --- a/drivers/media/video/omap3isp/ispvideo.c
+> > > > >>> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> > > > >>> @@ -210,14 +210,14 @@ static void isp_video_pix_to_mbus(const
+> > > > >>> struct v4l2_pix_format *pix,
+> > > > >>> 
+> > > > >>>  	mbus->width = pix->width;
+> > > > >>>  	mbus->height = pix->height;
+> > > > >>> 
+> > > > >>> -	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
+> > > > >>> +	/* Skip the last format in the loop so that it will be selected
+> > > > >>> if no
+> > > > >>> +	 * match is found.
+> > > > >>> +	 */
+> > > > >>> +	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
+> > > > >>> 
+> > > > >>>  		if (formats[i].pixelformat == pix->pixelformat)
+> > > > >>>  		
+> > > > >>>  			break;
+> > > > >>>  	
+> > > > >>>  	}
+> > > > >>> 
+> > > > >>> -	if (WARN_ON(i == ARRAY_SIZE(formats)))
+> > > > >>> -		return;
+> > > > >>> -
+> > > > >>> 
+> > > > >>>  	mbus->code = formats[i].code;
+> > > > >>>  	mbus->colorspace = pix->colorspace;
+> > > > >>>  	mbus->field = pix->field;
+> > > > >> 
+> > > > >> In case of setting or trying an invalid format, instead of selecting
+> > > > >> a default format, shouldn't we leave the format unchanced --- the
+> > > > >> current setting is valid after all.
+> > > > > 
+> > > > > TRY/SET operations must succeed. The format we select when an invalid
+> > > > > format is requested isn't specified. We could keep the current
+> > > > > format, but wouldn't that be more confusing for applications ? The
+> > > > > format they would get in response to a TRY/SET operation would then
+> > > > > potentially depend on the previous SET operations.
+> > > > 
+> > > > I don't think a change to something that has nothing to do what was
+> > > > requested is better than not changing it. The application has requested
+> > > > a particular format; changing it to something else isn't useful for the
+> > > > application. And if the application would try more than invalid format
+> > > > in a row, they both would yield to the same default format.
+> > > > 
+> > > > I would personally not change it.
+> > > 
+> > > I can agree with you for S_FMT, but I have more doubts about TRY_FMT.
+> > > Making TRY_FMT return the current format if the requested format is not
+> > > supported seems confusing to me. And if we make TRY_FMT return a fixed
+> > > format in that case, why not making S_FMT do the same ? :-)
+> > 
+> > I'd rather have it the other way around. :-)
+> 
+> TRY_FMT means "can I use this format?". If the format isn't supported, the 
+> driver answers "no, you should use this other format instead". I think that 
+> making that other format depend on the current format would be confusing.
 
-[1],http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
+Also ENUM_FMT will depend on the format configured on the pipeline. If the
+sensor connected to the CCDC produces YUV, the CCDC video capture node
+musn't advertise YUV formats either.
 
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
-v2:
-	- extend face detection API to object detection API
-	- introduce capability of V4L2_CAP_OBJ_DETECTION for object detection
-	- 32/64 safe array parameter
----
- drivers/media/video/v4l2-ioctl.c |   41 ++++++++++++-
- include/linux/videodev2.h        |  124 ++++++++++++++++++++++++++++++++++++++
- include/media/v4l2-ioctl.h       |    6 ++
- 3 files changed, 170 insertions(+), 1 deletions(-)
+I'm not saying this interface should be used by regular V4L2 applications,
+but the pipeline configuration library.
 
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index ded8b72..575d445 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -2140,6 +2140,30 @@ static long __video_do_ioctl(struct file *file,
- 		dbgarg(cmd, "index=%d", b->index);
- 		break;
- 	}
-+	case VIDIOC_G_OD_RESULT:
-+	{
-+		struct v4l2_od_result *or = arg;
-+
-+		if (!ops->vidioc_g_od_result)
-+			break;
-+
-+		ret = ops->vidioc_g_od_result(file, fh, or);
-+
-+		dbgarg(cmd, "index=%d", or->frm_seq);
-+		break;
-+	}
-+	case VIDIOC_G_OD_COUNT:
-+	{
-+		struct v4l2_od_count *oc = arg;
-+
-+		if (!ops->vidioc_g_od_count)
-+			break;
-+
-+		ret = ops->vidioc_g_od_count(file, fh, oc);
-+
-+		dbgarg(cmd, "index=%d", oc->frm_seq);
-+		break;
-+	}
- 	default:
- 		if (!ops->vidioc_default)
- 			break;
-@@ -2241,7 +2265,22 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- 
- static int is_64_32_array_args(unsigned int cmd, void *parg, int *extra_len)
- {
--	return 0;
-+	int ret = 0;
-+
-+	switch (cmd) {
-+	case VIDIOC_G_OD_RESULT: {
-+		struct v4l2_od_result *or = parg;
-+
-+		*extra_len = or->obj_cnt *
-+			sizeof(struct v4l2_od_object);
-+		ret = 1;
-+		break;
-+	}
-+	default:
-+		break;
-+	}
-+
-+	return ret;
- }
- 
- long
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..c08ceaf 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -270,6 +270,9 @@ struct v4l2_capability {
- #define V4L2_CAP_RADIO			0x00040000  /* is a radio device */
- #define V4L2_CAP_MODULATOR		0x00080000  /* has a modulator */
- 
-+/* The device has capability of object detection */
-+#define V4L2_CAP_OBJ_DETECTION		0x00100000
-+
- #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
- #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
- #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
-@@ -2160,6 +2163,125 @@ struct v4l2_create_buffers {
- 	__u32			reserved[8];
- };
- 
-+/**
-+ * struct v4l2_od_obj_desc
-+ * @centerx:	return, position in x direction of detected object
-+ * @centery:	return, position in y direction of detected object
-+ * @sizex:	return, size in x direction of detected object
-+ * @sizey:	return, size in y direction of detected object
-+ * @angle:	return, angle of detected object
-+ * 		0 deg ~ 359 deg, vertical is 0 deg, clockwise
-+ * @reserved:	future extensions
-+ */
-+struct v4l2_od_obj_desc {
-+	__u16		centerx;
-+	__u16		centery;
-+	__u16		sizex;
-+	__u16		sizey;
-+	__u16		angle;
-+	__u16		reserved[5];
-+};
-+
-+/**
-+ * struct v4l2_od_face_desc
-+ * @id:		return, used to be associated with detected eyes, mouth,
-+ * 		and other objects inside this face, and each face in one
-+ * 		frame has a unique id, start from 1
-+ * @smile_level:return, smile level of the face
-+ * @f:		return, face description
-+ */
-+struct v4l2_od_face_desc {
-+	__u16	id;
-+	__u8	smile_level;
-+	__u8    reserved[15];
-+
-+	struct v4l2_od_obj_desc	f;
-+};
-+
-+/**
-+ * struct v4l2_od_eye_desc
-+ * @face_id:	return, used to associate with which face, 0 means
-+ * 		no face associated with the eye
-+ * @blink_level:return, blink level of the eye
-+ * @e:		return, eye description
-+ */
-+struct v4l2_od_eye_desc {
-+	__u16	face_id;
-+	__u8	blink_level;
-+	__u8    reserved[15];
-+
-+	struct v4l2_od_obj_desc	e;
-+};
-+
-+/**
-+ * struct v4l2_od_mouth_desc
-+ * @face_id:	return, used to associate with which face, 0 means
-+ * 		no face associated with the mouth
-+ * @m:		return, mouth description
-+ */
-+struct v4l2_od_mouth_desc {
-+	__u16	face_id;
-+	__u8    reserved[16];
-+
-+	struct v4l2_od_obj_desc	m;
-+};
-+
-+enum v4l2_od_type {
-+	V4L2_OD_TYPE_FACE		= 1,
-+	V4L2_OD_TYPE_LEFT_EYE		= 2,
-+	V4L2_OD_TYPE_RIGHT_EYE		= 3,
-+	V4L2_OD_TYPE_MOUTH		= 4,
-+	V4L2_OD_TYPE_USER_DEFINED	= 255,
-+	V4L2_OD_TYPE_MAX_CNT		= 256,
-+};
-+
-+/**
-+ * struct v4l2_od_object
-+ * @type:	return, type of detected object
-+ * @confidence:	return, confidence level of detection result
-+ * 		0: the heighest level, 100: the lowest level
-+ * @face:	return, detected face object description
-+ * @eye:	return, detected eye object description
-+ * @mouth:	return, detected mouth object description
-+ * @rawdata:	return, user defined data
-+ */
-+struct v4l2_od_object {
-+	enum v4l2_od_type	type;
-+	__u16			confidence;
-+	union {
-+		struct v4l2_od_face_desc face;
-+		struct v4l2_od_face_desc eye;
-+		struct v4l2_od_face_desc mouth;
-+		__u8	rawdata[60];
-+	} o;
-+};
-+
-+/**
-+ * struct v4l2_od_result - VIDIOC_G_OD_RESULT argument
-+ * @frm_seq:	entry, frame sequence No.
-+ * @obj_cnt:	return, how many objects detected in frame @frame_seq
-+ * @reserved:	reserved for future use
-+ * @od:		return, result of detected objects in frame @frame_seq
-+ */
-+struct v4l2_od_result {
-+	__u32			frm_seq;
-+	__u32			obj_cnt;
-+	__u32			reserved[6];
-+	struct v4l2_od_object	od[0];
-+};
-+
-+/**
-+ * struct v4l2_od_count - VIDIOC_G_OD_COUNT argument
-+ * @frm_seq:	entry, frame sequence No. for ojbect detection
-+ * @obj_cnt:	return, how many objects detected from the @frm_seq
-+ * @reserved:	reserved for future useage.
-+ */
-+struct v4l2_od_count {
-+	__u32	frm_seq;
-+	__u32	obj_cnt;
-+	__u32	reserved[6];
-+};
-+
- /*
-  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
-  *
-@@ -2254,6 +2376,8 @@ struct v4l2_create_buffers {
-    versions */
- #define VIDIOC_CREATE_BUFS	_IOWR('V', 92, struct v4l2_create_buffers)
- #define VIDIOC_PREPARE_BUF	_IOWR('V', 93, struct v4l2_buffer)
-+#define VIDIOC_G_OD_COUNT	_IOWR('V', 94, struct v4l2_od_count)
-+#define VIDIOC_G_OD_RESULT	_IOWR('V', 95, struct v4l2_od_result)
- 
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 4d1c74a..81a32a3 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -270,6 +270,12 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
- 					struct v4l2_event_subscription *sub);
- 
-+	/* object detect IOCTLs */
-+	int (*vidioc_g_od_count) (struct file *file, void *fh,
-+					struct v4l2_od_count *arg);
-+	int (*vidioc_g_od_result) (struct file *file, void *fh,
-+					struct v4l2_od_result *arg);
-+
- 	/* For other private ioctls */
- 	long (*vidioc_default)	       (struct file *file, void *fh,
- 					bool valid_prio, int cmd, void *arg);
+> For S_FMT I could agree with you. When asked "please use this format", the 
+> driver can answer "I can't, so I'm going to use this other one instead". That 
+> other format could be the current one. However, it might be confusing (and 
+> more difficult to implement) to return different formats in TRY_FMT and 
+> S_FMTfor the same input. That's why I'm inclined to make S_FMT report the same 
+> format as TRY_FMT.
+> 
+> This being said, the TRY_FMT/S_FMT behaviour of the OMAP3 ISP driver is 
+> currently a bit broken, and ENUMFMT isn't implemented. Fixing this properly 
+> requires getting rid of our current multiple video queues per video node hack 
+> and using CREATE_BUFS instead. I'll see if I can find time to fix that. I 
+> would still like to integrate this patch (or something close) in the meantime 
+> to remove the WARN_ON.
+
+Indeed, choosing a format, whether we agree on which one it should be or
+not, is a big improvement over the current kernel warning. I reckon this is
+might not reflect what the driver _should_ implement. It will take some time
+to get the final answer for that, I guess. This is still one possible
+solution.
+
+So,
+
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+
 -- 
-1.7.5.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
