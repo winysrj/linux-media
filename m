@@ -1,217 +1,334 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43632 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933239Ab1LFMbH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 07:31:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RFC/PATCH 1/5] v4l: Convert V4L2_CID_FOCUS_AUTO control to a menu control
-Date: Tue, 6 Dec 2011 13:31:14 +0100
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
-	hverkuil@xs4all.nl, riverful.kim@samsung.com,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-References: <1323011776-15967-1-git-send-email-snjw23@gmail.com> <1323011776-15967-2-git-send-email-snjw23@gmail.com>
-In-Reply-To: <1323011776-15967-2-git-send-email-snjw23@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112061331.14987.laurent.pinchart@ideasonboard.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:24012 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755357Ab1LGLt5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 06:49:57 -0500
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LVU0046R0V73O40@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Dec 2011 20:49:55 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LVU00IJ80V1GZ80@mmp1.samsung.com>
+ for linux-media@vger.kernel.org; Wed, 07 Dec 2011 20:49:55 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
+Cc: 'Sakari Ailus' <sakari.ailus@iki.fi>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org,
+	=?utf-8?Q?'Sebastian_Dr=C3=B6ge'?=
+	<sebastian.droege@collabora.co.uk>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
+ <4ED905E0.5020706@redhat.com>
+ <007201ccb118$633ff890$29bfe9b0$%debski@samsung.com>
+ <201112061301.01010.laurent.pinchart@ideasonboard.com>
+ <20111206142821.GC938@valkosipuli.localdomain> <4EDE29AA.8090203@redhat.com>
+ <00de01ccb42a$7cddab70$76990250$%debski@samsung.com>
+ <4EDE375B.6010900@redhat.com>
+ <00df01ccb431$bd28d9f0$377a8dd0$%debski@samsung.com>
+ <4EDE454D.5060605@redhat.com>
+In-reply-to: <4EDE454D.5060605@redhat.com>
+Subject: RE: [RFC] Resolution change support in video codecs in v4l2
+Date: Wed, 07 Dec 2011 12:49:07 +0100
+Message-id: <00f501ccb4d6$3d8e03a0$b8aa0ae0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=utf-8
+Content-transfer-encoding: 8BIT
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Sunday 04 December 2011 16:16:12 Sylwester Nawrocki wrote:
-> Change the V4L2_CID_FOCUS_AUTO control type from boolean to a menu
-> type. In case of boolean control we had values 0 and 1 corresponding
-> to manual and automatic focus respectively.
+> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+> Sent: 06 December 2011 17:40
 > 
-> The V4L2_CID_FOCUS_AUTO menu control has currently following items:
->   0 - V4L2_FOCUS_MANUAL,
->   1 - V4L2_FOCUS_AUTO,
->   2 - V4L2_FOCUS_AUTO_MACRO,
->   3 - V4L2_FOCUS_AUTO_CONTINUOUS.
-
-I think the mapping is wrong, please see my answer to 2/5.
-
-> To trigger single auto focus action in V4L2_FOCUS_AUTO mode the
-> V4L2_DO_AUTO_FOCUS control can be used, which is also added in this
-> patch.
+> On 06-12-2011 14:11, Kamil Debski wrote:
+> >> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+> >> Sent: 06 December 2011 16:40
+> >>
+> >> On 06-12-2011 13:19, Kamil Debski wrote:
+> >>>> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
+> >>>> Sent: 06 December 2011 15:42
+> >>>>
+> >>>> On 06-12-2011 12:28, 'Sakari Ailus' wrote:
+> >>>>> Hi all,
+> >>>>>
+> >>>>> On Tue, Dec 06, 2011 at 01:00:59PM +0100, Laurent Pinchart wrote:
+> >>>>> ...
+> >>>>>>>>>>> 2) new requirement is for a bigger buffer. DMA transfers need to
+> >> be
+> >>>>>>>>>>> stopped before actually writing inside the buffer (otherwise,
+> >> memory
+> >>>>>>>>>>> will be corrupted).
+> >>>>>>>>>>>
+> >>>>>>>>>>> In this case, all queued buffers should be marked with an error
+> >> flag.
+> >>>>>>>>>>> So, both V4L2_BUF_FLAG_FORMATCHANGED and V4L2_BUF_FLAG_ERROR
+> >> should
+> >>>>>>>>>>> raise. The new format should be available via G_FMT.
+> >>>>>>
+> >>>>>> I'd like to reword this as follows:
+> >>>>>>
+> >>>>>> 1. In all cases, the application needs to be informed that the format
+> >> has
+> >>>>>> changed.
+> >>>>>>
+> >>>>>> V4L2_BUF_FLAG_FORMATCHANGED (or a similar flag) is all we need. G_FMT
+> >>>> will
+> >>>>>> report the new format.
+> >>>>>>
+> >>>>>> 2. In all cases, the application must have the option of reallocating
+> >>>> buffers
+> >>>>>> if it wishes.
+> >>>>>>
+> >>>>>> In order to support this, the driver needs to wait until the
+> >> application
+> >>>>>> acknowledged the format change before it starts decoding the stream.
+> >>>>>> Otherwise, if the codec started decoding the new stream to the
+> existing
+> >>>>>> buffers by itself, applications wouldn't have the option of freeing
+> the
+> >>>>>> existing buffers and allocating smaller ones.
+> >>>>>>
+> >>>>>> STREAMOFF/STREAMON is one way of acknowledging the format change. I'm
+> >> not
+> >>>>>> opposed to other ways of doing that, but I think we need an
+> >>>> acknowledgment API
+> >>>>>> to tell the driver to proceed.
+> >>>>>
+> >>>>> Forcing STRAEMOFF/STRAEMON has two major advantages:
+> >>>>>
+> >>>>> 1) The application will have an ability to free and reallocate buffers
+> >> if
+> >>>> it
+> >>>>> wishes so, and
+> >>>>>
+> >>>>> 2) It will get explicit information on the changed format. Alternative
+> >>>> would
+> >>>>> require an additional API to query the format of buffers in cases the
+> >>>>> information isn't implicitly available.
+> >>>>
+> >>>> As already said, a simple flag may give this meaning. Alternatively (or
+> >>>> complementary,
+> >>>> an event may be generated, containing the new format).
+> >>>>>
+> >>>>> If we do not require STRAEMOFF/STREAMON, the stream would have to be
+> >>>> paused
+> >>>>> until the application chooses to continue it after dealing with its
+> >>>> buffers
+> >>>>> and formats.
+> >>>>
+> >>>> No. STREAMOFF is always used to stop the stream. We can't make it mean
+> >>>> otherwise.
+> >>>>
+> >>>> So, after calling it, application should assume that frames will be
+> lost,
+> >>>> while
+> >>>> the DMA engine doesn't start again.
+> >>>
+> >>> Do you mean all buffers or just those that are queued in hardware?
+> >>
+> >> Of course the ones queued.
+> >>
+> >>> What has been processed stays processed, it should not matter to the
+> >> buffers
+> >>> that have been processed.
+> >>
+> >> Sure.
+> >>
+> >>> The compressed buffer that is queued in the driver and that caused the
+> >> resolution
+> >>> change is on the OUTPUT queue.
+> >>
+> >> Not necessarily. If the buffer is smaller than the size needed for the
+> >> resolution
+> >> change, what is there is trash, as it could be a partially filled buffer
+> or
+> >> an
+> >> empty buffer, depending if the driver detected about the format change
+> after
+> >> or
+> >> before start filling it.
+> >
+> > I see the problem. If a bigger buffer is needed it's clear. A buffer with
+> > no sane data is returned and *_FORMAT_CHANGED | *_ERROR flags are set.
+> > If the resolution is changed but it fits the current conditions (size +
+> number
+> > of buffers) then what should be the contents of the returned buffer?
 > 
-> Signed-off-by: Heungjun Kim <riverful.kim@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |   52
-> +++++++++++++++++++++++-- drivers/media/video/v4l2-ctrls.c             |  
-> 13 ++++++-
->  include/linux/videodev2.h                    |    8 ++++
->  3 files changed, 67 insertions(+), 6 deletions(-)
+> The one returned on G_FMT or at an specific event. Userspace application can
+> change it later with S_FMT, if needed.
 > 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml index 3bc5ee8..5ccb0b0
-> 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -2782,12 +2782,54 @@ negative values towards infinity. This is a
-> write-only control.</entry> </row>
->  	  <row><entry></entry></row>
+> > I think that still it should contain no useful data, just *_FORMAT_CHANGED
+> | *_ERROR
+> > flags set. Then the application could decide whether it keeps the current
+> > size/alignment/... or should it allocate new buffers. Then ACK the driver.
 > 
-> -	  <row>
-> +	  <row id="v4l2-focus-auto-type">
->  	    <entry
-> spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry> -	   
-> <entry>boolean</entry>
-> -	  </row><row><entry spanname="descr">Enables automatic focus
-> -adjustments. The effect of manual focus adjustments while this feature
-> -is enabled is undefined, drivers should ignore such requests.</entry>
-> +	    <entry>enum&nbsp;v4l2_focus_auto_type</entry>
-> +	  </row><row><entry spanname="descr">Determines the camera
-> +focus mode. The effect of manual focus adjustments while <constant>
-> +V4L2_CID_FOCUS_AUTO </constant> is not set to <constant>
-> +V4L2_FOCUS_MANUAL</constant> is undefined, drivers should ignore such
-> +requests.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entrytbl spanname="descr" cols="2">
-> +	      <tbody valign="top">
-> +		<row>
-> +		  <entry><constant>V4L2_FOCUS_MANUAL</constant>&nbsp;</entry>
-> +		  <entry>Manual focus.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_FOCUS_AUTO</constant>&nbsp;</entry>
-> +		  <entry>Single shot auto focus. When switched to
-> +this mode the camera focuses on a subject just once. <constant>
-> +V4L2_CID_DO_AUTO_FOCUS</constant> control can be used to manually
-> +invoke auto focusing.</entry>
-> +		</row>
-
-Do we need this single-shot auto-focus menu entry ? We could just use 
-V4L2_CID_DO_AUTO_FOCUS in V4L2_FOCUS_MANUAL mode to do this. This is what 
-happens with one-shot white balance.
-
-> +		<row>
-> +		  <entry><constant>V4L2_FOCUS_AUTO_MACRO</constant>&nbsp;</entry>
-> +		  <entry>Macro (close-up) auto focus. Usually camera
-> +auto focus algorithms do not attempt to focus on a subject that is
-> +closer than a given distance. This mode can be used to tell the camera
-> +to use minimum distance for focus that it is capable of.</entry>
-> +		</row>
-> +		<row>
-> +		  <entry><constant>V4L2_FOCUS_AUTO_CONTINUOUS</constant>&nbsp;</entry>
-> +		  <entry>Continuous auto focus. When switched to this
-> +mode the camera continually adjusts focus.</entry>
-> +		</row>
-> +	      </tbody>
-> +	    </entrytbl>
-> +	  </row>
-> +	  <row><entry></entry></row>
-> +
-> +	  <row>
-> +	    <entry
-> spanname="id"><constant>V4L2_CID_DO_AUTO_FOCUS</constant>&nbsp;</entry> +	
->    <entry>button</entry>
-> +	  </row><row><entry spanname="descr">When this control is set
-
-Wouldn't "written" be better than "set" here ? I understand "When this control 
-is set" as "while the control has a non-zero value" (but it might just be me).
-
-> +the camera will perform one shot auto focus. The effect of using this
-> +control when <constant>V4L2_CID_FOCUS_AUTO</constant> is in mode
-> +different than <constant>V4L2_FOCUS_AUTO</constant> is undefined,
-> +drivers should ignore such requests. </entry>
->  	  </row>
->  	  <row><entry></entry></row>
+> This will cause frame losses on Capture devices. It probably doesn't make
+> sense to
+> define resolution change support like this for output devices.
 > 
-> diff --git a/drivers/media/video/v4l2-ctrls.c
-> b/drivers/media/video/v4l2-ctrls.c index 0f415da..7d8862f 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -221,6 +221,13 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"Aperture Priority Mode",
->  		NULL
->  	};
-> +	static const char * const camera_focus_auto[] = {
-> +		"Manual Focus",
-> +		"One-shot Auto Focus",
-> +		"Macro Auto Focus",
-> +		"Continuous Auto Focus",
-> +		NULL
-> +	};
->  	static const char * const colorfx[] = {
->  		"None",
->  		"Black & White",
-> @@ -388,6 +395,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		return camera_power_line_frequency;
->  	case V4L2_CID_EXPOSURE_AUTO:
->  		return camera_exposure_auto;
-> +	case V4L2_CID_FOCUS_AUTO:
-> +		return camera_focus_auto;
->  	case V4L2_CID_COLORFX:
->  		return colorfx;
->  	case V4L2_CID_TUNE_PREEMPHASIS:
-> @@ -567,6 +576,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_PRIVACY:			return "Privacy";
->  	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
->  	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
-> +	case V4L2_CID_DO_AUTO_FOCUS:		return "Do Auto Focus";
+> Eventually, we may have an extra flag: *_PAUSE. If *_PAUSE is detected, a
+> VIDEO_DECODER_CMD
+> is needed to continue.
 > 
->  	/* FM Radio Modulator control */
->  	/* Keep the order of the 'case's the same as in videodev2.h! */
-> @@ -633,7 +643,6 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
-> v4l2_ctrl_type *type, case V4L2_CID_MPEG_VIDEO_GOP_CLOSURE:
->  	case V4L2_CID_MPEG_VIDEO_PULLDOWN:
->  	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
-> -	case V4L2_CID_FOCUS_AUTO:
->  	case V4L2_CID_PRIVACY:
->  	case V4L2_CID_AUDIO_LIMITER_ENABLED:
->  	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
-> @@ -658,6 +667,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
-> v4l2_ctrl_type *type, case V4L2_CID_TILT_RESET:
->  	case V4L2_CID_FLASH_STROBE:
->  	case V4L2_CID_FLASH_STROBE_STOP:
-> +	case V4L2_CID_DO_AUTO_FOCUS:
->  		*type = V4L2_CTRL_TYPE_BUTTON;
->  		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
->  		*min = *max = *step = *def = 0;
-> @@ -679,6 +689,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
-> v4l2_ctrl_type *type, case V4L2_CID_MPEG_STREAM_TYPE:
->  	case V4L2_CID_MPEG_STREAM_VBI_FMT:
->  	case V4L2_CID_EXPOSURE_AUTO:
-> +	case V4L2_CID_FOCUS_AUTO:
->  	case V4L2_CID_COLORFX:
->  	case V4L2_CID_TUNE_PREEMPHASIS:
->  	case V4L2_CID_FLASH_LED_MODE:
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 4b752d5..9acb514 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1608,6 +1608,12 @@ enum  v4l2_exposure_auto_type {
->  #define V4L2_CID_FOCUS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+10)
->  #define V4L2_CID_FOCUS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+11)
->  #define V4L2_CID_FOCUS_AUTO			(V4L2_CID_CAMERA_CLASS_BASE+12)
-> +enum v4l2_focus_auto_type {
-> +	V4L2_FOCUS_MANUAL = 0,
-> +	V4L2_FOCUS_AUTO = 1,
-> +	V4L2_FOCUS_AUTO_MACRO = 2,
-> +	V4L2_FOCUS_AUTO_CONTINUOUS = 3,
-> +};
+> So, on M2M devices, the 3 flags are raised and the buffer is not filled.
+> This would cover
+> Sakari's case.
 > 
->  #define V4L2_CID_ZOOM_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+13)
->  #define V4L2_CID_ZOOM_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+14)
-> @@ -1618,6 +1624,8 @@ enum  v4l2_exposure_auto_type {
->  #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
->  #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
+> > For our (Samsung) hw this is not a problem, we could always use the
+> existing buffers
+> > if it is possible (size). But Sakari had reported that he might need to
+> adjust some
+> > alignment property. Also, having memory constraints, the application might
+> choose
+> > to allocate smaller buffers.
+> >
+> >
+> >>
+> >>> STREMOFF is only done on the CAPTURE queue, so it
+> >>> stays queued and information is retained.
+> >>>
+> >>>   From CAPTURE all processed buffers have already been dequeued, so yes
+> the
+> >> content of
+> >>> the buffers queued in hw is lost. But this is ok, because after the
+> >> resolution change
+> >>> the previous frames are not used in prediction.
+> >>
+> >> No. According with the spec:
+> >>
+> >> 	The VIDIOC_STREAMON and VIDIOC_STREAMOFF ioctl start and stop the
+> >> capture or
+> >> 	output process during streaming (memory mapping or user pointer) I/O.
+> >>
+> >> 	Specifically the capture hardware is disabled and no input buffers are
+> >> filled
+> >> 	(if there are any empty buffers in the incoming queue) until
+> >> VIDIOC_STREAMON
+> >> 	has been called. Accordingly the output hardware is disabled, no video
+> >> signal
+> >> 	is produced until VIDIOC_STREAMON has been called. The ioctl will
+> >> succeed
+> >> 	only when at least one output buffer is in the incoming queue.
+> >>
+> >> 	The VIDIOC_STREAMOFF ioctl, apart of aborting or finishing any DMA in
+> >> progress,
+> >> 	unlocks any user pointer buffers locked in physical memory, and it
+> >> removes all
+> >> 	buffers from the incoming and outgoing queues. That means all images
+> >> captured
+> >> 	but not dequeued yet will be lost, likewise all images enqueued for
+> >> output
+> >> 	but not transmitted yet. I/O returns to the same state as after
+> >> calling
+> >> 	VIDIOC_REQBUFS and can be restarted accordingly.
+> >
+> > The thing is that we have two queues in memory-to-memory devices.
+> > I think the above does apply to the CAPTURE queue:
+> > - no processing is done after STREAMOFF
+> > - buffers that have been queue are dequeued and their content is lost
+> > Am I wrong?
 > 
-> +#define V4L2_CID_DO_AUTO_FOCUS			(V4L2_CID_CAMERA_CLASS_BASE+19)
-> +
->  /* FM Modulator class control IDs */
->  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
->  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+> This is what is there at the spec. I think we need to properly specify what
+> happens for M2M devices.
+> 
+> > The buffer that had to be kept is on the OUTPUT queue.
+> > (the compressed data that caused the resolution change).
+> 
+> >
+> >>
+> >>> My initial idea was to acknowledge the resolution change by G_FMT.
+> >>> Later in our chat it had evolved into S_FMT. Then it mutated into
+> >>> STREAMOFF/STREAMON on the CAPTURE queue.
+> >>
+> >> Why application should ack with it? If the application doesn't ack, it
+> can
+> >> just send
+> >> a VIDIOC_STREAMOFF. If application doesn't do it, and the buffer size is
+> >> enough to
+> >> proceed, the hardware should just keep doing the DMA transfers and assume
+> >> that the
+> >> applications are OK.
+> >>
+> >>>> For things like MPEG decoders, Hans proposed an ioctl, that could use
+> to
+> >>>> pause
+> >>>> and continue the decoding.
+> >>>
+> >>> This still could be useful... But processing will also pause when hw
+> runs
+> >> out
+> >>> of buffers. It will be resumed after the application consumes/produces
+> new
+> >>> buffers and enqueue them.
+> >>
+> >> No. Capture devices will start loosing frames. For other types, it makes
+> >> sense to
+> >> implicitly pause/continue.
+> >
+> > I have meant memory-to-memory devices.
+> 
+> Ah, ok. The RFC should not be restricted to M2M devices, as a V4L2 decoder
+> device
+> may also detect format changes.
 
--- 
-Regards,
+Initially it supposed to be restricted to M2M devices. I am afraid I have less
+knowledge on purely CAPTURE/OUTPUT devices. I agree that these devices could 
+also benefit from resolution change.
 
-Laurent Pinchart
+What would be the use cases when using OUTPUT devices for resolution change?
+
+Because for CAPTURE I can imagine that a camera needs to reduce resolution
+if the lighting conditions are poor. But what about OUTPUT devices, any suggestions?
+
+> 
+> > The will not do any processing if any of
+> > these conditions is false:
+> > - there is enough queued buffers on the CAPTURE queue
+> > - there is enough queued buffers on the OUTPUT queue
+> > - streaming is on the CAPTURE queue
+> > - streaming is on the OUTPUT queue
+> >
+> > In case of purely CAPTURE device then, yes, it will start losing frames
+> and
+> > the idea of a pause ioctl is useful. On the other hand, a pause is not
+> that
+> > different from losing frames.
+> >
+> > I still think that for m2m devices a pause ioctl is not necessary. No
+> buffers
+> > to process means no processing is done.
+> 
+> If the input for such device is really coming from userspace, yes, you're
+> right.
+> But you should remind that the same device block could be connected into
+> some
+> capture device. In other words, the same IP block could be doing:
+> 
+> Output device ===> Mpeg decoder ===> Capture device
+> 
+> Digital TV ===> MPEG decoder ===> Capture device
+> 
+> At the first scenario, no real time is envolved. So, it can pause when
+> something is
+> not met, but, the same IP block should behave different, as pausing would
+> cause
+> data loss.
+
+By the second scenario you mean a DVB card that acts as a Capture device, yes?
+
+If it was "some MPEG compressed stream generating device" connected to the
+Memory2memory codec device then I suppose it would be sufficient to pause the
+"some MPEG compressed stream generating device" as the codec would not 
+do any processing if there were no buffers to process.
+
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
