@@ -1,114 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:32989 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750952Ab1LLPvr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 10:51:47 -0500
-Date: Mon, 12 Dec 2011 15:51:43 +0000
-From: Mel Gorman <mel@csn.ul.ie>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Dave Hansen <dave@linux.vnet.ibm.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>
-Subject: Re: [PATCH 03/11] mm: mmzone: introduce zone_pfn_same_memmap()
-Message-ID: <20111212155143.GJ3277@csn.ul.ie>
-References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
- <1321634598-16859-4-git-send-email-m.szyprowski@samsung.com>
- <20111212141953.GD3277@csn.ul.ie>
- <op.v6dr4pj43l0zgt@mpn-glaptop>
- <20111212144030.GF3277@csn.ul.ie>
- <op.v6dswtfw3l0zgt@mpn-glaptop>
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:52569 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753350Ab1LGIuM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 03:50:12 -0500
+Date: Wed, 7 Dec 2011 08:49:58 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Josh Wu <josh.wu@atmel.com>
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	nicolas.ferre@atmel.com, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 1/2] [media] V4L: atmel-isi: add code to enable/disable
+	ISI_MCK clock
+Message-ID: <20111207084958.GA14542@n2100.arm.linux.org.uk>
+References: <1322647604-30662-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <op.v6dswtfw3l0zgt@mpn-glaptop>
+In-Reply-To: <1322647604-30662-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 12, 2011 at 03:51:55PM +0100, Michal Nazarewicz wrote:
-> >On Fri, Nov 18, 2011 at 05:43:10PM +0100, Marek Szyprowski wrote:
-> >>From: Michal Nazarewicz <mina86@mina86.com>
-> >>diff --git a/mm/compaction.c b/mm/compaction.c
-> >>index 6afae0e..09c9702 100644
-> >>--- a/mm/compaction.c
-> >>+++ b/mm/compaction.c
-> >>@@ -111,7 +111,10 @@ skip:
-> >>
-> >> next:
-> >> 		pfn += isolated;
-> >>-		page += isolated;
-> >>+		if (zone_pfn_same_memmap(pfn - isolated, pfn))
-> >>+			page += isolated;
-> >>+		else
-> >>+			page = pfn_to_page(pfn);
-> >> 	}
-> 
-> On Mon, 12 Dec 2011 15:19:53 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> >Is this necessary?
-> >
-> >We are isolating pages, the largest of which is a MAX_ORDER_NR_PAGES
-> >page.  [...]
-> 
-> On Mon, 12 Dec 2011 15:40:30 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> >To be clear, I'm referring to a single page being isolated here. It may
-> >or may not be a high-order page but it's still going to be less then
-> >MAX_ORDER_NR_PAGES so you should be able check when a new block is
-> >entered and pfn_to_page is necessary.
-> 
-> Do you mean something like:
-> 
-> if (same pageblock)
-> 	just do arithmetic;
-> else
-> 	use pfn_to_page;
-> 
+On Wed, Nov 30, 2011 at 06:06:43PM +0800, Josh Wu wrote:
+> +	/* Get ISI_MCK, provided by programmable clock or external clock */
+> +	isi->mck = clk_get(dev, "isi_mck");
+> +	if (IS_ERR_OR_NULL(isi->mck)) {
 
-something like the following untested snippet.
+This should be IS_ERR()
 
-/*
- * Resolve pfn_to_page every MAX_ORDER_NR_PAGES to handle the case where
- * memmap is not contiguous such as with SPARSEMEM memory model without
- * VMEMMAP
- */
-pfn += isolated;
-page += isolated;
-if ((pfn & ~(MAX_ORDER_NR_PAGES-1)) == 0)
-	page = pfn_to_page(pfn);
+> +		dev_err(dev, "Failed to get isi_mck\n");
+> +		ret = isi->mck ? PTR_ERR(isi->mck) : -EINVAL;
 
-That would be closer to what other PFN walkers do
-
-> ?
-> 
-> I've discussed it with Dave and he suggested that approach as an
-> optimisation since in some configurations zone_pfn_same_memmap()
-> is always true thus compiler will strip the else part, whereas
-> same pageblock test will be false on occasions regardless of kernel
-> configuration.
-> 
-
-Ok, while I recognise it's an optimisation, it's a very small
-optimisation and I'm not keen on introducing something new for
-CMA that has been coped with in the past by always walking PFNs in
-pageblock-sized ranges with pfn_valid checks where necessary.
-
-See setup_zone_migrate_reserve as one example where pfn_to_page is
-only called once per pageblock and calls pageblock_is_reserved()
-for examining pages within a pageblock. Still, if you really want
-the helper, at least keep it in compaction.c as there should be no
-need to have it in mmzone.h
-
--- 
-Mel Gorman
-SUSE Labs
+		ret = PTR_ERR(isi->mck);
