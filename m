@@ -1,108 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:36747 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752934Ab1LOJB1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 04:01:27 -0500
-Message-ID: <4EE9B75C.9060204@infradead.org>
-Date: Thu, 15 Dec 2011 07:01:16 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:39049 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755810Ab1LGNrq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 08:47:46 -0500
+Received: by eaak14 with SMTP id k14so478704eaa.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2011 05:47:45 -0800 (PST)
+Message-ID: <4EDF6E7E.30200@gmail.com>
+Date: Wed, 07 Dec 2011 14:47:42 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-To: Rusty Russell <rusty@rustcorp.com.au>
-CC: lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	Eric Piel <eric.piel@tremplin-utc.net>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/15] module_param: check type correctness for module_param_array
-References: <87aa6utu6s.fsf@rustcorp.com.au>
-In-Reply-To: <87aa6utu6s.fsf@rustcorp.com.au>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/1] xc3028: force reload of DTV7 firmware in VHF band
+ with Zarlink demodulator
+References: <4EDE27A0.8060406@gmail.com> <4EDF6640.801@redhat.com>
+In-Reply-To: <4EDF6640.801@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15-12-2011 01:00, Rusty Russell wrote:
-> module_param_array(), unlike its non-array cousins, didn't check the type
-> of the variable.  Fixing this found two bugs.
+Il 07/12/2011 14:12, Mauro Carvalho Chehab ha scritto:
+> On 06-12-2011 12:33, Gianluca Gennari wrote:
+>> Hi All,
+>>
+>> I have a Terratec Cinergy Hybrid T USB XS stick (USB 0ccd:0042).
+>> This device is made of the following components:
+>> - Empiatech em2880 USB bridge;
+>> - Zarlink zl10353 demodulator;
+>> - Xceive XC3028 tuner;
+>>
+>> For this device, the ZARLINK456 define is set to true so it is using the
+>> firmwares with type D2633 for the XC3028 tuner.
+>>
+>> I found out that:
+>> 1) the DTV7 firmware works fine in VHF band (bw=7MHz);
+>> 2) the DTV8 firmware works fine in UHF band (bw=8MHz);
+>> 3) the DTV78 firmware works fine in UHF band (bw=8MHz) but it doesn not
+>> work at all in VHF band (bw=7MHz);
+>>
+>> In fact, when the DTV78 firmware is loaded and I try to tune a VHF
+>> channel, the frequency lock is ciclically acquired for a second and
+>> immediately lost.
+>> So the proposed patch forces a reload of the DTV7 firmware every time a
+>> 7MHz channel is requested.
+>> The only drawback is that channel change from VHF to UHF or viceversa is
+>> slightly slower.
+>> Devices using the D2620 firmwares are unaffected.
 > 
-> Cc: Luca Risolia <luca.risolia@studio.unibo.it>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Eric Piel <eric.piel@tremplin-utc.net>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
-> ---
->  drivers/media/video/et61x251/et61x251_core.c |    4 ++--
->  drivers/media/video/sn9c102/sn9c102_core.c   |    4 ++--
-
-Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
->  drivers/mfd/janz-cmodio.c                    |    2 +-
->  drivers/misc/lis3lv02d/lis3lv02d.c           |    2 ++
->  include/linux/moduleparam.h                  |    1 +
->  5 files changed, 8 insertions(+), 5 deletions(-)
+> Hi Gianluca,
 > 
-> diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
-> --- a/drivers/media/video/et61x251/et61x251_core.c
-> +++ b/drivers/media/video/et61x251/et61x251_core.c
-> @@ -76,8 +76,8 @@ MODULE_PARM_DESC(video_nr,
->  		 "\none and for every other camera."
->  		 "\n");
->  
-> -static short force_munmap[] = {[0 ... ET61X251_MAX_DEVICES-1] =
-> -			       ET61X251_FORCE_MUNMAP};
-> +static bool force_munmap[] = {[0 ... ET61X251_MAX_DEVICES-1] =
-> +			      ET61X251_FORCE_MUNMAP};
->  module_param_array(force_munmap, bool, NULL, 0444);
->  MODULE_PARM_DESC(force_munmap,
->  		 "\n<0|1[,...]> Force the application to unmap previously"
-> diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
-> --- a/drivers/media/video/sn9c102/sn9c102_core.c
-> +++ b/drivers/media/video/sn9c102/sn9c102_core.c
-> @@ -75,8 +75,8 @@ MODULE_PARM_DESC(video_nr,
->  		 "\none and for every other camera."
->  		 "\n");
->  
-> -static short force_munmap[] = {[0 ... SN9C102_MAX_DEVICES-1] =
-> -			       SN9C102_FORCE_MUNMAP};
-> +static bool force_munmap[] = {[0 ... SN9C102_MAX_DEVICES-1] =
-> +			      SN9C102_FORCE_MUNMAP};
->  module_param_array(force_munmap, bool, NULL, 0444);
->  MODULE_PARM_DESC(force_munmap,
->  		 " <0|1[,...]>"
-> diff --git a/drivers/mfd/janz-cmodio.c b/drivers/mfd/janz-cmodio.c
-> --- a/drivers/mfd/janz-cmodio.c
-> +++ b/drivers/mfd/janz-cmodio.c
-> @@ -33,7 +33,7 @@
->  
->  /* Module Parameters */
->  static unsigned int num_modules = CMODIO_MAX_MODULES;
-> -static unsigned char *modules[CMODIO_MAX_MODULES] = {
-> +static char *modules[CMODIO_MAX_MODULES] = {
->  	"empty", "empty", "empty", "empty",
->  };
->  
-> diff --git a/drivers/misc/lis3lv02d/lis3lv02d.c b/drivers/misc/lis3lv02d/lis3lv02d.c
-> --- a/drivers/misc/lis3lv02d/lis3lv02d.c
-> +++ b/drivers/misc/lis3lv02d/lis3lv02d.c
-> @@ -111,6 +111,8 @@ static struct kernel_param_ops param_ops
->  	.get = param_get_int,
->  };
->  
-> +#define param_check_axis(name, p) param_check_int(name, p)
-> +
->  module_param_array_named(axes, lis3_dev.ac.as_array, axis, NULL, 0644);
->  MODULE_PARM_DESC(axes, "Axis-mapping for x,y,z directions");
->  
-> diff --git a/include/linux/moduleparam.h b/include/linux/moduleparam.h
-> --- a/include/linux/moduleparam.h
-> +++ b/include/linux/moduleparam.h
-> @@ -395,6 +395,7 @@ extern int param_get_invbool(char *buffe
->   * module_param_named() for why this might be necessary.
->   */
->  #define module_param_array_named(name, array, type, nump, perm)		\
-> +	param_check_##type(name, &(array)[0]);				\
->  	static const struct kparam_array __param_arr_##name		\
->  	= { .max = ARRAY_SIZE(array), .num = nump,                      \
->  	    .ops = &param_ops_##type,					\
+> The issues with firmware DTV78 x DTV7/DTV8 are old. No matter what we do,
+> we end by having troubles, as the issue is Country-dependent. For example,
+> Australia requires a different firmware than Germany, due to the
+> differences
+> on the VHF/UHF bands.
+> 
+> I prefer if you could work into a patch that would add some modprobe
+> parameter
+> to disable the current "autodetection" way, allowing to override the
+> firmware
+> used for VHF and UHF.
+> 
+> Thanks,
+> Mauro
+> 
+
+Hi Mauro,
+thanks for the feedback. Unfortunately I do not have any info on which
+kind of firmware is needed on other parts of the world. All I know is
+what is happening here in Italy, and what I can understand reading the
+code. I suppose my findings can be extended to the rest of Europe, and
+maybe Africa and Middle-East.
+
+Can you provide a reference about problems in other continents like
+Australia?
+
+Do you think a simple module parameters that allows to enable/disable
+the usage of the DTV78 firmware would do the trick?
+
+Eventually, do you agree that the default solution should be to DISABLE
+DTV78 firmware, since this seems to be the more robust solution, and let
+the user enable it through the kernel parameter if it is working in his
+country? Or do you prefer the other way around, so by default  DTV78
+firmware is enabled, and users with problems can disable it through the
+kernel module parameter?
+
+Best regards,
+Gianluca
 
