@@ -1,45 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56981 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753285Ab1LHWXd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 17:23:33 -0500
-Received: by iakc1 with SMTP id c1so3181302iak.19
-        for <linux-media@vger.kernel.org>; Thu, 08 Dec 2011 14:23:33 -0800 (PST)
+Received: from queueout02-winn.ispmail.ntl.com ([81.103.221.56]:26369 "EHLO
+	queueout02-winn.ispmail.ntl.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751225Ab1LHABQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Dec 2011 19:01:16 -0500
+Received: from aamtaout02-winn.ispmail.ntl.com ([81.103.221.35])
+          by mtaout03-winn.ispmail.ntl.com
+          (InterMail vM.7.08.04.00 201-2186-134-20080326) with ESMTP
+          id <20111207222828.WTKW17949.mtaout03-winn.ispmail.ntl.com@aamtaout02-winn.ispmail.ntl.com>
+          for <linux-media@vger.kernel.org>; Wed, 7 Dec 2011 22:28:28 +0000
+Received: from localhost.localdomain ([82.25.208.140])
+          by aamtaout02-winn.ispmail.ntl.com
+          (InterMail vG.3.00.04.00 201-2196-133-20080908) with ESMTP
+          id <20111207222828.PBRM5924.aamtaout02-winn.ispmail.ntl.com@localhost.localdomain>
+          for <linux-media@vger.kernel.org>; Wed, 7 Dec 2011 22:28:28 +0000
+Message-ID: <4EDFE889.3010501@tesco.net>
+Date: Wed, 07 Dec 2011 22:28:25 +0000
+From: John Pilkington <J.Pilk@tesco.net>
 MIME-Version: 1.0
-Date: Fri, 9 Dec 2011 00:23:33 +0200
-Message-ID: <CAAUE0eoXAWwrzTVXWTxN_Ce0=U1bb5ravkZZeuEva5kKcFEy4A@mail.gmail.com>
-Subject: Initial tuning file update for fi-sonera
-From: Mikko Autio <mikko.autio1@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: media_build script and Scientific Linux 6 / CentOS 6 / RHEL 6
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Update for fi-sonera
+I used the media_build script to build modules for the Scientific Linux 
+6 distro which is, I understand, one of the near-clones of RHEL 6, which 
+are expected to have a working life of several years.  My kernel 
+version, with security updates, is currently 2.6.32-131.21.1.el6.i686
 
-Mikko
---
+The build needed utilities that I did not have installed; the script 
+provided their names but apologised for its inability to identify the 
+packages that would provide them because it did not recognise the 
+distro.  This list is in response to its invitation to submit details.
 
-diff -r bec11f78be51 util/scan/dvb-c/fi-sonera
---- a/util/scan/dvb-c/fi-sonera Wed Dec 07 15:26:50 2011 +0100
-+++ b/util/scan/dvb-c/fi-sonera Thu Dec 08 23:51:13 2011 +0200
-@@ -5,8 +5,19 @@
- C 154000000 6900000 NONE QAM128
- C 162000000 6900000 NONE QAM128
- C 170000000 6900000 NONE QAM128
-+C 234000000 6900000 NONE QAM256
-+C 242000000 6900000 NONE QAM256
-+C 250000000 6900000 NONE QAM256
-+C 258000000 6900000 NONE QAM256
-+C 266000000 6900000 NONE QAM256
- C 314000000 6900000 NONE QAM128
- C 322000000 6900000 NONE QAM128
- C 338000000 6900000 NONE QAM128
- C 346000000 6900000 NONE QAM128
- C 354000000 6900000 NONE QAM128
-+C 362000000 6900000 NONE QAM128
-+C 370000000 6900000 NONE QAM128
-+C 378000000 6900000 NONE QAM128
-+C 386000000 6900000 NONE QAM128
-+C 394000000 6900000 NONE QAM128
-+C 402000000 6900000 NONE QAM128
+Utility:	lsdiff
+Package name:	patchutils
+Repo:		SL6
+
+Utility:	Digest::SHA
+Package name:	perl-Digest-SHA
+Repo:		SL6 security updates
+
+Utility:	Proc::ProcessTable
+Package name:	perl-Proc-ProcessTable
+Repo:		SL6 epel
+
+After installing these, and the kernel-devel package, the build 
+completed and I have been able to bring into service a usb device that 
+had resisted my earlier efforts on the nominally more up-to-date Fedora 
+14.  dmesg identifies it as a 'KWorld UB499-2T T09(IT9137)' and some 
+characteristics that I see are not mentioned on its wiki page.  I'll 
+report on that separately, but there's a narrative account here:
+
+http://www.mail-archive.com/atrpms-users@atrpms.net/msg09417.html
+
+Thanks!
+
+John Pilkington
