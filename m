@@ -1,94 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from seiner.com ([66.178.130.209]:44082 "EHLO www.seiner.lan"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751627Ab1LLP6J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 10:58:09 -0500
-Message-ID: <236aa572a18085c33e56f64cd3155b86.squirrel@mail.seiner.com>
-In-Reply-To: <CAGoCfizHNPobXjMWAz_xp5wyLfspE6N8AtWxeM6AWeE8U-+UEA@mail.gmail.com>
-References: <4EDC25F1.4000909@seiner.com>
-    <1323058527.12343.3.camel@palomino.walls.org>
-    <4EDC4C84.2030904@seiner.com> <4EDC4E9B.40301@seiner.com>
-    <4EDCB6D1.1060508@seiner.com>
-    <1098bb19-5241-4be4-a916-657c0b599efd@email.android.com>
-    <c0667c34eccf470314966c2426b00af4.squirrel@mail.seiner.com>
-    <4EE55304.9090707@seiner.com>
-    <0b3ac95d-1977-4e86-9337-9e1390d51b83@email.android.com>
-    <4EE5F7BB.4070306@seiner.com>
-    <CAGoCfizHNPobXjMWAz_xp5wyLfspE6N8AtWxeM6AWeE8U-+UEA@mail.gmail.com>
-Date: Mon, 12 Dec 2011 07:58:05 -0800 (PST)
-Subject: Re: cx231xx kernel oops
-From: "Yan Seiner" <yan@seiner.com>
-To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37914 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754053Ab1LGKVb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 05:21:31 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: James <angweiyang@gmail.com>
+Subject: Re: Media Controller (v4l2 & core) & MT9V032 Device Driver
+Date: Wed, 7 Dec 2011 11:21:39 +0100
 Cc: linux-media@vger.kernel.org
+References: <CAOy7-nPYe=QDE1HgeDSth6Co34Bz+8wwNbzONNb88zsRDPajWA@mail.gmail.com> <CAOy7-nNyfiHkhm37hXCGJPZzxpcR-HrUFkScB0wy0HJyZFFmzA@mail.gmail.com> <CAOy7-nN9WeDC47W83YmNSo_UF92RNc7Uto2P9EuGXJ1mYu9hBg@mail.gmail.com>
+In-Reply-To: <CAOy7-nN9WeDC47W83YmNSo_UF92RNc7Uto2P9EuGXJ1mYu9hBg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112071121.39412.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi James,
 
-On Mon, December 12, 2011 6:23 am, Devin Heitmueller wrote:
+On Wednesday 07 December 2011 09:00:18 James wrote:
+> > On Friday 02 December 2011 05:14:36 James wrote:
+> > > On Thu, Dec 1, 2011 at 7:10 AM, Laurent Pinchart wrote:
+> > > > On Tuesday 29 November 2011 03:07:28 James wrote:
+> > > > > On Mon, Nov 28, 2011 at 7:15 PM, Laurent Pinchart wrote:
+> > > > > > Regarding why mplayer fails, I'm not too sure. Your pipeline is
+> > > > > > configured for YUYV, have you tried replacing outfmt=uyvy with
+> > > > > > outfmt=yuyv on the mplayer command line ?
+> > > > > 
+> > > > > AFAIK mplayer only has outfmt=uyvy and even with the pipeline
+> > > > > configured to UYVY, the result is the same; "0 frame processed".
+> > > > > 
+> > > > > Any suggestion is most welcome to me. (^^)
+> > > > 
+> > > > I wrote a patch that fixes the 2 warnings you get. It might help with
+> > > > mplayer, could you please try it ?
+> > > > 
+> > > > 
+> > > > http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3i
+> > > > sp- omap3isp-next
+> > > 
+> > > How can I merge the patches in your branch omap3isp-omap3isp-next to
+> > > Steve's tree locally?
+> > > 
+> > > 1) I've cloned Steve's repo locally.
+> > > 
+> > > 2) use "git remote add pinchart git://linuxtv.org/pinchartl/media.git"
+> > > to
+> > > the tree.
+> > > 
+> > > 3) checked out the "omap3isp-omap3isp-next" branch
+> > > 
+> > > 4) make a new branch that tracks Steve's "omap-3.0-pm".
+> > > "git checkout -b myomap-3.0-pm -t origin/omap-3.0-pm"
+> > > 
+> > > 5) Merge your "omap3isp-omap3isp-next" branch.
+> > > "git pull . omap3isp-omap3isp-next"
+> > > 
+> > > after this command, I saw lots of files being removed and several merge
+> > > conflicts.
+> > > I tried git mergetool to call up kdiff3 to manually resolve but some
+> > > are way out of ability/level of understanding since I don't know which
+> > > holds the latest patches integrated into the respective files.
+> > > 
+> > > The confusing parts is when your branch deleted lots of files. even
+> > > drivers/net/smsc911x.c which is the driver for the ethernet chip!?!
+> > > 
+> > > (^^)" very confusing.. hahahaha....
+> > 
+> > That's because the two branches include lots of different changes. My
+> > branch is based on Mauro's official branch for patches targeted at the
+> > next kernel version, which is in turn based on mainline (between v3.1 and
+> > v3.2-rc1) and includes many patches for drivers/media/*. Steve's branch is
+> > also based on mainline, but on v3.0 instead of v3.1, and includes other
+> > patches.
+> 
+> Thanks for clarifying the starting point of your tree.
+> Which branch at Mauro's tree is your "omap3isp-omap3isp-next" sitting on?
 
->
-> For what it's worth, I did do quite a bit of work on cx231xx,
-> including work for mips and arm platforms.  That said, all the work
-> done was on the control interfaces rather than the buffer management
-> (my particular use case didn't have the video coming back over the USB
-> bus).
->
-> How does your app setup the buffers?  Is it doing MMAP?  Userptr?
-> It's possible userptr support is broken, as that's something that is
-> much less common.
->
-> And as Andy suggested, if you can test your app under x86, knowing
-> whether the app works with cx231xx under x86 is useful in knowing if
-> you have a mips issue or something that your app in particular is
-> doing.
+My -next branches are based on the latest staging/for_v3.* branch. I rebase 
+them from time to time, so they might lag slightly.
 
-OK, I just tried this with motion (still on the MIPS platform), a totally
-different app.  It tries to allocate a reasonable amount of memory:
+> > If you merge my branch onto Steve's tree, you will get the whole v3.1,
+> > which likely conflicts. Doing it the other way around isn't much better.
+> > The easiest way to use the OMAP3 ISP patches on top of Steve's tree is
+> > likely to hand-pick them. You can get a list of patches with git log, and
+> > use git cherry-pick to pick them manually.
+> 
+> With this layout, my understanding is that the 'proper' path for Steve's
+> branch to get updated with all media patches is only when the mainline
+> merged Mauro's branch and Steve pull them into his or rebase against it.
+> Right?
 
-[1] mmap information:
-[1] frames=4
-[1] 0 length=153600
-[1] 1 length=153600
-[1] 2 length=153600
-[1] 3 length=153600
-[1] buffer index 0 VIDIOC_QBUF: Cannot allocate memory
-[1] ioctl (VIDIOCGCAP): Invalid argument
+Then you will get all patches automatically, but you will have to wait some 
+time for them (v3.3 will be released in roughly 2 months). If you want to test 
+the patches sooner, you can either merge Steve's branch onto omap3isp-
+omap3isp-next (but you might have to fix some conflicts manually), or use one 
+of the two branches and cherry-pick the patches you want from the other 
+branch. That's more work, but you'll get the result now.
 
-but the driver still tries to grab 800MB.  So it's somewhere between the
-app and the driver.
+> I saw Steve's repo staging a new "omap-v3.2".
+> http://www.sakoman.com/cgi-bin/gitweb.cgi?p=linux-omap-2.6.git;a=shortlog;h
+> =refs/heads/omap-3.2
+> 
+> Wonder till what stage has Mauro's branch been merged into mainline.
 
->
-> Also, just to be clear, the USB Live 2 doesn't have any onboard
-> hardware compression.  It has comparable requirements related to USB
-> bus utilization as any other USB framegrabber.  The only possible
-> advantage you might get is that it does have an onboard scaler, so if
-> you're willing to compromise on quality you can change the capture
-> resolution to a lower value such as 320x240.  Also, bear in mind that
-> the cx231xx driver may not be properly tuned to reduce the alternate
-> it uses dependent on resolution.  To my knowledge that functionality
-> has not been thoroughly tested (as it's an unpopular use case).
+A staging/for_v3.* branch is merged into mainline in the v3.*-rc1 version. 
+staging/for_v3.3 is thus waiting for the v3.3 merge window to open.
 
-OK, thanks.  I was hoping this was a hardware framegrabber; the info on
-the website is so ambiguous as to be nearly useless.
+> Is there a way to determine a common baseline/point between both trees so
+> that I can hand-pick them into Steve's v3.2?
 
->
-> And finally, there were fixes for the USB Live 2 specifically which
-> you may not have in 3.0.3.  You should check the changelogs.  It's
-> possible that the failure to set the USB alternate is leaving the
-> driver is an unknown state, which causes it to crash once actually
-> trying to allocate the buffers.
+git-merge-base.
 
-Will do.
+> My understanding of git workflow is still at 'infant' stage. (^^)" and the
+> difficulty is learning how to 'pull, merge & resolves conflicts' from
+> different trees/branches. (^^)
 
+I understand your pain. I've been there, and the learning curve was steep. But 
+don't despair, once you understand the tool, it's extremely powerful.
 
+For this particular case you have another option. You can use Steve's tree and 
+compile the V4L-DVB subsystem from my tree on top of that. Get a clone of 
+media_build.git from git.linuxtv.org, and look for instructions in the 
+linuxtv.org wiki. In a nutshell, media_build is a set of scripts and patches 
+that let you compile the V4L-DVB subsystem from one git tree to run on another 
+git tree. There can be compile errors from time to time when using bleeding 
+edge kernels for either of the trees, but media_build then gets updated pretty 
+fast.
 
+> Since I'm using Overo, I relies mainly on Steve's repo but I do know that
+> TI has a linux-omap tree at
+> git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git which
+> is fairly updated & tracks the mainline closely.
 
+You could try using mainline directly. It works pretty well on Overo.
 
 -- 
-Pain is temporary. It may last a minute, or an hour, or a day, or a year,
-but eventually it will subside and something else will take its place. If
-I quit, however, it lasts forever.
+Regards,
 
+Laurent Pinchart
