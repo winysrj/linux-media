@@ -1,78 +1,627 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43141 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753323Ab1LNNPH (ORCPT
+Received: from sinikuusama.dnainternet.net ([83.102.40.134]:37902 "EHLO
+	sinikuusama.dnainternet.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754030Ab1LGCqI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 08:15:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Igor Grinberg <grinberg@compulab.co.il>
-Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based camera board.
-Date: Wed, 14 Dec 2011 14:15:22 +0100
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	Hiremath Vaibhav <hvaibhav@ti.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org> <4EE86CF7.1010002@compulab.co.il>
-In-Reply-To: <4EE86CF7.1010002@compulab.co.il>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112141415.23885.laurent.pinchart@ideasonboard.com>
+	Tue, 6 Dec 2011 21:46:08 -0500
+From: Anssi Hannula <anssi.hannula@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, George Spelvin <linux@horizon.com>
+Subject: [PATCH] [media] ati_remote: switch to single-byte scancodes
+Date: Wed,  7 Dec 2011 04:34:29 +0200
+Message-Id: <1323225269-7891-1-git-send-email-anssi.hannula@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Igor,
+The ati_remote driver currently uses 2-byte scancodes. However, one of
+those bytes is actually a checksum and therefore shouldn't be considered
+as part of the scancode.
 
-On Wednesday 14 December 2011 10:31:35 Igor Grinberg wrote:
-> On 12/14/11 03:25, Martin Hostettler wrote:
-> > Adds board support for an MT9M032 based camera to omap3evm.
-> > 
-> > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+Fix the driver to only use the actual data byte as a scancode and to
+check the checksum itself. Update the bundled keymaps accordingly.
 
-[snip]
+Since ati_remote was only migrated to the rc subsystem for 3.2, the
+previous scancodes weren't emitted on any stable kernel.
 
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
-> > index 0000000..bffd5b8
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > @@ -0,0 +1,155 @@
+Reported-by: George Spelvin <linux@horizon.com>
+Signed-off-by: Anssi Hannula <anssi.hannula@iki.fi>
+---
 
-[snip]
+As noted earlier, this should go to kernel 3.2, to avoid having the
+wrong keycode handling get into any stable kernel.
 
-> > +#include <linux/i2c.h>
-> > +#include <linux/init.h>
-> > +#include <linux/platform_device.h>
-> > +
-> > +#include <linux/gpio.h>
-> > +#include <plat/mux.h>
-> > +#include "mux.h"
-> > +
-> > +#include "../../../drivers/media/video/omap3isp/isp.h"
-> 
-> Laurent,
-> In one of the previous reviews, you stated:
-> "I'll probably split it and move the part required by board files to
-> include/media/omap3isp.h".
-> Is there any progress on that?
+ drivers/media/rc/ati_remote.c                    |  111 +++++++++----------
+ drivers/media/rc/keymaps/rc-ati-x10.c            |   96 ++++++++--------
+ drivers/media/rc/keymaps/rc-medion-x10.c         |  128 +++++++++++-----------
+ drivers/media/rc/keymaps/rc-snapstream-firefly.c |  114 ++++++++++----------
+ 4 files changed, 220 insertions(+), 229 deletions(-)
 
-Yes, it has been half-fixed in mainline. Half only because all the structures 
-and macros that should be used by board code are now in <media/omap3isp.h>, 
-but some boards need to access OMAP3 ISP internals from board code, which 
-still requires drivers/media/video/omap3isp/isp.h. This will eventually be 
-fixed, when the generic struct clk object will be available.
-
-After a quick look at this patch it seems that <media/omap3isp.h> should be 
-enough here.
-
-> > +#include "media/mt9m032.h"
-
-And this should be <media/mt9m032.h>
-
-> > +#include "devices.h"
-
+diff --git a/drivers/media/rc/ati_remote.c b/drivers/media/rc/ati_remote.c
+index 303f22e..01bb8da 100644
+--- a/drivers/media/rc/ati_remote.c
++++ b/drivers/media/rc/ati_remote.c
+@@ -189,7 +189,7 @@ struct ati_remote {
+ 	dma_addr_t inbuf_dma;
+ 	dma_addr_t outbuf_dma;
+ 
+-	unsigned char old_data[2];  /* Detect duplicate events */
++	unsigned char old_data;     /* Detect duplicate events */
+ 	unsigned long old_jiffies;
+ 	unsigned long acc_jiffies;  /* handle acceleration */
+ 	unsigned long first_jiffies;
+@@ -221,35 +221,35 @@ struct ati_remote {
+ /* Translation table from hardware messages to input events. */
+ static const struct {
+ 	short kind;
+-	unsigned char data1, data2;
++	unsigned char data;
+ 	int type;
+ 	unsigned int code;
+ 	int value;
+ }  ati_remote_tbl[] = {
+ 	/* Directional control pad axes */
+-	{KIND_ACCEL,   0x35, 0x70, EV_REL, REL_X, -1},	 /* left */
+-	{KIND_ACCEL,   0x36, 0x71, EV_REL, REL_X, 1},    /* right */
+-	{KIND_ACCEL,   0x37, 0x72, EV_REL, REL_Y, -1},	 /* up */
+-	{KIND_ACCEL,   0x38, 0x73, EV_REL, REL_Y, 1},    /* down */
++	{KIND_ACCEL,   0x70, EV_REL, REL_X, -1},   /* left */
++	{KIND_ACCEL,   0x71, EV_REL, REL_X, 1},    /* right */
++	{KIND_ACCEL,   0x72, EV_REL, REL_Y, -1},   /* up */
++	{KIND_ACCEL,   0x73, EV_REL, REL_Y, 1},    /* down */
+ 	/* Directional control pad diagonals */
+-	{KIND_LU,      0x39, 0x74, EV_REL, 0, 0},        /* left up */
+-	{KIND_RU,      0x3a, 0x75, EV_REL, 0, 0},        /* right up */
+-	{KIND_LD,      0x3c, 0x77, EV_REL, 0, 0},        /* left down */
+-	{KIND_RD,      0x3b, 0x76, EV_REL, 0, 0},        /* right down */
++	{KIND_LU,      0x74, EV_REL, 0, 0},        /* left up */
++	{KIND_RU,      0x75, EV_REL, 0, 0},        /* right up */
++	{KIND_LD,      0x77, EV_REL, 0, 0},        /* left down */
++	{KIND_RD,      0x76, EV_REL, 0, 0},        /* right down */
+ 
+ 	/* "Mouse button" buttons */
+-	{KIND_LITERAL, 0x3d, 0x78, EV_KEY, BTN_LEFT, 1}, /* left btn down */
+-	{KIND_LITERAL, 0x3e, 0x79, EV_KEY, BTN_LEFT, 0}, /* left btn up */
+-	{KIND_LITERAL, 0x41, 0x7c, EV_KEY, BTN_RIGHT, 1},/* right btn down */
+-	{KIND_LITERAL, 0x42, 0x7d, EV_KEY, BTN_RIGHT, 0},/* right btn up */
++	{KIND_LITERAL, 0x78, EV_KEY, BTN_LEFT, 1}, /* left btn down */
++	{KIND_LITERAL, 0x79, EV_KEY, BTN_LEFT, 0}, /* left btn up */
++	{KIND_LITERAL, 0x7c, EV_KEY, BTN_RIGHT, 1},/* right btn down */
++	{KIND_LITERAL, 0x7d, EV_KEY, BTN_RIGHT, 0},/* right btn up */
+ 
+ 	/* Artificial "doubleclick" events are generated by the hardware.
+ 	 * They are mapped to the "side" and "extra" mouse buttons here. */
+-	{KIND_FILTERED, 0x3f, 0x7a, EV_KEY, BTN_SIDE, 1}, /* left dblclick */
+-	{KIND_FILTERED, 0x43, 0x7e, EV_KEY, BTN_EXTRA, 1},/* right dblclick */
++	{KIND_FILTERED, 0x7a, EV_KEY, BTN_SIDE, 1}, /* left dblclick */
++	{KIND_FILTERED, 0x7e, EV_KEY, BTN_EXTRA, 1},/* right dblclick */
+ 
+ 	/* Non-mouse events are handled by rc-core */
+-	{KIND_END, 0x00, 0x00, EV_MAX + 1, 0, 0}
++	{KIND_END, 0x00, EV_MAX + 1, 0, 0}
+ };
+ 
+ /* Local function prototypes */
+@@ -397,25 +397,6 @@ static int ati_remote_sendpacket(struct ati_remote *ati_remote, u16 cmd, unsigne
+ }
+ 
+ /*
+- *	ati_remote_event_lookup
+- */
+-static int ati_remote_event_lookup(int rem, unsigned char d1, unsigned char d2)
+-{
+-	int i;
+-
+-	for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++) {
+-		/*
+-		 * Decide if the table entry matches the remote input.
+-		 */
+-		if (ati_remote_tbl[i].data1 == d1 &&
+-		    ati_remote_tbl[i].data2 == d2)
+-			return i;
+-
+-	}
+-	return -1;
+-}
+-
+-/*
+  *	ati_remote_compute_accel
+  *
+  * Implements acceleration curve for directional control pad
+@@ -463,7 +444,15 @@ static void ati_remote_input_report(struct urb *urb)
+ 	int index = -1;
+ 	int acc;
+ 	int remote_num;
+-	unsigned char scancode[2];
++	unsigned char scancode;
++	int i;
++
++	/*
++	 * data[0] = 0x14
++	 * data[1] = data[2] + data[3] + 0xd5 (a checksum byte)
++	 * data[2] = the key code (with toggle bit in MSB with some models)
++	 * data[3] = channel << 4 (the low 4 bits must be zero)
++	 */
+ 
+ 	/* Deal with strange looking inputs */
+ 	if ( (urb->actual_length != 4) || (data[0] != 0x14) ||
+@@ -472,6 +461,13 @@ static void ati_remote_input_report(struct urb *urb)
+ 		return;
+ 	}
+ 
++	if (data[1] != ((data[2] + data[3] + 0xd5) & 0xff)) {
++		dbginfo(&ati_remote->interface->dev,
++			"wrong checksum in input: %02x %02x %02x %02x\n",
++			data[0], data[1], data[2], data[3]);
++		return;
++	}
++
+ 	/* Mask unwanted remote channels.  */
+ 	/* note: remote_num is 0-based, channel 1 on remote == 0 here */
+ 	remote_num = (data[3] >> 4) & 0x0f;
+@@ -482,31 +478,30 @@ static void ati_remote_input_report(struct urb *urb)
+ 		return;
+ 	}
+ 
+-	scancode[0] = (((data[1] - ((remote_num + 1) << 4)) & 0xf0) | (data[1] & 0x0f));
+-
+ 	/*
+-	 * Some devices (e.g. SnapStream Firefly) use 8080 as toggle code,
+-	 * so we have to clear them. The first bit is a bit tricky as the
+-	 * "non-toggled" state depends on remote_num, so we xor it with the
+-	 * second bit which is only used for toggle.
++	 * MSB is a toggle code, though only used by some devices
++	 * (e.g. SnapStream Firefly)
+ 	 */
+-	scancode[0] ^= (data[2] & 0x80);
+-
+-	scancode[1] = data[2] & ~0x80;
++	scancode = data[2] & 0x7f;
+ 
+-	/* Look up event code index in mouse translation table. */
+-	index = ati_remote_event_lookup(remote_num, scancode[0], scancode[1]);
++	/* Look up event code index in the mouse translation table. */
++	for (i = 0; ati_remote_tbl[i].kind != KIND_END; i++) {
++		if (scancode == ati_remote_tbl[i].data) {
++			index = i;
++			break;
++		}
++	}
+ 
+ 	if (index >= 0) {
+ 		dbginfo(&ati_remote->interface->dev,
+-			"channel 0x%02x; mouse data %02x,%02x; index %d; keycode %d\n",
+-			remote_num, data[1], data[2], index, ati_remote_tbl[index].code);
++			"channel 0x%02x; mouse data %02x; index %d; keycode %d\n",
++			remote_num, data[2], index, ati_remote_tbl[index].code);
+ 		if (!dev)
+ 			return; /* no mouse device */
+ 	} else
+ 		dbginfo(&ati_remote->interface->dev,
+-			"channel 0x%02x; key data %02x,%02x, scancode %02x,%02x\n",
+-			remote_num, data[1], data[2], scancode[0], scancode[1]);
++			"channel 0x%02x; key data %02x, scancode %02x\n",
++			remote_num, data[2], scancode);
+ 
+ 
+ 	if (index >= 0 && ati_remote_tbl[index].kind == KIND_LITERAL) {
+@@ -523,8 +518,7 @@ static void ati_remote_input_report(struct urb *urb)
+ 		unsigned long now = jiffies;
+ 
+ 		/* Filter duplicate events which happen "too close" together. */
+-		if (ati_remote->old_data[0] == data[1] &&
+-		    ati_remote->old_data[1] == data[2] &&
++		if (ati_remote->old_data == data[2] &&
+ 		    time_before(now, ati_remote->old_jiffies +
+ 				     msecs_to_jiffies(repeat_filter))) {
+ 			ati_remote->repeat_count++;
+@@ -533,8 +527,7 @@ static void ati_remote_input_report(struct urb *urb)
+ 			ati_remote->first_jiffies = now;
+ 		}
+ 
+-		ati_remote->old_data[0] = data[1];
+-		ati_remote->old_data[1] = data[2];
++		ati_remote->old_data = data[2];
+ 		ati_remote->old_jiffies = now;
+ 
+ 		/* Ensure we skip at least the 4 first duplicate events (generated
+@@ -549,14 +542,13 @@ static void ati_remote_input_report(struct urb *urb)
+ 
+ 		if (index < 0) {
+ 			/* Not a mouse event, hand it to rc-core. */
+-			u32 rc_code = (scancode[0] << 8) | scancode[1];
+ 
+ 			/*
+ 			 * We don't use the rc-core repeat handling yet as
+ 			 * it would cause ghost repeats which would be a
+ 			 * regression for this driver.
+ 			 */
+-			rc_keydown_notimeout(ati_remote->rdev, rc_code,
++			rc_keydown_notimeout(ati_remote->rdev, scancode,
+ 					     data[2]);
+ 			rc_keyup(ati_remote->rdev);
+ 			return;
+@@ -607,8 +599,7 @@ static void ati_remote_input_report(struct urb *urb)
+ 		input_sync(dev);
+ 
+ 		ati_remote->old_jiffies = jiffies;
+-		ati_remote->old_data[0] = data[1];
+-		ati_remote->old_data[1] = data[2];
++		ati_remote->old_data = data[2];
+ 	}
+ }
+ 
+diff --git a/drivers/media/rc/keymaps/rc-ati-x10.c b/drivers/media/rc/keymaps/rc-ati-x10.c
+index e1b8b26..8150644 100644
+--- a/drivers/media/rc/keymaps/rc-ati-x10.c
++++ b/drivers/media/rc/keymaps/rc-ati-x10.c
+@@ -27,55 +27,55 @@
+ #include <media/rc-map.h>
+ 
+ static struct rc_map_table ati_x10[] = {
+-	{ 0xd20d, KEY_1 },
+-	{ 0xd30e, KEY_2 },
+-	{ 0xd40f, KEY_3 },
+-	{ 0xd510, KEY_4 },
+-	{ 0xd611, KEY_5 },
+-	{ 0xd712, KEY_6 },
+-	{ 0xd813, KEY_7 },
+-	{ 0xd914, KEY_8 },
+-	{ 0xda15, KEY_9 },
+-	{ 0xdc17, KEY_0 },
+-	{ 0xc500, KEY_A },
+-	{ 0xc601, KEY_B },
+-	{ 0xde19, KEY_C },
+-	{ 0xe01b, KEY_D },
+-	{ 0xe621, KEY_E },
+-	{ 0xe823, KEY_F },
++	{ 0x0d, KEY_1 },
++	{ 0x0e, KEY_2 },
++	{ 0x0f, KEY_3 },
++	{ 0x10, KEY_4 },
++	{ 0x11, KEY_5 },
++	{ 0x12, KEY_6 },
++	{ 0x13, KEY_7 },
++	{ 0x14, KEY_8 },
++	{ 0x15, KEY_9 },
++	{ 0x17, KEY_0 },
++	{ 0x00, KEY_A },
++	{ 0x01, KEY_B },
++	{ 0x19, KEY_C },
++	{ 0x1b, KEY_D },
++	{ 0x21, KEY_E },
++	{ 0x23, KEY_F },
+ 
+-	{ 0xdd18, KEY_KPENTER },    /* "check" */
+-	{ 0xdb16, KEY_MENU },       /* "menu" */
+-	{ 0xc702, KEY_POWER },      /* Power */
+-	{ 0xc803, KEY_TV },         /* TV */
+-	{ 0xc904, KEY_DVD },        /* DVD */
+-	{ 0xca05, KEY_WWW },        /* WEB */
+-	{ 0xcb06, KEY_BOOKMARKS },  /* "book" */
+-	{ 0xcc07, KEY_EDIT },       /* "hand" */
+-	{ 0xe11c, KEY_COFFEE },     /* "timer" */
+-	{ 0xe520, KEY_FRONT },      /* "max" */
+-	{ 0xe21d, KEY_LEFT },       /* left */
+-	{ 0xe41f, KEY_RIGHT },      /* right */
+-	{ 0xe722, KEY_DOWN },       /* down */
+-	{ 0xdf1a, KEY_UP },         /* up */
+-	{ 0xe31e, KEY_OK },         /* "OK" */
+-	{ 0xce09, KEY_VOLUMEDOWN }, /* VOL + */
+-	{ 0xcd08, KEY_VOLUMEUP },   /* VOL - */
+-	{ 0xcf0a, KEY_MUTE },       /* MUTE  */
+-	{ 0xd00b, KEY_CHANNELUP },  /* CH + */
+-	{ 0xd10c, KEY_CHANNELDOWN },/* CH - */
+-	{ 0xec27, KEY_RECORD },     /* ( o) red */
+-	{ 0xea25, KEY_PLAY },       /* ( >) */
+-	{ 0xe924, KEY_REWIND },     /* (<<) */
+-	{ 0xeb26, KEY_FORWARD },    /* (>>) */
+-	{ 0xed28, KEY_STOP },       /* ([]) */
+-	{ 0xee29, KEY_PAUSE },      /* ('') */
+-	{ 0xf02b, KEY_PREVIOUS },   /* (<-) */
+-	{ 0xef2a, KEY_NEXT },       /* (>+) */
+-	{ 0xf22d, KEY_INFO },       /* PLAYING */
+-	{ 0xf32e, KEY_HOME },       /* TOP */
+-	{ 0xf42f, KEY_END },        /* END */
+-	{ 0xf530, KEY_SELECT },     /* SELECT */
++	{ 0x18, KEY_KPENTER },    /* "check" */
++	{ 0x16, KEY_MENU },       /* "menu" */
++	{ 0x02, KEY_POWER },      /* Power */
++	{ 0x03, KEY_TV },         /* TV */
++	{ 0x04, KEY_DVD },        /* DVD */
++	{ 0x05, KEY_WWW },        /* WEB */
++	{ 0x06, KEY_BOOKMARKS },  /* "book" */
++	{ 0x07, KEY_EDIT },       /* "hand" */
++	{ 0x1c, KEY_COFFEE },     /* "timer" */
++	{ 0x20, KEY_FRONT },      /* "max" */
++	{ 0x1d, KEY_LEFT },       /* left */
++	{ 0x1f, KEY_RIGHT },      /* right */
++	{ 0x22, KEY_DOWN },       /* down */
++	{ 0x1a, KEY_UP },         /* up */
++	{ 0x1e, KEY_OK },         /* "OK" */
++	{ 0x09, KEY_VOLUMEDOWN }, /* VOL + */
++	{ 0x08, KEY_VOLUMEUP },   /* VOL - */
++	{ 0x0a, KEY_MUTE },       /* MUTE  */
++	{ 0x0b, KEY_CHANNELUP },  /* CH + */
++	{ 0x0c, KEY_CHANNELDOWN },/* CH - */
++	{ 0x27, KEY_RECORD },     /* ( o) red */
++	{ 0x25, KEY_PLAY },       /* ( >) */
++	{ 0x24, KEY_REWIND },     /* (<<) */
++	{ 0x26, KEY_FORWARD },    /* (>>) */
++	{ 0x28, KEY_STOP },       /* ([]) */
++	{ 0x29, KEY_PAUSE },      /* ('') */
++	{ 0x2b, KEY_PREVIOUS },   /* (<-) */
++	{ 0x2a, KEY_NEXT },       /* (>+) */
++	{ 0x2d, KEY_INFO },       /* PLAYING */
++	{ 0x2e, KEY_HOME },       /* TOP */
++	{ 0x2f, KEY_END },        /* END */
++	{ 0x30, KEY_SELECT },     /* SELECT */
+ };
+ 
+ static struct rc_map_list ati_x10_map = {
+diff --git a/drivers/media/rc/keymaps/rc-medion-x10.c b/drivers/media/rc/keymaps/rc-medion-x10.c
+index 09e2cc0..479cdb8 100644
+--- a/drivers/media/rc/keymaps/rc-medion-x10.c
++++ b/drivers/media/rc/keymaps/rc-medion-x10.c
+@@ -25,70 +25,70 @@
+ #include <media/rc-map.h>
+ 
+ static struct rc_map_table medion_x10[] = {
+-	{ 0xf12c, KEY_TV },    /* TV */
+-	{ 0xf22d, KEY_VCR },   /* VCR */
+-	{ 0xc904, KEY_DVD },   /* DVD */
+-	{ 0xcb06, KEY_AUDIO }, /* MUSIC */
+-
+-	{ 0xf32e, KEY_RADIO },     /* RADIO */
+-	{ 0xca05, KEY_DIRECTORY }, /* PHOTO */
+-	{ 0xf42f, KEY_INFO },      /* TV-PREVIEW */
+-	{ 0xf530, KEY_LIST },      /* CHANNEL-LST */
+-
+-	{ 0xe01b, KEY_SETUP }, /* SETUP */
+-	{ 0xf631, KEY_VIDEO }, /* VIDEO DESKTOP */
+-
+-	{ 0xcd08, KEY_VOLUMEDOWN },  /* VOL - */
+-	{ 0xce09, KEY_VOLUMEUP },    /* VOL + */
+-	{ 0xd00b, KEY_CHANNELUP },   /* CHAN + */
+-	{ 0xd10c, KEY_CHANNELDOWN }, /* CHAN - */
+-	{ 0xc500, KEY_MUTE },        /* MUTE */
+-
+-	{ 0xf732, KEY_RED }, /* red */
+-	{ 0xf833, KEY_GREEN }, /* green */
+-	{ 0xf934, KEY_YELLOW }, /* yellow */
+-	{ 0xfa35, KEY_BLUE }, /* blue */
+-	{ 0xdb16, KEY_TEXT }, /* TXT */
+-
+-	{ 0xd20d, KEY_1 },
+-	{ 0xd30e, KEY_2 },
+-	{ 0xd40f, KEY_3 },
+-	{ 0xd510, KEY_4 },
+-	{ 0xd611, KEY_5 },
+-	{ 0xd712, KEY_6 },
+-	{ 0xd813, KEY_7 },
+-	{ 0xd914, KEY_8 },
+-	{ 0xda15, KEY_9 },
+-	{ 0xdc17, KEY_0 },
+-	{ 0xe11c, KEY_SEARCH }, /* TV/RAD, CH SRC */
+-	{ 0xe520, KEY_DELETE }, /* DELETE */
+-
+-	{ 0xfb36, KEY_KEYBOARD }, /* RENAME */
+-	{ 0xdd18, KEY_SCREEN },   /* SNAPSHOT */
+-
+-	{ 0xdf1a, KEY_UP },    /* up */
+-	{ 0xe722, KEY_DOWN },  /* down */
+-	{ 0xe21d, KEY_LEFT },  /* left */
+-	{ 0xe41f, KEY_RIGHT }, /* right */
+-	{ 0xe31e, KEY_OK },    /* OK */
+-
+-	{ 0xfc37, KEY_SELECT }, /* ACQUIRE IMAGE */
+-	{ 0xfd38, KEY_EDIT },   /* EDIT IMAGE */
+-
+-	{ 0xe924, KEY_REWIND },   /* rewind  (<<) */
+-	{ 0xea25, KEY_PLAY },     /* play    ( >) */
+-	{ 0xeb26, KEY_FORWARD },  /* forward (>>) */
+-	{ 0xec27, KEY_RECORD },   /* record  ( o) */
+-	{ 0xed28, KEY_STOP },     /* stop    ([]) */
+-	{ 0xee29, KEY_PAUSE },    /* pause   ('') */
+-
+-	{ 0xe621, KEY_PREVIOUS },        /* prev */
+-	{ 0xfe39, KEY_SWITCHVIDEOMODE }, /* F SCR */
+-	{ 0xe823, KEY_NEXT },            /* next */
+-	{ 0xde19, KEY_MENU },            /* MENU */
+-	{ 0xff3a, KEY_LANGUAGE },        /* AUDIO */
+-
+-	{ 0xc702, KEY_POWER }, /* POWER */
++	{ 0x2c, KEY_TV },    /* TV */
++	{ 0x2d, KEY_VCR },   /* VCR */
++	{ 0x04, KEY_DVD },   /* DVD */
++	{ 0x06, KEY_AUDIO }, /* MUSIC */
++
++	{ 0x2e, KEY_RADIO },     /* RADIO */
++	{ 0x05, KEY_DIRECTORY }, /* PHOTO */
++	{ 0x2f, KEY_INFO },      /* TV-PREVIEW */
++	{ 0x30, KEY_LIST },      /* CHANNEL-LST */
++
++	{ 0x1b, KEY_SETUP }, /* SETUP */
++	{ 0x31, KEY_VIDEO }, /* VIDEO DESKTOP */
++
++	{ 0x08, KEY_VOLUMEDOWN },  /* VOL - */
++	{ 0x09, KEY_VOLUMEUP },    /* VOL + */
++	{ 0x0b, KEY_CHANNELUP },   /* CHAN + */
++	{ 0x0c, KEY_CHANNELDOWN }, /* CHAN - */
++	{ 0x00, KEY_MUTE },        /* MUTE */
++
++	{ 0x32, KEY_RED }, /* red */
++	{ 0x33, KEY_GREEN }, /* green */
++	{ 0x34, KEY_YELLOW }, /* yellow */
++	{ 0x35, KEY_BLUE }, /* blue */
++	{ 0x16, KEY_TEXT }, /* TXT */
++
++	{ 0x0d, KEY_1 },
++	{ 0x0e, KEY_2 },
++	{ 0x0f, KEY_3 },
++	{ 0x10, KEY_4 },
++	{ 0x11, KEY_5 },
++	{ 0x12, KEY_6 },
++	{ 0x13, KEY_7 },
++	{ 0x14, KEY_8 },
++	{ 0x15, KEY_9 },
++	{ 0x17, KEY_0 },
++	{ 0x1c, KEY_SEARCH }, /* TV/RAD, CH SRC */
++	{ 0x20, KEY_DELETE }, /* DELETE */
++
++	{ 0x36, KEY_KEYBOARD }, /* RENAME */
++	{ 0x18, KEY_SCREEN },   /* SNAPSHOT */
++
++	{ 0x1a, KEY_UP },    /* up */
++	{ 0x22, KEY_DOWN },  /* down */
++	{ 0x1d, KEY_LEFT },  /* left */
++	{ 0x1f, KEY_RIGHT }, /* right */
++	{ 0x1e, KEY_OK },    /* OK */
++
++	{ 0x37, KEY_SELECT }, /* ACQUIRE IMAGE */
++	{ 0x38, KEY_EDIT },   /* EDIT IMAGE */
++
++	{ 0x24, KEY_REWIND },   /* rewind  (<<) */
++	{ 0x25, KEY_PLAY },     /* play    ( >) */
++	{ 0x26, KEY_FORWARD },  /* forward (>>) */
++	{ 0x27, KEY_RECORD },   /* record  ( o) */
++	{ 0x28, KEY_STOP },     /* stop    ([]) */
++	{ 0x29, KEY_PAUSE },    /* pause   ('') */
++
++	{ 0x21, KEY_PREVIOUS },        /* prev */
++	{ 0x39, KEY_SWITCHVIDEOMODE }, /* F SCR */
++	{ 0x23, KEY_NEXT },            /* next */
++	{ 0x19, KEY_MENU },            /* MENU */
++	{ 0x3a, KEY_LANGUAGE },        /* AUDIO */
++
++	{ 0x02, KEY_POWER }, /* POWER */
+ };
+ 
+ static struct rc_map_list medion_x10_map = {
+diff --git a/drivers/media/rc/keymaps/rc-snapstream-firefly.c b/drivers/media/rc/keymaps/rc-snapstream-firefly.c
+index ef14652..c7f33ec 100644
+--- a/drivers/media/rc/keymaps/rc-snapstream-firefly.c
++++ b/drivers/media/rc/keymaps/rc-snapstream-firefly.c
+@@ -22,63 +22,63 @@
+ #include <media/rc-map.h>
+ 
+ static struct rc_map_table snapstream_firefly[] = {
+-	{ 0xf12c, KEY_ZOOM },       /* Maximize */
+-	{ 0xc702, KEY_CLOSE },
+-
+-	{ 0xd20d, KEY_1 },
+-	{ 0xd30e, KEY_2 },
+-	{ 0xd40f, KEY_3 },
+-	{ 0xd510, KEY_4 },
+-	{ 0xd611, KEY_5 },
+-	{ 0xd712, KEY_6 },
+-	{ 0xd813, KEY_7 },
+-	{ 0xd914, KEY_8 },
+-	{ 0xda15, KEY_9 },
+-	{ 0xdc17, KEY_0 },
+-	{ 0xdb16, KEY_BACK },
+-	{ 0xdd18, KEY_KPENTER },    /* ent */
+-
+-	{ 0xce09, KEY_VOLUMEUP },
+-	{ 0xcd08, KEY_VOLUMEDOWN },
+-	{ 0xcf0a, KEY_MUTE },
+-	{ 0xd00b, KEY_CHANNELUP },
+-	{ 0xd10c, KEY_CHANNELDOWN },
+-	{ 0xc500, KEY_VENDOR },     /* firefly */
+-
+-	{ 0xf32e, KEY_INFO },
+-	{ 0xf42f, KEY_OPTION },
+-
+-	{ 0xe21d, KEY_LEFT },
+-	{ 0xe41f, KEY_RIGHT },
+-	{ 0xe722, KEY_DOWN },
+-	{ 0xdf1a, KEY_UP },
+-	{ 0xe31e, KEY_OK },
+-
+-	{ 0xe11c, KEY_MENU },
+-	{ 0xe520, KEY_EXIT },
+-
+-	{ 0xec27, KEY_RECORD },
+-	{ 0xea25, KEY_PLAY },
+-	{ 0xed28, KEY_STOP },
+-	{ 0xe924, KEY_REWIND },
+-	{ 0xeb26, KEY_FORWARD },
+-	{ 0xee29, KEY_PAUSE },
+-	{ 0xf02b, KEY_PREVIOUS },
+-	{ 0xef2a, KEY_NEXT },
+-
+-	{ 0xcb06, KEY_AUDIO },      /* Music */
+-	{ 0xca05, KEY_IMAGES },     /* Photos */
+-	{ 0xc904, KEY_DVD },
+-	{ 0xc803, KEY_TV },
+-	{ 0xcc07, KEY_VIDEO },
+-
+-	{ 0xc601, KEY_HELP },
+-	{ 0xf22d, KEY_MODE },       /* Mouse */
+-
+-	{ 0xde19, KEY_A },
+-	{ 0xe01b, KEY_B },
+-	{ 0xe621, KEY_C },
+-	{ 0xe823, KEY_D },
++	{ 0x2c, KEY_ZOOM },       /* Maximize */
++	{ 0x02, KEY_CLOSE },
++
++	{ 0x0d, KEY_1 },
++	{ 0x0e, KEY_2 },
++	{ 0x0f, KEY_3 },
++	{ 0x10, KEY_4 },
++	{ 0x11, KEY_5 },
++	{ 0x12, KEY_6 },
++	{ 0x13, KEY_7 },
++	{ 0x14, KEY_8 },
++	{ 0x15, KEY_9 },
++	{ 0x17, KEY_0 },
++	{ 0x16, KEY_BACK },
++	{ 0x18, KEY_KPENTER },    /* ent */
++
++	{ 0x09, KEY_VOLUMEUP },
++	{ 0x08, KEY_VOLUMEDOWN },
++	{ 0x0a, KEY_MUTE },
++	{ 0x0b, KEY_CHANNELUP },
++	{ 0x0c, KEY_CHANNELDOWN },
++	{ 0x00, KEY_VENDOR },     /* firefly */
++
++	{ 0x2e, KEY_INFO },
++	{ 0x2f, KEY_OPTION },
++
++	{ 0x1d, KEY_LEFT },
++	{ 0x1f, KEY_RIGHT },
++	{ 0x22, KEY_DOWN },
++	{ 0x1a, KEY_UP },
++	{ 0x1e, KEY_OK },
++
++	{ 0x1c, KEY_MENU },
++	{ 0x20, KEY_EXIT },
++
++	{ 0x27, KEY_RECORD },
++	{ 0x25, KEY_PLAY },
++	{ 0x28, KEY_STOP },
++	{ 0x24, KEY_REWIND },
++	{ 0x26, KEY_FORWARD },
++	{ 0x29, KEY_PAUSE },
++	{ 0x2b, KEY_PREVIOUS },
++	{ 0x2a, KEY_NEXT },
++
++	{ 0x06, KEY_AUDIO },      /* Music */
++	{ 0x05, KEY_IMAGES },     /* Photos */
++	{ 0x04, KEY_DVD },
++	{ 0x03, KEY_TV },
++	{ 0x07, KEY_VIDEO },
++
++	{ 0x01, KEY_HELP },
++	{ 0x2d, KEY_MODE },       /* Mouse */
++
++	{ 0x19, KEY_A },
++	{ 0x1b, KEY_B },
++	{ 0x21, KEY_C },
++	{ 0x23, KEY_D },
+ };
+ 
+ static struct rc_map_list snapstream_firefly_map = {
 -- 
-Regards,
+1.7.7.2
 
-Laurent Pinchart
