@@ -1,296 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:38721 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758718Ab1LOLxJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 06:53:09 -0500
-Date: Thu, 15 Dec 2011 13:53:03 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [RFC 3/4] omap3isp: Configure CSI-2 phy based on platform data
-Message-ID: <20111215115303.GD3677@valkosipuli.localdomain>
-References: <20111215095015.GC3677@valkosipuli.localdomain>
- <1323942635-13058-3-git-send-email-sakari.ailus@iki.fi>
- <201112151128.07311.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201112151128.07311.laurent.pinchart@ideasonboard.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:58707 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753744Ab1LGLM5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 06:12:57 -0500
+Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LVT00GHLZ5JGI00@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 07 Dec 2011 20:12:55 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LVT00IT8Z5ECM40@mmp1.samsung.com>
+ for linux-media@vger.kernel.org; Wed, 07 Dec 2011 20:12:55 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sakari Ailus' <sakari.ailus@iki.fi>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	=?iso-8859-1?Q?'Sebastian_Dr=F6ge'?=
+	<sebastian.droege@collabora.co.uk>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
+ <4ED8C61C.3060404@redhat.com> <20111202135748.GO29805@valkosipuli.localdomain>
+ <4ED901C9.2050109@redhat.com> <20111206143538.GD938@valkosipuli.localdomain>
+ <4EDE40D0.9080704@redhat.com> <20111206224134.GE938@valkosipuli.localdomain>
+In-reply-to: <20111206224134.GE938@valkosipuli.localdomain>
+Subject: RE: [RFC] Resolution change support in video codecs in v4l2
+Date: Wed, 07 Dec 2011 12:12:08 +0100
+Message-id: <00f401ccb4d1$12dcda50$38968ef0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=iso-8859-1
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
 
-Thanks for the review!
-
-On Thu, Dec 15, 2011 at 11:28:06AM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
+> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
+> Sent: 06 December 2011 23:42
 > 
-> Thanks for the patch.
+
+[...]
+
 > 
-> On Thursday 15 December 2011 10:50:34 Sakari Ailus wrote:
-> > Configure CSI-2 phy based on platform data in the ISP driver rather than in
-> > platform code.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/video/omap3isp/isp.h       |    3 -
-> >  drivers/media/video/omap3isp/ispcsiphy.c |   95
-> > ++++++++++++++++++++++++++--- drivers/media/video/omap3isp/ispcsiphy.h |  
-> >  4 +
-> >  drivers/media/video/omap3isp/ispvideo.c  |   19 ++++++
-> >  4 files changed, 108 insertions(+), 13 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/omap3isp/isp.h
-> > b/drivers/media/video/omap3isp/isp.h index 705946e..c5935ae 100644
-> > --- a/drivers/media/video/omap3isp/isp.h
-> > +++ b/drivers/media/video/omap3isp/isp.h
-> > @@ -126,9 +126,6 @@ struct isp_reg {
-> > 
-> >  struct isp_platform_callback {
-> >  	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
-> > -	int (*csiphy_config)(struct isp_csiphy *phy,
-> > -			     struct isp_csiphy_dphy_cfg *dphy,
-> > -			     struct isp_csiphy_lanes_cfg *lanes);
-> >  	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
-> >  };
-> > 
-> > diff --git a/drivers/media/video/omap3isp/ispcsiphy.c
-> > b/drivers/media/video/omap3isp/ispcsiphy.c index 5be37ce..52af308 100644
-> > --- a/drivers/media/video/omap3isp/ispcsiphy.c
-> > +++ b/drivers/media/video/omap3isp/ispcsiphy.c
-> > @@ -28,6 +28,8 @@
-> >  #include <linux/device.h>
-> >  #include <linux/regulator/consumer.h>
-> > 
-> > +#include "../../../../arch/arm/mach-omap2/control.h"
-> > +
-> >  #include "isp.h"
-> >  #include "ispreg.h"
-> >  #include "ispcsiphy.h"
-> > @@ -138,15 +140,90 @@ static void csiphy_dphy_config(struct isp_csiphy
-> > *phy) isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
-> >  }
-> > 
-> > -static int csiphy_config(struct isp_csiphy *phy,
-> > -			 struct isp_csiphy_dphy_cfg *dphy,
-> > -			 struct isp_csiphy_lanes_cfg *lanes)
-> > +/*
-> > + * THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1.
-> > + * THS_SETTLE: Programmed value = ceil(90 ns/DDRClk period) + 3.
-> > + */
-> > +#define THS_TERM_D 2000000
-> > +#define THS_TERM(ddrclk_khz)					\
-> > +(								\
-> > +	((25 * (ddrclk_khz)) % THS_TERM_D) ?			\
-> > +		((25 * (ddrclk_khz)) / THS_TERM_D) :		\
-> > +		((25 * (ddrclk_khz)) / THS_TERM_D) - 1		\
-> > +)
-> > +
-> > +#define THS_SETTLE_D 1000000
-> > +#define THS_SETTLE(ddrclk_khz)					\
-> > +(								\
-> > +	((90 * (ddrclk_khz)) % THS_SETTLE_D) ?			\
-> > +		((90 * (ddrclk_khz)) / THS_SETTLE_D) + 4 :	\
-> > +		((90 * (ddrclk_khz)) / THS_SETTLE_D) + 3	\
-> > +)
+> > >>>That's a good point. It's more related to changes in stream properties
+> ---
+> > >>>the frame rate of the stream could change, too. That might be when you
+> could
+> > >>>like to have more buffers in the queue. I don't think this is critical
+> > >>>either.
+> > >>>
+> > >>>This could also depend on the properties of the codec. Again, I'd wish
+> a
+> > >>>comment from someone who knows codecs well. Some codecs need to be able
+> to
+> > >>>access buffers which have already been decoded to decode more buffers.
+> Key
+> > >>>frames, simply.
+> > >>
+> > >>Ok, but let's not add unneeded things at the API if you're not sure. If
+> we have
+> > >>such need for a given hardware, then add it. Otherwise, keep it simple.
+> > >
+> > >This is not so much dependent on hardware but on the standards which the
+> > >cdoecs implement.
+> >
+> > Could you please elaborate it? On what scenario this is needed?
 > 
-> The THS_TERM and THS_SETTLE macros are only used once. I would just put that 
-> code explictly where it gets used. The macros hinder readability.
+> This is a property of the stream, not a property of the decoder. To
+> reconstruct each frame, a part of the stream is required and already decoded
+> frames may be used to accelerate the decoding. What those parts are. depends
+> on the codec, not a particular implementation.
 
-I'll do that.
+They are not used to accelerate decoding. They are used to predict what
+should be displayed. If that frame is missing or modified it will cause
+corruption in consecutive frames.
 
-> > +
-> > +/*
-> > + * TCLK values are OK at their reset values
-> > + */
-> > +#define TCLK_TERM	0
-> > +#define TCLK_MISS	1
-> > +#define TCLK_SETTLE	14
-> > +
-> > +int omap3isp_csiphy_config(struct isp_device *isp,
-> > +			   struct v4l2_subdev *csi2_subdev,
-> > +			   struct v4l2_subdev *sensor,
-> > +			   struct v4l2_mbus_framefmt *sensor_fmt)
+I want to make it clear - they are necessary, not optional to accelerate
+decoding speed.
+ 
+> Anyone with more knowledge of codecs than myself might be able to give a
+> concrete example. Sebastian?
 > 
-> The number of lanes can depend on the format. Wouldn't it be better to add a 
-> subdev operation to query the sensor for its bus configuration instead of 
-> relying on ISP platform data ?
 
-In principle, yes. That's an interesting point; how this kind of information
-would best be delivered?
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-On the other hand I don't see any pressing reason to use less lanes than the
-maximum, so this could wait IMHO.
-
-Perhaps around the time we standardise how the CSI-2 configuration is being
-done? It's not quite as simple as the mbus_config seems to assume. For
-example, the lane mapping and then which lanes do you use if you're using
-less than the maximum has to be handled in a way or another.
-
-The number of lanes might be something the user would want to touch, but I'm
-not entirely sure. You achieve more functionality by providing that
-flexibility to the user but I don't see need for configuring that --- still
-getting the number of lanes could be interesting.
-
-> >  {
-> > +	struct isp_v4l2_subdevs_group *subdevs = sensor->host_priv;
-> > +	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
-> > +	struct isp_csiphy_dphy_cfg csi2phy;
-> > +	int csi2_ddrclk_khz;
-> > +	struct isp_csiphy_lanes_cfg *lanes;
-> >  	unsigned int used_lanes = 0;
-> >  	unsigned int i;
-> > +	u32 cam_phy_ctrl;
-> > +
-> > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
-> > +	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
-> > +		lanes = subdevs->bus.ccp2.lanecfg;
-> > +	else
-> > +		lanes = subdevs->bus.csi2.lanecfg;
-> > +
-> > +	if (!lanes) {
-> > +		dev_err(isp->dev, "no lane configuration\n");
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	cam_phy_ctrl = omap_readl(
-> > +		OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
-> > +	/*
-> > +	 * SCM.CONTROL_CAMERA_PHY_CTRL
-> > +	 * - bit[4]    : CSIPHY1 data sent to CSIB
-> > +	 * - bit [3:2] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
-> > +	 * - bit [1:0] : CSIPHY2 config: 00 d-phy, 01/10 ccp2
-> > +	 */
-> > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1)
-> > +		cam_phy_ctrl |= 1 << 2;
-> > +	else if (subdevs->interface == ISP_INTERFACE_CSI2C_PHY1)
-> > +		cam_phy_ctrl &= 1 << 2;
-> > +
-> > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
-> > +		cam_phy_ctrl |= 1;
-> > +	else if (subdevs->interface == ISP_INTERFACE_CSI2A_PHY2)
-> > +		cam_phy_ctrl &= 1;
-> > +
-> > +	omap_writel(cam_phy_ctrl,
-> > +		    OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
-> > +
-> > +	csi2_ddrclk_khz = sensor_fmt->pixel_clock
-> > +		/ (2 * csi2->phy->num_data_lanes)
-> > +		* omap3isp_video_format_info(sensor_fmt->code)->bpp;
-> > +	csi2phy.ths_term = THS_TERM(csi2_ddrclk_khz);
-> > +	csi2phy.ths_settle = THS_SETTLE(csi2_ddrclk_khz);
-> > +	csi2phy.tclk_term = TCLK_TERM;
-> > +	csi2phy.tclk_miss = TCLK_MISS;
-> > +	csi2phy.tclk_settle = TCLK_SETTLE;
-> > 
-> >  	/* Clock and data lanes verification */
-> > -	for (i = 0; i < phy->num_data_lanes; i++) {
-> > +	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
-> >  		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
-> >  			return -EINVAL;
-> > 
-> > @@ -162,10 +239,10 @@ static int csiphy_config(struct isp_csiphy *phy,
-> >  	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
-> >  		return -EINVAL;
-> > 
-> > -	mutex_lock(&phy->mutex);
-> > -	phy->dphy = *dphy;
-> > -	phy->lanes = *lanes;
-> > -	mutex_unlock(&phy->mutex);
-> > +	mutex_lock(&csi2->phy->mutex);
-> > +	csi2->phy->dphy = csi2phy;
-> > +	csi2->phy->lanes = *lanes;
-> > +	mutex_unlock(&csi2->phy->mutex);
-> > 
-> >  	return 0;
-> >  }
-> > @@ -225,8 +302,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
-> >  	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
-> >  	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
-> > 
-> > -	isp->platform_cb.csiphy_config = csiphy_config;
-> > -
-> >  	phy2->isp = isp;
-> >  	phy2->csi2 = &isp->isp_csi2a;
-> >  	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
-> > diff --git a/drivers/media/video/omap3isp/ispcsiphy.h
-> > b/drivers/media/video/omap3isp/ispcsiphy.h index e93a661..9f93222 100644
-> > --- a/drivers/media/video/omap3isp/ispcsiphy.h
-> > +++ b/drivers/media/video/omap3isp/ispcsiphy.h
-> > @@ -56,6 +56,10 @@ struct isp_csiphy {
-> >  	struct isp_csiphy_dphy_cfg dphy;
-> >  };
-> > 
-> > +int omap3isp_csiphy_config(struct isp_device *isp,
-> > +			   struct v4l2_subdev *csi2_subdev,
-> > +			   struct v4l2_subdev *sensor,
-> > +			   struct v4l2_mbus_framefmt *fmt);
-> >  int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
-> >  void omap3isp_csiphy_release(struct isp_csiphy *phy);
-> >  int omap3isp_csiphy_init(struct isp_device *isp);
-> > diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> > b/drivers/media/video/omap3isp/ispvideo.c index 17bc03c..cdcf1d0 100644
-> > --- a/drivers/media/video/omap3isp/ispvideo.c
-> > +++ b/drivers/media/video/omap3isp/ispvideo.c
-> > @@ -299,6 +299,8 @@ static int isp_video_validate_pipeline(struct
-> > isp_pipeline *pipe)
-> > 
-> >  	while (1) {
-> >  		unsigned int shifter_link;
-> > +		struct v4l2_subdev *_subdev;
-> 
-> What about a more descriptive name ?
-
-Ack.
-
-> > +
-> >  		/* Retrieve the sink format */
-> >  		pad = &subdev->entity.pads[0];
-> >  		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-> > @@ -342,6 +344,7 @@ static int isp_video_validate_pipeline(struct
-> > isp_pipeline *pipe) if (media_entity_type(pad->entity) !=
-> > MEDIA_ENT_T_V4L2_SUBDEV)
-> >  			break;
-> > 
-> > +		_subdev = subdev;
-> >  		subdev = media_entity_to_v4l2_subdev(pad->entity);
-> > 
-> >  		fmt_source.pad = pad->index;
-> > @@ -355,6 +358,22 @@ static int isp_video_validate_pipeline(struct
-> > isp_pipeline *pipe) fmt_source.format.height != fmt_sink.format.height)
-> >  			return -EPIPE;
-> > 
-> > +		/* Configure CSI-2 receiver based on sensor format. */
-> > +		if (_subdev == &isp->isp_csi2a.subdev
-> > +		    || _subdev == &isp->isp_csi2c.subdev) {
-> > +			if (cpu_is_omap3630()) {
-> > +				/*
-> > +				 * FIXME: CSI-2 is supported only on
-> > +				 * the 3630!
-> > +				 */
-> 
-> Is it ? Or do you mean by the driver ? What would it take to support it on 
-> OMAP34xx and OMAP35xx ?
-
-I have no way to test it on the OMAP 3430 since I have no CSI-2 sensor
-connected to it. As a matter of fact I've never had one, so I don't really
-know.
-
-> > +				ret = omap3isp_csiphy_config(
-> > +					isp, _subdev, subdev,
-> > +					&fmt_source.format);
-> > +				if (IS_ERR_VALUE(ret))
-> > +					return -EPIPE;
-> > +			}
-> > +		}
-> 
-> This isn't really pipeline validation, is it ? Should this be performed in 
-> isp_pipeline_enable() instead ?
-
-I'll move it there.
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
