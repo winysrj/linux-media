@@ -1,31 +1,34 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:49491 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753506Ab1L1N1h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 08:27:37 -0500
-Received: by lahd3 with SMTP id d3so2323524lah.19
-        for <linux-media@vger.kernel.org>; Wed, 28 Dec 2011 05:27:36 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.17.9]:55513 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754919Ab1LGLfO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 06:35:14 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+Date: Wed, 7 Dec 2011 11:34:54 +0000
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, rob@ti.com, daniel@ffwll.ch,
+	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <201112071011.03525.arnd@arndb.de> <CAB2ybb9yiHLzB9iW_EhBvEkvo3n82phkfS+d1J7yXi+ZZt=kDw@mail.gmail.com>
+In-Reply-To: <CAB2ybb9yiHLzB9iW_EhBvEkvo3n82phkfS+d1J7yXi+ZZt=kDw@mail.gmail.com>
 MIME-Version: 1.0
-Date: Wed, 28 Dec 2011 14:27:35 +0100
-Message-ID: <CAPEGoTArUKaBn1-GRt3zaPg0VU3B=4znjxReLWQLzf6KTL48Cg@mail.gmail.com>
-Subject: Please remove nl-Ziggo-Zwolle dvb-c initial scan file
-From: Hein Rigolo <rigolo@gmail.com>
-To: Christoph Pfister <christophpfister@gmail.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112071134.54352.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Christoph,
+On Wednesday 07 December 2011, Semwal, Sumit wrote:
+> Right; that would be ideal, but we may not be able to ask each user to
+> do so - especially when the sharing part might be interspersed in
+> existing buffer handling code. So for now, I would like to keep it as
+> it-is.
 
-The nl-Ziggo-Zwolle dvb-c initial scan file is no longer up to date,
-and no longer relevant. The nl-Ziggo DVB-C initial scan file is enough
-to find all the required transport streams in all Ziggo locations.
+Ok, fair enough. It certainly doesn't hurt.
 
-Could you remove the nl-Ziggo-Zwolle file from dvb-apps?
-
-Thanks,
-
-
-Hein
+	Arnd
