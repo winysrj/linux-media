@@ -1,112 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52335 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753471Ab1LLV5m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 16:57:42 -0500
-Message-ID: <4EE678CF.1020300@gmail.com>
-Date: Mon, 12 Dec 2011 22:57:35 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:46347 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755810Ab1LGNs6 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 08:48:58 -0500
+Received: by iakc1 with SMTP id c1so961556iak.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2011 05:48:58 -0800 (PST)
 MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
- module
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>	<4EDD3DEE.6060506@gmail.com>	<CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>	<4EDE90A3.7050900@gmail.com>	<CACVXFVN=-0OQ_Tz+HznDug4baLmLNjxVE21gv6CGFoU+hzCtPQ@mail.gmail.com>	<4EE14787.8090509@gmail.com>	<CACVXFVNV3TLNvPMU4oj6X+Yj5wqhNvcU_ZpyCd1wMm8B2azT4w@mail.gmail.com>	<4EE4EBCF.8000202@gmail.com> <CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
-In-Reply-To: <CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
+In-Reply-To: <20111201131149.231660@gmx.net>
+References: <20111201131149.231660@gmx.net>
+Date: Wed, 7 Dec 2011 14:48:58 +0100
+Message-ID: <CAL7owaDoJnQB1TunD4zt2QQznQ1OaVQbo-MHzzZ6nvmcJwHGTA@mail.gmail.com>
+Subject: Re: DVB-T Muxes Germany / Berlin outdated, please update...
+From: Christoph Pfister <christophpfister@gmail.com>
+To: Barts Builder <pe-builder@gmx.de>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Your version of dvb-apps is older than three months (your output
+doesn't contradict [1]), tuning parameters haven't changed since then.
 
-On 12/12/2011 10:49 AM, Ming Lei wrote:
->>> If FD result is associated with a frame, how can user space get the frame
->>> seq if no v4l2 buffer is involved? Without a frame sequence, it is a bit
->>> difficult to retrieve FD results from user space.
->>
->> If you pass image data in memory buffers from user space, yes, it could be
->> impossible.
-> 
-> It is easy to get the frame sequence from v4l2_buffer for the case too, :-)
+Christoph
 
-Oops, have mixed something up ;)
-
->> Not really, still v4l2_buffer may be used by other (sub)driver within same
->> video processing pipeline.
-> 
-> OK.
-> 
-> A related question: how can we make one application to support the two kinds 
-> of devices(input from user space data as OMAP4, input from SoC bus as Samsung)
-> at the same time? Maybe some capability info is to be exported to user space?
-> or other suggestions?
-
-Good question. To let applications know that a video device is not just
-an ordinary video output device I suppose we'll need a new object
-detection/recognition capability flag.
-V4L2_CAPS_OBJECT_DETECTION, V4L2_CAP_OBJECT_RECOGNITION or something similar.
-
-It's probably safe to assume the SoC will support either input method at time,
-not both simultaneously. Then it could be, for example, modelled with a video
-node and a subdev:
+[1] http://linuxtv.org/hg/dvb-apps/rev/7c4cee8c5709
 
 
-	     user image data                   video capture
-             for FD                            stream
-             +-------------+                  +-------------+
-             | /dev/video0 |                  | /dev/video0 |
-             |   OUTPUT    |                  |  CAPTURE    |
-             +------+------+                  +------+------+
-                    |                                |
-                    v                                ^
-..------+        +--+--+----------+-----+            |
-image   | link0  | pad | face     | pad |            |
-sensor  +-->-----+  0  | detector |  1  |            |
-sub-dev +-->-+   |     | sub-dev  |     |            |
-..------+    |   +-----+----------+-----+            |
-             |                                       |
-             |   +--+--+------------+-----+          |
-             |   | pad | image      | pad |          |
-             +---+  0  | processing |  1  +----------+
-          link1  |     | sub-dev    |     |
-                 +-----+------------+-----+
-
-User space can control state of link0. If the link is active (streaming) then
-access to /dev/video0 would be blocked by the driver, e.g. with EBUSY errno.
-This means that only one data source can be attached to an input pad (pad0).
-These are intrinsic properties of Media Controller/v4l2 subdev API.
-
-
-> And will your Samsung FD HW support to detect faces from memory? or just only
-> detect from SoC bus?
-
-I think we should be prepared for both configurations, as on a diagram above.
-
-[...]
-> OK, I will associate FD result with frame identifier, and not invent a
-> dedicated v4l2 event for query frame seq now until a specific requirement
-> for it is proposed.
-> 
-> I will convert/integrate recent discussions into patches of v2 for further
-
-Sure, sounds like a good idea.
-
-> review, and sub device support will be provided. But before starting to do it,
-> I am still not clear how to integrate FD into MC framework. I understand FD
-> sub device is only a media entity, so how can FD sub device find the media
-> device(struct media_device)?  or just needn't to care about it now?
-
-The media device driver will register all entities that belong to it and will
-create relevant links between entities' pads, which then can be activated by
-applications. How the entities are registered is another topic, that we don't
-need to be concerned about at the moment. If you're curious see
-drivers/media/video/omap3isp or driver/media/video/s5p-fimc for example media
-device drivers.
-
--- 
-Regards,
-Sylwester
+2011/12/1 Barts Builder <pe-builder@gmx.de>:
+> Problem:
+> The Muxes from 'Network by Location' of tvheadend are outdated for Germany / Berlin.
+>
+> tvheadend bugtracker answer:
+> Please report outdated mux information the the linux-media mailing list. Tvheadend is taking the list from the dvb-apps initial tuning files as the basis for the list of dvb networks.
+>
+> Freqency:QAM:MHz:k-mode:MuxID
+> 506000:16:8:8:773
+> 522000:16:8:8:258
+> 570000:16:8:8:514
+> 618000:64:?:?:775
+> 658000:16:8:8:769
+> 706000:64:8:8:772
+> 754000:16:8:8:774
+>
+> w_scan version 20101001 (compiled for DVB API 5.2) scan result 37 services (Ubuntu 11.04) Germany / Berlin
+> -----------------------------------------------------------------------------------------
+> Das Erste;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1401:1402=deu,1403=mis:1404:0:14:8468:258:0
+> rbb Berlin;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1201:1202=ger:1204:0:12:8468:258:0
+> rbb Brandenburg;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1201:1202=ger:1504:0:11:8468:258:0
+> Phoenix;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1301:1302=ger:1304:0:13:8468:258:0
+> EinsExtra;ARD:522000:I999B8C23D0M16T8G8Y0:T:27500:1501:1502=ger:1404:0:15:8468:258:0
+> SAT.1;ProSiebenSat.1:658000:I999B8C23D0M16T8G8Y0:T:27500:385:386=deu:391:0:16408:8468:769:0
+> ProSieben;ProSiebenSat.1:658000:I999B8C23D0M16T8G8Y0:T:27500:305:306=deu:311:0:16403:8468:769:0
+> kabel eins;ProSiebenSat.1:658000:I999B8C23D0M16T8G8Y0:T:27500:161:162=deu:167:0:16394:8468:769:0
+> N24;ProSiebenSat.1:658000:I999B8C23D0M16T8G8Y0:T:27500:225:226=deu:231:0:16398:8468:769:0
+> WDR Köln;ARD:706000:I999B8C23D0M16T8G8Y0:T:27500:4193:4194=deu:4199:0:262:8468:772:0
+> Südwest BW/RP;ARD:706000:I999B8C23D0M16T8G8Y0:T:27500:3601:3602=deu:3607:0:225:8468:772:0
+> HSE24;MEDIA BROADCAST:706000:I999B8C23D0M16T8G8Y0:T:27500:49:50=deu:55:0:16387:8468:772:0
+> TELE 5;MEDIA BROADCAST:706000:I999B8C23D0M16T8G8Y0:T:27500:465:466=deu:471:0:16413:8468:772:0
+> Eurosport;Media Broadcast:754000:I999B8C23D0M16T8G8Y0:T:27500:577:578=ger:583:0:16420:8468:774:0
+> TV.Berlin;Media Broadcast:754000:I999B8C23D0M16T8G8Y0:T:27500:3121:3122=ger:3127:0:16579:8468:774:0
+> imusic TV;Media Broadcast:754000:I999B8C23D0M16T8G8Y0:T:27500:129:130=deu:0:0:16392:8468:774:0
+> sixx;ProSiebenSat.1:754000:I999B8C23D0M16T8G8Y0:T:27500:273:274=deu:279:0:16401:8468:774:0
+> Bayerisches FS;ARD:618000:I999B8C23D0M64T8G8Y0:T:27500:545:546=deu:551:0:34:8468:775:0
+> n-tv;RTL World:618000:I999B8C23D0M64T8G8Y0:T:27500:257:258=ger:263:0:16400:8468:775:0
+> QVC;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:321:322=ger:327:0:16404:8468:775:0
+> Channel 21/Euronews;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:593:594=deu,595=eng,596=fra:599:0:16421:8468:775:0
+> Bibel TV;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:673:674=ger:679:0:16426:8468:775:0
+> DAS VIERTE;BetaDigital:618000:I999B8C23D0M64T8G8Y0:T:27500:737:738=deu:743:0:16430:8468:775:0
+> sunshine live;BetaDigital:618000:I999B8C23D0M64T8G8Y0:T:27500:0:274=deu:0:0:24593:8468:775:0
+> ERF Radio;BetaDigital:618000:I999B8C23D0M64T8G8Y0:T:27500:0:290=deu:0:0:24594:8468:775:0
+> Radio Horeb;Eurociel:618000:I999B8C23D0M64T8G8Y0:T:27500:0:306=ger:0:0:24595:8468:775:0
+> the wave - relaxing radio;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:0:610=DEU:0:0:24614:8468:775:0
+> 104.6 RTL;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:0:2082=DEU:0:0:26498:8468:775:0
+> Radio Paloma;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:0:2162=DEU:0:0:26503:8468:775:0
+> Spreeradio;MEDIA BROADCAST:618000:I999B8C23D0M64T8G8Y0:T:27500:0:2210=DEU:0:0:26506:8468:775:0
+> NDR FERNSEHEN;ARD:682000:I999B8C23D0M16T8G8Y0:T:27500:4881:4882=ger:4884:0:129:8468:257:0
+> MDR Sachsen;ARD:682000:I999B8C23D0M16T8G8Y0:T:27500:4897:4898=ger:4900:0:97:8468:257:0
+> arte;ARD:682000:I999B8C23D0M16T8G8Y0:T:27500:4913:4914=deu,4915=fra:4916:0:2:8468:257:0
+> ZDF;ZDFmobil:570000:I999B8C23D0M16T8G4Y0:T:27500:545:546=deu,547=mis:551:0:514:8468:514:0
+> 3sat;ZDFmobil:570000:I999B8C23D0M16T8G4Y0:T:27500:561:562=deu,563=mis:567:0:515:8468:514:0
+> neo/KI.KA;ZDFmobil:570000:I999B8C23D0M16T8G4Y0:T:27500:593:594=deu:599:0:517:8468:514:0
+> ZDFinfo;ZDFmobil:570000:I999B8C23D0M16T8G4Y0:T:27500:577:578=deu:551:0:516:8468:514:0
+> --
+> Empfehlen Sie GMX DSL Ihren Freunden und Bekannten und wir
+> belohnen Sie mit bis zu 50,- Euro! https://freundschaftswerbung.gmx.de
+> --
+> Empfehlen Sie GMX DSL Ihren Freunden und Bekannten und wir
+> belohnen Sie mit bis zu 50,- Euro! https://freundschaftswerbung.gmx.de
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
