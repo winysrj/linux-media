@@ -1,40 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:46918 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751744Ab1L3Vma (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:52413 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755908Ab1LGOZd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 16:42:30 -0500
-Date: Fri, 30 Dec 2011 23:42:26 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH 1/4] V4L: Add JPEG compression control class
-Message-ID: <20111230214225.GB3677@valkosipuli.localdomain>
-References: <4EBECD11.8090709@gmail.com>
- <1325015011-11904-1-git-send-email-snjw23@gmail.com>
- <1325015011-11904-2-git-send-email-snjw23@gmail.com>
+	Wed, 7 Dec 2011 09:25:33 -0500
+Received: by lagp5 with SMTP id p5so229861lag.19
+        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2011 06:25:31 -0800 (PST)
+Message-ID: <4EDF7758.3080309@gmail.com>
+Date: Wed, 07 Dec 2011 15:25:28 +0100
+From: Fredrik Lingvall <fredrik.lingvall@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1325015011-11904-2-git-send-email-snjw23@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-930C problems
+References: <4ED929E7.2050808@gmail.com> <4EDF6262.2000209@redhat.com> <4EDF6AB8.5050201@gmail.com> <4EDF7048.2030304@redhat.com>
+In-Reply-To: <4EDF7048.2030304@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 12/07/11 14:55, Mauro Carvalho Chehab wrote:
+>
+>> <snip>
+>>
+>> Bus 2 doesn't seem to do anything [Alloc= 0/800 us ( 0%)] while I'm 
+>> scanning!?
+>
+>
+> Scanning envolves 2 different things:
+>     1) tuning and locking into a channel;
+>     2) streaming and filtering, in order to seek for program tables
+> inside the MPEG-TS.
+>
+> Step 1 uses USB control messages.
+>
+> Only at step 2, the device will use the USB ISOC packets. The USB core 
+> will
+> see if is there enough bandwidth to reserve for ISOC transfers on that 
+> time
+> (based on other traffic data), and submit the URB's (or return -ENOSPC 
+> otherwise).
+>
+>>
+>> BTW: I'm running Gentoo x86_64 (amd64) on a Dell M2400 laptop with an 
+>> SSD disk.
+>>
+>> Other hardware connected is a 200 GB disk using the eSata slot, a 1TB 
+>> WD disk connected using another USB slot, a RME Multiface II 
+>> soundcard using the expresscard slot.
+>
+> The external USB disk may be interfering, if it is also at bus 2.
+> Also, some laptops use USB for some internal components like wireless.
+>
+> Please remove all other USB devices, disable wireless (if your device 
+> is USB)
+> and try again.
+>
+> Regards,
+> Mauro
 
-On Tue, Dec 27, 2011 at 08:43:28PM +0100, Sylwester Nawrocki wrote:
-...
-> +#define	V4L2_CID_JPEG_ACTIVE_MARKERS		(V4L2_CID_JPEG_CLASS_BASE + 4)
+No there's nothing else at Bus 2 (I did a umount on the WD usb disk, 
+cannot unplug devices since I'm logged in remotely right now), and 
+Wireless is a pci device:
 
-Just a few comments. I like the approach, and I'd just remove the 'S' from
-the CID name.
+lin-tv ~ # lspci
+00:00.0 Host bridge: Intel Corporation Mobile 4 Series Chipset Memory 
+Controller Hub (rev 07)
+00:01.0 PCI bridge: Intel Corporation Mobile 4 Series Chipset PCI 
+Express Graphics Port (rev 07)
+00:19.0 Ethernet controller: Intel Corporation 82567LM Gigabit Network 
+Connection (rev 03)
+00:1a.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
+Controller #4 (rev 03)
+00:1a.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
+Controller #5 (rev 03)
+00:1a.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
+Controller #6 (rev 03)
+00:1a.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI 
+Controller #2 (rev 03)
+00:1b.0 Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio 
+Controller (rev 03)
+00:1c.0 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express 
+Port 1 (rev 03)
+00:1c.1 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express 
+Port 2 (rev 03)
+00:1c.2 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express 
+Port 3 (rev 03)
+00:1c.3 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express 
+Port 4 (rev 03)
+00:1d.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
+Controller #1 (rev 03)
+00:1d.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
+Controller #2 (rev 03)
+00:1d.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
+Controller #3 (rev 03)
+00:1d.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI 
+Controller #1 (rev 03)
+00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 93)
+00:1f.0 ISA bridge: Intel Corporation ICH9M-E LPC Interface Controller 
+(rev 03)
+00:1f.2 RAID bus controller: Intel Corporation Mobile 82801 SATA RAID 
+Controller (rev 03)
+00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller 
+(rev 03)
+01:00.0 VGA compatible controller: nVidia Corporation Device 06fb (rev a1)
+03:01.0 FireWire (IEEE 1394): Ricoh Co Ltd R5C832 IEEE 1394 Controller 
+(rev 04)
+03:01.1 SD Host controller: Ricoh Co Ltd R5C822 SD/SDIO/MMC/MS/MSPro 
+Host Adapter (rev 21)
+03:01.2 SD Host controller: Ricoh Co Ltd R5C843 MMC Host Controller (rev 11)
+0c:00.0 Network controller: Intel Corporation PRO/Wireless 5300 AGN 
+[Shiloh] Network Connection
+0e:00.0 Multimedia audio controller: Xilinx Corporation RME Hammerfall 
+DSP (rev 3c)
 
-Cheers,
+lin-tv ~ # lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 008 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
+Bus 001 Device 003: ID 413c:2513 Dell Computer Corp. internal USB Hub of 
+E-Port Replicator
+Bus 001 Device 005: ID 0c45:63f8 Microdia Sonix Integrated Webcam
+Bus 003 Device 002: ID 0a5c:4500 Broadcom Corp. BCM2046B1 USB 2.0 Hub 
+(part of BCM2046 Bluetooth)
+Bus 005 Device 002: ID 0a5c:5800 Broadcom Corp. BCM5880 Secure 
+Applications Processor
+Bus 006 Device 002: ID 0451:2036 Texas Instruments, Inc. TUSB2036 Hub
+Bus 003 Device 003: ID 413c:8157 Dell Computer Corp. Integrated Keyboard
+Bus 003 Device 004: ID 413c:8158 Dell Computer Corp. Integrated Touchpad 
+/ Trackstick
+Bus 006 Device 004: ID 046d:c704 Logitech, Inc. diNovo Wireless Desktop
+Bus 003 Device 005: ID 413c:8156 Dell Computer Corp. Wireless 370 
+Bluetooth Mini-card
+Bus 002 Device 008: ID 2040:1605 Hauppauge
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Devices at Bus 2:
+
+lin-tv ~ # lsusb | grep "Bus 002"
+Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+Bus 002 Device 008: ID 2040:1605 Hauppauge
+
+/Fredrik
+
+
