@@ -1,38 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:3592 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751678Ab1LSKVE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 05:21:04 -0500
-From: "Zhu, Mingcheng" <mingchen@quicinc.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: query video dev node name using the V4L2 device driver name
-Date: Mon, 19 Dec 2011 10:21:03 +0000
-Message-ID: <3D233F78EE854A4BA3D34C11AD4FAC1FDEF5E3@nasanexd01b.na.qualcomm.com>
-References: <20111215095015.GC3677@valkosipuli.localdomain>
- <201112151354.53360.laurent.pinchart@ideasonboard.com>
- <20111215215033.GG3677@valkosipuli.localdomain>
- <201112190131.10973.laurent.pinchart@ideasonboard.com>
- <20111219071723.GL3677@valkosipuli.localdomain>
-In-Reply-To: <20111219071723.GL3677@valkosipuli.localdomain>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51429 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751907Ab1LGBr1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 20:47:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Robert =?iso-8859-1?q?=C5kerblom-Andersson?=" <robert.nr1@gmail.com>
+Subject: Re: Beagleboard-xM rev C + mt9p031 + LI-5M03
+Date: Wed, 7 Dec 2011 02:47:32 +0100
+Cc: linux-media@vger.kernel.org
+References: <CABiSWBhsVjrCF3PEWnn6junDU=ora4y6+ikVcKPNhuzLTGjMxA@mail.gmail.com> <CABiSWBiwssqOdqmgSTaY-K7VoCDWa0QSmRO4hbSG2SoGQjdi7A@mail.gmail.com>
+In-Reply-To: <CABiSWBiwssqOdqmgSTaY-K7VoCDWa0QSmRO4hbSG2SoGQjdi7A@mail.gmail.com>
 MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201112070247.34280.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent and Sakari,
+Hi Robert,
 
-Current media entity contains a few fields to identify a dev node (name, type, group_id). The entity name is the v4l2 dev node name such as "/dev/video0" "/dev/video1". There is no information who is "/dev/video0" and who is /dev/video1". This makes that, after query the media_entity the application still could not figure out who is /dev/video1".
+On Sunday 04 December 2011 08:33:34 Robert Åkerblom-Andersson wrote:
+> Hi, I have been trying to get the mt9p031 driver to work with a
+> LI-5M03 camera module and Beagleboard-xM rev C for week's now but I
+> just can't get it right for some reason.
+> 
+> I have an older version with 2.6.32 kernel that works, so I know that
+> it's not a hardware problem (even though I have suspected that I have
+> problems with pullups like mentioned here
+> http://permalink.gmane.org/gmane.comp.hardware.beagleboard.general/15871).
+> I'm not sure how I got that old image to work, I only have an image
+> file and not the sources files left, it might also have been the
+> Aptina driver (in contrast to the linux-media provided driver I want
+> to have and are trying to use).
+> 
+> Here is dmesg output: http://pastebin.com/LdfUYkfc The part that are
+> significantly later in time is from when I tried to use the driver
+> with the command:
+> mplayer tv:// -tv driver=v4l2:width=640:height=
+> 480:device=/dev/video1:fps=10 -vo x11
+> (Mplayer output only: http://pastebin.com/caDjvjV6)
+> 
+> This thread described very similar errors:
+> https://groups.google.com/forum/#!topic/beagleboard/E90i6pAjAec But
+> Joel who posted that thread did have a different camera module that
+> the one I have (I use the same kernel version and the camera that
+> should be supported).
+> 
+> Something that I do think is a little weird, but I might also be since
+> I miss some information, is that the errors in the kernel log appear
+> when using two different devices. Both /dev/video1 and /dev/video2
+> gives the same error. It feels related to this statment in the kernel
+> log "#[    2.665954] sysfs: cannot create duplicate filename
+> '/devices/platform/omap/omap_i2c.2'".
 
-However in V4L2 devices, there is a driver name that the vendor can assign a specific name such "WIFI CAPTURE" or BACK_CAMERA" to the driver name. Is it possible to add the driver name into the media_entity? This makes that, if the userspace application knows the driver name it can use the driver name to find the dev node.
+Your platform core registers I2C bus 2 twice, once through OMAP hwmod, and 
+once in arch/arm/mach-omap2/board-omap3beagle-camera.c:
 
+	omap_register_i2c_bus(2, 100, NULL, 0);
 
-Thanks,
+Removing this second registration should get rid of the associated warnings.
 
-Mingcheng
+You then get a failure to register the sensor:
 
+[    2.670928] isp_register_subdev_group: Unable to register subdev mt9p031
 
+Is the mt9p031 driver built in ? If you want to build it as a module, the 
+omap3-isp driver needs to be built as a module as well.
+
+The warnings shown at the bottom of your log are caused by an omap3-isp driver 
+bug. A fix is available at 
+http://git.linuxtv.org/pinchartl/media.git/commit/a361d1cfec0ac0901a680a6a77dc21ee0531a542. 
+I will push it to v3.3.
+
+> I would be very thankful if someone could help out with some tips on
+> how to get this to work. I'm been up so many nights now without any
+> real progress that I need to do something different.
+> 
+> If someone want to reproduce my scenario it possible to do with help
+> of this one liner:
+> git clone git://github.com/Scorpiion/Renux_Kernel.git && cd
+> Renux_Kernel && git submodule init && git submodule update &&
+> ./buildKernel.bash
+> 
+> It basically just downloads kernel sources, checks out a tag branch
+> depending on a settings file (settings/build.conf, v2.6.39 in this
+> case), applies some patches (collected from openembedded) and then
+> compiles the kernel. I guess you first thought might be that I should
+> use Ångstrom, and yes, maybe I should, but I have had problems with
+> bitbake and Ångstrom, it gives me errors all the time. I also thinks
+> it fun to do write scripts like these, it's a good learning
+> experience. (Linux tree is from git tmlind OMAP, openembedded patches
+> (camera patches is there) directory  recipes/linux/linux-omap-2.6.39,
+> git tag "v2.6.39")
+> 
+> The cross compilation toolchain I've used is also homemade or so to
+> speak, but I don't think it should be a problem. I have compiled many
+> many kernels by now and never got any compiler errors, so I don't
+> think that the problem. It is based on Gcc 4.5. And if someone is
+> interested my script to build it, it is here:
+> git://github.com/Scorpiion/Renux_cross_toolchain.git
+> 
+> I have tested it on several different Ubuntu machines (32 and 64 bits)
+> and it have worked very good. The only requirement except normal build
+> stuff is Gcc 4.5, does not work with 4.4 or 4.6 I think. The only
+> think you need to do is to run:
+> ./createCrossToolchain.bash
+> A cleaned progress output can be viewed in a different terminal during
+> the build.
+> 
+> Ps. I'm not that very used to mailing lists, and I know there are
+> rules etc even thought I don't know them all. If my post is to long or
+> in some other way not as it suppose to be feel free to point it out
+> and I'll do it better next time. Ds.
+
+You did a very good job, explaining your problem and providing related 
+important information such as the kernel log contents.
+
+-- 
+Regards,
+
+Laurent Pinchart
