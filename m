@@ -1,125 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:38969 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751597Ab1L3VDz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 16:03:55 -0500
-Date: Fri, 30 Dec 2011 23:03:51 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: "HeungJun, Kim" <riverful.kim@samsung.com>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Sylwester Nawrocki' <snjw23@gmail.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com
-Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
- control
-Message-ID: <20111230210351.GY3677@valkosipuli.localdomain>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
- <4EFB1B04.6060305@gmail.com>
- <201112281451.39399.laurent.pinchart@ideasonboard.com>
- <20111229233406.GU3677@valkosipuli.localdomain>
- <000801ccc6bd$4b844520$e28ccf60$%kim@samsung.com>
- <4EFD7955.8070603@redhat.com>
- <20111230184212.GW3677@valkosipuli.localdomain>
- <4EFE0967.6020904@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62736 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751319Ab1LGIAU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 03:00:20 -0500
+Received: by wgbdr13 with SMTP id dr13so819190wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2011 00:00:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EFE0967.6020904@redhat.com>
+In-Reply-To: <CAOy7-nNyfiHkhm37hXCGJPZzxpcR-HrUFkScB0wy0HJyZFFmzA@mail.gmail.com>
+References: <CAOy7-nPYe=QDE1HgeDSth6Co34Bz+8wwNbzONNb88zsRDPajWA@mail.gmail.com>
+	<201112010010.47269.laurent.pinchart@ideasonboard.com>
+	<CAOy7-nPSi8TLOxHw0kDay=f3=Pc_R6cXjurP33BPUXtyzqOAOA@mail.gmail.com>
+	<201112061755.08575.laurent.pinchart@ideasonboard.com>
+	<CAOy7-nNyfiHkhm37hXCGJPZzxpcR-HrUFkScB0wy0HJyZFFmzA@mail.gmail.com>
+Date: Wed, 7 Dec 2011 16:00:18 +0800
+Message-ID: <CAOy7-nN9WeDC47W83YmNSo_UF92RNc7Uto2P9EuGXJ1mYu9hBg@mail.gmail.com>
+Subject: Re: Media Controller (v4l2 & core) & MT9V032 Device Driver
+From: James <angweiyang@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+(Re-sent as mailing list rejected the original HTML email.)
 
-On Fri, Dec 30, 2011 at 07:56:39PM +0100, Hans de Goede wrote:
-> Hi,
-> 
-> On 12/30/2011 07:42 PM, 'Sakari Ailus' wrote:
-> >Hi Hans,
+Hi Laurent,
+
+> On Friday 02 December 2011 05:14:36 James wrote:
+> > On Thu, Dec 1, 2011 at 7:10 AM, Laurent Pinchart wrote:
+> > > On Tuesday 29 November 2011 03:07:28 James wrote:
+> > > > On Mon, Nov 28, 2011 at 7:15 PM, Laurent Pinchart wrote:
+> > > > > Regarding why mplayer fails, I'm not too sure. Your pipeline is
+> > > > > configured for YUYV, have you tried replacing outfmt=uyvy with
+> > > > > outfmt=yuyv on the mplayer command line ?
+> > > >
+> > > > AFAIK mplayer only has outfmt=uyvy and even with the pipeline
+> > > > configured to UYVY, the result is the same; "0 frame processed".
+> > > >
+> > > > Any suggestion is most welcome to me. (^^)
+> > >
+> > > I wrote a patch that fixes the 2 warnings you get. It might help with
+> > > mplayer, could you please try it ?
+> > >
+> > >
+> > > http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+> > > omap3isp-next
 > >
-> >On Fri, Dec 30, 2011 at 09:41:57AM +0100, Hans de Goede wrote:
-> >...
-> >>Right, so the above is exactly why I ended up making the pwc whitebalance
-> >>control the way it is, the user can essentially choice between a number
-> >>of options:
-> >>1) auto whitebal
-> >>2) a number of preset whitebal values (seems your proposal has some more then the pwc
-> >>    driver, which is fine)
-> >>3) manual whitebal, at which point the user may set whitebal through one of:
-> >>    a) a color temperature control
-> >>    b) red and blue balance controls
-> >>    c) red, green and blue gains
+> > How can I merge the patches in your branch omap3isp-omap3isp-next to
+> > Steve's tree locally?
 > >
-> >d) red, green, blue and... another green. This is how some raw bayer sensors
-> >can be controlled.
+> > 1) I've cloned Steve's repo locally.
 > >
-> 
-> Yes, but have you ever tried setting the 2 green gains to different values?
-> (Hint the result is not pretty) I strongly believe the 2 separate green gains are
-> only there as it is easier to do things that way (it keeps the sensor array symmetric) and
-> there is no value in controlling them separately.
-
-That's debatable. I agree that most of the time they're best kept same, but
-I don't think that'd still universally true. We could add controls for the
-five and depending on the capabilities of the hardware the driver would
-expose either three or four.
-
-In any case, I dont't think these controls are really something for the user
-interface for the regular user, even with three components.
-
-> >>Notice that we also need to add some standardized controls for the 3c case, but that
-> >>is a different discussion.
+> > 2) use "git remote add pinchart git://linuxtv.org/pinchartl/media.git"
+> > to
+> > the tree.
 > >
-> >I was planning to add the gain to low-level controls once the other  sensor
-> >controls have been properly discussed, and hopefully approved, first.
+> > 3) checked out the "omap3isp-omap3isp-next" branch
 > >
-> >>Seeing how this discussion has evolved I believe that what I did in the pwc driver
-> >>is actually right from the user pov, the user gets one simple menu control which
-> >>allows the user to choice between auto / preset 1 - x / manual and since as
-> >>described above choosing one of the options excludes the other options from being
-> >>active I believe having this all in one control is the right thing to do.
+> > 4) make a new branch that tracks Steve's "omap-3.0-pm".
+> > "git checkout -b myomap-3.0-pm -t origin/omap-3.0-pm"
 > >
-> >I still think automatic white balance should be separate from the rest, as
-> >it currently is (V4L2_CID_AUTO_WHITE_BALANCE). If such presets aren't
-> >available, the way the user would enable automatic white balance changes,
-> >which is bad.
-> 
-> Well we can just put in the spec that the control can be either a boolean or
-> a menu control depending on if it has presets. I really believe that we should
-> not make this 2 separate controls, it does not match from a user pov.
+> > 5) Merge your "omap3isp-omap3isp-next" branch.
+> > "git pull . omap3isp-omap3isp-next"
+> >
+> > after this command, I saw lots of files being removed and several merge
+> > conflicts.
+> > I tried git mergetool to call up kdiff3 to manually resolve but some are
+> > way out of ability/level of understanding since I don't know which holds
+> > the latest patches integrated into the respective files.
+> >
+> > The confusing parts is when your branch deleted lots of files. even
+> > drivers/net/smsc911x.c which is the driver for the ethernet chip!?!
+> >
+> > (^^)" very confusing.. hahahaha....
+>
+> That's because the two branches include lots of different changes. My
+> branch
+> is based on Mauro's official branch for patches targeted at the next
+> kernel
+> version, which is in turn based on mainline (between v3.1 and v3.2-rc1)
+> and
+> includes many patches for drivers/media/*. Steve's branch is also based on
+> mainline, but on v3.0 instead of v3.1, and includes other patches.
 
-For a test program like yavta that's fine, but for an application that
-could be worse. Applications should be able to rely that the type of
-controls is constant. The control frame work also assumes this.
+Thanks for clarifying the starting point of your tree.
+Which branch at Mauro's tree is your "omap3isp-omap3isp-next" sitting on?
 
-Do you see adverse effects in providing two controls?
+> If you merge my branch onto Steve's tree, you will get the whole v3.1,
+> which
+> likely conflicts. Doing it the other way around isn't much better. The
+> easiest
+> way to use the OMAP3 ISP patches on top of Steve's tree is likely to
+> hand-pick
+> them. You can get a list of patches with git log, and use git cherry-pick
+> to
+> pick them manually.
 
-> There are 2 things which the user wants to control here:
-> 
-> 1) How the value of the white balance controls gets controlled, which is
-> one of: a) auto b) select values from preset 1 - # c) manaul
-> 
-> 2) The white balance controls themselves (temperature, or color balances ...),
-> but only if 1) is set to manual
-> 
-> There is no reason to separate 1) in 2 separate controls, that will only serve
-> to confuse the user.
-> 
-> As for the theoretical automatic wb which takes some hints like the presets,
-> AFAIK no such device exists and it is unlikely one will show up in the near
-> future. IOW it is purely theoretical and thus not interesting.
 
-I beg to disagree. Remember that not all cameras that use V4L2 are webcams.
-The Nokia N9 does use similar configuration items as hints for the white
-balance algorithm. The algorithm is implemented in Linux user space, and to
-provide full functionality over V4L2 interface that kind of a control would
-eventually be required.
+With this layout, my understanding is that the 'proper' path for Steve's
+branch to get updated with all media patches is only when the mainline
+merged Mauro's branch and Steve pull them into his or rebase against it.
+Right?
 
-That said, there are other issues in the way of supporting the N9 camera
-properly for the V4L2 applications.
+I saw Steve's repo staging a new "omap-v3.2".
+http://www.sakoman.com/cgi-bin/gitweb.cgi?p=linux-omap-2.6.git;a=shortlog;h=refs/heads/omap-3.2
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Wonder till what stage has Mauro's branch been merged into mainline. Is
+there a way to determine a common baseline/point between both trees so that
+I can hand-pick them into Steve's v3.2?
+
+My understanding of git workflow is still at 'infant' stage. (^^)" and the
+difficulty is learning how to 'pull, merge & resolves conflicts' from
+different trees/branches. (^^)
+
+Since I'm using Overo, I relies mainly on Steve's repo but I do know that TI
+has a linux-omap tree at
+git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git which is
+fairly updated & tracks the mainline closely.
+
+Pardon my silly questions.
+
+Regards,
+James.
