@@ -1,123 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45795 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755227Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:23 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNjA006756
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 07/28] [media] tda10021: Don't use a magic numbers for QAM modulation
-Date: Thu, 22 Dec 2011 09:19:55 -0200
-Message-Id: <1324552816-25704-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-7-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
- <1324552816-25704-4-git-send-email-mchehab@redhat.com>
- <1324552816-25704-5-git-send-email-mchehab@redhat.com>
- <1324552816-25704-6-git-send-email-mchehab@redhat.com>
- <1324552816-25704-7-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailgate.thermoteknix.com ([188.223.91.156]:57461 "EHLO
+	mailgate.thermoteknix.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754765Ab1LGLop (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 06:44:45 -0500
+Message-ID: <4EDF51AA.3040503@thermoteknix.com>
+Date: Wed, 07 Dec 2011 11:44:42 +0000
+From: Adam Pledger <a.pledger@thermoteknix.com>
+MIME-Version: 1.0
+To: Michael Jones <michael.jones@matrix-vision.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Omap3 ISP + Gstreamer v4l2src
+References: <4EDF1DA2.5000106@thermoteknix.com> <201112071134.24567.laurent.pinchart@ideasonboard.com> <4EDF477D.8080507@matrix-vision.de>
+In-Reply-To: <4EDF477D.8080507@matrix-vision.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Convert the existing data struct to use the QAM modulation macros,
-instead of assuming that they're numbered from 0 to 5.
+Hi Laurent, Michael,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda10021.c |   59 ++++++++++++++++++++------------
- 1 files changed, 37 insertions(+), 22 deletions(-)
+<snip>
+>> Please note that BT.656 support is still experimental, so issues are not
+>> unexpected.
 
-diff --git a/drivers/media/dvb/frontends/tda10021.c b/drivers/media/dvb/frontends/tda10021.c
-index 6ca533e..cd9952e 100644
---- a/drivers/media/dvb/frontends/tda10021.c
-+++ b/drivers/media/dvb/frontends/tda10021.c
-@@ -224,27 +224,43 @@ static int tda10021_init (struct dvb_frontend *fe)
- 	return 0;
- }
- 
-+struct qam_params {
-+	u8 conf, agcref, lthr, mseth, aref;
-+};
-+
- static int tda10021_set_parameters (struct dvb_frontend *fe,
- 			    struct dvb_frontend_parameters *p)
- {
- 	struct tda10021_state* state = fe->demodulator_priv;
--
--	//table for QAM4-QAM256 ready  QAM4  QAM16 QAM32 QAM64 QAM128 QAM256
--	//CONF
--	static const u8 reg0x00 [] = { 0x14, 0x00, 0x04, 0x08, 0x0c,  0x10 };
--	//AGCREF value
--	static const u8 reg0x01 [] = { 0x78, 0x8c, 0x8c, 0x6a, 0x78,  0x5c };
--	//LTHR value
--	static const u8 reg0x05 [] = { 0x78, 0x87, 0x64, 0x46, 0x36,  0x26 };
--	//MSETH
--	static const u8 reg0x08 [] = { 0x8c, 0xa2, 0x74, 0x43, 0x34,  0x23 };
--	//AREF
--	static const u8 reg0x09 [] = { 0x96, 0x91, 0x96, 0x6a, 0x7e,  0x6b };
--
-+	static const struct qam_params qam_params[] = {
-+		/* Modulation  Conf  AGCref  LTHR  MSETH  AREF */
-+		[QPSK]	   = { 0x14, 0x78,   0x78, 0x8c,  0x96 },
-+		[QAM_16]   = { 0x00, 0x8c,   0x87, 0xa2,  0x91 },
-+		[QAM_32]   = { 0x04, 0x8c,   0x64, 0x74,  0x96 },
-+		[QAM_64]   = { 0x08, 0x6a,   0x46, 0x43,  0x6a },
-+		[QAM_128]  = { 0x0c, 0x78,   0x36, 0x34,  0x7e },
-+		[QAM_256]  = { 0x10, 0x5c,   0x26, 0x23,  0x6b },
-+	};
- 	int qam = p->u.qam.modulation;
- 
--	if (qam < 0 || qam > 5)
-+	/*
-+	 * gcc optimizes the code bellow the same way as it would code:
-+	 *           "if (qam > 5) return -EINVAL;"
-+	 * Yet, the code is clearer, as it shows what QAM standards are
-+	 * supported by the driver, and avoids the usage of magic numbers on
-+	 * it.
-+	 */
-+	switch (qam) {
-+	case QPSK:
-+	case QAM_16:
-+	case QAM_32:
-+	case QAM_64:
-+	case QAM_128:
-+	case QAM_256:
-+		break;
-+	default:
- 		return -EINVAL;
-+	}
- 
- 	if (p->inversion != INVERSION_ON && p->inversion != INVERSION_OFF)
- 		return -EINVAL;
-@@ -256,15 +272,14 @@ static int tda10021_set_parameters (struct dvb_frontend *fe,
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	tda10021_set_symbolrate (state, p->u.qam.symbol_rate);
--	_tda10021_writereg (state, 0x34, state->pwm);
--
--	_tda10021_writereg (state, 0x01, reg0x01[qam]);
--	_tda10021_writereg (state, 0x05, reg0x05[qam]);
--	_tda10021_writereg (state, 0x08, reg0x08[qam]);
--	_tda10021_writereg (state, 0x09, reg0x09[qam]);
-+	tda10021_set_symbolrate(state, p->u.qam.symbol_rate);
-+	_tda10021_writereg(state, 0x34, state->pwm);
- 
--	tda10021_setup_reg0 (state, reg0x00[qam], p->inversion);
-+	_tda10021_writereg(state, 0x01, qam_params[qam].agcref);
-+	_tda10021_writereg(state, 0x05, qam_params[qam].lthr);
-+	_tda10021_writereg(state, 0x08, qam_params[qam].mseth);
-+	_tda10021_writereg(state, 0x09, qam_params[qam].aref);
-+	tda10021_setup_reg0(state, qam_params[qam].conf, p->inversion);
- 
- 	return 0;
- }
--- 
-1.7.8.352.g876a6
+Yes, I was aware that this is not yet fully baked.
+
+<snip>
+>>> My question is, should this "just work"? It was my understanding that
+>>> once the pipeline was configured with media-ctl then the CCDC output 
+>>> pad
+>>> should behave like a standard V4L2 device node.
+>>
+>>
+>> That's more or less correct. There have been a passionate debate 
+>> regarding
+>> what a "standard V4L2 device node" is. Not all V4L2 ioctls are 
+>> mandatory, and
+>> no driver implements them all. The OMAP3 ISP driver implements a very 
+>> small
+>> subset of the V4L2 API, and it wasn't clear whether that still 
+>> qualified as
+>> V4L2. After discussions we decided that the V4L2 specification will 
+>> document
+>> profiles, with a set of required ioctls for each of them. The OMAP3 ISP
+>> implements the future video streaming profile.
+>>
+>> I'm not sure what ioctls v4l2src consider as mandatory. The above error
+>> related to a CTRL ioctl (possibly VIDIOC_QUERYCTRL), which isn't 
+>> implemented
+>> by the OMAP3 ISP driver and will likely never be. I don't think that 
+>> should be
+>> considered as mandatory.
+>>
+>> I think that v4l2src requires the VIDIOC_ENUMFMT ioctl, which isn't
+>> implemented in the OMAP3 ISP driver. That might change in the future, 
+>> but I'm
+>> not sure yet whether it will. In any case, you might have to modify 
+>> v4l2src
+>> and/or the OMAP3 ISP driver for now. Some patches have been posted a 
+>> while ago
+>> to this mailing list.
+>
+> Here was my submission for ENUM_FMT support:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg29640.html
+>
+> I submitted this in order to be able to use the omap3-isp with 
+> GStreamer.  I missed the discussion about V4L2 "profiles", but when I 
+> submitted that patch we discussed whether ENUM_FMT was mandatory. 
+> After I pointed out that the V4L2 spec states plainly that it _is_ 
+> mandatory, I thought Laurent basically agreed that it was reasonable.
+>
+> Laurent, what do you think about adding ENUM_FMT support now?
+
+Thank you both for clarifying the current situation regarding omap3isp / 
+MCF (and Michael for the previous patch, which I will take a look at). 
+This addresses quite a few questions that I have been mulling over in 
+the last few days.
+
+<snip>
+
+Best Regards
+
+Adam
 
