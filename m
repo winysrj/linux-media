@@ -1,124 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38417 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:51163 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752549Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:31 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9U14024210
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
+	id S1755801Ab1LGNoF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Dec 2011 08:44:05 -0500
+Message-ID: <4EDF6DA0.5040406@redhat.com>
+Date: Wed, 07 Dec 2011 11:44:00 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 59/94] [media] tda10023: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:56 -0200
-Message-Id: <1325257711-12274-60-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+MIME-Version: 1.0
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [GIT PATCHES FOR 3.3] v4l: introduce selection API
+References: <4EC13CEA.4020705@samsung.com>
+In-Reply-To: <4EC13CEA.4020705@samsung.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On 14-11-2011 14:08, Tomasz Stanislawski wrote:
+> Hi Mauro,
+>
+> This is the second 'pull-requested' version of the selection API. The patch-set introduces new ioctls to V4L2 API for the configuration of the selection rectangles like crop and compose areas.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Tomasz,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda10023.c |   35 ++++++++-----------------------
- 1 files changed, 9 insertions(+), 26 deletions(-)
+A way better than the previous pull request. The only missing issue is related
+to the scaling. As I told you on IRC, the scale for it should be decided
+in advance, as a latter change would break binaries compiled with old Kernel
+versions.
 
-diff --git a/drivers/media/dvb/frontends/tda10023.c b/drivers/media/dvb/frontends/tda10023.c
-index de535a4..8f451dc 100644
---- a/drivers/media/dvb/frontends/tda10023.c
-+++ b/drivers/media/dvb/frontends/tda10023.c
-@@ -302,8 +302,7 @@ struct qam_params {
- 	u8 qam, lockthr, mseth, aref, agcrefnyq, eragnyq_thd;
- };
- 
--static int tda10023_set_parameters (struct dvb_frontend *fe,
--			    struct dvb_frontend_parameters *p)
-+static int tda10023_set_parameters (struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	u32 delsys  = c->delivery_system;
-@@ -377,21 +376,6 @@ static int tda10023_set_parameters (struct dvb_frontend *fe,
- 	return 0;
- }
- 
--static int tda10023_get_property(struct dvb_frontend *fe,
--				 struct dtv_property *p)
--{
--	switch (p->cmd) {
--	case DTV_ENUM_DELSYS:
--		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
--		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
--		p->u.buffer.len = 2;
--		break;
--	default:
--		break;
--	}
--	return 0;
--}
--
- static int tda10023_read_status(struct dvb_frontend* fe, fe_status_t* status)
- {
- 	struct tda10023_state* state = fe->demodulator_priv;
-@@ -472,7 +456,7 @@ static int tda10023_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
- 	return 0;
- }
- 
--static int tda10023_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
-+static int tda10023_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
- {
- 	struct tda10023_state* state = fe->demodulator_priv;
- 	int sync,inv;
-@@ -487,17 +471,17 @@ static int tda10023_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_pa
- 		printk(sync & 2 ? "DVB: TDA10023(%d): AFC (%d) %dHz\n" :
- 				  "DVB: TDA10023(%d): [AFC (%d) %dHz]\n",
- 			state->frontend.dvb->num, afc,
--		       -((s32)p->u.qam.symbol_rate * afc) >> 10);
-+		       -((s32)p->symbol_rate * afc) >> 10);
- 	}
- 
- 	p->inversion = (inv&0x20?0:1);
--	p->u.qam.modulation = ((state->reg0 >> 2) & 7) + QAM_16;
-+	p->modulation = ((state->reg0 >> 2) & 7) + QAM_16;
- 
--	p->u.qam.fec_inner = FEC_NONE;
-+	p->fec_inner = FEC_NONE;
- 	p->frequency = ((p->frequency + 31250) / 62500) * 62500;
- 
- 	if (sync & 2)
--		p->frequency -= ((s32)p->u.qam.symbol_rate * afc) >> 10;
-+		p->frequency -= ((s32)p->symbol_rate * afc) >> 10;
- 
- 	return 0;
- }
-@@ -588,7 +572,7 @@ error:
- }
- 
- static struct dvb_frontend_ops tda10023_ops = {
--
-+	.delsys = { SYS_DVBC_ANNEX_A, SYS_DVBC_ANNEX_C },
- 	.info = {
- 		.name = "Philips TDA10023 DVB-C",
- 		.type = FE_QAM,
-@@ -609,9 +593,8 @@ static struct dvb_frontend_ops tda10023_ops = {
- 	.sleep = tda10023_sleep,
- 	.i2c_gate_ctrl = tda10023_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = tda10023_set_parameters,
--	.get_frontend_legacy = tda10023_get_frontend,
--	.get_property = tda10023_get_property,
-+	.set_frontend = tda10023_set_parameters,
-+	.get_frontend = tda10023_get_frontend,
- 	.read_status = tda10023_read_status,
- 	.read_ber = tda10023_read_ber,
- 	.read_signal_strength = tda10023_read_signal_strength,
--- 
-1.7.8.352.g876a6
+So, we need to decide if the scale for cropping will be pixels or sub-pixels,
+or to add some flag that would allow userspace to decide between them.
+
+PS.: As I've reviewed already the other patches, please add a new patch with the
+incremental change for scaling, as this saves my time to review the patches that
+are already ok.
+
+Thanks,
+Mauro
+
+>
+> Changelog:
+>
+> - changed naming of constraints flags to form V4L2_SEL_FLAG_*
+> - changed naming of selection target to form V4L2_SEL_TGT_*
+> - size of PNG files in the documentation is greatly reduced
+> - fixes to handling of output queues for old cropping emulation
+> - VIDIOC_{S/G}_SELECTION for s5p-mixer accepts single- and multiplane buffers as VIDIOC_{S/G}_CROP did
+>
+> Best regards,
+> Tomasz Stanislawski
+>
+> The following changes since commit e9eb0dadba932940f721f9d27544a7818b2fa1c5:
+>
+> [media] V4L menu: add submenu for platform devices (2011-11-08 12:09:52 -0200)
+>
+> are available in the git repository at:
+> git://git.infradead.org/users/kmpark/linux-samsung v4l-selection
+>
+> Tomasz Stanislawski (5):
+> v4l: add support for selection api
+> doc: v4l: add binary images for selection API
+> doc: v4l: add documentation for selection API
+> v4l: emulate old crop API using extended crop/compose API
+> v4l: s5p-tv: mixer: add support for selection API
+>
+> Documentation/DocBook/media/constraints.png.b64 | 59 ++++
+> Documentation/DocBook/media/selection.png.b64 | 206 ++++++++++++
+> Documentation/DocBook/media/v4l/common.xml | 2 +
+> Documentation/DocBook/media/v4l/compat.xml | 9 +
+> Documentation/DocBook/media/v4l/selection-api.xml | 327 +++++++++++++++++++
+> Documentation/DocBook/media/v4l/v4l2.xml | 1 +
+> .../DocBook/media/v4l/vidioc-g-selection.xml | 304 +++++++++++++++++
+> drivers/media/video/s5p-tv/mixer.h | 14 +-
+> drivers/media/video/s5p-tv/mixer_grp_layer.c | 157 +++++++--
+> drivers/media/video/s5p-tv/mixer_video.c | 342 +++++++++++++-------
+> drivers/media/video/s5p-tv/mixer_vp_layer.c | 108 ++++---
+> drivers/media/video/v4l2-compat-ioctl32.c | 2 +
+> drivers/media/video/v4l2-ioctl.c | 116 +++++++-
+> include/linux/videodev2.h | 46 +++
+> include/media/v4l2-ioctl.h | 4 +
+> 15 files changed, 1495 insertions(+), 202 deletions(-)
+> create mode 100644 Documentation/DocBook/media/constraints.png.b64
+> create mode 100644 Documentation/DocBook/media/selection.png.b64
+> create mode 100644 Documentation/DocBook/media/v4l/selection-api.xml
+> create mode 100644 Documentation/DocBook/media/v4l/vidioc-g-selection.xml
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
 
