@@ -1,132 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:35162 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751726Ab1LLLJc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 06:09:32 -0500
-Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
- by mailout4.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LW3007W98BU00Z0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 12 Dec 2011 20:09:30 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LW300I7A8BPX010@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Mon, 12 Dec 2011 20:09:30 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: 'Sakari Ailus' <sakari.ailus@iki.fi>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	=?iso-8859-1?Q?'Sebastian_Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <20111206143538.GD938@valkosipuli.localdomain>
- <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
- <201112121159.03471.laurent.pinchart@ideasonboard.com>
-In-reply-to: <201112121159.03471.laurent.pinchart@ideasonboard.com>
-Subject: RE: [RFC] Resolution change support in video codecs in v4l2
-Date: Mon, 12 Dec 2011 12:09:23 +0100
-Message-id: <003901ccb8be$84c19d40$8e44d7c0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-1
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+Received: from youngberry.canonical.com ([91.189.89.112]:55845 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755801Ab1LGNkp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 08:40:45 -0500
+MIME-Version: 1.0
+In-Reply-To: <4EDE90A3.7050900@gmail.com>
+References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
+	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>
+	<4EDD3DEE.6060506@gmail.com>
+	<CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
+	<4EDE90A3.7050900@gmail.com>
+Date: Wed, 7 Dec 2011 21:40:41 +0800
+Message-ID: <CACVXFVN=-0OQ_Tz+HznDug4baLmLNjxVE21gv6CGFoU+hzCtPQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver module
+From: Ming Lei <ming.lei@canonical.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: 12 December 2011 11:59
-> 
-> Hi Kamil,
-> 
-> On Tuesday 06 December 2011 16:03:33 Kamil Debski wrote:
-> > On 06 December 2011 15:36 Sakari Ailus wrote:
-> > > On Fri, Dec 02, 2011 at 02:50:17PM -0200, Mauro Carvalho Chehab wrote:
-> > > > On 02-12-2011 11:57, Sakari Ailus wrote:
-> > > > > Some codecs need to be able to access buffers which have already
-> been
-> > > > > decoded to decode more buffers. Key frames, simply.
-> > > >
-> > > > Ok, but let's not add unneeded things at the API if you're not sure.
-> If
-> > > > we have such need for a given hardware, then add it. Otherwise, keep
-> it
-> > > > simple.
-> > >
-> > > This is not so much dependent on hardware but on the standards which the
-> > > cdoecs implement.
-> > >
-> > > > > The user space still wants to be able to show these buffers, so a
-> new
-> > > > > flag would likely be required --- V4L2_BUF_FLAG_READ_ONLY, for
-> > > > > example.
-> > > >
-> > > > Huh? Assuming a capture device, when kernel makes a buffer available
-> to
-> > > > userspace, kernel should not touch on it anymore (not even for read -
-> > > > although reading from it probably won't cause any issues, as video
-> > > > applications in general don't write into those buffers). The opposite
-> is
-> > > > true for output devices: once userspace fills it, and queues, it
-> should
-> > > > not touch that buffer again.
-> > > >
-> > > > This is part of the queue/dequeue logic. I can't see any need for an
-> > > > extra flag to explicitly say that.
-> > >
-> > > There is a reason to do so. An example of this is below. The
-> > > memory-to-memory device has two queues, output can capture. A video
-> > > decoder memory-to-memory device's output queue handles compressed video
-> > > and the capture queue provides the application decoded frames.
-> > >
-> > > Certain frames in the stream are key frames, meaning that the decoding
-> of
-> > > the following non-key frames requires access to the key frame. The
-> number
-> > > of non-key frame can be relatively large, say 16, depending on the
-> > > codec.
-> > >
-> > > If the user should wait for all the frames to be decoded before the key
-> > > frame can be shown, then either the key frame is to be skipped or
-> > > delayed. Both of the options are highly undesirable.
-> >
-> > I don't think that such a delay is worrisome. This is only initial delay.
-> > The hw will process these N buffers and after that it works exactly the
-> > same as it would without the delay in terms of processing time.
-> 
-> For offline video decoding (such as playing a movie for instance) that's
-> probably not a big issue. For online video decoding (video conferencing)
-> where
-> you want to minimize latency it can be.
+On Wed, Dec 7, 2011 at 6:01 AM, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+> On 12/06/2011 03:07 PM, Ming Lei wrote:
+>> Hi,
+>>
+>> Thanks for your review.
+>>
+>> On Tue, Dec 6, 2011 at 5:55 AM, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+>>> Hi Ming,
+>>>
+>>> (I've pruned the Cc list, leaving just the mailing lists)
+>>>
+>>> On 12/02/2011 04:02 PM, Ming Lei wrote:
+>>>> This patch introduces one driver for face detection purpose.
+>>>>
+>>>> The driver is responsible for all v4l2 stuff, buffer management
+>>>> and other general things, and doesn't touch face detection hardware
+>>>> directly. Several interfaces are exported to low level drivers
+>>>> (such as the coming omap4 FD driver)which will communicate with
+>>>> face detection hw module.
+>>>>
+>>>> So the driver will make driving face detection hw modules more
+>>>> easy.
+>>>
+>>>
+>>> I would hold on for a moment on implementing generic face detection
+>>> module which is based on the V4L2 video device interface. We need to
+>>> first define an API that would be also usable at sub-device interface
+>>> level (http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html).
+>>
+>> If we can define a good/stable enough APIs between kernel and user space,
+>> I think the patches can be merged first. For internal kernel APIs, we should
+>> allow it to evolve as new hardware comes or new features are to be introduced.
+>
+> I also don't see a problem in discussing it a bit more;)
 
-In this use case it would be good to setup the encoder to use as little 
-reference frames as possible. The lesser reference frames are used the shorter
-is the delay. The stream used for video conferencing should definitely be
-different
-from the one used in DVD/Blu-ray.
+OK, fair enough, let's discuss it, :-)
 
-Also you can set the display delay to 0 then you will get the frames as soon as
-possible, but it's up to the application to display them in the right order and
-to make sure that they are not modified.
- 
-> > > Alternatively one could allocate the double number of buffers required.
-> > > At 1080p and 16 buffers this could be roughly 66 MB. Additionally,
-> > > starting the playback is delayed for the duration for the decoding of
-> > > those frames. I think we should not force users to do so.
-> >
-> > I really don't think it is necessary to allocate twice as many buffers.
-> > Assuming that hw needs K buffers you may alloc N (= K + L) and the
-> > application may use all these L buffers at a time.
-> 
+>
+>>
+>> I understand the API you mentioned here should belong to kernel internal
+>> API, correct me if it is wrong.
+>
+> Yes, I meant the in kernel design, i.e. generic face detection kernel module
+> and an OMAP4 FDIF driver. It makes lots of sense to separate common code
+> in this way, maybe even when there would be only OMAP devices using it.
 
-Best wishes,
+Yes, that is the motivation of the generic FD module. I think we can focus on
+two use cases for the generic FD now:
+
+- one is to detect faces from user space image data
+
+- another one is to detect faces in image data generated from HW(SoC
+internal bus, resize hardware)
+
+For OMAP4 hardware, input data is always from physically continuous
+memory directly, so it is very easy to support the two cases. For the
+use case 2,
+if buffer copy is to be avoided, we can use the coming shared dma-buf[1]
+to pass the image buffer produced by other HW to FD hw directly.
+
+For other FD hardware, if it supports to detect faces in image data from
+physically continuous memory, I think the patch is OK to support it.
+
+If the FD hw doesn't support to detect faces from physically continuous
+memory, I have some questions: how does user space app to parse the
+FD result if application can't get the input image data? If user space can
+get image data, how does it connect the image data with FD result? and
+what standard v4l2 ways(v4l2_buffer?) can the app use to describe the
+image data?
+
+> I'm sure now the Samsung devices won't fit in video output node based driver
+> design. They read image data in different ways and also the FD result format
+> is totally different.
+
+I think user space will need the FD result, so it is very important to define
+API to describe the FD result format to user space. And the input about your
+FD HW result format is certainly helpful to define the API.
+
+>>
+>>> AFAICS OMAP4 FDIF processes only data stored in memory, thus it seems
+>>> reasonable to use the videodev interface for passing data to the kernel
+>>> from user space.
+>>>
+>>> But there might be face detection devices that accept data from other
+>>> H/W modules, e.g. transferred through SoC internal data buses between
+>>> image processing pipeline blocks. Thus any new interfaces need to be
+>>> designed with such devices in mind.
+>>>
+>>> Also the face detection hardware block might now have an input DMA
+>>> engine in it, the data could be fed from memory through some other
+>>> subsystem (e.g. resize/colour converter). Then the driver for that
+>>> subsystem would implement a video node.
+>>
+>> I think the direct input image or frame data to FD should be from memory
+>> no matter the actual data is from external H/W modules or input DMA because
+>> FD will take lot of time to detect faces in one image or frame and FD can't
+>> have so much memory to cache several images or frames data.
+>
+> Sorry, I cannot provide much details at the moment, but there exists hardware
+> that reads data from internal SoC buses and even if it uses some sort of
+> cache memory it doesn't necessarily have to be available for the user.
+
+Without some hardware background, it is not easy to give a generic FD module
+design.
+
+> Still the FD result is associated with an image frame for such H/W, but not
+> necessarily with a memory buffer queued by a user application.
+
+For user space application, it doesn't make sense to handle FD results
+only without image data.  Even though there are other ways of input
+image data to FD, user space still need to know the image data, so it makes
+sense to associate FD result with a memory buffer.
+
+> How long it approximately takes to process single image for OMAP4 FDIF ?
+
+See the link[2], and my test result is basically consistent with the data.
+
+>>
+>> If you have seen this kind of FD hardware design, please let me know.
+>>
+>>> I'm for leaving the buffer handling details for individual drivers
+>>> and focusing on a standard interface for applications, i.e. new
+>>
+>> I think leaving buffer handling details in generic FD driver or
+>> individual drivers
+>> doesn't matter now, since it don't have effect on interfaces between kernel
+>> and user space.
+>
+> I think you misunderstood me. I wasn't talking about core/driver module split,
+> I meant we should not be making the user interface video node centric.
+>
+> I think for Samsung devices I'll need a capture video node for passing
+
+Why is it a capture video node instead of OUTPUT v4l2 device? I think the
+device name should be decided from the view of face detection function:
+FD need input image data and produce detection result.
+
+> the result to the user. So instead of associating FD result with a buffer index
+
+See the explanation above.
+
+> we could try to use the frame sequence number (struct v4l2_buffer.sequence,
+> http://linuxtv.org/downloads/v4l-dvb-apis/buffer.html#v4l2-buffer).
+>
+> It might be much better as the v4l2 events are associated with the frame
+> sequence. And if we use controls then you get control events for free,
+> and each event carries a frame sequence number int it
+> (http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-dqevent.html).
+>
+> --
+>
+> Regards,
+> Sylwester
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+thanks,
 --
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+Ming Lei
 
+[1], http://marc.info/?t=132281644700005&r=1&w=2
+[2], http://e2e.ti.com/support/embedded/linux/f/354/t/128938.aspx#462740
