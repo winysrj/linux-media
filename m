@@ -1,164 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56121 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753997Ab1L0BJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:48 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19mB2017948
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:48 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 75/91] [media] gp8psk-fe: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:09:03 -0200
-Message-Id: <1324948159-23709-76-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-75-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
- <1324948159-23709-56-git-send-email-mchehab@redhat.com>
- <1324948159-23709-57-git-send-email-mchehab@redhat.com>
- <1324948159-23709-58-git-send-email-mchehab@redhat.com>
- <1324948159-23709-59-git-send-email-mchehab@redhat.com>
- <1324948159-23709-60-git-send-email-mchehab@redhat.com>
- <1324948159-23709-61-git-send-email-mchehab@redhat.com>
- <1324948159-23709-62-git-send-email-mchehab@redhat.com>
- <1324948159-23709-63-git-send-email-mchehab@redhat.com>
- <1324948159-23709-64-git-send-email-mchehab@redhat.com>
- <1324948159-23709-65-git-send-email-mchehab@redhat.com>
- <1324948159-23709-66-git-send-email-mchehab@redhat.com>
- <1324948159-23709-67-git-send-email-mchehab@redhat.com>
- <1324948159-23709-68-git-send-email-mchehab@redhat.com>
- <1324948159-23709-69-git-send-email-mchehab@redhat.com>
- <1324948159-23709-70-git-send-email-mchehab@redhat.com>
- <1324948159-23709-71-git-send-email-mchehab@redhat.com>
- <1324948159-23709-72-git-send-email-mchehab@redhat.com>
- <1324948159-23709-73-git-send-email-mchehab@redhat.com>
- <1324948159-23709-74-git-send-email-mchehab@redhat.com>
- <1324948159-23709-75-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57340 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755801Ab1LGNp5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 08:45:57 -0500
+Received: from localhost.localdomain (unknown [91.178.3.157])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 3275F35AA7
+	for <linux-media@vger.kernel.org>; Wed,  7 Dec 2011 13:45:56 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH v2] omap3isp: Prevent pipelines that contain a crashed entity from starting
+Date: Wed,  7 Dec 2011 14:46:04 +0100
+Message-Id: <1323265564-19165-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+The OMAP3 ISP preview engine will violate the L4 bus protocol if we try
+to write some of its internal registers after it failed to stop
+properly. This generates an external abort on non-linefetch fault,
+triggering a fatal kernel oops.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+We can't always prevent preview engine stop failures (they can for
+instance be caused by a sensor crash), but we can improve the system
+reliability by refusing to start streaming on a pipeline that contains
+the preview engine if it failed to stop. The driver will then eventually
+reset the ISP (when all applications will have closed their file handles
+related to OMAP3 ISP device nodes), making the ISP usable again.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/dvb/dvb-usb/gp8psk-fe.c |   25 ++++---------------------
- 1 files changed, 4 insertions(+), 21 deletions(-)
+ drivers/media/video/omap3isp/isp.c |   26 ++++++++++++++++++++------
+ drivers/media/video/omap3isp/isp.h |    3 ++-
+ 2 files changed, 22 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/gp8psk-fe.c b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-index 6189446..c40168f 100644
---- a/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-+++ b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-@@ -113,28 +113,12 @@ static int gp8psk_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_front
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index b818cac..172e811 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -741,6 +741,16 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
+ 	unsigned long flags;
+ 	int ret;
+ 
++	/* If the preview engine crashed it might not respond to read/write
++	 * operations on the L4 bus. This would result in a bus fault and a
++	 * kernel oops. Refuse to start streaming in that case. This check must
++	 * be performed before the loop below to avoid starting entities if the
++	 * pipeline won't start anyway (those entities would then likely fail to
++	 * stop, making the problem worse).
++	 */
++	if (isp->crashed & (1 << isp->isp_prev.subdev.entity.id))
++		return -EIO;
++
+ 	spin_lock_irqsave(&pipe->lock, flags);
+ 	pipe->state &= ~(ISP_PIPELINE_IDLE_INPUT | ISP_PIPELINE_IDLE_OUTPUT);
+ 	spin_unlock_irqrestore(&pipe->lock, flags);
+@@ -881,13 +891,15 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+ 
+ 		if (ret) {
+ 			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
++			/* If the entity failed to stopped, assume it has
++			 * crashed. Mark it as such, the ISP will be reset when
++			 * applications will release it.
++			 */
++			isp->crashed |= 1 << subdev->entity.id;
+ 			failure = -ETIMEDOUT;
+ 		}
+ 	}
+ 
+-	if (failure < 0)
+-		isp->needs_reset = true;
+-
+ 	return failure;
+ }
+ 
+@@ -1071,6 +1083,7 @@ static int isp_reset(struct isp_device *isp)
+ 		udelay(1);
+ 	}
+ 
++	isp->crashed = 0;
  	return 0;
  }
  
--static int gp8psk_fe_set_property(struct dvb_frontend *fe,
--	struct dtv_property *tvp)
--{
--	deb_fe("%s(..)\n", __func__);
--	return 0;
--}
--
--static int gp8psk_fe_get_property(struct dvb_frontend *fe,
--	struct dtv_property *tvp)
--{
--	deb_fe("%s(..)\n", __func__);
--	return 0;
--}
--
--
--static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
--				  struct dvb_frontend_parameters *fep)
-+static int gp8psk_fe_set_frontend(struct dvb_frontend* fe)
- {
- 	struct gp8psk_fe_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	u8 cmd[10];
--	u32 freq = fep->frequency * 1000;
-+	u32 freq = c->frequency * 1000;
- 	int gp_product_id = le16_to_cpu(state->d->udev->descriptor.idProduct);
- 
- 	deb_fe("%s()\n", __func__);
-@@ -342,6 +326,7 @@ success:
- 
- 
- static struct dvb_frontend_ops gp8psk_fe_ops = {
-+	.delsys = { SYS_DVBS },
- 	.info = {
- 		.name			= "Genpix DVB-S",
- 		.type			= FE_QPSK,
-@@ -366,9 +351,7 @@ static struct dvb_frontend_ops gp8psk_fe_ops = {
- 	.init = NULL,
- 	.sleep = NULL,
- 
--	.set_property = gp8psk_fe_set_property,
--	.get_property = gp8psk_fe_get_property,
--	.set_frontend_legacy = gp8psk_fe_set_frontend,
-+	.set_frontend = gp8psk_fe_set_frontend,
- 
- 	.get_tune_settings = gp8psk_fe_get_tune_settings,
- 
+@@ -1500,10 +1513,11 @@ void omap3isp_put(struct isp_device *isp)
+ 	if (--isp->ref_count == 0) {
+ 		isp_disable_interrupts(isp);
+ 		isp_save_ctx(isp);
+-		if (isp->needs_reset) {
++		/* Reset the ISP if an entity has failed to stop. This is the
++		 * only way to recover from such conditions.
++		 */
++		if (isp->crashed)
+ 			isp_reset(isp);
+-			isp->needs_reset = false;
+-		}
+ 		isp_disable_clocks(isp);
+ 	}
+ 	mutex_unlock(&isp->isp_mutex);
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 705946e..6c3037a 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -145,6 +145,7 @@ struct isp_platform_callback {
+  * @raw_dmamask: Raw DMA mask
+  * @stat_lock: Spinlock for handling statistics
+  * @isp_mutex: Mutex for serializing requests to ISP.
++ * @crashed: Bitmask of crashed entities (indexed by entity ID)
+  * @has_context: Context has been saved at least once and can be restored.
+  * @ref_count: Reference count for handling multiple ISP requests.
+  * @cam_ick: Pointer to camera interface clock structure.
+@@ -184,7 +185,7 @@ struct isp_device {
+ 	/* ISP Obj */
+ 	spinlock_t stat_lock;	/* common lock for statistic drivers */
+ 	struct mutex isp_mutex;	/* For handling ref_count field */
+-	bool needs_reset;
++	u32 crashed;
+ 	int has_context;
+ 	int ref_count;
+ 	unsigned int autoidle;
 -- 
-1.7.8.352.g876a6
+Regards,
+
+Laurent Pinchart
 
