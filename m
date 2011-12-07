@@ -1,130 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7738 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755189Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:23 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNWA019821
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 06/28] [media] tda10023: add support for DVB-C Annex C
-Date: Thu, 22 Dec 2011 09:19:54 -0200
-Message-Id: <1324552816-25704-7-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-6-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
- <1324552816-25704-4-git-send-email-mchehab@redhat.com>
- <1324552816-25704-5-git-send-email-mchehab@redhat.com>
- <1324552816-25704-6-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from newsmtp5.atmel.com ([204.2.163.5]:18492 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751478Ab1LGGCX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 01:02:23 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	nicolas.ferre@atmel.com, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v2 1/2] [media] V4L: atmel-isi: add code to enable/disable ISI_MCK clock
+Date: Wed,  7 Dec 2011 14:01:52 +0800
+Message-Id: <1323237713-25734-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The difference between Annex A and C is the roll-off factor.
-Properly implement it inside the driver, using the information
-provided by Andreas.
+This patch
+- add ISI_MCK clock enable/disable code.
+- change field name in isi_platform_data structure
 
-Thanks-to: Andreas Oberriter <obi@linuxtv.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+[g.liakhovetski@gmx.de: fix label names]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 ---
- drivers/media/dvb/frontends/tda10023.c |   46 +++++++++++++++++++++++++++----
- 1 files changed, 40 insertions(+), 6 deletions(-)
+Hi, Guennadi
 
-diff --git a/drivers/media/dvb/frontends/tda10023.c b/drivers/media/dvb/frontends/tda10023.c
-index e6c321e..af7f1b8 100644
---- a/drivers/media/dvb/frontends/tda10023.c
-+++ b/drivers/media/dvb/frontends/tda10023.c
-@@ -305,6 +305,10 @@ struct qam_params {
- static int tda10023_set_parameters (struct dvb_frontend *fe,
- 			    struct dvb_frontend_parameters *p)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys  = c->delivery_system;
-+	unsigned qam = c->modulation;
-+	bool is_annex_c;
- 	struct tda10023_state* state = fe->demodulator_priv;
- 	static const struct qam_params qam_params[] = {
- 		/* Modulation  QAM    LOCKTHR   MSETH   AREF AGCREFNYQ ERAGCNYQ_THD */
-@@ -315,7 +319,17 @@ static int tda10023_set_parameters (struct dvb_frontend *fe,
- 		[QAM_128] = { (3<<2),  0x36,    0x34,   0x7e,   0x78,   0x4c  },
- 		[QAM_256] = { (4<<2),  0x26,    0x23,   0x6c,   0x5c,   0x3c  },
- 	};
--	unsigned qam = p->u.qam.modulation;
-+
-+	switch (delsys) {
-+	case SYS_DVBC_ANNEX_A:
-+		is_annex_c = false;
-+		break;
-+	case SYS_DVBC_ANNEX_C:
-+		is_annex_c = true;
-+		break;
-+	default:
-+		return -EINVAL;
+this is the v2 version of the patch series. it is based on staging/for_v3.3.
+The second patch add clk_prepare()/clk_unprepare() functions, and fix the label name issues.
+
+Best Regards,
+Josh Wu
+
+ drivers/media/video/atmel-isi.c |   31 +++++++++++++++++++++++++++++--
+ include/media/atmel-isi.h       |    4 +++-
+ 2 files changed, 32 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+index fbc904f..ea4eef4 100644
+--- a/drivers/media/video/atmel-isi.c
++++ b/drivers/media/video/atmel-isi.c
+@@ -90,7 +90,10 @@ struct atmel_isi {
+ 	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
+ 
+ 	struct completion		complete;
++	/* ISI peripherial clock */
+ 	struct clk			*pclk;
++	/* ISI_MCK, feed to camera sensor to generate pixel clock */
++	struct clk			*mck;
+ 	unsigned int			irq;
+ 
+ 	struct isi_platform_data	*pdata;
+@@ -766,6 +769,12 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
+ 	if (ret)
+ 		return ret;
+ 
++	ret = clk_enable(isi->mck);
++	if (ret) {
++		clk_disable(isi->pclk);
++		return ret;
 +	}
- 
- 	/*
- 	 * gcc optimizes the code bellow the same way as it would code:
-@@ -341,23 +355,43 @@ static int tda10023_set_parameters (struct dvb_frontend *fe,
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	tda10023_set_symbolrate (state, p->u.qam.symbol_rate);
-+	tda10023_set_symbolrate(state, c->symbol_rate);
- 	tda10023_writereg(state, 0x05, qam_params[qam].lockthr);
- 	tda10023_writereg(state, 0x08, qam_params[qam].mseth);
- 	tda10023_writereg(state, 0x09, qam_params[qam].aref);
- 	tda10023_writereg(state, 0xb4, qam_params[qam].agcrefnyq);
- 	tda10023_writereg(state, 0xb6, qam_params[qam].eragnyq_thd);
--
- #if 0
--	tda10023_writereg(state, 0x04, (p->inversion ? 0x12 : 0x32));
--	tda10023_writebit(state, 0x04, 0x60, (p->inversion ? 0 : 0x20));
-+	tda10023_writereg(state, 0x04, (c->inversion ? 0x12 : 0x32));
-+	tda10023_writebit(state, 0x04, 0x60, (c->inversion ? 0 : 0x20));
- #endif
- 	tda10023_writebit(state, 0x04, 0x40, 0x40);
 +
-+	if (is_annex_c)
-+		tda10023_writebit(state, 0x3d, 0xfc, 0x03);
-+	else
-+		tda10023_writebit(state, 0x3d, 0xfc, 0x02);
-+
- 	tda10023_setup_reg0(state, qam_params[qam].qam);
+ 	isi->icd = icd;
+ 	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
+ 		 icd->devnum);
+@@ -779,6 +788,7 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
  
- 	return 0;
- }
+ 	BUG_ON(icd != isi->icd);
  
-+static int tda10023_get_property(struct dvb_frontend *fe,
-+				 struct dtv_property *p)
-+{
-+	switch (p->cmd) {
-+	case DTV_ENUM_DELSYS:
-+		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
-+		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
-+		p->u.buffer.len = 2;
-+		break;
-+	default:
-+		break;
++	clk_disable(isi->mck);
+ 	clk_disable(isi->pclk);
+ 	isi->icd = NULL;
+ 
+@@ -874,7 +884,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd, u32 pixfmt)
+ 
+ 	if (isi->pdata->has_emb_sync)
+ 		cfg1 |= ISI_CFG1_EMB_SYNC;
+-	if (isi->pdata->isi_full_mode)
++	if (isi->pdata->full_mode)
+ 		cfg1 |= ISI_CFG1_FULL_MODE;
+ 
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+@@ -912,6 +922,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+ 			isi->fb_descriptors_phys);
+ 
+ 	iounmap(isi->regs);
++	clk_put(isi->mck);
+ 	clk_put(isi->pclk);
+ 	kfree(isi);
+ 
+@@ -930,7 +941,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 	struct isi_platform_data *pdata;
+ 
+ 	pdata = dev->platform_data;
+-	if (!pdata || !pdata->data_width_flags) {
++	if (!pdata || !pdata->data_width_flags || !pdata->mck_hz) {
+ 		dev_err(&pdev->dev,
+ 			"No config available for Atmel ISI\n");
+ 		return -EINVAL;
+@@ -959,6 +970,19 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&isi->video_buffer_list);
+ 	INIT_LIST_HEAD(&isi->dma_desc_head);
+ 
++	/* Get ISI_MCK, provided by programmable clock or external clock */
++	isi->mck = clk_get(dev, "isi_mck");
++	if (IS_ERR_OR_NULL(isi->mck)) {
++		dev_err(dev, "Failed to get isi_mck\n");
++		ret = isi->mck ? PTR_ERR(isi->mck) : -EINVAL;
++		goto err_clk_get;
 +	}
-+	return 0;
-+}
 +
- static int tda10023_read_status(struct dvb_frontend* fe, fe_status_t* status)
- {
- 	struct tda10023_state* state = fe->demodulator_priv;
-@@ -577,7 +611,7 @@ static struct dvb_frontend_ops tda10023_ops = {
++	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
++	ret = clk_set_rate(isi->mck, pdata->mck_hz);
++	if (ret < 0)
++		goto err_set_mck_rate;
++
+ 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+ 				sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 				&isi->fb_descriptors_phys,
+@@ -1034,6 +1058,9 @@ err_alloc_ctx:
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
+ err_alloc_descriptors:
++err_set_mck_rate:
++	clk_put(isi->mck);
++err_clk_get:
+ 	kfree(isi);
+ err_alloc_isi:
+ 	clk_put(pclk);
+diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
+index 26cece5..6568230 100644
+--- a/include/media/atmel-isi.h
++++ b/include/media/atmel-isi.h
+@@ -110,10 +110,12 @@ struct isi_platform_data {
+ 	u8 hsync_act_low;
+ 	u8 vsync_act_low;
+ 	u8 pclk_act_falling;
+-	u8 isi_full_mode;
++	u8 full_mode;
+ 	u32 data_width_flags;
+ 	/* Using for ISI_CFG1 */
+ 	u32 frate;
++	/* Using for ISI_MCK */
++	u32 mck_hz;
+ };
  
- 	.set_frontend = tda10023_set_parameters,
- 	.get_frontend = tda10023_get_frontend,
--
-+	.get_property = tda10023_get_property,
- 	.read_status = tda10023_read_status,
- 	.read_ber = tda10023_read_ber,
- 	.read_signal_strength = tda10023_read_signal_strength,
+ #endif /* __ATMEL_ISI_H__ */
 -- 
-1.7.8.352.g876a6
+1.6.3.3
 
