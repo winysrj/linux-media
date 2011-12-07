@@ -1,87 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16753 "EHLO mx1.redhat.com"
+Received: from newsmtp5.atmel.com ([204.2.163.5]:1943 "EHLO sjogate2.atmel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755507Ab1LXPvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:07 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp6oW009954
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 30/47] [media] tda826x: use DVBv5 parameters on set_params()
-Date: Sat, 24 Dec 2011 13:50:35 -0200
-Message-Id: <1324741852-26138-31-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-30-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
- <1324741852-26138-10-git-send-email-mchehab@redhat.com>
- <1324741852-26138-11-git-send-email-mchehab@redhat.com>
- <1324741852-26138-12-git-send-email-mchehab@redhat.com>
- <1324741852-26138-13-git-send-email-mchehab@redhat.com>
- <1324741852-26138-14-git-send-email-mchehab@redhat.com>
- <1324741852-26138-15-git-send-email-mchehab@redhat.com>
- <1324741852-26138-16-git-send-email-mchehab@redhat.com>
- <1324741852-26138-17-git-send-email-mchehab@redhat.com>
- <1324741852-26138-18-git-send-email-mchehab@redhat.com>
- <1324741852-26138-19-git-send-email-mchehab@redhat.com>
- <1324741852-26138-20-git-send-email-mchehab@redhat.com>
- <1324741852-26138-21-git-send-email-mchehab@redhat.com>
- <1324741852-26138-22-git-send-email-mchehab@redhat.com>
- <1324741852-26138-23-git-send-email-mchehab@redhat.com>
- <1324741852-26138-24-git-send-email-mchehab@redhat.com>
- <1324741852-26138-25-git-send-email-mchehab@redhat.com>
- <1324741852-26138-26-git-send-email-mchehab@redhat.com>
- <1324741852-26138-27-git-send-email-mchehab@redhat.com>
- <1324741852-26138-28-git-send-email-mchehab@redhat.com>
- <1324741852-26138-29-git-send-email-mchehab@redhat.com>
- <1324741852-26138-30-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1751054Ab1LGGKM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 01:10:12 -0500
+Content-class: urn:content-classes:message
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+Subject: RE: [PATCH 2/2] [media] V4L: atmel-isi: add clk_prepare()/clk_unprepare() functions
+Date: Wed, 7 Dec 2011 14:09:56 +0800
+Message-ID: <4C79549CB6F772498162A641D92D5328039E98C1@penmb01.corp.atmel.com>
+In-Reply-To: <Pine.LNX.4.64.1112061045150.10715@axis700.grange>
+References: <1322647604-30662-1-git-send-email-josh.wu@atmel.com> <1322647604-30662-2-git-send-email-josh.wu@atmel.com> <Pine.LNX.4.64.1112061045150.10715@axis700.grange>
+From: "Wu, Josh" <Josh.wu@atmel.com>
+To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
+Cc: <linux-media@vger.kernel.org>,
+	"Ferre, Nicolas" <Nicolas.FERRE@atmel.com>,
+	<linux@arm.linux.org.uk>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner
+Hi, Guennadi
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda826x.c |    5 +++--
- 1 files changed, 3 insertions(+), 2 deletions(-)
+Thank you for explain the label name rules. I've sent the v2 version
+patch out. In v2 version I modified the code and make the label name
+consistent.
 
-diff --git a/drivers/media/dvb/frontends/tda826x.c b/drivers/media/dvb/frontends/tda826x.c
-index 06c9480..ab9122a 100644
---- a/drivers/media/dvb/frontends/tda826x.c
-+++ b/drivers/media/dvb/frontends/tda826x.c
-@@ -73,6 +73,7 @@ static int tda826x_sleep(struct dvb_frontend *fe)
- 
- static int tda826x_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct tda826x_priv *priv = fe->tuner_priv;
- 	int ret;
- 	u32 div;
-@@ -83,11 +84,11 @@ static int tda826x_set_params(struct dvb_frontend *fe, struct dvb_frontend_param
- 
- 	dprintk("%s:\n", __func__);
- 
--	div = (params->frequency + (1000-1)) / 1000;
-+	div = (p->frequency + (1000-1)) / 1000;
- 
- 	/* BW = ((1 + RO) * SR/2 + 5) * 1.3      [SR in MSPS, BW in MHz] */
- 	/* with R0 = 0.35 and some transformations: */
--	ksyms = params->u.qpsk.symbol_rate / 1000;
-+	ksyms = p->symbol_rate / 1000;
- 	bandwidth = (878 * ksyms + 6500000) / 1000000 + 1;
- 	if (bandwidth < 5)
- 		bandwidth = 5;
--- 
-1.7.8.352.g876a6
+On 12/06/2011 5:49PM, Guennadi Liakhovetski wrote:
 
+> Hi Josh
+
+> Thanks for the patch, but I'll ask you to fix the same thing in it,
+that 
+> I've fixed for you in the first patch in this series:
+
+> On Wed, 30 Nov 2011, Josh Wu wrote:
+
+>> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+>> ---
+>>  drivers/media/video/atmel-isi.c |   17 ++++++++++++++++-
+>>  1 files changed, 16 insertions(+), 1 deletions(-)
+>> 
+>> diff --git a/drivers/media/video/atmel-isi.c
+b/drivers/media/video/atmel-isi.c
+>> index ea4eef4..5da4381 100644
+>> --- a/drivers/media/video/atmel-isi.c
+>> +++ b/drivers/media/video/atmel-isi.c
+
+> [snip]
+
+>> @@ -978,10 +986,14 @@ static int __devinit atmel_isi_probe(struct
+platform_device *pdev)
+>>  		goto err_clk_get;
+>>  	}
+>>  
+>> +	ret = clk_prepare(isi->mck);
+>> +	if (ret)
+>> +		goto err_set_mck_rate;
+>> +
+>>  	/* Set ISI_MCK's frequency, it should be faster than pixel clock
+*/
+>>  	ret = clk_set_rate(isi->mck, pdata->mck_hz);
+>>  	if (ret < 0)
+>> -		goto err_set_mck_rate;
+>> +		goto err_unprepare_mck;
+>>  
+>>  	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+>>  				sizeof(struct fbd) * MAX_BUFFER_NUM,
+>> @@ -1058,11 +1070,14 @@ err_alloc_ctx:
+>>  			isi->p_fb_descriptors,
+>>  			isi->fb_descriptors_phys);
+>>  err_alloc_descriptors:
+>> +err_unprepare_mck:
+>> +	clk_unprepare(isi->mck);
+>>  err_set_mck_rate:
+>>  	clk_put(isi->mck);
+>>  err_clk_get:
+>>  	kfree(isi);
+>>  err_alloc_isi:
+>> +	clk_unprepare(pclk);
+>>  	clk_put(pclk);
+>>  
+>>  	return ret;
+
+> Please, use error label names consistently. As you can see, currently
+the 
+> driver uses the convention
+
+>	ret = do_something();
+>	if (ret < 0)
+>		goto err_do_something;
+
+> i.e., the label is called after the operation, that has failed, not
+after 
+> the clean up step, that the control now has to jump to. Please, update
+
+> your patch to also use this convention.
+
+Understand it now. Thank you.
+
+> Thanks
+> Guennadi
+
+Best Regards,
+Josh Wu
