@@ -1,97 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48045 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751840Ab1LSKUj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 05:20:39 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-Date: Mon, 19 Dec 2011 11:20:38 +0100
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <201112191105.25855.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112191113230.23694@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1112191113230.23694@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112191120.40084.laurent.pinchart@ideasonboard.com>
+Received: from newsmtp5.atmel.com ([204.2.163.5]:60650 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751054Ab1LGGCX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 01:02:23 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	nicolas.ferre@atmel.com, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v2 2/2] [media] V4L: atmel-isi: add clk_prepare()/clk_unprepare() functions
+Date: Wed,  7 Dec 2011 14:01:53 +0800
+Message-Id: <1323237713-25734-2-git-send-email-josh.wu@atmel.com>
+In-Reply-To: <1323237713-25734-1-git-send-email-josh.wu@atmel.com>
+References: <1323237713-25734-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
 
-On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
-> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> > On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
-> > > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> > > > On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
-> > > > > On Fri, 16 Dec 2011, Scott Jiang wrote:
-> > > > > > >> How about this implementation? I know it's not for soc, but I
-> > > > > > >> post it to give my idea.
-> > > > > > >> Bridge knows the layout, so it doesn't need to query the
-> > > > > > >> subdevice.
-> > > > > > > 
-> > > > > > > Where from? AFAIU, we are talking here about subdevice inputs,
-> > > > > > > right? In this case about various inputs of the TV decoder. How
-> > > > > > > shall the bridge driver know about that?
-> > > > > > 
-> > > > > > I have asked this question before. Laurent reply me:
-> > > > > > > >> ENUMINPUT as defined by V4L2 enumerates input connectors
-> > > > > > > >> available on the board. Which inputs the board designer
-> > > > > > > >> hooked up is something that only the top-level V4L driver
-> > > > > > > >> will know. Subdevices do not have that information, so
-> > > > > > > >> enuminputs is not applicable there.
-> > > > > > > >> 
-> > > > > > > >> Of course, subdevices do have input pins and output pins,
-> > > > > > > >> but these are assumed to be fixed. With the s_routing ops
-> > > > > > > >> the top level driver selects which input and output pins
-> > > > > > > >> are active. Enumeration of those inputs and outputs
-> > > > > > > >> wouldn't gain you anything as far as I can tell since the
-> > > > > > > >> subdevice simply does not know which inputs/outputs are
-> > > > > > > >> actually hooked up. It's the top level driver that has that
-> > > > > > > >> information (usually passed in through board/card info
-> > > > > > > >> structures).
-> > > > > 
-> > > > > Laurent, right, I now remember reading this discussion before. But
-> > > > > I'm not sure I completely agree:-) Yes, you're right - the board
-> > > > > decides which pins are routed to which connectors. And it has to
-> > > > > provide this information to the driver in its platform data. But -
-> > > > > I think, this information should be provided not to the bridge
-> > > > > driver, but to respective subdevice drivers, because only they
-> > > > > know what exactly those interfaces are good for and how to report
-> > > > > them to the bridge or the user, if we decide to also export this
-> > > > > information over the subdevice user-space API.
-> > > > > 
-> > > > > So, I would say, the board has to tell the subdevice driver: yes,
-> > > > > your inputs 0 and 1 are routed to external connectors. On input 1
-> > > > > I've put a pullup, it is connected to connector of type X over a
-> > > > > circuit Y, clocked from your output Z, if the driver needs to know
-> > > > > all that. And the subdev driver will just tell the bridge only
-> > > > > what that one needs to know - number of inputs and their
-> > > > > capabilities.
-> > > > 
-> > > > That sounds reasonable.
-> > > 
-> > > Good, this would mean, we need additional subdevice operations along
-> > > the lines of enum_input and enum_output, and maybe also g_input and
-> > > g_output?
-> > 
-> > What about implementing pad support in the subdevice ? Input enumeration
-> > could then be performed without a subdev operation.
-> 
-> soc-camera doesn't support pad operations yet.
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+---
+in v2 version, made the label name to be consistent
 
-soc-camera doesn't support enum_input yet either, so you need to implement 
-something anyway ;-)
+ drivers/media/video/atmel-isi.c |   15 +++++++++++++++
+ 1 files changed, 15 insertions(+), 0 deletions(-)
 
-You wouldn't need to call a pad operation here, you would just need to iterate 
-through the pads provided by the subdev.
-
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+index ea4eef4..91ebcfb 100644
+--- a/drivers/media/video/atmel-isi.c
++++ b/drivers/media/video/atmel-isi.c
+@@ -922,7 +922,9 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+ 			isi->fb_descriptors_phys);
+ 
+ 	iounmap(isi->regs);
++	clk_unprepare(isi->mck);
+ 	clk_put(isi->mck);
++	clk_unprepare(isi->pclk);
+ 	clk_put(isi->pclk);
+ 	kfree(isi);
+ 
+@@ -955,6 +957,12 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(pclk))
+ 		return PTR_ERR(pclk);
+ 
++	ret = clk_prepare(pclk);
++	if (ret) {
++		clk_put(pclk);
++		return ret;
++	}
++
+ 	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
+ 	if (!isi) {
+ 		ret = -ENOMEM;
+@@ -978,6 +986,10 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 		goto err_clk_get;
+ 	}
+ 
++	ret = clk_prepare(isi->mck);
++	if (ret)
++		goto err_clk_prepare_mck;
++
+ 	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
+ 	ret = clk_set_rate(isi->mck, pdata->mck_hz);
+ 	if (ret < 0)
+@@ -1059,10 +1071,13 @@ err_alloc_ctx:
+ 			isi->fb_descriptors_phys);
+ err_alloc_descriptors:
+ err_set_mck_rate:
++	clk_unprepare(isi->mck);
++err_clk_prepare_mck:
+ 	clk_put(isi->mck);
+ err_clk_get:
+ 	kfree(isi);
+ err_alloc_isi:
++	clk_unprepare(pclk);
+ 	clk_put(pclk);
+ 
+ 	return ret;
 -- 
-Regards,
+1.6.3.3
 
-Laurent Pinchart
