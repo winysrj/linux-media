@@ -1,91 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:30791 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756497Ab1LNMXO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 07:23:14 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LW700EAO12OI250@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Dec 2011 12:23:12 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LW7007RS12NJD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Dec 2011 12:23:12 +0000 (GMT)
-Date: Wed, 14 Dec 2011 13:23:06 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v4 0/2] v4l2: Extend media bus format with framesamples
- field
-In-reply-to: <201112120131.24192.laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, s.nawrocki@samsung.com
-Message-id: <1323865388-26994-1-git-send-email-s.nawrocki@samsung.com>
-References: <201112120131.24192.laurent.pinchart@ideasonboard.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:49502 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755801Ab1LGNk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 08:40:58 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+Date: Wed, 7 Dec 2011 13:40:35 +0000
+Cc: Rob Clark <rob@ti.com>, Daniel Vetter <daniel@ffwll.ch>,
+	t.stanislaws@samsung.com, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	m.szyprowski@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <CAF6AEGto-+oSqguuWyPunUbtE65GpNiXh21srQzrChiBQMb1Nw@mail.gmail.com> <CAB2ybb-0mTdNXN82O1TUGVjhMZUQtQb07A3EVmmdxg3ngEc3Dw@mail.gmail.com>
+In-Reply-To: <CAB2ybb-0mTdNXN82O1TUGVjhMZUQtQb07A3EVmmdxg3ngEc3Dw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112071340.35267.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Wednesday 07 December 2011, Semwal, Sumit wrote:
+> Thanks for the excellent discussion - it indeed is very good learning
+> for the relatively-inexperienced me :)
+> 
+> So, for the purpose of dma-buf framework, could I summarize the
+> following and rework accordingly?:
+> 1. remove mmap() dma_buf_op [and mmap fop], and introduce cpu_start(),
+> cpu_finish() ops to bracket cpu accesses to the buffer. Also add
+> DMABUF_CPU_START / DMABUF_CPU_FINI IOCTLs?
 
-this is an updated version of the changeset extending struct v4l2_mbus_framefmt
-with new framesamples field.
+I think we'd be better off for now without the extra ioctls and
+just document that a shared buffer must not be exported to user
+space using mmap at all, to avoid those problems. Serialization
+between GPU and CPU is on a higher level than the dma_buf framework
+IMHO.
 
-Changes since v1:
- - Docbook documentation improvements
- - drivers that are exposing a sub-device node are modified to initialize
-   the new struct v4l2_mbus_framefmt member to 0 if they support only
-   uncompressed formats
-Changes since v3:
- - dropped patches for m5mols and s5p-fimc drivers which are unchanged;
- - in teh subdev drivers use local copy of the format data structure to clear
-   all structure members which are unused by a driver, in way that it don't break
-   after new fields are added to struct v4l2_mbus_framefmt;      
+> 2. remove sg_sync* ops for now (and we'll see if we need to add them
+> later if needed)
 
-The omap3isp changes are only compile tested. I'd like to ask someone who 
-has access to the hardware to test the patch.
+Just removing the sg_sync_* operations is not enough. We have to make
+the decision whether we want to allow
+a) only coherent mappings of the buffer into kernel memory (requiring
+an extension to the dma_map_ops on ARM to not flush caches at map/unmap
+time)
+b) not allowing any in-kernel mappings (same requirement on ARM, also
+limits the usefulness of the dma_buf if we cannot access it from the
+kernel or from user space)
+c) only allowing streaming mappings, even if those are non-coherent
+(requiring strict serialization between CPU (in-kernel) and dma users of
+the buffer)
 
+This issue has to be solved or we get random data corruption.
 
-The proposed semantics for the framesamples parameter is as follows:
-
- - the value is propagated at video pipeline entities where 'code' indicates
-   compressed format;
- - the subdevs adjust the value if needed;
- - although currently there is only one compressed data format at the media 
-   bus - V4L2_MBUS_FMT_JPEG_1X8 which corresponds to V4L2_PIX_FMT_JPEG and
-   one sample at the media bus equals to one byte in memory, it is assumed
-   that the host knows exactly what is framesamples/sizeimage ratio and it will 
-   validate framesamples/sizeimage values before starting streaming;
- - the host will query internally a relevant subdev to properly handle 'sizeimage' 
-   at the VIDIOC_TRY/S_FMT ioctl 
-      
-The initial RFC can be found here:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg39321.html
-
-Sylwester Nawrocki (2):
-  v4l: Add new framesamples field to struct v4l2_mbus_framefmt
-  v4l: Update subdev drivers to handle framesamples parameter
-
- Documentation/DocBook/media/v4l/dev-subdev.xml     |   10 +++++-
- Documentation/DocBook/media/v4l/subdev-formats.xml |    9 +++++-
- drivers/media/video/noon010pc30.c                  |    3 ++
- drivers/media/video/omap3isp/ispccdc.c             |   12 +++++--
- drivers/media/video/omap3isp/ispccp2.c             |   31 +++++++++++--------
- drivers/media/video/omap3isp/ispcsi2.c             |   12 +++++--
- drivers/media/video/omap3isp/isppreview.c          |   23 +++++++++-----
- drivers/media/video/omap3isp/ispresizer.c          |   19 +++++++++---
- drivers/media/video/s5k6aa.c                       |    2 +
- include/linux/v4l2-mediabus.h                      |    4 ++-
- 10 files changed, 87 insertions(+), 38 deletions(-)
-
--- 
-1.7.8
-
-
--- 
-Best regards, 
-
-Sylwester Nawrocki 
+	Arnd
