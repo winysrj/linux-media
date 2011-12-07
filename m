@@ -1,110 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:59043 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754871Ab1LFP3B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 10:29:01 -0500
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:60319 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756107Ab1LGQLg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Dec 2011 11:11:36 -0500
+Date: Thu, 8 Dec 2011 00:10:59 +0800
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	HoP <jpetrous@gmail.com>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+Message-ID: <20111207161058.GC22355@opensource.wolfsonmicro.com>
+References: <4EDC9B17.2080701@gmail.com>
+ <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
+ <4EDD01BA.40208@redhat.com>
+ <4EDD2C82.7040804@linuxtv.org>
+ <20111206112153.GC17194@sirena.org.uk>
+ <4EDE0427.2050307@linuxtv.org>
+ <20111206141929.GE17731@opensource.wolfsonmicro.com>
+ <4EDE2B3B.2080905@linuxtv.org>
+ <20111207134848.GB18837@opensource.wolfsonmicro.com>
+ <4EDF71AE.5070509@linuxtv.org>
 MIME-Version: 1.0
-In-Reply-To: <201112061316.58858.arnd@arndb.de>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<CAKMK7uHw3OpMAtVib=e=s_us9Tx9TebzehGg59d4-g9dUXr+pQ@mail.gmail.com>
-	<CAF6AEGto-+oSqguuWyPunUbtE65GpNiXh21srQzrChiBQMb1Nw@mail.gmail.com>
-	<201112061316.58858.arnd@arndb.de>
-Date: Tue, 6 Dec 2011 16:28:59 +0100
-Message-ID: <CAKMK7uHeXYn-v_8cmpLNWsFY14KtmuRZy8YRKR5Xst2-2WdFSQ@mail.gmail.com>
-Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Rob Clark <rob@ti.com>, Daniel Vetter <daniel@ffwll.ch>,
-	t.stanislaws@samsung.com, linux@arm.linux.org.uk,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	m.szyprowski@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EDF71AE.5070509@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 06, 2011 at 01:16:58PM +0000, Arnd Bergmann wrote:
-> On Monday 05 December 2011, Rob Clark wrote:
-> > > On the topic of a coherency model for dmabuf, I think we need to look at
-> > > dma_buf_attachment_map/unmap (and also the mmap variants cpu_start and
-> > > cpu_finish or whatever they might get called) as barriers:
-> > >
-> > > So after a dma_buf_map, all previsously completed dma operations (i.e.
-> > > unmap already called) and any cpu writes (i.e. cpu_finish called) will be
-> > > coherent. Similar rule holds for cpu access through the userspace mmap,
-> > > only writes completed before the cpu_start will show up.
-> > >
-> > > Similar, writes done by the device are only guaranteed to show up after
-> > > the _unmap. Dito for cpu writes and cpu_finish.
-> > >
-> > > In short we always need two function calls to denote the start/end of the
-> > > "critical section".
-> >
-> > Yup, this was exactly my assumption.  But I guess it is better to spell it out.
->
-> I still don't understand how this is going to help you if you let
-> multiple drivers enter and leave the critical section without serializing
-> against one another. That doesn't sound like what I know as critical
-> section.
+On Wed, Dec 07, 2011 at 03:01:18PM +0100, Andreas Oberritter wrote:
 
-I already regret to having added that last "critical section" remark.
-Think barriers. It's just that you need a barrier in both directions that
-bracket the actual usage. In i915-land we call the first one generally
-invalidate (so that caches on the target domain don't contain stale data)
-and that second one flush (to get any data out of caches).
+> Once and for all: We have *not* discussed a generic video streaming
+> application. It's only, I repeat, only about accessing a remote DVB API
+> tuner *as if it was local*. No data received from a satellite, cable or
+> terrestrial DVB network shall be modified by this application!
 
-> Given some reasonable constraints (all devices must be in the same coherency
-> domain, for instance), you can probably define it in a way that you can
-> have multiple devices mapping the same buffer at the same time, and
-> when no device has mapped the buffer you can have as many concurrent
-> kernel and user space accesses on the same buffer as you like. But you
-> must still guarantee that no software touches a noncoherent buffer while
-> it is mapped into any device and vice versa.
->
-> Why can't we just mandate that all mappings into the kernel must be
-> coherent and that user space accesses must either be coherent as well
-> or be done by user space that uses explicit serialization with all
-> DMA accesses?
+> Virtually *every* user of it will use it in a LAN.
 
-I agree with your points here, afaics the contentious issue is just
-whether dma_buf should _enforce_ this strict ordering. I'm leading towards
-a "no" for the following reasons:
+> It can't be so hard to understand.
 
-- gpu people love nonblocking interfaces (and love to come up with
-  abuses). In the generic case we'd need some more functions to properly
-  flush everything while 2 devices access a buffer concurrently (which is
-  imo a bit unrealistic). But e.g. 2 gpus rendering in SLI mode very much
-  want to access the same buffer at the same time (and the
-  kernel+userspace gpu driver already needs all the information about
-  caches to make that happen, at least on x86).
+You're talking about a purely software defined thing that goes in the
+kernel - it pretty much has to be able to scale to other applications
+even if some of the implementation is left for later.  Once things like
+this get included in the kernel they become part of the ABI and having
+multiple specific things ends up being a recipie for confusion as users
+have to work out which of the options is most appropriate for their
+application.
 
-- Buffer sharing alone has already some great potential for deadlock and
-  lock recursion issues. Making dma_buf into something that very much acts
-  like a new locking primitive itself (even exposed to userspace) will
-  make this much worse. I've seen some of the kernel/userspace shared
-  hwlock code of dri1 yonder, and it's horrible (and at least for the case
-  of the dri1 hwlock, totally broken).
-
-- All current subsystem already have the concept to pass the ownership of
-  a buffer between the device and userspace (sometimes even more than just
-  2 domains, like in i915 ...). Userspace already needs to use this
-  interface to get anything resembling correct data. I don't see any case
-  where userspace can't enforce passing around buffer ownership if
-  multiple devices are involved (we obviously need to clarify subsystem
-  interfaces to make it clear when a buffer is in use and when another
-  device taking part in the sharing could use it). So I don't see how the
-  kernel enforcing strict access ordering helps implementing correct
-  userspace.
-
-- I don't see any security needs that would make it necessary for the
-  kernel to enforce any consistency guarantees for concurrent access -
-  we're only dealing with pixel data in all the currently discussed
-  generic use-cases. So I think garbage as an end-result is acceptable if
-  userspace does stupid things (or fails at trying to be clever).
-
-Cheers, Daniel
--- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+Really this feels like the pattern we've got with audio where we
+restrict the drivers to driving hardware and there's a userspace which
+wraps that and can also dispatch to a userspace implementation without
+applications worrying about it.  Perhaps given the current entirely in
+kernel implementation a simple loopback in the style of FUSE which
+bounces the kernel APIs up to userspace for virtual drivers would make
+sense.
