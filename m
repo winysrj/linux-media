@@ -1,69 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25365 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752146Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:27 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9QXe024163
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:46983 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755810Ab1LGNt3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Dec 2011 08:49:29 -0500
+Date: Wed, 7 Dec 2011 13:49:00 +0000
+From: Mark Brown <broonie@opensource.wolfsonmicro.com>
+To: Andreas Oberritter <obi@linuxtv.org>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 17/94] [media] dib9000: remove unused parameters
-Date: Fri, 30 Dec 2011 13:07:14 -0200
-Message-Id: <1325257711-12274-18-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	HoP <jpetrous@gmail.com>,
+	Florian Fainelli <f.fainelli@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
+ because of worrying about possible misusage?
+Message-ID: <20111207134848.GB18837@opensource.wolfsonmicro.com>
+References: <20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
+ <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com>
+ <4EDC9B17.2080701@gmail.com>
+ <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
+ <4EDD01BA.40208@redhat.com>
+ <4EDD2C82.7040804@linuxtv.org>
+ <20111206112153.GC17194@sirena.org.uk>
+ <4EDE0427.2050307@linuxtv.org>
+ <20111206141929.GE17731@opensource.wolfsonmicro.com>
+ <4EDE2B3B.2080905@linuxtv.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EDE2B3B.2080905@linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/dib9000.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+On Tue, Dec 06, 2011 at 03:48:27PM +0100, Andreas Oberritter wrote:
+> On 06.12.2011 15:19, Mark Brown wrote:
 
-diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
-index 4d82a4a..0488068 100644
---- a/drivers/media/dvb/frontends/dib9000.c
-+++ b/drivers/media/dvb/frontends/dib9000.c
-@@ -1136,7 +1136,7 @@ static int dib9000_fw_init(struct dib9000_state *state)
- 	return 0;
- }
- 
--static void dib9000_fw_set_channel_head(struct dib9000_state *state, struct dvb_frontend_parameters *ch)
-+static void dib9000_fw_set_channel_head(struct dib9000_state *state)
- {
- 	u8 b[9];
- 	u32 freq = state->fe[0]->dtv_property_cache.frequency / 1000;
-@@ -1157,7 +1157,7 @@ static void dib9000_fw_set_channel_head(struct dib9000_state *state, struct dvb_
- 	dib9000_risc_mem_write(state, FE_MM_W_CHANNEL_HEAD, b);
- }
- 
--static int dib9000_fw_get_channel(struct dvb_frontend *fe, struct dvb_frontend_parameters *channel)
-+static int dib9000_fw_get_channel(struct dvb_frontend *fe)
- {
- 	struct dib9000_state *state = fe->demodulator_priv;
- 	struct dibDVBTChannel {
-@@ -1462,7 +1462,7 @@ static int dib9000_fw_tune(struct dvb_frontend *fe, struct dvb_frontend_paramete
- 
- 	switch (state->tune_state) {
- 	case CT_DEMOD_START:
--		dib9000_fw_set_channel_head(state, ch);
-+		dib9000_fw_set_channel_head(state);
- 
- 		/* write the channel context - a channel is initialized to 0, so it is OK */
- 		dib9000_risc_mem_write(state, FE_MM_W_CHANNEL_CONTEXT, (u8 *) fe_info);
-@@ -1911,7 +1911,7 @@ static int dib9000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 	}
- 
- 	/* get the channel from master chip */
--	ret = dib9000_fw_get_channel(fe, fep);
-+	ret = dib9000_fw_get_channel(fe);
- 	if (ret != 0)
- 		goto return_value;
- 
--- 
-1.7.8.352.g876a6
+> > Your assertatation that applications should ignore the underlying
+> > transport (which seems to be a big part of what you're saying) isn't
+> > entirely in line with reality.
 
+> Did you notice that we're talking about a very particular application?
+
+*sigh*
+
+> VoIP really is totally off-topic. The B in DVB stands for broadcast.
+> There's only one direction in which MPEG payload is to be sent (using
+> RTP for example). You can't just re-encode the data on the fly without
+> loss of information.
+
+This is pretty much exactly the case for VoIP some of the time (though
+obviously bidirectional use cases are rather common there's things like
+conferencing).  I would really expect similar considerations to apply
+for video content as they certainly do in videoconferencing VoIP
+applications - if the application knows about the network it can tailor
+what it's doing to that network.  
+
+For example, if it is using a network with a guaranteed bandwidth it can
+assume that bandwidth.  If it knows something about the structure of the
+network it may be able to arrange to work around choke points.
+Depending on the situation even something lossy may be the answer - if
+it's the difference between working at all and not working then the cost
+may be worth it.
