@@ -1,71 +1,205 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:39247 "EHLO
-	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755709Ab1LARfm convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Dec 2011 12:35:42 -0500
+Received: from mailgate.thermoteknix.com ([188.223.91.156]:51691 "EHLO
+	mailgate.thermoteknix.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802Ab1LGIrh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 03:47:37 -0500
+Message-ID: <4EDF1DA2.5000106@thermoteknix.com>
+Date: Wed, 07 Dec 2011 08:02:42 +0000
+From: Adam Pledger <a.pledger@thermoteknix.com>
 MIME-Version: 1.0
-In-Reply-To: <201112011824.54207.laurent.pinchart@ideasonboard.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-3-git-send-email-saaguirre@ti.com> <201112011824.54207.laurent.pinchart@ideasonboard.com>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Thu, 1 Dec 2011 11:35:20 -0600
-Message-ID: <CAKnK67R_sTToETijbBsyKXfdfvKv68vaF-_Ur5uYy=yKJ4hiEA@mail.gmail.com>
-Subject: Re: [PATCH v2 02/11] mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@iki.fi
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+CC: linux-media@vger.kernel.org
+Subject: Omap3 ISP + Gstreamer v4l2src
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Laurent,
 
-Thanks for the review.
+Firstly, please accept my apologies, for what is very probably a naive 
+question. I'm new to V4L2 and am just getting to grips with how things work.
 
-On Thu, Dec 1, 2011 at 11:24 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Sergio,
->
-> On Thursday 01 December 2011 01:14:51 Sergio Aguirre wrote:
->> The define should be the result of 1 << Bit number.
->>
->> Bit number for GPOCTL.GPO3 field is 2, which results
->> in 0x4 value.
->>
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> ---
->>  include/linux/mfd/twl6040.h |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
->>
->> diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
->> index 2463c261..2a7ff16 100644
->> --- a/include/linux/mfd/twl6040.h
->> +++ b/include/linux/mfd/twl6040.h
->> @@ -142,7 +142,7 @@
->>
->>  #define TWL6040_GPO1                 0x01
->>  #define TWL6040_GPO2                 0x02
->> -#define TWL6040_GPO3                 0x03
->> +#define TWL6040_GPO3                 0x04
->
-> What about defining the fields as (1 << x) instead then ?
+I'm using a tvp5151 in bt656 mode with the Omap3 ISP, as described in 
+this thread (Your YUV support tree + some patches for bt656, based on 
+2.6.39):
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/39539
 
-I thought about that, but I guess I just wanted to keep it
-consistent with the rest of the file.
+I am able to capture some frames using yavta, using the media-ctl 
+configuration as follows:
+media-ctl -v -r -l '"tvp5150 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3 
+ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+media-ctl -v --set-format '"tvp5150 3-005d":0 [UYVY2X8 720x625]'
+media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x625]'
+media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x625]'
 
-Maybe I can create a separate patch for changing all these bitwise
-flags to use BIT() macros instead.
+This yields this:
+Opening media device /dev/media0
+Enumerating entities
+Found 16 entities
+Enumerating pads and links
+Media controller API version 0.0.0
 
-Thanks and Regards,
-Sergio
+Media device information
+------------------------
+driver          omap3isp
+model           TI OMAP3 ISP
+serial
+bus info
+hw revision     0x0
+driver version  0.0.0
 
->
->>
->>  /* ACCCTL (0x2D) fields */
->
-> --
-> Regards,
->
-> Laurent Pinchart
+Device topology
+- entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev0
+         pad0: Sink [SGRBG10 4096x4096]
+<- "OMAP3 ISP CCP2 input":0 []
+         pad1: Source [SGRBG10 4096x4096]
+                 -> "OMAP3 ISP CCDC":0 []
+
+- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video0
+         pad0: Source
+                 -> "OMAP3 ISP CCP2":0 []
+
+- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev1
+         pad0: Sink [SGRBG10 4096x4096]
+         pad1: Source [SGRBG10 4096x4096]
+                 -> "OMAP3 ISP CSI2a output":0 []
+                 -> "OMAP3 ISP CCDC":0 []
+
+- entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video1
+         pad0: Sink
+<- "OMAP3 ISP CSI2a":1 []
+
+- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev2
+         pad0: Sink [UYVY2X8 720x625]
+<- "OMAP3 ISP CCP2":1 []
+<- "OMAP3 ISP CSI2a":1 []
+<- "tvp5150 3-005d":0 [ENABLED]
+         pad1: Source [UYVY2X8 720x625]
+                 -> "OMAP3 ISP CCDC output":0 [ENABLED]
+                 -> "OMAP3 ISP resizer":0 []
+         pad2: Source [UYVY2X8 720x624]
+                 -> "OMAP3 ISP preview":0 []
+                 -> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
+                 -> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
+                 -> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
+
+- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video2
+         pad0: Sink
+<- "OMAP3 ISP CCDC":1 [ENABLED]
+
+- entity 7: OMAP3 ISP preview (2 pads, 4 links)
+             type V4L2 subdev subtype Unknown
+             device node name /dev/v4l-subdev3
+         pad0: Sink [SGRBG10 4096x4096 (8,4)/4082x4088]
+<- "OMAP3 ISP CCDC":2 []
+<- "OMAP3 ISP preview input":0 []
+         pad1: Source [YUYV 4082x4088]
+                 -> "OMAP3 ISP preview output":0 []
+                 -> "OMAP3 ISP resizer":0 []
+
+- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video3
+         pad0: Source
+                 -> "OMAP3 ISP preview":0 []
+
+- entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+             type Node subtype V4L
+             device node name /dev/video4
+         pad0: Sink
+<- "OMAP3 ISP preview":1 []
+
+- entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+              type V4L2 subdev subtype Unknown
+              device node name /dev/v4l-subdev4
+         pad0: Sink [YUYV 4095x4095 (0,6)/4094x4082]
+<- "OMAP3 ISP CCDC":1 []
+<- "OMAP3 ISP preview":1 []
+<- "OMAP3 ISP resizer input":0 []
+         pad1: Source [YUYV 3312x4095]
+                 -> "OMAP3 ISP resizer output":0 []
+
+- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+              type Node subtype V4L
+              device node name /dev/video5
+         pad0: Source
+                 -> "OMAP3 ISP resizer":0 []
+
+- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+              type Node subtype V4L
+              device node name /dev/video6
+         pad0: Sink
+<- "OMAP3 ISP resizer":1 []
+
+- entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+              type V4L2 subdev subtype Unknown
+              device node name /dev/v4l-subdev5
+         pad0: Sink
+<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 14: OMAP3 ISP AF (1 pad, 1 link)
+              type V4L2 subdev subtype Unknown
+              device node name /dev/v4l-subdev6
+         pad0: Sink
+<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+              type V4L2 subdev subtype Unknown
+              device node name /dev/v4l-subdev7
+         pad0: Sink
+<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+
+- entity 16: tvp5150 3-005d (1 pad, 1 link)
+              type V4L2 subdev subtype Unknown
+              device node name /dev/v4l-subdev8
+         pad0: Source [UYVY2X8 720x625]
+                 -> "OMAP3 ISP CCDC":0 [ENABLED]
+
+The following works nicely:
+yavta -f UYVY -s 720x625 -n 4 --capture=4 -F /dev/video2
+
+The problem comes when I try to use gstreamer to capture from 
+/dev/video2, using the following:
+gst-launch v4l2src device="/dev/video2" ! 
+'video/x-raw-yuv,width=720,height=625' ! filesink location=sample.yuv
+
+This fails with:
+ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Failed 
+getting controls attributes on device '/dev/video2'.
+Additional debug info:
+v4l2_calls.c(267): gst_v4l2_fill_lists (): 
+/GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+Failed querying control 9963776 on device '/dev/video2'. (25 - 
+Inappropriate ioctl for device)
+
+My question is, should this "just work"? It was my understanding that 
+once the pipeline was configured with media-ctl then the CCDC output pad 
+should behave like a standard V4L2 device node.
+
+I realise that this might be something borked with my build dependencies 
+(although I'm pretty certain that v4l2src is being built against the 
+latest libv42) or gstreamer. Before I start digging through the code to 
+work out what is going on with the ioctl handling, I thought I would 
+check to see whether this should work, or whether I am doing something 
+fundamentally silly.
+
+Many Thanks,
+
+Adam
+
+
+
+
