@@ -1,150 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36394 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751888Ab1L3KOp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 05:14:45 -0500
-Received: by wgbdr13 with SMTP id dr13so24161069wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 02:14:44 -0800 (PST)
-Message-ID: <4EFD8F0F.6060505@gmail.com>
-Date: Fri, 30 Dec 2011 11:14:39 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:57059 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755488Ab1LGM4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 7 Dec 2011 07:56:06 -0500
+Message-ID: <4EDF6262.2000209@redhat.com>
+Date: Wed, 07 Dec 2011 10:56:02 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"HeungJun, Kim" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <1325053428-2626-2-git-send-email-riverful.kim@samsung.com> <4EFB1B04.6060305@gmail.com> <201112281451.39399.laurent.pinchart@ideasonboard.com> <20111229233406.GU3677@valkosipuli.localdomain>
-In-Reply-To: <20111229233406.GU3677@valkosipuli.localdomain>
-Content-Type: text/plain; charset=UTF-8
+To: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-930C problems
+References: <4ED929E7.2050808@gmail.com>
+In-Reply-To: <4ED929E7.2050808@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 02-12-2011 17:41, Fredrik Lingvall wrote:
+> Hi ,
+>
+> I noticed that HVR 930C support was added 21-11-2011.
+>
+> I have build the new driver and installed the firmware but I'm struggling to get it working.
 
-On 12/30/2011 12:34 AM, Sakari Ailus wrote:
-> On Wed, Dec 28, 2011 at 02:51:38PM +0100, Laurent Pinchart wrote:
->> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
->>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
->>>> It adds the new CID for setting White Balance Preset. This CID is
->>>> provided as menu type using the following items:
->>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
->>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
->>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
->>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
->>>> 4 - V4L2_WHITE_BALANCE_SHADE,
->>>
->>> I have been also investigating those white balance presets recently and
->>> noticed they're also needed for the pwc driver. Looking at
->>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
->>>
->>> const char * const pwc_auto_whitebal_qmenu[] = {
->>> 	"Indoor (Incandescant Lighting) Mode",
->>> 	"Outdoor (Sunlight) Mode",
->>> 	"Indoor (Fluorescent Lighting) Mode",
->>> 	"Manual Mode",
->>> 	"Auto Mode",
->>> 	NULL
->>> };
->>>
->>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
->>> 	.ops	= &pwc_ctrl_ops,
->>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
->>> 	.type	= V4L2_CTRL_TYPE_MENU,
->>> 	.max	= awb_auto,
->>> 	.qmenu	= pwc_auto_whitebal_qmenu,
->>> };
->>>
->>> ...
->>>
->>> 	cfg = pwc_auto_white_balance_cfg;
->>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
->>> 	cfg.def = def;
->>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
->>>
->>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
->>> with custom entries. That's interesting... However it works in practice
->>> and applications have access to what's provided by hardware.
->>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
->>> that :)
->>>
->>> Nevertheless, redefining standard controls in particular drivers sounds
->>> a little dubious. I wonder if this is a generally agreed approach ?
->>
->> No agreed with me at least :-)
->>
->>> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
->>> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE need
->>> to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
->>
->> Is the preset a fixed white balance setting, or is it an auto white balance 
->> with the algorithm tuned for a particular configuration ? In the first case, 
->> does it correspond to a fixed white balance temperature value ?
-> 
-> While I'm waiting for a final answer to this, I guess it's the second. There
-> are three things involved here:
-> 
-> - V4L2_CID_WHITE_BALANCE_TEMPERATURE: relatively low level control telling
->   the colour temperature of the light source. Setting a value for this
->   essentially means using manual white balance.
-> 
-> - V4L2_CID_AUTO_WHITE_BALANCE: automatic white balance enabled or disabled.
+> 4) DVB scanning
+>
+> # w_scan -c NO -f c
 
-Was the third thing the V4L2_CID_DO_WHITE_BALANCE control that you wanted to
-say ? It's also quite essential functionality, to be able to fix white balance
-after pointing camera to a white object. And I would expect
-V4L2_CID_WHITE_BALANCE_PRESET control's documentation to state how an
-interaction with V4L2_CID_DO_WHITE_BALANCE looks like.
+...
 
-> The new control proposed by HeungJun is input for the automatic white
-> balance algorithm unless I'm mistaken. Whether or not the value is static,
-> however, might be considered of secondary importance: it is a name instead
-> of a number and clearly intended to be used as a high level control. I'd
-> still expect it to be a hint for the algorithm.
-> 
-> The value of the new control would have an effect as long as automatic white
-> balance is enabled.
+> 602000: sr6900 (time: 10:32) (time: 10:33) signal ok:
+> QAM_256 f = 602000 kHz S6900C999
 
-The idea to treat the preset as a hint to the algorithm is interesting, however
-as it turns out this are just static values (R/B balance) in manual WB mode.
+This means that it detected a QAM_256 carrier, at 602000 kHz, with 6.900 Kbauds symbol rate.
 
-I expect some parameters for adjusting auto WB algorithm (WB (R/G/B) gain bias
-or something similar) to be present in sensor's ISP as well. If I remember well
-I've seen something like this in one of sensor's documentations.
+> start_filter:1415: ERROR: ioctl DMX_SET_FILTER failed: 28 No space left on device
 
->>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
->>>> b/Documentation/DocBook/media/v4l/controls.xml index c0422c6..350c138
->>>> 100644
->>>> --- a/Documentation/DocBook/media/v4l/controls.xml
->>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
->>>> @@ -2841,6 +2841,44 @@ it one step further. This is a write-only
->>>> control.</entry>
->>>>
->>>>  	  </row>
->>>>  	  <row><entry></entry></row>
->>>>
->>>> +	  <row id="v4l2-preset-white-balance">
->>>> +	    <entry
->>>> spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp;</
->>>> entry>
->>>
->>> Wouldn't V4L2_CID_WHITE_BALANCE_PRESET be better ?
->>
->> That's what I was about to say.
-> 
-> And the menu items would contain the same prefix with CID_ removed. They're
-> going to be long, but I don't see that as an issue for menu items.
+-ENOSPC error is generally associated with the lack of USB bandwidth support.
+This means that the USB bus doesn't have enough free slots for the traffic
+required in order to support your stream.
 
-Should we call it V4L2_CID_WB_PRESET then ?
+It generally means that your device is connected into a USB 1.1 hub or port.
+There are some new USB interfaces that are known to have troubles with the
+Linux USB 2.0 implementation, as they internally use some USB hubs.
+It could be your case, as the driver detects it on an USB 2.0 port:
 
-Anyway V4L2_WHITE_BALANCE_PRESET_INCADESCENT for example is not that long,
-we have control names that almost reach 80 characters :)
+> [90072.073832] em28xx: New device WinTV HVR-930C @ 480 Mbps (2040:1605, interface 0, class 0)
 
---
+Please do a:
+
+# mount usbfs /proc/bus/usb -t usbfs
+$ cat /proc/bus/usb/devices
+
+It should see you something like:
+
+T:  Bus=08 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
+B:  Alloc= 29/900 us ( 3%), #Int=  2, #Iso=  0
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0001 Rev= 3.01
+S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
+S:  Product=UHCI Host Controller
+S:  SerialNumber=0000:00:1d.2
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
+
+T:  Bus=08 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  2 Spd=1.5  MxCh= 0
+D:  Ver= 1.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
+P:  Vendor=2101 ProdID=020f Rev= 0.01
+C:* #Ifs= 2 Cfg#= 1 Atr=a0 MxPwr=500mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=01 Driver=usbhid
+E:  Ad=81(I) Atr=03(Int.) MxPS=   8 Ivl=10ms
+I:* If#= 1 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=02 Driver=usbhid
+E:  Ad=82(I) Atr=03(Int.) MxPS=   8 Ivl=10ms
+
+T:  Bus=07 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
+B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0001 Rev= 3.01
+S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
+S:  Product=UHCI Host Controller
+S:  SerialNumber=0000:00:1d.1
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
+
+T:  Bus=06 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
+B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0001 Rev= 3.01
+S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
+S:  Product=UHCI Host Controller
+S:  SerialNumber=0000:00:1d.0
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
+
+T:  Bus=05 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
+B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0001 Rev= 3.01
+S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
+S:  Product=UHCI Host Controller
+S:  SerialNumber=0000:00:1a.2
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
+
+T:  Bus=04 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
+B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0001 Rev= 3.01
+S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
+S:  Product=UHCI Host Controller
+S:  SerialNumber=0000:00:1a.1
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
+
+T:  Bus=03 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
+B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
+D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0001 Rev= 3.01
+S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
+S:  Product=UHCI Host Controller
+S:  SerialNumber=0000:00:1a.0
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
+
+T:  Bus=02 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6
+B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0002 Rev= 3.01
+S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 ehci_hcd
+S:  Product=EHCI Host Controller
+S:  SerialNumber=0000:00:1d.7
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6
+B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
+D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=1d6b ProdID=0002 Rev= 3.01
+S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 ehci_hcd
+S:  Product=EHCI Host Controller
+S:  SerialNumber=0000:00:1a.7
+C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
+I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
+E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
+
+T:  Bus=01 Lev=01 Prnt=01 Port=05 Cnt=01 Dev#=  6 Spd=480  MxCh= 0
+D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
+P:  Vendor=2040 ProdID=1605 Rev= 1.00
+S:  Product=WinTV HVR-930C
+S:  SerialNumber=4034508088
+C:* #Ifs= 1 Cfg#= 1 Atr=80 MxPwr=500mA
+I:* If#= 0 Alt= 0 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+E:  Ad=82(I) Atr=01(Isoc) MxPS=   0 Ivl=125us
+E:  Ad=83(I) Atr=01(Isoc) MxPS=   0 Ivl=1ms
+E:  Ad=84(I) Atr=01(Isoc) MxPS=   0 Ivl=125us
+I:  If#= 0 Alt= 1 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+E:  Ad=82(I) Atr=01(Isoc) MxPS=   0 Ivl=125us
+E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
+E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
+I:  If#= 0 Alt= 2 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+E:  Ad=82(I) Atr=01(Isoc) MxPS=1440 Ivl=125us
+E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
+E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
+I:  If#= 0 Alt= 3 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+E:  Ad=82(I) Atr=01(Isoc) MxPS=2048 Ivl=125us
+E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
+E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
+I:  If#= 0 Alt= 4 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+E:  Ad=82(I) Atr=01(Isoc) MxPS=2304 Ivl=125us
+E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
+E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
+I:  If#= 0 Alt= 5 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+E:  Ad=82(I) Atr=01(Isoc) MxPS=2688 Ivl=125us
+E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
+E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
+I:  If#= 0 Alt= 6 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+E:  Ad=82(I) Atr=01(Isoc) MxPS=2880 Ivl=125us
+E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
+E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
+I:  If#= 0 Alt= 7 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
+E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
+E:  Ad=82(I) Atr=01(Isoc) MxPS=3072 Ivl=125us
+E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
+E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
+
+In the above example, my HVR-930C is connected to Bus=01. The available
+bandwidth at the USB bus is given by:
+
+T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6
+B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
+
+(in the above example, device is not used)
+
+Tuning into a channel spends 19% of the USB bandwidth (e. g. 152
+ISOC slots), as shown at:
+
+T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6
+B:  Alloc=152/800 us (19%), #Int=  0, #Iso=  5
+
+The same bandwidth is required by w_scan/scan.
+
+You can also try to put your device on another bus and see if this would
+fix the issue.
 
 Regards,
-Sylwester
+Mauro
