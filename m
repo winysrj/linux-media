@@ -1,212 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61789 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752099Ab1LAKU7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 05:20:59 -0500
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVI00B6HSQXU7@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Dec 2011 10:20:57 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVI007QESQWCW@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 01 Dec 2011 10:20:57 +0000 (GMT)
-Date: Thu, 01 Dec 2011 11:20:52 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v2 3/4] s5p-fimc: Add support for media bus framesamples
- parameter
-In-reply-to: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, laurent.pinchart@ideasonboard.com,
-	g.liakhovetski@gmx.de, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1322734853-8759-4-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:35374 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751558Ab1LHPCQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Dec 2011 10:02:16 -0500
+Message-ID: <4EE0D169.5040607@redhat.com>
+Date: Thu, 08 Dec 2011 13:02:01 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-930C problems
+References: <4ED929E7.2050808@gmail.com> <4EDF6262.2000209@redhat.com> <4EDF6AB8.5050201@gmail.com> <4EDF7048.2030304@redhat.com> <4EDF7758.3080309@gmail.com> <4EDF7E23.3090904@redhat.com> <4EE075D5.1060408@gmail.com>
+In-Reply-To: <4EE075D5.1060408@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The framesamples field of struct v4l2_mbus_framefmt is used to
-retrieve an exact required maximum memory buffer size for a
-compressed data frame from the sensor subdev. This allows to
-avoid allocating huge buffers in the host driver.
+On 08-12-2011 06:31, Fredrik Lingvall wrote:
+> On 12/07/11 15:54, Mauro Carvalho Chehab wrote:
+>>>
+>>> lin-tv ~ # lsusb | grep "Bus 002"
+>>> Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
+>>> Bus 002 Device 008: ID 2040:1605 Hauppauge
+>>
+>>
+>> There's nothing at the DVB core returning -ENOSPC.
+>>
+>> Try to add just one line to a channels file, like this one:
+>> C 602000000 6900000 NONE QAM256
+>>
+>> (this is the transponder that failed with w_scan. You could also use one
+>> of the transponders where you got a pid timeout with scan)
+>>
+>> Then call scan with this file, using strace:
+>>
+>> $ strace -e ioctl dvbscan channelfile
+>>
+>> This would allow to see what ioctl returned -ENOSPC (error -28).
+>>
+>> Regards,
+>> Mauro
+>>
+>
+> Mauro,
+>
+> I made a small script to check if the w_scan results are consistent:
+>
+> #!/bin/bash
+> for i in `seq 1 20`;
+> do
+> w_scan -fc -c NO 1>> scan$i.log 2>> scan$i.log
+> done
+>
+> And I get outputs like this (the timing numbers differs of course somewhat between different runs):
+>
+> <snip>
+>
+> 586000: sr6900 (time: 10:21) sr6875 (time: 10:23)
+> 594000: sr6900 (time: 10:26) sr6875 (time: 10:28)
+> 602000: sr6900 (time: 10:31) (time: 10:32) signal ok:
+> QAM_256 f = 602000 kHz S6900C999
+> Info: NIT(actual) filter timeout
+> 610000: sr6900 (time: 10:44) sr6875 (time: 10:47)
+> 618000: sr6900 (time: 10:49) sr6875 (time: 10:52)
+> 626000: sr6900 (time: 10:54) sr6875 (time: 10:57)
+>
+> <snip>
+>
+> Then I did the test that you suggested:
+>
+> lin-tv ~ # strace -e ioctl dvbscan -fc test_channel_file
+>
+> scanning test_channel_file
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> ioctl(3, FE_GET_INFO, 0x60b180) = 0
+> initial transponder 602000000 6900000 0 5
+>  >>> tune to: 602000000:INVERSION_AUTO:6900000:FEC_NONE:QAM_256
+> ioctl(3, FE_SET_FRONTEND, 0x7fff0581fb20) = 0
+> ioctl(3, FE_READ_STATUS, 0x7fff0581fb4c) = 0
+> ioctl(3, FE_READ_STATUS, 0x7fff0581fb4c) = 0
+> ioctl(4, DMX_SET_FILTER, 0x7fff0581e930) = 0
+> ioctl(5, DMX_SET_FILTER, 0x7fff0581e930) = 0
+> ioctl(6, DMX_SET_FILTER, 0x7fff0581e930) = 0
+> WARNING: filter timeout pid 0x0011
+> ioctl(5, DMX_STOP, 0x23) = 0
+> WARNING: filter timeout pid 0x0000
+> ioctl(4, DMX_STOP, 0x23) = 0
+> WARNING: filter timeout pid 0x0010
+> ioctl(6, DMX_STOP, 0x23) = 0
+> dumping lists (0 services)
+> Done.
+>
+>
+> I did not get the:
+>
+> 602000: sr6900 (time: 10:32) (time: 10:33) signal ok:
+> QAM_256 f = 602000 kHz S6900C999
+> start_filter:1415: ERROR: ioctl DMX_SET_FILTER failed: 28 No space left on device
 
-To make sure the size of allocated buffers is correct for a
-subdev configuration during VIDIOC_STREAMON ioctl, the video
-pipeline validation has been extended with an additional
-check.
+> Info: NIT(actual) filter timeout
+>
+> that I got before. The changes I made from before was 1) I unmounted the USB disk and 2) I rebuild the xc5000 module where I removed the
+>
+> mutex_lock(&xc5000_list_mutex);
+>
+> and
+>
+> mutex_unlock(&xc5000_list_mutex);
+>
+> lines according to the discussion in the " ... em28xx: initial support for HAUPPAUGE HVR-930C again" thread.
 
-Flag FMT_FLAGS_COMPRESSED indicates the buffer size should
-be determined through the framesamples member of struct
-v4l2_mbus_framefmt.
+Ok, let's go by parts.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |   53 +++++++++++++++++++++++++--
- drivers/media/video/s5p-fimc/fimc-core.c    |    7 +++-
- drivers/media/video/s5p-fimc/fimc-core.h    |    5 ++-
- 3 files changed, 59 insertions(+), 6 deletions(-)
+1) error 28 at DMX_SET_FILTER is really due to lack of space at the USB bus. I've
+double-checked at the code. The only place there where it could occur is when
+dvb_dmxdev_feed_start() calls feed->ts->start_filtering(feed->ts), with should be
+pointing to em28xx_start_feed(), with tries to start the transfer URB's at
+em28xx_init_isoc() by calling usb_submit_urb(). This is the only routine that returns
+ENOSPC on this chain.
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 8ca4d32..48b2592 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -250,6 +250,10 @@ static unsigned int get_plane_size(struct fimc_frame *fr, unsigned int plane)
- {
- 	if (!fr || plane >= fr->fmt->memplanes)
- 		return 0;
-+
-+	if (fimc_fmt_is_jpeg(fr->fmt->color))
-+		return fr->payload[0];
-+
- 	return fr->f_width * fr->f_height * fr->fmt->depth[plane] / 8;
- }
- 
-@@ -722,6 +726,29 @@ static int fimc_pipeline_try_format(struct fimc_ctx *ctx,
- 	return 0;
- }
- 
-+/* Query the sensor for required buffer size (applicable to compressed data). */
-+static int fimc_capture_get_sizeimage(struct fimc_dev *fimc, unsigned int *size)
-+{
-+	struct v4l2_subdev *sd = fimc->pipeline.sensor;
-+	struct v4l2_subdev_format sfmt;
-+	int ret;
-+
-+	sfmt.pad = 0;
-+	sfmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &sfmt);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (sfmt.format.framesamples > FIMC_MAX_JPEG_BUF_SIZE) {
-+		v4l2_err(sd, "Unsupported frame buffer size\n");
-+		return -EINVAL;
-+	}
-+
-+	*size = sfmt.format.framesamples;
-+
-+	return 0;
-+}
-+
- static int fimc_cap_g_fmt_mplane(struct file *file, void *fh,
- 				 struct v4l2_format *f)
- {
-@@ -774,7 +801,11 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
- 	}
- 
- 	fimc_adjust_mplane_format(ffmt, pix->width, pix->height, pix);
--	return 0;
-+
-+	if (!(ffmt->flags & FMT_FLAGS_COMPRESSED))
-+		return 0;
-+
-+	return fimc_capture_get_sizeimage(fimc, &pix->plane_fmt[0].sizeimage);
- }
- 
- static void fimc_capture_mark_jpeg_xfer(struct fimc_ctx *ctx, bool jpeg)
-@@ -837,9 +868,17 @@ static int fimc_capture_set_format(struct fimc_dev *fimc, struct v4l2_format *f)
- 		pix->height = mf->height;
- 	}
- 	fimc_adjust_mplane_format(ff->fmt, pix->width, pix->height, pix);
--	for (i = 0; i < ff->fmt->colplanes; i++)
--		ff->payload[i] =
--			(pix->width * pix->height * ff->fmt->depth[i]) / 8;
-+
-+	if (ff->fmt->flags & FMT_FLAGS_COMPRESSED) {
-+		ret = fimc_capture_get_sizeimage(fimc, &ff->payload[0]);
-+		if (ret < 0)
-+			return ret;
-+		pix->plane_fmt[0].sizeimage = ff->payload[0];
-+	} else {
-+		for (i = 0; i < ff->fmt->colplanes; i++)
-+			ff->payload[i] = pix->width * pix->height *
-+					 ff->fmt->depth[i] / 8;
-+	}
- 
- 	set_frame_bounds(ff, pix->width, pix->height);
- 	/* Reset the composition rectangle if not yet configured */
-@@ -948,6 +987,12 @@ static int fimc_pipeline_validate(struct fimc_dev *fimc)
- 		    src_fmt.format.height != sink_fmt.format.height ||
- 		    src_fmt.format.code != sink_fmt.format.code)
- 			return -EPIPE;
-+
-+		if (sd == fimc->pipeline.sensor &&
-+		    src_fmt.format.code == V4L2_MBUS_FMT_JPEG_1X8 &&
-+		    vid_cap->ctx->d_frame.payload[0] <
-+		    src_fmt.format.framesamples)
-+			return -EPIPE;
- 	}
- 	return 0;
- }
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index caf1c08..331beda 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -183,7 +183,7 @@ static struct fimc_fmt fimc_formats[] = {
- 		.memplanes	= 1,
- 		.colplanes	= 1,
- 		.mbus_code	= V4L2_MBUS_FMT_JPEG_1X8,
--		.flags		= FMT_FLAGS_CAM,
-+		.flags		= FMT_FLAGS_CAM | FMT_FLAGS_COMPRESSED,
- 	},
- };
- 
-@@ -965,6 +965,11 @@ int fimc_fill_format(struct fimc_frame *frame, struct v4l2_format *f)
- 		if (frame->fmt->colplanes == 1) /* packed formats */
- 			bpl = (bpl * frame->fmt->depth[0]) / 8;
- 		pixm->plane_fmt[i].bytesperline = bpl;
-+
-+		if (frame->fmt->flags & FMT_FLAGS_COMPRESSED) {
-+			pixm->plane_fmt[i].sizeimage = frame->payload[i];
-+			continue;
-+		}
- 		pixm->plane_fmt[i].sizeimage = (frame->o_width *
- 			frame->o_height * frame->fmt->depth[i]) / 8;
- 	}
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 21e4ad4..643dc0e 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -17,6 +17,7 @@
- #include <linux/types.h>
- #include <linux/videodev2.h>
- #include <linux/io.h>
-+#include <asm/sizes.h>
- 
- #include <media/media-entity.h>
- #include <media/videobuf2-core.h>
-@@ -44,6 +45,7 @@
- #define SCALER_MAX_VRATIO	64
- #define DMA_MIN_SIZE		8
- #define FIMC_CAMIF_MAX_HEIGHT	0x2000
-+#define FIMC_MAX_JPEG_BUF_SIZE	(10 * SZ_1M)
- 
- /* indices to the clocks array */
- enum {
-@@ -168,6 +170,7 @@ struct fimc_fmt {
- #define FMT_FLAGS_M2M_OUT	(1 << 2)
- #define FMT_FLAGS_M2M		(1 << 1 | 1 << 2)
- #define FMT_HAS_ALPHA		(1 << 3)
-+#define FMT_FLAGS_COMPRESSED	(1 << 4)
- };
- 
- /**
-@@ -285,7 +288,7 @@ struct fimc_frame {
- 	u32	offs_v;
- 	u32	width;
- 	u32	height;
--	unsigned long		payload[VIDEO_MAX_PLANES];
-+	unsigned int		payload[VIDEO_MAX_PLANES];
- 	struct fimc_addr	paddr;
- 	struct fimc_dma_offset	dma_offset;
- 	struct fimc_fmt		*fmt;
--- 
-1.7.7.2
+It is very likely that what fixed it were the removal of the USB disk.
+
+2)  There is an error at the bandwidth calculus on xc5000. It is likely that it is
+using a 6MHz bandwidth filter, instead of a 8MHz one.
+
+Please try the enclosed patch.
+
+
+[media] xc5000,tda18271c2dd: Fix bandwidth calculus
+     
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index ecd1f95..8279c45 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -708,9 +708,9 @@ static int xc5000_set_params(struct dvb_frontend *fe,
+  			 * is equal to 0.15 for Annex A, and 0.13 for annex C
+  			 */
+  			if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+-				bw = (params->u.qam.symbol_rate * 13) / 10;
++				bw = (params->u.qam.symbol_rate * 113) / 100;
+  			else
+-				bw = (params->u.qam.symbol_rate * 15) / 10;
++				bw = (params->u.qam.symbol_rate * 115) / 100;
+  			if (bw <= 6000000) {
+  				priv->bandwidth = BANDWIDTH_6_MHZ;
+  				priv->video_standard = DTV6;
+diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
+index de544f6..b66ca29 100644
+--- a/drivers/media/dvb/frontends/tda18271c2dd.c
++++ b/drivers/media/dvb/frontends/tda18271c2dd.c
+@@ -1158,9 +1158,9 @@ static int set_params(struct dvb_frontend *fe,
+  		 * is equal to 0.15 for Annex A, and 0.13 for annex C
+  		 */
+  		if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+-			bw = (params->u.qam.symbol_rate * 13) / 10;
++			bw = (params->u.qam.symbol_rate * 113) / 100;
+  		else
+-			bw = (params->u.qam.symbol_rate * 15) / 10;
++			bw = (params->u.qam.symbol_rate * 115) / 100;
+  		if (bw <= 6000000)
+  			Standard = HF_DVBC_6MHZ;
+  		else if (bw <= 7000000)
+
 
