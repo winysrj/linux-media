@@ -1,60 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52228 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754047Ab1L0QIg (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 11:08:36 -0500
-Message-ID: <4EF9ED7F.7060808@iki.fi>
-Date: Tue, 27 Dec 2011 18:08:31 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:39160 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750836Ab1LHNAI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 08:00:08 -0500
+Received: by eekd41 with SMTP id d41so1147121eek.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Dec 2011 05:00:07 -0800 (PST)
+Message-ID: <4EE0B4D4.2020909@gmail.com>
+Date: Thu, 08 Dec 2011 14:00:04 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-To: =?ISO-8859-1?Q?Christian_Pr=E4hauser?= <cpraehaus@cosy.sbg.ac.at>
-CC: linux-media@vger.kernel.org
-Subject: Re: DVB-S2 multistream support
-References: <4EF67721.9050102@unixsol.org> <4EF6DD91.2030800@iki.fi> <4EF6F84C.3000307@redhat.com> <CAF0Ff2kkFJYLUjVdmV9d9aWTsi-2ZHHEEjLrVSTCUnP+VTyxRg@mail.gmail.com> <4EF7066C.4070806@redhat.com> <loom.20111227T105753-96@post.gmane.org>
-In-Reply-To: <loom.20111227T105753-96@post.gmane.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+To: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 1/1] xc3028: fix center frequency calculation for DTV78
+ firmware
+References: <4EE0B419.3070604@gmail.com>
+In-Reply-To: <4EE0B419.3070604@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/27/2011 12:12 PM, Christian Prähauser wrote:
->>
->> Yes, I'm meaning something like what it was described there. I think
->> that the code written by Christian were never submitted upstream.
->>
->
-> Hello Mauro,
->
-> Konstantin drew my attention to this discussion. Indeed, some time ago I wrote
-> a base-band demux for LinuxDVB. It was part of a project to integrate support
-> for second-generation IP/DVB encapsulations (GSE). The BB-demux allows to
-> register filters for different ISIs and data types (raw, generic stream,
-> transport stream).
->
-> I realized that the repo hosted at our University is down. If there is interest,
-> I can update my patches to the latest LinuxDVB version and we can put them on a
-> public repo e.g. at linuxdvb.org.
->
-> Kind regards,
-> Christian.
+Updated center frequency calculation to fix VHF band reception
+with firmware DTV78.
+The adjustment for DTV78 is not needed anymore with new
+firmwares, since the offset is not depending anymore on the
+bandwidth or the firmware version (at least for DTV7, DTV8, DTV78).
 
-I have a question which is a little bit off-topic for that thread but I 
-would like to ask since I think you could have some idea.
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/common/tuners/tuner-xc2028.c |   22 ++++++++++++----------
+ 1 files changed, 12 insertions(+), 10 deletions(-)
 
-FEC Code Rate is often given as k/n, for example FEC 1/4. But nowadays 
-there is also seen 0.x like FEC 0.8.
-I have feeling that this is due to new inner coding used, LDPC instead 
-of traditional convolutional codes. When convolution codes were used it 
-was correct to define 1/2 as basic rate and puncture rest from that. But 
-as now with LDPC we have larger blocks we cannot represent so easily. 
-For example DTMB uses LDPC(7488,6016) = 6016/7488 = ~0.8034 => FEC 0.8 
-is used.
+diff --git a/drivers/media/common/tuners/tuner-xc2028.c
+b/drivers/media/common/tuners/tuner-xc2028.c
+index e531267..7653aca 100644
+--- a/drivers/media/common/tuners/tuner-xc2028.c
++++ b/drivers/media/common/tuners/tuner-xc2028.c
+@@ -962,14 +962,20 @@ static int generic_set_freq(struct dvb_frontend
+*fe, u32 freq /* in HZ */,
+ 		 * For DTV 7/8, the firmware uses BW = 8000, so it needs a
+ 		 * further adjustment to get the frequency center on VHF
+ 		 */
++
++		/*
++		 * The center frequency formula above seems no more correct.
++		 * The adjustment for DTV78 is not needed anymore with new
++		 * firmwares, since the offset is not depending anymore on the
++		 * bandwidth or the firmware version (at least for DTV78).
++		 * This is probably a consequence of the SCODE table adjustments
++		 * mentioned in the comment below.
++		 */
++
+ 		if (priv->cur_fw.type & DTV6)
+ 			offset = 1750000;
+-		else if (priv->cur_fw.type & DTV7)
+-			offset = 2250000;
+-		else	/* DTV8 or DTV78 */
++		else	/* DTV7 or DTV8 or DTV78 */
+ 			offset = 2750000;
+-		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
+-			offset -= 500000;
 
-I am adding DTMB support for DVB API and that's why I have to think if I 
-extend old k/n FECs or define new ones as FEC 0.4/0.6/0.8.
+ 		/*
+ 		 * xc3028 additional "magic"
+@@ -979,17 +985,13 @@ static int generic_set_freq(struct dvb_frontend
+*fe, u32 freq /* in HZ */,
+ 		 * newer firmwares
+ 		 */
 
-regards
-Antti
+-#if 1
+ 		/*
+ 		 * The proper adjustment would be to do it at s-code table.
+ 		 * However, this didn't work, as reported by
+ 		 * Robert Lowery <rglowery@exemail.com.au>
+ 		 */
 
+-		if (priv->cur_fw.type & DTV7)
+-			offset += 500000;
+-
+-#else
++#if 0
+ 		/*
+ 		 * Still need tests for XC3028L (firmware 3.2 or upper)
+ 		 * So, for now, let's just comment the per-firmware
 -- 
-http://palosaari.fi/
+1.7.0.4
