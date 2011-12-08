@@ -1,109 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4407 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751391Ab1L3PJU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:20 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9K49015848
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:20 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 01/94] [media] dvb-core: allow demods to specify the supported delsys
-Date: Fri, 30 Dec 2011 13:06:58 -0200
-Message-Id: <1325257711-12274-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40256 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752461Ab1LHV1p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 16:27:45 -0500
+Date: Thu, 8 Dec 2011 23:27:38 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Adam Pledger <a.pledger@thermoteknix.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Omap3 ISP + Gstreamer v4l2src
+Message-ID: <20111208212738.GA1967@valkosipuli.localdomain>
+References: <4EDF1DA2.5000106@thermoteknix.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EDF1DA2.5000106@thermoteknix.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The dvb were originally written for DVB-T/C/S and ATSC. So,
-the original frontend struct has fields to describe only those three
-standards.
+Hi Adam,
 
-While 2nd gen standards are similar to these, new standards
-like DSS, ISDB and CTTB don't fit on any of the above types.
+On Wed, Dec 07, 2011 at 08:02:42AM +0000, Adam Pledger wrote:
+> Hi Laurent,
+> 
+> Firstly, please accept my apologies, for what is very probably a
+> naive question. I'm new to V4L2 and am just getting to grips with
+> how things work.
+> 
+> I'm using a tvp5151 in bt656 mode with the Omap3 ISP, as described
+> in this thread (Your YUV support tree + some patches for bt656,
+> based on 2.6.39):
+> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/39539
+> 
+> I am able to capture some frames using yavta, using the media-ctl
+> configuration as follows:
+> media-ctl -v -r -l '"tvp5150 3-005d":0->"OMAP3 ISP CCDC":0[1],
+> "OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> media-ctl -v --set-format '"tvp5150 3-005d":0 [UYVY2X8 720x625]'
+> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x625]'
+> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x625]'
+> 
+> This yields this:
+> Opening media device /dev/media0
+> Enumerating entities
+> Found 16 entities
+> Enumerating pads and links
+> Media controller API version 0.0.0
+> 
+> Media device information
+> ------------------------
+> driver          omap3isp
+> model           TI OMAP3 ISP
+> serial
+> bus info
+> hw revision     0x0
+> driver version  0.0.0
+> 
+> Device topology
+> - entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev0
+>         pad0: Sink [SGRBG10 4096x4096]
+> <- "OMAP3 ISP CCP2 input":0 []
+>         pad1: Source [SGRBG10 4096x4096]
+>                 -> "OMAP3 ISP CCDC":0 []
+> 
+> - entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video0
+>         pad0: Source
+>                 -> "OMAP3 ISP CCP2":0 []
+> 
+> - entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev1
+>         pad0: Sink [SGRBG10 4096x4096]
+>         pad1: Source [SGRBG10 4096x4096]
+>                 -> "OMAP3 ISP CSI2a output":0 []
+>                 -> "OMAP3 ISP CCDC":0 []
+> 
+> - entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video1
+>         pad0: Sink
+> <- "OMAP3 ISP CSI2a":1 []
+> 
+> - entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev2
+>         pad0: Sink [UYVY2X8 720x625]
+> <- "OMAP3 ISP CCP2":1 []
+> <- "OMAP3 ISP CSI2a":1 []
+> <- "tvp5150 3-005d":0 [ENABLED]
+>         pad1: Source [UYVY2X8 720x625]
+>                 -> "OMAP3 ISP CCDC output":0 [ENABLED]
+>                 -> "OMAP3 ISP resizer":0 []
+>         pad2: Source [UYVY2X8 720x624]
+>                 -> "OMAP3 ISP preview":0 []
+>                 -> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
+>                 -> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
+>                 -> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
+> 
+> - entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video2
+>         pad0: Sink
+> <- "OMAP3 ISP CCDC":1 [ENABLED]
+> 
+> - entity 7: OMAP3 ISP preview (2 pads, 4 links)
+>             type V4L2 subdev subtype Unknown
+>             device node name /dev/v4l-subdev3
+>         pad0: Sink [SGRBG10 4096x4096 (8,4)/4082x4088]
+> <- "OMAP3 ISP CCDC":2 []
+> <- "OMAP3 ISP preview input":0 []
+>         pad1: Source [YUYV 4082x4088]
+>                 -> "OMAP3 ISP preview output":0 []
+>                 -> "OMAP3 ISP resizer":0 []
+> 
+> - entity 8: OMAP3 ISP preview input (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video3
+>         pad0: Source
+>                 -> "OMAP3 ISP preview":0 []
+> 
+> - entity 9: OMAP3 ISP preview output (1 pad, 1 link)
+>             type Node subtype V4L
+>             device node name /dev/video4
+>         pad0: Sink
+> <- "OMAP3 ISP preview":1 []
+> 
+> - entity 10: OMAP3 ISP resizer (2 pads, 4 links)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev4
+>         pad0: Sink [YUYV 4095x4095 (0,6)/4094x4082]
+> <- "OMAP3 ISP CCDC":1 []
+> <- "OMAP3 ISP preview":1 []
+> <- "OMAP3 ISP resizer input":0 []
+>         pad1: Source [YUYV 3312x4095]
+>                 -> "OMAP3 ISP resizer output":0 []
+> 
+> - entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
+>              type Node subtype V4L
+>              device node name /dev/video5
+>         pad0: Source
+>                 -> "OMAP3 ISP resizer":0 []
+> 
+> - entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
+>              type Node subtype V4L
+>              device node name /dev/video6
+>         pad0: Sink
+> <- "OMAP3 ISP resizer":1 []
+> 
+> - entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev5
+>         pad0: Sink
+> <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+> 
+> - entity 14: OMAP3 ISP AF (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev6
+>         pad0: Sink
+> <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+> 
+> - entity 15: OMAP3 ISP histogram (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev7
+>         pad0: Sink
+> <- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
+> 
+> - entity 16: tvp5150 3-005d (1 pad, 1 link)
+>              type V4L2 subdev subtype Unknown
+>              device node name /dev/v4l-subdev8
+>         pad0: Source [UYVY2X8 720x625]
+>                 -> "OMAP3 ISP CCDC":0 [ENABLED]
+> 
+> The following works nicely:
+> yavta -f UYVY -s 720x625 -n 4 --capture=4 -F /dev/video2
+> 
+> The problem comes when I try to use gstreamer to capture from
+> /dev/video2, using the following:
+> gst-launch v4l2src device="/dev/video2" !
+> 'video/x-raw-yuv,width=720,height=625' ! filesink
+> location=sample.yuv
+> 
+> This fails with:
+> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+> Failed getting controls attributes on device '/dev/video2'.
+> Additional debug info:
+> v4l2_calls.c(267): gst_v4l2_fill_lists ():
+> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+> Failed querying control 9963776 on device '/dev/video2'. (25 -
+> Inappropriate ioctl for device)
+> 
+> My question is, should this "just work"? It was my understanding
+> that once the pipeline was configured with media-ctl then the CCDC
+> output pad should behave like a standard V4L2 device node.
+> 
+> I realise that this might be something borked with my build
+> dependencies (although I'm pretty certain that v4l2src is being
+> built against the latest libv42) or gstreamer. Before I start
+> digging through the code to work out what is going on with the ioctl
+> handling, I thought I would check to see whether this should work,
+> or whether I am doing something fundamentally silly.
 
-While there's a way for the drivers to explicitly change whatever
-default DELSYS were filled inside the core, still a fake value is
-needed there, and a "compat" code to allow DVBv3 applications to
-work with those delivery systems is needed. This is good for a
-short term solution, while applications aren't using DVBv5 directly.
+An alternative to what Laurent and Michael already suggested, is to use
+subdevsrc (or subdevsrc2). Subdevsrc should be usable without camerabin, and
+if you like camerabin2, then subdevsrc2 is the way to go.
 
-However, at long term, this is bad, as the compat code runs even
-if the application is using DVBv5. Also, the compat code is not
-perfect, and only works when the frontend is capable of auto-detecting
-the parameters that aren't visible by the faked delivery systems.
+It takes the pipeline configuration from a configuration file.
 
-So, let the frontend fill the supported delivery systems at the
-device properties directly.
+I'd _think_ this is the latest subdevsrc branch:
 
-The future plan is that the drivers will stop filling ops->info.type,
-filling, instead, ops->delsys. This will allow multi-frontend
-devices like drx-k to use just one frontend structure for all supported
-delivery systems.
+<URL:http://meego.gitorious.org/maemo-multimedia/gst-nokia-videosrc/commits/gen1-pr12>
 
-Of course, the core will keep using it, in order to keep allowing
-DVBv3 calls.
+Subdevsrc2 is in the master branch.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++++++++++++
- drivers/media/dvb/dvb-core/dvb_frontend.h |    8 ++++++++
- 2 files changed, 21 insertions(+), 0 deletions(-)
+In either one, use the mcsrc; it's got no unpleasant dependencies.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 8dedff4..f17c411 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1252,6 +1252,19 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
- 	const struct dvb_frontend_info *info = &fe->ops.info;
- 	u32 ncaps = 0;
- 
-+	/*
-+	 * If the frontend explicitly sets a list, use it, instead of
-+	 * filling based on the info->type
-+	 */
-+	if (fe->ops.delsys[ncaps]) {
-+		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
-+			p->u.buffer.data[ncaps] = fe->ops.delsys[ncaps];
-+			ncaps++;
-+		}
-+		p->u.buffer.len = ncaps;
-+		return;
-+	}
-+
- 	switch (info->type) {
- 	case FE_QPSK:
- 		p->u.buffer.data[ncaps++] = SYS_DVBS;
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index 895f88f..95f2134 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -42,6 +42,12 @@
- 
- #include "dvbdev.h"
- 
-+/*
-+ * Maximum number of Delivery systems per frontend. It
-+ * should be smaller or equal to 32
-+ */
-+#define MAX_DELSYS	8
-+
- struct dvb_frontend_tune_settings {
- 	int min_delay_ms;
- 	int step_size;
-@@ -254,6 +260,8 @@ struct dvb_frontend_ops {
- 
- 	struct dvb_frontend_info info;
- 
-+	u8 delsys[MAX_DELSYS];
-+
- 	void (*release)(struct dvb_frontend* fe);
- 	void (*release_sec)(struct dvb_frontend* fe);
- 
+Cheers,
+
 -- 
-1.7.8.352.g876a6
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
