@@ -1,63 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:29300 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751340Ab1LHHRM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 02:17:12 -0500
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVV00IQ6IWLAZ@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Dec 2011 07:17:09 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVV0069PIWLNY@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Dec 2011 07:17:09 +0000 (GMT)
-Date: Thu, 08 Dec 2011 08:17:00 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [GIT PATCHES FOR 3.3] v4l: add s5p-jpeg driver
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Message-id: <1323328620-20522-1-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56843 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752810Ab1LHJyD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 04:54:03 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Ohad Ben-Cohen" <ohad@wizery.com>
+Subject: Re: [PATCH] [media] omap3isp: fix compilation of ispvideo.c
+Date: Thu, 8 Dec 2011 10:53:59 +0100
+Cc: Dmitry Artamonow <mad_soft@inbox.ru>, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+References: <1321808066-1791-1-git-send-email-mad_soft@inbox.ru> <201111230253.21007.laurent.pinchart@ideasonboard.com> <CADMYwHzPJeu6ixNJ=uRVEF-wz7Uz4oYdfHme8g1sRAK20Cro0w@mail.gmail.com>
+In-Reply-To: <CADMYwHzPJeu6ixNJ=uRVEF-wz7Uz4oYdfHme8g1sRAK20Cro0w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112081054.01240.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Ohad,
 
-It looks that the review process for s5p-jpeg driver has been finally
-finished and all the suggestions have been applied to the driver.
-I would ask You to pull the code to the for-v3.3 kernel tree. This driver
-depends on the selection api extension, which merge has been requested
-in '[GIT PATCHES FOR 3.3] v4l: introduce selection API' thread.
+On Thursday 08 December 2011 07:31:29 Ohad Ben-Cohen wrote:
+> On Wed, Nov 23, 2011 at 3:53 AM, Laurent Pinchart wrote:
+> > On Sunday 20 November 2011 17:54:26 Dmitry Artamonow wrote:
+> >> Fix following build error by explicitely including <linux/module.h>
+> >> header file.
+> >> 
+> >>   CC      drivers/media/video/omap3isp/ispvideo.o
+> >> drivers/media/video/omap3isp/ispvideo.c:1267: error: 'THIS_MODULE'
+> >> undeclared here (not in a function) make[4]: ***
+> >> [drivers/media/video/omap3isp/ispvideo.o] Error 1
+> >> make[3]: *** [drivers/media/video/omap3isp] Error 2
+> >> make[2]: *** [drivers/media/video] Error 2
+> >> make[1]: *** [drivers/media] Error 2
+> >> make: *** [drivers] Error 2
+> >> 
+> >> Signed-off-by: Dmitry Artamonow <mad_soft@inbox.ru>
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > Mauro, can you pick this for v3.2, or would you like me to send a pull
+> > request ?
+> 
+> Folks, was this one picked up by anyone ?
+> 
+> We seem to still have this issue in mainline (at least in rc4).
 
-Best regards,
-Marek Szyprowski
+According to http://patchwork.linuxtv.org/patch/8510/ the patch has been 
+accepted. Mauro, do you have any time estimate regarding when you will push 
+that to Linus ?
 
+-- 
+Regards,
 
-The following changes since commit 2a887d27708a4f9f3b5ad8258f9e19a150b58f03:
-
-  [media] tm6000: fix OOPS at tm6000_ir_int_stop() and tm6000_ir_int_start() (2011-11-30 16:49:45 -0200)
-
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-2.6-samsung s5p-jpeg
-
-Andrzej Pietrasiewicz (1):
-      Exynos4 JPEG codec v4l2 driver
-
- drivers/media/video/Kconfig              |    8 +
- drivers/media/video/Makefile             |    1 +
- drivers/media/video/s5p-jpeg/Makefile    |    2 +
- drivers/media/video/s5p-jpeg/jpeg-core.c | 1481 ++++++++++++++++++++++++++++++
- drivers/media/video/s5p-jpeg/jpeg-core.h |  143 +++
- drivers/media/video/s5p-jpeg/jpeg-hw.h   |  353 +++++++
- drivers/media/video/s5p-jpeg/jpeg-regs.h |  170 ++++
- 7 files changed, 2158 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/s5p-jpeg/Makefile
- create mode 100644 drivers/media/video/s5p-jpeg/jpeg-core.c
- create mode 100644 drivers/media/video/s5p-jpeg/jpeg-core.h
- create mode 100644 drivers/media/video/s5p-jpeg/jpeg-hw.h
- create mode 100644 drivers/media/video/s5p-jpeg/jpeg-regs.h
+Laurent Pinchart
