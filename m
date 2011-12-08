@@ -1,66 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:61232 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755116Ab1LJEoZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:44:25 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:44:24 -0800 (PST)
+	with ESMTP id S1757040Ab1LHBgO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 20:36:14 -0500
+Received: by wgbdr13 with SMTP id dr13so2336373wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2011 17:36:13 -0800 (PST)
+Message-ID: <4EE0148A.9000101@gmail.com>
+Date: Thu, 08 Dec 2011 02:36:10 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Date: Sat, 10 Dec 2011 10:14:24 +0530
-Message-ID: <CAHFNz9KJM1RG4HFLgL14+OX104im8yTThrAJb_mPQagLe-qiLg@mail.gmail.com>
-Subject: v4 [PATCH 10/10] PCTV290E: Attach a single frontend
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=0015174ff35e4d8fe304b3b58e94
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/1] xc3028: force reload of DTV7 firmware in VHF band
+ with Zarlink demodulator
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015174ff35e4d8fe304b3b58e94
-Content-Type: text/plain; charset=ISO-8859-1
+Il 07/12/2011 22:54, Christoph Pfister ha scritto:
+> 2011/12/7 Mauro Carvalho Chehab <mchehab@redhat.com>:
+> <snip>
+>> Several channels in Italy are marked as if they are using 8MHz for VHF (the
+>> auto-Italy is
+>> the most weird one, as it defines all VHF frequencies with both 7MHz and
+>> 8MHz).
+> 
+> Well, auto-Italy is a superset of the it-* files. For example "T
+> 177500000 7MHz" exists in some files (Modena, Montevergina) and "T
+> 177500000 8MHz" in others (Sassari), so both possibilities have to
+> appear in auto-Italy (similar for other VHF frequencies, it simply
+> doesn't seem to be regulated). There's nothing to fix there,
+> auto-Italy exists exactly because of these irregularities.
+> 
+> <snip>
+> 
+> Christoph
+> 
+
+Hi Christoph,
+since June 2009 all VHF channels in Italy use the European canalization,
+which means there is no 8 MHz VHF channel anymore.
+
+The data you have are outdated.
+
+If you need some reliable reference to know what is broadcasted in
+Italy, the best available source is this amatory website:
+
+http://www.otgtv.it/index2.html
+
+It is maniacally maintained by a single person, which is a real
+enthusiast of TV broadcasting and has access to reliable first-hand
+informations. There are also a few institutional websites, but they can
+not compete with this site in terms of accuracy.
+
+The auto-Italy table for DVB-T should be just:
+
+VHF:
+channels 5-12 with 7 MHz bandwidth;
+UHF:
+channels 21-69 with 8 MHZ bandwidth;
+
+The last 6 regions will switch-off analog broadcasting in the first half
+of 2012 (Abruzzo, Molise, Puglia, Basilicata, Calabria, Sicilia).
+Until then, there are a few analog channels using some weird frequency
+table, but all digital multiplexes are already converted to the new
+European frequency table.
+
+Best,
+Gianluca
 
 
 
---0015174ff35e4d8fe304b3b58e94
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0010-PCTV290E-Attach-a-single-frontend-rather-than-a-fron.patch"
-Content-Disposition: attachment;
-	filename="0010-PCTV290E-Attach-a-single-frontend-rather-than-a-fron.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-RnJvbSA0YzhmN2Y3ODdkYjZhN2ZhZjlkODliNjU2ZWYyYjAwNWJlYWNjOTQ4IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IE1vbiwgMjEgTm92IDIwMTEgMjA6MTU6MzYgKzA1MzAKU3ViamVjdDogW1BBVENIIDEw
-LzEwXSBQQ1RWMjkwRTogQXR0YWNoIGEgc2luZ2xlIGZyb250ZW5kLCByYXRoZXIgdGhhbiBhIGZy
-b250ZW5kIGVhY2ggcGVyIGRlbGl2ZXJ5IHN5c3RlbSwgd2hlcmVieSBhIG11bHRpc3RhbmRhcmQg
-ZnJvbnRlbmQgY2FuIGFkdmVydGlzZSBhbGwgYXNzb2NpYXRlZCBkZWxpdmVyeSBzeXN0ZW1zLgoK
-U2lnbmVkLW9mZi1ieTogTWFudSBBYnJhaGFtIDxhYnJhaGFtLm1hbnVAZ21haWwuY29tPgotLS0K
-IGRyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1kdmIuYyB8ICAgMjcgKysrKysrKysr
-LS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygrKSwgMTgg
-ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgvZW0y
-OHh4LWR2Yi5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgvZW0yOHh4LWR2Yi5jCmluZGV4
-IGNlZjdhMmQuLjhhMTIwOTQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4
-L2VtMjh4eC1kdmIuYworKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHgtZHZi
-LmMKQEAgLTc2MSwzMSArNzYxLDIyIEBAIHN0YXRpYyBpbnQgZW0yOHh4X2R2Yl9pbml0KHN0cnVj
-dCBlbTI4eHggKmRldikKIAkJCQkgICAmZGV2LT5pMmNfYWRhcCwgJmt3b3JsZF9hMzQwX2NvbmZp
-Zyk7CiAJCWJyZWFrOwogCWNhc2UgRU0yODE3NF9CT0FSRF9QQ1RWXzI5MEU6Ci0JCS8qIE1GRQot
-CQkgKiBGRSAwID0gRFZCLVQvVDIgKyBGRSAxID0gRFZCLUMsIGJvdGggc2hhcmluZyBzYW1lIHR1
-bmVyLiAqLwotCQkvKiBGRSAwICovCiAJCWR2Yi0+ZmVbMF0gPSBkdmJfYXR0YWNoKGN4ZDI4MjBy
-X2F0dGFjaCwKLQkJCSZlbTI4eHhfY3hkMjgyMHJfY29uZmlnLCAmZGV2LT5pMmNfYWRhcCwgTlVM
-TCk7CisJCQkJCSZlbTI4eHhfY3hkMjgyMHJfY29uZmlnLAorCQkJCQkmZGV2LT5pMmNfYWRhcCwK
-KwkJCQkJTlVMTCk7CiAJCWlmIChkdmItPmZlWzBdKSB7CiAJCQkvKiBGRSAwIGF0dGFjaCB0dW5l
-ciAqLwotCQkJaWYgKCFkdmJfYXR0YWNoKHRkYTE4MjcxX2F0dGFjaCwgZHZiLT5mZVswXSwgMHg2
-MCwKLQkJCQkmZGV2LT5pMmNfYWRhcCwgJmVtMjh4eF9jeGQyODIwcl90ZGExODI3MV9jb25maWcp
-KSB7CisJCQlpZiAoIWR2Yl9hdHRhY2godGRhMTgyNzFfYXR0YWNoLAorCQkJCQlkdmItPmZlWzBd
-LAorCQkJCQkweDYwLAorCQkJCQkmZGV2LT5pMmNfYWRhcCwKKwkJCQkJJmVtMjh4eF9jeGQyODIw
-cl90ZGExODI3MV9jb25maWcpKSB7CisKIAkJCQlkdmJfZnJvbnRlbmRfZGV0YWNoKGR2Yi0+ZmVb
-MF0pOwogCQkJCXJlc3VsdCA9IC1FSU5WQUw7CiAJCQkJZ290byBvdXRfZnJlZTsKIAkJCX0KLQkJ
-CS8qIEZFIDEuIFRoaXMgZHZiX2F0dGFjaCgpIGNhbm5vdCBmYWlsLiAqLwotCQkJZHZiLT5mZVsx
-XSA9IGR2Yl9hdHRhY2goY3hkMjgyMHJfYXR0YWNoLCBOVUxMLCBOVUxMLAotCQkJCWR2Yi0+ZmVb
-MF0pOwotCQkJZHZiLT5mZVsxXS0+aWQgPSAxOwotCQkJLyogRkUgMSBhdHRhY2ggdHVuZXIgKi8K
-LQkJCWlmICghZHZiX2F0dGFjaCh0ZGExODI3MV9hdHRhY2gsIGR2Yi0+ZmVbMV0sIDB4NjAsCi0J
-CQkJJmRldi0+aTJjX2FkYXAsICZlbTI4eHhfY3hkMjgyMHJfdGRhMTgyNzFfY29uZmlnKSkgewot
-CQkJCWR2Yl9mcm9udGVuZF9kZXRhY2goZHZiLT5mZVsxXSk7Ci0JCQkJLyogbGVhdmUgRkUgMCBz
-dGlsbCBhY3RpdmUgKi8KLQkJCX0KLQotCQkJbWZlX3NoYXJlZCA9IDE7CiAJCX0KIAkJYnJlYWs7
-CiAJY2FzZSBFTTI4ODRfQk9BUkRfVEVSUkFURUNfSDU6Ci0tIAoxLjcuMQoK
---0015174ff35e4d8fe304b3b58e94--
