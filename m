@@ -1,105 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:59645 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751840Ab1LSKlf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 05:41:35 -0500
-Date: Mon, 19 Dec 2011 11:41:25 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-In-Reply-To: <201112191120.40084.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1112191139560.23694@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
- <201112191105.25855.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1112191113230.23694@axis700.grange>
- <201112191120.40084.laurent.pinchart@ideasonboard.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:44947 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544Ab1LHOAz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 09:00:55 -0500
+Received: by eekd41 with SMTP id d41so1171557eek.19
+        for <linux-media@vger.kernel.org>; Thu, 08 Dec 2011 06:00:54 -0800 (PST)
+Message-ID: <4EE0C312.90401@gmail.com>
+Date: Thu, 08 Dec 2011 15:00:50 +0100
+From: Fredrik Lingvall <fredrik.lingvall@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
+Subject: Re: HVR-930C DVB-T mode report
+References: <CAKdnbx5JaCp71kqxH6sO4r35rb28UjOHmL7eD4e7bHtbYFgn5g@mail.gmail.com> <4EE08D88.2070806@redhat.com>
+In-Reply-To: <4EE08D88.2070806@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+On 12/08/11 11:12, Mauro Carvalho Chehab wrote:
+>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+>> Scanning 7MHz frequencies...
+>> 177500: (time: 00:00)
+>> 184500: (time: 00:03)
+>>
+>> [...]
+>> 834000: (time: 02:46) (time: 02:48)
+>> 842000: (time: 02:50)
+>> 850000: (time: 02:52) (time: 02:55)
+>> 858000: (time: 02:56) (time: 02:58)
+>>
+>> ERROR: Sorry - i couldn't get any working frequency/transponder
+>>   Nothing to scan!!
+>
+>
+> With regards to Italy, w_scan does something different than scan. The 
+> auto-italy
+> table used by scan tries several channels with both 8MHz and 7MHz, 
+> while w_scan
+> only tries 7MHz for VHF. This might explain the issue, if you're still 
+> able to
+> scan/tune with scan and if you have a good antenna.
+>>
+>>
+>> Regards
+>>
+>> Eddi
+>
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> Hi Guennadi,
-> 
-> On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
-> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> > > On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
-> > > > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> > > > > On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
-> > > > > > On Fri, 16 Dec 2011, Scott Jiang wrote:
-> > > > > > > >> How about this implementation? I know it's not for soc, but I
-> > > > > > > >> post it to give my idea.
-> > > > > > > >> Bridge knows the layout, so it doesn't need to query the
-> > > > > > > >> subdevice.
-> > > > > > > > 
-> > > > > > > > Where from? AFAIU, we are talking here about subdevice inputs,
-> > > > > > > > right? In this case about various inputs of the TV decoder. How
-> > > > > > > > shall the bridge driver know about that?
-> > > > > > > 
-> > > > > > > I have asked this question before. Laurent reply me:
-> > > > > > > > >> ENUMINPUT as defined by V4L2 enumerates input connectors
-> > > > > > > > >> available on the board. Which inputs the board designer
-> > > > > > > > >> hooked up is something that only the top-level V4L driver
-> > > > > > > > >> will know. Subdevices do not have that information, so
-> > > > > > > > >> enuminputs is not applicable there.
-> > > > > > > > >> 
-> > > > > > > > >> Of course, subdevices do have input pins and output pins,
-> > > > > > > > >> but these are assumed to be fixed. With the s_routing ops
-> > > > > > > > >> the top level driver selects which input and output pins
-> > > > > > > > >> are active. Enumeration of those inputs and outputs
-> > > > > > > > >> wouldn't gain you anything as far as I can tell since the
-> > > > > > > > >> subdevice simply does not know which inputs/outputs are
-> > > > > > > > >> actually hooked up. It's the top level driver that has that
-> > > > > > > > >> information (usually passed in through board/card info
-> > > > > > > > >> structures).
-> > > > > > 
-> > > > > > Laurent, right, I now remember reading this discussion before. But
-> > > > > > I'm not sure I completely agree:-) Yes, you're right - the board
-> > > > > > decides which pins are routed to which connectors. And it has to
-> > > > > > provide this information to the driver in its platform data. But -
-> > > > > > I think, this information should be provided not to the bridge
-> > > > > > driver, but to respective subdevice drivers, because only they
-> > > > > > know what exactly those interfaces are good for and how to report
-> > > > > > them to the bridge or the user, if we decide to also export this
-> > > > > > information over the subdevice user-space API.
-> > > > > > 
-> > > > > > So, I would say, the board has to tell the subdevice driver: yes,
-> > > > > > your inputs 0 and 1 are routed to external connectors. On input 1
-> > > > > > I've put a pullup, it is connected to connector of type X over a
-> > > > > > circuit Y, clocked from your output Z, if the driver needs to know
-> > > > > > all that. And the subdev driver will just tell the bridge only
-> > > > > > what that one needs to know - number of inputs and their
-> > > > > > capabilities.
-> > > > > 
-> > > > > That sounds reasonable.
-> > > > 
-> > > > Good, this would mean, we need additional subdevice operations along
-> > > > the lines of enum_input and enum_output, and maybe also g_input and
-> > > > g_output?
-> > > 
-> > > What about implementing pad support in the subdevice ? Input enumeration
-> > > could then be performed without a subdev operation.
-> > 
-> > soc-camera doesn't support pad operations yet.
-> 
-> soc-camera doesn't support enum_input yet either, so you need to implement 
-> something anyway ;-)
-> 
-> You wouldn't need to call a pad operation here, you would just need to iterate 
-> through the pads provided by the subdev.
+Are there similar problems while scanning DVB-C nets with w_scan?
 
-tvp5150 doesn't implement it either yet. So, I would say, it is a better 
-solution ATM to fix this functionality independent of the pad-level API.
+And, is there a "scan everything" table for dvbscan?
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Regards,
+
+Fredrik
