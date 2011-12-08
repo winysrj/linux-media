@@ -1,91 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:59776 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933335Ab1LFONU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 09:13:20 -0500
-Date: Tue, 6 Dec 2011 15:13:17 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	Stefan Ringel <linuxtv@stefanringel.de>
-Subject: Re: [PATCH 2/2] [media] tm6000: Fix bad indentation.
-Message-ID: <20111206141316.GB12258@avionic-0098.adnet.avionic-design.de>
-References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
- <1323178776-12305-1-git-send-email-thierry.reding@avionic-design.de>
- <1323178776-12305-2-git-send-email-thierry.reding@avionic-design.de>
- <4EDE1F99.6080200@iki.fi>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:37923 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752595Ab1LHVoJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 16:44:09 -0500
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6sX45UoQRIJXqkqR"
-Content-Disposition: inline
-In-Reply-To: <4EDE1F99.6080200@iki.fi>
+In-Reply-To: <201112071340.35267.arnd@arndb.de>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+	<CAF6AEGto-+oSqguuWyPunUbtE65GpNiXh21srQzrChiBQMb1Nw@mail.gmail.com>
+	<CAB2ybb-0mTdNXN82O1TUGVjhMZUQtQb07A3EVmmdxg3ngEc3Dw@mail.gmail.com>
+	<201112071340.35267.arnd@arndb.de>
+Date: Thu, 8 Dec 2011 22:44:08 +0100
+Message-ID: <CAKMK7uFQiiUbkU-7c3Os0d0FJNyLbqS2HLPRLy3LGnOoCXV5Pw@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, Dec 7, 2011 at 14:40, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Wednesday 07 December 2011, Semwal, Sumit wrote:
+>> Thanks for the excellent discussion - it indeed is very good learning
+>> for the relatively-inexperienced me :)
+>>
+>> So, for the purpose of dma-buf framework, could I summarize the
+>> following and rework accordingly?:
+>> 1. remove mmap() dma_buf_op [and mmap fop], and introduce cpu_start(),
+>> cpu_finish() ops to bracket cpu accesses to the buffer. Also add
+>> DMABUF_CPU_START / DMABUF_CPU_FINI IOCTLs?
+>
+> I think we'd be better off for now without the extra ioctls and
+> just document that a shared buffer must not be exported to user
+> space using mmap at all, to avoid those problems. Serialization
+> between GPU and CPU is on a higher level than the dma_buf framework
+> IMHO.
 
---6sX45UoQRIJXqkqR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Agreed.
 
-* Antti Palosaari wrote:
-> That question is related to that kind of indentation generally, not
-> only that patch.
->=20
-> On 12/06/2011 03:39 PM, Thierry Reding wrote:
-> >Function parameters on subsequent lines should never be aligned with the
-> >function name but rather be indented.
-> [...]
-> >  			usb_set_interface(dev->udev,
-> >-			dev->isoc_in.bInterfaceNumber,
-> >-			0);
-> >+					dev->isoc_in.bInterfaceNumber, 0);
->=20
-> Which kind of indentation should be used when function params are
-> slitted to multiple lines?
+>> 2. remove sg_sync* ops for now (and we'll see if we need to add them
+>> later if needed)
+>
+> Just removing the sg_sync_* operations is not enough. We have to make
+> the decision whether we want to allow
+> a) only coherent mappings of the buffer into kernel memory (requiring
+> an extension to the dma_map_ops on ARM to not flush caches at map/unmap
+> time)
+> b) not allowing any in-kernel mappings (same requirement on ARM, also
+> limits the usefulness of the dma_buf if we cannot access it from the
+> kernel or from user space)
+> c) only allowing streaming mappings, even if those are non-coherent
+> (requiring strict serialization between CPU (in-kernel) and dma users of
+> the buffer)
 
-I don't think this is documented anywhere and there are no hard rules with
-regard to this. I guess anything is fine as long as it is indented at all.
+I think only allowing streaming access makes the most sense:
+- I don't see much (if any need) for the kernel to access a dma_buf -
+in all current usecases it just contains pixel data and no hw-specific
+things (like sg tables, command buffers, ..). At most I see the need
+for the kernel to access the buffer for dma bounce buffers, but that
+is internal to the dma subsystem (and hence does not need to be
+exposed).
+- Userspace can still access the contents through the exporting
+subsystem (e.g. use some gem mmap support). For efficiency reason gpu
+drivers are already messing around with cache coherency in a platform
+specific way (and hence violated the dma api a bit), so we could stuff
+the mmap coherency in there, too. When we later on extend dma_buf
+support so that other drivers than the gpu can export dma_bufs, we can
+then extend the official dma api with already a few drivers with
+use-patterns around.
 
-> In that case two tabs are used (related to function indentation).
-> example:
-> 	ret=3D function(param1,
-> 			param2);
-
-I usually use that because it is my text editor's default.
-
-> Other generally used is only one tab (related to function indentation).
-> example:
-> 	ret=3D function(param1,
-> 		param2);
-
-I think that's okay as well.
-
-> And last generally used is multiple tabs + spaces until same
-> location where first param is meet (related to function
-> indentation). I see that bad since use of tabs, with only spaces I
-> see it fine. And this many times leads situation param level are
-> actually different whilst originally idea was to put those same
-> level.
-> example:
-> 	ret=3D function(param1,
-> 		      param2);
-
-Whether this works or not always depends on the tab-width. I think most
-variations are okay here. Some people like to align them, other people
-don't.
-
-Thierry
-
---6sX45UoQRIJXqkqR
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk7eIvwACgkQZ+BJyKLjJp/EPwCfUHG1vCG0PgRggqLHQ8bO0F9q
-HgIAn22T3yvpiLGLRLw1+0EowKAXKVxo
-=26tN
------END PGP SIGNATURE-----
-
---6sX45UoQRIJXqkqR--
+But I still think that the kernel must not be required to enforce
+correct access ordering for the reasons outlined in my other mail.
+-Daniel
+-- 
+Daniel Vetter
+daniel.vetter@ffwll.ch - +41 (0) 79 364 57 48 - http://blog.ffwll.ch
