@@ -1,84 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:8746 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752233Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:27 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rc7026532
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 22/94] [media] dib9000: get rid of unused dvb_frontend_parameters
-Date: Fri, 30 Dec 2011 13:07:19 -0200
-Message-Id: <1325257711-12274-23-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from newsmtp5.atmel.com ([204.2.163.5]:24073 "EHLO
+	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753179Ab1LHKTM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 05:19:12 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	nicolas.ferre@atmel.com, Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v3 1/2] [media] V4L: atmel-isi: add code to enable/disable ISI_MCK clock
+Date: Thu,  8 Dec 2011 18:18:49 +0800
+Message-Id: <1323339530-26117-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This parameter is passed as NULL, and it is never used. Just
-remove it.
+This patch
+- add ISI_MCK clock enable/disable code.
+- change field name in isi_platform_data structure
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+[g.liakhovetski@gmx.de: fix label names]
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 ---
- drivers/media/dvb/frontends/dib9000.c |   12 ++++++------
- 1 files changed, 6 insertions(+), 6 deletions(-)
+v3: using IS_ERR() to check return value of clk_get() instead of using IS_ERR_OR_NULL()
 
-diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
-index a3a9fb1..974c2b7 100644
---- a/drivers/media/dvb/frontends/dib9000.c
-+++ b/drivers/media/dvb/frontends/dib9000.c
-@@ -1309,7 +1309,7 @@ error:
- 	return ret;
- }
+ drivers/media/video/atmel-isi.c |   31 +++++++++++++++++++++++++++++--
+ include/media/atmel-isi.h       |    4 +++-
+ 2 files changed, 32 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+index fbc904f..44789f0 100644
+--- a/drivers/media/video/atmel-isi.c
++++ b/drivers/media/video/atmel-isi.c
+@@ -90,7 +90,10 @@ struct atmel_isi {
+ 	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
  
--static int dib9000_fw_set_channel_union(struct dvb_frontend *fe, struct dvb_frontend_parameters *channel)
-+static int dib9000_fw_set_channel_union(struct dvb_frontend *fe)
- {
- 	struct dib9000_state *state = fe->demodulator_priv;
- 	struct dibDVBTChannel {
-@@ -1454,7 +1454,7 @@ static int dib9000_fw_set_channel_union(struct dvb_frontend *fe, struct dvb_fron
- 	return 0;
- }
+ 	struct completion		complete;
++	/* ISI peripherial clock */
+ 	struct clk			*pclk;
++	/* ISI_MCK, feed to camera sensor to generate pixel clock */
++	struct clk			*mck;
+ 	unsigned int			irq;
  
--static int dib9000_fw_tune(struct dvb_frontend *fe, struct dvb_frontend_parameters *ch)
-+static int dib9000_fw_tune(struct dvb_frontend *fe)
- {
- 	struct dib9000_state *state = fe->demodulator_priv;
- 	int ret = 10, search = state->channel_status.status == CHANNEL_STATUS_PARAMETERS_UNKNOWN;
-@@ -1471,7 +1471,7 @@ static int dib9000_fw_tune(struct dvb_frontend *fe, struct dvb_frontend_paramete
- 		if (search)
- 			dib9000_mbx_send(state, OUT_MSG_FE_CHANNEL_SEARCH, NULL, 0);
- 		else {
--			dib9000_fw_set_channel_union(fe, ch);
-+			dib9000_fw_set_channel_union(fe);
- 			dib9000_mbx_send(state, OUT_MSG_FE_CHANNEL_TUNE, NULL, 0);
- 		}
- 		state->tune_state = CT_DEMOD_STEP_1;
-@@ -2010,9 +2010,9 @@ static int dib9000_set_frontend(struct dvb_frontend *fe)
- 	exit_condition = 0;	/* 0: tune pending; 1: tune failed; 2:tune success */
- 	index_frontend_success = 0;
- 	do {
--		sleep_time = dib9000_fw_tune(state->fe[0], NULL);
-+		sleep_time = dib9000_fw_tune(state->fe[0]);
- 		for (index_frontend = 1; (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++) {
--			sleep_time_slave = dib9000_fw_tune(state->fe[index_frontend], NULL);
-+			sleep_time_slave = dib9000_fw_tune(state->fe[index_frontend]);
- 			if (sleep_time == FE_CALLBACK_TIME_NEVER)
- 				sleep_time = sleep_time_slave;
- 			else if ((sleep_time_slave != FE_CALLBACK_TIME_NEVER) && (sleep_time_slave > sleep_time))
-@@ -2070,7 +2070,7 @@ static int dib9000_set_frontend(struct dvb_frontend *fe)
- 		sleep_time = FE_CALLBACK_TIME_NEVER;
- 		for (index_frontend = 0; (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++) {
- 			if (index_frontend != index_frontend_success) {
--				sleep_time_slave = dib9000_fw_tune(state->fe[index_frontend], NULL);
-+				sleep_time_slave = dib9000_fw_tune(state->fe[index_frontend]);
- 				if (sleep_time == FE_CALLBACK_TIME_NEVER)
- 					sleep_time = sleep_time_slave;
- 				else if ((sleep_time_slave != FE_CALLBACK_TIME_NEVER) && (sleep_time_slave > sleep_time))
+ 	struct isi_platform_data	*pdata;
+@@ -766,6 +769,12 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
+ 	if (ret)
+ 		return ret;
+ 
++	ret = clk_enable(isi->mck);
++	if (ret) {
++		clk_disable(isi->pclk);
++		return ret;
++	}
++
+ 	isi->icd = icd;
+ 	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
+ 		 icd->devnum);
+@@ -779,6 +788,7 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
+ 
+ 	BUG_ON(icd != isi->icd);
+ 
++	clk_disable(isi->mck);
+ 	clk_disable(isi->pclk);
+ 	isi->icd = NULL;
+ 
+@@ -874,7 +884,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd, u32 pixfmt)
+ 
+ 	if (isi->pdata->has_emb_sync)
+ 		cfg1 |= ISI_CFG1_EMB_SYNC;
+-	if (isi->pdata->isi_full_mode)
++	if (isi->pdata->full_mode)
+ 		cfg1 |= ISI_CFG1_FULL_MODE;
+ 
+ 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
+@@ -912,6 +922,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+ 			isi->fb_descriptors_phys);
+ 
+ 	iounmap(isi->regs);
++	clk_put(isi->mck);
+ 	clk_put(isi->pclk);
+ 	kfree(isi);
+ 
+@@ -930,7 +941,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 	struct isi_platform_data *pdata;
+ 
+ 	pdata = dev->platform_data;
+-	if (!pdata || !pdata->data_width_flags) {
++	if (!pdata || !pdata->data_width_flags || !pdata->mck_hz) {
+ 		dev_err(&pdev->dev,
+ 			"No config available for Atmel ISI\n");
+ 		return -EINVAL;
+@@ -959,6 +970,19 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&isi->video_buffer_list);
+ 	INIT_LIST_HEAD(&isi->dma_desc_head);
+ 
++	/* Get ISI_MCK, provided by programmable clock or external clock */
++	isi->mck = clk_get(dev, "isi_mck");
++	if (IS_ERR(isi->mck)) {
++		dev_err(dev, "Failed to get isi_mck\n");
++		ret = PTR_ERR(isi->mck);
++		goto err_clk_get;
++	}
++
++	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
++	ret = clk_set_rate(isi->mck, pdata->mck_hz);
++	if (ret < 0)
++		goto err_set_mck_rate;
++
+ 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
+ 				sizeof(struct fbd) * MAX_BUFFER_NUM,
+ 				&isi->fb_descriptors_phys,
+@@ -1034,6 +1058,9 @@ err_alloc_ctx:
+ 			isi->p_fb_descriptors,
+ 			isi->fb_descriptors_phys);
+ err_alloc_descriptors:
++err_set_mck_rate:
++	clk_put(isi->mck);
++err_clk_get:
+ 	kfree(isi);
+ err_alloc_isi:
+ 	clk_put(pclk);
+diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
+index 26cece5..6568230 100644
+--- a/include/media/atmel-isi.h
++++ b/include/media/atmel-isi.h
+@@ -110,10 +110,12 @@ struct isi_platform_data {
+ 	u8 hsync_act_low;
+ 	u8 vsync_act_low;
+ 	u8 pclk_act_falling;
+-	u8 isi_full_mode;
++	u8 full_mode;
+ 	u32 data_width_flags;
+ 	/* Using for ISI_CFG1 */
+ 	u32 frate;
++	/* Using for ISI_MCK */
++	u32 mck_hz;
+ };
+ 
+ #endif /* __ATMEL_ISI_H__ */
 -- 
-1.7.8.352.g876a6
+1.6.3.3
 
