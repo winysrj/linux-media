@@ -1,34 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.tyldum.com ([91.189.178.231]:45760 "EHLO ns1.tyldum.com"
+Received: from mx1.redhat.com ([209.132.183.28]:65334 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752971Ab1LMNzW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Dec 2011 08:55:22 -0500
-Message-ID: <4EE7593C.2070901@tyldum.com>
-Date: Tue, 13 Dec 2011 14:55:08 +0100
-From: Vidar Tyldum <vidar@tyldum.com>
+	id S1751558Ab1LHPGR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 8 Dec 2011 10:06:17 -0500
+Message-ID: <4EE0D264.4090306@redhat.com>
+Date: Thu, 08 Dec 2011 13:06:12 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Multiple Mantis devices gives me glitches
-References: <4EE6FF6F.5050901@kolumbus.fi>
-In-Reply-To: <4EE6FF6F.5050901@kolumbus.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+CC: Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
+Subject: Re: HVR-930C DVB-T mode report
+References: <CAKdnbx5JaCp71kqxH6sO4r35rb28UjOHmL7eD4e7bHtbYFgn5g@mail.gmail.com> <4EE08D88.2070806@redhat.com> <4EE0C312.90401@gmail.com>
+In-Reply-To: <4EE0C312.90401@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Marko Ristola, on 13.12.2011 08:31:
-> Here is a patch that went into Linus GIT this year.
-> It reduces the number of DMA transfer interrupts into one third.
-> Linus released 2.6.38.8 doesn't seem to have this patch yet.
+On 08-12-2011 12:00, Fredrik Lingvall wrote:
+> On 12/08/11 11:12, Mauro Carvalho Chehab wrote:
+>>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+>>> Scanning 7MHz frequencies...
+>>> 177500: (time: 00:00)
+>>> 184500: (time: 00:03)
+>>>
+>>> [...]
+>>> 834000: (time: 02:46) (time: 02:48)
+>>> 842000: (time: 02:50)
+>>> 850000: (time: 02:52) (time: 02:55)
+>>> 858000: (time: 02:56) (time: 02:58)
+>>>
+>>> ERROR: Sorry - i couldn't get any working frequency/transponder
+>>> Nothing to scan!!
+>>
+>>
+>> With regards to Italy, w_scan does something different than scan. The auto-italy
+>> table used by scan tries several channels with both 8MHz and 7MHz, while w_scan
+>> only tries 7MHz for VHF. This might explain the issue, if you're still able to
+>> scan/tune with scan and if you have a good antenna.
+>>>
+>>>
+>>> Regards
+>>>
+>>> Eddi
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
+> Are there similar problems while scanning DVB-C nets with w_scan?
+>
+> And, is there a "scan everything" table for dvbscan?
 
-Thank you very much. I did see this patch mentioned in my quest for more knowledge, but was not sure of the status.
+No. Both w_scan/dvbscan get the same channels, and they match the channels
+available at the STB and with other boards.
 
-I have patched the Ubuntu 2.6.38.8 kernel for Natty and loaded the new driver. Works fine for one card at the moment, will insert the other two later this afternoon.
-If this fixes my problem, how to proceed in getting the patch accepted as soon as possible? By me filing an official bug?
+Btw, drivers/media/common/tuners/xc5000.c doesn't support 7MHz for DVB-T:
 
-I'll do some stress testing by employing all adapters at once through VDR and look for any problems caused or fixed by the patch.
+		case BANDWIDTH_7_MHZ:
+			printk(KERN_ERR "xc5000 bandwidth 7MHz not supported\n");
+			return -EINVAL;
 
--- 
-Vidar Tyldum
-                              vidar@tyldum.com               PGP: 0x3110AA98
+This may explain why you're getting so few channels on it. Only channels marked as
+8MHz will be tuned.
+
+I _suspect_ that:
+		case BANDWIDTH_7_MHZ:
+		case BANDWIDTH_8_MHZ:
+			priv->bandwidth = BANDWIDTH_8_MHZ;
+			priv->video_standard = DTV8;
+			priv->freq_hz = params->frequency - 2750000;
+			break;
+
+would be the right thing to do.
+
+Regards,
+Mauro
