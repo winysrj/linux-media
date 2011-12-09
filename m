@@ -1,61 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:53794 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838Ab1LOKYw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 05:24:52 -0500
-Received: by wgbdr13 with SMTP id dr13so3807124wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 02:24:51 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EE9C7FA.8070607@infradead.org>
-References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com>
-	<4EE9C7FA.8070607@infradead.org>
-Date: Thu, 15 Dec 2011 11:24:51 +0100
-Message-ID: <CACKLOr1DLj_uc-NDQPNjXHcej2isE==d=_wUinXDDfJLgFiPKg@mail.gmail.com>
-Subject: Re: [PATCH 1/2] media: tvp5150 Fix default input selection.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:19065 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753845Ab1LIPkG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 10:40:06 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LVY005300UQ6N70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 09 Dec 2011 15:40:02 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LVY00H3L0UQ5R@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 09 Dec 2011 15:40:02 +0000 (GMT)
+Date: Fri, 09 Dec 2011 16:39:52 +0100
+From: Kamil Debski <k.debski@samsung.com>
+Subject: [PATCH] s5p-g2d: remove two unused variables from the G2D driver
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, k.debski@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1323445192-16166-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Changing this could break em28xx that might be expecting it
-> to be set to composite1. On a quick look, the code there seems to be
-> doing the right thing: during the probe procedure, it explicitly
-> calls s_routing, in order to initialize the device input to the
-> first input type found at the cards structure. So, this patch
-> is likely harmless.
->
-> Yet, why do you need to change it? Any bridge driver that uses it should
-> be doing the same: at initialization, it should set the input to a
-> value that it is compatible with the way the device is wired, and not
-> to assume a particular arrangement.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-g2d/g2d-hw.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-What I'm trying to do with these patches and my previous one related
-to mx2_camera,
-is to be able to use mx2_camera host driver with tvp5150 video decoder.
-
-I'm not sure how mx2_camera could be aware that the sensor or decoder
-attached to it
-needs s_routing function to be called with a certain parameter without
-making it too board specific.
-The only solution I could think of was assuming that if s_routing
-function was not called at all,
-the enabled input in tvp5150 would be the default COMPOSITE0 as it is
-specified in the datasheet.
-
-However, If you or anyone suggests a cleaner approach I'm totally
-open. But still, changing default
-value of the selected input in tvp5150 probe function is a bit dirty IMHO.
-
-Thank you.
-
+diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
+index e5249f3..39937cf 100644
+--- a/drivers/media/video/s5p-g2d/g2d-hw.c
++++ b/drivers/media/video/s5p-g2d/g2d-hw.c
+@@ -27,7 +27,6 @@ void g2d_reset(struct g2d_dev *d)
+ void g2d_set_src_size(struct g2d_dev *d, struct g2d_frame *f)
+ {
+ 	u32 n;
+-	u32 stride;
+ 
+ 	w(f->stride & 0xFFFF, SRC_STRIDE_REG);
+ 
+@@ -52,7 +51,6 @@ void g2d_set_src_addr(struct g2d_dev *d, dma_addr_t a)
+ void g2d_set_dst_size(struct g2d_dev *d, struct g2d_frame *f)
+ {
+ 	u32 n;
+-	u32 stride;
+ 
+ 	w(f->stride & 0xFFFF, DST_STRIDE_REG);
+ 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.0.4
+
