@@ -1,120 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61481 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:13689 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750737Ab1LJM3z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Dec 2011 07:29:55 -0500
-Message-ID: <4EE350BF.1090402@redhat.com>
-Date: Sat, 10 Dec 2011 10:29:51 -0200
+	id S1751238Ab1LISVE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Dec 2011 13:21:04 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pB9IL462024797
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 9 Dec 2011 13:21:04 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4 [PATCH 06/10] DVB: Use a unique delivery system identifier
- for DVBC_ANNEX_C
-References: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com>
-In-Reply-To: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] [media] drxk: Switch the delivery system on FE_SET_PROPERTY
+Date: Fri,  9 Dec 2011 16:20:52 -0200
+Message-Id: <1323454852-7426-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10-12-2011 02:43, Manu Abraham wrote:
+The DRX-K doesn't change the delivery system at set_properties,
+but do it at frontend init. This causes problems on programs like
+w_scan that, by default, opens both frontends.
 
+Instead, explicitly set the format when set_parameters callback is
+called.
 
-> From 92a79a1e0a1b5403f06f60661f00ede365b10108 Mon Sep 17 00:00:00 2001
-> From: Manu Abraham <abraham.manu@gmail.com>
-> Date: Thu, 24 Nov 2011 17:09:09 +0530
-> Subject: [PATCH 06/10] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C,
->  just like any other. DVBC_ANNEX_A and DVBC_ANNEX_C have slightly
->  different parameters and used in 2 geographically different
->  locations.
->
-> Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
-> ---
->  include/linux/dvb/frontend.h |    7 ++++++-
->  1 files changed, 6 insertions(+), 1 deletions(-)
->
-> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-> index f80b863..a3c7623 100644
-> --- a/include/linux/dvb/frontend.h
-> +++ b/include/linux/dvb/frontend.h
-> @@ -335,7 +335,7 @@ typedef enum fe_rolloff {
->
->  typedef enum fe_delivery_system {
->  	SYS_UNDEFINED,
-> -	SYS_DVBC_ANNEX_AC,
-> +	SYS_DVBC_ANNEX_A,
->  	SYS_DVBC_ANNEX_B,
->  	SYS_DVBT,
->  	SYS_DSS,
-> @@ -352,8 +352,13 @@ typedef enum fe_delivery_system {
->  	SYS_DAB,
->  	SYS_DVBT2,
->  	SYS_TURBO,
-> +	SYS_DVBC_ANNEX_C,
->  } fe_delivery_system_t;
->
-> +
-> +#define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
-> +
-> +
->  struct dtv_cmds_h {
->  	char	*name;		/* A display name for debugging purposes */
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/drxk_hard.c |   32 ++++++++++++++++++++++--------
+ drivers/media/dvb/frontends/drxk_hard.h |    2 +
+ 2 files changed, 25 insertions(+), 9 deletions(-)
 
-This patch conflicts with the approach given by this patch:
-
-	http://www.mail-archive.com/linux-media@vger.kernel.org/msg39262.html
-
-merged as commit 39ce61a846c8e1fa00cb57ad5af021542e6e8403.
-
-The approach there were to allow calls to SYS_DVBC_ANNEX_AC to replace the Annex A
-roll-off factor of 0.15 by the one used on Annex C (0.13).
-
-As this patch didn't show-up at an stable version, we can still change it to use a
-separate delivery system for DVB-C annex C, but this patch needs to be reverted, and
-a few changes on existing drivers are needed (drxk, xc5000 and tda18271c2dd explicitly
-supports both standards).
-
-So, let's discuss it a little more, and then take a decision on what approach to take.
-In any case, I suggest to remove this patch from the series, to not impact on merging
-the remaining ones, and add it on another patch series that would contain the needed
-changes on other places, if we decide to go on that direction.
-
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 95cbc98..c8e0921 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -1847,6 +1847,7 @@ static int SetOperationMode(struct drxk_state *state,
+ 		*/
+ 	switch (oMode) {
+ 	case OM_DVBT:
++		dprintk(1, ": DVB-T\n");
+ 		state->m_OperationMode = oMode;
+ 		status = SetDVBTStandard(state, oMode);
+ 		if (status < 0)
+@@ -1854,6 +1855,8 @@ static int SetOperationMode(struct drxk_state *state,
+ 		break;
+ 	case OM_QAM_ITU_A:	/* fallthrough */
+ 	case OM_QAM_ITU_C:
++		dprintk(1, ": DVB-C Annex %c\n",
++			(state->m_OperationMode == OM_QAM_ITU_A) ? 'A' : 'C');
+ 		state->m_OperationMode = oMode;
+ 		status = SetQAMStandard(state, oMode);
+ 		if (status < 0)
+@@ -6183,7 +6186,10 @@ static int drxk_c_init(struct dvb_frontend *fe)
+ 	dprintk(1, "\n");
+ 	if (mutex_trylock(&state->ctlock) == 0)
+ 		return -EBUSY;
+-	SetOperationMode(state, OM_QAM_ITU_A);
++	if (state->m_itut_annex_c)
++		SetOperationMode(state, OM_QAM_ITU_C);
++	else
++		SetOperationMode(state, OM_QAM_ITU_A);
+ 	return 0;
+ }
+ 
+@@ -6219,14 +6225,6 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (state->m_OperationMode == OM_QAM_ITU_A ||
+-	    state->m_OperationMode == OM_QAM_ITU_C) {
+-		if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+-			state->m_OperationMode = OM_QAM_ITU_C;
+-		else
+-			state->m_OperationMode = OM_QAM_ITU_A;
+-	}
 -
-
-What ITU-T J83 04/97 defines for Annex C is:
-
-	The system employs the transport multiplexing based on MPEG-2 (see Reference [2]),
-	guaranteeing interoperability with other media such as digital broadcasting,
-	ISDN networks or packaged media. The framing structure and the channel
-	coding are the same as in Annex A. The modulation is 64-QAM, and the QAM symbol
-	rate and the roll-off factor are optimized for the 6 MHz channel plan.
-
-So, as stated there, Annex C is a sub-set of Annex A, in terms of modulation, and uses a
-smaller roll-off factor (0.13, instead of 0.15).
-
-Also, all Annex A demods need to support QAM64, so it handles Annex C. Several of
-them explicitly says that.
-
-For the tuner, the only difference is how to estimate the needed bandwidth,
-given a desired signal rate, in order to select the low-pass filter between 6MHz and
-7MHz (in practice, affecting only Annex A, as, Annex C is not used on any Country
-using more than 6MHz bandwidth).
-
-In other words, SYS_DVBC_ANNEX_AC actually makes sense, as this covers the range of
-devices that are able to work with both ways. I'm not aware of any pure Annex C demod.
-If we ever found any, then I think we'll need a SYS_DVBC_ANNEX_C. Otherwise, it seems
-to be an over-design to add it, while we are not aware of any driver needing it.
-
-If we agree to replace SYS_DVBC_ANNEX_AC by SYS_DVBC_ANNEX_A/SYS_DVBC_ANNEX_C,
-this means that it is needed to review every driver that supports SYS_DVBC_ANNEX_AC and
-the FE_QAM logic, in order to be sure that the support for SYS_DVBC_ANNEX_C would be
-there for all those drivers that support it, otherwise it would be a regression.
-
-Regards,
-Mauro
-
-
-
-
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 	if (fe->ops.tuner_ops.set_params)
+@@ -6235,6 +6233,22 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+ 	state->param = *p;
+ 	fe->ops.tuner_ops.get_if_frequency(fe, &IF);
++
++	/*
++	 * Make sure that the frontend is on the right state
++	 */
++
++	if (fe->ops.info.type == FE_QAM) {
++		if (fe->dtv_property_cache.rolloff == ROLLOFF_13) {
++			state->m_itut_annex_c = true;
++			SetOperationMode(state, OM_QAM_ITU_C);
++		} else {
++			state->m_itut_annex_c = false;
++			SetOperationMode(state, OM_QAM_ITU_A);
++		}
++	} else
++		SetOperationMode(state, OM_DVBT);
++
+ 	Start(state, 0, IF);
+ 
+ 	/* printk(KERN_DEBUG "drxk: %s IF=%d done\n", __func__, IF); */
+diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
+index a05c32e..85a423f 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.h
++++ b/drivers/media/dvb/frontends/drxk_hard.h
+@@ -263,6 +263,8 @@ struct drxk_state {
+ 	u8     m_TSDataStrength;
+ 	u8     m_TSClockkStrength;
+ 
++	bool   m_itut_annex_c;      /* If true, uses ITU-T DVB-C Annex C, instead of Annex A */
++
+ 	enum DRXMPEGStrWidth_t  m_widthSTR;    /**< MPEG start width */
+ 	u32    m_mpegTsStaticBitrate;          /**< Maximum bitrate in b/s in case
+ 						    static clockrate is selected */
+-- 
+1.7.8
 
