@@ -1,57 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:60642 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab1LFLV4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 06:21:56 -0500
-Date: Tue, 6 Dec 2011 11:21:53 +0000
-From: Mark Brown <broonie@opensource.wolfsonmicro.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	HoP <jpetrous@gmail.com>,
-	Florian Fainelli <f.fainelli@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-Message-ID: <20111206112153.GC17194@sirena.org.uk>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
- <4ED6C5B8.8040803@linuxtv.org>
- <4ED75F53.30709@redhat.com>
- <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
- <20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
- <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com>
- <4EDC9B17.2080701@gmail.com>
- <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
- <4EDD01BA.40208@redhat.com>
- <4EDD2C82.7040804@linuxtv.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:56523 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751562Ab1LIONV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 09:13:21 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+Date: Fri, 9 Dec 2011 14:13:03 +0000
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <201112071340.35267.arnd@arndb.de> <CAKMK7uFQiiUbkU-7c3Os0d0FJNyLbqS2HLPRLy3LGnOoCXV5Pw@mail.gmail.com>
+In-Reply-To: <CAKMK7uFQiiUbkU-7c3Os0d0FJNyLbqS2HLPRLy3LGnOoCXV5Pw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EDD2C82.7040804@linuxtv.org>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112091413.03736.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 05, 2011 at 09:41:38PM +0100, Andreas Oberritter wrote:
-> On 05.12.2011 18:39, Mauro Carvalho Chehab wrote:
+On Thursday 08 December 2011, Daniel Vetter wrote:
+> > c) only allowing streaming mappings, even if those are non-coherent
+> > (requiring strict serialization between CPU (in-kernel) and dma users of
+> > the buffer)
+> 
+> I think only allowing streaming access makes the most sense:
+> - I don't see much (if any need) for the kernel to access a dma_buf -
+> in all current usecases it just contains pixel data and no hw-specific
+> things (like sg tables, command buffers, ..). At most I see the need
+> for the kernel to access the buffer for dma bounce buffers, but that
+> is internal to the dma subsystem (and hence does not need to be
+> exposed).
+> - Userspace can still access the contents through the exporting
+> subsystem (e.g. use some gem mmap support). For efficiency reason gpu
+> drivers are already messing around with cache coherency in a platform
+> specific way (and hence violated the dma api a bit), so we could stuff
+> the mmap coherency in there, too. When we later on extend dma_buf
+> support so that other drivers than the gpu can export dma_bufs, we can
+> then extend the official dma api with already a few drivers with
+> use-patterns around.
+> 
+> But I still think that the kernel must not be required to enforce
+> correct access ordering for the reasons outlined in my other mail.
 
-> > When you put someone via the network, issues like latency,  package
-> > drops, IP
-> > congestion, QoS issues, cryptography, tunneling, etc should be taken
-> > into account
-> > by the application, in order to properly address the network issues.
+I still don't think that's possible. Please explain how you expect
+to change the semantics of the streaming mapping API to allow multiple
+mappers without having explicit serialization points that are visible
+to all users. For simplicity, let's assume a cache coherent system
+with bounce buffers where map() copies the buffer to a dma area
+and unmap() copies it back to regular kernel memory. How does a driver
+know if it can touch the buffer in memory or from DMA at any given
+point in time? Note that this problem is the same as the cache coherency
+problem but may be easier to grasp.
 
-> Are you serious? Lower networking layers should be transparent to the
-> upper layers. You don't implement VPN or say TCP in all of your
-> applications, do you? These are just some more made-up arguments which
-> don't have anything to do with the use cases I explained earlier.
-
-For real time applications it does make a big difference - decisions
-taken at the application level can greatly impact end application
-performance.  For example with VoIP on a LAN you can get great audio
-quality by using very little compression at the expense of high
-bandwidth and you can probably use a very small jitter buffer.  Try
-doing that over a longer distance or more congested network which drops
-packets and it becomes useful to use a more commpressed encoding for
-your data which may have better features for handling packet loss, or to
-increase your jitter buffer to cope with the less reliable transmit
-times.
+	Arnd
