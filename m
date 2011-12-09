@@ -1,58 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:55823 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:18981 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753322Ab1LVV3N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 16:29:13 -0500
-Received: from dyn2-212-50-134-3.psoas.suomi.net ([212.50.134.3] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1RdqCM-0001qP-Tn
-	for linux-media@vger.kernel.org; Thu, 22 Dec 2011 23:29:10 +0200
-Message-ID: <4EF3A126.4070805@iki.fi>
-Date: Thu, 22 Dec 2011 23:29:10 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [RFCv1] add DTMB support for DVB API
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1752153Ab1LITAV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Dec 2011 14:00:21 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pB9J0LuU002768
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 9 Dec 2011 14:00:21 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv2] [media] drxk: Switch the delivery system on FE_SET_PROPERTY
+Date: Fri,  9 Dec 2011 17:00:12 -0200
+Message-Id: <1323457212-13507-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <4EE252E5.2050204@iki.fi>
+References: <4EE252E5.2050204@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-1. I renamed it to the DTMB. I looked very many research papers and CTTB 
-was very, very rare. DTMB seems to exists almost all documents even very 
-recent.
+The DRX-K doesn't change the delivery system at set_properties,
+but do it at frontend init. This causes problems on programs like
+w_scan that, by default, opens both frontends.
 
-2. added new values needed for the existing parameters.
+Use adap->mfe_shared in order to prevent this, and be sure that Annex A
+or C are properly selected.
 
-3. new parameter u32 interleaving
-DTMB supports 240 and 720 interleavers. I added interleaving as a 
-general parameter instead of DTMB, since there could be likely be some 
-other modulations too that have same param. Actually ISDB-T already 
-have. Let the 0 be AUTO or N/A.
-
-4. new parameter u32 carrier
-DTMB supports two sub-carrier modes. 1, single carrier, or 3780, which 
-is called multi-carrier. Same reasons applies here as for the interleaving.
-
-
-
-Antti Palosaari (1):
-   add DTMB support for DVB API
-
-  drivers/media/dvb/dvb-core/dvb_frontend.c |   19 ++++++++++++++++++-
-  drivers/media/dvb/dvb-core/dvb_frontend.h |    3 +++
-  include/linux/dvb/frontend.h              |   13 +++++++++++--
-  include/linux/dvb/version.h               |    2 +-
-  4 files changed, 33 insertions(+), 4 deletions(-)
-
--- 
-1.7.4.4
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
 
+v2: Use mfe_shared
 
+ drivers/media/dvb/frontends/drxk_hard.c |   16 ++++++++++------
+ drivers/media/dvb/frontends/drxk_hard.h |    2 ++
+ drivers/media/video/em28xx/em28xx-dvb.c |    4 ++++
+ 3 files changed, 16 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 95cbc98..388b815 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -1847,6 +1847,7 @@ static int SetOperationMode(struct drxk_state *state,
+ 		*/
+ 	switch (oMode) {
+ 	case OM_DVBT:
++		dprintk(1, ": DVB-T\n");
+ 		state->m_OperationMode = oMode;
+ 		status = SetDVBTStandard(state, oMode);
+ 		if (status < 0)
+@@ -1854,6 +1855,8 @@ static int SetOperationMode(struct drxk_state *state,
+ 		break;
+ 	case OM_QAM_ITU_A:	/* fallthrough */
+ 	case OM_QAM_ITU_C:
++		dprintk(1, ": DVB-C Annex %c\n",
++			(state->m_OperationMode == OM_QAM_ITU_A) ? 'A' : 'C');
+ 		state->m_OperationMode = oMode;
+ 		status = SetQAMStandard(state, oMode);
+ 		if (status < 0)
+@@ -6183,7 +6186,10 @@ static int drxk_c_init(struct dvb_frontend *fe)
+ 	dprintk(1, "\n");
+ 	if (mutex_trylock(&state->ctlock) == 0)
+ 		return -EBUSY;
+-	SetOperationMode(state, OM_QAM_ITU_A);
++	if (state->m_itut_annex_c)
++		SetOperationMode(state, OM_QAM_ITU_C);
++	else
++		SetOperationMode(state, OM_QAM_ITU_A);
+ 	return 0;
+ }
+ 
+@@ -6219,13 +6225,11 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (state->m_OperationMode == OM_QAM_ITU_A ||
+-	    state->m_OperationMode == OM_QAM_ITU_C) {
++	if (fe->ops.info.type == FE_QAM) {
+ 		if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+-			state->m_OperationMode = OM_QAM_ITU_C;
++			state->m_itut_annex_c = true;
+ 		else
+-			state->m_OperationMode = OM_QAM_ITU_A;
+-	}
++			state->m_itut_annex_c = false;
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
+index a05c32e..85a423f 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.h
++++ b/drivers/media/dvb/frontends/drxk_hard.h
+@@ -263,6 +263,8 @@ struct drxk_state {
+ 	u8     m_TSDataStrength;
+ 	u8     m_TSClockkStrength;
+ 
++	bool   m_itut_annex_c;      /* If true, uses ITU-T DVB-C Annex C, instead of Annex A */
++
+ 	enum DRXMPEGStrWidth_t  m_widthSTR;    /**< MPEG start width */
+ 	u32    m_mpegTsStaticBitrate;          /**< Maximum bitrate in b/s in case
+ 						    static clockrate is selected */
+diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
+index 7f0592c..3868c1e 100644
+--- a/drivers/media/video/em28xx/em28xx-dvb.c
++++ b/drivers/media/video/em28xx/em28xx-dvb.c
+@@ -899,6 +899,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		       &dvb->fe[0]->ops.tuner_ops,
+ 		       sizeof(dvb->fe[0]->ops.tuner_ops));
+ 
++		mfe_shared = 1;
++
+ 		break;
+ 	}
+ 	case EM2884_BOARD_TERRATEC_H5:
+@@ -935,6 +937,8 @@ static int em28xx_dvb_init(struct em28xx *dev)
+ 		       &dvb->fe[0]->ops.tuner_ops,
+ 		       sizeof(dvb->fe[0]->ops.tuner_ops));
+ 
++		mfe_shared = 1;
++
+ 		break;
+ 	case EM28174_BOARD_PCTV_460E:
+ 		/* attach demod */
 -- 
-http://palosaari.fi/
-
+1.7.8
 
