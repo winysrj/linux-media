@@ -1,74 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:27334 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753963Ab1LANzV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 08:55:21 -0500
-From: "Hamad Kadmany" <hkadmany@codeaurora.org>
-To: "'Andreas Oberritter'" <obi@linuxtv.org>
-Cc: <linux-media@vger.kernel.org>
-References: <001101ccae6d$9900b350$cb0219f0$@org> <4ED782E2.9060004@linuxtv.org>
-In-Reply-To: <4ED782E2.9060004@linuxtv.org>
-Subject: RE: Support for multiple section feeds with same PIDs
-Date: Thu, 1 Dec 2011 15:55:21 +0200
-Message-ID: <000301ccb030$dfaa71f0$9eff55d0$@org>
+Received: from mx1.redhat.com ([209.132.183.28]:57981 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751681Ab1LIWEZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Dec 2011 17:04:25 -0500
+Message-ID: <4EE285E3.9050807@redhat.com>
+Date: Fri, 09 Dec 2011 20:04:19 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+To: Eddi De Pieri <eddi@depieri.net>
+CC: linux-media@vger.kernel.org,
+	Fredrik Lingvall <fredrik.lingvall@gmail.com>
+Subject: Re: [PATCHv2] [media] drxk: Switch the delivery system on FE_SET_PROPERTY
+References: <4EE252E5.2050204@iki.fi> <1323457212-13507-1-git-send-email-mchehab@redhat.com> <CAKdnbx7s7vVPF9_uBb7w961d=keZ1F+ThdyhwFG396kcbE_M3Q@mail.gmail.com>
+In-Reply-To: <CAKdnbx7s7vVPF9_uBb7w961d=keZ1F+ThdyhwFG396kcbE_M3Q@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Andreas
+On 09-12-2011 18:04, Eddi De Pieri wrote:
+> Hi,
+>
+>> v2: Use mfe_shared
+>
+> on hvr930c this patch solve the commutation issue of frontend.
 
-So if I understand correctly due to HW limitations back then, if in
-user-space we want to get data of two PSI tables that share the same PID, we
-could only setup one section filter with that PID and the user-space needs
-to do the extra filtering (to parse and separate the sections belonging to
-each table)?
+Ok, good. One issue solved.
+
+> still persist same issue like Fredrik on w_scan. scan still works perfectly...
+>
+>
+> root@depieri1lnx:~# w_scan -f t -c IT
+> w_scan version 20110616 (compiled for DVB API 5.3)
+> using settings for ITALY
+> DVB aerial
+> DVB-T Europe
+> frontend_type DVB-T, channellist 4
+> output format vdr-1.6
+> output charset 'UTF-8', use -C<charset>  to override
+> Info: using DVB adapter auto detection.
+> 	/dev/dvb/adapter0/frontend0 ->  DVB-C "DRXK DVB-C": specified was
+> DVB-T ->  SEARCH NEXT ONE.
+> 	/dev/dvb/adapter0/frontend1 ->  DVB-T "DRXK DVB-T": good :-)
+> Using DVB-T frontend (adapter /dev/dvb/adapter0/frontend1)
+> -_-_-_-_ Getting frontend capabilities-_-_-_-_
+> Using DVB API 5.4
+> frontend 'DRXK DVB-T' supports
+> INVERSION_AUTO
+> QAM_AUTO
+> TRANSMISSION_MODE_AUTO
+> GUARD_INTERVAL_AUTO
+> HIERARCHY_AUTO
+> FEC_AUTO
+> FREQ (47.12MHz ... 865.00MHz)
+> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+> Scanning 7MHz frequencies...
+> [...]
+> 858000: (time: 03:10) (time: 03:13)
+>
+> ERROR: Sorry - i couldn't get any working frequency/transponder
+>   Nothing to scan!!
+>
+>
+> this verbose mode seems interesting but I don't figure out why i get timeout.
+>
+> 177500: (time: 00:04) set_frontend: using DVB API 5.4
+> (time: 00:06) set_frontend: using DVB API 5.4
+> signal ok:
+> 	QAM_AUTO f = 177500 kHz I999B7C999D999T999G999Y999
+> NIT (actual TS)
+> 	new transponder:
+> 	   (QAM_64   f = 1600000 kHz I999B8C34D0T8G16Y0)
+>
+>
+> Info: NIT(other) filter timeout
+
+Try to use w_scan with "-F" parameter, to increase the timeout. Maybe this
+issue is due to a smaller timeout on w_scan, when compared with scan.
+
+If this doesn't help, then you'll need to figure out what w_scan is doing
+different than scan.
 
 Regards,
-Hamad
+Mauro.
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Andreas Oberritter
-Sent: Thursday, December 01, 2011 3:37 PM
-To: Hamad Kadmany
-Cc: linux-media@vger.kernel.org
-Subject: Re: Support for multiple section feeds with same PIDs
 
-Hello Hamad,
-
-On 29.11.2011 09:05, Hamad Kadmany wrote:
-> Question on the current behavior of dvb_dmxdev_filter_start (dmxdev.c)
-> 
-> In case of DMXDEV_TYPE_SEC, the code restricts of having multiple sections
-> feeds allocated (allocate_section_feed) with same PID. From my experience,
-> applications might request allocating several section feeds using same PID
-> but with different filters (for example, in DVB standard, SDT and BAT
-tables
-> have same PID).
-> 
-> The current implementation only supports of having multiple filters on the
-> same section feed. 
-> 
-> Any special reason why it was implemented this way?
-
-AFAIR, if you created more than one PID filter on the same PID, only one
-filter would see data on most or all hardware back then. So if you have
-multiple filters on the same PID, then the real filter you're setting
-should be a merged version of those filters. If you use dvb_demux, it
-will do the necessary post-processing for you.
-
-This driver implements section filtering:
-http://cvs.tuxbox.org/cgi-bin/viewcvs.cgi/tuxbox/driver/dvb/drivers/media/dv
-b/avia/avia_gt_napi.c?rev=1.208&view=markup
-
-Regards,
-Andreas
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
