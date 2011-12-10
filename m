@@ -1,90 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14029 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752623Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:31 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Vj4009159
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 75/94] [media] gp8psk-fe: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:08:12 -0200
-Message-Id: <1325257711-12274-76-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout-de.gmx.net ([213.165.64.22]:33965 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752129Ab1LJEAh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:00:37 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: linux-media@vger.kernel.org
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCHv2] [media] drxk: Switch the delivery system on FE_SET_PROPERTY
+Date: Sat, 10 Dec 2011 05:00:12 +0100
+Cc: linux-media@vger.kernel.org
+References: <4EE252E5.2050204@iki.fi> <1323457212-13507-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1323457212-13507-1-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201112100500.13365@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On Friday 09 December 2011 20:00:12 Mauro Carvalho Chehab wrote:
+> The DRX-K doesn't change the delivery system at set_properties,
+> but do it at frontend init. This causes problems on programs like
+> w_scan that, by default, opens both frontends.
+> 
+> Use adap->mfe_shared in order to prevent this, and be sure that Annex A
+> or C are properly selected.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+> 
+> v2: Use mfe_shared
+> 
+>  drivers/media/dvb/frontends/drxk_hard.c |   16 ++++++++++------
+>  drivers/media/dvb/frontends/drxk_hard.h |    2 ++
+>  drivers/media/video/em28xx/em28xx-dvb.c |    4 ++++
+>  3 files changed, 16 insertions(+), 6 deletions(-)
+...
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Please commit Manu's patch to 'Query DVB frontend delivery capabilities'.
+Then you will no longer have to struggle with multi-frontend problems.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/gp8psk-fe.c |   25 ++++---------------------
- 1 files changed, 4 insertions(+), 21 deletions(-)
+We could finally get rid of having 2 mutual-exclusive frontends, which
+is just an ugly workaround, barely covered by the API spec...
 
-diff --git a/drivers/media/dvb/dvb-usb/gp8psk-fe.c b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-index 6189446..c40168f 100644
---- a/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-+++ b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
-@@ -113,28 +113,12 @@ static int gp8psk_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_front
- 	return 0;
- }
- 
--static int gp8psk_fe_set_property(struct dvb_frontend *fe,
--	struct dtv_property *tvp)
--{
--	deb_fe("%s(..)\n", __func__);
--	return 0;
--}
--
--static int gp8psk_fe_get_property(struct dvb_frontend *fe,
--	struct dtv_property *tvp)
--{
--	deb_fe("%s(..)\n", __func__);
--	return 0;
--}
--
--
--static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
--				  struct dvb_frontend_parameters *fep)
-+static int gp8psk_fe_set_frontend(struct dvb_frontend* fe)
- {
- 	struct gp8psk_fe_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	u8 cmd[10];
--	u32 freq = fep->frequency * 1000;
-+	u32 freq = c->frequency * 1000;
- 	int gp_product_id = le16_to_cpu(state->d->udev->descriptor.idProduct);
- 
- 	deb_fe("%s()\n", __func__);
-@@ -342,6 +326,7 @@ success:
- 
- 
- static struct dvb_frontend_ops gp8psk_fe_ops = {
-+	.delsys = { SYS_DVBS },
- 	.info = {
- 		.name			= "Genpix DVB-S",
- 		.type			= FE_QPSK,
-@@ -366,9 +351,7 @@ static struct dvb_frontend_ops gp8psk_fe_ops = {
- 	.init = NULL,
- 	.sleep = NULL,
- 
--	.set_property = gp8psk_fe_set_property,
--	.get_property = gp8psk_fe_get_property,
--	.set_frontend_legacy = gp8psk_fe_set_frontend,
-+	.set_frontend = gp8psk_fe_set_frontend,
- 
- 	.get_tune_settings = gp8psk_fe_get_tune_settings,
- 
+CU
+Oliver
+
 -- 
-1.7.8.352.g876a6
-
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
+Oliver Endriss                         ESCAPE GmbH
+e-mail:  o.endriss@escape-edv.de       EDV-Loesungen
+phone:   +49 (0)7722 21504             Birkenweg 9
+fax:     +49 (0)7722 21510             D-78098 Triberg
+----------------------------------------------------------------
