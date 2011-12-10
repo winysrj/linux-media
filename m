@@ -1,305 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:56048 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753533Ab1LBKDc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 05:03:32 -0500
-From: Xi Wang <xi.wang@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Xi Wang <xi.wang@gmail.com>
-Subject: [PATCH 1/3] wl128x: fmdrv_common: fix signedness bugs
-Date: Fri,  2 Dec 2011 05:01:11 -0500
-Message-Id: <1322820073-19347-2-git-send-email-xi.wang@gmail.com>
-In-Reply-To: <1322820073-19347-1-git-send-email-xi.wang@gmail.com>
-References: <1322820073-19347-1-git-send-email-xi.wang@gmail.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:56434 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188Ab1LJIXm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Dec 2011 03:23:42 -0500
+Message-ID: <4EE3170B.7000807@iki.fi>
+Date: Sat, 10 Dec 2011 10:23:39 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Alex Gershgorin <alexg@meprolight.com>
+CC: "laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: OMAP3ISP boot problem
+References: <4875438356E7CA4A8F2145FCD3E61C0B2C8989923C@MEP-EXCH.meprolight.com> <4875438356E7CA4A8F2145FCD3E61C0B2C89899243@MEP-EXCH.meprolight.com>
+In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2C89899243@MEP-EXCH.meprolight.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The error handling with (ret < 0) didn't work where ret is a u32.
-Use int instead.  To be consistent we also change the functions to
-return an int.
+Hi Alex,
 
-Signed-off-by: Xi Wang <xi.wang@gmail.com>
----
- drivers/media/radio/wl128x/fmdrv_common.c |   58 ++++++++++++++---------------
- drivers/media/radio/wl128x/fmdrv_common.h |   28 +++++++-------
- 2 files changed, 42 insertions(+), 44 deletions(-)
+Alex Gershgorin wrote:
+> Hi All,
+>
+> I have problem in booting the Kernel.
+> Here the problematic part of the boot message.
+> As I understand it happens when isp_probe calling and it calls isp->iommu_dev = omap_find_iommu_device("isp");
+>
+> [    1.976715] Linux media interface: v0.10
+> [    1.981781] Linux video capture interface: v2.00
+> [    1.989257] omap3isp omap3isp: Revision 2.0 found
+> [    1.998138] Unable to handle kernel NULL pointer dereference at virtual address 00000050
+> [    2.006683] pgd = c0004000
+> [    2.010009] [00000050] *pgd=00000000
+> [    2.013793] Internal error: Oops: 5 [#1]
+> [    2.017913] Modules linked in:
+> [    2.021148] CPU: 0    Tainted: G        W     (3.2.0-rc4-00002-g2d47fa7-dirty #1304)
+> [    2.029296] PC is at klist_next+0x10/0xc4
+> [    2.033508] LR is at next_device+0x8/0x14
+> [    2.037750] pc : [<c03c032c>]    lr : [<c0251e5c>]    psr: 60000013
+> [    2.037750] sp : c7425eb0  ip : c05e080c  fp : 00000000
+> [    2.049804] r10: c04b2367  r9 : c058b4f8  r8 : 000003ff
+> [    2.055297] r7 : 0000000e  r6 : 00000000  r5 : c031827c  r4 : c7425ed0
+> [    2.062164] r3 : c031827c  r2 : 00000000  r1 : c7425ed0  r0 : 00000024
+> [    2.069000] Flags: nZCv  IRQs on  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
+> [    2.076690] Control: 10c5387d  Table: 80004019  DAC: 00000015
+> [    2.082733] Process swapper (pid: 1, stack limit = 0xc74242f0)
+> [    2.088867] Stack: (0xc7425eb0 to 0xc7426000)
+> [    2.093444] 5ea0:                                     c031827c c04ae343 c031827c c05d7650
+> [    2.102050] 5ec0: 0000000e c0251e5c c031827c c0251ec8 00000024 00000000 c76e8000 000074e0
+> [    2.110656] 5ee0: c058b4f0 c030462c 00000000 c01181e4 c058b4f8 c0055f04 00000000 c76e8508
+> [    2.119232] 5f00: c74976c0 00000000 c05d4fe4 c058b4f8 c058b52c c05d4fe4 c05d4fe4 00000000
+> [    2.127838] 5f20: 00000000 00000000 00000000 c0252784 c0252770 c02515e4 00000000 c058b4f8
+> [    2.136444] 5f40: c058b52c c05d4fe4 00000000 c0251708 c05d4fe4 c02516a0 00000000 c0250e20
+> [    2.145050] 5f60: c7420058 c7481490 c05d4fe4 c76c9140 c05c45d0 c0250768 c04ae33e 00000000
+> [    2.153656] 5f80: c7423340 c05d4fe4 c056e4cc c000dbfc 00000000 00000000 00000000 c0251d20
+> [    2.162231] 5fa0: c0583210 c056e4cc c000dbfc 00000000 00000000 c000857c c0582dd0 00003539
+> [    2.170837] 5fc0: 00000000 c0000000 00000013 c0583210 c0582dd0 c000dbfc 00000013 00000000
+> [    2.179443] 5fe0: 00000000 c0553204 c7423340 00000000 c0553194 c000dbfc bf0285ff fb000400
+> [    2.188049] [<c03c032c>] (klist_next+0x10/0xc4) from [<c0251e5c>] (next_device+0x8/0x14)
+> [    2.196563] [<c0251e5c>] (next_device+0x8/0x14) from [<c0251ec8>] (driver_find_device+0x60/0x78)
+> [    2.205841] [<c0251ec8>] (driver_find_device+0x60/0x78) from [<c030462c>] (isp_probe+0x238/0xa5c)
+> [    2.215179] [<c030462c>] (isp_probe+0x238/0xa5c) from [<c0252784>] (platform_drv_probe+0x14/0x18)
+> [    2.224517] [<c0252784>] (platform_drv_probe+0x14/0x18) from [<c02515e4>] (driver_probe_device+0xc8/0x184)
+> [    2.234680] [<c02515e4>] (driver_probe_device+0xc8/0x184) from [<c0251708>] (__driver_attach+0x68/0x8c)
+> [    2.244567] [<c0251708>] (__driver_attach+0x68/0x8c) from [<c0250e20>] (bus_for_each_dev+0x48/0x74)
+> [    2.254058] [<c0250e20>] (bus_for_each_dev+0x48/0x74) from [<c0250768>] (bus_add_driver+0xa0/0x21c)
+> [    2.263580] [<c0250768>] (bus_add_driver+0xa0/0x21c) from [<c0251d20>] (driver_register+0xa4/0x130)
+> [    2.273101] [<c0251d20>] (driver_register+0xa4/0x130) from [<c000857c>] (do_one_initcall+0x98/0x16c)
+> [    2.282714] [<c000857c>] (do_one_initcall+0x98/0x16c) from [<c0553204>] (kernel_init+0x70/0x118)
+> [    2.291992] [<c0553204>] (kernel_init+0x70/0x118) from [<c000dbfc>] (kernel_thread_exit+0x0/0x8)
+> [    2.301208] Code: e92d40f8 e1a04000 e5900000 e5946004 (e590702c)
+> [    2.307708] ---[ end trace 1b75b31a2719ed1e ]---
+> [    2.312652] Kernel panic - not syncing: Attempted to kill init!
+>
+> I will appreciate any help.
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-index 5991ab6..bf867a6 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.c
-+++ b/drivers/media/radio/wl128x/fmdrv_common.c
-@@ -387,7 +387,7 @@ static void send_tasklet(unsigned long arg)
-  * Queues FM Channel-8 packet to FM TX queue and schedules FM TX tasklet for
-  * transmission
-  */
--static u32 fm_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type,	void *payload,
-+static int fm_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type,	void *payload,
- 		int payload_len, struct completion *wait_completion)
- {
- 	struct sk_buff *skb;
-@@ -456,13 +456,13 @@ static u32 fm_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type,	void *payload,
- }
- 
- /* Sends FM Channel-8 command to the chip and waits for the response */
--u32 fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
-+int fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
- 		unsigned int payload_len, void *response, int *response_len)
- {
- 	struct sk_buff *skb;
- 	struct fm_event_msg_hdr *evt_hdr;
- 	unsigned long flags;
--	u32 ret;
-+	int ret;
- 
- 	init_completion(&fmdev->maintask_comp);
- 	ret = fm_send_cmd(fmdev, fm_op, type, payload, payload_len,
-@@ -470,8 +470,8 @@ u32 fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
- 	if (ret)
- 		return ret;
- 
--	ret = wait_for_completion_timeout(&fmdev->maintask_comp, FM_DRV_TX_TIMEOUT);
--	if (!ret) {
-+	if (!wait_for_completion_timeout(&fmdev->maintask_comp,
-+					 FM_DRV_TX_TIMEOUT)) {
- 		fmerr("Timeout(%d sec),didn't get reg"
- 			   "completion signal from RX tasklet\n",
- 			   jiffies_to_msecs(FM_DRV_TX_TIMEOUT) / 1000);
-@@ -508,7 +508,7 @@ u32 fmc_send_cmd(struct fmdev *fmdev, u8 fm_op, u16 type, void *payload,
- }
- 
- /* --- Helper functions used in FM interrupt handlers ---*/
--static inline u32 check_cmdresp_status(struct fmdev *fmdev,
-+static inline int check_cmdresp_status(struct fmdev *fmdev,
- 		struct sk_buff **skb)
- {
- 	struct fm_event_msg_hdr *fm_evt_hdr;
-@@ -1058,7 +1058,7 @@ static void fm_irq_handle_intmsk_cmd_resp(struct fmdev *fmdev)
- }
- 
- /* Returns availability of RDS data in internel buffer */
--u32 fmc_is_rds_data_available(struct fmdev *fmdev, struct file *file,
-+int fmc_is_rds_data_available(struct fmdev *fmdev, struct file *file,
- 				struct poll_table_struct *pts)
- {
- 	poll_wait(file, &fmdev->rx.rds.read_queue, pts);
-@@ -1069,7 +1069,7 @@ u32 fmc_is_rds_data_available(struct fmdev *fmdev, struct file *file,
- }
- 
- /* Copies RDS data from internal buffer to user buffer */
--u32 fmc_transfer_rds_from_internal_buff(struct fmdev *fmdev, struct file *file,
-+int fmc_transfer_rds_from_internal_buff(struct fmdev *fmdev, struct file *file,
- 		u8 __user *buf, size_t count)
- {
- 	u32 block_count;
-@@ -1113,7 +1113,7 @@ u32 fmc_transfer_rds_from_internal_buff(struct fmdev *fmdev, struct file *file,
- 	return ret;
- }
- 
--u32 fmc_set_freq(struct fmdev *fmdev, u32 freq_to_set)
-+int fmc_set_freq(struct fmdev *fmdev, u32 freq_to_set)
- {
- 	switch (fmdev->curr_fmmode) {
- 	case FM_MODE_RX:
-@@ -1127,7 +1127,7 @@ u32 fmc_set_freq(struct fmdev *fmdev, u32 freq_to_set)
- 	}
- }
- 
--u32 fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
-+int fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
- {
- 	if (fmdev->rx.freq == FM_UNDEFINED_FREQ) {
- 		fmerr("RX frequency is not set\n");
-@@ -1153,7 +1153,7 @@ u32 fmc_get_freq(struct fmdev *fmdev, u32 *cur_tuned_frq)
- 
- }
- 
--u32 fmc_set_region(struct fmdev *fmdev, u8 region_to_set)
-+int fmc_set_region(struct fmdev *fmdev, u8 region_to_set)
- {
- 	switch (fmdev->curr_fmmode) {
- 	case FM_MODE_RX:
-@@ -1167,7 +1167,7 @@ u32 fmc_set_region(struct fmdev *fmdev, u8 region_to_set)
- 	}
- }
- 
--u32 fmc_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
-+int fmc_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
- {
- 	switch (fmdev->curr_fmmode) {
- 	case FM_MODE_RX:
-@@ -1181,7 +1181,7 @@ u32 fmc_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
- 	}
- }
- 
--u32 fmc_set_stereo_mono(struct fmdev *fmdev, u16 mode)
-+int fmc_set_stereo_mono(struct fmdev *fmdev, u16 mode)
- {
- 	switch (fmdev->curr_fmmode) {
- 	case FM_MODE_RX:
-@@ -1195,7 +1195,7 @@ u32 fmc_set_stereo_mono(struct fmdev *fmdev, u16 mode)
- 	}
- }
- 
--u32 fmc_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
-+int fmc_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
- {
- 	switch (fmdev->curr_fmmode) {
- 	case FM_MODE_RX:
-@@ -1210,10 +1210,10 @@ u32 fmc_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
- }
- 
- /* Sends power off command to the chip */
--static u32 fm_power_down(struct fmdev *fmdev)
-+static int fm_power_down(struct fmdev *fmdev)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
- 		fmerr("FM core is not ready\n");
-@@ -1234,7 +1234,7 @@ static u32 fm_power_down(struct fmdev *fmdev)
- }
- 
- /* Reads init command from FM firmware file and loads to the chip */
--static u32 fm_download_firmware(struct fmdev *fmdev, const u8 *fw_name)
-+static int fm_download_firmware(struct fmdev *fmdev, const u8 *fw_name)
- {
- 	const struct firmware *fw_entry;
- 	struct bts_header *fw_header;
-@@ -1299,7 +1299,7 @@ rel_fw:
- }
- 
- /* Loads default RX configuration to the chip */
--static u32 load_default_rx_configuration(struct fmdev *fmdev)
-+static int load_default_rx_configuration(struct fmdev *fmdev)
- {
- 	int ret;
- 
-@@ -1311,7 +1311,7 @@ static u32 load_default_rx_configuration(struct fmdev *fmdev)
- }
- 
- /* Does FM power on sequence */
--static u32 fm_power_up(struct fmdev *fmdev, u8 mode)
-+static int fm_power_up(struct fmdev *fmdev, u8 mode)
- {
- 	u16 payload, asic_id, asic_ver;
- 	int resp_len, ret;
-@@ -1374,7 +1374,7 @@ rel:
- }
- 
- /* Set FM Modes(TX, RX, OFF) */
--u32 fmc_set_mode(struct fmdev *fmdev, u8 fm_mode)
-+int fmc_set_mode(struct fmdev *fmdev, u8 fm_mode)
- {
- 	int ret = 0;
- 
-@@ -1427,7 +1427,7 @@ u32 fmc_set_mode(struct fmdev *fmdev, u8 fm_mode)
- }
- 
- /* Returns current FM mode (TX, RX, OFF) */
--u32 fmc_get_mode(struct fmdev *fmdev, u8 *fmmode)
-+int fmc_get_mode(struct fmdev *fmdev, u8 *fmmode)
- {
- 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
- 		fmerr("FM core is not ready\n");
-@@ -1483,10 +1483,10 @@ static void fm_st_reg_comp_cb(void *arg, char data)
-  * This function will be called from FM V4L2 open function.
-  * Register with ST driver and initialize driver data.
-  */
--u32 fmc_prepare(struct fmdev *fmdev)
-+int fmc_prepare(struct fmdev *fmdev)
- {
- 	static struct st_proto_s fm_st_proto;
--	u32 ret;
-+	int ret;
- 
- 	if (test_bit(FM_CORE_READY, &fmdev->flag)) {
- 		fmdbg("FM Core is already up\n");
-@@ -1512,10 +1512,8 @@ u32 fmc_prepare(struct fmdev *fmdev)
- 		fmdev->streg_cbdata = -EINPROGRESS;
- 		fmdbg("%s waiting for ST reg completion signal\n", __func__);
- 
--		ret = wait_for_completion_timeout(&wait_for_fmdrv_reg_comp,
--				FM_ST_REG_TIMEOUT);
--
--		if (!ret) {
-+		if (!wait_for_completion_timeout(&wait_for_fmdrv_reg_comp,
-+						 FM_ST_REG_TIMEOUT)) {
- 			fmerr("Timeout(%d sec), didn't get reg "
- 					"completion signal from ST\n",
- 					jiffies_to_msecs(FM_ST_REG_TIMEOUT) / 1000);
-@@ -1589,10 +1587,10 @@ u32 fmc_prepare(struct fmdev *fmdev)
-  * This function will be called from FM V4L2 release function.
-  * Unregister from ST driver.
-  */
--u32 fmc_release(struct fmdev *fmdev)
-+int fmc_release(struct fmdev *fmdev)
- {
- 	static struct st_proto_s fm_st_proto;
--	u32 ret;
-+	int ret;
- 
- 	if (!test_bit(FM_CORE_READY, &fmdev->flag)) {
- 		fmdbg("FM Core is already down\n");
-@@ -1631,7 +1629,7 @@ u32 fmc_release(struct fmdev *fmdev)
- static int __init fm_drv_init(void)
- {
- 	struct fmdev *fmdev = NULL;
--	u32 ret = -ENOMEM;
-+	int ret = -ENOMEM;
- 
- 	fmdbg("FM driver version %s\n", FM_DRV_VERSION);
- 
-diff --git a/drivers/media/radio/wl128x/fmdrv_common.h b/drivers/media/radio/wl128x/fmdrv_common.h
-index aee243b..d9b9c6c 100644
---- a/drivers/media/radio/wl128x/fmdrv_common.h
-+++ b/drivers/media/radio/wl128x/fmdrv_common.h
-@@ -368,27 +368,27 @@ struct fm_event_msg_hdr {
- #define FM_TX_ANT_IMP_500		2
- 
- /* Functions exported by FM common sub-module */
--u32 fmc_prepare(struct fmdev *);
--u32 fmc_release(struct fmdev *);
-+int fmc_prepare(struct fmdev *);
-+int fmc_release(struct fmdev *);
- 
- void fmc_update_region_info(struct fmdev *, u8);
--u32 fmc_send_cmd(struct fmdev *, u8, u16,
-+int fmc_send_cmd(struct fmdev *, u8, u16,
- 				void *, unsigned int, void *, int *);
--u32 fmc_is_rds_data_available(struct fmdev *, struct file *,
-+int fmc_is_rds_data_available(struct fmdev *, struct file *,
- 				struct poll_table_struct *);
--u32 fmc_transfer_rds_from_internal_buff(struct fmdev *, struct file *,
-+int fmc_transfer_rds_from_internal_buff(struct fmdev *, struct file *,
- 					u8 __user *, size_t);
- 
--u32 fmc_set_freq(struct fmdev *, u32);
--u32 fmc_set_mode(struct fmdev *, u8);
--u32 fmc_set_region(struct fmdev *, u8);
--u32 fmc_set_mute_mode(struct fmdev *, u8);
--u32 fmc_set_stereo_mono(struct fmdev *, u16);
--u32 fmc_set_rds_mode(struct fmdev *, u8);
-+int fmc_set_freq(struct fmdev *, u32);
-+int fmc_set_mode(struct fmdev *, u8);
-+int fmc_set_region(struct fmdev *, u8);
-+int fmc_set_mute_mode(struct fmdev *, u8);
-+int fmc_set_stereo_mono(struct fmdev *, u16);
-+int fmc_set_rds_mode(struct fmdev *, u8);
- 
--u32 fmc_get_freq(struct fmdev *, u32 *);
--u32 fmc_get_region(struct fmdev *, u8 *);
--u32 fmc_get_mode(struct fmdev *, u8 *);
-+int fmc_get_freq(struct fmdev *, u32 *);
-+int fmc_get_region(struct fmdev *, u8 *);
-+int fmc_get_mode(struct fmdev *, u8 *);
- 
- /*
-  * channel spacing
+Just a stupid question... do you have CONFIG_OMAP_IOMMU and 
+CONFIG_OMAP_IOVMM enabled? This is a known problem; the real fix 
+involves using dmabuf instead of the IOMMU/IOVMM API.
+
+Regards,
+
 -- 
-1.7.5.4
-
+Sakari Ailus
+sakari.ailus@iki.fi
