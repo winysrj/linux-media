@@ -1,51 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:47977 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752471Ab1LQA4v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 19:56:51 -0500
-Received: by eaaj10 with SMTP id j10so3359049eaa.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 16:56:49 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753186Ab1LJEmn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:42:43 -0500
+Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:42:43 -0800 (PST)
 MIME-Version: 1.0
-Date: Sat, 17 Dec 2011 01:56:49 +0100
-Message-ID: <CAEN_-SDCEA1Go3DQE4tyXdumrOfjirc3+4hD5Nbp5aEmJ76_rA@mail.gmail.com>
-Subject: Fix mode mask setting in tuner_core for radio only tuners.
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=e0cb4efe30524c651c04b43f3187
+Date: Sat, 10 Dec 2011 10:12:43 +0530
+Message-ID: <CAHFNz9KzhZrQw4RsKebuO8q+aFonHaZDHkMKOKyKje2QixeLDA@mail.gmail.com>
+Subject: v4 [PATCH 03/10] STB0899: Query DVB frontend delivery capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=0016e6dd96653ec3ac04b3b588e8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---e0cb4efe30524c651c04b43f3187
+--0016e6dd96653ec3ac04b3b588e8
 Content-Type: text/plain; charset=ISO-8859-1
 
 
 
---e0cb4efe30524c651c04b43f3187
-Content-Type: text/x-patch; charset=UTF-8;
-	name="0005-Fix-mode-mask-setting-in-tuner_core-for-radio-only-t.patch"
+--0016e6dd96653ec3ac04b3b588e8
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0003-STB0899-Query-DVB-frontend-delivery-capabilities.patch"
 Content-Disposition: attachment;
-	filename="0005-Fix-mode-mask-setting-in-tuner_core-for-radio-only-t.patch"
+	filename="0003-STB0899-Query-DVB-frontend-delivery-capabilities.patch"
 Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gw9x2lt60
+X-Attachment-Id: file0
 
-RnJvbSBlOGYyMjZiNjZkYzU4Mzk5YThkYWY4MDhiYTIwNGVjOTU2MmFiZDg1IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiBTbHVnZcWIIDx0aHVuZGVyLm1AZW1haWwuY3o+
-CkRhdGU6IE1vbiwgMTIgRGVjIDIwMTEgMDA6MTY6MjIgKzAxMDAKU3ViamVjdDogW1BBVENIXSBG
-aXggbW9kZSBtYXNrIHNldHRpbmcgaW4gdHVuZXJfY29yZSBmb3IgcmFkaW8gb25seSB0dW5lcnMu
-CgotLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vdHVuZXItY29yZS5jIHwgICAgNCArKy0tCiAxIGZp
-bGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQg
-YS9kcml2ZXJzL21lZGlhL3ZpZGVvL3R1bmVyLWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
-dHVuZXItY29yZS5jCmluZGV4IDExY2M5ODAuLjhlN2U3NjkgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vdHVuZXItY29yZS5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vdHVuZXIt
-Y29yZS5jCkBAIC0zMTcsMTMgKzMxNywxMyBAQCBzdGF0aWMgdm9pZCBzZXRfdHlwZShzdHJ1Y3Qg
-aTJjX2NsaWVudCAqYywgdW5zaWduZWQgaW50IHR5cGUsCiAJCWlmICghZHZiX2F0dGFjaCh0ZWE1
-NzY3X2F0dGFjaCwgJnQtPmZlLAogCQkJCXQtPmkyYy0+YWRhcHRlciwgdC0+aTJjLT5hZGRyKSkK
-IAkJCWdvdG8gYXR0YWNoX2ZhaWxlZDsKLQkJdC0+bW9kZV9tYXNrID0gVF9SQURJTzsKKwkJbmV3
-X21vZGVfbWFzayA9IFRfUkFESU87CiAJCWJyZWFrOwogCWNhc2UgVFVORVJfVEVBNTc2MToKIAkJ
-aWYgKCFkdmJfYXR0YWNoKHRlYTU3NjFfYXR0YWNoLCAmdC0+ZmUsCiAJCQkJdC0+aTJjLT5hZGFw
-dGVyLCB0LT5pMmMtPmFkZHIpKQogCQkJZ290byBhdHRhY2hfZmFpbGVkOwotCQl0LT5tb2RlX21h
-c2sgPSBUX1JBRElPOworCQluZXdfbW9kZV9tYXNrID0gVF9SQURJTzsKIAkJYnJlYWs7CiAJY2Fz
-ZSBUVU5FUl9QSElMSVBTX0ZNRDEyMTZNRV9NSzM6CiAJCWJ1ZmZlclswXSA9IDB4MGI7Ci0tIAox
-LjcuMi4zCgo=
---e0cb4efe30524c651c04b43f3187--
+RnJvbSA5MDVkNTkyOTUzMmRkNjZiOTUwZmJlNGE2ZGMzOTk2NjE1YmVjNGMxIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IFRodSwgMTcgTm92IDIwMTEgMDY6NDQ6NTMgKzA1MzAKU3ViamVjdDogW1BBVENIIDAz
+LzEwXSBTVEIwODk5OiBRdWVyeSBEVkIgZnJvbnRlbmQgZGVsaXZlcnkgY2FwYWJpbGl0aWVzCgpP
+dmVycmlkZSBkZWZhdWx0IGRlbGl2ZXJ5IHN5c3RlbSBpbmZvcm1hdGlvbiBwcm92aWRlZCBieSBG
+RV9HRVRfSU5GTywgc28KdGhhdCBhcHBsaWNhdGlvbnMgY2FuIGVudW1lcmF0ZSBkZWxpdmVyeSBz
+eXN0ZW1zIHByb3ZpZGVkIGJ5IHRoZSBmcm9udGVuZC4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJy
+YWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2R2Yi9mcm9u
+dGVuZHMvc3RiMDg5OV9kcnYuYyB8ICAgMTcgKysrKysrKysrKysrKysrKysKIDEgZmlsZXMgY2hh
+bmdlZCwgMTcgaW5zZXJ0aW9ucygrKSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2
+ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvc3RiMDg5OV9kcnYuYyBiL2RyaXZlcnMvbWVkaWEvZHZi
+L2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCmluZGV4IDg0MDhlZjguLjljOTNkOWYgMTAwNjQ0Ci0t
+LSBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCisrKyBiL2RyaXZl
+cnMvbWVkaWEvZHZiL2Zyb250ZW5kcy9zdGIwODk5X2Rydi5jCkBAIC0xNjA1LDYgKzE2MDUsMjEg
+QEAgc3RhdGljIGVudW0gZHZiZmVfYWxnbyBzdGIwODk5X2Zyb250ZW5kX2FsZ28oc3RydWN0IGR2
+Yl9mcm9udGVuZCAqZmUpCiAJcmV0dXJuIERWQkZFX0FMR09fQ1VTVE9NOwogfQogCitzdGF0aWMg
+aW50IHN0YjA4OTlfZ2V0X3Byb3BlcnR5KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLCBzdHJ1Y3Qg
+ZHR2X3Byb3BlcnR5ICpwKQoreworCXN3aXRjaCAocC0+Y21kKSB7CisJY2FzZSBEVFZfRU5VTV9E
+RUxTWVM6CisJCXAtPnUuYnVmZmVyLmRhdGFbMF0gPSBTWVNfRFNTOworCQlwLT51LmJ1ZmZlci5k
+YXRhWzFdID0gU1lTX0RWQlM7CisJCXAtPnUuYnVmZmVyLmRhdGFbMl0gPSBTWVNfRFZCUzI7CisJ
+CXAtPnUuYnVmZmVyLmxlbiA9IDM7CisJCWJyZWFrOworCWRlZmF1bHQ6CisJCWJyZWFrOworCX0K
+KwlyZXR1cm4gMDsKK30KKwogc3RhdGljIHN0cnVjdCBkdmJfZnJvbnRlbmRfb3BzIHN0YjA4OTlf
+b3BzID0gewogCiAJLmluZm8gPSB7CkBAIC0xNjQ3LDYgKzE2NjIsOCBAQCBzdGF0aWMgc3RydWN0
+IGR2Yl9mcm9udGVuZF9vcHMgc3RiMDg5OV9vcHMgPSB7CiAJLmRpc2VxY19zZW5kX21hc3Rlcl9j
+bWQJCT0gc3RiMDg5OV9zZW5kX2Rpc2VxY19tc2csCiAJLmRpc2VxY19yZWN2X3NsYXZlX3JlcGx5
+CT0gc3RiMDg5OV9yZWN2X3NsYXZlX3JlcGx5LAogCS5kaXNlcWNfc2VuZF9idXJzdAkJPSBzdGIw
+ODk5X3NlbmRfZGlzZXFjX2J1cnN0LAorCisJLmdldF9wcm9wZXJ0eQkJCT0gc3RiMDg5OV9nZXRf
+cHJvcGVydHksCiB9OwogCiBzdHJ1Y3QgZHZiX2Zyb250ZW5kICpzdGIwODk5X2F0dGFjaChzdHJ1
+Y3Qgc3RiMDg5OV9jb25maWcgKmNvbmZpZywgc3RydWN0IGkyY19hZGFwdGVyICppMmMpCi0tIAox
+LjcuMQoK
+--0016e6dd96653ec3ac04b3b588e8--
