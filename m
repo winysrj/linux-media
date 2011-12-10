@@ -1,72 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:55821 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753329Ab1LCRsO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2011 12:48:14 -0500
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:37404 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752862Ab1LJCZM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 21:25:12 -0500
+Received: by ghbz2 with SMTP id z2so3044441ghb.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 18:25:12 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20111203174247.0bbab100@lxorguk.ukuu.org.uk>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-	<4ED6C5B8.8040803@linuxtv.org>
-	<4ED75F53.30709@redhat.com>
-	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
-	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
-	<4EDA4AB4.90303@linuxtv.org>
-	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-	<20111203174247.0bbab100@lxorguk.ukuu.org.uk>
-Date: Sat, 3 Dec 2011 12:48:13 -0500
-Message-ID: <CAGoCfizCxC=W9RM+UhVkTf3Y0RnO2aASBU610vXutmu+aEjtBw@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
+In-Reply-To: <4EE2BE97.6020209@linuxtv.org>
+References: <1323454852-7426-1-git-send-email-mchehab@redhat.com>
+	<4EE252E5.2050204@iki.fi>
+	<4EE25A3C.9040404@redhat.com>
+	<4EE25CB4.3000501@iki.fi>
+	<4EE287A9.3000502@redhat.com>
+	<CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com>
+	<4EE29BA6.1030909@redhat.com>
+	<4EE29D1A.6010900@redhat.com>
+	<4EE2B7BC.9090501@linuxtv.org>
+	<CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com>
+	<4EE2BE97.6020209@linuxtv.org>
+Date: Fri, 9 Dec 2011 21:25:11 -0500
+Message-ID: <CAGoCfiyx6JR_MiVdC=ZGw_G-hzrE7O8mZp1a8of8=PcxW_P82g@mail.gmail.com>
+Subject: Re: [PATCH] DVB: dvb_frontend: fix delayed thread exit
 From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-Cc: VDR User <user.vdr@gmail.com>,
-	Andreas Oberritter <obi@linuxtv.org>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 3, 2011 at 12:42 PM, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
-> On Sat, 3 Dec 2011 09:21:23 -0800
-> VDR User <user.vdr@gmail.com> wrote:
->
->> On Sat, Dec 3, 2011 at 8:13 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
->> > You could certainly build a library to reach a different goal. The goal
->> > of vtuner is to access remote tuners with any existing program
->> > implementing the DVB API.
->>
->> So you could finally use VDR as a server/client setup using vtuner,
->> right? With full OSD, timer, etc? Yes, I'm aware that streamdev
->> exists. It was horrible when I tried it last (a long time ago) and I
->> understand it's gotten better. But it's not a suitable replacement for
->> a real server/client setup. It sounds like using vtuner, this would
->> finally be possible and since Klaus has no intention of ever
->> modernizing VDR into server/client (that I'm aware of), it's also the
->> only suitable option as well.
->
-> I would expect it to still suck. One of the problems you have with trying
-> to pretend things are not networked is that you fake asynchronous events
-> synchronously, you can't properly cover error cases and as a result you
-> get things like ioctls that hang for two minutes or fail in bogus and
-> bizarre ways. If you loop via userspace you've also got to deal with
-> deadlocks and all sorts of horrible cornercases like the user space
-> daemon dying.
->
-> There is a reason properly working client/server code looks different -
-> it's not a trivial transformation and faking it kernel side won't be any
-> better than faking it in user space - it may well even be a worse fake.
->
-> Alan
+Hello Andreas,
 
-This whole notion of creating fake kernel devices to represent
-networked tuners feels like a hack.  If applications want to access
-networked tuners, adding support for RTP/RTSP or incorporating
-libhdhomerun (LGPL) is a fairly straightforward exercise.  In fact,
-many applications already have incorporated support for one of these
-two approaches.  The fact that app maintainers have been
-unwilling/uninterested to do such doesn't feel like it should be an
-excuse for hacking this functionality into the kernel.
+On Fri, Dec 9, 2011 at 9:06 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
+> WTF, Devin, you again? I haven't asked anyone to upstream it. Feel free
+> to analyze the code and resubmit it.
+
+1.  It's marked with a subject line that starts with "[PATCH]"
+2.  It has your SIgned-Off-By line.
+3.  it was sent to the mailing list.
+4.  It doesn't have any keywords like "RFC" or "proposed".
+
+If you don't intend for it to go upstream then don't do all of the above.
+
+I'm not sure if your "WTF, Devin, you again?" is some indication that
+I'm annoying you.  The last patch you submitted that touches the
+threading in dvb_frontend.c had a host of problems and was clearly not
+well researched (i.e. "DVB: dvb_frontend: convert semaphore to
+mutex").  As in this case, there is no background indicating that this
+patch has been fully thought out and due diligence has been done.
+
+Maybe you have thoroughly researched the change, taken the time to
+fully understand its effects, and tested it with a variety of boards
+and scenarios.  Without a good patch description, there is no way to
+know.
+
+I apologize if you're inconvenienced if I'm making an active effort to
+prevent poorly documented changes from getting merged (which often
+result in regressions).  Oh wait, I'm not sorry at all.  Nevermind.
 
 Devin
 
