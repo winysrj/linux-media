@@ -1,106 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:39656 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681Ab1LLMzE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 07:55:04 -0500
-Received: by bkcjm19 with SMTP id jm19so1389443bkc.19
-        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 04:55:02 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:40679 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751187Ab1LJQV1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Dec 2011 11:21:27 -0500
+Message-ID: <4EE386FD.3050500@redhat.com>
+Date: Sat, 10 Dec 2011 14:21:17 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4EE5F6D4.4050500@linuxtv.org>
-References: <CAHFNz9+=T5XGok+LvhVqeSVdWt=Ng6wgXqcHdtdw19a+whx1bw@mail.gmail.com>
-	<4EE346E0.7050606@iki.fi>
-	<CAHFNz9+WEJHhJoUywwzCF=Jv7TRY9xG2rKuRxP=Ff0jvq40SSA@mail.gmail.com>
-	<4EE5F6D4.4050500@linuxtv.org>
-Date: Mon, 12 Dec 2011 18:25:02 +0530
-Message-ID: <CAHFNz9+e-9D+a9DcAHSaDjQW1j8=XHcdxnW6Bjm2RPtQkFd-OQ@mail.gmail.com>
-Subject: Re: v4 [PATCH 09/10] CXD2820r: Query DVB frontend delivery capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4 [PATCH 00/10] Query DVB frontend delivery capabilities
+References: <CAHFNz9+J69YqY06QRSPV+1a0gT1QSmw7cqqnW5AEarF-V5xGCw@mail.gmail.com> <4EE359CF.7090707@redhat.com> <4EE35B55.3070900@iki.fi>
+In-Reply-To: <4EE35B55.3070900@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 12, 2011 at 6:13 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
-> On 12.12.2011 05:28, Manu Abraham wrote:
->> On Sat, Dec 10, 2011 at 5:17 PM, Antti Palosaari <crope@iki.fi> wrote:
->>> On 12/10/2011 06:44 AM, Manu Abraham wrote:
->>>>
->>>>  static int cxd2820r_set_frontend(struct dvb_frontend *fe,
->>>
->>> [...]
->>>>
->>>> +       switch (c->delivery_system) {
->>>> +       case SYS_DVBT:
->>>> +               ret = cxd2820r_init_t(fe);
->>>
->>>
->>>> +               ret = cxd2820r_set_frontend_t(fe, p);
->>>
->>>
->>>
->>> Anyhow, I don't now like idea you have put .init() calls to .set_frontend().
->>> Could you move .init() happen in .init() callback as it was earlier?
+On 10-12-2011 11:15, Antti Palosaari wrote:
+> On 12/10/2011 03:08 PM, Mauro Carvalho Chehab wrote:
+>> A separate issue: please, don't send patches like that as attachment. It
+>> makes
+>> hard for people review. Instead, you should use git send-email. There's
+>> even
+>> an example there (at least on git version 1.7.8) showing how to set it for
+>> Google:
 >>
->> This was there in the earlier patch as well. Maybe you have a
->> new issue now ? ;-)
+>> $ git help send-email
+>> ...
+>> EXAMPLE
+>> Use gmail as the smtp server
+>> To use git send-email to send your patches through the GMail SMTP
+>> server, edit ~/.gitconfig to specify your
+>> account settings:
 >>
->> ok.
+>> [sendemail]
+>> smtpencryption = tls
+>> smtpserver = smtp.gmail.com
+>> smtpuser = yourname@gmail.com
+>> smtpserverport = 587
 >>
->> The argument what you make doesn't hold well, Why ?
+>> Once your commits are ready to be sent to the mailing list, run the
+>> following commands:
 >>
->> int cxd2820r_init_t(struct dvb_frontend *fe)
->> {
->>       ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
->> }
->>
->>
->> int cxd2820r_init_c(struct dvb_frontend *fe)
->> {
->>       ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
->> }
->>
->>
->> Now, you might like to point that, the Base I2C address location
->> is different comparing DVB-T/DVBT2 to DVB-C
->>
->> So, If you have the init as in earlier with a common init, then you
->> will likely init the wrong device at .init(), as init is called open().
->> So, this might result in an additional register write, which could
->> be avoided altogether.  One register access is not definitely
->> something to brag about, but is definitely a small incremental
->> difference. Other than that this register write doesn't do anything
->> more than an ADC_START. So starting the ADC at init doesn't
->> make sense. But does so when you want to select the right ADC.
->> So definitely, this change is an improvement. Also, you can
->> compare the time taken for the device to tune now. It is quite
->> a lot faster compared to without this patch. So you or any other
->> user should be happy. :-)
->>
->>
->> I don't think that in any way, the init should be used at init as
->> you say, which sounds pretty much incorrect.
+>> $ git format-patch --cover-letter -M origin/master -o outgoing/
+>> $ edit outgoing/0000-*
+>> $ git send-email outgoing/*
 >
-> Maybe the function names should be modified to avoid confusion with the
-> init driver callback.
+> I have SMTP which requires login over SSL. I am not sure if Git send-email event supports that
 
+It does.
 
-On another tangential thought, Is it really worth to wrap that single
-register write with another function name ?
+> but even if it supports I don't like idea to put my clear text password to some config file.
 
-instead of the current usage; ie,
+You could then write a small script:
 
-ret = cxd2820r_wr_reg(priv, 0x00085, 0x07); /* Start ADC */
+	#!/bin/bash
+	echo -n Password:
+	read
+	git send-email --smtp-pass $REPLY
 
-within set_frontend()
+This would avoid storing your password at the bash history or at a config file.
 
-in set_frontend(), another thing that's wrapped up similarly is
-the set_frontend() within the search() callback, which causes
-another set of confusions within the driver.
+> That's why I have used Thunderbird with External Editor and it sucks :/
 
+git send-email will likely work a way better than that.
 
 Regards,
-Manu
+Mauro
