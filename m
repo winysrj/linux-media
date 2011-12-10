@@ -1,147 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:17008 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751694Ab1LTU2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 15:28:12 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com
-Subject: [RFC 02/17] v4l: Document integer menu controls
-Date: Tue, 20 Dec 2011 22:27:54 +0200
-Message-Id: <1324412889-17961-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+Received: from ftp.meprolight.com ([194.90.149.17]:38686 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751149Ab1LJNfr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Dec 2011 08:35:47 -0500
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: "laurent.pinchart@ideasonboard.com"
+	<laurent.pinchart@ideasonboard.com>,
+	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Sat, 10 Dec 2011 15:36:17 +0200
+Subject: RE: OMAP3ISP boot problem
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2C89899246@MEP-EXCH.meprolight.com>
+References: <4875438356E7CA4A8F2145FCD3E61C0B2C8989923C@MEP-EXCH.meprolight.com>
+	<4875438356E7CA4A8F2145FCD3E61C0B2C89899243@MEP-EXCH.meprolight.com>,<4EE3170B.7000807@iki.fi>
+	<4875438356E7CA4A8F2145FCD3E61C0B2C89899244@MEP-EXCH.meprolight.com>,<4EE32299.5000006@iki.fi>
+In-Reply-To: <4EE32299.5000006@iki.fi>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
- 3 files changed, 54 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index b68698f..569efd1 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2379,6 +2379,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.3</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added integer menus, the new type will be
-+	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 2ab365c..affe1ba 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -128,6 +128,13 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.3</revnumber>
-+	<date>2011-11-24</date>
-+	<authorinitials>sa</authorinitials>
-+	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
-+      </revision>
-+
-+      <revision>
- 	<revnumber>3.2</revnumber>
- 	<date>2011-08-26</date>
- 	<authorinitials>hv</authorinitials>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 0ac0057..02064b0 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -215,11 +215,12 @@ the array to zero.</entry>
- 
-     <table pgwide="1" frame="none" id="v4l2-querymenu">
-       <title>struct <structname>v4l2_querymenu</structname></title>
--      <tgroup cols="3">
-+      <tgroup cols="4">
- 	&cs-str;
- 	<tbody valign="top">
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>id</structfield></entry>
- 	    <entry>Identifies the control, set by the application
- from the respective &v4l2-queryctrl;
-@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>index</structfield></entry>
- 	    <entry>Index of the menu item, starting at zero, set by
- 	    the application.</entry>
- 	  </row>
- 	  <row>
-+	    <entry>union</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
- 	    <entry><structfield>name</structfield>[32]</entry>
- 	    <entry>Name of the menu item, a NUL-terminated ASCII
--string. This information is intended for the user.</entry>
-+string. This information is intended for the user. This field is valid
-+for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s64</entry>
-+	    <entry><structfield>value</structfield></entry>
-+	    <entry>
-+              Value of the integer menu item. This field is valid for
-+              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
-+              controls.
-+            </entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>reserved</structfield></entry>
- 	    <entry>Reserved for future extensions. Drivers must set
- the array to zero.</entry>
-@@ -292,6 +313,20 @@ the menu items can be enumerated with the
- <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
-+	    <entry>&ge; 0</entry>
-+	    <entry>1</entry>
-+	    <entry>N-1</entry>
-+	    <entry>
-+              The control has a menu of N choices. The values of the
-+              menu items can be enumerated with the
-+              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
-+              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
-+              except that instead of strings, the menu items are
-+              signed 64-bit integers.
-+            </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
- 	    <entry>0</entry>
- 	    <entry>n/a</entry>
--- 
-1.7.2.5
+> Hi Sakari,
+>
+> Thank you for your quick response and sorry for stupid question.
+> Yes CONFIG_OMAP_IOMMU and CONFIG_OMAP_IOVMM enabled,
+> because OMAP 3 camera controller depends on the CONFIG_OMAP_IOVMM  and CONFIG_OMAP_IOMMU.
+> Please tell me how I can use dmabuf instead of the IOMMU/IOVMM API.
 
+>Unfortunately that real fix isn't available yet and won't be for some
+>time. Still, it should be fully functional currently.
+
+>Looking at the backtrace again, it seems to crash in
+>driver_find_device(). That looks fishy.
+
+>Do you have the ISP driver compiled into the kernel? I might try it as a
+>module, albeit it of course should work when it's linked to the kernel
+>as well.
+
+Yes ISP driver compiled into kernel, but if I back to previos version of the Linux kernel  3.0.0, that works well.
+Here part of kernel boot message...
+
+> [    2.063354] Linux media interface: v0.10
+> [    2.068298] Linux video capture interface: v2.00
+> [    2.075561] omap3isp omap3isp: Revision 2.0 found
+> [    2.080932] omap-iommu omap-iommu.0: isp: version 1.1
+> [    2.099365] Camera Video probed
+> [    2.115997] vivi-000: V4L2 device registered as video7
+
+Now I plan to start  using a newer version of the Linux kernel 3.2.0-rc4, but unfortunately faced with the problem.
+That suggest?
+
+Thanks,
+Alex Gershgorin 
