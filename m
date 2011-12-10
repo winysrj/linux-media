@@ -1,77 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:38902 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751694Ab1LTO3n convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 09:29:43 -0500
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:47535 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751149Ab1LJNnF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Dec 2011 08:43:05 -0500
+Received: by yenm11 with SMTP id m11so2770000yen.19
+        for <linux-media@vger.kernel.org>; Sat, 10 Dec 2011 05:43:04 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20111220020549.GQ6559@morell.nvidia.com>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<4EE33EC2.6050508@redhat.com>
-	<20111212224408.GD4355@morell.nvidia.com>
-	<201112131510.02785.arnd@arndb.de>
-	<20111220020549.GQ6559@morell.nvidia.com>
-Date: Tue, 20 Dec 2011 16:29:42 +0200
-Message-ID: <CAJL_dMvYYWyx8xD4B75wXdKg+bD959i1LTWXD8b+yrW6HuxnTg@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
- sharing mechanism
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: Robert Morell <rmorell@nvidia.com>
-Cc: Arnd Bergmann <arnd@arndb.de>,
-	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"jesse.barker@linaro.org" <jesse.barker@linaro.org>,
-	"daniel@ffwll.ch" <daniel@ffwll.ch>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <4EE3345E.5050304@redhat.com>
+References: <1323454852-7426-1-git-send-email-mchehab@redhat.com>
+	<4EE252E5.2050204@iki.fi>
+	<4EE25A3C.9040404@redhat.com>
+	<4EE25CB4.3000501@iki.fi>
+	<4EE287A9.3000502@redhat.com>
+	<CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com>
+	<4EE29BA6.1030909@redhat.com>
+	<4EE29D1A.6010900@redhat.com>
+	<4EE2B7BC.9090501@linuxtv.org>
+	<CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com>
+	<4EE2BE97.6020209@linuxtv.org>
+	<CAGoCfiyx6JR_MiVdC=ZGw_G-hzrE7O8mZp1a8of8=PcxW_P82g@mail.gmail.com>
+	<4EE3345E.5050304@redhat.com>
+Date: Sat, 10 Dec 2011 08:43:04 -0500
+Message-ID: <CAGoCfizdY84dRduX7uLjkBY-RAJ2c74nEnxFOZzU1cD_XKC4Mg@mail.gmail.com>
+Subject: Re: [PATCH] DVB: dvb_frontend: fix delayed thread exit
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 20, 2011 at 4:05 AM, Robert Morell <rmorell@nvidia.com> wrote:
+Hello Mauro,
+
+On Sat, Dec 10, 2011 at 5:28 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Devin,
 >
-> One of the goals of this project is to unify the fragmented space of the
-> ARM SoC memory managers so that each vendor doesn't implement their own,
-> and they can all be closer to mainline.
-
-That is a very good objective.
-
-> I fear that restricting the use of this buffer sharing mechanism to GPL
-> drivers only will prevent that goal from being achieved, if an SoC
-> driver has to interact with modules that use a non-GPL license.
-
-If nobody from nvidia have any experience with this kind of work...
-Look at Intel. Why are you afraid of ?
-
-> As a hypothetical example, consider laptops that have multiple GPUs.
-> Today, these ship with onboard graphics (integrated to the CPU or
-> chipset) along with a discrete GPU, where in many cases only the onboard
-> graphics can actually display to the screen.  In order for anything
-> rendered by the discrete GPU to be displayed, it has to be copied to
-> memory available for the smaller onboard graphics to texture from or
-> display directly.  Obviously, that's best done by sharing dma buffers
-> rather than bouncing them through the GPU.  It's not much of a stretch
-> to imagine that we'll see such systems with a Tegra CPU/GPU plus a
-> discrete GPU in the future; in that case, we'd want to be able to share
-> memory between the discrete GPU and the Tegra system.  In that scenario,
-> if this interface is GPL-only, we'd be unable to adopt the dma_buffer
-> sharing mechanism for Tegra.
+> You're over-reacting. This patch were a reply from Andreas to a thread,
+> and not a separate patch submission.
 >
-> (This isn't too pie-in-the-sky, either; people are already combining
-> Tegra with discrete GPUs:
-> http://blogs.nvidia.com/2011/11/world%e2%80%99s-first-arm-based-supercomputer-to-launch-in-barcelona/
-> )
->
-> Thanks,
-> Robert
+> Patches like are generally handled as RFC, especially since it doesn't
+> contain a description.
 
-There are other problems ? Some secret agreements with Microsoft ?
+Any email that starts with "WTF, Devin, you again?" will probably not
+get a very polite response.
 
-I hope to see something open sourced. You can do it nVidia.
+I agree there's been some overreaction, but it hasn't been on my part.
+ He took the time to split it onto a new thread, add the subject line
+"PATCH", as well as adding an SOB.  Even if his intent was only to get
+it reviewed, why should I waste half an hour of my time analyzing his
+patch to try to figure out his intent if he isn't willing to simply
+document it?
+
+You have a history of blindly accepting such patches without review.
+My only intent was to flag this patch to ensure that this didn't
+happen here.  I've spent way more time than I should have to fixing
+obscure race conditions in dvb core.  If the author of a patch cannot
+take the time to document his findings to provide context then the
+patch should be rejected without review until he does so.
+
+And why isn't this broken into a patch series?  Even after you
+analyzed the patch you still don't understand what the changes do and
+why there are being made.  Your explanation for why he added the
+"mb()" call was because "Probably Andreas added it because he noticed
+some race condition".  What is the race condition?  Did he find
+multiple race conditions?  Is this patch multiple fixes for a race
+condition and some other crap at the same time?
+
+If a developer wants a patch reviewed (as Andreas suggested was the
+case here after-the-fact), then here's my feedback:  break this into a
+series of small incremental patches which *in detail* describe the
+problem that was found and how each patch addresses the issue.  Once
+we have that, the maintainer can do a more in-depth analysis of
+whether the patch should be accepted.  Code whose function cannot be
+explicitly justified but simply 'looks better' should not be mixed in
+with real functional changes.
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
