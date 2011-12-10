@@ -1,71 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:46124 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750884Ab1LQXkN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 18:40:13 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-Reply-To: linux-media@vger.kernel.org
-To: linuxtv@stefanringel.de
-Subject: Re: [PATCH 2/3] drxk: correction frontend attatching
-Date: Sun, 18 Dec 2011 00:39:49 +0100
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com
-References: <1324155437-15834-1-git-send-email-linuxtv@stefanringel.de> <1324155437-15834-2-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1324155437-15834-2-git-send-email-linuxtv@stefanringel.de>
+Received: from ffm.saftware.de ([83.141.3.46]:47963 "EHLO ffm.saftware.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751978Ab1LJBhG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Dec 2011 20:37:06 -0500
+Message-ID: <4EE2B7BC.9090501@linuxtv.org>
+Date: Sat, 10 Dec 2011 02:37:00 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-15"
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: [PATCH] DVB: dvb_frontend: fix delayed thread exit
+References: <1323454852-7426-1-git-send-email-mchehab@redhat.com> <4EE252E5.2050204@iki.fi> <4EE25A3C.9040404@redhat.com> <4EE25CB4.3000501@iki.fi> <4EE287A9.3000502@redhat.com> <CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com> <4EE29BA6.1030909@redhat.com> <4EE29D1A.6010900@redhat.com>
+In-Reply-To: <4EE29D1A.6010900@redhat.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201112180039.50208@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 17 December 2011 21:57:16 linuxtv@stefanringel.de wrote:
-> From: Stefan Ringel <linuxtv@stefanringel.de>
+On 10.12.2011 00:43, Mauro Carvalho Chehab wrote:
+> On 09-12-2011 21:37, Mauro Carvalho Chehab wrote:
+>> On 09-12-2011 20:33, Devin Heitmueller wrote:
+>>> On Fri, Dec 9, 2011 at 5:11 PM, Mauro Carvalho Chehab
+>>> <mchehab@redhat.com> wrote:
+>>>>> Could someone explain reason for that?
+>>>>
+>>>>
+>>>> I dunno, but I think this needs to be fixed, at least when the frontend
+>>>> is opened with O_NONBLOCK.
+>>>
+>>> Are you doing the drx-k firmware load on dvb_init()? That could
+>>> easily take 4 seconds.
+>>
+>> No. The firmware were opened previously.
 > 
-> all drxk have dvb-t, but not dvb-c.
+> Maybe the delay is due to this part of dvb_frontend.c:
 > 
-> Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
-> ---
->  drivers/media/dvb/frontends/drxk_hard.c |    6 ++++--
->  1 files changed, 4 insertions(+), 2 deletions(-)
+> static int dvb_mfe_wait_time = 5;
+> ...
+>                         int mferetry = (dvb_mfe_wait_time << 1);
 > 
-> diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-> index 038e470..8a59801 100644
-> --- a/drivers/media/dvb/frontends/drxk_hard.c
-> +++ b/drivers/media/dvb/frontends/drxk_hard.c
-> @@ -6460,9 +6460,11 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
->  	init_state(state);
->  	if (init_drxk(state) < 0)
->  		goto error;
-> -	*fe_t = &state->t_frontend;
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^^
->  
-> -	return &state->c_frontend;
-        ^^^^^^^^^^^^^^^^^^^^^^^^^^
-> +	if (state->m_hasDVBC)
-> +		*fe_t = &state->c_frontend;
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> +
-> +	return &state->t_frontend;
-               ^^^^^^^^^^^^^^^^^^^     
->  
->  error:
->  	printk(KERN_ERR "drxk: not found\n");
+>                         mutex_unlock (&adapter->mfe_lock);
+>                         while (mferetry-- && (mfedev->users != -1 ||
+>                                         mfepriv->thread != NULL)) {
+>                                 if(msleep_interruptible(500)) {
+>                                         if(signal_pending(current))
+>                                                 return -EINTR;
+>                                 }
+>                         }
 
-NAK, this changes the behaviour for existing drivers.
+I haven't looked at the mfe code, but in case it's waiting for the
+frontend thread to exit, there's a problem that causes the thread
+not to exit immediately. Here's a patch that's been sitting in my
+queue for a while:
 
-What is the point to swap DVB-T and DVB-C frontends?
-If you really need this, please add an option to the config struct
-with default that does not change anything for existing drivers.
+---
 
-CU
-Oliver
+Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
 
--- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+diff --git a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 7784d74..6823c2b 100644
+--- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	2011-09-07 12:32:24.000000000 +0200
++++ a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c	2011-09-13 15:55:48.865742791 +0200
+@@ -514,7 +514,7 @@
+ 		return 1;
+ 
+ 	if (fepriv->dvbdev->writers == 1)
+-		if (time_after(jiffies, fepriv->release_jiffies +
++		if (time_after_eq(jiffies, fepriv->release_jiffies +
+ 				  dvb_shutdown_timeout * HZ))
+ 			return 1;
+ 
+@@ -2070,12 +2070,15 @@
+ 
+ 	dprintk ("%s\n", __func__);
+ 
+-	if ((file->f_flags & O_ACCMODE) != O_RDONLY)
++	if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
+ 		fepriv->release_jiffies = jiffies;
++		mb();
++	}
+ 
+ 	ret = dvb_generic_release (inode, file);
+ 
+ 	if (dvbdev->users == -1) {
++		wake_up(&fepriv->wait_queue);
+ 		if (fepriv->exit != DVB_FE_NO_EXIT) {
+ 			fops_put(file->f_op);
+ 			file->f_op = NULL;
