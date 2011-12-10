@@ -1,150 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58626 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750918Ab1LFOVH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Dec 2011 09:21:07 -0500
-Message-ID: <4EDE24C6.2020407@redhat.com>
-Date: Tue, 06 Dec 2011 12:20:54 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:56370 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751328Ab1LJOO4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Dec 2011 09:14:56 -0500
+Received: by eekc4 with SMTP id c4so824244eek.19
+        for <linux-media@vger.kernel.org>; Sat, 10 Dec 2011 06:14:55 -0800 (PST)
+Message-ID: <4EE3695B.1010800@gmail.com>
+Date: Sat, 10 Dec 2011 15:14:51 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: HoP <jpetrous@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <CAJbz7-1S6K=sDJFcOM8mMxL3t2JS91k+fHLy4gq868_9eUyS9A@mail.gmail.com> <4EDE1733.8060409@redhat.com> <4EDE1D57.90307@linuxtv.org>
-In-Reply-To: <4EDE1D57.90307@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	hverkuil@xs4all.nl, riverful.kim@samsung.com
+Subject: Re: [RFC/PATCH 3/5] v4l: Add V4L2_CID_METERING_MODE camera control
+References: <1323011776-15967-1-git-send-email-snjw23@gmail.com> <1323011776-15967-4-git-send-email-snjw23@gmail.com> <201112061332.40168.laurent.pinchart@ideasonboard.com> <4EDE425D.6020502@samsung.com> <4EDF4955.9060101@samsung.com> <20111210104405.GG1967@valkosipuli.localdomain>
+In-Reply-To: <20111210104405.GG1967@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-12-2011 11:49, Andreas Oberritter wrote:
-> On 06.12.2011 14:22, Mauro Carvalho Chehab wrote:
->> On 05-12-2011 22:07, HoP wrote:
->>>> I doubt that scan or w_scan would support it. Even if it supports, that
->>>> would mean that,
->>>> for each ioctl that would be sent to the remote server, the error
->>>> code would
->>>> take 480 ms
->>>> to return. Try to calculate how many time w_scan would work with
->>>> that. The
->>>> calculus is easy:
->>>> see how many ioctl's are called by each frequency and multiply by the
->>>> number
->>>> of frequencies
->>>> that it would be seek. You should then add the delay introduced over
->>>> streaming the data
->>>> from the demux, using the same calculus. This is the additional time
->>>> over a
->>>> local w_scan.
+Hi Sakari,
+
+On 12/10/2011 11:44 AM, Sakari Ailus wrote:
+> On Wed, Dec 07, 2011 at 12:09:09PM +0100, Sylwester Nawrocki wrote:
+>> On 12/06/2011 05:27 PM, Sylwester Nawrocki wrote:
+>>>>> +		 
+>>>>> <entry><constant>V4L2_METERING_MODE_CENTER_WEIGHTED</constant>&nbsp;</entr
+>>>>> y> +		  <entry>Average the light information coming from the entire scene
+>>>>> +giving priority to the center of the metered area.</entry>
+>>>>> +		</row>
+>>>>> +		<row>
+>>>>> +		  <entry><constant>V4L2_METERING_MODE_SPOT</constant>&nbsp;</entry>
+>>>>> +		  <entry>Measure only very small area at the cent-re of the
+>>>>> scene.</entry> +		</row>
+>>>>> +	      </tbody>
 >>>>
->>>> A grouch calculus with scandvb: to tune into a single DVB-C
->>>> frequency, it
->>>> used 45 ioctls.
->>>> Each taking 480 ms round trip would mean an extra delay of 21.6 seconds.
->>>> There are 155
->>>> possible frequencies here. So, imagining that scan could deal with 21.6
->>>> seconds of delay
->>>> for each channel (with it doesn't), the extra delay added by it is 1
->>>> hour
->>>> (45 * 0.48 * 155).
->>>>
->>>> On the other hand, a solution like the one described by Florian would
->>>> introduce a delay of
->>>> 480 ms for the entire scan to happen, as only one data packet would be
->>>> needed to send a
->>>> scan request, and one one stream of packets traveling at 10GB/s would
->>>> bring
->>>> the answer
->>>> back.
+>>>> For the last two cases, would it also make sense to specify the center of the 
+>>>> weighted area and the spot location ?
 >>>
->>> Andreas was excited by your imaginations and calculations, but not me.
->>> Now you again manifested you are not treating me as partner for
->>> discussion.
->>> Otherwise you should try to understand how-that-ugly-hack works.
->>> But you surelly didn't try to do it at all.
+>>> Yes, that's quite basic requirement as well.. A means to determine the 
+>>> location would be also needed for some auto focus algorithms.
+>>>  
+>>> Additionally for V4L2_METERING_MODE_CENTER_WEIGHTED it's also needed to
+>>> specify the size of the area (width/height).
 >>>
->>> How do you find those 45 ioctls for DVB-C tune?
+>>> What do you think about defining new control for passing pixel position,
+>>> i.e. modifying struct v4l2_ext_control to something like:
+>>>
+>>> struct v4l2_ext_control {
+>>> 	__u32 id;
+>>> 	__u32 size;
+>>> 	__u32 reserved2[1];
+>>> 	union {
+>>> 		__s32 value;
+>>> 		__s64 value64;
+>>> 		struct v4l2_point position;
+>>> 		char *string;
+>>> 	};
+>>> } __attribute__ ((packed));
+>>>
+>>> where:
+>>>
+>>> struct v4l2_point {
+>>> 	__s32 x;
+>>> 	__s32 y;
+>>> };
 >>
->> With strace. See how many ioctl's are called for each tune. Ok, perhaps
->> scandvb
->> is badly written, but if your idea is to support 100% of the
->> applications, you
->> should be prepared for badly written applications.
->>
->> $strace -e ioctl scandvb dvbc-teste
->> scanning dvbc-teste
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->> ioctl(3, FE_GET_INFO, 0x60a640)         = 0
->> initial transponder 573000000 5217000 0 5
->>>>> tune to: 573000000:INVERSION_AUTO:5217000:FEC_NONE:QAM_256
->> ioctl(3, FE_SET_FRONTEND, 0x7fff5f7f2cd0) = 0
->> ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
->> ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
->> ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
->> ioctl(4, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
->> ioctl(5, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
->> ioctl(6, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
->> ioctl(7, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(8, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(9, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(10, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(11, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(12, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(13, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(14, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(15, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(16, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(17, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(18, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(19, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(20, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(21, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(22, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(23, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(24, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
->> ioctl(4, DMX_STOP, 0x1)                 = 0
->> ioctl(15, DMX_STOP, 0x1)                = 0
->> ioctl(11, DMX_STOP, 0x1)                = 0
->> ioctl(22, DMX_STOP, 0x1)                = 0
->> ioctl(17, DMX_STOP, 0x1)                = 0
->> ioctl(16, DMX_STOP, 0x1)                = 0
->
-> You don't need to wait for write-only operations. Basically all demux
-> ioctls are write-only. Since vtunerc is using dvb-core's software demux
-> *locally*, errors for invalid arguments etc. will be returned as usual.
->
-> What's left is one call to FE_SET_FRONTEND for each frequency to tune
-> to, and one FE_READ_STATUS for each time the lock status is queried.
-> Note that one may use FE_GET_EVENT instead of FE_READ_STATUS to get
-> notified of status changes asynchronously if desired.
->
-> Btw.: FE_SET_FRONTEND doesn't block either, because the driver callback
-> is called from a dvb_frontend's *local* kernel thread.
+>> Hmm, that won't work since there is no way to handle the min/max/step for
+>> more than one value. Probably the selection API could be used for specifying
+>> the metering rectangle, or just separate controls for x, y, width, height.
+>> Since we need to specify only locations for some controls and a rectangle for
+>> others, probably separate controls would be more suitable.
+> 
+> I prefer the use of the selection API over controls. Also consider you may
+> have multiple areas for metering. Also the areas may well be different for
+> focus, white balance and exxposure --- they often actually are.
 
-Still, vtunerc waits for write operations:
+Yes, AFAIR Laurent expressed similar opinion on that [1].
 
-http://code.google.com/p/vtuner/source/browse/vtunerc_proxyfe.c?repo=linux-driver#285
+I talked to Tomasz and Marek about configuring of the metering areas and we came
+to conclusion that we could designate a group of targets for exposure, auto-focus,
+etc. Define a base and target pool size so it is possible to define multiple
+rectangles. And single point (pixel) would be described by struct v4l2_rect with
+width=1, height=1.
+Then we would probably need to be able to enumerate the targets somehow.
 
-No matter if they are read or write, all of them call this function:
+[1] http://www.spinics.net/lists/linux-media/msg41215.html
 
-http://code.google.com/p/vtuner/source/browse/vtunerc_ctrldev.c?repo=linux-driver#390
-
-That has a wait_event inside that function, as everything is directed to
-the userspace.
-
-This is probably the way Florian found to return the errors returned by
-the ioctls. This driver is synchronous, with simplifies it, at the lack of
-performance.
-
-Ok, the driver could be smarter than that, and some heuristics could be
-added into it, in order to foresee the likely error code, returning it
-in advance, and then implementing some asynchronous mechanism that would
-handle the error later, but that would be complex and may still introduce
-some bad behaviors.
-
-Regards,
-Mauro.
-
+-- 
+Thanks,
+Sylwester
