@@ -1,104 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4073 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752097Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:27 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9QOv024155
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:26 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 11/94] [media] cx24116: report delivery system and cleanups
-Date: Fri, 30 Dec 2011 13:07:08 -0200
-Message-Id: <1325257711-12274-12-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755116Ab1LJEoZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:44:25 -0500
+Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:44:24 -0800 (PST)
+MIME-Version: 1.0
+Date: Sat, 10 Dec 2011 10:14:24 +0530
+Message-ID: <CAHFNz9KJM1RG4HFLgL14+OX104im8yTThrAJb_mPQagLe-qiLg@mail.gmail.com>
+Subject: v4 [PATCH 10/10] PCTV290E: Attach a single frontend
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=0015174ff35e4d8fe304b3b58e94
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is one of the first drivers using DVBv5. It relies only
-on DVBv5 way, but still it contains some stub for unused
-methods. Remove them, add the delivery system and do some
-trivial cleanups.
+--0015174ff35e4d8fe304b3b58e94
+Content-Type: text/plain; charset=ISO-8859-1
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/cx24116.c |   33 ++++++++++++---------------------
- 1 files changed, 12 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/cx24116.c b/drivers/media/dvb/frontends/cx24116.c
-index 445ae88..f24819a 100644
---- a/drivers/media/dvb/frontends/cx24116.c
-+++ b/drivers/media/dvb/frontends/cx24116.c
-@@ -1212,25 +1212,10 @@ static int cx24116_sleep(struct dvb_frontend *fe)
- 	return 0;
- }
- 
--static int cx24116_set_property(struct dvb_frontend *fe,
--	struct dtv_property *tvp)
--{
--	dprintk("%s(..)\n", __func__);
--	return 0;
--}
--
--static int cx24116_get_property(struct dvb_frontend *fe,
--	struct dtv_property *tvp)
--{
--	dprintk("%s(..)\n", __func__);
--	return 0;
--}
--
- /* dvb-core told us to tune, the tv property cache will be complete,
-  * it's safe for is to pull values and use them for tuning purposes.
-  */
--static int cx24116_set_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+static int cx24116_set_frontend(struct dvb_frontend *fe)
- {
- 	struct cx24116_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -1458,9 +1443,17 @@ tuned:  /* Set/Reset B/W */
- static int cx24116_tune(struct dvb_frontend *fe, struct dvb_frontend_parameters *params,
- 	unsigned int mode_flags, unsigned int *delay, fe_status_t *status)
- {
-+	/*
-+	 * It is safe to discard "params" here, as the DVB core will sync
-+	 * fe->dtv_property_cache with fepriv->parameters_in, where the
-+	 * DVBv3 params are stored. The only practical usage for it indicate
-+	 * that re-tuning is needed, e. g. (fepriv->state & FESTATE_RETUNE) is
-+	 * true.
-+	 */
-+
- 	*delay = HZ / 5;
- 	if (params) {
--		int ret = cx24116_set_frontend(fe, params);
-+		int ret = cx24116_set_frontend(fe);
- 		if (ret)
- 			return ret;
- 	}
-@@ -1473,7 +1466,7 @@ static int cx24116_get_algo(struct dvb_frontend *fe)
- }
- 
- static struct dvb_frontend_ops cx24116_ops = {
--
-+	.delsys = { SYS_DVBS, SYS_DVBS2 },
- 	.info = {
- 		.name = "Conexant CX24116/CX24118",
- 		.type = FE_QPSK,
-@@ -1507,9 +1500,7 @@ static struct dvb_frontend_ops cx24116_ops = {
- 	.get_frontend_algo = cx24116_get_algo,
- 	.tune = cx24116_tune,
- 
--	.set_property = cx24116_set_property,
--	.get_property = cx24116_get_property,
--	.set_frontend_legacy = cx24116_set_frontend,
-+	.set_frontend = cx24116_set_frontend,
- };
- 
- MODULE_DESCRIPTION("DVB Frontend module for Conexant cx24116/cx24118 hardware");
--- 
-1.7.8.352.g876a6
 
+--0015174ff35e4d8fe304b3b58e94
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0010-PCTV290E-Attach-a-single-frontend-rather-than-a-fron.patch"
+Content-Disposition: attachment;
+	filename="0010-PCTV290E-Attach-a-single-frontend-rather-than-a-fron.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+RnJvbSA0YzhmN2Y3ODdkYjZhN2ZhZjlkODliNjU2ZWYyYjAwNWJlYWNjOTQ4IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IE1vbiwgMjEgTm92IDIwMTEgMjA6MTU6MzYgKzA1MzAKU3ViamVjdDogW1BBVENIIDEw
+LzEwXSBQQ1RWMjkwRTogQXR0YWNoIGEgc2luZ2xlIGZyb250ZW5kLCByYXRoZXIgdGhhbiBhIGZy
+b250ZW5kIGVhY2ggcGVyIGRlbGl2ZXJ5IHN5c3RlbSwgd2hlcmVieSBhIG11bHRpc3RhbmRhcmQg
+ZnJvbnRlbmQgY2FuIGFkdmVydGlzZSBhbGwgYXNzb2NpYXRlZCBkZWxpdmVyeSBzeXN0ZW1zLgoK
+U2lnbmVkLW9mZi1ieTogTWFudSBBYnJhaGFtIDxhYnJhaGFtLm1hbnVAZ21haWwuY29tPgotLS0K
+IGRyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1kdmIuYyB8ICAgMjcgKysrKysrKysr
+LS0tLS0tLS0tLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDkgaW5zZXJ0aW9ucygrKSwgMTgg
+ZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgvZW0y
+OHh4LWR2Yi5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgvZW0yOHh4LWR2Yi5jCmluZGV4
+IGNlZjdhMmQuLjhhMTIwOTQgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4
+L2VtMjh4eC1kdmIuYworKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2VtMjh4eC9lbTI4eHgtZHZi
+LmMKQEAgLTc2MSwzMSArNzYxLDIyIEBAIHN0YXRpYyBpbnQgZW0yOHh4X2R2Yl9pbml0KHN0cnVj
+dCBlbTI4eHggKmRldikKIAkJCQkgICAmZGV2LT5pMmNfYWRhcCwgJmt3b3JsZF9hMzQwX2NvbmZp
+Zyk7CiAJCWJyZWFrOwogCWNhc2UgRU0yODE3NF9CT0FSRF9QQ1RWXzI5MEU6Ci0JCS8qIE1GRQot
+CQkgKiBGRSAwID0gRFZCLVQvVDIgKyBGRSAxID0gRFZCLUMsIGJvdGggc2hhcmluZyBzYW1lIHR1
+bmVyLiAqLwotCQkvKiBGRSAwICovCiAJCWR2Yi0+ZmVbMF0gPSBkdmJfYXR0YWNoKGN4ZDI4MjBy
+X2F0dGFjaCwKLQkJCSZlbTI4eHhfY3hkMjgyMHJfY29uZmlnLCAmZGV2LT5pMmNfYWRhcCwgTlVM
+TCk7CisJCQkJCSZlbTI4eHhfY3hkMjgyMHJfY29uZmlnLAorCQkJCQkmZGV2LT5pMmNfYWRhcCwK
+KwkJCQkJTlVMTCk7CiAJCWlmIChkdmItPmZlWzBdKSB7CiAJCQkvKiBGRSAwIGF0dGFjaCB0dW5l
+ciAqLwotCQkJaWYgKCFkdmJfYXR0YWNoKHRkYTE4MjcxX2F0dGFjaCwgZHZiLT5mZVswXSwgMHg2
+MCwKLQkJCQkmZGV2LT5pMmNfYWRhcCwgJmVtMjh4eF9jeGQyODIwcl90ZGExODI3MV9jb25maWcp
+KSB7CisJCQlpZiAoIWR2Yl9hdHRhY2godGRhMTgyNzFfYXR0YWNoLAorCQkJCQlkdmItPmZlWzBd
+LAorCQkJCQkweDYwLAorCQkJCQkmZGV2LT5pMmNfYWRhcCwKKwkJCQkJJmVtMjh4eF9jeGQyODIw
+cl90ZGExODI3MV9jb25maWcpKSB7CisKIAkJCQlkdmJfZnJvbnRlbmRfZGV0YWNoKGR2Yi0+ZmVb
+MF0pOwogCQkJCXJlc3VsdCA9IC1FSU5WQUw7CiAJCQkJZ290byBvdXRfZnJlZTsKIAkJCX0KLQkJ
+CS8qIEZFIDEuIFRoaXMgZHZiX2F0dGFjaCgpIGNhbm5vdCBmYWlsLiAqLwotCQkJZHZiLT5mZVsx
+XSA9IGR2Yl9hdHRhY2goY3hkMjgyMHJfYXR0YWNoLCBOVUxMLCBOVUxMLAotCQkJCWR2Yi0+ZmVb
+MF0pOwotCQkJZHZiLT5mZVsxXS0+aWQgPSAxOwotCQkJLyogRkUgMSBhdHRhY2ggdHVuZXIgKi8K
+LQkJCWlmICghZHZiX2F0dGFjaCh0ZGExODI3MV9hdHRhY2gsIGR2Yi0+ZmVbMV0sIDB4NjAsCi0J
+CQkJJmRldi0+aTJjX2FkYXAsICZlbTI4eHhfY3hkMjgyMHJfdGRhMTgyNzFfY29uZmlnKSkgewot
+CQkJCWR2Yl9mcm9udGVuZF9kZXRhY2goZHZiLT5mZVsxXSk7Ci0JCQkJLyogbGVhdmUgRkUgMCBz
+dGlsbCBhY3RpdmUgKi8KLQkJCX0KLQotCQkJbWZlX3NoYXJlZCA9IDE7CiAJCX0KIAkJYnJlYWs7
+CiAJY2FzZSBFTTI4ODRfQk9BUkRfVEVSUkFURUNfSDU6Ci0tIAoxLjcuMQoK
+--0015174ff35e4d8fe304b3b58e94--
