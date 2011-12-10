@@ -1,135 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:39124 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752750Ab1LUAlO (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:52459 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751149Ab1LJNn2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 19:41:14 -0500
-Received: by eaad14 with SMTP id d14so777917eaa.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Dec 2011 16:41:13 -0800 (PST)
+	Sat, 10 Dec 2011 08:43:28 -0500
+Received: by lagp5 with SMTP id p5so1453223lag.19
+        for <linux-media@vger.kernel.org>; Sat, 10 Dec 2011 05:43:26 -0800 (PST)
+Message-ID: <4EE361FB.9090301@gmail.com>
+Date: Sat, 10 Dec 2011 14:43:23 +0100
+From: Fredrik Lingvall <fredrik.lingvall@gmail.com>
 MIME-Version: 1.0
-Date: Wed, 21 Dec 2011 01:41:13 +0100
-Message-ID: <CAEN_-SDmBW7TMoh7Vfx1hUS8eTsXPheq_MNtc6K0BxpsOXLdJg@mail.gmail.com>
-Subject: Add signal information to xc4000 tuner
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000e0cdfc836d65cfb04b48f707b
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-930C problems
+References: <4ED929E7.2050808@gmail.com> <4EDF6262.2000209@redhat.com> <4EDF6AB8.5050201@gmail.com> <4EDF7048.2030304@redhat.com> <4EDF7758.3080309@gmail.com> <4EDF7E23.3090904@redhat.com> <4EE075D5.1060408@gmail.com> <4EE0D169.5040607@redhat.com>
+In-Reply-To: <4EE0D169.5040607@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cdfc836d65cfb04b48f707b
-Content-Type: text/plain; charset=ISO-8859-1
+On 12/08/11 16:02, Mauro Carvalho Chehab wrote:
+>
+>> #!/bin/bash
+>> for i in `seq 1 20`;
+>> do
+>> w_scan -fc -c NO 1>> scan$i.log 2>> scan$i.log
+>> done
+>>
+>> And I get outputs like this (the timing numbers differs of course 
+>> somewhat between different runs):
+>>
+>> <snip>
+>>
+>> 586000: sr6900 (time: 10:21) sr6875 (time: 10:23)
+>> 594000: sr6900 (time: 10:26) sr6875 (time: 10:28)
+>> 602000: sr6900 (time: 10:31) (time: 10:32) signal ok:
+>> QAM_256 f = 602000 kHz S6900C999
+>> Info: NIT(actual) filter timeout
+>> 610000: sr6900 (time: 10:44) sr6875 (time: 10:47)
+>> 618000: sr6900 (time: 10:49) sr6875 (time: 10:52)
+>> 626000: sr6900 (time: 10:54) sr6875 (time: 10:57)
+>>
+>> <snip>
+>>
+>> Then I did the test that you suggested:
+>>
+>> lin-tv ~ # strace -e ioctl dvbscan -fc test_channel_file
+>>
+>> scanning test_channel_file
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>> ioctl(3, FE_GET_INFO, 0x60b180) = 0
+>> initial transponder 602000000 6900000 0 5
+>> >>> tune to: 602000000:INVERSION_AUTO:6900000:FEC_NONE:QAM_256
+>> ioctl(3, FE_SET_FRONTEND, 0x7fff0581fb20) = 0
+>> ioctl(3, FE_READ_STATUS, 0x7fff0581fb4c) = 0
+>> ioctl(3, FE_READ_STATUS, 0x7fff0581fb4c) = 0
+>> ioctl(4, DMX_SET_FILTER, 0x7fff0581e930) = 0
+>> ioctl(5, DMX_SET_FILTER, 0x7fff0581e930) = 0
+>> ioctl(6, DMX_SET_FILTER, 0x7fff0581e930) = 0
+>> WARNING: filter timeout pid 0x0011
+>> ioctl(5, DMX_STOP, 0x23) = 0
+>> WARNING: filter timeout pid 0x0000
+>> ioctl(4, DMX_STOP, 0x23) = 0
+>> WARNING: filter timeout pid 0x0010
+>> ioctl(6, DMX_STOP, 0x23) = 0
+>> dumping lists (0 services)
+>> Done.
+>>
+>>
+>> I did not get the:
+>>
+>> 602000: sr6900 (time: 10:32) (time: 10:33) signal ok:
+>> QAM_256 f = 602000 kHz S6900C999
+>> start_filter:1415: ERROR: ioctl DMX_SET_FILTER failed: 28 No space 
+>> left on device
+>
+>
+>> Info: NIT(actual) filter timeout
+>>
+>> that I got before. The changes I made from before was 1) I unmounted 
+>> the USB disk and 2) I rebuild the xc5000 module where I removed the
+>>
+>> mutex_lock(&xc5000_list_mutex);
+>>
+>> and
+>>
+>> mutex_unlock(&xc5000_list_mutex);
+>>
+>> lines according to the discussion in the " ... em28xx: initial 
+>> support for HAUPPAUGE HVR-930C again" thread.
+>
+> Ok, let's go by parts.
+>
+> 1) error 28 at DMX_SET_FILTER is really due to lack of space at the 
+> USB bus. I've
+> double-checked at the code. The only place there where it could occur 
+> is when
+> dvb_dmxdev_feed_start() calls feed->ts->start_filtering(feed->ts), 
+> with should be
+> pointing to em28xx_start_feed(), with tries to start the transfer 
+> URB's at
+> em28xx_init_isoc() by calling usb_submit_urb(). This is the only 
+> routine that returns
+> ENOSPC on this chain.
+>
+> It is very likely that what fixed it were the removal of the USB disk.
+>
+> 2)  There is an error at the bandwidth calculus on xc5000. It is 
+> likely that it is
+> using a 6MHz bandwidth filter, instead of a 8MHz one.
+>
+> Please try the enclosed patch.
+>
+>
+> [media] xc5000,tda18271c2dd: Fix bandwidth calculus
+>     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>
+> diff --git a/drivers/media/common/tuners/xc5000.c 
+> b/drivers/media/common/tuners/xc5000.c
+> index ecd1f95..8279c45 100644
+> --- a/drivers/media/common/tuners/xc5000.c
+> +++ b/drivers/media/common/tuners/xc5000.c
+> @@ -708,9 +708,9 @@ static int xc5000_set_params(struct dvb_frontend *fe,
+>               * is equal to 0.15 for Annex A, and 0.13 for annex C
+>               */
+>              if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+> -                bw = (params->u.qam.symbol_rate * 13) / 10;
+> +                bw = (params->u.qam.symbol_rate * 113) / 100;
+>              else
+> -                bw = (params->u.qam.symbol_rate * 15) / 10;
+> +                bw = (params->u.qam.symbol_rate * 115) / 100;
+>              if (bw <= 6000000) {
+>                  priv->bandwidth = BANDWIDTH_6_MHZ;
+>                  priv->video_standard = DTV6;
+> diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c 
+> b/drivers/media/dvb/frontends/tda18271c2dd.c
+> index de544f6..b66ca29 100644
+> --- a/drivers/media/dvb/frontends/tda18271c2dd.c
+> +++ b/drivers/media/dvb/frontends/tda18271c2dd.c
+> @@ -1158,9 +1158,9 @@ static int set_params(struct dvb_frontend *fe,
+>           * is equal to 0.15 for Annex A, and 0.13 for annex C
+>           */
+>          if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+> -            bw = (params->u.qam.symbol_rate * 13) / 10;
+> +            bw = (params->u.qam.symbol_rate * 113) / 100;
+>          else
+> -            bw = (params->u.qam.symbol_rate * 15) / 10;
+> +            bw = (params->u.qam.symbol_rate * 115) / 100;
+>          if (bw <= 6000000)
+>              Standard = HF_DVBC_6MHZ;
+>          else if (bw <= 7000000)
+>
+>
 
-Documentation is included in patch, for now it will add signal level
-only to analog FM radio for all xc4000 based tuner, but in the future
-we can use this patch to get also digital signal level, measuring of
-xc4000 tuner is very accurate (less then 1dB resolution).
+Changing 13 -> 113 and 15 -> 115 in the two files made no difference. 
+However, I figured out that the
 
-This time with patch included :)
+586000: sr6900 (time: 10:22) sr6875 (time: 10:24)
+594000: sr6900 (time: 10:27) sr6875 (time: 10:30)
+602000: sr6900 (time: 10:32) (time: 10:33) signal ok:
+         QAM_256  f = 602000 kHz S6900C999
+start_filter:1417: ERROR: ioctl DMX_SET_FILTER failed: 28 No space left 
+on device
+Info: NIT(actual) filter timeout
+610000: sr6900 (time: 10:55) sr6875 (time: 10:57)
+618000: sr6900 (time: 11:00) sr6875 (time: 11:02)
+626000: sr6900 (time: 11:05) sr6875 (time: 11:07)
 
---000e0cdfc836d65cfb04b48f707b
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-In-xc4000-chipsets-real-signal-and-noise-level-is-st.patch"
-Content-Disposition: attachment;
-	filename="0001-In-xc4000-chipsets-real-signal-and-noise-level-is-st.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gwfm9nwt0
+output from w_scan only happends the first time after the driver has 
+been loaded. That is, running this script
 
-RnJvbSA1NDQyODAzOWU2Njg3MGQ4NWZlZjFjMDI5ZGM0ZDAxOTMzMTQzOWU2IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiA8dGh1bmRlci5tQGVtYWlsLmN6PgpEYXRlOiBX
-ZWQsIDIxIERlYyAyMDExIDAxOjE4OjM4ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gSW4geGM0MDAw
-IGNoaXBzZXRzIHJlYWwgc2lnbmFsIGFuZCBub2lzZSBsZXZlbCBpcyBzdG9yZWQgaW4gcmVnaXN0
-ZXIgMHgwQSBhbmQgMHgwQiwKIHNvIHdlIGNhbiB1c2UgdGhvc2UgcmVnaXN0ZXJzIHRvIG1vbml0
-b3Igc2lnbmFsIHN0cmVuZ3RoLgoKSSB0ZXN0ZWQgdGhpcyBwYXRjaCBvbiAyIGRpZmZlcmVudCBj
-YXJkcyBMZWFkdGVrIERWUjMyMDAgYW5kIERUVjIwMDBIIFBsdXMsIGJvdGgKd2l0aCBzYW1lIHJl
-c3VsdHMsIEkgdXNlZCBzcGVjaWFsIGFudGVubmEgaHVicyAodG9uZXIgNHgsIDZ4LCA4eCBhbmQg
-MTJ4KSB3aXRoIG1lc3VyZWQKc2lnbmFsIGxvc3QsIGJvdGggcmVnaXN0ZXJzIGFyZSBpbiBkQiB2
-YWx1ZSwgZmlyc3QgcmVwcmVzZW50IHNpZ25hbCB3aXRoIGxpbWl0CnZhbHVlIC0xMTMuNWRCIChz
-aG91bGQgYmUgLTExNGRCKSBhbmQgZXhhY3RseSBtYXRjaCB3aXRoIHRlc3QgcmVzdWx0cy4gU2Vj
-b25kIHJlcHJlc2VudHMKbm9pc2UgbGV2ZWwgYWxzbyBpbiBkQiBhbmQgdGhlcmUgaXMgbm8gbWF4
-aW11bSB2YWx1ZSwgYnV0IGZyb20gdGVzdHMgd2UgY2FuIGRyb3AKZXZlcnl0aGluZyBhYm92ZSAz
-MmRCIHdoaWNoIHR1bmVyIHJlYWx5IGNhbid0IHVzZSwgc2lnbmFsIHdhcyB1c2FibGUgdGlsbCAy
-MGRCIG5vaXNlIGxldmVsLgoKSW4gZGlnaXRhbCBtb2RlIHdlIGNhbiB0YWtlIHNpZ25hbCBzdHJl
-bmd0aCBidXQgc2FkbHkgbm9pc2UgbGV2ZWwgaXMgbm90IHJlbGV2YW50IGFuZApyZWFsIHZhbHVl
-IGlzIHN0b3JlZCBpbiBkZW1vZHVsYXRvciBmb3Igbm93IGp1c3QgemwxMDM1MywgYWxzbyBkaWdp
-dGFsIG1vZGUgaXMganVzdCBmb3IKdGVzdGluZywgYmVjYXVzZSBpdCBuZWVkcyBjaGFuZ2luZyBv
-dGhlciBwYXJ0cyBvZiBjb2RlIHdoaWNoIHJlYWRzIGRhdGEgb25seSBmcm9tCmRlbW9kdWxhdG9y
-LgoKSW4gYW5hbG9nIG1vZGUgSSB3YXMgYWJsZSB0byB0ZXN0IG9ubHkgRk0gcmFkaW8sIHNpZ25h
-bCBsZXZlbCBpcyBub3QgaW1wb3J0YW50LCBpdCBzYXlzCnNvbWV0aGluZyBhYm91dCBjYWJsZSBh
-bmQgaHViIGxvc3RzLCBidXQgbm90aGluZyBhYm91dCByZWFsIHF1YWxpdHkgb2YgcmVjZXB0aW9u
-LCBzbyBldmVuCmlmIHdlIGhhdmUgc2lnbmFsIGxldmVsIGF0IG1pbmltdW0gMTEzZEIgd2UgY2Fu
-IHN0aWxsIGhlcmUgcmFkaW8sIGJlY2F1c2Ugb2YgdGhhdCBpdCBpcwpkaXNwbGFpZWQgb25seSBp
-biBkZWJ1ZyBtb2RlLCBidXQgZm9yIHJlYWwgc2lnbmFsIGxldmVsIGlzIHVzZWQgbm9pc2UgcmVn
-aXN0ZXIgd2hpY2ggaXMKYWdhaW4gdmVyeSBhY2N1cmF0ZSwgcmFkaW8gbm9pc2UgbGV2ZWwgd2Fz
-IGJldHdlbiA2LTIwZEIgZm9yIGdvb2Qgc2lnbmFsLCAyMC0yNWRCIGZvcgptZWRpdW0gc2lnbmFs
-LCBhbmQgYWJvdmUgMjVkQiBzaWduYWwgaXMgdW51c2FibGUuCgpGb3Igbm93IHJlYWwgYmVuZWZp
-dCBvZiB0aGlzIHBhdGNoIGlzIG9ubHkgZm9yIEZNIHJhZGlvIG1vZGUuCi0tLQogZHJpdmVycy9t
-ZWRpYS9jb21tb24vdHVuZXJzL3hjNDAwMC5jIHwgICA4NiArKysrKysrKysrKysrKysrKysrKysr
-KysrKysrKysrKysrCiAxIGZpbGVzIGNoYW5nZWQsIDg2IGluc2VydGlvbnMoKyksIDAgZGVsZXRp
-b25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3hjNDAwMC5j
-IGIvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3hjNDAwMC5jCmluZGV4IDYzNGY0ZDkuLjM3
-NTgxYzMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy94YzQwMDAuYwor
-KysgYi9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMveGM0MDAwLmMKQEAgLTE1NCw2ICsxNTQs
-OCBAQCBzdHJ1Y3QgeGM0MDAwX3ByaXYgewogI2RlZmluZSBYUkVHX1NOUiAgICAgICAgICAweDA2
-CiAjZGVmaW5lIFhSRUdfVkVSU0lPTiAgICAgIDB4MDcKICNkZWZpbmUgWFJFR19QUk9EVUNUX0lE
-ICAgMHgwOAorI2RlZmluZSBYUkVHX1NJR05BTF9MRVZFTCAweDBBCisjZGVmaW5lIFhSRUdfTk9J
-U0VfTEVWRUwgIDB4MEIKIAogLyoKICAgIEJhc2ljIGZpcm13YXJlIGRlc2NyaXB0aW9uLiBUaGlz
-IHdpbGwgcmVtYWluIHdpdGgKQEAgLTQ4Niw2ICs0ODgsMTYgQEAgc3RhdGljIGludCB4Y19nZXRf
-cXVhbGl0eShzdHJ1Y3QgeGM0MDAwX3ByaXYgKnByaXYsIHUxNiAqcXVhbGl0eSkKIAlyZXR1cm4g
-eGM0MDAwX3JlYWRyZWcocHJpdiwgWFJFR19RVUFMSVRZLCBxdWFsaXR5KTsKIH0KIAorc3RhdGlj
-IGludCB4Y19nZXRfc2lnbmFsX2xldmVsKHN0cnVjdCB4YzQwMDBfcHJpdiAqcHJpdiwgdTE2ICpz
-aWduYWwpCit7CisJcmV0dXJuIHhjNDAwMF9yZWFkcmVnKHByaXYsIFhSRUdfU0lHTkFMX0xFVkVM
-LCBzaWduYWwpOworfQorCitzdGF0aWMgaW50IHhjX2dldF9ub2lzZV9sZXZlbChzdHJ1Y3QgeGM0
-MDAwX3ByaXYgKnByaXYsIHUxNiAqbm9pc2UpCit7CisJcmV0dXJuIHhjNDAwMF9yZWFkcmVnKHBy
-aXYsIFhSRUdfTk9JU0VfTEVWRUwsIG5vaXNlKTsKK30KKwogc3RhdGljIHUxNiB4Y193YWl0X2Zv
-cl9sb2NrKHN0cnVjdCB4YzQwMDBfcHJpdiAqcHJpdikKIHsKIAl1MTYJbG9ja19zdGF0ZSA9IDA7
-CkBAIC0xMDg5LDYgKzExMDEsOCBAQCBzdGF0aWMgdm9pZCB4Y19kZWJ1Z19kdW1wKHN0cnVjdCB4
-YzQwMDBfcHJpdiAqcHJpdikKIAl1MzIJaHN5bmNfZnJlcV9oeiA9IDA7CiAJdTE2CWZyYW1lX2xp
-bmVzOwogCXUxNglxdWFsaXR5OworCXUxNglzaWduYWwgPSAwOworCXUxNglub2lzZSA9IDA7CiAJ
-dTgJaHdfbWFqb3J2ZXJzaW9uID0gMCwgaHdfbWlub3J2ZXJzaW9uID0gMDsKIAl1OAlmd19tYWpv
-cnZlcnNpb24gPSAwLCBmd19taW5vcnZlcnNpb24gPSAwOwogCkBAIC0xMTE5LDYgKzExMzMsMTIg
-QEAgc3RhdGljIHZvaWQgeGNfZGVidWdfZHVtcChzdHJ1Y3QgeGM0MDAwX3ByaXYgKnByaXYpCiAK
-IAl4Y19nZXRfcXVhbGl0eShwcml2LCAmcXVhbGl0eSk7CiAJZHByaW50aygxLCAiKioqIFF1YWxp
-dHkgKDA6PDhkQiwgNzo+NTZkQikgPSAlZFxuIiwgcXVhbGl0eSk7CisKKwl4Y19nZXRfc2lnbmFs
-X2xldmVsKHByaXYsICZzaWduYWwpOworCWRwcmludGsoMSwgIioqKiBTaWduYWwgbGV2ZWwgPSAt
-JWRkQiAoJWQpXG4iLCBzaWduYWwgPj4gOCwgc2lnbmFsKTsKKworCXhjX2dldF9ub2lzZV9sZXZl
-bChwcml2LCAmbm9pc2UpOworCWRwcmludGsoMSwgIioqKiBOb2lzZSBsZXZlbCA9ICVkZEIgKCVk
-KVxuIiwgbm9pc2UgPj4gOCwgbm9pc2UpOwogfQogCiBzdGF0aWMgaW50IHhjNDAwMF9zZXRfcGFy
-YW1zKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLApAQCAtMTQ1MSw2ICsxNDcxLDcxIEBAIGZhaWw6
-CiAJcmV0dXJuIHJldDsKIH0KIAorc3RhdGljIGludCB4YzQwMDBfZ2V0X3NpZ25hbChzdHJ1Y3Qg
-ZHZiX2Zyb250ZW5kICpmZSwgdTE2ICpzdHJlbmd0aCkKK3sKKwlzdHJ1Y3QgeGM0MDAwX3ByaXYg
-KnByaXYgPSBmZS0+dHVuZXJfcHJpdjsKKwl1MTYgdmFsdWUgPSAwOworCWludCByYzsKKworCW11
-dGV4X2xvY2soJnByaXYtPmxvY2spOworCXJjID0geGM0MDAwX3JlYWRyZWcocHJpdiwgWFJFR19T
-SUdOQUxfTEVWRUwsICZ2YWx1ZSk7CisJbXV0ZXhfdW5sb2NrKCZwcml2LT5sb2NrKTsKKworCWlm
-IChyYyA8IDApCisJCWdvdG8gcmV0OworCisJLyogSW5mb3JtYXRpb25zIGZyb20gcmVhbCB0ZXN0
-aW5nIG9mIERWQi1UIGFuZCByYWRpbyBwYXJ0LAorCSAgIGNvZWZpY2llbnQgZm9yIG9uZSBkQiBp
-cyAweGZmLgorCSAqLworCXR1bmVyX2RiZygiU2lnbmFsIHN0cmVuZ3RoOiAtJWRkQiAoJTA1ZClc
-biIsIHZhbHVlID4+IDgsIHZhbHVlKTsKKworCS8qIGFsbCBrbm93biBkaWdpdGFsIG1vZGVzICov
-CisJaWYgKChwcml2LT52aWRlb19zdGFuZGFyZCA9PSBYQzQwMDBfRFRWNikgfHwKKwkgICAgKHBy
-aXYtPnZpZGVvX3N0YW5kYXJkID09IFhDNDAwMF9EVFY3KSB8fAorCSAgICAocHJpdi0+dmlkZW9f
-c3RhbmRhcmQgPT0gWEM0MDAwX0RUVjdfOCkgfHwKKwkgICAgKHByaXYtPnZpZGVvX3N0YW5kYXJk
-ID09IFhDNDAwMF9EVFY4KSkKKwkJZ290byBkaWdpdGFsOworCisJLyogQW5hbG9nIG1vZGUgaGFz
-IE5PSVNFIExFVkVMIGltcG9ydGFudCwgc2lnbmFsCisJICAgZGVwZW5kcyBvbmx5IG9uIGdhaW4g
-b2YgYW50ZW5uYSBhbmQgYW1wbGlmaWVycywKKwkgICBidXQgaXQgZG9lc24ndCB0ZWxsIGFueXRo
-aW5nIGFib3V0IHJlYWwgcXVhbGl0eQorCSAgIG9mIHJlY2VwdGlvbi4KKwkgKi8KKwltdXRleF9s
-b2NrKCZwcml2LT5sb2NrKTsKKwlyYyA9IHhjNDAwMF9yZWFkcmVnKHByaXYsIFhSRUdfTk9JU0Vf
-TEVWRUwsICZ2YWx1ZSk7CisJbXV0ZXhfdW5sb2NrKCZwcml2LT5sb2NrKTsKKworCXR1bmVyX2Ri
-ZygiTm9pc2UgbGV2ZWw6ICVkZEIgKCUwNWQpXG4iLCB2YWx1ZSA+PiA4LCB2YWx1ZSk7CisKKwkv
-KiBoaWdoZXN0IG5vaXNlIGxldmVsOiAzMmRCICovCisJaWYgKHZhbHVlID49IDB4MjAwMCkgewor
-CQl2YWx1ZSA9IDA7CisJfSBlbHNlIHsKKwkJdmFsdWUgPSB+dmFsdWUgPDwgMzsKKwl9CisKKwln
-b3RvIHJldDsKKworCS8qIERpZ2l0YWwgbW9kZSBoYXMgU0lHTkFMIExFVkVMIGltcG9ydGFudCBh
-bmQgcmVhbAorCSAgIG5vaXNlIGxldmVsIGlzIHN0b3JlZCBpbiBkZW1vZHVsYXRvciByZWdpc3Rl
-cnMuCisJICovCitkaWdpdGFsOgorCS8qIGJlc3Qgc2lnbmFsOiAtNTBkQiAqLworCWlmICh2YWx1
-ZSA8PSAweDMyMDApIHsKKwkJdmFsdWUgPSAweGZmZmY7CisJLyogbWluaW11bTogLTExNGRCIC0g
-c2hvdWxkIGJlIDB4NzIwMCBidXQgcmVhbCB6ZXJvIGlzIDB4NzEzQSAqLworCX0gZWxzZSBpZiAo
-dmFsdWUgPj0gMHg3MTNBKSB7CisJCXZhbHVlID0gMDsKKwl9IGVsc2UgeworCQl2YWx1ZSA9IH4o
-dmFsdWUgLSAweDMyMDApIDw8IDI7CisJfQorCityZXQ6CisJKnN0cmVuZ3RoID0gdmFsdWU7CisK
-KwlyZXR1cm4gcmM7Cit9CisKIHN0YXRpYyBpbnQgeGM0MDAwX2dldF9mcmVxdWVuY3koc3RydWN0
-IGR2Yl9mcm9udGVuZCAqZmUsIHUzMiAqZnJlcSkKIHsKIAlzdHJ1Y3QgeGM0MDAwX3ByaXYgKnBy
-aXYgPSBmZS0+dHVuZXJfcHJpdjsKQEAgLTE1NzgsNiArMTY2Myw3IEBAIHN0YXRpYyBjb25zdCBz
-dHJ1Y3QgZHZiX3R1bmVyX29wcyB4YzQwMDBfdHVuZXJfb3BzID0gewogCS5zZXRfcGFyYW1zCSAg
-ID0geGM0MDAwX3NldF9wYXJhbXMsCiAJLnNldF9hbmFsb2dfcGFyYW1zID0geGM0MDAwX3NldF9h
-bmFsb2dfcGFyYW1zLAogCS5nZXRfZnJlcXVlbmN5CSAgID0geGM0MDAwX2dldF9mcmVxdWVuY3ks
-CisJLmdldF9yZl9zdHJlbmd0aCAgID0geGM0MDAwX2dldF9zaWduYWwsCiAJLmdldF9iYW5kd2lk
-dGgJICAgPSB4YzQwMDBfZ2V0X2JhbmR3aWR0aCwKIAkuZ2V0X3N0YXR1cwkgICA9IHhjNDAwMF9n
-ZXRfc3RhdHVzCiB9OwotLSAKMS43LjIuMwoK
---000e0cdfc836d65cfb04b48f707b--
+#!/bin/bash
+for i in `seq 1 20`;
+do
+     rmmod em28xx_dvb
+     rmmod em28xx
+     sleep 5
+     modprobe em28xx
+     sleep 5
+     echo $i
+     w_scan -fc -c NO 1>> scan_out$i.log 2>> scan_err$i.log
+done
+
+will give the error above for every scan but if I don't reload the 
+driver then I will get the output:
+
+594000: sr6900 (time: 10:26) sr6875 (time: 10:29)
+602000: sr6900 (time: 10:31) (time: 10:32) signal ok:
+         QAM_256  f = 602000 kHz S6900C999
+Info: NIT(actual) filter timeout
+610000: sr6900 (time: 10:45) sr6875 (time: 10:47)
+618000: sr6900 (time: 10:50) sr6875 (time: 10:52)
+
+for i >=2 instead.
+
+I noticed the new patches you are working with on the list. Let me know 
+I there's something I can test?
+
+Regards,
+
+/Fredrik
+
+
+
+
+
+
+
+
+
+
