@@ -1,66 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:45028 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754308Ab1LGKsn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 05:48:43 -0500
-Received: by eaak14 with SMTP id k14so320498eaa.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2011 02:48:42 -0800 (PST)
-Message-ID: <4EDF4484.5090108@gmail.com>
-Date: Wed, 07 Dec 2011 13:48:36 +0300
-From: Alex <alex.vizor@gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752031Ab1LJEmP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:42:15 -0500
+Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:42:14 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: uvcvideo: Failed to query (SET_CUR) UVC control 10 on unit 2:
- -32 (exp. 2).
-References: <4ED29713.1010202@gmail.com> <201111282020.47745.laurent.pinchart@ideasonboard.com> <4ED402CF.2010100@gmail.com> <201111300251.55083.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111300251.55083.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Sat, 10 Dec 2011 10:12:14 +0530
+Message-ID: <CAHFNz9+B2+HEwj23JZaRdvLKfUP6+hXqpdwJQCNw6z2eJyK-GA@mail.gmail.com>
+Subject: v4 [PATCH 01/10] DVB: Query DVB frontend delivery capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=0016e6de038f896ae204b3b58646
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/30/2011 04:51 AM, Laurent Pinchart wrote:
-> Hi Alex,
->
-> On Monday 28 November 2011 22:53:19 Alex wrote:
->> On 11/28/2011 10:20 PM, Laurent Pinchart wrote:
->>> On Monday 28 November 2011 20:14:25 Alex wrote:
->>>> On 11/28/2011 10:08 PM, Laurent Pinchart wrote:
->>>>> On Monday 28 November 2011 19:04:22 Alex wrote:
->>>>>> Fortunately my laptop is alive now so I'm sending you lsusb output.
->>>>> Thanks. Would you mind re-running lsusb -v -d '04f2:b221' as root ?
->>>>> What laptop brand/model is the camera embedded in ?
->>>>>
->>>>>> About reverting commit - will try bit later.
->>>>> I've received reports that reverting the commit helps. A proper patch
->>>>> has also been posted to the linux-usb mailing list ("EHCI : Fix a
->>>>> regression in the ISO scheduler"). It would be nice if you could check
->>>>> whether that fixes your first issue as well.
->>>> That is lsusb output you asked. Laptop is Thinkpad T420s. Camera works
->>>> OK with 3.1.x kernel BTW.
->>> Thank you.
->>>
->>>> Could you send this fix patch to me please?
->>> http://www.spinics.net/lists/linux-usb/msg54992.html
->>>
->>> It was the first hit on Google...
->> Laurent,
->>
->> Seems this patch didn't help I recompiled kernel and still get same error:
->> [  101.100914] uvcvideo: Failed to query (SET_CUR) UVC control 10 on
->> unit 2: -32 (exp. 2).
->> [  103.900163] uvcvideo: Failed to query (SET_CUR) UVC control 10 on
->> unit 2: -32 (exp. 2).
->> [  103.909735] uvcvideo: Failed to submit URB 0 (-28).
->> [  107.896939] uvcvideo: Failed to query (SET_CUR) UVC control 10 on
->> unit 2: -32 (exp. 2).
-> I'm surprised. The patch has been included in 3.1.4, could you please try it ?
->
-Laurent,
+--0016e6de038f896ae204b3b58646
+Content-Type: text/plain; charset=ISO-8859-1
 
-It works ok with 3.1.4 as with all other 3.1.x version. But doesn't work 
-with 3.2-rc4 and previous
 
-Thanks,
-Alex
+
+--0016e6de038f896ae204b3b58646
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-DVB-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Disposition: attachment;
+	filename="0001-DVB-Query-DVB-frontend-delivery-capabilities.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: file0
+
+RnJvbSAzMzA4Nzk4NDFjMWZiOTAxODI5ODZkOWM1ZWRiMmFlNGU3MmJhMmM3IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
+CkRhdGU6IE1vbiwgMTQgTm92IDIwMTEgMDM6MTc6NDQgKzA1MzAKU3ViamVjdDogW1BBVENIIDAx
+LzEwXSBEVkI6IFF1ZXJ5IERWQiBmcm9udGVuZCBkZWxpdmVyeSBjYXBhYmlsaXRpZXMuCgogQ3Vy
+cmVudGx5LCBmb3IgYW55IG11bHRpLXN0YW5kYXJkIGZyb250ZW5kIGl0IGlzIGFzc3VtZWQgdGhh
+dCBpdCBqdXN0CiBoYXMgYSBzaW5nbGUgc3RhbmRhcmQgY2FwYWJpbGl0eS4gVGhpcyBpcyBmaW5l
+IGluIHNvbWUgY2FzZXMsIGJ1dAogbWFrZXMgdGhpbmdzIGhhcmQgd2hlbiB0aGVyZSBhcmUgaW5j
+b21wYXRpYmxlIHN0YW5kYXJkcyBpbiBjb25qdWN0aW9uLgogRWc6IERWQi1TIGNhbiBiZSBzZWVu
+IGFzIGEgc3Vic2V0IG9mIERWQi1TMiwgYnV0IHRoZSBzYW1lIGRvZXNuJ3QgaG9sZAogdGhlIHNh
+bWUgZm9yIERTUy4gVGhpcyBpcyBub3Qgc3BlY2lmaWMgdG8gYW55IGRyaXZlciBhcyBpdCBpcywg
+YnV0IGEKIGdlbmVyaWMgaXNzdWUuIFRoaXMgd2FzIGhhbmRsZWQgY29ycmVjdGx5IGluIHRoZSBt
+dWx0aXByb3RvIHRyZWUsCiB3aGlsZSBzdWNoIGZ1bmN0aW9uYWxpdHkgaXMgbWlzc2luZyBmcm9t
+IHRoZSB2NSBBUEkgdXBkYXRlLgoKIGh0dHA6Ly93d3cubGludXh0di5vcmcvcGlwZXJtYWlsL3Zk
+ci8yMDA4LU5vdmVtYmVyLzAxODQxNy5odG1sCgogTGF0ZXIgb24gYSBGRV9DQU5fMkdfTU9EVUxB
+VElPTiB3YXMgYWRkZWQgYXMgYSBoYWNrIHRvIHdvcmthcm91bmQgdGhpcwogaXNzdWUgaW4gdGhl
+IHY1IEFQSSwgYnV0IHRoYXQgaGFjayBpcyBpbmNhcGFibGUgb2YgYWRkcmVzc2luZyB0aGUKIGlz
+c3VlLCBhcyBpdCBjYW4gYmUgdXNlZCB0byBzaW1wbHkgZGlzdGluZ3Vpc2ggYmV0d2VlbiBEVkIt
+UyBhbmQKIERWQi1TMiBhbG9uZSwgb3IgYW5vdGhlciBYIHZzIFgyIG1vZHVsYXRpb24uIElmIHRo
+ZXJlIGFyZSBtb3JlIHN5c3RlbXMsCiB0aGVuIHlvdSBoYXZlIGEgcG90ZW50aWFsIGlzc3VlLgoK
+IEFuIGFwcGxpY2F0aW9uIG5lZWRzIHRvIHF1ZXJ5IHRoZSBkZXZpY2UgY2FwYWJpbGl0aWVzIGJl
+Zm9yZSByZXF1ZXN0aW5nCiBhbnkgb3BlcmF0aW9uIGZyb20gdGhlIGRldmljZS4KClNpZ25lZC1v
+ZmYtYnk6IE1hbnUgQWJyYWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KCkFja2VkLWJ5OiBB
+bmRyZWFzIE9iZXJyaXR0ZXIgPG9iaUBsaW51eHR2Lm9yZz4KQWNrZWQtYnk6IE9saXZlciBFbmRy
+aXNzIDxvLmVuZHJpc3NAZ214LmRlPgotLS0KIGRyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2
+Yl9mcm9udGVuZC5jIHwgICAzNiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKwogaW5jbHVk
+ZS9saW51eC9kdmIvZnJvbnRlbmQuaCAgICAgICAgICAgICAgfCAgICA0ICsrLQogaW5jbHVkZS9s
+aW51eC9kdmIvdmVyc2lvbi5oICAgICAgICAgICAgICAgfCAgICAyICstCiAzIGZpbGVzIGNoYW5n
+ZWQsIDQwIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVy
+cy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmMgYi9kcml2ZXJzL21lZGlhL2R2Yi9k
+dmItY29yZS9kdmJfZnJvbnRlbmQuYwppbmRleCAyYzBhY2RiLi4xMzY4ZDhjIDEwMDY0NAotLS0g
+YS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYworKysgYi9kcml2ZXJz
+L21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwpAQCAtOTczLDYgKzk3Myw4IEBAIHN0
+YXRpYyBzdHJ1Y3QgZHR2X2NtZHNfaCBkdHZfY21kc1tEVFZfTUFYX0NPTU1BTkQgKyAxXSA9IHsK
+IAlfRFRWX0NNRChEVFZfR1VBUkRfSU5URVJWQUwsIDAsIDApLAogCV9EVFZfQ01EKERUVl9UUkFO
+U01JU1NJT05fTU9ERSwgMCwgMCksCiAJX0RUVl9DTUQoRFRWX0hJRVJBUkNIWSwgMCwgMCksCisK
+KwlfRFRWX0NNRChEVFZfRU5VTV9ERUxTWVMsIDAsIDApLAogfTsKIAogc3RhdGljIHZvaWQgZHR2
+X3Byb3BlcnR5X2R1bXAoc3RydWN0IGR0dl9wcm9wZXJ0eSAqdHZwKQpAQCAtMTIwNyw2ICsxMjA5
+LDM3IEBAIHN0YXRpYyBpbnQgZHZiX2Zyb250ZW5kX2lvY3RsX2xlZ2FjeShzdHJ1Y3QgZmlsZSAq
+ZmlsZSwKIHN0YXRpYyBpbnQgZHZiX2Zyb250ZW5kX2lvY3RsX3Byb3BlcnRpZXMoc3RydWN0IGZp
+bGUgKmZpbGUsCiAJCQl1bnNpZ25lZCBpbnQgY21kLCB2b2lkICpwYXJnKTsKIAorc3RhdGljIHZv
+aWQgZHR2X3NldF9kZWZhdWx0X2RlbGl2ZXJ5X2NhcHMoY29uc3Qgc3RydWN0IGR2Yl9mcm9udGVu
+ZCAqZmUsIHN0cnVjdCBkdHZfcHJvcGVydHkgKnApCit7CisJY29uc3Qgc3RydWN0IGR2Yl9mcm9u
+dGVuZF9pbmZvICppbmZvID0gJmZlLT5vcHMuaW5mbzsKKwl1MzIgbmNhcHMgPSAwOworCisJc3dp
+dGNoIChpbmZvLT50eXBlKSB7CisJY2FzZSBGRV9RUFNLOgorCQlwLT51LmJ1ZmZlci5kYXRhW25j
+YXBzKytdID0gU1lTX0RWQlM7CisJCWlmIChpbmZvLT5jYXBzICYgRkVfQ0FOXzJHX01PRFVMQVRJ
+T04pCisJCQlwLT51LmJ1ZmZlci5kYXRhW25jYXBzKytdID0gU1lTX0RWQlMyOworCQlpZiAoaW5m
+by0+Y2FwcyAmIEZFX0NBTl9UVVJCT19GRUMpCisJCQlwLT51LmJ1ZmZlci5kYXRhW25jYXBzKytd
+ID0gU1lTX1RVUkJPOworCQlicmVhazsKKwljYXNlIEZFX1FBTToKKwkJcC0+dS5idWZmZXIuZGF0
+YVtuY2FwcysrXSA9IFNZU19EVkJDX0FOTkVYX0FDOworCQlicmVhazsKKwljYXNlIEZFX09GRE06
+CisJCXAtPnUuYnVmZmVyLmRhdGFbbmNhcHMrK10gPSBTWVNfRFZCVDsKKwkJaWYgKGluZm8tPmNh
+cHMgJiBGRV9DQU5fMkdfTU9EVUxBVElPTikKKwkJCXAtPnUuYnVmZmVyLmRhdGFbbmNhcHMrK10g
+PSBTWVNfRFZCVDI7CisJCWJyZWFrOworCWNhc2UgRkVfQVRTQzoKKwkJaWYgKGluZm8tPmNhcHMg
+JiAoRkVfQ0FOXzhWU0IgfCBGRV9DQU5fMTZWU0IpKQorCQkJcC0+dS5idWZmZXIuZGF0YVtuY2Fw
+cysrXSA9IFNZU19BVFNDOworCQlpZiAoaW5mby0+Y2FwcyAmIChGRV9DQU5fUUFNXzE2IHwgRkVf
+Q0FOX1FBTV82NCB8IEZFX0NBTl9RQU1fMTI4IHwgRkVfQ0FOX1FBTV8yNTYpKQorCQkJcC0+dS5i
+dWZmZXIuZGF0YVtuY2FwcysrXSA9IFNZU19EVkJDX0FOTkVYX0I7CisJCWJyZWFrOworCX0KKwlw
+LT51LmJ1ZmZlci5sZW4gPSBuY2FwczsKK30KKwogc3RhdGljIGludCBkdHZfcHJvcGVydHlfcHJv
+Y2Vzc19nZXQoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsCiAJCQkJICAgIHN0cnVjdCBkdHZfcHJv
+cGVydHkgKnR2cCwKIAkJCQkgICAgc3RydWN0IGZpbGUgKmZpbGUpCkBAIC0xMjI3LDYgKzEyNjAs
+OSBAQCBzdGF0aWMgaW50IGR0dl9wcm9wZXJ0eV9wcm9jZXNzX2dldChzdHJ1Y3QgZHZiX2Zyb250
+ZW5kICpmZSwKIAl9CiAKIAlzd2l0Y2godHZwLT5jbWQpIHsKKwljYXNlIERUVl9FTlVNX0RFTFNZ
+UzoKKwkJZHR2X3NldF9kZWZhdWx0X2RlbGl2ZXJ5X2NhcHMoZmUsIHR2cCk7CisJCWJyZWFrOwog
+CWNhc2UgRFRWX0ZSRVFVRU5DWToKIAkJdHZwLT51LmRhdGEgPSBjLT5mcmVxdWVuY3k7CiAJCWJy
+ZWFrOwpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQuaCBiL2luY2x1ZGUv
+bGludXgvZHZiL2Zyb250ZW5kLmgKaW5kZXggMWIxMDk0Yy4uZjgwYjg2MyAxMDA2NDQKLS0tIGEv
+aW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQuaAorKysgYi9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9u
+dGVuZC5oCkBAIC0zMTYsNyArMzE2LDkgQEAgc3RydWN0IGR2Yl9mcm9udGVuZF9ldmVudCB7CiAK
+ICNkZWZpbmUgRFRWX0RWQlQyX1BMUF9JRAk0MwogCi0jZGVmaW5lIERUVl9NQVhfQ09NTUFORAkJ
+CQlEVFZfRFZCVDJfUExQX0lECisjZGVmaW5lIERUVl9FTlVNX0RFTFNZUwkJNDQKKworI2RlZmlu
+ZSBEVFZfTUFYX0NPTU1BTkQJCQkJRFRWX0VOVU1fREVMU1lTCiAKIHR5cGVkZWYgZW51bSBmZV9w
+aWxvdCB7CiAJUElMT1RfT04sCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2R2Yi92ZXJzaW9u
+LmggYi9pbmNsdWRlL2xpbnV4L2R2Yi92ZXJzaW9uLmgKaW5kZXggNjY1OTRiMS4uMDU1OWUyYiAx
+MDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9kdmIvdmVyc2lvbi5oCisrKyBiL2luY2x1ZGUvbGlu
+dXgvZHZiL3ZlcnNpb24uaApAQCAtMjQsNiArMjQsNiBAQAogI2RlZmluZSBfRFZCVkVSU0lPTl9I
+XwogCiAjZGVmaW5lIERWQl9BUElfVkVSU0lPTiA1Ci0jZGVmaW5lIERWQl9BUElfVkVSU0lPTl9N
+SU5PUiA0CisjZGVmaW5lIERWQl9BUElfVkVSU0lPTl9NSU5PUiA1CiAKICNlbmRpZiAvKl9EVkJW
+RVJTSU9OX0hfKi8KLS0gCjEuNy4xCgo=
+--0016e6de038f896ae204b3b58646--
