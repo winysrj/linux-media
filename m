@@ -1,463 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:36558 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752271Ab1LYUda (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Dec 2011 15:33:30 -0500
-Received: by eekc4 with SMTP id c4so10698747eek.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Dec 2011 12:33:29 -0800 (PST)
-Message-ID: <4EF78896.1060908@gmail.com>
-Date: Sun, 25 Dec 2011 21:33:26 +0100
-From: Dennis Sperlich <dsperlich@googlemail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:61520 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750737Ab1LJMlE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Dec 2011 07:41:04 -0500
+Message-ID: <4EE3535C.7050309@redhat.com>
+Date: Sat, 10 Dec 2011 10:41:00 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: em28xx_isoc_dvb_max_packetsize for EM2884 (Terratec Cinergy HTC
- Stick)
-References: <4EF64AF4.2040705@gmail.com> <4EF70077.5040907@redhat.com> <4EF72D61.9090001@gmail.com> <4EF767CB.10705@redhat.com>
-In-Reply-To: <4EF767CB.10705@redhat.com>
-Content-Type: multipart/mixed;
- boundary="------------040808060006040600080601"
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4 [PATCH 07/10] TDA18271: Allow frontend to set DELSYS
+References: <CAHFNz9LOoDcrGpMKLU3wSnCYsDiuJMrOir-+nJEkkWfN9Cpd9w@mail.gmail.com>
+In-Reply-To: <CAHFNz9LOoDcrGpMKLU3wSnCYsDiuJMrOir-+nJEkkWfN9Cpd9w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------040808060006040600080601
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
-
-On 25.12.2011 19:13, Mauro Carvalho Chehab wrote:
-> On 25-12-2011 12:04, Dennis Sperlich wrote:
->> On 25.12.2011 11:52, Mauro Carvalho Chehab wrote:
->>> On 24-12-2011 19:58, Dennis Sperlich wrote:
->>>> Hi,
->>>>
->>>> I have a Terratec Cinergy HTC Stick an tried the new support for the DVB-C part. It works for SD material (at least for free receivable stations, I tried afair only QAM64), but did not for HD stations (QAM256). I have only access to unencrypted ARD HD, ZDF HD and arte HD (via KabelDeutschland). The HD material was just digital artefacts, as far as mplayer could decode it. When I did a dumpstream and looked at the resulting file size I got something about 1MB/s which seems a little too low, because SD was already about 870kB/s. After looking around I found a solution in increasing the isoc_dvb_max_packetsize from 752 to 940 (multiple of 188). Then an HD stream was about 1.4MB/s and looked good. I'm not sure, whether this is the correct fix, but it works for me.
->>>>
->>>> If you need more testing pleas tell.
->>>>
->>>> Regards,
->>>> Dennis
->>>>
->>>>
->>>>
->>>> index 804a4ab..c518d13 100644
->>>> --- a/drivers/media/video/em28xx/em28xx-core.c
->>>> +++ b/drivers/media/video/em28xx/em28xx-core.c
->>>> @@ -1157,7 +1157,7 @@ int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev)
->>>>                    * FIXME: same as em2874. 564 was enough for 22 Mbit DVB-T
->>>>                    * but not enough for 44 Mbit DVB-C.
->>>>                    */
->>>> -               packet_size = 752;
->>>> +               packet_size = 940;
->>>>           }
->>>>
->>>>           return packet_size;
->>> As you can see there at the code, the packet size depends on the chipset, as
->>> not all will support 940 for packet size.
->>>
->>> Could you please provide us what was the chip detected id?
->>>
->>> It should be a message on your dmesg like:
->>>
->>>      chip ID is em2870
->>> or
->>>      em28xx chip ID = 38
->>>
->>> The patch should change it only for your specific chipset model, in order to
->>> avoid regressions to other supported chipsets, like:
->>>
->>> int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev)
->>> {
->>>           unsigned int chip_cfg2;
->>>           unsigned int packet_size;
->>>
->>>           switch (dev->chip_id) {
->>>           case CHIP_ID_EM2710:
->>>           case CHIP_ID_EM2750:
->>>           case CHIP_ID_EM2800:
->>>           case CHIP_ID_EM2820:
->>> ...
->>>      case CHIP_ID_foo:
->>>          packet_size = 940;
->>> ...
->>>           }
->>>
->>>           return packet_size;
->>> }
->>>
->>> The case you're touching seems to be for em2884, but the switch covers both
->>> em2884 and em28174 (plus the default for newer chipsets).
->> dmesg says: em28xx #0: chip ID is em2884
->>
->> so a patch would be more like:
->>
->> index 804a4ab..9280251 100644
->> --- a/drivers/media/video/em28xx/em28xx-core.c
->> +++ b/drivers/media/video/em28xx/em28xx-core.c
->> @@ -1151,6 +1151,8 @@ int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev)
->>                  packet_size = 564;
->>                  break;
->>          case CHIP_ID_EM2884:
->> +               packet_size = 940;
->> +               break;
->>          case CHIP_ID_EM28174:
->>          default:
->>                  /*
->>
->>> Maybe Michael/Devin may have something to say, with regards to a way to detect
->>> the maximum supported packet size by each specific em28xx model.
->> This would be fine, I tried also 1128 (6 times 188), but then mplayer did not play any more.
->> I then tried 1034, but then I got the message " submit of urb 0 failed (error=-90)", so I guess
->> there have to be integer multiples of 188.
-> The maximum packet size is described at the USB descriptors.
+On 10-12-2011 02:43, Manu Abraham wrote:
+> From 252d4ec800ba73bde8958b8c23ca92a6e17288e2 Mon Sep 17 00:00:00 2001
+> From: Manu Abraham <abraham.manu@gmail.com>
+> Date: Thu, 24 Nov 2011 19:15:56 +0530
+> Subject: [PATCH 07/10] TDA18271: Allow frontend to set DELSYS, rather than querying fe->ops.info.type
 >
-> The code at em28xx_set_alternate() seeks for the alternates and selects
-> the one that will get the best alternate for the analog mode.
+> With any tuner that can tune to multiple delivery systems/standards, it does
+> query fe->ops.info.type to determine frontend type and set the delivery
+> system type. fe->ops.info.type can handle only 4 delivery systems, viz FE_QPSK,
+> FE_QAM, FE_OFDM and FE_ATSC.
 >
-> There, you'll see a code that gets the best alternate for analog,
-> and selects the proper packet size for it.
+> The change allows the tuner to be set to any delivery system specified in
+> fe_delivery_system_t, thereby simplifying a lot of issues.
 >
-> For DVB, it should be a little different, as, on DVB, the driver doesn't
-> know, in advance, what's the streaming rate. So, the driver needs to get
-> a high enough packet size to fit for the bandwidth needs.
+> Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
+> ---
+>  drivers/media/common/tuners/tda18271-fe.c |   81 +++++++++++++++--------------
+>  1 files changed, 41 insertions(+), 40 deletions(-)
 >
-> Also, for DVB, the driver does:
-> 	usb_set_interface(dev->udev, 0, 1);
+> diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
+> index 3347c5b..cee1a39 100644
+> --- a/drivers/media/common/tuners/tda18271-fe.c
+> +++ b/drivers/media/common/tuners/tda18271-fe.c
+> @@ -935,69 +935,70 @@ static int tda18271_set_params(struct dvb_frontend *fe,
+>  	struct tda18271_std_map *std_map = &priv->std;
+>  	struct tda18271_std_map_item *map;
+>  	int ret;
+> -	u32 bw, freq = params->frequency;
+> +	u32 bw, bandwidth = 0, freq;
+> +	fe_delivery_system_t delsys;
+> +
+> +	delsys	= fe->dtv_property_cache.delivery_system;
+> +	bw	= fe->dtv_property_cache.bandwidth_hz;
+> +	freq	= fe->dtv_property_cache.frequency;
 >
-> (e. g. it always use alternate 1)
+>  	priv->mode = TDA18271_DIGITAL;
 >
-> So, in thesis, that function could be as simple as:
-> 	dev->alt_max_pkt_size[1];
+> -	if (fe->ops.info.type == FE_ATSC) {
+> -		switch (params->u.vsb.modulation) {
+> -		case VSB_8:
+> -		case VSB_16:
+> -			map = &std_map->atsc_6;
+> -			break;
+> -		case QAM_64:
+> -		case QAM_256:
+> -			map = &std_map->qam_6;
+> -			break;
+> -		default:
+> -			tda_warn("modulation not set!\n");
+> +	if (!delsys || !freq) {
+> +		tda_warn("delsys:%d freq:%d!\n", delsys, freq);
+> +		return -EINVAL;
+> +	}
+> +	switch (delsys) {
+> +	case SYS_ATSC:
+> +		map = &std_map->atsc_6;
+> +		bandwidth = 6000000;
+> +		break;
+> +	case SYS_DVBC_ANNEX_B:
+> +		map = &std_map->qam_6;
+> +		bandwidth = 6000000;
+> +		break;
+> +	case SYS_DVBC_ANNEX_A:
+> +	case SYS_DVBC_ANNEX_C:
+> +		map = &std_map->qam_8;
+> +		bandwidth = 8000000;
+> +		break;
+
+This is wrong.
+
+The bandwidth needs to be calculated, based on the roll-off factor.
+Also, this patch doesn't apply anymore, due to the patches that were
+already applied.
+
+> +	case SYS_DVBT:
+> +	case SYS_DVBT2:
+> +		if (!bw)
+>  			return -EINVAL;
+> -		}
+> -#if 0
+> -		/* userspace request is already center adjusted */
+> -		freq += 1750000; /* Adjust to center (+1.75MHZ) */
+> -#endif
+> -		bw = 6000000;
+> -	} else if (fe->ops.info.type == FE_OFDM) {
+> -		switch (params->u.ofdm.bandwidth) {
+> -		case BANDWIDTH_6_MHZ:
+> -			bw = 6000000;
+> +		switch (bw) {
+> +		case 6000000:
+>  			map = &std_map->dvbt_6;
+>  			break;
+> -		case BANDWIDTH_7_MHZ:
+> -			bw = 7000000;
+> +		case 7000000:
+>  			map = &std_map->dvbt_7;
+>  			break;
+> -		case BANDWIDTH_8_MHZ:
+> -			bw = 8000000;
+> +		case 8000000:
+>  			map = &std_map->dvbt_8;
+>  			break;
+>  		default:
+> -			tda_warn("bandwidth not set!\n");
+> -			return -EINVAL;
+> +			ret = -EINVAL;
+> +			goto fail;
+>  		}
+> -	} else if (fe->ops.info.type == FE_QAM) {
+> -		/* DVB-C */
+> -		map = &std_map->qam_8;
+> -		bw = 8000000;
+> -	} else {
+> -		tda_warn("modulation type not supported!\n");
+> -		return -EINVAL;
+> +		break;
+> +	default:
+> +		tda_warn("Invalid delivery system!\n");
+> +		ret = -EINVAL;
+> +		goto fail;
+>  	}
+> -
+>  	/* When tuning digital, the analog demod must be tri-stated */
+>  	if (fe->ops.analog_ops.standby)
+>  		fe->ops.analog_ops.standby(fe);
 >
-> (if the max packet size for alternate 1 would work for all chips)
+> -	ret = tda18271_tune(fe, map, freq, bw);
+> +	ret = tda18271_tune(fe, map, freq, bandwidth);
 >
-> Or, eventually, the code might be using other alternates for HD,
-> but I'm not sure if those chipsets support a different alternate for DVB.
-I just tried, replacing
-     max_dvb_packet_size = em28xx_isoc_dvb_max_packetsize(dev);
-by
-     max_dvb_packet_size = dev->alt_max_pkt_size[1];
+>  	if (tda_fail(ret))
+>  		goto fail;
+>
+>  	priv->if_freq   = map->if_freq;
+>  	priv->frequency = freq;
+> -	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ?
+> -		params->u.ofdm.bandwidth : 0;
+> +	priv->bandwidth = (delsys == SYS_DVBT || delsys == SYS_DVBT2) ?
+> +			   bandwidth : 0;
 
-but it did not work. Was this the correct replacement?
+This rises an interesting point: it may be useful to store the bandwidth
+used by the tuner, in order to allow applications to retrieve this value.
 
-     printk(KERN_INFO "dev->alt_max_pkt_size[1] is 
-%i\n",dev->alt_max_pkt_size[1]);
+Besides that, returning 0 for bandwidth is meaningless, as the transmission
+uses some bandwidth. So, IMO, this is better:
+	priv->bandwidth = bandwidth;
 
-then said, dev->alt_max_pkt_size[1] is 0.
-
-I also attachted  a lsusb -v output for the Terratec Cinergy HTC Stick. 
-I don't know, which of these endpoints the dvb-c part is, but it may be 
-anyway usefull.
-
-Regard,
-Dennis
-
---------------040808060006040600080601
-Content-Type: text/plain;
- name="lsusb"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment;
- filename="lsusb"
-
-CkJ1cyAwMDEgRGV2aWNlIDAwOTogSUQgMGNjZDowMGIyIFRlcnJhVGVjIEVsZWN0cm9uaWMg
-R21iSCAKRGV2aWNlIERlc2NyaXB0b3I6CiAgYkxlbmd0aCAgICAgICAgICAgICAgICAxOAog
-IGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDEKICBiY2RVU0IgICAgICAgICAgICAgICAyLjAw
-CiAgYkRldmljZUNsYXNzICAgICAgICAgICAgMCAoRGVmaW5lZCBhdCBJbnRlcmZhY2UgbGV2
-ZWwpCiAgYkRldmljZVN1YkNsYXNzICAgICAgICAgMCAKICBiRGV2aWNlUHJvdG9jb2wgICAg
-ICAgICAwIAogIGJNYXhQYWNrZXRTaXplMCAgICAgICAgNjQKICBpZFZlbmRvciAgICAgICAg
-ICAgMHgwY2NkIFRlcnJhVGVjIEVsZWN0cm9uaWMgR21iSAogIGlkUHJvZHVjdCAgICAgICAg
-ICAweDAwYjIgCiAgYmNkRGV2aWNlICAgICAgICAgICAgMS4wMAogIGlNYW51ZmFjdHVyZXIg
-ICAgICAgICAgIDIgVEVSUkFURUMKICBpUHJvZHVjdCAgICAgICAgICAgICAgICAxIENpbmVy
-Z3lfSFRDX1N0aWNrCiAgaVNlcmlhbCAgICAgICAgICAgICAgICAgMyAwMj9URVJSQVRFCiAg
-Yk51bUNvbmZpZ3VyYXRpb25zICAgICAgMQogIENvbmZpZ3VyYXRpb24gRGVzY3JpcHRvcjoK
-ICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAgIGJEZXNjcmlwdG9yVHlwZSAgICAg
-ICAgIDIKICAgIHdUb3RhbExlbmd0aCAgICAgICAgICAzMDUKICAgIGJOdW1JbnRlcmZhY2Vz
-ICAgICAgICAgIDEKICAgIGJDb25maWd1cmF0aW9uVmFsdWUgICAgIDEKICAgIGlDb25maWd1
-cmF0aW9uICAgICAgICAgIDAgCiAgICBibUF0dHJpYnV0ZXMgICAgICAgICAweDgwCiAgICAg
-IChCdXMgUG93ZXJlZCkKICAgIE1heFBvd2VyICAgICAgICAgICAgICA1MDBtQQogICAgSW50
-ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAg
-ICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlTnVtYmVyICAg
-ICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDAKICAgICAgYk51bUVuZHBv
-aW50cyAgICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZlbmRv
-ciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50ZXJmYWNlU3ViQ2xhc3MgICAgICAwIAogICAg
-ICBiSW50ZXJmYWNlUHJvdG9jb2wgICAgMjU1IAogICAgICBpSW50ZXJmYWNlICAgICAgICAg
-ICAgICAwIAogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAg
-ICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAg
-ICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmli
-dXRlcyAgICAgICAgICAgIDMKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJ
-bnRlcnJ1cHQKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAg
-ICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRT
-aXplICAgICAweDAwMDEgIDF4IDEgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAg
-ICAgIDExCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAg
-ICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAg
-ICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAgICAgYm1BdHRyaWJ1
-dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElz
-b2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAg
-ICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0
-U2l6ZSAgICAgMHgwMDAwICAxeCAwIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAg
-ICAgICAgMQogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAg
-ICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAg
-ICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MyAgRVAgMyBJTgogICAgICAgIGJtQXR0cmli
-dXRlcyAgICAgICAgICAgIDEKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJ
-c29jaHJvbm91cwogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAg
-ICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tl
-dFNpemUgICAgIDB4MDAwMCAgMXggMCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAg
-ICAgICAgIDQKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAg
-ICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAg
-ICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODQgIEVQIDQgSU4KICAgICAgICBibUF0dHJp
-YnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAg
-SXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAg
-ICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNr
-ZXRTaXplICAgICAweDAwMDAgIDF4IDAgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAg
-ICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0aCAgICAg
-ICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAgICAgIGJJ
-bnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcgICAgICAg
-MQogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VDbGFz
-cyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZhY2VTdWJD
-bGFzcyAgICAgIDAgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAyNTUgCiAgICAgIGlJ
-bnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAg
-ICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlw
-ZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBFUCAxIElO
-CiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMwogICAgICAgICAgVHJhbnNmZXIg
-VHlwZSAgICAgICAgICAgIEludGVycnVwdAogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAg
-ICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAg
-ICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDAwMSAgMXggMSBieXRlcwogICAgICAgIGJJ
-bnRlcnZhbCAgICAgICAgICAgICAgMTEKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAg
-ICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBl
-ICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODIgIEVQIDIgSU4K
-ICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBU
-eXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAg
-ICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQog
-ICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAwMDAgIDF4IDAgYnl0ZXMKICAgICAgICBi
-SW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAg
-ICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlw
-ZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgzICBFUCAzIElO
-CiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIg
-VHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAg
-ICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEK
-ICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMGM0ICAxeCAxOTYgYnl0ZXMKICAgICAg
-ICBiSW50ZXJ2YWwgICAgICAgICAgICAgICA0CiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6
-CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9y
-VHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDg0ICBFUCA0
-IElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNm
-ZXIgVHlwZSAgICAgICAgICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAg
-ICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERh
-dGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwM2FjICAxeCA5NDAgYnl0ZXMKICAg
-ICAgICBiSW50ZXJ2YWwgICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRv
-cjoKICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5
-cGUgICAgICAgICA0CiAgICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFs
-dGVybmF0ZVNldHRpbmcgICAgICAgMgogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICA0
-CiAgICAgIGJJbnRlcmZhY2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNz
-CiAgICAgIGJJbnRlcmZhY2VTdWJDbGFzcyAgICAgIDAgCiAgICAgIGJJbnRlcmZhY2VQcm90
-b2NvbCAgICAyNTUgCiAgICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVu
-ZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwog
-ICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRy
-ZXNzICAgICAweDgxICBFUCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAg
-MwogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIEludGVycnVwdAogICAgICAg
-ICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUg
-ICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDAwMSAg
-MXggMSBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgMTEKICAgICAgRW5k
-cG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAg
-ICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJl
-c3MgICAgIDB4ODIgIEVQIDIgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAx
-CiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAg
-ICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBl
-ICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDBhZDAg
-IDJ4IDcyMCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgICAg
-RW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3
-CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFk
-ZHJlc3MgICAgIDB4ODMgIEVQIDMgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAg
-ICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAg
-ICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBU
-eXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAw
-YzQgIDF4IDE5NiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDQKICAg
-ICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAg
-ICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2lu
-dEFkZHJlc3MgICAgIDB4ODQgIEVQIDQgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAg
-ICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMK
-ICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2Fn
-ZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAw
-eDAzYWMgIDF4IDk0MCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEK
-ICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAg
-ICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51
-bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICAzCiAgICAgIGJO
-dW1FbmRwb2ludHMgICAgICAgICAgIDQKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1
-NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAg
-MCAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAgIDI1NSAKICAgICAgaUludGVyZmFjZSAg
-ICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVu
-Z3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAg
-NQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAgICAgICBi
-bUF0dHJpYnV0ZXMgICAgICAgICAgICAzCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAg
-ICAgICAgSW50ZXJydXB0CiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9u
-ZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4
-UGFja2V0U2l6ZSAgICAgMHgwMDAxICAxeCAxIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAg
-ICAgICAgICAgICAxMQogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5n
-dGggICAgICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1
-CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MiAgRVAgMiBJTgogICAgICAgIGJt
-QXR0cmlidXRlcyAgICAgICAgICAgIDEKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAg
-ICAgICBJc29jaHJvbm91cwogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5v
-bmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01h
-eFBhY2tldFNpemUgICAgIDB4MGMwMCAgMnggMTAyNCBieXRlcwogICAgICAgIGJJbnRlcnZh
-bCAgICAgICAgICAgICAgIDEKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBi
-TGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAg
-ICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODMgIEVQIDMgSU4KICAgICAg
-ICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAg
-ICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAg
-ICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAg
-IHdNYXhQYWNrZXRTaXplICAgICAweDAwYzQgIDF4IDE5NiBieXRlcwogICAgICAgIGJJbnRl
-cnZhbCAgICAgICAgICAgICAgIDQKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAg
-ICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAg
-ICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODQgIEVQIDQgSU4KICAg
-ICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBl
-ICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAg
-ICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAg
-ICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAzYWMgIDF4IDk0MCBieXRlcwogICAgICAgIGJJ
-bnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgIEludGVyZmFjZSBEZXNjcmlwdG9yOgogICAg
-ICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAg
-ICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAogICAgICBiQWx0ZXJuYXRl
-U2V0dGluZyAgICAgICA0CiAgICAgIGJOdW1FbmRwb2ludHMgICAgICAgICAgIDQKICAgICAg
-YkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lmaWMgQ2xhc3MKICAgICAg
-YkludGVyZmFjZVN1YkNsYXNzICAgICAgMCAKICAgICAgYkludGVyZmFjZVByb3RvY29sICAg
-IDI1NSAKICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAKICAgICAgRW5kcG9pbnQg
-RGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAg
-YkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAg
-IDB4ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAzCiAgICAg
-ICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSW50ZXJydXB0CiAgICAgICAgICBTeW5j
-aCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAg
-ICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAgMHgwMDAxICAxeCAxIGJ5
-dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAxMQogICAgICBFbmRwb2ludCBE
-ZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAgICAgICBi
-RGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAgICAg
-MHg4MiAgRVAgMiBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDEKICAgICAg
-ICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJc29jaHJvbm91cwogICAgICAgICAgU3lu
-Y2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAg
-ICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MTMwMCAgM3ggNzY4
-IGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMQogICAgICBFbmRwb2lu
-dCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAgICAg
-ICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVzcyAg
-ICAgMHg4MyAgRVAgMyBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDEKICAg
-ICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJc29jaHJvbm91cwogICAgICAgICAg
-U3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAg
-ICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDBjNCAgMXgg
-MTk2IGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgNAogICAgICBFbmRw
-b2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDcKICAg
-ICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBvaW50QWRkcmVz
-cyAgICAgMHg4NCAgRVAgNCBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAgICAgICAgIDEK
-ICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJc29jaHJvbm91cwogICAgICAg
-ICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUg
-ICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDNhYyAg
-MXggOTQwIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAgMQogICAgSW50
-ZXJmYWNlIERlc2NyaXB0b3I6CiAgICAgIGJMZW5ndGggICAgICAgICAgICAgICAgIDkKICAg
-ICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlTnVtYmVyICAg
-ICAgICAwCiAgICAgIGJBbHRlcm5hdGVTZXR0aW5nICAgICAgIDUKICAgICAgYk51bUVuZHBv
-aW50cyAgICAgICAgICAgNAogICAgICBiSW50ZXJmYWNlQ2xhc3MgICAgICAgMjU1IFZlbmRv
-ciBTcGVjaWZpYyBDbGFzcwogICAgICBiSW50ZXJmYWNlU3ViQ2xhc3MgICAgICAwIAogICAg
-ICBiSW50ZXJmYWNlUHJvdG9jb2wgICAgMjU1IAogICAgICBpSW50ZXJmYWNlICAgICAgICAg
-ICAgICAwIAogICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAg
-ICAgICAgICAgICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAg
-ICAgYkVuZHBvaW50QWRkcmVzcyAgICAgMHg4MSAgRVAgMSBJTgogICAgICAgIGJtQXR0cmli
-dXRlcyAgICAgICAgICAgIDMKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJ
-bnRlcnJ1cHQKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAg
-ICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRT
-aXplICAgICAweDAwMDEgIDF4IDEgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAgICAg
-ICAgIDExCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAgICAg
-ICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAgICAg
-ICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgyICBFUCAyIElOCiAgICAgICAgYm1BdHRyaWJ1
-dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAgIElz
-b2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAg
-ICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0
-U2l6ZSAgICAgMHgxMzgwICAzeCA4OTYgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAgICAg
-ICAgICAgICAxCiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0aCAg
-ICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUKICAg
-ICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgzICBFUCAzIElOCiAgICAgICAgYm1BdHRy
-aWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAgICAg
-IElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQog
-ICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFj
-a2V0U2l6ZSAgICAgMHgwMGM0ICAxeCAxOTYgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwgICAg
-ICAgICAgICAgICA0CiAgICAgIEVuZHBvaW50IERlc2NyaXB0b3I6CiAgICAgICAgYkxlbmd0
-aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDUK
-ICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDg0ICBFUCA0IElOCiAgICAgICAgYm1B
-dHRyaWJ1dGVzICAgICAgICAgICAgMQogICAgICAgICAgVHJhbnNmZXIgVHlwZSAgICAgICAg
-ICAgIElzb2Nocm9ub3VzCiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9u
-ZQogICAgICAgICAgVXNhZ2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4
-UGFja2V0U2l6ZSAgICAgMHgwM2FjICAxeCA5NDAgYnl0ZXMKICAgICAgICBiSW50ZXJ2YWwg
-ICAgICAgICAgICAgICAxCiAgICBJbnRlcmZhY2UgRGVzY3JpcHRvcjoKICAgICAgYkxlbmd0
-aCAgICAgICAgICAgICAgICAgOQogICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA0CiAg
-ICAgIGJJbnRlcmZhY2VOdW1iZXIgICAgICAgIDAKICAgICAgYkFsdGVybmF0ZVNldHRpbmcg
-ICAgICAgNgogICAgICBiTnVtRW5kcG9pbnRzICAgICAgICAgICA0CiAgICAgIGJJbnRlcmZh
-Y2VDbGFzcyAgICAgICAyNTUgVmVuZG9yIFNwZWNpZmljIENsYXNzCiAgICAgIGJJbnRlcmZh
-Y2VTdWJDbGFzcyAgICAgIDAgCiAgICAgIGJJbnRlcmZhY2VQcm90b2NvbCAgICAyNTUgCiAg
-ICAgIGlJbnRlcmZhY2UgICAgICAgICAgICAgIDAgCiAgICAgIEVuZHBvaW50IERlc2NyaXB0
-b3I6CiAgICAgICAgYkxlbmd0aCAgICAgICAgICAgICAgICAgNwogICAgICAgIGJEZXNjcmlw
-dG9yVHlwZSAgICAgICAgIDUKICAgICAgICBiRW5kcG9pbnRBZGRyZXNzICAgICAweDgxICBF
-UCAxIElOCiAgICAgICAgYm1BdHRyaWJ1dGVzICAgICAgICAgICAgMwogICAgICAgICAgVHJh
-bnNmZXIgVHlwZSAgICAgICAgICAgIEludGVycnVwdAogICAgICAgICAgU3luY2ggVHlwZSAg
-ICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVzYWdlIFR5cGUgICAgICAgICAgICAgICBE
-YXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAgIDB4MDAwMSAgMXggMSBieXRlcwogICAg
-ICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgMTEKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRv
-cjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0
-b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODIgIEVQ
-IDIgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFu
-c2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUg
-ICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAg
-RGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDEzYzAgIDN4IDk2MCBieXRlcwog
-ICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgICAgRW5kcG9pbnQgRGVzY3Jp
-cHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRlc2Ny
-aXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODMg
-IEVQIDMgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAgICBU
-cmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5
-cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAgICAg
-ICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAwYzQgIDF4IDE5NiBieXRl
-cwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDQKICAgICAgRW5kcG9pbnQgRGVz
-Y3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA3CiAgICAgICAgYkRl
-c2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRwb2ludEFkZHJlc3MgICAgIDB4
-ODQgIEVQIDQgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAgICAgICAgICAxCiAgICAgICAg
-ICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hyb25vdXMKICAgICAgICAgIFN5bmNo
-IFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAgICBVc2FnZSBUeXBlICAgICAgICAg
-ICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXplICAgICAweDAzYWMgIDF4IDk0MCBi
-eXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAgIDEKICAgIEludGVyZmFjZSBE
-ZXNjcmlwdG9yOgogICAgICBiTGVuZ3RoICAgICAgICAgICAgICAgICA5CiAgICAgIGJEZXNj
-cmlwdG9yVHlwZSAgICAgICAgIDQKICAgICAgYkludGVyZmFjZU51bWJlciAgICAgICAgMAog
-ICAgICBiQWx0ZXJuYXRlU2V0dGluZyAgICAgICA3CiAgICAgIGJOdW1FbmRwb2ludHMgICAg
-ICAgICAgIDQKICAgICAgYkludGVyZmFjZUNsYXNzICAgICAgIDI1NSBWZW5kb3IgU3BlY2lm
-aWMgQ2xhc3MKICAgICAgYkludGVyZmFjZVN1YkNsYXNzICAgICAgMCAKICAgICAgYkludGVy
-ZmFjZVByb3RvY29sICAgIDI1NSAKICAgICAgaUludGVyZmFjZSAgICAgICAgICAgICAgMCAK
-ICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAgICAg
-ICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJFbmRw
-b2ludEFkZHJlc3MgICAgIDB4ODEgIEVQIDEgSU4KICAgICAgICBibUF0dHJpYnV0ZXMgICAg
-ICAgICAgICAzCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSW50ZXJydXB0
-CiAgICAgICAgICBTeW5jaCBUeXBlICAgICAgICAgICAgICAgTm9uZQogICAgICAgICAgVXNh
-Z2UgVHlwZSAgICAgICAgICAgICAgIERhdGEKICAgICAgICB3TWF4UGFja2V0U2l6ZSAgICAg
-MHgwMDAxICAxeCAxIGJ5dGVzCiAgICAgICAgYkludGVydmFsICAgICAgICAgICAgICAxMQog
-ICAgICBFbmRwb2ludCBEZXNjcmlwdG9yOgogICAgICAgIGJMZW5ndGggICAgICAgICAgICAg
-ICAgIDcKICAgICAgICBiRGVzY3JpcHRvclR5cGUgICAgICAgICA1CiAgICAgICAgYkVuZHBv
-aW50QWRkcmVzcyAgICAgMHg4MiAgRVAgMiBJTgogICAgICAgIGJtQXR0cmlidXRlcyAgICAg
-ICAgICAgIDEKICAgICAgICAgIFRyYW5zZmVyIFR5cGUgICAgICAgICAgICBJc29jaHJvbm91
-cwogICAgICAgICAgU3luY2ggVHlwZSAgICAgICAgICAgICAgIE5vbmUKICAgICAgICAgIFVz
-YWdlIFR5cGUgICAgICAgICAgICAgICBEYXRhCiAgICAgICAgd01heFBhY2tldFNpemUgICAg
-IDB4MTQwMCAgM3ggMTAyNCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAgICAg
-IDEKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAgICAg
-ICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAgIGJF
-bmRwb2ludEFkZHJlc3MgICAgIDB4ODMgIEVQIDMgSU4KICAgICAgICBibUF0dHJpYnV0ZXMg
-ICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNvY2hy
-b25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAgICAg
-ICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRTaXpl
-ICAgICAweDAwYzQgIDF4IDE5NiBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAgICAg
-ICAgIDQKICAgICAgRW5kcG9pbnQgRGVzY3JpcHRvcjoKICAgICAgICBiTGVuZ3RoICAgICAg
-ICAgICAgICAgICA3CiAgICAgICAgYkRlc2NyaXB0b3JUeXBlICAgICAgICAgNQogICAgICAg
-IGJFbmRwb2ludEFkZHJlc3MgICAgIDB4ODQgIEVQIDQgSU4KICAgICAgICBibUF0dHJpYnV0
-ZXMgICAgICAgICAgICAxCiAgICAgICAgICBUcmFuc2ZlciBUeXBlICAgICAgICAgICAgSXNv
-Y2hyb25vdXMKICAgICAgICAgIFN5bmNoIFR5cGUgICAgICAgICAgICAgICBOb25lCiAgICAg
-ICAgICBVc2FnZSBUeXBlICAgICAgICAgICAgICAgRGF0YQogICAgICAgIHdNYXhQYWNrZXRT
-aXplICAgICAweDAzYWMgIDF4IDk0MCBieXRlcwogICAgICAgIGJJbnRlcnZhbCAgICAgICAg
-ICAgICAgIDEKRGV2aWNlIFF1YWxpZmllciAoZm9yIG90aGVyIGRldmljZSBzcGVlZCk6CiAg
-Ykxlbmd0aCAgICAgICAgICAgICAgICAxMAogIGJEZXNjcmlwdG9yVHlwZSAgICAgICAgIDYK
-ICBiY2RVU0IgICAgICAgICAgICAgICAyLjAwCiAgYkRldmljZUNsYXNzICAgICAgICAgICAg
-MCAoRGVmaW5lZCBhdCBJbnRlcmZhY2UgbGV2ZWwpCiAgYkRldmljZVN1YkNsYXNzICAgICAg
-ICAgMCAKICBiRGV2aWNlUHJvdG9jb2wgICAgICAgICAwIAogIGJNYXhQYWNrZXRTaXplMCAg
-ICAgICAgNjQKICBiTnVtQ29uZmlndXJhdGlvbnMgICAgICAxCkRldmljZSBTdGF0dXM6ICAg
-ICAweDAwMDAKICAoQnVzIFBvd2VyZWQpCg==
---------------040808060006040600080601--
+Regards,
+Mauro
