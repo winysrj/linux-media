@@ -1,124 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48860 "EHLO mx1.redhat.com"
+Received: from ffm.saftware.de ([83.141.3.46]:45455 "EHLO ffm.saftware.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751622Ab1LALE6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Dec 2011 06:04:58 -0500
-Message-ID: <4ED75F53.30709@redhat.com>
-Date: Thu, 01 Dec 2011 09:04:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750737Ab1LJCGT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 9 Dec 2011 21:06:19 -0500
+Message-ID: <4EE2BE97.6020209@linuxtv.org>
+Date: Sat, 10 Dec 2011 03:06:15 +0100
+From: Andreas Oberritter <obi@linuxtv.org>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: HoP <jpetrous@gmail.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org>
-In-Reply-To: <4ED6C5B8.8040803@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] DVB: dvb_frontend: fix delayed thread exit
+References: <1323454852-7426-1-git-send-email-mchehab@redhat.com> <4EE252E5.2050204@iki.fi> <4EE25A3C.9040404@redhat.com> <4EE25CB4.3000501@iki.fi> <4EE287A9.3000502@redhat.com> <CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com> <4EE29BA6.1030909@redhat.com> <4EE29D1A.6010900@redhat.com> <4EE2B7BC.9090501@linuxtv.org> <CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com>
+In-Reply-To: <CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30-11-2011 22:09, Andreas Oberritter wrote:
-> On 30.11.2011 22:38, HoP wrote:
->> Hi folks.
+On 10.12.2011 02:59, Devin Heitmueller wrote:
+> On Fri, Dec 9, 2011 at 8:37 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
+>> On 10.12.2011 00:43, Mauro Carvalho Chehab wrote:
+>>> On 09-12-2011 21:37, Mauro Carvalho Chehab wrote:
+>>>> On 09-12-2011 20:33, Devin Heitmueller wrote:
+>>>>> On Fri, Dec 9, 2011 at 5:11 PM, Mauro Carvalho Chehab
+>>>>> <mchehab@redhat.com> wrote:
+>>>>>>> Could someone explain reason for that?
+>>>>>>
+>>>>>>
+>>>>>> I dunno, but I think this needs to be fixed, at least when the frontend
+>>>>>> is opened with O_NONBLOCK.
+>>>>>
+>>>>> Are you doing the drx-k firmware load on dvb_init()? That could
+>>>>> easily take 4 seconds.
+>>>>
+>>>> No. The firmware were opened previously.
+>>>
+>>> Maybe the delay is due to this part of dvb_frontend.c:
+>>>
+>>> static int dvb_mfe_wait_time = 5;
+>>> ...
+>>>                         int mferetry = (dvb_mfe_wait_time << 1);
+>>>
+>>>                         mutex_unlock (&adapter->mfe_lock);
+>>>                         while (mferetry-- && (mfedev->users != -1 ||
+>>>                                         mfepriv->thread != NULL)) {
+>>>                                 if(msleep_interruptible(500)) {
+>>>                                         if(signal_pending(current))
+>>>                                                 return -EINTR;
+>>>                                 }
+>>>                         }
 >>
->> I need to warn you that my mail is a bit little longer then I would like
->> to be.But I'm not able to ask my question without some
->> background information.
+>> I haven't looked at the mfe code, but in case it's waiting for the
+>> frontend thread to exit, there's a problem that causes the thread
+>> not to exit immediately. Here's a patch that's been sitting in my
+>> queue for a while:
 >>
->> On June 19th, I was sending the driver to the Linux-media
->> mailing list. Original announcement is there:
+>> ---
 >>
->> http://www.spinics.net/lists/linux-media/msg34240.html
+>> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
 >>
->> One would say that the code describes very well what it does = adds
->> virtual DVB device. To be more clear on it I have even done some
->> small picture:
+>> diff --git a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
+>> index 7784d74..6823c2b 100644
+>> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c   2011-09-07 12:32:24.000000000 +0200
+>> +++ a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c   2011-09-13 15:55:48.865742791 +0200
+>> @@ -514,7 +514,7 @@
+>>                return 1;
 >>
->> http://www.nessiedvb.org/wiki/doku.php?id=vtuner_bigpicture
+>>        if (fepriv->dvbdev->writers == 1)
+>> -               if (time_after(jiffies, fepriv->release_jiffies +
+>> +               if (time_after_eq(jiffies, fepriv->release_jiffies +
+>>                                  dvb_shutdown_timeout * HZ))
+>>                        return 1;
 >>
->> I was hoping to get any feedback regarding code implementation.
->> It was my first code for the kernel and I felt very well that some
->> part can be done better or even simpler.
+>> @@ -2070,12 +2070,15 @@
 >>
->> What really surprised me badly was that when I read all 54 responses
->> I have counted only two real technical answers!!! All rest were about
->> POLITICAL issues - code was NACKed w/o any technical discussion.
->> Because of fear of possible abusing of driver.
+>>        dprintk ("%s\n", __func__);
 >>
->> I didn't know that there existed very big movement against such
->> code in dvb-core subsystem before.
+>> -       if ((file->f_flags & O_ACCMODE) != O_RDONLY)
+>> +       if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
+>>                fepriv->release_jiffies = jiffies;
+>> +               mb();
+>> +       }
 >>
->> I have one big problem with it. I can even imagine that some "bad guys"
->> could abuse virtual driver to use it for distribution close-source drivers
->> in the binary blobs. But is it that - worrying about bad boys abusing -
->> the sufficient reason for such aggressive NACK which I did? Then would
->> be better to remove loadable module API fully from kernel. Is it the right way?
+>>        ret = dvb_generic_release (inode, file);
 >>
->> Please confirm me that worrying about abusive act is enough to NACK
->> particular driver. Then I may be definitely understand I'm doing something
->> wrong and will stay (with such enemy driver) out of tree.
->>
->> I can't understand that because I see very similar drivers in kernel for ages
->> (nbd, or even more similar is usbip) and seems they don't hamper to anybody.
->>
->> I would like to note that I don't want to start any flame-war, so very short
->> answer would be enough for me.,
->
-> Hello Honza,
->
-> I still support the inclusion of your virtual DVB device driver, once
-> the technical issues[1] are solved (design clean interface based on
-> DVBv5 etc.). Mauro promised to consider it for inclusion then[2].
+>>        if (dvbdev->users == -1) {
+>> +               wake_up(&fepriv->wait_queue);
+>>                if (fepriv->exit != DVB_FE_NO_EXIT) {
+>>                        fops_put(file->f_op);
+>>                        file->f_op = NULL;
+> 
+> This patch needs to have a much better explanation of exactly what it
+> does and what problem it solves.  We have a history of race conditions
+> in dvb_frontend.c, and it's patches like this with virtually no
+> details just makes it worse.
+> 
+> I'm not arguing the actual merits of the code change - it *may* be
+> correct.  But without the appropriate background there is no real way
+> of knowing...
+> 
+> Mauro, this patch should be NACK'd and resubmitted with a detailed
+> explanation of the current behavior, what the problem is, and how the
+> code changes proposed solve that problem.
 
-What I said on that time is that  a virtual driver to run at the OS on a
-VM machine (kvm or xen) that would export the DVB devices that are available
-at the OS at the local host or on a remote host running the spice client
-could be an interesting contribution, and would fit into kernelspace.
-
-I'm not sure about such need nowadays, as very recent patches added on kvm
-are now allowing to use USB 2.0 video devices on it (I tested and used it
-a few days ago - it seems to be working at least with the devices I tested),
-and PCI passthrough is already there also. Yet, a DVB-optimized passthrough
-module there would likely perform better than just exporting the physical
-device to the VM.
-
-The driver, as proposed, is not really a driver, as it doesn't support any
-hardware. The kernel driver would be used to just copy data from one userspace
-application to the other. The same result could be obtained in userspace,
-by implementing a library. Such library could even use LD_PRELOAD to support
-binary only applications, like what libv4l does. In terms of performance,
-such library would probably perform better than a kernel driver, as there's
-no need to do context switching for each call, and no need to talk with a
-device (where kernel outperforms userspace). Also, depending on how such library
-is implemented, double buffering might be avoided.
-
-So, from architectural POV, this code should be written as an userspace library.
-BTW, alsa also came with the same results, years ago, as audio remote
-streaming is supported via userspace tools, like pulseaudio.
-
-> A quick view at your code indicates that this clean-up hasn't happened
-> yet, e.g. there are hacks to support DVB-S2 over DVBv3 which aren't
-> necessary anymore with v5.
->
-> Regarding the kernellabs.com people[3] lobbying against your
-> contribution: Don't give up! If all attempts of merging your work
-> through the media subsystem are failing, try convincing some major
-> distributions to include your work. This would make their arguments
-> meaningless. On the long run, good code is likely to win over politics.
->
-> Regards,
-> Andreas
->
-> [1] http://www.spinics.net/lists/linux-media/msg34349.html
-> [2] http://www.spinics.net/lists/linux-media/msg34352.html
-
-> [3] http://www.kernellabs.com/blog/?page_id=6
-> [4]
-> http://code.google.com/p/vtuner/source/browse/vtunerc_proxyfe.c?repo=linux-driver#177
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+WTF, Devin, you again? I haven't asked anyone to upstream it. Feel free
+to analyze the code and resubmit it.
