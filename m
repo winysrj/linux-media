@@ -1,99 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:59612 "EHLO ozlabs.org"
+Received: from mx1.redhat.com ([209.132.183.28]:41208 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755863Ab1LODXu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 22:23:50 -0500
-From: Rusty Russell <rusty@rustcorp.com.au>
-To: lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>
-Cc: Pawel Moll <pawel.moll@arm.com>
-Cc: Luca Risolia <luca.risolia@studio.unibo.it>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 1/15] module_param: check type correctness for module_param_array
-Date: Thu, 15 Dec 2011 13:30:59 +1030
-Message-ID: <87aa6utu6s.fsf@rustcorp.com.au>
+	id S1750889Ab1LJMu6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Dec 2011 07:50:58 -0500
+Message-ID: <4EE355AF.8090302@redhat.com>
+Date: Sat, 10 Dec 2011 10:50:55 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4 [PATCH 08/10] TDA18271c2dd: Allow frontend to set DELSYS
+References: <CAHFNz9Jbu-Kb8+s5DmEX8NOP6K8yjwNXYucUqmUEH_LcQAvpGA@mail.gmail.com>
+In-Reply-To: <CAHFNz9Jbu-Kb8+s5DmEX8NOP6K8yjwNXYucUqmUEH_LcQAvpGA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-module_param_array(), unlike its non-array cousins, didn't check the type
-of the variable.  Fixing this found two bugs.
+On 10-12-2011 02:44, Manu Abraham wrote:
+> From 707877f5a61b3259704d42e7dd5e647e9196e9a4 Mon Sep 17 00:00:00 2001
+> From: Manu Abraham <abraham.manu@gmail.com>
+> Date: Thu, 24 Nov 2011 19:56:34 +0530
+> Subject: [PATCH 08/10] TDA18271c2dd: Allow frontend to set DELSYS, rather than querying fe->ops.info.type
+>
+> With any tuner that can tune to multiple delivery systems/standards, it does
+> query fe->ops.info.type to determine frontend type and set the delivery
+> system type. fe->ops.info.type can handle only 4 delivery systems, viz FE_QPSK,
+> FE_QAM, FE_OFDM and FE_ATSC.
+>
+> Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
+> ---
+>  drivers/media/dvb/frontends/tda18271c2dd.c |   42 ++++++++++++++++++++--------
+>  1 files changed, 30 insertions(+), 12 deletions(-)
+>
+> diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
+> index 1b1bf20..43a3dd4 100644
+> --- a/drivers/media/dvb/frontends/tda18271c2dd.c
+> +++ b/drivers/media/dvb/frontends/tda18271c2dd.c
+> @@ -1145,28 +1145,46 @@ static int set_params(struct dvb_frontend *fe,
+>  	int status = 0;
+>  	int Standard;
+>
+> -	state->m_Frequency = params->frequency;
+> +	u32 bw;
+> +	fe_delivery_system_t delsys;
+>
+> -	if (fe->ops.info.type == FE_OFDM)
+> -		switch (params->u.ofdm.bandwidth) {
+> -		case BANDWIDTH_6_MHZ:
+> +	delsys	= fe->dtv_property_cache.delivery_system;
+> +	bw	= fe->dtv_property_cache.bandwidth_hz;
+> +
+> +	state->m_Frequency = fe->dtv_property_cache.frequency;
+> +
+> +	if (!delsys || !state->m_Frequency) {
+> +		printk(KERN_ERR "Invalid delsys:%d freq:%d\n", delsys, state->m_Frequency);
+> +		return -EINVAL;
+> +	}
+> +
+> +	switch (delsys) {
+> +	case SYS_DVBT:
+> +	case SYS_DVBT2:
+> +		if (!bw)
+> +			return -EINVAL;
+> +		switch (bw) {
+> +		case 6000000:
+>  			Standard = HF_DVBT_6MHZ;
+>  			break;
+> -		case BANDWIDTH_7_MHZ:
+> +		case 7000000:
+>  			Standard = HF_DVBT_7MHZ;
+>  			break;
+>  		default:
+> -		case BANDWIDTH_8_MHZ:
+> +		case 8000000:
+>  			Standard = HF_DVBT_8MHZ;
+>  			break;
+>  		}
+> -	else if (fe->ops.info.type == FE_QAM) {
+> -		if (params->u.qam.symbol_rate <= MAX_SYMBOL_RATE_6MHz)
+> -			Standard = HF_DVBC_6MHZ;
+> -		else
+> -			Standard = HF_DVBC_8MHZ;
+> -	} else
+> +		break;
+> +	case SYS_DVBC_ANNEX_A:
+> +		Standard = HF_DVBC_6MHZ;
+> +		break;
+> +	case SYS_DVBC_ANNEX_C:
+> +		Standard = HF_DVBC_8MHZ;
+> +		break;
 
-Cc: Luca Risolia <luca.risolia@studio.unibo.it>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Eric Piel <eric.piel@tremplin-utc.net>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Rusty Russell <rusty@rustcorp.com.au>
----
- drivers/media/video/et61x251/et61x251_core.c |    4 ++--
- drivers/media/video/sn9c102/sn9c102_core.c   |    4 ++--
- drivers/mfd/janz-cmodio.c                    |    2 +-
- drivers/misc/lis3lv02d/lis3lv02d.c           |    2 ++
- include/linux/moduleparam.h                  |    1 +
- 5 files changed, 8 insertions(+), 5 deletions(-)
+No, this is wrong. This patch doesn't apply anymore, due to the recent
+changes that estimate the bandwidth based on the roll-off factor. Reverting
+it breaks for DVB-C @ 6MHz spaced channels (and likely decreases quality
+or breaks for 7MHz spaced ones too).
 
-diff --git a/drivers/media/video/et61x251/et61x251_core.c b/drivers/media/video/et61x251/et61x251_core.c
---- a/drivers/media/video/et61x251/et61x251_core.c
-+++ b/drivers/media/video/et61x251/et61x251_core.c
-@@ -76,8 +76,8 @@ MODULE_PARM_DESC(video_nr,
- 		 "\none and for every other camera."
- 		 "\n");
- 
--static short force_munmap[] = {[0 ... ET61X251_MAX_DEVICES-1] =
--			       ET61X251_FORCE_MUNMAP};
-+static bool force_munmap[] = {[0 ... ET61X251_MAX_DEVICES-1] =
-+			      ET61X251_FORCE_MUNMAP};
- module_param_array(force_munmap, bool, NULL, 0444);
- MODULE_PARM_DESC(force_munmap,
- 		 "\n<0|1[,...]> Force the application to unmap previously"
-diff --git a/drivers/media/video/sn9c102/sn9c102_core.c b/drivers/media/video/sn9c102/sn9c102_core.c
---- a/drivers/media/video/sn9c102/sn9c102_core.c
-+++ b/drivers/media/video/sn9c102/sn9c102_core.c
-@@ -75,8 +75,8 @@ MODULE_PARM_DESC(video_nr,
- 		 "\none and for every other camera."
- 		 "\n");
- 
--static short force_munmap[] = {[0 ... SN9C102_MAX_DEVICES-1] =
--			       SN9C102_FORCE_MUNMAP};
-+static bool force_munmap[] = {[0 ... SN9C102_MAX_DEVICES-1] =
-+			      SN9C102_FORCE_MUNMAP};
- module_param_array(force_munmap, bool, NULL, 0444);
- MODULE_PARM_DESC(force_munmap,
- 		 " <0|1[,...]>"
-diff --git a/drivers/mfd/janz-cmodio.c b/drivers/mfd/janz-cmodio.c
---- a/drivers/mfd/janz-cmodio.c
-+++ b/drivers/mfd/janz-cmodio.c
-@@ -33,7 +33,7 @@
- 
- /* Module Parameters */
- static unsigned int num_modules = CMODIO_MAX_MODULES;
--static unsigned char *modules[CMODIO_MAX_MODULES] = {
-+static char *modules[CMODIO_MAX_MODULES] = {
- 	"empty", "empty", "empty", "empty",
- };
- 
-diff --git a/drivers/misc/lis3lv02d/lis3lv02d.c b/drivers/misc/lis3lv02d/lis3lv02d.c
---- a/drivers/misc/lis3lv02d/lis3lv02d.c
-+++ b/drivers/misc/lis3lv02d/lis3lv02d.c
-@@ -111,6 +111,8 @@ static struct kernel_param_ops param_ops
- 	.get = param_get_int,
- };
- 
-+#define param_check_axis(name, p) param_check_int(name, p)
-+
- module_param_array_named(axes, lis3_dev.ac.as_array, axis, NULL, 0644);
- MODULE_PARM_DESC(axes, "Axis-mapping for x,y,z directions");
- 
-diff --git a/include/linux/moduleparam.h b/include/linux/moduleparam.h
---- a/include/linux/moduleparam.h
-+++ b/include/linux/moduleparam.h
-@@ -395,6 +395,7 @@ extern int param_get_invbool(char *buffe
-  * module_param_named() for why this might be necessary.
-  */
- #define module_param_array_named(name, array, type, nump, perm)		\
-+	param_check_##type(name, &(array)[0]);				\
- 	static const struct kparam_array __param_arr_##name		\
- 	= { .max = ARRAY_SIZE(array), .num = nump,                      \
- 	    .ops = &param_ops_##type,					\
+> +	default:
+>  		return -EINVAL;
+> +	}
+>  	do {
+>  		status = RFTrackingFiltersCorrection(state, params->frequency);
+>  		if (status < 0)
+> --
+> 1.7.1
+>
