@@ -1,45 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:57571 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752206Ab1LTVp0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 16:45:26 -0500
-Received: by werm1 with SMTP id m1so2291560wer.19
-        for <linux-media@vger.kernel.org>; Tue, 20 Dec 2011 13:45:25 -0800 (PST)
-From: Gareth Williams <gareth@garethwilliams.me.uk>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/2] Fixed detection of EMP202 audio chip. Some versions have an id of 0x83847650 instead of 0xffffffff.
-Date: Tue, 20 Dec 2011 21:45:18 +0000
-Message-ID: <3535794.dt3qgLM7n9@kubuntu>
+Received: from mx1.redhat.com ([209.132.183.28]:60705 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750940Ab1LJNVS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 10 Dec 2011 08:21:18 -0500
+Message-ID: <4EE35CC3.60806@redhat.com>
+Date: Sat, 10 Dec 2011 11:21:07 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4 [PATCH 00/10] Query DVB frontend delivery capabilities
+References: <CAHFNz9+J69YqY06QRSPV+1a0gT1QSmw7cqqnW5AEarF-V5xGCw@mail.gmail.com> <4EE359CF.7090707@redhat.com> <4EE35B55.3070900@iki.fi>
+In-Reply-To: <4EE35B55.3070900@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Gareth Williams <gareth@garethwilliams.me.uk>
+On 10-12-2011 11:15, Antti Palosaari wrote:
+> On 12/10/2011 03:08 PM, Mauro Carvalho Chehab wrote:
+>> A separate issue: please, don't send patches like that as attachment. It
+>> makes
+>> hard for people review. Instead, you should use git send-email. There's
+>> even
+>> an example there (at least on git version 1.7.8) showing how to set it for
+>> Google:
+>>
+>> $ git help send-email
+>> ...
+>> EXAMPLE
+>> Use gmail as the smtp server
+>> To use git send-email to send your patches through the GMail SMTP
+>> server, edit ~/.gitconfig to specify your
+>> account settings:
+>>
+>> [sendemail]
+>> smtpencryption = tls
+>> smtpserver = smtp.gmail.com
+>> smtpuser = yourname@gmail.com
+>> smtpserverport = 587
+>>
+>> Once your commits are ready to be sent to the mailing list, run the
+>> following commands:
+>>
+>> $ git format-patch --cover-letter -M origin/master -o outgoing/
+>> $ edit outgoing/0000-*
+>> $ git send-email outgoing/*
+>
+> I have SMTP which requires login over SSL. I am not sure if Git send-email event supports that but even if it supports I don't like idea to put my clear text password to some config file.
 
-Honestech Vidbox NW03 has a EMP202 audio chip with a different Vendor ID.
+Git send-email supports it. The password can be given via command line. So,
+you may even write a small script asking for a password to be used there, if
+you don't want to have it on your shell history.
 
-Apparently, it is the same with the Gadmei ITV380:
-http://linuxtv.org/wiki/index.php/Gadmei_USB_TVBox_UTV380
-
----
- linux/drivers/media/video/em28xx/em28xx-core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/linux/drivers/media/video/em28xx/em28xx-core.c b/linux/drivers/media/video/em28xx/em28xx-core.c
-index 804a4ab..2982a06 100644
---- a/linux/drivers/media/video/em28xx/em28xx-core.c
-+++ b/linux/drivers/media/video/em28xx/em28xx-core.c
-@@ -568,7 +568,7 @@ int em28xx_audio_setup(struct em28xx *dev)
- 	em28xx_warn("AC97 features = 0x%04x\n", feat);
- 
- 	/* Try to identify what audio processor we have */
--	if ((vid == 0xffffffff) && (feat == 0x6a90))
-+	if (((vid == 0xffffffff) || (vid == 0x83847650)) && (feat == 0x6a90))
- 		dev->audio_mode.ac97 = EM28XX_AC97_EM202;
- 	else if ((vid >> 8) == 0x838476)
- 		dev->audio_mode.ac97 = EM28XX_AC97_SIGMATEL;
--- 
+>
+> That's why I have used Thunderbird with External Editor and it sucks :/
+>
+> Antti
+>
 
