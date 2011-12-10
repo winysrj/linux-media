@@ -1,62 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:38220 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753329Ab1LCRil (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Dec 2011 12:38:41 -0500
-Message-ID: <4EDA5E98.4080205@linuxtv.org>
-Date: Sat, 03 Dec 2011 18:38:32 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:39804 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512Ab1LJECB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:02:01 -0500
 MIME-Version: 1.0
+In-Reply-To: <20111209142405.6f371be6@pyramind.ukuu.org.uk>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+	<201112071340.35267.arnd@arndb.de>
+	<CAKMK7uFQiiUbkU-7c3Os0d0FJNyLbqS2HLPRLy3LGnOoCXV5Pw@mail.gmail.com>
+	<201112091413.03736.arnd@arndb.de>
+	<20111209142405.6f371be6@pyramind.ukuu.org.uk>
+Date: Sat, 10 Dec 2011 05:01:59 +0100
+Message-ID: <CAKMK7uH+4uSYYjBLcvfhVC+iwGUZ09Z4p64fNBzh196aG+hqgg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+From: Daniel Vetter <daniel@ffwll.ch>
 To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-CC: HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <4EDA4AB4.90303@linuxtv.org> <20111203164252.3a66d638@lxorguk.ukuu.org.uk>
-In-Reply-To: <20111203164252.3a66d638@lxorguk.ukuu.org.uk>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03.12.2011 17:42, Alan Cox wrote:
->> FWIW, the virtual DVB device we're talking about doesn't have any
->> networking capabilities by itself. It only allows to create virtual DVB
->> adapters and to relay DVB API ioctls to userspace in a
->> transport-agnostic way.
-> 
-> Which you can do working from CUSE already, as has been pointed out or
-> with LD_PRELOAD. This btw makes the proprietary thing seem a rather odd
-> objection - they could do it too.
+On Fri, Dec 9, 2011 at 15:24, Alan Cox <alan@lxorguk.ukuu.org.uk> wrote:
+>> I still don't think that's possible. Please explain how you expect
+>> to change the semantics of the streaming mapping API to allow multiple
+>> mappers without having explicit serialization points that are visible
+>> to all users. For simplicity, let's assume a cache coherent system
 
-Yes, both CUSE and LD_PRELOADED have already been suggested. But I
-already explained in previous mails why both options are unsuitable:
+I think I understand the cache flushing issues on arm (we're doing a
+similar madness with manually flushing caches for i915 because the gpu
+isn't coherent with the cpu and other dma devices). And I also agree
+that you cannot make concurrent mappings work without adding something
+on top of the current streaming api/dma-buf proposal. I just think
+that it's not the kernel's business (well, at least not dma_buf's
+business) to enforce that. If userspace (through some driver calls)
+tries to do stupid things, it'll just get garbage. See
+Message-ID: <CAKMK7uHeXYn-v_8cmpLNWsFY14KtmuRZy8YRKR5Xst2-2WdFSQ@mail.gmail.com>
+for my reasons why it think this is the right way to go forward. So in
+essence I'm really interested in the reasons why you want the kernel
+to enforce this (or I'm completely missing what's the contentious
+issue here).
 
-- For LD_PRELOAD to intercept any calls to open, ioctl, read, write, the
-character device to be intercepted must exist first. But it doesn't
-exist, unless it was created by vtuner first. Of course you could also
-intercept stat(), readdir() and all other possible functions to list or
-access devices and fake entries, but I hope you're not suggesting this
-seriously. Well, proprietary drivers doing that already exist today
-(e.g. by sundtek), but implementing somthing like that if an easier
-solution is possible would be crazy at best.
+> I would agree. It's not just about barriers but in many cases where you
+> have multiple mappings by hardware devices the actual hardware interface
+> is specific to the devices. Just take a look at the fencing in TTM and
+> the graphics drivers.
+>
+> Its not something the low level API can deal with, it requires high level
+> knowledge.
 
-Additionaly, preloaded libraries conflict with other preloaded libraries
-overwriting the same functions. Preloaded libraries don't work with
-statically linked programs. Preloaded libraries can't be used
-transparently, because you need to edit init scripts to use them, unless
-you want them to be used globally (in /etc/ld.so.preload).
+Yes, we might want to add some form of in-kernel sync objects on top
+of dma_buf, but I'm not really convinced that this will buy us much
+above simply synchronizing access in userspace with the existing ipc
+tools. In my experience the expensive part of syncing two graphics
+engines with the cpu is that we wake up the cpu and prevent it from
+going into low-power states if we do this too often. Adding some more
+overhead by going through userspace doesn't really make it much worse.
+It's a completely different story if there's a hw facility to
+synchronize engines without the cpu's involvement (like there is on
+every multi-pipe gpu) and there sync objects make tons of sense. But
+I'm not aware of that existing on SoCs between different IP blocks.
 
-- CUSE would conflict with dvb-core. Once CUSE created a DVB adapter,
-registering another non-virtual DVB adapter (by plugging in a USB device
-for example) will try to assign the same adapter number.
-
-The following only applies to the original version of the interface, but
-is likely to apply to future development of the proposed interface: In
-order to add virtual tuners to existing DVB adapters, to be able to use
-their hardware demux or MPEG decoders with CUSE, the whole device driver
-of this adapter has to be implemented in userspace.
-
-Regards,
-Andreas
+Cheers, Daniel
+-- 
+Daniel Vetter
+daniel.vetter@ffwll.ch - +41 (0) 79 364 57 48 - http://blog.ffwll.ch
