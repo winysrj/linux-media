@@ -1,180 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59925 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754034Ab1L0BJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:50 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19nBj005574
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:50 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:54283 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751503Ab1LJB7g convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 20:59:36 -0500
+Received: by ghbz2 with SMTP id z2so3036029ghb.19
+        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 17:59:35 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4EE2B7BC.9090501@linuxtv.org>
+References: <1323454852-7426-1-git-send-email-mchehab@redhat.com>
+	<4EE252E5.2050204@iki.fi>
+	<4EE25A3C.9040404@redhat.com>
+	<4EE25CB4.3000501@iki.fi>
+	<4EE287A9.3000502@redhat.com>
+	<CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com>
+	<4EE29BA6.1030909@redhat.com>
+	<4EE29D1A.6010900@redhat.com>
+	<4EE2B7BC.9090501@linuxtv.org>
+Date: Fri, 9 Dec 2011 20:59:34 -0500
+Message-ID: <CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com>
+Subject: Re: [PATCH] DVB: dvb_frontend: fix delayed thread exit
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Andreas Oberritter <obi@linuxtv.org>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 73/91] [media] dtt200u-fe: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:09:01 -0200
-Message-Id: <1324948159-23709-74-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-73-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
- <1324948159-23709-56-git-send-email-mchehab@redhat.com>
- <1324948159-23709-57-git-send-email-mchehab@redhat.com>
- <1324948159-23709-58-git-send-email-mchehab@redhat.com>
- <1324948159-23709-59-git-send-email-mchehab@redhat.com>
- <1324948159-23709-60-git-send-email-mchehab@redhat.com>
- <1324948159-23709-61-git-send-email-mchehab@redhat.com>
- <1324948159-23709-62-git-send-email-mchehab@redhat.com>
- <1324948159-23709-63-git-send-email-mchehab@redhat.com>
- <1324948159-23709-64-git-send-email-mchehab@redhat.com>
- <1324948159-23709-65-git-send-email-mchehab@redhat.com>
- <1324948159-23709-66-git-send-email-mchehab@redhat.com>
- <1324948159-23709-67-git-send-email-mchehab@redhat.com>
- <1324948159-23709-68-git-send-email-mchehab@redhat.com>
- <1324948159-23709-69-git-send-email-mchehab@redhat.com>
- <1324948159-23709-70-git-send-email-mchehab@redhat.com>
- <1324948159-23709-71-git-send-email-mchehab@redhat.com>
- <1324948159-23709-72-git-send-email-mchehab@redhat.com>
- <1324948159-23709-73-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On Fri, Dec 9, 2011 at 8:37 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
+> On 10.12.2011 00:43, Mauro Carvalho Chehab wrote:
+>> On 09-12-2011 21:37, Mauro Carvalho Chehab wrote:
+>>> On 09-12-2011 20:33, Devin Heitmueller wrote:
+>>>> On Fri, Dec 9, 2011 at 5:11 PM, Mauro Carvalho Chehab
+>>>> <mchehab@redhat.com> wrote:
+>>>>>> Could someone explain reason for that?
+>>>>>
+>>>>>
+>>>>> I dunno, but I think this needs to be fixed, at least when the frontend
+>>>>> is opened with O_NONBLOCK.
+>>>>
+>>>> Are you doing the drx-k firmware load on dvb_init()? That could
+>>>> easily take 4 seconds.
+>>>
+>>> No. The firmware were opened previously.
+>>
+>> Maybe the delay is due to this part of dvb_frontend.c:
+>>
+>> static int dvb_mfe_wait_time = 5;
+>> ...
+>>                         int mferetry = (dvb_mfe_wait_time << 1);
+>>
+>>                         mutex_unlock (&adapter->mfe_lock);
+>>                         while (mferetry-- && (mfedev->users != -1 ||
+>>                                         mfepriv->thread != NULL)) {
+>>                                 if(msleep_interruptible(500)) {
+>>                                         if(signal_pending(current))
+>>                                                 return -EINTR;
+>>                                 }
+>>                         }
+>
+> I haven't looked at the mfe code, but in case it's waiting for the
+> frontend thread to exit, there's a problem that causes the thread
+> not to exit immediately. Here's a patch that's been sitting in my
+> queue for a while:
+>
+> ---
+>
+> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
+>
+> diff --git a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index 7784d74..6823c2b 100644
+> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c   2011-09-07 12:32:24.000000000 +0200
+> +++ a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c   2011-09-13 15:55:48.865742791 +0200
+> @@ -514,7 +514,7 @@
+>                return 1;
+>
+>        if (fepriv->dvbdev->writers == 1)
+> -               if (time_after(jiffies, fepriv->release_jiffies +
+> +               if (time_after_eq(jiffies, fepriv->release_jiffies +
+>                                  dvb_shutdown_timeout * HZ))
+>                        return 1;
+>
+> @@ -2070,12 +2070,15 @@
+>
+>        dprintk ("%s\n", __func__);
+>
+> -       if ((file->f_flags & O_ACCMODE) != O_RDONLY)
+> +       if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
+>                fepriv->release_jiffies = jiffies;
+> +               mb();
+> +       }
+>
+>        ret = dvb_generic_release (inode, file);
+>
+>        if (dvbdev->users == -1) {
+> +               wake_up(&fepriv->wait_queue);
+>                if (fepriv->exit != DVB_FE_NO_EXIT) {
+>                        fops_put(file->f_op);
+>                        file->f_op = NULL;
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+This patch needs to have a much better explanation of exactly what it
+does and what problem it solves.  We have a history of race conditions
+in dvb_frontend.c, and it's patches like this with virtually no
+details just makes it worse.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/dtt200u-fe.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+I'm not arguing the actual merits of the code change - it *may* be
+correct.  But without the appropriate background there is no real way
+of knowing...
 
-diff --git a/drivers/media/dvb/dvb-usb/dtt200u-fe.c b/drivers/media/dvb/dvb-usb/dtt200u-fe.c
-index 7ce8227..643242e 100644
---- a/drivers/media/dvb/dvb-usb/dtt200u-fe.c
-+++ b/drivers/media/dvb/dvb-usb/dtt200u-fe.c
-@@ -16,7 +16,7 @@ struct dtt200u_fe_state {
- 
- 	fe_status_t stat;
- 
--	struct dvb_frontend_parameters fep;
-+	struct dtv_frontend_properties fep;
- 	struct dvb_frontend frontend;
- };
- 
-@@ -100,20 +100,19 @@ static int dtt200u_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_fron
- 	return 0;
- }
- 
--static int dtt200u_fe_set_frontend(struct dvb_frontend* fe,
--				  struct dvb_frontend_parameters *fep)
-+static int dtt200u_fe_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
- 	int i;
- 	fe_status_t st;
- 	u16 freq = fep->frequency / 250000;
- 	u8 bwbuf[2] = { SET_BANDWIDTH, 0 },freqbuf[3] = { SET_RF_FREQ, 0, 0 };
- 
--	switch (fep->u.ofdm.bandwidth) {
--		case BANDWIDTH_8_MHZ: bwbuf[1] = 8; break;
--		case BANDWIDTH_7_MHZ: bwbuf[1] = 7; break;
--		case BANDWIDTH_6_MHZ: bwbuf[1] = 6; break;
--		case BANDWIDTH_AUTO: return -EOPNOTSUPP;
-+	switch (fep->bandwidth_hz) {
-+		case 8000000: bwbuf[1] = 8; break;
-+		case 7000000: bwbuf[1] = 7; break;
-+		case 6000000: bwbuf[1] = 6; break;
- 		default:
- 			return -EINVAL;
- 	}
-@@ -135,10 +134,10 @@ static int dtt200u_fe_set_frontend(struct dvb_frontend* fe,
- }
- 
- static int dtt200u_fe_get_frontend(struct dvb_frontend* fe,
--				  struct dvb_frontend_parameters *fep)
-+				  struct dtv_frontend_properties *fep)
- {
- 	struct dtt200u_fe_state *state = fe->demodulator_priv;
--	memcpy(fep,&state->fep,sizeof(struct dvb_frontend_parameters));
-+	memcpy(fep,&state->fep,sizeof(struct dtv_frontend_properties));
- 	return 0;
- }
- 
-@@ -172,6 +171,7 @@ error:
- }
- 
- static struct dvb_frontend_ops dtt200u_fe_ops = {
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name			= "WideView USB DVB-T",
- 		.type			= FE_OFDM,
-@@ -193,8 +193,8 @@ static struct dvb_frontend_ops dtt200u_fe_ops = {
- 	.init = dtt200u_fe_init,
- 	.sleep = dtt200u_fe_sleep,
- 
--	.set_frontend_legacy = dtt200u_fe_set_frontend,
--	.get_frontend_legacy = dtt200u_fe_get_frontend,
-+	.set_frontend = dtt200u_fe_set_frontend,
-+	.get_frontend = dtt200u_fe_get_frontend,
- 	.get_tune_settings = dtt200u_fe_get_tune_settings,
- 
- 	.read_status = dtt200u_fe_read_status,
+Mauro, this patch should be NACK'd and resubmitted with a detailed
+explanation of the current behavior, what the problem is, and how the
+code changes proposed solve that problem.
+
+Devin
+
 -- 
-1.7.8.352.g876a6
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
