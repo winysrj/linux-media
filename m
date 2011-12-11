@@ -1,185 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:57341 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163Ab1L2GPr (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45657 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752566Ab1LKXh6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Dec 2011 01:15:47 -0500
-Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LWY0059PC0TYGB0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 29 Dec 2011 15:15:46 +0900 (KST)
-Received: from NORIVERFULK04 ([165.213.219.118])
- by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LWY00GPOC2AUXB0@mmp2.samsung.com>
- for linux-media@vger.kernel.org; Thu, 29 Dec 2011 15:15:46 +0900 (KST)
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <201112281501.25091.laurent.pinchart@ideasonboard.com>
-In-reply-to: <201112281501.25091.laurent.pinchart@ideasonboard.com>
-Subject: RE: [RFC PATCH 0/4] Add some new camera controls
-Date: Thu, 29 Dec 2011 15:15:46 +0900
-Message-id: <001601ccc5f1$4db353d0$e919fb70$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Sun, 11 Dec 2011 18:37:58 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] V4L: add convenience macros to the subdevice / Media Controller API
+Date: Mon, 12 Dec 2011 00:38:12 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1109291016250.30865@axis700.grange> <201112061149.08271.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112061216300.10715@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1112061216300.10715@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112120038.13102.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Larent,
+Hi Guennadi,
 
-Thanks for the comments very well, and I replied the other each mails.
+On Tuesday 06 December 2011 13:04:00 Guennadi Liakhovetski wrote:
+> On Tue, 6 Dec 2011, Laurent Pinchart wrote:
+> > On Tuesday 06 December 2011 09:40:41 Guennadi Liakhovetski wrote:
+> > > On Thu, 29 Sep 2011, Laurent Pinchart wrote:
+> > > > On Thursday 29 September 2011 10:44:14 Guennadi Liakhovetski wrote:
+> > > > > On Thu, 29 Sep 2011, Laurent Pinchart wrote:
+> > > > > > On Thursday 29 September 2011 10:18:31 Guennadi Liakhovetski 
+wrote:
+> > > > > > > Drivers, that can be built and work with and without
+> > > > > > > CONFIG_VIDEO_V4L2_SUBDEV_API, need the
+> > > > > > > v4l2_subdev_get_try_format() and v4l2_subdev_get_try_crop()
+> > > > > > > functions, even though their return value should never be
+> > > > > > > dereferenced. Also add convenience macros to init and clean up
+> > > > > > > subdevice internal media entities.
+> > > > > > 
+> > > > > > Why don't you just make the drivers depend on
+> > > > > > CONFIG_VIDEO_V4L2_SUBDEV_API ? They don't need to actually export
+> > > > > > a device node to userspace, but they require the in-kernel API.
+> > > > > 
+> > > > > Why? Why should the user build and load all the media controller
+> > > > > stuff, buy all the in-kernel objects and code to never actually
+> > > > > use it? Where OTOH all is needed to avoid that is a couple of NOP
+> > > > > macros?
+> > > > 
+> > > > Because the automatic compatibility layer that will translate video
+> > > > operations to pad operations will need to access pads, so subdevs
+> > > > that implement a pad- level API need to export it to the bridge,
+> > > > even if the bridge is not MC-aware.
+> > > 
+> > > I might be missing something, but it seems to me, that if
+> > > CONFIG_VIDEO_V4L2_SUBDEV_API is not defined, no pads are exported to
+> > > the user space (and you mean a compatibility layer in the user space,
+> > > don't you?), so, noone will be able to accesss them.
+> > 
+> > No, I meant a compatibility layer in kernel space. Basically something
+> > like (totally untested)
+> 
+> Aha, so, a "future" layer.
+> 
+> > int v4l2_subdev_get_mbus_format(struct v4l2_subdev *sd, struct
+> > v4l2_mbus_framefmt *format)
+> > {
+> > 
+> > 	struct v4l2_subdev_format fmt;
+> > 	int ret;
+> > 	
+> > 	ret = v4l2_subdev_call(sd, video, g_mbus_fmt, format);
+> > 	if (ret != ENOIOCTLCMD)
+> 
+> you mean "-E..."
+> 
+> > 		return ret;
+> > 	
+> > 	fmt.pad = 0;
+> > 	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > 	fmt.format = *format;
+> > 	
+> > 	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
+> > 	if (ret < 0 && ret != ENOIOCTLCMD)
+> 
+> You, probably, actually mean "if (!ret)"
+> 
+> > 		*format = fmt.format;
+> > 	
+> > 	return ret;
+> > 
+> > }
+> > 
+> > Or the other way around, trying pad::get_fmt before video::g_mbus_fmt.
+> 
+> Ok, I understand what you mean now. Any idea when this layer is going to
+> be implemented?
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Wednesday, December 28, 2011 11:01 PM
-> To: HeungJun, Kim
-> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl;
-> sakari.ailus@iki.fi; s.nawrocki@samsung.com; kyungmin.park@samsung.com
-> Subject: Re: [RFC PATCH 0/4] Add some new camera controls
-> 
-> Hi,
-> 
-> On Wednesday 28 December 2011 07:23:44 HeungJun, Kim wrote:
-> > Hi everyone,
-> >
-> > This RFC patch series include new 4 controls ID for digital camera.
-> > I about to suggest these controls by the necessity enabling the M-5MOLS
-> > sensor's function, and I hope to discuss this in here.
-> 
-> Thanks for the patches.
-> 
-> The new controls introduced by these patches are very high level. Should they
-> be put in their own class ? I also think we should specify how those high-
-> level controls interact with low-level controls, otherwise applications will
-> likely get very confused.
-I did not consider yet, but I think it's first to define about what low-/high-
-is. I think this is not high- level controls. And, honestly, I don't understand
-it's really important to categorize low-/high-, or not.
+As soon as someone needs it and works on it I guess :-) I can give it a try, 
+but I'm pretty busy at the moment. Do you have driver(s) that would be good 
+test candidates for that ?
 
-IMHO, The importance is the just complexity of interacting with each modules.
-If this means the level of low-/high-, I can understand this.
-But I'm wrong, please explain this. :)
+-- 
+Regards,
 
-There is some different story, I just got the N900 some days ago :).
-The purpose is just understanding Nokia and TI OMAP camera architecture well.
-Probably, it helps for me to talk more easily, and I'll be able to speak more
-well
-with omap workers - you and Sakari.
-
-Happy new year!
-
-> 
-> > Any opinions and thoughts are very welcome!
-> >
-> > It's good to connect Sylwester's suggestion for discussing.
-> > - http://www.mail-archive.com/linux-media@vger.kernel.org/msg39907.html
-> >
-> > But it's no problem even if it is considered as seperated subject.
-> >
-> > 1. White Balance Peset
-> > ======================
-> >
-> > Some camera hardware provides its own preset of white balance,
-> > but fortunately the names of these presets are similar with the others.
-> > So, I thought it can be provided as a generic digital camera API.
-> > I suggest the following as items:
-> >
-> > enum v4l2_preset_white_balance {
-> > 	V4L2_WHITE_BALANCE_INCANDESCENT = 0,
-> > 	V4L2_WHITE_BALANCE_FLUORESCENT = 1,
-> > 	V4L2_WHITE_BALANCE_DAYLIGHT = 2,
-> > 	V4L2_WHITE_BALANCE_CLOUDY = 3,
-> > 	V4L2_WHITE_BALANCE_SHADE = 4,
-> > };
-> >
-> > 2. Scenemode
-> > ============
-> >
-> > I had suggested it before. :
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg29917.html
-> >
-> > And I want to continue this subject on this threads.
-> >
-> > The scenemode is also needed in the mobile digital .
-> > The reason I about to suggest this function as CID,
-> > is also the items are used widely & generally.
-> >
-> > enum v4l2_scenemode {
-> > 	V4L2_SCENEMODE_NONE = 0,
-> > 	V4L2_SCENEMODE_NORMAL = 1,
-> > 	V4L2_SCENEMODE_PORTRAIT = 2,
-> > 	V4L2_SCENEMODE_LANDSCAPE = 3,
-> > 	V4L2_SCENEMODE_SPORTS = 4,
-> > 	V4L2_SCENEMODE_PARTY_INDOOR = 5,
-> > 	V4L2_SCENEMODE_BEACH_SNOW = 6,
-> > 	V4L2_SCENEMODE_SUNSET = 7,
-> > 	V4L2_SCENEMODE_DAWN_DUSK = 8,
-> > 	V4L2_SCENEMODE_FALL = 9,
-> > 	V4L2_SCENEMODE_NIGHT = 10,
-> > 	V4L2_SCENEMODE_AGAINST_LIGHT = 11,
-> > 	V4L2_SCENEMODE_FIRE = 12,
-> > 	V4L2_SCENEMODE_TEXT = 13,
-> > 	V4L2_SCENEMODE_CANDLE = 14,
-> > };
-> >
-> > 3. WDR(Wide Dynamic Range)
-> > ==========================
-> >
-> > This function can be unfamiliar, but it is as known as HDR(High Dynamic
-> > Range) to iPhone users. Although the name is different, but both are the
-> > same function.
-> >
-> > It makes the image look more clear by adjusting the intensity area of
-> > illumination of the image. This function can be used only turn on/off
-> > like button control, then the actual WDR algorithm are activated in the
-> > hardware.
-> >
-> > 4. Antishake
-> > ============
-> >
-> > This function compensate and stabilize the shakeness of the stream and
-> > image. So, if this function turned on, the image created without many
-> > shakeness. It means both, the case when compensating the stream's
-> > shakeness,
-> > and when stabilizing the image itself.
-> >
-> > 5. References
-> > =============
-> >
-> > - This is the example of the various digital camera's upper controls.
-> > You can find that the term of each control is very similiar.
-> >
-> > @ White Balance Preset
-> > http://imaging.nikon.com/history/basics/17/index.htm
-> > http://www.dailyphotographytips.net/camera-controls-and-settings/how-to-set
-> > -custom-white-balance/
-> > http://www.digitalcamera-hq.com/articles/how-to-white-balance-your-camera
-> > http://www.digital-photography-school.com/introduction-to-white-balance
-> >
-> > @ Scenemode
-> > http://www.digital-photography-school.com/digital-camera-modes
-> > http://www.picturecorrect.com/tips/digital-camera-scene-modes/
-> >
-> > @ WDR and HDR
-> > http://en.wikipedia.org/wiki/High_dynamic_range_imaging
-> > http://en.wikipedia.org/wiki/Wide_dynamic_range
-> >
-> > @ Ahtishake
-> > http://www.digital-slr-guide.com/digital-slr-anti-shake.html
-> 
-> --
-> Regards,
-> 
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Laurent Pinchart
