@@ -1,68 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:38106 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751340Ab1LZGwI convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 01:52:08 -0500
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:52863 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750872Ab1LKQSN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Dec 2011 11:18:13 -0500
+Received: by bkcjm19 with SMTP id jm19so617024bkc.19
+        for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 08:18:12 -0800 (PST)
+Message-ID: <4EE4D7C0.6070903@gmail.com>
+Date: Sun, 11 Dec 2011 17:18:08 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAF6AEGs-Xgi_kmz5oag76=4v20RP5PfAM2-pyt_PyvWizgdW8Q@mail.gmail.com>
-References: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
- <20111220193117.GD3883@phenom.ffwll.local> <CAPM=9tzi5MyCBMJhWBM_ouL=QOaxX3K6KZ8K+t7dUYJLQrF+yA@mail.gmail.com>
- <CAB2ybb-+VTR=V1hwhF1GKxgkhTrssZ1JVOwcP6spO5O3AXqivA@mail.gmail.com> <CAF6AEGs-Xgi_kmz5oag76=4v20RP5PfAM2-pyt_PyvWizgdW8Q@mail.gmail.com>
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Mon, 26 Dec 2011 12:21:45 +0530
-Message-ID: <CAB2ybb-iAN_GPoUkPaEgUyhZmm9mZfoC9cf6oeaPehhCnHGu4g@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC v3 0/2] Introduce DMA buffer sharing mechanism
-To: Rob Clark <rob@ti.com>
-Cc: Dave Airlie <airlied@gmail.com>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, patches@linaro.org, daniel@ffwll.ch
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	laurent.pinchart@ideasonboard.com
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	riverful.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC/PATCH 1/5] v4l: Convert V4L2_CID_FOCUS_AUTO control to a
+ menu control
+References: <1323011776-15967-1-git-send-email-snjw23@gmail.com> <1323011776-15967-2-git-send-email-snjw23@gmail.com> <20111210103344.GF1967@valkosipuli.localdomain>
+In-Reply-To: <20111210103344.GF1967@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 23, 2011 at 10:50 PM, Rob Clark <rob@ti.com> wrote:
-> On Fri, Dec 23, 2011 at 4:08 AM, Semwal, Sumit <sumit.semwal@ti.com> wrote:
->> On Wed, Dec 21, 2011 at 1:50 AM, Dave Airlie <airlied@gmail.com> wrote:
->> <snip>
->>>>
->>>> Hence for both patches:
->>>> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
->>>
->>> Yeah I'm with Daniel, I like this one, I can definitely build the drm
->>> buffer sharing layer on top of this.
->>>
->>> How do we see this getting merged? I'm quite happy to push it to Linus
->>> if we don't have an identified path, though it could go via a Linaro
->>> tree as well.
->>>
->>> so feel free to add:
->>> Reviewed-by: Dave Airlie <airlied@redhat.com>
->> Thanks Daniel and Dave!
+On 12/10/2011 11:33 AM, Sakari Ailus wrote:
+> On Sun, Dec 04, 2011 at 04:16:12PM +0100, Sylwester Nawrocki wrote:
+>> Change the V4L2_CID_FOCUS_AUTO control type from boolean to a menu
+>> type. In case of boolean control we had values 0 and 1 corresponding
+>> to manual and automatic focus respectively.
 >>
->> I guess we can start with staging for 3.3, and see how it shapes up. I
->> will post the latest patch version pretty soon.
->
-> not sure about staging, but could make sense to mark as experimental.
-Thanks, I will mark it experimental for the first version; we can
-remove that once it is more widely used and tested.
->
->> Arnd, Dave: do you have any preference on the path it takes to get
->> merged? In my mind, Linaro tree might make more sense, but I would
->> leave it upto you gentlemen.
->
-> Looks like Dave is making some progress on drm usage of buffer sharing
-> between gpu's.. if that is ready to go in at the same time, it might
-> be a bit logistically simpler for him to put dmabuf in the same pull
-> req.  I don't have strong preference one way or another, so do what is
-> collectively simpler ;-)
-:) Right - I am quite happy for it to get merged in either ways :)
->
-> BR,
-> -R
-Best regards,
-~Sumit.
+>> The V4L2_CID_FOCUS_AUTO menu control has currently following items:
+>>   0 - V4L2_FOCUS_MANUAL,
+>>   1 - V4L2_FOCUS_AUTO,
+>>   2 - V4L2_FOCUS_AUTO_MACRO,
+>>   3 - V4L2_FOCUS_AUTO_CONTINUOUS.
+> 
+> I would put the macro mode to a separate menu since it's configuration for
+> how the regular AF works rather than really different mode.
+> 
+> ...
+> 
+>> @@ -567,6 +576,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>  	case V4L2_CID_PRIVACY:			return "Privacy";
+>>  	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+>>  	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+>> +	case V4L2_CID_DO_AUTO_FOCUS:		return "Do Auto Focus";
+> 
+> I'd perhaps use "begin" or "start". How does the user learn the autofocus
+> has finished? I think this looks like quite similar problem than telling the
+> flash strobe status to the user. The solution could also be similar to that.
+
+Hi,
+
+considering your previous comments, how about the below focusing control set ?
+
+Controls for starting/stopping auto focusing (for V4L2_CID_FOCUS_AUTO ==
+V4L2_FOCUS_MANUAL):
+
+V4L2_CID_START_AUTO_FOCUS  - (button) - start auto focusing,
+V4L2_CID_STOP_AUTO_FOCUS   - (button) - stop auto focusing (might be also
+                                        useful in V4L2_FOCUS_AUTO_CONTINUOUS
+                                        mode)
+and auto focus status:
+
+V4L2_CID_AUTO_FOCUS_STATUS - (boolean) - whether focusing is in progress or not
+                             (when V4L2_CID_FOCUS_AUTO == V4L2_FOCUS_MANUAL)
+
+
+V4L2_CID_FOCUS_AUTO would basically retain it's current semantics:
+
+V4L2_CID_FOCUS_AUTO        - (boolean) - select focus type (manual/auto
+                                         continuous)
+        V4L2_FOCUS_MANUAL              - manual focus
+        V4L2_FOCUS_AUTO_CONTINUOUS     - continuous auto focus
+                                         (or V4L2_FOCUS_AUTO)
+
+New menu control to choose behaviour of auto focus (either single-shot
+or continuous):
+
+V4L2_CID_AF_MODE                        - select auto focus mode
+        V4L2_AF_MODE_NORMAL             - "normal" auto focus
+        V4L2_AF_MODE_MACRO              - macro (close-up)
+        V4L2_AF_MODE_SPOT               - spot location passed with
+                                          selection API or other control
+        V4L2_AF_MODE_FACE_DETECTION	- focus point indicated by internal
+                                          face detector
+
+
+I might try it out and implement in M-5MOLS driver, to see how it works
+in practice.
+
+Does it make sense for you ?
+
+--
+
+Regards,
+Sylwester
