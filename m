@@ -1,57 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:36945 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755662Ab1LOMZH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 07:25:07 -0500
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-CC: Manjunath Hadli <manjunath.hadli@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
-Date: Thu, 15 Dec 2011 17:54:58 +0530
-Message-ID: <1323951898-16330-3-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com>
-References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com>
+Received: from casper.infradead.org ([85.118.1.10]:34893 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751284Ab1LKKWh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Dec 2011 05:22:37 -0500
+Message-ID: <4EE48465.9060706@infradead.org>
+Date: Sun, 11 Dec 2011 08:22:29 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Haogang Chen <haogangchen@gmail.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] Media: video: uvc: integer overflow in uvc_ioctl_ctrl_map()
+References: <1322602345-26279-1-git-send-email-haogangchen@gmail.com> <201111300222.42162.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201111300222.42162.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer format
-frames compressed by A-LAW alogorithm.
-add V4L2_PIX_FMT_UV8 to represent storage of C (UV interleved) only.
+On 29-11-2011 23:22, Laurent Pinchart wrote:
+> Hi Haogang,
+>
+> On Tuesday 29 November 2011 22:32:25 Haogang Chen wrote:
+>> There is a potential integer overflow in uvc_ioctl_ctrl_map(). When a
+>> large xmap->menu_count is passed from the userspace, the subsequent call
+>> to kmalloc() will allocate a buffer smaller than expected.
+>> map->menu_count and map->menu_info would later be used in a loop (e.g.
+>> in uvc_query_v4l2_ctrl), which leads to out-of-bound access.
+>>
+>> The patch checks the ioctl argument and returns -EINVAL for zero or too
+>> large values in xmap->menu_count.
+>
+> Thanks for the patch.
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- include/linux/videodev2.h |    6 ++++++
- 1 files changed, 6 insertions(+), 0 deletions(-)
+I'm assuming that either one of you will re-send the patches with the
+pointed changes, so, I'm marking this one with "changes requested" at
+patchwork.
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..969112d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -338,6 +338,9 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:2:0 16x16 macroblocks */
- #define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
- 
-+/* Chrominance formats */
-+#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4 */
-+
- /* two planes -- one Y, one Cr + Cb interleaved  */
- #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
- #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
-@@ -366,6 +369,9 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
- 	/* 10bit raw bayer DPCM compressed to 8 bits */
- #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-+	/* 10bit raw bayer a-law compressed to 8 bits */
-+#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
-+
- 	/*
- 	 * 10bit raw bayer, expanded to 16 bits
- 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
--- 
-1.6.2.4
+>
+>> Signed-off-by: Haogang Chen<haogangchen@gmail.com>
+>> ---
+>>   drivers/media/video/uvc/uvc_v4l2.c |    6 ++++++
+>>   1 files changed, 6 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
+>> b/drivers/media/video/uvc/uvc_v4l2.c index dadf11f..9a180d6 100644
+>> --- a/drivers/media/video/uvc/uvc_v4l2.c
+>> +++ b/drivers/media/video/uvc/uvc_v4l2.c
+>> @@ -58,6 +58,12 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
+>> *chain, break;
+>>
+>>   	case V4L2_CTRL_TYPE_MENU:
+>> +		if (xmap->menu_count == 0 ||
+>> +		    xmap->menu_count>  INT_MAX / sizeof(*map->menu_info)) {
+>
+> I'd like to prevent excessive memory consumption by limiting the number of
+> menu entries, similarly to how the driver limits the number of mappings.
+> Defining UVC_MAX_CONTROL_MENU_ENTRIES to 32 in uvcvideo.h should be a
+> reasonable value.
+>
+>> +			kfree(map);
+>> +			return -EINVAL;
+>
+> I'd rather do
+>
+> 	ret = -EINVAL;
+> 	goto done;
+>
+> to centralize error handling.
+>
+> If you're fine with both changes I can modify the patch, there's no need to
+> resubmit.
+>
+>> +		}
+>> +
+>>   		size = xmap->menu_count * sizeof(*map->menu_info);
+>>   		map->menu_info = kmalloc(size, GFP_KERNEL);
+>>   		if (map->menu_info == NULL) {
+>
 
