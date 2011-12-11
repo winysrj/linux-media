@@ -1,92 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:48367 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753228Ab1LUKu5 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51238 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751369Ab1LKKbZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Dec 2011 05:50:57 -0500
-Received: by lahd3 with SMTP id d3so492026lah.19
-        for <linux-media@vger.kernel.org>; Wed, 21 Dec 2011 02:50:55 -0800 (PST)
-Message-ID: <4EF1BA0D.4070002@gmail.com>
-Date: Wed, 21 Dec 2011 11:50:53 +0100
-From: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+	Sun, 11 Dec 2011 05:31:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] Media: video: uvc: integer overflow in uvc_ioctl_ctrl_map()
+Date: Sun, 11 Dec 2011 11:31:37 +0100
+Cc: Haogang Chen <haogangchen@gmail.com>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+References: <1322602345-26279-1-git-send-email-haogangchen@gmail.com> <201111300222.42162.laurent.pinchart@ideasonboard.com> <4EE48465.9060706@infradead.org>
+In-Reply-To: <4EE48465.9060706@infradead.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: media_build failures on 3.0.6 Gentoo
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201112111131.37867.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-I get this build failure:
+On Sunday 11 December 2011 11:22:29 Mauro Carvalho Chehab wrote:
+> On 29-11-2011 23:22, Laurent Pinchart wrote:
+> > Hi Haogang,
+> > 
+> > On Tuesday 29 November 2011 22:32:25 Haogang Chen wrote:
+> >> There is a potential integer overflow in uvc_ioctl_ctrl_map(). When a
+> >> large xmap->menu_count is passed from the userspace, the subsequent call
+> >> to kmalloc() will allocate a buffer smaller than expected.
+> >> map->menu_count and map->menu_info would later be used in a loop (e.g.
+> >> in uvc_query_v4l2_ctrl), which leads to out-of-bound access.
+> >> 
+> >> The patch checks the ioctl argument and returns -EINVAL for zero or too
+> >> large values in xmap->menu_count.
+> > 
+> > Thanks for the patch.
+> 
+> I'm assuming that either one of you will re-send the patches with the
+> pointed changes, so, I'm marking this one with "changes requested" at
+> patchwork.
 
-lin-tv src # git clone git://linuxtv.org/media_build.git
-lin-tv src # cd media_build/
-lin-tv media_build # ./build
-Checking if the needed tools are present
-Needed package dependencies are met.
+The modified patch is included in my latest pull request.
 
-************************************************************
-* This script will download the latest tarball and build it*
-* Assuming that your kernel is compatible with the latest  *
-* drivers. If not, you'll need to add some extra backports,*
-* ./backports/<kernel> directory.                          *
-* It will also update this tree to be sure that all compat *
-* bits are there, to avoid compilation failures            *
-************************************************************
-************************************************************
-* All drivers and build system are under GPLv2 License     *
-* Firmware files are under the license terms found at:     *
-* http://www.linuxtv.org/downloads/firmware/               *
-* Please abort if you don't agree with the license         *
-************************************************************
+I had forgotten to CC stable@kernel.org in the commit message. I've updated 
+the uvcvideo-next branch, but have you already pulled from it ? If so, could 
+you add Cc: stable@kernel.org to the patch, or should I send a v2 for the pull 
+request ?
 
-****************************
-Updating the building system
-****************************
- From git://linuxtv.org/media_build
-  * branch            master     -> FETCH_HEAD
-Already up-to-date.
-make: Entering directory `/usr/src/media_build/linux'
-wget http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5 
--O linux-media.tar.bz2.md5.tmp
---2011-12-21 11:42:05--  
-http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
-Resolving linuxtv.org... 130.149.80.248
-Connecting to linuxtv.org|130.149.80.248|:80... connected.
-HTTP request sent, awaiting response... 200 OK
-Length: 93 [application/x-bzip2]
-Saving to: `linux-media.tar.bz2.md5.tmp'
+> >> Signed-off-by: Haogang Chen<haogangchen@gmail.com>
+> >> ---
+> >> 
+> >>   drivers/media/video/uvc/uvc_v4l2.c |    6 ++++++
+> >>   1 files changed, 6 insertions(+), 0 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
+> >> b/drivers/media/video/uvc/uvc_v4l2.c index dadf11f..9a180d6 100644
+> >> --- a/drivers/media/video/uvc/uvc_v4l2.c
+> >> +++ b/drivers/media/video/uvc/uvc_v4l2.c
+> >> @@ -58,6 +58,12 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
+> >> *chain, break;
+> >> 
+> >>   	case V4L2_CTRL_TYPE_MENU:
+> >> +		if (xmap->menu_count == 0 ||
+> >> +		    xmap->menu_count>  INT_MAX / sizeof(*map->menu_info)) {
+> > 
+> > I'd like to prevent excessive memory consumption by limiting the number
+> > of menu entries, similarly to how the driver limits the number of
+> > mappings. Defining UVC_MAX_CONTROL_MENU_ENTRIES to 32 in uvcvideo.h
+> > should be a reasonable value.
+> > 
+> >> +			kfree(map);
+> >> +			return -EINVAL;
+> > 
+> > I'd rather do
+> > 
+> > 	ret = -EINVAL;
+> > 	goto done;
+> > 
+> > to centralize error handling.
+> > 
+> > If you're fine with both changes I can modify the patch, there's no need
+> > to resubmit.
+> > 
+> >> +		}
+> >> +
+> >> 
+> >>   		size = xmap->menu_count * sizeof(*map->menu_info);
+> >>   		map->menu_info = kmalloc(size, GFP_KERNEL);
+> >>   		if (map->menu_info == NULL) {
 
-100%[=============================================================================>] 
-93          --.-K/s   in 0s
-
-2011-12-21 11:42:05 (11.1 MB/s) - `linux-media.tar.bz2.md5.tmp' saved 
-[93/93]
-
-
-<snip>
-
-  LD [M]  /usr/src/media_build/v4l/m5mols.o
-   CC [M]  /usr/src/media_build/v4l/s5k6aa.o
-   CC [M]  /usr/src/media_build/v4l/adp1653.o
-   CC [M]  /usr/src/media_build/v4l/as3645a.o
-/usr/src/media_build/v4l/as3645a.c: In function 'as3645a_probe':
-/usr/src/media_build/v4l/as3645a.c:815:2: error: implicit declaration of 
-function 'kzalloc'
-/usr/src/media_build/v4l/as3645a.c:815:8: warning: assignment makes 
-pointer from integer without a cast
-make[3]: *** [/usr/src/media_build/v4l/as3645a.o] Error 1
-make[2]: *** [_module_/usr/src/media_build/v4l] Error 2
-make[2]: Leaving directory `/usr/src/linux-3.0.6-gentoo'
-make[1]: *** [default] Error 2
-make[1]: Leaving directory `/usr/src/media_build/v4l'
-make: *** [all] Error 2
-build failed at ./build line 380.
-lin-tv media_build #
-
+-- 
 Regards,
 
-/Fredrik
-
+Laurent Pinchart
