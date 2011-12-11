@@ -1,60 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:18487 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753307Ab1L1KVC (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 05:21:02 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 2/2] omap3isp: Support additional in-memory compressed bayer formats
-Date: Wed, 28 Dec 2011 12:20:57 +0200
-Message-Id: <1325067657-32556-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20111228102028.GR3677@valkosipuli.localdomain>
-References: <20111228102028.GR3677@valkosipuli.localdomain>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54652 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752566Ab1LKXlk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Dec 2011 18:41:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Thomas Meyer <thomas@m3y3r.de>
+Subject: Re: [PATCH] [media] uvcvideo: Use kcalloc instead of kzalloc to allocate array
+Date: Mon, 12 Dec 2011 00:41:54 +0100
+Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+References: <1322600880.1534.315.camel@localhost.localdomain>
+In-Reply-To: <1322600880.1534.315.camel@localhost.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112120041.54884.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This also prevents accessing NULL pointer in csi2_try_format().
+Hi Thomas,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/ispvideo.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 0568234..3c984ae 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -46,6 +46,10 @@
-  * Helper functions
-  */
- 
-+/*
-+ * NOTE: When adding new media bus codes, always remember to add
-+ * corresponding in-memory formats to the table below!!!
-+ */
- static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
- 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
-@@ -68,9 +72,18 @@ static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
- 	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
- 	  V4L2_PIX_FMT_SRGGB8, 8, },
-+	{ V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8, V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SBGGR10_1X10, 0,
-+	  V4L2_PIX_FMT_SBGGR10DPCM8, 8, },
-+	{ V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8, V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SGBRG10_1X10, 0,
-+	  V4L2_PIX_FMT_SGBRG10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
- 	  V4L2_MBUS_FMT_SGRBG10_1X10, 0,
- 	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
-+	{ V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8, V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SRGGB10_1X10, 0,
-+	  V4L2_PIX_FMT_SRGGB10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
- 	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
- 	  V4L2_PIX_FMT_SBGGR10, 10, },
+On Tuesday 29 November 2011 22:08:00 Thomas Meyer wrote:
+> The advantage of kcalloc is, that will prevent integer overflows which
+> could result from the multiplication of number of elements and size and it
+> is also a bit nicer to read.
+> 
+> The semantic patch that makes this change is available
+> in https://lkml.org/lkml/2011/11/25/107
+> 
+> Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Should I take the patch in my tree, or do you plan to push several similar 
+patches directly in one go ?
+
+> ---
+> 
+> diff -u -p a/drivers/media/video/uvc/uvc_ctrl.c
+> b/drivers/media/video/uvc/uvc_ctrl.c ---
+> a/drivers/media/video/uvc/uvc_ctrl.c 2011-11-28 19:36:47.613437745 +0100
+> +++ b/drivers/media/video/uvc/uvc_ctrl.c 2011-11-28 19:58:26.309317018
+> +0100 @@ -1861,7 +1861,7 @@ int uvc_ctrl_init_device(struct uvc_devi
+>  		if (ncontrols == 0)
+>  			continue;
+> 
+> -		entity->controls = kzalloc(ncontrols * sizeof(*ctrl),
+> +		entity->controls = kcalloc(ncontrols, sizeof(*ctrl),
+>  					   GFP_KERNEL);
+>  		if (entity->controls == NULL)
+>  			return -ENOMEM;
+
 -- 
-1.7.2.5
+Regards,
 
+Laurent Pinchart
