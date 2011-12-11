@@ -1,129 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:44098 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751096Ab1LSQbJ (ORCPT
+Received: from mail.meprolight.com ([194.90.149.17]:55785 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751442Ab1LKKzk convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 11:31:09 -0500
-Message-ID: <4EEF66C2.7030003@infradead.org>
-Date: Mon, 19 Dec 2011 14:30:58 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Sun, 11 Dec 2011 05:55:40 -0500
+From: Alex Gershgorin <alexg@meprolight.com>
+To: Alex Gershgorin <alexg@meprolight.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	"Hiroshi.DOYU@nokia.com" <Hiroshi.DOYU@nokia.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Sun, 11 Dec 2011 12:56:09 +0200
+Subject: RE: OMAP3ISP boot problem
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2C8989924D@MEP-EXCH.meprolight.com>
+References: <4875438356E7CA4A8F2145FCD3E61C0B2C8989923C@MEP-EXCH.meprolight.com>
+	<4EE32299.5000006@iki.fi>
+	<4875438356E7CA4A8F2145FCD3E61C0B2C89899246@MEP-EXCH.meprolight.com>,<201112101545.40059.laurent.pinchart@ideasonboard.com>,<4875438356E7CA4A8F2145FCD3E61C0B2C8989924A@MEP-EXCH.meprolight.com>
+In-Reply-To: <4875438356E7CA4A8F2145FCD3E61C0B2C8989924A@MEP-EXCH.meprolight.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: javier Martin <javier.martin@vista-silicon.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <201112191105.25855.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112191113230.23694@axis700.grange> <201112191120.40084.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112191139560.23694@axis700.grange> <CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com> <Pine.LNX.4.64.1112191155340.23694@axis700.grange> <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com>
-In-Reply-To: <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 19-12-2011 09:25, javier Martin wrote:
-> On 19 December 2011 11:58, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
->> On Mon, 19 Dec 2011, javier Martin wrote:
->>
->>> On 19 December 2011 11:41, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
->>>> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
->>>>
->>>>> Hi Guennadi,
->>>>>
->>>>> On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
->>>>>> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
->>>>>>> On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
->>>>>>>> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
->>>>>>>>> On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
->>>>>>>>>> On Fri, 16 Dec 2011, Scott Jiang wrote:
->>>>>>>>>>>>> How about this implementation? I know it's not for soc, but I
->>>>>>>>>>>>> post it to give my idea.
->>>>>>>>>>>>> Bridge knows the layout, so it doesn't need to query the
->>>>>>>>>>>>> subdevice.
->>>>>>>>>>>>
->>>>>>>>>>>> Where from? AFAIU, we are talking here about subdevice inputs,
->>>>>>>>>>>> right? In this case about various inputs of the TV decoder. How
->>>>>>>>>>>> shall the bridge driver know about that?
->>>>>>>>>>>
->>>>>>>>>>> I have asked this question before. Laurent reply me:
->>>>>>>>>>>>>> ENUMINPUT as defined by V4L2 enumerates input connectors
->>>>>>>>>>>>>> available on the board. Which inputs the board designer
->>>>>>>>>>>>>> hooked up is something that only the top-level V4L driver
->>>>>>>>>>>>>> will know. Subdevices do not have that information, so
->>>>>>>>>>>>>> enuminputs is not applicable there.
->>>>>>>>>>>>>>
->>>>>>>>>>>>>> Of course, subdevices do have input pins and output pins,
->>>>>>>>>>>>>> but these are assumed to be fixed. With the s_routing ops
->>>>>>>>>>>>>> the top level driver selects which input and output pins
->>>>>>>>>>>>>> are active. Enumeration of those inputs and outputs
->>>>>>>>>>>>>> wouldn't gain you anything as far as I can tell since the
->>>>>>>>>>>>>> subdevice simply does not know which inputs/outputs are
->>>>>>>>>>>>>> actually hooked up. It's the top level driver that has that
->>>>>>>>>>>>>> information (usually passed in through board/card info
->>>>>>>>>>>>>> structures).
->>>>>>>>>>
->>>>>>>>>> Laurent, right, I now remember reading this discussion before. But
->>>>>>>>>> I'm not sure I completely agree:-) Yes, you're right - the board
->>>>>>>>>> decides which pins are routed to which connectors. And it has to
->>>>>>>>>> provide this information to the driver in its platform data. But -
->>>>>>>>>> I think, this information should be provided not to the bridge
->>>>>>>>>> driver, but to respective subdevice drivers, because only they
->>>>>>>>>> know what exactly those interfaces are good for and how to report
->>>>>>>>>> them to the bridge or the user, if we decide to also export this
->>>>>>>>>> information over the subdevice user-space API.
->>>>>>>>>>
->>>>>>>>>> So, I would say, the board has to tell the subdevice driver: yes,
->>>>>>>>>> your inputs 0 and 1 are routed to external connectors. On input 1
->>>>>>>>>> I've put a pullup, it is connected to connector of type X over a
->>>>>>>>>> circuit Y, clocked from your output Z, if the driver needs to know
->>>>>>>>>> all that. And the subdev driver will just tell the bridge only
->>>>>>>>>> what that one needs to know - number of inputs and their
->>>>>>>>>> capabilities.
->>>>>>>>>
->>>>>>>>> That sounds reasonable.
->>>>>>>>
->>>>>>>> Good, this would mean, we need additional subdevice operations along
->>>>>>>> the lines of enum_input and enum_output, and maybe also g_input and
->>>>>>>> g_output?
->>>>>>>
->>>>>>> What about implementing pad support in the subdevice ? Input enumeration
->>>>>>> could then be performed without a subdev operation.
->>>>>>
->>>>>> soc-camera doesn't support pad operations yet.
->>>>>
->>>>> soc-camera doesn't support enum_input yet either, so you need to implement
->>>>> something anyway ;-)
->>>>>
->>>>> You wouldn't need to call a pad operation here, you would just need to iterate
->>>>> through the pads provided by the subdev.
->>>>
->>>> tvp5150 doesn't implement it either yet. So, I would say, it is a better
->>>> solution ATM to fix this functionality independent of the pad-level API.
->>>
->>> I agree,
->>> I cannot contribute to implement pad-level API stuff since I can't
->>> test it with tvp5150.
->>>
->>> Would you accept a patch implementing only S_INPUT?
->>
->> Sorry, maybe I'm missing something, but how would it work? I mean, how can
->> we accept from the user any S_INPUT request with index != 0, if we always
->> return only 0 in reply to ENUM_INPUT? Ok, G_INPUT we could implement
->> internally in soc-camera: return 0 by default, then remember last set
->> input number per soc-camera device / subdev. But ENUM_INPUT?...
-> 
-> It clearly is not a complete solution but at least it allows setting
-> input 0 in broken drivers such as tvp5150 which have input 1 enabled
-> by default, while soc-camera assumes input 0 is enabled.
+Hi Laurent,
 
-If you're willing to implement it via s_input, you should really implement
-g_input and enum_input.
+On Saturday 10 December 2011 14:36:17 Alex Gershgorin wrote:
+> > Hi Sakari,
+> >
+> > Thank you for your quick response and sorry for stupid question.
+> > Yes CONFIG_OMAP_IOMMU and CONFIG_OMAP_IOVMM enabled,
+> > because OMAP 3 camera controller depends on the CONFIG_OMAP_IOVMM  and
+> > CONFIG_OMAP_IOMMU. Please tell me how I can use dmabuf instead of the
+> > IOMMU/IOVMM API.
+> >
+> >Unfortunately that real fix isn't available yet and won't be for some
+> >time. Still, it should be fully functional currently.
+> >
+> >Looking at the backtrace again, it seems to crash in
+> >driver_find_device(). That looks fishy.
+> >
+> >Do you have the ISP driver compiled into the kernel? I might try it as a
+> >module, albeit it of course should work when it's linked to the kernel
+> >as well.
+>
+> Yes ISP driver compiled into kernel, but if I back to previos version of
+> the Linux kernel  3.0.0, that works well. Here part of kernel boot
+> message...
+>
+> > [    2.063354] Linux media interface: v0.10
+> > [    2.068298] Linux video capture interface: v2.00
+> > [    2.075561] omap3isp omap3isp: Revision 2.0 found
+> > [    2.080932] omap-iommu omap-iommu.0: isp: version 1.1
+> > [    2.099365] Camera Video probed
+> > [    2.115997] vivi-000: V4L2 device registered as video7
+>
+> Now I plan to start  using a newer version of the Linux kernel 3.2.0-rc4,
+> but unfortunately faced with the problem. That suggest?
 
-If you'll otherwise implement it via PAD, I'll need to analyze it better,
-by the time you'll be submitting the libv4l plugin that will convert G_INPUT,
-S_INPUT, ENUM_INPUT ioctl's into pad calls.
+>I'm quite surprised. I've just tested 3.2-rc2 here, and got no oops when
+>loading the omap3-isp driver. I've tried compiling the driver in the kernel
+>and as a module, and both succeeded. I've pushed my code to
+>http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+>sensors-board if you want to give it a try.
+
+>Thanks Laurent,
+
+>Tomorrow I'll try to test on Hardware that I have with using kernel 3.2-rc2
+>and Tell you about my results.
+
+>Regards,
+>Alex Gershgorin
+
+Present result is much better, I tested it on kernel 3.2.0-rc5 and the registration is successful.
+Here part of my boot message:
+
+[    1.926635] Linux video capture interface: v2.00
+[    1.936553] OMAP Watchdog Timer Rev 0x31: initial timeout 60 sec
+[    1.959472] omap-iommu omap-iommu.0: isp registered
+*******
+*******
+*******
+[    2.043945] omap_i2c omap_i2c.3: bus 3 rev1.3.12 at 400 kHz
+[    2.056945] omap3isp omap3isp: Revision 2.0 found
+[    2.062622] omap-iommu omap-iommu.0: isp: version 1.1
+[    2.082092] camera 3-0057: Probing CAMERA at address 0x57
+[    2.088439] camera 3-0057: CAMERA detected at address 0x57
+
+I honestly didn't understand where's the catch .
+
+Many thanks to all.
 
 Regards,
-Mauro
+Alex Gershgorin  
+
+
+
+
+
+
+
+
 
