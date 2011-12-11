@@ -1,85 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:42413 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753787Ab1LUCui (ORCPT
+Received: from ims-d14.mx.aol.com ([205.188.249.151]:42299 "EHLO
+	ims-d14.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752054Ab1LKQE2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 21:50:38 -0500
-Received: by wgbdr13 with SMTP id dr13so13493024wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 20 Dec 2011 18:50:36 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EE9C7A1.8060303@matrix-vision.de>
-References: <CAOy7-nNJXMbFkJWRubri2O_kc-V1Z+ZjTioqQu=8STtkuLag9w@mail.gmail.com>
-	<4EE9A8B6.4040102@matrix-vision.de>
-	<CAOy7-nPY_Nffgj_Ax=ziT9WYH-egvL8QnZfb50Xurn+AF4yWCQ@mail.gmail.com>
-	<4EE9C7A1.8060303@matrix-vision.de>
-Date: Wed, 21 Dec 2011 10:50:36 +0800
-Message-ID: <CAOy7-nOc9U4_BRKYyagcVtDZyr2Z9ZEUAftmdBsfBrWVVLFGjA@mail.gmail.com>
-Subject: Re: Why is the Y12 support 12-bit grey formats at the CCDC input
- (Y12) is truncated to Y10 at the CCDC output?
-From: James <angweiyang@gmail.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 11 Dec 2011 11:04:28 -0500
+Received: from oms-db02.r1000.mx.aol.com (oms-db02.r1000.mx.aol.com [205.188.58.2])
+	by ims-d14.mx.aol.com (8.14.1/8.14.1) with ESMTP id pBBG3QdV009796
+	for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 11:03:43 -0500
+Received: from mtaout-ma03.r1000.mx.aol.com (mtaout-ma03.r1000.mx.aol.com [172.29.41.3])
+	by oms-db02.r1000.mx.aol.com (AOL Outbound OMS Interface) with ESMTP id CE95D1C000084
+	for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 11:03:43 -0500 (EST)
+Received: from [192.168.5.24] (unknown [89.165.21.235])
+	(using SSLv3 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by mtaout-ma03.r1000.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id C02B8E0000CD
+	for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 11:03:41 -0500 (EST)
+Message-ID: <1323619307.5157.6.camel@linux-wuzg.site>
+Subject: AF9035 DVB-T stick
+From: Programer <samsungwave523@aol.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset="UTF-8"
+Date: Sun, 11 Dec 2011 19:31:47 +0330
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael & Laurent,
+dear sir
+i have AF9035 DVB-T stick:
 
-On Thu, Dec 15, 2011 at 6:10 PM, Michael Jones
-<michael.jones@matrix-vision.de> wrote:
-> Hi James,
+> Bus 002 Device 003: ID 15a4:1001 Afatech Technologies, Inc. AF9015/AF9035 DVB-T stick
 
-> Laurent has a program 'media-ctl' to set up the pipeline (see
-> http://git.ideasonboard.org/?p=media-ctl.git).  You will find many examples
-> of its usage in the archives of this mailing list. It will look something
-> like:
-> media-ctl -r
-> media-ctl -l '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0 [1]'
-> media-ctl -l '"your-sensor-name":0 -> "OMAP3 ISP CCDC":0 [1]'
->
-> you will also need to set the formats through the pipeline with 'media-ctl
-> --set-format'.
->
-> After you use media-ctl to set up the pipeline, you can use yavta to capture
-> the data from the CCDC output (for me, this is /dev/video2).
->
->
-> -Michael
+on OpenSuse 12.1 32Bit :
 
-I encountered some obstacles with the driver testing of my monochrome
-sensor on top of Steve's 3.0-pm branch. An NXP SC16IS750 I2C-UART
-bridge is used to 'transform' the sensor into a I2C device.
+> 3.1.0-1.2-default
+> 
+> how use this usb DVB-T Device ???
 
-The PCLK, VSYNC, HSYNC (640x512, 30Hz, fixed output format) are free
-running upon power-on the sensor unlike MT9V032 which uses the XCLKA
-to 'power-on/off' it.
-
-My steps,
-
-1) media-ctl -r -l '"mono640":0->"OMAP3 ISP CCDC":0:[1], "OMAP3 ISP
-CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-
-Resetting all links to inactive
-Setting up link 16:0 -> 5:0 [1]
-Setting up link 5:1 -> 6:0 [1]
-
-2) media-ctl -f '"mono640":0[Y12 640x512]", "OMAP3 ISP CCDC":1[Y12 640x512]'
-
-Setting up format Y12 640x512 on pad OMAP3 ISP CCDC/0
-Setting up format Y12 640x512 on pad OMAP3 ISP CCDC/1
-
-3) yavta -p -f Y12 -s 640x512 -n 4 --capture=61 --skip 1 -F `media-ctl
--e "OMAP3 ISP CCDC output"` --file=./DCIM/Y12
-
-Unsupported video format 'Y12'
-
-Did I missed something?
-What parameters did you supplied to yavta to test the Y10/Y12
-
-Many thanks in adv.
-Sorry if duplicated emails received.
-
---
-Regards,
-James
