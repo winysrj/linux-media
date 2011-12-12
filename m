@@ -1,164 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42288 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752730Ab1L0Tn6 (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:41577 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753529Ab1LLRpF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 14:43:58 -0500
-Received: by mail-ee0-f46.google.com with SMTP id c4so11868452eek.19
-        for <linux-media@vger.kernel.org>; Tue, 27 Dec 2011 11:43:57 -0800 (PST)
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Mon, 12 Dec 2011 12:45:05 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LW300DC4QN3CU90@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:03 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW3001DSQN2FG@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:02 +0000 (GMT)
+Date: Mon, 12 Dec 2011 18:44:49 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 05/14] m5mols: Remove mode_save field from struct m5mols_info
+In-reply-to: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: [PATCH 4/4] gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-Date: Tue, 27 Dec 2011 20:43:31 +0100
-Message-Id: <1325015011-11904-5-git-send-email-snjw23@gmail.com>
-In-Reply-To: <1325015011-11904-1-git-send-email-snjw23@gmail.com>
-References: <4EBECD11.8090709@gmail.com>
- <1325015011-11904-1-git-send-email-snjw23@gmail.com>
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1323711898-17162-6-git-send-email-s.nawrocki@samsung.com>
+References: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The JPEG compression quality control is currently done by means of the
-VIDIOC_S/G_JPEGCOMP ioctls. As the quality field of struct v4l2_jpgecomp
-is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY control,
-so after the deprecation period VIDIOC_S/G_JPEGCOMP ioctl handlers can be
-removed, leaving the control the only user interface for compression
-quality configuration.
+There is no need to keep this in the drivers' private data structure,
+an on the stack variable is enough. Also simplify a bit the ISP state
+switching function.
 
-For completeness, the V4L2_CID_JPEG_ACTIVE_MARKER control should be also
-added.
-
-Cc: Jean-Francois Moine <moinejf@free.fr>
-Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+Acked-by: HeungJun Kim <riverful.kim@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/gspca/zc3xx.c |   54 +++++++++++++++++++++++++-----------
- 1 files changed, 37 insertions(+), 17 deletions(-)
+ drivers/media/video/m5mols/m5mols.h      |    2 --
+ drivers/media/video/m5mols/m5mols_core.c |   13 ++++++-------
+ 2 files changed, 6 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
-index f22e02f..019a93b 100644
---- a/drivers/media/video/gspca/zc3xx.c
-+++ b/drivers/media/video/gspca/zc3xx.c
-@@ -46,6 +46,7 @@ enum e_ctrl {
- 	AUTOGAIN,
- 	LIGHTFREQ,
- 	SHARPNESS,
-+	QUALITY,
- 	NCTRLS		/* number of controls */
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index 13da3f2..cf9701c 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -188,7 +188,6 @@ struct m5mols_version {
+  * @lock_awb: true means the Aut WhiteBalance is locked
+  * @resolution:	register value for current resolution
+  * @mode: register value for current operation mode
+- * @mode_save: register value for current operation mode for saving
+  * @set_power: optional power callback to the board code
+  */
+ struct m5mols_info {
+@@ -219,7 +218,6 @@ struct m5mols_info {
+ 	bool lock_awb;
+ 	u8 resolution;
+ 	u8 mode;
+-	u8 mode_save;
+ 	int (*set_power)(struct device *dev, int on);
  };
  
-@@ -57,11 +58,6 @@ struct sd {
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index a2b44ad..8ee5e81 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -369,13 +369,13 @@ int m5mols_mode(struct m5mols_info *info, u8 mode)
+ 		return ret;
  
- 	struct gspca_ctrl ctrls[NCTRLS];
+ 	ret = m5mols_read_u8(sd, SYSTEM_SYSMODE, &reg);
+-	if ((!ret && reg == mode) || ret)
++	if (ret || reg == mode)
+ 		return ret;
  
--	u8 quality;			/* image quality */
--#define QUALITY_MIN 50
--#define QUALITY_MAX 80
--#define QUALITY_DEF 70
+ 	switch (reg) {
+ 	case REG_PARAMETER:
+ 		ret = m5mols_reg_mode(sd, REG_MONITOR);
+-		if (!ret && mode == REG_MONITOR)
++		if (mode == REG_MONITOR)
+ 			break;
+ 		if (!ret)
+ 			ret = m5mols_reg_mode(sd, REG_CAPTURE);
+@@ -392,7 +392,7 @@ int m5mols_mode(struct m5mols_info *info, u8 mode)
+ 
+ 	case REG_CAPTURE:
+ 		ret = m5mols_reg_mode(sd, REG_MONITOR);
+-		if (!ret && mode == REG_MONITOR)
++		if (mode == REG_MONITOR)
+ 			break;
+ 		if (!ret)
+ 			ret = m5mols_reg_mode(sd, REG_PARAMETER);
+@@ -691,15 +691,14 @@ static int m5mols_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct m5mols_info *info = to_m5mols(sd);
+-	int ret;
 -
- 	u8 bridge;
- 	u8 sensor;		/* Type of image sensor chip */
- 	u16 chip_revision;
-@@ -101,6 +97,12 @@ static void setexposure(struct gspca_dev *gspca_dev);
- static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
- static void setlightfreq(struct gspca_dev *gspca_dev);
- static void setsharpness(struct gspca_dev *gspca_dev);
-+static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val);
-+
-+/* JPEG image quality */
-+#define QUALITY_MIN 50
-+#define QUALITY_MAX 80
-+#define QUALITY_DEF 70
+-	info->mode_save = info->mode;
++	int isp_state = info->mode;
++	int ret = 0;
  
- static const struct ctrl sd_ctrls[NCTRLS] = {
- [BRIGHTNESS] = {
-@@ -188,6 +190,18 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
- 	    },
- 	    .set_control = setsharpness
- 	},
-+[QUALITY] = {
-+	    {
-+		.id	 = V4L2_CID_JPEG_COMPRESSION_QUALITY,
-+		.type    = V4L2_CTRL_TYPE_INTEGER,
-+		.name    = "Compression Quality",
-+		.minimum = QUALITY_MIN,
-+		.maximum = QUALITY_MAX,
-+		.step    = 1,
-+		.default_value = QUALITY_DEF,
-+	    },
-+	    .set = sd_setquality
-+	},
- };
+ 	ret = m5mols_mode(info, REG_PARAMETER);
+ 	if (!ret)
+ 		ret = m5mols_set_ctrl(ctrl);
+ 	if (!ret)
+-		ret = m5mols_mode(info, info->mode_save);
++		ret = m5mols_mode(info, isp_state);
  
- static const struct v4l2_pix_format vga_mode[] = {
-@@ -6411,7 +6425,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	sd->sensor = id->driver_info;
- 
- 	gspca_dev->cam.ctrls = sd->ctrls;
--	sd->quality = QUALITY_DEF;
-+	sd->ctrls[QUALITY].val = QUALITY_DEF;
- 
- 	return 0;
+ 	return ret;
  }
-@@ -6685,7 +6699,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	/* create the JPEG header */
- 	jpeg_define(sd->jpeg_hdr, gspca_dev->height, gspca_dev->width,
- 			0x21);		/* JPEG 422 */
--	jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
- 
- 	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
- 	switch (sd->sensor) {
-@@ -6893,29 +6907,35 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
- 	return -EINVAL;
- }
- 
--static int sd_set_jcomp(struct gspca_dev *gspca_dev,
--			struct v4l2_jpegcompression *jcomp)
-+static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	if (jcomp->quality < QUALITY_MIN)
--		sd->quality = QUALITY_MIN;
--	else if (jcomp->quality > QUALITY_MAX)
--		sd->quality = QUALITY_MAX;
--	else
--		sd->quality = jcomp->quality;
-+	sd->ctrls[QUALITY].val = val;
-+
- 	if (gspca_dev->streaming)
--		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+		jpeg_set_qual(sd->jpeg_hdr, val);
-+
- 	return gspca_dev->usb_err;
- }
- 
-+static int sd_set_jcomp(struct gspca_dev *gspca_dev,
-+			struct v4l2_jpegcompression *jcomp)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	sd->ctrls[QUALITY].val = clamp_t(u8, jcomp->quality,
-+					QUALITY_MIN, QUALITY_MAX);
-+	return sd_setquality(gspca_dev, sd->ctrls[QUALITY].val);
-+}
-+
- static int sd_get_jcomp(struct gspca_dev *gspca_dev,
- 			struct v4l2_jpegcompression *jcomp)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	memset(jcomp, 0, sizeof *jcomp);
--	jcomp->quality = sd->quality;
-+	jcomp->quality = sd->ctrls[QUALITY].val;
- 	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
- 			| V4L2_JPEG_MARKER_DQT;
- 	return 0;
 -- 
-1.7.4.1
+1.7.8
 
