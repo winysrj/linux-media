@@ -1,84 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53043 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568Ab1LSKFY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 05:05:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-Date: Mon, 19 Dec 2011 11:05:25 +0100
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <201112190151.40165.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112190907220.23694@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1112190907220.23694@axis700.grange>
+Received: from gir.skynet.ie ([193.1.99.77]:33750 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751203Ab1LLQa4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 11:30:56 -0500
+Date: Mon, 12 Dec 2011 16:30:52 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 02/11] mm: compaction: introduce
+ isolate_{free,migrate}pages_range().
+Message-ID: <20111212163052.GK3277@csn.ul.ie>
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-3-git-send-email-m.szyprowski@samsung.com>
+ <20111212140728.GC3277@csn.ul.ie>
+ <op.v6dub1ms3l0zgt@mpn-glaptop>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112191105.25855.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <op.v6dub1ms3l0zgt@mpn-glaptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
-> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> > On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
-> > > On Fri, 16 Dec 2011, Scott Jiang wrote:
-> > > > >> How about this implementation? I know it's not for soc, but I post
-> > > > >> it to give my idea.
-> > > > >> Bridge knows the layout, so it doesn't need to query the
-> > > > >> subdevice.
-> > > > > 
-> > > > > Where from? AFAIU, we are talking here about subdevice inputs,
-> > > > > right? In this case about various inputs of the TV decoder. How
-> > > > > shall the bridge driver know about that?
-> > > > 
-> > > > I have asked this question before. Laurent reply me:
-> > > > > >> ENUMINPUT as defined by V4L2 enumerates input connectors
-> > > > > >> available on the board. Which inputs the board designer hooked
-> > > > > >> up is something that only the top-level V4L driver will know.
-> > > > > >> Subdevices do not have that information, so enuminputs is not
-> > > > > >> applicable there.
-> > > > > >> 
-> > > > > >> Of course, subdevices do have input pins and output pins, but
-> > > > > >> these are assumed to be fixed. With the s_routing ops the top
-> > > > > >> level driver selects which input and output pins are active.
-> > > > > >> Enumeration of those inputs and outputs wouldn't gain you
-> > > > > >> anything as far as I can tell since the subdevice simply does
-> > > > > >> not know which inputs/outputs are actually hooked up. It's the
-> > > > > >> top level driver that has that information (usually passed in
-> > > > > >> through board/card info structures).
-> > > 
-> > > Laurent, right, I now remember reading this discussion before. But I'm
-> > > not sure I completely agree:-) Yes, you're right - the board decides
-> > > which pins are routed to which connectors. And it has to provide this
-> > > information to the driver in its platform data. But - I think, this
-> > > information should be provided not to the bridge driver, but to
-> > > respective subdevice drivers, because only they know what exactly
-> > > those interfaces are good for and how to report them to the bridge or
-> > > the user, if we decide to also export this information over the
-> > > subdevice user-space API.
-> > > 
-> > > So, I would say, the board has to tell the subdevice driver: yes, your
-> > > inputs 0 and 1 are routed to external connectors. On input 1 I've put a
-> > > pullup, it is connected to connector of type X over a circuit Y,
-> > > clocked from your output Z, if the driver needs to know all that. And
-> > > the subdev driver will just tell the bridge only what that one needs
-> > > to know - number of inputs and their capabilities.
-> > 
-> > That sounds reasonable.
+On Mon, Dec 12, 2011 at 04:22:39PM +0100, Michal Nazarewicz wrote:
+> > <SNIP>
+> >
+> >>+		if (!pfn_valid_within(pfn))
+> >>+			goto skip;
+> >
+> >The flow of this function in general with gotos of skipped and next
+> >is confusing in comparison to the existing function. For example,
+> >if this PFN is not valid, and no freelist is provided, then we call
+> >__free_page() on a PFN that is known to be invalid.
+> >
+> >>+		++nr_scanned;
+> >>+
+> >>+		if (!PageBuddy(page)) {
+> >>+skip:
+> >>+			if (freelist)
+> >>+				goto next;
+> >>+			for (; start < pfn; ++start)
+> >>+				__free_page(pfn_to_page(pfn));
+> >>+			return 0;
+> >>+		}
+> >
+> >So if a PFN is valid and !PageBuddy and no freelist is provided, we
+> >call __free_page() on it regardless of reference count. That does not
+> >sound safe.
 > 
-> Good, this would mean, we need additional subdevice operations along the
-> lines of enum_input and enum_output, and maybe also g_input and g_output?
+> Sorry about that.  It's a bug in the code which was caught later on.  The
+> code should read ???__free_page(pfn_to_page(start))???.
+> 
 
-What about implementing pad support in the subdevice ? Input enumeration could 
-then be performed without a subdev operation.
+That will call free on valid PFNs but why is it safe to call
+__free_page() at all?  You say later that CMA requires that all
+pages in the range be valid but if the pages are in use, that does
+not mean that calling __free_page() is safe. I suspect you have not
+seen a problem because the pages in the range were free as expected
+and not in use because of MIGRATE_ISOLATE.
+
+> >> 		/* Found a free page, break it into order-0 pages */
+> >> 		isolated = split_free_page(page);
+> >> 		total_isolated += isolated;
+> >>-		for (i = 0; i < isolated; i++) {
+> >>-			list_add(&page->lru, freelist);
+> >>-			page++;
+> >>+		if (freelist) {
+> >>+			struct page *p = page;
+> >>+			for (i = isolated; i; --i, ++p)
+> >>+				list_add(&p->lru, freelist);
+> >> 		}
+> >>
+> >>-		/* If a page was split, advance to the end of it */
+> >>-		if (isolated) {
+> >>-			blockpfn += isolated - 1;
+> >>-			cursor += isolated - 1;
+> >>-		}
+> >>+next:
+> >>+		pfn += isolated;
+> >>+		page += isolated;
+> >
+> >The name isolated is now confusing because it can mean either
+> >pages isolated or pages scanned depending on context. Your patch
+> >appears to be doing a lot more than is necessary to convert
+> >isolate_freepages_block into isolate_freepages_range and at this point,
+> >it's unclear why you did that.
+> 
+> When CMA uses this function, it requires all pages in the range to be valid
+> and free. (Both conditions should be met but you never know.) 
+
+It seems racy but I guess you are depending on MIGRATE_ISOLATE to keep
+things sane which is fine. However, I strongly suspect that if there
+is a race and a page is in use, then you will need to retry the
+migration step. Calling __free_page does not look right because
+something still has a reference to the page.
+
+> This change
+> adds a second way isolate_freepages_range() works, which is when freelist is
+> not specified, abort on invalid or non-free page, but continue as usual if
+> freelist is provided.
+> 
+
+Ok, I think you should be able to do that by not calling split_free_page
+or adding to the list if !freelist with a comment explaining why the
+pages are left on the buddy lists for the caller to figure out. Bail if
+a page-in-use is found and have the caller check that the return value
+of isolate_freepages_block == end_pfn - start_pfn.
+
+> I can try and restructure this function a bit so that there are fewer ???gotos???,
+> but without the above change, CMA won't really be able to use it effectively
+> (it would have to provide a freelist and then validate if pages on it are
+> added in order).
+> 
+
+Please do and double check that __free_page logic too.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Mel Gorman
+SUSE Labs
