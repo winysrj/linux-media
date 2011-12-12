@@ -1,84 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43781 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab1LKXXu (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:55201 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752478Ab1LLMWA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 18:23:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [PATCH v2] media: vb2: vmalloc-based allocator user pointer handling
-Date: Mon, 12 Dec 2011 00:24:03 +0100
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-References: <1323275346-25824-1-git-send-email-m.szyprowski@samsung.com> <201112081156.02438.laurent.pinchart@ideasonboard.com> <4EE12F64.8000002@gmail.com>
-In-Reply-To: <4EE12F64.8000002@gmail.com>
+	Mon, 12 Dec 2011 07:22:00 -0500
+Message-ID: <4EE5F1E6.3060908@mlbassoc.com>
+Date: Mon, 12 Dec 2011 05:21:58 -0700
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112120024.04418.laurent.pinchart@ideasonboard.com>
+To: =?ISO-8859-1?Q?Robert_=C5kerblom-Andersson?= <robert.nr1@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: I2C and mt9p031 on Overo
+References: <CABiSWBhYe6QL41mCvDyrZekzn0YjG3F9Lx70Tix0j=Hzsy4rYw@mail.gmail.com>
+In-Reply-To: <CABiSWBhYe6QL41mCvDyrZekzn0YjG3F9Lx70Tix0j=Hzsy4rYw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 2011-12-11 13:25, Robert Åkerblom-Andersson wrote:
+> Hi, I trying to get the mt9p031 to work on the Overo board.
+>
+> So far I have it working in the Beagleboard xM, and now I have sort of
+> ported/used the same files to get it to work with Overo. My problem
+> now is that when I probe the camera board (LI-5M03 with an adapter
+> board in between providing extra voltage levels) it seams fine.
+>
+> OMAP3ISP loads without any bigger error but the mt9p031 driver can't
+> find the device, but it does not seam to be a driver problem rather a
+> board problem. I think this since I've been debugging with "i2cdetect
+> -y -r 3" to scan the bus for the camera. Most of the times I get
+> nothing, but a couple of times (out of hundreds or more, I used a
+> while loop with i2cdetect and then a sleep 1) it showed up with it's
+> address. I think it happens when I just inserted the board but I'm
+> sure or if I get it into some "weird" state just adding it. It could
+> be a contact error but I have a felling it is something else I have
+> missed. Some pin configuration or something that stops it from
+> working.
+>
+> Do you have any tips on how to debug further or on what might the my
+> problem? I have tried to lower the i2c speed to 100 KHz but it did not
+> seam to make any difference.
+>
 
-On Thursday 08 December 2011 22:43:00 Sylwester Nawrocki wrote:
-> Hi Laurent,
-> 
-> On 12/08/2011 11:56 AM, Laurent Pinchart wrote:
-> > On Wednesday 07 December 2011 17:29:06 Marek Szyprowski wrote:
-> >> From: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-> 
-> [...]
-> 
-> >> -	printk(KERN_DEBUG "Allocated vmalloc buffer of size %ld at
-> >> vaddr=%p\n", -			buf->size, buf->vaddr);
-> >> +	pr_err("Allocated vmalloc buffer of size %ld at vaddr=%p\n",
-> >> buf->size, +	       buf->vaddr);
-> > 
-> > Turning KERN_DEBUG into pr_err() is a bit harsh :-) In my opinion even
-> > KERN_DEBUG is too much here, I don't want to get messages printed to the
-> > kernel log every time I allocate buffers.
-> 
-> Indeed, pr_err looks like an overkill:) I think pr_debug() would be fine
-> here.
-> 
-> >>  	return buf;
-> >>  
-> >>  }
-> >> 
-> >> @@ -59,13 +63,87 @@ static void vb2_vmalloc_put(void *buf_priv)
-> >> 
-> >>  	struct vb2_vmalloc_buf *buf = buf_priv;
-> >>  	
-> >>  	if (atomic_dec_and_test(&buf->refcount)) {
-> >> 
-> >> -		printk(KERN_DEBUG "%s: Freeing vmalloc mem at vaddr=%p\n",
-> >> -			__func__, buf->vaddr);
-> >> +		pr_debug("%s: Freeing vmalloc mem at vaddr=%p\n", __func__,
-> >> +			 buf->vaddr);
-> > 
-> > Same here. Should we get rid of those two messages, or at least
-> > conditionally- compile them out of the kernel by default ?
-> 
-> During compilation pr_debug() will most likely be optimized away if DEBUG
-> and CONFIG_DYNAMIC_DEBUG isn't defined, as it is then defined as:
-> 
-> static inline __printf(1, 2)
-> int no_printk(const char *fmt, ...)
-> {
-> 	return 0;
-> }
-> 
-> Plus it's easy with pr_debug() to enable debug trace while dynamic printk()
-> is enabled in the kernel configuration.
+I too had problems with this device.  I have [yet another] different DM3750
+board which uses this sensor, so my experience is not exactly the same as
+yours on the Overo.  However, I found that I had to have a pretty substantial
+delay (500ms) between the time that the MT9P031 was taken out of reset (I have this
+on a GPIO pin) and when the I2C bus is scanned for the device (mt9p031_probe called).
 
-My bad. pr_debug() is fine.
+With the delay, the device is discovered and works great.  Without it, the
+device is never seen on the I2C bus.
 
 -- 
-Regards,
-
-Laurent Pinchart
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
