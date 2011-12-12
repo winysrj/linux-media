@@ -1,108 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752031Ab1LJEmP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:42:15 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:42:14 -0800 (PST)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:62477 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751373Ab1LLSIz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 13:08:55 -0500
+Received: by eaaj10 with SMTP id j10so783248eaa.19
+        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 10:08:53 -0800 (PST)
 MIME-Version: 1.0
-Date: Sat, 10 Dec 2011 10:12:14 +0530
-Message-ID: <CAHFNz9+B2+HEwj23JZaRdvLKfUP6+hXqpdwJQCNw6z2eJyK-GA@mail.gmail.com>
-Subject: v4 [PATCH 01/10] DVB: Query DVB frontend delivery capabilities
+In-Reply-To: <4EE62A60.2060505@redhat.com>
+References: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com>
+	<4EE350BF.1090402@redhat.com>
+	<CAHFNz9JUEBy5WPuGqKGWuTKYZ6D18GZh+4DEhhDu4+GBTV5R=w@mail.gmail.com>
+	<4EE5FF58.8060409@redhat.com>
+	<CAHFNz9K-5LCrqFvxFfJUaQX0sYRNgH26Q9eWgiMiWg4F3hGnmw@mail.gmail.com>
+	<4EE60814.80706@redhat.com>
+	<CAHFNz9JpbmejMabgnGWPa95jXA=uQZ7JbWVRsYBwUUhr1-6S0Q@mail.gmail.com>
+	<4EE62A60.2060505@redhat.com>
+Date: Mon, 12 Dec 2011 23:38:53 +0530
+Message-ID: <CAHFNz9J6p3dEBJPzA+qSD42cZgg+yskE7JYCuD8Y2mgP7gOJiw@mail.gmail.com>
+Subject: Re: v4 [PATCH 06/10] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
 From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=0016e6de038f896ae204b3b58646
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0016e6de038f896ae204b3b58646
-Content-Type: text/plain; charset=ISO-8859-1
+On Mon, Dec 12, 2011 at 9:52 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> On 12-12-2011 13:00, Manu Abraham wrote:
+>>
+>> On Mon, Dec 12, 2011 at 7:26 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com>  wrote:
+>>>
+>>> On 12-12-2011 11:40, Manu Abraham wrote:
+>>>>
+>>>>
+>>>> On Mon, Dec 12, 2011 at 6:49 PM, Mauro Carvalho Chehab
+>>>
+>>>
+>>>
+>>>>> This also means that just doing an alias from FE_QAM and
+>>>>> SYS_DVBC_ANNEX_AC
+>>>>> to
+>>>>> SYS_DVBC_ANNEX_A may break something, as, for most devices,
+>>>>> SYS_DVBC_ANNEX_AC
+>>>>> really means both Annex A and C.
+>>>>
+>>>>
+>>>>
+>>>>
+>>>>
+>>>> With the current approach, the application can determine whether
+>>>> the hardware supports through the DELSYS enumeration.
+>>>>
+>>>> So, if you have a device that needs to support both ANNEX_A and
+>>>> ANNEX_C, it should be rather doing
+>>>>
+>>>> case DTV_ENUM_DELSYS:
+>>>>          buffer.data[0] = SYS_DVBC_ANNEX_A;
+>>>>          buffer.data[1] = SYS_DVBC_ANNEX_C;
+>>>>          break;
+>>>
+>>>
+>>>
+>>> Sure, but we'll need a logic to handle queries for SYS_DVBC_ANNEX_AC
+>>> anyway, if any of the existing DVB-C drivers is currently prepared to
+>>> support both.
+>>>
+>>> I'm not concerned with drx-k. The support for both standards are for
+>>> kernel 3.3. So, no backward compatibility is needed here.
+>>>
+>>> While there is no explicit option, the code for stv0297, stv0367,
+>>> tda10021 and tda10023 drivers are not clear if they support both
+>>> (maybe roll-off might be auto-detected?) or just SYS_DVBC_ANNEX_A.
+>>>
+>>> That's said, the difference between a 0.15 and a 0.13 rolloff is not big.
+>>> I won't doubt that a demod set to 0.15 rolloff would be capable of
+>>> working
+>>> (non-optimized) with a 0.13 rolloff.
+>>>
+>>> What I'm saing is that, if any of the existing drivers currently works
+>>> with both Annex A and Annex C, we'll need something equivalent to:
+>>>
+>>> if (delsys == SYS_DVBC_ANNEX_AC) {
+>>>        int ret = try_annex_a();
+>>>        if (ret<  0)
+>>>                ret = try_annex_c();
+>>> }
+>>>
+>>> For FE_SET_FRONTEND (and the corresponding v5 logic), in order to avoid
+>>> regressions.
+>>
+>>
+>>
+>> What I was implying:
+>>
+>> set_frontend/search()
+>> {
+>>      case SYS_DVBC_ANNEX_A:
+>>               // do whatever you need to do for annex A tuning and return
+>>               break;
+>>      case SYS_DVBC_ANNEX_C:
+>>               // do whatever you need to do for annex C tuning and return
+>>               break;
+>> }
+>>
+>>
+>> ANNEX_AC is a link to ANNEX_A;
+>
+>
+> Yes, I saw your approach.
+>
+>
+>> We never had any ? users to ANNEX_C, so
+>> that issue might be simple to ignore.
+>
+>
+> This is hard to say. What I'm saying is that, if any of the current
+> drivers works as-is with Annex C, we should assume that someone is using,
+> as we don't have any evidence otherwise.
+>
+> I'm sure there are lots of people running Linux in Japan.
+>
+> How many of them are using the DVB subsystem is hard to say. The low message
+> traffic at the ML for people *.jp is not a good measure, as due to language
+> barriers, people may not be posting things there.
+>
+> A quick grep here on my local copy of the ML traffic (it currently has
+> stored
+> about 380 days of email, as I moved the older ones to a separate storage
+> space)
+> still shows 90 messages that has ".jp" inside:
+>
+> $ grep -l "\.jp" * |wc -l
+>     90
+>
+> 41 of them has the word DVB inside. Ok, there are some false positives there
+> too (due to *.jpg), but there are some valid hits also,
+>
+> Including a commit on this changeset:
+> e38030f3ff02684eb9e25e983a03ad318a10a2ea.
+> As the cx23885 driver does support DVB-C with stv0367, maybe the committer
+> might be using it for DVB-C.
+>
+> Even if not, I suspect that it is likely to have some DVB-C Annex C users
+> out there.
 
 
+As far as I am aware, most of the services use BCAS2 encryption. There
+is no BCAS2 support available as Open Source, other than with sundtek.
 
---0016e6de038f896ae204b3b58646
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0001-DVB-Query-DVB-frontend-delivery-capabilities.patch"
-Content-Disposition: attachment;
-	filename="0001-DVB-Query-DVB-frontend-delivery-capabilities.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
 
-RnJvbSAzMzA4Nzk4NDFjMWZiOTAxODI5ODZkOWM1ZWRiMmFlNGU3MmJhMmM3IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IE1vbiwgMTQgTm92IDIwMTEgMDM6MTc6NDQgKzA1MzAKU3ViamVjdDogW1BBVENIIDAx
-LzEwXSBEVkI6IFF1ZXJ5IERWQiBmcm9udGVuZCBkZWxpdmVyeSBjYXBhYmlsaXRpZXMuCgogQ3Vy
-cmVudGx5LCBmb3IgYW55IG11bHRpLXN0YW5kYXJkIGZyb250ZW5kIGl0IGlzIGFzc3VtZWQgdGhh
-dCBpdCBqdXN0CiBoYXMgYSBzaW5nbGUgc3RhbmRhcmQgY2FwYWJpbGl0eS4gVGhpcyBpcyBmaW5l
-IGluIHNvbWUgY2FzZXMsIGJ1dAogbWFrZXMgdGhpbmdzIGhhcmQgd2hlbiB0aGVyZSBhcmUgaW5j
-b21wYXRpYmxlIHN0YW5kYXJkcyBpbiBjb25qdWN0aW9uLgogRWc6IERWQi1TIGNhbiBiZSBzZWVu
-IGFzIGEgc3Vic2V0IG9mIERWQi1TMiwgYnV0IHRoZSBzYW1lIGRvZXNuJ3QgaG9sZAogdGhlIHNh
-bWUgZm9yIERTUy4gVGhpcyBpcyBub3Qgc3BlY2lmaWMgdG8gYW55IGRyaXZlciBhcyBpdCBpcywg
-YnV0IGEKIGdlbmVyaWMgaXNzdWUuIFRoaXMgd2FzIGhhbmRsZWQgY29ycmVjdGx5IGluIHRoZSBt
-dWx0aXByb3RvIHRyZWUsCiB3aGlsZSBzdWNoIGZ1bmN0aW9uYWxpdHkgaXMgbWlzc2luZyBmcm9t
-IHRoZSB2NSBBUEkgdXBkYXRlLgoKIGh0dHA6Ly93d3cubGludXh0di5vcmcvcGlwZXJtYWlsL3Zk
-ci8yMDA4LU5vdmVtYmVyLzAxODQxNy5odG1sCgogTGF0ZXIgb24gYSBGRV9DQU5fMkdfTU9EVUxB
-VElPTiB3YXMgYWRkZWQgYXMgYSBoYWNrIHRvIHdvcmthcm91bmQgdGhpcwogaXNzdWUgaW4gdGhl
-IHY1IEFQSSwgYnV0IHRoYXQgaGFjayBpcyBpbmNhcGFibGUgb2YgYWRkcmVzc2luZyB0aGUKIGlz
-c3VlLCBhcyBpdCBjYW4gYmUgdXNlZCB0byBzaW1wbHkgZGlzdGluZ3Vpc2ggYmV0d2VlbiBEVkIt
-UyBhbmQKIERWQi1TMiBhbG9uZSwgb3IgYW5vdGhlciBYIHZzIFgyIG1vZHVsYXRpb24uIElmIHRo
-ZXJlIGFyZSBtb3JlIHN5c3RlbXMsCiB0aGVuIHlvdSBoYXZlIGEgcG90ZW50aWFsIGlzc3VlLgoK
-IEFuIGFwcGxpY2F0aW9uIG5lZWRzIHRvIHF1ZXJ5IHRoZSBkZXZpY2UgY2FwYWJpbGl0aWVzIGJl
-Zm9yZSByZXF1ZXN0aW5nCiBhbnkgb3BlcmF0aW9uIGZyb20gdGhlIGRldmljZS4KClNpZ25lZC1v
-ZmYtYnk6IE1hbnUgQWJyYWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KCkFja2VkLWJ5OiBB
-bmRyZWFzIE9iZXJyaXR0ZXIgPG9iaUBsaW51eHR2Lm9yZz4KQWNrZWQtYnk6IE9saXZlciBFbmRy
-aXNzIDxvLmVuZHJpc3NAZ214LmRlPgotLS0KIGRyaXZlcnMvbWVkaWEvZHZiL2R2Yi1jb3JlL2R2
-Yl9mcm9udGVuZC5jIHwgICAzNiArKysrKysrKysrKysrKysrKysrKysrKysrKysrKwogaW5jbHVk
-ZS9saW51eC9kdmIvZnJvbnRlbmQuaCAgICAgICAgICAgICAgfCAgICA0ICsrLQogaW5jbHVkZS9s
-aW51eC9kdmIvdmVyc2lvbi5oICAgICAgICAgICAgICAgfCAgICAyICstCiAzIGZpbGVzIGNoYW5n
-ZWQsIDQwIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVy
-cy9tZWRpYS9kdmIvZHZiLWNvcmUvZHZiX2Zyb250ZW5kLmMgYi9kcml2ZXJzL21lZGlhL2R2Yi9k
-dmItY29yZS9kdmJfZnJvbnRlbmQuYwppbmRleCAyYzBhY2RiLi4xMzY4ZDhjIDEwMDY0NAotLS0g
-YS9kcml2ZXJzL21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYworKysgYi9kcml2ZXJz
-L21lZGlhL2R2Yi9kdmItY29yZS9kdmJfZnJvbnRlbmQuYwpAQCAtOTczLDYgKzk3Myw4IEBAIHN0
-YXRpYyBzdHJ1Y3QgZHR2X2NtZHNfaCBkdHZfY21kc1tEVFZfTUFYX0NPTU1BTkQgKyAxXSA9IHsK
-IAlfRFRWX0NNRChEVFZfR1VBUkRfSU5URVJWQUwsIDAsIDApLAogCV9EVFZfQ01EKERUVl9UUkFO
-U01JU1NJT05fTU9ERSwgMCwgMCksCiAJX0RUVl9DTUQoRFRWX0hJRVJBUkNIWSwgMCwgMCksCisK
-KwlfRFRWX0NNRChEVFZfRU5VTV9ERUxTWVMsIDAsIDApLAogfTsKIAogc3RhdGljIHZvaWQgZHR2
-X3Byb3BlcnR5X2R1bXAoc3RydWN0IGR0dl9wcm9wZXJ0eSAqdHZwKQpAQCAtMTIwNyw2ICsxMjA5
-LDM3IEBAIHN0YXRpYyBpbnQgZHZiX2Zyb250ZW5kX2lvY3RsX2xlZ2FjeShzdHJ1Y3QgZmlsZSAq
-ZmlsZSwKIHN0YXRpYyBpbnQgZHZiX2Zyb250ZW5kX2lvY3RsX3Byb3BlcnRpZXMoc3RydWN0IGZp
-bGUgKmZpbGUsCiAJCQl1bnNpZ25lZCBpbnQgY21kLCB2b2lkICpwYXJnKTsKIAorc3RhdGljIHZv
-aWQgZHR2X3NldF9kZWZhdWx0X2RlbGl2ZXJ5X2NhcHMoY29uc3Qgc3RydWN0IGR2Yl9mcm9udGVu
-ZCAqZmUsIHN0cnVjdCBkdHZfcHJvcGVydHkgKnApCit7CisJY29uc3Qgc3RydWN0IGR2Yl9mcm9u
-dGVuZF9pbmZvICppbmZvID0gJmZlLT5vcHMuaW5mbzsKKwl1MzIgbmNhcHMgPSAwOworCisJc3dp
-dGNoIChpbmZvLT50eXBlKSB7CisJY2FzZSBGRV9RUFNLOgorCQlwLT51LmJ1ZmZlci5kYXRhW25j
-YXBzKytdID0gU1lTX0RWQlM7CisJCWlmIChpbmZvLT5jYXBzICYgRkVfQ0FOXzJHX01PRFVMQVRJ
-T04pCisJCQlwLT51LmJ1ZmZlci5kYXRhW25jYXBzKytdID0gU1lTX0RWQlMyOworCQlpZiAoaW5m
-by0+Y2FwcyAmIEZFX0NBTl9UVVJCT19GRUMpCisJCQlwLT51LmJ1ZmZlci5kYXRhW25jYXBzKytd
-ID0gU1lTX1RVUkJPOworCQlicmVhazsKKwljYXNlIEZFX1FBTToKKwkJcC0+dS5idWZmZXIuZGF0
-YVtuY2FwcysrXSA9IFNZU19EVkJDX0FOTkVYX0FDOworCQlicmVhazsKKwljYXNlIEZFX09GRE06
-CisJCXAtPnUuYnVmZmVyLmRhdGFbbmNhcHMrK10gPSBTWVNfRFZCVDsKKwkJaWYgKGluZm8tPmNh
-cHMgJiBGRV9DQU5fMkdfTU9EVUxBVElPTikKKwkJCXAtPnUuYnVmZmVyLmRhdGFbbmNhcHMrK10g
-PSBTWVNfRFZCVDI7CisJCWJyZWFrOworCWNhc2UgRkVfQVRTQzoKKwkJaWYgKGluZm8tPmNhcHMg
-JiAoRkVfQ0FOXzhWU0IgfCBGRV9DQU5fMTZWU0IpKQorCQkJcC0+dS5idWZmZXIuZGF0YVtuY2Fw
-cysrXSA9IFNZU19BVFNDOworCQlpZiAoaW5mby0+Y2FwcyAmIChGRV9DQU5fUUFNXzE2IHwgRkVf
-Q0FOX1FBTV82NCB8IEZFX0NBTl9RQU1fMTI4IHwgRkVfQ0FOX1FBTV8yNTYpKQorCQkJcC0+dS5i
-dWZmZXIuZGF0YVtuY2FwcysrXSA9IFNZU19EVkJDX0FOTkVYX0I7CisJCWJyZWFrOworCX0KKwlw
-LT51LmJ1ZmZlci5sZW4gPSBuY2FwczsKK30KKwogc3RhdGljIGludCBkdHZfcHJvcGVydHlfcHJv
-Y2Vzc19nZXQoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsCiAJCQkJICAgIHN0cnVjdCBkdHZfcHJv
-cGVydHkgKnR2cCwKIAkJCQkgICAgc3RydWN0IGZpbGUgKmZpbGUpCkBAIC0xMjI3LDYgKzEyNjAs
-OSBAQCBzdGF0aWMgaW50IGR0dl9wcm9wZXJ0eV9wcm9jZXNzX2dldChzdHJ1Y3QgZHZiX2Zyb250
-ZW5kICpmZSwKIAl9CiAKIAlzd2l0Y2godHZwLT5jbWQpIHsKKwljYXNlIERUVl9FTlVNX0RFTFNZ
-UzoKKwkJZHR2X3NldF9kZWZhdWx0X2RlbGl2ZXJ5X2NhcHMoZmUsIHR2cCk7CisJCWJyZWFrOwog
-CWNhc2UgRFRWX0ZSRVFVRU5DWToKIAkJdHZwLT51LmRhdGEgPSBjLT5mcmVxdWVuY3k7CiAJCWJy
-ZWFrOwpkaWZmIC0tZ2l0IGEvaW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQuaCBiL2luY2x1ZGUv
-bGludXgvZHZiL2Zyb250ZW5kLmgKaW5kZXggMWIxMDk0Yy4uZjgwYjg2MyAxMDA2NDQKLS0tIGEv
-aW5jbHVkZS9saW51eC9kdmIvZnJvbnRlbmQuaAorKysgYi9pbmNsdWRlL2xpbnV4L2R2Yi9mcm9u
-dGVuZC5oCkBAIC0zMTYsNyArMzE2LDkgQEAgc3RydWN0IGR2Yl9mcm9udGVuZF9ldmVudCB7CiAK
-ICNkZWZpbmUgRFRWX0RWQlQyX1BMUF9JRAk0MwogCi0jZGVmaW5lIERUVl9NQVhfQ09NTUFORAkJ
-CQlEVFZfRFZCVDJfUExQX0lECisjZGVmaW5lIERUVl9FTlVNX0RFTFNZUwkJNDQKKworI2RlZmlu
-ZSBEVFZfTUFYX0NPTU1BTkQJCQkJRFRWX0VOVU1fREVMU1lTCiAKIHR5cGVkZWYgZW51bSBmZV9w
-aWxvdCB7CiAJUElMT1RfT04sCmRpZmYgLS1naXQgYS9pbmNsdWRlL2xpbnV4L2R2Yi92ZXJzaW9u
-LmggYi9pbmNsdWRlL2xpbnV4L2R2Yi92ZXJzaW9uLmgKaW5kZXggNjY1OTRiMS4uMDU1OWUyYiAx
-MDA2NDQKLS0tIGEvaW5jbHVkZS9saW51eC9kdmIvdmVyc2lvbi5oCisrKyBiL2luY2x1ZGUvbGlu
-dXgvZHZiL3ZlcnNpb24uaApAQCAtMjQsNiArMjQsNiBAQAogI2RlZmluZSBfRFZCVkVSU0lPTl9I
-XwogCiAjZGVmaW5lIERWQl9BUElfVkVSU0lPTiA1Ci0jZGVmaW5lIERWQl9BUElfVkVSU0lPTl9N
-SU5PUiA0CisjZGVmaW5lIERWQl9BUElfVkVSU0lPTl9NSU5PUiA1CiAKICNlbmRpZiAvKl9EVkJW
-RVJTSU9OX0hfKi8KLS0gCjEuNy4xCgo=
---0016e6de038f896ae204b3b58646--
+Regards,
+Manu
