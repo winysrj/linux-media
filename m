@@ -1,45 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:54062 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752760Ab1LAAPP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 19:15:15 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	<sakari.ailus@iki.fi>, Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH v2 02/11] mfd: twl6040: Fix wrong TWL6040_GPO3 bitfield value
-Date: Wed, 30 Nov 2011 18:14:51 -0600
-Message-ID: <1322698500-29924-3-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37938 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751423Ab1LLK6s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 05:58:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kamil Debski <k.debski@samsung.com>
+Subject: Re: [RFC] Resolution change support in video codecs in v4l2
+Date: Mon, 12 Dec 2011 11:59:02 +0100
+Cc: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
+	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	"'Sebastian =?iso-8859-1?q?Dr=F6ge=27?="
+	<sebastian.droege@collabora.co.uk>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01> <20111206143538.GD938@valkosipuli.localdomain> <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
+In-Reply-To: <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112121159.03471.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The define should be the result of 1 << Bit number.
+Hi Kamil,
 
-Bit number for GPOCTL.GPO3 field is 2, which results
-in 0x4 value.
+On Tuesday 06 December 2011 16:03:33 Kamil Debski wrote:
+> On 06 December 2011 15:36 Sakari Ailus wrote:
+> > On Fri, Dec 02, 2011 at 02:50:17PM -0200, Mauro Carvalho Chehab wrote:
+> > > On 02-12-2011 11:57, Sakari Ailus wrote:
+> > > > Some codecs need to be able to access buffers which have already been
+> > > > decoded to decode more buffers. Key frames, simply.
+> > > 
+> > > Ok, but let's not add unneeded things at the API if you're not sure. If
+> > > we have such need for a given hardware, then add it. Otherwise, keep it
+> > > simple.
+> >
+> > This is not so much dependent on hardware but on the standards which the
+> > cdoecs implement.
+> > 
+> > > > The user space still wants to be able to show these buffers, so a new
+> > > > flag would likely be required --- V4L2_BUF_FLAG_READ_ONLY, for
+> > > > example.
+> > > 
+> > > Huh? Assuming a capture device, when kernel makes a buffer available to
+> > > userspace, kernel should not touch on it anymore (not even for read -
+> > > although reading from it probably won't cause any issues, as video
+> > > applications in general don't write into those buffers). The opposite is
+> > > true for output devices: once userspace fills it, and queues, it should
+> > > not touch that buffer again.
+> > > 
+> > > This is part of the queue/dequeue logic. I can't see any need for an
+> > > extra flag to explicitly say that.
+> > 
+> > There is a reason to do so. An example of this is below. The
+> > memory-to-memory device has two queues, output can capture. A video
+> > decoder memory-to-memory device's output queue handles compressed video
+> > and the capture queue provides the application decoded frames.
+> > 
+> > Certain frames in the stream are key frames, meaning that the decoding of
+> > the following non-key frames requires access to the key frame. The number
+> > of non-key frame can be relatively large, say 16, depending on the
+> > codec.
+> > 
+> > If the user should wait for all the frames to be decoded before the key
+> > frame can be shown, then either the key frame is to be skipped or
+> > delayed. Both of the options are highly undesirable.
+> 
+> I don't think that such a delay is worrisome. This is only initial delay.
+> The hw will process these N buffers and after that it works exactly the
+> same as it would without the delay in terms of processing time.
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- include/linux/mfd/twl6040.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+For offline video decoding (such as playing a movie for instance) that's 
+probably not a big issue. For online video decoding (video conferencing) where 
+you want to minimize latency it can be.
 
-diff --git a/include/linux/mfd/twl6040.h b/include/linux/mfd/twl6040.h
-index 2463c261..2a7ff16 100644
---- a/include/linux/mfd/twl6040.h
-+++ b/include/linux/mfd/twl6040.h
-@@ -142,7 +142,7 @@
- 
- #define TWL6040_GPO1			0x01
- #define TWL6040_GPO2			0x02
--#define TWL6040_GPO3			0x03
-+#define TWL6040_GPO3			0x04
- 
- /* ACCCTL (0x2D) fields */
- 
+> > Alternatively one could allocate the double number of buffers required.
+> > At 1080p and 16 buffers this could be roughly 66 MB. Additionally,
+> > starting the playback is delayed for the duration for the decoding of
+> > those frames. I think we should not force users to do so.
+> 
+> I really don't think it is necessary to allocate twice as many buffers.
+> Assuming that hw needs K buffers you may alloc N (= K + L) and the
+> application may use all these L buffers at a time.
+
 -- 
-1.7.7.4
+Regards,
 
+Laurent Pinchart
