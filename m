@@ -1,589 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:41507 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753149Ab1LBI7G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Dec 2011 03:59:06 -0500
-From: Sumit Semwal <sumit.semwal@ti.com>
-To: <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
-	<linaro-mm-sig@lists.linaro.org>,
-	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>
-CC: <linux@arm.linux.org.uk>, <arnd@arndb.de>,
-	<jesse.barker@linaro.org>, <m.szyprowski@samsung.com>,
-	<rob@ti.com>, <daniel@ffwll.ch>, <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
-Date: Fri, 2 Dec 2011 14:27:31 +0530
-Message-ID: <1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
-In-Reply-To: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:54571 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753491Ab1LLRpF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 12:45:05 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LW3000ENQN28X@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:02 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW3008SWQN2IN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:02 +0000 (GMT)
+Date: Mon, 12 Dec 2011 18:44:48 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 04/14] m5mols: Improve the interrupt handling routines
+In-reply-to: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1323711898-17162-5-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the first step in defining a dma buffer sharing mechanism.
+From: HeungJun Kim <riverful.kim@samsung.com>
 
-A new buffer object dma_buf is added, with operations and API to allow easy
-sharing of this buffer object across devices.
+The work struct based interrupt handling is not flexible enough
+as the M-5MOLS control sequence involves I2C access sequences
+before and after an interrupt is generated. A single waitqueue is
+enough for the job so remove the work struct based code.
 
-The framework allows:
-- different devices to 'attach' themselves to this buffer, to facilitate
-  backing storage negotiation, using dma_buf_attach() API.
-- association of a file pointer with each user-buffer and associated
-   allocator-defined operations on that buffer. This operation is called the
-   'export' operation.
-- this exported buffer-object to be shared with the other entity by asking for
-   its 'file-descriptor (fd)', and sharing the fd across.
-- a received fd to get the buffer object back, where it can be accessed using
-   the associated exporter-defined operations.
-- the exporter and user to share the scatterlist using map_dma_buf and
-   unmap_dma_buf operations.
-
-Atleast one 'attach()' call is required to be made prior to calling the
-map_dma_buf() operation.
-
-Couple of building blocks in map_dma_buf() are added to ease introduction
-of sync'ing across exporter and users, and late allocation by the exporter.
-
-*OPTIONALLY*: mmap() file operation is provided for the associated 'fd', as
-wrapper over the optional allocator defined mmap(), to be used by devices
-that might need one.
-
-More details are there in the documentation patch.
-
-This is based on design suggestions from many people at the mini-summits[1],
-most notably from Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
-Daniel Vetter <daniel@ffwll.ch>.
-
-The implementation is inspired from proof-of-concept patch-set from
-Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer sharing
-between two v4l2 devices. [2]
-
-[1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
-[2]: http://lwn.net/Articles/454389
-
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Signed-off-by: HeungJun Kim <riverful.kim@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/base/Kconfig    |   10 ++
- drivers/base/Makefile   |    1 +
- drivers/base/dma-buf.c  |  290 +++++++++++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h |  176 ++++++++++++++++++++++++++++
- 4 files changed, 477 insertions(+), 0 deletions(-)
- create mode 100644 drivers/base/dma-buf.c
- create mode 100644 include/linux/dma-buf.h
+ drivers/media/video/m5mols/m5mols.h         |    9 +---
+ drivers/media/video/m5mols/m5mols_capture.c |   34 ++--------------
+ drivers/media/video/m5mols/m5mols_core.c    |   56 +++++++++------------------
+ 3 files changed, 25 insertions(+), 74 deletions(-)
 
-diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
-index 21cf46f..07d8095 100644
---- a/drivers/base/Kconfig
-+++ b/drivers/base/Kconfig
-@@ -174,4 +174,14 @@ config SYS_HYPERVISOR
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index 2461a44..13da3f2 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -171,7 +171,6 @@ struct m5mols_version {
+  * @ffmt: current fmt according to resolution type
+  * @res_type: current resolution type
+  * @irq_waitq: waitqueue for the capture
+- * @work_irq: workqueue for the IRQ
+  * @flags: state variable for the interrupt handler
+  * @handle: control handler
+  * @autoexposure: Auto Exposure control
+@@ -188,7 +187,6 @@ struct m5mols_version {
+  * @lock_ae: true means the Auto Exposure is locked
+  * @lock_awb: true means the Aut WhiteBalance is locked
+  * @resolution:	register value for current resolution
+- * @interrupt: register value for current interrupt status
+  * @mode: register value for current operation mode
+  * @mode_save: register value for current operation mode for saving
+  * @set_power: optional power callback to the board code
+@@ -200,8 +198,7 @@ struct m5mols_info {
+ 	struct v4l2_mbus_framefmt ffmt[M5MOLS_RESTYPE_MAX];
+ 	int res_type;
+ 	wait_queue_head_t irq_waitq;
+-	struct work_struct work_irq;
+-	unsigned long flags;
++	atomic_t irq_done;
  
- source "drivers/base/regmap/Kconfig"
+ 	struct v4l2_ctrl_handler handle;
+ 	/* Autoexposure/exposure control cluster */
+@@ -221,14 +218,11 @@ struct m5mols_info {
+ 	bool lock_ae;
+ 	bool lock_awb;
+ 	u8 resolution;
+-	u8 interrupt;
+ 	u8 mode;
+ 	u8 mode_save;
+ 	int (*set_power)(struct device *dev, int on);
+ };
  
-+config DMA_SHARED_BUFFER
-+	bool "Buffer framework to be shared between drivers"
-+	default n
-+	depends on ANON_INODES
-+	help
-+	  This option enables the framework for buffer-sharing between
-+	  multiple drivers. A buffer is associated with a file using driver
-+	  APIs extension; the file's descriptor can then be passed on to other
-+	  driver.
-+
- endmenu
-diff --git a/drivers/base/Makefile b/drivers/base/Makefile
-index 99a375a..d0df046 100644
---- a/drivers/base/Makefile
-+++ b/drivers/base/Makefile
-@@ -8,6 +8,7 @@ obj-$(CONFIG_DEVTMPFS)	+= devtmpfs.o
- obj-y			+= power/
- obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
- obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
-+obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o
- obj-$(CONFIG_ISA)	+= isa.o
- obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
- obj-$(CONFIG_NUMA)	+= node.o
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-new file mode 100644
-index 0000000..4b9005e
---- /dev/null
-+++ b/drivers/base/dma-buf.c
-@@ -0,0 +1,290 @@
-+/*
-+ * Framework for buffer objects that can be shared across devices/subsystems.
-+ *
-+ * Copyright(C) 2011 Linaro Limited. All rights reserved.
-+ * Author: Sumit Semwal <sumit.semwal@ti.com>
-+ *
-+ * Many thanks to linaro-mm-sig list, and specially
-+ * Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
-+ * Daniel Vetter <daniel@ffwll.ch> for their support in creation and
-+ * refining of this idea.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+
-+#include <linux/fs.h>
-+#include <linux/slab.h>
-+#include <linux/dma-buf.h>
-+#include <linux/anon_inodes.h>
-+#include <linux/export.h>
-+
-+static inline int is_dma_buf_file(struct file *);
-+
-+static int dma_buf_mmap(struct file *file, struct vm_area_struct *vma)
+-#define ST_CAPT_IRQ 0
+-
+ #define is_powered(__info) (__info->power)
+ #define is_ctrl_synced(__info) (__info->ctrl_sync)
+ #define is_available_af(__info)	(__info->ver.af)
+@@ -295,6 +289,7 @@ int m5mols_busy_wait(struct v4l2_subdev *sd, u32 reg, u32 value, u32 mask,
+ int m5mols_mode(struct m5mols_info *info, u8 mode);
+ 
+ int m5mols_enable_interrupt(struct v4l2_subdev *sd, u8 reg);
++int m5mols_wait_interrupt(struct v4l2_subdev *sd, u8 condition, u32 timeout);
+ int m5mols_sync_controls(struct m5mols_info *info);
+ int m5mols_start_capture(struct m5mols_info *info);
+ int m5mols_do_scenemode(struct m5mols_info *info, u8 mode);
+diff --git a/drivers/media/video/m5mols/m5mols_capture.c b/drivers/media/video/m5mols/m5mols_capture.c
+index c8da22f..6409c3f 100644
+--- a/drivers/media/video/m5mols/m5mols_capture.c
++++ b/drivers/media/video/m5mols/m5mols_capture.c
+@@ -29,22 +29,6 @@
+ #include "m5mols.h"
+ #include "m5mols_reg.h"
+ 
+-static int m5mols_capture_error_handler(struct m5mols_info *info,
+-					int timeout)
+-{
+-	int ret;
+-
+-	/* Disable all interrupts and clear relevant interrupt staus bits */
+-	ret = m5mols_write(&info->sd, SYSTEM_INT_ENABLE,
+-			   info->interrupt & ~(REG_INT_CAPTURE));
+-	if (ret)
+-		return ret;
+-
+-	if (timeout == 0)
+-		return -ETIMEDOUT;
+-
+-	return 0;
+-}
+ /**
+  * m5mols_read_rational - I2C read of a rational number
+  *
+@@ -122,7 +106,6 @@ int m5mols_start_capture(struct m5mols_info *info)
+ 	struct v4l2_mbus_framefmt *mf = &info->ffmt[info->res_type];
+ 	struct v4l2_subdev *sd = &info->sd;
+ 	u8 resolution = info->resolution;
+-	int timeout;
+ 	int ret;
+ 
+ 	/*
+@@ -143,14 +126,9 @@ int m5mols_start_capture(struct m5mols_info *info)
+ 		ret = m5mols_enable_interrupt(sd, REG_INT_CAPTURE);
+ 	if (!ret)
+ 		ret = m5mols_mode(info, REG_CAPTURE);
+-	if (!ret) {
++	if (!ret)
+ 		/* Wait for capture interrupt, after changing capture mode */
+-		timeout = wait_event_interruptible_timeout(info->irq_waitq,
+-					   test_bit(ST_CAPT_IRQ, &info->flags),
+-					   msecs_to_jiffies(2000));
+-		if (test_and_clear_bit(ST_CAPT_IRQ, &info->flags))
+-			ret = m5mols_capture_error_handler(info, timeout);
+-	}
++		ret = m5mols_wait_interrupt(sd, REG_INT_CAPTURE, 2000);
+ 	if (!ret)
+ 		ret = m5mols_lock_3a(info, false);
+ 	if (ret)
+@@ -179,15 +157,13 @@ int m5mols_start_capture(struct m5mols_info *info)
+ 		ret = m5mols_write(sd, CAPC_START, REG_CAP_START_MAIN);
+ 	if (!ret) {
+ 		/* Wait for the capture completion interrupt */
+-		timeout = wait_event_interruptible_timeout(info->irq_waitq,
+-					   test_bit(ST_CAPT_IRQ, &info->flags),
+-					   msecs_to_jiffies(2000));
+-		if (test_and_clear_bit(ST_CAPT_IRQ, &info->flags)) {
++		ret = m5mols_wait_interrupt(sd, REG_INT_CAPTURE, 2000);
++		if (!ret) {
+ 			ret = m5mols_capture_info(info);
+ 			if (!ret)
+ 				v4l2_subdev_notify(sd, 0, &info->cap.total);
+ 		}
+ 	}
+ 
+-	return m5mols_capture_error_handler(info, timeout);
++	return ret;
+ }
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index a1302dc..a2b44ad 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -323,6 +323,19 @@ int m5mols_enable_interrupt(struct v4l2_subdev *sd, u8 reg)
+ 	return ret;
+ }
+ 
++int m5mols_wait_interrupt(struct v4l2_subdev *sd, u8 irq_mask, u32 timeout)
 +{
-+	struct dma_buf *dmabuf;
++	struct m5mols_info *info = to_m5mols(sd);
 +
-+	if (!is_dma_buf_file(file))
-+		return -EINVAL;
++	int ret = wait_event_interruptible_timeout(info->irq_waitq,
++				atomic_add_unless(&info->irq_done, -1, 0),
++				msecs_to_jiffies(timeout));
++	if (ret <= 0)
++		return ret ? ret : -ETIMEDOUT;
 +
-+	dmabuf = file->private_data;
-+
-+	if (!dmabuf->ops->mmap)
-+		return -EINVAL;
-+
-+	return dmabuf->ops->mmap(dmabuf, vma);
++	return m5mols_busy_wait(sd, SYSTEM_INT_FACTOR, irq_mask, irq_mask, -1);
 +}
 +
-+static int dma_buf_release(struct inode *inode, struct file *file)
-+{
-+	struct dma_buf *dmabuf;
-+
-+	if (!is_dma_buf_file(file))
-+		return -EINVAL;
-+
-+	dmabuf = file->private_data;
-+
-+	dmabuf->ops->release(dmabuf);
-+	kfree(dmabuf);
-+	return 0;
-+}
-+
-+static const struct file_operations dma_buf_fops = {
-+	.mmap		= dma_buf_mmap,
-+	.release	= dma_buf_release,
-+};
-+
-+/*
-+ * is_dma_buf_file - Check if struct file* is associated with dma_buf
-+ */
-+static inline int is_dma_buf_file(struct file *file)
-+{
-+	return file->f_op == &dma_buf_fops;
-+}
-+
-+/**
-+ * dma_buf_export - Creates a new dma_buf, and associates an anon file
-+ * with this buffer,so it can be exported.
-+ * Also connect the allocator specific data and ops to the buffer.
-+ *
-+ * @priv:	[in]	Attach private data of allocator to this buffer
-+ * @ops:	[in]	Attach allocator-defined dma buf ops to the new buffer.
-+ * @flags:	[in]	mode flags for the file.
-+ *
-+ * Returns, on success, a newly created dma_buf object, which wraps the
-+ * supplied private data and operations for dma_buf_ops. On failure to
-+ * allocate the dma_buf object, it can return NULL.
-+ *
-+ */
-+struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
-+				int flags)
-+{
-+	struct dma_buf *dmabuf;
-+	struct file *file;
-+
-+	BUG_ON(!priv || !ops);
-+
-+	dmabuf = kzalloc(sizeof(struct dma_buf), GFP_KERNEL);
-+	if (dmabuf == NULL)
-+		return dmabuf;
-+
-+	dmabuf->priv = priv;
-+	dmabuf->ops = ops;
-+
-+	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf, flags);
-+
-+	dmabuf->file = file;
-+
-+	mutex_init(&dmabuf->lock);
-+	INIT_LIST_HEAD(&dmabuf->attachments);
-+
-+	return dmabuf;
-+}
-+EXPORT_SYMBOL(dma_buf_export);
-+
-+
-+/**
-+ * dma_buf_fd - returns a file descriptor for the given dma_buf
-+ * @dmabuf:	[in]	pointer to dma_buf for which fd is required.
-+ *
-+ * On success, returns an associated 'fd'. Else, returns error.
-+ */
-+int dma_buf_fd(struct dma_buf *dmabuf)
-+{
-+	int error, fd;
-+
-+	if (!dmabuf->file)
-+		return -EINVAL;
-+
-+	error = get_unused_fd_flags(0);
-+	if (error < 0)
-+		return error;
-+	fd = error;
-+
-+	fd_install(fd, dmabuf->file);
-+
-+	return fd;
-+}
-+EXPORT_SYMBOL(dma_buf_fd);
-+
-+/**
-+ * dma_buf_get - returns the dma_buf structure related to an fd
-+ * @fd:	[in]	fd associated with the dma_buf to be returned
-+ *
-+ * On success, returns the dma_buf structure associated with an fd; uses
-+ * file's refcounting done by fget to increase refcount. returns ERR_PTR
-+ * otherwise.
-+ */
-+struct dma_buf *dma_buf_get(int fd)
-+{
-+	struct file *file;
-+
-+	file = fget(fd);
-+
-+	if (!file)
-+		return ERR_PTR(-EBADF);
-+
-+	if (!is_dma_buf_file(file)) {
-+		fput(file);
-+		return ERR_PTR(-EINVAL);
-+	}
-+
-+	return file->private_data;
-+}
-+EXPORT_SYMBOL(dma_buf_get);
-+
-+/**
-+ * dma_buf_put - decreases refcount of the buffer
-+ * @dmabuf:	[in]	buffer to reduce refcount of
-+ *
-+ * Uses file's refcounting done implicitly by fput()
-+ */
-+void dma_buf_put(struct dma_buf *dmabuf)
-+{
-+	BUG_ON(!dmabuf->file);
-+
-+	fput(dmabuf->file);
-+}
-+EXPORT_SYMBOL(dma_buf_put);
-+
-+/**
-+ * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
-+ * calls attach() of dma_buf_ops to allow device-specific attach functionality
-+ * @dmabuf:	[in]	buffer to attach device to.
-+ * @dev:	[in]	device to be attached.
-+ *
-+ * Returns struct dma_buf_attachment * for this attachment; may return NULL.
-+ *
-+ */
-+struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-+						struct device *dev)
-+{
-+	struct dma_buf_attachment *attach;
-+	int ret;
-+
-+	BUG_ON(!dmabuf || !dev);
-+
-+	attach = kzalloc(sizeof(struct dma_buf_attachment), GFP_KERNEL);
-+	if (attach == NULL)
-+		goto err_alloc;
-+
-+	mutex_lock(&dmabuf->lock);
-+
-+	attach->dev = dev;
-+	attach->dmabuf = dmabuf;
-+	if (dmabuf->ops->attach) {
-+		ret = dmabuf->ops->attach(dmabuf, dev, attach);
-+		if (!ret)
-+			goto err_attach;
-+	}
-+	list_add(&attach->node, &dmabuf->attachments);
-+
-+	mutex_unlock(&dmabuf->lock);
-+
-+err_alloc:
-+	return attach;
-+err_attach:
-+	kfree(attach);
-+	mutex_unlock(&dmabuf->lock);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(dma_buf_attach);
-+
-+/**
-+ * dma_buf_detach - Remove the given attachment from dmabuf's attachments list;
-+ * optionally calls detach() of dma_buf_ops for device-specific detach
-+ * @dmabuf:	[in]	buffer to detach from.
-+ * @attach:	[in]	attachment to be detached; is free'd after this call.
-+ *
-+ */
-+void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
-+{
-+	BUG_ON(!dmabuf || !attach);
-+
-+	mutex_lock(&dmabuf->lock);
-+	list_del(&attach->node);
-+	if (dmabuf->ops->detach)
-+		dmabuf->ops->detach(dmabuf, attach);
-+
-+	mutex_unlock(&dmabuf->lock);
-+	kfree(attach);
-+}
-+EXPORT_SYMBOL(dma_buf_detach);
-+
-+/**
-+ * dma_buf_map_attachment - Returns the scatterlist table of the attachment;
-+ * mapped into _device_ address space. Is a wrapper for map_dma_buf() of the
-+ * dma_buf_ops.
-+ * @attach:	[in]	attachment whose scatterlist is to be returned
-+ * @direction:	[in]	direction of DMA transfer
-+ *
-+ * Returns sg_table containing the scatterlist to be returned; may return NULL
-+ * or ERR_PTR.
-+ *
-+ */
-+struct sg_table * dma_buf_map_attachment(struct dma_buf_attachment *attach,
-+                                         enum dma_data_direction direction)
-+{
-+	struct sg_table *sg_table = ERR_PTR(-EINVAL);
-+
-+	BUG_ON(!attach || !attach->dmabuf);
-+
-+	mutex_lock(&attach->dmabuf->lock);
-+	if (attach->dmabuf->ops->map_dma_buf)
-+		sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
-+	mutex_unlock(&attach->dmabuf->lock);
-+
-+	return sg_table;
-+}
-+EXPORT_SYMBOL(dma_buf_map_attachment);
-+
-+/**
-+ * dma_buf_unmap_attachment - unmaps and decreases usecount of the buffer;might
-+ * deallocate the scatterlist associated. Is a wrapper for unmap_dma_buf() of
-+ * dma_buf_ops.
-+ * @attach:	[in]	attachment to unmap buffer from
-+ * @sg_table:	[in]	scatterlist info of the buffer to unmap
-+ *
-+ */
-+void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
-+				struct sg_table *sg_table)
-+{
-+	BUG_ON(!attach || !attach->dmabuf || !sg_table);
-+
-+	mutex_lock(&attach->dmabuf->lock);
-+	if (attach->dmabuf->ops->unmap_dma_buf)
-+		attach->dmabuf->ops->unmap_dma_buf(attach, sg_table);
-+	mutex_unlock(&attach->dmabuf->lock);
-+
-+}
-+EXPORT_SYMBOL(dma_buf_unmap_attachment);
-diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
-new file mode 100644
-index 0000000..db4b384
---- /dev/null
-+++ b/include/linux/dma-buf.h
-@@ -0,0 +1,176 @@
-+/*
-+ * Header file for dma buffer sharing framework.
-+ *
-+ * Copyright(C) 2011 Linaro Limited. All rights reserved.
-+ * Author: Sumit Semwal <sumit.semwal@ti.com>
-+ *
-+ * Many thanks to linaro-mm-sig list, and specially
-+ * Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
-+ * Daniel Vetter <daniel@ffwll.ch> for their support in creation and
-+ * refining of this idea.
-+ *
-+ * This program is free software; you can redistribute it and/or modify it
-+ * under the terms of the GNU General Public License version 2 as published by
-+ * the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but WITHOUT
-+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
-+ * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
-+ * more details.
-+ *
-+ * You should have received a copy of the GNU General Public License along with
-+ * this program.  If not, see <http://www.gnu.org/licenses/>.
-+ */
-+#ifndef __DMA_BUF_H__
-+#define __DMA_BUF_H__
-+
-+#include <linux/file.h>
-+#include <linux/err.h>
-+#include <linux/device.h>
-+#include <linux/scatterlist.h>
-+#include <linux/list.h>
-+#include <linux/dma-mapping.h>
-+
-+struct dma_buf;
-+
-+/**
-+ * struct dma_buf_attachment - holds device-buffer attachment data
-+ * @dmabuf: buffer for this attachment.
-+ * @dev: device attached to the buffer.
-+ * @node: list_head to allow manipulation of list of dma_buf_attachment.
-+ * @priv: exporter-specific attachment data.
-+ */
-+struct dma_buf_attachment {
-+	struct dma_buf *dmabuf;
-+	struct device *dev;
-+	struct list_head node;
-+	void *priv;
-+};
-+
-+/**
-+ * struct dma_buf_ops - operations possible on struct dma_buf
-+ * @attach: allows different devices to 'attach' themselves to the given
-+ *	    buffer. It might return -EBUSY to signal that backing storage
-+ *	    is already allocated and incompatible with the requirements
-+ *	    of requesting device. [optional]
-+ * @detach: detach a given device from this buffer. [optional]
-+ * @map_dma_buf: returns list of scatter pages allocated, increases usecount
-+ *		 of the buffer. Requires atleast one attach to be called
-+ *		 before. Returned sg list should already be mapped into
-+ *		 _device_ address space. This call may sleep.
-+ * @unmap_dma_buf: decreases usecount of buffer, might deallocate scatter
-+ *		   pages.
-+ * @mmap: memory map this buffer - optional.
-+ * @release: release this buffer; to be called after the last dma_buf_put.
-+ * @sync_sg_for_cpu: sync the sg list for cpu.
-+ * @sync_sg_for_device: synch the sg list for device.
-+ */
-+struct dma_buf_ops {
-+	int (*attach)(struct dma_buf *, struct device *,
-+			struct dma_buf_attachment *);
-+
-+	void (*detach)(struct dma_buf *, struct dma_buf_attachment *);
-+
-+	/* For {map,unmap}_dma_buf below, any specific buffer attributes
-+	 * required should get added to device_dma_parameters accessible
-+	 * via dev->dma_params.
-+	 */
-+	struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *,
-+						enum dma_data_direction);
-+	void (*unmap_dma_buf)(struct dma_buf_attachment *,
-+						struct sg_table *);
-+	/* TODO: Add try_map_dma_buf version, to return immed with -EBUSY
-+	 * if the call would block.
-+	 */
-+
-+	/* allow mmap optionally for devices that need it */
-+	int (*mmap)(struct dma_buf *, struct vm_area_struct *);
-+	/* after final dma_buf_put() */
-+	void (*release)(struct dma_buf *);
-+
-+	/* allow allocator to take care of cache ops */
-+	void (*sync_sg_for_cpu) (struct dma_buf *, struct device *);
-+	void (*sync_sg_for_device)(struct dma_buf *, struct device *);
-+};
-+
-+/**
-+ * struct dma_buf - shared buffer object
-+ * @file: file pointer used for sharing buffers across, and for refcounting.
-+ * @attachments: list of dma_buf_attachment that denotes all devices attached.
-+ * @ops: dma_buf_ops associated with this buffer object
-+ * @priv: user specific private data
-+ */
-+struct dma_buf {
-+	size_t size;
-+	struct file *file;
-+	struct list_head attachments;
-+	const struct dma_buf_ops *ops;
-+	/* mutex to serialize list manipulation and other ops */
-+	struct mutex lock;
-+	void *priv;
-+};
-+
-+#ifdef CONFIG_DMA_SHARED_BUFFER
-+struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-+							struct device *dev);
-+void dma_buf_detach(struct dma_buf *dmabuf,
-+				struct dma_buf_attachment *dmabuf_attach);
-+struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops, int flags);
-+int dma_buf_fd(struct dma_buf *dmabuf);
-+struct dma_buf *dma_buf_get(int fd);
-+void dma_buf_put(struct dma_buf *dmabuf);
-+
-+struct sg_table * dma_buf_map_attachment(struct dma_buf_attachment *,
-+					 enum dma_data_direction);
-+void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *);
-+#else
-+
-+static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
-+							struct device *dev)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+static inline void dma_buf_detach(struct dma_buf *dmabuf,
-+				  struct dma_buf_attachment *dmabuf_attach)
-+{
-+	return;
-+}
-+
-+static inline struct dma_buf *dma_buf_export(void *priv,
-+						struct dma_buf_ops *ops,
-+						int flags)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+static inline int dma_buf_fd(struct dma_buf *dmabuf)
-+{
-+	return -ENODEV;
-+}
-+
-+static inline struct dma_buf *dma_buf_get(int fd)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+static inline void dma_buf_put(struct dma_buf *dmabuf)
-+{
-+	return;
-+}
-+
-+static inline struct sg_table * dma_buf_map_attachment(
-+	struct dma_buf_attachment *, enum dma_data_direction)
-+{
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *,
-+						struct sg_table *)
-+{
-+	return;
-+}
-+
-+#endif /* CONFIG_DMA_SHARED_BUFFER */
-+
-+#endif /* __DMA_BUF_H__ */
+ /**
+  * m5mols_reg_mode - Write the mode and check busy status
+  *
+@@ -904,46 +917,12 @@ static const struct v4l2_subdev_ops m5mols_ops = {
+ 	.video		= &m5mols_video_ops,
+ };
+ 
+-static void m5mols_irq_work(struct work_struct *work)
+-{
+-	struct m5mols_info *info =
+-		container_of(work, struct m5mols_info, work_irq);
+-	struct v4l2_subdev *sd = &info->sd;
+-	u8 reg;
+-	int ret;
+-
+-	if (!is_powered(info) ||
+-			m5mols_read_u8(sd, SYSTEM_INT_FACTOR, &info->interrupt))
+-		return;
+-
+-	switch (info->interrupt & REG_INT_MASK) {
+-	case REG_INT_AF:
+-		if (!is_available_af(info))
+-			break;
+-		ret = m5mols_read_u8(sd, AF_STATUS, &reg);
+-		v4l2_dbg(2, m5mols_debug, sd, "AF %s\n",
+-			 reg == REG_AF_FAIL ? "Failed" :
+-			 reg == REG_AF_SUCCESS ? "Success" :
+-			 reg == REG_AF_IDLE ? "Idle" : "Busy");
+-		break;
+-	case REG_INT_CAPTURE:
+-		if (!test_and_set_bit(ST_CAPT_IRQ, &info->flags))
+-			wake_up_interruptible(&info->irq_waitq);
+-
+-		v4l2_dbg(2, m5mols_debug, sd, "CAPTURE\n");
+-		break;
+-	default:
+-		v4l2_dbg(2, m5mols_debug, sd, "Undefined: %02x\n", reg);
+-		break;
+-	};
+-}
+-
+ static irqreturn_t m5mols_irq_handler(int irq, void *data)
+ {
+-	struct v4l2_subdev *sd = data;
+-	struct m5mols_info *info = to_m5mols(sd);
++	struct m5mols_info *info = to_m5mols(data);
+ 
+-	schedule_work(&info->work_irq);
++	atomic_set(&info->irq_done, 1);
++	wake_up_interruptible(&info->irq_waitq);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -1002,7 +981,6 @@ static int __devinit m5mols_probe(struct i2c_client *client,
+ 	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+ 
+ 	init_waitqueue_head(&info->irq_waitq);
+-	INIT_WORK(&info->work_irq, m5mols_irq_work);
+ 	ret = request_irq(client->irq, m5mols_irq_handler,
+ 			  IRQF_TRIGGER_RISING, MODULE_NAME, sd);
+ 	if (ret) {
+@@ -1010,6 +988,8 @@ static int __devinit m5mols_probe(struct i2c_client *client,
+ 		goto out_me;
+ 	}
+ 	info->res_type = M5MOLS_RESTYPE_MONITOR;
++	atomic_set(&info->irq_done, 0);
++
+ 	return 0;
+ out_me:
+ 	media_entity_cleanup(&sd->entity);
 -- 
-1.7.4.1
+1.7.8
 
