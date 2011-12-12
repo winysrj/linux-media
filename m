@@ -1,207 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7411 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752540Ab1L3PJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:30 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9USo009137
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 49/94] [media] s5h1420: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:46 -0200
-Message-Id: <1325257711-12274-50-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:61052 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752952Ab1LLOlK convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 09:41:10 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Mel Gorman" <mel@csn.ul.ie>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 04/11] mm: compaction: export some of the functions
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-5-git-send-email-m.szyprowski@samsung.com>
+ <20111212142906.GE3277@csn.ul.ie>
+Date: Mon, 12 Dec 2011 15:41:04 +0100
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v6dseqji3l0zgt@mpn-glaptop>
+In-Reply-To: <20111212142906.GE3277@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On Mon, 12 Dec 2011 15:29:07 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+> On Fri, Nov 18, 2011 at 05:43:11PM +0100, Marek Szyprowski wrote:
+>> From: Michal Nazarewicz <mina86@mina86.com>
+>>
+>> This commit exports some of the functions from compaction.c file
+>> outside of it adding their declaration into internal.h header
+>> file so that other mm related code can use them.
+>>
+>> This forced compaction.c to always be compiled (as opposed to being
+>> compiled only if CONFIG_COMPACTION is defined) but as to avoid
+>> introducing code that user did not ask for, part of the compaction.c
+>> is now wrapped in on #ifdef.
+>>
+>> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+>> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>> ---
+>>  mm/Makefile     |    3 +-
+>>  mm/compaction.c |  112 +++++++++++++++++++++++--------------------------------
+>>  mm/internal.h   |   35 +++++++++++++++++
+>>  3 files changed, 83 insertions(+), 67 deletions(-)
+>>
+>> diff --git a/mm/Makefile b/mm/Makefile
+>> index 50ec00e..24ed801 100644
+>> --- a/mm/Makefile
+>> +++ b/mm/Makefile
+>> @@ -13,7 +13,7 @@ obj-y			:= filemap.o mempool.o oom_kill.o fadvise.o \
+>>  			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+>>  			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+>>  			   page_isolation.o mm_init.o mmu_context.o percpu.o \
+>> -			   $(mmu-y)
+>> +			   $(mmu-y) compaction.o
+>
+> That should be
+>
+> compaction.o $(mmu-y)
+>
+> for consistency.
+>
+> Overall, this patch implies that CMA is always compiled in.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/s5h1420.c |   54 ++++++++++++++++----------------
- 1 files changed, 27 insertions(+), 27 deletions(-)
+Not really.  But yes, it produces some bloat when neither CMA nor
+compaction are compiled.  I assume that linker will be able to deal
+with that (since the functions are not EXPORT_SYMBOL'ed).
 
-diff --git a/drivers/media/dvb/frontends/s5h1420.c b/drivers/media/dvb/frontends/s5h1420.c
-index 44ec27d..3bdfcbe 100644
---- a/drivers/media/dvb/frontends/s5h1420.c
-+++ b/drivers/media/dvb/frontends/s5h1420.c
-@@ -472,15 +472,15 @@ static void s5h1420_reset(struct s5h1420_state* state)
- }
- 
- static void s5h1420_setsymbolrate(struct s5h1420_state* state,
--				  struct dvb_frontend_parameters *p)
-+				  struct dtv_frontend_properties *p)
- {
- 	u8 v;
- 	u64 val;
- 
- 	dprintk("enter %s\n", __func__);
- 
--	val = ((u64) p->u.qpsk.symbol_rate / 1000ULL) * (1ULL<<24);
--	if (p->u.qpsk.symbol_rate < 29000000)
-+	val = ((u64) p->symbol_rate / 1000ULL) * (1ULL<<24);
-+	if (p->symbol_rate < 29000000)
- 		val *= 2;
- 	do_div(val, (state->fclk / 1000));
- 
-@@ -543,7 +543,7 @@ static int s5h1420_getfreqoffset(struct s5h1420_state* state)
- }
- 
- static void s5h1420_setfec_inversion(struct s5h1420_state* state,
--				     struct dvb_frontend_parameters *p)
-+				     struct dtv_frontend_properties *p)
- {
- 	u8 inversion = 0;
- 	u8 vit08, vit09;
-@@ -555,11 +555,11 @@ static void s5h1420_setfec_inversion(struct s5h1420_state* state,
- 	else if (p->inversion == INVERSION_ON)
- 		inversion = state->config->invert ? 0 : 0x08;
- 
--	if ((p->u.qpsk.fec_inner == FEC_AUTO) || (p->inversion == INVERSION_AUTO)) {
-+	if ((p->fec_inner == FEC_AUTO) || (p->inversion == INVERSION_AUTO)) {
- 		vit08 = 0x3f;
- 		vit09 = 0;
- 	} else {
--		switch(p->u.qpsk.fec_inner) {
-+		switch(p->fec_inner) {
- 		case FEC_1_2:
- 			vit08 = 0x01; vit09 = 0x10;
- 			break;
-@@ -628,9 +628,9 @@ static fe_spectral_inversion_t s5h1420_getinversion(struct s5h1420_state* state)
- 	return INVERSION_OFF;
- }
- 
--static int s5h1420_set_frontend(struct dvb_frontend* fe,
--				struct dvb_frontend_parameters *p)
-+static int s5h1420_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct s5h1420_state* state = fe->demodulator_priv;
- 	int frequency_delta;
- 	struct dvb_frontend_tune_settings fesettings;
-@@ -639,14 +639,14 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
- 	dprintk("enter %s\n", __func__);
- 
- 	/* check if we should do a fast-tune */
--	memcpy(&fesettings.parameters, p, sizeof(struct dvb_frontend_parameters));
-+	memcpy(&fesettings.parameters, p, sizeof(struct dtv_frontend_properties));
- 	s5h1420_get_tune_settings(fe, &fesettings);
- 	frequency_delta = p->frequency - state->tunedfreq;
- 	if ((frequency_delta > -fesettings.max_drift) &&
- 			(frequency_delta < fesettings.max_drift) &&
- 			(frequency_delta != 0) &&
--			(state->fec_inner == p->u.qpsk.fec_inner) &&
--			(state->symbol_rate == p->u.qpsk.symbol_rate)) {
-+			(state->fec_inner == p->fec_inner) &&
-+			(state->symbol_rate == p->symbol_rate)) {
- 
- 		if (fe->ops.tuner_ops.set_params) {
- 			fe->ops.tuner_ops.set_params(fe);
-@@ -669,13 +669,13 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
- 	s5h1420_reset(state);
- 
- 	/* set s5h1420 fclk PLL according to desired symbol rate */
--	if (p->u.qpsk.symbol_rate > 33000000)
-+	if (p->symbol_rate > 33000000)
- 		state->fclk = 80000000;
--	else if (p->u.qpsk.symbol_rate > 28500000)
-+	else if (p->symbol_rate > 28500000)
- 		state->fclk = 59000000;
--	else if (p->u.qpsk.symbol_rate > 25000000)
-+	else if (p->symbol_rate > 25000000)
- 		state->fclk = 86000000;
--	else if (p->u.qpsk.symbol_rate > 1900000)
-+	else if (p->symbol_rate > 1900000)
- 		state->fclk = 88000000;
- 	else
- 		state->fclk = 44000000;
-@@ -705,7 +705,7 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
- 	s5h1420_writereg(state, DiS01, (state->fclk + (TONE_FREQ * 32) - 1) / (TONE_FREQ * 32));
- 
- 	/* TODO DC offset removal, config parameter ? */
--	if (p->u.qpsk.symbol_rate > 29000000)
-+	if (p->symbol_rate > 29000000)
- 		s5h1420_writereg(state, QPSK01, 0xae | 0x10);
- 	else
- 		s5h1420_writereg(state, QPSK01, 0xac | 0x10);
-@@ -718,15 +718,15 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
- 	s5h1420_writereg(state, Loop01, 0xF0);
- 	s5h1420_writereg(state, Loop02, 0x2a); /* e7 for s5h1420 */
- 	s5h1420_writereg(state, Loop03, 0x79); /* 78 for s5h1420 */
--	if (p->u.qpsk.symbol_rate > 20000000)
-+	if (p->symbol_rate > 20000000)
- 		s5h1420_writereg(state, Loop04, 0x79);
- 	else
- 		s5h1420_writereg(state, Loop04, 0x58);
- 	s5h1420_writereg(state, Loop05, 0x6b);
- 
--	if (p->u.qpsk.symbol_rate >= 8000000)
-+	if (p->symbol_rate >= 8000000)
- 		s5h1420_writereg(state, Post01, (0 << 6) | 0x10);
--	else if (p->u.qpsk.symbol_rate >= 4000000)
-+	else if (p->symbol_rate >= 4000000)
- 		s5h1420_writereg(state, Post01, (1 << 6) | 0x10);
- 	else
- 		s5h1420_writereg(state, Post01, (3 << 6) | 0x10);
-@@ -757,8 +757,8 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
- 	/* start QPSK */
- 	s5h1420_writereg(state, QPSK01, s5h1420_readreg(state, QPSK01) | 1);
- 
--	state->fec_inner = p->u.qpsk.fec_inner;
--	state->symbol_rate = p->u.qpsk.symbol_rate;
-+	state->fec_inner = p->fec_inner;
-+	state->symbol_rate = p->symbol_rate;
- 	state->postlocked = 0;
- 	state->tunedfreq = p->frequency;
- 
-@@ -767,14 +767,14 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
- }
- 
- static int s5h1420_get_frontend(struct dvb_frontend* fe,
--				struct dvb_frontend_parameters *p)
-+				struct dtv_frontend_properties *p)
- {
- 	struct s5h1420_state* state = fe->demodulator_priv;
- 
- 	p->frequency = state->tunedfreq + s5h1420_getfreqoffset(state);
- 	p->inversion = s5h1420_getinversion(state);
--	p->u.qpsk.symbol_rate = s5h1420_getsymbolrate(state);
--	p->u.qpsk.fec_inner = s5h1420_getfec(state);
-+	p->symbol_rate = s5h1420_getsymbolrate(state);
-+	p->fec_inner = s5h1420_getfec(state);
- 
- 	return 0;
- }
-@@ -937,7 +937,7 @@ error:
- EXPORT_SYMBOL(s5h1420_attach);
- 
- static struct dvb_frontend_ops s5h1420_ops = {
--
-+	.delsys = { SYS_DVBS },
- 	.info = {
- 		.name     = "Samsung S5H1420/PnpNetwork PN1010 DVB-S",
- 		.type     = FE_QPSK,
-@@ -960,8 +960,8 @@ static struct dvb_frontend_ops s5h1420_ops = {
- 	.sleep = s5h1420_sleep,
- 	.i2c_gate_ctrl = s5h1420_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = s5h1420_set_frontend,
--	.get_frontend_legacy = s5h1420_get_frontend,
-+	.set_frontend = s5h1420_set_frontend,
-+	.get_frontend = s5h1420_get_frontend,
- 	.get_tune_settings = s5h1420_get_tune_settings,
- 
- 	.read_status = s5h1420_read_status,
+Note also that the was majority of compaction.c is #ifdef'd though
+so only a handful of functions are compiled.
+
+> Why not just make CMA depend on COMPACTION to keep things simplier?
+
+I could imagine that someone would want to have CMA but not compaction,
+hence I decided to give that choice.
+
+> For example, if you enable CMA and do not enable COMPACTION, you
+> lose things like the vmstat counters that can aid debugging. In
+> fact, as parts of compaction.c are using defines like COMPACTBLOCKS,
+> I'm not even sure compaction.c can compile without CONFIG_COMPACTION
+> because of the vmstat stuff.
+
 -- 
-1.7.8.352.g876a6
-
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
