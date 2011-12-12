@@ -1,76 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18141 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751493Ab1K3VWW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 16:22:22 -0500
-Message-ID: <4ED69E88.6020302@redhat.com>
-Date: Wed, 30 Nov 2011 19:22:16 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from seiner.com ([66.178.130.209]:51473 "EHLO www.seiner.lan"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752565Ab1LLMqy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 07:46:54 -0500
+Message-ID: <4EE5F7BB.4070306@seiner.com>
+Date: Mon, 12 Dec 2011 04:46:51 -0800
+From: Yan Seiner <yan@seiner.com>
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: linux-media@vger.kernel.org, Jens.Erdmann@web.de
-Subject: Re: [PATCH] em28xx: Add Terratec Cinergy HTC Stick
-References: <11607963.5467764.1322494881126.JavaMail.fmail@mwmweb051> <0MQf77-1RNtkl3pe9-00U2UK@smtp.web.de> <4ED4D683.40508@linuxtv.org> <201111302039.48970.Jens.Erdmann@web.de> <4ED694E3.6080500@linuxtv.org>
-In-Reply-To: <4ED694E3.6080500@linuxtv.org>
+To: Andy Walls <awalls@md.metrocast.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: cx231xx kernel oops
+References: <4EDC25F1.4000909@seiner.com> <1323058527.12343.3.camel@palomino.walls.org> <4EDC4C84.2030904@seiner.com> <4EDC4E9B.40301@seiner.com> <4EDCB6D1.1060508@seiner.com> <1098bb19-5241-4be4-a916-657c0b599efd@email.android.com> <c0667c34eccf470314966c2426b00af4.squirrel@mail.seiner.com> <4EE55304.9090707@seiner.com> <0b3ac95d-1977-4e86-9337-9e1390d51b83@email.android.com>
+In-Reply-To: <0b3ac95d-1977-4e86-9337-9e1390d51b83@email.android.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30-11-2011 18:41, Andreas Oberritter wrote:
-> On 30.11.2011 20:39, Jens Erdmann wrote:
->> Dear Andreas,
->>
->> On Tuesday, November 29, 2011 01:56:35 PM you wrote:
->> <snip>
->>>
->>>>>> 2. I stumbled over http://linux.terratec.de/tv_en.html where they list
->>>>>> a NXP TDA18271
->>>>>>
->>>>>>      as used tuner for H5 and HTC Stick devices. I dont have any
->>>>>>      experience in this kind of stuff but i am just asking.
->>>>>
->>>>> That's right.
->>>>
->>>> So this should be made like the other devices which are using the
->>>> TDA18271? Or is there no driver for this tuner yet?
->>>
->>> I don't understand your question. Both TERRATEC H5 and Cinergy HTC Stick
->>> are already supported by Linux (at least for digital signals, the latter
->>> since the patch you're referring to), so a driver for every relevant
->>> chip, including TDA18271, is already involved.
->>>
->>
->> If i remember correctly there was used another tuner driver in the out
->> commended code. Is this just a coyp paste leftover?
+Andy Walls wrote:
+> 800 MB for 320x420 frames? It sounds like your app has gooned its requested buffer size.
+>   
+
+That's an understatement.  :-)
+
+> <wild speculation>
+> This might be due to endianess differences between MIPS abd x86 and your app only being written and tested on x86.
+> </wild speculation>
+>   
+
+My speculation too.  I don't know where that number comes from; the same 
+app works fine with the saa7115 driver if I switch frame grabbers.  I'll 
+have to do some fiddling with the code to figure out where the problem 
+lies.  It's some interaction between the app and the cx231xx driver.
+
+
+
+> You still appear to USB stack problems, but not as severe (can't change device config to some bogus config).
+>   
+
+The requested buffer size is the result of multiplying max_pkt_size * 
+max_packets and the rejected config shows a max_packet_size of 0, maybe 
+ithere;'s a problem with either endianness or int size... ???  Something 
+to follow up on.
+> Regards,
+> Andy
 >
-> Hm. When Mauro committed the patch, the description got lost:
+> !DSPAM:4ee5f4e4112206551461313!
 >
->> - Can receive DVB-C and DVB-T. No analogue television or radio yet.
->> - For now it's a copy of the Terratec H5 code with a different name.
+>   
 
-Gah! sorry for that. Not sure what happened there. I'll try to remember
-about it when sending upstream, in order to recover the original comment.
 
-Feel free to ping me closer to the next merge window, in order to remind
-me.
-
->
-> So, to answer your question: The disabled code was copied from the H5
-> right above the new code, in the hope that if someone is going to fix
-> analogue TV for the H5, he or she might just fix it for the HTC Stick as
-> well, assuming that there's only little or no difference.
-
-Support for analog is not trivial, as it requires writing a driver for
-tvf4910b. Not sure if is there any publicly released driver with some
-code for it. Maybe this could be done via sniffing the USB traffic, but, if
-this device is as complicated as DRX, then I doubt people would try to
-do it.
-
-> HTH,
-> Andreas
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-- 
+Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions.
+    Albert Einstein
 
