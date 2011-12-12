@@ -1,115 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:34035 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751955Ab1LUVHZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Dec 2011 16:07:25 -0500
-Received: by eaad14 with SMTP id d14so1489455eaa.19
-        for <linux-media@vger.kernel.org>; Wed, 21 Dec 2011 13:07:24 -0800 (PST)
+Received: from gir.skynet.ie ([193.1.99.77]:34675 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753227Ab1LLRUS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 12:20:18 -0500
+Date: Mon, 12 Dec 2011 17:20:15 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 02/11] mm: compaction: introduce
+ isolate_{free,migrate}pages_range().
+Message-ID: <20111212172015.GL3277@csn.ul.ie>
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-3-git-send-email-m.szyprowski@samsung.com>
+ <20111212140728.GC3277@csn.ul.ie>
+ <op.v6dub1ms3l0zgt@mpn-glaptop>
+ <20111212163052.GK3277@csn.ul.ie>
+ <op.v6dx7bo43l0zgt@mpn-glaptop>
 MIME-Version: 1.0
-Date: Wed, 21 Dec 2011 22:07:24 +0100
-Message-ID: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com>
-Subject: Add tuner_type to zl10353 config and use it for reporting signal
- directly from tuner.
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015175d075e01c17304b4a0923c
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <op.v6dx7bo43l0zgt@mpn-glaptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015175d075e01c17304b4a0923c
-Content-Type: text/plain; charset=ISO-8859-1
+On Mon, Dec 12, 2011 at 05:46:13PM +0100, Michal Nazarewicz wrote:
+> On Mon, 12 Dec 2011 17:30:52 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> 
+> >On Mon, Dec 12, 2011 at 04:22:39PM +0100, Michal Nazarewicz wrote:
+> >>> <SNIP>
+> >>>
+> >>>>+		if (!pfn_valid_within(pfn))
+> >>>>+			goto skip;
+> >>>
+> >>>The flow of this function in general with gotos of skipped and next
+> >>>is confusing in comparison to the existing function. For example,
+> >>>if this PFN is not valid, and no freelist is provided, then we call
+> >>>__free_page() on a PFN that is known to be invalid.
+> >>>
+> >>>>+		++nr_scanned;
+> >>>>+
+> >>>>+		if (!PageBuddy(page)) {
+> >>>>+skip:
+> >>>>+			if (freelist)
+> >>>>+				goto next;
+> >>>>+			for (; start < pfn; ++start)
+> >>>>+				__free_page(pfn_to_page(pfn));
+> >>>>+			return 0;
+> >>>>+		}
+> >>>
+> >>>So if a PFN is valid and !PageBuddy and no freelist is provided, we
+> >>>call __free_page() on it regardless of reference count. That does not
+> >>>sound safe.
+> >>
+> >>Sorry about that.  It's a bug in the code which was caught later on.  The
+> >>code should read ???__free_page(pfn_to_page(start))???.
+> 
+> On Mon, 12 Dec 2011 17:30:52 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> >That will call free on valid PFNs but why is it safe to call
+> >__free_page() at all?  You say later that CMA requires that all
+> >pages in the range be valid but if the pages are in use, that does
+> >not mean that calling __free_page() is safe. I suspect you have not
+> >seen a problem because the pages in the range were free as expected
+> >and not in use because of MIGRATE_ISOLATE.
+> 
+> All pages from [start, pfn) have passed through the loop body which
+> means that they are valid and they have been removed from buddy (for
+> caller's use). Also, because of split_free_page(), all of those pages
+> have been split into 0-order pages. 
 
-XC4000 based cards are not using AGC control in normal way, so it is
-not possible to get signal level from AGC registres of zl10353
-demodulator, instead of this i send previous patch to implement signal
-level directly in xc4000 tuner and now sending patch for zl10353 to
-implement this future for digital mode. Signal reporting is very
-accurate and was well tested on 3 different Leadtek XC4000 cards.
+Ah, I see. Even though you are not putting the pages on a freelist, the
+function still returns with an elevated reference count and it's up to
+the caller to find them again.
 
---0015175d075e01c17304b4a0923c
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="Add-tuner-type-for-zl10353-demodulator.patch"
-Content-Disposition: attachment;
-	filename="Add-tuner-type-for-zl10353-demodulator.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gwgtx0710
+> Therefore, in error recovery, to
+> undo what the loop has done so far, we put give back to buddy by
+> calling __free_page() on each 0-order page.
+> 
 
-RnJvbSA3NmFmMzk2ZTUzYzFkY2Y0OTlmNWMwMTZhYjhkZGQ5NWE0ODU2OTkyIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiA8dGh1bmRlci5tQGVtYWlsLmN6PgpEYXRlOiBX
-ZWQsIDIxIERlYyAyMDExIDIxOjU1OjU4ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gVGhpcyBwYXRj
-aCBhZGRzIHR1bmVyX3R5cGUgY29uZmlnIHZhbHVlIGZvciB6bDEwMzUzIGRlbW9kdWxhdG9yIGFu
-ZAogZmlsbCBpdCBmb3IgTGVhZHRlayBiYXNlZCB4YzQwMDAgdHVuZXJzLiBFeHRyYSB2YWx1ZSBz
-aG91bGQgYmUgdXNlZAogaW4gZnV0dXJlIGZvciB0dW5lciBzcGVjaWZpYyBmdW5jdGlvbnMgaW4g
-emwxMDM1MyBkZW1vZHVsYXRvciwgZmlyc3QKIHVzYWdlIGlzIG5vdyBmb3IgZGlyZWN0bHkgcmVh
-ZGluZyBzaWduYWwgc3RyZW5ndGggZnJvbSB4YzQwMDAgdHVuZXIKIHdoaWNoIGlzIHZlcnkgYWNj
-dXJhdGUgaW5zdGVhZCBvZiByZWFkaW5nIHNpZ25hbCBmcm9tIEFHQyByZWdpc3RlcnMuCgotLS0K
-IGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96bDEwMzUzLmMgICAgIHwgICAxMiArKysrKysr
-KystLS0KIGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96bDEwMzUzLmggICAgIHwgICAgMyAr
-KysKIGRyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LWR2Yi5jIHwgICAxMCArKysr
-KysrKystCiBkcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYyAgICAgICB8ICAgIDkg
-KysrKysrKystCiA0IGZpbGVzIGNoYW5nZWQsIDI5IGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25z
-KC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL3psMTAzNTMuYyBi
-L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96bDEwMzUzLmMKaW5kZXggYWRiYmY2ZC4uN2Vh
-M2EyZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL3psMTAzNTMuYwor
-KysgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvemwxMDM1My5jCkBAIC0yNiw2ICsyNiw3
-IEBACiAjaW5jbHVkZSA8bGludXgvc3RyaW5nLmg+CiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgog
-I2luY2x1ZGUgPGFzbS9kaXY2NC5oPgorI2luY2x1ZGUgPG1lZGlhL3R1bmVyLmg+CiAKICNpbmNs
-dWRlICJkdmJfZnJvbnRlbmQuaCIKICNpbmNsdWRlICJ6bDEwMzUzX3ByaXYuaCIKQEAgLTUyMSwx
-MCArNTIyLDE1IEBAIHN0YXRpYyBpbnQgemwxMDM1M19yZWFkX3NpZ25hbF9zdHJlbmd0aChzdHJ1
-Y3QgZHZiX2Zyb250ZW5kICpmZSwgdTE2ICpzdHJlbmd0aCkKIHsKIAlzdHJ1Y3QgemwxMDM1M19z
-dGF0ZSAqc3RhdGUgPSBmZS0+ZGVtb2R1bGF0b3JfcHJpdjsKIAotCXUxNiBzaWduYWwgPSB6bDEw
-MzUzX3JlYWRfcmVnaXN0ZXIoc3RhdGUsIEFHQ19HQUlOXzEpIDw8IDEwIHwKLQkJICAgICB6bDEw
-MzUzX3JlYWRfcmVnaXN0ZXIoc3RhdGUsIEFHQ19HQUlOXzApIDw8IDIgfCAzOworCS8qIGZvciBY
-QzQwMDAgd2UgY2FuIHJlYWQgZXhhY3Qgc2lnbmFsIHZhbHVlIGRpcmVjdGx5ICovCisJaWYgKHN0
-YXRlLT5jb25maWcudHVuZXJfdHlwZSA9PSBUVU5FUl9YQzQwMDApIHsKKwkJZmUtPm9wcy50dW5l
-cl9vcHMuZ2V0X3JmX3N0cmVuZ3RoKGZlLCBzdHJlbmd0aCk7CisJfSBlbHNlIHsKKwkJdTE2IHNp
-Z25hbCA9IHpsMTAzNTNfcmVhZF9yZWdpc3RlcihzdGF0ZSwgQUdDX0dBSU5fMSkgPDwgMTAgfAor
-CQkJICAgICB6bDEwMzUzX3JlYWRfcmVnaXN0ZXIoc3RhdGUsIEFHQ19HQUlOXzApIDw8IDIgfCAz
-OwogCi0JKnN0cmVuZ3RoID0gfnNpZ25hbDsKKwkJKnN0cmVuZ3RoID0gfnNpZ25hbDsKKwl9CiAK
-IAlyZXR1cm4gMDsKIH0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96
-bDEwMzUzLmggYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvemwxMDM1My5oCmluZGV4IDZl
-M2NhOWUuLjY0ZWNiYWUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96
-bDEwMzUzLmgKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL3psMTAzNTMuaApAQCAt
-NDUsNiArNDUsOSBAQCBzdHJ1Y3QgemwxMDM1M19jb25maWcKIAkvKiBjbG9jayBjb250cm9sIHJl
-Z2lzdGVycyAoMHg1MS0weDU0KSAqLwogCXU4IGNsb2NrX2N0bF8xOyAgLyogZGVmYXVsdDogMHg0
-NiAqLwogCXU4IHBsbF8wOyAgICAgICAgLyogZGVmYXVsdDogMHgxNSAqLworCisJLyogZm9yIHR1
-bmVyIHNwZWNpZmljIGZ1bmN0aW9ucyAqLworCXU4IHR1bmVyX3R5cGU7CiB9OwogCiAjaWYgZGVm
-aW5lZChDT05GSUdfRFZCX1pMMTAzNTMpIHx8IChkZWZpbmVkKENPTkZJR19EVkJfWkwxMDM1M19N
-T0RVTEUpICYmIGRlZmluZWQoTU9EVUxFKSkKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlk
-ZW8vY3gyMzg4NS9jeDIzODg1LWR2Yi5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4
-MjM4ODUtZHZiLmMKaW5kZXggZjA0ODJiMi4uOTgwMTVmZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9t
-ZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRl
-by9jeDIzODg1L2N4MjM4ODUtZHZiLmMKQEAgLTQwOCw2ICs0MDgsMTQgQEAgc3RhdGljIHN0cnVj
-dCB6bDEwMzUzX2NvbmZpZyBkdmljb19mdXNpb25oZHR2X3hjMzAyOCA9IHsKIAkuZGlzYWJsZV9p
-MmNfZ2F0ZV9jdHJsID0gMSwKIH07CiAKK3N0YXRpYyBzdHJ1Y3QgemwxMDM1M19jb25maWcgbGVh
-ZHRla194YzQwMDBfY29uZmlnID0geworCS5kZW1vZF9hZGRyZXNzID0gMHgwZiwKKwkuaWYyICAg
-ICAgICAgICA9IDQ1NjAwLAorCS5ub190dW5lciAgICAgID0gMSwKKwkuZGlzYWJsZV9pMmNfZ2F0
-ZV9jdHJsID0gMSwKKwkudHVuZXJfdHlwZSAgICA9IFRVTkVSX1hDNDAwMCwKK307CisKIHN0YXRp
-YyBzdHJ1Y3Qgc3R2MDkwMF9yZWcgc3R2MDkwMF90c19yZWdzW10gPSB7CiAJeyBSMDkwMF9UU0dF
-TkVSQUwsIDB4MDAgfSwKIAl7IFIwOTAwX1AxX1RTU1BFRUQsIDB4NDAgfSwKQEAgLTkyNiw3ICs5
-MzQsNyBAQCBzdGF0aWMgaW50IGR2Yl9yZWdpc3RlcihzdHJ1Y3QgY3gyMzg4NV90c3BvcnQgKnBv
-cnQpCiAJCWkyY19idXMgPSAmZGV2LT5pMmNfYnVzWzBdOwogCiAJCWZlMC0+ZHZiLmZyb250ZW5k
-ID0gZHZiX2F0dGFjaCh6bDEwMzUzX2F0dGFjaCwKLQkJCQkJICAgICAgICZkdmljb19mdXNpb25o
-ZHR2X3hjMzAyOCwKKwkJCQkJICAgICAgICZsZWFkdGVrX3hjNDAwMF9jb25maWcsCiAJCQkJCSAg
-ICAgICAmaTJjX2J1cy0+aTJjX2FkYXApOwogCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQgIT0gTlVM
-TCkgewogCQkJc3RydWN0IGR2Yl9mcm9udGVuZAkqZmU7CmRpZmYgLS1naXQgYS9kcml2ZXJzL21l
-ZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4
-LWR2Yi5jCmluZGV4IDU5MmYzYWEuLmE2MmNhNzYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3g4OC9jeDg4LWR2Yi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4
-LWR2Yi5jCkBAIC01NDAsNiArNTQwLDEzIEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgemwxMDM1M19j
-b25maWcgY3g4OF9waW5uYWNsZV9oeWJyaWRfcGN0diA9IHsKIAkuaWYyICAgICAgICAgICA9IDQ1
-NjAwLAogfTsKIAorc3RhdGljIGNvbnN0IHN0cnVjdCB6bDEwMzUzX2NvbmZpZyBsZWFkdGVrX3hj
-NDAwMF9jb25maWcgPSB7CisJLmRlbW9kX2FkZHJlc3MgPSAoMHgxZSA+PiAxKSwKKwkubm9fdHVu
-ZXIgICAgICA9IDEsCisJLmlmMiAgICAgICAgICAgPSA0NTYwMCwKKwkudHVuZXJfdHlwZSAgICA9
-IFRVTkVSX1hDNDAwMCwKK307CisKIHN0YXRpYyBjb25zdCBzdHJ1Y3QgemwxMDM1M19jb25maWcg
-Y3g4OF9nZW5pYXRlY2hfeDgwMDBfbXQgPSB7CiAJLmRlbW9kX2FkZHJlc3MgPSAoMHgxZSA+PiAx
-KSwKIAkubm9fdHVuZXIgPSAxLApAQCAtMTM0Miw3ICsxMzQ5LDcgQEAgc3RhdGljIGludCBkdmJf
-cmVnaXN0ZXIoc3RydWN0IGN4ODgwMl9kZXYgKmRldikKIAljYXNlIENYODhfQk9BUkRfV0lORkFT
-VF9EVFYxODAwSF9YQzQwMDA6CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMjAwMEhfUExV
-UzoKIAkJZmUwLT5kdmIuZnJvbnRlbmQgPSBkdmJfYXR0YWNoKHpsMTAzNTNfYXR0YWNoLAotCQkJ
-CQkgICAgICAgJmN4ODhfcGlubmFjbGVfaHlicmlkX3BjdHYsCisJCQkJCSAgICAgICAmbGVhZHRl
-a194YzQwMDBfY29uZmlnLAogCQkJCQkgICAgICAgJmNvcmUtPmkyY19hZGFwKTsKIAkJaWYgKGZl
-MC0+ZHZiLmZyb250ZW5kKSB7CiAJCQlzdHJ1Y3QgeGM0MDAwX2NvbmZpZyBjZmcgPSB7Ci0tIAox
-LjcuMi4zCgo=
---0015175d075e01c17304b4a0923c--
+Ok.
+
+> >>>> 		/* Found a free page, break it into order-0 pages */
+> >>>> 		isolated = split_free_page(page);
+> >>>> 		total_isolated += isolated;
+> >>>>-		for (i = 0; i < isolated; i++) {
+> >>>>-			list_add(&page->lru, freelist);
+> >>>>-			page++;
+> >>>>+		if (freelist) {
+> >>>>+			struct page *p = page;
+> >>>>+			for (i = isolated; i; --i, ++p)
+> >>>>+				list_add(&p->lru, freelist);
+> >>>> 		}
+> >>>>
+> >>>>-		/* If a page was split, advance to the end of it */
+> >>>>-		if (isolated) {
+> >>>>-			blockpfn += isolated - 1;
+> >>>>-			cursor += isolated - 1;
+> >>>>-		}
+> >>>>+next:
+> >>>>+		pfn += isolated;
+> >>>>+		page += isolated;
+> >>>
+> >>>The name isolated is now confusing because it can mean either
+> >>>pages isolated or pages scanned depending on context. Your patch
+> >>>appears to be doing a lot more than is necessary to convert
+> >>>isolate_freepages_block into isolate_freepages_range and at this point,
+> >>>it's unclear why you did that.
+> >>
+> >>When CMA uses this function, it requires all pages in the range to be valid
+> >>and free. (Both conditions should be met but you never know.)
+> 
+> To be clear, I meant that the CMA expects pages to be in buddy when the function
+> is called but after the function finishes, all the pages in the range are removed
+> from buddy.  This, among other things, is why the call to split_free_page() is
+> necessary.
+> 
+
+Understood.
+
+-- 
+Mel Gorman
+SUSE Labs
