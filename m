@@ -1,156 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40198 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751092Ab1LFQMX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 11:12:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v2 4/4] v4l: Update subdev drivers to handle framesamples parameter
-Date: Tue, 6 Dec 2011 17:12:29 +0100
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	g.liakhovetski@gmx.de, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-References: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com> <1322734853-8759-5-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1322734853-8759-5-git-send-email-s.nawrocki@samsung.com>
+Received: from seiner.com ([66.178.130.209]:50000 "EHLO www.seiner.lan"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752618Ab1LLBEG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Dec 2011 20:04:06 -0500
+Received: from www.seiner.lan ([192.168.128.6] ident=yan)
+	by www.seiner.lan with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.69)
+	(envelope-from <yan@seiner.com>)
+	id 1RZuJI-0003QF-To
+	for linux-media@vger.kernel.org; Sun, 11 Dec 2011 17:04:04 -0800
+Message-ID: <4EE55304.9090707@seiner.com>
+Date: Sun, 11 Dec 2011 17:04:04 -0800
+From: Yan Seiner <yan@seiner.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: linux-media@vger.kernel.org
+Subject: Re: cx231xx kernel oops
+References: <4EDC25F1.4000909@seiner.com>    <1323058527.12343.3.camel@palomino.walls.org>    <4EDC4C84.2030904@seiner.com> <4EDC4E9B.40301@seiner.com>    <4EDCB6D1.1060508@seiner.com>    <1098bb19-5241-4be4-a916-657c0b599efd@email.android.com> <c0667c34eccf470314966c2426b00af4.squirrel@mail.seiner.com>
+In-Reply-To: <c0667c34eccf470314966c2426b00af4.squirrel@mail.seiner.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112061712.30748.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+I'm resurrecting an older thread.  I have a Hauppage USB Live2 connected 
+to a MIPS box running openWRT.  I tried this earlier on a older hardware 
+running the 3.0.3 kernel.  This is with newer hardware running 
+2.6.39.4.  The driver attempts to allocate 800MB (!!!) of memory for the 
+buffer and fails with a kernel crash.  I'm not including any kernel 
+crash stuff as it has all the symbols stripped.
 
-On Thursday 01 December 2011 11:20:53 Sylwester Nawrocki wrote:
-> Update the sub-device drivers having a devnode enabled so they properly
-> handle the new framesamples field of struct v4l2_mbus_framefmt.
-> These drivers don't support compressed (entropy encoded) formats so the
-> framesamples field is simply initialized to 0.
+This seems to be the key message:
 
-Wouldn't it be better to memset the whole structure before filling it ? This 
-would handle reserved fields as well. One option would be to make the caller 
-zero the structure, I think that would likely result in a smaller patch.
+[  514.770000] unable to allocate 805398992 bytes for transfer buffer 0
 
-> There is a few other drivers that expose a devnode (mt9p031, mt9t001,
-> mt9v032) but they already implicitly initialize the new data structure
-> field to 0, so they don't need to be touched.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/video/noon010pc30.c         |    6 ++++--
->  drivers/media/video/omap3isp/ispccdc.c    |    1 +
->  drivers/media/video/omap3isp/ispccp2.c    |    1 +
->  drivers/media/video/omap3isp/ispcsi2.c    |    1 +
->  drivers/media/video/omap3isp/isppreview.c |    1 +
->  drivers/media/video/omap3isp/ispresizer.c |    1 +
->  drivers/media/video/s5k6aa.c              |    1 +
->  7 files changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/video/noon010pc30.c
-> b/drivers/media/video/noon010pc30.c index 50838bf..ad94ffe 100644
-> --- a/drivers/media/video/noon010pc30.c
-> +++ b/drivers/media/video/noon010pc30.c
-> @@ -523,9 +523,10 @@ static int noon010_get_fmt(struct v4l2_subdev *sd,
-> struct v4l2_subdev_fh *fh, mf->height = info->curr_win->height;
->  	mf->code = info->curr_fmt->code;
->  	mf->colorspace = info->curr_fmt->colorspace;
-> -	mf->field = V4L2_FIELD_NONE;
-> -
->  	mutex_unlock(&info->lock);
-> +
-> +	mf->field = V4L2_FIELD_NONE;
-> +	mf->framesamples = 0;
->  	return 0;
->  }
-> 
-> @@ -555,6 +556,7 @@ static int noon010_set_fmt(struct v4l2_subdev *sd,
-> struct v4l2_subdev_fh *fh, nf = noon010_try_fmt(sd, &fmt->format);
->  	noon010_try_frame_size(&fmt->format, &size);
->  	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
-> +	fmt->format.framesamples = 0;
-> 
->  	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
->  		if (fh) {
-> diff --git a/drivers/media/video/omap3isp/ispccdc.c
-> b/drivers/media/video/omap3isp/ispccdc.c index b0b0fa5..3dff028 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.c
-> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> @@ -1863,6 +1863,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct
-> v4l2_subdev_fh *fh, */
->  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
->  	fmt->field = V4L2_FIELD_NONE;
-> +	fmt->framesamples = 0;
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/omap3isp/ispccp2.c
-> b/drivers/media/video/omap3isp/ispccp2.c index 904ca8c..fd9dba6 100644
-> --- a/drivers/media/video/omap3isp/ispccp2.c
-> +++ b/drivers/media/video/omap3isp/ispccp2.c
-> @@ -711,6 +711,7 @@ static void ccp2_try_format(struct isp_ccp2_device
-> *ccp2,
-> 
->  	fmt->field = V4L2_FIELD_NONE;
->  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
-> +	fmt->framesamples = 0;
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/omap3isp/ispcsi2.c
-> b/drivers/media/video/omap3isp/ispcsi2.c index 0c5f1cb..6b973f5 100644
-> --- a/drivers/media/video/omap3isp/ispcsi2.c
-> +++ b/drivers/media/video/omap3isp/ispcsi2.c
-> @@ -888,6 +888,7 @@ csi2_try_format(struct isp_csi2_device *csi2, struct
-> v4l2_subdev_fh *fh, /* RGB, non-interlaced */
->  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
->  	fmt->field = V4L2_FIELD_NONE;
-> +	fmt->framesamples = 0;
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/omap3isp/isppreview.c
-> b/drivers/media/video/omap3isp/isppreview.c index ccb876f..6f4bdf0 100644
-> --- a/drivers/media/video/omap3isp/isppreview.c
-> +++ b/drivers/media/video/omap3isp/isppreview.c
-> @@ -1720,6 +1720,7 @@ static void preview_try_format(struct isp_prev_device
-> *prev, }
-> 
->  	fmt->field = V4L2_FIELD_NONE;
-> +	fmt->framesamples = 0;
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/omap3isp/ispresizer.c
-> b/drivers/media/video/omap3isp/ispresizer.c index 50e593b..923ba1b 100644
-> --- a/drivers/media/video/omap3isp/ispresizer.c
-> +++ b/drivers/media/video/omap3isp/ispresizer.c
-> @@ -1363,6 +1363,7 @@ static void resizer_try_format(struct isp_res_device
-> *res,
-> 
->  	fmt->colorspace = V4L2_COLORSPACE_JPEG;
->  	fmt->field = V4L2_FIELD_NONE;
-> +	fmt->framesamples = 0;
->  }
-> 
->  /*
-> diff --git a/drivers/media/video/s5k6aa.c b/drivers/media/video/s5k6aa.c
-> index 86ee35b..efc5ba3 100644
-> --- a/drivers/media/video/s5k6aa.c
-> +++ b/drivers/media/video/s5k6aa.c
-> @@ -1087,6 +1087,7 @@ static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
->  	mf->colorspace	= s5k6aa_formats[index].colorspace;
->  	mf->code	= s5k6aa_formats[index].code;
->  	mf->field	= V4L2_FIELD_NONE;
-> +	mf->framesamples = 0;
->  }
-> 
->  static int s5k6aa_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh
-> *fh,
+What can I do to narrow down the allocation problem?
+
+system type        : Atheros AR9132 rev 2
+machine            : Buffalo WZR-HP-G300NH
+processor        : 0
+cpu model        : MIPS 24Kc V7.4
+BogoMIPS        : 265.42
+
+Bus 001 Device 005: ID 2040:c200 Hauppauge
+
+[   34.560000] cx231xx v4l2 driver loaded.
+[   34.570000] cx231xx #0: New device Hauppauge Hauppauge Device @ 480 
+Mbps (2040:c200) with 5 interfaces
+[   34.580000] cx231xx #0: registering interface 1
+[   34.580000] cx231xx #0: bad senario!!!!!
+[   34.590000] cx231xx #0: config_info=0
+[   34.590000] cx231xx #0: can't change interface 1 alt no. to 3: Max. 
+Pkt size = 0
+[   34.600000] usb 1-1.2: selecting invalid altsetting 3
+[   34.600000] cx231xx #0: can't change interface 1 alt no. to 3 (err=-22)
+[   34.610000] cx231xx #0: can't change interface 1 alt no. to 1: Max. 
+Pkt size = 0
+[   34.620000] usb 1-1.2: selecting invalid altsetting 1
+[   34.620000] cx231xx #0: can't change interface 1 alt no. to 1 (err=-22)
+[   34.630000] cx231xx #0: Identified as Hauppauge USB Live 2 (card=9)
+[   34.740000] cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+[   34.760000] cx231xx #0: Changing the i2c master port to 3
+[   34.760000] cx25840 0-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #0)
+[   34.790000] cx25840 0-0044:  Firmware download size changed to 16 
+bytes max length
+[   36.770000] cx25840 0-0044: loaded v4l-cx231xx-avcore-01.fw firmware 
+(16382 bytes)
+[   36.810000] cx231xx #0: cx231xx #0: v4l2 driver version 0.0.1
+[   36.840000] cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
+[   36.890000] cx231xx #0: video_mux : 0
+[   36.900000] cx231xx #0: do_mode_ctrl_overrides : 0xb000
+[   36.900000] cx231xx #0: do_mode_ctrl_overrides NTSC
+[   36.910000] cx231xx #0: cx231xx #0/0: registered device video0 [v4l2]
+[   36.920000] cx231xx #0: cx231xx #0/0: registered device vbi0
+[   36.930000] cx231xx #0: V4L2 device registered as video0 and vbi0
+[   36.930000] cx231xx #0: EndPoint Addr 0x8f00, Alternate settings: 1
+[   36.940000] cx231xx #0: Alternate setting 0, max size= 8
+[   36.940000] cx231xx #0: EndPoint Addr 0x8f00, Alternate settings: 1
+[   36.950000] cx231xx #0: Alternate setting 0, max size= 8
+[   36.960000] cx231xx #0: EndPoint Addr 0x8f00, Alternate settings: 1
+[   36.960000] cx231xx #0: Alternate setting 0, max size= 8
+[   36.970000] cx231xx #0: EndPoint Addr 0x8f00, Alternate settings: 1
+[   36.970000] cx231xx #0: Alternate setting 0, max size= 8
+[   36.980000] usbcore: registered new interface driver cx231xx
+[   37.230000] ar71xx-wdt: enabling watchdog timer
+
+
+root@rtmovies:/www/tmp/root/etc# fswebcam -r 320x240
+--- Opening /dev/video0...
+Trying source module v4l2...
+/dev/video0 opened.
+No input was specified, using the first.
+VIDIOC_QBUF: Cannot allocate memory
+Unable to use mmap. Using read instead.
+--- Capturing frame...
+VIDIOC_DQBUF: Invalid argument
+No frames captured.
+
+
 
 -- 
-Regards,
+Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions.
+    Albert Einstein
 
-Laurent Pinchart
