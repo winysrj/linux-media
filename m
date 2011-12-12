@@ -1,187 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41371 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:57215 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753841Ab1L0BJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:43 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19gcc032667
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:42 -0500
+	id S1751091Ab1LLQr5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 11:47:57 -0500
+Message-ID: <4EE63039.4040004@redhat.com>
+Date: Mon, 12 Dec 2011 14:47:53 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 54/91] [media] stv0297: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:42 -0200
-Message-Id: <1324948159-23709-55-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-54-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 3.2-rc5] media fixes
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Linus,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Please pull from:
+   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/stv0297.c |   35 +++++++++++++++++----------------
- 1 files changed, 18 insertions(+), 17 deletions(-)
+For a couple fixes for media drivers.
+The changes are:
+	- ati_remote (new driver for 3.2): Fix the scancode tables;
+	- af9015: fix some issues with firmware load;
+	- au0828: (trivial) add device ID's for some devices;
+	- omap3 and s5p: several small fixes;
+	- Update MAINTAINERS entry to cover /drivers/staging/media and
+	  media DocBook;
+	- a few other small trivial fixes.
 
-diff --git a/drivers/media/dvb/frontends/stv0297.c b/drivers/media/dvb/frontends/stv0297.c
-index 5d7c288..88e8e52 100644
---- a/drivers/media/dvb/frontends/stv0297.c
-+++ b/drivers/media/dvb/frontends/stv0297.c
-@@ -404,8 +404,9 @@ static int stv0297_read_ucblocks(struct dvb_frontend *fe, u32 * ucblocks)
- 	return 0;
- }
- 
--static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
-+static int stv0297_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct stv0297_state *state = fe->demodulator_priv;
- 	int u_threshold;
- 	int initial_u;
-@@ -417,7 +418,7 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 	unsigned long timeout;
- 	fe_spectral_inversion_t inversion;
- 
--	switch (p->u.qam.modulation) {
-+	switch (p->modulation) {
- 	case QAM_16:
- 	case QAM_32:
- 	case QAM_64:
-@@ -519,16 +520,16 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 	stv0297_writereg_mask(state, 0x69, 0x0f, 0x00);
- 
- 	/* set parameters */
--	stv0297_set_qam(state, p->u.qam.modulation);
--	stv0297_set_symbolrate(state, p->u.qam.symbol_rate / 1000);
--	stv0297_set_sweeprate(state, sweeprate, p->u.qam.symbol_rate / 1000);
-+	stv0297_set_qam(state, p->modulation);
-+	stv0297_set_symbolrate(state, p->symbol_rate / 1000);
-+	stv0297_set_sweeprate(state, sweeprate, p->symbol_rate / 1000);
- 	stv0297_set_carrieroffset(state, carrieroffset);
- 	stv0297_set_inversion(state, inversion);
- 
- 	/* kick off lock */
- 	/* Disable corner detection for higher QAMs */
--	if (p->u.qam.modulation == QAM_128 ||
--		p->u.qam.modulation == QAM_256)
-+	if (p->modulation == QAM_128 ||
-+		p->modulation == QAM_256)
- 		stv0297_writereg_mask(state, 0x88, 0x08, 0x00);
- 	else
- 		stv0297_writereg_mask(state, 0x88, 0x08, 0x08);
-@@ -613,7 +614,7 @@ timeout:
- 	return 0;
- }
- 
--static int stv0297_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
-+static int stv0297_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
- {
- 	struct stv0297_state *state = fe->demodulator_priv;
- 	int reg_00, reg_83;
-@@ -625,24 +626,24 @@ static int stv0297_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 	p->inversion = (reg_83 & 0x08) ? INVERSION_ON : INVERSION_OFF;
- 	if (state->config->invert)
- 		p->inversion = (p->inversion == INVERSION_ON) ? INVERSION_OFF : INVERSION_ON;
--	p->u.qam.symbol_rate = stv0297_get_symbolrate(state) * 1000;
--	p->u.qam.fec_inner = FEC_NONE;
-+	p->symbol_rate = stv0297_get_symbolrate(state) * 1000;
-+	p->fec_inner = FEC_NONE;
- 
- 	switch ((reg_00 >> 4) & 0x7) {
- 	case 0:
--		p->u.qam.modulation = QAM_16;
-+		p->modulation = QAM_16;
- 		break;
- 	case 1:
--		p->u.qam.modulation = QAM_32;
-+		p->modulation = QAM_32;
- 		break;
- 	case 2:
--		p->u.qam.modulation = QAM_128;
-+		p->modulation = QAM_128;
- 		break;
- 	case 3:
--		p->u.qam.modulation = QAM_256;
-+		p->modulation = QAM_256;
- 		break;
- 	case 4:
--		p->u.qam.modulation = QAM_64;
-+		p->modulation = QAM_64;
- 		break;
- 	}
- 
-@@ -706,8 +707,8 @@ static struct dvb_frontend_ops stv0297_ops = {
- 	.sleep = stv0297_sleep,
- 	.i2c_gate_ctrl = stv0297_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = stv0297_set_frontend,
--	.get_frontend_legacy = stv0297_get_frontend,
-+	.set_frontend = stv0297_set_frontend,
-+	.get_frontend = stv0297_get_frontend,
- 
- 	.read_status = stv0297_read_status,
- 	.read_ber = stv0297_read_ber,
--- 
-1.7.8.352.g876a6
+Thanks!
+Mauro
+
+-
+
+The following changes since commit dc47ce90c3a822cd7c9e9339fe4d5f61dcb26b50:
+
+   Linux 3.2-rc5 (2011-12-09 15:09:32 -0800)
+
+are available in the git repository at:
+   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+Anssi Hannula (1):
+       [media] ati_remote: switch to single-byte scancodes
+
+Antti Palosaari (3):
+       [media] af9015: limit I2C access to keep FW happy
+       [media] tda18218: fix 6 MHz default IF frequency
+       [media] mxl5007t: fix reg read
+
+Dan Carpenter (1):
+       [media] V4L: mt9t112: use after free in mt9t112_probe()
+
+Dmitry Artamonow (1):
+       [media] omap3isp: fix compilation of ispvideo.c
+
+Gary Thomas (1):
+       [media] omap_vout: Fix compile error in 3.1
+
+Guennadi Liakhovetski (2):
+       [media] V4L: soc-camera: fix compiler warnings on 64-bit platforms
+       [media] V4L: mt9m111: fix uninitialised mutex
+
+Janusz Krzysztofik (1):
+       [media] V4L: omap1_camera: fix missing <linux/module.h> include
+
+Joe Perches (1):
+       [media] [trivial] omap24xxcam-dma: Fix logical test
+
+Marek Szyprowski (1):
+       [media] media: video: s5p-tv: fix build break
+
+Mauro Carvalho Chehab (1):
+       MAINTAINERS: Update media entries
+
+Michael Krufky (3):
+       [media] au0828: add missing USB ID 2040:7260
+       [media] au0828: add missing USB ID 2040:7213
+       [media] au0828: add missing models 72101, 72201 & 72261 to the model matrix
+
+Peter Korsgaard (1):
+       [media] s5p_mfc_enc: fix s/H264/H263/ typo
+
+Randy Dunlap (1):
+       [media] media/staging: fix allyesconfig build error
+
+Sylwester Nawrocki (10):
+       [media] s5p-fimc: Fix wrong pointer dereference when unregistering sensors
+       [media] s5p-fimc: Fix error in the capture subdev deinitialization
+       [media] s5p-fimc: Fix initialization for proper system suspend support
+       [media] s5p-fimc: Fix buffer dequeue order issue
+       [media] s5p-fimc: Allow probe() to succeed with null platform data
+       [media] s5p-fimc: Adjust pixel height alignments according to the IP revision
+       [media] s5p-fimc: Fail driver probing when sensor configuration is wrong
+       [media] s5p-fimc: Use correct fourcc for RGB565 colour format
+       [media] m5mols: Fix set_fmt to return proper pixel format code
+       [media] s5p-fimc: Fix camera input configuration in subdev operations
+
+Thomas Jarosch (1):
+       [media] m5mols: Fix logic in sanity check
+
+Tomi Valkeinen (1):
+       [media] omap_vout: fix crash if no driver for a display
+
+  MAINTAINERS                                      |    2 +
+  drivers/media/common/tuners/mxl5007t.c           |    3 +-
+  drivers/media/common/tuners/tda18218.c           |    2 +-
+  drivers/media/dvb/dvb-usb/af9015.c               |   97 ++++++++++++++++
+  drivers/media/dvb/dvb-usb/af9015.h               |    7 +
+  drivers/media/rc/ati_remote.c                    |  111 +++++++++----------
+  drivers/media/rc/keymaps/rc-ati-x10.c            |   96 ++++++++--------
+  drivers/media/rc/keymaps/rc-medion-x10.c         |  128 +++++++++++-----------
+  drivers/media/rc/keymaps/rc-snapstream-firefly.c |  114 ++++++++++----------
+  drivers/media/video/au0828/au0828-cards.c        |    7 +
+  drivers/media/video/m5mols/m5mols.h              |    2 -
+  drivers/media/video/m5mols/m5mols_core.c         |   22 ++--
+  drivers/media/video/mt9m111.c                    |    1 +
+  drivers/media/video/mt9t112.c                    |    4 +-
+  drivers/media/video/omap/omap_vout.c             |    9 ++
+  drivers/media/video/omap1_camera.c               |    1 +
+  drivers/media/video/omap24xxcam-dma.c            |    2 +-
+  drivers/media/video/omap3isp/ispvideo.c          |    1 +
+  drivers/media/video/ov6650.c                     |    2 +-
+  drivers/media/video/s5p-fimc/fimc-capture.c      |   14 ++-
+  drivers/media/video/s5p-fimc/fimc-core.c         |   24 ++--
+  drivers/media/video/s5p-fimc/fimc-core.h         |    2 +
+  drivers/media/video/s5p-fimc/fimc-mdevice.c      |   43 +++++---
+  drivers/media/video/s5p-fimc/fimc-reg.c          |   15 ++-
+  drivers/media/video/s5p-mfc/s5p_mfc_enc.c        |    2 +-
+  drivers/media/video/s5p-tv/mixer_video.c         |    1 +
+  drivers/media/video/sh_mobile_ceu_camera.c       |   34 ++++--
+  drivers/media/video/sh_mobile_csi2.c             |    4 +-
+  drivers/media/video/soc_camera.c                 |    3 +-
+  drivers/staging/media/as102/as102_drv.c          |    4 +-
+  drivers/staging/media/as102/as102_drv.h          |    3 +-
+  include/media/soc_camera.h                       |    7 +-
+  32 files changed, 461 insertions(+), 306 deletions(-)
 
