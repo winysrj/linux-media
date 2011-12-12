@@ -1,184 +1,308 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14060 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753575Ab1L0BJu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:50 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19oIt017958
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:50 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 58/91] [media] tda10021: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:46 -0200
-Message-Id: <1324948159-23709-59-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-58-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
- <1324948159-23709-56-git-send-email-mchehab@redhat.com>
- <1324948159-23709-57-git-send-email-mchehab@redhat.com>
- <1324948159-23709-58-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:60461 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753189Ab1LLNkG convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 08:40:06 -0500
+Received: by wgbdr13 with SMTP id dr13so11481548wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 05:40:05 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4EE5FF58.8060409@redhat.com>
+References: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com>
+	<4EE350BF.1090402@redhat.com>
+	<CAHFNz9JUEBy5WPuGqKGWuTKYZ6D18GZh+4DEhhDu4+GBTV5R=w@mail.gmail.com>
+	<4EE5FF58.8060409@redhat.com>
+Date: Mon, 12 Dec 2011 19:10:05 +0530
+Message-ID: <CAHFNz9K-5LCrqFvxFfJUaQX0sYRNgH26Q9eWgiMiWg4F3hGnmw@mail.gmail.com>
+Subject: Re: v4 [PATCH 06/10] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On Mon, Dec 12, 2011 at 6:49 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> On 12-12-2011 01:59, Manu Abraham wrote:
+>>
+>> On Sat, Dec 10, 2011 at 5:59 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com>  wrote:
+>>>
+>>> On 10-12-2011 02:43, Manu Abraham wrote:
+>>>
+>>>
+>>>>  From 92a79a1e0a1b5403f06f60661f00ede365b10108 Mon Sep 17 00:00:00 2001
+>>>> From: Manu Abraham<abraham.manu@gmail.com>
+>>>> Date: Thu, 24 Nov 2011 17:09:09 +0530
+>>>> Subject: [PATCH 06/10] DVB: Use a unique delivery system identifier for
+>>>> DVBC_ANNEX_C,
+>>>>  just like any other. DVBC_ANNEX_A and DVBC_ANNEX_C have slightly
+>>>>  different parameters and used in 2 geographically different
+>>>>  locations.
+>>>>
+>>>> Signed-off-by: Manu Abraham<abraham.manu@gmail.com>
+>>>> ---
+>>>>  include/linux/dvb/frontend.h |    7 ++++++-
+>>>>  1 files changed, 6 insertions(+), 1 deletions(-)
+>>>>
+>>>> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+>>>> index f80b863..a3c7623 100644
+>>>> --- a/include/linux/dvb/frontend.h
+>>>> +++ b/include/linux/dvb/frontend.h
+>>>> @@ -335,7 +335,7 @@ typedef enum fe_rolloff {
+>>>>
+>>>>  typedef enum fe_delivery_system {
+>>>>        SYS_UNDEFINED,
+>>>> -       SYS_DVBC_ANNEX_AC,
+>>>> +       SYS_DVBC_ANNEX_A,
+>>>>        SYS_DVBC_ANNEX_B,
+>>>>        SYS_DVBT,
+>>>>        SYS_DSS,
+>>>> @@ -352,8 +352,13 @@ typedef enum fe_delivery_system {
+>>>>        SYS_DAB,
+>>>>        SYS_DVBT2,
+>>>>        SYS_TURBO,
+>>>> +       SYS_DVBC_ANNEX_C,
+>>>>  } fe_delivery_system_t;
+>>>>
+>>>> +
+>>>> +#define SYS_DVBC_ANNEX_AC      SYS_DVBC_ANNEX_A
+>>>> +
+>>>> +
+>>>>  struct dtv_cmds_h {
+>>>>        char    *name;          /* A display name for debugging purposes
+>>>> */
+>>>
+>>>
+>>>
+>>> This patch conflicts with the approach given by this patch:
+>>>
+>>>
+>>>  http://www.mail-archive.com/linux-media@vger.kernel.org/msg39262.html
+>>>
+>>> merged as commit 39ce61a846c8e1fa00cb57ad5af021542e6e8403.
+>>>
+>>
+>> - For correct delivery system handling, the delivery system identifier
+>> should be unique. Otherwise patch 01/10 is meaningless for devices
+>> with DVBC_ANNEX_C, facing the same situations.
+>
+>
+> This is a good point.
+>
+>>
+>> - Rolloff is provided only in the SI table and is not known prior to a
+>> tune. So users must struggle to find the correct rolloff. So users
+>> must know beforehand their experience what rolloff it is rather than
+>> reading Service Information, which is broken by approach. It is much
+>> easier for a user to state that he is living in Japan or some other
+>> place which is using ANNEX_C, rather than creating confusion that
+>> he has to use DVBC and rolloff of 0.15
+>
+>
+> Userspace can present it as Japan and hide the technical details. Most
+> applications do that already: kaffeine, w_scan, ...
+>
+> The dvb-apps utils don't do it, but the scan file format it produces
+> doesn't support anything besides DVB-C/DVB-S/DVB-T/ATSC anyway.
+>
+>
+>> or is it multiplied by a factor
+>> of 10 or was it 100 ? (Oh, my god my application Y uses a factor
+>> of 10, the X application uses 100 and the Z application uses 1000).
+>> What a lovely confusing scenario. ;-) (Other than for the mentioned
+>> issue that the rolloff can be read from the SI, which is available after
+>> tuning; for tuning you need rolloff).
+>
+>
+> Sorry, but this argument doesn't make any sense to me. The same problem
+> exists on DVB-S2 already, where several rolloffs are supported. Except
+> if someone would code a channels.conf line in hand, the roll-off is not
+> visible by the end user.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda10021.c |   37 ++++++++-----------------------
- 1 files changed, 10 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/tda10021.c b/drivers/media/dvb/frontends/tda10021.c
-index 3976d22..c8ab01b 100644
---- a/drivers/media/dvb/frontends/tda10021.c
-+++ b/drivers/media/dvb/frontends/tda10021.c
-@@ -228,8 +228,7 @@ struct qam_params {
- 	u8 conf, agcref, lthr, mseth, aref;
- };
- 
--static int tda10021_set_parameters (struct dvb_frontend *fe,
--			    struct dvb_frontend_parameters *p)
-+static int tda10021_set_parameters (struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	u32 delsys  = c->delivery_system;
-@@ -280,7 +279,7 @@ static int tda10021_set_parameters (struct dvb_frontend *fe,
- 	if (c->inversion != INVERSION_ON && c->inversion != INVERSION_OFF)
- 		return -EINVAL;
- 
--	//printk("tda10021: set frequency to %d qam=%d symrate=%d\n", p->frequency,qam,p->u.qam.symbol_rate);
-+	//printk("tda10021: set frequency to %d qam=%d symrate=%d\n", p->frequency,qam,p->symbol_rate);
- 
- 	if (fe->ops.tuner_ops.set_params) {
- 		fe->ops.tuner_ops.set_params(fe);
-@@ -387,7 +386,7 @@ static int tda10021_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
- 	return 0;
- }
- 
--static int tda10021_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
-+static int tda10021_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
- {
- 	struct tda10021_state* state = fe->demodulator_priv;
- 	int sync;
-@@ -400,17 +399,17 @@ static int tda10021_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_pa
- 		printk(sync & 2 ? "DVB: TDA10021(%d): AFC (%d) %dHz\n" :
- 				  "DVB: TDA10021(%d): [AFC (%d) %dHz]\n",
- 			state->frontend.dvb->num, afc,
--		       -((s32)p->u.qam.symbol_rate * afc) >> 10);
-+		       -((s32)p->symbol_rate * afc) >> 10);
- 	}
- 
- 	p->inversion = ((state->reg0 & 0x20) == 0x20) ^ (state->config->invert != 0) ? INVERSION_ON : INVERSION_OFF;
--	p->u.qam.modulation = ((state->reg0 >> 2) & 7) + QAM_16;
-+	p->modulation = ((state->reg0 >> 2) & 7) + QAM_16;
- 
--	p->u.qam.fec_inner = FEC_NONE;
-+	p->fec_inner = FEC_NONE;
- 	p->frequency = ((p->frequency + 31250) / 62500) * 62500;
- 
- 	if (sync & 2)
--		p->frequency -= ((s32)p->u.qam.symbol_rate * afc) >> 10;
-+		p->frequency -= ((s32)p->symbol_rate * afc) >> 10;
- 
- 	return 0;
- }
-@@ -483,23 +482,8 @@ error:
- 	return NULL;
- }
- 
--static int tda10021_get_property(struct dvb_frontend *fe,
--				 struct dtv_property *p)
--{
--	switch (p->cmd) {
--	case DTV_ENUM_DELSYS:
--		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
--		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
--		p->u.buffer.len = 2;
--		break;
--	default:
--		break;
--	}
--	return 0;
--}
--
- static struct dvb_frontend_ops tda10021_ops = {
--
-+	.delsys = { SYS_DVBC_ANNEX_A, SYS_DVBC_ANNEX_C },
- 	.info = {
- 		.name = "Philips TDA10021 DVB-C",
- 		.type = FE_QAM,
-@@ -524,9 +508,8 @@ static struct dvb_frontend_ops tda10021_ops = {
- 	.sleep = tda10021_sleep,
- 	.i2c_gate_ctrl = tda10021_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = tda10021_set_parameters,
--	.get_frontend_legacy = tda10021_get_frontend,
--	.get_property = tda10021_get_property,
-+	.set_frontend = tda10021_set_parameters,
-+	.get_frontend = tda10021_get_frontend,
- 
- 	.read_status = tda10021_read_status,
- 	.read_ber = tda10021_read_ber,
--- 
-1.7.8.352.g876a6
+DVB-S2 as what we see as broadcast has just a single rolloff. The same
+rolloff is used in the SI alone. It's a mistake to handle rollolff as a user
+input field. The other rolloff's are used for very specific applications,
+such as DSNG, DVB-RCS etc, where bandwidth has to be really
+conserved considering uplinks from trucks, vans etc; for which we don't
+even have applications or users.
 
+
+
+>
+>> Really sexy setup indeed. ;-)
+>>
+>> One thing that I should warn/mention to you is the lack of clarity on
+>> what you say. You say that you want more discussion, but you
+>> whack in patches which is never discussed, breaking many logical
+>> concepts and ideas and broken by nature. How do you justify
+>> yourself ? I don't think you can justify yourself.
+>
+>
+> If we have a consensus around your approach, I'm OK to move for it,
+> provided that it doesn't cause regressions upstream.
+>
+> As I said, this requires reviewing all DVB frontends to be sure that
+> they won't break, especially if is there any that it is capable of
+> auto-detecting the roll-off factor.
+>
+> Both approaches have advantages and disadvantages.
+>
+> The main advantage of my approach is that it is coherent with the current
+> DVBv5 API (e. g. SYS_DVBC_ANNEX_AC). So, the only changes are at the
+> frontends that need to decide between Annex A and Annex C (currently, only
+> drx-k - and the tuners used with it).
+>
+> Advantages on your approach:
+>        - Cleaner for the userspace API;
+>        - It is possible to add Annex C only devices.
+> Disadvantages:
+>        - Need to deprecate the existing SYS_DVBC_ANNEX_AC;
+>        - The alias that SYS_DVBC_ANNEX_AC means only SYS_DVBC_ANNEX_A might
+>          break some thing;
+>        - Requires further changes at the DocBook API description;
+>        - Need to review all DVB-C frontends.
+>
+> If we're willing to take your approach, we need a patch series that
+> addresses
+> all DVB-C frontends, to be sure that no regressions were added due to the
+> change
+> ofSYS_DVBC_ANNEX_AC meaning.
+>
+> It also requires that FE_QAM to be mapped to be both SYS_DVBC_ANNEX_A and
+> SYS_DVBC_ANNEX_C,
+> if isn't there any issue for it to work with Annex C mode, or to just
+> SYS_DVBC_ANNEX_A, if there is enough confidence that such device doesn't
+> work at allwith annex C.
+>
+>
+>>> The approach there were to allow calls to SYS_DVBC_ANNEX_AC to replace
+>>> the
+>>> Annex A
+>>> roll-off factor of 0.15 by the one used on Annex C (0.13).
+>>>
+>>> As this patch didn't show-up at an stable version, we can still change it
+>>> to
+>>> use a
+>>> separate delivery system for DVB-C annex C, but this patch needs to be
+>>> reverted, and
+>>> a few changes on existing drivers are needed (drxk, xc5000 and
+>>> tda18271c2dd
+>>> explicitly
+>>> supports both standards).
+>>>
+>>
+>> As I mentioned earlier, the patches were sent in the order that was
+>> being worked upon. It is not complete, for all devices that are using
+>> DVBC_ANNEX_C. Only the TDA18271, TDA18271DD were worked upon
+>> initially.
+>
+>
+> Ok. As I said, it is possible to change to your approach, but it requires
+> a patch series that addresses the frontends that currently supports DVB-C.
+> There aren't many, so maybe this is not much work.
+>
+> $ git grep -l FE_QAM drivers/media/dvb/frontends/
+> drivers/media/common/tuners/
+> drivers/media/common/tuners/tda18271-fe.c
+> drivers/media/common/tuners/tda827x.c
+> drivers/media/common/tuners/tuner-xc2028.c
+> drivers/media/common/tuners/xc5000.c
+> drivers/media/dvb/frontends/cxd2820r_core.c
+> drivers/media/dvb/frontends/drxk_hard.c
+> drivers/media/dvb/frontends/dvb_dummy_fe.c
+> drivers/media/dvb/frontends/stv0297.c
+> drivers/media/dvb/frontends/stv0367.c
+> drivers/media/dvb/frontends/tda10021.c
+> drivers/media/dvb/frontends/tda10023.c
+> drivers/media/dvb/frontends/tda18271c2dd.c
+> drivers/media/dvb/frontends/ves1820.c
+>
+> I did a quick research at the Internet for the above:
+>        - tda827x has just a frequency table. Nothing needs to change
+>          there;
+>        - xc2028 is a false hit: itdoesn't implement DVB-C;
+>        - cxd2820r says: Integrated matched filter 0.15 roll-off factor
+>                http://www.framos-imaging.com/fileadmin/img/sony_cxd2820r.pdf
+>        - dvb_dummy_fe doesn't need changes;
+>        - tda18271, xc5000, drxk and tda18271c2dd for sure require changes;
+>        - stv0297 is fully compliant with ITU-T J.83 Annexes A/C, according
+>          to:
+>                http://www.st.com/internet/imag_video/product/159180.jsp
+>        - stv0367 is fully compliant with ITU-T J.83 Annexes A/C, according
+>          with its data brief:
+>
+>  http://www.st.com/internet/com/TECHNICAL_RESOURCES/TECHNICAL_LITERATURE/DATA_BRIEF/DM00030322.pdf
+>
+>        - tda10021 datasheet says that it has a programmable half
+>        Nyquist filter (roll off = 0.15 or 0.13):
+>
+>  http://www.datasheetcatalog.org/datasheet/philips/TDA10021.pdf
+>        - tda10023 factsheet says that it is Fully compliant DVB-C (Annex A
+> and C)
+>          and MCNS (Annex B) decoders:
+>
+>  http://www.datasheetarchive.com/indexdl/Datasheets-DAV2/DSADA0022343.pdf
+>        - vez1820 says Half Nyquist filters (roll off = 15 %).
+>        - xc5000, drxk and tda18271c2dd drivers are prepared to support both
+>          standards;
+>        - tda18271 is a worldwide tuner that supports all ITU-T J.83 annexes.
+>          it requires the same approach used on xc5000/tda18271c2dd drivers
+> to
+>          adjust the low-pass filter based on signal rate and roll-off
+> factor.
+>
+> In summary:
+>
+> It seems that there are two Annex A-only frontends: cxd2820r and ves1820.
+> All the others are dual Annex A/Annex C.
+>
+> This is actually a very good reason to implement your approach,
+> as otherwise, it would be hard for userspace to detect that those
+> two devices that lack Annex C.
+
+
+
+Ah, it's good to know that you've collected the list of drivers to be fixed. :-)
+
+
+
+> This also means that just doing an alias from FE_QAM and SYS_DVBC_ANNEX_AC
+> to
+> SYS_DVBC_ANNEX_A may break something, as, for most devices,
+> SYS_DVBC_ANNEX_AC
+> really means both Annex A and C.
+
+
+
+With the current approach, the application can determine whether
+the hardware supports through the DELSYS enumeration.
+
+So, if you have a device that needs to support both ANNEX_A and
+ANNEX_C, it should be rather doing
+
+case DTV_ENUM_DELSYS:
+         buffer.data[0] = SYS_DVBC_ANNEX_A;
+         buffer.data[1] = SYS_DVBC_ANNEX_C;
+         break;
+
+
+> I didn't look inside the drivers for stv0297, stv0367, tda10021 and
+> tda10023.
+> I suspect that some will need an additional code to change the roll-off,
+> based on
+> the delivery system.
+
+
+
+Of course, yes this would need to make the change across multiple
+drivers.
+
+We can fix the drivers, that's no issue at all, as it is a small change.
+
+Regards,
+Manu
