@@ -1,151 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:52413 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755908Ab1LGOZd (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:51126 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750862Ab1LLPWp convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Dec 2011 09:25:33 -0500
-Received: by lagp5 with SMTP id p5so229861lag.19
-        for <linux-media@vger.kernel.org>; Wed, 07 Dec 2011 06:25:31 -0800 (PST)
-Message-ID: <4EDF7758.3080309@gmail.com>
-Date: Wed, 07 Dec 2011 15:25:28 +0100
-From: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+	Mon, 12 Dec 2011 10:22:45 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Mel Gorman" <mel@csn.ul.ie>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 02/11] mm: compaction: introduce
+ isolate_{free,migrate}pages_range().
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-3-git-send-email-m.szyprowski@samsung.com>
+ <20111212140728.GC3277@csn.ul.ie>
+Date: Mon, 12 Dec 2011 16:22:39 +0100
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge HVR-930C problems
-References: <4ED929E7.2050808@gmail.com> <4EDF6262.2000209@redhat.com> <4EDF6AB8.5050201@gmail.com> <4EDF7048.2030304@redhat.com>
-In-Reply-To: <4EDF7048.2030304@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v6dub1ms3l0zgt@mpn-glaptop>
+In-Reply-To: <20111212140728.GC3277@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/07/11 14:55, Mauro Carvalho Chehab wrote:
->
->> <snip>
+> On Fri, Nov 18, 2011 at 05:43:09PM +0100, Marek Szyprowski wrote:
+>> From: Michal Nazarewicz <mina86@mina86.com>
+>> diff --git a/mm/compaction.c b/mm/compaction.c
+>> index 899d956..6afae0e 100644
+>> --- a/mm/compaction.c
+>> +++ b/mm/compaction.c
+>> @@ -54,51 +54,64 @@ static unsigned long release_freepages(struct list_head *freelist)
+>>  	return count;
+>>  }
 >>
->> Bus 2 doesn't seem to do anything [Alloc= 0/800 us ( 0%)] while I'm 
->> scanning!?
->
->
-> Scanning envolves 2 different things:
->     1) tuning and locking into a channel;
->     2) streaming and filtering, in order to seek for program tables
-> inside the MPEG-TS.
->
-> Step 1 uses USB control messages.
->
-> Only at step 2, the device will use the USB ISOC packets. The USB core 
-> will
-> see if is there enough bandwidth to reserve for ISOC transfers on that 
-> time
-> (based on other traffic data), and submit the URB's (or return -ENOSPC 
-> otherwise).
->
+>> -/* Isolate free pages onto a private freelist. Must hold zone->lock */
+>> -static unsigned long isolate_freepages_block(struct zone *zone,
+>> -				unsigned long blockpfn,
+>> -				struct list_head *freelist)
+>> +/**
+>> + * isolate_freepages_range() - isolate free pages, must hold zone->lock.
+>> + * @zone:	Zone pages are in.
+>> + * @start:	The first PFN to start isolating.
+>> + * @end:	The one-past-last PFN.
+>> + * @freelist:	A list to save isolated pages to.
+>> + *
+>> + * If @freelist is not provided, holes in range (either non-free pages
+>> + * or invalid PFNs) are considered an error and function undos its
+>> + * actions and returns zero.
+>> + *
+>> + * If @freelist is provided, function will simply skip non-free and
+>> + * missing pages and put only the ones isolated on the list.
+>> + *
+>> + * Returns number of isolated pages.  This may be more then end-start
+>> + * if end fell in a middle of a free page.
+>> + */
+>> +static unsigned long
+>> +isolate_freepages_range(struct zone *zone,
+>> +			unsigned long start, unsigned long end,
+>> +			struct list_head *freelist)
+
+On Mon, 12 Dec 2011 15:07:28 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> Use start_pfn and end_pfn to keep it consistent with the rest of
+> compaction.c.
+
+Will do.
+
+>>  {
+>> -	unsigned long zone_end_pfn, end_pfn;
+>> -	int nr_scanned = 0, total_isolated = 0;
+>> -	struct page *cursor;
+>> -
+>> -	/* Get the last PFN we should scan for free pages at */
+>> -	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+>> -	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
+>> +	unsigned long nr_scanned = 0, total_isolated = 0;
+>> +	unsigned long pfn = start;
+>> +	struct page *page;
 >>
->> BTW: I'm running Gentoo x86_64 (amd64) on a Dell M2400 laptop with an 
->> SSD disk.
+>> -	/* Find the first usable PFN in the block to initialse page cursor */
+>> -	for (; blockpfn < end_pfn; blockpfn++) {
+>> -		if (pfn_valid_within(blockpfn))
+>> -			break;
+>> -	}
+>> -	cursor = pfn_to_page(blockpfn);
+>> +	VM_BUG_ON(!pfn_valid(pfn));
+>> +	page = pfn_to_page(pfn);
 >>
->> Other hardware connected is a 200 GB disk using the eSata slot, a 1TB 
->> WD disk connected using another USB slot, a RME Multiface II 
->> soundcard using the expresscard slot.
+>>  	/* Isolate free pages. This assumes the block is valid */
+>> -	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
+>> -		int isolated, i;
+>> -		struct page *page = cursor;
+>> -
+>> -		if (!pfn_valid_within(blockpfn))
+>> -			continue;
+>> -		nr_scanned++;
+>> -
+>> -		if (!PageBuddy(page))
+>> -			continue;
+>> +	while (pfn < end) {
+>> +		unsigned isolated = 1, i;
+>> +
+
+> Do not use implcit types. These are unsigned ints, call them unsigned
+> ints.
+
+Will do.
+
 >
-> The external USB disk may be interfering, if it is also at bus 2.
-> Also, some laptops use USB for some internal components like wireless.
+>> +		if (!pfn_valid_within(pfn))
+>> +			goto skip;
 >
-> Please remove all other USB devices, disable wireless (if your device 
-> is USB)
-> and try again.
+> The flow of this function in general with gotos of skipped and next
+> is confusing in comparison to the existing function. For example,
+> if this PFN is not valid, and no freelist is provided, then we call
+> __free_page() on a PFN that is known to be invalid.
 >
-> Regards,
-> Mauro
+>> +		++nr_scanned;
+>> +
+>> +		if (!PageBuddy(page)) {
+>> +skip:
+>> +			if (freelist)
+>> +				goto next;
+>> +			for (; start < pfn; ++start)
+>> +				__free_page(pfn_to_page(pfn));
+>> +			return 0;
+>> +		}
+>
+> So if a PFN is valid and !PageBuddy and no freelist is provided, we
+> call __free_page() on it regardless of reference count. That does not
+> sound safe.
 
-No there's nothing else at Bus 2 (I did a umount on the WD usb disk, 
-cannot unplug devices since I'm logged in remotely right now), and 
-Wireless is a pci device:
+Sorry about that.  It's a bug in the code which was caught later on.  The
+code should read “__free_page(pfn_to_page(start))”.
 
-lin-tv ~ # lspci
-00:00.0 Host bridge: Intel Corporation Mobile 4 Series Chipset Memory 
-Controller Hub (rev 07)
-00:01.0 PCI bridge: Intel Corporation Mobile 4 Series Chipset PCI 
-Express Graphics Port (rev 07)
-00:19.0 Ethernet controller: Intel Corporation 82567LM Gigabit Network 
-Connection (rev 03)
-00:1a.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
-Controller #4 (rev 03)
-00:1a.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
-Controller #5 (rev 03)
-00:1a.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
-Controller #6 (rev 03)
-00:1a.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI 
-Controller #2 (rev 03)
-00:1b.0 Audio device: Intel Corporation 82801I (ICH9 Family) HD Audio 
-Controller (rev 03)
-00:1c.0 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express 
-Port 1 (rev 03)
-00:1c.1 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express 
-Port 2 (rev 03)
-00:1c.2 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express 
-Port 3 (rev 03)
-00:1c.3 PCI bridge: Intel Corporation 82801I (ICH9 Family) PCI Express 
-Port 4 (rev 03)
-00:1d.0 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
-Controller #1 (rev 03)
-00:1d.1 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
-Controller #2 (rev 03)
-00:1d.2 USB Controller: Intel Corporation 82801I (ICH9 Family) USB UHCI 
-Controller #3 (rev 03)
-00:1d.7 USB Controller: Intel Corporation 82801I (ICH9 Family) USB2 EHCI 
-Controller #1 (rev 03)
-00:1e.0 PCI bridge: Intel Corporation 82801 Mobile PCI Bridge (rev 93)
-00:1f.0 ISA bridge: Intel Corporation ICH9M-E LPC Interface Controller 
-(rev 03)
-00:1f.2 RAID bus controller: Intel Corporation Mobile 82801 SATA RAID 
-Controller (rev 03)
-00:1f.3 SMBus: Intel Corporation 82801I (ICH9 Family) SMBus Controller 
-(rev 03)
-01:00.0 VGA compatible controller: nVidia Corporation Device 06fb (rev a1)
-03:01.0 FireWire (IEEE 1394): Ricoh Co Ltd R5C832 IEEE 1394 Controller 
-(rev 04)
-03:01.1 SD Host controller: Ricoh Co Ltd R5C822 SD/SDIO/MMC/MS/MSPro 
-Host Adapter (rev 21)
-03:01.2 SD Host controller: Ricoh Co Ltd R5C843 MMC Host Controller (rev 11)
-0c:00.0 Network controller: Intel Corporation PRO/Wireless 5300 AGN 
-[Shiloh] Network Connection
-0e:00.0 Multimedia audio controller: Xilinx Corporation RME Hammerfall 
-DSP (rev 3c)
+>>
+>>  		/* Found a free page, break it into order-0 pages */
+>>  		isolated = split_free_page(page);
+>>  		total_isolated += isolated;
+>> -		for (i = 0; i < isolated; i++) {
+>> -			list_add(&page->lru, freelist);
+>> -			page++;
+>> +		if (freelist) {
+>> +			struct page *p = page;
+>> +			for (i = isolated; i; --i, ++p)
+>> +				list_add(&p->lru, freelist);
+>>  		}
+>>
+>> -		/* If a page was split, advance to the end of it */
+>> -		if (isolated) {
+>> -			blockpfn += isolated - 1;
+>> -			cursor += isolated - 1;
+>> -		}
+>> +next:
+>> +		pfn += isolated;
+>> +		page += isolated;
+>
+> The name isolated is now confusing because it can mean either
+> pages isolated or pages scanned depending on context. Your patch
+> appears to be doing a lot more than is necessary to convert
+> isolate_freepages_block into isolate_freepages_range and at this point,
+> it's unclear why you did that.
 
-lin-tv ~ # lsusb
-Bus 001 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 003 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 004 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 005 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 006 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 007 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 008 Device 001: ID 1d6b:0001 Linux Foundation 1.1 root hub
-Bus 001 Device 003: ID 413c:2513 Dell Computer Corp. internal USB Hub of 
-E-Port Replicator
-Bus 001 Device 005: ID 0c45:63f8 Microdia Sonix Integrated Webcam
-Bus 003 Device 002: ID 0a5c:4500 Broadcom Corp. BCM2046B1 USB 2.0 Hub 
-(part of BCM2046 Bluetooth)
-Bus 005 Device 002: ID 0a5c:5800 Broadcom Corp. BCM5880 Secure 
-Applications Processor
-Bus 006 Device 002: ID 0451:2036 Texas Instruments, Inc. TUSB2036 Hub
-Bus 003 Device 003: ID 413c:8157 Dell Computer Corp. Integrated Keyboard
-Bus 003 Device 004: ID 413c:8158 Dell Computer Corp. Integrated Touchpad 
-/ Trackstick
-Bus 006 Device 004: ID 046d:c704 Logitech, Inc. diNovo Wireless Desktop
-Bus 003 Device 005: ID 413c:8156 Dell Computer Corp. Wireless 370 
-Bluetooth Mini-card
-Bus 002 Device 008: ID 2040:1605 Hauppauge
+When CMA uses this function, it requires all pages in the range to be valid
+and free.  (Both conditions should be met but you never know.)  This change
+adds a second way isolate_freepages_range() works, which is when freelist is
+not specified, abort on invalid or non-free page, but continue as usual if
+freelist is provided.
 
-Devices at Bus 2:
+I can try and restructure this function a bit so that there are fewer “gotos”,
+but without the above change, CMA won't really be able to use it effectively
+(it would have to provide a freelist and then validate if pages on it are
+added in order).
 
-lin-tv ~ # lsusb | grep "Bus 002"
-Bus 002 Device 001: ID 1d6b:0002 Linux Foundation 2.0 root hub
-Bus 002 Device 008: ID 2040:1605 Hauppauge
+>>  	}
+>>
+>>  	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
 
-/Fredrik
-
-
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
