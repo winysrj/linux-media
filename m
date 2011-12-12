@@ -1,105 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:41016 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751217Ab1L3Hw2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 02:52:28 -0500
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LX000MMFB7AJX00@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 30 Dec 2011 16:52:27 +0900 (KST)
-Received: from NORIVERFULK04 ([165.213.219.118])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LX000C3KB7E0D50@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Fri, 30 Dec 2011 16:52:26 +0900 (KST)
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <201112281501.25091.laurent.pinchart@ideasonboard.com>
- <001601ccc5f1$4db353d0$e919fb70$%kim@samsung.com>
- <201112300116.28572.laurent.pinchart@ideasonboard.com>
-In-reply-to: <201112300116.28572.laurent.pinchart@ideasonboard.com>
-Subject: RE: [RFC PATCH 0/4] Add some new camera controls
-Date: Fri, 30 Dec 2011 16:52:26 +0900
-Message-id: <000101ccc6c7$f9384db0$eba8e910$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from gir.skynet.ie ([193.1.99.77]:59528 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752606Ab1LLOT4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 09:19:56 -0500
+Date: Mon, 12 Dec 2011 14:19:53 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 03/11] mm: mmzone: introduce zone_pfn_same_memmap()
+Message-ID: <20111212141953.GD3277@csn.ul.ie>
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-4-git-send-email-m.szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1321634598-16859-4-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, Nov 18, 2011 at 05:43:10PM +0100, Marek Szyprowski wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
+> 
+> This commit introduces zone_pfn_same_memmap() function which checkes
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
-> Sent: Friday, December 30, 2011 9:16 AM
-> To: HeungJun, Kim
-> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl;
-> sakari.ailus@iki.fi; s.nawrocki@samsung.com; kyungmin.park@samsung.com
-> Subject: Re: [RFC PATCH 0/4] Add some new camera controls
-> 
-> Hi,
-> 
-> On Thursday 29 December 2011 07:15:46 HeungJun, Kim wrote:
-> > On Wednesday, December 28, 2011 11:01 PM Laurent Pinchart wrote:
-> > > On Wednesday 28 December 2011 07:23:44 HeungJun, Kim wrote:
-> > > > Hi everyone,
-> > > >
-> > > > This RFC patch series include new 4 controls ID for digital camera.
-> > > > I about to suggest these controls by the necessity enabling the M-5MOLS
-> > > > sensor's function, and I hope to discuss this in here.
-> > >
-> > > Thanks for the patches.
-> > >
-> > > The new controls introduced by these patches are very high level. Should
-> > > they be put in their own class ? I also think we should specify how
-> > > those high- level controls interact with low-level controls, otherwise
-> > > applications will likely get very confused.
-> >
-> > I did not consider yet, but I think it's first to define about what
-> > low-/high- is. I think this is not high- level controls. And, honestly, I
-> > don't understand it's really important to categorize low-/high-, or not.
-> >
-> > IMHO, The importance is the just complexity of interacting with each
-> > modules. If this means the level of low-/high-, I can understand this.
-> > But I'm wrong, please explain this. :)
-> 
-> Low level controls are usually handled in hardware and pretty much self-
-> contained. High level controls are usually software algorithms (possibly
-> running on the sensor itself) that modify low level controls behind the scene.
-> 
-> If a sensor exposes both an exposure time control and a scene mode control
-> that modifies exposure time handling, documentation of the scene mode control
-> must explain how the two interacts and what applications can and can't do.
-Ok, thanks for the explanation.
-I should include the ISP's contents in the documentation, and this might be
-the key I explain easily.
+s/checkes/checks/
 
-I'll prepare the next RFC add the more details in the document.
-Probably, it seems to be lack of explanation about these controls I suggested.
+> whether two PFNs within the same zone have struct pages within the
+> same memmap. 
 
-Regards,
-Heungjun Kim
+s/memmap/same sparsemem section/
 
+> This check is needed because in general pointer
+> arithmetic on struct pages may lead to invalid pointers.
 > 
-> > There is some different story, I just got the N900 some days ago :).
-> > The purpose is just understanding Nokia and TI OMAP camera architecture
-> > well. Probably, it helps for me to talk more easily, and I'll be able to
-> > speak more well
-> > with omap workers - you and Sakari.
+> On memory models that are not affected, zone_pfn_same_memmap() is
+> defined as always returning true so the call should be optimised
+> at compile time.
 > 
-> --
-> Regards,
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  include/linux/mmzone.h |   16 ++++++++++++++++
+>  mm/compaction.c        |    5 ++++-
+>  2 files changed, 20 insertions(+), 1 deletions(-)
 > 
-> Laurent Pinchart
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+> index 188cb2f..84e07d0 100644
+> --- a/include/linux/mmzone.h
+> +++ b/include/linux/mmzone.h
+> @@ -1166,6 +1166,22 @@ static inline int memmap_valid_within(unsigned long pfn,
+>  }
+>  #endif /* CONFIG_ARCH_HAS_HOLES_MEMORYMODEL */
+>  
+> +#if defined(CONFIG_SPARSEMEM) && !defined(CONFIG_SPARSEMEM_VMEMMAP)
+> +/*
+> + * Both PFNs must be from the same zone!  If this function returns
 
+from the same sparsemem section, not the same zone. 
+
+> + * true, pfn_to_page(pfn1) + (pfn2 - pfn1) == pfn_to_page(pfn2).
+> + */
+> +static inline bool zone_pfn_same_memmap(unsigned long pfn1, unsigned long pfn2)
+> +{
+> +	return pfn_to_section_nr(pfn1) == pfn_to_section_nr(pfn2);
+> +}
+> +
+> +#else
+> +
+> +#define zone_pfn_same_memmap(pfn1, pfn2) (true)
+> +
+> +#endif
+> +
+>  #endif /* !__GENERATING_BOUNDS.H */
+>  #endif /* !__ASSEMBLY__ */
+>  #endif /* _LINUX_MMZONE_H */
+> diff --git a/mm/compaction.c b/mm/compaction.c
+> index 6afae0e..09c9702 100644
+> --- a/mm/compaction.c
+> +++ b/mm/compaction.c
+> @@ -111,7 +111,10 @@ skip:
+>  
+>  next:
+>  		pfn += isolated;
+> -		page += isolated;
+> +		if (zone_pfn_same_memmap(pfn - isolated, pfn))
+> +			page += isolated;
+> +		else
+> +			page = pfn_to_page(pfn);
+>  	}
+
+Is this necessary?
+
+We are isolating pages, the largest of which is a MAX_ORDER_NR_PAGES
+page. Sections are never smaller than MAX_ORDER_NR_PAGES so the end
+of the free range of pages should never be in another section. That
+should mean that the PFN walk will always consider the first
+PFN of every section and you can implement a simplier check than
+zone_pfn_same_memmap based on pfn & PAGE_SECTION_MASK and contain it
+within mm/compaction.c
+
+That said, everywhere else managed to avoid checks like this by always
+scanning in units of pageblocks. Maybe this should be structured
+the same way to guarantee pfn_valid is called at least per pageblock
+(even though only once per MAX_ORDER_NR_PAGES is necessary).
+
+-- 
+Mel Gorman
+SUSE Labs
