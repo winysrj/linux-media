@@ -1,180 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37899 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753626Ab1L0BJf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:35 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19YZP017859
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:34 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 08/91] [media] cx22700: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:07:56 -0200
-Message-Id: <1324948159-23709-9-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-8-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57192 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752544Ab1LLAbK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Dec 2011 19:31:10 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC v3 4/4] v4l: Update subdev drivers to handle framesamples parameter
+Date: Mon, 12 Dec 2011 01:31:23 +0100
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	sakari.ailus@iki.fi, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, m.szyprowski@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <201112061712.30748.laurent.pinchart@ideasonboard.com> <1323453592-17782-1-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1323453592-17782-1-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112120131.24192.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Sylwester,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+On Friday 09 December 2011 18:59:52 Sylwester Nawrocki wrote:
+> Update the sub-device drivers having a devnode enabled so they properly
+> handle the new framesamples field of struct v4l2_mbus_framefmt.
+> These drivers don't support compressed (entropy encoded) formats so the
+> framesamples field is simply initialized to 0, altogether with the
+> reserved structure member.
+> 
+> There is a few other drivers that expose a devnode (mt9p031, mt9t001,
+> mt9v032), but they already implicitly initialize the new data structure
+> field to 0, so they don't need to be touched.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+> Hi,
+> 
+> In this version the whole reserved field in struct v4l2_mbus_framefmt
+> is also cleared, rather than setting only framesamples to 0.
+> 
+> The omap3isp driver changes have been only compile tested.
+> 
+> Thanks,
+> Sylwester
+> ---
+>  drivers/media/video/noon010pc30.c         |    5 ++++-
+>  drivers/media/video/omap3isp/ispccdc.c    |    2 ++
+>  drivers/media/video/omap3isp/ispccp2.c    |    2 ++
+>  drivers/media/video/omap3isp/ispcsi2.c    |    2 ++
+>  drivers/media/video/omap3isp/isppreview.c |    2 ++
+>  drivers/media/video/omap3isp/ispresizer.c |    2 ++
+>  drivers/media/video/s5k6aa.c              |    2 ++
+>  7 files changed, 16 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/noon010pc30.c
+> b/drivers/media/video/noon010pc30.c index 50838bf..5af9b60 100644
+> --- a/drivers/media/video/noon010pc30.c
+> +++ b/drivers/media/video/noon010pc30.c
+> @@ -519,13 +519,14 @@ static int noon010_get_fmt(struct v4l2_subdev *sd,
+> struct v4l2_subdev_fh *fh, mf = &fmt->format;
+> 
+>  	mutex_lock(&info->lock);
+> +	memset(mf, 0, sizeof(mf));
+>  	mf->width = info->curr_win->width;
+>  	mf->height = info->curr_win->height;
+>  	mf->code = info->curr_fmt->code;
+>  	mf->colorspace = info->curr_fmt->colorspace;
+>  	mf->field = V4L2_FIELD_NONE;
+> -
+>  	mutex_unlock(&info->lock);
+> +
+>  	return 0;
+>  }
+> 
+> @@ -546,12 +547,14 @@ static const struct noon010_format
+> *noon010_try_fmt(struct v4l2_subdev *sd, static int noon010_set_fmt(struct
+> v4l2_subdev *sd, struct v4l2_subdev_fh *fh, struct v4l2_subdev_format
+> *fmt)
+>  {
+> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+>  	struct noon010_info *info = to_noon010(sd);
+>  	const struct noon010_frmsize *size = NULL;
+>  	const struct noon010_format *nf;
+>  	struct v4l2_mbus_framefmt *mf;
+>  	int ret = 0;
+> 
+> +	memset(&fmt->format + offset, 0, sizeof(fmt->format) - offset);
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/cx22700.c |   52 +++++++++++++++++---------------
- 1 files changed, 28 insertions(+), 24 deletions(-)
+I'm not sure this is a good idea, as it will break when a new field will be 
+added to struct v4l2_mbus_framefmt.
 
-diff --git a/drivers/media/dvb/frontends/cx22700.c b/drivers/media/dvb/frontends/cx22700.c
-index 7ac95de..3c571b9 100644
---- a/drivers/media/dvb/frontends/cx22700.c
-+++ b/drivers/media/dvb/frontends/cx22700.c
-@@ -121,7 +121,8 @@ static int cx22700_set_inversion (struct cx22700_state* state, int inversion)
- 	}
- }
- 
--static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_parameters *p)
-+static int cx22700_set_tps(struct cx22700_state *state,
-+			   struct dtv_frontend_properties *p)
- {
- 	static const u8 qam_tab [4] = { 0, 1, 0, 2 };
- 	static const u8 fec_tab [6] = { 0, 1, 2, 0, 3, 4 };
-@@ -146,25 +147,25 @@ static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_paramet
- 	    p->transmission_mode != TRANSMISSION_MODE_8K)
- 		return -EINVAL;
- 
--	if (p->constellation != QPSK &&
--	    p->constellation != QAM_16 &&
--	    p->constellation != QAM_64)
-+	if (p->modulation != QPSK &&
-+	    p->modulation != QAM_16 &&
-+	    p->modulation != QAM_64)
- 		return -EINVAL;
- 
--	if (p->hierarchy_information < HIERARCHY_NONE ||
--	    p->hierarchy_information > HIERARCHY_4)
-+	if (p->hierarchy < HIERARCHY_NONE ||
-+	    p->hierarchy > HIERARCHY_4)
- 		return -EINVAL;
- 
--	if (p->bandwidth < BANDWIDTH_8_MHZ || p->bandwidth > BANDWIDTH_6_MHZ)
-+	if (p->bandwidth_hz > 8000000 || p->bandwidth_hz < 6000000)
- 		return -EINVAL;
- 
--	if (p->bandwidth == BANDWIDTH_7_MHZ)
-+	if (p->bandwidth_hz == 7000000)
- 		cx22700_writereg (state, 0x09, cx22700_readreg (state, 0x09 | 0x10));
- 	else
- 		cx22700_writereg (state, 0x09, cx22700_readreg (state, 0x09 & ~0x10));
- 
--	val = qam_tab[p->constellation - QPSK];
--	val |= p->hierarchy_information - HIERARCHY_NONE;
-+	val = qam_tab[p->modulation - QPSK];
-+	val |= p->hierarchy - HIERARCHY_NONE;
- 
- 	cx22700_writereg (state, 0x04, val);
- 
-@@ -184,7 +185,8 @@ static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_paramet
- 	return 0;
- }
- 
--static int cx22700_get_tps (struct cx22700_state* state, struct dvb_ofdm_parameters *p)
-+static int cx22700_get_tps(struct cx22700_state *state,
-+			   struct dtv_frontend_properties *p)
- {
- 	static const fe_modulation_t qam_tab [3] = { QPSK, QAM_16, QAM_64 };
- 	static const fe_code_rate_t fec_tab [5] = { FEC_1_2, FEC_2_3, FEC_3_4,
-@@ -199,14 +201,14 @@ static int cx22700_get_tps (struct cx22700_state* state, struct dvb_ofdm_paramet
- 	val = cx22700_readreg (state, 0x01);
- 
- 	if ((val & 0x7) > 4)
--		p->hierarchy_information = HIERARCHY_AUTO;
-+		p->hierarchy = HIERARCHY_AUTO;
- 	else
--		p->hierarchy_information = HIERARCHY_NONE + (val & 0x7);
-+		p->hierarchy = HIERARCHY_NONE + (val & 0x7);
- 
- 	if (((val >> 3) & 0x3) > 2)
--		p->constellation = QAM_AUTO;
-+		p->modulation = QAM_AUTO;
- 	else
--		p->constellation = qam_tab[(val >> 3) & 0x3];
-+		p->modulation = qam_tab[(val >> 3) & 0x3];
- 
- 	val = cx22700_readreg (state, 0x02);
- 
-@@ -318,8 +320,9 @@ static int cx22700_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
- 	return 0;
- }
- 
--static int cx22700_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
-+static int cx22700_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct cx22700_state* state = fe->demodulator_priv;
- 
- 	cx22700_writereg (state, 0x00, 0x02); /* XXX CHECKME: soft reset*/
-@@ -330,21 +333,22 @@ static int cx22700_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	cx22700_set_inversion (state, p->inversion);
--	cx22700_set_tps (state, &p->u.ofdm);
-+	cx22700_set_inversion(state, c->inversion);
-+	cx22700_set_tps(state, c);
- 	cx22700_writereg (state, 0x37, 0x01);  /* PAL loop filter off */
- 	cx22700_writereg (state, 0x00, 0x01);  /* restart acquire */
- 
- 	return 0;
- }
- 
--static int cx22700_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
-+static int cx22700_get_frontend(struct dvb_frontend* fe,
-+				struct dtv_frontend_properties *c)
- {
- 	struct cx22700_state* state = fe->demodulator_priv;
- 	u8 reg09 = cx22700_readreg (state, 0x09);
- 
--	p->inversion = reg09 & 0x1 ? INVERSION_ON : INVERSION_OFF;
--	return cx22700_get_tps (state, &p->u.ofdm);
-+	c->inversion = reg09 & 0x1 ? INVERSION_ON : INVERSION_OFF;
-+	return cx22700_get_tps(state, c);
- }
- 
- static int cx22700_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
-@@ -401,7 +405,7 @@ error:
- }
- 
- static struct dvb_frontend_ops cx22700_ops = {
--
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name			= "Conexant CX22700 DVB-T",
- 		.type			= FE_OFDM,
-@@ -419,8 +423,8 @@ static struct dvb_frontend_ops cx22700_ops = {
- 	.init = cx22700_init,
- 	.i2c_gate_ctrl = cx22700_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = cx22700_set_frontend,
--	.get_frontend_legacy = cx22700_get_frontend,
-+	.set_frontend = cx22700_set_frontend,
-+	.get_frontend = cx22700_get_frontend,
- 	.get_tune_settings = cx22700_get_tune_settings,
- 
- 	.read_status = cx22700_read_status,
+Wouldn't it be better to zero the whoel structure in the callers instead ?
+
+>  	nf = noon010_try_fmt(sd, &fmt->format);
+>  	noon010_try_frame_size(&fmt->format, &size);
+>  	fmt->format.colorspace = V4L2_COLORSPACE_JPEG;
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> b/drivers/media/video/omap3isp/ispccdc.c index b0b0fa5..a608149 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -1802,6 +1802,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct
+> v4l2_subdev_fh *fh, unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+>  		enum v4l2_subdev_format_whence which)
+>  {
+> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+>  	struct v4l2_mbus_framefmt *format;
+>  	const struct isp_format_info *info;
+>  	unsigned int width = fmt->width;
+> @@ -1863,6 +1864,7 @@ ccdc_try_format(struct isp_ccdc_device *ccdc, struct
+> v4l2_subdev_fh *fh, */
+>  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+>  	fmt->field = V4L2_FIELD_NONE;
+> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
+>  }
+> 
+>  /*
+> diff --git a/drivers/media/video/omap3isp/ispccp2.c
+> b/drivers/media/video/omap3isp/ispccp2.c index 904ca8c..a56a6ad 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.c
+> +++ b/drivers/media/video/omap3isp/ispccp2.c
+> @@ -673,6 +673,7 @@ static void ccp2_try_format(struct isp_ccp2_device
+> *ccp2, struct v4l2_mbus_framefmt *fmt,
+>  			       enum v4l2_subdev_format_whence which)
+>  {
+> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+>  	struct v4l2_mbus_framefmt *format;
+> 
+>  	switch (pad) {
+> @@ -711,6 +712,7 @@ static void ccp2_try_format(struct isp_ccp2_device
+> *ccp2,
+> 
+>  	fmt->field = V4L2_FIELD_NONE;
+>  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
+>  }
+> 
+>  /*
+> diff --git a/drivers/media/video/omap3isp/ispcsi2.c
+> b/drivers/media/video/omap3isp/ispcsi2.c index 0c5f1cb..c41443b 100644
+> --- a/drivers/media/video/omap3isp/ispcsi2.c
+> +++ b/drivers/media/video/omap3isp/ispcsi2.c
+> @@ -846,6 +846,7 @@ csi2_try_format(struct isp_csi2_device *csi2, struct
+> v4l2_subdev_fh *fh, unsigned int pad, struct v4l2_mbus_framefmt *fmt,
+>  		enum v4l2_subdev_format_whence which)
+>  {
+> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+>  	enum v4l2_mbus_pixelcode pixelcode;
+>  	struct v4l2_mbus_framefmt *format;
+>  	const struct isp_format_info *info;
+> @@ -888,6 +889,7 @@ csi2_try_format(struct isp_csi2_device *csi2, struct
+> v4l2_subdev_fh *fh, /* RGB, non-interlaced */
+>  	fmt->colorspace = V4L2_COLORSPACE_SRGB;
+>  	fmt->field = V4L2_FIELD_NONE;
+> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
+>  }
+> 
+>  /*
+> diff --git a/drivers/media/video/omap3isp/isppreview.c
+> b/drivers/media/video/omap3isp/isppreview.c index ccb876f..23861c4 100644
+> --- a/drivers/media/video/omap3isp/isppreview.c
+> +++ b/drivers/media/video/omap3isp/isppreview.c
+> @@ -1656,6 +1656,7 @@ static void preview_try_format(struct isp_prev_device
+> *prev, struct v4l2_mbus_framefmt *fmt,
+>  			       enum v4l2_subdev_format_whence which)
+>  {
+> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+>  	enum v4l2_mbus_pixelcode pixelcode;
+>  	struct v4l2_rect *crop;
+>  	unsigned int i;
+> @@ -1720,6 +1721,7 @@ static void preview_try_format(struct isp_prev_device
+> *prev, }
+> 
+>  	fmt->field = V4L2_FIELD_NONE;
+> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
+>  }
+> 
+>  /*
+> diff --git a/drivers/media/video/omap3isp/ispresizer.c
+> b/drivers/media/video/omap3isp/ispresizer.c index 50e593b..fff46e5 100644
+> --- a/drivers/media/video/omap3isp/ispresizer.c
+> +++ b/drivers/media/video/omap3isp/ispresizer.c
+> @@ -1336,6 +1336,7 @@ static void resizer_try_format(struct isp_res_device
+> *res, struct v4l2_mbus_framefmt *fmt,
+>  			       enum v4l2_subdev_format_whence which)
+>  {
+> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+>  	struct v4l2_mbus_framefmt *format;
+>  	struct resizer_ratio ratio;
+>  	struct v4l2_rect crop;
+> @@ -1363,6 +1364,7 @@ static void resizer_try_format(struct isp_res_device
+> *res,
+> 
+>  	fmt->colorspace = V4L2_COLORSPACE_JPEG;
+>  	fmt->field = V4L2_FIELD_NONE;
+> +	memset(fmt + offset, 0, sizeof(*fmt) - offset);
+>  }
+> 
+>  /*
+> diff --git a/drivers/media/video/s5k6aa.c b/drivers/media/video/s5k6aa.c
+> index 0df7f2a..b9d1f03 100644
+> --- a/drivers/media/video/s5k6aa.c
+> +++ b/drivers/media/video/s5k6aa.c
+> @@ -1070,8 +1070,10 @@ __s5k6aa_get_crop_rect(struct s5k6aa *s5k6aa, struct
+> v4l2_subdev_fh *fh, static void s5k6aa_try_format(struct s5k6aa *s5k6aa,
+>  			      struct v4l2_mbus_framefmt *mf)
+>  {
+> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+>  	unsigned int index;
+> 
+> +	memset(mf + offset, 0, sizeof(*mf) - offset);
+>  	v4l_bound_align_image(&mf->width, S5K6AA_WIN_WIDTH_MIN,
+>  			      S5K6AA_WIN_WIDTH_MAX, 1,
+>  			      &mf->height, S5K6AA_WIN_HEIGHT_MIN,
+
 -- 
-1.7.8.352.g876a6
+Regards,
 
+Laurent Pinchart
