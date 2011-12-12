@@ -1,76 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:42748 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753241Ab1L0MLz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 07:11:55 -0500
-Message-ID: <4EF9B606.3090908@linuxtv.org>
-Date: Tue, 27 Dec 2011 13:11:50 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:42862 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752334Ab1LLE2T convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 11 Dec 2011 23:28:19 -0500
+Received: by wgbds13 with SMTP id ds13so7578521wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 20:28:18 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 01/91] [media] dvb-core: allow demods to specify the
- supported delivery systems supported standards.
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <4EE346E0.7050606@iki.fi>
+References: <CAHFNz9+=T5XGok+LvhVqeSVdWt=Ng6wgXqcHdtdw19a+whx1bw@mail.gmail.com>
+	<4EE346E0.7050606@iki.fi>
+Date: Mon, 12 Dec 2011 09:58:17 +0530
+Message-ID: <CAHFNz9+WEJHhJoUywwzCF=Jv7TRY9xG2rKuRxP=Ff0jvq40SSA@mail.gmail.com>
+Subject: Re: v4 [PATCH 09/10] CXD2820r: Query DVB frontend delivery capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
-> DVB-S and DVB-T, as those were the standards supported by DVBv3.
+On Sat, Dec 10, 2011 at 5:17 PM, Antti Palosaari <crope@iki.fi> wrote:
+> Hello Manu,
+> That patch looks now much acceptable than the older for my eyes, since you
+> removed that .set_state() (change from .set_params() to .set_state()) I
+> criticized. Thanks!
+>
 
-The description seems to be incomplete.
 
-> New standards like DSS, ISDB and CTTB don't fit on any of the
-> above types.
-> 
-> while there's a way for the drivers to explicitly change whatever
-> default DELSYS were filled inside the core, still a fake value is
-> needed there, and a "compat" code to allow DVBv3 applications to
-> work with those delivery systems is needed. This is good for a
-> short term solution, while applications aren't using DVBv5 directly.
-> 
-> However, at long term, this is bad, as the compat code runs even
-> if the application is using DVBv5. Also, the compat code is not
-> perfect, and only works when the frontend is capable of auto-detecting
-> the parameters that aren't visible by the faked delivery systems.
-> 
-> So, let the frontend fill the supported delivery systems at the
-> device properties directly, and, in the future, let the core to use
-> the delsys to fill the reported info::type based on the delsys.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++++++++++++
->  drivers/media/dvb/dvb-core/dvb_frontend.h |    8 ++++++++
->  2 files changed, 21 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index 8dedff4..f17c411 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> @@ -1252,6 +1252,19 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
->  	const struct dvb_frontend_info *info = &fe->ops.info;
->  	u32 ncaps = 0;
->  
-> +	/*
-> +	 * If the frontend explicitly sets a list, use it, instead of
-> +	 * filling based on the info->type
-> +	 */
-> +	if (fe->ops.delsys[ncaps]) {
-> +		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
-> +			p->u.buffer.data[ncaps] = fe->ops.delsys[ncaps];
-> +			ncaps++;
-> +		}
-> +		p->u.buffer.len = ncaps;
-> +		return;
-> +	}
-> +
+:-)
 
-I don't understand what this is trying to solve. This is already handled
-by the get_property driver callback.
+>
+> On 12/10/2011 06:44 AM, Manu Abraham wrote:
+>>
+>>  static int cxd2820r_set_frontend(struct dvb_frontend *fe,
+>
+> [...]
+>>
+>> +       switch (c->delivery_system) {
+>> +       case SYS_DVBT:
+>> +               ret = cxd2820r_init_t(fe);
+>
+>
+>> +               ret = cxd2820r_set_frontend_t(fe, p);
+>
+>
+>
+> Anyhow, I don't now like idea you have put .init() calls to .set_frontend().
+> Could you move .init() happen in .init() callback as it was earlier?
 
-dtv_set_default_delivery_caps() only sets some defaults for drivers not
-implementing get_property yet.
+This was there in the earlier patch as well. Maybe you have a
+new issue now ? ;-)
+
+ok.
+
+The argument what you make doesn't hold well, Why ?
+
+int cxd2820r_init_t(struct dvb_frontend *fe)
+{
+	ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
+}
+
+
+int cxd2820r_init_c(struct dvb_frontend *fe)
+{
+	ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
+}
+
+
+Now, you might like to point that, the Base I2C address location
+is different comparing DVB-T/DVBT2 to DVB-C
+
+So, If you have the init as in earlier with a common init, then you
+will likely init the wrong device at .init(), as init is called open().
+So, this might result in an additional register write, which could
+be avoided altogether.  One register access is not definitely
+something to brag about, but is definitely a small incremental
+difference. Other than that this register write doesn't do anything
+more than an ADC_START. So starting the ADC at init doesn't
+make sense. But does so when you want to select the right ADC.
+So definitely, this change is an improvement. Also, you can
+compare the time taken for the device to tune now. It is quite
+a lot faster compared to without this patch. So you or any other
+user should be happy. :-)
+
+
+I don't think that in any way, the init should be used at init as
+you say, which sounds pretty much incorrect.
