@@ -1,45 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57550 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753414Ab1LGKL1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 05:11:27 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
-Date: Wed, 7 Dec 2011 10:11:03 +0000
+Received: from gir.skynet.ie ([193.1.99.77]:59708 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752952Ab1LLO3K (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 09:29:10 -0500
+Date: Mon, 12 Dec 2011 14:29:07 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
 Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, jesse.barker@linaro.org,
-	m.szyprowski@samsung.com, rob@ti.com, daniel@ffwll.ch,
-	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <201112051718.48324.arnd@arndb.de> <CAB2ybb8-0_HupO95UUvLN9ovVxnU+uvn4UXbwqZLSFuC9MZs0w@mail.gmail.com>
-In-Reply-To: <CAB2ybb8-0_HupO95UUvLN9ovVxnU+uvn4UXbwqZLSFuC9MZs0w@mail.gmail.com>
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 04/11] mm: compaction: export some of the functions
+Message-ID: <20111212142906.GE3277@csn.ul.ie>
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-5-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112071011.03525.arnd@arndb.de>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1321634598-16859-5-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 07 December 2011, Semwal, Sumit wrote:
-> >
-> > Do you have a use case for making the interface compile-time disabled?
-> > I had assumed that any code using it would make no sense if it's not
-> > available so you don't actually need this.
->
-> Ok. Though if we keep the interface compile-time disabled, the users
-> can actually check and fail or fall-back gracefully when the API is
-> not available; If I remove it, anyways the users would need to do the
-> same compile time check whether API is available or not, right?
+On Fri, Nov 18, 2011 at 05:43:11PM +0100, Marek Szyprowski wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
+> 
+> This commit exports some of the functions from compaction.c file
+> outside of it adding their declaration into internal.h header
+> file so that other mm related code can use them.
+> 
+> This forced compaction.c to always be compiled (as opposed to being
+> compiled only if CONFIG_COMPACTION is defined) but as to avoid
+> introducing code that user did not ask for, part of the compaction.c
+> is now wrapped in on #ifdef.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  mm/Makefile     |    3 +-
+>  mm/compaction.c |  112 +++++++++++++++++++++++--------------------------------
+>  mm/internal.h   |   35 +++++++++++++++++
+>  3 files changed, 83 insertions(+), 67 deletions(-)
+> 
+> diff --git a/mm/Makefile b/mm/Makefile
+> index 50ec00e..24ed801 100644
+> --- a/mm/Makefile
+> +++ b/mm/Makefile
+> @@ -13,7 +13,7 @@ obj-y			:= filemap.o mempool.o oom_kill.o fadvise.o \
+>  			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+>  			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+>  			   page_isolation.o mm_init.o mmu_context.o percpu.o \
+> -			   $(mmu-y)
+> +			   $(mmu-y) compaction.o
 
-If you have to do a compile-time check for the config symbol, it's better
-to do it the way you did here than in the caller.
+That should be
 
-My guess was that no caller would actually require this, because when you
-write a part of a subsystem to interact with the dma-buf infrastructure,
-you would always disable compilation of an extire file that deals with 
-everything related to struct dma_buf, not just stub out the calls.
+compaction.o $(mmu-y)
 
-	Arnd
+for consistency.
+
+Overall, this patch implies that CMA is always compiled in. Why
+not just make CMA depend on COMPACTION to keep things simplier? For
+example, if you enable CMA and do not enable COMPACTION, you lose
+things like the vmstat counters that can aid debugging. In fact, as
+parts of compaction.c are using defines like COMPACTBLOCKS, I'm not
+even sure compaction.c can compile without CONFIG_COMPACTION because
+of the vmstat stuff.
+
+-- 
+Mel Gorman
+SUSE Labs
