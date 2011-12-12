@@ -1,87 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6111 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752093Ab1LaLHk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 06:07:40 -0500
-Message-ID: <4EFEECF4.3010709@redhat.com>
-Date: Sat, 31 Dec 2011 09:07:32 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from seiner.com ([66.178.130.209]:42150 "EHLO www.seiner.lan"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751203Ab1LLQ35 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 11:29:57 -0500
+Message-ID: <d357dc54e18209f46fc773213630eb86.squirrel@mail.seiner.com>
+In-Reply-To: <CAGoCfiwNT2qZW_yj_kJfdFDydUcTQr3L_1_arcvxwSDt2a1bQQ@mail.gmail.com>
+References: <4EDC25F1.4000909@seiner.com>
+    <1323058527.12343.3.camel@palomino.walls.org>
+    <4EDC4C84.2030904@seiner.com> <4EDC4E9B.40301@seiner.com>
+    <4EDCB6D1.1060508@seiner.com>
+    <1098bb19-5241-4be4-a916-657c0b599efd@email.android.com>
+    <c0667c34eccf470314966c2426b00af4.squirrel@mail.seiner.com>
+    <4EE55304.9090707@seiner.com>
+    <0b3ac95d-1977-4e86-9337-9e1390d51b83@email.android.com>
+    <4EE5F7BB.4070306@seiner.com>
+    <CAGoCfizHNPobXjMWAz_xp5wyLfspE6N8AtWxeM6AWeE8U-+UEA@mail.gmail.com>
+    <236aa572a18085c33e56f64cd3155b86.squirrel@mail.seiner.com>
+    <CAGoCfiwNT2qZW_yj_kJfdFDydUcTQr3L_1_arcvxwSDt2a1bQQ@mail.gmail.com>
+Date: Mon, 12 Dec 2011 08:29:56 -0800 (PST)
+Subject: Re: cx231xx kernel oops
+From: "Yan Seiner" <yan@seiner.com>
+To: "Devin Heitmueller" <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-To: Dorozel Csaba <mrjuuzer@upcmail.hu>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ir-kbd-i2c / rc-hauppauge / linux-3.x broken
-References: <20111230120658.DXPH19694.viefep13-int.chello.at@edge04.upcmail.net> <4EFDF229.8090103@redhat.com> <20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net>
-In-Reply-To: <20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31-12-2011 08:15, Dorozel Csaba wrote:
->> Basically, the bridge driver is not sending the complete RC-5
->> keycode to the IR core, but just the 8 least siginificant bits.
->> So, it is loosing the 0x1e00 code for the Hauppauge grey remote.
+
+On Mon, December 12, 2011 8:22 am, Devin Heitmueller wrote:
+> On Mon, Dec 12, 2011 at 10:58 AM, Yan Seiner <yan@seiner.com> wrote:
+>>> Also, just to be clear, the USB Live 2 doesn't have any onboard
+>>> hardware compression.  It has comparable requirements related to USB
+>>> bus utilization as any other USB framegrabber.  The only possible
+>>> advantage you might get is that it does have an onboard scaler, so if
+>>> you're willing to compromise on quality you can change the capture
+>>> resolution to a lower value such as 320x240.  Also, bear in mind that
+>>> the cx231xx driver may not be properly tuned to reduce the alternate
+>>> it uses dependent on resolution.  To my knowledge that functionality
+>>> has not been thoroughly tested (as it's an unpopular use case).
 >>
->> The fix should be at saa7134-input. It should be something like
->> the enclosed patch (I'm just guessing there that code3 contains
->> the MSB bits - you may need to adjust it to match the IR decoder
->> there):
-> 
-> I'm absolutly not a programer but an unhappy linux user who want his working remote back.
-> Know nothing about c code, MSB bits ... After apply your fix looks what happening but remote is
-> still broken.
-> 
-> user juuzer # ir-keytable -t
-> Testing events. Please, press CTRL-C to abort.
-> 1325324726.066129: event MSC: scancode = de3d
-> 1325324726.066131: event sync
-> 1325324726.169132: event MSC: scancode = de3d
-> 1325324726.169134: event sync
-> 1325324727.508129: event MSC: scancode = fe3d
-> 1325324727.508131: event sync
-> 1325324727.611132: event MSC: scancode = fe3d
-> 1325324727.611134: event sync
-> 1325324730.084132: event MSC: scancode = de3d
-> 1325324730.084134: event sync
-> 1325324730.187132: event MSC: scancode = de3d
-> 
-> It seems the code3 sometimes return with de (11011110) sometimes fe (11111110). Is it possible
-> to bitwise left 3 then bitwise right 3 so the result in both case is 1e (00011110) ? Or its totaly
-> wrong ?
+>> OK, thanks.  I was hoping this was a hardware framegrabber; the info on
+>> the website is so ambiguous as to be nearly useless.
+>
+> I think you're just confused about the terminology.  The term
+> "framegrabber" inherently means that it's delivering raw video (as
+> opposed to having onboard compression and providing MPEG or some other
+> compressed format).  All framegrabbers are hardware framegrabbers.
 
-An RC-5 code is just 14 bits. I found some Hauppauge decoders returning
-just 12 bits on some places. It seems that all it needs is to do a
-code3 | 0x3f, in order to discard the two most significant bits (MSB).
+Aha.  Thanks for the explanation.
 
-So, the enclosed patch should fix the issues. Please test.
+>
+> You may wish to look at the HVR-1950, which is well supported under
+> Linux and does deliver MPEG video.  It's obviously more expensive that
+> the USB Live 2 and it has a tuner which you probably don't need, but
+> it does avoid the issue if you have USB bus constraints.
 
-Regards,
-Mauro
--
+I had looked at the HVR-1950 but the power consumption was prohibitive for
+my application.  :-(
 
-saa7134-input: Fix get_key_hvr1110() handling
+--Yan
 
-Instead of returning just 8 bits, return the full RC-5 code
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
-index d4ee24b..29c8efd 100644
---- a/drivers/media/video/saa7134/saa7134-input.c
-+++ b/drivers/media/video/saa7134/saa7134-input.c
-@@ -249,8 +249,8 @@ static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
- 		return 0;
- 
- 	/* return key */
--	*ir_key = code4;
--	*ir_raw = code4;
-+	*ir_key = 0x3fff & (code4 | code3 << 8);
-+	*ir_raw = *ir_key;
- 	return 1;
- }
-
-
-Regards,
-Mauro
-> 
+-- 
+Pain is temporary. It may last a minute, or an hour, or a day, or a year,
+but eventually it will subside and something else will take its place. If
+I quit, however, it lasts forever.
 
