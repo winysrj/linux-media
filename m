@@ -1,82 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:27789 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750861Ab1LJQQQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Dec 2011 11:16:16 -0500
-Message-ID: <4EE385C2.6040108@redhat.com>
-Date: Sat, 10 Dec 2011 14:16:02 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Andreas Oberritter <obi@linuxtv.org>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] DVB: dvb_frontend: fix delayed thread exit
-References: <1323454852-7426-1-git-send-email-mchehab@redhat.com> <4EE252E5.2050204@iki.fi> <4EE25A3C.9040404@redhat.com> <4EE25CB4.3000501@iki.fi> <4EE287A9.3000502@redhat.com> <CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com> <4EE29BA6.1030909@redhat.com> <4EE29D1A.6010900@redhat.com> <4EE2B7BC.9090501@linuxtv.org> <CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com> <4EE2BE97.6020209@linuxtv.org> <CAGoCfiyx6JR_MiVdC=ZGw_G-hzrE7O8mZp1a8of8=PcxW_P82g@mail.gmail.com> <4EE3345E.5050304@redhat.com> <CAGoCfizdY84dRduX7uLjkBY-RAJ2c74nEnxFOZzU1cD_XKC4Mg@mail.gmail.com>
-In-Reply-To: <CAGoCfizdY84dRduX7uLjkBY-RAJ2c74nEnxFOZzU1cD_XKC4Mg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-qw0-f53.google.com ([209.85.216.53]:52181 "EHLO
+	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563Ab1LLLoM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 06:44:12 -0500
+Received: by qadb15 with SMTP id b15so4501847qad.19
+        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 03:44:11 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org, m.szyprowski@samsung.com,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	shawn.guo@linaro.org, richard.zhao@linaro.org,
+	fabio.estevam@freescale.com, kernel@pengutronix.de,
+	s.hauer@pengutronix.de, r.schwebel@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v4 2/2] MX2: Add platform definitions for eMMa-PrP device.
+Date: Mon, 12 Dec 2011 12:43:45 +0100
+Message-Id: <1323690225-15799-3-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10-12-2011 11:43, Devin Heitmueller wrote:
-> Hello Mauro,
->
-> On Sat, Dec 10, 2011 at 5:28 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com>  wrote:
->> Devin,
->>
->> You're over-reacting. This patch were a reply from Andreas to a thread,
->> and not a separate patch submission.
->>
->> Patches like are generally handled as RFC, especially since it doesn't
->> contain a description.
->
-> Any email that starts with "WTF, Devin, you again?" will probably not
-> get a very polite response.
->
-> I agree there's been some overreaction, but it hasn't been on my part.
->   He took the time to split it onto a new thread, add the subject line
-> "PATCH", as well as adding an SOB.  Even if his intent was only to get
-> it reviewed, why should I waste half an hour of my time analyzing his
-> patch to try to figure out his intent if he isn't willing to simply
-> document it?
+eMMa-PrP device included in Freescale i.MX2 chips can also
+be used separately to process memory buffers. This patch
+provides arch glue code for the driver which provides this
+functionality.
 
-Both overacted, but this doesn't bring anything good.
+Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ arch/arm/mach-imx/clock-imx27.c                 |    2 +-
+ arch/arm/mach-imx/devices-imx27.h               |    2 ++
+ arch/arm/plat-mxc/devices/platform-mx2-camera.c |   18 ++++++++++++++++++
+ arch/arm/plat-mxc/include/mach/devices-common.h |    2 ++
+ 4 files changed, 23 insertions(+), 1 deletions(-)
 
-> You have a history of blindly accepting such patches without review.
+diff --git a/arch/arm/mach-imx/clock-imx27.c b/arch/arm/mach-imx/clock-imx27.c
+index 88fe00a..dc2d7a5 100644
+--- a/arch/arm/mach-imx/clock-imx27.c
++++ b/arch/arm/mach-imx/clock-imx27.c
+@@ -661,7 +661,7 @@ static struct clk_lookup lookups[] = {
+ 	_REGISTER_CLOCK(NULL, "dma", dma_clk)
+ 	_REGISTER_CLOCK(NULL, "rtic", rtic_clk)
+ 	_REGISTER_CLOCK(NULL, "brom", brom_clk)
+-	_REGISTER_CLOCK(NULL, "emma", emma_clk)
++	_REGISTER_CLOCK("m2m-emmaprp.0", NULL, emma_clk)
+ 	_REGISTER_CLOCK(NULL, "slcdc", slcdc_clk)
+ 	_REGISTER_CLOCK("imx27-fec.0", NULL, fec_clk)
+ 	_REGISTER_CLOCK(NULL, "emi", emi_clk)
+diff --git a/arch/arm/mach-imx/devices-imx27.h b/arch/arm/mach-imx/devices-imx27.h
+index 2f727d7..28537a5 100644
+--- a/arch/arm/mach-imx/devices-imx27.h
++++ b/arch/arm/mach-imx/devices-imx27.h
+@@ -50,6 +50,8 @@ extern const struct imx_imx_uart_1irq_data imx27_imx_uart_data[];
+ extern const struct imx_mx2_camera_data imx27_mx2_camera_data;
+ #define imx27_add_mx2_camera(pdata)	\
+ 	imx_add_mx2_camera(&imx27_mx2_camera_data, pdata)
++#define imx27_add_mx2_emmaprp(pdata)	\
++	imx_add_mx2_emmaprp(&imx27_mx2_camera_data)
+ 
+ extern const struct imx_mxc_ehci_data imx27_mxc_ehci_otg_data;
+ #define imx27_add_mxc_ehci_otg(pdata)	\
+diff --git a/arch/arm/plat-mxc/devices/platform-mx2-camera.c b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
+index b3f4828..11eace9 100644
+--- a/arch/arm/plat-mxc/devices/platform-mx2-camera.c
++++ b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
+@@ -62,3 +62,21 @@ struct platform_device *__init imx_add_mx2_camera(
+ 			res, data->iobaseemmaprp ? 4 : 2,
+ 			pdata, sizeof(*pdata), DMA_BIT_MASK(32));
+ }
++
++struct platform_device *__init imx_add_mx2_emmaprp(
++		const struct imx_mx2_camera_data *data)
++{
++	struct resource res[] = {
++		{
++			.start = data->iobaseemmaprp,
++			.end = data->iobaseemmaprp + data->iosizeemmaprp - 1,
++			.flags = IORESOURCE_MEM,
++		}, {
++			.start = data->irqemmaprp,
++			.end = data->irqemmaprp,
++			.flags = IORESOURCE_IRQ,
++		},
++	};
++	return imx_add_platform_device_dmamask("m2m-emmaprp", 0,
++			res, 2, NULL, 0, DMA_BIT_MASK(32));
++}
+diff --git a/arch/arm/plat-mxc/include/mach/devices-common.h b/arch/arm/plat-mxc/include/mach/devices-common.h
+index def9ba5..1b2258d 100644
+--- a/arch/arm/plat-mxc/include/mach/devices-common.h
++++ b/arch/arm/plat-mxc/include/mach/devices-common.h
+@@ -223,6 +223,8 @@ struct imx_mx2_camera_data {
+ struct platform_device *__init imx_add_mx2_camera(
+ 		const struct imx_mx2_camera_data *data,
+ 		const struct mx2_camera_platform_data *pdata);
++struct platform_device *__init imx_add_mx2_emmaprp(
++		const struct imx_mx2_camera_data *data);
+ 
+ #include <mach/mxc_ehci.h>
+ struct imx_mxc_ehci_data {
+-- 
+1.7.0.4
 
-No. I always review all patches I receive. Yeah, I have to confess:
-I'm not a robot, I'm not infallible ;) (well, even a robot would
-hardly be infallible, anyway).
-
-> My only intent was to flag this patch to ensure that this didn't
-> happen here.  I've spent way more time than I should have to fixing
-> obscure race conditions in dvb core.  If the author of a patch cannot
-> take the time to document his findings to provide context then the
-> patch should be rejected without review until he does so.
->
-> And why isn't this broken into a patch series?  Even after you
-> analyzed the patch you still don't understand what the changes do and
-> why there are being made.  Your explanation for why he added the
-> "mb()" call was because "Probably Andreas added it because he noticed
-> some race condition".  What is the race condition?  Did he find
-> multiple race conditions?  Is this patch multiple fixes for a race
-> condition and some other crap at the same time?
->
-> If a developer wants a patch reviewed (as Andreas suggested was the
-> case here after-the-fact), then here's my feedback:  break this into a
-> series of small incremental patches which *in detail* describe the
-> problem that was found and how each patch addresses the issue.  Once
-> we have that, the maintainer can do a more in-depth analysis of
-> whether the patch should be accepted.  Code whose function cannot be
-> explicitly justified but simply 'looks better' should not be mixed in
-> with real functional changes.
-
-I understand that you want patches better documented, so do I, and it
-would be great if this patch had a better description since the beginning.
-
-Yet, I don't agree that this patch should be split. It does just one
-thing: it fixes the timeout handling for the dvb core frontend thread.
-
-Regards,
-Mauro
