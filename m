@@ -1,147 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:34587 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753731Ab1LFPU2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 10:20:28 -0500
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LVS00EFLFX7M8P0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Dec 2011 00:20:26 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LVS00GK7FXXZ330@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Wed, 07 Dec 2011 00:20:26 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Sakari Ailus' <sakari.ailus@iki.fi>
-Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	=?utf-8?Q?'Sebastian_Dr=C3=B6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED905E0.5020706@redhat.com>
- <007201ccb118$633ff890$29bfe9b0$%debski@samsung.com>
- <201112061301.01010.laurent.pinchart@ideasonboard.com>
- <20111206142821.GC938@valkosipuli.localdomain> <4EDE29AA.8090203@redhat.com>
-In-reply-to: <4EDE29AA.8090203@redhat.com>
-Subject: RE: [RFC] Resolution change support in video codecs in v4l2
-Date: Tue, 06 Dec 2011 16:19:40 +0100
-Message-id: <00de01ccb42a$7cddab70$76990250$%debski@samsung.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:54571 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751585Ab1LLRpJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 12:45:09 -0500
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LW3000C7QN3JX@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:03 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW3007V2QN2EF@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:03 +0000 (GMT)
+Date: Mon, 12 Dec 2011 18:44:58 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 14/14] s5p-csis: Enable v4l subdev device node
+In-reply-to: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1323711898-17162-15-git-send-email-s.nawrocki@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 8BIT
-Content-language: en-gb
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
-> Sent: 06 December 2011 15:42
-> 
-> On 06-12-2011 12:28, 'Sakari Ailus' wrote:
-> > Hi all,
-> >
-> > On Tue, Dec 06, 2011 at 01:00:59PM +0100, Laurent Pinchart wrote:
-> > ...
-> >>>>>>> 2) new requirement is for a bigger buffer. DMA transfers need to be
-> >>>>>>> stopped before actually writing inside the buffer (otherwise, memory
-> >>>>>>> will be corrupted).
-> >>>>>>>
-> >>>>>>> In this case, all queued buffers should be marked with an error flag.
-> >>>>>>> So, both V4L2_BUF_FLAG_FORMATCHANGED and V4L2_BUF_FLAG_ERROR should
-> >>>>>>> raise. The new format should be available via G_FMT.
-> >>
-> >> I'd like to reword this as follows:
-> >>
-> >> 1. In all cases, the application needs to be informed that the format has
-> >> changed.
-> >>
-> >> V4L2_BUF_FLAG_FORMATCHANGED (or a similar flag) is all we need. G_FMT
-> will
-> >> report the new format.
-> >>
-> >> 2. In all cases, the application must have the option of reallocating
-> buffers
-> >> if it wishes.
-> >>
-> >> In order to support this, the driver needs to wait until the application
-> >> acknowledged the format change before it starts decoding the stream.
-> >> Otherwise, if the codec started decoding the new stream to the existing
-> >> buffers by itself, applications wouldn't have the option of freeing the
-> >> existing buffers and allocating smaller ones.
-> >>
-> >> STREAMOFF/STREAMON is one way of acknowledging the format change. I'm not
-> >> opposed to other ways of doing that, but I think we need an
-> acknowledgment API
-> >> to tell the driver to proceed.
-> >
-> > Forcing STRAEMOFF/STRAEMON has two major advantages:
-> >
-> > 1) The application will have an ability to free and reallocate buffers if
-> it
-> > wishes so, and
-> >
-> > 2) It will get explicit information on the changed format. Alternative
-> would
-> > require an additional API to query the format of buffers in cases the
-> > information isn't implicitly available.
-> 
-> As already said, a simple flag may give this meaning. Alternatively (or
-> complementary,
-> an event may be generated, containing the new format).
-> >
-> > If we do not require STRAEMOFF/STREAMON, the stream would have to be
-> paused
-> > until the application chooses to continue it after dealing with its
-> buffers
-> > and formats.
-> 
-> No. STREAMOFF is always used to stop the stream. We can't make it mean
-> otherwise.
-> 
-> So, after calling it, application should assume that frames will be lost,
-> while
-> the DMA engine doesn't start again.
+Set v4l2_subdev flags for a host driver to create a sub-device
+node for the driver so the subdev can be directly configured
+by applications. Add the subdev open() handler.
 
-Do you mean all buffers or just those that are queued in hardware?
-What has been processed stays processed, it should not matter to the buffers
-that have been processed.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/mipi-csis.c |   22 ++++++++++++++++++++++
+ drivers/media/video/s5p-fimc/mipi-csis.h |    3 +++
+ 2 files changed, 25 insertions(+), 0 deletions(-)
 
-The compressed buffer that is queued in the driver and that caused the resolution
-change is on the OUTPUT queue. STREMOFF is only done on the CAPTURE queue, so it
-stays queued and information is retained. 
-
->From CAPTURE all processed buffers have already been dequeued, so yes the content of
-the buffers queued in hw is lost. But this is ok, because after the resolution change
-the previous frames are not used in prediction.
-
-My initial idea was to acknowledge the resolution change by G_FMT. 
-Later in our chat it had evolved into S_FMT. Then it mutated into
-STREAMOFF/STREAMON on the CAPTURE queue.
-
-> 
-> For things like MPEG decoders, Hans proposed an ioctl, that could use to
-> pause
-> and continue the decoding.
-
-This still could be useful... But processing will also pause when hw runs out
-of buffers. It will be resumed after the application consumes/produces new
-buffers and enqueue them.
-
-> 
-> > I'd still return a specific error when the size changes since it's more
-> > explicit that something is not right, rather than just a flag. But if I'm
-> > alone in thinking so I won't insist.
-> >
-> > Regards,
-> >
-
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c b/drivers/media/video/s5p-fimc/mipi-csis.c
+index 59d79bc..130335c 100644
+--- a/drivers/media/video/s5p-fimc/mipi-csis.c
++++ b/drivers/media/video/s5p-fimc/mipi-csis.c
+@@ -427,6 +427,23 @@ static int s5pcsis_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
+ }
+ 
++static int s5pcsis_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
++{
++	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
++
++	format->colorspace = V4L2_COLORSPACE_JPEG;
++	format->code = s5pcsis_formats[0].code;
++	format->width = S5PCSIS_DEF_PIX_WIDTH;
++	format->height = S5PCSIS_DEF_PIX_HEIGHT;
++	format->field = V4L2_FIELD_NONE;
++
++	return 0;
++}
++
++static const struct v4l2_subdev_internal_ops s5pcsis_sd_internal_ops = {
++	.open = s5pcsis_open,
++};
++
+ static struct v4l2_subdev_core_ops s5pcsis_core_ops = {
+ 	.s_power = s5pcsis_s_power,
+ };
+@@ -544,8 +561,13 @@ static int __devinit s5pcsis_probe(struct platform_device *pdev)
+ 	v4l2_subdev_init(&state->sd, &s5pcsis_subdev_ops);
+ 	state->sd.owner = THIS_MODULE;
+ 	strlcpy(state->sd.name, dev_name(&pdev->dev), sizeof(state->sd.name));
++	state->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	state->csis_fmt = &s5pcsis_formats[0];
+ 
++	state->format.code = s5pcsis_formats[0].code;
++	state->format.width = S5PCSIS_DEF_PIX_WIDTH;
++	state->format.height = S5PCSIS_DEF_PIX_HEIGHT;
++
+ 	state->pads[CSIS_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
+ 	state->pads[CSIS_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_init(&state->sd.entity,
+diff --git a/drivers/media/video/s5p-fimc/mipi-csis.h b/drivers/media/video/s5p-fimc/mipi-csis.h
+index f569133..2709286 100644
+--- a/drivers/media/video/s5p-fimc/mipi-csis.h
++++ b/drivers/media/video/s5p-fimc/mipi-csis.h
+@@ -19,4 +19,7 @@
+ #define CSIS_PAD_SOURCE		1
+ #define CSIS_PADS_NUM		2
+ 
++#define S5PCSIS_DEF_PIX_WIDTH	640
++#define S5PCSIS_DEF_PIX_HEIGHT	480
++
+ #endif
+-- 
+1.7.8
 
