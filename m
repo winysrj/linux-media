@@ -1,47 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24141 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750900Ab1LRAV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 19:21:26 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0LQkd000466
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:21:26 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 0/6] Change support for Annex A/C
-Date: Sat, 17 Dec 2011 22:21:07 -0200
-Message-Id: <1324167673-20787-1-git-send-email-mchehab@redhat.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:45983 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752720Ab1LLOXI convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 09:23:08 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Mel Gorman" <mel@csn.ul.ie>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 01/11] mm: page_alloc: handle MIGRATE_ISOLATE in
+ free_pcppages_bulk()
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-2-git-send-email-m.szyprowski@samsung.com>
+ <20111212134235.GB3277@csn.ul.ie>
+Date: Mon, 12 Dec 2011 15:23:02 +0100
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v6drko0p3l0zgt@mpn-glaptop>
+In-Reply-To: <20111212134235.GB3277@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As discussed at the ML, all existing drivers, except for dvb-k only
-support DVB-C ITU-T J.83 Annex A. Also, a few dvb-c drivers don't support
-0.13 roll-off, requred for Annex C. So, apply Manu's patch that
-adds a separate delivery system for Annex C, and change a few existing
-drivers that are known to work with both standards to work properly with
-both annexes.
+> On Fri, Nov 18, 2011 at 05:43:08PM +0100, Marek Szyprowski wrote:
+>> From: Michal Nazarewicz <mina86@mina86.com>
+>> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+>> index 9dd443d..58d1a2e 100644
+>> --- a/mm/page_alloc.c
+>> +++ b/mm/page_alloc.c
+>> @@ -628,6 +628,18 @@ static void free_pcppages_bulk(struct zone *zone, int count,
+>>  			page = list_entry(list->prev, struct page, lru);
+>>  			/* must delete as __free_one_page list manipulates */
+>>  			list_del(&page->lru);
+>> +
+>> +			/*
+>> +			 * When page is isolated in set_migratetype_isolate()
+>> +			 * function it's page_private is not changed since the
+>> +			 * function has no way of knowing if it can touch it.
+>> +			 * This means that when a page is on PCP list, it's
+>> +			 * page_private no longer matches the desired migrate
+>> +			 * type.
+>> +			 */
+>> +			if (get_pageblock_migratetype(page) == MIGRATE_ISOLATE)
+>> +				set_page_private(page, MIGRATE_ISOLATE);
+>> +
 
-Mauro Carvalho Chehab (6):
-  [media] Update documentation to reflect DVB-C Annex A/C support
-  [media] Remove Annex A/C selection via roll-off factor
-  [media] drx-k: report the supported delivery systems
-  [media] tda10023: Don't use a magic numbers for QAM modulation
-  [media] tda10023: add support for DVB-C Annex C
-  [media] tda10021: Add support for DVB-C Annex C
+On Mon, 12 Dec 2011 14:42:35 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> How much of a problem is this in practice?
 
- Documentation/DocBook/media/dvb/dvbproperty.xml |   11 +-
- Documentation/DocBook/media/dvb/frontend.xml    |    4 +-
- drivers/media/common/tuners/xc5000.c            |  137 +++++++++-------------
- drivers/media/dvb/dvb-core/dvb_frontend.c       |   25 ++++-
- drivers/media/dvb/frontends/drxk_hard.c         |   43 ++++++-
- drivers/media/dvb/frontends/tda10021.c          |   83 ++++++++++----
- drivers/media/dvb/frontends/tda10023.c          |   77 +++++++++----
- drivers/media/dvb/frontends/tda18271c2dd.c      |   44 +++----
- include/linux/dvb/frontend.h                    |    2 -
- 9 files changed, 258 insertions(+), 168 deletions(-)
+IIRC, this lead to allocation being made from area marked as isolated
+or some such.
+
+> [...] I'd go as far to say that it would be preferable to drain the
+> per-CPU lists after you set pageblocks MIGRATE_ISOLATE. The IPIs also have
+> overhead but it will be incurred for the rare rather than the common case.
+
+I'll look into that.
 
 -- 
-1.7.8
-
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
