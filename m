@@ -1,123 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51429 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751907Ab1LGBr1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 20:47:27 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Robert =?iso-8859-1?q?=C5kerblom-Andersson?=" <robert.nr1@gmail.com>
-Subject: Re: Beagleboard-xM rev C + mt9p031 + LI-5M03
-Date: Wed, 7 Dec 2011 02:47:32 +0100
-Cc: linux-media@vger.kernel.org
-References: <CABiSWBhsVjrCF3PEWnn6junDU=ora4y6+ikVcKPNhuzLTGjMxA@mail.gmail.com> <CABiSWBiwssqOdqmgSTaY-K7VoCDWa0QSmRO4hbSG2SoGQjdi7A@mail.gmail.com>
-In-Reply-To: <CABiSWBiwssqOdqmgSTaY-K7VoCDWa0QSmRO4hbSG2SoGQjdi7A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201112070247.34280.laurent.pinchart@ideasonboard.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:38124 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752937Ab1LLOkD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 09:40:03 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LW300061I2OJU@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 14:40:00 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW3007WQI2OJ9@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 14:40:00 +0000 (GMT)
+Date: Mon, 12 Dec 2011 15:39:59 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH/RFC v3 4/4] v4l: Update subdev drivers to handle
+ framesamples parameter
+In-reply-to: <201112120131.24192.laurent.pinchart@ideasonboard.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	sakari.ailus@iki.fi, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, m.szyprowski@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4EE6123F.1040709@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 7BIT
+References: <201112061712.30748.laurent.pinchart@ideasonboard.com>
+ <1323453592-17782-1-git-send-email-s.nawrocki@samsung.com>
+ <201112120131.24192.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Robert,
+Hi Laurent,
 
-On Sunday 04 December 2011 08:33:34 Robert Åkerblom-Andersson wrote:
-> Hi, I have been trying to get the mt9p031 driver to work with a
-> LI-5M03 camera module and Beagleboard-xM rev C for week's now but I
-> just can't get it right for some reason.
+On 12/12/2011 01:31 AM, Laurent Pinchart wrote:
+> On Friday 09 December 2011 18:59:52 Sylwester Nawrocki wrote:
+>> Update the sub-device drivers having a devnode enabled so they properly
+>> handle the new framesamples field of struct v4l2_mbus_framefmt.
+>> These drivers don't support compressed (entropy encoded) formats so the
+>> framesamples field is simply initialized to 0, altogether with the
+>> reserved structure member.
+>>
+>> There is a few other drivers that expose a devnode (mt9p031, mt9t001,
+>> mt9v032), but they already implicitly initialize the new data structure
+>> field to 0, so they don't need to be touched.
+>>
+>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>> Hi,
+>>
+>> In this version the whole reserved field in struct v4l2_mbus_framefmt
+>> is also cleared, rather than setting only framesamples to 0.
+>>
+>> The omap3isp driver changes have been only compile tested.
+>>
+>> Thanks,
+>> Sylwester
+>> ---
+>>  drivers/media/video/noon010pc30.c         |    5 ++++-
+>>  drivers/media/video/omap3isp/ispccdc.c    |    2 ++
+>>  drivers/media/video/omap3isp/ispccp2.c    |    2 ++
+>>  drivers/media/video/omap3isp/ispcsi2.c    |    2 ++
+>>  drivers/media/video/omap3isp/isppreview.c |    2 ++
+>>  drivers/media/video/omap3isp/ispresizer.c |    2 ++
+>>  drivers/media/video/s5k6aa.c              |    2 ++
+>>  7 files changed, 16 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/video/noon010pc30.c
+>> b/drivers/media/video/noon010pc30.c index 50838bf..5af9b60 100644
+>> --- a/drivers/media/video/noon010pc30.c
+>> +++ b/drivers/media/video/noon010pc30.c
+>> @@ -519,13 +519,14 @@ static int noon010_get_fmt(struct v4l2_subdev *sd,
+>> struct v4l2_subdev_fh *fh, mf = &fmt->format;
+>>
+>>  	mutex_lock(&info->lock);
+>> +	memset(mf, 0, sizeof(mf));
+>>  	mf->width = info->curr_win->width;
+>>  	mf->height = info->curr_win->height;
+>>  	mf->code = info->curr_fmt->code;
+>>  	mf->colorspace = info->curr_fmt->colorspace;
+>>  	mf->field = V4L2_FIELD_NONE;
+>> -
+>>  	mutex_unlock(&info->lock);
+>> +
+>>  	return 0;
+>>  }
+>>
+>> @@ -546,12 +547,14 @@ static const struct noon010_format
+>> *noon010_try_fmt(struct v4l2_subdev *sd, static int noon010_set_fmt(struct
+>> v4l2_subdev *sd, struct v4l2_subdev_fh *fh, struct v4l2_subdev_format
+>> *fmt)
+>>  {
+>> +	const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+>>  	struct noon010_info *info = to_noon010(sd);
+>>  	const struct noon010_frmsize *size = NULL;
+>>  	const struct noon010_format *nf;
+>>  	struct v4l2_mbus_framefmt *mf;
+>>  	int ret = 0;
+>>
+>> +	memset(&fmt->format + offset, 0, sizeof(fmt->format) - offset);
 > 
-> I have an older version with 2.6.32 kernel that works, so I know that
-> it's not a hardware problem (even though I have suspected that I have
-> problems with pullups like mentioned here
-> http://permalink.gmane.org/gmane.comp.hardware.beagleboard.general/15871).
-> I'm not sure how I got that old image to work, I only have an image
-> file and not the sources files left, it might also have been the
-> Aptina driver (in contrast to the linux-media provided driver I want
-> to have and are trying to use).
+> I'm not sure this is a good idea, as it will break when a new field will be 
+> added to struct v4l2_mbus_framefmt.
+
+I'm not sure it will break. Now there everything cleared after (and including)
+framesamples field.
+
+struct v4l2_mbus_framefmt {
+        __u32                   width;
+        __u32                   height;
+        __u32                   code;
+        __u32                   field;
+        __u32                   colorspace;
+        __u32                   framesamples;
+        __u32                   reserved[6];
+};
+
+Assuming we convert reserved[0] to new_field
+
+struct v4l2_mbus_framefmt {
+        __u32                   width;
+        __u32                   height;
+        __u32                   code;
+        __u32                   field;
+        __u32                   colorspace;
+        __u32                   framesamples;
+        __u32                   new_field;
+        __u32                   reserved[5];
+};
+
+the code:
+
+const int offset = offsetof(struct v4l2_mbus_framefmt, framesamples);
+memset(&fmt->format + offset, 0, sizeof(fmt->format) - offset);
+
+would still clear 7 u32' at the structure end, wouldn't it?
+
 > 
-> Here is dmesg output: http://pastebin.com/LdfUYkfc The part that are
-> significantly later in time is from when I tried to use the driver
-> with the command:
-> mplayer tv:// -tv driver=v4l2:width=640:height=
-> 480:device=/dev/video1:fps=10 -vo x11
-> (Mplayer output only: http://pastebin.com/caDjvjV6)
-> 
-> This thread described very similar errors:
-> https://groups.google.com/forum/#!topic/beagleboard/E90i6pAjAec But
-> Joel who posted that thread did have a different camera module that
-> the one I have (I use the same kernel version and the camera that
-> should be supported).
-> 
-> Something that I do think is a little weird, but I might also be since
-> I miss some information, is that the errors in the kernel log appear
-> when using two different devices. Both /dev/video1 and /dev/video2
-> gives the same error. It feels related to this statment in the kernel
-> log "#[    2.665954] sysfs: cannot create duplicate filename
-> '/devices/platform/omap/omap_i2c.2'".
-
-Your platform core registers I2C bus 2 twice, once through OMAP hwmod, and 
-once in arch/arm/mach-omap2/board-omap3beagle-camera.c:
-
-	omap_register_i2c_bus(2, 100, NULL, 0);
-
-Removing this second registration should get rid of the associated warnings.
-
-You then get a failure to register the sensor:
-
-[    2.670928] isp_register_subdev_group: Unable to register subdev mt9p031
-
-Is the mt9p031 driver built in ? If you want to build it as a module, the 
-omap3-isp driver needs to be built as a module as well.
-
-The warnings shown at the bottom of your log are caused by an omap3-isp driver 
-bug. A fix is available at 
-http://git.linuxtv.org/pinchartl/media.git/commit/a361d1cfec0ac0901a680a6a77dc21ee0531a542. 
-I will push it to v3.3.
-
-> I would be very thankful if someone could help out with some tips on
-> how to get this to work. I'm been up so many nights now without any
-> real progress that I need to do something different.
-> 
-> If someone want to reproduce my scenario it possible to do with help
-> of this one liner:
-> git clone git://github.com/Scorpiion/Renux_Kernel.git && cd
-> Renux_Kernel && git submodule init && git submodule update &&
-> ./buildKernel.bash
-> 
-> It basically just downloads kernel sources, checks out a tag branch
-> depending on a settings file (settings/build.conf, v2.6.39 in this
-> case), applies some patches (collected from openembedded) and then
-> compiles the kernel. I guess you first thought might be that I should
-> use Ångstrom, and yes, maybe I should, but I have had problems with
-> bitbake and Ångstrom, it gives me errors all the time. I also thinks
-> it fun to do write scripts like these, it's a good learning
-> experience. (Linux tree is from git tmlind OMAP, openembedded patches
-> (camera patches is there) directory  recipes/linux/linux-omap-2.6.39,
-> git tag "v2.6.39")
-> 
-> The cross compilation toolchain I've used is also homemade or so to
-> speak, but I don't think it should be a problem. I have compiled many
-> many kernels by now and never got any compiler errors, so I don't
-> think that the problem. It is based on Gcc 4.5. And if someone is
-> interested my script to build it, it is here:
-> git://github.com/Scorpiion/Renux_cross_toolchain.git
-> 
-> I have tested it on several different Ubuntu machines (32 and 64 bits)
-> and it have worked very good. The only requirement except normal build
-> stuff is Gcc 4.5, does not work with 4.4 or 4.6 I think. The only
-> think you need to do is to run:
-> ./createCrossToolchain.bash
-> A cleaned progress output can be viewed in a different terminal during
-> the build.
-> 
-> Ps. I'm not that very used to mailing lists, and I know there are
-> rules etc even thought I don't know them all. If my post is to long or
-> in some other way not as it suppose to be feel free to point it out
-> and I'll do it better next time. Ds.
-
-You did a very good job, explaining your problem and providing related 
-important information such as the kernel log contents.
+> Wouldn't it be better to zero the whoel structure in the callers instead ?
 
 -- 
-Regards,
 
-Laurent Pinchart
+Regards
+Sylwester
