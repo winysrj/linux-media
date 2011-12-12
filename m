@@ -1,122 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43668 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751129Ab1LRAV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 19:21:26 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0LQIU023406
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:21:26 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:54571 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752118Ab1LLRpI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 12:45:08 -0500
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LW3000C7QN3JX@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:03 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW3003LGQN2H0@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:03 +0000 (GMT)
+Date: Mon, 12 Dec 2011 18:44:56 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 12/14] m5mols: Change auto exposure control default value to
+ AUTO
+In-reply-to: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 5/6] [media] tda10023: add support for DVB-C Annex C
-Date: Sat, 17 Dec 2011 22:21:12 -0200
-Message-Id: <1324167673-20787-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324167673-20787-5-git-send-email-mchehab@redhat.com>
-References: <1324167673-20787-1-git-send-email-mchehab@redhat.com>
- <1324167673-20787-2-git-send-email-mchehab@redhat.com>
- <1324167673-20787-3-git-send-email-mchehab@redhat.com>
- <1324167673-20787-4-git-send-email-mchehab@redhat.com>
- <1324167673-20787-5-git-send-email-mchehab@redhat.com>
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1323711898-17162-13-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda10023.c |   45 +++++++++++++++++++++++++++----
- 1 files changed, 39 insertions(+), 6 deletions(-)
+Enabling automatic exposure yields better image quality. With this setting
+the anti-flicker algorithm is also enabled in automatic frequency detection
+mode which effectively eliminates distortion from fluctuations of light
+intensity at power line frequency.
 
-diff --git a/drivers/media/dvb/frontends/tda10023.c b/drivers/media/dvb/frontends/tda10023.c
-index dccc74b..f5f0e73 100644
---- a/drivers/media/dvb/frontends/tda10023.c
-+++ b/drivers/media/dvb/frontends/tda10023.c
-@@ -301,8 +301,11 @@ static int tda10023_init (struct dvb_frontend *fe)
- static int tda10023_set_parameters (struct dvb_frontend *fe,
- 			    struct dvb_frontend_parameters *p)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys  = c->delivery_system;
-+	unsigned qam = c->modulation;
-+	bool is_annex_c;
- 	struct tda10023_state* state = fe->demodulator_priv;
--
- 	struct qam_params {
- 		u8 qam, lockthr, mseth, aref, agcrefnyq, eragnyq_thd;
- 	} static const qam_params[] = {
-@@ -315,7 +318,16 @@ static int tda10023_set_parameters (struct dvb_frontend *fe,
- 		[QAM_256] = { (4<<2),  0x26,    0x23,   0x6c,   0x5c,   0x3c  },
- 	};
+Acked-by: HeungJun Kim <riverful.kim@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols_core.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index 2f544cb..91cabf5 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -847,7 +847,7 @@ static int m5mols_init_controls(struct m5mols_info *info)
+ 			4, (1 << V4L2_COLORFX_BW), V4L2_COLORFX_NONE);
+ 	info->autoexposure = v4l2_ctrl_new_std_menu(&info->handle,
+ 			&m5mols_ctrl_ops, V4L2_CID_EXPOSURE_AUTO,
+-			1, 0, V4L2_EXPOSURE_MANUAL);
++			1, 0, V4L2_EXPOSURE_AUTO);
  
--	unsigned qam = p->u.qam.modulation;
-+	switch (delsys) {
-+	case SYS_DVBC_ANNEX_A:
-+		is_annex_c = false;
-+		break;
-+	case SYS_DVBC_ANNEX_C:
-+		is_annex_c = true;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 
- 	if (qam >= ARRAY_SIZE(qam_params))
- 		return -EINVAL;
-@@ -325,21 +337,42 @@ static int tda10023_set_parameters (struct dvb_frontend *fe,
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	tda10023_set_symbolrate (state, p->u.qam.symbol_rate);
-+	tda10023_set_symbolrate (state, c->symbol_rate);
- 	tda10023_writereg (state, 0x05, qam_params[qam].lockthr);
- 	tda10023_writereg (state, 0x08, qam_params[qam].mseth);
- 	tda10023_writereg (state, 0x09, qam_params[qam].aref);
- 	tda10023_writereg (state, 0xb4, qam_params[qam].agcrefnyq);
- 	tda10023_writereg (state, 0xb6, qam_params[qam].eragnyq_thd);
- 
--//	tda10023_writereg (state, 0x04, (p->inversion?0x12:0x32));
--//	tda10023_writebit (state, 0x04, 0x60, (p->inversion?0:0x20));
-+//	tda10023_writereg (state, 0x04, (c->inversion?0x12:0x32));
-+//	tda10023_writebit (state, 0x04, 0x60, (c->inversion?0:0x20));
- 	tda10023_writebit (state, 0x04, 0x40, 0x40);
-+
-+	if (is_annex_c)
-+		tda10023_writebit (state, 0x3d, 0xfc, 0x03);
-+	else
-+		tda10023_writebit (state, 0x3d, 0xfc, 0x02);
-+
- 	tda10023_setup_reg0 (state, qam_params[qam].qam);
- 
- 	return 0;
- }
- 
-+static int tda10023_get_property(struct dvb_frontend *fe,
-+				 struct dtv_property *p)
-+{
-+	switch (p->cmd) {
-+	case DTV_ENUM_DELSYS:
-+		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
-+		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
-+		p->u.buffer.len = 2;
-+		break;
-+	default:
-+		break;
-+	}
-+	return 0;
-+}
-+
- static int tda10023_read_status(struct dvb_frontend* fe, fe_status_t* status)
- {
- 	struct tda10023_state* state = fe->demodulator_priv;
-@@ -559,7 +592,7 @@ static struct dvb_frontend_ops tda10023_ops = {
- 
- 	.set_frontend = tda10023_set_parameters,
- 	.get_frontend = tda10023_get_frontend,
--
-+	.get_property = tda10023_get_property,
- 	.read_status = tda10023_read_status,
- 	.read_ber = tda10023_read_ber,
- 	.read_signal_strength = tda10023_read_signal_strength,
+ 	sd->ctrl_handler = &info->handle;
+ 	if (info->handle.error) {
 -- 
 1.7.8
 
