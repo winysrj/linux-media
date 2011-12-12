@@ -1,243 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:24442 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751347Ab1L1GXw (ORCPT
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:39656 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752681Ab1LLMzE convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 01:23:52 -0500
-Received: from epcpsbgm2.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LWW008RLHRJL5K0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Dec 2011 15:23:50 +0900 (KST)
-Received: from riverful-ubuntu.165.213.246.161 ([165.213.219.119])
- by mmp1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTPA id <0LWW007D6HRPXC40@mmp1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 28 Dec 2011 15:23:50 +0900 (KST)
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com,
-	"HeungJun, Kim" <riverful.kim@samsung.com>
-Subject: [RFC PATCH 2/4] v4l: Add V4L2_CID_SCENEMODE menu control
-Date: Wed, 28 Dec 2011 15:23:46 +0900
-Message-id: <1325053428-2626-3-git-send-email-riverful.kim@samsung.com>
-In-reply-to: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+	Mon, 12 Dec 2011 07:55:04 -0500
+Received: by bkcjm19 with SMTP id jm19so1389443bkc.19
+        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 04:55:02 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4EE5F6D4.4050500@linuxtv.org>
+References: <CAHFNz9+=T5XGok+LvhVqeSVdWt=Ng6wgXqcHdtdw19a+whx1bw@mail.gmail.com>
+	<4EE346E0.7050606@iki.fi>
+	<CAHFNz9+WEJHhJoUywwzCF=Jv7TRY9xG2rKuRxP=Ff0jvq40SSA@mail.gmail.com>
+	<4EE5F6D4.4050500@linuxtv.org>
+Date: Mon, 12 Dec 2011 18:25:02 +0530
+Message-ID: <CAHFNz9+e-9D+a9DcAHSaDjQW1j8=XHcdxnW6Bjm2RPtQkFd-OQ@mail.gmail.com>
+Subject: Re: v4 [PATCH 09/10] CXD2820r: Query DVB frontend delivery capabilities
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Andreas Oberritter <obi@linuxtv.org>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It adds the new CID for setting Scenemode. This CID is provided as
-menu type using the following items:
-enum v4l2_scenemode {
-	V4L2_SCENEMODE_NONE = 0,
-	V4L2_SCENEMODE_NORMAL = 1,
-	V4L2_SCENEMODE_PORTRAIT = 2,
-	V4L2_SCENEMODE_LANDSCAPE = 3,
-	V4L2_SCENEMODE_SPORTS = 4,
-	V4L2_SCENEMODE_PARTY_INDOOR = 5,
-	V4L2_SCENEMODE_BEACH_SNOW = 6,
-	V4L2_SCENEMODE_SUNSET = 7,
-	V4L2_SCENEMODE_DAWN_DUSK = 8,
-	V4L2_SCENEMODE_FALL = 9,
-	V4L2_SCENEMODE_NIGHT = 10,
-	V4L2_SCENEMODE_AGAINST_LIGHT = 11,
-	V4L2_SCENEMODE_FIRE = 12,
-	V4L2_SCENEMODE_TEXT = 13,
-	V4L2_SCENEMODE_CANDLE = 14,
-};
+On Mon, Dec 12, 2011 at 6:13 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
+> On 12.12.2011 05:28, Manu Abraham wrote:
+>> On Sat, Dec 10, 2011 at 5:17 PM, Antti Palosaari <crope@iki.fi> wrote:
+>>> On 12/10/2011 06:44 AM, Manu Abraham wrote:
+>>>>
+>>>>  static int cxd2820r_set_frontend(struct dvb_frontend *fe,
+>>>
+>>> [...]
+>>>>
+>>>> +       switch (c->delivery_system) {
+>>>> +       case SYS_DVBT:
+>>>> +               ret = cxd2820r_init_t(fe);
+>>>
+>>>
+>>>> +               ret = cxd2820r_set_frontend_t(fe, p);
+>>>
+>>>
+>>>
+>>> Anyhow, I don't now like idea you have put .init() calls to .set_frontend().
+>>> Could you move .init() happen in .init() callback as it was earlier?
+>>
+>> This was there in the earlier patch as well. Maybe you have a
+>> new issue now ? ;-)
+>>
+>> ok.
+>>
+>> The argument what you make doesn't hold well, Why ?
+>>
+>> int cxd2820r_init_t(struct dvb_frontend *fe)
+>> {
+>>       ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
+>> }
+>>
+>>
+>> int cxd2820r_init_c(struct dvb_frontend *fe)
+>> {
+>>       ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
+>> }
+>>
+>>
+>> Now, you might like to point that, the Base I2C address location
+>> is different comparing DVB-T/DVBT2 to DVB-C
+>>
+>> So, If you have the init as in earlier with a common init, then you
+>> will likely init the wrong device at .init(), as init is called open().
+>> So, this might result in an additional register write, which could
+>> be avoided altogether.  One register access is not definitely
+>> something to brag about, but is definitely a small incremental
+>> difference. Other than that this register write doesn't do anything
+>> more than an ADC_START. So starting the ADC at init doesn't
+>> make sense. But does so when you want to select the right ADC.
+>> So definitely, this change is an improvement. Also, you can
+>> compare the time taken for the device to tune now. It is quite
+>> a lot faster compared to without this patch. So you or any other
+>> user should be happy. :-)
+>>
+>>
+>> I don't think that in any way, the init should be used at init as
+>> you say, which sounds pretty much incorrect.
+>
+> Maybe the function names should be modified to avoid confusion with the
+> init driver callback.
 
-Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |   88 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |   21 ++++++
- include/linux/videodev2.h                    |   19 ++++++
- 3 files changed, 128 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 350c138..afe1845 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -2879,6 +2879,94 @@ it one step further. This is a write-only control.</entry>
- 	  </row>
- 	  <row><entry></entry></row>
- 
-+	  <row id="v4l2-scenemode">
-+	    <entry spanname="id"><constant>V4L2_CID_SCENEMODE</constant>&nbsp;</entry>
-+	    <entry>enum&nbsp;v4l2_scenemode</entry>
-+	  </row><row><entry spanname="descr">This control sets
-+	  the camera's scenemode, and it is provided by the type of
-+	  the enum values. The "None" mode means the status
-+	  when scenemode algorithm is not activated, like after booting time.
-+	  On the other hand, the "Normal" mode means the scenemode algorithm
-+	  is activated on the normal mode.</entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_NONE</constant>&nbsp;</entry>
-+		  <entry>Scenemode None.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_NORMAL</constant>&nbsp;</entry>
-+		  <entry>Scenemode Normal.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_PORTRAIT</constant>&nbsp;</entry>
-+		  <entry>Scenemode Portrait.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_LANDSCAPE</constant>&nbsp;</entry>
-+		  <entry>Scenemode Landscape.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_SPORTS</constant>&nbsp;</entry>
-+		  <entry>Scenemode Sports.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_PARTY_INDOOR</constant>&nbsp;</entry>
-+		  <entry>Scenemode Party Indoor.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_BEACH_SNOW</constant>&nbsp;</entry>
-+		  <entry>Scenemode Beach Snow.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_SUNSET</constant>&nbsp;</entry>
-+		  <entry>Scenemode Beach Snow.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_DAWN_DUSK</constant>&nbsp;</entry>
-+		  <entry>Scenemode Dawn Dusk.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_FALL</constant>&nbsp;</entry>
-+		  <entry>Scenemode Fall.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_NIGHT</constant>&nbsp;</entry>
-+		  <entry>Scenemode Night.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_AGAINST_LIGHT</constant>&nbsp;</entry>
-+		  <entry>Scenemode Against Light.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_FIRE</constant>&nbsp;</entry>
-+		  <entry>Scenemode Fire.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_TEXT</constant>&nbsp;</entry>
-+		  <entry>Scenemode Text.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_SCENEMODE_CANDLE</constant>&nbsp;</entry>
-+		  <entry>Scenemode Candle.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	  <row><entry></entry></row>
-+
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
-+	    <entry>boolean</entry>
-+	  </row><row><entry spanname="descr">Prevent video from being acquired
-+by the camera. When this control is set to <constant>TRUE</constant> (1), no
-+image can be captured by the camera. Common means to enforce privacy are
-+mechanical obturation of the sensor and firmware image processing, but the
-+device is not restricted to these methods. Devices that implement the privacy
-+control must support read access and may support write access.</entry>
-+	  </row>
- 	  <row>
- 	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
- 	    <entry>boolean</entry>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index f51b576..fef58c2 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -242,6 +242,23 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"Shade",
- 		NULL,
- 	};
-+	static const char * const scenemode[] = {
-+		"None",
-+		"Normal",
-+		"Landscape",
-+		"Sports",
-+		"Party Indoor",
-+		"Beach Snow",
-+		"Sunset",
-+		"Dawn Dusk",
-+		"Fall",
-+		"Night",
-+		"Against Light",
-+		"Fire",
-+		"Text",
-+		"Candle",
-+		NULL,
-+	};
- 	static const char * const tune_preemphasis[] = {
- 		"No Preemphasis",
- 		"50 useconds",
-@@ -400,6 +417,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return colorfx;
- 	case V4L2_CID_PRESET_WHITE_BALANCE:
- 		return preset_white_balance;
-+	case V4L2_CID_SCENEMODE:
-+		return scenemode;
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 		return tune_preemphasis;
- 	case V4L2_CID_FLASH_LED_MODE:
-@@ -578,6 +597,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
- 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
- 	case V4L2_CID_PRESET_WHITE_BALANCE:	return "White Balance, Preset";
-+	case V4L2_CID_SCENEMODE:		return "Scenemode";
- 
- 	/* FM Radio Modulator control */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -692,6 +712,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_EXPOSURE_AUTO:
- 	case V4L2_CID_COLORFX:
- 	case V4L2_CID_PRESET_WHITE_BALANCE:
-+	case V4L2_CID_SCENEMODE:
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 	case V4L2_CID_FLASH_LED_MODE:
- 	case V4L2_CID_FLASH_STROBE_SOURCE:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index a842de0..bc14feb 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1627,6 +1627,25 @@ enum v4l2_preset_white_balance {
- 	V4L2_WHITE_BALANCE_SHADE = 4,
- };
- 
-+#define V4L2_CID_SCENEMODE			(V4L2_CID_CAMERA_CLASS_BASE+20)
-+enum v4l2_scenemode {
-+	V4L2_SCENEMODE_NONE = 0,
-+	V4L2_SCENEMODE_NORMAL = 1,
-+	V4L2_SCENEMODE_PORTRAIT = 2,
-+	V4L2_SCENEMODE_LANDSCAPE = 3,
-+	V4L2_SCENEMODE_SPORTS = 4,
-+	V4L2_SCENEMODE_PARTY_INDOOR = 5,
-+	V4L2_SCENEMODE_BEACH_SNOW = 6,
-+	V4L2_SCENEMODE_SUNSET = 7,
-+	V4L2_SCENEMODE_DAWN_DUSK = 8,
-+	V4L2_SCENEMODE_FALL = 9,
-+	V4L2_SCENEMODE_NIGHT = 10,
-+	V4L2_SCENEMODE_AGAINST_LIGHT = 11,
-+	V4L2_SCENEMODE_FIRE = 12,
-+	V4L2_SCENEMODE_TEXT = 13,
-+	V4L2_SCENEMODE_CANDLE = 14,
-+};
-+
- /* FM Modulator class control IDs */
- #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
- #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
--- 
-1.7.4.1
+On another tangential thought, Is it really worth to wrap that single
+register write with another function name ?
 
+instead of the current usage; ie,
+
+ret = cxd2820r_wr_reg(priv, 0x00085, 0x07); /* Start ADC */
+
+within set_frontend()
+
+in set_frontend(), another thing that's wrapped up similarly is
+the set_frontend() within the search() callback, which causes
+another set of confusions within the driver.
+
+
+Regards,
+Manu
