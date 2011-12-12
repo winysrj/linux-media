@@ -1,138 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:44839 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932269Ab1LET5H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 14:57:07 -0500
-Received: by bkbzv3 with SMTP id zv3so2288326bkb.19
-        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2011 11:57:05 -0800 (PST)
-From: Sylwester Nawrocki <snjw23@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	hverkuil@xs3all.nl, riverful.kim@samsung.com,
-	s.nawrocki@samsung.com, Sylwester Nawrocki <snjw23@gmail.com>
-Subject: [RFC/PATCH] v4l: Add V4L2_CID_FLASH_HW_STROBE_MODE control
-Date: Mon,  5 Dec 2011 20:56:46 +0100
-Message-Id: <1323115006-4385-1-git-send-email-snjw23@gmail.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:59022 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751131Ab1LLNlX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 08:41:23 -0500
+Message-ID: <4EE60480.9050006@iki.fi>
+Date: Mon, 12 Dec 2011 15:41:20 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Andreas Oberritter <obi@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4 [PATCH 09/10] CXD2820r: Query DVB frontend delivery capabilities
+References: <CAHFNz9+=T5XGok+LvhVqeSVdWt=Ng6wgXqcHdtdw19a+whx1bw@mail.gmail.com>	<4EE346E0.7050606@iki.fi>	<CAHFNz9+WEJHhJoUywwzCF=Jv7TRY9xG2rKuRxP=Ff0jvq40SSA@mail.gmail.com>	<4EE5F6D4.4050500@linuxtv.org> <CAHFNz9+e-9D+a9DcAHSaDjQW1j8=XHcdxnW6Bjm2RPtQkFd-OQ@mail.gmail.com>
+In-Reply-To: <CAHFNz9+e-9D+a9DcAHSaDjQW1j8=XHcdxnW6Bjm2RPtQkFd-OQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_CID_FLASH_HW_STROBE_MODE mode control is intended
-for devices that are source of an external flash strobe for flash
-devices. This part seems to be missing in current Flash control
-class, i.e. a means for configuring devices that are not camera
-flash drivers but involve a flash related functionality.
+On 12/12/2011 02:55 PM, Manu Abraham wrote:
+> On Mon, Dec 12, 2011 at 6:13 PM, Andreas Oberritter<obi@linuxtv.org>  wrote:
+>> On 12.12.2011 05:28, Manu Abraham wrote:
+>>> On Sat, Dec 10, 2011 at 5:17 PM, Antti Palosaari<crope@iki.fi>  wrote:
+>>>> On 12/10/2011 06:44 AM, Manu Abraham wrote:
+>>>>>
+>>>>>   static int cxd2820r_set_frontend(struct dvb_frontend *fe,
+>>>>
+>>>> [...]
+>>>>>
+>>>>> +       switch (c->delivery_system) {
+>>>>> +       case SYS_DVBT:
+>>>>> +               ret = cxd2820r_init_t(fe);
+>>>>
+>>>>
+>>>>> +               ret = cxd2820r_set_frontend_t(fe, p);
+>>>>
+>>>>
+>>>>
+>>>> Anyhow, I don't now like idea you have put .init() calls to .set_frontend().
+>>>> Could you move .init() happen in .init() callback as it was earlier?
+>>>
+>>> This was there in the earlier patch as well. Maybe you have a
+>>> new issue now ? ;-)
 
-The V4L2_CID_FLASH_HW_STROBE_MODE control enables the user
-to determine the flash control behavior, for instance, at an image
-sensor device.
+You mean I didn't mentioned it when you send first version? Sorry, I 
+didn't looked it very carefully since I first meet stuff that was not 
+related whole thing, I mean there was that code changing from 
+.set_params() to .set_state(). And I stopped reading rest of the patch.
 
-The control has effect only when V4L2_CID_FLASH_STROBE_SOURCE control
-is set to V4L2_FLASH_STROBE_SOURCE_EXTERNAL at a flash subdev, if
-a flash subdev is present in the system.
 
-Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
----
+>>>
+>>> ok.
+>>>
+>>> The argument what you make doesn't hold well, Why ?
+>>>
+>>> int cxd2820r_init_t(struct dvb_frontend *fe)
+>>> {
+>>>        ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
+>>> }
+>>>
+>>>
+>>> int cxd2820r_init_c(struct dvb_frontend *fe)
+>>> {
+>>>        ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
+>>> }
+>>>
+>>>
+>>> Now, you might like to point that, the Base I2C address location
+>>> is different comparing DVB-T/DVBT2 to DVB-C
+>>>
+>>> So, If you have the init as in earlier with a common init, then you
+>>> will likely init the wrong device at .init(), as init is called open().
+>>> So, this might result in an additional register write, which could
+>>> be avoided altogether.  One register access is not definitely
+>>> something to brag about, but is definitely a small incremental
+>>> difference. Other than that this register write doesn't do anything
+>>> more than an ADC_START. So starting the ADC at init doesn't
+>>> make sense. But does so when you want to select the right ADC.
+>>> So definitely, this change is an improvement. Also, you can
+>>> compare the time taken for the device to tune now. It is quite
+>>> a lot faster compared to without this patch. So you or any other
+>>> user should be happy. :-)
+>>>
+>>>
+>>> I don't think that in any way, the init should be used at init as
+>>> you say, which sounds pretty much incorrect.
+>>
+>> Maybe the function names should be modified to avoid confusion with the
+>> init driver callback.
+>
+>
+> On another tangential thought, Is it really worth to wrap that single
+> register write with another function name ?
+>
+> instead of the current usage; ie,
+>
+> ret = cxd2820r_wr_reg(priv, 0x00085, 0x07); /* Start ADC */
+>
+> within set_frontend()
+>
+> in set_frontend(), another thing that's wrapped up similarly is
+> the set_frontend() within the search() callback, which causes
+> another set of confusions within the driver.
 
-Hi Sakari,
+Actually there was was a lot more code first but because I ran problems 
+selsys needed for T/T2 init was not known at the time .init() was called 
+I moved those set_frontend. I left that in a hope I can later fix 
+properly adding more stuff back to init.
 
-My apologies for not bringing this earlier when you were designing
-the Flash control API.
-It seems like a use case were a sensor controller drives a strobe
-signal for a Flash and the sensor side requires some set up doesn't
-quite fit in the Flash Control API.
+That is not functionality issue, it is issue about naming callbacks and 
+what is functionality of each callback.
+As for these days it have been in my understanding initialization stuff 
+are done in .init() and leave as less as possible code to 
+.set_frontend(). Leaving set_frontend() handle only tuning requests and 
+reconfigure IF control etc. And if you look most demod drivers there is 
+rather similar logic used.
 
-Or is there already a control allowing to set Flash strobe mode at
-the sensor to: OFF, ON (per each exposed frame), AUTO ?
+So I would like to ask what is meaning of:
+.attach()
+* create FE
+* no HW init
+* as less as possible HW I/O, mainly reading chip ID and nothing more
 
---
+.init()
+* do nothing here?
+* download firmware?
 
-Regards,
-Sylwester
----
- Documentation/DocBook/media/v4l/controls.xml |   30 ++++++++++++++++++++++++++
- drivers/media/video/v4l2-ctrls.c             |    2 +
- include/linux/videodev2.h                    |    7 ++++++
- 3 files changed, 39 insertions(+), 0 deletions(-)
+.set_frontend()
+* program tuner
+* init demod?
+* tune demod
+* download firmware?
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 48a0434..1745187 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3462,6 +3462,36 @@ interface and may change in the future.</para>
- 	    after strobe during which another strobe will not be
- 	    possible. This is a read-only control.</entry>
- 	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_FLASH_HW_STROBE_MODE</constant></entry>
-+	    <entry>menu</entry>
-+	  </row>
-+	  <row id="v4l2-flash-hw-strobe-mode">
-+	    <entry spanname="descr">Determines the mode of hardware flash strobe
-+	    at the device external to a flash controller, e.g. image sensor. This
-+	    control has effect only when <constant>V4L2_CID_FLASH_STROBE_SOURCE
-+	    </constant> is set to <constant>V4L2_FLASH_STROBE_SOURCE_EXTERNAL
-+	    </constant> at the flash controller.
-+            </entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_FLASH_HW_STROBE_MODE_OFF</constant></entry>
-+		  <entry>Flash strobe disabled.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FLASH_HW_STROBE_MODE_ON</constant></entry>
-+		  <entry>Flash strobe enabled for each exposed frame.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_FLASH_HW_STROBE_MODE_AUTO</constant></entry>
-+		  <entry>Flash strobe determined automatically.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
- 	  <row><entry></entry></row>
- 	</tbody>
-       </tgroup>
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 96ec73d..0d188e3 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -619,6 +619,7 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FLASH_FAULT:		return "Faults";
- 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
- 	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
-+	case V4L2_CID_FLASH_HW_STROBE_MODE:	return "Hardware strobe mode";
+.sleep()
+* put device sleep mode
+* powersave
 
- 	default:
- 		return NULL;
-@@ -699,6 +700,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_TUNE_PREEMPHASIS:
- 	case V4L2_CID_FLASH_LED_MODE:
- 	case V4L2_CID_FLASH_STROBE_SOURCE:
-+	case V4L2_CID_FLASH_HW_STROBE_MODE:
- 	case V4L2_CID_MPEG_VIDEO_HEADER_MODE:
- 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:
- 	case V4L2_CID_MPEG_VIDEO_H264_ENTROPY_MODE:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index d43149c..7ffb47d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1705,6 +1705,13 @@ enum v4l2_flash_strobe_source {
- #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
- #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
 
-+#define V4L2_CID_FLASH_HW_STROBE_MODE		(V4L2_CID_FLASH_CLASS_BASE + 13)
-+enum v4l2_flash_hw_strobe_mode {
-+	V4L2_FLASH_HW_STROBE_OFF,
-+	V4L2_FLASH_HW_STROBE_ON,
-+	V4L2_FLASH_HW_STROBE_AUTO,
-+};
-+
- /*
-  *	T U N I N G
-  */
---
-1.7.4.1
+After all it is just fine for me apply that patch, but I would like to 
+get clear idea what is meaning of every single callback we have. And if 
+we really end up .init() is not needed and all should be put to 
+.set_frontend() when possible it means I have to change all my demod 
+drivers and maybe tuner drivers too.
 
+regards
+Antti
+
+
+-- 
+http://palosaari.fi/
