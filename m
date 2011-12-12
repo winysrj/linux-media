@@ -1,1031 +1,344 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:62427 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752709Ab1LNBzj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Dec 2011 20:55:39 -0500
-Received: by eekc4 with SMTP id c4so291529eek.19
-        for <linux-media@vger.kernel.org>; Tue, 13 Dec 2011 17:55:37 -0800 (PST)
-From: Marek Vasut <marek.vasut@gmail.com>
-To: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH v3] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Wed, 14 Dec 2011 02:55:31 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1323825633-10543-1-git-send-email-martin@neutronstar.dyndns.org>
-In-Reply-To: <1323825633-10543-1-git-send-email-martin@neutronstar.dyndns.org>
+Received: from gir.skynet.ie ([193.1.99.77]:59278 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752557Ab1LLOHc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 09:07:32 -0500
+Date: Mon, 12 Dec 2011 14:07:28 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Ankita Garg <ankita@in.ibm.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 02/11] mm: compaction: introduce
+ isolate_{free,migrate}pages_range().
+Message-ID: <20111212140728.GC3277@csn.ul.ie>
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-3-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112140255.31937.marek.vasut@gmail.com>
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1321634598-16859-3-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Martin Hostettler,
-
-> The MT9M032 is a parallel 1.6MP sensor from Micron controlled through I2C.
+On Fri, Nov 18, 2011 at 05:43:09PM +0100, Marek Szyprowski wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
 > 
-> The driver creates a V4L2 subdevice. It currently supports cropping, gain,
-> exposure and v/h flipping controls in monochrome mode with an
-> external pixel clock.
+> This commit introduces isolate_freepages_range() and
+> isolate_migratepages_range() functions.  The first one replaces
+> isolate_freepages_block() and the second one extracts functionality
+> from isolate_migratepages().
 > 
-> Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+> They are more generic and instead of operating on pageblocks operate
+> on PFN ranges.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 > ---
->  drivers/media/video/Kconfig   |    7 +
->  drivers/media/video/Makefile  |    1 +
->  drivers/media/video/mt9m032.c |  819
-> +++++++++++++++++++++++++++++++++++++++++ include/media/mt9m032.h       | 
->  38 ++
->  4 files changed, 865 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/mt9m032.c
->  create mode 100644 include/media/mt9m032.h
+>  mm/compaction.c |  170 ++++++++++++++++++++++++++++++++++++-------------------
+>  1 files changed, 111 insertions(+), 59 deletions(-)
 > 
-> Changes in V3
->  * rebased to current mainline
->  * removed unneeded includes
->  * remove all translation code to hide black or active boundry sensor
-> pixels. Userspace now needs to select crop in original device coordinates.
-> * remove useless consts, casts and defines
->  * changed enum_frame_size to return min == max
->  * removed duplicated input validation
->  * validate crop rectangle on set_crop
-> 
-> Changes in V2
->  * ported to current mainline
->  * Moved dispatching for subdev ioctls VIDIOC_DBG_G_REGISTER and
-> VIDIOC_DBG_S_REGISTER into v4l2-subdev * Removed VIDIOC_DBG_G_CHIP_IDENT
-> support
->  * moved header to media/
->  * Fixed missing error handling
->  * lowercase hex constants
->  * moved v4l2_get_subdevdata to register access helpers
->  * use div_u64 instead of do_div
->  * moved all know register values into #define:ed constants
->  * Fixed error reporting, used clamp instead of open coding.
->  * lots of style fixes.
->  * add try_ctrl to make sure user space sees rounded values
->  * Fixed some problem in control framework usage.
->  * Fixed set_format to force width and height setup via crop. Simplyfied
-> code.
-> 
-> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-> index b303a3f..cf05d9b 100644
-> --- a/drivers/media/video/Kconfig
-> +++ b/drivers/media/video/Kconfig
-> @@ -820,6 +820,13 @@ config SOC_CAMERA_MT9M001
->  	  This driver supports MT9M001 cameras from Micron, monochrome
->  	  and colour models.
-> 
-> +config VIDEO_MT9M032
-> +	tristate "MT9M032 camera sensor support"
-> +	depends on I2C && VIDEO_V4L2
-> +	help
-> +	  This driver supports MT9M032 cameras from Micron, monochrome
-> +	  models only.
-> +
->  config SOC_CAMERA_MT9M111
->  	tristate "mt9m111, mt9m112 and mt9m131 support"
->  	depends on SOC_CAMERA && I2C
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index 117f9c4..39c7455 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -77,6 +77,7 @@ obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
-> 
->  obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
->  obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
-> +obj-$(CONFIG_VIDEO_MT9M032)             += mt9m032.o
->  obj-$(CONFIG_SOC_CAMERA_MT9M111)	+= mt9m111.o
->  obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
->  obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
-> diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-> new file mode 100644
-> index 0000000..b4159c7
-> --- /dev/null
-> +++ b/drivers/media/video/mt9m032.c
-> @@ -0,0 +1,819 @@
-> +/*
-> + * Driver for MT9M032 CMOS Image Sensor from Micron
-> + *
-> + * Copyright (C) 2010-2011 Lund Engineering
-> + * Contact: Gil Lund <gwlund@lundeng.com>
-> + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/i2c.h>
-> +#include <linux/init.h>
-> +#include <linux/kernel.h>
-> +#include <linux/math64.h>
-> +#include <linux/module.h>
-> +#include <linux/slab.h>
-> +#include <linux/v4l2-mediabus.h>
-> +
-> +#include <media/media-entity.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-subdev.h>
-> +
-> +#include <media/mt9m032.h>
-> +
-> +#define MT9M032_CHIP_VERSION			0x00
-> +#define MT9M032_ROW_START			0x01
-> +#define MT9M032_COLUMN_START			0x02
-> +#define MT9M032_ROW_SIZE			0x03
-> +#define MT9M032_COLUMN_SIZE			0x04
-> +#define MT9M032_HBLANK				0x05
-> +#define MT9M032_VBLANK				0x06
-> +#define MT9M032_SHUTTER_WIDTH_HIGH		0x08
-> +#define MT9M032_SHUTTER_WIDTH_LOW		0x09
-> +#define MT9M032_PIX_CLK_CTRL			0x0a
-> +#define     MT9M032_PIX_CLK_CTRL_INV_PIXCLK	0x8000
-> +#define MT9M032_RESTART				0x0b
-> +#define MT9M032_RESET				0x0d
-> +#define MT9M032_PLL_CONFIG1			0x11
-> +#define     MT9M032_PLL_CONFIG1_OUTDIV_MASK	0x3f
-> +#define     MT9M032_PLL_CONFIG1_MUL_SHIFT	8
-> +#define MT9M032_READ_MODE1			0x1e
-> +#define MT9M032_READ_MODE2			0x20
-> +#define     MT9M032_READ_MODE2_VFLIP_SHIFT	15
-> +#define     MT9M032_READ_MODE2_HFLIP_SHIFT	14
-> +#define     MT9M032_READ_MODE2_ROW_BLC		0x40
-> +#define MT9M032_GAIN_GREEN1			0x2b
-> +#define MT9M032_GAIN_BLUE			0x2c
-> +#define MT9M032_GAIN_RED			0x2d
-> +#define MT9M032_GAIN_GREEN2			0x2e
-> +/* write only */
-> +#define MT9M032_GAIN_ALL			0x35
-> +#define     MT9M032_GAIN_DIGITAL_MASK		0x7f
-> +#define     MT9M032_GAIN_DIGITAL_SHIFT		8
-> +#define     MT9M032_GAIN_AMUL_SHIFT		6
-> +#define     MT9M032_GAIN_ANALOG_MASK		0x3f
-> +#define MT9M032_FORMATTER1			0x9e
-> +#define MT9M032_FORMATTER2			0x9f
-> +#define     MT9M032_FORMATTER2_DOUT_EN		0x1000
-> +#define     MT9M032_FORMATTER2_PIXCLK_EN	0x2000
-> +
-> +#define MT9M032_MAX_BLANKING_ROWS		0x7ff
-
-Fix the alignment here please.
-
-> +
-> +
-> +/*
-> + * width and height include active boundry and black parts
-> + *
-> + * column    0-  15 active boundry
-> + * column   16-1455 image
-> + * column 1456-1471 active boundry
-> + * column 1472-1599 black
-> + *
-> + * row       0-  51 black
-> + * row      53-  59 active boundry
-> + * row      60-1139 image
-> + * row    1140-1147 active boundry
-> + * row    1148-1151 black
-> + */
-> +#define MT9M032_WIDTH				1600
-> +#define MT9M032_HEIGHT				1152
-> +#define MT9M032_MINIMALSIZE			32
-> +
-> +#define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
-> +#define to_dev(sensor)	&((struct i2c_client
-> *)v4l2_get_subdevdata(&sensor->subdev))->dev +
-> +struct mt9m032 {
-> +	struct v4l2_subdev subdev;
-> +	struct media_pad pad;
-> +	struct mt9m032_platform_data *pdata;
-> +	struct v4l2_ctrl_handler ctrls;
-> +
-> +	bool streaming;
-> +
-> +	int pix_clock;
-> +
-> +	struct v4l2_mbus_framefmt format;	/* height and width always the 
-same as
-> in crop */ +	struct v4l2_rect crop;
-> +	struct v4l2_fract frame_interval;
-> +
-> +	struct v4l2_ctrl *hflip, *vflip;
-> +};
-> +
-> +
-> +static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> +	s32 data = i2c_smbus_read_word_data(client, reg);
-> +
-> +	return data < 0 ? data : swab16(data);
-
-Uhm ... why ?
-
-> +}
-> +
-> +static int mt9m032_write_reg(struct mt9m032 *sensor, u8 reg,
-> +		     const u16 data)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> +
-> +	return i2c_smbus_write_word_data(client, reg, swab16(data));
-> +}
-> +
-> +
-> +static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
-> +{
-> +	int effective_width;
-> +	u64 ns;
-> +
-> +	effective_width = width + 716; /* emperical value */
-> +	ns = div_u64(((u64)1000000000) * effective_width, sensor->pix_clock);
-
-Magic number, please fix globally.
-
-> +	dev_dbg(to_dev(sensor),	"MT9M032 line time: %llu ns\n", ns);
-> +	return ns;
-> +}
-> +
-> +static int mt9m032_update_timing(struct mt9m032 *sensor,
-> +				 struct v4l2_fract *interval,
-> +				 const struct v4l2_rect *crop)
-> +{
-> +	unsigned long row_time;
-> +	int additional_blanking_rows;
-> +	int min_blank;
-> +
-> +	if (!interval)
-> +		interval = &sensor->frame_interval;
-> +	if (!crop)
-> +		crop = &sensor->crop;
-> +
-> +	row_time = mt9m032_row_time(sensor, crop->width);
-> +
-> +	additional_blanking_rows = div_u64(((u64)1000000000) *
-> interval->numerator, +	                                 
-> ((u64)interval->denominator) * row_time) +	                           -
-> crop->height;
-> +
-> +	if (additional_blanking_rows > MT9M032_MAX_BLANKING_ROWS) {
-> +		/* hardware limits to 11 bit values */
-> +		interval->denominator = 1000;
-> +		interval->numerator = div_u64((crop->height + 
-MT9M032_MAX_BLANKING_ROWS)
-> +		                              * ((u64)row_time) * interval-
->denominator,
-> +					      1000000000);
-> +		additional_blanking_rows = div_u64(((u64)1000000000) *
-
-100000<many zeroes>UL or ULL might work better btw?
-
-> interval->numerator, +	                                 
-> ((u64)interval->denominator) * row_time) +	                           -
-> crop->height;
-> +	}
-> +	/* enforce minimal 1.6ms blanking time. */
-> +	min_blank = 1600000 / row_time;
-> +	additional_blanking_rows = clamp(additional_blanking_rows,
-> +	                                 min_blank, MT9M032_MAX_BLANKING_ROWS);
-> +
-> +	return mt9m032_write_reg(sensor, MT9M032_VBLANK,
-> additional_blanking_rows); +}
-> +
-> +static int mt9m032_update_geom_timing(struct mt9m032 *sensor,
-> +				 const struct v4l2_rect *crop)
-> +{
-> +	int ret;
-> +
-> +	ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_SIZE, crop->width - 1);
-> +	if (!ret)
-> +		ret = mt9m032_write_reg(sensor, MT9M032_ROW_SIZE, crop->height - 
-1);
-> +	/* offsets compensate for black border */
-> +	if (!ret)
-> +		ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_START, crop-
->left);
-> +	if (!ret)
-> +		ret = mt9m032_write_reg(sensor, MT9M032_ROW_START, crop->top);
-> +	if (!ret)
-> +		ret = mt9m032_update_timing(sensor, NULL, crop);
-> +	return ret;
-> +}
-> +
-> +static int update_formatter2(struct mt9m032 *sensor, bool streaming)
-> +{
-> +	u16 reg_val =   MT9M032_FORMATTER2_DOUT_EN
-> +		      | 0x0070;  /* parts reserved! */
-> +				 /* possibly for changing to 14-bit mode */
-
-MAGIC!
-
-> +
-> +	if (streaming)
-> +		reg_val |= MT9M032_FORMATTER2_PIXCLK_EN;   /* pixclock enable */
-> +
-> +	return mt9m032_write_reg(sensor, MT9M032_FORMATTER2, reg_val);
-> +}
-> +
-> +static int mt9m032_s_stream(struct v4l2_subdev *subdev, int streaming)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +	int ret;
-> +
-> +	ret = update_formatter2(sensor, streaming);
-> +	if (!ret)
-> +		sensor->streaming = streaming;
-> +	return ret;
-> +}
-> +
-> +static int mt9m032_enum_mbus_code(struct v4l2_subdev *subdev,
-> +				  struct v4l2_subdev_fh *fh,
-> +				  struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	if (code->index != 0 || code->pad != 0)
-
-Parenthsis missing ? () || () ?
-
-> +		return -EINVAL;
-> +	code->code = V4L2_MBUS_FMT_Y8_1X8;
-> +	return 0;
-> +}
-> +
-> +static int mt9m032_enum_frame_size(struct v4l2_subdev *subdev,
-> +				   struct v4l2_subdev_fh *fh,
-> +				   struct v4l2_subdev_frame_size_enum *fse)
-> +{
-> +	if (fse->index != 0 || fse->code != V4L2_MBUS_FMT_Y8_1X8 || fse->pad !=
-> 0) +		return -EINVAL;
-> +
-> +	fse->min_width = MT9M032_WIDTH;
-> +	fse->max_width = MT9M032_WIDTH;
-> +	fse->min_height = MT9M032_HEIGHT;
-> +	fse->max_height = MT9M032_HEIGHT;
-> +
-> +	return 0;
-> +}
-> +
+> diff --git a/mm/compaction.c b/mm/compaction.c
+> index 899d956..6afae0e 100644
+> --- a/mm/compaction.c
+> +++ b/mm/compaction.c
+> @@ -54,51 +54,64 @@ static unsigned long release_freepages(struct list_head *freelist)
+>  	return count;
+>  }
+>  
+> -/* Isolate free pages onto a private freelist. Must hold zone->lock */
+> -static unsigned long isolate_freepages_block(struct zone *zone,
+> -				unsigned long blockpfn,
+> -				struct list_head *freelist)
 > +/**
-> + * __mt9m032_get_pad_crop() - get crop rect
-> + * @sensor:	pointer to the sensor struct
-> + * @fh:	filehandle for getting the try crop rect from
-> + * @which:	select try or active crop rect
-> + * Returns a pointer the current active or fh relative try crop rect
+> + * isolate_freepages_range() - isolate free pages, must hold zone->lock.
+> + * @zone:	Zone pages are in.
+> + * @start:	The first PFN to start isolating.
+> + * @end:	The one-past-last PFN.
+> + * @freelist:	A list to save isolated pages to.
+> + *
+> + * If @freelist is not provided, holes in range (either non-free pages
+> + * or invalid PFNs) are considered an error and function undos its
+> + * actions and returns zero.
+> + *
+> + * If @freelist is provided, function will simply skip non-free and
+> + * missing pages and put only the ones isolated on the list.
+> + *
+> + * Returns number of isolated pages.  This may be more then end-start
+> + * if end fell in a middle of a free page.
 > + */
-> +static struct v4l2_rect *__mt9m032_get_pad_crop(struct mt9m032 *sensor,
-> +						struct v4l2_subdev_fh *fh,
-> +						u32 which)
+> +static unsigned long
+> +isolate_freepages_range(struct zone *zone,
+> +			unsigned long start, unsigned long end,
+> +			struct list_head *freelist)
 
-Do NOT use __function, they might (even though in this case unlikely) be used by 
-compiler.
+Use start_pfn and end_pfn to keep it consistent with the rest of
+compaction.c.
 
-> +{
-> +	switch (which) {
-> +	case V4L2_SUBDEV_FORMAT_TRY:
-> +		return v4l2_subdev_get_try_crop(fh, 0);
-> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
-> +		return &sensor->crop;
-> +	default:
-> +		return NULL;
-> +	}
-> +}
+>  {
+> -	unsigned long zone_end_pfn, end_pfn;
+> -	int nr_scanned = 0, total_isolated = 0;
+> -	struct page *cursor;
+> -
+> -	/* Get the last PFN we should scan for free pages at */
+> -	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+> -	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
+> +	unsigned long nr_scanned = 0, total_isolated = 0;
+> +	unsigned long pfn = start;
+> +	struct page *page;
+>  
+> -	/* Find the first usable PFN in the block to initialse page cursor */
+> -	for (; blockpfn < end_pfn; blockpfn++) {
+> -		if (pfn_valid_within(blockpfn))
+> -			break;
+> -	}
+> -	cursor = pfn_to_page(blockpfn);
+> +	VM_BUG_ON(!pfn_valid(pfn));
+> +	page = pfn_to_page(pfn);
+>  
+>  	/* Isolate free pages. This assumes the block is valid */
+> -	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
+> -		int isolated, i;
+> -		struct page *page = cursor;
+> -
+> -		if (!pfn_valid_within(blockpfn))
+> -			continue;
+> -		nr_scanned++;
+> -
+> -		if (!PageBuddy(page))
+> -			continue;
+> +	while (pfn < end) {
+> +		unsigned isolated = 1, i;
 > +
-> +/**
-> + * __mt9m032_get_pad_format() - get format
-> + * @sensor:	pointer to the sensor struct
-> + * @fh:	filehandle for getting the try format from
-> + * @which:	select try or active format
-> + * Returns a pointer the current active or fh relative try format
-> + */
-> +static struct v4l2_mbus_framefmt *__mt9m032_get_pad_format(struct mt9m032
-> *sensor, +							   struct 
-v4l2_subdev_fh *fh,
-> +							   u32 which)
-> +{
-> +	switch (which) {
-> +	case V4L2_SUBDEV_FORMAT_TRY:
-> +		return v4l2_subdev_get_try_format(fh, 0);
-> +	case V4L2_SUBDEV_FORMAT_ACTIVE:
-> +		return &sensor->format;
-> +	default:
-> +		return NULL;
-> +	}
-> +}
+
+Do not use implcit types. These are unsigned ints, call them unsigned
+ints.
+
+> +		if (!pfn_valid_within(pfn))
+> +			goto skip;
+
+The flow of this function in general with gotos of skipped and next
+is confusing in comparison to the existing function. For example,
+if this PFN is not valid, and no freelist is provided, then we call
+__free_page() on a PFN that is known to be invalid.
+
+> +		++nr_scanned;
 > +
-> +static int mt9m032_get_pad_format(struct v4l2_subdev *subdev,
-> +				  struct v4l2_subdev_fh *fh,
-> +				  struct v4l2_subdev_format *fmt)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +	struct v4l2_mbus_framefmt *format;
-> +
-> +	format = __mt9m032_get_pad_format(sensor, fh, fmt->which);
-> +
-> +	fmt->format = *format;
-> +
-> +	return 0;
-> +}
-> +
-> +static int mt9m032_set_pad_format(struct v4l2_subdev *subdev,
-> +				  struct v4l2_subdev_fh *fh,
-> +				  struct v4l2_subdev_format *fmt)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +
-> +	if (sensor->streaming)
-> +		return -EBUSY;
-> +
-> +
-> +	/*
-> +	 * fmt->format.colorspace, fmt->format.code and fmt->format.field are
-> ignored +	 * and thus forced to fixed values by the get call below.
-> +	 *
-> +	 * fmt->format.width, fmt->format.height are forced to the values set 
-via
-> crop +	 */
-> +
-> +	return mt9m032_get_pad_format(subdev, fh, fmt);
-> +}
-> +
-> +static int mt9m032_get_crop(struct v4l2_subdev *subdev, struct
-> v4l2_subdev_fh *fh, +			    struct v4l2_subdev_crop *crop)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +	struct v4l2_rect *curcrop;
-> +
-> +	curcrop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
-> +
-> +	crop->rect = *curcrop;
-> +
-> +	return 0;
-> +}
-> +
-> +static int mt9m032_set_crop(struct v4l2_subdev *subdev, struct
-> v4l2_subdev_fh *fh, +		     struct v4l2_subdev_crop *crop)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +	struct v4l2_mbus_framefmt tmp_format;
-> +	struct v4l2_rect tmp_crop_rect;
-> +	struct v4l2_mbus_framefmt *format;
-> +	struct v4l2_rect *crop_rect;
-> +
-> +	if (sensor->streaming)
-> +		return -EBUSY;
-> +
-> +	format = __mt9m032_get_pad_format(sensor, fh, crop->which);
-> +	crop_rect = __mt9m032_get_pad_crop(sensor, fh, crop->which);
-> +	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +		tmp_crop_rect = *crop_rect;
-> +		tmp_format = *format;
-> +		format = &tmp_format;
-> +		crop_rect = &tmp_crop_rect;
-> +	}
-> +
-> +	crop_rect->top = clamp(crop->rect.top, 0,
-> +			       MT9M032_HEIGHT - MT9M032_MINIMALSIZE) & ~1;
-> +	crop_rect->left = clamp(crop->rect.left, 0,
-> +			       MT9M032_WIDTH - MT9M032_MINIMALSIZE);
-> +	crop_rect->height = clamp(crop->rect.height, MT9M032_MINIMALSIZE,
-> +				  MT9M032_HEIGHT - crop_rect->top);
-> +	crop_rect->width = clamp(crop->rect.width, MT9M032_MINIMALSIZE,
-> +				 MT9M032_WIDTH - crop_rect->left) & ~1;
-> +
-> +	format->height = crop_rect->height;
-> +	format->width = crop_rect->width;
-> +
-> +	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-> +		int ret = mt9m032_update_geom_timing(sensor, crop_rect);
-> +
-> +		if (!ret) {
-> +			sensor->crop = tmp_crop_rect;
-> +			sensor->format = tmp_format;
+> +		if (!PageBuddy(page)) {
+> +skip:
+> +			if (freelist)
+> +				goto next;
+> +			for (; start < pfn; ++start)
+> +				__free_page(pfn_to_page(pfn));
+> +			return 0;
 > +		}
-> +		return ret;
 
-return ret below and set ret = 0 at the begining
+So if a PFN is valid and !PageBuddy and no freelist is provided, we
+call __free_page() on it regardless of reference count. That does not
+sound safe.
 
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int mt9m032_get_frame_interval(struct v4l2_subdev *subdev,
-> +				      struct v4l2_subdev_frame_interval *fi)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +
-> +	fi->pad = 0;
-> +	memset(fi->reserved, 0, sizeof(fi->reserved));
-> +	fi->interval = sensor->frame_interval;
-> +
-> +	return 0;
-> +}
-> +
-> +static int mt9m032_set_frame_interval(struct v4l2_subdev *subdev,
-> +				      struct v4l2_subdev_frame_interval *fi)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +	int ret;
-> +
-> +	if (sensor->streaming)
-> +		return -EBUSY;
-> +
-> +	memset(fi->reserved, 0, sizeof(fi->reserved));
-> +
-> +	ret = mt9m032_update_timing(sensor, &fi->interval, NULL);
-> +	if (!ret)
-> +		sensor->frame_interval = fi->interval;
-> +	return ret;
-> +}
-> +
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +static int mt9m032_g_register(struct v4l2_subdev *sd,
-> +			      struct v4l2_dbg_register *reg)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(sd);
-> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> +	int val;
-> +
-> +	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-> +		return -EINVAL;
-> +	if (reg->match.addr != client->addr)
-> +		return -ENODEV;
-> +
-> +	val = mt9m032_read_reg(sensor, reg->reg);
-> +	if (val < 0)
-> +		return -EIO;
-> +
-> +	reg->size = 2;
-> +	reg->val = val;
-> +
-> +	return 0;
-> +}
-> +
-> +static int mt9m032_s_register(struct v4l2_subdev *sd,
-> +			      struct v4l2_dbg_register *reg)
-> +{
-> +	struct mt9m032 *sensor = to_mt9m032(sd);
-> +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> +
-> +	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-> +		return -EINVAL;
-> +
-> +	if (reg->match.addr != client->addr)
-> +		return -ENODEV;
-> +
-> +	if (mt9m032_write_reg(sensor, reg->reg, reg->val) < 0)
-> +		return -EIO;
-> +
-> +	return 0;
-> +}
-> +#endif
-> +
-> +static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool
-> hflip) +{
-> +	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
+>  
+>  		/* Found a free page, break it into order-0 pages */
+>  		isolated = split_free_page(page);
+>  		total_isolated += isolated;
+> -		for (i = 0; i < isolated; i++) {
+> -			list_add(&page->lru, freelist);
+> -			page++;
+> +		if (freelist) {
+> +			struct page *p = page;
+> +			for (i = isolated; i; --i, ++p)
+> +				list_add(&p->lru, freelist);
+>  		}
+>  
+> -		/* If a page was split, advance to the end of it */
+> -		if (isolated) {
+> -			blockpfn += isolated - 1;
+> -			cursor += isolated - 1;
+> -		}
+> +next:
+> +		pfn += isolated;
+> +		page += isolated;
 
-!!(bool) ? hmm ...
+The name isolated is now confusing because it can mean either
+pages isolated or pages scanned depending on context. Your patch
+appears to be doing a lot more than is necessary to convert
+isolate_freepages_block into isolate_freepages_range and at this point,
+it's unclear why you did that.
 
-> +		      | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
-> +		      | MT9M032_READ_MODE2_ROW_BLC
-> +		      | 0x0007;
+>  	}
+>  
+>  	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
+> @@ -135,7 +148,7 @@ static void isolate_freepages(struct zone *zone,
+>  				struct compact_control *cc)
+>  {
+>  	struct page *page;
+> -	unsigned long high_pfn, low_pfn, pfn;
+> +	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
+>  	unsigned long flags;
+>  	int nr_freepages = cc->nr_freepages;
+>  	struct list_head *freelist = &cc->freepages;
+> @@ -155,6 +168,8 @@ static void isolate_freepages(struct zone *zone,
+>  	 */
+>  	high_pfn = min(low_pfn, pfn);
+>  
+> +	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
 > +
-> +	return mt9m032_write_reg(sensor, MT9M032_READ_MODE2, reg_val);
-> +}
-> +
-> +static int mt9m032_set_hflip(struct mt9m032 *sensor, s32 val)
-> +{
-> +	return update_read_mode2(sensor, sensor->vflip->cur.val, val);
-> +}
-> +
-> +static int mt9m032_set_vflip(struct mt9m032 *sensor, s32 val)
-> +{
-> +	return update_read_mode2(sensor, val, sensor->hflip->cur.val);
-> +}
-> +
-> +static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
-> +{
-> +	int shutter_width;
-> +	u16 high_val, low_val;
-> +	int ret;
-> +
-> +	/* shutter width is in row times */
-> +	shutter_width = (val * 1000) / mt9m032_row_time(sensor,
-> sensor->crop.width); +
-> +	high_val = (shutter_width >> 16) & 0xf;
-> +	low_val = shutter_width & 0xffff;
-> +
-> +	ret = mt9m032_write_reg(sensor, MT9M032_SHUTTER_WIDTH_HIGH, high_val);
-> +	if (!ret)
-> +		mt9m032_write_reg(sensor, MT9M032_SHUTTER_WIDTH_LOW, low_val);
+>  	/*
+>  	 * Isolate free pages until enough are available to migrate the
+>  	 * pages on cc->migratepages. We stop searching if the migrate
+> @@ -191,7 +206,9 @@ static void isolate_freepages(struct zone *zone,
+>  		isolated = 0;
+>  		spin_lock_irqsave(&zone->lock, flags);
+>  		if (suitable_migration_target(page)) {
+> -			isolated = isolate_freepages_block(zone, pfn, freelist);
+> +			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
+> +			isolated = isolate_freepages_range(zone, pfn,
+> +					end_pfn, freelist);
+>  			nr_freepages += isolated;
+>  		}
+>  		spin_unlock_irqrestore(&zone->lock, flags);
+> @@ -250,31 +267,34 @@ typedef enum {
+>  	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
+>  } isolate_migrate_t;
+>  
+> -/*
+> - * Isolate all pages that can be migrated from the block pointed to by
+> - * the migrate scanner within compact_control.
+> +/**
+> + * isolate_migratepages_range() - isolate all migrate-able pages in range.
+> + * @zone:	Zone pages are in.
+> + * @cc:		Compaction control structure.
+> + * @low_pfn:	The first PFN of the range.
+> + * @end_pfn:	The one-past-the-last PFN of the range.
+> + *
+> + * Isolate all pages that can be migrated from the range specified by
+> + * [low_pfn, end_pfn).  Returns zero if there is a fatal signal
+> + * pending), otherwise PFN of the first page that was not scanned
+> + * (which may be both less, equal to or more then end_pfn).
+> + *
+> + * Assumes that cc->migratepages is empty and cc->nr_migratepages is
+> + * zero.
+> + *
+> + * Other then cc->migratepages and cc->nr_migratetypes this function
+> + * does not modify any cc's fields, ie. it does not modify (or read
+> + * for that matter) cc->migrate_pfn.
+>   */
+> -static isolate_migrate_t isolate_migratepages(struct zone *zone,
+> -					struct compact_control *cc)
+> +static unsigned long
+> +isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
+> +			   unsigned long low_pfn, unsigned long end_pfn)
+>  {
+> -	unsigned long low_pfn, end_pfn;
+>  	unsigned long last_pageblock_nr = 0, pageblock_nr;
+>  	unsigned long nr_scanned = 0, nr_isolated = 0;
+>  	struct list_head *migratelist = &cc->migratepages;
+>  	isolate_mode_t mode = ISOLATE_ACTIVE|ISOLATE_INACTIVE;
+>  
+> -	/* Do not scan outside zone boundaries */
+> -	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
+> -
+> -	/* Only scan within a pageblock boundary */
+> -	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
+> -
+> -	/* Do not cross the free scanner or scan within a memory hole */
+> -	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
+> -		cc->migrate_pfn = end_pfn;
+> -		return ISOLATE_NONE;
+> -	}
+> -
+>  	/*
+>  	 * Ensure that there are not too many pages isolated from the LRU
+>  	 * list by either parallel reclaimers or compaction. If there are,
+> @@ -283,12 +303,12 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+>  	while (unlikely(too_many_isolated(zone))) {
+>  		/* async migration should just abort */
+>  		if (!cc->sync)
+> -			return ISOLATE_ABORT;
+> +			return 0;
+>  
+>  		congestion_wait(BLK_RW_ASYNC, HZ/10);
+>  
+>  		if (fatal_signal_pending(current))
+> -			return ISOLATE_ABORT;
+> +			return 0;
+>  	}
+>  
+>  	/* Time to isolate some pages for migration */
+> @@ -365,17 +385,49 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+>  		nr_isolated++;
+>  
+>  		/* Avoid isolating too much */
+> -		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
+> +		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
+> +			++low_pfn;
+>  			break;
+> +		}
+>  	}
 
-You're not checking return value here ?
+This change is unrelated to the rest of the path. I recognise that
+incrementing low_pfn would prevent an already isolated PFN being
+scanned the next time but it should be a separate patch.
 
-> +
-> +	return ret;
+>  
+>  	acct_isolated(zone, cc);
+>  
+>  	spin_unlock_irq(&zone->lru_lock);
+> -	cc->migrate_pfn = low_pfn;
+>  
+>  	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
+>  
+> +	return low_pfn;
 > +}
 > +
-> +static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
-> +{
-> +	int digital_gain_val;	/* in 1/8th (0..127) */
-> +	int analog_mul;		/* 0 or 1 */
-> +	int analog_gain_val;	/* in 1/16th. (0..63) */
-> +	u16 reg_val;
-> +
-> +	digital_gain_val = 51; /* from setup example */
-> +
-> +	if (val < 63) {
-> +		analog_mul = 0;
-> +		analog_gain_val = val;
-> +	} else {
-> +		analog_mul = 1;
-> +		analog_gain_val = val / 2;
-> +	}
-> +
-> +	/* a_gain = (1+analog_mul) + (analog_gain_val+1)/16 */
-> +	/* overall_gain = a_gain * (1 + digital_gain_val / 8) */
-> +
-> +	reg_val = (digital_gain_val & MT9M032_GAIN_DIGITAL_MASK) <<
-> MT9M032_GAIN_DIGITAL_SHIFT +		  | (analog_mul & 1) <<
-> MT9M032_GAIN_AMUL_SHIFT
-> +		  | (analog_gain_val & MT9M032_GAIN_ANALOG_MASK);
-> +
-> +	return mt9m032_write_reg(sensor, MT9M032_GAIN_ALL, reg_val);
-> +}
-> +
-> +static int mt9m032_setup_pll(struct mt9m032 *sensor)
-> +{
-> +	struct mt9m032_platform_data* pdata = sensor->pdata;
-> +	u16 reg_pll1;
-> +	unsigned int pre_div;
-> +	int res, ret;
-> +
-> +	/* TODO: also support other pre-div values */
-> +	if (pdata->pll_pre_div != 6) {
-> +		dev_warn(to_dev(sensor),
-> +			"Unsupported PLL pre-divisor value %u, using default 
-6\n",
-> +			pdata->pll_pre_div);
-> +	}
-> +	pre_div = 6;
-> +
-> +	sensor->pix_clock = pdata->ext_clock * pdata->pll_mul /
-> +		(pre_div * pdata->pll_out_div);
-> +
-> +	reg_pll1 = ((pdata->pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
-> +		   | pdata->pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT;
-> +
-> +	ret = mt9m032_write_reg(sensor, MT9M032_PLL_CONFIG1, reg_pll1);
-> +	if (!ret)
-> +		ret = mt9m032_write_reg(sensor, 0x10, 0x53); /* Select PLL as 
-clock
-> source */ +
-
-urm ... magic ... black magic ...
-
-> +	if (!ret)
-> +		ret = mt9m032_write_reg(sensor, MT9M032_READ_MODE1, 0x8006);
-> +							/* more reserved, 
-Continuous */
-> +							/* Master Mode */
-> +	if (!ret)
-> +		res = mt9m032_read_reg(sensor, MT9M032_READ_MODE1);
-> +
-> +	if (!ret)
-> +		ret = mt9m032_write_reg(sensor, MT9M032_FORMATTER1, 0x111e);
-> +					/* Set 14-bit mode, select 7 divider */
-> +
-> +	return ret;
-> +}
-> +
-> +static int mt9m032_try_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	if (ctrl->id == V4L2_CID_GAIN && ctrl->val >= 63) {
-> +		 /* round because of multiplier used for values >= 63 */
-> +		ctrl->val &= ~1;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
-> +{
-> +	struct mt9m032 *sensor = container_of(ctrl->handler, struct mt9m032,
-> ctrls); +
-> +	switch (ctrl->id) {
-> +	case V4L2_CID_GAIN:
-> +		return mt9m032_set_gain(sensor, ctrl->val);
-> +
-> +	case V4L2_CID_HFLIP:
-> +		return mt9m032_set_hflip(sensor, ctrl->val);
-> +
-> +	case V4L2_CID_VFLIP:
-> +		return mt9m032_set_vflip(sensor, ctrl->val);
-> +
-> +	case V4L2_CID_EXPOSURE:
-> +		return mt9m032_set_exposure(sensor, ctrl->val);
-> +
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +}
-> +
-> +static const struct v4l2_subdev_video_ops mt9m032_video_ops = {
-> +	.s_stream = mt9m032_s_stream,
-> +	.g_frame_interval = mt9m032_get_frame_interval,
-> +	.s_frame_interval = mt9m032_set_frame_interval,
-> +};
-> +
-> +static struct v4l2_ctrl_ops mt9m032_ctrl_ops = {
-> +	.s_ctrl = mt9m032_set_ctrl,
-> +	.try_ctrl = mt9m032_try_ctrl,
-> +};
-> +
-> +
-> +static const struct v4l2_subdev_core_ops mt9m032_core_ops = {
-> +#ifdef CONFIG_VIDEO_ADV_DEBUG
-> +	.g_register = mt9m032_g_register,
-> +	.s_register = mt9m032_s_register,
-> +#endif
-> +};
-> +
-> +static const struct v4l2_subdev_pad_ops mt9m032_pad_ops = {
-> +	.enum_mbus_code = mt9m032_enum_mbus_code,
-> +	.enum_frame_size = mt9m032_enum_frame_size,
-> +	.get_fmt = mt9m032_get_pad_format,
-> +	.set_fmt = mt9m032_set_pad_format,
-> +	.set_crop = mt9m032_set_crop,
-> +	.get_crop = mt9m032_get_crop,
-> +};
-> +
-> +static const struct v4l2_subdev_ops mt9m032_ops = {
-> +	.core = &mt9m032_core_ops,
-> +	.video = &mt9m032_video_ops,
-> +	.pad = &mt9m032_pad_ops,
-> +};
-> +
-> +static int mt9m032_probe(struct i2c_client *client,
-> +			 const struct i2c_device_id *devid)
-> +{
-> +	struct mt9m032 *sensor;
-> +	int chip_version;
-> +	int res, ret;
-> +
-> +
-> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA))
-> { +		dev_warn(&client->adapter->dev,
-> +			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
-> +		return -EIO;
-> +	}
-> +
-> +	if (!client->dev.platform_data)
-> +		return -ENODEV;
-> +
-> +	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
-> +	if (sensor == NULL)
-> +		return -ENOMEM;
-> +
-> +	sensor->pdata = client->dev.platform_data;
-> +
-> +	v4l2_i2c_subdev_init(&sensor->subdev, client, &mt9m032_ops);
-> +	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-> +
-> +
-> +	/*
-> +	 * This driver was developed with a camera module with seperate external
-> +	 * pix clock. For setups which use the clock from the camera interface
-> +	 * the code will need to be extended with the appropriate platform
-> +	 * callback to setup the clock.
-> +	 */
-> +	chip_version = mt9m032_read_reg(sensor, MT9M032_CHIP_VERSION);
-> +	if (0x1402 == chip_version) {
-
-So I suspect this can also cast fireballs ? Also, why do you use Yoda conditions 
-here ? Please run checkpatch.pl on this too just to be sure.
-
-> +		dev_info(&client->dev, "mt9m032: detected sensor.\n");
-> +	} else {
-> +		dev_warn(&client->dev, "mt9m032: error: detected unsupported 
-chip
-> version 0x%x\n", +			 chip_version);
-> +		ret = -ENODEV;
-> +		goto free_sensor;
-> +	}
-> +
-> +
-> +
-> +	sensor->frame_interval.numerator = 1;
-> +	sensor->frame_interval.denominator = 30;
-> +
-> +	sensor->crop.left = 416;
-> +	sensor->crop.top = 360;
-> +	sensor->crop.width = 640;
-> +	sensor->crop.height = 480;
-> +
-> +	sensor->format.width = sensor->crop.width;
-> +	sensor->format.height = sensor->crop.height;
-> +	sensor->format.code = V4L2_MBUS_FMT_Y8_1X8;
-> +	sensor->format.field = V4L2_FIELD_NONE;
-> +	sensor->format.colorspace = V4L2_COLORSPACE_SRGB;
-> +
-> +	v4l2_ctrl_handler_init(&sensor->ctrls, 4);
-> +
-> +	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-> +			  V4L2_CID_GAIN, 0, 127, 1, 64);
-> +
-> +	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-> +			  V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-> +			  V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-> +			  V4L2_CID_EXPOSURE, 0, 8000, 1, 1700);    /* 1.7ms */
-> +
-> +
-> +	if (sensor->ctrls.error) {
-> +		ret = sensor->ctrls.error;
-> +		dev_err(&client->dev, "control initialization error %d\n", ret);
-> +		goto free_ctrl;
-> +	}
-> +
-> +	sensor->subdev.ctrl_handler = &sensor->ctrls;
-> +	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-> +	ret = media_entity_init(&sensor->subdev.entity, 1, &sensor->pad, 0);
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +
-> +	ret = mt9m032_write_reg(sensor, MT9M032_RESET, 1);	/* reset on */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	mt9m032_write_reg(sensor, MT9M032_RESET, 0);	/* reset off */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +
-> +	ret = mt9m032_setup_pll(sensor);
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	msleep(10);
-> +
-> +	v4l2_ctrl_handler_setup(&sensor->ctrls);
-> +
-> +	/* SIZE */
-> +	ret = mt9m032_update_geom_timing(sensor, &sensor->crop);
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +
-> +	ret = mt9m032_write_reg(sensor, 0x41, 0x0000);	/* reserved !!! */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	ret = mt9m032_write_reg(sensor, 0x42, 0x0003);	/* reserved !!! */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	ret = mt9m032_write_reg(sensor, 0x43, 0x0003);	/* reserved !!! */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	ret = mt9m032_write_reg(sensor, 0x7f, 0x0000);	/* reserved !!! */
-
-Ok, now I feel like reading a grimoire and learing how to cast iceblast. ;-)
-
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	if (sensor->pdata->invert_pixclock) {
-> +		mt9m032_write_reg(sensor, MT9M032_PIX_CLK_CTRL,
-> MT9M032_PIX_CLK_CTRL_INV_PIXCLK); +		if (ret < 0)
-> +			goto free_ctrl;
-> +	}
-> +
-> +	res = mt9m032_read_reg(sensor, MT9M032_PIX_CLK_CTRL);
-> +
-> +	ret = mt9m032_write_reg(sensor, MT9M032_RESTART, 1); /* Restart on */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	msleep(100);
-> +	ret = mt9m032_write_reg(sensor, MT9M032_RESTART, 0); /* Restart off */
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +	msleep(100);
-> +	ret = update_formatter2(sensor, false);
-> +	if (ret < 0)
-> +		goto free_ctrl;
-> +
-> +	return ret;
-> +
-> +free_ctrl:
-> +	v4l2_ctrl_handler_free(&sensor->ctrls);
-> +
-> +free_sensor:
-> +	kfree(sensor);
-> +	return ret;
-> +}
-> +
-> +static int mt9m032_remove(struct i2c_client *client)
-> +{
-> +	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-> +	struct mt9m032 *sensor = to_mt9m032(subdev);
-> +
-> +	v4l2_device_unregister_subdev(&sensor->subdev);
-> +	v4l2_ctrl_handler_free(&sensor->ctrls);
-> +	media_entity_cleanup(&sensor->subdev.entity);
-> +	kfree(sensor);
-> +	return 0;
-> +}
-> +
-> +static const struct i2c_device_id mt9m032_id_table[] = {
-> +	{MT9M032_NAME, 0},
-> +	{}
-> +};
-> +
-> +MODULE_DEVICE_TABLE(i2c, mt9m032_id_table);
-> +
-> +static struct i2c_driver mt9m032_i2c_driver = {
-> +	.driver = {
-> +		   .name = MT9M032_NAME,
-> +		   },
-> +	.probe = mt9m032_probe,
-> +	.remove = mt9m032_remove,
-> +	.id_table = mt9m032_id_table,
-> +};
-> +
-> +static int __init mt9m032_init(void)
-> +{
-> +	int rval;
-> +
-> +	rval = i2c_add_driver(&mt9m032_i2c_driver);
-> +	if (rval)
-> +		pr_err("%s: failed registering " MT9M032_NAME "\n", __func__);
-> +
-> +	return rval;
-> +}
-> +
-> +static void mt9m032_exit(void)
-> +{
-> +	i2c_del_driver(&mt9m032_i2c_driver);
-> +}
-> +
-> +module_init(mt9m032_init);
-> +module_exit(mt9m032_exit);
-> +
-> +MODULE_AUTHOR("Martin Hostettler");
-> +MODULE_DESCRIPTION("MT9M032 camera sensor driver");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/media/mt9m032.h b/include/media/mt9m032.h
-> new file mode 100644
-> index 0000000..94cefc5
-> --- /dev/null
-> +++ b/include/media/mt9m032.h
-> @@ -0,0 +1,38 @@
 > +/*
-> + * Driver for MT9M032 CMOS Image Sensor from Micron
-> + *
-> + * Copyright (C) 2010-2011 Lund Engineering
-> + * Contact: Gil Lund <gwlund@lundeng.com>
-> + * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
+> + * Isolate all pages that can be migrated from the block pointed to by
+> + * the migrate scanner within compact_control.
 > + */
+> +static isolate_migrate_t isolate_migratepages(struct zone *zone,
+> +					struct compact_control *cc)
+> +{
+> +	unsigned long low_pfn, end_pfn;
 > +
-> +#ifndef MT9M032_H
-> +#define MT9M032_H
+> +	/* Do not scan outside zone boundaries */
+> +	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
 > +
-> +#define MT9M032_NAME		"mt9m032"
-> +#define MT9M032_I2C_ADDR	(0xb8 >> 1)
+> +	/* Only scan within a pageblock boundary */
+> +	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
+> +
+> +	/* Do not cross the free scanner or scan within a memory hole */
+> +	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
+> +		cc->migrate_pfn = end_pfn;
+> +		return ISOLATE_NONE;
+> +	}
+> +
+> +	/* Perform the isolation */
+> +	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
+> +	if (!low_pfn)
+> +		return ISOLATE_ABORT;
+> +
+> +	cc->migrate_pfn = low_pfn;
+> +
+>  	return ISOLATE_SUCCESS;
+>  }
+>  
+> -- 
+> 1.7.1.569.g6f426
+> 
 
-Pass in platform data, this is likely changable.
-
-> +
-> +struct mt9m032_platform_data {
-> +	u32 ext_clock;
-> +	u32 pll_pre_div;
-> +	u32 pll_mul;
-> +	u32 pll_out_div;
-> +	int invert_pixclock;
-> +
-> +};
-> +#endif /* MT9M032_H */
-
-Cheers
-M
+-- 
+Mel Gorman
+SUSE Labs
