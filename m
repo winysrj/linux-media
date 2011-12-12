@@ -1,126 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9424 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755222Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:23 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNLF006753
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 11/28] [media] qt1010: remove fake implementaion of get_bandwidth()
-Date: Thu, 22 Dec 2011 09:19:59 -0200
-Message-Id: <1324552816-25704-12-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-11-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
- <1324552816-25704-4-git-send-email-mchehab@redhat.com>
- <1324552816-25704-5-git-send-email-mchehab@redhat.com>
- <1324552816-25704-6-git-send-email-mchehab@redhat.com>
- <1324552816-25704-7-git-send-email-mchehab@redhat.com>
- <1324552816-25704-8-git-send-email-mchehab@redhat.com>
- <1324552816-25704-9-git-send-email-mchehab@redhat.com>
- <1324552816-25704-10-git-send-email-mchehab@redhat.com>
- <1324552816-25704-11-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:62079 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752720Ab1LLOXb convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 09:23:31 -0500
+Received: by ggdk6 with SMTP id k6so1155150ggd.19
+        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 06:23:30 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4EE5F7BB.4070306@seiner.com>
+References: <4EDC25F1.4000909@seiner.com>
+	<1323058527.12343.3.camel@palomino.walls.org>
+	<4EDC4C84.2030904@seiner.com>
+	<4EDC4E9B.40301@seiner.com>
+	<4EDCB6D1.1060508@seiner.com>
+	<1098bb19-5241-4be4-a916-657c0b599efd@email.android.com>
+	<c0667c34eccf470314966c2426b00af4.squirrel@mail.seiner.com>
+	<4EE55304.9090707@seiner.com>
+	<0b3ac95d-1977-4e86-9337-9e1390d51b83@email.android.com>
+	<4EE5F7BB.4070306@seiner.com>
+Date: Mon, 12 Dec 2011 09:23:30 -0500
+Message-ID: <CAGoCfizHNPobXjMWAz_xp5wyLfspE6N8AtWxeM6AWeE8U-+UEA@mail.gmail.com>
+Subject: Re: cx231xx kernel oops
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Yan Seiner <yan@seiner.com>
+Cc: Andy Walls <awalls@md.metrocast.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver implements a fake get_bandwidth() callback. In
-reallity, the tuner driver won't adjust its low-pass
-filter based on a bandwidth, and were just providing a fake
-method for demods to read whatever was "set".
+On Mon, Dec 12, 2011 at 7:46 AM, Yan Seiner <yan@seiner.com> wrote:
+> Andy Walls wrote:
+>>
+>> 800 MB for 320x420 frames? It sounds like your app has gooned its
+>> requested buffer size.
+>>
+>
+>
+> That's an understatement.  :-)
+>
+>
+>> <wild speculation>
+>> This might be due to endianess differences between MIPS abd x86 and your
+>> app only being written and tested on x86.
+>> </wild speculation>
+>>
+>
+>
+> My speculation too.  I don't know where that number comes from; the same app
+> works fine with the saa7115 driver if I switch frame grabbers.  I'll have to
+> do some fiddling with the code to figure out where the problem lies.  It's
+> some interaction between the app and the cx231xx driver.
+>
+>
+>
+>
+>> You still appear to USB stack problems, but not as severe (can't change
+>> device config to some bogus config).
+>>
+>
+>
+> The requested buffer size is the result of multiplying max_pkt_size *
+> max_packets and the rejected config shows a max_packet_size of 0, maybe
+> ithere;'s a problem with either endianness or int size... ???  Something to
+> follow up on.
 
-This code is useless, as none of the drivers that use
-this tuner seems to require a get_bandwidth() callback.
+For what it's worth, I did do quite a bit of work on cx231xx,
+including work for mips and arm platforms.  That said, all the work
+done was on the control interfaces rather than the buffer management
+(my particular use case didn't have the video coming back over the USB
+bus).
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/qt1010.c      |   16 ++++------------
- drivers/media/common/tuners/qt1010_priv.h |    1 -
- 2 files changed, 4 insertions(+), 13 deletions(-)
+How does your app setup the buffers?  Is it doing MMAP?  Userptr?
+It's possible userptr support is broken, as that's something that is
+much less common.
 
-diff --git a/drivers/media/common/tuners/qt1010.c b/drivers/media/common/tuners/qt1010.c
-index cd461c2..bd433ad 100644
---- a/drivers/media/common/tuners/qt1010.c
-+++ b/drivers/media/common/tuners/qt1010.c
-@@ -85,6 +85,7 @@ static void qt1010_dump_regs(struct qt1010_priv *priv)
- static int qt1010_set_params(struct dvb_frontend *fe,
- 			     struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct qt1010_priv *priv;
- 	int err;
- 	u32 freq, div, mod1, mod2;
-@@ -144,13 +145,11 @@ static int qt1010_set_params(struct dvb_frontend *fe,
- #define FREQ2  4000000 /* 4 MHz Quartz oscillator in the stick? */
- 
- 	priv = fe->tuner_priv;
--	freq = params->frequency;
-+	freq = c->frequency;
- 	div = (freq + QT1010_OFFSET) / QT1010_STEP;
- 	freq = (div * QT1010_STEP) - QT1010_OFFSET;
- 	mod1 = (freq + QT1010_OFFSET) % FREQ1;
- 	mod2 = (freq + QT1010_OFFSET) % FREQ2;
--	priv->bandwidth =
--		(fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
- 	priv->frequency = freq;
- 
- 	if (fe->ops.i2c_gate_ctrl)
-@@ -321,6 +320,7 @@ static int qt1010_init(struct dvb_frontend *fe)
- {
- 	struct qt1010_priv *priv = fe->tuner_priv;
- 	struct dvb_frontend_parameters params;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int err = 0;
- 	u8 i, tmpval, *valptr = NULL;
- 
-@@ -397,7 +397,7 @@ static int qt1010_init(struct dvb_frontend *fe)
- 		if ((err = qt1010_init_meas2(priv, i, &tmpval)))
- 			return err;
- 
--	params.frequency = 545000000; /* Sigmatek DVB-110 545000000 */
-+	c->frequency = 545000000; /* Sigmatek DVB-110 545000000 */
- 				      /* MSI Megasky 580 GL861 533000000 */
- 	return qt1010_set_params(fe, &params);
- }
-@@ -416,13 +416,6 @@ static int qt1010_get_frequency(struct dvb_frontend *fe, u32 *frequency)
- 	return 0;
- }
- 
--static int qt1010_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
--{
--	struct qt1010_priv *priv = fe->tuner_priv;
--	*bandwidth = priv->bandwidth;
--	return 0;
--}
--
- static int qt1010_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
- 	*frequency = 36125000;
-@@ -443,7 +436,6 @@ static const struct dvb_tuner_ops qt1010_tuner_ops = {
- 
- 	.set_params    = qt1010_set_params,
- 	.get_frequency = qt1010_get_frequency,
--	.get_bandwidth = qt1010_get_bandwidth,
- 	.get_if_frequency = qt1010_get_if_frequency,
- };
- 
-diff --git a/drivers/media/common/tuners/qt1010_priv.h b/drivers/media/common/tuners/qt1010_priv.h
-index 090cf47..2c42d3f 100644
---- a/drivers/media/common/tuners/qt1010_priv.h
-+++ b/drivers/media/common/tuners/qt1010_priv.h
-@@ -99,7 +99,6 @@ struct qt1010_priv {
- 	u8 reg25_init_val;
- 
- 	u32 frequency;
--	u32 bandwidth;
- };
- 
- #endif
+And as Andy suggested, if you can test your app under x86, knowing
+whether the app works with cx231xx under x86 is useful in knowing if
+you have a mips issue or something that your app in particular is
+doing.
+
+Also, just to be clear, the USB Live 2 doesn't have any onboard
+hardware compression.  It has comparable requirements related to USB
+bus utilization as any other USB framegrabber.  The only possible
+advantage you might get is that it does have an onboard scaler, so if
+you're willing to compromise on quality you can change the capture
+resolution to a lower value such as 320x240.  Also, bear in mind that
+the cx231xx driver may not be properly tuned to reduce the alternate
+it uses dependent on resolution.  To my knowledge that functionality
+has not been thoroughly tested (as it's an unpopular use case).
+
+And finally, there were fixes for the USB Live 2 specifically which
+you may not have in 3.0.3.  You should check the changelogs.  It's
+possible that the failure to set the USB alternate is leaving the
+driver is an unknown state, which causes it to crash once actually
+trying to allocate the buffers.
+
+Devin
+
 -- 
-1.7.8.352.g876a6
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
