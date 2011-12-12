@@ -1,45 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp503.mail.kks.yahoo.co.jp ([114.111.99.164]:27730 "HELO
-	smtp503.mail.kks.yahoo.co.jp" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1751145Ab1L3GxE (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:53307 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753848Ab1LLStp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 01:53:04 -0500
-Message-ID: <4EFD5E3D.8090305@yahoo.co.jp>
-Date: Fri, 30 Dec 2011 15:46:21 +0900
-From: Akihiro TSUKADA <tskd2@yahoo.co.jp>
+	Mon, 12 Dec 2011 13:49:45 -0500
+Message-ID: <4EE64CC2.5090906@gmx.de>
+Date: Mon, 12 Dec 2011 18:49:38 +0000
+From: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: RFC: dvbzap application based on DVBv5 API
-References: <4EFCC9A7.9050907@redhat.com>
-In-Reply-To: <4EFCC9A7.9050907@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 0/3] fbdev: Add FOURCC-based format configuration API
+References: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com> <201112121708.30839.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201112121708.30839.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> [channel name]
-> 	property = value
-> ...
-> 	property = value
+Hi Laurent,
 
-Currently, at least gstreamer's dvbbasebin and mplayer assumue that
-the channel configuration file has the format of one line per channel.
-So when I personally patched them to use v5 parameters,
-I chose the one-line-per-channel format of
-  <channel name>:propname=val|...|propname=val:<service id>, for example,
- NHKBS1:DTV_DELIVERY_SYSTEM=SYS_ISDBS|DTV_VOLTAGE=1|DTV_FREQUENCY=1318000|DTV_ISDBS_TS_ID=0x40f2:103
-, to minimize modification (hopefully).
-I understand that it is not that difficult nor complicated 
-to adapt applications to use the ini file style format,
-but the old one line style format seems slightly easier.
+On 12/12/2011 04:08 PM, Laurent Pinchart wrote:
+> Hi Florian,
+> 
+> On Tuesday 29 November 2011 11:26:56 Laurent Pinchart wrote:
+>> Hi everybody,
+>>
+>> Here's the fourth version of the fbdev FOURCC-based format configuration
+>> API.
+> 
+> Is there a chance this will make it to v3.3 ?
 
-and I wish that the channel configuration can allow nicknames/aliases,
-as the canonical channel name can be long to type in or difficult to remember correctly.
-If I remember right, MythTV has its own database,
-and it would be convenient if we could share the database,
-because applications currently have their own channel configuration separately,
-and the configuration change like new service or parameter changes must be
-propagated manually.
+Yes, that's likely. I thought you wanted to post a new version of 2/3?
+I think you also want to do something with red, green, blue, transp when
+entering FOURCC mode, at least setting them to zero or maybe even requiring that
+they are zero to enter FOURCC mode (as additional safety barrier).
 
-regards,
-Akihiro
+
+Best regards,
+
+Florian Tobias Schandinat
