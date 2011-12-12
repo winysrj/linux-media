@@ -1,34 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46810 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752565Ab1LIS0s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Dec 2011 13:26:48 -0500
-Message-ID: <4EE252E5.2050204@iki.fi>
-Date: Fri, 09 Dec 2011 20:26:45 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-bw0-f46.google.com ([209.85.214.46]:41084 "EHLO
+	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751810Ab1LLPqN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 10:46:13 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Mel Gorman" <mel@csn.ul.ie>
+Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Ankita Garg" <ankita@in.ibm.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>
+Subject: Re: [PATCH 04/11] mm: compaction: export some of the functions
+References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
+ <1321634598-16859-5-git-send-email-m.szyprowski@samsung.com>
+ <20111212142906.GE3277@csn.ul.ie> <op.v6dseqji3l0zgt@mpn-glaptop>
+ <20111212154015.GI3277@csn.ul.ie>
+Date: Mon, 12 Dec 2011 16:46:10 +0100
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] drxk: Switch the delivery system on FE_SET_PROPERTY
-References: <1323454852-7426-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1323454852-7426-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v6dve8mo3l0zgt@mpn-glaptop>
+In-Reply-To: <20111212154015.GI3277@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/09/2011 08:20 PM, Mauro Carvalho Chehab wrote:
-> The DRX-K doesn't change the delivery system at set_properties,
-> but do it at frontend init. This causes problems on programs like
-> w_scan that, by default, opens both frontends.
->
-> Instead, explicitly set the format when set_parameters callback is
-> called.
+>> On Mon, 12 Dec 2011 15:29:07 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+>>> Overall, this patch implies that CMA is always compiled in.
 
-May I ask why you don't use mfe_shared flag instead?
+> On Mon, Dec 12, 2011 at 03:41:04PM +0100, Michal Nazarewicz wrote:
+>> Not really.  But yes, it produces some bloat when neither CMA nor
+>> compaction are compiled.  I assume that linker will be able to deal
+>> with that (since the functions are not EXPORT_SYMBOL'ed).
 
-regards
-Antti
+On Mon, 12 Dec 2011 16:40:15 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> The bloat exists either way. I don't believe the linker strips it out so
+> overall it would make more sense to depend on compaction to keep the
+> vmstat counters for debugging reasons if nothing else. It's not
+> something I feel very strongly about though.
+
+KK, I'll do that then.
 
 -- 
-http://palosaari.fi/
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
