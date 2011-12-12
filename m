@@ -1,406 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:53393 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751925Ab1L0Wdn (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:54571 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752129Ab1LLRpE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 17:33:43 -0500
-Message-ID: <4EFA47C1.7010306@infradead.org>
-Date: Tue, 27 Dec 2011 20:33:37 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 03/91] [media] dvb-core: add support for a DVBv5 get_frontend()
- callback
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com> <1324948159-23709-3-git-send-email-mchehab@redhat.com> <1324948159-23709-4-git-send-email-mchehab@redhat.com> <4EF9B860.4000103@linuxtv.org> <4EF9CD07.6080608@infradead.org> <4EF9DA66.1070409@linuxtv.org> <4EF9FFC2.30705@infradead.org> <4EFA2E20.6030600@linuxtv.org>
-In-Reply-To: <4EFA2E20.6030600@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Mon, 12 Dec 2011 12:45:04 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LW3000ENQN28X@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:02 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW3008SVQN1IN@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:02 +0000 (GMT)
+Date: Mon, 12 Dec 2011 18:44:46 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 02/14] m5mols: Add buffer size configuration support for
+ compressed streams
+In-reply-to: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1323711898-17162-3-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27-12-2011 18:44, Andreas Oberritter wrote:
-> On 27.12.2011 18:26, Mauro Carvalho Chehab wrote:
->> On 27-12-2011 12:47, Andreas Oberritter wrote:
->>> On 27.12.2011 14:49, Mauro Carvalho Chehab wrote:
->>>> On 27-12-2011 10:21, Andreas Oberritter wrote:
->>>>> On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
->>>>>> The old method is renamed to get_frontend_legacy(), while not all
->>>>>> frontends are converted.
->>>>>>
->>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>>>> ---
->>>>>>  drivers/media/dvb/bt8xx/dst.c               |    8 +-
->>>>>>  drivers/media/dvb/dvb-core/dvb_frontend.c   |  102 ++++++++++++++++++++------
->>>>>>  drivers/media/dvb/dvb-core/dvb_frontend.h   |    5 +-
->>>>>>  drivers/media/dvb/dvb-usb/af9005-fe.c       |    4 +-
->>>>>>  drivers/media/dvb/dvb-usb/cinergyT2-fe.c    |    2 +-
->>>>>>  drivers/media/dvb/dvb-usb/dtt200u-fe.c      |    2 +-
->>>>>>  drivers/media/dvb/dvb-usb/friio-fe.c        |    2 +-
->>>>>>  drivers/media/dvb/dvb-usb/mxl111sf-demod.c  |    2 +-
->>>>>>  drivers/media/dvb/dvb-usb/vp702x-fe.c       |    2 +-
->>>>>>  drivers/media/dvb/dvb-usb/vp7045-fe.c       |    2 +-
->>>>>>  drivers/media/dvb/firewire/firedtv-fe.c     |    2 +-
->>>>>>  drivers/media/dvb/frontends/af9013.c        |    2 +-
->>>>>>  drivers/media/dvb/frontends/atbm8830.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/au8522_dig.c    |    2 +-
->>>>>>  drivers/media/dvb/frontends/cx22700.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/cx22702.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/cx24110.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/cx24123.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/cxd2820r_core.c |    4 +-
->>>>>>  drivers/media/dvb/frontends/dib3000mb.c     |    2 +-
->>>>>>  drivers/media/dvb/frontends/dib3000mc.c     |    2 +-
->>>>>>  drivers/media/dvb/frontends/dib7000m.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/dib7000p.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/dib8000.c       |    4 +-
->>>>>>  drivers/media/dvb/frontends/dib9000.c       |    4 +-
->>>>>>  drivers/media/dvb/frontends/drxd_hard.c     |    2 +-
->>>>>>  drivers/media/dvb/frontends/drxk_hard.c     |    4 +-
->>>>>>  drivers/media/dvb/frontends/dvb_dummy_fe.c  |    6 +-
->>>>>>  drivers/media/dvb/frontends/it913x-fe.c     |    2 +-
->>>>>>  drivers/media/dvb/frontends/l64781.c        |    2 +-
->>>>>>  drivers/media/dvb/frontends/lgdt3305.c      |    4 +-
->>>>>>  drivers/media/dvb/frontends/lgdt330x.c      |    4 +-
->>>>>>  drivers/media/dvb/frontends/lgs8gl5.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/lgs8gxx.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/mb86a20s.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/mt312.c         |    2 +-
->>>>>>  drivers/media/dvb/frontends/mt352.c         |    2 +-
->>>>>>  drivers/media/dvb/frontends/or51132.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/s5h1409.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/s5h1411.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/s5h1420.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/s5h1432.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/s921.c          |    2 +-
->>>>>>  drivers/media/dvb/frontends/stb0899_drv.c   |    2 +-
->>>>>>  drivers/media/dvb/frontends/stb6100.c       |    4 +-
->>>>>>  drivers/media/dvb/frontends/stv0297.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/stv0299.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/stv0367.c       |    4 +-
->>>>>>  drivers/media/dvb/frontends/stv0900_core.c  |    2 +-
->>>>>>  drivers/media/dvb/frontends/tda10021.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/tda10023.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/tda10048.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/tda1004x.c      |    4 +-
->>>>>>  drivers/media/dvb/frontends/tda10071.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/tda10086.c      |    2 +-
->>>>>>  drivers/media/dvb/frontends/tda8083.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/ves1820.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/ves1x93.c       |    2 +-
->>>>>>  drivers/media/dvb/frontends/zl10353.c       |    2 +-
->>>>>>  drivers/media/dvb/siano/smsdvb.c            |    2 +-
->>>>>>  drivers/media/video/tlg2300/pd-dvb.c        |    2 +-
->>>>>>  drivers/staging/media/as102/as102_fe.c      |    2 +-
->>>>>>  62 files changed, 157 insertions(+), 100 deletions(-)
->>>>>>
->>>>>> diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
->>>>>> index 4658bd6..6afc083 100644
->>>>>> --- a/drivers/media/dvb/bt8xx/dst.c
->>>>>> +++ b/drivers/media/dvb/bt8xx/dst.c
->>>>>> @@ -1778,7 +1778,7 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
->>>>>>  	.init = dst_init,
->>>>>>  	.tune = dst_tune_frontend,
->>>>>>  	.set_frontend_legacy = dst_set_frontend,
->>>>>> -	.get_frontend = dst_get_frontend,
->>>>>> +	.get_frontend_legacy = dst_get_frontend,
->>>>>>  	.get_frontend_algo = dst_get_tuning_algo,
->>>>>>  	.read_status = dst_read_status,
->>>>>>  	.read_signal_strength = dst_read_signal_strength,
->>>>>> @@ -1804,7 +1804,7 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
->>>>>>  	.init = dst_init,
->>>>>>  	.tune = dst_tune_frontend,
->>>>>>  	.set_frontend_legacy = dst_set_frontend,
->>>>>> -	.get_frontend = dst_get_frontend,
->>>>>> +	.get_frontend_legacy = dst_get_frontend,
->>>>>>  	.get_frontend_algo = dst_get_tuning_algo,
->>>>>>  	.read_status = dst_read_status,
->>>>>>  	.read_signal_strength = dst_read_signal_strength,
->>>>>> @@ -1838,7 +1838,7 @@ static struct dvb_frontend_ops dst_dvbc_ops = {
->>>>>>  	.init = dst_init,
->>>>>>  	.tune = dst_tune_frontend,
->>>>>>  	.set_frontend_legacy = dst_set_frontend,
->>>>>> -	.get_frontend = dst_get_frontend,
->>>>>> +	.get_frontend_legacy = dst_get_frontend,
->>>>>>  	.get_frontend_algo = dst_get_tuning_algo,
->>>>>>  	.read_status = dst_read_status,
->>>>>>  	.read_signal_strength = dst_read_signal_strength,
->>>>>> @@ -1861,7 +1861,7 @@ static struct dvb_frontend_ops dst_atsc_ops = {
->>>>>>  	.init = dst_init,
->>>>>>  	.tune = dst_tune_frontend,
->>>>>>  	.set_frontend_legacy = dst_set_frontend,
->>>>>> -	.get_frontend = dst_get_frontend,
->>>>>> +	.get_frontend_legacy = dst_get_frontend,
->>>>>>  	.get_frontend_algo = dst_get_tuning_algo,
->>>>>>  	.read_status = dst_read_status,
->>>>>>  	.read_signal_strength = dst_read_signal_strength,
->>>>>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>>>> index eca6170..1eefb91 100644
->>>>>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>>>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>>>> @@ -139,6 +139,14 @@ struct dvb_frontend_private {
->>>>>>  };
->>>>>>  
->>>>>>  static void dvb_frontend_wakeup(struct dvb_frontend *fe);
->>>>>> +static int dtv_get_frontend(struct dvb_frontend *fe,
->>>>>> +			    struct dtv_frontend_properties *c,
->>>>>> +			    struct dvb_frontend_parameters *p_out);
->>>>>> +
->>>>>> +static bool has_get_frontend(struct dvb_frontend *fe)
->>>>>> +{
->>>>>> +	return fe->ops.get_frontend || fe->ops.get_frontend_legacy;
->>>>>> +}
->>>>>>  
->>>>>>  static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
->>>>>>  {
->>>>>> @@ -149,8 +157,8 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
->>>>>>  
->>>>>>  	dprintk ("%s\n", __func__);
->>>>>>  
->>>>>> -	if ((status & FE_HAS_LOCK) && fe->ops.get_frontend)
->>>>>> -		fe->ops.get_frontend(fe, &fepriv->parameters_out);
->>>>>> +	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
->>>>>> +		dtv_get_frontend(fe, NULL, &fepriv->parameters_out);
->>>>>>  
->>>>>>  	mutex_lock(&events->mtx);
->>>>>>  
->>>>>> @@ -1097,11 +1105,10 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
->>>>>>  /* Ensure the cached values are set correctly in the frontend
->>>>>>   * legacy tuning structures, for the advanced tuning API.
->>>>>>   */
->>>>>> -static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->>>>>> +static void dtv_property_legacy_params_sync(struct dvb_frontend *fe,
->>>>>> +					    struct dvb_frontend_parameters *p)
->>>>>>  {
->>>>>>  	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>>>>> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>>>>> -	struct dvb_frontend_parameters *p = &fepriv->parameters_in;
->>>>>>  
->>>>>>  	p->frequency = c->frequency;
->>>>>>  	p->inversion = c->inversion;
->>>>>> @@ -1223,6 +1230,7 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
->>>>>>  static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>>>>>  {
->>>>>>  	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>>>>> +	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>>>>>  
->>>>>>  	/* For legacy delivery systems we don't need the delivery_system to
->>>>>>  	 * be specified, but we populate the older structures from the cache
->>>>>> @@ -1231,7 +1239,7 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>>>>>  	if(is_legacy_delivery_system(c->delivery_system)) {
->>>>>>  
->>>>>>  		dprintk("%s() legacy, modulation = %d\n", __func__, c->modulation);
->>>>>> -		dtv_property_legacy_params_sync(fe);
->>>>>> +		dtv_property_legacy_params_sync(fe, &fepriv->parameters_in);
->>>>>>  
->>>>>>  	} else {
->>>>>>  		dprintk("%s() adv, modulation = %d\n", __func__, c->modulation);
->>>>>> @@ -1246,6 +1254,58 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>>>>>  	}
->>>>>>  }
->>>>>>  
->>>>>> +/**
->>>>>> + * dtv_get_frontend - calls a callback for retrieving DTV parameters
->>>>>> + * @fe:		struct dvb_frontend pointer
->>>>>> + * @c:		struct dtv_frontend_properties pointer (DVBv5 cache)
->>>>>> + * @p_out	struct dvb_frontend_parameters pointer (DVBv3 FE struct)
->>>>>> + *
->>>>>> + * This routine calls either the DVBv3 or DVBv5 get_frontend call.
->>>>>> + * If c is not null, it will update the DVBv5 cache struct pointed by it.
->>>>>> + * If p_out is not null, it will update the DVBv3 params pointed by it.
->>>>>> + */
->>>>>> +static int dtv_get_frontend(struct dvb_frontend *fe,
->>>>>> +			    struct dtv_frontend_properties *c,
->>>>>> +			    struct dvb_frontend_parameters *p_out)
->>>>>> +{
->>>>>> +	const struct dtv_frontend_properties *cache = &fe->dtv_property_cache;
->>>>>> +	struct dtv_frontend_properties tmp_cache;
->>>>>> +	struct dvb_frontend_parameters tmp_out;
->>>>>> +	bool fill_cache = (c != NULL);
->>>>>> +	bool fill_params = (p_out != NULL);
->>>>>> +	int r;
->>>>>> +
->>>>>> +	if (!p_out)
->>>>>> +		p_out = & tmp_out;
->>>>>> +
->>>>>> +	if (!c)
->>>>>> +		c = &tmp_cache;
->>>>>> +	else
->>>>>> +		memcpy(c, cache, sizeof(*c));
->>>>>> +
->>>>>> +	/* Then try the DVBv5 one */
->>>>>> +	if (fe->ops.get_frontend) {
->>>>>> +		r = fe->ops.get_frontend(fe, c);
->>>>>> +		if (unlikely(r < 0))
->>>>>> +			return r;
->>>>>> +		if (fill_params)
->>>>>> +			dtv_property_legacy_params_sync(fe, p_out);
->>>>>> +		return 0;
->>>>>> +	}
->>>>>> +
->>>>>> +	/* As no DVBv5 call exists, use the DVBv3 one */
->>>>>> +	if (fe->ops.get_frontend_legacy) {
->>>>>> +		r = fe->ops.get_frontend_legacy(fe, p_out);
->>>>>> +		if (unlikely(r < 0))
->>>>>> +			return r;
->>>>>> +		if (fill_cache)
->>>>>> +			dtv_property_cache_sync(fe, c, p_out);
->>>>>> +		return 0;
->>>>>> +	}
->>>>>> +
->>>>>> +	return -EOPNOTSUPP;
->>>>>> +}
->>>>>> +
->>>>>>  static int dvb_frontend_ioctl_legacy(struct file *file,
->>>>>>  			unsigned int cmd, void *parg);
->>>>>>  static int dvb_frontend_ioctl_properties(struct file *file,
->>>>>> @@ -1296,24 +1356,12 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
->>>>>>  }
->>>>>>  
->>>>>>  static int dtv_property_process_get(struct dvb_frontend *fe,
->>>>>> +				    const struct dtv_frontend_properties *c,
->>>>>>  				    struct dtv_property *tvp,
->>>>>>  				    struct file *file)
->>>>>>  {
->>>>>> -	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>>>>> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>>>>> -	struct dtv_frontend_properties cdetected;
->>>>>>  	int r;
->>>>>>  
->>>>>> -	/*
->>>>>> -	 * If the driver implements a get_frontend function, then convert
->>>>>> -	 * detected parameters to S2API properties.
->>>>>> -	 */
->>>>>> -	if (fe->ops.get_frontend) {
->>>>>> -		cdetected = *c;
->>>>>> -		dtv_property_cache_sync(fe, &cdetected, &fepriv->parameters_out);
->>>>>> -		c = &cdetected;
->>>>>> -	}
->>>>>> -
->>>>>>  	switch(tvp->cmd) {
->>>>>>  	case DTV_ENUM_DELSYS:
->>>>>>  		dtv_set_default_delivery_caps(fe, tvp);
->>>>>> @@ -1685,6 +1733,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
->>>>>>  
->>>>>>  	} else
->>>>>>  	if(cmd == FE_GET_PROPERTY) {
->>>>>> +		struct dtv_frontend_properties cache_out;
->>>>>>  
->>>>>>  		tvps = (struct dtv_properties __user *)parg;
->>>>>>  
->>>>>> @@ -1707,8 +1756,13 @@ static int dvb_frontend_ioctl_properties(struct file *file,
->>>>>>  			goto out;
->>>>>>  		}
->>>>>>  
->>>>>> +		/*
->>>>>> +		 * Fills the cache out struct with the cache contents, plus
->>>>>> +		 * the data retrieved from get_frontend/get_frontend_legacy.
->>>>>> +		 */
->>>>>> +		dtv_get_frontend(fe, &cache_out, NULL);
->>>>>
->>>>> Unlike before, this code actually calls the get_frontend driver
->>>>> callback, causing unwanted I2C traffic for every property. Please drop
->>>>> this behavioural change.
->>>>
->>>> Look again: get_frontend() is called only once, when the user requests
->>>> FE_GET_PROPERTY.
->>>
->>> So let me rephrase: Unlike before, this code actually calls the
->>> get_frontend driver callback,
->>
->> True.
->>
->>> causing unwanted I2C traffic for every FE_GET_PROPERTY ioctl.
->>
->> Why unwanted? If the userspace is calling it, it likely wants some fresh 
->> information about the frontend.
-> 
-> If I want to query the current frequency property, then the driver
-> shouldn't have to read the symbol rate, FEC etc. Doing that made sense
-> when FE_GET_FRONTEND had to fill a struct, but now that we're using
-> distinct properties it doesn't make sense anymore.
+Use new struct v4l2_mbus_framefmt framesamples field to return
+maximum size of data transmitted per single frame. The framesamples
+value is adjusted according to pixel format and configured at the
+ISP registers.
 
-Ok, you're talking about an optimization over what's currently done. 
+Except the pixel width and height, the frame size can also be made
+dependent on JPEG quality ratio, when corresponding control is
+available at the sub-device interface.
 
-I agree that it would be great to have such optimization, but this is out 
-of the target intended by this patchset.
+Acked-by: HeungJun Kim <riverful.kim@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/m5mols/m5mols.h         |    4 ++++
+ drivers/media/video/m5mols/m5mols_capture.c |    4 ++++
+ drivers/media/video/m5mols/m5mols_core.c    |   15 +++++++++++++++
+ drivers/media/video/m5mols/m5mols_reg.h     |    1 +
+ 4 files changed, 24 insertions(+), 0 deletions(-)
 
-The target of this patchset (and the previous one) is to be sure that all
-DVBv3 handling will be confined into the DVB core, making possible to
-remove uneeded DVBv3 parameter copies for pure DVBv5 calls and to do other
-optimizations inside the core.
-
-I can see a few ways of doing such optimization:
-
-1) instead of implementing a get_frontend() callback, drivers
-   would use get_property().
-
-As get_property() will serialize the calls, this will work fine if each
-DVB property would require a separate hardware call. However, if the same 
-hardware call would retrieve an entire set of parameters (this is true
-on some firmware-based cards like siano), using it will actually slow down
-the driver, if several parameters are required at the same time.
-
-So, such firmware-based drivers will work better with get_frontend() than
-with get_property().
-
-After looking on all drivers that implement get_frontend(), very few drivers
-will actually generate too much traffic for get_frontend(). Yet, after
-applying this series, it will be easier to work on such drivers to optimize
-them.
-
-2) add a bitmap field at DVBv5 cache parameter, to indicate what parameters
-were requested by userspace.
-
-This way, drivers could check the bitmask and do the minimal amount of
-transfers to retrieve the needed data, not spending I2C bus cycles to
-retrieve data that would be discarded by the core.
-
-I'm not convinced if we should go this way, as implementing get_property()
-seems simpler.
-
->> One usage of such call would be to retrieve the autodetected properties,
->> after having a frontend lock.
->>
->>>> This will only generate i2c traffic if the frontend implements get_frontend,
->>>> and if it needs to retrieve something from the hardware.
->>>
->>> What do you mean by "if it needs to retrieve something"? There's no
->>> logic in dtv_get_frontend() to handle that. Usually there's no logic in
->>> the get_frontend callback either, because it's job is to retrieve
->>> something from the hardware _unconditionally_.
->>
->> For example, at FE_SET, it asked for modulation detection. a GET_PROP may
->> return what was the detected modulation.
-> 
-> Yes. The detected value should be set by the driver in its get_property
-> callback.
-> 
->>> Btw, I just noticed that get_frontend gets a parameter 'props' while
->>> set_frontend doesn't.
->>
->> My first coding were to not add a props parameter there. Then I realized
->> that it could make some sense to not touch at the frontend cache parameters
->> on a get_frontend, in order to prevent it to replace *_AUTO parameters by
->> a detected parameter, as subsequent FE_SET_PROPERTY calls might try to just
->> change the frequency, instead of filling all the properties again.
->>
->> So, I decided to explicitly pass a parameter there.
->>
->>> IMO this should be changed, e.g. by adding const
->>> struct dtv_frontend_properties* to set_frontend, if you insist on
->>> introducing this callback.
->>>
->>> A far better solution would be to just use the get_property callback for
->>> all properties instead of replacing the legacy get_frontend callback
->>> with a new "catch-all" function.
->>
->> Sorry, but I didn't understand what you're meaning. This is exactly what
->> get_frontend callback is doing: it retrieves all properties.
-> 
-> See above.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/m5mols/m5mols.h b/drivers/media/video/m5mols/m5mols.h
+index 42c494c..21ccc98 100644
+--- a/drivers/media/video/m5mols/m5mols.h
++++ b/drivers/media/video/m5mols/m5mols.h
+@@ -16,9 +16,13 @@
+ #ifndef M5MOLS_H
+ #define M5MOLS_H
+ 
++#include <asm/sizes.h>
+ #include <media/v4l2-subdev.h>
+ #include "m5mols_reg.h"
+ 
++#define M5MOLS_JPEG_TAGS_SIZE		0x20000
++#define M5MOLS_MAIN_JPEG_SIZE_MAX	(5 * SZ_1M)
++
+ extern int m5mols_debug;
+ 
+ #define to_m5mols(__sd)	container_of(__sd, struct m5mols_info, sd)
+diff --git a/drivers/media/video/m5mols/m5mols_capture.c b/drivers/media/video/m5mols/m5mols_capture.c
+index 3248ac8..c8da22f 100644
+--- a/drivers/media/video/m5mols/m5mols_capture.c
++++ b/drivers/media/video/m5mols/m5mols_capture.c
+@@ -119,6 +119,7 @@ static int m5mols_capture_info(struct m5mols_info *info)
+ 
+ int m5mols_start_capture(struct m5mols_info *info)
+ {
++	struct v4l2_mbus_framefmt *mf = &info->ffmt[info->res_type];
+ 	struct v4l2_subdev *sd = &info->sd;
+ 	u8 resolution = info->resolution;
+ 	int timeout;
+@@ -170,6 +171,9 @@ int m5mols_start_capture(struct m5mols_info *info)
+ 	if (!ret)
+ 		ret = m5mols_write(sd, CAPP_MAIN_IMAGE_SIZE, resolution);
+ 	if (!ret)
++		ret = m5mols_write(sd, CAPP_JPEG_SIZE_MAX,
++				   mf->framesamples - M5MOLS_JPEG_TAGS_SIZE);
++	if (!ret)
+ 		ret = m5mols_enable_interrupt(sd, REG_INT_CAPTURE);
+ 	if (!ret)
+ 		ret = m5mols_write(sd, CAPC_START, REG_CAP_START_MAIN);
+diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
+index 10170b8..59903ed 100644
+--- a/drivers/media/video/m5mols/m5mols_core.c
++++ b/drivers/media/video/m5mols/m5mols_core.c
+@@ -505,6 +505,16 @@ static struct v4l2_mbus_framefmt *__find_format(struct m5mols_info *info,
+ 	return &info->ffmt[type];
+ }
+ 
++static inline void m5mols_get_buffer_size(struct m5mols_info *info,
++					  struct v4l2_mbus_framefmt *mf)
++{
++	u32 min_sz = mf->width * mf->height + M5MOLS_JPEG_TAGS_SIZE;
++
++	/* Clamp provided value to the minimum needed */
++	mf->framesamples = clamp_t(u32, mf->framesamples, min_sz,
++				   M5MOLS_MAIN_JPEG_SIZE_MAX);
++}
++
+ static int m5mols_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 			  struct v4l2_subdev_format *fmt)
+ {
+@@ -515,6 +525,9 @@ static int m5mols_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	if (!format)
+ 		return -EINVAL;
+ 
++	if (format->code == V4L2_MBUS_FMT_JPEG_1X8)
++		m5mols_get_buffer_size(info, format);
++
+ 	fmt->format = *format;
+ 	return 0;
+ }
+@@ -537,6 +550,8 @@ static int m5mols_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	if (!sfmt)
+ 		return 0;
+ 
++	if (format->code == V4L2_MBUS_FMT_JPEG_1X8)
++		m5mols_get_buffer_size(info, format);
+ 
+ 	format->code = m5mols_default_ffmt[type].code;
+ 	format->colorspace = V4L2_COLORSPACE_JPEG;
+diff --git a/drivers/media/video/m5mols/m5mols_reg.h b/drivers/media/video/m5mols/m5mols_reg.h
+index d488add..03d1c47 100644
+--- a/drivers/media/video/m5mols/m5mols_reg.h
++++ b/drivers/media/video/m5mols/m5mols_reg.h
+@@ -310,6 +310,7 @@
+ #define REG_JPEG		0x10
+ 
+ #define CAPP_MAIN_IMAGE_SIZE	I2C_REG(CAT_CAPT_PARM, 0x01, 1)
++#define CAPP_JPEG_SIZE_MAX	I2C_REG(CAT_CAPT_PARM, 0x0f, 4)
+ 
+ #define CAPP_MCC_MODE		I2C_REG(CAT_CAPT_PARM, 0x1d, 1)
+ #define REG_MCC_OFF		0x00
+-- 
+1.7.8
 
