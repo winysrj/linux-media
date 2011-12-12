@@ -1,107 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33979 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752317Ab1L3PJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:28 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rk9009113
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 32/94] [media] lgs8gl5: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:29 -0200
-Message-Id: <1325257711-12274-33-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from hqemgate04.nvidia.com ([216.228.121.35]:16796 "EHLO
+	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752990Ab1LLWoW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 17:44:22 -0500
+Date: Mon, 12 Dec 2011 14:44:09 -0800
+From: Robert Morell <rmorell@nvidia.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Arnd Bergmann <arnd@arndb.de>, Sumit Semwal <sumit.semwal@ti.com>,
+	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
+	"jesse.barker@linaro.org" <jesse.barker@linaro.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-mm@kvack.org" <linux-mm@kvack.org>,
+	"daniel@ffwll.ch" <daniel@ffwll.ch>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+Message-ID: <20111212224408.GD4355@morell.nvidia.com>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+ <1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
+ <201112051718.48324.arnd@arndb.de>
+ <20111209225056.GL7969@morell.nvidia.com>
+ <4EE33EC2.6050508@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EE33EC2.6050508@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On Sat, Dec 10, 2011 at 03:13:06AM -0800, Mauro Carvalho Chehab wrote:
+> On 09-12-2011 20:50, Robert Morell wrote:
+> > On Mon, Dec 05, 2011 at 09:18:48AM -0800, Arnd Bergmann wrote:
+> >> On Friday 02 December 2011, Sumit Semwal wrote:
+> >>> This is the first step in defining a dma buffer sharing mechanism.
+> >>
+> > [...]
+> >>
+> >>> +	return dmabuf;
+> >>> +}
+> >>> +EXPORT_SYMBOL(dma_buf_export);
+> >>
+> >> I agree with Konrad, this should definitely be EXPORT_SYMBOL_GPL,
+> >> because it's really a low-level function that I would expect
+> >> to get used by in-kernel subsystems providing the feature to
+> >> users and having back-end drivers, but it's not the kind of thing
+> >> we want out-of-tree drivers to mess with.
+> >
+> > Is this really necessary?  If this is intended to be a
+> > lowest-common-denominator between many drivers to allow buffer sharing,
+> > it seems like it needs to be able to be usable by all drivers.
+> >
+> > If the interface is not accessible then I fear many drivers will be
+> > forced to continue to roll their own buffer sharing mechanisms (which is
+> > exactly what we're trying to avoid here, needless to say).
+> 
+> Doing a buffer sharing with something that is not GPL is not fun, as, if any
+> issue rises there, it would be impossible to discover if the problem is either
+> at the closed-source driver or at the open source one. At the time I was using
+> the Nvidia proprietary driver, it was very common to have unexplained issues
+> caused likely by bad code there at the buffer management code, causing X
+> applications and extensions (like xv) to break.
+>
+> We should really make this EXPORT_SYMBOL_GPL(), in order to be able to latter
+> debug future share buffer issues, when needed.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Sorry, I don't buy this argument.  Making these exports GPL-only is not
+likely to cause anybody to open-source their driver, but will rather
+just cause them to use yet more closed-source code that is even less
+debuggable than this would be, to those without access to the source.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/lgs8gl5.c |   28 ++++++++++++++--------------
- 1 files changed, 14 insertions(+), 14 deletions(-)
+Thanks,
+Robert
 
-diff --git a/drivers/media/dvb/frontends/lgs8gl5.c b/drivers/media/dvb/frontends/lgs8gl5.c
-index f4e82a6..0f4bc16 100644
---- a/drivers/media/dvb/frontends/lgs8gl5.c
-+++ b/drivers/media/dvb/frontends/lgs8gl5.c
-@@ -311,14 +311,14 @@ lgs8gl5_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 
- 
- static int
--lgs8gl5_set_frontend(struct dvb_frontend *fe,
--		struct dvb_frontend_parameters *p)
-+lgs8gl5_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct lgs8gl5_state *state = fe->demodulator_priv;
- 
- 	dprintk("%s\n", __func__);
- 
--	if (p->u.ofdm.bandwidth != BANDWIDTH_8_MHZ)
-+	if (p->bandwidth_hz != 8000000)
- 		return -EINVAL;
- 
- 	if (fe->ops.tuner_ops.set_params) {
-@@ -337,21 +337,20 @@ lgs8gl5_set_frontend(struct dvb_frontend *fe,
- 
- static int
- lgs8gl5_get_frontend(struct dvb_frontend *fe,
--		struct dvb_frontend_parameters *p)
-+		struct dtv_frontend_properties *p)
- {
- 	struct lgs8gl5_state *state = fe->demodulator_priv;
- 	u8 inv = lgs8gl5_read_reg(state, REG_INVERSION);
--	struct dvb_ofdm_parameters *o = &p->u.ofdm;
- 
- 	p->inversion = (inv & REG_INVERSION_ON) ? INVERSION_ON : INVERSION_OFF;
- 
--	o->code_rate_HP = FEC_1_2;
--	o->code_rate_LP = FEC_7_8;
--	o->guard_interval = GUARD_INTERVAL_1_32;
--	o->transmission_mode = TRANSMISSION_MODE_2K;
--	o->constellation = QAM_64;
--	o->hierarchy_information = HIERARCHY_NONE;
--	o->bandwidth = BANDWIDTH_8_MHZ;
-+	p->code_rate_HP = FEC_1_2;
-+	p->code_rate_LP = FEC_7_8;
-+	p->guard_interval = GUARD_INTERVAL_1_32;
-+	p->transmission_mode = TRANSMISSION_MODE_2K;
-+	p->modulation = QAM_64;
-+	p->hierarchy = HIERARCHY_NONE;
-+	p->bandwidth_hz = 8000000;
- 
- 	return 0;
- }
-@@ -413,6 +412,7 @@ EXPORT_SYMBOL(lgs8gl5_attach);
- 
- 
- static struct dvb_frontend_ops lgs8gl5_ops = {
-+	.delsys = { SYS_DMBTH },
- 	.info = {
- 		.name			= "Legend Silicon LGS-8GL5 DMB-TH",
- 		.type			= FE_OFDM,
-@@ -434,8 +434,8 @@ static struct dvb_frontend_ops lgs8gl5_ops = {
- 
- 	.init = lgs8gl5_init,
- 
--	.set_frontend_legacy = lgs8gl5_set_frontend,
--	.get_frontend_legacy = lgs8gl5_get_frontend,
-+	.set_frontend = lgs8gl5_set_frontend,
-+	.get_frontend = lgs8gl5_get_frontend,
- 	.get_tune_settings = lgs8gl5_get_tune_settings,
- 
- 	.read_status = lgs8gl5_read_status,
--- 
-1.7.8.352.g876a6
-
+> Regards,
+> Mauro
