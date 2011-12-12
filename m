@@ -1,105 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60852 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:56300 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752265Ab1LKUam (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 15:30:42 -0500
-Message-ID: <4EE512E6.9040609@redhat.com>
-Date: Sun, 11 Dec 2011 18:30:30 -0200
+	id S1752997Ab1LLNjM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 08:39:12 -0500
+Message-ID: <4EE603FD.20202@redhat.com>
+Date: Mon, 12 Dec 2011 11:39:09 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL] af9013
-References: <4ED666E9.2020405@iki.fi> <4EE48D13.7030702@redhat.com> <4EE4CD95.2030909@iki.fi>
-In-Reply-To: <4EE4CD95.2030909@iki.fi>
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4 [PATCH 08/10] TDA18271c2dd: Allow frontend to set DELSYS
+References: <CAHFNz9Jbu-Kb8+s5DmEX8NOP6K8yjwNXYucUqmUEH_LcQAvpGA@mail.gmail.com> <4EE355AF.8090302@redhat.com> <CAHFNz9L-yFhvMJoq-64604OZXt443hPe_mfebH857jMUNH-LtA@mail.gmail.com>
+In-Reply-To: <CAHFNz9L-yFhvMJoq-64604OZXt443hPe_mfebH857jMUNH-LtA@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11-12-2011 13:34, Antti Palosaari wrote:
-> On 12/11/2011 12:59 PM, Mauro Carvalho Chehab wrote:
->> On 30-11-2011 15:24, Antti Palosaari wrote:
->>> Morjens Mauro,
+On 12-12-2011 03:01, Manu Abraham wrote:
+> On Sat, Dec 10, 2011 at 6:20 PM, Mauro Carvalho Chehab
+> <mchehab@redhat.com>  wrote:
+>> On 10-12-2011 02:44, Manu Abraham wrote:
 >>>
->>> I rewrote whole af9013 demodulator driver in order to decrease I2C
->>> load. Please pull that to the next Kernel merge window.
+>>>  From 707877f5a61b3259704d42e7dd5e647e9196e9a4 Mon Sep 17 00:00:00 2001
+>>> From: Manu Abraham<abraham.manu@gmail.com>
+>>> Date: Thu, 24 Nov 2011 19:56:34 +0530
+>>> Subject: [PATCH 08/10] TDA18271c2dd: Allow frontend to set DELSYS, rather
+>>> than querying fe->ops.info.type
 >>>
->>> Antti
+>>> With any tuner that can tune to multiple delivery systems/standards, it
+>>> does
+>>> query fe->ops.info.type to determine frontend type and set the delivery
+>>> system type. fe->ops.info.type can handle only 4 delivery systems, viz
+>>> FE_QPSK,
+>>> FE_QAM, FE_OFDM and FE_ATSC.
 >>>
->>> The following changes since commit
->>> a235af24a74a0fa03ece0a9f5e28a72e4d1e2cad:
+>>> Signed-off-by: Manu Abraham<abraham.manu@gmail.com>
+>>> ---
+>>>   drivers/media/dvb/frontends/tda18271c2dd.c |   42
+>>> ++++++++++++++++++++--------
+>>>   1 files changed, 30 insertions(+), 12 deletions(-)
 >>>
->>> ce168: remove experimental from Kconfig (2011-11-19 23:07:54 +0200)
+>>> diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c
+>>> b/drivers/media/dvb/frontends/tda18271c2dd.c
+>>> index 1b1bf20..43a3dd4 100644
+>>> --- a/drivers/media/dvb/frontends/tda18271c2dd.c
+>>> +++ b/drivers/media/dvb/frontends/tda18271c2dd.c
+>>> @@ -1145,28 +1145,46 @@ static int set_params(struct dvb_frontend *fe,
+>>>         int status = 0;
+>>>         int Standard;
 >>>
->>> are available in the git repository at:
->>> git://linuxtv.org/anttip/media_tree.git misc
+>>> -       state->m_Frequency = params->frequency;
+>>> +       u32 bw;
+>>> +       fe_delivery_system_t delsys;
 >>>
->>> Antti Palosaari (1):
->>> af9013: rewrite whole driver
->>>
->>> drivers/media/dvb/dvb-usb/af9015.c | 82 +-
->>> drivers/media/dvb/frontends/af9013.c | 1756 ++++++++++++++---------------
->>> drivers/media/dvb/frontends/af9013.h | 113 +-
->>> drivers/media/dvb/frontends/af9013_priv.h | 93 +-
->>> 4 files changed, 1017 insertions(+), 1027 deletions(-)
->>>
+>>> -       if (fe->ops.info.type == FE_OFDM)
+>>> -               switch (params->u.ofdm.bandwidth) {
+>>> -               case BANDWIDTH_6_MHZ:
+>>> +       delsys  = fe->dtv_property_cache.delivery_system;
+>>> +       bw      = fe->dtv_property_cache.bandwidth_hz;
+>>> +
+>>> +       state->m_Frequency = fe->dtv_property_cache.frequency;
+>>> +
+>>> +       if (!delsys || !state->m_Frequency) {
+>>> +               printk(KERN_ERR "Invalid delsys:%d freq:%d\n", delsys,
+>>> state->m_Frequency);
+>>> +               return -EINVAL;
+>>> +       }
+>>> +
+>>> +       switch (delsys) {
+>>> +       case SYS_DVBT:
+>>> +       case SYS_DVBT2:
+>>> +               if (!bw)
+>>> +                       return -EINVAL;
+>>> +               switch (bw) {
+>>> +               case 6000000:
+>>>                         Standard = HF_DVBT_6MHZ;
+>>>                         break;
+>>> -               case BANDWIDTH_7_MHZ:
+>>> +               case 7000000:
+>>>                         Standard = HF_DVBT_7MHZ;
+>>>                         break;
+>>>                 default:
+>>> -               case BANDWIDTH_8_MHZ:
+>>> +               case 8000000:
+>>>                         Standard = HF_DVBT_8MHZ;
+>>>                         break;
+>>>                 }
+>>> -       else if (fe->ops.info.type == FE_QAM) {
+>>> -               if (params->u.qam.symbol_rate<= MAX_SYMBOL_RATE_6MHz)
+>>> -                       Standard = HF_DVBC_6MHZ;
+>>> -               else
+>>> -                       Standard = HF_DVBC_8MHZ;
+>>> -       } else
+>>> +               break;
+>>> +       case SYS_DVBC_ANNEX_A:
+>>> +               Standard = HF_DVBC_6MHZ;
+>>> +               break;
+>>> +       case SYS_DVBC_ANNEX_C:
+>>> +               Standard = HF_DVBC_8MHZ;
+>>> +               break;
 >>
->> There was a minor context change here:
 >>
->> @@ -1156,7 +1158,7 @@ static int af9015_af9013_sleep(struct dvb_frontend
->> *fe)
->> if (mutex_lock_interruptible(&adap->dev->usb_mutex))
->> return -EAGAIN;
->>
->> - ret = priv->init[adap->id](fe);
->> + ret = priv->sleep[adap->id](fe);
+>> No, this is wrong. This patch doesn't apply anymore, due to the recent
+>> changes that estimate the bandwidth based on the roll-off factor. Reverting
+>> it breaks for DVB-C @ 6MHz spaced channels (and likely decreases quality
+>> or breaks for 7MHz spaced ones too).
 >
-> Correct, that is bug fix for the earlier patch I made. As a result we call demod .init() in case we should call .sleep() resulting demod will never sleep. I found that very late phase, when af9013 rewrite was almost complete. At that time I was too lazy at that point to made separate patch for fixing it because I had made so many changes for af9015 already.
 >
-> But if you like, I can rebase whole thing and move that fix as own patch.
->
->> Basically, the current code doesn't have that mutex_lock_interruptible
->> logic. It
->> may be into the fixes we'll send for 3.2.
->
-> Do you mean I should change all mutex_lock_interruptible => mutex_lock and send as bugfix to 3.2?
+> The changes that which you mention (which you state breaks 7MHz
+> spacing) is much newer than these patch series. Alas, how do you
+> expect people to push out patches every now and then, when you
+> simply whack patches in. It is not the issue with the people sending
+> patches, but how you handled the patch series. I have reworked the
+> patches the 4th time, while you simply whack patches without any
+> feedback.
+> Time after time, lot of different people have argued with
+> you not to simply whack in patches as you seem fit. Who is to blame ?
 
-No. I just meant to say that the current code (without the patches I'm preparing for -rc6) doesn't
-have the mutex_lock_interruptible() at the context.
+Patches were sent to the ML, and were tested by the ones complaining
+about tuner issues with DVB-C. It were merged only after having feedback.
 
->Anyway, I asked you to push those mutex_lock_interruptible things to 3.3 and I think you haven't send those 3.2 so not fixes for 3.2 hopefully.
+In any case, this is not a reason for me to not merge this patch. Conflicts
+like that happens all the time when merging stuff from different authors.
 
-Need to check on my linux-media tree, in order to be sure if those are there or not. Maybe I've
-merged it as a bug fix for 3.2.
->
-> There is one old mutex_lock_interruptible inside af9015_rw_udev(). It have been there many years and it is copied from dvb_usb_generic_rw(). I think better to not change it as bugfix.
->
-> It is not even clear for me when to use mutex_lock_interruptible or mutex_lock. I suspect mutex_lock is cheaper and that's why it should be used when possible? I am happy to hear reasons and learn (and too lazy to look through docs and codes...).
+The issue here is that it assumes that Annex A is 6MHz and Annex C is 8MHz.
+This is a wrong assumption: there's nothing at ITU-T J.83 associating Annex C
+(or even Annex A) with a given bandwidth.
 
-The mutex_lock_interruptible will return -EINTR if a signal is received while
-trying to handle it. Userspace application needs to be prepared for that.
+What is said at the spec is that Annex A is "optimized" for 6MHz, but I
+won't be really surprised if some broadcaster decides to use it for other
+bandwidths.
 
-Both are handled by the same routine at kernel/mutex.c.
+The logic there should be, instead:
 
->> However, after this patch, compilation broke:
->>
->> drivers/media/dvb/dvb-usb/af9015.c: In function ‘af9015_rc_query’:
->> drivers/media/dvb/dvb-usb/af9015.c:1089:12: error: ‘struct af9015_state’
->> has no member named ‘sleep’
->> drivers/media/dvb/dvb-usb/af9015.c:1089:20: error: ‘adap’ undeclared
->> (first use in this function)
->> drivers/media/dvb/dvb-usb/af9015.c:1089:20: note: each undeclared
->> identifier is reported only once for each function it appears in
->> drivers/media/dvb/dvb-usb/af9015.c:1089:30: error: ‘fe’ undeclared
->> (first use in this function)
->
-> Arg, how the I hell I missed af9015.h file from that change-set.
->
-> After all, I hope it was not TLDR :) What you think I should made in order to fix these issues correctly?
+u32 roll_off = 0;
 
-Rebase the patch ;) compilation errors break git bisect.
->
-> regards
-> Antti
+switch (delsys) {
+case SYS_DVBC_ANNEX_A:
+	roll_off = 115;
+	break;
+case SYS_DVBC_ANNEX_C:
+	roll_off = 113;
+	break;
+}
 
+if (roll_off) {
+	bw = symbol_rate * roll_off / 100;
+	if (bw <= 6000000)
+		Standard = HF_DVBC_6MHZ;
+	else if (bw <= 7000000)
+		Standard = HF_DVBC_7MHZ;
+	else
+		Standard = HF_DVBC_8MHZ;
+}
+
+Regards,
+Mauro
