@@ -1,85 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37122 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751180Ab1LRAhL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 19:37:11 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0bAJa026932
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:37:10 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/7] [media] drx-k: report the supported delivery systems
-Date: Sat, 17 Dec 2011 22:36:58 -0200
-Message-Id: <1324168621-21506-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324168621-21506-4-git-send-email-mchehab@redhat.com>
-References: <1324168621-21506-1-git-send-email-mchehab@redhat.com>
- <1324168621-21506-2-git-send-email-mchehab@redhat.com>
- <1324168621-21506-3-git-send-email-mchehab@redhat.com>
- <1324168621-21506-4-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:53456 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751585Ab1LLRpE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 12 Dec 2011 12:45:04 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LW300CFKQN2KS90@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:02 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW3001DMQN1FG@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 12 Dec 2011 17:45:02 +0000 (GMT)
+Date: Mon, 12 Dec 2011 18:44:44 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 00/14] m5mols camera driver updates
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1323711898-17162-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/drxk_hard.c |   28 ++++++++++++++++++++++++++++
- 1 files changed, 28 insertions(+), 0 deletions(-)
+Hello,
 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index a2c8196..d795898 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -6364,6 +6364,32 @@ static int drxk_t_get_frontend(struct dvb_frontend *fe,
- 	return 0;
- }
- 
-+static int drxk_c_get_property(struct dvb_frontend *fe, struct dtv_property *p)
-+{
-+	switch (p->cmd) {
-+	case DTV_ENUM_DELSYS:
-+		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
-+		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
-+		p->u.buffer.len = 2;
-+		break;
-+	default:
-+		break;
-+	}
-+	return 0;
-+}
-+static int drxk_t_get_property(struct dvb_frontend *fe, struct dtv_property *p)
-+{
-+	switch (p->cmd) {
-+	case DTV_ENUM_DELSYS:
-+		p->u.buffer.data[0] = SYS_DVBT;
-+		p->u.buffer.len = 1;
-+		break;
-+	default:
-+		break;
-+	}
-+	return 0;
-+}
-+
- static struct dvb_frontend_ops drxk_c_ops = {
- 	.info = {
- 		 .name = "DRXK DVB-C",
-@@ -6382,6 +6408,7 @@ static struct dvb_frontend_ops drxk_c_ops = {
- 
- 	.set_frontend = drxk_set_parameters,
- 	.get_frontend = drxk_c_get_frontend,
-+	.get_property = drxk_c_get_property,
- 	.get_tune_settings = drxk_c_get_tune_settings,
- 
- 	.read_status = drxk_read_status,
-@@ -6414,6 +6441,7 @@ static struct dvb_frontend_ops drxk_t_ops = {
- 
- 	.set_frontend = drxk_set_parameters,
- 	.get_frontend = drxk_t_get_frontend,
-+	.get_property = drxk_t_get_property,
- 
- 	.read_status = drxk_read_status,
- 	.read_ber = drxk_read_ber,
+This changset includes optimization for M-5MOLS booting time and
+changes needed for proper support of subdev user space interface.
+
+The last patch enables subdev node at s5p-csis MIPI receiver.
+
+This series depends on http://patchwork.linuxtv.org/patch/8694/
+which adds framesamples field to the media bus format data structure.
+
+HeungJun Kim (4):
+  m5mols: Extend the busy wait helper
+  m5mols: Improve the interrupt handling routines
+  m5mols: Add support for the system initialization interrupt
+  m5mols: Optimize the capture set up sequence
+
+Sylwester Nawrocki (10):
+  m5mols: Simplify the I2C registers definition
+  m5mols: Add buffer size configuration support for compressed streams
+  m5mols: Remove mode_save field from struct m5mols_info
+  m5mols: Change the end of frame v4l2_subdev notification id
+  m5mols: Don't ignore v4l2_ctrl_handler_setup() return value
+  m5mols: Move the control handler initialization to probe()
+  m5mols: Do not reset the configured pixel format when unexpected
+  m5mols: Change auto exposure control default value to AUTO
+  m5mols: Enable v4l subdev device node
+  s5p-csis: Enable v4l subdev device node
+
+ drivers/media/video/m5mols/m5mols.h         |   51 +++--
+ drivers/media/video/m5mols/m5mols_capture.c |   87 +++-----
+ drivers/media/video/m5mols/m5mols_core.c    |  303 ++++++++++++++++-----------
+ drivers/media/video/m5mols/m5mols_reg.h     |  248 +++++++++-------------
+ drivers/media/video/s5p-fimc/mipi-csis.c    |   22 ++
+ drivers/media/video/s5p-fimc/mipi-csis.h    |    3 +
+ 6 files changed, 364 insertions(+), 350 deletions(-)
+
 -- 
 1.7.8
+
+--
+Thanks,
+
+Sylwester
+
+
 
