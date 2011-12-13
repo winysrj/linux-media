@@ -1,59 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:59256 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752887Ab1LaMLF (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33518 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753592Ab1LMAka (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 07:11:05 -0500
-Received: by iaeh11 with SMTP id h11so26708103iae.19
-        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 04:11:05 -0800 (PST)
-Date: Sat, 31 Dec 2011 06:10:57 -0600
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: David Fries <david@fries.net>
-Cc: Istvan Varga <istvan_v@mailbox.hu>, linux-media@vger.kernel.org,
-	Darron Broad <darron@kewl.org>,
-	Steven Toth <stoth@kernellabs.com>, Janne Grunau <j@jannau.net>
-Subject: [PATCH 8/9] [media] dvb-usb: handle errors from dvb_net_init
-Message-ID: <20111231121057.GJ16802@elie.Belkin>
-References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
- <20111231115117.GB16802@elie.Belkin>
+	Mon, 12 Dec 2011 19:40:30 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH v4 0/3] fbdev: Add FOURCC-based format configuration API
+Date: Tue, 13 Dec 2011 01:40:44 +0100
+Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org
+References: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com> <201112121708.30839.laurent.pinchart@ideasonboard.com> <4EE64CC2.5090906@gmx.de>
+In-Reply-To: <4EE64CC2.5090906@gmx.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20111231115117.GB16802@elie.Belkin>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112130140.45045.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->From an audit of dvb_net_init callers, now that that function
-returns -errno on error.
+Hi Florian,
 
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
----
- drivers/media/dvb/dvb-usb/dvb-usb-dvb.c |    8 +++++++-
- 1 files changed, 7 insertions(+), 1 deletions(-)
+On Monday 12 December 2011 19:49:38 Florian Tobias Schandinat wrote:
+> On 12/12/2011 04:08 PM, Laurent Pinchart wrote:
+> > On Tuesday 29 November 2011 11:26:56 Laurent Pinchart wrote:
+> >> Hi everybody,
+> >> 
+> >> Here's the fourth version of the fbdev FOURCC-based format configuration
+> >> API.
+> > 
+> > Is there a chance this will make it to v3.3 ?
+> 
+> Yes, that's likely. I thought you wanted to post a new version of 2/3?
 
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-index ba4a7517354f..ddf282f355b3 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-@@ -141,11 +141,17 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
- 		goto err_dmx_dev;
- 	}
- 
--	dvb_net_init(&adap->dvb_adap, &adap->dvb_net, &adap->demux.dmx);
-+	if ((ret = dvb_net_init(&adap->dvb_adap, &adap->dvb_net,
-+						&adap->demux.dmx)) < 0) {
-+		err("dvb_net_init failed: error %d",ret);
-+		goto err_net_init;
-+	}
- 
- 	adap->state |= DVB_USB_ADAP_STATE_DVB;
- 	return 0;
- 
-+err_net_init:
-+	dvb_dmxdev_release(&adap->dmxdev);
- err_dmx_dev:
- 	dvb_dmx_release(&adap->demux);
- err_dmx:
+Oops, seems I forgot to send it. Sorry :-/ I'll post a new version tomorrow.
+
+> I think you also want to do something with red, green, blue, transp when
+> entering FOURCC mode, at least setting them to zero or maybe even requiring
+> that they are zero to enter FOURCC mode (as additional safety barrier).
+
+Agreed. The FOURCC mode documentation already requires those fields to be set 
+to 0 by applications.
+
+I'll enforce this in fb_set_var() if info->fix has the FB_CAP_FOURCC 
+capability flag set.
+
 -- 
-1.7.8.2+next.20111228
+Regards,
 
+Laurent Pinchart
