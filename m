@@ -1,54 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:23194 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752507Ab1LHRwT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 12:52:19 -0500
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVW00IPFCB57V@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Dec 2011 17:52:17 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVW00M0BCB5XO@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Dec 2011 17:52:17 +0000 (GMT)
-Date: Thu, 08 Dec 2011 18:52:13 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] s5p-fimc: Fix camera input configuration in subdev operations
-To: linux-media@vger.kernel.org
-Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	m.szyprowski@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1323366733-27643-1-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46211 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753452Ab1LMNCP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Dec 2011 08:02:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v5 0/3] fbdev: Add FOURCC-based format configuration API
+Date: Tue, 13 Dec 2011 14:02:25 +0100
+Message-Id: <1323781348-9884-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When using only subdev user-space operations the camera
-interface input was not configured properly. Fix this by
-updating the corresponding data structure in set_fmt
-operation.
+Hi everybody,
+fbdev: Add FOURCC-based format configuration API
+Here's the fifth version of the fbdev FOURCC-based format configuration API.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-capture.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Compared to the fourth version,
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
-index 48b2592..bd9c034 100644
---- a/drivers/media/video/s5p-fimc/fimc-capture.c
-+++ b/drivers/media/video/s5p-fimc/fimc-capture.c
-@@ -1303,6 +1303,7 @@ static int fimc_subdev_set_fmt(struct v4l2_subdev *sd,
- 
- 	mutex_lock(&fimc->lock);
- 	set_frame_bounds(ff, mf->width, mf->height);
-+	fimc->vid_cap.mf = *mf;
- 	ff->fmt = ffmt;
- 
- 	/* Reset the crop rectangle if required. */
+- fb_set_var() now checks that the red, green, blue and transp fields are all
+set to 0 when using the FOURCC-based API and return an error if they are not
+
+- the NV24 and NV42 format documentation doesn't include emacs formatting
+directives anymore.
+
+As usual the fbdev-test tool supporting this new API is available in the
+fbdev-test yuv branch at
+http://git.ideasonboard.org/?p=fbdev-test.git;a=shortlog;h=refs/heads/yuv.
+
+Laurent Pinchart (3):
+  fbdev: Add FOURCC-based format configuration API
+  v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
+  fbdev: sh_mobile_lcdc: Support FOURCC-based format API
+
+ Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  121 ++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
+ Documentation/fb/api.txt                        |  306 +++++++++++++++++++
+ arch/arm/mach-shmobile/board-ag5evm.c           |    2 +-
+ arch/arm/mach-shmobile/board-ap4evb.c           |    4 +-
+ arch/arm/mach-shmobile/board-mackerel.c         |    4 +-
+ arch/sh/boards/mach-ap325rxa/setup.c            |    2 +-
+ arch/sh/boards/mach-ecovec24/setup.c            |    2 +-
+ arch/sh/boards/mach-kfr2r09/setup.c             |    2 +-
+ arch/sh/boards/mach-migor/setup.c               |    4 +-
+ arch/sh/boards/mach-se/7724/setup.c             |    2 +-
+ drivers/video/fbmem.c                           |   14 +
+ drivers/video/sh_mobile_lcdcfb.c                |  360 +++++++++++++++--------
+ include/linux/fb.h                              |   14 +-
+ include/linux/videodev2.h                       |    2 +
+ include/video/sh_mobile_lcdc.h                  |    4 +-
+ 16 files changed, 707 insertions(+), 137 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+ create mode 100644 Documentation/fb/api.txt
+
 -- 
-1.7.8
+Regards,
+
+Laurent Pinchart
 
