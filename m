@@ -1,58 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from utm.netup.ru ([193.203.36.250]:60286 "EHLO utm.netup.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750926Ab1LAHFO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Dec 2011 02:05:14 -0500
-Message-ID: <4ED72739.7090508@netup.ru>
-Date: Thu, 01 Dec 2011 10:05:29 +0300
-From: Abylay Ospan <aospan@netup.ru>
-MIME-Version: 1.0
-To: Walter Van Eetvelt <walter@van.eetvelt.be>
-CC: linux-media@vger.kernel.org
-Subject: Re: LinuxTV ported to Windows
-References: <4ED65C46.20502@netup.ru> <912e38aa28e2ea4d2723d65c93135397@mail.eetvelt.be>
-In-Reply-To: <912e38aa28e2ea4d2723d65c93135397@mail.eetvelt.be>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46213 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754752Ab1LMNCR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Dec 2011 08:02:17 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-fbdev@vger.kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH v5 2/3] v4l: Add V4L2_PIX_FMT_NV24 and V4L2_PIX_FMT_NV42 formats
+Date: Tue, 13 Dec 2011 14:02:27 +0100
+Message-Id: <1323781348-9884-3-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1323781348-9884-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1323781348-9884-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Walter,
+NV24 and NV42 are planar YCbCr 4:4:4 and YCrCb 4:4:4 formats with a
+luma plane followed by an interleaved chroma plane.
 
-On 30.11.2011 21:46, Walter Van Eetvelt wrote:
-> Nice!
->
-> How is the CI implementation?
-it's ok. Working fine under windows including MMI.
-Professional CAM's (with multi-PID descramble) are tested.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/pixfmt-nv24.xml |  121 +++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml      |    1 +
+ include/linux/videodev2.h                       |    2 +
+ 3 files changed, 124 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv24.xml
 
-> Can both CI's be used by both tuners?  Or
-> is one CI bound to one tuner?
-First CI slot assigned to first tuner/demod and second CI slot assigned 
-for second tuner/demod by hardware.
-You can't share CI slots between tuners.
-
->
-> Walter
->
-> On Wed, 30 Nov 2011 19:39:34 +0300, Abylay Ospan<aospan@netup.ru>  wrote:
->> Hello,
->>
->> We have ported linuxtv's cx23885+CAM en50221+Diseq to Windows OS (Vista,
->> XP, win7 tested). Results available under GPL and can be checkout from
->> git repository:
->> https://github.com/netup/netup-dvb-s2-ci-dual
->>
->> Binary builds (ready to install) available in build directory. Currently
->> NetUP Dual DVB-S2 CI card supported (
->> http://www.netup.tv/en-EN/dual_dvb-s2-ci_card.php ).
->>
->> Driver based on Microsoft BDA standard, but some features (DiSEqC, CI)
->> supported by custom API, for more details see netup_bda_api.h file.
->>
->> Any comments, suggestions are welcome.
-
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-nv24.xml b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+new file mode 100644
+index 0000000..fb255f2
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-nv24.xml
+@@ -0,0 +1,121 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>V4L2_PIX_FMT_NV24 ('NV24'), V4L2_PIX_FMT_NV42 ('NV42')</refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-NV24"><constant>V4L2_PIX_FMT_NV24</constant></refname>
++	<refname id="V4L2-PIX-FMT-NV42"><constant>V4L2_PIX_FMT_NV42</constant></refname>
++	<refpurpose>Formats with full horizontal and vertical
++chroma resolutions, also known as YUV 4:4:4. One luminance and one
++chrominance plane with alternating chroma samples as opposed to
++<constant>V4L2_PIX_FMT_YVU420</constant></refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>These are two-plane versions of the YUV 4:4:4 format. The three
++	components are separated into two sub-images or planes. The Y plane is
++	first, with each Y sample stored in one byte per pixel. For
++	<constant>V4L2_PIX_FMT_NV24</constant>, a combined CbCr plane
++	immediately follows the Y plane in memory. The CbCr plane has the same
++	width and height, in pixels, as the Y plane (and the image). Each line
++	contains one CbCr pair per pixel, with each Cb and Cr sample stored in
++	one byte. <constant>V4L2_PIX_FMT_NV42</constant> is the same except that
++	the Cb and Cr samples are swapped, the CrCb plane starts with a Cr
++	sample.</para>
++
++	<para>If the Y plane has pad bytes after each row, then the CbCr plane
++	has twice as many pad bytes after its rows.</para>
++
++	<example>
++	  <title><constant>V4L2_PIX_FMT_NV24</constant> 4 &times; 4
++pixel image</title>
++
++	  <formalpara>
++	    <title>Byte Order.</title>
++	    <para>Each cell is one byte.
++		<informaltable frame="none">
++		<tgroup cols="9" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start&nbsp;+&nbsp;0:</entry>
++		      <entry>Y'<subscript>00</subscript></entry>
++		      <entry>Y'<subscript>01</subscript></entry>
++		      <entry>Y'<subscript>02</subscript></entry>
++		      <entry>Y'<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;4:</entry>
++		      <entry>Y'<subscript>10</subscript></entry>
++		      <entry>Y'<subscript>11</subscript></entry>
++		      <entry>Y'<subscript>12</subscript></entry>
++		      <entry>Y'<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;8:</entry>
++		      <entry>Y'<subscript>20</subscript></entry>
++		      <entry>Y'<subscript>21</subscript></entry>
++		      <entry>Y'<subscript>22</subscript></entry>
++		      <entry>Y'<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;12:</entry>
++		      <entry>Y'<subscript>30</subscript></entry>
++		      <entry>Y'<subscript>31</subscript></entry>
++		      <entry>Y'<subscript>32</subscript></entry>
++		      <entry>Y'<subscript>33</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;16:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		      <entry>Cb<subscript>02</subscript></entry>
++		      <entry>Cr<subscript>02</subscript></entry>
++		      <entry>Cb<subscript>03</subscript></entry>
++		      <entry>Cr<subscript>03</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;24:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		      <entry>Cb<subscript>12</subscript></entry>
++		      <entry>Cr<subscript>12</subscript></entry>
++		      <entry>Cb<subscript>13</subscript></entry>
++		      <entry>Cr<subscript>13</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;32:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		      <entry>Cb<subscript>22</subscript></entry>
++		      <entry>Cr<subscript>22</subscript></entry>
++		      <entry>Cb<subscript>23</subscript></entry>
++		      <entry>Cr<subscript>23</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;40:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		      <entry>Cb<subscript>32</subscript></entry>
++		      <entry>Cr<subscript>32</subscript></entry>
++		      <entry>Cb<subscript>33</subscript></entry>
++		      <entry>Cr<subscript>33</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	  </formalpara>
++	</example>
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 2ff6b77..aef4615 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -714,6 +714,7 @@ information.</para>
+     &sub-nv12m;
+     &sub-nv12mt;
+     &sub-nv16;
++    &sub-nv24;
+     &sub-m420;
+   </section>
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 4b752d5..d2f74f8 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -343,6 +343,8 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
+ #define V4L2_PIX_FMT_NV16    v4l2_fourcc('N', 'V', '1', '6') /* 16  Y/CbCr 4:2:2  */
+ #define V4L2_PIX_FMT_NV61    v4l2_fourcc('N', 'V', '6', '1') /* 16  Y/CrCb 4:2:2  */
++#define V4L2_PIX_FMT_NV24    v4l2_fourcc('N', 'V', '2', '4') /* 24  Y/CbCr 4:4:4  */
++#define V4L2_PIX_FMT_NV42    v4l2_fourcc('N', 'V', '4', '2') /* 24  Y/CrCb 4:4:4  */
+ 
+ /* two non contiguous planes - one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12M   v4l2_fourcc('N', 'M', '1', '2') /* 12  Y/CbCr 4:2:0  */
 -- 
-Abylai Ospan<aospan@netup.ru>
-NetUP Inc.
+1.7.3.4
 
