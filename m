@@ -1,137 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37955 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755943Ab1LGNoG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 08:44:06 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] omap3isp: video: Don't WARN() on unknown pixel formats
-Date: Wed, 7 Dec 2011 14:44:11 +0100
-Cc: hverkuil@xs4all.nl, linux-media@vger.kernel.org
-References: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com> <201112010026.07592.laurent.pinchart@ideasonboard.com> <20111201143451.GJ29805@valkosipuli.localdomain>
-In-Reply-To: <20111201143451.GJ29805@valkosipuli.localdomain>
+Received: from mailout-de.gmx.net ([213.165.64.22]:41485 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753379Ab1LMVai (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Dec 2011 16:30:38 -0500
+Message-ID: <4EE7C3F9.1080703@gmx.de>
+Date: Tue, 13 Dec 2011 22:30:33 +0100
+From: Ninja <Ninja15@gmx.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: linux-media <linux-media@vger.kernel.org>
+CC: Marko Ristola <marko.ristola@kolumbus.fi>
+Subject: Re: Mantis CAM not SMP safe / Activating CAM on Technisat Skystar
+ HD2 (DVB-S2)
+References: <4EC052CE.1080002@gmx.de> <4EE2A06D.7070901@gmx.de> <4EE5E0BE.4060300@kolumbus.fi>
+In-Reply-To: <4EE5E0BE.4060300@kolumbus.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112071444.12530.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Am 12.12.2011 12:08, schrieb Marko Ristola:
+> On 12/10/2011 01:57 AM, Ninja wrote:
+>> Hi,
+>>
+>> has anyone an idea how the SMP problems could be fixed?
+>
+> You could turn on Mantis Kernel module's debug messages.
+> It could tell you the emitted interrupts.
+>
+> One risky thing with the Interrupt handler code is that
+> MANTIS_GPIF_STATUS is cleared, even though IRQ0 isn't active yet.
+> This could lead to a rare starvation of the wait queue you described.
+> I supplied a patch below. Does it help?
+>
+>> I did some further investigation. When comparing the number of 
+>> interrupts with all cores enabled and the interrupts with only one 
+>> core enabled it seems like only the IRQ0 changed, the other IRQs and 
+>> the total number stays quite the same:
+>>
+>> 4 Cores:
+>> All IRQ/sec: 493
+>> Masked IRQ/sec: 400
+>> Unknown IRQ/sec: 0
+>> DMA/sec: 400
+>> IRQ-0/sec: 143
+>> IRQ-1/sec: 0
+>> OCERR/sec: 0
+>> PABRT/sec: 0
+>> RIPRR/sec: 0
+>> PPERR/sec: 0
+>> FTRGT/sec: 0
+>> RISCI/sec: 258
+>> RACK/sec: 0
+>>
+>> 1 Core:
+>> All IRQ/sec: 518
+>> Masked IRQ/sec: 504
+>> Unknown IRQ/sec: 0
+>> DMA/sec: 504
+>> IRQ-0/sec: 246
+>> IRQ-1/sec: 0
+>> OCERR/sec: 0
+>> PABRT/sec: 0
+>> RIPRR/sec: 0
+>> PPERR/sec: 0
+>> FTRGT/sec: 0
+>> RISCI/sec: 258
+>> RACK/sec: 0
+>>
+>> So, where might be the problem?
+> Turning on Mantis debug messages, might tell the difference between 
+> these interrupts.
+>
+> ....
+>> I hope somebody can help, because I think we are very close to a 
+>> fully functional CAM here.
+>> I ran out of things to test to get closer to the solution :(
+>> Btw: Is there any documentation available for the mantis PCI bridge?
+> Not that I know.
+>
+>>
+>> Manuel
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>>
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> Regards,
+> Marko Ristola
+>
 
-On Thursday 01 December 2011 15:34:51 Sakari Ailus wrote:
-> On Thu, Dec 01, 2011 at 12:26:07AM +0100, Laurent Pinchart wrote:
-> > On Wednesday 30 November 2011 09:35:38 Sakari Ailus wrote:
-> > > Laurent Pinchart wrote:
-> > > > On Monday 28 November 2011 17:01:12 Sakari Ailus wrote:
-> > > >> On Mon, Nov 28, 2011 at 12:37:34PM +0100, Laurent Pinchart wrote:
-> > > >>> When mapping from a V4L2 pixel format to a media bus format in the
-> > > >>> VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may
-> > > >>> be unsupported by the driver. Return a hardcoded format instead of
-> > > >>> WARN()ing in that case.
-> > > >>> 
-> > > >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > >>> ---
-> > > >>> 
-> > > >>>  drivers/media/video/omap3isp/ispvideo.c |    8 ++++----
-> > > >>>  1 files changed, 4 insertions(+), 4 deletions(-)
-> > > >>> 
-> > > >>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> > > >>> b/drivers/media/video/omap3isp/ispvideo.c index d100072..ffe7ce9
-> > > >>> 100644 --- a/drivers/media/video/omap3isp/ispvideo.c
-> > > >>> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> > > >>> @@ -210,14 +210,14 @@ static void isp_video_pix_to_mbus(const
-> > > >>> struct v4l2_pix_format *pix,
-> > > >>> 
-> > > >>>  	mbus->width = pix->width;
-> > > >>>  	mbus->height = pix->height;
-> > > >>> 
-> > > >>> -	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
-> > > >>> +	/* Skip the last format in the loop so that it will be selected
-> > > >>> if no
-> > > >>> +	 * match is found.
-> > > >>> +	 */
-> > > >>> +	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
-> > > >>> 
-> > > >>>  		if (formats[i].pixelformat == pix->pixelformat)
-> > > >>>  		
-> > > >>>  			break;
-> > > >>>  	
-> > > >>>  	}
-> > > >>> 
-> > > >>> -	if (WARN_ON(i == ARRAY_SIZE(formats)))
-> > > >>> -		return;
-> > > >>> -
-> > > >>> 
-> > > >>>  	mbus->code = formats[i].code;
-> > > >>>  	mbus->colorspace = pix->colorspace;
-> > > >>>  	mbus->field = pix->field;
-> > > >> 
-> > > >> In case of setting or trying an invalid format, instead of selecting
-> > > >> a default format, shouldn't we leave the format unchanced --- the
-> > > >> current setting is valid after all.
-> > > > 
-> > > > TRY/SET operations must succeed. The format we select when an invalid
-> > > > format is requested isn't specified. We could keep the current
-> > > > format, but wouldn't that be more confusing for applications ? The
-> > > > format they would get in response to a TRY/SET operation would then
-> > > > potentially depend on the previous SET operations.
-> > > 
-> > > I don't think a change to something that has nothing to do what was
-> > > requested is better than not changing it. The application has requested
-> > > a particular format; changing it to something else isn't useful for the
-> > > application. And if the application would try more than invalid format
-> > > in a row, they both would yield to the same default format.
-> > > 
-> > > I would personally not change it.
-> > 
-> > I can agree with you for S_FMT, but I have more doubts about TRY_FMT.
-> > Making TRY_FMT return the current format if the requested format is not
-> > supported seems confusing to me. And if we make TRY_FMT return a fixed
-> > format in that case, why not making S_FMT do the same ? :-)
-> 
-> I'd rather have it the other way around. :-)
+Hi Marko,
 
-TRY_FMT means "can I use this format?". If the format isn't supported, the 
-driver answers "no, you should use this other format instead". I think that 
-making that other format depend on the current format would be confusing.
+thanks for the patch. I did some quick testing today. The IRQ0 problem 
+stays, but it seems like the small hangs (3-5 seconds every 20 minutes 
+or something) are fixed :)
 
-For S_FMT I could agree with you. When asked "please use this format", the 
-driver can answer "I can't, so I'm going to use this other one instead". That 
-other format could be the current one. However, it might be confusing (and 
-more difficult to implement) to return different formats in TRY_FMT and 
-S_FMTfor the same input. That's why I'm inclined to make S_FMT report the same 
-format as TRY_FMT.
-
-This being said, the TRY_FMT/S_FMT behaviour of the OMAP3 ISP driver is 
-currently a bit broken, and ENUMFMT isn't implemented. Fixing this properly 
-requires getting rid of our current multiple video queues per video node hack 
-and using CREATE_BUFS instead. I'll see if I can find time to fix that. I 
-would still like to integrate this patch (or something close) in the meantime 
-to remove the WARN_ON.
-
-> Hans; what do you think? (Cc Hans.)
-> 
-> > > What I can find in the spec is this:
-> > > 
-> > > "When the application calls the VIDIOC_S_FMT ioctl with a pointer to a
-> > > v4l2_format structure the driver checks and adjusts the parameters
-> > > against hardware abilities."
-> > > 
-> > > I wonder how other drivers behave.
-> > 
-> > uvcvideo returns -EINVAL, which I think should be fixed.
-> > 
-> > The sensor drivers I wrote return a fixed format (this isn't strictly
-> > S_FMT/TRY_FMT, but I think it's related).
-> 
-> For the mbus format it's a little bit different: if the format is something
-> else than what the user asked for, chances are high there's no use for it.
-> 
-> Cheers,
-
--- 
-Regards,
-
-Laurent Pinchart
+Manuel
