@@ -1,108 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22349 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752020Ab1L3PJZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:25 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9OgD009087
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:24 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 07/94] [media] bcm3510: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:04 -0200
-Message-Id: <1325257711-12274-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:13926 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750764Ab1LMNd5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Dec 2011 08:33:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linaro-mm-sig@lists.linaro.org
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+Date: Tue, 13 Dec 2011 14:33:31 +0100
+Cc: Daniel Vetter <daniel@ffwll.ch>, Arnd Bergmann <arnd@arndb.de>,
+	linux@arm.linux.org.uk, "Semwal, Sumit" <sumit.semwal@ti.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-mm@kvack.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <201112071340.35267.arnd@arndb.de> <CAKMK7uFQiiUbkU-7c3Os0d0FJNyLbqS2HLPRLy3LGnOoCXV5Pw@mail.gmail.com>
+In-Reply-To: <CAKMK7uFQiiUbkU-7c3Os0d0FJNyLbqS2HLPRLy3LGnOoCXV5Pw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112131433.32051.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+(I've been away for the past two weeks, so I'm only now catching up)
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/bcm3510.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
+On Thursday 08 December 2011 22:44:08 Daniel Vetter wrote:
+> On Wed, Dec 7, 2011 at 14:40, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Wednesday 07 December 2011, Semwal, Sumit wrote:
+> >> Thanks for the excellent discussion - it indeed is very good learning
+> >> for the relatively-inexperienced me :)
+> >> 
+> >> So, for the purpose of dma-buf framework, could I summarize the
+> >> following and rework accordingly?:
+> >> 1. remove mmap() dma_buf_op [and mmap fop], and introduce cpu_start(),
+> >> cpu_finish() ops to bracket cpu accesses to the buffer. Also add
+> >> DMABUF_CPU_START / DMABUF_CPU_FINI IOCTLs?
+> > 
+> > I think we'd be better off for now without the extra ioctls and
+> > just document that a shared buffer must not be exported to user
+> > space using mmap at all, to avoid those problems. Serialization
+> > between GPU and CPU is on a higher level than the dma_buf framework
+> > IMHO.
+> 
+> Agreed.
+> 
+> >> 2. remove sg_sync* ops for now (and we'll see if we need to add them
+> >> later if needed)
+> > 
+> > Just removing the sg_sync_* operations is not enough. We have to make
+> > the decision whether we want to allow
+> > a) only coherent mappings of the buffer into kernel memory (requiring
+> > an extension to the dma_map_ops on ARM to not flush caches at map/unmap
+> > time)
+> > b) not allowing any in-kernel mappings (same requirement on ARM, also
+> > limits the usefulness of the dma_buf if we cannot access it from the
+> > kernel or from user space)
+> > c) only allowing streaming mappings, even if those are non-coherent
+> > (requiring strict serialization between CPU (in-kernel) and dma users of
+> > the buffer)
+> 
+> I think only allowing streaming access makes the most sense:
+> - I don't see much (if any need) for the kernel to access a dma_buf -
+> in all current usecases it just contains pixel data and no hw-specific
+> things (like sg tables, command buffers, ..). At most I see the need
+> for the kernel to access the buffer for dma bounce buffers, but that
+> is internal to the dma subsystem (and hence does not need to be
+> exposed).
 
-diff --git a/drivers/media/dvb/frontends/bcm3510.c b/drivers/media/dvb/frontends/bcm3510.c
-index 43b17fa..a53f83a 100644
---- a/drivers/media/dvb/frontends/bcm3510.c
-+++ b/drivers/media/dvb/frontends/bcm3510.c
-@@ -479,16 +479,16 @@ static int bcm3510_set_freq(struct bcm3510_state* st,u32 freq)
- 	return -EINVAL;
- }
- 
--static int bcm3510_set_frontend(struct dvb_frontend* fe,
--					     struct dvb_frontend_parameters *p)
-+static int bcm3510_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct bcm3510_state* st = fe->demodulator_priv;
- 	struct bcm3510_hab_cmd_ext_acquire cmd;
- 	struct bcm3510_hab_cmd_bert_control bert;
- 	int ret;
- 
- 	memset(&cmd,0,sizeof(cmd));
--	switch (p->u.vsb.modulation) {
-+	switch (c->modulation) {
- 		case QAM_256:
- 			cmd.ACQUIRE0.MODE = 0x1;
- 			cmd.ACQUIRE1.SYM_RATE = 0x1;
-@@ -499,7 +499,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
- 			cmd.ACQUIRE1.SYM_RATE = 0x2;
- 			cmd.ACQUIRE1.IF_FREQ = 0x1;
- 			break;
--/*		case QAM_256:
-+#if 0
-+		case QAM_256:
- 			cmd.ACQUIRE0.MODE = 0x3;
- 			break;
- 		case QAM_128:
-@@ -513,7 +514,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
- 			break;
- 		case QAM_16:
- 			cmd.ACQUIRE0.MODE = 0x7;
--			break;*/
-+			break;
-+#endif
- 		case VSB_8:
- 			cmd.ACQUIRE0.MODE = 0x8;
- 			cmd.ACQUIRE1.SYM_RATE = 0x0;
-@@ -552,7 +554,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
- 
- 	bcm3510_bert_reset(st);
- 
--	if ((ret = bcm3510_set_freq(st,p->frequency)) < 0)
-+	ret = bcm3510_set_freq(st, c->frequency);
-+	if (ret < 0)
- 		return ret;
- 
- 	memset(&st->status1,0,sizeof(st->status1));
-@@ -819,7 +822,7 @@ error:
- EXPORT_SYMBOL(bcm3510_attach);
- 
- static struct dvb_frontend_ops bcm3510_ops = {
--
-+	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
- 	.info = {
- 		.name = "Broadcom BCM3510 VSB/QAM frontend",
- 		.type = FE_ATSC,
-@@ -839,7 +842,7 @@ static struct dvb_frontend_ops bcm3510_ops = {
- 	.init = bcm3510_init,
- 	.sleep = bcm3510_sleep,
- 
--	.set_frontend_legacy = bcm3510_set_frontend,
-+	.set_frontend = bcm3510_set_frontend,
- 	.get_tune_settings = bcm3510_get_tune_settings,
- 
- 	.read_status = bcm3510_read_status,
--- 
-1.7.8.352.g876a6
+There are a few situations where the kernel might actually access a dma_buf:
 
+First of all there are some sensors that add meta data before the actual
+pixel data, and a kernel driver might well want to read out that data and
+process it. Secondly (and really very similar), video frames sent to/from
+an FPGA can also contain meta data (Cisco does that on some of our products)
+that the kernel may need to inspect.
+
+I admit that these use-cases aren't very common, but they do exist.
+
+> - Userspace can still access the contents through the exporting
+> subsystem (e.g. use some gem mmap support). For efficiency reason gpu
+> drivers are already messing around with cache coherency in a platform
+> specific way (and hence violated the dma api a bit), so we could stuff
+> the mmap coherency in there, too. When we later on extend dma_buf
+> support so that other drivers than the gpu can export dma_bufs, we can
+> then extend the official dma api with already a few drivers with
+> use-patterns around.
+> 
+> But I still think that the kernel must not be required to enforce
+> correct access ordering for the reasons outlined in my other mail.
+
+I agree with Daniel on this.
+
+BTW, the V4L2 subsystem has a clear concept of passing bufffer ownership: the
+VIDIOC_QBUF and VIDIOC_DQBUF ioctls deal with that. Pretty much all V4L2 apps 
+request the buffers, then mmap them, then call QBUF to give the ownership of 
+those buffers to the kernel. While the kernel owns those buffers any access to 
+the mmap'ped memory leads to undefined results. Only after calling DQBUF can 
+userspace actually safely access that memory.
+
+Allowing mmap() on the dma_buf's fd would actually make things easier for 
+V4L2. It's an elegant way of mapping the memory.
+
+Regards,
+
+	Hans
