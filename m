@@ -1,106 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:38626 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751029Ab1LMMTT (ORCPT
+Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:52186 "EHLO
+	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751036Ab1LMHcE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Dec 2011 07:19:19 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-Date: Tue, 13 Dec 2011 13:18:54 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	m.szyprowski@samsung.com, jonghun.han@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <201111291958.48671.laurent.pinchart@ideasonboard.com> <4EE083D2.3010102@samsung.com>
-In-Reply-To: <4EE083D2.3010102@samsung.com>
+	Tue, 13 Dec 2011 02:32:04 -0500
+Message-ID: <4EE6FF6F.5050901@kolumbus.fi>
+Date: Tue, 13 Dec 2011 09:31:59 +0200
+From: Marko Ristola <marko.ristola@kolumbus.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: vidar@tyldum.com
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Multiple Mantis devices gives me glitches
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112131318.54709.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 08 December 2011 10:30:58 Sylwester Nawrocki wrote:
-> On 11/29/2011 07:58 PM, Laurent Pinchart wrote:
-> > On Tuesday 29 November 2011 19:30:25 Hans Verkuil wrote:
-> >> On Tuesday, November 29, 2011 19:10:39 Laurent Pinchart wrote:
-> >>> On Tuesday 29 November 2011 17:40:10 Sylwester Nawrocki wrote:
-> >>>> On 11/29/2011 12:08 PM, Hans Verkuil wrote:
-> >>>>> On Monday 28 November 2011 14:02:49 Sylwester Nawrocki wrote:
-> >>>>>> On 11/28/2011 01:39 PM, Hans Verkuil wrote:
-> >>>>>>> On Monday 28 November 2011 13:13:32 Sylwester Nawrocki wrote:
-> >>>>>>>> On 11/28/2011 12:38 PM, Hans Verkuil wrote:
-> >>>>>>>>> On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
-> >>>>> Here is a patch that updates the range. It also sends a control event
-> >>>>> telling any listener that the range has changed. Tested with vivi and
-> >>>>> a modified v4l2-ctl.
-> >>>>> 
-> >>>>> The only thing missing is a DocBook entry for that new event flag and
-> >>>>> perhaps some more documentation in places.
-> >>>>> 
-> >>>>> Let me know how this works for you, and if it is really needed, then
-> >>>>> I can add it to the control framework.
-> >>>> 
-> >>>> Thanks for your work, it's very appreciated.
-> >>>> 
-> >>>> I've tested the patch with s5p-fimc and it works well. I just didn't
-> >>>> check the event part yet.
-> >>>> 
-> >>>> I spoke to Kamil as in the past he considered the control range
-> >>>> updating at the codec driver. But since separate controls are used for
-> >>>> different encoding standards, this is not needed it any more.
-> >>>> 
-> >>>> Nevertheless I have at least two use cases, for the alpha control and
-> >>>> for the image sensor driver. In case of the camera sensor, different
-> >>>> device revisions may have different step and maximum value for some
-> >>>> controls, depending on firmware.
-> >>>> By using v4l2_ctrl_range_update() I don't need to invoke lengthy
-> >>>> sensor start-up procedure just to find out properties of some
-> >>>> controls.
-> >>> 
-> >>> Wouldn't it be confusing for applications to start with a range and
-> >>> have it updated at runtime ?
-> >> 
-> >> Good question. It was a nice exercise creating the range_update()
-> >> function and it works well, but it this something we want to do?
-> > 
-> > I think that being able to modify the range is a very useful
-> > functionality. It's just that in this case the sensor would start with a
-> > default range and switch to another based on the model. It would be
-> > better if we could start with the right range from the start.
-> > 
-> >> If we do, then we should mark such controls with a flag (_VOLATILE_RANGE
-> >> or something like that) so apps know that the range isn't fixed.
-> >> 
-> >> I think that when it comes to apps writing or reading such a control
-> >> directly it isn't a problem. But for applications that automatically
-> >> generate control panels (xawtv et al) it is rather complex to support
-> >> such things.
-> 
-> Hans,
-> 
-> are you going to carry on with the control range update patches ?
-> I'd like to push the alpha colour control for v3.3 but it depends
-> on the controls framework updates now.
 
-Good question. I am not sure whether this is something we actually want. It 
-would make applications much harder to write if the range of a control can 
-suddenly change.
+Hi
 
-On the other hand, it might be a good solution for a harder problem which is 
-as yet unsolved: if you have multiple inputs, and each input has a different 
-set of controls (e.g. one input is a SDTV receiver, the other is a HDTV 
-receiver), then you can have the situation where e.g. the contrast control is 
-present for both inputs, but with a different range. Switching inputs would 
-then generate a control event telling the app that the range changed.
+Here is a patch that went into Linus GIT this year.
+It reduces the number of DMA transfer interrupts into one third.
+Linus released 2.6.38.8 doesn't seem to have this patch yet.
 
-But this may still be overkill...
+I had a single Mantis card and a single CPU.
+I used VDR to deliver HDTV channel via network
+into a faster computer for viewing.
 
-In other words, I don't know. Not helpful, I agree.
+One known latency point with Mantis is I2C transfer.
+With my measure, latency is about 0.33ms per I2C transfer byte.
+Basic read / write (address+value) minimal latency is thus 0.66ms.
+Latency amount depends on I2C bus speed on the card.
+I don't have a working patch to fix this yet though.
+
+Regards, Marko Ristola
+
+-----------------------------------------------------------------------
+
+Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt
+
+
+https://patchwork.kernel.org/patch/107036/
+
+With VDR streaming HDTV into network, generating an interrupt once per 16kb,
+implemented in this patch, seems to support more robust throughput with HDTV.
+
+Fix leaking almost 64kb data from the previous TS after changing the TS.
+One effect of the old version was, that the DMA transfer and driver's
+DMA buffer access might happen at the same time - a race condition.
+
+Signed-off-by: Marko M. Ristola <marko.ristola@kolumbus.fi>
 
 Regards,
+Marko Ristola
 
-	Hans
+diff --git a/drivers/media/dvb/mantis/hopper_cards.c b/drivers/media/dvb/mantis/hopper_cards.c
+index 09e9fc7..3b7e376 100644
+--- a/drivers/media/dvb/mantis/hopper_cards.c
++++ b/drivers/media/dvb/mantis/hopper_cards.c
+@@ -126,7 +126,7 @@ static irqreturn_t hopper_irq_handler(int irq, void *dev_id)
+  	}
+  	if (stat & MANTIS_INT_RISCI) {
+  		dprintk(MANTIS_DEBUG, 0, "<%s>", label[8]);
+-		mantis->finished_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
++		mantis->busy_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
+  		tasklet_schedule(&mantis->tasklet);
+  	}
+  	if (stat & MANTIS_INT_I2CDONE) {
+diff --git a/drivers/media/dvb/mantis/mantis_cards.c b/drivers/media/dvb/mantis/mantis_cards.c
+index cf4b39f..8f048d5 100644
+--- a/drivers/media/dvb/mantis/mantis_cards.c
++++ b/drivers/media/dvb/mantis/mantis_cards.c
+@@ -134,7 +134,7 @@ static irqreturn_t mantis_irq_handler(int irq, void *dev_id)
+  	}
+  	if (stat & MANTIS_INT_RISCI) {
+  		dprintk(MANTIS_DEBUG, 0, "<%s>", label[8]);
+-		mantis->finished_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
++		mantis->busy_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
+  		tasklet_schedule(&mantis->tasklet);
+  	}
+  	if (stat & MANTIS_INT_I2CDONE) {
+diff --git a/drivers/media/dvb/mantis/mantis_common.h b/drivers/media/dvb/mantis/mantis_common.h
+index d0b645a..23b23b7 100644
+--- a/drivers/media/dvb/mantis/mantis_common.h
++++ b/drivers/media/dvb/mantis/mantis_common.h
+@@ -122,11 +122,8 @@ struct mantis_pci {
+  	unsigned int		num;
+  
+  	/*	RISC Core		*/
+-	u32			finished_block;
++	u32			busy_block;
+  	u32			last_block;
+-	u32			line_bytes;
+-	u32			line_count;
+-	u32			risc_pos;
+  	u8			*buf_cpu;
+  	dma_addr_t		buf_dma;
+  	u32			*risc_cpu;
+diff --git a/drivers/media/dvb/mantis/mantis_dma.c b/drivers/media/dvb/mantis/mantis_dma.c
+index 46202a4..c61ca7d 100644
+--- a/drivers/media/dvb/mantis/mantis_dma.c
++++ b/drivers/media/dvb/mantis/mantis_dma.c
+@@ -43,13 +43,17 @@
+  #define RISC_IRQ		(0x01 << 24)
+  
+  #define RISC_STATUS(status)	((((~status) & 0x0f) << 20) | ((status & 0x0f) << 16))
+-#define RISC_FLUSH()		(mantis->risc_pos = 0)
+-#define RISC_INSTR(opcode)	(mantis->risc_cpu[mantis->risc_pos++] = cpu_to_le32(opcode))
++#define RISC_FLUSH(risc_pos)		(risc_pos = 0)
++#define RISC_INSTR(risc_pos, opcode)	(mantis->risc_cpu[risc_pos++] = cpu_to_le32(opcode))
+  
+  #define MANTIS_BUF_SIZE		(64 * 1024)
+-#define MANTIS_BLOCK_BYTES	(MANTIS_BUF_SIZE >> 4)
+-#define MANTIS_BLOCK_COUNT	(1 << 4)
+-#define MANTIS_RISC_SIZE	PAGE_SIZE
++#define MANTIS_BLOCK_BYTES      (MANTIS_BUF_SIZE / 4)
++#define MANTIS_DMA_TR_BYTES     (2 * 1024) /* upper limit: 4095 bytes. */
++#define MANTIS_BLOCK_COUNT	(MANTIS_BUF_SIZE / MANTIS_BLOCK_BYTES)
++
++#define MANTIS_DMA_TR_UNITS     (MANTIS_BLOCK_BYTES / MANTIS_DMA_TR_BYTES)
++/* MANTIS_BUF_SIZE / MANTIS_DMA_TR_UNITS must not exceed MANTIS_RISC_SIZE (4k RISC cmd buffer) */
++#define MANTIS_RISC_SIZE	PAGE_SIZE /* RISC program must fit here. */
+  
+  int mantis_dma_exit(struct mantis_pci *mantis)
+  {
+@@ -124,27 +128,6 @@ err:
+  	return -ENOMEM;
+  }
+  
+-static inline int mantis_calc_lines(struct mantis_pci *mantis)
+-{
+-	mantis->line_bytes = MANTIS_BLOCK_BYTES;
+-	mantis->line_count = MANTIS_BLOCK_COUNT;
+-
+-	while (mantis->line_bytes > 4095) {
+-		mantis->line_bytes >>= 1;
+-		mantis->line_count <<= 1;
+-	}
+-
+-	dprintk(MANTIS_DEBUG, 1, "Mantis RISC block bytes=[%d], line bytes=[%d], line count=[%d]",
+-		MANTIS_BLOCK_BYTES, mantis->line_bytes, mantis->line_count);
+-
+-	if (mantis->line_count > 255) {
+-		dprintk(MANTIS_ERROR, 1, "Buffer size error");
+-		return -EINVAL;
+-	}
+-
+-	return 0;
+-}
+-
+  int mantis_dma_init(struct mantis_pci *mantis)
+  {
+  	int err = 0;
+@@ -158,12 +141,6 @@ int mantis_dma_init(struct mantis_pci *mantis)
+  
+  		goto err;
+  	}
+-	err = mantis_calc_lines(mantis);
+-	if (err < 0) {
+-		dprintk(MANTIS_ERROR, 1, "Mantis calc lines failed");
+-
+-		goto err;
+-	}
+  
+  	return 0;
+  err:
+@@ -174,31 +151,32 @@ EXPORT_SYMBOL_GPL(mantis_dma_init);
+  static inline void mantis_risc_program(struct mantis_pci *mantis)
+  {
+  	u32 buf_pos = 0;
+-	u32 line;
++	u32 line, step;
++	u32 risc_pos;
+  
+  	dprintk(MANTIS_DEBUG, 1, "Mantis create RISC program");
+-	RISC_FLUSH();
+-
+-	dprintk(MANTIS_DEBUG, 1, "risc len lines %u, bytes per line %u",
+-		mantis->line_count, mantis->line_bytes);
+-
+-	for (line = 0; line < mantis->line_count; line++) {
+-		dprintk(MANTIS_DEBUG, 1, "RISC PROG line=[%d]", line);
+-		if (!(buf_pos % MANTIS_BLOCK_BYTES)) {
+-			RISC_INSTR(RISC_WRITE	|
+-				   RISC_IRQ	|
+-				   RISC_STATUS(((buf_pos / MANTIS_BLOCK_BYTES) +
+-				   (MANTIS_BLOCK_COUNT - 1)) %
+-				    MANTIS_BLOCK_COUNT) |
+-				    mantis->line_bytes);
+-		} else {
+-			RISC_INSTR(RISC_WRITE	| mantis->line_bytes);
+-		}
+-		RISC_INSTR(mantis->buf_dma + buf_pos);
+-		buf_pos += mantis->line_bytes;
++	RISC_FLUSH(risc_pos);
++
++	dprintk(MANTIS_DEBUG, 1, "risc len lines %u, bytes per line %u, bytes per DMA tr %u",
++		MANTIS_BLOCK_COUNT, MANTIS_BLOCK_BYTES, MANTIS_DMA_TR_BYTES);
++
++	for (line = 0; line < MANTIS_BLOCK_COUNT; line++) {
++		for (step = 0; step < MANTIS_DMA_TR_UNITS; step++) {
++			dprintk(MANTIS_DEBUG, 1, "RISC PROG line=[%d], step=[%d]", line, step);
++			if (step == 0) {
++				RISC_INSTR(risc_pos, RISC_WRITE	|
++					   RISC_IRQ	|
++					   RISC_STATUS(line) |
++					   MANTIS_DMA_TR_BYTES);
++			} else {
++				RISC_INSTR(risc_pos, RISC_WRITE | MANTIS_DMA_TR_BYTES);
++			}
++			RISC_INSTR(risc_pos, mantis->buf_dma + buf_pos);
++			buf_pos += MANTIS_DMA_TR_BYTES;
++		  }
+  	}
+-	RISC_INSTR(RISC_JUMP);
+-	RISC_INSTR(mantis->risc_dma);
++	RISC_INSTR(risc_pos, RISC_JUMP);
++	RISC_INSTR(risc_pos, mantis->risc_dma);
+  }
+  
+  void mantis_dma_start(struct mantis_pci *mantis)
+@@ -210,7 +188,7 @@ void mantis_dma_start(struct mantis_pci *mantis)
+  	mmwrite(mmread(MANTIS_GPIF_ADDR) | MANTIS_GPIF_HIFRDWRN, MANTIS_GPIF_ADDR);
+  
+  	mmwrite(0, MANTIS_DMA_CTL);
+-	mantis->last_block = mantis->finished_block = 0;
++	mantis->last_block = mantis->busy_block = 0;
+  
+  	mmwrite(mmread(MANTIS_INT_MASK) | MANTIS_INT_RISCI, MANTIS_INT_MASK);
+  
+@@ -245,9 +223,9 @@ void mantis_dma_xfer(unsigned long data)
+  	struct mantis_pci *mantis = (struct mantis_pci *) data;
+  	struct mantis_hwconfig *config = mantis->hwconfig;
+  
+-	while (mantis->last_block != mantis->finished_block) {
++	while (mantis->last_block != mantis->busy_block) {
+  		dprintk(MANTIS_DEBUG, 1, "last block=[%d] finished block=[%d]",
+-			mantis->last_block, mantis->finished_block);
++			mantis->last_block, mantis->busy_block);
+  
+  		(config->ts_size ? dvb_dmx_swfilter_204 : dvb_dmx_swfilter)
+  		(&mantis->demux, &mantis->buf_cpu[mantis->last_block * MANTIS_BLOCK_BYTES], MANTIS_BLOCK_BYTES);
+
