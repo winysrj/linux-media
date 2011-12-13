@@ -1,98 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4318 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:38624 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752308Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:27 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rf1015882
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 29/94] [media] ec100: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:26 -0200
-Message-Id: <1325257711-12274-30-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1755143Ab1LMQaj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 13 Dec 2011 11:30:39 -0500
+Message-ID: <4EE77DA9.9060102@iki.fi>
+Date: Tue, 13 Dec 2011 18:30:33 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Greg KH <greg@kroah.com>
+CC: Oliver Neukum <oliver@neukum.org>, linux-serial@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
+	=?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>,
+	James Courtier-Dutton <james.dutton@gmail.com>,
+	HoP <jpetrous@gmail.com>,
+	=?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
+Subject: Re: serial device name for smart card reader that is integrated to
+ Anysee DVB USB device
+References: <4E8B7901.2050700@iki.fi> <4E8BF6DE.1010105@iki.fi> <201110051016.06291.oneukum@suse.de> <201110141932.51378.oliver@neukum.org>
+In-Reply-To: <201110141932.51378.oliver@neukum.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On 10/14/2011 08:32 PM, Oliver Neukum wrote:
+> Am Mittwoch, 5. Oktober 2011, 10:16:06 schrieb Oliver Neukum:
+>> Am Mittwoch, 5. Oktober 2011, 08:19:10 schrieb Antti Palosaari:
+>>> On 10/05/2011 09:15 AM, Oliver Neukum wrote:
+>>
+>>>> But, Greg, Antti makes a very valid point here. The generic code assumes that
+>>>> it owns intfdata, that is you cannot use it as is for access to anything that lacks
+>>>> its own interface. But this is not a fatal flaw. We can alter the generic code to use
+>>>> an accessor function the driver can provide and make it default to get/set_intfdata
+>>>>
+>>>> What do you think?
+>>>
+>>> Oliver, I looked your old thread reply but I didn't catch how you meant
+>>> it to happen. Could you give some small example?
+>
+> here is the code I come up with at an early, extremely incomplete stage.
+> Just for your information because I'll stop working on this for a few days.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+I am back with that issue again. I just analysed both Oliver's code and 
+usb-serial.c.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/ec100.c |   19 ++++++++++---------
- 1 files changed, 10 insertions(+), 9 deletions(-)
+Problem are only these functions:
+extern int usb_serial_probe(struct usb_interface *iface, const struct 
+usb_device_id *id);
+extern void usb_serial_disconnect(struct usb_interface *iface);
+extern int usb_serial_suspend(struct usb_interface *intf, pm_message_t 
+message);
+extern int usb_serial_resume(struct usb_interface *intf);
 
-diff --git a/drivers/media/dvb/frontends/ec100.c b/drivers/media/dvb/frontends/ec100.c
-index 20decd7..39e0811 100644
---- a/drivers/media/dvb/frontends/ec100.c
-+++ b/drivers/media/dvb/frontends/ec100.c
-@@ -76,15 +76,15 @@ static int ec100_read_reg(struct ec100_state *state, u8 reg, u8 *val)
- 	return 0;
- }
- 
--static int ec100_set_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *params)
-+static int ec100_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct ec100_state *state = fe->demodulator_priv;
- 	int ret;
- 	u8 tmp, tmp2;
- 
--	deb_info("%s: freq:%d bw:%d\n", __func__, params->frequency,
--		params->u.ofdm.bandwidth);
-+	deb_info("%s: freq:%d bw:%d\n", __func__, c->frequency,
-+		c->bandwidth_hz);
- 
- 	/* program tuner */
- 	if (fe->ops.tuner_ops.set_params)
-@@ -108,16 +108,16 @@ static int ec100_set_frontend(struct dvb_frontend *fe,
- 	   B 0x1b | 0xb7 | 0x00 | 0x49
- 	   B 0x1c | 0x55 | 0x64 | 0x72 */
- 
--	switch (params->u.ofdm.bandwidth) {
--	case BANDWIDTH_6_MHZ:
-+	switch (c->bandwidth_hz) {
-+	case 6000000:
- 		tmp = 0xb7;
- 		tmp2 = 0x55;
- 		break;
--	case BANDWIDTH_7_MHZ:
-+	case 7000000:
- 		tmp = 0x00;
- 		tmp2 = 0x64;
- 		break;
--	case BANDWIDTH_8_MHZ:
-+	case 8000000:
- 	default:
- 		tmp = 0x49;
- 		tmp2 = 0x72;
-@@ -306,6 +306,7 @@ error:
- EXPORT_SYMBOL(ec100_attach);
- 
- static struct dvb_frontend_ops ec100_ops = {
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name = "E3C EC100 DVB-T",
- 		.type = FE_OFDM,
-@@ -321,7 +322,7 @@ static struct dvb_frontend_ops ec100_ops = {
- 	},
- 
- 	.release = ec100_release,
--	.set_frontend_legacy = ec100_set_frontend,
-+	.set_frontend = ec100_set_frontend,
- 	.get_tune_settings = ec100_get_tune_settings,
- 	.read_status = ec100_read_status,
- 	.read_ber = ec100_read_ber,
+as all those takes struct usb_interface as parameter. For the 
+disconnect, suspend and resume it usb_interface param is used just for 
+getting pointer to struct usb_serial. That's easy. The probe is more 
+complex and needs some deeper changes. Main problem for probe seems to 
+be also it saves struct usb_serial pointer to struct usb_interface 
+usb_set_intfdata(interface, serial);
+
+Anyhow, I would like now ask how to proceed. Should I export four new 
+functions as replacement of those leaving old functionality as 
+currently. Or should I change existing ones like adding new pointer for 
+struct usb_serial and use it instead of struct usb_interface when not NULL.
+
+
+regards
+Antti
+
 -- 
-1.7.8.352.g876a6
-
+http://palosaari.fi/
