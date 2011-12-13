@@ -1,96 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:65105 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757354Ab1LWPzS (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52886 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751732Ab1LMLqM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 10:55:18 -0500
-Received: by wibhm6 with SMTP id hm6so3246138wib.19
-        for <linux-media@vger.kernel.org>; Fri, 23 Dec 2011 07:55:17 -0800 (PST)
-Message-ID: <4EF4A45E.1070501@gmail.com>
-Date: Fri, 23 Dec 2011 16:55:10 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Tue, 13 Dec 2011 06:46:12 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH v4 0/3] fbdev: Add FOURCC-based format configuration API
+Date: Tue, 13 Dec 2011 12:46:26 +0100
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org
+References: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com> <201112130140.45045.laurent.pinchart@ideasonboard.com> <CAMuHMdVggt5wqKjBFjHYT4GH5M8rFUG_sOMB2aH5YrzEGH_VSA@mail.gmail.com>
+In-Reply-To: <CAMuHMdVggt5wqKjBFjHYT4GH5M8rFUG_sOMB2aH5YrzEGH_VSA@mail.gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Marek Szyprowski <m.szyprowski@samsung.com>,
-	'javier Martin' <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de, 'Pawel Osciak' <p.osciak@gmail.com>
-Subject: Re: MEM2MEM devices: how to handle sequence number?
-References: <CACKLOr0H4enuADtWcUkZCS_V92mmLD8K5CgScbGo7w9nbT=-CA@mail.gmail.com> <201112231228.45439.laurent.pinchart@ideasonboard.com> <015401ccc166$ed3c2ab0$c7b48010$%szyprowski@samsung.com> <201112231254.08377.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201112231254.08377.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201112131246.28062.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Geert,
 
-On 12/23/2011 12:54 PM, Laurent Pinchart wrote:
->>>>> diff --git a/drivers/media/video/videobuf2-core.c
->>>>> b/drivers/media/video/videobuf2-core.c
->>>>> index 1250662..7d8a88b 100644
->>>>> --- a/drivers/media/video/videobuf2-core.c
->>>>> +++ b/drivers/media/video/videobuf2-core.c
->>>>> @@ -1127,6 +1127,7 @@ int vb2_qbuf(struct vb2_queue *q, struct
->>>>> v4l2_buffer *b)
->>>>>
->>>>>           */
->>>>>
->>>>>          list_add_tail(&vb->queued_entry,&q->queued_list);
->>>>>          vb->state = VB2_BUF_STATE_QUEUED;
->>>>>
->>>>> +       vb->v4l2_buf.sequence = b->sequence;
->>>>>
->>>>>          /*
->>>>>
->>>>>           * If already streaming, give the buffer to driver for
->>>>>           processing.
->>>>
->>>> Right, such patch is definitely needed. Please resend it with
->>>> 'signed-off-by' annotation.
->>>
->>> I'm not too sure about that. Isn't the sequence number supposed to be
->>> ignored by drivers on video output devices ? The documentation is a bit
->>> terse on the subject, all it says is
->>>
->>> __u32  sequence     Set by the driver, counting the frames in the
->>> sequence.
->>
->> We can also update the documentation if needed. IMHO copying sequence
->> number in mem2mem case if there is 1:1 relation between the buffers is a
->> good idea.
+On Tuesday 13 December 2011 11:47:02 Geert Uytterhoeven wrote:
+> On Tue, Dec 13, 2011 at 01:40, Laurent Pinchart wrote:
+> >> I think you also want to do something with red, green, blue, transp when
+> >> entering FOURCC mode, at least setting them to zero or maybe even
+> >> requiring that they are zero to enter FOURCC mode (as additional safety
+> >> barrier).
+> > 
+> > Agreed. The FOURCC mode documentation already requires those fields to be
+> > set to 0 by applications.
+> > 
+> > I'll enforce this in fb_set_var() if info->fix has the FB_CAP_FOURCC
+> > capability flag set.
 > 
-> My point is that sequence numbers are currently not applicable to video output
-> devices, at least according to the documentation. Applications will just set
-> them to 0.
+> So when info->fix has the FB_CAP_FOURCC capability flag set, you can no
+> longer enter legacy mode?
 
-Looks like the documentation wasn't updated when the Memory-To-Memory interface
-has been introduced.
- 
-> I think it would be better to have the m2m driver set the sequence number
-> internally on the video output node by incrementing an counter, and pass it
-> down the pipeline to the video capture node.
+No, when info->fix has the FB_CAP_FOURCC capability, you can no longer enter 
+legacy mode with grayscale > 1. You can still use grayscale = 0 and grayscale 
+= 1 for legacy mode. The grayscale field should not have values greater than 1 
+in legacy mode anyway, so that should be safe.
 
-It sounds reasonable. Currently the sequence is zeroed at streamon in the
-capture drivers. Similar behaviour could be assured by m2m drivers.
-In Javier's case it's probably more reliable to check the sequence numbers
-contiguity directly at the image source driver's device node.   
-
-Although when m2m driver sets the sequence number internally on a video
-output queue it could make sense to have the buffer's sequence number updated
-upon return from VIDIOC_QBUF. What do you think ?
-
-This would be needed for the object detection interface if we wanted to 
-associate object detection result with a frame sequence number.
-
-As far as the implementation is concerned, m2m and output drivers (with selected
-capabilities only?) would have to update buffer sequence number from within
-buf_queue vb2 queue op.
-
-
---
+-- 
 Regards,
-Sylwester
+
+Laurent Pinchart
