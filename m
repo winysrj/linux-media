@@ -1,52 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep21.mx.upcmail.net ([62.179.121.41]:42324 "EHLO
-	fep21.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386Ab1LaKQL (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:59831 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755519Ab1LNWLR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 05:16:11 -0500
-Date: Sat, 31 Dec 2011 11:15:33 +0100
-From: Dorozel Csaba <mrjuuzer@upcmail.hu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ir-kbd-i2c / rc-hauppauge / linux-3.x broken
-In-Reply-To: <4EFDF229.8090103@redhat.com>
-References: <20111230120658.DXPH19694.viefep13-int.chello.at@edge04.upcmail.net>
-	<4EFDF229.8090103@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Message-Id: <20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net>
+	Wed, 14 Dec 2011 17:11:17 -0500
+Date: Thu, 15 Dec 2011 00:11:13 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: martin@neutronstar.dyndns.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3] v4l: Add driver for Micron MT9M032 camera sensor
+Message-ID: <20111214221113.GB3677@valkosipuli.localdomain>
+References: <1323825633-10543-1-git-send-email-martin@neutronstar.dyndns.org>
+ <201112140255.31937.marek.vasut@gmail.com>
+ <1323846842.756509.13592@localhost>
+ <201112141449.05926.laurent.pinchart@ideasonboard.com>
+ <1323889126.283763.19222@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1323889126.283763.19222@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Basically, the bridge driver is not sending the complete RC-5
-> keycode to the IR core, but just the 8 least siginificant bits.
-> So, it is loosing the 0x1e00 code for the Hauppauge grey remote.
+Hi Martin,
+
+On Wed, Dec 14, 2011 at 07:58:45PM +0100, martin@neutronstar.dyndns.org wrote:
+...
+> > > > > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
+> > > > > +{
+> > > > > +	struct mt9m032_platform_data* pdata = sensor->pdata;
+> > > > > +	u16 reg_pll1;
+> > > > > +	unsigned int pre_div;
+> > > > > +	int res, ret;
+> > > > > +
+> > > > > +	/* TODO: also support other pre-div values */
+> > 
+> > I might already have mentioned this, but wouldn't it be time to work a on real 
+> > PLL setup code that compute the pre-divisor, multiplier and output divisor 
+> > dynamically from the input and output clock frequencies ?
 > 
-> The fix should be at saa7134-input. It should be something like
-> the enclosed patch (I'm just guessing there that code3 contains
-> the MSB bits - you may need to adjust it to match the IR decoder
-> there):
+> I'm not sure what the implications for quality and stability of such a
+> generic setup would be. My gut feeling is most users go with known working
+> hardcoded values.
 
-I'm absolutly not a programer but an unhappy linux user who want his working remote back.
-Know nothing about c code, MSB bits ... After apply your fix looks what happening but remote is
-still broken.
+You'd get a lot better control of the sensor as a bonus in doing so. Also,
+you could program the sensor properly suitable for the host it is connected
+to, achieving optimal maximum frame rates for it.
 
-user juuzer # ir-keytable -t
-Testing events. Please, press CTRL-C to abort.
-1325324726.066129: event MSC: scancode = de3d
-1325324726.066131: event sync
-1325324726.169132: event MSC: scancode = de3d
-1325324726.169134: event sync
-1325324727.508129: event MSC: scancode = fe3d
-1325324727.508131: event sync
-1325324727.611132: event MSC: scancode = fe3d
-1325324727.611134: event sync
-1325324730.084132: event MSC: scancode = de3d
-1325324730.084134: event sync
-1325324730.187132: event MSC: scancode = de3d
+These values tend to be relatively board / bridge dependent. On one board
+some frequencies might not be usable even if they do not exceed the maximum
+for the bridge.
 
-It seems the code3 sometimes return with de (11011110) sometimes fe (11111110). Is it possible
-to bitwise left 3 then bitwise right 3 so the result in both case is 1e (00011110) ? Or its totaly
-wrong ?
+Please also see this:
 
+<URL:http://www.mail-archive.com/linux-media@vger.kernel.org/msg39798.html>
+
+> Also in the datasheet i have access to, this is totally underdocumented.
+
+That's unfortunate. Laurent, is yours the same?
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
