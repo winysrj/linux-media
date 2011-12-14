@@ -1,77 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:56190 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759876Ab1LPIrP (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42020 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754390Ab1LNNst (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 03:47:15 -0500
-Date: Fri, 16 Dec 2011 09:47:10 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, saaguirre@ti.com,
-	mchehab@infradead.org
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-In-Reply-To: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1112160909470.6572@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+	Wed, 14 Dec 2011 08:48:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: martin@neutronstar.dyndns.org
+Subject: Re: [PATCH v3] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Wed, 14 Dec 2011 14:49:05 +0100
+Cc: Marek Vasut <marek.vasut@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1323825633-10543-1-git-send-email-martin@neutronstar.dyndns.org> <201112140255.31937.marek.vasut@gmail.com> <1323846842.756509.13592@localhost>
+In-Reply-To: <1323846842.756509.13592@localhost>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112141449.05926.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+Hi Martin,
 
-On Fri, 16 Dec 2011, Javier Martin wrote:
+On Wednesday 14 December 2011 08:14:01 martin@neutronstar.dyndns.org wrote:
+> On Wed, Dec 14, 2011 at 02:55:31AM +0100, Marek Vasut wrote:
+> > > The MT9M032 is a parallel 1.6MP sensor from Micron controlled through
+> > > I2C.
+> > > 
+> > > The driver creates a V4L2 subdevice. It currently supports cropping,
+> > > gain, exposure and v/h flipping controls in monochrome mode with an
+> > > external pixel clock.
+> > > 
+> > > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+> > > ---
 
-> Some v4l-subdevs such as tvp5150 have multiple
-> inputs. This patch allows the user of a soc-camera
-> device to select between them.
+[snip]
 
-Sure, we can support it. But I've got a couple of remarks:
+> > > diff --git a/drivers/media/video/mt9m032.c
+> > > b/drivers/media/video/mt9m032.c new file mode 100644
+> > > index 0000000..b4159c7
+> > > --- /dev/null
+> > > +++ b/drivers/media/video/mt9m032.c
+> > > @@ -0,0 +1,819 @@
 
-First question: you probably also want to patch soc_camera_g_input() and 
-soc_camera_enum_input(). But no, I do not know how. The video subdevice 
-operations do not seem to provide a way to query subdevice routing 
-capabilities, so, I've got no idea how we're supposed to support 
-enum_input(). There is a g_input_status() method, but I'm not sure about 
-its semantics. Would it return an error like -EINVAL on an unsupported 
-index?
+[snip]
 
-Secondly, I would prefer to keep the current behaviour per default. I.e., 
-if the subdevice doesn't implement routing- / input-related operations, we 
-should act as before - assume input 0 and return success.
-
-Thanks
-Guennadi
-
+> > > +static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
+> > > +{
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > > +	s32 data = i2c_smbus_read_word_data(client, reg);
+> > > +
+> > > +	return data < 0 ? data : swab16(data);
+> > 
+> > Uhm ... why ?
 > 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/soc_camera.c |    6 +++---
->  1 files changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-> index b72580c..1cea1a9 100644
-> --- a/drivers/media/video/soc_camera.c
-> +++ b/drivers/media/video/soc_camera.c
-> @@ -235,10 +235,10 @@ static int soc_camera_g_input(struct file *file, void *priv, unsigned int *i)
->  
->  static int soc_camera_s_input(struct file *file, void *priv, unsigned int i)
->  {
-> -	if (i > 0)
-> -		return -EINVAL;
-> +	struct soc_camera_device *icd = file->private_data;
-> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->  
-> -	return 0;
-> +	return v4l2_subdev_call(sd, video, s_routing, i, 0, 0);
->  }
->  
->  static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
-> -- 
-> 1.7.0.4
-> 
+> error codes are not swab16-ed, data values are. Hardware needs swapping of
+> data values.
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+You can use i2c_smbus_read_word_swapped() and i2c_smbus_write_word_swapped().
+
+> > > +}
+> > > +
+> > > +static int mt9m032_write_reg(struct mt9m032 *sensor, u8 reg,
+> > > +		     const u16 data)
+> > > +{
+> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+> > > +
+> > > +	return i2c_smbus_write_word_data(client, reg, swab16(data));
+> > > +}
+
+[snip]
+
+> > > +static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool
+> > > hflip) +{
+> > > +	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
+> > 
+> > !!(bool) ? hmm ...
+> 
+> a true bool can be any value except 0. !!bool is guaranteed to be either
+> 0 or 1 and this suitable for use in bitshifting to set a specific bit.
+
+I'd use
+
+	int reg_val = (vflip ? MT9M032_READ_MODE2_VFLIP : 0)
+	            | (hflip ? MT9M032_READ_MODE2_HFLIP : 0)
+	...
+
+but that might just be me.
+
+BTW, what about using fixed-size types for register values ? u16 would make 
+sense here.
+
+> > > +		      | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
+> > > +		      | MT9M032_READ_MODE2_ROW_BLC
+> > > +		      | 0x0007;
+> > > +
+> > > +	return mt9m032_write_reg(sensor, MT9M032_READ_MODE2, reg_val);
+> > > +}
+
+[snip]
+
+> > > +static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
+> > > +{
+> > > +	int digital_gain_val;	/* in 1/8th (0..127) */
+> > > +	int analog_mul;		/* 0 or 1 */
+> > > +	int analog_gain_val;	/* in 1/16th. (0..63) */
+> > > +	u16 reg_val;
+> > > +
+> > > +	digital_gain_val = 51; /* from setup example */
+> > > +
+> > > +	if (val < 63) {
+> > > +		analog_mul = 0;
+> > > +		analog_gain_val = val;
+> > > +	} else {
+> > > +		analog_mul = 1;
+> > > +		analog_gain_val = val / 2;
+> > > +	}
+> > > +
+> > > +	/* a_gain = (1+analog_mul) + (analog_gain_val+1)/16 */
+> > > +	/* overall_gain = a_gain * (1 + digital_gain_val / 8) */
+> > > +
+> > > +	reg_val = (digital_gain_val & MT9M032_GAIN_DIGITAL_MASK) <<
+> > > MT9M032_GAIN_DIGITAL_SHIFT +		  | (analog_mul & 1) <<
+> > > MT9M032_GAIN_AMUL_SHIFT
+> > > +		  | (analog_gain_val & MT9M032_GAIN_ANALOG_MASK);
+> > > +
+> > > +	return mt9m032_write_reg(sensor, MT9M032_GAIN_ALL, reg_val);
+> > > +}
+
+Lot's of Aptina sensors have a similar gain setup with two or three stages. Do 
+you think it would be worth it creating a function that could be shared 
+between them ?
+
+> > > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
+> > > +{
+> > > +	struct mt9m032_platform_data* pdata = sensor->pdata;
+> > > +	u16 reg_pll1;
+> > > +	unsigned int pre_div;
+> > > +	int res, ret;
+> > > +
+> > > +	/* TODO: also support other pre-div values */
+
+I might already have mentioned this, but wouldn't it be time to work a on real 
+PLL setup code that compute the pre-divisor, multiplier and output divisor 
+dynamically from the input and output clock frequencies ?
+
+> > > +	if (pdata->pll_pre_div != 6) {
+> > > +		dev_warn(to_dev(sensor),
+> > > +			"Unsupported PLL pre-divisor value %u, using default
+> > 
+> > 6\n",
+> > 
+> > > +			pdata->pll_pre_div);
+> > > +	}
+> > > +	pre_div = 6;
+> > > +
+> > > +	sensor->pix_clock = pdata->ext_clock * pdata->pll_mul /
+> > > +		(pre_div * pdata->pll_out_div);
+> > > +
+> > > +	reg_pll1 = ((pdata->pll_out_div - 1) &
+> > > MT9M032_PLL_CONFIG1_OUTDIV_MASK) +		   | pdata->pll_mul <<
+> > > MT9M032_PLL_CONFIG1_MUL_SHIFT;
+> > > +
+> > > +	ret = mt9m032_write_reg(sensor, MT9M032_PLL_CONFIG1, reg_pll1);
+> > > +	if (!ret)
+> > > +		ret = mt9m032_write_reg(sensor, 0x10, 0x53); /* Select PLL as
+> > 
+> > clock
+> > 
+> > > source */ +
+> > 
+> > urm ... magic ... black magic ...
+> 
+> yes, indeed. But i don't have any more information.
+> The datasheet nicely states "reserved" and in the bringup section
+> "poke in these magical values, please". :/ Not even a register name.
+
+What version of the datasheet do you have ? According to the MT9P031 
+datasheet, register 0x10 is called PLL Control and bits 0 and 1 are described 
+as
+
+1	Use PLL
+When set, use the PLL output as the system clock. When clear, use EXTCLK as 
+the system clock.
+0	Power PLL
+When set, the PLL is powered. When clear, it is not powered.
+
+The other bits are not documented. The mt9p031 driver has
+
+#define MT9P031_PLL_CONTROL                             0x10
+#define         MT9P031_PLL_CONTROL_PWROFF              0x0050
+#define         MT9P031_PLL_CONTROL_PWRON               0x0051
+#define         MT9P031_PLL_CONTROL_USEPLL              0x0052
+
+which you could reuse.
+
+> > > +	if (!ret)
+> > > +		ret = mt9m032_write_reg(sensor, MT9M032_READ_MODE1, 0x8006);
+> > > +							/* more reserved, Continuous */
+> > > +							/* Master Mode */
+> > > +	if (!ret)
+> > > +		res = mt9m032_read_reg(sensor, MT9M032_READ_MODE1);
+> > > +
+> > > +	if (!ret)
+> > > +		ret = mt9m032_write_reg(sensor, MT9M032_FORMATTER1, 0x111e);
+> > > +					/* Set 14-bit mode, select 7 divider */
+> > > +
+> > > +	return ret;
+> > > +}
+
+
+[snip]
+
+> > > +	/*
+> > > +* This driver was developed with a camera module with seperate external
+> > > +* pix clock. For setups which use the clock from the camera interface
+> > > +* the code will need to be extended with the appropriate platform
+> > > +* callback to setup the clock.
+> > > +	 */
+> > > +	chip_version = mt9m032_read_reg(sensor, MT9M032_CHIP_VERSION);
+> > > +	if (0x1402 == chip_version) {
+> > 
+> > So I suspect this can also cast fireballs ? Also, why do you use Yoda
+> > conditions here ? Please run checkpatch.pl on this too just to be sure.
+> 
+> No fireball was visible when looking at the hardware.
+
+#define         MT9M032_CHIP_VERSION_VALUE              0x1402
+
+is an option (not sure if it prevents fireballs though).
+
+> > > +		dev_info(&client->dev, "mt9m032: detected sensor.\n");
+> > > +	} else {
+> > > +		dev_warn(&client->dev, "mt9m032: error: detected unsupported
+> > chip version 0x%x\n",
+> > > +			 chip_version);
+> > > +		ret = -ENODEV;
+> > > +		goto free_sensor;
+> > > +	}
+
+[snip]
+
+> > > +static int __init mt9m032_init(void)
+> > > +{
+> > > +	int rval;
+> > > +
+> > > +	rval = i2c_add_driver(&mt9m032_i2c_driver);
+> > > +	if (rval)
+> > > +		pr_err("%s: failed registering " MT9M032_NAME "\n", __func__);
+> > > +
+> > > +	return rval;
+> > > +}
+> > > +
+> > > +static void mt9m032_exit(void)
+> > > +{
+> > > +	i2c_del_driver(&mt9m032_i2c_driver);
+> > > +}
+> > > +
+> > > +module_init(mt9m032_init);
+> > > +module_exit(mt9m032_exit);
+
+v3.3 will have a very handy module_i2c_driver() macro. See 
+https://lkml.org/lkml/2011/11/17/36
+
+> > > +MODULE_AUTHOR("Martin Hostettler");
+> > > +MODULE_DESCRIPTION("MT9M032 camera sensor driver");
+> > > +MODULE_LICENSE("GPL v2");
+
+-- 
+Regards,
+
+Laurent Pinchart
