@@ -1,234 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16333 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752075Ab1L3PJ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:26 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9QIA009093
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:26 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 09/94] [media] cx22702: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:06 -0200
-Message-Id: <1325257711-12274-10-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:61270 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755231Ab1LNOBh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Dec 2011 09:01:37 -0500
+From: Ming Lei <ming.lei@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Ming Lei <ming.lei@canonical.com>
+Subject: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE memops
+Date: Wed, 14 Dec 2011 22:00:10 +0800
+Message-Id: <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+DMA contig memory resource is very limited and precious, also
+accessing to it from CPU is very slow on some platform.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+For some cases(such as the comming face detection driver), DMA Streaming
+buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
+physical memory but letting video device driver to handle DMA buffer mapping
+and unmapping things.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
 ---
- drivers/media/dvb/frontends/cx22702.c |   68 ++++++++++++++++----------------
- 1 files changed, 34 insertions(+), 34 deletions(-)
+ drivers/media/video/Kconfig          |    4 +
+ drivers/media/video/Makefile         |    1 +
+ drivers/media/video/videobuf2-page.c |  117 ++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-page.h       |   20 ++++++
+ 4 files changed, 142 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/videobuf2-page.c
+ create mode 100644 include/media/videobuf2-page.h
 
-diff --git a/drivers/media/dvb/frontends/cx22702.c b/drivers/media/dvb/frontends/cx22702.c
-index a04cff8..225ce84 100644
---- a/drivers/media/dvb/frontends/cx22702.c
-+++ b/drivers/media/dvb/frontends/cx22702.c
-@@ -146,7 +146,7 @@ static int cx22702_set_inversion(struct cx22702_state *state, int inversion)
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 4e8a0c4..5684a00 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -60,6 +60,10 @@ config VIDEOBUF2_VMALLOC
+ 	select VIDEOBUF2_MEMOPS
+ 	tristate
  
- /* Retrieve the demod settings */
- static int cx22702_get_tps(struct cx22702_state *state,
--	struct dvb_ofdm_parameters *p)
-+			   struct dtv_frontend_properties *p)
- {
- 	u8 val;
++config VIDEOBUF2_PAGE
++	select VIDEOBUF2_CORE
++	select VIDEOBUF2_MEMOPS
++	tristate
  
-@@ -157,27 +157,27 @@ static int cx22702_get_tps(struct cx22702_state *state,
- 	val = cx22702_readreg(state, 0x01);
- 	switch ((val & 0x18) >> 3) {
- 	case 0:
--		p->constellation = QPSK;
-+		p->modulation = QPSK;
- 		break;
- 	case 1:
--		p->constellation = QAM_16;
-+		p->modulation = QAM_16;
- 		break;
- 	case 2:
--		p->constellation = QAM_64;
-+		p->modulation = QAM_64;
- 		break;
- 	}
- 	switch (val & 0x07) {
- 	case 0:
--		p->hierarchy_information = HIERARCHY_NONE;
-+		p->hierarchy = HIERARCHY_NONE;
- 		break;
- 	case 1:
--		p->hierarchy_information = HIERARCHY_1;
-+		p->hierarchy = HIERARCHY_1;
- 		break;
- 	case 2:
--		p->hierarchy_information = HIERARCHY_2;
-+		p->hierarchy = HIERARCHY_2;
- 		break;
- 	case 3:
--		p->hierarchy_information = HIERARCHY_4;
-+		p->hierarchy = HIERARCHY_4;
- 		break;
- 	}
+ config VIDEOBUF2_DMA_SG
+ 	#depends on HAS_DMA
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index ddeaa6c..bc797f2 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -125,6 +125,7 @@ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
+ obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
+ obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
+ obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
++obj-$(CONFIG_VIDEOBUF2_PAGE)		+= videobuf2-page.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG)	+= videobuf2-dma-contig.o
+ obj-$(CONFIG_VIDEOBUF2_DMA_SG)		+= videobuf2-dma-sg.o
  
-@@ -260,9 +260,9 @@ static int cx22702_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- }
- 
- /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
--static int cx22702_set_tps(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+static int cx22702_set_tps(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	u8 val;
- 	struct cx22702_state *state = fe->demodulator_priv;
- 
-@@ -277,14 +277,14 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
- 
- 	/* set bandwidth */
- 	val = cx22702_readreg(state, 0x0C) & 0xcf;
--	switch (p->u.ofdm.bandwidth) {
--	case BANDWIDTH_6_MHZ:
-+	switch (p->bandwidth_hz) {
-+	case 6000000:
- 		val |= 0x20;
- 		break;
--	case BANDWIDTH_7_MHZ:
-+	case 7000000:
- 		val |= 0x10;
- 		break;
--	case BANDWIDTH_8_MHZ:
-+	case 8000000:
- 		break;
- 	default:
- 		dprintk("%s: invalid bandwidth\n", __func__);
-@@ -292,15 +292,15 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
- 	}
- 	cx22702_writereg(state, 0x0C, val);
- 
--	p->u.ofdm.code_rate_LP = FEC_AUTO; /* temp hack as manual not working */
-+	p->code_rate_LP = FEC_AUTO; /* temp hack as manual not working */
- 
- 	/* use auto configuration? */
--	if ((p->u.ofdm.hierarchy_information == HIERARCHY_AUTO) ||
--	   (p->u.ofdm.constellation == QAM_AUTO) ||
--	   (p->u.ofdm.code_rate_HP == FEC_AUTO) ||
--	   (p->u.ofdm.code_rate_LP == FEC_AUTO) ||
--	   (p->u.ofdm.guard_interval == GUARD_INTERVAL_AUTO) ||
--	   (p->u.ofdm.transmission_mode == TRANSMISSION_MODE_AUTO)) {
-+	if ((p->hierarchy == HIERARCHY_AUTO) ||
-+	   (p->modulation == QAM_AUTO) ||
-+	   (p->code_rate_HP == FEC_AUTO) ||
-+	   (p->code_rate_LP == FEC_AUTO) ||
-+	   (p->guard_interval == GUARD_INTERVAL_AUTO) ||
-+	   (p->transmission_mode == TRANSMISSION_MODE_AUTO)) {
- 
- 		/* TPS Source - use hardware driven values */
- 		cx22702_writereg(state, 0x06, 0x10);
-@@ -316,7 +316,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
- 	}
- 
- 	/* manually programmed values */
--	switch (p->u.ofdm.constellation) {		/* mask 0x18 */
-+	switch (p->modulation) {		/* mask 0x18 */
- 	case QPSK:
- 		val = 0x00;
- 		break;
-@@ -327,10 +327,10 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
- 		val = 0x10;
- 		break;
- 	default:
--		dprintk("%s: invalid constellation\n", __func__);
-+		dprintk("%s: invalid modulation\n", __func__);
- 		return -EINVAL;
- 	}
--	switch (p->u.ofdm.hierarchy_information) {	/* mask 0x07 */
-+	switch (p->hierarchy) {	/* mask 0x07 */
- 	case HIERARCHY_NONE:
- 		break;
- 	case HIERARCHY_1:
-@@ -348,7 +348,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
- 	}
- 	cx22702_writereg(state, 0x06, val);
- 
--	switch (p->u.ofdm.code_rate_HP) {		/* mask 0x38 */
-+	switch (p->code_rate_HP) {		/* mask 0x38 */
- 	case FEC_NONE:
- 	case FEC_1_2:
- 		val = 0x00;
-@@ -369,7 +369,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
- 		dprintk("%s: invalid code_rate_HP\n", __func__);
- 		return -EINVAL;
- 	}
--	switch (p->u.ofdm.code_rate_LP) {		/* mask 0x07 */
-+	switch (p->code_rate_LP) {		/* mask 0x07 */
- 	case FEC_NONE:
- 	case FEC_1_2:
- 		break;
-@@ -391,7 +391,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
- 	}
- 	cx22702_writereg(state, 0x07, val);
- 
--	switch (p->u.ofdm.guard_interval) {		/* mask 0x0c */
-+	switch (p->guard_interval) {		/* mask 0x0c */
- 	case GUARD_INTERVAL_1_32:
- 		val = 0x00;
- 		break;
-@@ -408,7 +408,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
- 		dprintk("%s: invalid guard_interval\n", __func__);
- 		return -EINVAL;
- 	}
--	switch (p->u.ofdm.transmission_mode) {		/* mask 0x03 */
-+	switch (p->transmission_mode) {		/* mask 0x03 */
- 	case TRANSMISSION_MODE_2K:
- 		break;
- 	case TRANSMISSION_MODE_8K:
-@@ -547,14 +547,14 @@ static int cx22702_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- }
- 
- static int cx22702_get_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+				struct dtv_frontend_properties *c)
- {
- 	struct cx22702_state *state = fe->demodulator_priv;
- 
- 	u8 reg0C = cx22702_readreg(state, 0x0C);
- 
--	p->inversion = reg0C & 0x1 ? INVERSION_ON : INVERSION_OFF;
--	return cx22702_get_tps(state, &p->u.ofdm);
-+	c->inversion = reg0C & 0x1 ? INVERSION_ON : INVERSION_OFF;
-+	return cx22702_get_tps(state, c);
- }
- 
- static int cx22702_get_tune_settings(struct dvb_frontend *fe,
-@@ -603,7 +603,7 @@ error:
- EXPORT_SYMBOL(cx22702_attach);
- 
- static const struct dvb_frontend_ops cx22702_ops = {
--
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name			= "Conexant CX22702 DVB-T",
- 		.type			= FE_OFDM,
-@@ -622,8 +622,8 @@ static const struct dvb_frontend_ops cx22702_ops = {
- 	.init = cx22702_init,
- 	.i2c_gate_ctrl = cx22702_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = cx22702_set_tps,
--	.get_frontend_legacy = cx22702_get_frontend,
-+	.set_frontend= cx22702_set_tps,
-+	.get_frontend = cx22702_get_frontend,
- 	.get_tune_settings = cx22702_get_tune_settings,
- 
- 	.read_status = cx22702_read_status,
+diff --git a/drivers/media/video/videobuf2-page.c b/drivers/media/video/videobuf2-page.c
+new file mode 100644
+index 0000000..6a24a34
+--- /dev/null
++++ b/drivers/media/video/videobuf2-page.c
+@@ -0,0 +1,117 @@
++/*
++ * videobuf2-page.c - page memory allocator for videobuf2
++ *
++ * Copyright (C) 2011 Canonical Ltd.
++ *
++ * Author: Ming Lei <ming.lei@canonical.com>
++ *
++ * This file is based on videobuf2-vmalloc.c
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#include <linux/module.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++
++#include <media/videobuf2-core.h>
++#include <media/videobuf2-memops.h>
++
++struct vb2_page_buf {
++	void				*vaddr;
++	unsigned long			size;
++	atomic_t			refcount;
++	struct vb2_vmarea_handler	handler;
++};
++
++static void vb2_page_put(void *buf_priv);
++
++static void *vb2_page_alloc(void *alloc_ctx, unsigned long size)
++{
++	struct vb2_page_buf *buf;
++
++	buf = kzalloc(sizeof *buf, GFP_KERNEL);
++	if (!buf)
++		return NULL;
++
++	buf->size = size;
++	buf->vaddr = (void *)__get_free_pages(GFP_KERNEL,
++			get_order(buf->size));
++	buf->handler.refcount = &buf->refcount;
++	buf->handler.put = vb2_page_put;
++	buf->handler.arg = buf;
++
++	if (!buf->vaddr) {
++		printk(KERN_ERR "page of size %ld failed\n", buf->size);
++		kfree(buf);
++		return NULL;
++	}
++
++	atomic_inc(&buf->refcount);
++	printk(KERN_DEBUG "Allocated page buffer of size %ld at vaddr=%p\n",
++			buf->size, buf->vaddr);
++
++	return buf;
++}
++
++static void vb2_page_put(void *buf_priv)
++{
++	struct vb2_page_buf *buf = buf_priv;
++
++	if (atomic_dec_and_test(&buf->refcount)) {
++		printk(KERN_DEBUG "%s: Freeing page mem at vaddr=%p\n",
++			__func__, buf->vaddr);
++		free_pages((unsigned long)buf->vaddr, get_order(buf->size));
++		kfree(buf);
++	}
++}
++
++static void *vb2_page_vaddr(void *buf_priv)
++{
++	struct vb2_page_buf *buf = buf_priv;
++
++	BUG_ON(!buf);
++
++	if (!buf->vaddr) {
++		printk(KERN_ERR "Address of an unallocated plane requested\n");
++		return NULL;
++	}
++
++	return buf->vaddr;
++}
++
++static unsigned int vb2_page_num_users(void *buf_priv)
++{
++	struct vb2_page_buf *buf = buf_priv;
++	return atomic_read(&buf->refcount);
++}
++
++static int vb2_page_mmap(void *buf_priv, struct vm_area_struct *vma)
++{
++	struct vb2_page_buf *buf = buf_priv;
++
++	if (!buf) {
++		printk(KERN_ERR "No memory to map\n");
++		return -EINVAL;
++	}
++
++	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
++	return vb2_mmap_pfn_range(vma, virt_to_phys(buf->vaddr),
++			buf->size, &vb2_common_vm_ops,
++			&buf->handler);
++}
++
++const struct vb2_mem_ops vb2_page_memops = {
++	.alloc		= vb2_page_alloc,
++	.put		= vb2_page_put,
++	.vaddr		= vb2_page_vaddr,
++	.mmap		= vb2_page_mmap,
++	.num_users	= vb2_page_num_users,
++};
++EXPORT_SYMBOL_GPL(vb2_page_memops);
++
++MODULE_DESCRIPTION("page memory handling routines for videobuf2");
++MODULE_AUTHOR("Ming Lei");
++MODULE_LICENSE("GPL");
+diff --git a/include/media/videobuf2-page.h b/include/media/videobuf2-page.h
+new file mode 100644
+index 0000000..c837456
+--- /dev/null
++++ b/include/media/videobuf2-page.h
+@@ -0,0 +1,20 @@
++/*
++ * videobuf2-page.h - page memory allocator for videobuf2
++ *
++ * Copyright (C) 2011 Canonical Ltd.
++ *
++ * Author: Ming Lei <ming.lei@canonical.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation.
++ */
++
++#ifndef _MEDIA_VIDEOBUF2_PAGE_H
++#define _MEDIA_VIDEOBUF2_PAGE_H
++
++#include <media/videobuf2-core.h>
++
++extern const struct vb2_mem_ops vb2_page_memops;
++
++#endif
 -- 
-1.7.8.352.g876a6
+1.7.5.4
 
