@@ -1,281 +1,440 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:42288 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752400Ab1L0Tny (ORCPT
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:47379 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757386Ab1LNQa1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 14:43:54 -0500
-Received: by mail-ee0-f46.google.com with SMTP id c4so11868452eek.19
-        for <linux-media@vger.kernel.org>; Tue, 27 Dec 2011 11:43:53 -0800 (PST)
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Wed, 14 Dec 2011 11:30:27 -0500
+Received: by faar15 with SMTP id r15so1348133faa.19
+        for <linux-media@vger.kernel.org>; Wed, 14 Dec 2011 08:30:26 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: [PATCH 2/4] V4L: Add the JPEG compression control class documentation
-Date: Tue, 27 Dec 2011 20:43:29 +0100
-Message-Id: <1325015011-11904-3-git-send-email-snjw23@gmail.com>
-In-Reply-To: <1325015011-11904-1-git-send-email-snjw23@gmail.com>
-References: <4EBECD11.8090709@gmail.com>
- <1325015011-11904-1-git-send-email-snjw23@gmail.com>
+Cc: g.liakhovetski@gmx.de, kernel@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] media i.MX27 camera: add support for YUV420 format.
+Date: Wed, 14 Dec 2011 17:30:14 +0100
+Message-Id: <1323880214-26086-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add DocBook entries for the JPEG control class.
+This patch uses channel 2 of the eMMa-PrP to convert
+format provided by the sensor to YUV420.
 
-Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+This format is very useful since it is used by the
+internal H.264 encoder.
+
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- Documentation/DocBook/media/v4l/biblio.xml         |   20 +++
- Documentation/DocBook/media/v4l/controls.xml       |  161 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |   16 ++-
- 3 files changed, 195 insertions(+), 2 deletions(-)
+ drivers/media/video/mx2_camera.c |  291 +++++++++++++++++++++++++++++++-------
+ 1 files changed, 241 insertions(+), 50 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/biblio.xml b/Documentation/DocBook/media/v4l/biblio.xml
-index cea6fd3..7dc65c5 100644
---- a/Documentation/DocBook/media/v4l/biblio.xml
-+++ b/Documentation/DocBook/media/v4l/biblio.xml
-@@ -128,6 +128,26 @@ url="http://www.ijg.org">http://www.ijg.org</ulink>)</corpauthor>
-       <subtitle>Version 1.02</subtitle>
-     </biblioentry>
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 9c81c6d..ea1f4dc 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -207,6 +207,22 @@
  
-+    <biblioentry id="itu-t81">
-+      <abbrev>ITU-T.81</abbrev>
-+      <authorgroup>
-+	<corpauthor>International Telecommunication Union
-+(<ulink url="http://www.itu.int">http://www.itu.int</ulink>)</corpauthor>
-+      </authorgroup>
-+      <title>ITU-T Recommendation T.81
-+"Information Technology &mdash; Digital Compression and Coding of Continous-Tone
-+Still Images &mdash; Requirements and Guidelines"</title>
-+    </biblioentry>
-+
-+    <biblioentry id="w3c-jpeg-jfif">
-+      <abbrev>W3C JPEG JFIF</abbrev>
-+      <authorgroup>
-+	<corpauthor>The World Wide Web Consortium (<ulink
-+url="http://www.w3.org/Graphics/JPEG">http://www.w3.org</ulink>)</corpauthor>
-+      </authorgroup>
-+      <title>JPEG JFIF</title>
-+    </biblioentry>
-+
-     <biblioentry id="smpte12m">
-       <abbrev>SMPTE&nbsp;12M</abbrev>
-       <authorgroup>
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index c0422c6..ab9e56b 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -3364,6 +3364,167 @@ interface and may change in the future.</para>
- 	</tbody>
-       </tgroup>
-       </table>
-+    </section>
-+
-+    <section id="jpeg-controls">
-+      <title>JPEG Control Reference</title>
-+      <para>The JPEG class includes controls for common features of JPEG
-+      encoders and decoders. Currently it includes features for codecs
-+      implementing progressive baseline DCT compression process with
-+      Huffman entrophy coding.</para>
-+      <table pgwide="1" frame="none" id="jpeg-control-id">
-+      <title>JPEG Control IDs</title>
+ #define MAX_VIDEO_MEM	16
  
-+      <tgroup cols="4">
-+	<colspec colname="c1" colwidth="1*" />
-+	<colspec colname="c2" colwidth="6*" />
-+	<colspec colname="c3" colwidth="2*" />
-+	<colspec colname="c4" colwidth="6*" />
-+	<spanspec namest="c1" nameend="c2" spanname="id" />
-+	<spanspec namest="c2" nameend="c4" spanname="descr" />
-+	<thead>
-+	  <row>
-+	    <entry spanname="id" align="left">ID</entry>
-+	    <entry align="left">Type</entry>
-+	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+	  </row>
-+	</thead>
-+	<tbody valign="top">
-+	  <row><entry></entry></row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_JPEG_CLASS</constant>&nbsp;</entry>
-+	    <entry>class</entry>
-+	  </row><row><entry spanname="descr">The JPEG class descriptor. Calling
-+	  &VIDIOC-QUERYCTRL; for this control will return a description of this
-+	  control class.
++struct mx2_prp_cfg {
++	int channel;
++	u32 in_fmt;
++	u32 out_fmt;
++	u32 src_pixel;
++	u32 ch1_pixel;
++	u32 irq_flags;
++};
 +
-+	</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_JPEG_CHROMA_SUBSAMPLING</constant></entry>
-+	    <entry>menu</entry>
-+	  </row>
-+	  <row id="jpeg-chroma-subsampling-control">
-+	    <entry spanname="descr">The chroma subsampling factors describe how
-+	    each component of an input image is sampled, in respect to maximum
-+	    sample rate in each spatial dimension. See <xref linkend="itu-t81"/>,
-+	    clause A.1.1. for more details. The <constant>
-+	    V4L2_CID_JPEG_CHROMA_SUBSAMPLING</constant> control determines how
-+	    Cb and Cr components are downsampled after coverting an input image
-+	    from RGB to Y'CbCr color space.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_444</constant>
-+		  </entry><entry>No chroma subsampling, each pixel has
-+		  Y, Cr and Cb values.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_422</constant>
-+		  </entry><entry>Horizontally subsample Cr, Cb components
-+		  by a factor of 2.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_420</constant>
-+		  </entry><entry>Subsample Cr, Cb components horizontally
-+		  and vertically by 2.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_411</constant>
-+		  </entry><entry>Horizontally subsample Cr, Cb components
-+		  by a factor of 4.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_410</constant>
-+		  </entry><entry>Subsample Cr, Cb components horizontally
-+		  by 4 and vertically by 2.</entry>
-+		</row>
-+		<row>
-+		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY</constant>
-+		  </entry><entry>Use only luminance component.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	  <row>
-+	    <entry spanname="id"><constant>V4L2_CID_JPEG_RESTART_INTERVAL</constant>
-+	    </entry><entry>integer</entry>
-+	  </row>
-+	  <row><entry spanname="descr">
-+	      The restart interval determines an interval of inserting RSTm
-+	      markers (m = 0..7). The purpose of these markers is to additionally
-+	      reinitialize the encoder process, in order to process blocks of
-+	      an image independently.
-+	      For the lossy compression processes the restart interval unit is
-+	      MCU (Minimum Coded Unit) and its value is contained in DRI
-+	      (Define Restart Interval) marker. If <constant>
-+	      V4L2_CID_JPEG_RESTART_INTERVAL</constant> control is set to 0,
-+	      DRI and RSTm markers will not be inserted.
-+	    </entry>
-+	  </row>
-+	  <row id="jpeg-quality-control">
-+	    <entry spanname="id"><constant>V4L2_CID_JPEG_COMPRESION_QUALITY</constant></entry>
-+	    <entry>integer</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">
-+	      <constant>V4L2_CID_JPEG_COMPRESION_QUALITY</constant> control
-+	      determines trade-off between image quality and size.
-+	      It provides simpler method for applications to control image quality,
-+	      without a need for direct reconfiguration of luminance and chrominance
-+	      quantization tables.
++/* prp configuration for a client-host fmt pair */
++struct mx2_fmt_cfg {
++	enum v4l2_mbus_pixelcode	in_fmt;
++	u32				out_fmt;
++	struct mx2_prp_cfg		cfg;
++};
 +
-+	      In cases where a driver uses quantization tables configured directly
-+	      by an application, using interfaces defined elsewhere, <constant>
-+	      V4L2_CID_JPEG_COMPRESION_QUALITY</constant> control should be set
-+	      by driver to 0.
-+
-+	      <para>The value range of this control is driver-specific. Only
-+	      positive, non-zero values are meaningful. The recommended range
-+	      is 1 - 100, where larger values correspond to better image quality.
-+	      </para>
-+	    </entry>
-+	    </row>
-+	  <row id="jpeg-active-marker-control">
-+	    <entry spanname="id"><constant>V4L2_CID_JPEG_ACTIVE_MARKER</constant></entry>
-+	    <entry>bitmask</entry>
-+	  </row>
-+	  <row>
-+	    <entry spanname="descr">Specify which JPEG markers are included
-+	    in compressed stream. This control is valid only for encoders.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entrytbl spanname="descr" cols="2">
-+	      <tbody valign="top">
-+		<row>
-+		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_APP0</constant></entry>
-+		  <entry>Application data segment APP<subscript>0</subscript>.</entry>
-+		</row><row>
-+		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_APP1</constant></entry>
-+		  <entry>Application data segment APP<subscript>1</subscript>.</entry>
-+		</row><row>
-+		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_COM</constant></entry>
-+		  <entry>Comment segment.</entry>
-+		</row><row>
-+		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_DQT</constant></entry>
-+		  <entry>Quantization tables segment.</entry>
-+		</row><row>
-+		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_DHT</constant></entry>
-+		  <entry>Huffman tables segment.</entry>
-+		</row>
-+	      </tbody>
-+	    </entrytbl>
-+	  </row>
-+	  <row><entry></entry></row>
-+	</tbody>
-+      </tgroup>
-+      </table>
-+      <para>For more details about JPEG specification, refer
-+      to <xref linkend="itu-t81"/>, <xref linkend="jfif"/>,
-+      <xref linkend="w3c-jpeg-jfif"/>.</para>
-     </section>
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml b/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
-index 01ea24b..4874849 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
-@@ -57,6 +57,11 @@
-   <refsect1>
-     <title>Description</title>
+ struct mx2_camera_dev {
+ 	struct device		*dev;
+ 	struct soc_camera_host	soc_host;
+@@ -238,6 +254,7 @@ struct mx2_camera_dev {
+ 	void			*discard_buffer;
+ 	dma_addr_t		discard_buffer_dma;
+ 	size_t			discard_size;
++	struct mx2_fmt_cfg	*emma_prp;
+ };
  
-+    <para>These ioctls are <emphasis role="bold">deprecated</emphasis>.
-+    New drivers and applications should use <link linkend="jpeg-controls">
-+    JPEG class controls</link> for image quality and JPEG markers control.
-+    </para>
-+
-     <para>[to do]</para>
+ /* buffer for one video frame */
+@@ -250,6 +267,59 @@ struct mx2_buffer {
+ 	int bufnum;
+ };
  
-     <para>Ronald Bultje elaborates:</para>
-@@ -86,7 +91,10 @@ to add them.</para>
- 	  <row>
- 	    <entry>int</entry>
- 	    <entry><structfield>quality</structfield></entry>
--	    <entry></entry>
-+	    <entry>Deprecated. If <link linkend="jpeg-quality-control"><constant>
-+	    V4L2_CID_JPEG_IMAGE_QUALITY</constant></link> control is exposed by
-+	    a driver applications should use it instead and ignore this field.
-+	    </entry>
- 	  </row>
- 	  <row>
- 	    <entry>int</entry>
-@@ -116,7 +124,11 @@ to add them.</para>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>jpeg_markers</structfield></entry>
--	    <entry>See <xref linkend="jpeg-markers" />.</entry>
-+	    <entry>See <xref linkend="jpeg-markers"/>. Deprecated.
-+	    If <link linkend="jpeg-active-marker-control"><constant>
-+	    V4L2_CID_JPEG_ACTIVE_MARKER</constant></link> control
-+	    is exposed by a driver applications should use it instead
-+	    and ignore this field.</entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
++static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
++	/*
++	 * This is a generic configuration which is valid for most
++	 * prp input-output format combinations.
++	 * We set the incomming and outgoing pixelformat to a
++	 * 16 Bit wide format and adjust the bytesperline
++	 * accordingly. With this configuration the inputdata
++	 * will not be changed by the emma and could be any type
++	 * of 16 Bit Pixelformat.
++	 */
++	{
++		.in_fmt		= 0,
++		.out_fmt	= 0,
++		.cfg		= {
++			.channel	= 1,
++			.in_fmt		= PRP_CNTL_DATA_IN_RGB16,
++			.out_fmt	= PRP_CNTL_CH1_OUT_RGB16,
++			.src_pixel	= 0x2ca00565, /* RGB565 */
++			.ch1_pixel	= 0x2ca00565, /* RGB565 */
++			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH1WERR |
++						PRP_INTR_CH1FC | PRP_INTR_LBOVF,
++		}
++	},
++	{
++		.in_fmt		= V4L2_MBUS_FMT_YUYV8_2X8,
++		.out_fmt	= V4L2_PIX_FMT_YUV420,
++		.cfg		= {
++			.channel	= 2,
++			.in_fmt		= PRP_CNTL_DATA_IN_YUV422,
++			.out_fmt	= PRP_CNTL_CH2_OUT_YUV420,
++			.src_pixel	= 0x22000888, /* YUV422 (YUYV) */
++			.irq_flags	= PRP_INTR_RDERR | PRP_INTR_CH2WERR |
++					PRP_INTR_CH2FC | PRP_INTR_LBOVF |
++					PRP_INTR_CH2OVF,
++		}
++	},
++};
++
++static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
++					enum v4l2_mbus_pixelcode in_fmt,
++					u32 out_fmt)
++{
++	int i;
++
++	for (i = 1; i < ARRAY_SIZE(mx27_emma_prp_table); i++)
++		if ((mx27_emma_prp_table[i].in_fmt == in_fmt) &&
++				(mx27_emma_prp_table[i].out_fmt == out_fmt)) {
++			return &mx27_emma_prp_table[i];
++		}
++	/* If no match return the most generic configuration */
++	return &mx27_emma_prp_table[0];
++};
++
+ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+ {
+ 	unsigned long flags;
+@@ -666,51 +736,74 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 	struct soc_camera_host *ici =
+ 		to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
++	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
++	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
++
++	if (prp->cfg.channel == 1) {
++		writel(pcdev->discard_buffer_dma,
++				pcdev->base_emma + PRP_DEST_RGB1_PTR);
++		writel(pcdev->discard_buffer_dma,
++				pcdev->base_emma + PRP_DEST_RGB2_PTR);
++
++		writel(PRP_CNTL_CH1EN |
++				PRP_CNTL_CSIEN |
++				prp->cfg.in_fmt |
++				prp->cfg.out_fmt |
++				PRP_CNTL_CH1_LEN |
++				PRP_CNTL_CH1BYP |
++				PRP_CNTL_CH1_TSKIP(0) |
++				PRP_CNTL_IN_TSKIP(0),
++				pcdev->base_emma + PRP_CNTL);
++
++		writel((icd->user_width << 16) | icd->user_height,
++			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
++		writel((icd->user_width << 16) | icd->user_height,
++			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
++		writel(bytesperline,
++			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
++		writel(prp->cfg.src_pixel,
++			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
++		writel(prp->cfg.ch1_pixel,
++			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
++	} else { /* channel 2 */
++		writel(pcdev->discard_buffer_dma,
++			pcdev->base_emma + PRP_DEST_Y_PTR);
++		writel(pcdev->discard_buffer_dma,
++			pcdev->base_emma + PRP_SOURCE_Y_PTR);
++
++		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
++			writel(pcdev->discard_buffer_dma + imgsize,
++				pcdev->base_emma + PRP_DEST_CB_PTR);
++			writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
++				pcdev->base_emma + PRP_DEST_CR_PTR);
++			writel(pcdev->discard_buffer_dma + imgsize,
++				pcdev->base_emma + PRP_SOURCE_CB_PTR);
++			writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
++				pcdev->base_emma + PRP_SOURCE_CR_PTR);
++		}
+ 
+-	writel(pcdev->discard_buffer_dma,
+-			pcdev->base_emma + PRP_DEST_RGB1_PTR);
+-	writel(pcdev->discard_buffer_dma,
+-			pcdev->base_emma + PRP_DEST_RGB2_PTR);
+-
+-	/*
+-	 * We only use the EMMA engine to get rid of the broken
+-	 * DMA Engine. No color space consversion at the moment.
+-	 * We set the incomming and outgoing pixelformat to an
+-	 * 16 Bit wide format and adjust the bytesperline
+-	 * accordingly. With this configuration the inputdata
+-	 * will not be changed by the emma and could be any type
+-	 * of 16 Bit Pixelformat.
+-	 */
+-	writel(PRP_CNTL_CH1EN |
++		writel(PRP_CNTL_CH2EN |
+ 			PRP_CNTL_CSIEN |
+-			PRP_CNTL_DATA_IN_RGB16 |
+-			PRP_CNTL_CH1_OUT_RGB16 |
+-			PRP_CNTL_CH1_LEN |
+-			PRP_CNTL_CH1BYP |
+-			PRP_CNTL_CH1_TSKIP(0) |
++			prp->cfg.in_fmt |
++			prp->cfg.out_fmt |
++			PRP_CNTL_CH2_LEN |
++			PRP_CNTL_CH2_TSKIP(0) |
+ 			PRP_CNTL_IN_TSKIP(0),
+ 			pcdev->base_emma + PRP_CNTL);
+ 
+-	writel(((bytesperline >> 1) << 16) | icd->user_height,
++		writel((icd->user_width << 16) | icd->user_height,
+ 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+-	writel(((bytesperline >> 1) << 16) | icd->user_height,
+-			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
+-	writel(bytesperline,
+-			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
+-	writel(0x2ca00565, /* RGB565 */
++
++		writel((icd->user_width << 16) | icd->user_height,
++			pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
++
++		writel(prp->cfg.src_pixel,
+ 			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+-	writel(0x2ca00565, /* RGB565 */
+-			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
++
++	}
+ 
+ 	/* Enable interrupts */
+-	writel(PRP_INTR_RDERR |
+-			PRP_INTR_CH1WERR |
+-			PRP_INTR_CH2WERR |
+-			PRP_INTR_CH1FC |
+-			PRP_INTR_CH2FC |
+-			PRP_INTR_LBOVF |
+-			PRP_INTR_CH2OVF,
+-			pcdev->base_emma + PRP_INTR_CNTL);
++	writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
+ }
+ 
+ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+@@ -858,9 +951,58 @@ static int mx2_camera_set_crop(struct soc_camera_device *icd,
+ 	return ret;
+ }
+ 
++static int mx2_camera_get_formats(struct soc_camera_device *icd,
++				  unsigned int idx,
++				  struct soc_camera_format_xlate *xlate)
++{
++	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
++	const struct soc_mbus_pixelfmt *fmt;
++	struct device *dev = icd->parent;
++	enum v4l2_mbus_pixelcode code;
++	int ret, formats = 0;
++
++	ret = v4l2_subdev_call(sd, video, enum_mbus_fmt, idx, &code);
++	if (ret < 0)
++		/* no more formats */
++		return 0;
++
++	fmt = soc_mbus_get_fmtdesc(code);
++	if (!fmt) {
++		dev_err(dev, "Invalid format code #%u: %d\n", idx, code);
++		return 0;
++	}
++
++	if (code == V4L2_MBUS_FMT_YUYV8_2X8) {
++		formats++;
++		if (xlate) {
++			/*
++			 * CH2 can output YUV420 which is a standard format in
++			 * soc_mediabus.c
++			 */
++			xlate->host_fmt =
++				soc_mbus_get_fmtdesc(V4L2_MBUS_FMT_YUYV8_1_5X8);
++			xlate->code	= code;
++			dev_dbg(dev, "Providing host format %s for sensor code %d\n",
++			       xlate->host_fmt->name, code);
++			xlate++;
++		}
++	}
++
++	/* Generic pass-trough */
++	formats++;
++	if (xlate) {
++		xlate->host_fmt = fmt;
++		xlate->code	= code;
++		xlate++;
++	}
++	return formats;
++}
++
+ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ 			       struct v4l2_format *f)
+ {
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+@@ -893,6 +1035,10 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ 	pix->colorspace		= mf.colorspace;
+ 	icd->current_fmt	= xlate;
+ 
++	if (mx27_camera_emma(pcdev))
++		pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
++						xlate->host_fmt->fourcc);
++
+ 	return 0;
+ }
+ 
+@@ -958,7 +1104,12 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 
+ 	if (mf.field == V4L2_FIELD_ANY)
+ 		mf.field = V4L2_FIELD_NONE;
+-	if (mf.field != V4L2_FIELD_NONE) {
++	/*
++	 * Driver supports interlaced images provided they have
++	 * both fields so that they can be processed as if they
++	 * where progressive.
++	 */
++	if (mf.field != V4L2_FIELD_NONE && !V4L2_FIELD_HAS_BOTH(mf.field)) {
+ 		dev_err(icd->parent, "Field type %d unsupported.\n",
+ 				mf.field);
+ 		return -EINVAL;
+@@ -1009,6 +1160,7 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+ 	.remove		= mx2_camera_remove_device,
+ 	.set_fmt	= mx2_camera_set_fmt,
+ 	.set_crop	= mx2_camera_set_crop,
++	.get_formats	= mx2_camera_get_formats,
+ 	.try_fmt	= mx2_camera_try_fmt,
+ 	.init_videobuf	= mx2_camera_init_videobuf,
+ 	.reqbufs	= mx2_camera_reqbufs,
+@@ -1020,6 +1172,8 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 		int bufnum, int state)
+ {
++	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
++	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+ 	struct mx2_buffer *buf;
+ 	struct videobuf_buffer *vb;
+ 	unsigned long phys;
+@@ -1033,12 +1187,22 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 		vb = &buf->vb;
+ #ifdef DEBUG
+ 		phys = videobuf_to_dma_contig(vb);
+-		if (readl(pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum)
+-				!= phys) {
+-			dev_err(pcdev->dev, "%p != %p\n", phys,
+-					readl(pcdev->base_emma +
+-						PRP_DEST_RGB1_PTR +
+-						4 * bufnum));
++		if (prp->cfg.channel == 1) {
++			if (readl(pcdev->base_emma + PRP_DEST_RGB1_PTR +
++				4 * bufnum) != phys) {
++				dev_err(pcdev->dev, "%p != %p\n", phys,
++						readl(pcdev->base_emma +
++							PRP_DEST_RGB1_PTR +
++							4 * bufnum));
++			}
++		} else {
++			if (readl(pcdev->base_emma + PRP_DEST_Y_PTR -
++				0x14 * bufnum) != phys) {
++				dev_err(pcdev->dev, "%p != %p\n", phys,
++						readl(pcdev->base_emma +
++							PRP_DEST_Y_PTR -
++							0x14 * bufnum));
++			}
+ 		}
+ #endif
+ 		dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%08lx %d\n", __func__, vb,
+@@ -1053,8 +1217,22 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 	}
+ 
+ 	if (list_empty(&pcdev->capture)) {
+-		writel(pcdev->discard_buffer_dma, pcdev->base_emma +
+-				PRP_DEST_RGB1_PTR + 4 * bufnum);
++		if (prp->cfg.channel == 1) {
++			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
++					PRP_DEST_RGB1_PTR + 4 * bufnum);
++		} else {
++			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
++						PRP_DEST_Y_PTR -
++						0x14 * bufnum);
++			if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
++				writel(pcdev->discard_buffer_dma + imgsize,
++				       pcdev->base_emma + PRP_DEST_CB_PTR -
++				       0x14 * bufnum);
++				writel(pcdev->discard_buffer_dma +
++				       ((5 * imgsize) / 4), pcdev->base_emma +
++				       PRP_DEST_CR_PTR - 0x14 * bufnum);
++			}
++		}
+ 		return;
+ 	}
+ 
+@@ -1069,7 +1247,18 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 	vb->state = VIDEOBUF_ACTIVE;
+ 
+ 	phys = videobuf_to_dma_contig(vb);
+-	writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
++	if (prp->cfg.channel == 1) {
++		writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
++	} else {
++		writel(phys, pcdev->base_emma +
++				PRP_DEST_Y_PTR - 0x14 * bufnum);
++		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
++			writel(phys + imgsize, pcdev->base_emma +
++					PRP_DEST_CB_PTR - 0x14 * bufnum);
++			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
++					PRP_DEST_CR_PTR - 0x14 * bufnum);
++		}
++	}
+ }
+ 
+ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+@@ -1089,10 +1278,12 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ 		 * the next one.
+ 		 */
+ 		cntl = readl(pcdev->base_emma + PRP_CNTL);
+-		writel(cntl & ~PRP_CNTL_CH1EN, pcdev->base_emma + PRP_CNTL);
++		writel(cntl & ~(PRP_CNTL_CH1EN | PRP_CNTL_CH2EN),
++		       pcdev->base_emma + PRP_CNTL);
+ 		writel(cntl, pcdev->base_emma + PRP_CNTL);
+ 	}
+-	if ((status & (3 << 5)) == (3 << 5)
++	if ((((status & (3 << 5)) == (3 << 5)) ||
++		((status & (3 << 3)) == (3 << 3)))
+ 			&& !list_empty(&pcdev->active_bufs)) {
+ 		/*
+ 		 * Both buffers have triggered, process the one we're expecting
+@@ -1103,9 +1294,9 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ 		mx27_camera_frame_done_emma(pcdev, buf->bufnum, VIDEOBUF_DONE);
+ 		status &= ~(1 << (6 - buf->bufnum)); /* mark processed */
+ 	}
+-	if (status & (1 << 6))
++	if ((status & (1 << 6)) || (status & (1 << 4)))
+ 		mx27_camera_frame_done_emma(pcdev, 0, VIDEOBUF_DONE);
+-	if (status & (1 << 5))
++	if ((status & (1 << 5)) || (status & (1 << 3)))
+ 		mx27_camera_frame_done_emma(pcdev, 1, VIDEOBUF_DONE);
+ 
+ 	writel(status, pcdev->base_emma + PRP_INTRSTATUS);
 -- 
-1.7.4.1
+1.7.0.4
 
