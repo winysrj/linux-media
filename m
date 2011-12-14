@@ -1,124 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24164 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755310Ab1LXPvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:05 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5MB018665
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 11/47] [media] mxl5007t: use DVBv5 parameters on set_params()
-Date: Sat, 24 Dec 2011 13:50:16 -0200
-Message-Id: <1324741852-26138-12-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-11-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
- <1324741852-26138-10-git-send-email-mchehab@redhat.com>
- <1324741852-26138-11-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:37822 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756894Ab1LNNeR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Dec 2011 08:34:17 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LW7008664D35I60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Dec 2011 13:34:15 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW7007J74D3JD@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Dec 2011 13:34:15 +0000 (GMT)
+Date: Wed, 14 Dec 2011 14:34:14 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
+In-reply-to: <201112131318.54709.hverkuil@xs4all.nl>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	m.szyprowski@samsung.com, jonghun.han@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <4EE8A5D6.4030408@samsung.com>
+References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com>
+ <201111291958.48671.laurent.pinchart@ideasonboard.com>
+ <4EE083D2.3010102@samsung.com> <201112131318.54709.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner.
+Hi Hans,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mxl5007t.c |   51 +++++++++++++++-----------------
- 1 files changed, 24 insertions(+), 27 deletions(-)
+On 12/13/2011 01:18 PM, Hans Verkuil wrote:
+>> are you going to carry on with the control range update patches ?
+>> I'd like to push the alpha colour control for v3.3 but it depends
+>> on the controls framework updates now.
+> 
+> Good question. I am not sure whether this is something we actually want. It 
+> would make applications much harder to write if the range of a control can 
+> suddenly change.
+> 
+> On the other hand, it might be a good solution for a harder problem which is 
+> as yet unsolved: if you have multiple inputs, and each input has a different 
+> set of controls (e.g. one input is a SDTV receiver, the other is a HDTV 
+> receiver), then you can have the situation where e.g. the contrast control is 
+> present for both inputs, but with a different range. Switching inputs would 
+> then generate a control event telling the app that the range changed.
+> 
+> But this may still be overkill...
 
-diff --git a/drivers/media/common/tuners/mxl5007t.c b/drivers/media/common/tuners/mxl5007t.c
-index 2f0e550..6c45993 100644
---- a/drivers/media/common/tuners/mxl5007t.c
-+++ b/drivers/media/common/tuners/mxl5007t.c
-@@ -618,44 +618,42 @@ fail:
- static int mxl5007t_set_params(struct dvb_frontend *fe,
- 			       struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys = c->delivery_system;
- 	struct mxl5007t_state *state = fe->tuner_priv;
- 	enum mxl5007t_bw_mhz bw;
- 	enum mxl5007t_mode mode;
- 	int ret;
--	u32 freq = params->frequency;
-+	u32 freq = c->frequency;
-+	u32 band = BANDWIDTH_6_MHZ;
- 
--	if (fe->ops.info.type == FE_ATSC) {
--		switch (params->u.vsb.modulation) {
--		case VSB_8:
--		case VSB_16:
--			mode = MxL_MODE_ATSC;
--			break;
--		case QAM_64:
--		case QAM_256:
--			mode = MxL_MODE_CABLE;
--			break;
--		default:
--			mxl_err("modulation not set!");
--			return -EINVAL;
--		}
-+	switch (delsys) {
-+	case SYS_ATSC:
-+		mode = MxL_MODE_ATSC;
-+		bw = MxL_BW_6MHz;
-+		break;
-+	case SYS_DVBC_ANNEX_B:
-+		mode = MxL_MODE_CABLE;
- 		bw = MxL_BW_6MHz;
--	} else if (fe->ops.info.type == FE_OFDM) {
--		switch (params->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
-+		break;
-+	case SYS_DVBT:
-+	case SYS_DVBT2:
-+		mode = MxL_MODE_DVBT;
-+		switch (c->bandwidth_hz) {
-+		case 6000000:
- 			bw = MxL_BW_6MHz;
- 			break;
--		case BANDWIDTH_7_MHZ:
-+		case 7000000:
- 			bw = MxL_BW_7MHz;
--			break;
--		case BANDWIDTH_8_MHZ:
-+			band = BANDWIDTH_7_MHZ;
-+		case 8000000:
- 			bw = MxL_BW_8MHz;
--			break;
-+			band = BANDWIDTH_8_MHZ;
- 		default:
--			mxl_err("bandwidth not set!");
- 			return -EINVAL;
- 		}
--		mode = MxL_MODE_DVBT;
--	} else {
-+		break;
-+	default:
- 		mxl_err("modulation type not supported!");
- 		return -EINVAL;
- 	}
-@@ -674,8 +672,7 @@ static int mxl5007t_set_params(struct dvb_frontend *fe,
- 		goto fail;
- 
- 	state->frequency = freq;
--	state->bandwidth = (fe->ops.info.type == FE_OFDM) ?
--		params->u.ofdm.bandwidth : 0;
-+	state->bandwidth = band;
- fail:
- 	mutex_unlock(&state->lock);
- 
+Hmm, it doesn't look like an overkill to me. I'm certain there will be use
+cases where control range update is needed. Maybe we could specify in
+the API in what circumstances the control range update is allowed for drivers.
+So not all applications need to handle the related events.
+
+Nevertheless I won't be pushing on this, not to mess around in the whole
+API because of some embedded systems requirements.
+So I'm going to update the range for alpha control manually in the driver
+for the time being.
+
+> 
+> In other words, I don't know. Not helpful, I agree.
+
+That was helpful anyway :-) Thanks.
+
 -- 
-1.7.8.352.g876a6
 
+Regards,
+Sylwester
