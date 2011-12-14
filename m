@@ -1,69 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:44054 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751991Ab1LPQVs (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1752 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754806Ab1LNOxs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 11:21:48 -0500
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LWB00GJO1G9XI@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Dec 2011 16:21:45 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LWB000YO1G9GK@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 16 Dec 2011 16:21:45 +0000 (GMT)
-Date: Fri, 16 Dec 2011 17:21:45 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [GIT PATCHES FOR 3.3] m5mols driver improvements
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-id: <4EEB7019.3030201@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
+	Wed, 14 Dec 2011 09:53:48 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
+Date: Wed, 14 Dec 2011 15:53:43 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	m.szyprowski@samsung.com, jonghun.han@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <201112131318.54709.hverkuil@xs4all.nl> <4EE8A5D6.4030408@samsung.com>
+In-Reply-To: <4EE8A5D6.4030408@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112141553.43169.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Wednesday, December 14, 2011 14:34:14 Sylwester Nawrocki wrote:
+> Hi Hans,
+> 
+> On 12/13/2011 01:18 PM, Hans Verkuil wrote:
+> >> are you going to carry on with the control range update patches ?
+> >> I'd like to push the alpha colour control for v3.3 but it depends
+> >> on the controls framework updates now.
+> > 
+> > Good question. I am not sure whether this is something we actually want. It 
+> > would make applications much harder to write if the range of a control can 
+> > suddenly change.
+> > 
+> > On the other hand, it might be a good solution for a harder problem which is 
+> > as yet unsolved: if you have multiple inputs, and each input has a different 
+> > set of controls (e.g. one input is a SDTV receiver, the other is a HDTV 
+> > receiver), then you can have the situation where e.g. the contrast control is 
+> > present for both inputs, but with a different range. Switching inputs would 
+> > then generate a control event telling the app that the range changed.
+> > 
+> > But this may still be overkill...
+> 
+> Hmm, it doesn't look like an overkill to me. I'm certain there will be use
+> cases where control range update is needed. Maybe we could specify in
+> the API in what circumstances the control range update is allowed for drivers.
+> So not all applications need to handle the related events.
+> 
+> Nevertheless I won't be pushing on this, not to mess around in the whole
+> API because of some embedded systems requirements.
+> So I'm going to update the range for alpha control manually in the driver
+> for the time being.
 
-The following changes since commit 23a955ff8fe5461a77f59e1a3ce0ad1fc348c7e0:
+I think I want to wait for other use cases before making these changes.
+If it is clear that multiple drivers need this, then we can always add the
+support (especially since all the hard work is already done in my patch).
 
-  m5mols: Fix logic in sanity check (2011-12-16 14:21:28 +0100)
-
-are available in the git repository at:
-  git://git.infradead.org/users/kmpark/linux-samsung m5mols
-
-These are m5mols driver initialization time optimizations and modifications
-required for proper sub-device node support in user space.
-
-HeungJun Kim (4):
-      m5mols: Extend the busy wait helper
-      m5mols: Improve the interrupt handling routines
-      m5mols: Add support for the system initialization interrupt
-      m5mols: Optimize the capture set up sequence
-
-Sylwester Nawrocki (9):
-      m5mols: Simplify the I2C registers definition
-      m5mols: Remove mode_save field from struct m5mols_info
-      m5mols: Change the end of frame v4l2_subdev notification id
-      m5mols: Don't ignore v4l2_ctrl_handler_setup() return value
-      m5mols: Move the control handler initialization to probe()
-      m5mols: Do not reset the configured pixel format when unexpected
-      m5mols: Change auto exposure control default value to AUTO
-      m5mols: Enable v4l subdev device node
-      s5p-csis: Enable v4l subdev device node
-
- drivers/media/video/m5mols/m5mols.h         |   46 +++--
- drivers/media/video/m5mols/m5mols_capture.c |   83 +++-----
- drivers/media/video/m5mols/m5mols_core.c    |  288 +++++++++++++++------------
- drivers/media/video/m5mols/m5mols_reg.h     |  247 +++++++++--------------
- drivers/media/video/s5p-fimc/mipi-csis.c    |   22 ++
- drivers/media/video/s5p-fimc/mipi-csis.h    |    3 +
- 6 files changed, 339 insertions(+), 350 deletions(-)
-
-
--- 
 Regards,
 
-Sylwester
+	Hans
+
+> 
+> > 
+> > In other words, I don't know. Not helpful, I agree.
+> 
+> That was helpful anyway :-) Thanks.
+> 
+> 
