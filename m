@@ -1,52 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:52782 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753972Ab1LZJYf (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:15621 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756933Ab1LNKrR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 04:24:35 -0500
-From: Sumit Semwal <sumit.semwal@ti.com>
-To: <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
-	<linaro-mm-sig@lists.linaro.org>,
-	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>,
-	<arnd@arndb.de>, <airlied@redhat.com>
-CC: <linux@arm.linux.org.uk>, <jesse.barker@linaro.org>,
-	<m.szyprowski@samsung.com>, <rob@ti.com>, <daniel@ffwll.ch>,
-	<t.stanislaws@samsung.com>, <patches@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Subject: [PATCH 3/3] dma-buf: mark EXPERIMENTAL for 1st release.
-Date: Mon, 26 Dec 2011 14:53:17 +0530
-Message-ID: <1324891397-10877-4-git-send-email-sumit.semwal@ti.com>
-In-Reply-To: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com>
-References: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Wed, 14 Dec 2011 05:47:17 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LW600F81WMSB240@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Dec 2011 10:47:16 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW600CRIWMRCH@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 14 Dec 2011 10:47:16 +0000 (GMT)
+Date: Wed, 14 Dec 2011 11:47:10 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] v4l: s5p-tv: mixer: fix setup of VP scaling
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	linux-media@vger.kernel.org,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Message-id: <1323859630-15819-1-git-send-email-m.szyprowski@samsung.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mark dma-buf buffer sharing API as EXPERIMENTAL for first release.
-We will remove this in later versions, once it gets smoothed out
-and has more users.
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
 
-Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Adjusting of Video Processor's scaling factors was flawed. It bounded scaling
+to range 1/16 to 1/1. The correct range should be 1/4 to 4/1. This patch fixes
+this bug.
+
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/base/Kconfig |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+ drivers/media/video/s5p-tv/mixer_vp_layer.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
-index 8a0e87f..e95c67e 100644
---- a/drivers/base/Kconfig
-+++ b/drivers/base/Kconfig
-@@ -178,6 +178,7 @@ config DMA_SHARED_BUFFER
- 	bool "Buffer framework to be shared between drivers"
- 	default n
- 	select ANON_INODES
-+	depends on EXPERIMENTAL
- 	help
- 	  This option enables the framework for buffer-sharing between
- 	  multiple drivers. A buffer is associated with a file using driver
+diff --git a/drivers/media/video/s5p-tv/mixer_vp_layer.c b/drivers/media/video/s5p-tv/mixer_vp_layer.c
+index e41ec2e..3d13a63 100644
+--- a/drivers/media/video/s5p-tv/mixer_vp_layer.c
++++ b/drivers/media/video/s5p-tv/mixer_vp_layer.c
+@@ -172,10 +172,10 @@ static void mxr_vp_fix_geometry(struct mxr_layer *layer,
+ 		y_center = src->y_offset + src->height / 2;
+ 
+ 		/* ensure scaling is between 0.25x .. 16x */
+-		src->width = clamp(src->width, round_up(dst->width, 4),
+-			dst->width * 16);
+-		src->height = clamp(src->height, round_up(dst->height, 4),
+-			dst->height * 16);
++		src->width = clamp(src->width, round_up(dst->width / 16, 4),
++			dst->width * 4);
++		src->height = clamp(src->height, round_up(dst->height / 16, 4),
++			dst->height * 4);
+ 
+ 		/* hardware limits */
+ 		src->width = clamp(src->width, 32U, 2047U);
 -- 
-1.7.5.4
+1.7.1.569.g6f426
 
