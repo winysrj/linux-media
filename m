@@ -1,404 +1,760 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:48579 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753317Ab1LBKDe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 05:03:34 -0500
-From: Xi Wang <xi.wang@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Xi Wang <xi.wang@gmail.com>
-Subject: [PATCH 2/3] wl128x: fmdrv_rx: fix signedness bugs
-Date: Fri,  2 Dec 2011 05:01:12 -0500
-Message-Id: <1322820073-19347-3-git-send-email-xi.wang@gmail.com>
-In-Reply-To: <1322820073-19347-1-git-send-email-xi.wang@gmail.com>
-References: <1322820073-19347-1-git-send-email-xi.wang@gmail.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:52006 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757358Ab1LNOCT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Dec 2011 09:02:19 -0500
+From: Ming Lei <ming.lei@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Ming Lei <ming.lei@canonical.com>
+Subject: [RFC PATCH v2 8/8] media: video: introduce omap4 face detection module driver
+Date: Wed, 14 Dec 2011 22:00:14 +0800
+Message-Id: <1323871214-25435-9-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The error handling with (ret < 0) didn't work where ret is a u32.
-Use int instead.  To be consistent we also change the functions to
-return an int.
+The patch introduces one face detection device driver for
+driving face detection hardware on omap4[1].
 
-Signed-off-by: Xi Wang <xi.wang@gmail.com>
+Most things of the driver are dealing with omap4 face detection
+hardware.
+
+This driver is platform independent, so in theory it can
+be used to drive same IP module on other platforms.
+
+[1], Ch9 of OMAP4 Technical Reference Manual
+
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
 ---
- drivers/media/radio/wl128x/fmdrv_rx.c |   84 +++++++++++++++++----------------
- drivers/media/radio/wl128x/fmdrv_rx.h |   50 ++++++++++----------
- 2 files changed, 68 insertions(+), 66 deletions(-)
+v2:
+	- based on odif module
+	- use new object detection API
+---
+ drivers/media/video/odif/Kconfig      |    6 +
+ drivers/media/video/odif/Makefile     |    1 +
+ drivers/media/video/odif/fdif_omap4.c |  685 +++++++++++++++++++++++++++++++++
+ 3 files changed, 692 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/odif/fdif_omap4.c
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
-index ec529b5..43fb722 100644
---- a/drivers/media/radio/wl128x/fmdrv_rx.c
-+++ b/drivers/media/radio/wl128x/fmdrv_rx.c
-@@ -43,12 +43,13 @@ void fm_rx_reset_station_info(struct fmdev *fmdev)
- 	fmdev->rx.stat_info.af_list_max = 0;
- }
- 
--u32 fm_rx_set_freq(struct fmdev *fmdev, u32 freq)
-+int fm_rx_set_freq(struct fmdev *fmdev, u32 freq)
- {
- 	unsigned long timeleft;
- 	u16 payload, curr_frq, intr_flag;
- 	u32 curr_frq_in_khz;
--	u32 ret, resp_len;
-+	u32 resp_len;
-+	int ret;
- 
- 	if (freq < fmdev->rx.region.bot_freq || freq > fmdev->rx.region.top_freq) {
- 		fmerr("Invalid frequency %d\n", freq);
-@@ -141,10 +142,10 @@ exit:
- 	return ret;
- }
- 
--static u32 fm_rx_set_channel_spacing(struct fmdev *fmdev, u32 spacing)
-+static int fm_rx_set_channel_spacing(struct fmdev *fmdev, u32 spacing)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (spacing > 0 && spacing <= 50000)
- 		spacing = FM_CHANNEL_SPACING_50KHZ;
-@@ -165,7 +166,7 @@ static u32 fm_rx_set_channel_spacing(struct fmdev *fmdev, u32 spacing)
- 	return ret;
- }
- 
--u32 fm_rx_seek(struct fmdev *fmdev, u32 seek_upward,
-+int fm_rx_seek(struct fmdev *fmdev, u32 seek_upward,
- 		u32 wrap_around, u32 spacing)
- {
- 	u32 resp_len;
-@@ -173,7 +174,7 @@ u32 fm_rx_seek(struct fmdev *fmdev, u32 seek_upward,
- 	u16 payload, int_reason, intr_flag;
- 	u16 offset, space_idx;
- 	unsigned long timeleft;
--	u32 ret;
-+	int ret;
- 
- 	/* Set channel spacing */
- 	ret = fm_rx_set_channel_spacing(fmdev, spacing);
-@@ -296,10 +297,10 @@ again:
- 	return ret;
- }
- 
--u32 fm_rx_set_volume(struct fmdev *fmdev, u16 vol_to_set)
-+int fm_rx_set_volume(struct fmdev *fmdev, u16 vol_to_set)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -322,7 +323,7 @@ u32 fm_rx_set_volume(struct fmdev *fmdev, u16 vol_to_set)
- }
- 
- /* Get volume */
--u32 fm_rx_get_volume(struct fmdev *fmdev, u16 *curr_vol)
-+int fm_rx_get_volume(struct fmdev *fmdev, u16 *curr_vol)
- {
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -338,7 +339,7 @@ u32 fm_rx_get_volume(struct fmdev *fmdev, u16 *curr_vol)
- }
- 
- /* To get current band's bottom and top frequency */
--u32 fm_rx_get_band_freq_range(struct fmdev *fmdev, u32 *bot_freq, u32 *top_freq)
-+int fm_rx_get_band_freq_range(struct fmdev *fmdev, u32 *bot_freq, u32 *top_freq)
- {
- 	if (bot_freq != NULL)
- 		*bot_freq = fmdev->rx.region.bot_freq;
-@@ -356,11 +357,11 @@ void fm_rx_get_region(struct fmdev *fmdev, u8 *region)
- }
- 
- /* Sets band (0-Europe/US; 1-Japan) */
--u32 fm_rx_set_region(struct fmdev *fmdev, u8 region_to_set)
-+int fm_rx_set_region(struct fmdev *fmdev, u8 region_to_set)
- {
- 	u16 payload;
- 	u32 new_frq = 0;
--	u32 ret;
-+	int ret;
- 
- 	if (region_to_set != FM_BAND_EUROPE_US &&
- 	    region_to_set != FM_BAND_JAPAN) {
-@@ -399,7 +400,7 @@ u32 fm_rx_set_region(struct fmdev *fmdev, u8 region_to_set)
- }
- 
- /* Reads current mute mode (Mute Off/On/Attenuate)*/
--u32 fm_rx_get_mute_mode(struct fmdev *fmdev, u8 *curr_mute_mode)
-+int fm_rx_get_mute_mode(struct fmdev *fmdev, u8 *curr_mute_mode)
- {
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -414,10 +415,10 @@ u32 fm_rx_get_mute_mode(struct fmdev *fmdev, u8 *curr_mute_mode)
- 	return 0;
- }
- 
--static u32 fm_config_rx_mute_reg(struct fmdev *fmdev)
-+static int fm_config_rx_mute_reg(struct fmdev *fmdev)
- {
- 	u16 payload, muteval;
--	u32 ret;
-+	int ret;
- 
- 	muteval = 0;
- 	switch (fmdev->rx.mute_mode) {
-@@ -448,10 +449,10 @@ static u32 fm_config_rx_mute_reg(struct fmdev *fmdev)
- }
- 
- /* Configures mute mode (Mute Off/On/Attenuate) */
--u32 fm_rx_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
-+int fm_rx_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
- {
- 	u8 org_state;
--	u32 ret;
-+	int ret;
- 
- 	if (fmdev->rx.mute_mode == mute_mode_toset)
- 		return 0;
-@@ -469,7 +470,7 @@ u32 fm_rx_set_mute_mode(struct fmdev *fmdev, u8 mute_mode_toset)
- }
- 
- /* Gets RF dependent soft mute mode enable/disable status */
--u32 fm_rx_get_rfdepend_softmute(struct fmdev *fmdev, u8 *curr_mute_mode)
-+int fm_rx_get_rfdepend_softmute(struct fmdev *fmdev, u8 *curr_mute_mode)
- {
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -485,10 +486,10 @@ u32 fm_rx_get_rfdepend_softmute(struct fmdev *fmdev, u8 *curr_mute_mode)
- }
- 
- /* Sets RF dependent soft mute mode */
--u32 fm_rx_set_rfdepend_softmute(struct fmdev *fmdev, u8 rfdepend_mute)
-+int fm_rx_set_rfdepend_softmute(struct fmdev *fmdev, u8 rfdepend_mute)
- {
- 	u8 org_state;
--	u32 ret;
-+	int ret;
- 
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -514,11 +515,11 @@ u32 fm_rx_set_rfdepend_softmute(struct fmdev *fmdev, u8 rfdepend_mute)
- }
- 
- /* Returns the signal strength level of current channel */
--u32 fm_rx_get_rssi_level(struct fmdev *fmdev, u16 *rssilvl)
-+int fm_rx_get_rssi_level(struct fmdev *fmdev, u16 *rssilvl)
- {
- 	u16 curr_rssi_lel;
- 	u32 resp_len;
--	u32 ret;
-+	int ret;
- 
- 	if (rssilvl == NULL) {
- 		fmerr("Invalid memory\n");
-@@ -539,10 +540,10 @@ u32 fm_rx_get_rssi_level(struct fmdev *fmdev, u16 *rssilvl)
-  * Sets the signal strength level that once reached
-  * will stop the auto search process
-  */
--u32 fm_rx_set_rssi_threshold(struct fmdev *fmdev, short rssi_lvl_toset)
-+int fm_rx_set_rssi_threshold(struct fmdev *fmdev, short rssi_lvl_toset)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (rssi_lvl_toset < FM_RX_RSSI_THRESHOLD_MIN ||
- 			rssi_lvl_toset > FM_RX_RSSI_THRESHOLD_MAX) {
-@@ -561,7 +562,7 @@ u32 fm_rx_set_rssi_threshold(struct fmdev *fmdev, short rssi_lvl_toset)
- }
- 
- /* Returns current RX RSSI threshold value */
--u32 fm_rx_get_rssi_threshold(struct fmdev *fmdev, short *curr_rssi_lvl)
-+int fm_rx_get_rssi_threshold(struct fmdev *fmdev, short *curr_rssi_lvl)
- {
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -577,10 +578,10 @@ u32 fm_rx_get_rssi_threshold(struct fmdev *fmdev, short *curr_rssi_lvl)
- }
- 
- /* Sets RX stereo/mono modes */
--u32 fm_rx_set_stereo_mono(struct fmdev *fmdev, u16 mode)
-+int fm_rx_set_stereo_mono(struct fmdev *fmdev, u16 mode)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (mode != FM_STEREO_MODE && mode != FM_MONO_MODE) {
- 		fmerr("Invalid mode\n");
-@@ -605,10 +606,11 @@ u32 fm_rx_set_stereo_mono(struct fmdev *fmdev, u16 mode)
- }
- 
- /* Gets current RX stereo/mono mode */
--u32 fm_rx_get_stereo_mono(struct fmdev *fmdev, u16 *mode)
-+int fm_rx_get_stereo_mono(struct fmdev *fmdev, u16 *mode)
- {
- 	u16 curr_mode;
--	u32 ret, resp_len;
-+	u32 resp_len;
-+	int ret;
- 
- 	if (mode == NULL) {
- 		fmerr("Invalid memory\n");
-@@ -626,10 +628,10 @@ u32 fm_rx_get_stereo_mono(struct fmdev *fmdev, u16 *mode)
- }
- 
- /* Choose RX de-emphasis filter mode (50us/75us) */
--u32 fm_rx_set_deemphasis_mode(struct fmdev *fmdev, u16 mode)
-+int fm_rx_set_deemphasis_mode(struct fmdev *fmdev, u16 mode)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -652,7 +654,7 @@ u32 fm_rx_set_deemphasis_mode(struct fmdev *fmdev, u16 mode)
- }
- 
- /* Gets current RX de-emphasis filter mode */
--u32 fm_rx_get_deemph_mode(struct fmdev *fmdev, u16 *curr_deemphasis_mode)
-+int fm_rx_get_deemph_mode(struct fmdev *fmdev, u16 *curr_deemphasis_mode)
- {
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -668,10 +670,10 @@ u32 fm_rx_get_deemph_mode(struct fmdev *fmdev, u16 *curr_deemphasis_mode)
- }
- 
- /* Enable/Disable RX RDS */
--u32 fm_rx_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
-+int fm_rx_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (rds_en_dis != FM_RDS_ENABLE && rds_en_dis != FM_RDS_DISABLE) {
- 		fmerr("Invalid rds option\n");
-@@ -743,7 +745,7 @@ u32 fm_rx_set_rds_mode(struct fmdev *fmdev, u8 rds_en_dis)
- }
- 
- /* Returns current RX RDS enable/disable status */
--u32 fm_rx_get_rds_mode(struct fmdev *fmdev, u8 *curr_rds_en_dis)
-+int fm_rx_get_rds_mode(struct fmdev *fmdev, u8 *curr_rds_en_dis)
- {
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -759,10 +761,10 @@ u32 fm_rx_get_rds_mode(struct fmdev *fmdev, u8 *curr_rds_en_dis)
- }
- 
- /* Sets RDS operation mode (RDS/RDBS) */
--u32 fm_rx_set_rds_system(struct fmdev *fmdev, u8 rds_mode)
-+int fm_rx_set_rds_system(struct fmdev *fmdev, u8 rds_mode)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -784,7 +786,7 @@ u32 fm_rx_set_rds_system(struct fmdev *fmdev, u8 rds_mode)
- }
- 
- /* Returns current RDS operation mode */
--u32 fm_rx_get_rds_system(struct fmdev *fmdev, u8 *rds_mode)
-+int fm_rx_get_rds_system(struct fmdev *fmdev, u8 *rds_mode)
- {
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -800,10 +802,10 @@ u32 fm_rx_get_rds_system(struct fmdev *fmdev, u8 *rds_mode)
- }
- 
- /* Configures Alternate Frequency switch mode */
--u32 fm_rx_set_af_switch(struct fmdev *fmdev, u8 af_mode)
-+int fm_rx_set_af_switch(struct fmdev *fmdev, u8 af_mode)
- {
- 	u16 payload;
--	u32 ret;
-+	int ret;
- 
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-@@ -831,7 +833,7 @@ u32 fm_rx_set_af_switch(struct fmdev *fmdev, u8 af_mode)
- }
- 
- /* Returns Alternate Frequency switch status */
--u32 fm_rx_get_af_switch(struct fmdev *fmdev, u8 *af_mode)
-+int fm_rx_get_af_switch(struct fmdev *fmdev, u8 *af_mode)
- {
- 	if (fmdev->curr_fmmode != FM_MODE_RX)
- 		return -EPERM;
-diff --git a/drivers/media/radio/wl128x/fmdrv_rx.h b/drivers/media/radio/wl128x/fmdrv_rx.h
-index 329e62f..32add81 100644
---- a/drivers/media/radio/wl128x/fmdrv_rx.h
-+++ b/drivers/media/radio/wl128x/fmdrv_rx.h
-@@ -22,38 +22,38 @@
- #ifndef _FMDRV_RX_H
- #define _FMDRV_RX_H
- 
--u32 fm_rx_set_freq(struct fmdev *, u32);
--u32 fm_rx_set_mute_mode(struct fmdev *, u8);
--u32 fm_rx_set_stereo_mono(struct fmdev *, u16);
--u32 fm_rx_set_rds_mode(struct fmdev *, u8);
--u32 fm_rx_set_rds_system(struct fmdev *, u8);
--u32 fm_rx_set_volume(struct fmdev *, u16);
--u32 fm_rx_set_rssi_threshold(struct fmdev *, short);
--u32 fm_rx_set_region(struct fmdev *, u8);
--u32 fm_rx_set_rfdepend_softmute(struct fmdev *, u8);
--u32 fm_rx_set_deemphasis_mode(struct fmdev *, u16);
--u32 fm_rx_set_af_switch(struct fmdev *, u8);
-+int fm_rx_set_freq(struct fmdev *, u32);
-+int fm_rx_set_mute_mode(struct fmdev *, u8);
-+int fm_rx_set_stereo_mono(struct fmdev *, u16);
-+int fm_rx_set_rds_mode(struct fmdev *, u8);
-+int fm_rx_set_rds_system(struct fmdev *, u8);
-+int fm_rx_set_volume(struct fmdev *, u16);
-+int fm_rx_set_rssi_threshold(struct fmdev *, short);
-+int fm_rx_set_region(struct fmdev *, u8);
-+int fm_rx_set_rfdepend_softmute(struct fmdev *, u8);
-+int fm_rx_set_deemphasis_mode(struct fmdev *, u16);
-+int fm_rx_set_af_switch(struct fmdev *, u8);
- 
- void fm_rx_reset_rds_cache(struct fmdev *);
- void fm_rx_reset_station_info(struct fmdev *);
- 
--u32 fm_rx_seek(struct fmdev *, u32, u32, u32);
-+int fm_rx_seek(struct fmdev *, u32, u32, u32);
- 
--u32 fm_rx_get_rds_mode(struct fmdev *, u8 *);
--u32 fm_rx_get_rds_system(struct fmdev *, u8 *);
--u32 fm_rx_get_mute_mode(struct fmdev *, u8 *);
--u32 fm_rx_get_volume(struct fmdev *, u16 *);
--u32 fm_rx_get_band_freq_range(struct fmdev *,
-+int fm_rx_get_rds_mode(struct fmdev *, u8 *);
-+int fm_rx_get_rds_system(struct fmdev *, u8 *);
-+int fm_rx_get_mute_mode(struct fmdev *, u8 *);
-+int fm_rx_get_volume(struct fmdev *, u16 *);
-+int fm_rx_get_band_freq_range(struct fmdev *,
- 					u32 *, u32 *);
--u32 fm_rx_get_stereo_mono(struct fmdev *, u16 *);
--u32 fm_rx_get_rssi_level(struct fmdev *, u16 *);
--u32 fm_rx_get_rssi_threshold(struct fmdev *, short *);
--u32 fm_rx_get_rfdepend_softmute(struct fmdev *, u8 *);
--u32 fm_rx_get_deemph_mode(struct fmdev *, u16 *);
--u32 fm_rx_get_af_switch(struct fmdev *, u8 *);
-+int fm_rx_get_stereo_mono(struct fmdev *, u16 *);
-+int fm_rx_get_rssi_level(struct fmdev *, u16 *);
-+int fm_rx_get_rssi_threshold(struct fmdev *, short *);
-+int fm_rx_get_rfdepend_softmute(struct fmdev *, u8 *);
-+int fm_rx_get_deemph_mode(struct fmdev *, u16 *);
-+int fm_rx_get_af_switch(struct fmdev *, u8 *);
- void fm_rx_get_region(struct fmdev *, u8 *);
- 
--u32 fm_rx_set_chanl_spacing(struct fmdev *, u8);
--u32 fm_rx_get_chanl_spacing(struct fmdev *, u8 *);
-+int fm_rx_set_chanl_spacing(struct fmdev *, u8);
-+int fm_rx_get_chanl_spacing(struct fmdev *, u8 *);
- #endif
- 
+diff --git a/drivers/media/video/odif/Kconfig b/drivers/media/video/odif/Kconfig
+index 5090bd6..2a8c545 100644
+--- a/drivers/media/video/odif/Kconfig
++++ b/drivers/media/video/odif/Kconfig
+@@ -5,3 +5,9 @@ config ODIF
+ 	help
+ 	  The ODIF is a object detection module, which can be integrated into
+ 	  some SoCs to detect objects in images or video.
++
++config ODIF_OMAP4
++	depends on ODIF
++	tristate "OMAP4 Face Detection module"
++	help
++	  OMAP4 face detection support
+diff --git a/drivers/media/video/odif/Makefile b/drivers/media/video/odif/Makefile
+index a55ff66..0eb844f 100644
+--- a/drivers/media/video/odif/Makefile
++++ b/drivers/media/video/odif/Makefile
+@@ -1 +1,2 @@
+ obj-$(CONFIG_ODIF)		+= odif.o
++obj-$(CONFIG_ODIF_OMAP4)	+= fdif_omap4.o
+diff --git a/drivers/media/video/odif/fdif_omap4.c b/drivers/media/video/odif/fdif_omap4.c
+new file mode 100644
+index 0000000..d7953d8
+--- /dev/null
++++ b/drivers/media/video/odif/fdif_omap4.c
+@@ -0,0 +1,685 @@
++/*
++ *      fdif_omap4.c  --  face detection module driver
++ *
++ *      Copyright (C) 2011  Ming Lei (ming.lei@canonical.com)
++ *
++ *      This program is free software; you can redistribute it and/or modify
++ *      it under the terms of the GNU General Public License as published by
++ *      the Free Software Foundation; either version 2 of the License, or
++ *      (at your option) any later version.
++ *
++ *      This program is distributed in the hope that it will be useful,
++ *      but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *      MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *      GNU General Public License for more details.
++ *
++ *      You should have received a copy of the GNU General Public License
++ *      along with this program; if not, write to the Free Software
++ *      Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
++ *
++ */
++
++/*****************************************************************************/
++#include <linux/init.h>
++#include <linux/fs.h>
++#include <linux/mm.h>
++#include <linux/slab.h>
++#include <linux/signal.h>
++#include <linux/wait.h>
++#include <linux/poll.h>
++#include <linux/module.h>
++#include <linux/pm_runtime.h>
++#include <linux/delay.h>
++#include <linux/user_namespace.h>
++#include <linux/platform_device.h>
++#include <linux/interrupt.h>
++#include <linux/dma-mapping.h>
++#include "odif.h"
++#include <asm/uaccess.h>
++#include <asm/byteorder.h>
++#include <asm/io.h>
++
++#undef DEBUG
++
++#define PICT_SIZE_X     320
++#define PICT_SIZE_Y     240
++
++#define	WORK_MEM_SIZE	(52*1024)
++
++/* 9.5 FDIF Register Manua of TI OMAP4 TRM */
++#define FDIF_REVISION		0x0
++#define FDIF_HWINFO		0x4
++#define FDIF_SYSCONFIG		0x10
++#define SOFTRESET		(1 << 0)
++
++#define FDIF_IRQSTATUS_RAW_j	(0x24 + 2*0x10)
++#define FDIF_IRQSTATUS_j	(0x28 + 2*0x10)
++#define FDIF_IRQENABLE_SET_j	(0x2c + 2*0x10)
++#define FDIF_IRQENABLE_CLR_j	(0x30 + 2*0x10)
++#define FINISH_IRQ		(1 << 8)
++#define ERR_IRQ			(1 << 0)
++
++#define FDIF_PICADDR		0x60
++#define FDIF_CTRL		0x64
++#define CTRL_MAX_TAGS		0x0A
++
++#define FDIF_WKADDR		0x68
++#define FD_CTRL			0x80
++#define CTRL_FINISH		(1 << 2)
++#define CTRL_RUN		(1 << 1)
++#define CTRL_SRST		(1 << 0)
++
++
++#define FD_DNUM			0x84
++#define FD_DCOND		0x88
++#define FD_STARTX		0x8c
++#define FD_STARTY		0x90
++#define FD_SIZEX		0x94
++#define FD_SIZEY		0x98
++#define FD_LHIT			0x9c
++#define FD_CENTERX_i		0x160
++#define FD_CENTERY_i		0x164
++#define FD_CONFSIZE_i		0x168
++#define FD_ANGLE_i		0x16c
++
++static inline void fd_writel(void __iomem *base, u32 reg, u32 val)
++{
++	__raw_writel(val, base + reg);
++}
++
++static inline u32 fd_readl(void __iomem *base, u32 reg)
++{
++	return __raw_readl(base + reg);
++}
++
++struct fdif_qvga {
++	struct odif_dev *dev;
++
++	/*should be removed*/
++	struct platform_device	*pdev;
++	int			irq;
++	void __iomem		*base;
++
++	void			*work_mem_addr;
++	dma_addr_t 		work_dma;
++	dma_addr_t 		pict_dma;
++	unsigned long 		pict_mem_len;
++
++	struct odif_buffer	*pending;
++	spinlock_t		lock;
++};
++
++struct odif_fmt qvga_fmt[] = {
++	{
++		.name		= "8  Greyscale",
++		.fourcc		= V4L2_PIX_FMT_GREY,
++		.depth		= 8,
++		.width		= PICT_SIZE_X,
++		.height		= PICT_SIZE_Y,
++	},
++};
++
++
++#ifdef DEBUG
++static void dump_fdif_setting(struct fdif_qvga *fdif, const char *func)
++{
++	printk("%s: %s\n", func, __func__);
++	printk("work mem addr:%8p\n", fdif->work_mem_addr);
++	printk("face size=%2d, face dir=%2d, lhit=%d\n",
++			fdif->dev->s.min_obj_size, fdif->dev->s.obj_dir,
++			fdif->dev->s.lhit);
++	printk("startx =%4d starty=%4d sizex=%4d sizey=%4d\n",
++			fdif->dev->s.startx, fdif->dev->s.starty,
++			fdif->dev->s.sizex, fdif->dev->s.sizey);
++}
++
++static void dump_fdif_results(struct v4l2_odif_result *fdif, const char *func)
++{
++	int idx;
++
++	printk("%s: %s\n", func, __func__);
++
++	printk("found %d faces, but index:%d\n", fdif->face_cnt,
++			fdif->index);
++	for(idx=0; idx < fdif->face_cnt; idx++) {
++		struct v4l2_fd_detection *fr = &fdif->faces[idx];
++		printk("	No.%d x=%3d y=%2d sz=%2d ang=%3d conf=%2d\n",
++				idx, fr->face.centerx, fr->face.centery,
++				fr->face.sizex, fr->face.angle,
++				fr->face.confidence);
++	}
++}
++
++static void dump_fdif_regs(struct fdif_qvga *fdif, const char *func)
++{
++	printk("%s:%s\n", __func__, func);
++	printk("FDIF_CTRL=%08x FDIF_SYSCONFIG=%08x\n",
++			fd_readl(fdif->base, FDIF_CTRL),
++			fd_readl(fdif->base, FDIF_SYSCONFIG));
++	printk("FDIF_IRQSTATUS_RAW_j=%08x FDIF_IRQSTATUS_j=%08x\n",
++			fd_readl(fdif->base, FDIF_IRQSTATUS_RAW_j),
++			fd_readl(fdif->base, FDIF_IRQSTATUS_j));
++	printk("FDIF_PICADDR=%08x FDIF_WKADDR=%08x\n",
++			fd_readl(fdif->base, FDIF_PICADDR),
++			fd_readl(fdif->base, FDIF_WKADDR));
++	printk("FD_CTRL=%04x, FDIF_IRQENABLE_SET_j=%04x\n",
++			fd_readl(fdif->base, FD_CTRL),
++			fd_readl(fdif->base, FDIF_IRQENABLE_SET_j));
++}
++
++#else
++static inline void dump_fdif_setting(struct fdif_qvga *fdif, const char *func)
++{
++}
++static inline void dump_fdif_results(struct v4l2_odif_result *fdif, const char *func)
++{
++}
++static inline void dump_fdif_regs(struct fdif_qvga *fdif, const char *func)
++{
++}
++#endif
++
++/**
++ * 0x0: Set the min face size to 20 pixels
++ * 0x1: Set the min face size to 25 pixels
++ * 0x2: Set the min face size to 32 pixels
++ * 0x3: Set the min face size to 40 pixels
++ * */
++static int pixels2hw(u32 pixels)
++{
++	if (pixels <= 20)
++		pixels = 20;
++	else if (pixels <= 25)
++		pixels = 25;
++	else if (pixels <= 32)
++		pixels = 32;
++	else
++		pixels = 40;
++
++	switch (pixels) {
++	case 20:
++		return 0;
++	case 25:
++		return 1;
++	case 32:
++		return 2;
++	case 40:
++		return 3;
++	}
++
++	return 0;
++}
++
++
++static void install_default_setting(struct fdif_qvga *fdif)
++{
++	fdif->dev->s.fmt		= &qvga_fmt[0];
++	fdif->dev->s.field		= V4L2_FIELD_NONE;
++
++	fdif->dev->s.min_obj_size	= 25;
++	fdif->dev->s.obj_dir		= OBJ_DIR_UP;
++	fdif->dev->s.startx		= 0;
++	fdif->dev->s.starty		= 0;
++	fdif->dev->s.sizex		= 0x140;
++	fdif->dev->s.sizey		= 0xf0;
++	fdif->dev->s.lhit		= 0x5;
++
++	fdif->dev->s.width		= PICT_SIZE_X;
++	fdif->dev->s.height		= PICT_SIZE_Y;
++}
++
++static void commit_image_setting(struct fdif_qvga *fdif)
++{
++	unsigned long conf;
++	struct vb2_buffer *vb = &fdif->pending->vb;
++	void *pict_vaddr = vb2_plane_vaddr(vb, 0);
++
++	fdif->pict_mem_len = vb2_plane_size(vb, 0);
++	fdif->pict_dma = dma_map_single(&fdif->pdev->dev,
++				pict_vaddr,
++				fdif->pict_mem_len,
++				DMA_TO_DEVICE);
++
++	fd_writel(fdif->base, FDIF_PICADDR, fdif->pict_dma);
++
++	conf = (pixels2hw(fdif->dev->s.min_obj_size) & 0x3) ||
++		((fdif->dev->s.obj_dir & 0x3) << 2);
++	fd_writel(fdif->base, FD_DCOND, conf);
++
++	fd_writel(fdif->base, FD_STARTX, fdif->dev->s.startx);
++	fd_writel(fdif->base, FD_STARTY, fdif->dev->s.starty);
++	fd_writel(fdif->base, FD_SIZEX, fdif->dev->s.sizex);
++	fd_writel(fdif->base, FD_SIZEY, fdif->dev->s.sizey);
++	fd_writel(fdif->base, FD_LHIT, fdif->dev->s.lhit);
++}
++
++
++/*softreset fdif*/
++static int softreset_fdif(struct fdif_qvga *fdif)
++{
++	unsigned long conf;
++	int to = 0;
++
++	conf = fd_readl(fdif->base, FDIF_SYSCONFIG);
++	conf |= SOFTRESET;
++	fd_writel(fdif->base, FDIF_SYSCONFIG, conf);
++
++	while ((conf & SOFTRESET) && to++ < 2000) {
++		conf = fd_readl(fdif->base, FDIF_SYSCONFIG);
++		udelay(2);
++	}
++
++	if (to == 2000)
++		dev_err(&fdif->pdev->dev, "%s: reset failed\n", __func__);
++
++	return to == 2000;
++}
++
++static void __start_detect(struct fdif_qvga *fdif)
++{
++	unsigned long conf;
++
++	dump_fdif_setting(fdif, __func__);
++
++	commit_image_setting(fdif);
++
++	/*enable finish irq*/
++	conf = FINISH_IRQ;
++	fd_writel(fdif->base, FDIF_IRQENABLE_SET_j, conf);
++
++	/*set RUN flag*/
++	conf = CTRL_RUN;
++	fd_writel(fdif->base, FD_CTRL, conf);
++
++	dump_fdif_regs(fdif, __func__);
++}
++
++static void __stop_detect(struct fdif_qvga *fdif)
++{
++	unsigned long conf;
++
++	dump_fdif_regs(fdif, __func__);
++
++	dma_unmap_single(&fdif->pdev->dev, fdif->pict_dma,
++				fdif->pict_mem_len,
++				DMA_TO_DEVICE);
++	/*disable finish irq*/
++	conf = FINISH_IRQ;
++	fd_writel(fdif->base, FDIF_IRQENABLE_CLR_j, conf);
++
++	/*mark FINISH flag*/
++	conf = CTRL_FINISH;
++	fd_writel(fdif->base, FD_CTRL, conf);
++}
++
++static int read_faces(struct fdif_qvga *fdif, int is_err)
++{
++	int cnt, idx = 0;
++	struct v4l2_odif_result *v4l2_fr;
++	struct odif_dev *dev = fdif->dev;
++	struct odif_buffer *buf;
++	unsigned long flags;
++
++	spin_lock_irqsave(&fdif->lock, flags);
++
++	buf = fdif->pending;
++	if (!buf) {
++		WARN_ON(1);
++		cnt = -EIO;
++		goto out;
++	}
++
++	buf->vb.v4l2_buf.sequence++;
++
++	if (!is_err)
++		cnt = fd_readl(fdif->base, FD_DNUM) & 0x3f;
++	else
++		cnt = 0;
++
++	v4l2_fr = odif_allocate_detection(dev, cnt);
++	if (!v4l2_fr) {
++		cnt = -ENOMEM;
++		goto out;
++	}
++
++	v4l2_fr->frm_seq = buf->vb.v4l2_buf.sequence;
++
++	while(idx < cnt) {
++		struct v4l2_od_object *fr = &v4l2_fr->objs[idx];
++
++		fr->type = V4L2_OD_TYPE_FACE;
++
++		fr->o.face.id = idx + 1;
++		fr->o.face.f.centerx = fd_readl(fdif->base,
++				FD_CENTERX_i + idx * 0x10) & 0x1ff;
++		fr->o.face.f.centery = fd_readl(fdif->base,
++				FD_CENTERY_i + idx * 0x10) & 0xff;
++		fr->o.face.f.angle = fd_readl(fdif->base,
++				FD_ANGLE_i + idx * 0x10) & 0x1ff;
++		fr->o.face.f.sizex = fd_readl(fdif->base,
++				FD_CONFSIZE_i + idx * 0x10);
++		fr->confidence = ((fr->o.face.f.sizex >> 8) & 0xf) * 10;
++		fr->o.face.f.sizey = fr->o.face.f.sizex = fr->o.face.f.sizex & 0xff;
++
++		idx++;
++	}
++
++	__stop_detect(fdif);
++	fdif->pending = NULL;
++	spin_unlock_irqrestore(&fdif->lock, flags);
++
++	dump_fdif_results(v4l2_fr, __func__);
++
++	/*queue the detection result to complete queue*/
++	odif_add_detection(dev, v4l2_fr);
++
++	if (is_err)
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++	else
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_DONE);
++
++	wake_up(&dev->odif_dq.wq);
++
++	return cnt;
++
++out:
++	spin_unlock_irqrestore(&fdif->lock, flags);
++	return cnt;
++}
++
++static int __submit_detection(struct fdif_qvga *fdif)
++{
++	struct odif_dev *dev = fdif->dev;
++	struct odif_buffer *buf;
++	unsigned long flags;
++	unsigned int ret = 0;
++
++	buf = odif_pick_up_buffer(dev);
++	if (!buf)
++		goto out;
++
++	spin_lock_irqsave(&fdif->lock, flags);
++	if (fdif->pending) {
++		spin_unlock_irqrestore(&fdif->lock, flags);
++		ret = -EBUSY;
++		goto out;
++	}
++	fdif->pending = buf;
++	__start_detect(fdif);
++	spin_unlock_irqrestore(&fdif->lock, flags);
++
++	return 0;
++
++out:
++	return ret;
++}
++
++static irqreturn_t handle_detection(int irq, void *__fdif)
++{
++	unsigned long irqsts;
++	struct fdif_qvga *fdif = __fdif;
++	irqreturn_t ret = IRQ_HANDLED;
++
++	/*clear irq status*/
++	irqsts = fd_readl(fdif->base, FDIF_IRQSTATUS_j);
++
++	if (irqsts & (FINISH_IRQ | ERR_IRQ)) {
++		int is_err = irqsts & ERR_IRQ;
++
++		fd_writel(fdif->base, FDIF_IRQSTATUS_j, irqsts);
++
++		read_faces(fdif, is_err);
++		if (is_err)
++			softreset_fdif(fdif);
++
++		__submit_detection(fdif);
++	} else {
++		ret = IRQ_NONE;
++	}
++
++	return ret;
++}
++
++static void fdif_global_init(struct fdif_qvga *fdif)
++{
++	unsigned long conf;
++	struct device *dev = &fdif->pdev->dev;
++
++	/*softreset fdif*/
++	softreset_fdif(fdif);
++
++	/*set max tags*/
++	conf = fd_readl(fdif->base, FDIF_CTRL);
++	conf &= ~0x1e;
++	conf |= (CTRL_MAX_TAGS << 1);
++	fd_writel(fdif->base, FDIF_CTRL, conf);
++
++	/*enable error irq*/
++	conf = ERR_IRQ;
++	fd_writel(fdif->base, FDIF_IRQENABLE_SET_j, conf);
++
++	fdif->work_dma = dma_map_single(dev,
++				fdif->work_mem_addr,
++		                WORK_MEM_SIZE,
++				DMA_TO_DEVICE);
++	fd_writel(fdif->base, FDIF_WKADDR, fdif->work_dma);
++}
++
++static void fdif_global_deinit(struct fdif_qvga *fdif)
++{
++	unsigned long conf;
++	struct device *dev = &fdif->pdev->dev;
++
++	/*enable error irq*/
++	conf = ERR_IRQ;
++	fd_writel(fdif->base, FDIF_IRQENABLE_CLR_j, conf);
++
++	dma_unmap_single(dev, fdif->work_dma,
++			WORK_MEM_SIZE, DMA_TO_DEVICE);
++}
++
++
++static int start_detect(struct odif_dev *dev)
++{
++	struct fdif_qvga *fdif = dev_get_drvdata(dev->dev);
++
++	pm_runtime_get_sync(dev->dev);
++	fdif_global_init(fdif);
++
++	return  __submit_detection(fdif);
++}
++
++static int stop_detect(struct odif_dev *dev)
++{
++	struct fdif_qvga *fdif = dev_get_drvdata(dev->dev);
++	unsigned long flags, irqsts;
++	struct odif_buffer	*buf;
++
++	spin_lock_irqsave(&fdif->lock, flags);
++
++	/*stop current transfer first*/
++	__stop_detect(fdif);
++
++	buf = fdif->pending;
++	fdif->pending = NULL;
++
++	/*clear irq status in case that it is set*/
++	irqsts = fd_readl(fdif->base, FDIF_IRQSTATUS_j);
++	fd_writel(fdif->base, FDIF_IRQSTATUS_j, irqsts);
++
++	spin_unlock_irqrestore(&fdif->lock, flags);
++
++	if (buf)
++		vb2_buffer_done(&buf->vb, VB2_BUF_STATE_ERROR);
++
++	fdif_global_deinit(fdif);
++	pm_runtime_put(dev->dev);
++	return 0;
++}
++
++static int submit_detect(struct odif_dev *dev)
++{
++	struct fdif_qvga *fdif = dev_get_drvdata(dev->dev);
++
++	__submit_detection(fdif);
++
++	return 0;
++}
++
++static struct odif_ops qvga_ops = {
++	.capability = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING,
++	.table	= qvga_fmt,
++	.fmt_cnt = 1,
++	.start_detect = start_detect,
++	.stop_detect = stop_detect,
++	.submit_detect = submit_detect,
++};
++
++static int fdif_probe(struct platform_device *pdev)
++{
++	struct device	*dev = &pdev->dev;
++	struct fdif_qvga *fdif;
++	struct odif_dev *fdev;
++	struct resource *res;
++	int ret, order;
++
++	ret = odif_create_instance(dev, sizeof(struct fdif_qvga),
++			&qvga_ops, &fdev);
++	if (ret) {
++		dev_err(dev, "odif_create_instance failed:%d\n", ret);
++		goto end_probe;
++	}
++
++	fdif = (struct fdif_qvga *)fdev->priv;
++	fdif->dev = fdev;
++
++	spin_lock_init(&fdif->lock);
++	fdif->pdev = pdev;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++	if (!res) {
++		dev_err(dev, "fdif get resource failed\n");
++		ret = -ENODEV;
++		goto err_iomap;
++	}
++
++	fdif->base = ioremap(res->start, resource_size(res));
++	if (!fdif->base) {
++		dev_err(dev, "fdif ioremap failed\n");
++		ret = -ENOMEM;
++		goto err_iomap;
++	}
++
++	fdif->irq = platform_get_irq(pdev, 0);
++	if (fdif->irq < 0) {
++		dev_err(dev, "fdif get irq failed\n");
++		ret = -ENODEV;
++		goto err_get_irq;
++	}
++
++	ret = request_irq(fdif->irq, handle_detection, 0, "fdif-qvga",
++			fdif);
++	if (ret) {
++		dev_err(dev, "request_irq failed:%d\n", ret);
++		goto err_get_irq;
++	}
++
++	order = get_order(WORK_MEM_SIZE);
++	fdif->work_mem_addr = (void *)__get_free_pages(GFP_KERNEL, order);
++	if (!fdif->work_mem_addr) {
++		dev_err(dev, "fdif buffer allocation(%d) failed\n", order);
++		ret = -ENOMEM;
++		goto err_work_mem;
++	}
++
++	install_default_setting(fdif);
++
++	platform_set_drvdata(pdev, fdif);
++
++	pm_suspend_ignore_children(dev, true);
++	pm_runtime_get_sync(dev);
++	dev_info(dev, "fdif version=%8x hwinfo=%08x\n",
++			fd_readl(fdif->base, FDIF_REVISION),
++			fd_readl(fdif->base, FDIF_HWINFO));
++	pm_runtime_put(dev);
++
++	return 0;
++
++err_work_mem:
++	free_irq(fdif->irq, fdif);
++err_get_irq:
++	iounmap(fdif->base);
++err_iomap:
++	kref_put(&fdif->dev->ref, odif_release);
++end_probe:
++	return ret;
++}
++
++static int fdif_remove(struct platform_device *pdev)
++{
++	struct fdif_qvga *fdif = platform_get_drvdata(pdev);
++	int order;
++
++	platform_set_drvdata(pdev, NULL);
++
++	free_irq(fdif->irq, fdif);
++
++	order = get_order(WORK_MEM_SIZE);
++	free_pages((unsigned long)fdif->work_mem_addr, order);
++
++	iounmap(fdif->base);
++
++	kref_put(&fdif->dev->ref, odif_release);
++
++	return 0;
++}
++
++static int fdif_suspend(struct platform_device *pdev, pm_message_t msg)
++{
++	return 0;
++}
++
++static int fdif_resume(struct platform_device *pdev)
++{
++	return 0;
++}
++
++static struct platform_device_id odif_device_ids[] = {
++	{.name = "omap-fdif"},
++	{},
++};
++
++struct platform_driver fdif_driver = {
++	.probe =	fdif_probe,
++	.remove =	fdif_remove,
++	.suspend =	fdif_suspend,
++	.resume =	fdif_resume,
++	.driver = {
++		.name  =	"omap-fdif",
++		.owner =	THIS_MODULE,
++	},
++	.id_table = 	odif_device_ids,
++};
++
++static int __init omap4_fdif_init(void)
++{
++	int retval;
++	retval = platform_driver_register(&fdif_driver);
++	if (retval) {
++		printk(KERN_ERR "Unable to register fdif driver\n");
++		return retval;
++	}
++	return 0;
++}
++
++static void omap4_fdif_cleanup(void)
++{
++	platform_driver_unregister(&fdif_driver);
++}
++
++module_init(omap4_fdif_init);
++module_exit(omap4_fdif_cleanup);
++
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("platform:omap-fdif");
++MODULE_AUTHOR("Ming Lei");
 -- 
 1.7.5.4
 
