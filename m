@@ -1,95 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from deacon.kewl.org ([212.161.35.253]:53703 "EHLO mail.kewl.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212Ab1LaSCJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 13:02:09 -0500
-Message-ID: <6acb7f159883a6fb7201eee28fe224b4.squirrel@mail.kewl.org>
-In-Reply-To: <20111231115416.GC16802@elie.Belkin>
-References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
-    <20111231115117.GB16802@elie.Belkin>
-    <20111231115416.GC16802@elie.Belkin>
-Date: Sat, 31 Dec 2011 17:37:42 -0000
-Subject: Re: [PATCH 1/9] [media] DVB: dvb_net_init: return -errno on error
-From: "Darron Broad" <darron@kewl.org>
-To: "Jonathan Nieder" <jrnieder@gmail.com>
-Cc: "David Fries" <david@fries.net>,
-	"Istvan Varga" <istvan_v@mailbox.hu>, linux-media@vger.kernel.org,
-	"Darron Broad" <darron@kewl.org>,
-	"Steven Toth" <stoth@kernellabs.com>,
-	"Hans Petter Selasky" <hselasky@c2i.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:56233 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757276Ab1LNOBM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Dec 2011 09:01:12 -0500
+From: Ming Lei <ming.lei@canonical.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	Ming Lei <ming.lei@canonical.com>
+Subject: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module) hwmod
+Date: Wed, 14 Dec 2011 22:00:07 +0800
+Message-Id: <1323871214-25435-2-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81 ++++++++++++++++++++++++++++
+ 1 files changed, 81 insertions(+), 0 deletions(-)
 
-On Sat, December 31, 2011 11:54, Jonathan Nieder wrote:
-> dvb_net_init unconditionally returns 0.  Callers such as
-> videobuf_dvb_register_frontend examine dvbnet->dvbdev instead of the
-> return value to tell whether the operation succeeded.  If it has been
-> set to a valid pointer, success; if it was left equal to NULL,
-> failure.
-
-I noticed this when testing the MFE patch set a few years ago
-now and as you have seen I tested for NULL elsewhere more as
-a reminder than any thing else.
-
-I made no changes either as you can also see since it was beyond
-the scope of the MFE patches at the time. I do remember this
-and it pops into my mind once in a while and now it can now be
-cast aside forever, thanks.
-
-> Alas, there is an edge case where that logic does not work as well:
-> when network support has been compiled out (CONFIG_DVB_NET=n), we want
-> dvb_net_init and related operations to behave as no-ops and always
-> succeed, but there is no appropriate value to which to set dvb->dvbdev
-> to indicate this.
-
-I suspect this is the only case where the MFE patches do not
-properly check every potential fault with attachment as I cannot
-remember any other function being as the NET attachment which
-may have actually been a void function when I last visited it
-but that's a bit vague and the return 0 suggests not.
-
-> Let dvb_net_init return a meaningful error code, as preparation for
-> adapting callers to look at that instead.
->
-> The only immediate impact of this patch should be to make the few
-> callers that already check for an error code from dvb_net_init behave
-> a little more sensibly when it fails.
-
-Cheers, thanks for your efforts.
-bye
-
-> Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
-> ---
->  drivers/media/dvb/dvb-core/dvb_net.c |    4 +---
->  1 files changed, 1 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/dvb/dvb-core/dvb_net.c
-> b/drivers/media/dvb/dvb-core/dvb_net.c
-> index 93d9869e0f15..8766ce8c354d 100644
-> --- a/drivers/media/dvb/dvb-core/dvb_net.c
-> +++ b/drivers/media/dvb/dvb-core/dvb_net.c
-> @@ -1510,9 +1510,7 @@ int dvb_net_init (struct dvb_adapter *adap, struct
-> dvb_net *dvbnet,
->  	for (i=0; i<DVB_NET_DEVICES_MAX; i++)
->  		dvbnet->state[i] = 0;
->
-> -	dvb_register_device (adap, &dvbnet->dvbdev, &dvbdev_net,
-> +	return dvb_register_device(adap, &dvbnet->dvbdev, &dvbdev_net,
->  			     dvbnet, DVB_DEVICE_NET);
-> -
-> -	return 0;
->  }
->  EXPORT_SYMBOL(dvb_net_init);
-
-
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+index 6cf21ee..30db754 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
+ static struct omap_hwmod omap44xx_dsp_hwmod;
+ static struct omap_hwmod omap44xx_dss_hwmod;
+ static struct omap_hwmod omap44xx_emif_fw_hwmod;
++static struct omap_hwmod omap44xx_fdif_hwmod;
+ static struct omap_hwmod omap44xx_hsi_hwmod;
+ static struct omap_hwmod omap44xx_ipu_hwmod;
+ static struct omap_hwmod omap44xx_iss_hwmod;
+@@ -354,6 +355,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
+ 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+ };
+ 
++/* fdif -> l3_main_2 */
++static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 = {
++	.master		= &omap44xx_fdif_hwmod,
++	.slave		= &omap44xx_l3_main_2_hwmod,
++	.clk		= "l3_div_ck",
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* hsi -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 = {
+ 	.master		= &omap44xx_hsi_hwmod,
+@@ -5444,6 +5453,75 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+ 	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
+ };
+ 
++/* 'fdif' class */
++static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc = {
++	.rev_offs	= 0x0000,
++	.sysc_offs	= 0x0010,
++	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
++			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
++	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++			   MSTANDBY_FORCE | MSTANDBY_NO |
++			   MSTANDBY_SMART),
++	.sysc_fields	= &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class omap44xx_fdif_hwmod_class = {
++	.name	= "fdif",
++	.sysc	= &omap44xx_fdif_sysc,
++};
++
++/*fdif*/
++static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] = {
++	{
++		.pa_start	= 0x4a10a000,
++		.pa_end		= 0x4a10afff,
++		.flags		= ADDR_TYPE_RT
++	},
++	{ }
++};
++
++/* l4_cfg -> fdif */
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif = {
++	.master		= &omap44xx_l4_cfg_hwmod,
++	.slave		= &omap44xx_fdif_hwmod,
++	.clk		= "l4_div_ck",
++	.addr		= omap44xx_fdif_addrs,
++	.user		= OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* fdif slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] = {
++	&omap44xx_l4_cfg__fdif,
++};
++static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] = {
++	{ .irq = 69 + OMAP44XX_IRQ_GIC_START },
++	{ .irq = -1 }
++};
++
++/* fdif master ports */
++static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] = {
++	&omap44xx_fdif__l3_main_2,
++};
++
++static struct omap_hwmod omap44xx_fdif_hwmod = {
++	.name		= "fdif",
++	.class		= &omap44xx_fdif_hwmod_class,
++	.clkdm_name	= "iss_clkdm",
++	.mpu_irqs	= omap44xx_fdif_irqs,
++	.main_clk	= "fdif_fck",
++	.prcm = {
++		.omap4 = {
++			.clkctrl_offs = OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
++			.context_offs = OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
++			.modulemode   = MODULEMODE_SWCTRL,
++		},
++	},
++	.slaves		= omap44xx_fdif_slaves,
++	.slaves_cnt	= ARRAY_SIZE(omap44xx_fdif_slaves),
++	.masters	= omap44xx_fdif_masters,
++	.masters_cnt	= ARRAY_SIZE(omap44xx_fdif_masters),
++};
++
+ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 
+ 	/* dmm class */
+@@ -5593,6 +5671,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+ 	&omap44xx_wd_timer2_hwmod,
+ 	&omap44xx_wd_timer3_hwmod,
+ 
++	/* fdif class */
++	&omap44xx_fdif_hwmod,
++
+ 	NULL,
+ };
+ 
 -- 
-
- // /
-{:)==={ Darron Broad <darron@kewl.org>
- \\ \
+1.7.5.4
 
