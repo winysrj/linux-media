@@ -1,93 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:33867 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754210Ab1LAXKj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Dec 2011 18:10:39 -0500
-Message-ID: <4ED80969.6060404@linuxtv.org>
-Date: Fri, 02 Dec 2011 00:10:33 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from moutng.kundenserver.de ([212.227.17.8]:65266 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757464Ab1LNSWo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 14 Dec 2011 13:22:44 -0500
+Date: Wed, 14 Dec 2011 19:22:29 +0100
+From: martin@neutronstar.dyndns.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Igor Grinberg <grinberg@compulab.co.il>,
+	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+	Hiremath Vaibhav <hvaibhav@ti.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based
+ camera board.
+References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org>
+ <4EE86CF7.1010002@compulab.co.il>
+ <201112141415.23885.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Abylay Ospan <aospan@netup.ru>,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: LinuxTV ported to Windows
-References: <4ED65C46.20502@netup.ru> <CAGoCfiw16bAtPHfrtsDDOBL4BeFnH+zMqcz9wBitGGSq_RZtJA@mail.gmail.com> <4ED68AF0.8000903@linuxtv.org> <201112012042.57343.laurent.pinchart@ideasonboard.com> <CALzAhNW_BSf-MbD8yM8YyrjaaGnTsni4NOzaRBu0zZ6zFxgP7Q@mail.gmail.com>
-In-Reply-To: <CALzAhNW_BSf-MbD8yM8YyrjaaGnTsni4NOzaRBu0zZ6zFxgP7Q@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201112141415.23885.laurent.pinchart@ideasonboard.com>
+Message-Id: <1323886950.295978.31313@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Steven,
-
-On 01.12.2011 22:18, Steven Toth wrote:
->>> The point I'm trying to make: Someone made a presumably nice open source
->>> port to a new platform and the first thing you're doing is to play the
->>> GPL-has-been-violated-card, even though you're admitting that you don't
->>> know whether any right is being violated or not. Please don't do that.
->>> It's not very encouraging to someone who just announced free software.
->>
->> Thanks for pointing this out. I would have reacted similarly to Devin, not to
->> discourage Abylay from working on this interesting project, but to warn him
->> that there might be legal issues (I think we would all prefer early
->> notifications from the community than late notifications from unfriendly
->> lawyers :-)). You understanding this as an attack shows that we need to be
->> more careful in the way we word our messages on license-related issues.
+On Wed, Dec 14, 2011 at 02:15:22PM +0100, Laurent Pinchart wrote:
+> Hi Igor,
 > 
-> I've been silent as I wanted to see how the thread evolved. This is a
-> response in general to the group - not any individual.
+> On Wednesday 14 December 2011 10:31:35 Igor Grinberg wrote:
+> > On 12/14/11 03:25, Martin Hostettler wrote:
+> > > Adds board support for an MT9M032 based camera to omap3evm.
+> > > 
+> > > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
 > 
-> Speaking as the maintainer and copyright owner I can say that it would
-> have been nice if someone had contacted me privately re the matter,
-> before hand. Not to assert any legal right, not for any approval,
-> simply as a courtesy and a perhaps a small 'Thank You'. NetUp could
-> have happily had my personal blessing on their project.
+> [snip]
+> 
+> > > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
+> > > index 0000000..bffd5b8
+> > > --- /dev/null
+> > > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > @@ -0,0 +1,155 @@
+> 
+> [snip]
+> 
+> > > +#include <linux/i2c.h>
+> > > +#include <linux/init.h>
+> > > +#include <linux/platform_device.h>
+> > > +
+> > > +#include <linux/gpio.h>
+> > > +#include <plat/mux.h>
+> > > +#include "mux.h"
+> > > +
+> > > +#include "../../../drivers/media/video/omap3isp/isp.h"
+> > 
+> > Laurent,
+> > In one of the previous reviews, you stated:
+> > "I'll probably split it and move the part required by board files to
+> > include/media/omap3isp.h".
+> > Is there any progress on that?
+> 
+> Yes, it has been half-fixed in mainline. Half only because all the structures 
+> and macros that should be used by board code are now in <media/omap3isp.h>, 
+> but some boards need to access OMAP3 ISP internals from board code, which 
+> still requires drivers/media/video/omap3isp/isp.h. This will eventually be 
+> fixed, when the generic struct clk object will be available.
+> 
+> After a quick look at this patch it seems that <media/omap3isp.h> should be 
+> enough here.
 
-you could have said thank you for porting the driver as well: The port
-enlarges the user base, is likely to uncover bugs and you might even
-receive fixes to those bugs for free (unless the ranting goes on).
+Almost. The code uses ISPCTRL_PAR_BRIDGE_DISABLE which is only available
+from drivers/media/video/omap3isp/ispreg.h.
 
-> My first concern is that this only benefits NetUp on Windows, no other
-> company benefits on windows - as they all already have legal access to
-> the Conexant source reference driver.
+So i'd say it's better to keep that include than to duplicate this constant
+in the code.
 
-Are you implying that
-a) it's not the users who benefit most?
-b) other companies won't be able to use this driver?
-c) NetUp doesn't have legal access to the reference driver?
+What do you think?
 
-> The Windows GPL driver
-> could/will evolve much faster than the Linux driver and that will suit
-> NetUp commercially and nobody else. Time will not be taken to
-> "backport" changes into the Linux driver and that's bad for the Linux
-> community. (Or, for commercial reasons, the backports will take longer
-> than expected)
+By the way, it seems drivers/media/video/omap3isp/ispvideo.c is missing a 
+#include <linux/module.h> at the moment. I had to patch that line in to get
+omap3isp to compile as module.
 
-Why don't you do the backports yourself? You want NetUp to do the work
-for you? The code is published in a Git repository. You can easily track
-any changes.
+> 
+> > > +#include "media/mt9m032.h"
+> 
+> And this should be <media/mt9m032.h>
 
-> My second concern is that NetUp have made it very simply for the
-> hundreds of no-name third party far-east companies (with zero
-> legitimate access to the Conexant windows source reference driver), to
-> take the windows driver, close source it, not distribute their changes
-> and compete against the few legitimate TVTuner companies left in the
-> world. If/when the one or two remaining TVTuner companies die because
-> their bread and butter Windows sales are being eroded to zero - how
-> does this help this community? It doesn't, it only helps NetUp.
-
-Any company doing that could use any existing binary driver as well.
-Besides that, I'm sure it's no problem for them to get access to any
-reference driver they want.
-
-> I embrace open source, I welcome new developers, debate and growth....
-> I just think if you are going to get my 18 year old daughter pregnant
-> then it's courtesy to knock on my door and introduce yourself first -
-> regardless of my opinion or your legal rights.
-
-A very compelling analogy.
+I'll change this.
 
 Regards,
-Andreas
+ - Martin Hostettler
+
+> 
+> > > +#include "devices.h"
+> 
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
