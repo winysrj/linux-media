@@ -1,373 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:63663 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751944Ab1LUPx6 (ORCPT
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:35435 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751305Ab1LONzu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Dec 2011 10:53:58 -0500
-Date: Wed, 21 Dec 2011 16:53:55 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH 3/3] V4L: mt9m111: properly implement .s_crop and .s_fmt(),
- reset on STREAMON
-In-Reply-To: <Pine.LNX.4.64.1112211649070.30646@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1112211653100.30646@axis700.grange>
-References: <Pine.LNX.4.64.1112211649070.30646@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 15 Dec 2011 08:55:50 -0500
+Received: by wgbds13 with SMTP id ds13so1164737wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 05:55:49 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] media: tvp5150: Add mbus_fmt callbacks.
+Date: Thu, 15 Dec 2011 14:48:45 +0100
+Message-Id: <1323956925-2984-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-mt9m111 camera sensors support cropping and scaling. The current
-implementation is broken. For example, .s_crop() sets output frame sizes
-instead of the input cropping window. This patch adds a proper implementation
-of these methods. Besides it adds a sensor-disable and -enable operations
-on first open() and last close() respectively, to save power while closed and
-to return the camera to the default power-on state.
+These callbacks allow a host video driver
+to poll video formats supported by tvp5150.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/video/mt9m111.c |  226 ++++++++++++++++++++--------------------
- 1 files changed, 113 insertions(+), 113 deletions(-)
+Changes since v1:
+ Fix standard handling in tvp5150_mbus_fmt()
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index 797660b..ba1ea8c 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -185,19 +185,6 @@ struct mt9m111_datafmt {
- 	enum v4l2_colorspace		colorspace;
- };
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/tvp5150.c |   67 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 67 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
+index 26cc75b..c58c8d5 100644
+--- a/drivers/media/video/tvp5150.c
++++ b/drivers/media/video/tvp5150.c
+@@ -778,6 +778,70 @@ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return -EINVAL;
+ }
  
--/* Find a data format by a pixel code in an array */
--static const struct mt9m111_datafmt *mt9m111_find_datafmt(
--	enum v4l2_mbus_pixelcode code, const struct mt9m111_datafmt *fmt,
--	int n)
--{
--	int i;
--	for (i = 0; i < n; i++)
--		if (fmt[i].code == code)
--			return fmt + i;
--
--	return NULL;
--}
--
- static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
- 	{V4L2_MBUS_FMT_YUYV8_2X8, V4L2_COLORSPACE_JPEG},
- 	{V4L2_MBUS_FMT_YVYU8_2X8, V4L2_COLORSPACE_JPEG},
-@@ -220,7 +207,9 @@ struct mt9m111 {
- 	int model;	/* V4L2_IDENT_MT9M111 or V4L2_IDENT_MT9M112 code
- 			 * from v4l2-chip-ident.h */
- 	struct mt9m111_context *ctx;
--	struct v4l2_rect rect;
-+	struct v4l2_rect rect;	/* cropping rectangle */
-+	int width;		/* output */
-+	int height;		/* sizes */
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
- 	const struct mt9m111_datafmt *fmt;
-@@ -228,6 +217,18 @@ struct mt9m111 {
- 	unsigned char datawidth;
- };
- 
-+/* Find a data format by a pixel code */
-+static const struct mt9m111_datafmt *mt9m111_find_datafmt(struct mt9m111 *mt9m111,
-+						enum v4l2_mbus_pixelcode code)
++static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
 +{
-+	int i;
-+	for (i = 0; i < ARRAY_SIZE(mt9m111_colour_fmts); i++)
-+		if (mt9m111_colour_fmts[i].code == code)
-+			return mt9m111_colour_fmts + i;
++	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
 +
-+	return mt9m111->fmt;
++	switch (val & 0x0F) {
++	case 0x01:
++		return V4L2_STD_NTSC;
++	case 0x03:
++		return V4L2_STD_PAL;
++	case 0x05:
++		return V4L2_STD_PAL_M;
++	case 0x07:
++		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
++	case 0x09:
++		return V4L2_STD_NTSC_443;
++	case 0xb:
++		return V4L2_STD_SECAM;
++	default:
++		return V4L2_STD_UNKNOWN;
++	}
 +}
 +
- static struct mt9m111 *to_mt9m111(const struct i2c_client *client)
- {
- 	return container_of(i2c_get_clientdata(client), struct mt9m111, subdev);
-@@ -316,43 +317,49 @@ static int mt9m111_set_context(struct mt9m111 *mt9m111,
- }
- 
- static int mt9m111_setup_rect_ctx(struct mt9m111 *mt9m111,
--			struct v4l2_rect *rect, struct mt9m111_context *ctx)
-+			struct mt9m111_context *ctx, struct v4l2_rect *rect,
-+			unsigned int width, unsigned int height)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
--	int ret = mt9m111_reg_write(client, ctx->reducer_xzoom, MT9M111_MAX_WIDTH);
-+	int ret = mt9m111_reg_write(client, ctx->reducer_xzoom, rect->width);
- 	if (!ret)
--		ret = mt9m111_reg_write(client, ctx->reducer_yzoom, MT9M111_MAX_HEIGHT);
-+		ret = mt9m111_reg_write(client, ctx->reducer_yzoom, rect->height);
- 	if (!ret)
--		ret = mt9m111_reg_write(client, ctx->reducer_xsize, rect->width);
-+		ret = mt9m111_reg_write(client, ctx->reducer_xsize, width);
- 	if (!ret)
--		ret = mt9m111_reg_write(client, ctx->reducer_ysize, rect->height);
-+		ret = mt9m111_reg_write(client, ctx->reducer_ysize, height);
- 	return ret;
- }
- 
--static int mt9m111_setup_rect(struct mt9m111 *mt9m111,
--			      struct v4l2_rect *rect)
-+static int mt9m111_setup_geometry(struct mt9m111 *mt9m111, struct v4l2_rect *rect,
-+			int width, int height, enum v4l2_mbus_pixelcode code)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
- 	int ret;
--	bool is_raw_format = mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
--		mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE;
- 
- 	ret = reg_write(COLUMN_START, rect->left);
- 	if (!ret)
- 		ret = reg_write(ROW_START, rect->top);
- 
--	if (is_raw_format) {
--		if (!ret)
--			ret = reg_write(WINDOW_WIDTH, rect->width);
--		if (!ret)
--			ret = reg_write(WINDOW_HEIGHT, rect->height);
--	} else {
-+	if (!ret)
-+		ret = reg_write(WINDOW_WIDTH, rect->width);
-+	if (!ret)
-+		ret = reg_write(WINDOW_HEIGHT, rect->height);
-+
-+	if (code != V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE) {
-+		/* IFP in use, down-scaling possible */
- 		if (!ret)
--			ret = mt9m111_setup_rect_ctx(mt9m111, rect, &context_b);
-+			ret = mt9m111_setup_rect_ctx(mt9m111, &context_b,
-+						     rect, width, height);
- 		if (!ret)
--			ret = mt9m111_setup_rect_ctx(mt9m111, rect, &context_a);
-+			ret = mt9m111_setup_rect_ctx(mt9m111, &context_a,
-+						     rect, width, height);
- 	}
- 
-+	dev_dbg(&client->dev, "%s(%x): %ux%u@%u:%u -> %ux%u = %d\n",
-+		__func__, code, rect->width, rect->height, rect->left, rect->top,
-+		width, height, ret);
-+
- 	return ret;
- }
- 
-@@ -377,43 +384,41 @@ static int mt9m111_reset(struct mt9m111 *mt9m111)
- 	return ret;
- }
- 
--static int mt9m111_make_rect(struct mt9m111 *mt9m111,
--			     struct v4l2_rect *rect)
-+static int mt9m111_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
- {
-+	struct v4l2_rect rect = a->c;
-+	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
-+	int width, height;
-+	int ret;
-+
-+	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
++static int tvp5150_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
++						enum v4l2_mbus_pixelcode *code)
++{
++	if (index)
 +		return -EINVAL;
 +
- 	if (mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
- 	    mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE) {
- 		/* Bayer format - even size lengths */
--		rect->width	= ALIGN(rect->width, 2);
--		rect->height	= ALIGN(rect->height, 2);
-+		rect.width	= ALIGN(rect.width, 2);
-+		rect.height	= ALIGN(rect.height, 2);
- 		/* Let the user play with the starting pixel */
- 	}
- 
- 	/* FIXME: the datasheet doesn't specify minimum sizes */
--	soc_camera_limit_side(&rect->left, &rect->width,
-+	soc_camera_limit_side(&rect.left, &rect.width,
- 		     MT9M111_MIN_DARK_COLS, 2, MT9M111_MAX_WIDTH);
- 
--	soc_camera_limit_side(&rect->top, &rect->height,
-+	soc_camera_limit_side(&rect.top, &rect.height,
- 		     MT9M111_MIN_DARK_ROWS, 2, MT9M111_MAX_HEIGHT);
- 
--	return mt9m111_setup_rect(mt9m111, rect);
--}
--
--static int mt9m111_s_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
--{
--	struct v4l2_rect rect = a->c;
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
--	int ret;
-+	width = min(mt9m111->width, rect.width);
-+	height = min(mt9m111->height, rect.height);
- 
--	dev_dbg(&client->dev, "%s left=%d, top=%d, width=%d, height=%d\n",
--		__func__, rect.left, rect.top, rect.width, rect.height);
--
--	if (a->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--
--	ret = mt9m111_make_rect(mt9m111, &rect);
--	if (!ret)
-+	ret = mt9m111_setup_geometry(mt9m111, &rect, width, height, mt9m111->fmt->code);
-+	if (!ret) {
- 		mt9m111->rect = rect;
-+		mt9m111->width = width;
-+		mt9m111->height = height;
-+	}
-+
- 	return ret;
- }
- 
-@@ -448,8 +453,8 @@ static int mt9m111_g_fmt(struct v4l2_subdev *sd,
- {
- 	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
- 
--	mf->width	= mt9m111->rect.width;
--	mf->height	= mt9m111->rect.height;
-+	mf->width	= mt9m111->width;
-+	mf->height	= mt9m111->height;
- 	mf->code	= mt9m111->fmt->code;
- 	mf->colorspace	= mt9m111->fmt->colorspace;
- 	mf->field	= V4L2_FIELD_NONE;
-@@ -527,80 +532,74 @@ static int mt9m111_set_pixfmt(struct mt9m111 *mt9m111,
- 	return ret;
- }
- 
--static int mt9m111_s_fmt(struct v4l2_subdev *sd,
--			 struct v4l2_mbus_framefmt *mf)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	const struct mt9m111_datafmt *fmt;
--	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
--	struct v4l2_rect rect = {
--		.left	= mt9m111->rect.left,
--		.top	= mt9m111->rect.top,
--		.width	= mf->width,
--		.height	= mf->height,
--	};
--	int ret;
--
--	fmt = mt9m111_find_datafmt(mf->code, mt9m111_colour_fmts,
--				   ARRAY_SIZE(mt9m111_colour_fmts));
--	if (!fmt)
--		return -EINVAL;
--
--	dev_dbg(&client->dev,
--		"%s code=%x left=%d, top=%d, width=%d, height=%d\n", __func__,
--		mf->code, rect.left, rect.top, rect.width, rect.height);
--
--	ret = mt9m111_make_rect(mt9m111, &rect);
--	if (!ret)
--		ret = mt9m111_set_pixfmt(mt9m111, mf->code);
--	if (!ret) {
--		mt9m111->rect	= rect;
--		mt9m111->fmt	= fmt;
--		mf->colorspace	= fmt->colorspace;
--	}
--
--	return ret;
--}
--
- static int mt9m111_try_fmt(struct v4l2_subdev *sd,
- 			   struct v4l2_mbus_framefmt *mf)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
- 	const struct mt9m111_datafmt *fmt;
--	bool bayer = mf->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
--		mf->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE;
--
--	fmt = mt9m111_find_datafmt(mf->code, mt9m111_colour_fmts,
--				   ARRAY_SIZE(mt9m111_colour_fmts));
--	if (!fmt) {
--		fmt = mt9m111->fmt;
--		mf->code = fmt->code;
--	}
-+	struct v4l2_rect *rect = &mt9m111->rect;
-+	bool bayer;
-+
-+	fmt = mt9m111_find_datafmt(mt9m111, mf->code);
-+
-+	bayer = fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
-+		fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE;
- 
- 	/*
- 	 * With Bayer format enforce even side lengths, but let the user play
- 	 * with the starting pixel
- 	 */
-+	if (bayer) {
-+		rect->width = ALIGN(rect->width, 2);
-+		rect->height = ALIGN(rect->height, 2);
-+	}
- 
--	if (mf->height > MT9M111_MAX_HEIGHT)
--		mf->height = MT9M111_MAX_HEIGHT;
--	else if (mf->height < 2)
--		mf->height = 2;
--	else if (bayer)
--		mf->height = ALIGN(mf->height, 2);
-+	if (fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE) {
-+		/* IFP bypass mode, no scaling */
-+		mf->width = rect->width;
-+		mf->height = rect->height;
-+	} else {
-+		/* No upscaling */
-+		if (mf->width > rect->width)
-+			mf->width = rect->width;
-+		if (mf->height > rect->height)
-+			mf->height = rect->height;
-+	}
- 
--	if (mf->width > MT9M111_MAX_WIDTH)
--		mf->width = MT9M111_MAX_WIDTH;
--	else if (mf->width < 2)
--		mf->width = 2;
--	else if (bayer)
--		mf->width = ALIGN(mf->width, 2);
-+	dev_dbg(&client->dev, "%s(): %ux%u, code=%x\n", __func__,
-+		mf->width, mf->height, fmt->code);
- 
-+	mf->code = fmt->code;
- 	mf->colorspace = fmt->colorspace;
- 
- 	return 0;
- }
- 
-+static int mt9m111_s_fmt(struct v4l2_subdev *sd,
-+			 struct v4l2_mbus_framefmt *mf)
-+{
-+	const struct mt9m111_datafmt *fmt;
-+	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
-+	struct v4l2_rect *rect = &mt9m111->rect;
-+	int ret;
-+
-+	mt9m111_try_fmt(sd, mf);
-+	fmt = mt9m111_find_datafmt(mt9m111, mf->code);
-+	/* try_fmt() guarantees fmt != NULL && fmt->code == mf->code */
-+
-+	ret = mt9m111_setup_geometry(mt9m111, rect, mf->width, mf->height, mf->code);
-+	if (!ret)
-+		ret = mt9m111_set_pixfmt(mt9m111, mf->code);
-+	if (!ret) {
-+		mt9m111->width	= mf->width;
-+		mt9m111->height	= mf->height;
-+		mt9m111->fmt	= fmt;
-+	}
-+
-+	return ret;
++	*code = V4L2_MBUS_FMT_YUYV8_2X8;
++	return 0;
 +}
 +
- static int mt9m111_g_chip_ident(struct v4l2_subdev *sd,
- 				struct v4l2_dbg_chip_ident *id)
- {
-@@ -765,7 +764,8 @@ static void mt9m111_restore_state(struct mt9m111 *mt9m111)
- {
- 	mt9m111_set_context(mt9m111, mt9m111->ctx);
- 	mt9m111_set_pixfmt(mt9m111, mt9m111->fmt->code);
--	mt9m111_setup_rect(mt9m111, &mt9m111->rect);
-+	mt9m111_setup_geometry(mt9m111, &mt9m111->rect,
-+			mt9m111->width, mt9m111->height, mt9m111->fmt->code);
- 	v4l2_ctrl_handler_setup(&mt9m111->hdl);
- }
++static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
++			    struct v4l2_mbus_framefmt *f)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
++
++	if (f == NULL)
++		return -EINVAL;
++
++	tvp5150_reset(sd, 0);
++
++	/* Calculate height and width based on current standard */
++	if (decoder->norm == V4L2_STD_ALL)
++		std = tvp5150_read_std(sd);
++	else
++		std = decoder->norm;
++
++	f->width = 720;
++	if (std & V4L2_STD_525_60)
++		f->height = 480;
++	else
++		f->height = 576;
++
++	f->code = V4L2_MBUS_FMT_YUYV8_2X8;
++	f->field = V4L2_FIELD_SEQ_TB;
++	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
++
++	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
++			f->height);
++	return 0;
++}
++
+ /****************************************************************************
+ 			I2C Command
+  ****************************************************************************/
+@@ -930,6 +994,9 @@ static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
  
+ static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+ 	.s_routing = tvp5150_s_routing,
++	.enum_mbus_fmt = tvp5150_enum_mbus_fmt,
++	.s_mbus_fmt = tvp5150_mbus_fmt,
++	.try_mbus_fmt = tvp5150_mbus_fmt,
+ };
+ 
+ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
 -- 
-1.7.2.5
+1.7.0.4
 
