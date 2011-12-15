@@ -1,66 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53875 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755452Ab1LGNUi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 08:20:38 -0500
-Received: from lancelot.localnet (unknown [91.178.3.157])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 49AF235A9B
-	for <linux-media@vger.kernel.org>; Wed,  7 Dec 2011 13:20:37 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from impaqm1.telefonica.net ([213.4.138.17]:2737 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759364Ab1LOTHv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 14:07:51 -0500
+From: Jose Alberto Reguero <jareguero@telefonica.net>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.3] uvcvideo: move to vb2, support UVC timestamps, and various fixes
-Date: Wed, 7 Dec 2011 14:20:45 +0100
+Subject: [PATCH] Add support to "OmniVision Technologies, Inc. VEHO Filmscanner" (omnivision 550)
+Date: Thu, 15 Dec 2011 19:54:35 +0100
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112071420.46081.laurent.pinchart@ideasonboard.com>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_sJk6OGniBV1IQWZ"
+Message-Id: <201112151954.36143.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+--Boundary-00=_sJk6OGniBV1IQWZ
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-The following changes since commit 2a887d27708a4f9f3b5ad8258f9e19a150b58f03:
+This path add support to ""OmniVision Technologies, Inc. VEHO Filmscanner".
 
-  [media] tm6000: fix OOPS at tm6000_ir_int_stop() and tm6000_ir_int_start() 
-(2011-11-30 16:49:45 -0200)
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-are available in the git repository at:
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+Jose Alberto
+  
 
-Alexey Fisher (2):
-      uvcvideo: Add debugfs support
-      uvcvideo: Extract video stream statistics
+--Boundary-00=_sJk6OGniBV1IQWZ
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="ov534_9.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="ov534_9.diff"
 
-Haogang Chen (1):
-      uvcvideo: Fix integer overflow in uvc_ioctl_ctrl_map()
+diff -ur linux/drivers/media/video/gspca/ov534_9.c linux.new/drivers/media/video/gspca/ov534_9.c
+--- linux/drivers/media/video/gspca/ov534_9.c	2011-09-18 05:45:49.000000000 +0200
++++ linux.new/drivers/media/video/gspca/ov534_9.c	2011-12-15 19:18:14.264593333 +0100
+@@ -71,6 +71,7 @@
+ enum sensors {
+ 	SENSOR_OV965x,		/* ov9657 */
+ 	SENSOR_OV971x,		/* ov9712 */
++	SENSOR_OV562x,		/* ov5621 */
+ 	NSENSORS
+ };
+ 
+@@ -207,6 +208,14 @@
+ 	}
+ };
+ 
++static const struct v4l2_pix_format ov562x_mode[] = {
++	{2592, 1680, V4L2_PIX_FMT_SBGGR8, V4L2_FIELD_NONE,
++		.bytesperline = 2592,
++		.sizeimage = 2592 * 1680,
++		.colorspace = V4L2_COLORSPACE_SRGB
++	}
++};
++
+ static const u8 bridge_init[][2] = {
+ 	{0x88, 0xf8},
+ 	{0x89, 0xff},
+@@ -830,6 +839,124 @@
+ 	{0xa3, 0x41},	/* bd60 */
+ };
+ 
++static const u8 ov562x_init[][2] = {
++	{0x88, 0x20},
++	{0x89, 0x0a},
++	{0x8a, 0x90},
++	{0x8b, 0x06},
++	{0x8c, 0x01},
++	{0x8d, 0x10},
++	{0x1c, 0x00},
++	{0x1d, 0x48},
++	{0x1d, 0x00},
++	{0x1d, 0xff},
++	{0x1c, 0x0a},
++	{0x1d, 0x2e},
++	{0x1d, 0x1e},
++};
++
++static const u8 ov562x_init_2[][2] = {
++	{0x12, 0x80},
++	{0x11, 0x41},
++	{0x13, 0x00},
++	{0x10, 0x1e},
++	{0x3b, 0x07},
++	{0x5b, 0x40},
++	{0x39, 0x07},
++	{0x53, 0x02},
++	{0x54, 0x60},
++	{0x04, 0x20},
++	{0x27, 0x04},
++	{0x3d, 0x40},
++	{0x36, 0x00},
++	{0xc5, 0x04},
++	{0x4e, 0x00},
++	{0x4f, 0x93},
++	{0x50, 0x7b},
++	{0xca, 0x0c},
++	{0xcb, 0x0f},
++	{0x39, 0x07},
++	{0x4a, 0x10},
++	{0x3e, 0x0a},
++	{0x3d, 0x00},
++	{0x0c, 0x38},
++	{0x38, 0x90},
++	{0x46, 0x30},
++	{0x4f, 0x93},
++	{0x50, 0x7b},
++	{0xab, 0x00},
++	{0xca, 0x0c},
++	{0xcb, 0x0f},
++	{0x37, 0x02},
++	{0x44, 0x48},
++	{0x8d, 0x44},
++	{0x2a, 0x00},
++	{0x2b, 0x00},
++	{0x32, 0x00},
++	{0x38, 0x90},
++	{0x53, 0x02},
++	{0x54, 0x60},
++	{0x12, 0x00},
++	{0x17, 0x12},
++	{0x18, 0xb4},
++	{0x19, 0x0c},
++	{0x1a, 0xf4},
++	{0x03, 0x4a},
++	{0x89, 0x20},
++	{0x83, 0x80},
++	{0xb7, 0x9d},
++	{0xb6, 0x11},
++	{0xb5, 0x55},
++	{0xb4, 0x00},
++	{0xa9, 0xf0},
++	{0xa8, 0x0a},
++	{0xb8, 0xf0},
++	{0xb9, 0xf0},
++	{0xba, 0xf0},
++	{0x81, 0x07},
++	{0x63, 0x44},
++	{0x13, 0xc7},
++	{0x14, 0x60},
++	{0x33, 0x75},
++	{0x2c, 0x00},
++	{0x09, 0x00},
++	{0x35, 0x30},
++	{0x27, 0x04},
++	{0x3c, 0x07},
++	{0x3a, 0x0a},
++	{0x3b, 0x07},
++	{0x01, 0x40},
++	{0x02, 0x40},
++	{0x16, 0x40},
++	{0x52, 0xb0},
++	{0x51, 0x83},
++	{0x21, 0xbb},
++	{0x22, 0x10},
++	{0x23, 0x03},
++	{0x35, 0x38},
++	{0x20, 0x90},
++	{0x28, 0x30},
++	{0x73, 0xe1},
++	{0x6c, 0x00},
++	{0x6d, 0x80},
++	{0x6e, 0x00},
++	{0x70, 0x04},
++	{0x71, 0x00},
++	{0x8d, 0x04},
++	{0x64, 0x00},
++	{0x65, 0x00},
++	{0x66, 0x00},
++	{0x67, 0x00},
++	{0x68, 0x00},
++	{0x69, 0x00},
++	{0x6a, 0x00},
++	{0x6b, 0x00},
++	{0x71, 0x94},
++	{0x74, 0x20},
++	{0x80, 0x09},
++	{0x85, 0xc0},
++};
++
+ static void reg_w_i(struct gspca_dev *gspca_dev, u16 reg, u8 val)
+ {
+ 	struct usb_device *udev = gspca_dev->dev;
+@@ -1210,6 +1337,17 @@
+ 			reg_w(gspca_dev, 0x56, 0x1f);
+ 		else
+ 			reg_w(gspca_dev, 0x56, 0x17);
++	} else if ((sensor_id & 0xfff0) == 0x5620) {
++		sd->sensor = SENSOR_OV562x;
++
++		gspca_dev->cam.cam_mode = ov562x_mode;
++		gspca_dev->cam.nmodes = ARRAY_SIZE(ov562x_mode);
++
++		reg_w_array(gspca_dev, ov562x_init,
++				ARRAY_SIZE(ov562x_init));
++		sccb_w_array(gspca_dev, ov562x_init_2,
++				ARRAY_SIZE(ov562x_init_2));
++		reg_w(gspca_dev, 0xe0, 0x00);
+ 	} else {
+ 		err("Unknown sensor %04x", sensor_id);
+ 		return -EINVAL;
+@@ -1222,7 +1360,7 @@
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	if (sd->sensor == SENSOR_OV971x)
++	if (sd->sensor == SENSOR_OV971x || sd->sensor == SENSOR_OV562x)
+ 		return gspca_dev->usb_err;
+ 	switch (gspca_dev->curr_mode) {
+ 	case QVGA_MODE:			/* 320x240 */
+@@ -1409,6 +1547,7 @@
+ static const struct usb_device_id device_table[] = {
+ 	{USB_DEVICE(0x05a9, 0x8065)},
+ 	{USB_DEVICE(0x06f8, 0x3003)},
++	{USB_DEVICE(0x05a9, 0x1550)},
+ 	{}
+ };
+ 
 
-Laurent Pinchart (10):
-      uvcvideo: Move fields from uvc_buffer::buf to uvc_buffer
-      uvcvideo: Use videobuf2-vmalloc
-      uvcvideo: Handle uvc_init_video() failure in uvc_video_enable()
-      uvcvideo: Remove duplicate definitions of UVC_STREAM_* macros
-      uvcvideo: Add support for LogiLink Wireless Webcam
-      uvcvideo: Make uvc_commit_video() static
-      uvcvideo: Don't skip erroneous payloads
-      uvcvideo: Ignore GET_RES error for XU controls
-      uvcvideo: Extract timestamp-related statistics
-      uvcvideo: Add UVC timestamps support
-
- drivers/media/video/uvc/Kconfig       |    1 +
- drivers/media/video/uvc/Makefile      |    2 +-
- drivers/media/video/uvc/uvc_ctrl.c    |   17 +-
- drivers/media/video/uvc/uvc_debugfs.c |  135 +++++++
- drivers/media/video/uvc/uvc_driver.c  |   30 ++-
- drivers/media/video/uvc/uvc_isight.c  |   10 +-
- drivers/media/video/uvc/uvc_queue.c   |  564 ++++++++----------------------
- drivers/media/video/uvc/uvc_v4l2.c    |   29 +-
- drivers/media/video/uvc/uvc_video.c   |  625 ++++++++++++++++++++++++++++++--
- drivers/media/video/uvc/uvcvideo.h    |  128 ++++++--
- 10 files changed, 1039 insertions(+), 502 deletions(-)
- create mode 100644 drivers/media/video/uvc/uvc_debugfs.c
-
--- 
-Regards,
-
-Laurent Pinchart
+--Boundary-00=_sJk6OGniBV1IQWZ--
