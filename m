@@ -1,139 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37682 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752603Ab1LSIeK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 03:34:10 -0500
-From: Sumit Semwal <sumit.semwal@ti.com>
-To: <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
-	<linaro-mm-sig@lists.linaro.org>,
-	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>
-CC: <linux@arm.linux.org.uk>, <arnd@arndb.de>,
-	<jesse.barker@linaro.org>, <m.szyprowski@samsung.com>,
-	<rob@ti.com>, <daniel@ffwll.ch>, <t.stanislaws@samsung.com>,
-	<patches@linaro.org>, Sumit Semwal <sumit.semwal@ti.com>
-Subject: [RFC v3 0/2] Introduce DMA buffer sharing mechanism
-Date: Mon, 19 Dec 2011 14:03:28 +0530
-Message-ID: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1177 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758718Ab1LOOP5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 09:15:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 7/8] cx18/ddbridge: remove unused headers.
+Date: Thu, 15 Dec 2011 15:15:36 +0100
+Message-Id: <201b9cb2e9773439a807bcfe40ff17b19c5bbb0f.1323957539.git.hans.verkuil@cisco.com>
+In-Reply-To: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
+References: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <26fac753ffa549b2ffdc5fe64a50e0a9637c2b16.1323957539.git.hans.verkuil@cisco.com>
+References: <26fac753ffa549b2ffdc5fe64a50e0a9637c2b16.1323957539.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Everyone,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is RFC v3 for DMA buffer sharing mechanism - changes from v2 are in the
-changelog below.
+The cx18 and ddbridge drivers include linux/dvb/audio.h and video.h
+without using them.
 
-Various subsystems - V4L2, GPU-accessors, DRI to name a few - have felt the 
-need to have a common mechanism to share memory buffers across different
-devices - ARM, video hardware, GPU.
+Remove those includes.
 
-This need comes forth from a variety of use cases including cameras, image 
-processing, video recorders, sound processing, DMA engines, GPU and display
-buffers, and others.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/dvb/ddbridge/ddbridge.h  |    2 --
+ drivers/media/video/cx18/cx18-driver.h |    2 --
+ 2 files changed, 0 insertions(+), 4 deletions(-)
 
-This RFC is an attempt to define such a buffer sharing mechanism- it is the
-result of discussions from a couple of memory-management mini-summits held by
-Linaro to understand and address common needs around memory management. [1]
-
-A new dma_buf buffer object is added, with operations and API to allow easy
-sharing of this buffer object across devices.
-
-The framework allows:
-- a new buffer-object to be created with fixed size.
-- different devices to 'attach' themselves to this buffer, to facilitate
-  backing storage negotiation, using dma_buf_attach() API.
-- association of a file pointer with each user-buffer and associated
-   allocator-defined operations on that buffer. This operation is called the
-   'export' operation.
-- this exported buffer-object to be shared with the other entity by asking for
-   its 'file-descriptor (fd)', and sharing the fd across.
-- a received fd to get the buffer object back, where it can be accessed using
-   the associated exporter-defined operations.
-- the exporter and user to share the scatterlist using map_dma_buf and
-   unmap_dma_buf operations.
-
-Documentation present in the patch-set gives more details.
-
-This is based on design suggestions from many people at the mini-summits,
-most notably from Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
-Daniel Vetter <daniel@ffwll.ch>.
-
-The implementation is inspired from proof-of-concept patch-set from
-Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer sharing
-between two v4l2 devices. [2]
-
-References:
-[1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
-[2]: http://lwn.net/Articles/454389
-
-Patchset based on top of 3.2-rc3, the current version can be found at
-
-http://git.linaro.org/gitweb?p=people/sumitsemwal/linux-3.x.git
-Branch: dma-buf-upstr-v2
-
-Earlier versions:
-v2 at: https://lkml.org/lkml/2011/12/2/53
-v1 at: https://lkml.org/lkml/2011/10/11/92
-
-Best regards,
-~Sumit Semwal
-
-History:
-
-v3:
-- Review comments incorporated:
-   - from Konrad Rzeszutek Wilk [https://lkml.org/lkml/2011/12/3/45]
-     - replaced BUG_ON with WARN_ON - various places
-     - added some error-checks
-     - replaced EXPORT_SYMBOL with EXPORT_SYMBOL_GPL
-     - some cosmetic / documentation comments
-
-   - from Arnd Bergmann, Daniel Vetter, Rob Clark
-      [https://lkml.org/lkml/2011/12/5/321]
-     - removed mmap() fop and dma_buf_op, also the sg_sync* operations, and
-        documented that mmap is not allowed for exported buffer
-     - updated documentation to clearly state when migration is allowed
-     - changed kconfig
-     - some error code checks
-
-   - from Rob Clark [https://lkml.org/lkml/2011/12/5/572]
-     - update documentation to allow map_dma_buf to return -EINTR
-
-v2:
-- Review comments incorporated:
-   - from Tomasz Stanislawski [https://lkml.org/lkml/2011/10/14/136]
-     - kzalloc moved out of critical section
-     - corrected some in-code comments
-
-   - from Dave Airlie [https://lkml.org/lkml/2011/11/25/123]
-
-   - from Daniel Vetter and Rob Clark [https://lkml.org/lkml/2011/11/26/53]
-     - use struct sg_table in place of struct scatterlist
-     - rename {get,put}_scatterlist to {map,unmap}_dma_buf
-     - add new wrapper APIs dma_buf_{map,unmap}_attachment for ease of users
-     
-- documentation updates as per review comments from Randy Dunlap
-     [https://lkml.org/lkml/2011/10/12/439]
-
-v1: original
-
-
-Sumit Semwal (2):
-  dma-buf: Introduce dma buffer sharing mechanism
-  dma-buf: Documentation for buffer sharing framework
-
- Documentation/dma-buf-sharing.txt |  222 ++++++++++++++++++++++++++++
- drivers/base/Kconfig              |   10 ++
- drivers/base/Makefile             |    1 +
- drivers/base/dma-buf.c            |  289 +++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h           |  172 ++++++++++++++++++++++
- 5 files changed, 694 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/dma-buf-sharing.txt
- create mode 100644 drivers/base/dma-buf.c
- create mode 100644 include/linux/dma-buf.h
-
+diff --git a/drivers/media/dvb/ddbridge/ddbridge.h b/drivers/media/dvb/ddbridge/ddbridge.h
+index 6d14893..8b1b41d 100644
+--- a/drivers/media/dvb/ddbridge/ddbridge.h
++++ b/drivers/media/dvb/ddbridge/ddbridge.h
+@@ -32,8 +32,6 @@
+ #include <asm/dma.h>
+ #include <linux/dvb/frontend.h>
+ #include <linux/dvb/ca.h>
+-#include <linux/dvb/video.h>
+-#include <linux/dvb/audio.h>
+ #include <linux/socket.h>
+ 
+ #include "dmxdev.h"
+diff --git a/drivers/media/video/cx18/cx18-driver.h b/drivers/media/video/cx18/cx18-driver.h
+index b9a94fc..7a37e0e 100644
+--- a/drivers/media/video/cx18/cx18-driver.h
++++ b/drivers/media/video/cx18/cx18-driver.h
+@@ -44,8 +44,6 @@
+ #include <linux/slab.h>
+ #include <asm/byteorder.h>
+ 
+-#include <linux/dvb/video.h>
+-#include <linux/dvb/audio.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
 -- 
-1.7.4.1
+1.7.7.3
 
