@@ -1,143 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41250 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755152Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:23 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNUH019831
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 15/28] [media] max2165: use DVBv5 parameters
-Date: Thu, 22 Dec 2011 09:20:03 -0200
-Message-Id: <1324552816-25704-16-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-15-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
- <1324552816-25704-4-git-send-email-mchehab@redhat.com>
- <1324552816-25704-5-git-send-email-mchehab@redhat.com>
- <1324552816-25704-6-git-send-email-mchehab@redhat.com>
- <1324552816-25704-7-git-send-email-mchehab@redhat.com>
- <1324552816-25704-8-git-send-email-mchehab@redhat.com>
- <1324552816-25704-9-git-send-email-mchehab@redhat.com>
- <1324552816-25704-10-git-send-email-mchehab@redhat.com>
- <1324552816-25704-11-git-send-email-mchehab@redhat.com>
- <1324552816-25704-12-git-send-email-mchehab@redhat.com>
- <1324552816-25704-13-git-send-email-mchehab@redhat.com>
- <1324552816-25704-14-git-send-email-mchehab@redhat.com>
- <1324552816-25704-15-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-fx0-f46.google.com ([209.85.161.46]:46211 "EHLO
+	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758743Ab1LOJj4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 04:39:56 -0500
+Received: by faar15 with SMTP id r15so1953044faa.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 01:39:55 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, hverkuil@xs4all.nl,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 2/2] media: tvp5150: Add mbus_fmt callbacks.
+Date: Thu, 15 Dec 2011 10:39:47 +0100
+Message-Id: <1323941987-23428-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner.
+These callbacks allow a host video driver
+to poll video supported video formats of tvp5150.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/common/tuners/max2165.c |   60 ++++++++++++++++++++------------
- 1 files changed, 37 insertions(+), 23 deletions(-)
+ drivers/media/video/tvp5150.c |   72 +++++++++++++++++++++++++++++++++++++++++
+ 1 files changed, 72 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/common/tuners/max2165.c b/drivers/media/common/tuners/max2165.c
-index 9883617..8558a63 100644
---- a/drivers/media/common/tuners/max2165.c
-+++ b/drivers/media/common/tuners/max2165.c
-@@ -150,11 +150,26 @@ static int max2165_set_osc(struct max2165_priv *priv, u8 osc /*MHz*/)
- static int max2165_set_bandwidth(struct max2165_priv *priv, u32 bw)
- {
- 	u8 val;
-+	u32 newbw;
+diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
+index 26cc75b..8f01f08 100644
+--- a/drivers/media/video/tvp5150.c
++++ b/drivers/media/video/tvp5150.c
+@@ -778,6 +778,75 @@ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return -EINVAL;
+ }
  
--	if (bw == BANDWIDTH_8_MHZ)
--		val = priv->bb_filter_8mhz_cfg;
--	else
-+	if (bw <= 7000000) {
- 		val = priv->bb_filter_7mhz_cfg;
-+		priv->bandwidth = BANDWIDTH_7_MHZ;
-+		newbw = 7000000;
-+	} else {
-+		val = priv->bb_filter_8mhz_cfg;
-+		priv->bandwidth = BANDWIDTH_8_MHZ;
-+		newbw = 8000000;
-+	}
++static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
++{
++	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
 +
-+	switch (bw) {
-+	case 7000000:
-+	case 8000000:
-+		break;
++	switch (val & 0x0F) {
++	case 0x01:
++		return V4L2_STD_NTSC;
++	case 0x03:
++		return V4L2_STD_PAL;
++	case 0x05:
++		return V4L2_STD_PAL_M;
++	case 0x07:
++		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
++	case 0x09:
++		return V4L2_STD_NTSC_443;
++	case 0xb:
++		return V4L2_STD_SECAM;
 +	default:
-+		printk(KERN_INFO "MAX2165: bandwidth %d Hz not supported. using %d Hz instead\n",
-+		       bw, newbw);
++		return V4L2_STD_UNKNOWN;
 +	}
- 
- 	max2165_mask_write_reg(priv, REG_BASEBAND_CTRL, 0xF0, val << 4);
- 
-@@ -261,35 +276,34 @@ static int max2165_set_params(struct dvb_frontend *fe,
- 	struct dvb_frontend_parameters *params)
- {
- 	struct max2165_priv *priv = fe->tuner_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys = c->delivery_system;
- 	int ret;
- 
--	dprintk("%s() frequency=%d (Hz)\n", __func__, params->frequency);
--	if (fe->ops.info.type == FE_ATSC) {
--			return -EINVAL;
--	} else if (fe->ops.info.type == FE_OFDM) {
-+	dprintk("%s() frequency=%d (Hz)\n", __func__, c->frequency);
++}
 +
-+	switch (delsys) {
-+	case SYS_DVBT:
-+	case SYS_DVBT2:
- 		dprintk("%s() OFDM\n", __func__);
--		switch (params->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
--			return -EINVAL;
--		case BANDWIDTH_7_MHZ:
--		case BANDWIDTH_8_MHZ:
--			priv->frequency = params->frequency;
--			priv->bandwidth = params->u.ofdm.bandwidth;
--			break;
--		default:
--			printk(KERN_ERR "MAX2165 bandwidth not set!\n");
--			return -EINVAL;
--		}
--	} else {
--		printk(KERN_ERR "MAX2165 modulation type not supported!\n");
-+		break;
-+	/*
-+	 * FIXME: it is likely that this would work with DVB-C as well,
-+	 * at least for 7MHz/8MHz. If this is needed, all the code should
-+	 * do is to add a new "case SYS_DVBC_ANNEX_A" line.
-+	 */
-+	default:
-+		printk(KERN_ERR "MAX2165: delivery system not supported!\n");
- 		return -EINVAL;
- 	}
- 
-+	priv->frequency = c->frequency;
++static int tvp5150_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
++						enum v4l2_mbus_pixelcode *code)
++{
++	if (index)
++		return -EINVAL;
 +
- 	dprintk("%s() frequency=%d\n", __func__, priv->frequency);
++	*code = V4L2_MBUS_FMT_YUYV8_2X8;
++	return 0;
++}
++
++static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
++			    struct v4l2_mbus_framefmt *f)
++{
++	struct tvp5150 *decoder = to_tvp5150(sd);
++	v4l2_std_id std;
++
++	if (f == NULL)
++		return -EINVAL;
++
++	tvp5150_reset(sd, 0);
++
++	/* Calculate height and width based on current standard */
++	if (decoder->norm == V4L2_STD_ALL)
++		std = tvp5150_read_std(sd);
++	else
++		std = decoder->norm;
++
++	if ((std == V4L2_STD_NTSC) || (std == V4L2_STD_NTSC_443) ||
++		(std == V4L2_STD_PAL_M)) {
++		f->width = 720;
++		f->height = 480;
++	}
++	if ((std == V4L2_STD_PAL) ||
++		(std == (V4L2_STD_PAL_N | V4L2_STD_PAL_Nc)) ||
++		(std == V4L2_STD_SECAM)) {
++		f->width = 720;
++		f->height = 576;
++	}
++	f->code = V4L2_MBUS_FMT_YUYV8_2X8;
++	f->field = V4L2_FIELD_SEQ_TB;
++	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
++
++	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
++			f->height);
++	return 0;
++}
++
+ /****************************************************************************
+ 			I2C Command
+  ****************************************************************************/
+@@ -930,6 +999,9 @@ static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
  
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
--	max2165_set_bandwidth(priv, priv->bandwidth);
-+	max2165_set_bandwidth(priv, c->bandwidth_hz);
- 	ret = max2165_set_rf(priv, priv->frequency);
- 	mdelay(50);
- 	max2165_debug_status(priv);
-@@ -370,7 +384,7 @@ static int max2165_init(struct dvb_frontend *fe)
+ static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+ 	.s_routing = tvp5150_s_routing,
++	.enum_mbus_fmt = tvp5150_enum_mbus_fmt,
++	.s_mbus_fmt = tvp5150_mbus_fmt,
++	.try_mbus_fmt = tvp5150_mbus_fmt,
+ };
  
- 	max2165_read_rom_table(priv);
- 
--	max2165_set_bandwidth(priv, BANDWIDTH_8_MHZ);
-+	max2165_set_bandwidth(priv, 8000000);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 0);
+ static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
 -- 
-1.7.8.352.g876a6
+1.7.0.4
 
