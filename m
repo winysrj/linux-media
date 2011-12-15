@@ -1,114 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61480 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753741Ab1L0BJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:39 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19cbE015656
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:38 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 07/91] [media] bcm3510: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:07:55 -0200
-Message-Id: <1324948159-23709-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-7-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56278 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753694Ab1LOKqn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 05:46:43 -0500
+Received: from lancelot.localnet (unknown [91.178.108.130])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 4B31835999
+	for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 10:46:42 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v3.3] Media, OMAP3 ISP & AS3645A
+Date: Thu, 15 Dec 2011 11:46:55 +0100
+References: <201112130243.28196.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201112130243.28196.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112151146.57031.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Mauro,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+On Tuesday 13 December 2011 02:43:27 Laurent Pinchart wrote:
+> Hi Mauro,
+> 
+> The following changes since commit
+> bcc072756e4467dc30e502a311b1c3adec96a0e4:
+> 
+>   [media] STV0900: Query DVB frontend delivery capabilities (2011-12-12
+> 15:04:34 -0200)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/pinchartl/media.git omap3isp-omap3isp-next
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/bcm3510.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
+There was an issue with comments in patch "omap3isp: Mark next captured frame 
+as faulty when an SBL overflow occurs". I've updated my branch, could you 
+please get the new patches if you've already pulled ?
 
-diff --git a/drivers/media/dvb/frontends/bcm3510.c b/drivers/media/dvb/frontends/bcm3510.c
-index 43b17fa..a53f83a 100644
---- a/drivers/media/dvb/frontends/bcm3510.c
-+++ b/drivers/media/dvb/frontends/bcm3510.c
-@@ -479,16 +479,16 @@ static int bcm3510_set_freq(struct bcm3510_state* st,u32 freq)
- 	return -EINVAL;
- }
- 
--static int bcm3510_set_frontend(struct dvb_frontend* fe,
--					     struct dvb_frontend_parameters *p)
-+static int bcm3510_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct bcm3510_state* st = fe->demodulator_priv;
- 	struct bcm3510_hab_cmd_ext_acquire cmd;
- 	struct bcm3510_hab_cmd_bert_control bert;
- 	int ret;
- 
- 	memset(&cmd,0,sizeof(cmd));
--	switch (p->u.vsb.modulation) {
-+	switch (c->modulation) {
- 		case QAM_256:
- 			cmd.ACQUIRE0.MODE = 0x1;
- 			cmd.ACQUIRE1.SYM_RATE = 0x1;
-@@ -499,7 +499,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
- 			cmd.ACQUIRE1.SYM_RATE = 0x2;
- 			cmd.ACQUIRE1.IF_FREQ = 0x1;
- 			break;
--/*		case QAM_256:
-+#if 0
-+		case QAM_256:
- 			cmd.ACQUIRE0.MODE = 0x3;
- 			break;
- 		case QAM_128:
-@@ -513,7 +514,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
- 			break;
- 		case QAM_16:
- 			cmd.ACQUIRE0.MODE = 0x7;
--			break;*/
-+			break;
-+#endif
- 		case VSB_8:
- 			cmd.ACQUIRE0.MODE = 0x8;
- 			cmd.ACQUIRE1.SYM_RATE = 0x0;
-@@ -552,7 +554,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
- 
- 	bcm3510_bert_reset(st);
- 
--	if ((ret = bcm3510_set_freq(st,p->frequency)) < 0)
-+	ret = bcm3510_set_freq(st, c->frequency);
-+	if (ret < 0)
- 		return ret;
- 
- 	memset(&st->status1,0,sizeof(st->status1));
-@@ -819,7 +822,7 @@ error:
- EXPORT_SYMBOL(bcm3510_attach);
- 
- static struct dvb_frontend_ops bcm3510_ops = {
--
-+	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
- 	.info = {
- 		.name = "Broadcom BCM3510 VSB/QAM frontend",
- 		.type = FE_ATSC,
-@@ -839,7 +842,7 @@ static struct dvb_frontend_ops bcm3510_ops = {
- 	.init = bcm3510_init,
- 	.sleep = bcm3510_sleep,
- 
--	.set_frontend_legacy = bcm3510_set_frontend,
-+	.set_frontend = bcm3510_set_frontend,
- 	.get_tune_settings = bcm3510_get_tune_settings,
- 
- 	.read_status = bcm3510_read_status,
 -- 
-1.7.8.352.g876a6
+Regards,
 
+Laurent Pinchart
