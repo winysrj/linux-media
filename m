@@ -1,250 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:59303 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab1LUPxt (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:37345 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756082Ab1LOJuh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Dec 2011 10:53:49 -0500
-Date: Wed, 21 Dec 2011 16:53:47 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Robert Jarzmik <robert.jarzmik@free.fr>
-Subject: [PATCH 1/3] V4L: mt9m111: cleanly separate register contexts
-In-Reply-To: <Pine.LNX.4.64.1112211649070.30646@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1112211652130.30646@axis700.grange>
-References: <Pine.LNX.4.64.1112211649070.30646@axis700.grange>
+	Thu, 15 Dec 2011 04:50:37 -0500
+Message-ID: <4EE9C2E6.1060304@infradead.org>
+Date: Thu, 15 Dec 2011 07:50:30 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Dan Carpenter <dan.carpenter@oracle.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [patch -longterm] V4L/DVB: v4l2-ioctl: integer overflow in video_usercopy()
+References: <20111215063445.GA2424@elgon.mountain> <4EE9BC25.7020303@infradead.org> <201112151033.35153.hverkuil@xs4all.nl>
+In-Reply-To: <201112151033.35153.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cleanly separating register contexts A and B will allow us to configure
-the contexts independently.
+On 15-12-2011 07:33, Hans Verkuil wrote:
+> On Thursday, December 15, 2011 10:21:41 Mauro Carvalho Chehab wrote:
+>> On 15-12-2011 04:34, Dan Carpenter wrote:
+>>> On a 32bit system the multiplication here could overflow.  p->count is
+>>> used in some of the V4L drivers.
+>>
+>> ULONG_MAX / sizeof(v4l2_ext_control) is too much. This ioctl is used on things
+>> like setting MPEG paramenters, where several parameters need adjustments at
+>> the same time. I risk to say that 64 is probably a reasonably safe upper limit.
+> 
+> Let's make it 1024. That gives more than enough room for expansion without taking
+> too much memory.
+>
+> Especially for video encoders a lot of controls are needed, and sensor drivers
+> are also getting more complex, so 64 is a bit too low for my taste.
+> 
+> I agree that limiting this to some sensible value is a good idea.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/video/mt9m111.c |  137 +++++++++++++++++++++++------------------
- 1 files changed, 76 insertions(+), 61 deletions(-)
+I'm fine with 1024. Yet, this could easily be changed to whatever upper value needed,
+and still be backward compatible.
 
-diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
-index 258adfd..54edb6b4 100644
---- a/drivers/media/video/mt9m111.c
-+++ b/drivers/media/video/mt9m111.c
-@@ -139,6 +139,46 @@
- #define MT9M111_MAX_HEIGHT	1024
- #define MT9M111_MAX_WIDTH	1280
- 
-+struct mt9m111_context {
-+	u16 read_mode;
-+	u16 blanking_h;
-+	u16 blanking_v;
-+	u16 reducer_xzoom;
-+	u16 reducer_yzoom;
-+	u16 reducer_xsize;
-+	u16 reducer_ysize;
-+	u16 output_fmt_ctrl2;
-+	u16 control;
-+};
-+
-+static struct mt9m111_context context_a = {
-+	.read_mode		= MT9M111_READ_MODE_A,
-+	.blanking_h		= MT9M111_HORIZONTAL_BLANKING_A,
-+	.blanking_v		= MT9M111_VERTICAL_BLANKING_A,
-+	.reducer_xzoom		= MT9M111_REDUCER_XZOOM_A,
-+	.reducer_yzoom		= MT9M111_REDUCER_YZOOM_A,
-+	.reducer_xsize		= MT9M111_REDUCER_XSIZE_A,
-+	.reducer_ysize		= MT9M111_REDUCER_YSIZE_A,
-+	.output_fmt_ctrl2	= MT9M111_OUTPUT_FORMAT_CTRL2_A,
-+	.control		= MT9M111_CTXT_CTRL_RESTART,
-+};
-+
-+static struct mt9m111_context context_b = {
-+	.read_mode		= MT9M111_READ_MODE_B,
-+	.blanking_h		= MT9M111_HORIZONTAL_BLANKING_B,
-+	.blanking_v		= MT9M111_VERTICAL_BLANKING_B,
-+	.reducer_xzoom		= MT9M111_REDUCER_XZOOM_B,
-+	.reducer_yzoom		= MT9M111_REDUCER_YZOOM_B,
-+	.reducer_xsize		= MT9M111_REDUCER_XSIZE_B,
-+	.reducer_ysize		= MT9M111_REDUCER_YSIZE_B,
-+	.output_fmt_ctrl2	= MT9M111_OUTPUT_FORMAT_CTRL2_B,
-+	.control		= MT9M111_CTXT_CTRL_RESTART |
-+		MT9M111_CTXT_CTRL_DEFECTCOR_B | MT9M111_CTXT_CTRL_RESIZE_B |
-+		MT9M111_CTXT_CTRL_CTRL2_B | MT9M111_CTXT_CTRL_GAMMA_B |
-+		MT9M111_CTXT_CTRL_READ_MODE_B | MT9M111_CTXT_CTRL_VBLANK_SEL_B |
-+		MT9M111_CTXT_CTRL_HBLANK_SEL_B,
-+};
-+
- /* MT9M111 has only one fixed colorspace per pixelcode */
- struct mt9m111_datafmt {
- 	enum v4l2_mbus_pixelcode	code;
-@@ -173,18 +213,13 @@ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
- 	{V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
- };
- 
--enum mt9m111_context {
--	HIGHPOWER = 0,
--	LOWPOWER,
--};
--
- struct mt9m111 {
- 	struct v4l2_subdev subdev;
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_ctrl *gain;
- 	int model;	/* V4L2_IDENT_MT9M111 or V4L2_IDENT_MT9M112 code
- 			 * from v4l2-chip-ident.h */
--	enum mt9m111_context context;
-+	struct mt9m111_context *ctx;
- 	struct v4l2_rect rect;
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
-@@ -275,35 +310,33 @@ static int mt9m111_reg_mask(struct i2c_client *client, const u16 reg,
- }
- 
- static int mt9m111_set_context(struct mt9m111 *mt9m111,
--			       enum mt9m111_context ctxt)
-+			       struct mt9m111_context *ctx)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
--	int valB = MT9M111_CTXT_CTRL_RESTART | MT9M111_CTXT_CTRL_DEFECTCOR_B
--		| MT9M111_CTXT_CTRL_RESIZE_B | MT9M111_CTXT_CTRL_CTRL2_B
--		| MT9M111_CTXT_CTRL_GAMMA_B | MT9M111_CTXT_CTRL_READ_MODE_B
--		| MT9M111_CTXT_CTRL_VBLANK_SEL_B
--		| MT9M111_CTXT_CTRL_HBLANK_SEL_B;
--	int valA = MT9M111_CTXT_CTRL_RESTART;
--
--	if (ctxt == HIGHPOWER)
--		return reg_write(CONTEXT_CONTROL, valB);
--	else
--		return reg_write(CONTEXT_CONTROL, valA);
-+	return reg_write(CONTEXT_CONTROL, ctx->control);
-+}
-+
-+static int mt9m111_setup_rect_ctx(struct mt9m111 *mt9m111,
-+			struct v4l2_rect *rect, struct mt9m111_context *ctx)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
-+	int ret = mt9m111_reg_write(client, ctx->reducer_xzoom, MT9M111_MAX_WIDTH);
-+	if (!ret)
-+		ret = mt9m111_reg_write(client, ctx->reducer_yzoom, MT9M111_MAX_HEIGHT);
-+	if (!ret)
-+		ret = mt9m111_reg_write(client, ctx->reducer_xsize, rect->width);
-+	if (!ret)
-+		ret = mt9m111_reg_write(client, ctx->reducer_ysize, rect->height);
-+	return ret;
- }
- 
- static int mt9m111_setup_rect(struct mt9m111 *mt9m111,
- 			      struct v4l2_rect *rect)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
--	int ret, is_raw_format;
--	int width = rect->width;
--	int height = rect->height;
--
--	if (mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
--	    mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE)
--		is_raw_format = 1;
--	else
--		is_raw_format = 0;
-+	int ret;
-+	bool is_raw_format = mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
-+		mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE;
- 
- 	ret = reg_write(COLUMN_START, rect->left);
- 	if (!ret)
-@@ -311,26 +344,14 @@ static int mt9m111_setup_rect(struct mt9m111 *mt9m111,
- 
- 	if (is_raw_format) {
- 		if (!ret)
--			ret = reg_write(WINDOW_WIDTH, width);
-+			ret = reg_write(WINDOW_WIDTH, rect->width);
- 		if (!ret)
--			ret = reg_write(WINDOW_HEIGHT, height);
-+			ret = reg_write(WINDOW_HEIGHT, rect->height);
- 	} else {
- 		if (!ret)
--			ret = reg_write(REDUCER_XZOOM_B, MT9M111_MAX_WIDTH);
--		if (!ret)
--			ret = reg_write(REDUCER_YZOOM_B, MT9M111_MAX_HEIGHT);
--		if (!ret)
--			ret = reg_write(REDUCER_XSIZE_B, width);
-+			ret = mt9m111_setup_rect_ctx(mt9m111, rect, &context_b);
- 		if (!ret)
--			ret = reg_write(REDUCER_YSIZE_B, height);
--		if (!ret)
--			ret = reg_write(REDUCER_XZOOM_A, MT9M111_MAX_WIDTH);
--		if (!ret)
--			ret = reg_write(REDUCER_YZOOM_A, MT9M111_MAX_HEIGHT);
--		if (!ret)
--			ret = reg_write(REDUCER_XSIZE_A, width);
--		if (!ret)
--			ret = reg_write(REDUCER_YSIZE_A, height);
-+			ret = mt9m111_setup_rect_ctx(mt9m111, rect, &context_a);
- 	}
- 
- 	return ret;
-@@ -503,11 +524,11 @@ static int mt9m111_set_pixfmt(struct mt9m111 *mt9m111,
- 		return -EINVAL;
- 	}
- 
--	ret = reg_mask(OUTPUT_FORMAT_CTRL2_A, data_outfmt2,
--		       mask_outfmt2);
-+	ret = mt9m111_reg_mask(client, context_a.output_fmt_ctrl2,
-+			       data_outfmt2, mask_outfmt2);
- 	if (!ret)
--		ret = reg_mask(OUTPUT_FORMAT_CTRL2_B, data_outfmt2,
--			       mask_outfmt2);
-+		ret = mt9m111_reg_mask(client, context_b.output_fmt_ctrl2,
-+				       data_outfmt2, mask_outfmt2);
- 
- 	return ret;
- }
-@@ -649,17 +670,10 @@ static int mt9m111_set_flip(struct mt9m111 *mt9m111, int flip, int mask)
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
- 	int ret;
- 
--	if (mt9m111->context == HIGHPOWER) {
--		if (flip)
--			ret = reg_set(READ_MODE_B, mask);
--		else
--			ret = reg_clear(READ_MODE_B, mask);
--	} else {
--		if (flip)
--			ret = reg_set(READ_MODE_A, mask);
--		else
--			ret = reg_clear(READ_MODE_A, mask);
--	}
-+	if (flip)
-+		ret = mt9m111_reg_set(client, mt9m111->ctx->read_mode, mask);
-+	else
-+		ret = mt9m111_reg_clear(client, mt9m111->ctx->read_mode, mask);
- 
- 	return ret;
- }
-@@ -744,7 +758,7 @@ static int mt9m111_suspend(struct mt9m111 *mt9m111)
- 
- static void mt9m111_restore_state(struct mt9m111 *mt9m111)
- {
--	mt9m111_set_context(mt9m111, mt9m111->context);
-+	mt9m111_set_context(mt9m111, mt9m111->ctx);
- 	mt9m111_set_pixfmt(mt9m111, mt9m111->fmt->code);
- 	mt9m111_setup_rect(mt9m111, &mt9m111->rect);
- 	v4l2_ctrl_handler_setup(&mt9m111->hdl);
-@@ -769,12 +783,13 @@ static int mt9m111_init(struct mt9m111 *mt9m111)
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
- 	int ret;
- 
--	mt9m111->context = HIGHPOWER;
-+	/* Default HIGHPOWER context */
-+	mt9m111->ctx = &context_b;
- 	ret = mt9m111_enable(mt9m111);
- 	if (!ret)
- 		ret = mt9m111_reset(mt9m111);
- 	if (!ret)
--		ret = mt9m111_set_context(mt9m111, mt9m111->context);
-+		ret = mt9m111_set_context(mt9m111, mt9m111->ctx);
- 	if (ret)
- 		dev_err(&client->dev, "mt9m111 init failed: %d\n", ret);
- 	return ret;
--- 
-1.7.2.5
+> 
+>> Btw, the upstream code also seems to have the same issue:
+>>
+>> static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
+>>                             void * __user *user_ptr, void ***kernel_ptr)
+>> {
+>> ...
+>> 	if (ctrls->count != 0) {
+>> ...	
+>> 	*array_size = sizeof(struct v4l2_ext_control)
+>>                                     * ctrls->count;
+>> 	ret = 1;
+>> ...
+>> }
+>> 	
+>> long
+>> video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+>>                v4l2_kioctl func)
+>> {
+>> ...
+>>         err = check_array_args(cmd, parg, &array_size, &user_ptr, &kernel_ptr);
+>>         if (err < 0)
+>>                 goto out;
+>>         has_array_args = err;
+>>
+>>         if (has_array_args) {
+>>                 mbuf = kmalloc(array_size, GFP_KERNEL);
+>> ...
+>>
+>> so, if is there any overflow at check_array_args(), instead of returning
+>> an error to userspace, it will allocate the array with less space than
+>> needed. 
+>>
+>> On both upstream and longterm, I think that it is more reasonable to 
+>> state a limit for the maximum number of controls that can be passed at
+>> the same time, and live with that.
+>>
+>> A dummy check says:
+>> $ more include/linux/videodev2.h |grep V4L2_CID|wc -l
+>>     209
+>>
+>> So, an upper limit of 256 is enough to allow userspace to change all existing controls
+>> at the same time.
+> 
+> I would like to have this set to at least twice the number of existing controls
+> (which 1024 certainly is).
+> 
+> It is possible (and valid) to have the same control any number of times in the
+> control list. The last one will 'win' in that case. I can think of (admittedly
+> contrived) scenarios where that might be useful. The only thing we want to do
+> here is to add a sanity check against insane count values.
+> 
+>> The proper way seems to add a define at include/linux/videodev2.h
+>> and enforce it at the usercopy code.
+> 
+> I agree.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+>>
+>> Regards,
+>> Mauro
+>>
+>>>
+>>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>>> ---
+>>> This is a patch against the 2.6.32-longterm kernel.  In the stock
+>>> kernel, this code was totally rewritten and fixed in 2010 by d14e6d76ebf
+>>> "[media] v4l: Add multi-planar ioctl handling code".
+>>>
+>>> Hopefully, someone can Ack this and we merge it into the stable tree.
+>>>
+>>> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+>>> index 265bfb5..7196303 100644
+>>> --- a/drivers/media/video/v4l2-ioctl.c
+>>> +++ b/drivers/media/video/v4l2-ioctl.c
+>>> @@ -414,6 +414,9 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+>>>  		p->error_idx = p->count;
+>>>  		user_ptr = (void __user *)p->controls;
+>>>  		if (p->count) {
+>>> +			err = -EINVAL;
+>>> +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
+>>> +				goto out_ext_ctrl;
+>>>  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+>>>  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+>>>  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
+>>> @@ -1912,6 +1915,9 @@ long video_ioctl2(struct file *file,
+>>>  		p->error_idx = p->count;
+>>>  		user_ptr = (void __user *)p->controls;
+>>>  		if (p->count) {
+>>> +			err = -EINVAL;
+>>> +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
+>>> +				goto out_ext_ctrl;
+>>>  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+>>>  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+>>>  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
