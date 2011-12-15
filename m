@@ -1,213 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:50623 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932588Ab1LEV4N (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 16:56:13 -0500
-Message-ID: <4EDD3DEE.6060506@gmail.com>
-Date: Mon, 05 Dec 2011 22:55:58 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39429 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751199Ab1LOMyg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 07:54:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC 3/4] omap3isp: Configure CSI-2 phy based on platform data
+Date: Thu, 15 Dec 2011 13:54:52 +0100
+Cc: linux-media@vger.kernel.org
+References: <20111215095015.GC3677@valkosipuli.localdomain> <201112151128.07311.laurent.pinchart@ideasonboard.com> <20111215115303.GD3677@valkosipuli.localdomain>
+In-Reply-To: <20111215115303.GD3677@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
- module
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com> <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201112151354.53360.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ming,
+Hi Sakari,
 
-(I've pruned the Cc list, leaving just the mailing lists)
+On Thursday 15 December 2011 12:53:03 Sakari Ailus wrote:
+> On Thu, Dec 15, 2011 at 11:28:06AM +0100, Laurent Pinchart wrote:
+> > On Thursday 15 December 2011 10:50:34 Sakari Ailus wrote:
+> > > Configure CSI-2 phy based on platform data in the ISP driver rather
+> > > than in platform code.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-On 12/02/2011 04:02 PM, Ming Lei wrote:
-> This patch introduces one driver for face detection purpose.
+[snip]
+
+> > > diff --git a/drivers/media/video/omap3isp/ispcsiphy.c
+> > > b/drivers/media/video/omap3isp/ispcsiphy.c index 5be37ce..52af308
+> > > 100644 --- a/drivers/media/video/omap3isp/ispcsiphy.c
+> > > +++ b/drivers/media/video/omap3isp/ispcsiphy.c
+> > > @@ -28,6 +28,8 @@
+
+[snip]
+
+> > > +int omap3isp_csiphy_config(struct isp_device *isp,
+> > > +			   struct v4l2_subdev *csi2_subdev,
+> > > +			   struct v4l2_subdev *sensor,
+> > > +			   struct v4l2_mbus_framefmt *sensor_fmt)
+> > 
+> > The number of lanes can depend on the format. Wouldn't it be better to
+> > add a subdev operation to query the sensor for its bus configuration
+> > instead of relying on ISP platform data ?
 > 
-> The driver is responsible for all v4l2 stuff, buffer management
-> and other general things, and doesn't touch face detection hardware
-> directly. Several interfaces are exported to low level drivers
-> (such as the coming omap4 FD driver)which will communicate with
-> face detection hw module.
+> In principle, yes. That's an interesting point; how this kind of information
+> would best be delivered?
+
+There are two separate information that need to be delivered:
+
+- how the lanes are connected on the board
+- which lanes are used by the sensor, and for what purpose
+
+The first information must be supplied through platform data, either to the 
+sensor driver or the OMAP3 ISP driver (or both). As the second information 
+comes from the sensor, my idea was to provide the first to the sensor, and to 
+query the sensor in the OMAP3 ISP driver for the full configuration.
+
+> On the other hand I don't see any pressing reason to use less lanes than
+> the maximum, so this could wait IMHO.
 > 
-> So the driver will make driving face detection hw modules more
-> easy.
+> Perhaps around the time we standardise how the CSI-2 configuration is being
+> done? It's not quite as simple as the mbus_config seems to assume. For
+> example, the lane mapping and then which lanes do you use if you're using
+> less than the maximum has to be handled in a way or another.
 
+I agree. That's why I don't really like mbus_config, its auto-negotiation 
+support approach makes it too limited in my opinion.
 
-I would hold on for a moment on implementing generic face detection
-module which is based on the V4L2 video device interface. We need to
-first define an API that would be also usable at sub-device interface
-level (http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html).
-AFAICS OMAP4 FDIF processes only data stored in memory, thus it seems
-reasonable to use the videodev interface for passing data to the kernel
-from user space.
+> The number of lanes might be something the user would want to touch, but
+> I'm not entirely sure. You achieve more functionality by providing that
+> flexibility to the user but I don't see need for configuring that ---
+> still getting the number of lanes could be interesting.
 
-But there might be face detection devices that accept data from other
-H/W modules, e.g. transferred through SoC internal data buses between
-image processing pipeline blocks. Thus any new interfaces need to be
-designed with such devices in mind.
+If we want to expose such configuration I think we should do it on the sensor, 
+not the ISP.
 
-Also the face detection hardware block might now have an input DMA
-engine in it, the data could be fed from memory through some other
-subsystem (e.g. resize/colour converter). Then the driver for that
-subsystem would implement a video node.
-
-I'm for leaving the buffer handling details for individual drivers
-and focusing on a standard interface for applications, i.e. new
-ioctl(s) and controls.
-
+> > >  {
+> > > 
+> > > +	struct isp_v4l2_subdevs_group *subdevs = sensor->host_priv;
+> > > +	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
+> > > +	struct isp_csiphy_dphy_cfg csi2phy;
+> > > +	int csi2_ddrclk_khz;
+> > > +	struct isp_csiphy_lanes_cfg *lanes;
+> > > 
+> > >  	unsigned int used_lanes = 0;
+> > >  	unsigned int i;
+> > > 
+> > > +	u32 cam_phy_ctrl;
+> > > +
+> > > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
+> > > +	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
+> > > +		lanes = subdevs->bus.ccp2.lanecfg;
+> > > +	else
+> > > +		lanes = subdevs->bus.csi2.lanecfg;
+> > > +
+> > > +	if (!lanes) {
+> > > +		dev_err(isp->dev, "no lane configuration\n");
+> > > +		return -EINVAL;
+> > > +	}
+> > > +
+> > > +	cam_phy_ctrl = omap_readl(
+> > > +		OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+> > > +	/*
+> > > +	 * SCM.CONTROL_CAMERA_PHY_CTRL
+> > > +	 * - bit[4]    : CSIPHY1 data sent to CSIB
+> > > +	 * - bit [3:2] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
+> > > +	 * - bit [1:0] : CSIPHY2 config: 00 d-phy, 01/10 ccp2
+> > > +	 */
+> > > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1)
+> > > +		cam_phy_ctrl |= 1 << 2;
+> > > +	else if (subdevs->interface == ISP_INTERFACE_CSI2C_PHY1)
+> > > +		cam_phy_ctrl &= 1 << 2;
+> > > +
+> > > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
+> > > +		cam_phy_ctrl |= 1;
+> > > +	else if (subdevs->interface == ISP_INTERFACE_CSI2A_PHY2)
+> > > +		cam_phy_ctrl &= 1;
+> > > +
+> > > +	omap_writel(cam_phy_ctrl,
+> > > +		    OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+> > > +
+> > > +	csi2_ddrclk_khz = sensor_fmt->pixel_clock
+> > > +		/ (2 * csi2->phy->num_data_lanes)
+> > > +		* omap3isp_video_format_info(sensor_fmt->code)->bpp;
+> > > +	csi2phy.ths_term = THS_TERM(csi2_ddrclk_khz);
+> > > +	csi2phy.ths_settle = THS_SETTLE(csi2_ddrclk_khz);
+> > > +	csi2phy.tclk_term = TCLK_TERM;
+> > > +	csi2phy.tclk_miss = TCLK_MISS;
+> > > +	csi2phy.tclk_settle = TCLK_SETTLE;
+> > > 
+> > >  	/* Clock and data lanes verification */
+> > > 
+> > > -	for (i = 0; i < phy->num_data_lanes; i++) {
+> > > +	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
+> > > 
+> > >  		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
+> > >  		
+> > >  			return -EINVAL;
+> > > 
+> > > @@ -162,10 +239,10 @@ static int csiphy_config(struct isp_csiphy *phy,
+> > > 
+> > >  	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
+> > >  	
+> > >  		return -EINVAL;
+> > > 
+> > > -	mutex_lock(&phy->mutex);
+> > > -	phy->dphy = *dphy;
+> > > -	phy->lanes = *lanes;
+> > > -	mutex_unlock(&phy->mutex);
+> > > +	mutex_lock(&csi2->phy->mutex);
+> > > +	csi2->phy->dphy = csi2phy;
+> > > +	csi2->phy->lanes = *lanes;
+> > > +	mutex_unlock(&csi2->phy->mutex);
+> > > 
+> > >  	return 0;
+> > >  
+> > >  }
+> > > 
+> > > @@ -225,8 +302,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
+> > > 
+> > >  	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
+> > >  	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
+> > > 
+> > > -	isp->platform_cb.csiphy_config = csiphy_config;
+> > > -
+> > > 
+> > >  	phy2->isp = isp;
+> > >  	phy2->csi2 = &isp->isp_csi2a;
+> > >  	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
+> > > 
+> > > diff --git a/drivers/media/video/omap3isp/ispcsiphy.h
+> > > b/drivers/media/video/omap3isp/ispcsiphy.h index e93a661..9f93222
+> > > 100644 --- a/drivers/media/video/omap3isp/ispcsiphy.h
+> > > +++ b/drivers/media/video/omap3isp/ispcsiphy.h
+> > > @@ -56,6 +56,10 @@ struct isp_csiphy {
+> > > 
+> > >  	struct isp_csiphy_dphy_cfg dphy;
+> > >  
+> > >  };
+> > > 
+> > > +int omap3isp_csiphy_config(struct isp_device *isp,
+> > > +			   struct v4l2_subdev *csi2_subdev,
+> > > +			   struct v4l2_subdev *sensor,
+> > > +			   struct v4l2_mbus_framefmt *fmt);
+> > > 
+> > >  int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
+> > >  void omap3isp_csiphy_release(struct isp_csiphy *phy);
+> > >  int omap3isp_csiphy_init(struct isp_device *isp);
+> > > 
+> > > diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> > > b/drivers/media/video/omap3isp/ispvideo.c index 17bc03c..cdcf1d0 100644
+> > > --- a/drivers/media/video/omap3isp/ispvideo.c
+> > > +++ b/drivers/media/video/omap3isp/ispvideo.c
+> > > @@ -299,6 +299,8 @@ static int isp_video_validate_pipeline(struct
+> > > isp_pipeline *pipe)
+> > > 
+> > >  	while (1) {
+> > >  	
+> > >  		unsigned int shifter_link;
+> > > 
+> > > +		struct v4l2_subdev *_subdev;
+> > 
+> > What about a more descriptive name ?
 > 
-> TODO:
-> 	- implement FD setting interfaces with v4l2 controls or
-> 	ext controls
+> Ack.
 > 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->  drivers/media/video/Kconfig       |    2 +
->  drivers/media/video/Makefile      |    1 +
->  drivers/media/video/fdif/Kconfig  |    7 +
->  drivers/media/video/fdif/Makefile |    1 +
->  drivers/media/video/fdif/fdif.c   |  645 +++++++++++++++++++++++++++++++++++++
->  drivers/media/video/fdif/fdif.h   |  114 +++++++
->  6 files changed, 770 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/video/fdif/Kconfig
->  create mode 100644 drivers/media/video/fdif/Makefile
->  create mode 100644 drivers/media/video/fdif/fdif.c
->  create mode 100644 drivers/media/video/fdif/fdif.h
+> > > +
+> > > 
+> > >  		/* Retrieve the sink format */
+> > >  		pad = &subdev->entity.pads[0];
+> > >  		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+> > > 
+> > > @@ -342,6 +344,7 @@ static int isp_video_validate_pipeline(struct
+> > > isp_pipeline *pipe) if (media_entity_type(pad->entity) !=
+> > > MEDIA_ENT_T_V4L2_SUBDEV)
+> > > 
+> > >  			break;
+> > > 
+> > > +		_subdev = subdev;
+> > > 
+> > >  		subdev = media_entity_to_v4l2_subdev(pad->entity);
+> > >  		
+> > >  		fmt_source.pad = pad->index;
+> > > 
+> > > @@ -355,6 +358,22 @@ static int isp_video_validate_pipeline(struct
+> > > isp_pipeline *pipe) fmt_source.format.height != fmt_sink.format.height)
+> > > 
+> > >  			return -EPIPE;
+> > > 
+> > > +		/* Configure CSI-2 receiver based on sensor format. */
+> > > +		if (_subdev == &isp->isp_csi2a.subdev
+> > > +		    || _subdev == &isp->isp_csi2c.subdev) {
+> > > +			if (cpu_is_omap3630()) {
+> > > +				/*
+> > > +				 * FIXME: CSI-2 is supported only on
+> > > +				 * the 3630!
+> > > +				 */
+> > 
+> > Is it ? Or do you mean by the driver ? What would it take to support it
+> > on OMAP34xx and OMAP35xx ?
+> 
+> I have no way to test it on the OMAP 3430 since I have no CSI-2 sensor
+> connected to it. As a matter of fact I've never had one, so I don't really
+> know.
 
-[...]
+What about assuming it works on the 34xx and 35xx as well ?
 
-> diff --git a/drivers/media/video/fdif/fdif.h b/drivers/media/video/fdif/fdif.h
-> new file mode 100644
-> index 0000000..ae37ab8
-> --- /dev/null
-> +++ b/drivers/media/video/fdif/fdif.h
-> @@ -0,0 +1,114 @@
-> +#ifndef _LINUX_FDIF_H
-> +#define _LINUX_FDIF_H
-> +
-> +#include <linux/types.h>
-> +#include <linux/magic.h>
-> +#include <linux/errno.h>
-> +#include <linux/kref.h>
-> +#include <linux/kernel.h>
-> +#include <linux/videodev2.h>
-> +#include <media/videobuf2-page.h>
-> +#include <media/v4l2-device.h>
-> +#include <media/v4l2-ioctl.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-fh.h>
-> +#include <media/v4l2-event.h>
-> +#include <media/v4l2-common.h>
-> +
-> +#define MAX_FACE_COUNT		40
-> +
-> +#define	FACE_SIZE_20_PIXELS	0
-> +#define	FACE_SIZE_25_PIXELS	1
-> +#define	FACE_SIZE_32_PIXELS	2
-> +#define	FACE_SIZE_40_PIXELS	3
+> > > +				ret = omap3isp_csiphy_config(
+> > > +					isp, _subdev, subdev,
+> > > +					&fmt_source.format);
+> > > +				if (IS_ERR_VALUE(ret))
+> > > +					return -EPIPE;
+> > > +			}
+> > > +		}
+> > 
+> > This isn't really pipeline validation, is it ? Should this be performed
+> > in isp_pipeline_enable() instead ?
+> 
+> I'll move it there.
 
-This is still OMAP4 FDIF specific, we need to think about v4l2 controls
-for this. An ideal would be a menu control type that supports pixel size
-(width/height), but unfortunately something like this isn't available
-in v4l2 yet.
-
-> +
-> +#define FACE_DIR_UP		0
-> +#define FACE_DIR_RIGHT		1
-> +#define FACE_DIR_LIFT		2
-> +
-> +struct fdif_fmt {
-> +	char  *name;
-> +	u32   fourcc;          /* v4l2 format id */
-> +	int   depth;
-> +	int   width, height;
-
-Could width/height be negative ? I don't think it's the case for pixel
-resolution. The more proper data type would be u32.
-
-Please refer to struct v4l2_pix_format or struct v4l2_rect.
-
-> +};
-> +
-> +struct fdif_setting {
-> +	struct fdif_fmt            *fmt;
-> +	enum v4l2_field            field;
-> +
-> +	int 			min_face_size;
-> +	int			face_dir;
-> +
-> +	int			startx, starty;
-
-s32
-
-> +	int			sizex, sizey;
-
-u32
-
-> +	int			lhit;
-> +
-> +	int			width, height;
-
-u32
-
-> +};
-> +
-> +/* buffer for one video frame */
-> +struct fdif_buffer {
-> +	/* common v4l buffer stuff -- must be first */
-> +	struct vb2_buffer	vb;
-> +	struct list_head	list;
-> +};
-> +
-> +
-> +struct v4l2_fdif_result {
-> +	struct list_head		list;
-> +	unsigned int			face_cnt;
-> +	struct v4l2_fd_detection	*faces;
-> +
-> +	/*v4l2 buffer index*/
-> +	__u32				index;
-> +};
-> +
-> +struct fdif_dmaqueue {
-> +	struct list_head	complete;
-> +	struct list_head	active;
-> +	wait_queue_head_t	wq;
-> +};
-> +
-> +
-> +struct fdif_dev {
-> +	struct kref		ref;
-> +	struct device		*dev;
-> +
-> +	struct list_head        fdif_devlist;
-> +	struct v4l2_device	v4l2_dev;
-> +	struct vb2_queue        vbq;
-> +	struct mutex            mutex;
-> +	spinlock_t		lock;
-> +
-> +	struct video_device        *vfd;
-> +	struct fdif_dmaqueue	fdif_dq;
-> +
-> +	/*setting*/
-> +	struct fdif_setting	s;
-
-yy, please make it more descriptive. e.g.
-
-	struct fdif_config	config;
-
-> +
-> +	struct fdif_ops	*ops;
-> +
-> +	unsigned long	priv[0];
-> +};
-> +
-[...]
-
---
-
+-- 
 Regards,
-Sylwester
+
+Laurent Pinchart
