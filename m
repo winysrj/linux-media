@@ -1,120 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30743 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755196Ab1LGNYf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Dec 2011 08:24:35 -0500
-Message-ID: <4EDF6901.3060409@redhat.com>
-Date: Wed, 07 Dec 2011 11:24:17 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail1.matrix-vision.com ([78.47.19.71]:43488 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751862Ab1LOIEb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 03:04:31 -0500
+Message-ID: <4EE9A8B6.4040102@matrix-vision.de>
+Date: Thu, 15 Dec 2011 08:58:46 +0100
+From: Michael Jones <michael.jones@matrix-vision.de>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Thierry Reding <thierry.reding@avionic-design.de>,
-	linux-media@vger.kernel.org,
-	Stefan Ringel <linuxtv@stefanringel.de>
-Subject: Re: [PATCH 2/2] [media] tm6000: Fix bad indentation.
-References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de> <1323178776-12305-1-git-send-email-thierry.reding@avionic-design.de> <1323178776-12305-2-git-send-email-thierry.reding@avionic-design.de> <4EDE1F99.6080200@iki.fi> <20111206141316.GB12258@avionic-0098.adnet.avionic-design.de> <4EDE81EB.80800@redhat.com> <4EDE8306.6000901@iki.fi>
-In-Reply-To: <4EDE8306.6000901@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: James <angweiyang@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: Why is the Y12 support 12-bit grey formats at the CCDC input
+ (Y12) is truncated to Y10 at the CCDC output?
+References: <CAOy7-nNJXMbFkJWRubri2O_kc-V1Z+ZjTioqQu=8STtkuLag9w@mail.gmail.com>
+In-Reply-To: <CAOy7-nNJXMbFkJWRubri2O_kc-V1Z+ZjTioqQu=8STtkuLag9w@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-12-2011 19:03, Antti Palosaari wrote:
-> On 12/06/2011 10:58 PM, Mauro Carvalho Chehab wrote:
->> On 06-12-2011 12:13, Thierry Reding wrote:
->>> * Antti Palosaari wrote:
->>>> That question is related to that kind of indentation generally, not
->>>> only that patch.
->>>>
->>>> On 12/06/2011 03:39 PM, Thierry Reding wrote:
->>>>> Function parameters on subsequent lines should never be aligned with
->>>>> the
->>>>> function name but rather be indented.
->>>> [...]
->>>>> usb_set_interface(dev->udev,
->>>>> - dev->isoc_in.bInterfaceNumber,
->>>>> - 0);
->>>>> + dev->isoc_in.bInterfaceNumber, 0);
->>>>
->>>> Which kind of indentation should be used when function params are
->>>> slitted to multiple lines?
->>
->> Documentation/CodingStyle currently says:
->>
->> Statements longer than 80 columns will be broken into sensible chunks,
->> unless
->> exceeding 80 columns significantly increases readability and does not hide
->> information. Descendants are always substantially shorter than the
->> parent and
->> are placed substantially to the right. The same applies to function headers
->> with a long argument list. However, never break user-visible strings
->> such as
->> printk messages, because that breaks the ability to grep for them.
->>
->> So, it should be: "substantially to the right" whatever this means.
->>
->>> I don't think this is documented anywhere and there are no hard rules
->>> with
->>> regard to this. I guess anything is fine as long as it is indented at
->>> all.
->>>
->>>> In that case two tabs are used (related to function indentation).
->>>> example:
->>>> ret= function(param1,
->>>> param2);
->>>
->>> I usually use that because it is my text editor's default.
->>>
->>>> Other generally used is only one tab (related to function indentation).
->>>> example:
->>>> ret= function(param1,
->>>> param2);
->>>
->>> I think that's okay as well.
->>
->> One tab can hardly be interpreted as "substantially to the right".
->>
->>>
->>>> And last generally used is multiple tabs + spaces until same
->>>> location where first param is meet (related to function
->>>> indentation). I see that bad since use of tabs, with only spaces I
->>>> see it fine. And this many times leads situation param level are
->>>> actually different whilst originally idea was to put those same
->>>> level.
->>>> example:
->>>> ret= function(param1,
->>>> param2);
->>
->> In practice, this is the most commonly used way, from what I noticed,
->> not only
->> at drivers/media. A good place to look for commonly used CodingStyle are
->> the
->> most used headers at include/linux. As far as I noticed, they all use this
->> style.
->
-> Yes, but it is not correct according to CodingStyle if you use spaces even when mixing with tabs.
->
-> Correct seems to be intend it adding only tabs, as many as possible, still not to exceed 80 char line len limit.
+Hi James,
 
-This is not indentation, it is long line breaking. There's nothing there
-saying that white spaces are not allowed on line breaks, nor checkpatch
-complains about it.
+On 12/15/2011 08:14 AM, James wrote:
+> Hi all,
+>
+> I'm using an OMAP3530 board and a monochrome 12-bit grey sensor.
+>
+> Can anyone enlighten me why is the 12-bit grey formats at the CCDC
+> input (Y12) is truncated to Y10 at the CCDC output?
 
-So, it seems to be the better way for doing it, although CodingStyle doesn't
-enforce it.
+There are 2 CCDC outputs: CCDC_PAD_SOURCE_OF and CCDC_PAD_SOURCE_VP. 
+Only the VP (video port) truncates data to 10 bits, and it does that 
+because the subdevs it feeds can only handle 10 bits max.
 
 >
+> I need to read the entire RAW 12-bit grey value from the CCDC to
+> memory and the data does not pass through other OMAP3ISP sub-devices.
 >
->>> Whether this works or not always depends on the tab-width. I think most
->>> variations are okay here. Some people like to align them, other people
->>> don't.
->>
->> Tab width is always 8, according with the CodingStyle:
->>
->> "Tabs are 8 characters, and thus indentations are also 8 characters."
->>
->> Regards,
->> Mauro
->>
+> I intend to use Laurent's yavta to capture the data to file to verify
+> its operation for the moment.
 >
+> Can this 12-bit (Y12) raw capture be done?
+
+Yes. If you are writing the 12-bit gray value directly into memory, you 
+will use SOURCE_OF and can write the full 12-bits into memory.  You need 
+to set up your media pipeline to do sensor->CCDC->OMAP3 ISP CCDC output.
+
 >
+> Thank you in adv.
+>
+> --
+> Regards,
+> James
+
+-Michael
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
