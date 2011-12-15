@@ -1,81 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41843 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933092Ab1LFKtA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 05:49:00 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: add convenience macros to the subdevice / Media Controller API
-Date: Tue, 6 Dec 2011 11:49:05 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <Pine.LNX.4.64.1109291016250.30865@axis700.grange> <201109291311.37133.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112060932040.10715@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1112060932040.10715@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112061149.08271.laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:2169 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754556Ab1LOOPv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 09:15:51 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 5/8] Document decoder controls.
+Date: Thu, 15 Dec 2011 15:15:34 +0100
+Message-Id: <f9de6611cf32fe54914016d6545f82ca6d7d2828.1323957539.git.hans.verkuil@cisco.com>
+In-Reply-To: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
+References: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <26fac753ffa549b2ffdc5fe64a50e0a9637c2b16.1323957539.git.hans.verkuil@cisco.com>
+References: <26fac753ffa549b2ffdc5fe64a50e0a9637c2b16.1323957539.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Tuesday 06 December 2011 09:40:41 Guennadi Liakhovetski wrote:
-> On Thu, 29 Sep 2011, Laurent Pinchart wrote:
-> > On Thursday 29 September 2011 10:44:14 Guennadi Liakhovetski wrote:
-> > > On Thu, 29 Sep 2011, Laurent Pinchart wrote:
-> > > > On Thursday 29 September 2011 10:18:31 Guennadi Liakhovetski wrote:
-> > > > > Drivers, that can be built and work with and without
-> > > > > CONFIG_VIDEO_V4L2_SUBDEV_API, need the v4l2_subdev_get_try_format()
-> > > > > and v4l2_subdev_get_try_crop() functions, even though their return
-> > > > > value should never be dereferenced. Also add convenience macros to
-> > > > > init and clean up subdevice internal media entities.
-> > > > 
-> > > > Why don't you just make the drivers depend on
-> > > > CONFIG_VIDEO_V4L2_SUBDEV_API ? They don't need to actually export a
-> > > > device node to userspace, but they require the in-kernel API.
-> > > 
-> > > Why? Why should the user build and load all the media controller stuff,
-> > > buy all the in-kernel objects and code to never actually use it? Where
-> > > OTOH all is needed to avoid that is a couple of NOP macros?
-> > 
-> > Because the automatic compatibility layer that will translate video
-> > operations to pad operations will need to access pads, so subdevs that
-> > implement a pad- level API need to export it to the bridge, even if the
-> > bridge is not MC-aware.
-> 
-> I might be missing something, but it seems to me, that if
-> CONFIG_VIDEO_V4L2_SUBDEV_API is not defined, no pads are exported to the
-> user space (and you mean a compatibility layer in the user space, don't
-> you?), so, noone will be able to accesss them.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   59 ++++++++++++++++++++++++++
+ 1 files changed, 59 insertions(+), 0 deletions(-)
 
-No, I meant a compatibility layer in kernel space. Basically something like 
-(totally untested)
-
-int v4l2_subdev_get_mbus_format(struct v4l2_subdev *sd, struct 
-v4l2_mbus_framefmt *format)
-{
-	struct v4l2_subdev_format fmt;
-	int ret;
-
-	ret = v4l2_subdev_call(sd, video, g_mbus_fmt, format);
-	if (ret != ENOIOCTLCMD)
-		return ret;
-
-	fmt.pad = 0;
-	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-	fmt.format = *format;
-
-	ret = v4l2_subdev_call(sd, pad, get_fmt, NULL, &fmt);
-	if (ret < 0 && ret != ENOIOCTLCMD)
-		*format = fmt.format;
-
-	return ret;
-}
-
-Or the other way around, trying pad::get_fmt before video::g_mbus_fmt.
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 9e72f07..400f223 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -1273,6 +1273,49 @@ produce a slight hiss, but in the encoder itself, guaranteeing a fixed
+ and reproducible audio bitstream. 0 = unmuted, 1 = muted.</entry>
+ 	      </row>
+ 	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-audio-dec-playback">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_AUDIO_DEC_PLAYBACK</constant>&nbsp;</entry>
++		<entry>enum&nbsp;v4l2_mpeg_audio_dec_playback</entry>
++	      </row><row><entry spanname="descr">Determines how monolingual audio should be played back.
++Possible values are:</entry>
++	      </row>
++	      <row>
++		<entrytbl spanname="descr" cols="2">
++		  <tbody valign="top">
++		    <row>
++		      <entry><constant>V4L2_MPEG_AUDIO_DEC_PLAYBACK_AUTO</constant>&nbsp;</entry>
++		      <entry>Automatically determines the best playback mode.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_AUDIO_DEC_PLAYBACK_STEREO</constant>&nbsp;</entry>
++		      <entry>Stereo playback.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_AUDIO_DEC_PLAYBACK_LEFT</constant>&nbsp;</entry>
++		      <entry>Left channel playback.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_AUDIO_DEC_PLAYBACK_RIGHT</constant>&nbsp;</entry>
++		      <entry>Right channel playback.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_AUDIO_DEC_PLAYBACK_MONO</constant>&nbsp;</entry>
++		      <entry>Mono playback.</entry>
++		    </row>
++		    <row>
++		      <entry><constant>V4L2_MPEG_AUDIO_DEC_PLAYBACK_SWAPPED_STEREO</constant>&nbsp;</entry>
++		      <entry>Stereo playback with swapped left and right channels.</entry>
++		    </row>
++		  </tbody>
++		</entrytbl>
++	      </row>
++	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-audio-dec-multilingual-playback">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_PLAYBACK</constant>&nbsp;</entry>
++		<entry>enum&nbsp;v4l2_mpeg_audio_dec_playback</entry>
++	      </row><row><entry spanname="descr">Determines how multilingual audio should be played back.</entry>
++	      </row>
++	      <row><entry></entry></row>
+ 	      <row id="v4l2-mpeg-video-encoding">
+ 		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_ENCODING</constant>&nbsp;</entry>
+ 		<entry>enum&nbsp;v4l2_mpeg_video_encoding</entry>
+@@ -1434,6 +1477,22 @@ of the video. The supplied 32-bit integer is interpreted as follows (bit
+ 		  </tbody>
+ 		</entrytbl>
+ 	      </row>
++	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-dec-pts">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_DEC_PTS</constant>&nbsp;</entry>
++		<entry>integer64</entry>
++	      </row><row><entry spanname="descr">This read-only control returns the
++33-bit video Presentation Time Stamp as defined in ITU T-REC-H.222.0 and ISO/IEC 13818-1 of
++the currently displayed frame. This is the same PTS as is used in &VIDIOC-DECODER-CMD;.</entry>
++	      </row>
++	      <row><entry></entry></row>
++	      <row id="v4l2-mpeg-video-dec-frame">
++		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_DEC_FRAME</constant>&nbsp;</entry>
++		<entry>integer64</entry>
++	      </row><row><entry spanname="descr">This read-only control returns the
++frame counter of the frame that is currently displayed (decoded). This value is reset to 0 whenever
++the decoder is started.</entry>
++	      </row>
+ 
+ 
+ 	      <row><entry></entry></row>
 -- 
-Regards,
+1.7.7.3
 
-Laurent Pinchart
