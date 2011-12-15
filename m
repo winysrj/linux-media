@@ -1,164 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50567 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751139Ab1LRAV1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 19:21:27 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0LQcE025070
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:21:26 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 6/6] [media] tda10021: Add support for DVB-C Annex C
-Date: Sat, 17 Dec 2011 22:21:13 -0200
-Message-Id: <1324167673-20787-7-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324167673-20787-6-git-send-email-mchehab@redhat.com>
-References: <1324167673-20787-1-git-send-email-mchehab@redhat.com>
- <1324167673-20787-2-git-send-email-mchehab@redhat.com>
- <1324167673-20787-3-git-send-email-mchehab@redhat.com>
- <1324167673-20787-4-git-send-email-mchehab@redhat.com>
- <1324167673-20787-5-git-send-email-mchehab@redhat.com>
- <1324167673-20787-6-git-send-email-mchehab@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:55220 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754146Ab1LOVqa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 16:46:30 -0500
+Received: by eaaj10 with SMTP id j10so2393479eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 13:46:29 -0800 (PST)
+Message-ID: <4EEA6AAE.80405@gmail.com>
+Date: Thu, 15 Dec 2011 22:46:22 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	t.stanislaws@samsung.com, dacohen@gmail.com,
+	andriy.shevchenko@linux.intel.com, g.liakhovetski@gmx.de,
+	hverkuil@xs4all.nl
+Subject: Re: [RFC 1/3] v4l: Add pixel clock to struct v4l2_mbus_framefmt
+References: <20111201143044.GI29805@valkosipuli.localdomain> <1323876147-18107-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1323876147-18107-1-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While tda10021 supports both DVB-C Annex A and C, it is currently
-hard-coded to Annex A. Add support for Annex C and re-work the
-code in order to report the delivery systems, thans to Andreas,
-that passed us the register settings for the Roll-off factor.
+Hi Sakari,
 
-While here, re-work the per-modulation register settings, in order
-to avoid the magic test to check if the QAM type is supported.
+thanks for the patch.
 
-Thanks-to: Andreas Oberriter <obi@linuxtv.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda10021.c |   83 +++++++++++++++++++++++--------
- 1 files changed, 61 insertions(+), 22 deletions(-)
+On 12/14/2011 04:22 PM, Sakari Ailus wrote:
+> Pixel clock is an essential part of the image data parameters. Add this.
+> Together, the current parameters also define the frame rate.
+> 
+> Sensors do not have a concept of frame rate; pixel clock is much more
+> meaningful in this context. Also, it is best to combine the pixel clock with
+> the other format parameters since there are dependencies between them.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/subdev-formats.xml |    9 ++++++++-
+>  include/linux/v4l2-mediabus.h                      |    4 +++-
+>  2 files changed, 11 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> index 49c532e..b4591ef 100644
+> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> @@ -35,7 +35,14 @@
+>  	</row>
+>  	<row>
+>  	  <entry>__u32</entry>
+> -	  <entry><structfield>reserved</structfield>[7]</entry>
+> +	  <entry><structfield>pixel_clock</structfield></entry>
+> +	  <entry>Pixel clock in kHz. This clock is the maximum rate at
+> +	  which pixels are transferred on the bus. The pixel_clock
+> +	  field is read-only.</entry>
 
-diff --git a/drivers/media/dvb/frontends/tda10021.c b/drivers/media/dvb/frontends/tda10021.c
-index 6ca533e..3d4000d 100644
---- a/drivers/media/dvb/frontends/tda10021.c
-+++ b/drivers/media/dvb/frontends/tda10021.c
-@@ -227,26 +227,39 @@ static int tda10021_init (struct dvb_frontend *fe)
- static int tda10021_set_parameters (struct dvb_frontend *fe,
- 			    struct dvb_frontend_parameters *p)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys  = c->delivery_system;
-+	unsigned qam = c->modulation;
-+	bool is_annex_c;
-+	u32 reg0x3d;
- 	struct tda10021_state* state = fe->demodulator_priv;
-+	struct qam_params {
-+		u8 conf, agcref, lthr, mseth, aref;
-+	} qam_params[] = {
-+		/* Modulation  Conf  AGCref  LTHR  MSETH  AREF */
-+		[QPSK]	   = { 0x14, 0x78,   0x78, 0x8c,  0x96 },
-+		[QAM_16]   = { 0x00, 0x8c,   0x87, 0xa2,  0x91 },
-+		[QAM_32]   = { 0x04, 0x8c,   0x64, 0x74,  0x96 },
-+		[QAM_64]   = { 0x08, 0x6a,   0x46, 0x43,  0x6a },
-+		[QAM_128]  = { 0x0c, 0x78,   0x36, 0x34,  0x7e },
-+		[QAM_256]  = { 0x10, 0x5c,   0x26, 0x23,  0x6b },
-+	};
-+
-+	switch (delsys) {
-+	case SYS_DVBC_ANNEX_A:
-+		is_annex_c = false;
-+		break;
-+	case SYS_DVBC_ANNEX_C:
-+		is_annex_c = true;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 
--	//table for QAM4-QAM256 ready  QAM4  QAM16 QAM32 QAM64 QAM128 QAM256
--	//CONF
--	static const u8 reg0x00 [] = { 0x14, 0x00, 0x04, 0x08, 0x0c,  0x10 };
--	//AGCREF value
--	static const u8 reg0x01 [] = { 0x78, 0x8c, 0x8c, 0x6a, 0x78,  0x5c };
--	//LTHR value
--	static const u8 reg0x05 [] = { 0x78, 0x87, 0x64, 0x46, 0x36,  0x26 };
--	//MSETH
--	static const u8 reg0x08 [] = { 0x8c, 0xa2, 0x74, 0x43, 0x34,  0x23 };
--	//AREF
--	static const u8 reg0x09 [] = { 0x96, 0x91, 0x96, 0x6a, 0x7e,  0x6b };
--
--	int qam = p->u.qam.modulation;
--
--	if (qam < 0 || qam > 5)
-+	if (qam >= ARRAY_SIZE(qam_params))
- 		return -EINVAL;
- 
--	if (p->inversion != INVERSION_ON && p->inversion != INVERSION_OFF)
-+	if (c->inversion != INVERSION_ON && c->inversion != INVERSION_OFF)
- 		return -EINVAL;
- 
- 	//printk("tda10021: set frequency to %d qam=%d symrate=%d\n", p->frequency,qam,p->u.qam.symbol_rate);
-@@ -256,15 +269,25 @@ static int tda10021_set_parameters (struct dvb_frontend *fe,
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	tda10021_set_symbolrate (state, p->u.qam.symbol_rate);
-+	tda10021_set_symbolrate (state, c->symbol_rate);
- 	_tda10021_writereg (state, 0x34, state->pwm);
- 
--	_tda10021_writereg (state, 0x01, reg0x01[qam]);
--	_tda10021_writereg (state, 0x05, reg0x05[qam]);
--	_tda10021_writereg (state, 0x08, reg0x08[qam]);
--	_tda10021_writereg (state, 0x09, reg0x09[qam]);
-+	_tda10021_writereg (state, 0x01, qam_params[qam].agcref);
-+	_tda10021_writereg (state, 0x05, qam_params[qam].lthr);
-+	_tda10021_writereg (state, 0x08, qam_params[qam].mseth);
-+	_tda10021_writereg (state, 0x09, qam_params[qam].aref);
-+	tda10021_setup_reg0 (state, qam_params[qam].conf, p->inversion);
-+
-+	/*
-+	 * Bit 0 == 0 means roll-off = 0.15 (Annex A)
-+	 *	 == 1 means roll-off = 0.13 (Annex C)
-+	 */
-+	reg0x3d = tda10021_readreg (state, 0x3d);
-+	if (is_annex_c)
-+		_tda10021_writereg (state, 0x3d, 0x01 | reg0x3d);
-+	else
-+		_tda10021_writereg (state, 0x3d, 0xfe & reg0x3d);
- 
--	tda10021_setup_reg0 (state, reg0x00[qam], p->inversion);
- 
- 	return 0;
- }
-@@ -443,6 +466,21 @@ error:
- 	return NULL;
- }
- 
-+static int tda10021_get_property(struct dvb_frontend *fe,
-+				 struct dtv_property *p)
-+{
-+	switch (p->cmd) {
-+	case DTV_ENUM_DELSYS:
-+		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
-+		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
-+		p->u.buffer.len = 2;
-+		break;
-+	default:
-+		break;
-+	}
-+	return 0;
-+}
-+
- static struct dvb_frontend_ops tda10021_ops = {
- 
- 	.info = {
-@@ -471,6 +509,7 @@ static struct dvb_frontend_ops tda10021_ops = {
- 
- 	.set_frontend = tda10021_set_parameters,
- 	.get_frontend = tda10021_get_frontend,
-+	.get_property = tda10021_get_property,
- 
- 	.read_status = tda10021_read_status,
- 	.read_ber = tda10021_read_ber,
--- 
-1.7.8
+I searched a couple of datasheets to find out where I could use this pixel_clock
+field but didn't find any so far. I haven't tried too hard though ;)
+There seems to be more benefits from having the link frequency control.
 
+It might be easy to confuse pixel_clock with the bus clock. The bus clock is
+often referred in datasheets as Pixel Clock (PCLK, AFAIU it's described with
+link frequency in your RFC). IMHO your original proposal was better, i.e.
+using more explicit pixel_rate. Also why it is in kHz ? Doesn't it make more
+sense to use bits or pixels  per second ?
+
+
+> +	</row>
+> +	<row>
+> +	  <entry>__u32</entry>
+> +	  <entry><structfield>reserved</structfield>[6]</entry>
+>  	  <entry>Reserved for future extensions. Applications and drivers must
+>  	  set the array to zero.</entry>
+>  	</row>
+> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+> index 5ea7f75..76a0df2 100644
+> --- a/include/linux/v4l2-mediabus.h
+> +++ b/include/linux/v4l2-mediabus.h
+> @@ -101,6 +101,7 @@ enum v4l2_mbus_pixelcode {
+>   * @code:	data format code (from enum v4l2_mbus_pixelcode)
+>   * @field:	used interlacing type (from enum v4l2_field)
+>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+> + * @pixel_clock: pixel clock, in kHz
+>   */
+>  struct v4l2_mbus_framefmt {
+>  	__u32			width;
+> @@ -108,7 +109,8 @@ struct v4l2_mbus_framefmt {
+>  	__u32			code;
+>  	__u32			field;
+>  	__u32			colorspace;
+> -	__u32			reserved[7];
+> +	__u32			pixel_clock;
+
+I'm wondering, whether it is worth to make it 'pixelclock' for consistency
+with other fields? Perhaps it would make more sense to have color_space and
+pixel_clock.
+             		
+> +	__u32			reserved[6];
+>  };
+>  
+>  #endif
+
+--
+
+Regards,
+Sylwester
