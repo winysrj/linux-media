@@ -1,112 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44308 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752331Ab1LYVTN (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2621 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755662Ab1LOJeX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Dec 2011 16:19:13 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: MEM2MEM devices: how to handle sequence number?
-Date: Sun, 25 Dec 2011 22:19:10 +0100
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	"'javier Martin'" <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de, "'Pawel Osciak'" <p.osciak@gmail.com>
-References: <CACKLOr0H4enuADtWcUkZCS_V92mmLD8K5CgScbGo7w9nbT=-CA@mail.gmail.com> <201112231254.08377.laurent.pinchart@ideasonboard.com> <4EF4A45E.1070501@gmail.com>
-In-Reply-To: <4EF4A45E.1070501@gmail.com>
+	Thu, 15 Dec 2011 04:34:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [patch -longterm] V4L/DVB: v4l2-ioctl: integer overflow in video_usercopy()
+Date: Thu, 15 Dec 2011 10:33:35 +0100
+Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	stable@vger.kernel.org
+References: <20111215063445.GA2424@elgon.mountain> <4EE9BC25.7020303@infradead.org>
+In-Reply-To: <4EE9BC25.7020303@infradead.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112252219.11412.laurent.pinchart@ideasonboard.com>
+Message-Id: <201112151033.35153.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Thursday, December 15, 2011 10:21:41 Mauro Carvalho Chehab wrote:
+> On 15-12-2011 04:34, Dan Carpenter wrote:
+> > On a 32bit system the multiplication here could overflow.  p->count is
+> > used in some of the V4L drivers.
+> 
+> ULONG_MAX / sizeof(v4l2_ext_control) is too much. This ioctl is used on things
+> like setting MPEG paramenters, where several parameters need adjustments at
+> the same time. I risk to say that 64 is probably a reasonably safe upper limit.
 
-On Friday 23 December 2011 16:55:10 Sylwester Nawrocki wrote:
-> On 12/23/2011 12:54 PM, Laurent Pinchart wrote:
-> >>>>> diff --git a/drivers/media/video/videobuf2-core.c
-> >>>>> b/drivers/media/video/videobuf2-core.c
-> >>>>> index 1250662..7d8a88b 100644
-> >>>>> --- a/drivers/media/video/videobuf2-core.c
-> >>>>> +++ b/drivers/media/video/videobuf2-core.c
-> >>>>> @@ -1127,6 +1127,7 @@ int vb2_qbuf(struct vb2_queue *q, struct
-> >>>>> v4l2_buffer *b)
-> >>>>> 
-> >>>>>           */
-> >>>>>          
-> >>>>>          list_add_tail(&vb->queued_entry,&q->queued_list);
-> >>>>>          vb->state = VB2_BUF_STATE_QUEUED;
-> >>>>> 
-> >>>>> +       vb->v4l2_buf.sequence = b->sequence;
-> >>>>> 
-> >>>>>          /*
-> >>>>>          
-> >>>>>           * If already streaming, give the buffer to driver for
-> >>>>>           processing.
-> >>>> 
-> >>>> Right, such patch is definitely needed. Please resend it with
-> >>>> 'signed-off-by' annotation.
-> >>> 
-> >>> I'm not too sure about that. Isn't the sequence number supposed to be
-> >>> ignored by drivers on video output devices ? The documentation is a bit
-> >>> terse on the subject, all it says is
-> >>> 
-> >>> __u32  sequence     Set by the driver, counting the frames in the
-> >>> sequence.
-> >> 
-> >> We can also update the documentation if needed. IMHO copying sequence
-> >> number in mem2mem case if there is 1:1 relation between the buffers is a
-> >> good idea.
-> > 
-> > My point is that sequence numbers are currently not applicable to video
-> > output devices, at least according to the documentation. Applications
-> > will just set them to 0.
+Let's make it 1024. That gives more than enough room for expansion without taking
+too much memory.
+
+Especially for video encoders a lot of controls are needed, and sensor drivers
+are also getting more complex, so 64 is a bit too low for my taste.
+
+I agree that limiting this to some sensible value is a good idea.
+
+> Btw, the upstream code also seems to have the same issue:
 > 
-> Looks like the documentation wasn't updated when the Memory-To-Memory
-> interface has been introduced.
+> static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
+>                             void * __user *user_ptr, void ***kernel_ptr)
+> {
+> ...
+> 	if (ctrls->count != 0) {
+> ...	
+> 	*array_size = sizeof(struct v4l2_ext_control)
+>                                     * ctrls->count;
+> 	ret = 1;
+> ...
+> }
+> 	
+> long
+> video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+>                v4l2_kioctl func)
+> {
+> ...
+>         err = check_array_args(cmd, parg, &array_size, &user_ptr, &kernel_ptr);
+>         if (err < 0)
+>                 goto out;
+>         has_array_args = err;
 > 
-> > I think it would be better to have the m2m driver set the sequence number
-> > internally on the video output node by incrementing an counter, and pass
-> > it down the pipeline to the video capture node.
+>         if (has_array_args) {
+>                 mbuf = kmalloc(array_size, GFP_KERNEL);
+> ...
 > 
-> It sounds reasonable. Currently the sequence is zeroed at streamon in the
-> capture drivers. Similar behaviour could be assured by m2m drivers.
+> so, if is there any overflow at check_array_args(), instead of returning
+> an error to userspace, it will allocate the array with less space than
+> needed. 
+> 
+> On both upstream and longterm, I think that it is more reasonable to 
+> state a limit for the maximum number of controls that can be passed at
+> the same time, and live with that.
+> 
+> A dummy check says:
+> $ more include/linux/videodev2.h |grep V4L2_CID|wc -l
+>     209
+> 
+> So, an upper limit of 256 is enough to allow userspace to change all existing controls
+> at the same time.
+
+I would like to have this set to at least twice the number of existing controls
+(which 1024 certainly is).
+
+It is possible (and valid) to have the same control any number of times in the
+control list. The last one will 'win' in that case. I can think of (admittedly
+contrived) scenarios where that might be useful. The only thing we want to do
+here is to add a sanity check against insane count values.
+
+> The proper way seems to add a define at include/linux/videodev2.h
+> and enforce it at the usercopy code.
 
 I agree.
 
-> In Javier's case it's probably more reliable to check the sequence numbers
-> contiguity directly at the image source driver's device node.
-> 
-> Although when m2m driver sets the sequence number internally on a video
-> output queue it could make sense to have the buffer's sequence number
-> updated upon return from VIDIOC_QBUF. What do you think ?
-
-Yes, that wouldn't hurt and could provide interesting information. In the 
-general video output case it won't matter much, as the sequence numbers will 
-be contiguous and won't be used by anything else, but in the mem-to-mem case 
-it could let applications synchronize images with the video capture node on 
-the mem-to-mem output. However, we can't always assume a 1-to-1 correspondance 
-between an input (to the mem-to-mem device) and an output buffer, as more than 
-one input buffer could be required to decompress a frame for instance. In that 
-case, should the video capture node still report the sequence number used by 
-the video output node ? If it does, there will be gaps in the video capture 
-sequence numbers.
-
-> This would be needed for the object detection interface if we wanted to
-> associate object detection result with a frame sequence number.
-
-Agreed, in that case that would be pretty interesting.
-
-> As far as the implementation is concerned, m2m and output drivers (with
-> selected capabilities only?) would have to update buffer sequence number
-> from within buf_queue vb2 queue op.
-
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> 
+> Regards,
+> Mauro
+> 
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > ---
+> > This is a patch against the 2.6.32-longterm kernel.  In the stock
+> > kernel, this code was totally rewritten and fixed in 2010 by d14e6d76ebf
+> > "[media] v4l: Add multi-planar ioctl handling code".
+> > 
+> > Hopefully, someone can Ack this and we merge it into the stable tree.
+> > 
+> > diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> > index 265bfb5..7196303 100644
+> > --- a/drivers/media/video/v4l2-ioctl.c
+> > +++ b/drivers/media/video/v4l2-ioctl.c
+> > @@ -414,6 +414,9 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+> >  		p->error_idx = p->count;
+> >  		user_ptr = (void __user *)p->controls;
+> >  		if (p->count) {
+> > +			err = -EINVAL;
+> > +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
+> > +				goto out_ext_ctrl;
+> >  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+> >  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+> >  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
+> > @@ -1912,6 +1915,9 @@ long video_ioctl2(struct file *file,
+> >  		p->error_idx = p->count;
+> >  		user_ptr = (void __user *)p->controls;
+> >  		if (p->count) {
+> > +			err = -EINVAL;
+> > +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
+> > +				goto out_ext_ctrl;
+> >  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+> >  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+> >  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
