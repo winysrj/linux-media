@@ -1,94 +1,296 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16606 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753775Ab1LWJeM (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:38721 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758718Ab1LOLxJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 04:34:12 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Fri, 23 Dec 2011 10:34:04 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE
- memops
-In-reply-to: <CACVXFVOqMmakPW-aAdp005RDLuV5oc6-JfjQHr-2bFRzZi2zDQ@mail.gmail.com>
-To: 'Ming Lei' <ming.lei@canonical.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Tony Lindgren' <tony@atomide.com>,
-	'Sylwester Nawrocki' <snjw23@gmail.com>,
-	'Alan Cox' <alan@lxorguk.ukuu.org.uk>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, 'Pawel Osciak' <p.osciak@gmail.com>
-Message-id: <015201ccc156$033f73a0$09be5ae0$%szyprowski@samsung.com>
-Content-language: pl
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
- <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
- <010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
- <CACVXFVOqMmakPW-aAdp005RDLuV5oc6-JfjQHr-2bFRzZi2zDQ@mail.gmail.com>
+	Thu, 15 Dec 2011 06:53:09 -0500
+Date: Thu, 15 Dec 2011 13:53:03 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC 3/4] omap3isp: Configure CSI-2 phy based on platform data
+Message-ID: <20111215115303.GD3677@valkosipuli.localdomain>
+References: <20111215095015.GC3677@valkosipuli.localdomain>
+ <1323942635-13058-3-git-send-email-sakari.ailus@iki.fi>
+ <201112151128.07311.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201112151128.07311.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Laurent,
 
-On Friday, December 23, 2011 10:22 AM Ming Lei wrote:
+Thanks for the review!
 
-> On Thu, Dec 22, 2011 at 5:28 PM, Marek Szyprowski
-> <m.szyprowski@samsung.com> wrote:
-> >> DMA contig memory resource is very limited and precious, also
-> >> accessing to it from CPU is very slow on some platform.
-> >>
-> >> For some cases(such as the comming face detection driver), DMA Streaming
-> >> buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
-> >> physical memory but letting video device driver to handle DMA buffer mapping
-> >> and unmapping things.
-> >>
-> >> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> >
-> > Could you elaborate a bit why do you think that DMA contig memory resource
-> > is so limited? If dma_alloc_coherent fails because of the memory fragmentation,
-> > the alloc_pages() call with order > 0 will also fail.
+On Thu, Dec 15, 2011 at 11:28:06AM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> For example, on ARM, there is very limited kernel virtual address space reserved
-> for DMA coherent buffer mapping, the default size is about 2M if I
-> don't remember mistakenly.
-
-It can be easily increased for particular boards, there is no problem with this.
-
-> > I understand that there might be some speed issues with coherent (uncached)
-> > userspace mappings, but I would solve it in completely different way. The interface
+> Thanks for the patch.
 > 
-> Also there is poor performance inside kernel space, see [1]
-
-Your driver doesn't access video data inside kernel space, so this is also not an issue.
- 
-> > for both coherent/uncached and non-coherent/cached contig allocator should be the
-> > same, so exchanging them is easy and will not require changes in the driver.
-> > I'm planning to introduce some design changes in memory allocator api and introduce
-> > prepare and finish callbacks in allocator ops. I hope to post the rfc after
-> > Christmas. For your face detection driver using standard dma-contig allocator
-> > shouldn't be a big issue.
-> >
-> > Your current implementation also abuses the design and api of videobuf2 memory
-> > allocators. If the allocator needs to return a custom structure to the driver
+> On Thursday 15 December 2011 10:50:34 Sakari Ailus wrote:
+> > Configure CSI-2 phy based on platform data in the ISP driver rather than in
+> > platform code.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  drivers/media/video/omap3isp/isp.h       |    3 -
+> >  drivers/media/video/omap3isp/ispcsiphy.c |   95
+> > ++++++++++++++++++++++++++--- drivers/media/video/omap3isp/ispcsiphy.h |  
+> >  4 +
+> >  drivers/media/video/omap3isp/ispvideo.c  |   19 ++++++
+> >  4 files changed, 108 insertions(+), 13 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/omap3isp/isp.h
+> > b/drivers/media/video/omap3isp/isp.h index 705946e..c5935ae 100644
+> > --- a/drivers/media/video/omap3isp/isp.h
+> > +++ b/drivers/media/video/omap3isp/isp.h
+> > @@ -126,9 +126,6 @@ struct isp_reg {
+> > 
+> >  struct isp_platform_callback {
+> >  	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
+> > -	int (*csiphy_config)(struct isp_csiphy *phy,
+> > -			     struct isp_csiphy_dphy_cfg *dphy,
+> > -			     struct isp_csiphy_lanes_cfg *lanes);
+> >  	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
+> >  };
+> > 
+> > diff --git a/drivers/media/video/omap3isp/ispcsiphy.c
+> > b/drivers/media/video/omap3isp/ispcsiphy.c index 5be37ce..52af308 100644
+> > --- a/drivers/media/video/omap3isp/ispcsiphy.c
+> > +++ b/drivers/media/video/omap3isp/ispcsiphy.c
+> > @@ -28,6 +28,8 @@
+> >  #include <linux/device.h>
+> >  #include <linux/regulator/consumer.h>
+> > 
+> > +#include "../../../../arch/arm/mach-omap2/control.h"
+> > +
+> >  #include "isp.h"
+> >  #include "ispreg.h"
+> >  #include "ispcsiphy.h"
+> > @@ -138,15 +140,90 @@ static void csiphy_dphy_config(struct isp_csiphy
+> > *phy) isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+> >  }
+> > 
+> > -static int csiphy_config(struct isp_csiphy *phy,
+> > -			 struct isp_csiphy_dphy_cfg *dphy,
+> > -			 struct isp_csiphy_lanes_cfg *lanes)
+> > +/*
+> > + * THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1.
+> > + * THS_SETTLE: Programmed value = ceil(90 ns/DDRClk period) + 3.
+> > + */
+> > +#define THS_TERM_D 2000000
+> > +#define THS_TERM(ddrclk_khz)					\
+> > +(								\
+> > +	((25 * (ddrclk_khz)) % THS_TERM_D) ?			\
+> > +		((25 * (ddrclk_khz)) / THS_TERM_D) :		\
+> > +		((25 * (ddrclk_khz)) / THS_TERM_D) - 1		\
+> > +)
+> > +
+> > +#define THS_SETTLE_D 1000000
+> > +#define THS_SETTLE(ddrclk_khz)					\
+> > +(								\
+> > +	((90 * (ddrclk_khz)) % THS_SETTLE_D) ?			\
+> > +		((90 * (ddrclk_khz)) / THS_SETTLE_D) + 4 :	\
+> > +		((90 * (ddrclk_khz)) / THS_SETTLE_D) + 3	\
+> > +)
 > 
-> I think returning vaddr is enough.
+> The THS_TERM and THS_SETTLE macros are only used once. I would just put that 
+> code explictly where it gets used. The macros hinder readability.
+
+I'll do that.
+
+> > +
+> > +/*
+> > + * TCLK values are OK at their reset values
+> > + */
+> > +#define TCLK_TERM	0
+> > +#define TCLK_MISS	1
+> > +#define TCLK_SETTLE	14
+> > +
+> > +int omap3isp_csiphy_config(struct isp_device *isp,
+> > +			   struct v4l2_subdev *csi2_subdev,
+> > +			   struct v4l2_subdev *sensor,
+> > +			   struct v4l2_mbus_framefmt *sensor_fmt)
 > 
-> > you should use cookie method. vaddr is intended to provide only a pointer to
-> > kernel virtual mapping, but you pass a struct page * there.
+> The number of lanes can depend on the format. Wouldn't it be better to add a 
+> subdev operation to query the sensor for its bus configuration instead of 
+> relying on ISP platform data ?
+
+In principle, yes. That's an interesting point; how this kind of information
+would best be delivered?
+
+On the other hand I don't see any pressing reason to use less lanes than the
+maximum, so this could wait IMHO.
+
+Perhaps around the time we standardise how the CSI-2 configuration is being
+done? It's not quite as simple as the mbus_config seems to assume. For
+example, the lane mapping and then which lanes do you use if you're using
+less than the maximum has to be handled in a way or another.
+
+The number of lanes might be something the user would want to touch, but I'm
+not entirely sure. You achieve more functionality by providing that
+flexibility to the user but I don't see need for configuring that --- still
+getting the number of lanes could be interesting.
+
+> >  {
+> > +	struct isp_v4l2_subdevs_group *subdevs = sensor->host_priv;
+> > +	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
+> > +	struct isp_csiphy_dphy_cfg csi2phy;
+> > +	int csi2_ddrclk_khz;
+> > +	struct isp_csiphy_lanes_cfg *lanes;
+> >  	unsigned int used_lanes = 0;
+> >  	unsigned int i;
+> > +	u32 cam_phy_ctrl;
+> > +
+> > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
+> > +	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
+> > +		lanes = subdevs->bus.ccp2.lanecfg;
+> > +	else
+> > +		lanes = subdevs->bus.csi2.lanecfg;
+> > +
+> > +	if (!lanes) {
+> > +		dev_err(isp->dev, "no lane configuration\n");
+> > +		return -EINVAL;
+> > +	}
+> > +
+> > +	cam_phy_ctrl = omap_readl(
+> > +		OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+> > +	/*
+> > +	 * SCM.CONTROL_CAMERA_PHY_CTRL
+> > +	 * - bit[4]    : CSIPHY1 data sent to CSIB
+> > +	 * - bit [3:2] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
+> > +	 * - bit [1:0] : CSIPHY2 config: 00 d-phy, 01/10 ccp2
+> > +	 */
+> > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1)
+> > +		cam_phy_ctrl |= 1 << 2;
+> > +	else if (subdevs->interface == ISP_INTERFACE_CSI2C_PHY1)
+> > +		cam_phy_ctrl &= 1 << 2;
+> > +
+> > +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
+> > +		cam_phy_ctrl |= 1;
+> > +	else if (subdevs->interface == ISP_INTERFACE_CSI2A_PHY2)
+> > +		cam_phy_ctrl &= 1;
+> > +
+> > +	omap_writel(cam_phy_ctrl,
+> > +		    OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+> > +
+> > +	csi2_ddrclk_khz = sensor_fmt->pixel_clock
+> > +		/ (2 * csi2->phy->num_data_lanes)
+> > +		* omap3isp_video_format_info(sensor_fmt->code)->bpp;
+> > +	csi2phy.ths_term = THS_TERM(csi2_ddrclk_khz);
+> > +	csi2phy.ths_settle = THS_SETTLE(csi2_ddrclk_khz);
+> > +	csi2phy.tclk_term = TCLK_TERM;
+> > +	csi2phy.tclk_miss = TCLK_MISS;
+> > +	csi2phy.tclk_settle = TCLK_SETTLE;
+> > 
+> >  	/* Clock and data lanes verification */
+> > -	for (i = 0; i < phy->num_data_lanes; i++) {
+> > +	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
+> >  		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
+> >  			return -EINVAL;
+> > 
+> > @@ -162,10 +239,10 @@ static int csiphy_config(struct isp_csiphy *phy,
+> >  	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
+> >  		return -EINVAL;
+> > 
+> > -	mutex_lock(&phy->mutex);
+> > -	phy->dphy = *dphy;
+> > -	phy->lanes = *lanes;
+> > -	mutex_unlock(&phy->mutex);
+> > +	mutex_lock(&csi2->phy->mutex);
+> > +	csi2->phy->dphy = csi2phy;
+> > +	csi2->phy->lanes = *lanes;
+> > +	mutex_unlock(&csi2->phy->mutex);
+> > 
+> >  	return 0;
+> >  }
+> > @@ -225,8 +302,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
+> >  	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
+> >  	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
+> > 
+> > -	isp->platform_cb.csiphy_config = csiphy_config;
+> > -
+> >  	phy2->isp = isp;
+> >  	phy2->csi2 = &isp->isp_csi2a;
+> >  	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
+> > diff --git a/drivers/media/video/omap3isp/ispcsiphy.h
+> > b/drivers/media/video/omap3isp/ispcsiphy.h index e93a661..9f93222 100644
+> > --- a/drivers/media/video/omap3isp/ispcsiphy.h
+> > +++ b/drivers/media/video/omap3isp/ispcsiphy.h
+> > @@ -56,6 +56,10 @@ struct isp_csiphy {
+> >  	struct isp_csiphy_dphy_cfg dphy;
+> >  };
+> > 
+> > +int omap3isp_csiphy_config(struct isp_device *isp,
+> > +			   struct v4l2_subdev *csi2_subdev,
+> > +			   struct v4l2_subdev *sensor,
+> > +			   struct v4l2_mbus_framefmt *fmt);
+> >  int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
+> >  void omap3isp_csiphy_release(struct isp_csiphy *phy);
+> >  int omap3isp_csiphy_init(struct isp_device *isp);
+> > diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> > b/drivers/media/video/omap3isp/ispvideo.c index 17bc03c..cdcf1d0 100644
+> > --- a/drivers/media/video/omap3isp/ispvideo.c
+> > +++ b/drivers/media/video/omap3isp/ispvideo.c
+> > @@ -299,6 +299,8 @@ static int isp_video_validate_pipeline(struct
+> > isp_pipeline *pipe)
+> > 
+> >  	while (1) {
+> >  		unsigned int shifter_link;
+> > +		struct v4l2_subdev *_subdev;
 > 
-> No, __get_free_pages returns virtual address instead of 'struct page *'.
+> What about a more descriptive name ?
 
-Then you MUST use cookie for it. vaddr method should return kernel virtual address 
-to the buffer video data. Some parts of videobuf2 relies on this - it is used by file
-io emulator (read(), write() calls) and mmap equivalent for non-mmu systems.
+Ack.
 
-Manual casting in the driver is also a bad idea, that's why there are helper functions
-defined for both dma_contig and dma_sg allocators: vb2_dma_contig_plane_dma_addr() and
-vb2_dma_sg_plane_desc().
+> > +
+> >  		/* Retrieve the sink format */
+> >  		pad = &subdev->entity.pads[0];
+> >  		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+> > @@ -342,6 +344,7 @@ static int isp_video_validate_pipeline(struct
+> > isp_pipeline *pipe) if (media_entity_type(pad->entity) !=
+> > MEDIA_ENT_T_V4L2_SUBDEV)
+> >  			break;
+> > 
+> > +		_subdev = subdev;
+> >  		subdev = media_entity_to_v4l2_subdev(pad->entity);
+> > 
+> >  		fmt_source.pad = pad->index;
+> > @@ -355,6 +358,22 @@ static int isp_video_validate_pipeline(struct
+> > isp_pipeline *pipe) fmt_source.format.height != fmt_sink.format.height)
+> >  			return -EPIPE;
+> > 
+> > +		/* Configure CSI-2 receiver based on sensor format. */
+> > +		if (_subdev == &isp->isp_csi2a.subdev
+> > +		    || _subdev == &isp->isp_csi2c.subdev) {
+> > +			if (cpu_is_omap3630()) {
+> > +				/*
+> > +				 * FIXME: CSI-2 is supported only on
+> > +				 * the 3630!
+> > +				 */
+> 
+> Is it ? Or do you mean by the driver ? What would it take to support it on 
+> OMAP34xx and OMAP35xx ?
 
-Best regards
+I have no way to test it on the OMAP 3430 since I have no CSI-2 sensor
+connected to it. As a matter of fact I've never had one, so I don't really
+know.
+
+> > +				ret = omap3isp_csiphy_config(
+> > +					isp, _subdev, subdev,
+> > +					&fmt_source.format);
+> > +				if (IS_ERR_VALUE(ret))
+> > +					return -EPIPE;
+> > +			}
+> > +		}
+> 
+> This isn't really pipeline validation, is it ? Should this be performed in 
+> isp_pipeline_enable() instead ?
+
+I'll move it there.
+
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
