@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36710 "EHLO
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:53794 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751840Ab1LSHo7 (ORCPT
+	with ESMTP id S1752838Ab1LOKYw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 02:44:59 -0500
-Received: by wgbdr13 with SMTP id dr13so10181019wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 18 Dec 2011 23:44:58 -0800 (PST)
+	Thu, 15 Dec 2011 05:24:52 -0500
+Received: by wgbdr13 with SMTP id dr13so3807124wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 02:24:51 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <201112190151.40165.laurent.pinchart@ideasonboard.com>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
-	<CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com>
-	<Pine.LNX.4.64.1112161043280.6572@axis700.grange>
-	<201112190151.40165.laurent.pinchart@ideasonboard.com>
-Date: Mon, 19 Dec 2011 08:44:58 +0100
-Message-ID: <CACKLOr3rTsiPsYK-hQBMo0wfHRqTNO95jdhXivvx6KUdCJBnnA@mail.gmail.com>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <4EE9C7FA.8070607@infradead.org>
+References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com>
+	<4EE9C7FA.8070607@infradead.org>
+Date: Thu, 15 Dec 2011 11:24:51 +0100
+Message-ID: <CACKLOr1DLj_uc-NDQPNjXHcej2isE==d=_wUinXDDfJLgFiPKg@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: tvp5150 Fix default input selection.
 From: javier Martin <javier.martin@vista-silicon.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-thank you for your comments.
+> Changing this could break em28xx that might be expecting it
+> to be set to composite1. On a quick look, the code there seems to be
+> doing the right thing: during the probe procedure, it explicitly
+> calls s_routing, in order to initialize the device input to the
+> first input type found at the cards structure. So, this patch
+> is likely harmless.
+>
+> Yet, why do you need to change it? Any bridge driver that uses it should
+> be doing the same: at initialization, it should set the input to a
+> value that it is compatible with the way the device is wired, and not
+> to assume a particular arrangement.
 
-Let me try to summarize the conclusions we've agreed here:
-1.- soc-camera can support S_INPUT as long as I provide backwards
-compatibility in case subdev does not support s_routing (i.e. I must
-resend my patch returning input 0 in case s_routing is not supported).
-2.- Board specific code must tell the subdevice which inputs are
-really connected and how through platform data.
+What I'm trying to do with these patches and my previous one related
+to mx2_camera,
+is to be able to use mx2_camera host driver with tvp5150 video decoder.
 
-Is that OK?
+I'm not sure how mx2_camera could be aware that the sensor or decoder
+attached to it
+needs s_routing function to be called with a certain parameter without
+making it too board specific.
+The only solution I could think of was assuming that if s_routing
+function was not called at all,
+the enabled input in tvp5150 would be the default COMPOSITE0 as it is
+specified in the datasheet.
+
+However, If you or anyone suggests a cleaner approach I'm totally
+open. But still, changing default
+value of the selected input in tvp5150 probe function is a bit dirty IMHO.
+
+Thank you.
 
 -- 
 Javier Martin
