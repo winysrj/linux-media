@@ -1,72 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226Ab1LJEoB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:44:01 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:44:01 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 10 Dec 2011 10:14:00 +0530
-Message-ID: <CAHFNz9Jbu-Kb8+s5DmEX8NOP6K8yjwNXYucUqmUEH_LcQAvpGA@mail.gmail.com>
-Subject: v4 [PATCH 08/10] TDA18271c2dd: Allow frontend to set DELSYS
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=000e0cd59fe0e3b1d404b3b58cbe
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1103 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753065Ab1LOJme (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 04:42:34 -0500
+Received: from alastor.dyndns.org (215.80-203-102.nextgentel.com [80.203.102.215])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id pBF9gV0q049877
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 10:42:32 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 53A5811C043D
+	for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 10:42:29 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFCv3 PATCH 0/3] Add per-device-node capabilities
+Date: Thu, 15 Dec 2011 10:42:25 +0100
+Message-Id: <1323942148-13503-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cd59fe0e3b1d404b3b58cbe
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Mauro,
 
+This patch series adds support for per-device capabilities.
 
+All comments from the previous RFC PATCH series:
 
---000e0cd59fe0e3b1d404b3b58cbe
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0008-TDA18271c2dd-Allow-frontend-to-set-DELSYS-rather-tha.patch"
-Content-Disposition: attachment;
-	filename="0008-TDA18271c2dd-Allow-frontend-to-set-DELSYS-rather-tha.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/40688
 
-RnJvbSA3MDc4NzdmNWE2MWIzMjU5NzA0ZDQyZTdkZDVlNjQ3ZTkxOTZlOWE0IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFRodSwgMjQgTm92IDIwMTEgMTk6NTY6MzQgKzA1MzAKU3ViamVjdDogW1BBVENIIDA4
-LzEwXSBUREExODI3MWMyZGQ6IEFsbG93IGZyb250ZW5kIHRvIHNldCBERUxTWVMsIHJhdGhlciB0
-aGFuIHF1ZXJ5aW5nIGZlLT5vcHMuaW5mby50eXBlCgpXaXRoIGFueSB0dW5lciB0aGF0IGNhbiB0
-dW5lIHRvIG11bHRpcGxlIGRlbGl2ZXJ5IHN5c3RlbXMvc3RhbmRhcmRzLCBpdCBkb2VzCnF1ZXJ5
-IGZlLT5vcHMuaW5mby50eXBlIHRvIGRldGVybWluZSBmcm9udGVuZCB0eXBlIGFuZCBzZXQgdGhl
-IGRlbGl2ZXJ5CnN5c3RlbSB0eXBlLiBmZS0+b3BzLmluZm8udHlwZSBjYW4gaGFuZGxlIG9ubHkg
-NCBkZWxpdmVyeSBzeXN0ZW1zLCB2aXogRkVfUVBTSywKRkVfUUFNLCBGRV9PRkRNIGFuZCBGRV9B
-VFNDLgoKU2lnbmVkLW9mZi1ieTogTWFudSBBYnJhaGFtIDxhYnJhaGFtLm1hbnVAZ21haWwuY29t
-PgotLS0KIGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy90ZGExODI3MWMyZGQuYyB8ICAgNDIg
-KysrKysrKysrKysrKysrKysrKystLS0tLS0tLQogMSBmaWxlcyBjaGFuZ2VkLCAzMCBpbnNlcnRp
-b25zKCspLCAxMiBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2R2Yi9m
-cm9udGVuZHMvdGRhMTgyNzFjMmRkLmMgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvdGRh
-MTgyNzFjMmRkLmMKaW5kZXggMWIxYmYyMC4uNDNhM2RkNCAxMDA2NDQKLS0tIGEvZHJpdmVycy9t
-ZWRpYS9kdmIvZnJvbnRlbmRzL3RkYTE4MjcxYzJkZC5jCisrKyBiL2RyaXZlcnMvbWVkaWEvZHZi
-L2Zyb250ZW5kcy90ZGExODI3MWMyZGQuYwpAQCAtMTE0NSwyOCArMTE0NSw0NiBAQCBzdGF0aWMg
-aW50IHNldF9wYXJhbXMoc3RydWN0IGR2Yl9mcm9udGVuZCAqZmUsCiAJaW50IHN0YXR1cyA9IDA7
-CiAJaW50IFN0YW5kYXJkOwogCi0Jc3RhdGUtPm1fRnJlcXVlbmN5ID0gcGFyYW1zLT5mcmVxdWVu
-Y3k7CisJdTMyIGJ3OworCWZlX2RlbGl2ZXJ5X3N5c3RlbV90IGRlbHN5czsKIAotCWlmIChmZS0+
-b3BzLmluZm8udHlwZSA9PSBGRV9PRkRNKQotCQlzd2l0Y2ggKHBhcmFtcy0+dS5vZmRtLmJhbmR3
-aWR0aCkgewotCQljYXNlIEJBTkRXSURUSF82X01IWjoKKwlkZWxzeXMJPSBmZS0+ZHR2X3Byb3Bl
-cnR5X2NhY2hlLmRlbGl2ZXJ5X3N5c3RlbTsKKwlidwk9IGZlLT5kdHZfcHJvcGVydHlfY2FjaGUu
-YmFuZHdpZHRoX2h6OworCisJc3RhdGUtPm1fRnJlcXVlbmN5ID0gZmUtPmR0dl9wcm9wZXJ0eV9j
-YWNoZS5mcmVxdWVuY3k7CisKKwlpZiAoIWRlbHN5cyB8fCAhc3RhdGUtPm1fRnJlcXVlbmN5KSB7
-CisJCXByaW50ayhLRVJOX0VSUiAiSW52YWxpZCBkZWxzeXM6JWQgZnJlcTolZFxuIiwgZGVsc3lz
-LCBzdGF0ZS0+bV9GcmVxdWVuY3kpOworCQlyZXR1cm4gLUVJTlZBTDsKKwl9CisKKwlzd2l0Y2gg
-KGRlbHN5cykgeworCWNhc2UgU1lTX0RWQlQ6CisJY2FzZSBTWVNfRFZCVDI6CisJCWlmICghYncp
-CisJCQlyZXR1cm4gLUVJTlZBTDsKKwkJc3dpdGNoIChidykgeworCQljYXNlIDYwMDAwMDA6CiAJ
-CQlTdGFuZGFyZCA9IEhGX0RWQlRfNk1IWjsKIAkJCWJyZWFrOwotCQljYXNlIEJBTkRXSURUSF83
-X01IWjoKKwkJY2FzZSA3MDAwMDAwOgogCQkJU3RhbmRhcmQgPSBIRl9EVkJUXzdNSFo7CiAJCQli
-cmVhazsKIAkJZGVmYXVsdDoKLQkJY2FzZSBCQU5EV0lEVEhfOF9NSFo6CisJCWNhc2UgODAwMDAw
-MDoKIAkJCVN0YW5kYXJkID0gSEZfRFZCVF84TUhaOwogCQkJYnJlYWs7CiAJCX0KLQllbHNlIGlm
-IChmZS0+b3BzLmluZm8udHlwZSA9PSBGRV9RQU0pIHsKLQkJaWYgKHBhcmFtcy0+dS5xYW0uc3lt
-Ym9sX3JhdGUgPD0gTUFYX1NZTUJPTF9SQVRFXzZNSHopCi0JCQlTdGFuZGFyZCA9IEhGX0RWQkNf
-Nk1IWjsKLQkJZWxzZQotCQkJU3RhbmRhcmQgPSBIRl9EVkJDXzhNSFo7Ci0JfSBlbHNlCisJCWJy
-ZWFrOworCWNhc2UgU1lTX0RWQkNfQU5ORVhfQToKKwkJU3RhbmRhcmQgPSBIRl9EVkJDXzZNSFo7
-CisJCWJyZWFrOworCWNhc2UgU1lTX0RWQkNfQU5ORVhfQzoKKwkJU3RhbmRhcmQgPSBIRl9EVkJD
-XzhNSFo7CisJCWJyZWFrOworCWRlZmF1bHQ6CiAJCXJldHVybiAtRUlOVkFMOworCX0KIAlkbyB7
-CiAJCXN0YXR1cyA9IFJGVHJhY2tpbmdGaWx0ZXJzQ29ycmVjdGlvbihzdGF0ZSwgcGFyYW1zLT5m
-cmVxdWVuY3kpOwogCQlpZiAoc3RhdHVzIDwgMCkKLS0gCjEuNy4xCgo=
---000e0cd59fe0e3b1d404b3b58cbe--
+have been incorporated and the documentation has been updated.
+
+The only file changed since the previous series was vidioc-querycap.xml.
+
+As far as I am concerned it is ready to be merged for v3.3.
+
+The git request-pull output is below:
+
+The following changes since commit bcc072756e4467dc30e502a311b1c3adec96a0e4:
+
+  [media] STV0900: Query DVB frontend delivery capabilities (2011-12-12 15:04:34 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/hverkuil/media_tree.git capsv3
+
+Hans Verkuil (3):
+      V4L2: Add per-device-node capabilities
+      vivi: set device_caps.
+      ivtv: setup per-device caps.
+
+ Documentation/DocBook/media/v4l/compat.xml         |    9 +++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    9 ++++-
+ .../DocBook/media/v4l/vidioc-querycap.xml          |   36 ++++++++++++++++++--
+ drivers/media/video/cx231xx/cx231xx-417.c          |    1 -
+ drivers/media/video/ivtv/ivtv-driver.h             |    1 +
+ drivers/media/video/ivtv/ivtv-ioctl.c              |    7 +++-
+ drivers/media/video/ivtv/ivtv-streams.c            |   14 ++++++++
+ drivers/media/video/pvrusb2/pvrusb2-v4l2.c         |    1 -
+ drivers/media/video/v4l2-ioctl.c                   |    6 ++-
+ drivers/media/video/vivi.c                         |    5 ++-
+ include/linux/videodev2.h                          |   29 +++++++++++-----
+ 11 files changed, 97 insertions(+), 21 deletions(-)
