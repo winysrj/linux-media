@@ -1,65 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:33077 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751575Ab1LJKUk (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:57921 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752550Ab1LOIEy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Dec 2011 05:20:40 -0500
-Date: Sat, 10 Dec 2011 12:20:35 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	riverful.kim@samsung.com
-Subject: Re: [RFC/PATCH 0/5] v4l: New camera controls
-Message-ID: <20111210102035.GE1967@valkosipuli.localdomain>
-References: <1323011776-15967-1-git-send-email-snjw23@gmail.com>
- <201112061334.45936.laurent.pinchart@ideasonboard.com>
- <4EDF40C6.3010900@samsung.com>
+	Thu, 15 Dec 2011 03:04:54 -0500
+Received: by lagp5 with SMTP id p5so805713lag.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 00:04:53 -0800 (PST)
+Message-ID: <4EE9AA21.1060101@gmail.com>
+Date: Thu, 15 Dec 2011 09:04:50 +0100
+From: Fredrik Lingvall <fredrik.lingvall@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EDF40C6.3010900@samsung.com>
+To: Mihai Dobrescu <msdobrescu@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-930C problems
+References: <CALJK-QhGrjC9K8CasrUJ-aisZh8U_4-O3uh_-dq6cNBWUx_4WA@mail.gmail.com>
+In-Reply-To: <CALJK-QhGrjC9K8CasrUJ-aisZh8U_4-O3uh_-dq6cNBWUx_4WA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, all!
+On 12/14/11 17:33, Mihai Dobrescu wrote:
+> Hello,
+>
+> I need to make my tunner working too.
+> Did you make it work?
+> Where did you get the firmware (dvb-usb-hauppauge-hvr930c-drxk.fw)?
+> I have Sabayon 7 64 bit, which is sort of Gentoo, as I've seen you have.
+>
+> Thank you.
+Hi Mihai,
 
-On Wed, Dec 07, 2011 at 11:32:38AM +0100, Sylwester Nawrocki wrote:
-> Hi Laurent,
-> 
-> On 12/06/2011 01:34 PM, Laurent Pinchart wrote:
-> > On Sunday 04 December 2011 16:16:11 Sylwester Nawrocki wrote:
-> >> Hi All,
-> >>
-> >> I put some effort in preparing a documentation for a couple of new controls
-> >> in the camera control class. It's a preeliminary work, it's mainly just
-> >> documentation. There is yet no patches for any driver using these controls.
-> >> I just wanted to get some possible feedback on them, if this sort of stuff
-> >> is welcome and what might need to be done differently.
-> > 
-> > Thanks for the patches.
-> > 
-> > Regarding patches 3/5, 4/5 and 5/5, we should perhaps try to brainstorm this a 
-> > bit. There's more to exposure setting than just those controls, maybe it's 
-> > time to think about a proper exposure API. We could start by gathering 
-> > requirements on the list, and maybe have an IRC meeting if needed.
-> 
-> Certainly the existing support for exposure setting in V4L2 is not sufficient
-> even for mobile camera control. I'll try to prepare a list of requirements.
-> It would be great to have a brainstorming session with more people experienced
-> in this field.
+There is a perl script  get_dvb_firmware that downloads the firmware and 
+extract it (from the Windows driver I think). You need a version of 
+get_dvb_firmware where this has been added:
 
-IRC meeting?
++sub drxk_hauppauge_hvr930c {
++    my $url = "http://www.wintvcd.co.uk/drivers/";
++    my $zipfile = "HVR-9x0_5_10_325_28153_SIGNED.zip";
++    my $hash = "83ab82e7e9480ec8bf1ae0155ca63c88";
++    my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
++    my $drvfile = "HVR-900/emOEM.sys";
++    my $fwfile = "dvb-usb-hauppauge-hvr930c-drxk.fw";
++
++    checkstandard();
++
++    wgetfile($zipfile, $url . $zipfile);
++    verify($zipfile, $hash);
++    unzip($zipfile, $tmpdir);
++    extract("$tmpdir/$drvfile", 0x117b0, 42692, "$fwfile");
++
++    "$fwfile"
++}
++
 
-The proposed controls seem useful for high level control --- for example,
-ISO means a combination of digital and analog gain, and also the unit is
-different. In general, I think that even if the three are concerned with
-similar issues, the ISO control definitely should belong to a different
-class: it requires making policy decisions rather than just providing access
-to the sensor features.
+Do a git checkout of the linux-media tree to get it (I think).
 
-Cheers,
+Also, before I found the perl script I did it "manually" using:
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1)
+
+wget http://www.wintvcd.co.uk/drivers/HVR-9x0_5_10_325_28153_SIGNED.zip
+
+2) unzip it
+
+3) extact it with dd [0x117b (hex)  =  71600 (dec)]:
+
+dd if=HVR-900/emOEM.sys of=dvb-usb-hauppauge-hvr930c-drxk.fw bs=1 
+skip=71600 count=42692
+
+4) copy it to the firmware dir
+
+cp dvb-usb-hauppauge-hvr930c-drxk.fw /lib/firmware/'
+
+HTH
+
+/Fredrik
+
