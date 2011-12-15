@@ -1,97 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753226Ab1LJEnt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:43:49 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:43:49 -0800 (PST)
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1954 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758724Ab1LOJyf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 04:54:35 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: Re: v4l: How bridge driver get subdev std?
+Date: Thu, 15 Dec 2011 10:54:29 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+References: <CAHG8p1A93tTu9Nz1s9ngDrMCRC98A3RVecYFSsrEHsU-zr_b2A@mail.gmail.com>
+In-Reply-To: <CAHG8p1A93tTu9Nz1s9ngDrMCRC98A3RVecYFSsrEHsU-zr_b2A@mail.gmail.com>
 MIME-Version: 1.0
-Date: Sat, 10 Dec 2011 10:13:49 +0530
-Message-ID: <CAHFNz9LOoDcrGpMKLU3wSnCYsDiuJMrOir-+nJEkkWfN9Cpd9w@mail.gmail.com>
-Subject: v4 [PATCH 07/10] TDA18271: Allow frontend to set DELSYS
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=0015174ff35e2d8f9604b3b58c38
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112151054.29905.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015174ff35e2d8f9604b3b58c38
-Content-Type: text/plain; charset=ISO-8859-1
+On Thursday, December 15, 2011 10:48:39 Scott Jiang wrote:
+> Hi Hans and Guennadi,
+> 
+> I'm wondering how does bridge driver get subdev std (not query)?
+> My case is that bridge needs to get subdev default std.
 
+It can just call the core g_std op. Note that g_std was added only recently
+(September 9th according to the git log), so if you work with an older kernel,
+then it may not be there yet.
 
+Regards,
 
---0015174ff35e2d8f9604b3b58c38
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0007-TDA18271-Allow-frontend-to-set-DELSYS-rather-than-qu.patch"
-Content-Disposition: attachment;
-	filename="0007-TDA18271-Allow-frontend-to-set-DELSYS-rather-than-qu.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-RnJvbSAyNTJkNGVjODAwYmE3M2JkZTg5NThiOGMyM2NhOTJhNmUxNzI4OGUyIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFRodSwgMjQgTm92IDIwMTEgMTk6MTU6NTYgKzA1MzAKU3ViamVjdDogW1BBVENIIDA3
-LzEwXSBUREExODI3MTogQWxsb3cgZnJvbnRlbmQgdG8gc2V0IERFTFNZUywgcmF0aGVyIHRoYW4g
-cXVlcnlpbmcgZmUtPm9wcy5pbmZvLnR5cGUKCldpdGggYW55IHR1bmVyIHRoYXQgY2FuIHR1bmUg
-dG8gbXVsdGlwbGUgZGVsaXZlcnkgc3lzdGVtcy9zdGFuZGFyZHMsIGl0IGRvZXMKcXVlcnkgZmUt
-Pm9wcy5pbmZvLnR5cGUgdG8gZGV0ZXJtaW5lIGZyb250ZW5kIHR5cGUgYW5kIHNldCB0aGUgZGVs
-aXZlcnkKc3lzdGVtIHR5cGUuIGZlLT5vcHMuaW5mby50eXBlIGNhbiBoYW5kbGUgb25seSA0IGRl
-bGl2ZXJ5IHN5c3RlbXMsIHZpeiBGRV9RUFNLLApGRV9RQU0sIEZFX09GRE0gYW5kIEZFX0FUU0Mu
-CgpUaGUgY2hhbmdlIGFsbG93cyB0aGUgdHVuZXIgdG8gYmUgc2V0IHRvIGFueSBkZWxpdmVyeSBz
-eXN0ZW0gc3BlY2lmaWVkIGluCmZlX2RlbGl2ZXJ5X3N5c3RlbV90LCB0aGVyZWJ5IHNpbXBsaWZ5
-aW5nIGEgbG90IG9mIGlzc3Vlcy4KClNpZ25lZC1vZmYtYnk6IE1hbnUgQWJyYWhhbSA8YWJyYWhh
-bS5tYW51QGdtYWlsLmNvbT4KLS0tCiBkcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgy
-NzEtZmUuYyB8ICAgODEgKysrKysrKysrKysrKysrLS0tLS0tLS0tLS0tLS0KIDEgZmlsZXMgY2hh
-bmdlZCwgNDEgaW5zZXJ0aW9ucygrKSwgNDAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJp
-dmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3RkYTE4MjcxLWZlLmMgYi9kcml2ZXJzL21lZGlhL2Nv
-bW1vbi90dW5lcnMvdGRhMTgyNzEtZmUuYwppbmRleCAzMzQ3YzViLi5jZWUxYTM5IDEwMDY0NAot
-LS0gYS9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgyNzEtZmUuYworKysgYi9kcml2
-ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdGRhMTgyNzEtZmUuYwpAQCAtOTM1LDY5ICs5MzUsNzAg
-QEAgc3RhdGljIGludCB0ZGExODI3MV9zZXRfcGFyYW1zKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZl
-LAogCXN0cnVjdCB0ZGExODI3MV9zdGRfbWFwICpzdGRfbWFwID0gJnByaXYtPnN0ZDsKIAlzdHJ1
-Y3QgdGRhMTgyNzFfc3RkX21hcF9pdGVtICptYXA7CiAJaW50IHJldDsKLQl1MzIgYncsIGZyZXEg
-PSBwYXJhbXMtPmZyZXF1ZW5jeTsKKwl1MzIgYncsIGJhbmR3aWR0aCA9IDAsIGZyZXE7CisJZmVf
-ZGVsaXZlcnlfc3lzdGVtX3QgZGVsc3lzOworCisJZGVsc3lzCT0gZmUtPmR0dl9wcm9wZXJ0eV9j
-YWNoZS5kZWxpdmVyeV9zeXN0ZW07CisJYncJPSBmZS0+ZHR2X3Byb3BlcnR5X2NhY2hlLmJhbmR3
-aWR0aF9oejsKKwlmcmVxCT0gZmUtPmR0dl9wcm9wZXJ0eV9jYWNoZS5mcmVxdWVuY3k7CiAKIAlw
-cml2LT5tb2RlID0gVERBMTgyNzFfRElHSVRBTDsKIAotCWlmIChmZS0+b3BzLmluZm8udHlwZSA9
-PSBGRV9BVFNDKSB7Ci0JCXN3aXRjaCAocGFyYW1zLT51LnZzYi5tb2R1bGF0aW9uKSB7Ci0JCWNh
-c2UgVlNCXzg6Ci0JCWNhc2UgVlNCXzE2OgotCQkJbWFwID0gJnN0ZF9tYXAtPmF0c2NfNjsKLQkJ
-CWJyZWFrOwotCQljYXNlIFFBTV82NDoKLQkJY2FzZSBRQU1fMjU2OgotCQkJbWFwID0gJnN0ZF9t
-YXAtPnFhbV82OwotCQkJYnJlYWs7Ci0JCWRlZmF1bHQ6Ci0JCQl0ZGFfd2FybigibW9kdWxhdGlv
-biBub3Qgc2V0IVxuIik7CisJaWYgKCFkZWxzeXMgfHwgIWZyZXEpIHsKKwkJdGRhX3dhcm4oImRl
-bHN5czolZCBmcmVxOiVkIVxuIiwgZGVsc3lzLCBmcmVxKTsKKwkJcmV0dXJuIC1FSU5WQUw7CisJ
-fQorCXN3aXRjaCAoZGVsc3lzKSB7CisJY2FzZSBTWVNfQVRTQzoKKwkJbWFwID0gJnN0ZF9tYXAt
-PmF0c2NfNjsKKwkJYmFuZHdpZHRoID0gNjAwMDAwMDsKKwkJYnJlYWs7CisJY2FzZSBTWVNfRFZC
-Q19BTk5FWF9COgorCQltYXAgPSAmc3RkX21hcC0+cWFtXzY7CisJCWJhbmR3aWR0aCA9IDYwMDAw
-MDA7CisJCWJyZWFrOworCWNhc2UgU1lTX0RWQkNfQU5ORVhfQToKKwljYXNlIFNZU19EVkJDX0FO
-TkVYX0M6CisJCW1hcCA9ICZzdGRfbWFwLT5xYW1fODsKKwkJYmFuZHdpZHRoID0gODAwMDAwMDsK
-KwkJYnJlYWs7CisJY2FzZSBTWVNfRFZCVDoKKwljYXNlIFNZU19EVkJUMjoKKwkJaWYgKCFidykK
-IAkJCXJldHVybiAtRUlOVkFMOwotCQl9Ci0jaWYgMAotCQkvKiB1c2Vyc3BhY2UgcmVxdWVzdCBp
-cyBhbHJlYWR5IGNlbnRlciBhZGp1c3RlZCAqLwotCQlmcmVxICs9IDE3NTAwMDA7IC8qIEFkanVz
-dCB0byBjZW50ZXIgKCsxLjc1TUhaKSAqLwotI2VuZGlmCi0JCWJ3ID0gNjAwMDAwMDsKLQl9IGVs
-c2UgaWYgKGZlLT5vcHMuaW5mby50eXBlID09IEZFX09GRE0pIHsKLQkJc3dpdGNoIChwYXJhbXMt
-PnUub2ZkbS5iYW5kd2lkdGgpIHsKLQkJY2FzZSBCQU5EV0lEVEhfNl9NSFo6Ci0JCQlidyA9IDYw
-MDAwMDA7CisJCXN3aXRjaCAoYncpIHsKKwkJY2FzZSA2MDAwMDAwOgogCQkJbWFwID0gJnN0ZF9t
-YXAtPmR2YnRfNjsKIAkJCWJyZWFrOwotCQljYXNlIEJBTkRXSURUSF83X01IWjoKLQkJCWJ3ID0g
-NzAwMDAwMDsKKwkJY2FzZSA3MDAwMDAwOgogCQkJbWFwID0gJnN0ZF9tYXAtPmR2YnRfNzsKIAkJ
-CWJyZWFrOwotCQljYXNlIEJBTkRXSURUSF84X01IWjoKLQkJCWJ3ID0gODAwMDAwMDsKKwkJY2Fz
-ZSA4MDAwMDAwOgogCQkJbWFwID0gJnN0ZF9tYXAtPmR2YnRfODsKIAkJCWJyZWFrOwogCQlkZWZh
-dWx0OgotCQkJdGRhX3dhcm4oImJhbmR3aWR0aCBub3Qgc2V0IVxuIik7Ci0JCQlyZXR1cm4gLUVJ
-TlZBTDsKKwkJCXJldCA9IC1FSU5WQUw7CisJCQlnb3RvIGZhaWw7CiAJCX0KLQl9IGVsc2UgaWYg
-KGZlLT5vcHMuaW5mby50eXBlID09IEZFX1FBTSkgewotCQkvKiBEVkItQyAqLwotCQltYXAgPSAm
-c3RkX21hcC0+cWFtXzg7Ci0JCWJ3ID0gODAwMDAwMDsKLQl9IGVsc2UgewotCQl0ZGFfd2Fybigi
-bW9kdWxhdGlvbiB0eXBlIG5vdCBzdXBwb3J0ZWQhXG4iKTsKLQkJcmV0dXJuIC1FSU5WQUw7CisJ
-CWJyZWFrOworCWRlZmF1bHQ6CisJCXRkYV93YXJuKCJJbnZhbGlkIGRlbGl2ZXJ5IHN5c3RlbSFc
-biIpOworCQlyZXQgPSAtRUlOVkFMOworCQlnb3RvIGZhaWw7CiAJfQotCiAJLyogV2hlbiB0dW5p
-bmcgZGlnaXRhbCwgdGhlIGFuYWxvZyBkZW1vZCBtdXN0IGJlIHRyaS1zdGF0ZWQgKi8KIAlpZiAo
-ZmUtPm9wcy5hbmFsb2dfb3BzLnN0YW5kYnkpCiAJCWZlLT5vcHMuYW5hbG9nX29wcy5zdGFuZGJ5
-KGZlKTsKIAotCXJldCA9IHRkYTE4MjcxX3R1bmUoZmUsIG1hcCwgZnJlcSwgYncpOworCXJldCA9
-IHRkYTE4MjcxX3R1bmUoZmUsIG1hcCwgZnJlcSwgYmFuZHdpZHRoKTsKIAogCWlmICh0ZGFfZmFp
-bChyZXQpKQogCQlnb3RvIGZhaWw7CiAKIAlwcml2LT5pZl9mcmVxICAgPSBtYXAtPmlmX2ZyZXE7
-CiAJcHJpdi0+ZnJlcXVlbmN5ID0gZnJlcTsKLQlwcml2LT5iYW5kd2lkdGggPSAoZmUtPm9wcy5p
-bmZvLnR5cGUgPT0gRkVfT0ZETSkgPwotCQlwYXJhbXMtPnUub2ZkbS5iYW5kd2lkdGggOiAwOwor
-CXByaXYtPmJhbmR3aWR0aCA9IChkZWxzeXMgPT0gU1lTX0RWQlQgfHwgZGVsc3lzID09IFNZU19E
-VkJUMikgPworCQkJICAgYmFuZHdpZHRoIDogMDsKIGZhaWw6CiAJcmV0dXJuIHJldDsKIH0KLS0g
-CjEuNy4xCgo=
---0015174ff35e2d8f9604b3b58c38--
+	Hans
