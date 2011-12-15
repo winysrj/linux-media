@@ -1,88 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:43434 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755746Ab1LARlv convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Dec 2011 12:41:51 -0500
+Received: from 50.23.254.54-static.reverse.softlayer.com ([50.23.254.54]:36313
+	"EHLO softlayer.compulab.co.il" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S932500Ab1LOKSY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 05:18:24 -0500
+Message-ID: <4EE9C95F.2090308@compulab.co.il>
+Date: Thu, 15 Dec 2011 12:18:07 +0200
+From: Igor Grinberg <grinberg@compulab.co.il>
 MIME-Version: 1.0
-In-Reply-To: <20111201161407.GK29805@valkosipuli.localdomain>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <20111201161407.GK29805@valkosipuli.localdomain>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Thu, 1 Dec 2011 11:41:29 -0600
-Message-ID: <CAKnK67RiuuFDutRT-BWGOhCy8aQtfk=RGRdqdt6kGg63qeYyew@mail.gmail.com>
-Subject: Re: [PATCH v2 00/11] v4l2: OMAP4 ISS driver + Sensor + Board support
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
+To: martin@neutronstar.dyndns.org
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+	Hiremath Vaibhav <hvaibhav@ti.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based camera
+ board.
+References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org> <4EE86CF7.1010002@compulab.co.il> <1323886442.815408.21905@localhost>
+In-Reply-To: <1323886442.815408.21905@localhost>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On Thu, Dec 1, 2011 at 10:14 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Sergio,
->
-> Thanks for the patchset!!
-
-And thanks for your attention :)
-
->
-> On Wed, Nov 30, 2011 at 06:14:49PM -0600, Sergio Aguirre wrote:
->> Hi everyone,
+On 12/14/11 20:14, martin@neutronstar.dyndns.org wrote:
+> On Wed, Dec 14, 2011 at 11:31:35AM +0200, Igor Grinberg wrote:
+>> Hi Martin,
 >>
->> This is the second version of the OMAP4 ISS driver,
->> now ported to the Media Controller framework AND supporting
->> videobuf2 framework.
+>> On 12/14/11 03:25, Martin Hostettler wrote:
+>>> Adds board support for an MT9M032 based camera to omap3evm.
+>>>
+>>> Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+>>> ---
+>>>  arch/arm/mach-omap2/Makefile                |    3 +-
+>>>  arch/arm/mach-omap2/board-omap3evm-camera.c |  155 +++++++++++++++++++++++++++
+>>>  arch/arm/mach-omap2/board-omap3evm.c        |    4 +
+>>>  3 files changed, 161 insertions(+), 1 deletions(-)
+>>>  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
+>>>
+>>> Changes in V3
+>>>  * Added missing copyright and attribution.
+>>>  * switched to gpio_request_array for gpio init.
+>>>  * removed device_initcall and added call to omap3_evm_camera_init into omap3_evm_init
+>>>
+>>> Changes in V2:
+>>>  * ported to current mainline
+>>>  * Style fixes
+>>>  * Fix error handling
+>>>
+
+[...]
+
+>>> +/**
+>>> + * omap3evm_set_mux - Sets mux to enable signal routing to
+>>> + *                           different peripherals present on new EVM board
+>>> + * @mux_id: enum, mux id to enable
+>>> + *
+>>> + * Returns 0 for success or a negative error code
+>>> + */
+>>> +static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
+>>> +{
+>>> +	/* Set GPIO6 = 1 */
+>>> +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
+>>> +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+>>> +
+>>> +	switch (mux_id) {
+>>> +	case MUX_TVP5146:
+>>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+>>> +		gpio_set_value(nCAM_VD_SEL, 1);
+>>> +		break;
+>>> +
+>>> +	case MUX_CAMERA_SENSOR:
+>>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
+>>> +		gpio_set_value(nCAM_VD_SEL, 0);
+>>> +		break;
+>>> +
+>>> +	case MUX_EXP_CAMERA_SENSOR:
+>>> +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
+>>> +		break;
+>>> +
+>>> +	default:
+>>> +		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
+>>> +		return -EINVAL;
+>>> +	}
+>>> +
+>>> +	return 0;
+>>> +}
 >>
->> This patchset should apply cleanly on top of v3.2-rc3 kernel tag.
+>> I don't really care about that, but I don't see any mux
+>> being set in the above function so the name and comments
+>> are misleading.
+> 
+> There's are video muxes on this board that's controlled by various
+> gpios. It's not a mux in the omap chip if you've expected to see that.
+> 
+> As this is an evaluation board it has a bunch of video connectors that 
+> the user can choose from for different input devices.
+
+I see... Probably a comment explaining that would not hurt here.
+
+[...]
+
+>>> +
+>>> +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
+>>> +	ret = gpio_request_array(setup_gpios, ARRAY_SIZE(setup_gpios));
+>>> +	if (ret < 0) {
+>>> +		pr_err("omap3evm-camera: Failed to setup camera signal routing.\n");
+>>> +		return ret;
+>>> +	}
 >>
->> This driver attempts to provide an fully open source solution to
->> control the OMAP4 Imaging SubSystem (a.k.a. ISS).
+>> It looks like both above calls (gpio_request and mux_init)
+>> can be moved to omap3evm_set_mux() function (or a renamed version of it),
+>> so all the GPIO stuff will be close to each other instead of requesting
+>> in one place and playing with values in another...
+> 
+> I'd like to keep the one time setup and the theoretically run time switchable
+> parts seperate. It doesn't complicate the code and if a brave soul wants to
+> connect different camera modules and switch between them it's a more reviewable
+> patch from here.
+
+Ok
+
+> 
 >>
->> Starts with just CSI2-A interface support, and pretends to be
->> ready for expansion to add support to the many ISS block modules
->> as possible.
+>>> +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
 >>
->> Please see newly added documentation for more details:
->>
->> Documentation/video4linux/omap4_camera.txt
->
-> I propose s/omap4_camera/omap4iss/, according to the path name in the
-> drivers/media/video directory.
+>> So the plan is to add support for the 3 types,
+>> but hard code to only one?
+>> Can't this be runtime detected somehow?
+> 
+> The mux code came from out of tree drivers. I did want to keep enough
+> information so someone extending this board code for other setups doesn't have a
+> hard time. I can't think of an reliable way to runtime detect what video source
+> a specific use case would want. Ideally someone who needs one of the other
+> video sources should add a more generic solution here. 
 
-Makes sense. Will fix.
+I'm Ok with it, but usually, stuff that is never used stays out...
+I think the way it should be is to have a platform driver that uses
+a callback to switch between the "muxes" on the extension.
 
->
->> Any comments/complaints are welcome. :)
->>
->> Changes since v1:
->> - Simplification of auxclk handling in board files. (Pointed out by: Roger Quadros)
->> - Cleanup of Camera support enablement for 4430sdp & panda. (Pointed out by: Roger Quadros)
->> - Use of HWMOD declaration for assisted platform_device creation. (Pointed out by: Felipe Balbi)
->> - Videobuf2 migration (Removal of custom iss_queue buffer handling driver)
->
-> I'm happy to see it's using videobuf2!
+[...]
 
-Yeah, I'll definitely need it for multi-planar buffer handling for
-NV12 buffer capturing.
-
-Resizer can color convert from YUV422->YUV420 NV12 now, and expects 2 pointers
-(1 for Y, and 1 for UV 2x2 sampled) to be programmed in HW.
-
->
-> I have no other comments quite yet. :-)
-
-Ok, let me know if you find something eye-popping ugly in there. I'll
-be happy to fix it. :)
-
-Thanks and Regards,
-Sergio
-
->
-> Cheers,
->
-> --
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
+-- 
+Regards,
+Igor.
