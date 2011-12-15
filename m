@@ -1,97 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25280 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755316Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:06 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5xQ017050
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 22/47] [media] budget-patch: use DVBv5 parameters on set_params()
-Date: Sat, 24 Dec 2011 13:50:27 -0200
-Message-Id: <1324741852-26138-23-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-22-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
- <1324741852-26138-10-git-send-email-mchehab@redhat.com>
- <1324741852-26138-11-git-send-email-mchehab@redhat.com>
- <1324741852-26138-12-git-send-email-mchehab@redhat.com>
- <1324741852-26138-13-git-send-email-mchehab@redhat.com>
- <1324741852-26138-14-git-send-email-mchehab@redhat.com>
- <1324741852-26138-15-git-send-email-mchehab@redhat.com>
- <1324741852-26138-16-git-send-email-mchehab@redhat.com>
- <1324741852-26138-17-git-send-email-mchehab@redhat.com>
- <1324741852-26138-18-git-send-email-mchehab@redhat.com>
- <1324741852-26138-19-git-send-email-mchehab@redhat.com>
- <1324741852-26138-20-git-send-email-mchehab@redhat.com>
- <1324741852-26138-21-git-send-email-mchehab@redhat.com>
- <1324741852-26138-22-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49087 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752365Ab1LOK3b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 05:29:31 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC 4/4] omap3isp: Use pixel clock from sensor media bus frameformat
+Date: Thu, 15 Dec 2011 11:29:48 +0100
+Cc: linux-media@vger.kernel.org
+References: <20111215095015.GC3677@valkosipuli.localdomain> <1323942635-13058-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1323942635-13058-4-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112151129.48607.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner
+Hi Sakari,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/ttpci/budget-patch.c |   16 +++++++++-------
- 1 files changed, 9 insertions(+), 7 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/dvb/ttpci/budget-patch.c b/drivers/media/dvb/ttpci/budget-patch.c
-index 3395d1a..1f14a7f 100644
---- a/drivers/media/dvb/ttpci/budget-patch.c
-+++ b/drivers/media/dvb/ttpci/budget-patch.c
-@@ -263,17 +263,18 @@ static int budget_patch_diseqc_send_burst(struct dvb_frontend* fe, fe_sec_mini_c
- 
- static int alps_bsrv2_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct budget_patch* budget = (struct budget_patch*) fe->dvb->priv;
- 	u8 pwr = 0;
- 	u8 buf[4];
- 	struct i2c_msg msg = { .addr = 0x61, .flags = 0, .buf = buf, .len = sizeof(buf) };
--	u32 div = (params->frequency + 479500) / 125;
-+	u32 div = (p->frequency + 479500) / 125;
- 
--	if (params->frequency > 2000000) pwr = 3;
--	else if (params->frequency > 1800000) pwr = 2;
--	else if (params->frequency > 1600000) pwr = 1;
--	else if (params->frequency > 1200000) pwr = 0;
--	else if (params->frequency >= 1100000) pwr = 1;
-+	if (p->frequency > 2000000) pwr = 3;
-+	else if (p->frequency > 1800000) pwr = 2;
-+	else if (p->frequency > 1600000) pwr = 1;
-+	else if (p->frequency > 1200000) pwr = 0;
-+	else if (p->frequency >= 1100000) pwr = 1;
- 	else pwr = 2;
- 
- 	buf[0] = (div >> 8) & 0x7f;
-@@ -299,12 +300,13 @@ static struct ves1x93_config alps_bsrv2_config = {
- 
- static int grundig_29504_451_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct budget_patch* budget = (struct budget_patch*) fe->dvb->priv;
- 	u32 div;
- 	u8 data[4];
- 	struct i2c_msg msg = { .addr = 0x61, .flags = 0, .buf = data, .len = sizeof(data) };
- 
--	div = params->frequency / 125;
-+	div = p->frequency / 125;
- 	data[0] = (div >> 8) & 0x7f;
- 	data[1] = div & 0xff;
- 	data[2] = 0x8e;
+On Thursday 15 December 2011 10:50:35 Sakari Ailus wrote:
+> Configure the ISP based on the pixel clock in media bus frame format.
+> Previously the same was configured from the board code.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/omap3isp/isp.c      |    3 +--
+>  drivers/media/video/omap3isp/isp.h      |    3 ++-
+>  drivers/media/video/omap3isp/ispvideo.c |    3 +++
+>  3 files changed, 6 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index b818cac..c9bed37 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -344,7 +344,7 @@ void omap3isp_configure_bridge(struct isp_device *isp,
+>   * Set the average pixel clock required by the sensor. The ISP will use
+> the * lowest possible memory bandwidth settings compatible with the clock.
+> **/
+> -static void isp_set_pixel_clock(struct isp_device *isp, unsigned int
+> pixelclk) +void omap3isp_set_pixel_clock(struct isp_device *isp, unsigned
+> int pixelclk) {
+>  	isp->isp_ccdc.vpcfg.pixelclk = pixelclk;
+>  }
+> @@ -2072,7 +2072,6 @@ static int isp_probe(struct platform_device *pdev)
+> 
+>  	isp->autoidle = autoidle;
+>  	isp->platform_cb.set_xclk = isp_set_xclk;
+> -	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
+> 
+>  	mutex_init(&isp->isp_mutex);
+>  	spin_lock_init(&isp->stat_lock);
+> diff --git a/drivers/media/video/omap3isp/isp.h
+> b/drivers/media/video/omap3isp/isp.h index c5935ae..dd7b303 100644
+> --- a/drivers/media/video/omap3isp/isp.h
+> +++ b/drivers/media/video/omap3isp/isp.h
+> @@ -126,7 +126,6 @@ struct isp_reg {
+> 
+>  struct isp_platform_callback {
+>  	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
+> -	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
+>  };
+> 
+>  /*
+> @@ -219,6 +218,8 @@ struct isp_device {
+>  #define v4l2_dev_to_isp_device(dev) \
+>  	container_of(dev, struct isp_device, v4l2_dev)
+> 
+> +void omap3isp_set_pixel_clock(struct isp_device *isp, unsigned int
+> pixelclk); +
+>  void omap3isp_hist_dma_done(struct isp_device *isp);
+> 
+>  void omap3isp_flush(struct isp_device *isp);
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index cdcf1d0..64f29ac 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -372,6 +372,9 @@ static int isp_video_validate_pipeline(struct
+> isp_pipeline *pipe) if (IS_ERR_VALUE(ret))
+>  					return -EPIPE;
+>  			}
+> +			omap3isp_set_pixel_clock(isp,
+> +						 fmt_source.format.pixel_clock
+> +						 * 1000);
+
+Similarly to 3/4, I think this belongs to isp_pipeline_enable(), or even 
+possibly the subdev s_stream operation (same for 3/4 actually).
+
+>  		}
+> 
+>  		if (subdev->host_priv) {
+
 -- 
-1.7.8.352.g876a6
+Regards,
 
+Laurent Pinchart
