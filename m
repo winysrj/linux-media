@@ -1,53 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:60285 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754406Ab1LWRKI (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:63609 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752753Ab1LOJyc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 12:10:08 -0500
+	Thu, 15 Dec 2011 04:54:32 -0500
+Received: by yhr47 with SMTP id 47so2053746yhr.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 01:54:31 -0800 (PST)
+Message-ID: <4EE9C3D4.3080705@gmail.com>
+Date: Thu, 15 Dec 2011 07:54:28 -0200
+From: Mauro Carvalho Chehab <maurochehab@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAB2ybb_XcwLd8fx+vvditt+MUq2L2+WmsUpxH-gBKsbrVk7jGA@mail.gmail.com>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<CAF6AEGtOjO6Z6yfHz-ZGz3+NuEMH2M-8=20U6+-xt-gv9XtzaQ@mail.gmail.com>
-	<20111220171437.GC3883@phenom.ffwll.local>
-	<201112211727.17104.arnd@arndb.de>
-	<CAB2ybb_XcwLd8fx+vvditt+MUq2L2+WmsUpxH-gBKsbrVk7jGA@mail.gmail.com>
-Date: Fri, 23 Dec 2011 11:10:07 -0600
-Message-ID: <CAF6AEGtGR0-vtfrP4i++kBxb2wGgGzv2MDu-K3CjmhEBXQyDnA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
- sharing mechanism
-From: Rob Clark <robdclark@gmail.com>
-To: "Semwal, Sumit" <sumit.semwal@ti.com>
-Cc: Arnd Bergmann <arnd@arndb.de>, Daniel Vetter <daniel@ffwll.ch>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, linux@arm.linux.org.uk,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+CC: Mihai Dobrescu <msdobrescu@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-930C problems
+References: <CALJK-QhGrjC9K8CasrUJ-aisZh8U_4-O3uh_-dq6cNBWUx_4WA@mail.gmail.com> <4EE9AA21.1060101@gmail.com>
+In-Reply-To: <4EE9AA21.1060101@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 23, 2011 at 4:00 AM, Semwal, Sumit <sumit.semwal@ti.com> wrote:
-> On Wed, Dec 21, 2011 at 10:57 PM, Arnd Bergmann <arnd@arndb.de> wrote:
->> On Tuesday 20 December 2011, Daniel Vetter wrote:
->>> > I'm thinking for a first version, we can get enough mileage out of it by saying:
->>> > 1) only exporter can mmap to userspace
->>> > 2) only importers that do not need CPU access to buffer..
->
-> Thanks Rob - and the exporter can do the mmap outside of dma-buf
-> usage, right?
-
-Yes
-
-> I mean, we don't need to provide an mmap to dma_buf()
-> and restrict it to exporter, when the exporter has more 'control' of
-> the buffer anyways.
-
-No, if it is only for the exporter, it really doesn't need to be in
-dmabuf (ie. the exporter already knows how he is)
-
-BR,
--R
-
+On 15-12-2011 06:04, Fredrik Lingvall wrote:
+> On 12/14/11 17:33, Mihai Dobrescu wrote:
+>> Hello,
 >>
-> BR,
-> ~Sumit.
+>> I need to make my tunner working too.
+>> Did you make it work?
+>> Where did you get the firmware (dvb-usb-hauppauge-hvr930c-drxk.fw)?
+>> I have Sabayon 7 64 bit, which is sort of Gentoo, as I've seen you have.
+>>
+>> Thank you.
+> Hi Mihai,
+> 
+> There is a perl script  get_dvb_firmware that downloads the firmware and extract it (from the Windows driver I think). You need a version of get_dvb_firmware where this has been added:
+> 
+> +sub drxk_hauppauge_hvr930c {
+> +    my $url = "http://www.wintvcd.co.uk/drivers/";
+> +    my $zipfile = "HVR-9x0_5_10_325_28153_SIGNED.zip";
+> +    my $hash = "83ab82e7e9480ec8bf1ae0155ca63c88";
+> +    my $tmpdir = tempdir(DIR => "/tmp", CLEANUP => 1);
+> +    my $drvfile = "HVR-900/emOEM.sys";
+> +    my $fwfile = "dvb-usb-hauppauge-hvr930c-drxk.fw";
+> +
+> +    checkstandard();
+> +
+> +    wgetfile($zipfile, $url . $zipfile);
+> +    verify($zipfile, $hash);
+> +    unzip($zipfile, $tmpdir);
+> +    extract("$tmpdir/$drvfile", 0x117b0, 42692, "$fwfile");
+> +
+> +    "$fwfile"
+> +}
+> +
+> 
+> Do a git checkout of the linux-media tree to get it (I think).
+> 
+> Also, before I found the perl script I did it "manually" using:
+> 
+> 1)
+> 
+> wget http://www.wintvcd.co.uk/drivers/HVR-9x0_5_10_325_28153_SIGNED.zip
+> 
+> 2) unzip it
+> 
+> 3) extact it with dd [0x117b (hex)  =  71600 (dec)]:
+> 
+> dd if=HVR-900/emOEM.sys of=dvb-usb-hauppauge-hvr930c-drxk.fw bs=1 skip=71600 count=42692
+
+This is basically what the script does, with one difference:
+it will double check if the extracted binary blob is really a firmware,
+by comparing it with a known hash value. This way, if the driver there gots
+updated, the script will fail, instead of writing some random values to a
+.fw file.
+
+> 
+> 4) copy it to the firmware dir
+> 
+> cp dvb-usb-hauppauge-hvr930c-drxk.fw /lib/firmware/'
+
+> 
+> HTH
+> 
+> /Fredrik
+> 
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
