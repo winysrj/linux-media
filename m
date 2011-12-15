@@ -1,131 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36068 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752640Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:31 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9V0q015935
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 72/94] [media] cinergyT2-fe: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:08:09 -0200
-Message-Id: <1325257711-12274-73-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from SpacedOut.fries.net ([67.64.210.234]:46487 "EHLO
+	SpacedOut.fries.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751716Ab1LOGIa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 01:08:30 -0500
+Date: Wed, 14 Dec 2011 23:59:20 -0600
+From: David Fries <david@fries.net>
+To: video4linux-list@redhat.com
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Istvan Varga <istvan_v@mailbox.hu>,
+	Jonathan Nieder <jrnieder@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH] cx88-dvb avoid dangling core->gate_ctrl pointer
+Message-ID: <20111215055920.GA3948@spacedout.fries.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+From: David Fries <David@Fries.net>
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+dvb_register calls videobuf_dvb_register_bus, but if that returns
+a failure the module will be unloaded without clearing the
+value of core->gate_ctrl which will cause an oops in macros
+called from video_open in cx88-video.c
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: David Fries <David@Fries.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Istvan Varga <istvan_v@mailbox.hu>
+Cc: Jonathan Nieder <jrnieder@gmail.com>
 ---
- drivers/media/dvb/dvb-usb/cinergyT2-fe.c |   31 ++++++++++++++++++++---------
- 1 files changed, 21 insertions(+), 10 deletions(-)
+This is with 3.2.0-rc5+, and it only fixes the oops, it doesn't
+resolve why cx88-dvb failed to work.  Any ideas?
 
-diff --git a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
-index 40d50f7..0b49d44 100644
---- a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
-+++ b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
-@@ -40,9 +40,8 @@
-  *  We replace errornous fields by default TPS fields (the ones with value 0).
-  */
+cx88/2: cx2388x dvb driver version 0.0.9 loaded
+cx88/2: registering cx8802 driver, type: dvb access: shared
+cx88[0]/2: subsystem: 7063:3000, board: pcHDTV HD3000 HDTV [card=22]
+cx88[0]/2: cx2388x based DVB/ATSC card
+cx8802_alloc_frontends() allocating 1 frontend(s)
+tuner-simple 1-0061: attaching existing instance
+tuner-simple 1-0061: type set to 60 (Thomson DTT 761X (ATSC/NTSC))
+DVB: registering new adapter (cx88[0])
+DVB: registering adapter 0 frontend 0 (Oren OR51132 VSB/QAM
+Frontend)...
+cx88[0]: videobuf_dvb_register_frontend failed (errno = -12)
+cx88[0]/2: dvb_register failed (err = -12)
+cx88[0]/2: cx8802 probe failed, err = -12
+
+
+ drivers/media/video/cx88/cx88-dvb.c |   10 +++++++---
+ 1 files changed, 7 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
+index cf3d33a..3961498 100644
+--- a/drivers/media/video/cx88/cx88-dvb.c
++++ b/drivers/media/video/cx88/cx88-dvb.c
+@@ -954,6 +954,7 @@ static int dvb_register(struct cx8802_dev *dev)
+ 	struct cx88_core *core = dev->core;
+ 	struct videobuf_dvb_frontend *fe0, *fe1 = NULL;
+ 	int mfe_shared = 0; /* bus not shared by default */
++	int res = -EINVAL;
  
--static uint16_t compute_tps(struct dvb_frontend_parameters *p)
-+static uint16_t compute_tps(struct dtv_frontend_properties *op)
- {
--	struct dvb_ofdm_parameters *op = &p->u.ofdm;
- 	uint16_t tps = 0;
+ 	if (0 != core->i2c_rc) {
+ 		printk(KERN_ERR "%s/2: no i2c-bus available, cannot attach dvb drivers\n", core->name);
+@@ -1566,13 +1567,16 @@ static int dvb_register(struct cx8802_dev *dev)
+ 	call_all(core, core, s_power, 0);
  
- 	switch (op->code_rate_HP) {
-@@ -83,7 +82,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
- 		/* tps |= (0 << 4) */;
- 	}
+ 	/* register everything */
+-	return videobuf_dvb_register_bus(&dev->frontends, THIS_MODULE, dev,
+-					 &dev->pci->dev, adapter_nr, mfe_shared, NULL);
++	res = videobuf_dvb_register_bus(&dev->frontends, THIS_MODULE, dev,
++		&dev->pci->dev, adapter_nr, mfe_shared, NULL);
++	if (res)
++		goto frontend_detach;
++	return res;
  
--	switch (op->constellation) {
-+	switch (op->modulation) {
- 	case QAM_16:
- 		tps |= (1 << 13);
- 		break;
-@@ -119,7 +118,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
- 		/* tps |= (0 << 2) */;
- 	}
- 
--	switch (op->hierarchy_information) {
-+	switch (op->hierarchy) {
- 	case HIERARCHY_1:
- 		tps |= (1 << 10);
- 		break;
-@@ -263,9 +262,9 @@ static int cinergyt2_fe_get_tune_settings(struct dvb_frontend *fe,
- 	return 0;
+ frontend_detach:
+ 	core->gate_ctrl = NULL;
+ 	videobuf_dvb_dealloc_frontends(&dev->frontends);
+-	return -EINVAL;
++	return res;
  }
  
--static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe,
--				  struct dvb_frontend_parameters *fep)
-+static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
- 	struct dvbt_set_parameters_msg param;
- 	char result[2];
-@@ -274,9 +273,20 @@ static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe,
- 	param.cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
- 	param.tps = cpu_to_le16(compute_tps(fep));
- 	param.freq = cpu_to_le32(fep->frequency / 1000);
--	param.bandwidth = 8 - fep->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
- 	param.flags = 0;
- 
-+	switch (fep->bandwidth_hz) {
-+		case 8000000:
-+			param.bandwidth = 0;
-+			break;
-+		case 7000000:
-+			param.bandwidth = 1;
-+			break;
-+		case 6000000:
-+			param.bandwidth = 2;
-+			break;
-+	}
-+
- 	err = dvb_usb_generic_rw(state->d,
- 			(char *)&param, sizeof(param),
- 			result, sizeof(result), 0);
-@@ -287,7 +297,7 @@ static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe,
- }
- 
- static int cinergyt2_fe_get_frontend(struct dvb_frontend *fe,
--				  struct dvb_frontend_parameters *fep)
-+				  struct dtv_frontend_properties *fep)
- {
- 	return 0;
- }
-@@ -316,6 +326,7 @@ struct dvb_frontend *cinergyt2_fe_attach(struct dvb_usb_device *d)
- 
- 
- static struct dvb_frontend_ops cinergyt2_fe_ops = {
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name			= DRIVER_NAME,
- 		.type			= FE_OFDM,
-@@ -340,8 +351,8 @@ static struct dvb_frontend_ops cinergyt2_fe_ops = {
- 	.init			= cinergyt2_fe_init,
- 	.sleep			= cinergyt2_fe_sleep,
- 
--	.set_frontend_legacy		= cinergyt2_fe_set_frontend,
--	.get_frontend_legacy = cinergyt2_fe_get_frontend,
-+	.set_frontend		= cinergyt2_fe_set_frontend,
-+	.get_frontend		= cinergyt2_fe_get_frontend,
- 	.get_tune_settings	= cinergyt2_fe_get_tune_settings,
- 
- 	.read_status		= cinergyt2_fe_read_status,
+ /* ----------------------------------------------------------- */
 -- 
-1.7.8.352.g876a6
+1.7.2.5
 
