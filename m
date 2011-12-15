@@ -1,88 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:47484 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751913Ab1LWHyz convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51425 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab1LONC1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 02:54:55 -0500
-Received: by wibhm6 with SMTP id hm6so2982200wib.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 23:54:53 -0800 (PST)
+	Thu, 15 Dec 2011 08:02:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH 1/2] media: add new mediabus format enums for dm365
+Date: Thu, 15 Dec 2011 14:02:44 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com> <1323951898-16330-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1323951898-16330-2-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1112221652110.13700@axis700.grange>
-References: <1324566720-14073-1-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1112221652110.13700@axis700.grange>
-Date: Fri, 23 Dec 2011 08:54:53 +0100
-Message-ID: <CACKLOr3DmazqCtV_wSNYRYMwboNWRxy11n_mX6S-i4DVToPv8Q@mail.gmail.com>
-Subject: Re: [PATCH v2] media i.MX27 camera: Fix field_count handling.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	lethal@linux-sh.org, hans.verkuil@cisco.com, s.hauer@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112151402.45100.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-thank you for your comments.
+Hi Manhunath,
 
-On 23 December 2011 00:17, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> On Thu, 22 Dec 2011, Javier Martin wrote:
->
->> To properly detect frame loss the driver must keep
->> track of a frame_count.
->>
->> Furthermore, field_count use was erroneous because
->> in progressive format this must be incremented twice.
->
-> Hm, sorry, why this? I just looked at vivi.c - the version before
-> videobuf2 conversion - and it seems to only increment the count by one.
+Thanks for the patch.
 
-If you look at the videobuf-core code you'll notice that the value
-assigned to v4l2_buf sequence field is (field_count >> 1):
-http://lxr.linux.no/#linux+v3.1.6/drivers/media/video/videobuf-core.c#L370
+On Thursday 15 December 2011 13:24:57 Manjunath Hadli wrote:
+> add new enum entry V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 into mbus_pixel_code
+> to represent A-LAW compressed Bayer format. This corresponds to pixel
+> format - V4L2_PIX_FMT_SGRBG10ALAW8.
+> add UV8 and NV12 ( Y and C separate with UV interleaved) which are
+> supported on dm365.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  include/linux/v4l2-mediabus.h |   10 ++++++++--
+>  1 files changed, 8 insertions(+), 2 deletions(-)
 
-Since mx2_camera driver only supports video formats which are either
-progressive or provide both fields in the same buffer, this
-"field_count" must be incremented twice so that the final sequence
-number is OK.
+Please also update the documentation in Documentation/DocBook/media/v4l.
 
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->>  drivers/media/video/mx2_camera.c |    5 ++++-
->>  1 files changed, 4 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
->> index ea1f4dc..ca76dd2 100644
->> --- a/drivers/media/video/mx2_camera.c
->> +++ b/drivers/media/video/mx2_camera.c
->> @@ -255,6 +255,7 @@ struct mx2_camera_dev {
->>       dma_addr_t              discard_buffer_dma;
->>       size_t                  discard_size;
->>       struct mx2_fmt_cfg      *emma_prp;
->> +     u32                     frame_count;
->
-> The rule I usually follow, when choosing variable type is the following:
-> does it really have to be fixed bit-width? The positive reply is pretty
-> rare, it comes mostly if (a) the variable is used to store values read
-> from or written to some (fixed-width) hardware registers, or (b) the
-> variable belongs to a fixed ABI, that has to be the same on different
-> (32-bit, 64-bit) systems, like (arguably) ioctl()s, data, transferred over
-> the network or stored on a medium (filesystems,...). This doesn't seem to
-> be the case here, so, I would just use an (unsigned) int.
+> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+> index 5ea7f75..d408654 100644
+> --- a/include/linux/v4l2-mediabus.h
+> +++ b/include/linux/v4l2-mediabus.h
+> @@ -47,7 +47,7 @@ enum v4l2_mbus_pixelcode {
+>  	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+>  	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+> 
+> -	/* YUV (including grey) - next is 0x2014 */
+> +	/* YUV (including grey) - next is 0x2016 */
+>  	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+>  	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+>  	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+> @@ -67,8 +67,10 @@ enum v4l2_mbus_pixelcode {
+>  	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
+>  	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+>  	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+> +	V4L2_MBUS_FMT_NV12_1X20 = 0x2014,
+> +	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
 
-Thanks for the tip. I hadn't thought of it that way. I just saw that
-v4l2_buf.sequence was a __u32 and I thought it was convenient to use
-the same type for this variable which is closely related to it
+NV12, on the bus ? How does that work ? (The documentation should answer my 
+question :-))
 
-Anyway, let me send a second version of the patch since I've just
-noticed this one doesn't reflect lost frames in the field_count field.
+> -	/* Bayer - next is 0x3015 */
+> +	/* Bayer - next is 0x3019 */
+>  	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+>  	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
+>  	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
+> @@ -89,6 +91,10 @@ enum v4l2_mbus_pixelcode {
+>  	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
+>  	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
+>  	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
+> +	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
+> +	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
+> +	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
+> +	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
+
+Please keep the names sorted as described in the comment at the beginning of 
+the file.
+
+> 
+>  	/* JPEG compressed formats - next is 0x4002 */
+>  	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+Laurent Pinchart
