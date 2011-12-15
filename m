@@ -1,120 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:54283 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751503Ab1LJB7g convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 20:59:36 -0500
-Received: by ghbz2 with SMTP id z2so3036029ghb.19
-        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 17:59:35 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EE2B7BC.9090501@linuxtv.org>
-References: <1323454852-7426-1-git-send-email-mchehab@redhat.com>
-	<4EE252E5.2050204@iki.fi>
-	<4EE25A3C.9040404@redhat.com>
-	<4EE25CB4.3000501@iki.fi>
-	<4EE287A9.3000502@redhat.com>
-	<CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com>
-	<4EE29BA6.1030909@redhat.com>
-	<4EE29D1A.6010900@redhat.com>
-	<4EE2B7BC.9090501@linuxtv.org>
-Date: Fri, 9 Dec 2011 20:59:34 -0500
-Message-ID: <CAGoCfizNCqHv1iwrFNTdOxpawVB3NzJnOF=U4hn8CXZQne=Vkw@mail.gmail.com>
-Subject: Re: [PATCH] DVB: dvb_frontend: fix delayed thread exit
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:19991 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751544Ab1LOPR4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 10:17:56 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LW90046M3TU5770@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Dec 2011 15:17:54 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW900KCI3TU4A@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Dec 2011 15:17:54 +0000 (GMT)
+Date: Thu, 15 Dec 2011 16:17:49 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: review mem_priv usage and fix potential bugs
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Message-id: <1323962269-3478-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 9, 2011 at 8:37 PM, Andreas Oberritter <obi@linuxtv.org> wrote:
-> On 10.12.2011 00:43, Mauro Carvalho Chehab wrote:
->> On 09-12-2011 21:37, Mauro Carvalho Chehab wrote:
->>> On 09-12-2011 20:33, Devin Heitmueller wrote:
->>>> On Fri, Dec 9, 2011 at 5:11 PM, Mauro Carvalho Chehab
->>>> <mchehab@redhat.com> wrote:
->>>>>> Could someone explain reason for that?
->>>>>
->>>>>
->>>>> I dunno, but I think this needs to be fixed, at least when the frontend
->>>>> is opened with O_NONBLOCK.
->>>>
->>>> Are you doing the drx-k firmware load on dvb_init()? That could
->>>> easily take 4 seconds.
->>>
->>> No. The firmware were opened previously.
->>
->> Maybe the delay is due to this part of dvb_frontend.c:
->>
->> static int dvb_mfe_wait_time = 5;
->> ...
->>                         int mferetry = (dvb_mfe_wait_time << 1);
->>
->>                         mutex_unlock (&adapter->mfe_lock);
->>                         while (mferetry-- && (mfedev->users != -1 ||
->>                                         mfepriv->thread != NULL)) {
->>                                 if(msleep_interruptible(500)) {
->>                                         if(signal_pending(current))
->>                                                 return -EINTR;
->>                                 }
->>                         }
->
-> I haven't looked at the mfe code, but in case it's waiting for the
-> frontend thread to exit, there's a problem that causes the thread
-> not to exit immediately. Here's a patch that's been sitting in my
-> queue for a while:
->
-> ---
->
-> Signed-off-by: Andreas Oberritter <obi@linuxtv.org>
->
-> diff --git a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c b/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index 7784d74..6823c2b 100644
-> --- a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c   2011-09-07 12:32:24.000000000 +0200
-> +++ a/linux/drivers/media/dvb/dvb-core/dvb_frontend.c   2011-09-13 15:55:48.865742791 +0200
-> @@ -514,7 +514,7 @@
->                return 1;
->
->        if (fepriv->dvbdev->writers == 1)
-> -               if (time_after(jiffies, fepriv->release_jiffies +
-> +               if (time_after_eq(jiffies, fepriv->release_jiffies +
->                                  dvb_shutdown_timeout * HZ))
->                        return 1;
->
-> @@ -2070,12 +2070,15 @@
->
->        dprintk ("%s\n", __func__);
->
-> -       if ((file->f_flags & O_ACCMODE) != O_RDONLY)
-> +       if ((file->f_flags & O_ACCMODE) != O_RDONLY) {
->                fepriv->release_jiffies = jiffies;
-> +               mb();
-> +       }
->
->        ret = dvb_generic_release (inode, file);
->
->        if (dvbdev->users == -1) {
-> +               wake_up(&fepriv->wait_queue);
->                if (fepriv->exit != DVB_FE_NO_EXIT) {
->                        fops_put(file->f_op);
->                        file->f_op = NULL;
+This patch is a result of review of mem_priv entry usage in videobuf2 core.
+It fixes all all potential places where it was not checked against NULL or
+zeroed after freeing as well as a few style issues.
 
-This patch needs to have a much better explanation of exactly what it
-does and what problem it solves.  We have a history of race conditions
-in dvb_frontend.c, and it's patches like this with virtually no
-details just makes it worse.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/videobuf2-core.c |   44 ++++++++++++++-------------------
+ 1 files changed, 19 insertions(+), 25 deletions(-)
 
-I'm not arguing the actual merits of the code change - it *may* be
-correct.  But without the appropriate background there is no real way
-of knowing...
-
-Mauro, this patch should be NACK'd and resubmitted with a detailed
-explanation of the current behavior, what the problem is, and how the
-code changes proposed solve that problem.
-
-Devin
-
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 9dc887b..26cfbf5 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -65,8 +65,10 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 	return 0;
+ free:
+ 	/* Free already allocated memory if one of the allocations failed */
+-	for (; plane > 0; --plane)
++	for (; plane > 0; --plane) {
+ 		call_memop(q, put, vb->planes[plane - 1].mem_priv);
++		vb->planes[plane - 1].mem_priv = NULL;
++	}
+ 
+ 	return -ENOMEM;
+ }
+@@ -82,8 +84,8 @@ static void __vb2_buf_mem_free(struct vb2_buffer *vb)
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		call_memop(q, put, vb->planes[plane].mem_priv);
+ 		vb->planes[plane].mem_priv = NULL;
+-		dprintk(3, "Freed plane %d of buffer %d\n",
+-				plane, vb->v4l2_buf.index);
++		dprintk(3, "Freed plane %d of buffer %d\n", plane,
++			vb->v4l2_buf.index);
+ 	}
+ }
+ 
+@@ -97,12 +99,9 @@ static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
+ 	unsigned int plane;
+ 
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+-		void *mem_priv = vb->planes[plane].mem_priv;
+-
+-		if (mem_priv) {
+-			call_memop(q, put_userptr, mem_priv);
+-			vb->planes[plane].mem_priv = NULL;
+-		}
++		if (vb->planes[plane].mem_priv)
++			call_memop(q, put_userptr, vb->planes[plane].mem_priv);
++		vb->planes[plane].mem_priv = NULL;
+ 	}
+ }
+ 
+@@ -731,7 +730,7 @@ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 
+-	if (plane_no > vb->num_planes)
++	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
+ 		return NULL;
+ 
+ 	return call_memop(q, vaddr, vb->planes[plane_no].mem_priv);
+@@ -754,7 +753,7 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 
+-	if (plane_no > vb->num_planes)
++	if (plane_no > vb->num_planes || !vb->planes[plane_no].mem_priv)
+ 		return NULL;
+ 
+ 	return call_memop(q, cookie, vb->planes[plane_no].mem_priv);
+@@ -906,19 +905,16 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		vb->v4l2_planes[plane].length = 0;
+ 
+ 		/* Acquire each plane's memory */
+-		if (q->mem_ops->get_userptr) {
+-			mem_priv = q->mem_ops->get_userptr(q->alloc_ctx[plane],
+-							planes[plane].m.userptr,
+-							planes[plane].length,
+-							write);
+-			if (IS_ERR(mem_priv)) {
+-				dprintk(1, "qbuf: failed acquiring userspace "
++		mem_priv = call_memop(q, get_userptr, q->alloc_ctx[plane],
++				      planes[plane].m.userptr,
++				      planes[plane].length, write);
++		if (IS_ERR_OR_NULL(mem_priv)) {
++			dprintk(1, "qbuf: failed acquiring userspace "
+ 						"memory for plane %d\n", plane);
+-				ret = PTR_ERR(mem_priv);
+-				goto err;
+-			}
+-			vb->planes[plane].mem_priv = mem_priv;
++			ret = mem_priv ? PTR_ERR(mem_priv) : -EINVAL;
++			goto err;
+ 		}
++		vb->planes[plane].mem_priv = mem_priv;
+ 	}
+ 
+ 	/*
+@@ -1553,7 +1549,6 @@ static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
+ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ {
+ 	unsigned long off = vma->vm_pgoff << PAGE_SHIFT;
+-	struct vb2_plane *vb_plane;
+ 	struct vb2_buffer *vb;
+ 	unsigned int buffer, plane;
+ 	int ret;
+@@ -1590,9 +1585,8 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 		return ret;
+ 
+ 	vb = q->bufs[buffer];
+-	vb_plane = &vb->planes[plane];
+ 
+-	ret = q->mem_ops->mmap(vb_plane->mem_priv, vma);
++	ret = call_memop(q, mmap, vb->planes[plane].mem_priv, vma);
+ 	if (ret)
+ 		return ret;
+ 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.1.569.g6f426
+
