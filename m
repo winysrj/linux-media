@@ -1,98 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:52101 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751701Ab1LaTAa (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43734 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751089Ab1LONAb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 14:00:30 -0500
-Date: Sat, 31 Dec 2011 13:08:10 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Hans de Goede <hdegoede@redhat.com>
-cc: Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH for 3.2 URGENT] gspca: Fix bulk mode cameras no longer
- working (regression fix)
-In-Reply-To: <4EFD985A.4050301@redhat.com>
-Message-ID: <alpine.LNX.2.00.1112311303100.30415@banach.math.auburn.edu>
-References: <1325191002-25074-1-git-send-email-hdegoede@redhat.com> <1325191002-25074-2-git-send-email-hdegoede@redhat.com> <20111230112121.03e8b59b@tele> <4EFD985A.4050301@redhat.com>
+	Thu, 15 Dec 2011 08:00:31 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: Re: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
+Date: Thu, 15 Dec 2011 14:00:47 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com> <1323951898-16330-3-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1323951898-16330-3-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112151400.48321.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Manjunath,
 
+Thanks for the patch.
 
-On Fri, 30 Dec 2011, Hans de Goede wrote:
-
-> Hi,
+On Thursday 15 December 2011 13:24:58 Manjunath Hadli wrote:
+> add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer format
+> frames compressed by A-LAW alogorithm.
+> add V4L2_PIX_FMT_UV8 to represent storage of C (UV interleved) only.
 > 
-> On 12/30/2011 11:21 AM, Jean-Francois Moine wrote:
-> > On Thu, 29 Dec 2011 21:36:42 +0100
-> > Hans de Goede<hdegoede@redhat.com>  wrote:
-> > 
-> > > The new iso bandwidth calculation code accidentally has broken support
-> > > for bulk mode cameras. This has broken the following drivers:
-> > > finepix, jeilinj, ovfx2, ov534, ov534_9, se401, sq905, sq905c, sq930x,
-> > > stv0680, vicam.
-> > > 
-> > > Thix patch fixes this. Fix tested with: se401, sq905, sq905c, stv0680&
-> > > vicam
-> > > cams.
-> > 
-> > Hi Hans,
-> > 
-> > Sorry for I should not be fully awoken yet, but I don't understand the
-> > problem from your fix.
-> > 
-> > The patch just sets the altsetting to the highest one for bulk
-> > transfer. Does this mean that, in this case, the altsetting table
-> > created by build_ep_tb is wrong and the highest altsetting cannot
-> > selected?
-> 
-> Most bulk mode cameras have only one altsetting, altsetting 0, which is
-> seen as invalid by build_ep_tb, since it is invalid for isoc mode, resulting
-> in the cameras not working with a: "no transfer endpoint found" error.
-> 
-> I've opted to fix things by causing build_ep_tb to not be called for
-> bulk mode cameras at all, since doing bandwidth calculations for
-> bulk mode makes no sense. bulk transfers get whatever bandwidth is
-> left on the bus, there is no guarantee that there are 1000 / interval
-> packets a second like there is with isoc transfers, so the bandwidth
-> is unknown. Also note that because of this interval is 0 for bulk
-> endpoints, since it is unused. So calling build_ep_tb for bulk mode
-> transfers makes no sense.
-> 
-> WRT just choosing the highest numbered alt setting this is because
-> some bulk mode cameras (stv0680 based ones) report 2 alt settings
-> (which makes no sense for bulk mode, but they do it anyways),
-> with alt setting 0 not listing any endpoints at all, and alt setting
-> 1 listening the bulk endpoint we want, so by picking the highest alt
-> setting we end up with picking the one and only alt setting most cameras
-> have and picking one which actually has the bulk endpoint listed for
-> weird cases like the stv0680 based ones.
-> 
-> Note that I'm spending most of my time today on testing the new
-> bandwidth code with various cameras, I'll send you a patchset
-> with some more proposed patches today. We should then evaluate
-> if we want to get those into 3.2 too. I send this one yesterday since
-> it fixes a large bunch of cameras not working at all and it is a
-> simple and safe fix IMHO.
-> 
-> Regards,
-> 
-> Hans
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  include/linux/videodev2.h |    6 ++++++
+>  1 files changed, 6 insertions(+), 0 deletions(-)
 
-Jean-Francois, Hans,
+Could you please also document these formats in 
+Documentation/DocBook/media/v4l ?
 
-Without addressing finer points, please let me add the following:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 4b752d5..969112d 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -338,6 +338,9 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV
+> 4:2:0 16x16 macroblocks */ #define V4L2_PIX_FMT_M420    v4l2_fourcc('M',
+> '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
+> 
+> +/* Chrominance formats */
+> +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV
+> 4:4 */ +
+>  /* two planes -- one Y, one Cr + Cb interleaved  */
+>  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr
+> 4:2:0  */ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /*
+> 12  Y/CrCb 4:2:0  */ @@ -366,6 +369,9 @@ struct v4l2_pix_format {
+>  #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG..
+> GBGB.. */ /* 10bit raw bayer DPCM compressed to 8 bits */
+>  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> +	/* 10bit raw bayer a-law compressed to 8 bits */
+> +#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
+> +
 
-1. I figured out what was holding me back from getting 3.2 to work (it was 
-a config error, apparently originating between keyboard and chair).
+That's not very future-proof, how would you describe SGBRG10ALAW8 for instance 
+?
 
-2. Based upon my testing today, something like this patch is clearly 
-necessary. Namely, I tested a mass storage camera. Without this patch it 
-would not stream. When I applied the patch, it did.
+Maybe it's time to standardize FOURCCs for Bayer new formats. We have 4 
+characters, we could start with 'B' to denote Bayer, followed by one character 
+for the order, one for the compression, and one for the number of bits.
 
-Therefore, I hope very much that the problem which occasioned this patch 
-gets fixed.
+>  	/*
+>  	 * 10bit raw bayer, expanded to 16 bits
+>  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
 
-Theodore Kilgore
+-- 
+Regards,
+
+Laurent Pinchart
