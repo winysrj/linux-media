@@ -1,73 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:48390 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753117Ab1LBK3B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 05:29:01 -0500
-Message-ID: <4ED8A868.4020005@gmail.com>
-Date: Fri, 02 Dec 2011 11:28:56 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from casper.infradead.org ([85.118.1.10]:37530 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752667Ab1LOKAZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 05:00:25 -0500
+Message-ID: <4EE9C534.7020305@infradead.org>
+Date: Thu, 15 Dec 2011 08:00:20 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>, Greg KH <greg@kroah.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH v1 0/7] media&omap4: introduce face detection(FD)
- driver
-References: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1322817178-8931-1-git-send-email-ming.lei@canonical.com>
-Content-Type: text/plain; charset=UTF-8
+To: Javier Martin <javier.martin@vista-silicon.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: Re: [PATCH 2/2] media: tvp5150: Add mbus_fmt callbacks.
+References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com> <1323941987-23428-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1323941987-23428-2-git-send-email-javier.martin@vista-silicon.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ming,
+On 15-12-2011 07:39, Javier Martin wrote:
+> These callbacks allow a host video driver
+> to poll video supported video formats of tvp5150.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  drivers/media/video/tvp5150.c |   72 +++++++++++++++++++++++++++++++++++++++++
+>  1 files changed, 72 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
+> index 26cc75b..8f01f08 100644
+> --- a/drivers/media/video/tvp5150.c
+> +++ b/drivers/media/video/tvp5150.c
+> @@ -778,6 +778,75 @@ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
+>  	return -EINVAL;
+>  }
+>  
+> +static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
+> +{
+> +	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
+> +
+> +	switch (val & 0x0F) {
+> +	case 0x01:
+> +		return V4L2_STD_NTSC;
+> +	case 0x03:
+> +		return V4L2_STD_PAL;
+> +	case 0x05:
+> +		return V4L2_STD_PAL_M;
+> +	case 0x07:
+> +		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
+> +	case 0x09:
+> +		return V4L2_STD_NTSC_443;
+> +	case 0xb:
+> +		return V4L2_STD_SECAM;
+> +	default:
+> +		return V4L2_STD_UNKNOWN;
+> +	}
+> +}
+> +
+> +static int tvp5150_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
+> +						enum v4l2_mbus_pixelcode *code)
+> +{
+> +	if (index)
+> +		return -EINVAL;
+> +
+> +	*code = V4L2_MBUS_FMT_YUYV8_2X8;
+> +	return 0;
+> +}
+> +
+> +static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
+> +			    struct v4l2_mbus_framefmt *f)
+> +{
+> +	struct tvp5150 *decoder = to_tvp5150(sd);
+> +	v4l2_std_id std;
+> +
+> +	if (f == NULL)
+> +		return -EINVAL;
+> +
+> +	tvp5150_reset(sd, 0);
+> +
+> +	/* Calculate height and width based on current standard */
+> +	if (decoder->norm == V4L2_STD_ALL)
+> +		std = tvp5150_read_std(sd);
+> +	else
+> +		std = decoder->norm;
+> +
+> +	if ((std == V4L2_STD_NTSC) || (std == V4L2_STD_NTSC_443) ||
+> +		(std == V4L2_STD_PAL_M)) {
+> +		f->width = 720;
+> +		f->height = 480;
+> +	}
+> +	if ((std == V4L2_STD_PAL) ||
+> +		(std == (V4L2_STD_PAL_N | V4L2_STD_PAL_Nc)) ||
+> +		(std == V4L2_STD_SECAM)) {
+> +		f->width = 720;
+> +		f->height = 576;
+> +	}
 
-On 12/02/2011 10:12 AM, Ming Lei wrote:
-> Hi,
-> 
-> These v1 patches(against -next tree) introduce v4l2 based face
-> detection(FD) device driver, and enable FD hardware[1] on omap4 SoC..
-> The idea of implementing it on v4l2 is from from Alan Cox, Sylwester
-> and Greg-Kh.
-> 
-> For verification purpose, I write one user space utility[2] to
-> test the module and driver, follows its basic functions:
-> 
-> 	- detect faces in input grayscal picture(PGM raw, 320 by 240)
-> 	- detect faces in input y8 format video stream
-> 	- plot a rectangle to mark the detected faces, and save it as 
-> 	another same format picture or video stream
-> 
-> Looks the performance of the module is not bad, see some detection
-> results on the link[3][4].
-> 
-> Face detection can be used to implement some interesting applications
-> (camera, face unlock, baby monitor, ...).
-> 
-> TODO:
-> 	- implement FD setting interfaces with v4l2 controls or
-> 	ext controls
-> 
-> thanks,
-> --
-> Ming Lei
-> 
-> [1], Ch9 of OMAP4 Technical Reference Manual
-> [2], http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
-> [3], http://kernel.ubuntu.com/~ming/dev/fdif/output
-> [4], All pictures are taken from http://www.google.com/imghp
-> and converted to pnm from jpeg format, only for test purpose.
-> 
+The above is wrong, as std is a bitmask. So, userspace can pass more than
+one bit set there. It should be, instead:
 
-Could you please resend this series to Linux Media mailing list
-(linux-media@vger.kernel.org) ? It touches V4L core code and I'm
-sure other v4l2 developers will have some comments on it.
-I'll try to review it on the weekend.
+	f->width = 720;
+	if (std & V4L2_STD_525_60)
+		f->height = 480;
+	else
+		f->height = 576;
 
--- 
+> +	f->code = V4L2_MBUS_FMT_YUYV8_2X8;
+> +	f->field = V4L2_FIELD_SEQ_TB;
+> +	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +
+> +	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
+> +			f->height);
+> +	return 0;
+> +}
+> +
+>  /****************************************************************************
+>  			I2C Command
+>   ****************************************************************************/
+> @@ -930,6 +999,9 @@ static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
+>  
+>  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
+>  	.s_routing = tvp5150_s_routing,
+> +	.enum_mbus_fmt = tvp5150_enum_mbus_fmt,
+> +	.s_mbus_fmt = tvp5150_mbus_fmt,
+> +	.try_mbus_fmt = tvp5150_mbus_fmt,
+>  };
+>  
+>  static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
 
-Thanks,
-Sylwester
