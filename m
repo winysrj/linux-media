@@ -1,137 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48695 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752948Ab1LVKXd convert rfc822-to-8bit (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:42355 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758987Ab1LOQER (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 05:23:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
-Date: Thu, 22 Dec 2011 11:23:32 +0100
-Cc: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com> <201112212323.26971.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112212338200.30646@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1112212338200.30646@axis700.grange>
+	Thu, 15 Dec 2011 11:04:17 -0500
+Message-ID: <4EEA1A78.9000504@infradead.org>
+Date: Thu, 15 Dec 2011 14:04:08 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201112221123.33315.laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 1/2] media: tvp5150 Fix default input selection.
+References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com> <4EE9C7FA.8070607@infradead.org> <CACKLOr1DLj_uc-NDQPNjXHcej2isE==d=_wUinXDDfJLgFiPKg@mail.gmail.com> <4EE9DF50.20904@infradead.org> <CACKLOr0KG9hS0a=qdYHfjrZzse2etbhPmCPpUjXwi5TLSqP5SA@mail.gmail.com> <CACKLOr1N0i0tmA7f3WT+nZ6Tn45naRz0CtR6mHyKJ9P5_Lgr+w@mail.gmail.com>
+In-Reply-To: <CACKLOr1N0i0tmA7f3WT+nZ6Tn45naRz0CtR6mHyKJ9P5_Lgr+w@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-
-On Wednesday 21 December 2011 23:46:24 Guennadi Liakhovetski wrote:
-> On Wed, 21 Dec 2011, Laurent Pinchart wrote:
-> > On Wednesday 21 December 2011 14:56:36 Hadli, Manjunath wrote:
-> > > On Wed, Dec 21, 2011 at 05:32:08, Laurent Pinchart wrote:
-> > > > On Friday 16 December 2011 14:42:48 Hadli, Manjunath wrote:
-> > > > > On Thu, Dec 15, 2011 at 18:30:47, Laurent Pinchart wrote:
-> > > > > > On Thursday 15 December 2011 13:24:58 Manjunath Hadli wrote:
-> > > > > > > add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer
-> > > > > > > format frames compressed by A-LAW alogorithm.
-> > > > > > > add V4L2_PIX_FMT_UV8 to represent storage of C (UV interleved)
-> > > > > > > only.
-> > > > > > > 
-> > > > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > > > > ---
-> > > > > > > 
-> > > > > > >  include/linux/videodev2.h |    6 ++++++
-> > > > > > >  1 files changed, 6 insertions(+), 0 deletions(-)
-> > > > > > 
-> > > > > > Could you please also document these formats in
-> > > > > > Documentation/DocBook/media/v4l ?
-> > > > > 
-> > > > > I will. Sorry to have missed that out.
-> > > > > 
-> > > > > > > diff --git a/include/linux/videodev2.h
-> > > > > > > b/include/linux/videodev2.h index 4b752d5..969112d 100644
-> > > > > > > --- a/include/linux/videodev2.h
-> > > > > > > +++ b/include/linux/videodev2.h
-> > > > > > > @@ -338,6 +338,9 @@ struct v4l2_pix_format {
-> > > > > > > 
-> > > > > > >  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2')
-> > > > > > >  /*  8 YUV
-> > > > > > > 
-> > > > > > > 4:2:0 16x16 macroblocks */ #define V4L2_PIX_FMT_M420
-> > > > > > > v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1
-> > > > > > > line uv interleaved */
-> > > > > > > 
-> > > > > > > +/* Chrominance formats */
-> > > > > > > +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ')
-> > > > > > > /* 8 UV 4:4 */ +
-> > > > > > > 
-> > > > > > >  /* two planes -- one Y, one Cr + Cb interleaved  */
-> > > > > > >  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2')
-> > > > > > >  /* 12 Y/CbCr
-> > > > > > > 
-> > > > > > > 4:2:0  */ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V',
-> > > > > > > '2', '1') /* 12  Y/CrCb 4:2:0  */ @@ -366,6 +369,9 @@ struct
-> > > > > > > v4l2_pix_format { #define V4L2_PIX_FMT_SRGGB12
-> > > > > > > v4l2_fourcc('R', 'G', '1', '2') /* 12 RGRG.. GBGB.. */ /*
-> > > > > > > 10bit raw bayer DPCM compressed to 8 bits */ #define
-> > > > > > > V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-> > > > > > > +	/* 10bit raw bayer a-law compressed to 8 bits */ #define
-> > > > > > > +V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
-> > > > > > > +
-> > > > > > 
-> > > > > > That's not very future-proof, how would you describe SGBRG10ALAW8
-> > > > > > for instance ?
-> > > > > > 
-> > > > > > Maybe it's time to standardize FOURCCs for Bayer new formats. We
-> > > > > > have 4 characters, we could start with 'B' to denote Bayer,
-> > > > > > followed by one character for the order, one for the
-> > > > > > compression, and one for the number of bits.
-> > > > > 
-> > > > > I agree.
-> > > > > May be ('B', 'G', 'A', '8') is fine for the above?
-> > > > 
-> > > > We need to describe at last BGGR, GBRG, GRBG and RGGB. We could use
-> > > > 'B', 'g', 'G' and 'R' respectively for the second character. The
-> > > > third character would be 'A' for A-law and 'D' for DPCM, and the
-> > > > fourth character could describe the bus width in bits from 0 to 15
-> > > > with '0' - '9', 'A' - 'F'. However, I suspect that we will need
-> > > > 16-bit wide busses for raw Bayer at some point, and a 0 width is
-> > > > definitely not useful. We could thus offset the width by some value.
-> > > > 
-> > > > This is just a preliminary idea, I'm open to suggestions.
-> > > 
-> > > I think it is a very good suggestion that we can go with.
-> > > B : BGGR
-> > > g : GBRG
-> > > G : GRBG
-> > > R : RGGB
-> > > 
-> > > and 0-F can signify 1-16.
-> > 
-> > Hans, Guennadi, Sakari, any opinion on that as well ?
+On 15-12-2011 10:33, javier Martin wrote:
+> On 15 December 2011 13:01, javier Martin
+> <javier.martin@vista-silicon.com> wrote:
+>>> The mx2_camera needs some code to forward calls to S_INPUT/S_ROUTING to
+>>> tvp5150, in order to set the pipelines there.
+>>
+>> This sounds like a sensible solution I will work on that soon.
+>>
 > 
-> Is there any risk of confusion, if we don't reserve the first character
-> for 'B'? I'm just trying to avoid mixed cases, I'm not a great fan of
-> those;-)
+> Hi Mauro,
+> regarding this subject it seems soc-camera assumes the attached sensor
+> has only one input: input 0. This means I am not able to forward
+> S_INPUT/S_ROUTING as you suggested:
+> http://lxr.linux.no/#linux+v3.1.5/drivers/media/video/soc_camera.c#L213
 
-FOURCCs are not really supposed to be displayed anyway :-)
+Then, you need to submit a patch for soc_camera, in order to allow it
+to work with devices that provide more than one input.
 
-> What if we use the first two characters for the order like "GR", "GB",...
-> AFAICS, 'G' so far only also occurs in GREY and various RGB* / BGR* / ...
-> formats, which we wouldn't be confusing with.
+> This trick is clearly a loss of functionality because it restricts
+> sensors to output 0, but it should work since the subsystem can assume
+> a sensor whose inputs have not been configured has input 0 as the one
+> selected.
+> 
+> However, this trick in the tvp5150 which selects input 1 (instead of
+> 0) as the default input is breaking that assumption. The solution
+> could be either apply my patch to set input 0 (COMPOSITE0) as default
+> or swap input numbers so that COMPOSITE1 input is input 0.
+> 
+> Personally I find my approach more convenient since it matches with
+> the default behavior expected in the datasheet.
 
-Or we could use random FOURCC values as well :-)
+Both of your described ways are just hacks. tvp5150 has more than one
+input. So, the bridge should be supporting the selection between
+them.
 
-There could also be other non-Bayer raw formats, such as panchromatic cells or 
-Foveon patterns. I don't know if we need to plan for them already.
-
-> We could further reduce confusion, if we use some other character for A-law
-> ('L' or 'W'?)
-
-We could also have µ-law compression, L and W would be ambiguous.
-
--- 
 Regards,
+Mauro
+> 
+> Regards.
 
-Laurent Pinchart
