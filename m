@@ -1,72 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:47277 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751493Ab1K3Vie (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4251 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758741Ab1LOJmi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 16:38:34 -0500
-MIME-Version: 1.0
-Date: Wed, 30 Nov 2011 22:38:33 +0100
-Message-ID: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-Subject: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-From: HoP <jpetrous@gmail.com>
-To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 15 Dec 2011 04:42:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv3 PATCH 3/3] ivtv: setup per-device caps.
+Date: Thu, 15 Dec 2011 10:42:28 +0100
+Message-Id: <ab8307487380409d5efd09335df34b076443e0ed.1323941922.git.hans.verkuil@cisco.com>
+In-Reply-To: <1323942148-13503-1-git-send-email-hverkuil@xs4all.nl>
+References: <1323942148-13503-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <b6fe112d47eb23b6c1f87da072915140d7a3b2f6.1323941922.git.hans.verkuil@cisco.com>
+References: <b6fe112d47eb23b6c1f87da072915140d7a3b2f6.1323941922.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi folks.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I need to warn you that my mail is a bit little longer then I would like
-to be.But I'm not able to ask my question without some
-background information.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/ivtv/ivtv-driver.h  |    1 +
+ drivers/media/video/ivtv/ivtv-ioctl.c   |    7 +++++--
+ drivers/media/video/ivtv/ivtv-streams.c |   14 ++++++++++++++
+ 3 files changed, 20 insertions(+), 2 deletions(-)
 
-On June 19th, I was sending the driver to the Linux-media
-mailing list. Original announcement is there:
+diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
+index 8f9cc17..06b9efd 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.h
++++ b/drivers/media/video/ivtv/ivtv-driver.h
+@@ -331,6 +331,7 @@ struct ivtv_stream {
+ 	struct ivtv *itv; 		/* for ease of use */
+ 	const char *name;		/* name of the stream */
+ 	int type;			/* stream type */
++	u32 caps;			/* V4L2 capabilities */
+ 
+ 	u32 id;
+ 	spinlock_t qlock; 		/* locks access to the queues */
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index ecafa69..6be63e9 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -752,12 +752,15 @@ static int ivtv_s_register(struct file *file, void *fh, struct v4l2_dbg_register
+ 
+ static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vcap)
+ {
+-	struct ivtv *itv = fh2id(fh)->itv;
++	struct ivtv_open_id *id = fh2id(file->private_data);
++	struct ivtv *itv = id->itv;
++	struct ivtv_stream *s = &itv->streams[id->type];
+ 
+ 	strlcpy(vcap->driver, IVTV_DRIVER_NAME, sizeof(vcap->driver));
+ 	strlcpy(vcap->card, itv->card_name, sizeof(vcap->card));
+ 	snprintf(vcap->bus_info, sizeof(vcap->bus_info), "PCI:%s", pci_name(itv->pdev));
+-	vcap->capabilities = itv->v4l2_cap; 	    /* capabilities */
++	vcap->capabilities = itv->v4l2_cap | V4L2_CAP_DEVICE_CAPS;
++	vcap->device_caps = s->caps;
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
+index e7794dc..4d4ae6e 100644
+--- a/drivers/media/video/ivtv/ivtv-streams.c
++++ b/drivers/media/video/ivtv/ivtv-streams.c
+@@ -78,60 +78,73 @@ static struct {
+ 	int num_offset;
+ 	int dma, pio;
+ 	enum v4l2_buf_type buf_type;
++	u32 v4l2_caps;
+ 	const struct v4l2_file_operations *fops;
+ } ivtv_stream_info[] = {
+ 	{	/* IVTV_ENC_STREAM_TYPE_MPG */
+ 		"encoder MPG",
+ 		VFL_TYPE_GRABBER, 0,
+ 		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VIDEO_CAPTURE,
++		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
++			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
+ 		&ivtv_v4l2_enc_fops
+ 	},
+ 	{	/* IVTV_ENC_STREAM_TYPE_YUV */
+ 		"encoder YUV",
+ 		VFL_TYPE_GRABBER, IVTV_V4L2_ENC_YUV_OFFSET,
+ 		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VIDEO_CAPTURE,
++		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
++			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
+ 		&ivtv_v4l2_enc_fops
+ 	},
+ 	{	/* IVTV_ENC_STREAM_TYPE_VBI */
+ 		"encoder VBI",
+ 		VFL_TYPE_VBI, 0,
+ 		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VBI_CAPTURE,
++		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE | V4L2_CAP_TUNER |
++			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
+ 		&ivtv_v4l2_enc_fops
+ 	},
+ 	{	/* IVTV_ENC_STREAM_TYPE_PCM */
+ 		"encoder PCM",
+ 		VFL_TYPE_GRABBER, IVTV_V4L2_ENC_PCM_OFFSET,
+ 		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_PRIVATE,
++		V4L2_CAP_TUNER | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
+ 		&ivtv_v4l2_enc_fops
+ 	},
+ 	{	/* IVTV_ENC_STREAM_TYPE_RAD */
+ 		"encoder radio",
+ 		VFL_TYPE_RADIO, 0,
+ 		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_PRIVATE,
++		V4L2_CAP_RADIO | V4L2_CAP_TUNER,
+ 		&ivtv_v4l2_enc_fops
+ 	},
+ 	{	/* IVTV_DEC_STREAM_TYPE_MPG */
+ 		"decoder MPG",
+ 		VFL_TYPE_GRABBER, IVTV_V4L2_DEC_MPG_OFFSET,
+ 		PCI_DMA_TODEVICE, 0, V4L2_BUF_TYPE_VIDEO_OUTPUT,
++		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
+ 		&ivtv_v4l2_dec_fops
+ 	},
+ 	{	/* IVTV_DEC_STREAM_TYPE_VBI */
+ 		"decoder VBI",
+ 		VFL_TYPE_VBI, IVTV_V4L2_DEC_VBI_OFFSET,
+ 		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_VBI_CAPTURE,
++		V4L2_CAP_SLICED_VBI_CAPTURE | V4L2_CAP_READWRITE,
+ 		&ivtv_v4l2_enc_fops
+ 	},
+ 	{	/* IVTV_DEC_STREAM_TYPE_VOUT */
+ 		"decoder VOUT",
+ 		VFL_TYPE_VBI, IVTV_V4L2_DEC_VOUT_OFFSET,
+ 		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_VBI_OUTPUT,
++		V4L2_CAP_SLICED_VBI_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
+ 		&ivtv_v4l2_dec_fops
+ 	},
+ 	{	/* IVTV_DEC_STREAM_TYPE_YUV */
+ 		"decoder YUV",
+ 		VFL_TYPE_GRABBER, IVTV_V4L2_DEC_YUV_OFFSET,
+ 		PCI_DMA_TODEVICE, 0, V4L2_BUF_TYPE_VIDEO_OUTPUT,
++		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
+ 		&ivtv_v4l2_dec_fops
+ 	}
+ };
+@@ -149,6 +162,7 @@ static void ivtv_stream_init(struct ivtv *itv, int type)
+ 	s->itv = itv;
+ 	s->type = type;
+ 	s->name = ivtv_stream_info[type].name;
++	s->caps = ivtv_stream_info[type].v4l2_caps;
+ 
+ 	if (ivtv_stream_info[type].pio)
+ 		s->dma = PCI_DMA_NONE;
+-- 
+1.7.7.3
 
-http://www.spinics.net/lists/linux-media/msg34240.html
-
-One would say that the code describes very well what it does = adds
-virtual DVB device. To be more clear on it I have even done some
-small picture:
-
-http://www.nessiedvb.org/wiki/doku.php?id=vtuner_bigpicture
-
-I was hoping to get any feedback regarding code implementation.
-It was my first code for the kernel and I felt very well that some
-part can be done better or even simpler.
-
-What really surprised me badly was that when I read all 54 responses
-I have counted only two real technical answers!!! All rest were about
-POLITICAL issues - code was NACKed w/o any technical discussion.
-Because of fear of possible abusing of driver.
-
-I didn't know that there existed very big movement against such
-code in dvb-core subsystem before.
-
-I have one big problem with it. I can even imagine that some "bad guys"
-could abuse virtual driver to use it for distribution close-source drivers
-in the binary blobs. But is it that - worrying about bad boys abusing -
-the sufficient reason for such aggressive NACK which I did? Then would
-be better to remove loadable module API fully from kernel. Is it the right way?
-
-Please confirm me that worrying about abusive act is enough to NACK
-particular driver. Then I may be definitely understand I'm doing something
-wrong and will stay (with such enemy driver) out of tree.
-
-I can't understand that because I see very similar drivers in kernel for ages
-(nbd, or even more similar is usbip) and seems they don't hamper to anybody.
-
-I would like to note that I don't want to start any flame-war, so very short
-answer would be enough for me.
-
-Regards
-
-Honza
-
-PS: Please be so kind and CC the answer/comment to me, I'm
-only on linux-media ML, not on linux-kernel ML. Thanks.
-
-BTW, if accidentally, somebody find it interesting and would like to
-help me doing code review, there is the code hosted now:
-http://code.google.com/p/vtuner/source/browse?repo=linux-driver
