@@ -1,98 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:47721 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755401Ab1LAXn6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 18:43:58 -0500
-Received: by eaak14 with SMTP id k14so2797843eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Dec 2011 15:43:57 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4ED80969.6060404@linuxtv.org>
-References: <4ED65C46.20502@netup.ru>
-	<CAGoCfiw16bAtPHfrtsDDOBL4BeFnH+zMqcz9wBitGGSq_RZtJA@mail.gmail.com>
-	<4ED68AF0.8000903@linuxtv.org>
-	<201112012042.57343.laurent.pinchart@ideasonboard.com>
-	<CALzAhNW_BSf-MbD8yM8YyrjaaGnTsni4NOzaRBu0zZ6zFxgP7Q@mail.gmail.com>
-	<4ED80969.6060404@linuxtv.org>
-Date: Thu, 1 Dec 2011 18:43:56 -0500
-Message-ID: <CALzAhNWhDcGK1PYRNiPYFV684vgYrgXMiGjAk=py-g_X86Vnew@mail.gmail.com>
-Subject: Re: LinuxTV ported to Windows
-From: Steven Toth <stoth@kernellabs.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Abylay Ospan <aospan@netup.ru>,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:18103 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751679Ab1LOPRP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 10:17:15 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LW9001583SPGE70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Dec 2011 15:17:13 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LW900IES3SPZA@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 15 Dec 2011 15:17:13 +0000 (GMT)
+Date: Thu, 15 Dec 2011 16:17:06 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] media: vb2: remove plane argument from call_memop and cleanup
+ mempriv usage
+To: linux-media@vger.kernel.org
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Pawel Osciak <pawel@osciak.com>
+Message-id: <1323962226-3338-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Speaking as the maintainer and copyright owner I can say that it would
->> have been nice if someone had contacted me privately re the matter,
->> before hand. Not to assert any legal right, not for any approval,
->> simply as a courtesy and a perhaps a small 'Thank You'. NetUp could
->> have happily had my personal blessing on their project.
->
-> you could have said thank you for porting the driver as well: The port
-> enlarges the user base, is likely to uncover bugs and you might even
-> receive fixes to those bugs for free (unless the ranting goes on).
+This patch removes unused 'plane' argument from call_memop macro.
 
-I care not for a windows port, it's of no interest to me. I'm sure
-NetUp Windows customers will find it useful.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/videobuf2-core.c |   22 ++++++++++------------
+ 1 files changed, 10 insertions(+), 12 deletions(-)
 
->> My first concern is that this only benefits NetUp on Windows, no other
->> company benefits on windows - as they all already have legal access to
->> the Conexant source reference driver.
->
-> Are you implying that
-> a) it's not the users who benefit most?
-> b) other companies won't be able to use this driver?
-> c) NetUp doesn't have legal access to the reference driver?
-
-I was simply stating my opinion, it not a list of points I wish to
-debate with you or anyone else. Please don't take this comment
-personally. You are welcome to your own opinion and draw your own
-conclusions on how I feel about the matter.
-
->> The Windows GPL driver
->> could/will evolve much faster than the Linux driver and that will suit
->> NetUp commercially and nobody else. Time will not be taken to
->> "backport" changes into the Linux driver and that's bad for the Linux
->> community. (Or, for commercial reasons, the backports will take longer
->> than expected)
->
-> Why don't you do the backports yourself? You want NetUp to do the work
-> for you? The code is published in a Git repository. You can easily track
-> any changes.
-
-Yes, I could, thanks to github.
-
->
->> My second concern is that NetUp have made it very simply for the
->> hundreds of no-name third party far-east companies (with zero
->> legitimate access to the Conexant windows source reference driver), to
->> take the windows driver, close source it, not distribute their changes
->> and compete against the few legitimate TVTuner companies left in the
->> world. If/when the one or two remaining TVTuner companies die because
->> their bread and butter Windows sales are being eroded to zero - how
->> does this help this community? It doesn't, it only helps NetUp.
->
-> Any company doing that could use any existing binary driver as well.
-> Besides that, I'm sure it's no problem for them to get access to any
-> reference driver they want.
-
-I think I respectfully disagree with you.
-
->> I embrace open source, I welcome new developers, debate and growth....
->> I just think if you are going to get my 18 year old daughter pregnant
->> then it's courtesy to knock on my door and introduce yourself first -
->> regardless of my opinion or your legal rights.
->
-> A very compelling analogy.
-
-Best wishes,
-
-- Steve
-
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index a3a9bf9..9dc887b 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -30,7 +30,7 @@ module_param(debug, int, 0644);
+ 			printk(KERN_DEBUG "vb2: " fmt, ## arg);		\
+ 	} while (0)
+ 
+-#define call_memop(q, plane, op, args...)				\
++#define call_memop(q, op, args...)					\
+ 	(((q)->mem_ops->op) ?						\
+ 		((q)->mem_ops->op(args)) : 0)
+ 
+@@ -52,7 +52,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 
+ 	/* Allocate memory for all planes in this buffer */
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+-		mem_priv = call_memop(q, plane, alloc, q->alloc_ctx[plane],
++		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+ 				      q->plane_sizes[plane]);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
+@@ -66,7 +66,7 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ free:
+ 	/* Free already allocated memory if one of the allocations failed */
+ 	for (; plane > 0; --plane)
+-		call_memop(q, plane, put, vb->planes[plane - 1].mem_priv);
++		call_memop(q, put, vb->planes[plane - 1].mem_priv);
+ 
+ 	return -ENOMEM;
+ }
+@@ -80,7 +80,7 @@ static void __vb2_buf_mem_free(struct vb2_buffer *vb)
+ 	unsigned int plane;
+ 
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+-		call_memop(q, plane, put, vb->planes[plane].mem_priv);
++		call_memop(q, put, vb->planes[plane].mem_priv);
+ 		vb->planes[plane].mem_priv = NULL;
+ 		dprintk(3, "Freed plane %d of buffer %d\n",
+ 				plane, vb->v4l2_buf.index);
+@@ -100,7 +100,7 @@ static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
+ 		void *mem_priv = vb->planes[plane].mem_priv;
+ 
+ 		if (mem_priv) {
+-			call_memop(q, plane, put_userptr, mem_priv);
++			call_memop(q, put_userptr, mem_priv);
+ 			vb->planes[plane].mem_priv = NULL;
+ 		}
+ 	}
+@@ -305,7 +305,7 @@ static bool __buffer_in_use(struct vb2_queue *q, struct vb2_buffer *vb)
+ 		 * case anyway. If num_users() returns more than 1,
+ 		 * we are not the only user of the plane's memory.
+ 		 */
+-		if (mem_priv && call_memop(q, plane, num_users, mem_priv) > 1)
++		if (mem_priv && call_memop(q, num_users, mem_priv) > 1)
+ 			return true;
+ 	}
+ 	return false;
+@@ -734,7 +734,7 @@ void *vb2_plane_vaddr(struct vb2_buffer *vb, unsigned int plane_no)
+ 	if (plane_no > vb->num_planes)
+ 		return NULL;
+ 
+-	return call_memop(q, plane_no, vaddr, vb->planes[plane_no].mem_priv);
++	return call_memop(q, vaddr, vb->planes[plane_no].mem_priv);
+ 
+ }
+ EXPORT_SYMBOL_GPL(vb2_plane_vaddr);
+@@ -757,7 +757,7 @@ void *vb2_plane_cookie(struct vb2_buffer *vb, unsigned int plane_no)
+ 	if (plane_no > vb->num_planes)
+ 		return NULL;
+ 
+-	return call_memop(q, plane_no, cookie, vb->planes[plane_no].mem_priv);
++	return call_memop(q, cookie, vb->planes[plane_no].mem_priv);
+ }
+ EXPORT_SYMBOL_GPL(vb2_plane_cookie);
+ 
+@@ -899,8 +899,7 @@ static int __qbuf_userptr(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 		/* Release previously acquired memory if present */
+ 		if (vb->planes[plane].mem_priv)
+-			call_memop(q, plane, put_userptr,
+-					vb->planes[plane].mem_priv);
++			call_memop(q, put_userptr, vb->planes[plane].mem_priv);
+ 
+ 		vb->planes[plane].mem_priv = NULL;
+ 		vb->v4l2_planes[plane].m.userptr = 0;
+@@ -944,8 +943,7 @@ err:
+ 	/* In case of errors, release planes that were already acquired */
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		if (vb->planes[plane].mem_priv)
+-			call_memop(q, plane, put_userptr,
+-				   vb->planes[plane].mem_priv);
++			call_memop(q, put_userptr, vb->planes[plane].mem_priv);
+ 		vb->planes[plane].mem_priv = NULL;
+ 		vb->v4l2_planes[plane].m.userptr = 0;
+ 		vb->v4l2_planes[plane].length = 0;
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+1.7.1.569.g6f426
+
