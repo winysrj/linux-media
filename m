@@ -1,44 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:53295 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751036Ab1LJLrq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Dec 2011 06:47:46 -0500
-Message-ID: <4EE346E0.7050606@iki.fi>
-Date: Sat, 10 Dec 2011 13:47:44 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34647 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756143Ab1LOMCB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 07:02:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: martin@neutronstar.dyndns.org
+Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based camera board.
+Date: Thu, 15 Dec 2011 13:02:17 +0100
+Cc: Igor Grinberg <grinberg@compulab.co.il>,
+	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
+	Hiremath Vaibhav <hvaibhav@ti.com>,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org> <201112141415.23885.laurent.pinchart@ideasonboard.com> <1323886950.295978.31313@localhost>
+In-Reply-To: <1323886950.295978.31313@localhost>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4 [PATCH 09/10] CXD2820r: Query DVB frontend delivery capabilities
-References: <CAHFNz9+=T5XGok+LvhVqeSVdWt=Ng6wgXqcHdtdw19a+whx1bw@mail.gmail.com>
-In-Reply-To: <CAHFNz9+=T5XGok+LvhVqeSVdWt=Ng6wgXqcHdtdw19a+whx1bw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201112151302.18508.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Manu,
-That patch looks now much acceptable than the older for my eyes, since 
-you removed that .set_state() (change from .set_params() to 
-.set_state()) I criticized. Thanks!
+Hi Martin,
 
+On Wednesday 14 December 2011 19:22:29 martin@neutronstar.dyndns.org wrote:
+> On Wed, Dec 14, 2011 at 02:15:22PM +0100, Laurent Pinchart wrote:
+> > On Wednesday 14 December 2011 10:31:35 Igor Grinberg wrote:
+> > > On 12/14/11 03:25, Martin Hostettler wrote:
+> > > > Adds board support for an MT9M032 based camera to omap3evm.
+> > > > 
+> > > > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
+> > 
+> > [snip]
+> > 
+> > > > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
+> > > > index 0000000..bffd5b8
+> > > > --- /dev/null
+> > > > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
+> > > > @@ -0,0 +1,155 @@
+> > 
+> > [snip]
+> > 
+> > > > +#include <linux/i2c.h>
+> > > > +#include <linux/init.h>
+> > > > +#include <linux/platform_device.h>
+> > > > +
+> > > > +#include <linux/gpio.h>
+> > > > +#include <plat/mux.h>
+> > > > +#include "mux.h"
+> > > > +
+> > > > +#include "../../../drivers/media/video/omap3isp/isp.h"
+> > > 
+> > > Laurent,
+> > > In one of the previous reviews, you stated:
+> > > "I'll probably split it and move the part required by board files to
+> > > include/media/omap3isp.h".
+> > > Is there any progress on that?
+> > 
+> > Yes, it has been half-fixed in mainline. Half only because all the
+> > structures and macros that should be used by board code are now in
+> > <media/omap3isp.h>, but some boards need to access OMAP3 ISP internals
+> > from board code, which still requires
+> > drivers/media/video/omap3isp/isp.h. This will eventually be fixed, when
+> > the generic struct clk object will be available.
+> > 
+> > After a quick look at this patch it seems that <media/omap3isp.h> should
+> > be enough here.
+> 
+> Almost. The code uses ISPCTRL_PAR_BRIDGE_DISABLE which is only available
+> from drivers/media/video/omap3isp/ispreg.h.
+>
+> So i'd say it's better to keep that include than to duplicate this constant
+> in the code.
+> 
+> What do you think?
 
-On 12/10/2011 06:44 AM, Manu Abraham wrote:
->   static int cxd2820r_set_frontend(struct dvb_frontend *fe,
-[...]
-> +	switch (c->delivery_system) {
-> +	case SYS_DVBT:
-> +		ret = cxd2820r_init_t(fe);
+You should use ISP_BRIDGE_DISABLE instead. That one is defined in 
+<media/omap3isp.h>
+ 
+> By the way, it seems drivers/media/video/omap3isp/ispvideo.c is missing a
+> #include <linux/module.h> at the moment. I had to patch that line in to get
+> omap3isp to compile as module.
 
-> +		ret = cxd2820r_set_frontend_t(fe, p);
+http://patchwork.linuxtv.org/patch/8510/
 
+The fix should get in v3.2.
 
-Anyhow, I don't now like idea you have put .init() calls to 
-.set_frontend(). Could you move .init() happen in .init() callback as it 
-was earlier?
-
-
-regards
-Antti
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
