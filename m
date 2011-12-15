@@ -1,29 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:39886 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694Ab1LBScJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 13:32:09 -0500
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:46844 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758953Ab1LOQCu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 11:02:50 -0500
+Received: by wgbdr13 with SMTP id dr13so4294042wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 08:02:49 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-Date: Fri, 2 Dec 2011 10:32:08 -0800
-Message-ID: <CAA7C2qhiB19-vPFnZtxA+J1VqWqUV6fOd_VTgddeJE9D8mFLCg@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-From: VDR User <user.vdr@gmail.com>
-To: HoP <jpetrous@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Date: Thu, 15 Dec 2011 17:02:47 +0100
+Message-ID: <CACKLOr1qSpJXjyptUF3OEWR2b7XNoRdMjiVWzZ9gtuanfgJZDQ@mail.gmail.com>
+Subject: Trying to figure out reasons for lost pictures in UVC driver.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> What really surprised me badly was that when I read all 54 responses
-> I have counted only two real technical answers!!! All rest were about
-> POLITICAL issues - code was NACKed w/o any technical discussion.
-> Because of fear of possible abusing of driver.
+Hi,
+we are testing a logitech Webcam M/N: V-U0012 in the UVC tree (commit
+ef7728797039bb6a20f22cc2d96ef72d9338cba0).
+It is configured at 25fps, VGA.
 
-To answer the original question -- absolutely not! Linux is not about
-and should not try policing what it's users do, or passing moral
-judgment. If there are technical reasons something shouldn't be merged
-as is, no problem. There are times when a persons personal preference
-should be left out of the equation, and this is an example of one.
+We've observed that the following debugging message appears sometimes
+"Frame complete (FID bit toggled).". Whenever this happens a v4l2
+frame is lost (i.e. one sequence number has been skipped).
+
+Is this behavior expected? What could we do to avoid frame loss?
+
+Thank you.
+
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
