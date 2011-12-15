@@ -1,86 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:57885 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752684Ab1LQTJ4 convert rfc822-to-8bit (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:63327 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932427Ab1LOQmN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 14:09:56 -0500
-Received: by yenm11 with SMTP id m11so2820551yen.19
-        for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 11:09:56 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EECB2C2.8050701@gmail.com>
-References: <CALJK-QhGrjC9K8CasrUJ-aisZh8U_4-O3uh_-dq6cNBWUx_4WA@mail.gmail.com>
-	<4EE9AA21.1060101@gmail.com>
-	<CALJK-QjxDpC8Y_gPXeAJaT2si_pRREiuTW=T8CWSTxGprRhfkg@mail.gmail.com>
-	<4EEAFF47.5040003@gmail.com>
-	<CALJK-Qhpk7NtSezrft_6+4FZ7Y35k=41xrc6ebxf2DzEH6KCWw@mail.gmail.com>
-	<4EECB2C2.8050701@gmail.com>
-Date: Sat, 17 Dec 2011 21:09:56 +0200
-Message-ID: <CALJK-QjZs2P6AofSshH+e=QtsnDWFqKPAixnXQEdTjsOQZ2FXA@mail.gmail.com>
-Subject: Re: Hauppauge HVR-930C problems
-From: Mihai Dobrescu <msdobrescu@gmail.com>
-To: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+	Thu, 15 Dec 2011 11:42:13 -0500
+Received: by eaaj10 with SMTP id j10so2097938eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 08:42:11 -0800 (PST)
+Message-ID: <1323967323.2273.17.camel@tvbox>
+Subject: Re: [PATCH] it913x add support for IT9135 9006 devices
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Adrian N <adexmail@tlen.pl>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Date: Thu, 15 Dec 2011 16:42:03 +0000
+In-Reply-To: <4EEA16BA.4070209@tlen.pl>
+References: <1323719580.2235.3.camel@tvbox>
+	 <loom.20111214T071004-336@post.gmane.org> <4EEA16BA.4070209@tlen.pl>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 17, 2011 at 5:18 PM, Fredrik Lingvall
-<fredrik.lingvall@gmail.com> wrote:
-> On 12/16/11 19:35, Mihai Dobrescu wrote:
->
-> Please excuse the dumbness of the question, but, could you direct me
-> to the repository having these patches applied?
->
->
-> No it's not a dumpness question - I have struggeled with this too.
->
-> First I got confused which kernel source to use. There are two git repos
-> mentioned on the linuxtv.org site:
->
-> 1) on http://linuxtv.org/repo/
->
-> ~ # git clone
-> git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux-2.6.git v4l-dvb
->
-> and 2) on http://git.linuxtv.org/media_tree.git
->
-> ~ # git clone git://github.com/torvalds/linux.git v4l-dvb
->
->
-> I'm also a bit confused on how to get the linux-media tree. My guess was to
-> do a
->
->  # cd v4l-dvb
->  # git remote add linuxtv git://linuxtv.org/media_tree.git
->  # git remote update
->
->
-> They also now and then create tar-files, and right know I'm testing the one
-> from 2011-12-13, That is,
->
-> ~ # cd /usr/src
-> src # git clone git://github.com/torvalds/linux.git v4l-dvb
-> src # wget
-> http://linuxtv.org/downloads/drivers/linux-media-2011-12-13.tar.bz2
-> src # cd v4l-dvb
-> v4l-dvb # tar xvjf ../linux-media-2011-12-13.tar.bz2
->
-> Then configure and build the kernel:make menuconfig (enable the drivers
-> etc), make -j2 && make modules_install & make install
-> and add the new kernel to lilo/grub etc and reboot.
->
-> The media tree don't build cleanly on the stock Gentoo kernel (3.0.6) so
-> that's why I'm using Linux' dev kernel (which is the one recommended on
-> Linuxtv). However, not everything works with this kernel (I can't emerge
-> virtualbox for example).
->
-> /Fredrik
->
 
-Thank you.
-So, there would be no success on Sabayon 7 64 bit having kernel version 3.1?
-I would not rebuild all the kernel, just the media.
-Does this suffice?
+> [ 1103.536156] it913x: Chip Version=ec Chip Type=5830
+> [ 1104.336178] it913x: Dual mode=92 Remote=92 Tuner Type=92
+> [ 1106.248116] dvb-usb: found a 'ITE 9135(9006) Generic' in cold state, 
+> will try to load a firmware
+> [ 1106.253773] dvb-usb: downloading firmware from file 
+> 'dvb-usb-it9135-02.fw'
+> [ 1106.452123] it913x: FRM Starting Firmware Download
+> [ 1130.756039] it913x: FRM Firmware Download Failed (ffffff92)
+> [ 1130.956168] it913x: Chip Version=79 Chip Type=5823
+> [ 1131.592192] it913x: DEV it913x Error
+> [ 1131.592271] usbcore: registered new interface driver it913x
+> 
+> No frontend is generated anyway.
 
-Mike
+Looks like the the firmware is not at all compatible with your device.
+
+Have you applied the patch cleanly to the latest media_build?
+
+These appear to be new version of the 9006. A supplier is sending me one
+of these devices.
+
+As a last resort see if the device works with dvb-usb-it9137-01.fw
+
+You will have force to use this firmware
+dvb-usb-it913x firmware=1
+
+For the moment this patch cannot proceed until the firmware has been
+checked.
+
+Regards
+
+
+Malcolm
+
