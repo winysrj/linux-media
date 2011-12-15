@@ -1,107 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56636 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753751Ab1L1N4q (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:36935 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753065Ab1LOJVs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 08:56:46 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "HeungJun, Kim" <riverful.kim@samsung.com>
-Subject: Re: [RFC PATCH 3/4] v4l: Add V4L2_CID_WDR button control
-Date: Wed, 28 Dec 2011 14:56:49 +0100
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <1325053428-2626-4-git-send-email-riverful.kim@samsung.com>
-In-Reply-To: <1325053428-2626-4-git-send-email-riverful.kim@samsung.com>
+	Thu, 15 Dec 2011 04:21:48 -0500
+Message-ID: <4EE9BC25.7020303@infradead.org>
+Date: Thu, 15 Dec 2011 07:21:41 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	stable@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [patch -longterm] V4L/DVB: v4l2-ioctl: integer overflow in video_usercopy()
+References: <20111215063445.GA2424@elgon.mountain>
+In-Reply-To: <20111215063445.GA2424@elgon.mountain>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112281456.51024.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi,
+On 15-12-2011 04:34, Dan Carpenter wrote:
+> On a 32bit system the multiplication here could overflow.  p->count is
+> used in some of the V4L drivers.
 
-On Wednesday 28 December 2011 07:23:47 HeungJun, Kim wrote:
-> It adds the new CID for setting White Balance Preset. This CID is provided
+ULONG_MAX / sizeof(v4l2_ext_control) is too much. This ioctl is used on things
+like setting MPEG paramenters, where several parameters need adjustments at
+the same time. I risk to say that 64 is probably a reasonably safe upper limit.
 
-I suppose you mean wide dynamic range here.
+Btw, the upstream code also seems to have the same issue:
 
-> as button type. This can commands only if the camera turn on/off this
-> function.
+static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
+                            void * __user *user_ptr, void ***kernel_ptr)
+{
+...
+	if (ctrls->count != 0) {
+...	
+	*array_size = sizeof(struct v4l2_ext_control)
+                                    * ctrls->count;
+	ret = 1;
+...
+}
+	
+long
+video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+               v4l2_kioctl func)
+{
+...
+        err = check_array_args(cmd, parg, &array_size, &user_ptr, &kernel_ptr);
+        if (err < 0)
+                goto out;
+        has_array_args = err;
 
-Shouldn't it be a boolean ? A button can only be activated, for one-shot auto-
-focus for instance.
+        if (has_array_args) {
+                mbuf = kmalloc(array_size, GFP_KERNEL);
+...
 
-> Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |   12 ++++++++++++
->  drivers/media/video/v4l2-ctrls.c             |    2 ++
->  include/linux/videodev2.h                    |    2 ++
->  3 files changed, 16 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml index afe1845..bed6c66
-> 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -2958,6 +2958,18 @@ it one step further. This is a write-only
-> control.</entry> <row><entry></entry></row>
-> 
->  	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_WDR</constant></entry>
-> +	    <entry>button</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Wide Dynamic Range. It makes
-> +	    the image be more clear by adjusting the image's intensity
-> +	    of the illumination. This function can be provided according to
-> +	    the capability of the hardware(sensor or AP's multimedia block).
-> +	    </entry>
-> +	  </row>
-> +
-> +	  <row>
->  	    <entry
-> spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
-> <entry>boolean</entry>
->  	  </row><row><entry spanname="descr">Prevent video from being acquired
-> diff --git a/drivers/media/video/v4l2-ctrls.c
-> b/drivers/media/video/v4l2-ctrls.c index fef58c2..66110bc 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -598,6 +598,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
->  	case V4L2_CID_PRESET_WHITE_BALANCE:	return "White Balance, Preset";
->  	case V4L2_CID_SCENEMODE:		return "Scenemode";
-> +	case V4L2_CID_WDR:			return "Wide Dynamic Range";
-> 
->  	/* FM Radio Modulator control */
->  	/* Keep the order of the 'case's the same as in videodev2.h! */
-> @@ -687,6 +688,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
-> v4l2_ctrl_type *type, break;
->  	case V4L2_CID_PAN_RESET:
->  	case V4L2_CID_TILT_RESET:
-> +	case V4L2_CID_WDR:
->  	case V4L2_CID_FLASH_STROBE:
->  	case V4L2_CID_FLASH_STROBE_STOP:
->  		*type = V4L2_CTRL_TYPE_BUTTON;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index bc14feb..f85ad6c 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1646,6 +1646,8 @@ enum v4l2_scenemode {
->  	V4L2_SCENEMODE_CANDLE = 14,
->  };
-> 
-> +#define V4L2_CID_WDR				(V4L2_CID_CAMERA_CLASS_BASE+21)
-> +
->  /* FM Modulator class control IDs */
->  #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
->  #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+so, if is there any overflow at check_array_args(), instead of returning
+an error to userspace, it will allocate the array with less space than
+needed. 
 
--- 
+On both upstream and longterm, I think that it is more reasonable to 
+state a limit for the maximum number of controls that can be passed at
+the same time, and live with that.
+
+A dummy check says:
+$ more include/linux/videodev2.h |grep V4L2_CID|wc -l
+    209
+
+So, an upper limit of 256 is enough to allow userspace to change all existing controls
+at the same time.
+
+The proper way seems to add a define at include/linux/videodev2.h
+and enforce it at the usercopy code.
+
 Regards,
+Mauro
 
-Laurent Pinchart
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> ---
+> This is a patch against the 2.6.32-longterm kernel.  In the stock
+> kernel, this code was totally rewritten and fixed in 2010 by d14e6d76ebf
+> "[media] v4l: Add multi-planar ioctl handling code".
+> 
+> Hopefully, someone can Ack this and we merge it into the stable tree.
+> 
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index 265bfb5..7196303 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -414,6 +414,9 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
+>  		p->error_idx = p->count;
+>  		user_ptr = (void __user *)p->controls;
+>  		if (p->count) {
+> +			err = -EINVAL;
+> +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
+> +				goto out_ext_ctrl;
+>  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+>  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+>  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
+> @@ -1912,6 +1915,9 @@ long video_ioctl2(struct file *file,
+>  		p->error_idx = p->count;
+>  		user_ptr = (void __user *)p->controls;
+>  		if (p->count) {
+> +			err = -EINVAL;
+> +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
+> +				goto out_ext_ctrl;
+>  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
+>  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+>  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
+
