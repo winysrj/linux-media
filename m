@@ -1,113 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50752 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754722Ab1LEE1O convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 4 Dec 2011 23:27:14 -0500
+Received: from moutng.kundenserver.de ([212.227.126.186]:53517 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750898Ab1LPJu2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Dec 2011 04:50:28 -0500
+Date: Fri, 16 Dec 2011 10:50:21 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1112161043280.6572@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+ <Pine.LNX.4.64.1112160909470.6572@axis700.grange>
+ <CAHG8p1AXghgSQNHUQi5V56ROAfS9tOsMRbAMqNogNG0=m7zzkQ@mail.gmail.com>
+ <Pine.LNX.4.64.1112161014580.6572@axis700.grange>
+ <CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAKnK67T9S6Z=f9qmn9ov7YNyTKjdDbOZHJDRO-7_fqkJGZzXbA@mail.gmail.com>
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
-	<1322838172-11149-3-git-send-email-ming.lei@canonical.com>
-	<CAKnK67T9S6Z=f9qmn9ov7YNyTKjdDbOZHJDRO-7_fqkJGZzXbA@mail.gmail.com>
-Date: Mon, 5 Dec 2011 12:27:11 +0800
-Message-ID: <CACVXFVNxX9tHZrdsRw6Wm14g59x44dR1Rm5jLeqxx4m6Jxe5-Q@mail.gmail.com>
-Subject: Re: [RFC PATCH v1 2/7] omap4: build fdif omap device from hwmod
-From: Ming Lei <ming.lei@canonical.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Greg KH <greg@kroah.com>, Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, 16 Dec 2011, Scott Jiang wrote:
 
-On Sat, Dec 3, 2011 at 12:28 AM, Aguirre, Sergio <saaguirre@ti.com> wrote:
-> Hi Ming,
->
-> Thanks for the patches.
+> >> How about this implementation? I know it's not for soc, but I post it
+> >> to give my idea.
+> >> Bridge knows the layout, so it doesn't need to query the subdevice.
+> >
+> > Where from? AFAIU, we are talking here about subdevice inputs, right? In
+> > this case about various inputs of the TV decoder. How shall the bridge
+> > driver know about that?
+> 
+> I have asked this question before. Laurent reply me:
+> 
+> > >> ENUMINPUT as defined by V4L2 enumerates input connectors available on
+> > >> the board. Which inputs the board designer hooked up is something that
+> > >> only the top-level V4L driver will know. Subdevices do not have that
+> > >> information, so enuminputs is not applicable there.
+> > >>
+> > >> Of course, subdevices do have input pins and output pins, but these are
+> > >> assumed to be fixed. With the s_routing ops the top level driver selects
+> > >> which input and output pins are active. Enumeration of those inputs and
+> > >> outputs wouldn't gain you anything as far as I can tell since the
+> > >> subdevice simply does not know which inputs/outputs are actually hooked
+> > >> up. It's the top level driver that has that information (usually passed
+> > >> in through board/card info structures).
 
-Thanks for your review.
+Laurent, right, I now remember reading this discussion before. But I'm not 
+sure I completely agree:-) Yes, you're right - the board decides which 
+pins are routed to which connectors. And it has to provide this 
+information to the driver in its platform data. But - I think, this 
+information should be provided not to the bridge driver, but to respective 
+subdevice drivers, because only they know what exactly those interfaces 
+are good for and how to report them to the bridge or the user, if we 
+decide to also export this information over the subdevice user-space API.
 
-> On Fri, Dec 2, 2011 at 9:02 AM, Ming Lei <ming.lei@canonical.com> wrote:
->> Signed-off-by: Ming Lei <ming.lei@canonical.com>
->> ---
->>  arch/arm/mach-omap2/devices.c |   33 +++++++++++++++++++++++++++++++++
->>  1 files changed, 33 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
->> index 1166bdc..a392af5 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -728,6 +728,38 @@ void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
->>
->>  #endif
->>
->> +static struct platform_device* __init omap4_init_fdif(void)
->> +{
->> +       int id = -1;
->
-> You could remove this , as it is being used only once, and never changed.
+So, I would say, the board has to tell the subdevice driver: yes, your 
+inputs 0 and 1 are routed to external connectors. On input 1 I've put a 
+pullup, it is connected to connector of type X over a circuit Y, clocked 
+from your output Z, if the driver needs to know all that. And the subdev 
+driver will just tell the bridge only what that one needs to know - number 
+of inputs and their capabilities.
 
-Yes.
-
->
->> +       struct platform_device *pd;
->> +       struct omap_hwmod *oh;
->> +       const char *dev_name = "fdif";
->> +
->> +       oh = omap_hwmod_lookup("fdif");
->> +       if (!oh) {
->> +               pr_err("Could not look up fdif hwmod\n");
->> +               return NULL;
->> +       }
->> +
->> +       pd = omap_device_build(dev_name, id, oh, NULL, 0, NULL, 0, 0);
->
-> Just do:
->
-> pd = omap_device_build(dev_name, -1, oh, NULL, 0, NULL, 0, 0);
->
->> +       WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
->> +                               dev_name);
->> +       return pd;
->> +}
->> +
->> +static void __init omap_init_fdif(void)
->> +{
->> +       if (cpu_is_omap44xx()) {
->> +               struct platform_device *pd;
->> +
->> +               pd = omap4_init_fdif();
->> +               if (!pd)
->> +                       return;
->> +
->> +               pm_runtime_enable(&pd->dev);
->> +       }
->> +}
->
-> IMHO, you could reduce 1 level of indentation here, like this:
->
-> static void __init omap_init_fdif(void)
-> {
->        struct platform_device *pd;
->
->        if (!cpu_is_omap44xx())
->                return;
->
->        pd = omap4_init_fdif();
->        if (!pd)
->                return;
->
->        pm_runtime_enable(&pd->dev);
-> }
-
-OK, will take this.
-
-thanks,
---
-Ming Lei
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
