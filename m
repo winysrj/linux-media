@@ -1,107 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28866 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752530Ab1L3PJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:30 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9UYw009135
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 55/94] [media] stv0299: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:52 -0200
-Message-Id: <1325257711-12274-56-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45455 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752620Ab1LPAyB convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 15 Dec 2011 19:54:01 -0500
+Received: by wgbdr13 with SMTP id dr13so5027044wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 16:54:00 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4EE9C7A1.8060303@matrix-vision.de>
+References: <CAOy7-nNJXMbFkJWRubri2O_kc-V1Z+ZjTioqQu=8STtkuLag9w@mail.gmail.com>
+	<4EE9A8B6.4040102@matrix-vision.de>
+	<CAOy7-nPY_Nffgj_Ax=ziT9WYH-egvL8QnZfb50Xurn+AF4yWCQ@mail.gmail.com>
+	<4EE9C7A1.8060303@matrix-vision.de>
+Date: Fri, 16 Dec 2011 08:53:59 +0800
+Message-ID: <CAOy7-nNbGh0C-H60ZJ-WVYavYAyLnADLWsjvbwwoOV9Sd+chFA@mail.gmail.com>
+Subject: Re: Why is the Y12 support 12-bit grey formats at the CCDC input
+ (Y12) is truncated to Y10 at the CCDC output?
+From: James <angweiyang@gmail.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Michael,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+On Thu, Dec 15, 2011 at 6:10 PM, Michael Jones
+<michael.jones@matrix-vision.de> wrote:
+> Hi James,
+>
+>
+> On 12/15/2011 10:49 AM, James wrote:
+>>
+>> Hi Michael,
+>>
+>> On Thu, Dec 15, 2011 at 3:58 PM, Michael Jones
+>> <michael.jones@matrix-vision.de>  wrote:
+>>>
+>>> Hi James,
+>>>
+>>>
+>>> On 12/15/2011 08:14 AM, James wrote:
+>>>>
+>>>>
+>>>> Hi all,
+>>>>
+>>>> I'm using an OMAP3530 board and a monochrome 12-bit grey sensor.
+>>>>
+>>>> Can anyone enlighten me why is the 12-bit grey formats at the CCDC
+>>>> input (Y12) is truncated to Y10 at the CCDC output?
+>>>
+>>>
+>>>
+>>> There are 2 CCDC outputs: CCDC_PAD_SOURCE_OF and CCDC_PAD_SOURCE_VP. Only
+>>> the VP (video port) truncates data to 10 bits, and it does that because
+>>> the
+>>> subdevs it feeds can only handle 10 bits max.
+>>
+>>
+>> Thank you for the clarification.
+>>
+>>>> I need to read the entire RAW 12-bit grey value from the CCDC to
+>>>> memory and the data does not pass through other OMAP3ISP sub-devices.
+>>>>
+>>>> I intend to use Laurent's yavta to capture the data to file to verify
+>>>> its operation for the moment.
+>>>>
+>>>> Can this 12-bit (Y12) raw capture be done?
+>>>
+>>>
+>>>
+>>> Yes. If you are writing the 12-bit gray value directly into memory, you
+>>> will
+>>> use SOURCE_OF and can write the full 12-bits into memory.  You need to
+>>> set
+>>> up your media pipeline to do sensor->CCDC->OMAP3 ISP CCDC output.
+>>
+>>
+>> Is there further modification needed to apply to the OMAP3ISP to achieve
+>> this?
+>>
+>> Do you have an application to test the pipeline for this setting to
+>> simple display?
+>
+>
+> Let's establish where you're coming from.  Are you familiar with the media
+> controller?  Laurent has a program 'media-ctl' to set up the pipeline (see
+> http://git.ideasonboard.org/?p=media-ctl.git).  You will find many examples
+> of its usage in the archives of this mailing list. It will look something
+> like:
+> media-ctl -r
+> media-ctl -l '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0 [1]'
+> media-ctl -l '"your-sensor-name":0 -> "OMAP3 ISP CCDC":0 [1]'
+>
+> you will also need to set the formats through the pipeline with 'media-ctl
+> --set-format'.
+>
+> After you use media-ctl to set up the pipeline, you can use yavta to capture
+> the data from the CCDC output (for me, this is /dev/video2).
+>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/stv0299.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+Yes, I've been using Laurent's media-ctl & yavta to test out MT9V032
+on the Overo board.
+He has been helping and guiding me with it as there isn't any success
+with using MT9V032 on the Overo board then. (^^)
 
-diff --git a/drivers/media/dvb/frontends/stv0299.c b/drivers/media/dvb/frontends/stv0299.c
-index 6aeabaf..abf4bff 100644
---- a/drivers/media/dvb/frontends/stv0299.c
-+++ b/drivers/media/dvb/frontends/stv0299.c
-@@ -559,8 +559,9 @@ static int stv0299_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
- 	return 0;
- }
- 
--static int stv0299_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters * p)
-+static int stv0299_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct stv0299_state* state = fe->demodulator_priv;
- 	int invval = 0;
- 
-@@ -583,19 +584,19 @@ static int stv0299_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	stv0299_set_FEC (state, p->u.qpsk.fec_inner);
--	stv0299_set_symbolrate (fe, p->u.qpsk.symbol_rate);
-+	stv0299_set_FEC (state, p->fec_inner);
-+	stv0299_set_symbolrate (fe, p->symbol_rate);
- 	stv0299_writeregI(state, 0x22, 0x00);
- 	stv0299_writeregI(state, 0x23, 0x00);
- 
- 	state->tuner_frequency = p->frequency;
--	state->fec_inner = p->u.qpsk.fec_inner;
--	state->symbol_rate = p->u.qpsk.symbol_rate;
-+	state->fec_inner = p->fec_inner;
-+	state->symbol_rate = p->symbol_rate;
- 
- 	return 0;
- }
- 
--static int stv0299_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters * p)
-+static int stv0299_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties * p)
- {
- 	struct stv0299_state* state = fe->demodulator_priv;
- 	s32 derot_freq;
-@@ -614,8 +615,8 @@ static int stv0299_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
- 	if (state->config->invert) invval = (~invval) & 1;
- 	p->inversion = invval ? INVERSION_ON : INVERSION_OFF;
- 
--	p->u.qpsk.fec_inner = stv0299_get_fec (state);
--	p->u.qpsk.symbol_rate = stv0299_get_symbolrate (state);
-+	p->fec_inner = stv0299_get_fec (state);
-+	p->symbol_rate = stv0299_get_symbolrate (state);
- 
- 	return 0;
- }
-@@ -705,7 +706,7 @@ error:
- }
- 
- static struct dvb_frontend_ops stv0299_ops = {
--
-+	.delsys = { SYS_DVBS },
- 	.info = {
- 		.name			= "ST STV0299 DVB-S",
- 		.type			= FE_QPSK,
-@@ -729,8 +730,8 @@ static struct dvb_frontend_ops stv0299_ops = {
- 	.write = stv0299_write,
- 	.i2c_gate_ctrl = stv0299_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = stv0299_set_frontend,
--	.get_frontend_legacy = stv0299_get_frontend,
-+	.set_frontend = stv0299_set_frontend,
-+	.get_frontend = stv0299_get_frontend,
- 	.get_tune_settings = stv0299_get_tune_settings,
- 
- 	.read_status = stv0299_read_status,
+What I've been looking for since then is any other application such as
+GUI MPlayer or gst-launch that can open the device and playback the
+data to either LCD or DVI display on the board. (i.e. direct
+'streaming')
+
+Do you know of any? I wish to avoid any further components (e.g.
+ffmpeg) that modify/convert the raw data as much as possible.
+
+sensor->CCDC->application->display
+
+Many thanks in adv.
+
 -- 
-1.7.8.352.g876a6
-
+Regards,
+James
