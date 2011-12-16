@@ -1,112 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep16.mx.upcmail.net ([62.179.121.36]:55962 "EHLO
-	fep16.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753035Ab1LaNWT (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:33796 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751962Ab1LPOzN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 08:22:19 -0500
-Date: Sat, 31 Dec 2011 14:22:18 +0100
-From: Dorozel Csaba <mrjuuzer@upcmail.hu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ir-kbd-i2c / rc-hauppauge / linux-3.x broken
-In-Reply-To: <4EFEFCF7.5020106@redhat.com>
-References: <20111230120658.DXPH19694.viefep13-int.chello.at@edge04.upcmail.net>
-	<4EFDF229.8090103@redhat.com>
-	<20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net>
-	<4EFEECF4.3010709@redhat.com>
-	<20111231114717.TBV1347.viefep15-int.chello.at@edge04.upcmail.net>
-	<4EFEFCF7.5020106@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Message-Id: <20111231132217.DZKT1551.viefep16-int.chello.at@edge01.upcmail.net>
+	Fri, 16 Dec 2011 09:55:13 -0500
+Message-ID: <4EEB5BBC.7050807@ti.com>
+Date: Fri, 16 Dec 2011 15:54:52 +0100
+From: "Cousson, Benoit" <b-cousson@ti.com>
+MIME-Version: 1.0
+To: Paul Walmsley <paul@pwsan.com>
+CC: Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	<linux-omap@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module)
+ hwmod
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com> <1323871214-25435-2-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com>
+In-Reply-To: <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com>
+Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- 
-> Changing the mask to 0x1fff would work, but this may not be the
-> right fix.
-> 
-> the hole idea is that other RC-5 devices could also be used with
-> the driver, but if the sub-routine is not doing the right thing, only
-> this remote will work.
-> 
-> Could you please try this patch, instead? It is just a debug patch,
-> so it won't fix the issue, but it may help us to identify what's
-> happening there.
-> 
-> Btw, do you have any other remote controllers producing Philips RC-5
-> codes? If so, could you also test with them and see what happens?
+Hi Paul,
 
-Haven't got any other remote controllers with Philips RC-5 codes.
+On 12/16/2011 6:53 AM, Paul Walmsley wrote:
+> Hi Benoît
+>
+> On Wed, 14 Dec 2011, Ming Lei wrote:
+>
+>> Signed-off-by: Ming Lei<ming.lei@canonical.com>
 
-With the 0x1fff mask work. If im pushig the buttons to fast or holding donw the output look like
-this (don't know is it normal):
+Acked-by: Benoit Cousson <b-cousson@ti.com>
 
-ir-keytable -t -d /dev/input/event6
-Testing events. Please, press CTRL-C to abort.
-1325336612.877133: event MSC: scancode = 1e3d
-1325336612.877136: event key down: KEY_POWER2 (0x0164)
-1325336612.877137: event sync
-1325336612.980130: event MSC: scancode = 1e3d
-1325336612.980132: event sync
-1325336613.083136: event MSC: scancode = 1e3d
-1325336613.083138: event sync
-1325336613.186133: event MSC: scancode = 1e3d
-1325336613.186134: event sync
-1325336613.289133: event MSC: scancode = 1e3d
-1325336613.289135: event sync
-1325336613.378155: event key down: KEY_POWER2 (0x0164)
-1325336613.378156: event sync
-1325336613.503153: event key down: KEY_POWER2 (0x0164)
-1325336613.503154: event sync
-1325336613.539111: event key up: KEY_POWER2 (0x0164)
-1325336613.539112: event sync
+>> ---
+>>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81 ++++++++++++++++++++++++++++
+>>   1 files changed, 81 insertions(+), 0 deletions(-)
+>
+> any comments on this patch?  I'd like to queue it if it looks good to you.
 
-With the debug patch dmesg is growing this without any remote activity:
-[12672.782150] 0x00 0x00 0x00 0x00 0x00
-[12672.884991] 0x00 0x00 0x00 0x00 0x00
-[12672.987794] 0x00 0x00 0x00 0x00 0x00
-[12673.090632] 0x00 0x00 0x00 0x00 0x00
-[12673.193465] 0x00 0x00 0x00 0x00 0x00
-[12673.296304] 0x00 0x00 0x00 0x00 0x00
-...
+It looks good to me. The only minor comment is about fdif location in 
+the list that should be sorted and thus cannot be after wd_timer2.
 
-When pushing fast a button:
-[12791.990291] 0x80 0x00 0x00 0xfe 0xf4
-[12792.093123] 0x00 0x00 0x00 0x00 0x00
-[12792.195971] 0x80 0x00 0x00 0xde 0xf4
-[12792.298805] 0x80 0x00 0x00 0xfe 0xf4
-[12792.401632] 0x00 0x00 0x00 0x00 0x00
-[12792.504472] 0x80 0x00 0x00 0xde 0xf4
-[12792.607305] 0x00 0x00 0x00 0x00 0x00
-[12792.710145] 0x80 0x00 0x00 0xfe 0xf4
-[12792.812977] 0x00 0x00 0x00 0x00 0x00
-[12792.915819] 0x00 0x00 0x00 0x00 0x00
-[12793.018650] 0x80 0x00 0x00 0xfe 0xf4
+Regards,
+Benoit
 
-When hold down a button:
-12892.986456] 0x80 0x00 0x00 0xde 0xf4
-[12893.089296] 0x80 0x00 0x00 0xde 0xf4
-[12893.192186] 0x80 0x00 0x00 0xde 0xf4
-[12893.295031] 0x80 0x00 0x00 0xde 0xf4
-[12893.397802] 0x80 0x00 0x00 0xde 0xf4
-[12893.500639] 0x80 0x00 0x00 0xde 0xf4
-[12893.603474] 0x80 0x00 0x00 0xde 0xf4
-[12893.706313] 0x80 0x00 0x00 0xde 0xf4
-[12893.809146] 0x00 0x00 0x00 0x00 0x00
-[12893.911985] 0x00 0x00 0x00 0x00 0x00
-[12894.014822] 0x00 0x00 0x00 0x00 0x00
-[12894.118122] 0x80 0x00 0x00 0xde 0xf4
-[12894.220492] 0x80 0x00 0x00 0xde 0xf4
-[12894.325446] 0x80 0x00 0x00 0xde 0xf4
-[12894.428161] 0x80 0x00 0x00 0xde 0xf4
-[12894.530999] 0x80 0x00 0x00 0xde 0xf4
-[12894.633836] 0x80 0x00 0x00 0xde 0xf4
-[12894.736672] 0x80 0x00 0x00 0xde 0xf4
-[12894.839506] 0x80 0x00 0x00 0xde 0xf4
-[12894.942348] 0x00 0x00 0x00 0x00 0x00
-[12895.045178] 0x00 0x00 0x00 0x00 0x00
-[12895.148017] 0x00 0x00 0x00 0x00 0x00
-[12895.250850] 0x00 0x00 0x00 0x00 0x00
+>
+> - Paul
+>
+>>
+>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> index 6cf21ee..30db754 100644
+>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+>> @@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
+>>   static struct omap_hwmod omap44xx_dsp_hwmod;
+>>   static struct omap_hwmod omap44xx_dss_hwmod;
+>>   static struct omap_hwmod omap44xx_emif_fw_hwmod;
+>> +static struct omap_hwmod omap44xx_fdif_hwmod;
+>>   static struct omap_hwmod omap44xx_hsi_hwmod;
+>>   static struct omap_hwmod omap44xx_ipu_hwmod;
+>>   static struct omap_hwmod omap44xx_iss_hwmod;
+>> @@ -354,6 +355,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
+>>   	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>>   };
+>>
+>> +/* fdif ->  l3_main_2 */
+>> +static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 = {
+>> +	.master		=&omap44xx_fdif_hwmod,
+>> +	.slave		=&omap44xx_l3_main_2_hwmod,
+>> +	.clk		= "l3_div_ck",
+>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>>   /* hsi ->  l3_main_2 */
+>>   static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 = {
+>>   	.master		=&omap44xx_hsi_hwmod,
+>> @@ -5444,6 +5453,75 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
+>>   	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
+>>   };
+>>
+>> +/* 'fdif' class */
+>> +static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc = {
+>> +	.rev_offs	= 0x0000,
+>> +	.sysc_offs	= 0x0010,
+>> +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
+>> +			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
+>> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
+>> +			   MSTANDBY_FORCE | MSTANDBY_NO |
+>> +			   MSTANDBY_SMART),
+>> +	.sysc_fields	=&omap_hwmod_sysc_type2,
+>> +};
+>> +
+>> +static struct omap_hwmod_class omap44xx_fdif_hwmod_class = {
+>> +	.name	= "fdif",
+>> +	.sysc	=&omap44xx_fdif_sysc,
+>> +};
+>> +
+>> +/*fdif*/
+>> +static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] = {
+>> +	{
+>> +		.pa_start	= 0x4a10a000,
+>> +		.pa_end		= 0x4a10afff,
+>> +		.flags		= ADDR_TYPE_RT
+>> +	},
+>> +	{ }
+>> +};
+>> +
+>> +/* l4_cfg ->  fdif */
+>> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif = {
+>> +	.master		=&omap44xx_l4_cfg_hwmod,
+>> +	.slave		=&omap44xx_fdif_hwmod,
+>> +	.clk		= "l4_div_ck",
+>> +	.addr		= omap44xx_fdif_addrs,
+>> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
+>> +};
+>> +
+>> +/* fdif slave ports */
+>> +static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] = {
+>> +	&omap44xx_l4_cfg__fdif,
+>> +};
+>> +static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] = {
+>> +	{ .irq = 69 + OMAP44XX_IRQ_GIC_START },
+>> +	{ .irq = -1 }
+>> +};
+>> +
+>> +/* fdif master ports */
+>> +static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] = {
+>> +	&omap44xx_fdif__l3_main_2,
+>> +};
+>> +
+>> +static struct omap_hwmod omap44xx_fdif_hwmod = {
+>> +	.name		= "fdif",
+>> +	.class		=&omap44xx_fdif_hwmod_class,
+>> +	.clkdm_name	= "iss_clkdm",
+>> +	.mpu_irqs	= omap44xx_fdif_irqs,
+>> +	.main_clk	= "fdif_fck",
+>> +	.prcm = {
+>> +		.omap4 = {
+>> +			.clkctrl_offs = OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
+>> +			.context_offs = OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
+>> +			.modulemode   = MODULEMODE_SWCTRL,
+>> +		},
+>> +	},
+>> +	.slaves		= omap44xx_fdif_slaves,
+>> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_fdif_slaves),
+>> +	.masters	= omap44xx_fdif_masters,
+>> +	.masters_cnt	= ARRAY_SIZE(omap44xx_fdif_masters),
+>> +};
+>> +
+>>   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>>
+>>   	/* dmm class */
+>> @@ -5593,6 +5671,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
+>>   	&omap44xx_wd_timer2_hwmod,
+>>   	&omap44xx_wd_timer3_hwmod,
+>>
+>> +	/* fdif class */
+>> +	&omap44xx_fdif_hwmod,
+>> +
+>>   	NULL,
+>>   };
+>>
+>> --
+>> 1.7.5.4
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+>
+>
+> - Paul
 
