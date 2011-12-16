@@ -1,68 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:43596 "EHLO
-	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754069Ab1LWKI2 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:56190 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759876Ab1LPIrP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 05:08:28 -0500
+	Fri, 16 Dec 2011 03:47:15 -0500
+Date: Fri, 16 Dec 2011 09:47:10 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, saaguirre@ti.com,
+	mchehab@infradead.org
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+Message-ID: <Pine.LNX.4.64.1112160909470.6572@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPM=9tzi5MyCBMJhWBM_ouL=QOaxX3K6KZ8K+t7dUYJLQrF+yA@mail.gmail.com>
-References: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
- <20111220193117.GD3883@phenom.ffwll.local> <CAPM=9tzi5MyCBMJhWBM_ouL=QOaxX3K6KZ8K+t7dUYJLQrF+yA@mail.gmail.com>
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Fri, 23 Dec 2011 15:38:03 +0530
-Message-ID: <CAB2ybb-+VTR=V1hwhF1GKxgkhTrssZ1JVOwcP6spO5O3AXqivA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC v3 0/2] Introduce DMA buffer sharing mechanism
-To: Dave Airlie <airlied@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
-	m.szyprowski@samsung.com, rob@ti.com, t.stanislaws@samsung.com,
-	patches@linaro.org, daniel@ffwll.ch
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 21, 2011 at 1:50 AM, Dave Airlie <airlied@gmail.com> wrote:
-<snip>
->>
->> I think this is a really good v1 version of dma_buf. It contains all the
->> required bits (with well-specified semantics in the doc patch) to
->> implement some basic use-cases and start fleshing out the integration with
->> various subsystem (like drm and v4l). All the things still under
->> discussion like
->> - userspace mmap support
->> - more advanced (and more strictly specified) coherency models
->> - and shared infrastructure for implementing exporters
->> are imo much clearer once we have a few example drivers at hand and a
->> better understanding of some of the insane corner cases we need to be able
->> to handle.
->>
->> And I think any risk that the resulting clarifications will break a basic
->> use-case is really minimal, so I think it'd be great if this could go into
->> 3.3 (maybe as some kind of staging/experimental infrastructure).
->>
->> Hence for both patches:
->> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
->
-> Yeah I'm with Daniel, I like this one, I can definitely build the drm
-> buffer sharing layer on top of this.
->
-> How do we see this getting merged? I'm quite happy to push it to Linus
-> if we don't have an identified path, though it could go via a Linaro
-> tree as well.
->
-> so feel free to add:
-> Reviewed-by: Dave Airlie <airlied@redhat.com>
-Thanks Daniel and Dave!
+Hi Javier
 
-I guess we can start with staging for 3.3, and see how it shapes up. I
-will post the latest patch version pretty soon.
+On Fri, 16 Dec 2011, Javier Martin wrote:
 
-Arnd, Dave: do you have any preference on the path it takes to get
-merged? In my mind, Linaro tree might make more sense, but I would
-leave it upto you gentlemen.
->
-> Dave.
-Best regards,
-~Sumit.
+> Some v4l-subdevs such as tvp5150 have multiple
+> inputs. This patch allows the user of a soc-camera
+> device to select between them.
+
+Sure, we can support it. But I've got a couple of remarks:
+
+First question: you probably also want to patch soc_camera_g_input() and 
+soc_camera_enum_input(). But no, I do not know how. The video subdevice 
+operations do not seem to provide a way to query subdevice routing 
+capabilities, so, I've got no idea how we're supposed to support 
+enum_input(). There is a g_input_status() method, but I'm not sure about 
+its semantics. Would it return an error like -EINVAL on an unsupported 
+index?
+
+Secondly, I would prefer to keep the current behaviour per default. I.e., 
+if the subdevice doesn't implement routing- / input-related operations, we 
+should act as before - assume input 0 and return success.
+
+Thanks
+Guennadi
+
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  drivers/media/video/soc_camera.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index b72580c..1cea1a9 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -235,10 +235,10 @@ static int soc_camera_g_input(struct file *file, void *priv, unsigned int *i)
+>  
+>  static int soc_camera_s_input(struct file *file, void *priv, unsigned int i)
+>  {
+> -	if (i > 0)
+> -		return -EINVAL;
+> +	struct soc_camera_device *icd = file->private_data;
+> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>  
+> -	return 0;
+> +	return v4l2_subdev_call(sd, video, s_routing, i, 0, 0);
+>  }
+>  
+>  static int soc_camera_s_std(struct file *file, void *priv, v4l2_std_id *a)
+> -- 
+> 1.7.0.4
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
