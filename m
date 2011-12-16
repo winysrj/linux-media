@@ -1,47 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:17684 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752611Ab1LMIM0 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:59858 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759534Ab1LPOWY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Dec 2011 03:12:26 -0500
-Date: Tue, 13 Dec 2011 11:12:14 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] tm6000: rewrite IR support
-Message-ID: <20111213081214.GA28464@elgon.mountain>
+	Fri, 16 Dec 2011 09:22:24 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	"Nori, Sekhar" <nsekhar@ti.com>
+Subject: RE: [PATCH v6 01/11] davinci: vpif: remove obsolete header file
+ inclusion
+Date: Fri, 16 Dec 2011 14:22:06 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F75016B9F@DBDE01.ent.ti.com>
+References: <1323951120-15876-1-git-send-email-manjunath.hadli@ti.com>
+ <1323951120-15876-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1323951120-15876-2-git-send-email-manjunath.hadli@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro Carvalho Chehab,
 
-This is a semi-automatic email about new static checker warnings.
+Mauro,
+  Sekhar needs your ack on this to get a series of mach patches in. Can you please have a look at this?
 
-The patch 4a83b0115066: "[media] tm6000: rewrite IR support" from Nov 
-29, 2011, leads to the following Smatch complaint:
-
-drivers/media/video/tm6000/tm6000-input.c +327 __tm6000_ir_int_start()
-	 warn: variable dereferenced before check 'ir' (see line 323)
-
-drivers/media/video/tm6000/tm6000-input.c
-   322		struct tm6000_IR *ir = rc->priv;
-   323		struct tm6000_core *dev = ir->dev;
-                                          ^^^^^^^
-New dereference.
-
-   324		int pipe, size;
-   325		int err = -ENOMEM;
-   326	
-   327		if (!ir)
-                ^^^^^^^^
-Old check.
-
-   328			return -ENODEV;
-   329	
-
-regards,
-dan carpenter
+-Manju 
+On Thu, Dec 15, 2011 at 17:41:50, Hadli, Manjunath wrote:
+> remove inclusion of header files from vpif.h and vpif_dispaly.c and add appropriate header file for building.
+> 
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+> Cc: LMML <linux-media@vger.kernel.org>
+> ---
+>  drivers/media/video/davinci/vpif.h         |    2 +-
+>  drivers/media/video/davinci/vpif_display.c |    2 --
+>  2 files changed, 1 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/davinci/vpif.h b/drivers/media/video/davinci/vpif.h
+> index 25036cb..c96268a 100644
+> --- a/drivers/media/video/davinci/vpif.h
+> +++ b/drivers/media/video/davinci/vpif.h
+> @@ -19,7 +19,7 @@
+>  #include <linux/io.h>
+>  #include <linux/videodev2.h>
+>  #include <mach/hardware.h>
+> -#include <mach/dm646x.h>
+> +#include <linux/i2c.h>
+>  #include <media/davinci/vpif_types.h>
+>  
+>  /* Maximum channel allowed */
+> diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
+> index 286f029..7fa34b4 100644
+> --- a/drivers/media/video/davinci/vpif_display.c
+> +++ b/drivers/media/video/davinci/vpif_display.c
+> @@ -39,8 +39,6 @@
+>  #include <media/v4l2-ioctl.h>
+>  #include <media/v4l2-chip-ident.h>
+>  
+> -#include <mach/dm646x.h>
+> -
+>  #include "vpif_display.h"
+>  #include "vpif.h"
+>  
+> --
+> 1.6.2.4
+> 
+> 
 
