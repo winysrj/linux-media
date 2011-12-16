@@ -1,62 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36985 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752674Ab1LJEm3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 23:42:29 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dr13so6983961wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 09 Dec 2011 20:42:28 -0800 (PST)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:63950 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462Ab1LPJgR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Dec 2011 04:36:17 -0500
+Received: by vbbfc26 with SMTP id fc26so2281820vbb.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 01:36:16 -0800 (PST)
 MIME-Version: 1.0
-Date: Sat, 10 Dec 2011 10:12:28 +0530
-Message-ID: <CAHFNz9JWvP_TiF7AsYpwsDRe341yLc5i4KeYc6TJXexBDweFrg@mail.gmail.com>
-Subject: v4 [PATCH 02/10] DVB: Docbook update for DTV_ENUM_DELSYS
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: multipart/mixed; boundary=000e0cdf6e446485f504b3b5873e
+In-Reply-To: <Pine.LNX.4.64.1112161014580.6572@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+	<Pine.LNX.4.64.1112160909470.6572@axis700.grange>
+	<CAHG8p1AXghgSQNHUQi5V56ROAfS9tOsMRbAMqNogNG0=m7zzkQ@mail.gmail.com>
+	<Pine.LNX.4.64.1112161014580.6572@axis700.grange>
+Date: Fri, 16 Dec 2011 17:36:16 +0800
+Message-ID: <CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org, saaguirre@ti.com,
+	mchehab@infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cdf6e446485f504b3b5873e
-Content-Type: text/plain; charset=ISO-8859-1
+>> How about this implementation? I know it's not for soc, but I post it
+>> to give my idea.
+>> Bridge knows the layout, so it doesn't need to query the subdevice.
+>
+> Where from? AFAIU, we are talking here about subdevice inputs, right? In
+> this case about various inputs of the TV decoder. How shall the bridge
+> driver know about that?
 
+I have asked this question before. Laurent reply me:
 
+> >> ENUMINPUT as defined by V4L2 enumerates input connectors available on
+> >> the board. Which inputs the board designer hooked up is something that
+> >> only the top-level V4L driver will know. Subdevices do not have that
+> >> information, so enuminputs is not applicable there.
+> >>
+> >> Of course, subdevices do have input pins and output pins, but these are
+> >> assumed to be fixed. With the s_routing ops the top level driver selects
+> >> which input and output pins are active. Enumeration of those inputs and
+> >> outputs wouldn't gain you anything as far as I can tell since the
+> >> subdevice simply does not know which inputs/outputs are actually hooked
+> >> up. It's the top level driver that has that information (usually passed
+> >> in through board/card info structures).
 
---000e0cdf6e446485f504b3b5873e
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="0002-DVB-Docbook-update-for-DTV_ENUM_DELSYS.patch"
-Content-Disposition: attachment;
-	filename="0002-DVB-Docbook-update-for-DTV_ENUM_DELSYS.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: file0
-
-RnJvbSBlODQ2YTg0YmEwZjgzZGFiZjZiZjVhODJmMjcxNTk1NTNhYjBmMDMwIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNYW51IEFicmFoYW0gPGFicmFoYW0ubWFudUBnbWFpbC5jb20+
-CkRhdGU6IFdlZCwgMTYgTm92IDIwMTEgMTk6MDQ6MjQgKzA1MzAKU3ViamVjdDogW1BBVENIIDAy
-LzEwXSBEVkI6IERvY2Jvb2sgdXBkYXRlIGZvciBEVFZfRU5VTV9ERUxTWVMKClNpZ25lZC1vZmYt
-Ynk6IE1hbnUgQWJyYWhhbSA8YWJyYWhhbS5tYW51QGdtYWlsLmNvbT4KLS0tCiBEb2N1bWVudGF0
-aW9uL0RvY0Jvb2svbWVkaWEvZHZiL2R2YnByb3BlcnR5LnhtbCB8ICAgMTIgKysrKysrKysrKysr
-CiAxIGZpbGVzIGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCgpkaWZm
-IC0tZ2l0IGEvRG9jdW1lbnRhdGlvbi9Eb2NCb29rL21lZGlhL2R2Yi9kdmJwcm9wZXJ0eS54bWwg
-Yi9Eb2N1bWVudGF0aW9uL0RvY0Jvb2svbWVkaWEvZHZiL2R2YnByb3BlcnR5LnhtbAppbmRleCAz
-YmM4YTYxLi4wOWFkYTZjIDEwMDY0NAotLS0gYS9Eb2N1bWVudGF0aW9uL0RvY0Jvb2svbWVkaWEv
-ZHZiL2R2YnByb3BlcnR5LnhtbAorKysgYi9Eb2N1bWVudGF0aW9uL0RvY0Jvb2svbWVkaWEvZHZi
-L2R2YnByb3BlcnR5LnhtbApAQCAtNjQ3LDYgKzY0NywxOCBAQCB0eXBlZGVmIGVudW0gZmVfaGll
-cmFyY2h5IHsKIAkJCW1hbnkgZGF0YSB0eXBlcyB2aWEgYSBzaW5nbGUgbXVsdGlwbGV4LiBUaGUg
-QVBJIHdpbGwgc29vbiBzdXBwb3J0IHRoaXMKIAkJCWF0IHdoaWNoIHBvaW50IHRoaXMgc2VjdGlv
-biB3aWxsIGJlIGV4cGFuZGVkLjwvcGFyYT4KIAk8L3NlY3Rpb24+CisJPHNlY3Rpb24gaWQ9IkRU
-Vl9FTlVNX0RFTFNZUyI+CisJCTx0aXRsZT48Y29uc3RhbnQ+RFRWX0VOVU1fREVMU1lTPC9jb25z
-dGFudD48L3RpdGxlPgorCQk8cGFyYT5BIE11bHRpIHN0YW5kYXJkIGZyb250ZW5kIG5lZWRzIHRv
-IGFkdmVydGlzZSB0aGUgZGVsaXZlcnkgc3lzdGVtcyBwcm92aWRlZC4KKwkJCUFwcGxpY2F0aW9u
-cyBuZWVkIHRvIGVudW1lcmF0ZSB0aGUgcHJvdmlkZWQgZGVsaXZlcnkgc3lzdGVtcywgYmVmb3Jl
-IHVzaW5nCisJCQlhbnkgb3RoZXIgb3BlcmF0aW9uIHdpdGggdGhlIGZyb250ZW5kLiBQcmlvciB0
-byBpdCdzIGludHJvZHVjdGlvbiwKKwkJCUZFX0dFVF9JTkZPIHdhcyB1c2VkIHRvIGRldGVybWlu
-ZSBhIGZyb250ZW5kIHR5cGUuIEEgZnJvbnRlbmQgd2hpY2gKKwkJCXByb3ZpZGVzIG1vcmUgdGhh
-biBhIHNpbmdsZSBkZWxpdmVyeSBzeXN0ZW0sIEZFX0dFVF9JTkZPIGRvZXNuJ3QgaGVscCBtdWNo
-LgorCQkJQXBwbGljYXRpb25zIHdoaWNoIGludGVuZHMgdG8gdXNlIGEgbXVsdGlzdGFuZGFyZCBm
-cm9udGVuZCBtdXN0IGVudW1lcmF0ZQorCQkJdGhlIGRlbGl2ZXJ5IHN5c3RlbXMgYXNzb2NpYXRl
-ZCB3aXRoIGl0LCByYXRoZXIgdGhhbiB0cnlpbmcgdG8gdXNlCisJCQlGRV9HRVRfSU5GTy4gSW4g
-dGhlIGNhc2Ugb2YgYSBsZWdhY3kgZnJvbnRlbmQsIHRoZSByZXN1bHQgaXMganVzdCB0aGUgc2Ft
-ZQorCQkJYXMgd2l0aCBGRV9HRVRfSU5GTywgYnV0IGluIGEgbW9yZSBzdHJ1Y3R1cmVkIGZvcm1h
-dCA8L3BhcmE+CisJPC9zZWN0aW9uPgogPC9zZWN0aW9uPgogCTxzZWN0aW9uIGlkPSJmcm9udGVu
-ZC1wcm9wZXJ0eS10ZXJyZXN0cmlhbC1zeXN0ZW1zIj4KIAk8dGl0bGU+UHJvcGVydGllcyB1c2Vk
-IG9uIHRlcnJlc3RyaWFsIGRlbGl2ZXJ5IHN5c3RlbXM8L3RpdGxlPgotLSAKMS43LjEKCg==
---000e0cdf6e446485f504b3b5873e--
+Regards,
+Scott
