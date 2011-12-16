@@ -1,49 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:53451 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752083Ab1L0WnH (ORCPT
+Received: from bear.ext.ti.com ([192.94.94.41]:35459 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756519Ab1LPNm6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 17:43:07 -0500
-Message-ID: <4EFA49F4.9050608@infradead.org>
-Date: Tue, 27 Dec 2011 20:43:00 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Fri, 16 Dec 2011 08:42:58 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: RE: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
+Date: Fri, 16 Dec 2011 13:42:48 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F75016B83@DBDE01.ent.ti.com>
+References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com>
+ <1323951898-16330-3-git-send-email-manjunath.hadli@ti.com>
+ <201112151400.48321.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201112151400.48321.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 03/91] [media] dvb-core: add support for a DVBv5 get_frontend()
- callback
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com> <1324948159-23709-3-git-send-email-mchehab@redhat.com> <1324948159-23709-4-git-send-email-mchehab@redhat.com> <4EF9B860.4000103@linuxtv.org> <4EF9CD07.6080608@infradead.org> <4EF9DA66.1070409@linuxtv.org> <4EF9FFC2.30705@infradead.org> <4EFA2EC4.6020901@linuxtv.org>
-In-Reply-To: <4EFA2EC4.6020901@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27-12-2011 18:47, Andreas Oberritter wrote:
-> On 27.12.2011 18:26, Mauro Carvalho Chehab wrote:
->> One usage of such call would be to retrieve the autodetected properties,
->> after having a frontend lock.
+Hello Laurent,
+Thank you for the comments.
+
+On Thu, Dec 15, 2011 at 18:30:47, Laurent Pinchart wrote:
+> Hi Manjunath,
 > 
-> Btw., dvb_frontend already refreshes the cache whenever the lock status
-> changes, i.e. when generating frontend events.
+> Thanks for the patch.
+> 
+> On Thursday 15 December 2011 13:24:58 Manjunath Hadli wrote:
+> > add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer format 
+> > frames compressed by A-LAW alogorithm.
+> > add V4L2_PIX_FMT_UV8 to represent storage of C (UV interleved) only.
+> > 
+> > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> >  include/linux/videodev2.h |    6 ++++++
+> >  1 files changed, 6 insertions(+), 0 deletions(-)
+> 
+> Could you please also document these formats in Documentation/DocBook/media/v4l ?
+I will. Sorry to have missed that out.
 
-Btw, the event ioctl is DVBv3 only. It probably makes sense to add one DTV
-command to implement it.
+> 
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h 
+> > index 4b752d5..969112d 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -338,6 +338,9 @@ struct v4l2_pix_format {
+> >  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV
+> > 4:2:0 16x16 macroblocks */ #define V4L2_PIX_FMT_M420    v4l2_fourcc('M',
+> > '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
+> > 
+> > +/* Chrominance formats */
+> > +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV
+> > 4:4 */ +
+> >  /* two planes -- one Y, one Cr + Cb interleaved  */
+> >  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr
+> > 4:2:0  */ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /*
+> > 12  Y/CrCb 4:2:0  */ @@ -366,6 +369,9 @@ struct v4l2_pix_format {  
+> > #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG..
+> > GBGB.. */ /* 10bit raw bayer DPCM compressed to 8 bits */  #define 
+> > V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> > +	/* 10bit raw bayer a-law compressed to 8 bits */ #define 
+> > +V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
+> > +
+> 
+> That's not very future-proof, how would you describe SGBRG10ALAW8 for instance ?
+> 
+> Maybe it's time to standardize FOURCCs for Bayer new formats. We have 4 characters, we could start with 'B' to denote Bayer, followed by one character for the order, one for the compression, and one for the number of bits.
+I agree.
+May be ('B', 'G', 'A', '8') is fine for the above?
 
-In a matter of fact, IMO, the better is to implement a set of DTV read status
-commands, plus one command for event.
-
-This way, a status call could return the events that are specific for each
-delivery system, instead of returning something that will require the userspace
-to do a FE_GET_PROPERTY call, in order to get the real parameters for the
-newer delivery systems.
-
-The current status API has some limits for some new delivery systems.
-For example, on ISDB-T, devices can produce both consolidated and
-per-layer status.
-
+Thanks and Regards,
+-Manju
+> 
+> >  	/*
+> >  	 * 10bit raw bayer, expanded to 16 bits
+> >  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+> 
 > --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
