@@ -1,52 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1027 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751551Ab1LOOPu (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33791 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756315Ab1LPJVb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 09:15:50 -0500
-Received: from alastor.dyndns.org (215.80-203-102.nextgentel.com [80.203.102.215])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id pBFEFl2j010393
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 15:15:49 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 304F211C043D
-	for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 15:15:41 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [RFCv3 PATCH 0/8] Add decoder API to V4L2
-Date: Thu, 15 Dec 2011 15:15:29 +0100
-Message-Id: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 16 Dec 2011 04:21:31 -0500
+Received: by wgbdr13 with SMTP id dr13so5864767wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 01:21:30 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1112160909470.6572@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+	<Pine.LNX.4.64.1112160909470.6572@axis700.grange>
+Date: Fri, 16 Dec 2011 10:21:30 +0100
+Message-ID: <CACKLOr0A=Ft9bVsLvo8_zX3nG8njnqd=PMG9fpWR2J1jZc-B3g@mail.gmail.com>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, saaguirre@ti.com,
+	mchehab@infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the third version of the new decoder API.
+On 16 December 2011 09:47, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> Hi Javier
+>
+> On Fri, 16 Dec 2011, Javier Martin wrote:
+>
+>> Some v4l-subdevs such as tvp5150 have multiple
+>> inputs. This patch allows the user of a soc-camera
+>> device to select between them.
+>
+> Sure, we can support it. But I've got a couple of remarks:
+>
+> First question: you probably also want to patch soc_camera_g_input() and
+> soc_camera_enum_input(). But no, I do not know how. The video subdevice
+> operations do not seem to provide a way to query subdevice routing
+> capabilities, so, I've got no idea how we're supposed to support
+> enum_input(). There is a g_input_status() method, but I'm not sure about
+> its semantics. Would it return an error like -EINVAL on an unsupported
+> index?
 
-The second version is here:
+I would gladly implement also eum_input() and get_input() but I can't
+test it since my device does not support "g_input_status" callback but
+only "s_routing".
 
-http://www.spinics.net/lists/linux-media/msg40474.html
+> Secondly, I would prefer to keep the current behaviour per default. I.e.,
+> if the subdevice doesn't implement routing- / input-related operations, we
+> should act as before - assume input 0 and return success.
 
-The main changes are:
+Sure, it seems reasonable.
 
-- The DVB API is left untouched. So this series only makes changes to the
-  V4L2 subsystem. DVB is just too depressing to propose any changes there.
-
-- The V4L2_CID_MPEG_STREAM_DEC_PTS control has been renamed to
-  V4L2_CID_MPEG_VIDEO_DEC_PTS since it is the PTS from the video elementary
-  stream. The documentation of this control has been improved as well.
-
-- Note that the 'old' VIDEO_GET_PTS ioctl was also used in ivtv to return
-  the PTS of the encoded video/audio. For an MPEG stream that was unnecessary
-  (since the stream itself already contains those time stamps), but for the
-  YUV and PCM streams that was useful in the past to do A/V synchronization.
-
-  However, the current firmware seems to sync the YUV and PCM streams correctly
-  (as far as I can remember), so I decided not to create V4L2 counterparts for
-  this. I'm not aware of any application that uses this anyway.
-
-Regards,
-
-	Hans
-
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
