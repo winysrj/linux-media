@@ -1,98 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:37005 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751344Ab1LFRfv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 12:35:51 -0500
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:37233 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751482Ab1LPIeH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Dec 2011 03:34:07 -0500
+Received: by vcbfk14 with SMTP id fk14so2261019vcb.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 00:34:06 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4EDE2DFE.9060003@linuxtv.org>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-	<4ED6C5B8.8040803@linuxtv.org>
-	<4ED75F53.30709@redhat.com>
-	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
-	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
-	<CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com>
-	<4EDC9B17.2080701@gmail.com>
-	<CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com>
-	<4EDD01BA.40208@redhat.com>
-	<CAJbz7-1S6K=sDJFcOM8mMxL3t2JS91k+fHLy4gq868_9eUyS9A@mail.gmail.com>
-	<4EDE1733.8060409@redhat.com>
-	<4EDE1D57.90307@linuxtv.org>
-	<4EDE24C6.2020407@redhat.com>
-	<4EDE2DFE.9060003@linuxtv.org>
-Date: Tue, 6 Dec 2011 18:35:50 +0100
-Message-ID: <CAJbz7-2mQ-mCYyqGR8iuP-z_ZaDaGtBS9V9oQxk9pd99tA7AEg@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-From: HoP <jpetrous@gmail.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Florian Fainelli <f.fainelli@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+In-Reply-To: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+Date: Fri, 16 Dec 2011 16:34:06 +0800
+Message-ID: <CAHG8p1Cki1tbziatSXsB3e1NVtZ2VmKgCLpR3-8+6QAKrzFEVg@mail.gmail.com>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	saaguirre@ti.com, mchehab@infradead.org
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andreas
-
-[...]
-
->>> You don't need to wait for write-only operations. Basically all demux
->>> ioctls are write-only. Since vtunerc is using dvb-core's software demux
->>> *locally*, errors for invalid arguments etc. will be returned as usual.
->>>
->>> What's left is one call to FE_SET_FRONTEND for each frequency to tune
->>> to, and one FE_READ_STATUS for each time the lock status is queried.
->>> Note that one may use FE_GET_EVENT instead of FE_READ_STATUS to get
->>> notified of status changes asynchronously if desired.
->>>
->>> Btw.: FE_SET_FRONTEND doesn't block either, because the driver callback
->>> is called from a dvb_frontend's *local* kernel thread.
->>
->> Still, vtunerc waits for write operations:
->>
->> http://code.google.com/p/vtuner/source/browse/vtunerc_proxyfe.c?repo=linux-driver#285
->>
->> No matter if they are read or write, all of them call this function:
->>
->> http://code.google.com/p/vtuner/source/browse/vtunerc_ctrldev.c?repo=linux-driver#390
->>
->> That has a wait_event inside that function, as everything is directed to
->> the userspace.
+2011/12/16 Javier Martin <javier.martin@vista-silicon.com>:
+> Some v4l-subdevs such as tvp5150 have multiple
+> inputs. This patch allows the user of a soc-camera
+> device to select between them.
 >
-> Please, stop writing such bullshit! Just before the call to wait_event
-> there's code to return from the function if waiting has not been requested.
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  drivers/media/video/soc_camera.c |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
 >
->> This is probably the way Florian found to return the errors returned by
->> the ioctls. This driver is synchronous, with simplifies it, at the lack of
->> performance.
+> diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
+> index b72580c..1cea1a9 100644
+> --- a/drivers/media/video/soc_camera.c
+> +++ b/drivers/media/video/soc_camera.c
+> @@ -235,10 +235,10 @@ static int soc_camera_g_input(struct file *file, void *priv, unsigned int *i)
 >
-> The fix is easy: set the third parameter to 0. A DVB application doesn't
-> need to know whether SET_VOLTAGE etc. succeeded or not, because it won't
-> get any feedback from the switch. If tuning fails, it has to retry
-> anyway, even if all ioctls returned 0.
+>  static int soc_camera_s_input(struct file *file, void *priv, unsigned int i)
+>  {
+> -       if (i > 0)
+> -               return -EINVAL;
+should it check max input?
+
+> +       struct soc_camera_device *icd = file->private_data;
+> +       struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
 >
->> Ok, the driver could be smarter than that, and some heuristics could be
->> added into it, in order to foresee the likely error code, returning it
->> in advance, and then implementing some asynchronous mechanism that would
->> handle the error later, but that would be complex and may still introduce
->> some bad behaviors.
+> -       return 0;
+> +       return v4l2_subdev_call(sd, video, s_routing, i, 0, 0);
+>  }
 >
-> There's no need to handle errors that don't occur.
->
-> Nobody said that the implementation of vtunerc was perfect. I've already
-> listed many things that need to be changed in order to even consider it
-> for merging.
+why must output be zero?
 
-Exactly that was an intention for my first RFC - to get driver reviewed by
-kernel hackers and enhance/fixe it to prepare it for merging.
-
-I'm going to address all your findings during Xmass, so hopefully I will
-spam here again after New Year :-)
-
-I very appreciate your POV which helped me stay remembering
-it is not way to the wall.
-
-Thanks
-
-Honza
+Regards,
+Scott
