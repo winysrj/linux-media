@@ -1,84 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:59283 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752893Ab1LLMnF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 07:43:05 -0500
-Message-ID: <4EE5F6D4.4050500@linuxtv.org>
-Date: Mon, 12 Dec 2011 13:43:00 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from smtp-out13.tpgi.com.au ([220.244.226.123]:38454 "EHLO
+	mail13.tpgi.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750821Ab1LPFUE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Dec 2011 00:20:04 -0500
+Received: from [192.168.224.56] (27-33-30-46.static.tpgi.com.au [27.33.30.46])
+	(authenticated bits=0)
+	by mail13.tpgi.com.au (envelope-from Andrew.Congdon@iplatinum.com.au) (8.14.3/8.14.3) with ESMTP id pBG56gKm029273
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 16:06:45 +1100
+Message-ID: <4EEAD1E2.7090605@iplatinum.com.au>
+Date: Fri, 16 Dec 2011 16:06:42 +1100
+From: Andrew Congdon <Andrew.Congdon@iplatinum.com.au>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Antti Palosaari <crope@iki.fi>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4 [PATCH 09/10] CXD2820r: Query DVB frontend delivery capabilities
-References: <CAHFNz9+=T5XGok+LvhVqeSVdWt=Ng6wgXqcHdtdw19a+whx1bw@mail.gmail.com> <4EE346E0.7050606@iki.fi> <CAHFNz9+WEJHhJoUywwzCF=Jv7TRY9xG2rKuRxP=Ff0jvq40SSA@mail.gmail.com>
-In-Reply-To: <CAHFNz9+WEJHhJoUywwzCF=Jv7TRY9xG2rKuRxP=Ff0jvq40SSA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Subject: LME2510 Sharp 0194A DVB-S
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.12.2011 05:28, Manu Abraham wrote:
-> On Sat, Dec 10, 2011 at 5:17 PM, Antti Palosaari <crope@iki.fi> wrote:
->> On 12/10/2011 06:44 AM, Manu Abraham wrote:
->>>
->>>  static int cxd2820r_set_frontend(struct dvb_frontend *fe,
->>
->> [...]
->>>
->>> +       switch (c->delivery_system) {
->>> +       case SYS_DVBT:
->>> +               ret = cxd2820r_init_t(fe);
->>
->>
->>> +               ret = cxd2820r_set_frontend_t(fe, p);
->>
->>
->>
->> Anyhow, I don't now like idea you have put .init() calls to .set_frontend().
->> Could you move .init() happen in .init() callback as it was earlier?
-> 
-> This was there in the earlier patch as well. Maybe you have a
-> new issue now ? ;-)
-> 
-> ok.
-> 
-> The argument what you make doesn't hold well, Why ?
-> 
-> int cxd2820r_init_t(struct dvb_frontend *fe)
-> {
-> 	ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
-> }
-> 
-> 
-> int cxd2820r_init_c(struct dvb_frontend *fe)
-> {
-> 	ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
-> }
-> 
-> 
-> Now, you might like to point that, the Base I2C address location
-> is different comparing DVB-T/DVBT2 to DVB-C
-> 
-> So, If you have the init as in earlier with a common init, then you
-> will likely init the wrong device at .init(), as init is called open().
-> So, this might result in an additional register write, which could
-> be avoided altogether.  One register access is not definitely
-> something to brag about, but is definitely a small incremental
-> difference. Other than that this register write doesn't do anything
-> more than an ADC_START. So starting the ADC at init doesn't
-> make sense. But does so when you want to select the right ADC.
-> So definitely, this change is an improvement. Also, you can
-> compare the time taken for the device to tune now. It is quite
-> a lot faster compared to without this patch. So you or any other
-> user should be happy. :-)
-> 
-> 
-> I don't think that in any way, the init should be used at init as
-> you say, which sounds pretty much incorrect.
+I have a DM04 DVB-S USB box which doesn't seem to be supported with the
+kernel 3.x dvb-usb-lmedm04 driver although it seems very close. The
+firmware is loaded the tuner seems to be identified but it fails to
+attach the tuner?
 
-Maybe the function names should be modified to avoid confusion with the
-init driver callback.
+It has a LME2510 chip and the tuner has Sharp F7HZ0194A on it.
 
-Regards,
-Andreas
+This is the debug trace:
+
+LME2510(C): Firmware Status: 6 (44)
+LME2510(C): FRM Loading dvb-usb-lme2510-s0194.fw file
+LME2510(C): FRM Starting Firmware Download
+LME2510(C): FRM Firmware Download Completed - Resetting Device
+usbcore: registered new interface driver LME2510C_DVB-S
+usb 1-2: USB disconnect, device number 3
+usb 1-2: new high speed USB device number 7 using ehci_hcd
+usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint 0x87 has
+invalid maxpacket 64
+usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint 0x3 has invalid
+maxpacket 64
+usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint 0x8A has
+invalid maxpacket 64
+usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint 0xA has invalid
+maxpacket 64usb 1-2: New USB device found, idVendor=3344, idProduct=1122
+usb 1-2: New USB device strings: Mfr=0, Product=0, SerialNumber=3
+usb 1-2: SerialNumber: 䥈児
+LME2510(C): Firmware Status: 6 (47)
+dvb-usb: found a 'DM04_LME2510_DVB-S' in warm state.
+dvb-usb: will use the device's hardware PID filter (table count: 15).
+DVB: registering new adapter (DM04_LME2510_DVB-S)
+LME2510(C): DM04 Not Supported
+dvb-usb: no frontend was attached by 'DM04_LME2510_DVB-S'
+Registered IR keymap rc-lme2510
+input: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:0b.1/usb1/1-2/rc/rc2/input11
+rc2: IR-receiver inside an USB DVB receiver as
+/devices/pci0000:00/0000:00:0b.1/usb1/1-2/rc/rc2
+dvb-usb: DM04_LME2510_DVB-S successfully initialized and connected.
+LME2510(C): DEV registering device driver
