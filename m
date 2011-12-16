@@ -1,35 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:47461 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754340Ab1LAOad (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Dec 2011 09:30:33 -0500
-Message-ID: <4ED78F85.7020005@linuxtv.org>
-Date: Thu, 01 Dec 2011 15:30:29 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58225 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751462Ab1LPJjs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Dec 2011 04:39:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: James <angweiyang@gmail.com>
+Subject: Re: Why is the Y12 support 12-bit grey formats at the CCDC input (Y12) is truncated to Y10 at the CCDC output?
+Date: Fri, 16 Dec 2011 10:40:05 +0100
+Cc: Michael Jones <michael.jones@matrix-vision.de>,
+	linux-media@vger.kernel.org
+References: <CAOy7-nNJXMbFkJWRubri2O_kc-V1Z+ZjTioqQu=8STtkuLag9w@mail.gmail.com> <4EE9C7A1.8060303@matrix-vision.de> <CAOy7-nNbGh0C-H60ZJ-WVYavYAyLnADLWsjvbwwoOV9Sd+chFA@mail.gmail.com>
+In-Reply-To: <CAOy7-nNbGh0C-H60ZJ-WVYavYAyLnADLWsjvbwwoOV9Sd+chFA@mail.gmail.com>
 MIME-Version: 1.0
-To: Hamad Kadmany <hkadmany@codeaurora.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: Support for multiple section feeds with same PIDs
-References: <001101ccae6d$9900b350$cb0219f0$@org> <4ED782E2.9060004@linuxtv.org> <000301ccb030$dfaa71f0$9eff55d0$@org> <4ED787D5.203@linuxtv.org> <000401ccb034$a8ec2ce0$fac486a0$@org>
-In-Reply-To: <000401ccb034$a8ec2ce0$fac486a0$@org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201112161040.06042.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01.12.2011 15:22, Hamad Kadmany wrote:
-> Hello Andreas
-> 
-> On 01.12.2011 15:58, Andreas Oberritter wrote:
-> 
->> No. dvb_demux will do the extra filtering. Userspace won't notice.
-> 
-> Got it now, thanks. The one downside I see to this is that the feed will be
-> stopped momentarily (dvb_dmxdev_feed_stop) before new filter is allocated
-> that have the same PID.
+Hi James,
 
-Yes. Feel free to enhance the demux API to your needs in order to fully
-support the features of your hardware.
+On Friday 16 December 2011 01:53:59 James wrote:
+> On Thu, Dec 15, 2011 at 6:10 PM, Michael Jones wrote:
+> > On 12/15/2011 10:49 AM, James wrote:
+> >> On Thu, Dec 15, 2011 at 3:58 PM, Michael Jones wrote:
+> >>> On 12/15/2011 08:14 AM, James wrote:
+> >>>> Hi all,
+> >>>> 
+> >>>> I'm using an OMAP3530 board and a monochrome 12-bit grey sensor.
+> >>>> 
+> >>>> Can anyone enlighten me why is the 12-bit grey formats at the CCDC
+> >>>> input (Y12) is truncated to Y10 at the CCDC output?
+> >>> 
+> >>> There are 2 CCDC outputs: CCDC_PAD_SOURCE_OF and CCDC_PAD_SOURCE_VP.
+> >>> Only the VP (video port) truncates data to 10 bits, and it does that
+> >>> because the
+> >>> subdevs it feeds can only handle 10 bits max.
+> >> 
+> >> Thank you for the clarification.
+> >> 
+> >>>> I need to read the entire RAW 12-bit grey value from the CCDC to
+> >>>> memory and the data does not pass through other OMAP3ISP sub-devices.
+> >>>> 
+> >>>> I intend to use Laurent's yavta to capture the data to file to verify
+> >>>> its operation for the moment.
+> >>>> 
+> >>>> Can this 12-bit (Y12) raw capture be done?
+> >>> 
+> >>> Yes. If you are writing the 12-bit gray value directly into memory, you
+> >>> will
+> >>> use SOURCE_OF and can write the full 12-bits into memory.  You need to
+> >>> set
+> >>> up your media pipeline to do sensor->CCDC->OMAP3 ISP CCDC output.
+> >> 
+> >> Is there further modification needed to apply to the OMAP3ISP to achieve
+> >> this?
+> >> 
+> >> Do you have an application to test the pipeline for this setting to
+> >> simple display?
+> > 
+> > Let's establish where you're coming from.  Are you familiar with the
+> > media controller?  Laurent has a program 'media-ctl' to set up the
+> > pipeline (see http://git.ideasonboard.org/?p=media-ctl.git).  You will
+> > find many examples of its usage in the archives of this mailing list. It
+> > will look something like:
+> > media-ctl -r
+> > media-ctl -l '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0 [1]'
+> > media-ctl -l '"your-sensor-name":0 -> "OMAP3 ISP CCDC":0 [1]'
+> > 
+> > you will also need to set the formats through the pipeline with
+> > 'media-ctl --set-format'.
+> > 
+> > After you use media-ctl to set up the pipeline, you can use yavta to
+> > capture the data from the CCDC output (for me, this is /dev/video2).
+> 
+> Yes, I've been using Laurent's media-ctl & yavta to test out MT9V032
+> on the Overo board.
+> He has been helping and guiding me with it as there isn't any success
+> with using MT9V032 on the Overo board then. (^^)
+> 
+> What I've been looking for since then is any other application such as
+> GUI MPlayer or gst-launch that can open the device and playback the
+> data to either LCD or DVI display on the board. (i.e. direct
+> 'streaming')
+> 
+> Do you know of any? I wish to avoid any further components (e.g.
+> ffmpeg) that modify/convert the raw data as much as possible.
+> 
+> sensor->CCDC->application->display
 
+If you're going to display the data, the 12-bit resolution is overkill. You 
+can thus limit it to 10-bits in the CCDC, and you should feed it to the 
+preview engine (and possibly resizer) to get YUV which could easily be played 
+on screen.
+
+However, the preview engine doesn't support Y10 input yet, so this will need 
+to be implemented. You can work around the problem by hacking the sensor 
+driver to report SGRBG10. You will get a resulting YUV image that will look 
+more or less correct, but with color artifacts. That's at least a temporary 
+solution to make sure the pipeline + display are working.
+
+-- 
 Regards,
-Andreas
+
+Laurent Pinchart
