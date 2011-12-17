@@ -1,142 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40283 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752356Ab1LKVDs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 16:03:48 -0500
-Message-ID: <4EE51AB1.4030703@iki.fi>
-Date: Sun, 11 Dec 2011 23:03:45 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:51144 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752708Ab1LQAyJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Dec 2011 19:54:09 -0500
+Received: by eaaj10 with SMTP id j10so3358222eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 16:54:08 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL] af9013
-References: <4ED666E9.2020405@iki.fi> <4EE48D13.7030702@redhat.com> <4EE4CD95.2030909@iki.fi> <4EE512E6.9040609@redhat.com>
-In-Reply-To: <4EE512E6.9040609@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Date: Sat, 17 Dec 2011 01:54:08 +0100
+Message-ID: <CAEN_-SA+rfuVw+FrKjOU+S427ULTNFobHWjDNAQ2ov_ma3PGCA@mail.gmail.com>
+Subject: All radio tuners using xc2028 or xc4000 tuner and radio should have
+ radio_type UNSET
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=e0cb4efe3052ac0fd104b43f27cc
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/11/2011 10:30 PM, Mauro Carvalho Chehab wrote:
-> On 11-12-2011 13:34, Antti Palosaari wrote:
->> On 12/11/2011 12:59 PM, Mauro Carvalho Chehab wrote:
->>> On 30-11-2011 15:24, Antti Palosaari wrote:
->>>> Morjens Mauro,
->>>>
->>>> I rewrote whole af9013 demodulator driver in order to decrease I2C
->>>> load. Please pull that to the next Kernel merge window.
->>>>
->>>> Antti
->>>>
->>>> The following changes since commit
->>>> a235af24a74a0fa03ece0a9f5e28a72e4d1e2cad:
->>>>
->>>> ce168: remove experimental from Kconfig (2011-11-19 23:07:54 +0200)
->>>>
->>>> are available in the git repository at:
->>>> git://linuxtv.org/anttip/media_tree.git misc
->>>>
->>>> Antti Palosaari (1):
->>>> af9013: rewrite whole driver
->>>>
->>>> drivers/media/dvb/dvb-usb/af9015.c | 82 +-
->>>> drivers/media/dvb/frontends/af9013.c | 1756
->>>> ++++++++++++++---------------
->>>> drivers/media/dvb/frontends/af9013.h | 113 +-
->>>> drivers/media/dvb/frontends/af9013_priv.h | 93 +-
->>>> 4 files changed, 1017 insertions(+), 1027 deletions(-)
->>>>
->>>
->>> There was a minor context change here:
->>>
->>> @@ -1156,7 +1158,7 @@ static int af9015_af9013_sleep(struct dvb_frontend
->>> *fe)
->>> if (mutex_lock_interruptible(&adap->dev->usb_mutex))
->>> return -EAGAIN;
->>>
->>> - ret = priv->init[adap->id](fe);
->>> + ret = priv->sleep[adap->id](fe);
->>
->> Correct, that is bug fix for the earlier patch I made. As a result we
->> call demod .init() in case we should call .sleep() resulting demod
->> will never sleep. I found that very late phase, when af9013 rewrite
->> was almost complete. At that time I was too lazy at that point to made
->> separate patch for fixing it because I had made so many changes for
->> af9015 already.
->>
->> But if you like, I can rebase whole thing and move that fix as own patch.
->>
->>> Basically, the current code doesn't have that mutex_lock_interruptible
->>> logic. It
->>> may be into the fixes we'll send for 3.2.
->>
->> Do you mean I should change all mutex_lock_interruptible => mutex_lock
->> and send as bugfix to 3.2?
->
-> No. I just meant to say that the current code (without the patches I'm
-> preparing for -rc6) doesn't
-> have the mutex_lock_interruptible() at the context.
->
->> Anyway, I asked you to push those mutex_lock_interruptible things to
->> 3.3 and I think you haven't send those 3.2 so not fixes for 3.2
->> hopefully.
->
-> Need to check on my linux-media tree, in order to be sure if those are
-> there or not. Maybe I've
-> merged it as a bug fix for 3.2.
->>
->> There is one old mutex_lock_interruptible inside af9015_rw_udev(). It
->> have been there many years and it is copied from dvb_usb_generic_rw().
->> I think better to not change it as bugfix.
->>
->> It is not even clear for me when to use mutex_lock_interruptible or
->> mutex_lock. I suspect mutex_lock is cheaper and that's why it should
->> be used when possible? I am happy to hear reasons and learn (and too
->> lazy to look through docs and codes...).
->
-> The mutex_lock_interruptible will return -EINTR if a signal is received
-> while
-> trying to handle it. Userspace application needs to be prepared for that.
->
-> Both are handled by the same routine at kernel/mutex.c.
->
->>> However, after this patch, compilation broke:
->>>
->>> drivers/media/dvb/dvb-usb/af9015.c: In function ‘af9015_rc_query’:
->>> drivers/media/dvb/dvb-usb/af9015.c:1089:12: error: ‘struct af9015_state’
->>> has no member named ‘sleep’
->>> drivers/media/dvb/dvb-usb/af9015.c:1089:20: error: ‘adap’ undeclared
->>> (first use in this function)
->>> drivers/media/dvb/dvb-usb/af9015.c:1089:20: note: each undeclared
->>> identifier is reported only once for each function it appears in
->>> drivers/media/dvb/dvb-usb/af9015.c:1089:30: error: ‘fe’ undeclared
->>> (first use in this function)
->>
->> Arg, how the I hell I missed af9015.h file from that change-set.
->>
->> After all, I hope it was not TLDR :) What you think I should made in
->> order to fix these issues correctly?
->
-> Rebase the patch ;) compilation errors break git bisect.
+--e0cb4efe3052ac0fd104b43f27cc
+Content-Type: text/plain; charset=ISO-8859-1
 
-I suspect there is now something else wrong. Two person have reported 
-that patch is working and no mention about compile errors you have.
+All radio tuners in cx88 driver using same address for radio and
+tuner, so there is no need to probe it twice for same tuner and we can
+use radio_type UNSET, this also fix broken radio since kernel
+2.6.39-rc1 for those tuners.
 
-So you have missing now some af9015 patches I have sent earlier. There 
-patches are needed before that last one can be applied:
-http://patchwork.linuxtv.org/patch/8410/
-http://patchwork.linuxtv.org/patch/8411/
+--e0cb4efe3052ac0fd104b43f27cc
+Content-Type: text/x-patch; charset=UTF-8;
+	name="0004-All-radio-tuners-in-cx88-driver-using-same-address-f.patch"
+Content-Disposition: attachment;
+	filename="0004-All-radio-tuners-in-cx88-driver-using-same-address-f.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gw9wy6g70
 
+RnJvbSBiZmQ2ZDA4ZTM3NTZmYjBkNGVhOTE3Y2I4ZjkzNzliMmJhOWM1MDg3IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiBTbHVnZcWIIDx0aHVuZGVyLm1AZW1haWwuY3o+
+CkRhdGU6IFN1biwgMTEgRGVjIDIwMTEgMjM6MDA6MDYgKzAxMDAKU3ViamVjdDogW1BBVENIXSBB
+bGwgcmFkaW8gdHVuZXJzIGluIGN4ODggZHJpdmVyIHVzaW5nIHNhbWUgYWRkcmVzcyBmb3IgcmFk
+aW8gYW5kIHR1bmVyLCBzbyB0aGVyZSBpcyBubyBuZWVkIHRvIHByb2JlCiBpdCB0d2ljZSBmb3Ig
+c2FtZSB0dW5lciBhbmQgd2UgY2FuIHVzZSByYWRpb190eXBlIFVOU0VULCB0aGlzIGFsc28gZml4
+IGJyb2tlbiByYWRpbyBzaW5jZSBrZXJuZWwgMi42LjM5LXJjMQogZm9yIHRob3NlIHR1bmVycy4K
+Ci0tLQogZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYyB8ICAgMjQgKysrKysr
+KysrKysrLS0tLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDEy
+IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4
+LWNhcmRzLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCmluZGV4IDBk
+NzE5ZmEuLjM5MjlkOTMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4
+LWNhcmRzLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYwpAQCAt
+MTU3Myw4ICsxNTczLDggQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJkIGN4ODhfYm9h
+cmRzW10gPSB7CiAJCS5uYW1lICAgICAgICAgICA9ICJQaW5uYWNsZSBIeWJyaWQgUENUViIsCiAJ
+CS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKIAkJLnR1bmVyX2FkZHIgICAgID0gMHg2
+MSwKLQkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAotCQkucmFkaW9fYWRkciAgICAg
+PSAweDYxLAorCQkucmFkaW9fdHlwZSAgICAgPSBVTlNFVCwKKwkJLnJhZGlvX2FkZHIgICAgID0g
+QUREUl9VTlNFVCwKIAkJLmlucHV0ICAgICAgICAgID0geyB7CiAJCQkudHlwZSAgID0gQ1g4OF9W
+TVVYX1RFTEVWSVNJT04sCiAJCQkudm11eCAgID0gMCwKQEAgLTE2MTEsOCArMTYxMSw4IEBAIHN0
+YXRpYyBjb25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1tdID0gewogCQkubmFtZSAg
+ICAgICAgICAgPSAiTGVhZHRlayBUVjIwMDAgWFAgR2xvYmFsIiwKIAkJLnR1bmVyX3R5cGUgICAg
+ID0gVFVORVJfWEMyMDI4LAogCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAotCQkucmFkaW9fdHlw
+ZSAgICAgPSBUVU5FUl9YQzIwMjgsCi0JCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS5yYWRp
+b190eXBlICAgICA9IFVOU0VULAorCQkucmFkaW9fYWRkciAgICAgPSBBRERSX1VOU0VULAogCQku
+aW5wdXQgICAgICAgICAgPSB7IHsKIAkJCS50eXBlICAgPSBDWDg4X1ZNVVhfVEVMRVZJU0lPTiwK
+IAkJCS52bXV4ICAgPSAwLApAQCAtMjA0Myw4ICsyMDQzLDggQEAgc3RhdGljIGNvbnN0IHN0cnVj
+dCBjeDg4X2JvYXJkIGN4ODhfYm9hcmRzW10gPSB7CiAJCS5uYW1lICAgICAgICAgICA9ICJUZXJy
+YXRlYyBDaW5lcmd5IEhUIFBDSSBNS0lJIiwKIAkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMy
+MDI4LAogCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAotCQkucmFkaW9fdHlwZSAgICAgPSBUVU5F
+Ul9YQzIwMjgsCi0JCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS5yYWRpb190eXBlICAgICA9
+IFVOU0VULAorCQkucmFkaW9fYWRkciAgICAgPSBBRERSX1VOU0VULAogCQkuaW5wdXQgICAgICAg
+ICAgPSB7IHsKIAkJCS50eXBlICAgPSBDWDg4X1ZNVVhfVEVMRVZJU0lPTiwKIAkJCS52bXV4ICAg
+PSAwLApAQCAtMjA4Miw5ICsyMDgyLDkgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJk
+IGN4ODhfYm9hcmRzW10gPSB7CiAJW0NYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSF0gPSB7CiAJ
+CS5uYW1lICAgICAgICAgICA9ICJMZWFkdGVrIFdpbkZhc3QgRFRWMTgwMCBIeWJyaWQiLAogCQku
+dHVuZXJfdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCi0JCS5yYWRpb190eXBlICAgICA9IFRVTkVS
+X1hDMjAyOCwKKwkJLnJhZGlvX3R5cGUgICAgID0gVU5TRVQsCiAJCS50dW5lcl9hZGRyICAgICA9
+IDB4NjEsCi0JCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS5yYWRpb19hZGRyICAgICA9IEFE
+RFJfVU5TRVQsCiAJCS8qCiAJCSAqIEdQSU8gc2V0dGluZwogCQkgKgpAQCAtMjEyMyw5ICsyMTIz
+LDkgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJkIGN4ODhfYm9hcmRzW10gPSB7CiAJ
+W0NYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSF9YQzQwMDBdID0gewogCQkubmFtZQkJPSAiTGVh
+ZHRlayBXaW5GYXN0IERUVjE4MDAgSCAoWEM0MDAwKSIsCiAJCS50dW5lcl90eXBlCT0gVFVORVJf
+WEM0MDAwLAotCQkucmFkaW9fdHlwZQk9IFRVTkVSX1hDNDAwMCwKKwkJLnJhZGlvX3R5cGUJPSBV
+TlNFVCwKIAkJLnR1bmVyX2FkZHIJPSAweDYxLAotCQkucmFkaW9fYWRkcgk9IDB4NjEsCisJCS5y
+YWRpb19hZGRyCT0gQUREUl9VTlNFVCwKIAkJLyoKIAkJICogR1BJTyBzZXR0aW5nCiAJCSAqCkBA
+IC0yMTY0LDkgKzIxNjQsOSBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGN4ODhfYm9hcmQgY3g4OF9i
+b2FyZHNbXSA9IHsKIAlbQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIwMDBIX1BMVVNdID0gewogCQku
+bmFtZQkJPSAiTGVhZHRlayBXaW5GYXN0IERUVjIwMDAgSCBQTFVTIiwKIAkJLnR1bmVyX3R5cGUJ
+PSBUVU5FUl9YQzQwMDAsCi0JCS5yYWRpb190eXBlCT0gVFVORVJfWEM0MDAwLAorCQkucmFkaW9f
+dHlwZQk9IFVOU0VULAogCQkudHVuZXJfYWRkcgk9IDB4NjEsCi0JCS5yYWRpb19hZGRyCT0gMHg2
+MSwKKwkJLnJhZGlvX2FkZHIJPSBBRERSX1VOU0VULAogCQkvKgogCQkgKiBHUElPCiAJCSAqICAg
+MjogMTogbXV0ZSBhdWRpbwotLSAKMS43LjIuMwoK
+--e0cb4efe3052ac0fd104b43f27cc
+Content-Type: text/x-patch; charset=UTF-8;
+	name="0006-All-radio-tuners-in-cx83885-driver-using-same-addres.patch"
+Content-Disposition: attachment;
+	filename="0006-All-radio-tuners-in-cx83885-driver-using-same-addres.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gw9wz2z51
 
-If you PULL all those starting from:
-2011-11-19 af9015: limit I2C access to keep FW happy
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/misc
-
-you will get all what is needed. Some of those are applied but some not.
-
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
+RnJvbSA1N2Q3ODVlOTEyYzM2OWYyYWNlNTZiZDUwMDBmOTlmOTY4ZDg3YTllIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiBTbHVnZcWIIDx0aHVuZGVyLm1AZW1haWwuY3o+
+CkRhdGU6IE1vbiwgMTIgRGVjIDIwMTEgMDA6MTk6MzQgKzAxMDAKU3ViamVjdDogW1BBVENIXSBB
+bGwgcmFkaW8gdHVuZXJzIGluIGN4ODM4ODUgZHJpdmVyIHVzaW5nIHNhbWUgYWRkcmVzcyBmb3Ig
+cmFkaW8gYW5kIHR1bmVyLCBzbyB0aGVyZSBpcyBubyBuZWVkIHRvIHByb2JlCiBpdCB0d2ljZSBm
+b3Igc2FtZSB0dW5lciBhbmQgd2UgY2FuIHVzZSByYWRpb190eXBlIFVOU0VULiBCZSBhd2FyZSBy
+YWRpbyBzdXBwb3J0IGluIGN4MjM4ODUgaXMgbm90IHlldAogY29tcGxldGVkLCBzbyB0aGlzIGlz
+IG9ubHkgbWlub3IgZml4IGZvciBmdXR1cmUgc3VwcG9ydC4KCi0tLQogZHJpdmVycy9tZWRpYS92
+aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYyB8ICAgIDQgKystLQogMSBmaWxlcyBjaGFuZ2Vk
+LCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3gyMzg4NS9jeDIzODg1LWNhcmRzLmMKaW5kZXggYzNjZjA4OS4uMTg3YzQ2MiAxMDA2NDQKLS0t
+IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYworKysgYi9kcml2
+ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1jYXJkcy5jCkBAIC0yMTMsOCArMjEzLDgg
+QEAgc3RydWN0IGN4MjM4ODVfYm9hcmQgY3gyMzg4NV9ib2FyZHNbXSA9IHsKIAkJLnBvcnRjCQk9
+IENYMjM4ODVfTVBFR19EVkIsCiAJCS50dW5lcl90eXBlCT0gVFVORVJfWEM0MDAwLAogCQkudHVu
+ZXJfYWRkcgk9IDB4NjEsCi0JCS5yYWRpb190eXBlCT0gVFVORVJfWEM0MDAwLAotCQkucmFkaW9f
+YWRkcgk9IDB4NjEsCisJCS5yYWRpb190eXBlCT0gVU5TRVQsCisJCS5yYWRpb19hZGRyCT0gQURE
+Ul9VTlNFVCwKIAkJLmlucHV0CQk9IHt7CiAJCQkudHlwZQk9IENYMjM4ODVfVk1VWF9URUxFVklT
+SU9OLAogCQkJLnZtdXgJPSBDWDI1ODQwX1ZJTjJfQ0gxIHwKLS0gCjEuNy4yLjMKCg==
+--e0cb4efe3052ac0fd104b43f27cc--
