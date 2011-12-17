@@ -1,84 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:54417 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753744Ab1LGLJM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 06:09:12 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-15
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LVT003D5YZA0440@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Dec 2011 11:09:10 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVT00KC9YZ9SX@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Dec 2011 11:09:09 +0000 (GMT)
-Date: Wed, 07 Dec 2011 12:09:09 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFC/PATCH 3/5] v4l: Add V4L2_CID_METERING_MODE camera control
-In-reply-to: <4EDE425D.6020502@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>, sakari.ailus@iki.fi,
-	hverkuil@xs4all.nl, riverful.kim@samsung.com
-Message-id: <4EDF4955.9060101@samsung.com>
-References: <1323011776-15967-1-git-send-email-snjw23@gmail.com>
- <1323011776-15967-4-git-send-email-snjw23@gmail.com>
- <201112061332.40168.laurent.pinchart@ideasonboard.com>
- <4EDE425D.6020502@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:56542 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751940Ab1LQLQj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Dec 2011 06:16:39 -0500
+Message-ID: <4EEC7A12.5060404@redhat.com>
+Date: Sat, 17 Dec 2011 09:16:34 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Brian May <brian@microcomaustralia.com.au>
+CC: linux-media@vger.kernel.org
+Subject: Re: budget_ci / rc-hauppauge / inputlirc /Linux 3.0+ broken
+References: <CAA0ZO6BFmX6pb4+8jgnBQsGGZCV+ZkZ_BPSQFxLrOA43Ny1s1w@mail.gmail.com>
+In-Reply-To: <CAA0ZO6BFmX6pb4+8jgnBQsGGZCV+ZkZ_BPSQFxLrOA43Ny1s1w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/06/2011 05:27 PM, Sylwester Nawrocki wrote:
->>> +		 
->>> <entry><constant>V4L2_METERING_MODE_CENTER_WEIGHTED</constant>&nbsp;</entr
->>> y> +		  <entry>Average the light information coming from the entire scene
->>> +giving priority to the center of the metered area.</entry>
->>> +		</row>
->>> +		<row>
->>> +		  <entry><constant>V4L2_METERING_MODE_SPOT</constant>&nbsp;</entry>
->>> +		  <entry>Measure only very small area at the cent-re of the
->>> scene.</entry> +		</row>
->>> +	      </tbody>
->>
->> For the last two cases, would it also make sense to specify the center of the 
->> weighted area and the spot location ?
-> 
-> Yes, that's quite basic requirement as well.. A means to determine the 
-> location would be also needed for some auto focus algorithms.
->  
-> Additionally for V4L2_METERING_MODE_CENTER_WEIGHTED it's also needed to
-> specify the size of the area (width/height).
-> 
-> What do you think about defining new control for passing pixel position,
-> i.e. modifying struct v4l2_ext_control to something like:
-> 
-> struct v4l2_ext_control {
-> 	__u32 id;
-> 	__u32 size;
-> 	__u32 reserved2[1];
-> 	union {
-> 		__s32 value;
-> 		__s64 value64;
-> 		struct v4l2_point position;
-> 		char *string;
-> 	};
-> } __attribute__ ((packed));
-> 
-> where:
-> 
-> struct v4l2_point {
-> 	__s32 x;
-> 	__s32 y;
-> };
+Hi Brian,
 
-Hmm, that won't work since there is no way to handle the min/max/step for
-more than one value. Probably the selection API could be used for specifying
-the metering rectangle, or just separate controls for x, y, width, height.
-Since we need to specify only locations for some controls and a rectangle for
-others, probably separate controls would be more suitable.
+Em 17-12-2011 04:33, Brian May escreveu:
+> SUMMARY OF WHAT I THINK I HAPPENING:
+> 
+> budget_ci sets dev->scanmask to 0xff, this means the scancodes in the
+> tables have the upper 8 bits of the 16 bit code set to 0.
+> 
+> However for my card, it sets full_rc5 to True and rc_device to 0x1f.
+> This means the following new code gets executed:
+> 
+>     if (budget_ci->ir.full_rc5) {
+>         rc_keydown(dev,
+>                budget_ci->ir.rc5_device <<8 | budget_ci->ir.ir_key,
+>                (command & 0x20) ? 1 : 0);
+>         return;
+>     }
+> 
+> 
+> Where as before this code would get executed:
+> 
+> rc_keydown(dev, budget_ci->ir.ir_key, (command & 0x20) ? 1 : 0);
+> 
+> The result is that it tries to lookup (in this case) 0x1f21 in the
+> scancode table, which is a copy of rc-hauppauge but with the upper 8
+> bits of the scan code set to 0; the result is it can't find a match.
+> 
+> Does this sound right?
+> 
+> Maybe scanmask shouldn't be set to 0xff if full_rc5 is set to true?
 
--- 
-Regards,
-Sylwester
+Yes.
+
+could you please try the enclosed patch?
+
+Thanks!
+Mauro
+
+-
+
+[PATCH] [media] budget-ci: Fix Hauppauge RC-5 IR support
+
+Hauppauge RC-5 tables require the full scancodes. The code at budget-ci
+handles it right, however, it request the rc-code to mask them with 0xff,
+breaking support for some remote controllers.
+
+Fix it by not selecting a scancode mask when the driver is on full_rc5 mode.
+
+Reported-by: Brian May <brian@microcomaustralia.com.au>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/dvb/ttpci/budget-ci.c
+b/drivers/media/dvb/ttpci/budget-ci.c
+index ca02e97..ab180f9 100644
+--- a/drivers/media/dvb/ttpci/budget-ci.c
++++ b/drivers/media/dvb/ttpci/budget-ci.c
+@@ -193,7 +193,6 @@ static int msp430_ir_init(struct budget_ci *budget_ci)
+ 	dev->input_phys = budget_ci->ir.phys;
+ 	dev->input_id.bustype = BUS_PCI;
+ 	dev->input_id.version = 1;
+-	dev->scanmask = 0xff;
+ 	if (saa->pci->subsystem_vendor) {
+ 		dev->input_id.vendor = saa->pci->subsystem_vendor;
+ 		dev->input_id.product = saa->pci->subsystem_device;
+@@ -234,6 +233,8 @@ static int msp430_ir_init(struct budget_ci *budget_ci)
+ 		dev->map_name = RC_MAP_BUDGET_CI_OLD;
+ 		break;
+ 	}
++	if (!budget_ci->ir.full_rc5)
++		dev->scanmask = 0xff;
+
+ 	error = rc_register_device(dev);
+ 	if (error) {
+
+
