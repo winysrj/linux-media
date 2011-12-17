@@ -1,56 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:45682 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751125Ab1LLGfQ convert rfc822-to-8bit (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:33785 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450Ab1LQVIM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 01:35:16 -0500
-Received: by wgbdr13 with SMTP id dr13so10758671wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 22:35:15 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EE359CF.7090707@redhat.com>
-References: <CAHFNz9+J69YqY06QRSPV+1a0gT1QSmw7cqqnW5AEarF-V5xGCw@mail.gmail.com>
-	<4EE359CF.7090707@redhat.com>
-Date: Mon, 12 Dec 2011 12:05:15 +0530
-Message-ID: <CAHFNz9JC=r_hzkU1HOGvVkqHS-YZ0b7hatowgSaxpS7g58OVdA@mail.gmail.com>
-Subject: Re: v4 [PATCH 00/10] Query DVB frontend delivery capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Sat, 17 Dec 2011 16:08:12 -0500
+From: linuxtv@stefanringel.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCHv2 3/3] cx23885: add Terratec Cinergy T pcie dual
+Date: Sat, 17 Dec 2011 22:07:52 +0100
+Message-Id: <1324156072-16084-1-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 10, 2011 at 6:38 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> On 10-12-2011 02:41, Manu Abraham wrote:
->>
->> Hi,
->>
->>  As discussed prior, the following changes help to advertise a
->>  frontend's delivery system capabilities.
->>
->>  Sending out the patches as they are being worked out.
->>
->>  The following patch series are applied against media_tree.git
->>  after the following commit
->>
->>  commit e9eb0dadba932940f721f9d27544a7818b2fa1c5
->>  Author: Hans Verkuil<hans.verkuil@cisco.com>
->>  Date:   Tue Nov 8 11:02:34 2011 -0300
->>
->>     [media] V4L menu: add submenu for platform devices
->
->
->
-> A separate issue: please, don't send patches like that as attachment. It
-> makes
-> hard for people review. Instead, you should use git send-email. There's even
-> an example there (at least on git version 1.7.8) showing how to set it for
-> Google:
+From: Stefan Ringel <linuxtv@stefanringel.de>
 
+Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+---
+ drivers/media/video/cx23885/cx23885-cards.c |   13 +++++
+ drivers/media/video/cx23885/cx23885-dvb.c   |   66 +++++++++++++++++++++++++++
+ drivers/media/video/cx23885/cx23885.h       |    1 +
+ 3 files changed, 80 insertions(+), 0 deletions(-)
 
-I don't have net access configured for the box where I do
-tests/on the testbox. The outgoing mail from my side is
-through the gmail web interface. If I don't attach the
-patches, gmail garbles those patches.
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+index ac03c26..4704289 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -467,6 +467,13 @@ struct cx23885_board cx23885_boards[] = {
+ 					CX25840_VIN7_CH3,
+ 			},
+ 		},
++	[CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL] = {
++		.name		= "TerraTec Cinergy T PCIe Dual",
++		.porta		= CX23885_ANALOG_VIDEO,
++		.portb		= CX23885_MPEG_DVB,
++		.portc		= CX23885_MOEG_DVB,
++		.num_fds_portc	= 2,
++		},
+ 	}
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+@@ -671,6 +678,10 @@ struct cx23885_subid cx23885_subids[] = {
+ 		.subvendor = 0x14f1,
+ 		.subdevice = 0x8502,
+ 		.card      = CX23885_BOARD_MYGICA_X8507,
++	}, {
++		.subvendor = 0x153b,
++		.subdevice = 0x117e,
++		.card	   = CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -1431,6 +1442,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 		break;
+ 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
+ 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+ 		ts1->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
+ 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+ 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+@@ -1504,6 +1516,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
+ 	case CX23885_BOARD_MPX885:
+ 	case CX23885_BOARD_MYGICA_X8507:
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				"cx25840", 0x88 >> 1, NULL);
+diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
+index bcb45be..c3b8285 100644
+--- a/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -61,6 +61,8 @@
+ #include "cx23885-f300.h"
+ #include "altera-ci.h"
+ #include "stv0367.h"
++#include "drxk.h"
++#include "mt2063.h"
+ 
+ static unsigned int debug;
+ 
+@@ -617,6 +619,24 @@ static struct xc5000_config netup_xc5000_config[] = {
+ 	},
+ };
+ 
++struct static drxk_config terratec_drxk_config[] = {
++	{
++		.adr = 0x29,
++		.no_i2c_bridge = 1,
++	}, {
++		.adr = 0x2a,
++		.no_i2c_bridge = 1,
++	},
++}
++
++struct static mt2063_config terratec_mt2063_config[] = {
++	{
++		.tuner_address = 0x60,
++	}, {
++		.tuner_address = 0x67,
++	},
++};
++
+ int netup_altera_fpga_rw(void *device, int flag, int data, int read)
+ {
+ 	struct cx23885_dev *dev = (struct cx23885_dev *)device;
+@@ -1118,6 +1138,52 @@ static int dvb_register(struct cx23885_tsport *port)
+ 				goto frontend_detach;
+ 		}
+ 		break;
++	case CX23885_BOARD_TERRATREC_CINERGY_T_PCIE_DUAL:
++		i2c_bus = &dev->i2c_bus[0];
++		i2c_bus2 = &dev->i2c_bus[1];
++		mfe_shared = 1;
++		fe1 = videobuf_dvb_get_frontend(&port->frontend, 2);
++
++		switch (port->nr) {
++		/* port B */
++		case 1:
++			/* fe0 dvb-t */
++			fe0->dvb.frontend = dvb_attach(drxk_attach,
++				&terratec_drxk_config[0],
++				&i2c_bus->i2c_adap, NULL);
++
++			if (fe0->dvb.frontend != NULL) {
++				if (!dvb_attach(mt2063_attach,
++						fe0->dvb.frontend,
++						&terratec_mt2063_config[0],
++						&i2c_bus2->i2c_adap))
++					goto frontend_deatch;
++			}
++			break;
++		/* port C */
++		case 2:
++			/* fe0 dvb-t, fe1 dvb-c */
++			fe0->dvb.frontend = dvb_attach(drxk_attach,
++				&terratec_drxk_config[1],
++				&i2c_bus->i2c_adap, &fe1->dvb.frontend);
++
++			if (fe0->dvb.frontend != NULL) {
++				if (!dvb_attach(mt2063_attach,
++						fe0->dvb.frontend,
++						&terratec_mt2063_config[1],
++						&i2c_bus2->i2c_adap))
++					goto frontend_deatch;
++			}
++
++			if (fe1->dvb.frontend != NULL) {
++				if (!dvb_attach(mt2063_attach,
++						fe1->dvb.frontend,
++						&terratec_mt2063_config[1],
++						&i2c_bus2->i2c_adap))
++					goto frontend_deatch;
++			}
++		}
++		break;
+ 	default:
+ 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+ 			" isn't supported yet\n",
+diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+index 519f40d..066f181 100644
+--- a/drivers/media/video/cx23885/cx23885.h
++++ b/drivers/media/video/cx23885/cx23885.h
+@@ -88,6 +88,7 @@
+ #define CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000 31
+ #define CX23885_BOARD_MPX885                   32
+ #define CX23885_BOARD_MYGICA_X8507             33
++#define CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL 34
+ 
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
+-- 
+1.7.7
+
