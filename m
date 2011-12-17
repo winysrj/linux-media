@@ -1,143 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:24804 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755245Ab1LVLUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:24 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKONJ019845
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:24 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 08/28] [media] tda10021: Add support for DVB-C Annex C
-Date: Thu, 22 Dec 2011 09:19:56 -0200
-Message-Id: <1324552816-25704-9-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-8-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
- <1324552816-25704-4-git-send-email-mchehab@redhat.com>
- <1324552816-25704-5-git-send-email-mchehab@redhat.com>
- <1324552816-25704-6-git-send-email-mchehab@redhat.com>
- <1324552816-25704-7-git-send-email-mchehab@redhat.com>
- <1324552816-25704-8-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:65383 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751625Ab1LQAjt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 16 Dec 2011 19:39:49 -0500
+Received: by eaaj10 with SMTP id j10so3353185eaa.19
+        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 16:39:48 -0800 (PST)
+MIME-Version: 1.0
+Date: Sat, 17 Dec 2011 01:39:48 +0100
+Message-ID: <CAEN_-SARAe306X5-gS7N8-_y7jP3zTRgOvUEdCE6cBh1azXOdA@mail.gmail.com>
+Subject: Fix Leadtek DTV2000H radio tuner
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=000e0ce0db3c65ed0504b43ef4a8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While tda10021 supports both DVB-C Annex A and C, it is currently
-hard-coded to Annex A. Add support for Annex C and re-work the
-code in order to report the delivery systems, thans to Andreas,
-that passed us the register settings for the Roll-off factor.
+--000e0ce0db3c65ed0504b43ef4a8
+Content-Type: text/plain; charset=ISO-8859-1
 
-Thanks-to: Andreas Oberriter <obi@linuxtv.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda10021.c |   49 +++++++++++++++++++++++++++++--
- 1 files changed, 45 insertions(+), 4 deletions(-)
+Leadtek DTV2000H J revision has FMD1216MEX, no older FMD1216ME. But
+there is still another unknown issue with radio, because some stations
+are just not working or are very noisy.
 
-diff --git a/drivers/media/dvb/frontends/tda10021.c b/drivers/media/dvb/frontends/tda10021.c
-index cd9952e..2518c5a 100644
---- a/drivers/media/dvb/frontends/tda10021.c
-+++ b/drivers/media/dvb/frontends/tda10021.c
-@@ -231,6 +231,11 @@ struct qam_params {
- static int tda10021_set_parameters (struct dvb_frontend *fe,
- 			    struct dvb_frontend_parameters *p)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys  = c->delivery_system;
-+	unsigned qam = c->modulation;
-+	bool is_annex_c;
-+	u32 reg0x3d;
- 	struct tda10021_state* state = fe->demodulator_priv;
- 	static const struct qam_params qam_params[] = {
- 		/* Modulation  Conf  AGCref  LTHR  MSETH  AREF */
-@@ -241,7 +246,17 @@ static int tda10021_set_parameters (struct dvb_frontend *fe,
- 		[QAM_128]  = { 0x0c, 0x78,   0x36, 0x34,  0x7e },
- 		[QAM_256]  = { 0x10, 0x5c,   0x26, 0x23,  0x6b },
- 	};
--	int qam = p->u.qam.modulation;
-+
-+	switch (delsys) {
-+	case SYS_DVBC_ANNEX_A:
-+		is_annex_c = false;
-+		break;
-+	case SYS_DVBC_ANNEX_C:
-+		is_annex_c = true;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 
- 	/*
- 	 * gcc optimizes the code bellow the same way as it would code:
-@@ -262,7 +277,7 @@ static int tda10021_set_parameters (struct dvb_frontend *fe,
- 		return -EINVAL;
- 	}
- 
--	if (p->inversion != INVERSION_ON && p->inversion != INVERSION_OFF)
-+	if (c->inversion != INVERSION_ON && c->inversion != INVERSION_OFF)
- 		return -EINVAL;
- 
- 	//printk("tda10021: set frequency to %d qam=%d symrate=%d\n", p->frequency,qam,p->u.qam.symbol_rate);
-@@ -272,14 +287,24 @@ static int tda10021_set_parameters (struct dvb_frontend *fe,
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	tda10021_set_symbolrate(state, p->u.qam.symbol_rate);
-+	tda10021_set_symbolrate(state, c->symbol_rate);
- 	_tda10021_writereg(state, 0x34, state->pwm);
- 
- 	_tda10021_writereg(state, 0x01, qam_params[qam].agcref);
- 	_tda10021_writereg(state, 0x05, qam_params[qam].lthr);
- 	_tda10021_writereg(state, 0x08, qam_params[qam].mseth);
- 	_tda10021_writereg(state, 0x09, qam_params[qam].aref);
--	tda10021_setup_reg0(state, qam_params[qam].conf, p->inversion);
-+
-+	/*
-+	 * Bit 0 == 0 means roll-off = 0.15 (Annex A)
-+	 *	 == 1 means roll-off = 0.13 (Annex C)
-+	 */
-+	reg0x3d = tda10021_readreg (state, 0x3d);
-+	if (is_annex_c)
-+		_tda10021_writereg (state, 0x3d, 0x01 | reg0x3d);
-+	else
-+		_tda10021_writereg (state, 0x3d, 0xfe & reg0x3d);
-+	tda10021_setup_reg0(state, qam_params[qam].conf, c->inversion);
- 
- 	return 0;
- }
-@@ -458,6 +483,21 @@ error:
- 	return NULL;
- }
- 
-+static int tda10021_get_property(struct dvb_frontend *fe,
-+				 struct dtv_property *p)
-+{
-+	switch (p->cmd) {
-+	case DTV_ENUM_DELSYS:
-+		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
-+		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
-+		p->u.buffer.len = 2;
-+		break;
-+	default:
-+		break;
-+	}
-+	return 0;
-+}
-+
- static struct dvb_frontend_ops tda10021_ops = {
- 
- 	.info = {
-@@ -486,6 +526,7 @@ static struct dvb_frontend_ops tda10021_ops = {
- 
- 	.set_frontend = tda10021_set_parameters,
- 	.get_frontend = tda10021_get_frontend,
-+	.get_property = tda10021_get_property,
- 
- 	.read_status = tda10021_read_status,
- 	.read_ber = tda10021_read_ber,
--- 
-1.7.8.352.g876a6
+--000e0ce0db3c65ed0504b43ef4a8
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-Leadtek-DTV2000H-J-has-Philips-FMD1216MEX-tuner-this.patch"
+Content-Disposition: attachment;
+	filename="0001-Leadtek-DTV2000H-J-has-Philips-FMD1216MEX-tuner-this.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gw9wdxlg0
 
+RnJvbSBkYWRmYTQ1NjY0Zjc2NTI5N2UwM2U3M2E5MDdhYzA0YmQ1NWU5YjI1IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiA8dGh1bmRlci5tQGVtYWlsLmN6PgpEYXRlOiBU
+dWUsIDEzIERlYyAyMDExIDE5OjM2OjE1ICswMTAwClN1YmplY3Q6IFtQQVRDSCAxLzJdIExlYWR0
+ZWsgRFRWMjAwMEggSiBoYXMgUGhpbGlwcyBGTUQxMjE2TUVYIHR1bmVyLCB0aGlzIHBhdGNoIGZp
+eGVkIG5vdCB3b3JraW5nCiByYWRpbyBwYXJ0LCBidXQgc29tZSBzdGF0aW9ucyBhcmUgc3RpbGwg
+bm90IHZpc2libGUuCgotLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMg
+fCAgICAzICsrLQogZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtZHZiLmMgICB8ICAgMTIg
+KysrKysrKysrKystCiBkcml2ZXJzL21lZGlhL3ZpZGVvL3R1bmVyLWNvcmUuYyAgICAgIHwgICAg
+MSArCiAzIGZpbGVzIGNoYW5nZWQsIDE0IGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYyBiL2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMKaW5kZXggZGNhMzY5ZC4uY2JkNWQxMSAx
+MDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYworKysgYi9k
+cml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCkBAIC0xMzA2LDcgKzEzMDYsNyBA
+QCBzdGF0aWMgY29uc3Qgc3RydWN0IGN4ODhfYm9hcmQgY3g4OF9ib2FyZHNbXSA9IHsKIAl9LAog
+CVtDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMjAwMEhfSl0gPSB7CiAJCS5uYW1lICAgICAgICAgICA9
+ICJXaW5GYXN0IERUVjIwMDAgSCByZXYuIEoiLAotCQkudHVuZXJfdHlwZSAgICAgPSBUVU5FUl9Q
+SElMSVBTX0ZNRDEyMTZNRV9NSzMsCisJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1BISUxJUFNf
+Rk1EMTIxNk1FWF9NSzMsCiAJCS5yYWRpb190eXBlICAgICA9IFVOU0VULAogCQkudHVuZXJfYWRk
+ciAgICAgPSBBRERSX1VOU0VULAogCQkucmFkaW9fYWRkciAgICAgPSBBRERSX1VOU0VULApAQCAt
+MzMyMSw2ICszMzIxLDcgQEAgc3RhdGljIHZvaWQgY3g4OF9jYXJkX3NldHVwX3ByZV9pMmMoc3Ry
+dWN0IGN4ODhfY29yZSAqY29yZSkKIAkJY3hfc2V0KE1PX0dQMF9JTywgMHgwMDAwMTAxMCk7CiAJ
+CWJyZWFrOwogCisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMjAwMEhfSjoKIAljYXNlIENY
+ODhfQk9BUkRfSEFVUFBBVUdFX0hWUjMwMDA6CiAJY2FzZSBDWDg4X0JPQVJEX0hBVVBQQVVHRV9I
+VlI0MDAwOgogCQkvKiBJbml0IEdQSU8gKi8KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3g4OC9jeDg4LWR2Yi5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtZHZiLmMK
+aW5kZXggY2YzZDMzYS4uNTkyZjNhYSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9j
+eDg4L2N4ODgtZHZiLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtZHZiLmMK
+QEAgLTk5OSw3ICs5OTksNiBAQCBzdGF0aWMgaW50IGR2Yl9yZWdpc3RlcihzdHJ1Y3QgY3g4ODAy
+X2RldiAqZGV2KQogCQl9CiAJCWJyZWFrOwogCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIw
+MDBIOgotCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIwMDBIX0o6CiAJY2FzZSBDWDg4X0JP
+QVJEX0hBVVBQQVVHRV9IVlIxMTAwOgogCWNhc2UgQ1g4OF9CT0FSRF9IQVVQUEFVR0VfSFZSMTEw
+MExQOgogCWNhc2UgQ1g4OF9CT0FSRF9IQVVQUEFVR0VfSFZSMTMwMDoKQEAgLTEwMTMsNiArMTAx
+MiwxNyBAQCBzdGF0aWMgaW50IGR2Yl9yZWdpc3RlcihzdHJ1Y3QgY3g4ODAyX2RldiAqZGV2KQog
+CQkJCWdvdG8gZnJvbnRlbmRfZGV0YWNoOwogCQl9CiAJCWJyZWFrOworCWNhc2UgQ1g4OF9CT0FS
+RF9XSU5GQVNUX0RUVjIwMDBIX0o6CisJCWZlMC0+ZHZiLmZyb250ZW5kID0gZHZiX2F0dGFjaChj
+eDIyNzAyX2F0dGFjaCwKKwkJCQkJICAgICAgICZoYXVwcGF1Z2VfaHZyX2NvbmZpZywKKwkJCQkJ
+ICAgICAgICZjb3JlLT5pMmNfYWRhcCk7CisJCWlmIChmZTAtPmR2Yi5mcm9udGVuZCAhPSBOVUxM
+KSB7CisJCQlpZiAoIWR2Yl9hdHRhY2goc2ltcGxlX3R1bmVyX2F0dGFjaCwgZmUwLT5kdmIuZnJv
+bnRlbmQsCisJCQkJICAgJmNvcmUtPmkyY19hZGFwLCAweDYxLAorCQkJCSAgIFRVTkVSX1BISUxJ
+UFNfRk1EMTIxNk1FWF9NSzMpKQorCQkJCWdvdG8gZnJvbnRlbmRfZGV0YWNoOworCQl9CisJCWJy
+ZWFrOwogCWNhc2UgQ1g4OF9CT0FSRF9IQVVQUEFVR0VfSFZSMzAwMDoKIAkJLyogTUZFIGZyb250
+ZW5kIDEgKi8KIAkJbWZlX3NoYXJlZCA9IDE7CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL3R1bmVyLWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vdHVuZXItY29yZS5jCmluZGV4
+IDhlN2U3NjkuLmJiZmMwNGYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vdHVuZXIt
+Y29yZS5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vdHVuZXItY29yZS5jCkBAIC0zMjYsNiAr
+MzI2LDcgQEAgc3RhdGljIHZvaWQgc2V0X3R5cGUoc3RydWN0IGkyY19jbGllbnQgKmMsIHVuc2ln
+bmVkIGludCB0eXBlLAogCQluZXdfbW9kZV9tYXNrID0gVF9SQURJTzsKIAkJYnJlYWs7CiAJY2Fz
+ZSBUVU5FUl9QSElMSVBTX0ZNRDEyMTZNRV9NSzM6CisJY2FzZSBUVU5FUl9QSElMSVBTX0ZNRDEy
+MTZNRVhfTUszOgogCQlidWZmZXJbMF0gPSAweDBiOwogCQlidWZmZXJbMV0gPSAweGRjOwogCQli
+dWZmZXJbMl0gPSAweDljOwotLSAKMS43LjIuMwoK
+--000e0ce0db3c65ed0504b43ef4a8--
