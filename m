@@ -1,55 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:36365 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750764Ab1LaG5c (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50715 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752008Ab1LRVwT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 01:57:32 -0500
-Received: by vbbfc26 with SMTP id fc26so11148542vbb.19
-        for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 22:57:31 -0800 (PST)
+	Sun, 18 Dec 2011 16:52:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Michael Jones <michael.jones@matrix-vision.de>
+Subject: Re: Omap3 ISP + Gstreamer v4l2src
+Date: Sun, 18 Dec 2011 22:52:19 +0100
+Cc: Adam Pledger <a.pledger@thermoteknix.com>,
+	linux-media@vger.kernel.org
+References: <4EDF1DA2.5000106@thermoteknix.com> <201112071134.24567.laurent.pinchart@ideasonboard.com> <4EDF477D.8080507@matrix-vision.de>
+In-Reply-To: <4EDF477D.8080507@matrix-vision.de>
 MIME-Version: 1.0
-In-Reply-To: <20111230213301.GA3677@valkosipuli.localdomain>
-References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
-	<20111230213301.GA3677@valkosipuli.localdomain>
-Date: Sat, 31 Dec 2011 14:57:31 +0800
-Message-ID: <CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com>
-Subject: Re: v4l: how to get blanking clock count?
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112182252.20413.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2011/12/31 Sakari Ailus <sakari.ailus@iki.fi>:
-> Hi Scott,
->
-> On Fri, Dec 30, 2011 at 03:20:43PM +0800, Scott Jiang wrote:
->> Hi Hans and Guennadi,
->>
->> Our bridge driver needs to know line clock count including active
->> lines and blanking area.
->> I can compute active clock count according to pixel format, but how
->> can I get this in blanking area in current framework?
->
-> Such information is not available currently over the V4L2 subdev interface.
-> Please see this patchset:
->
-> <URL:http://www.spinics.net/lists/linux-media/msg41765.html>
->
-> Patches 7 and 8 are probably the most interesting for you. This is an RFC
-> patchset so the final implementation could well still change.
->
-Hi Sakari,
+Hi Michael,
 
-Thanks for your reply. Your patch added VBLANK and HBLANK control, but
-my case isn't a user control.
-That is to say, you can't specify a blanking control value for sensor.
-And you added pixel clock rate in mbus format, I think if I add two
-more parametres such as VBLANK lines and HBLANK clocks I can solve
-this problem. In fact, active lines and blanking lines are essential
-params to define an image.
+On Wednesday 07 December 2011 12:01:17 Michael Jones wrote:
+> On 12/07/2011 11:34 AM, Laurent Pinchart wrote:
+> > On Wednesday 07 December 2011 09:02:42 Adam Pledger wrote:
+> >> Hi Laurent,
+> >> 
+> >> Firstly, please accept my apologies, for what is very probably a naive
+> >> question. I'm new to V4L2 and am just getting to grips with how things
+> >> work.
+> > 
+> > No worries.
+> > 
+> >> I'm using a tvp5151 in bt656 mode with the Omap3 ISP,
+> > 
+> > Please note that BT.656 support is still experimental, so issues are not
+> > unexpected.
+> > 
+> >> as described in this thread (Your YUV support tree + some patches for
+> >> bt656, based on 2.6.39):
+> >> http://comments.gmane.org/gmane.linux.drivers.video-input-
+> > 
+> > infrastructure/39539
+> > 
+> >> I am able to capture some frames using yavta, using the media-ctl
+> >> configuration as follows:
+> >> media-ctl -v -r -l '"tvp5150 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3
+> >> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> >> media-ctl -v --set-format '"tvp5150 3-005d":0 [UYVY2X8 720x625]'
+> >> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x625]'
+> >> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x625]'
+> > 
+> >> This yields this:
+> > [snip]
+> > 
+> > Looks good.
+> > 
+> >> The following works nicely:
+> >> yavta -f UYVY -s 720x625 -n 4 --capture=4 -F /dev/video2
+> >> 
+> >> The problem comes when I try to use gstreamer to capture from
+> >> /dev/video2, using the following:
+> >> gst-launch v4l2src device="/dev/video2" !
+> >> 'video/x-raw-yuv,width=720,height=625' ! filesink location=sample.yuv
+> >> 
+> >> This fails with:
+> >> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Failed
+> >> getting controls attributes on device '/dev/video2'.
+> >> Additional debug info:
+> >> v4l2_calls.c(267): gst_v4l2_fill_lists ():
+> >> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
+> >> Failed querying control 9963776 on device '/dev/video2'. (25 -
+> >> Inappropriate ioctl for device)
+> >> 
+> >> My question is, should this "just work"? It was my understanding that
+> >> once the pipeline was configured with media-ctl then the CCDC output pad
+> >> should behave like a standard V4L2 device node.
+> > 
+> > That's more or less correct. There have been a passionate debate
+> > regarding what a "standard V4L2 device node" is. Not all V4L2 ioctls are
+> > mandatory, and no driver implements them all. The OMAP3 ISP driver
+> > implements a very small subset of the V4L2 API, and it wasn't clear
+> > whether that still qualified as V4L2. After discussions we decided that
+> > the V4L2 specification will document profiles, with a set of required
+> > ioctls for each of them. The OMAP3 ISP implements the future video
+> > streaming profile.
+> > 
+> > I'm not sure what ioctls v4l2src consider as mandatory. The above error
+> > related to a CTRL ioctl (possibly VIDIOC_QUERYCTRL), which isn't
+> > implemented by the OMAP3 ISP driver and will likely never be. I don't
+> > think that should be considered as mandatory.
+> > 
+> > I think that v4l2src requires the VIDIOC_ENUMFMT ioctl, which isn't
+> > implemented in the OMAP3 ISP driver. That might change in the future, but
+> > I'm not sure yet whether it will. In any case, you might have to modify
+> > v4l2src and/or the OMAP3 ISP driver for now. Some patches have been
+> > posted a while ago to this mailing list.
+> 
+> Here was my submission for ENUM_FMT support:
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg29640.html
+> 
+> I submitted this in order to be able to use the omap3-isp with
+> GStreamer.  I missed the discussion about V4L2 "profiles", but when I
+> submitted that patch we discussed whether ENUM_FMT was mandatory. After
+> I pointed out that the V4L2 spec states plainly that it _is_ mandatory,
+> I thought Laurent basically agreed that it was reasonable.
+> 
+> Laurent, what do you think about adding ENUM_FMT support now?
 
+I'm OK with it, but we need to discuss the details. During the latest V4L2 
+meeting in Prague we decided to create a "streaming" profile for V4L2 device 
+nodes such as the ones created by the OMAP3 ISP driver. We now need to decide 
+which ioctls will be mandatory in that profile (ENUM_FMT will likely be), and 
+what they should return exactly. That's on my to-do list (but handling my e-
+mail backlog comes first :-)).
+
+> >> I realise that this might be something borked with my build dependencies
+> >> (although I'm pretty certain that v4l2src is being built against the
+> >> latest libv42) or gstreamer. Before I start digging through the code to
+> >> work out what is going on with the ioctl handling, I thought I would
+> >> check to see whether this should work, or whether I am doing something
+> >> fundamentally silly.
+
+-- 
 Regards,
-Scott
+
+Laurent Pinchart
