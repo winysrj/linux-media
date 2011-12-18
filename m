@@ -1,123 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2.matrix-vision.com ([85.214.244.251]:42500 "EHLO
-	mail2.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755118Ab1LGLKY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 06:10:24 -0500
-Message-ID: <4EDF477D.8080507@matrix-vision.de>
-Date: Wed, 07 Dec 2011 12:01:17 +0100
-From: Michael Jones <michael.jones@matrix-vision.de>
+Received: from mx1.redhat.com ([209.132.183.28]:12309 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750974Ab1LRA11 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Dec 2011 19:27:27 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0RRHJ001357
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:27:27 -0500
+Message-ID: <4EED336B.1030904@redhat.com>
+Date: Sat, 17 Dec 2011 22:27:23 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Adam Pledger <a.pledger@thermoteknix.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Omap3 ISP + Gstreamer v4l2src
-References: <4EDF1DA2.5000106@thermoteknix.com> <201112071134.24567.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201112071134.24567.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/6] [media] Update documentation to reflect DVB-C Annex
+ A/C support
+References: <1324167673-20787-1-git-send-email-mchehab@redhat.com> <1324167673-20787-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324167673-20787-2-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Adam,
+Em 17-12-2011 22:21, Mauro Carvalho Chehab escreveu:
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-On 12/07/2011 11:34 AM, Laurent Pinchart wrote:
-> Hi Adam,
->
-> On Wednesday 07 December 2011 09:02:42 Adam Pledger wrote:
->> Hi Laurent,
->>
->> Firstly, please accept my apologies, for what is very probably a naive
->> question. I'm new to V4L2 and am just getting to grips with how things
->> work.
->
-> No worries.
->
->> I'm using a tvp5151 in bt656 mode with the Omap3 ISP,
->
-> Please note that BT.656 support is still experimental, so issues are not
-> unexpected.
->
->> as described in this thread (Your YUV support tree + some patches for bt656,
->> based on 2.6.39):
->> http://comments.gmane.org/gmane.linux.drivers.video-input-
-> infrastructure/39539
->>
->> I am able to capture some frames using yavta, using the media-ctl
->> configuration as follows:
->> media-ctl -v -r -l '"tvp5150 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3
->> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->> media-ctl -v --set-format '"tvp5150 3-005d":0 [UYVY2X8 720x625]'
->> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x625]'
->> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x625]'
->>
->> This yields this:
->
-> [snip]
->
-> Looks good.
->
->> The following works nicely:
->> yavta -f UYVY -s 720x625 -n 4 --capture=4 -F /dev/video2
->>
->> The problem comes when I try to use gstreamer to capture from
->> /dev/video2, using the following:
->> gst-launch v4l2src device="/dev/video2" !
->> 'video/x-raw-yuv,width=720,height=625' ! filesink location=sample.yuv
->>
->> This fails with:
->> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Failed
->> getting controls attributes on device '/dev/video2'.
->> Additional debug info:
->> v4l2_calls.c(267): gst_v4l2_fill_lists ():
->> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
->> Failed querying control 9963776 on device '/dev/video2'. (25 -
->> Inappropriate ioctl for device)
->>
->> My question is, should this "just work"? It was my understanding that
->> once the pipeline was configured with media-ctl then the CCDC output pad
->> should behave like a standard V4L2 device node.
->
-> That's more or less correct. There have been a passionate debate regarding
-> what a "standard V4L2 device node" is. Not all V4L2 ioctls are mandatory, and
-> no driver implements them all. The OMAP3 ISP driver implements a very small
-> subset of the V4L2 API, and it wasn't clear whether that still qualified as
-> V4L2. After discussions we decided that the V4L2 specification will document
-> profiles, with a set of required ioctls for each of them. The OMAP3 ISP
-> implements the future video streaming profile.
->
-> I'm not sure what ioctls v4l2src consider as mandatory. The above error
-> related to a CTRL ioctl (possibly VIDIOC_QUERYCTRL), which isn't implemented
-> by the OMAP3 ISP driver and will likely never be. I don't think that should be
-> considered as mandatory.
->
-> I think that v4l2src requires the VIDIOC_ENUMFMT ioctl, which isn't
-> implemented in the OMAP3 ISP driver. That might change in the future, but I'm
-> not sure yet whether it will. In any case, you might have to modify v4l2src
-> and/or the OMAP3 ISP driver for now. Some patches have been posted a while ago
-> to this mailing list.
 
-Here was my submission for ENUM_FMT support:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg29640.html
+Gah, not sure what happened here... git send-email did the wrong
+thing with this patch and a few others...
 
-I submitted this in order to be able to use the omap3-isp with 
-GStreamer.  I missed the discussion about V4L2 "profiles", but when I 
-submitted that patch we discussed whether ENUM_FMT was mandatory. After 
-I pointed out that the V4L2 spec states plainly that it _is_ mandatory, 
-I thought Laurent basically agreed that it was reasonable.
+This patch should have a description, a from: Manu Abraham, and his SOB!
 
-Laurent, what do you think about adding ENUM_FMT support now?
+I'll see what's wrong and I'll resend a new version. Please discard this one!
 
->
->> I realise that this might be something borked with my build dependencies
->> (although I'm pretty certain that v4l2src is being built against the
->> latest libv42) or gstreamer. Before I start digging through the code to
->> work out what is going on with the ioctl handling, I thought I would
->> check to see whether this should work, or whether I am doing something
->> fundamentally silly.
->
+> ---
+>  Documentation/DocBook/media/dvb/dvbproperty.xml |   11 +++++------
+>  Documentation/DocBook/media/dvb/frontend.xml    |    4 ++--
+>  2 files changed, 7 insertions(+), 8 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+> index b812e31..ffee1fb 100644
+> --- a/Documentation/DocBook/media/dvb/dvbproperty.xml
+> +++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+> @@ -311,8 +311,6 @@ typedef enum fe_rolloff {
+>  	ROLLOFF_20,
+>  	ROLLOFF_25,
+>  	ROLLOFF_AUTO,
+> -	ROLLOFF_15, /* DVB-C Annex A */
+> -	ROLLOFF_13, /* DVB-C Annex C */
+>  } fe_rolloff_t;
+>  		</programlisting>
+>  		</section>
+> @@ -336,9 +334,10 @@ typedef enum fe_rolloff {
+>  		<title>fe_delivery_system type</title>
+>  		<para>Possible values: </para>
+>  <programlisting>
+> +
+>  typedef enum fe_delivery_system {
+>  	SYS_UNDEFINED,
+> -	SYS_DVBC_ANNEX_AC,
+> +	SYS_DVBC_ANNEX_A,
+>  	SYS_DVBC_ANNEX_B,
+>  	SYS_DVBT,
+>  	SYS_DSS,
+> @@ -355,6 +354,7 @@ typedef enum fe_delivery_system {
+>  	SYS_DAB,
+>  	SYS_DVBT2,
+>  	SYS_TURBO,
+> +	SYS_DVBC_ANNEX_C,
+>  } fe_delivery_system_t;
+>  </programlisting>
+>  		</section>
+> @@ -781,7 +781,8 @@ typedef enum fe_hierarchy {
+>  	<title>Properties used on cable delivery systems</title>
+>  	<section id="dvbc-params">
+>  		<title>DVB-C delivery system</title>
+> -		<para>The DVB-C Annex-A/C is the widely used cable standard. Transmission uses QAM modulation.</para>
+> +		<para>The DVB-C Annex-A is the widely used cable standard. Transmission uses QAM modulation.</para>
+> +		<para>The DVB-C Annex-C is optimized for 6MHz, and is used in Japan. It supports a subset of the Annex A modulation types, and a roll-off of 0.13, instead of 0.15</para>
+>  		<para>The following parameters are valid for DVB-C Annex A/C:</para>
+>  		<itemizedlist mark='opencircle'>
+>  			<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
+> @@ -792,10 +793,8 @@ typedef enum fe_hierarchy {
+>  			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
+>  			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
+>  			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
+> -			<listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
+>  			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
+>  		</itemizedlist>
+> -		<para>The Rolloff of 0.15 (ROLLOFF_15) is assumed, as ITU-T J.83 Annex A is more common. For Annex C, rolloff should be 0.13 (ROLLOFF_13). All other values are invalid.</para>
+>  	</section>
+>  	<section id="dvbc-annex-b-params">
+>  		<title>DVB-C Annex B delivery system</title>
+> diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+> index 61407ea..28d7ea5 100644
+> --- a/Documentation/DocBook/media/dvb/frontend.xml
+> +++ b/Documentation/DocBook/media/dvb/frontend.xml
+> @@ -45,8 +45,8 @@ transmission. The fontend types are given by fe_type_t type, defined as:</para>
+>    </row>
+>    <row>
+>       <entry id="FE_QAM"><constant>FE_QAM</constant></entry>
+> -     <entry>For DVB-C annex A/C standard</entry>
+> -     <entry><constant>SYS_DVBC_ANNEX_AC</constant></entry>
+> +     <entry>For DVB-C annex A standard</entry>
+> +     <entry><constant>SYS_DVBC_ANNEX_A</constant></entry>
+>    </row>
+>    <row>
+>       <entry id="FE_OFDM"><constant>FE_OFDM</constant></entry>
 
--Michael
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
