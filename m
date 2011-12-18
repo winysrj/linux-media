@@ -1,87 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44254 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:6182 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752756Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:32 -0500
+	id S1751058Ab1LRAhK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Dec 2011 19:37:10 -0500
 Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Wlp009177
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0bAqo002492
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
+	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:37:10 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 88/94] [media] dvb-core: don't use fe_bandwidth_t on driver
-Date: Fri, 30 Dec 2011 13:08:25 -0200
-Message-Id: <1325257711-12274-89-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+Subject: [PATCH 0/7] Change support for Annex A/C
+Date: Sat, 17 Dec 2011 22:36:54 -0200
+Message-Id: <1324168621-21506-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that everybody is talking DVBv5 API dialect, using this
-DVBv3 macro internally is not ok.
+As discussed at the ML, all existing drivers, except for dvb-k only
+support DVB-C ITU-T J.83 Annex A. Also, a few dvb-c drivers don't support
+0.13 roll-off, requred for Annex C. So, apply Manu's patch that
+adds a separate delivery system for Annex C, and change a few existing
+drivers that are known to work with both standards to work properly with
+both annexes.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/bt8xx/dst_common.h    |    2 +-
- drivers/media/dvb/frontends/dib3000mc.c |    2 +-
- drivers/media/dvb/frontends/dib7000m.c  |    2 +-
- drivers/media/dvb/frontends/tda10048.c  |    2 +-
- 4 files changed, 4 insertions(+), 4 deletions(-)
+Manu Abraham (1):
+  [media] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
 
-diff --git a/drivers/media/dvb/bt8xx/dst_common.h b/drivers/media/dvb/bt8xx/dst_common.h
-index d88cf2a..d70d98f 100644
---- a/drivers/media/dvb/bt8xx/dst_common.h
-+++ b/drivers/media/dvb/bt8xx/dst_common.h
-@@ -124,7 +124,7 @@ struct dst_state {
- 	u16 decode_snr;
- 	unsigned long cur_jiff;
- 	u8 k22;
--	fe_bandwidth_t bandwidth;
-+	u32 bandwidth;
- 	u32 dst_hw_cap;
- 	u8 dst_fw_version;
- 	fe_sec_mini_cmd_t minicmd;
-diff --git a/drivers/media/dvb/frontends/dib3000mc.c b/drivers/media/dvb/frontends/dib3000mc.c
-index 8130028..d98a010 100644
---- a/drivers/media/dvb/frontends/dib3000mc.c
-+++ b/drivers/media/dvb/frontends/dib3000mc.c
-@@ -40,7 +40,7 @@ struct dib3000mc_state {
- 
- 	u32 timf;
- 
--	fe_bandwidth_t current_bandwidth;
-+	u32 current_bandwidth;
- 
- 	u16 dev_id;
- 
-diff --git a/drivers/media/dvb/frontends/dib7000m.c b/drivers/media/dvb/frontends/dib7000m.c
-index eb90c4f..b6a25a2 100644
---- a/drivers/media/dvb/frontends/dib7000m.c
-+++ b/drivers/media/dvb/frontends/dib7000m.c
-@@ -38,7 +38,7 @@ struct dib7000m_state {
- 	u16 wbd_ref;
- 
- 	u8 current_band;
--	fe_bandwidth_t current_bandwidth;
-+	u32 current_bandwidth;
- 	struct dibx000_agc_config *current_agc;
- 	u32 timf;
- 	u32 timf_default;
-diff --git a/drivers/media/dvb/frontends/tda10048.c b/drivers/media/dvb/frontends/tda10048.c
-index 80de9f6..dfd1d5a 100644
---- a/drivers/media/dvb/frontends/tda10048.c
-+++ b/drivers/media/dvb/frontends/tda10048.c
-@@ -153,7 +153,7 @@ struct tda10048_state {
- 	u32 pll_pfactor;
- 	u32 sample_freq;
- 
--	enum fe_bandwidth bandwidth;
-+	u32 bandwidth;
- };
- 
- static struct init_tab {
+Mauro Carvalho Chehab (6):
+  [media] Update documentation to reflect DVB-C Annex A/C support
+  [media] Remove Annex A/C selection via roll-off factor
+  [media] drx-k: report the supported delivery systems
+  [media] tda10023: Don't use a magic numbers for QAM modulation
+  [media] tda10023: add support for DVB-C Annex C
+  [media] tda10021: Add support for DVB-C Annex C
+
+ Documentation/DocBook/media/dvb/dvbproperty.xml |   11 +-
+ Documentation/DocBook/media/dvb/frontend.xml    |    4 +-
+ drivers/media/common/tuners/xc5000.c            |  137 +++++++++-------------
+ drivers/media/dvb/dvb-core/dvb_frontend.c       |   25 ++++-
+ drivers/media/dvb/frontends/drxk_hard.c         |   43 ++++++-
+ drivers/media/dvb/frontends/tda10021.c          |   83 ++++++++++----
+ drivers/media/dvb/frontends/tda10023.c          |   77 +++++++++----
+ drivers/media/dvb/frontends/tda18271c2dd.c      |   44 +++----
+ include/linux/dvb/frontend.h                    |    9 +-
+ 9 files changed, 264 insertions(+), 169 deletions(-)
+
 -- 
-1.7.8.352.g876a6
+1.7.8
 
