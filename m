@@ -1,192 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:56091 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:42684 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932121Ab1LEUlr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Dec 2011 15:41:47 -0500
-Message-ID: <4EDD2C82.7040804@linuxtv.org>
-Date: Mon, 05 Dec 2011 21:41:38 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: HoP <jpetrous@gmail.com>, Florian Fainelli <f.fainelli@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com>
-In-Reply-To: <4EDD01BA.40208@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1750981Ab1LRAV0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 17 Dec 2011 19:21:26 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0LQ89023870
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:21:26 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 1/6] [media] Update documentation to reflect DVB-C Annex A/C support
+Date: Sat, 17 Dec 2011 22:21:08 -0200
+Message-Id: <1324167673-20787-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324167673-20787-1-git-send-email-mchehab@redhat.com>
+References: <1324167673-20787-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.12.2011 18:39, Mauro Carvalho Chehab wrote:
-> On 05-12-2011 12:28, HoP wrote:
-> 
->>> And here is a new hack.
->>
->> I'm really tired from all those "hack, crap, pigback ..." wordings.
->>
->> What exactly vtuner aproach does so hackish (other then exposing
->> DVB internals, what is every time made if virtualization support is
->> developing)?
->>
->> The code itself no need to patch any line of vanilla kernel source, it
->> even
->> doesn't change any processing of the rest of kernel, it is very simple
->> driver/code/whatever.
->>
->> I can understand that some developers don't like to get dvb-core opened,
->> I don't agree with them, but I don't really need to fight with them.
->> Its theirs opinion.
->> But even I try to see what is so hackish in vtuner implementation, I
->> don't catch
->> anything. Simplicity? I thought that simplicity is a big advanatge
->> (simple code,
->> easy to analyze). What else?
-> 
-> You solution is called a hack becaus it is used to fool applications to
-> think that a
-> remote device is actually a local device. Being it at kernelspace or at
-> userspace
-> (with CUSE, LD_PRELOADER of whatever other solution) doesn't change this
-> fact.
-> 
-> As applications know nothing about it, they'll still use timeouts and
-> other coding logic
-> that fits well for a locally-accessible device, but that won't fit well
-> for a remote
-> connection.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Documentation/DocBook/media/dvb/dvbproperty.xml |   11 +++++------
+ Documentation/DocBook/media/dvb/frontend.xml    |    4 ++--
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-See (*) below.
+diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
+index b812e31..ffee1fb 100644
+--- a/Documentation/DocBook/media/dvb/dvbproperty.xml
++++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
+@@ -311,8 +311,6 @@ typedef enum fe_rolloff {
+ 	ROLLOFF_20,
+ 	ROLLOFF_25,
+ 	ROLLOFF_AUTO,
+-	ROLLOFF_15, /* DVB-C Annex A */
+-	ROLLOFF_13, /* DVB-C Annex C */
+ } fe_rolloff_t;
+ 		</programlisting>
+ 		</section>
+@@ -336,9 +334,10 @@ typedef enum fe_rolloff {
+ 		<title>fe_delivery_system type</title>
+ 		<para>Possible values: </para>
+ <programlisting>
++
+ typedef enum fe_delivery_system {
+ 	SYS_UNDEFINED,
+-	SYS_DVBC_ANNEX_AC,
++	SYS_DVBC_ANNEX_A,
+ 	SYS_DVBC_ANNEX_B,
+ 	SYS_DVBT,
+ 	SYS_DSS,
+@@ -355,6 +354,7 @@ typedef enum fe_delivery_system {
+ 	SYS_DAB,
+ 	SYS_DVBT2,
+ 	SYS_TURBO,
++	SYS_DVBC_ANNEX_C,
+ } fe_delivery_system_t;
+ </programlisting>
+ 		</section>
+@@ -781,7 +781,8 @@ typedef enum fe_hierarchy {
+ 	<title>Properties used on cable delivery systems</title>
+ 	<section id="dvbc-params">
+ 		<title>DVB-C delivery system</title>
+-		<para>The DVB-C Annex-A/C is the widely used cable standard. Transmission uses QAM modulation.</para>
++		<para>The DVB-C Annex-A is the widely used cable standard. Transmission uses QAM modulation.</para>
++		<para>The DVB-C Annex-C is optimized for 6MHz, and is used in Japan. It supports a subset of the Annex A modulation types, and a roll-off of 0.13, instead of 0.15</para>
+ 		<para>The following parameters are valid for DVB-C Annex A/C:</para>
+ 		<itemizedlist mark='opencircle'>
+ 			<listitem><para><link linkend="DTV-API-VERSION"><constant>DTV_API_VERSION</constant></link></para></listitem>
+@@ -792,10 +793,8 @@ typedef enum fe_hierarchy {
+ 			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-SYMBOL-RATE"><constant>DTV_SYMBOL_RATE</constant></link></para></listitem>
+-			<listitem><para><link linkend="DTV-ROLLOFF"><constant>DTV_ROLLOFF</constant></link></para></listitem>
+ 			<listitem><para><link linkend="DTV-INNER-FEC"><constant>DTV_INNER_FEC</constant></link></para></listitem>
+ 		</itemizedlist>
+-		<para>The Rolloff of 0.15 (ROLLOFF_15) is assumed, as ITU-T J.83 Annex A is more common. For Annex C, rolloff should be 0.13 (ROLLOFF_13). All other values are invalid.</para>
+ 	</section>
+ 	<section id="dvbc-annex-b-params">
+ 		<title>DVB-C Annex B delivery system</title>
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 61407ea..28d7ea5 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -45,8 +45,8 @@ transmission. The fontend types are given by fe_type_t type, defined as:</para>
+   </row>
+   <row>
+      <entry id="FE_QAM"><constant>FE_QAM</constant></entry>
+-     <entry>For DVB-C annex A/C standard</entry>
+-     <entry><constant>SYS_DVBC_ANNEX_AC</constant></entry>
++     <entry>For DVB-C annex A standard</entry>
++     <entry><constant>SYS_DVBC_ANNEX_A</constant></entry>
+   </row>
+   <row>
+      <entry id="FE_OFDM"><constant>FE_OFDM</constant></entry>
+-- 
+1.7.8
 
-> You should remind that, by remote, this could mean a
-> cross-ethernet
-> connection dedicated to it or a 20,000 Km far away machine, using
-> satellite links.
-> 
-> When you put someone via the network, issues like latency,  package
-> drops, IP
-> congestion, QoS issues, cryptography, tunneling, etc should be taken
-> into account
-> by the application, in order to properly address the network issues.
-
-Are you serious? Lower networking layers should be transparent to the
-upper layers. You don't implement VPN or say TCP in all of your
-applications, do you? These are just some more made-up arguments which
-don't have anything to do with the use cases I explained earlier.
-
-> Those network-specific issues affect applications badly, if they're not
-> prepared to
-> handle with that, and if the used protocol is not adequate. It is not
-> for a reason that
-> there are lots of different protocols designed for streaming broadcast,
-> and a lot of
-> money is spent on improving it.
-
-(*) DVB isn't local either. It's using broadcast media after all. It's
-designed to cope with packet loss and includes relative decoding and
-presentation time stamps in its media payloads. Although DVB specifies
-some minimal repetition rates for repeatedly sent data, real life
-applications need to handle much lower repetition rates anyway (i.e.
-higher timeouts), in order to cope with individual settings of
-broadcasters trying to save some bandwidth in their multiplexes. Real
-life applications also need to handle high timeouts due to possible
-packet loss, especially in satellite and terrestrial networks.
-
-However, the TS transport between the client and server components may
-very well use one of the protocols you're referring to, yes.
-
-> Can you warrant that 100% of DVB applications you claimed to support
-> will work well
-> if a high latency network with a few satellite links is used, even if it
-> has enough
-> bandwidth)? If you think so, a typical satellite latency is 240 ms per
-> link, in
-> the best case [1]. A round trip takes twice this time.
-> 
-> So, a 10 GB connection with just one satellite link would mean about 480
-> ms of round trip.
-
-Again, are you serious? Virtually all users I expect will use their
-local network and you're using a satellite link as an example to explain
-why you think it's going to suck for everybody? I don't know anybody
-who's voluntarily using a satellite link for his internet connection.
-Roundtrip time in my LAN is about 0.25 ms, which is 1/1920th of your
-"typical" example.
-
-I also don't understand how your 10 GB (sic!) of bandwidth come into
-play, if only few MBit/s are required to transfer a DVB video service
-(or few KBit/s for audio or data). You're suggesting high bandwidth
-usage to uninformed readers, where maybe only few bytes are to be
-transferred.
-
-You're suggesting that this project is still a theory, but it's already
-there and it's already in use by many people, who are happy with it. So
-latency can't be such a big problem as you're trying to point out.
-
-Regarding increased latency for ioctls: The Linux DVB API doesn't
-specifiy any time frames within which ioctls must return. Most ioctls
-are known to block, the few others handle non-blocking mode. Adding some
-ms delay for the network transfer really is no problem at all.
-
-Regarding the asynchronous nature of networking: USB transfers are
-asynchronous too, but USB tuners work well using in-kernel drivers. The
-usbip even combines both asynchronous worlds. Oh wait, usbip already
-resides in staging. How come?
-
-[stripped off-topic latency calculations for satellite IP networks]
-
-> On the other hand, a solution like the one described by Florian would
-> introduce a delay of
-> 480 ms for the entire scan to happen, as only one data packet would be
-> needed to send a
-> scan request, and one one stream of packets traveling at 10GB/s would
-> bring the answer
-> back.
-
-What you didn't take into account: Whatever you'll try to do
-interactively over a satellite link (or even over most 3G connections),
-it sucks. Florian's solution won't be an exemption, no matter how it's
-implemented.
-
-Have you ever tried SSH over a satellite link? It sucks. Does SSH suck
-because of that? Rather not.
-
-> Note: even links without satellite may suffer high delays. The delay
-> introduced by an USB
-> modem for a 3G data connection is probably high enough to cause
-> applications like w_scan
-> to fail.
-> 
-> Your approach for sure works on your network scenario, but it is a very
-> sensitive to network
-> issues, as applications have no idea about the network connection, and
-> would do the wrong
-> thing when a network error occurs.
-
-There's no difference between network errors in this case and USB
-errors/disconnects in the case of USB tuners.
-
-> What I'm saying you is that the proper way to address it is to create a
-> library that would
-> abstract the DVB operations (scan, tuning, filtering, ...) into a way
-> that it could
-> be called either locally or remotely. Then, work with userspace
-> developers to support it.
-> 
-> As I said before, all network-based audio/video stream solutions work
-> this way. They don't
-> try to hide themselves by emulating a local device, as this don't work
-> in a general case.
-> 
-> If you succeed to create a clean, properly written DVB library that
-> would work fine for
-> remote devices, I'm sure you will be able to convince most application
-> maintainers to use it.
-
-Unfortunately, you still wouldn't have solved the issue vtunerc is
-trying to solve, if you built such a library and included it in szap et al.
-
-Regards,
-Andreas
