@@ -1,80 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:39415 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753840Ab1LNOmt (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:46740 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752656Ab1LSVpo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 09:42:49 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LW700F2S7JBB270@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Dec 2011 14:42:47 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LW700K2F7JBR9@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Dec 2011 14:42:47 +0000 (GMT)
-Date: Wed, 14 Dec 2011 15:42:41 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH/RFC v4 0/2] Add new V4L2_CID_ALPHA_COMPONENT control
-In-reply-to: <4EE8A5D6.4030408@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	m.szyprowski@samsung.com, jonghun.han@samsung.com,
-	riverful.kim@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Message-id: <1323873763-4491-1-git-send-email-s.nawrocki@samsung.com>
-References: <4EE8A5D6.4030408@samsung.com>
+	Mon, 19 Dec 2011 16:45:44 -0500
+Date: Mon, 19 Dec 2011 23:43:32 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: martin@neutronstar.dyndns.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Marek Vasut <marek.vasut@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3] v4l: Add driver for Micron MT9M032 camera sensor
+Message-ID: <20111219214332.GM3677@valkosipuli.localdomain>
+References: <1323825633-10543-1-git-send-email-martin@neutronstar.dyndns.org>
+ <201112140255.31937.marek.vasut@gmail.com>
+ <1323846842.756509.13592@localhost>
+ <201112141449.05926.laurent.pinchart@ideasonboard.com>
+ <1323889126.283763.19222@localhost>
+ <20111214221113.GB3677@valkosipuli.localdomain>
+ <1324115451.942577.4988@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1324115451.942577.4988@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Martin,
 
-This changeset adds new V4L2_CID_ALPHA_COMPONENT control allowing to configure 
-an alpha component of all pixels on the video capture device or on capture queue 
-of a mem-to-mem device. This is meant for devices that allow to set a per-pixel
-alpha at the pipeline output to a desired value and where the input alpha component 
-doesn't influence the output alpha value.
+On Sat, Dec 17, 2011 at 10:50:51AM +0100, martin@neutronstar.dyndns.org wrote:
+> On Thu, Dec 15, 2011 at 12:11:13AM +0200, Sakari Ailus wrote:
+> > Hi Martin,
+> > 
+> > On Wed, Dec 14, 2011 at 07:58:45PM +0100, martin@neutronstar.dyndns.org wrote:
+> > ...
+> > > > > > > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
+> > > > > > > +{
+> > > > > > > +	struct mt9m032_platform_data* pdata = sensor->pdata;
+> > > > > > > +	u16 reg_pll1;
+> > > > > > > +	unsigned int pre_div;
+> > > > > > > +	int res, ret;
+> > > > > > > +
+> > > > > > > +	/* TODO: also support other pre-div values */
+> > > > 
+> > > > I might already have mentioned this, but wouldn't it be time to work a on real 
+> > > > PLL setup code that compute the pre-divisor, multiplier and output divisor 
+> > > > dynamically from the input and output clock frequencies ?
+> > > 
+> > > I'm not sure what the implications for quality and stability of such a
+> > > generic setup would be. My gut feeling is most users go with known working
+> > > hardcoded values.
+> > 
+> > You'd get a lot better control of the sensor as a bonus in doing so. Also,
+> > you could program the sensor properly suitable for the host it is connected
+> > to, achieving optimal maximum frame rates for it.
+> > 
+> > These values tend to be relatively board / bridge dependent. On one board
+> > some frequencies might not be usable even if they do not exceed the maximum
+> > for the bridge.
+> 
+> Yes, that's why i have exported almost all of the pll details i'm reasonanly sure
+> that they are settable in the platform data. I think this gives maximum
+> flexibility in the board configuration. Maybe something with less values to fiddle
+> with in the normal case would be better. But not really by a large amount.
 
-The second patch adds the control to s5p-fimc video capture and mem-to-mem driver.
+I originally thought it was part of the driver; that's how it is in most of
+the drivers currently. But these values also depend on the use cases, how
+you want to use the sensor essentially.
 
-This changset also does a minor cleanup at the user controls DocBook chapter.
+A concrete example is the OMAP 3 ISP. The CSI-2 receiver's speed is 200 Mp/s
+while the rest of the ISP is only 100 Mp/s. Capturing a high-resolution
+still photo is best done by reading the sensor's pixel array as fast as
+possible --- 200 Mp/s.
 
-Changes since v3:
-  - update the alpha control maximum value manually in the driver rather than
-    adding support for this in v4l core
+Such images must be then processed through the ISP from memory to memory.
 
-Changes since v2:
-  - removed limitation of maximum value for the V4L2_CID_ALPHA_COMPONENT control 
-    to 0xff in v4l core
-  - the driver now uses function v4l2_ctrl_update_range() for the control range 
-    update according to selected colour format
+> static struct mt9m032_platform_data mt9m032_platform_data = {
+> 	.ext_clock = 13500000,
+> 	.pll_pre_div = 6,
+> 	.pll_mul = 120,
+> 	.pll_out_div = 5,
+> 	.invert_pixclock = 1,
+> };
+> 
+> I think what Laurent was talking about was moving to a setup where the
+> board doesn't need to specify the exact details. i.e. have pll_pre_div,
+> pll_mul and pll_out_div rolled into one. I'm not sure that's something
+> that should be done.
 
-Changes since v1:
- - rename V4L2_CID_COLOR_ALPHA to V4L2_CID_ALPHA_COMPONENT,
- - the documentation improvements.
+Consider the above example. The answer is "yes". Still, the user should not
+have to deal with the internal clock tree of the hardware, and I don't see a
+reason why it would be needed.
 
+> And this driver does feel like it had it's share of tracking in development
+> interfaces.
+> 
+> > 
+> > Please also see this:
+> > 
+> > <URL:http://www.mail-archive.com/linux-media@vger.kernel.org/msg39798.html>
+> 
+> Sounds sensible for the future. But let's not hold this driver until
+> agreement is reached about the details?
 
-Sylwester Nawrocki (2):
-  v4l: Add new alpha component control
-  s5p-fimc: Add support for alpha component configuration
+I assume the spec is public for this sensor? Albeit specifying the PLL
+configuration in the platform data is not ideal, it is still indefinitely
+better than specifying it in the driver itself.
 
- Documentation/DocBook/media/v4l/compat.xml         |   11 ++
- Documentation/DocBook/media/v4l/controls.xml       |   25 +++-
- .../DocBook/media/v4l/pixfmt-packed-rgb.xml        |    7 +-
- drivers/media/video/s5p-fimc/fimc-capture.c        |   11 ++
- drivers/media/video/s5p-fimc/fimc-core.c           |  128 ++++++++++++++++----
- drivers/media/video/s5p-fimc/fimc-core.h           |   30 ++++-
- drivers/media/video/s5p-fimc/fimc-reg.c            |   53 ++++++--
- drivers/media/video/s5p-fimc/regs-fimc.h           |    5 +
- drivers/media/video/v4l2-ctrls.c                   |    1 +
- include/linux/videodev2.h                          |    6 +-
- 10 files changed, 224 insertions(+), 53 deletions(-)
+Calculating the PLL parameters based on higher level concept of link
+frequency would still be preferred, I think. It can be done now, even if the
+link frequency isn't currently selectable by the user.
+
+Regards,
 
 -- 
-1.7.8
-
---
-Regards,
-Sylwester
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
