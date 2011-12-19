@@ -1,43 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45997 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753195Ab1LVQpp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 11:45:45 -0500
-Message-ID: <4EF35EB5.5010700@iki.fi>
-Date: Thu, 22 Dec 2011 18:45:41 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from casper.infradead.org ([85.118.1.10]:44098 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751096Ab1LSQbJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Dec 2011 11:31:09 -0500
+Message-ID: <4EEF66C2.7030003@infradead.org>
+Date: Mon, 19 Dec 2011 14:30:58 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-Subject: Re: which is correct name DTMB or CTTB?
-References: <4EF1ACA3.8080808@iki.fi>
-In-Reply-To: <4EF1ACA3.8080808@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: javier Martin <javier.martin@vista-silicon.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <201112191105.25855.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112191113230.23694@axis700.grange> <201112191120.40084.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112191139560.23694@axis700.grange> <CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com> <Pine.LNX.4.64.1112191155340.23694@axis700.grange> <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com>
+In-Reply-To: <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/21/2011 11:53 AM, Antti Palosaari wrote:
-> I am adding DTMB/CTTB support for the Linux Kernel DVB API. Do anyone
-> have clear idea which correct name?
->
-> Background of that discussion can be found from the following patch:
-> http://patchwork.linuxtv.org/patch/8827/
+On 19-12-2011 09:25, javier Martin wrote:
+> On 19 December 2011 11:58, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+>> On Mon, 19 Dec 2011, javier Martin wrote:
+>>
+>>> On 19 December 2011 11:41, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+>>>> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+>>>>
+>>>>> Hi Guennadi,
+>>>>>
+>>>>> On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
+>>>>>> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+>>>>>>> On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
+>>>>>>>> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+>>>>>>>>> On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
+>>>>>>>>>> On Fri, 16 Dec 2011, Scott Jiang wrote:
+>>>>>>>>>>>>> How about this implementation? I know it's not for soc, but I
+>>>>>>>>>>>>> post it to give my idea.
+>>>>>>>>>>>>> Bridge knows the layout, so it doesn't need to query the
+>>>>>>>>>>>>> subdevice.
+>>>>>>>>>>>>
+>>>>>>>>>>>> Where from? AFAIU, we are talking here about subdevice inputs,
+>>>>>>>>>>>> right? In this case about various inputs of the TV decoder. How
+>>>>>>>>>>>> shall the bridge driver know about that?
+>>>>>>>>>>>
+>>>>>>>>>>> I have asked this question before. Laurent reply me:
+>>>>>>>>>>>>>> ENUMINPUT as defined by V4L2 enumerates input connectors
+>>>>>>>>>>>>>> available on the board. Which inputs the board designer
+>>>>>>>>>>>>>> hooked up is something that only the top-level V4L driver
+>>>>>>>>>>>>>> will know. Subdevices do not have that information, so
+>>>>>>>>>>>>>> enuminputs is not applicable there.
+>>>>>>>>>>>>>>
+>>>>>>>>>>>>>> Of course, subdevices do have input pins and output pins,
+>>>>>>>>>>>>>> but these are assumed to be fixed. With the s_routing ops
+>>>>>>>>>>>>>> the top level driver selects which input and output pins
+>>>>>>>>>>>>>> are active. Enumeration of those inputs and outputs
+>>>>>>>>>>>>>> wouldn't gain you anything as far as I can tell since the
+>>>>>>>>>>>>>> subdevice simply does not know which inputs/outputs are
+>>>>>>>>>>>>>> actually hooked up. It's the top level driver that has that
+>>>>>>>>>>>>>> information (usually passed in through board/card info
+>>>>>>>>>>>>>> structures).
+>>>>>>>>>>
+>>>>>>>>>> Laurent, right, I now remember reading this discussion before. But
+>>>>>>>>>> I'm not sure I completely agree:-) Yes, you're right - the board
+>>>>>>>>>> decides which pins are routed to which connectors. And it has to
+>>>>>>>>>> provide this information to the driver in its platform data. But -
+>>>>>>>>>> I think, this information should be provided not to the bridge
+>>>>>>>>>> driver, but to respective subdevice drivers, because only they
+>>>>>>>>>> know what exactly those interfaces are good for and how to report
+>>>>>>>>>> them to the bridge or the user, if we decide to also export this
+>>>>>>>>>> information over the subdevice user-space API.
+>>>>>>>>>>
+>>>>>>>>>> So, I would say, the board has to tell the subdevice driver: yes,
+>>>>>>>>>> your inputs 0 and 1 are routed to external connectors. On input 1
+>>>>>>>>>> I've put a pullup, it is connected to connector of type X over a
+>>>>>>>>>> circuit Y, clocked from your output Z, if the driver needs to know
+>>>>>>>>>> all that. And the subdev driver will just tell the bridge only
+>>>>>>>>>> what that one needs to know - number of inputs and their
+>>>>>>>>>> capabilities.
+>>>>>>>>>
+>>>>>>>>> That sounds reasonable.
+>>>>>>>>
+>>>>>>>> Good, this would mean, we need additional subdevice operations along
+>>>>>>>> the lines of enum_input and enum_output, and maybe also g_input and
+>>>>>>>> g_output?
+>>>>>>>
+>>>>>>> What about implementing pad support in the subdevice ? Input enumeration
+>>>>>>> could then be performed without a subdev operation.
+>>>>>>
+>>>>>> soc-camera doesn't support pad operations yet.
+>>>>>
+>>>>> soc-camera doesn't support enum_input yet either, so you need to implement
+>>>>> something anyway ;-)
+>>>>>
+>>>>> You wouldn't need to call a pad operation here, you would just need to iterate
+>>>>> through the pads provided by the subdev.
+>>>>
+>>>> tvp5150 doesn't implement it either yet. So, I would say, it is a better
+>>>> solution ATM to fix this functionality independent of the pad-level API.
+>>>
+>>> I agree,
+>>> I cannot contribute to implement pad-level API stuff since I can't
+>>> test it with tvp5150.
+>>>
+>>> Would you accept a patch implementing only S_INPUT?
+>>
+>> Sorry, maybe I'm missing something, but how would it work? I mean, how can
+>> we accept from the user any S_INPUT request with index != 0, if we always
+>> return only 0 in reply to ENUM_INPUT? Ok, G_INPUT we could implement
+>> internally in soc-camera: return 0 by default, then remember last set
+>> input number per soc-camera device / subdev. But ENUM_INPUT?...
+> 
+> It clearly is not a complete solution but at least it allows setting
+> input 0 in broken drivers such as tvp5150 which have input 1 enabled
+> by default, while soc-camera assumes input 0 is enabled.
 
-There is already defined delivery system SYS_DMBTH. It have been from 
-the time S2API was introduced coming from the patch: 
-6b73eeafbc856c0cef7166242f0e55403407f355
+If you're willing to implement it via s_input, you should really implement
+g_input and enum_input.
 
-include/linux/dvb/frontend.h
+If you'll otherwise implement it via PAD, I'll need to analyze it better,
+by the time you'll be submitting the libv4l plugin that will convert G_INPUT,
+S_INPUT, ENUM_INPUT ioctl's into pad calls.
 
-Should I change that name? Or introduce new names using define? Or just 
-leave it as it is. No single driver is using that because all existing 
-DTMB/CTTB/DMB-TH drivers are abusing DVB-T...
+Regards,
+Mauro
 
-I still think it is rather safe to change better one, there is likely no 
-user space apps using that yet...
-
-regards
-Antti
--- 
-http://palosaari.fi/
