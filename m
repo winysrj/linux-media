@@ -1,67 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:48684 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752479Ab1LDAOH convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2011 19:14:07 -0500
+Received: from moutng.kundenserver.de ([212.227.126.187]:61308 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751821Ab1LSK6V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Dec 2011 05:58:21 -0500
+Date: Mon, 19 Dec 2011 11:58:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1112191155340.23694@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+ <201112191105.25855.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1112191113230.23694@axis700.grange>
+ <201112191120.40084.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1112191139560.23694@axis700.grange>
+ <CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <aff8302dd6c3eb047c39d3a2d1fd2382@mail.eetvelt.be>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-	<4ED6C5B8.8040803@linuxtv.org>
-	<4ED75F53.30709@redhat.com>
-	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
-	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
-	<4EDA4AB4.90303@linuxtv.org>
-	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-	<aff8302dd6c3eb047c39d3a2d1fd2382@mail.eetvelt.be>
-Date: Sat, 3 Dec 2011 16:14:06 -0800
-Message-ID: <CAA7C2qgz1GYhVwXwiO5dt09+Mv0719tfCBmK7ud07RZ2VDNxTw@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-From: VDR User <user.vdr@gmail.com>
-To: Walter Van Eetvelt <walter@van.eetvelt.be>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 3, 2011 at 3:30 PM, Walter Van Eetvelt
-<walter@van.eetvelt.be> wrote:
->> So you could finally use VDR as a server/client setup using vtuner,
->> right? With full OSD, timer, etc? Yes, I'm aware that streamdev
->> exists. It was horrible when I tried it last (a long time ago) and I
->> understand it's gotten better. But it's not a suitable replacement for
->> a real server/client setup. It sounds like using vtuner, this would
->> finally be possible and since Klaus has no intention of ever
->> modernizing VDR into server/client (that I'm aware of), it's also the
->> only suitable option as well.
->>
->> Or am I wrong about anything?  If not, I know several users who would
->> like to use this, myself included.
->
-> This is the question on how you provide (live)tv content to multiple users
-> and devices.
-> And I think this goes beyond the simple "second PC in the house" where you
-> want to watch TV or recordings.  How can you watch streams from your DVB
-> device on your small screen Mobile phone/tablet?  Or stream over the
-> internet and watch your last night recording when commuting in the train?
-> Some commercial solutions are already available for some scenario's.  Also
-> free software solutions support for some scenario's, but I think still too
-> limited.
->
-> With that in mind, for me the future is for a client server combination
-> that can do proper live TV and recording streaming.
-> And technically, a virtual driver is not bringing better user experience
-> in the long term I think.  On the contrary, some users would use the
-> vtunerc to fill in some of their needs.  This could bring developers to
-> work less on client/server application supporting a broader range of use
-> cases.
+On Mon, 19 Dec 2011, javier Martin wrote:
 
-While I agree with your more broad view of the issue, I specifically
-talked about VDR.  AFAIK Klaus has no intention of adding true
-server/client support to VDR, so for VDR users, this sounds like it
-could be a working solution without the strict limitations of
-streamdev.
+> On 19 December 2011 11:41, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+> >
+> >> Hi Guennadi,
+> >>
+> >> On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
+> >> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+> >> > > On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
+> >> > > > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+> >> > > > > On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
+> >> > > > > > On Fri, 16 Dec 2011, Scott Jiang wrote:
+> >> > > > > > > >> How about this implementation? I know it's not for soc, but I
+> >> > > > > > > >> post it to give my idea.
+> >> > > > > > > >> Bridge knows the layout, so it doesn't need to query the
+> >> > > > > > > >> subdevice.
+> >> > > > > > > >
+> >> > > > > > > > Where from? AFAIU, we are talking here about subdevice inputs,
+> >> > > > > > > > right? In this case about various inputs of the TV decoder. How
+> >> > > > > > > > shall the bridge driver know about that?
+> >> > > > > > >
+> >> > > > > > > I have asked this question before. Laurent reply me:
+> >> > > > > > > > >> ENUMINPUT as defined by V4L2 enumerates input connectors
+> >> > > > > > > > >> available on the board. Which inputs the board designer
+> >> > > > > > > > >> hooked up is something that only the top-level V4L driver
+> >> > > > > > > > >> will know. Subdevices do not have that information, so
+> >> > > > > > > > >> enuminputs is not applicable there.
+> >> > > > > > > > >>
+> >> > > > > > > > >> Of course, subdevices do have input pins and output pins,
+> >> > > > > > > > >> but these are assumed to be fixed. With the s_routing ops
+> >> > > > > > > > >> the top level driver selects which input and output pins
+> >> > > > > > > > >> are active. Enumeration of those inputs and outputs
+> >> > > > > > > > >> wouldn't gain you anything as far as I can tell since the
+> >> > > > > > > > >> subdevice simply does not know which inputs/outputs are
+> >> > > > > > > > >> actually hooked up. It's the top level driver that has that
+> >> > > > > > > > >> information (usually passed in through board/card info
+> >> > > > > > > > >> structures).
+> >> > > > > >
+> >> > > > > > Laurent, right, I now remember reading this discussion before. But
+> >> > > > > > I'm not sure I completely agree:-) Yes, you're right - the board
+> >> > > > > > decides which pins are routed to which connectors. And it has to
+> >> > > > > > provide this information to the driver in its platform data. But -
+> >> > > > > > I think, this information should be provided not to the bridge
+> >> > > > > > driver, but to respective subdevice drivers, because only they
+> >> > > > > > know what exactly those interfaces are good for and how to report
+> >> > > > > > them to the bridge or the user, if we decide to also export this
+> >> > > > > > information over the subdevice user-space API.
+> >> > > > > >
+> >> > > > > > So, I would say, the board has to tell the subdevice driver: yes,
+> >> > > > > > your inputs 0 and 1 are routed to external connectors. On input 1
+> >> > > > > > I've put a pullup, it is connected to connector of type X over a
+> >> > > > > > circuit Y, clocked from your output Z, if the driver needs to know
+> >> > > > > > all that. And the subdev driver will just tell the bridge only
+> >> > > > > > what that one needs to know - number of inputs and their
+> >> > > > > > capabilities.
+> >> > > > >
+> >> > > > > That sounds reasonable.
+> >> > > >
+> >> > > > Good, this would mean, we need additional subdevice operations along
+> >> > > > the lines of enum_input and enum_output, and maybe also g_input and
+> >> > > > g_output?
+> >> > >
+> >> > > What about implementing pad support in the subdevice ? Input enumeration
+> >> > > could then be performed without a subdev operation.
+> >> >
+> >> > soc-camera doesn't support pad operations yet.
+> >>
+> >> soc-camera doesn't support enum_input yet either, so you need to implement
+> >> something anyway ;-)
+> >>
+> >> You wouldn't need to call a pad operation here, you would just need to iterate
+> >> through the pads provided by the subdev.
+> >
+> > tvp5150 doesn't implement it either yet. So, I would say, it is a better
+> > solution ATM to fix this functionality independent of the pad-level API.
+> 
+> I agree,
+> I cannot contribute to implement pad-level API stuff since I can't
+> test it with tvp5150.
+> 
+> Would you accept a patch implementing only S_INPUT?
+
+Sorry, maybe I'm missing something, but how would it work? I mean, how can 
+we accept from the user any S_INPUT request with index != 0, if we always 
+return only 0 in reply to ENUM_INPUT? Ok, G_INPUT we could implement 
+internally in soc-camera: return 0 by default, then remember last set 
+input number per soc-camera device / subdev. But ENUM_INPUT?...
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
