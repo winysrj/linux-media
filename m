@@ -1,49 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53051 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41369 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751451Ab1LSKF7 (ORCPT
+	with ESMTP id S1751691Ab1LSKbV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 05:05:59 -0500
+	Mon, 19 Dec 2011 05:31:21 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-Date: Mon, 19 Dec 2011 11:06:00 +0100
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <201112190151.40165.laurent.pinchart@ideasonboard.com> <CACKLOr3rTsiPsYK-hQBMo0wfHRqTNO95jdhXivvx6KUdCJBnnA@mail.gmail.com>
-In-Reply-To: <CACKLOr3rTsiPsYK-hQBMo0wfHRqTNO95jdhXivvx6KUdCJBnnA@mail.gmail.com>
+To: "Zhu, Mingcheng" <mingchen@quicinc.com>
+Subject: Re: query video dev node name using the V4L2 device driver name
+Date: Mon, 19 Dec 2011 11:31:22 +0100
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20111215095015.GC3677@valkosipuli.localdomain> <20111219071723.GL3677@valkosipuli.localdomain> <3D233F78EE854A4BA3D34C11AD4FAC1FDEF5E3@nasanexd01b.na.qualcomm.com>
+In-Reply-To: <3D233F78EE854A4BA3D34C11AD4FAC1FDEF5E3@nasanexd01b.na.qualcomm.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112191106.01276.laurent.pinchart@ideasonboard.com>
+Message-Id: <201112191131.23195.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+Hi Mingcheng,
 
-On Monday 19 December 2011 08:44:58 javier Martin wrote:
-> Hi,
-> thank you for your comments.
+On Monday 19 December 2011 11:21:03 Zhu, Mingcheng wrote:
+> Hi Laurent and Sakari,
 > 
-> Let me try to summarize the conclusions we've agreed here:
-> 1.- soc-camera can support S_INPUT as long as I provide backwards
-> compatibility in case subdev does not support s_routing (i.e. I must
-> resend my patch returning input 0 in case s_routing is not supported).
+> Current media entity contains a few fields to identify a dev node (name,
+> type, group_id). The entity name is the v4l2 dev node name such as
+> "/dev/video0" "/dev/video1". There is no information who is "/dev/video0"
+> and who is /dev/video1". This makes that, after query the media_entity the
+> application still could not figure out who is /dev/video1".
 
-Yes. As Guennadi pointed out, we also need to support input enumeration. One 
-possible solution for that is pad support in the subdev.
+The media controller framework sets the video devnode entities names to the 
+video device name, as provided in the video_device name field. That's 
+automatic, so you should just ensure that your video_device name is properly 
+set.
 
-> 2.- Board specific code must tell the subdevice which inputs are
-> really connected and how through platform data.
+> However in V4L2 devices, there is a driver name that the vendor can assign
+> a specific name such "WIFI CAPTURE" or BACK_CAMERA" to the driver name. Is
+> it possible to add the driver name into the media_entity? This makes that,
+> if the userspace application knows the driver name it can use the driver
+> name to find the dev node.
 
-That's right. Please make sure that platform data only use static data and no 
-callback function if possible, to make the transition to the device tree 
-easier.
-
-> Is that OK?
+Using the driver name isn't optimal, as a driver could create several video 
+device nodes for the same hardware device. Those nodes should have different 
+names, so you should use the video_device name field as explained above.
 
 -- 
 Regards,
