@@ -1,116 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pop1-levy.go180.net ([216.229.186.150]:51629 "EHLO
-	mail.my180.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751744Ab1L3VEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 16:04:45 -0500
-From: Reuben Stokes <okonomiyakisan@gohighspeed.com>
-To: Gareth Williams <gareth@garethwilliams.me.uk>,
-	linux-media@vger.kernel.org
-Subject: Re: em28xx: new board id [eb1a:5051]
-Date: Fri, 30 Dec 2011 05:04:46 -0800
-References: <201112291513.16680.okonomiyakisan@gohighspeed.com> <1325239295.17039.2.camel@mint>
-In-Reply-To: <1325239295.17039.2.camel@mint>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53051 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751451Ab1LSKF7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Dec 2011 05:05:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+Date: Mon, 19 Dec 2011 11:06:00 +0100
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <201112190151.40165.laurent.pinchart@ideasonboard.com> <CACKLOr3rTsiPsYK-hQBMo0wfHRqTNO95jdhXivvx6KUdCJBnnA@mail.gmail.com>
+In-Reply-To: <CACKLOr3rTsiPsYK-hQBMo0wfHRqTNO95jdhXivvx6KUdCJBnnA@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112300504.46944.okonomiyakisan@gohighspeed.com>
+Message-Id: <201112191106.01276.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 30 December 2011 02:01:35 you wrote:
-> On Thu, 2011-12-29 at 15:13 -0800, Reuben Stokes wrote:
-> > Hi,
-> > 
-> > Not nearly as linux-savvy as most of the users here, but I attempted to operate a "Raygo USB Video Recorder" (audio/video capture device). Don't know if my efforts qualify as a "test".
-> > 
-> > 
-> > Model Number: 
-> > R12-41373
-> > 
-> > Display name: 
-> > USB 2861 Device
-> > 
-> > lsusb: 
-> > Bus 001 Device 002: ID eb1a:5051 eMPIA Technology, Inc. 
-> > 
-> > dmesg:
-> > [ 7182.076058] usb 1-1: new high speed USB device using ehci_hcd and address 3
-> > [ 7182.212702] usb 1-1: New USB device found, idVendor=eb1a, idProduct=5051
-> > [ 7182.212714] usb 1-1: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-> > [ 7182.212723] usb 1-1: Product: USB 2861 Device
-> > [ 7182.212729] usb 1-1: SerialNumber: 0
-> > 
-> > System:
-> > HP Pavilion dv6910 laptop
-> > AMD Turion X2 CPU (64 bit)
-> > Mepis 11; 64 bit( based on Debian Squeeze)
-> > 
-> > 
-> > Tried
-> > -------
-> > * Installed em28xx drivers using instructions found at linuxtv.org.
-> >   I note however that this particular vendor/product ID is not validated in the em28xx devices list.
-> > * As new drivers do not automatically load, I use command: modprobe em28xx
-> >    After this "modprobe -l | grep em28xx" yields
-> >         kernel/drivers/media/video/em28xx/em28xx-alsa.ko
-> >         kernel/drivers/media/video/em28xx/em28xx.ko
-> >         kernel/drivers/media/video/em28xx/em28xx-dvb.ko
-> > * Device comes with a driver CD for Windows which does work in Windows.
-> > 
-> > End result is the device is not recognized as a capture device option in any software tried including vlc, cheese, guvcview, kdenlive.
-> > 
-> > Any help getting this to work in Linux would be appreciated as it completely sucks in my bloated, memory-hogging, 32-bit Windows Vista.
-> > 
-> > Reuben <okonomiyakisan@gohighspeed.com>
-> > --
-> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > the body of a message to majordomo@vger.kernel.org
-> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> Reuben,
-> 
-> If you're willing, then open up the device and see what the chips within
-> are.  You believe it's em28xx based, but there may well be additional
-> devices in there for audio and video.
-> 
-> Once you've found out what's inside it will be easier to get it working.
-> It may be as simple as getting the driver to recognise the USB Vendor ID
-> or it may require much more work.
-> 
-> Regards,
-> 
-> Gareth
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Hi Javier,
 
-Thank you very much for the response.
+On Monday 19 December 2011 08:44:58 javier Martin wrote:
+> Hi,
+> thank you for your comments.
+> 
+> Let me try to summarize the conclusions we've agreed here:
+> 1.- soc-camera can support S_INPUT as long as I provide backwards
+> compatibility in case subdev does not support s_routing (i.e. I must
+> resend my patch returning input 0 in case s_routing is not supported).
 
-Okay, opening it was easier than first suspected. 
+Yes. As Guennadi pointed out, we also need to support input enumeration. One 
+possible solution for that is pad support in the subdev.
 
-The main (biggest) chip reads with nice big letters and a logo:
-eMPIA
-EM2860
-P86J3-011
-201047-01AG
+> 2.- Board specific code must tell the subdevice which inputs are
+> really connected and how through platform data.
 
-Less useful information inlcudes:
+That's right. Please make sure that platform data only use static data and no 
+callback function if possible, to make the transition to the device tree 
+easier.
 
-A smaller chip on the flip side of the circuit board, in letters visible only through a magnifying glass, reads:
-eMPIA
-TECHNOLOGY
-EMP202
-T10164
-1052
+> Is that OK?
 
-The circuit board itself is stamped:
-PM22860-2GOB
+-- 
+Regards,
 
-Again, thank you.
-
-Reuben
+Laurent Pinchart
