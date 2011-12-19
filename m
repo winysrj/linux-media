@@ -1,79 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:55966 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932984Ab1LFIMI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 03:12:08 -0500
-Date: Tue, 6 Dec 2011 09:12:00 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Stefan Ringel <linuxtv@stefanringel.de>,
-	linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 3/5] tm6000: bugfix interrupt reset
-Message-ID: <20111206081200.GA8756@avionic-0098.mockup.avionic-design.de>
-References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
- <1322509580-14460-3-git-send-email-linuxtv@stefanringel.de>
- <20111205072131.GB7341@avionic-0098.mockup.avionic-design.de>
- <4EDCB33E.8090100@redhat.com>
- <20111205153800.GA32512@avionic-0098.mockup.avionic-design.de>
- <4EDD0BBF.3020804@redhat.com>
- <4EDD235A.9000100@stefanringel.de>
- <4EDD268E.9010603@redhat.com>
- <20111206065119.GA26724@avionic-0098.mockup.avionic-design.de>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51580 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477Ab1LSR3U (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Dec 2011 12:29:20 -0500
+Received: from lancelot.localnet (unknown [91.178.121.111])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8922635995
+	for <linux-media@vger.kernel.org>; Mon, 19 Dec 2011 17:29:19 +0000 (UTC)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.2] OMAP3 ISP fix
+Date: Mon, 19 Dec 2011 18:29:19 +0100
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="T4sUOijqQbZv57TR"
-Content-Disposition: inline
-In-Reply-To: <20111206065119.GA26724@avionic-0098.mockup.avionic-design.de>
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112191829.21037.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
---T4sUOijqQbZv57TR
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Here's the patch we've discussed today, based on top of your latest pull 
+request.
 
-* Thierry Reding wrote:
-> * Mauro Carvalho Chehab wrote:
-> > That means that all we need is to get rid of TM6000_QUIRK_NO_USB_DELAY.
->=20
-> I've just reviewed my patches again and it seems that no-USB-delay quirk
-> patch was only partially applied. The actual location where it was introd=
-uced
-> was in tm6000_read_write_usb() to allow the msleep(5) to be skipped, whic=
-h on
-> some devices isn't required and significantly speeds up firmware upload. =
-So I
-> don't think we should get rid of it.
->=20
-> If it helps I can rebase the code against your branch (which one would th=
-at
-> be exactly?) and resend the rest of the series.
+The following changes since commit 4b5d8da88e3fab76700e89488a8c65c54facb9a3:
 
-Looking more closely, I think my original patch was applied wrongly. If you
-look at the original patch:
+  Revert "[media] af9015: limit I2C access to keep FW happy" (2011-12-12 
+16:02:15 -0200)
 
-	http://article.gmane.org/gmane.linux.drivers.video-input-infrastructure/37=
-552
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/media.git mauro-next
 
-and look at the applied version in this commit:
+Laurent Pinchart (1):
+      omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
 
-	42845708363fc92a190f5c47e6fe750e3919f867
+ drivers/media/video/omap3isp/ispccdc.c |    2 +-
+ drivers/media/video/omap3isp/ispstat.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Then you see that the hunk from the tm6000_read_write_usb() function was
-applied to the tm6000_reset() function instead.
+-- 
+Regards,
 
-Thierry
-
---T4sUOijqQbZv57TR
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk7dzlAACgkQZ+BJyKLjJp/RcgCgj+nTZMdrHWzLRsk4lzTxsQRr
-lqAAn2yoekaS12SL1nSdaEU9cehw5AoC
-=PrXd
------END PGP SIGNATURE-----
-
---T4sUOijqQbZv57TR--
+Laurent Pinchart
