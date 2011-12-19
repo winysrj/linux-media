@@ -1,82 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:34893 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751284Ab1LKKWh (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:63626 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752143Ab1LSIJk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 05:22:37 -0500
-Message-ID: <4EE48465.9060706@infradead.org>
-Date: Sun, 11 Dec 2011 08:22:29 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
+	Mon, 19 Dec 2011 03:09:40 -0500
+Date: Mon, 19 Dec 2011 09:09:34 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Haogang Chen <haogangchen@gmail.com>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] Media: video: uvc: integer overflow in uvc_ioctl_ctrl_map()
-References: <1322602345-26279-1-git-send-email-haogangchen@gmail.com> <201111300222.42162.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201111300222.42162.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+cc: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <201112190151.40165.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1112190907220.23694@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+ <CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com>
+ <Pine.LNX.4.64.1112161043280.6572@axis700.grange>
+ <201112190151.40165.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29-11-2011 23:22, Laurent Pinchart wrote:
-> Hi Haogang,
->
-> On Tuesday 29 November 2011 22:32:25 Haogang Chen wrote:
->> There is a potential integer overflow in uvc_ioctl_ctrl_map(). When a
->> large xmap->menu_count is passed from the userspace, the subsequent call
->> to kmalloc() will allocate a buffer smaller than expected.
->> map->menu_count and map->menu_info would later be used in a loop (e.g.
->> in uvc_query_v4l2_ctrl), which leads to out-of-bound access.
->>
->> The patch checks the ioctl argument and returns -EINVAL for zero or too
->> large values in xmap->menu_count.
->
-> Thanks for the patch.
+On Mon, 19 Dec 2011, Laurent Pinchart wrote:
 
-I'm assuming that either one of you will re-send the patches with the
-pointed changes, so, I'm marking this one with "changes requested" at
-patchwork.
+> Hi Guennadi,
+> 
+> On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
+> > On Fri, 16 Dec 2011, Scott Jiang wrote:
+> > > >> How about this implementation? I know it's not for soc, but I post it
+> > > >> to give my idea.
+> > > >> Bridge knows the layout, so it doesn't need to query the subdevice.
+> > > > 
+> > > > Where from? AFAIU, we are talking here about subdevice inputs, right?
+> > > > In this case about various inputs of the TV decoder. How shall the
+> > > > bridge driver know about that?
+> > > 
+> > > I have asked this question before. Laurent reply me:
+> > > > >> ENUMINPUT as defined by V4L2 enumerates input connectors available
+> > > > >> on the board. Which inputs the board designer hooked up is
+> > > > >> something that only the top-level V4L driver will know. Subdevices
+> > > > >> do not have that information, so enuminputs is not applicable
+> > > > >> there.
+> > > > >> 
+> > > > >> Of course, subdevices do have input pins and output pins, but these
+> > > > >> are assumed to be fixed. With the s_routing ops the top level
+> > > > >> driver selects which input and output pins are active. Enumeration
+> > > > >> of those inputs and outputs wouldn't gain you anything as far as I
+> > > > >> can tell since the subdevice simply does not know which
+> > > > >> inputs/outputs are actually hooked up. It's the top level driver
+> > > > >> that has that information (usually passed in through board/card
+> > > > >> info structures).
+> > 
+> > Laurent, right, I now remember reading this discussion before. But I'm not
+> > sure I completely agree:-) Yes, you're right - the board decides which
+> > pins are routed to which connectors. And it has to provide this
+> > information to the driver in its platform data. But - I think, this
+> > information should be provided not to the bridge driver, but to respective
+> > subdevice drivers, because only they know what exactly those interfaces
+> > are good for and how to report them to the bridge or the user, if we
+> > decide to also export this information over the subdevice user-space API.
+> > 
+> > So, I would say, the board has to tell the subdevice driver: yes, your
+> > inputs 0 and 1 are routed to external connectors. On input 1 I've put a
+> > pullup, it is connected to connector of type X over a circuit Y, clocked
+> > from your output Z, if the driver needs to know all that. And the subdev
+> > driver will just tell the bridge only what that one needs to know - number
+> > of inputs and their capabilities.
+> 
+> That sounds reasonable.
 
->
->> Signed-off-by: Haogang Chen<haogangchen@gmail.com>
->> ---
->>   drivers/media/video/uvc/uvc_v4l2.c |    6 ++++++
->>   1 files changed, 6 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/video/uvc/uvc_v4l2.c
->> b/drivers/media/video/uvc/uvc_v4l2.c index dadf11f..9a180d6 100644
->> --- a/drivers/media/video/uvc/uvc_v4l2.c
->> +++ b/drivers/media/video/uvc/uvc_v4l2.c
->> @@ -58,6 +58,12 @@ static int uvc_ioctl_ctrl_map(struct uvc_video_chain
->> *chain, break;
->>
->>   	case V4L2_CTRL_TYPE_MENU:
->> +		if (xmap->menu_count == 0 ||
->> +		    xmap->menu_count>  INT_MAX / sizeof(*map->menu_info)) {
->
-> I'd like to prevent excessive memory consumption by limiting the number of
-> menu entries, similarly to how the driver limits the number of mappings.
-> Defining UVC_MAX_CONTROL_MENU_ENTRIES to 32 in uvcvideo.h should be a
-> reasonable value.
->
->> +			kfree(map);
->> +			return -EINVAL;
->
-> I'd rather do
->
-> 	ret = -EINVAL;
-> 	goto done;
->
-> to centralize error handling.
->
-> If you're fine with both changes I can modify the patch, there's no need to
-> resubmit.
->
->> +		}
->> +
->>   		size = xmap->menu_count * sizeof(*map->menu_info);
->>   		map->menu_info = kmalloc(size, GFP_KERNEL);
->>   		if (map->menu_info == NULL) {
->
+Good, this would mean, we need additional subdevice operations along the 
+lines of enum_input and enum_output, and maybe also g_input and g_output?
 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
