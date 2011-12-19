@@ -1,61 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:62249 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751902Ab1LAGXs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 01:23:48 -0500
-Received: from HKADMANY (pdmz-snip-v218.qualcomm.com [192.168.218.1])
-	by mostmsg01.qualcomm.com (Postfix) with ESMTPA id 6E6BC10004D5
-	for <linux-media@vger.kernel.org>; Wed, 30 Nov 2011 22:23:47 -0800 (PST)
-From: "Hamad Kadmany" <hkadmany@codeaurora.org>
-To: <linux-media@vger.kernel.org>
-References: <001101ccae6d$9900b350$cb0219f0$@org>
-In-Reply-To: <001101ccae6d$9900b350$cb0219f0$@org>
-Subject: RE: Support for multiple section feeds with same PIDs
-Date: Thu, 1 Dec 2011 08:23:47 +0200
-Message-ID: <000001ccaff1$cb1cc060$61564120$@org>
+Received: from casper.infradead.org ([85.118.1.10]:44043 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750901Ab1LSQ2b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Dec 2011 11:28:31 -0500
+Message-ID: <4EEF6622.6050904@infradead.org>
+Date: Mon, 19 Dec 2011 14:28:18 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	javier Martin <javier.martin@vista-silicon.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com> <Pine.LNX.4.64.1112191237300.23694@axis700.grange> <201112191252.24101.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201112191252.24101.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 19-12-2011 09:52, Laurent Pinchart wrote:
+> Hi,
+> 
+> On Monday 19 December 2011 12:43:28 Guennadi Liakhovetski wrote:
+>> On Mon, 19 Dec 2011, javier Martin wrote:
+>>> On 19 December 2011 11:58, Guennadi Liakhovetski wrote:
+>>>> On Mon, 19 Dec 2011, javier Martin wrote:
+>>>>> On 19 December 2011 11:41, Guennadi Liakhovetski wrote:
+>>>>>> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+>>>>>>> On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
+>>>>>>>> On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+>>>>>>>>> On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
+> 
+> [snip]
+> 
+>>>>>>>>>> Good, this would mean, we need additional subdevice
+>>>>>>>>>> operations along the lines of enum_input and enum_output,
+>>>>>>>>>> and maybe also g_input and g_output?
+>>>>>>>>>
+>>>>>>>>> What about implementing pad support in the subdevice ? Input
+>>>>>>>>> enumeration could then be performed without a subdev
+>>>>>>>>> operation.
+>>>>>>>>
+>>>>>>>> soc-camera doesn't support pad operations yet.
+>>>>>>>
+>>>>>>> soc-camera doesn't support enum_input yet either, so you need to
+>>>>>>> implement something anyway ;-)
+>>>>>>>
+>>>>>>> You wouldn't need to call a pad operation here, you would just need
+>>>>>>> to iterate through the pads provided by the subdev.
+>>>>>>
+>>>>>> tvp5150 doesn't implement it either yet. So, I would say, it is a
+>>>>>> better solution ATM to fix this functionality independent of the
+>>>>>> pad-level API.
+>>>>>
+>>>>> I agree,
+>>>>> I cannot contribute to implement pad-level API stuff since I can't
+>>>>> test it with tvp5150.
+>>>>>
+>>>>> Would you accept a patch implementing only S_INPUT?
+>>>>
+>>>> Sorry, maybe I'm missing something, but how would it work? I mean, how
+>>>> can we accept from the user any S_INPUT request with index != 0, if we
+>>>> always return only 0 in reply to ENUM_INPUT? Ok, G_INPUT we could
+>>>> implement internally in soc-camera: return 0 by default, then remember
+>>>> last set input number per soc-camera device / subdev. But
+>>>> ENUM_INPUT?...
+>>>
+>>> It clearly is not a complete solution but at least it allows setting
+>>> input 0 in broken drivers such as tvp5150 which have input 1 enabled
+>>> by default, while soc-camera assumes input 0 is enabled.
+>>
+>> I would really prefer an addition of an .enum_input() video subdev
+>> operation.
+> 
+> I agree that input enumeration is needed, but I really think this should be 
+> handled through pads, no with a new subdev operation. I don't like the idea of 
+> introducing a new operation that will already be deprecated from the very 
+> beginning.
 
-Sorry to repeat the question, anyone has an idea on this? I appreciate your
-feedback.
+The enum_input/g_input/s_input operations/callbacks are not deprecated at all.
+They're widely used on all analog TV devices, and there's absolutely no reason
+at all to deprecate them.
 
-Thank you
-Hamad
-
------Original Message-----
-From: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Hamad Kadmany
-Sent: Tuesday, November 29, 2011 10:05 AM
-To: linux-media@vger.kernel.org
-Subject: Support for multiple section feeds with same PIDs
-
-Hello
-
-Question on the current behavior of dvb_dmxdev_filter_start (dmxdev.c)
-
-In case of DMXDEV_TYPE_SEC, the code restricts of having multiple sections
-feeds allocated (allocate_section_feed) with same PID. From my experience,
-applications might request allocating several section feeds using same PID
-but with different filters (for example, in DVB standard, SDT and BAT tables
-have same PID).
-
-The current implementation only supports of having multiple filters on the
-same section feed. 
-
-Any special reason why it was implemented this way?
-
-Thank you
-Hamad
-
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Regards,
+Mauro
