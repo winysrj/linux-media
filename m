@@ -1,308 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:60461 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753189Ab1LLNkG convert rfc822-to-8bit (ORCPT
+Received: from utopia.booyaka.com ([72.9.107.138]:38470 "EHLO
+	utopia.booyaka.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751695Ab1LSVsj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 08:40:06 -0500
-Received: by wgbdr13 with SMTP id dr13so11481548wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 05:40:05 -0800 (PST)
+	Mon, 19 Dec 2011 16:48:39 -0500
+Date: Mon, 19 Dec 2011 14:48:38 -0700 (MST)
+From: Paul Walmsley <paul@pwsan.com>
+To: "Cousson, Benoit" <b-cousson@ti.com>
+cc: Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module)
+ hwmod
+In-Reply-To: <4EEB5BBC.7050807@ti.com>
+Message-ID: <alpine.DEB.2.00.1112191447270.12660@utopia.booyaka.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com> <1323871214-25435-2-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com> <4EEB5BBC.7050807@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <4EE5FF58.8060409@redhat.com>
-References: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com>
-	<4EE350BF.1090402@redhat.com>
-	<CAHFNz9JUEBy5WPuGqKGWuTKYZ6D18GZh+4DEhhDu4+GBTV5R=w@mail.gmail.com>
-	<4EE5FF58.8060409@redhat.com>
-Date: Mon, 12 Dec 2011 19:10:05 +0530
-Message-ID: <CAHFNz9K-5LCrqFvxFfJUaQX0sYRNgH26Q9eWgiMiWg4F3hGnmw@mail.gmail.com>
-Subject: Re: v4 [PATCH 06/10] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: MULTIPART/MIXED; BOUNDARY="155748971-1471173727-1324331318=:12660"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 12, 2011 at 6:49 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> On 12-12-2011 01:59, Manu Abraham wrote:
->>
->> On Sat, Dec 10, 2011 at 5:59 PM, Mauro Carvalho Chehab
->> <mchehab@redhat.com>  wrote:
->>>
->>> On 10-12-2011 02:43, Manu Abraham wrote:
->>>
->>>
->>>>  From 92a79a1e0a1b5403f06f60661f00ede365b10108 Mon Sep 17 00:00:00 2001
->>>> From: Manu Abraham<abraham.manu@gmail.com>
->>>> Date: Thu, 24 Nov 2011 17:09:09 +0530
->>>> Subject: [PATCH 06/10] DVB: Use a unique delivery system identifier for
->>>> DVBC_ANNEX_C,
->>>>  just like any other. DVBC_ANNEX_A and DVBC_ANNEX_C have slightly
->>>>  different parameters and used in 2 geographically different
->>>>  locations.
->>>>
->>>> Signed-off-by: Manu Abraham<abraham.manu@gmail.com>
->>>> ---
->>>>  include/linux/dvb/frontend.h |    7 ++++++-
->>>>  1 files changed, 6 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
->>>> index f80b863..a3c7623 100644
->>>> --- a/include/linux/dvb/frontend.h
->>>> +++ b/include/linux/dvb/frontend.h
->>>> @@ -335,7 +335,7 @@ typedef enum fe_rolloff {
->>>>
->>>>  typedef enum fe_delivery_system {
->>>>        SYS_UNDEFINED,
->>>> -       SYS_DVBC_ANNEX_AC,
->>>> +       SYS_DVBC_ANNEX_A,
->>>>        SYS_DVBC_ANNEX_B,
->>>>        SYS_DVBT,
->>>>        SYS_DSS,
->>>> @@ -352,8 +352,13 @@ typedef enum fe_delivery_system {
->>>>        SYS_DAB,
->>>>        SYS_DVBT2,
->>>>        SYS_TURBO,
->>>> +       SYS_DVBC_ANNEX_C,
->>>>  } fe_delivery_system_t;
->>>>
->>>> +
->>>> +#define SYS_DVBC_ANNEX_AC      SYS_DVBC_ANNEX_A
->>>> +
->>>> +
->>>>  struct dtv_cmds_h {
->>>>        char    *name;          /* A display name for debugging purposes
->>>> */
->>>
->>>
->>>
->>> This patch conflicts with the approach given by this patch:
->>>
->>>
->>>  http://www.mail-archive.com/linux-media@vger.kernel.org/msg39262.html
->>>
->>> merged as commit 39ce61a846c8e1fa00cb57ad5af021542e6e8403.
->>>
->>
->> - For correct delivery system handling, the delivery system identifier
->> should be unique. Otherwise patch 01/10 is meaningless for devices
->> with DVBC_ANNEX_C, facing the same situations.
->
->
-> This is a good point.
->
->>
->> - Rolloff is provided only in the SI table and is not known prior to a
->> tune. So users must struggle to find the correct rolloff. So users
->> must know beforehand their experience what rolloff it is rather than
->> reading Service Information, which is broken by approach. It is much
->> easier for a user to state that he is living in Japan or some other
->> place which is using ANNEX_C, rather than creating confusion that
->> he has to use DVBC and rolloff of 0.15
->
->
-> Userspace can present it as Japan and hide the technical details. Most
-> applications do that already: kaffeine, w_scan, ...
->
-> The dvb-apps utils don't do it, but the scan file format it produces
-> doesn't support anything besides DVB-C/DVB-S/DVB-T/ATSC anyway.
->
->
->> or is it multiplied by a factor
->> of 10 or was it 100 ? (Oh, my god my application Y uses a factor
->> of 10, the X application uses 100 and the Z application uses 1000).
->> What a lovely confusing scenario. ;-) (Other than for the mentioned
->> issue that the rolloff can be read from the SI, which is available after
->> tuning; for tuning you need rolloff).
->
->
-> Sorry, but this argument doesn't make any sense to me. The same problem
-> exists on DVB-S2 already, where several rolloffs are supported. Except
-> if someone would code a channels.conf line in hand, the roll-off is not
-> visible by the end user.
+  This message is in MIME format.  The first part should be readable text,
+  while the remaining parts are likely unreadable without MIME-aware tools.
+
+--155748971-1471173727-1324331318=:12660
+Content-Type: TEXT/PLAIN; charset=ISO-8859-15
+Content-Transfer-Encoding: QUOTED-PRINTABLE
+
+Hi Beno=EEt,
+
+On Fri, 16 Dec 2011, Cousson, Benoit wrote:
+
+> On 12/16/2011 6:53 AM, Paul Walmsley wrote:
+> > Hi Beno=EEt
+> >=20
+> > On Wed, 14 Dec 2011, Ming Lei wrote:
+> >=20
+> > > Signed-off-by: Ming Lei<ming.lei@canonical.com>
+>=20
+> Acked-by: Benoit Cousson <b-cousson@ti.com>
+>=20
+> > > ---
+> > >   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81
+> > > ++++++++++++++++++++++++++++
+> > >   1 files changed, 81 insertions(+), 0 deletions(-)
+> >=20
+> > any comments on this patch?  I'd like to queue it if it looks good to y=
+ou.
+>=20
+> It looks good to me. The only minor comment is about fdif location in the=
+ list
+> that should be sorted and thus cannot be after wd_timer2.
+
+Thanks, patch updated to match the script output and queued.  Modified=20
+patch follows.
 
 
+- Paul
 
-DVB-S2 as what we see as broadcast has just a single rolloff. The same
-rolloff is used in the SI alone. It's a mistake to handle rollolff as a user
-input field. The other rolloff's are used for very specific applications,
-such as DSNG, DVB-RCS etc, where bandwidth has to be really
-conserved considering uplinks from trucks, vans etc; for which we don't
-even have applications or users.
+From: Ming Lei <ming.lei@canonical.com>
+Date: Mon, 19 Dec 2011 14:34:06 -0700
+Subject: [PATCH] ARM: OMAP4: hwmod data: introduce fdif(face detect module)
+ hwmod
 
+Add hwmod data for the OMAP4 FDIF IP block.
 
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Acked-by: Beno=EEt Cousson <b-cousson@ti.com>
+[paul@pwsan.com: rearranged to match script output; fixed FDIF end address =
+to
+ match script data; wrote trivial changelog]
+Signed-off-by: Paul Walmsley <paul@pwsan.com>
+---
+ arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   85 ++++++++++++++++++++++++=
+++++
+ 1 files changed, 85 insertions(+), 0 deletions(-)
 
->
->> Really sexy setup indeed. ;-)
->>
->> One thing that I should warn/mention to you is the lack of clarity on
->> what you say. You say that you want more discussion, but you
->> whack in patches which is never discussed, breaking many logical
->> concepts and ideas and broken by nature. How do you justify
->> yourself ? I don't think you can justify yourself.
->
->
-> If we have a consensus around your approach, I'm OK to move for it,
-> provided that it doesn't cause regressions upstream.
->
-> As I said, this requires reviewing all DVB frontends to be sure that
-> they won't break, especially if is there any that it is capable of
-> auto-detecting the roll-off factor.
->
-> Both approaches have advantages and disadvantages.
->
-> The main advantage of my approach is that it is coherent with the current
-> DVBv5 API (e. g. SYS_DVBC_ANNEX_AC). So, the only changes are at the
-> frontends that need to decide between Annex A and Annex C (currently, only
-> drx-k - and the tuners used with it).
->
-> Advantages on your approach:
->        - Cleaner for the userspace API;
->        - It is possible to add Annex C only devices.
-> Disadvantages:
->        - Need to deprecate the existing SYS_DVBC_ANNEX_AC;
->        - The alias that SYS_DVBC_ANNEX_AC means only SYS_DVBC_ANNEX_A might
->          break some thing;
->        - Requires further changes at the DocBook API description;
->        - Need to review all DVB-C frontends.
->
-> If we're willing to take your approach, we need a patch series that
-> addresses
-> all DVB-C frontends, to be sure that no regressions were added due to the
-> change
-> ofSYS_DVBC_ANNEX_AC meaning.
->
-> It also requires that FE_QAM to be mapped to be both SYS_DVBC_ANNEX_A and
-> SYS_DVBC_ANNEX_C,
-> if isn't there any issue for it to work with Annex C mode, or to just
-> SYS_DVBC_ANNEX_A, if there is enough confidence that such device doesn't
-> work at allwith annex C.
->
->
->>> The approach there were to allow calls to SYS_DVBC_ANNEX_AC to replace
->>> the
->>> Annex A
->>> roll-off factor of 0.15 by the one used on Annex C (0.13).
->>>
->>> As this patch didn't show-up at an stable version, we can still change it
->>> to
->>> use a
->>> separate delivery system for DVB-C annex C, but this patch needs to be
->>> reverted, and
->>> a few changes on existing drivers are needed (drxk, xc5000 and
->>> tda18271c2dd
->>> explicitly
->>> supports both standards).
->>>
->>
->> As I mentioned earlier, the patches were sent in the order that was
->> being worked upon. It is not complete, for all devices that are using
->> DVBC_ANNEX_C. Only the TDA18271, TDA18271DD were worked upon
->> initially.
->
->
-> Ok. As I said, it is possible to change to your approach, but it requires
-> a patch series that addresses the frontends that currently supports DVB-C.
-> There aren't many, so maybe this is not much work.
->
-> $ git grep -l FE_QAM drivers/media/dvb/frontends/
-> drivers/media/common/tuners/
-> drivers/media/common/tuners/tda18271-fe.c
-> drivers/media/common/tuners/tda827x.c
-> drivers/media/common/tuners/tuner-xc2028.c
-> drivers/media/common/tuners/xc5000.c
-> drivers/media/dvb/frontends/cxd2820r_core.c
-> drivers/media/dvb/frontends/drxk_hard.c
-> drivers/media/dvb/frontends/dvb_dummy_fe.c
-> drivers/media/dvb/frontends/stv0297.c
-> drivers/media/dvb/frontends/stv0367.c
-> drivers/media/dvb/frontends/tda10021.c
-> drivers/media/dvb/frontends/tda10023.c
-> drivers/media/dvb/frontends/tda18271c2dd.c
-> drivers/media/dvb/frontends/ves1820.c
->
-> I did a quick research at the Internet for the above:
->        - tda827x has just a frequency table. Nothing needs to change
->          there;
->        - xc2028 is a false hit: itdoesn't implement DVB-C;
->        - cxd2820r says: Integrated matched filter 0.15 roll-off factor
->                http://www.framos-imaging.com/fileadmin/img/sony_cxd2820r.pdf
->        - dvb_dummy_fe doesn't need changes;
->        - tda18271, xc5000, drxk and tda18271c2dd for sure require changes;
->        - stv0297 is fully compliant with ITU-T J.83 Annexes A/C, according
->          to:
->                http://www.st.com/internet/imag_video/product/159180.jsp
->        - stv0367 is fully compliant with ITU-T J.83 Annexes A/C, according
->          with its data brief:
->
->  http://www.st.com/internet/com/TECHNICAL_RESOURCES/TECHNICAL_LITERATURE/DATA_BRIEF/DM00030322.pdf
->
->        - tda10021 datasheet says that it has a programmable half
->        Nyquist filter (roll off = 0.15 or 0.13):
->
->  http://www.datasheetcatalog.org/datasheet/philips/TDA10021.pdf
->        - tda10023 factsheet says that it is Fully compliant DVB-C (Annex A
-> and C)
->          and MCNS (Annex B) decoders:
->
->  http://www.datasheetarchive.com/indexdl/Datasheets-DAV2/DSADA0022343.pdf
->        - vez1820 says Half Nyquist filters (roll off = 15 %).
->        - xc5000, drxk and tda18271c2dd drivers are prepared to support both
->          standards;
->        - tda18271 is a worldwide tuner that supports all ITU-T J.83 annexes.
->          it requires the same approach used on xc5000/tda18271c2dd drivers
-> to
->          adjust the low-pass filter based on signal rate and roll-off
-> factor.
->
-> In summary:
->
-> It seems that there are two Annex A-only frontends: cxd2820r and ves1820.
-> All the others are dual Annex A/Annex C.
->
-> This is actually a very good reason to implement your approach,
-> as otherwise, it would be hard for userspace to detect that those
-> two devices that lack Annex C.
+diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-oma=
+p2/omap_hwmod_44xx_data.c
+index daaf165..3ac4bf6 100644
+--- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
++++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
+@@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
+ static struct omap_hwmod omap44xx_dsp_hwmod;
+ static struct omap_hwmod omap44xx_dss_hwmod;
+ static struct omap_hwmod omap44xx_emif_fw_hwmod;
++static struct omap_hwmod omap44xx_fdif_hwmod;
+ static struct omap_hwmod omap44xx_hsi_hwmod;
+ static struct omap_hwmod omap44xx_ipu_hwmod;
+ static struct omap_hwmod omap44xx_iss_hwmod;
+@@ -346,6 +347,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system__l=
+3_main_2 =3D {
+ =09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
+ };
+=20
++/* fdif -> l3_main_2 */
++static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 =3D {
++=09.master=09=09=3D &omap44xx_fdif_hwmod,
++=09.slave=09=09=3D &omap44xx_l3_main_2_hwmod,
++=09.clk=09=09=3D "l3_div_ck",
++=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
++};
++
+ /* hsi -> l3_main_2 */
+ static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 =3D {
+ =09.master=09=09=3D &omap44xx_hsi_hwmod,
+@@ -1797,6 +1806,79 @@ static struct omap_hwmod omap44xx_dss_venc_hwmod =3D=
+ {
+ };
+=20
+ /*
++ * 'fdif' class
++ * face detection hw accelerator module
++ */
++
++static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc =3D {
++=09.rev_offs=09=3D 0x0000,
++=09.sysc_offs=09=3D 0x0010,
++=09.sysc_flags=09=3D (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
++=09=09=09   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
++=09.idlemodes=09=3D (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
++=09=09=09   MSTANDBY_FORCE | MSTANDBY_NO | MSTANDBY_SMART),
++=09.sysc_fields=09=3D &omap_hwmod_sysc_type2,
++};
++
++static struct omap_hwmod_class omap44xx_fdif_hwmod_class =3D {
++=09.name=09=3D "fdif",
++=09.sysc=09=3D &omap44xx_fdif_sysc,
++};
++
++/* fdif */
++static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] =3D {
++=09{ .irq =3D 69 + OMAP44XX_IRQ_GIC_START },
++=09{ .irq =3D -1 }
++};
++
++/* fdif master ports */
++static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] =3D {
++=09&omap44xx_fdif__l3_main_2,
++};
++
++static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] =3D {
++=09{
++=09=09.pa_start=09=3D 0x4a10a000,
++=09=09.pa_end=09=09=3D 0x4a10a1ff,
++=09=09.flags=09=09=3D ADDR_TYPE_RT
++=09},
++=09{ }
++};
++
++/* l4_cfg -> fdif */
++static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif =3D {
++=09.master=09=09=3D &omap44xx_l4_cfg_hwmod,
++=09.slave=09=09=3D &omap44xx_fdif_hwmod,
++=09.clk=09=09=3D "l4_div_ck",
++=09.addr=09=09=3D omap44xx_fdif_addrs,
++=09.user=09=09=3D OCP_USER_MPU | OCP_USER_SDMA,
++};
++
++/* fdif slave ports */
++static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] =3D {
++=09&omap44xx_l4_cfg__fdif,
++};
++
++static struct omap_hwmod omap44xx_fdif_hwmod =3D {
++=09.name=09=09=3D "fdif",
++=09.class=09=09=3D &omap44xx_fdif_hwmod_class,
++=09.clkdm_name=09=3D "iss_clkdm",
++=09.mpu_irqs=09=3D omap44xx_fdif_irqs,
++=09.main_clk=09=3D "fdif_fck",
++=09.prcm =3D {
++=09=09.omap4 =3D {
++=09=09=09.clkctrl_offs =3D OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
++=09=09=09.context_offs =3D OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
++=09=09=09.modulemode   =3D MODULEMODE_SWCTRL,
++=09=09},
++=09},
++=09.slaves=09=09=3D omap44xx_fdif_slaves,
++=09.slaves_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_slaves),
++=09.masters=09=3D omap44xx_fdif_masters,
++=09.masters_cnt=09=3D ARRAY_SIZE(omap44xx_fdif_masters),
++};
++
++/*
+  * 'gpio' class
+  * general purpose io module
+  */
+@@ -5327,6 +5409,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[=
+] =3D {
+ =09&omap44xx_dss_rfbi_hwmod,
+ =09&omap44xx_dss_venc_hwmod,
+=20
++=09/* fdif class */
++=09&omap44xx_fdif_hwmod,
++
+ =09/* gpio class */
+ =09&omap44xx_gpio1_hwmod,
+ =09&omap44xx_gpio2_hwmod,
+--=20
+1.7.7.3
 
-
-
-Ah, it's good to know that you've collected the list of drivers to be fixed. :-)
-
-
-
-> This also means that just doing an alias from FE_QAM and SYS_DVBC_ANNEX_AC
-> to
-> SYS_DVBC_ANNEX_A may break something, as, for most devices,
-> SYS_DVBC_ANNEX_AC
-> really means both Annex A and C.
-
-
-
-With the current approach, the application can determine whether
-the hardware supports through the DELSYS enumeration.
-
-So, if you have a device that needs to support both ANNEX_A and
-ANNEX_C, it should be rather doing
-
-case DTV_ENUM_DELSYS:
-         buffer.data[0] = SYS_DVBC_ANNEX_A;
-         buffer.data[1] = SYS_DVBC_ANNEX_C;
-         break;
-
-
-> I didn't look inside the drivers for stv0297, stv0367, tda10021 and
-> tda10023.
-> I suspect that some will need an additional code to change the roll-off,
-> based on
-> the delivery system.
-
-
-
-Of course, yes this would need to make the change across multiple
-drivers.
-
-We can fix the drivers, that's no issue at all, as it is a small change.
-
-Regards,
-Manu
+--155748971-1471173727-1324331318=:12660--
