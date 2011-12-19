@@ -1,147 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:42127 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753621Ab1L0BJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:34 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19YbM015636
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:34 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 38/91] [media] mb86a20s: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:26 -0200
-Message-Id: <1324948159-23709-39-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-38-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-68.nebula.fi ([83.145.220.68]:57288 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751501Ab1LSHR2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Dec 2011 02:17:28 -0500
+Date: Mon, 19 Dec 2011 09:17:23 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [RFC 3/4] omap3isp: Configure CSI-2 phy based on platform data
+Message-ID: <20111219071723.GL3677@valkosipuli.localdomain>
+References: <20111215095015.GC3677@valkosipuli.localdomain>
+ <201112151354.53360.laurent.pinchart@ideasonboard.com>
+ <20111215215033.GG3677@valkosipuli.localdomain>
+ <201112190131.10973.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201112190131.10973.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Laurent,
 
-Actually, this driver needs to fill/use the ISDB-T proprieties.
+On Mon, Dec 19, 2011 at 01:31:09AM +0100, Laurent Pinchart wrote:
+> On Thursday 15 December 2011 22:50:33 Sakari Ailus wrote:
+> > On Thu, Dec 15, 2011 at 01:54:52PM +0100, Laurent Pinchart wrote:
+> > > On Thursday 15 December 2011 12:53:03 Sakari Ailus wrote:
+> > > > On Thu, Dec 15, 2011 at 11:28:06AM +0100, Laurent Pinchart wrote:
+> > > > > On Thursday 15 December 2011 10:50:34 Sakari Ailus wrote:
+> > > > > > Configure CSI-2 phy based on platform data in the ISP driver rather
+> > > > > > than in platform code.
+> > > > > > 
+> > > > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > 
+> > > [snip]
+> > > 
+> > > > > > diff --git a/drivers/media/video/omap3isp/ispcsiphy.c
+> > > > > > b/drivers/media/video/omap3isp/ispcsiphy.c index 5be37ce..52af308
+> > > > > > 100644 --- a/drivers/media/video/omap3isp/ispcsiphy.c
+> > > > > > +++ b/drivers/media/video/omap3isp/ispcsiphy.c
+> > > > > > @@ -28,6 +28,8 @@
+> > > 
+> > > [snip]
+> > > 
+> > > > > > +int omap3isp_csiphy_config(struct isp_device *isp,
+> > > > > > +			   struct v4l2_subdev *csi2_subdev,
+> > > > > > +			   struct v4l2_subdev *sensor,
+> > > > > > +			   struct v4l2_mbus_framefmt *sensor_fmt)
+> > > > > 
+> > > > > The number of lanes can depend on the format. Wouldn't it be better
+> > > > > to add a subdev operation to query the sensor for its bus
+> > > > > configuration instead of relying on ISP platform data ?
+> > > > 
+> > > > In principle, yes. That's an interesting point; how this kind of
+> > > > information would best be delivered?
+> > > 
+> > > There are two separate information that need to be delivered:
+> > > 
+> > > - how the lanes are connected on the board
+> > > - which lanes are used by the sensor, and for what purpose
+> > > 
+> > > The first information must be supplied through platform data, either to
+> > > the sensor driver or the OMAP3 ISP driver (or both). As the second
+> > > information
+> > 
+> > Both, and both of them may require configuring it. I don't know sensors
+> > that allow it, but the CSI-2 receiver is flexible in lane mapping.
+> > 
+> > > comes from the sensor, my idea was to provide the first to the sensor,
+> > > and to query the sensor in the OMAP3 ISP driver for the full
+> > > configuration.
+> > 
+> > In theory, at least, configurations with less lanes need to be specified
+> > separately. There may be limitations on how the lanes can be used, say,
+> > using two out of three lanes may require leaving a aparticular lane unused.
+> 
+> In theory, I fully agree. This brings additional complexity for use cases that 
+> might never exist though. Do you think we need to support it from the very 
+> beginning ?
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+I don't see need for it, at least not for the time being. Still we might
+want to show the number of lanes to the user as a read-onlycontrol, but that
+could wait as well IMO.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/mb86a20s.c |   26 ++++++++++++++++----------
- 1 files changed, 16 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/dvb/frontends/mb86a20s.c b/drivers/media/dvb/frontends/mb86a20s.c
-index 2dfea6c..a67d7ef 100644
---- a/drivers/media/dvb/frontends/mb86a20s.c
-+++ b/drivers/media/dvb/frontends/mb86a20s.c
-@@ -485,11 +485,16 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	return 0;
- }
- 
--static int mb86a20s_set_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+static int mb86a20s_set_frontend(struct dvb_frontend *fe)
- {
- 	struct mb86a20s_state *state = fe->demodulator_priv;
- 	int rc;
-+#if 0
-+	/*
-+	 * FIXME: Properly implement the set frontend properties
-+	 */
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
-+#endif
- 
- 	dprintk("\n");
- 
-@@ -521,15 +526,15 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe,
- }
- 
- static int mb86a20s_get_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+				 struct dtv_frontend_properties *p)
- {
- 
- 	/* FIXME: For now, it does nothing */
- 
--	fe->dtv_property_cache.bandwidth_hz = 6000000;
--	fe->dtv_property_cache.transmission_mode = TRANSMISSION_MODE_AUTO;
--	fe->dtv_property_cache.guard_interval = GUARD_INTERVAL_AUTO;
--	fe->dtv_property_cache.isdbt_partial_reception = 0;
-+	p->bandwidth_hz = 6000000;
-+	p->transmission_mode = TRANSMISSION_MODE_AUTO;
-+	p->guard_interval = GUARD_INTERVAL_AUTO;
-+	p->isdbt_partial_reception = 0;
- 
- 	return 0;
- }
-@@ -545,7 +550,7 @@ static int mb86a20s_tune(struct dvb_frontend *fe,
- 	dprintk("\n");
- 
- 	if (params != NULL)
--		rc = mb86a20s_set_frontend(fe, params);
-+		rc = mb86a20s_set_frontend(fe);
- 
- 	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
- 		mb86a20s_read_status(fe, status);
-@@ -608,6 +613,7 @@ error:
- EXPORT_SYMBOL(mb86a20s_attach);
- 
- static struct dvb_frontend_ops mb86a20s_ops = {
-+	.delsys = { SYS_ISDBT },
- 	/* Use dib8000 values per default */
- 	.info = {
- 		.name = "Fujitsu mb86A20s",
-@@ -627,8 +633,8 @@ static struct dvb_frontend_ops mb86a20s_ops = {
- 	.release = mb86a20s_release,
- 
- 	.init = mb86a20s_initfe,
--	.set_frontend_legacy = mb86a20s_set_frontend,
--	.get_frontend_legacy = mb86a20s_get_frontend,
-+	.set_frontend = mb86a20s_set_frontend,
-+	.get_frontend = mb86a20s_get_frontend,
- 	.read_status = mb86a20s_read_status,
- 	.read_signal_strength = mb86a20s_read_signal_strength,
- 	.tune = mb86a20s_tune,
 -- 
-1.7.8.352.g876a6
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
