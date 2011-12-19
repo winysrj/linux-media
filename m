@@ -1,114 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5220 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:36921 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752378Ab1L3PJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:28 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9SlU024189
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 40/94] [media] nxt6000: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:37 -0200
-Message-Id: <1325257711-12274-41-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1752603Ab1LSIeP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Dec 2011 03:34:15 -0500
+From: Sumit Semwal <sumit.semwal@ti.com>
+To: <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
+	<linaro-mm-sig@lists.linaro.org>,
+	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>
+CC: <linux@arm.linux.org.uk>, <arnd@arndb.de>,
+	<jesse.barker@linaro.org>, <m.szyprowski@samsung.com>,
+	<rob@ti.com>, <daniel@ffwll.ch>, <t.stanislaws@samsung.com>,
+	<patches@linaro.org>, Sumit Semwal <sumit.semwal@ti.com>
+Subject: [RFC v3 0/2] Introduce DMA buffer sharing mechanism
+Date: Mon, 19 Dec 2011 14:03:29 +0530
+Message-ID: <1324283611-18344-2-git-send-email-sumit.semwal@ti.com>
+In-Reply-To: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
+References: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hello Everyone,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+This is RFC v3 for DMA buffer sharing mechanism - changes from v2 are in the
+changelog below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/nxt6000.c |   24 ++++++++++++------------
- 1 files changed, 12 insertions(+), 12 deletions(-)
+Various subsystems - V4L2, GPU-accessors, DRI to name a few - have felt the 
+need to have a common mechanism to share memory buffers across different
+devices - ARM, video hardware, GPU.
 
-diff --git a/drivers/media/dvb/frontends/nxt6000.c b/drivers/media/dvb/frontends/nxt6000.c
-index a2419e8..389f490 100644
---- a/drivers/media/dvb/frontends/nxt6000.c
-+++ b/drivers/media/dvb/frontends/nxt6000.c
-@@ -81,22 +81,21 @@ static void nxt6000_reset(struct nxt6000_state* state)
- 	nxt6000_writereg(state, OFDM_COR_CTL, val | COREACT);
- }
- 
--static int nxt6000_set_bandwidth(struct nxt6000_state* state, fe_bandwidth_t bandwidth)
-+static int nxt6000_set_bandwidth(struct nxt6000_state* state, u32 bandwidth)
- {
- 	u16 nominal_rate;
- 	int result;
- 
- 	switch (bandwidth) {
--
--	case BANDWIDTH_6_MHZ:
-+	case 6000000:
- 		nominal_rate = 0x55B7;
- 		break;
- 
--	case BANDWIDTH_7_MHZ:
-+	case 7000000:
- 		nominal_rate = 0x6400;
- 		break;
- 
--	case BANDWIDTH_8_MHZ:
-+	case 8000000:
- 		nominal_rate = 0x7249;
- 		break;
- 
-@@ -457,8 +456,9 @@ static int nxt6000_init(struct dvb_frontend* fe)
- 	return 0;
- }
- 
--static int nxt6000_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *param)
-+static int nxt6000_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct nxt6000_state* state = fe->demodulator_priv;
- 	int result;
- 
-@@ -467,13 +467,13 @@ static int nxt6000_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	if ((result = nxt6000_set_bandwidth(state, param->u.ofdm.bandwidth)) < 0)
-+	if ((result = nxt6000_set_bandwidth(state, p->bandwidth_hz)) < 0)
- 		return result;
--	if ((result = nxt6000_set_guard_interval(state, param->u.ofdm.guard_interval)) < 0)
-+	if ((result = nxt6000_set_guard_interval(state, p->guard_interval)) < 0)
- 		return result;
--	if ((result = nxt6000_set_transmission_mode(state, param->u.ofdm.transmission_mode)) < 0)
-+	if ((result = nxt6000_set_transmission_mode(state, p->transmission_mode)) < 0)
- 		return result;
--	if ((result = nxt6000_set_inversion(state, param->inversion)) < 0)
-+	if ((result = nxt6000_set_inversion(state, p->inversion)) < 0)
- 		return result;
- 
- 	msleep(500);
-@@ -566,7 +566,7 @@ error:
- }
- 
- static struct dvb_frontend_ops nxt6000_ops = {
--
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name = "NxtWave NXT6000 DVB-T",
- 		.type = FE_OFDM,
-@@ -592,7 +592,7 @@ static struct dvb_frontend_ops nxt6000_ops = {
- 
- 	.get_tune_settings = nxt6000_fe_get_tune_settings,
- 
--	.set_frontend_legacy = nxt6000_set_frontend,
-+	.set_frontend = nxt6000_set_frontend,
- 
- 	.read_status = nxt6000_read_status,
- 	.read_ber = nxt6000_read_ber,
+This need comes forth from a variety of use cases including cameras, image 
+processing, video recorders, sound processing, DMA engines, GPU and display
+buffers, and others.
+
+This RFC is an attempt to define such a buffer sharing mechanism- it is the
+result of discussions from a couple of memory-management mini-summits held by
+Linaro to understand and address common needs around memory management. [1]
+
+A new dma_buf buffer object is added, with operations and API to allow easy
+sharing of this buffer object across devices.
+
+The framework allows:
+- a new buffer-object to be created with fixed size.
+- different devices to 'attach' themselves to this buffer, to facilitate
+  backing storage negotiation, using dma_buf_attach() API.
+- association of a file pointer with each user-buffer and associated
+   allocator-defined operations on that buffer. This operation is called the
+   'export' operation.
+- this exported buffer-object to be shared with the other entity by asking for
+   its 'file-descriptor (fd)', and sharing the fd across.
+- a received fd to get the buffer object back, where it can be accessed using
+   the associated exporter-defined operations.
+- the exporter and user to share the scatterlist using map_dma_buf and
+   unmap_dma_buf operations.
+
+Documentation present in the patch-set gives more details.
+
+This is based on design suggestions from many people at the mini-summits,
+most notably from Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
+Daniel Vetter <daniel@ffwll.ch>.
+
+The implementation is inspired from proof-of-concept patch-set from
+Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer sharing
+between two v4l2 devices. [2]
+
+Some sample implementations and WIP for dma-buf as user and exporter are
+available at [3] and [4]. [These are not being submitted for discussion /
+inclusion right now, but are for reference only]
+
+References:
+[1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
+[2]: http://lwn.net/Articles/454389
+[3]: Dave Airlie's:
+   http://cgit.freedesktop.org/~airlied/linux/log/?h=drm-prime-dmabuf
+[4]: Rob Clark's:
+   https://github.com/robclark/kernel-omap4/commits/dmabuf
+
+Patchset based on top of 3.2-rc3, the current version can be found at
+
+http://git.linaro.org/gitweb?p=people/sumitsemwal/linux-3.x.git
+Branch: dma-buf-upstr-v3
+
+Earlier versions:
+v2 at: https://lkml.org/lkml/2011/12/2/53
+v1 at: https://lkml.org/lkml/2011/10/11/92
+
+Best regards,
+~Sumit Semwal
+
+History:
+
+v3:
+- Review comments incorporated:
+   - from Konrad Rzeszutek Wilk [https://lkml.org/lkml/2011/12/3/45]
+     - replaced BUG_ON with WARN_ON - various places
+     - added some error-checks
+     - replaced EXPORT_SYMBOL with EXPORT_SYMBOL_GPL
+     - some cosmetic / documentation comments
+
+   - from Arnd Bergmann, Daniel Vetter, Rob Clark
+      [https://lkml.org/lkml/2011/12/5/321]
+     - removed mmap() fop and dma_buf_op, also the sg_sync* operations, and
+        documented that mmap is not allowed for exported buffer
+     - updated documentation to clearly state when migration is allowed
+     - changed kconfig
+     - some error code checks
+
+   - from Rob Clark [https://lkml.org/lkml/2011/12/5/572]
+     - update documentation to allow map_dma_buf to return -EINTR
+
+v2:
+- Review comments incorporated:
+   - from Tomasz Stanislawski [https://lkml.org/lkml/2011/10/14/136]
+     - kzalloc moved out of critical section
+     - corrected some in-code comments
+
+   - from Dave Airlie [https://lkml.org/lkml/2011/11/25/123]
+
+   - from Daniel Vetter and Rob Clark [https://lkml.org/lkml/2011/11/26/53]
+     - use struct sg_table in place of struct scatterlist
+     - rename {get,put}_scatterlist to {map,unmap}_dma_buf
+     - add new wrapper APIs dma_buf_{map,unmap}_attachment for ease of users
+     
+- documentation updates as per review comments from Randy Dunlap
+     [https://lkml.org/lkml/2011/10/12/439]
+
+v1: original
+
+Sumit Semwal (2):
+  dma-buf: Introduce dma buffer sharing mechanism
+  dma-buf: Documentation for buffer sharing framework
+
+ Documentation/dma-buf-sharing.txt |  222 ++++++++++++++++++++++++++++
+ drivers/base/Kconfig              |   10 ++
+ drivers/base/Makefile             |    1 +
+ drivers/base/dma-buf.c            |  289 +++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h           |  172 ++++++++++++++++++++++
+ 5 files changed, 694 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/dma-buf-sharing.txt
+ create mode 100644 drivers/base/dma-buf.c
+ create mode 100644 include/linux/dma-buf.h
+
 -- 
-1.7.8.352.g876a6
+1.7.4.1
 
