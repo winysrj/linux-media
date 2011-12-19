@@ -1,95 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:36733 "EHLO
-	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751171Ab1LBWtP convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Dec 2011 17:49:15 -0500
-From: Kevin Hilman <khilman@ti.com>
-To: "Aguirre\, Sergio" <saaguirre@ti.com>
-Cc: "Hiremath\, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap\@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"laurent.pinchart\@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"sakari.ailus\@iki.fi" <sakari.ailus@iki.fi>,
-	Benoit Cousson <b-cousson@ti.com>
-Subject: Re: [PATCH v2 04/11] OMAP4: hwmod: Include CSI2A and CSIPHY1 memory sections
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-	<1322698500-29924-5-git-send-email-saaguirre@ti.com>
-	<79CD15C6BA57404B839C016229A409A8046FCD@DBDE01.ent.ti.com>
-	<CAKnK67TrzD1hoKOOaodRK=-Ct5bNYAtXab3hY4UdxJTNdD0Tuw@mail.gmail.com>
-Date: Fri, 02 Dec 2011 14:49:10 -0800
-In-Reply-To: <CAKnK67TrzD1hoKOOaodRK=-Ct5bNYAtXab3hY4UdxJTNdD0Tuw@mail.gmail.com>
-	(Sergio Aguirre's message of "Thu, 1 Dec 2011 07:17:25 -0600")
-Message-ID: <87pqg6lhcp.fsf@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59302 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752011Ab1LSAvk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 18 Dec 2011 19:51:40 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+Date: Mon, 19 Dec 2011 01:51:39 +0100
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com> <Pine.LNX.4.64.1112161043280.6572@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1112161043280.6572@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112190151.40165.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-+Benoit,
+Hi Guennadi,
 
-"Aguirre, Sergio" <saaguirre@ti.com> writes:
+On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
+> On Fri, 16 Dec 2011, Scott Jiang wrote:
+> > >> How about this implementation? I know it's not for soc, but I post it
+> > >> to give my idea.
+> > >> Bridge knows the layout, so it doesn't need to query the subdevice.
+> > > 
+> > > Where from? AFAIU, we are talking here about subdevice inputs, right?
+> > > In this case about various inputs of the TV decoder. How shall the
+> > > bridge driver know about that?
+> > 
+> > I have asked this question before. Laurent reply me:
+> > > >> ENUMINPUT as defined by V4L2 enumerates input connectors available
+> > > >> on the board. Which inputs the board designer hooked up is
+> > > >> something that only the top-level V4L driver will know. Subdevices
+> > > >> do not have that information, so enuminputs is not applicable
+> > > >> there.
+> > > >> 
+> > > >> Of course, subdevices do have input pins and output pins, but these
+> > > >> are assumed to be fixed. With the s_routing ops the top level
+> > > >> driver selects which input and output pins are active. Enumeration
+> > > >> of those inputs and outputs wouldn't gain you anything as far as I
+> > > >> can tell since the subdevice simply does not know which
+> > > >> inputs/outputs are actually hooked up. It's the top level driver
+> > > >> that has that information (usually passed in through board/card
+> > > >> info structures).
+> 
+> Laurent, right, I now remember reading this discussion before. But I'm not
+> sure I completely agree:-) Yes, you're right - the board decides which
+> pins are routed to which connectors. And it has to provide this
+> information to the driver in its platform data. But - I think, this
+> information should be provided not to the bridge driver, but to respective
+> subdevice drivers, because only they know what exactly those interfaces
+> are good for and how to report them to the bridge or the user, if we
+> decide to also export this information over the subdevice user-space API.
+> 
+> So, I would say, the board has to tell the subdevice driver: yes, your
+> inputs 0 and 1 are routed to external connectors. On input 1 I've put a
+> pullup, it is connected to connector of type X over a circuit Y, clocked
+> from your output Z, if the driver needs to know all that. And the subdev
+> driver will just tell the bridge only what that one needs to know - number
+> of inputs and their capabilities.
 
-> Hi Vaibhav,
->
-> Thanks for the comments.
->
-> On Thu, Dec 1, 2011 at 12:34 AM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
->>
->>> -----Original Message-----
->>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->>> owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
->>> Sent: Thursday, December 01, 2011 5:45 AM
->>> To: linux-media@vger.kernel.org
->>> Cc: linux-omap@vger.kernel.org; laurent.pinchart@ideasonboard.com;
->>> sakari.ailus@iki.fi; Aguirre, Sergio
->>> Subject: [PATCH v2 04/11] OMAP4: hwmod: Include CSI2A and CSIPHY1 memory
->>> sections
->>>
->>> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->>> ---
->>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   16 +++++++++++++---
->>>  1 files changed, 13 insertions(+), 3 deletions(-)
->>>
->>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-
->>> omap2/omap_hwmod_44xx_data.c
->>> index 7695e5d..1b59e2f 100644
->>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>> @@ -2623,8 +2623,18 @@ static struct omap_hwmod_ocp_if
->>> *omap44xx_iss_masters[] = {
->>>
->>>  static struct omap_hwmod_addr_space omap44xx_iss_addrs[] = {
->>>       {
->>> -             .pa_start       = 0x52000000,
->>> -             .pa_end         = 0x520000ff,
->>> +             .pa_start       = OMAP44XX_ISS_TOP_BASE,
->>> +             .pa_end         = OMAP44XX_ISS_TOP_END,
->>> +             .flags          = ADDR_TYPE_RT
->>> +     },
->>> +     {
->>> +             .pa_start       = OMAP44XX_ISS_CSI2_A_REGS1_BASE,
->>> +             .pa_end         = OMAP44XX_ISS_CSI2_A_REGS1_END,
->>> +             .flags          = ADDR_TYPE_RT
->>> +     },
->>> +     {
->>> +             .pa_start       = OMAP44XX_ISS_CAMERARX_CORE1_BASE,
->>> +             .pa_end         = OMAP44XX_ISS_CAMERARX_CORE1_END,
->>>               .flags          = ADDR_TYPE_RT
->>>       },
->> This patch will result in build failure, because, the above base addresses
->> are getting defined in the next patch
->>
->> [PATCH v2 05/11] OMAP4: Add base addresses for ISS
->
-> Agreed. Will revisit "git-bisectability" of the patch series. Will fix.
+That sounds reasonable.
 
-To fix this, just drop the #defines from the header, and use raw
-addresses directly.
+-- 
+Regards,
 
-Also, work with Benoit to make sure at the scripts that autogenerate
-this data are updated to include these two regions.
-
-Kevin
+Laurent Pinchart
