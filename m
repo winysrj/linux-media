@@ -1,222 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57059 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:50945 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755488Ab1LGM4G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 7 Dec 2011 07:56:06 -0500
-Message-ID: <4EDF6262.2000209@redhat.com>
-Date: Wed, 07 Dec 2011 10:56:02 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752217Ab1LSRZp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 19 Dec 2011 12:25:45 -0500
+Message-ID: <4EEF7395.6060201@iki.fi>
+Date: Mon, 19 Dec 2011 19:25:41 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Fredrik Lingvall <fredrik.lingvall@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge HVR-930C problems
-References: <4ED929E7.2050808@gmail.com>
-In-Reply-To: <4ED929E7.2050808@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Christoph Pfister <christophpfister@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH dvb-apps] DVB-H R.I.P.
+Content-Type: multipart/mixed;
+ boundary="------------010509060103030208080309"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02-12-2011 17:41, Fredrik Lingvall wrote:
-> Hi ,
->
-> I noticed that HVR 930C support was added 21-11-2011.
->
-> I have build the new driver and installed the firmware but I'm struggling to get it working.
+This is a multi-part message in MIME format.
+--------------010509060103030208080309
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-> 4) DVB scanning
->
-> # w_scan -c NO -f c
+It is R.I.P.
 
-...
+Finland is now switching from DVB-H to DVB-T2 in case of mobile 
+transmission too. Some of the DVB-H transmitters are shut down already 
+and all the rest are closed before 31.3.2012.
 
-> 602000: sr6900 (time: 10:32) (time: 10:33) signal ok:
-> QAM_256 f = 602000 kHz S6900C999
+Mobile TV/Radio evolution have been rather interesting here, from DAB to 
+DVB-H to DVB-T2. I really hope DVB-T2 will be big success finally.
 
-This means that it detected a QAM_256 carrier, at 602000 kHz, with 6.900 Kbauds symbol rate.
+1997-2005 DAB
+2006-2011 DVB-H
+2012-> DVB-T2
 
-> start_filter:1415: ERROR: ioctl DMX_SET_FILTER failed: 28 No space left on device
 
--ENOSPC error is generally associated with the lack of USB bandwidth support.
-This means that the USB bus doesn't have enough free slots for the traffic
-required in order to support your stream.
+regards
+Antti
 
-It generally means that your device is connected into a USB 1.1 hub or port.
-There are some new USB interfaces that are known to have troubles with the
-Linux USB 2.0 implementation, as they internally use some USB hubs.
-It could be your case, as the driver detects it on an USB 2.0 port:
+-- 
+http://palosaari.fi/
 
-> [90072.073832] em28xx: New device WinTV HVR-930C @ 480 Mbps (2040:1605, interface 0, class 0)
+--------------010509060103030208080309
+Content-Type: text/plain;
+ name="dvb-h-rip.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="dvb-h-rip.patch"
 
-Please do a:
+diff -r b68e7cff5b3a util/scan/dvb-h/README
+--- a/util/scan/dvb-h/README	Mon Dec 19 19:14:09 2011 +0200
++++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
+@@ -1,3 +0,0 @@
+-These files are mainly for informational and experimental purposes.
+-The DVB-H file format hasn't been specified in any way; currently it's just
+-a copy of the DVB-T format.
+diff -r b68e7cff5b3a util/scan/dvb-h/fi-Helsinki
+--- a/util/scan/dvb-h/fi-Helsinki	Mon Dec 19 19:14:09 2011 +0200
++++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
+@@ -1,2 +0,0 @@
+-# H freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-H 586000000 8MHz 1/2 NONE QAM16 8k 1/8 NONE
+diff -r b68e7cff5b3a util/scan/dvb-h/fi-Oulu
+--- a/util/scan/dvb-h/fi-Oulu	Mon Dec 19 19:14:09 2011 +0200
++++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
+@@ -1,2 +0,0 @@
+-# H freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-H 498000000 8MHz 1/2 NONE QAM16 8k 1/8 NONE
+diff -r b68e7cff5b3a util/scan/dvb-h/fi-Oulu-Nokia-devel
+--- a/util/scan/dvb-h/fi-Oulu-Nokia-devel	Mon Dec 19 19:14:09 2011 +0200
++++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
+@@ -1,4 +0,0 @@
+-# Nokia Oulu delelopment network
+-# Network Name 'Nokia Oulu'
+-# H freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-H 690000000 8MHz 1/2 NONE QPSK 8k 1/8 NONE
+diff -r b68e7cff5b3a util/scan/dvb-h/fi-Turku
+--- a/util/scan/dvb-h/fi-Turku	Mon Dec 19 19:14:09 2011 +0200
++++ /dev/null	Thu Jan 01 00:00:00 1970 +0000
+@@ -1,2 +0,0 @@
+-# H freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-H 498000000 8MHz 1/2 NONE QAM16 8k 1/8 NONE
 
-# mount usbfs /proc/bus/usb -t usbfs
-$ cat /proc/bus/usb/devices
-
-It should see you something like:
-
-T:  Bus=08 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
-B:  Alloc= 29/900 us ( 3%), #Int=  2, #Iso=  0
-D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=1d6b ProdID=0001 Rev= 3.01
-S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
-S:  Product=UHCI Host Controller
-S:  SerialNumber=0000:00:1d.2
-C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
-
-T:  Bus=08 Lev=01 Prnt=01 Port=00 Cnt=01 Dev#=  2 Spd=1.5  MxCh= 0
-D:  Ver= 1.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS= 8 #Cfgs=  1
-P:  Vendor=2101 ProdID=020f Rev= 0.01
-C:* #Ifs= 2 Cfg#= 1 Atr=a0 MxPwr=500mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=01 Driver=usbhid
-E:  Ad=81(I) Atr=03(Int.) MxPS=   8 Ivl=10ms
-I:* If#= 1 Alt= 0 #EPs= 1 Cls=03(HID  ) Sub=01 Prot=02 Driver=usbhid
-E:  Ad=82(I) Atr=03(Int.) MxPS=   8 Ivl=10ms
-
-T:  Bus=07 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
-B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
-D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=1d6b ProdID=0001 Rev= 3.01
-S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
-S:  Product=UHCI Host Controller
-S:  SerialNumber=0000:00:1d.1
-C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
-
-T:  Bus=06 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
-B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
-D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=1d6b ProdID=0001 Rev= 3.01
-S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
-S:  Product=UHCI Host Controller
-S:  SerialNumber=0000:00:1d.0
-C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
-
-T:  Bus=05 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
-B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
-D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=1d6b ProdID=0001 Rev= 3.01
-S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
-S:  Product=UHCI Host Controller
-S:  SerialNumber=0000:00:1a.2
-C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
-
-T:  Bus=04 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
-B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
-D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=1d6b ProdID=0001 Rev= 3.01
-S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
-S:  Product=UHCI Host Controller
-S:  SerialNumber=0000:00:1a.1
-C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
-
-T:  Bus=03 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=12   MxCh= 2
-B:  Alloc=  0/900 us ( 0%), #Int=  0, #Iso=  0
-D:  Ver= 1.10 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=1d6b ProdID=0001 Rev= 3.01
-S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 uhci_hcd
-S:  Product=UHCI Host Controller
-S:  SerialNumber=0000:00:1a.0
-C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-E:  Ad=81(I) Atr=03(Int.) MxPS=   2 Ivl=255ms
-
-T:  Bus=02 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6
-B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
-D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=1d6b ProdID=0002 Rev= 3.01
-S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 ehci_hcd
-S:  Product=EHCI Host Controller
-S:  SerialNumber=0000:00:1d.7
-C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
-
-T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6
-B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
-D:  Ver= 2.00 Cls=09(hub  ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=1d6b ProdID=0002 Rev= 3.01
-S:  Manufacturer=Linux 3.1.1-2.fc16.x86_64 ehci_hcd
-S:  Product=EHCI Host Controller
-S:  SerialNumber=0000:00:1a.7
-C:* #Ifs= 1 Cfg#= 1 Atr=e0 MxPwr=  0mA
-I:* If#= 0 Alt= 0 #EPs= 1 Cls=09(hub  ) Sub=00 Prot=00 Driver=hub
-E:  Ad=81(I) Atr=03(Int.) MxPS=   4 Ivl=256ms
-
-T:  Bus=01 Lev=01 Prnt=01 Port=05 Cnt=01 Dev#=  6 Spd=480  MxCh= 0
-D:  Ver= 2.00 Cls=00(>ifc ) Sub=00 Prot=00 MxPS=64 #Cfgs=  1
-P:  Vendor=2040 ProdID=1605 Rev= 1.00
-S:  Product=WinTV HVR-930C
-S:  SerialNumber=4034508088
-C:* #Ifs= 1 Cfg#= 1 Atr=80 MxPwr=500mA
-I:* If#= 0 Alt= 0 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
-E:  Ad=82(I) Atr=01(Isoc) MxPS=   0 Ivl=125us
-E:  Ad=83(I) Atr=01(Isoc) MxPS=   0 Ivl=1ms
-E:  Ad=84(I) Atr=01(Isoc) MxPS=   0 Ivl=125us
-I:  If#= 0 Alt= 1 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
-E:  Ad=82(I) Atr=01(Isoc) MxPS=   0 Ivl=125us
-E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
-E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
-I:  If#= 0 Alt= 2 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
-E:  Ad=82(I) Atr=01(Isoc) MxPS=1440 Ivl=125us
-E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
-E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
-I:  If#= 0 Alt= 3 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
-E:  Ad=82(I) Atr=01(Isoc) MxPS=2048 Ivl=125us
-E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
-E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
-I:  If#= 0 Alt= 4 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
-E:  Ad=82(I) Atr=01(Isoc) MxPS=2304 Ivl=125us
-E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
-E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
-I:  If#= 0 Alt= 5 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
-E:  Ad=82(I) Atr=01(Isoc) MxPS=2688 Ivl=125us
-E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
-E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
-I:  If#= 0 Alt= 6 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
-E:  Ad=82(I) Atr=01(Isoc) MxPS=2880 Ivl=125us
-E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
-E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
-I:  If#= 0 Alt= 7 #EPs= 4 Cls=ff(vend.) Sub=00 Prot=ff Driver=em28xx
-E:  Ad=81(I) Atr=03(Int.) MxPS=   1 Ivl=128ms
-E:  Ad=82(I) Atr=01(Isoc) MxPS=3072 Ivl=125us
-E:  Ad=83(I) Atr=01(Isoc) MxPS= 196 Ivl=1ms
-E:  Ad=84(I) Atr=01(Isoc) MxPS= 940 Ivl=125us
-
-In the above example, my HVR-930C is connected to Bus=01. The available
-bandwidth at the USB bus is given by:
-
-T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6
-B:  Alloc=  0/800 us ( 0%), #Int=  0, #Iso=  0
-
-(in the above example, device is not used)
-
-Tuning into a channel spends 19% of the USB bandwidth (e. g. 152
-ISOC slots), as shown at:
-
-T:  Bus=01 Lev=00 Prnt=00 Port=00 Cnt=00 Dev#=  1 Spd=480  MxCh= 6
-B:  Alloc=152/800 us (19%), #Int=  0, #Iso=  5
-
-The same bandwidth is required by w_scan/scan.
-
-You can also try to put your device on another bus and see if this would
-fix the issue.
-
-Regards,
-Mauro
+--------------010509060103030208080309--
