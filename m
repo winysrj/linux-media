@@ -1,107 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40243 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753789Ab1L1Nve (ORCPT
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:14378 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751032Ab1LSSJT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 08:51:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
-Date: Wed, 28 Dec 2011 14:51:38 +0100
-Cc: "HeungJun, Kim" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi, kyungmin.park@samsung.com,
-	Hans de Goede <hdegoede@redhat.com>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <1325053428-2626-2-git-send-email-riverful.kim@samsung.com> <4EFB1B04.6060305@gmail.com>
-In-Reply-To: <4EFB1B04.6060305@gmail.com>
+	Mon, 19 Dec 2011 13:09:19 -0500
+From: "Zhu, Mingcheng" <mingchen@quicinc.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: query video dev node name using the V4L2 device driver name
+Date: Mon, 19 Dec 2011 18:09:18 +0000
+Message-ID: <3D233F78EE854A4BA3D34C11AD4FAC1FDEF79C@nasanexd01b.na.qualcomm.com>
+References: <20111215095015.GC3677@valkosipuli.localdomain>
+ <20111219071723.GL3677@valkosipuli.localdomain>
+ <3D233F78EE854A4BA3D34C11AD4FAC1FDEF5E3@nasanexd01b.na.qualcomm.com>
+ <201112191131.23195.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201112191131.23195.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112281451.39399.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
-> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
-> > It adds the new CID for setting White Balance Preset. This CID is
-> > provided as menu type using the following items:
-> > 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
-> > 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
-> > 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
-> > 3 - V4L2_WHITE_BALANCE_CLOUDY,
-> > 4 - V4L2_WHITE_BALANCE_SHADE,
-> 
-> I have been also investigating those white balance presets recently and
-> noticed they're also needed for the pwc driver. Looking at
-> drivers/media/video/pwc/pwc-v4l2.c there is something like:
-> 
-> const char * const pwc_auto_whitebal_qmenu[] = {
-> 	"Indoor (Incandescant Lighting) Mode",
-> 	"Outdoor (Sunlight) Mode",
-> 	"Indoor (Fluorescent Lighting) Mode",
-> 	"Manual Mode",
-> 	"Auto Mode",
-> 	NULL
-> };
-> 
-> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
-> 	.ops	= &pwc_ctrl_ops,
-> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
-> 	.type	= V4L2_CTRL_TYPE_MENU,
-> 	.max	= awb_auto,
-> 	.qmenu	= pwc_auto_whitebal_qmenu,
-> };
-> 
-> ...
-> 
-> 	cfg = pwc_auto_white_balance_cfg;
-> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
-> 	cfg.def = def;
-> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
-> 
-> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
-> with custom entries. That's interesting... However it works in practice
-> and applications have access to what's provided by hardware.
-> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
-> that :)
-> 
-> Nevertheless, redefining standard controls in particular drivers sounds
-> a little dubious. I wonder if this is a generally agreed approach ?
+I have a problem here. Take following example that we have two video dev nodes as:
+/dev/video0: this node is for WIFI capture
+/dev/video1: this is the camera driver.
 
-No agreed with me at least :-)
+Is it possible for the user space to find out video1 is the camera without open and query each video node's capabilities? 
 
-> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
-> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE need
-> to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
+--Mingcheng
 
-Is the preset a fixed white balance setting, or is it an auto white balance 
-with the algorithm tuned for a particular configuration ? In the first case, 
-does it correspond to a fixed white balance temperature value ?
 
-[snip]
+-----Original Message-----
+From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com] 
+Sent: Monday, December 19, 2011 2:31 AM
+To: Zhu, Mingcheng
+Cc: Sakari Ailus; linux-media@vger.kernel.org
+Subject: Re: query video dev node name using the V4L2 device driver name
 
-> > diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> > b/Documentation/DocBook/media/v4l/controls.xml index c0422c6..350c138
-> > 100644
-> > --- a/Documentation/DocBook/media/v4l/controls.xml
-> > +++ b/Documentation/DocBook/media/v4l/controls.xml
-> > @@ -2841,6 +2841,44 @@ it one step further. This is a write-only
-> > control.</entry>
-> > 
-> >  	  </row>
-> >  	  <row><entry></entry></row>
-> > 
-> > +	  <row id="v4l2-preset-white-balance">
-> > +	    <entry
-> > spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp;</
-> > entry>
+Hi Mingcheng,
+
+On Monday 19 December 2011 11:21:03 Zhu, Mingcheng wrote:
+> Hi Laurent and Sakari,
 > 
-> Wouldn't V4L2_CID_WHITE_BALANCE_PRESET be better ?
+> Current media entity contains a few fields to identify a dev node (name,
+> type, group_id). The entity name is the v4l2 dev node name such as
+> "/dev/video0" "/dev/video1". There is no information who is "/dev/video0"
+> and who is /dev/video1". This makes that, after query the media_entity the
+> application still could not figure out who is /dev/video1".
 
-That's what I was about to say.
+The media controller framework sets the video devnode entities names to the 
+video device name, as provided in the video_device name field. That's 
+automatic, so you should just ensure that your video_device name is properly 
+set.
+
+> However in V4L2 devices, there is a driver name that the vendor can assign
+> a specific name such "WIFI CAPTURE" or BACK_CAMERA" to the driver name. Is
+> it possible to add the driver name into the media_entity? This makes that,
+> if the userspace application knows the driver name it can use the driver
+> name to find the dev node.
+
+Using the driver name isn't optimal, as a driver could create several video 
+device nodes for the same hardware device. Those nodes should have different 
+names, so you should use the video_device name field as explained above.
 
 -- 
 Regards,
