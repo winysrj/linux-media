@@ -1,130 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:60940 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751174Ab1LPIKf (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:63959 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752077Ab1LSKOD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 03:10:35 -0500
-Message-ID: <4EEAFCF4.5080008@gmx.de>
-Date: Fri, 16 Dec 2011 09:10:28 +0100
-From: Ninja <Ninja15@gmx.de>
+	Mon, 19 Dec 2011 05:14:03 -0500
+Date: Mon, 19 Dec 2011 11:13:58 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <201112191105.25855.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1112191113230.23694@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+ <201112190151.40165.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1112190907220.23694@axis700.grange>
+ <201112191105.25855.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Mantis CAM not SMP safe / Activating CAM on Technisat Skystar
- HD2 (DVB-S2)
-References: <4EC052CE.1080002@gmx.de> <4EE2A06D.7070901@gmx.de> <4EE5E0BE.4060300@kolumbus.fi> <4EE7C3F9.1080703@gmx.de>
-In-Reply-To: <4EE7C3F9.1080703@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 13.12.2011 22:30, schrieb Ninja:
-> Am 12.12.2011 12:08, schrieb Marko Ristola:
->> On 12/10/2011 01:57 AM, Ninja wrote:
->>> Hi,
->>>
->>> has anyone an idea how the SMP problems could be fixed?
->>
->> You could turn on Mantis Kernel module's debug messages.
->> It could tell you the emitted interrupts.
->>
->> One risky thing with the Interrupt handler code is that
->> MANTIS_GPIF_STATUS is cleared, even though IRQ0 isn't active yet.
->> This could lead to a rare starvation of the wait queue you described.
->> I supplied a patch below. Does it help?
->>
->>> I did some further investigation. When comparing the number of 
->>> interrupts with all cores enabled and the interrupts with only one 
->>> core enabled it seems like only the IRQ0 changed, the other IRQs and 
->>> the total number stays quite the same:
->>>
->>> 4 Cores:
->>> All IRQ/sec: 493
->>> Masked IRQ/sec: 400
->>> Unknown IRQ/sec: 0
->>> DMA/sec: 400
->>> IRQ-0/sec: 143
->>> IRQ-1/sec: 0
->>> OCERR/sec: 0
->>> PABRT/sec: 0
->>> RIPRR/sec: 0
->>> PPERR/sec: 0
->>> FTRGT/sec: 0
->>> RISCI/sec: 258
->>> RACK/sec: 0
->>>
->>> 1 Core:
->>> All IRQ/sec: 518
->>> Masked IRQ/sec: 504
->>> Unknown IRQ/sec: 0
->>> DMA/sec: 504
->>> IRQ-0/sec: 246
->>> IRQ-1/sec: 0
->>> OCERR/sec: 0
->>> PABRT/sec: 0
->>> RIPRR/sec: 0
->>> PPERR/sec: 0
->>> FTRGT/sec: 0
->>> RISCI/sec: 258
->>> RACK/sec: 0
->>>
->>> So, where might be the problem?
->> Turning on Mantis debug messages, might tell the difference between 
->> these interrupts.
->>
->> ....
->>> I hope somebody can help, because I think we are very close to a 
->>> fully functional CAM here.
->>> I ran out of things to test to get closer to the solution :(
->>> Btw: Is there any documentation available for the mantis PCI bridge?
->> Not that I know.
->>
->>>
->>> Manuel
->>>
->>>
->>>
->>>
->>>
->>>
->>>
->>>
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>>
->>
->>
->> Regards,
->> Marko Ristola
->>
->
-> Hi Marko,
->
-> thanks for the patch. I did some quick testing today. The IRQ0 problem 
-> stays, but it seems like the small hangs (3-5 seconds every 20 minutes 
-> or something) are fixed :)
->
-> Manuel
+On Mon, 19 Dec 2011, Laurent Pinchart wrote:
 
-Hi,
+> Hi Guennadi,
+> 
+> On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
+> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
+> > > On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
+> > > > On Fri, 16 Dec 2011, Scott Jiang wrote:
+> > > > > >> How about this implementation? I know it's not for soc, but I post
+> > > > > >> it to give my idea.
+> > > > > >> Bridge knows the layout, so it doesn't need to query the
+> > > > > >> subdevice.
+> > > > > > 
+> > > > > > Where from? AFAIU, we are talking here about subdevice inputs,
+> > > > > > right? In this case about various inputs of the TV decoder. How
+> > > > > > shall the bridge driver know about that?
+> > > > > 
+> > > > > I have asked this question before. Laurent reply me:
+> > > > > > >> ENUMINPUT as defined by V4L2 enumerates input connectors
+> > > > > > >> available on the board. Which inputs the board designer hooked
+> > > > > > >> up is something that only the top-level V4L driver will know.
+> > > > > > >> Subdevices do not have that information, so enuminputs is not
+> > > > > > >> applicable there.
+> > > > > > >> 
+> > > > > > >> Of course, subdevices do have input pins and output pins, but
+> > > > > > >> these are assumed to be fixed. With the s_routing ops the top
+> > > > > > >> level driver selects which input and output pins are active.
+> > > > > > >> Enumeration of those inputs and outputs wouldn't gain you
+> > > > > > >> anything as far as I can tell since the subdevice simply does
+> > > > > > >> not know which inputs/outputs are actually hooked up. It's the
+> > > > > > >> top level driver that has that information (usually passed in
+> > > > > > >> through board/card info structures).
+> > > > 
+> > > > Laurent, right, I now remember reading this discussion before. But I'm
+> > > > not sure I completely agree:-) Yes, you're right - the board decides
+> > > > which pins are routed to which connectors. And it has to provide this
+> > > > information to the driver in its platform data. But - I think, this
+> > > > information should be provided not to the bridge driver, but to
+> > > > respective subdevice drivers, because only they know what exactly
+> > > > those interfaces are good for and how to report them to the bridge or
+> > > > the user, if we decide to also export this information over the
+> > > > subdevice user-space API.
+> > > > 
+> > > > So, I would say, the board has to tell the subdevice driver: yes, your
+> > > > inputs 0 and 1 are routed to external connectors. On input 1 I've put a
+> > > > pullup, it is connected to connector of type X over a circuit Y,
+> > > > clocked from your output Z, if the driver needs to know all that. And
+> > > > the subdev driver will just tell the bridge only what that one needs
+> > > > to know - number of inputs and their capabilities.
+> > > 
+> > > That sounds reasonable.
+> > 
+> > Good, this would mean, we need additional subdevice operations along the
+> > lines of enum_input and enum_output, and maybe also g_input and g_output?
+> 
+> What about implementing pad support in the subdevice ? Input enumeration could 
+> then be performed without a subdev operation.
 
-I did some further investigation of my problem. Almost all IRQ0s 
-originate from calling the function "mantis_hif_read_iom" (at least when 
-the CAM is up and running). Changing the udelay between the writes to 
-about 100 gets almost rid of the lost IRQ0 problem, but somehow it 
-increases the number of total interrupts and IRQ0 as well to about 
-double to triple of the numbers with udelay(20).
-This increase doesn't happen when reducing the number of cores as 
-workaround.
-And getting *almost* no timeouts doesn't help much, because every 
-timeout causes a hang/freeze until the CAM is initialized again.
-Changing the PCI latency to 0xff didn't help either.
+soc-camera doesn't support pad operations yet.
 
-btw: The DMA patches of Marko postet in the other thread "Multiple 
-Mantis devices gives me glitches" doesn't help me further since I'm 
-using the latest code which already includes the patch.
-
-Manuel
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
