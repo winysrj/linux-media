@@ -1,51 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:64204 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752230Ab1LSUpj (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51621 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751990Ab1LSATH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 15:45:39 -0500
-Received: by lagp5 with SMTP id p5so2308596lag.19
-        for <linux-media@vger.kernel.org>; Mon, 19 Dec 2011 12:45:37 -0800 (PST)
+	Sun, 18 Dec 2011 19:19:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: Trying to figure out reasons for lost pictures in UVC driver.
+Date: Mon, 19 Dec 2011 01:19:07 +0100
+Cc: linux-media@vger.kernel.org
+References: <CACKLOr1qSpJXjyptUF3OEWR2b7XNoRdMjiVWzZ9gtuanfgJZDQ@mail.gmail.com>
+In-Reply-To: <CACKLOr1qSpJXjyptUF3OEWR2b7XNoRdMjiVWzZ9gtuanfgJZDQ@mail.gmail.com>
 MIME-Version: 1.0
-Reply-To: tomas.skocdopole@ippolna.cz
-Date: Mon, 19 Dec 2011 21:45:37 +0100
-Message-ID: <CALobSDoades+k8G2aGOHBxQuoXH6_9sHQmbO3LrLbp8wA41p7g@mail.gmail.com>
-Subject: Airstar 2 PCI CX24123: wrong demod revision: 87
-From: =?UTF-8?B?VG9tw6HFoSBTa2/EjWRvcG9sZQ==?=
-	<tomas.skocdopole@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112190119.08008.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Javier,
 
-I've bought a DVB-T card Airstar 2 PCI. I've found an error from about
-CX24123 from dmesg output:
-[    3.242141] CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
-[    3.242176] CX24123: wrong demod revision: 87
+On Thursday 15 December 2011 17:02:47 javier Martin wrote:
+> Hi,
+> we are testing a logitech Webcam M/N: V-U0012 in the UVC tree (commit
+> ef7728797039bb6a20f22cc2d96ef72d9338cba0).
+> It is configured at 25fps, VGA.
+> 
+> We've observed that the following debugging message appears sometimes
+> "Frame complete (FID bit toggled).". Whenever this happens a v4l2
+> frame is lost (i.e. one sequence number has been skipped).
+> 
+> Is this behavior expected? What could we do to avoid frame loss?
 
+Could you check the frame intervals to see if a frame is really lost, or if 
+the driver erroneously reports frame loss ?
 
-Full output is here:
-[    3.225961] b2c2-flexcop: found 'Zarlink MT352 DVB-T' .
-[    3.225965] DVB: registering adapter 0 frontend 0 (Zarlink MT352 DVB-T)...
-[    3.226030] b2c2-flexcop: initialization of 'Air2PC/AirStar 2
-DVB-T' at the 'PCI' bus controlled by a 'FlexCopIIb' complete
-[    3.228095] flexcop-pci: will use the HW PID filter.
-[    3.228097] flexcop-pci: card revision 2
-[    3.228107] b2c2_flexcop_pci 0000:05:02.0: PCI INT A -> GSI 18
-(level, low) -> IRQ 18
-[    3.240137] DVB: registering new adapter (FlexCop Digital TV device)
-[    3.241710] b2c2-flexcop: MAC address = 00:d0:d7:0d:d5:0a
-[    3.242141] CX24123: cx24123_i2c_readreg: reg=0x0 (error=-121)
-[    3.242176] CX24123: wrong demod revision: 87
+-- 
+Regards,
 
-I am using latest kernel from Archlinux repository
-Linux dvb 3.1.5-1-ARCH #1 SMP PREEMPT Sat Dec 10 14:43:09 CET 2011
-x86_64 Intel(R) Core(TM)2 Duo CPU E7200 @ 2.53GHz GenuineIntel
-GNU/Linux
-
-Can anyone help me please?
-
-Thanks
-Regards Tomas
+Laurent Pinchart
