@@ -1,112 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56233 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755231Ab1LNOBq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 09:01:46 -0500
-From: Ming Lei <ming.lei@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Arnd Bergmann <arnd@arndb.de>
-Subject: [RFC PATCH v2 5/8] media: v4l2-ioctl: support 64/32 compatible array parameter
-Date: Wed, 14 Dec 2011 22:00:11 +0800
-Message-Id: <1323871214-25435-6-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:44964 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752143Ab1LTSJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 13:09:28 -0500
+Message-ID: <4EF0CF4A.8050500@redhat.com>
+Date: Tue, 20 Dec 2011 16:09:14 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Patrick Boettcher <pboettcher@kernellabs.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR 3.3] HDIC HD29L2 DMB-TH demodulator driv
+References: <4EE929D5.6010106@iki.fi> <4EF0A92B.6010504@redhat.com> <4EF0ACFD.6040903@iki.fi> <201112201725.57381.pboettcher@kernellabs.com> <4EF0C2F5.6040801@iki.fi> <4EF0CD63.20003@iki.fi>
+In-Reply-To: <4EF0CD63.20003@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch supports to handle 64/32 compatible array parameter,
-such as below:
+On 20-12-2011 16:01, Antti Palosaari wrote:
+> On 12/20/2011 07:16 PM, Antti Palosaari wrote:
+>> On 12/20/2011 06:25 PM, Patrick Boettcher wrote:
+>>> Hi all,
+>>>
+>>> On Tuesday 20 December 2011 16:42:53 Antti Palosaari wrote:
+>>>> Adding those to API is not mission impossible. Interleaver is only
+>>>> new parameter and all the rest are just extending values. But my
+>>>> time is limited... and I really would like to finally got Anysee
+>>>> smart card reader integrated to USB serial first.
+>>>
+>>> And if it is added we should not forget to discuess whether DMB-TH is
+>>> the "right" name. (If this has already been addressed in another thread
+>>> please point me to it).
+>>>
+>>> I know this standard under at least 2 different names: CTTB and DTMB.
+>>>
+>>> Which is the one to choose?
+>>
+>> Yes, there is many names and it is not even clear for me what are
+>> differences between names. I called it DMB-TH since existing Kernel
+>> drivers have selected that name.
+>>
+>> http://en.wikipedia.org/wiki/CMMB
+>> http://en.wikipedia.org/wiki/DTMB
+>> http://en.wikipedia.org/wiki/Digital_Multimedia_Broadcasting
+>> http://en.wikipedia.org/wiki/Digital_Terrestrial_Multimedia_Broadcast
+>>
+>> CMMB
+>> CTTB
+>> DTMB (DTMB-T/H, DMB-T/H)
+>> DMB (T-DMB)
+> 
+> DMB seems to be much different so drop it out. DTMB seems to be official term for DMB-T/H. CMMB seems to be for small devices (mobile), maybe subset of DTMB. Finally I have CTTB and DTMB which seems to be equivalents. DTMB is more common.
+> 
+> So I end up for the DTMB. I give my vote for that.
 
-	struct v4l2_fd_result {
-	       __u32   buf_index;
-	       __u32   face_cnt;
-	       __u32   reserved[6];
-	       struct v4l2_fd_detection fd[];
-	};
+I also vote for DTMB. It seems to be the more adequate one.
 
-With this patch, the pointer to user space array needn't be passed
-to kernel any more.
-
-Cc: Arnd Bergmann <arnd@arndb.de>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/media/video/v4l2-ioctl.c |   33 +++++++++++++++++++++++++++++++--
- 1 files changed, 31 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index e1da8fc..ded8b72 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -2239,6 +2239,11 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
- 	return ret;
- }
- 
-+static int is_64_32_array_args(unsigned int cmd, void *parg, int *extra_len)
-+{
-+	return 0;
-+}
-+
- long
- video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	       v4l2_kioctl func)
-@@ -2251,6 +2256,7 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 	size_t  array_size = 0;
- 	void __user *user_ptr = NULL;
- 	void	**kernel_ptr = NULL;
-+	int	extra = 0;
- 
- 	/*  Copy arguments into temp kernel buffer  */
- 	if (_IOC_DIR(cmd) != _IOC_NONE) {
-@@ -2280,9 +2286,32 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
- 		}
- 	}
- 
--	err = check_array_args(cmd, parg, &array_size, &user_ptr, &kernel_ptr);
-+	if (is_64_32_array_args(cmd, parg, &extra)) {
-+		int size;
-+		void *old_mbuf;
-+
-+		err = 0;
-+		if (!extra)
-+			goto handle_array_args;
-+		old_mbuf = mbuf;
-+		size = extra + _IOC_SIZE(cmd);
-+		mbuf = kmalloc(size, GFP_KERNEL);
-+		if (NULL == mbuf) {
-+			mbuf = old_mbuf;
-+			err = -ENOMEM;
-+			goto out;
-+		}
-+		memcpy(mbuf, parg, _IOC_SIZE(cmd));
-+		parg = mbuf;
-+		kfree(old_mbuf);
-+	} else {
-+		err = check_array_args(cmd, parg, &array_size,
-+				&user_ptr, &kernel_ptr);
-+	}
-+
- 	if (err < 0)
- 		goto out;
-+handle_array_args:
- 	has_array_args = err;
- 
- 	if (has_array_args) {
-@@ -2321,7 +2350,7 @@ out_array_args:
- 	switch (_IOC_DIR(cmd)) {
- 	case _IOC_READ:
- 	case (_IOC_WRITE | _IOC_READ):
--		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd)))
-+		if (copy_to_user((void __user *)arg, parg, _IOC_SIZE(cmd) + extra))
- 			err = -EFAULT;
- 		break;
- 	}
--- 
-1.7.5.4
-
+Regards,
+Mauro
