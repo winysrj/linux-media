@@ -1,144 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:24073 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753179Ab1LHKTM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 05:19:12 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	nicolas.ferre@atmel.com, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v3 1/2] [media] V4L: atmel-isi: add code to enable/disable ISI_MCK clock
-Date: Thu,  8 Dec 2011 18:18:49 +0800
-Message-Id: <1323339530-26117-1-git-send-email-josh.wu@atmel.com>
+Received: from smtp.nokia.com ([147.243.128.26]:17009 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751745Ab1LTU2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 15:28:12 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com
+Subject: [RFC 01/17] v4l: Introduce integer menu controls
+Date: Tue, 20 Dec 2011 22:27:53 +0200
+Message-Id: <1324412889-17961-1-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch
-- add ISI_MCK clock enable/disable code.
-- change field name in isi_platform_data structure
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-[g.liakhovetski@gmx.de: fix label names]
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+Create a new control type called V4L2_CTRL_TYPE_INTEGER_MENU. Integer menu
+controls are just like menu controls but the menu items are 64-bit integers
+rather than strings.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
-v3: using IS_ERR() to check return value of clk_get() instead of using IS_ERR_OR_NULL()
+ drivers/media/video/v4l2-ctrls.c |   60 +++++++++++++++++++++++++++----------
+ include/linux/videodev2.h        |    6 +++-
+ include/media/v4l2-ctrls.h       |    6 +++-
+ 3 files changed, 54 insertions(+), 18 deletions(-)
 
- drivers/media/video/atmel-isi.c |   31 +++++++++++++++++++++++++++++--
- include/media/atmel-isi.h       |    4 +++-
- 2 files changed, 32 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-index fbc904f..44789f0 100644
---- a/drivers/media/video/atmel-isi.c
-+++ b/drivers/media/video/atmel-isi.c
-@@ -90,7 +90,10 @@ struct atmel_isi {
- 	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 0f415da..083bb79 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -804,7 +804,8 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
+ 		ev->u.ctrl.value64 = ctrl->cur.val64;
+ 	ev->u.ctrl.minimum = ctrl->minimum;
+ 	ev->u.ctrl.maximum = ctrl->maximum;
+-	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
++	if (ctrl->type == V4L2_CTRL_TYPE_MENU
++	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
+ 		ev->u.ctrl.step = 1;
+ 	else
+ 		ev->u.ctrl.step = ctrl->step;
+@@ -1035,10 +1036,13 @@ static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
+ 		return 0;
  
- 	struct completion		complete;
-+	/* ISI peripherial clock */
- 	struct clk			*pclk;
-+	/* ISI_MCK, feed to camera sensor to generate pixel clock */
-+	struct clk			*mck;
- 	unsigned int			irq;
+ 	case V4L2_CTRL_TYPE_MENU:
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 		if (val < ctrl->minimum || val > ctrl->maximum)
+ 			return -ERANGE;
+-		if (ctrl->qmenu[val][0] == '\0' ||
+-		    (ctrl->menu_skip_mask & (1 << val)))
++		if (ctrl->menu_skip_mask & (1 << val))
++			return -EINVAL;
++		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
++		    ctrl->qmenu[val][0] == '\0')
+ 			return -EINVAL;
+ 		return 0;
  
- 	struct isi_platform_data	*pdata;
-@@ -766,6 +769,12 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
- 	if (ret)
- 		return ret;
+@@ -1295,7 +1299,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
+ 			u32 id, const char *name, enum v4l2_ctrl_type type,
+ 			s32 min, s32 max, u32 step, s32 def,
+-			u32 flags, const char * const *qmenu, void *priv)
++			u32 flags, const char * const *qmenu,
++			const s64 *qmenu_int, void *priv)
+ {
+ 	struct v4l2_ctrl *ctrl;
+ 	unsigned sz_extra = 0;
+@@ -1308,6 +1313,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	    (type == V4L2_CTRL_TYPE_INTEGER && step == 0) ||
+ 	    (type == V4L2_CTRL_TYPE_BITMASK && max == 0) ||
+ 	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
++	    (type == V4L2_CTRL_TYPE_INTEGER_MENU && qmenu_int == NULL) ||
+ 	    (type == V4L2_CTRL_TYPE_STRING && max == 0)) {
+ 		handler_set_err(hdl, -ERANGE);
+ 		return NULL;
+@@ -1318,6 +1324,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	}
+ 	if ((type == V4L2_CTRL_TYPE_INTEGER ||
+ 	     type == V4L2_CTRL_TYPE_MENU ||
++	     type == V4L2_CTRL_TYPE_INTEGER_MENU ||
+ 	     type == V4L2_CTRL_TYPE_BOOLEAN) &&
+ 	    (def < min || def > max)) {
+ 		handler_set_err(hdl, -ERANGE);
+@@ -1352,7 +1359,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->minimum = min;
+ 	ctrl->maximum = max;
+ 	ctrl->step = step;
+-	ctrl->qmenu = qmenu;
++	if (type == V4L2_CTRL_TYPE_MENU)
++		ctrl->qmenu = qmenu;
++	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
++		ctrl->qmenu_int = qmenu_int;
+ 	ctrl->priv = priv;
+ 	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
  
-+	ret = clk_enable(isi->mck);
-+	if (ret) {
-+		clk_disable(isi->pclk);
-+		return ret;
+@@ -1379,6 +1389,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 	struct v4l2_ctrl *ctrl;
+ 	const char *name = cfg->name;
+ 	const char * const *qmenu = cfg->qmenu;
++	const s64 *qmenu_int = cfg->qmenu_int;
+ 	enum v4l2_ctrl_type type = cfg->type;
+ 	u32 flags = cfg->flags;
+ 	s32 min = cfg->min;
+@@ -1390,18 +1401,24 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
+ 								&def, &flags);
+ 
+-	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU);
++	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
++		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
+ 	if (is_menu)
+ 		WARN_ON(step);
+ 	else
+ 		WARN_ON(cfg->menu_skip_mask);
+-	if (is_menu && qmenu == NULL)
++	if (cfg->type == V4L2_CTRL_TYPE_MENU && qmenu == NULL)
+ 		qmenu = v4l2_ctrl_get_menu(cfg->id);
++	else if (cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU &&
++		 qmenu_int == NULL) {
++		handler_set_err(hdl, -EINVAL);
++		return NULL;
 +	}
-+
- 	isi->icd = icd;
- 	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -779,6 +788,7 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
  
- 	BUG_ON(icd != isi->icd);
+ 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name,
+ 			type, min, max,
+ 			is_menu ? cfg->menu_skip_mask : step,
+-			def, flags, qmenu, priv);
++			def, flags, qmenu, qmenu_int, priv);
+ 	if (ctrl)
+ 		ctrl->is_private = cfg->is_private;
+ 	return ctrl;
+@@ -1418,12 +1435,13 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 	u32 flags;
  
-+	clk_disable(isi->mck);
- 	clk_disable(isi->pclk);
- 	isi->icd = NULL;
+ 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
+-	if (type == V4L2_CTRL_TYPE_MENU) {
++	if (type == V4L2_CTRL_TYPE_MENU
++	    || type == V4L2_CTRL_TYPE_INTEGER_MENU) {
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, id, name, type,
+-				    min, max, step, def, flags, NULL, NULL);
++			     min, max, step, def, flags, NULL, NULL, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std);
  
-@@ -874,7 +884,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd, u32 pixfmt)
+@@ -1445,7 +1463,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, id, name, type,
+-				    0, max, mask, def, flags, qmenu, NULL);
++			     0, max, mask, def, flags, qmenu, NULL, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
  
- 	if (isi->pdata->has_emb_sync)
- 		cfg1 |= ISI_CFG1_EMB_SYNC;
--	if (isi->pdata->isi_full_mode)
-+	if (isi->pdata->full_mode)
- 		cfg1 |= ISI_CFG1_FULL_MODE;
+@@ -1609,6 +1627,9 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_MENU:
+ 		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
+ 		break;
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
++		break;
+ 	case V4L2_CTRL_TYPE_BITMASK:
+ 		printk(KERN_CONT "0x%08x", ctrl->cur.val);
+ 		break;
+@@ -1745,7 +1766,8 @@ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc)
+ 	qc->minimum = ctrl->minimum;
+ 	qc->maximum = ctrl->maximum;
+ 	qc->default_value = ctrl->default_value;
+-	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
++	if (ctrl->type == V4L2_CTRL_TYPE_MENU
++	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
+ 		qc->step = 1;
+ 	else
+ 		qc->step = ctrl->step;
+@@ -1775,16 +1797,22 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
  
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-@@ -912,6 +922,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
- 			isi->fb_descriptors_phys);
- 
- 	iounmap(isi->regs);
-+	clk_put(isi->mck);
- 	clk_put(isi->pclk);
- 	kfree(isi);
- 
-@@ -930,7 +941,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
- 	struct isi_platform_data *pdata;
- 
- 	pdata = dev->platform_data;
--	if (!pdata || !pdata->data_width_flags) {
-+	if (!pdata || !pdata->data_width_flags || !pdata->mck_hz) {
- 		dev_err(&pdev->dev,
- 			"No config available for Atmel ISI\n");
+ 	qm->reserved = 0;
+ 	/* Sanity checks */
+-	if (ctrl->qmenu == NULL ||
++	if ((ctrl->type == V4L2_CTRL_TYPE_MENU && ctrl->qmenu == NULL) ||
++	    (ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU
++	     && ctrl->qmenu_int == NULL) ||
+ 	    i < ctrl->minimum || i > ctrl->maximum)
  		return -EINVAL;
-@@ -959,6 +970,19 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&isi->video_buffer_list);
- 	INIT_LIST_HEAD(&isi->dma_desc_head);
- 
-+	/* Get ISI_MCK, provided by programmable clock or external clock */
-+	isi->mck = clk_get(dev, "isi_mck");
-+	if (IS_ERR(isi->mck)) {
-+		dev_err(dev, "Failed to get isi_mck\n");
-+		ret = PTR_ERR(isi->mck);
-+		goto err_clk_get;
+ 	/* Use mask to see if this menu item should be skipped */
+ 	if (ctrl->menu_skip_mask & (1 << i))
+ 		return -EINVAL;
+ 	/* Empty menu items should also be skipped */
+-	if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
+-		return -EINVAL;
+-	strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
++	if (ctrl->type == V4L2_CTRL_TYPE_MENU) {
++		if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
++			return -EINVAL;
++		strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
++	} else if (ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU) {
++		qm->value = ctrl->qmenu_int[i];
 +	}
-+
-+	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
-+	ret = clk_set_rate(isi->mck, pdata->mck_hz);
-+	if (ret < 0)
-+		goto err_set_mck_rate;
-+
- 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
- 				sizeof(struct fbd) * MAX_BUFFER_NUM,
- 				&isi->fb_descriptors_phys,
-@@ -1034,6 +1058,9 @@ err_alloc_ctx:
- 			isi->p_fb_descriptors,
- 			isi->fb_descriptors_phys);
- err_alloc_descriptors:
-+err_set_mck_rate:
-+	clk_put(isi->mck);
-+err_clk_get:
- 	kfree(isi);
- err_alloc_isi:
- 	clk_put(pclk);
-diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-index 26cece5..6568230 100644
---- a/include/media/atmel-isi.h
-+++ b/include/media/atmel-isi.h
-@@ -110,10 +110,12 @@ struct isi_platform_data {
- 	u8 hsync_act_low;
- 	u8 vsync_act_low;
- 	u8 pclk_act_falling;
--	u8 isi_full_mode;
-+	u8 full_mode;
- 	u32 data_width_flags;
- 	/* Using for ISI_CFG1 */
- 	u32 frate;
-+	/* Using for ISI_MCK */
-+	u32 mck_hz;
+ 	return 0;
+ }
+ EXPORT_SYMBOL(v4l2_querymenu);
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 4b752d5..9633c69 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1094,6 +1094,7 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
+ 	V4L2_CTRL_TYPE_STRING        = 7,
+ 	V4L2_CTRL_TYPE_BITMASK       = 8,
++	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
  };
  
- #endif /* __ATMEL_ISI_H__ */
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+@@ -1113,7 +1114,10 @@ struct v4l2_queryctrl {
+ struct v4l2_querymenu {
+ 	__u32		id;
+ 	__u32		index;
+-	__u8		name[32];	/* Whatever */
++	union {
++		__u8	name[32];	/* Whatever */
++		__s64	value;
++	};
+ 	__u32		reserved;
+ };
+ 
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index eeb3df6..f7819e7 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -129,7 +129,10 @@ struct v4l2_ctrl {
+ 		u32 step;
+ 		u32 menu_skip_mask;
+ 	};
+-	const char * const *qmenu;
++	union {
++		const char * const *qmenu;
++		const s64 *qmenu_int;
++	};
+ 	unsigned long flags;
+ 	union {
+ 		s32 val;
+@@ -219,6 +222,7 @@ struct v4l2_ctrl_config {
+ 	u32 flags;
+ 	u32 menu_skip_mask;
+ 	const char * const *qmenu;
++	const s64 *qmenu_int;
+ 	unsigned int is_private:1;
+ };
+ 
 -- 
-1.6.3.3
+1.7.2.5
 
