@@ -1,233 +1,652 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:43971 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751249Ab1LVWkl (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:50750 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751517Ab1LTQi1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 17:40:41 -0500
-Received: by yhr47 with SMTP id 47so6231163yhr.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 14:40:40 -0800 (PST)
-Message-ID: <4EF3B1E3.2000607@aapt.net.au>
-Date: Fri, 23 Dec 2011 09:40:35 +1100
-From: Andrew Goff <goffa72@gmail.com>
-Reply-To: goffa72@gmail.com
+	Tue, 20 Dec 2011 11:38:27 -0500
+Date: Tue, 20 Dec 2011 11:36:50 -0500
+From: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	t.stanislaws@samsung.com, linux@arm.linux.org.uk, arnd@arndb.de,
+	patches@linaro.org, rob@ti.com,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	m.szyprowski@samsung.com
+Subject: Re: [RFC v3 1/2] dma-buf: Introduce dma buffer sharing mechanism
+Message-ID: <20111220163650.GB3964@phenom.dumpdata.com>
+References: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
+ <1324283611-18344-3-git-send-email-sumit.semwal@ti.com>
 MIME-Version: 1.0
-To: goffa72@gmail.com
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	=?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.mmm@gmail.com>
-Subject: Re: Leadtek Winfast 1800H FM Tuner
-References: <4D8550A3.5010604@aapt.net.au>	<4D85B871.3010201@iki.fi>	<4D8726C5.2090403@gmail.com>	<4D8737EB.9070006@aapt.net.au>	<4D878E84.2020801@redhat.com>	<4D87B927.9040200@aapt.net.au>	<4D87BEA1.7080601@redhat.com> <AANLkTikTf-M9U5VZBj+uZY9oFMCTtSufrHBsyn_DO9UR@mail.gmail.com> <4D89B5D0.1010202@redhat.com> <4DAC2B70.5000702@aapt.net.au>
-In-Reply-To: <4DAC2B70.5000702@aapt.net.au>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1324283611-18344-3-git-send-email-sumit.semwal@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This has now been fixed after applying patches by Miroslav Slugen.
+On Mon, Dec 19, 2011 at 02:03:30PM +0530, Sumit Semwal wrote:
+> This is the first step in defining a dma buffer sharing mechanism.
+> 
+> A new buffer object dma_buf is added, with operations and API to allow easy
+> sharing of this buffer object across devices.
+> 
+> The framework allows:
+> - different devices to 'attach' themselves to this buffer, to facilitate
+>   backing storage negotiation, using dma_buf_attach() API.
 
-On 18/04/2011 10:15 PM, Andrew Goff wrote:
-> On 23/03/2011 7:56 PM, Mauro Carvalho Chehab wrote:
->> Em 22-03-2011 08:54, Andrew Goff escreveu:
->>> On Tue, Mar 22, 2011 at 8:09 AM, Mauro Carvalho Chehab
->>> <mchehab@redhat.com> wrote:
->>>> Em 21-03-2011 17:46, Andrew Goff escreveu:
->>>>> On Tue 22-Mar-2011 4:44 AM, Mauro Carvalho Chehab wrote:
->>>>>> Em 21-03-2011 08:35, Andrew Goff escreveu:
->>>>>>> On Mon 21-Mar-2011 9:21 PM, Mauro Carvalho Chehab wrote:
->>>>>>>> Em 20-03-2011 05:18, Antti Palosaari escreveu:
->>>>>>>>> On 03/20/2011 02:56 AM, Andrew Goff wrote:
->>>>>>>>>> Hi, I hope someone may be able to help me solve a problem or
->>>>>>>>>> point me in
->>>>>>>>>> the right direction.
->>>>>>>>>>
->>>>>>>>>> I have been using a Leadtek Winfast DTV1800H card (﻿Xceive
->>>>>>>>>> xc3028 tuner)
->>>>>>>>>> for a while now without any issues (DTV& Radio have been
->>>>>>>>>> working well),
->>>>>>>>>> I recently decided to get another tuner card, Leadtek Winfast
->>>>>>>>>> DTV2000DS
->>>>>>>>>> (Tuner: NXP TDA18211, but detected as TDA18271 by V4L drivers,
->>>>>>>>>> Chipset:
->>>>>>>>>> AF9015 + AF9013 ) and had to compile and install the V4L
->>>>>>>>>> drivers to get
->>>>>>>>>> it working. Now DTV on both cards work well but there is a
->>>>>>>>>> problem with
->>>>>>>>>> the radio tuner on the 1800H card.
->>>>>>>>>>
->>>>>>>>>> After installing the more recent V4L drivers the radio
->>>>>>>>>> frequency is
->>>>>>>>>> 2.7MHz out, so if I want to listen to 104.9 I need to tune the
->>>>>>>>>> radio to
->>>>>>>>>> 107.6. Now I could just change all my preset stations but I
->>>>>>>>>> can not
->>>>>>>>>> listen to my preferred stations as I need to set the frequency
->>>>>>>>>> above
->>>>>>>>>> 108MHz.
->>>>>>>>> I think there is something wrong with the FM tuner (xc3028?) or
->>>>>>>>> other chipset drivers used for DTV1800H. No relations to the
->>>>>>>>> af9015, af9013 or tda18271. tda18211 is same chip as tda18271
->>>>>>>>> but only DVB-T included. If DTV1800H does not contain tda18211
->>>>>>>>> or tda18271 problem cannot be either that.
->>>>>>>> Yes, the problem is likely at xc3028. It has to do frequency
->>>>>>>> shift for some
->>>>>>>> DVB standards, and the shift is dependent on what firmware is
->>>>>>>> loaded.
->>>>>>>>
->>>>>>>> So, you need to enable load tuner-xc2028 with debug=1, and
->>>>>>>> provide us the
->>>>>>>> dmesg.
->>>>>>>>
->>>>>>>> Mauro.
->>>>>>>>
->>>>>>> Hi Mauro
->>>>>>>
->>>>>>> To do this do I just add the line
->>>>>>>
->>>>>>> options tuner-xc2028 debug=1
->>>>>>>
->>>>>>> to the /etc/modules file.
->>>>>>>
->>>>>>> From my current dmesg file looks like the firmware is version 2.7.
->>>>>>>
->>>>>>> xc2028 1-0061: Loading 80 firmware images from xc3028-v27.fw,
->>>>>>> type: xc2028 firmware, ver 2.7
->>>>>> There are about 60 firmwares that are grouped inside
->>>>>> xc3028-v27.fw. Please
->>>>>> post the complete dmesg. We also need to know what version of the
->>>>>> driver
->>>>>> you were using when the driver used to work and what you're using
->>>>>> when it
->>>>>> broke.
->>>>>>
->>>>>> Thanks
->>>>>> Mauro.
->>>>>>
->>>>> Mauro, please see dmesg attached, note I have not added debug=1
->>>>> yet, do I still need to do this.
->>>>>
->>>>> To get the other card working I installed this driver version
->>>>> http://linuxtv.org/hg/v4l-dvb/rev/abd3aac6644e
->>>> The mercurial tree is there just due to historic reasons. It has
->>>> _obsolete_ stuff and nobody
->>>> is updating it. Please use, instead, the media_build.git (see
->>>> linuxtv.org wiki).
->>>>
->>>> the dmesg with the debug=1 is required, otherwise, it won't produce
->>>> any error about what's happening at
->>>> the xc3028 driver.
->>>>
->>>> Mauro.
->>>>
->>> HI Mauro, now using media_build.git and followed the instructions from
->>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
->>>
->>>
->>> have added options tuner-xc2028 debug=1 to the /etc/modules , please
->>> see attached dmesg
->>>
->>> FM tuner has now completely stopped working.
->> Weird:
->>
->> [ 36.654409] xc2028 1-0061: creating new instance
->> [ 36.654414] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
->> [ 36.654419] xc2028 1-0061: destroying instance
->> [ 36.654489] xc2028 1-0061: creating new instance
->> [ 36.654491] xc2028 1-0061: type set to XCeive xc2028/xc3028 tuner
->> [ 36.654494] cx88[0]: Asking xc2028/3028 to load firmware xc3028-v27.fw
->> [ 36.745247] cx88_audio 0000:01:06.1: firmware: requesting xc3028-v27.fw
->> [ 36.817868] xc2028 1-0061: Loading 80 firmware images from
->> xc3028-v27.fw, type: xc2028 firmware, ver 2.7
->> [ 36.817993] cx88[0]: Calling XC2028/3028 callback
->> [ 36.966811] xc2028 1-0061: Loading firmware for type=BASE (1), id
->> 0000000000000000.
->> [ 36.966815] cx88[0]: Calling XC2028/3028 callback
->>
->> xc2028 driver didn't try to load a standard-specific firmware...
->>
->> I would expect at least two load firmware lines there... one for NTSC,
->> and another one for one of
->> the radio-specific firmwares, when you tried to run radio on it.
->>
->> Please also load tuner with debug=1. Let's see what happens when you
->> change a frequency on your
->> radio program.
->>
->> AH! Very important! V4L1 API got removed, so, you need to be sure that
->> your radio program is
->> using V4L2 API. I had to fix xawtv3 "radio" program for it to work
->> properly using V4L2 API.
->> So, xawtv 3.95 is broken. If you're using xawtv 3.100, radio
->> application is working fine.
->>
->> We had also a report that gnome-radio upstream is broken. While it
->> does support both API's,
->> it seems that it fails if V4L1 is not available. There's a patch
->> fixing it on Fedora. Not
->> sure if other distros applied the patch, but, on a quick look, the
->> Fedora patch didn't reach
->> upstream:
->> http://git.gnome.org/browse/gnomeradio/
->>
->> Hmm...
->>
->> [ 37.381526] ir_lirc_codec: Unknown symbol lirc_dev_fop_poll
->> [ 37.381724] ir_lirc_codec: Unknown symbol lirc_dev_fop_open
->> [ 37.381807] ir_lirc_codec: disagrees about version of symbol
->> lirc_get_pdata
->> [ 37.381809] ir_lirc_codec: Unknown symbol lirc_get_pdata
->> [ 37.381900] ir_lirc_codec: Unknown symbol lirc_dev_fop_close
->> [ 37.381999] ir_lirc_codec: Unknown symbol lirc_dev_fop_read
->> [ 37.382068] ir_lirc_codec: disagrees about version of symbol
->> lirc_register_driver
->> [ 37.382070] ir_lirc_codec: Unknown symbol lirc_register_driver
->> [ 37.382256] ir_lirc_codec: Unknown symbol lirc_dev_fop_ioctl
->>
->> You have a mix of old and new drivers on your install. The results are
->> unpredictable
->> when you're mixing drivers. Please be sure that the Kernel you're
->> running doesn't
->> have any trace of the ancient drivers. Maybe some parts of RC/V4L/DVB
->> were compiled
->> built in, or your distro is not putting the media stuff at the right
->> place.
->>
->> The standard place to add media Kernel drivers are at:
->> /lib/modules/`uname -r`/kernel/drivers/media/
->>
->> Sometimes, they might also be find at:
->> /lib/modules/`uname -r`/kernel/extra (or /lib/modules/`uname -r`/extra )
->>
->> Ubuntu (Debian?) have a different opinion about that, and they have
->> a directory on some other random place with some drivers. It used to
->> be at:
->> /lib/modules/`uname -r`/ubuntu/media
->>
->> The new_build install target tries to remove the ancient drivers from
->> the above
->> directories, but if the distro you're using are storing them into some
->> other
->> random place, make install won't be able to cleanup everything.
->>
->> Could you please fix the above issues and test again?
->>
->> Cheers,
->> Mauro
->>
->>
->>
-> Hi Mauro
->
-> I could not fix the issues you mentioned using Ubuntu so I've tried
-> another distro (mythdora).
->
-> Installed xawtv 3.1 radio application to test FM tuner.
->
-> FM tuner worked before installing more recent V4L drivers(required to
-> get second TV card working). No FM tuning at all with recent V4L drivers.
->
-> Please see attached the demsg files.
->
->
->
->
->
+Any thoughts of adding facility to track them? So you can see who is using what?
+
+> - association of a file pointer with each user-buffer and associated
+>    allocator-defined operations on that buffer. This operation is called the
+>    'export' operation.
+
+ 'create'? or 'alloc' ?
+
+export implies an import somwhere and I don't think that is the case here.
+
+> - this exported buffer-object to be shared with the other entity by asking for
+>    its 'file-descriptor (fd)', and sharing the fd across.
+> - a received fd to get the buffer object back, where it can be accessed using
+>    the associated exporter-defined operations.
+> - the exporter and user to share the scatterlist using map_dma_buf and
+>    unmap_dma_buf operations.
+> 
+> Atleast one 'attach()' call is required to be made prior to calling the
+> map_dma_buf() operation.
+
+for the whole memory region or just for the device itself?
+
+> 
+> Couple of building blocks in map_dma_buf() are added to ease introduction
+> of sync'ing across exporter and users, and late allocation by the exporter.
+> 
+> More details are there in the documentation patch.
+> 
+> This is based on design suggestions from many people at the mini-summits[1],
+> most notably from Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
+> Daniel Vetter <daniel@ffwll.ch>.
+> 
+> The implementation is inspired from proof-of-concept patch-set from
+> Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer sharing
+> between two v4l2 devices. [2]
+> 
+> [1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
+> [2]: http://lwn.net/Articles/454389
+> 
+> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> ---
+>  drivers/base/Kconfig    |   10 ++
+>  drivers/base/Makefile   |    1 +
+>  drivers/base/dma-buf.c  |  289 +++++++++++++++++++++++++++++++++++++++++++++++
+>  include/linux/dma-buf.h |  172 ++++++++++++++++++++++++++++
+>  4 files changed, 472 insertions(+), 0 deletions(-)
+>  create mode 100644 drivers/base/dma-buf.c
+>  create mode 100644 include/linux/dma-buf.h
+> 
+> diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+> index 21cf46f..8a0e87f 100644
+> --- a/drivers/base/Kconfig
+> +++ b/drivers/base/Kconfig
+> @@ -174,4 +174,14 @@ config SYS_HYPERVISOR
+>  
+>  source "drivers/base/regmap/Kconfig"
+>  
+> +config DMA_SHARED_BUFFER
+> +	bool "Buffer framework to be shared between drivers"
+> +	default n
+> +	select ANON_INODES
+> +	help
+> +	  This option enables the framework for buffer-sharing between
+> +	  multiple drivers. A buffer is associated with a file using driver
+> +	  APIs extension; the file's descriptor can then be passed on to other
+> +	  driver.
+> +
+>  endmenu
+> diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+> index 99a375a..d0df046 100644
+> --- a/drivers/base/Makefile
+> +++ b/drivers/base/Makefile
+> @@ -8,6 +8,7 @@ obj-$(CONFIG_DEVTMPFS)	+= devtmpfs.o
+>  obj-y			+= power/
+>  obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
+>  obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
+> +obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o
+>  obj-$(CONFIG_ISA)	+= isa.o
+>  obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
+>  obj-$(CONFIG_NUMA)	+= node.o
+> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+> new file mode 100644
+> index 0000000..e920709
+> --- /dev/null
+> +++ b/drivers/base/dma-buf.c
+> @@ -0,0 +1,289 @@
+> +/*
+> + * Framework for buffer objects that can be shared across devices/subsystems.
+> + *
+> + * Copyright(C) 2011 Linaro Limited. All rights reserved.
+> + * Author: Sumit Semwal <sumit.semwal@ti.com>
+> + *
+> + * Many thanks to linaro-mm-sig list, and specially
+> + * Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
+> + * Daniel Vetter <daniel@ffwll.ch> for their support in creation and
+> + * refining of this idea.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +
+> +#include <linux/fs.h>
+> +#include <linux/slab.h>
+> +#include <linux/dma-buf.h>
+> +#include <linux/anon_inodes.h>
+> +#include <linux/export.h>
+> +
+> +static inline int is_dma_buf_file(struct file *);
+> +
+> +static int dma_buf_release(struct inode *inode, struct file *file)
+> +{
+> +	struct dma_buf *dmabuf;
+> +
+> +	if (!is_dma_buf_file(file))
+> +		return -EINVAL;
+> +
+> +	dmabuf = file->private_data;
+> +
+> +	dmabuf->ops->release(dmabuf);
+> +	kfree(dmabuf);
+> +	return 0;
+> +}
+> +
+> +static const struct file_operations dma_buf_fops = {
+> +	.release	= dma_buf_release,
+> +};
+> +
+> +/*
+> + * is_dma_buf_file - Check if struct file* is associated with dma_buf
+> + */
+> +static inline int is_dma_buf_file(struct file *file)
+> +{
+> +	return file->f_op == &dma_buf_fops;
+> +}
+> +
+> +/**
+
+Wrong kerneldoc.
+
+> + * dma_buf_export - Creates a new dma_buf, and associates an anon file
+> + * with this buffer, so it can be exported.
+> + * Also connect the allocator specific data and ops to the buffer.
+> + *
+> + * @priv:	[in]	Attach private data of allocator to this buffer
+> + * @ops:	[in]	Attach allocator-defined dma buf ops to the new buffer.
+> + * @size:	[in]	Size of the buffer
+> + * @flags:	[in]	mode flags for the file.
+> + *
+> + * Returns, on success, a newly created dma_buf object, which wraps the
+> + * supplied private data and operations for dma_buf_ops. On either missing
+> + * ops, or error in allocating struct dma_buf, will return negative error.
+> + *
+> + */
+> +struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
+> +				size_t size, int flags)
+> +{
+> +	struct dma_buf *dmabuf;
+> +	struct file *file;
+> +
+> +	if (WARN_ON(!priv || !ops
+> +			  || !ops->map_dma_buf
+> +			  || !ops->unmap_dma_buf
+> +			  || !ops->release)) {
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	dmabuf = kzalloc(sizeof(struct dma_buf), GFP_KERNEL);
+> +	if (dmabuf == NULL)
+> +		return ERR_PTR(-ENOMEM);
+> +
+> +	dmabuf->priv = priv;
+> +	dmabuf->ops = ops;
+> +	dmabuf->size = size;
+> +
+> +	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf, flags);
+> +
+> +	dmabuf->file = file;
+> +
+> +	mutex_init(&dmabuf->lock);
+> +	INIT_LIST_HEAD(&dmabuf->attachments);
+> +
+> +	return dmabuf;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_export);
+> +
+> +
+> +/**
+> + * dma_buf_fd - returns a file descriptor for the given dma_buf
+> + * @dmabuf:	[in]	pointer to dma_buf for which fd is required.
+> + *
+> + * On success, returns an associated 'fd'. Else, returns error.
+> + */
+> +int dma_buf_fd(struct dma_buf *dmabuf)
+> +{
+> +	int error, fd;
+> +
+> +	if (!dmabuf || !dmabuf->file)
+> +		return -EINVAL;
+> +
+> +	error = get_unused_fd();
+> +	if (error < 0)
+> +		return error;
+> +	fd = error;
+> +
+> +	fd_install(fd, dmabuf->file);
+> +
+> +	return fd;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_fd);
+> +
+> +/**
+> + * dma_buf_get - returns the dma_buf structure related to an fd
+> + * @fd:	[in]	fd associated with the dma_buf to be returned
+> + *
+> + * On success, returns the dma_buf structure associated with an fd; uses
+> + * file's refcounting done by fget to increase refcount. returns ERR_PTR
+> + * otherwise.
+> + */
+> +struct dma_buf *dma_buf_get(int fd)
+> +{
+> +	struct file *file;
+> +
+> +	file = fget(fd);
+> +
+> +	if (!file)
+> +		return ERR_PTR(-EBADF);
+> +
+> +	if (!is_dma_buf_file(file)) {
+> +		fput(file);
+> +		return ERR_PTR(-EINVAL);
+> +	}
+> +
+> +	return file->private_data;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_get);
+> +
+> +/**
+> + * dma_buf_put - decreases refcount of the buffer
+> + * @dmabuf:	[in]	buffer to reduce refcount of
+> + *
+> + * Uses file's refcounting done implicitly by fput()
+> + */
+> +void dma_buf_put(struct dma_buf *dmabuf)
+> +{
+> +	if (WARN_ON(!dmabuf || !dmabuf->file))
+> +		return;
+> +
+> +	fput(dmabuf->file);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_put);
+> +
+> +/**
+> + * dma_buf_attach - Add the device to dma_buf's attachments list; optionally,
+> + * calls attach() of dma_buf_ops to allow device-specific attach functionality
+> + * @dmabuf:	[in]	buffer to attach device to.
+> + * @dev:	[in]	device to be attached.
+> + *
+> + * Returns struct dma_buf_attachment * for this attachment; may return negative
+> + * error codes.
+> + *
+> + */
+> +struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+> +					  struct device *dev)
+> +{
+> +	struct dma_buf_attachment *attach;
+> +	int ret;
+> +
+> +	if (WARN_ON(!dmabuf || !dev || !dmabuf->ops))
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	attach = kzalloc(sizeof(struct dma_buf_attachment), GFP_KERNEL);
+> +	if (attach == NULL)
+> +		goto err_alloc;
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +
+> +	attach->dev = dev;
+> +	attach->dmabuf = dmabuf;
+> +	if (dmabuf->ops->attach) {
+> +		ret = dmabuf->ops->attach(dmabuf, dev, attach);
+> +		if (ret)
+> +			goto err_attach;
+> +	}
+> +	list_add(&attach->node, &dmabuf->attachments);
+> +
+> +	mutex_unlock(&dmabuf->lock);
+> +	return attach;
+> +
+> +err_alloc:
+> +	return ERR_PTR(-ENOMEM);
+> +err_attach:
+> +	kfree(attach);
+> +	mutex_unlock(&dmabuf->lock);
+> +	return ERR_PTR(ret);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_attach);
+> +
+> +/**
+> + * dma_buf_detach - Remove the given attachment from dmabuf's attachments list;
+> + * optionally calls detach() of dma_buf_ops for device-specific detach
+> + * @dmabuf:	[in]	buffer to detach from.
+> + * @attach:	[in]	attachment to be detached; is free'd after this call.
+> + *
+> + */
+> +void dma_buf_detach(struct dma_buf *dmabuf, struct dma_buf_attachment *attach)
+> +{
+> +	if (WARN_ON(!dmabuf || !attach || !dmabuf->ops))
+> +		return;
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +	list_del(&attach->node);
+> +	if (dmabuf->ops->detach)
+> +		dmabuf->ops->detach(dmabuf, attach);
+> +
+> +	mutex_unlock(&dmabuf->lock);
+> +	kfree(attach);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_detach);
+> +
+> +/**
+> + * dma_buf_map_attachment - Returns the scatterlist table of the attachment;
+> + * mapped into _device_ address space. Is a wrapper for map_dma_buf() of the
+> + * dma_buf_ops.
+> + * @attach:	[in]	attachment whose scatterlist is to be returned
+> + * @direction:	[in]	direction of DMA transfer
+> + *
+> + * Returns sg_table containing the scatterlist to be returned; may return NULL
+> + * or ERR_PTR.
+> + *
+> + */
+> +struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *attach,
+> +					enum dma_data_direction direction)
+> +{
+> +	struct sg_table *sg_table = ERR_PTR(-EINVAL);
+> +
+> +	if (WARN_ON(!attach || !attach->dmabuf || !attach->dmabuf->ops))
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	mutex_lock(&attach->dmabuf->lock);
+> +	if (attach->dmabuf->ops->map_dma_buf)
+> +		sg_table = attach->dmabuf->ops->map_dma_buf(attach, direction);
+> +	mutex_unlock(&attach->dmabuf->lock);
+> +
+> +	return sg_table;
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
+> +
+> +/**
+> + * dma_buf_unmap_attachment - unmaps and decreases usecount of the buffer;might
+> + * deallocate the scatterlist associated. Is a wrapper for unmap_dma_buf() of
+> + * dma_buf_ops.
+> + * @attach:	[in]	attachment to unmap buffer from
+> + * @sg_table:	[in]	scatterlist info of the buffer to unmap
+> + *
+> + */
+> +void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+> +				struct sg_table *sg_table)
+> +{
+> +	if (WARN_ON(!attach || !attach->dmabuf || !sg_table
+> +			    || !attach->dmabuf->ops))
+> +		return;
+> +
+> +	mutex_lock(&attach->dmabuf->lock);
+> +	if (attach->dmabuf->ops->unmap_dma_buf)
+> +		attach->dmabuf->ops->unmap_dma_buf(attach, sg_table);
+> +	mutex_unlock(&attach->dmabuf->lock);
+> +
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_unmap_attachment);
+> diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+> new file mode 100644
+> index 0000000..3e3ecf3
+> --- /dev/null
+> +++ b/include/linux/dma-buf.h
+> @@ -0,0 +1,172 @@
+> +/*
+> + * Header file for dma buffer sharing framework.
+> + *
+> + * Copyright(C) 2011 Linaro Limited. All rights reserved.
+> + * Author: Sumit Semwal <sumit.semwal@ti.com>
+> + *
+> + * Many thanks to linaro-mm-sig list, and specially
+> + * Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
+> + * Daniel Vetter <daniel@ffwll.ch> for their support in creation and
+> + * refining of this idea.
+> + *
+> + * This program is free software; you can redistribute it and/or modify it
+> + * under the terms of the GNU General Public License version 2 as published by
+> + * the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful, but WITHOUT
+> + * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+> + * FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+> + * more details.
+> + *
+> + * You should have received a copy of the GNU General Public License along with
+> + * this program.  If not, see <http://www.gnu.org/licenses/>.
+> + */
+> +#ifndef __DMA_BUF_H__
+> +#define __DMA_BUF_H__
+> +
+> +#include <linux/file.h>
+> +#include <linux/err.h>
+> +#include <linux/device.h>
+> +#include <linux/scatterlist.h>
+> +#include <linux/list.h>
+> +#include <linux/dma-mapping.h>
+> +
+> +struct dma_buf;
+> +
+> +/**
+> + * struct dma_buf_attachment - holds device-buffer attachment data
+
+OK, but what is the purpose of it?
+
+> + * @dmabuf: buffer for this attachment.
+> + * @dev: device attached to the buffer.
+                                ^^^ this
+> + * @node: list_head to allow manipulation of list of dma_buf_attachment.
+
+Just say: "list of dma_buf_attachment"'
+
+> + * @priv: exporter-specific attachment data.
+
+That "exporter-specific.." brings to my mind custom decleration forms. But maybe that is me.
+
+> + */
+> +struct dma_buf_attachment {
+> +	struct dma_buf *dmabuf;
+> +	struct device *dev;
+> +	struct list_head node;
+> +	void *priv;
+> +};
+
+Why don't you move the decleration of this below 'struct dma_buf'?
+It would easier than to read this structure..
+
+> +
+> +/**
+> + * struct dma_buf_ops - operations possible on struct dma_buf
+> + * @attach: allows different devices to 'attach' themselves to the given
+
+register?
+> + *	    buffer. It might return -EBUSY to signal that backing storage
+> + *	    is already allocated and incompatible with the requirements
+
+Wait.. allocated or attached?
+
+> + *	    of requesting device. [optional]
+
+What is optional? The return value? Or the 'attach' call? If the later , say
+that in the first paragraph.
+
+
+> + * @detach: detach a given device from this buffer. [optional]
+> + * @map_dma_buf: returns list of scatter pages allocated, increases usecount
+> + *		 of the buffer. Requires atleast one attach to be called
+> + *		 before. Returned sg list should already be mapped into
+> + *		 _device_ address space. This call may sleep. May also return
+
+Ok, there is some __might_sleep macro you should put on the function.
+
+> + *		 -EINTR.
+
+Ok. What is the return code if attach has _not_ been called?
+
+> + * @unmap_dma_buf: decreases usecount of buffer, might deallocate scatter
+> + *		   pages.
+> + * @release: release this buffer; to be called after the last dma_buf_put.
+> + * @sync_sg_for_cpu: sync the sg list for cpu.
+> + * @sync_sg_for_device: synch the sg list for device.
+
+Not seeing those two.
+> + */
+> +struct dma_buf_ops {
+> +	int (*attach)(struct dma_buf *, struct device *,
+> +			struct dma_buf_attachment *);
+> +
+> +	void (*detach)(struct dma_buf *, struct dma_buf_attachment *);
+> +
+> +	/* For {map,unmap}_dma_buf below, any specific buffer attributes
+> +	 * required should get added to device_dma_parameters accessible
+> +	 * via dev->dma_params.
+> +	 */
+> +	struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *,
+> +						enum dma_data_direction);
+> +	void (*unmap_dma_buf)(struct dma_buf_attachment *,
+> +						struct sg_table *);
+> +	/* TODO: Add try_map_dma_buf version, to return immed with -EBUSY
+
+Ewww. Why? Why not just just the 'map_dma_buf' and return that?
+
+> +	 * if the call would block.
+> +	 */
+> +
+> +	/* after final dma_buf_put() */
+> +	void (*release)(struct dma_buf *);
+> +
+> +};
+> +
+> +/**
+> + * struct dma_buf - shared buffer object
+
+Missing the 'size'.
+
+> + * @file: file pointer used for sharing buffers across, and for refcounting.
+> + * @attachments: list of dma_buf_attachment that denotes all devices attached.
+> + * @ops: dma_buf_ops associated with this buffer object
+> + * @priv: user specific private data
+
+
+Can you elaborate on this? Is this the "exporter" using this? Or is
+it for the "user" using it? If so, why provide it? Wouldn't the 
+user of this have something like this:
+
+struct my_dma_bufs {
+	struct dma_buf[20];
+	void *priv;
+}
+
+Anyhow?
+
+> + */
+> +struct dma_buf {
+> +	size_t size;
+> +	struct file *file;
+> +	struct list_head attachments;
+> +	const struct dma_buf_ops *ops;
+> +	/* mutex to serialize list manipulation and other ops */
+> +	struct mutex lock;
+> +	void *priv;
+> +};
+> +
+> +#ifdef CONFIG_DMA_SHARED_BUFFER
+> +struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+> +							struct device *dev);
+> +void dma_buf_detach(struct dma_buf *dmabuf,
+> +				struct dma_buf_attachment *dmabuf_attach);
+> +struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
+> +			size_t size, int flags);
+> +int dma_buf_fd(struct dma_buf *dmabuf);
+> +struct dma_buf *dma_buf_get(int fd);
+> +void dma_buf_put(struct dma_buf *dmabuf);
+> +
+> +struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
+> +					enum dma_data_direction);
+> +void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *);
+> +#else
+> +
+> +static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+> +							struct device *dev)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+> +static inline void dma_buf_detach(struct dma_buf *dmabuf,
+> +				  struct dma_buf_attachment *dmabuf_attach)
+> +{
+> +	return;
+> +}
+> +
+> +static inline struct dma_buf *dma_buf_export(void *priv,
+> +						struct dma_buf_ops *ops,
+> +						size_t size, int flags)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+> +static inline int dma_buf_fd(struct dma_buf *dmabuf)
+> +{
+> +	return -ENODEV;
+> +}
+> +
+> +static inline struct dma_buf *dma_buf_get(int fd)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+> +static inline void dma_buf_put(struct dma_buf *dmabuf)
+> +{
+> +	return;
+> +}
+> +
+> +static inline struct sg_table *dma_buf_map_attachment(
+> +	struct dma_buf_attachment *attach, enum dma_data_direction write)
+> +{
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+> +static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+> +						struct sg_table *sg)
+> +{
+> +	return;
+> +}
+> +
+> +#endif /* CONFIG_DMA_SHARED_BUFFER */
+> +
+> +#endif /* __DMA_BUF_H__ */
+> -- 
+> 1.7.4.1
+> 
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
