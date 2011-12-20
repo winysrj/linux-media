@@ -1,273 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42020 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754390Ab1LNNst (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 08:48:49 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: martin@neutronstar.dyndns.org
-Subject: Re: [PATCH v3] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Wed, 14 Dec 2011 14:49:05 +0100
-Cc: Marek Vasut <marek.vasut@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1323825633-10543-1-git-send-email-martin@neutronstar.dyndns.org> <201112140255.31937.marek.vasut@gmail.com> <1323846842.756509.13592@localhost>
-In-Reply-To: <1323846842.756509.13592@localhost>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112141449.05926.laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.1.48]:35774 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752677Ab1LTU2N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 15:28:13 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com
+Subject: [RFC 04/17] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Date: Tue, 20 Dec 2011 22:27:56 +0200
+Message-Id: <1324412889-17961-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-On Wednesday 14 December 2011 08:14:01 martin@neutronstar.dyndns.org wrote:
-> On Wed, Dec 14, 2011 at 02:55:31AM +0100, Marek Vasut wrote:
-> > > The MT9M032 is a parallel 1.6MP sensor from Micron controlled through
-> > > I2C.
-> > > 
-> > > The driver creates a V4L2 subdevice. It currently supports cropping,
-> > > gain, exposure and v/h flipping controls in monochrome mode with an
-> > > external pixel clock.
-> > > 
-> > > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > > ---
+Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
+VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
 
-[snip]
+VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
 
-> > > diff --git a/drivers/media/video/mt9m032.c
-> > > b/drivers/media/video/mt9m032.c new file mode 100644
-> > > index 0000000..b4159c7
-> > > --- /dev/null
-> > > +++ b/drivers/media/video/mt9m032.c
-> > > @@ -0,0 +1,819 @@
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/v4l2-subdev.c |   26 ++++++++++++++++++++-
+ include/linux/v4l2-subdev.h       |   45 +++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-subdev.h       |    5 ++++
+ 3 files changed, 75 insertions(+), 1 deletions(-)
 
-[snip]
-
-> > > +static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
-> > > +{
-> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> > > +	s32 data = i2c_smbus_read_word_data(client, reg);
-> > > +
-> > > +	return data < 0 ? data : swab16(data);
-> > 
-> > Uhm ... why ?
-> 
-> error codes are not swab16-ed, data values are. Hardware needs swapping of
-> data values.
-
-You can use i2c_smbus_read_word_swapped() and i2c_smbus_write_word_swapped().
-
-> > > +}
-> > > +
-> > > +static int mt9m032_write_reg(struct mt9m032 *sensor, u8 reg,
-> > > +		     const u16 data)
-> > > +{
-> > > +	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-> > > +
-> > > +	return i2c_smbus_write_word_data(client, reg, swab16(data));
-> > > +}
-
-[snip]
-
-> > > +static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool
-> > > hflip) +{
-> > > +	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
-> > 
-> > !!(bool) ? hmm ...
-> 
-> a true bool can be any value except 0. !!bool is guaranteed to be either
-> 0 or 1 and this suitable for use in bitshifting to set a specific bit.
-
-I'd use
-
-	int reg_val = (vflip ? MT9M032_READ_MODE2_VFLIP : 0)
-	            | (hflip ? MT9M032_READ_MODE2_HFLIP : 0)
-	...
-
-but that might just be me.
-
-BTW, what about using fixed-size types for register values ? u16 would make 
-sense here.
-
-> > > +		      | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
-> > > +		      | MT9M032_READ_MODE2_ROW_BLC
-> > > +		      | 0x0007;
-> > > +
-> > > +	return mt9m032_write_reg(sensor, MT9M032_READ_MODE2, reg_val);
-> > > +}
-
-[snip]
-
-> > > +static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
-> > > +{
-> > > +	int digital_gain_val;	/* in 1/8th (0..127) */
-> > > +	int analog_mul;		/* 0 or 1 */
-> > > +	int analog_gain_val;	/* in 1/16th. (0..63) */
-> > > +	u16 reg_val;
-> > > +
-> > > +	digital_gain_val = 51; /* from setup example */
-> > > +
-> > > +	if (val < 63) {
-> > > +		analog_mul = 0;
-> > > +		analog_gain_val = val;
-> > > +	} else {
-> > > +		analog_mul = 1;
-> > > +		analog_gain_val = val / 2;
-> > > +	}
-> > > +
-> > > +	/* a_gain = (1+analog_mul) + (analog_gain_val+1)/16 */
-> > > +	/* overall_gain = a_gain * (1 + digital_gain_val / 8) */
-> > > +
-> > > +	reg_val = (digital_gain_val & MT9M032_GAIN_DIGITAL_MASK) <<
-> > > MT9M032_GAIN_DIGITAL_SHIFT +		  | (analog_mul & 1) <<
-> > > MT9M032_GAIN_AMUL_SHIFT
-> > > +		  | (analog_gain_val & MT9M032_GAIN_ANALOG_MASK);
-> > > +
-> > > +	return mt9m032_write_reg(sensor, MT9M032_GAIN_ALL, reg_val);
-> > > +}
-
-Lot's of Aptina sensors have a similar gain setup with two or three stages. Do 
-you think it would be worth it creating a function that could be shared 
-between them ?
-
-> > > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
-> > > +{
-> > > +	struct mt9m032_platform_data* pdata = sensor->pdata;
-> > > +	u16 reg_pll1;
-> > > +	unsigned int pre_div;
-> > > +	int res, ret;
-> > > +
-> > > +	/* TODO: also support other pre-div values */
-
-I might already have mentioned this, but wouldn't it be time to work a on real 
-PLL setup code that compute the pre-divisor, multiplier and output divisor 
-dynamically from the input and output clock frequencies ?
-
-> > > +	if (pdata->pll_pre_div != 6) {
-> > > +		dev_warn(to_dev(sensor),
-> > > +			"Unsupported PLL pre-divisor value %u, using default
-> > 
-> > 6\n",
-> > 
-> > > +			pdata->pll_pre_div);
-> > > +	}
-> > > +	pre_div = 6;
-> > > +
-> > > +	sensor->pix_clock = pdata->ext_clock * pdata->pll_mul /
-> > > +		(pre_div * pdata->pll_out_div);
-> > > +
-> > > +	reg_pll1 = ((pdata->pll_out_div - 1) &
-> > > MT9M032_PLL_CONFIG1_OUTDIV_MASK) +		   | pdata->pll_mul <<
-> > > MT9M032_PLL_CONFIG1_MUL_SHIFT;
-> > > +
-> > > +	ret = mt9m032_write_reg(sensor, MT9M032_PLL_CONFIG1, reg_pll1);
-> > > +	if (!ret)
-> > > +		ret = mt9m032_write_reg(sensor, 0x10, 0x53); /* Select PLL as
-> > 
-> > clock
-> > 
-> > > source */ +
-> > 
-> > urm ... magic ... black magic ...
-> 
-> yes, indeed. But i don't have any more information.
-> The datasheet nicely states "reserved" and in the bringup section
-> "poke in these magical values, please". :/ Not even a register name.
-
-What version of the datasheet do you have ? According to the MT9P031 
-datasheet, register 0x10 is called PLL Control and bits 0 and 1 are described 
-as
-
-1	Use PLL
-When set, use the PLL output as the system clock. When clear, use EXTCLK as 
-the system clock.
-0	Power PLL
-When set, the PLL is powered. When clear, it is not powered.
-
-The other bits are not documented. The mt9p031 driver has
-
-#define MT9P031_PLL_CONTROL                             0x10
-#define         MT9P031_PLL_CONTROL_PWROFF              0x0050
-#define         MT9P031_PLL_CONTROL_PWRON               0x0051
-#define         MT9P031_PLL_CONTROL_USEPLL              0x0052
-
-which you could reuse.
-
-> > > +	if (!ret)
-> > > +		ret = mt9m032_write_reg(sensor, MT9M032_READ_MODE1, 0x8006);
-> > > +							/* more reserved, Continuous */
-> > > +							/* Master Mode */
-> > > +	if (!ret)
-> > > +		res = mt9m032_read_reg(sensor, MT9M032_READ_MODE1);
-> > > +
-> > > +	if (!ret)
-> > > +		ret = mt9m032_write_reg(sensor, MT9M032_FORMATTER1, 0x111e);
-> > > +					/* Set 14-bit mode, select 7 divider */
-> > > +
-> > > +	return ret;
-> > > +}
-
-
-[snip]
-
-> > > +	/*
-> > > +* This driver was developed with a camera module with seperate external
-> > > +* pix clock. For setups which use the clock from the camera interface
-> > > +* the code will need to be extended with the appropriate platform
-> > > +* callback to setup the clock.
-> > > +	 */
-> > > +	chip_version = mt9m032_read_reg(sensor, MT9M032_CHIP_VERSION);
-> > > +	if (0x1402 == chip_version) {
-> > 
-> > So I suspect this can also cast fireballs ? Also, why do you use Yoda
-> > conditions here ? Please run checkpatch.pl on this too just to be sure.
-> 
-> No fireball was visible when looking at the hardware.
-
-#define         MT9M032_CHIP_VERSION_VALUE              0x1402
-
-is an option (not sure if it prevents fireballs though).
-
-> > > +		dev_info(&client->dev, "mt9m032: detected sensor.\n");
-> > > +	} else {
-> > > +		dev_warn(&client->dev, "mt9m032: error: detected unsupported
-> > chip version 0x%x\n",
-> > > +			 chip_version);
-> > > +		ret = -ENODEV;
-> > > +		goto free_sensor;
-> > > +	}
-
-[snip]
-
-> > > +static int __init mt9m032_init(void)
-> > > +{
-> > > +	int rval;
-> > > +
-> > > +	rval = i2c_add_driver(&mt9m032_i2c_driver);
-> > > +	if (rval)
-> > > +		pr_err("%s: failed registering " MT9M032_NAME "\n", __func__);
-> > > +
-> > > +	return rval;
-> > > +}
-> > > +
-> > > +static void mt9m032_exit(void)
-> > > +{
-> > > +	i2c_del_driver(&mt9m032_i2c_driver);
-> > > +}
-> > > +
-> > > +module_init(mt9m032_init);
-> > > +module_exit(mt9m032_exit);
-
-v3.3 will have a very handy module_i2c_driver() macro. See 
-https://lkml.org/lkml/2011/11/17/36
-
-> > > +MODULE_AUTHOR("Martin Hostettler");
-> > > +MODULE_DESCRIPTION("MT9M032 camera sensor driver");
-> > > +MODULE_LICENSE("GPL v2");
-
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 65ade5f..e8ae098 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -36,13 +36,17 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	/* Allocate try format and crop in the same memory block */
+-	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
++	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop)
++			       + sizeof(*fh->try_compose))
+ 			      * sd->entity.num_pads, GFP_KERNEL);
+ 	if (fh->try_fmt == NULL)
+ 		return -ENOMEM;
+ 
+ 	fh->try_crop = (struct v4l2_rect *)
+ 		(fh->try_fmt + sd->entity.num_pads);
++
++	fh->try_compose = (struct v4l2_rect *)
++		(fh->try_crop + sd->entity.num_pads);
+ #endif
+ 	return 0;
+ }
+@@ -281,6 +285,26 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
+ 					fie);
+ 	}
++
++	case VIDIOC_SUBDEV_G_SELECTION: {
++		struct v4l2_subdev_selection *sel = arg;
++
++		if (sel->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(
++			sd, pad, get_selection, subdev_fh, sel);
++	}
++
++	case VIDIOC_SUBDEV_S_SELECTION: {
++		struct v4l2_subdev_selection *sel = arg;
++
++		if (sel->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(
++			sd, pad, set_selection, subdev_fh, sel);
++	}
+ #endif
+ 	default:
+ 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index ed29cbb..d53d775 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -123,6 +123,47 @@ struct v4l2_subdev_frame_interval_enum {
+ 	__u32 reserved[9];
+ };
+ 
++#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
++#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
++#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
++
++/* active cropping area */
++#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0
++/* default cropping area */
++#define V4L2_SUBDEV_SEL_TGT_CROP_DEFAULT		1
++/* cropping bounds */
++#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			2
++/* current composing area */
++#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		256
++/* default composing area */
++#define V4L2_SUBDEV_SEL_TGT_COMPOSE_DEFAULT		257
++/* composing bounds */
++#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		258
++
++
++/**
++ * struct v4l2_subdev_selection - selection info
++ *
++ * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
++ * @pad: pad number, as reported by the media API
++ * @target: selection target, used to choose one of possible rectangles
++ * @flags: constraints flags
++ * @r: coordinates of selection window
++ * @reserved: for future use, rounds structure size to 64 bytes, set to zero
++ *
++ * Hardware may use multiple helper window to process a video stream.
++ * The structure is used to exchange this selection areas between
++ * an application and a driver.
++ */
++struct v4l2_subdev_selection {
++	__u32 which;
++	__u32 pad;
++	__u32 target;
++	__u32 flags;
++	struct v4l2_rect r;
++	__u32 reserved[8];
++};
++
+ #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+@@ -137,5 +178,9 @@ struct v4l2_subdev_frame_interval_enum {
+ 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
+ #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
+ #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
++#define VIDIOC_SUBDEV_G_SELECTION \
++	_IOWR('V', 61, struct v4l2_subdev_selection)
++#define VIDIOC_SUBDEV_S_SELECTION \
++	_IOWR('V', 62, struct v4l2_subdev_selection)
+ 
+ #endif
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f0f3358..26eeaa4 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
+ 		       struct v4l2_subdev_crop *crop);
+ 	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		       struct v4l2_subdev_crop *crop);
++	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			     struct v4l2_subdev_selection *sel);
++	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			     struct v4l2_subdev_selection *sel);
+ };
+ 
+ struct v4l2_subdev_ops {
+@@ -551,6 +555,7 @@ struct v4l2_subdev_fh {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+ 	struct v4l2_mbus_framefmt *try_fmt;
+ 	struct v4l2_rect *try_crop;
++	struct v4l2_rect *try_compose;
+ #endif
+ };
+ 
 -- 
-Regards,
+1.7.2.5
 
-Laurent Pinchart
