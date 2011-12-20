@@ -1,142 +1,541 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:57968 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752703Ab1LQA5r (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 19:57:47 -0500
-Received: by eaaj10 with SMTP id j10so3359329eaa.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 16:57:46 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 17 Dec 2011 01:57:46 +0100
-Message-ID: <CAEN_-SAxtNYP9Vbg3G+yzpP+UknJ26PY2ha2gGO_gqLTafKENA@mail.gmail.com>
-Subject: Add support for two new types of Leadtek Winfast TV 2000XP tuner
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:17071 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752638Ab1LTU2W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 15:28:22 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000e0cdfc836a8569904b43f34ef
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com
+Subject: [RFC 17/17] rm680: Add camera init
+Date: Tue, 20 Dec 2011 22:28:09 +0200
+Message-Id: <1324412889-17961-17-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0cdfc836a8569904b43f34ef
-Content-Type: text/plain; charset=ISO-8859-1
+This currently introduces an extra file to the arch/arm/mach-omap2
+directory: board-rm680-camera.c. Keeping the device tree in mind, the
+context of the file could be represented as static data with one exception:
+the external clock to the sensor.
 
+This external clock is provided by the OMAP 3 SoC and required by the
+sensor. The issue is that the clock originates from the ISP and not from
+PRCM block as the other clocks and thus is not supported by the clock
+framework. Otherwise the sensor driver could just clk_get() and clk_enable()
+it, just like the regulators and gpios.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+---
+ arch/arm/mach-omap2/Makefile             |    3 +-
+ arch/arm/mach-omap2/board-rm680-camera.c |  408 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-rm680.c        |   42 +++
+ 3 files changed, 452 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-rm680-camera.c
 
---000e0cdfc836a8569904b43f34ef
-Content-Type: text/x-patch; charset=UTF-8;
-	name="0007-Add-support-for-two-new-types-of-Leadtek-Winfast-TV-.patch"
-Content-Disposition: attachment;
-	filename="0007-Add-support-for-two-new-types-of-Leadtek-Winfast-TV-.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gw9x3rit1
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index 69ab1c0..1444bc5 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -201,7 +201,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+ obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o \
+-					   sdram-nokia.o
++					   sdram-nokia.o \
++					   board-rm680-camera.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   sdram-nokia.o \
+ 					   board-rx51-peripherals.o \
+diff --git a/arch/arm/mach-omap2/board-rm680-camera.c b/arch/arm/mach-omap2/board-rm680-camera.c
+new file mode 100644
+index 0000000..4cc1ced
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-rm680-camera.c
+@@ -0,0 +1,408 @@
++/**
++ * arch/arm/mach-omap2/board-rm680-camera.c
++ *
++ * Copyright (C) 2010--2011 Nokia Corporation
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * Based on board-rx71-camera.c by Vimarsh Zutshi
++ * Based on board-rx51-camera.c by Sakari Ailus
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/delay.h>
++#include <linux/mm.h>
++#include <linux/platform_device.h>
++#include <linux/videodev2.h>
++
++#include <linux/gpio.h>
++#include <plat/omap-pm.h>
++
++#include "../../../drivers/media/video/omap3isp/isp.h"
++
++#include <media/omap3isp.h>
++#include <media/smiapp.h>
++#include <asm/mach-types.h>
++
++#include "../../../drivers/media/video/smiapp.h"
++
++#include "devices.h"
++
++#define SEC_CAMERA_RESET_GPIO	97
++
++#define RM680_PRI_SENSOR	1
++#define RM680_PRI_LENS		2
++#define RM680_SEC_SENSOR	3
++#define MAIN_CAMERA_XCLK	ISP_XCLK_A
++#define SEC_CAMERA_XCLK		ISP_XCLK_B
++
++/*
++ *
++ * HW initialization
++ *
++ *
++ */
++static int __init rm680_sec_camera_init(void)
++{
++	if (gpio_request(SEC_CAMERA_RESET_GPIO, "sec_camera reset") != 0) {
++		printk(KERN_INFO "%s: unable to acquire secondary "
++		       "camera reset gpio\n", __func__);
++		return -ENODEV;
++	}
++
++	/* XSHUTDOWN off, reset  */
++	gpio_direction_output(SEC_CAMERA_RESET_GPIO, 0);
++	gpio_set_value(SEC_CAMERA_RESET_GPIO, 0);
++
++	return 0;
++}
++
++static int __init rm680_camera_hw_init(void)
++{
++	return rm680_sec_camera_init();
++}
++
++/*
++ *
++ * Main Camera Module EXTCLK
++ * Used by the sensor and the actuator driver.
++ *
++ */
++static struct camera_xclk {
++	u32 hz;
++	u32 lock;
++	u8 xclksel;
++} cameras_xclk;
++
++static DEFINE_MUTEX(lock_xclk);
++
++static int rm680_update_xclk(struct v4l2_subdev *subdev, u32 hz, u32 which,
++			     u8 xclksel)
++{
++	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
++	int ret;
++
++	mutex_lock(&lock_xclk);
++
++	if (which == RM680_SEC_SENSOR) {
++		if (cameras_xclk.xclksel == MAIN_CAMERA_XCLK) {
++			ret = -EBUSY;
++			goto done;
++		}
++	} else {
++		if (cameras_xclk.xclksel == SEC_CAMERA_XCLK) {
++			ret = -EBUSY;
++			goto done;
++		}
++	}
++
++	if (hz) {	/* Turn on */
++		cameras_xclk.lock |= which;
++		if (cameras_xclk.hz == 0) {
++			isp->platform_cb.set_xclk(isp, hz, xclksel);
++			cameras_xclk.hz = hz;
++			cameras_xclk.xclksel = xclksel;
++		}
++	} else {	/* Turn off */
++		cameras_xclk.lock &= ~which;
++		if (cameras_xclk.lock == 0) {
++			isp->platform_cb.set_xclk(isp, 0, xclksel);
++			cameras_xclk.hz = 0;
++			cameras_xclk.xclksel = 0;
++		}
++	}
++
++	ret = cameras_xclk.hz;
++
++done:
++	mutex_unlock(&lock_xclk);
++	return ret;
++}
++
++/*
++ *
++ * Main Camera Sensor
++ *
++ */
++
++static struct isp_csiphy_lanes_cfg rm696_main_camera_csi2_lanecfg = {
++	.clk = {
++		.pol = 1,
++		.pos = 2,
++	},
++	.data[0] = {
++		.pol = 1,
++		.pos = 1,
++	},
++	.data[1] = {
++		.pol = 1,
++		.pos = 3,
++	},
++};
++
++static struct isp_csiphy_lanes_cfg rm680_main_camera_csi2_lanecfg = {
++	.clk = {
++		.pol = 1,
++		.pos = 2,
++	},
++	.data[0] = {
++		.pol = 1,
++		.pos = 3,
++	},
++	.data[1] = {
++		.pol = 1,
++		.pos = 1,
++	},
++};
++
++static int rm680_main_camera_set_xclk(struct v4l2_subdev *sd, int hz)
++{
++	return rm680_update_xclk(sd, hz, RM680_PRI_SENSOR, MAIN_CAMERA_XCLK);
++}
++
++static struct smiapp_flash_strobe_parms rm680_main_camera_strobe_setup = {
++	.mode			= 0x0c,
++	.strobe_width_high_us	= 100000,
++	.strobe_delay		= 0,
++	.stobe_start_point	= 0,
++	.trigger		= 0,
++};
++
++static struct smiapp_platform_data rm696_main_camera_platform_data = {
++	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
++	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
++	.nvm_size		= 16 * 64,
++	.ext_clk		= (9.6 * 1000 * 1000),
++	.lanes			= 2,
++	.op_sys_clock		= (s64 []){ 796800 / 2, 840000 / 2,
++					    1996800 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
++	.strobe_setup		= &rm680_main_camera_strobe_setup,
++	.set_xclk		= rm680_main_camera_set_xclk,
++};
++
++static struct smiapp_platform_data rm680_main_camera_platform_data = {
++	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
++	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
++	.nvm_size		= 16 * 64,
++	.ext_clk		= (9.6 * 1000 * 1000),
++	.lanes			= 2,
++	.op_sys_clock		= (s64 []){ 840000 / 2, 1334400 / 2,
++					    1593600 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
++	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
++	.strobe_setup		= &rm680_main_camera_strobe_setup,
++	.set_xclk		= rm680_main_camera_set_xclk,
++};
++
++/*
++ *
++ * SECONDARY CAMERA Sensor
++ *
++ */
++
++#define SEC_CAMERA_XCLK		ISP_XCLK_B
++
++static struct isp_csiphy_lanes_cfg rm680_sec_camera_csiphy_lanecfg = {
++	.clk = {
++		.pol = 0,
++		.pos = 1,
++	},
++	.data[0] = {
++		.pol = 0,
++		.pos = 2,
++	},
++};
++
++static int rm680_sec_camera_set_xclk(struct v4l2_subdev *sd, int hz)
++{
++	return rm680_update_xclk(sd, hz, RM680_SEC_SENSOR, SEC_CAMERA_XCLK);
++}
++
++static int rm680_sec_camera_set_xshutdown(struct v4l2_subdev *subdev, u8 set)
++{
++	gpio_set_value(SEC_CAMERA_RESET_GPIO, !!set);
++	return 0;
++}
++
++static struct smiapp_platform_data rm696_sec_camera_platform_data = {
++	.ext_clk		= (10.8 * 1000 * 1000),
++	.lanes			= 1,
++	.op_sys_clock		= (s64 []){ 13770 * 10, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
++	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
++	.set_xclk		= rm680_sec_camera_set_xclk,
++	.set_xshutdown		= rm680_sec_camera_set_xshutdown,
++};
++
++static struct smiapp_platform_data rm680_sec_camera_platform_data = {
++	.ext_clk		= (10.8 * 1000 * 1000),
++	.lanes			= 1,
++	.op_sys_clock		= (s64 []){ 11880 * 10, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
++	.set_xclk		= rm680_sec_camera_set_xclk,
++	.set_xshutdown		= rm680_sec_camera_set_xshutdown,
++};
++
++/*
++ *
++ * Init all the modules
++ *
++ */
++
++#define CAMERA_I2C_BUS_NUM		2
++#define AD5836_I2C_BUS_NUM		2
++#define AS3645A_I2C_BUS_NUM		2
++
++static struct i2c_board_info rm696_camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
++		.platform_data = &rm696_main_camera_platform_data,
++	},
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
++		.platform_data = &rm696_sec_camera_platform_data,
++	},
++};
++
++static struct i2c_board_info rm680_camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
++		.platform_data = &rm680_main_camera_platform_data,
++	},
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
++		.platform_data = &rm680_sec_camera_platform_data,
++	},
++};
++
++static struct isp_subdev_i2c_board_info rm696_camera_primary_subdevs[] = {
++	{
++		.board_info = &rm696_camera_i2c_devices[0],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm696_camera_secondary_subdevs[] = {
++	{
++		.board_info = &rm696_camera_i2c_devices[1],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm680_camera_primary_subdevs[] = {
++	{
++		.board_info = &rm680_camera_i2c_devices[0],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm680_camera_secondary_subdevs[] = {
++	{
++		.board_info = &rm680_camera_i2c_devices[1],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group rm696_camera_subdevs[] = {
++	{
++		.subdevs = rm696_camera_primary_subdevs,
++		.interface = ISP_INTERFACE_CSI2A_PHY2,
++		.bus = { .csi2 = {
++			.crc		= 1,
++			.vpclk_div	= 1,
++			.lanecfg	= &rm696_main_camera_csi2_lanecfg,
++		} },
++	},
++	{
++		.subdevs = rm696_camera_secondary_subdevs,
++		.interface = ISP_INTERFACE_CCP2B_PHY1,
++		.bus = { .ccp2 = {
++			.strobe_clk_pol	= 0,
++			.crc		= 0,
++			.ccp2_mode	= 0,
++			.phy_layer	= 0,
++			.vpclk_div	= 2,
++			.lanecfg	= &rm680_sec_camera_csiphy_lanecfg,
++		} },
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group rm680_camera_subdevs[] = {
++	{
++		.subdevs = rm680_camera_primary_subdevs,
++		.interface = ISP_INTERFACE_CSI2A_PHY2,
++		.bus = { .csi2 = {
++			.crc		= 1,
++			.vpclk_div	= 1,
++			.lanecfg	= &rm680_main_camera_csi2_lanecfg,
++		} },
++	},
++	{
++		.subdevs = rm680_camera_secondary_subdevs,
++		.interface = ISP_INTERFACE_CCP2B_PHY1,
++		.bus = { .ccp2 = {
++			.strobe_clk_pol	= 0,
++			.crc		= 0,
++			.ccp2_mode	= 0,
++			.phy_layer	= 0,
++			.vpclk_div	= 2,
++			.lanecfg	= &rm680_sec_camera_csiphy_lanecfg,
++		} },
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_platform_data rm696_isp_platform_data = {
++	.subdevs = rm696_camera_subdevs,
++};
++
++static struct isp_platform_data rm680_isp_platform_data = {
++	.subdevs = rm680_camera_subdevs,
++};
++
++static inline int board_is_rm680(void)
++{
++	return (system_rev & 0x00f0) == 0x0020;
++}
++
++void __init rm680_camera_init(void)
++{
++	struct isp_platform_data *pdata;
++	int rval;
++
++	rval = rm680_camera_hw_init();
++	if (rval) {
++		printk(KERN_WARNING "%s: unable to initialise camera\n",
++		       __func__);
++		return;
++	}
++
++	if (board_is_rm680())
++		pdata = &rm680_isp_platform_data;
++	else
++		pdata = &rm696_isp_platform_data;
++
++	if (omap3_init_camera(pdata) < 0)
++		printk(KERN_WARNING
++		       "%s: unable to register camera platform device\n",
++		       __func__);
++}
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index a5bcc75..a1e33d4 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -66,6 +66,43 @@ static struct platform_device rm680_vemmc_device = {
+ 	},
+ };
+ 
++#define REGULATOR_INIT_DATA(_name, _min, _max, _apply, _ops_mask) \
++	static struct regulator_init_data _name##_data = { \
++		.constraints = { \
++			.name                   = #_name, \
++			.min_uV                 = _min, \
++			.max_uV                 = _max, \
++			.apply_uV               = _apply, \
++			.valid_modes_mask       = REGULATOR_MODE_NORMAL | \
++						REGULATOR_MODE_STANDBY, \
++			.valid_ops_mask         = _ops_mask, \
++		}, \
++		.num_consumer_supplies  = ARRAY_SIZE(_name##_consumers), \
++		.consumer_supplies      = _name##_consumers, \
++}
++#define REGULATOR_INIT_DATA_FIXED(_name, _voltage) \
++	REGULATOR_INIT_DATA(_name, _voltage, _voltage, true, \
++				REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_MODE)
++
++static struct regulator_consumer_supply rm680_vaux2_consumers[] = {
++	REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),	/* OMAP ISP */
++	REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),	/* OMAP ISP */
++	{
++		.supply		= "vaux2",
++	},
++};
++REGULATOR_INIT_DATA_FIXED(rm680_vaux2, 1800000);
++
++static struct regulator_consumer_supply rm680_vaux3_consumers[] = {
++	REGULATOR_SUPPLY("VANA", "2-0037"),	/* Main Camera Sensor */
++	REGULATOR_SUPPLY("VANA", "2-000e"),	/* Main Camera Lens */
++	REGULATOR_SUPPLY("VANA", "2-0010"),	/* Front Camera */
++	{
++		.supply		= "vaux3",
++	},
++};
++REGULATOR_INIT_DATA_FIXED(rm680_vaux3, 2800000);
++
+ static struct platform_device *rm680_peripherals_devices[] __initdata = {
+ 	&rm680_vemmc_device,
+ };
+@@ -82,6 +119,8 @@ static struct twl4030_gpio_platform_data rm680_gpio_data = {
+ static struct twl4030_platform_data rm680_twl_data = {
+ 	.gpio			= &rm680_gpio_data,
+ 	/* add rest of the children here */
++	.vaux2			= &rm680_vaux2_data,
++	.vaux3			= &rm680_vaux3_data,
+ };
+ 
+ static void __init rm680_i2c_init(void)
+@@ -129,6 +168,8 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
++void rm680_camera_init(void);
++
+ static void __init rm680_init(void)
+ {
+ 	struct omap_sdrc_params *sdrc_params;
+@@ -141,6 +182,7 @@ static void __init rm680_init(void)
+ 
+ 	usb_musb_init(NULL);
+ 	rm680_peripherals_init();
++	rm680_camera_init();
+ }
+ 
+ MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
+-- 
+1.7.2.5
 
-RnJvbSBmMjFiMGY4M2I5YjUxZGExNjY0YWUwZWZkNGYwZDQxMmQ2ODFlNmZhIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiBTbHVnZcWIIDx0aHVuZGVyLm1AZW1haWwuY3o+
-CkRhdGU6IE1vbiwgMTIgRGVjIDIwMTEgMDA6MjA6MjQgKzAxMDAKU3ViamVjdDogW1BBVENIXSBB
-ZGQgc3VwcG9ydCBmb3IgdHdvIG5ldyB0eXBlcyBvZiBMZWFkdGVrIFdpbmZhc3QgVFYgMjAwMFhQ
-IHR1bmVyLCBhdXRob3Igb2YKIHRoaXMgcGF0Y2ggaXMgSXN0dmFuIFZhcmdhLiBPbmx5IHJlc2Vu
-ZGluZyBjdXJyZW50IHJlZm9ybWF0ZWQgdmVyc2lvbiBhZ2FpbnN0CiBhY3R1YWwgZ2l0LgoKLS0t
-CiBkcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jIHwgICA5MSArKysrKysrKysr
-KysrKysrKysrKysrKysrKysrKysrKysKIGRyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWlu
-cHV0LmMgfCAgICA0ICsrCiBkcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC5oICAgICAgIHwg
-ICAgMiArCiAzIGZpbGVzIGNoYW5nZWQsIDk3IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0p
-CgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYyBiL2Ry
-aXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMKaW5kZXggMzkyOWQ5My4uZGNhMzY5
-ZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYworKysg
-Yi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCkBAIC0xNjQzLDYgKzE2NDMs
-NzggQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJkIGN4ODhfYm9hcmRzW10gPSB7CiAJ
-CQkuZ3BpbzMgID0gMHgwMDAwLAogCQl9LAogCX0sCisJW0NYODhfQk9BUkRfV0lORkFTVF9UVjIw
-MDBfWFBfR0xPQkFMXzZGMzZdID0geworCQkubmFtZSAgICAgICAgICAgPSAiTGVhZHRlayBUVjIw
-MDAgWFAgR2xvYmFsIChTQzQxMDApIiwKKwkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEM0MDAw
-LAorCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fdHlwZSAgICAgPSBVTlNFVCwK
-KwkJLnJhZGlvX2FkZHIgICAgID0gQUREUl9VTlNFVCwKKwkJLmlucHV0ICAgICAgICAgID0geyB7
-CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCisJCQkudm11eCAgID0gMCwKKwkJ
-CS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAqLworCQkJLmdwaW8xICA9IDB4
-MDAwMCwKKwkJCS5ncGlvMiAgPSAweDBDMDQsICAgICAgIC8qIHBpbiAxOCA9IDEsIHBpbiAxOSA9
-IDAgKi8KKwkJCS5ncGlvMyAgPSAweDAwMDAsCisJCX0sIHsKKwkJCS50eXBlICAgPSBDWDg4X1ZN
-VVhfQ09NUE9TSVRFMSwKKwkJCS52bXV4ICAgPSAxLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAg
-ICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHgwMDAwLAorCQkJLmdwaW8yICA9IDB4
-MEMwQywgICAgICAgLyogcGluIDE4ID0gMSwgcGluIDE5ID0gMSAqLworCQkJLmdwaW8zICA9IDB4
-MDAwMCwKKwkJfSwgeworCQkJLnR5cGUgICA9IENYODhfVk1VWF9TVklERU8sCisJCQkudm11eCAg
-ID0gMiwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAqLworCQkJLmdw
-aW8xICA9IDB4MDAwMCwKKwkJCS5ncGlvMiAgPSAweDBDMEMsICAgICAgIC8qIHBpbiAxOCA9IDEs
-IHBpbiAxOSA9IDEgKi8KKwkJCS5ncGlvMyAgPSAweDAwMDAsCisJCX0gfSwKKwkJLnJhZGlvID0g
-eworCQkJLnR5cGUgICA9IENYODhfUkFESU8sCisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAgICAg
-LyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHgwMDAwLAorCQkJLmdwaW8yICA9IDB4MEMw
-MCwgICAgICAgLyogcGluIDE4ID0gMCwgcGluIDE5ID0gMCAqLworCQkJLmdwaW8zICA9IDB4MDAw
-MCwKKwkJfSwKKwl9LAorCVtDWDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTF82RjQz
-XSA9IHsKKwkJLm5hbWUgICAgICAgICAgID0gIkxlYWR0ZWsgVFYyMDAwIFhQIEdsb2JhbCAoWEM0
-MTAwKSIsCisJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDNDAwMCwKKwkJLnR1bmVyX2FkZHIg
-ICAgID0gMHg2MSwKKwkJLnJhZGlvX3R5cGUgICAgID0gVU5TRVQsCisJCS5yYWRpb19hZGRyICAg
-ICA9IEFERFJfVU5TRVQsCisJCS5pbnB1dCAgICAgICAgICA9IHsgeworCQkJLnR5cGUgICA9IENY
-ODhfVk1VWF9URUxFVklTSU9OLAorCQkJLnZtdXggICA9IDAsCisJCQkuZ3BpbzAgID0gMHgwNDAw
-LCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYwNDAsICAgICAgIC8qIHBp
-biAxNCA9IDEsIHBpbiAxMyA9IDAgKi8KKwkJCS5ncGlvMiAgPSAweDAwMDAsCisJCQkuZ3BpbzMg
-ID0gMHgwMDAwLAorCQl9LCB7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX0NPTVBPU0lURTEsCisJ
-CQkudm11eCAgID0gMSwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0gMCAq
-LworCQkJLmdwaW8xICA9IDB4NjA2MCwgICAgICAgLyogcGluIDE0ID0gMSwgcGluIDEzID0gMSAq
-LworCQkJLmdwaW8yICA9IDB4MDAwMCwKKwkJCS5ncGlvMyAgPSAweDAwMDAsCisJCX0sIHsKKwkJ
-CS50eXBlICAgPSBDWDg4X1ZNVVhfU1ZJREVPLAorCQkJLnZtdXggICA9IDIsCisJCQkuZ3BpbzAg
-ID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDYwNjAsICAg
-ICAgIC8qIHBpbiAxNCA9IDEsIHBpbiAxMyA9IDEgKi8KKwkJCS5ncGlvMiAgPSAweDAwMDAsCisJ
-CQkuZ3BpbzMgID0gMHgwMDAwLAorCQl9IH0sCisJCS5yYWRpbyA9IHsKKwkJCS50eXBlICAgPSBD
-WDg4X1JBRElPLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgIC8qIHBpbiAyID0gMCAqLwor
-CQkJLmdwaW8xICA9IDB4NjAwMCwgICAgICAgIC8qIHBpbiAxNCA9IDEsIHBpbiAxMyA9IDAgKi8K
-KwkJCS5ncGlvMiAgPSAweDAwMDAsCisJCQkuZ3BpbzMgID0gMHgwMDAwLAorCQl9LAorCX0sCiAJ
-W0NYODhfQk9BUkRfUE9XRVJDT0xPUl9SRUFMX0FOR0VMXSA9IHsKIAkJLm5hbWUgICAgICAgICAg
-ID0gIlBvd2VyQ29sb3IgUkEzMzAiLAkvKiBMb25nIG5hbWVzIG1heSBjb25mdXNlIExJUkMuICov
-CiAJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKQEAgLTI3MTksNiArMjc5MSwyMSBA
-QCBzdGF0aWMgY29uc3Qgc3RydWN0IGN4ODhfc3ViaWQgY3g4OF9zdWJpZHNbXSA9IHsKIAkJLnN1
-YmRldmljZSA9IDB4NjYxOCwKIAkJLmNhcmQgICAgICA9IENYODhfQk9BUkRfV0lORkFTVF9UVjIw
-MDBfWFBfR0xPQkFMLAogCX0sIHsKKwkJLyogVFYyMDAwIFhQIEdsb2JhbCBbMTA3ZDo2NjE4XSAq
-LworCQkuc3VidmVuZG9yID0gMHgxMDdkLAorCQkuc3ViZGV2aWNlID0gMHg2NjE5LAorCQkuY2Fy
-ZCAgICAgID0gQ1g4OF9CT0FSRF9XSU5GQVNUX1RWMjAwMF9YUF9HTE9CQUwsCisJfSwgeworCQkv
-KiBXaW5GYXN0IFRWMjAwMCBYUCBHbG9iYWwgd2l0aCBYQzQwMDAgdHVuZXIgKi8KKwkJLnN1YnZl
-bmRvciA9IDB4MTA3ZCwKKwkJLnN1YmRldmljZSA9IDB4NmYzNiwKKwkJLmNhcmQgICAgICA9IENY
-ODhfQk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMXzZGMzYsCisJfSwgeworCQkvKiBXaW5G
-YXN0IFRWMjAwMCBYUCBHbG9iYWwgd2l0aCBYQzQwMDAgdHVuZXIgYW5kIGRpZmZlcmVudCBHUElP
-cyAqLworCQkuc3VidmVuZG9yID0gMHgxMDdkLAorCQkuc3ViZGV2aWNlID0gMHg2ZjQzLAorCQku
-Y2FyZCAgICAgID0gQ1g4OF9CT0FSRF9XSU5GQVNUX1RWMjAwMF9YUF9HTE9CQUxfNkY0MywKKwl9
-LCB7CiAJCS5zdWJ2ZW5kb3IgPSAweGIwMzQsCiAJCS5zdWJkZXZpY2UgPSAweDMwMzQsCiAJCS5j
-YXJkICAgICAgPSBDWDg4X0JPQVJEX1BST0ZfNzMwMSwKQEAgLTMwNzUsNiArMzE2Miw4IEBAIHN0
-YXRpYyBpbnQgY3g4OF94YzQwMDBfdHVuZXJfY2FsbGJhY2soc3RydWN0IGN4ODhfY29yZSAqY29y
-ZSwKIAlzd2l0Y2ggKGNvcmUtPmJvYXJkbnIpIHsKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9E
-VFYxODAwSF9YQzQwMDA6CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMjAwMEhfUExVUzoK
-KwljYXNlIENYODhfQk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMXzZGMzY6CisJY2FzZSBD
-WDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTF82RjQzOgogCQlyZXR1cm4gY3g4OF94
-YzQwMDBfd2luZmFzdDIwMDBoX3BsdXNfY2FsbGJhY2soY29yZSwKIAkJCQkJCQkgICAgICBjb21t
-YW5kLCBhcmcpOwogCX0KQEAgLTMyNTAsNiArMzMzOSw4IEBAIHN0YXRpYyB2b2lkIGN4ODhfY2Fy
-ZF9zZXR1cF9wcmVfaTJjKHN0cnVjdCBjeDg4X2NvcmUgKmNvcmUpCiAKIAljYXNlIENYODhfQk9B
-UkRfV0lORkFTVF9EVFYxODAwSF9YQzQwMDA6CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
-MjAwMEhfUExVUzoKKwljYXNlIENYODhfQk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMXzZG
-MzY6CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTF82RjQzOgogCQlj
-eDg4X3hjNDAwMF93aW5mYXN0MjAwMGhfcGx1c19jYWxsYmFjayhjb3JlLAogCQkJCQkJICAgICAg
-IFhDNDAwMF9UVU5FUl9SRVNFVCwgMCk7CiAJCWJyZWFrOwpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
-ZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9j
-eDg4LWlucHV0LmMKaW5kZXggZTYxNDIwMS4uZWJmNDQ4YyAxMDA2NDQKLS0tIGEvZHJpdmVycy9t
-ZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQuYworKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
-ODgvY3g4OC1pbnB1dC5jCkBAIC0xMDMsNiArMTAzLDggQEAgc3RhdGljIHZvaWQgY3g4OF9pcl9o
-YW5kbGVfa2V5KHN0cnVjdCBjeDg4X0lSICppcikKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9E
-VFYxODAwSF9YQzQwMDA6CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMjAwMEhfUExVUzoK
-IAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMOgorCWNhc2UgQ1g4OF9C
-T0FSRF9XSU5GQVNUX1RWMjAwMF9YUF9HTE9CQUxfNkYzNjoKKwljYXNlIENYODhfQk9BUkRfV0lO
-RkFTVF9UVjIwMDBfWFBfR0xPQkFMXzZGNDM6CiAJCWdwaW8gPSAoZ3BpbyAmIDB4NmZmKSB8ICgo
-Y3hfcmVhZChNT19HUDFfSU8pIDw8IDgpICYgMHg5MDApOwogCQlhdXhncGlvID0gZ3BpbzsKIAkJ
-YnJlYWs7CkBAIC0zMDIsNiArMzA0LDggQEAgaW50IGN4ODhfaXJfaW5pdChzdHJ1Y3QgY3g4OF9j
-b3JlICpjb3JlLCBzdHJ1Y3QgcGNpX2RldiAqcGNpKQogCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNU
-MjAwMFhQX0VYUEVSVDoKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVF9EVFYxMDAwOgogCWNhc2Ug
-Q1g4OF9CT0FSRF9XSU5GQVNUX1RWMjAwMF9YUF9HTE9CQUw6CisJY2FzZSBDWDg4X0JPQVJEX1dJ
-TkZBU1RfVFYyMDAwX1hQX0dMT0JBTF82RjM2OgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX1RW
-MjAwMF9YUF9HTE9CQUxfNkY0MzoKIAkJaXJfY29kZXMgPSBSQ19NQVBfV0lORkFTVDsKIAkJaXIt
-PmdwaW9fYWRkciA9IE1PX0dQMF9JTzsKIAkJaXItPm1hc2tfa2V5Y29kZSA9IDB4OGY4OwpkaWZm
-IC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaCBiL2RyaXZlcnMvbWVkaWEv
-dmlkZW8vY3g4OC9jeDg4LmgKaW5kZXggZmE4ZDMwNy4uYzk2NTlkZSAxMDA2NDQKLS0tIGEvZHJp
-dmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaAorKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4
-ODgvY3g4OC5oCkBAIC0yNDQsNiArMjQ0LDggQEAgZXh0ZXJuIGNvbnN0IHN0cnVjdCBzcmFtX2No
-YW5uZWwgY29uc3QgY3g4OF9zcmFtX2NoYW5uZWxzW107CiAjZGVmaW5lIENYODhfQk9BUkRfVEVW
-SUlfUzQ2NCAgICAgICAgICAgICAgODYKICNkZWZpbmUgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIw
-MDBIX1BMVVMgICA4NwogI2RlZmluZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEhfWEM0MDAw
-IDg4CisjZGVmaW5lIENYODhfQk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMXzZGMzYgODkK
-KyNkZWZpbmUgQ1g4OF9CT0FSRF9XSU5GQVNUX1RWMjAwMF9YUF9HTE9CQUxfNkY0MyA5MAogCiBl
-bnVtIGN4ODhfaXR5cGUgewogCUNYODhfVk1VWF9DT01QT1NJVEUxID0gMSwKLS0gCjEuNy4yLjMK
-Cg==
---000e0cdfc836a8569904b43f34ef--
