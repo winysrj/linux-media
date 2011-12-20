@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:17022 "EHLO mgw-da02.nokia.com"
+Received: from smtp.nokia.com ([147.243.128.24]:53514 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752638Ab1LTU2P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 15:28:15 -0500
+	id S1752904Ab1LTU2S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 15:28:18 -0500
 From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 To: linux-media@vger.kernel.org
 Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
 	snjw23@gmail.com
-Subject: [RFC 07/17] v4l: Add pixelrate to struct v4l2_mbus_framefmt
-Date: Tue, 20 Dec 2011 22:27:59 +0200
-Message-Id: <1324412889-17961-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Subject: [RFC 14/17] omap3isp: Use pixelrate from sensor media bus frameformat
+Date: Tue, 20 Dec 2011 22:28:06 +0200
+Message-Id: <1324412889-17961-14-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
 References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,62 +17,78 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Pixelrate is an essential part of the image data parameters. Add this.
-Together, the current parameters also define the frame rate.
-
-Sensors do not have a concept of frame rate; pixelrate is much more
-meaningful in this context. Also, it is best to combine the pixelrate with
-the other format parameters since there are dependencies between them.
+Configure the ISP based on the pixelrate in media bus frame format.
+Previously the same was configured from the board code.
 
 Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- Documentation/DocBook/media/v4l/subdev-formats.xml |   10 +++++++++-
- include/linux/v4l2-mediabus.h                      |    4 +++-
- 2 files changed, 12 insertions(+), 2 deletions(-)
+ drivers/media/video/omap3isp/isp.c |   24 +++++++++++++++++++++---
+ drivers/media/video/omap3isp/isp.h |    1 -
+ 2 files changed, 21 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index 49c532e..a6a6630 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -35,7 +35,15 @@
- 	</row>
- 	<row>
- 	  <entry>__u32</entry>
--	  <entry><structfield>reserved</structfield>[7]</entry>
-+	  <entry><structfield>pixelrate</structfield></entry>
-+	  <entry>Pixel rate in kp/s. This clock is the maximum rate at
-+	  which pixels are transferred on the bus. The
-+	  <structfield>pixelrate</structfield> field is
-+	  read-only.</entry>
-+	</row>
-+	<row>
-+	  <entry>__u32</entry>
-+	  <entry><structfield>reserved</structfield>[6]</entry>
- 	  <entry>Reserved for future extensions. Applications and drivers must
- 	  set the array to zero.</entry>
- 	</row>
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 5ea7f75..35c6b96 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -101,6 +101,7 @@ enum v4l2_mbus_pixelcode {
-  * @code:	data format code (from enum v4l2_mbus_pixelcode)
-  * @field:	used interlacing type (from enum v4l2_field)
-  * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
-+ * @pixel_clock: pixel clock, in kHz
-  */
- struct v4l2_mbus_framefmt {
- 	__u32			width;
-@@ -108,7 +109,8 @@ struct v4l2_mbus_framefmt {
- 	__u32			code;
- 	__u32			field;
- 	__u32			colorspace;
--	__u32			reserved[7];
-+	__u32			pixelrate;
-+	__u32			reserved[6];
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 6020fd7..92f9716 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -749,10 +749,14 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
+ 
+ 	entity = &pipe->output->video.entity;
+ 	while (1) {
+-		pad = &entity->pads[0];
+-		if (!(pad->flags & MEDIA_PAD_FL_SINK))
++		/*
++		 * Is this an external subdev connected to us? If so,
++		 * we're done.
++		 */
++		if (subdev && subdev->host_priv)
+ 			break;
+ 
++		pad = &entity->pads[0];
+ 		pad = media_entity_remote_source(pad);
+ 		if (pad == NULL ||
+ 		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+@@ -762,6 +766,21 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
+ 		prev_subdev = subdev;
+ 		subdev = media_entity_to_v4l2_subdev(entity);
+ 
++		/* Configure CCDC pixel clock */
++		if (subdev->host_priv) {
++			struct v4l2_subdev_format fmt;
++
++			fmt.pad = pad->index;
++			fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
++			ret = v4l2_subdev_call(subdev, pad, get_fmt,
++					       NULL, &fmt);
++			if (ret < 0)
++				return -EINVAL;
++
++			isp_set_pixel_clock(isp,
++					    fmt.format.pixelrate * 1000);
++		}
++
+ 		/* Configure CSI-2 receiver based on sensor format. */
+ 		if (prev_subdev == &isp->isp_csi2a.subdev
+ 		    || prev_subdev == &isp->isp_csi2c.subdev) {
+@@ -2102,7 +2121,6 @@ static int isp_probe(struct platform_device *pdev)
+ 
+ 	isp->autoidle = autoidle;
+ 	isp->platform_cb.set_xclk = isp_set_xclk;
+-	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
+ 
+ 	mutex_init(&isp->isp_mutex);
+ 	spin_lock_init(&isp->stat_lock);
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index c5935ae..7d73a39 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -126,7 +126,6 @@ struct isp_reg {
+ 
+ struct isp_platform_callback {
+ 	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
+-	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
  };
  
- #endif
+ /*
 -- 
 1.7.2.5
 
