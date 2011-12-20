@@ -1,53 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-fx0-f46.google.com ([209.85.161.46]:55586 "EHLO
-	mail-fx0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932481Ab1LEXh2 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 18:37:28 -0500
-Received: by faar15 with SMTP id r15so1229712faa.19
-        for <linux-media@vger.kernel.org>; Mon, 05 Dec 2011 15:37:27 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfizgkfHJ-0YwcdTEQEhci=7eE7BTuSOj8KmMpLRhc4oqGg@mail.gmail.com>
-References: <4ED929E7.2050808@gmail.com> <CAGoCfizgkfHJ-0YwcdTEQEhci=7eE7BTuSOj8KmMpLRhc4oqGg@mail.gmail.com>
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Tue, 6 Dec 2011 00:37:06 +0100
-Message-ID: <CAKdnbx5vewR3bLvFD4DeGiOSa8AqP0hupVF2jf1w9xrizXYz1g@mail.gmail.com>
-Subject: Re: Hauppauge HVR-930C problems
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Fredrik Lingvall <fredrik.lingvall@gmail.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([147.243.128.26]:17008 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751694Ab1LTU2M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 15:28:12 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com
+Subject: [RFC 02/17] v4l: Document integer menu controls
+Date: Tue, 20 Dec 2011 22:27:54 +0200
+Message-Id: <1324412889-17961-2-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-try using scan from dvb-apps and not w_scan.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Actually It seems to me w_scan isn't compatible with this driver due
-some missing lock.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
+ 3 files changed, 54 insertions(+), 2 deletions(-)
 
-On Fri, Dec 2, 2011 at 8:45 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Fri, Dec 2, 2011 at 2:41 PM, Fredrik Lingvall
-> <fredrik.lingvall@gmail.com> wrote:
->> The HVR 930C device has three connectors/inputs:  an antenna input, an
->> S-video, and a composite video, respectively,
->>
->> The provider I have here in Norway (Get) has both analog tv and digital
->> (DVB-C) so can I get analog tv using the antenna input or is analog only on
->> the S-video/composite inputs? And, how do I select which analog input that
->>  is used?
->
-> The analog support for that device isn't currently supported (due to a
-> lack of a Linux driver for the analog demodulator).  The digital
-> should work fine though (and if not, bring it to Mauro's attention
-> since he has been actively working on it).
->
-> Devin
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index b68698f..569efd1 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2379,6 +2379,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.3</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added integer menus, the new type will be
++	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 2ab365c..affe1ba 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -128,6 +128,13 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.3</revnumber>
++	<date>2011-11-24</date>
++	<authorinitials>sa</authorinitials>
++	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
++      </revision>
++
++      <revision>
+ 	<revnumber>3.2</revnumber>
+ 	<date>2011-08-26</date>
+ 	<authorinitials>hv</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 0ac0057..02064b0 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -215,11 +215,12 @@ the array to zero.</entry>
+ 
+     <table pgwide="1" frame="none" id="v4l2-querymenu">
+       <title>struct <structname>v4l2_querymenu</structname></title>
+-      <tgroup cols="3">
++      <tgroup cols="4">
+ 	&cs-str;
+ 	<tbody valign="top">
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>id</structfield></entry>
+ 	    <entry>Identifies the control, set by the application
+ from the respective &v4l2-queryctrl;
+@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>index</structfield></entry>
+ 	    <entry>Index of the menu item, starting at zero, set by
+ 	    the application.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry>union</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>name</structfield>[32]</entry>
+ 	    <entry>Name of the menu item, a NUL-terminated ASCII
+-string. This information is intended for the user.</entry>
++string. This information is intended for the user. This field is valid
++for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__s64</entry>
++	    <entry><structfield>value</structfield></entry>
++	    <entry>
++              Value of the integer menu item. This field is valid for
++              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
++              controls.
++            </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>reserved</structfield></entry>
+ 	    <entry>Reserved for future extensions. Drivers must set
+ the array to zero.</entry>
+@@ -292,6 +313,20 @@ the menu items can be enumerated with the
+ <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
++	    <entry>&ge; 0</entry>
++	    <entry>1</entry>
++	    <entry>N-1</entry>
++	    <entry>
++              The control has a menu of N choices. The values of the
++              menu items can be enumerated with the
++              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
++              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
++              except that instead of strings, the menu items are
++              signed 64-bit integers.
++            </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
+ 	    <entry>0</entry>
+ 	    <entry>n/a</entry>
+-- 
+1.7.2.5
+
