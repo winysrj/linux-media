@@ -1,96 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:31136 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756662Ab1LNPJW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 10:09:22 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, snjw23@gmail.com,
-	t.stanislaws@samsung.com, dacohen@gmail.com,
-	andriy.shevchenko@linux.intel.com, g.liakhovetski@gmx.de,
-	hverkuil@xs4all.nl
-Subject: [RFC v2 2/3] v4l: Support s_crop and g_crop through s/g_selection
-Date: Wed, 14 Dec 2011 17:09:05 +0200
-Message-Id: <1323875346-16976-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20111214150846.GM1967@valkosipuli.localdomain>
-References: <20111214150846.GM1967@valkosipuli.localdomain>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:44103 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751407Ab1LTRMz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 12:12:55 -0500
+Date: Tue, 20 Dec 2011 18:14:37 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Rob Clark <robdclark@gmail.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+Message-ID: <20111220171437.GC3883@phenom.ffwll.local>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+ <201112121648.52126.arnd@arndb.de>
+ <CAB2ybb_dU7BzJmPo6vA92pe1YCNerCLc+bv7Qi_EfkfGaik6bQ@mail.gmail.com>
+ <201112201541.17904.arnd@arndb.de>
+ <CAF6AEGtOjO6Z6yfHz-ZGz3+NuEMH2M-8=20U6+-xt-gv9XtzaQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAF6AEGtOjO6Z6yfHz-ZGz3+NuEMH2M-8=20U6+-xt-gv9XtzaQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Revert to s_selection if s_crop isn't implemented by a driver. Same for
-g_selection / g_crop.
+On Tue, Dec 20, 2011 at 10:41:45AM -0600, Rob Clark wrote:
+> On Tue, Dec 20, 2011 at 9:41 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > On Monday 19 December 2011, Semwal, Sumit wrote:
+> >> I didn't see a consensus on whether dma_buf should enforce some form
+> >> of serialization within the API - so atleast for v1 of dma-buf, I
+> >> propose to 'not' impose a restriction, and we can tackle it (add new
+> >> ops or enforce as design?) whenever we see the first need of it - will
+> >> that be ok? [I am bending towards the thought that it is a problem to
+> >> solve at a bigger platform than dma_buf.]
+> >
+> > The problem is generally understood for streaming mappings with a
+> > single device using it: if you have a long-running mapping, you have
+> > to use dma_sync_*. This obviously falls apart if you have multiple
+> > devices and no serialization between the accesses.
+> >
+> > If you don't want serialization, that implies that we cannot have
+> > use the  dma_sync_* API on the buffer, which in turn implies that
+> > we cannot have streaming mappings. I think that's ok, but then
+> > you have to bring back the mmap API on the buffer if you want to
+> > allow any driver to provide an mmap function for a shared buffer.
+> 
+> I'm thinking for a first version, we can get enough mileage out of it by saying:
+> 1) only exporter can mmap to userspace
+> 2) only importers that do not need CPU access to buffer..
+> 
+> This way we can get dmabuf into the kernel, maybe even for 3.3.  I
+> know there are a lot of interesting potential uses where this stripped
+> down version is good enough.  It probably isn't the final version,
+> maybe more features are added over time to deal with importers that
+> need CPU access to buffer, sync object, etc.  But we have to start
+> somewhere.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/v4l2-subdev.c |   37 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 35 insertions(+), 2 deletions(-)
+I agree with Rob here - I think especially for the coherency discussion
+some actual users of dma_buf on a bunch of insane platforms (i915
+qualifies here too, because we do some cacheline flushing behind everyones
+back) would massively help in clarifying things.
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index e8ae098..f8de551 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -226,6 +226,8 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_SUBDEV_G_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
-+		struct v4l2_subdev_selection sel;
-+		int rval;
- 
- 		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
- 		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-@@ -234,11 +236,27 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (crop->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
--		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+		if (rval != -ENOIOCTLCMD)
-+			return rval;
-+
-+		memset(&sel, 0, sizeof(sel));
-+		sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+		sel.pad = crop->pad;
-+		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
-+
-+		rval = v4l2_subdev_call(
-+			sd, pad, get_selection, subdev_fh, &sel);
-+
-+		crop->rect = sel.r;
-+
-+		return rval;
- 	}
- 
- 	case VIDIOC_SUBDEV_S_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
-+		struct v4l2_subdev_selection sel;
-+		int rval;
- 
- 		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
- 		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-@@ -247,7 +265,22 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (crop->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
--		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+		if (rval != -ENOIOCTLCMD)
-+			return rval;
-+
-+		memset(&sel, 0, sizeof(sel));
-+		sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+		sel.pad = crop->pad;
-+		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
-+		sel.r = crop->rect;
-+
-+		rval = v4l2_subdev_call(
-+			sd, pad, set_selection, subdev_fh, &sel);
-+
-+		crop->rect = sel.r;
-+
-+		return rval;
- 	}
- 
- 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
+It also sounds like that at least for proper userspace mmap support we'd
+need some dma api extensions on at least arm, and that might take a while
+...
+
+Cheers, Daniel
 -- 
-1.7.2.5
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
