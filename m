@@ -1,71 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16417 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755230Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:23 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNR4019837
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 18/28] [media] mxl5005s: fix: don't discard bandwidth changes
-Date: Thu, 22 Dec 2011 09:20:06 -0200
-Message-Id: <1324552816-25704-19-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-18-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
- <1324552816-25704-4-git-send-email-mchehab@redhat.com>
- <1324552816-25704-5-git-send-email-mchehab@redhat.com>
- <1324552816-25704-6-git-send-email-mchehab@redhat.com>
- <1324552816-25704-7-git-send-email-mchehab@redhat.com>
- <1324552816-25704-8-git-send-email-mchehab@redhat.com>
- <1324552816-25704-9-git-send-email-mchehab@redhat.com>
- <1324552816-25704-10-git-send-email-mchehab@redhat.com>
- <1324552816-25704-11-git-send-email-mchehab@redhat.com>
- <1324552816-25704-12-git-send-email-mchehab@redhat.com>
- <1324552816-25704-13-git-send-email-mchehab@redhat.com>
- <1324552816-25704-14-git-send-email-mchehab@redhat.com>
- <1324552816-25704-15-git-send-email-mchehab@redhat.com>
- <1324552816-25704-16-git-send-email-mchehab@redhat.com>
- <1324552816-25704-17-git-send-email-mchehab@redhat.com>
- <1324552816-25704-18-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from moutng.kundenserver.de ([212.227.17.8]:55192 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751414Ab1LTPhU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 10:37:20 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+Date: Tue, 20 Dec 2011 15:36:49 +0000
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <201112091413.03736.arnd@arndb.de> <20111220090306.GO3677@valkosipuli.localdomain>
+In-Reply-To: <20111220090306.GO3677@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112201536.49754.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-With the previous code, when the bandwidth changes, but using
-the same delivery system, the code used to discard such changes.
+On Tuesday 20 December 2011, Sakari Ailus wrote:
+> (I'm jumping into the discussion in the middle, and might miss something
+> that has already been talked about. I still hope what I'm about to say is
+> relevant. :-))
 
-This was happening because the bandwidth calculus were after the
-check for delivery system changes. The previous patch changed
-it to happen together with the delivery system check. So, with
-a one-statement change, it is possible to force the tuner to
-reconfigure, in order to adjust to bandwidth changes. this will
-likely improve it when used on countries with 7MHz/8MHz
-channels.
+It certainly is relevant.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mxl5005s.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+> In subsystems such as V4L2 where drivers deal with such large buffers, the
+> buffers stay mapped all the time. The user explicitly gives the control of
+> the buffers to the driver and eventually gets them back. This is already
+> part of those APIs, whether they're using dma_buf or not. The user could
+> have, and often has, the same buffers mapped elsewhere.
 
-diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
-index c370220..a951011 100644
---- a/drivers/media/common/tuners/mxl5005s.c
-+++ b/drivers/media/common/tuners/mxl5005s.c
-@@ -4014,7 +4014,8 @@ static int mxl5005s_set_params(struct dvb_frontend *fe,
- 	}
- 
- 	/* Change tuner for new modulation type if reqd */
--	if (req_mode != state->current_mode) {
-+	if (req_mode != state->current_mode ||
-+	    req_bw != state->Chan_Bandwidth) {
- 		state->current_mode = req_mode;
- 		ret = mxl5005s_reconfigure(fe, req_mode, req_bw);
- 
--- 
-1.7.8.352.g876a6
+Do you normally use streaming (dma_{map,sync,unmap}_*) or consistent
+(dma_{alloc,free}_*) mappings for this then?
 
+> When it comes to passing these buffers between different hardware devices,
+> either V4L2 or not, the user might not want to perform extra cache flush
+> when the buffer memory itself is not being touched by the CPU in the process
+> at all. I'd consider it impossible for the driver to know how the user space
+> intends to user the buffer.
+
+The easiest solution to this problem would be to only allow consistent mappings
+to be shared using the dma_buf mechanism. That means we never have to flush.
+If you don't need the CPU to touch the buffer, that would not have any cost
+at all, we could even have no kernel mapping at all instead of an uncached
+mapping on ARM.
+
+> Flushing the cache is quite expensive: typically it's the best to flush the
+> whole data cache when one needs to flush buffers. The V4L2 DQBUF and QBUF
+> IOCTLs already have flags to suggest special cache handling for buffers.
+
+[sidenote: whether it makes sense to flush individual cache lines or the entire
+cache is a decision best left to the architectures. On systems with larger
+caches than on ARM, e.g. 64MB instead of 512KB, you really want to keep
+the cache intact.]
+
+	Arnd
