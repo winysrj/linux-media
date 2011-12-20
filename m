@@ -1,46 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pserver.infoseka.lt ([78.158.28.5]:56680 "EHLO infoseka.lt"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751447Ab1LICGh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 8 Dec 2011 21:06:37 -0500
-Message-ID: <36b01e96b9a62883bf3b7b92a74c358d.squirrel@webmail.infoseka.lt>
-Date: Thu, 8 Dec 2011 18:54:33 +0200 (EET)
-Subject: Final Notice
-From: "Y/Msn" <noreply@yahoo.com>
-Reply-To: barclays_transfer_group_dept@hotmail.com
-MIME-Version: 1.0
-Content-Type: text/plain;charset=lt_LT
-Content-Transfer-Encoding: 8bit
-To: undisclosed-recipients:;
+Received: from smtp.nokia.com ([147.243.128.24]:53496 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752866Ab1LTU2Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 15:28:16 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com
+Subject: [RFC 10/17] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
+Date: Tue, 20 Dec 2011 22:28:02 +0200
+Message-Id: <1324412889-17961-10-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Internet User!
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-Congratulations! you and your family have won 500,000 GBP from the
-Microsoft Family Benefit 2011 for being a regular web user.Your winnings
-has been
-submitted to BARCLAYS BANK OF SCOTLAND. Contact the Bank with your full
-info for claims.:
+This register is available only in OMAP3630.
 
-Send mail to the Transfer Manager:
+The original patch was submitted by Vimarsh Zutshi.
 
-Transfer Manager: Robert Williams
-Email: barclays_transfer_group_dept@hotmail.com
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ arch/arm/mach-omap2/control.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-Bank Name: Barclays Bank Of Scotland
-
-1.Name:
-2.Address:
-3.Telephone Number:
-4.Sex:
-Account Name:
-Account Number:
-Bank Name:
-
-
-Please use this as a subject of contact : TRANSFER/NUM/1090.
-
-Congratulations!!!
-Microsoft Window
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index d4ef75d..6a26a0d 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -183,6 +183,7 @@
+ #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
+ #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
+ #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
+ 
+ /* OMAP44xx control efuse offsets */
+ #define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
+-- 
+1.7.2.5
 
