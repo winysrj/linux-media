@@ -1,68 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:52616 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759282Ab1LPJQK (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:46350 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751285Ab1LTQlq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 04:16:10 -0500
-Date: Fri, 16 Dec 2011 10:16:03 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-cc: Javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org, saaguirre@ti.com,
-	mchehab@infradead.org
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-In-Reply-To: <CAHG8p1AXghgSQNHUQi5V56ROAfS9tOsMRbAMqNogNG0=m7zzkQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1112161014580.6572@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
- <Pine.LNX.4.64.1112160909470.6572@axis700.grange>
- <CAHG8p1AXghgSQNHUQi5V56ROAfS9tOsMRbAMqNogNG0=m7zzkQ@mail.gmail.com>
+	Tue, 20 Dec 2011 11:41:46 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <201112201541.17904.arnd@arndb.de>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+	<201112121648.52126.arnd@arndb.de>
+	<CAB2ybb_dU7BzJmPo6vA92pe1YCNerCLc+bv7Qi_EfkfGaik6bQ@mail.gmail.com>
+	<201112201541.17904.arnd@arndb.de>
+Date: Tue, 20 Dec 2011 10:41:45 -0600
+Message-ID: <CAF6AEGtOjO6Z6yfHz-ZGz3+NuEMH2M-8=20U6+-xt-gv9XtzaQ@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+From: Rob Clark <robdclark@gmail.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 16 Dec 2011, Scott Jiang wrote:
+On Tue, Dec 20, 2011 at 9:41 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Monday 19 December 2011, Semwal, Sumit wrote:
+>> I didn't see a consensus on whether dma_buf should enforce some form
+>> of serialization within the API - so atleast for v1 of dma-buf, I
+>> propose to 'not' impose a restriction, and we can tackle it (add new
+>> ops or enforce as design?) whenever we see the first need of it - will
+>> that be ok? [I am bending towards the thought that it is a problem to
+>> solve at a bigger platform than dma_buf.]
+>
+> The problem is generally understood for streaming mappings with a
+> single device using it: if you have a long-running mapping, you have
+> to use dma_sync_*. This obviously falls apart if you have multiple
+> devices and no serialization between the accesses.
+>
+> If you don't want serialization, that implies that we cannot have
+> use the  dma_sync_* API on the buffer, which in turn implies that
+> we cannot have streaming mappings. I think that's ok, but then
+> you have to bring back the mmap API on the buffer if you want to
+> allow any driver to provide an mmap function for a shared buffer.
 
-> Hi Guennadi,
-> 
-> > First question: you probably also want to patch soc_camera_g_input() and
-> > soc_camera_enum_input(). But no, I do not know how. The video subdevice
-> > operations do not seem to provide a way to query subdevice routing
-> > capabilities, so, I've got no idea how we're supposed to support
-> > enum_input(). There is a g_input_status() method, but I'm not sure about
-> > its semantics. Would it return an error like -EINVAL on an unsupported
-> > index?
-> >
-> static int bcap_enum_input(struct file *file, void *priv,
->                                 struct v4l2_input *input)
-> {
->         struct bcap_device *bcap_dev = video_drvdata(file);
->         struct bfin_capture_config *config = bcap_dev->cfg;
->         int ret;
->         u32 status;
-> 
->         if (input->index >= config->num_inputs)
->                 return -EINVAL;
-> 
->         *input = config->inputs[input->index];
->         /* get input status */
->         ret = v4l2_subdev_call(bcap_dev->sd, video, g_input_status, &status);
->         if (!ret)
->                 input->status = status;
->         return 0;
-> }
-> 
-> How about this implementation? I know it's not for soc, but I post it
-> to give my idea.
-> Bridge knows the layout, so it doesn't need to query the subdevice.
+I'm thinking for a first version, we can get enough mileage out of it by saying:
+1) only exporter can mmap to userspace
+2) only importers that do not need CPU access to buffer..
 
-Where from? AFAIU, we are talking here about subdevice inputs, right? In 
-this case about various inputs of the TV decoder. How shall the bridge 
-driver know about that?
+This way we can get dmabuf into the kernel, maybe even for 3.3.  I
+know there are a lot of interesting potential uses where this stripped
+down version is good enough.  It probably isn't the final version,
+maybe more features are added over time to deal with importers that
+need CPU access to buffer, sync object, etc.  But we have to start
+somewhere.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+BR,
+-R
+
+>        Arnd
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
