@@ -1,61 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44964 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.48]:35787 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752143Ab1LTSJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 13:09:28 -0500
-Message-ID: <4EF0CF4A.8050500@redhat.com>
-Date: Tue, 20 Dec 2011 16:09:14 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR 3.3] HDIC HD29L2 DMB-TH demodulator driv
-References: <4EE929D5.6010106@iki.fi> <4EF0A92B.6010504@redhat.com> <4EF0ACFD.6040903@iki.fi> <201112201725.57381.pboettcher@kernellabs.com> <4EF0C2F5.6040801@iki.fi> <4EF0CD63.20003@iki.fi>
-In-Reply-To: <4EF0CD63.20003@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1752849Ab1LTU2P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 15:28:15 -0500
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com
+Subject: [RFC 09/17] v4l: Add pad op for pipeline validation
+Date: Tue, 20 Dec 2011 22:28:01 +0200
+Message-Id: <1324412889-17961-9-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20-12-2011 16:01, Antti Palosaari wrote:
-> On 12/20/2011 07:16 PM, Antti Palosaari wrote:
->> On 12/20/2011 06:25 PM, Patrick Boettcher wrote:
->>> Hi all,
->>>
->>> On Tuesday 20 December 2011 16:42:53 Antti Palosaari wrote:
->>>> Adding those to API is not mission impossible. Interleaver is only
->>>> new parameter and all the rest are just extending values. But my
->>>> time is limited... and I really would like to finally got Anysee
->>>> smart card reader integrated to USB serial first.
->>>
->>> And if it is added we should not forget to discuess whether DMB-TH is
->>> the "right" name. (If this has already been addressed in another thread
->>> please point me to it).
->>>
->>> I know this standard under at least 2 different names: CTTB and DTMB.
->>>
->>> Which is the one to choose?
->>
->> Yes, there is many names and it is not even clear for me what are
->> differences between names. I called it DMB-TH since existing Kernel
->> drivers have selected that name.
->>
->> http://en.wikipedia.org/wiki/CMMB
->> http://en.wikipedia.org/wiki/DTMB
->> http://en.wikipedia.org/wiki/Digital_Multimedia_Broadcasting
->> http://en.wikipedia.org/wiki/Digital_Terrestrial_Multimedia_Broadcast
->>
->> CMMB
->> CTTB
->> DTMB (DTMB-T/H, DMB-T/H)
->> DMB (T-DMB)
-> 
-> DMB seems to be much different so drop it out. DTMB seems to be official term for DMB-T/H. CMMB seems to be for small devices (mobile), maybe subset of DTMB. Finally I have CTTB and DTMB which seems to be equivalents. DTMB is more common.
-> 
-> So I end up for the DTMB. I give my vote for that.
+From: Sakari Ailus <sakari.ailus@iki.fi>
 
-I also vote for DTMB. It seems to be the more adequate one.
+smiapp_pad_ops.validate_pipeline is intended to validate the full pipeline
+which is implemented by the driver to which the subdev implementing this op
+belongs to. The validate_pipeline op must also call validate_pipeline on
+any external entity which is linked to its sink pads.
 
-Regards,
-Mauro
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ include/media/v4l2-subdev.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 26eeaa4..a5ebe86 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -470,6 +470,7 @@ struct v4l2_subdev_pad_ops {
+ 			     struct v4l2_subdev_selection *sel);
+ 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 			     struct v4l2_subdev_selection *sel);
++	int (*validate_pipeline)(struct v4l2_subdev *sd);
+ };
+ 
+ struct v4l2_subdev_ops {
+-- 
+1.7.2.5
+
