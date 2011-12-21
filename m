@@ -1,141 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59697 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752778Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:32 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9WqG015944
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 93/94] dvb_frontend: Fix inversion breakage due to DVBv5 conversion
-Date: Fri, 30 Dec 2011 13:08:30 -0200
-Message-Id: <1325257711-12274-94-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51730 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751764Ab1LUWSy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 17:18:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Subject: Re: [PATCH 1/2] media: add new mediabus format enums for dm365
+Date: Wed, 21 Dec 2011 23:18:54 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com> <201112210058.33006.laurent.pinchart@ideasonboard.com> <E99FAA59F8D8D34D8A118DD37F7C8F75018904@DBDE01.ent.ti.com>
+In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F75018904@DBDE01.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112212318.55517.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On several places inside dvb_frontend, only the DVBv3 parameters
-were updated. Change it to be sure that, on all places, the DVBv5
-parameters will be changed instead.
+Hi Manju,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   38 ++++++++++++++++-------------
- 1 files changed, 21 insertions(+), 17 deletions(-)
+On Wednesday 21 December 2011 14:54:18 Hadli, Manjunath wrote:
+> On Wed, Dec 21, 2011 at 05:28:31, Laurent Pinchart wrote:
+> > On Friday 16 December 2011 15:20:24 Hadli, Manjunath wrote:
+> > > On Thu, Dec 15, 2011 at 18:32:44, Laurent Pinchart wrote:
+> > > > On Thursday 15 December 2011 13:24:57 Manjunath Hadli wrote:
+> > > > > add new enum entry V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 into
+> > > > > mbus_pixel_code to represent A-LAW compressed Bayer format. This
+> > > > > corresponds to pixel format - V4L2_PIX_FMT_SGRBG10ALAW8.
+> > > > > add UV8 and NV12 ( Y and C separate with UV interleaved) which are
+> > > > > supported on dm365.
+> > > > > 
+> > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > ---
+> > > > > 
+> > > > >  include/linux/v4l2-mediabus.h |   10 ++++++++--
+> > > > >  1 files changed, 8 insertions(+), 2 deletions(-)
+> > > > 
+> > > > Please also update the documentation in
+> > > > Documentation/DocBook/media/v4l.
+> > > > 
+> > > > > diff --git a/include/linux/v4l2-mediabus.h
+> > > > > b/include/linux/v4l2-mediabus.h index 5ea7f75..d408654 100644
+> > > > > --- a/include/linux/v4l2-mediabus.h
+> > > > > +++ b/include/linux/v4l2-mediabus.h
+> > > > > @@ -47,7 +47,7 @@ enum v4l2_mbus_pixelcode {
+> > > > > 
+> > > > >  	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+> > > > >  	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+> > > > > 
+> > > > > -	/* YUV (including grey) - next is 0x2014 */
+> > > > > +	/* YUV (including grey) - next is 0x2016 */
+> > > > > 
+> > > > >  	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+> > > > >  	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+> > > > >  	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+> > > > > 
+> > > > > @@ -67,8 +67,10 @@ enum v4l2_mbus_pixelcode {
+> > > > > 
+> > > > >  	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
+> > > > >  	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+> > > > >  	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+> > > > > 
+> > > > > +	V4L2_MBUS_FMT_NV12_1X20 = 0x2014,
+> > > > > +	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+> > > > 
+> > > > NV12, on the bus ? How does that work ? (The documentation should
+> > > > answer my question :-))
+> > > 
+> > > Well, this is on the internal bus not exposed outside, but
+> > > nevertheless bus between two subdevs or two independent hardware
+> > > blocks. For example Resizer supports NV12 on its pad. Is there any
+> > > other way to treat this?
+> > 
+> > How is NV12 transferred on the bus in that case ? Are all luma samples
+> > transferred first, followed by all chroma samples ?
+> 
+> It uses parallel bus of 16 bits, where Y and C are transmitted
+> simultaneously on 8 bits each. NV12 uses a dummy C byte for every valid
+> one.
+> So I guess we call it V4L2_MBUS_FMT_YDYC_1X16 or V4L2_MBUS_FMT_YCYD_1X16?
+> That way we will be able to document the format in the documentation also.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 9dd30be..9d092a6 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -288,12 +288,13 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
- 	int ready = 0;
- 	int fe_set_err = 0;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
--	int original_inversion = fepriv->parameters_in.inversion;
--	u32 original_frequency = fepriv->parameters_in.frequency;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache, tmp;
-+	int original_inversion = c->inversion;
-+	u32 original_frequency = c->frequency;
- 
- 	/* are we using autoinversion? */
- 	autoinversion = ((!(fe->ops.info.caps & FE_CAN_INVERSION_AUTO)) &&
--			 (fepriv->parameters_in.inversion == INVERSION_AUTO));
-+			 (c->inversion == INVERSION_AUTO));
- 
- 	/* setup parameters correctly */
- 	while(!ready) {
-@@ -359,19 +360,20 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
- 		fepriv->auto_step, fepriv->auto_sub_step, fepriv->started_auto_step);
- 
- 	/* set the frontend itself */
--	fepriv->parameters_in.frequency += fepriv->lnb_drift;
-+	c->frequency += fepriv->lnb_drift;
- 	if (autoinversion)
--		fepriv->parameters_in.inversion = fepriv->inversion;
-+		c->inversion = fepriv->inversion;
-+	tmp = *c;
- 	if (fe->ops.set_frontend)
- 		fe_set_err = fe->ops.set_frontend(fe);
--	fepriv->parameters_out = fepriv->parameters_in;
-+	*c = tmp;
- 	if (fe_set_err < 0) {
- 		fepriv->state = FESTATE_ERROR;
- 		return fe_set_err;
- 	}
- 
--	fepriv->parameters_in.frequency = original_frequency;
--	fepriv->parameters_in.inversion = original_inversion;
-+	c->frequency = original_frequency;
-+	c->inversion = original_inversion;
- 
- 	fepriv->auto_sub_step++;
- 	return 0;
-@@ -382,6 +384,7 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
- 	fe_status_t s = 0;
- 	int retval = 0;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache, tmp;
- 
- 	/* if we've got no parameters, just keep idling */
- 	if (fepriv->state & FESTATE_IDLE) {
-@@ -393,9 +396,10 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
- 	/* in SCAN mode, we just set the frontend when asked and leave it alone */
- 	if (fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT) {
- 		if (fepriv->state & FESTATE_RETUNE) {
-+			tmp = *c;
- 			if (fe->ops.set_frontend)
- 				retval = fe->ops.set_frontend(fe);
--			fepriv->parameters_out = fepriv->parameters_in;
-+			*c = tmp;
- 			if (retval < 0)
- 				fepriv->state = FESTATE_ERROR;
- 			else
-@@ -425,8 +429,8 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
- 
- 		/* if we're tuned, then we have determined the correct inversion */
- 		if ((!(fe->ops.info.caps & FE_CAN_INVERSION_AUTO)) &&
--		    (fepriv->parameters_in.inversion == INVERSION_AUTO)) {
--			fepriv->parameters_in.inversion = fepriv->inversion;
-+		    (c->inversion == INVERSION_AUTO)) {
-+			c->inversion = fepriv->inversion;
- 		}
- 		return;
- 	}
-@@ -1976,14 +1980,14 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 
- 		/* force auto frequency inversion if requested */
- 		if (dvb_force_auto_inversion) {
--			fepriv->parameters_in.inversion = INVERSION_AUTO;
-+			c->inversion = INVERSION_AUTO;
- 		}
- 		if (fe->ops.info.type == FE_OFDM) {
- 			/* without hierarchical coding code_rate_LP is irrelevant,
- 			 * so we tolerate the otherwise invalid FEC_NONE setting */
--			if (fepriv->parameters_in.u.ofdm.hierarchy_information == HIERARCHY_NONE &&
--			    fepriv->parameters_in.u.ofdm.code_rate_LP == FEC_NONE)
--				fepriv->parameters_in.u.ofdm.code_rate_LP = FEC_AUTO;
-+			if (c->hierarchy == HIERARCHY_NONE &&
-+			    c->code_rate_LP == FEC_NONE)
-+				c->code_rate_LP = FEC_AUTO;
- 		}
- 
- 		/* get frontend-specific tuning settings */
-@@ -1996,8 +2000,8 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 			switch(fe->ops.info.type) {
- 			case FE_QPSK:
- 				fepriv->min_delay = HZ/20;
--				fepriv->step_size = fepriv->parameters_in.u.qpsk.symbol_rate / 16000;
--				fepriv->max_drift = fepriv->parameters_in.u.qpsk.symbol_rate / 2000;
-+				fepriv->step_size = c->symbol_rate / 16000;
-+				fepriv->max_drift = c->symbol_rate / 2000;
- 				break;
- 
- 			case FE_QAM:
+That sounds good (YDYC8_1X16 to be precise). Hans, Guennadi, Sakari, any 
+opinion ?
+
 -- 
-1.7.8.352.g876a6
+Regards,
 
+Laurent Pinchart
