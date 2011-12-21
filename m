@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:64475 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932753Ab1LPJJW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 04:09:22 -0500
-Received: by vcbfk14 with SMTP id fk14so2278074vcb.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 01:09:21 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:20286 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751839Ab1LUNyi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 08:54:38 -0500
+Message-ID: <4EF1E519.1010600@redhat.com>
+Date: Wed, 21 Dec 2011 11:54:33 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1112160909470.6572@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1112160909470.6572@axis700.grange>
-Date: Fri, 16 Dec 2011 17:09:21 +0800
-Message-ID: <CAHG8p1AXghgSQNHUQi5V56ROAfS9tOsMRbAMqNogNG0=m7zzkQ@mail.gmail.com>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org, saaguirre@ti.com,
-	mchehab@infradead.org
+To: Gareth Williams <gareth@garethwilliams.me.uk>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] Fixed detection of EMP202 audio chip. Some versions
+ have an id of 0x83847650 instead of 0xffffffff.
+References: <3535794.dt3qgLM7n9@kubuntu>
+In-Reply-To: <3535794.dt3qgLM7n9@kubuntu>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On 20-12-2011 19:45, Gareth Williams wrote:
+> Signed-off-by: Gareth Williams <gareth@garethwilliams.me.uk>
+> 
+> Honestech Vidbox NW03 has a EMP202 audio chip with a different Vendor ID.
+> 
+> Apparently, it is the same with the Gadmei ITV380:
+> http://linuxtv.org/wiki/index.php/Gadmei_USB_TVBox_UTV380
+> 
+> ---
+>  linux/drivers/media/video/em28xx/em28xx-core.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/linux/drivers/media/video/em28xx/em28xx-core.c b/linux/drivers/media/video/em28xx/em28xx-core.c
+> index 804a4ab..2982a06 100644
+> --- a/linux/drivers/media/video/em28xx/em28xx-core.c
+> +++ b/linux/drivers/media/video/em28xx/em28xx-core.c
+> @@ -568,7 +568,7 @@ int em28xx_audio_setup(struct em28xx *dev)
+>  	em28xx_warn("AC97 features = 0x%04x\n", feat);
+>  
+>  	/* Try to identify what audio processor we have */
+> -	if ((vid == 0xffffffff) && (feat == 0x6a90))
+> +	if (((vid == 0xffffffff) || (vid == 0x83847650)) && (feat == 0x6a90))
 
-> First question: you probably also want to patch soc_camera_g_input() and
-> soc_camera_enum_input(). But no, I do not know how. The video subdevice
-> operations do not seem to provide a way to query subdevice routing
-> capabilities, so, I've got no idea how we're supposed to support
-> enum_input(). There is a g_input_status() method, but I'm not sure about
-> its semantics. Would it return an error like -EINVAL on an unsupported
-> index?
->
-static int bcap_enum_input(struct file *file, void *priv,
-                                struct v4l2_input *input)
-{
-        struct bcap_device *bcap_dev = video_drvdata(file);
-        struct bfin_capture_config *config = bcap_dev->cfg;
-        int ret;
-        u32 status;
+Are you sure you don't have, instead a STAC9750? 0x83647650 is the code
+for this chip. Did you open your device to be sure it is really an em202?
 
-        if (input->index >= config->num_inputs)
-                return -EINVAL;
+Vendors are free to put whatever AC97 chip they want. Each of them have 
+their own differences (different sample rate, different volume controls,
+etc).
 
-        *input = config->inputs[input->index];
-        /* get input status */
-        ret = v4l2_subdev_call(bcap_dev->sd, video, g_input_status, &status);
-        if (!ret)
-                input->status = status;
-        return 0;
-}
+While miss-identifying it may work for your usecase, it will fail for
+other usecases. The good news is that, in general, the datasheets for
+AC97 mixers are generally easy to find on Google. Most vendors release them
+publicly.
 
-How about this implementation? I know it's not for soc, but I post it
-to give my idea.
-Bridge knows the layout, so it doesn't need to query the subdevice.
+Regards,
+Mauro
