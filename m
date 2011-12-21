@@ -1,71 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:52338 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755280Ab1LARrh convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Dec 2011 12:47:37 -0500
+Received: from mail.kaapeli.fi ([212.16.172.148]:59585 "EHLO mail.kaapeli.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752149Ab1LUIOy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 03:14:54 -0500
+Message-ID: <4EF18DF1.9070703@iki.fi>
+Date: Wed, 21 Dec 2011 09:42:41 +0200
+From: Jyrki Kuoppala <jkp@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CANrkHUZb=ZtMcPyFXkktE0LztBzLcB7vmWPPgriTo7O0yeOPzw@mail.gmail.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-2-git-send-email-saaguirre@ti.com> <CANrkHUZb=ZtMcPyFXkktE0LztBzLcB7vmWPPgriTo7O0yeOPzw@mail.gmail.com>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Thu, 1 Dec 2011 11:47:15 -0600
-Message-ID: <CAKnK67QKwBCGoQdBALqBjqxx4fNXz_6o3kz7O7y4xffew1c-QA@mail.gmail.com>
-Subject: Re: [PATCH v2 01/11] TWL6030: Add mapping for auxiliary regs
-To: "T Krishnamoorthy, Balaji" <balajitk@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Antti Palosaari <crope@iki.fi>
+CC: Carlos Corbacho <carlos@strangeworlds.co.uk>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] qt1010: Fix tuner frequency selection for 546 to 578
+ MHz range
+References: <20111220105034.5150.54234.stgit@localhost> <4EF18A2D.5090101@iki.fi>
+In-Reply-To: <4EF18A2D.5090101@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Balaji,
+Hi,
 
-Thanks for the review.
+To try and shed some more light into the issue, can you describe what 
+the problem really is and how would we fix the driver correctly? By 
+"work or not", do you mean the fix works with some devices but not with 
+some other devices, with some received signal strengths but not some, or 
+something else? Do you think there's a risk the fix will break something?
 
-On Thu, Dec 1, 2011 at 9:58 AM, T Krishnamoorthy, Balaji
-<balajitk@ti.com> wrote:
-> On Thu, Dec 1, 2011 at 5:44 AM, Sergio Aguirre <saaguirre@ti.com> wrote:
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+For me, without the fix, some of the major channels from the transmitter 
+in the second largest city of Finland are missing, in other words the 
+fix would remove a major showstopper. Based on Carlos's note, the 
+situation in UK is something similar.
+
+It's of course best to aim for the best possible fix, and if we have 
+enough information to do that, that's of course preferable over this 
+one. However, if there isn't enough information, and there's no risk of 
+the proposed fix breaking something, perhaps this patch should be put in 
+as an interim fix and add some notes somewhere that a better fix is 
+preferable.
+
+Jyrki
+
+
+21.12.2011 09:26, Antti Palosaari kirjoitti:
+> Hello,
+> You can try to fix it like that, but it is not proper way. It is kinda 
+> of hack which can just work or not. Proper way is to fix that tuner 
+> driver correctly and if it was used with zl10353 demoed fix that 
+> driver too to support IIRC IF/RF agc settings.
+>
+> regards
+> Antti
+>
+> On 12/20/2011 12:50 PM, Carlos Corbacho wrote:
+>> The patch fixes frequency selection for some UHF frequencies e.g.
+>> channel 32 (562 MHz) on the qt1010 tuner. For those in the UK,
+>> this now means they can tune to the BBC channels (tested on a Compro
+>> Vista T750F).
+>>
+>> One example of problem reports of the bug this fixes can be read at
+>> http://www.freak-search.com/de/thread/330303/linux-dvb_tuning_problem_with_some_frequencies_qt1010,_dvb 
+>>
+>>
+>> Based on an original patch by Jyrki Kuoppala<jkp@iki.fi>
+>>
+>> Signed-off-by: Carlos Corbacho<carlos@strangeworlds.co.uk>
+>> Cc: Jyrki Kuoppala<jkp@iki.fi>
+>> Cc: Mauro Carvalho Chehab<mchehab@infradead.org>
 >> ---
->>  drivers/mfd/twl-core.c |    2 +-
->>  1 files changed, 1 insertions(+), 1 deletions(-)
+>>   drivers/media/common/tuners/qt1010.c |    3 ++-
+>>   1 files changed, 2 insertions(+), 1 deletions(-)
 >>
->> diff --git a/drivers/mfd/twl-core.c b/drivers/mfd/twl-core.c
->> index bfbd660..e26b564 100644
->> --- a/drivers/mfd/twl-core.c
->> +++ b/drivers/mfd/twl-core.c
->> @@ -323,7 +323,7 @@ static struct twl_mapping twl6030_map[] = {
->>        { SUB_CHIP_ID0, TWL6030_BASEADD_ZERO },
->>        { SUB_CHIP_ID1, TWL6030_BASEADD_ZERO },
+>> diff --git a/drivers/media/common/tuners/qt1010.c 
+>> b/drivers/media/common/tuners/qt1010.c
+>> index 9f5dba2..8c57d8c 100644
+>> --- a/drivers/media/common/tuners/qt1010.c
+>> +++ b/drivers/media/common/tuners/qt1010.c
+>> @@ -200,7 +200,8 @@ static int qt1010_set_params(struct dvb_frontend 
+>> *fe,
+>>       if      (freq<  450000000) rd[15].val = 0xd0; /* 450 MHz */
+>>       else if (freq<  482000000) rd[15].val = 0xd1; /* 482 MHz */
+>>       else if (freq<  514000000) rd[15].val = 0xd4; /* 514 MHz */
+>> -    else if (freq<  546000000) rd[15].val = 0xd7; /* 546 MHz */
+>> +    else if (freq<  546000000) rd[15].val = 0xd6; /* 546 MHz */
+>> +    else if (freq<  578000000) rd[15].val = 0xd8; /* 578 MHz */
+>>       else if (freq<  610000000) rd[15].val = 0xda; /* 610 MHz */
+>>       else                       rd[15].val = 0xd0;
 >>
->> -       { SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
->> +       { SUB_CHIP_ID1, TWL6030_BASEADD_AUX },
->
-> Instead you can use TWL6030_MODULE_ID1, with base address as
-> zero for all registers in auxiliaries register map.
-
-Ok.
-
-I'm actually thinking about this, and in the process on reviewing the
-need to access those registers.
-
-I should probably be using the regulator framework to control VAUX3 instead...
-
-Thanks for your inputs.
-
-Regards,
-Sergio
-
->
->>        { SUB_CHIP_ID2, TWL6030_BASEADD_ZERO },
->>        { SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
->>        { SUB_CHIP_ID2, TWL6030_BASEADD_RSV },
->> --
->> 1.7.7.4
 >>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
+>> -- 
+>> To unsubscribe from this list: send the line "unsubscribe 
+>> linux-media" in
 >> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+
