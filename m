@@ -1,61 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:34600 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751899Ab1LKPEf convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46814 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752813Ab1LUBGV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 10:04:35 -0500
-Date: Sun, 11 Dec 2011 16:04:52 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Johannes Bauer <dfnsonfsduifb@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: Re: zc3xx webcam crashes on in-focus pictures
-Message-ID: <20111211160452.101da395@tele>
-In-Reply-To: <4EE49B2B.8090502@gmx.de>
-References: <4EE49B2B.8090502@gmx.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 20 Dec 2011 20:06:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH v4] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Wed, 21 Dec 2011 02:06:20 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1324116655-15895-1-git-send-email-martin@neutronstar.dyndns.org>
+In-Reply-To: <1324116655-15895-1-git-send-email-martin@neutronstar.dyndns.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112210206.20567.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 11 Dec 2011 12:59:39 +0100
-Johannes Bauer <dfnsonfsduifb@gmx.de> wrote:
-	[snip]
-> I have a Logitech Labtec webcam:
-> 
-> Bus 001 Device 012: ID 046d:08a2 Logitech, Inc. Labtec Webcam Pro
-> 
-> Which I use with the zc3xx driver on a 2.6.34 Linux:
-> 
-> usb 1-3.2: new full speed USB device using ehci_hcd and address 12
-> gspca: probing 046d:08a2
-> zc3xx: probe sensor -> 000e
-> zc3xx: Find Sensor PAS202B
-> input: zc3xx as /devices/pci0000:00/0000:00:1a.7/usb1/1-3/1-3.2/input/input7
-> gspca: video0 created
-> gspca: found int in endpoint: 0x82, buffer_len=8, interval=10
-> gspca: probing 046d:08a2
-> gspca: probing 046d:08a2
-> 
-> I'm using mplayer for playback. This works nicely for the most part.
-> However, as soon as I get things in focus (or make images of things that
-> have sharp edges), the driver chokes -- mplayer just displays
-> 
-> v4l2: select timeout
-> 
-> And no more frames appear. As soon as I put the pictures back out of
-> focus, frames are updated again.
-	[snip]
+Hi Martin,
 
-Hi Joe,
+Thanks for the patch.
 
-Your problem seems to be tied to the JPEG compression. It should have
-been fixed in June, for the kernel 3.1.x (commit 93604b0fdde32). If you
-cannot update your kernel, you may try the gspca test version from my
-web page (see below).
+On Saturday 17 December 2011 11:10:55 Martin Hostettler wrote:
+> The MT9M032 is a parallel 1.6MP sensor from Micron controlled through I2C.
+> 
+> The driver creates a V4L2 subdevice. It currently supports cropping, gain,
+> exposure and v/h flipping controls in monochrome mode with an
+> external pixel clock.
 
-Best regards.
+There are still several small issues with this driver. Things like not using 
+the module_i2c_driver() macro, some indentation, magic values in registers 
+(I'm trying to get more documentation), PLL setup (although that can be fixed 
+later, it's not a requirement for the driver to be mainlined), ...
+
+Would you be fine if I took the patch in my tree, fixed the remaining issues 
+and pushed it to mainline for v3.4 (the time frame is too short for v3.3) ? 
+Authorship will of course be preserved. The alternative would be to go through 
+review/modification cycles, and I don't want to waste too much of your time 
+:-)
 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Best regards,
+
+Laurent Pinchart
