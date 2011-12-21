@@ -1,157 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40658 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:49208 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753958Ab1L0BJr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:47 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19lw6017938
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:47 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 41/91] [media] s5h1432: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:29 -0200
-Message-Id: <1324948159-23709-42-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-41-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1751570Ab1LUNy1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 08:54:27 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: RE: [PATCH 1/2] media: add new mediabus format enums for dm365
+Date: Wed, 21 Dec 2011 13:54:18 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F75018904@DBDE01.ent.ti.com>
+References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com>
+ <201112151402.45100.laurent.pinchart@ideasonboard.com>
+ <E99FAA59F8D8D34D8A118DD37F7C8F75016B8B@DBDE01.ent.ti.com>
+ <201112210058.33006.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201112210058.33006.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Laurent,
+On Wed, Dec 21, 2011 at 05:28:31, Laurent Pinchart wrote:
+> Hi Manju,
+> 
+> On Friday 16 December 2011 15:20:24 Hadli, Manjunath wrote:
+> > On Thu, Dec 15, 2011 at 18:32:44, Laurent Pinchart wrote:
+> > > On Thursday 15 December 2011 13:24:57 Manjunath Hadli wrote:
+> > > > add new enum entry V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 into 
+> > > > mbus_pixel_code to represent A-LAW compressed Bayer format. This 
+> > > > corresponds to pixel format - V4L2_PIX_FMT_SGRBG10ALAW8.
+> > > > add UV8 and NV12 ( Y and C separate with UV interleaved) which are 
+> > > > supported on dm365.
+> > > > 
+> > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > ---
+> > > > 
+> > > >  include/linux/v4l2-mediabus.h |   10 ++++++++--
+> > > >  1 files changed, 8 insertions(+), 2 deletions(-)
+> > > 
+> > > Please also update the documentation in Documentation/DocBook/media/v4l.
+> > > 
+> > > > diff --git a/include/linux/v4l2-mediabus.h 
+> > > > b/include/linux/v4l2-mediabus.h index 5ea7f75..d408654 100644
+> > > > --- a/include/linux/v4l2-mediabus.h
+> > > > +++ b/include/linux/v4l2-mediabus.h
+> > > > @@ -47,7 +47,7 @@ enum v4l2_mbus_pixelcode {
+> > > > 
+> > > >  	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+> > > >  	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+> > > > 
+> > > > -	/* YUV (including grey) - next is 0x2014 */
+> > > > +	/* YUV (including grey) - next is 0x2016 */
+> > > > 
+> > > >  	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+> > > >  	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+> > > >  	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+> > > > 
+> > > > @@ -67,8 +67,10 @@ enum v4l2_mbus_pixelcode {
+> > > > 
+> > > >  	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
+> > > >  	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+> > > >  	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+> > > > 
+> > > > +	V4L2_MBUS_FMT_NV12_1X20 = 0x2014,
+> > > > +	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+> > > 
+> > > NV12, on the bus ? How does that work ? (The documentation should 
+> > > answer my question :-))
+> > 
+> > Well, this is on the internal bus not exposed outside, but 
+> > nevertheless bus between two subdevs or two independent hardware 
+> > blocks. For example Resizer supports NV12 on its pad. Is there any other way to treat this?
+> 
+> How is NV12 transferred on the bus in that case ? Are all luma samples transferred first, followed by all chroma samples ?
+It uses parallel bus of 16 bits, where Y and C are transmitted simultaneously on 8 bits each. NV12 uses a dummy C byte for every
+valid one.
+So I guess we call it V4L2_MBUS_FMT_YDYC_1X16 or V4L2_MBUS_FMT_YCYD_1X16?
+That way we will be able to document the format in the documentation also.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/s5h1432.c |   29 +++++++++++------------------
- 1 files changed, 11 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/dvb/frontends/s5h1432.c b/drivers/media/dvb/frontends/s5h1432.c
-index f22c71e..3a9050f 100644
---- a/drivers/media/dvb/frontends/s5h1432.c
-+++ b/drivers/media/dvb/frontends/s5h1432.c
-@@ -178,9 +178,9 @@ static int s5h1432_set_IF(struct dvb_frontend *fe, u32 ifFreqHz)
- }
- 
- /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
--static int s5h1432_set_frontend(struct dvb_frontend *fe,
--				struct dvb_frontend_parameters *p)
-+static int s5h1432_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	u32 dvb_bandwidth = 8;
- 	struct s5h1432_state *state = fe->demodulator_priv;
- 
-@@ -191,16 +191,16 @@ static int s5h1432_set_frontend(struct dvb_frontend *fe,
- 		fe->ops.tuner_ops.set_params(fe);
- 		msleep(300);
- 		s5h1432_set_channel_bandwidth(fe, dvb_bandwidth);
--		switch (p->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
-+		switch (p->bandwidth_hz) {
-+		case 6000000:
- 			dvb_bandwidth = 6;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
--		case BANDWIDTH_7_MHZ:
-+		case 7000000:
- 			dvb_bandwidth = 7;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
--		case BANDWIDTH_8_MHZ:
-+		case 8000000:
- 			dvb_bandwidth = 8;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
-@@ -215,16 +215,16 @@ static int s5h1432_set_frontend(struct dvb_frontend *fe,
- 		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0x09, 0x1b);
- 
- 		s5h1432_set_channel_bandwidth(fe, dvb_bandwidth);
--		switch (p->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
-+		switch (p->bandwidth_hz) {
-+		case 6000000:
- 			dvb_bandwidth = 6;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
--		case BANDWIDTH_7_MHZ:
-+		case 7000000:
- 			dvb_bandwidth = 7;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
--		case BANDWIDTH_8_MHZ:
-+		case 8000000:
- 			dvb_bandwidth = 8;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
-@@ -329,12 +329,6 @@ static int s5h1432_read_ber(struct dvb_frontend *fe, u32 *ber)
- 	return 0;
- }
- 
--static int s5h1432_get_frontend(struct dvb_frontend *fe,
--				struct dvb_frontend_parameters *p)
--{
--	return 0;
--}
--
- static int s5h1432_get_tune_settings(struct dvb_frontend *fe,
- 				     struct dvb_frontend_tune_settings *tune)
- {
-@@ -396,8 +390,7 @@ static struct dvb_frontend_ops s5h1432_ops = {
- 
- 	.init = s5h1432_init,
- 	.sleep = s5h1432_sleep,
--	.set_frontend_legacy = s5h1432_set_frontend,
--	.get_frontend_legacy = s5h1432_get_frontend,
-+	.set_frontend = s5h1432_set_frontend,
- 	.get_tune_settings = s5h1432_get_tune_settings,
- 	.read_status = s5h1432_read_status,
- 	.read_ber = s5h1432_read_ber,
--- 
-1.7.8.352.g876a6
+Thx,
+-Manju
+> 
+> > > > -	/* Bayer - next is 0x3015 */
+> > > > +	/* Bayer - next is 0x3019 */
+> > > > 
+> > > >  	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+> > > >  	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
+> > > >  	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
+> > > > 
+> > > > @@ -89,6 +91,10 @@ enum v4l2_mbus_pixelcode {
+> > > > 
+> > > >  	V4L2_MBUS_FMT_SGBRG12_1X12 = 0x3010,
+> > > >  	V4L2_MBUS_FMT_SGRBG12_1X12 = 0x3011,
+> > > >  	V4L2_MBUS_FMT_SRGGB12_1X12 = 0x3012,
+> > > > 
+> > > > +	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
+> > > > +	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
+> > > > +	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
+> > > > +	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
+> > > 
+> > > Please keep the names sorted as described in the comment at the 
+> > > beginning of the file.
+> > > 
+> > > >  	/* JPEG compressed formats - next is 0x4002 */
+> > > >  	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
