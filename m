@@ -1,42 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:35165 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753239Ab1LCRVY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2011 12:21:24 -0500
+Received: from mail-we0-f174.google.com ([74.125.82.174]:32866 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752363Ab1LUIon (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 03:44:43 -0500
+Received: by werm1 with SMTP id m1so2521874wer.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Dec 2011 00:44:42 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [GIT PULL FOR 3.3] HDIC HD29L2 DMB-TH demodulator driv
+Date: Wed, 21 Dec 2011 09:44:25 +0100
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+References: <4EE929D5.6010106@iki.fi> <4EF0CD63.20003@iki.fi> <4EF0CF4A.8050500@redhat.com>
+In-Reply-To: <4EF0CF4A.8050500@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <4EDA4AB4.90303@linuxtv.org>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-	<4ED6C5B8.8040803@linuxtv.org>
-	<4ED75F53.30709@redhat.com>
-	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
-	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
-	<4EDA4AB4.90303@linuxtv.org>
-Date: Sat, 3 Dec 2011 09:21:23 -0800
-Message-ID: <CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-From: VDR User <user.vdr@gmail.com>
-To: Andreas Oberritter <obi@linuxtv.org>
-Cc: Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112210944.26170.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 3, 2011 at 8:13 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
-> You could certainly build a library to reach a different goal. The goal
-> of vtuner is to access remote tuners with any existing program
-> implementing the DVB API.
+On Tuesday 20 December 2011 19:09:14 Mauro Carvalho Chehab wrote:
+> On 20-12-2011 16:01, Antti Palosaari wrote:
+> > On 12/20/2011 07:16 PM, Antti Palosaari wrote:
+> >> On 12/20/2011 06:25 PM, Patrick Boettcher wrote:
+> >>> Hi all,
+> >>> 
+> >>> On Tuesday 20 December 2011 16:42:53 Antti Palosaari wrote:
+> >>>> Adding those to API is not mission impossible. Interleaver is
+> >>>> only new parameter and all the rest are just extending values.
+> >>>> But my time is limited... and I really would like to finally
+> >>>> got Anysee smart card reader integrated to USB serial first.
+> >>> 
+> >>> And if it is added we should not forget to discuess whether
+> >>> DMB-TH is the "right" name. (If this has already been addressed
+> >>> in another thread please point me to it).
+> >>> 
+> >>> I know this standard under at least 2 different names: CTTB and
+> >>> DTMB.
+> >>> 
+> >>> Which is the one to choose?
+> >> 
+> >> Yes, there is many names and it is not even clear for me what are
+> >> differences between names. I called it DMB-TH since existing
+> >> Kernel drivers have selected that name.
+> >> 
+> >> http://en.wikipedia.org/wiki/CMMB
+> >> http://en.wikipedia.org/wiki/DTMB
+> >> http://en.wikipedia.org/wiki/Digital_Multimedia_Broadcasting
+> >> http://en.wikipedia.org/wiki/Digital_Terrestrial_Multimedia_Broadc
+> >> ast
+> >> 
+> >> CMMB
+> >> CTTB
+> >> DTMB (DTMB-T/H, DMB-T/H)
+> >> DMB (T-DMB)
+> > 
+> > DMB seems to be much different so drop it out. DTMB seems to be
+> > official term for DMB-T/H. CMMB seems to be for small devices
+> > (mobile), maybe subset of DTMB. Finally I have CTTB and DTMB which
+> > seems to be equivalents. DTMB is more common.
+> > 
+> > So I end up for the DTMB. I give my vote for that.
 
-So you could finally use VDR as a server/client setup using vtuner,
-right? With full OSD, timer, etc? Yes, I'm aware that streamdev
-exists. It was horrible when I tried it last (a long time ago) and I
-understand it's gotten better. But it's not a suitable replacement for
-a real server/client setup. It sounds like using vtuner, this would
-finally be possible and since Klaus has no intention of ever
-modernizing VDR into server/client (that I'm aware of), it's also the
-only suitable option as well.
+CMMB has nothing to do with DTMB/CTTB. It modulations parameters and 
+physical/link layers are completely different compared to CMMB.
 
-Or am I wrong about anything?  If not, I know several users who would
-like to use this, myself included.
+I'll vote for CTTB as this is the (latest) official name. At least this 
+is what DiBcom's Chinese representatives state.
+
+Maybe there are some Chinese on this list to enlighten this situation?
+
+--
+Patrick Boettcher
+
+Kernel Labs Inc.
+http://www.kernellabs.com/
