@@ -1,94 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:53514 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752904Ab1LTU2S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 15:28:18 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com
-Subject: [RFC 14/17] omap3isp: Use pixelrate from sensor media bus frameformat
-Date: Tue, 20 Dec 2011 22:28:06 +0200
-Message-Id: <1324412889-17961-14-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+Received: from [212.255.40.35] ([212.255.40.35]:52862 "HELO
+	neutronstar.dyndns.org" rhost-flags-FAIL-FAIL-OK-OK)
+	by vger.kernel.org with SMTP id S1752331Ab1LUHvO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 02:51:14 -0500
+Date: Wed, 21 Dec 2011 08:43:47 +0100
+From: martin@neutronstar.dyndns.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH v4] v4l: Add driver for Micron MT9M032 camera sensor
+Message-ID: <20111221074347.GA12861@neutronstar.dyndns.org>
+References: <1324116655-15895-1-git-send-email-martin@neutronstar.dyndns.org>
+ <201112210206.20567.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201112210206.20567.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+On Wed, Dec 21, 2011 at 02:06:20AM +0100, Laurent Pinchart wrote:
+> Hi Martin,
+> 
+> Thanks for the patch.
+> 
+> On Saturday 17 December 2011 11:10:55 Martin Hostettler wrote:
+> > The MT9M032 is a parallel 1.6MP sensor from Micron controlled through I2C.
+> > 
+> > The driver creates a V4L2 subdevice. It currently supports cropping, gain,
+> > exposure and v/h flipping controls in monochrome mode with an
+> > external pixel clock.
+> 
+> There are still several small issues with this driver. Things like not using 
+> the module_i2c_driver() macro, some indentation, magic values in registers 
+> (I'm trying to get more documentation), PLL setup (although that can be fixed 
+> later, it's not a requirement for the driver to be mainlined), ...
+> 
+> Would you be fine if I took the patch in my tree, fixed the remaining issues 
+> and pushed it to mainline for v3.4 (the time frame is too short for v3.3) ? 
 
-Configure the ISP based on the pixelrate in media bus frame format.
-Previously the same was configured from the board code.
+Sure, that would be much appreciated. Thanks for reviewing and takeing
+these patches!
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/isp.c |   24 +++++++++++++++++++++---
- drivers/media/video/omap3isp/isp.h |    1 -
- 2 files changed, 21 insertions(+), 4 deletions(-)
+Best regards, 
+ - Martin Hostettler
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index 6020fd7..92f9716 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -749,10 +749,14 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 
- 	entity = &pipe->output->video.entity;
- 	while (1) {
--		pad = &entity->pads[0];
--		if (!(pad->flags & MEDIA_PAD_FL_SINK))
-+		/*
-+		 * Is this an external subdev connected to us? If so,
-+		 * we're done.
-+		 */
-+		if (subdev && subdev->host_priv)
- 			break;
- 
-+		pad = &entity->pads[0];
- 		pad = media_entity_remote_source(pad);
- 		if (pad == NULL ||
- 		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-@@ -762,6 +766,21 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 		prev_subdev = subdev;
- 		subdev = media_entity_to_v4l2_subdev(entity);
- 
-+		/* Configure CCDC pixel clock */
-+		if (subdev->host_priv) {
-+			struct v4l2_subdev_format fmt;
-+
-+			fmt.pad = pad->index;
-+			fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+			ret = v4l2_subdev_call(subdev, pad, get_fmt,
-+					       NULL, &fmt);
-+			if (ret < 0)
-+				return -EINVAL;
-+
-+			isp_set_pixel_clock(isp,
-+					    fmt.format.pixelrate * 1000);
-+		}
-+
- 		/* Configure CSI-2 receiver based on sensor format. */
- 		if (prev_subdev == &isp->isp_csi2a.subdev
- 		    || prev_subdev == &isp->isp_csi2c.subdev) {
-@@ -2102,7 +2121,6 @@ static int isp_probe(struct platform_device *pdev)
- 
- 	isp->autoidle = autoidle;
- 	isp->platform_cb.set_xclk = isp_set_xclk;
--	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
- 
- 	mutex_init(&isp->isp_mutex);
- 	spin_lock_init(&isp->stat_lock);
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index c5935ae..7d73a39 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -126,7 +126,6 @@ struct isp_reg {
- 
- struct isp_platform_callback {
- 	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
--	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
- };
- 
- /*
--- 
-1.7.2.5
 
+> Authorship will of course be preserved. The alternative would be to go through 
+> review/modification cycles, and I don't want to waste too much of your time 
+> :-)
+> 
+> -- 
+> Best regards,
+> 
+> Laurent Pinchart
