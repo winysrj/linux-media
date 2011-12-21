@@ -1,161 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23881 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753925Ab1L0BJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:46 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19kCZ017930
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:46 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 66/91] [media] s55h1411: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:54 -0200
-Message-Id: <1324948159-23709-67-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-66-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
- <1324948159-23709-56-git-send-email-mchehab@redhat.com>
- <1324948159-23709-57-git-send-email-mchehab@redhat.com>
- <1324948159-23709-58-git-send-email-mchehab@redhat.com>
- <1324948159-23709-59-git-send-email-mchehab@redhat.com>
- <1324948159-23709-60-git-send-email-mchehab@redhat.com>
- <1324948159-23709-61-git-send-email-mchehab@redhat.com>
- <1324948159-23709-62-git-send-email-mchehab@redhat.com>
- <1324948159-23709-63-git-send-email-mchehab@redhat.com>
- <1324948159-23709-64-git-send-email-mchehab@redhat.com>
- <1324948159-23709-65-git-send-email-mchehab@redhat.com>
- <1324948159-23709-66-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49069 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754325Ab1LUXuZ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 18:50:25 -0500
+Received: by eaad14 with SMTP id d14so1570045eaa.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Dec 2011 15:50:23 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfix0hMzW3j4W-N2VA78ie6MN_vn1dOy6rZamBhs3hT+aVw@mail.gmail.com>
+References: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com>
+	<CAGoCfix0hMzW3j4W-N2VA78ie6MN_vn1dOy6rZamBhs3hT+aVw@mail.gmail.com>
+Date: Thu, 22 Dec 2011 00:50:22 +0100
+Message-ID: <CAEN_-SDt6UOSgHaVAhg_so+4tyvZYk-5t=Qv2-_utfNDNK1L4g@mail.gmail.com>
+Subject: Re: Add tuner_type to zl10353 config and use it for reporting signal
+ directly from tuner.
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi, I tested it with Leadtek DTV 1800H (xc4000 version), Leadtek DTV
+2000H PLUS (xc4000) and Leadtek DVR3200H (xc4000), all have same
+issue, register of AGC is always 0x3f 0xff and only if I disconect
+input from card it will change for short time like it is trying to
+tune AGC, but after that it will always return to 0x3ffff value, so
+signal reporting from zl10353 demodulator register can't work. Also i
+think it is bad idea to measure signal from AGC control which can't
+say anything about real signal level. I tested also older cards with
+xc3028 tuners and there is signal information but always about 60%
+even when i change antena system gain, but for XC2028 there is no such
+think like signal monitoring register, it is present only on XC4000
+and XC5000 tuners. If you want e can do some testing together, i can
+give you access to my testing server.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/s5h1411.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/dvb/frontends/s5h1411.c b/drivers/media/dvb/frontends/s5h1411.c
-index cb221aa..08f568c 100644
---- a/drivers/media/dvb/frontends/s5h1411.c
-+++ b/drivers/media/dvb/frontends/s5h1411.c
-@@ -585,9 +585,9 @@ static int s5h1411_register_reset(struct dvb_frontend *fe)
- }
- 
- /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
--static int s5h1411_set_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+static int s5h1411_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct s5h1411_state *state = fe->demodulator_priv;
- 
- 	dprintk("%s(frequency=%d)\n", __func__, p->frequency);
-@@ -596,7 +596,7 @@ static int s5h1411_set_frontend(struct dvb_frontend *fe,
- 
- 	state->current_frequency = p->frequency;
- 
--	s5h1411_enable_modulation(fe, p->u.vsb.modulation);
-+	s5h1411_enable_modulation(fe, p->modulation);
- 
- 	if (fe->ops.tuner_ops.set_params) {
- 		if (fe->ops.i2c_gate_ctrl)
-@@ -841,12 +841,12 @@ static int s5h1411_read_ber(struct dvb_frontend *fe, u32 *ber)
- }
- 
- static int s5h1411_get_frontend(struct dvb_frontend *fe,
--				struct dvb_frontend_parameters *p)
-+				struct dtv_frontend_properties *p)
- {
- 	struct s5h1411_state *state = fe->demodulator_priv;
- 
- 	p->frequency = state->current_frequency;
--	p->u.vsb.modulation = state->current_modulation;
-+	p->modulation = state->current_modulation;
- 
- 	return 0;
- }
-@@ -915,7 +915,7 @@ error:
- EXPORT_SYMBOL(s5h1411_attach);
- 
- static struct dvb_frontend_ops s5h1411_ops = {
--
-+	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
- 	.info = {
- 		.name			= "Samsung S5H1411 QAM/8VSB Frontend",
- 		.type			= FE_ATSC,
-@@ -928,8 +928,8 @@ static struct dvb_frontend_ops s5h1411_ops = {
- 	.init                 = s5h1411_init,
- 	.sleep                = s5h1411_sleep,
- 	.i2c_gate_ctrl        = s5h1411_i2c_gate_ctrl,
--	.set_frontend_legacy         = s5h1411_set_frontend,
--	.get_frontend_legacy = s5h1411_get_frontend,
-+	.set_frontend         = s5h1411_set_frontend,
-+	.get_frontend         = s5h1411_get_frontend,
- 	.get_tune_settings    = s5h1411_get_tune_settings,
- 	.read_status          = s5h1411_read_status,
- 	.read_ber             = s5h1411_read_ber,
--- 
-1.7.8.352.g876a6
-
+Dne 21. prosince 2011 22:29 Devin Heitmueller
+<dheitmueller@kernellabs.com> napsal(a):
+> 2011/12/21 Miroslav Slugeò <thunder.mmm@gmail.com>:
+>> XC4000 based cards are not using AGC control in normal way, so it is
+>> not possible to get signal level from AGC registres of zl10353
+>> demodulator, instead of this i send previous patch to implement signal
+>> level directly in xc4000 tuner and now sending patch for zl10353 to
+>> implement this future for digital mode. Signal reporting is very
+>> accurate and was well tested on 3 different Leadtek XC4000 cards.
+>
+> For what it's worth, something seems very wrong with this patch.  All
+> the docs I've ever seen for the Xceive components were pretty clear
+> that the signal level registers are for analog only.  And even in te
+> case of Xceive it's a bit unusual, since most analog tuner designs
+> don't have an onboard analog demodulator.
+>
+> If this patch really works then I guess I don't have anything against
+> it.  I just strongly believe that it's the wrong fix and there is
+> probably some other problem this is obscuring.
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
