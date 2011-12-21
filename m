@@ -1,49 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33518 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41848 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753592Ab1LMAka (ORCPT
+	with ESMTP id S1752701Ab1LUAeo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 19:40:30 -0500
+	Tue, 20 Dec 2011 19:34:44 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Subject: Re: [PATCH v4 0/3] fbdev: Add FOURCC-based format configuration API
-Date: Tue, 13 Dec 2011 01:40:44 +0100
-Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org
-References: <1322562419-9934-1-git-send-email-laurent.pinchart@ideasonboard.com> <201112121708.30839.laurent.pinchart@ideasonboard.com> <4EE64CC2.5090906@gmx.de>
-In-Reply-To: <4EE64CC2.5090906@gmx.de>
+To: "Zhu, Mingcheng" <mingchen@quicinc.com>
+Subject: Re: query video dev node name using the V4L2 device driver name
+Date: Wed, 21 Dec 2011 01:34:43 +0100
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <20111215095015.GC3677@valkosipuli.localdomain> <201112191131.23195.laurent.pinchart@ideasonboard.com> <3D233F78EE854A4BA3D34C11AD4FAC1FDEF79C@nasanexd01b.na.qualcomm.com>
+In-Reply-To: <3D233F78EE854A4BA3D34C11AD4FAC1FDEF79C@nasanexd01b.na.qualcomm.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112130140.45045.laurent.pinchart@ideasonboard.com>
+Message-Id: <201112210134.43822.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
+Hi Mingcheng,
 
-On Monday 12 December 2011 19:49:38 Florian Tobias Schandinat wrote:
-> On 12/12/2011 04:08 PM, Laurent Pinchart wrote:
-> > On Tuesday 29 November 2011 11:26:56 Laurent Pinchart wrote:
-> >> Hi everybody,
-> >> 
-> >> Here's the fourth version of the fbdev FOURCC-based format configuration
-> >> API.
-> > 
-> > Is there a chance this will make it to v3.3 ?
+On Monday 19 December 2011 19:09:18 Zhu, Mingcheng wrote:
+> Hi Laurent,
 > 
-> Yes, that's likely. I thought you wanted to post a new version of 2/3?
+> I have a problem here. Take following example that we have two video dev
+> nodes as:
+> /dev/video0: this node is for WIFI capture
 
-Oops, seems I forgot to send it. Sorry :-/ I'll post a new version tomorrow.
+WIFI capture ? I'm curious about that, what do you mean exactly ?
 
-> I think you also want to do something with red, green, blue, transp when
-> entering FOURCC mode, at least setting them to zero or maybe even requiring
-> that they are zero to enter FOURCC mode (as additional safety barrier).
+> /dev/video1: this is the camera driver.
+> 
+> Is it possible for the user space to find out video1 is the camera without
+> open and query each video node's capabilities?
 
-Agreed. The FOURCC mode documentation already requires those fields to be set 
-to 0 by applications.
-
-I'll enforce this in fb_set_var() if info->fix has the FB_CAP_FOURCC 
-capability flag set.
+If the drivers that expose those nodes are media-controller aware, one 
+possible solution is to open the media controller device(s) and enumerate the 
+entities. I'm not sure that would be faster than opening and querying the 
+video nodes though.
 
 -- 
 Regards,
