@@ -1,133 +1,250 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33770 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755220Ab1LXPvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:05 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp50x017044
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 09/47] [media] mxl5005s: use DVBv5 parameters on set_params()
-Date: Sat, 24 Dec 2011 13:50:14 -0200
-Message-Id: <1324741852-26138-10-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-9-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.186]:59303 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752613Ab1LUPxt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 10:53:49 -0500
+Date: Wed, 21 Dec 2011 16:53:47 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Robert Jarzmik <robert.jarzmik@free.fr>
+Subject: [PATCH 1/3] V4L: mt9m111: cleanly separate register contexts
+In-Reply-To: <Pine.LNX.4.64.1112211649070.30646@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1112211652130.30646@axis700.grange>
+References: <Pine.LNX.4.64.1112211649070.30646@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner.
+Cleanly separating register contexts A and B will allow us to configure
+the contexts independently.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/common/tuners/mxl5005s.c |   65 ++++++++++++++-----------------
- 1 files changed, 29 insertions(+), 36 deletions(-)
+ drivers/media/video/mt9m111.c |  137 +++++++++++++++++++++++------------------
+ 1 files changed, 76 insertions(+), 61 deletions(-)
 
-diff --git a/drivers/media/common/tuners/mxl5005s.c b/drivers/media/common/tuners/mxl5005s.c
-index 54be9e6..c63f767 100644
---- a/drivers/media/common/tuners/mxl5005s.c
-+++ b/drivers/media/common/tuners/mxl5005s.c
-@@ -3983,50 +3983,43 @@ static int mxl5005s_set_params(struct dvb_frontend *fe,
- 			       struct dvb_frontend_parameters *params)
- {
- 	struct mxl5005s_state *state = fe->tuner_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys = c->delivery_system;
-+	u32 bw = c->bandwidth_hz;
- 	u32 req_mode, req_bw = 0;
- 	int ret;
+diff --git a/drivers/media/video/mt9m111.c b/drivers/media/video/mt9m111.c
+index 258adfd..54edb6b4 100644
+--- a/drivers/media/video/mt9m111.c
++++ b/drivers/media/video/mt9m111.c
+@@ -139,6 +139,46 @@
+ #define MT9M111_MAX_HEIGHT	1024
+ #define MT9M111_MAX_WIDTH	1280
  
- 	dprintk(1, "%s()\n", __func__);
++struct mt9m111_context {
++	u16 read_mode;
++	u16 blanking_h;
++	u16 blanking_v;
++	u16 reducer_xzoom;
++	u16 reducer_yzoom;
++	u16 reducer_xsize;
++	u16 reducer_ysize;
++	u16 output_fmt_ctrl2;
++	u16 control;
++};
++
++static struct mt9m111_context context_a = {
++	.read_mode		= MT9M111_READ_MODE_A,
++	.blanking_h		= MT9M111_HORIZONTAL_BLANKING_A,
++	.blanking_v		= MT9M111_VERTICAL_BLANKING_A,
++	.reducer_xzoom		= MT9M111_REDUCER_XZOOM_A,
++	.reducer_yzoom		= MT9M111_REDUCER_YZOOM_A,
++	.reducer_xsize		= MT9M111_REDUCER_XSIZE_A,
++	.reducer_ysize		= MT9M111_REDUCER_YSIZE_A,
++	.output_fmt_ctrl2	= MT9M111_OUTPUT_FORMAT_CTRL2_A,
++	.control		= MT9M111_CTXT_CTRL_RESTART,
++};
++
++static struct mt9m111_context context_b = {
++	.read_mode		= MT9M111_READ_MODE_B,
++	.blanking_h		= MT9M111_HORIZONTAL_BLANKING_B,
++	.blanking_v		= MT9M111_VERTICAL_BLANKING_B,
++	.reducer_xzoom		= MT9M111_REDUCER_XZOOM_B,
++	.reducer_yzoom		= MT9M111_REDUCER_YZOOM_B,
++	.reducer_xsize		= MT9M111_REDUCER_XSIZE_B,
++	.reducer_ysize		= MT9M111_REDUCER_YSIZE_B,
++	.output_fmt_ctrl2	= MT9M111_OUTPUT_FORMAT_CTRL2_B,
++	.control		= MT9M111_CTXT_CTRL_RESTART |
++		MT9M111_CTXT_CTRL_DEFECTCOR_B | MT9M111_CTXT_CTRL_RESIZE_B |
++		MT9M111_CTXT_CTRL_CTRL2_B | MT9M111_CTXT_CTRL_GAMMA_B |
++		MT9M111_CTXT_CTRL_READ_MODE_B | MT9M111_CTXT_CTRL_VBLANK_SEL_B |
++		MT9M111_CTXT_CTRL_HBLANK_SEL_B,
++};
++
+ /* MT9M111 has only one fixed colorspace per pixelcode */
+ struct mt9m111_datafmt {
+ 	enum v4l2_mbus_pixelcode	code;
+@@ -173,18 +213,13 @@ static const struct mt9m111_datafmt mt9m111_colour_fmts[] = {
+ 	{V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE, V4L2_COLORSPACE_SRGB},
+ };
  
--	if (fe->ops.info.type == FE_ATSC) {
--		switch (params->u.vsb.modulation) {
--		case VSB_8:
--			req_mode = MXL_ATSC; break;
--		default:
--		case QAM_64:
--		case QAM_256:
--		case QAM_AUTO:
--			req_mode = MXL_QAM; break;
--		}
--	} else
-+	switch (delsys) {
-+	case SYS_ATSC:
-+		req_mode = MXL_ATSC;
-+		req_bw  = MXL5005S_BANDWIDTH_6MHZ;
-+		break;
-+	case SYS_DVBC_ANNEX_B:
-+		req_mode = MXL_QAM;
-+		req_bw  = MXL5005S_BANDWIDTH_6MHZ;
-+		break;
-+	default:	/* Assume DVB-T */
- 		req_mode = MXL_DVBT;
+-enum mt9m111_context {
+-	HIGHPOWER = 0,
+-	LOWPOWER,
+-};
 -
--	/* Change tuner for new modulation type if reqd */
--	if (req_mode != state->current_mode) {
--		switch (req_mode) {
--		case MXL_ATSC:
--		case MXL_QAM:
--			req_bw  = MXL5005S_BANDWIDTH_6MHZ;
-+		switch (bw) {
-+		case 6000000:
-+			req_bw = MXL5005S_BANDWIDTH_6MHZ;
-+			break;
-+		case 7000000:
-+			req_bw = MXL5005S_BANDWIDTH_7MHZ;
-+			break;
-+		case 8000000:
-+		case 0:
-+			req_bw = MXL5005S_BANDWIDTH_8MHZ;
- 			break;
--		case MXL_DVBT:
- 		default:
--			/* Assume DVB-T */
--			switch (params->u.ofdm.bandwidth) {
--			case BANDWIDTH_6_MHZ:
--				req_bw  = MXL5005S_BANDWIDTH_6MHZ;
--				break;
--			case BANDWIDTH_7_MHZ:
--				req_bw  = MXL5005S_BANDWIDTH_7MHZ;
--				break;
--			case BANDWIDTH_AUTO:
--			case BANDWIDTH_8_MHZ:
--				req_bw  = MXL5005S_BANDWIDTH_8MHZ;
--				break;
--			default:
--				return -EINVAL;
--			}
-+			return -EINVAL;
- 		}
-+	}
+ struct mt9m111 {
+ 	struct v4l2_subdev subdev;
+ 	struct v4l2_ctrl_handler hdl;
+ 	struct v4l2_ctrl *gain;
+ 	int model;	/* V4L2_IDENT_MT9M111 or V4L2_IDENT_MT9M112 code
+ 			 * from v4l2-chip-ident.h */
+-	enum mt9m111_context context;
++	struct mt9m111_context *ctx;
+ 	struct v4l2_rect rect;
+ 	struct mutex power_lock; /* lock to protect power_count */
+ 	int power_count;
+@@ -275,35 +310,33 @@ static int mt9m111_reg_mask(struct i2c_client *client, const u16 reg,
+ }
  
-+	/* Change tuner for new modulation type if reqd */
-+	if (req_mode != state->current_mode) {
- 		state->current_mode = req_mode;
- 		ret = mxl5005s_reconfigure(fe, req_mode, req_bw);
+ static int mt9m111_set_context(struct mt9m111 *mt9m111,
+-			       enum mt9m111_context ctxt)
++			       struct mt9m111_context *ctx)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+-	int valB = MT9M111_CTXT_CTRL_RESTART | MT9M111_CTXT_CTRL_DEFECTCOR_B
+-		| MT9M111_CTXT_CTRL_RESIZE_B | MT9M111_CTXT_CTRL_CTRL2_B
+-		| MT9M111_CTXT_CTRL_GAMMA_B | MT9M111_CTXT_CTRL_READ_MODE_B
+-		| MT9M111_CTXT_CTRL_VBLANK_SEL_B
+-		| MT9M111_CTXT_CTRL_HBLANK_SEL_B;
+-	int valA = MT9M111_CTXT_CTRL_RESTART;
+-
+-	if (ctxt == HIGHPOWER)
+-		return reg_write(CONTEXT_CONTROL, valB);
+-	else
+-		return reg_write(CONTEXT_CONTROL, valA);
++	return reg_write(CONTEXT_CONTROL, ctx->control);
++}
++
++static int mt9m111_setup_rect_ctx(struct mt9m111 *mt9m111,
++			struct v4l2_rect *rect, struct mt9m111_context *ctx)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
++	int ret = mt9m111_reg_write(client, ctx->reducer_xzoom, MT9M111_MAX_WIDTH);
++	if (!ret)
++		ret = mt9m111_reg_write(client, ctx->reducer_yzoom, MT9M111_MAX_HEIGHT);
++	if (!ret)
++		ret = mt9m111_reg_write(client, ctx->reducer_xsize, rect->width);
++	if (!ret)
++		ret = mt9m111_reg_write(client, ctx->reducer_ysize, rect->height);
++	return ret;
+ }
  
-@@ -4034,8 +4027,8 @@ static int mxl5005s_set_params(struct dvb_frontend *fe,
- 		ret = 0;
+ static int mt9m111_setup_rect(struct mt9m111 *mt9m111,
+ 			      struct v4l2_rect *rect)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+-	int ret, is_raw_format;
+-	int width = rect->width;
+-	int height = rect->height;
+-
+-	if (mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
+-	    mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE)
+-		is_raw_format = 1;
+-	else
+-		is_raw_format = 0;
++	int ret;
++	bool is_raw_format = mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR8_1X8 ||
++		mt9m111->fmt->code == V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE;
  
- 	if (ret == 0) {
--		dprintk(1, "%s() freq=%d\n", __func__, params->frequency);
--		ret = mxl5005s_SetRfFreqHz(fe, params->frequency);
-+		dprintk(1, "%s() freq=%d\n", __func__, c->frequency);
-+		ret = mxl5005s_SetRfFreqHz(fe, c->frequency);
+ 	ret = reg_write(COLUMN_START, rect->left);
+ 	if (!ret)
+@@ -311,26 +344,14 @@ static int mt9m111_setup_rect(struct mt9m111 *mt9m111,
+ 
+ 	if (is_raw_format) {
+ 		if (!ret)
+-			ret = reg_write(WINDOW_WIDTH, width);
++			ret = reg_write(WINDOW_WIDTH, rect->width);
+ 		if (!ret)
+-			ret = reg_write(WINDOW_HEIGHT, height);
++			ret = reg_write(WINDOW_HEIGHT, rect->height);
+ 	} else {
+ 		if (!ret)
+-			ret = reg_write(REDUCER_XZOOM_B, MT9M111_MAX_WIDTH);
+-		if (!ret)
+-			ret = reg_write(REDUCER_YZOOM_B, MT9M111_MAX_HEIGHT);
+-		if (!ret)
+-			ret = reg_write(REDUCER_XSIZE_B, width);
++			ret = mt9m111_setup_rect_ctx(mt9m111, rect, &context_b);
+ 		if (!ret)
+-			ret = reg_write(REDUCER_YSIZE_B, height);
+-		if (!ret)
+-			ret = reg_write(REDUCER_XZOOM_A, MT9M111_MAX_WIDTH);
+-		if (!ret)
+-			ret = reg_write(REDUCER_YZOOM_A, MT9M111_MAX_HEIGHT);
+-		if (!ret)
+-			ret = reg_write(REDUCER_XSIZE_A, width);
+-		if (!ret)
+-			ret = reg_write(REDUCER_YSIZE_A, height);
++			ret = mt9m111_setup_rect_ctx(mt9m111, rect, &context_a);
  	}
  
  	return ret;
+@@ -503,11 +524,11 @@ static int mt9m111_set_pixfmt(struct mt9m111 *mt9m111,
+ 		return -EINVAL;
+ 	}
+ 
+-	ret = reg_mask(OUTPUT_FORMAT_CTRL2_A, data_outfmt2,
+-		       mask_outfmt2);
++	ret = mt9m111_reg_mask(client, context_a.output_fmt_ctrl2,
++			       data_outfmt2, mask_outfmt2);
+ 	if (!ret)
+-		ret = reg_mask(OUTPUT_FORMAT_CTRL2_B, data_outfmt2,
+-			       mask_outfmt2);
++		ret = mt9m111_reg_mask(client, context_b.output_fmt_ctrl2,
++				       data_outfmt2, mask_outfmt2);
+ 
+ 	return ret;
+ }
+@@ -649,17 +670,10 @@ static int mt9m111_set_flip(struct mt9m111 *mt9m111, int flip, int mask)
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+ 	int ret;
+ 
+-	if (mt9m111->context == HIGHPOWER) {
+-		if (flip)
+-			ret = reg_set(READ_MODE_B, mask);
+-		else
+-			ret = reg_clear(READ_MODE_B, mask);
+-	} else {
+-		if (flip)
+-			ret = reg_set(READ_MODE_A, mask);
+-		else
+-			ret = reg_clear(READ_MODE_A, mask);
+-	}
++	if (flip)
++		ret = mt9m111_reg_set(client, mt9m111->ctx->read_mode, mask);
++	else
++		ret = mt9m111_reg_clear(client, mt9m111->ctx->read_mode, mask);
+ 
+ 	return ret;
+ }
+@@ -744,7 +758,7 @@ static int mt9m111_suspend(struct mt9m111 *mt9m111)
+ 
+ static void mt9m111_restore_state(struct mt9m111 *mt9m111)
+ {
+-	mt9m111_set_context(mt9m111, mt9m111->context);
++	mt9m111_set_context(mt9m111, mt9m111->ctx);
+ 	mt9m111_set_pixfmt(mt9m111, mt9m111->fmt->code);
+ 	mt9m111_setup_rect(mt9m111, &mt9m111->rect);
+ 	v4l2_ctrl_handler_setup(&mt9m111->hdl);
+@@ -769,12 +783,13 @@ static int mt9m111_init(struct mt9m111 *mt9m111)
+ 	struct i2c_client *client = v4l2_get_subdevdata(&mt9m111->subdev);
+ 	int ret;
+ 
+-	mt9m111->context = HIGHPOWER;
++	/* Default HIGHPOWER context */
++	mt9m111->ctx = &context_b;
+ 	ret = mt9m111_enable(mt9m111);
+ 	if (!ret)
+ 		ret = mt9m111_reset(mt9m111);
+ 	if (!ret)
+-		ret = mt9m111_set_context(mt9m111, mt9m111->context);
++		ret = mt9m111_set_context(mt9m111, mt9m111->ctx);
+ 	if (ret)
+ 		dev_err(&client->dev, "mt9m111 init failed: %d\n", ret);
+ 	return ret;
 -- 
-1.7.8.352.g876a6
+1.7.2.5
 
