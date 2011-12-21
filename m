@@ -1,167 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61520 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750737Ab1LJMlE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Dec 2011 07:41:04 -0500
-Message-ID: <4EE3535C.7050309@redhat.com>
-Date: Sat, 10 Dec 2011 10:41:00 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from db3ehsobe006.messaging.microsoft.com ([213.199.154.144]:4917
+	"EHLO DB3EHSOBE006.bigfish.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751719Ab1LUDdg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 22:33:36 -0500
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: <sakari.ailus@iki.fi>, Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	<linux-media@vger.kernel.org>,
+	<uclinux-dist-devel@blackfin.uclinux.org>
+CC: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [PATCH] v4l2: v4l2-fh: v4l2_fh_is_singular should use list head to test
+Date: Wed, 21 Dec 2011 10:30:54 -0500
+Message-ID: <1324481454-30066-1-git-send-email-scott.jiang.linux@gmail.com>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4 [PATCH 07/10] TDA18271: Allow frontend to set DELSYS
-References: <CAHFNz9LOoDcrGpMKLU3wSnCYsDiuJMrOir-+nJEkkWfN9Cpd9w@mail.gmail.com>
-In-Reply-To: <CAHFNz9LOoDcrGpMKLU3wSnCYsDiuJMrOir-+nJEkkWfN9Cpd9w@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10-12-2011 02:43, Manu Abraham wrote:
-> From 252d4ec800ba73bde8958b8c23ca92a6e17288e2 Mon Sep 17 00:00:00 2001
-> From: Manu Abraham <abraham.manu@gmail.com>
-> Date: Thu, 24 Nov 2011 19:15:56 +0530
-> Subject: [PATCH 07/10] TDA18271: Allow frontend to set DELSYS, rather than querying fe->ops.info.type
->
-> With any tuner that can tune to multiple delivery systems/standards, it does
-> query fe->ops.info.type to determine frontend type and set the delivery
-> system type. fe->ops.info.type can handle only 4 delivery systems, viz FE_QPSK,
-> FE_QAM, FE_OFDM and FE_ATSC.
->
-> The change allows the tuner to be set to any delivery system specified in
-> fe_delivery_system_t, thereby simplifying a lot of issues.
->
-> Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
-> ---
->  drivers/media/common/tuners/tda18271-fe.c |   81 +++++++++++++++--------------
->  1 files changed, 41 insertions(+), 40 deletions(-)
->
-> diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
-> index 3347c5b..cee1a39 100644
-> --- a/drivers/media/common/tuners/tda18271-fe.c
-> +++ b/drivers/media/common/tuners/tda18271-fe.c
-> @@ -935,69 +935,70 @@ static int tda18271_set_params(struct dvb_frontend *fe,
->  	struct tda18271_std_map *std_map = &priv->std;
->  	struct tda18271_std_map_item *map;
->  	int ret;
-> -	u32 bw, freq = params->frequency;
-> +	u32 bw, bandwidth = 0, freq;
-> +	fe_delivery_system_t delsys;
-> +
-> +	delsys	= fe->dtv_property_cache.delivery_system;
-> +	bw	= fe->dtv_property_cache.bandwidth_hz;
-> +	freq	= fe->dtv_property_cache.frequency;
->
->  	priv->mode = TDA18271_DIGITAL;
->
-> -	if (fe->ops.info.type == FE_ATSC) {
-> -		switch (params->u.vsb.modulation) {
-> -		case VSB_8:
-> -		case VSB_16:
-> -			map = &std_map->atsc_6;
-> -			break;
-> -		case QAM_64:
-> -		case QAM_256:
-> -			map = &std_map->qam_6;
-> -			break;
-> -		default:
-> -			tda_warn("modulation not set!\n");
-> +	if (!delsys || !freq) {
-> +		tda_warn("delsys:%d freq:%d!\n", delsys, freq);
-> +		return -EINVAL;
-> +	}
-> +	switch (delsys) {
-> +	case SYS_ATSC:
-> +		map = &std_map->atsc_6;
-> +		bandwidth = 6000000;
-> +		break;
-> +	case SYS_DVBC_ANNEX_B:
-> +		map = &std_map->qam_6;
-> +		bandwidth = 6000000;
-> +		break;
-> +	case SYS_DVBC_ANNEX_A:
-> +	case SYS_DVBC_ANNEX_C:
-> +		map = &std_map->qam_8;
-> +		bandwidth = 8000000;
-> +		break;
+list_is_singular accepts a list head to test whether a list has just one entry.
+fh->list is the entry, fh->vdev->fh_list is the list head.
 
-This is wrong.
+Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/video/v4l2-fh.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-The bandwidth needs to be calculated, based on the roll-off factor.
-Also, this patch doesn't apply anymore, due to the patches that were
-already applied.
+diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+index 9e3fc04..8292c4a 100644
+--- a/drivers/media/video/v4l2-fh.c
++++ b/drivers/media/video/v4l2-fh.c
+@@ -113,7 +113,7 @@ int v4l2_fh_is_singular(struct v4l2_fh *fh)
+ 	if (fh == NULL || fh->vdev == NULL)
+ 		return 0;
+ 	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+-	is_singular = list_is_singular(&fh->list);
++	is_singular = list_is_singular(&fh->vdev->fh_list);
+ 	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+ 	return is_singular;
+ }
+-- 
+1.7.0.4
 
-> +	case SYS_DVBT:
-> +	case SYS_DVBT2:
-> +		if (!bw)
->  			return -EINVAL;
-> -		}
-> -#if 0
-> -		/* userspace request is already center adjusted */
-> -		freq += 1750000; /* Adjust to center (+1.75MHZ) */
-> -#endif
-> -		bw = 6000000;
-> -	} else if (fe->ops.info.type == FE_OFDM) {
-> -		switch (params->u.ofdm.bandwidth) {
-> -		case BANDWIDTH_6_MHZ:
-> -			bw = 6000000;
-> +		switch (bw) {
-> +		case 6000000:
->  			map = &std_map->dvbt_6;
->  			break;
-> -		case BANDWIDTH_7_MHZ:
-> -			bw = 7000000;
-> +		case 7000000:
->  			map = &std_map->dvbt_7;
->  			break;
-> -		case BANDWIDTH_8_MHZ:
-> -			bw = 8000000;
-> +		case 8000000:
->  			map = &std_map->dvbt_8;
->  			break;
->  		default:
-> -			tda_warn("bandwidth not set!\n");
-> -			return -EINVAL;
-> +			ret = -EINVAL;
-> +			goto fail;
->  		}
-> -	} else if (fe->ops.info.type == FE_QAM) {
-> -		/* DVB-C */
-> -		map = &std_map->qam_8;
-> -		bw = 8000000;
-> -	} else {
-> -		tda_warn("modulation type not supported!\n");
-> -		return -EINVAL;
-> +		break;
-> +	default:
-> +		tda_warn("Invalid delivery system!\n");
-> +		ret = -EINVAL;
-> +		goto fail;
->  	}
-> -
->  	/* When tuning digital, the analog demod must be tri-stated */
->  	if (fe->ops.analog_ops.standby)
->  		fe->ops.analog_ops.standby(fe);
->
-> -	ret = tda18271_tune(fe, map, freq, bw);
-> +	ret = tda18271_tune(fe, map, freq, bandwidth);
->
->  	if (tda_fail(ret))
->  		goto fail;
->
->  	priv->if_freq   = map->if_freq;
->  	priv->frequency = freq;
-> -	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ?
-> -		params->u.ofdm.bandwidth : 0;
-> +	priv->bandwidth = (delsys == SYS_DVBT || delsys == SYS_DVBT2) ?
-> +			   bandwidth : 0;
 
-This rises an interesting point: it may be useful to store the bandwidth
-used by the tuner, in order to allow applications to retrieve this value.
-
-Besides that, returning 0 for bandwidth is meaningless, as the transmission
-uses some bandwidth. So, IMO, this is better:
-	priv->bandwidth = bandwidth;
-
-Regards,
-Mauro
