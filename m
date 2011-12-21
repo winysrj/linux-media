@@ -1,63 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from einhorn.in-berlin.de ([192.109.42.8]:53075 "EHLO
-	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752938Ab1LaMic (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:51555 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753009Ab1LUTCt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 07:38:32 -0500
-Date: Sat, 31 Dec 2011 13:38:03 +0100
-From: Stefan Richter <stefanr@s5r6.in-berlin.de>
-To: Jonathan Nieder <jrnieder@gmail.com>
-Cc: David Fries <david@fries.net>, Istvan Varga <istvan_v@mailbox.hu>,
-	linux-media@vger.kernel.org, Darron Broad <darron@kewl.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: Re: [PATCH 9/9] [media] firedtv: handle errors from dvb_net_init
-Message-ID: <20111231133803.7d6bc3f5@stein>
-In-Reply-To: <20111231121956.GK16802@elie.Belkin>
-References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
-	<20111231115117.GB16802@elie.Belkin>
-	<20111231121956.GK16802@elie.Belkin>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	Wed, 21 Dec 2011 14:02:49 -0500
+Date: Wed, 21 Dec 2011 20:04:33 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Vetter <daniel@ffwll.ch>, linux@arm.linux.org.uk,
+	"Semwal, Sumit" <sumit.semwal@ti.com>,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	Rob Clark <robdclark@gmail.com>,
+	linux-arm-kernel@lists.infradead.org,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-media@vger.kernel.org
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+Message-ID: <20111221190433.GE3827@phenom.ffwll.local>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+ <CAF6AEGtOjO6Z6yfHz-ZGz3+NuEMH2M-8=20U6+-xt-gv9XtzaQ@mail.gmail.com>
+ <20111220171437.GC3883@phenom.ffwll.local>
+ <201112211727.17104.arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201112211727.17104.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Dec 31 Jonathan Nieder wrote:
-> It is not common for dvb_net_init to fail, but after the patch
-> "dvb_net_init: return -errno on error" it can fail due to running out
-> of memory.  Handle this.
-> From an audit of dvb_net_init callers.
+On Wed, Dec 21, 2011 at 05:27:16PM +0000, Arnd Bergmann wrote:
+> On Tuesday 20 December 2011, Daniel Vetter wrote:
+> > It also sounds like that at least for proper userspace mmap support we'd
+> > need some dma api extensions on at least arm, and that might take a while
+> > ...
 > 
-> Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+> I think it's actually the opposite -- you'd need dma api extensions on
+> everything else other than arm, which already has dma_mmap_coherent()
+> and dma_mmap_writecombine() for this purpose.
 
-Reviewed-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
+Yeah, that's actually what I wanted to say, but failed at ... Another
+thing is that at least for i915, _writecombine isn't what we want actually
+because:
+- It won't work anyway cause i915 maps stuff cached and does the flushing
+  itself and x86 PAT doesn't support mixed mappings (kinda like arm).
+- It isn't actually enough, there's another hidden buffer between the
+  memory controller interface and the gpu that i915 manually flushes
+  (because even a readback on a wc mapping doesn't flush things in there).
 
-[...]
-> --- a/drivers/media/dvb/firewire/firedtv-dvb.c
-> +++ b/drivers/media/dvb/firewire/firedtv-dvb.c
-> @@ -203,7 +203,9 @@ int fdtv_dvb_register(struct firedtv *fdtv, const
-> char *name) if (err)
->  		goto fail_rem_frontend;
->  
-> -	dvb_net_init(&fdtv->adapter, &fdtv->dvbnet, &fdtv->demux.dmx);
-> +	err = dvb_net_init(&fdtv->adapter, &fdtv->dvbnet,
-> &fdtv->demux.dmx);
-> +	if (err)
-> +		goto fail_disconnect_frontend;
->  
->  	fdtv_frontend_init(fdtv, name);
->  	err = dvb_register_frontend(&fdtv->adapter, &fdtv->fe);
-> @@ -218,6 +220,7 @@ int fdtv_dvb_register(struct firedtv *fdtv, const
-> char *name) 
->  fail_net_release:
->  	dvb_net_release(&fdtv->dvbnet);
-> +fail_disconnect_frontend:
->  	fdtv->demux.dmx.close(&fdtv->demux.dmx);
->  fail_rem_frontend:
->  	fdtv->demux.dmx.remove_frontend(&fdtv->demux.dmx,
-> &fdtv->frontend);
+So I assume we'll have plenty of funny beating out a good api for cpu
+access ;-)
 
+Cheers, Daniel
 -- 
-Stefan Richter
--=====-==-== ==-- =====
-http://arcgraph.de/sr/
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
