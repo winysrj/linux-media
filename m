@@ -1,47 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46814 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752813Ab1LUBGV (ORCPT
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:64863 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751747Ab1LUV3k convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 20:06:21 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH v4] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Wed, 21 Dec 2011 02:06:20 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1324116655-15895-1-git-send-email-martin@neutronstar.dyndns.org>
-In-Reply-To: <1324116655-15895-1-git-send-email-martin@neutronstar.dyndns.org>
+	Wed, 21 Dec 2011 16:29:40 -0500
+Received: by vcbfk14 with SMTP id fk14so6099616vcb.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Dec 2011 13:29:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112210206.20567.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com>
+References: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com>
+Date: Wed, 21 Dec 2011 16:29:39 -0500
+Message-ID: <CAGoCfix0hMzW3j4W-N2VA78ie6MN_vn1dOy6rZamBhs3hT+aVw@mail.gmail.com>
+Subject: Re: Add tuner_type to zl10353 config and use it for reporting signal
+ directly from tuner.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+2011/12/21 Miroslav Slugeň <thunder.mmm@gmail.com>:
+> XC4000 based cards are not using AGC control in normal way, so it is
+> not possible to get signal level from AGC registres of zl10353
+> demodulator, instead of this i send previous patch to implement signal
+> level directly in xc4000 tuner and now sending patch for zl10353 to
+> implement this future for digital mode. Signal reporting is very
+> accurate and was well tested on 3 different Leadtek XC4000 cards.
 
-Thanks for the patch.
+For what it's worth, something seems very wrong with this patch.  All
+the docs I've ever seen for the Xceive components were pretty clear
+that the signal level registers are for analog only.  And even in te
+case of Xceive it's a bit unusual, since most analog tuner designs
+don't have an onboard analog demodulator.
 
-On Saturday 17 December 2011 11:10:55 Martin Hostettler wrote:
-> The MT9M032 is a parallel 1.6MP sensor from Micron controlled through I2C.
-> 
-> The driver creates a V4L2 subdevice. It currently supports cropping, gain,
-> exposure and v/h flipping controls in monochrome mode with an
-> external pixel clock.
+If this patch really works then I guess I don't have anything against
+it.  I just strongly believe that it's the wrong fix and there is
+probably some other problem this is obscuring.
 
-There are still several small issues with this driver. Things like not using 
-the module_i2c_driver() macro, some indentation, magic values in registers 
-(I'm trying to get more documentation), PLL setup (although that can be fixed 
-later, it's not a requirement for the driver to be mainlined), ...
-
-Would you be fine if I took the patch in my tree, fixed the remaining issues 
-and pushed it to mainline for v3.4 (the time frame is too short for v3.3) ? 
-Authorship will of course be preserved. The alternative would be to go through 
-review/modification cycles, and I don't want to waste too much of your time 
-:-)
+Devin
 
 -- 
-Best regards,
-
-Laurent Pinchart
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
