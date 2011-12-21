@@ -1,60 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:41557 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751460Ab1LYTAh (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37271 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751192Ab1LUWX7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 25 Dec 2011 14:00:37 -0500
-Received: by werm1 with SMTP id m1so4725044wer.19
-        for <linux-media@vger.kernel.org>; Sun, 25 Dec 2011 11:00:36 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Jonathan Nieder <jrnieder@gmail.com>,
-	"Igor M. Liplianin" <liplianin@me.by>
-Subject: Re: Add support for new Terratec DVB USB IDs
-Date: Fri, 23 Dec 2011 18:20:03 +0100
-Cc: linux-media@vger.kernel.org, Eduard Bloch <blade@debian.org>
-References: <20111222215356.GA4499@rotes76.wohnheim.uni-kl.de> <20111222234446.GB10497@elie.Belkin>
-In-Reply-To: <20111222234446.GB10497@elie.Belkin>
+	Wed, 21 Dec 2011 17:23:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: martin@neutronstar.dyndns.org
+Subject: Re: [PATCH v4] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Wed, 21 Dec 2011 23:23:59 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1324116655-15895-1-git-send-email-martin@neutronstar.dyndns.org> <201112210206.20567.laurent.pinchart@ideasonboard.com> <20111221074347.GA12861@neutronstar.dyndns.org>
+In-Reply-To: <20111221074347.GA12861@neutronstar.dyndns.org>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112231820.03693.pboettcher@kernellabs.com>
+Message-Id: <201112212324.00713.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, December 23, 2011 12:44:46 AM Jonathan Nieder wrote:
-> Hi,
-> 
-> Eduard Bloch wrote[1]:
-> > current revision of the Cinergy S2 USB box from Terratec seems to use
-> > another USB-IDs. The manufacturer provides patches at
-> > http://linux.terratec.de/tv_en.html and it seems like the only
-> > difference is really just the new ID and a couple of init flag changes.
+Hi Martin,
+
+On Wednesday 21 December 2011 08:43:47 martin@neutronstar.dyndns.org wrote:
+> On Wed, Dec 21, 2011 at 02:06:20AM +0100, Laurent Pinchart wrote:
+> > On Saturday 17 December 2011 11:10:55 Martin Hostettler wrote:
+> > > The MT9M032 is a parallel 1.6MP sensor from Micron controlled through
+> > > I2C.
+> > > 
+> > > The driver creates a V4L2 subdevice. It currently supports cropping,
+> > > gain, exposure and v/h flipping controls in monochrome mode with an
+> > > external pixel clock.
 > > 
-> > Their patch is not exactly for the linux-3.x tree but for the current
-> > s2-liplianin drivers, OTOH they still look similar enough and porting
-> > the patch was straight-forward. I also added the patch for Terratec S7
-> > which is not tested yet but shouldn't do any harm.
+> > There are still several small issues with this driver. Things like not
+> > using the module_i2c_driver() macro, some indentation, magic values in
+> > registers (I'm trying to get more documentation), PLL setup (although
+> > that can be fixed later, it's not a requirement for the driver to be
+> > mainlined), ...
+> > 
+> > Would you be fine if I took the patch in my tree, fixed the remaining
+> > issues and pushed it to mainline for v3.4 (the time frame is too short
+> > for v3.3) ?
 > 
-> [...]
-> 
-> Eduard, meet the LinuxTV project.  linux-media folks, meet Eduard.
-> Patch follows.
-> 
-> Eduard: may we have your sign-off?  Please see
-> Documentation/SubmittingPatches, section 12 "Sign your work" for what
-> this means.
-> 
-> My only other hint is that it would be better to add the new device
-> IDs in some logical place in the list near the older ones, instead of
-> at the end where it is more likely to collide with other patches in
-> flight.  So if rerolling the patches, it might be useful to do that.
+> Sure,
 
-Due to the use of the reference in the USB-id table adding the new set at 
-the end of the list is actually the best way. Adding them in the middle will 
-cause a lot of changes and bugs.
+Thank you.
 
-Except the Signed-off-by everything is fine to my eyes.
+> that would be much appreciated. Thanks for reviewing and takeing these
+> patches!
 
---
-Patrick
+You're welcome.
+
+> > Authorship will of course be preserved. The alternative would be to go
+> > through review/modification cycles, and I don't want to waste too much
+> > of your time
+> > 
+> > :-)
+
+-- 
+Regards,
+
+Laurent Pinchart
