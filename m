@@ -1,78 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12105 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:48915 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752563Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:31 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9UZ2026577
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 60/94] [media] tda10071: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:57 -0200
-Message-Id: <1325257711-12274-61-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1751262Ab1LUH0k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 02:26:40 -0500
+Message-ID: <4EF18A2D.5090101@iki.fi>
+Date: Wed, 21 Dec 2011 09:26:37 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Carlos Corbacho <carlos@strangeworlds.co.uk>
+CC: linux-media@vger.kernel.org, Jyrki Kuoppala <jkp@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [PATCH] qt1010: Fix tuner frequency selection for 546 to 578
+ MHz range
+References: <20111220105034.5150.54234.stgit@localhost>
+In-Reply-To: <20111220105034.5150.54234.stgit@localhost>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hello,
+You can try to fix it like that, but it is not proper way. It is kinda 
+of hack which can just work or not. Proper way is to fix that tuner 
+driver correctly and if it was used with zl10353 demoed fix that driver 
+too to support IIRC IF/RF agc settings.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+regards
+Antti
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/tda10071.c |   10 +++++-----
- 1 files changed, 5 insertions(+), 5 deletions(-)
+On 12/20/2011 12:50 PM, Carlos Corbacho wrote:
+> The patch fixes frequency selection for some UHF frequencies e.g.
+> channel 32 (562 MHz) on the qt1010 tuner. For those in the UK,
+> this now means they can tune to the BBC channels (tested on a Compro
+> Vista T750F).
+>
+> One example of problem reports of the bug this fixes can be read at
+> http://www.freak-search.com/de/thread/330303/linux-dvb_tuning_problem_with_some_frequencies_qt1010,_dvb
+>
+> Based on an original patch by Jyrki Kuoppala<jkp@iki.fi>
+>
+> Signed-off-by: Carlos Corbacho<carlos@strangeworlds.co.uk>
+> Cc: Jyrki Kuoppala<jkp@iki.fi>
+> Cc: Mauro Carvalho Chehab<mchehab@infradead.org>
+> ---
+>   drivers/media/common/tuners/qt1010.c |    3 ++-
+>   1 files changed, 2 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/common/tuners/qt1010.c b/drivers/media/common/tuners/qt1010.c
+> index 9f5dba2..8c57d8c 100644
+> --- a/drivers/media/common/tuners/qt1010.c
+> +++ b/drivers/media/common/tuners/qt1010.c
+> @@ -200,7 +200,8 @@ static int qt1010_set_params(struct dvb_frontend *fe,
+>   	if      (freq<  450000000) rd[15].val = 0xd0; /* 450 MHz */
+>   	else if (freq<  482000000) rd[15].val = 0xd1; /* 482 MHz */
+>   	else if (freq<  514000000) rd[15].val = 0xd4; /* 514 MHz */
+> -	else if (freq<  546000000) rd[15].val = 0xd7; /* 546 MHz */
+> +	else if (freq<  546000000) rd[15].val = 0xd6; /* 546 MHz */
+> +	else if (freq<  578000000) rd[15].val = 0xd8; /* 578 MHz */
+>   	else if (freq<  610000000) rd[15].val = 0xda; /* 610 MHz */
+>   	else                       rd[15].val = 0xd0;
+>
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-diff --git a/drivers/media/dvb/frontends/tda10071.c b/drivers/media/dvb/frontends/tda10071.c
-index e9e00ea..68dcce6 100644
---- a/drivers/media/dvb/frontends/tda10071.c
-+++ b/drivers/media/dvb/frontends/tda10071.c
-@@ -636,8 +636,7 @@ error:
- 	return ret;
- }
- 
--static int tda10071_set_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *params)
-+static int tda10071_set_frontend(struct dvb_frontend *fe)
- {
- 	struct tda10071_priv *priv = fe->demodulator_priv;
- 	struct tda10071_cmd cmd;
-@@ -778,7 +777,7 @@ error:
- }
- 
- static int tda10071_get_frontend(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+	struct dtv_frontend_properties *p)
- {
- 	struct tda10071_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -1217,6 +1216,7 @@ error:
- EXPORT_SYMBOL(tda10071_attach);
- 
- static struct dvb_frontend_ops tda10071_ops = {
-+	.delsys = { SYS_DVBT, SYS_DVBT2 },
- 	.info = {
- 		.name = "NXP TDA10071",
- 		.type = FE_QPSK,
-@@ -1247,8 +1247,8 @@ static struct dvb_frontend_ops tda10071_ops = {
- 	.init = tda10071_init,
- 	.sleep = tda10071_sleep,
- 
--	.set_frontend_legacy = tda10071_set_frontend,
--	.get_frontend_legacy = tda10071_get_frontend,
-+	.set_frontend = tda10071_set_frontend,
-+	.get_frontend = tda10071_get_frontend,
- 
- 	.read_status = tda10071_read_status,
- 	.read_snr = tda10071_read_snr,
+
 -- 
-1.7.8.352.g876a6
-
+http://palosaari.fi/
