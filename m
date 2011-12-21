@@ -1,51 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6182 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751058Ab1LRAhK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 19:37:10 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBI0bAqo002492
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 17 Dec 2011 19:37:10 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/7] Change support for Annex A/C
-Date: Sat, 17 Dec 2011 22:36:54 -0200
-Message-Id: <1324168621-21506-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from outbound003.roc2.bluetie.com ([208.89.132.143]:45135 "EHLO
+	outbound003.roc2.bluetie.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752002Ab1LUSXE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 13:23:04 -0500
+Received: from web002.roc2.bluetie.com (localhost.localdomain [127.0.0.1])
+	by web002.roc2.bluetie.com (Postfix) with ESMTP id CC8433F0160
+	for <linux-media@vger.kernel.org>; Wed, 21 Dec 2011 13:14:55 -0500 (EST)
+Message-ID: <20111221131455.14056@web002.roc2.bluetie.com>
+Date: Wed, 21 Dec 2011 13:14:55 -0500
+To: linux-media@vger.kernel.org
+From: "Full Name" <danewson@excite.com>
+Subject: EasyCAP with identifiers 
+Content-transfer-encoding: quoted-printable
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As discussed at the ML, all existing drivers, except for dvb-k only
-support DVB-C ITU-T J.83 Annex A. Also, a few dvb-c drivers don't support
-0.13 roll-off, requred for Annex C. So, apply Manu's patch that
-adds a separate delivery system for Annex C, and change a few existing
-drivers that are known to work with both standards to work properly with
-both annexes.
+I just got an EasyCAP usb device with component and S-video inputs, and it d=
+oesn't match what I was expecting from reading lists about drivers.
 
-Manu Abraham (1):
-  [media] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
+It identifies as 1f71:3306 and is not recognized by my Ubuntu system running=
+ 3.0.0.
 
-Mauro Carvalho Chehab (6):
-  [media] Update documentation to reflect DVB-C Annex A/C support
-  [media] Remove Annex A/C selection via roll-off factor
-  [media] drx-k: report the supported delivery systems
-  [media] tda10023: Don't use a magic numbers for QAM modulation
-  [media] tda10023: add support for DVB-C Annex C
-  [media] tda10021: Add support for DVB-C Annex C
+3.0.0-14-generic #23-Ubuntu SMP Mon Nov 21 20:34:47 UTC 2011 i686 i686 i386 =
+GNU/Linux
 
- Documentation/DocBook/media/dvb/dvbproperty.xml |   11 +-
- Documentation/DocBook/media/dvb/frontend.xml    |    4 +-
- drivers/media/common/tuners/xc5000.c            |  137 +++++++++-------------
- drivers/media/dvb/dvb-core/dvb_frontend.c       |   25 ++++-
- drivers/media/dvb/frontends/drxk_hard.c         |   43 ++++++-
- drivers/media/dvb/frontends/tda10021.c          |   83 ++++++++++----
- drivers/media/dvb/frontends/tda10023.c          |   77 +++++++++----
- drivers/media/dvb/frontends/tda18271c2dd.c      |   44 +++----
- include/linux/dvb/frontend.h                    |    9 +-
- 9 files changed, 264 insertions(+), 169 deletions(-)
+Searching for that usb identifier turned up threads about another device cal=
+led Gadmei USB TVBox.  I also found references to the em28xx driver, so I bu=
+ilt and installed git://linuxtv.org/media_build.git, but this did not help. =
+ The id is not on the list here: http://linuxtv.org/wiki/index.php/Em28xx_de=
+vices
 
--- 
-1.7.8
-
+Anyone have a good suggestion what to do next?  I think I covered the basics=
+, but I'm definitely no expert, so apologies if I overlooked something simpl=
+e.
