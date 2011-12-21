@@ -1,71 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:59125 "EHLO
-	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751248Ab1LBXFl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Dec 2011 18:05:41 -0500
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:39124 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752750Ab1LUAlO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 19:41:14 -0500
+Received: by eaad14 with SMTP id d14so777917eaa.19
+        for <linux-media@vger.kernel.org>; Tue, 20 Dec 2011 16:41:13 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <87wraelhil.fsf@ti.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-6-git-send-email-saaguirre@ti.com> <87wraelhil.fsf@ti.com>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Fri, 2 Dec 2011 17:01:09 -0600
-Message-ID: <CAKnK67Qn551zH3cxES0cNkR3x+fnxZBvSpO3BmvqW59srWGnCA@mail.gmail.com>
-Subject: Re: [PATCH v2 05/11] OMAP4: Add base addresses for ISS
-To: Kevin Hilman <khilman@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Date: Wed, 21 Dec 2011 01:41:13 +0100
+Message-ID: <CAEN_-SDmBW7TMoh7Vfx1hUS8eTsXPheq_MNtc6K0BxpsOXLdJg@mail.gmail.com>
+Subject: Add signal information to xc4000 tuner
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=000e0cdfc836d65cfb04b48f707b
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kevin,
+--000e0cdfc836d65cfb04b48f707b
+Content-Type: text/plain; charset=ISO-8859-1
 
-Thanks for the review.
+Documentation is included in patch, for now it will add signal level
+only to analog FM radio for all xc4000 based tuner, but in the future
+we can use this patch to get also digital signal level, measuring of
+xc4000 tuner is very accurate (less then 1dB resolution).
 
-On Fri, Dec 2, 2011 at 4:45 PM, Kevin Hilman <khilman@ti.com> wrote:
-> Sergio Aguirre <saaguirre@ti.com> writes:
->
->> NOTE: This isn't the whole list of features that the
->> ISS supports, but the only ones supported at the moment.
->>
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->
-> [...]
->
->> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
->> index ea2b8a6..31432aa 100644
->> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
->> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
->> @@ -49,6 +49,15 @@
->>  #define OMAP44XX_MAILBOX_BASE                (L4_44XX_BASE + 0xF4000)
->>  #define OMAP44XX_HSUSB_OTG_BASE              (L4_44XX_BASE + 0xAB000)
->>
->> +#define OMAP44XX_ISS_BASE                    0x52000000
->> +#define OMAP44XX_ISS_TOP_BASE                        (OMAP44XX_ISS_BASE + 0x0)
->> +#define OMAP44XX_ISS_CSI2_A_REGS1_BASE               (OMAP44XX_ISS_BASE + 0x1000)
->> +#define OMAP44XX_ISS_CAMERARX_CORE1_BASE     (OMAP44XX_ISS_BASE + 0x1170)
->> +
->> +#define OMAP44XX_ISS_TOP_END                 (OMAP44XX_ISS_TOP_BASE + 256 - 1)
->> +#define OMAP44XX_ISS_CSI2_A_REGS1_END                (OMAP44XX_ISS_CSI2_A_REGS1_BASE + 368 - 1)
->> +#define OMAP44XX_ISS_CAMERARX_CORE1_END              (OMAP44XX_ISS_CAMERARX_CORE1_BASE + 32 - 1)
->> +
->>  #define OMAP4_MMU1_BASE                      0x55082000
->>  #define OMAP4_MMU2_BASE                      0x4A066000
->
-> Who are the users of thes address ranges?
->
-> IMO, we shouldn't ned to add anymore based address definitions.  These
-> should be done in the hwmod data, and drivers get base addresses using
-> the standard ways of getting resources (DT or platform_get_resource())
+This time with patch included :)
 
-I see... I get your point now.
+--000e0cdfc836d65cfb04b48f707b
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-In-xc4000-chipsets-real-signal-and-noise-level-is-st.patch"
+Content-Disposition: attachment;
+	filename="0001-In-xc4000-chipsets-real-signal-and-noise-level-is-st.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gwfm9nwt0
 
-Will remove them from this patch series then.
-
-Regards,
-Sergio
-
->
-> Kevin
+RnJvbSA1NDQyODAzOWU2Njg3MGQ4NWZlZjFjMDI5ZGM0ZDAxOTMzMTQzOWU2IE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiA8dGh1bmRlci5tQGVtYWlsLmN6PgpEYXRlOiBX
+ZWQsIDIxIERlYyAyMDExIDAxOjE4OjM4ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gSW4geGM0MDAw
+IGNoaXBzZXRzIHJlYWwgc2lnbmFsIGFuZCBub2lzZSBsZXZlbCBpcyBzdG9yZWQgaW4gcmVnaXN0
+ZXIgMHgwQSBhbmQgMHgwQiwKIHNvIHdlIGNhbiB1c2UgdGhvc2UgcmVnaXN0ZXJzIHRvIG1vbml0
+b3Igc2lnbmFsIHN0cmVuZ3RoLgoKSSB0ZXN0ZWQgdGhpcyBwYXRjaCBvbiAyIGRpZmZlcmVudCBj
+YXJkcyBMZWFkdGVrIERWUjMyMDAgYW5kIERUVjIwMDBIIFBsdXMsIGJvdGgKd2l0aCBzYW1lIHJl
+c3VsdHMsIEkgdXNlZCBzcGVjaWFsIGFudGVubmEgaHVicyAodG9uZXIgNHgsIDZ4LCA4eCBhbmQg
+MTJ4KSB3aXRoIG1lc3VyZWQKc2lnbmFsIGxvc3QsIGJvdGggcmVnaXN0ZXJzIGFyZSBpbiBkQiB2
+YWx1ZSwgZmlyc3QgcmVwcmVzZW50IHNpZ25hbCB3aXRoIGxpbWl0CnZhbHVlIC0xMTMuNWRCIChz
+aG91bGQgYmUgLTExNGRCKSBhbmQgZXhhY3RseSBtYXRjaCB3aXRoIHRlc3QgcmVzdWx0cy4gU2Vj
+b25kIHJlcHJlc2VudHMKbm9pc2UgbGV2ZWwgYWxzbyBpbiBkQiBhbmQgdGhlcmUgaXMgbm8gbWF4
+aW11bSB2YWx1ZSwgYnV0IGZyb20gdGVzdHMgd2UgY2FuIGRyb3AKZXZlcnl0aGluZyBhYm92ZSAz
+MmRCIHdoaWNoIHR1bmVyIHJlYWx5IGNhbid0IHVzZSwgc2lnbmFsIHdhcyB1c2FibGUgdGlsbCAy
+MGRCIG5vaXNlIGxldmVsLgoKSW4gZGlnaXRhbCBtb2RlIHdlIGNhbiB0YWtlIHNpZ25hbCBzdHJl
+bmd0aCBidXQgc2FkbHkgbm9pc2UgbGV2ZWwgaXMgbm90IHJlbGV2YW50IGFuZApyZWFsIHZhbHVl
+IGlzIHN0b3JlZCBpbiBkZW1vZHVsYXRvciBmb3Igbm93IGp1c3QgemwxMDM1MywgYWxzbyBkaWdp
+dGFsIG1vZGUgaXMganVzdCBmb3IKdGVzdGluZywgYmVjYXVzZSBpdCBuZWVkcyBjaGFuZ2luZyBv
+dGhlciBwYXJ0cyBvZiBjb2RlIHdoaWNoIHJlYWRzIGRhdGEgb25seSBmcm9tCmRlbW9kdWxhdG9y
+LgoKSW4gYW5hbG9nIG1vZGUgSSB3YXMgYWJsZSB0byB0ZXN0IG9ubHkgRk0gcmFkaW8sIHNpZ25h
+bCBsZXZlbCBpcyBub3QgaW1wb3J0YW50LCBpdCBzYXlzCnNvbWV0aGluZyBhYm91dCBjYWJsZSBh
+bmQgaHViIGxvc3RzLCBidXQgbm90aGluZyBhYm91dCByZWFsIHF1YWxpdHkgb2YgcmVjZXB0aW9u
+LCBzbyBldmVuCmlmIHdlIGhhdmUgc2lnbmFsIGxldmVsIGF0IG1pbmltdW0gMTEzZEIgd2UgY2Fu
+IHN0aWxsIGhlcmUgcmFkaW8sIGJlY2F1c2Ugb2YgdGhhdCBpdCBpcwpkaXNwbGFpZWQgb25seSBp
+biBkZWJ1ZyBtb2RlLCBidXQgZm9yIHJlYWwgc2lnbmFsIGxldmVsIGlzIHVzZWQgbm9pc2UgcmVn
+aXN0ZXIgd2hpY2ggaXMKYWdhaW4gdmVyeSBhY2N1cmF0ZSwgcmFkaW8gbm9pc2UgbGV2ZWwgd2Fz
+IGJldHdlbiA2LTIwZEIgZm9yIGdvb2Qgc2lnbmFsLCAyMC0yNWRCIGZvcgptZWRpdW0gc2lnbmFs
+LCBhbmQgYWJvdmUgMjVkQiBzaWduYWwgaXMgdW51c2FibGUuCgpGb3Igbm93IHJlYWwgYmVuZWZp
+dCBvZiB0aGlzIHBhdGNoIGlzIG9ubHkgZm9yIEZNIHJhZGlvIG1vZGUuCi0tLQogZHJpdmVycy9t
+ZWRpYS9jb21tb24vdHVuZXJzL3hjNDAwMC5jIHwgICA4NiArKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrKysrCiAxIGZpbGVzIGNoYW5nZWQsIDg2IGluc2VydGlvbnMoKyksIDAgZGVsZXRp
+b25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3hjNDAwMC5j
+IGIvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3hjNDAwMC5jCmluZGV4IDYzNGY0ZDkuLjM3
+NTgxYzMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvY29tbW9uL3R1bmVycy94YzQwMDAuYwor
+KysgYi9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMveGM0MDAwLmMKQEAgLTE1NCw2ICsxNTQs
+OCBAQCBzdHJ1Y3QgeGM0MDAwX3ByaXYgewogI2RlZmluZSBYUkVHX1NOUiAgICAgICAgICAweDA2
+CiAjZGVmaW5lIFhSRUdfVkVSU0lPTiAgICAgIDB4MDcKICNkZWZpbmUgWFJFR19QUk9EVUNUX0lE
+ICAgMHgwOAorI2RlZmluZSBYUkVHX1NJR05BTF9MRVZFTCAweDBBCisjZGVmaW5lIFhSRUdfTk9J
+U0VfTEVWRUwgIDB4MEIKIAogLyoKICAgIEJhc2ljIGZpcm13YXJlIGRlc2NyaXB0aW9uLiBUaGlz
+IHdpbGwgcmVtYWluIHdpdGgKQEAgLTQ4Niw2ICs0ODgsMTYgQEAgc3RhdGljIGludCB4Y19nZXRf
+cXVhbGl0eShzdHJ1Y3QgeGM0MDAwX3ByaXYgKnByaXYsIHUxNiAqcXVhbGl0eSkKIAlyZXR1cm4g
+eGM0MDAwX3JlYWRyZWcocHJpdiwgWFJFR19RVUFMSVRZLCBxdWFsaXR5KTsKIH0KIAorc3RhdGlj
+IGludCB4Y19nZXRfc2lnbmFsX2xldmVsKHN0cnVjdCB4YzQwMDBfcHJpdiAqcHJpdiwgdTE2ICpz
+aWduYWwpCit7CisJcmV0dXJuIHhjNDAwMF9yZWFkcmVnKHByaXYsIFhSRUdfU0lHTkFMX0xFVkVM
+LCBzaWduYWwpOworfQorCitzdGF0aWMgaW50IHhjX2dldF9ub2lzZV9sZXZlbChzdHJ1Y3QgeGM0
+MDAwX3ByaXYgKnByaXYsIHUxNiAqbm9pc2UpCit7CisJcmV0dXJuIHhjNDAwMF9yZWFkcmVnKHBy
+aXYsIFhSRUdfTk9JU0VfTEVWRUwsIG5vaXNlKTsKK30KKwogc3RhdGljIHUxNiB4Y193YWl0X2Zv
+cl9sb2NrKHN0cnVjdCB4YzQwMDBfcHJpdiAqcHJpdikKIHsKIAl1MTYJbG9ja19zdGF0ZSA9IDA7
+CkBAIC0xMDg5LDYgKzExMDEsOCBAQCBzdGF0aWMgdm9pZCB4Y19kZWJ1Z19kdW1wKHN0cnVjdCB4
+YzQwMDBfcHJpdiAqcHJpdikKIAl1MzIJaHN5bmNfZnJlcV9oeiA9IDA7CiAJdTE2CWZyYW1lX2xp
+bmVzOwogCXUxNglxdWFsaXR5OworCXUxNglzaWduYWwgPSAwOworCXUxNglub2lzZSA9IDA7CiAJ
+dTgJaHdfbWFqb3J2ZXJzaW9uID0gMCwgaHdfbWlub3J2ZXJzaW9uID0gMDsKIAl1OAlmd19tYWpv
+cnZlcnNpb24gPSAwLCBmd19taW5vcnZlcnNpb24gPSAwOwogCkBAIC0xMTE5LDYgKzExMzMsMTIg
+QEAgc3RhdGljIHZvaWQgeGNfZGVidWdfZHVtcChzdHJ1Y3QgeGM0MDAwX3ByaXYgKnByaXYpCiAK
+IAl4Y19nZXRfcXVhbGl0eShwcml2LCAmcXVhbGl0eSk7CiAJZHByaW50aygxLCAiKioqIFF1YWxp
+dHkgKDA6PDhkQiwgNzo+NTZkQikgPSAlZFxuIiwgcXVhbGl0eSk7CisKKwl4Y19nZXRfc2lnbmFs
+X2xldmVsKHByaXYsICZzaWduYWwpOworCWRwcmludGsoMSwgIioqKiBTaWduYWwgbGV2ZWwgPSAt
+JWRkQiAoJWQpXG4iLCBzaWduYWwgPj4gOCwgc2lnbmFsKTsKKworCXhjX2dldF9ub2lzZV9sZXZl
+bChwcml2LCAmbm9pc2UpOworCWRwcmludGsoMSwgIioqKiBOb2lzZSBsZXZlbCA9ICVkZEIgKCVk
+KVxuIiwgbm9pc2UgPj4gOCwgbm9pc2UpOwogfQogCiBzdGF0aWMgaW50IHhjNDAwMF9zZXRfcGFy
+YW1zKHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlLApAQCAtMTQ1MSw2ICsxNDcxLDcxIEBAIGZhaWw6
+CiAJcmV0dXJuIHJldDsKIH0KIAorc3RhdGljIGludCB4YzQwMDBfZ2V0X3NpZ25hbChzdHJ1Y3Qg
+ZHZiX2Zyb250ZW5kICpmZSwgdTE2ICpzdHJlbmd0aCkKK3sKKwlzdHJ1Y3QgeGM0MDAwX3ByaXYg
+KnByaXYgPSBmZS0+dHVuZXJfcHJpdjsKKwl1MTYgdmFsdWUgPSAwOworCWludCByYzsKKworCW11
+dGV4X2xvY2soJnByaXYtPmxvY2spOworCXJjID0geGM0MDAwX3JlYWRyZWcocHJpdiwgWFJFR19T
+SUdOQUxfTEVWRUwsICZ2YWx1ZSk7CisJbXV0ZXhfdW5sb2NrKCZwcml2LT5sb2NrKTsKKworCWlm
+IChyYyA8IDApCisJCWdvdG8gcmV0OworCisJLyogSW5mb3JtYXRpb25zIGZyb20gcmVhbCB0ZXN0
+aW5nIG9mIERWQi1UIGFuZCByYWRpbyBwYXJ0LAorCSAgIGNvZWZpY2llbnQgZm9yIG9uZSBkQiBp
+cyAweGZmLgorCSAqLworCXR1bmVyX2RiZygiU2lnbmFsIHN0cmVuZ3RoOiAtJWRkQiAoJTA1ZClc
+biIsIHZhbHVlID4+IDgsIHZhbHVlKTsKKworCS8qIGFsbCBrbm93biBkaWdpdGFsIG1vZGVzICov
+CisJaWYgKChwcml2LT52aWRlb19zdGFuZGFyZCA9PSBYQzQwMDBfRFRWNikgfHwKKwkgICAgKHBy
+aXYtPnZpZGVvX3N0YW5kYXJkID09IFhDNDAwMF9EVFY3KSB8fAorCSAgICAocHJpdi0+dmlkZW9f
+c3RhbmRhcmQgPT0gWEM0MDAwX0RUVjdfOCkgfHwKKwkgICAgKHByaXYtPnZpZGVvX3N0YW5kYXJk
+ID09IFhDNDAwMF9EVFY4KSkKKwkJZ290byBkaWdpdGFsOworCisJLyogQW5hbG9nIG1vZGUgaGFz
+IE5PSVNFIExFVkVMIGltcG9ydGFudCwgc2lnbmFsCisJICAgZGVwZW5kcyBvbmx5IG9uIGdhaW4g
+b2YgYW50ZW5uYSBhbmQgYW1wbGlmaWVycywKKwkgICBidXQgaXQgZG9lc24ndCB0ZWxsIGFueXRo
+aW5nIGFib3V0IHJlYWwgcXVhbGl0eQorCSAgIG9mIHJlY2VwdGlvbi4KKwkgKi8KKwltdXRleF9s
+b2NrKCZwcml2LT5sb2NrKTsKKwlyYyA9IHhjNDAwMF9yZWFkcmVnKHByaXYsIFhSRUdfTk9JU0Vf
+TEVWRUwsICZ2YWx1ZSk7CisJbXV0ZXhfdW5sb2NrKCZwcml2LT5sb2NrKTsKKworCXR1bmVyX2Ri
+ZygiTm9pc2UgbGV2ZWw6ICVkZEIgKCUwNWQpXG4iLCB2YWx1ZSA+PiA4LCB2YWx1ZSk7CisKKwkv
+KiBoaWdoZXN0IG5vaXNlIGxldmVsOiAzMmRCICovCisJaWYgKHZhbHVlID49IDB4MjAwMCkgewor
+CQl2YWx1ZSA9IDA7CisJfSBlbHNlIHsKKwkJdmFsdWUgPSB+dmFsdWUgPDwgMzsKKwl9CisKKwln
+b3RvIHJldDsKKworCS8qIERpZ2l0YWwgbW9kZSBoYXMgU0lHTkFMIExFVkVMIGltcG9ydGFudCBh
+bmQgcmVhbAorCSAgIG5vaXNlIGxldmVsIGlzIHN0b3JlZCBpbiBkZW1vZHVsYXRvciByZWdpc3Rl
+cnMuCisJICovCitkaWdpdGFsOgorCS8qIGJlc3Qgc2lnbmFsOiAtNTBkQiAqLworCWlmICh2YWx1
+ZSA8PSAweDMyMDApIHsKKwkJdmFsdWUgPSAweGZmZmY7CisJLyogbWluaW11bTogLTExNGRCIC0g
+c2hvdWxkIGJlIDB4NzIwMCBidXQgcmVhbCB6ZXJvIGlzIDB4NzEzQSAqLworCX0gZWxzZSBpZiAo
+dmFsdWUgPj0gMHg3MTNBKSB7CisJCXZhbHVlID0gMDsKKwl9IGVsc2UgeworCQl2YWx1ZSA9IH4o
+dmFsdWUgLSAweDMyMDApIDw8IDI7CisJfQorCityZXQ6CisJKnN0cmVuZ3RoID0gdmFsdWU7CisK
+KwlyZXR1cm4gcmM7Cit9CisKIHN0YXRpYyBpbnQgeGM0MDAwX2dldF9mcmVxdWVuY3koc3RydWN0
+IGR2Yl9mcm9udGVuZCAqZmUsIHUzMiAqZnJlcSkKIHsKIAlzdHJ1Y3QgeGM0MDAwX3ByaXYgKnBy
+aXYgPSBmZS0+dHVuZXJfcHJpdjsKQEAgLTE1NzgsNiArMTY2Myw3IEBAIHN0YXRpYyBjb25zdCBz
+dHJ1Y3QgZHZiX3R1bmVyX29wcyB4YzQwMDBfdHVuZXJfb3BzID0gewogCS5zZXRfcGFyYW1zCSAg
+ID0geGM0MDAwX3NldF9wYXJhbXMsCiAJLnNldF9hbmFsb2dfcGFyYW1zID0geGM0MDAwX3NldF9h
+bmFsb2dfcGFyYW1zLAogCS5nZXRfZnJlcXVlbmN5CSAgID0geGM0MDAwX2dldF9mcmVxdWVuY3ks
+CisJLmdldF9yZl9zdHJlbmd0aCAgID0geGM0MDAwX2dldF9zaWduYWwsCiAJLmdldF9iYW5kd2lk
+dGgJICAgPSB4YzQwMDBfZ2V0X2JhbmR3aWR0aCwKIAkuZ2V0X3N0YXR1cwkgICA9IHhjNDAwMF9n
+ZXRfc3RhdHVzCiB9OwotLSAKMS43LjIuMwoK
+--000e0cdfc836d65cfb04b48f707b--
