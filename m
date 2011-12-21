@@ -1,104 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from skyboo.net ([82.160.187.4]:47898 "EHLO skyboo.net"
-	rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752112Ab1L2KUt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Dec 2011 05:20:49 -0500
-Message-ID: <4EFC3EF6.4000307@skyboo.net>
-Date: Thu, 29 Dec 2011 11:20:38 +0100
-From: Mariusz Bialonczyk <manio@skyboo.net>
+Received: from mail.kapsi.fi ([217.30.184.167]:34622 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751813Ab1LUG4g (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 01:56:36 -0500
+Message-ID: <4EF1831E.1090006@iki.fi>
+Date: Wed, 21 Dec 2011 08:56:30 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Manu Abraham <abraham.manu@gmail.com>,
-	Oliver Endriss <o.endriss@gmx.de>,
-	Andreas Regel <andreas.regel@gmx.de>
-References: <1322577083-24728-1-git-send-email-manio@skyboo.net>	<CAHFNz9KjVzH2RCKNWYH2DcwZXM1oNvSLXCx41Mk3cSiuTT7yaw@mail.gmail.com> <CAHFNz9KFO1ykuOP9YqJp1Tu+1uN4h__mjMhF6aRADocso0JE6g@mail.gmail.com>
-In-Reply-To: <CAHFNz9KFO1ykuOP9YqJp1Tu+1uN4h__mjMhF6aRADocso0JE6g@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [PATCH] stv090x: implement function for reading uncorrected blocks
- count
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR 3.3] HDIC HD29L2 DMB-TH demodulator driver
+References: <4EE929D5.6010106@iki.fi>	<4EF08FFC.2070802@redhat.com>	<4EF0A141.7010100@iki.fi>	<4EF0A92B.6010504@redhat.com> <CAOcJUbygkw-UJ4=V3vsRT8VtdrjhNwng9KQr_FFe=CdsybUBXQ@mail.gmail.com>
+In-Reply-To: <CAOcJUbygkw-UJ4=V3vsRT8VtdrjhNwng9KQr_FFe=CdsybUBXQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/06/2011 07:48 PM, Manu Abraham wrote:
->> With UCB, what we imply is the uncorrectable blocks in the Outer
->> coding. The CRC encoder/decoder is at the Physical layer, much prior
->> and is completely different from what is expected of UCB.
+On 12/21/2011 12:35 AM, Michael Krufky wrote:
+> On Tue, Dec 20, 2011 at 10:26 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com>  wrote:
+>> On 20-12-2011 12:52, Antti Palosaari wrote:
+>>>>> +    /* reset demod */
+>>>>> +    /* it is recommended to HW reset chip using RST_N pin */
+>>>>> +    if (fe->callback) {
+>>>>> +        ret = fe->callback(fe, 0, 0, 0);
+>>>>
+>>>> This looks weird on my eyes. The fe->callback is tuner-dependent.
+>>>> So, the command you should use there requires a test for the tuner
+>>>> type.
+>>>>
+>>>> In other words, if you're needing to use it, the code should be doing
+>>>> something similar to:
+>>>>
+>>>>           if (fe->callback&&    priv->tuner_type == TUNER_XC2028)
+>>>>          ret = fe->callback(fe, 0, XC2028_TUNER_RESET, 0);
+>>>>
+>>>> (the actual coding will depend on how do you store the tuner type, and
+>>>> what are the commands for the tuner you're using)
+>>>>
+>>>> That's said, it probably makes sense to deprecate fe->callback in favor
+>>>> or a more generic set of callbacks, like fe->tuner_reset().
+>>>
+>>> Yes it is wrong because there was no DEMOD defined. But, the callback
+>>> itself is correctly. IIRC there was only TUNER defined and no DEMOD.
+>>> Look callback definition from the API. It is very simply to fix. But at
+>>> the time left it like that, because I wanted to avoid touching one file
+>>> more. I will fix it properly later (2 line change).
+>>>
+>>> And it was not a bug, it was just my known decision. I just forget to comment it as FIXME or TODO.
 >>
->> With the stv0900/3, you don't really have a Uncorrectable 's register
->> field, one would need to really calculate that out, rather than
->> reading out CRC errors.
-> 
-> Maybe you can try something like this:
-> setup ERRCTRL1 to
-> 
-> Bit7-4:1100 (TS error count, packet error final)
-> Bit3:reserved:0
-> Bit2-0:000 (reset counter on read) 001 (without reset of counter on read)
-> 
-> and the resultant values can be read from
-> ERRCNT10
-> 
-> Note that, you get the resultant values as Packet Errors, rather than
-> bit errors, so you might need to multiply that by 8.
-> 
-> I have not tried this out. but you can possibly try it.
-Thank you for your tips
-I try it using the following code:
+>> Feel free to touch on other files, provided that you fix that. There's
+>> no default behavior for fe->callback, as it were written in order to
+>> provide ways for the tuner to call the bridge driver for some device-specific
+>> reasons. So, the commands are defined with macros, and the callback code
+>> should be device-specific.
+>
+> This generic callback was written for the BRIDGE driver to be called
+> by any frontend COMPONENT, not specifically the tuner, perhaps a demod
+> or LNB, but at the time of writing, we only needed it from the tuner
+> so the DVB_FRONTEND_COMPONENT_TUNER(0) was the only #define created at
+> the time.  This was written with forward-compatibility in mind, so
+> lets please not deprecate it unless we actually have to -- I see
+> additional uses for this coming in the future.
+>
+> In order to use fe callback properly, please add "#define
+> DVB_FRONTEND_COMPONENT_DEMOD 1" to dvb-core/dvb_frontend.h , and
+> simply call your callback as fe->callback(adap_state,
+> DVB_FRONTEND_COMPONENT_DEMOD, CMD, ARG) ... This way, the callback
+> knows that it is being called by the demod and not the tuner, it is
+> receiving command CMD with argument ARG.
+>
+> I can imagine a need one day to perhaps convert the "int arg" into a
+> "void* arg", but such a need doesn't exist today.  I don't think it
+> gets any more generic than this.
+>
+>          int (*callback)(void *adapter_priv, int component, int cmd, int arg);
+>
+> Cheers,
+>
+> Mike
 
-static int stv090x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
-{
-  struct stv090x_state *state = fe->demodulator_priv;
-  u32 reg, v;
-  u32 val_header_err, val_packet_err;
++1 for that. It was just what I also was thinking :) I will add that 
+demod component define to the internal API and it is fixed properly.
 
-  switch (state->delsys) {
-  case STV090x_DVBS2:
-    /* Reset the packet Error counter1 */
-    if (STV090x_WRITE_DEMOD(state, ERRCTRL1, 0xc1) < 0)
-      goto err;
+regards
+Antti
 
-    /* Obtain value */
-    reg = STV090x_READ_DEMOD(state, ERRCNT10);
-    v = STV090x_GETFIELD_Px(reg, ERR_CNT10_FIELD);
 
-    *ucblocks = (v << 3);<->// value * 2^3
-    break;
-  default:
-    return -EINVAL;
-  }
-
-  return 0;
-err:
-  dprintk(FE_ERROR, 1, "I/O error");
-  return -1;
-}
-
-Unfortunately I always obtain value 0. I was also trying with DVB-S2 channel tunned for the whole night - and morning I still see 0 value.
-Is it possible that it is normal when satellite installation is correctly set?
-Maybe i need to wait for some difficulties - like snow on dish?
-I think we may leave it as it is now if there's no UCB register...
-
-Another thing related with this frontend:
-I am not sure but I think that btw I found some c-p mistake. Please correct if I am wrong.
-Here's the diff:
-
-diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
-index e448851..dd02f9a 100644
---- a/drivers/media/dvb/frontends/stv090x.c
-+++ b/drivers/media/dvb/frontends/stv090x.c
-@@ -3531,7 +3531,7 @@ static int stv090x_read_per(struct dvb_frontend *fe, u32 *per)
-        } else {
-                /* Counter 2 */
-                reg = STV090x_READ_DEMOD(state, ERRCNT22);
--               h = STV090x_GETFIELD_Px(reg, ERR_CNT2_FIELD);
-+               h = STV090x_GETFIELD_Px(reg, ERR_CNT22_FIELD);
- 
-                reg = STV090x_READ_DEMOD(state, ERRCNT21);
-                m = STV090x_GETFIELD_Px(reg, ERR_CNT21_FIELD);
-
-regards,
 -- 
-Mariusz Białończyk
-jabber/e-mail: manio@skyboo.net
-http://manio.skyboo.net
+http://palosaari.fi/
