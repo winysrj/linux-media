@@ -1,364 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44160 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753882Ab1L0BJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:44 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19iMc032681
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:44 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 31/91] [media] l64781: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:19 -0200
-Message-Id: <1324948159-23709-32-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-31-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50377 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753283Ab1LUACJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 20 Dec 2011 19:02:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+Subject: Re: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
+Date: Wed, 21 Dec 2011 01:02:08 +0100
+Cc: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com> <201112151400.48321.laurent.pinchart@ideasonboard.com> <E99FAA59F8D8D34D8A118DD37F7C8F75016B83@DBDE01.ent.ti.com>
+In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F75016B83@DBDE01.ent.ti.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112210102.09117.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Manju,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+On Friday 16 December 2011 14:42:48 Hadli, Manjunath wrote:
+> On Thu, Dec 15, 2011 at 18:30:47, Laurent Pinchart wrote:
+> > On Thursday 15 December 2011 13:24:58 Manjunath Hadli wrote:
+> > > add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer format
+> > > frames compressed by A-LAW alogorithm.
+> > > add V4L2_PIX_FMT_UV8 to represent storage of C (UV interleved) only.
+> > > 
+> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > ---
+> > > 
+> > >  include/linux/videodev2.h |    6 ++++++
+> > >  1 files changed, 6 insertions(+), 0 deletions(-)
+> > 
+> > Could you please also document these formats in
+> > Documentation/DocBook/media/v4l ?
+> 
+> I will. Sorry to have missed that out.
+> 
+> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > > index 4b752d5..969112d 100644
+> > > --- a/include/linux/videodev2.h
+> > > +++ b/include/linux/videodev2.h
+> > > @@ -338,6 +338,9 @@ struct v4l2_pix_format {
+> > > 
+> > >  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8 
+> > >  YUV
+> > > 
+> > > 4:2:0 16x16 macroblocks */ #define V4L2_PIX_FMT_M420   
+> > > v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv
+> > > interleaved */
+> > > 
+> > > +/* Chrominance formats */
+> > > +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8 
+> > > UV 4:4 */ +
+> > > 
+> > >  /* two planes -- one Y, one Cr + Cb interleaved  */
+> > >  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12 
+> > >  Y/CbCr
+> > > 
+> > > 4:2:0  */ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1')
+> > > /* 12  Y/CrCb 4:2:0  */ @@ -366,6 +369,9 @@ struct v4l2_pix_format {
+> > > #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12 
+> > > RGRG.. GBGB.. */ /* 10bit raw bayer DPCM compressed to 8 bits */ 
+> > > #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> > > +	/* 10bit raw bayer a-law compressed to 8 bits */ #define
+> > > +V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
+> > > +
+> > 
+> > That's not very future-proof, how would you describe SGBRG10ALAW8 for
+> > instance ?
+> > 
+> > Maybe it's time to standardize FOURCCs for Bayer new formats. We have 4
+> > characters, we could start with 'B' to denote Bayer, followed by one
+> > character for the order, one for the compression, and one for the number
+> > of bits.
+> 
+> I agree.
+> May be ('B', 'G', 'A', '8') is fine for the above?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/l64781.c |  116 ++++++++++++++++++----------------
- 1 files changed, 62 insertions(+), 54 deletions(-)
+We need to describe at last BGGR, GBRG, GRBG and RGGB. We could use 'B', 'g', 
+'G' and 'R' respectively for the second character. The third character would 
+be 'A' for A-law and 'D' for DPCM, and the fourth character could describe the 
+bus width in bits from 0 to 15 with '0' - '9', 'A' - 'F'. However, I suspect 
+that we will need 16-bit wide busses for raw Bayer at some point, and a 0 
+width is definitely not useful. We could thus offset the width by some value.
 
-diff --git a/drivers/media/dvb/frontends/l64781.c b/drivers/media/dvb/frontends/l64781.c
-index 1f1c598..1784e34 100644
---- a/drivers/media/dvb/frontends/l64781.c
-+++ b/drivers/media/dvb/frontends/l64781.c
-@@ -117,18 +117,17 @@ static int reset_and_configure (struct l64781_state* state)
- 	return (i2c_transfer(state->i2c, &msg, 1) == 1) ? 0 : -ENODEV;
- }
- 
--static int apply_frontend_param (struct dvb_frontend* fe, struct dvb_frontend_parameters *param)
-+static int apply_frontend_param (struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct l64781_state* state = fe->demodulator_priv;
- 	/* The coderates for FEC_NONE, FEC_4_5 and FEC_FEC_6_7 are arbitrary */
- 	static const u8 fec_tab[] = { 7, 0, 1, 2, 9, 3, 10, 4 };
- 	/* QPSK, QAM_16, QAM_64 */
- 	static const u8 qam_tab [] = { 2, 4, 0, 6 };
--	static const u8 bw_tab [] = { 8, 7, 6 };  /* 8Mhz, 7MHz, 6MHz */
- 	static const u8 guard_tab [] = { 1, 2, 4, 8 };
- 	/* The Grundig 29504-401.04 Tuner comes with 18.432MHz crystal. */
- 	static const u32 ppm = 8000;
--	struct dvb_ofdm_parameters *p = &param->u.ofdm;
- 	u32 ddfs_offset_fixed;
- /*	u32 ddfs_offset_variable = 0x6000-((1000000UL+ppm)/ */
- /*			bw_tab[p->bandWidth]<<10)/15625; */
-@@ -137,18 +136,29 @@ static int apply_frontend_param (struct dvb_frontend* fe, struct dvb_frontend_pa
- 	u8 val0x04;
- 	u8 val0x05;
- 	u8 val0x06;
--	int bw = p->bandwidth - BANDWIDTH_8_MHZ;
-+	int bw;
-+
-+	switch (p->bandwidth_hz) {
-+	case 8000000:
-+		bw = 8;
-+		break;
-+	case 7000000:
-+		bw = 7;
-+		break;
-+	case 6000000:
-+		bw = 6;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
- 
- 	if (fe->ops.tuner_ops.set_params) {
- 		fe->ops.tuner_ops.set_params(fe);
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	if (param->inversion != INVERSION_ON &&
--	    param->inversion != INVERSION_OFF)
--		return -EINVAL;
--
--	if (bw < 0 || bw > 2)
-+	if (p->inversion != INVERSION_ON &&
-+	    p->inversion != INVERSION_OFF)
- 		return -EINVAL;
- 
- 	if (p->code_rate_HP != FEC_1_2 && p->code_rate_HP != FEC_2_3 &&
-@@ -156,14 +166,14 @@ static int apply_frontend_param (struct dvb_frontend* fe, struct dvb_frontend_pa
- 	    p->code_rate_HP != FEC_7_8)
- 		return -EINVAL;
- 
--	if (p->hierarchy_information != HIERARCHY_NONE &&
-+	if (p->hierarchy != HIERARCHY_NONE &&
- 	    (p->code_rate_LP != FEC_1_2 && p->code_rate_LP != FEC_2_3 &&
- 	     p->code_rate_LP != FEC_3_4 && p->code_rate_LP != FEC_5_6 &&
- 	     p->code_rate_LP != FEC_7_8))
- 		return -EINVAL;
- 
--	if (p->constellation != QPSK && p->constellation != QAM_16 &&
--	    p->constellation != QAM_64)
-+	if (p->modulation != QPSK && p->modulation != QAM_16 &&
-+	    p->modulation != QAM_64)
- 		return -EINVAL;
- 
- 	if (p->transmission_mode != TRANSMISSION_MODE_2K &&
-@@ -174,22 +184,22 @@ static int apply_frontend_param (struct dvb_frontend* fe, struct dvb_frontend_pa
- 	    p->guard_interval > GUARD_INTERVAL_1_4)
- 		return -EINVAL;
- 
--	if (p->hierarchy_information < HIERARCHY_NONE ||
--	    p->hierarchy_information > HIERARCHY_4)
-+	if (p->hierarchy < HIERARCHY_NONE ||
-+	    p->hierarchy > HIERARCHY_4)
- 		return -EINVAL;
- 
--	ddfs_offset_fixed = 0x4000-(ppm<<16)/bw_tab[p->bandwidth]/1000000;
-+	ddfs_offset_fixed = 0x4000-(ppm<<16)/bw/1000000;
- 
- 	/* This works up to 20000 ppm, it overflows if too large ppm! */
- 	init_freq = (((8UL<<25) + (8UL<<19) / 25*ppm / (15625/25)) /
--			bw_tab[p->bandwidth] & 0xFFFFFF);
-+			bw & 0xFFFFFF);
- 
- 	/* SPI bias calculation is slightly modified to fit in 32bit */
- 	/* will work for high ppm only... */
- 	spi_bias = 378 * (1 << 10);
- 	spi_bias *= 16;
--	spi_bias *= bw_tab[p->bandwidth];
--	spi_bias *= qam_tab[p->constellation];
-+	spi_bias *= bw;
-+	spi_bias *= qam_tab[p->modulation];
- 	spi_bias /= p->code_rate_HP + 1;
- 	spi_bias /= (guard_tab[p->guard_interval] + 32);
- 	spi_bias *= 1000;
-@@ -199,10 +209,10 @@ static int apply_frontend_param (struct dvb_frontend* fe, struct dvb_frontend_pa
- 	val0x04 = (p->transmission_mode << 2) | p->guard_interval;
- 	val0x05 = fec_tab[p->code_rate_HP];
- 
--	if (p->hierarchy_information != HIERARCHY_NONE)
-+	if (p->hierarchy != HIERARCHY_NONE)
- 		val0x05 |= (p->code_rate_LP - FEC_1_2) << 3;
- 
--	val0x06 = (p->hierarchy_information << 2) | p->constellation;
-+	val0x06 = (p->hierarchy << 2) | p->modulation;
- 
- 	l64781_writereg (state, 0x04, val0x04);
- 	l64781_writereg (state, 0x05, val0x05);
-@@ -220,7 +230,7 @@ static int apply_frontend_param (struct dvb_frontend* fe, struct dvb_frontend_pa
- 	l64781_writereg (state, 0x1b, spi_bias & 0xff);
- 	l64781_writereg (state, 0x1c, (spi_bias >> 8) & 0xff);
- 	l64781_writereg (state, 0x1d, ((spi_bias >> 16) & 0x7f) |
--		(param->inversion == INVERSION_ON ? 0x80 : 0x00));
-+		(p->inversion == INVERSION_ON ? 0x80 : 0x00));
- 
- 	l64781_writereg (state, 0x22, ddfs_offset_fixed & 0xff);
- 	l64781_writereg (state, 0x23, (ddfs_offset_fixed >> 8) & 0x3f);
-@@ -233,7 +243,8 @@ static int apply_frontend_param (struct dvb_frontend* fe, struct dvb_frontend_pa
- 	return 0;
- }
- 
--static int get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters* param)
-+static int get_frontend(struct dvb_frontend* fe,
-+			struct dtv_frontend_properties *p)
- {
- 	struct l64781_state* state = fe->demodulator_priv;
- 	int tmp;
-@@ -242,98 +253,95 @@ static int get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters*
- 	tmp = l64781_readreg(state, 0x04);
- 	switch(tmp & 3) {
- 	case 0:
--		param->u.ofdm.guard_interval = GUARD_INTERVAL_1_32;
-+		p->guard_interval = GUARD_INTERVAL_1_32;
- 		break;
- 	case 1:
--		param->u.ofdm.guard_interval = GUARD_INTERVAL_1_16;
-+		p->guard_interval = GUARD_INTERVAL_1_16;
- 		break;
- 	case 2:
--		param->u.ofdm.guard_interval = GUARD_INTERVAL_1_8;
-+		p->guard_interval = GUARD_INTERVAL_1_8;
- 		break;
- 	case 3:
--		param->u.ofdm.guard_interval = GUARD_INTERVAL_1_4;
-+		p->guard_interval = GUARD_INTERVAL_1_4;
- 		break;
- 	}
- 	switch((tmp >> 2) & 3) {
- 	case 0:
--		param->u.ofdm.transmission_mode = TRANSMISSION_MODE_2K;
-+		p->transmission_mode = TRANSMISSION_MODE_2K;
- 		break;
- 	case 1:
--		param->u.ofdm.transmission_mode = TRANSMISSION_MODE_8K;
-+		p->transmission_mode = TRANSMISSION_MODE_8K;
- 		break;
- 	default:
- 		printk("Unexpected value for transmission_mode\n");
- 	}
- 
--
--
- 	tmp = l64781_readreg(state, 0x05);
- 	switch(tmp & 7) {
- 	case 0:
--		param->u.ofdm.code_rate_HP = FEC_1_2;
-+		p->code_rate_HP = FEC_1_2;
- 		break;
- 	case 1:
--		param->u.ofdm.code_rate_HP = FEC_2_3;
-+		p->code_rate_HP = FEC_2_3;
- 		break;
- 	case 2:
--		param->u.ofdm.code_rate_HP = FEC_3_4;
-+		p->code_rate_HP = FEC_3_4;
- 		break;
- 	case 3:
--		param->u.ofdm.code_rate_HP = FEC_5_6;
-+		p->code_rate_HP = FEC_5_6;
- 		break;
- 	case 4:
--		param->u.ofdm.code_rate_HP = FEC_7_8;
-+		p->code_rate_HP = FEC_7_8;
- 		break;
- 	default:
- 		printk("Unexpected value for code_rate_HP\n");
- 	}
- 	switch((tmp >> 3) & 7) {
- 	case 0:
--		param->u.ofdm.code_rate_LP = FEC_1_2;
-+		p->code_rate_LP = FEC_1_2;
- 		break;
- 	case 1:
--		param->u.ofdm.code_rate_LP = FEC_2_3;
-+		p->code_rate_LP = FEC_2_3;
- 		break;
- 	case 2:
--		param->u.ofdm.code_rate_LP = FEC_3_4;
-+		p->code_rate_LP = FEC_3_4;
- 		break;
- 	case 3:
--		param->u.ofdm.code_rate_LP = FEC_5_6;
-+		p->code_rate_LP = FEC_5_6;
- 		break;
- 	case 4:
--		param->u.ofdm.code_rate_LP = FEC_7_8;
-+		p->code_rate_LP = FEC_7_8;
- 		break;
- 	default:
- 		printk("Unexpected value for code_rate_LP\n");
- 	}
- 
--
- 	tmp = l64781_readreg(state, 0x06);
- 	switch(tmp & 3) {
- 	case 0:
--		param->u.ofdm.constellation = QPSK;
-+		p->modulation = QPSK;
- 		break;
- 	case 1:
--		param->u.ofdm.constellation = QAM_16;
-+		p->modulation = QAM_16;
- 		break;
- 	case 2:
--		param->u.ofdm.constellation = QAM_64;
-+		p->modulation = QAM_64;
- 		break;
- 	default:
--		printk("Unexpected value for constellation\n");
-+		printk("Unexpected value for modulation\n");
- 	}
- 	switch((tmp >> 2) & 7) {
- 	case 0:
--		param->u.ofdm.hierarchy_information = HIERARCHY_NONE;
-+		p->hierarchy = HIERARCHY_NONE;
- 		break;
- 	case 1:
--		param->u.ofdm.hierarchy_information = HIERARCHY_1;
-+		p->hierarchy = HIERARCHY_1;
- 		break;
- 	case 2:
--		param->u.ofdm.hierarchy_information = HIERARCHY_2;
-+		p->hierarchy = HIERARCHY_2;
- 		break;
- 	case 3:
--		param->u.ofdm.hierarchy_information = HIERARCHY_4;
-+		p->hierarchy = HIERARCHY_4;
- 		break;
- 	default:
- 		printk("Unexpected value for hierarchy\n");
-@@ -341,12 +349,12 @@ static int get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters*
- 
- 
- 	tmp = l64781_readreg (state, 0x1d);
--	param->inversion = (tmp & 0x80) ? INVERSION_ON : INVERSION_OFF;
-+	p->inversion = (tmp & 0x80) ? INVERSION_ON : INVERSION_OFF;
- 
- 	tmp = (int) (l64781_readreg (state, 0x08) |
- 		     (l64781_readreg (state, 0x09) << 8) |
- 		     (l64781_readreg (state, 0x0a) << 16));
--	param->frequency += tmp;
-+	p->frequency += tmp;
- 
- 	return 0;
- }
-@@ -564,7 +572,7 @@ error:
- }
- 
- static struct dvb_frontend_ops l64781_ops = {
--
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name = "LSI L64781 DVB-T",
- 		.type = FE_OFDM,
-@@ -584,8 +592,8 @@ static struct dvb_frontend_ops l64781_ops = {
- 	.init = l64781_init,
- 	.sleep = l64781_sleep,
- 
--	.set_frontend_legacy = apply_frontend_param,
--	.get_frontend_legacy = get_frontend,
-+	.set_frontend = apply_frontend_param,
-+	.get_frontend = get_frontend,
- 	.get_tune_settings = l64781_get_tune_settings,
- 
- 	.read_status = l64781_read_status,
+This is just a preliminary idea, I'm open to suggestions.
+
+> > >  	/*
+> > >  	
+> > >  	 * 10bit raw bayer, expanded to 16 bits
+> > >  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+
 -- 
-1.7.8.352.g876a6
+Regards,
 
+Laurent Pinchart
