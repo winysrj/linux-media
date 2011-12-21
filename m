@@ -1,177 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from seiner.com ([66.178.130.209]:57543 "EHLO www.seiner.lan"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754998Ab1LEEp6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 4 Dec 2011 23:45:58 -0500
-Received: from www.seiner.lan ([192.168.128.6] ident=yan)
-	by www.seiner.lan with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.69)
-	(envelope-from <yan@seiner.com>)
-	id 1RXQRB-0001Ro-8c
-	for linux-media@vger.kernel.org; Sun, 04 Dec 2011 20:45:57 -0800
-Message-ID: <4EDC4C84.2030904@seiner.com>
-Date: Sun, 04 Dec 2011 20:45:56 -0800
-From: Yan Seiner <yan@seiner.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:34035 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751955Ab1LUVHZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 16:07:25 -0500
+Received: by eaad14 with SMTP id d14so1489455eaa.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Dec 2011 13:07:24 -0800 (PST)
 MIME-Version: 1.0
+Date: Wed, 21 Dec 2011 22:07:24 +0100
+Message-ID: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com>
+Subject: Add tuner_type to zl10353 config and use it for reporting signal
+ directly from tuner.
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: Re: cx231xx kernel oops
-References: <4EDC25F1.4000909@seiner.com> <1323058527.12343.3.camel@palomino.walls.org>
-In-Reply-To: <1323058527.12343.3.camel@palomino.walls.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/mixed; boundary=0015175d075e01c17304b4a0923c
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Walls wrote:
-> On Sun, 2011-12-04 at 18:01 -0800, Yan Seiner wrote:
->   
->> I am experiencing a kernel oops when trying to use a Hauppage USB Live 2 
->> frame grabber.  The oops is below.
->>
->> The system is a SOC 260Mhz Broadcom BCM47XX access point running OpenWRT.
->>
->> root@anchor:/# uname -a
->> Linux anchor 3.0.3 #13 Sun Dec 4 08:04:41 PST 2011 mips GNU/Linux
->>
->> The OOPS could be due to the limited hardware or something else.  I'd 
->> appreciate any suggestions for making this work.  I was hoping with 
->> hardware compression I could make it work on this platform.  I am 
->> currently using a Hauppage USB Live (saa7115 based) with no problems but 
->> with limited resolution.
->>
->> cx231xx v4l2 driver loaded.
->> cx231xx #0: New device Hauppauge Hauppauge Device @ 480 Mbps (2040:c200) with 5 interfaces
->> cx231xx #0: registering interface 1
->> cx231xx #0: can't change interface 3 alt no. to 3: Max. Pkt size = 0
->> cx231xx #0: can't change interface 4 alt no. to 1: Max. Pkt size = 0
->> cx231xx #0: Identified as Hauppauge USB Live 2 (card=9)
->> cx231xx #0: cx231xx_dif_set_standard: setStandard to ffffffff
->> cx231xx #0: Changing the i2c master port to 3
->> cx231xx #0: cx25840 subdev registration failure
->>     
->              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-> The cx231xx driver requires the cx25840 module.  I'll wager you didn't
-> install it on your router.
->
->   
+--0015175d075e01c17304b4a0923c
+Content-Type: text/plain; charset=ISO-8859-1
 
-I made sure the module was loaded; same thing.  :-(
+XC4000 based cards are not using AGC control in normal way, so it is
+not possible to get signal level from AGC registres of zl10353
+demodulator, instead of this i send previous patch to implement signal
+level directly in xc4000 tuner and now sending patch for zl10353 to
+implement this future for digital mode. Signal reporting is very
+accurate and was well tested on 3 different Leadtek XC4000 cards.
 
-Module                  Size  Used by    Tainted: G 
-cx231xx               124608  0
-cx2341x                13552  1 cx231xx
-cx25840                35568  2
-rc_core                12640  1 cx231xx
-videobuf_vmalloc        3168  1 cx231xx
-videobuf_core          12384  2 cx231xx,videobuf_vmalloc
+--0015175d075e01c17304b4a0923c
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="Add-tuner-type-for-zl10353-demodulator.patch"
+Content-Disposition: attachment;
+	filename="Add-tuner-type-for-zl10353-demodulator.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gwgtx0710
 
-I was not able to catch the first bit.
-
-cx231xx #1: can't change interface 4 alt no. to 1: Max. Pkt size = 0
-cx231xx #1: can't change interface 4 alt no. to 1 (err=-22)
-cx231xx #1: Identified as Hauppauge USB Live 2 (card=9)
-cx231xx #1: cx231xx_dif_set_standard: setStandard to ffffffff
-cx231xx #1: can't change interface 5 alt no. to 0 (err=-22)
-cx231xx #1: Changing the i2c master port to 3
-cx25840 3-0044: cx23102 A/V decoder found @ 0x88 (cx231xx #1)
-cx25840 3-0044:  Firmware download size changed to 16 bytes max length
-cx25840 3-0044: unable to open firmware v4l-cx231xx-avcore-01.fw
-cx231xx #1: cx231xx #1: v4l2 driver version 0.0.1
-cx231xx #1: cx231xx_dif_set_standard: setStandard to ffffffff
-cx231xx #1: video_mux : 0
-cx231xx #1: do_mode_ctrl_overrides : 0xb000
-cx231xx #1: do_mode_ctrl_overrides NTSC
-cx231xx #1: cx231xx #1/0: registered device video1 [v4l2]
-cx231xx #1: cx231xx #1/0: registered device vbi1
-cx231xx #1: V4L2 device registered as video1 and vbi1
-cx231xx #1: EndPoint Addr 0x84, Alternate settings: 2
-cx231xx #1: Alternate setting 0, max size= 64
-cx231xx #1: Alternate setting 1, max size= 728
-CPU 0 Unable to handle kernel paging request at virtual address 
-00000000, epc == 80f84e5c, ra == 80f84e30
-Oops[#1]:
-Cpu 0
-$ 0   : 00000000 1000fc00 80e2f860 80e2f800
-$ 4   : 80f9ad58 00005095 ffffffff 00000000
-$ 8   : 0000000a 00000001 00000001 0000000d
-$12   : 000000ff ffffffe0 8103f760 00000000
-$16   : 81e30000 80c9f800 80fa0000 00000000
-$20   : 00000002 00000000 81e300f8 00000001
-$24   : 00000002 801539e0                 
-$28   : 80c74000 80c75a88 80fa0000 80f84e30
-Hi    : 00000000
-Lo    : 00000000
-epc   : 80f84e5c 0x80f84e5c
-    Not tainted
-ra    : 80f84e30 0x80f84e30
-Status: 1000fc03    KERNEL EXL IE
-Cause : 00800008
-BadVA : 00000000
-PrId  : 00029006 (Broadcom BMIPS3300)
-Modules linked in: cx231xx cx2341x cx25840 rc_core videobuf_vmalloc 
-videobuf_core saa7115 usbvision pl2303 v4l2_common videodev usb_storage 
-usbserial i2c_dev i2c_core ohci_hcd nf_nat_irc nf_conntrack_irc 
-nf_nat_ftp nf_conntrack_ftp ipt_MASQUERADE iptable_nat nf_nat 
-xt_conntrack xt_NOTRACK iptable_raw xt_state nf_conntrack_ipv4 
-nf_defrag_ipv4 nf_conntrack ehci_hcd sd_mod ipt_REJECT xt_TCPMSS ipt_LOG 
-xt_comment xt_multiport xt_mac xt_limit iptable_mangle iptable_filter 
-ip_tables xt_tcpudp x_tables tun vfat fat ext4 jbd2 mbcache b43legacy 
-b43 nls_iso8859_1 nls_cp437 mac80211 usbcore scsi_mod nls_base crc16 
-cfg80211 compat input_core arc4 aes_generic crypto_algapi switch_robo 
-switch_core diag
-Process khubd (pid: 596, threadinfo=80c74000, task=81a2d1a8, tls=00000000)
-Stack : 802c4084 81e30000 00000001 000002d8 00002040 0000c200 00000003 
-8011fa58
-        70756148 67756170 61482065 61707075 20656775 69766544 00206563 
-00000000
-        00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000
-        00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000
-        00000000 00000000 00000000 00000000 00000000 00000000 00000000 
-00000000
-        ...
-Call Trace:[<8011fa58>] 0x8011fa58
-[<80c8cd9c>] 0x80c8cd9c
-[<8015db94>] 0x8015db94
-[<8015df14>] 0x8015df14
-[<8015e118>] 0x8015e118
-[<8015e0e8>] 0x8015e0e8
-[<8015cb28>] 0x8015cb28
-[<801197ac>] 0x801197ac
-[<8015dd14>] 0x8015dd14
-[<8015b9e0>] 0x8015b9e0
-[<80c89d54>] 0x80c89d54
-[<80c8bf80>] 0x80c8bf80
-[<800e15a8>] 0x800e15a8
-[<80c92e58>] 0x80c92e58
-[<8015df14>] 0x8015df14
-[<8015e118>] 0x8015e118
-[<8015e0e8>] 0x8015e0e8
-[<8015cb28>] 0x8015cb28
-[<801197ac>] 0x801197ac
-[<8015dd14>] 0x8015dd14
-[<8015b9e0>] 0x8015b9e0
-[<80c83f2c>] 0x80c83f2c
-[<80c84d1c>] 0x80c84d1c
-[<80038150>] 0x80038150
-[<80c83f90>] 0x80c83f90
-[<80037a0c>] 0x80037a0c
-[<800070f0>] 0x800070f0
-[<8003798c>] 0x8003798c
-[<800070e0>] 0x800070e0
-
-
-Code: 00021080  00621021  8c550000 <8ea20000> 02002821  8c42000c  
-0000a021  90460002  a6060c18
-Disabling lock debugging due to kernel taint
-cx231xx #0: cx231xx_stop_stream():: ep_mask = 8
-cx231xx #0: can't change interface 3 alt no. to 0 (err=-22)
-
-
-
-
--- 
-Few people are capable of expressing with equanimity opinions which differ from the prejudices of their social environment. Most people are even incapable of forming such opinions.
-    Albert Einstein
-
+RnJvbSA3NmFmMzk2ZTUzYzFkY2Y0OTlmNWMwMTZhYjhkZGQ5NWE0ODU2OTkyIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiA8dGh1bmRlci5tQGVtYWlsLmN6PgpEYXRlOiBX
+ZWQsIDIxIERlYyAyMDExIDIxOjU1OjU4ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gVGhpcyBwYXRj
+aCBhZGRzIHR1bmVyX3R5cGUgY29uZmlnIHZhbHVlIGZvciB6bDEwMzUzIGRlbW9kdWxhdG9yIGFu
+ZAogZmlsbCBpdCBmb3IgTGVhZHRlayBiYXNlZCB4YzQwMDAgdHVuZXJzLiBFeHRyYSB2YWx1ZSBz
+aG91bGQgYmUgdXNlZAogaW4gZnV0dXJlIGZvciB0dW5lciBzcGVjaWZpYyBmdW5jdGlvbnMgaW4g
+emwxMDM1MyBkZW1vZHVsYXRvciwgZmlyc3QKIHVzYWdlIGlzIG5vdyBmb3IgZGlyZWN0bHkgcmVh
+ZGluZyBzaWduYWwgc3RyZW5ndGggZnJvbSB4YzQwMDAgdHVuZXIKIHdoaWNoIGlzIHZlcnkgYWNj
+dXJhdGUgaW5zdGVhZCBvZiByZWFkaW5nIHNpZ25hbCBmcm9tIEFHQyByZWdpc3RlcnMuCgotLS0K
+IGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96bDEwMzUzLmMgICAgIHwgICAxMiArKysrKysr
+KystLS0KIGRyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96bDEwMzUzLmggICAgIHwgICAgMyAr
+KysKIGRyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LWR2Yi5jIHwgICAxMCArKysr
+KysrKystCiBkcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYyAgICAgICB8ICAgIDkg
+KysrKysrKystCiA0IGZpbGVzIGNoYW5nZWQsIDI5IGluc2VydGlvbnMoKyksIDUgZGVsZXRpb25z
+KC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL3psMTAzNTMuYyBi
+L2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96bDEwMzUzLmMKaW5kZXggYWRiYmY2ZC4uN2Vh
+M2EyZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL3psMTAzNTMuYwor
+KysgYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvemwxMDM1My5jCkBAIC0yNiw2ICsyNiw3
+IEBACiAjaW5jbHVkZSA8bGludXgvc3RyaW5nLmg+CiAjaW5jbHVkZSA8bGludXgvc2xhYi5oPgog
+I2luY2x1ZGUgPGFzbS9kaXY2NC5oPgorI2luY2x1ZGUgPG1lZGlhL3R1bmVyLmg+CiAKICNpbmNs
+dWRlICJkdmJfZnJvbnRlbmQuaCIKICNpbmNsdWRlICJ6bDEwMzUzX3ByaXYuaCIKQEAgLTUyMSwx
+MCArNTIyLDE1IEBAIHN0YXRpYyBpbnQgemwxMDM1M19yZWFkX3NpZ25hbF9zdHJlbmd0aChzdHJ1
+Y3QgZHZiX2Zyb250ZW5kICpmZSwgdTE2ICpzdHJlbmd0aCkKIHsKIAlzdHJ1Y3QgemwxMDM1M19z
+dGF0ZSAqc3RhdGUgPSBmZS0+ZGVtb2R1bGF0b3JfcHJpdjsKIAotCXUxNiBzaWduYWwgPSB6bDEw
+MzUzX3JlYWRfcmVnaXN0ZXIoc3RhdGUsIEFHQ19HQUlOXzEpIDw8IDEwIHwKLQkJICAgICB6bDEw
+MzUzX3JlYWRfcmVnaXN0ZXIoc3RhdGUsIEFHQ19HQUlOXzApIDw8IDIgfCAzOworCS8qIGZvciBY
+QzQwMDAgd2UgY2FuIHJlYWQgZXhhY3Qgc2lnbmFsIHZhbHVlIGRpcmVjdGx5ICovCisJaWYgKHN0
+YXRlLT5jb25maWcudHVuZXJfdHlwZSA9PSBUVU5FUl9YQzQwMDApIHsKKwkJZmUtPm9wcy50dW5l
+cl9vcHMuZ2V0X3JmX3N0cmVuZ3RoKGZlLCBzdHJlbmd0aCk7CisJfSBlbHNlIHsKKwkJdTE2IHNp
+Z25hbCA9IHpsMTAzNTNfcmVhZF9yZWdpc3RlcihzdGF0ZSwgQUdDX0dBSU5fMSkgPDwgMTAgfAor
+CQkJICAgICB6bDEwMzUzX3JlYWRfcmVnaXN0ZXIoc3RhdGUsIEFHQ19HQUlOXzApIDw8IDIgfCAz
+OwogCi0JKnN0cmVuZ3RoID0gfnNpZ25hbDsKKwkJKnN0cmVuZ3RoID0gfnNpZ25hbDsKKwl9CiAK
+IAlyZXR1cm4gMDsKIH0KZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96
+bDEwMzUzLmggYi9kcml2ZXJzL21lZGlhL2R2Yi9mcm9udGVuZHMvemwxMDM1My5oCmluZGV4IDZl
+M2NhOWUuLjY0ZWNiYWUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvZHZiL2Zyb250ZW5kcy96
+bDEwMzUzLmgKKysrIGIvZHJpdmVycy9tZWRpYS9kdmIvZnJvbnRlbmRzL3psMTAzNTMuaApAQCAt
+NDUsNiArNDUsOSBAQCBzdHJ1Y3QgemwxMDM1M19jb25maWcKIAkvKiBjbG9jayBjb250cm9sIHJl
+Z2lzdGVycyAoMHg1MS0weDU0KSAqLwogCXU4IGNsb2NrX2N0bF8xOyAgLyogZGVmYXVsdDogMHg0
+NiAqLwogCXU4IHBsbF8wOyAgICAgICAgLyogZGVmYXVsdDogMHgxNSAqLworCisJLyogZm9yIHR1
+bmVyIHNwZWNpZmljIGZ1bmN0aW9ucyAqLworCXU4IHR1bmVyX3R5cGU7CiB9OwogCiAjaWYgZGVm
+aW5lZChDT05GSUdfRFZCX1pMMTAzNTMpIHx8IChkZWZpbmVkKENPTkZJR19EVkJfWkwxMDM1M19N
+T0RVTEUpICYmIGRlZmluZWQoTU9EVUxFKSkKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3gyMzg4NS9jeDIzODg1LWR2Yi5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4
+MjM4ODUtZHZiLmMKaW5kZXggZjA0ODJiMi4uOTgwMTVmZSAxMDA2NDQKLS0tIGEvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRl
+by9jeDIzODg1L2N4MjM4ODUtZHZiLmMKQEAgLTQwOCw2ICs0MDgsMTQgQEAgc3RhdGljIHN0cnVj
+dCB6bDEwMzUzX2NvbmZpZyBkdmljb19mdXNpb25oZHR2X3hjMzAyOCA9IHsKIAkuZGlzYWJsZV9p
+MmNfZ2F0ZV9jdHJsID0gMSwKIH07CiAKK3N0YXRpYyBzdHJ1Y3QgemwxMDM1M19jb25maWcgbGVh
+ZHRla194YzQwMDBfY29uZmlnID0geworCS5kZW1vZF9hZGRyZXNzID0gMHgwZiwKKwkuaWYyICAg
+ICAgICAgICA9IDQ1NjAwLAorCS5ub190dW5lciAgICAgID0gMSwKKwkuZGlzYWJsZV9pMmNfZ2F0
+ZV9jdHJsID0gMSwKKwkudHVuZXJfdHlwZSAgICA9IFRVTkVSX1hDNDAwMCwKK307CisKIHN0YXRp
+YyBzdHJ1Y3Qgc3R2MDkwMF9yZWcgc3R2MDkwMF90c19yZWdzW10gPSB7CiAJeyBSMDkwMF9UU0dF
+TkVSQUwsIDB4MDAgfSwKIAl7IFIwOTAwX1AxX1RTU1BFRUQsIDB4NDAgfSwKQEAgLTkyNiw3ICs5
+MzQsNyBAQCBzdGF0aWMgaW50IGR2Yl9yZWdpc3RlcihzdHJ1Y3QgY3gyMzg4NV90c3BvcnQgKnBv
+cnQpCiAJCWkyY19idXMgPSAmZGV2LT5pMmNfYnVzWzBdOwogCiAJCWZlMC0+ZHZiLmZyb250ZW5k
+ID0gZHZiX2F0dGFjaCh6bDEwMzUzX2F0dGFjaCwKLQkJCQkJICAgICAgICZkdmljb19mdXNpb25o
+ZHR2X3hjMzAyOCwKKwkJCQkJICAgICAgICZsZWFkdGVrX3hjNDAwMF9jb25maWcsCiAJCQkJCSAg
+ICAgICAmaTJjX2J1cy0+aTJjX2FkYXApOwogCQlpZiAoZmUwLT5kdmIuZnJvbnRlbmQgIT0gTlVM
+TCkgewogCQkJc3RydWN0IGR2Yl9mcm9udGVuZAkqZmU7CmRpZmYgLS1naXQgYS9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4
+LWR2Yi5jCmluZGV4IDU5MmYzYWEuLmE2MmNhNzYgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LWR2Yi5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4
+LWR2Yi5jCkBAIC01NDAsNiArNTQwLDEzIEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgemwxMDM1M19j
+b25maWcgY3g4OF9waW5uYWNsZV9oeWJyaWRfcGN0diA9IHsKIAkuaWYyICAgICAgICAgICA9IDQ1
+NjAwLAogfTsKIAorc3RhdGljIGNvbnN0IHN0cnVjdCB6bDEwMzUzX2NvbmZpZyBsZWFkdGVrX3hj
+NDAwMF9jb25maWcgPSB7CisJLmRlbW9kX2FkZHJlc3MgPSAoMHgxZSA+PiAxKSwKKwkubm9fdHVu
+ZXIgICAgICA9IDEsCisJLmlmMiAgICAgICAgICAgPSA0NTYwMCwKKwkudHVuZXJfdHlwZSAgICA9
+IFRVTkVSX1hDNDAwMCwKK307CisKIHN0YXRpYyBjb25zdCBzdHJ1Y3QgemwxMDM1M19jb25maWcg
+Y3g4OF9nZW5pYXRlY2hfeDgwMDBfbXQgPSB7CiAJLmRlbW9kX2FkZHJlc3MgPSAoMHgxZSA+PiAx
+KSwKIAkubm9fdHVuZXIgPSAxLApAQCAtMTM0Miw3ICsxMzQ5LDcgQEAgc3RhdGljIGludCBkdmJf
+cmVnaXN0ZXIoc3RydWN0IGN4ODgwMl9kZXYgKmRldikKIAljYXNlIENYODhfQk9BUkRfV0lORkFT
+VF9EVFYxODAwSF9YQzQwMDA6CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMjAwMEhfUExV
+UzoKIAkJZmUwLT5kdmIuZnJvbnRlbmQgPSBkdmJfYXR0YWNoKHpsMTAzNTNfYXR0YWNoLAotCQkJ
+CQkgICAgICAgJmN4ODhfcGlubmFjbGVfaHlicmlkX3BjdHYsCisJCQkJCSAgICAgICAmbGVhZHRl
+a194YzQwMDBfY29uZmlnLAogCQkJCQkgICAgICAgJmNvcmUtPmkyY19hZGFwKTsKIAkJaWYgKGZl
+MC0+ZHZiLmZyb250ZW5kKSB7CiAJCQlzdHJ1Y3QgeGM0MDAwX2NvbmZpZyBjZmcgPSB7Ci0tIAox
+LjcuMi4zCgo=
+--0015175d075e01c17304b4a0923c--
