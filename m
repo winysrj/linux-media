@@ -1,53 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:42899 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752376Ab1LEISW convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 03:18:22 -0500
-Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:8db5])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 7FDF89404FF
-	for <linux-media@vger.kernel.org>; Mon,  5 Dec 2011 09:18:15 +0100 (CET)
-Date: Mon, 5 Dec 2011 09:19:14 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: [GIT PATCHES FOR 3.3] gspca for_v3.3
-Message-ID: <20111205091914.05095cf3@tele>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-we0-f174.google.com ([74.125.82.174]:60421 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754055Ab1LUWOS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 21 Dec 2011 17:14:18 -0500
+Received: by werm1 with SMTP id m1so2972154wer.19
+        for <linux-media@vger.kernel.org>; Wed, 21 Dec 2011 14:14:17 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAOTqeXoavdYLkfp+FRLj3v24z2m+xZHiKhnOOiHJhZ+Y858y9w@mail.gmail.com>
+References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
+	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
+	<20111020162340.GC7530@jannau.net>
+	<CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com>
+	<20111020170811.GD7530@jannau.net>
+	<CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com>
+	<CAOTqeXpJfk-ENgxhELo03LBHqdtf957knXQzOjYo0YO7sGcAbg@mail.gmail.com>
+	<CAOTqeXpY3uvy7Dq3fi1wTD5nRx1r1LMo7=XEfJdxyURY2opKuw@mail.gmail.com>
+	<4EB7CD59.1010303@redhat.com>
+	<CAOTqeXoavdYLkfp+FRLj3v24z2m+xZHiKhnOOiHJhZ+Y858y9w@mail.gmail.com>
+Date: Wed, 21 Dec 2011 17:14:17 -0500
+Message-ID: <CAOTqeXpb4EsD2q0Gz-dw5M27COpc_YE4C6Pi1jP1MYNEvSC8hQ@mail.gmail.com>
+Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
+ firmware versions > 0.15
+From: Taylor Ralph <taylor.ralph@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Janne Grunau <j@jannau.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 36d36b884c745c507d9b3f60eb42925749f7d758:
+On Mon, Nov 7, 2011 at 7:54 PM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
+> On Mon, Nov 7, 2011 at 7:21 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+>> Em 21-10-2011 01:33, Taylor Ralph escreveu:
+>>> On Thu, Oct 20, 2011 at 3:26 PM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
+>>>> On Thu, Oct 20, 2011 at 2:14 PM, Devin Heitmueller
+>>>> <dheitmueller@kernellabs.com> wrote:
+>>>>> On Thu, Oct 20, 2011 at 1:08 PM, Janne Grunau <j@jannau.net> wrote:
+>>>>>> I think such scenario is unlikely but I don't know it for sure and
+>>>>>> I don't want to force anyone to test every firmware version.
+>>>>>> Ignoring them for firmware version < 16 should be safe since we assume
+>>>>>> they had no effect. Returning -EINVAL might break API-ignoring
+>>>>>> applications written with the HD PVR in mind but I think it's a better
+>>>>>> approach than silently ignoring those controls.
+>>>>>
+>>>>> At this point, let's just make it so that the old behavior is
+>>>>> unchanged for old firmwares, meaning from both an API standpoint as
+>>>>> well as what the values are. †At some point if somebody cares enough
+>>>>> to go back and fix the support so that the controls actually work with
+>>>>> old firmwares, they can take that up as a separate task. †In reality,
+>>>>> it is likely that nobody will ever do that, as the "easy answer" is
+>>>>> just to upgrade to firmware 16.
+>>>>>
+>>>>> Taylor, could you please tweak your patch to that effect and resubmit?
+>>>>>
+>>>>
+>>>> Sure, I'll try to get to it tonight and have it tested.
+>>>>
+>>>
+>>> OK, I've updated the patch per your requests. I made this patch
+>>> against the latest kernel source but I'm unable to test since my
+>>> 2.6.32 kernel has symbol issues with the new v4l code.
+>>
+>> Please, add your Signed-off-by: to the patch. This is a requirement for
+>> it to be accepted upstream[1].
+>>
+>> Thanks,
+>> Mauro
+>>
+>> [1] See: http://linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Developer.27s_Certificate_of_Origin_1.1
+>>
+>>>
+>>> Regards.
+>>> --
+>>> Taylor
+>>
+>>
+>
+> Sorry about that. The updated patch is attached.
+>
+> Thanks.
+> --
+> Taylor
 
-  [media] tm6000: Warning cleanup (2011-11-28 21:58:54 -0200)
+Ping. Has this patch been committed yet?
 
-are available in the git repository at:
-  git://linuxtv.org/jfrancois/gspca.git for_v3.3
-
-Jean-Fran√ßois Moine (6):
-      gspca: Remove the useless variable 'reverse_alts'
-      gspca: Remove the useless variable 'nbalt'
-      gspca - sonixj: Bad sensor mode at start time.
-      gspca - sonixj: Change color control for sensor po2030n
-      gspca - topro: Lower the frame rate in 640x480 for the tp6800
-      gspca - zc3xx: Bad initialization of zc305/gc0303
-
- drivers/media/video/gspca/benq.c        |    7 ++-
- drivers/media/video/gspca/gl860/gl860.c |    1 -
- drivers/media/video/gspca/gspca.c       |    3 +-
- drivers/media/video/gspca/gspca.h       |    2 -
- drivers/media/video/gspca/konica.c      |    3 -
- drivers/media/video/gspca/mars.c        |    1 -
- drivers/media/video/gspca/nw80x.c       |    1 -
- drivers/media/video/gspca/ov519.c       |    1 -
- drivers/media/video/gspca/se401.c       |   10 +++-
- drivers/media/video/gspca/sonixj.c      |   18 +++--
- drivers/media/video/gspca/spca561.c     |    1 -
- drivers/media/video/gspca/topro.c       |    2 +-
- drivers/media/video/gspca/xirlink_cit.c |    2 -
- drivers/media/video/gspca/zc3xx.c       |  117 +++++++++++++------------------
- 14 files changed, 78 insertions(+), 91 deletions(-)
-
--- 
-Ken ar c'henta√±	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Thanks.
+--
+Taylor
