@@ -1,89 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:49796 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553Ab1LFSsr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 13:48:47 -0500
-Received: by wgbdr13 with SMTP id dr13so6710998wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2011 10:48:46 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAHFNz9KjVzH2RCKNWYH2DcwZXM1oNvSLXCx41Mk3cSiuTT7yaw@mail.gmail.com>
-References: <1322577083-24728-1-git-send-email-manio@skyboo.net>
-	<CAHFNz9KjVzH2RCKNWYH2DcwZXM1oNvSLXCx41Mk3cSiuTT7yaw@mail.gmail.com>
-Date: Wed, 7 Dec 2011 00:18:46 +0530
-Message-ID: <CAHFNz9KFO1ykuOP9YqJp1Tu+1uN4h__mjMhF6aRADocso0JE6g@mail.gmail.com>
-Subject: Re: [PATCH] stv090x: implement function for reading uncorrected
- blocks count
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mariusz Bialonczyk <manio@skyboo.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:29493 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755229Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNdt019832
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 14/28] [media] mc44s803: use DVBv5 parameters
+Date: Thu, 22 Dec 2011 09:20:02 -0200
+Message-Id: <1324552816-25704-15-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-14-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-7-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-8-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-9-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-12-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-13-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-14-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 7, 2011 at 12:04 AM, Manu Abraham <abraham.manu@gmail.com> wrote:
-> On Tue, Nov 29, 2011 at 8:01 PM, Mariusz Bialonczyk <manio@skyboo.net> wrote:
->> This patch add support for reading UNC blocks for stv090x frontend.
->> Partially based on stv0900 code by Abylay Ospan <aospan@netup.ru>
->>
->> Signed-off-by: Mariusz Bialonczyk <manio@skyboo.net>
->> ---
->>  drivers/media/dvb/frontends/stv090x.c |   32 +++++++++++++++++++++++++++++++-
->>  1 files changed, 31 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/dvb/frontends/stv090x.c b/drivers/media/dvb/frontends/stv090x.c
->> index 52d8712..ad6141f 100644
->> --- a/drivers/media/dvb/frontends/stv090x.c
->> +++ b/drivers/media/dvb/frontends/stv090x.c
->> @@ -3687,6 +3687,35 @@ static int stv090x_read_cnr(struct dvb_frontend *fe, u16 *cnr)
->>        return 0;
->>  }
->>
->> +static int stv090x_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
->> +{
->> +       struct stv090x_state *state = fe->demodulator_priv;
->> +       u32 reg_0, reg_1;
->> +       u32 val_header_err, val_packet_err;
->> +
->> +       switch (state->delsys) {
->> +       case STV090x_DVBS2:
->> +               /* DVB-S2 delineator error count */
->> +
->> +               /* retrieving number for erronous headers */
->> +               reg_1 = stv090x_read_reg(state, STV090x_P1_BBFCRCKO1);
->> +               reg_0 = stv090x_read_reg(state, STV090x_P1_BBFCRCKO0);
->> +               val_header_err = MAKEWORD16(reg_1, reg_0);
->> +
->> +               /* retrieving number for erronous packets */
->> +               reg_1 = stv090x_read_reg(state, STV090x_P1_UPCRCKO1);
->> +               reg_0 = stv090x_read_reg(state, STV090x_P1_UPCRCKO0);
->> +               val_packet_err = MAKEWORD16(reg_1, reg_0);
->> +
->> +               *ucblocks = val_packet_err + val_header_err;
->
->
-> With UCB, what we imply is the uncorrectable blocks in the Outer
-> coding. The CRC encoder/decoder is at the Physical layer, much prior
-> and is completely different from what is expected of UCB.
->
-> With the stv0900/3, you don't really have a Uncorrectable 's register
-> field, one would need to really calculate that out, rather than
-> reading out CRC errors.
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-Maybe you can try something like this:
-setup ERRCTRL1 to
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mc44s803.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-Bit7-4:1100 (TS error count, packet error final)
-Bit3:reserved:0
-Bit2-0:000 (reset counter on read) 001 (without reset of counter on read)
+diff --git a/drivers/media/common/tuners/mc44s803.c b/drivers/media/common/tuners/mc44s803.c
+index fe5c4b8..5a8758c 100644
+--- a/drivers/media/common/tuners/mc44s803.c
++++ b/drivers/media/common/tuners/mc44s803.c
+@@ -218,18 +218,19 @@ static int mc44s803_set_params(struct dvb_frontend *fe,
+ 			       struct dvb_frontend_parameters *params)
+ {
+ 	struct mc44s803_priv *priv = fe->tuner_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u32 r1, r2, n1, n2, lo1, lo2, freq, val;
+ 	int err;
+ 
+-	priv->frequency = params->frequency;
++	priv->frequency = c->frequency;
+ 
+ 	r1 = MC44S803_OSC / 1000000;
+ 	r2 = MC44S803_OSC /  100000;
+ 
+-	n1 = (params->frequency + MC44S803_IF1 + 500000) / 1000000;
++	n1 = (c->frequency + MC44S803_IF1 + 500000) / 1000000;
+ 	freq = MC44S803_OSC / r1 * n1;
+ 	lo1 = ((60 * n1) + (r1 / 2)) / r1;
+-	freq = freq - params->frequency;
++	freq = freq - c->frequency;
+ 
+ 	n2 = (freq - MC44S803_IF2 + 50000) / 100000;
+ 	lo2 = ((60 * n2) + (r2 / 2)) / r2;
+-- 
+1.7.8.352.g876a6
 
-and the resultant values can be read from
-ERRCNT10
-
-Note that, you get the resultant values as Packet Errors, rather than
-bit errors, so you might need to multiply that by 8.
-
-I have not tried this out. but you can possibly try it.
-
-Regards,
-Manu
