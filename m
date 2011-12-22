@@ -1,68 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:46350 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751285Ab1LTQlq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 11:41:46 -0500
+Received: from mail.kapsi.fi ([217.30.184.167]:45362 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751411Ab1LVQ6Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 11:58:16 -0500
+Message-ID: <4EF361A6.7080305@iki.fi>
+Date: Thu, 22 Dec 2011 18:58:14 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <201112201541.17904.arnd@arndb.de>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<201112121648.52126.arnd@arndb.de>
-	<CAB2ybb_dU7BzJmPo6vA92pe1YCNerCLc+bv7Qi_EfkfGaik6bQ@mail.gmail.com>
-	<201112201541.17904.arnd@arndb.de>
-Date: Tue, 20 Dec 2011 10:41:45 -0600
-Message-ID: <CAF6AEGtOjO6Z6yfHz-ZGz3+NuEMH2M-8=20U6+-xt-gv9XtzaQ@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
- sharing mechanism
-From: Rob Clark <robdclark@gmail.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, linux@arm.linux.org.uk,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: =?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.mmm@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Add tuner_type to zl10353 config and use it for reporting signal
+ directly from tuner.
+References: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com>
+In-Reply-To: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 20, 2011 at 9:41 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Monday 19 December 2011, Semwal, Sumit wrote:
->> I didn't see a consensus on whether dma_buf should enforce some form
->> of serialization within the API - so atleast for v1 of dma-buf, I
->> propose to 'not' impose a restriction, and we can tackle it (add new
->> ops or enforce as design?) whenever we see the first need of it - will
->> that be ok? [I am bending towards the thought that it is a problem to
->> solve at a bigger platform than dma_buf.]
->
-> The problem is generally understood for streaming mappings with a
-> single device using it: if you have a long-running mapping, you have
-> to use dma_sync_*. This obviously falls apart if you have multiple
-> devices and no serialization between the accesses.
->
-> If you don't want serialization, that implies that we cannot have
-> use the  dma_sync_* API on the buffer, which in turn implies that
-> we cannot have streaming mappings. I think that's ok, but then
-> you have to bring back the mmap API on the buffer if you want to
-> allow any driver to provide an mmap function for a shared buffer.
+On 12/21/2011 11:07 PM, Miroslav SlugeÅˆ wrote:
+> XC4000 based cards are not using AGC control in normal way, so it is
+> not possible to get signal level from AGC registres of zl10353
+> demodulator, instead of this i send previous patch to implement signal
+> level directly in xc4000 tuner and now sending patch for zl10353 to
+> implement this future for digital mode. Signal reporting is very
+> accurate and was well tested on 3 different Leadtek XC4000 cards.
 
-I'm thinking for a first version, we can get enough mileage out of it by saying:
-1) only exporter can mmap to userspace
-2) only importers that do not need CPU access to buffer..
+I don't like that patch at all. My opinion is that you should put hacks 
+like to the interface driver. Override demod .read_signal_strength() 
+callback and route it to the tuner callback. No any changes for the 
+demod driver should be done.
 
-This way we can get dmabuf into the kernel, maybe even for 3.3.  I
-know there are a lot of interesting potential uses where this stripped
-down version is good enough.  It probably isn't the final version,
-maybe more features are added over time to deal with importers that
-need CPU access to buffer, sync object, etc.  But we have to start
-somewhere.
+Estimation of the signal strength is a little bit hard when looking 
+demod point of view. Demod gets IF as input signal and thus have mainly 
+idea of IF AGC values. Estimating RF strength is thus very inaccurate 
+from the IF AGC gain. And those IF AGC values are tuner/demod 
+combination dependent too. Sometimes there is also RF AGC available for 
+the demod. With both IF and RF AGC you could estimate more better - but 
+still very inaccurate.
 
-BR,
--R
 
->        Arnd
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+regards
+Antti
+-- 
+http://palosaari.fi/
