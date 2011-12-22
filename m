@@ -1,101 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49087 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752365Ab1LOK3b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 05:29:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC 4/4] omap3isp: Use pixel clock from sensor media bus frameformat
-Date: Thu, 15 Dec 2011 11:29:48 +0100
-Cc: linux-media@vger.kernel.org
-References: <20111215095015.GC3677@valkosipuli.localdomain> <1323942635-13058-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1323942635-13058-4-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112151129.48607.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:2616 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755233Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNsR032747
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 23/28] [media] tda827x: use DVBv5 parameters
+Date: Thu, 22 Dec 2011 09:20:11 -0200
+Message-Id: <1324552816-25704-24-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-23-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-7-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-8-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-9-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-12-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-13-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-14-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-15-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-16-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-17-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-18-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-19-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-20-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-21-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-22-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-23-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-Thanks for the patch.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/tda827x.c |   49 +++++++++++++++++++--------------
+ 1 files changed, 28 insertions(+), 21 deletions(-)
 
-On Thursday 15 December 2011 10:50:35 Sakari Ailus wrote:
-> Configure the ISP based on the pixel clock in media bus frame format.
-> Previously the same was configured from the board code.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/omap3isp/isp.c      |    3 +--
->  drivers/media/video/omap3isp/isp.h      |    3 ++-
->  drivers/media/video/omap3isp/ispvideo.c |    3 +++
->  3 files changed, 6 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/isp.c
-> b/drivers/media/video/omap3isp/isp.c index b818cac..c9bed37 100644
-> --- a/drivers/media/video/omap3isp/isp.c
-> +++ b/drivers/media/video/omap3isp/isp.c
-> @@ -344,7 +344,7 @@ void omap3isp_configure_bridge(struct isp_device *isp,
->   * Set the average pixel clock required by the sensor. The ISP will use
-> the * lowest possible memory bandwidth settings compatible with the clock.
-> **/
-> -static void isp_set_pixel_clock(struct isp_device *isp, unsigned int
-> pixelclk) +void omap3isp_set_pixel_clock(struct isp_device *isp, unsigned
-> int pixelclk) {
->  	isp->isp_ccdc.vpcfg.pixelclk = pixelclk;
->  }
-> @@ -2072,7 +2072,6 @@ static int isp_probe(struct platform_device *pdev)
-> 
->  	isp->autoidle = autoidle;
->  	isp->platform_cb.set_xclk = isp_set_xclk;
-> -	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
-> 
->  	mutex_init(&isp->isp_mutex);
->  	spin_lock_init(&isp->stat_lock);
-> diff --git a/drivers/media/video/omap3isp/isp.h
-> b/drivers/media/video/omap3isp/isp.h index c5935ae..dd7b303 100644
-> --- a/drivers/media/video/omap3isp/isp.h
-> +++ b/drivers/media/video/omap3isp/isp.h
-> @@ -126,7 +126,6 @@ struct isp_reg {
-> 
->  struct isp_platform_callback {
->  	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
-> -	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
->  };
-> 
->  /*
-> @@ -219,6 +218,8 @@ struct isp_device {
->  #define v4l2_dev_to_isp_device(dev) \
->  	container_of(dev, struct isp_device, v4l2_dev)
-> 
-> +void omap3isp_set_pixel_clock(struct isp_device *isp, unsigned int
-> pixelclk); +
->  void omap3isp_hist_dma_done(struct isp_device *isp);
-> 
->  void omap3isp_flush(struct isp_device *isp);
-> diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> b/drivers/media/video/omap3isp/ispvideo.c index cdcf1d0..64f29ac 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.c
-> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> @@ -372,6 +372,9 @@ static int isp_video_validate_pipeline(struct
-> isp_pipeline *pipe) if (IS_ERR_VALUE(ret))
->  					return -EPIPE;
->  			}
-> +			omap3isp_set_pixel_clock(isp,
-> +						 fmt_source.format.pixel_clock
-> +						 * 1000);
-
-Similarly to 3/4, I think this belongs to isp_pipeline_enable(), or even 
-possibly the subdev s_stream operation (same for 3/4 actually).
-
->  		}
-> 
->  		if (subdev->host_priv) {
-
+diff --git a/drivers/media/common/tuners/tda827x.c b/drivers/media/common/tuners/tda827x.c
+index e0d5b43..7316308 100644
+--- a/drivers/media/common/tuners/tda827x.c
++++ b/drivers/media/common/tuners/tda827x.c
+@@ -155,9 +155,11 @@ static int tuner_transfer(struct dvb_frontend *fe,
+ static int tda827xo_set_params(struct dvb_frontend *fe,
+ 			       struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct tda827x_priv *priv = fe->tuner_priv;
+ 	u8 buf[14];
+ 	int rc;
++	u32 band;
+ 
+ 	struct i2c_msg msg = { .addr = priv->i2c_addr, .flags = 0,
+ 			       .buf = buf, .len = sizeof(buf) };
+@@ -165,18 +167,20 @@ static int tda827xo_set_params(struct dvb_frontend *fe,
+ 	u32 N;
+ 
+ 	dprintk("%s:\n", __func__);
+-	switch (params->u.ofdm.bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	if (c->bandwidth_hz == 0) {
++		if_freq = 5000000;
++		band = BANDWIDTH_8_MHZ;
++	} else if (c->bandwidth_hz <= 6000000) {
+ 		if_freq = 4000000;
+-		break;
+-	case BANDWIDTH_7_MHZ:
++		band = BANDWIDTH_6_MHZ;
++	} else if (c->bandwidth_hz <= 7000000) {
+ 		if_freq = 4500000;
+-		break;
+-	default:		   /* 8 MHz or Auto */
++		band = BANDWIDTH_7_MHZ;
++	} else {	/* 8 MHz */
+ 		if_freq = 5000000;
+-		break;
++		band = BANDWIDTH_8_MHZ;
+ 	}
+-	tuner_freq = params->frequency;
++	tuner_freq = c->frequency;
+ 
+ 	i = 0;
+ 	while (tda827x_table[i].lomax < tuner_freq) {
+@@ -220,8 +224,8 @@ static int tda827xo_set_params(struct dvb_frontend *fe,
+ 	if (rc < 0)
+ 		goto err;
+ 
+-	priv->frequency = params->frequency;
+-	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
++	priv->frequency = c->frequency;
++	priv->bandwidth = band;
+ 
+ 	return 0;
+ 
+@@ -516,9 +520,11 @@ static void tda827xa_lna_gain(struct dvb_frontend *fe, int high,
+ static int tda827xa_set_params(struct dvb_frontend *fe,
+ 			       struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct tda827x_priv *priv = fe->tuner_priv;
+ 	struct tda827xa_data *frequency_map = tda827xa_dvbt;
+ 	u8 buf[11];
++	u32 band;
+ 
+ 	struct i2c_msg msg = { .addr = priv->i2c_addr, .flags = 0,
+ 			       .buf = buf, .len = sizeof(buf) };
+@@ -531,18 +537,20 @@ static int tda827xa_set_params(struct dvb_frontend *fe,
+ 	tda827xa_lna_gain(fe, 1, NULL);
+ 	msleep(20);
+ 
+-	switch (params->u.ofdm.bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	if (c->bandwidth_hz == 0) {
++		if_freq = 5000000;
++		band = BANDWIDTH_8_MHZ;
++	} else if (c->bandwidth_hz <= 6000000) {
+ 		if_freq = 4000000;
+-		break;
+-	case BANDWIDTH_7_MHZ:
++		band = BANDWIDTH_6_MHZ;
++	} else if (c->bandwidth_hz <= 7000000) {
+ 		if_freq = 4500000;
+-		break;
+-	default:		   /* 8 MHz or Auto */
++		band = BANDWIDTH_7_MHZ;
++	} else {	/* 8 MHz */
+ 		if_freq = 5000000;
+-		break;
++		band = BANDWIDTH_8_MHZ;
+ 	}
+-	tuner_freq = params->frequency;
++	tuner_freq = c->frequency;
+ 
+ 	if (fe->ops.info.type == FE_QAM) {
+ 		dprintk("%s select tda827xa_dvbc\n", __func__);
+@@ -645,9 +653,8 @@ static int tda827xa_set_params(struct dvb_frontend *fe,
+ 	if (rc < 0)
+ 		goto err;
+ 
+-	priv->frequency = params->frequency;
+-	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
+-
++	priv->frequency = c->frequency;
++	priv->bandwidth = band;
+ 
+ 	return 0;
+ 
 -- 
-Regards,
+1.7.8.352.g876a6
 
-Laurent Pinchart
