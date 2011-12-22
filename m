@@ -1,61 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37094 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:20197 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753075Ab1LAAPQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 19:15:16 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	<sakari.ailus@iki.fi>, Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH v2 04/11] OMAP4: hwmod: Include CSI2A and CSIPHY1 memory sections
-Date: Wed, 30 Nov 2011 18:14:53 -0600
-Message-ID: <1322698500-29924-5-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1755226Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNCt019825
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 10/28] [media] dvb_core: estimate bw for all non-terrestial systems
+Date: Thu, 22 Dec 2011 09:19:58 -0200
+Message-Id: <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-7-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-8-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-9-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   16 +++++++++++++---
- 1 files changed, 13 insertions(+), 3 deletions(-)
+Instead of just estimating the bandwidth for DVB-C annex A/C,
+also fill it at the core for ATSC and DVB-C annex B. This
+simplifies the logic inside the tuners, as all non-satellite
+tuners can just use c->bandwidth_hz for all supported
+delivery systems.
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 7695e5d..1b59e2f 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -2623,8 +2623,18 @@ static struct omap_hwmod_ocp_if *omap44xx_iss_masters[] = {
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   35 ++++++++++++++++++++++------
+ 1 files changed, 27 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 1e1bc64..9f123b3 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1184,19 +1184,38 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+ 	}
  
- static struct omap_hwmod_addr_space omap44xx_iss_addrs[] = {
- 	{
--		.pa_start	= 0x52000000,
--		.pa_end		= 0x520000ff,
-+		.pa_start	= OMAP44XX_ISS_TOP_BASE,
-+		.pa_end		= OMAP44XX_ISS_TOP_END,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{
-+		.pa_start	= OMAP44XX_ISS_CSI2_A_REGS1_BASE,
-+		.pa_end		= OMAP44XX_ISS_CSI2_A_REGS1_END,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{
-+		.pa_start	= OMAP44XX_ISS_CAMERARX_CORE1_BASE,
-+		.pa_end		= OMAP44XX_ISS_CAMERARX_CORE1_END,
- 		.flags		= ADDR_TYPE_RT
- 	},
- 	{ }
-@@ -5350,7 +5360,7 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_ipu_c1_hwmod,
- 
- 	/* iss class */
--/*	&omap44xx_iss_hwmod, */
-+	&omap44xx_iss_hwmod,
- 
- 	/* iva class */
- 	&omap44xx_iva_hwmod,
+ 	/*
+-	 * On DVB-C, the bandwidth is a function of roll-off and symbol rate.
+-	 * The bandwidth is required for DVB-C tuners, in order to avoid
+-	 * inter-channel noise. Instead of estimating the minimal required
+-	 * bandwidth on every single driver, calculates it here and fills
+-	 * it at the cache bandwidth parameter.
++	 * Be sure that the bandwidth will be filled for all
++	 * non-satellite systems, as tuners need to know what
++	 * low pass/Nyquist half filter should be applied, in
++	 * order to avoid inter-channel noise.
++	 *
++	 * ISDB-T and DVB-T/T2 already sets bandwidth.
++	 * ATSC and DVB-C don't set, so, the core should fill it.
++	 *
++	 * On DVB-C Annex A and C, the bandwidth is a function of
++	 * the roll-off and symbol rate. Annex B defines different
++	 * roll-off factors depending on the modulation. Fortunately,
++	 * Annex B is only used with 6MHz, so there's no need to
++	 * calculate it.
++	 *
+ 	 * While not officially supported, a side effect of handling it at
+ 	 * the cache level is that a program could retrieve the bandwidth
+-	 * via DTV_BANDWIDTH_HZ, wich may be useful for test programs.
++	 * via DTV_BANDWIDTH_HZ, which may be useful for test programs.
+ 	 */
+-	if (c->delivery_system == SYS_DVBC_ANNEX_A)
++	switch (c->delivery_system) {
++	case SYS_ATSC:
++	case SYS_DVBC_ANNEX_B:
++		c->bandwidth_hz = 6000000;
++		break;
++	case SYS_DVBC_ANNEX_A:
+ 		rolloff = 115;
+-	if (c->delivery_system == SYS_DVBC_ANNEX_C)
++		break;
++	case SYS_DVBC_ANNEX_C:
+ 		rolloff = 113;
++		break;
++	default:
++		break;
++	}
+ 	if (rolloff)
+ 		c->bandwidth_hz = (c->symbol_rate * rolloff) / 100;
+ }
 -- 
-1.7.7.4
+1.7.8.352.g876a6
 
