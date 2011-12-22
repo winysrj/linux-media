@@ -1,79 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:53280 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753739Ab1LLUBF (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48695 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752948Ab1LVKXd convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 15:01:05 -0500
-Received: by wgbdr13 with SMTP id dr13so12013842wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 12:01:03 -0800 (PST)
+	Thu, 22 Dec 2011 05:23:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
+Date: Thu, 22 Dec 2011 11:23:32 +0100
+Cc: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com> <201112212323.26971.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1112212338200.30646@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1112212338200.30646@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <4EE6588E.4030607@deckpoint.ch>
-References: <CAHFNz9+MM16waF0eLUKwFpX7fBistkb=9OgtXvo+ZOYkk67UQQ@mail.gmail.com>
-	<4EE350BF.1090402@redhat.com>
-	<CAHFNz9JUEBy5WPuGqKGWuTKYZ6D18GZh+4DEhhDu4+GBTV5R=w@mail.gmail.com>
-	<4EE5FF58.8060409@redhat.com>
-	<CAHFNz9K-5LCrqFvxFfJUaQX0sYRNgH26Q9eWgiMiWg4F3hGnmw@mail.gmail.com>
-	<4EE6588E.4030607@deckpoint.ch>
-Date: Tue, 13 Dec 2011 01:31:03 +0530
-Message-ID: <CAHFNz9JXP9zyD6w-ALnDDDBYkZftpb98Eb03JnOmcAdmc2qcpA@mail.gmail.com>
-Subject: Re: v4 [PATCH 06/10] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Thomas Kernen <tkernen@deckpoint.ch>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201112221123.33315.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 13, 2011 at 1:09 AM, Thomas Kernen <tkernen@deckpoint.ch> wrote:
-> On 12/12/11 2:40 PM, Manu Abraham wrote:
->
->>>> or is it multiplied by a factor
->>>> of 10 or was it 100 ? (Oh, my god my application Y uses a factor
->>>> of 10, the X application uses 100 and the Z application uses 1000).
->>>> What a lovely confusing scenario. ;-) (Other than for the mentioned
->>>> issue that the rolloff can be read from the SI, which is available after
->>>> tuning; for tuning you need rolloff).
->>>
->>>
->>>
->>> Sorry, but this argument doesn't make any sense to me. The same problem
->>> exists on DVB-S2 already, where several rolloffs are supported. Except
->>> if someone would code a channels.conf line in hand, the roll-off is not
->>> visible by the end user.
->>
->>
->>
->>
->> DVB-S2 as what we see as broadcast has just a single rolloff. The same
->> rolloff is used in the SI alone. It's a mistake to handle rollolff as a
->> user
->> input field. The other rolloff's are used for very specific applications,
->> such as DSNG, DVB-RCS etc, where bandwidth has to be really
->> conserved considering uplinks from trucks, vans etc; for which we don't
->> even have applications or users.
->
->
-> AFAIK there is at least one card (TBS 6925) that is supporting DVB-S2
-> applications aimed normally at contribution markets and whereby the rolloff
-> may need to be specified.
+Hi Guennadi,
 
-As far as I am aware, that card uses a STV0900 or a 903,
-more likely it is a STV0903 being a single input device.
-The STV0900/903 chips are capable of auto detecting the
-rolloff. All it needs is frequency and symbol rate.
+On Wednesday 21 December 2011 23:46:24 Guennadi Liakhovetski wrote:
+> On Wed, 21 Dec 2011, Laurent Pinchart wrote:
+> > On Wednesday 21 December 2011 14:56:36 Hadli, Manjunath wrote:
+> > > On Wed, Dec 21, 2011 at 05:32:08, Laurent Pinchart wrote:
+> > > > On Friday 16 December 2011 14:42:48 Hadli, Manjunath wrote:
+> > > > > On Thu, Dec 15, 2011 at 18:30:47, Laurent Pinchart wrote:
+> > > > > > On Thursday 15 December 2011 13:24:58 Manjunath Hadli wrote:
+> > > > > > > add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer
+> > > > > > > format frames compressed by A-LAW alogorithm.
+> > > > > > > add V4L2_PIX_FMT_UV8 to represent storage of C (UV interleved)
+> > > > > > > only.
+> > > > > > > 
+> > > > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > > > ---
+> > > > > > > 
+> > > > > > >  include/linux/videodev2.h |    6 ++++++
+> > > > > > >  1 files changed, 6 insertions(+), 0 deletions(-)
+> > > > > > 
+> > > > > > Could you please also document these formats in
+> > > > > > Documentation/DocBook/media/v4l ?
+> > > > > 
+> > > > > I will. Sorry to have missed that out.
+> > > > > 
+> > > > > > > diff --git a/include/linux/videodev2.h
+> > > > > > > b/include/linux/videodev2.h index 4b752d5..969112d 100644
+> > > > > > > --- a/include/linux/videodev2.h
+> > > > > > > +++ b/include/linux/videodev2.h
+> > > > > > > @@ -338,6 +338,9 @@ struct v4l2_pix_format {
+> > > > > > > 
+> > > > > > >  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2')
+> > > > > > >  /*  8 YUV
+> > > > > > > 
+> > > > > > > 4:2:0 16x16 macroblocks */ #define V4L2_PIX_FMT_M420
+> > > > > > > v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1
+> > > > > > > line uv interleaved */
+> > > > > > > 
+> > > > > > > +/* Chrominance formats */
+> > > > > > > +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ')
+> > > > > > > /* 8 UV 4:4 */ +
+> > > > > > > 
+> > > > > > >  /* two planes -- one Y, one Cr + Cb interleaved  */
+> > > > > > >  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2')
+> > > > > > >  /* 12 Y/CbCr
+> > > > > > > 
+> > > > > > > 4:2:0  */ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V',
+> > > > > > > '2', '1') /* 12  Y/CrCb 4:2:0  */ @@ -366,6 +369,9 @@ struct
+> > > > > > > v4l2_pix_format { #define V4L2_PIX_FMT_SRGGB12
+> > > > > > > v4l2_fourcc('R', 'G', '1', '2') /* 12 RGRG.. GBGB.. */ /*
+> > > > > > > 10bit raw bayer DPCM compressed to 8 bits */ #define
+> > > > > > > V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> > > > > > > +	/* 10bit raw bayer a-law compressed to 8 bits */ #define
+> > > > > > > +V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
+> > > > > > > +
+> > > > > > 
+> > > > > > That's not very future-proof, how would you describe SGBRG10ALAW8
+> > > > > > for instance ?
+> > > > > > 
+> > > > > > Maybe it's time to standardize FOURCCs for Bayer new formats. We
+> > > > > > have 4 characters, we could start with 'B' to denote Bayer,
+> > > > > > followed by one character for the order, one for the
+> > > > > > compression, and one for the number of bits.
+> > > > > 
+> > > > > I agree.
+> > > > > May be ('B', 'G', 'A', '8') is fine for the above?
+> > > > 
+> > > > We need to describe at last BGGR, GBRG, GRBG and RGGB. We could use
+> > > > 'B', 'g', 'G' and 'R' respectively for the second character. The
+> > > > third character would be 'A' for A-law and 'D' for DPCM, and the
+> > > > fourth character could describe the bus width in bits from 0 to 15
+> > > > with '0' - '9', 'A' - 'F'. However, I suspect that we will need
+> > > > 16-bit wide busses for raw Bayer at some point, and a 0 width is
+> > > > definitely not useful. We could thus offset the width by some value.
+> > > > 
+> > > > This is just a preliminary idea, I'm open to suggestions.
+> > > 
+> > > I think it is a very good suggestion that we can go with.
+> > > B : BGGR
+> > > g : GBRG
+> > > G : GRBG
+> > > R : RGGB
+> > > 
+> > > and 0-F can signify 1-16.
+> > 
+> > Hans, Guennadi, Sakari, any opinion on that as well ?
+> 
+> Is there any risk of confusion, if we don't reserve the first character
+> for 'B'? I'm just trying to avoid mixed cases, I'm not a great fan of
+> those;-)
 
-Even if it is another different demodulator:
+FOURCCs are not really supposed to be displayed anyway :-)
 
-All the devices that I have seen which support the advanced
-MODCOD's, they support auto detection of rolloff. AFAIK,
-this is readable of the BBHEADER: MATYPE1, represented
-by 2 bits, as specified as in the DVB-S2 specification.
-There are other fields along with such as Single/Multiple
-Input Streams etc.
+> What if we use the first two characters for the order like "GR", "GB",...
+> AFAICS, 'G' so far only also occurs in GREY and various RGB* / BGR* / ...
+> formats, which we wouldn't be confusing with.
 
-Therefore no user intervention is required to determine
-rolloff on such devices. (It is read directly off the BBHEADER
-by the demod) and is available to the driver.
+Or we could use random FOURCC values as well :-)
 
+There could also be other non-Bayer raw formats, such as panchromatic cells or 
+Foveon patterns. I don't know if we need to plan for them already.
+
+> We could further reduce confusion, if we use some other character for A-law
+> ('L' or 'W'?)
+
+We could also have µ-law compression, L and W would be ambiguous.
+
+-- 
 Regards,
-Manu
+
+Laurent Pinchart
