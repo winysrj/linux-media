@@ -1,117 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:51144 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752708Ab1LQAyJ (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:48580 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753659Ab1LVXo4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 19:54:09 -0500
-Received: by eaaj10 with SMTP id j10so3358222eaa.19
-        for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 16:54:08 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 17 Dec 2011 01:54:08 +0100
-Message-ID: <CAEN_-SA+rfuVw+FrKjOU+S427ULTNFobHWjDNAQ2ov_ma3PGCA@mail.gmail.com>
-Subject: All radio tuners using xc2028 or xc4000 tuner and radio should have
- radio_type UNSET
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+	Thu, 22 Dec 2011 18:44:56 -0500
+Received: by iaeh11 with SMTP id h11so14181390iae.19
+        for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 15:44:55 -0800 (PST)
+Date: Thu, 22 Dec 2011 17:44:46 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=e0cb4efe3052ac0fd104b43f27cc
+Cc: Eduard Bloch <blade@debian.org>,
+	Patrick Boettcher <patrick.boettcher@dibcom.fr>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: Re: Add support for new Terratec DVB USB IDs
+Message-ID: <20111222234446.GB10497@elie.Belkin>
+References: <20111222215356.GA4499@rotes76.wohnheim.uni-kl.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20111222215356.GA4499@rotes76.wohnheim.uni-kl.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---e0cb4efe3052ac0fd104b43f27cc
-Content-Type: text/plain; charset=ISO-8859-1
+Hi,
 
-All radio tuners in cx88 driver using same address for radio and
-tuner, so there is no need to probe it twice for same tuner and we can
-use radio_type UNSET, this also fix broken radio since kernel
-2.6.39-rc1 for those tuners.
+Eduard Bloch wrote[1]:
 
---e0cb4efe3052ac0fd104b43f27cc
-Content-Type: text/x-patch; charset=UTF-8;
-	name="0004-All-radio-tuners-in-cx88-driver-using-same-address-f.patch"
-Content-Disposition: attachment;
-	filename="0004-All-radio-tuners-in-cx88-driver-using-same-address-f.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gw9wy6g70
+> current revision of the Cinergy S2 USB box from Terratec seems to use
+> another USB-IDs. The manufacturer provides patches at
+> http://linux.terratec.de/tv_en.html and it seems like the only
+> difference is really just the new ID and a couple of init flag changes.
+>
+> Their patch is not exactly for the linux-3.x tree but for the current
+> s2-liplianin drivers, OTOH they still look similar enough and porting
+> the patch was straight-forward. I also added the patch for Terratec S7
+> which is not tested yet but shouldn't do any harm.
+[...]
 
-RnJvbSBiZmQ2ZDA4ZTM3NTZmYjBkNGVhOTE3Y2I4ZjkzNzliMmJhOWM1MDg3IE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiBTbHVnZcWIIDx0aHVuZGVyLm1AZW1haWwuY3o+
-CkRhdGU6IFN1biwgMTEgRGVjIDIwMTEgMjM6MDA6MDYgKzAxMDAKU3ViamVjdDogW1BBVENIXSBB
-bGwgcmFkaW8gdHVuZXJzIGluIGN4ODggZHJpdmVyIHVzaW5nIHNhbWUgYWRkcmVzcyBmb3IgcmFk
-aW8gYW5kIHR1bmVyLCBzbyB0aGVyZSBpcyBubyBuZWVkIHRvIHByb2JlCiBpdCB0d2ljZSBmb3Ig
-c2FtZSB0dW5lciBhbmQgd2UgY2FuIHVzZSByYWRpb190eXBlIFVOU0VULCB0aGlzIGFsc28gZml4
-IGJyb2tlbiByYWRpbyBzaW5jZSBrZXJuZWwgMi42LjM5LXJjMQogZm9yIHRob3NlIHR1bmVycy4K
-Ci0tLQogZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYyB8ICAgMjQgKysrKysr
-KysrKysrLS0tLS0tLS0tLS0tCiAxIGZpbGVzIGNoYW5nZWQsIDEyIGluc2VydGlvbnMoKyksIDEy
-IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4
-LWNhcmRzLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCmluZGV4IDBk
-NzE5ZmEuLjM5MjlkOTMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4
-LWNhcmRzLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYwpAQCAt
-MTU3Myw4ICsxNTczLDggQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJkIGN4ODhfYm9h
-cmRzW10gPSB7CiAJCS5uYW1lICAgICAgICAgICA9ICJQaW5uYWNsZSBIeWJyaWQgUENUViIsCiAJ
-CS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKIAkJLnR1bmVyX2FkZHIgICAgID0gMHg2
-MSwKLQkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAotCQkucmFkaW9fYWRkciAgICAg
-PSAweDYxLAorCQkucmFkaW9fdHlwZSAgICAgPSBVTlNFVCwKKwkJLnJhZGlvX2FkZHIgICAgID0g
-QUREUl9VTlNFVCwKIAkJLmlucHV0ICAgICAgICAgID0geyB7CiAJCQkudHlwZSAgID0gQ1g4OF9W
-TVVYX1RFTEVWSVNJT04sCiAJCQkudm11eCAgID0gMCwKQEAgLTE2MTEsOCArMTYxMSw4IEBAIHN0
-YXRpYyBjb25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1tdID0gewogCQkubmFtZSAg
-ICAgICAgICAgPSAiTGVhZHRlayBUVjIwMDAgWFAgR2xvYmFsIiwKIAkJLnR1bmVyX3R5cGUgICAg
-ID0gVFVORVJfWEMyMDI4LAogCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAotCQkucmFkaW9fdHlw
-ZSAgICAgPSBUVU5FUl9YQzIwMjgsCi0JCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS5yYWRp
-b190eXBlICAgICA9IFVOU0VULAorCQkucmFkaW9fYWRkciAgICAgPSBBRERSX1VOU0VULAogCQku
-aW5wdXQgICAgICAgICAgPSB7IHsKIAkJCS50eXBlICAgPSBDWDg4X1ZNVVhfVEVMRVZJU0lPTiwK
-IAkJCS52bXV4ICAgPSAwLApAQCAtMjA0Myw4ICsyMDQzLDggQEAgc3RhdGljIGNvbnN0IHN0cnVj
-dCBjeDg4X2JvYXJkIGN4ODhfYm9hcmRzW10gPSB7CiAJCS5uYW1lICAgICAgICAgICA9ICJUZXJy
-YXRlYyBDaW5lcmd5IEhUIFBDSSBNS0lJIiwKIAkJLnR1bmVyX3R5cGUgICAgID0gVFVORVJfWEMy
-MDI4LAogCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAotCQkucmFkaW9fdHlwZSAgICAgPSBUVU5F
-Ul9YQzIwMjgsCi0JCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS5yYWRpb190eXBlICAgICA9
-IFVOU0VULAorCQkucmFkaW9fYWRkciAgICAgPSBBRERSX1VOU0VULAogCQkuaW5wdXQgICAgICAg
-ICAgPSB7IHsKIAkJCS50eXBlICAgPSBDWDg4X1ZNVVhfVEVMRVZJU0lPTiwKIAkJCS52bXV4ICAg
-PSAwLApAQCAtMjA4Miw5ICsyMDgyLDkgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJk
-IGN4ODhfYm9hcmRzW10gPSB7CiAJW0NYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSF0gPSB7CiAJ
-CS5uYW1lICAgICAgICAgICA9ICJMZWFkdGVrIFdpbkZhc3QgRFRWMTgwMCBIeWJyaWQiLAogCQku
-dHVuZXJfdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCi0JCS5yYWRpb190eXBlICAgICA9IFRVTkVS
-X1hDMjAyOCwKKwkJLnJhZGlvX3R5cGUgICAgID0gVU5TRVQsCiAJCS50dW5lcl9hZGRyICAgICA9
-IDB4NjEsCi0JCS5yYWRpb19hZGRyICAgICA9IDB4NjEsCisJCS5yYWRpb19hZGRyICAgICA9IEFE
-RFJfVU5TRVQsCiAJCS8qCiAJCSAqIEdQSU8gc2V0dGluZwogCQkgKgpAQCAtMjEyMyw5ICsyMTIz
-LDkgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJkIGN4ODhfYm9hcmRzW10gPSB7CiAJ
-W0NYODhfQk9BUkRfV0lORkFTVF9EVFYxODAwSF9YQzQwMDBdID0gewogCQkubmFtZQkJPSAiTGVh
-ZHRlayBXaW5GYXN0IERUVjE4MDAgSCAoWEM0MDAwKSIsCiAJCS50dW5lcl90eXBlCT0gVFVORVJf
-WEM0MDAwLAotCQkucmFkaW9fdHlwZQk9IFRVTkVSX1hDNDAwMCwKKwkJLnJhZGlvX3R5cGUJPSBV
-TlNFVCwKIAkJLnR1bmVyX2FkZHIJPSAweDYxLAotCQkucmFkaW9fYWRkcgk9IDB4NjEsCisJCS5y
-YWRpb19hZGRyCT0gQUREUl9VTlNFVCwKIAkJLyoKIAkJICogR1BJTyBzZXR0aW5nCiAJCSAqCkBA
-IC0yMTY0LDkgKzIxNjQsOSBAQCBzdGF0aWMgY29uc3Qgc3RydWN0IGN4ODhfYm9hcmQgY3g4OF9i
-b2FyZHNbXSA9IHsKIAlbQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIwMDBIX1BMVVNdID0gewogCQku
-bmFtZQkJPSAiTGVhZHRlayBXaW5GYXN0IERUVjIwMDAgSCBQTFVTIiwKIAkJLnR1bmVyX3R5cGUJ
-PSBUVU5FUl9YQzQwMDAsCi0JCS5yYWRpb190eXBlCT0gVFVORVJfWEM0MDAwLAorCQkucmFkaW9f
-dHlwZQk9IFVOU0VULAogCQkudHVuZXJfYWRkcgk9IDB4NjEsCi0JCS5yYWRpb19hZGRyCT0gMHg2
-MSwKKwkJLnJhZGlvX2FkZHIJPSBBRERSX1VOU0VULAogCQkvKgogCQkgKiBHUElPCiAJCSAqICAg
-MjogMTogbXV0ZSBhdWRpbwotLSAKMS43LjIuMwoK
---e0cb4efe3052ac0fd104b43f27cc
-Content-Type: text/x-patch; charset=UTF-8;
-	name="0006-All-radio-tuners-in-cx83885-driver-using-same-addres.patch"
-Content-Disposition: attachment;
-	filename="0006-All-radio-tuners-in-cx83885-driver-using-same-addres.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gw9wz2z51
+Eduard, meet the LinuxTV project.  linux-media folks, meet Eduard.
+Patch follows.
 
-RnJvbSA1N2Q3ODVlOTEyYzM2OWYyYWNlNTZiZDUwMDBmOTlmOTY4ZDg3YTllIE1vbiBTZXAgMTcg
-MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiBTbHVnZcWIIDx0aHVuZGVyLm1AZW1haWwuY3o+
-CkRhdGU6IE1vbiwgMTIgRGVjIDIwMTEgMDA6MTk6MzQgKzAxMDAKU3ViamVjdDogW1BBVENIXSBB
-bGwgcmFkaW8gdHVuZXJzIGluIGN4ODM4ODUgZHJpdmVyIHVzaW5nIHNhbWUgYWRkcmVzcyBmb3Ig
-cmFkaW8gYW5kIHR1bmVyLCBzbyB0aGVyZSBpcyBubyBuZWVkIHRvIHByb2JlCiBpdCB0d2ljZSBm
-b3Igc2FtZSB0dW5lciBhbmQgd2UgY2FuIHVzZSByYWRpb190eXBlIFVOU0VULiBCZSBhd2FyZSBy
-YWRpbyBzdXBwb3J0IGluIGN4MjM4ODUgaXMgbm90IHlldAogY29tcGxldGVkLCBzbyB0aGlzIGlz
-IG9ubHkgbWlub3IgZml4IGZvciBmdXR1cmUgc3VwcG9ydC4KCi0tLQogZHJpdmVycy9tZWRpYS92
-aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYyB8ICAgIDQgKystLQogMSBmaWxlcyBjaGFuZ2Vk
-LCAyIGluc2VydGlvbnMoKyksIDIgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
-ZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
-Y3gyMzg4NS9jeDIzODg1LWNhcmRzLmMKaW5kZXggYzNjZjA4OS4uMTg3YzQ2MiAxMDA2NDQKLS0t
-IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYworKysgYi9kcml2
-ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1jYXJkcy5jCkBAIC0yMTMsOCArMjEzLDgg
-QEAgc3RydWN0IGN4MjM4ODVfYm9hcmQgY3gyMzg4NV9ib2FyZHNbXSA9IHsKIAkJLnBvcnRjCQk9
-IENYMjM4ODVfTVBFR19EVkIsCiAJCS50dW5lcl90eXBlCT0gVFVORVJfWEM0MDAwLAogCQkudHVu
-ZXJfYWRkcgk9IDB4NjEsCi0JCS5yYWRpb190eXBlCT0gVFVORVJfWEM0MDAwLAotCQkucmFkaW9f
-YWRkcgk9IDB4NjEsCisJCS5yYWRpb190eXBlCT0gVU5TRVQsCisJCS5yYWRpb19hZGRyCT0gQURE
-Ul9VTlNFVCwKIAkJLmlucHV0CQk9IHt7CiAJCQkudHlwZQk9IENYMjM4ODVfVk1VWF9URUxFVklT
-SU9OLAogCQkJLnZtdXgJPSBDWDI1ODQwX1ZJTjJfQ0gxIHwKLS0gCjEuNy4yLjMKCg==
---e0cb4efe3052ac0fd104b43f27cc--
+Eduard: may we have your sign-off?  Please see
+Documentation/SubmittingPatches, section 12 "Sign your work" for what
+this means.
+
+My only other hint is that it would be better to add the new device
+IDs in some logical place in the list near the older ones, instead of
+at the end where it is more likely to collide with other patches in
+flight.  So if rerolling the patches, it might be useful to do that.
+
+-- >8 --
+From: Eduard Bloch <blade@debian.org>
+Date: Thu, 22 Dec 2011 19:46:54 +0100
+Subject: new device IDs used by some Terratec USB devices
+
+The changes are extracted from ID patches in tarballs at
+http://linux.terratec.de/tv_en.html (for S7 and Cinergy S2 USB HD), and
+slightly modified to match the state of s2-liplianin tree used in linux-3.x so
+far.
+---
+Thanks for your work,
+Jonathan
+
+[1] http://bugs.debian.org/653026
+
+diff -urd linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/az6027.c linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/az6027.c
+--- linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/az6027.c	2011-12-09 17:57:05.000000000 +0100
++++ linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/az6027.c	2011-12-22 19:42:25.655675023 +0100
+@@ -1090,6 +1090,7 @@
+ 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_HDCI_V1) },
+ 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_HDCI_V2) },
+ 	{ USB_DEVICE(USB_VID_ELGATO, USB_PID_ELGATO_EYETV_SAT) },
++	{ USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_DVBS2CI_V3) },
+ 	{ },
+ };
+ 
+@@ -1135,7 +1136,7 @@
+ 
+ 	.i2c_algo         = &az6027_i2c_algo,
+ 
+-	.num_device_descs = 6,
++	.num_device_descs = 7,
+ 	.devices = {
+ 		{
+ 			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
+@@ -1161,6 +1162,10 @@
+ 			.name = "Elgato EyeTV Sat",
+ 			.cold_ids = { &az6027_usb_table[5], NULL },
+ 			.warm_ids = { NULL },
++		}, {
++			.name = "TERRATEC S7 Rev.3",
++			.cold_ids = { &az6027_usb_table[6], NULL },
++			.warm_ids = { NULL },
+ 		},
+ 		{ NULL },
+ 	}
+diff -urd linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/dvb-usb-ids.h linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2011-12-09 17:57:05.000000000 +0100
++++ linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2011-12-22 19:40:02.208934727 +0100
+@@ -319,6 +319,7 @@
+ #define USB_PID_AZUREWAVE_AZ6027			0x3275
+ #define USB_PID_TERRATEC_DVBS2CI_V1			0x10a4
+ #define USB_PID_TERRATEC_DVBS2CI_V2			0x10ac
++#define USB_PID_TERRATEC_DVBS2CI_V3			0x10b0
+ #define USB_PID_TECHNISAT_USB2_HDCI_V1			0x0001
+ #define USB_PID_TECHNISAT_USB2_HDCI_V2			0x0002
+ #define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2		0x0004
+diff -urd linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/dw2102.c linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/dw2102.c
+--- linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/dw2102.c	2011-12-09 17:57:05.000000000 +0100
++++ linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/dw2102.c	2011-12-22 19:43:16.588387654 +0100
+@@ -1181,6 +1181,14 @@
+ {
+ 	u8 obuf[3] = { 0xe, 0x80, 0 };
+ 	u8 ibuf[] = { 0 };
++	
++	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
++		err("command 0x0e transfer failed.");
++
++	//power on su3000
++	obuf[0] = 0xe;
++	obuf[1] = 0x02;
++	obuf[2] = 1;
+ 
+ 	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
+ 		err("command 0x0e transfer failed.");
+@@ -1451,6 +1459,7 @@
+ 	{USB_DEVICE(0x9022, USB_PID_TEVII_S480_1)},
+ 	{USB_DEVICE(0x9022, USB_PID_TEVII_S480_2)},
+ 	{USB_DEVICE(0x1f4d, 0x3100)},
++	{USB_DEVICE(USB_VID_TERRATEC, 0x00b0)},
+ 	{ }
+ };
+ 
+@@ -1824,7 +1833,7 @@
+ 			}
+ 		}
+ 	},
+-	.num_device_descs = 3,
++	.num_device_descs = 4,
+ 	.devices = {
+ 		{ "SU3000HD DVB-S USB2.0",
+ 			{ &dw2102_table[10], NULL },
+@@ -1838,6 +1847,10 @@
+ 			{ &dw2102_table[14], NULL },
+ 			{ NULL },
+ 		},
++		{ "Terratec Cinergy S2 USB HD Rev.2",
++			{ &dw2102_table[15], NULL },
++			{ NULL },
++		},
+ 	}
+ };
+ 
