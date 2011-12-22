@@ -1,265 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www.opticvideo.com ([62.193.209.183]:35687 "EHLO
-	vds-837105.amen-pro.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932620Ab1LOQiu (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:42087 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753577Ab1LVXnr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 11:38:50 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Date: Thu, 15 Dec 2011 18:31:50 +0200
-To: linux-media@vger.kernel.org
-Subject: GrabBeeX - empia 2800 USB 2.0 - problem
+	Thu, 22 Dec 2011 18:43:47 -0500
+Received: by mail-ey0-f174.google.com with SMTP id d14so2375701eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 15:43:47 -0800 (PST)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-From: "Adrian Sergiu DARABANT" <adrian@opticvideo.com>
-Message-ID: <op.v6jhjck4p295gi@corei7.site>
+In-Reply-To: <CAEN_-SD3ap9VM_9aP7L3fGzJT_EfApEP5o4-wUmcUcXe5JvQJw@mail.gmail.com>
+References: <CAEN_-SD3ap9VM_9aP7L3fGzJT_EfApEP5o4-wUmcUcXe5JvQJw@mail.gmail.com>
+Date: Fri, 23 Dec 2011 00:43:47 +0100
+Message-ID: <CAEN_-SA45T2ga56qCyex+EU7WaCSav4+WwCJzw2kNv9_ALiXPA@mail.gmail.com>
+Subject: Re: Read DVB signal information directly from xc4000 based tuners
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015175d020e1fcb6504b4b6dff6
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-    I've got these kind of old usb 2.0 grabbers (GrabBeex) based on some  
-em28xx chipsets that are not correctly identified under linux. Here is the  
-dmesg log.
-A video device is created but there are no controls in v4l-info and dmesg  
-seems to see that everything is probably not correctly detected. I have a  
-few of the so I can send one for testing if needed - but I would be  
-interested in making it working.Also there is no grab button as the dmesg  
-log suggests !
+--0015175d020e1fcb6504b4b6dff6
+Content-Type: text/plain; charset=ISO-8859-1
 
-In Windows 7 - the update system finds and installs an empia 2800 driver -  
-appears as an USB 2800 device in the device list. On Windows the are  
-controls and the device works as expected.
+For xc4000 based tuners we can read signal directly from tuner even
+for demodulator. This is updated patch of id 8933. This patch depends
+on id 8926 (Add signal information to xc4000 tuner).
 
-Thx
-Adrian
+--0015175d020e1fcb6504b4b6dff6
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="0001-Read-DVB-signal-information-directly-from-xc4000-bas.patch"
+Content-Disposition: attachment;
+	filename="0001-Read-DVB-signal-information-directly-from-xc4000-bas.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gwif3rpm0
 
-[25966.853726] em28xx: New device @ 480 Mbps (eb1a:2800, interface 0,  
-class 0)
-[25966.853965] em28xx #0: chip ID is em2800
-[25966.957709] em28xx #0: board has no eeprom
-[25967.017502] em28xx #0: preparing read at i2c address 0x60 failed  
-(error=-19)
-[25967.053604] em28xx #0: Identified as Unknown EM2800 video grabber  
-(card=0)
-[25968.190585] em28xx #0: found i2c device @ 0x4a [saa7113h]
-[25970.884130] em28xx #0: Your board has no unique USB ID.
-[25970.884136] em28xx #0: A hint were successfully done, based on i2c  
-devicelist hash.
-[25970.884140] em28xx #0: This method is not 100% failproof.
-[25970.884143] em28xx #0: If the board were missdetected, please email  
-this log to:
-[25970.884145] em28xx #0:       V4L Mailing List   
-<linux-media@vger.kernel.org>
-[25970.884149] em28xx #0: Board detected as EM2860/SAA711X Reference Design
-[25970.884153] em28xx #0: Registering snapshot button...
-[25970.884278] input: em28xx snapshot button as  
-/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.2/input/input19
-[25970.888795] em28xx #0: Config register raw data: 0xa4
-[25970.888800] em28xx #0: I2S Audio (3 sample rates)
-[25970.888804] em28xx #0: No AC97 audio processor
-[25970.939649] em28xx #0: v4l2 driver version 0.1.2
-[25971.386698] em28xx #0: V4L2 video device registered as video1
-[25971.386705] em28xx-audio.c: probing for em28x1 non standard usbaudio
-[25971.386708] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-
-
-
-lsusb -v -d eb1a:2800
-
-Bus 002 Device 004: ID eb1a:2800 eMPIA Technology, Inc. Terratec Cinergy  
-200
-Device Descriptor:
-   bLength                18
-   bDescriptorType         1
-   bcdUSB               2.00
-   bDeviceClass            0 (Defined at Interface level)
-   bDeviceSubClass         0
-   bDeviceProtocol         0
-   bMaxPacketSize0        64
-   idVendor           0xeb1a eMPIA Technology, Inc.
-   idProduct          0x2800 Terratec Cinergy 200
-   bcdDevice            1.00
-   iManufacturer           0
-   iProduct                0
-   iSerial                 0
-   bNumConfigurations      1
-   Configuration Descriptor:
-     bLength                 9
-     bDescriptorType         2
-     wTotalLength          129
-     bNumInterfaces          1
-     bConfigurationValue     1
-     iConfiguration          0
-     bmAttributes         0x80
-       (Bus Powered)
-     MaxPower              500mA
-     Interface Descriptor:
-       bLength                 9
-       bDescriptorType         4
-       bInterfaceNumber        0
-       bAlternateSetting       0
-       bNumEndpoints           3
-       bInterfaceClass       255 Vendor Specific Class
-       bInterfaceSubClass      0
-       bInterfaceProtocol    255
-       iInterface              0
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x81  EP 1 IN
-         bmAttributes            3
-           Transfer Type            Interrupt
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0001  1x 1 bytes
-         bInterval              11
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x82  EP 2 IN
-         bmAttributes            1
-           Transfer Type            Isochronous
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0000  1x 0 bytes
-         bInterval               1
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x84  EP 4 IN
-         bmAttributes            2
-           Transfer Type            Bulk
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0200  1x 512 bytes
-         bInterval               1
-     Interface Descriptor:
-       bLength                 9
-       bDescriptorType         4
-       bInterfaceNumber        0
-       bAlternateSetting       1
-       bNumEndpoints           3
-       bInterfaceClass       255 Vendor Specific Class
-       bInterfaceSubClass      0
-       bInterfaceProtocol    255
-       iInterface              0
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x81  EP 1 IN
-         bmAttributes            3
-           Transfer Type            Interrupt
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0001  1x 1 bytes
-         bInterval              11
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x82  EP 2 IN
-         bmAttributes            1
-           Transfer Type            Isochronous
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0284  1x 644 bytes
-         bInterval               1
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x84  EP 4 IN
-         bmAttributes            2
-           Transfer Type            Bulk
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0200  1x 512 bytes
-         bInterval               1
-     Interface Descriptor:
-       bLength                 9
-       bDescriptorType         4
-       bInterfaceNumber        0
-       bAlternateSetting       2
-       bNumEndpoints           3
-       bInterfaceClass       255 Vendor Specific Class
-       bInterfaceSubClass      0
-       bInterfaceProtocol    255
-       iInterface              0
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x81  EP 1 IN
-         bmAttributes            3
-           Transfer Type            Interrupt
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0001  1x 1 bytes
-         bInterval              11
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x82  EP 2 IN
-         bmAttributes            1
-           Transfer Type            Isochronous
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0a84  2x 644 bytes
-         bInterval               1
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x84  EP 4 IN
-         bmAttributes            2
-           Transfer Type            Bulk
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0200  1x 512 bytes
-         bInterval               1
-     Interface Descriptor:
-       bLength                 9
-       bDescriptorType         4
-       bInterfaceNumber        0
-       bAlternateSetting       3
-       bNumEndpoints           3
-       bInterfaceClass       255 Vendor Specific Class
-       bInterfaceSubClass      0
-       bInterfaceProtocol    255
-       iInterface              0
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x81  EP 1 IN
-         bmAttributes            3
-           Transfer Type            Interrupt
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0001  1x 1 bytes
-         bInterval              11
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x82  EP 2 IN
-         bmAttributes            1
-           Transfer Type            Isochronous
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x135c  3x 860 bytes
-         bInterval               1
-       Endpoint Descriptor:
-         bLength                 7
-         bDescriptorType         5
-         bEndpointAddress     0x84  EP 4 IN
-         bmAttributes            2
-           Transfer Type            Bulk
-           Synch Type               None
-           Usage Type               Data
-         wMaxPacketSize     0x0200  1x 512 bytes
-         bInterval               1
-Device Qualifier (for other device speed):
-   bLength                10
-   bDescriptorType         6
-   bcdUSB               2.00
-   bDeviceClass            0 (Defined at Interface level)
-   bDeviceSubClass         0
-   bDeviceProtocol         0
-   bMaxPacketSize0        64
-   bNumConfigurations      1
-Device Status:     0x0000
-   (Bus Powered)
+RnJvbSA0ZTUxZDY2ZTUxZTU0OTgzYjM4ZWE1NTZjMzcwYTdiZjNkZDVlMjczIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNaXJvc2xhdiA8dGh1bmRlci5tQGVtYWlsLmN6PgpEYXRlOiBG
+cmksIDIzIERlYyAyMDExIDAwOjM1OjE1ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gUmVhZCBEVkIg
+c2lnbmFsIGluZm9ybWF0aW9uIGRpcmVjdGx5IGZyb20geGM0MDAwIGJhc2VkIHR1bmVycy4KCi0t
+LQogZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMgfCAgICAzICsrKwog
+ZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtZHZiLmMgICAgICAgfCAgICAzICsrKwogMiBm
+aWxlcyBjaGFuZ2VkLCA2IGluc2VydGlvbnMoKyksIDAgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0
+IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMgYi9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1kdmIuYwppbmRleCBmMDQ4MmIyLi43MTk4MDcyIDEw
+MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1kdmIuYworKysg
+Yi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4NS1kdmIuYwpAQCAtOTQ1LDYgKzk0
+NSw5IEBAIHN0YXRpYyBpbnQgZHZiX3JlZ2lzdGVyKHN0cnVjdCBjeDIzODg1X3RzcG9ydCAqcG9y
+dCkKIAkJCQkgICAgICAgZGV2LT5uYW1lKTsKIAkJCQlnb3RvIGZyb250ZW5kX2RldGFjaDsKIAkJ
+CX0KKworCQkJLyogcmVhZCBzaWduYWwgZGlyZWN0bHkgZnJvbSB0dW5lciAqLworCQkJZmUtPm9w
+cy5yZWFkX3NpZ25hbF9zdHJlbmd0aCA9IGZlLT5vcHMudHVuZXJfb3BzLmdldF9yZl9zdHJlbmd0
+aDsKIAkJfQogCQlicmVhazsKIAljYXNlIENYMjM4ODVfQk9BUkRfVEJTXzY5MjA6CmRpZmYgLS1n
+aXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1kdmIuYyBiL2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LWR2Yi5jCmluZGV4IDU5MmYzYWEuLmMwMjNhNmMgMTAwNjQ0Ci0tLSBh
+L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWR2Yi5jCisrKyBiL2RyaXZlcnMvbWVkaWEv
+dmlkZW8vY3g4OC9jeDg4LWR2Yi5jCkBAIC02MzUsNiArNjM1LDkgQEAgc3RhdGljIGludCBhdHRh
+Y2hfeGM0MDAwKHN0cnVjdCBjeDg4MDJfZGV2ICpkZXYsIHN0cnVjdCB4YzQwMDBfY29uZmlnICpj
+ZmcpCiAJCXJldHVybiAtRUlOVkFMOwogCX0KIAorCS8qIHJlYWQgc2lnbmFsIGRpcmVjdGx5IGZy
+b20geGM0MDAwIHR1bmVyICovCisJZmUtPm9wcy5yZWFkX3NpZ25hbF9zdHJlbmd0aCA9IGZlLT5v
+cHMudHVuZXJfb3BzLmdldF9yZl9zdHJlbmd0aDsKKwogCXByaW50ayhLRVJOX0lORk8gIiVzLzI6
+IHhjNDAwMCBhdHRhY2hlZFxuIiwgZGV2LT5jb3JlLT5uYW1lKTsKIAogCXJldHVybiAwOwotLSAK
+MS43LjIuMwoK
+--0015175d020e1fcb6504b4b6dff6--
