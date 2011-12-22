@@ -1,19 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54246 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:6891 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755252Ab1LVLUZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:25 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKPB3004875
+	id S1755237Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNph004857
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:25 -0500
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 22/28] [media] tda18271-fe: use DVBv5 parameters
-Date: Thu, 22 Dec 2011 09:20:10 -0200
-Message-Id: <1324552816-25704-23-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-22-git-send-email-mchehab@redhat.com>
+Subject: [PATCH RFC v3 16/28] [media] mt2266: use DVBv5 parameters
+Date: Thu, 22 Dec 2011 09:20:04 -0200
+Message-Id: <1324552816-25704-17-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-16-git-send-email-mchehab@redhat.com>
 References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
  <1324552816-25704-2-git-send-email-mchehab@redhat.com>
  <1324552816-25704-3-git-send-email-mchehab@redhat.com>
@@ -30,12 +30,6 @@ References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
  <1324552816-25704-14-git-send-email-mchehab@redhat.com>
  <1324552816-25704-15-git-send-email-mchehab@redhat.com>
  <1324552816-25704-16-git-send-email-mchehab@redhat.com>
- <1324552816-25704-17-git-send-email-mchehab@redhat.com>
- <1324552816-25704-18-git-send-email-mchehab@redhat.com>
- <1324552816-25704-19-git-send-email-mchehab@redhat.com>
- <1324552816-25704-20-git-send-email-mchehab@redhat.com>
- <1324552816-25704-21-git-send-email-mchehab@redhat.com>
- <1324552816-25704-22-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
@@ -45,113 +39,61 @@ set the tuner.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/common/tuners/tda18271-fe.c |   74 +++++++++++++---------------
- 1 files changed, 34 insertions(+), 40 deletions(-)
+ drivers/media/common/tuners/mt2266.c |   20 +++++++++-----------
+ 1 files changed, 9 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
-index 3347c5b..4630154 100644
---- a/drivers/media/common/tuners/tda18271-fe.c
-+++ b/drivers/media/common/tuners/tda18271-fe.c
-@@ -931,56 +931,51 @@ fail:
- static int tda18271_set_params(struct dvb_frontend *fe,
- 			       struct dvb_frontend_parameters *params)
+diff --git a/drivers/media/common/tuners/mt2266.c b/drivers/media/common/tuners/mt2266.c
+index 25a8ea3..d539740 100644
+--- a/drivers/media/common/tuners/mt2266.c
++++ b/drivers/media/common/tuners/mt2266.c
+@@ -124,6 +124,7 @@ static u8 mt2266_vhf[] = { 0x1d, 0xfe, 0x00, 0x00, 0xb4, 0x03, 0xa5, 0xa5,
+ 
+ static int mt2266_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
  {
 +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 delsys = c->delivery_system;
-+	u32 bw = c->bandwidth_hz;
-+	u32 freq = c->frequency;
-+	u32 band = BANDWIDTH_6_MHZ;
- 	struct tda18271_priv *priv = fe->tuner_priv;
- 	struct tda18271_std_map *std_map = &priv->std;
- 	struct tda18271_std_map_item *map;
- 	int ret;
--	u32 bw, freq = params->frequency;
+ 	struct mt2266_priv *priv;
+ 	int ret=0;
+ 	u32 freq;
+@@ -135,31 +136,28 @@ static int mt2266_set_params(struct dvb_frontend *fe, struct dvb_frontend_parame
  
- 	priv->mode = TDA18271_DIGITAL;
+ 	priv = fe->tuner_priv;
  
--	if (fe->ops.info.type == FE_ATSC) {
--		switch (params->u.vsb.modulation) {
--		case VSB_8:
--		case VSB_16:
--			map = &std_map->atsc_6;
--			break;
--		case QAM_64:
--		case QAM_256:
--			map = &std_map->qam_6;
--			break;
--		default:
--			tda_warn("modulation not set!\n");
--			return -EINVAL;
--		}
--#if 0
--		/* userspace request is already center adjusted */
--		freq += 1750000; /* Adjust to center (+1.75MHZ) */
--#endif
-+	switch (delsys) {
-+	case SYS_ATSC:
-+		map = &std_map->atsc_6;
- 		bw = 6000000;
--	} else if (fe->ops.info.type == FE_OFDM) {
--		switch (params->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
--			bw = 6000000;
-+		break;
-+        case SYS_DVBT:
-+        case SYS_DVBT2:
-+		if (bw <= 6000000) {
- 			map = &std_map->dvbt_6;
--			break;
--		case BANDWIDTH_7_MHZ:
--			bw = 7000000;
-+		} else if (bw <= 7000000) {
- 			map = &std_map->dvbt_7;
--			break;
--		case BANDWIDTH_8_MHZ:
--			bw = 8000000;
-+			band = BANDWIDTH_7_MHZ;
-+		} else {
- 			map = &std_map->dvbt_8;
--			break;
--		default:
--			tda_warn("bandwidth not set!\n");
--			return -EINVAL;
-+			band = BANDWIDTH_8_MHZ;
- 		}
--	} else if (fe->ops.info.type == FE_QAM) {
--		/* DVB-C */
--		map = &std_map->qam_8;
--		bw = 8000000;
--	} else {
-+		break;
-+	case SYS_DVBC_ANNEX_B:
-+		bw = 6000000;
-+		/* falltrough */
-+        case SYS_DVBC_ANNEX_A:
-+        case SYS_DVBC_ANNEX_C:
-+		if (bw <= 6000000) {
-+			map = &std_map->qam_6;
-+		} else if (bw <= 7000000) {
-+			map = &std_map->qam_7;
-+			band = BANDWIDTH_7_MHZ;
-+		} else {
-+			map = &std_map->qam_8;
-+			band = BANDWIDTH_8_MHZ;
-+		}
-+		break;
-+	default:
- 		tda_warn("modulation type not supported!\n");
- 		return -EINVAL;
+-	freq = params->frequency / 1000; // Hz -> kHz
++	freq = priv->frequency / 1000; /* Hz -> kHz */
+ 	if (freq < 470000 && freq > 230000)
+ 		return -EINVAL; /* Gap between VHF and UHF bands */
+-	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
+-	priv->frequency = freq * 1000;
+ 
++	priv->frequency = c->frequency;
+ 	tune = 2 * freq * (8192/16) / (FREF/16);
+ 	band = (freq < 300000) ? MT2266_VHF : MT2266_UHF;
+ 	if (band == MT2266_VHF)
+ 		tune *= 2;
+ 
+-	switch (params->u.ofdm.bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	if (c->bandwidth_hz <= 6000000) {
+ 		mt2266_writeregs(priv, mt2266_init_6mhz,
+ 				 sizeof(mt2266_init_6mhz));
+-		break;
+-	case BANDWIDTH_7_MHZ:
++		priv->bandwidth = BANDWIDTH_6_MHZ;
++	} else if (c->bandwidth_hz <= 7000000) {
+ 		mt2266_writeregs(priv, mt2266_init_7mhz,
+ 				 sizeof(mt2266_init_7mhz));
+-		break;
+-	case BANDWIDTH_8_MHZ:
+-	default:
++		priv->bandwidth = BANDWIDTH_7_MHZ;
++	} else {
+ 		mt2266_writeregs(priv, mt2266_init_8mhz,
+ 				 sizeof(mt2266_init_8mhz));
+-		break;
++		priv->bandwidth = BANDWIDTH_8_MHZ;
  	}
-@@ -996,8 +991,7 @@ static int tda18271_set_params(struct dvb_frontend *fe,
  
- 	priv->if_freq   = map->if_freq;
- 	priv->frequency = freq;
--	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ?
--		params->u.ofdm.bandwidth : 0;
-+	priv->bandwidth = band;
- fail:
- 	return ret;
- }
+ 	if (band == MT2266_VHF && priv->band == MT2266_UHF) {
 -- 
 1.7.8.352.g876a6
 
