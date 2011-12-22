@@ -1,374 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:51016 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754464Ab1L0R0d (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 12:26:33 -0500
-Message-ID: <4EF9FFC2.30705@infradead.org>
-Date: Tue, 27 Dec 2011 15:26:26 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 03/91] [media] dvb-core: add support for a DVBv5 get_frontend()
- callback
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com> <1324948159-23709-3-git-send-email-mchehab@redhat.com> <1324948159-23709-4-git-send-email-mchehab@redhat.com> <4EF9B860.4000103@linuxtv.org> <4EF9CD07.6080608@infradead.org> <4EF9DA66.1070409@linuxtv.org>
-In-Reply-To: <4EF9DA66.1070409@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:48786 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755217Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKMQN006749
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 00/27] DVBv5 improvements at the drivers
+Date: Thu, 22 Dec 2011 09:19:48 -0200
+Message-Id: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27-12-2011 12:47, Andreas Oberritter wrote:
-> On 27.12.2011 14:49, Mauro Carvalho Chehab wrote:
->> On 27-12-2011 10:21, Andreas Oberritter wrote:
->>> On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
->>>> The old method is renamed to get_frontend_legacy(), while not all
->>>> frontends are converted.
->>>>
->>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>> ---
->>>>  drivers/media/dvb/bt8xx/dst.c               |    8 +-
->>>>  drivers/media/dvb/dvb-core/dvb_frontend.c   |  102 ++++++++++++++++++++------
->>>>  drivers/media/dvb/dvb-core/dvb_frontend.h   |    5 +-
->>>>  drivers/media/dvb/dvb-usb/af9005-fe.c       |    4 +-
->>>>  drivers/media/dvb/dvb-usb/cinergyT2-fe.c    |    2 +-
->>>>  drivers/media/dvb/dvb-usb/dtt200u-fe.c      |    2 +-
->>>>  drivers/media/dvb/dvb-usb/friio-fe.c        |    2 +-
->>>>  drivers/media/dvb/dvb-usb/mxl111sf-demod.c  |    2 +-
->>>>  drivers/media/dvb/dvb-usb/vp702x-fe.c       |    2 +-
->>>>  drivers/media/dvb/dvb-usb/vp7045-fe.c       |    2 +-
->>>>  drivers/media/dvb/firewire/firedtv-fe.c     |    2 +-
->>>>  drivers/media/dvb/frontends/af9013.c        |    2 +-
->>>>  drivers/media/dvb/frontends/atbm8830.c      |    2 +-
->>>>  drivers/media/dvb/frontends/au8522_dig.c    |    2 +-
->>>>  drivers/media/dvb/frontends/cx22700.c       |    2 +-
->>>>  drivers/media/dvb/frontends/cx22702.c       |    2 +-
->>>>  drivers/media/dvb/frontends/cx24110.c       |    2 +-
->>>>  drivers/media/dvb/frontends/cx24123.c       |    2 +-
->>>>  drivers/media/dvb/frontends/cxd2820r_core.c |    4 +-
->>>>  drivers/media/dvb/frontends/dib3000mb.c     |    2 +-
->>>>  drivers/media/dvb/frontends/dib3000mc.c     |    2 +-
->>>>  drivers/media/dvb/frontends/dib7000m.c      |    2 +-
->>>>  drivers/media/dvb/frontends/dib7000p.c      |    2 +-
->>>>  drivers/media/dvb/frontends/dib8000.c       |    4 +-
->>>>  drivers/media/dvb/frontends/dib9000.c       |    4 +-
->>>>  drivers/media/dvb/frontends/drxd_hard.c     |    2 +-
->>>>  drivers/media/dvb/frontends/drxk_hard.c     |    4 +-
->>>>  drivers/media/dvb/frontends/dvb_dummy_fe.c  |    6 +-
->>>>  drivers/media/dvb/frontends/it913x-fe.c     |    2 +-
->>>>  drivers/media/dvb/frontends/l64781.c        |    2 +-
->>>>  drivers/media/dvb/frontends/lgdt3305.c      |    4 +-
->>>>  drivers/media/dvb/frontends/lgdt330x.c      |    4 +-
->>>>  drivers/media/dvb/frontends/lgs8gl5.c       |    2 +-
->>>>  drivers/media/dvb/frontends/lgs8gxx.c       |    2 +-
->>>>  drivers/media/dvb/frontends/mb86a20s.c      |    2 +-
->>>>  drivers/media/dvb/frontends/mt312.c         |    2 +-
->>>>  drivers/media/dvb/frontends/mt352.c         |    2 +-
->>>>  drivers/media/dvb/frontends/or51132.c       |    2 +-
->>>>  drivers/media/dvb/frontends/s5h1409.c       |    2 +-
->>>>  drivers/media/dvb/frontends/s5h1411.c       |    2 +-
->>>>  drivers/media/dvb/frontends/s5h1420.c       |    2 +-
->>>>  drivers/media/dvb/frontends/s5h1432.c       |    2 +-
->>>>  drivers/media/dvb/frontends/s921.c          |    2 +-
->>>>  drivers/media/dvb/frontends/stb0899_drv.c   |    2 +-
->>>>  drivers/media/dvb/frontends/stb6100.c       |    4 +-
->>>>  drivers/media/dvb/frontends/stv0297.c       |    2 +-
->>>>  drivers/media/dvb/frontends/stv0299.c       |    2 +-
->>>>  drivers/media/dvb/frontends/stv0367.c       |    4 +-
->>>>  drivers/media/dvb/frontends/stv0900_core.c  |    2 +-
->>>>  drivers/media/dvb/frontends/tda10021.c      |    2 +-
->>>>  drivers/media/dvb/frontends/tda10023.c      |    2 +-
->>>>  drivers/media/dvb/frontends/tda10048.c      |    2 +-
->>>>  drivers/media/dvb/frontends/tda1004x.c      |    4 +-
->>>>  drivers/media/dvb/frontends/tda10071.c      |    2 +-
->>>>  drivers/media/dvb/frontends/tda10086.c      |    2 +-
->>>>  drivers/media/dvb/frontends/tda8083.c       |    2 +-
->>>>  drivers/media/dvb/frontends/ves1820.c       |    2 +-
->>>>  drivers/media/dvb/frontends/ves1x93.c       |    2 +-
->>>>  drivers/media/dvb/frontends/zl10353.c       |    2 +-
->>>>  drivers/media/dvb/siano/smsdvb.c            |    2 +-
->>>>  drivers/media/video/tlg2300/pd-dvb.c        |    2 +-
->>>>  drivers/staging/media/as102/as102_fe.c      |    2 +-
->>>>  62 files changed, 157 insertions(+), 100 deletions(-)
->>>>
->>>> diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
->>>> index 4658bd6..6afc083 100644
->>>> --- a/drivers/media/dvb/bt8xx/dst.c
->>>> +++ b/drivers/media/dvb/bt8xx/dst.c
->>>> @@ -1778,7 +1778,7 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
->>>>  	.init = dst_init,
->>>>  	.tune = dst_tune_frontend,
->>>>  	.set_frontend_legacy = dst_set_frontend,
->>>> -	.get_frontend = dst_get_frontend,
->>>> +	.get_frontend_legacy = dst_get_frontend,
->>>>  	.get_frontend_algo = dst_get_tuning_algo,
->>>>  	.read_status = dst_read_status,
->>>>  	.read_signal_strength = dst_read_signal_strength,
->>>> @@ -1804,7 +1804,7 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
->>>>  	.init = dst_init,
->>>>  	.tune = dst_tune_frontend,
->>>>  	.set_frontend_legacy = dst_set_frontend,
->>>> -	.get_frontend = dst_get_frontend,
->>>> +	.get_frontend_legacy = dst_get_frontend,
->>>>  	.get_frontend_algo = dst_get_tuning_algo,
->>>>  	.read_status = dst_read_status,
->>>>  	.read_signal_strength = dst_read_signal_strength,
->>>> @@ -1838,7 +1838,7 @@ static struct dvb_frontend_ops dst_dvbc_ops = {
->>>>  	.init = dst_init,
->>>>  	.tune = dst_tune_frontend,
->>>>  	.set_frontend_legacy = dst_set_frontend,
->>>> -	.get_frontend = dst_get_frontend,
->>>> +	.get_frontend_legacy = dst_get_frontend,
->>>>  	.get_frontend_algo = dst_get_tuning_algo,
->>>>  	.read_status = dst_read_status,
->>>>  	.read_signal_strength = dst_read_signal_strength,
->>>> @@ -1861,7 +1861,7 @@ static struct dvb_frontend_ops dst_atsc_ops = {
->>>>  	.init = dst_init,
->>>>  	.tune = dst_tune_frontend,
->>>>  	.set_frontend_legacy = dst_set_frontend,
->>>> -	.get_frontend = dst_get_frontend,
->>>> +	.get_frontend_legacy = dst_get_frontend,
->>>>  	.get_frontend_algo = dst_get_tuning_algo,
->>>>  	.read_status = dst_read_status,
->>>>  	.read_signal_strength = dst_read_signal_strength,
->>>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>> index eca6170..1eefb91 100644
->>>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>> @@ -139,6 +139,14 @@ struct dvb_frontend_private {
->>>>  };
->>>>  
->>>>  static void dvb_frontend_wakeup(struct dvb_frontend *fe);
->>>> +static int dtv_get_frontend(struct dvb_frontend *fe,
->>>> +			    struct dtv_frontend_properties *c,
->>>> +			    struct dvb_frontend_parameters *p_out);
->>>> +
->>>> +static bool has_get_frontend(struct dvb_frontend *fe)
->>>> +{
->>>> +	return fe->ops.get_frontend || fe->ops.get_frontend_legacy;
->>>> +}
->>>>  
->>>>  static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
->>>>  {
->>>> @@ -149,8 +157,8 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
->>>>  
->>>>  	dprintk ("%s\n", __func__);
->>>>  
->>>> -	if ((status & FE_HAS_LOCK) && fe->ops.get_frontend)
->>>> -		fe->ops.get_frontend(fe, &fepriv->parameters_out);
->>>> +	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
->>>> +		dtv_get_frontend(fe, NULL, &fepriv->parameters_out);
->>>>  
->>>>  	mutex_lock(&events->mtx);
->>>>  
->>>> @@ -1097,11 +1105,10 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
->>>>  /* Ensure the cached values are set correctly in the frontend
->>>>   * legacy tuning structures, for the advanced tuning API.
->>>>   */
->>>> -static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->>>> +static void dtv_property_legacy_params_sync(struct dvb_frontend *fe,
->>>> +					    struct dvb_frontend_parameters *p)
->>>>  {
->>>>  	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>>> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>>> -	struct dvb_frontend_parameters *p = &fepriv->parameters_in;
->>>>  
->>>>  	p->frequency = c->frequency;
->>>>  	p->inversion = c->inversion;
->>>> @@ -1223,6 +1230,7 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
->>>>  static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>>>  {
->>>>  	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>>> +	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>>>  
->>>>  	/* For legacy delivery systems we don't need the delivery_system to
->>>>  	 * be specified, but we populate the older structures from the cache
->>>> @@ -1231,7 +1239,7 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>>>  	if(is_legacy_delivery_system(c->delivery_system)) {
->>>>  
->>>>  		dprintk("%s() legacy, modulation = %d\n", __func__, c->modulation);
->>>> -		dtv_property_legacy_params_sync(fe);
->>>> +		dtv_property_legacy_params_sync(fe, &fepriv->parameters_in);
->>>>  
->>>>  	} else {
->>>>  		dprintk("%s() adv, modulation = %d\n", __func__, c->modulation);
->>>> @@ -1246,6 +1254,58 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>>>  	}
->>>>  }
->>>>  
->>>> +/**
->>>> + * dtv_get_frontend - calls a callback for retrieving DTV parameters
->>>> + * @fe:		struct dvb_frontend pointer
->>>> + * @c:		struct dtv_frontend_properties pointer (DVBv5 cache)
->>>> + * @p_out	struct dvb_frontend_parameters pointer (DVBv3 FE struct)
->>>> + *
->>>> + * This routine calls either the DVBv3 or DVBv5 get_frontend call.
->>>> + * If c is not null, it will update the DVBv5 cache struct pointed by it.
->>>> + * If p_out is not null, it will update the DVBv3 params pointed by it.
->>>> + */
->>>> +static int dtv_get_frontend(struct dvb_frontend *fe,
->>>> +			    struct dtv_frontend_properties *c,
->>>> +			    struct dvb_frontend_parameters *p_out)
->>>> +{
->>>> +	const struct dtv_frontend_properties *cache = &fe->dtv_property_cache;
->>>> +	struct dtv_frontend_properties tmp_cache;
->>>> +	struct dvb_frontend_parameters tmp_out;
->>>> +	bool fill_cache = (c != NULL);
->>>> +	bool fill_params = (p_out != NULL);
->>>> +	int r;
->>>> +
->>>> +	if (!p_out)
->>>> +		p_out = & tmp_out;
->>>> +
->>>> +	if (!c)
->>>> +		c = &tmp_cache;
->>>> +	else
->>>> +		memcpy(c, cache, sizeof(*c));
->>>> +
->>>> +	/* Then try the DVBv5 one */
->>>> +	if (fe->ops.get_frontend) {
->>>> +		r = fe->ops.get_frontend(fe, c);
->>>> +		if (unlikely(r < 0))
->>>> +			return r;
->>>> +		if (fill_params)
->>>> +			dtv_property_legacy_params_sync(fe, p_out);
->>>> +		return 0;
->>>> +	}
->>>> +
->>>> +	/* As no DVBv5 call exists, use the DVBv3 one */
->>>> +	if (fe->ops.get_frontend_legacy) {
->>>> +		r = fe->ops.get_frontend_legacy(fe, p_out);
->>>> +		if (unlikely(r < 0))
->>>> +			return r;
->>>> +		if (fill_cache)
->>>> +			dtv_property_cache_sync(fe, c, p_out);
->>>> +		return 0;
->>>> +	}
->>>> +
->>>> +	return -EOPNOTSUPP;
->>>> +}
->>>> +
->>>>  static int dvb_frontend_ioctl_legacy(struct file *file,
->>>>  			unsigned int cmd, void *parg);
->>>>  static int dvb_frontend_ioctl_properties(struct file *file,
->>>> @@ -1296,24 +1356,12 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
->>>>  }
->>>>  
->>>>  static int dtv_property_process_get(struct dvb_frontend *fe,
->>>> +				    const struct dtv_frontend_properties *c,
->>>>  				    struct dtv_property *tvp,
->>>>  				    struct file *file)
->>>>  {
->>>> -	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>>> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>>> -	struct dtv_frontend_properties cdetected;
->>>>  	int r;
->>>>  
->>>> -	/*
->>>> -	 * If the driver implements a get_frontend function, then convert
->>>> -	 * detected parameters to S2API properties.
->>>> -	 */
->>>> -	if (fe->ops.get_frontend) {
->>>> -		cdetected = *c;
->>>> -		dtv_property_cache_sync(fe, &cdetected, &fepriv->parameters_out);
->>>> -		c = &cdetected;
->>>> -	}
->>>> -
->>>>  	switch(tvp->cmd) {
->>>>  	case DTV_ENUM_DELSYS:
->>>>  		dtv_set_default_delivery_caps(fe, tvp);
->>>> @@ -1685,6 +1733,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
->>>>  
->>>>  	} else
->>>>  	if(cmd == FE_GET_PROPERTY) {
->>>> +		struct dtv_frontend_properties cache_out;
->>>>  
->>>>  		tvps = (struct dtv_properties __user *)parg;
->>>>  
->>>> @@ -1707,8 +1756,13 @@ static int dvb_frontend_ioctl_properties(struct file *file,
->>>>  			goto out;
->>>>  		}
->>>>  
->>>> +		/*
->>>> +		 * Fills the cache out struct with the cache contents, plus
->>>> +		 * the data retrieved from get_frontend/get_frontend_legacy.
->>>> +		 */
->>>> +		dtv_get_frontend(fe, &cache_out, NULL);
->>>
->>> Unlike before, this code actually calls the get_frontend driver
->>> callback, causing unwanted I2C traffic for every property. Please drop
->>> this behavioural change.
->>
->> Look again: get_frontend() is called only once, when the user requests
->> FE_GET_PROPERTY.
-> 
-> So let me rephrase: Unlike before, this code actually calls the
-> get_frontend driver callback,
+This patch series were originated from Manu's changes to add support
+for DELSYS. It contains two parts.
 
-True.
+The first part (5 patches) adds a better way to support DVB-C Annex C, as
+proposed by Manu: to use a separate delivery system for Annex C.
 
-> causing unwanted I2C traffic for every FE_GET_PROPERTY ioctl.
+At the second part, all tuner drivers were changed to use the
+DVBv5 properties instead of the old DVBv3 properties that has
+limited support for the new delivery systems.
 
-Why unwanted? If the userspace is calling it, it likely wants some fresh 
-information about the frontend.
+Tuners implement a callback called set_params(), used to set
+the tuner properties. This struct works fine for ATSC, DVB-T/C/S,
+but it is not prepared for any other delivery system.
 
-One usage of such call would be to retrieve the autodetected properties,
-after having a frontend lock.
+This is bad, as it requires a somewhat complex logic at the
+dvb core in order to fake the new delivery systems in order to
+behave like the 4 original ones.
 
->> This will only generate i2c traffic if the frontend implements get_frontend,
->> and if it needs to retrieve something from the hardware.
-> 
-> What do you mean by "if it needs to retrieve something"? There's no
-> logic in dtv_get_frontend() to handle that. Usually there's no logic in
-> the get_frontend callback either, because it's job is to retrieve
-> something from the hardware _unconditionally_.
+It also requires that demod drivers for the new delivery systems
+to fill a wrong value at dvb_frontend_ops::info::type.
 
-For example, at FE_SET, it asked for modulation detection. a GET_PROP may
-return what was the detected modulation.
+On this patch series, the demods are kept untouched (well, except
+for one patch that renames the set_frontend callback to another
+name, in order to help migrating demods to the new way).
 
-> Btw, I just noticed that get_frontend gets a parameter 'props' while
-> set_frontend doesn't.
+What is there is a series of patches that change all tuners to
+work directly with the DVBv5 way. This shouldn't be a problem for
+applications calling via DVBv3, as the dvb core will handle the
+compatibility bits.
 
-My first coding were to not add a props parameter there. Then I realized
-that it could make some sense to not touch at the frontend cache parameters
-on a get_frontend, in order to prevent it to replace *_AUTO parameters by
-a detected parameter, as subsequent FE_SET_PROPERTY calls might try to just
-change the frequency, instead of filling all the properties again.
+As a side effect of this change, several tuners will now support
+DVB-T2, ISDB-T, etc, making easier to add support for those new
+delivery systems at the bridge drivers for the demods that support it.
 
-So, I decided to explicitly pass a parameter there.
+Please review.
 
-> IMO this should be changed, e.g. by adding const
-> struct dtv_frontend_properties* to set_frontend, if you insist on
-> introducing this callback.
-> 
-> A far better solution would be to just use the get_property callback for
-> all properties instead of replacing the legacy get_frontend callback
-> with a new "catch-all" function.
-
-Sorry, but I didn't understand what you're meaning. This is exactly what
-get_frontend callback is doing: it retrieves all properties.
-
-After applying the entire patch series, the differences against the
-old behavior is that:
-	- get_frontend() will update the dtv_frontend_properties struct,
-	  instead of dvb_frontend_parameters;
-	- if get_frontend() is not implemented, it will return the last
-	  properties retrieved by a FE_SET_PROPERTY, or the ones initialized
-	  by dtv_property_cache_init();
-	- DVBv3 parameters sync will only be called for a FE_GET_FRONTEND
-	  call;
-	- as a side effect of updating the DVBv5 struct, drivers for ISDB-T,
-	  DSS, etc will return the parameters returned by the driver, not
-	  a damaged copy of it (the cache sync stuff mangles the returned
-	  parameters, due to the compat bits - this makes sense for a DVBv3
-	  call, but it is a disaster for a DVBv5 call).
+Regards,
+Mauro
 
 
-> 
->>> Btw, this doesn't match the patch description.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Manu Abraham (1):
+  [media] DVB: Use a unique delivery system identifier for DVBC_ANNEX_C
+
+Mauro Carvalho Chehab (27):
+  [media] Update documentation to reflect DVB-C Annex A/C support
+  [media] Remove Annex A/C selection via roll-off factor
+  [media] drx-k: report the supported delivery systems
+  [media] tda10023: Don't use a magic numbers for QAM modulation
+  [media] tda10023: add support for DVB-C Annex C
+  [media] tda10021: Don't use a magic numbers for QAM modulation
+  [media] tda10021: Add support for DVB-C Annex C
+  [media] Rename set_frontend fops to set_frontend_legacy
+  [media] dvb_core: estimate bw for all non-terrestial systems
+  [media] qt1010: remove fake implementaion of get_bandwidth()
+  [media] mt2060: remove fake implementaion of get_bandwidth()
+  [media] mt2031: remove fake implementaion of get_bandwidth()
+  [media] mc44s803: use DVBv5 parameters
+  [media] max2165: use DVBv5 parameters
+  [media] mt2266: use DVBv5 parameters
+  [media] mxl5005s: use DVBv5 parameters
+  [media] mxl5005s: fix: don't discard bandwidth changes
+  [media] mxl5007t: use DVBv5 parameters
+  [media] tda18218: use DVBv5 parameters
+  [media] tda18271: add support for QAM 7 MHz map
+  [media] tda18271-fe: use DVBv5 parameters
+  [media] tda827x: use DVBv5 parameters
+  [media] tuner-xc2028: use DVBv5 parameters
+  [media] xc4000: use DVBv5 parameters
+  [media] tuner-simple: get rid of DVBv3 params at set_params call
+  [media] dvb-bt8xx: use DVBv5 parameters
+  [media] dvb-pll: use DVBv5 parameters
+
+ Documentation/DocBook/media/dvb/dvbproperty.xml |   11 +-
+ Documentation/DocBook/media/dvb/frontend.xml    |    4 +-
+ drivers/media/common/tuners/max2165.c           |   60 ++++++----
+ drivers/media/common/tuners/mc44s803.c          |    7 +-
+ drivers/media/common/tuners/mt2060.c            |   12 +--
+ drivers/media/common/tuners/mt2060_priv.h       |    1 -
+ drivers/media/common/tuners/mt2131.c            |   17 +---
+ drivers/media/common/tuners/mt2131_priv.h       |    1 -
+ drivers/media/common/tuners/mt2266.c            |   20 ++--
+ drivers/media/common/tuners/mxl5005s.c          |   65 +++++------
+ drivers/media/common/tuners/mxl5007t.c          |   53 ++++-----
+ drivers/media/common/tuners/qt1010.c            |   16 +--
+ drivers/media/common/tuners/qt1010_priv.h       |    1 -
+ drivers/media/common/tuners/tda18218.c          |   15 +--
+ drivers/media/common/tuners/tda18271-fe.c       |   74 ++++++-------
+ drivers/media/common/tuners/tda18271-maps.c     |    4 +
+ drivers/media/common/tuners/tda18271.h          |    1 +
+ drivers/media/common/tuners/tda827x.c           |   49 +++++----
+ drivers/media/common/tuners/tuner-simple.c      |   63 ++++++++---
+ drivers/media/common/tuners/tuner-xc2028.c      |   83 ++++++--------
+ drivers/media/common/tuners/xc4000.c            |   97 +++++++---------
+ drivers/media/common/tuners/xc5000.c            |  137 +++++++++-------------
+ drivers/media/dvb/bt8xx/dst.c                   |    8 +-
+ drivers/media/dvb/bt8xx/dvb-bt8xx.c             |   31 +++---
+ drivers/media/dvb/dvb-core/dvb_frontend.c       |   52 ++++++++-
+ drivers/media/dvb/dvb-core/dvb_frontend.h       |    3 +-
+ drivers/media/dvb/dvb-usb/af9005-fe.c           |    2 +-
+ drivers/media/dvb/dvb-usb/cinergyT2-fe.c        |    2 +-
+ drivers/media/dvb/dvb-usb/dtt200u-fe.c          |    2 +-
+ drivers/media/dvb/dvb-usb/friio-fe.c            |    2 +-
+ drivers/media/dvb/dvb-usb/gp8psk-fe.c           |    2 +-
+ drivers/media/dvb/dvb-usb/mxl111sf-demod.c      |    2 +-
+ drivers/media/dvb/dvb-usb/vp702x-fe.c           |    2 +-
+ drivers/media/dvb/dvb-usb/vp7045-fe.c           |    2 +-
+ drivers/media/dvb/firewire/firedtv-fe.c         |    2 +-
+ drivers/media/dvb/frontends/af9013.c            |    2 +-
+ drivers/media/dvb/frontends/atbm8830.c          |    2 +-
+ drivers/media/dvb/frontends/au8522_dig.c        |    2 +-
+ drivers/media/dvb/frontends/bcm3510.c           |    2 +-
+ drivers/media/dvb/frontends/cx22700.c           |    2 +-
+ drivers/media/dvb/frontends/cx22702.c           |    2 +-
+ drivers/media/dvb/frontends/cx24110.c           |    2 +-
+ drivers/media/dvb/frontends/cx24116.c           |    2 +-
+ drivers/media/dvb/frontends/cx24123.c           |    2 +-
+ drivers/media/dvb/frontends/cxd2820r_core.c     |    2 +-
+ drivers/media/dvb/frontends/dib3000mb.c         |    2 +-
+ drivers/media/dvb/frontends/dib3000mc.c         |    2 +-
+ drivers/media/dvb/frontends/dib7000m.c          |    2 +-
+ drivers/media/dvb/frontends/dib7000p.c          |    2 +-
+ drivers/media/dvb/frontends/dib8000.c           |    2 +-
+ drivers/media/dvb/frontends/dib9000.c           |    2 +-
+ drivers/media/dvb/frontends/drxd_hard.c         |    2 +-
+ drivers/media/dvb/frontends/drxk_hard.c         |   47 +++++++-
+ drivers/media/dvb/frontends/ds3000.c            |    2 +-
+ drivers/media/dvb/frontends/dvb-pll.c           |   61 ++++++-----
+ drivers/media/dvb/frontends/dvb_dummy_fe.c      |    6 +-
+ drivers/media/dvb/frontends/ec100.c             |    2 +-
+ drivers/media/dvb/frontends/it913x-fe.c         |    2 +-
+ drivers/media/dvb/frontends/l64781.c            |    2 +-
+ drivers/media/dvb/frontends/lgdt3305.c          |    4 +-
+ drivers/media/dvb/frontends/lgdt330x.c          |    4 +-
+ drivers/media/dvb/frontends/lgs8gl5.c           |    2 +-
+ drivers/media/dvb/frontends/lgs8gxx.c           |    2 +-
+ drivers/media/dvb/frontends/mb86a20s.c          |    2 +-
+ drivers/media/dvb/frontends/mt312.c             |    2 +-
+ drivers/media/dvb/frontends/mt352.c             |    2 +-
+ drivers/media/dvb/frontends/nxt200x.c           |    2 +-
+ drivers/media/dvb/frontends/nxt6000.c           |    2 +-
+ drivers/media/dvb/frontends/or51132.c           |    2 +-
+ drivers/media/dvb/frontends/or51211.c           |    2 +-
+ drivers/media/dvb/frontends/s5h1409.c           |    2 +-
+ drivers/media/dvb/frontends/s5h1411.c           |    2 +-
+ drivers/media/dvb/frontends/s5h1420.c           |    2 +-
+ drivers/media/dvb/frontends/s5h1432.c           |    2 +-
+ drivers/media/dvb/frontends/s921.c              |    2 +-
+ drivers/media/dvb/frontends/si21xx.c            |    2 +-
+ drivers/media/dvb/frontends/sp8870.c            |    2 +-
+ drivers/media/dvb/frontends/sp887x.c            |    2 +-
+ drivers/media/dvb/frontends/stv0288.c           |    2 +-
+ drivers/media/dvb/frontends/stv0297.c           |    2 +-
+ drivers/media/dvb/frontends/stv0299.c           |    2 +-
+ drivers/media/dvb/frontends/stv0367.c           |    4 +-
+ drivers/media/dvb/frontends/tda10021.c          |  108 ++++++++++++++-----
+ drivers/media/dvb/frontends/tda10023.c          |  100 +++++++++++++----
+ drivers/media/dvb/frontends/tda10048.c          |    2 +-
+ drivers/media/dvb/frontends/tda1004x.c          |    4 +-
+ drivers/media/dvb/frontends/tda10071.c          |    2 +-
+ drivers/media/dvb/frontends/tda10086.c          |    2 +-
+ drivers/media/dvb/frontends/tda18271c2dd.c      |   44 +++----
+ drivers/media/dvb/frontends/tda8083.c           |    2 +-
+ drivers/media/dvb/frontends/ves1820.c           |    2 +-
+ drivers/media/dvb/frontends/ves1x93.c           |    2 +-
+ drivers/media/dvb/frontends/zl10353.c           |    2 +-
+ drivers/media/dvb/siano/smsdvb.c                |    2 +-
+ drivers/media/dvb/ttpci/av7110.c                |    2 +-
+ drivers/media/dvb/ttusb-dec/ttusbdecfe.c        |    4 +-
+ drivers/media/video/tlg2300/pd-dvb.c            |    2 +-
+ drivers/staging/media/as102/as102_fe.c          |    2 +-
+ include/linux/dvb/frontend.h                    |    9 +-
+ 99 files changed, 766 insertions(+), 636 deletions(-)
+
+-- 
+1.7.8.352.g876a6
 
