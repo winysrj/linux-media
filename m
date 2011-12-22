@@ -1,61 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54652 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752566Ab1LKXlk (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:15768 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753893Ab1LVJ25 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 18:41:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Thomas Meyer <thomas@m3y3r.de>
-Subject: Re: [PATCH] [media] uvcvideo: Use kcalloc instead of kzalloc to allocate array
-Date: Mon, 12 Dec 2011 00:41:54 +0100
-Cc: mchehab@infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-References: <1322600880.1534.315.camel@localhost.localdomain>
-In-Reply-To: <1322600880.1534.315.camel@localhost.localdomain>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112120041.54884.laurent.pinchart@ideasonboard.com>
+	Thu, 22 Dec 2011 04:28:57 -0500
+Date: Thu, 22 Dec 2011 10:28:49 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE
+ memops
+In-reply-to: <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+To: 'Ming Lei' <ming.lei@canonical.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Tony Lindgren' <tony@atomide.com>
+Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>,
+	'Alan Cox' <alan@lxorguk.ukuu.org.uk>,
+	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
+	'Pawel Osciak' <p.osciak@gmail.com>
+Message-id: <010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+ <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+Hello,
 
-Thanks for the patch.
+On Wednesday, December 14, 2011 3:00 PM Ming Lei wrote:
 
-On Tuesday 29 November 2011 22:08:00 Thomas Meyer wrote:
-> The advantage of kcalloc is, that will prevent integer overflows which
-> could result from the multiplication of number of elements and size and it
-> is also a bit nicer to read.
+> DMA contig memory resource is very limited and precious, also
+> accessing to it from CPU is very slow on some platform.
 > 
-> The semantic patch that makes this change is available
-> in https://lkml.org/lkml/2011/11/25/107
+> For some cases(such as the comming face detection driver), DMA Streaming
+> buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
+> physical memory but letting video device driver to handle DMA buffer mapping
+> and unmapping things.
 > 
-> Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Could you elaborate a bit why do you think that DMA contig memory resource
+is so limited? If dma_alloc_coherent fails because of the memory fragmentation,
+the alloc_pages() call with order > 0 will also fail.
 
-Should I take the patch in my tree, or do you plan to push several similar 
-patches directly in one go ?
+I understand that there might be some speed issues with coherent (uncached)
+userspace mappings, but I would solve it in completely different way. The interface
+for both coherent/uncached and non-coherent/cached contig allocator should be the
+same, so exchanging them is easy and will not require changes in the driver.
+I'm planning to introduce some design changes in memory allocator api and introduce
+prepare and finish callbacks in allocator ops. I hope to post the rfc after
+Christmas. For your face detection driver using standard dma-contig allocator
+shouldn't be a big issue.
 
-> ---
-> 
-> diff -u -p a/drivers/media/video/uvc/uvc_ctrl.c
-> b/drivers/media/video/uvc/uvc_ctrl.c ---
-> a/drivers/media/video/uvc/uvc_ctrl.c 2011-11-28 19:36:47.613437745 +0100
-> +++ b/drivers/media/video/uvc/uvc_ctrl.c 2011-11-28 19:58:26.309317018
-> +0100 @@ -1861,7 +1861,7 @@ int uvc_ctrl_init_device(struct uvc_devi
->  		if (ncontrols == 0)
->  			continue;
-> 
-> -		entity->controls = kzalloc(ncontrols * sizeof(*ctrl),
-> +		entity->controls = kcalloc(ncontrols, sizeof(*ctrl),
->  					   GFP_KERNEL);
->  		if (entity->controls == NULL)
->  			return -ENOMEM;
+Your current implementation also abuses the design and api of videobuf2 memory
+allocators. If the allocator needs to return a custom structure to the driver
+you should use cookie method. vaddr is intended to provide only a pointer to
+kernel virtual mapping, but you pass a struct page * there.
 
+(snipped)
+
+Best regards
 -- 
-Regards,
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Laurent Pinchart
+
+
