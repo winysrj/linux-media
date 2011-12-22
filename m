@@ -1,44 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:35787 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752849Ab1LTU2P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 15:28:15 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com
-Subject: [RFC 09/17] v4l: Add pad op for pipeline validation
-Date: Tue, 20 Dec 2011 22:28:01 +0200
-Message-Id: <1324412889-17961-9-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:61371 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752268Ab1LVG3q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 01:29:46 -0500
+Date: Thu, 22 Dec 2011 09:29:34 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>,
+	H Hartley Sweeten <hsweeten@visionengravers.com>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch 2/2] [media] Staging: dt3155v4l: probe() always fails
+Message-ID: <20111222062934.GB19975@elgon.mountain>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+There were some curly braces missing so the probe() function always
+failed.
 
-smiapp_pad_ops.validate_pipeline is intended to validate the full pipeline
-which is implemented by the driver to which the subdev implementing this op
-belongs to. The validate_pipeline op must also call validate_pipeline on
-any external entity which is linked to its sink pads.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- include/media/v4l2-subdev.h |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
-
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 26eeaa4..a5ebe86 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -470,6 +470,7 @@ struct v4l2_subdev_pad_ops {
- 			     struct v4l2_subdev_selection *sel);
- 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 			     struct v4l2_subdev_selection *sel);
-+	int (*validate_pipeline)(struct v4l2_subdev *sd);
- };
- 
- struct v4l2_subdev_ops {
--- 
-1.7.2.5
-
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+index 25c6025..280c84e 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+@@ -908,9 +908,10 @@ dt3155_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+ 	if (err)
+ 		goto err_req_region;
+ 	pd->regs = pci_iomap(pdev, 0, pci_resource_len(pd->pdev, 0));
+-	if (!pd->regs)
++	if (!pd->regs) {
+ 		err = -ENOMEM;
+ 		goto err_pci_iomap;
++	}
+ 	err = dt3155_init_board(pdev);
+ 	if (err)
+ 		goto err_init_board;
