@@ -1,134 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:49721 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752349Ab1LSEGp convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Dec 2011 23:06:45 -0500
-Received: by wibhm6 with SMTP id hm6so775828wib.19
-        for <linux-media@vger.kernel.org>; Sun, 18 Dec 2011 20:06:43 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201112161040.06042.laurent.pinchart@ideasonboard.com>
-References: <CAOy7-nNJXMbFkJWRubri2O_kc-V1Z+ZjTioqQu=8STtkuLag9w@mail.gmail.com>
-	<4EE9C7A1.8060303@matrix-vision.de>
-	<CAOy7-nNbGh0C-H60ZJ-WVYavYAyLnADLWsjvbwwoOV9Sd+chFA@mail.gmail.com>
-	<201112161040.06042.laurent.pinchart@ideasonboard.com>
-Date: Mon, 19 Dec 2011 12:06:42 +0800
-Message-ID: <CAOy7-nMpteMUddgQF-rYHri8w2DTODRaCG2QsBM780k4LB79ig@mail.gmail.com>
-Subject: Re: Why is the Y12 support 12-bit grey formats at the CCDC input
- (Y12) is truncated to Y10 at the CCDC output?
-From: James <angweiyang@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Michael Jones <michael.jones@matrix-vision.de>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:9424 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755222Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNLF006753
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 11/28] [media] qt1010: remove fake implementaion of get_bandwidth()
+Date: Thu, 22 Dec 2011 09:19:59 -0200
+Message-Id: <1324552816-25704-12-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-7-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-8-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-9-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This driver implements a fake get_bandwidth() callback. In
+reallity, the tuner driver won't adjust its low-pass
+filter based on a bandwidth, and were just providing a fake
+method for demods to read whatever was "set".
 
-On Fri, Dec 16, 2011 at 5:40 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi James,
->
-> On Friday 16 December 2011 01:53:59 James wrote:
->> On Thu, Dec 15, 2011 at 6:10 PM, Michael Jones wrote:
->> > On 12/15/2011 10:49 AM, James wrote:
->> >> On Thu, Dec 15, 2011 at 3:58 PM, Michael Jones wrote:
->> >>> On 12/15/2011 08:14 AM, James wrote:
->> >>>> Hi all,
->> >>>>
->> >>>> I'm using an OMAP3530 board and a monochrome 12-bit grey sensor.
->> >>>>
->> >>>> Can anyone enlighten me why is the 12-bit grey formats at the CCDC
->> >>>> input (Y12) is truncated to Y10 at the CCDC output?
->> >>>
->> >>> There are 2 CCDC outputs: CCDC_PAD_SOURCE_OF and CCDC_PAD_SOURCE_VP.
->> >>> Only the VP (video port) truncates data to 10 bits, and it does that
->> >>> because the
->> >>> subdevs it feeds can only handle 10 bits max.
->> >>
->> >> Thank you for the clarification.
->> >>
->> >>>> I need to read the entire RAW 12-bit grey value from the CCDC to
->> >>>> memory and the data does not pass through other OMAP3ISP sub-devices.
->> >>>>
->> >>>> I intend to use Laurent's yavta to capture the data to file to verify
->> >>>> its operation for the moment.
->> >>>>
->> >>>> Can this 12-bit (Y12) raw capture be done?
->> >>>
->> >>> Yes. If you are writing the 12-bit gray value directly into memory, you
->> >>> will
->> >>> use SOURCE_OF and can write the full 12-bits into memory.  You need to
->> >>> set
->> >>> up your media pipeline to do sensor->CCDC->OMAP3 ISP CCDC output.
->> >>
->> >> Is there further modification needed to apply to the OMAP3ISP to achieve
->> >> this?
->> >>
->> >> Do you have an application to test the pipeline for this setting to
->> >> simple display?
->> >
->> > Let's establish where you're coming from.  Are you familiar with the
->> > media controller?  Laurent has a program 'media-ctl' to set up the
->> > pipeline (see http://git.ideasonboard.org/?p=media-ctl.git).  You will
->> > find many examples of its usage in the archives of this mailing list. It
->> > will look something like:
->> > media-ctl -r
->> > media-ctl -l '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0 [1]'
->> > media-ctl -l '"your-sensor-name":0 -> "OMAP3 ISP CCDC":0 [1]'
->> >
->> > you will also need to set the formats through the pipeline with
->> > 'media-ctl --set-format'.
->> >
->> > After you use media-ctl to set up the pipeline, you can use yavta to
->> > capture the data from the CCDC output (for me, this is /dev/video2).
->>
->> Yes, I've been using Laurent's media-ctl & yavta to test out MT9V032
->> on the Overo board.
->> He has been helping and guiding me with it as there isn't any success
->> with using MT9V032 on the Overo board then. (^^)
->>
->> What I've been looking for since then is any other application such as
->> GUI MPlayer or gst-launch that can open the device and playback the
->> data to either LCD or DVI display on the board. (i.e. direct
->> 'streaming')
->>
->> Do you know of any? I wish to avoid any further components (e.g.
->> ffmpeg) that modify/convert the raw data as much as possible.
->>
->> sensor->CCDC->application->display
->
-> If you're going to display the data, the 12-bit resolution is overkill. You
-> can thus limit it to 10-bits in the CCDC, and you should feed it to the
-> preview engine (and possibly resizer) to get YUV which could easily be played
-> on screen.
+This code is useless, as none of the drivers that use
+this tuner seems to require a get_bandwidth() callback.
 
-Yup. The main purpose of grabbing at 12-bit is for soft
-post-processing before being fed to the display at its optimal
-resolution. Thus, I've to bypass all the HW ISP blocks available in
-the OMAP3530.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/qt1010.c      |   16 ++++------------
+ drivers/media/common/tuners/qt1010_priv.h |    1 -
+ 2 files changed, 4 insertions(+), 13 deletions(-)
 
-For now, I just need a method to validate the proof-of-concept of the
-pipeline with a 'grab-n-dump' streaming playback without any
-post-processing onto the display (LCD/DVI).
-
-> However, the preview engine doesn't support Y10 input yet, so this will need
-> to be implemented.
-
-Noted.
-
-> You can work around the problem by hacking the sensor
-> driver to report SGRBG10. You will get a resulting YUV image that will look
-> more or less correct, but with color artifacts. That's at least a temporary
-> solution to make sure the pipeline + display are working.
-
-The hack is to keep the constant (V4L2_MBUS_FMT_SGRBG10_1X10) instead
-of changing to V4L2_MBUS_FMT_Y12_1x12?
-
-Many thanks in adv.
-
+diff --git a/drivers/media/common/tuners/qt1010.c b/drivers/media/common/tuners/qt1010.c
+index cd461c2..bd433ad 100644
+--- a/drivers/media/common/tuners/qt1010.c
++++ b/drivers/media/common/tuners/qt1010.c
+@@ -85,6 +85,7 @@ static void qt1010_dump_regs(struct qt1010_priv *priv)
+ static int qt1010_set_params(struct dvb_frontend *fe,
+ 			     struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct qt1010_priv *priv;
+ 	int err;
+ 	u32 freq, div, mod1, mod2;
+@@ -144,13 +145,11 @@ static int qt1010_set_params(struct dvb_frontend *fe,
+ #define FREQ2  4000000 /* 4 MHz Quartz oscillator in the stick? */
+ 
+ 	priv = fe->tuner_priv;
+-	freq = params->frequency;
++	freq = c->frequency;
+ 	div = (freq + QT1010_OFFSET) / QT1010_STEP;
+ 	freq = (div * QT1010_STEP) - QT1010_OFFSET;
+ 	mod1 = (freq + QT1010_OFFSET) % FREQ1;
+ 	mod2 = (freq + QT1010_OFFSET) % FREQ2;
+-	priv->bandwidth =
+-		(fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
+ 	priv->frequency = freq;
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+@@ -321,6 +320,7 @@ static int qt1010_init(struct dvb_frontend *fe)
+ {
+ 	struct qt1010_priv *priv = fe->tuner_priv;
+ 	struct dvb_frontend_parameters params;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int err = 0;
+ 	u8 i, tmpval, *valptr = NULL;
+ 
+@@ -397,7 +397,7 @@ static int qt1010_init(struct dvb_frontend *fe)
+ 		if ((err = qt1010_init_meas2(priv, i, &tmpval)))
+ 			return err;
+ 
+-	params.frequency = 545000000; /* Sigmatek DVB-110 545000000 */
++	c->frequency = 545000000; /* Sigmatek DVB-110 545000000 */
+ 				      /* MSI Megasky 580 GL861 533000000 */
+ 	return qt1010_set_params(fe, &params);
+ }
+@@ -416,13 +416,6 @@ static int qt1010_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
+ 
+-static int qt1010_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+-{
+-	struct qt1010_priv *priv = fe->tuner_priv;
+-	*bandwidth = priv->bandwidth;
+-	return 0;
+-}
+-
+ static int qt1010_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	*frequency = 36125000;
+@@ -443,7 +436,6 @@ static const struct dvb_tuner_ops qt1010_tuner_ops = {
+ 
+ 	.set_params    = qt1010_set_params,
+ 	.get_frequency = qt1010_get_frequency,
+-	.get_bandwidth = qt1010_get_bandwidth,
+ 	.get_if_frequency = qt1010_get_if_frequency,
+ };
+ 
+diff --git a/drivers/media/common/tuners/qt1010_priv.h b/drivers/media/common/tuners/qt1010_priv.h
+index 090cf47..2c42d3f 100644
+--- a/drivers/media/common/tuners/qt1010_priv.h
++++ b/drivers/media/common/tuners/qt1010_priv.h
+@@ -99,7 +99,6 @@ struct qt1010_priv {
+ 	u8 reg25_init_val;
+ 
+ 	u32 frequency;
+-	u32 bandwidth;
+ };
+ 
+ #endif
 -- 
-Regards,
-James
+1.7.8.352.g876a6
+
