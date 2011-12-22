@@ -1,172 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58458 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752902Ab1L3NT4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 08:19:56 -0500
-Message-ID: <4EFDBA77.2030006@redhat.com>
-Date: Fri, 30 Dec 2011 11:19:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:61279 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752268Ab1LVG33 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 01:29:29 -0500
+Date: Thu, 22 Dec 2011 09:29:07 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Greg Kroah-Hartman <gregkh@suse.de>,
+	H Hartley Sweeten <hsweeten@visionengravers.com>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch 1/2] [media] Staging: dt3155v4l: update to newer API
+Message-ID: <20111222062907.GA19975@elgon.mountain>
 MIME-Version: 1.0
-To: e9hack <e9hack@googlemail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH RFC 00/91] Only use DVBv5 internally on frontend drivers
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <4EFB3AB8.1090608@googlemail.com>
-In-Reply-To: <4EFB3AB8.1090608@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28-12-2011 13:50, e9hack wrote:
-> Hi Mauro,
-> 
-> your changset breaks the auto-inversion capability of dvb_frontend.c for frontends which
-> doesn't implement auto-inversion. Currently tda10021.c, tda10023.c and drxk_hard.c are not
-> working. They fail at the following check:
-> 
-> 
->  231 static int tda10021_set_parameters (struct dvb_frontend *fe)
-> ....
->  232 {
->  279         if (c->inversion != INVERSION_ON && c->inversion != INVERSION_OFF)
->  280                 return -EINVAL;
-> 
-> The given inversion is INVERSION_AUTO.
-> 
-> Regards,
-> Hartmut
-> 
+I changed the function definitions for dt3155_queue_setup() to match the
+newer API.  The dt3155_start_streaming() function didn't do anything so
+I just removed it.
 
-Hi Hartmut,
+This silences the following gcc warnings:
+drivers/staging/media/dt3155v4l/dt3155v4l.c:307:2: warning: initialization from incompatible pointer type [enabled by default]
+drivers/staging/media/dt3155v4l/dt3155v4l.c:307:2: warning: (near initialization for ‘q_ops.queue_setup’) [enabled by default]
+drivers/staging/media/dt3155v4l/dt3155v4l.c:311:2: warning: initialization from incompatible pointer type [enabled by default]
+drivers/staging/media/dt3155v4l/dt3155v4l.c:311:2: warning: (near initialization for ‘q_ops.start_streaming’) [enabled by default]
 
-Thanks for testing!
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Please double check that this is sufficient.  I'm not very familiar with
+this code.
 
-The issue here is that the dvb_frontend sometimes update only the DVBv3 parameters. 
-
-This is probably affecting DVBv5 drivers that may be lacking some features,
-like zigzag support and DVB core emulation for INVERSION_AUTO.
-
-The enclosed patch should fix it.
-
-I'll latter dig into dvb_frontend, in order to replace the tests for info.type
-there to c->delivery_system, as it might still have some bugs there due to
-that.
-
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date: Fri, 30 Dec 2011 10:30:25 -0200
-Subject: [PATCH] dvb_frontend: Fix inversion breakage due to DVBv5 conversion
-
-On several places inside dvb_frontend, only the DVBv3 parameters
-were updated. Change it to be sure that, on all places, the DVBv5
-parameters will be changed instead.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 9dd30be..9d092a6 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -288,12 +288,13 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
- 	int ready = 0;
- 	int fe_set_err = 0;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
--	int original_inversion = fepriv->parameters_in.inversion;
--	u32 original_frequency = fepriv->parameters_in.frequency;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache, tmp;
-+	int original_inversion = c->inversion;
-+	u32 original_frequency = c->frequency;
+diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+index 04e93c4..25c6025 100644
+--- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
++++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+@@ -218,9 +218,10 @@ dt3155_start_acq(struct dt3155_priv *pd)
+  *	driver-specific callbacks (vb2_ops)
+  */
+ static int
+-dt3155_queue_setup(struct vb2_queue *q, unsigned int *num_buffers,
+-			unsigned int *num_planes, unsigned long sizes[],
+-						void *alloc_ctxs[])
++dt3155_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
++		unsigned int *num_buffers, unsigned int *num_planes,
++		unsigned int sizes[], void *alloc_ctxs[])
++
+ {
+ 	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+ 	void *ret;
+@@ -262,12 +263,6 @@ dt3155_buf_prepare(struct vb2_buffer *vb)
+ }
  
- 	/* are we using autoinversion? */
- 	autoinversion = ((!(fe->ops.info.caps & FE_CAN_INVERSION_AUTO)) &&
--			 (fepriv->parameters_in.inversion == INVERSION_AUTO));
-+			 (c->inversion == INVERSION_AUTO));
- 
- 	/* setup parameters correctly */
- 	while(!ready) {
-@@ -359,19 +360,20 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
- 		fepriv->auto_step, fepriv->auto_sub_step, fepriv->started_auto_step);
- 
- 	/* set the frontend itself */
--	fepriv->parameters_in.frequency += fepriv->lnb_drift;
-+	c->frequency += fepriv->lnb_drift;
- 	if (autoinversion)
--		fepriv->parameters_in.inversion = fepriv->inversion;
-+		c->inversion = fepriv->inversion;
-+	tmp = *c;
- 	if (fe->ops.set_frontend)
- 		fe_set_err = fe->ops.set_frontend(fe);
--	fepriv->parameters_out = fepriv->parameters_in;
-+	*c = tmp;
- 	if (fe_set_err < 0) {
- 		fepriv->state = FESTATE_ERROR;
- 		return fe_set_err;
- 	}
- 
--	fepriv->parameters_in.frequency = original_frequency;
--	fepriv->parameters_in.inversion = original_inversion;
-+	c->frequency = original_frequency;
-+	c->inversion = original_inversion;
- 
- 	fepriv->auto_sub_step++;
- 	return 0;
-@@ -382,6 +384,7 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
- 	fe_status_t s = 0;
- 	int retval = 0;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache, tmp;
- 
- 	/* if we've got no parameters, just keep idling */
- 	if (fepriv->state & FESTATE_IDLE) {
-@@ -393,9 +396,10 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
- 	/* in SCAN mode, we just set the frontend when asked and leave it alone */
- 	if (fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT) {
- 		if (fepriv->state & FESTATE_RETUNE) {
-+			tmp = *c;
- 			if (fe->ops.set_frontend)
- 				retval = fe->ops.set_frontend(fe);
--			fepriv->parameters_out = fepriv->parameters_in;
-+			*c = tmp;
- 			if (retval < 0)
- 				fepriv->state = FESTATE_ERROR;
- 			else
-@@ -425,8 +429,8 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
- 
- 		/* if we're tuned, then we have determined the correct inversion */
- 		if ((!(fe->ops.info.caps & FE_CAN_INVERSION_AUTO)) &&
--		    (fepriv->parameters_in.inversion == INVERSION_AUTO)) {
--			fepriv->parameters_in.inversion = fepriv->inversion;
-+		    (c->inversion == INVERSION_AUTO)) {
-+			c->inversion = fepriv->inversion;
- 		}
- 		return;
- 	}
-@@ -1976,14 +1980,14 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 
- 		/* force auto frequency inversion if requested */
- 		if (dvb_force_auto_inversion) {
--			fepriv->parameters_in.inversion = INVERSION_AUTO;
-+			c->inversion = INVERSION_AUTO;
- 		}
- 		if (fe->ops.info.type == FE_OFDM) {
- 			/* without hierarchical coding code_rate_LP is irrelevant,
- 			 * so we tolerate the otherwise invalid FEC_NONE setting */
--			if (fepriv->parameters_in.u.ofdm.hierarchy_information == HIERARCHY_NONE &&
--			    fepriv->parameters_in.u.ofdm.code_rate_LP == FEC_NONE)
--				fepriv->parameters_in.u.ofdm.code_rate_LP = FEC_AUTO;
-+			if (c->hierarchy == HIERARCHY_NONE &&
-+			    c->code_rate_LP == FEC_NONE)
-+				c->code_rate_LP = FEC_AUTO;
- 		}
- 
- 		/* get frontend-specific tuning settings */
-@@ -1996,8 +2000,8 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 			switch(fe->ops.info.type) {
- 			case FE_QPSK:
- 				fepriv->min_delay = HZ/20;
--				fepriv->step_size = fepriv->parameters_in.u.qpsk.symbol_rate / 16000;
--				fepriv->max_drift = fepriv->parameters_in.u.qpsk.symbol_rate / 2000;
-+				fepriv->step_size = c->symbol_rate / 16000;
-+				fepriv->max_drift = c->symbol_rate / 2000;
- 				break;
- 
- 			case FE_QAM:
+ static int
+-dt3155_start_streaming(struct vb2_queue *q)
+-{
+-	return 0;
+-}
+-
+-static int
+ dt3155_stop_streaming(struct vb2_queue *q)
+ {
+ 	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+@@ -308,7 +303,6 @@ const struct vb2_ops q_ops = {
+ 	.wait_prepare = dt3155_wait_prepare,
+ 	.wait_finish = dt3155_wait_finish,
+ 	.buf_prepare = dt3155_buf_prepare,
+-	.start_streaming = dt3155_start_streaming,
+ 	.stop_streaming = dt3155_stop_streaming,
+ 	.buf_queue = dt3155_buf_queue,
+ };
