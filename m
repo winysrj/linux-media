@@ -1,259 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40196 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752228Ab1LRXzt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Dec 2011 18:55:49 -0500
-Received: from localhost.localdomain (unknown [91.178.220.210])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 1854735BA4
-	for <linux-media@vger.kernel.org>; Sun, 18 Dec 2011 23:55:48 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC/PATCH 3/3] uvcvideo: Implement compat_ioctl for custom ioctls
-Date: Mon, 19 Dec 2011 00:55:46 +0100
-Message-Id: <1324252546-18437-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1324252546-18437-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1324252546-18437-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:26914 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755159Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKMoQ032741
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:22 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 05/28] [media] tda10023: Don't use a magic numbers for QAM modulation
+Date: Thu, 22 Dec 2011 09:19:53 -0200
+Message-Id: <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Support 32-bit/64-bit compatibility for the the UVCIOC_ ioctls.
+Convert the existing data struct to use the QAM modulation macros,
+instead of assuming that they're numbered from 0 to 5.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/uvc/uvc_v4l2.c |  205 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 205 insertions(+), 0 deletions(-)
+ drivers/media/dvb/frontends/tda10023.c |   66 +++++++++++++++++++++-----------
+ 1 files changed, 43 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/video/uvc/uvc_v4l2.c b/drivers/media/video/uvc/uvc_v4l2.c
-index f09ee8b..028fabe 100644
---- a/drivers/media/video/uvc/uvc_v4l2.c
-+++ b/drivers/media/video/uvc/uvc_v4l2.c
-@@ -11,6 +11,7 @@
-  *
-  */
- 
-+#include <linux/compat.h>
- #include <linux/kernel.h>
- #include <linux/version.h>
- #include <linux/list.h>
-@@ -1030,6 +1031,207 @@ static long uvc_v4l2_ioctl(struct file *file,
- 	return video_usercopy(file, cmd, arg, uvc_v4l2_do_ioctl);
+diff --git a/drivers/media/dvb/frontends/tda10023.c b/drivers/media/dvb/frontends/tda10023.c
+index a3c34ee..e6c321e 100644
+--- a/drivers/media/dvb/frontends/tda10023.c
++++ b/drivers/media/dvb/frontends/tda10023.c
+@@ -298,25 +298,43 @@ static int tda10023_init (struct dvb_frontend *fe)
+ 	return 0;
  }
  
-+#ifdef CONFIG_COMPAT
-+struct uvc_xu_control_mapping32 {
-+	__u32 id;
-+	__u8 name[32];
-+	__u8 entity[16];
-+	__u8 selector;
-+
-+	__u8 size;
-+	__u8 offset;
-+	__u32 v4l2_type;
-+	__u32 data_type;
-+
-+	compat_caddr_t menu_info;
-+	__u32 menu_count;
-+
-+	__u32 reserved[4];
++struct qam_params {
++	u8 qam, lockthr, mseth, aref, agcrefnyq, eragnyq_thd;
 +};
 +
-+static int uvc_v4l2_get_xu_mapping(struct uvc_xu_control_mapping *kp,
-+			const struct uvc_xu_control_mapping32 __user *up)
-+{
-+	struct uvc_menu_info __user *umenus;
-+	struct uvc_menu_info __user *kmenus;
-+	compat_caddr_t p;
-+
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
-+	    __copy_from_user(kp, up, offsetof(typeof(*up), menu_info)) ||
-+	    __get_user(kp->menu_count, &up->menu_count))
-+		return -EFAULT;
-+
-+	memset(kp->reserved, 0, sizeof(kp->reserved));
-+
-+	if (kp->menu_count == 0) {
-+		kp->menu_info = NULL;
-+		return 0;
-+	}
-+
-+	if (__get_user(p, &up->menu_info))
-+		return -EFAULT;
-+	umenus = compat_ptr(p);
-+	if (!access_ok(VERIFY_READ, umenus, kp->menu_count * sizeof(*umenus)))
-+		return -EFAULT;
-+
-+	kmenus = compat_alloc_user_space(kp->menu_count * sizeof(*kmenus));
-+	if (kmenus == NULL)
-+		return -EFAULT;
-+	kp->menu_info = kmenus;
-+
-+	if (copy_in_user(kmenus, umenus, kp->menu_count * sizeof(*umenus)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+static int uvc_v4l2_put_xu_mapping(const struct uvc_xu_control_mapping *kp,
-+			struct uvc_xu_control_mapping32 __user *up)
-+{
-+	struct uvc_menu_info __user *umenus;
-+	struct uvc_menu_info __user *kmenus = kp->menu_info;
-+	compat_caddr_t p;
-+
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
-+	    __copy_to_user(up, kp, offsetof(typeof(*up), menu_info)) ||
-+	    __put_user(kp->menu_count, &up->menu_count))
-+		return -EFAULT;
-+
-+	__clear_user(up->reserved, sizeof(up->reserved));
-+
-+	if (kp->menu_count == 0)
-+		return 0;
-+
-+	if (get_user(p, &up->menu_info))
-+		return -EFAULT;
-+	umenus = compat_ptr(p);
-+	if (!access_ok(VERIFY_WRITE, umenus, kp->menu_count * sizeof(*umenus)))
-+		return -EFAULT;
-+
-+	if (copy_in_user(umenus, kmenus, kp->menu_count * sizeof(*umenus)))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+struct uvc_xu_control_query32 {
-+	__u8 unit;
-+	__u8 selector;
-+	__u8 query;
-+	__u16 size;
-+	compat_caddr_t data;
-+};
-+
-+static int uvc_v4l2_get_xu_query(struct uvc_xu_control_query *kp,
-+			const struct uvc_xu_control_query32 __user *up)
-+{
-+	u8 __user *udata;
-+	u8 __user *kdata;
-+	compat_caddr_t p;
-+
-+	if (!access_ok(VERIFY_READ, up, sizeof(*up)) ||
-+	    __copy_from_user(kp, up, offsetof(typeof(*up), data)))
-+		return -EFAULT;
-+
-+	if (kp->size == 0) {
-+		kp->data = NULL;
-+		return 0;
-+	}
-+
-+	if (__get_user(p, &up->data))
-+		return -EFAULT;
-+	udata = compat_ptr(p);
-+	if (!access_ok(VERIFY_READ, udata, kp->size))
-+		return -EFAULT;
-+
-+	kdata = compat_alloc_user_space(kp->size);
-+	if (kdata == NULL)
-+		return -EFAULT;
-+	kp->data = kdata;
-+
-+	if (copy_in_user(kdata, udata, kp->size))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+static int uvc_v4l2_put_xu_query(const struct uvc_xu_control_query *kp,
-+			struct uvc_xu_control_query32 __user *up)
-+{
-+	u8 __user *udata;
-+	u8 __user *kdata = kp->data;
-+	compat_caddr_t p;
-+
-+	if (!access_ok(VERIFY_WRITE, up, sizeof(*up)) ||
-+	    __copy_to_user(up, kp, offsetof(typeof(*up), data)))
-+		return -EFAULT;
-+
-+	if (kp->size == 0)
-+		return 0;
-+
-+	if (get_user(p, &up->data))
-+		return -EFAULT;
-+	udata = compat_ptr(p);
-+	if (!access_ok(VERIFY_READ, udata, kp->size))
-+		return -EFAULT;
-+
-+	if (copy_in_user(udata, kdata, kp->size))
-+		return -EFAULT;
-+
-+	return 0;
-+}
-+
-+#define UVCIOC_CTRL_MAP32	_IOWR('u', 0x20, struct uvc_xu_control_mapping32)
-+#define UVCIOC_CTRL_QUERY32	_IOWR('u', 0x21, struct uvc_xu_control_query32)
-+
-+static long uvc_v4l2_compat_ioctl(struct file *file,
-+		     unsigned int cmd, unsigned long arg)
-+{
-+	union {
-+		struct uvc_xu_control_mapping xmap;
-+		struct uvc_xu_control_query xqry;
-+	} karg;
-+	void __user *up = compat_ptr(arg);
-+	mm_segment_t old_fs;
-+	long ret;
-+
-+	switch (cmd) {
-+	case UVCIOC_CTRL_MAP32:
-+		cmd = UVCIOC_CTRL_MAP32;
-+		ret = uvc_v4l2_get_xu_mapping(&karg.xmap, up);
-+		break;
-+
-+	case UVCIOC_CTRL_QUERY32:
-+		cmd = UVCIOC_CTRL_QUERY32;
-+		ret = uvc_v4l2_get_xu_query(&karg.xqry, up);
-+		break;
-+
-+	default:
-+		return -ENOIOCTLCMD;
-+	}
-+
-+	old_fs = get_fs();
-+	set_fs(KERNEL_DS);
-+	ret = uvc_v4l2_ioctl(file, cmd, (unsigned long)&karg);
-+	set_fs(old_fs);
-+
-+	if (ret < 0)
-+		return ret;
-+
-+	switch (cmd) {
-+	case UVCIOC_CTRL_MAP:
-+		ret = uvc_v4l2_put_xu_mapping(&karg.xmap, up);
-+		break;
-+
-+	case UVCIOC_CTRL_QUERY:
-+		ret = uvc_v4l2_put_xu_query(&karg.xqry, up);
-+		break;
-+	}
-+
-+	return ret;
-+}
-+#endif
-+
- static ssize_t uvc_v4l2_read(struct file *file, char __user *data,
- 		    size_t count, loff_t *ppos)
+ static int tda10023_set_parameters (struct dvb_frontend *fe,
+ 			    struct dvb_frontend_parameters *p)
  {
-@@ -1076,6 +1278,9 @@ const struct v4l2_file_operations uvc_fops = {
- 	.open		= uvc_v4l2_open,
- 	.release	= uvc_v4l2_release,
- 	.unlocked_ioctl	= uvc_v4l2_ioctl,
-+#ifdef CONFIG_COMPAT
-+	.compat_ioctl	= uvc_v4l2_compat_ioctl,
+ 	struct tda10023_state* state = fe->demodulator_priv;
+-
+-	static int qamvals[6][6] = {
+-		//  QAM   LOCKTHR  MSETH   AREF AGCREFNYQ  ERAGCNYQ_THD
+-		{ (5<<2),  0x78,    0x8c,   0x96,   0x78,   0x4c  },  // 4 QAM
+-		{ (0<<2),  0x87,    0xa2,   0x91,   0x8c,   0x57  },  // 16 QAM
+-		{ (1<<2),  0x64,    0x74,   0x96,   0x8c,   0x57  },  // 32 QAM
+-		{ (2<<2),  0x46,    0x43,   0x6a,   0x6a,   0x44  },  // 64 QAM
+-		{ (3<<2),  0x36,    0x34,   0x7e,   0x78,   0x4c  },  // 128 QAM
+-		{ (4<<2),  0x26,    0x23,   0x6c,   0x5c,   0x3c  },  // 256 QAM
++	static const struct qam_params qam_params[] = {
++		/* Modulation  QAM    LOCKTHR   MSETH   AREF AGCREFNYQ ERAGCNYQ_THD */
++		[QPSK]    = { (5<<2),  0x78,    0x8c,   0x96,   0x78,   0x4c  },
++		[QAM_16]  = { (0<<2),  0x87,    0xa2,   0x91,   0x8c,   0x57  },
++		[QAM_32]  = { (1<<2),  0x64,    0x74,   0x96,   0x8c,   0x57  },
++		[QAM_64]  = { (2<<2),  0x46,    0x43,   0x6a,   0x6a,   0x44  },
++		[QAM_128] = { (3<<2),  0x36,    0x34,   0x7e,   0x78,   0x4c  },
++		[QAM_256] = { (4<<2),  0x26,    0x23,   0x6c,   0x5c,   0x3c  },
+ 	};
+-
+-	int qam = p->u.qam.modulation;
+-
+-	if (qam < 0 || qam > 5)
++	unsigned qam = p->u.qam.modulation;
++
++	/*
++	 * gcc optimizes the code bellow the same way as it would code:
++	 *		 "if (qam > 5) return -EINVAL;"
++	 * Yet, the code is clearer, as it shows what QAM standards are
++	 * supported by the driver, and avoids the usage of magic numbers on
++	 * it.
++	 */
++	switch (qam) {
++	case QPSK:
++	case QAM_16:
++	case QAM_32:
++	case QAM_64:
++	case QAM_128:
++	case QAM_256:
++		break;
++	default:
+ 		return -EINVAL;
++	}
+ 
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		fe->ops.tuner_ops.set_params(fe, p);
+@@ -324,16 +342,18 @@ static int tda10023_set_parameters (struct dvb_frontend *fe,
+ 	}
+ 
+ 	tda10023_set_symbolrate (state, p->u.qam.symbol_rate);
+-	tda10023_writereg (state, 0x05, qamvals[qam][1]);
+-	tda10023_writereg (state, 0x08, qamvals[qam][2]);
+-	tda10023_writereg (state, 0x09, qamvals[qam][3]);
+-	tda10023_writereg (state, 0xb4, qamvals[qam][4]);
+-	tda10023_writereg (state, 0xb6, qamvals[qam][5]);
+-
+-//	tda10023_writereg (state, 0x04, (p->inversion?0x12:0x32));
+-//	tda10023_writebit (state, 0x04, 0x60, (p->inversion?0:0x20));
+-	tda10023_writebit (state, 0x04, 0x40, 0x40);
+-	tda10023_setup_reg0 (state, qamvals[qam][0]);
++	tda10023_writereg(state, 0x05, qam_params[qam].lockthr);
++	tda10023_writereg(state, 0x08, qam_params[qam].mseth);
++	tda10023_writereg(state, 0x09, qam_params[qam].aref);
++	tda10023_writereg(state, 0xb4, qam_params[qam].agcrefnyq);
++	tda10023_writereg(state, 0xb6, qam_params[qam].eragnyq_thd);
++
++#if 0
++	tda10023_writereg(state, 0x04, (p->inversion ? 0x12 : 0x32));
++	tda10023_writebit(state, 0x04, 0x60, (p->inversion ? 0 : 0x20));
 +#endif
- 	.read		= uvc_v4l2_read,
- 	.mmap		= uvc_v4l2_mmap,
- 	.poll		= uvc_v4l2_poll,
++	tda10023_writebit(state, 0x04, 0x40, 0x40);
++	tda10023_setup_reg0(state, qam_params[qam].qam);
+ 
+ 	return 0;
+ }
 -- 
-1.7.3.4
+1.7.8.352.g876a6
 
