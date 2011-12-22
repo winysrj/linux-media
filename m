@@ -1,151 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:52453 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932452Ab1LEWLr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 17:11:47 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAKMK7uHw3OpMAtVib=e=s_us9Tx9TebzehGg59d4-g9dUXr+pQ@mail.gmail.com>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
-	<201112051718.48324.arnd@arndb.de>
-	<CAF6AEGvyWV0DM2fjBbh-TNHiMmiLF4EQDJ6Uu0=NkopM6SXS6g@mail.gmail.com>
-	<CAKMK7uHw3OpMAtVib=e=s_us9Tx9TebzehGg59d4-g9dUXr+pQ@mail.gmail.com>
-Date: Mon, 5 Dec 2011 16:11:46 -0600
-Message-ID: <CAF6AEGto-+oSqguuWyPunUbtE65GpNiXh21srQzrChiBQMb1Nw@mail.gmail.com>
-Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
-From: Rob Clark <rob@ti.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: t.stanislaws@samsung.com, linux@arm.linux.org.uk,
-	Arnd Bergmann <arnd@arndb.de>, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-mm@kvack.org, m.szyprowski@samsung.com,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:17951 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755203Ab1LVLUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:24 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNcl004863
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 25/28] [media] xc4000: use DVBv5 parameters
+Date: Thu, 22 Dec 2011 09:20:13 -0200
+Message-Id: <1324552816-25704-26-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-25-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-7-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-8-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-9-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-12-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-13-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-14-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-15-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-16-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-17-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-18-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-19-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-20-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-21-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-22-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-23-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-24-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-25-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 5, 2011 at 3:23 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Mon, Dec 05, 2011 at 02:46:47PM -0600, Rob Clark wrote:
->> On Mon, Dec 5, 2011 at 11:18 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->> > In the patch 2, you have a section about migration that mentions that
->> > it is possible to export a buffer that can be migrated after it
->> > is already mapped into one user driver. How does that work when
->> > the physical addresses are mapped into a consumer device already?
->>
->> I think you can do physical migration if you are attached, but
->> probably not if you are mapped.
->
-> Yeah, that's very much how I see this, and also why map/unmap (at least
-> for simple users like v4l) should only bracket actual usage. GPU memory
-> managers need to be able to move around buffers while no one is using
-> them.
->
-> [snip]
->
->> >> +     /* allow allocator to take care of cache ops */
->> >> +     void (*sync_sg_for_cpu) (struct dma_buf *, struct device *);
->> >> +     void (*sync_sg_for_device)(struct dma_buf *, struct device *);
->> >
->> > I don't see how this works with multiple consumers: For the streaming
->> > DMA mapping, there must be exactly one owner, either the device or
->> > the CPU. Obviously, this rule needs to be extended when you get to
->> > multiple devices and multiple device drivers, plus possibly user
->> > mappings. Simply assigning the buffer to "the device" from one
->> > driver does not block other drivers from touching the buffer, and
->> > assigning it to "the cpu" does not stop other hardware that the
->> > code calling sync_sg_for_cpu is not aware of.
->> >
->> > The only way to solve this that I can think of right now is to
->> > mandate that the mappings are all coherent (i.e. noncachable
->> > on noncoherent architectures like ARM). If you do that, you no
->> > longer need the sync_sg_for_* calls.
->>
->> My original thinking was that you either need DMABUF_CPU_{PREP,FINI}
->> ioctls and corresponding dmabuf ops, which userspace is required to
->> call before / after CPU access.  Or just remove mmap() and do the
->> mmap() via allocating device and use that device's equivalent
->> DRM_XYZ_GEM_CPU_{PREP,FINI} or DRM_XYZ_GEM_SET_DOMAIN ioctls.  That
->> would give you a way to (a) synchronize with gpu/asynchronous
->> pipeline, (b) synchronize w/ multiple hw devices vs cpu accessing
->> buffer (ie. wait all devices have dma_buf_unmap_attachment'd).  And
->> that gives you a convenient place to do cache operations on
->> noncoherent architecture.
->>
->> I sort of preferred having the DMABUF shim because that lets you pass
->> a buffer around userspace without the receiving code knowing about a
->> device specific API.  But the problem I eventually came around to: if
->> your GL stack (or some other userspace component) is batching up
->> commands before submission to kernel, the buffers you need to wait for
->> completion might not even be submitted yet.  So from kernel
->> perspective they are "ready" for cpu access.  Even though in fact they
->> are not in a consistent state from rendering perspective.  I don't
->> really know a sane way to deal with that.  Maybe the approach instead
->> should be a userspace level API (in libkms/libdrm?) to provide
->> abstraction for userspace access to buffers rather than dealing with
->> this at the kernel level.
->
-> Well, there's a reason GL has an explicit flush and extensions for sync
-> objects. It's to support such scenarios where the driver batches up gpu
-> commands before actually submitting them.
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-Hmm.. what about other non-GL APIs..  maybe vaapi/vdpau or similar?
-(Or something that I haven't thought of.)
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/xc4000.c |   97 +++++++++++++++-------------------
+ 1 files changed, 42 insertions(+), 55 deletions(-)
 
-> Also, recent gpus have all (or
-> shortly will grow) multiple execution pipelines, so it's also important
-> that you sync up with the right command stream. Syncing up with all of
-> them is generally frowned upon for obvious reasons ;-)
+diff --git a/drivers/media/common/tuners/xc4000.c b/drivers/media/common/tuners/xc4000.c
+index 634f4d9..e6acc7a 100644
+--- a/drivers/media/common/tuners/xc4000.c
++++ b/drivers/media/common/tuners/xc4000.c
+@@ -1124,80 +1124,67 @@ static void xc_debug_dump(struct xc4000_priv *priv)
+ static int xc4000_set_params(struct dvb_frontend *fe,
+ 	struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 delsys = c->delivery_system;
++	u32 bw = c->bandwidth_hz;
+ 	struct xc4000_priv *priv = fe->tuner_priv;
+ 	unsigned int type;
+ 	int	ret = -EREMOTEIO;
+ 
+-	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, params->frequency);
++	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, c->frequency);
+ 
+ 	mutex_lock(&priv->lock);
+ 
+-	if (fe->ops.info.type == FE_ATSC) {
+-		dprintk(1, "%s() ATSC\n", __func__);
+-		switch (params->u.vsb.modulation) {
+-		case VSB_8:
+-		case VSB_16:
+-			dprintk(1, "%s() VSB modulation\n", __func__);
+-			priv->rf_mode = XC_RF_MODE_AIR;
+-			priv->freq_hz = params->frequency - 1750000;
+-			priv->bandwidth = BANDWIDTH_6_MHZ;
+-			priv->video_standard = XC4000_DTV6;
+-			type = DTV6;
+-			break;
+-		case QAM_64:
+-		case QAM_256:
+-		case QAM_AUTO:
+-			dprintk(1, "%s() QAM modulation\n", __func__);
+-			priv->rf_mode = XC_RF_MODE_CABLE;
+-			priv->freq_hz = params->frequency - 1750000;
+-			priv->bandwidth = BANDWIDTH_6_MHZ;
+-			priv->video_standard = XC4000_DTV6;
+-			type = DTV6;
+-			break;
+-		default:
+-			ret = -EINVAL;
+-			goto fail;
+-		}
+-	} else if (fe->ops.info.type == FE_OFDM) {
++	switch (delsys) {
++	case SYS_ATSC:
++		dprintk(1, "%s() VSB modulation\n", __func__);
++		priv->rf_mode = XC_RF_MODE_AIR;
++		priv->freq_hz = c->frequency - 1750000;
++		priv->bandwidth = BANDWIDTH_6_MHZ;
++		priv->video_standard = XC4000_DTV6;
++		type = DTV6;
++		break;
++	case SYS_DVBC_ANNEX_B:
++		dprintk(1, "%s() QAM modulation\n", __func__);
++		priv->rf_mode = XC_RF_MODE_CABLE;
++		priv->freq_hz = c->frequency - 1750000;
++		priv->bandwidth = BANDWIDTH_6_MHZ;
++		priv->video_standard = XC4000_DTV6;
++		type = DTV6;
++		break;
++	case SYS_DVBT:
++	case SYS_DVBT2:
+ 		dprintk(1, "%s() OFDM\n", __func__);
+-		switch (params->u.ofdm.bandwidth) {
+-		case BANDWIDTH_6_MHZ:
++		if (bw == 0) {
++			if (c->frequency < 400000000) {
++				priv->bandwidth = BANDWIDTH_7_MHZ;
++				priv->freq_hz = c->frequency - 2250000;
++			} else {
++				priv->bandwidth = BANDWIDTH_8_MHZ;
++				priv->freq_hz = c->frequency - 2750000;
++			}
++			priv->video_standard = XC4000_DTV7_8;
++			type = DTV78;
++		} else if (bw <= 6000000) {
+ 			priv->bandwidth = BANDWIDTH_6_MHZ;
+ 			priv->video_standard = XC4000_DTV6;
+-			priv->freq_hz = params->frequency - 1750000;
++			priv->freq_hz = c->frequency - 1750000;
+ 			type = DTV6;
+-			break;
+-		case BANDWIDTH_7_MHZ:
++		} else if (bw <= 7000000) {
+ 			priv->bandwidth = BANDWIDTH_7_MHZ;
+ 			priv->video_standard = XC4000_DTV7;
+-			priv->freq_hz = params->frequency - 2250000;
++			priv->freq_hz = c->frequency - 2250000;
+ 			type = DTV7;
+-			break;
+-		case BANDWIDTH_8_MHZ:
++		} else {
+ 			priv->bandwidth = BANDWIDTH_8_MHZ;
+ 			priv->video_standard = XC4000_DTV8;
+-			priv->freq_hz = params->frequency - 2750000;
++			priv->freq_hz = c->frequency - 2750000;
+ 			type = DTV8;
+-			break;
+-		case BANDWIDTH_AUTO:
+-			if (params->frequency < 400000000) {
+-				priv->bandwidth = BANDWIDTH_7_MHZ;
+-				priv->freq_hz = params->frequency - 2250000;
+-			} else {
+-				priv->bandwidth = BANDWIDTH_8_MHZ;
+-				priv->freq_hz = params->frequency - 2750000;
+-			}
+-			priv->video_standard = XC4000_DTV7_8;
+-			type = DTV78;
+-			break;
+-		default:
+-			printk(KERN_ERR "xc4000 bandwidth not set!\n");
+-			ret = -EINVAL;
+-			goto fail;
+ 		}
+ 		priv->rf_mode = XC_RF_MODE_AIR;
+-	} else {
+-		printk(KERN_ERR "xc4000 modulation type not supported!\n");
++		break;
++	default:
++		printk(KERN_ERR "xc4000 delivery system not supported!\n");
+ 		ret = -EINVAL;
+ 		goto fail;
+ 	}
+-- 
+1.7.8.352.g876a6
 
-Well, I guess I am happy enough with something that is at least
-functional.  Usespace access would (I think) mainly be weird edge case
-type stuff.  But...
-
-> So any userspace that interacts with an OpenGL driver needs to take care
-> of this anyway. But I think for simpler stuff (v4l) kernel only coherency
-> should work and userspace just needs to take care of gl interactions and
-> call glflush and friends at the right points. I think we can flesh this
-> out precisely when we spec the dmabuf EGL extension ... (or implement one
-> of the preexisting ones already around).
-
-.. yeah, I think egl/eglImage extension would be the right place to
-hide this behind.  And I guess your GL stack should be able to figure
-out which execution pipeline to sync, cache state of buffer, and
-whatever other optimizations you might want to make.
-
-> On the topic of a coherency model for dmabuf, I think we need to look at
-> dma_buf_attachment_map/unmap (and also the mmap variants cpu_start and
-> cpu_finish or whatever they might get called) as barriers:
->
-> So after a dma_buf_map, all previsously completed dma operations (i.e.
-> unmap already called) and any cpu writes (i.e. cpu_finish called) will be
-> coherent. Similar rule holds for cpu access through the userspace mmap,
-> only writes completed before the cpu_start will show up.
->
-> Similar, writes done by the device are only guaranteed to show up after
-> the _unmap. Dito for cpu writes and cpu_finish.
->
-> In short we always need two function calls to denote the start/end of the
-> "critical section".
-
-Yup, this was exactly my assumption.  But I guess it is better to spell it out.
-
-BR,
--R
-
-> Any concurrent operations are allowed to yield garbage, meaning any
-> combination of the old or either of the newly written contents (i.e.
-> non-overlapping writes might not actually all end up in the buffer,
-> but instead some old contents). Maybe we even need to loosen that to
-> the real "undefined behaviour", but atm I can't think of an example.
->
-> -Daniel
-> --
-> Daniel Vetter
-> Mail: daniel@ffwll.ch
-> Mobile: +41 (0)79 365 57 48
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
