@@ -1,115 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:27738 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753323Ab1LWLfQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 06:35:16 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LWN0022VMUQUU40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 23 Dec 2011 11:35:14 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LWN006VVMUPCM@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 23 Dec 2011 11:35:13 +0000 (GMT)
-Date: Fri, 23 Dec 2011 12:35:09 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: MEM2MEM devices: how to handle sequence number?
-In-reply-to: <201112231228.45439.laurent.pinchart@ideasonboard.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: 'javier Martin' <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	shawn.guo@linaro.org, richard.zhao@linaro.org,
-	fabio.estevam@freescale.com, kernel@pengutronix.de,
-	s.hauer@pengutronix.de, r.schwebel@pengutronix.de,
-	'Pawel Osciak' <p.osciak@gmail.com>
-Message-id: <015401ccc166$ed3c2ab0$c7b48010$%szyprowski@samsung.com>
-Content-language: pl
-References: <CACKLOr0H4enuADtWcUkZCS_V92mmLD8K5CgScbGo7w9nbT=-CA@mail.gmail.com>
- <013f01ccc141$cdf78ed0$69e6ac70$%szyprowski@samsung.com>
- <201112231228.45439.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37833 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755242Ab1LVLUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:24 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKOVK004867
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:24 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 13/28] [media] mt2031: remove fake implementaion of get_bandwidth()
+Date: Thu, 22 Dec 2011 09:20:01 -0200
+Message-Id: <1324552816-25704-14-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-13-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-7-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-8-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-9-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-12-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-13-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This driver implements a fake get_bandwidth() callback. In
+reallity, the tuner driver won't adjust its low-pass
+filter based on a bandwidth, and were just providing a fake
+method for demods to read whatever was "set".
 
-On Friday, December 23, 2011 12:29 PM Laurent Pinchart wrote:
-> On Friday 23 December 2011 08:09:25 Marek Szyprowski wrote:
-> > On Thursday, December 22, 2011 3:34 PM Javier Martin wrote:
-> > > we have a processing chain composed of three v4l2 devices:
-> > >
-> > > ---------------------           -----------------------
-> > > ----------------------
-> > >
-> > > | v4l2 source  |            |     v4l2 fixer   |               |  v4l2
-> > > | encoder |
-> > > |
-> > > |  (capture)     |---------->|  (mem2mem)| ------------>|  (mem2mem) |
-> > >
-> > > ------------>
-> > >
-> > > |___________|            |____________|              |____________|
-> > >
-> > > "v4l2 source" generates consecutive sequence numbers so that we can
-> > > detect whether a frame has been lost or not.
-> > > "v4l2 fixer" and "v4l2 encoder" cannot lose frames because they don't
-> > > interact with an external sensor.
-> > >
-> > > How should "v4l2 fixer" and "v4l2 encoder" behave regarding frame
-> > > sequence number? Should they just copy the sequence number from the
-> > > input buffer to the output buffer or should they maintain their own
-> > > count for the CAPTURE queue?
-> >
-> > IMHO mem2mem devices, which process buffers in 1:1 way (there is always
-> > exactly one 'capture'/destination buffer for every 'output'/source buffer)
-> > can simply copy the sequence number from the source buffer to the
-> > destination.
-> >
-> > If there is no such 1:1 mapping between the buffers, drivers should
-> > maintain their own numbers. video encoder is probably an example of such
-> > device. A single destination ('capture') buffer with encoded video data
-> > might contain a fraction, one or more source ('output') video
-> > buffers/frames.
-> >
-> > > If the former option is chosen we should apply a patch like the
-> > > following so that the sequence number of the input buffer is passed to
-> > > the videobuf2 layer:
-> > >
-> > > diff --git a/drivers/media/video/videobuf2-core.c
-> > > b/drivers/media/video/videobuf2-core.c
-> > > index 1250662..7d8a88b 100644
-> > > --- a/drivers/media/video/videobuf2-core.c
-> > > +++ b/drivers/media/video/videobuf2-core.c
-> > > @@ -1127,6 +1127,7 @@ int vb2_qbuf(struct vb2_queue *q, struct
-> > > v4l2_buffer *b)
-> > >          */
-> > >         list_add_tail(&vb->queued_entry, &q->queued_list);
-> > >         vb->state = VB2_BUF_STATE_QUEUED;
-> > > +       vb->v4l2_buf.sequence = b->sequence;
-> > >         /*
-> > >          * If already streaming, give the buffer to driver for
-> > >          processing.
-> >
-> > Right, such patch is definitely needed. Please resend it with
-> > 'signed-off-by' annotation.
-> 
-> I'm not too sure about that. Isn't the sequence number supposed to be ignored
-> by drivers on video output devices ? The documentation is a bit terse on the
-> subject, all it says is
-> 
-> __u32  sequence     Set by the driver, counting the frames in the sequence.
+This code is useless, as none of the drivers that use
+this tuner seems to require a get_bandwidth() callback.
 
-We can also update the documentation if needed. IMHO copying sequence number
-in mem2mem case if there is 1:1 relation between the buffers is a good idea.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mt2131.c      |   17 ++---------------
+ drivers/media/common/tuners/mt2131_priv.h |    1 -
+ 2 files changed, 2 insertions(+), 16 deletions(-)
 
-Best regards
+diff --git a/drivers/media/common/tuners/mt2131.c b/drivers/media/common/tuners/mt2131.c
+index a4f830b..d9cab1f 100644
+--- a/drivers/media/common/tuners/mt2131.c
++++ b/drivers/media/common/tuners/mt2131.c
+@@ -95,6 +95,7 @@ static int mt2131_writeregs(struct mt2131_priv *priv,u8 *buf, u8 len)
+ static int mt2131_set_params(struct dvb_frontend *fe,
+ 			     struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct mt2131_priv *priv;
+ 	int ret=0, i;
+ 	u32 freq;
+@@ -105,12 +106,8 @@ static int mt2131_set_params(struct dvb_frontend *fe,
+ 	u8 lockval = 0;
+ 
+ 	priv = fe->tuner_priv;
+-	if (fe->ops.info.type == FE_OFDM)
+-		priv->bandwidth = params->u.ofdm.bandwidth;
+-	else
+-		priv->bandwidth = 0;
+ 
+-	freq = params->frequency / 1000;  // Hz -> kHz
++	freq = c->frequency / 1000;  /* Hz -> kHz */
+ 	dprintk(1, "%s() freq=%d\n", __func__, freq);
+ 
+ 	f_lo1 = freq + MT2131_IF1 * 1000;
+@@ -193,14 +190,6 @@ static int mt2131_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
+ 
+-static int mt2131_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+-{
+-	struct mt2131_priv *priv = fe->tuner_priv;
+-	dprintk(1, "%s()\n", __func__);
+-	*bandwidth = priv->bandwidth;
+-	return 0;
+-}
+-
+ static int mt2131_get_status(struct dvb_frontend *fe, u32 *status)
+ {
+ 	struct mt2131_priv *priv = fe->tuner_priv;
+@@ -263,7 +252,6 @@ static const struct dvb_tuner_ops mt2131_tuner_ops = {
+ 
+ 	.set_params    = mt2131_set_params,
+ 	.get_frequency = mt2131_get_frequency,
+-	.get_bandwidth = mt2131_get_bandwidth,
+ 	.get_status    = mt2131_get_status
+ };
+ 
+@@ -281,7 +269,6 @@ struct dvb_frontend * mt2131_attach(struct dvb_frontend *fe,
+ 		return NULL;
+ 
+ 	priv->cfg = cfg;
+-	priv->bandwidth = 6000000; /* 6MHz */
+ 	priv->i2c = i2c;
+ 
+ 	if (mt2131_readreg(priv, 0, &id) != 0) {
+diff --git a/drivers/media/common/tuners/mt2131_priv.h b/drivers/media/common/tuners/mt2131_priv.h
+index 4e05a67..62aeedf 100644
+--- a/drivers/media/common/tuners/mt2131_priv.h
++++ b/drivers/media/common/tuners/mt2131_priv.h
+@@ -38,7 +38,6 @@ struct mt2131_priv {
+ 	struct i2c_adapter   *i2c;
+ 
+ 	u32 frequency;
+-	u32 bandwidth;
+ };
+ 
+ #endif /* __MT2131_PRIV_H__ */
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+1.7.8.352.g876a6
 
