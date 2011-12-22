@@ -1,67 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:37167 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756021Ab1LBMtE convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 07:49:04 -0500
-Received: by iage36 with SMTP id e36so4143059iag.19
-        for <linux-media@vger.kernel.org>; Fri, 02 Dec 2011 04:49:03 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <752PLBJIM6528S04.1322818538@web04.cms.usa.net>
-References: <752PLBJIM6528S04.1322818538@web04.cms.usa.net>
-From: Felipe Magno de Almeida <felipe.m.almeida@gmail.com>
-Date: Fri, 2 Dec 2011 10:48:41 -0200
-Message-ID: <CADfx-VREsXU=p9m0cA4Sus3tEHwvBcx5tC7cwWHyd6uh2ewdeA@mail.gmail.com>
-Subject: Re: LinuxTV ported to Windows
-To: Issa Gorissen <flop.m@usa.net>
-Cc: Abylay Ospan <aospan@netup.ru>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:20637 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755235Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNxJ004855
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 27/28] [media] dvb-bt8xx: use DVBv5 parameters
+Date: Thu, 22 Dec 2011 09:20:15 -0200
+Message-Id: <1324552816-25704-28-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-27-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-7-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-8-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-9-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-12-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-13-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-14-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-15-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-16-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-17-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-18-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-19-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-20-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-21-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-22-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-23-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-24-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-25-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-26-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-27-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Dec 2, 2011 at 7:35 AM, Issa Gorissen <flop.m@usa.net> wrote:
->> Hello,
->>
->> We have ported linuxtv's cx23885+CAM en50221+Diseq to Windows OS (Vista,
->> XP, win7 tested). Results available under GPL and can be checkout from
->> git repository:
->> https://github.com/netup/netup-dvb-s2-ci-dual
->>
->> Binary builds (ready to install) available in build directory. Currently
->> NetUP Dual DVB-S2 CI card supported (
->> http://www.netup.tv/en-EN/dual_dvb-s2-ci_card.php ).
->>
->> Driver based on Microsoft BDA standard, but some features (DiSEqC, CI)
->> supported by custom API, for more details see netup_bda_api.h file.
->>
->> Any comments, suggestions are welcome.
->>
->> --
->> Abylai Ospan<aospan@netup.ru>
->> NetUP Inc.
->
-> Yes indeed, it is a pity but it seems this work is in violation of the GPL.
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-The GPL has specific provisions for system libraries, which would IMO,
-constitute the kernel AFAIU. So it would not violate the GPL.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/bt8xx/dvb-bt8xx.c |   31 ++++++++++++++++---------------
+ 1 files changed, 16 insertions(+), 15 deletions(-)
 
-> --
-> This General Public License does not permit incorporating your program into
-> proprietary programs. If your program is a subroutine library, you may
-> consider it more useful to permit linking proprietary applications with the
-> library. If this is what you want to do, use the GNU Library General
-> Public License instead of this License.
-> --
->
-> [http://www.gnu.org/philosophy/why-not-lgpl.html]
-> [http://www.gnu.org/copyleft/gpl.html]
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
-
+diff --git a/drivers/media/dvb/bt8xx/dvb-bt8xx.c b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+index 521d691..5948601 100644
+--- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
++++ b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+@@ -193,11 +193,10 @@ static struct zl10353_config thomson_dtt7579_zl10353_config = {
+ 
+ static int cx24108_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
+ {
+-	u32 freq = params->frequency;
+-
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 freq = c->frequency;
+ 	int i, a, n, pump;
+ 	u32 band, pll;
+-
+ 	u32 osci[]={950000,1019000,1075000,1178000,1296000,1432000,
+ 		1576000,1718000,1856000,2036000,2150000};
+ 	u32 bandsel[]={0,0x00020000,0x00040000,0x00100800,0x00101000,
+@@ -269,29 +268,30 @@ static struct cx24110_config pctvsat_config = {
+ 
+ static int microtune_mt7202dtf_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_bt8xx_card *card = (struct dvb_bt8xx_card *) fe->dvb->priv;
+ 	u8 cfg, cpump, band_select;
+ 	u8 data[4];
+ 	u32 div;
+ 	struct i2c_msg msg = { .addr = 0x60, .flags = 0, .buf = data, .len = sizeof(data) };
+ 
+-	div = (36000000 + params->frequency + 83333) / 166666;
++	div = (36000000 + c->frequency + 83333) / 166666;
+ 	cfg = 0x88;
+ 
+-	if (params->frequency < 175000000)
++	if (c->frequency < 175000000)
+ 		cpump = 2;
+-	else if (params->frequency < 390000000)
++	else if (c->frequency < 390000000)
+ 		cpump = 1;
+-	else if (params->frequency < 470000000)
++	else if (c->frequency < 470000000)
+ 		cpump = 2;
+-	else if (params->frequency < 750000000)
++	else if (c->frequency < 750000000)
+ 		cpump = 2;
+ 	else
+ 		cpump = 3;
+ 
+-	if (params->frequency < 175000000)
++	if (c->frequency < 175000000)
+ 		band_select = 0x0e;
+-	else if (params->frequency < 470000000)
++	else if (c->frequency < 470000000)
+ 		band_select = 0x05;
+ 	else
+ 		band_select = 0x03;
+@@ -463,23 +463,24 @@ static struct or51211_config or51211_config = {
+ 
+ static int vp3021_alps_tded4_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_bt8xx_card *card = (struct dvb_bt8xx_card *) fe->dvb->priv;
+ 	u8 buf[4];
+ 	u32 div;
+ 	struct i2c_msg msg = { .addr = 0x60, .flags = 0, .buf = buf, .len = sizeof(buf) };
+ 
+-	div = (params->frequency + 36166667) / 166667;
++	div = (c->frequency + 36166667) / 166667;
+ 
+ 	buf[0] = (div >> 8) & 0x7F;
+ 	buf[1] = div & 0xFF;
+ 	buf[2] = 0x85;
+-	if ((params->frequency >= 47000000) && (params->frequency < 153000000))
++	if ((c->frequency >= 47000000) && (c->frequency < 153000000))
+ 		buf[3] = 0x01;
+-	else if ((params->frequency >= 153000000) && (params->frequency < 430000000))
++	else if ((c->frequency >= 153000000) && (c->frequency < 430000000))
+ 		buf[3] = 0x02;
+-	else if ((params->frequency >= 430000000) && (params->frequency < 824000000))
++	else if ((c->frequency >= 430000000) && (c->frequency < 824000000))
+ 		buf[3] = 0x0C;
+-	else if ((params->frequency >= 824000000) && (params->frequency < 863000000))
++	else if ((c->frequency >= 824000000) && (c->frequency < 863000000))
+ 		buf[3] = 0x8C;
+ 	else
+ 		return -EINVAL;
 -- 
-Felipe Magno de Almeida
+1.7.8.352.g876a6
+
