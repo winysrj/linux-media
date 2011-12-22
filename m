@@ -1,49 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:63350 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933429Ab1LFOex (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 09:34:53 -0500
-Received: by eeaq14 with SMTP id q14so2938840eea.19
-        for <linux-media@vger.kernel.org>; Tue, 06 Dec 2011 06:34:52 -0800 (PST)
-Message-ID: <4EDE2809.1040406@gmail.com>
-Date: Tue, 06 Dec 2011 15:34:49 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from mail-we0-f174.google.com ([74.125.82.174]:57643 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751991Ab1LVJ1q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 04:27:46 -0500
+Received: by werm1 with SMTP id m1so3202434wer.19
+        for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 01:27:45 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <1323880214-26086-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1323880214-26086-1-git-send-email-javier.martin@vista-silicon.com>
+Date: Thu, 22 Dec 2011 10:27:45 +0100
+Message-ID: <CACKLOr0rTgnPT97YM0q=HXKFXcQSvWTKOMr_umX1xobo6YMhNw@mail.gmail.com>
+Subject: Re: [PATCH] media i.MX27 camera: add support for YUV420 format.
+From: javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 1/1] xc3028: force reload of DTV7 firmware in VHF band
- with Zarlink demodulator
-References: <4EDE27A0.8060406@gmail.com>
-In-Reply-To: <4EDE27A0.8060406@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Cc: g.liakhovetski@gmx.de, kernel@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-xc3028: force reload of DTV7 firmware in VHF band as DTV78 firmware is
-not working with bw=7 MHz.
-The patch is effective only with Zarlink demodulators.
+Hi,
+are there any comments on this?
+May I suppose you agree and it will be applied?
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/common/tuners/tuner-xc2028.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Thank you.
 
-diff --git a/drivers/media/common/tuners/tuner-xc2028.c
-b/drivers/media/common/tuners/tuner-xc2028.c
-index e531267..d92f862 100644
---- a/drivers/media/common/tuners/tuner-xc2028.c
-+++ b/drivers/media/common/tuners/tuner-xc2028.c
-@@ -1129,7 +1129,8 @@ static int xc2028_set_params(struct dvb_frontend *fe,
- 			priv->ctrl.vhfbw7 = 1;
- 		else
- 			priv->ctrl.uhfbw8 = 0;
--		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV7;
-+		type |= (priv->ctrl.demod != XC3028_FE_ZARLINK456 &&
-+		   priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV7;
- 		type |= F8MHZ;
- 		break;
- 	case BANDWIDTH_6_MHZ:
 -- 
-1.7.0.4
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
