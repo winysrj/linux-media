@@ -1,197 +1,396 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50633 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753874Ab1LFWlj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 17:41:39 -0500
-Date: Wed, 7 Dec 2011 00:41:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	'Sebastian =?iso-8859-1?Q?Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-Message-ID: <20111206224134.GE938@valkosipuli.localdomain>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED8C61C.3060404@redhat.com>
- <20111202135748.GO29805@valkosipuli.localdomain>
- <4ED901C9.2050109@redhat.com>
- <20111206143538.GD938@valkosipuli.localdomain>
- <4EDE40D0.9080704@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EDE40D0.9080704@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:56421 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755159Ab1LVLUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:24 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKOu4019849
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:24 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 03/28] [media] Remove Annex A/C selection via roll-off factor
+Date: Thu, 22 Dec 2011 09:19:51 -0200
+Message-Id: <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 06, 2011 at 02:20:32PM -0200, Mauro Carvalho Chehab wrote:
-> >>>>>1) After all the frames with the old resolution are dequeued a buffer with the
-> >>>>>following flags V4L2_BUF_FLAG_ERROR | V4L2_BUF_FLAG_WRONGFORMAT is returned.
-> >>>>>2) To acknowledge the resolution change the application should STREAMOFF, check
-> >>>>>what has changed and then STREAMON.
-> >>>>
-> >>>>I don't think this is needed, if the buffer size is enough to support the new
-> >>>>format.
-> >>>
-> >>>Sometimes not, but sometimes there are buffer line alignment requirements
-> >>>which must be communicated to the driver using S_FMT. If the frames are
-> >>>decoded using a driver-decided format, it might be impossible to actually
-> >>>use these decoded frames.
-> >>>
-> >>>That's why there's streamoff and streamon.
-> >>
-> >>Don't get me wrong. What I'm saying is that there are valid cases where
-> >>there's no need to streamoff/streamon. What I'm saying is that, when
-> >>there's no need to do it, just don't rise the V4L2_BUF_FLAG_ERROR flag.
-> >>The V4L2_BUF_FLAG_FORMATCHANGED still makes sense.
-> >
-> >I try not to. :)
-> >
-> >The issue is that it's the user space which knows how it is going to use the
-> >buffers it dequeues from a device. It's not possible for the driver know
-> >that --- unless explicitly told by the user. This could be a new flag, if we
-> >need differing behaviour as it seems here.
-> >
-> >The user may queue the same memory buffers to another device, which I
-> >consider to be a common use case in embedded systems. The line alignment
-> >requirements of the two (or more) devices often are not the same.
-> 
-> So what?
-> 
-> You're probably not referring to queuing the same buffer at the same time
-> to two separate devices. If they're being queued at different times, I can't
-> see any issue.
+Instead of using a roll-off factor, change DRX-K & friends to select
+the bandwidth filter and the Nyquist half roll-off via delivery system.
 
-The buffers are used in separate devices at different times. If the decoder
-has a line alignment requirement of 32, but the display output device has
-128, chances are good that the new bytesperline won't be suitable to be
-displayed.
+This provides a cleaner support for Annex A/C switch.
 
-> >>>>Btw, a few drivers (bttv comes into my mind) properly handles format changes.
-> >>>>This were there in order to support a bad behavior found on a few V4L1 applications,
-> >>>>where the applications were first calling STREAMON and then setting the buffer.
-> >>>
-> >>>The buffers do not have a format, the video device queue has. If the format
-> >>>changes during streaming it is impossible to find that out using the current
-> >>>API.
-> >>
-> >>Yes, but extending it to proper support it is the scope of this RFC. Yet, several
-> >>drivers allow to resize the "format" (e. g. the resolution of the image) without
-> >>streamon/streamoff, via an explicit call to S_FMT.
-> >>
-> >>So, whatever change at the API is done, it should keep supporting format changes
-> >>(in practice, resolution changes) without the need of re-initializing the DMA engine,
-> >>of course when such change won't break the capability for userspace to decode
-> >>the new frames.
-> >
-> >Stopping and starting the queue does not involve additional penalty: a
-> >memory-to-memory device processes buffers one at a time, and most of the
-> >hardware stops between the buffers in any case before being started by the
-> >software again. The buffers are not affected either; they stay mapped and
-> >pinned to memory.
-> 
-> This is true only on memory-to-memory devices (although the V4L2 spec is incomplete
-> with regards to this specific type of device).
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/xc5000.c       |  137 +++++++++++----------------
+ drivers/media/dvb/dvb-core/dvb_frontend.c  |   25 ++++-
+ drivers/media/dvb/frontends/drxk_hard.c    |   15 ++-
+ drivers/media/dvb/frontends/tda18271c2dd.c |   44 ++++-----
+ include/linux/dvb/frontend.h               |    2 -
+ 5 files changed, 106 insertions(+), 117 deletions(-)
 
-That's true. Would this be a candidate for a new V4L2 profile?
-
-> >>>>If I'm not mistaken, the old vlc V4L1 driver used to do that.
-> >>>>
-> >>>>What bttv used to do is to allocate a buffer big enough to support the max resolution.
-> >>>>So, any format changes (size increase or decrease) would fit into the allocated
-> >>>>buffers.
-> >>>>
-> >>>>Depending on how applications want to handle format changes, and how big is the
-> >>>>amount of memory on the system, a similar approach may be done with CREATE_BUFFERS:
-> >>>>just allocate enough space for the maximum supported resolution for that stream,
-> >>>>and let the resolution changes, as required.
-> >>>
-> >>>I'm not fully certain it is always possible to find out the largest stream
-> >>>resolution. I'd like an answer from someone knowing more about video codecs
-> >>>than I do.
-> >>
-> >>When the input or output is some hardware device, there is a maximum resolution
-> >>(sensor resolution, monitor resolution, pixel sampling rate, etc). A pure DSP block
-> >>doesn't have it, but, anyway, it should be up to the userspace application to decide
-> >>if it wants to over-allocate a buffer, in order to cover a scenario where the
-> >>resolution may change or not.
-> >
-> >In this case, allocating bigger buffers than necessary is a big
-> >disadvantage, and forcing the application to requeue the compressed data
-> >to the OUTPUT queue doesn't sound very appealing either. This could involve
-> >the application having to queue several buffers which already have been
-> >decoded earlier on. Also figuring out how many is a task for the decoder,
-> >not the application.
-> 
-> Sorry, but it seems I missed what scenario you're considering... M2M, Output, Capture? All?
-> some specific pipeline?
-
-In this caase it's memory-to-memory device.
-
-...
-
-> >>>>>3) The application should check with G_FMT how did the format change and the
-> >>>>>V4L2_CID_MIN_BUFFERS_FOR_CAPTURE control to check how many buffers are
-> >>>>>required.
-> >>>>>4) Now it is necessary to resume processing:
-> >>>>>   A. If there is no need to change the size of buffers or their number the
-> >>>>>application needs only to STREAMON.
-> >>>>>   B. If it is necessary to allocate bigger buffers the application should use
-> >>>>>CREATE_BUFS to allocate new buffers, the old should be left until the
-> >>>>>application is finished and frees them with the DESTROY_BUFS call. S_FMT
-> >>>>>should be used to adjust the new format (if necessary and possible in HW).
-> >>>>
-> >>>>If the application already cleaned the DMA transfers with STREAMOFF, it can
-> >>>>also just re-queue the buffers with REQBUFS, e. g. vb2 should be smart enough to
-> >>>>accept both ways to allocate buffers.
-> >>>
-> >>>No need to REQBUFS after streaming has been stopped. STREAMOFF won't harm
-> >>>the buffers in any way anymore --- as it did in videobuf1.
-> >>
-> >>OK, but userspace applications may use REQBUFS instead of CREATE_BUFFERS, as REQBUFS
-> >>is part of the API.
-> >
-> >True. But new REQBUFS, as far as I remember, re-allocates the buffers,
-> >causing a glitch to the stream. That's why CREATE_BUFS was proposed.
-> 
-> True, but also STREAMOFF will glitch the stream, in the general case (capture or output
-> devices).
-
-Right. For those buffers to be affected, they'd have to be mmap buffers.
-
-The buffers are displayed elsewhere using different APIs. With CREATE_BUFS
-it's possible to keep the old buffers around as long as they are needed.
-
-> >>>That's a good point. It's more related to changes in stream properties ---
-> >>>the frame rate of the stream could change, too. That might be when you could
-> >>>like to have more buffers in the queue. I don't think this is critical
-> >>>either.
-> >>>
-> >>>This could also depend on the properties of the codec. Again, I'd wish a
-> >>>comment from someone who knows codecs well. Some codecs need to be able to
-> >>>access buffers which have already been decoded to decode more buffers. Key
-> >>>frames, simply.
-> >>
-> >>Ok, but let's not add unneeded things at the API if you're not sure. If we have
-> >>such need for a given hardware, then add it. Otherwise, keep it simple.
-> >
-> >This is not so much dependent on hardware but on the standards which the
-> >cdoecs implement.
-> 
-> Could you please elaborate it? On what scenario this is needed?
-
-This is a property of the stream, not a property of the decoder. To
-reconstruct each frame, a part of the stream is required and already decoded
-frames may be used to accelerate the decoding. What those parts are. depends
-on the codec, not a particular implementation.
-
-Anyone with more knowledge of codecs than myself might be able to give a
-concrete example. Sebastian?
-
+diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
+index 97ad338..5c56d3c 100644
+--- a/drivers/media/common/tuners/xc5000.c
++++ b/drivers/media/common/tuners/xc5000.c
+@@ -629,11 +629,13 @@ static void xc_debug_dump(struct xc5000_priv *priv)
+ }
+ 
+ static int xc5000_set_params(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *params)
++			     struct dvb_frontend_parameters *params)
+ {
++	int ret, b;
+ 	struct xc5000_priv *priv = fe->tuner_priv;
+-	int ret;
+-	u32 bw;
++	u32 bw = fe->dtv_property_cache.bandwidth_hz;
++	u32 freq = fe->dtv_property_cache.frequency;
++	u32 delsys  = fe->dtv_property_cache.delivery_system;
+ 
+ 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
+ 		if (xc_load_fw_and_init_tuner(fe) != XC_RESULT_SUCCESS) {
+@@ -642,104 +644,77 @@ static int xc5000_set_params(struct dvb_frontend *fe,
+ 		}
+ 	}
+ 
+-	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, params->frequency);
++	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, freq);
+ 
+-	if (fe->ops.info.type == FE_ATSC) {
+-		dprintk(1, "%s() ATSC\n", __func__);
+-		switch (params->u.vsb.modulation) {
+-		case VSB_8:
+-		case VSB_16:
+-			dprintk(1, "%s() VSB modulation\n", __func__);
+-			priv->rf_mode = XC_RF_MODE_AIR;
+-			priv->freq_hz = params->frequency - 1750000;
+-			priv->bandwidth = BANDWIDTH_6_MHZ;
+-			priv->video_standard = DTV6;
+-			break;
+-		case QAM_64:
+-		case QAM_256:
+-		case QAM_AUTO:
+-			dprintk(1, "%s() QAM modulation\n", __func__);
+-			priv->rf_mode = XC_RF_MODE_CABLE;
+-			priv->freq_hz = params->frequency - 1750000;
+-			priv->bandwidth = BANDWIDTH_6_MHZ;
+-			priv->video_standard = DTV6;
+-			break;
+-		default:
+-			return -EINVAL;
+-		}
+-	} else if (fe->ops.info.type == FE_OFDM) {
++	switch (delsys) {
++	case SYS_ATSC:
++		dprintk(1, "%s() VSB modulation\n", __func__);
++		priv->rf_mode = XC_RF_MODE_AIR;
++		priv->freq_hz = freq - 1750000;
++		priv->bandwidth = BANDWIDTH_6_MHZ;
++		priv->video_standard = DTV6;
++		break;
++	case SYS_DVBC_ANNEX_B:
++		dprintk(1, "%s() QAM modulation\n", __func__);
++		priv->rf_mode = XC_RF_MODE_CABLE;
++		priv->freq_hz = freq - 1750000;
++		priv->bandwidth = BANDWIDTH_6_MHZ;
++		priv->video_standard = DTV6;
++		break;
++	case SYS_DVBT:
++	case SYS_DVBT2:
+ 		dprintk(1, "%s() OFDM\n", __func__);
+-		switch (params->u.ofdm.bandwidth) {
+-		case BANDWIDTH_6_MHZ:
++		switch (bw) {
++		case 6000000:
+ 			priv->bandwidth = BANDWIDTH_6_MHZ;
+ 			priv->video_standard = DTV6;
+-			priv->freq_hz = params->frequency - 1750000;
++			priv->freq_hz = freq - 1750000;
+ 			break;
+-		case BANDWIDTH_7_MHZ:
++		case 7000000:
+ 			priv->bandwidth = BANDWIDTH_7_MHZ;
+ 			priv->video_standard = DTV7;
+-			priv->freq_hz = params->frequency - 2250000;
++			priv->freq_hz = freq - 2250000;
+ 			break;
+-		case BANDWIDTH_8_MHZ:
++		case 8000000:
+ 			priv->bandwidth = BANDWIDTH_8_MHZ;
+ 			priv->video_standard = DTV8;
+-			priv->freq_hz = params->frequency - 2750000;
++			priv->freq_hz = freq - 2750000;
+ 			break;
+ 		default:
+ 			printk(KERN_ERR "xc5000 bandwidth not set!\n");
+ 			return -EINVAL;
+ 		}
+ 		priv->rf_mode = XC_RF_MODE_AIR;
+-	} else if (fe->ops.info.type == FE_QAM) {
+-		switch (params->u.qam.modulation) {
+-		case QAM_256:
+-		case QAM_AUTO:
+-		case QAM_16:
+-		case QAM_32:
+-		case QAM_64:
+-		case QAM_128:
+-			dprintk(1, "%s() QAM modulation\n", __func__);
+-			priv->rf_mode = XC_RF_MODE_CABLE;
+-			/*
+-			 * Using a higher bandwidth at the tuner filter may
+-			 * allow inter-carrier interference.
+-			 * So, determine the minimal channel spacing, in order
+-			 * to better adjust the tuner filter.
+-			 * According with ITU-T J.83, the bandwidth is given by:
+-			 * bw = Simbol Rate * (1 + roll_off), where the roll_off
+-			 * is equal to 0.15 for Annex A, and 0.13 for annex C
+-			 */
+-			if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+-				bw = (params->u.qam.symbol_rate * 113) / 100;
+-			else
+-				bw = (params->u.qam.symbol_rate * 115) / 100;
+-			if (bw <= 6000000) {
+-				priv->bandwidth = BANDWIDTH_6_MHZ;
+-				priv->video_standard = DTV6;
+-				priv->freq_hz = params->frequency - 1750000;
+-			} else if (bw <= 7000000) {
+-				priv->bandwidth = BANDWIDTH_7_MHZ;
+-				priv->video_standard = DTV7;
+-				priv->freq_hz = params->frequency - 2250000;
+-			} else {
+-				priv->bandwidth = BANDWIDTH_8_MHZ;
+-				priv->video_standard = DTV7_8;
+-				priv->freq_hz = params->frequency - 2750000;
+-			}
+-			dprintk(1, "%s() Bandwidth %dMHz (%d)\n", __func__,
+-				BANDWIDTH_6_MHZ ? 6: 8, bw);
+-			break;
+-		default:
+-			dprintk(1, "%s() Unsupported QAM type\n", __func__);
+-			return -EINVAL;
++	case SYS_DVBC_ANNEX_A:
++	case SYS_DVBC_ANNEX_C:
++		dprintk(1, "%s() QAM modulation\n", __func__);
++		priv->rf_mode = XC_RF_MODE_CABLE;
++		if (bw <= 6000000) {
++			priv->bandwidth = BANDWIDTH_6_MHZ;
++			priv->video_standard = DTV6;
++			priv->freq_hz = freq - 1750000;
++			b = 6;
++		} else if (bw <= 7000000) {
++			priv->bandwidth = BANDWIDTH_7_MHZ;
++			priv->video_standard = DTV7;
++			priv->freq_hz = freq - 2250000;
++			b = 7;
++		} else {
++			priv->bandwidth = BANDWIDTH_8_MHZ;
++			priv->video_standard = DTV7_8;
++			priv->freq_hz = freq - 2750000;
++			b = 8;
+ 		}
+-	} else {
+-		printk(KERN_ERR "xc5000 modulation type not supported!\n");
++		dprintk(1, "%s() Bandwidth %dMHz (%d)\n", __func__,
++			b, bw);
++		break;
++	default:
++		printk(KERN_ERR "xc5000: delivery system is not supported!\n");
+ 		return -EINVAL;
+ 	}
+ 
+-	dprintk(1, "%s() frequency=%d (compensated)\n",
+-		__func__, priv->freq_hz);
++	dprintk(1, "%s() frequency=%d (compensated to %d)\n",
++		__func__, freq, priv->freq_hz);
+ 
+ 	ret = xc_SetSignalSource(priv, priv->rf_mode);
+ 	if (ret != XC_RESULT_SUCCESS) {
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 821b225..66537b1 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1011,7 +1011,7 @@ static void dtv_property_dump(struct dtv_property *tvp)
+ 
+ static int is_legacy_delivery_system(fe_delivery_system_t s)
+ {
+-	if((s == SYS_UNDEFINED) || (s == SYS_DVBC_ANNEX_AC) ||
++	if((s == SYS_UNDEFINED) || (s == SYS_DVBC_ANNEX_A) ||
+ 	   (s == SYS_DVBC_ANNEX_B) || (s == SYS_DVBT) || (s == SYS_DVBS) ||
+ 	   (s == SYS_ATSC))
+ 		return 1;
+@@ -1032,8 +1032,7 @@ static void dtv_property_cache_init(struct dvb_frontend *fe,
+ 		c->delivery_system = SYS_DVBS;
+ 		break;
+ 	case FE_QAM:
+-		c->delivery_system = SYS_DVBC_ANNEX_AC;
+-		c->rolloff = ROLLOFF_15; /* implied for Annex A */
++		c->delivery_system = SYS_DVBC_ANNEX_A;
+ 		break;
+ 	case FE_OFDM:
+ 		c->delivery_system = SYS_DVBT;
+@@ -1144,9 +1143,10 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+  */
+ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+ {
+-	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	struct dvb_frontend_parameters *p = &fepriv->parameters_in;
++	u32 rolloff = 0;
+ 
+ 	p->frequency = c->frequency;
+ 	p->inversion = c->inversion;
+@@ -1178,6 +1178,23 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+ 		else
+ 			p->u.ofdm.bandwidth = BANDWIDTH_AUTO;
+ 	}
++
++	/*
++	 * On DVB-C, the bandwidth is a function of roll-off and symbol rate.
++	 * The bandwidth is required for DVB-C tuners, in order to avoid
++	 * inter-channel noise. Instead of estimating the minimal required
++	 * bandwidth on every single driver, calculates it here and fills
++	 * it at the cache bandwidth parameter.
++	 * While not officially supported, a side effect of handling it at
++	 * the cache level is that a program could retrieve the bandwidth
++	 * via DTV_BANDWIDTH_HZ, wich may be useful for test programs.
++	 */
++	if (c->delivery_system == SYS_DVBC_ANNEX_A)
++		rolloff = 115;
++	if (c->delivery_system == SYS_DVBC_ANNEX_C)
++		rolloff = 113;
++	if (rolloff)
++		c->bandwidth_hz = (c->symbol_rate * rolloff) / 100;
+ }
+ 
+ static void dtv_property_cache_submit(struct dvb_frontend *fe)
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 038e470..a2c8196 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -6215,6 +6215,7 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 			       struct dvb_frontend_parameters *p)
+ {
+ 	struct drxk_state *state = fe->demodulator_priv;
++	u32 delsys  = fe->dtv_property_cache.delivery_system;
+ 	u32 IF;
+ 
+ 	dprintk(1, "\n");
+@@ -6225,11 +6226,15 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (fe->ops.info.type == FE_QAM) {
+-		if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+-			state->m_itut_annex_c = true;
+-		else
+-			state->m_itut_annex_c = false;
++	switch (delsys) {
++	case SYS_DVBC_ANNEX_A:
++		state->m_itut_annex_c = false;
++		break;
++	case SYS_DVBC_ANNEX_C:
++		state->m_itut_annex_c = true;
++		break;
++	default:
++		return -EINVAL;
+ 	}
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
+index b66ca29..0f8e962 100644
+--- a/drivers/media/dvb/frontends/tda18271c2dd.c
++++ b/drivers/media/dvb/frontends/tda18271c2dd.c
+@@ -1130,50 +1130,44 @@ static int set_params(struct dvb_frontend *fe,
+ 	struct tda_state *state = fe->tuner_priv;
+ 	int status = 0;
+ 	int Standard;
+-	u32 bw;
++	u32 bw = fe->dtv_property_cache.bandwidth_hz;
++	u32 delsys  = fe->dtv_property_cache.delivery_system;
+ 
+-	state->m_Frequency = params->frequency;
++	state->m_Frequency = fe->dtv_property_cache.frequency;
+ 
+-	if (fe->ops.info.type == FE_OFDM)
+-		switch (params->u.ofdm.bandwidth) {
+-		case BANDWIDTH_6_MHZ:
++	switch (delsys) {
++	case  SYS_DVBT:
++	case  SYS_DVBT2:
++		switch (bw) {
++		case 6000000:
+ 			Standard = HF_DVBT_6MHZ;
+ 			break;
+-		case BANDWIDTH_7_MHZ:
++		case 7000000:
+ 			Standard = HF_DVBT_7MHZ;
+ 			break;
+-		default:
+-		case BANDWIDTH_8_MHZ:
++		case 8000000:
+ 			Standard = HF_DVBT_8MHZ;
+ 			break;
++		default:
++			return -EINVAL;
+ 		}
+-	else if (fe->ops.info.type == FE_QAM) {
+-		/*
+-		 * Using a higher bandwidth at the tuner filter may
+-		 * allow inter-carrier interference.
+-		 * So, determine the minimal channel spacing, in order
+-		 * to better adjust the tuner filter.
+-		 * According with ITU-T J.83, the bandwidth is given by:
+-		 * bw = Simbol Rate * (1 + roll_off), where the roll_off
+-		 * is equal to 0.15 for Annex A, and 0.13 for annex C
+-		 */
+-		if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
+-			bw = (params->u.qam.symbol_rate * 113) / 100;
+-		else
+-			bw = (params->u.qam.symbol_rate * 115) / 100;
++	case SYS_DVBC_ANNEX_A:
++	case SYS_DVBC_ANNEX_C:
+ 		if (bw <= 6000000)
+ 			Standard = HF_DVBC_6MHZ;
+ 		else if (bw <= 7000000)
+ 			Standard = HF_DVBC_7MHZ;
+ 		else
+ 			Standard = HF_DVBC_8MHZ;
+-	} else
++	default:
+ 		return -EINVAL;
++	}
+ 	do {
+-		status = RFTrackingFiltersCorrection(state, params->frequency);
++		status = RFTrackingFiltersCorrection(state, state->m_Frequency);
+ 		if (status < 0)
+ 			break;
+-		status = ChannelConfiguration(state, params->frequency, Standard);
++		status = ChannelConfiguration(state, state->m_Frequency,
++					      Standard);
+ 		if (status < 0)
+ 			break;
+ 
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index b2a939f8..a3c7623 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -331,8 +331,6 @@ typedef enum fe_rolloff {
+ 	ROLLOFF_20,
+ 	ROLLOFF_25,
+ 	ROLLOFF_AUTO,
+-	ROLLOFF_15,	/* DVB-C Annex A */
+-	ROLLOFF_13,	/* DVB-C Annex C */
+ } fe_rolloff_t;
+ 
+ typedef enum fe_delivery_system {
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8.352.g876a6
+
