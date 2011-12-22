@@ -1,53 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:49239 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751903Ab1LFNLF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Dec 2011 08:11:05 -0500
-Message-ID: <4EDE1457.7070408@redhat.com>
-Date: Tue, 06 Dec 2011 11:10:47 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Andreas Oberritter <obi@linuxtv.org>
-CC: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
-	Florian Fainelli <f.fainelli@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <4EDD2C82.7040804@linuxtv.org> <20111205205554.2caeb496@lxorguk.ukuu.org.uk> <4EDD3583.30405@linuxtv.org> <20111206111829.GB17194@sirena.org.uk> <4EDE0400.1070304@linuxtv.org>
-In-Reply-To: <4EDE0400.1070304@linuxtv.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:23982 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754996Ab1LVKv7 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 05:51:59 -0500
+Date: Thu, 22 Dec 2011 11:51:51 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [patch 1/2] [media] Staging: dt3155v4l: update to newer API
+In-reply-to: <20111222062907.GA19975@elgon.mountain>
+To: 'Dan Carpenter' <dan.carpenter@oracle.com>,
+	'Mauro Carvalho Chehab' <mchehab@infradead.org>
+Cc: 'Greg Kroah-Hartman' <gregkh@suse.de>,
+	'H Hartley Sweeten' <hsweeten@visionengravers.com>,
+	'Paul Gortmaker' <paul.gortmaker@windriver.com>,
+	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Message-id: <011201ccc097$b66d68c0$23483a40$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-language: pl
+Content-transfer-encoding: 8BIT
+References: <20111222062907.GA19975@elgon.mountain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-12-2011 10:01, Andreas Oberritter wrote:
-> On 06.12.2011 12:18, Mark Brown wrote:
->> On Mon, Dec 05, 2011 at 10:20:03PM +0100, Andreas Oberritter wrote:
->>> On 05.12.2011 21:55, Alan Cox wrote:
->>>> The USB case is quite different because your latency is very tightly
->>>> bounded, your dead device state is rigidly defined, and your loss of
->>>> device is accurately and immediately signalled.
->>
->>>> Quite different.
->>
->>> How can usbip work if networking and usb are so different and what's so
->>> different between vtunerc and usbip, that made it possible to put usbip
->>> into drivers/staging?
->>
->> USB-IP is a hack that will only work well on a tightly bounded set of
->> networks - if you run it over a lightly loaded local network it can
->> work adequately.  This starts to break down as you vary the network
->> configuration.
->
-> I see. So it has problems that vtunerc doesn't have.
+Hello,
 
-The vtunerc has the same issues. High latency (due to high loads,  high
-latency links or whatever) affects it badly, and may cause application
-breakages if if the device is opened are using O_NONBLOCK mode [1].
+On Thursday, December 22, 2011 7:29 AM Dan Carpenter wrote:
 
-Regards,
-Mauro.
+> I changed the function definitions for dt3155_queue_setup() to match the
+> newer API.  The dt3155_start_streaming() function didn't do anything so
+> I just removed it.
+> 
+> This silences the following gcc warnings:
+> drivers/staging/media/dt3155v4l/dt3155v4l.c:307:2: warning: initialization from incompatible
+> pointer type [enabled by default]
+> drivers/staging/media/dt3155v4l/dt3155v4l.c:307:2: warning: (near initialization for
+> ‘q_ops.queue_setup’) [enabled by default]
+> drivers/staging/media/dt3155v4l/dt3155v4l.c:311:2: warning: initialization from incompatible
+> pointer type [enabled by default]
+> drivers/staging/media/dt3155v4l/dt3155v4l.c:311:2: warning: (near initialization for
+> ‘q_ops.start_streaming’) [enabled by default]
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-[1] Btw, if some DVB ioctl currently waits in O_NONBLOCK, this is a POSIX
-violation that needs to be fixed.
+It looks correct.
+
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+
+> ---
+> Please double check that this is sufficient.  I'm not very familiar with
+> this code.
+> 
+> diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> index 04e93c4..25c6025 100644
+> --- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> +++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
+> @@ -218,9 +218,10 @@ dt3155_start_acq(struct dt3155_priv *pd)
+>   *	driver-specific callbacks (vb2_ops)
+>   */
+>  static int
+> -dt3155_queue_setup(struct vb2_queue *q, unsigned int *num_buffers,
+> -			unsigned int *num_planes, unsigned long sizes[],
+> -						void *alloc_ctxs[])
+> +dt3155_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
+> +		unsigned int *num_buffers, unsigned int *num_planes,
+> +		unsigned int sizes[], void *alloc_ctxs[])
+> +
+>  {
+>  	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+>  	void *ret;
+> @@ -262,12 +263,6 @@ dt3155_buf_prepare(struct vb2_buffer *vb)
+>  }
+> 
+>  static int
+> -dt3155_start_streaming(struct vb2_queue *q)
+> -{
+> -	return 0;
+> -}
+> -
+> -static int
+>  dt3155_stop_streaming(struct vb2_queue *q)
+>  {
+>  	struct dt3155_priv *pd = vb2_get_drv_priv(q);
+> @@ -308,7 +303,6 @@ const struct vb2_ops q_ops = {
+>  	.wait_prepare = dt3155_wait_prepare,
+>  	.wait_finish = dt3155_wait_finish,
+>  	.buf_prepare = dt3155_buf_prepare,
+> -	.start_streaming = dt3155_start_streaming,
+>  	.stop_streaming = dt3155_stop_streaming,
+>  	.buf_queue = dt3155_buf_queue,
+>  };
+
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
