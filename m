@@ -1,139 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:53757 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752077Ab1LSLnf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 06:43:35 -0500
-Date: Mon, 19 Dec 2011 12:43:28 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-In-Reply-To: <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1112191237300.23694@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
- <201112191105.25855.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1112191113230.23694@axis700.grange>
- <201112191120.40084.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1112191139560.23694@axis700.grange>
- <CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com>
- <Pine.LNX.4.64.1112191155340.23694@axis700.grange>
- <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:22903 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755234Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 06:20:23 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNpm032749
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v3 24/28] [media] tuner-xc2028: use DVBv5 parameters
+Date: Thu, 22 Dec 2011 09:20:12 -0200
+Message-Id: <1324552816-25704-25-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324552816-25704-24-git-send-email-mchehab@redhat.com>
+References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-2-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-4-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-5-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-6-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-7-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-8-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-9-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-11-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-12-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-13-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-14-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-15-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-16-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-17-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-18-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-19-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-20-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-21-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-22-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-23-git-send-email-mchehab@redhat.com>
+ <1324552816-25704-24-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 19 Dec 2011, javier Martin wrote:
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-> On 19 December 2011 11:58, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > On Mon, 19 Dec 2011, javier Martin wrote:
-> >
-> >> On 19 December 2011 11:41, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> >> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> >> >
-> >> >> Hi Guennadi,
-> >> >>
-> >> >> On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
-> >> >> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> >> >> > > On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
-> >> >> > > > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> >> >> > > > > On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
-> >> >> > > > > > On Fri, 16 Dec 2011, Scott Jiang wrote:
-> >> >> > > > > > > >> How about this implementation? I know it's not for soc, but I
-> >> >> > > > > > > >> post it to give my idea.
-> >> >> > > > > > > >> Bridge knows the layout, so it doesn't need to query the
-> >> >> > > > > > > >> subdevice.
-> >> >> > > > > > > >
-> >> >> > > > > > > > Where from? AFAIU, we are talking here about subdevice inputs,
-> >> >> > > > > > > > right? In this case about various inputs of the TV decoder. How
-> >> >> > > > > > > > shall the bridge driver know about that?
-> >> >> > > > > > >
-> >> >> > > > > > > I have asked this question before. Laurent reply me:
-> >> >> > > > > > > > >> ENUMINPUT as defined by V4L2 enumerates input connectors
-> >> >> > > > > > > > >> available on the board. Which inputs the board designer
-> >> >> > > > > > > > >> hooked up is something that only the top-level V4L driver
-> >> >> > > > > > > > >> will know. Subdevices do not have that information, so
-> >> >> > > > > > > > >> enuminputs is not applicable there.
-> >> >> > > > > > > > >>
-> >> >> > > > > > > > >> Of course, subdevices do have input pins and output pins,
-> >> >> > > > > > > > >> but these are assumed to be fixed. With the s_routing ops
-> >> >> > > > > > > > >> the top level driver selects which input and output pins
-> >> >> > > > > > > > >> are active. Enumeration of those inputs and outputs
-> >> >> > > > > > > > >> wouldn't gain you anything as far as I can tell since the
-> >> >> > > > > > > > >> subdevice simply does not know which inputs/outputs are
-> >> >> > > > > > > > >> actually hooked up. It's the top level driver that has that
-> >> >> > > > > > > > >> information (usually passed in through board/card info
-> >> >> > > > > > > > >> structures).
-> >> >> > > > > >
-> >> >> > > > > > Laurent, right, I now remember reading this discussion before. But
-> >> >> > > > > > I'm not sure I completely agree:-) Yes, you're right - the board
-> >> >> > > > > > decides which pins are routed to which connectors. And it has to
-> >> >> > > > > > provide this information to the driver in its platform data. But -
-> >> >> > > > > > I think, this information should be provided not to the bridge
-> >> >> > > > > > driver, but to respective subdevice drivers, because only they
-> >> >> > > > > > know what exactly those interfaces are good for and how to report
-> >> >> > > > > > them to the bridge or the user, if we decide to also export this
-> >> >> > > > > > information over the subdevice user-space API.
-> >> >> > > > > >
-> >> >> > > > > > So, I would say, the board has to tell the subdevice driver: yes,
-> >> >> > > > > > your inputs 0 and 1 are routed to external connectors. On input 1
-> >> >> > > > > > I've put a pullup, it is connected to connector of type X over a
-> >> >> > > > > > circuit Y, clocked from your output Z, if the driver needs to know
-> >> >> > > > > > all that. And the subdev driver will just tell the bridge only
-> >> >> > > > > > what that one needs to know - number of inputs and their
-> >> >> > > > > > capabilities.
-> >> >> > > > >
-> >> >> > > > > That sounds reasonable.
-> >> >> > > >
-> >> >> > > > Good, this would mean, we need additional subdevice operations along
-> >> >> > > > the lines of enum_input and enum_output, and maybe also g_input and
-> >> >> > > > g_output?
-> >> >> > >
-> >> >> > > What about implementing pad support in the subdevice ? Input enumeration
-> >> >> > > could then be performed without a subdev operation.
-> >> >> >
-> >> >> > soc-camera doesn't support pad operations yet.
-> >> >>
-> >> >> soc-camera doesn't support enum_input yet either, so you need to implement
-> >> >> something anyway ;-)
-> >> >>
-> >> >> You wouldn't need to call a pad operation here, you would just need to iterate
-> >> >> through the pads provided by the subdev.
-> >> >
-> >> > tvp5150 doesn't implement it either yet. So, I would say, it is a better
-> >> > solution ATM to fix this functionality independent of the pad-level API.
-> >>
-> >> I agree,
-> >> I cannot contribute to implement pad-level API stuff since I can't
-> >> test it with tvp5150.
-> >>
-> >> Would you accept a patch implementing only S_INPUT?
-> >
-> > Sorry, maybe I'm missing something, but how would it work? I mean, how can
-> > we accept from the user any S_INPUT request with index != 0, if we always
-> > return only 0 in reply to ENUM_INPUT? Ok, G_INPUT we could implement
-> > internally in soc-camera: return 0 by default, then remember last set
-> > input number per soc-camera device / subdev. But ENUM_INPUT?...
-> 
-> It clearly is not a complete solution but at least it allows setting
-> input 0 in broken drivers such as tvp5150 which have input 1 enabled
-> by default, while soc-camera assumes input 0 is enabled.
-
-I would really prefer an addition of an .enum_input() video subdev 
-operation. Please, try to propose such a patch. If it absolutely gets 
-rejected, maybe we can add a hack to soc-camera, returning -ENOSYS or 
--ENOIOCTLCMD in reply to ENUM_INPUT with index > 0, like saying "we have 
-no idea, whether this device has any more inputs, than #0, try at your own 
-risk." But this would be a user-visible change in behaviour, so, actually 
-a bad thing (TM).
-
-Thanks
-Guennadi
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/common/tuners/tuner-xc2028.c |   83 ++++++++++++----------------
+ 1 files changed, 36 insertions(+), 47 deletions(-)
+
+diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+index e531267..8c0dc6a1 100644
+--- a/drivers/media/common/tuners/tuner-xc2028.c
++++ b/drivers/media/common/tuners/tuner-xc2028.c
+@@ -1087,65 +1087,26 @@ static int xc2028_set_analog_freq(struct dvb_frontend *fe,
+ static int xc2028_set_params(struct dvb_frontend *fe,
+ 			     struct dvb_frontend_parameters *p)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 delsys = c->delivery_system;
++	u32 bw = c->bandwidth_hz;
+ 	struct xc2028_data *priv = fe->tuner_priv;
+ 	unsigned int       type=0;
+-	fe_bandwidth_t     bw = BANDWIDTH_8_MHZ;
+ 	u16                demod = 0;
+ 
+ 	tuner_dbg("%s called\n", __func__);
+ 
+-	switch(fe->ops.info.type) {
+-	case FE_OFDM:
+-		bw = p->u.ofdm.bandwidth;
++	switch (delsys) {
++	case SYS_DVBT:
++	case SYS_DVBT2:
+ 		/*
+ 		 * The only countries with 6MHz seem to be Taiwan/Uruguay.
+ 		 * Both seem to require QAM firmware for OFDM decoding
+ 		 * Tested in Taiwan by Terry Wu <terrywu2009@gmail.com>
+ 		 */
+-		if (bw == BANDWIDTH_6_MHZ)
++		if (bw <= 6000000)
+ 			type |= QAM;
+-		break;
+-	case FE_ATSC:
+-		bw = BANDWIDTH_6_MHZ;
+-		/* The only ATSC firmware (at least on v2.7) is D2633 */
+-		type |= ATSC | D2633;
+-		break;
+-	/* DVB-S and pure QAM (FE_QAM) are not supported */
+-	default:
+-		return -EINVAL;
+-	}
+-
+-	switch (bw) {
+-	case BANDWIDTH_8_MHZ:
+-		if (p->frequency < 470000000)
+-			priv->ctrl.vhfbw7 = 0;
+-		else
+-			priv->ctrl.uhfbw8 = 1;
+-		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV8;
+-		type |= F8MHZ;
+-		break;
+-	case BANDWIDTH_7_MHZ:
+-		if (p->frequency < 470000000)
+-			priv->ctrl.vhfbw7 = 1;
+-		else
+-			priv->ctrl.uhfbw8 = 0;
+-		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV7;
+-		type |= F8MHZ;
+-		break;
+-	case BANDWIDTH_6_MHZ:
+-		type |= DTV6;
+-		priv->ctrl.vhfbw7 = 0;
+-		priv->ctrl.uhfbw8 = 0;
+-		break;
+-	default:
+-		tuner_err("error: bandwidth not supported.\n");
+-	};
+ 
+-	/*
+-	  Selects between D2633 or D2620 firmware.
+-	  It doesn't make sense for ATSC, since it should be D2633 on all cases
+-	 */
+-	if (fe->ops.info.type != FE_ATSC) {
+ 		switch (priv->ctrl.type) {
+ 		case XC2028_D2633:
+ 			type |= D2633;
+@@ -1161,6 +1122,34 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+ 			else
+ 				type |= D2620;
+ 		}
++		break;
++	case SYS_ATSC:
++		/* The only ATSC firmware (at least on v2.7) is D2633 */
++		type |= ATSC | D2633;
++		break;
++	/* DVB-S and pure QAM (FE_QAM) are not supported */
++	default:
++		return -EINVAL;
++	}
++
++	if (bw <= 6000000) {
++		type |= DTV6;
++		priv->ctrl.vhfbw7 = 0;
++		priv->ctrl.uhfbw8 = 0;
++	} else if (bw <= 7000000) {
++		if (c->frequency < 470000000)
++			priv->ctrl.vhfbw7 = 1;
++		else
++			priv->ctrl.uhfbw8 = 0;
++		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV7;
++		type |= F8MHZ;
++	} else {
++		if (c->frequency < 470000000)
++			priv->ctrl.vhfbw7 = 0;
++		else
++			priv->ctrl.uhfbw8 = 1;
++		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV8;
++		type |= F8MHZ;
+ 	}
+ 
+ 	/* All S-code tables need a 200kHz shift */
+@@ -1185,7 +1174,7 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+ 		 */
+ 	}
+ 
+-	return generic_set_freq(fe, p->frequency,
++	return generic_set_freq(fe, c->frequency,
+ 				V4L2_TUNER_DIGITAL_TV, type, 0, demod);
+ }
+ 
+-- 
+1.7.8.352.g876a6
+
