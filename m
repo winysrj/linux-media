@@ -1,111 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:37603 "EHLO
-	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751233Ab1LBXEl convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Dec 2011 18:04:41 -0500
+Received: from mx1.redhat.com ([209.132.183.28]:48109 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751135Ab1LVUM3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 22 Dec 2011 15:12:29 -0500
+Message-ID: <4EF38F19.3050709@redhat.com>
+Date: Thu, 22 Dec 2011 18:12:09 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <87pqg6lhcp.fsf@ti.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-5-git-send-email-saaguirre@ti.com> <79CD15C6BA57404B839C016229A409A8046FCD@DBDE01.ent.ti.com>
- <CAKnK67TrzD1hoKOOaodRK=-Ct5bNYAtXab3hY4UdxJTNdD0Tuw@mail.gmail.com> <87pqg6lhcp.fsf@ti.com>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Fri, 2 Dec 2011 16:59:36 -0600
-Message-ID: <CAKnK67RVgSsNP-BGfkkWZ8wv5MsSL7H9+Joby3LrXihfO6tpAA@mail.gmail.com>
-Subject: Re: [PATCH v2 04/11] OMAP4: hwmod: Include CSI2A and CSIPHY1 memory sections
-To: Kevin Hilman <khilman@ti.com>
-Cc: "Hiremath, Vaibhav" <hvaibhav@ti.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
-	"laurent.pinchart@ideasonboard.com"
-	<laurent.pinchart@ideasonboard.com>,
-	"sakari.ailus@iki.fi" <sakari.ailus@iki.fi>,
-	Benoit Cousson <b-cousson@ti.com>
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Subject: Re: which is correct name DTMB or CTTB?
+References: <4EF1ACA3.8080808@iki.fi> <4EF35EB5.5010700@iki.fi> <4EF38B5B.8020408@redhat.com>
+In-Reply-To: <4EF38B5B.8020408@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kevin,
-
-Thanks for the review.
-
-On Fri, Dec 2, 2011 at 4:49 PM, Kevin Hilman <khilman@ti.com> wrote:
-> +Benoit,
->
-> "Aguirre, Sergio" <saaguirre@ti.com> writes:
->
->> Hi Vaibhav,
->>
->> Thanks for the comments.
->>
->> On Thu, Dec 1, 2011 at 12:34 AM, Hiremath, Vaibhav <hvaibhav@ti.com> wrote:
+On 22-12-2011 17:56, Mauro Carvalho Chehab wrote:
+> On 22-12-2011 14:45, Antti Palosaari wrote:
+>> On 12/21/2011 11:53 AM, Antti Palosaari wrote:
+>>> I am adding DTMB/CTTB support for the Linux Kernel DVB API. Do anyone
+>>> have clear idea which correct name?
 >>>
->>>> -----Original Message-----
->>>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
->>>> owner@vger.kernel.org] On Behalf Of Aguirre, Sergio
->>>> Sent: Thursday, December 01, 2011 5:45 AM
->>>> To: linux-media@vger.kernel.org
->>>> Cc: linux-omap@vger.kernel.org; laurent.pinchart@ideasonboard.com;
->>>> sakari.ailus@iki.fi; Aguirre, Sergio
->>>> Subject: [PATCH v2 04/11] OMAP4: hwmod: Include CSI2A and CSIPHY1 memory
->>>> sections
->>>>
->>>> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->>>> ---
->>>>  arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   16 +++++++++++++---
->>>>  1 files changed, 13 insertions(+), 3 deletions(-)
->>>>
->>>> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-
->>>> omap2/omap_hwmod_44xx_data.c
->>>> index 7695e5d..1b59e2f 100644
->>>> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>>> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->>>> @@ -2623,8 +2623,18 @@ static struct omap_hwmod_ocp_if
->>>> *omap44xx_iss_masters[] = {
->>>>
->>>>  static struct omap_hwmod_addr_space omap44xx_iss_addrs[] = {
->>>>       {
->>>> -             .pa_start       = 0x52000000,
->>>> -             .pa_end         = 0x520000ff,
->>>> +             .pa_start       = OMAP44XX_ISS_TOP_BASE,
->>>> +             .pa_end         = OMAP44XX_ISS_TOP_END,
->>>> +             .flags          = ADDR_TYPE_RT
->>>> +     },
->>>> +     {
->>>> +             .pa_start       = OMAP44XX_ISS_CSI2_A_REGS1_BASE,
->>>> +             .pa_end         = OMAP44XX_ISS_CSI2_A_REGS1_END,
->>>> +             .flags          = ADDR_TYPE_RT
->>>> +     },
->>>> +     {
->>>> +             .pa_start       = OMAP44XX_ISS_CAMERARX_CORE1_BASE,
->>>> +             .pa_end         = OMAP44XX_ISS_CAMERARX_CORE1_END,
->>>>               .flags          = ADDR_TYPE_RT
->>>>       },
->>> This patch will result in build failure, because, the above base addresses
->>> are getting defined in the next patch
->>>
->>> [PATCH v2 05/11] OMAP4: Add base addresses for ISS
+>>> Background of that discussion can be found from the following patch:
+>>> http://patchwork.linuxtv.org/patch/8827/
 >>
->> Agreed. Will revisit "git-bisectability" of the patch series. Will fix.
->
-> To fix this, just drop the #defines from the header, and use raw
-> addresses directly.
+>> There is already defined delivery system SYS_DMBTH. It have been from the time S2API was introduced coming from the patch: 6b73eeafbc856c0cef7166242f0e55403407f355
+>>
+>> include/linux/dvb/frontend.h
+>>
+>> Should I change that name? Or introduce new names using define? Or just leave it as it is. No single driver is using that because all existing DTMB/CTTB/DMB-TH drivers are abusing DVB-T...
+> 
+>>
+>> I still think it is rather safe to change better one, there is likely no user space apps using that yet...
+> 
+> Feel free to change it, as nobody is using it yet.
+> 
+> In a matter of fact, I wrote today one patch using it, but I'll rebase my patch to
+> the name you define.
 
-Ok, i'll drop patch #5 in this series.
+FYI, I'm enclosing the patch I wrote for a CTTB driver. The Idea is that,
+while such drivers are lying to DVBv3 calls, they'll tell the true delivery
+system, and properly honor get_frontend/set_frontend for
+FE_GET_PROPERTY/FE_SETPROPERTY ioctl calls.
 
->
-> Also, work with Benoit to make sure at the scripts that autogenerate
-> this data are updated to include these two regions.
+I'll be submitting it together with a series of patches converting the demods
+to use struct dtv_frontend_properties instead of struct dvb_frontend_parameters.
 
-Ok.
+This patch depends on some patches on my experimental tree:
+	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/DVB_v5_v2
 
-As a side note, I might need more addresses for the rest of the ISP
-components later on. I'll enable more subsystems once the CSI2-A only
-initial version is in an acceptable state.
+Please, don't base any of your patches on that tree yet. There are about
+70 drivers pending conversion. Only after converting everything I'll send
+a RFC, and test with a few devices I have with me. 
+
+I'll likely need to rebase it a few times, in order to be sure that all
+tuner drivers are converted before the demods, as I'm doing, this change,
+at demod drivers I'm converting:
+-		fe->ops.tuner_ops.set_params(fe, params);
++		fe->ops.tuner_ops.set_params(fe, NULL);
+
+The final step will be to remove the now legacy "params" argument, but
+there are still a few tuners not converted (the ones that aren't at
+drivers/media/common/tuners).
 
 Regards,
-Sergio
+Mauro
 
->
-> Kevin
+-
+
+[PATCH] [media] atbm8830: convert set_fontend to new way and fix delivery system
+
+This is one of the cases where the frontend changes is required:
+while this device lies to applications that it is a DVB-T, it is,
+in fact, a frontend for CTTB delivery system. So, the information
+provided for a DVBv3 application should be different than the one
+provided to a DVBv5 application.
+
+So, fill delsys with the CTTB delivery system, and use the new
+way. there aren't many changes here, as everything on this driver
+is on auto mode, probably because of the lack of a proper API
+for this delivery system.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/dvb/frontends/atbm8830.c b/drivers/media/dvb/frontends/atbm8830.c
+index e6114b4..ee69509 100644
+--- a/drivers/media/dvb/frontends/atbm8830.c
++++ b/drivers/media/dvb/frontends/atbm8830.c
+@@ -267,8 +267,7 @@ static void atbm8830_release(struct dvb_frontend *fe)
+ 	kfree(state);
+ }
+ 
+-static int atbm8830_set_fe(struct dvb_frontend *fe,
+-			  struct dvb_frontend_parameters *fe_params)
++static int atbm8830_set_fe(struct dvb_frontend *fe)
+ {
+ 	struct atbm_state *priv = fe->demodulator_priv;
+ 	int i;
+@@ -279,7 +278,7 @@ static int atbm8830_set_fe(struct dvb_frontend *fe,
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 1);
+-		fe->ops.tuner_ops.set_params(fe, fe_params);
++		fe->ops.tuner_ops.set_params(fe, NULL);
+ 		if (fe->ops.i2c_gate_ctrl)
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
+@@ -298,31 +297,32 @@ static int atbm8830_set_fe(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int atbm8830_get_fe(struct dvb_frontend *fe,
+-			  struct dvb_frontend_parameters *fe_params)
++static int atbm8830_get_fe(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++
+ 	dprintk("%s\n", __func__);
+ 
+ 	/* TODO: get real readings from device */
+ 	/* inversion status */
+-	fe_params->inversion = INVERSION_OFF;
++	c->inversion = INVERSION_OFF;
+ 
+ 	/* bandwidth */
+-	fe_params->u.ofdm.bandwidth = BANDWIDTH_8_MHZ;
++	c->bandwidth_hz = 8000000;
+ 
+-	fe_params->u.ofdm.code_rate_HP = FEC_AUTO;
+-	fe_params->u.ofdm.code_rate_LP = FEC_AUTO;
++	c->code_rate_HP = FEC_AUTO;
++	c->code_rate_LP = FEC_AUTO;
+ 
+-	fe_params->u.ofdm.constellation = QAM_AUTO;
++	c->modulation = QAM_AUTO;
+ 
+ 	/* transmission mode */
+-	fe_params->u.ofdm.transmission_mode = TRANSMISSION_MODE_AUTO;
++	c->transmission_mode = TRANSMISSION_MODE_AUTO;
+ 
+ 	/* guard interval */
+-	fe_params->u.ofdm.guard_interval = GUARD_INTERVAL_AUTO;
++	c->guard_interval = GUARD_INTERVAL_AUTO;
+ 
+ 	/* hierarchy */
+-	fe_params->u.ofdm.hierarchy_information = HIERARCHY_NONE;
++	c->hierarchy = HIERARCHY_NONE;
+ 
+ 	return 0;
+ }
+@@ -429,6 +429,7 @@ static int atbm8830_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ }
+ 
+ static struct dvb_frontend_ops atbm8830_ops = {
++	.delsys = { SYS_DMBTH },
+ 	.info = {
+ 		.name = "AltoBeam ATBM8830/8831 DMB-TH",
+ 		.type = FE_OFDM,
+@@ -449,8 +450,8 @@ static struct dvb_frontend_ops atbm8830_ops = {
+ 	.write = NULL,
+ 	.i2c_gate_ctrl = atbm8830_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = atbm8830_set_fe,
+-	.get_frontend_legacy = atbm8830_get_fe,
++	.set_frontend = atbm8830_set_fe,
++	.get_frontend = atbm8830_get_fe,
+ 	.get_tune_settings = atbm8830_get_tune_settings,
+ 
+ 	.read_status = atbm8830_read_status,
