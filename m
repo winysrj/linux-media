@@ -1,141 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:57678 "EHLO
-	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755616Ab1LARaj convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 1 Dec 2011 12:30:39 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39331 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756762Ab1LWLyJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 06:54:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: MEM2MEM devices: how to handle sequence number?
+Date: Fri, 23 Dec 2011 12:54:07 +0100
+Cc: "'javier Martin'" <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	shawn.guo@linaro.org, richard.zhao@linaro.org,
+	fabio.estevam@freescale.com, kernel@pengutronix.de,
+	s.hauer@pengutronix.de, r.schwebel@pengutronix.de,
+	"'Pawel Osciak'" <p.osciak@gmail.com>
+References: <CACKLOr0H4enuADtWcUkZCS_V92mmLD8K5CgScbGo7w9nbT=-CA@mail.gmail.com> <201112231228.45439.laurent.pinchart@ideasonboard.com> <015401ccc166$ed3c2ab0$c7b48010$%szyprowski@samsung.com>
+In-Reply-To: <015401ccc166$ed3c2ab0$c7b48010$%szyprowski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <201112011824.49591.laurent.pinchart@ideasonboard.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-6-git-send-email-saaguirre@ti.com> <201112011824.49591.laurent.pinchart@ideasonboard.com>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Thu, 1 Dec 2011 11:30:14 -0600
-Message-ID: <CAKnK67TR5KJ8U4AeDuF7AzxDwOPF7X1ak7mn0tBhrROwu8H6_g@mail.gmail.com>
-Subject: Re: [PATCH v2 05/11] OMAP4: Add base addresses for ISS
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@iki.fi
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112231254.08377.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Marek,
 
-Thanks for the review.
+On Friday 23 December 2011 12:35:09 Marek Szyprowski wrote:
+> On Friday, December 23, 2011 12:29 PM Laurent Pinchart wrote:
+> > On Friday 23 December 2011 08:09:25 Marek Szyprowski wrote:
+> > > On Thursday, December 22, 2011 3:34 PM Javier Martin wrote:
+> > > > we have a processing chain composed of three v4l2 devices:
+> > > > 
+> > > > ---------------------           -----------------------
+> > > > ----------------------
+> > > > 
+> > > > | v4l2 source  |            |     v4l2 fixer   |               | 
+> > > > | v4l2 encoder |
+> > > > | 
+> > > > |  (capture)     |---------->|  (mem2mem)| ------------>|  (mem2mem)
+> > > > |  |
+> > > > 
+> > > > ------------>
+> > > > 
+> > > > |___________|            |____________|              |____________|
+> > > > 
+> > > > "v4l2 source" generates consecutive sequence numbers so that we can
+> > > > detect whether a frame has been lost or not.
+> > > > "v4l2 fixer" and "v4l2 encoder" cannot lose frames because they don't
+> > > > interact with an external sensor.
+> > > > 
+> > > > How should "v4l2 fixer" and "v4l2 encoder" behave regarding frame
+> > > > sequence number? Should they just copy the sequence number from the
+> > > > input buffer to the output buffer or should they maintain their own
+> > > > count for the CAPTURE queue?
+> > > 
+> > > IMHO mem2mem devices, which process buffers in 1:1 way (there is always
+> > > exactly one 'capture'/destination buffer for every 'output'/source
+> > > buffer) can simply copy the sequence number from the source buffer to
+> > > the destination.
+> > > 
+> > > If there is no such 1:1 mapping between the buffers, drivers should
+> > > maintain their own numbers. video encoder is probably an example of
+> > > such device. A single destination ('capture') buffer with encoded
+> > > video data might contain a fraction, one or more source ('output')
+> > > video
+> > > buffers/frames.
+> > > 
+> > > > If the former option is chosen we should apply a patch like the
+> > > > following so that the sequence number of the input buffer is passed
+> > > > to the videobuf2 layer:
+> > > > 
+> > > > diff --git a/drivers/media/video/videobuf2-core.c
+> > > > b/drivers/media/video/videobuf2-core.c
+> > > > index 1250662..7d8a88b 100644
+> > > > --- a/drivers/media/video/videobuf2-core.c
+> > > > +++ b/drivers/media/video/videobuf2-core.c
+> > > > @@ -1127,6 +1127,7 @@ int vb2_qbuf(struct vb2_queue *q, struct
+> > > > v4l2_buffer *b)
+> > > > 
+> > > >          */
+> > > >         
+> > > >         list_add_tail(&vb->queued_entry, &q->queued_list);
+> > > >         vb->state = VB2_BUF_STATE_QUEUED;
+> > > > 
+> > > > +       vb->v4l2_buf.sequence = b->sequence;
+> > > > 
+> > > >         /*
+> > > >         
+> > > >          * If already streaming, give the buffer to driver for
+> > > >          processing.
+> > > 
+> > > Right, such patch is definitely needed. Please resend it with
+> > > 'signed-off-by' annotation.
+> > 
+> > I'm not too sure about that. Isn't the sequence number supposed to be
+> > ignored by drivers on video output devices ? The documentation is a bit
+> > terse on the subject, all it says is
+> > 
+> > __u32  sequence     Set by the driver, counting the frames in the
+> > sequence.
+> 
+> We can also update the documentation if needed. IMHO copying sequence
+> number in mem2mem case if there is 1:1 relation between the buffers is a
+> good idea.
 
-On Thu, Dec 1, 2011 at 11:24 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Sergio,
->
-> On Thursday 01 December 2011 01:14:54 Sergio Aguirre wrote:
->> NOTE: This isn't the whole list of features that the
->> ISS supports, but the only ones supported at the moment.
->>
->> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
->> ---
->>  arch/arm/mach-omap2/devices.c              |   32
->> ++++++++++++++++++++++++++++ arch/arm/plat-omap/include/plat/omap44xx.h |
->>   9 +++++++
->>  2 files changed, 41 insertions(+), 0 deletions(-)
->>
->> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
->> index c15cfad..b48aeea 100644
->> --- a/arch/arm/mach-omap2/devices.c
->> +++ b/arch/arm/mach-omap2/devices.c
->> @@ -32,6 +32,7 @@
->>  #include <plat/omap_hwmod.h>
->>  #include <plat/omap_device.h>
->>  #include <plat/omap4-keypad.h>
->> +#include <plat/omap4-iss.h>
->
-> I try to keep headers sorted alphabetically when possible, but that might just
-> be me.
+My point is that sequence numbers are currently not applicable to video output 
+devices, at least according to the documentation. Applications will just set 
+them to 0.
 
-No problem. I can change it.
+I think it would be better to have the m2m driver set the sequence number 
+internally on the video output node by incrementing an counter, and pass it 
+down the pipeline to the video capture node.
 
->
->>
->>  #include "mux.h"
->>  #include "control.h"
->> @@ -217,6 +218,37 @@ int omap3_init_camera(struct isp_platform_data *pdata)
->>       return platform_device_register(&omap3isp_device);
->>  }
->>
->> +int omap4_init_camera(struct iss_platform_data *pdata, struct
->> omap_board_data *bdata)
->> +{
->> +     struct platform_device *pdev;
->> +     struct omap_hwmod *oh;
->> +     struct iss_platform_data *omap4iss_pdata;
->> +     char *oh_name = "iss";
->> +     char *name = "omap4iss";
->
-> Would const char or static const char help the compiler putting the strings to
-> a read-only section ?
+-- 
+Regards,
 
-Right. Will fix.
-
->
->> +     unsigned int id = -1;
->> +
->> +     oh = omap_hwmod_lookup(oh_name);
->> +     if (!oh) {
->> +             pr_err("Could not look up %s\n", oh_name);
->> +             return -ENODEV;
->> +     }
->> +
->> +     omap4iss_pdata = pdata;
->> +
->> +     pdev = omap_device_build(name, id, oh, omap4iss_pdata,
->> +                     sizeof(struct iss_platform_data), NULL, 0, 0);
->
-> This is the only location where id is used, maybe you could pass -1 directly
-> to the function ?
-
-Ditto.
-
-Thanks and regards,
-Sergio
-
->
->> +
->> +     if (IS_ERR(pdev)) {
->> +             WARN(1, "Can't build omap_device for %s:%s.\n",
->> +                                             name, oh->name);
->> +             return PTR_ERR(pdev);
->> +     }
->> +
->> +     oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
->> +
->> +     return 0;
->> +}
->> +
->>  static inline void omap_init_camera(void)
->>  {
->>  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
->> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h
->> b/arch/arm/plat-omap/include/plat/omap44xx.h index ea2b8a6..31432aa 100644
->> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
->> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
->> @@ -49,6 +49,15 @@
->>  #define OMAP44XX_MAILBOX_BASE                (L4_44XX_BASE + 0xF4000)
->>  #define OMAP44XX_HSUSB_OTG_BASE              (L4_44XX_BASE + 0xAB000)
->>
->> +#define OMAP44XX_ISS_BASE                    0x52000000
->> +#define OMAP44XX_ISS_TOP_BASE                        (OMAP44XX_ISS_BASE + 0x0)
->> +#define OMAP44XX_ISS_CSI2_A_REGS1_BASE               (OMAP44XX_ISS_BASE + 0x1000)
->> +#define OMAP44XX_ISS_CAMERARX_CORE1_BASE     (OMAP44XX_ISS_BASE + 0x1170)
->> +
->> +#define OMAP44XX_ISS_TOP_END                 (OMAP44XX_ISS_TOP_BASE + 256 - 1)
->> +#define OMAP44XX_ISS_CSI2_A_REGS1_END                (OMAP44XX_ISS_CSI2_A_REGS1_BASE +
->> 368 - 1) +#define
->> OMAP44XX_ISS_CAMERARX_CORE1_END               (OMAP44XX_ISS_CAMERARX_CORE1_BASE + 32 -
->> 1) +
->>  #define OMAP4_MMU1_BASE                      0x55082000
->>  #define OMAP4_MMU2_BASE                      0x4A066000
->
-> --
-> Regards,
->
-> Laurent Pinchart
+Laurent Pinchart
