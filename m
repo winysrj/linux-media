@@ -1,88 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20739 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751352Ab1L3Rdx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 12:33:53 -0500
-Message-ID: <4EFDF5F5.9020105@redhat.com>
-Date: Fri, 30 Dec 2011 15:33:41 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL FOR 3.3 RESEND] AF9015/AF9013 changes
-References: <4EF60396.4000401@iki.fi> <4EFDEBB8.1030707@redhat.com>
-In-Reply-To: <4EFDEBB8.1030707@redhat.com>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:27738 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753323Ab1LWLfQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 06:35:16 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LWN0022VMUQUU40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Dec 2011 11:35:14 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LWN006VVMUPCM@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 23 Dec 2011 11:35:13 +0000 (GMT)
+Date: Fri, 23 Dec 2011 12:35:09 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: MEM2MEM devices: how to handle sequence number?
+In-reply-to: <201112231228.45439.laurent.pinchart@ideasonboard.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: 'javier Martin' <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	shawn.guo@linaro.org, richard.zhao@linaro.org,
+	fabio.estevam@freescale.com, kernel@pengutronix.de,
+	s.hauer@pengutronix.de, r.schwebel@pengutronix.de,
+	'Pawel Osciak' <p.osciak@gmail.com>
+Message-id: <015401ccc166$ed3c2ab0$c7b48010$%szyprowski@samsung.com>
+Content-language: pl
+References: <CACKLOr0H4enuADtWcUkZCS_V92mmLD8K5CgScbGo7w9nbT=-CA@mail.gmail.com>
+ <013f01ccc141$cdf78ed0$69e6ac70$%szyprowski@samsung.com>
+ <201112231228.45439.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30-12-2011 14:50, Mauro Carvalho Chehab wrote:
-> On 24-12-2011 14:53, Antti Palosaari wrote:
->> Hello
->> I just looked latest for 3.3 and there was 3 patch missing I have already PULL requested.
->>
->> Could you PULL those ASAP from that tree:
->> http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/misc
->>
->> 2011-11-19 tda18218: fix 6 MHz default IF frequency
->> 2011-11-19 af9015: limit I2C access to keep FW happy
->> 2011-11-28 af9013: rewrite whole driver
-> 
-> Antti,
-> 
-> Please, don't send pull requests like that. They won't go to my queue, as patchwork
-> won't get it.
-> 
-> For patchwork to get a git pull request, it has to contain the strings bellow:
-> 	The following changes since commit 1a5cd29631a6b75e49e6ad8a770ab9d69cda0fa2:
-> 
-> 	[media] tda10021: Add support for DVB-C Annex C (2011-12-20 14:01:08 -0200)
-> 
-> 	are available in the git repository at:
-> 	git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.3
-> 
-> (those are from a real example).
-> 
-> E. g. the pull request should be generated with git request-pull.
-> 
-> This time, I'll get it by hand. I'm assuming that you want me to pull from:
-> 	git://linuxtv.org/anttip/media_tree.git misc
-> 
-> based on the URL you've sent me.
+Hello,
 
-Still, the same problem as before:
+On Friday, December 23, 2011 12:29 PM Laurent Pinchart wrote:
+> On Friday 23 December 2011 08:09:25 Marek Szyprowski wrote:
+> > On Thursday, December 22, 2011 3:34 PM Javier Martin wrote:
+> > > we have a processing chain composed of three v4l2 devices:
+> > >
+> > > ---------------------           -----------------------
+> > > ----------------------
+> > >
+> > > | v4l2 source  |            |     v4l2 fixer   |               |  v4l2
+> > > | encoder |
+> > > |
+> > > |  (capture)     |---------->|  (mem2mem)| ------------>|  (mem2mem) |
+> > >
+> > > ------------>
+> > >
+> > > |___________|            |____________|              |____________|
+> > >
+> > > "v4l2 source" generates consecutive sequence numbers so that we can
+> > > detect whether a frame has been lost or not.
+> > > "v4l2 fixer" and "v4l2 encoder" cannot lose frames because they don't
+> > > interact with an external sensor.
+> > >
+> > > How should "v4l2 fixer" and "v4l2 encoder" behave regarding frame
+> > > sequence number? Should they just copy the sequence number from the
+> > > input buffer to the output buffer or should they maintain their own
+> > > count for the CAPTURE queue?
+> >
+> > IMHO mem2mem devices, which process buffers in 1:1 way (there is always
+> > exactly one 'capture'/destination buffer for every 'output'/source buffer)
+> > can simply copy the sequence number from the source buffer to the
+> > destination.
+> >
+> > If there is no such 1:1 mapping between the buffers, drivers should
+> > maintain their own numbers. video encoder is probably an example of such
+> > device. A single destination ('capture') buffer with encoded video data
+> > might contain a fraction, one or more source ('output') video
+> > buffers/frames.
+> >
+> > > If the former option is chosen we should apply a patch like the
+> > > following so that the sequence number of the input buffer is passed to
+> > > the videobuf2 layer:
+> > >
+> > > diff --git a/drivers/media/video/videobuf2-core.c
+> > > b/drivers/media/video/videobuf2-core.c
+> > > index 1250662..7d8a88b 100644
+> > > --- a/drivers/media/video/videobuf2-core.c
+> > > +++ b/drivers/media/video/videobuf2-core.c
+> > > @@ -1127,6 +1127,7 @@ int vb2_qbuf(struct vb2_queue *q, struct
+> > > v4l2_buffer *b)
+> > >          */
+> > >         list_add_tail(&vb->queued_entry, &q->queued_list);
+> > >         vb->state = VB2_BUF_STATE_QUEUED;
+> > > +       vb->v4l2_buf.sequence = b->sequence;
+> > >         /*
+> > >          * If already streaming, give the buffer to driver for
+> > >          processing.
+> >
+> > Right, such patch is definitely needed. Please resend it with
+> > 'signed-off-by' annotation.
+> 
+> I'm not too sure about that. Isn't the sequence number supposed to be ignored
+> by drivers on video output devices ? The documentation is a bit terse on the
+> subject, all it says is
+> 
+> __u32  sequence     Set by the driver, counting the frames in the sequence.
 
-drivers/media/dvb/dvb-usb/af9015.c: In function ‘af9015_rc_query’:
-drivers/media/dvb/dvb-usb/af9015.c:1091:6: error: ‘adap’ undeclared (first use in this function)
-drivers/media/dvb/dvb-usb/af9015.c:1091:6: note: each undeclared identifier is reported only once for each function it appears in
-drivers/media/dvb/dvb-usb/af9015.c:1094:12: error: ‘struct af9015_state’ has no member named ‘sleep’
-drivers/media/dvb/dvb-usb/af9015.c:1094:30: error: ‘fe’ undeclared (first use in this function)
+We can also update the documentation if needed. IMHO copying sequence number
+in mem2mem case if there is 1:1 relation between the buffers is a good idea.
 
-As all patches that went to 3.1-rc7 were merged back, this means
-that there's something else missing there (maybe that patch
-you asked me to revert).
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
 
-After digging for a while, it seems that this patch is dependent
-on the one you asked me to revert:
 
-Author: Antti Palosaari <crope@iki.fi>
-Date:   Sat Nov 12 22:33:30 2011 -0300
-
-    [media] af9015: limit I2C access to keep FW happy
-    
-    AF9015 firmware does not like if it gets interrupted by I2C adapter
-    request on some critical phases. During normal operation I2C adapter
-    is used only 2nd demodulator and tuner on dual tuner devices.
-    
-    Override demodulator callbacks and use mutex for limit access to
-    those "critical" paths to keep AF9015 happy.
-    
-    Signed-off-by: Antti Palosaari <crope@iki.fi>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-Applying it before this patch made it to apply. Please check if
-my merge conflict didn't break anything.
-
-Regards,
-Mauro.
