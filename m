@@ -1,67 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:46589 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751441Ab1LLQW1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 11:22:27 -0500
-Received: by yenm11 with SMTP id m11so3883383yen.19
-        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 08:22:27 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <236aa572a18085c33e56f64cd3155b86.squirrel@mail.seiner.com>
-References: <4EDC25F1.4000909@seiner.com>
-	<1323058527.12343.3.camel@palomino.walls.org>
-	<4EDC4C84.2030904@seiner.com>
-	<4EDC4E9B.40301@seiner.com>
-	<4EDCB6D1.1060508@seiner.com>
-	<1098bb19-5241-4be4-a916-657c0b599efd@email.android.com>
-	<c0667c34eccf470314966c2426b00af4.squirrel@mail.seiner.com>
-	<4EE55304.9090707@seiner.com>
-	<0b3ac95d-1977-4e86-9337-9e1390d51b83@email.android.com>
-	<4EE5F7BB.4070306@seiner.com>
-	<CAGoCfizHNPobXjMWAz_xp5wyLfspE6N8AtWxeM6AWeE8U-+UEA@mail.gmail.com>
-	<236aa572a18085c33e56f64cd3155b86.squirrel@mail.seiner.com>
-Date: Mon, 12 Dec 2011 11:22:26 -0500
-Message-ID: <CAGoCfiwNT2qZW_yj_kJfdFDydUcTQr3L_1_arcvxwSDt2a1bQQ@mail.gmail.com>
-Subject: Re: cx231xx kernel oops
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Yan Seiner <yan@seiner.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mgw2.diku.dk ([130.225.96.92]:43105 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752684Ab1LWSKh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 13:10:37 -0500
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 7/9] drivers/media/video/davinci/vpbe.c: introduce missing kfree
+Date: Fri, 23 Dec 2011 18:39:32 +0100
+Message-Id: <1324661974-17281-7-git-send-email-julia@diku.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 12, 2011 at 10:58 AM, Yan Seiner <yan@seiner.com> wrote:
->> Also, just to be clear, the USB Live 2 doesn't have any onboard
->> hardware compression.  It has comparable requirements related to USB
->> bus utilization as any other USB framegrabber.  The only possible
->> advantage you might get is that it does have an onboard scaler, so if
->> you're willing to compromise on quality you can change the capture
->> resolution to a lower value such as 320x240.  Also, bear in mind that
->> the cx231xx driver may not be properly tuned to reduce the alternate
->> it uses dependent on resolution.  To my knowledge that functionality
->> has not been thoroughly tested (as it's an unpopular use case).
->
-> OK, thanks.  I was hoping this was a hardware framegrabber; the info on
-> the website is so ambiguous as to be nearly useless.
+vpbe_dev needs to be freed before leaving the function in an error case.
 
-I think you're just confused about the terminology.  The term
-"framegrabber" inherently means that it's delivering raw video (as
-opposed to having onboard compression and providing MPEG or some other
-compressed format).  All framegrabbers are hardware framegrabbers.
+A simplified version of the semantic match that finds the problem is as
+follows: (http://coccinelle.lip6.fr)
 
-There were some *really* old devices that delivered the frames with
-JPEG or proprietary compression so that they fit within USB 1.1, but
-those designs are almost entirely gone given the hardware cost and the
-lack of need since almost everything nowadays is USB 2.0.
+// <smpl>
+@r exists@
+local idexpression x;
+statement S;
+identifier f1;
+position p1,p2;
+expression *ptr != NULL;
+@@
 
-You may wish to look at the HVR-1950, which is well supported under
-Linux and does deliver MPEG video.  It's obviously more expensive that
-the USB Live 2 and it has a tuner which you probably don't need, but
-it does avoid the issue if you have USB bus constraints.
+x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+...
+if (x == NULL) S
+<... when != x
+     when != if (...) { <+...x...+> }
+x->f1
+...>
+(
+ return \(0\|<+...x...+>\|ptr\);
+|
+ return@p2 ...;
+)
 
-Devin
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/media/video/davinci/vpbe.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/davinci/vpbe.c b/drivers/media/video/davinci/vpbe.c
+index d773d30..99658ba 100644
+--- a/drivers/media/video/davinci/vpbe.c
++++ b/drivers/media/video/davinci/vpbe.c
+@@ -811,8 +811,10 @@ static __devinit int vpbe_probe(struct platform_device *pdev)
+ 
+ 	if (cfg->outputs->num_modes > 0)
+ 		vpbe_dev->current_timings = vpbe_dev->cfg->outputs[0].modes[0];
+-	else
++	else {
++		kfree(vpbe_dev);
+ 		return -ENODEV;
++	}
+ 
+ 	/* set the driver data in platform device */
+ 	platform_set_drvdata(pdev, vpbe_dev);
+
