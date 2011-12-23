@@ -1,39 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:57882 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111Ab1LaOxS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 09:53:18 -0500
-Received: by eekc4 with SMTP id c4so14327026eek.19
-        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 06:53:17 -0800 (PST)
-Message-ID: <4EFF21D5.3080500@gmail.com>
-Date: Sat, 31 Dec 2011 15:53:09 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, dacohen@gmail.com,
-	andriy.shevchenko@linux.intel.com, g.liakhovetski@gmx.de,
-	hverkuil@xs4all.nl
-Subject: Re: [RFC 2/3] v4l: Image source control class
-References: <20111201143044.GI29805@valkosipuli.localdomain> <1323876147-18107-2-git-send-email-sakari.ailus@iki.fi> <4EFF1F6B.2090009@gmail.com>
-In-Reply-To: <4EFF1F6B.2090009@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mgw2.diku.dk ([130.225.96.92]:43100 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754272Ab1LWSKh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 13:10:37 -0500
+From: Julia Lawall <julia@diku.dk>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: kernel-janitors@vger.kernel.org,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 9/9] drivers/staging/media/as102/as102_usb_drv.c: shift position of allocation code
+Date: Fri, 23 Dec 2011 18:39:34 +0100
+Message-Id: <1324661974-17281-9-git-send-email-julia@diku.dk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/31/2011 03:42 PM, Sylwester Nawrocki wrote:
->>  
->> +	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image source controls";
->> +	case V4L2_CID_IMAGE_SOURCE_VBLANK:	return "Vertical blanking";
-> 
-> nit: have you considered making it "Blanking, horizontal"
+The conditional after the kzalloc says that the tested expression should
+never be true, but if it were, the allocated data would have to be freed.
+This change just moves the allocation below the test, to avoid any
+possibility of the problem.
 
-Oops, it supposed to be: "Blanking, vertical"
+A simplified version of the semantic match that finds the problem is as
+follows: (http://coccinelle.lip6.fr)
 
->> +	case V4L2_CID_IMAGE_SOURCE_HBLANK:	return "Horizontal blanking";
-> 
-> and "Blanking, vertical" ?
+// <smpl>
+@r exists@
+local idexpression x;
+statement S;
+identifier f1;
+position p1,p2;
+expression *ptr != NULL;
+@@
 
-and "Blanking, horizontal" :/
+x@p1 = \(kmalloc\|kzalloc\|kcalloc\)(...);
+...
+if (x == NULL) S
+<... when != x
+     when != if (...) { <+...x...+> }
+x->f1
+...>
+(
+ return \(0\|<+...x...+>\|ptr\);
+|
+ return@p2 ...;
+)
+
+@script:python@
+p1 << r.p1;
+p2 << r.p2;
+@@
+
+print "* file: %s kmalloc %s return %s" % (p1[0].file,p1[0].line,p2[0].line)
+// </smpl>
+
+Signed-off-by: Julia Lawall <julia@diku.dk>
+
+---
+ drivers/staging/media/as102/as102_usb_drv.c |   12 ++++++------
+ 1 file changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/staging/media/as102/as102_usb_drv.c b/drivers/staging/media/as102/as102_usb_drv.c
+index 7bcb28c..d775be0 100644
+--- a/drivers/staging/media/as102/as102_usb_drv.c
++++ b/drivers/staging/media/as102/as102_usb_drv.c
+@@ -353,12 +353,6 @@ static int as102_usb_probe(struct usb_interface *intf,
+ 
+ 	ENTER();
+ 
+-	as102_dev = kzalloc(sizeof(struct as102_dev_t), GFP_KERNEL);
+-	if (as102_dev == NULL) {
+-		err("%s: kzalloc failed", __func__);
+-		return -ENOMEM;
+-	}
+-
+ 	/* This should never actually happen */
+ 	if ((sizeof(as102_usb_id_table) / sizeof(struct usb_device_id)) !=
+ 	    (sizeof(as102_device_names) / sizeof(const char *))) {
+@@ -366,6 +360,12 @@ static int as102_usb_probe(struct usb_interface *intf,
+ 		return -EINVAL;
+ 	}
+ 
++	as102_dev = kzalloc(sizeof(struct as102_dev_t), GFP_KERNEL);
++	if (as102_dev == NULL) {
++		err("%s: kzalloc failed", __func__);
++		return -ENOMEM;
++	}
++
+ 	/* Assign the user-friendly device name */
+ 	for (i = 0; i < (sizeof(as102_usb_id_table) /
+ 			 sizeof(struct usb_device_id)); i++) {
+
