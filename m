@@ -1,84 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50904 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878Ab1LITyp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 9 Dec 2011 14:54:45 -0500
-Date: Fri, 9 Dec 2011 21:54:40 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Sebastian =?iso-8859-1?Q?Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-Message-ID: <20111209195440.GB1967@valkosipuli.localdomain>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED8C61C.3060404@redhat.com>
- <20111202135748.GO29805@valkosipuli.localdomain>
- <4ED901C9.2050109@redhat.com>
- <20111206143538.GD938@valkosipuli.localdomain>
- <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34665 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753698Ab1LWITy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 03:19:54 -0500
+Message-ID: <4EF439A8.4000504@iki.fi>
+Date: Fri, 23 Dec 2011 10:19:52 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
+To: =?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.mmm@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Add tuner_type to zl10353 config and use it for reporting signal
+ directly from tuner.
+References: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com> <CAEN_-SDLLY8Ba--KTbqSGBNoNkWhh+_A-Y+gCy3B=c1_yEBV7g@mail.gmail.com> <4EF43856.6040408@iki.fi>
+In-Reply-To: <4EF43856.6040408@iki.fi>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+On 12/23/2011 10:14 AM, Antti Palosaari wrote:
+> On 12/23/2011 01:45 AM, Miroslav Slugeň wrote:
+>> This patch is wrong, please use 8971 instead.
+>
+> Could you explain which is wrong? Your old code or that new override
+> version I explained?
+>
+> fe->ops.read_signal_strength = fe->ops.tuner_ops.get_rf_strength;
 
-On Tue, Dec 06, 2011 at 04:03:33PM +0100, Kamil Debski wrote:
-...
-> > > >The user space still wants to be able to show these buffers, so a new
-> > flag
-> > > >would likely be required --- V4L2_BUF_FLAG_READ_ONLY, for example.
-> > >
-> > > Huh? Assuming a capture device, when kernel makes a buffer available to
-> > userspace,
-> > > kernel should not touch on it anymore (not even for read - although
-> > reading from
-> > > it probably won't cause any issues, as video applications in general don't
-> > write
-> > > into those buffers). The opposite is true for output devices: once
-> > userspace fills it,
-> > > and queues, it should not touch that buffer again.
-> > >
-> > > This is part of the queue/dequeue logic. I can't see any need for an extra
-> > > flag to explicitly say that.
-> > 
-> > There is a reason to do so. An example of this is below. The
-> > memory-to-memory device has two queues, output can capture. A video decoder
-> > memory-to-memory device's output queue handles compressed video and the
-> > capture queue provides the application decoded frames.
-> > 
-> > Certain frames in the stream are key frames, meaning that the decoding of
-> > the following non-key frames requires access to the key frame. The number of
-> > non-key frame can be relatively large, say 16, depending on the codec.
-> > 
-> > If the user should wait for all the frames to be decoded before the key
-> > frame can be shown, then either the key frame is to be skipped or delayed.
-> > Both of the options are highly undesirable.
-> 
-> I don't think that such a delay is worrisome. This is only initial delay.
-> The hw will process these N buffers and after that it works exactly the same
-> as it would without the delay in terms of processing time.
 
-Well, yes, but consider that the decoder also processes key frames when the
-decoding is in progress. The dequeueing of the key frames (and any further
-frames as long as the key frame is needed by the decoder) will be delayed
-until the key frame is no longer required.
+aargh, surely you are speaking patchwork IDs... my mistake.
 
-You need extra buffers to cope with such a situation, and in the worst case,
-or when the decoder is just as fast as you want to show the frames on the
-display, you need double the amount of buffers compared to what you'd really
-need for decoding. To make matters worse, this tends to happen at largest
-resolutions.
 
-I think we'd like to avoid this.
+Antti
+
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+http://palosaari.fi/
