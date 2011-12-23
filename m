@@ -1,173 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43214 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:60322 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752523Ab1L3PJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:30 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9THL026569
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:29 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 08/94] [media] cx22700: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:05 -0200
-Message-Id: <1325257711-12274-9-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1754520Ab1LWWd4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 17:33:56 -0500
+Message-ID: <4EF501C5.90006@iki.fi>
+Date: Sat, 24 Dec 2011 00:33:41 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Patrick Boettcher <pboettcher@kernellabs.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv1] add DTMB support for DVB API
+References: <4EF3A171.3030906@iki.fi> <4EF48473.3020207@linuxtv.org>
+In-Reply-To: <4EF48473.3020207@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On 12/23/2011 03:38 PM, Andreas Oberritter wrote:
+> On 22.12.2011 22:30, Antti Palosaari wrote:
+>> @@ -201,6 +205,9 @@ typedef enum fe_guard_interval {
+>>       GUARD_INTERVAL_1_128,
+>>       GUARD_INTERVAL_19_128,
+>>       GUARD_INTERVAL_19_256,
+>> +    GUARD_INTERVAL_PN420,
+>> +    GUARD_INTERVAL_PN595,
+>> +    GUARD_INTERVAL_PN945,
+>>   } fe_guard_interval_t;
+>
+> What does PN mean in this context?
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+It stays for pseudo noise.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/cx22700.c |   52 +++++++++++++++++---------------
- 1 files changed, 28 insertions(+), 24 deletions(-)
+Generally those are rather same as PN420 = GI 1/4, PN595 = GI 1/6, PN945 
+= GI 1/9. But as a old DVB-T GI, cyclic prefix, is rather likely some 
+static data without any real payload meaning, the PN GI is enchanted 
+inserting some data that have meaning. Also PN GI is boosted, like 
+doubled TX power in order to easy sync.
 
-diff --git a/drivers/media/dvb/frontends/cx22700.c b/drivers/media/dvb/frontends/cx22700.c
-index 7ac95de..3c571b9 100644
---- a/drivers/media/dvb/frontends/cx22700.c
-+++ b/drivers/media/dvb/frontends/cx22700.c
-@@ -121,7 +121,8 @@ static int cx22700_set_inversion (struct cx22700_state* state, int inversion)
- 	}
- }
- 
--static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_parameters *p)
-+static int cx22700_set_tps(struct cx22700_state *state,
-+			   struct dtv_frontend_properties *p)
- {
- 	static const u8 qam_tab [4] = { 0, 1, 0, 2 };
- 	static const u8 fec_tab [6] = { 0, 1, 2, 0, 3, 4 };
-@@ -146,25 +147,25 @@ static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_paramet
- 	    p->transmission_mode != TRANSMISSION_MODE_8K)
- 		return -EINVAL;
- 
--	if (p->constellation != QPSK &&
--	    p->constellation != QAM_16 &&
--	    p->constellation != QAM_64)
-+	if (p->modulation != QPSK &&
-+	    p->modulation != QAM_16 &&
-+	    p->modulation != QAM_64)
- 		return -EINVAL;
- 
--	if (p->hierarchy_information < HIERARCHY_NONE ||
--	    p->hierarchy_information > HIERARCHY_4)
-+	if (p->hierarchy < HIERARCHY_NONE ||
-+	    p->hierarchy > HIERARCHY_4)
- 		return -EINVAL;
- 
--	if (p->bandwidth < BANDWIDTH_8_MHZ || p->bandwidth > BANDWIDTH_6_MHZ)
-+	if (p->bandwidth_hz > 8000000 || p->bandwidth_hz < 6000000)
- 		return -EINVAL;
- 
--	if (p->bandwidth == BANDWIDTH_7_MHZ)
-+	if (p->bandwidth_hz == 7000000)
- 		cx22700_writereg (state, 0x09, cx22700_readreg (state, 0x09 | 0x10));
- 	else
- 		cx22700_writereg (state, 0x09, cx22700_readreg (state, 0x09 & ~0x10));
- 
--	val = qam_tab[p->constellation - QPSK];
--	val |= p->hierarchy_information - HIERARCHY_NONE;
-+	val = qam_tab[p->modulation - QPSK];
-+	val |= p->hierarchy - HIERARCHY_NONE;
- 
- 	cx22700_writereg (state, 0x04, val);
- 
-@@ -184,7 +185,8 @@ static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_paramet
- 	return 0;
- }
- 
--static int cx22700_get_tps (struct cx22700_state* state, struct dvb_ofdm_parameters *p)
-+static int cx22700_get_tps(struct cx22700_state *state,
-+			   struct dtv_frontend_properties *p)
- {
- 	static const fe_modulation_t qam_tab [3] = { QPSK, QAM_16, QAM_64 };
- 	static const fe_code_rate_t fec_tab [5] = { FEC_1_2, FEC_2_3, FEC_3_4,
-@@ -199,14 +201,14 @@ static int cx22700_get_tps (struct cx22700_state* state, struct dvb_ofdm_paramet
- 	val = cx22700_readreg (state, 0x01);
- 
- 	if ((val & 0x7) > 4)
--		p->hierarchy_information = HIERARCHY_AUTO;
-+		p->hierarchy = HIERARCHY_AUTO;
- 	else
--		p->hierarchy_information = HIERARCHY_NONE + (val & 0x7);
-+		p->hierarchy = HIERARCHY_NONE + (val & 0x7);
- 
- 	if (((val >> 3) & 0x3) > 2)
--		p->constellation = QAM_AUTO;
-+		p->modulation = QAM_AUTO;
- 	else
--		p->constellation = qam_tab[(val >> 3) & 0x3];
-+		p->modulation = qam_tab[(val >> 3) & 0x3];
- 
- 	val = cx22700_readreg (state, 0x02);
- 
-@@ -318,8 +320,9 @@ static int cx22700_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
- 	return 0;
- }
- 
--static int cx22700_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
-+static int cx22700_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct cx22700_state* state = fe->demodulator_priv;
- 
- 	cx22700_writereg (state, 0x00, 0x02); /* XXX CHECKME: soft reset*/
-@@ -330,21 +333,22 @@ static int cx22700_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	cx22700_set_inversion (state, p->inversion);
--	cx22700_set_tps (state, &p->u.ofdm);
-+	cx22700_set_inversion(state, c->inversion);
-+	cx22700_set_tps(state, c);
- 	cx22700_writereg (state, 0x37, 0x01);  /* PAL loop filter off */
- 	cx22700_writereg (state, 0x00, 0x01);  /* restart acquire */
- 
- 	return 0;
- }
- 
--static int cx22700_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
-+static int cx22700_get_frontend(struct dvb_frontend* fe,
-+				struct dtv_frontend_properties *c)
- {
- 	struct cx22700_state* state = fe->demodulator_priv;
- 	u8 reg09 = cx22700_readreg (state, 0x09);
- 
--	p->inversion = reg09 & 0x1 ? INVERSION_ON : INVERSION_OFF;
--	return cx22700_get_tps (state, &p->u.ofdm);
-+	c->inversion = reg09 & 0x1 ? INVERSION_ON : INVERSION_OFF;
-+	return cx22700_get_tps(state, c);
- }
- 
- static int cx22700_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
-@@ -401,7 +405,7 @@ error:
- }
- 
- static struct dvb_frontend_ops cx22700_ops = {
--
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name			= "Conexant CX22700 DVB-T",
- 		.type			= FE_OFDM,
-@@ -419,8 +423,8 @@ static struct dvb_frontend_ops cx22700_ops = {
- 	.init = cx22700_init,
- 	.i2c_gate_ctrl = cx22700_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = cx22700_set_frontend,
--	.get_frontend_legacy = cx22700_get_frontend,
-+	.set_frontend = cx22700_set_frontend,
-+	.get_frontend = cx22700_get_frontend,
- 	.get_tune_settings = cx22700_get_tune_settings,
- 
- 	.read_status = cx22700_read_status,
+Here is the one good research paper which compares DVB-T and DTMB [1]
+And this Wikipedia page is rather helful too [2]
+
+
+As I have read much more docs today I have now some changes I want to do:
+
+CARRIER
+=======
+typedef enum fe_transmit_mode {
+	TRANSMISSION_MODE_C=1,
+	TRANSMISSION_MODE_C=3780,
+} fe_transmit_mode_t;
+
+(If not "=" mark is not possible then use C1, C3780)
+
+Instead of adding new carrier param, just use exiting one since it seems 
+to be just suitable. Extend DTMB modes C=1 and C=3780.
+
+
+
+GUARD INTERVAL (PN-mode)
+========================
+typedef enum fe_guard_interval {
+	GUARD_INTERVAL_PN420,
+	GUARD_INTERVAL_PN595,
+	GUARD_INTERVAL_PN945,
+} fe_guard_interval_t;
+
+
+
+CODE RATE
+=========
+typedef enum fe_code_rate {
+	FEC_04,
+	FEC_06,
+	FEC_08,
+} fe_code_rate_t;
+
+I have strong feeling old FECs, 1 over 2, are 100% suitable only for the 
+Reed-Solomon coding. For BCH + LDPC coding those are not so suitable as 
+code rate is not exact and thus with LDPC 0.4/0.6/0.8 is used. I have 
+mentioned that earlier too, but after I read that [1] I think it is just 
+like that. It is not big issue but still I would like to use those 
+instead old.
+
+Otherwise FEC_2_5 for code rate 0.4 should be defined.
+
+
+
+MODULATION (constellation)
+==========================
+typedef enum fe_modulation {
+	QAM_4_NR,
+} fe_modulation_t;
+
+I feel QAM4-NR fits here too, since it is mentioned every document just 
+one more supported modulation like QAM32, QAM16, QAM4...
+
+
+INTERLEAVING
+============
+typedef enum fe_interleaving {
+	INTERLEAVING_240,
+	INTERLEAVING_720,
+} fe_interleaving_t;
+
+I think better to add enum for all possible interleavers we can have. I 
+suspect there will be very limited amount of interleave settings 
+supported by each DTV modulation, thus enum is good choice.
+
+
+
+That's all. I will wait comments maybe tomorrow night and make new 
+propose or RFC. I hope comments. And all those comments given are taken 
+accepted unless I replied something back. And please look research paper 
+[1], it is very good. Happy Xmas!
+
+
+[1] Analysis and Performance Comparison of DVB-T and DTMB Systems for 
+Terrestrial Digital TV
+http://hal.archives-ouvertes.fr/docs/00/32/58/24/PDF/MLIU_ICCS2008.pdf
+
+[2] OFDM system comparison table
+http://en.wikipedia.org/wiki/OFDM#OFDM_system_comparison_table
+
+regards
+Antti
 -- 
-1.7.8.352.g876a6
-
+http://palosaari.fi/
