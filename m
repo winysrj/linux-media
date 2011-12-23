@@ -1,143 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:56233 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757276Ab1LNOBM (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:16606 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753775Ab1LWJeM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 09:01:12 -0500
-From: Ming Lei <ming.lei@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Ming Lei <ming.lei@canonical.com>
-Subject: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module) hwmod
-Date: Wed, 14 Dec 2011 22:00:07 +0800
-Message-Id: <1323871214-25435-2-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+	Fri, 23 Dec 2011 04:34:12 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Date: Fri, 23 Dec 2011 10:34:04 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE
+ memops
+In-reply-to: <CACVXFVOqMmakPW-aAdp005RDLuV5oc6-JfjQHr-2bFRzZi2zDQ@mail.gmail.com>
+To: 'Ming Lei' <ming.lei@canonical.com>
+Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Tony Lindgren' <tony@atomide.com>,
+	'Sylwester Nawrocki' <snjw23@gmail.com>,
+	'Alan Cox' <alan@lxorguk.ukuu.org.uk>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, 'Pawel Osciak' <p.osciak@gmail.com>
+Message-id: <015201ccc156$033f73a0$09be5ae0$%szyprowski@samsung.com>
+Content-language: pl
 References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+ <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+ <010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
+ <CACVXFVOqMmakPW-aAdp005RDLuV5oc6-JfjQHr-2bFRzZi2zDQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81 ++++++++++++++++++++++++++++
- 1 files changed, 81 insertions(+), 0 deletions(-)
+Hello,
 
-diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-index 6cf21ee..30db754 100644
---- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-+++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
-@@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
- static struct omap_hwmod omap44xx_dsp_hwmod;
- static struct omap_hwmod omap44xx_dss_hwmod;
- static struct omap_hwmod omap44xx_emif_fw_hwmod;
-+static struct omap_hwmod omap44xx_fdif_hwmod;
- static struct omap_hwmod omap44xx_hsi_hwmod;
- static struct omap_hwmod omap44xx_ipu_hwmod;
- static struct omap_hwmod omap44xx_iss_hwmod;
-@@ -354,6 +355,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
- 	.user		= OCP_USER_MPU | OCP_USER_SDMA,
- };
+On Friday, December 23, 2011 10:22 AM Ming Lei wrote:
+
+> On Thu, Dec 22, 2011 at 5:28 PM, Marek Szyprowski
+> <m.szyprowski@samsung.com> wrote:
+> >> DMA contig memory resource is very limited and precious, also
+> >> accessing to it from CPU is very slow on some platform.
+> >>
+> >> For some cases(such as the comming face detection driver), DMA Streaming
+> >> buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
+> >> physical memory but letting video device driver to handle DMA buffer mapping
+> >> and unmapping things.
+> >>
+> >> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> >
+> > Could you elaborate a bit why do you think that DMA contig memory resource
+> > is so limited? If dma_alloc_coherent fails because of the memory fragmentation,
+> > the alloc_pages() call with order > 0 will also fail.
+> 
+> For example, on ARM, there is very limited kernel virtual address space reserved
+> for DMA coherent buffer mapping, the default size is about 2M if I
+> don't remember mistakenly.
+
+It can be easily increased for particular boards, there is no problem with this.
+
+> > I understand that there might be some speed issues with coherent (uncached)
+> > userspace mappings, but I would solve it in completely different way. The interface
+> 
+> Also there is poor performance inside kernel space, see [1]
+
+Your driver doesn't access video data inside kernel space, so this is also not an issue.
  
-+/* fdif -> l3_main_2 */
-+static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 = {
-+	.master		= &omap44xx_fdif_hwmod,
-+	.slave		= &omap44xx_l3_main_2_hwmod,
-+	.clk		= "l3_div_ck",
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
- /* hsi -> l3_main_2 */
- static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 = {
- 	.master		= &omap44xx_hsi_hwmod,
-@@ -5444,6 +5453,75 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
- 	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
- };
- 
-+/* 'fdif' class */
-+static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc = {
-+	.rev_offs	= 0x0000,
-+	.sysc_offs	= 0x0010,
-+	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
-+			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
-+	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
-+			   MSTANDBY_FORCE | MSTANDBY_NO |
-+			   MSTANDBY_SMART),
-+	.sysc_fields	= &omap_hwmod_sysc_type2,
-+};
-+
-+static struct omap_hwmod_class omap44xx_fdif_hwmod_class = {
-+	.name	= "fdif",
-+	.sysc	= &omap44xx_fdif_sysc,
-+};
-+
-+/*fdif*/
-+static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] = {
-+	{
-+		.pa_start	= 0x4a10a000,
-+		.pa_end		= 0x4a10afff,
-+		.flags		= ADDR_TYPE_RT
-+	},
-+	{ }
-+};
-+
-+/* l4_cfg -> fdif */
-+static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif = {
-+	.master		= &omap44xx_l4_cfg_hwmod,
-+	.slave		= &omap44xx_fdif_hwmod,
-+	.clk		= "l4_div_ck",
-+	.addr		= omap44xx_fdif_addrs,
-+	.user		= OCP_USER_MPU | OCP_USER_SDMA,
-+};
-+
-+/* fdif slave ports */
-+static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] = {
-+	&omap44xx_l4_cfg__fdif,
-+};
-+static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] = {
-+	{ .irq = 69 + OMAP44XX_IRQ_GIC_START },
-+	{ .irq = -1 }
-+};
-+
-+/* fdif master ports */
-+static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] = {
-+	&omap44xx_fdif__l3_main_2,
-+};
-+
-+static struct omap_hwmod omap44xx_fdif_hwmod = {
-+	.name		= "fdif",
-+	.class		= &omap44xx_fdif_hwmod_class,
-+	.clkdm_name	= "iss_clkdm",
-+	.mpu_irqs	= omap44xx_fdif_irqs,
-+	.main_clk	= "fdif_fck",
-+	.prcm = {
-+		.omap4 = {
-+			.clkctrl_offs = OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
-+			.context_offs = OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
-+			.modulemode   = MODULEMODE_SWCTRL,
-+		},
-+	},
-+	.slaves		= omap44xx_fdif_slaves,
-+	.slaves_cnt	= ARRAY_SIZE(omap44xx_fdif_slaves),
-+	.masters	= omap44xx_fdif_masters,
-+	.masters_cnt	= ARRAY_SIZE(omap44xx_fdif_masters),
-+};
-+
- static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 
- 	/* dmm class */
-@@ -5593,6 +5671,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
- 	&omap44xx_wd_timer2_hwmod,
- 	&omap44xx_wd_timer3_hwmod,
- 
-+	/* fdif class */
-+	&omap44xx_fdif_hwmod,
-+
- 	NULL,
- };
- 
+> > for both coherent/uncached and non-coherent/cached contig allocator should be the
+> > same, so exchanging them is easy and will not require changes in the driver.
+> > I'm planning to introduce some design changes in memory allocator api and introduce
+> > prepare and finish callbacks in allocator ops. I hope to post the rfc after
+> > Christmas. For your face detection driver using standard dma-contig allocator
+> > shouldn't be a big issue.
+> >
+> > Your current implementation also abuses the design and api of videobuf2 memory
+> > allocators. If the allocator needs to return a custom structure to the driver
+> 
+> I think returning vaddr is enough.
+> 
+> > you should use cookie method. vaddr is intended to provide only a pointer to
+> > kernel virtual mapping, but you pass a struct page * there.
+> 
+> No, __get_free_pages returns virtual address instead of 'struct page *'.
+
+Then you MUST use cookie for it. vaddr method should return kernel virtual address 
+to the buffer video data. Some parts of videobuf2 relies on this - it is used by file
+io emulator (read(), write() calls) and mmap equivalent for non-mmu systems.
+
+Manual casting in the driver is also a bad idea, that's why there are helper functions
+defined for both dma_contig and dma_sg allocators: vb2_dma_contig_plane_dma_addr() and
+vb2_dma_sg_plane_desc().
+
+Best regards
 -- 
-1.7.5.4
+Marek Szyprowski
+Samsung Poland R&D Center
+
 
