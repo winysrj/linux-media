@@ -1,125 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52929 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752854Ab1L3PJf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:35 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCHv2 90/94] cx23885-dvb: Remove a dirty hack that would require DVBv3
-Date: Fri, 30 Dec 2011 13:08:27 -0200
-Message-Id: <1325257711-12274-91-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:65105 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757354Ab1LWPzS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 10:55:18 -0500
+Received: by wibhm6 with SMTP id hm6so3246138wib.19
+        for <linux-media@vger.kernel.org>; Fri, 23 Dec 2011 07:55:17 -0800 (PST)
+Message-ID: <4EF4A45E.1070501@gmail.com>
+Date: Fri, 23 Dec 2011 16:55:10 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Marek Szyprowski <m.szyprowski@samsung.com>,
+	'javier Martin' <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, shawn.guo@linaro.org,
+	richard.zhao@linaro.org, fabio.estevam@freescale.com,
+	kernel@pengutronix.de, s.hauer@pengutronix.de,
+	r.schwebel@pengutronix.de, 'Pawel Osciak' <p.osciak@gmail.com>
+Subject: Re: MEM2MEM devices: how to handle sequence number?
+References: <CACKLOr0H4enuADtWcUkZCS_V92mmLD8K5CgScbGo7w9nbT=-CA@mail.gmail.com> <201112231228.45439.laurent.pinchart@ideasonboard.com> <015401ccc166$ed3c2ab0$c7b48010$%szyprowski@samsung.com> <201112231254.08377.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201112231254.08377.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The cx23885-dvb driver has a dirty hack:
-	1) it hooks the DVBv3 legacy call to FE_SET_FRONTEND;
-	2) it uses internally the DVBv3 struct to decide some
-	   configs.
+Hi Laurent,
 
-Replace it by a change during the gate control. This will
-likely work, but requires testing. Anyway, the current way
-will break, as soon as we stop copying data for DVBv3 for
-pure DVBv5 calls.
+On 12/23/2011 12:54 PM, Laurent Pinchart wrote:
+>>>>> diff --git a/drivers/media/video/videobuf2-core.c
+>>>>> b/drivers/media/video/videobuf2-core.c
+>>>>> index 1250662..7d8a88b 100644
+>>>>> --- a/drivers/media/video/videobuf2-core.c
+>>>>> +++ b/drivers/media/video/videobuf2-core.c
+>>>>> @@ -1127,6 +1127,7 @@ int vb2_qbuf(struct vb2_queue *q, struct
+>>>>> v4l2_buffer *b)
+>>>>>
+>>>>>           */
+>>>>>
+>>>>>          list_add_tail(&vb->queued_entry,&q->queued_list);
+>>>>>          vb->state = VB2_BUF_STATE_QUEUED;
+>>>>>
+>>>>> +       vb->v4l2_buf.sequence = b->sequence;
+>>>>>
+>>>>>          /*
+>>>>>
+>>>>>           * If already streaming, give the buffer to driver for
+>>>>>           processing.
+>>>>
+>>>> Right, such patch is definitely needed. Please resend it with
+>>>> 'signed-off-by' annotation.
+>>>
+>>> I'm not too sure about that. Isn't the sequence number supposed to be
+>>> ignored by drivers on video output devices ? The documentation is a bit
+>>> terse on the subject, all it says is
+>>>
+>>> __u32  sequence     Set by the driver, counting the frames in the
+>>> sequence.
+>>
+>> We can also update the documentation if needed. IMHO copying sequence
+>> number in mem2mem case if there is 1:1 relation between the buffers is a
+>> good idea.
+> 
+> My point is that sequence numbers are currently not applicable to video output
+> devices, at least according to the documentation. Applications will just set
+> them to 0.
 
-Compile-tested only.
+Looks like the documentation wasn't updated when the Memory-To-Memory interface
+has been introduced.
+ 
+> I think it would be better to have the m2m driver set the sequence number
+> internally on the video output node by incrementing an counter, and pass it
+> down the pipeline to the video capture node.
 
-Cc: Michael Krufky <mkrufky@linuxtv.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/video/cx23885/cx23885-dvb.c |   41 ++++++++--------------------
- 1 files changed, 12 insertions(+), 29 deletions(-)
+It sounds reasonable. Currently the sequence is zeroed at streamon in the
+capture drivers. Similar behaviour could be assured by m2m drivers.
+In Javier's case it's probably more reliable to check the sequence numbers
+contiguity directly at the image source driver's device node.   
 
-diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
-index bcb45be..28d51d8 100644
---- a/drivers/media/video/cx23885/cx23885-dvb.c
-+++ b/drivers/media/video/cx23885/cx23885-dvb.c
-@@ -111,6 +111,8 @@ static void dvb_buf_release(struct videobuf_queue *q,
- 	cx23885_free_buffer(q, (struct cx23885_buffer *)vb);
- }
- 
-+static int cx23885_dvb_set_frontend(struct dvb_frontend *fe);
-+
- static void cx23885_dvb_gate_ctrl(struct cx23885_tsport  *port, int open)
- {
- 	struct videobuf_dvb_frontends *f;
-@@ -125,6 +127,12 @@ static void cx23885_dvb_gate_ctrl(struct cx23885_tsport  *port, int open)
- 
- 	if (fe && fe->dvb.frontend && fe->dvb.frontend->ops.i2c_gate_ctrl)
- 		fe->dvb.frontend->ops.i2c_gate_ctrl(fe->dvb.frontend, open);
-+
-+	/*
-+	 * FIXME: Improve this path to avoid calling the
-+	 * cx23885_dvb_set_frontend() every time it passes here.
-+	 */
-+	cx23885_dvb_set_frontend(fe->dvb.frontend);
- }
- 
- static struct videobuf_queue_ops dvb_qops = {
-@@ -479,15 +487,15 @@ static struct xc5000_config mygica_x8506_xc5000_config = {
- 	.if_khz = 5380,
- };
- 
--static int cx23885_dvb_set_frontend(struct dvb_frontend *fe,
--				    struct dvb_frontend_parameters *param)
-+static int cx23885_dvb_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct cx23885_tsport *port = fe->dvb->priv;
- 	struct cx23885_dev *dev = port->dev;
- 
- 	switch (dev->board) {
- 	case CX23885_BOARD_HAUPPAUGE_HVR1275:
--		switch (param->u.vsb.modulation) {
-+		switch (p->modulation) {
- 		case VSB_8:
- 			cx23885_gpio_clear(dev, GPIO_5);
- 			break;
-@@ -507,31 +515,6 @@ static int cx23885_dvb_set_frontend(struct dvb_frontend *fe,
- 	return 0;
- }
- 
--static int cx23885_dvb_fe_ioctl_override(struct dvb_frontend *fe,
--					 unsigned int cmd, void *parg,
--					 unsigned int stage)
--{
--	int err = 0;
--
--	switch (stage) {
--	case DVB_FE_IOCTL_PRE:
--
--		switch (cmd) {
--		case FE_SET_FRONTEND:
--			err = cx23885_dvb_set_frontend(fe,
--				(struct dvb_frontend_parameters *) parg);
--			break;
--		}
--		break;
--
--	case DVB_FE_IOCTL_POST:
--		/* no post-ioctl handling required */
--		break;
--	}
--	return err;
--};
--
--
- static struct lgs8gxx_config magicpro_prohdtve2_lgs8g75_config = {
- 	.prod = LGS8GXX_PROD_LGS8G75,
- 	.demod_address = 0x19,
-@@ -1151,7 +1134,7 @@ static int dvb_register(struct cx23885_tsport *port)
- 	/* register everything */
- 	ret = videobuf_dvb_register_bus(&port->frontends, THIS_MODULE, port,
- 					&dev->pci->dev, adapter_nr, mfe_shared,
--					cx23885_dvb_fe_ioctl_override);
-+					NULL);
- 	if (ret)
- 		goto frontend_detach;
- 
--- 
-1.7.8.352.g876a6
+Although when m2m driver sets the sequence number internally on a video
+output queue it could make sense to have the buffer's sequence number updated
+upon return from VIDIOC_QBUF. What do you think ?
 
+This would be needed for the object detection interface if we wanted to 
+associate object detection result with a frame sequence number.
+
+As far as the implementation is concerned, m2m and output drivers (with selected
+capabilities only?) would have to update buffer sequence number from within
+buf_queue vb2 queue op.
+
+
+--
+Regards,
+Sylwester
