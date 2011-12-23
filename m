@@ -1,124 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:45455 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752620Ab1LPAyB convert rfc822-to-8bit (ORCPT
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:43596 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754069Ab1LWKI2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 19:54:01 -0500
-Received: by wgbdr13 with SMTP id dr13so5027044wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 16:54:00 -0800 (PST)
+	Fri, 23 Dec 2011 05:08:28 -0500
 MIME-Version: 1.0
-In-Reply-To: <4EE9C7A1.8060303@matrix-vision.de>
-References: <CAOy7-nNJXMbFkJWRubri2O_kc-V1Z+ZjTioqQu=8STtkuLag9w@mail.gmail.com>
-	<4EE9A8B6.4040102@matrix-vision.de>
-	<CAOy7-nPY_Nffgj_Ax=ziT9WYH-egvL8QnZfb50Xurn+AF4yWCQ@mail.gmail.com>
-	<4EE9C7A1.8060303@matrix-vision.de>
-Date: Fri, 16 Dec 2011 08:53:59 +0800
-Message-ID: <CAOy7-nNbGh0C-H60ZJ-WVYavYAyLnADLWsjvbwwoOV9Sd+chFA@mail.gmail.com>
-Subject: Re: Why is the Y12 support 12-bit grey formats at the CCDC input
- (Y12) is truncated to Y10 at the CCDC output?
-From: James <angweiyang@gmail.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+In-Reply-To: <CAPM=9tzi5MyCBMJhWBM_ouL=QOaxX3K6KZ8K+t7dUYJLQrF+yA@mail.gmail.com>
+References: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
+ <20111220193117.GD3883@phenom.ffwll.local> <CAPM=9tzi5MyCBMJhWBM_ouL=QOaxX3K6KZ8K+t7dUYJLQrF+yA@mail.gmail.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Fri, 23 Dec 2011 15:38:03 +0530
+Message-ID: <CAB2ybb-+VTR=V1hwhF1GKxgkhTrssZ1JVOwcP6spO5O3AXqivA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC v3 0/2] Introduce DMA buffer sharing mechanism
+To: Dave Airlie <airlied@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, rob@ti.com, t.stanislaws@samsung.com,
+	patches@linaro.org, daniel@ffwll.ch
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
-
-On Thu, Dec 15, 2011 at 6:10 PM, Michael Jones
-<michael.jones@matrix-vision.de> wrote:
-> Hi James,
+On Wed, Dec 21, 2011 at 1:50 AM, Dave Airlie <airlied@gmail.com> wrote:
+<snip>
+>>
+>> I think this is a really good v1 version of dma_buf. It contains all the
+>> required bits (with well-specified semantics in the doc patch) to
+>> implement some basic use-cases and start fleshing out the integration with
+>> various subsystem (like drm and v4l). All the things still under
+>> discussion like
+>> - userspace mmap support
+>> - more advanced (and more strictly specified) coherency models
+>> - and shared infrastructure for implementing exporters
+>> are imo much clearer once we have a few example drivers at hand and a
+>> better understanding of some of the insane corner cases we need to be able
+>> to handle.
+>>
+>> And I think any risk that the resulting clarifications will break a basic
+>> use-case is really minimal, so I think it'd be great if this could go into
+>> 3.3 (maybe as some kind of staging/experimental infrastructure).
+>>
+>> Hence for both patches:
+>> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 >
+> Yeah I'm with Daniel, I like this one, I can definitely build the drm
+> buffer sharing layer on top of this.
 >
-> On 12/15/2011 10:49 AM, James wrote:
->>
->> Hi Michael,
->>
->> On Thu, Dec 15, 2011 at 3:58 PM, Michael Jones
->> <michael.jones@matrix-vision.de>  wrote:
->>>
->>> Hi James,
->>>
->>>
->>> On 12/15/2011 08:14 AM, James wrote:
->>>>
->>>>
->>>> Hi all,
->>>>
->>>> I'm using an OMAP3530 board and a monochrome 12-bit grey sensor.
->>>>
->>>> Can anyone enlighten me why is the 12-bit grey formats at the CCDC
->>>> input (Y12) is truncated to Y10 at the CCDC output?
->>>
->>>
->>>
->>> There are 2 CCDC outputs: CCDC_PAD_SOURCE_OF and CCDC_PAD_SOURCE_VP. Only
->>> the VP (video port) truncates data to 10 bits, and it does that because
->>> the
->>> subdevs it feeds can only handle 10 bits max.
->>
->>
->> Thank you for the clarification.
->>
->>>> I need to read the entire RAW 12-bit grey value from the CCDC to
->>>> memory and the data does not pass through other OMAP3ISP sub-devices.
->>>>
->>>> I intend to use Laurent's yavta to capture the data to file to verify
->>>> its operation for the moment.
->>>>
->>>> Can this 12-bit (Y12) raw capture be done?
->>>
->>>
->>>
->>> Yes. If you are writing the 12-bit gray value directly into memory, you
->>> will
->>> use SOURCE_OF and can write the full 12-bits into memory.  You need to
->>> set
->>> up your media pipeline to do sensor->CCDC->OMAP3 ISP CCDC output.
->>
->>
->> Is there further modification needed to apply to the OMAP3ISP to achieve
->> this?
->>
->> Do you have an application to test the pipeline for this setting to
->> simple display?
+> How do we see this getting merged? I'm quite happy to push it to Linus
+> if we don't have an identified path, though it could go via a Linaro
+> tree as well.
 >
+> so feel free to add:
+> Reviewed-by: Dave Airlie <airlied@redhat.com>
+Thanks Daniel and Dave!
+
+I guess we can start with staging for 3.3, and see how it shapes up. I
+will post the latest patch version pretty soon.
+
+Arnd, Dave: do you have any preference on the path it takes to get
+merged? In my mind, Linaro tree might make more sense, but I would
+leave it upto you gentlemen.
 >
-> Let's establish where you're coming from.  Are you familiar with the media
-> controller?  Laurent has a program 'media-ctl' to set up the pipeline (see
-> http://git.ideasonboard.org/?p=media-ctl.git).  You will find many examples
-> of its usage in the archives of this mailing list. It will look something
-> like:
-> media-ctl -r
-> media-ctl -l '"OMAP3 ISP CCDC":1 -> "OMAP3 ISP CCDC output":0 [1]'
-> media-ctl -l '"your-sensor-name":0 -> "OMAP3 ISP CCDC":0 [1]'
->
-> you will also need to set the formats through the pipeline with 'media-ctl
-> --set-format'.
->
-> After you use media-ctl to set up the pipeline, you can use yavta to capture
-> the data from the CCDC output (for me, this is /dev/video2).
->
-
-Yes, I've been using Laurent's media-ctl & yavta to test out MT9V032
-on the Overo board.
-He has been helping and guiding me with it as there isn't any success
-with using MT9V032 on the Overo board then. (^^)
-
-What I've been looking for since then is any other application such as
-GUI MPlayer or gst-launch that can open the device and playback the
-data to either LCD or DVI display on the board. (i.e. direct
-'streaming')
-
-Do you know of any? I wish to avoid any further components (e.g.
-ffmpeg) that modify/convert the raw data as much as possible.
-
-sensor->CCDC->application->display
-
-Many thanks in adv.
-
--- 
-Regards,
-James
+> Dave.
+Best regards,
+~Sumit.
