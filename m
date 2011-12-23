@@ -1,73 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:37822 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756894Ab1LNNeR (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50833 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753435Ab1LYSX7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 08:34:17 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LW7008664D35I60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Dec 2011 13:34:15 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LW7007J74D3JD@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 14 Dec 2011 13:34:15 +0000 (GMT)
-Date: Wed, 14 Dec 2011 14:34:14 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-In-reply-to: <201112131318.54709.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	m.szyprowski@samsung.com, jonghun.han@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4EE8A5D6.4030408@samsung.com>
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com>
- <201111291958.48671.laurent.pinchart@ideasonboard.com>
- <4EE083D2.3010102@samsung.com> <201112131318.54709.hverkuil@xs4all.nl>
+	Sun, 25 Dec 2011 13:23:59 -0500
+Received: by wgbdr13 with SMTP id dr13so19374492wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 25 Dec 2011 10:23:58 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [RFCv1] add DTMB support for DVB API
+Date: Fri, 23 Dec 2011 18:30:58 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <4EF3A171.3030906@iki.fi>
+In-Reply-To: <4EF3A171.3030906@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112231830.59716.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Antti,
 
-On 12/13/2011 01:18 PM, Hans Verkuil wrote:
->> are you going to carry on with the control range update patches ?
->> I'd like to push the alpha colour control for v3.3 but it depends
->> on the controls framework updates now.
+On Thursday, December 22, 2011 10:30:25 PM Antti Palosaari wrote:
+> Rename DMB-TH to DTMB.
 > 
-> Good question. I am not sure whether this is something we actually want. It 
-> would make applications much harder to write if the range of a control can 
-> suddenly change.
+> Add few new values for existing parameters.
 > 
-> On the other hand, it might be a good solution for a harder problem which is 
-> as yet unsolved: if you have multiple inputs, and each input has a different 
-> set of controls (e.g. one input is a SDTV receiver, the other is a HDTV 
-> receiver), then you can have the situation where e.g. the contrast control is 
-> present for both inputs, but with a different range. Switching inputs would 
-> then generate a control event telling the app that the range changed.
+> Add two new parameters, interleaving and carrier.
+> DTMB supports interleavers: 240 and 720.
+> DTMB supports carriers: 1 and 3780.
 > 
-> But this may still be overkill...
-
-Hmm, it doesn't look like an overkill to me. I'm certain there will be use
-cases where control range update is needed. Maybe we could specify in
-the API in what circumstances the control range update is allowed for drivers.
-So not all applications need to handle the related events.
-
-Nevertheless I won't be pushing on this, not to mess around in the whole
-API because of some embedded systems requirements.
-So I'm going to update the range for alpha control manually in the driver
-for the time being.
-
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/dvb/dvb-core/dvb_frontend.c |   19 ++++++++++++++++++-
+>   drivers/media/dvb/dvb-core/dvb_frontend.h |    3 +++
+>   include/linux/dvb/frontend.h              |   13 +++++++++++--
+>   include/linux/dvb/version.h               |    2 +-
+>   4 files changed, 33 insertions(+), 4 deletions(-)
 > 
-> In other words, I don't know. Not helpful, I agree.
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index 821b225..ec2cbae 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -924,6 +924,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND +
+> 1] = {
+>   	_DTV_CMD(DTV_CODE_RATE_LP, 1, 0),
+>   	_DTV_CMD(DTV_GUARD_INTERVAL, 1, 0),
+>   	_DTV_CMD(DTV_TRANSMISSION_MODE, 1, 0),
+> +	_DTV_CMD(DTV_CARRIER, 1, 0),
 
-That was helpful anyway :-) Thanks.
+What would you think if instead of adding DTV_CARRIER (which indicates 
+whether we are using single carrier or multi carrier, if I understand it 
+correctly) we add a TRANSMISSION_MODE_SC.
 
--- 
+Then TRANSMISSION_MODE_4K is the multi-carrier mode and TRANSMISSION_MODE_SC 
+is the single-carrier mode. We save a new DTV-command.
 
-Regards,
-Sylwester
+I'm not making a secret of it, this is how we handled this inside DiBcom and 
+it would simplify the integration of our drivers for this standard. This is 
+planned to be done during the first half of 2012.
+
+Comments?
+
+--
+Patrick Boettcher - KernelLabs
+http://www.kernellabs.com/
