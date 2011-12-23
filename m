@@ -1,38 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34665 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753698Ab1LWITy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 23 Dec 2011 03:19:54 -0500
-Message-ID: <4EF439A8.4000504@iki.fi>
-Date: Fri, 23 Dec 2011 10:19:52 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from na3sys009aog107.obsmtp.com ([74.125.149.197]:56438 "EHLO
+	na3sys009aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756489Ab1LWKAk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 05:00:40 -0500
 MIME-Version: 1.0
-To: =?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.mmm@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Add tuner_type to zl10353 config and use it for reporting signal
- directly from tuner.
-References: <CAEN_-SAuS1UTfLcJUpVP-WYeLVVj4-ycF0NyaEi=iQ0AnVbZEQ@mail.gmail.com> <CAEN_-SDLLY8Ba--KTbqSGBNoNkWhh+_A-Y+gCy3B=c1_yEBV7g@mail.gmail.com> <4EF43856.6040408@iki.fi>
-In-Reply-To: <4EF43856.6040408@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <201112211727.17104.arnd@arndb.de>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+ <CAF6AEGtOjO6Z6yfHz-ZGz3+NuEMH2M-8=20U6+-xt-gv9XtzaQ@mail.gmail.com>
+ <20111220171437.GC3883@phenom.ffwll.local> <201112211727.17104.arnd@arndb.de>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Fri, 23 Dec 2011 15:30:18 +0530
+Message-ID: <CAB2ybb_XcwLd8fx+vvditt+MUq2L2+WmsUpxH-gBKsbrVk7jGA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Vetter <daniel@ffwll.ch>, Rob Clark <robdclark@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/23/2011 10:14 AM, Antti Palosaari wrote:
-> On 12/23/2011 01:45 AM, Miroslav Slugeň wrote:
->> This patch is wrong, please use 8971 instead.
+On Wed, Dec 21, 2011 at 10:57 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+> On Tuesday 20 December 2011, Daniel Vetter wrote:
+>> > I'm thinking for a first version, we can get enough mileage out of it by saying:
+>> > 1) only exporter can mmap to userspace
+>> > 2) only importers that do not need CPU access to buffer..
+
+Thanks Rob - and the exporter can do the mmap outside of dma-buf
+usage, right? I mean, we don't need to provide an mmap to dma_buf()
+and restrict it to exporter, when the exporter has more 'control' of
+the buffer anyways.
 >
-> Could you explain which is wrong? Your old code or that new override
-> version I explained?
->
-> fe->ops.read_signal_strength = fe->ops.tuner_ops.get_rf_strength;
-
-
-aargh, surely you are speaking patchwork IDs... my mistake.
-
-
-Antti
-
-
--- 
-http://palosaari.fi/
+BR,
+~Sumit.
