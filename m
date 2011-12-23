@@ -1,66 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:59831 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755519Ab1LNWLR (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:43994 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754212Ab1LWKik (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 17:11:17 -0500
-Date: Thu, 15 Dec 2011 00:11:13 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: martin@neutronstar.dyndns.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Vasut <marek.vasut@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Subject: Re: [PATCH v3] v4l: Add driver for Micron MT9M032 camera sensor
-Message-ID: <20111214221113.GB3677@valkosipuli.localdomain>
-References: <1323825633-10543-1-git-send-email-martin@neutronstar.dyndns.org>
- <201112140255.31937.marek.vasut@gmail.com>
- <1323846842.756509.13592@localhost>
- <201112141449.05926.laurent.pinchart@ideasonboard.com>
- <1323889126.283763.19222@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1323889126.283763.19222@localhost>
+	Fri, 23 Dec 2011 05:38:40 -0500
+Date: Fri, 23 Dec 2011 11:38:34 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE
+ memops
+In-reply-to: <CACVXFVNdczv=tu7VG24766myCnGDRWAjkthbdfMwTGzTwFCoBA@mail.gmail.com>
+To: 'Ming Lei' <ming.lei@canonical.com>
+Cc: 'Mauro Carvalho Chehab' <mchehab@infradead.org>,
+	'Tony Lindgren' <tony@atomide.com>,
+	'Sylwester Nawrocki' <snjw23@gmail.com>,
+	'Alan Cox' <alan@lxorguk.ukuu.org.uk>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, 'Pawel Osciak' <p.osciak@gmail.com>
+Message-id: <015301ccc15f$053e61d0$0fbb2570$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+ <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+ <010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
+ <CACVXFVOqMmakPW-aAdp005RDLuV5oc6-JfjQHr-2bFRzZi2zDQ@mail.gmail.com>
+ <015201ccc156$033f73a0$09be5ae0$%szyprowski@samsung.com>
+ <CACVXFVNdczv=tu7VG24766myCnGDRWAjkthbdfMwTGzTwFCoBA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Martin,
+Hello,
 
-On Wed, Dec 14, 2011 at 07:58:45PM +0100, martin@neutronstar.dyndns.org wrote:
-...
-> > > > > +static int mt9m032_setup_pll(struct mt9m032 *sensor)
-> > > > > +{
-> > > > > +	struct mt9m032_platform_data* pdata = sensor->pdata;
-> > > > > +	u16 reg_pll1;
-> > > > > +	unsigned int pre_div;
-> > > > > +	int res, ret;
-> > > > > +
-> > > > > +	/* TODO: also support other pre-div values */
-> > 
-> > I might already have mentioned this, but wouldn't it be time to work a on real 
-> > PLL setup code that compute the pre-divisor, multiplier and output divisor 
-> > dynamically from the input and output clock frequencies ?
+On Friday, December 23, 2011 10:51 AM Ming Lei wrote:
+
+> On Fri, Dec 23, 2011 at 5:34 PM, Marek Szyprowski
+> <m.szyprowski@samsung.com> wrote:
 > 
-> I'm not sure what the implications for quality and stability of such a
-> generic setup would be. My gut feeling is most users go with known working
-> hardcoded values.
+> >> For example, on ARM, there is very limited kernel virtual address space reserved
+> >> for DMA coherent buffer mapping, the default size is about 2M if I
+> >> don't remember mistakenly.
+> >
+> > It can be easily increased for particular boards, there is no problem with this.
+> 
+> It is not easily to increase it because there is very limited space reserved for
+> this purpose, see Documentation/arm/memory.txt. Also looks like it is
+> not configurable.
 
-You'd get a lot better control of the sensor as a bonus in doing so. Also,
-you could program the sensor properly suitable for the host it is connected
-to, achieving optimal maximum frame rates for it.
+It is really not a big issue to increase it by a few MBytes.
+ 
+> >> > I understand that there might be some speed issues with coherent (uncached)
+> >> > userspace mappings, but I would solve it in completely different way. The interface
+> >>
+> >> Also there is poor performance inside kernel space, see [1]
+> >
+> > Your driver doesn't access video data inside kernel space, so this is also not an issue.
+> 
+> Why not introduce it so that other drivers(include face detection) can
+> benefit with it? :-)
 
-These values tend to be relatively board / bridge dependent. On one board
-some frequencies might not be usable even if they do not exceed the maximum
-for the bridge.
+We can get back into this once a driver which really benefits from comes.
+ 
+> >> >
+> >> > Your current implementation also abuses the design and api of videobuf2 memory
+> >> > allocators. If the allocator needs to return a custom structure to the driver
+> >>
+> >> I think returning vaddr is enough.
+> >>
+> >> > you should use cookie method. vaddr is intended to provide only a pointer to
+> >> > kernel virtual mapping, but you pass a struct page * there.
+> >>
+> >> No, __get_free_pages returns virtual address instead of 'struct page *'.
+> >
+> > Then you MUST use cookie for it. vaddr method should return kernel virtual address
+> > to the buffer video data. Some parts of videobuf2 relies on this - it is used by file
+> > io emulator (read(), write() calls) and mmap equivalent for non-mmu systems.
+> >
+> > Manual casting in the driver is also a bad idea, that's why there are helper functions
+> 
+> I don't see any casts are needed. The dma address can be got from vaddr with
+> dma_map_* easily in drivers, see the usage on patch 8/8(media: video: introduce
+> omap4 face detection module driver).
 
-Please also see this:
+Sorry, but I won't accept such driver/allocator which abuses the defined API. I've already
+pointed what vaddr method is used for.
 
-<URL:http://www.mail-archive.com/linux-media@vger.kernel.org/msg39798.html>
+> > defined for both dma_contig and dma_sg allocators: vb2_dma_contig_plane_dma_addr() and
+> > vb2_dma_sg_plane_desc().
+> 
+> These two helpers are not needed and won't be provided by VIDEOBUF2_PAGE memops.
 
-> Also in the datasheet i have access to, this is totally underdocumented.
+I gave the example. Your allocator should have something similar.
 
-That's unfortunate. Laurent, is yours the same?
-
+Best regards
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
