@@ -1,144 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20637 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755235Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:23 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNxJ004855
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 27/28] [media] dvb-bt8xx: use DVBv5 parameters
-Date: Thu, 22 Dec 2011 09:20:15 -0200
-Message-Id: <1324552816-25704-28-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-27-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
- <1324552816-25704-4-git-send-email-mchehab@redhat.com>
- <1324552816-25704-5-git-send-email-mchehab@redhat.com>
- <1324552816-25704-6-git-send-email-mchehab@redhat.com>
- <1324552816-25704-7-git-send-email-mchehab@redhat.com>
- <1324552816-25704-8-git-send-email-mchehab@redhat.com>
- <1324552816-25704-9-git-send-email-mchehab@redhat.com>
- <1324552816-25704-10-git-send-email-mchehab@redhat.com>
- <1324552816-25704-11-git-send-email-mchehab@redhat.com>
- <1324552816-25704-12-git-send-email-mchehab@redhat.com>
- <1324552816-25704-13-git-send-email-mchehab@redhat.com>
- <1324552816-25704-14-git-send-email-mchehab@redhat.com>
- <1324552816-25704-15-git-send-email-mchehab@redhat.com>
- <1324552816-25704-16-git-send-email-mchehab@redhat.com>
- <1324552816-25704-17-git-send-email-mchehab@redhat.com>
- <1324552816-25704-18-git-send-email-mchehab@redhat.com>
- <1324552816-25704-19-git-send-email-mchehab@redhat.com>
- <1324552816-25704-20-git-send-email-mchehab@redhat.com>
- <1324552816-25704-21-git-send-email-mchehab@redhat.com>
- <1324552816-25704-22-git-send-email-mchehab@redhat.com>
- <1324552816-25704-23-git-send-email-mchehab@redhat.com>
- <1324552816-25704-24-git-send-email-mchehab@redhat.com>
- <1324552816-25704-25-git-send-email-mchehab@redhat.com>
- <1324552816-25704-26-git-send-email-mchehab@redhat.com>
- <1324552816-25704-27-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from youngberry.canonical.com ([91.189.89.112]:57892 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753957Ab1LWJvP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 04:51:15 -0500
+MIME-Version: 1.0
+In-Reply-To: <015201ccc156$033f73a0$09be5ae0$%szyprowski@samsung.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+	<1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+	<010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
+	<CACVXFVOqMmakPW-aAdp005RDLuV5oc6-JfjQHr-2bFRzZi2zDQ@mail.gmail.com>
+	<015201ccc156$033f73a0$09be5ae0$%szyprowski@samsung.com>
+Date: Fri, 23 Dec 2011 17:51:11 +0800
+Message-ID: <CACVXFVNdczv=tu7VG24766myCnGDRWAjkthbdfMwTGzTwFCoBA@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE memops
+From: Ming Lei <ming.lei@canonical.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Pawel Osciak <p.osciak@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner.
+Hi,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/bt8xx/dvb-bt8xx.c |   31 ++++++++++++++++---------------
- 1 files changed, 16 insertions(+), 15 deletions(-)
+On Fri, Dec 23, 2011 at 5:34 PM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
 
-diff --git a/drivers/media/dvb/bt8xx/dvb-bt8xx.c b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
-index 521d691..5948601 100644
---- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
-+++ b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
-@@ -193,11 +193,10 @@ static struct zl10353_config thomson_dtt7579_zl10353_config = {
- 
- static int cx24108_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
- {
--	u32 freq = params->frequency;
--
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 freq = c->frequency;
- 	int i, a, n, pump;
- 	u32 band, pll;
--
- 	u32 osci[]={950000,1019000,1075000,1178000,1296000,1432000,
- 		1576000,1718000,1856000,2036000,2150000};
- 	u32 bandsel[]={0,0x00020000,0x00040000,0x00100800,0x00101000,
-@@ -269,29 +268,30 @@ static struct cx24110_config pctvsat_config = {
- 
- static int microtune_mt7202dtf_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_bt8xx_card *card = (struct dvb_bt8xx_card *) fe->dvb->priv;
- 	u8 cfg, cpump, band_select;
- 	u8 data[4];
- 	u32 div;
- 	struct i2c_msg msg = { .addr = 0x60, .flags = 0, .buf = data, .len = sizeof(data) };
- 
--	div = (36000000 + params->frequency + 83333) / 166666;
-+	div = (36000000 + c->frequency + 83333) / 166666;
- 	cfg = 0x88;
- 
--	if (params->frequency < 175000000)
-+	if (c->frequency < 175000000)
- 		cpump = 2;
--	else if (params->frequency < 390000000)
-+	else if (c->frequency < 390000000)
- 		cpump = 1;
--	else if (params->frequency < 470000000)
-+	else if (c->frequency < 470000000)
- 		cpump = 2;
--	else if (params->frequency < 750000000)
-+	else if (c->frequency < 750000000)
- 		cpump = 2;
- 	else
- 		cpump = 3;
- 
--	if (params->frequency < 175000000)
-+	if (c->frequency < 175000000)
- 		band_select = 0x0e;
--	else if (params->frequency < 470000000)
-+	else if (c->frequency < 470000000)
- 		band_select = 0x05;
- 	else
- 		band_select = 0x03;
-@@ -463,23 +463,24 @@ static struct or51211_config or51211_config = {
- 
- static int vp3021_alps_tded4_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_bt8xx_card *card = (struct dvb_bt8xx_card *) fe->dvb->priv;
- 	u8 buf[4];
- 	u32 div;
- 	struct i2c_msg msg = { .addr = 0x60, .flags = 0, .buf = buf, .len = sizeof(buf) };
- 
--	div = (params->frequency + 36166667) / 166667;
-+	div = (c->frequency + 36166667) / 166667;
- 
- 	buf[0] = (div >> 8) & 0x7F;
- 	buf[1] = div & 0xFF;
- 	buf[2] = 0x85;
--	if ((params->frequency >= 47000000) && (params->frequency < 153000000))
-+	if ((c->frequency >= 47000000) && (c->frequency < 153000000))
- 		buf[3] = 0x01;
--	else if ((params->frequency >= 153000000) && (params->frequency < 430000000))
-+	else if ((c->frequency >= 153000000) && (c->frequency < 430000000))
- 		buf[3] = 0x02;
--	else if ((params->frequency >= 430000000) && (params->frequency < 824000000))
-+	else if ((c->frequency >= 430000000) && (c->frequency < 824000000))
- 		buf[3] = 0x0C;
--	else if ((params->frequency >= 824000000) && (params->frequency < 863000000))
-+	else if ((c->frequency >= 824000000) && (c->frequency < 863000000))
- 		buf[3] = 0x8C;
- 	else
- 		return -EINVAL;
--- 
-1.7.8.352.g876a6
+>> For example, on ARM, there is very limited kernel virtual address space reserved
+>> for DMA coherent buffer mapping, the default size is about 2M if I
+>> don't remember mistakenly.
+>
+> It can be easily increased for particular boards, there is no problem with this.
 
+It is not easily to increase it because there is very limited space reserved for
+this purpose, see Documentation/arm/memory.txt. Also looks like it is
+not configurable.
+
+>
+>> > I understand that there might be some speed issues with coherent (uncached)
+>> > userspace mappings, but I would solve it in completely different way. The interface
+>>
+>> Also there is poor performance inside kernel space, see [1]
+>
+> Your driver doesn't access video data inside kernel space, so this is also not an issue.
+
+Why not introduce it so that other drivers(include face detection) can
+benefit with it? :-)
+
+>> >
+>> > Your current implementation also abuses the design and api of videobuf2 memory
+>> > allocators. If the allocator needs to return a custom structure to the driver
+>>
+>> I think returning vaddr is enough.
+>>
+>> > you should use cookie method. vaddr is intended to provide only a pointer to
+>> > kernel virtual mapping, but you pass a struct page * there.
+>>
+>> No, __get_free_pages returns virtual address instead of 'struct page *'.
+>
+> Then you MUST use cookie for it. vaddr method should return kernel virtual address
+> to the buffer video data. Some parts of videobuf2 relies on this - it is used by file
+> io emulator (read(), write() calls) and mmap equivalent for non-mmu systems.
+>
+> Manual casting in the driver is also a bad idea, that's why there are helper functions
+
+I don't see any casts are needed. The dma address can be got from vaddr with
+dma_map_* easily in drivers, see the usage on patch 8/8(media: video: introduce
+omap4 face detection module driver).
+
+> defined for both dma_contig and dma_sg allocators: vb2_dma_contig_plane_dma_addr() and
+> vb2_dma_sg_plane_desc().
+
+These two helpers are not needed and won't be provided by VIDEOBUF2_PAGE memops.
+
+thanks,
+--
+Ming Lei
