@@ -1,43 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:41649 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753220Ab1LVJDN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 04:03:13 -0500
-Date: Thu, 22 Dec 2011 10:03:00 +0100
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: "Full Name" <danewson@excite.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: EasyCAP with identifiers
-Message-ID: <20111222100300.538532fb@skate>
-In-Reply-To: <20111221131455.14056@web002.roc2.bluetie.com>
-References: <20111221131455.14056@web002.roc2.bluetie.com>
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:45264 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752641Ab1LWS1G (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 13:27:06 -0500
+Message-ID: <4EF4C7E7.9060409@redhat.com>
+Date: Fri, 23 Dec 2011 16:26:47 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for v3.2-rc] media fix
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Linus,
 
-Le Wed, 21 Dec 2011 13:14:55 -0500,
-"Full Name" <danewson@excite.com> a écrit :
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-> I just got an EasyCAP usb device with component and S-video inputs, and it doesn't match what I was expecting from reading lists about drivers.
+For a last time fix for the omap3 driver.
 
-Be careful, there are several devices that the commercial name
-"EasyCAP" but that internally aren't the same thing. We had the
-experience of a device labelled "EasyCAP", which was working fine with
-the easycap driver in drivers/staging. We bought another one from
-Amazon, also labeled EasyCAP, and even though it looked exactly the
-same externally, the hardware inside is completely different and is not
-supported by the easycap driver in drivers/staging.
+Thanks and Happy Seasons!
+Mauro
 
-Regards,
 
-Thomas
--- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+Latest commit at the branch: 
+c070e38e4ee005f55895df177a9e14d90d6204b3 [media] omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
+The following changes since commit 4b5d8da88e3fab76700e89488a8c65c54facb9a3:
+
+  Revert "[media] af9015: limit I2C access to keep FW happy" (2011-12-12 16:02:15 -0200)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+for you to fetch changes up to c070e38e4ee005f55895df177a9e14d90d6204b3:
+
+  [media] omap3isp: Fix crash caused by subdevs now having a pointer to devnodes (2011-12-19 18:07:41 -0200)
+
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      [media] omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
+
+ drivers/media/video/omap3isp/ispccdc.c |    2 +-
+ drivers/media/video/omap3isp/ispstat.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
