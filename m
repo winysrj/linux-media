@@ -1,71 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:36908 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752667Ab1LOJt1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 04:49:27 -0500
-Received: by wgbdr13 with SMTP id dr13so3748918wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 01:49:26 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EE9A8B6.4040102@matrix-vision.de>
-References: <CAOy7-nNJXMbFkJWRubri2O_kc-V1Z+ZjTioqQu=8STtkuLag9w@mail.gmail.com>
-	<4EE9A8B6.4040102@matrix-vision.de>
-Date: Thu, 15 Dec 2011 17:49:26 +0800
-Message-ID: <CAOy7-nPY_Nffgj_Ax=ziT9WYH-egvL8QnZfb50Xurn+AF4yWCQ@mail.gmail.com>
-Subject: Re: Why is the Y12 support 12-bit grey formats at the CCDC input
- (Y12) is truncated to Y10 at the CCDC output?
-From: James <angweiyang@gmail.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:39351 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755533Ab1LXPvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:07 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp749030852
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 24/47] [media] cx88: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:29 -0200
+Message-Id: <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
-On Thu, Dec 15, 2011 at 3:58 PM, Michael Jones
-<michael.jones@matrix-vision.de> wrote:
-> Hi James,
->
->
-> On 12/15/2011 08:14 AM, James wrote:
->>
->> Hi all,
->>
->> I'm using an OMAP3530 board and a monochrome 12-bit grey sensor.
->>
->> Can anyone enlighten me why is the 12-bit grey formats at the CCDC
->> input (Y12) is truncated to Y10 at the CCDC output?
->
->
-> There are 2 CCDC outputs: CCDC_PAD_SOURCE_OF and CCDC_PAD_SOURCE_VP. Only
-> the VP (video port) truncates data to 10 bits, and it does that because the
-> subdevs it feeds can only handle 10 bits max.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/cx88/cx88-dvb.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Thank you for the clarification.
-
->> I need to read the entire RAW 12-bit grey value from the CCDC to
->> memory and the data does not pass through other OMAP3ISP sub-devices.
->>
->> I intend to use Laurent's yavta to capture the data to file to verify
->> its operation for the moment.
->>
->> Can this 12-bit (Y12) raw capture be done?
->
->
-> Yes. If you are writing the 12-bit gray value directly into memory, you will
-> use SOURCE_OF and can write the full 12-bits into memory.  You need to set
-> up your media pipeline to do sensor->CCDC->OMAP3 ISP CCDC output.
-
-Is there further modification needed to apply to the OMAP3ISP to achieve this?
-
-Do you have an application to test the pipeline for this setting to
-simple display?
-
-Many thanks in adv.
-
+diff --git a/drivers/media/video/cx88/cx88-dvb.c b/drivers/media/video/cx88/cx88-dvb.c
+index cf3d33a..1311af0 100644
+--- a/drivers/media/video/cx88/cx88-dvb.c
++++ b/drivers/media/video/cx88/cx88-dvb.c
+@@ -818,6 +818,7 @@ static const u8 samsung_smt_7020_inittab[] = {
+ static int samsung_smt_7020_tuner_set_params(struct dvb_frontend *fe,
+ 	struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct cx8802_dev *dev = fe->dvb->priv;
+ 	u8 buf[4];
+ 	u32 div;
+@@ -827,14 +828,14 @@ static int samsung_smt_7020_tuner_set_params(struct dvb_frontend *fe,
+ 		.buf = buf,
+ 		.len = sizeof(buf) };
+ 
+-	div = params->frequency / 125;
++	div = c->frequency / 125;
+ 
+ 	buf[0] = (div >> 8) & 0x7f;
+ 	buf[1] = div & 0xff;
+ 	buf[2] = 0x84;  /* 0xC4 */
+ 	buf[3] = 0x00;
+ 
+-	if (params->frequency < 1500000)
++	if (c->frequency < 1500000)
+ 		buf[3] |= 0x10;
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
 -- 
-Regards,
-James
+1.7.8.352.g876a6
+
