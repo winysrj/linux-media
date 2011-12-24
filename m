@@ -1,202 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20987 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:58901 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753946Ab1L0BJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:46 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19kkS005544
+	id S1755410Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:06 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5HA009948
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:46 -0500
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 72/91] [media] cinergyT2-fe: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:09:00 -0200
-Message-Id: <1324948159-23709-73-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-72-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
- <1324948159-23709-56-git-send-email-mchehab@redhat.com>
- <1324948159-23709-57-git-send-email-mchehab@redhat.com>
- <1324948159-23709-58-git-send-email-mchehab@redhat.com>
- <1324948159-23709-59-git-send-email-mchehab@redhat.com>
- <1324948159-23709-60-git-send-email-mchehab@redhat.com>
- <1324948159-23709-61-git-send-email-mchehab@redhat.com>
- <1324948159-23709-62-git-send-email-mchehab@redhat.com>
- <1324948159-23709-63-git-send-email-mchehab@redhat.com>
- <1324948159-23709-64-git-send-email-mchehab@redhat.com>
- <1324948159-23709-65-git-send-email-mchehab@redhat.com>
- <1324948159-23709-66-git-send-email-mchehab@redhat.com>
- <1324948159-23709-67-git-send-email-mchehab@redhat.com>
- <1324948159-23709-68-git-send-email-mchehab@redhat.com>
- <1324948159-23709-69-git-send-email-mchehab@redhat.com>
- <1324948159-23709-70-git-send-email-mchehab@redhat.com>
- <1324948159-23709-71-git-send-email-mchehab@redhat.com>
- <1324948159-23709-72-git-send-email-mchehab@redhat.com>
+Subject: [PATCH v4 36/47] [media] dvb-ttusb-budget: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:41 -0200
+Message-Id: <1324741852-26138-37-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-36-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-33-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-34-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-35-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-36-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
-
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/dvb-usb/cinergyT2-fe.c |   31 ++++++++++++++++++++---------
- 1 files changed, 21 insertions(+), 10 deletions(-)
+ drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c |   50 ++++++++++++--------
+ 1 files changed, 30 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
-index 40d50f7..0b49d44 100644
---- a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
-+++ b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
-@@ -40,9 +40,8 @@
-  *  We replace errornous fields by default TPS fields (the ones with value 0).
-  */
+diff --git a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
+index 420bb42..2379f38 100644
+--- a/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
++++ b/drivers/media/dvb/ttusb-budget/dvb-ttusb-budget.c
+@@ -1019,17 +1019,18 @@ static u32 functionality(struct i2c_adapter *adapter)
  
--static uint16_t compute_tps(struct dvb_frontend_parameters *p)
-+static uint16_t compute_tps(struct dtv_frontend_properties *op)
+ static int alps_tdmb7_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
  {
--	struct dvb_ofdm_parameters *op = &p->u.ofdm;
- 	uint16_t tps = 0;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+ 	u8 data[4];
+ 	struct i2c_msg msg = {.addr=0x61, .flags=0, .buf=data, .len=sizeof(data) };
+ 	u32 div;
  
- 	switch (op->code_rate_HP) {
-@@ -83,7 +82,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
- 		/* tps |= (0 << 4) */;
- 	}
+-	div = (params->frequency + 36166667) / 166667;
++	div = (p->frequency + 36166667) / 166667;
  
--	switch (op->constellation) {
-+	switch (op->modulation) {
- 	case QAM_16:
- 		tps |= (1 << 13);
+ 	data[0] = (div >> 8) & 0x7f;
+ 	data[1] = div & 0xff;
+ 	data[2] = ((div >> 10) & 0x60) | 0x85;
+-	data[3] = params->frequency < 592000000 ? 0x40 : 0x80;
++	data[3] = p->frequency < 592000000 ? 0x40 : 0x80;
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+@@ -1073,6 +1074,7 @@ static int philips_tdm1316l_tuner_init(struct dvb_frontend* fe)
+ 
+ static int philips_tdm1316l_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+ 	u8 tuner_buf[4];
+ 	struct i2c_msg tuner_msg = {.addr=0x60, .flags=0, .buf=tuner_buf, .len=sizeof(tuner_buf) };
+@@ -1080,7 +1082,7 @@ static int philips_tdm1316l_tuner_set_params(struct dvb_frontend* fe, struct dvb
+ 	u8 band, cp, filter;
+ 
+ 	// determine charge pump
+-	tuner_frequency = params->frequency + 36130000;
++	tuner_frequency = p->frequency + 36130000;
+ 	if (tuner_frequency < 87000000) return -EINVAL;
+ 	else if (tuner_frequency < 130000000) cp = 3;
+ 	else if (tuner_frequency < 160000000) cp = 5;
+@@ -1094,25 +1096,29 @@ static int philips_tdm1316l_tuner_set_params(struct dvb_frontend* fe, struct dvb
+ 	else return -EINVAL;
+ 
+ 	// determine band
+-	if (params->frequency < 49000000) return -EINVAL;
+-	else if (params->frequency < 159000000) band = 1;
+-	else if (params->frequency < 444000000) band = 2;
+-	else if (params->frequency < 861000000) band = 4;
++	if (p->frequency < 49000000)
++		return -EINVAL;
++	else if (p->frequency < 159000000)
++		band = 1;
++	else if (p->frequency < 444000000)
++		band = 2;
++	else if (p->frequency < 861000000)
++		band = 4;
+ 	else return -EINVAL;
+ 
+ 	// setup PLL filter
+-	switch (params->u.ofdm.bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	switch (p->bandwidth_hz) {
++	case 6000000:
+ 		tda1004x_writereg(fe, 0x0C, 0);
+ 		filter = 0;
  		break;
-@@ -119,7 +118,7 @@ static uint16_t compute_tps(struct dvb_frontend_parameters *p)
- 		/* tps |= (0 << 2) */;
- 	}
  
--	switch (op->hierarchy_information) {
-+	switch (op->hierarchy) {
- 	case HIERARCHY_1:
- 		tps |= (1 << 10);
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		tda1004x_writereg(fe, 0x0C, 0);
+ 		filter = 0;
  		break;
-@@ -263,9 +262,9 @@ static int cinergyt2_fe_get_tune_settings(struct dvb_frontend *fe,
- 	return 0;
- }
  
--static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe,
--				  struct dvb_frontend_parameters *fep)
-+static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe)
+-	case BANDWIDTH_8_MHZ:
++	case 8000000:
+ 		tda1004x_writereg(fe, 0x0C, 0xFF);
+ 		filter = 1;
+ 		break;
+@@ -1123,7 +1129,7 @@ static int philips_tdm1316l_tuner_set_params(struct dvb_frontend* fe, struct dvb
+ 
+ 	// calculate divisor
+ 	// ((36130000+((1000000/6)/2)) + Finput)/(1000000/6)
+-	tuner_frequency = (((params->frequency / 1000) * 6) + 217280) / 1000;
++	tuner_frequency = (((p->frequency / 1000) * 6) + 217280) / 1000;
+ 
+ 	// setup tuner buffer
+ 	tuner_buf[0] = tuner_frequency >> 8;
+@@ -1275,21 +1281,22 @@ static int alps_stv0299_set_symbol_rate(struct dvb_frontend *fe, u32 srate, u32
+ 
+ static int philips_tsa5059_tuner_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
  {
-+	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
- 	struct dvbt_set_parameters_msg param;
- 	char result[2];
-@@ -274,9 +273,20 @@ static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe,
- 	param.cmd = CINERGYT2_EP1_SET_TUNER_PARAMETERS;
- 	param.tps = cpu_to_le16(compute_tps(fep));
- 	param.freq = cpu_to_le32(fep->frequency / 1000);
--	param.bandwidth = 8 - fep->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
- 	param.flags = 0;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+ 	u8 buf[4];
+ 	u32 div;
+ 	struct i2c_msg msg = {.addr = 0x61,.flags = 0,.buf = buf,.len = sizeof(buf) };
  
-+	switch (fep->bandwidth_hz) {
-+		case 8000000:
-+			param.bandwidth = 0;
-+			break;
-+		case 7000000:
-+			param.bandwidth = 1;
-+			break;
-+		case 6000000:
-+			param.bandwidth = 2;
-+			break;
-+	}
-+
- 	err = dvb_usb_generic_rw(state->d,
- 			(char *)&param, sizeof(param),
- 			result, sizeof(result), 0);
-@@ -287,7 +297,7 @@ static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe,
- }
+-	if ((params->frequency < 950000) || (params->frequency > 2150000))
++	if ((p->frequency < 950000) || (p->frequency > 2150000))
+ 		return -EINVAL;
  
- static int cinergyt2_fe_get_frontend(struct dvb_frontend *fe,
--				  struct dvb_frontend_parameters *fep)
-+				  struct dtv_frontend_properties *fep)
+-	div = (params->frequency + (125 - 1)) / 125;	// round correctly
++	div = (p->frequency + (125 - 1)) / 125;	/* round correctly */
+ 	buf[0] = (div >> 8) & 0x7f;
+ 	buf[1] = div & 0xff;
+ 	buf[2] = 0x80 | ((div & 0x18000) >> 10) | 4;
+ 	buf[3] = 0xC4;
+ 
+-	if (params->frequency > 1530000)
++	if (p->frequency > 1530000)
+ 		buf[3] = 0xC0;
+ 
+ 	/* BSBE1 wants XCE bit set */
+@@ -1318,12 +1325,13 @@ static struct stv0299_config alps_stv0299_config = {
+ 
+ static int ttusb_novas_grundig_29504_491_tuner_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
  {
- 	return 0;
- }
-@@ -316,6 +326,7 @@ struct dvb_frontend *cinergyt2_fe_attach(struct dvb_usb_device *d)
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ttusb* ttusb = (struct ttusb*) fe->dvb->priv;
+ 	u8 buf[4];
+ 	u32 div;
+ 	struct i2c_msg msg = {.addr = 0x61,.flags = 0,.buf = buf,.len = sizeof(buf) };
  
+-	div = params->frequency / 125;
++	div = p->frequency / 125;
  
- static struct dvb_frontend_ops cinergyt2_fe_ops = {
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name			= DRIVER_NAME,
- 		.type			= FE_OFDM,
-@@ -340,8 +351,8 @@ static struct dvb_frontend_ops cinergyt2_fe_ops = {
- 	.init			= cinergyt2_fe_init,
- 	.sleep			= cinergyt2_fe_sleep,
+ 	buf[0] = (div >> 8) & 0x7f;
+ 	buf[1] = div & 0xff;
+@@ -1345,17 +1353,18 @@ static struct tda8083_config ttusb_novas_grundig_29504_491_config = {
  
--	.set_frontend_legacy		= cinergyt2_fe_set_frontend,
--	.get_frontend_legacy = cinergyt2_fe_get_frontend,
-+	.set_frontend		= cinergyt2_fe_set_frontend,
-+	.get_frontend		= cinergyt2_fe_get_frontend,
- 	.get_tune_settings	= cinergyt2_fe_get_tune_settings,
+ static int alps_tdbe2_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ttusb* ttusb = fe->dvb->priv;
+ 	u32 div;
+ 	u8 data[4];
+ 	struct i2c_msg msg = { .addr = 0x62, .flags = 0, .buf = data, .len = sizeof(data) };
  
- 	.read_status		= cinergyt2_fe_read_status,
+-	div = (params->frequency + 35937500 + 31250) / 62500;
++	div = (p->frequency + 35937500 + 31250) / 62500;
+ 
+ 	data[0] = (div >> 8) & 0x7f;
+ 	data[1] = div & 0xff;
+ 	data[2] = 0x85 | ((div >> 10) & 0x60);
+-	data[3] = (params->frequency < 174000000 ? 0x88 : params->frequency < 470000000 ? 0x84 : 0x81);
++	data[3] = (p->frequency < 174000000 ? 0x88 : p->frequency < 470000000 ? 0x84 : 0x81);
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+@@ -1389,6 +1398,7 @@ static u8 read_pwm(struct ttusb* ttusb)
+ 
+ static int dvbc_philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ttusb *ttusb = (struct ttusb *) fe->dvb->priv;
+ 	u8 tuner_buf[5];
+ 	struct i2c_msg tuner_msg = {.addr = 0x60,
+@@ -1399,7 +1409,7 @@ static int dvbc_philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe, struc
+ 	u8 band, cp, filter;
+ 
+ 	// determine charge pump
+-	tuner_frequency = params->frequency;
++	tuner_frequency = p->frequency;
+ 	if      (tuner_frequency <  87000000) {return -EINVAL;}
+ 	else if (tuner_frequency < 130000000) {cp = 3; band = 1;}
+ 	else if (tuner_frequency < 160000000) {cp = 5; band = 1;}
+@@ -1417,7 +1427,7 @@ static int dvbc_philips_tdm1316l_tuner_set_params(struct dvb_frontend *fe, struc
+ 
+ 	// calculate divisor
+ 	// (Finput + Fif)/Fref; Fif = 36125000 Hz, Fref = 62500 Hz
+-	tuner_frequency = ((params->frequency + 36125000) / 62500);
++	tuner_frequency = ((p->frequency + 36125000) / 62500);
+ 
+ 	// setup tuner buffer
+ 	tuner_buf[0] = tuner_frequency >> 8;
 -- 
 1.7.8.352.g876a6
 
