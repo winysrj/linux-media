@@ -1,344 +1,394 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57570 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:44389 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933164Ab1LFNXN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Dec 2011 08:23:13 -0500
-Message-ID: <4EDE1733.8060409@redhat.com>
-Date: Tue, 06 Dec 2011 11:22:59 -0200
+	id S1755655Ab1LXPvK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:10 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp955009974
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:10 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: HoP <jpetrous@gmail.com>
-CC: Florian Fainelli <f.fainelli@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <CAJbz7-1S6K=sDJFcOM8mMxL3t2JS91k+fHLy4gq868_9eUyS9A@mail.gmail.com>
-In-Reply-To: <CAJbz7-1S6K=sDJFcOM8mMxL3t2JS91k+fHLy4gq868_9eUyS9A@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 46/47] [media] dvb: remove dvb_frontend_parameters from calc_regs()
+Date: Sat, 24 Dec 2011 13:50:51 -0200
+Message-Id: <1324741852-26138-47-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-46-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-33-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-34-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-35-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-36-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-37-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-38-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-39-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-40-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-41-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-42-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-43-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-44-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-45-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-46-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05-12-2011 22:07, HoP wrote:
->> I doubt that scan or w_scan would support it. Even if it supports, that
->> would mean that,
->> for each ioctl that would be sent to the remote server, the error code would
->> take 480 ms
->> to return. Try to calculate how many time w_scan would work with that. The
->> calculus is easy:
->> see how many ioctl's are called by each frequency and multiply by the number
->> of frequencies
->> that it would be seek. You should then add the delay introduced over
->> streaming the data
->> from the demux, using the same calculus. This is the additional time over a
->> local w_scan.
->>
->> A grouch calculus with scandvb: to tune into a single DVB-C frequency, it
->> used 45 ioctls.
->> Each taking 480 ms round trip would mean an extra delay of 21.6 seconds.
->> There are 155
->> possible frequencies here. So, imagining that scan could deal with 21.6
->> seconds of delay
->> for each channel (with it doesn't), the extra delay added by it is 1 hour
->> (45 * 0.48 * 155).
->>
->> On the other hand, a solution like the one described by Florian would
->> introduce a delay of
->> 480 ms for the entire scan to happen, as only one data packet would be
->> needed to send a
->> scan request, and one one stream of packets traveling at 10GB/s would bring
->> the answer
->> back.
->
-> Andreas was excited by your imaginations and calculations, but not me.
-> Now you again manifested you are not treating me as partner for discussion.
-> Otherwise you should try to understand how-that-ugly-hack works.
-> But you surelly didn't try to do it at all.
->
-> How do you find those 45 ioctls for DVB-C tune?
+The calc_regs() callback is used by a few frontends (mt352, nxt200x,
+digitv and zl10353). On all places it is called, the parameters are
+set by DVBv5 way. So, just use the DVBv5 struct and remove the
+extra parameter.
 
-With strace. See how many ioctl's are called for each tune. Ok, perhaps scandvb
-is badly written, but if your idea is to support 100% of the applications, you
-should be prepared for badly written applications.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/tuner-simple.c |   31 ++++++--------
+ drivers/media/dvb/bt8xx/dvb-bt8xx.c        |   64 ++++++++++++++-------------
+ drivers/media/dvb/dvb-core/dvb_frontend.h  |    2 +-
+ drivers/media/dvb/dvb-usb/digitv.c         |    2 +-
+ drivers/media/dvb/frontends/dvb-pll.c      |    6 +-
+ drivers/media/dvb/frontends/mt352.c        |    2 +-
+ drivers/media/dvb/frontends/nxt200x.c      |    2 +-
+ drivers/media/dvb/frontends/zl10353.c      |    2 +-
+ 8 files changed, 54 insertions(+), 57 deletions(-)
 
-$strace -e ioctl scandvb dvbc-teste
-scanning dvbc-teste
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-ioctl(3, FE_GET_INFO, 0x60a640)         = 0
-initial transponder 573000000 5217000 0 5
->>> tune to: 573000000:INVERSION_AUTO:5217000:FEC_NONE:QAM_256
-ioctl(3, FE_SET_FRONTEND, 0x7fff5f7f2cd0) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(4, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(5, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(6, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(7, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(8, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(9, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(10, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(11, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(12, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(13, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(14, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(15, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(16, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(17, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(18, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(19, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(20, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(21, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(22, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(23, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(24, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(4, DMX_STOP, 0x1)                 = 0
-ioctl(15, DMX_STOP, 0x1)                = 0
-ioctl(11, DMX_STOP, 0x1)                = 0
-ioctl(22, DMX_STOP, 0x1)                = 0
-ioctl(17, DMX_STOP, 0x1)                = 0
-ioctl(16, DMX_STOP, 0x1)                = 0
-0x0000 0x0004: pmt_pid 0x0108 (null) -- SBT (running)
-0x0000 0x0005: pmt_pid 0x0250 (null) -- Globo (running)
-0x0000 0x0007: pmt_pid 0x0128 (null) -- Record (running)
-0x0000 0x000d: pmt_pid 0x0118 (null) -- Band (running)
-0x0000 0x002e: pmt_pid 0x0148 (null) -- Cartoon Network (running, scrambled)
-0x0000 0x0030: pmt_pid 0x0158 (null) -- TNT (running, scrambled)
-0x0000 0x0039: pmt_pid 0x0168 (null) -- Boomerang (running, scrambled)
-0x0000 0x0090: pmt_pid 0x0178 (null) -- DW-TV (running, scrambled)
-0x0000 0x0098: pmt_pid 0x0188 (null) -- BBC World News (running, scrambled)
-0x0000 0x00cb: pmt_pid 0x01a8 (null) -- NET Games (running)
-0x0000 0x012c: pmt_pid 0x0198 (null) -- NET M�sica (running, scrambled)
-0x0000 0x0133: pmt_pid 0x0022 (null) -- Pagode (running)
-0x0000 0x0135: pmt_pid 0x0020 (null) -- Ax� (running)
-0x0000 0x0146: pmt_pid 0x0023 (null) -- Festa (running)
-0x0000 0x0156: pmt_pid 0x0024 (null) -- Trilhas Sonoras (running)
-0x0000 0x015b: pmt_pid 0x0021 (null) -- Radio Multishow (running)
-0x0000 0x0320: pmt_pid 0x02c4 (null) -- 01070136 (running)
-0x0000 0x0321: pmt_pid 0x02c5 (null) -- 01070236 (running)
-ioctl(5, DMX_STOP, 0x1)                 = 0
-ioctl(24, DMX_STOP, 0x1)                = 0
-ioctl(23, DMX_STOP, 0x1)                = 0
-ioctl(7, DMX_STOP, 0x1)                 = 0
-ioctl(19, DMX_STOP, 0x1)                = 0
-ioctl(18, DMX_STOP, 0x1)                = 0
-ioctl(21, DMX_STOP, 0x1)                = 0
-ioctl(12, DMX_STOP, 0x1)                = 0
-ioctl(13, DMX_STOP, 0x1)                = 0
-ioctl(20, DMX_STOP, 0x1)                = 0
-ioctl(10, DMX_STOP, 0x1)                = 0
-ioctl(9, DMX_STOP, 0x1)                 = 0
-ioctl(8, DMX_STOP, 0x1)                 = 0
-ioctl(14, DMX_STOP, 0x1)                = 0
-Network Name 'NET SJC'
-ioctl(6, DMX_STOP, 0x1)                 = 0
->>> tune to: 591000000:INVERSION_AUTO:5217000:FEC_3_4:QAM_256
-ioctl(3, FE_SET_FRONTEND, 0x7fff5f7f2cd0) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(4, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(5, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(6, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(7, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(8, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(9, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(10, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(11, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(12, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(13, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(14, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(15, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(16, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(17, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(18, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(19, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(4, DMX_STOP, 0x1)                 = 0
-ioctl(9, DMX_STOP, 0x1)                 = 0
-ioctl(10, DMX_STOP, 0x1)                = 0
-ioctl(12, DMX_STOP, 0x1)                = 0
-ioctl(11, DMX_STOP, 0x1)                = 0
-ioctl(14, DMX_STOP, 0x1)                = 0
-ioctl(8, DMX_STOP, 0x1)                 = 0
-ioctl(7, DMX_STOP, 0x1)                 = 0
-ioctl(13, DMX_STOP, 0x1)                = 0
-ioctl(15, DMX_STOP, 0x1)                = 0
-0x0090 0x0029: pmt_pid 0x0468 (null) -- GNT (running, scrambled)
-0x0090 0x002a: pmt_pid 0x0458 (null) -- Multishow (running, scrambled)
-0x0090 0x002f: pmt_pid 0x0077 (null) -- Warner Channel (running, scrambled)
-0x0090 0x0042: pmt_pid 0x0478 (null) -- Canal Brasil (running, scrambled)
-0x0090 0x0046: pmt_pid 0x0438 (null) -- ESPN Brasil (running, scrambled)
-0x0090 0x0049: pmt_pid 0x0428 (null) -- HBO2 (running, scrambled)
-0x0090 0x007c: pmt_pid 0x0488 (null) -- Premiere FC (running, scrambled)
-0x0090 0x008c: pmt_pid 0x0108 (null) -- RAI (running, scrambled)
-0x0090 0x0099: pmt_pid 0x0408 (null) -- CNN International (running, scrambled)
-0x0090 0x013e: pmt_pid 0x0021 (null) -- Anos 80 (running)
-0x0090 0x014d: pmt_pid 0x0022 (null) -- Blues (running)
-0x0090 0x014e: pmt_pid 0x0023 (null) -- Rhythm & Blues (running)
-0x0090 0x014f: pmt_pid 0x0020 (null) -- Standards (running)
-ioctl(5, DMX_STOP, 0x1)                 = 0
-ioctl(17, DMX_STOP, 0x1)                = 0
-ioctl(18, DMX_STOP, 0x1)                = 0
-ioctl(16, DMX_STOP, 0x1)                = 0
-ioctl(19, DMX_STOP, 0x1)                = 0
-Network Name 'NET SJC'
-ioctl(6, DMX_STOP, 0x1)                 = 0
->>> tune to: 597000000:INVERSION_AUTO:5217000:FEC_3_4:QAM_256
-ioctl(3, FE_SET_FRONTEND, 0x7fff5f7f2cd0) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(4, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(5, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(6, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(7, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(8, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(9, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(10, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(11, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(12, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(13, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(14, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(15, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(16, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(17, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(18, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(19, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(4, DMX_STOP, 0x1)                 = 0
-ioctl(9, DMX_STOP, 0x1)                 = 0
-ioctl(19, DMX_STOP, 0x1)                = 0
-ioctl(18, DMX_STOP, 0x1)                = 0
-ioctl(7, DMX_STOP, 0x1)                 = 0
-0x0091 0x0010: pmt_pid 0x0e08 (null) -- TV Senado (running)
-0x0091 0x0013: pmt_pid 0x0518 (null) -- Rede Vida (running)
-0x0091 0x0023: pmt_pid 0x0508 (null) -- Canal Rural (running, scrambled)
-0x0091 0x0038: pmt_pid 0x0578 (null) -- Disney XD (running, scrambled)
-0x0091 0x003d: pmt_pid 0x0558 (null) -- Telecine Premium (running, scrambled)
-0x0091 0x0041: pmt_pid 0x0568 (null) -- Telecine Cult (running, scrambled)
-0x0091 0x0043: pmt_pid 0x0588 (null) -- Disney Channel (running, scrambled)
-0x0091 0x005d: pmt_pid 0x0528 (null) -- Record News (running, scrambled)
-0x0091 0x008d: pmt_pid 0x138f (null) -- TV5 (running, scrambled)
-0x0091 0x0134: pmt_pid 0x0020 (null) -- Samba de Raiz (running)
-0x0091 0x0149: pmt_pid 0x0021 (null) -- New Age (running)
-0x0091 0x0151: pmt_pid 0x0022 (null) -- Jazz Contemporaneo (running)
-0x0091 0x0152: pmt_pid 0x0023 (null) -- M�sica Cl�ssica (running)
-ioctl(5, DMX_STOP, 0x1)                 = 0
-ioctl(16, DMX_STOP, 0x1)                = 0
-ioctl(14, DMX_STOP, 0x1)                = 0
-ioctl(12, DMX_STOP, 0x1)                = 0
-ioctl(10, DMX_STOP, 0x1)                = 0
-ioctl(8, DMX_STOP, 0x1)                 = 0
-ioctl(17, DMX_STOP, 0x1)                = 0
-ioctl(11, DMX_STOP, 0x1)                = 0
-ioctl(15, DMX_STOP, 0x1)                = 0
-ioctl(13, DMX_STOP, 0x1)                = 0
-Network Name 'NET SJC'
-ioctl(6, DMX_STOP, 0x1)                 = 0
->>> tune to: 603000000:INVERSION_AUTO:5217000:FEC_3_4:QAM_256
-ioctl(3, FE_SET_FRONTEND, 0x7fff5f7f2cd0) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(4, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(5, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(6, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(7, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(8, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(9, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(10, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(11, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(12, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(13, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(14, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(15, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(16, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(17, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(18, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(19, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(4, DMX_STOP, 0x1)                 = 0
-ioctl(8, DMX_STOP, 0x1)                 = 0
-ioctl(14, DMX_STOP, 0x1)                = 0
-ioctl(7, DMX_STOP, 0x1)                 = 0
-ioctl(9, DMX_STOP, 0x1)                 = 0
-ioctl(10, DMX_STOP, 0x1)                = 0
-ioctl(17, DMX_STOP, 0x1)                = 0
-ioctl(18, DMX_STOP, 0x1)                = 0
-ioctl(12, DMX_STOP, 0x1)                = 0
-ioctl(13, DMX_STOP, 0x1)                = 0
-0x0092 0x0028: pmt_pid 0x0668 (null) -- Globo News (running, scrambled)
-0x0092 0x002b: pmt_pid 0x0658 (null) -- Universal Channel (running, scrambled)
-0x0092 0x002c: pmt_pid 0x0628 (null) -- Nickelodeon (running, scrambled)
-0x0092 0x003e: pmt_pid 0x0608 (null) -- Telecine Action (running, scrambled)
-0x0092 0x003f: pmt_pid 0x0618 (null) -- Telecine Touch (running, scrambled)
-0x0092 0x0058: pmt_pid 0x0688 (null) -- VH1 Mega Hits (running, scrambled)
-0x0092 0x0059: pmt_pid 0x0648 (null) -- VH1 (running, scrambled)
-0x0092 0x007e: pmt_pid 0x139a (null) -- Aquecimento BBB12 (running, scrambled)
-0x0092 0x011d: pmt_pid 0x0678 (null) -- Sexy Hot (running, scrambled)
-0x0092 0x0131: pmt_pid 0x0024 (null) -- R�dio Kids (running)
-0x0092 0x0137: pmt_pid 0x0020 (null) -- Forr� (running)
-0x0092 0x0148: pmt_pid 0x0023 (null) -- Lounge (running)
-0x0092 0x0153: pmt_pid 0x0022 (null) -- M�sica Orquestrada (running)
-ioctl(5, DMX_STOP, 0x1)                 = 0
-ioctl(11, DMX_STOP, 0x1)                = 0
-ioctl(19, DMX_STOP, 0x1)                = 0
-ioctl(15, DMX_STOP, 0x1)                = 0
-Network Name 'NET SJC'
-ioctl(16, DMX_STOP, 0x1)                = 0
-ioctl(6, DMX_STOP, 0x1)                 = 0
->>> tune to: 609000000:INVERSION_AUTO:5217000:FEC_3_4:QAM_256
-ioctl(3, FE_SET_FRONTEND, 0x7fff5f7f2cd0) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(3, FE_READ_STATUS, 0x7fff5f7f2cfc) = 0
-ioctl(4, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(5, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(6, DMX_SET_FILTER, 0x7fff5f7f1ad0) = 0
-ioctl(7, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(8, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(9, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(10, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(11, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(12, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(13, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(14, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(15, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(16, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(17, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(18, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(19, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(20, DMX_SET_FILTER, 0x7fff5f7f1910) = 0
-ioctl(4, DMX_STOP, 0x1)                 = 0
-ioctl(9, DMX_STOP, 0x1)                 = 0
-ioctl(17, DMX_STOP, 0x1)                = 0
-ioctl(20, DMX_STOP, 0x1)                = 0
-ioctl(10, DMX_STOP, 0x1)                = 0
-ioctl(19, DMX_STOP, 0x1)                = 0
-ioctl(13, DMX_STOP, 0x1)                = 0
-ioctl(14, DMX_STOP, 0x1)                = 0
-ioctl(16, DMX_STOP, 0x1)                = 0
-ioctl(15, DMX_STOP, 0x1)                = 0
-ioctl(7, DMX_STOP, 0x1)                 = 0
-ioctl(18, DMX_STOP, 0x1)                = 0
-ioctl(11, DMX_STOP, 0x1)                = 0
-ioctl(8, DMX_STOP, 0x1)                 = 0
-ioctl(12, DMX_STOP, 0x1)                = 0
-0x0093 0x000a: pmt_pid 0x0708 (null) -- NET Cidade (running)
-0x0093 0x0012: pmt_pid 0x0728 (null) -- Rede Mundial (running)
-0x0093 0x0014: pmt_pid 0x0738 (null) -- Rede 21 (running, scrambled)
-0x0093 0x0015: pmt_pid 0x011f (null) -- TV Justi�a (running)
-0x0093 0x0026: pmt_pid 0x0758 (null) -- SporTV2 (running, scrambled)
-0x0093 0x0027: pmt_pid 0x0748 (null) -- SporTV (running, scrambled)
-0x0093 0x0036: pmt_pid 0x0768 (null) -- FX (running, scrambled)
-0x0093 0x0052: pmt_pid 0x0788 (null) -- The History Channel (running, scrambled)
-0x0093 0x0060: pmt_pid 0x0778 (null) -- Fox Life (running, scrambled)
-0x0093 0x0136: pmt_pid 0x0020 (null) -- Sertanejo (running)
-0x0093 0x0140: pmt_pid 0x0024 (null) -- Rock Cl�ssico (running)
-0x0093 0x0143: pmt_pid 0x0022 (null) -- Reggae (running)
-0x0093 0x0147: pmt_pid 0x0023 (null) -- Eletr�nica (running)
-0x0093 0x015d: pmt_pid 0x0021 (null) -- CBN (running)
-ioctl(5, DMX_STOP, 0x1)                 = 0
-Network Name 'NET SJC'
-ioctl(6, DMX_STOP, 0x1)                 = 0
-...
+diff --git a/drivers/media/common/tuners/tuner-simple.c b/drivers/media/common/tuners/tuner-simple.c
+index e6342db..1dad5fb 100644
+--- a/drivers/media/common/tuners/tuner-simple.c
++++ b/drivers/media/common/tuners/tuner-simple.c
+@@ -884,7 +884,6 @@ static u32 simple_dvb_configure(struct dvb_frontend *fe, u8 *buf,
+ }
+ 
+ static int simple_dvb_calc_regs(struct dvb_frontend *fe,
+-				struct dvb_frontend_parameters *params,
+ 				u8 *buf, int buf_len)
+ {
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -896,28 +895,14 @@ static int simple_dvb_calc_regs(struct dvb_frontend *fe,
+ 	if (buf_len < 5)
+ 		return -EINVAL;
+ 
+-	switch (delsys) {
+-	case SYS_DVBT:
+-	case SYS_DVBT2:
+-		if (params->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
+-			bw = 6000000;
+-		if (params->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
+-			bw = 7000000;
+-		if (params->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
+-			bw = 8000000;
+-		break;
+-	default:
+-		break;
+-	}
+-	frequency = simple_dvb_configure(fe, buf+1, delsys, params->frequency, bw);
++	frequency = simple_dvb_configure(fe, buf+1, delsys, c->frequency, bw);
+ 	if (frequency == 0)
+ 		return -EINVAL;
+ 
+ 	buf[0] = priv->i2c_props.addr;
+ 
+ 	priv->frequency = frequency;
+-	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ?
+-		params->u.ofdm.bandwidth : 0;
++	priv->bandwidth = c->bandwidth_hz;
+ 
+ 	return 5;
+ }
+@@ -1044,7 +1029,17 @@ static int simple_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ static int simple_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+ {
+ 	struct tuner_simple_priv *priv = fe->tuner_priv;
+-	*bandwidth = priv->bandwidth;
++	switch (priv->bandwidth) {
++	case 6000000:
++		*bandwidth = BANDWIDTH_6_MHZ;
++		break;
++	case 7000000:
++		*bandwidth = BANDWIDTH_7_MHZ;
++		break;
++	case 8000000:
++		*bandwidth = BANDWIDTH_8_MHZ;
++		break;
++	}
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/dvb/bt8xx/dvb-bt8xx.c b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+index 5948601..8275d7e 100644
+--- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
++++ b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+@@ -148,8 +148,9 @@ static int thomson_dtt7579_demod_init(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int thomson_dtt7579_tuner_calc_regs(struct dvb_frontend* fe, struct dvb_frontend_parameters* params, u8* pllbuf, int buf_len)
++static int thomson_dtt7579_tuner_calc_regs(struct dvb_frontend* fe, u8* pllbuf, int buf_len)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u32 div;
+ 	unsigned char bs = 0;
+ 	unsigned char cp = 0;
+@@ -157,18 +158,18 @@ static int thomson_dtt7579_tuner_calc_regs(struct dvb_frontend* fe, struct dvb_f
+ 	if (buf_len < 5)
+ 		return -EINVAL;
+ 
+-	div = (((params->frequency + 83333) * 3) / 500000) + IF_FREQUENCYx6;
++	div = (((c->frequency + 83333) * 3) / 500000) + IF_FREQUENCYx6;
+ 
+-	if (params->frequency < 542000000)
++	if (c->frequency < 542000000)
+ 		cp = 0xb4;
+-	else if (params->frequency < 771000000)
++	else if (c->frequency < 771000000)
+ 		cp = 0xbc;
+ 	else
+ 		cp = 0xf4;
+ 
+-	if (params->frequency == 0)
++	if (c->frequency == 0)
+ 		bs = 0x03;
+-	else if (params->frequency < 443250000)
++	else if (c->frequency < 443250000)
+ 		bs = 0x02;
+ 	else
+ 		bs = 0x08;
+@@ -342,50 +343,51 @@ static int advbt771_samsung_tdtc9251dh0_demod_init(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int advbt771_samsung_tdtc9251dh0_tuner_calc_regs(struct dvb_frontend* fe, struct dvb_frontend_parameters* params, u8* pllbuf, int buf_len)
++static int advbt771_samsung_tdtc9251dh0_tuner_calc_regs(struct dvb_frontend* fe, u8* pllbuf, int buf_len)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u32 div;
+ 	unsigned char bs = 0;
+ 	unsigned char cp = 0;
+ 
+ 	if (buf_len < 5) return -EINVAL;
+ 
+-	div = (((params->frequency + 83333) * 3) / 500000) + IF_FREQUENCYx6;
++	div = (((c->frequency + 83333) * 3) / 500000) + IF_FREQUENCYx6;
+ 
+-	if (params->frequency < 150000000)
++	if (c->frequency < 150000000)
+ 		cp = 0xB4;
+-	else if (params->frequency < 173000000)
++	else if (c->frequency < 173000000)
+ 		cp = 0xBC;
+-	else if (params->frequency < 250000000)
++	else if (c->frequency < 250000000)
+ 		cp = 0xB4;
+-	else if (params->frequency < 400000000)
++	else if (c->frequency < 400000000)
+ 		cp = 0xBC;
+-	else if (params->frequency < 420000000)
++	else if (c->frequency < 420000000)
+ 		cp = 0xF4;
+-	else if (params->frequency < 470000000)
++	else if (c->frequency < 470000000)
+ 		cp = 0xFC;
+-	else if (params->frequency < 600000000)
++	else if (c->frequency < 600000000)
+ 		cp = 0xBC;
+-	else if (params->frequency < 730000000)
++	else if (c->frequency < 730000000)
+ 		cp = 0xF4;
+ 	else
+ 		cp = 0xFC;
+ 
+-	if (params->frequency < 150000000)
++	if (c->frequency < 150000000)
+ 		bs = 0x01;
+-	else if (params->frequency < 173000000)
++	else if (c->frequency < 173000000)
+ 		bs = 0x01;
+-	else if (params->frequency < 250000000)
++	else if (c->frequency < 250000000)
+ 		bs = 0x02;
+-	else if (params->frequency < 400000000)
++	else if (c->frequency < 400000000)
+ 		bs = 0x02;
+-	else if (params->frequency < 420000000)
++	else if (c->frequency < 420000000)
+ 		bs = 0x02;
+-	else if (params->frequency < 470000000)
++	else if (c->frequency < 470000000)
+ 		bs = 0x02;
+-	else if (params->frequency < 600000000)
++	else if (c->frequency < 600000000)
+ 		bs = 0x08;
+-	else if (params->frequency < 730000000)
++	else if (c->frequency < 730000000)
+ 		bs = 0x08;
+ 	else
+ 		bs = 0x08;
+@@ -514,31 +516,31 @@ static int digitv_alps_tded4_demod_init(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int digitv_alps_tded4_tuner_calc_regs(struct dvb_frontend* fe, struct dvb_frontend_parameters* params, u8* pllbuf, int buf_len)
++static int digitv_alps_tded4_tuner_calc_regs(struct dvb_frontend* fe,  u8* pllbuf, int buf_len)
+ {
+ 	u32 div;
+-	struct dvb_ofdm_parameters *op = &params->u.ofdm;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 
+ 	if (buf_len < 5)
+ 		return -EINVAL;
+ 
+-	div = (((params->frequency + 83333) * 3) / 500000) + IF_FREQUENCYx6;
++	div = (((c->frequency + 83333) * 3) / 500000) + IF_FREQUENCYx6;
+ 
+ 	pllbuf[0] = 0x61;
+ 	pllbuf[1] = (div >> 8) & 0x7F;
+ 	pllbuf[2] = div & 0xFF;
+ 	pllbuf[3] = 0x85;
+ 
+-	dprintk("frequency %u, div %u\n", params->frequency, div);
++	dprintk("frequency %u, div %u\n", c->frequency, div);
+ 
+-	if (params->frequency < 470000000)
++	if (c->frequency < 470000000)
+ 		pllbuf[4] = 0x02;
+-	else if (params->frequency > 823000000)
++	else if (c->frequency > 823000000)
+ 		pllbuf[4] = 0x88;
+ 	else
+ 		pllbuf[4] = 0x08;
+ 
+-	if (op->bandwidth == 8)
++	if (c->bandwidth_hz == 8000000)
+ 		pllbuf[4] |= 0x04;
+ 
+ 	return 5;
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index 67bbfa7..99ae782 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -202,7 +202,7 @@ struct dvb_tuner_ops {
+ 	int (*set_analog_params)(struct dvb_frontend *fe, struct analog_parameters *p);
+ 
+ 	/** This is support for demods like the mt352 - fills out the supplied buffer with what to write. */
+-	int (*calc_regs)(struct dvb_frontend *fe, struct dvb_frontend_parameters *p, u8 *buf, int buf_len);
++	int (*calc_regs)(struct dvb_frontend *fe, u8 *buf, int buf_len);
+ 
+ 	/** This is to allow setting tuner-specific configs */
+ 	int (*set_config)(struct dvb_frontend *fe, void *priv_cfg);
+diff --git a/drivers/media/dvb/dvb-usb/digitv.c b/drivers/media/dvb/dvb-usb/digitv.c
+index f718411..2856ab7 100644
+--- a/drivers/media/dvb/dvb-usb/digitv.c
++++ b/drivers/media/dvb/dvb-usb/digitv.c
+@@ -123,7 +123,7 @@ static int digitv_nxt6000_tuner_set_params(struct dvb_frontend *fe, struct dvb_f
+ 	struct dvb_usb_adapter *adap = fe->dvb->priv;
+ 	u8 b[5];
+ 
+-	fe->ops.tuner_ops.calc_regs(fe, fep, b, sizeof(b));
++	fe->ops.tuner_ops.calc_regs(fe, b, sizeof(b));
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 1);
+ 	return digitv_ctrl_msg(adap->dev, USB_WRITE_TUNER, 0, &b[1], 4, NULL, 0);
+diff --git a/drivers/media/dvb/frontends/dvb-pll.c b/drivers/media/dvb/frontends/dvb-pll.c
+index 4ed7bee..21f425f 100644
+--- a/drivers/media/dvb/frontends/dvb-pll.c
++++ b/drivers/media/dvb/frontends/dvb-pll.c
+@@ -646,9 +646,9 @@ static int dvb_pll_set_params(struct dvb_frontend *fe,
+ }
+ 
+ static int dvb_pll_calc_regs(struct dvb_frontend *fe,
+-			     struct dvb_frontend_parameters *params,
+ 			     u8 *buf, int buf_len)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_pll_priv *priv = fe->tuner_priv;
+ 	int result;
+ 	u32 frequency = 0;
+@@ -656,7 +656,7 @@ static int dvb_pll_calc_regs(struct dvb_frontend *fe,
+ 	if (buf_len < 5)
+ 		return -EINVAL;
+ 
+-	if ((result = dvb_pll_configure(fe, buf+1, params->frequency)) < 0)
++	if ((result = dvb_pll_configure(fe, buf+1, c->frequency)) < 0)
+ 		return result;
+ 	else
+ 		frequency = result;
+@@ -664,7 +664,7 @@ static int dvb_pll_calc_regs(struct dvb_frontend *fe,
+ 	buf[0] = priv->pll_i2c_address;
+ 
+ 	priv->frequency = frequency;
+-	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
++	priv->bandwidth = c->bandwidth_hz;
+ 
+ 	return 5;
+ }
+diff --git a/drivers/media/dvb/frontends/mt352.c b/drivers/media/dvb/frontends/mt352.c
+index 319672f..e2a86da 100644
+--- a/drivers/media/dvb/frontends/mt352.c
++++ b/drivers/media/dvb/frontends/mt352.c
+@@ -302,7 +302,7 @@ static int mt352_set_parameters(struct dvb_frontend* fe,
+ 		_mt352_write(fe, fsm_go, 2);
+ 	} else {
+ 		if (fe->ops.tuner_ops.calc_regs) {
+-			fe->ops.tuner_ops.calc_regs(fe, param, buf+8, 5);
++			fe->ops.tuner_ops.calc_regs(fe, buf+8, 5);
+ 			buf[8] <<= 1;
+ 			_mt352_write(fe, buf, sizeof(buf));
+ 			_mt352_write(fe, tuner_go, 2);
+diff --git a/drivers/media/dvb/frontends/nxt200x.c b/drivers/media/dvb/frontends/nxt200x.c
+index eac2065..ae5c3c3 100644
+--- a/drivers/media/dvb/frontends/nxt200x.c
++++ b/drivers/media/dvb/frontends/nxt200x.c
+@@ -566,7 +566,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 
+ 	if (fe->ops.tuner_ops.calc_regs) {
+ 		/* get tuning information */
+-		fe->ops.tuner_ops.calc_regs(fe, p, buf, 5);
++		fe->ops.tuner_ops.calc_regs(fe, buf, 5);
+ 
+ 		/* write frequency information */
+ 		nxt200x_writetuner(state, buf);
+diff --git a/drivers/media/dvb/frontends/zl10353.c b/drivers/media/dvb/frontends/zl10353.c
+index adbbf6d..9caccc0 100644
+--- a/drivers/media/dvb/frontends/zl10353.c
++++ b/drivers/media/dvb/frontends/zl10353.c
+@@ -367,7 +367,7 @@ static int zl10353_set_parameters(struct dvb_frontend *fe,
+ 				fe->ops.i2c_gate_ctrl(fe, 0);
+ 		}
+ 	} else if (fe->ops.tuner_ops.calc_regs) {
+-		fe->ops.tuner_ops.calc_regs(fe, param, pllbuf + 1, 5);
++		fe->ops.tuner_ops.calc_regs(fe, pllbuf + 1, 5);
+ 		pllbuf[1] <<= 1;
+ 		zl10353_write(fe, pllbuf, sizeof(pllbuf));
+ 	}
+-- 
+1.7.8.352.g876a6
+
