@@ -1,152 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:37345 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756082Ab1LOJuh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 04:50:37 -0500
-Message-ID: <4EE9C2E6.1060304@infradead.org>
-Date: Thu, 15 Dec 2011 07:50:30 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Dan Carpenter <dan.carpenter@oracle.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	stable@vger.kernel.org
-Subject: Re: [patch -longterm] V4L/DVB: v4l2-ioctl: integer overflow in video_usercopy()
-References: <20111215063445.GA2424@elgon.mountain> <4EE9BC25.7020303@infradead.org> <201112151033.35153.hverkuil@xs4all.nl>
-In-Reply-To: <201112151033.35153.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:39153 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755686Ab1LXPvL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:11 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFpBO4030870
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:11 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 44/47] [media] budget-av: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:49 -0200
+Message-Id: <1324741852-26138-45-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-44-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-33-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-34-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-35-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-36-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-37-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-38-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-39-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-40-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-41-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-42-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-43-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-44-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15-12-2011 07:33, Hans Verkuil wrote:
-> On Thursday, December 15, 2011 10:21:41 Mauro Carvalho Chehab wrote:
->> On 15-12-2011 04:34, Dan Carpenter wrote:
->>> On a 32bit system the multiplication here could overflow.  p->count is
->>> used in some of the V4L drivers.
->>
->> ULONG_MAX / sizeof(v4l2_ext_control) is too much. This ioctl is used on things
->> like setting MPEG paramenters, where several parameters need adjustments at
->> the same time. I risk to say that 64 is probably a reasonably safe upper limit.
-> 
-> Let's make it 1024. That gives more than enough room for expansion without taking
-> too much memory.
->
-> Especially for video encoders a lot of controls are needed, and sensor drivers
-> are also getting more complex, so 64 is a bit too low for my taste.
-> 
-> I agree that limiting this to some sensible value is a good idea.
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
-I'm fine with 1024. Yet, this could easily be changed to whatever upper value needed,
-and still be backward compatible.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/ttpci/budget-av.c |   43 ++++++++++++++++++----------------
+ 1 files changed, 23 insertions(+), 20 deletions(-)
 
-> 
->> Btw, the upstream code also seems to have the same issue:
->>
->> static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
->>                             void * __user *user_ptr, void ***kernel_ptr)
->> {
->> ...
->> 	if (ctrls->count != 0) {
->> ...	
->> 	*array_size = sizeof(struct v4l2_ext_control)
->>                                     * ctrls->count;
->> 	ret = 1;
->> ...
->> }
->> 	
->> long
->> video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->>                v4l2_kioctl func)
->> {
->> ...
->>         err = check_array_args(cmd, parg, &array_size, &user_ptr, &kernel_ptr);
->>         if (err < 0)
->>                 goto out;
->>         has_array_args = err;
->>
->>         if (has_array_args) {
->>                 mbuf = kmalloc(array_size, GFP_KERNEL);
->> ...
->>
->> so, if is there any overflow at check_array_args(), instead of returning
->> an error to userspace, it will allocate the array with less space than
->> needed. 
->>
->> On both upstream and longterm, I think that it is more reasonable to 
->> state a limit for the maximum number of controls that can be passed at
->> the same time, and live with that.
->>
->> A dummy check says:
->> $ more include/linux/videodev2.h |grep V4L2_CID|wc -l
->>     209
->>
->> So, an upper limit of 256 is enough to allow userspace to change all existing controls
->> at the same time.
-> 
-> I would like to have this set to at least twice the number of existing controls
-> (which 1024 certainly is).
-> 
-> It is possible (and valid) to have the same control any number of times in the
-> control list. The last one will 'win' in that case. I can think of (admittedly
-> contrived) scenarios where that might be useful. The only thing we want to do
-> here is to add a sanity check against insane count values.
-> 
->> The proper way seems to add a define at include/linux/videodev2.h
->> and enforce it at the usercopy code.
-> 
-> I agree.
-> 
-> Regards,
-> 
-> 	Hans
-> 
->>
->> Regards,
->> Mauro
->>
->>>
->>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->>> ---
->>> This is a patch against the 2.6.32-longterm kernel.  In the stock
->>> kernel, this code was totally rewritten and fixed in 2010 by d14e6d76ebf
->>> "[media] v4l: Add multi-planar ioctl handling code".
->>>
->>> Hopefully, someone can Ack this and we merge it into the stable tree.
->>>
->>> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
->>> index 265bfb5..7196303 100644
->>> --- a/drivers/media/video/v4l2-ioctl.c
->>> +++ b/drivers/media/video/v4l2-ioctl.c
->>> @@ -414,6 +414,9 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->>>  		p->error_idx = p->count;
->>>  		user_ptr = (void __user *)p->controls;
->>>  		if (p->count) {
->>> +			err = -EINVAL;
->>> +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
->>> +				goto out_ext_ctrl;
->>>  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
->>>  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
->>>  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
->>> @@ -1912,6 +1915,9 @@ long video_ioctl2(struct file *file,
->>>  		p->error_idx = p->count;
->>>  		user_ptr = (void __user *)p->controls;
->>>  		if (p->count) {
->>> +			err = -EINVAL;
->>> +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
->>> +				goto out_ext_ctrl;
->>>  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
->>>  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
->>>  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/dvb/ttpci/budget-av.c b/drivers/media/dvb/ttpci/budget-av.c
+index 78d32f7..ef03777 100644
+--- a/drivers/media/dvb/ttpci/budget-av.c
++++ b/drivers/media/dvb/ttpci/budget-av.c
+@@ -505,30 +505,31 @@ static int philips_su1278_ty_ci_set_symbol_rate(struct dvb_frontend *fe, u32 sra
+ static int philips_su1278_ty_ci_tuner_set_params(struct dvb_frontend *fe,
+ 						 struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u32 div;
+ 	u8 buf[4];
+ 	struct budget *budget = (struct budget *) fe->dvb->priv;
+ 	struct i2c_msg msg = {.addr = 0x61,.flags = 0,.buf = buf,.len = sizeof(buf) };
+ 
+-	if ((params->frequency < 950000) || (params->frequency > 2150000))
++	if ((c->frequency < 950000) || (c->frequency > 2150000))
+ 		return -EINVAL;
+ 
+-	div = (params->frequency + (125 - 1)) / 125;	// round correctly
++	div = (c->frequency + (125 - 1)) / 125;	// round correctly
+ 	buf[0] = (div >> 8) & 0x7f;
+ 	buf[1] = div & 0xff;
+ 	buf[2] = 0x80 | ((div & 0x18000) >> 10) | 4;
+ 	buf[3] = 0x20;
+ 
+-	if (params->u.qpsk.symbol_rate < 4000000)
++	if (c->symbol_rate < 4000000)
+ 		buf[3] |= 1;
+ 
+-	if (params->frequency < 1250000)
++	if (c->frequency < 1250000)
+ 		buf[3] |= 0;
+-	else if (params->frequency < 1550000)
++	else if (c->frequency < 1550000)
+ 		buf[3] |= 0x40;
+-	else if (params->frequency < 2050000)
++	else if (c->frequency < 2050000)
+ 		buf[3] |= 0x80;
+-	else if (params->frequency < 2150000)
++	else if (c->frequency < 2150000)
+ 		buf[3] |= 0xC0;
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+@@ -619,6 +620,7 @@ static struct stv0299_config cinergy_1200s_1894_0010_config = {
+ 
+ static int philips_cu1216_tuner_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct budget *budget = (struct budget *) fe->dvb->priv;
+ 	u8 buf[6];
+ 	struct i2c_msg msg = {.addr = 0x60,.flags = 0,.buf = buf,.len = sizeof(buf) };
+@@ -627,13 +629,13 @@ static int philips_cu1216_tuner_set_params(struct dvb_frontend *fe, struct dvb_f
+ #define CU1216_IF 36125000
+ #define TUNER_MUL 62500
+ 
+-	u32 div = (params->frequency + CU1216_IF + TUNER_MUL / 2) / TUNER_MUL;
++	u32 div = (c->frequency + CU1216_IF + TUNER_MUL / 2) / TUNER_MUL;
+ 
+ 	buf[0] = (div >> 8) & 0x7f;
+ 	buf[1] = div & 0xff;
+ 	buf[2] = 0xce;
+-	buf[3] = (params->frequency < 150000000 ? 0x01 :
+-		  params->frequency < 445000000 ? 0x02 : 0x04);
++	buf[3] = (c->frequency < 150000000 ? 0x01 :
++		  c->frequency < 445000000 ? 0x02 : 0x04);
+ 	buf[4] = 0xde;
+ 	buf[5] = 0x20;
+ 
+@@ -699,6 +701,7 @@ static int philips_tu1216_tuner_init(struct dvb_frontend *fe)
+ 
+ static int philips_tu1216_tuner_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct budget *budget = (struct budget *) fe->dvb->priv;
+ 	u8 tuner_buf[4];
+ 	struct i2c_msg tuner_msg = {.addr = 0x60,.flags = 0,.buf = tuner_buf,.len =
+@@ -707,7 +710,7 @@ static int philips_tu1216_tuner_set_params(struct dvb_frontend *fe, struct dvb_f
+ 	u8 band, cp, filter;
+ 
+ 	// determine charge pump
+-	tuner_frequency = params->frequency + 36166000;
++	tuner_frequency = c->frequency + 36166000;
+ 	if (tuner_frequency < 87000000)
+ 		return -EINVAL;
+ 	else if (tuner_frequency < 130000000)
+@@ -732,28 +735,28 @@ static int philips_tu1216_tuner_set_params(struct dvb_frontend *fe, struct dvb_f
+ 		return -EINVAL;
+ 
+ 	// determine band
+-	if (params->frequency < 49000000)
++	if (c->frequency < 49000000)
+ 		return -EINVAL;
+-	else if (params->frequency < 161000000)
++	else if (c->frequency < 161000000)
+ 		band = 1;
+-	else if (params->frequency < 444000000)
++	else if (c->frequency < 444000000)
+ 		band = 2;
+-	else if (params->frequency < 861000000)
++	else if (c->frequency < 861000000)
+ 		band = 4;
+ 	else
+ 		return -EINVAL;
+ 
+ 	// setup PLL filter
+-	switch (params->u.ofdm.bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	switch (c->bandwidth_hz) {
++	case 6000000:
+ 		filter = 0;
+ 		break;
+ 
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		filter = 0;
+ 		break;
+ 
+-	case BANDWIDTH_8_MHZ:
++	case 8000000:
+ 		filter = 1;
+ 		break;
+ 
+@@ -763,7 +766,7 @@ static int philips_tu1216_tuner_set_params(struct dvb_frontend *fe, struct dvb_f
+ 
+ 	// calculate divisor
+ 	// ((36166000+((1000000/6)/2)) + Finput)/(1000000/6)
+-	tuner_frequency = (((params->frequency / 1000) * 6) + 217496) / 1000;
++	tuner_frequency = (((c->frequency / 1000) * 6) + 217496) / 1000;
+ 
+ 	// setup tuner buffer
+ 	tuner_buf[0] = (tuner_frequency >> 8) & 0x7f;
+-- 
+1.7.8.352.g876a6
 
