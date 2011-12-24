@@ -1,72 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38624 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:22413 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755143Ab1LMQaj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Dec 2011 11:30:39 -0500
-Message-ID: <4EE77DA9.9060102@iki.fi>
-Date: Tue, 13 Dec 2011 18:30:33 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Greg KH <greg@kroah.com>
-CC: Oliver Neukum <oliver@neukum.org>, linux-serial@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-usb@vger.kernel.org,
-	=?ISO-8859-1?Q?Bj=F8rn_Mork?= <bjorn@mork.no>,
-	James Courtier-Dutton <james.dutton@gmail.com>,
-	HoP <jpetrous@gmail.com>,
-	=?ISO-8859-1?Q?Istv=E1n_V=E1radi?= <ivaradi@gmail.com>
-Subject: Re: serial device name for smart card reader that is integrated to
- Anysee DVB USB device
-References: <4E8B7901.2050700@iki.fi> <4E8BF6DE.1010105@iki.fi> <201110051016.06291.oneukum@suse.de> <201110141932.51378.oliver@neukum.org>
-In-Reply-To: <201110141932.51378.oliver@neukum.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1755522Ab1LXPvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:07 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp7JY018685
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 26/47] [media] itd1000: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:31 -0200
+Message-Id: <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10/14/2011 08:32 PM, Oliver Neukum wrote:
-> Am Mittwoch, 5. Oktober 2011, 10:16:06 schrieb Oliver Neukum:
->> Am Mittwoch, 5. Oktober 2011, 08:19:10 schrieb Antti Palosaari:
->>> On 10/05/2011 09:15 AM, Oliver Neukum wrote:
->>
->>>> But, Greg, Antti makes a very valid point here. The generic code assumes that
->>>> it owns intfdata, that is you cannot use it as is for access to anything that lacks
->>>> its own interface. But this is not a fatal flaw. We can alter the generic code to use
->>>> an accessor function the driver can provide and make it default to get/set_intfdata
->>>>
->>>> What do you think?
->>>
->>> Oliver, I looked your old thread reply but I didn't catch how you meant
->>> it to happen. Could you give some small example?
->
-> here is the code I come up with at an early, extremely incomplete stage.
-> Just for your information because I'll stop working on this for a few days.
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
-I am back with that issue again. I just analysed both Oliver's code and 
-usb-serial.c.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/itd1000.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-Problem are only these functions:
-extern int usb_serial_probe(struct usb_interface *iface, const struct 
-usb_device_id *id);
-extern void usb_serial_disconnect(struct usb_interface *iface);
-extern int usb_serial_suspend(struct usb_interface *intf, pm_message_t 
-message);
-extern int usb_serial_resume(struct usb_interface *intf);
-
-as all those takes struct usb_interface as parameter. For the 
-disconnect, suspend and resume it usb_interface param is used just for 
-getting pointer to struct usb_serial. That's easy. The probe is more 
-complex and needs some deeper changes. Main problem for probe seems to 
-be also it saves struct usb_serial pointer to struct usb_interface 
-usb_set_intfdata(interface, serial);
-
-Anyhow, I would like now ask how to proceed. Should I export four new 
-functions as replacement of those leaving old functionality as 
-currently. Or should I change existing ones like adding new pointer for 
-struct usb_serial and use it instead of struct usb_interface when not NULL.
-
-
-regards
-Antti
-
+diff --git a/drivers/media/dvb/frontends/itd1000.c b/drivers/media/dvb/frontends/itd1000.c
+index aa9ccb8..afe7cc0 100644
+--- a/drivers/media/dvb/frontends/itd1000.c
++++ b/drivers/media/dvb/frontends/itd1000.c
+@@ -252,11 +252,12 @@ static void itd1000_set_lo(struct itd1000_state *state, u32 freq_khz)
+ 
+ static int itd1000_set_parameters(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct itd1000_state *state = fe->tuner_priv;
+ 	u8 pllcon1;
+ 
+-	itd1000_set_lo(state, p->frequency);
+-	itd1000_set_lpf_bw(state, p->u.qpsk.symbol_rate);
++	itd1000_set_lo(state, c->frequency);
++	itd1000_set_lpf_bw(state, c->symbol_rate);
+ 
+ 	pllcon1 = itd1000_read_reg(state, PLLCON1) & 0x7f;
+ 	itd1000_write_reg(state, PLLCON1, pllcon1 | (1 << 7));
 -- 
-http://palosaari.fi/
+1.7.8.352.g876a6
+
