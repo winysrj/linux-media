@@ -1,170 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:46209 "EHLO mgw-da01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50782 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756492Ab1LNPJU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 10:09:20 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, snjw23@gmail.com,
-	t.stanislaws@samsung.com, dacohen@gmail.com,
-	andriy.shevchenko@linux.intel.com, g.liakhovetski@gmx.de,
-	hverkuil@xs4all.nl
-Subject: [RFC v2 1/3] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
-Date: Wed, 14 Dec 2011 17:09:04 +0200
-Message-Id: <1323875346-16976-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20111214150846.GM1967@valkosipuli.localdomain>
-References: <20111214150846.GM1967@valkosipuli.localdomain>
+	id S1755305Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:06 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp4tP009928
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 04/47] [media] mt2060: remove fake implementaion of get_bandwidth()
+Date: Sat, 24 Dec 2011 13:50:09 -0200
+Message-Id: <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
-IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
-VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+This driver implements a fake get_bandwidth() callback. In
+reallity, the tuner driver won't adjust its low-pass
+filter based on a bandwidth, and were just providing a fake
+method for demods to read whatever was "set".
 
-VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+This code is useless, as none of the drivers that use
+this tuner seems to require a get_bandwidth() callback.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+While here, convert set_params to use the DVBv5 way to pass
+parameters to tuners.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/v4l2-subdev.c |   26 ++++++++++++++++++++-
- include/linux/v4l2-subdev.h       |   45 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h       |    5 ++++
- 3 files changed, 75 insertions(+), 1 deletions(-)
+ drivers/media/common/tuners/mt2060.c      |   12 ++----------
+ drivers/media/common/tuners/mt2060_priv.h |    1 -
+ 2 files changed, 2 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 65ade5f..e8ae098 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -36,13 +36,17 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
- 	/* Allocate try format and crop in the same memory block */
--	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
-+	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop)
-+			       + sizeof(*fh->try_compose))
- 			      * sd->entity.num_pads, GFP_KERNEL);
- 	if (fh->try_fmt == NULL)
- 		return -ENOMEM;
+diff --git a/drivers/media/common/tuners/mt2060.c b/drivers/media/common/tuners/mt2060.c
+index 2ecaa53..6fe2ef9 100644
+--- a/drivers/media/common/tuners/mt2060.c
++++ b/drivers/media/common/tuners/mt2060.c
+@@ -155,6 +155,7 @@ static int mt2060_spurcheck(u32 lo1,u32 lo2,u32 if2)
  
- 	fh->try_crop = (struct v4l2_rect *)
- 		(fh->try_fmt + sd->entity.num_pads);
-+
-+	fh->try_compose = (struct v4l2_rect *)
-+		(fh->try_crop + sd->entity.num_pads);
- #endif
+ static int mt2060_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct mt2060_priv *priv;
+ 	int ret=0;
+ 	int i=0;
+@@ -176,8 +177,7 @@ static int mt2060_set_params(struct dvb_frontend *fe, struct dvb_frontend_parame
+ 
+ 	mt2060_writeregs(priv,b,2);
+ 
+-	freq = params->frequency / 1000; // Hz -> kHz
+-	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
++	freq = c->frequency / 1000; /* Hz -> kHz */
+ 
+ 	f_lo1 = freq + if1 * 1000;
+ 	f_lo1 = (f_lo1 / 250) * 250;
+@@ -293,13 +293,6 @@ static int mt2060_get_frequency(struct dvb_frontend *fe, u32 *frequency)
  	return 0;
  }
-@@ -281,6 +285,26 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
- 					fie);
- 	}
-+
-+	case VIDIOC_SUBDEV_G_SELECTION: {
-+		struct v4l2_subdev_selection *sel = arg;
-+
-+		if (sel->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(
-+			sd, pad, get_selection, subdev_fh, sel);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_SELECTION: {
-+		struct v4l2_subdev_selection *sel = arg;
-+
-+		if (sel->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(
-+			sd, pad, set_selection, subdev_fh, sel);
-+	}
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index ed29cbb..d53d775 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -123,6 +123,47 @@ struct v4l2_subdev_frame_interval_enum {
- 	__u32 reserved[9];
+ 
+-static int mt2060_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+-{
+-	struct mt2060_priv *priv = fe->tuner_priv;
+-	*bandwidth = priv->bandwidth;
+-	return 0;
+-}
+-
+ static int mt2060_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	*frequency = IF2 * 1000;
+@@ -362,7 +355,6 @@ static const struct dvb_tuner_ops mt2060_tuner_ops = {
+ 
+ 	.set_params    = mt2060_set_params,
+ 	.get_frequency = mt2060_get_frequency,
+-	.get_bandwidth = mt2060_get_bandwidth,
+ 	.get_if_frequency = mt2060_get_if_frequency,
  };
  
-+#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
-+#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
-+#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
-+
-+/* active cropping area */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0
-+/* default cropping area */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_DEFAULT		1
-+/* cropping bounds */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			2
-+/* current composing area */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		256
-+/* default composing area */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_DEFAULT		257
-+/* composing bounds */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		258
-+
-+
-+/**
-+ * struct v4l2_subdev_selection - selection info
-+ *
-+ * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
-+ * @pad: pad number, as reported by the media API
-+ * @target: selection target, used to choose one of possible rectangles
-+ * @flags: constraints flags
-+ * @r: coordinates of selection window
-+ * @reserved: for future use, rounds structure size to 64 bytes, set to zero
-+ *
-+ * Hardware may use multiple helper window to process a video stream.
-+ * The structure is used to exchange this selection areas between
-+ * an application and a driver.
-+ */
-+struct v4l2_subdev_selection {
-+	__u32 which;
-+	__u32 pad;
-+	__u32 target;
-+	__u32 flags;
-+	struct v4l2_rect r;
-+	__u32 reserved[8];
-+};
-+
- #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-@@ -137,5 +178,9 @@ struct v4l2_subdev_frame_interval_enum {
- 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
- #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
- #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
-+#define VIDIOC_SUBDEV_G_SELECTION \
-+	_IOWR('V', 61, struct v4l2_subdev_selection)
-+#define VIDIOC_SUBDEV_S_SELECTION \
-+	_IOWR('V', 62, struct v4l2_subdev_selection)
+diff --git a/drivers/media/common/tuners/mt2060_priv.h b/drivers/media/common/tuners/mt2060_priv.h
+index 5eaccde..2b60de6 100644
+--- a/drivers/media/common/tuners/mt2060_priv.h
++++ b/drivers/media/common/tuners/mt2060_priv.h
+@@ -97,7 +97,6 @@ struct mt2060_priv {
+ 	struct i2c_adapter   *i2c;
  
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index f0f3358..26eeaa4 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
- 		       struct v4l2_subdev_crop *crop);
- 	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       struct v4l2_subdev_crop *crop);
-+	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_selection *sel);
-+	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_selection *sel);
+ 	u32 frequency;
+-	u32 bandwidth;
+ 	u16 if1_freq;
+ 	u8  fmfreq;
  };
- 
- struct v4l2_subdev_ops {
-@@ -551,6 +555,7 @@ struct v4l2_subdev_fh {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
- 	struct v4l2_mbus_framefmt *try_fmt;
- 	struct v4l2_rect *try_crop;
-+	struct v4l2_rect *try_compose;
- #endif
- };
- 
 -- 
-1.7.2.5
+1.7.8.352.g876a6
 
