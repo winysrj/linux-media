@@ -1,222 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50894 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:61047 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753861Ab1L0BJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:43 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19gbA017906
+	id S1755347Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:06 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5lg009942
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:42 -0500
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 43/91] [media] sp887x: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:31 -0200
-Message-Id: <1324948159-23709-44-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-43-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+Subject: [PATCH v4 33/47] [media] mantis_vp2033: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:38 -0200
+Message-Id: <1324741852-26138-34-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-33-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-33-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
-
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/frontends/sp887x.c |   49 +++++++++++++++++++++------------
- 1 files changed, 31 insertions(+), 18 deletions(-)
+ drivers/media/dvb/mantis/mantis_vp2033.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/sp887x.c b/drivers/media/dvb/frontends/sp887x.c
-index 33ec08a..4b28d6a 100644
---- a/drivers/media/dvb/frontends/sp887x.c
-+++ b/drivers/media/dvb/frontends/sp887x.c
-@@ -209,13 +209,13 @@ static int sp887x_initial_setup (struct dvb_frontend* fe, const struct firmware
- 	return 0;
- };
+diff --git a/drivers/media/dvb/mantis/mantis_vp2033.c b/drivers/media/dvb/mantis/mantis_vp2033.c
+index 06da0dd..f58ce60 100644
+--- a/drivers/media/dvb/mantis/mantis_vp2033.c
++++ b/drivers/media/dvb/mantis/mantis_vp2033.c
+@@ -67,6 +67,7 @@ static u8 read_pwm(struct mantis_pci *mantis)
  
--static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
-+static int configure_reg0xc05 (struct dtv_frontend_properties *p, u16 *reg0xc05)
- {
- 	int known_parameters = 1;
- 
- 	*reg0xc05 = 0x000;
- 
--	switch (p->u.ofdm.constellation) {
-+	switch (p->modulation) {
- 	case QPSK:
- 		break;
- 	case QAM_16:
-@@ -231,7 +231,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
- 		return -EINVAL;
- 	};
- 
--	switch (p->u.ofdm.hierarchy_information) {
-+	switch (p->hierarchy) {
- 	case HIERARCHY_NONE:
- 		break;
- 	case HIERARCHY_1:
-@@ -250,7 +250,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
- 		return -EINVAL;
- 	};
- 
--	switch (p->u.ofdm.code_rate_HP) {
-+	switch (p->code_rate_HP) {
- 	case FEC_1_2:
- 		break;
- 	case FEC_2_3:
-@@ -303,17 +303,30 @@ static void divide (int n, int d, int *quotient_i, int *quotient_f)
- }
- 
- static void sp887x_correct_offsets (struct sp887x_state* state,
--				    struct dvb_frontend_parameters *p,
-+				    struct dtv_frontend_properties *p,
- 				    int actual_freq)
- {
- 	static const u32 srate_correction [] = { 1879617, 4544878, 8098561 };
--	int bw_index = p->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
-+	int bw_index;
- 	int freq_offset = actual_freq - p->frequency;
- 	int sysclock = 61003; //[kHz]
- 	int ifreq = 36000000;
- 	int freq;
- 	int frequency_shift;
- 
-+	switch (p->bandwidth_hz) {
-+	default:
-+	case 8000000:
-+		bw_index = 0;
-+		break;
-+	case 7000000:
-+		bw_index = 1;
-+		break;
-+	case 6000000:
-+		bw_index = 2;
-+		break;
-+	}
-+
- 	if (p->inversion == INVERSION_ON)
- 		freq = ifreq - freq_offset;
- 	else
-@@ -333,17 +346,17 @@ static void sp887x_correct_offsets (struct sp887x_state* state,
- 	sp887x_writereg(state, 0x30a, frequency_shift & 0xfff);
- }
- 
--static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
--					     struct dvb_frontend_parameters *p)
-+static int sp887x_setup_frontend_parameters (struct dvb_frontend *fe)
+ static int tda1002x_cu1216_tuner_set(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
  {
 +	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct sp887x_state* state = fe->demodulator_priv;
- 	unsigned actual_freq;
- 	int err;
- 	u16 val, reg0xc05;
+ 	struct mantis_pci *mantis = fe->dvb->priv;
+ 	struct i2c_adapter *adapter = &mantis->adapter;
  
--	if (p->u.ofdm.bandwidth != BANDWIDTH_8_MHZ &&
--	    p->u.ofdm.bandwidth != BANDWIDTH_7_MHZ &&
--	    p->u.ofdm.bandwidth != BANDWIDTH_6_MHZ)
-+	if (p->bandwidth_hz != 8000000 &&
-+	    p->bandwidth_hz != 7000000 &&
-+	    p->bandwidth_hz != 6000000)
- 		return -EINVAL;
+@@ -77,13 +78,13 @@ static int tda1002x_cu1216_tuner_set(struct dvb_frontend *fe, struct dvb_fronten
+ #define CU1216_IF 36125000
+ #define TUNER_MUL 62500
  
- 	if ((err = configure_reg0xc05(p, &reg0xc05)))
-@@ -369,9 +382,9 @@ static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
- 	sp887x_correct_offsets(state, p, actual_freq);
+-	u32 div = (params->frequency + CU1216_IF + TUNER_MUL / 2) / TUNER_MUL;
++	u32 div = (p->frequency + CU1216_IF + TUNER_MUL / 2) / TUNER_MUL;
  
- 	/* filter for 6/7/8 Mhz channel */
--	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
-+	if (p->bandwidth_hz == 6000000)
- 		val = 2;
--	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
-+	else if (p->bandwidth_hz == 7000000)
- 		val = 1;
- 	else
- 		val = 0;
-@@ -379,16 +392,16 @@ static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
- 	sp887x_writereg(state, 0x311, val);
+ 	buf[0] = (div >> 8) & 0x7f;
+ 	buf[1] = div & 0xff;
+ 	buf[2] = 0xce;
+-	buf[3] = (params->frequency < 150000000 ? 0x01 :
+-		  params->frequency < 445000000 ? 0x02 : 0x04);
++	buf[3] = (p->frequency < 150000000 ? 0x01 :
++		  p->frequency < 445000000 ? 0x02 : 0x04);
+ 	buf[4] = 0xde;
+ 	buf[5] = 0x20;
  
- 	/* scan order: 2k first = 0, 8k first = 1 */
--	if (p->u.ofdm.transmission_mode == TRANSMISSION_MODE_2K)
-+	if (p->transmission_mode == TRANSMISSION_MODE_2K)
- 		sp887x_writereg(state, 0x338, 0x000);
- 	else
- 		sp887x_writereg(state, 0x338, 0x001);
- 
- 	sp887x_writereg(state, 0xc05, reg0xc05);
- 
--	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
-+	if (p->bandwidth_hz == 6000000)
- 		val = 2 << 3;
--	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
-+	else if (p->bandwidth_hz == 7000000)
- 		val = 3 << 3;
- 	else
- 		val = 0 << 3;
-@@ -579,7 +592,7 @@ error:
- }
- 
- static struct dvb_frontend_ops sp887x_ops = {
--
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name = "Spase SP887x DVB-T",
- 		.type = FE_OFDM,
-@@ -598,7 +611,7 @@ static struct dvb_frontend_ops sp887x_ops = {
- 	.sleep = sp887x_sleep,
- 	.i2c_gate_ctrl = sp887x_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = sp887x_setup_frontend_parameters,
-+	.set_frontend = sp887x_setup_frontend_parameters,
- 	.get_tune_settings = sp887x_get_tune_settings,
- 
- 	.read_status = sp887x_read_status,
 -- 
 1.7.8.352.g876a6
 
