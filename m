@@ -1,70 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:15768 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753893Ab1LVJ25 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 04:28:57 -0500
-Date: Thu, 22 Dec 2011 10:28:49 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE
- memops
-In-reply-to: <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
-To: 'Ming Lei' <ming.lei@canonical.com>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>,
-	'Tony Lindgren' <tony@atomide.com>
-Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>,
-	'Alan Cox' <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	'Pawel Osciak' <p.osciak@gmail.com>
-Message-id: <010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
- <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:17082 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755216Ab1LXPvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:05 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp4XK009925
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 06/47] [media] mc44s803: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:11 -0200
+Message-Id: <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-On Wednesday, December 14, 2011 3:00 PM Ming Lei wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mc44s803.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-> DMA contig memory resource is very limited and precious, also
-> accessing to it from CPU is very slow on some platform.
-> 
-> For some cases(such as the comming face detection driver), DMA Streaming
-> buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
-> physical memory but letting video device driver to handle DMA buffer mapping
-> and unmapping things.
-> 
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-
-Could you elaborate a bit why do you think that DMA contig memory resource
-is so limited? If dma_alloc_coherent fails because of the memory fragmentation,
-the alloc_pages() call with order > 0 will also fail.
-
-I understand that there might be some speed issues with coherent (uncached)
-userspace mappings, but I would solve it in completely different way. The interface
-for both coherent/uncached and non-coherent/cached contig allocator should be the
-same, so exchanging them is easy and will not require changes in the driver.
-I'm planning to introduce some design changes in memory allocator api and introduce
-prepare and finish callbacks in allocator ops. I hope to post the rfc after
-Christmas. For your face detection driver using standard dma-contig allocator
-shouldn't be a big issue.
-
-Your current implementation also abuses the design and api of videobuf2 memory
-allocators. If the allocator needs to return a custom structure to the driver
-you should use cookie method. vaddr is intended to provide only a pointer to
-kernel virtual mapping, but you pass a struct page * there.
-
-(snipped)
-
-Best regards
+diff --git a/drivers/media/common/tuners/mc44s803.c b/drivers/media/common/tuners/mc44s803.c
+index fe5c4b8..5a8758c 100644
+--- a/drivers/media/common/tuners/mc44s803.c
++++ b/drivers/media/common/tuners/mc44s803.c
+@@ -218,18 +218,19 @@ static int mc44s803_set_params(struct dvb_frontend *fe,
+ 			       struct dvb_frontend_parameters *params)
+ {
+ 	struct mc44s803_priv *priv = fe->tuner_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u32 r1, r2, n1, n2, lo1, lo2, freq, val;
+ 	int err;
+ 
+-	priv->frequency = params->frequency;
++	priv->frequency = c->frequency;
+ 
+ 	r1 = MC44S803_OSC / 1000000;
+ 	r2 = MC44S803_OSC /  100000;
+ 
+-	n1 = (params->frequency + MC44S803_IF1 + 500000) / 1000000;
++	n1 = (c->frequency + MC44S803_IF1 + 500000) / 1000000;
+ 	freq = MC44S803_OSC / r1 * n1;
+ 	lo1 = ((60 * n1) + (r1 / 2)) / r1;
+-	freq = freq - params->frequency;
++	freq = freq - c->frequency;
+ 
+ 	n2 = (freq - MC44S803_IF2 + 50000) / 100000;
+ 	lo2 = ((60 * n2) + (r2 / 2)) / r2;
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+1.7.8.352.g876a6
 
