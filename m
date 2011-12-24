@@ -1,244 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from emh06.mail.saunalahti.fi ([62.142.5.116]:52186 "EHLO
-	emh06.mail.saunalahti.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751036Ab1LMHcE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Dec 2011 02:32:04 -0500
-Message-ID: <4EE6FF6F.5050901@kolumbus.fi>
-Date: Tue, 13 Dec 2011 09:31:59 +0200
-From: Marko Ristola <marko.ristola@kolumbus.fi>
-MIME-Version: 1.0
-To: vidar@tyldum.com
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Multiple Mantis devices gives me glitches
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:17341 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755332Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:06 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5c2017054
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 31/47] [media] mxl111sf-tuner: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:36 -0200
+Message-Id: <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
-Hi
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/mxl111sf-tuner.c |   46 +++++++++++++--------------
+ 1 files changed, 22 insertions(+), 24 deletions(-)
 
-Here is a patch that went into Linus GIT this year.
-It reduces the number of DMA transfer interrupts into one third.
-Linus released 2.6.38.8 doesn't seem to have this patch yet.
-
-I had a single Mantis card and a single CPU.
-I used VDR to deliver HDTV channel via network
-into a faster computer for viewing.
-
-One known latency point with Mantis is I2C transfer.
-With my measure, latency is about 0.33ms per I2C transfer byte.
-Basic read / write (address+value) minimal latency is thus 0.66ms.
-Latency amount depends on I2C bus speed on the card.
-I don't have a working patch to fix this yet though.
-
-Regards, Marko Ristola
-
------------------------------------------------------------------------
-
-Refactor Mantis DMA transfer to deliver 16Kb TS data per interrupt
-
-
-https://patchwork.kernel.org/patch/107036/
-
-With VDR streaming HDTV into network, generating an interrupt once per 16kb,
-implemented in this patch, seems to support more robust throughput with HDTV.
-
-Fix leaking almost 64kb data from the previous TS after changing the TS.
-One effect of the old version was, that the DMA transfer and driver's
-DMA buffer access might happen at the same time - a race condition.
-
-Signed-off-by: Marko M. Ristola <marko.ristola@kolumbus.fi>
-
-Regards,
-Marko Ristola
-
-diff --git a/drivers/media/dvb/mantis/hopper_cards.c b/drivers/media/dvb/mantis/hopper_cards.c
-index 09e9fc7..3b7e376 100644
---- a/drivers/media/dvb/mantis/hopper_cards.c
-+++ b/drivers/media/dvb/mantis/hopper_cards.c
-@@ -126,7 +126,7 @@ static irqreturn_t hopper_irq_handler(int irq, void *dev_id)
-  	}
-  	if (stat & MANTIS_INT_RISCI) {
-  		dprintk(MANTIS_DEBUG, 0, "<%s>", label[8]);
--		mantis->finished_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
-+		mantis->busy_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
-  		tasklet_schedule(&mantis->tasklet);
-  	}
-  	if (stat & MANTIS_INT_I2CDONE) {
-diff --git a/drivers/media/dvb/mantis/mantis_cards.c b/drivers/media/dvb/mantis/mantis_cards.c
-index cf4b39f..8f048d5 100644
---- a/drivers/media/dvb/mantis/mantis_cards.c
-+++ b/drivers/media/dvb/mantis/mantis_cards.c
-@@ -134,7 +134,7 @@ static irqreturn_t mantis_irq_handler(int irq, void *dev_id)
-  	}
-  	if (stat & MANTIS_INT_RISCI) {
-  		dprintk(MANTIS_DEBUG, 0, "<%s>", label[8]);
--		mantis->finished_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
-+		mantis->busy_block = (stat & MANTIS_INT_RISCSTAT) >> 28;
-  		tasklet_schedule(&mantis->tasklet);
-  	}
-  	if (stat & MANTIS_INT_I2CDONE) {
-diff --git a/drivers/media/dvb/mantis/mantis_common.h b/drivers/media/dvb/mantis/mantis_common.h
-index d0b645a..23b23b7 100644
---- a/drivers/media/dvb/mantis/mantis_common.h
-+++ b/drivers/media/dvb/mantis/mantis_common.h
-@@ -122,11 +122,8 @@ struct mantis_pci {
-  	unsigned int		num;
-  
-  	/*	RISC Core		*/
--	u32			finished_block;
-+	u32			busy_block;
-  	u32			last_block;
--	u32			line_bytes;
--	u32			line_count;
--	u32			risc_pos;
-  	u8			*buf_cpu;
-  	dma_addr_t		buf_dma;
-  	u32			*risc_cpu;
-diff --git a/drivers/media/dvb/mantis/mantis_dma.c b/drivers/media/dvb/mantis/mantis_dma.c
-index 46202a4..c61ca7d 100644
---- a/drivers/media/dvb/mantis/mantis_dma.c
-+++ b/drivers/media/dvb/mantis/mantis_dma.c
-@@ -43,13 +43,17 @@
-  #define RISC_IRQ		(0x01 << 24)
-  
-  #define RISC_STATUS(status)	((((~status) & 0x0f) << 20) | ((status & 0x0f) << 16))
--#define RISC_FLUSH()		(mantis->risc_pos = 0)
--#define RISC_INSTR(opcode)	(mantis->risc_cpu[mantis->risc_pos++] = cpu_to_le32(opcode))
-+#define RISC_FLUSH(risc_pos)		(risc_pos = 0)
-+#define RISC_INSTR(risc_pos, opcode)	(mantis->risc_cpu[risc_pos++] = cpu_to_le32(opcode))
-  
-  #define MANTIS_BUF_SIZE		(64 * 1024)
--#define MANTIS_BLOCK_BYTES	(MANTIS_BUF_SIZE >> 4)
--#define MANTIS_BLOCK_COUNT	(1 << 4)
--#define MANTIS_RISC_SIZE	PAGE_SIZE
-+#define MANTIS_BLOCK_BYTES      (MANTIS_BUF_SIZE / 4)
-+#define MANTIS_DMA_TR_BYTES     (2 * 1024) /* upper limit: 4095 bytes. */
-+#define MANTIS_BLOCK_COUNT	(MANTIS_BUF_SIZE / MANTIS_BLOCK_BYTES)
-+
-+#define MANTIS_DMA_TR_UNITS     (MANTIS_BLOCK_BYTES / MANTIS_DMA_TR_BYTES)
-+/* MANTIS_BUF_SIZE / MANTIS_DMA_TR_UNITS must not exceed MANTIS_RISC_SIZE (4k RISC cmd buffer) */
-+#define MANTIS_RISC_SIZE	PAGE_SIZE /* RISC program must fit here. */
-  
-  int mantis_dma_exit(struct mantis_pci *mantis)
-  {
-@@ -124,27 +128,6 @@ err:
-  	return -ENOMEM;
-  }
-  
--static inline int mantis_calc_lines(struct mantis_pci *mantis)
--{
--	mantis->line_bytes = MANTIS_BLOCK_BYTES;
--	mantis->line_count = MANTIS_BLOCK_COUNT;
--
--	while (mantis->line_bytes > 4095) {
--		mantis->line_bytes >>= 1;
--		mantis->line_count <<= 1;
--	}
--
--	dprintk(MANTIS_DEBUG, 1, "Mantis RISC block bytes=[%d], line bytes=[%d], line count=[%d]",
--		MANTIS_BLOCK_BYTES, mantis->line_bytes, mantis->line_count);
--
--	if (mantis->line_count > 255) {
--		dprintk(MANTIS_ERROR, 1, "Buffer size error");
--		return -EINVAL;
--	}
--
--	return 0;
--}
--
-  int mantis_dma_init(struct mantis_pci *mantis)
-  {
-  	int err = 0;
-@@ -158,12 +141,6 @@ int mantis_dma_init(struct mantis_pci *mantis)
-  
-  		goto err;
-  	}
--	err = mantis_calc_lines(mantis);
--	if (err < 0) {
--		dprintk(MANTIS_ERROR, 1, "Mantis calc lines failed");
--
--		goto err;
--	}
-  
-  	return 0;
-  err:
-@@ -174,31 +151,32 @@ EXPORT_SYMBOL_GPL(mantis_dma_init);
-  static inline void mantis_risc_program(struct mantis_pci *mantis)
-  {
-  	u32 buf_pos = 0;
--	u32 line;
-+	u32 line, step;
-+	u32 risc_pos;
-  
-  	dprintk(MANTIS_DEBUG, 1, "Mantis create RISC program");
--	RISC_FLUSH();
--
--	dprintk(MANTIS_DEBUG, 1, "risc len lines %u, bytes per line %u",
--		mantis->line_count, mantis->line_bytes);
--
--	for (line = 0; line < mantis->line_count; line++) {
--		dprintk(MANTIS_DEBUG, 1, "RISC PROG line=[%d]", line);
--		if (!(buf_pos % MANTIS_BLOCK_BYTES)) {
--			RISC_INSTR(RISC_WRITE	|
--				   RISC_IRQ	|
--				   RISC_STATUS(((buf_pos / MANTIS_BLOCK_BYTES) +
--				   (MANTIS_BLOCK_COUNT - 1)) %
--				    MANTIS_BLOCK_COUNT) |
--				    mantis->line_bytes);
--		} else {
--			RISC_INSTR(RISC_WRITE	| mantis->line_bytes);
+diff --git a/drivers/media/dvb/dvb-usb/mxl111sf-tuner.c b/drivers/media/dvb/dvb-usb/mxl111sf-tuner.c
+index 3bfc6d8..aeac7a9 100644
+--- a/drivers/media/dvb/dvb-usb/mxl111sf-tuner.c
++++ b/drivers/media/dvb/dvb-usb/mxl111sf-tuner.c
+@@ -275,52 +275,50 @@ static int mxl1x1sf_tuner_loop_thru_ctrl(struct mxl111sf_tuner_state *state,
+ static int mxl111sf_tuner_set_params(struct dvb_frontend *fe,
+ 				     struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 delsys  = c->delivery_system;
+ 	struct mxl111sf_tuner_state *state = fe->tuner_priv;
+ 	int ret;
+ 	u8 bw;
++	u32 band = BANDWIDTH_6_MHZ;
+ 
+ 	mxl_dbg("()");
+ 
+-	if (fe->ops.info.type == FE_ATSC) {
+-		switch (params->u.vsb.modulation) {
+-		case VSB_8:
+-		case VSB_16:
+-			bw = 0; /* ATSC */
+-			break;
+-		case QAM_64:
+-		case QAM_256:
+-			bw = 1; /* US CABLE */
+-			break;
+-		default:
+-			err("%s: modulation not set!", __func__);
+-			return -EINVAL;
 -		}
--		RISC_INSTR(mantis->buf_dma + buf_pos);
--		buf_pos += mantis->line_bytes;
-+	RISC_FLUSH(risc_pos);
-+
-+	dprintk(MANTIS_DEBUG, 1, "risc len lines %u, bytes per line %u, bytes per DMA tr %u",
-+		MANTIS_BLOCK_COUNT, MANTIS_BLOCK_BYTES, MANTIS_DMA_TR_BYTES);
-+
-+	for (line = 0; line < MANTIS_BLOCK_COUNT; line++) {
-+		for (step = 0; step < MANTIS_DMA_TR_UNITS; step++) {
-+			dprintk(MANTIS_DEBUG, 1, "RISC PROG line=[%d], step=[%d]", line, step);
-+			if (step == 0) {
-+				RISC_INSTR(risc_pos, RISC_WRITE	|
-+					   RISC_IRQ	|
-+					   RISC_STATUS(line) |
-+					   MANTIS_DMA_TR_BYTES);
-+			} else {
-+				RISC_INSTR(risc_pos, RISC_WRITE | MANTIS_DMA_TR_BYTES);
-+			}
-+			RISC_INSTR(risc_pos, mantis->buf_dma + buf_pos);
-+			buf_pos += MANTIS_DMA_TR_BYTES;
-+		  }
-  	}
--	RISC_INSTR(RISC_JUMP);
--	RISC_INSTR(mantis->risc_dma);
-+	RISC_INSTR(risc_pos, RISC_JUMP);
-+	RISC_INSTR(risc_pos, mantis->risc_dma);
-  }
-  
-  void mantis_dma_start(struct mantis_pci *mantis)
-@@ -210,7 +188,7 @@ void mantis_dma_start(struct mantis_pci *mantis)
-  	mmwrite(mmread(MANTIS_GPIF_ADDR) | MANTIS_GPIF_HIFRDWRN, MANTIS_GPIF_ADDR);
-  
-  	mmwrite(0, MANTIS_DMA_CTL);
--	mantis->last_block = mantis->finished_block = 0;
-+	mantis->last_block = mantis->busy_block = 0;
-  
-  	mmwrite(mmread(MANTIS_INT_MASK) | MANTIS_INT_RISCI, MANTIS_INT_MASK);
-  
-@@ -245,9 +223,9 @@ void mantis_dma_xfer(unsigned long data)
-  	struct mantis_pci *mantis = (struct mantis_pci *) data;
-  	struct mantis_hwconfig *config = mantis->hwconfig;
-  
--	while (mantis->last_block != mantis->finished_block) {
-+	while (mantis->last_block != mantis->busy_block) {
-  		dprintk(MANTIS_DEBUG, 1, "last block=[%d] finished block=[%d]",
--			mantis->last_block, mantis->finished_block);
-+			mantis->last_block, mantis->busy_block);
-  
-  		(config->ts_size ? dvb_dmx_swfilter_204 : dvb_dmx_swfilter)
-  		(&mantis->demux, &mantis->buf_cpu[mantis->last_block * MANTIS_BLOCK_BYTES], MANTIS_BLOCK_BYTES);
+-	} else if (fe->ops.info.type == FE_OFDM) {
+-		switch (params->u.ofdm.bandwidth) {
+-		case BANDWIDTH_6_MHZ:
++	switch (delsys) {
++	case SYS_ATSC:
++		bw = 0; /* ATSC */
++		break;
++	case SYS_DVBC_ANNEX_B:
++		bw = 1; /* US CABLE */
++		break;
++	case SYS_DVBT:
++		switch (c->bandwidth_hz) {
++		case 6000000:
+ 			bw = 6;
+ 			break;
+-		case BANDWIDTH_7_MHZ:
++		case 7000000:
+ 			bw = 7;
++			band = BANDWIDTH_7_MHZ;
+ 			break;
+-		case BANDWIDTH_8_MHZ:
++		case 8000000:
+ 			bw = 8;
++			band = BANDWIDTH_8_MHZ;
+ 			break;
+ 		default:
+ 			err("%s: bandwidth not set!", __func__);
+ 			return -EINVAL;
+ 		}
+-	} else {
++		break;
++	default:
+ 		err("%s: modulation type not supported!", __func__);
+ 		return -EINVAL;
+ 	}
+-	ret = mxl1x1sf_tune_rf(fe, params->frequency, bw);
++	ret = mxl1x1sf_tune_rf(fe, c->frequency, bw);
+ 	if (mxl_fail(ret))
+ 		goto fail;
+ 
+-	state->frequency = params->frequency;
+-	state->bandwidth = (fe->ops.info.type == FE_OFDM) ?
+-		params->u.ofdm.bandwidth : 0;
++	state->frequency = c->frequency;
++	state->bandwidth = band;
+ fail:
+ 	return ret;
+ }
+-- 
+1.7.8.352.g876a6
 
