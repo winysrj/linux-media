@@ -1,152 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:54942 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752565Ab1LLMIZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 07:08:25 -0500
-From: "HeungJun, Kim" <riverful.kim@samsung.com>
-To: 'Ming Lei' <ming.lei@canonical.com>,
-	'Sylwester Nawrocki' <snjw23@gmail.com>
-Cc: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
- <1322838172-11149-7-git-send-email-ming.lei@canonical.com>
- <4EDD3DEE.6060506@gmail.com>
- <CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
- <4EDE90A3.7050900@gmail.com>
- <CACVXFVN=-0OQ_Tz+HznDug4baLmLNjxVE21gv6CGFoU+hzCtPQ@mail.gmail.com>
- <4EE14787.8090509@gmail.com>
- <CACVXFVNV3TLNvPMU4oj6X+Yj5wqhNvcU_ZpyCd1wMm8B2azT4w@mail.gmail.com>
- <4EE4EBCF.8000202@gmail.com>
- <CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
-In-reply-to: <CACVXFVNjawdPEYHoXNxc3U2-H8f4VVF_+2HDruNGQwg16M8njA@mail.gmail.com>
-Subject: RE: [RFC PATCH v1 6/7] media: video: introduce face detection driver
- module
-Date: Mon, 12 Dec 2011 21:08:23 +0900
-Message-id: <000d01ccb8c6$bf235160$3d69f420$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mx1.redhat.com ([209.132.183.28]:17618 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755239Ab1LXPvF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:05 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5P3030826
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 08/47] [media] mt2266: use DVBv5 parameters for set_params()
+Date: Sat, 24 Dec 2011 13:50:13 -0200
+Message-Id: <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ming,
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-It's maybe late, but I want to suggest one thing about FD API.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mt2266.c |   25 ++++++++++++++-----------
+ 1 files changed, 14 insertions(+), 11 deletions(-)
 
-This OMAP FD block looks detection ability of just face.
-But, It's possible to occur another device which can detect
-specific "object" or "patterns". Moreover, this API can expand
-"object recognition" area. So, I think it's good to change the API name
-like "v4l2_recog".
-
-Actually, I'm preparing similar control class for mainline with m5mols
-camera sensor driver. The m5mols camera sensor has the function about
-"face detection". But, I has experienced about Robot Recognition, and I
-remember the image processing chip which can detect spefic "pattern".
-So, I hesitated naming the API(control or ioctl whatever) with "face".
-It can be possible to provide just "object" or "pattern", not face.
-Even user library on windows, there is famous "OpenCV". And this is also
-support not only "face", but also "object".
-
-The function of OMAP FDIF looks like m5mols ISP's one.
-please understand I don't have experience about OMAP AP. But, I can tell
-you it's better to use the name "object recognition", not the "face detection",
-for any other device or driver.
-
-In a few days, I'll share the CIDs I have thought for m5mols driver.
-And, I hope to discuss about this with OMAP FDIF.
-
-Thank you.
-
-Regards,
-Heungjun Kim
-
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Ming Lei
-> Sent: Monday, December 12, 2011 6:50 PM
-> To: Sylwester Nawrocki
-> Cc: linux-omap@vger.kernel.org; linux-arm-kernel@lists.infradead.org; linux-
-> kernel@vger.kernel.org; linux-media@vger.kernel.org
-> Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
-> module
-> 
-> Hi,
-> 
-> On Mon, Dec 12, 2011 at 1:43 AM, Sylwester Nawrocki <snjw23@gmail.com>
-> 
-> >> For OMAP4 FD, it is not needed to include FD into MC framework since a
-> >> intermediate buffer is always required. If your HW doesn't belong to this
-> >> case, what is the output of your HW FD in the link? Also sounds FD results
-> >> may not be needed at all for use space application in the case.
-> >
-> > The result data is similar to OMAP4 one, plus a few other attributes.
-> > User buffers may be filled by other than FD device driver.
-> 
-> OK.
-> 
-> 
-> >> Could you provide some practical use cases about these?
-> >
-> > As above, and any device with a camera that controls something and makes
-> > decision according to presence of human face in his view.
-> 
-> Sounds a reasonable case, :-)
-> 
-> 
-> >> If FD result is associated with a frame, how can user space get the frame
-> seq
-> >> if no v4l2 buffer is involved? Without a frame sequence, it is a bit
-> >> difficult to retrieve FD results from user space.
-> >
-> > If you pass image data in memory buffers from user space, yes, it could be
-> > impossible.
-> 
-> It is easy to get the frame sequence from v4l2_buffer for the case too, :-)
-> 
-> >
-> > Not really, still v4l2_buffer may be used by other (sub)driver within same
-> video
-> > processing pipeline.
-> 
-> OK.
-> 
-> A related question: how can we make one application to support the two kinds
-of
-> devices(input from user space data as OMAP4, input from SoC bus as Samsung)
-> at the same time? Maybe some capability info is to be exported to user space?
-> or other suggestions?
-> 
-> And will your Samsung FD HW support to detect faces from memory? or just only
-> detect from SoC bus?
-> 
-> 
-> > It will be included in the FD result... or in a dedicated v4l2 event data
-> structure.
-> > More important, at the end of the day, we'll be getting buffers with image
-> data
-> > at some stage of a video pipeline, which would contain same frame identifier
-> > (I think we can ignore v4l2_buffer.field for FD purpose).
-> 
-> OK, I will associate FD result with frame identifier, and not invent a
-> dedicated v4l2 event for query frame seq now until a specific requirement
-> for it is proposed.
-> 
-> I will convert/integrate recent discussions into patches of v2 for further
-> review, and sub device support will be provided. But before starting to do it,
-> I am still not clear how to integrate FD into MC framework. I understand FD
-> sub device is only a media entity, so how can FD sub device find the media
-> device(struct media_device)?  or just needn't to care about it now?
-> 
-> 
-> thanks,
-> --
-> Ming Lei
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/common/tuners/mt2266.c b/drivers/media/common/tuners/mt2266.c
+index 25a8ea3..dd883d7 100644
+--- a/drivers/media/common/tuners/mt2266.c
++++ b/drivers/media/common/tuners/mt2266.c
+@@ -124,6 +124,7 @@ static u8 mt2266_vhf[] = { 0x1d, 0xfe, 0x00, 0x00, 0xb4, 0x03, 0xa5, 0xa5,
+ 
+ static int mt2266_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct mt2266_priv *priv;
+ 	int ret=0;
+ 	u32 freq;
+@@ -135,30 +136,32 @@ static int mt2266_set_params(struct dvb_frontend *fe, struct dvb_frontend_parame
+ 
+ 	priv = fe->tuner_priv;
+ 
+-	freq = params->frequency / 1000; // Hz -> kHz
++	freq = priv->frequency / 1000; /* Hz -> kHz */
+ 	if (freq < 470000 && freq > 230000)
+ 		return -EINVAL; /* Gap between VHF and UHF bands */
+-	priv->bandwidth = (fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
+-	priv->frequency = freq * 1000;
+ 
++	priv->frequency = c->frequency;
+ 	tune = 2 * freq * (8192/16) / (FREF/16);
+ 	band = (freq < 300000) ? MT2266_VHF : MT2266_UHF;
+ 	if (band == MT2266_VHF)
+ 		tune *= 2;
+ 
+-	switch (params->u.ofdm.bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	switch (c->bandwidth_hz) {
++	case 6000000:
+ 		mt2266_writeregs(priv, mt2266_init_6mhz,
+ 				 sizeof(mt2266_init_6mhz));
++		priv->bandwidth = BANDWIDTH_6_MHZ;
+ 		break;
+-	case BANDWIDTH_7_MHZ:
+-		mt2266_writeregs(priv, mt2266_init_7mhz,
+-				 sizeof(mt2266_init_7mhz));
+-		break;
+-	case BANDWIDTH_8_MHZ:
+-	default:
++	case 8000000:
+ 		mt2266_writeregs(priv, mt2266_init_8mhz,
+ 				 sizeof(mt2266_init_8mhz));
++		priv->bandwidth = BANDWIDTH_8_MHZ;
++		break;
++	case 7000000:
++	default:
++		mt2266_writeregs(priv, mt2266_init_7mhz,
++				 sizeof(mt2266_init_7mhz));
++		priv->bandwidth = BANDWIDTH_7_MHZ;
+ 		break;
+ 	}
+ 
+-- 
+1.7.8.352.g876a6
 
