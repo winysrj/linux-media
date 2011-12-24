@@ -1,93 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47429 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752259Ab1K3XtO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 18:49:14 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: Using MT9P031 digital sensor
-Date: Thu, 1 Dec 2011 00:49:20 +0100
-Cc: Javier Martinez Canillas <martinez.javier@gmail.com>,
+Received: from mx1.redhat.com ([209.132.183.28]:33521 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755516Ab1LXPvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:07 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp7Yq017064
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4EB04001.9050803@mlbassoc.com> <4ED6445A.2070908@mlbassoc.com> <4ED66147.8090109@mlbassoc.com>
-In-Reply-To: <4ED66147.8090109@mlbassoc.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112010049.20499.laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v4 25/47] [media] tua6100: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:30 -0200
+Message-Id: <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
-On Wednesday 30 November 2011 18:00:55 Gary Thomas wrote:
-> On 2011-11-30 07:57, Gary Thomas wrote:
-> > On 2011-11-30 07:30, Laurent Pinchart wrote:
-> >> On Wednesday 30 November 2011 15:13:18 Gary Thomas wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/tua6100.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-[snip]
-
-> >>> This sort of works(*), but I'm still having issues (at least I can move
-> >>> frames!) When I configure the pipeline like this:
-> >>> media-ctl -r
-> >>> media-ctl -l '"mt9p031 3-005d":0->"OMAP3 ISP CCDC":0[1]'
-> >>> media-ctl -l '"OMAP3 ISP CCDC":2->"OMAP3 ISP preview":0[1]'
-> >>> media-ctl -l '"OMAP3 ISP preview":1->"OMAP3 ISP resizer":0[1]'
-> >>> media-ctl -l '"OMAP3 ISP resizer":1->"OMAP3 ISP resizer output":0[1]'
-> >>> media-ctl -f '"mt9p031 3-005d":0[SGRBG12 2592x1944]'
-> >>> media-ctl -f '"OMAP3 ISP CCDC":0 [SGRBG12 2592x1944]'
-> >>> media-ctl -f '"OMAP3 ISP CCDC":1 [SGRBG10 2592x1944]'
-> >>> media-ctl -f '"OMAP3 ISP preview":0 [SGRBG10 2592x1943]'
-> >>> media-ctl -f '"OMAP3 ISP resizer":0 [YUYV 2574x1935]'
-> >>> media-ctl -f '"OMAP3 ISP resizer":1 [YUYV 660x496]'
-> >>> the resulting frames are 666624 bytes each instead of 654720
-> >>> 
-> >>> When I tried to grab from the previewer, the frames were 9969120
-> >>> instead of 9961380
-> >>> 
-> >>> Any ideas what resolution is actually being moved through?
-> >> 
-> >> Because the OMAP3 ISP has alignment requirements. Both the preview
-> >> engine and the resizer output line lenghts must be multiple of 32
-> >> bytes. The driver adds padding at end of lines when the output width
-> >> isn't a multiple of 16 pixels.
-> > 
-> > Any guess which resolution(s) I should change and to what?
-> 
-> I changed the resizer output to be 672x496 and was able to capture video
-> using ffmpeg.
-> 
-> I don't know what to expect with this sensor (I've never seen it in use
-> before), but the image seems to have color balance issues - it's awash in
-> a green hue.  It may be the poor lighting in my office...  I did try the 9
-> test patterns which I was able to select via
->    # v4l2-ctl -d /dev/v4l-subdev8 --set-ctrl=test_pattern=N
-> and these looked OK.  You can see them at
-> http://www.mlbassoc.com/misc/mt9p031_images/
-
-Neither the sensor nor the OMAP3 ISP implement automatic white balance. The 
-ISP preview engine can be used to modify the white balance, and the statistics 
-engine can be used to extract data useful to compute the white balance 
-parameters, but linking the two needs to be performed in userspace.
-
-> >> So this means that your original problem comes from the BT656 patches.
-> > 
-> > Yes, it does look that way. Now that I have something that moves data, I
-> > can compare how the ISP is setup between the two versions and come up
-> > with a fix.
-> 
-> This is next on my plate, but it may take a while to figure it out.
-> 
-> Is there some recent tree which will have this digital (mt9p031) part
-> working that also has the BT656 support in it?  I'd like to try that
-> rather than spending time figuring out why an older tree isn't working.
-
-No, I haven't had time to create one, sorry. It shouldn't be difficult to 
-rebase the BT656 patches on top of the latest OMAP3 ISP and MT9P031 code.
-
+diff --git a/drivers/media/dvb/frontends/tua6100.c b/drivers/media/dvb/frontends/tua6100.c
+index bcb95c2..621d750 100644
+--- a/drivers/media/dvb/frontends/tua6100.c
++++ b/drivers/media/dvb/frontends/tua6100.c
+@@ -70,6 +70,7 @@ static int tua6100_sleep(struct dvb_frontend *fe)
+ static int tua6100_set_params(struct dvb_frontend *fe,
+ 			      struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct tua6100_priv *priv = fe->tuner_priv;
+ 	u32 div;
+ 	u32 prediv;
+@@ -85,36 +86,36 @@ static int tua6100_set_params(struct dvb_frontend *fe,
+ #define _ri 4000000
+ 
+ 	// setup register 0
+-	if (params->frequency < 2000000) {
++	if (c->frequency < 2000000) {
+ 		reg0[1] = 0x03;
+ 	} else {
+ 		reg0[1] = 0x07;
+ 	}
+ 
+ 	// setup register 1
+-	if (params->frequency < 1630000) {
++	if (c->frequency < 1630000) {
+ 		reg1[1] = 0x2c;
+ 	} else {
+ 		reg1[1] = 0x0c;
+ 	}
+ 	if (_P == 64)
+ 		reg1[1] |= 0x40;
+-	if (params->frequency >= 1525000)
++	if (c->frequency >= 1525000)
+ 		reg1[1] |= 0x80;
+ 
+ 	// register 2
+ 	reg2[1] = (_R >> 8) & 0x03;
+ 	reg2[2] = _R;
+-	if (params->frequency < 1455000) {
++	if (c->frequency < 1455000) {
+ 		reg2[1] |= 0x1c;
+-	} else if (params->frequency < 1630000) {
++	} else if (c->frequency < 1630000) {
+ 		reg2[1] |= 0x0c;
+ 	} else {
+ 		reg2[1] |= 0x1c;
+ 	}
+ 
+-	// The N divisor ratio (note: params->frequency is in kHz, but we need it in Hz)
+-	prediv = (params->frequency * _R) / (_ri / 1000);
++	// The N divisor ratio (note: c->frequency is in kHz, but we need it in Hz)
++	prediv = (c->frequency * _R) / (_ri / 1000);
+ 	div = prediv / _P;
+ 	reg1[1] |= (div >> 9) & 0x03;
+ 	reg1[2] = div >> 1;
 -- 
-Regards,
+1.7.8.352.g876a6
 
-Laurent Pinchart
