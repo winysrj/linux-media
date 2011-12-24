@@ -1,115 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:58627 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752459Ab1LCAI7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 19:08:59 -0500
-Date: Sat, 3 Dec 2011 02:08:54 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Sebastian =?iso-8859-1?Q?Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-Message-ID: <20111203000854.GP29805@valkosipuli.localdomain>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED8C61C.3060404@redhat.com>
- <20111202135748.GO29805@valkosipuli.localdomain>
- <006b01ccb108$d3eafff0$7bc0ffd0$%debski@samsung.com>
- <4ED905E0.5020706@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <4ED905E0.5020706@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37850 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755458Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:06 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp6FE017060
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:06 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 38/47] [media] dvb-bt8xx: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:43 -0200
+Message-Id: <1324741852-26138-39-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-38-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-33-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-34-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-35-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-36-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-37-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-38-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-On Fri, Dec 02, 2011 at 03:07:44PM -0200, Mauro Carvalho Chehab wrote:
-> >>I'm not fully certain it is always possible to find out the largest stream
-> >>resolution. I'd like an answer from someone knowing more about video codecs
-> >>than I do.
-> >
-> >That is one thing. Also, I don't think that allocating N buffers each of
-> >1920x1080 size up front is a good idea. In embedded systems the memory can
-> >be scarce (although recently this is changing and we see smart phones with
-> >1 GB of ram). It is better to allow application to use the extra memory when
-> >possible, if the memory is required by the hardware then it can be reclaimed.
-> 
-> It depends on how much memory you have at the device. API's should be designed
-> to allow multiple usecases. I'm sure that dedicated system (either embedded
-> or not) meant to work only streaming video will need to have enough memory to
-> work with the worse case. If there are any requirements for such server to not
-> stop streaming if the resolution changes, the right thing to do is to allocate
-> N buffers of 1920x1080.
-> 
-> Also, as you've said, even on smart phones, devices new devices now can have
-> multiple cores, GB's of ram, and, soon enough, likely 64 bits kernels.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/bt8xx/dvb-bt8xx.c |   31 ++++++++++++++++---------------
+ 1 files changed, 16 insertions(+), 15 deletions(-)
 
-Some devices may, but they then to be high end devices. Others are tighter
-on memory and even if there is plenty, one can seldom just go and waste it.
-As you also said, we must take different use cases into account.
-
-> Let's not limit the API due to a current constraint that may not be true on a
-> near future.
-> 
-> What I'm saying is that it should be an option for the driver to require
-> STREAMOFF in order to change buffers size, and not a mandatory requirement.
-
-Let's assume the user does not wish that the streaming is stopped at format
-change if the buffers are big enough for the new format. The user does get a
-buffer thelling the format has changed, and requests a new format using G_FMT.
-In between the two IOCTLs time has passed and the format may have changed
-again. How would we avoid that from happening, unless we stop the stream?
-
-The underlying root cause for the problem is that the format is not bound to
-buffers.
-
-I also do not see it as a problem to require streaö stop and start. Changing
-resolution during streaming is anyway something any current application
-likely hasn't prepared for, so we are not breaking anything. Quite contrary,
-actually: applicatuons now knowing the flag would only able to dequeue junk
-after receiving it the first time.
-
-...
-
-> >>The user space still wants to be able to show these buffers, so a new flag
-> >>would likely be required --- V4L2_BUF_FLAG_READ_ONLY, for example.
-> >
-> >Currently it is done in the following way. On the CAPTURE side you have a
-> >total of N buffers. Out of them K are necessary for decoding (K = 1 + L).
-> >L is the number of buffers necessary for reference lookup and the single
-> >buffer is required as the destination for new frame. If less than K buffers
-> >are queued then no processing is done. The buffers that have been dequeued
-> >should be ok with the application changing them. However if you request some
-> >arbitrary display delay you may get buffers that still could be used as
-> >reference. Thus I agree with Sakari that the V4L2_BUF_FLAG_READ_ONLY flag
-> >should be introduced.
-> >
-> >However I see one problem with such flag. Let's assume that we dequeue a
-> >buffer. It is still needed as reference, thus it has the READ_ONLY flag
-> >set. Then we dequeue another buffer. Ditto for that buffer. But after we
-> >have dequeued the second buffer the first can be modified. How to handle this?
-> >
-> >This flag could be used as a hint for the application saying that it is risky
-> >to modify those buffers.
-> 
-> As I said before, a dqueued buffer is assomed to be a buffer where the Kernel
-> won't use it anymore. If kernel still needs it, just don't dequeue it yet.
-> Anything different than that may cause memory corruption, cache coherency
-> issues, etc.
-
-If we do't dequeue, there will be a pause in the video which is played on a
-TV. This is highly undesirable. The flag is simply telling the user that the
-buffer is still being used by the hardware but only for read access.
-
-Certain other interfaces support this kind of behaviour, which is specific
-to codec devices.
-
+diff --git a/drivers/media/dvb/bt8xx/dvb-bt8xx.c b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+index 521d691..5948601 100644
+--- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
++++ b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+@@ -193,11 +193,10 @@ static struct zl10353_config thomson_dtt7579_zl10353_config = {
+ 
+ static int cx24108_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
+ {
+-	u32 freq = params->frequency;
+-
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 freq = c->frequency;
+ 	int i, a, n, pump;
+ 	u32 band, pll;
+-
+ 	u32 osci[]={950000,1019000,1075000,1178000,1296000,1432000,
+ 		1576000,1718000,1856000,2036000,2150000};
+ 	u32 bandsel[]={0,0x00020000,0x00040000,0x00100800,0x00101000,
+@@ -269,29 +268,30 @@ static struct cx24110_config pctvsat_config = {
+ 
+ static int microtune_mt7202dtf_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_bt8xx_card *card = (struct dvb_bt8xx_card *) fe->dvb->priv;
+ 	u8 cfg, cpump, band_select;
+ 	u8 data[4];
+ 	u32 div;
+ 	struct i2c_msg msg = { .addr = 0x60, .flags = 0, .buf = data, .len = sizeof(data) };
+ 
+-	div = (36000000 + params->frequency + 83333) / 166666;
++	div = (36000000 + c->frequency + 83333) / 166666;
+ 	cfg = 0x88;
+ 
+-	if (params->frequency < 175000000)
++	if (c->frequency < 175000000)
+ 		cpump = 2;
+-	else if (params->frequency < 390000000)
++	else if (c->frequency < 390000000)
+ 		cpump = 1;
+-	else if (params->frequency < 470000000)
++	else if (c->frequency < 470000000)
+ 		cpump = 2;
+-	else if (params->frequency < 750000000)
++	else if (c->frequency < 750000000)
+ 		cpump = 2;
+ 	else
+ 		cpump = 3;
+ 
+-	if (params->frequency < 175000000)
++	if (c->frequency < 175000000)
+ 		band_select = 0x0e;
+-	else if (params->frequency < 470000000)
++	else if (c->frequency < 470000000)
+ 		band_select = 0x05;
+ 	else
+ 		band_select = 0x03;
+@@ -463,23 +463,24 @@ static struct or51211_config or51211_config = {
+ 
+ static int vp3021_alps_tded4_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dvb_bt8xx_card *card = (struct dvb_bt8xx_card *) fe->dvb->priv;
+ 	u8 buf[4];
+ 	u32 div;
+ 	struct i2c_msg msg = { .addr = 0x60, .flags = 0, .buf = buf, .len = sizeof(buf) };
+ 
+-	div = (params->frequency + 36166667) / 166667;
++	div = (c->frequency + 36166667) / 166667;
+ 
+ 	buf[0] = (div >> 8) & 0x7F;
+ 	buf[1] = div & 0xFF;
+ 	buf[2] = 0x85;
+-	if ((params->frequency >= 47000000) && (params->frequency < 153000000))
++	if ((c->frequency >= 47000000) && (c->frequency < 153000000))
+ 		buf[3] = 0x01;
+-	else if ((params->frequency >= 153000000) && (params->frequency < 430000000))
++	else if ((c->frequency >= 153000000) && (c->frequency < 430000000))
+ 		buf[3] = 0x02;
+-	else if ((params->frequency >= 430000000) && (params->frequency < 824000000))
++	else if ((c->frequency >= 430000000) && (c->frequency < 824000000))
+ 		buf[3] = 0x0C;
+-	else if ((params->frequency >= 824000000) && (params->frequency < 863000000))
++	else if ((c->frequency >= 824000000) && (c->frequency < 863000000))
+ 		buf[3] = 0x8C;
+ 	else
+ 		return -EINVAL;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8.352.g876a6
+
