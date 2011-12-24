@@ -1,154 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:48580 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753659Ab1LVXo4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 18:44:56 -0500
-Received: by iaeh11 with SMTP id h11so14181390iae.19
-        for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 15:44:55 -0800 (PST)
-Date: Thu, 22 Dec 2011 17:44:46 -0600
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Eduard Bloch <blade@debian.org>,
-	Patrick Boettcher <patrick.boettcher@dibcom.fr>,
-	"Igor M. Liplianin" <liplianin@me.by>
-Subject: Re: Add support for new Terratec DVB USB IDs
-Message-ID: <20111222234446.GB10497@elie.Belkin>
-References: <20111222215356.GA4499@rotes76.wohnheim.uni-kl.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20111222215356.GA4499@rotes76.wohnheim.uni-kl.de>
+Received: from mx1.redhat.com ([209.132.183.28]:23610 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755326Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:06 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5mw009938
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 17/47] [media] xc4000: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:22 -0200
+Message-Id: <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner.
 
-Eduard Bloch wrote[1]:
-
-> current revision of the Cinergy S2 USB box from Terratec seems to use
-> another USB-IDs. The manufacturer provides patches at
-> http://linux.terratec.de/tv_en.html and it seems like the only
-> difference is really just the new ID and a couple of init flag changes.
->
-> Their patch is not exactly for the linux-3.x tree but for the current
-> s2-liplianin drivers, OTOH they still look similar enough and porting
-> the patch was straight-forward. I also added the patch for Terratec S7
-> which is not tested yet but shouldn't do any harm.
-[...]
-
-Eduard, meet the LinuxTV project.  linux-media folks, meet Eduard.
-Patch follows.
-
-Eduard: may we have your sign-off?  Please see
-Documentation/SubmittingPatches, section 12 "Sign your work" for what
-this means.
-
-My only other hint is that it would be better to add the new device
-IDs in some logical place in the list near the older ones, instead of
-at the end where it is more likely to collide with other patches in
-flight.  So if rerolling the patches, it might be useful to do that.
-
--- >8 --
-From: Eduard Bloch <blade@debian.org>
-Date: Thu, 22 Dec 2011 19:46:54 +0100
-Subject: new device IDs used by some Terratec USB devices
-
-The changes are extracted from ID patches in tarballs at
-http://linux.terratec.de/tv_en.html (for S7 and Cinergy S2 USB HD), and
-slightly modified to match the state of s2-liplianin tree used in linux-3.x so
-far.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
-Thanks for your work,
-Jonathan
+ drivers/media/common/tuners/xc4000.c |   97 +++++++++++++++-------------------
+ 1 files changed, 42 insertions(+), 55 deletions(-)
 
-[1] http://bugs.debian.org/653026
-
-diff -urd linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/az6027.c linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/az6027.c
---- linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/az6027.c	2011-12-09 17:57:05.000000000 +0100
-+++ linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/az6027.c	2011-12-22 19:42:25.655675023 +0100
-@@ -1090,6 +1090,7 @@
- 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_HDCI_V1) },
- 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_HDCI_V2) },
- 	{ USB_DEVICE(USB_VID_ELGATO, USB_PID_ELGATO_EYETV_SAT) },
-+	{ USB_DEVICE(USB_VID_TERRATEC,  USB_PID_TERRATEC_DVBS2CI_V3) },
- 	{ },
- };
- 
-@@ -1135,7 +1136,7 @@
- 
- 	.i2c_algo         = &az6027_i2c_algo,
- 
--	.num_device_descs = 6,
-+	.num_device_descs = 7,
- 	.devices = {
- 		{
- 			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
-@@ -1161,6 +1162,10 @@
- 			.name = "Elgato EyeTV Sat",
- 			.cold_ids = { &az6027_usb_table[5], NULL },
- 			.warm_ids = { NULL },
-+		}, {
-+			.name = "TERRATEC S7 Rev.3",
-+			.cold_ids = { &az6027_usb_table[6], NULL },
-+			.warm_ids = { NULL },
- 		},
- 		{ NULL },
- 	}
-diff -urd linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/dvb-usb-ids.h linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
---- linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2011-12-09 17:57:05.000000000 +0100
-+++ linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2011-12-22 19:40:02.208934727 +0100
-@@ -319,6 +319,7 @@
- #define USB_PID_AZUREWAVE_AZ6027			0x3275
- #define USB_PID_TERRATEC_DVBS2CI_V1			0x10a4
- #define USB_PID_TERRATEC_DVBS2CI_V2			0x10ac
-+#define USB_PID_TERRATEC_DVBS2CI_V3			0x10b0
- #define USB_PID_TECHNISAT_USB2_HDCI_V1			0x0001
- #define USB_PID_TECHNISAT_USB2_HDCI_V2			0x0002
- #define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2		0x0004
-diff -urd linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/dw2102.c linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/dw2102.c
---- linux-2.6-3.1.5.debian/drivers/media/dvb/dvb-usb/dw2102.c	2011-12-09 17:57:05.000000000 +0100
-+++ linux-2.6-3.1.5/drivers/media/dvb/dvb-usb/dw2102.c	2011-12-22 19:43:16.588387654 +0100
-@@ -1181,6 +1181,14 @@
+diff --git a/drivers/media/common/tuners/xc4000.c b/drivers/media/common/tuners/xc4000.c
+index 634f4d9..e6acc7a 100644
+--- a/drivers/media/common/tuners/xc4000.c
++++ b/drivers/media/common/tuners/xc4000.c
+@@ -1124,80 +1124,67 @@ static void xc_debug_dump(struct xc4000_priv *priv)
+ static int xc4000_set_params(struct dvb_frontend *fe,
+ 	struct dvb_frontend_parameters *params)
  {
- 	u8 obuf[3] = { 0xe, 0x80, 0 };
- 	u8 ibuf[] = { 0 };
-+	
-+	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
-+		err("command 0x0e transfer failed.");
-+
-+	//power on su3000
-+	obuf[0] = 0xe;
-+	obuf[1] = 0x02;
-+	obuf[2] = 1;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 delsys = c->delivery_system;
++	u32 bw = c->bandwidth_hz;
+ 	struct xc4000_priv *priv = fe->tuner_priv;
+ 	unsigned int type;
+ 	int	ret = -EREMOTEIO;
  
- 	if (dvb_usb_generic_rw(d->dev, obuf, 3, ibuf, 1, 0) < 0)
- 		err("command 0x0e transfer failed.");
-@@ -1451,6 +1459,7 @@
- 	{USB_DEVICE(0x9022, USB_PID_TEVII_S480_1)},
- 	{USB_DEVICE(0x9022, USB_PID_TEVII_S480_2)},
- 	{USB_DEVICE(0x1f4d, 0x3100)},
-+	{USB_DEVICE(USB_VID_TERRATEC, 0x00b0)},
- 	{ }
- };
+-	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, params->frequency);
++	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, c->frequency);
  
-@@ -1824,7 +1833,7 @@
- 			}
+ 	mutex_lock(&priv->lock);
+ 
+-	if (fe->ops.info.type == FE_ATSC) {
+-		dprintk(1, "%s() ATSC\n", __func__);
+-		switch (params->u.vsb.modulation) {
+-		case VSB_8:
+-		case VSB_16:
+-			dprintk(1, "%s() VSB modulation\n", __func__);
+-			priv->rf_mode = XC_RF_MODE_AIR;
+-			priv->freq_hz = params->frequency - 1750000;
+-			priv->bandwidth = BANDWIDTH_6_MHZ;
+-			priv->video_standard = XC4000_DTV6;
+-			type = DTV6;
+-			break;
+-		case QAM_64:
+-		case QAM_256:
+-		case QAM_AUTO:
+-			dprintk(1, "%s() QAM modulation\n", __func__);
+-			priv->rf_mode = XC_RF_MODE_CABLE;
+-			priv->freq_hz = params->frequency - 1750000;
+-			priv->bandwidth = BANDWIDTH_6_MHZ;
+-			priv->video_standard = XC4000_DTV6;
+-			type = DTV6;
+-			break;
+-		default:
+-			ret = -EINVAL;
+-			goto fail;
+-		}
+-	} else if (fe->ops.info.type == FE_OFDM) {
++	switch (delsys) {
++	case SYS_ATSC:
++		dprintk(1, "%s() VSB modulation\n", __func__);
++		priv->rf_mode = XC_RF_MODE_AIR;
++		priv->freq_hz = c->frequency - 1750000;
++		priv->bandwidth = BANDWIDTH_6_MHZ;
++		priv->video_standard = XC4000_DTV6;
++		type = DTV6;
++		break;
++	case SYS_DVBC_ANNEX_B:
++		dprintk(1, "%s() QAM modulation\n", __func__);
++		priv->rf_mode = XC_RF_MODE_CABLE;
++		priv->freq_hz = c->frequency - 1750000;
++		priv->bandwidth = BANDWIDTH_6_MHZ;
++		priv->video_standard = XC4000_DTV6;
++		type = DTV6;
++		break;
++	case SYS_DVBT:
++	case SYS_DVBT2:
+ 		dprintk(1, "%s() OFDM\n", __func__);
+-		switch (params->u.ofdm.bandwidth) {
+-		case BANDWIDTH_6_MHZ:
++		if (bw == 0) {
++			if (c->frequency < 400000000) {
++				priv->bandwidth = BANDWIDTH_7_MHZ;
++				priv->freq_hz = c->frequency - 2250000;
++			} else {
++				priv->bandwidth = BANDWIDTH_8_MHZ;
++				priv->freq_hz = c->frequency - 2750000;
++			}
++			priv->video_standard = XC4000_DTV7_8;
++			type = DTV78;
++		} else if (bw <= 6000000) {
+ 			priv->bandwidth = BANDWIDTH_6_MHZ;
+ 			priv->video_standard = XC4000_DTV6;
+-			priv->freq_hz = params->frequency - 1750000;
++			priv->freq_hz = c->frequency - 1750000;
+ 			type = DTV6;
+-			break;
+-		case BANDWIDTH_7_MHZ:
++		} else if (bw <= 7000000) {
+ 			priv->bandwidth = BANDWIDTH_7_MHZ;
+ 			priv->video_standard = XC4000_DTV7;
+-			priv->freq_hz = params->frequency - 2250000;
++			priv->freq_hz = c->frequency - 2250000;
+ 			type = DTV7;
+-			break;
+-		case BANDWIDTH_8_MHZ:
++		} else {
+ 			priv->bandwidth = BANDWIDTH_8_MHZ;
+ 			priv->video_standard = XC4000_DTV8;
+-			priv->freq_hz = params->frequency - 2750000;
++			priv->freq_hz = c->frequency - 2750000;
+ 			type = DTV8;
+-			break;
+-		case BANDWIDTH_AUTO:
+-			if (params->frequency < 400000000) {
+-				priv->bandwidth = BANDWIDTH_7_MHZ;
+-				priv->freq_hz = params->frequency - 2250000;
+-			} else {
+-				priv->bandwidth = BANDWIDTH_8_MHZ;
+-				priv->freq_hz = params->frequency - 2750000;
+-			}
+-			priv->video_standard = XC4000_DTV7_8;
+-			type = DTV78;
+-			break;
+-		default:
+-			printk(KERN_ERR "xc4000 bandwidth not set!\n");
+-			ret = -EINVAL;
+-			goto fail;
  		}
- 	},
--	.num_device_descs = 3,
-+	.num_device_descs = 4,
- 	.devices = {
- 		{ "SU3000HD DVB-S USB2.0",
- 			{ &dw2102_table[10], NULL },
-@@ -1838,6 +1847,10 @@
- 			{ &dw2102_table[14], NULL },
- 			{ NULL },
- 		},
-+		{ "Terratec Cinergy S2 USB HD Rev.2",
-+			{ &dw2102_table[15], NULL },
-+			{ NULL },
-+		},
+ 		priv->rf_mode = XC_RF_MODE_AIR;
+-	} else {
+-		printk(KERN_ERR "xc4000 modulation type not supported!\n");
++		break;
++	default:
++		printk(KERN_ERR "xc4000 delivery system not supported!\n");
+ 		ret = -EINVAL;
+ 		goto fail;
  	}
- };
- 
+-- 
+1.7.8.352.g876a6
+
