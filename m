@@ -1,95 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47429 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:17494 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752995Ab1LFU6g (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Dec 2011 15:58:36 -0500
-Message-ID: <4EDE81EB.80800@redhat.com>
-Date: Tue, 06 Dec 2011 18:58:19 -0200
+	id S1754073Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:06 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp4LQ018657
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:04 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Thierry Reding <thierry.reding@avionic-design.de>
-CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org,
-	Stefan Ringel <linuxtv@stefanringel.de>
-Subject: Re: [PATCH 2/2] [media] tm6000: Fix bad indentation.
-References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de> <1323178776-12305-1-git-send-email-thierry.reding@avionic-design.de> <1323178776-12305-2-git-send-email-thierry.reding@avionic-design.de> <4EDE1F99.6080200@iki.fi> <20111206141316.GB12258@avionic-0098.adnet.avionic-design.de>
-In-Reply-To: <20111206141316.GB12258@avionic-0098.adnet.avionic-design.de>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 03/47] [media] qt1010: remove fake implementaion of get_bandwidth()
+Date: Sat, 24 Dec 2011 13:50:08 -0200
+Message-Id: <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-12-2011 12:13, Thierry Reding wrote:
-> * Antti Palosaari wrote:
->> That question is related to that kind of indentation generally, not
->> only that patch.
->>
->> On 12/06/2011 03:39 PM, Thierry Reding wrote:
->>> Function parameters on subsequent lines should never be aligned with the
->>> function name but rather be indented.
->> [...]
->>>   			usb_set_interface(dev->udev,
->>> -			dev->isoc_in.bInterfaceNumber,
->>> -			0);
->>> +					dev->isoc_in.bInterfaceNumber, 0);
->>
->> Which kind of indentation should be used when function params are
->> slitted to multiple lines?
+This driver implements a fake get_bandwidth() callback. In
+reallity, the tuner driver won't adjust its low-pass
+filter based on a bandwidth, and were just providing a fake
+method for demods to read whatever was "set".
 
-Documentation/CodingStyle currently says:
+This code is useless, as none of the drivers that use
+this tuner seems to require a get_bandwidth() callback.
 
-	Statements longer than 80 columns will be broken into sensible chunks, unless
-	exceeding 80 columns significantly increases readability and does not hide
-	information. Descendants are always substantially shorter than the parent and
-	are placed substantially to the right. The same applies to function headers
-	with a long argument list. However, never break user-visible strings such as
-	printk messages, because that breaks the ability to grep for them.
+While here, convert set_params to use the DVBv5 way to pass
+parameters to tuners.
 
-So, it should be: "substantially to the right" whatever this means.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/qt1010.c      |   16 ++++------------
+ drivers/media/common/tuners/qt1010_priv.h |    1 -
+ 2 files changed, 4 insertions(+), 13 deletions(-)
 
-> I don't think this is documented anywhere and there are no hard rules with
-> regard to this. I guess anything is fine as long as it is indented at all.
->
->> In that case two tabs are used (related to function indentation).
->> example:
->> 	ret= function(param1,
->> 			param2);
->
-> I usually use that because it is my text editor's default.
->
->> Other generally used is only one tab (related to function indentation).
->> example:
->> 	ret= function(param1,
->> 		param2);
->
-> I think that's okay as well.
-
-One tab can hardly be interpreted as "substantially to the right".
-
->
->> And last generally used is multiple tabs + spaces until same
->> location where first param is meet (related to function
->> indentation). I see that bad since use of tabs, with only spaces I
->> see it fine. And this many times leads situation param level are
->> actually different whilst originally idea was to put those same
->> level.
->> example:
->> 	ret= function(param1,
->> 		      param2);
-
-In practice, this is the most commonly used way, from what I noticed, not only
-at drivers/media. A good place to look for commonly used CodingStyle are the
-most used headers at include/linux. As far as I noticed, they all use this
-style.
-
->
-> Whether this works or not always depends on the tab-width. I think most
-> variations are okay here. Some people like to align them, other people
-> don't.
-
-Tab width is always 8, according with the CodingStyle:
-
-	"Tabs are 8 characters, and thus indentations are also 8 characters."
-
-Regards,
-Mauro
+diff --git a/drivers/media/common/tuners/qt1010.c b/drivers/media/common/tuners/qt1010.c
+index cd461c2..bd433ad 100644
+--- a/drivers/media/common/tuners/qt1010.c
++++ b/drivers/media/common/tuners/qt1010.c
+@@ -85,6 +85,7 @@ static void qt1010_dump_regs(struct qt1010_priv *priv)
+ static int qt1010_set_params(struct dvb_frontend *fe,
+ 			     struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct qt1010_priv *priv;
+ 	int err;
+ 	u32 freq, div, mod1, mod2;
+@@ -144,13 +145,11 @@ static int qt1010_set_params(struct dvb_frontend *fe,
+ #define FREQ2  4000000 /* 4 MHz Quartz oscillator in the stick? */
+ 
+ 	priv = fe->tuner_priv;
+-	freq = params->frequency;
++	freq = c->frequency;
+ 	div = (freq + QT1010_OFFSET) / QT1010_STEP;
+ 	freq = (div * QT1010_STEP) - QT1010_OFFSET;
+ 	mod1 = (freq + QT1010_OFFSET) % FREQ1;
+ 	mod2 = (freq + QT1010_OFFSET) % FREQ2;
+-	priv->bandwidth =
+-		(fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
+ 	priv->frequency = freq;
+ 
+ 	if (fe->ops.i2c_gate_ctrl)
+@@ -321,6 +320,7 @@ static int qt1010_init(struct dvb_frontend *fe)
+ {
+ 	struct qt1010_priv *priv = fe->tuner_priv;
+ 	struct dvb_frontend_parameters params;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int err = 0;
+ 	u8 i, tmpval, *valptr = NULL;
+ 
+@@ -397,7 +397,7 @@ static int qt1010_init(struct dvb_frontend *fe)
+ 		if ((err = qt1010_init_meas2(priv, i, &tmpval)))
+ 			return err;
+ 
+-	params.frequency = 545000000; /* Sigmatek DVB-110 545000000 */
++	c->frequency = 545000000; /* Sigmatek DVB-110 545000000 */
+ 				      /* MSI Megasky 580 GL861 533000000 */
+ 	return qt1010_set_params(fe, &params);
+ }
+@@ -416,13 +416,6 @@ static int qt1010_get_frequency(struct dvb_frontend *fe, u32 *frequency)
+ 	return 0;
+ }
+ 
+-static int qt1010_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
+-{
+-	struct qt1010_priv *priv = fe->tuner_priv;
+-	*bandwidth = priv->bandwidth;
+-	return 0;
+-}
+-
+ static int qt1010_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
+ {
+ 	*frequency = 36125000;
+@@ -443,7 +436,6 @@ static const struct dvb_tuner_ops qt1010_tuner_ops = {
+ 
+ 	.set_params    = qt1010_set_params,
+ 	.get_frequency = qt1010_get_frequency,
+-	.get_bandwidth = qt1010_get_bandwidth,
+ 	.get_if_frequency = qt1010_get_if_frequency,
+ };
+ 
+diff --git a/drivers/media/common/tuners/qt1010_priv.h b/drivers/media/common/tuners/qt1010_priv.h
+index 090cf47..2c42d3f 100644
+--- a/drivers/media/common/tuners/qt1010_priv.h
++++ b/drivers/media/common/tuners/qt1010_priv.h
+@@ -99,7 +99,6 @@ struct qt1010_priv {
+ 	u8 reg25_init_val;
+ 
+ 	u32 frequency;
+-	u32 bandwidth;
+ };
+ 
+ #endif
+-- 
+1.7.8.352.g876a6
 
