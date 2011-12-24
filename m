@@ -1,110 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:41485 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753379Ab1LMVai (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Dec 2011 16:30:38 -0500
-Message-ID: <4EE7C3F9.1080703@gmx.de>
-Date: Tue, 13 Dec 2011 22:30:33 +0100
-From: Ninja <Ninja15@gmx.de>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Marko Ristola <marko.ristola@kolumbus.fi>
-Subject: Re: Mantis CAM not SMP safe / Activating CAM on Technisat Skystar
- HD2 (DVB-S2)
-References: <4EC052CE.1080002@gmx.de> <4EE2A06D.7070901@gmx.de> <4EE5E0BE.4060300@kolumbus.fi>
-In-Reply-To: <4EE5E0BE.4060300@kolumbus.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:1348 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755689Ab1LXPvM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:12 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFpBPs009983
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:11 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 19/47] [media] zl10039: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:24 -0200
+Message-Id: <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 12.12.2011 12:08, schrieb Marko Ristola:
-> On 12/10/2011 01:57 AM, Ninja wrote:
->> Hi,
->>
->> has anyone an idea how the SMP problems could be fixed?
->
-> You could turn on Mantis Kernel module's debug messages.
-> It could tell you the emitted interrupts.
->
-> One risky thing with the Interrupt handler code is that
-> MANTIS_GPIF_STATUS is cleared, even though IRQ0 isn't active yet.
-> This could lead to a rare starvation of the wait queue you described.
-> I supplied a patch below. Does it help?
->
->> I did some further investigation. When comparing the number of 
->> interrupts with all cores enabled and the interrupts with only one 
->> core enabled it seems like only the IRQ0 changed, the other IRQs and 
->> the total number stays quite the same:
->>
->> 4 Cores:
->> All IRQ/sec: 493
->> Masked IRQ/sec: 400
->> Unknown IRQ/sec: 0
->> DMA/sec: 400
->> IRQ-0/sec: 143
->> IRQ-1/sec: 0
->> OCERR/sec: 0
->> PABRT/sec: 0
->> RIPRR/sec: 0
->> PPERR/sec: 0
->> FTRGT/sec: 0
->> RISCI/sec: 258
->> RACK/sec: 0
->>
->> 1 Core:
->> All IRQ/sec: 518
->> Masked IRQ/sec: 504
->> Unknown IRQ/sec: 0
->> DMA/sec: 504
->> IRQ-0/sec: 246
->> IRQ-1/sec: 0
->> OCERR/sec: 0
->> PABRT/sec: 0
->> RIPRR/sec: 0
->> PPERR/sec: 0
->> FTRGT/sec: 0
->> RISCI/sec: 258
->> RACK/sec: 0
->>
->> So, where might be the problem?
-> Turning on Mantis debug messages, might tell the difference between 
-> these interrupts.
->
-> ....
->> I hope somebody can help, because I think we are very close to a 
->> fully functional CAM here.
->> I ran out of things to test to get closer to the solution :(
->> Btw: Is there any documentation available for the mantis PCI bridge?
-> Not that I know.
->
->>
->> Manuel
->>
->>
->>
->>
->>
->>
->>
->>
->> -- 
->> To unsubscribe from this list: send the line "unsubscribe 
->> linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at http://vger.kernel.org/majordomo-info.html
->>
->
->
-> Regards,
-> Marko Ristola
->
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
-Hi Marko,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/zl10039.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-thanks for the patch. I did some quick testing today. The IRQ0 problem 
-stays, but it seems like the small hangs (3-5 seconds every 20 minutes 
-or something) are fixed :)
+diff --git a/drivers/media/dvb/frontends/zl10039.c b/drivers/media/dvb/frontends/zl10039.c
+index c085e58..7fc8cef 100644
+--- a/drivers/media/dvb/frontends/zl10039.c
++++ b/drivers/media/dvb/frontends/zl10039.c
+@@ -177,8 +177,9 @@ static int zl10039_sleep(struct dvb_frontend *fe)
+ }
+ 
+ static int zl10039_set_params(struct dvb_frontend *fe,
+-			struct dvb_frontend_parameters *params)
++			      struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct zl10039_state *state = fe->tuner_priv;
+ 	u8 buf[6];
+ 	u8 bf;
+@@ -188,12 +189,12 @@ static int zl10039_set_params(struct dvb_frontend *fe,
+ 
+ 	dprintk("%s\n", __func__);
+ 	dprintk("Set frequency = %d, symbol rate = %d\n",
+-			params->frequency, params->u.qpsk.symbol_rate);
++			c->frequency, c->symbol_rate);
+ 
+ 	/* Assumed 10.111 MHz crystal oscillator */
+ 	/* Cancelled num/den 80 to prevent overflow */
+-	div = (params->frequency * 1000) / 126387;
+-	fbw = (params->u.qpsk.symbol_rate * 27) / 32000;
++	div = (c->frequency * 1000) / 126387;
++	fbw = (c->symbol_rate * 27) / 32000;
+ 	/* Cancelled num/den 10 to prevent overflow */
+ 	bf = ((fbw * 5088) / 1011100) - 1;
+ 
+-- 
+1.7.8.352.g876a6
 
-Manuel
