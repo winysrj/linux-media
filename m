@@ -1,352 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:59353 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953Ab1LKIFZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 03:05:25 -0500
-Date: Sun, 11 Dec 2011 10:05:19 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sergio Aguirre <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com
-Subject: Re: [PATCH v2 09/11] arm: omap4430sdp: Add support for omap4iss
- camera
-Message-ID: <20111211080518.GH1967@valkosipuli.localdomain>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
- <1322698500-29924-10-git-send-email-saaguirre@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1322698500-29924-10-git-send-email-saaguirre@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:56090 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755452Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:06 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5vr018679
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 37/47] [media] tuner-simple: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:42 -0200
+Message-Id: <1324741852-26138-38-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-37-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-33-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-34-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-35-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-36-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-37-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+Despite its name, tuner-simple has a complex logic to set freqs ;)
 
-Thanks for the patches!!
+Basically, it can be called by two different ways: via set_params()
+or via calc_regs() callbacks. Both are bound to the DVBv3 API.
+Also, set_params internally calls calc_regs().
 
-I think the general direction for such configurations is that the device
-tree is favoured over the platform data.
+In order to get rid of DVBv3 params at set_params(), it shouldn't
+call calc_regs() anymore. The code duplication is very small,
+as most of the code there is just to check for invalid parameters.
 
-On Wed, Nov 30, 2011 at 06:14:58PM -0600, Sergio Aguirre wrote:
-> This adds support for camera interface with the support for
-> following sensors:
-> 
-> - OV5640
-> - OV5650
-> 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  arch/arm/mach-omap2/Kconfig                |   27 ++++
->  arch/arm/mach-omap2/Makefile               |    2 +
->  arch/arm/mach-omap2/board-4430sdp-camera.c |  221 ++++++++++++++++++++++++++++
->  3 files changed, 250 insertions(+), 0 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-4430sdp-camera.c
-> 
-> diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-> index 5034147..f883abb 100644
-> --- a/arch/arm/mach-omap2/Kconfig
-> +++ b/arch/arm/mach-omap2/Kconfig
-> @@ -323,6 +323,33 @@ config MACH_OMAP_4430SDP
->  	select OMAP_PACKAGE_CBS
->  	select REGULATOR_FIXED_VOLTAGE
->  
-> +config MACH_OMAP_4430SDP_CAMERA_SUPPORT
-> +	bool "OMAP 4430 SDP board Camera support"
-> +	depends on MACH_OMAP_4430SDP
-> +	select MEDIA_SUPPORT
-> +	select MEDIA_CONTROLLER
-> +	select VIDEO_DEV
-> +	select VIDEO_V4L2_SUBDEV_API
-> +	select VIDEO_OMAP4
-> +	help
-> +	  Enable Camera HW support for OMAP 4430 SDP board
-> +	  This is for using the OMAP4 ISS CSI2A Camera sensor
-> +	  interface.
-> +
-> +choice
-> +	prompt "Camera sensor to use"
-> +	depends on MACH_OMAP_4430SDP_CAMERA_SUPPORT
-> +	default MACH_OMAP_4430SDP_CAM_OV5650
-> +
-> +	config MACH_OMAP_4430SDP_CAM_OV5640
-> +		bool "Use OmniVision OV5640 Camera"
-> +		select VIDEO_OV5640
-> +
-> +	config MACH_OMAP_4430SDP_CAM_OV5650
-> +		bool "Use OmniVision OV5650 Camera"
-> +		select VIDEO_OV5650
-> +endchoice
-> +
->  config MACH_OMAP4_PANDA
->  	bool "OMAP4 Panda Board"
->  	default y
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 69ab1c0..8bc446a 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -235,6 +235,8 @@ obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
->  
->  # Platform specific device init code
->  
-> +obj-$(CONFIG_MACH_OMAP_4430SDP_CAMERA_SUPPORT)	+= board-4430sdp-camera.o
-> +
->  omap-flash-$(CONFIG_MTD_NAND_OMAP2)	:= board-flash.o
->  omap-flash-$(CONFIG_MTD_ONENAND_OMAP2)	:= board-flash.o
->  obj-y					+= $(omap-flash-y) $(omap-flash-m)
-> diff --git a/arch/arm/mach-omap2/board-4430sdp-camera.c b/arch/arm/mach-omap2/board-4430sdp-camera.c
-> new file mode 100644
-> index 0000000..e62ee50
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-4430sdp-camera.c
-> @@ -0,0 +1,221 @@
-> +#include <linux/gpio.h>
-> +#include <linux/clk.h>
-> +#include <linux/delay.h>
-> +#include <linux/i2c/twl.h>
-> +#include <linux/mfd/twl6040.h>
-> +
-> +#include <plat/i2c.h>
-> +#include <plat/omap-pm.h>
-> +
-> +#include <asm/mach-types.h>
-> +
-> +#include <media/ov5640.h>
-> +#include <media/ov5650.h>
-> +
-> +#include "devices.h"
-> +#include "../../../drivers/media/video/omap4iss/iss.h"
-> +
-> +#include "control.h"
-> +#include "mux.h"
-> +
-> +#define OMAP4430SDP_GPIO_CAM_PDN_C	39
-> +
-> +static struct clk *sdp4430_cam_aux_clk;
-> +
-> +static int sdp4430_ov5640_power(struct v4l2_subdev *subdev, int on)
-> +{
-> +	struct iss_device *iss = v4l2_dev_to_iss_device(subdev->v4l2_dev);
-> +	int ret = 0;
-> +	struct iss_csiphy_dphy_cfg dphy;
-> +	struct iss_csiphy_lanes_cfg lanes;
-> +#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
-> +	unsigned int ddr_freq = 480; /* FIXME: Do an actual query for this */
-> +#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
-> +	unsigned int ddr_freq = 336; /* FIXME: Do an actual query for this */
-> +#endif
-> +
-> +	memset(&lanes, 0, sizeof(lanes));
-> +	memset(&dphy, 0, sizeof(dphy));
-> +
-> +	lanes.clk.pos = 1;
-> +	lanes.clk.pol = 0;
-> +	lanes.data[0].pos = 2;
-> +	lanes.data[0].pol = 0;
-> +#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
-> +	lanes.data[1].pos = 3;
-> +	lanes.data[1].pol = 0;
-> +#endif
+With regards to calc_regs(), it should still trust on bandwidth and
+frequency parameters passed via DVBv3, until a later patch fixes
+it.
 
-Lane configuration should be static and be set by the driver according to
-data from DT.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/tuner-simple.c |   63 ++++++++++++++++++++-------
+ 1 files changed, 46 insertions(+), 17 deletions(-)
 
-I don't know about OMAP 4 but I think it should work on OMAP 3. I still need
-to try that out myself! :p
-
-> +
-> +	dphy.ths_term = ((((12500 * ddr_freq + 1000000) / 1000000) - 1) & 0xFF);
-> +	dphy.ths_settle = ((((90000 * ddr_freq + 1000000) / 1000000) + 3) & 0xFF);
-> +	dphy.tclk_term = 0;
-> +	dphy.tclk_miss = 1;
-> +	dphy.tclk_settle = 14;
-
-How sensor / board dependent is the dphy configuration? Could this make it
-to the CSI-2 receiver driver instead? I'm actually working on the same on
-the OMAP 3. :)
-
-> +
-> +	if (on) {
-> +		u8 gpoctl = 0;
-> +
-> +		/* TWL6030_BASEADD_AUX */
-> +		twl_i2c_write_u8(15, 0x00, 0xB);
-> +		twl_i2c_write_u8(15, 0x80, 0x1);
-
-The regulators should be added to twl6030. The power sequences also should
-be part of the sensor driver.
-
-> +
-> +		mdelay(50);
-
-s/delay/sleep/. mdelay is busy-loop.
-
-> +
-> +		/* TWL6030_BASEADD_PM_SLAVE_MISC */
-> +		twl_i2c_write_u8(21, 0xFF, 0x5E);
-> +		twl_i2c_write_u8(21, 0x13, 0x5F);
-> +
-> +		mdelay(50);
-> +
-> +		twl_i2c_write_u8(15, 0x40, 0x1);
-> +
-> +		twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &gpoctl,
-> +				TWL6040_REG_GPOCTL);
-> +		twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, gpoctl | TWL6040_GPO3,
-> +				TWL6040_REG_GPOCTL);
-> +
-> +		mdelay(10);
-> +
-> +		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_C, 1);
-> +		mdelay(10);
-> +		clk_enable(sdp4430_cam_aux_clk); /* Enable XCLK */
-> +		mdelay(10);
-> +
-> +		iss->platform_cb.csiphy_config(&iss->csiphy1, &dphy, &lanes);
-> +	} else {
-> +		clk_disable(sdp4430_cam_aux_clk);
-> +		mdelay(1);
-> +		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_C, 0);
-> +	}
-> +
-> +	return ret;
-> +}
-> +
-> +#define OV5640_I2C_ADDRESS   (0x3C)
-> +#define OV5650_I2C_ADDRESS   (0x36)
-> +
-> +#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
-> +static struct ov5650_platform_data ov_platform_data = {
-> +#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
-> +static struct ov5640_platform_data ov_platform_data = {
-> +#endif
-> +      .s_power = sdp4430_ov5640_power,
-> +};
-> +
-> +static struct i2c_board_info ov_camera_i2c_device = {
-> +#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
-> +	I2C_BOARD_INFO("ov5650", OV5650_I2C_ADDRESS),
-> +#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
-> +	I2C_BOARD_INFO("ov5640", OV5640_I2C_ADDRESS),
-> +#endif
-> +	.platform_data = &ov_platform_data,
-> +};
-> +
-> +static struct iss_subdev_i2c_board_info ov_camera_subdevs[] = {
-> +	{
-> +		.board_info = &ov_camera_i2c_device,
-> +		.i2c_adapter_id = 3,
-> +	},
-> +	{ NULL, 0, },
-> +};
-> +
-> +static struct iss_v4l2_subdevs_group sdp4430_camera_subdevs[] = {
-> +	{
-> +		.subdevs = ov_camera_subdevs,
-> +		.interface = ISS_INTERFACE_CSI2A_PHY1,
-> +	},
-> +	{ },
-> +};
-> +
-> +static void sdp4430_omap4iss_set_constraints(struct iss_device *iss, bool enable)
-> +{
-> +	if (!iss)
-> +		return;
-> +
-> +	/* FIXME: Look for something more precise as a good throughtput limit */
-> +	omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
-> +				 enable ? 800000 : -1);
-
-Are there still no generic APIs to do this? :I
-
-> +}
-> +
-> +static struct iss_platform_data sdp4430_iss_platform_data = {
-> +	.subdevs = sdp4430_camera_subdevs,
-> +	.set_constraints = sdp4430_omap4iss_set_constraints,
-> +};
-> +
-> +static struct omap_device_pad omap4iss_pads[] = {
-> +	{
-> +		.name   = "csi21_dx0.csi21_dx0",
-> +		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-> +	},
-> +	{
-> +		.name   = "csi21_dy0.csi21_dy0",
-> +		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-> +	},
-> +	{
-> +		.name   = "csi21_dx1.csi21_dx1",
-> +		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-> +	},
-> +	{
-> +		.name   = "csi21_dy1.csi21_dy1",
-> +		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-> +	},
-> +	{
-> +		.name   = "csi21_dx2.csi21_dx2",
-> +		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-> +	},
-> +	{
-> +		.name   = "csi21_dy2.csi21_dy2",
-> +		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-> +	},
-> +};
-> +
-> +static struct omap_board_data omap4iss_data = {
-> +	.id	    		= 1,
-> +	.pads	 		= omap4iss_pads,
-> +	.pads_cnt       	= ARRAY_SIZE(omap4iss_pads),
-> +};
-> +
-> +static int __init sdp4430_camera_init(void)
-> +{
-> +	if (!machine_is_omap_4430sdp())
-> +		return 0;
-> +
-> +	sdp4430_cam_aux_clk = clk_get(NULL, "auxclk3_ck");
-> +	if (IS_ERR(sdp4430_cam_aux_clk)) {
-> +		printk(KERN_ERR "Unable to get auxclk3_ck\n");
-> +		return -ENODEV;
-> +	}
-> +
-> +	if (clk_set_rate(sdp4430_cam_aux_clk,
-> +			clk_round_rate(sdp4430_cam_aux_clk, 24000000)))
-> +		return -EINVAL;
-> +
-> +	/*
-> +	 * CSI2 1(A):
-> +	 *   LANEENABLE[4:0] = 00111(0x7) - Lanes 0, 1 & 2 enabled
-> +	 *   CTRLCLKEN = 1 - Active high enable for CTRLCLK
-> +	 *   CAMMODE = 0 - DPHY mode
-> +	 */
-> +	omap4_ctrl_pad_writel((omap4_ctrl_pad_readl(
-> +				OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX) &
-> +			  ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
-> +			    OMAP4_CAMERARX_CSI21_CAMMODE_MASK)) |
-> +			 (0x7 << OMAP4_CAMERARX_CSI21_LANEENABLE_SHIFT) |
-> +			 OMAP4_CAMERARX_CSI21_CTRLCLKEN_MASK,
-> +			 OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-> +
-> +	omap_mux_init_gpio(OMAP4430SDP_GPIO_CAM_PDN_C, OMAP_PIN_OUTPUT);
-> +
-> +	/* Init FREF_CLK3_OUT */
-> +	omap_mux_init_signal("fref_clk3_out", OMAP_PIN_OUTPUT);
-> +
-> +	if (gpio_request(OMAP4430SDP_GPIO_CAM_PDN_C, "CAM_PDN_C"))
-> +		printk(KERN_WARNING "Cannot request GPIO %d\n",
-> +			OMAP4430SDP_GPIO_CAM_PDN_C);
-> +	else
-> +		gpio_direction_output(OMAP4430SDP_GPIO_CAM_PDN_C, 0);
-> +
-> +	omap4_init_camera(&sdp4430_iss_platform_data, &omap4iss_data);
-> +	return 0;
-> +}
-> +late_initcall(sdp4430_camera_init);
-> -- 
-> 1.7.7.4
-> 
-
+diff --git a/drivers/media/common/tuners/tuner-simple.c b/drivers/media/common/tuners/tuner-simple.c
+index 4092200..e6342db 100644
+--- a/drivers/media/common/tuners/tuner-simple.c
++++ b/drivers/media/common/tuners/tuner-simple.c
+@@ -791,24 +791,26 @@ static int simple_set_params(struct dvb_frontend *fe,
+ }
+ 
+ static void simple_set_dvb(struct dvb_frontend *fe, u8 *buf,
+-			   const struct dvb_frontend_parameters *params)
++			   const u32 delsys,
++			   const u32 frequency,
++			   const u32 bandwidth)
+ {
+ 	struct tuner_simple_priv *priv = fe->tuner_priv;
+ 
+ 	switch (priv->type) {
+ 	case TUNER_PHILIPS_FMD1216ME_MK3:
+ 	case TUNER_PHILIPS_FMD1216MEX_MK3:
+-		if (params->u.ofdm.bandwidth == BANDWIDTH_8_MHZ &&
+-		    params->frequency >= 158870000)
++		if (bandwidth == 8000000 &&
++		    frequency >= 158870000)
+ 			buf[3] |= 0x08;
+ 		break;
+ 	case TUNER_PHILIPS_TD1316:
+ 		/* determine band */
+-		buf[3] |= (params->frequency < 161000000) ? 1 :
+-			  (params->frequency < 444000000) ? 2 : 4;
++		buf[3] |= (frequency < 161000000) ? 1 :
++			  (frequency < 444000000) ? 2 : 4;
+ 
+ 		/* setup PLL filter */
+-		if (params->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
++		if (bandwidth == 8000000)
+ 			buf[3] |= 1 << 3;
+ 		break;
+ 	case TUNER_PHILIPS_TUV1236D:
+@@ -819,12 +821,11 @@ static void simple_set_dvb(struct dvb_frontend *fe, u8 *buf,
+ 		if (dtv_input[priv->nr])
+ 			new_rf = dtv_input[priv->nr];
+ 		else
+-			switch (params->u.vsb.modulation) {
+-			case QAM_64:
+-			case QAM_256:
++			switch (delsys) {
++			case SYS_DVBC_ANNEX_B:
+ 				new_rf = 1;
+ 				break;
+-			case VSB_8:
++			case SYS_ATSC:
+ 			default:
+ 				new_rf = 0;
+ 				break;
+@@ -838,7 +839,9 @@ static void simple_set_dvb(struct dvb_frontend *fe, u8 *buf,
+ }
+ 
+ static u32 simple_dvb_configure(struct dvb_frontend *fe, u8 *buf,
+-				const struct dvb_frontend_parameters *params)
++				const u32 delsys,
++				const u32 freq,
++				const u32 bw)
+ {
+ 	/* This function returns the tuned frequency on success, 0 on error */
+ 	struct tuner_simple_priv *priv = fe->tuner_priv;
+@@ -847,7 +850,7 @@ static u32 simple_dvb_configure(struct dvb_frontend *fe, u8 *buf,
+ 	u8 config, cb;
+ 	u32 div;
+ 	int ret;
+-	unsigned frequency = params->frequency / 62500;
++	u32 frequency = freq / 62500;
+ 
+ 	if (!tun->stepsize) {
+ 		/* tuner-core was loaded before the digital tuner was
+@@ -871,7 +874,7 @@ static u32 simple_dvb_configure(struct dvb_frontend *fe, u8 *buf,
+ 	buf[2] = config;
+ 	buf[3] = cb;
+ 
+-	simple_set_dvb(fe, buf, params);
++	simple_set_dvb(fe, buf, delsys, freq, bw);
+ 
+ 	tuner_dbg("%s: div=%d | buf=0x%02x,0x%02x,0x%02x,0x%02x\n",
+ 		  tun->name, div, buf[0], buf[1], buf[2], buf[3]);
+@@ -884,13 +887,29 @@ static int simple_dvb_calc_regs(struct dvb_frontend *fe,
+ 				struct dvb_frontend_parameters *params,
+ 				u8 *buf, int buf_len)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 delsys = c->delivery_system;
++	u32 bw = c->bandwidth_hz;
+ 	struct tuner_simple_priv *priv = fe->tuner_priv;
+ 	u32 frequency;
+ 
+ 	if (buf_len < 5)
+ 		return -EINVAL;
+ 
+-	frequency = simple_dvb_configure(fe, buf+1, params);
++	switch (delsys) {
++	case SYS_DVBT:
++	case SYS_DVBT2:
++		if (params->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
++			bw = 6000000;
++		if (params->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
++			bw = 7000000;
++		if (params->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
++			bw = 8000000;
++		break;
++	default:
++		break;
++	}
++	frequency = simple_dvb_configure(fe, buf+1, delsys, params->frequency, bw);
+ 	if (frequency == 0)
+ 		return -EINVAL;
+ 
+@@ -906,7 +925,12 @@ static int simple_dvb_calc_regs(struct dvb_frontend *fe,
+ static int simple_dvb_set_params(struct dvb_frontend *fe,
+ 				 struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	u32 delsys = c->delivery_system;
++	u32 bw = c->bandwidth_hz;
++	u32 freq = c->frequency;
+ 	struct tuner_simple_priv *priv = fe->tuner_priv;
++	u32 frequency;
+ 	u32 prev_freq, prev_bw;
+ 	int ret;
+ 	u8 buf[5];
+@@ -917,9 +941,14 @@ static int simple_dvb_set_params(struct dvb_frontend *fe,
+ 	prev_freq = priv->frequency;
+ 	prev_bw   = priv->bandwidth;
+ 
+-	ret = simple_dvb_calc_regs(fe, params, buf, 5);
+-	if (ret != 5)
+-		goto fail;
++	frequency = simple_dvb_configure(fe, buf+1, delsys, freq, bw);
++	if (frequency == 0)
++		return -EINVAL;
++
++	buf[0] = priv->i2c_props.addr;
++
++	priv->frequency = frequency;
++	priv->bandwidth = bw;
+ 
+ 	/* put analog demod in standby when tuning digital */
+ 	if (fe->ops.analog_ops.standby)
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8.352.g876a6
+
