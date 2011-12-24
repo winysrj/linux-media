@@ -1,113 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54382 "EHLO mx1.redhat.com"
+Received: from mail.hnelson.de ([83.169.43.49]:49481 "EHLO mail.hnelson.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751391Ab1L3PJX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:23 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9NuG009081
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 05/94] [media] atbm8830: convert set_fontend to new way and fix delivery system
-Date: Fri, 30 Dec 2011 13:07:02 -0200
-Message-Id: <1325257711-12274-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1752015Ab1LXDY6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 23 Dec 2011 22:24:58 -0500
+Received: from nova-wlan.fritz.box (91-67-142-84-dynip.superkabel.de [91.67.142.84])
+	by mail.hnelson.de (Postfix) with ESMTPSA id 4F8EE1B4181BE
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 04:15:40 +0100 (CET)
+Date: Sat, 24 Dec 2011 04:15:32 +0100 (CET)
+From: Holger Nelson <hnelson@hnelson.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] em28xx: Add Terratec Cinergy HTC USB XS to em28xx-cards.c
+Message-ID: <4EF542DA.8030800@hnelson.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; format=flowed; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is one of the cases where the frontend changes is required:
-while this device lies to applications that it is a DVB-T, it is,
-in fact, a frontend for CTTB delivery system. So, the information
-provided for a DVBv3 application should be different than the one
-provided to a DVBv5 application.
+This adds support for the Terratec Cinergy HTC USB XS which is similar to 
+the Terratec H5 by adding the USB-ids to the table. According to 
+http://linux.terratec.de it uses the same ICs and DVB-C works for me
+using the firmware of the H5.
 
-So, fill delsys with the CTTB delivery system, and use the new
-way. there aren't many changes here, as everything on this driver
-is on auto mode, probably because of the lack of a proper API
-for this delivery system.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Holger Nelson <hnelson@hnelson.de>
 ---
- drivers/media/dvb/frontends/atbm8830.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/dvb/frontends/atbm8830.c b/drivers/media/dvb/frontends/atbm8830.c
-index c4e0909..c4edbbe 100644
---- a/drivers/media/dvb/frontends/atbm8830.c
-+++ b/drivers/media/dvb/frontends/atbm8830.c
-@@ -267,8 +267,7 @@ static void atbm8830_release(struct dvb_frontend *fe)
- 	kfree(state);
- }
- 
--static int atbm8830_set_fe(struct dvb_frontend *fe,
--			  struct dvb_frontend_parameters *fe_params)
-+static int atbm8830_set_fe(struct dvb_frontend *fe)
- {
- 	struct atbm_state *priv = fe->demodulator_priv;
- 	int i;
-@@ -299,30 +298,30 @@ static int atbm8830_set_fe(struct dvb_frontend *fe,
- }
- 
- static int atbm8830_get_fe(struct dvb_frontend *fe,
--			  struct dvb_frontend_parameters *fe_params)
-+			   struct dtv_frontend_properties *c)
- {
- 	dprintk("%s\n", __func__);
- 
- 	/* TODO: get real readings from device */
- 	/* inversion status */
--	fe_params->inversion = INVERSION_OFF;
-+	c->inversion = INVERSION_OFF;
- 
- 	/* bandwidth */
--	fe_params->u.ofdm.bandwidth = BANDWIDTH_8_MHZ;
-+	c->bandwidth_hz = 8000000;
- 
--	fe_params->u.ofdm.code_rate_HP = FEC_AUTO;
--	fe_params->u.ofdm.code_rate_LP = FEC_AUTO;
-+	c->code_rate_HP = FEC_AUTO;
-+	c->code_rate_LP = FEC_AUTO;
- 
--	fe_params->u.ofdm.constellation = QAM_AUTO;
-+	c->modulation = QAM_AUTO;
- 
- 	/* transmission mode */
--	fe_params->u.ofdm.transmission_mode = TRANSMISSION_MODE_AUTO;
-+	c->transmission_mode = TRANSMISSION_MODE_AUTO;
- 
- 	/* guard interval */
--	fe_params->u.ofdm.guard_interval = GUARD_INTERVAL_AUTO;
-+	c->guard_interval = GUARD_INTERVAL_AUTO;
- 
- 	/* hierarchy */
--	fe_params->u.ofdm.hierarchy_information = HIERARCHY_NONE;
-+	c->hierarchy = HIERARCHY_NONE;
- 
- 	return 0;
- }
-@@ -429,6 +428,7 @@ static int atbm8830_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- }
- 
- static struct dvb_frontend_ops atbm8830_ops = {
-+	.delsys = { SYS_DMBTH },
- 	.info = {
- 		.name = "AltoBeam ATBM8830/8831 DMB-TH",
- 		.type = FE_OFDM,
-@@ -449,8 +449,8 @@ static struct dvb_frontend_ops atbm8830_ops = {
- 	.write = NULL,
- 	.i2c_gate_ctrl = atbm8830_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = atbm8830_set_fe,
--	.get_frontend_legacy = atbm8830_get_fe,
-+	.set_frontend = atbm8830_set_fe,
-+	.get_frontend = atbm8830_get_fe,
- 	.get_tune_settings = atbm8830_get_tune_settings,
- 
- 	.read_status = atbm8830_read_status,
--- 
-1.7.8.352.g876a6
-
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 1704da0..a7cfded 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1963,6 +1963,10 @@ struct usb_device_id em28xx_id_table[] = {
+  			.driver_info = EM2882_BOARD_TERRATEC_HYBRID_XS },
+  	{ USB_DEVICE(0x0ccd, 0x0043),
+  			.driver_info = EM2870_BOARD_TERRATEC_XS },
++	{ USB_DEVICE(0x0ccd, 0x008e),	/* Cinergy HTC USB XS Rev. 1 */
++			.driver_info = EM2884_BOARD_TERRATEC_H5 },
++	{ USB_DEVICE(0x0ccd, 0x00ac),	/* Cinergy HTC USB XS Rev. 2 */
++			.driver_info = EM2884_BOARD_TERRATEC_H5 },
+  	{ USB_DEVICE(0x0ccd, 0x10a2),	/* H5 Rev. 1 */
+  			.driver_info = EM2884_BOARD_TERRATEC_H5 },
+  	{ USB_DEVICE(0x0ccd, 0x10ad),	/* H5 Rev. 2 */
