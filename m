@@ -1,130 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:37530 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752667Ab1LOKAZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 05:00:25 -0500
-Message-ID: <4EE9C534.7020305@infradead.org>
-Date: Thu, 15 Dec 2011 08:00:20 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-MIME-Version: 1.0
-To: Javier Martin <javier.martin@vista-silicon.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-Subject: Re: [PATCH 2/2] media: tvp5150: Add mbus_fmt callbacks.
-References: <1323941987-23428-1-git-send-email-javier.martin@vista-silicon.com> <1323941987-23428-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1323941987-23428-2-git-send-email-javier.martin@vista-silicon.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:16753 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755507Ab1LXPvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:07 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp6oW009954
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 30/47] [media] tda826x: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:35 -0200
+Message-Id: <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15-12-2011 07:39, Javier Martin wrote:
-> These callbacks allow a host video driver
-> to poll video supported video formats of tvp5150.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/tvp5150.c |   72 +++++++++++++++++++++++++++++++++++++++++
->  1 files changed, 72 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/tvp5150.c b/drivers/media/video/tvp5150.c
-> index 26cc75b..8f01f08 100644
-> --- a/drivers/media/video/tvp5150.c
-> +++ b/drivers/media/video/tvp5150.c
-> @@ -778,6 +778,75 @@ static int tvp5150_s_ctrl(struct v4l2_ctrl *ctrl)
->  	return -EINVAL;
->  }
->  
-> +static v4l2_std_id tvp5150_read_std(struct v4l2_subdev *sd)
-> +{
-> +	int val = tvp5150_read(sd, TVP5150_STATUS_REG_5);
-> +
-> +	switch (val & 0x0F) {
-> +	case 0x01:
-> +		return V4L2_STD_NTSC;
-> +	case 0x03:
-> +		return V4L2_STD_PAL;
-> +	case 0x05:
-> +		return V4L2_STD_PAL_M;
-> +	case 0x07:
-> +		return V4L2_STD_PAL_N | V4L2_STD_PAL_Nc;
-> +	case 0x09:
-> +		return V4L2_STD_NTSC_443;
-> +	case 0xb:
-> +		return V4L2_STD_SECAM;
-> +	default:
-> +		return V4L2_STD_UNKNOWN;
-> +	}
-> +}
-> +
-> +static int tvp5150_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned index,
-> +						enum v4l2_mbus_pixelcode *code)
-> +{
-> +	if (index)
-> +		return -EINVAL;
-> +
-> +	*code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +	return 0;
-> +}
-> +
-> +static int tvp5150_mbus_fmt(struct v4l2_subdev *sd,
-> +			    struct v4l2_mbus_framefmt *f)
-> +{
-> +	struct tvp5150 *decoder = to_tvp5150(sd);
-> +	v4l2_std_id std;
-> +
-> +	if (f == NULL)
-> +		return -EINVAL;
-> +
-> +	tvp5150_reset(sd, 0);
-> +
-> +	/* Calculate height and width based on current standard */
-> +	if (decoder->norm == V4L2_STD_ALL)
-> +		std = tvp5150_read_std(sd);
-> +	else
-> +		std = decoder->norm;
-> +
-> +	if ((std == V4L2_STD_NTSC) || (std == V4L2_STD_NTSC_443) ||
-> +		(std == V4L2_STD_PAL_M)) {
-> +		f->width = 720;
-> +		f->height = 480;
-> +	}
-> +	if ((std == V4L2_STD_PAL) ||
-> +		(std == (V4L2_STD_PAL_N | V4L2_STD_PAL_Nc)) ||
-> +		(std == V4L2_STD_SECAM)) {
-> +		f->width = 720;
-> +		f->height = 576;
-> +	}
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
-The above is wrong, as std is a bitmask. So, userspace can pass more than
-one bit set there. It should be, instead:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/tda826x.c |    5 +++--
+ 1 files changed, 3 insertions(+), 2 deletions(-)
 
-	f->width = 720;
-	if (std & V4L2_STD_525_60)
-		f->height = 480;
-	else
-		f->height = 576;
-
-> +	f->code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +	f->field = V4L2_FIELD_SEQ_TB;
-> +	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +
-> +	v4l2_dbg(1, debug, sd, "width = %d, height = %d\n", f->width,
-> +			f->height);
-> +	return 0;
-> +}
-> +
->  /****************************************************************************
->  			I2C Command
->   ****************************************************************************/
-> @@ -930,6 +999,9 @@ static const struct v4l2_subdev_tuner_ops tvp5150_tuner_ops = {
->  
->  static const struct v4l2_subdev_video_ops tvp5150_video_ops = {
->  	.s_routing = tvp5150_s_routing,
-> +	.enum_mbus_fmt = tvp5150_enum_mbus_fmt,
-> +	.s_mbus_fmt = tvp5150_mbus_fmt,
-> +	.try_mbus_fmt = tvp5150_mbus_fmt,
->  };
->  
->  static const struct v4l2_subdev_vbi_ops tvp5150_vbi_ops = {
+diff --git a/drivers/media/dvb/frontends/tda826x.c b/drivers/media/dvb/frontends/tda826x.c
+index 06c9480..ab9122a 100644
+--- a/drivers/media/dvb/frontends/tda826x.c
++++ b/drivers/media/dvb/frontends/tda826x.c
+@@ -73,6 +73,7 @@ static int tda826x_sleep(struct dvb_frontend *fe)
+ 
+ static int tda826x_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct tda826x_priv *priv = fe->tuner_priv;
+ 	int ret;
+ 	u32 div;
+@@ -83,11 +84,11 @@ static int tda826x_set_params(struct dvb_frontend *fe, struct dvb_frontend_param
+ 
+ 	dprintk("%s:\n", __func__);
+ 
+-	div = (params->frequency + (1000-1)) / 1000;
++	div = (p->frequency + (1000-1)) / 1000;
+ 
+ 	/* BW = ((1 + RO) * SR/2 + 5) * 1.3      [SR in MSPS, BW in MHz] */
+ 	/* with R0 = 0.35 and some transformations: */
+-	ksyms = params->u.qpsk.symbol_rate / 1000;
++	ksyms = p->symbol_rate / 1000;
+ 	bandwidth = (878 * ksyms + 6500000) / 1000000 + 1;
+ 	if (bandwidth < 5)
+ 		bandwidth = 5;
+-- 
+1.7.8.352.g876a6
 
