@@ -1,74 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:60268 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756153Ab1LBBNa convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 20:13:30 -0500
-Received: by dadv6 with SMTP id v6so901993dad.19
-        for <linux-media@vger.kernel.org>; Thu, 01 Dec 2011 17:13:29 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAP_ERaFTaU=8cOwi+sj3QCy1F9QgTmYJihGaXrJA1XyveY8dxw@mail.gmail.com>
-References: <CAP_ERaFTaU=8cOwi+sj3QCy1F9QgTmYJihGaXrJA1XyveY8dxw@mail.gmail.com>
-Date: Fri, 2 Dec 2011 01:13:28 +0000
-Message-ID: <CAP_ERaEeyDZNcWrkC3o5Gn8s1Rge3d6rWejzakf=gZhaDeCfbA@mail.gmail.com>
-Subject: PCTV452e / S2-3600 displays I2C error
-From: Neil Sutton <sutton.nm@gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50775 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754740Ab1LXJre (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 04:47:34 -0500
+Received: by wgbdr13 with SMTP id dr13so18390882wgb.1
+        for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 01:47:33 -0800 (PST)
+From: Gareth Williams <gareth@garethwilliams.me.uk>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Subject: [PATCH 2/2] Added USB Id & configuration array for Honestech Vidbox NW03
+Date: Sat, 24 Dec 2011 09:47:29 +0000
+Message-ID: <1678583.ZtWKZmGDtk@kubuntu>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Adds support for the Honestech Vidbox NW03 USB capture device.
 
-I'm not entirely sure if this is the correct list, but I compiled the
-latest 3.2 RC3 kernel to get native support of my S2-3600 tuner
-(s2-liplianin seems to cause trouble with my other tuner).
+The device has an eMpia EMP202 audio chip which in my Vidbox has a Vendor Id 
+identical to the STAC9750 therefore my previous patch to change the driver's 
+Vendor ID recognition is also required for audio to work with this device.
 
-I enabled the PCTV452e module in the kernel and the device detects ok;
+Signed-off-by: Gareth Williams <gareth@garethwilliams.me.uk>
+---
+ linux/drivers/media/video/em28xx/em28xx-cards.c |   18 ++++++++++++++++++
+ linux/drivers/media/video/em28xx/em28xx.h       |    1 +
+ 2 files changed, 19 insertions(+), 0 deletions(-)
 
-[   12.075239] dvb-usb: found a 'Technotrend TT Connect S2-3600' in warm state.
-[   12.076620] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   12.080767] dvb-usb: MAC address: 00:d0:5c:64:54:95
-[   12.759115] dvb-usb: found a 'Hauppauge Nova-T Stick' in cold
-state, will try to load a firmware
-[   13.298383] dvb-usb: Technotrend TT Connect S2-3600 successfully
-initialized and connected.
-[   13.464394] dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-[   14.180319] dvb-usb: found a 'Hauppauge Nova-T Stick' in warm state.
-[   14.180429] dvb-usb: will pass the complete MPEG2 transport stream
-to the software demuxer.
-[   15.356117] dvb-usb: Hauppauge Nova-T Stick successfully
-initialized and connected.
-[   15.356832] usbcore: registered new interface driver dvb_usb_dib0700
-
-But when I try to make any tuning with the device I get no picture and
-the following get put to syslog;
-
-Dec  2 01:01:26 MicroServer kernel: [ 1535.331468] dvb-usb: could not
-submit URB no. 0 - get them all back
-Dec  2 01:01:26 MicroServer kernel: [ 1535.372388] pctv452e: I2C error
--121; AA 97  CC 00 01 -> 55 97  CC 00 00.
-Dec  2 01:01:26 MicroServer kernel: [ 1535.385003] pctv452e: I2C error
--121; AA AE  CC 00 01 -> 55 AE  CC 00 00.
-Dec  2 01:01:26 MicroServer kernel: [ 1535.444992] pctv452e: I2C error
--121; AA C9  CC 00 01 -> 55 C9  CC 00 00.
-Dec  2 01:01:46 MicroServer kernel: [ 1555.665248] dvb-usb: could not
-submit URB no. 0 - get them all back
-Dec  2 01:01:46 MicroServer kernel: [ 1555.708805] pctv452e: I2C error
--121; AA 2E  CC 00 01 -> 55 2E  CC 00 00.
-Dec  2 01:01:46 MicroServer kernel: [ 1555.722046] pctv452e: I2C error
--121; AA 45  CC 00 01 -> 55 45  CC 00 00.
-Dec  2 01:01:46 MicroServer kernel: [ 1555.784543] pctv452e: I2C error
--121; AA 60  CC 00 01 -> 55 60  CC 00 00.
-
-The 'URB' errors appear each time the card moves to a new transponder,
-the I2C errors appear to be when the card is attempting to lock a
-channel within the current transponder.
-
-Does anyone have any thoughts on what might be causing this ? - I've
-had a search around but can't really find the problem mentioned
-anywhere... the device works fine under the latest liplianin drivers.
-
-Many Thanks
-Neil
+diff --git a/linux/drivers/media/video/em28xx/em28xx-cards.c 
+b/linux/drivers/media/video/em28xx/em28xx-cards.c
+index 1704da0..4f55962 100644
+--- a/linux/drivers/media/video/em28xx/em28xx-cards.c
++++ b/linux/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1888,6 +1888,22 @@ struct em28xx_board em28xx_boards[] = {
+ 		.has_dvb       = 1,
+ 		.ir_codes      = RC_MAP_PINNACLE_PCTV_HD,
+ 	},
++	/* eb1a:5006 Honestech VIDBOX NW03
++	 * Empia EM2860, Philips SAA7113, Empia EMP202, No Tuner */
++	[EM2860_BOARD_HT_VIDBOX_NW03] = {
++		.name                = "Honestech Vidbox NW03",
++		.tuner_type          = TUNER_ABSENT,
++		.decoder             = EM28XX_SAA711X,
++		.input               = { {
++			.type     = EM28XX_VMUX_COMPOSITE1,
++			.vmux     = SAA7115_COMPOSITE0,
++			.amux     = EM28XX_AMUX_LINE_IN,
++		}, {
++			.type     = EM28XX_VMUX_SVIDEO,
++			.vmux     = SAA7115_SVIDEO3,  /* S-VIDEO needs confirming */
++			.amux     = EM28XX_AMUX_LINE_IN,
++		} },
++	},
+ };
+ const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
+ 
+@@ -2027,6 +2043,8 @@ struct usb_device_id em28xx_id_table[] = {
+ 			.driver_info = EM28174_BOARD_PCTV_460E },
+ 	{ USB_DEVICE(0x2040, 0x1605),
+ 			.driver_info = EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C },
++	{ USB_DEVICE(0xeb1a, 0x5006),
++			.driver_info = EM2860_BOARD_HT_VIDBOX_NW03 },
+ 	{ },
+ };
+ MODULE_DEVICE_TABLE(usb, em28xx_id_table);
+diff --git a/linux/drivers/media/video/em28xx/em28xx.h 
+b/linux/drivers/media/video/em28xx/em28xx.h
+index b1199ef..2dbb12c 100644
+--- a/linux/drivers/media/video/em28xx/em28xx.h
++++ b/linux/drivers/media/video/em28xx/em28xx.h
+@@ -124,6 +124,7 @@
+ #define EM28174_BOARD_PCTV_460E                   80
+ #define EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C	  81
+ #define EM2884_BOARD_CINERGY_HTC_STICK		  82
++#define EM2860_BOARD_HT_VIDBOX_NW03 		  83
+ 
+ /* Limits minimum and default number of buffers */
+ #define EM28XX_MIN_BUF 4
+-- 
