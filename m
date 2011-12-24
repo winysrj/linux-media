@@ -1,91 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:58707 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753744Ab1LGLM5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 06:12:57 -0500
-Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LVT00GHLZ5JGI00@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Dec 2011 20:12:55 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LVT00IT8Z5ECM40@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Wed, 07 Dec 2011 20:12:55 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sakari Ailus' <sakari.ailus@iki.fi>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	=?iso-8859-1?Q?'Sebastian_Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED8C61C.3060404@redhat.com> <20111202135748.GO29805@valkosipuli.localdomain>
- <4ED901C9.2050109@redhat.com> <20111206143538.GD938@valkosipuli.localdomain>
- <4EDE40D0.9080704@redhat.com> <20111206224134.GE938@valkosipuli.localdomain>
-In-reply-to: <20111206224134.GE938@valkosipuli.localdomain>
-Subject: RE: [RFC] Resolution change support in video codecs in v4l2
-Date: Wed, 07 Dec 2011 12:12:08 +0100
-Message-id: <00f401ccb4d1$12dcda50$38968ef0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-1
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+Received: from mx1.redhat.com ([209.132.183.28]:32793 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755598Ab1LXPvI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:08 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp74P009962
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v4 42/47] [media] cxusb: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:47 -0200
+Message-Id: <1324741852-26138-43-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-42-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-33-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-34-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-35-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-36-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-37-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-38-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-39-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-40-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-41-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-42-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
-> From: Sakari Ailus [mailto:sakari.ailus@iki.fi]
-> Sent: 06 December 2011 23:42
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/cxusb.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-[...]
-
-> 
-> > >>>That's a good point. It's more related to changes in stream properties
-> ---
-> > >>>the frame rate of the stream could change, too. That might be when you
-> could
-> > >>>like to have more buffers in the queue. I don't think this is critical
-> > >>>either.
-> > >>>
-> > >>>This could also depend on the properties of the codec. Again, I'd wish
-> a
-> > >>>comment from someone who knows codecs well. Some codecs need to be able
-> to
-> > >>>access buffers which have already been decoded to decode more buffers.
-> Key
-> > >>>frames, simply.
-> > >>
-> > >>Ok, but let's not add unneeded things at the API if you're not sure. If
-> we have
-> > >>such need for a given hardware, then add it. Otherwise, keep it simple.
-> > >
-> > >This is not so much dependent on hardware but on the standards which the
-> > >cdoecs implement.
-> >
-> > Could you please elaborate it? On what scenario this is needed?
-> 
-> This is a property of the stream, not a property of the decoder. To
-> reconstruct each frame, a part of the stream is required and already decoded
-> frames may be used to accelerate the decoding. What those parts are. depends
-> on the codec, not a particular implementation.
-
-They are not used to accelerate decoding. They are used to predict what
-should be displayed. If that frame is missing or modified it will cause
-corruption in consecutive frames.
-
-I want to make it clear - they are necessary, not optional to accelerate
-decoding speed.
+diff --git a/drivers/media/dvb/dvb-usb/cxusb.c b/drivers/media/dvb/dvb-usb/cxusb.c
+index 9f2a02c..4f9bfc5 100644
+--- a/drivers/media/dvb/dvb-usb/cxusb.c
++++ b/drivers/media/dvb/dvb-usb/cxusb.c
+@@ -1074,11 +1074,12 @@ struct dib0700_adapter_state {
+ static int dib7070_set_param_override(struct dvb_frontend *fe,
+ 				      struct dvb_frontend_parameters *fep)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct dvb_usb_adapter *adap = fe->dvb->priv;
+ 	struct dib0700_adapter_state *state = adap->priv;
  
-> Anyone with more knowledge of codecs than myself might be able to give a
-> concrete example. Sebastian?
-> 
-
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+ 	u16 offset;
+-	u8 band = BAND_OF_FREQUENCY(fep->frequency/1000);
++	u8 band = BAND_OF_FREQUENCY(p->frequency/1000);
+ 	switch (band) {
+ 	case BAND_VHF: offset = 950; break;
+ 	default:
+-- 
+1.7.8.352.g876a6
 
