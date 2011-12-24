@@ -1,131 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59879 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46989 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752730Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:32 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9WTk024228
+	id S1755654Ab1LXPvJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 24 Dec 2011 10:51:09 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp9cS017086
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
+	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:09 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 87/94] [media] dvb: remove the track() fops
-Date: Fri, 30 Dec 2011 13:08:24 -0200
-Message-Id: <1325257711-12274-88-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+Subject: [PATCH v4 43/47] [media] dib0700_devices: use DVBv5 parameters on set_params()
+Date: Sat, 24 Dec 2011 13:50:48 -0200
+Message-Id: <1324741852-26138-44-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324741852-26138-43-git-send-email-mchehab@redhat.com>
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-2-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-3-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-4-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-5-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-6-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-8-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-9-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-10-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-11-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-12-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-13-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-14-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-15-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-16-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-17-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-18-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-19-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-20-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-21-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-22-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-23-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-24-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-25-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-26-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-27-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-28-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-29-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-30-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-31-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-32-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-33-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-34-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-35-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-36-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-37-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-38-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-39-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-40-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-41-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-42-git-send-email-mchehab@redhat.com>
+ <1324741852-26138-43-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This callback is not used anywhere. Maybe it were used in the
-past to optimize the custom algo, but, as it is not used anymore,
-let's just remove it.
-
-If later needed, some patch may re-add it with a proper
-implementation.
+Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+set the tuner
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/dvb-core/dvb_frontend.c  |    5 +----
- drivers/media/dvb/dvb-core/dvb_frontend.h  |    1 -
- drivers/media/dvb/frontends/stb0899_drv.c  |   21 ---------------------
- drivers/media/dvb/frontends/stv0900_core.c |    7 -------
- 4 files changed, 1 insertions(+), 33 deletions(-)
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |   19 ++++++++++++-------
+ 1 files changed, 12 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 18a7e23..68d284b 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -637,10 +637,7 @@ restart:
- 					}
- 				}
- 				/* Track the carrier if the search was successful */
--				if (fepriv->algo_status == DVBFE_ALGO_SEARCH_SUCCESS) {
--					if (fe->ops.track)
--						fe->ops.track(fe, &fepriv->parameters_in);
--				} else {
-+				if (fepriv->algo_status != DVBFE_ALGO_SEARCH_SUCCESS) {
- 					fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
- 					fepriv->delay = HZ / 2;
- 				}
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index 79f01ce..52efcbd 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -307,7 +307,6 @@ struct dvb_frontend_ops {
- 	 * tuning algorithms, rather than a simple swzigzag
- 	 */
- 	enum dvbfe_search (*search)(struct dvb_frontend *fe);
--	int (*track)(struct dvb_frontend *fe, struct dvb_frontend_parameters *p);
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index d0174fd..70c3be6 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -806,11 +806,12 @@ static struct dib0070_config dib7770p_dib0070_config = {
  
- 	struct dvb_tuner_ops tuner_ops;
- 	struct analog_demod_ops analog_ops;
-diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
-index 93afc79..9fad627 100644
---- a/drivers/media/dvb/frontends/stb0899_drv.c
-+++ b/drivers/media/dvb/frontends/stb0899_drv.c
-@@ -1568,26 +1568,6 @@ static enum dvbfe_search stb0899_search(struct dvb_frontend *fe)
- 
- 	return DVBFE_ALGO_SEARCH_ERROR;
- }
--/*
-- * stb0899_track
-- * periodically check the signal level against a specified
-- * threshold level and perform derotator centering.
-- * called once we have a lock from a successful search
-- * event.
-- *
-- * Will be called periodically called to maintain the
-- * lock.
-- *
-- * Will be used to get parameters as well as info from
-- * the decoded baseband header
-- *
-- * Once a new lock has established, the internal state
-- * frequency (internal->freq) is updated
-- */
--static int stb0899_track(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
--{
--	return 0;
--}
- 
- static int stb0899_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
+ static int dib7070_set_param_override(struct dvb_frontend *fe, struct dvb_frontend_parameters *fep)
  {
-@@ -1647,7 +1627,6 @@ static struct dvb_frontend_ops stb0899_ops = {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct dvb_usb_adapter *adap = fe->dvb->priv;
+ 	struct dib0700_adapter_state *state = adap->priv;
  
- 	.get_frontend_algo		= stb0899_frontend_algo,
- 	.search				= stb0899_search,
--	.track				= stb0899_track,
- 	.get_frontend                   = stb0899_get_frontend,
- 
- 
-diff --git a/drivers/media/dvb/frontends/stv0900_core.c b/drivers/media/dvb/frontends/stv0900_core.c
-index 83e9a81..8af1e624 100644
---- a/drivers/media/dvb/frontends/stv0900_core.c
-+++ b/drivers/media/dvb/frontends/stv0900_core.c
-@@ -1658,12 +1658,6 @@ static int stv0900_read_status(struct dvb_frontend *fe, enum fe_status *status)
- 	return 0;
- }
- 
--static int stv0900_track(struct dvb_frontend *fe,
--			struct dvb_frontend_parameters *p)
--{
--	return 0;
--}
--
- static int stv0900_stop_ts(struct dvb_frontend *fe, int stop_ts)
+ 	u16 offset;
+-	u8 band = BAND_OF_FREQUENCY(fep->frequency/1000);
++	u8 band = BAND_OF_FREQUENCY(p->frequency/1000);
+ 	switch (band) {
+ 		case BAND_VHF: offset = 950; break;
+ 		case BAND_UHF:
+@@ -824,11 +825,12 @@ static int dib7070_set_param_override(struct dvb_frontend *fe, struct dvb_fronte
+ static int dib7770_set_param_override(struct dvb_frontend *fe,
+ 		struct dvb_frontend_parameters *fep)
  {
+-	 struct dvb_usb_adapter *adap = fe->dvb->priv;
+-	 struct dib0700_adapter_state *state = adap->priv;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	struct dvb_usb_adapter *adap = fe->dvb->priv;
++	struct dib0700_adapter_state *state = adap->priv;
  
-@@ -1891,7 +1885,6 @@ static struct dvb_frontend_ops stv0900_ops = {
- 	.diseqc_recv_slave_reply	= stv0900_recv_slave_reply,
- 	.set_tone			= stv0900_set_tone,
- 	.search				= stv0900_search,
--	.track				= stv0900_track,
- 	.read_status			= stv0900_read_status,
- 	.read_ber			= stv0900_read_ber,
- 	.read_signal_strength		= stv0900_read_signal_strength,
+ 	 u16 offset;
+-	 u8 band = BAND_OF_FREQUENCY(fep->frequency/1000);
++	 u8 band = BAND_OF_FREQUENCY(p->frequency/1000);
+ 	 switch (band) {
+ 	 case BAND_VHF:
+ 		  dib7000p_set_gpio(fe, 0, 0, 1);
+@@ -1208,11 +1210,12 @@ static struct dib0070_config dib807x_dib0070_config[2] = {
+ static int dib807x_set_param_override(struct dvb_frontend *fe,
+ 		struct dvb_frontend_parameters *fep)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct dvb_usb_adapter *adap = fe->dvb->priv;
+ 	struct dib0700_adapter_state *state = adap->priv;
+ 
+ 	u16 offset = dib0070_wbd_offset(fe);
+-	u8 band = BAND_OF_FREQUENCY(fep->frequency/1000);
++	u8 band = BAND_OF_FREQUENCY(p->frequency/1000);
+ 	switch (band) {
+ 	case BAND_VHF:
+ 		offset += 750;
+@@ -1506,9 +1509,10 @@ static struct dib0090_config dib809x_dib0090_config = {
+ static int dib8096_set_param_override(struct dvb_frontend *fe,
+ 		struct dvb_frontend_parameters *fep)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct dvb_usb_adapter *adap = fe->dvb->priv;
+ 	struct dib0700_adapter_state *state = adap->priv;
+-	u8 band = BAND_OF_FREQUENCY(fep->frequency/1000);
++	u8 band = BAND_OF_FREQUENCY(p->frequency/1000);
+ 	u16 target;
+ 	int ret = 0;
+ 	enum frontend_tune_state tune_state = CT_SHUTDOWN;
+@@ -1822,6 +1826,7 @@ struct dibx090p_adc dib8090p_adc_tab[] = {
+ static int dib8096p_agc_startup(struct dvb_frontend *fe,
+ 		struct dvb_frontend_parameters *fep)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct dvb_usb_adapter *adap = fe->dvb->priv;
+ 	struct dib0700_adapter_state *state = adap->priv;
+ 	struct dibx000_bandwidth_config pll;
+@@ -1841,7 +1846,7 @@ static int dib8096p_agc_startup(struct dvb_frontend *fe,
+ 	dib8000_set_wbd_ref(fe, target);
+ 
+ 
+-	while (fep->frequency / 1000 > adc_table->freq) {
++	while (p->frequency / 1000 > adc_table->freq) {
+ 		better_sampling_freq = 1;
+ 		adc_table++;
+ 	}
 -- 
 1.7.8.352.g876a6
 
