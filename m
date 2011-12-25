@@ -1,70 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:40517 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab1LLR1g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 12:27:36 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Date: Mon, 12 Dec 2011 18:27:33 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [GIT PULL for 3.2-rc5] media fixes
-In-reply-to: <4EE63039.4040004@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Message-id: <4EE63985.30001@samsung.com>
-References: <4EE63039.4040004@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:39766 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753711Ab1LYSNi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Dec 2011 13:13:38 -0500
+Message-ID: <4EF767CB.10705@redhat.com>
+Date: Sun, 25 Dec 2011 16:13:31 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Dennis Sperlich <dsperlich@googlemail.com>
+CC: linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: em28xx_isoc_dvb_max_packetsize for EM2884 (Terratec Cinergy HTC
+ Stick)
+References: <4EF64AF4.2040705@gmail.com> <4EF70077.5040907@redhat.com> <4EF72D61.9090001@gmail.com>
+In-Reply-To: <4EF72D61.9090001@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On 12/12/2011 05:47 PM, Mauro Carvalho Chehab wrote:
-> Hi Linus,
+On 25-12-2011 12:04, Dennis Sperlich wrote:
+> On 25.12.2011 11:52, Mauro Carvalho Chehab wrote:
+>> On 24-12-2011 19:58, Dennis Sperlich wrote:
+>>> Hi,
+>>>
+>>> I have a Terratec Cinergy HTC Stick an tried the new support for the DVB-C part. It works for SD material (at least for free receivable stations, I tried afair only QAM64), but did not for HD stations (QAM256). I have only access to unencrypted ARD HD, ZDF HD and arte HD (via KabelDeutschland). The HD material was just digital artefacts, as far as mplayer could decode it. When I did a dumpstream and looked at the resulting file size I got something about 1MB/s which seems a little too low, because SD was already about 870kB/s. After looking around I found a solution in increasing the isoc_dvb_max_packetsize from 752 to 940 (multiple of 188). Then an HD stream was about 1.4MB/s and looked good. I'm not sure, whether this is the correct fix, but it works for me.
+>>>
+>>> If you need more testing pleas tell.
+>>>
+>>> Regards,
+>>> Dennis
+>>>
+>>>
+>>>
+>>> index 804a4ab..c518d13 100644
+>>> --- a/drivers/media/video/em28xx/em28xx-core.c
+>>> +++ b/drivers/media/video/em28xx/em28xx-core.c
+>>> @@ -1157,7 +1157,7 @@ int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev)
+>>>                   * FIXME: same as em2874. 564 was enough for 22 Mbit DVB-T
+>>>                   * but not enough for 44 Mbit DVB-C.
+>>>                   */
+>>> -               packet_size = 752;
+>>> +               packet_size = 940;
+>>>          }
+>>>
+>>>          return packet_size;
+>> As you can see there at the code, the packet size depends on the chipset, as
+>> not all will support 940 for packet size.
+>>
+>> Could you please provide us what was the chip detected id?
+>>
+>> It should be a message on your dmesg like:
+>>
+>>     chip ID is em2870
+>> or
+>>     em28xx chip ID = 38
+>>
+>> The patch should change it only for your specific chipset model, in order to
+>> avoid regressions to other supported chipsets, like:
+>>
+>> int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev)
+>> {
+>>          unsigned int chip_cfg2;
+>>          unsigned int packet_size;
+>>
+>>          switch (dev->chip_id) {
+>>          case CHIP_ID_EM2710:
+>>          case CHIP_ID_EM2750:
+>>          case CHIP_ID_EM2800:
+>>          case CHIP_ID_EM2820:
+>> ...
+>>     case CHIP_ID_foo:
+>>         packet_size = 940;
+>> ...
+>>          }
+>>
+>>          return packet_size;
+>> }
+>>
+>> The case you're touching seems to be for em2884, but the switch covers both
+>> em2884 and em28174 (plus the default for newer chipsets).
 > 
-> Please pull from:
->   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+> dmesg says: em28xx #0: chip ID is em2884
 > 
-> For a couple fixes for media drivers.
-> The changes are:
->     - ati_remote (new driver for 3.2): Fix the scancode tables;
->     - af9015: fix some issues with firmware load;
->     - au0828: (trivial) add device ID's for some devices;
->     - omap3 and s5p: several small fixes;
->     - Update MAINTAINERS entry to cover /drivers/staging/media and
->       media DocBook;
->     - a few other small trivial fixes.
+> so a patch would be more like:
 > 
-> Thanks!
-> Mauro
-[...]
-
+> index 804a4ab..9280251 100644
+> --- a/drivers/media/video/em28xx/em28xx-core.c
+> +++ b/drivers/media/video/em28xx/em28xx-core.c
+> @@ -1151,6 +1151,8 @@ int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev)
+>                 packet_size = 564;
+>                 break;
+>         case CHIP_ID_EM2884:
+> +               packet_size = 940;
+> +               break;
+>         case CHIP_ID_EM28174:
+>         default:
+>                 /*
 > 
-> Sylwester Nawrocki (10):
->       [media] s5p-fimc: Fix wrong pointer dereference when unregistering sensors
->       [media] s5p-fimc: Fix error in the capture subdev deinitialization
->       [media] s5p-fimc: Fix initialization for proper system suspend support
->       [media] s5p-fimc: Fix buffer dequeue order issue
->       [media] s5p-fimc: Allow probe() to succeed with null platform data
->       [media] s5p-fimc: Adjust pixel height alignments according to the IP
-> revision
->       [media] s5p-fimc: Fail driver probing when sensor configuration is wrong
->       [media] s5p-fimc: Use correct fourcc for RGB565 colour format
->       [media] m5mols: Fix set_fmt to return proper pixel format code
->       [media] s5p-fimc: Fix camera input configuration in subdev operations
+>> Maybe Michael/Devin may have something to say, with regards to a way to detect
+>> the maximum supported packet size by each specific em28xx model.
+> 
+> This would be fine, I tried also 1128 (6 times 188), but then mplayer did not play any more.
+> I then tried 1034, but then I got the message " submit of urb 0 failed (error=-90)", so I guess 
+> there have to be integer multiples of 188.
 
-There is one more quite important patch left out:
+The maximum packet size is described at the USB descriptors.
 
-http://git.infradead.org/users/kmpark/linux-2.6-samsung/commitdiff/817069678ab57150b21cd0705e2f3a3b2b6509f4
+The code at em28xx_set_alternate() seeks for the alternates and selects
+the one that will get the best alternate for the analog mode.
 
-It was included in my recent pull request. It would be good to have in v3.2
-too. Are you planning to add it to a next pull request to Linus ?
+There, you'll see a code that gets the best alternate for analog,
+and selects the proper packet size for it.
 
---
+For DVB, it should be a little different, as, on DVB, the driver doesn't
+know, in advance, what's the streaming rate. So, the driver needs to get
+a high enough packet size to fit for the bandwidth needs.
 
-Thanks,
-Sylwester
+Also, for DVB, the driver does:
+	usb_set_interface(dev->udev, 0, 1);
+
+(e. g. it always use alternate 1)
+
+So, in thesis, that function could be as simple as:
+	dev->alt_max_pkt_size[1];
+
+(if the max packet size for alternate 1 would work for all chips)
+
+Or, eventually, the code might be using other alternates for HD, 
+but I'm not sure if those chipsets support a different alternate for DVB.
+
+Regards,
+Mauro
