@@ -1,45 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:51965 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751744Ab1L3VdG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 16:33:06 -0500
-Date: Fri, 30 Dec 2011 23:33:01 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: v4l: how to get blanking clock count?
-Message-ID: <20111230213301.GA3677@valkosipuli.localdomain>
-References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54733 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751892Ab1LYKSD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Dec 2011 05:18:03 -0500
+Message-ID: <4EF6F84C.3000307@redhat.com>
+Date: Sun, 25 Dec 2011 08:17:48 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+CC: Georgi Chorbadzhiyski <gf@unixsol.org>, linux-media@vger.kernel.org
+Subject: Re: DVB-S2 multistream support
+References: <4EF67721.9050102@unixsol.org> <4EF6DD91.2030800@iki.fi>
+In-Reply-To: <4EF6DD91.2030800@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Scott,
+On 25-12-2011 06:23, Antti Palosaari wrote:
+> On 12/25/2011 03:06 AM, Georgi Chorbadzhiyski wrote:
+>> Guys are there any news on DVB-S2 multistream support. I have
+>> found test patches at http://www.tbsdtv.com/forum/viewtopic.php?f=26&t=1874
+>> and judging by report on dvblast-devel ML they seem to work.
+>>
+>> What is holding them back, perhaps nobody submitted them?
 
-On Fri, Dec 30, 2011 at 03:20:43PM +0800, Scott Jiang wrote:
-> Hi Hans and Guennadi,
+I don't remember seeing any patches submitted for it.
+
+The patch "budget-omicom.patch" seems to be a hack that will likely break support
+for other supported devices.
+
+The patch stv090x-mis.patch also seems wrong, as "props->dvbs2_mis_id" is probably
+initialized with 0 by the core, so, by default, the MIS filter will be enabled.
+That's said, the approach there assumes that just one mis can be filtered. I'm wandering
+if it wouldn't be better to use the same approach taken inside dvb-core for PIP filtering.
+
+In any case, the dvb properties cache should be initialized to have the MIS filter
+disabled, and only enable it if userspace requests it via FE_SET_PROPERTY.
+
+> Ok, there seems to be now TS IDs for ISDB-S, DVB-T2 and DVB-S2. I wonder who those are 
+> defined in our DVB API as own parameter for each standard...
+
+The per-standard parameters were introduced by ISDB-T. It probably makes sense for
+the ISDB specific parameters, as no other delivery system looks like that, but we should
+avoid propagating it for other delivery systems, expecially DVB-*, as the new parameters
+may be used on other delivery systems on that family.
+
+It would be great to fix this as soon as possible, in order to avoid propagating it.
+The fix should be simple: just rename the parameter, and create an alias to the
+previous name.
+
+Regards,
+Mauro
+
 > 
-> Our bridge driver needs to know line clock count including active
-> lines and blanking area.
-> I can compute active clock count according to pixel format, but how
-> can I get this in blanking area in current framework?
+> Antti
+> 
+> 
 
-Such information is not available currently over the V4L2 subdev interface.
-Please see this patchset:
-
-<URL:http://www.spinics.net/lists/linux-media/msg41765.html>
-
-Patches 7 and 8 are probably the most interesting for you. This is an RFC
-patchset so the final implementation could well still change.
-
-Kind regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
