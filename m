@@ -1,117 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19245 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752417Ab1L3PJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:29 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Sqd015892
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 41/94] [media] s5h1432: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:38 -0200
-Message-Id: <1325257711-12274-42-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:36298 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752183Ab1LYTnO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Dec 2011 14:43:14 -0500
+Received: by wibhm6 with SMTP id hm6so4066596wib.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Dec 2011 11:43:13 -0800 (PST)
+Message-ID: <1324842167.3134.4.camel@tvbox>
+Subject: Re: em28xx_isoc_dvb_max_packetsize for EM2884 (Terratec Cinergy HTC
+ Stick)
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Hans Petter Selasky <hselasky@c2i.net>
+Cc: Dennis Sperlich <dsperlich@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Date: Sun, 25 Dec 2011 19:42:47 +0000
+In-Reply-To: <201112251511.54080.hselasky@c2i.net>
+References: <4EF64AF4.2040705@gmail.com> <4EF70077.5040907@redhat.com>
+	 <4EF72D61.9090001@gmail.com> <201112251511.54080.hselasky@c2i.net>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+On Sun, 2011-12-25 at 15:11 +0100, Hans Petter Selasky wrote:
+> On Sunday 25 December 2011 15:04:17 Dennis Sperlich wrote:
+> > On 25.12.2011 11:52, Mauro Carvalho Chehab wrote:
+> > > On 24-12-2011 19:58, Dennis Sperlich wrote:
+> > >> Hi,
+> > >> 
+> > >> I have a Terratec Cinergy HTC Stick an tried the new support for the
+> > >> DVB-C part. It works for SD material (at least for free receivable
+> > >> stations, I tried afair only QAM64), but did not for HD stations
+> > >> (QAM256). I have only access to unencrypted ARD HD, ZDF HD and arte HD
+> > >> (via KabelDeutschland). The HD material was just digital artefacts, as
+> > >> far as mplayer could decode it. When I did a dumpstream and looked at
+> > >> the resulting file size I got something about 1MB/s which seems a
+> > >> little too low, because SD was already about 870kB/s. After looking
+> > >> around I found a solution in increasing the isoc_dvb_max_packetsize
+> > >> from 752 to 940 (multiple of 188). Then an HD stream was about 1.4MB/s
+> > >> and looked good. I'm not sure, whether this is the correct fix, but it
+> > >> works for me.
+> > >> 
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Would not increasing EM28XX_DVB_NUM_BUFS currently set at 5 to say 10
+have a better effect?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/s5h1432.c |   29 +++++++++++------------------
- 1 files changed, 11 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/dvb/frontends/s5h1432.c b/drivers/media/dvb/frontends/s5h1432.c
-index f22c71e..3a9050f 100644
---- a/drivers/media/dvb/frontends/s5h1432.c
-+++ b/drivers/media/dvb/frontends/s5h1432.c
-@@ -178,9 +178,9 @@ static int s5h1432_set_IF(struct dvb_frontend *fe, u32 ifFreqHz)
- }
- 
- /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
--static int s5h1432_set_frontend(struct dvb_frontend *fe,
--				struct dvb_frontend_parameters *p)
-+static int s5h1432_set_frontend(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	u32 dvb_bandwidth = 8;
- 	struct s5h1432_state *state = fe->demodulator_priv;
- 
-@@ -191,16 +191,16 @@ static int s5h1432_set_frontend(struct dvb_frontend *fe,
- 		fe->ops.tuner_ops.set_params(fe);
- 		msleep(300);
- 		s5h1432_set_channel_bandwidth(fe, dvb_bandwidth);
--		switch (p->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
-+		switch (p->bandwidth_hz) {
-+		case 6000000:
- 			dvb_bandwidth = 6;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
--		case BANDWIDTH_7_MHZ:
-+		case 7000000:
- 			dvb_bandwidth = 7;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
--		case BANDWIDTH_8_MHZ:
-+		case 8000000:
- 			dvb_bandwidth = 8;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
-@@ -215,16 +215,16 @@ static int s5h1432_set_frontend(struct dvb_frontend *fe,
- 		s5h1432_writereg(state, S5H1432_I2C_TOP_ADDR, 0x09, 0x1b);
- 
- 		s5h1432_set_channel_bandwidth(fe, dvb_bandwidth);
--		switch (p->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
-+		switch (p->bandwidth_hz) {
-+		case 6000000:
- 			dvb_bandwidth = 6;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
--		case BANDWIDTH_7_MHZ:
-+		case 7000000:
- 			dvb_bandwidth = 7;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
--		case BANDWIDTH_8_MHZ:
-+		case 8000000:
- 			dvb_bandwidth = 8;
- 			s5h1432_set_IF(fe, IF_FREQ_4_MHZ);
- 			break;
-@@ -329,12 +329,6 @@ static int s5h1432_read_ber(struct dvb_frontend *fe, u32 *ber)
- 	return 0;
- }
- 
--static int s5h1432_get_frontend(struct dvb_frontend *fe,
--				struct dvb_frontend_parameters *p)
--{
--	return 0;
--}
--
- static int s5h1432_get_tune_settings(struct dvb_frontend *fe,
- 				     struct dvb_frontend_tune_settings *tune)
- {
-@@ -396,8 +390,7 @@ static struct dvb_frontend_ops s5h1432_ops = {
- 
- 	.init = s5h1432_init,
- 	.sleep = s5h1432_sleep,
--	.set_frontend_legacy = s5h1432_set_frontend,
--	.get_frontend_legacy = s5h1432_get_frontend,
-+	.set_frontend = s5h1432_set_frontend,
- 	.get_tune_settings = s5h1432_get_tune_settings,
- 	.read_status = s5h1432_read_status,
- 	.read_ber = s5h1432_read_ber,
--- 
-1.7.8.352.g876a6
+Malcolm
 
