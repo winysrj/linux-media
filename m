@@ -1,294 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57174 "EHLO mx1.redhat.com"
+Received: from mail.hnelson.de ([83.169.43.49]:48852 "EHLO mail.hnelson.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754977Ab1LIXnf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Dec 2011 18:43:35 -0500
-Message-ID: <4EE29D1A.6010900@redhat.com>
-Date: Fri, 09 Dec 2011 21:43:22 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1750720Ab1LZFz1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 00:55:27 -0500
+Date: Mon, 26 Dec 2011 06:55:24 +0100 (CET)
+From: Holger Nelson <hnelson@hnelson.de>
+To: Dennis Sperlich <dsperlich@googlemail.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	Michael Krufky <mkrufky@kernellabs.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: em28xx_isoc_dvb_max_packetsize for EM2884 (Terratec Cinergy HTC
+ Stick)
+In-Reply-To: <4EF78896.1060908@gmail.com>
+Message-ID: <alpine.DEB.2.02.1112260627170.17197@nova.crius.de>
+References: <4EF64AF4.2040705@gmail.com> <4EF70077.5040907@redhat.com> <4EF72D61.9090001@gmail.com> <4EF767CB.10705@redhat.com> <4EF78896.1060908@gmail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] drxk: Switch the delivery system on FE_SET_PROPERTY
-References: <1323454852-7426-1-git-send-email-mchehab@redhat.com> <4EE252E5.2050204@iki.fi> <4EE25A3C.9040404@redhat.com> <4EE25CB4.3000501@iki.fi> <4EE287A9.3000502@redhat.com> <CAGoCfiyE8JhX5fT_SYjb6_X5Mkjx1Vx34_pKYaTjXu+muWxxwg@mail.gmail.com> <4EE29BA6.1030909@redhat.com>
-In-Reply-To: <4EE29BA6.1030909@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09-12-2011 21:37, Mauro Carvalho Chehab wrote:
-> On 09-12-2011 20:33, Devin Heitmueller wrote:
->> On Fri, Dec 9, 2011 at 5:11 PM, Mauro Carvalho Chehab
->> <mchehab@redhat.com> wrote:
->>>> Could someone explain reason for that?
->>>
->>>
->>> I dunno, but I think this needs to be fixed, at least when the frontend
->>> is opened with O_NONBLOCK.
->>
->> Are you doing the drx-k firmware load on dvb_init()? That could
->> easily take 4 seconds.
+Hi!
+
+On Sun, 25 Dec 2011, Dennis Sperlich wrote:
+
+> I just tried, replacing
+>    max_dvb_packet_size = em28xx_isoc_dvb_max_packetsize(dev);
+> by
+>    max_dvb_packet_size = dev->alt_max_pkt_size[1];
 >
-> No. The firmware were opened previously.
+> but it did not work. Was this the correct replacement?
+>
+>    printk(KERN_INFO "dev->alt_max_pkt_size[1] is 
+> %i\n",dev->alt_max_pkt_size[1]);
+>
+> then said, dev->alt_max_pkt_size[1] is 0.
+>
+> I also attachted  a lsusb -v output for the Terratec Cinergy HTC Stick. I 
+> don't know, which of these endpoints the dvb-c part is, but it may be anyway 
+> usefull.
 
-Maybe the delay is due to this part of dvb_frontend.c:
+Is it possible, that dev->alt_max_pkt_size gets the maximum packet sizes 
+for the analog video input endpoint (0x82 in lsusb output)? The patch 
+below worked during a small test, but I doubt that it is the best way to 
+do it.
 
-static int dvb_mfe_wait_time = 5;
-...
-                         int mferetry = (dvb_mfe_wait_time << 1);
+While still looking at it: Is there a reason to allocate 32 bytes per 
+alternate interface configuration if we only store one unsigned int per 
+configuration in it? - I just copied the allocation code from above.
 
-                         mutex_unlock (&adapter->mfe_lock);
-                         while (mferetry-- && (mfedev->users != -1 ||
-                                         mfepriv->thread != NULL)) {
-                                 if(msleep_interruptible(500)) {
-                                         if(signal_pending(current))
-                                                 return -EINTR;
-                                 }
-                         }
+Holger
 
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 1704da0..70866c5 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -3269,6 +3273,30 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+  		dev->alt_max_pkt_size[i] = size;
+  	}
 
-If I set this modprobe parameter to 1, the delay reduces drastically:
++	dev->alt_dvb_max_pkt_size = kmalloc(32 * dev->num_alt, GFP_KERNEL);
++
++	if (dev->alt_dvb_max_pkt_size == NULL) {
++		em28xx_errdev("out of memory!\n");
++		kfree(dev);
++		retval = -ENOMEM;
++		goto err;
++	}
++
++	for (i = 0; i < dev->num_alt ; i++) {
++	        int ep;
++		for (ep = 0; ep < interface->altsetting[i].desc.bNumEndpoints; ep++) {
++			struct usb_host_endpoint *e = &interface->altsetting[i].endpoint[ep];
++			if (e->desc.bEndpointAddress == 0x84) {
++				u16 tmp = le16_to_cpu(e->desc.wMaxPacketSize);
++				unsigned int size = tmp & 0x7ff;
++				if (udev->speed == USB_SPEED_HIGH)
++					size = size * hb_mult(tmp);
++
++				dev->alt_dvb_max_pkt_size[i] = size;
++			}
++		}
++	}
++
+  	if ((card[nr] >= 0) && (card[nr] < em28xx_bcount))
+  		dev->model = card[nr];
 
-[ 5975.865162] drxk: ConfigureI2CBridge
-[ 5975.865164] xc5000: xc5000_init()
-[ 5975.869257] xc5000: xc5000_is_firmware_loaded() returns True id = 0x1388
-[ 5975.876009] xc5000: xc_initialize()
-[ 5976.120891] xc5000: *** ADC envelope (0-1023) = 4
-[ 5976.126260] xc5000: *** Frequency error = 0 Hz
-[ 5976.131260] xc5000: *** Lock status (0-Wait, 1-Locked, 2-No-signal) = 1
-[ 5976.139111] xc5000: *** HW: V03.02, FW: V01.06.0072
-[ 5976.144733] xc5000: *** Horizontal sync frequency = 11292 Hz
-[ 5976.150976] xc5000: *** Frame lines = 1442
-[ 5976.155850] xc5000: *** Quality (0:<8dB, 7:>56dB) = 9
-[ 5976.160937] drxk: drxk_gate_ctrldisable
-[ 5976.160939] drxk: ConfigureI2CBridge
-[ 5977.161897] drxk: drxk_c_get_tune_settings
-[ 5977.162085] drxk: drxk_c_init
-[ 5977.162089] drxk: drxk_gate_ctrlenable
-[ 5977.162091] drxk: ConfigureI2CBridge
-[ 5977.162094] xc5000: xc5000_init()
-[ 5977.166095] xc5000: xc5000_is_firmware_loaded() returns True id = 0x1388
-[ 5977.172836] xc5000: xc_initialize()
-[ 5977.422213] xc5000: *** ADC envelope (0-1023) = 4
-[ 5977.427706] xc5000: *** Frequency error = 0 Hz
-[ 5977.432832] xc5000: *** Lock status (0-Wait, 1-Locked, 2-No-signal) = 1
-[ 5977.440682] xc5000: *** HW: V03.02, FW: V01.06.0072
-[ 5977.446177] xc5000: *** Horizontal sync frequency = 10460 Hz
-[ 5977.452482] xc5000: *** Frame lines = 1442
-[ 5977.457296] xc5000: *** Quality (0:<8dB, 7:>56dB) = 9
-[ 5977.462385] drxk: drxk_gate_ctrldisable
-[ 5977.462388] drxk: ConfigureI2CBridge
-[ 5977.462390] drxk: drxk_set_parameters
-[ 5977.462392] drxk: drxk_gate_ctrlenable
-[ 5977.462394] drxk: ConfigureI2CBridge
-[ 5977.463043] xc5000: xc5000_is_firmware_loaded() returns True id = 0x1388
-[ 5977.469781] xc5000: xc5000_set_params() frequency=57000000 (Hz)
-[ 5977.475740] xc5000: xc5000_set_params() QAM modulation
-[ 5977.480912] xc5000: xc5000_set_params() Bandwidth 6MHz (5999550)
-[ 5977.486948] xc5000: xc5000_set_params() frequency=55250000 (compensated)
-[ 5977.493677] xc5000: xc_SetSignalSource(1) Source = CABLE
-[ 5977.500024] xc5000: xc_SetTVStandard(0x8002,0x00c0)
-[ 5977.504930] xc5000: xc_SetTVStandard() Standard = DTV6
-[ 5977.518267] xc5000: xc_set_IF_frequency(freq_khz = 4000) freq_code = 0x1000
-[ 5977.527135] xc5000: xc_tune_channel(55250000)
-[ 5977.531530] xc5000: xc_set_RF_frequency(55250000)
-[ 5977.728050] xc5000: *** ADC envelope (0-1023) = 768
-[ 5977.733671] xc5000: *** Frequency error = 0 Hz
-[ 5977.738649] xc5000: *** Lock status (0-Wait, 1-Locked, 2-No-signal) = 1
-[ 5977.746523] xc5000: *** HW: V03.02, FW: V01.06.0072
-[ 5977.752017] xc5000: *** Horizontal sync frequency = 14970 Hz
-[ 5977.758288] xc5000: *** Frame lines = 65535
-[ 5977.763137] xc5000: *** Quality (0:<8dB, 7:>56dB) = 5
-[ 5977.768224] drxk: drxk_gate_ctrldisable
-[ 5977.768226] drxk: ConfigureI2CBridge
-[ 5977.768228] xc5000: xc5000_get_if_frequency()
-[ 5977.772624] drxk: Start
-[ 5977.772626] drxk: SetQAM
-[ 5977.773530] drxk: QAMResetQAM
-[ 5977.773880] drxk: scu_command
-[ 5977.777653] drxk: QAMSetSymbolrate
-[ 5977.778880] drxk: scu_command
-[ 5977.782647] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-[ 5977.789298] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-[ 5977.789490] drxk: scu_command
-[ 5977.792644] drxk: scu_command
-[ 5977.795641] drxk: SetFrequencyShifter
-[ 5977.796119] drxk: SetQAMMeasurement
-[ 5977.806489] drxk: SetQAM64
-[ 5977.827502] drxk: MPEGTSDtoSetup
-[ 5977.834621] drxk: scu_command
-[ 5978.161550] drxk: drxk_read_status
-[ 5978.161554] drxk: GetLockStatus
-[ 5978.161556] drxk: GetQAMLockStatus
-[ 5978.161558] drxk: scu_command
-[ 5978.315220] drxk: drxk_read_status
-[ 5978.315223] drxk: GetLockStatus
-[ 5978.315225] drxk: GetQAMLockStatus
-[ 5978.315227] drxk: scu_command
-[ 5978.469137] drxk: drxk_read_status
-[ 5978.469141] drxk: GetLockStatus
-[ 5978.469143] drxk: GetQAMLockStatus
-[ 5978.469144] drxk: scu_command
-[ 5978.623043] drxk: drxk_read_status
-[ 5978.623046] drxk: GetLockStatus
-[ 5978.623048] drxk: GetQAMLockStatus
-[ 5978.623050] drxk: scu_command
-[ 5978.776974] drxk: drxk_read_status
-[ 5978.776977] drxk: GetLockStatus
-[ 5978.776979] drxk: GetQAMLockStatus
-[ 5978.776981] drxk: scu_command
-[ 5978.930891] drxk: drxk_read_status
-[ 5978.930894] drxk: GetLockStatus
-[ 5978.930896] drxk: GetQAMLockStatus
-[ 5978.930898] drxk: scu_command
-[ 5979.084814] drxk: drxk_read_status
-[ 5979.084817] drxk: GetLockStatus
-[ 5979.084819] drxk: GetQAMLockStatus
-[ 5979.084821] drxk: scu_command
-[ 5979.238727] drxk: drxk_read_status
-[ 5979.238730] drxk: GetLockStatus
-[ 5979.238732] drxk: GetQAMLockStatus
-[ 5979.238734] drxk: scu_command
-[ 5979.392643] drxk: drxk_read_status
-[ 5979.392646] drxk: GetLockStatus
-[ 5979.392648] drxk: GetQAMLockStatus
-[ 5979.392650] drxk: scu_command
-[ 5979.546595] drxk: drxk_read_status
-[ 5979.546598] drxk: GetLockStatus
-[ 5979.546601] drxk: GetQAMLockStatus
-[ 5979.546602] drxk: scu_command
-[ 5979.700506] drxk: drxk_c_get_tune_settings
-[ 5979.700683] drxk: drxk_set_parameters
-[ 5979.700687] drxk: drxk_gate_ctrlenable
-[ 5979.700689] drxk: ConfigureI2CBridge
-[ 5979.701382] xc5000: xc5000_is_firmware_loaded() returns True id = 0x1388
-[ 5979.708099] xc5000: xc5000_set_params() frequency=57000000 (Hz)
-[ 5979.714055] xc5000: xc5000_set_params() QAM modulation
-[ 5979.719230] xc5000: xc5000_set_params() Bandwidth 6MHz (5929400)
-[ 5979.725267] xc5000: xc5000_set_params() frequency=55250000 (compensated)
-[ 5979.731996] xc5000: xc_SetSignalSource(1) Source = CABLE
-[ 5979.738262] xc5000: xc_SetTVStandard(0x8002,0x00c0)
-[ 5979.743170] xc5000: xc_SetTVStandard() Standard = DTV6
-[ 5979.757100] xc5000: xc_set_IF_frequency(freq_khz = 4000) freq_code = 0x1000
-[ 5979.765968] xc5000: xc_tune_channel(55250000)
-[ 5979.770364] xc5000: xc_set_RF_frequency(55250000)
-[ 5979.966886] xc5000: *** ADC envelope (0-1023) = 816
-[ 5979.972506] xc5000: *** Frequency error = 0 Hz
-[ 5979.977483] xc5000: *** Lock status (0-Wait, 1-Locked, 2-No-signal) = 1
-[ 5979.985482] xc5000: *** HW: V03.02, FW: V01.06.0072
-[ 5979.990975] xc5000: *** Horizontal sync frequency = 15023 Hz
-[ 5979.997496] xc5000: *** Frame lines = 65535
-[ 5980.002347] xc5000: *** Quality (0:<8dB, 7:>56dB) = 0
-[ 5980.007428] drxk: drxk_gate_ctrldisable
-[ 5980.007430] drxk: ConfigureI2CBridge
-[ 5980.007432] xc5000: xc5000_get_if_frequency()
-[ 5980.011820] drxk: Start
-[ 5980.011821] drxk: SetQAM
-[ 5980.012714] drxk: QAMResetQAM
-[ 5980.013111] drxk: scu_command
-[ 5980.016483] drxk: QAMSetSymbolrate
-[ 5980.017713] drxk: scu_command
-[ 5980.021482] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-[ 5980.028126] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-[ 5980.028316] drxk: scu_command
-[ 5980.031475] drxk: scu_command
-[ 5980.034475] drxk: SetFrequencyShifter
-[ 5980.034953] drxk: SetQAMMeasurement
-[ 5980.045136] drxk: SetQAM64
-[ 5980.066075] drxk: MPEGTSDtoSetup
-[ 5980.073329] drxk: scu_command
-[ 5980.700153] drxk: drxk_read_status
-[ 5980.700157] drxk: GetLockStatus
-[ 5980.700159] drxk: GetQAMLockStatus
-[ 5980.700161] drxk: scu_command
-[ 5980.853772] drxk: drxk_read_status
-[ 5980.853775] drxk: GetLockStatus
-[ 5980.853777] drxk: GetQAMLockStatus
-[ 5980.853779] drxk: scu_command
-[ 5981.007797] drxk: drxk_read_status
-[ 5981.007801] drxk: GetLockStatus
-[ 5981.007803] drxk: GetQAMLockStatus
-[ 5981.007805] drxk: scu_command
-[ 5981.161681] drxk: drxk_read_status
-[ 5981.161684] drxk: GetLockStatus
-[ 5981.161686] drxk: GetQAMLockStatus
-[ 5981.161688] drxk: scu_command
-[ 5981.315635] drxk: drxk_read_status
-[ 5981.315638] drxk: GetLockStatus
-[ 5981.315640] drxk: GetQAMLockStatus
-[ 5981.315642] drxk: scu_command
-[ 5981.469555] drxk: drxk_read_status
-[ 5981.469558] drxk: GetLockStatus
-[ 5981.469561] drxk: GetQAMLockStatus
-[ 5981.469562] drxk: scu_command
-[ 5981.623468] drxk: drxk_read_status
-[ 5981.623472] drxk: GetLockStatus
-[ 5981.623474] drxk: GetQAMLockStatus
-[ 5981.623476] drxk: scu_command
-[ 5981.777388] drxk: drxk_read_status
-[ 5981.777391] drxk: GetLockStatus
-[ 5981.777393] drxk: GetQAMLockStatus
-[ 5981.777395] drxk: scu_command
-[ 5981.931307] drxk: drxk_read_status
-[ 5981.931311] drxk: GetLockStatus
-[ 5981.931313] drxk: GetQAMLockStatus
-[ 5981.931314] drxk: scu_command
-[ 5982.085228] drxk: drxk_read_status
-[ 5982.085232] drxk: GetLockStatus
-[ 5982.085234] drxk: GetQAMLockStatus
-[ 5982.085236] drxk: scu_command
-[ 5982.239174] drxk: drxk_c_get_tune_settings
-[ 5982.239356] drxk: drxk_set_parameters
-[ 5982.239360] drxk: drxk_gate_ctrlenable
-[ 5982.239362] drxk: ConfigureI2CBridge
-[ 5982.240066] xc5000: xc5000_is_firmware_loaded() returns True id = 0x1388
-[ 5982.246785] xc5000: xc5000_set_params() frequency=57000000 (Hz)
-[ 5982.252740] xc5000: xc5000_set_params() QAM modulation
-[ 5982.257912] xc5000: xc5000_set_params() Bandwidth 6MHz (5750000)
-[ 5982.263949] xc5000: xc5000_set_params() frequency=55250000 (compensated)
-[ 5982.270679] xc5000: xc_SetSignalSource(1) Source = CABLE
-[ 5982.276941] xc5000: xc_SetTVStandard(0x8002,0x00c0)
-[ 5982.281849] xc5000: xc_SetTVStandard() Standard = DTV6
-[ 5982.295776] xc5000: xc_set_IF_frequency(freq_khz = 4000) freq_code = 0x1000
-[ 5982.304771] xc5000: xc_tune_channel(55250000)
-[ 5982.309169] xc5000: xc_set_RF_frequency(55250000)
-[ 5982.506561] xc5000: *** ADC envelope (0-1023) = 724
-[ 5982.512186] xc5000: *** Frequency error = 0 Hz
-[ 5982.517408] xc5000: *** Lock status (0-Wait, 1-Locked, 2-No-signal) = 1
-[ 5982.525178] xc5000: *** HW: V03.02, FW: V01.06.0072
-[ 5982.530799] xc5000: *** Horizontal sync frequency = 14954 Hz
-[ 5982.537149] xc5000: *** Frame lines = 65535
-[ 5982.542022] xc5000: *** Quality (0:<8dB, 7:>56dB) = 5
-[ 5982.547109] drxk: drxk_gate_ctrldisable
-[ 5982.547111] drxk: ConfigureI2CBridge
-[ 5982.547113] xc5000: xc5000_get_if_frequency()
-[ 5982.551512] drxk: Start
-[ 5982.551514] drxk: SetQAM
-[ 5982.552390] drxk: QAMResetQAM
-[ 5982.552769] drxk: scu_command
-[ 5982.556160] drxk: QAMSetSymbolrate
-[ 5982.557390] drxk: scu_command
-[ 5982.561160] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-[ 5982.567809] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-[ 5982.568001] drxk: scu_command
-[ 5982.571154] drxk: scu_command
-[ 5982.574150] drxk: SetFrequencyShifter
-[ 5982.574630] drxk: SetQAMMeasurement
-[ 5982.584376] drxk: SetQAM64
-[ 5982.604258] drxk: MPEGTSDtoSetup
-[ 5982.611361] drxk: scu_command
-[ 5982.615007] drxk: drxk_gate_ctrlenable
-[ 5982.615010] drxk: ConfigureI2CBridge
-[ 5982.615012] xc5000: xc5000_sleep()
-[ 5982.618436] xc5000: xc5000_TunerReset()
-[ 5982.622313] drxk: drxk_gate_ctrldisable
-[ 5982.622315] drxk: ConfigureI2CBridge
-[ 5982.622317] drxk: drxk_c_sleep
-[ 5982.622319] drxk: ShutDown
-[ 5982.622321] drxk: MPEGTSStop
+@@ -3281,6 +3309,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+  	retval = em28xx_init_dev(&dev, udev, interface, nr);
+  	if (retval) {
+  		mutex_unlock(&dev->lock);
++		kfree(dev->alt_dvb_max_pkt_size);
+  		kfree(dev->alt_max_pkt_size);
+  		kfree(dev);
+  		goto err;
+@@ -3365,6 +3394,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+  	em28xx_close_extension(dev);
 
+  	if (!dev->users) {
++		kfree(dev->alt_dvb_max_pkt_size);
+  		kfree(dev->alt_max_pkt_size);
+  		kfree(dev);
+  	}
+diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+index 804a4ab..e7d3541 100644
+--- a/drivers/media/video/em28xx/em28xx-core.c
++++ b/drivers/media/video/em28xx/em28xx-core.c
+@@ -1157,7 +1157,7 @@ int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev)
+  		 * FIXME: same as em2874. 564 was enough for 22 Mbit DVB-T
+  		 * but not enough for 44 Mbit DVB-C.
+  		 */
+-		packet_size = 752;
++		packet_size = dev->alt_dvb_max_pkt_size[1];
+  	}
 
-
-Regards,
-Mauro.
+  	return packet_size;
+diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+index 9b4557a..2491a2c 100644
+--- a/drivers/media/video/em28xx/em28xx-video.c
++++ b/drivers/media/video/em28xx/em28xx-video.c
+@@ -2254,6 +2254,7 @@ static int em28xx_v4l2_close(struct file *filp)
+  		   free the remaining resources */
+  		if (dev->state & DEV_DISCONNECTED) {
+  			em28xx_release_resources(dev);
++			kfree(dev->alt_dvb_max_pkt_size);
+  			kfree(dev->alt_max_pkt_size);
+  			kfree(dev);
+  			return 0;
+diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
+index b1199ef..793c85a 100644
+--- a/drivers/media/video/em28xx/em28xx.h
++++ b/drivers/media/video/em28xx/em28xx.h
+@@ -597,6 +597,7 @@ struct em28xx {
+  	int max_pkt_size;	/* max packet size of isoc transaction */
+  	int num_alt;		/* Number of alternative settings */
+  	unsigned int *alt_max_pkt_size;	/* array of wMaxPacketSize */
++	unsigned int *alt_dvb_max_pkt_size;
+  	struct urb *urb[EM28XX_NUM_BUFS];	/* urb for isoc transfers */
+  	char *transfer_buffer[EM28XX_NUM_BUFS];	/* transfer buffers for isoc
+  						   transfer */
