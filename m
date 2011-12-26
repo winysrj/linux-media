@@ -1,151 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4251 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758741Ab1LOJmi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 04:42:38 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 3/3] ivtv: setup per-device caps.
-Date: Thu, 15 Dec 2011 10:42:28 +0100
-Message-Id: <ab8307487380409d5efd09335df34b076443e0ed.1323941922.git.hans.verkuil@cisco.com>
-In-Reply-To: <1323942148-13503-1-git-send-email-hverkuil@xs4all.nl>
-References: <1323942148-13503-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <b6fe112d47eb23b6c1f87da072915140d7a3b2f6.1323941922.git.hans.verkuil@cisco.com>
-References: <b6fe112d47eb23b6c1f87da072915140d7a3b2f6.1323941922.git.hans.verkuil@cisco.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:60519 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752116Ab1LZTeF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 14:34:05 -0500
+Received: from webmail.schinagl.nl (localhost [127.0.0.1])
+	by 7of9.schinagl.nl (Postfix) with ESMTPA id 1848122E1B
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:34:45 +0100 (CET)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
+Content-Transfer-Encoding: 7bit
+Date: Mon, 26 Dec 2011 21:34:44 +0200
+From: Oliver Schinagl <oliver@schinagl.nl>
+To: <linux-media@vger.kernel.org>
+Subject: Re: [linux-dvb] saa7146 based TT1500 dvb-t doesn't find channels
+In-Reply-To: <4EF8BF82.2050609@schinagl.nl>
+References: <4EF8BF82.2050609@schinagl.nl>
+Message-ID: <cfa78a6d4073b327fbd4c5576cf94751@webmail.schinagl.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Replying to my own message, I've found something to dig into further.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/ivtv/ivtv-driver.h  |    1 +
- drivers/media/video/ivtv/ivtv-ioctl.c   |    7 +++++--
- drivers/media/video/ivtv/ivtv-streams.c |   14 ++++++++++++++
- 3 files changed, 20 insertions(+), 2 deletions(-)
+546000: (time: 00:43) (time: 00:45) signal ok:
+         QAM_AUTO f = 546000 kHz I999B8C999D999T999G999Y0
+Info: NIT(actual) filter timeout
+554000: (time: 00:59) (time: 01:00) signal ok:
+         QAM_AUTO f = 554000 kHz I999B8C999D999T999G999Y0
+Info: NIT(actual) filter timeout
+562000: (time: 01:15)
+570000: (time: 01:18) (time: 01:19) signal ok:
+         QAM_AUTO f = 570000 kHz I999B8C999D999T999G999Y0
+Info: NIT(actual) filter timeout
 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.h b/drivers/media/video/ivtv/ivtv-driver.h
-index 8f9cc17..06b9efd 100644
---- a/drivers/media/video/ivtv/ivtv-driver.h
-+++ b/drivers/media/video/ivtv/ivtv-driver.h
-@@ -331,6 +331,7 @@ struct ivtv_stream {
- 	struct ivtv *itv; 		/* for ease of use */
- 	const char *name;		/* name of the stream */
- 	int type;			/* stream type */
-+	u32 caps;			/* V4L2 capabilities */
- 
- 	u32 id;
- 	spinlock_t qlock; 		/* locks access to the queues */
-diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
-index ecafa69..6be63e9 100644
---- a/drivers/media/video/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/video/ivtv/ivtv-ioctl.c
-@@ -752,12 +752,15 @@ static int ivtv_s_register(struct file *file, void *fh, struct v4l2_dbg_register
- 
- static int ivtv_querycap(struct file *file, void *fh, struct v4l2_capability *vcap)
- {
--	struct ivtv *itv = fh2id(fh)->itv;
-+	struct ivtv_open_id *id = fh2id(file->private_data);
-+	struct ivtv *itv = id->itv;
-+	struct ivtv_stream *s = &itv->streams[id->type];
- 
- 	strlcpy(vcap->driver, IVTV_DRIVER_NAME, sizeof(vcap->driver));
- 	strlcpy(vcap->card, itv->card_name, sizeof(vcap->card));
- 	snprintf(vcap->bus_info, sizeof(vcap->bus_info), "PCI:%s", pci_name(itv->pdev));
--	vcap->capabilities = itv->v4l2_cap; 	    /* capabilities */
-+	vcap->capabilities = itv->v4l2_cap | V4L2_CAP_DEVICE_CAPS;
-+	vcap->device_caps = s->caps;
- 	return 0;
- }
- 
-diff --git a/drivers/media/video/ivtv/ivtv-streams.c b/drivers/media/video/ivtv/ivtv-streams.c
-index e7794dc..4d4ae6e 100644
---- a/drivers/media/video/ivtv/ivtv-streams.c
-+++ b/drivers/media/video/ivtv/ivtv-streams.c
-@@ -78,60 +78,73 @@ static struct {
- 	int num_offset;
- 	int dma, pio;
- 	enum v4l2_buf_type buf_type;
-+	u32 v4l2_caps;
- 	const struct v4l2_file_operations *fops;
- } ivtv_stream_info[] = {
- 	{	/* IVTV_ENC_STREAM_TYPE_MPG */
- 		"encoder MPG",
- 		VFL_TYPE_GRABBER, 0,
- 		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VIDEO_CAPTURE,
-+		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
-+			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
- 		&ivtv_v4l2_enc_fops
- 	},
- 	{	/* IVTV_ENC_STREAM_TYPE_YUV */
- 		"encoder YUV",
- 		VFL_TYPE_GRABBER, IVTV_V4L2_ENC_YUV_OFFSET,
- 		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VIDEO_CAPTURE,
-+		V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_TUNER |
-+			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
- 		&ivtv_v4l2_enc_fops
- 	},
- 	{	/* IVTV_ENC_STREAM_TYPE_VBI */
- 		"encoder VBI",
- 		VFL_TYPE_VBI, 0,
- 		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_VBI_CAPTURE,
-+		V4L2_CAP_VBI_CAPTURE | V4L2_CAP_SLICED_VBI_CAPTURE | V4L2_CAP_TUNER |
-+			V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
- 		&ivtv_v4l2_enc_fops
- 	},
- 	{	/* IVTV_ENC_STREAM_TYPE_PCM */
- 		"encoder PCM",
- 		VFL_TYPE_GRABBER, IVTV_V4L2_ENC_PCM_OFFSET,
- 		PCI_DMA_FROMDEVICE, 0, V4L2_BUF_TYPE_PRIVATE,
-+		V4L2_CAP_TUNER | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
- 		&ivtv_v4l2_enc_fops
- 	},
- 	{	/* IVTV_ENC_STREAM_TYPE_RAD */
- 		"encoder radio",
- 		VFL_TYPE_RADIO, 0,
- 		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_PRIVATE,
-+		V4L2_CAP_RADIO | V4L2_CAP_TUNER,
- 		&ivtv_v4l2_enc_fops
- 	},
- 	{	/* IVTV_DEC_STREAM_TYPE_MPG */
- 		"decoder MPG",
- 		VFL_TYPE_GRABBER, IVTV_V4L2_DEC_MPG_OFFSET,
- 		PCI_DMA_TODEVICE, 0, V4L2_BUF_TYPE_VIDEO_OUTPUT,
-+		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
- 		&ivtv_v4l2_dec_fops
- 	},
- 	{	/* IVTV_DEC_STREAM_TYPE_VBI */
- 		"decoder VBI",
- 		VFL_TYPE_VBI, IVTV_V4L2_DEC_VBI_OFFSET,
- 		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_VBI_CAPTURE,
-+		V4L2_CAP_SLICED_VBI_CAPTURE | V4L2_CAP_READWRITE,
- 		&ivtv_v4l2_enc_fops
- 	},
- 	{	/* IVTV_DEC_STREAM_TYPE_VOUT */
- 		"decoder VOUT",
- 		VFL_TYPE_VBI, IVTV_V4L2_DEC_VOUT_OFFSET,
- 		PCI_DMA_NONE, 1, V4L2_BUF_TYPE_VBI_OUTPUT,
-+		V4L2_CAP_SLICED_VBI_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
- 		&ivtv_v4l2_dec_fops
- 	},
- 	{	/* IVTV_DEC_STREAM_TYPE_YUV */
- 		"decoder YUV",
- 		VFL_TYPE_GRABBER, IVTV_V4L2_DEC_YUV_OFFSET,
- 		PCI_DMA_TODEVICE, 0, V4L2_BUF_TYPE_VIDEO_OUTPUT,
-+		V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_AUDIO | V4L2_CAP_READWRITE,
- 		&ivtv_v4l2_dec_fops
- 	}
- };
-@@ -149,6 +162,7 @@ static void ivtv_stream_init(struct ivtv *itv, int type)
- 	s->itv = itv;
- 	s->type = type;
- 	s->name = ivtv_stream_info[type].name;
-+	s->caps = ivtv_stream_info[type].v4l2_caps;
- 
- 	if (ivtv_stream_info[type].pio)
- 		s->dma = PCI_DMA_NONE;
--- 
-1.7.7.3
+
+Those frequenties that the signal is ok on, is what our dvb-t signal is 
+transmitted on. Still don't understand why it does work under gentoo, 
+but not under mythbuntu :S
+
+On 26.12.2011 20:40, Oliver Schinagl wrote:
+> Hi!
+>
+> I'm using a TT1500-dvbt card, using the saa7146 budget_ci driver. On
+> my tv-pc I have 2 partitions with gentoo and latest mythbuntu. Under
+> gentoo everything works-ish. Under mythbuntu however, I cannot get it
+> to find any channels using scan, dvbscan or w_scan. I copied the
+> firmware for the tda10046h from the gentoo partition, thinking that
+> may make the difference, but but even though binary different, they
+> both report revision 29 (and it still doesn't work). w_scan does
+> mention my tuner etc and even says 'signal ok' on certain 
+> frequencies,
+> but eventually ends with 0 services found. I'm dumbfounded at to why 
+> I
+> cannot get it to work, when the only difference is the OS.
+>
+> _______________________________________________
+> linux-dvb users mailing list
+> For V4L/DVB development, please use instead 
+> linux-media@vger.kernel.org
+> linux-dvb@linuxtv.org
+> http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
 
