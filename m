@@ -1,74 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:51736 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753852Ab1L0BJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:43 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19g4g015682
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:43 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 12/91] [media] cx23123: remove an unused argument from cx24123_pll_writereg()
-Date: Mon, 26 Dec 2011 23:08:00 -0200
-Message-Id: <1324948159-23709-13-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-12-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from devils.ext.ti.com ([198.47.26.153]:52782 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753972Ab1LZJYf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 04:24:35 -0500
+From: Sumit Semwal <sumit.semwal@ti.com>
+To: <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
+	<linaro-mm-sig@lists.linaro.org>,
+	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>,
+	<arnd@arndb.de>, <airlied@redhat.com>
+CC: <linux@arm.linux.org.uk>, <jesse.barker@linaro.org>,
+	<m.szyprowski@samsung.com>, <rob@ti.com>, <daniel@ffwll.ch>,
+	<t.stanislaws@samsung.com>, <patches@linaro.org>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Subject: [PATCH 3/3] dma-buf: mark EXPERIMENTAL for 1st release.
+Date: Mon, 26 Dec 2011 14:53:17 +0530
+Message-ID: <1324891397-10877-4-git-send-email-sumit.semwal@ti.com>
+In-Reply-To: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com>
+References: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-cx24123_pll_writereg doesn't use dvb_frontend_parameters. Just
-remove it.
+Mark dma-buf buffer sharing API as EXPERIMENTAL for first release.
+We will remove this in later versions, once it gets smoothed out
+and has more users.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- drivers/media/dvb/frontends/cx24123.c |   11 +++++------
- 1 files changed, 5 insertions(+), 6 deletions(-)
+ drivers/base/Kconfig |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/cx24123.c b/drivers/media/dvb/frontends/cx24123.c
-index 96f99a8..4dfe786 100644
---- a/drivers/media/dvb/frontends/cx24123.c
-+++ b/drivers/media/dvb/frontends/cx24123.c
-@@ -601,8 +601,7 @@ static int cx24123_pll_calculate(struct dvb_frontend *fe,
-  * Tuner cx24109 is written through a dedicated 3wire interface
-  * on the demod chip.
-  */
--static int cx24123_pll_writereg(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p, u32 data)
-+static int cx24123_pll_writereg(struct dvb_frontend *fe, u32 data)
- {
- 	struct cx24123_state *state = fe->demodulator_priv;
- 	unsigned long timeout;
-@@ -673,12 +672,12 @@ static int cx24123_pll_tune(struct dvb_frontend *fe,
- 	}
- 
- 	/* Write the new VCO/VGA */
--	cx24123_pll_writereg(fe, p, state->VCAarg);
--	cx24123_pll_writereg(fe, p, state->VGAarg);
-+	cx24123_pll_writereg(fe, state->VCAarg);
-+	cx24123_pll_writereg(fe, state->VGAarg);
- 
- 	/* Write the new bandselect and pll args */
--	cx24123_pll_writereg(fe, p, state->bandselectarg);
--	cx24123_pll_writereg(fe, p, state->pllarg);
-+	cx24123_pll_writereg(fe, state->bandselectarg);
-+	cx24123_pll_writereg(fe, state->pllarg);
- 
- 	/* set the FILTUNE voltage */
- 	val = cx24123_readreg(state, 0x28) & ~0x3;
+diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+index 8a0e87f..e95c67e 100644
+--- a/drivers/base/Kconfig
++++ b/drivers/base/Kconfig
+@@ -178,6 +178,7 @@ config DMA_SHARED_BUFFER
+ 	bool "Buffer framework to be shared between drivers"
+ 	default n
+ 	select ANON_INODES
++	depends on EXPERIMENTAL
+ 	help
+ 	  This option enables the framework for buffer-sharing between
+ 	  multiple drivers. A buffer is associated with a file using driver
 -- 
-1.7.8.352.g876a6
+1.7.5.4
 
