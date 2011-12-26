@@ -1,36 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:53305 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932226Ab1LEVUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Dec 2011 16:20:09 -0500
-Message-ID: <4EDD3583.30405@linuxtv.org>
-Date: Mon, 05 Dec 2011 22:20:03 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from youngberry.canonical.com ([91.189.89.112]:35449 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753558Ab1LZCAr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 25 Dec 2011 21:00:47 -0500
+Received: from mail-pz0-f46.google.com ([209.85.210.46])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1Rezrq-0000Bl-BW
+	for linux-media@vger.kernel.org; Mon, 26 Dec 2011 02:00:46 +0000
+Received: by dajs34 with SMTP id s34so6710315daj.19
+        for <linux-media@vger.kernel.org>; Sun, 25 Dec 2011 18:00:44 -0800 (PST)
 MIME-Version: 1.0
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	HoP <jpetrous@gmail.com>,
-	Florian Fainelli <f.fainelli@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <4EDD2C82.7040804@linuxtv.org> <20111205205554.2caeb496@lxorguk.ukuu.org.uk>
-In-Reply-To: <20111205205554.2caeb496@lxorguk.ukuu.org.uk>
+In-Reply-To: <4EF23455.10002@gmail.com>
+References: <1322838172-11149-6-git-send-email-ming.lei@canonical.com>
+	<20111214153407.GN1967@valkosipuli.localdomain>
+	<CACVXFVNrEamdXq6qS98U-T6JiPMVNMHMW9j9prD1wz=SOfOyyA@mail.gmail.com>
+	<4EF23455.10002@gmail.com>
+Date: Mon, 26 Dec 2011 10:00:44 +0800
+Message-ID: <CACVXFVNAsQ7BmkzE1t2bUHz6WJeZeKnwJOhj+GQAH0rbyFCKyA@mail.gmail.com>
+Subject: Re: [RFC PATCH v1 5/7] media: v4l2: introduce two IOCTLs for face detection
+From: Ming Lei <ming.lei@canonical.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05.12.2011 21:55, Alan Cox wrote:
-> The USB case is quite different because your latency is very tightly
-> bounded, your dead device state is rigidly defined, and your loss of
-> device is accurately and immediately signalled.
-> 
-> Quite different.
+Hi,
 
-How can usbip work if networking and usb are so different and what's so
-different between vtunerc and usbip, that made it possible to put usbip
-into drivers/staging?
+On Thu, Dec 22, 2011 at 3:32 AM, Sylwester Nawrocki <snjw23@gmail.com> wrote:
 
-Regards,
-Andreas
+>>> How is face detection enabled or disabled?
+>>
+>> Currently, streaming on will trigger detection enabling, and streaming off
+>> will trigger detection disabling.
+>
+> We would need to develop a boolean control for this I think, this seems one of
+> the basic features for the configuration interface.
+
+Yes, it is another way to do it, but considered that for the current two use
+cases(detect objects on user space image or video, detect objects on
+video stream from internal SoC bus), it is implicit that the video device
+should have stream capability, so I think it is still OK to do it via
+streaming on
+and streaming off interface.
+
+>>
+>> Could you let me know how to do it?
+>
+> You would have to use multi-planar interface for that, which would introduce
+> additional complexity at user interface. Moreover variable plane count is not
+> supported in vb2. Relatively significant effort is required to add this IMHO.
+
+So the the introduced two IOCTLs are good to do it, right?
+
+Sylwester, could you help to review the v2 patches if you are available?
+
+thanks,
+--
+Ming Lei
