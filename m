@@ -1,82 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:60777 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752399Ab1LJJRU (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:42288 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752730Ab1L0Tn6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Dec 2011 04:17:20 -0500
-Date: Sat, 10 Dec 2011 11:17:15 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	'Sebastian =?iso-8859-1?Q?Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>
-Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-Message-ID: <20111210091715.GD1967@valkosipuli.localdomain>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED905E0.5020706@redhat.com>
- <007201ccb118$633ff890$29bfe9b0$%debski@samsung.com>
- <201112061301.01010.laurent.pinchart@ideasonboard.com>
- <20111206142821.GC938@valkosipuli.localdomain>
- <4EDE29AA.8090203@redhat.com>
- <00de01ccb42a$7cddab70$76990250$%debski@samsung.com>
- <4EDE375B.6010900@redhat.com>
- <00df01ccb431$bd28d9f0$377a8dd0$%debski@samsung.com>
- <4EDE454D.5060605@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EDE454D.5060605@redhat.com>
+	Tue, 27 Dec 2011 14:43:58 -0500
+Received: by mail-ee0-f46.google.com with SMTP id c4so11868452eek.19
+        for <linux-media@vger.kernel.org>; Tue, 27 Dec 2011 11:43:57 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 4/4] gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+Date: Tue, 27 Dec 2011 20:43:31 +0100
+Message-Id: <1325015011-11904-5-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1325015011-11904-1-git-send-email-snjw23@gmail.com>
+References: <4EBECD11.8090709@gmail.com>
+ <1325015011-11904-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The JPEG compression quality control is currently done by means of the
+VIDIOC_S/G_JPEGCOMP ioctls. As the quality field of struct v4l2_jpgecomp
+is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY control,
+so after the deprecation period VIDIOC_S/G_JPEGCOMP ioctl handlers can be
+removed, leaving the control the only user interface for compression
+quality configuration.
 
-On Tue, Dec 06, 2011 at 02:39:41PM -0200, Mauro Carvalho Chehab wrote:
-...
-> >I think that still it should contain no useful data, just *_FORMAT_CHANGED | *_ERROR
-> >flags set. Then the application could decide whether it keeps the current
-> >size/alignment/... or should it allocate new buffers. Then ACK the driver.
-> 
-> This will cause frame losses on Capture devices. It probably doesn't make sense to
-> define resolution change support like this for output devices.
-> 
-> Eventually, we may have an extra flag: *_PAUSE. If *_PAUSE is detected, a VIDEO_DECODER_CMD
-> is needed to continue.
-> 
-> So, on M2M devices, the 3 flags are raised and the buffer is not filled.  This would cover
-> Sakari's case.
+For completeness, the V4L2_CID_JPEG_ACTIVE_MARKER control should be also
+added.
 
-This sounds good in my opinion. I've been concentrated to memory-to-memory
-devices so far, but I now reckon the data to be processed might not arrive
-from the system memory.
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+ drivers/media/video/gspca/zc3xx.c |   54 +++++++++++++++++++++++++-----------
+ 1 files changed, 37 insertions(+), 17 deletions(-)
 
-I agree we need different behaviour in the two cases: when the data arrives
-from the system memory, no loss of decoded data should happen due to
-reconfiguration of the device done by the user --- which sometimes is
-mandatory.
-
-Would pause, as you propose it, be set by the driver, or by the application
-in the intent to indicate the stream should be stopped whenever the format
-changes, or both?
-
-> >The thing is that we have two queues in memory-to-memory devices.
-> >I think the above does apply to the CAPTURE queue:
-> >- no processing is done after STREAMOFF
-> >- buffers that have been queue are dequeued and their content is lost
-> >Am I wrong?
-> 
-> This is what is there at the spec. I think we need to properly specify what
-> happens for M2M devices.
-
-I fully agree. Different device profiles have a role in this.
-
-Cheers,
-
+diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
+index f22e02f..019a93b 100644
+--- a/drivers/media/video/gspca/zc3xx.c
++++ b/drivers/media/video/gspca/zc3xx.c
+@@ -46,6 +46,7 @@ enum e_ctrl {
+ 	AUTOGAIN,
+ 	LIGHTFREQ,
+ 	SHARPNESS,
++	QUALITY,
+ 	NCTRLS		/* number of controls */
+ };
+ 
+@@ -57,11 +58,6 @@ struct sd {
+ 
+ 	struct gspca_ctrl ctrls[NCTRLS];
+ 
+-	u8 quality;			/* image quality */
+-#define QUALITY_MIN 50
+-#define QUALITY_MAX 80
+-#define QUALITY_DEF 70
+-
+ 	u8 bridge;
+ 	u8 sensor;		/* Type of image sensor chip */
+ 	u16 chip_revision;
+@@ -101,6 +97,12 @@ static void setexposure(struct gspca_dev *gspca_dev);
+ static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
+ static void setlightfreq(struct gspca_dev *gspca_dev);
+ static void setsharpness(struct gspca_dev *gspca_dev);
++static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val);
++
++/* JPEG image quality */
++#define QUALITY_MIN 50
++#define QUALITY_MAX 80
++#define QUALITY_DEF 70
+ 
+ static const struct ctrl sd_ctrls[NCTRLS] = {
+ [BRIGHTNESS] = {
+@@ -188,6 +190,18 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
+ 	    },
+ 	    .set_control = setsharpness
+ 	},
++[QUALITY] = {
++	    {
++		.id	 = V4L2_CID_JPEG_COMPRESSION_QUALITY,
++		.type    = V4L2_CTRL_TYPE_INTEGER,
++		.name    = "Compression Quality",
++		.minimum = QUALITY_MIN,
++		.maximum = QUALITY_MAX,
++		.step    = 1,
++		.default_value = QUALITY_DEF,
++	    },
++	    .set = sd_setquality
++	},
+ };
+ 
+ static const struct v4l2_pix_format vga_mode[] = {
+@@ -6411,7 +6425,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
+ 	sd->sensor = id->driver_info;
+ 
+ 	gspca_dev->cam.ctrls = sd->ctrls;
+-	sd->quality = QUALITY_DEF;
++	sd->ctrls[QUALITY].val = QUALITY_DEF;
+ 
+ 	return 0;
+ }
+@@ -6685,7 +6699,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+ 	/* create the JPEG header */
+ 	jpeg_define(sd->jpeg_hdr, gspca_dev->height, gspca_dev->width,
+ 			0x21);		/* JPEG 422 */
+-	jpeg_set_qual(sd->jpeg_hdr, sd->quality);
++	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
+ 
+ 	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
+ 	switch (sd->sensor) {
+@@ -6893,29 +6907,35 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
+ 	return -EINVAL;
+ }
+ 
+-static int sd_set_jcomp(struct gspca_dev *gspca_dev,
+-			struct v4l2_jpegcompression *jcomp)
++static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	if (jcomp->quality < QUALITY_MIN)
+-		sd->quality = QUALITY_MIN;
+-	else if (jcomp->quality > QUALITY_MAX)
+-		sd->quality = QUALITY_MAX;
+-	else
+-		sd->quality = jcomp->quality;
++	sd->ctrls[QUALITY].val = val;
++
+ 	if (gspca_dev->streaming)
+-		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
++		jpeg_set_qual(sd->jpeg_hdr, val);
++
+ 	return gspca_dev->usb_err;
+ }
+ 
++static int sd_set_jcomp(struct gspca_dev *gspca_dev,
++			struct v4l2_jpegcompression *jcomp)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	sd->ctrls[QUALITY].val = clamp_t(u8, jcomp->quality,
++					QUALITY_MIN, QUALITY_MAX);
++	return sd_setquality(gspca_dev, sd->ctrls[QUALITY].val);
++}
++
+ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+ 			struct v4l2_jpegcompression *jcomp)
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+ 	memset(jcomp, 0, sizeof *jcomp);
+-	jcomp->quality = sd->quality;
++	jcomp->quality = sd->ctrls[QUALITY].val;
+ 	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
+ 			| V4L2_JPEG_MARKER_DQT;
+ 	return 0;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.4.1
+
