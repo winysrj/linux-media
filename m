@@ -1,74 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59302 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752011Ab1LSAvk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Dec 2011 19:51:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-Date: Mon, 19 Dec 2011 01:51:39 +0100
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com> <Pine.LNX.4.64.1112161043280.6572@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1112161043280.6572@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112190151.40165.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37205 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753637Ab1L0BJr (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:47 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19lqv032703
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:47 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 51/91] [media] stb0899: convert get_frontend to the new struct
+Date: Mon, 26 Dec 2011 23:08:39 -0200
+Message-Id: <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/stb0899_drv.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-On Friday 16 December 2011 10:50:21 Guennadi Liakhovetski wrote:
-> On Fri, 16 Dec 2011, Scott Jiang wrote:
-> > >> How about this implementation? I know it's not for soc, but I post it
-> > >> to give my idea.
-> > >> Bridge knows the layout, so it doesn't need to query the subdevice.
-> > > 
-> > > Where from? AFAIU, we are talking here about subdevice inputs, right?
-> > > In this case about various inputs of the TV decoder. How shall the
-> > > bridge driver know about that?
-> > 
-> > I have asked this question before. Laurent reply me:
-> > > >> ENUMINPUT as defined by V4L2 enumerates input connectors available
-> > > >> on the board. Which inputs the board designer hooked up is
-> > > >> something that only the top-level V4L driver will know. Subdevices
-> > > >> do not have that information, so enuminputs is not applicable
-> > > >> there.
-> > > >> 
-> > > >> Of course, subdevices do have input pins and output pins, but these
-> > > >> are assumed to be fixed. With the s_routing ops the top level
-> > > >> driver selects which input and output pins are active. Enumeration
-> > > >> of those inputs and outputs wouldn't gain you anything as far as I
-> > > >> can tell since the subdevice simply does not know which
-> > > >> inputs/outputs are actually hooked up. It's the top level driver
-> > > >> that has that information (usually passed in through board/card
-> > > >> info structures).
-> 
-> Laurent, right, I now remember reading this discussion before. But I'm not
-> sure I completely agree:-) Yes, you're right - the board decides which
-> pins are routed to which connectors. And it has to provide this
-> information to the driver in its platform data. But - I think, this
-> information should be provided not to the bridge driver, but to respective
-> subdevice drivers, because only they know what exactly those interfaces
-> are good for and how to report them to the bridge or the user, if we
-> decide to also export this information over the subdevice user-space API.
-> 
-> So, I would say, the board has to tell the subdevice driver: yes, your
-> inputs 0 and 1 are routed to external connectors. On input 1 I've put a
-> pullup, it is connected to connector of type X over a circuit Y, clocked
-> from your output Z, if the driver needs to know all that. And the subdev
-> driver will just tell the bridge only what that one needs to know - number
-> of inputs and their capabilities.
-
-That sounds reasonable.
-
+diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
+index 9fa31d5..0c47a99 100644
+--- a/drivers/media/dvb/frontends/stb0899_drv.c
++++ b/drivers/media/dvb/frontends/stb0899_drv.c
+@@ -1589,13 +1589,13 @@ static int stb0899_track(struct dvb_frontend *fe, struct dvb_frontend_parameters
+ 	return 0;
+ }
+ 
+-static int stb0899_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
++static int stb0899_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
+ {
+ 	struct stb0899_state *state		= fe->demodulator_priv;
+ 	struct stb0899_internal *internal	= &state->internal;
+ 
+ 	dprintk(state->verbose, FE_DEBUG, 1, "Get params");
+-	p->u.qpsk.symbol_rate = internal->srate;
++	p->symbol_rate = internal->srate;
+ 
+ 	return 0;
+ }
+@@ -1648,7 +1648,7 @@ static struct dvb_frontend_ops stb0899_ops = {
+ 	.get_frontend_algo		= stb0899_frontend_algo,
+ 	.search				= stb0899_search,
+ 	.track				= stb0899_track,
+-	.get_frontend_legacy = stb0899_get_frontend,
++	.get_frontend                   = stb0899_get_frontend,
+ 
+ 
+ 	.read_status			= stb0899_read_status,
 -- 
-Regards,
+1.7.8.352.g876a6
 
-Laurent Pinchart
