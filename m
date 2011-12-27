@@ -1,219 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:61270 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755231Ab1LNOBh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 09:01:37 -0500
-From: Ming Lei <ming.lei@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Ming Lei <ming.lei@canonical.com>
-Subject: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE memops
-Date: Wed, 14 Dec 2011 22:00:10 +0800
-Message-Id: <1323871214-25435-5-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:64597 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753830Ab1L0BJm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:42 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19f77015678
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:42 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 42/91] [media] sp8870: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:30 -0200
+Message-Id: <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-DMA contig memory resource is very limited and precious, also
-accessing to it from CPU is very slow on some platform.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-For some cases(such as the comming face detection driver), DMA Streaming
-buffer is enough, so introduce VIDEOBUF2_PAGE to allocate continuous
-physical memory but letting video device driver to handle DMA buffer mapping
-and unmapping things.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/Kconfig          |    4 +
- drivers/media/video/Makefile         |    1 +
- drivers/media/video/videobuf2-page.c |  117 ++++++++++++++++++++++++++++++++++
- include/media/videobuf2-page.h       |   20 ++++++
- 4 files changed, 142 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/videobuf2-page.c
- create mode 100644 include/media/videobuf2-page.h
+ drivers/media/dvb/frontends/sp8870.c |   27 ++++++++++++++-------------
+ 1 files changed, 14 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 4e8a0c4..5684a00 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -60,6 +60,10 @@ config VIDEOBUF2_VMALLOC
- 	select VIDEOBUF2_MEMOPS
- 	tristate
+diff --git a/drivers/media/dvb/frontends/sp8870.c b/drivers/media/dvb/frontends/sp8870.c
+index d49e48c..bad1832 100644
+--- a/drivers/media/dvb/frontends/sp8870.c
++++ b/drivers/media/dvb/frontends/sp8870.c
+@@ -168,13 +168,13 @@ static int sp8870_read_data_valid_signal(struct sp8870_state* state)
+ 	return (sp8870_readreg(state, 0x0D02) > 0);
+ }
  
-+config VIDEOBUF2_PAGE
-+	select VIDEOBUF2_CORE
-+	select VIDEOBUF2_MEMOPS
-+	tristate
+-static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
++static int configure_reg0xc05 (struct dtv_frontend_properties *p, u16 *reg0xc05)
+ {
+ 	int known_parameters = 1;
  
- config VIDEOBUF2_DMA_SG
- 	#depends on HAS_DMA
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index ddeaa6c..bc797f2 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -125,6 +125,7 @@ obj-$(CONFIG_VIDEO_BTCX)  += btcx-risc.o
- obj-$(CONFIG_VIDEOBUF2_CORE)		+= videobuf2-core.o
- obj-$(CONFIG_VIDEOBUF2_MEMOPS)		+= videobuf2-memops.o
- obj-$(CONFIG_VIDEOBUF2_VMALLOC)		+= videobuf2-vmalloc.o
-+obj-$(CONFIG_VIDEOBUF2_PAGE)		+= videobuf2-page.o
- obj-$(CONFIG_VIDEOBUF2_DMA_CONTIG)	+= videobuf2-dma-contig.o
- obj-$(CONFIG_VIDEOBUF2_DMA_SG)		+= videobuf2-dma-sg.o
+ 	*reg0xc05 = 0x000;
  
-diff --git a/drivers/media/video/videobuf2-page.c b/drivers/media/video/videobuf2-page.c
-new file mode 100644
-index 0000000..6a24a34
---- /dev/null
-+++ b/drivers/media/video/videobuf2-page.c
-@@ -0,0 +1,117 @@
-+/*
-+ * videobuf2-page.c - page memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2011 Canonical Ltd.
-+ *
-+ * Author: Ming Lei <ming.lei@canonical.com>
-+ *
-+ * This file is based on videobuf2-vmalloc.c
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/mm.h>
-+#include <linux/slab.h>
-+
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-memops.h>
-+
-+struct vb2_page_buf {
-+	void				*vaddr;
-+	unsigned long			size;
-+	atomic_t			refcount;
-+	struct vb2_vmarea_handler	handler;
-+};
-+
-+static void vb2_page_put(void *buf_priv);
-+
-+static void *vb2_page_alloc(void *alloc_ctx, unsigned long size)
-+{
-+	struct vb2_page_buf *buf;
-+
-+	buf = kzalloc(sizeof *buf, GFP_KERNEL);
-+	if (!buf)
-+		return NULL;
-+
-+	buf->size = size;
-+	buf->vaddr = (void *)__get_free_pages(GFP_KERNEL,
-+			get_order(buf->size));
-+	buf->handler.refcount = &buf->refcount;
-+	buf->handler.put = vb2_page_put;
-+	buf->handler.arg = buf;
-+
-+	if (!buf->vaddr) {
-+		printk(KERN_ERR "page of size %ld failed\n", buf->size);
-+		kfree(buf);
-+		return NULL;
-+	}
-+
-+	atomic_inc(&buf->refcount);
-+	printk(KERN_DEBUG "Allocated page buffer of size %ld at vaddr=%p\n",
-+			buf->size, buf->vaddr);
-+
-+	return buf;
-+}
-+
-+static void vb2_page_put(void *buf_priv)
-+{
-+	struct vb2_page_buf *buf = buf_priv;
-+
-+	if (atomic_dec_and_test(&buf->refcount)) {
-+		printk(KERN_DEBUG "%s: Freeing page mem at vaddr=%p\n",
-+			__func__, buf->vaddr);
-+		free_pages((unsigned long)buf->vaddr, get_order(buf->size));
-+		kfree(buf);
-+	}
-+}
-+
-+static void *vb2_page_vaddr(void *buf_priv)
-+{
-+	struct vb2_page_buf *buf = buf_priv;
-+
-+	BUG_ON(!buf);
-+
-+	if (!buf->vaddr) {
-+		printk(KERN_ERR "Address of an unallocated plane requested\n");
-+		return NULL;
-+	}
-+
-+	return buf->vaddr;
-+}
-+
-+static unsigned int vb2_page_num_users(void *buf_priv)
-+{
-+	struct vb2_page_buf *buf = buf_priv;
-+	return atomic_read(&buf->refcount);
-+}
-+
-+static int vb2_page_mmap(void *buf_priv, struct vm_area_struct *vma)
-+{
-+	struct vb2_page_buf *buf = buf_priv;
-+
-+	if (!buf) {
-+		printk(KERN_ERR "No memory to map\n");
-+		return -EINVAL;
-+	}
-+
-+	vma->vm_page_prot = vm_get_page_prot(vma->vm_flags);
-+	return vb2_mmap_pfn_range(vma, virt_to_phys(buf->vaddr),
-+			buf->size, &vb2_common_vm_ops,
-+			&buf->handler);
-+}
-+
-+const struct vb2_mem_ops vb2_page_memops = {
-+	.alloc		= vb2_page_alloc,
-+	.put		= vb2_page_put,
-+	.vaddr		= vb2_page_vaddr,
-+	.mmap		= vb2_page_mmap,
-+	.num_users	= vb2_page_num_users,
-+};
-+EXPORT_SYMBOL_GPL(vb2_page_memops);
-+
-+MODULE_DESCRIPTION("page memory handling routines for videobuf2");
-+MODULE_AUTHOR("Ming Lei");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/videobuf2-page.h b/include/media/videobuf2-page.h
-new file mode 100644
-index 0000000..c837456
---- /dev/null
-+++ b/include/media/videobuf2-page.h
-@@ -0,0 +1,20 @@
-+/*
-+ * videobuf2-page.h - page memory allocator for videobuf2
-+ *
-+ * Copyright (C) 2011 Canonical Ltd.
-+ *
-+ * Author: Ming Lei <ming.lei@canonical.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation.
-+ */
-+
-+#ifndef _MEDIA_VIDEOBUF2_PAGE_H
-+#define _MEDIA_VIDEOBUF2_PAGE_H
-+
-+#include <media/videobuf2-core.h>
-+
-+extern const struct vb2_mem_ops vb2_page_memops;
-+
-+#endif
+-	switch (p->u.ofdm.constellation) {
++	switch (p->modulation) {
+ 	case QPSK:
+ 		break;
+ 	case QAM_16:
+@@ -190,7 +190,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
+ 		return -EINVAL;
+ 	};
+ 
+-	switch (p->u.ofdm.hierarchy_information) {
++	switch (p->hierarchy) {
+ 	case HIERARCHY_NONE:
+ 		break;
+ 	case HIERARCHY_1:
+@@ -209,7 +209,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
+ 		return -EINVAL;
+ 	};
+ 
+-	switch (p->u.ofdm.code_rate_HP) {
++	switch (p->code_rate_HP) {
+ 	case FEC_1_2:
+ 		break;
+ 	case FEC_2_3:
+@@ -245,9 +245,9 @@ static int sp8870_wake_up(struct sp8870_state* state)
+ 	return sp8870_writereg(state, 0xC18, 0x00D);
+ }
+ 
+-static int sp8870_set_frontend_parameters (struct dvb_frontend* fe,
+-					   struct dvb_frontend_parameters *p)
++static int sp8870_set_frontend_parameters(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct sp8870_state* state = fe->demodulator_priv;
+ 	int  err;
+ 	u16 reg0xc05;
+@@ -277,15 +277,15 @@ static int sp8870_set_frontend_parameters (struct dvb_frontend* fe,
+ 	sp8870_writereg(state, 0x030A, 0x0000);
+ 
+ 	// filter for 6/7/8 Mhz channel
+-	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
++	if (p->bandwidth_hz == 6000000)
+ 		sp8870_writereg(state, 0x0311, 0x0002);
+-	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
++	else if (p->bandwidth_hz == 7000000)
+ 		sp8870_writereg(state, 0x0311, 0x0001);
+ 	else
+ 		sp8870_writereg(state, 0x0311, 0x0000);
+ 
+ 	// scan order: 2k first = 0x0000, 8k first = 0x0001
+-	if (p->u.ofdm.transmission_mode == TRANSMISSION_MODE_2K)
++	if (p->transmission_mode == TRANSMISSION_MODE_2K)
+ 		sp8870_writereg(state, 0x0338, 0x0000);
+ 	else
+ 		sp8870_writereg(state, 0x0338, 0x0001);
+@@ -459,8 +459,9 @@ static int lockups;
+ /* only for debugging: counter for channel switches */
+ static int switches;
+ 
+-static int sp8870_set_frontend (struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int sp8870_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct sp8870_state* state = fe->demodulator_priv;
+ 
+ 	/*
+@@ -479,7 +480,7 @@ static int sp8870_set_frontend (struct dvb_frontend* fe, struct dvb_frontend_par
+ 
+ 	for (trials = 1; trials <= MAXTRIALS; trials++) {
+ 
+-		if ((err = sp8870_set_frontend_parameters(fe, p)))
++		if ((err = sp8870_set_frontend_parameters(fe)))
+ 			return err;
+ 
+ 		for (check_count = 0; check_count < MAXCHECKS; check_count++) {
+@@ -579,7 +580,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops sp8870_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name			= "Spase SP8870 DVB-T",
+ 		.type			= FE_OFDM,
+@@ -600,7 +601,7 @@ static struct dvb_frontend_ops sp8870_ops = {
+ 	.sleep = sp8870_sleep,
+ 	.i2c_gate_ctrl = sp8870_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = sp8870_set_frontend,
++	.set_frontend = sp8870_set_frontend,
+ 	.get_tune_settings = sp8870_get_tune_settings,
+ 
+ 	.read_status = sp8870_read_status,
 -- 
-1.7.5.4
+1.7.8.352.g876a6
 
