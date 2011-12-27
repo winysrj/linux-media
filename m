@@ -1,180 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:33796 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962Ab1LPOzN (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:42288 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752856Ab1L0Tn5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 09:55:13 -0500
-Message-ID: <4EEB5BBC.7050807@ti.com>
-Date: Fri, 16 Dec 2011 15:54:52 +0100
-From: "Cousson, Benoit" <b-cousson@ti.com>
-MIME-Version: 1.0
-To: Paul Walmsley <paul@pwsan.com>
-CC: Ming Lei <ming.lei@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	<linux-omap@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-kernel@vger.kernel.org>, <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH v2 1/8] omap4: introduce fdif(face detect module)
- hwmod
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com> <1323871214-25435-2-git-send-email-ming.lei@canonical.com> <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com>
-In-Reply-To: <alpine.DEB.2.00.1112152252260.12660@utopia.booyaka.com>
-Content-Type: text/plain; charset="ISO-8859-15"; format=flowed
-Content-Transfer-Encoding: 8bit
+	Tue, 27 Dec 2011 14:43:57 -0500
+Received: by mail-ee0-f46.google.com with SMTP id c4so11868452eek.19
+        for <linux-media@vger.kernel.org>; Tue, 27 Dec 2011 11:43:56 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH 3/4] gspca: sonixj: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+Date: Tue, 27 Dec 2011 20:43:30 +0100
+Message-Id: <1325015011-11904-4-git-send-email-snjw23@gmail.com>
+In-Reply-To: <1325015011-11904-1-git-send-email-snjw23@gmail.com>
+References: <4EBECD11.8090709@gmail.com>
+ <1325015011-11904-1-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+The JPEG compression quality value can currently be read using the
+VIDIOC_G_JPEGCOMP ioctl. As the quality field of struct v4l2_jpgecomp
+is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY
+control, so after the deprecation period VIDIOC_G_JPEGCOMP ioctl
+handler can be removed, leaving the control the only user interface
+for retrieving the compression quality.
 
-On 12/16/2011 6:53 AM, Paul Walmsley wrote:
-> Hi Benoît
->
-> On Wed, 14 Dec 2011, Ming Lei wrote:
->
->> Signed-off-by: Ming Lei<ming.lei@canonical.com>
+For completeness the V4L2_CID_JPEG_ACTIVE_MARKER control should be also
+added.
 
-Acked-by: Benoit Cousson <b-cousson@ti.com>
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+ drivers/media/video/gspca/sonixj.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
->> ---
->>   arch/arm/mach-omap2/omap_hwmod_44xx_data.c |   81 ++++++++++++++++++++++++++++
->>   1 files changed, 81 insertions(+), 0 deletions(-)
->
-> any comments on this patch?  I'd like to queue it if it looks good to you.
-
-It looks good to me. The only minor comment is about fdif location in 
-the list that should be sorted and thus cannot be after wd_timer2.
-
-Regards,
-Benoit
-
->
-> - Paul
->
->>
->> diff --git a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> index 6cf21ee..30db754 100644
->> --- a/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> +++ b/arch/arm/mach-omap2/omap_hwmod_44xx_data.c
->> @@ -53,6 +53,7 @@ static struct omap_hwmod omap44xx_dmm_hwmod;
->>   static struct omap_hwmod omap44xx_dsp_hwmod;
->>   static struct omap_hwmod omap44xx_dss_hwmod;
->>   static struct omap_hwmod omap44xx_emif_fw_hwmod;
->> +static struct omap_hwmod omap44xx_fdif_hwmod;
->>   static struct omap_hwmod omap44xx_hsi_hwmod;
->>   static struct omap_hwmod omap44xx_ipu_hwmod;
->>   static struct omap_hwmod omap44xx_iss_hwmod;
->> @@ -354,6 +355,14 @@ static struct omap_hwmod_ocp_if omap44xx_dma_system__l3_main_2 = {
->>   	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->>   };
->>
->> +/* fdif ->  l3_main_2 */
->> +static struct omap_hwmod_ocp_if omap44xx_fdif__l3_main_2 = {
->> +	.master		=&omap44xx_fdif_hwmod,
->> +	.slave		=&omap44xx_l3_main_2_hwmod,
->> +	.clk		= "l3_div_ck",
->> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->> +};
->> +
->>   /* hsi ->  l3_main_2 */
->>   static struct omap_hwmod_ocp_if omap44xx_hsi__l3_main_2 = {
->>   	.master		=&omap44xx_hsi_hwmod,
->> @@ -5444,6 +5453,75 @@ static struct omap_hwmod omap44xx_wd_timer3_hwmod = {
->>   	.slaves_cnt	= ARRAY_SIZE(omap44xx_wd_timer3_slaves),
->>   };
->>
->> +/* 'fdif' class */
->> +static struct omap_hwmod_class_sysconfig omap44xx_fdif_sysc = {
->> +	.rev_offs	= 0x0000,
->> +	.sysc_offs	= 0x0010,
->> +	.sysc_flags	= (SYSC_HAS_MIDLEMODE | SYSC_HAS_RESET_STATUS |
->> +			   SYSC_HAS_SIDLEMODE | SYSC_HAS_SOFTRESET),
->> +	.idlemodes	= (SIDLE_FORCE | SIDLE_NO | SIDLE_SMART |
->> +			   MSTANDBY_FORCE | MSTANDBY_NO |
->> +			   MSTANDBY_SMART),
->> +	.sysc_fields	=&omap_hwmod_sysc_type2,
->> +};
->> +
->> +static struct omap_hwmod_class omap44xx_fdif_hwmod_class = {
->> +	.name	= "fdif",
->> +	.sysc	=&omap44xx_fdif_sysc,
->> +};
->> +
->> +/*fdif*/
->> +static struct omap_hwmod_addr_space omap44xx_fdif_addrs[] = {
->> +	{
->> +		.pa_start	= 0x4a10a000,
->> +		.pa_end		= 0x4a10afff,
->> +		.flags		= ADDR_TYPE_RT
->> +	},
->> +	{ }
->> +};
->> +
->> +/* l4_cfg ->  fdif */
->> +static struct omap_hwmod_ocp_if omap44xx_l4_cfg__fdif = {
->> +	.master		=&omap44xx_l4_cfg_hwmod,
->> +	.slave		=&omap44xx_fdif_hwmod,
->> +	.clk		= "l4_div_ck",
->> +	.addr		= omap44xx_fdif_addrs,
->> +	.user		= OCP_USER_MPU | OCP_USER_SDMA,
->> +};
->> +
->> +/* fdif slave ports */
->> +static struct omap_hwmod_ocp_if *omap44xx_fdif_slaves[] = {
->> +	&omap44xx_l4_cfg__fdif,
->> +};
->> +static struct omap_hwmod_irq_info omap44xx_fdif_irqs[] = {
->> +	{ .irq = 69 + OMAP44XX_IRQ_GIC_START },
->> +	{ .irq = -1 }
->> +};
->> +
->> +/* fdif master ports */
->> +static struct omap_hwmod_ocp_if *omap44xx_fdif_masters[] = {
->> +	&omap44xx_fdif__l3_main_2,
->> +};
->> +
->> +static struct omap_hwmod omap44xx_fdif_hwmod = {
->> +	.name		= "fdif",
->> +	.class		=&omap44xx_fdif_hwmod_class,
->> +	.clkdm_name	= "iss_clkdm",
->> +	.mpu_irqs	= omap44xx_fdif_irqs,
->> +	.main_clk	= "fdif_fck",
->> +	.prcm = {
->> +		.omap4 = {
->> +			.clkctrl_offs = OMAP4_CM_CAM_FDIF_CLKCTRL_OFFSET,
->> +			.context_offs = OMAP4_RM_CAM_FDIF_CONTEXT_OFFSET,
->> +			.modulemode   = MODULEMODE_SWCTRL,
->> +		},
->> +	},
->> +	.slaves		= omap44xx_fdif_slaves,
->> +	.slaves_cnt	= ARRAY_SIZE(omap44xx_fdif_slaves),
->> +	.masters	= omap44xx_fdif_masters,
->> +	.masters_cnt	= ARRAY_SIZE(omap44xx_fdif_masters),
->> +};
->> +
->>   static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
->>
->>   	/* dmm class */
->> @@ -5593,6 +5671,9 @@ static __initdata struct omap_hwmod *omap44xx_hwmods[] = {
->>   	&omap44xx_wd_timer2_hwmod,
->>   	&omap44xx_wd_timer3_hwmod,
->>
->> +	/* fdif class */
->> +	&omap44xx_fdif_hwmod,
->> +
->>   	NULL,
->>   };
->>
->> --
->> 1.7.5.4
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-omap" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
->
->
-> - Paul
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index c55d667..c148081 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -45,6 +45,7 @@ enum e_ctrl {
+ 	SHARPNESS,
+ 	ILLUM,
+ 	FREQ,
++	QUALITY,
+ 	NCTRLS		/* number of controls */
+ };
+ 
+@@ -126,6 +127,7 @@ static void qual_upd(struct work_struct *work);
+ #define DEF_EN		0x80	/* defect pixel by 0: soft, 1: hard */
+ 
+ /* V4L2 controls supported by the driver */
++static int getjpegqual(struct gspca_dev *gspca_dev, s32 *val);
+ static void setbrightness(struct gspca_dev *gspca_dev);
+ static void setcontrast(struct gspca_dev *gspca_dev);
+ static void setcolors(struct gspca_dev *gspca_dev);
+@@ -286,6 +288,19 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
+ 	    },
+ 	    .set_control = setfreq
+ 	},
++[QUALITY] = {
++	    {
++		.id	 = V4L2_CID_JPEG_COMPRESSION_QUALITY,
++		.type    = V4L2_CTRL_TYPE_INTEGER,
++		.name    = "Compression Quality",
++		.minimum = QUALITY_MIN,
++		.maximum = QUALITY_MAX,
++		.step    = 1,
++		.default_value = QUALITY_DEF,
++		.flags	 = V4L2_CTRL_FLAG_READ_ONLY,
++	    },
++	    .get = getjpegqual
++	},
+ };
+ 
+ /* table of the disabled controls */
+@@ -2960,6 +2975,14 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+ 	return 0;
+ }
+ 
++static int getjpegqual(struct gspca_dev *gspca_dev, s32 *val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	*val = sd->quality;
++	return 0;
++}
++
+ static int sd_querymenu(struct gspca_dev *gspca_dev,
+ 			struct v4l2_querymenu *menu)
+ {
+-- 
+1.7.4.1
 
