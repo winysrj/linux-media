@@ -1,290 +1,161 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:52409 "EHLO bear.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:53767 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753224Ab1LAAPS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 19:15:18 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	<sakari.ailus@iki.fi>, Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH v2 10/11] arm: omap4panda: Add support for omap4iss camera
-Date: Wed, 30 Nov 2011 18:14:59 -0600
-Message-ID: <1322698500-29924-11-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1753884Ab1L0BJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:44 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19iKm017920
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:44 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 55/91] [media] stv0299: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:43 -0200
+Message-Id: <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for camera interface with the support for
-following sensors:
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-- OV5640
-- OV5650
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- arch/arm/mach-omap2/Kconfig                   |   27 ++++
- arch/arm/mach-omap2/Makefile                  |    1 +
- arch/arm/mach-omap2/board-omap4panda-camera.c |  198 +++++++++++++++++++++++++
- 3 files changed, 226 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-omap4panda-camera.c
+ drivers/media/dvb/frontends/stv0299.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index f883abb..0fc5ce9 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -358,6 +358,33 @@ config MACH_OMAP4_PANDA
- 	select OMAP_PACKAGE_CBS
- 	select REGULATOR_FIXED_VOLTAGE
+diff --git a/drivers/media/dvb/frontends/stv0299.c b/drivers/media/dvb/frontends/stv0299.c
+index 6aeabaf..abf4bff 100644
+--- a/drivers/media/dvb/frontends/stv0299.c
++++ b/drivers/media/dvb/frontends/stv0299.c
+@@ -559,8 +559,9 @@ static int stv0299_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
  
-+config MACH_OMAP4_PANDA_CAMERA_SUPPORT
-+	bool "OMAP4 Panda Board Camera support"
-+	depends on MACH_OMAP4_PANDA
-+	select MEDIA_SUPPORT
-+	select MEDIA_CONTROLLER
-+	select VIDEO_DEV
-+	select VIDEO_V4L2_SUBDEV_API
-+	select VIDEO_OMAP4
-+	help
-+	  Enable Camera HW support for PandaBoard.
-+	  This is for using the OMAP4 ISS CSI2A Camera sensor
-+	  interface.
-+
-+choice
-+	prompt "Camera sensor to use"
-+	depends on MACH_OMAP4_PANDA_CAMERA_SUPPORT
-+	default MACH_OMAP4_PANDA_CAM_OV5650
-+
-+	config MACH_OMAP4_PANDA_CAM_OV5640
-+		bool "Use OmniVision OV5640 Camera"
-+		select VIDEO_OV5640
-+
-+	config MACH_OMAP4_PANDA_CAM_OV5650
-+		bool "Use OmniVision OV5650 Camera"
-+		select VIDEO_OV5650
-+endchoice
-+
- config OMAP3_EMU
- 	bool "OMAP3 debugging peripherals"
- 	depends on ARCH_OMAP3
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 8bc446a..e80724d 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -236,6 +236,7 @@ obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
- # Platform specific device init code
+-static int stv0299_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters * p)
++static int stv0299_set_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stv0299_state* state = fe->demodulator_priv;
+ 	int invval = 0;
  
- obj-$(CONFIG_MACH_OMAP_4430SDP_CAMERA_SUPPORT)	+= board-4430sdp-camera.o
-+obj-$(CONFIG_MACH_OMAP4_PANDA_CAMERA_SUPPORT)	+= board-omap4panda-camera.o
+@@ -583,19 +584,19 @@ static int stv0299_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
  
- omap-flash-$(CONFIG_MTD_NAND_OMAP2)	:= board-flash.o
- omap-flash-$(CONFIG_MTD_ONENAND_OMAP2)	:= board-flash.o
-diff --git a/arch/arm/mach-omap2/board-omap4panda-camera.c b/arch/arm/mach-omap2/board-omap4panda-camera.c
-new file mode 100644
-index 0000000..02ef36e
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-omap4panda-camera.c
-@@ -0,0 +1,198 @@
-+#include <linux/gpio.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+
-+#include <plat/i2c.h>
-+#include <plat/omap-pm.h>
-+
-+#include <asm/mach-types.h>
-+
-+#include <media/ov5640.h>
-+#include <media/ov5650.h>
-+
-+#include "devices.h"
-+#include "../../../drivers/media/video/omap4iss/iss.h"
-+
-+#include "control.h"
-+#include "mux.h"
-+
-+#define PANDA_GPIO_CAM_PWRDN		45
-+#define PANDA_GPIO_CAM_RESET		83
-+
-+static struct clk *panda_cam_aux_clk;
-+
-+static int panda_ov5640_power(struct v4l2_subdev *subdev, int on)
-+{
-+	struct iss_device *iss = v4l2_dev_to_iss_device(subdev->v4l2_dev);
-+	int ret = 0;
-+	struct iss_csiphy_dphy_cfg dphy;
-+	struct iss_csiphy_lanes_cfg lanes;
-+	unsigned int ddr_freq = 480; /* FIXME: Do an actual query for this */
-+
-+	memset(&lanes, 0, sizeof(lanes));
-+	memset(&dphy, 0, sizeof(dphy));
-+
-+	lanes.clk.pos = 1;
-+	lanes.clk.pol = 0;
-+	lanes.data[0].pos = 2;
-+	lanes.data[0].pol = 0;
-+	lanes.data[1].pos = 3;
-+	lanes.data[1].pol = 0;
-+
-+	dphy.ths_term = ((((12500 * ddr_freq + 1000000) / 1000000) - 1) & 0xFF);
-+	dphy.ths_settle = ((((90000 * ddr_freq + 1000000) / 1000000) + 3) & 0xFF);
-+	dphy.tclk_term = 0;
-+	dphy.tclk_miss = 1;
-+	dphy.tclk_settle = 14;
-+
-+	if (on) {
-+		gpio_set_value(PANDA_GPIO_CAM_PWRDN, 0);
-+		clk_enable(panda_cam_aux_clk);
-+		mdelay(2);
-+
-+		iss->platform_cb.csiphy_config(&iss->csiphy1, &dphy, &lanes);
-+	} else {
-+		clk_disable(panda_cam_aux_clk);
-+		gpio_set_value(PANDA_GPIO_CAM_PWRDN, 1);
-+	}
-+
-+	return ret;
-+}
-+
-+#define OV5640_I2C_ADDRESS   (0x3C)
-+#define OV5650_I2C_ADDRESS   (0x36)
-+
-+#ifdef CONFIG_MACH_OMAP4_PANDA_CAM_OV5650
-+static struct ov5650_platform_data ov_platform_data = {
-+#elif defined(CONFIG_MACH_OMAP4_PANDA_CAM_OV5640)
-+static struct ov5640_platform_data ov_platform_data = {
-+#endif
-+      .s_power = panda_ov5640_power,
-+};
-+
-+static struct i2c_board_info ov_camera_i2c_device = {
-+#ifdef CONFIG_MACH_OMAP4_PANDA_CAM_OV5650
-+	I2C_BOARD_INFO("ov5650", OV5650_I2C_ADDRESS),
-+#elif defined(CONFIG_MACH_OMAP4_PANDA_CAM_OV5640)
-+	I2C_BOARD_INFO("ov5640", OV5640_I2C_ADDRESS),
-+#endif
-+	.platform_data = &ov_platform_data,
-+};
-+
-+static struct iss_subdev_i2c_board_info ov_camera_subdevs[] = {
-+	{
-+		.board_info = &ov_camera_i2c_device,
-+		.i2c_adapter_id = 3,
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct iss_v4l2_subdevs_group panda_camera_subdevs[] = {
-+	{
-+		.subdevs = ov_camera_subdevs,
-+		.interface = ISS_INTERFACE_CSI2A_PHY1,
-+	},
-+	{ },
-+};
-+
-+static void panda_omap4iss_set_constraints(struct iss_device *iss, bool enable)
-+{
-+	if (!iss)
-+		return;
-+
-+	/* FIXME: Look for something more precise as a good throughtput limit */
-+	omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
-+				 enable ? 800000 : -1);
-+}
-+
-+static struct iss_platform_data panda_iss_platform_data = {
-+	.subdevs = panda_camera_subdevs,
-+	.set_constraints = panda_omap4iss_set_constraints,
-+};
-+
-+
-+static struct omap_device_pad omap4iss_pads[] = {
-+	{
-+		.name   = "csi21_dx0.csi21_dx0",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dy0.csi21_dy0",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dx1.csi21_dx1",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dy1.csi21_dy1",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dx2.csi21_dx2",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dy2.csi21_dy2",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+};
-+
-+static struct omap_board_data omap4iss_data = {
-+	.id	    		= 1,
-+	.pads	 		= omap4iss_pads,
-+	.pads_cnt       	= ARRAY_SIZE(omap4iss_pads),
-+};
-+
-+static int __init panda_camera_init(void)
-+{
-+	if (!machine_is_omap4_panda())
-+		return 0;
-+
-+	panda_cam_aux_clk = clk_get(NULL, "auxclk1_ck");
-+	if (IS_ERR(panda_cam_aux_clk)) {
-+		printk(KERN_ERR "Unable to get auxclk1_ck\n");
-+		return -ENODEV;
-+	}
-+
-+	if (clk_set_rate(panda_cam_aux_clk,
-+			clk_round_rate(panda_cam_aux_clk, 24000000)))
-+		return -EINVAL;
-+
-+	/*
-+	 * CSI2 1(A):
-+	 *   LANEENABLE[4:0] = 00111(0x7) - Lanes 0, 1 & 2 enabled
-+	 *   CTRLCLKEN = 1 - Active high enable for CTRLCLK
-+	 *   CAMMODE = 0 - DPHY mode
-+	 */
-+	omap4_ctrl_pad_writel((omap4_ctrl_pad_readl(
-+				OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX) &
-+			  ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
-+			    OMAP4_CAMERARX_CSI21_CAMMODE_MASK)) |
-+			 (0x7 << OMAP4_CAMERARX_CSI21_LANEENABLE_SHIFT) |
-+			 OMAP4_CAMERARX_CSI21_CTRLCLKEN_MASK,
-+			 OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-+
-+	/* Select GPIO 45 */
-+	omap_mux_init_gpio(PANDA_GPIO_CAM_PWRDN, OMAP_PIN_OUTPUT);
-+
-+	/* Select GPIO 83 */
-+	omap_mux_init_gpio(PANDA_GPIO_CAM_RESET, OMAP_PIN_OUTPUT);
-+
-+	/* Init FREF_CLK1_OUT */
-+	omap_mux_init_signal("fref_clk1_out", OMAP_PIN_OUTPUT);
-+
-+	if (gpio_request_one(PANDA_GPIO_CAM_PWRDN, GPIOF_OUT_INIT_HIGH,
-+			     "CAM_PWRDN"))
-+		printk(KERN_WARNING "Cannot request GPIO %d\n",
-+			PANDA_GPIO_CAM_PWRDN);
-+
-+	if (gpio_request_one(PANDA_GPIO_CAM_RESET, GPIOF_OUT_INIT_HIGH,
-+			     "CAM_RESET"))
-+		printk(KERN_WARNING "Cannot request GPIO %d\n",
-+			PANDA_GPIO_CAM_RESET);
-+
-+	omap4_init_camera(&panda_iss_platform_data, &omap4iss_data);
-+	return 0;
-+}
-+late_initcall(panda_camera_init);
+-	stv0299_set_FEC (state, p->u.qpsk.fec_inner);
+-	stv0299_set_symbolrate (fe, p->u.qpsk.symbol_rate);
++	stv0299_set_FEC (state, p->fec_inner);
++	stv0299_set_symbolrate (fe, p->symbol_rate);
+ 	stv0299_writeregI(state, 0x22, 0x00);
+ 	stv0299_writeregI(state, 0x23, 0x00);
+ 
+ 	state->tuner_frequency = p->frequency;
+-	state->fec_inner = p->u.qpsk.fec_inner;
+-	state->symbol_rate = p->u.qpsk.symbol_rate;
++	state->fec_inner = p->fec_inner;
++	state->symbol_rate = p->symbol_rate;
+ 
+ 	return 0;
+ }
+ 
+-static int stv0299_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters * p)
++static int stv0299_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties * p)
+ {
+ 	struct stv0299_state* state = fe->demodulator_priv;
+ 	s32 derot_freq;
+@@ -614,8 +615,8 @@ static int stv0299_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 	if (state->config->invert) invval = (~invval) & 1;
+ 	p->inversion = invval ? INVERSION_ON : INVERSION_OFF;
+ 
+-	p->u.qpsk.fec_inner = stv0299_get_fec (state);
+-	p->u.qpsk.symbol_rate = stv0299_get_symbolrate (state);
++	p->fec_inner = stv0299_get_fec (state);
++	p->symbol_rate = stv0299_get_symbolrate (state);
+ 
+ 	return 0;
+ }
+@@ -705,7 +706,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops stv0299_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name			= "ST STV0299 DVB-S",
+ 		.type			= FE_QPSK,
+@@ -729,8 +730,8 @@ static struct dvb_frontend_ops stv0299_ops = {
+ 	.write = stv0299_write,
+ 	.i2c_gate_ctrl = stv0299_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = stv0299_set_frontend,
+-	.get_frontend_legacy = stv0299_get_frontend,
++	.set_frontend = stv0299_set_frontend,
++	.get_frontend = stv0299_get_frontend,
+ 	.get_tune_settings = stv0299_get_tune_settings,
+ 
+ 	.read_status = stv0299_read_status,
 -- 
-1.7.7.4
+1.7.8.352.g876a6
 
