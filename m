@@ -1,297 +1,406 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:44283 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753111Ab1LaOm6 (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:53393 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751925Ab1L0Wdn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 09:42:58 -0500
-Received: by eekc4 with SMTP id c4so14322879eek.19
-        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 06:42:57 -0800 (PST)
-Message-ID: <4EFF1F6B.2090009@gmail.com>
-Date: Sat, 31 Dec 2011 15:42:51 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Tue, 27 Dec 2011 17:33:43 -0500
+Message-ID: <4EFA47C1.7010306@infradead.org>
+Date: Tue, 27 Dec 2011 20:33:37 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	t.stanislaws@samsung.com, dacohen@gmail.com,
-	andriy.shevchenko@linux.intel.com, g.liakhovetski@gmx.de,
-	hverkuil@xs4all.nl
-Subject: Re: [RFC 2/3] v4l: Image source control class
-References: <20111201143044.GI29805@valkosipuli.localdomain> <1323876147-18107-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1323876147-18107-2-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=UTF-8
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC 03/91] [media] dvb-core: add support for a DVBv5 get_frontend()
+ callback
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com> <1324948159-23709-3-git-send-email-mchehab@redhat.com> <1324948159-23709-4-git-send-email-mchehab@redhat.com> <4EF9B860.4000103@linuxtv.org> <4EF9CD07.6080608@infradead.org> <4EF9DA66.1070409@linuxtv.org> <4EF9FFC2.30705@infradead.org> <4EFA2E20.6030600@linuxtv.org>
+In-Reply-To: <4EFA2E20.6030600@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-thanks for the patch.
-
-On 12/14/2011 04:22 PM, Sakari Ailus wrote:
-> Add image source control class. This control class is intended to contain
-> low level controls which deal with control of the image capture process ---
-> the A/D converter in image sensors, for example.
+On 27-12-2011 18:44, Andreas Oberritter wrote:
+> On 27.12.2011 18:26, Mauro Carvalho Chehab wrote:
+>> On 27-12-2011 12:47, Andreas Oberritter wrote:
+>>> On 27.12.2011 14:49, Mauro Carvalho Chehab wrote:
+>>>> On 27-12-2011 10:21, Andreas Oberritter wrote:
+>>>>> On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
+>>>>>> The old method is renamed to get_frontend_legacy(), while not all
+>>>>>> frontends are converted.
+>>>>>>
+>>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>>>> ---
+>>>>>>  drivers/media/dvb/bt8xx/dst.c               |    8 +-
+>>>>>>  drivers/media/dvb/dvb-core/dvb_frontend.c   |  102 ++++++++++++++++++++------
+>>>>>>  drivers/media/dvb/dvb-core/dvb_frontend.h   |    5 +-
+>>>>>>  drivers/media/dvb/dvb-usb/af9005-fe.c       |    4 +-
+>>>>>>  drivers/media/dvb/dvb-usb/cinergyT2-fe.c    |    2 +-
+>>>>>>  drivers/media/dvb/dvb-usb/dtt200u-fe.c      |    2 +-
+>>>>>>  drivers/media/dvb/dvb-usb/friio-fe.c        |    2 +-
+>>>>>>  drivers/media/dvb/dvb-usb/mxl111sf-demod.c  |    2 +-
+>>>>>>  drivers/media/dvb/dvb-usb/vp702x-fe.c       |    2 +-
+>>>>>>  drivers/media/dvb/dvb-usb/vp7045-fe.c       |    2 +-
+>>>>>>  drivers/media/dvb/firewire/firedtv-fe.c     |    2 +-
+>>>>>>  drivers/media/dvb/frontends/af9013.c        |    2 +-
+>>>>>>  drivers/media/dvb/frontends/atbm8830.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/au8522_dig.c    |    2 +-
+>>>>>>  drivers/media/dvb/frontends/cx22700.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/cx22702.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/cx24110.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/cx24123.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/cxd2820r_core.c |    4 +-
+>>>>>>  drivers/media/dvb/frontends/dib3000mb.c     |    2 +-
+>>>>>>  drivers/media/dvb/frontends/dib3000mc.c     |    2 +-
+>>>>>>  drivers/media/dvb/frontends/dib7000m.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/dib7000p.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/dib8000.c       |    4 +-
+>>>>>>  drivers/media/dvb/frontends/dib9000.c       |    4 +-
+>>>>>>  drivers/media/dvb/frontends/drxd_hard.c     |    2 +-
+>>>>>>  drivers/media/dvb/frontends/drxk_hard.c     |    4 +-
+>>>>>>  drivers/media/dvb/frontends/dvb_dummy_fe.c  |    6 +-
+>>>>>>  drivers/media/dvb/frontends/it913x-fe.c     |    2 +-
+>>>>>>  drivers/media/dvb/frontends/l64781.c        |    2 +-
+>>>>>>  drivers/media/dvb/frontends/lgdt3305.c      |    4 +-
+>>>>>>  drivers/media/dvb/frontends/lgdt330x.c      |    4 +-
+>>>>>>  drivers/media/dvb/frontends/lgs8gl5.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/lgs8gxx.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/mb86a20s.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/mt312.c         |    2 +-
+>>>>>>  drivers/media/dvb/frontends/mt352.c         |    2 +-
+>>>>>>  drivers/media/dvb/frontends/or51132.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/s5h1409.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/s5h1411.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/s5h1420.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/s5h1432.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/s921.c          |    2 +-
+>>>>>>  drivers/media/dvb/frontends/stb0899_drv.c   |    2 +-
+>>>>>>  drivers/media/dvb/frontends/stb6100.c       |    4 +-
+>>>>>>  drivers/media/dvb/frontends/stv0297.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/stv0299.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/stv0367.c       |    4 +-
+>>>>>>  drivers/media/dvb/frontends/stv0900_core.c  |    2 +-
+>>>>>>  drivers/media/dvb/frontends/tda10021.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/tda10023.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/tda10048.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/tda1004x.c      |    4 +-
+>>>>>>  drivers/media/dvb/frontends/tda10071.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/tda10086.c      |    2 +-
+>>>>>>  drivers/media/dvb/frontends/tda8083.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/ves1820.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/ves1x93.c       |    2 +-
+>>>>>>  drivers/media/dvb/frontends/zl10353.c       |    2 +-
+>>>>>>  drivers/media/dvb/siano/smsdvb.c            |    2 +-
+>>>>>>  drivers/media/video/tlg2300/pd-dvb.c        |    2 +-
+>>>>>>  drivers/staging/media/as102/as102_fe.c      |    2 +-
+>>>>>>  62 files changed, 157 insertions(+), 100 deletions(-)
+>>>>>>
+>>>>>> diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
+>>>>>> index 4658bd6..6afc083 100644
+>>>>>> --- a/drivers/media/dvb/bt8xx/dst.c
+>>>>>> +++ b/drivers/media/dvb/bt8xx/dst.c
+>>>>>> @@ -1778,7 +1778,7 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
+>>>>>>  	.init = dst_init,
+>>>>>>  	.tune = dst_tune_frontend,
+>>>>>>  	.set_frontend_legacy = dst_set_frontend,
+>>>>>> -	.get_frontend = dst_get_frontend,
+>>>>>> +	.get_frontend_legacy = dst_get_frontend,
+>>>>>>  	.get_frontend_algo = dst_get_tuning_algo,
+>>>>>>  	.read_status = dst_read_status,
+>>>>>>  	.read_signal_strength = dst_read_signal_strength,
+>>>>>> @@ -1804,7 +1804,7 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
+>>>>>>  	.init = dst_init,
+>>>>>>  	.tune = dst_tune_frontend,
+>>>>>>  	.set_frontend_legacy = dst_set_frontend,
+>>>>>> -	.get_frontend = dst_get_frontend,
+>>>>>> +	.get_frontend_legacy = dst_get_frontend,
+>>>>>>  	.get_frontend_algo = dst_get_tuning_algo,
+>>>>>>  	.read_status = dst_read_status,
+>>>>>>  	.read_signal_strength = dst_read_signal_strength,
+>>>>>> @@ -1838,7 +1838,7 @@ static struct dvb_frontend_ops dst_dvbc_ops = {
+>>>>>>  	.init = dst_init,
+>>>>>>  	.tune = dst_tune_frontend,
+>>>>>>  	.set_frontend_legacy = dst_set_frontend,
+>>>>>> -	.get_frontend = dst_get_frontend,
+>>>>>> +	.get_frontend_legacy = dst_get_frontend,
+>>>>>>  	.get_frontend_algo = dst_get_tuning_algo,
+>>>>>>  	.read_status = dst_read_status,
+>>>>>>  	.read_signal_strength = dst_read_signal_strength,
+>>>>>> @@ -1861,7 +1861,7 @@ static struct dvb_frontend_ops dst_atsc_ops = {
+>>>>>>  	.init = dst_init,
+>>>>>>  	.tune = dst_tune_frontend,
+>>>>>>  	.set_frontend_legacy = dst_set_frontend,
+>>>>>> -	.get_frontend = dst_get_frontend,
+>>>>>> +	.get_frontend_legacy = dst_get_frontend,
+>>>>>>  	.get_frontend_algo = dst_get_tuning_algo,
+>>>>>>  	.read_status = dst_read_status,
+>>>>>>  	.read_signal_strength = dst_read_signal_strength,
+>>>>>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>>>>>> index eca6170..1eefb91 100644
+>>>>>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+>>>>>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>>>>>> @@ -139,6 +139,14 @@ struct dvb_frontend_private {
+>>>>>>  };
+>>>>>>  
+>>>>>>  static void dvb_frontend_wakeup(struct dvb_frontend *fe);
+>>>>>> +static int dtv_get_frontend(struct dvb_frontend *fe,
+>>>>>> +			    struct dtv_frontend_properties *c,
+>>>>>> +			    struct dvb_frontend_parameters *p_out);
+>>>>>> +
+>>>>>> +static bool has_get_frontend(struct dvb_frontend *fe)
+>>>>>> +{
+>>>>>> +	return fe->ops.get_frontend || fe->ops.get_frontend_legacy;
+>>>>>> +}
+>>>>>>  
+>>>>>>  static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
+>>>>>>  {
+>>>>>> @@ -149,8 +157,8 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
+>>>>>>  
+>>>>>>  	dprintk ("%s\n", __func__);
+>>>>>>  
+>>>>>> -	if ((status & FE_HAS_LOCK) && fe->ops.get_frontend)
+>>>>>> -		fe->ops.get_frontend(fe, &fepriv->parameters_out);
+>>>>>> +	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
+>>>>>> +		dtv_get_frontend(fe, NULL, &fepriv->parameters_out);
+>>>>>>  
+>>>>>>  	mutex_lock(&events->mtx);
+>>>>>>  
+>>>>>> @@ -1097,11 +1105,10 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
+>>>>>>  /* Ensure the cached values are set correctly in the frontend
+>>>>>>   * legacy tuning structures, for the advanced tuning API.
+>>>>>>   */
+>>>>>> -static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
+>>>>>> +static void dtv_property_legacy_params_sync(struct dvb_frontend *fe,
+>>>>>> +					    struct dvb_frontend_parameters *p)
+>>>>>>  {
+>>>>>>  	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>>>>>> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>>>>>> -	struct dvb_frontend_parameters *p = &fepriv->parameters_in;
+>>>>>>  
+>>>>>>  	p->frequency = c->frequency;
+>>>>>>  	p->inversion = c->inversion;
+>>>>>> @@ -1223,6 +1230,7 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
+>>>>>>  static void dtv_property_cache_submit(struct dvb_frontend *fe)
+>>>>>>  {
+>>>>>>  	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>>>>>> +	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>>>>>>  
+>>>>>>  	/* For legacy delivery systems we don't need the delivery_system to
+>>>>>>  	 * be specified, but we populate the older structures from the cache
+>>>>>> @@ -1231,7 +1239,7 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
+>>>>>>  	if(is_legacy_delivery_system(c->delivery_system)) {
+>>>>>>  
+>>>>>>  		dprintk("%s() legacy, modulation = %d\n", __func__, c->modulation);
+>>>>>> -		dtv_property_legacy_params_sync(fe);
+>>>>>> +		dtv_property_legacy_params_sync(fe, &fepriv->parameters_in);
+>>>>>>  
+>>>>>>  	} else {
+>>>>>>  		dprintk("%s() adv, modulation = %d\n", __func__, c->modulation);
+>>>>>> @@ -1246,6 +1254,58 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
+>>>>>>  	}
+>>>>>>  }
+>>>>>>  
+>>>>>> +/**
+>>>>>> + * dtv_get_frontend - calls a callback for retrieving DTV parameters
+>>>>>> + * @fe:		struct dvb_frontend pointer
+>>>>>> + * @c:		struct dtv_frontend_properties pointer (DVBv5 cache)
+>>>>>> + * @p_out	struct dvb_frontend_parameters pointer (DVBv3 FE struct)
+>>>>>> + *
+>>>>>> + * This routine calls either the DVBv3 or DVBv5 get_frontend call.
+>>>>>> + * If c is not null, it will update the DVBv5 cache struct pointed by it.
+>>>>>> + * If p_out is not null, it will update the DVBv3 params pointed by it.
+>>>>>> + */
+>>>>>> +static int dtv_get_frontend(struct dvb_frontend *fe,
+>>>>>> +			    struct dtv_frontend_properties *c,
+>>>>>> +			    struct dvb_frontend_parameters *p_out)
+>>>>>> +{
+>>>>>> +	const struct dtv_frontend_properties *cache = &fe->dtv_property_cache;
+>>>>>> +	struct dtv_frontend_properties tmp_cache;
+>>>>>> +	struct dvb_frontend_parameters tmp_out;
+>>>>>> +	bool fill_cache = (c != NULL);
+>>>>>> +	bool fill_params = (p_out != NULL);
+>>>>>> +	int r;
+>>>>>> +
+>>>>>> +	if (!p_out)
+>>>>>> +		p_out = & tmp_out;
+>>>>>> +
+>>>>>> +	if (!c)
+>>>>>> +		c = &tmp_cache;
+>>>>>> +	else
+>>>>>> +		memcpy(c, cache, sizeof(*c));
+>>>>>> +
+>>>>>> +	/* Then try the DVBv5 one */
+>>>>>> +	if (fe->ops.get_frontend) {
+>>>>>> +		r = fe->ops.get_frontend(fe, c);
+>>>>>> +		if (unlikely(r < 0))
+>>>>>> +			return r;
+>>>>>> +		if (fill_params)
+>>>>>> +			dtv_property_legacy_params_sync(fe, p_out);
+>>>>>> +		return 0;
+>>>>>> +	}
+>>>>>> +
+>>>>>> +	/* As no DVBv5 call exists, use the DVBv3 one */
+>>>>>> +	if (fe->ops.get_frontend_legacy) {
+>>>>>> +		r = fe->ops.get_frontend_legacy(fe, p_out);
+>>>>>> +		if (unlikely(r < 0))
+>>>>>> +			return r;
+>>>>>> +		if (fill_cache)
+>>>>>> +			dtv_property_cache_sync(fe, c, p_out);
+>>>>>> +		return 0;
+>>>>>> +	}
+>>>>>> +
+>>>>>> +	return -EOPNOTSUPP;
+>>>>>> +}
+>>>>>> +
+>>>>>>  static int dvb_frontend_ioctl_legacy(struct file *file,
+>>>>>>  			unsigned int cmd, void *parg);
+>>>>>>  static int dvb_frontend_ioctl_properties(struct file *file,
+>>>>>> @@ -1296,24 +1356,12 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
+>>>>>>  }
+>>>>>>  
+>>>>>>  static int dtv_property_process_get(struct dvb_frontend *fe,
+>>>>>> +				    const struct dtv_frontend_properties *c,
+>>>>>>  				    struct dtv_property *tvp,
+>>>>>>  				    struct file *file)
+>>>>>>  {
+>>>>>> -	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>>>>>> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+>>>>>> -	struct dtv_frontend_properties cdetected;
+>>>>>>  	int r;
+>>>>>>  
+>>>>>> -	/*
+>>>>>> -	 * If the driver implements a get_frontend function, then convert
+>>>>>> -	 * detected parameters to S2API properties.
+>>>>>> -	 */
+>>>>>> -	if (fe->ops.get_frontend) {
+>>>>>> -		cdetected = *c;
+>>>>>> -		dtv_property_cache_sync(fe, &cdetected, &fepriv->parameters_out);
+>>>>>> -		c = &cdetected;
+>>>>>> -	}
+>>>>>> -
+>>>>>>  	switch(tvp->cmd) {
+>>>>>>  	case DTV_ENUM_DELSYS:
+>>>>>>  		dtv_set_default_delivery_caps(fe, tvp);
+>>>>>> @@ -1685,6 +1733,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+>>>>>>  
+>>>>>>  	} else
+>>>>>>  	if(cmd == FE_GET_PROPERTY) {
+>>>>>> +		struct dtv_frontend_properties cache_out;
+>>>>>>  
+>>>>>>  		tvps = (struct dtv_properties __user *)parg;
+>>>>>>  
+>>>>>> @@ -1707,8 +1756,13 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+>>>>>>  			goto out;
+>>>>>>  		}
+>>>>>>  
+>>>>>> +		/*
+>>>>>> +		 * Fills the cache out struct with the cache contents, plus
+>>>>>> +		 * the data retrieved from get_frontend/get_frontend_legacy.
+>>>>>> +		 */
+>>>>>> +		dtv_get_frontend(fe, &cache_out, NULL);
+>>>>>
+>>>>> Unlike before, this code actually calls the get_frontend driver
+>>>>> callback, causing unwanted I2C traffic for every property. Please drop
+>>>>> this behavioural change.
+>>>>
+>>>> Look again: get_frontend() is called only once, when the user requests
+>>>> FE_GET_PROPERTY.
+>>>
+>>> So let me rephrase: Unlike before, this code actually calls the
+>>> get_frontend driver callback,
+>>
+>> True.
+>>
+>>> causing unwanted I2C traffic for every FE_GET_PROPERTY ioctl.
+>>
+>> Why unwanted? If the userspace is calling it, it likely wants some fresh 
+>> information about the frontend.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml       |  101 ++++++++++++++++++++
->  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 +
->  drivers/media/video/v4l2-ctrls.c                   |   10 ++
->  include/linux/videodev2.h                          |   10 ++
->  4 files changed, 127 insertions(+), 0 deletions(-)
+> If I want to query the current frequency property, then the driver
+> shouldn't have to read the symbol rate, FEC etc. Doing that made sense
+> when FE_GET_FRONTEND had to fill a struct, but now that we're using
+> distinct properties it doesn't make sense anymore.
+
+Ok, you're talking about an optimization over what's currently done. 
+
+I agree that it would be great to have such optimization, but this is out 
+of the target intended by this patchset.
+
+The target of this patchset (and the previous one) is to be sure that all
+DVBv3 handling will be confined into the DVB core, making possible to
+remove uneeded DVBv3 parameter copies for pure DVBv5 calls and to do other
+optimizations inside the core.
+
+I can see a few ways of doing such optimization:
+
+1) instead of implementing a get_frontend() callback, drivers
+   would use get_property().
+
+As get_property() will serialize the calls, this will work fine if each
+DVB property would require a separate hardware call. However, if the same 
+hardware call would retrieve an entire set of parameters (this is true
+on some firmware-based cards like siano), using it will actually slow down
+the driver, if several parameters are required at the same time.
+
+So, such firmware-based drivers will work better with get_frontend() than
+with get_property().
+
+After looking on all drivers that implement get_frontend(), very few drivers
+will actually generate too much traffic for get_frontend(). Yet, after
+applying this series, it will be easier to work on such drivers to optimize
+them.
+
+2) add a bitmap field at DVBv5 cache parameter, to indicate what parameters
+were requested by userspace.
+
+This way, drivers could check the bitmask and do the minimal amount of
+transfers to retrieve the needed data, not spending I2C bus cycles to
+retrieve data that would be discarded by the core.
+
+I'm not convinced if we should go this way, as implementing get_property()
+seems simpler.
+
+>> One usage of such call would be to retrieve the autodetected properties,
+>> after having a frontend lock.
+>>
+>>>> This will only generate i2c traffic if the frontend implements get_frontend,
+>>>> and if it needs to retrieve something from the hardware.
+>>>
+>>> What do you mean by "if it needs to retrieve something"? There's no
+>>> logic in dtv_get_frontend() to handle that. Usually there's no logic in
+>>> the get_frontend callback either, because it's job is to retrieve
+>>> something from the hardware _unconditionally_.
+>>
+>> For example, at FE_SET, it asked for modulation detection. a GET_PROP may
+>> return what was the detected modulation.
 > 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 3bc5ee8..69ede83 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -3356,6 +3356,107 @@ interface and may change in the future.</para>
->        </table>
->  
->      </section>
-> +
-> +    <section id="image-source-controls">
-> +      <title>Image Source Control Reference</title>
-> +
-> +      <note>
-> +	<title>Experimental</title>
-> +
-> +	<para>This is an <link
-> +	linkend="experimental">experimental</link> interface and may
-> +	change in the future.</para>
-> +      </note>
-> +
-> +      <para>
-> +	The Image Source control class is intended for low-level
-> +	control of image source devices such as image sensors. The
-> +	devices feature an analogue to digital converter and a bus
-> +	transmitter to transmit the image data out of the device.
-> +      </para>
-> +
-> +      <table pgwide="1" frame="none" id="image-source-control-id">
-> +      <title>Image Source Control IDs</title>
-> +
-> +      <tgroup cols="4">
-> +	<colspec colname="c1" colwidth="1*" />
-> +	<colspec colname="c2" colwidth="6*" />
-> +	<colspec colname="c3" colwidth="2*" />
-> +	<colspec colname="c4" colwidth="6*" />
-> +	<spanspec namest="c1" nameend="c2" spanname="id" />
-> +	<spanspec namest="c2" nameend="c4" spanname="descr" />
-> +	<thead>
-> +	  <row>
-> +	    <entry spanname="id" align="left">ID</entry>
-> +	    <entry align="left">Type</entry>
-> +	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-> +	  </row>
-> +	</thead>
-> +	<tbody valign="top">
-> +	  <row><entry></entry></row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry>
-> +	    <entry>class</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_VBLANK</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Vertical blanking. The idle
-> +	    preriod after every frame during which no image data is
+> Yes. The detected value should be set by the driver in its get_property
+> callback.
+> 
+>>> Btw, I just noticed that get_frontend gets a parameter 'props' while
+>>> set_frontend doesn't.
+>>
+>> My first coding were to not add a props parameter there. Then I realized
+>> that it could make some sense to not touch at the frontend cache parameters
+>> on a get_frontend, in order to prevent it to replace *_AUTO parameters by
+>> a detected parameter, as subsequent FE_SET_PROPERTY calls might try to just
+>> change the frequency, instead of filling all the properties again.
+>>
+>> So, I decided to explicitly pass a parameter there.
+>>
+>>> IMO this should be changed, e.g. by adding const
+>>> struct dtv_frontend_properties* to set_frontend, if you insist on
+>>> introducing this callback.
+>>>
+>>> A far better solution would be to just use the get_property callback for
+>>> all properties instead of replacing the legacy get_frontend callback
+>>> with a new "catch-all" function.
+>>
+>> Sorry, but I didn't understand what you're meaning. This is exactly what
+>> get_frontend callback is doing: it retrieves all properties.
+> 
+> See above.
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-s/preriod/period
-
-> +	    produced. The unit of vertical blanking is a line. Every
-> +	    line has length of the image width plus horizontal
-> +	    blanking at the pixel clock specified by struct
-> +	    v4l2_mbus_framefmt <xref linkend="v4l2-mbus-framefmt"
-> +	    />.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_HBLANK</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Horizontal blanking. The idle
-> +	    preriod after every line of image data during which no
-
-s/preriod/period
-
-> +	    image data is produced. The unit of horizontal blanking is
-> +	    pixels.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_LINK_FREQ</constant></entry>
-> +	    <entry>integer menu</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Image source's data bus frequency.
-> +	    Together with the media bus pixel code, bus type (clock
-> +	    cycles per sample), the data bus frequency defines the
-> +	    pixel clock. <xref linkend="v4l2-mbus-framefmt" /> The
-> +	    frame rate can be calculated from the pixel clock, image
-> +	    width and height and horizontal and vertical blanking. The
-> +	    frame rate control is performed by selecting the desired
-> +	    horizontal and vertical blanking.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN</constant></entry>
-> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Analogue gain is gain affecting
-> +	    all colour components in the pixel matrix. The gain
-> +	    operation is performed in the analogue domain before A/D
-> +	    conversion.
-> +	    </entry>
-> +	  </row>
-> +	  <row><entry></entry></row>
-> +	</tbody>
-> +      </tgroup>
-> +      </table>
-> +
-> +    </section>
-> +
->  </section>
->  
->    <!--
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> index 5122ce8..250c1cf 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> @@ -257,6 +257,12 @@ These controls are described in <xref
->  These controls are described in <xref
->  		linkend="flash-controls" />.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
-> +	    <entry>0x9d0000</entry> <entry>The class containing image
-> +	    source controls. These controls are described in <xref
-> +	    linkend="image-source-controls" />.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index 083bb79..da1ec52 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -606,6 +606,12 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_FLASH_CHARGE:		return "Charge";
->  	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
->  
-> +	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image source controls";
-> +	case V4L2_CID_IMAGE_SOURCE_VBLANK:	return "Vertical blanking";
-
-nit: have you considered making it "Blanking, horizontal"
-
-> +	case V4L2_CID_IMAGE_SOURCE_HBLANK:	return "Horizontal blanking";
-
-and "Blanking, vertical" ?
-
-> +	case V4L2_CID_IMAGE_SOURCE_LINK_FREQ:	return "Link frequency";
-> +	case V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN: return "Analogue gain";
-> +
->  	default:
->  		return NULL;
->  	}
-> @@ -694,6 +700,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
-> +	case V4L2_CID_IMAGE_SOURCE_LINK_FREQ:
-> +		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
-> +		break;
->  	case V4L2_CID_RDS_TX_PS_NAME:
->  	case V4L2_CID_RDS_TX_RADIO_TEXT:
->  		*type = V4L2_CTRL_TYPE_STRING;
-> @@ -703,6 +712,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_MPEG_CLASS:
->  	case V4L2_CID_FM_TX_CLASS:
->  	case V4L2_CID_FLASH_CLASS:
-> +	case V4L2_CID_IMAGE_SOURCE_CLASS:
->  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
->  		/* You can neither read not write these */
->  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 9633c69..0f8f904 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1080,6 +1080,7 @@ struct v4l2_ext_controls {
->  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
->  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
->  #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
-> +#define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009d0000	/* Image source flash controls */
->  
->  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
->  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> @@ -1690,6 +1691,15 @@ enum v4l2_flash_strobe_source {
->  #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
->  #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
->  
-> +/* Image source controls */
-> +#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
-> +#define V4L2_CID_IMAGE_SOURCE_CLASS		(V4L2_CTRL_CLASS_IMAGE_SOURCE | 1)
-> +
-> +#define V4L2_CID_IMAGE_SOURCE_VBLANK		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
-> +#define V4L2_CID_IMAGE_SOURCE_HBLANK		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
-> +#define V4L2_CID_IMAGE_SOURCE_LINK_FREQ		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
-> +#define V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN	(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 4)
-
-Since these are really low level controls, do you think we could shorten
-the class name a bit, i.e. make it V4L2_CID_IMG_SRC_CLASS ? :)
-
-
-Somehow I'm getting the misterious error again when compiling after this
-patch is applied (and others from you last series of 17, xmlto version
-0.0.23, perl, v5.10.1):
-
-8<--------------------
-
-  HTML    Documentation/DocBook/media_api.html
-warning: failed to load external entity
-"/home/snawrocki/linux-media/media_tree/Documentation/DocBook/vidioc-subdev-g-selection.xml"
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-The problem is in patch "v4l: Add selections documentation." [1].
-Somehow file vidioc-subdev-g-selection.xml doesn't get copied to
-Documentation/DocBook/ directory. When I copy it manually it compiles
-fine. I'm looking now at Documentation/DocBook/Makefile to find the
-reason of that.
-
-/home/snawrocki/linux-media/media_tree/Documentation/DocBook/dev-subdev.xml:295:
-parser error : Failure to process entity sub-subdev-g-selection
-      configured using &sub-subdev-g-selection; and
-                                               ^
-/home/snawrocki/linux-media/media_tree/Documentation/DocBook/dev-subdev.xml:295:
-parser error : Entity 'sub-subdev-g-selection' not defined
-      configured using &sub-subdev-g-selection; and
-                                               ^
-/home/snawrocki/linux-media/media_tree/Documentation/DocBook/dev-subdev.xml:369:
-parser error : chunk is not well balanced
-
-^
-/home/snawrocki/linux-media/media_tree/Documentation/DocBook/v4l2.xml:456:
-parser error : Failure to process entity sub-dev-subdev
-    <section id="subdev"> &sub-dev-subdev; </section>
-                                          ^
-/home/snawrocki/linux-media/media_tree/Documentation/DocBook/v4l2.xml:456:
-parser error : Entity 'sub-dev-subdev' not defined
-    <section id="subdev"> &sub-dev-subdev; </section>
-                                          ^
-/usr/bin/xmlto: line 576: 27987 Segmentation fault      "$XSLTPROC_PATH"
-$XSLTOPTS -o "$XSLT_PROCESSED" "$STYLESHEET" "$INPUT_FILE"
-/bin/cp: cannot stat `*.*htm*': No such file or directory
-make[1]: *** [Documentation/DocBook/media_api.html] Error 1
-make: *** [htmldocs] Error 2
-
------------------->8
-
-[1]. http://patchwork.linuxtv.org/patch/8923/
-
--- 
-Thanks,
-Sylwester
