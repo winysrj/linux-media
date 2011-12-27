@@ -1,126 +1,182 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18551 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:3405 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752743Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:32 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Wst009173
+	id S1753553Ab1L0BJq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:46 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19jSF015706
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:45 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 83/94] [media] dvb-core: remove get|set_frontend_legacy
-Date: Fri, 30 Dec 2011 13:08:20 -0200
-Message-Id: <1325257711-12274-84-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+Subject: [PATCH RFC 59/91] [media] tda10023: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:47 -0200
+Message-Id: <1324948159-23709-60-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-59-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-57-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-58-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-59-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that all drivers were converted, we can get rid of those
-emulation calls.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
+
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/dvb-core/dvb_frontend.c |   24 ++++--------------------
- drivers/media/dvb/dvb-core/dvb_frontend.h |    2 --
- 2 files changed, 4 insertions(+), 22 deletions(-)
+ drivers/media/dvb/frontends/tda10023.c |   35 ++++++++-----------------------
+ 1 files changed, 9 insertions(+), 26 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 1eefb91..5bb6c1d 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -145,7 +145,7 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
+diff --git a/drivers/media/dvb/frontends/tda10023.c b/drivers/media/dvb/frontends/tda10023.c
+index de535a4..8f451dc 100644
+--- a/drivers/media/dvb/frontends/tda10023.c
++++ b/drivers/media/dvb/frontends/tda10023.c
+@@ -302,8 +302,7 @@ struct qam_params {
+ 	u8 qam, lockthr, mseth, aref, agcrefnyq, eragnyq_thd;
+ };
  
- static bool has_get_frontend(struct dvb_frontend *fe)
+-static int tda10023_set_parameters (struct dvb_frontend *fe,
+-			    struct dvb_frontend_parameters *p)
++static int tda10023_set_parameters (struct dvb_frontend *fe)
  {
--	return fe->ops.get_frontend || fe->ops.get_frontend_legacy;
-+	return fe->ops.get_frontend;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u32 delsys  = c->delivery_system;
+@@ -377,21 +376,6 @@ static int tda10023_set_parameters (struct dvb_frontend *fe,
+ 	return 0;
  }
  
- static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
-@@ -361,8 +361,6 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
- 		fepriv->parameters_in.inversion = fepriv->inversion;
- 	if (fe->ops.set_frontend)
- 		fe_set_err = fe->ops.set_frontend(fe);
--	else if (fe->ops.set_frontend_legacy)
--		fe_set_err = fe->ops.set_frontend_legacy(fe, &fepriv->parameters_in);
- 	fepriv->parameters_out = fepriv->parameters_in;
- 	if (fe_set_err < 0) {
- 		fepriv->state = FESTATE_ERROR;
-@@ -394,9 +392,6 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
- 		if (fepriv->state & FESTATE_RETUNE) {
- 			if (fe->ops.set_frontend)
- 				retval = fe->ops.set_frontend(fe);
--			else if (fe->ops.set_frontend_legacy)
--				retval = fe->ops.set_frontend_legacy(fe,
--							&fepriv->parameters_in);
- 			fepriv->parameters_out = fepriv->parameters_in;
- 			if (retval < 0)
- 				fepriv->state = FESTATE_ERROR;
-@@ -1271,7 +1266,6 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
- 	const struct dtv_frontend_properties *cache = &fe->dtv_property_cache;
- 	struct dtv_frontend_properties tmp_cache;
- 	struct dvb_frontend_parameters tmp_out;
--	bool fill_cache = (c != NULL);
- 	bool fill_params = (p_out != NULL);
- 	int r;
+-static int tda10023_get_property(struct dvb_frontend *fe,
+-				 struct dtv_property *p)
+-{
+-	switch (p->cmd) {
+-	case DTV_ENUM_DELSYS:
+-		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
+-		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
+-		p->u.buffer.len = 2;
+-		break;
+-	default:
+-		break;
+-	}
+-	return 0;
+-}
+-
+ static int tda10023_read_status(struct dvb_frontend* fe, fe_status_t* status)
+ {
+ 	struct tda10023_state* state = fe->demodulator_priv;
+@@ -472,7 +456,7 @@ static int tda10023_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
  
-@@ -1283,7 +1277,6 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
- 	else
- 		memcpy(c, cache, sizeof(*c));
- 
--	/* Then try the DVBv5 one */
- 	if (fe->ops.get_frontend) {
- 		r = fe->ops.get_frontend(fe, c);
- 		if (unlikely(r < 0))
-@@ -1293,17 +1286,8 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
- 		return 0;
+-static int tda10023_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int tda10023_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
+ {
+ 	struct tda10023_state* state = fe->demodulator_priv;
+ 	int sync,inv;
+@@ -487,17 +471,17 @@ static int tda10023_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_pa
+ 		printk(sync & 2 ? "DVB: TDA10023(%d): AFC (%d) %dHz\n" :
+ 				  "DVB: TDA10023(%d): [AFC (%d) %dHz]\n",
+ 			state->frontend.dvb->num, afc,
+-		       -((s32)p->u.qam.symbol_rate * afc) >> 10);
++		       -((s32)p->symbol_rate * afc) >> 10);
  	}
  
--	/* As no DVBv5 call exists, use the DVBv3 one */
--	if (fe->ops.get_frontend_legacy) {
--		r = fe->ops.get_frontend_legacy(fe, p_out);
--		if (unlikely(r < 0))
--			return r;
--		if (fill_cache)
--			dtv_property_cache_sync(fe, c, p_out);
--		return 0;
--	}
--
--	return -EOPNOTSUPP;
-+	/* As everything is in cache, this is always supported */
-+	return 0;
+ 	p->inversion = (inv&0x20?0:1);
+-	p->u.qam.modulation = ((state->reg0 >> 2) & 7) + QAM_16;
++	p->modulation = ((state->reg0 >> 2) & 7) + QAM_16;
+ 
+-	p->u.qam.fec_inner = FEC_NONE;
++	p->fec_inner = FEC_NONE;
+ 	p->frequency = ((p->frequency + 31250) / 62500) * 62500;
+ 
+ 	if (sync & 2)
+-		p->frequency -= ((s32)p->u.qam.symbol_rate * afc) >> 10;
++		p->frequency -= ((s32)p->symbol_rate * afc) >> 10;
+ 
+ 	return 0;
+ }
+@@ -588,7 +572,7 @@ error:
  }
  
- static int dvb_frontend_ioctl_legacy(struct file *file,
-@@ -1758,7 +1742,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ static struct dvb_frontend_ops tda10023_ops = {
+-
++	.delsys = { SYS_DVBC_ANNEX_A, SYS_DVBC_ANNEX_C },
+ 	.info = {
+ 		.name = "Philips TDA10023 DVB-C",
+ 		.type = FE_QAM,
+@@ -609,9 +593,8 @@ static struct dvb_frontend_ops tda10023_ops = {
+ 	.sleep = tda10023_sleep,
+ 	.i2c_gate_ctrl = tda10023_i2c_gate_ctrl,
  
- 		/*
- 		 * Fills the cache out struct with the cache contents, plus
--		 * the data retrieved from get_frontend/get_frontend_legacy.
-+		 * the data retrieved from get_frontend.
- 		 */
- 		dtv_get_frontend(fe, &cache_out, NULL);
- 		for (i = 0; i < tvps->num; i++) {
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index 06ec17a..23456b3 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -282,11 +282,9 @@ struct dvb_frontend_ops {
- 	enum dvbfe_algo (*get_frontend_algo)(struct dvb_frontend *fe);
- 
- 	/* these two are only used for the swzigzag code */
--	int (*set_frontend_legacy)(struct dvb_frontend* fe, struct dvb_frontend_parameters* params);
- 	int (*set_frontend)(struct dvb_frontend* fe);
- 	int (*get_tune_settings)(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* settings);
- 
--	int (*get_frontend_legacy)(struct dvb_frontend *fe, struct dvb_frontend_parameters *params);
- 	int (*get_frontend)(struct dvb_frontend *fe, struct dtv_frontend_properties *props);
- 
- 	int (*read_status)(struct dvb_frontend* fe, fe_status_t* status);
+-	.set_frontend_legacy = tda10023_set_parameters,
+-	.get_frontend_legacy = tda10023_get_frontend,
+-	.get_property = tda10023_get_property,
++	.set_frontend = tda10023_set_parameters,
++	.get_frontend = tda10023_get_frontend,
+ 	.read_status = tda10023_read_status,
+ 	.read_ber = tda10023_read_ber,
+ 	.read_signal_strength = tda10023_read_signal_strength,
 -- 
 1.7.8.352.g876a6
 
