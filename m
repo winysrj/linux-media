@@ -1,61 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out13.tpgi.com.au ([220.244.226.123]:38454 "EHLO
-	mail13.tpgi.com.au" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750821Ab1LPFUE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 00:20:04 -0500
-Received: from [192.168.224.56] (27-33-30-46.static.tpgi.com.au [27.33.30.46])
-	(authenticated bits=0)
-	by mail13.tpgi.com.au (envelope-from Andrew.Congdon@iplatinum.com.au) (8.14.3/8.14.3) with ESMTP id pBG56gKm029273
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 16 Dec 2011 16:06:45 +1100
-Message-ID: <4EEAD1E2.7090605@iplatinum.com.au>
-Date: Fri, 16 Dec 2011 16:06:42 +1100
-From: Andrew Congdon <Andrew.Congdon@iplatinum.com.au>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: LME2510 Sharp 0194A DVB-S
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:36902 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753760Ab1L0BJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:39 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19dLg005493
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:39 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 49/91] [media] s5h1420: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:37 -0200
+Message-Id: <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I have a DM04 DVB-S USB box which doesn't seem to be supported with the
-kernel 3.x dvb-usb-lmedm04 driver although it seems very close. The
-firmware is loaded the tuner seems to be identified but it fails to
-attach the tuner?
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-It has a LME2510 chip and the tuner has Sharp F7HZ0194A on it.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-This is the debug trace:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/s5h1420.c |   54 ++++++++++++++++----------------
+ 1 files changed, 27 insertions(+), 27 deletions(-)
 
-LME2510(C): Firmware Status: 6 (44)
-LME2510(C): FRM Loading dvb-usb-lme2510-s0194.fw file
-LME2510(C): FRM Starting Firmware Download
-LME2510(C): FRM Firmware Download Completed - Resetting Device
-usbcore: registered new interface driver LME2510C_DVB-S
-usb 1-2: USB disconnect, device number 3
-usb 1-2: new high speed USB device number 7 using ehci_hcd
-usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint 0x87 has
-invalid maxpacket 64
-usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint 0x3 has invalid
-maxpacket 64
-usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint 0x8A has
-invalid maxpacket 64
-usb 1-2: config 1 interface 0 altsetting 1 bulk endpoint 0xA has invalid
-maxpacket 64usb 1-2: New USB device found, idVendor=3344, idProduct=1122
-usb 1-2: New USB device strings: Mfr=0, Product=0, SerialNumber=3
-usb 1-2: SerialNumber: 䥈児
-LME2510(C): Firmware Status: 6 (47)
-dvb-usb: found a 'DM04_LME2510_DVB-S' in warm state.
-dvb-usb: will use the device's hardware PID filter (table count: 15).
-DVB: registering new adapter (DM04_LME2510_DVB-S)
-LME2510(C): DM04 Not Supported
-dvb-usb: no frontend was attached by 'DM04_LME2510_DVB-S'
-Registered IR keymap rc-lme2510
-input: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:0b.1/usb1/1-2/rc/rc2/input11
-rc2: IR-receiver inside an USB DVB receiver as
-/devices/pci0000:00/0000:00:0b.1/usb1/1-2/rc/rc2
-dvb-usb: DM04_LME2510_DVB-S successfully initialized and connected.
-LME2510(C): DEV registering device driver
+diff --git a/drivers/media/dvb/frontends/s5h1420.c b/drivers/media/dvb/frontends/s5h1420.c
+index 44ec27d..3bdfcbe 100644
+--- a/drivers/media/dvb/frontends/s5h1420.c
++++ b/drivers/media/dvb/frontends/s5h1420.c
+@@ -472,15 +472,15 @@ static void s5h1420_reset(struct s5h1420_state* state)
+ }
+ 
+ static void s5h1420_setsymbolrate(struct s5h1420_state* state,
+-				  struct dvb_frontend_parameters *p)
++				  struct dtv_frontend_properties *p)
+ {
+ 	u8 v;
+ 	u64 val;
+ 
+ 	dprintk("enter %s\n", __func__);
+ 
+-	val = ((u64) p->u.qpsk.symbol_rate / 1000ULL) * (1ULL<<24);
+-	if (p->u.qpsk.symbol_rate < 29000000)
++	val = ((u64) p->symbol_rate / 1000ULL) * (1ULL<<24);
++	if (p->symbol_rate < 29000000)
+ 		val *= 2;
+ 	do_div(val, (state->fclk / 1000));
+ 
+@@ -543,7 +543,7 @@ static int s5h1420_getfreqoffset(struct s5h1420_state* state)
+ }
+ 
+ static void s5h1420_setfec_inversion(struct s5h1420_state* state,
+-				     struct dvb_frontend_parameters *p)
++				     struct dtv_frontend_properties *p)
+ {
+ 	u8 inversion = 0;
+ 	u8 vit08, vit09;
+@@ -555,11 +555,11 @@ static void s5h1420_setfec_inversion(struct s5h1420_state* state,
+ 	else if (p->inversion == INVERSION_ON)
+ 		inversion = state->config->invert ? 0 : 0x08;
+ 
+-	if ((p->u.qpsk.fec_inner == FEC_AUTO) || (p->inversion == INVERSION_AUTO)) {
++	if ((p->fec_inner == FEC_AUTO) || (p->inversion == INVERSION_AUTO)) {
+ 		vit08 = 0x3f;
+ 		vit09 = 0;
+ 	} else {
+-		switch(p->u.qpsk.fec_inner) {
++		switch(p->fec_inner) {
+ 		case FEC_1_2:
+ 			vit08 = 0x01; vit09 = 0x10;
+ 			break;
+@@ -628,9 +628,9 @@ static fe_spectral_inversion_t s5h1420_getinversion(struct s5h1420_state* state)
+ 	return INVERSION_OFF;
+ }
+ 
+-static int s5h1420_set_frontend(struct dvb_frontend* fe,
+-				struct dvb_frontend_parameters *p)
++static int s5h1420_set_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct s5h1420_state* state = fe->demodulator_priv;
+ 	int frequency_delta;
+ 	struct dvb_frontend_tune_settings fesettings;
+@@ -639,14 +639,14 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
+ 	dprintk("enter %s\n", __func__);
+ 
+ 	/* check if we should do a fast-tune */
+-	memcpy(&fesettings.parameters, p, sizeof(struct dvb_frontend_parameters));
++	memcpy(&fesettings.parameters, p, sizeof(struct dtv_frontend_properties));
+ 	s5h1420_get_tune_settings(fe, &fesettings);
+ 	frequency_delta = p->frequency - state->tunedfreq;
+ 	if ((frequency_delta > -fesettings.max_drift) &&
+ 			(frequency_delta < fesettings.max_drift) &&
+ 			(frequency_delta != 0) &&
+-			(state->fec_inner == p->u.qpsk.fec_inner) &&
+-			(state->symbol_rate == p->u.qpsk.symbol_rate)) {
++			(state->fec_inner == p->fec_inner) &&
++			(state->symbol_rate == p->symbol_rate)) {
+ 
+ 		if (fe->ops.tuner_ops.set_params) {
+ 			fe->ops.tuner_ops.set_params(fe);
+@@ -669,13 +669,13 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
+ 	s5h1420_reset(state);
+ 
+ 	/* set s5h1420 fclk PLL according to desired symbol rate */
+-	if (p->u.qpsk.symbol_rate > 33000000)
++	if (p->symbol_rate > 33000000)
+ 		state->fclk = 80000000;
+-	else if (p->u.qpsk.symbol_rate > 28500000)
++	else if (p->symbol_rate > 28500000)
+ 		state->fclk = 59000000;
+-	else if (p->u.qpsk.symbol_rate > 25000000)
++	else if (p->symbol_rate > 25000000)
+ 		state->fclk = 86000000;
+-	else if (p->u.qpsk.symbol_rate > 1900000)
++	else if (p->symbol_rate > 1900000)
+ 		state->fclk = 88000000;
+ 	else
+ 		state->fclk = 44000000;
+@@ -705,7 +705,7 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
+ 	s5h1420_writereg(state, DiS01, (state->fclk + (TONE_FREQ * 32) - 1) / (TONE_FREQ * 32));
+ 
+ 	/* TODO DC offset removal, config parameter ? */
+-	if (p->u.qpsk.symbol_rate > 29000000)
++	if (p->symbol_rate > 29000000)
+ 		s5h1420_writereg(state, QPSK01, 0xae | 0x10);
+ 	else
+ 		s5h1420_writereg(state, QPSK01, 0xac | 0x10);
+@@ -718,15 +718,15 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
+ 	s5h1420_writereg(state, Loop01, 0xF0);
+ 	s5h1420_writereg(state, Loop02, 0x2a); /* e7 for s5h1420 */
+ 	s5h1420_writereg(state, Loop03, 0x79); /* 78 for s5h1420 */
+-	if (p->u.qpsk.symbol_rate > 20000000)
++	if (p->symbol_rate > 20000000)
+ 		s5h1420_writereg(state, Loop04, 0x79);
+ 	else
+ 		s5h1420_writereg(state, Loop04, 0x58);
+ 	s5h1420_writereg(state, Loop05, 0x6b);
+ 
+-	if (p->u.qpsk.symbol_rate >= 8000000)
++	if (p->symbol_rate >= 8000000)
+ 		s5h1420_writereg(state, Post01, (0 << 6) | 0x10);
+-	else if (p->u.qpsk.symbol_rate >= 4000000)
++	else if (p->symbol_rate >= 4000000)
+ 		s5h1420_writereg(state, Post01, (1 << 6) | 0x10);
+ 	else
+ 		s5h1420_writereg(state, Post01, (3 << 6) | 0x10);
+@@ -757,8 +757,8 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
+ 	/* start QPSK */
+ 	s5h1420_writereg(state, QPSK01, s5h1420_readreg(state, QPSK01) | 1);
+ 
+-	state->fec_inner = p->u.qpsk.fec_inner;
+-	state->symbol_rate = p->u.qpsk.symbol_rate;
++	state->fec_inner = p->fec_inner;
++	state->symbol_rate = p->symbol_rate;
+ 	state->postlocked = 0;
+ 	state->tunedfreq = p->frequency;
+ 
+@@ -767,14 +767,14 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe,
+ }
+ 
+ static int s5h1420_get_frontend(struct dvb_frontend* fe,
+-				struct dvb_frontend_parameters *p)
++				struct dtv_frontend_properties *p)
+ {
+ 	struct s5h1420_state* state = fe->demodulator_priv;
+ 
+ 	p->frequency = state->tunedfreq + s5h1420_getfreqoffset(state);
+ 	p->inversion = s5h1420_getinversion(state);
+-	p->u.qpsk.symbol_rate = s5h1420_getsymbolrate(state);
+-	p->u.qpsk.fec_inner = s5h1420_getfec(state);
++	p->symbol_rate = s5h1420_getsymbolrate(state);
++	p->fec_inner = s5h1420_getfec(state);
+ 
+ 	return 0;
+ }
+@@ -937,7 +937,7 @@ error:
+ EXPORT_SYMBOL(s5h1420_attach);
+ 
+ static struct dvb_frontend_ops s5h1420_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name     = "Samsung S5H1420/PnpNetwork PN1010 DVB-S",
+ 		.type     = FE_QPSK,
+@@ -960,8 +960,8 @@ static struct dvb_frontend_ops s5h1420_ops = {
+ 	.sleep = s5h1420_sleep,
+ 	.i2c_gate_ctrl = s5h1420_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = s5h1420_set_frontend,
+-	.get_frontend_legacy = s5h1420_get_frontend,
++	.set_frontend = s5h1420_set_frontend,
++	.get_frontend = s5h1420_get_frontend,
+ 	.get_tune_settings = s5h1420_get_tune_settings,
+ 
+ 	.read_status = s5h1420_read_status,
+-- 
+1.7.8.352.g876a6
+
