@@ -1,36 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50947 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753158Ab1L1KUc (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:51333 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754241Ab1L0Ruf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 05:20:32 -0500
-Date: Wed, 28 Dec 2011 12:20:28 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 0/2] Support additional DPCM compressed formats
-Message-ID: <20111228102028.GR3677@valkosipuli.localdomain>
+	Tue, 27 Dec 2011 12:50:35 -0500
+Message-ID: <4EFA0563.2060906@infradead.org>
+Date: Tue, 27 Dec 2011 15:50:27 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Andreas Oberritter <obi@linuxtv.org>,
+	Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFCv1] add DTMB support for DVB API
+References: <4EF3A171.3030906@iki.fi> <4EF48473.3020207@linuxtv.org> <201112231827.13375.pboettcher@kernellabs.com> <201112271726.33733.pboettcher@kernellabs.com>
+In-Reply-To: <201112271726.33733.pboettcher@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 27-12-2011 14:26, Patrick Boettcher wrote:
+> On Friday 23 December 2011 18:27:12 Patrick Boettcher wrote:
+>> On Friday, December 23, 2011 02:38:59 PM Andreas Oberritter wrote:
+>>> On 22.12.2011 22:30, Antti Palosaari wrote:
+>>>> @@ -201,6 +205,9 @@ typedef enum fe_guard_interval {
+>>>>
+>>>>      GUARD_INTERVAL_1_128,
+>>>>      GUARD_INTERVAL_19_128,
+>>>>      GUARD_INTERVAL_19_256,
+>>>>
+>>>> +    GUARD_INTERVAL_PN420,
+>>>> +    GUARD_INTERVAL_PN595,
+>>>> +    GUARD_INTERVAL_PN945,
+>>>>
+>>>>  } fe_guard_interval_t;
+>>>
+>>> What does PN mean in this context?
+>>
+>> While I (right now) cannot remember what the PN abbreviation stands
+>> for, the numbers are the guard time in micro-seconds. At least if I
+>> remember correctly.
+> 
+> Totally wrong.
+> 
+> The number indicated by the PN-value is in samples. Not in micro-
+> seconds.
+> 
+> To compare the PN value with the guard-time known from DVB-T we could do 
+> like that: in DVB-T's 8K mode we have 8192 samples which make one 
+> symbol. If the guard time is 1/32 we have 8192/32 samples which 
+> represent the protect the symbols from inter-symbol-interference: 256 in 
+> this case. 
+> 
+> In DTMB one symbol consists of 3780 samples + the PN-value. Using the 
+> classical representation we could say: PN420 is 1/9, PN595 is about 1/6 
+> and PN945 is 1/4.
 
-This small patchset adds support for the other three 10-to-8 bit
-DPCM-compressed formats as well as prevent accessing NULL pointers in the
-omap3isp driver.
+PN595 is then 595/3780 = 119/756 = 17/108
 
-The issue was that there was no corresponding in-memory format for the media
-bus formats on the CSI-2 receiver but the CSI-2 receiver driver still
-allowed such format on its source pad. Alternatively this could be fixed by
-preventing using such formats, but I can't see a reason to do so.
+While we might code it then as:
 
-That said, the additional formats on the OMAP 3 ISP driver are untested.
+      GUARD_INTERVAL_1_9,		/* PN 420 */
+      GUARD_INTERVAL_17_108,		/* PN 595 */
+      GUARD_INTERVAL_1_4,		/* PN 945 */
 
-Regards,
+in order to preserve the traditional way, maybe it should be coded, instead, as:
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+    GUARD_INTERVAL_420_SAMPLES,		/* PN 420 */
+    GUARD_INTERVAL_595_SAMPLES,		/* PN 595 */
+    GUARD_INTERVAL_945_SAMPLES,		/* PN 945 */
+
+I would avoid "PN", as this meaning is not as clear as "samples" or as
+a fraction. Also, the traditional guard interval won't be obvious for the
+ones that know the DTMB spec.
+> 
+> HTH,
+> 
+> --
+> Patrick Boettcher
+> 
+> Kernel Labs Inc.
+> http://www.kernellabs.com/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
