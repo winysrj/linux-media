@@ -1,93 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:43492 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:61480 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752427Ab1LTPm6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 10:42:58 -0500
-Message-ID: <4EF0ACFD.6040903@iki.fi>
-Date: Tue, 20 Dec 2011 17:42:53 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR 3.3] HDIC HD29L2 DMB-TH demodulator driver
-References: <4EE929D5.6010106@iki.fi> <4EF08FFC.2070802@redhat.com> <4EF0A141.7010100@iki.fi> <4EF0A92B.6010504@redhat.com>
-In-Reply-To: <4EF0A92B.6010504@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1753741Ab1L0BJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:39 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19cbE015656
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:38 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 07/91] [media] bcm3510: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:07:55 -0200
+Message-Id: <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/20/2011 05:26 PM, Mauro Carvalho Chehab wrote:
-> On 20-12-2011 12:52, Antti Palosaari wrote:
->> On 12/20/2011 03:39 PM, Mauro Carvalho Chehab wrote:
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
->>>> +        break;
->>>> +    case 2:
->>>> +        str_constellation = "QAM16";
->>>> +        c->modulation = QAM_16;
->>>> +        break;
->>>> +    case 3:
->>>> +        str_constellation = "QAM32";
->>>> +        c->modulation = QAM_32;
->>>> +        break;
->>>> +    case 4:
->>>> +        str_constellation = "QAM64";
->>>> +        c->modulation = QAM_64;
->>>> +        break;
->>>
->>> Please, avoid magic numbers. Instead, use macros for each
->>> value.
->>
->> I disagree that. Those numbers are coming from demodulator
->> register value. Same way is used almost every driver that
->> supports reading current transmission params from the demod.
->
-> There are drivers that don't code it well, but it is always preferred
-> to use macros for register values. Good drivers have it.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-I still disagree. Are we speaking same issue?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/bcm3510.c |   19 +++++++++++--------
+ 1 files changed, 11 insertions(+), 8 deletions(-)
 
-val = read_reg(rgister)
-switch (val) {
-case 2:
-	c->modulation = QAM_16;
-	break;
-case 3:
-	c->modulation = QAM_32;
-	break;
-}
-
-Why I should define macros here?
-Or do you mean I should define macros for the selecting correct bits 
-from the register?
-
-Anyhow, for me that piece of code looks very clear. And it is used 
-similarly very many drivers.
-
-
-
->> After all as I see there is no big bugs. Those findings are mostly related
->> of missing DMB-TH API support (and was even commented clearly). And 1-2 CodingStyle issues.
->
-> One issue is pure CodingStyle. The other no-API related aren't.
->
->> As there is still few other DMB-TH drivers having similar issues already in
->> the master I don't see why not to add that too. Anyhow, if you see that must
->> be put to staging until DMB-TH is defined to API it is OK for me.
->
-> Please fix the non-API related issues. If you ack to provide us the API improvements
-> for DMB for 3.4, and get rid of "auto_mode = true" for all cases, I'm
-> ok on merging it after the fixes at drivers/media/dvb.
-
-If I don't add DMB-TH support to API you will push that to the staging?
-
-Adding those to API is not mission impossible. Interleaver is only new 
-parameter and all the rest are just extending values. But my time is 
-limited... and I really would like to finally got Anysee smart card 
-reader integrated to USB serial first.
-
-regards
-Antti
-
+diff --git a/drivers/media/dvb/frontends/bcm3510.c b/drivers/media/dvb/frontends/bcm3510.c
+index 43b17fa..a53f83a 100644
+--- a/drivers/media/dvb/frontends/bcm3510.c
++++ b/drivers/media/dvb/frontends/bcm3510.c
+@@ -479,16 +479,16 @@ static int bcm3510_set_freq(struct bcm3510_state* st,u32 freq)
+ 	return -EINVAL;
+ }
+ 
+-static int bcm3510_set_frontend(struct dvb_frontend* fe,
+-					     struct dvb_frontend_parameters *p)
++static int bcm3510_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct bcm3510_state* st = fe->demodulator_priv;
+ 	struct bcm3510_hab_cmd_ext_acquire cmd;
+ 	struct bcm3510_hab_cmd_bert_control bert;
+ 	int ret;
+ 
+ 	memset(&cmd,0,sizeof(cmd));
+-	switch (p->u.vsb.modulation) {
++	switch (c->modulation) {
+ 		case QAM_256:
+ 			cmd.ACQUIRE0.MODE = 0x1;
+ 			cmd.ACQUIRE1.SYM_RATE = 0x1;
+@@ -499,7 +499,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
+ 			cmd.ACQUIRE1.SYM_RATE = 0x2;
+ 			cmd.ACQUIRE1.IF_FREQ = 0x1;
+ 			break;
+-/*		case QAM_256:
++#if 0
++		case QAM_256:
+ 			cmd.ACQUIRE0.MODE = 0x3;
+ 			break;
+ 		case QAM_128:
+@@ -513,7 +514,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
+ 			break;
+ 		case QAM_16:
+ 			cmd.ACQUIRE0.MODE = 0x7;
+-			break;*/
++			break;
++#endif
+ 		case VSB_8:
+ 			cmd.ACQUIRE0.MODE = 0x8;
+ 			cmd.ACQUIRE1.SYM_RATE = 0x0;
+@@ -552,7 +554,8 @@ static int bcm3510_set_frontend(struct dvb_frontend* fe,
+ 
+ 	bcm3510_bert_reset(st);
+ 
+-	if ((ret = bcm3510_set_freq(st,p->frequency)) < 0)
++	ret = bcm3510_set_freq(st, c->frequency);
++	if (ret < 0)
+ 		return ret;
+ 
+ 	memset(&st->status1,0,sizeof(st->status1));
+@@ -819,7 +822,7 @@ error:
+ EXPORT_SYMBOL(bcm3510_attach);
+ 
+ static struct dvb_frontend_ops bcm3510_ops = {
+-
++	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+ 		.name = "Broadcom BCM3510 VSB/QAM frontend",
+ 		.type = FE_ATSC,
+@@ -839,7 +842,7 @@ static struct dvb_frontend_ops bcm3510_ops = {
+ 	.init = bcm3510_init,
+ 	.sleep = bcm3510_sleep,
+ 
+-	.set_frontend_legacy = bcm3510_set_frontend,
++	.set_frontend = bcm3510_set_frontend,
+ 	.get_tune_settings = bcm3510_get_tune_settings,
+ 
+ 	.read_status = bcm3510_read_status,
 -- 
-http://palosaari.fi/
+1.7.8.352.g876a6
+
