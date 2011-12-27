@@ -1,50 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ns1.tyldum.com ([91.189.178.231]:33259 "EHLO ns1.tyldum.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756259Ab1LNSXx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 13:23:53 -0500
-Message-ID: <4EE8E9AD.30002@tyldum.com>
-Date: Wed, 14 Dec 2011 19:23:41 +0100
-From: Vidar Tyldum <vidar@tyldum.com>
+Received: from casper.infradead.org ([85.118.1.10]:48051 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752317Ab1L0L4q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 27 Dec 2011 06:56:46 -0500
+Message-ID: <4EF9B26E.5070609@infradead.org>
+Date: Tue, 27 Dec 2011 09:56:30 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-To: Marko Ristola <marko.ristola@kolumbus.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Multiple Mantis devices gives me glitches
-References: <4EE6FF6F.5050901@kolumbus.fi> <4EE79543.2080802@tyldum.com> <4EE7CA0C.200@kolumbus.fi>
-In-Reply-To: <4EE7CA0C.200@kolumbus.fi>
+To: christophpfister@gmail.com,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: ISDB-T channels in Brazil - for Kaffeine
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-13.12.2011 22:56, Marko Ristola:
-> Here is another patch that I wrote for my DVB HDTV network delivery glitches
-> problem.
-> It might help you a bit also:
-> http://git.kernel.org/?p=linux/kernel/git/torvalds/linux.git;a=commit;h=38e009aac9e02d2c30fd9a5e979ab31433e7d578
+Hi Christoph,
 
-I started seeing glitches again after a day, so I decided to give this a go.
-With 'perf top' I see that the activity dvb_dmxdev_init was somewhat
-reduced, but I still have some glitches.
+On the last tests I did with Kaffeine, it is now working properly
+with Brazil's video/audio codecs (mpeg4/AAC). So, it makes sense
+to add a channel list for it.
 
-perf top:
-615.00 16.4% dvb_dmxdev_init
+At least on the Kaffeine version I have here, it seems to be using
+a DVBv3 frontend call, so it appears as if it is a DVB-T, instead
+of ISDB-T. Anyway, the table bellow should work for all channels
+currently defined by the Brazilian telecommunications agency.
 
-380 irqs/sec  kernel:49.5%
+The channel list corresponds to channels 7 to 83. The channel 37
+(frequency 611142857) is not used here. I suspect that this frequency
+is used by something else in Brazil.
 
-> That patch doesn't guarantee glitch free data delivery either.
-> Next question is, which buffer overruns now? Mantis 64K DMA buffer?
-> DVB-CORE's 128K buffer?
-> VDR reads from DVB-CORE's 128K buffer.
+Channels 7 to 13 (the ones at VHF range) will only be available to
+broadcasters after the end of analog transmissions (it is scheduled
+to happen in 2016). Yet, I added it at the table, to match the
+Brazilian standards spec.
 
-I'll keep these two patches running for a while and see how it goes. Things
-are definately better, but eventually I get glitches.
-I am unable to locate anything else on the system causing load, but of
-course, that does not mean there isn't any.
+Anyway, the same channel list is used in Japan, but I've no idea if 
+channel 37 is allowed there.
 
-Thanks for the help. I'm always open for testing new patches. Sadly I am not
-capable of diving into the code to help.
+Please add the enclosed table to kaffeine scanfile.dvb file.
 
--- 
-Vidar Tyldum
-                              vidar@tyldum.com               PGP: 0x3110AA98
+Thanks and Happy Seasons!
+Mauro
+
+---
+
+[dvb-t/br-All]
+T 177142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 183142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 189142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 195142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 201142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 207142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 213142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 473142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 479142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 485142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 491142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 497142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 503142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 509142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 515142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 521142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 527142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 533142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 539142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 545142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 551142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 557142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 563142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 569142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 575142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 581142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 587142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 593142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 599142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 605142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 617142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 623142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 629142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 635142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 641142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 647142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 653142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 659142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 665142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 671142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 677142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 683142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 689142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 695142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 701142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 707142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 713142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 719142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 725142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 731142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 737142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 743142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 749142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 755142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 761142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 767142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 773142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 779142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 785142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 791142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 797142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+T 803142857 6MHz AUTO AUTO AUTO AUTO AUTO NONE
+
