@@ -1,396 +1,436 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56421 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:64966 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755159Ab1LVLUY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:24 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKOu4019849
+	id S1753688Ab1L0BJi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:38 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19c6V015648
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:24 -0500
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:38 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 03/28] [media] Remove Annex A/C selection via roll-off factor
-Date: Thu, 22 Dec 2011 09:19:51 -0200
-Message-Id: <1324552816-25704-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-3-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
+Subject: [PATCH RFC 71/91] [media] af9005-fe: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:59 -0200
+Message-Id: <1324948159-23709-72-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-71-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-57-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-58-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-59-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-60-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-61-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-62-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-63-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-64-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-65-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-66-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-67-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-68-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-69-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-70-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-71-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using a roll-off factor, change DRX-K & friends to select
-the bandwidth filter and the Nyquist half roll-off via delivery system.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-This provides a cleaner support for Annex A/C switch.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/common/tuners/xc5000.c       |  137 +++++++++++----------------
- drivers/media/dvb/dvb-core/dvb_frontend.c  |   25 ++++-
- drivers/media/dvb/frontends/drxk_hard.c    |   15 ++-
- drivers/media/dvb/frontends/tda18271c2dd.c |   44 ++++-----
- include/linux/dvb/frontend.h               |    2 -
- 5 files changed, 106 insertions(+), 117 deletions(-)
+ drivers/media/dvb/dvb-usb/af9005-fe.c |  101 +++++++++++++++++----------------
+ 1 files changed, 51 insertions(+), 50 deletions(-)
 
-diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
-index 97ad338..5c56d3c 100644
---- a/drivers/media/common/tuners/xc5000.c
-+++ b/drivers/media/common/tuners/xc5000.c
-@@ -629,11 +629,13 @@ static void xc_debug_dump(struct xc5000_priv *priv)
+diff --git a/drivers/media/dvb/dvb-usb/af9005-fe.c b/drivers/media/dvb/dvb-usb/af9005-fe.c
+index e9addd8..6c1ef61 100644
+--- a/drivers/media/dvb/dvb-usb/af9005-fe.c
++++ b/drivers/media/dvb/dvb-usb/af9005-fe.c
+@@ -303,7 +303,7 @@ static int af9005_get_pre_vit_err_bit_count(struct dvb_frontend *fe,
+ 		return -EINVAL;
+ 	}
+ 
+-	/* read constellation mode */
++	/* read modulation mode */
+ 	ret =
+ 	    af9005_read_register_bits(state->d, xd_g_reg_tpsd_const,
+ 				      reg_tpsd_const_pos, reg_tpsd_const_len,
+@@ -321,7 +321,7 @@ static int af9005_get_pre_vit_err_bit_count(struct dvb_frontend *fe,
+ 		bits = 6;
+ 		break;
+ 	default:
+-		err("invalid constellation mode");
++		err("invalid modulation mode");
+ 		return -EINVAL;
+ 	}
+ 	*pre_bit_count = super_frame_count * 68 * 4 * x * bits;
+@@ -533,13 +533,13 @@ static int af9005_fe_read_signal_strength(struct dvb_frontend *fe,
+ 
+ static int af9005_fe_read_snr(struct dvb_frontend *fe, u16 * snr)
+ {
+-	/* the snr can be derived from the ber and the constellation
++	/* the snr can be derived from the ber and the modulation
+ 	   but I don't think this kind of complex calculations belong
+ 	   in the driver. I may be wrong.... */
+ 	return -ENOSYS;
  }
  
- static int xc5000_set_params(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *params)
-+			     struct dvb_frontend_parameters *params)
+-static int af9005_fe_program_cfoe(struct dvb_usb_device *d, fe_bandwidth_t bw)
++static int af9005_fe_program_cfoe(struct dvb_usb_device *d, u32 bw)
  {
-+	int ret, b;
- 	struct xc5000_priv *priv = fe->tuner_priv;
--	int ret;
--	u32 bw;
-+	u32 bw = fe->dtv_property_cache.bandwidth_hz;
-+	u32 freq = fe->dtv_property_cache.frequency;
-+	u32 delsys  = fe->dtv_property_cache.delivery_system;
+ 	u8 temp0, temp1, temp2, temp3, buf[4];
+ 	int ret;
+@@ -551,7 +551,7 @@ static int af9005_fe_program_cfoe(struct dvb_usb_device *d, fe_bandwidth_t bw)
+ 	u32 NS_coeff2_8k;
  
- 	if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
- 		if (xc_load_fw_and_init_tuner(fe) != XC_RESULT_SUCCESS) {
-@@ -642,104 +644,77 @@ static int xc5000_set_params(struct dvb_frontend *fe,
- 		}
- 	}
- 
--	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, params->frequency);
-+	dprintk(1, "%s() frequency=%d (Hz)\n", __func__, freq);
- 
--	if (fe->ops.info.type == FE_ATSC) {
--		dprintk(1, "%s() ATSC\n", __func__);
--		switch (params->u.vsb.modulation) {
--		case VSB_8:
--		case VSB_16:
--			dprintk(1, "%s() VSB modulation\n", __func__);
--			priv->rf_mode = XC_RF_MODE_AIR;
--			priv->freq_hz = params->frequency - 1750000;
--			priv->bandwidth = BANDWIDTH_6_MHZ;
--			priv->video_standard = DTV6;
--			break;
--		case QAM_64:
--		case QAM_256:
--		case QAM_AUTO:
--			dprintk(1, "%s() QAM modulation\n", __func__);
--			priv->rf_mode = XC_RF_MODE_CABLE;
--			priv->freq_hz = params->frequency - 1750000;
--			priv->bandwidth = BANDWIDTH_6_MHZ;
--			priv->video_standard = DTV6;
--			break;
--		default:
--			return -EINVAL;
--		}
--	} else if (fe->ops.info.type == FE_OFDM) {
-+	switch (delsys) {
-+	case SYS_ATSC:
-+		dprintk(1, "%s() VSB modulation\n", __func__);
-+		priv->rf_mode = XC_RF_MODE_AIR;
-+		priv->freq_hz = freq - 1750000;
-+		priv->bandwidth = BANDWIDTH_6_MHZ;
-+		priv->video_standard = DTV6;
-+		break;
-+	case SYS_DVBC_ANNEX_B:
-+		dprintk(1, "%s() QAM modulation\n", __func__);
-+		priv->rf_mode = XC_RF_MODE_CABLE;
-+		priv->freq_hz = freq - 1750000;
-+		priv->bandwidth = BANDWIDTH_6_MHZ;
-+		priv->video_standard = DTV6;
-+		break;
-+	case SYS_DVBT:
-+	case SYS_DVBT2:
- 		dprintk(1, "%s() OFDM\n", __func__);
--		switch (params->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
-+		switch (bw) {
-+		case 6000000:
- 			priv->bandwidth = BANDWIDTH_6_MHZ;
- 			priv->video_standard = DTV6;
--			priv->freq_hz = params->frequency - 1750000;
-+			priv->freq_hz = freq - 1750000;
- 			break;
--		case BANDWIDTH_7_MHZ:
-+		case 7000000:
- 			priv->bandwidth = BANDWIDTH_7_MHZ;
- 			priv->video_standard = DTV7;
--			priv->freq_hz = params->frequency - 2250000;
-+			priv->freq_hz = freq - 2250000;
- 			break;
--		case BANDWIDTH_8_MHZ:
-+		case 8000000:
- 			priv->bandwidth = BANDWIDTH_8_MHZ;
- 			priv->video_standard = DTV8;
--			priv->freq_hz = params->frequency - 2750000;
-+			priv->freq_hz = freq - 2750000;
- 			break;
- 		default:
- 			printk(KERN_ERR "xc5000 bandwidth not set!\n");
- 			return -EINVAL;
- 		}
- 		priv->rf_mode = XC_RF_MODE_AIR;
--	} else if (fe->ops.info.type == FE_QAM) {
--		switch (params->u.qam.modulation) {
--		case QAM_256:
--		case QAM_AUTO:
--		case QAM_16:
--		case QAM_32:
--		case QAM_64:
--		case QAM_128:
--			dprintk(1, "%s() QAM modulation\n", __func__);
--			priv->rf_mode = XC_RF_MODE_CABLE;
--			/*
--			 * Using a higher bandwidth at the tuner filter may
--			 * allow inter-carrier interference.
--			 * So, determine the minimal channel spacing, in order
--			 * to better adjust the tuner filter.
--			 * According with ITU-T J.83, the bandwidth is given by:
--			 * bw = Simbol Rate * (1 + roll_off), where the roll_off
--			 * is equal to 0.15 for Annex A, and 0.13 for annex C
--			 */
--			if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
--				bw = (params->u.qam.symbol_rate * 113) / 100;
--			else
--				bw = (params->u.qam.symbol_rate * 115) / 100;
--			if (bw <= 6000000) {
--				priv->bandwidth = BANDWIDTH_6_MHZ;
--				priv->video_standard = DTV6;
--				priv->freq_hz = params->frequency - 1750000;
--			} else if (bw <= 7000000) {
--				priv->bandwidth = BANDWIDTH_7_MHZ;
--				priv->video_standard = DTV7;
--				priv->freq_hz = params->frequency - 2250000;
--			} else {
--				priv->bandwidth = BANDWIDTH_8_MHZ;
--				priv->video_standard = DTV7_8;
--				priv->freq_hz = params->frequency - 2750000;
--			}
--			dprintk(1, "%s() Bandwidth %dMHz (%d)\n", __func__,
--				BANDWIDTH_6_MHZ ? 6: 8, bw);
--			break;
--		default:
--			dprintk(1, "%s() Unsupported QAM type\n", __func__);
--			return -EINVAL;
-+	case SYS_DVBC_ANNEX_A:
-+	case SYS_DVBC_ANNEX_C:
-+		dprintk(1, "%s() QAM modulation\n", __func__);
-+		priv->rf_mode = XC_RF_MODE_CABLE;
-+		if (bw <= 6000000) {
-+			priv->bandwidth = BANDWIDTH_6_MHZ;
-+			priv->video_standard = DTV6;
-+			priv->freq_hz = freq - 1750000;
-+			b = 6;
-+		} else if (bw <= 7000000) {
-+			priv->bandwidth = BANDWIDTH_7_MHZ;
-+			priv->video_standard = DTV7;
-+			priv->freq_hz = freq - 2250000;
-+			b = 7;
-+		} else {
-+			priv->bandwidth = BANDWIDTH_8_MHZ;
-+			priv->video_standard = DTV7_8;
-+			priv->freq_hz = freq - 2750000;
-+			b = 8;
- 		}
--	} else {
--		printk(KERN_ERR "xc5000 modulation type not supported!\n");
-+		dprintk(1, "%s() Bandwidth %dMHz (%d)\n", __func__,
-+			b, bw);
-+		break;
-+	default:
-+		printk(KERN_ERR "xc5000: delivery system is not supported!\n");
- 		return -EINVAL;
- 	}
- 
--	dprintk(1, "%s() frequency=%d (compensated)\n",
--		__func__, priv->freq_hz);
-+	dprintk(1, "%s() frequency=%d (compensated to %d)\n",
-+		__func__, freq, priv->freq_hz);
- 
- 	ret = xc_SetSignalSource(priv, priv->rf_mode);
- 	if (ret != XC_RESULT_SUCCESS) {
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 821b225..66537b1 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1011,7 +1011,7 @@ static void dtv_property_dump(struct dtv_property *tvp)
- 
- static int is_legacy_delivery_system(fe_delivery_system_t s)
- {
--	if((s == SYS_UNDEFINED) || (s == SYS_DVBC_ANNEX_AC) ||
-+	if((s == SYS_UNDEFINED) || (s == SYS_DVBC_ANNEX_A) ||
- 	   (s == SYS_DVBC_ANNEX_B) || (s == SYS_DVBT) || (s == SYS_DVBS) ||
- 	   (s == SYS_ATSC))
- 		return 1;
-@@ -1032,8 +1032,7 @@ static void dtv_property_cache_init(struct dvb_frontend *fe,
- 		c->delivery_system = SYS_DVBS;
+ 	switch (bw) {
+-	case BANDWIDTH_6_MHZ:
++	case 6000000:
+ 		NS_coeff1_2048Nu = 0x2ADB6DC;
+ 		NS_coeff1_8191Nu = 0xAB7313;
+ 		NS_coeff1_8192Nu = 0xAB6DB7;
+@@ -560,7 +560,7 @@ static int af9005_fe_program_cfoe(struct dvb_usb_device *d, fe_bandwidth_t bw)
+ 		NS_coeff2_8k = 0x55B6DC;
  		break;
- 	case FE_QAM:
--		c->delivery_system = SYS_DVBC_ANNEX_AC;
--		c->rolloff = ROLLOFF_15; /* implied for Annex A */
-+		c->delivery_system = SYS_DVBC_ANNEX_A;
- 		break;
- 	case FE_OFDM:
- 		c->delivery_system = SYS_DVBT;
-@@ -1144,9 +1143,10 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
-  */
- static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- {
--	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dvb_frontend_parameters *p = &fepriv->parameters_in;
-+	u32 rolloff = 0;
  
- 	p->frequency = c->frequency;
- 	p->inversion = c->inversion;
-@@ -1178,6 +1178,23 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- 		else
- 			p->u.ofdm.bandwidth = BANDWIDTH_AUTO;
- 	}
-+
-+	/*
-+	 * On DVB-C, the bandwidth is a function of roll-off and symbol rate.
-+	 * The bandwidth is required for DVB-C tuners, in order to avoid
-+	 * inter-channel noise. Instead of estimating the minimal required
-+	 * bandwidth on every single driver, calculates it here and fills
-+	 * it at the cache bandwidth parameter.
-+	 * While not officially supported, a side effect of handling it at
-+	 * the cache level is that a program could retrieve the bandwidth
-+	 * via DTV_BANDWIDTH_HZ, wich may be useful for test programs.
-+	 */
-+	if (c->delivery_system == SYS_DVBC_ANNEX_A)
-+		rolloff = 115;
-+	if (c->delivery_system == SYS_DVBC_ANNEX_C)
-+		rolloff = 113;
-+	if (rolloff)
-+		c->bandwidth_hz = (c->symbol_rate * rolloff) / 100;
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		NS_coeff1_2048Nu = 0x3200001;
+ 		NS_coeff1_8191Nu = 0xC80640;
+ 		NS_coeff1_8192Nu = 0xC80000;
+@@ -569,7 +569,7 @@ static int af9005_fe_program_cfoe(struct dvb_usb_device *d, fe_bandwidth_t bw)
+ 		NS_coeff2_8k = 0x640000;
+ 		break;
+ 
+-	case BANDWIDTH_8_MHZ:
++	case 8000000:
+ 		NS_coeff1_2048Nu = 0x3924926;
+ 		NS_coeff1_8191Nu = 0xE4996E;
+ 		NS_coeff1_8192Nu = 0xE49249;
+@@ -773,17 +773,17 @@ static int af9005_fe_program_cfoe(struct dvb_usb_device *d, fe_bandwidth_t bw)
+ 
  }
  
- static void dtv_property_cache_submit(struct dvb_frontend *fe)
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 038e470..a2c8196 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -6215,6 +6215,7 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
- 			       struct dvb_frontend_parameters *p)
+-static int af9005_fe_select_bw(struct dvb_usb_device *d, fe_bandwidth_t bw)
++static int af9005_fe_select_bw(struct dvb_usb_device *d, u32 bw)
  {
- 	struct drxk_state *state = fe->demodulator_priv;
-+	u32 delsys  = fe->dtv_property_cache.delivery_system;
- 	u32 IF;
+ 	u8 temp;
+ 	switch (bw) {
+-	case BANDWIDTH_6_MHZ:
++	case 6000000:
+ 		temp = 0;
+ 		break;
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		temp = 1;
+ 		break;
+-	case BANDWIDTH_8_MHZ:
++	case 8000000:
+ 		temp = 2;
+ 		break;
+ 	default:
+@@ -930,10 +930,10 @@ static int af9005_fe_init(struct dvb_frontend *fe)
  
- 	dprintk(1, "\n");
-@@ -6225,11 +6226,15 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
- 		return -EINVAL;
+ 	/* init other parameters: program cfoe and select bandwidth */
+ 	deb_info("program cfoe\n");
+-	if ((ret = af9005_fe_program_cfoe(state->d, BANDWIDTH_6_MHZ)))
++	if ((ret = af9005_fe_program_cfoe(state->d, 6000000)))
+ 		return ret;
+-	/* set read-update bit for constellation */
+-	deb_info("set read-update bit for constellation\n");
++	/* set read-update bit for modulation */
++	deb_info("set read-update bit for modulation\n");
+ 	if ((ret =
+ 	     af9005_write_register_bits(state->d, xd_p_reg_feq_read_update,
+ 					reg_feq_read_update_pos,
+@@ -943,8 +943,8 @@ static int af9005_fe_init(struct dvb_frontend *fe)
+ 	/* sample code has a set MPEG TS code here
+ 	   but sniffing reveals that it doesn't do it */
+ 
+-	/* set read-update bit to 1 for DCA constellation */
+-	deb_info("set read-update bit 1 for DCA constellation\n");
++	/* set read-update bit to 1 for DCA modulation */
++	deb_info("set read-update bit 1 for DCA modulation\n");
+ 	if ((ret =
+ 	     af9005_write_register_bits(state->d, xd_p_reg_dca_read_update,
+ 					reg_dca_read_update_pos,
+@@ -1099,15 +1099,15 @@ static int af9005_ts_bus_ctrl(struct dvb_frontend *fe, int acquire)
+ 	return 0;
+ }
+ 
+-static int af9005_fe_set_frontend(struct dvb_frontend *fe,
+-				  struct dvb_frontend_parameters *fep)
++static int af9005_fe_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct af9005_fe_state *state = fe->demodulator_priv;
+ 	int ret;
+ 	u8 temp, temp0, temp1, temp2;
+ 
+ 	deb_info("af9005_fe_set_frontend freq %d bw %d\n", fep->frequency,
+-		 fep->u.ofdm.bandwidth);
++		 fep->bandwidth_hz);
+ 	if (fe->ops.tuner_ops.release == NULL) {
+ 		err("Tuner not attached");
+ 		return -ENODEV;
+@@ -1167,10 +1167,10 @@ static int af9005_fe_set_frontend(struct dvb_frontend *fe,
+ 
+ 	/* select bandwidth */
+ 	deb_info("select bandwidth");
+-	ret = af9005_fe_select_bw(state->d, fep->u.ofdm.bandwidth);
++	ret = af9005_fe_select_bw(state->d, fep->bandwidth_hz);
+ 	if (ret)
+ 		return ret;
+-	ret = af9005_fe_program_cfoe(state->d, fep->u.ofdm.bandwidth);
++	ret = af9005_fe_program_cfoe(state->d, fep->bandwidth_hz);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -1226,7 +1226,7 @@ static int af9005_fe_set_frontend(struct dvb_frontend *fe,
+ }
+ 
+ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+-				  struct dvb_frontend_parameters *fep)
++				  struct dtv_frontend_properties *fep)
+ {
+ 	struct af9005_fe_state *state = fe->demodulator_priv;
+ 	int ret;
+@@ -1243,15 +1243,15 @@ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+ 	deb_info("CONSTELLATION ");
+ 	switch (temp) {
+ 	case 0:
+-		fep->u.ofdm.constellation = QPSK;
++		fep->modulation = QPSK;
+ 		deb_info("QPSK\n");
+ 		break;
+ 	case 1:
+-		fep->u.ofdm.constellation = QAM_16;
++		fep->modulation = QAM_16;
+ 		deb_info("QAM_16\n");
+ 		break;
+ 	case 2:
+-		fep->u.ofdm.constellation = QAM_64;
++		fep->modulation = QAM_64;
+ 		deb_info("QAM_64\n");
+ 		break;
  	}
- 
--	if (fe->ops.info.type == FE_QAM) {
--		if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
--			state->m_itut_annex_c = true;
--		else
--			state->m_itut_annex_c = false;
-+	switch (delsys) {
-+	case SYS_DVBC_ANNEX_A:
-+		state->m_itut_annex_c = false;
-+		break;
-+	case SYS_DVBC_ANNEX_C:
-+		state->m_itut_annex_c = true;
-+		break;
-+	default:
-+		return -EINVAL;
+@@ -1266,19 +1266,19 @@ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+ 	deb_info("HIERARCHY ");
+ 	switch (temp) {
+ 	case 0:
+-		fep->u.ofdm.hierarchy_information = HIERARCHY_NONE;
++		fep->hierarchy = HIERARCHY_NONE;
+ 		deb_info("NONE\n");
+ 		break;
+ 	case 1:
+-		fep->u.ofdm.hierarchy_information = HIERARCHY_1;
++		fep->hierarchy = HIERARCHY_1;
+ 		deb_info("1\n");
+ 		break;
+ 	case 2:
+-		fep->u.ofdm.hierarchy_information = HIERARCHY_2;
++		fep->hierarchy = HIERARCHY_2;
+ 		deb_info("2\n");
+ 		break;
+ 	case 3:
+-		fep->u.ofdm.hierarchy_information = HIERARCHY_4;
++		fep->hierarchy = HIERARCHY_4;
+ 		deb_info("4\n");
+ 		break;
  	}
+@@ -1302,23 +1302,23 @@ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+ 	deb_info("CODERATE HP ");
+ 	switch (temp) {
+ 	case 0:
+-		fep->u.ofdm.code_rate_HP = FEC_1_2;
++		fep->code_rate_HP = FEC_1_2;
+ 		deb_info("FEC_1_2\n");
+ 		break;
+ 	case 1:
+-		fep->u.ofdm.code_rate_HP = FEC_2_3;
++		fep->code_rate_HP = FEC_2_3;
+ 		deb_info("FEC_2_3\n");
+ 		break;
+ 	case 2:
+-		fep->u.ofdm.code_rate_HP = FEC_3_4;
++		fep->code_rate_HP = FEC_3_4;
+ 		deb_info("FEC_3_4\n");
+ 		break;
+ 	case 3:
+-		fep->u.ofdm.code_rate_HP = FEC_5_6;
++		fep->code_rate_HP = FEC_5_6;
+ 		deb_info("FEC_5_6\n");
+ 		break;
+ 	case 4:
+-		fep->u.ofdm.code_rate_HP = FEC_7_8;
++		fep->code_rate_HP = FEC_7_8;
+ 		deb_info("FEC_7_8\n");
+ 		break;
+ 	}
+@@ -1333,23 +1333,23 @@ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+ 	deb_info("CODERATE LP ");
+ 	switch (temp) {
+ 	case 0:
+-		fep->u.ofdm.code_rate_LP = FEC_1_2;
++		fep->code_rate_LP = FEC_1_2;
+ 		deb_info("FEC_1_2\n");
+ 		break;
+ 	case 1:
+-		fep->u.ofdm.code_rate_LP = FEC_2_3;
++		fep->code_rate_LP = FEC_2_3;
+ 		deb_info("FEC_2_3\n");
+ 		break;
+ 	case 2:
+-		fep->u.ofdm.code_rate_LP = FEC_3_4;
++		fep->code_rate_LP = FEC_3_4;
+ 		deb_info("FEC_3_4\n");
+ 		break;
+ 	case 3:
+-		fep->u.ofdm.code_rate_LP = FEC_5_6;
++		fep->code_rate_LP = FEC_5_6;
+ 		deb_info("FEC_5_6\n");
+ 		break;
+ 	case 4:
+-		fep->u.ofdm.code_rate_LP = FEC_7_8;
++		fep->code_rate_LP = FEC_7_8;
+ 		deb_info("FEC_7_8\n");
+ 		break;
+ 	}
+@@ -1363,19 +1363,19 @@ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+ 	deb_info("GUARD INTERVAL ");
+ 	switch (temp) {
+ 	case 0:
+-		fep->u.ofdm.guard_interval = GUARD_INTERVAL_1_32;
++		fep->guard_interval = GUARD_INTERVAL_1_32;
+ 		deb_info("1_32\n");
+ 		break;
+ 	case 1:
+-		fep->u.ofdm.guard_interval = GUARD_INTERVAL_1_16;
++		fep->guard_interval = GUARD_INTERVAL_1_16;
+ 		deb_info("1_16\n");
+ 		break;
+ 	case 2:
+-		fep->u.ofdm.guard_interval = GUARD_INTERVAL_1_8;
++		fep->guard_interval = GUARD_INTERVAL_1_8;
+ 		deb_info("1_8\n");
+ 		break;
+ 	case 3:
+-		fep->u.ofdm.guard_interval = GUARD_INTERVAL_1_4;
++		fep->guard_interval = GUARD_INTERVAL_1_4;
+ 		deb_info("1_4\n");
+ 		break;
+ 	}
+@@ -1390,11 +1390,11 @@ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+ 	deb_info("TRANSMISSION MODE ");
+ 	switch (temp) {
+ 	case 0:
+-		fep->u.ofdm.transmission_mode = TRANSMISSION_MODE_2K;
++		fep->transmission_mode = TRANSMISSION_MODE_2K;
+ 		deb_info("2K\n");
+ 		break;
+ 	case 1:
+-		fep->u.ofdm.transmission_mode = TRANSMISSION_MODE_8K;
++		fep->transmission_mode = TRANSMISSION_MODE_8K;
+ 		deb_info("8K\n");
+ 		break;
+ 	}
+@@ -1406,15 +1406,15 @@ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+ 	deb_info("BANDWIDTH ");
+ 	switch (temp) {
+ 	case 0:
+-		fep->u.ofdm.bandwidth = BANDWIDTH_6_MHZ;
++		fep->bandwidth_hz = 6000000;
+ 		deb_info("6\n");
+ 		break;
+ 	case 1:
+-		fep->u.ofdm.bandwidth = BANDWIDTH_7_MHZ;
++		fep->bandwidth_hz = 7000000;
+ 		deb_info("7\n");
+ 		break;
+ 	case 2:
+-		fep->u.ofdm.bandwidth = BANDWIDTH_8_MHZ;
++		fep->bandwidth_hz = 8000000;
+ 		deb_info("8\n");
+ 		break;
+ 	}
+@@ -1454,6 +1454,7 @@ struct dvb_frontend *af9005_fe_attach(struct dvb_usb_device *d)
+ }
  
- 	if (fe->ops.i2c_gate_ctrl)
-diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
-index b66ca29..0f8e962 100644
---- a/drivers/media/dvb/frontends/tda18271c2dd.c
-+++ b/drivers/media/dvb/frontends/tda18271c2dd.c
-@@ -1130,50 +1130,44 @@ static int set_params(struct dvb_frontend *fe,
- 	struct tda_state *state = fe->tuner_priv;
- 	int status = 0;
- 	int Standard;
--	u32 bw;
-+	u32 bw = fe->dtv_property_cache.bandwidth_hz;
-+	u32 delsys  = fe->dtv_property_cache.delivery_system;
+ static struct dvb_frontend_ops af9005_fe_ops = {
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		 .name = "AF9005 USB DVB-T",
+ 		 .type = FE_OFDM,
+@@ -1475,8 +1476,8 @@ static struct dvb_frontend_ops af9005_fe_ops = {
+ 	.sleep = af9005_fe_sleep,
+ 	.ts_bus_ctrl = af9005_ts_bus_ctrl,
  
--	state->m_Frequency = params->frequency;
-+	state->m_Frequency = fe->dtv_property_cache.frequency;
+-	.set_frontend_legacy = af9005_fe_set_frontend,
+-	.get_frontend_legacy = af9005_fe_get_frontend,
++	.set_frontend = af9005_fe_set_frontend,
++	.get_frontend = af9005_fe_get_frontend,
  
--	if (fe->ops.info.type == FE_OFDM)
--		switch (params->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
-+	switch (delsys) {
-+	case  SYS_DVBT:
-+	case  SYS_DVBT2:
-+		switch (bw) {
-+		case 6000000:
- 			Standard = HF_DVBT_6MHZ;
- 			break;
--		case BANDWIDTH_7_MHZ:
-+		case 7000000:
- 			Standard = HF_DVBT_7MHZ;
- 			break;
--		default:
--		case BANDWIDTH_8_MHZ:
-+		case 8000000:
- 			Standard = HF_DVBT_8MHZ;
- 			break;
-+		default:
-+			return -EINVAL;
- 		}
--	else if (fe->ops.info.type == FE_QAM) {
--		/*
--		 * Using a higher bandwidth at the tuner filter may
--		 * allow inter-carrier interference.
--		 * So, determine the minimal channel spacing, in order
--		 * to better adjust the tuner filter.
--		 * According with ITU-T J.83, the bandwidth is given by:
--		 * bw = Simbol Rate * (1 + roll_off), where the roll_off
--		 * is equal to 0.15 for Annex A, and 0.13 for annex C
--		 */
--		if (fe->dtv_property_cache.rolloff == ROLLOFF_13)
--			bw = (params->u.qam.symbol_rate * 113) / 100;
--		else
--			bw = (params->u.qam.symbol_rate * 115) / 100;
-+	case SYS_DVBC_ANNEX_A:
-+	case SYS_DVBC_ANNEX_C:
- 		if (bw <= 6000000)
- 			Standard = HF_DVBC_6MHZ;
- 		else if (bw <= 7000000)
- 			Standard = HF_DVBC_7MHZ;
- 		else
- 			Standard = HF_DVBC_8MHZ;
--	} else
-+	default:
- 		return -EINVAL;
-+	}
- 	do {
--		status = RFTrackingFiltersCorrection(state, params->frequency);
-+		status = RFTrackingFiltersCorrection(state, state->m_Frequency);
- 		if (status < 0)
- 			break;
--		status = ChannelConfiguration(state, params->frequency, Standard);
-+		status = ChannelConfiguration(state, state->m_Frequency,
-+					      Standard);
- 		if (status < 0)
- 			break;
- 
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index b2a939f8..a3c7623 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -331,8 +331,6 @@ typedef enum fe_rolloff {
- 	ROLLOFF_20,
- 	ROLLOFF_25,
- 	ROLLOFF_AUTO,
--	ROLLOFF_15,	/* DVB-C Annex A */
--	ROLLOFF_13,	/* DVB-C Annex C */
- } fe_rolloff_t;
- 
- typedef enum fe_delivery_system {
+ 	.read_status = af9005_fe_read_status,
+ 	.read_ber = af9005_fe_read_ber,
 -- 
 1.7.8.352.g876a6
 
