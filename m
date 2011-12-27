@@ -1,163 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:37871 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752802Ab1LDBdm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 3 Dec 2011 20:33:42 -0500
-From: David Kuehling <dvdkhlng@gmx.de>
-To: linux-media@vger.kernel.org
-Subject: dvb_usb_vp7045 regression after upgrading from 2.6.39.4 to 3.1.1
-Date: Sun, 04 Dec 2011 02:33:32 +0100
-Message-ID: <871uslp1cj.fsf@snail.Pool>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="=-=-=";
-	micalg=pgp-sha1; protocol="application/pgp-signature"
+Received: from mx1.redhat.com ([209.132.183.28]:56121 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753997Ab1L0BJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:48 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19mB2017948
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:48 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 75/91] [media] gp8psk-fe: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:09:03 -0200
+Message-Id: <1324948159-23709-76-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-75-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-57-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-58-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-59-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-60-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-61-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-62-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-63-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-64-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-65-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-66-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-67-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-68-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-69-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-70-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-71-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-72-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-73-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-74-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-75-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Transfer-Encoding: quoted-printable
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Hi,
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-after upgrading from 2.6.39.4 to 3.1.1., my usb dvb-t receiver started
-having tuning problems.  Tuning with 'tzap' now randomly fails, as does
-'scan'.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/gp8psk-fe.c |   25 ++++---------------------
+ 1 files changed, 4 insertions(+), 21 deletions(-)
 
-Of course I cannot rule out that the hardware is starting to wear down,
-or that there are problems on the transmission side, but these problems
-started after upgrading my kernel, so I thought I'd ask here.
+diff --git a/drivers/media/dvb/dvb-usb/gp8psk-fe.c b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+index 6189446..c40168f 100644
+--- a/drivers/media/dvb/dvb-usb/gp8psk-fe.c
++++ b/drivers/media/dvb/dvb-usb/gp8psk-fe.c
+@@ -113,28 +113,12 @@ static int gp8psk_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_front
+ 	return 0;
+ }
+ 
+-static int gp8psk_fe_set_property(struct dvb_frontend *fe,
+-	struct dtv_property *tvp)
+-{
+-	deb_fe("%s(..)\n", __func__);
+-	return 0;
+-}
+-
+-static int gp8psk_fe_get_property(struct dvb_frontend *fe,
+-	struct dtv_property *tvp)
+-{
+-	deb_fe("%s(..)\n", __func__);
+-	return 0;
+-}
+-
+-
+-static int gp8psk_fe_set_frontend(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *fep)
++static int gp8psk_fe_set_frontend(struct dvb_frontend* fe)
+ {
+ 	struct gp8psk_fe_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	u8 cmd[10];
+-	u32 freq = fep->frequency * 1000;
++	u32 freq = c->frequency * 1000;
+ 	int gp_product_id = le16_to_cpu(state->d->udev->descriptor.idProduct);
+ 
+ 	deb_fe("%s()\n", __func__);
+@@ -342,6 +326,7 @@ success:
+ 
+ 
+ static struct dvb_frontend_ops gp8psk_fe_ops = {
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name			= "Genpix DVB-S",
+ 		.type			= FE_QPSK,
+@@ -366,9 +351,7 @@ static struct dvb_frontend_ops gp8psk_fe_ops = {
+ 	.init = NULL,
+ 	.sleep = NULL,
+ 
+-	.set_property = gp8psk_fe_set_property,
+-	.get_property = gp8psk_fe_get_property,
+-	.set_frontend_legacy = gp8psk_fe_set_frontend,
++	.set_frontend = gp8psk_fe_set_frontend,
+ 
+ 	.get_tune_settings = gp8psk_fe_get_tune_settings,
+ 
+-- 
+1.7.8.352.g876a6
 
-Googeling for any changes, I so far only found this commit that affects
-the vp7045 driver:
-
-http://patchwork.linuxtv.org/patch/258/ (committed as
-f2685ef0fbc5fff0a8f1cdc204bf37ab0c9a04a7)
-
-This is the output I get from 'tzap' when it fails:
-  __
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/spock/.tzap/channels.conf'
-tuning to 618000000 Hz
-video pid 0x0221, audio pid 0x0222
-status 00 | signal 5f00 | snr ffff | ber 00ffffff | unc 0000ffff |=20
-status 1f | signal 0000 | snr ffff | ber 00ffffff | unc 0000ffff | FE_HAS_L=
-OCK
-status 1f | signal 0000 | snr ffff | ber 00ffffff | unc 0000ffff | FE_HAS_L=
-OCK
-[..]
-  __
-
-or sometimes I get this:
-  __
-[..]
-status 00 | signal 3000 | snr a0a0 | ber 00000000 | unc 00000000 |=20
-status 00 | signal 3000 | snr 0000 | ber 00000000 | unc 00000000 |=20
-status 00 | signal e146 | snr a0a0 | ber 00000000 | unc 00000000 |=20
-status 00 | signal f14a | snr 0000 | ber 00000000 | unc 00000000 |=20
-status 00 | signal 2154 | snr a0a0 | ber 00000000 | unc 00000000 |=20
-status 00 | signal c141 | snr 0000 | ber 00000000 | unc 00000000 |=20
-status 00 | signal f14c | snr a0a0 | ber 00000000 | unc 00000000 |=20
-status 00 | signal f133 | snr 0000 | ber 00000000 | unc 00000000 |=20
-[..]
-  __
-
-This is the output I get from 'scan', when it fails:
-  __
-scanning /usr/local/share/dvb/dvb-t/de-Berlin
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 506000000 0 2 9 1 1 2 0
-initial transponder 522000000 0 2 9 1 1 2 0
-initial transponder 570000000 0 2 9 1 1 3 0
-initial transponder 618000000 0 2 9 3 1 2 0
-initial transponder 658000000 0 2 9 1 1 2 0
-initial transponder 682000000 0 2 9 1 1 2 0
-initial transponder 706000000 0 2 9 1 1 2 0
-initial transponder 754000000 0 2 9 1 1 2 0
-initial transponder 778000000 0 2 9 1 1 2 0
->>> tune to: 506000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_=
-16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-ARNING: filter timeout pid 0x0010
->>> tune to: 522000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_=
-16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_8:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
->>> tune to:
-570000000:INVERSION_AUTO:BANDWIDTH_8_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSI=
-ON_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE
-WARNING: filter timeout pid 0x0011
-WARNING: filter timeout pid 0x0000
-WARNING: filter timeout pid 0x0010
-[..]
-  __=20=20
-(same 3 messages about filter timeout repeating for all transponders)
-
-This is the 3.1.1 kernel log when the receiver is plugged in:
-
-  __
-[  178.480000] usb 1-2: new high speed USB device number 4 using ehci_hcd
-[  178.612000] usb 1-2: New USB device found, idVendor=3D13d3, idProduct=3D=
-3205
-[  178.612000] usb 1-2: New USB device strings: Mfr=3D0, Product=3D0, Seria=
-lNumber=3D0
-[  180.588000] IR NEC protocol handler initialized
-[  180.624000] IR RC5(x) protocol handler initialized
-[  180.680000] IR RC6 protocol handler initialized
-[  180.724000] IR JVC protocol handler initialized
-[  180.764000] IR Sony protocol handler initialized
-[  180.828000] IR MCE Keyboard/mouse protocol handler initialized
-[  180.884000] dvb-usb: found a 'Twinhan USB2.0 DVB-T receiver (TwinhanDTV =
-Alpha/MagicBox II)' in cold state, will try to load a firmware
-[  180.904000] lirc_dev: IR Remote Control driver registered, major 251=20
-[  180.904000] IR LIRC bridge handler initialized
-[  181.020000] dvb-usb: downloading firmware from file 'dvb-usb-vp7045-01.f=
-w'
-[  181.104000] usbcore: registered new interface driver dvb_usb_vp7045
-[  181.104000] usb 1-2: USB disconnect, device number 4
-[  181.104000] dvb-usb: generic DVB-USB module successfully deinitialized a=
-nd disconnected.
-[  182.860000] usb 1-2: new high speed USB device number 5 using ehci_hcd
-[  182.992000] usb 1-2: New USB device found, idVendor=3D13d3, idProduct=3D=
-3206
-[  182.992000] usb 1-2: New USB device strings: Mfr=3D1, Product=3D2, Seria=
-lNumber=3D0
-[  182.992000] usb 1-2: Product: VP-7045
-[  182.992000] usb 1-2: Manufacturer: TWINHAN
-[  182.996000] dvb-usb: found a 'Twinhan USB2.0 DVB-T receiver (TwinhanDTV =
-Alpha/MagicBox II)' in warm state.
-[  183.152000] dvb-usb: will pass the complete MPEG2 transport stream to th=
-e software demuxer.
-[  183.152000] DVB: registering new adapter (Twinhan USB2.0 DVB-T receiver =
-(TwinhanDTV Alpha/MagicBox II))
-[  183.224000] dvb-usb: MAC address: 08:ca:00:00:00:ff
-[  183.236000] DVB: registering adapter 0 frontend 0 (Twinhan VP7045/46 USB=
- DVB-T)...
-[  183.236000] input: IR-receiver inside an USB DVB receiver as /devices/pc=
-i0000:00/0000:00:0e.5/usb1/1-2/input/input2
-[  183.236000] dvb-usb: schedule remote query interval to 400 msecs.
-[  183.392000] dvb-usb: Twinhan USB2.0 DVB-T receiver (TwinhanDTV Alpha/Mag=
-icBox II) successfully initialized and connected.
-  __
-
-Any ideas?
-
-cheers,
-
-David
-=2D-=20
-GnuPG public key: http://dvdkhlng.users.sourceforge.net/dk.gpg
-Fingerprint: B17A DC95 D293 657B 4205  D016 7DEF 5323 C174 7D40
-
---=-=-=
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (GNU/Linux)
-
-iEYEARECAAYFAk7aze0ACgkQfe9TI8F0fUDKygCgj2GddpBIzsadByRjGaaTYJpT
-gv0An167y6aSA5P+4neayydvoYYTmlOT
-=t0KP
------END PGP SIGNATURE-----
---=-=-=--
