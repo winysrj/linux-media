@@ -1,100 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:65266 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757464Ab1LNSWo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 13:22:44 -0500
-Date: Wed, 14 Dec 2011 19:22:29 +0100
-From: martin@neutronstar.dyndns.org
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Igor Grinberg <grinberg@compulab.co.il>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	Hiremath Vaibhav <hvaibhav@ti.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based
- camera board.
-References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org>
- <4EE86CF7.1010002@compulab.co.il>
- <201112141415.23885.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201112141415.23885.laurent.pinchart@ideasonboard.com>
-Message-Id: <1323886950.295978.31313@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:42755 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753548Ab1L0BJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:30 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19Uq9015618
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:30 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 17/91] [media] dib9000: remove unused parameters
+Date: Mon, 26 Dec 2011 23:08:05 -0200
+Message-Id: <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 14, 2011 at 02:15:22PM +0100, Laurent Pinchart wrote:
-> Hi Igor,
-> 
-> On Wednesday 14 December 2011 10:31:35 Igor Grinberg wrote:
-> > On 12/14/11 03:25, Martin Hostettler wrote:
-> > > Adds board support for an MT9M032 based camera to omap3evm.
-> > > 
-> > > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> 
-> [snip]
-> 
-> > > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > b/arch/arm/mach-omap2/board-omap3evm-camera.c new file mode 100644
-> > > index 0000000..bffd5b8
-> > > --- /dev/null
-> > > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > > @@ -0,0 +1,155 @@
-> 
-> [snip]
-> 
-> > > +#include <linux/i2c.h>
-> > > +#include <linux/init.h>
-> > > +#include <linux/platform_device.h>
-> > > +
-> > > +#include <linux/gpio.h>
-> > > +#include <plat/mux.h>
-> > > +#include "mux.h"
-> > > +
-> > > +#include "../../../drivers/media/video/omap3isp/isp.h"
-> > 
-> > Laurent,
-> > In one of the previous reviews, you stated:
-> > "I'll probably split it and move the part required by board files to
-> > include/media/omap3isp.h".
-> > Is there any progress on that?
-> 
-> Yes, it has been half-fixed in mainline. Half only because all the structures 
-> and macros that should be used by board code are now in <media/omap3isp.h>, 
-> but some boards need to access OMAP3 ISP internals from board code, which 
-> still requires drivers/media/video/omap3isp/isp.h. This will eventually be 
-> fixed, when the generic struct clk object will be available.
-> 
-> After a quick look at this patch it seems that <media/omap3isp.h> should be 
-> enough here.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/dib9000.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-Almost. The code uses ISPCTRL_PAR_BRIDGE_DISABLE which is only available
-from drivers/media/video/omap3isp/ispreg.h.
+diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
+index 4d82a4a..0488068 100644
+--- a/drivers/media/dvb/frontends/dib9000.c
++++ b/drivers/media/dvb/frontends/dib9000.c
+@@ -1136,7 +1136,7 @@ static int dib9000_fw_init(struct dib9000_state *state)
+ 	return 0;
+ }
+ 
+-static void dib9000_fw_set_channel_head(struct dib9000_state *state, struct dvb_frontend_parameters *ch)
++static void dib9000_fw_set_channel_head(struct dib9000_state *state)
+ {
+ 	u8 b[9];
+ 	u32 freq = state->fe[0]->dtv_property_cache.frequency / 1000;
+@@ -1157,7 +1157,7 @@ static void dib9000_fw_set_channel_head(struct dib9000_state *state, struct dvb_
+ 	dib9000_risc_mem_write(state, FE_MM_W_CHANNEL_HEAD, b);
+ }
+ 
+-static int dib9000_fw_get_channel(struct dvb_frontend *fe, struct dvb_frontend_parameters *channel)
++static int dib9000_fw_get_channel(struct dvb_frontend *fe)
+ {
+ 	struct dib9000_state *state = fe->demodulator_priv;
+ 	struct dibDVBTChannel {
+@@ -1462,7 +1462,7 @@ static int dib9000_fw_tune(struct dvb_frontend *fe, struct dvb_frontend_paramete
+ 
+ 	switch (state->tune_state) {
+ 	case CT_DEMOD_START:
+-		dib9000_fw_set_channel_head(state, ch);
++		dib9000_fw_set_channel_head(state);
+ 
+ 		/* write the channel context - a channel is initialized to 0, so it is OK */
+ 		dib9000_risc_mem_write(state, FE_MM_W_CHANNEL_CONTEXT, (u8 *) fe_info);
+@@ -1911,7 +1911,7 @@ static int dib9000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
+ 	}
+ 
+ 	/* get the channel from master chip */
+-	ret = dib9000_fw_get_channel(fe, fep);
++	ret = dib9000_fw_get_channel(fe);
+ 	if (ret != 0)
+ 		goto return_value;
+ 
+-- 
+1.7.8.352.g876a6
 
-So i'd say it's better to keep that include than to duplicate this constant
-in the code.
-
-What do you think?
-
-By the way, it seems drivers/media/video/omap3isp/ispvideo.c is missing a 
-#include <linux/module.h> at the moment. I had to patch that line in to get
-omap3isp to compile as module.
-
-> 
-> > > +#include "media/mt9m032.h"
-> 
-> And this should be <media/mt9m032.h>
-
-I'll change this.
-
-Regards,
- - Martin Hostettler
-
-> 
-> > > +#include "devices.h"
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
