@@ -1,73 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53517 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750898Ab1LPJu2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 16 Dec 2011 04:50:28 -0500
-Date: Fri, 16 Dec 2011 10:50:21 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-In-Reply-To: <CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1112161043280.6572@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
- <Pine.LNX.4.64.1112160909470.6572@axis700.grange>
- <CAHG8p1AXghgSQNHUQi5V56ROAfS9tOsMRbAMqNogNG0=m7zzkQ@mail.gmail.com>
- <Pine.LNX.4.64.1112161014580.6572@axis700.grange>
- <CAHG8p1BLVgO1_vN+Wsk1R6awG+uAht1Z9w542naOO53XqVThOQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:6612 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753583Ab1L0BJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:34 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19Xsl032615
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:34 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 37/91] [media] mb86a16: Add delivery system type at fe struct
+Date: Mon, 26 Dec 2011 23:08:25 -0200
+Message-Id: <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 16 Dec 2011, Scott Jiang wrote:
-
-> >> How about this implementation? I know it's not for soc, but I post it
-> >> to give my idea.
-> >> Bridge knows the layout, so it doesn't need to query the subdevice.
-> >
-> > Where from? AFAIU, we are talking here about subdevice inputs, right? In
-> > this case about various inputs of the TV decoder. How shall the bridge
-> > driver know about that?
-> 
-> I have asked this question before. Laurent reply me:
-> 
-> > >> ENUMINPUT as defined by V4L2 enumerates input connectors available on
-> > >> the board. Which inputs the board designer hooked up is something that
-> > >> only the top-level V4L driver will know. Subdevices do not have that
-> > >> information, so enuminputs is not applicable there.
-> > >>
-> > >> Of course, subdevices do have input pins and output pins, but these are
-> > >> assumed to be fixed. With the s_routing ops the top level driver selects
-> > >> which input and output pins are active. Enumeration of those inputs and
-> > >> outputs wouldn't gain you anything as far as I can tell since the
-> > >> subdevice simply does not know which inputs/outputs are actually hooked
-> > >> up. It's the top level driver that has that information (usually passed
-> > >> in through board/card info structures).
-
-Laurent, right, I now remember reading this discussion before. But I'm not 
-sure I completely agree:-) Yes, you're right - the board decides which 
-pins are routed to which connectors. And it has to provide this 
-information to the driver in its platform data. But - I think, this 
-information should be provided not to the bridge driver, but to respective 
-subdevice drivers, because only they know what exactly those interfaces 
-are good for and how to report them to the bridge or the user, if we 
-decide to also export this information over the subdevice user-space API.
-
-So, I would say, the board has to tell the subdevice driver: yes, your 
-inputs 0 and 1 are routed to external connectors. On input 1 I've put a 
-pullup, it is connected to connector of type X over a circuit Y, clocked 
-from your output Z, if the driver needs to know all that. And the subdev 
-driver will just tell the bridge only what that one needs to know - number 
-of inputs and their capabilities.
-
-Thanks
-Guennadi
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/dvb/frontends/mb86a16.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/mb86a16.c b/drivers/media/dvb/frontends/mb86a16.c
+index c283112..292ba7b 100644
+--- a/drivers/media/dvb/frontends/mb86a16.c
++++ b/drivers/media/dvb/frontends/mb86a16.c
+@@ -1814,6 +1814,7 @@ static enum dvbfe_algo mb86a16_frontend_algo(struct dvb_frontend *fe)
+ }
+ 
+ static struct dvb_frontend_ops mb86a16_ops = {
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name			= "Fujitsu MB86A16 DVB-S",
+ 		.type			= FE_QPSK,
+-- 
+1.7.8.352.g876a6
+
