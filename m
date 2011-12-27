@@ -1,117 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9259 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:50894 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753591Ab1L0BJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:34 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19XBE017845
+	id S1753861Ab1L0BJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:43 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19gbA017906
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:33 -0500
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:42 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 05/91] [media] atbm8830: convert set_fontend to new way and fix delivery system
-Date: Mon, 26 Dec 2011 23:07:53 -0200
-Message-Id: <1324948159-23709-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+Subject: [PATCH RFC 43/91] [media] sp887x: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:31 -0200
+Message-Id: <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-43-git-send-email-mchehab@redhat.com>
 References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
  <1324948159-23709-2-git-send-email-mchehab@redhat.com>
  <1324948159-23709-3-git-send-email-mchehab@redhat.com>
  <1324948159-23709-4-git-send-email-mchehab@redhat.com>
  <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is one of the cases where the frontend changes is required:
-while this device lies to applications that it is a DVB-T, it is,
-in fact, a frontend for CTTB delivery system. So, the information
-provided for a DVBv3 application should be different than the one
-provided to a DVBv5 application.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-So, fill delsys with the CTTB delivery system, and use the new
-way. there aren't many changes here, as everything on this driver
-is on auto mode, probably because of the lack of a proper API
-for this delivery system.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/frontends/atbm8830.c |   26 +++++++++++++-------------
- 1 files changed, 13 insertions(+), 13 deletions(-)
+ drivers/media/dvb/frontends/sp887x.c |   49 +++++++++++++++++++++------------
+ 1 files changed, 31 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/atbm8830.c b/drivers/media/dvb/frontends/atbm8830.c
-index c4e0909..c4edbbe 100644
---- a/drivers/media/dvb/frontends/atbm8830.c
-+++ b/drivers/media/dvb/frontends/atbm8830.c
-@@ -267,8 +267,7 @@ static void atbm8830_release(struct dvb_frontend *fe)
- 	kfree(state);
- }
- 
--static int atbm8830_set_fe(struct dvb_frontend *fe,
--			  struct dvb_frontend_parameters *fe_params)
-+static int atbm8830_set_fe(struct dvb_frontend *fe)
- {
- 	struct atbm_state *priv = fe->demodulator_priv;
- 	int i;
-@@ -299,30 +298,30 @@ static int atbm8830_set_fe(struct dvb_frontend *fe,
- }
- 
- static int atbm8830_get_fe(struct dvb_frontend *fe,
--			  struct dvb_frontend_parameters *fe_params)
-+			   struct dtv_frontend_properties *c)
- {
- 	dprintk("%s\n", __func__);
- 
- 	/* TODO: get real readings from device */
- 	/* inversion status */
--	fe_params->inversion = INVERSION_OFF;
-+	c->inversion = INVERSION_OFF;
- 
- 	/* bandwidth */
--	fe_params->u.ofdm.bandwidth = BANDWIDTH_8_MHZ;
-+	c->bandwidth_hz = 8000000;
- 
--	fe_params->u.ofdm.code_rate_HP = FEC_AUTO;
--	fe_params->u.ofdm.code_rate_LP = FEC_AUTO;
-+	c->code_rate_HP = FEC_AUTO;
-+	c->code_rate_LP = FEC_AUTO;
- 
--	fe_params->u.ofdm.constellation = QAM_AUTO;
-+	c->modulation = QAM_AUTO;
- 
- 	/* transmission mode */
--	fe_params->u.ofdm.transmission_mode = TRANSMISSION_MODE_AUTO;
-+	c->transmission_mode = TRANSMISSION_MODE_AUTO;
- 
- 	/* guard interval */
--	fe_params->u.ofdm.guard_interval = GUARD_INTERVAL_AUTO;
-+	c->guard_interval = GUARD_INTERVAL_AUTO;
- 
- 	/* hierarchy */
--	fe_params->u.ofdm.hierarchy_information = HIERARCHY_NONE;
-+	c->hierarchy = HIERARCHY_NONE;
- 
+diff --git a/drivers/media/dvb/frontends/sp887x.c b/drivers/media/dvb/frontends/sp887x.c
+index 33ec08a..4b28d6a 100644
+--- a/drivers/media/dvb/frontends/sp887x.c
++++ b/drivers/media/dvb/frontends/sp887x.c
+@@ -209,13 +209,13 @@ static int sp887x_initial_setup (struct dvb_frontend* fe, const struct firmware
  	return 0;
- }
-@@ -429,6 +428,7 @@ static int atbm8830_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ };
+ 
+-static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
++static int configure_reg0xc05 (struct dtv_frontend_properties *p, u16 *reg0xc05)
+ {
+ 	int known_parameters = 1;
+ 
+ 	*reg0xc05 = 0x000;
+ 
+-	switch (p->u.ofdm.constellation) {
++	switch (p->modulation) {
+ 	case QPSK:
+ 		break;
+ 	case QAM_16:
+@@ -231,7 +231,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
+ 		return -EINVAL;
+ 	};
+ 
+-	switch (p->u.ofdm.hierarchy_information) {
++	switch (p->hierarchy) {
+ 	case HIERARCHY_NONE:
+ 		break;
+ 	case HIERARCHY_1:
+@@ -250,7 +250,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
+ 		return -EINVAL;
+ 	};
+ 
+-	switch (p->u.ofdm.code_rate_HP) {
++	switch (p->code_rate_HP) {
+ 	case FEC_1_2:
+ 		break;
+ 	case FEC_2_3:
+@@ -303,17 +303,30 @@ static void divide (int n, int d, int *quotient_i, int *quotient_f)
  }
  
- static struct dvb_frontend_ops atbm8830_ops = {
-+	.delsys = { SYS_DMBTH },
+ static void sp887x_correct_offsets (struct sp887x_state* state,
+-				    struct dvb_frontend_parameters *p,
++				    struct dtv_frontend_properties *p,
+ 				    int actual_freq)
+ {
+ 	static const u32 srate_correction [] = { 1879617, 4544878, 8098561 };
+-	int bw_index = p->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
++	int bw_index;
+ 	int freq_offset = actual_freq - p->frequency;
+ 	int sysclock = 61003; //[kHz]
+ 	int ifreq = 36000000;
+ 	int freq;
+ 	int frequency_shift;
+ 
++	switch (p->bandwidth_hz) {
++	default:
++	case 8000000:
++		bw_index = 0;
++		break;
++	case 7000000:
++		bw_index = 1;
++		break;
++	case 6000000:
++		bw_index = 2;
++		break;
++	}
++
+ 	if (p->inversion == INVERSION_ON)
+ 		freq = ifreq - freq_offset;
+ 	else
+@@ -333,17 +346,17 @@ static void sp887x_correct_offsets (struct sp887x_state* state,
+ 	sp887x_writereg(state, 0x30a, frequency_shift & 0xfff);
+ }
+ 
+-static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
+-					     struct dvb_frontend_parameters *p)
++static int sp887x_setup_frontend_parameters (struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct sp887x_state* state = fe->demodulator_priv;
+ 	unsigned actual_freq;
+ 	int err;
+ 	u16 val, reg0xc05;
+ 
+-	if (p->u.ofdm.bandwidth != BANDWIDTH_8_MHZ &&
+-	    p->u.ofdm.bandwidth != BANDWIDTH_7_MHZ &&
+-	    p->u.ofdm.bandwidth != BANDWIDTH_6_MHZ)
++	if (p->bandwidth_hz != 8000000 &&
++	    p->bandwidth_hz != 7000000 &&
++	    p->bandwidth_hz != 6000000)
+ 		return -EINVAL;
+ 
+ 	if ((err = configure_reg0xc05(p, &reg0xc05)))
+@@ -369,9 +382,9 @@ static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	sp887x_correct_offsets(state, p, actual_freq);
+ 
+ 	/* filter for 6/7/8 Mhz channel */
+-	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
++	if (p->bandwidth_hz == 6000000)
+ 		val = 2;
+-	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
++	else if (p->bandwidth_hz == 7000000)
+ 		val = 1;
+ 	else
+ 		val = 0;
+@@ -379,16 +392,16 @@ static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	sp887x_writereg(state, 0x311, val);
+ 
+ 	/* scan order: 2k first = 0, 8k first = 1 */
+-	if (p->u.ofdm.transmission_mode == TRANSMISSION_MODE_2K)
++	if (p->transmission_mode == TRANSMISSION_MODE_2K)
+ 		sp887x_writereg(state, 0x338, 0x000);
+ 	else
+ 		sp887x_writereg(state, 0x338, 0x001);
+ 
+ 	sp887x_writereg(state, 0xc05, reg0xc05);
+ 
+-	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
++	if (p->bandwidth_hz == 6000000)
+ 		val = 2 << 3;
+-	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
++	else if (p->bandwidth_hz == 7000000)
+ 		val = 3 << 3;
+ 	else
+ 		val = 0 << 3;
+@@ -579,7 +592,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops sp887x_ops = {
+-
++	.delsys = { SYS_DVBT },
  	.info = {
- 		.name = "AltoBeam ATBM8830/8831 DMB-TH",
+ 		.name = "Spase SP887x DVB-T",
  		.type = FE_OFDM,
-@@ -449,8 +449,8 @@ static struct dvb_frontend_ops atbm8830_ops = {
- 	.write = NULL,
- 	.i2c_gate_ctrl = atbm8830_i2c_gate_ctrl,
+@@ -598,7 +611,7 @@ static struct dvb_frontend_ops sp887x_ops = {
+ 	.sleep = sp887x_sleep,
+ 	.i2c_gate_ctrl = sp887x_i2c_gate_ctrl,
  
--	.set_frontend_legacy = atbm8830_set_fe,
--	.get_frontend_legacy = atbm8830_get_fe,
-+	.set_frontend = atbm8830_set_fe,
-+	.get_frontend = atbm8830_get_fe,
- 	.get_tune_settings = atbm8830_get_tune_settings,
+-	.set_frontend_legacy = sp887x_setup_frontend_parameters,
++	.set_frontend = sp887x_setup_frontend_parameters,
+ 	.get_tune_settings = sp887x_get_tune_settings,
  
- 	.read_status = atbm8830_read_status,
+ 	.read_status = sp887x_read_status,
 -- 
 1.7.8.352.g876a6
 
