@@ -1,20 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62266 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:38208 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752395Ab1L3PJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:28 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9S7A015890
+	id S1753758Ab1L0BJj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:39 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19dFA015662
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:39 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 39/94] [media] mt352: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:36 -0200
-Message-Id: <1325257711-12274-40-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+Subject: [PATCH RFC 45/91] [media] tda10048: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:33 -0200
+Message-Id: <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
@@ -28,196 +72,240 @@ struct.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/frontends/mt352.c |   62 +++++++++++++++++------------------
- 1 files changed, 30 insertions(+), 32 deletions(-)
+ drivers/media/dvb/frontends/tda10048.c |   78 +++++++++++++-------------------
+ 1 files changed, 32 insertions(+), 46 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/mt352.c b/drivers/media/dvb/frontends/mt352.c
-index 021108d..0155fa8 100644
---- a/drivers/media/dvb/frontends/mt352.c
-+++ b/drivers/media/dvb/frontends/mt352.c
-@@ -111,20 +111,20 @@ static int mt352_sleep(struct dvb_frontend* fe)
+diff --git a/drivers/media/dvb/frontends/tda10048.c b/drivers/media/dvb/frontends/tda10048.c
+index bba249b..80de9f6 100644
+--- a/drivers/media/dvb/frontends/tda10048.c
++++ b/drivers/media/dvb/frontends/tda10048.c
+@@ -341,21 +341,14 @@ static int tda10048_set_wref(struct dvb_frontend *fe, u32 sample_freq_hz,
+ {
+ 	struct tda10048_state *state = fe->demodulator_priv;
+ 	u64 t, z;
+-	u32 b = 8000000;
+ 
+ 	dprintk(1, "%s()\n", __func__);
+ 
+ 	if (sample_freq_hz == 0)
+ 		return -EINVAL;
+ 
+-	if (bw == BANDWIDTH_6_MHZ)
+-		b = 6000000;
+-	else
+-	if (bw == BANDWIDTH_7_MHZ)
+-		b = 7000000;
+-
+ 	/* WREF = (B / (7 * fs)) * 2^31 */
+-	t = b * 10;
++	t = bw * 10;
+ 	/* avoid warning: this decimal constant is unsigned only in ISO C90 */
+ 	/* t *= 2147483648 on 32bit platforms */
+ 	t *= (2048 * 1024);
+@@ -378,25 +371,18 @@ static int tda10048_set_invwref(struct dvb_frontend *fe, u32 sample_freq_hz,
+ {
+ 	struct tda10048_state *state = fe->demodulator_priv;
+ 	u64 t;
+-	u32 b = 8000000;
+ 
+ 	dprintk(1, "%s()\n", __func__);
+ 
+ 	if (sample_freq_hz == 0)
+ 		return -EINVAL;
+ 
+-	if (bw == BANDWIDTH_6_MHZ)
+-		b = 6000000;
+-	else
+-	if (bw == BANDWIDTH_7_MHZ)
+-		b = 7000000;
+-
+ 	/* INVWREF = ((7 * fs) / B) * 2^5 */
+ 	t = sample_freq_hz;
+ 	t *= 7;
+ 	t *= 32;
+ 	t *= 10;
+-	do_div(t, b);
++	do_div(t, bw);
+ 	t += 5;
+ 	do_div(t, 10);
+ 
+@@ -407,16 +393,16 @@ static int tda10048_set_invwref(struct dvb_frontend *fe, u32 sample_freq_hz,
  }
  
- static void mt352_calc_nominal_rate(struct mt352_state* state,
--				    enum fe_bandwidth bandwidth,
-+				    u32 bandwidth,
- 				    unsigned char *buf)
+ static int tda10048_set_bandwidth(struct dvb_frontend *fe,
+-	enum fe_bandwidth bw)
++	u32 bw)
  {
- 	u32 adc_clock = 20480; /* 20.340 MHz */
- 	u32 bw,value;
+ 	struct tda10048_state *state = fe->demodulator_priv;
+ 	dprintk(1, "%s(bw=%d)\n", __func__, bw);
  
- 	switch (bandwidth) {
+ 	/* Bandwidth setting may need to be adjusted */
+ 	switch (bw) {
+-	case BANDWIDTH_6_MHZ:
+-	case BANDWIDTH_7_MHZ:
+-	case BANDWIDTH_8_MHZ:
++	case 6000000:
++	case 7000000:
++	case 8000000:
+ 		tda10048_set_wref(fe, state->sample_freq, bw);
+ 		tda10048_set_invwref(fe, state->sample_freq, bw);
+ 		break;
+@@ -430,7 +416,7 @@ static int tda10048_set_bandwidth(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int tda10048_set_if(struct dvb_frontend *fe, enum fe_bandwidth bw)
++static int tda10048_set_if(struct dvb_frontend *fe, u32 bw)
+ {
+ 	struct tda10048_state *state = fe->demodulator_priv;
+ 	struct tda10048_config *config = &state->config;
+@@ -441,13 +427,13 @@ static int tda10048_set_if(struct dvb_frontend *fe, enum fe_bandwidth bw)
+ 
+ 	/* based on target bandwidth and clk we calculate pll factors */
+ 	switch (bw) {
 -	case BANDWIDTH_6_MHZ:
 +	case 6000000:
- 		bw = 6;
+ 		if_freq_khz = config->dtv6_if_freq_khz;
  		break;
 -	case BANDWIDTH_7_MHZ:
 +	case 7000000:
- 		bw = 7;
+ 		if_freq_khz = config->dtv7_if_freq_khz;
  		break;
 -	case BANDWIDTH_8_MHZ:
 +	case 8000000:
- 	default:
- 		bw = 8;
+ 		if_freq_khz = config->dtv8_if_freq_khz;
  		break;
-@@ -166,15 +166,14 @@ static void mt352_calc_input_freq(struct mt352_state* state,
- 	buf[1] = lsb(value);
- }
+ 	default:
+@@ -601,7 +587,7 @@ static int tda10048_set_inversion(struct dvb_frontend *fe, int inversion)
  
--static int mt352_set_parameters(struct dvb_frontend* fe,
--				struct dvb_frontend_parameters *param)
-+static int mt352_set_parameters(struct dvb_frontend* fe)
+ /* Retrieve the demod settings */
+ static int tda10048_get_tps(struct tda10048_state *state,
+-	struct dvb_ofdm_parameters *p)
++	struct dtv_frontend_properties *p)
  {
-+	struct dtv_frontend_properties *op = &fe->dtv_property_cache;
- 	struct mt352_state* state = fe->demodulator_priv;
- 	unsigned char buf[13];
- 	static unsigned char tuner_go[] = { 0x5d, 0x01 };
- 	static unsigned char fsm_go[]   = { 0x5e, 0x01 };
- 	unsigned int tps = 0;
--	struct dvb_ofdm_parameters *op = &param->u.ofdm;
+ 	u8 val;
  
- 	switch (op->code_rate_HP) {
- 		case FEC_2_3:
-@@ -213,14 +212,14 @@ static int mt352_set_parameters(struct dvb_frontend* fe,
- 		case FEC_AUTO:
- 			break;
- 		case FEC_NONE:
--			if (op->hierarchy_information == HIERARCHY_AUTO ||
--			    op->hierarchy_information == HIERARCHY_NONE)
-+			if (op->hierarchy == HIERARCHY_AUTO ||
-+			    op->hierarchy == HIERARCHY_NONE)
- 				break;
- 		default:
- 			return -EINVAL;
+@@ -612,27 +598,27 @@ static int tda10048_get_tps(struct tda10048_state *state,
+ 	val = tda10048_readreg(state, TDA10048_OUT_CONF2);
+ 	switch ((val & 0x60) >> 5) {
+ 	case 0:
+-		p->constellation = QPSK;
++		p->modulation = QPSK;
+ 		break;
+ 	case 1:
+-		p->constellation = QAM_16;
++		p->modulation = QAM_16;
+ 		break;
+ 	case 2:
+-		p->constellation = QAM_64;
++		p->modulation = QAM_64;
+ 		break;
  	}
- 
--	switch (op->constellation) {
-+	switch (op->modulation) {
- 		case QPSK:
- 			break;
- 		case QAM_AUTO:
-@@ -262,7 +261,7 @@ static int mt352_set_parameters(struct dvb_frontend* fe,
- 			return -EINVAL;
+ 	switch ((val & 0x18) >> 3) {
+ 	case 0:
+-		p->hierarchy_information = HIERARCHY_NONE;
++		p->hierarchy = HIERARCHY_NONE;
+ 		break;
+ 	case 1:
+-		p->hierarchy_information = HIERARCHY_1;
++		p->hierarchy = HIERARCHY_1;
+ 		break;
+ 	case 2:
+-		p->hierarchy_information = HIERARCHY_2;
++		p->hierarchy = HIERARCHY_2;
+ 		break;
+ 	case 3:
+-		p->hierarchy_information = HIERARCHY_4;
++		p->hierarchy = HIERARCHY_4;
+ 		break;
  	}
+ 	switch (val & 0x07) {
+@@ -738,17 +724,17 @@ static int tda10048_output_mode(struct dvb_frontend *fe, int serial)
  
--	switch (op->hierarchy_information) {
-+	switch (op->hierarchy) {
- 		case HIERARCHY_AUTO:
- 		case HIERARCHY_NONE:
- 			break;
-@@ -288,7 +287,7 @@ static int mt352_set_parameters(struct dvb_frontend* fe,
- 	buf[3] = 0x50;  // old
- //	buf[3] = 0xf4;  // pinnacle
- 
--	mt352_calc_nominal_rate(state, op->bandwidth, buf+4);
-+	mt352_calc_nominal_rate(state, op->bandwidth_hz, buf+4);
- 	mt352_calc_input_freq(state, buf+6);
- 
- 	if (state->config.no_tuner) {
-@@ -313,13 +312,12 @@ static int mt352_set_parameters(struct dvb_frontend* fe,
- }
- 
- static int mt352_get_parameters(struct dvb_frontend* fe,
--				struct dvb_frontend_parameters *param)
-+				struct dtv_frontend_properties *op)
+ /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
+ /* TODO: Support manual tuning with specific params */
+-static int tda10048_set_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int tda10048_set_frontend(struct dvb_frontend *fe)
  {
- 	struct mt352_state* state = fe->demodulator_priv;
- 	u16 tps;
- 	u16 div;
- 	u8 trl;
--	struct dvb_ofdm_parameters *op = &param->u.ofdm;
- 	static const u8 tps_fec_to_api[8] =
- 	{
- 		FEC_1_2,
-@@ -348,16 +346,16 @@ static int mt352_get_parameters(struct dvb_frontend* fe,
- 	switch ( (tps >> 13) & 3)
- 	{
- 		case 0:
--			op->constellation = QPSK;
-+			op->modulation = QPSK;
- 			break;
- 		case 1:
--			op->constellation = QAM_16;
-+			op->modulation = QAM_16;
- 			break;
- 		case 2:
--			op->constellation = QAM_64;
-+			op->modulation = QAM_64;
- 			break;
- 		default:
--			op->constellation = QAM_AUTO;
-+			op->modulation = QAM_AUTO;
- 			break;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct tda10048_state *state = fe->demodulator_priv;
+ 
+ 	dprintk(1, "%s(frequency=%d)\n", __func__, p->frequency);
+ 
+ 	/* Update the I/F pll's if the bandwidth changes */
+-	if (p->u.ofdm.bandwidth != state->bandwidth) {
+-		tda10048_set_if(fe, p->u.ofdm.bandwidth);
+-		tda10048_set_bandwidth(fe, p->u.ofdm.bandwidth);
++	if (p->bandwidth_hz != state->bandwidth) {
++		tda10048_set_if(fe, p->bandwidth_hz);
++		tda10048_set_bandwidth(fe, p->bandwidth_hz);
  	}
  
-@@ -385,36 +383,36 @@ static int mt352_get_parameters(struct dvb_frontend* fe,
- 	switch ( (tps >> 10) & 7)
- 	{
- 		case 0:
--			op->hierarchy_information = HIERARCHY_NONE;
-+			op->hierarchy = HIERARCHY_NONE;
- 			break;
- 		case 1:
--			op->hierarchy_information = HIERARCHY_1;
-+			op->hierarchy = HIERARCHY_1;
- 			break;
- 		case 2:
--			op->hierarchy_information = HIERARCHY_2;
-+			op->hierarchy = HIERARCHY_2;
- 			break;
- 		case 3:
--			op->hierarchy_information = HIERARCHY_4;
-+			op->hierarchy = HIERARCHY_4;
- 			break;
- 		default:
--			op->hierarchy_information = HIERARCHY_AUTO;
-+			op->hierarchy = HIERARCHY_AUTO;
- 			break;
- 	}
+ 	if (fe->ops.tuner_ops.set_params) {
+@@ -797,8 +783,8 @@ static int tda10048_init(struct dvb_frontend *fe)
+ 	tda10048_set_inversion(fe, config->inversion);
  
--	param->frequency = ( 500 * (div - IF_FREQUENCYx6) ) / 3 * 1000;
-+	op->frequency = ( 500 * (div - IF_FREQUENCYx6) ) / 3 * 1000;
+ 	/* Establish default RF values */
+-	tda10048_set_if(fe, BANDWIDTH_8_MHZ);
+-	tda10048_set_bandwidth(fe, BANDWIDTH_8_MHZ);
++	tda10048_set_if(fe, 8000000);
++	tda10048_set_bandwidth(fe, 8000000);
  
- 	if (trl == 0x72)
--		op->bandwidth = BANDWIDTH_8_MHZ;
-+		op->bandwidth_hz = 8000000;
- 	else if (trl == 0x64)
--		op->bandwidth = BANDWIDTH_7_MHZ;
-+		op->bandwidth_hz = 7000000;
- 	else
--		op->bandwidth = BANDWIDTH_6_MHZ;
-+		op->bandwidth_hz = 6000000;
- 
- 
- 	if (mt352_read_register(state, STATUS_2) & 0x02)
--		param->inversion = INVERSION_OFF;
-+		op->inversion = INVERSION_OFF;
- 	else
--		param->inversion = INVERSION_ON;
-+		op->inversion = INVERSION_ON;
- 
- 	return 0;
- }
-@@ -569,7 +567,7 @@ error:
+ 	/* Ensure we leave the gate closed */
+ 	tda10048_i2c_gate_ctrl(fe, 0);
+@@ -1043,7 +1029,7 @@ static int tda10048_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
  }
  
- static struct dvb_frontend_ops mt352_ops = {
--
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name			= "Zarlink MT352 DVB-T",
- 		.type			= FE_OFDM,
-@@ -592,8 +590,8 @@ static struct dvb_frontend_ops mt352_ops = {
- 	.sleep = mt352_sleep,
- 	.write = _mt352_write,
+ static int tda10048_get_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++	struct dtv_frontend_properties *p)
+ {
+ 	struct tda10048_state *state = fe->demodulator_priv;
  
--	.set_frontend_legacy = mt352_set_parameters,
--	.get_frontend_legacy = mt352_get_parameters,
-+	.set_frontend = mt352_set_parameters,
-+	.get_frontend = mt352_get_parameters,
- 	.get_tune_settings = mt352_get_tune_settings,
+@@ -1052,7 +1038,7 @@ static int tda10048_get_frontend(struct dvb_frontend *fe,
+ 	p->inversion = tda10048_readreg(state, TDA10048_CONF_C1_1)
+ 		& 0x20 ? INVERSION_ON : INVERSION_OFF;
  
- 	.read_status = mt352_read_status,
+-	return tda10048_get_tps(state, &p->u.ofdm);
++	return tda10048_get_tps(state, p);
+ }
+ 
+ static int tda10048_get_tune_settings(struct dvb_frontend *fe,
+@@ -1126,7 +1112,7 @@ struct dvb_frontend *tda10048_attach(const struct tda10048_config *config,
+ 	memcpy(&state->config, config, sizeof(*config));
+ 	state->i2c = i2c;
+ 	state->fwloaded = config->no_firmware;
+-	state->bandwidth = BANDWIDTH_8_MHZ;
++	state->bandwidth = 8000000;
+ 
+ 	/* check if the demod is present */
+ 	if (tda10048_readreg(state, TDA10048_IDENTITY) != 0x048)
+@@ -1152,11 +1138,11 @@ struct dvb_frontend *tda10048_attach(const struct tda10048_config *config,
+ 	tda10048_establish_defaults(&state->frontend);
+ 
+ 	/* Set the xtal and freq defaults */
+-	if (tda10048_set_if(&state->frontend, BANDWIDTH_8_MHZ) != 0)
++	if (tda10048_set_if(&state->frontend, 8000000) != 0)
+ 		goto error;
+ 
+ 	/* Default bandwidth */
+-	if (tda10048_set_bandwidth(&state->frontend, BANDWIDTH_8_MHZ) != 0)
++	if (tda10048_set_bandwidth(&state->frontend, 8000000) != 0)
+ 		goto error;
+ 
+ 	/* Leave the gate closed */
+@@ -1188,8 +1174,8 @@ static struct dvb_frontend_ops tda10048_ops = {
+ 	.release = tda10048_release,
+ 	.init = tda10048_init,
+ 	.i2c_gate_ctrl = tda10048_i2c_gate_ctrl,
+-	.set_frontend_legacy = tda10048_set_frontend,
+-	.get_frontend_legacy = tda10048_get_frontend,
++	.set_frontend = tda10048_set_frontend,
++	.get_frontend = tda10048_get_frontend,
+ 	.get_tune_settings = tda10048_get_tune_settings,
+ 	.read_status = tda10048_read_status,
+ 	.read_ber = tda10048_read_ber,
 -- 
 1.7.8.352.g876a6
 
