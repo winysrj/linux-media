@@ -1,331 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3627 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089Ab1LOOPs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 09:15:48 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 2/8] v4l spec: document VIDIOC_(TRY_)DECODER_CMD.
-Date: Thu, 15 Dec 2011 15:15:31 +0100
-Message-Id: <14d1acb369a275541078fdf5b1074912d9947297.1323957539.git.hans.verkuil@cisco.com>
-In-Reply-To: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
-References: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <26fac753ffa549b2ffdc5fe64a50e0a9637c2b16.1323957539.git.hans.verkuil@cisco.com>
-References: <26fac753ffa549b2ffdc5fe64a50e0a9637c2b16.1323957539.git.hans.verkuil@cisco.com>
+Received: from mx1.redhat.com ([209.132.183.28]:58953 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753708Ab1L0BJi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:38 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19c7a017874
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:38 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 70/91] [media] dst: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:58 -0200
+Message-Id: <1324948159-23709-71-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-70-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-57-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-58-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-59-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-60-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-61-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-62-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-63-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-64-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-65-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-66-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-67-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-68-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-69-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-70-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
- .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  256 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |    9 +-
- 3 files changed, 262 insertions(+), 4 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
+ drivers/media/dvb/bt8xx/dst.c |   63 +++++++++++++++++++++--------------------
+ 1 files changed, 32 insertions(+), 31 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 2ab365c..7fc11db 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -473,6 +473,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-cropcap;
-     &sub-dbg-g-chip-ident;
-     &sub-dbg-g-register;
-+    &sub-decoder-cmd;
-     &sub-dqevent;
-     &sub-encoder-cmd;
-     &sub-enumaudio;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-new file mode 100644
-index 0000000..466fe27
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
-@@ -0,0 +1,256 @@
-+<refentry id="vidioc-decoder-cmd">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_DECODER_CMD, VIDIOC_TRY_DECODER_CMD</refentrytitle>
-+    &manvol;
-+  </refmeta>
-+
-+  <refnamediv>
-+    <refname>VIDIOC_DECODER_CMD</refname>
-+    <refname>VIDIOC_TRY_DECODER_CMD</refname>
-+    <refpurpose>Execute an decoder command</refpurpose>
-+  </refnamediv>
-+
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_decoder_cmd *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
-+
-+  <refsect1>
-+    <title>Arguments</title>
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_DECODER_CMD, VIDIOC_TRY_DECODER_CMD</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <note>
-+      <title>Experimental</title>
-+
-+      <para>This is an <link linkend="experimental">experimental</link>
-+interface and may change in the future.</para>
-+    </note>
-+
-+    <para>These ioctls control an audio/video (usually MPEG-) decoder.
-+<constant>VIDIOC_DECODER_CMD</constant> sends a command to the
-+decoder, <constant>VIDIOC_TRY_DECODER_CMD</constant> can be used to
-+try a command without actually executing it. To send a command applications
-+must initialize all fields of a &v4l2-decoder-cmd; and call
-+<constant>VIDIOC_DECODER_CMD</constant> or <constant>VIDIOC_TRY_DECODER_CMD</constant>
-+with a pointer to this structure.</para>
-+
-+    <para>The <structfield>cmd</structfield> field must contain the
-+command code. Some commands use the <structfield>flags</structfield> field for
-+additional information.
-+</para>
-+
-+    <para>A <function>write</function>() or &VIDIOC-STREAMON; call sends an implicit
-+START command to the decoder if it has not been started yet.
-+</para>
-+
-+    <para>A <function>close</function>() or &VIDIOC-STREAMOFF; call of a streaming
-+file descriptor sends an implicit immediate STOP command to the decoder, and all
-+buffered data is discarded.</para>
-+
-+    <para>These ioctls are optional, not all drivers may support
-+them. They were introduced in Linux 3.3.</para>
-+
-+    <table pgwide="1" frame="none" id="v4l2-decoder-cmd">
-+      <title>struct <structname>v4l2_decoder_cmd</structname></title>
-+      <tgroup cols="5">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>cmd</structfield></entry>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>The decoder command, see <xref linkend="decoder-cmds" />.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>Flags to go with the command. If no flags are defined for
-+this command, drivers and applications must set this field to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>union</entry>
-+	    <entry>(anonymous)</entry>
-+            <entry></entry>
-+	    <entry></entry>
-+            <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>struct</entry>
-+            <entry><structfield>start</structfield></entry>
-+            <entry></entry>
-+            <entry>Structure containing additional data for the
-+<constant>V4L2_DEC_CMD_START</constant> command.</entry>
-+	  </row>
-+	  <row>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>speed</structfield></entry>
-+            <entry>Playback speed and direction. The playback speed is defined as
-+<structfield>speed</structfield>/1000 of the normal speed. So 1000 is normal playback.
-+Negative numbers denote reverse playback, so -1000 does reverse playback at normal
-+speed. Speeds -1, 0 and 1 have special meanings: speed 0 is shorthand for 1000
-+(normal playback). A speed of 1 steps just one frame forward, a speed of -1 steps
-+just one frame back.
-+	    </entry>
-+	  </row>
-+	  <row>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>format</structfield></entry>
-+            <entry>Format restrictions. This field is set by the driver, not the
-+application. Possible values are <constant>V4L2_DEC_START_FMT_NONE</constant> if
-+there are no format restrictions or <constant>V4L2_DEC_START_FMT_GOP</constant>
-+if the decoder operates on full GOPs (<wordasword>Group Of Pictures</wordasword>).
-+This is usually the case for reverse playback: the decoder needs full GOPs, which
-+it can then play in reverse order. So to implement reverse playback the application
-+must feed the decoder the last GOP in the video file, then the GOP before that, etc. etc.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>struct</entry>
-+            <entry><structfield>stop</structfield></entry>
-+            <entry></entry>
-+            <entry>Structure containing additional data for the
-+<constant>V4L2_DEC_CMD_STOP</constant> command.</entry>
-+	  </row>
-+	  <row>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>pts</structfield></entry>
-+            <entry>Stop playback at this <structfield>pts</structfield> or immediately
-+if the playback is already past that timestamp. Leave to 0 if you want to stop after the
-+last frame was decoded.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>struct</entry>
-+            <entry><structfield>raw</structfield></entry>
-+            <entry></entry>
-+            <entry></entry>
-+	  </row>
-+	  <row>
-+            <entry></entry>
-+            <entry></entry>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>data</structfield>[16]</entry>
-+	    <entry>Reserved for future extensions. Drivers and
-+applications must set the array to zero.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+    <table pgwide="1" frame="none" id="decoder-cmds">
-+      <title>Decoder Commands</title>
-+      <tgroup cols="3">
-+	&cs-def;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry><constant>V4L2_DEC_CMD_START</constant></entry>
-+	    <entry>0</entry>
-+	    <entry>Start the decoder. When the decoder is already
-+running or paused, this command will just change the playback speed.
-+That means that calling <constant>V4L2_DEC_CMD_START</constant> when
-+the decoder was paused will <emphasis>not</emphasis> resume the decoder.
-+You have to explicitly call <constant>V4L2_DEC_CMD_RESUME</constant> for that.
-+This command has one flag:
-+<constant>V4L2_DEC_CMD_START_MUTE_AUDIO</constant>. If set, then audio will
-+be muted when playing back at a non-standard speed.
-+            </entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_DEC_CMD_STOP</constant></entry>
-+	    <entry>1</entry>
-+	    <entry>Stop the decoder. When the decoder is already stopped,
-+this command does nothing. This command has two flags:
-+if <constant>V4L2_DEC_CMD_STOP_TO_BLACK</constant> is set, then the decoder will
-+set the picture to black after it stopped decoding. Otherwise the last image will
-+repeat. If <constant>V4L2_DEC_CMD_STOP_IMMEDIATELY</constant> is set, then the decoder
-+stops immediately (ignoring the <structfield>pts</structfield> value), otherwise it
-+will keep decoding until timestamp >= pts or until the last of the pending data from
-+its internal buffers was decoded.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_DEC_CMD_PAUSE</constant></entry>
-+	    <entry>2</entry>
-+	    <entry>Pause the decoder. When the decoder has not been
-+started yet, the driver will return an &EPERM;. When the decoder is
-+already paused, this command does nothing. This command has one flag:
-+if <constant>V4L2_DEC_CMD_PAUSE_TO_BLACK</constant> is set, then set the
-+decoder output to black when paused.
-+</entry>
-+	  </row>
-+	  <row>
-+	    <entry><constant>V4L2_DEC_CMD_RESUME</constant></entry>
-+	    <entry>3</entry>
-+	    <entry>Resume decoding after a PAUSE command. When the
-+decoder has not been started yet, the driver will return an &EPERM;.
-+When the decoder is already running, this command does nothing. No
-+flags are defined for this command.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The <structfield>cmd</structfield> field is invalid.</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>EPERM</errorcode></term>
-+	<listitem>
-+	  <para>The application sent a PAUSE or RESUME command when
-+the decoder was not running.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-index af7f3f2..f431b3b 100644
---- a/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-encoder-cmd.xml
-@@ -74,15 +74,16 @@ only used by the STOP command and contains one bit: If the
- encoding will continue until the end of the current <wordasword>Group
- Of Pictures</wordasword>, otherwise it will stop immediately.</para>
+diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
+index 6afc083..7d60893 100644
+--- a/drivers/media/dvb/bt8xx/dst.c
++++ b/drivers/media/dvb/bt8xx/dst.c
+@@ -386,7 +386,7 @@ static int dst_set_freq(struct dst_state *state, u32 freq)
+ 	return 0;
+ }
  
--    <para>A <function>read</function>() call sends a START command to
--the encoder if it has not been started yet. After a STOP command,
-+    <para>A <function>read</function>() or &VIDIOC-STREAMON; call sends an implicit
-+START command to the encoder if it has not been started yet. After a STOP command,
- <function>read</function>() calls will read the remaining data
- buffered by the driver. When the buffer is empty,
- <function>read</function>() will return zero and the next
- <function>read</function>() call will restart the encoder.</para>
+-static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
++static int dst_set_bandwidth(struct dst_state *state, u32 bandwidth)
+ {
+ 	state->bandwidth = bandwidth;
  
--    <para>A <function>close</function>() call sends an immediate STOP
--to the encoder, and all buffered data is discarded.</para>
-+    <para>A <function>close</function>() or &VIDIOC-STREAMOFF; call of a streaming
-+file descriptor sends an implicit immediate STOP to the encoder, and all buffered
-+data is discarded.</para>
+@@ -394,7 +394,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
+ 		return -EOPNOTSUPP;
  
-     <para>These ioctls are optional, not all drivers may support
- them. They were introduced in Linux 2.6.21.</para>
+ 	switch (bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	case 6000000:
+ 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
+ 			state->tx_tuna[7] = 0x06;
+ 		else {
+@@ -402,7 +402,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
+ 			state->tx_tuna[7] = 0x00;
+ 		}
+ 		break;
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
+ 			state->tx_tuna[7] = 0x07;
+ 		else {
+@@ -410,7 +410,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
+ 			state->tx_tuna[7] = 0x00;
+ 		}
+ 		break;
+-	case BANDWIDTH_8_MHZ:
++	case 8000000:
+ 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
+ 			state->tx_tuna[7] = 0x08;
+ 		else {
+@@ -1561,7 +1561,7 @@ static int dst_init(struct dvb_frontend *fe)
+ 	state->tone = SEC_TONE_OFF;
+ 	state->diseq_flags = 0;
+ 	state->k22 = 0x02;
+-	state->bandwidth = BANDWIDTH_7_MHZ;
++	state->bandwidth = 7000000;
+ 	state->cur_jiff = jiffies;
+ 	if (state->dst_type == DST_TYPE_IS_SAT)
+ 		memcpy(state->tx_tuna, ((state->type_flags & DST_TYPE_HAS_VLF) ? sat_tuna_188 : sat_tuna_204), sizeof (sat_tuna_204));
+@@ -1609,8 +1609,9 @@ static int dst_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	return retval;
+ }
+ 
+-static int dst_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
++static int dst_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	int retval = -EINVAL;
+ 	struct dst_state *state = fe->demodulator_priv;
+ 
+@@ -1623,17 +1624,17 @@ static int dst_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_paramet
+ 		if (state->dst_type == DST_TYPE_IS_SAT) {
+ 			if (state->type_flags & DST_TYPE_HAS_OBS_REGS)
+ 				dst_set_inversion(state, p->inversion);
+-			dst_set_fec(state, p->u.qpsk.fec_inner);
+-			dst_set_symbolrate(state, p->u.qpsk.symbol_rate);
++			dst_set_fec(state, p->fec_inner);
++			dst_set_symbolrate(state, p->symbol_rate);
+ 			dst_set_polarization(state);
+-			dprintk(verbose, DST_DEBUG, 1, "Set Symbolrate=[%d]", p->u.qpsk.symbol_rate);
++			dprintk(verbose, DST_DEBUG, 1, "Set Symbolrate=[%d]", p->symbol_rate);
+ 
+ 		} else if (state->dst_type == DST_TYPE_IS_TERR)
+-			dst_set_bandwidth(state, p->u.ofdm.bandwidth);
++			dst_set_bandwidth(state, p->bandwidth_hz);
+ 		else if (state->dst_type == DST_TYPE_IS_CABLE) {
+-			dst_set_fec(state, p->u.qam.fec_inner);
+-			dst_set_symbolrate(state, p->u.qam.symbol_rate);
+-			dst_set_modulation(state, p->u.qam.modulation);
++			dst_set_fec(state, p->fec_inner);
++			dst_set_symbolrate(state, p->symbol_rate);
++			dst_set_modulation(state, p->modulation);
+ 		}
+ 		retval = dst_write_tuna(fe);
+ 	}
+@@ -1683,7 +1684,7 @@ static int dst_get_tuning_algo(struct dvb_frontend *fe)
+ 	return dst_algo ? DVBFE_ALGO_HW : DVBFE_ALGO_SW;
+ }
+ 
+-static int dst_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
++static int dst_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
+ {
+ 	struct dst_state *state = fe->demodulator_priv;
+ 
+@@ -1691,14 +1692,14 @@ static int dst_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_paramet
+ 	if (state->dst_type == DST_TYPE_IS_SAT) {
+ 		if (state->type_flags & DST_TYPE_HAS_OBS_REGS)
+ 			p->inversion = state->inversion;
+-		p->u.qpsk.symbol_rate = state->symbol_rate;
+-		p->u.qpsk.fec_inner = dst_get_fec(state);
++		p->symbol_rate = state->symbol_rate;
++		p->fec_inner = dst_get_fec(state);
+ 	} else if (state->dst_type == DST_TYPE_IS_TERR) {
+-		p->u.ofdm.bandwidth = state->bandwidth;
++		p->bandwidth_hz = state->bandwidth;
+ 	} else if (state->dst_type == DST_TYPE_IS_CABLE) {
+-		p->u.qam.symbol_rate = state->symbol_rate;
+-		p->u.qam.fec_inner = dst_get_fec(state);
+-		p->u.qam.modulation = dst_get_modulation(state);
++		p->symbol_rate = state->symbol_rate;
++		p->fec_inner = dst_get_fec(state);
++		p->modulation = dst_get_modulation(state);
+ 	}
+ 
+ 	return 0;
+@@ -1756,7 +1757,7 @@ struct dst_state *dst_attach(struct dst_state *state, struct dvb_adapter *dvb_ad
+ EXPORT_SYMBOL(dst_attach);
+ 
+ static struct dvb_frontend_ops dst_dvbt_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name = "DST DVB-T",
+ 		.type = FE_OFDM,
+@@ -1777,8 +1778,8 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
+ 	.release = dst_release,
+ 	.init = dst_init,
+ 	.tune = dst_tune_frontend,
+-	.set_frontend_legacy = dst_set_frontend,
+-	.get_frontend_legacy = dst_get_frontend,
++	.set_frontend = dst_set_frontend,
++	.get_frontend = dst_get_frontend,
+ 	.get_frontend_algo = dst_get_tuning_algo,
+ 	.read_status = dst_read_status,
+ 	.read_signal_strength = dst_read_signal_strength,
+@@ -1786,7 +1787,7 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
+ };
+ 
+ static struct dvb_frontend_ops dst_dvbs_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name = "DST DVB-S",
+ 		.type = FE_QPSK,
+@@ -1803,8 +1804,8 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
+ 	.release = dst_release,
+ 	.init = dst_init,
+ 	.tune = dst_tune_frontend,
+-	.set_frontend_legacy = dst_set_frontend,
+-	.get_frontend_legacy = dst_get_frontend,
++	.set_frontend = dst_set_frontend,
++	.get_frontend = dst_get_frontend,
+ 	.get_frontend_algo = dst_get_tuning_algo,
+ 	.read_status = dst_read_status,
+ 	.read_signal_strength = dst_read_signal_strength,
+@@ -1816,7 +1817,7 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
+ };
+ 
+ static struct dvb_frontend_ops dst_dvbc_ops = {
+-
++	.delsys = { SYS_DVBC_ANNEX_A },
+ 	.info = {
+ 		.name = "DST DVB-C",
+ 		.type = FE_QAM,
+@@ -1837,8 +1838,8 @@ static struct dvb_frontend_ops dst_dvbc_ops = {
+ 	.release = dst_release,
+ 	.init = dst_init,
+ 	.tune = dst_tune_frontend,
+-	.set_frontend_legacy = dst_set_frontend,
+-	.get_frontend_legacy = dst_get_frontend,
++	.set_frontend = dst_set_frontend,
++	.get_frontend = dst_get_frontend,
+ 	.get_frontend_algo = dst_get_tuning_algo,
+ 	.read_status = dst_read_status,
+ 	.read_signal_strength = dst_read_signal_strength,
+@@ -1860,8 +1861,8 @@ static struct dvb_frontend_ops dst_atsc_ops = {
+ 	.release = dst_release,
+ 	.init = dst_init,
+ 	.tune = dst_tune_frontend,
+-	.set_frontend_legacy = dst_set_frontend,
+-	.get_frontend_legacy = dst_get_frontend,
++	.set_frontend = dst_set_frontend,
++	.get_frontend = dst_get_frontend,
+ 	.get_frontend_algo = dst_get_tuning_algo,
+ 	.read_status = dst_read_status,
+ 	.read_signal_strength = dst_read_signal_strength,
 -- 
-1.7.7.3
+1.7.8.352.g876a6
 
