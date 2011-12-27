@@ -1,129 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50715 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752008Ab1LRVwT (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:53412 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751375Ab1L0Wgy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Dec 2011 16:52:19 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Subject: Re: Omap3 ISP + Gstreamer v4l2src
-Date: Sun, 18 Dec 2011 22:52:19 +0100
-Cc: Adam Pledger <a.pledger@thermoteknix.com>,
-	linux-media@vger.kernel.org
-References: <4EDF1DA2.5000106@thermoteknix.com> <201112071134.24567.laurent.pinchart@ideasonboard.com> <4EDF477D.8080507@matrix-vision.de>
-In-Reply-To: <4EDF477D.8080507@matrix-vision.de>
+	Tue, 27 Dec 2011 17:36:54 -0500
+Message-ID: <4EFA4881.9050906@infradead.org>
+Date: Tue, 27 Dec 2011 20:36:49 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC 03/91] [media] dvb-core: add support for a DVBv5 get_frontend()
+ callback
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com> <1324948159-23709-3-git-send-email-mchehab@redhat.com> <1324948159-23709-4-git-send-email-mchehab@redhat.com> <4EF9B860.4000103@linuxtv.org> <4EF9CD07.6080608@infradead.org> <4EF9DA66.1070409@linuxtv.org> <4EF9FFC2.30705@infradead.org> <4EFA2EC4.6020901@linuxtv.org>
+In-Reply-To: <4EFA2EC4.6020901@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112182252.20413.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
-
-On Wednesday 07 December 2011 12:01:17 Michael Jones wrote:
-> On 12/07/2011 11:34 AM, Laurent Pinchart wrote:
-> > On Wednesday 07 December 2011 09:02:42 Adam Pledger wrote:
-> >> Hi Laurent,
-> >> 
-> >> Firstly, please accept my apologies, for what is very probably a naive
-> >> question. I'm new to V4L2 and am just getting to grips with how things
-> >> work.
-> > 
-> > No worries.
-> > 
-> >> I'm using a tvp5151 in bt656 mode with the Omap3 ISP,
-> > 
-> > Please note that BT.656 support is still experimental, so issues are not
-> > unexpected.
-> > 
-> >> as described in this thread (Your YUV support tree + some patches for
-> >> bt656, based on 2.6.39):
-> >> http://comments.gmane.org/gmane.linux.drivers.video-input-
-> > 
-> > infrastructure/39539
-> > 
-> >> I am able to capture some frames using yavta, using the media-ctl
-> >> configuration as follows:
-> >> media-ctl -v -r -l '"tvp5150 3-005d":0->"OMAP3 ISP CCDC":0[1], "OMAP3
-> >> ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> >> media-ctl -v --set-format '"tvp5150 3-005d":0 [UYVY2X8 720x625]'
-> >> media-ctl -v --set-format '"OMAP3 ISP CCDC":0 [UYVY2X8 720x625]'
-> >> media-ctl -v --set-format '"OMAP3 ISP CCDC":1 [UYVY2X8 720x625]'
-> > 
-> >> This yields this:
-> > [snip]
-> > 
-> > Looks good.
-> > 
-> >> The following works nicely:
-> >> yavta -f UYVY -s 720x625 -n 4 --capture=4 -F /dev/video2
-> >> 
-> >> The problem comes when I try to use gstreamer to capture from
-> >> /dev/video2, using the following:
-> >> gst-launch v4l2src device="/dev/video2" !
-> >> 'video/x-raw-yuv,width=720,height=625' ! filesink location=sample.yuv
-> >> 
-> >> This fails with:
-> >> ERROR: from element /GstPipeline:pipeline0/GstV4l2Src:v4l2src0: Failed
-> >> getting controls attributes on device '/dev/video2'.
-> >> Additional debug info:
-> >> v4l2_calls.c(267): gst_v4l2_fill_lists ():
-> >> /GstPipeline:pipeline0/GstV4l2Src:v4l2src0:
-> >> Failed querying control 9963776 on device '/dev/video2'. (25 -
-> >> Inappropriate ioctl for device)
-> >> 
-> >> My question is, should this "just work"? It was my understanding that
-> >> once the pipeline was configured with media-ctl then the CCDC output pad
-> >> should behave like a standard V4L2 device node.
-> > 
-> > That's more or less correct. There have been a passionate debate
-> > regarding what a "standard V4L2 device node" is. Not all V4L2 ioctls are
-> > mandatory, and no driver implements them all. The OMAP3 ISP driver
-> > implements a very small subset of the V4L2 API, and it wasn't clear
-> > whether that still qualified as V4L2. After discussions we decided that
-> > the V4L2 specification will document profiles, with a set of required
-> > ioctls for each of them. The OMAP3 ISP implements the future video
-> > streaming profile.
-> > 
-> > I'm not sure what ioctls v4l2src consider as mandatory. The above error
-> > related to a CTRL ioctl (possibly VIDIOC_QUERYCTRL), which isn't
-> > implemented by the OMAP3 ISP driver and will likely never be. I don't
-> > think that should be considered as mandatory.
-> > 
-> > I think that v4l2src requires the VIDIOC_ENUMFMT ioctl, which isn't
-> > implemented in the OMAP3 ISP driver. That might change in the future, but
-> > I'm not sure yet whether it will. In any case, you might have to modify
-> > v4l2src and/or the OMAP3 ISP driver for now. Some patches have been
-> > posted a while ago to this mailing list.
+On 27-12-2011 18:47, Andreas Oberritter wrote:
+> On 27.12.2011 18:26, Mauro Carvalho Chehab wrote:
+>> One usage of such call would be to retrieve the autodetected properties,
+>> after having a frontend lock.
 > 
-> Here was my submission for ENUM_FMT support:
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg29640.html
-> 
-> I submitted this in order to be able to use the omap3-isp with
-> GStreamer.  I missed the discussion about V4L2 "profiles", but when I
-> submitted that patch we discussed whether ENUM_FMT was mandatory. After
-> I pointed out that the V4L2 spec states plainly that it _is_ mandatory,
-> I thought Laurent basically agreed that it was reasonable.
-> 
-> Laurent, what do you think about adding ENUM_FMT support now?
+> Btw., dvb_frontend already refreshes the cache whenever the lock status
+> changes, i.e. when generating frontend events.
 
-I'm OK with it, but we need to discuss the details. During the latest V4L2 
-meeting in Prague we decided to create a "streaming" profile for V4L2 device 
-nodes such as the ones created by the OMAP3 ISP driver. We now need to decide 
-which ioctls will be mandatory in that profile (ENUM_FMT will likely be), and 
-what they should return exactly. That's on my to-do list (but handling my e-
-mail backlog comes first :-)).
+True. Well, if all agree, we can add a patch after this series removing
+the extra parameter from get_frontend(), making it symmetric to the set
+calls.
 
-> >> I realise that this might be something borked with my build dependencies
-> >> (although I'm pretty certain that v4l2src is being built against the
-> >> latest libv42) or gstreamer. Before I start digging through the code to
-> >> work out what is going on with the ioctl handling, I thought I would
-> >> check to see whether this should work, or whether I am doing something
-> >> fundamentally silly.
+(I prefer to code it as a separate patch, as changing the entire chain of
+about 80 patches is very painful. Also, a simple perl script is probably
+enough to do the trick of changing all at once).
 
--- 
-Regards,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Laurent Pinchart
