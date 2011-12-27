@@ -1,440 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12053 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:52462 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750716Ab1L1MJl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 07:09:41 -0500
-Message-ID: <4EFB06F9.5020808@redhat.com>
-Date: Wed, 28 Dec 2011 10:09:29 -0200
+	id S1753530Ab1L0BJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:34 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19XTk032613
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:33 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Holger Nelson <hnelson@hnelson.de>
-CC: Dennis Sperlich <dsperlich@googlemail.com>,
-	linux-media@vger.kernel.org,
-	Michael Krufky <mkrufky@kernellabs.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: em28xx_isoc_dvb_max_packetsize for EM2884 (Terratec Cinergy HTC
- Stick)
-References: <4EF64AF4.2040705@gmail.com> <4EF70077.5040907@redhat.com> <4EF72D61.9090001@gmail.com> <4EF767CB.10705@redhat.com> <4EF78896.1060908@gmail.com> <alpine.DEB.2.02.1112260627170.17197@nova.crius.de> <4EF86614.8050702@redhat.com> <alpine.DEB.2.02.1112280438220.18133@nova.crius.de>
-In-Reply-To: <alpine.DEB.2.02.1112280438220.18133@nova.crius.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 09/91] [media] cx22702: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:07:57 -0200
+Message-Id: <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28-12-2011 01:50, Holger Nelson wrote:
-> On Mon, 26 Dec 2011, Mauro Carvalho Chehab wrote:
-> 
->> I'm currently without time right now to work on a patch, but I think that several hacks
->> inside the em28xx probe should be removed, including the one that detects the endpoint
->> based on the packet size.
->>
->> As it is easier to code than to explain in words, the code below could be
->> a start (ok, it doesn't compile, doesn't remove all hacks, doesn't free memory, etc...)
->> Feel free to use it as a start for a real patch, if you wish.
-> 
-> I think, I filled the missing parts and removed most of the hacks in the probe code. The code works with my Cinergy HTC USB XS.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-The code looks sane on my eyes. Didn't test it through.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-On the final version, please include a proper description for the patch and your
-Signed-off-by:, according with:
-	http://linuxtv.org/wiki/index.php/Development:_How_to_submit_patches
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/cx22702.c |   68 ++++++++++++++++----------------
+ 1 files changed, 34 insertions(+), 34 deletions(-)
 
-
-> 
-> Holger
-> 
-> diff --git a/drivers/media/video/em28xx/em28xx-audio.c b/drivers/media/video/em28xx/em28xx-audio.c
-> index cff0768..e2a7b77 100644
-> --- a/drivers/media/video/em28xx/em28xx-audio.c
-> +++ b/drivers/media/video/em28xx/em28xx-audio.c
-> @@ -193,7 +193,7 @@ static int em28xx_init_audio_isoc(struct em28xx *dev)
-> 
->          urb->dev = dev->udev;
->          urb->context = dev;
-> -        urb->pipe = usb_rcvisocpipe(dev->udev, 0x83);
-> +        urb->pipe = usb_rcvisocpipe(dev->udev, EM28XX_EP_AUDIO);
->          urb->transfer_flags = URB_ISO_ASAP;
->          urb->transfer_buffer = dev->adev.transfer_buffer[i];
->          urb->interval = 1;
-> diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-> index a7cfded..8082914 100644
-> --- a/drivers/media/video/em28xx/em28xx-cards.c
-> +++ b/drivers/media/video/em28xx/em28xx-cards.c
-> @@ -3087,12 +3087,11 @@ unregister_dev:
->  static int em28xx_usb_probe(struct usb_interface *interface,
->                  const struct usb_device_id *id)
->  {
-> -    const struct usb_endpoint_descriptor *endpoint;
->      struct usb_device *udev;
->      struct em28xx *dev = NULL;
->      int retval;
-> -    bool is_audio_only = false, has_audio = false;
-> -    int i, nr, isoc_pipe;
-> +    bool has_audio = false, has_video = false, has_dvb = false;
-> +    int i, nr, sizedescr, size;
->      const int ifnum = interface->altsetting[0].desc.bInterfaceNumber;
->      char *speed;
->      char descr[255] = "";
-> @@ -3124,56 +3123,69 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->          goto err;
->      }
-> 
-> -    /* Get endpoints */
-> -    for (i = 0; i < interface->num_altsetting; i++) {
-> -        int ep;
-> +    /* allocate memory for our device state and initialize it */
-> +    dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-> +    if (dev == NULL) {
-> +        em28xx_err(DRIVER_NAME ": out of memory!\n");
-> +        retval = -ENOMEM;
-> +        goto err;
-> +    }
-> 
-> -        for (ep = 0; ep < interface->altsetting[i].desc.bNumEndpoints; ep++) {
-> -            struct usb_host_endpoint    *e;
-> -            e = &interface->altsetting[i].endpoint[ep];
-> +    /* compute alternate max packet sizes */
-> +    dev->alt_video_max_pkt_size = kmalloc(sizeof(dev->alt_video_max_pkt_size[0]) * interface->num_altsetting, GFP_KERNEL);
-> +    if (dev->alt_video_max_pkt_size == NULL) {
-> +        em28xx_errdev("out of memory!\n");
-> +        kfree(dev);
-> +        retval = -ENOMEM;
-> +        goto err;
-> +    }
-> 
-> -            if (e->desc.bEndpointAddress == 0x83)
-> -                has_audio = true;
-> -        }
-> +    dev->alt_dvb_max_pkt_size = kmalloc(sizeof(dev->alt_dvb_max_pkt_size[0]) * interface->num_altsetting, GFP_KERNEL);
-> +    if (dev->alt_dvb_max_pkt_size == NULL) {
-> +        em28xx_errdev("out of memory!\n");
-> +        kfree(dev->alt_video_max_pkt_size);
-> +        kfree(dev);
-> +        retval = -ENOMEM;
-> +        goto err;
->      }
-> 
-> -    endpoint = &interface->cur_altsetting->endpoint[0].desc;
-> +    /* Get endpoints */
-> +    for (i = 0; i < interface->num_altsetting; i++) {
-> +        int ep;
-> 
-> -    /* check if the device has the iso in endpoint at the correct place */
-> -    if (usb_endpoint_xfer_isoc(endpoint)
-> -        &&
-> -        (interface->altsetting[1].endpoint[0].desc.wMaxPacketSize == 940)) {
-> -        /* It's a newer em2874/em2875 device */
-> -        isoc_pipe = 0;
-> -    } else {
-> -        int check_interface = 1;
-> -        isoc_pipe = 1;
-> -        endpoint = &interface->cur_altsetting->endpoint[1].desc;
-> -        if (!usb_endpoint_xfer_isoc(endpoint))
-> -            check_interface = 0;
-> -
-> -        if (usb_endpoint_dir_out(endpoint))
-> -            check_interface = 0;
-> -
-> -        if (!check_interface) {
-> -            if (has_audio) {
-> -                is_audio_only = true;
-> -            } else {
-> -                em28xx_err(DRIVER_NAME " video device (%04x:%04x): "
-> -                    "interface %i, class %i found.\n",
-> -                    le16_to_cpu(udev->descriptor.idVendor),
-> -                    le16_to_cpu(udev->descriptor.idProduct),
-> -                    ifnum,
-> -                    interface->altsetting[0].desc.bInterfaceClass);
-> -                em28xx_err(DRIVER_NAME " This is an anciliary "
-> -                    "interface not used by the driver\n");
-> -
-> -                retval = -ENODEV;
-> -                goto err;
-> +        for (ep = 0; ep < interface->altsetting[i].desc.bNumEndpoints; ep++) {
-> +            const struct usb_endpoint_descriptor *e;
-> + +            e = &interface->altsetting[i].endpoint[ep].desc;
-
-There is an extra "+" here.
-
-> +
-> +            sizedescr = le16_to_cpu(e->wMaxPacketSize);
-> +            size = sizedescr & 0x7fff;
-> +            if (udev->speed == USB_SPEED_HIGH)
-> +                size = size * hb_mult(sizedescr);
-> +
-> +            if (usb_endpoint_xfer_isoc(e) && usb_endpoint_dir_in(e)) {
-> +                switch (e->bEndpointAddress) {
-> +                case EM28XX_EP_AUDIO:
-> +                    has_audio = true;
-> +                    break;
-> +                case EM28XX_EP_ANALOG:
-> +                    has_video = true;
-> +                    dev->alt_video_max_pkt_size[i] = size;
-> +                    break;
-> +                case EM28XX_EP_DIGITAL:
-> +                    has_dvb = true;
-> +                    dev->alt_dvb_max_pkt_size[i] = size;
-> +                    break;
-> +                }
->              }
->          }
->      }
-> -
-> + +    if (!(has_audio||has_video||has_dvb)) {
-
-There is an extra "+" here. Also Linux CodingStyle requires spaces before
-and after operators:
-	if (!(has_audio || has_video || has_dvb)) {
-
-> +            retval=-ENODEV;
-> +        goto err_free_all;
-> +    }
-> +
->      switch (udev->speed) {
->      case USB_SPEED_LOW:
->          speed = "1.5";
-> @@ -3197,6 +3209,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->              strlcat(descr, " ", sizeof(descr));
->          strlcat(descr, udev->product, sizeof(descr));
->      }
-> +
->      if (*descr)
->          strlcat(descr, " ", sizeof(descr));
-> 
-> @@ -3213,6 +3226,14 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->          printk(KERN_INFO DRIVER_NAME
->                 ": Audio Vendor Class interface %i found\n",
->                 ifnum);
-> +    if (has_video)
-> +        printk(KERN_INFO DRIVER_NAME
-> +               ": Video interface %i found\n",
-> +               ifnum);
-> +    if (has_dvb)
-> +        printk(KERN_INFO DRIVER_NAME
-> +               ": DVB interface %i found\n",
-> +               ifnum);
-> 
->      /*
->       * Make sure we have 480 Mbps of bandwidth, otherwise things like
-> @@ -3224,22 +3245,14 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->          printk(DRIVER_NAME ": Device must be connected to a high-speed"
->                 " USB 2.0 port.\n");
->          retval = -ENODEV;
-> -        goto err;
-> -    }
-> -
-> -    /* allocate memory for our device state and initialize it */
-> -    dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-> -    if (dev == NULL) {
-> -        em28xx_err(DRIVER_NAME ": out of memory!\n");
-> -        retval = -ENOMEM;
-> -        goto err;
-> +        goto err_free_all;
->      }
-> 
->      snprintf(dev->name, sizeof(dev->name), "em28xx #%d", nr);
->      dev->devno = nr;
->      dev->model = id->driver_info;
->      dev->alt   = -1;
-> -    dev->is_audio_only = is_audio_only;
-> +    dev->is_audio_only = has_audio&&!(has_video||has_dvb);
-
-CodingStyle: it should be, instead:
-	dev->is_audio_only = has_audio && !(has_video || has_dvb);
-
->      dev->has_alsa_audio = has_audio;
->      dev->audio_ifnum = ifnum;
-> 
-> @@ -3252,26 +3265,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->          }
->      }
-> 
-> -    /* compute alternate max packet sizes */
->      dev->num_alt = interface->num_altsetting;
-> -    dev->alt_max_pkt_size = kmalloc(32 * dev->num_alt, GFP_KERNEL);
-> -
-> -    if (dev->alt_max_pkt_size == NULL) {
-> -        em28xx_errdev("out of memory!\n");
-> -        kfree(dev);
-> -        retval = -ENOMEM;
-> -        goto err;
-> -    }
-> -
-> -    for (i = 0; i < dev->num_alt ; i++) {
-> -        u16 tmp = le16_to_cpu(interface->altsetting[i].endpoint[isoc_pipe].desc.wMaxPacketSize);
-> -        unsigned int size = tmp & 0x7ff;
-> -
-> -        if (udev->speed == USB_SPEED_HIGH)
-> -            size = size * hb_mult(tmp);
-> -
-> -        dev->alt_max_pkt_size[i] = size;
-> -    }
-> 
->      if ((card[nr] >= 0) && (card[nr] < em28xx_bcount))
->          dev->model = card[nr];
-> @@ -3285,9 +3279,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
->      retval = em28xx_init_dev(&dev, udev, interface, nr);
->      if (retval) {
->          mutex_unlock(&dev->lock);
-> -        kfree(dev->alt_max_pkt_size);
-> -        kfree(dev);
-> -        goto err;
-> +        goto err_free_all;
-
-Maybe you could also move the mutex_unlock to the error path, like:
-
-	goto unlock_and_free;
-
->      }
-> 
->      request_modules(dev);
-> @@ -3306,6 +3298,11 @@ static int em28xx_usb_probe(struct usb_interface *interface,
-> 
->      return 0;
-> 
-> +err_free_all:
-> +    kfree(dev->alt_dvb_max_pkt_size);
-> +    kfree(dev->alt_video_max_pkt_size);
-> +    kfree(dev);
-> +
->  err:
->      clear_bit(nr, &em28xx_devused);
-> 
-> @@ -3369,7 +3366,8 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
->      em28xx_close_extension(dev);
-> 
->      if (!dev->users) {
-> -        kfree(dev->alt_max_pkt_size);
-> +        kfree(dev->alt_dvb_max_pkt_size);
-> +        kfree(dev->alt_video_max_pkt_size);
->          kfree(dev);
->      }
->  }
-> diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
-> index 804a4ab..74608f9 100644
-> --- a/drivers/media/video/em28xx/em28xx-core.c
-> +++ b/drivers/media/video/em28xx/em28xx-core.c
-> @@ -829,14 +829,14 @@ int em28xx_set_alternate(struct em28xx *dev)
-> 
->      for (i = 0; i < dev->num_alt; i++) {
->          /* stop when the selected alt setting offers enough bandwidth */
-> -        if (dev->alt_max_pkt_size[i] >= min_pkt_size) {
-> +        if (dev->alt_video_max_pkt_size[i] >= min_pkt_size) {
->              dev->alt = i;
->              break;
->          /* otherwise make sure that we end up with the maximum bandwidth
->             because the min_pkt_size equation might be wrong...
->          */
-> -        } else if (dev->alt_max_pkt_size[i] >
-> -               dev->alt_max_pkt_size[dev->alt])
-> +        } else if (dev->alt_video_max_pkt_size[i] >
-> +               dev->alt_video_max_pkt_size[dev->alt])
->              dev->alt = i;
->      }
-> 
-> @@ -844,7 +844,7 @@ set_alt:
->      if (dev->alt != prev_alt) {
->          em28xx_coredbg("minimum isoc packet size: %u (alt=%d)\n",
->                  min_pkt_size, dev->alt);
-> -        dev->max_pkt_size = dev->alt_max_pkt_size[dev->alt];
-> +        dev->max_pkt_size = dev->alt_video_max_pkt_size[dev->alt];
->          em28xx_coredbg("setting alternate %d with wMaxPacketSize=%u\n",
->                     dev->alt, dev->max_pkt_size);
->          errCode = usb_set_interface(dev->udev, 0, dev->alt);
-> @@ -1070,7 +1070,7 @@ int em28xx_init_isoc(struct em28xx *dev, int max_packets,
->              should also be using 'desc.bInterval'
->           */
->          pipe = usb_rcvisocpipe(dev->udev,
-> -            dev->mode == EM28XX_ANALOG_MODE ? 0x82 : 0x84);
-> +            dev->mode == EM28XX_ANALOG_MODE ? EM28XX_EP_ANALOG : EM28XX_EP_DIGITAL);
-> 
->          usb_fill_int_urb(urb, dev->udev, pipe,
->                   dev->isoc_ctl.transfer_buffer[i], sb_size,
-> @@ -1144,20 +1144,10 @@ int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev)
->          }
->          break;
->      case CHIP_ID_EM2874:
-> -        /*
-> -         * FIXME: for now assumes 564 like it was before, but the
-> -         * em2874 code should be added to return the proper value
-> -         */
-> -        packet_size = 564;
-> -        break;
->      case CHIP_ID_EM2884:
->      case CHIP_ID_EM28174:
->      default:
-> -        /*
-> -         * FIXME: same as em2874. 564 was enough for 22 Mbit DVB-T
-> -         * but not enough for 44 Mbit DVB-C.
-> -         */
-> -        packet_size = 752;
-> +        packet_size = dev->alt_dvb_max_pkt_size[1];;
-
-There are two ";;" above.
-
-It could make sense to do a loop here and get the biggest max_pkt_size. 
-Of course, this would mean that, at em28xx_start_streaming, the code 
-should be changed from:
-        usb_set_interface(dev->udev, 0, 1);
-to:
-        usb_set_interface(dev->udev, 0, dev->dvb_alternate);
-
-and that the loop would fill dvb_alternate with the alternate associated
-with the selected packet size.
-
-Now that the packet_size is coming from the endpoint, I think that the chipset-specific
-code there could be removed completely.
-
->      }
-> 
->      return packet_size;
-> diff --git a/drivers/media/video/em28xx/em28xx-reg.h b/drivers/media/video/em28xx/em28xx-reg.h
-> index 66f7923..2f62685 100644
-> --- a/drivers/media/video/em28xx/em28xx-reg.h
-> +++ b/drivers/media/video/em28xx/em28xx-reg.h
-> @@ -12,6 +12,11 @@
->  #define EM_GPO_2   (1 << 2)
->  #define EM_GPO_3   (1 << 3)
-> 
-> +/* em28xx endpoints */
-> +#define EM28XX_EP_ANALOG    0x82
-> +#define EM28XX_EP_AUDIO        0x83
-> +#define EM28XX_EP_DIGITAL    0x84
-> +
->  /* em2800 registers */
->  #define EM2800_R08_AUDIOSRC 0x08
-> 
-> diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
-> index 9b4557a..af9f0b7 100644
-> --- a/drivers/media/video/em28xx/em28xx-video.c
-> +++ b/drivers/media/video/em28xx/em28xx-video.c
-> @@ -2254,7 +2254,8 @@ static int em28xx_v4l2_close(struct file *filp)
->             free the remaining resources */
->          if (dev->state & DEV_DISCONNECTED) {
->              em28xx_release_resources(dev);
-> -            kfree(dev->alt_max_pkt_size);
-> +            kfree(dev->alt_dvb_max_pkt_size);
-> +            kfree(dev->alt_video_max_pkt_size);
->              kfree(dev);
->              return 0;
->          }
-> diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
-> index b1199ef..f73f028 100644
-> --- a/drivers/media/video/em28xx/em28xx.h
-> +++ b/drivers/media/video/em28xx/em28xx.h
-> @@ -596,7 +596,8 @@ struct em28xx {
->      int alt;        /* alternate */
->      int max_pkt_size;    /* max packet size of isoc transaction */
->      int num_alt;        /* Number of alternative settings */
-> -    unsigned int *alt_max_pkt_size;    /* array of wMaxPacketSize */
-> +    unsigned int *alt_video_max_pkt_size;    /* array of wMaxPacketSize */
-> +    unsigned int *alt_dvb_max_pkt_size;    /* array of wMaxPacketSize */
->      struct urb *urb[EM28XX_NUM_BUFS];    /* urb for isoc transfers */
->      char *transfer_buffer[EM28XX_NUM_BUFS];    /* transfer buffers for isoc
->                             transfer */
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/dvb/frontends/cx22702.c b/drivers/media/dvb/frontends/cx22702.c
+index a04cff8..225ce84 100644
+--- a/drivers/media/dvb/frontends/cx22702.c
++++ b/drivers/media/dvb/frontends/cx22702.c
+@@ -146,7 +146,7 @@ static int cx22702_set_inversion(struct cx22702_state *state, int inversion)
+ 
+ /* Retrieve the demod settings */
+ static int cx22702_get_tps(struct cx22702_state *state,
+-	struct dvb_ofdm_parameters *p)
++			   struct dtv_frontend_properties *p)
+ {
+ 	u8 val;
+ 
+@@ -157,27 +157,27 @@ static int cx22702_get_tps(struct cx22702_state *state,
+ 	val = cx22702_readreg(state, 0x01);
+ 	switch ((val & 0x18) >> 3) {
+ 	case 0:
+-		p->constellation = QPSK;
++		p->modulation = QPSK;
+ 		break;
+ 	case 1:
+-		p->constellation = QAM_16;
++		p->modulation = QAM_16;
+ 		break;
+ 	case 2:
+-		p->constellation = QAM_64;
++		p->modulation = QAM_64;
+ 		break;
+ 	}
+ 	switch (val & 0x07) {
+ 	case 0:
+-		p->hierarchy_information = HIERARCHY_NONE;
++		p->hierarchy = HIERARCHY_NONE;
+ 		break;
+ 	case 1:
+-		p->hierarchy_information = HIERARCHY_1;
++		p->hierarchy = HIERARCHY_1;
+ 		break;
+ 	case 2:
+-		p->hierarchy_information = HIERARCHY_2;
++		p->hierarchy = HIERARCHY_2;
+ 		break;
+ 	case 3:
+-		p->hierarchy_information = HIERARCHY_4;
++		p->hierarchy = HIERARCHY_4;
+ 		break;
+ 	}
+ 
+@@ -260,9 +260,9 @@ static int cx22702_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
+ }
+ 
+ /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
+-static int cx22702_set_tps(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int cx22702_set_tps(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	u8 val;
+ 	struct cx22702_state *state = fe->demodulator_priv;
+ 
+@@ -277,14 +277,14 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
+ 
+ 	/* set bandwidth */
+ 	val = cx22702_readreg(state, 0x0C) & 0xcf;
+-	switch (p->u.ofdm.bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	switch (p->bandwidth_hz) {
++	case 6000000:
+ 		val |= 0x20;
+ 		break;
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		val |= 0x10;
+ 		break;
+-	case BANDWIDTH_8_MHZ:
++	case 8000000:
+ 		break;
+ 	default:
+ 		dprintk("%s: invalid bandwidth\n", __func__);
+@@ -292,15 +292,15 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
+ 	}
+ 	cx22702_writereg(state, 0x0C, val);
+ 
+-	p->u.ofdm.code_rate_LP = FEC_AUTO; /* temp hack as manual not working */
++	p->code_rate_LP = FEC_AUTO; /* temp hack as manual not working */
+ 
+ 	/* use auto configuration? */
+-	if ((p->u.ofdm.hierarchy_information == HIERARCHY_AUTO) ||
+-	   (p->u.ofdm.constellation == QAM_AUTO) ||
+-	   (p->u.ofdm.code_rate_HP == FEC_AUTO) ||
+-	   (p->u.ofdm.code_rate_LP == FEC_AUTO) ||
+-	   (p->u.ofdm.guard_interval == GUARD_INTERVAL_AUTO) ||
+-	   (p->u.ofdm.transmission_mode == TRANSMISSION_MODE_AUTO)) {
++	if ((p->hierarchy == HIERARCHY_AUTO) ||
++	   (p->modulation == QAM_AUTO) ||
++	   (p->code_rate_HP == FEC_AUTO) ||
++	   (p->code_rate_LP == FEC_AUTO) ||
++	   (p->guard_interval == GUARD_INTERVAL_AUTO) ||
++	   (p->transmission_mode == TRANSMISSION_MODE_AUTO)) {
+ 
+ 		/* TPS Source - use hardware driven values */
+ 		cx22702_writereg(state, 0x06, 0x10);
+@@ -316,7 +316,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
+ 	}
+ 
+ 	/* manually programmed values */
+-	switch (p->u.ofdm.constellation) {		/* mask 0x18 */
++	switch (p->modulation) {		/* mask 0x18 */
+ 	case QPSK:
+ 		val = 0x00;
+ 		break;
+@@ -327,10 +327,10 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
+ 		val = 0x10;
+ 		break;
+ 	default:
+-		dprintk("%s: invalid constellation\n", __func__);
++		dprintk("%s: invalid modulation\n", __func__);
+ 		return -EINVAL;
+ 	}
+-	switch (p->u.ofdm.hierarchy_information) {	/* mask 0x07 */
++	switch (p->hierarchy) {	/* mask 0x07 */
+ 	case HIERARCHY_NONE:
+ 		break;
+ 	case HIERARCHY_1:
+@@ -348,7 +348,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
+ 	}
+ 	cx22702_writereg(state, 0x06, val);
+ 
+-	switch (p->u.ofdm.code_rate_HP) {		/* mask 0x38 */
++	switch (p->code_rate_HP) {		/* mask 0x38 */
+ 	case FEC_NONE:
+ 	case FEC_1_2:
+ 		val = 0x00;
+@@ -369,7 +369,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
+ 		dprintk("%s: invalid code_rate_HP\n", __func__);
+ 		return -EINVAL;
+ 	}
+-	switch (p->u.ofdm.code_rate_LP) {		/* mask 0x07 */
++	switch (p->code_rate_LP) {		/* mask 0x07 */
+ 	case FEC_NONE:
+ 	case FEC_1_2:
+ 		break;
+@@ -391,7 +391,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
+ 	}
+ 	cx22702_writereg(state, 0x07, val);
+ 
+-	switch (p->u.ofdm.guard_interval) {		/* mask 0x0c */
++	switch (p->guard_interval) {		/* mask 0x0c */
+ 	case GUARD_INTERVAL_1_32:
+ 		val = 0x00;
+ 		break;
+@@ -408,7 +408,7 @@ static int cx22702_set_tps(struct dvb_frontend *fe,
+ 		dprintk("%s: invalid guard_interval\n", __func__);
+ 		return -EINVAL;
+ 	}
+-	switch (p->u.ofdm.transmission_mode) {		/* mask 0x03 */
++	switch (p->transmission_mode) {		/* mask 0x03 */
+ 	case TRANSMISSION_MODE_2K:
+ 		break;
+ 	case TRANSMISSION_MODE_8K:
+@@ -547,14 +547,14 @@ static int cx22702_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ }
+ 
+ static int cx22702_get_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++				struct dtv_frontend_properties *c)
+ {
+ 	struct cx22702_state *state = fe->demodulator_priv;
+ 
+ 	u8 reg0C = cx22702_readreg(state, 0x0C);
+ 
+-	p->inversion = reg0C & 0x1 ? INVERSION_ON : INVERSION_OFF;
+-	return cx22702_get_tps(state, &p->u.ofdm);
++	c->inversion = reg0C & 0x1 ? INVERSION_ON : INVERSION_OFF;
++	return cx22702_get_tps(state, c);
+ }
+ 
+ static int cx22702_get_tune_settings(struct dvb_frontend *fe,
+@@ -603,7 +603,7 @@ error:
+ EXPORT_SYMBOL(cx22702_attach);
+ 
+ static const struct dvb_frontend_ops cx22702_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name			= "Conexant CX22702 DVB-T",
+ 		.type			= FE_OFDM,
+@@ -622,8 +622,8 @@ static const struct dvb_frontend_ops cx22702_ops = {
+ 	.init = cx22702_init,
+ 	.i2c_gate_ctrl = cx22702_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = cx22702_set_tps,
+-	.get_frontend_legacy = cx22702_get_frontend,
++	.set_frontend= cx22702_set_tps,
++	.get_frontend = cx22702_get_frontend,
+ 	.get_tune_settings = cx22702_get_tune_settings,
+ 
+ 	.read_status = cx22702_read_status,
+-- 
+1.7.8.352.g876a6
 
