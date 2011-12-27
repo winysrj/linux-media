@@ -1,85 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hqemgate04.nvidia.com ([216.228.121.35]:7801 "EHLO
-	hqemgate04.nvidia.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752715Ab1LTCGE (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:42288 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752196Ab1L0Tnv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 21:06:04 -0500
-Date: Mon, 19 Dec 2011 18:05:49 -0800
-From: Robert Morell <rmorell@nvidia.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	"linux@arm.linux.org.uk" <linux@arm.linux.org.uk>,
-	"jesse.barker@linaro.org" <jesse.barker@linaro.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	"dri-devel@lists.freedesktop.org" <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"linux-mm@kvack.org" <linux-mm@kvack.org>,
-	"daniel@ffwll.ch" <daniel@ffwll.ch>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
- sharing mechanism
-Message-ID: <20111220020549.GQ6559@morell.nvidia.com>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
- <4EE33EC2.6050508@redhat.com>
- <20111212224408.GD4355@morell.nvidia.com>
- <201112131510.02785.arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201112131510.02785.arnd@arndb.de>
+	Tue, 27 Dec 2011 14:43:51 -0500
+Received: by eekc4 with SMTP id c4so11868452eek.19
+        for <linux-media@vger.kernel.org>; Tue, 27 Dec 2011 11:43:50 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [RFC/PATCHv1 0/4] JPEG codecs control class
+Date: Tue, 27 Dec 2011 20:43:27 +0100
+Message-Id: <1325015011-11904-1-git-send-email-snjw23@gmail.com>
+In-Reply-To: <4EBECD11.8090709@gmail.com>
+References: <4EBECD11.8090709@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 13, 2011 at 07:10:02AM -0800, Arnd Bergmann wrote:
-> On Monday 12 December 2011, Robert Morell wrote:
-> > > 
-> > > Doing a buffer sharing with something that is not GPL is not fun, as, if any
-> > > issue rises there, it would be impossible to discover if the problem is either
-> > > at the closed-source driver or at the open source one. At the time I was using
-> > > the Nvidia proprietary driver, it was very common to have unexplained issues
-> > > caused likely by bad code there at the buffer management code, causing X
-> > > applications and extensions (like xv) to break.
-> > >
-> > > We should really make this EXPORT_SYMBOL_GPL(), in order to be able to latter
-> > > debug future share buffer issues, when needed.
-> > 
-> > Sorry, I don't buy this argument.  Making these exports GPL-only is not
-> > likely to cause anybody to open-source their driver, but will rather
-> > just cause them to use yet more closed-source code that is even less
-> > debuggable than this would be, to those without access to the source.
-> 
-> But at least the broken module then won't be interacting with other modules
-> because it cannot share any buffers.
+Hi,
 
-One of the goals of this project is to unify the fragmented space of the
-ARM SoC memory managers so that each vendor doesn't implement their own,
-and they can all be closer to mainline.
+This patchset is a follow up of an RFC which can be found here:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg39012.html
 
-I fear that restricting the use of this buffer sharing mechanism to GPL
-drivers only will prevent that goal from being achieved, if an SoC
-driver has to interact with modules that use a non-GPL license.
+It creates a new JPEG control class with a tiny amount of four controls
+in it. It also adds V4L2_CID_JPEG_COMPRESSION_QUALITY control to two gspca
+sub-devices: sonixj and zc3xx, as these where drivers I had the hardware
+handy for. The gspca patches have been tested with v4l2ucp and v4l2-ctl.
 
-As a hypothetical example, consider laptops that have multiple GPUs.
-Today, these ship with onboard graphics (integrated to the CPU or
-chipset) along with a discrete GPU, where in many cases only the onboard
-graphics can actually display to the screen.  In order for anything
-rendered by the discrete GPU to be displayed, it has to be copied to
-memory available for the smaller onboard graphics to texture from or
-display directly.  Obviously, that's best done by sharing dma buffers
-rather than bouncing them through the GPU.  It's not much of a stretch
-to imagine that we'll see such systems with a Tegra CPU/GPU plus a
-discrete GPU in the future; in that case, we'd want to be able to share
-memory between the discrete GPU and the Tegra system.  In that scenario,
-if this interface is GPL-only, we'd be unable to adopt the dma_buffer
-sharing mechanism for Tegra.
+The compression quality control together with other controls on a panel
+is quite convenient. It allows to improve image quality instantly, without
+a need for using additional application that handles VIDIOC_S/G_JPEGCOMP.
 
-(This isn't too pie-in-the-sky, either; people are already combining
-Tegra with discrete GPUs:
-http://blogs.nvidia.com/2011/11/world%e2%80%99s-first-arm-based-supercomputer-to-launch-in-barcelona/
-)
 
 Thanks,
-Robert
+Sylwester
+
+
+Sylwester Nawrocki (4):
+  V4L: Add JPEG compression control class
+  V4L: Add the JPEG compression control class documentation
+  gspca: sonixj: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+  gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+
+ Documentation/DocBook/media/v4l/biblio.xml         |   20 +++
+ Documentation/DocBook/media/v4l/controls.xml       |  161 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |   16 ++-
+ drivers/media/video/gspca/sonixj.c                 |   23 +++
+ drivers/media/video/gspca/zc3xx.c                  |   54 +++++--
+ drivers/media/video/v4l2-ctrls.c                   |   24 +++
+ include/linux/videodev2.h                          |   26 +++
+ 7 files changed, 305 insertions(+), 19 deletions(-)
+
+--
+1.7.4.1
