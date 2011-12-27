@@ -1,128 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54919 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:2946 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752304Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:27 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rad015878
+	id S1753632Ab1L0BJf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:35 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19Zhh017863
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:35 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 27/94] [media] ds3000: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:24 -0200
-Message-Id: <1325257711-12274-28-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+Subject: [PATCH RFC 88/91] [media] dvb-core: don't use fe_bandwidth_t on driver
+Date: Mon, 26 Dec 2011 23:09:16 -0200
+Message-Id: <1324948159-23709-89-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-88-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-57-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-58-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-59-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-60-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-61-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-62-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-63-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-64-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-65-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-66-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-67-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-68-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-69-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-70-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-71-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-72-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-73-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-74-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-75-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-76-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-77-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-78-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-79-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-80-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-81-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-82-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-83-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-84-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-85-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-86-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-87-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-88-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
-
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+Now that everybody is talking DVBv5 API dialect, using this
+DVBv3 macro internally is not ok.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/frontends/ds3000.c |   33 ++++++++-------------------------
- 1 files changed, 8 insertions(+), 25 deletions(-)
+ drivers/media/dvb/bt8xx/dst_common.h    |    2 +-
+ drivers/media/dvb/frontends/dib3000mc.c |    2 +-
+ drivers/media/dvb/frontends/dib7000m.c  |    2 +-
+ drivers/media/dvb/frontends/tda10048.c  |    2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
-index 7fa5b92..f8fa80a 100644
---- a/drivers/media/dvb/frontends/ds3000.c
-+++ b/drivers/media/dvb/frontends/ds3000.c
-@@ -934,20 +934,6 @@ error2:
- }
- EXPORT_SYMBOL(ds3000_attach);
+diff --git a/drivers/media/dvb/bt8xx/dst_common.h b/drivers/media/dvb/bt8xx/dst_common.h
+index d88cf2a..d70d98f 100644
+--- a/drivers/media/dvb/bt8xx/dst_common.h
++++ b/drivers/media/dvb/bt8xx/dst_common.h
+@@ -124,7 +124,7 @@ struct dst_state {
+ 	u16 decode_snr;
+ 	unsigned long cur_jiff;
+ 	u8 k22;
+-	fe_bandwidth_t bandwidth;
++	u32 bandwidth;
+ 	u32 dst_hw_cap;
+ 	u8 dst_fw_version;
+ 	fe_sec_mini_cmd_t minicmd;
+diff --git a/drivers/media/dvb/frontends/dib3000mc.c b/drivers/media/dvb/frontends/dib3000mc.c
+index 8130028..d98a010 100644
+--- a/drivers/media/dvb/frontends/dib3000mc.c
++++ b/drivers/media/dvb/frontends/dib3000mc.c
+@@ -40,7 +40,7 @@ struct dib3000mc_state {
  
--static int ds3000_set_property(struct dvb_frontend *fe,
--	struct dtv_property *tvp)
--{
--	dprintk("%s(..)\n", __func__);
--	return 0;
--}
--
--static int ds3000_get_property(struct dvb_frontend *fe,
--	struct dtv_property *tvp)
--{
--	dprintk("%s(..)\n", __func__);
--	return 0;
--}
--
- static int ds3000_set_carrier_offset(struct dvb_frontend *fe,
- 					s32 carrier_offset_khz)
- {
-@@ -967,8 +953,7 @@ static int ds3000_set_carrier_offset(struct dvb_frontend *fe,
- 	return 0;
- }
+ 	u32 timf;
  
--static int ds3000_set_frontend(struct dvb_frontend *fe,
--				struct dvb_frontend_parameters *p)
-+static int ds3000_set_frontend(struct dvb_frontend *fe)
- {
- 	struct ds3000_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -994,15 +979,15 @@ static int ds3000_set_frontend(struct dvb_frontend *fe,
- 	div4 = 0;
+-	fe_bandwidth_t current_bandwidth;
++	u32 current_bandwidth;
  
- 	/* calculate and set freq divider */
--	if (p->frequency < 1146000) {
-+	if (c->frequency < 1146000) {
- 		ds3000_tuner_writereg(state, 0x10, 0x11);
- 		div4 = 1;
--		ndiv = ((p->frequency * (6 + 8) * 4) +
-+		ndiv = ((c->frequency * (6 + 8) * 4) +
- 				(DS3000_XTAL_FREQ / 2)) /
- 				DS3000_XTAL_FREQ - 1024;
- 	} else {
- 		ds3000_tuner_writereg(state, 0x10, 0x01);
--		ndiv = ((p->frequency * (6 + 8) * 2) +
-+		ndiv = ((c->frequency * (6 + 8) * 2) +
- 				(DS3000_XTAL_FREQ / 2)) /
- 				DS3000_XTAL_FREQ - 1024;
- 	}
-@@ -1101,7 +1086,7 @@ static int ds3000_set_frontend(struct dvb_frontend *fe,
- 	msleep(60);
+ 	u16 dev_id;
  
- 	offset_khz = (ndiv - ndiv % 2 + 1024) * DS3000_XTAL_FREQ
--		/ (6 + 8) / (div4 + 1) / 2 - p->frequency;
-+		/ (6 + 8) / (div4 + 1) / 2 - c->frequency;
+diff --git a/drivers/media/dvb/frontends/dib7000m.c b/drivers/media/dvb/frontends/dib7000m.c
+index eb90c4f..b6a25a2 100644
+--- a/drivers/media/dvb/frontends/dib7000m.c
++++ b/drivers/media/dvb/frontends/dib7000m.c
+@@ -38,7 +38,7 @@ struct dib7000m_state {
+ 	u16 wbd_ref;
  
- 	/* ds3000 global reset */
- 	ds3000_writereg(state, 0x07, 0x80);
-@@ -1226,7 +1211,7 @@ static int ds3000_tune(struct dvb_frontend *fe,
- 			fe_status_t *status)
- {
- 	if (p) {
--		int ret = ds3000_set_frontend(fe, p);
-+		int ret = ds3000_set_frontend(fe);
- 		if (ret)
- 			return ret;
- 	}
-@@ -1279,7 +1264,7 @@ static int ds3000_sleep(struct dvb_frontend *fe)
- }
+ 	u8 current_band;
+-	fe_bandwidth_t current_bandwidth;
++	u32 current_bandwidth;
+ 	struct dibx000_agc_config *current_agc;
+ 	u32 timf;
+ 	u32 timf_default;
+diff --git a/drivers/media/dvb/frontends/tda10048.c b/drivers/media/dvb/frontends/tda10048.c
+index 80de9f6..dfd1d5a 100644
+--- a/drivers/media/dvb/frontends/tda10048.c
++++ b/drivers/media/dvb/frontends/tda10048.c
+@@ -153,7 +153,7 @@ struct tda10048_state {
+ 	u32 pll_pfactor;
+ 	u32 sample_freq;
  
- static struct dvb_frontend_ops ds3000_ops = {
--
-+	.delsys = { SYS_DVBS, SYS_DVBS2},
- 	.info = {
- 		.name = "Montage Technology DS3000/TS2020",
- 		.type = FE_QPSK,
-@@ -1312,9 +1297,7 @@ static struct dvb_frontend_ops ds3000_ops = {
- 	.diseqc_send_burst = ds3000_diseqc_send_burst,
- 	.get_frontend_algo = ds3000_get_algo,
- 
--	.set_property = ds3000_set_property,
--	.get_property = ds3000_get_property,
--	.set_frontend_legacy = ds3000_set_frontend,
-+	.set_frontend = ds3000_set_frontend,
- 	.tune = ds3000_tune,
+-	enum fe_bandwidth bandwidth;
++	u32 bandwidth;
  };
  
+ static struct init_tab {
 -- 
 1.7.8.352.g876a6
 
