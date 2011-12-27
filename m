@@ -1,48 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59477 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:37899 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753363Ab1LITIj (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Dec 2011 14:08:39 -0500
-Message-ID: <4EE25CB4.3000501@iki.fi>
-Date: Fri, 09 Dec 2011 21:08:36 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] drxk: Switch the delivery system on FE_SET_PROPERTY
-References: <1323454852-7426-1-git-send-email-mchehab@redhat.com> <4EE252E5.2050204@iki.fi> <4EE25A3C.9040404@redhat.com>
-In-Reply-To: <4EE25A3C.9040404@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1753626Ab1L0BJf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:35 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19YZP017859
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:34 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 08/91] [media] cx22700: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:07:56 -0200
+Message-Id: <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/09/2011 08:58 PM, Mauro Carvalho Chehab wrote:
-> On 09-12-2011 16:26, Antti Palosaari wrote:
->> On 12/09/2011 08:20 PM, Mauro Carvalho Chehab wrote:
->>> The DRX-K doesn't change the delivery system at set_properties,
->>> but do it at frontend init. This causes problems on programs like
->>> w_scan that, by default, opens both frontends.
->>>
->>> Instead, explicitly set the format when set_parameters callback is
->>> called.
->>
->> May I ask why you don't use mfe_shared flag instead?
->
-> Tested with it. Works. It takes a little more time to switch, but the
-> solution will be cleaner. version 2 will follow.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Yes, there is kind of loop timer which tries to take FE and swithing 
-takes second or two because it waits FE is freed. I looked it when I did 
-MFE and I did not understood why it was done like that.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-cxd2820r has earlier simple lock (inside of demod driver) that just 
-returned error immediately when busy. It is a little bit mystery for me 
-why mfe_shared has that kind of waiting mechanism. Could someone explain 
-reason for that?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/cx22700.c |   52 +++++++++++++++++---------------
+ 1 files changed, 28 insertions(+), 24 deletions(-)
 
-regards
-Antti
-
+diff --git a/drivers/media/dvb/frontends/cx22700.c b/drivers/media/dvb/frontends/cx22700.c
+index 7ac95de..3c571b9 100644
+--- a/drivers/media/dvb/frontends/cx22700.c
++++ b/drivers/media/dvb/frontends/cx22700.c
+@@ -121,7 +121,8 @@ static int cx22700_set_inversion (struct cx22700_state* state, int inversion)
+ 	}
+ }
+ 
+-static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_parameters *p)
++static int cx22700_set_tps(struct cx22700_state *state,
++			   struct dtv_frontend_properties *p)
+ {
+ 	static const u8 qam_tab [4] = { 0, 1, 0, 2 };
+ 	static const u8 fec_tab [6] = { 0, 1, 2, 0, 3, 4 };
+@@ -146,25 +147,25 @@ static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_paramet
+ 	    p->transmission_mode != TRANSMISSION_MODE_8K)
+ 		return -EINVAL;
+ 
+-	if (p->constellation != QPSK &&
+-	    p->constellation != QAM_16 &&
+-	    p->constellation != QAM_64)
++	if (p->modulation != QPSK &&
++	    p->modulation != QAM_16 &&
++	    p->modulation != QAM_64)
+ 		return -EINVAL;
+ 
+-	if (p->hierarchy_information < HIERARCHY_NONE ||
+-	    p->hierarchy_information > HIERARCHY_4)
++	if (p->hierarchy < HIERARCHY_NONE ||
++	    p->hierarchy > HIERARCHY_4)
+ 		return -EINVAL;
+ 
+-	if (p->bandwidth < BANDWIDTH_8_MHZ || p->bandwidth > BANDWIDTH_6_MHZ)
++	if (p->bandwidth_hz > 8000000 || p->bandwidth_hz < 6000000)
+ 		return -EINVAL;
+ 
+-	if (p->bandwidth == BANDWIDTH_7_MHZ)
++	if (p->bandwidth_hz == 7000000)
+ 		cx22700_writereg (state, 0x09, cx22700_readreg (state, 0x09 | 0x10));
+ 	else
+ 		cx22700_writereg (state, 0x09, cx22700_readreg (state, 0x09 & ~0x10));
+ 
+-	val = qam_tab[p->constellation - QPSK];
+-	val |= p->hierarchy_information - HIERARCHY_NONE;
++	val = qam_tab[p->modulation - QPSK];
++	val |= p->hierarchy - HIERARCHY_NONE;
+ 
+ 	cx22700_writereg (state, 0x04, val);
+ 
+@@ -184,7 +185,8 @@ static int cx22700_set_tps (struct cx22700_state *state, struct dvb_ofdm_paramet
+ 	return 0;
+ }
+ 
+-static int cx22700_get_tps (struct cx22700_state* state, struct dvb_ofdm_parameters *p)
++static int cx22700_get_tps(struct cx22700_state *state,
++			   struct dtv_frontend_properties *p)
+ {
+ 	static const fe_modulation_t qam_tab [3] = { QPSK, QAM_16, QAM_64 };
+ 	static const fe_code_rate_t fec_tab [5] = { FEC_1_2, FEC_2_3, FEC_3_4,
+@@ -199,14 +201,14 @@ static int cx22700_get_tps (struct cx22700_state* state, struct dvb_ofdm_paramet
+ 	val = cx22700_readreg (state, 0x01);
+ 
+ 	if ((val & 0x7) > 4)
+-		p->hierarchy_information = HIERARCHY_AUTO;
++		p->hierarchy = HIERARCHY_AUTO;
+ 	else
+-		p->hierarchy_information = HIERARCHY_NONE + (val & 0x7);
++		p->hierarchy = HIERARCHY_NONE + (val & 0x7);
+ 
+ 	if (((val >> 3) & 0x3) > 2)
+-		p->constellation = QAM_AUTO;
++		p->modulation = QAM_AUTO;
+ 	else
+-		p->constellation = qam_tab[(val >> 3) & 0x3];
++		p->modulation = qam_tab[(val >> 3) & 0x3];
+ 
+ 	val = cx22700_readreg (state, 0x02);
+ 
+@@ -318,8 +320,9 @@ static int cx22700_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int cx22700_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int cx22700_set_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct cx22700_state* state = fe->demodulator_priv;
+ 
+ 	cx22700_writereg (state, 0x00, 0x02); /* XXX CHECKME: soft reset*/
+@@ -330,21 +333,22 @@ static int cx22700_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
+ 
+-	cx22700_set_inversion (state, p->inversion);
+-	cx22700_set_tps (state, &p->u.ofdm);
++	cx22700_set_inversion(state, c->inversion);
++	cx22700_set_tps(state, c);
+ 	cx22700_writereg (state, 0x37, 0x01);  /* PAL loop filter off */
+ 	cx22700_writereg (state, 0x00, 0x01);  /* restart acquire */
+ 
+ 	return 0;
+ }
+ 
+-static int cx22700_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int cx22700_get_frontend(struct dvb_frontend* fe,
++				struct dtv_frontend_properties *c)
+ {
+ 	struct cx22700_state* state = fe->demodulator_priv;
+ 	u8 reg09 = cx22700_readreg (state, 0x09);
+ 
+-	p->inversion = reg09 & 0x1 ? INVERSION_ON : INVERSION_OFF;
+-	return cx22700_get_tps (state, &p->u.ofdm);
++	c->inversion = reg09 & 0x1 ? INVERSION_ON : INVERSION_OFF;
++	return cx22700_get_tps(state, c);
+ }
+ 
+ static int cx22700_i2c_gate_ctrl(struct dvb_frontend* fe, int enable)
+@@ -401,7 +405,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops cx22700_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name			= "Conexant CX22700 DVB-T",
+ 		.type			= FE_OFDM,
+@@ -419,8 +423,8 @@ static struct dvb_frontend_ops cx22700_ops = {
+ 	.init = cx22700_init,
+ 	.i2c_gate_ctrl = cx22700_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = cx22700_set_frontend,
+-	.get_frontend_legacy = cx22700_get_frontend,
++	.set_frontend = cx22700_set_frontend,
++	.get_frontend = cx22700_get_frontend,
+ 	.get_tune_settings = cx22700_get_tune_settings,
+ 
+ 	.read_status = cx22700_read_status,
 -- 
-http://palosaari.fi/
+1.7.8.352.g876a6
+
