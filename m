@@ -1,58 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:54674 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751622Ab1LBWpk (ORCPT
+Received: from casper.infradead.org ([85.118.1.10]:48773 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753846Ab1L0NTW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 2 Dec 2011 17:45:40 -0500
-From: Kevin Hilman <khilman@ti.com>
-To: Sergio Aguirre <saaguirre@ti.com>
-Cc: <linux-media@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<laurent.pinchart@ideasonboard.com>, <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 05/11] OMAP4: Add base addresses for ISS
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-	<1322698500-29924-6-git-send-email-saaguirre@ti.com>
-Date: Fri, 02 Dec 2011 14:45:38 -0800
-In-Reply-To: <1322698500-29924-6-git-send-email-saaguirre@ti.com> (Sergio
-	Aguirre's message of "Wed, 30 Nov 2011 18:14:54 -0600")
-Message-ID: <87wraelhil.fsf@ti.com>
+	Tue, 27 Dec 2011 08:19:22 -0500
+Message-ID: <4EF9C5D3.2080400@infradead.org>
+Date: Tue, 27 Dec 2011 11:19:15 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+To: Andreas Oberritter <obi@linuxtv.org>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC 00/91] Only use DVBv5 internally on frontend drivers
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <4EF9BA86.1010109@linuxtv.org>
+In-Reply-To: <4EF9BA86.1010109@linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sergio Aguirre <saaguirre@ti.com> writes:
+On 27-12-2011 10:31, Andreas Oberritter wrote:
+> On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
+>> Mauro Carvalho Chehab (91):
+> 
+> It would be nice if you could send each message as a reply to the cover
+> letter next time, instead of sending message x as a reply to message x-1.
+> 
+> Otherwise, one needs a very wide screen to display all messages in a
+> threaded view. I stopped reading around message 50.
 
-> NOTE: This isn't the whole list of features that the
-> ISS supports, but the only ones supported at the moment.
->
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
+This is the way git mail-send does, at least by default. Maybe there's an
+option for it to change the way threads are shown. I'll seek if is there
+any way to change it.
 
-[...]
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h b/arch/arm/plat-omap/include/plat/omap44xx.h
-> index ea2b8a6..31432aa 100644
-> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
-> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-> @@ -49,6 +49,15 @@
->  #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
->  #define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
->  
-> +#define OMAP44XX_ISS_BASE			0x52000000
-> +#define OMAP44XX_ISS_TOP_BASE			(OMAP44XX_ISS_BASE + 0x0)
-> +#define OMAP44XX_ISS_CSI2_A_REGS1_BASE		(OMAP44XX_ISS_BASE + 0x1000)
-> +#define OMAP44XX_ISS_CAMERARX_CORE1_BASE	(OMAP44XX_ISS_BASE + 0x1170)
-> +
-> +#define OMAP44XX_ISS_TOP_END			(OMAP44XX_ISS_TOP_BASE + 256 - 1)
-> +#define OMAP44XX_ISS_CSI2_A_REGS1_END		(OMAP44XX_ISS_CSI2_A_REGS1_BASE + 368 - 1)
-> +#define OMAP44XX_ISS_CAMERARX_CORE1_END		(OMAP44XX_ISS_CAMERARX_CORE1_BASE + 32 - 1)
-> +
->  #define OMAP4_MMU1_BASE			0x55082000
->  #define OMAP4_MMU2_BASE			0x4A066000
-
-Who are the users of thes address ranges?
-
-IMO, we shouldn't ned to add anymore based address definitions.  These
-should be done in the hwmod data, and drivers get base addresses using
-the standard ways of getting resources (DT or platform_get_resource())
-
-Kevin
