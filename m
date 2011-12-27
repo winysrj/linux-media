@@ -1,124 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37281 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753200Ab1LFWBN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 17:01:13 -0500
-Message-ID: <4EDE90A3.7050900@gmail.com>
-Date: Tue, 06 Dec 2011 23:01:07 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v1 6/7] media: video: introduce face detection driver
- module
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>	<1322838172-11149-7-git-send-email-ming.lei@canonical.com>	<4EDD3DEE.6060506@gmail.com> <CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
-In-Reply-To: <CACVXFVPrAro=3t-wpbR_cVahzcx7SCa2J=s2nyyKfQ6SG-i0VQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:35934 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753568Ab1L0BJs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:48 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19l8h005550
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:47 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 65/91] [media] s5h1409: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:53 -0200
+Message-Id: <1324948159-23709-66-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-65-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-57-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-58-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-59-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-60-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-61-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-62-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-63-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-64-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-65-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/06/2011 03:07 PM, Ming Lei wrote:
-> Hi,
-> 
-> Thanks for your review.
-> 
-> On Tue, Dec 6, 2011 at 5:55 AM, Sylwester Nawrocki <snjw23@gmail.com> wrote:
->> Hi Ming,
->>
->> (I've pruned the Cc list, leaving just the mailing lists)
->>
->> On 12/02/2011 04:02 PM, Ming Lei wrote:
->>> This patch introduces one driver for face detection purpose.
->>>
->>> The driver is responsible for all v4l2 stuff, buffer management
->>> and other general things, and doesn't touch face detection hardware
->>> directly. Several interfaces are exported to low level drivers
->>> (such as the coming omap4 FD driver)which will communicate with
->>> face detection hw module.
->>>
->>> So the driver will make driving face detection hw modules more
->>> easy.
->>
->>
->> I would hold on for a moment on implementing generic face detection
->> module which is based on the V4L2 video device interface. We need to
->> first define an API that would be also usable at sub-device interface
->> level (http://linuxtv.org/downloads/v4l-dvb-apis/subdev.html).
-> 
-> If we can define a good/stable enough APIs between kernel and user space,
-> I think the patches can be merged first. For internal kernel APIs, we should
-> allow it to evolve as new hardware comes or new features are to be introduced.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-I also don't see a problem in discussing it a bit more;)
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-> 
-> I understand the API you mentioned here should belong to kernel internal
-> API, correct me if it is wrong.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/s5h1409.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-Yes, I meant the in kernel design, i.e. generic face detection kernel module
-and an OMAP4 FDIF driver. It makes lots of sense to separate common code
-in this way, maybe even when there would be only OMAP devices using it.
-
-I'm sure now the Samsung devices won't fit in video output node based driver
-design. They read image data in different ways and also the FD result format
-is totally different.
-
-> 
->> AFAICS OMAP4 FDIF processes only data stored in memory, thus it seems
->> reasonable to use the videodev interface for passing data to the kernel
->> from user space.
->>
->> But there might be face detection devices that accept data from other
->> H/W modules, e.g. transferred through SoC internal data buses between
->> image processing pipeline blocks. Thus any new interfaces need to be
->> designed with such devices in mind.
->>
->> Also the face detection hardware block might now have an input DMA
->> engine in it, the data could be fed from memory through some other
->> subsystem (e.g. resize/colour converter). Then the driver for that
->> subsystem would implement a video node.
-> 
-> I think the direct input image or frame data to FD should be from memory
-> no matter the actual data is from external H/W modules or input DMA because
-> FD will take lot of time to detect faces in one image or frame and FD can't
-> have so much memory to cache several images or frames data.
-
-Sorry, I cannot provide much details at the moment, but there exists hardware
-that reads data from internal SoC buses and even if it uses some sort of
-cache memory it doesn't necessarily have to be available for the user.
-
-Still the FD result is associated with an image frame for such H/W, but not
-necessarily with a memory buffer queued by a user application.
-
-How long it approximately takes to process single image for OMAP4 FDIF ?
-
-> 
-> If you have seen this kind of FD hardware design, please let me know.
-> 
->> I'm for leaving the buffer handling details for individual drivers
->> and focusing on a standard interface for applications, i.e. new
-> 
-> I think leaving buffer handling details in generic FD driver or
-> individual drivers
-> doesn't matter now, since it don't have effect on interfaces between kernel
-> and user space.
-
-I think you misunderstood me. I wasn't talking about core/driver module split,
-I meant we should not be making the user interface video node centric.
-
-I think for Samsung devices I'll need a capture video node for passing
-the result to the user. So instead of associating FD result with a buffer index
-we could try to use the frame sequence number (struct v4l2_buffer.sequence,
-http://linuxtv.org/downloads/v4l-dvb-apis/buffer.html#v4l2-buffer).
-
-It might be much better as the v4l2 events are associated with the frame
-sequence. And if we use controls then you get control events for free,
-and each event carries a frame sequence number int it
-(http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-dqevent.html).
-
+diff --git a/drivers/media/dvb/frontends/s5h1409.c b/drivers/media/dvb/frontends/s5h1409.c
+index f39216c..2641fd5 100644
+--- a/drivers/media/dvb/frontends/s5h1409.c
++++ b/drivers/media/dvb/frontends/s5h1409.c
+@@ -631,9 +631,9 @@ static void s5h1409_set_qam_interleave_mode_legacy(struct dvb_frontend *fe)
+ }
+ 
+ /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
+-static int s5h1409_set_frontend(struct dvb_frontend *fe,
+-				 struct dvb_frontend_parameters *p)
++static int s5h1409_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct s5h1409_state *state = fe->demodulator_priv;
+ 
+ 	dprintk("%s(frequency=%d)\n", __func__, p->frequency);
+@@ -642,7 +642,7 @@ static int s5h1409_set_frontend(struct dvb_frontend *fe,
+ 
+ 	state->current_frequency = p->frequency;
+ 
+-	s5h1409_enable_modulation(fe, p->u.vsb.modulation);
++	s5h1409_enable_modulation(fe, p->modulation);
+ 
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		if (fe->ops.i2c_gate_ctrl)
+@@ -926,12 +926,12 @@ static int s5h1409_read_ber(struct dvb_frontend *fe, u32 *ber)
+ }
+ 
+ static int s5h1409_get_frontend(struct dvb_frontend *fe,
+-				struct dvb_frontend_parameters *p)
++				struct dtv_frontend_properties *p)
+ {
+ 	struct s5h1409_state *state = fe->demodulator_priv;
+ 
+ 	p->frequency = state->current_frequency;
+-	p->u.vsb.modulation = state->current_modulation;
++	p->modulation = state->current_modulation;
+ 
+ 	return 0;
+ }
+@@ -996,7 +996,7 @@ error:
+ EXPORT_SYMBOL(s5h1409_attach);
+ 
+ static struct dvb_frontend_ops s5h1409_ops = {
+-
++	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+ 		.name			= "Samsung S5H1409 QAM/8VSB Frontend",
+ 		.type			= FE_ATSC,
+@@ -1008,8 +1008,8 @@ static struct dvb_frontend_ops s5h1409_ops = {
+ 
+ 	.init                 = s5h1409_init,
+ 	.i2c_gate_ctrl        = s5h1409_i2c_gate_ctrl,
+-	.set_frontend_legacy         = s5h1409_set_frontend,
+-	.get_frontend_legacy = s5h1409_get_frontend,
++	.set_frontend         = s5h1409_set_frontend,
++	.get_frontend         = s5h1409_get_frontend,
+ 	.get_tune_settings    = s5h1409_get_tune_settings,
+ 	.read_status          = s5h1409_read_status,
+ 	.read_ber             = s5h1409_read_ber,
 -- 
+1.7.8.352.g876a6
 
-Regards,
-Sylwester
