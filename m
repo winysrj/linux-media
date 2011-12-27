@@ -1,119 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:12584 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:12749 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752551Ab1LaMEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 07:04:22 -0500
-Message-ID: <4EFEFA33.8090904@redhat.com>
-Date: Sat, 31 Dec 2011 10:04:03 -0200
+	id S1753586Ab1L0BJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:34 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19Y6g005455
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:34 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Patrick Dickey <pdickeybeta@gmail.com>
-CC: Dorozel Csaba <mrjuuzer@upcmail.hu>,
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: ir-kbd-i2c / rc-hauppauge / linux-3.x broken
-References: <20111230120658.DXPH19694.viefep13-int.chello.at@edge04.upcmail.net> <4EFDF229.8090103@redhat.com> <20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net> <4EFEECF4.3010709@redhat.com> <4EFEEF65.6040703@gmail.com>
-In-Reply-To: <4EFEEF65.6040703@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: [PATCH RFC 26/91] [media] drxk: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:14 -0200
+Message-Id: <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31-12-2011 09:17, Patrick Dickey wrote:
-> -----BEGIN PGP SIGNED MESSAGE-----
-> Hash: SHA1
-> 
-> On 12/31/2011 05:07 AM, Mauro Carvalho Chehab wrote:
->> On 31-12-2011 08:15, Dorozel Csaba wrote:
->>>> Basically, the bridge driver is not sending the complete RC-5 
->>>> keycode to the IR core, but just the 8 least siginificant
->>>> bits. So, it is loosing the 0x1e00 code for the Hauppauge grey
->>>> remote.
->>>>
->>>> The fix should be at saa7134-input. It should be something
->>>> like the enclosed patch (I'm just guessing there that code3
->>>> contains the MSB bits - you may need to adjust it to match the
->>>> IR decoder there):
->>>
->>> I'm absolutly not a programer but an unhappy linux user who want
->>> his working remote back. Know nothing about c code, MSB bits ...
->>> After apply your fix looks what happening but remote is still
->>> broken.
->>>
->>> user juuzer # ir-keytable -t Testing events. Please, press CTRL-C
->>> to abort. 1325324726.066129: event MSC: scancode = de3d 
->>> 1325324726.066131: event sync 1325324726.169132: event MSC:
->>> scancode = de3d 1325324726.169134: event sync 1325324727.508129:
->>> event MSC: scancode = fe3d 1325324727.508131: event sync 
->>> 1325324727.611132: event MSC: scancode = fe3d 1325324727.611134:
->>> event sync 1325324730.084132: event MSC: scancode = de3d 
->>> 1325324730.084134: event sync 1325324730.187132: event MSC:
->>> scancode = de3d
->>>
->>> It seems the code3 sometimes return with de (11011110) sometimes
->>> fe (11111110). Is it possible to bitwise left 3 then bitwise
->>> right 3 so the result in both case is 1e (00011110) ? Or its
->>> totaly wrong ?
->>
->> An RC-5 code is just 14 bits. I found some Hauppauge decoders
->> returning just 12 bits on some places. It seems that all it needs
->> is to do a code3 | 0x3f, in order to discard the two most
->> significant bits (MSB).
->>
->> So, the enclosed patch should fix the issues. Please test.
->>
->> Regards, Mauro -
->>
->> saa7134-input: Fix get_key_hvr1110() handling
->>
->> Instead of returning just 8 bits, return the full RC-5 code
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>
->> diff --git a/drivers/media/video/saa7134/saa7134-input.c
->> b/drivers/media/video/saa7134/saa7134-input.c index
->> d4ee24b..29c8efd 100644 ---
->> a/drivers/media/video/saa7134/saa7134-input.c +++
->> b/drivers/media/video/saa7134/saa7134-input.c @@ -249,8 +249,8 @@
->> static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32
->> *ir_raw) return 0;
->>
->> /* return key */ -	*ir_key = code4; -	*ir_raw = code4; +	*ir_key =
->> 0x3fff & (code4 | code3 << 8); +	*ir_raw = *ir_key; return 1; }
->>
->>
->> Regards, Mauro
->>>
->>
->> -- To unsubscribe from this list: send the line "unsubscribe
->> linux-media" in the body of a message to majordomo@vger.kernel.org 
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> Will this work regardless of what remote is being used?
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-No, they're separate issues. That fix is for HVR-1110 IR keycode
-handling. It shouldn't affect anything else.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-> Currently I'm
-> using a Windows Media Center Remote (Hauppauge HVR-1600 provided it)
-> with a combination of saa7134 (MSI TV@nywhere Plus) and Hauppauge
-> HVR-1600 tuners. Right now, the Hauppauge works fine (all of this is
-> in Mythtv 0.24), but the MSI crashes when I change channels.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/drxk_hard.c |  127 +++++++++++--------------------
+ drivers/media/dvb/frontends/drxk_hard.h |    2 +-
+ 2 files changed, 44 insertions(+), 85 deletions(-)
 
-So, there's some bug at the MSI handling. Please test the latest
-media-build kernel and see if the crash condition still exists there.
-If so, please open a separate thread describing what's happening and
-posting the error logs (from dmesg).
-
-
-> Have a great day:)
-> Patrick.
-> 
-> -----BEGIN PGP SIGNATURE-----
-> Version: GnuPG v1.4.11 (GNU/Linux)
-> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-> 
-> iEYEARECAAYFAk7+72UACgkQMp6rvjb3CAR2tQCgqSAc55bQyDEe3Z4vu0sUYAne
-> RrQAoIU89vMVzI8UBH8v+dJxl3RsHj44
-> =3joI
-> -----END PGP SIGNATURE-----
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 2299e1d3..36e1c82 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -1885,7 +1885,7 @@ static int Start(struct drxk_state *state, s32 offsetFreq,
+ 		state->m_DrxkState != DRXK_DTV_STARTED)
+ 		goto error;
+ 
+-	state->m_bMirrorFreqSpect = (state->param.inversion == INVERSION_ON);
++	state->m_bMirrorFreqSpect = (state->props.inversion == INVERSION_ON);
+ 
+ 	if (IntermediateFrequency < 0) {
+ 		state->m_bMirrorFreqSpect = !state->m_bMirrorFreqSpect;
+@@ -2507,7 +2507,7 @@ static int GetQAMSignalToNoise(struct drxk_state *state,
+ 	u16 qamSlErrPower = 0;	/* accum. error between
+ 					raw and sliced symbols */
+ 	u32 qamSlSigPower = 0;	/* used for MER, depends of
+-					QAM constellation */
++					QAM modulation */
+ 	u32 qamSlMer = 0;	/* QAM MER */
+ 
+ 	dprintk(1, "\n");
+@@ -2521,7 +2521,7 @@ static int GetQAMSignalToNoise(struct drxk_state *state,
+ 		return -EINVAL;
+ 	}
+ 
+-	switch (state->param.u.qam.modulation) {
++	switch (state->props.modulation) {
+ 	case QAM_16:
+ 		qamSlSigPower = DRXK_QAM_SL_SIG_POWER_QAM16 << 2;
+ 		break;
+@@ -2752,7 +2752,7 @@ static int GetDVBCQuality(struct drxk_state *state, s32 *pQuality)
+ 		if (status < 0)
+ 			break;
+ 
+-		switch (state->param.u.qam.modulation) {
++		switch (state->props.modulation) {
+ 		case QAM_16:
+ 			SignalToNoiseRel = SignalToNoise - 200;
+ 			break;
+@@ -3817,7 +3817,7 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	/*== Write channel settings to device =====================================*/
+ 
+ 	/* mode */
+-	switch (state->param.u.ofdm.transmission_mode) {
++	switch (state->props.transmission_mode) {
+ 	case TRANSMISSION_MODE_AUTO:
+ 	default:
+ 		operationMode |= OFDM_SC_RA_RAM_OP_AUTO_MODE__M;
+@@ -3831,7 +3831,7 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	}
+ 
+ 	/* guard */
+-	switch (state->param.u.ofdm.guard_interval) {
++	switch (state->props.guard_interval) {
+ 	default:
+ 	case GUARD_INTERVAL_AUTO:
+ 		operationMode |= OFDM_SC_RA_RAM_OP_AUTO_GUARD__M;
+@@ -3851,7 +3851,7 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	}
+ 
+ 	/* hierarchy */
+-	switch (state->param.u.ofdm.hierarchy_information) {
++	switch (state->props.hierarchy) {
+ 	case HIERARCHY_AUTO:
+ 	case HIERARCHY_NONE:
+ 	default:
+@@ -3871,8 +3871,8 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	}
+ 
+ 
+-	/* constellation */
+-	switch (state->param.u.ofdm.constellation) {
++	/* modulation */
++	switch (state->props.modulation) {
+ 	case QAM_AUTO:
+ 	default:
+ 		operationMode |= OFDM_SC_RA_RAM_OP_AUTO_CONST__M;
+@@ -3915,7 +3915,7 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ #endif
+ 
+ 	/* coderate */
+-	switch (state->param.u.ofdm.code_rate_HP) {
++	switch (state->props.code_rate_HP) {
+ 	case FEC_AUTO:
+ 	default:
+ 		operationMode |= OFDM_SC_RA_RAM_OP_AUTO_RATE__M;
+@@ -3944,9 +3944,11 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	/* Also set parameters for EC_OC fix, note EC_OC_REG_TMD_HIL_MAR is changed
+ 		by SC for fix for some 8K,1/8 guard but is restored by InitEC and ResetEC
+ 		functions */
+-	switch (state->param.u.ofdm.bandwidth) {
+-	case BANDWIDTH_AUTO:
+-	case BANDWIDTH_8_MHZ:
++	switch (state->props.bandwidth_hz) {
++	case 0:
++		state->props.bandwidth_hz = 8000000;
++		/* fall though */
++	case 8000000:
+ 		bandwidth = DRXK_BANDWIDTH_8MHZ_IN_HZ;
+ 		status = write16(state, OFDM_SC_RA_RAM_SRMM_FIX_FACT_8K__A, 3052);
+ 		if (status < 0)
+@@ -3965,7 +3967,7 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 		if (status < 0)
+ 			goto error;
+ 		break;
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		bandwidth = DRXK_BANDWIDTH_7MHZ_IN_HZ;
+ 		status = write16(state, OFDM_SC_RA_RAM_SRMM_FIX_FACT_8K__A, 3491);
+ 		if (status < 0)
+@@ -3984,7 +3986,7 @@ static int SetDVBT(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 		if (status < 0)
+ 			goto error;
+ 		break;
+-	case BANDWIDTH_6_MHZ:
++	case 6000000:
+ 		bandwidth = DRXK_BANDWIDTH_6MHZ_IN_HZ;
+ 		status = write16(state, OFDM_SC_RA_RAM_SRMM_FIX_FACT_8K__A, 4073);
+ 		if (status < 0)
+@@ -4191,7 +4193,7 @@ error:
+ /**
+ * \brief Setup of the QAM Measurement intervals for signal quality
+ * \param demod instance of demod.
+-* \param constellation current constellation.
++* \param modulation current modulation.
+ * \return DRXStatus_t.
+ *
+ *  NOTE:
+@@ -4200,7 +4202,7 @@ error:
+ *
+ */
+ static int SetQAMMeasurement(struct drxk_state *state,
+-			     enum EDrxkConstellation constellation,
++			     enum EDrxkConstellation modulation,
+ 			     u32 symbolRate)
+ {
+ 	u32 fecBitsDesired = 0;	/* BER accounting period */
+@@ -4214,11 +4216,11 @@ static int SetQAMMeasurement(struct drxk_state *state,
+ 	fecRsPrescale = 1;
+ 	/* fecBitsDesired = symbolRate [kHz] *
+ 		FrameLenght [ms] *
+-		(constellation + 1) *
++		(modulation + 1) *
+ 		SyncLoss (== 1) *
+ 		ViterbiLoss (==1)
+ 		*/
+-	switch (constellation) {
++	switch (modulation) {
+ 	case DRX_CONSTELLATION_QAM16:
+ 		fecBitsDesired = 4 * symbolRate;
+ 		break;
+@@ -5285,12 +5287,12 @@ static int QAMSetSymbolrate(struct drxk_state *state)
+ 	/* Select & calculate correct IQM rate */
+ 	adcFrequency = (state->m_sysClockFreq * 1000) / 3;
+ 	ratesel = 0;
+-	/* printk(KERN_DEBUG "drxk: SR %d\n", state->param.u.qam.symbol_rate); */
+-	if (state->param.u.qam.symbol_rate <= 1188750)
++	/* printk(KERN_DEBUG "drxk: SR %d\n", state->props.symbol_rate); */
++	if (state->props.symbol_rate <= 1188750)
+ 		ratesel = 3;
+-	else if (state->param.u.qam.symbol_rate <= 2377500)
++	else if (state->props.symbol_rate <= 2377500)
+ 		ratesel = 2;
+-	else if (state->param.u.qam.symbol_rate <= 4755000)
++	else if (state->props.symbol_rate <= 4755000)
+ 		ratesel = 1;
+ 	status = write16(state, IQM_FD_RATESEL__A, ratesel);
+ 	if (status < 0)
+@@ -5299,7 +5301,7 @@ static int QAMSetSymbolrate(struct drxk_state *state)
+ 	/*
+ 		IqmRcRate = ((Fadc / (symbolrate * (4<<ratesel))) - 1) * (1<<23)
+ 		*/
+-	symbFreq = state->param.u.qam.symbol_rate * (1 << ratesel);
++	symbFreq = state->props.symbol_rate * (1 << ratesel);
+ 	if (symbFreq == 0) {
+ 		/* Divide by zero */
+ 		status = -EINVAL;
+@@ -5315,7 +5317,7 @@ static int QAMSetSymbolrate(struct drxk_state *state)
+ 	/*
+ 		LcSymbFreq = round (.125 *  symbolrate / adcFreq * (1<<15))
+ 		*/
+-	symbFreq = state->param.u.qam.symbol_rate;
++	symbFreq = state->props.symbol_rate;
+ 	if (adcFrequency == 0) {
+ 		/* Divide by zero */
+ 		status = -EINVAL;
+@@ -5416,7 +5418,7 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 		goto error;
+ 
+ 	/* Set params */
+-	switch (state->param.u.qam.modulation) {
++	switch (state->props.modulation) {
+ 	case QAM_256:
+ 		state->m_Constellation = DRX_CONSTELLATION_QAM256;
+ 		break;
+@@ -5439,7 +5441,7 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	}
+ 	if (status < 0)
+ 		goto error;
+-	setParamParameters[0] = state->m_Constellation;	/* constellation     */
++	setParamParameters[0] = state->m_Constellation;	/* modulation     */
+ 	setParamParameters[1] = DRXK_QAM_I12_J17;	/* interleave mode   */
+ 	if (state->m_OperationMode == OM_QAM_ITU_C)
+ 		setParamParameters[2] = QAM_TOP_ANNEX_C;
+@@ -5461,7 +5463,7 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 		if (status < 0)
+ 			goto error;
+ 
+-		setParamParameters[0] = state->m_Constellation; /* constellation     */
++		setParamParameters[0] = state->m_Constellation; /* modulation     */
+ 		setParamParameters[1] = DRXK_QAM_I12_J17;       /* interleave mode   */
+ 		status = scu_command(state, SCU_RAM_COMMAND_STANDARD_QAM | SCU_RAM_COMMAND_CMD_DEMOD_SET_PARAM, 2, setParamParameters, 1, &cmdResult);
+ 	}
+@@ -5470,7 +5472,7 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 
+ 	/*
+ 	 * STEP 3: enable the system in a mode where the ADC provides valid
+-	 * signal setup constellation independent registers
++	 * signal setup modulation independent registers
+ 	 */
+ #if 0
+ 	status = SetFrequency(channel, tunerFreqOffset));
+@@ -5482,7 +5484,7 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 		goto error;
+ 
+ 	/* Setup BER measurement */
+-	status = SetQAMMeasurement(state, state->m_Constellation, state->param.u. qam.symbol_rate);
++	status = SetQAMMeasurement(state, state->m_Constellation, state->props.symbol_rate);
+ 	if (status < 0)
+ 		goto error;
+ 
+@@ -5564,8 +5566,8 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 	if (status < 0)
+ 		goto error;
+ 
+-	/* STEP 4: constellation specific setup */
+-	switch (state->param.u.qam.modulation) {
++	/* STEP 4: modulation specific setup */
++	switch (state->props.modulation) {
+ 	case QAM_16:
+ 		status = SetQAM16(state);
+ 		break;
+@@ -5595,7 +5597,7 @@ static int SetQAM(struct drxk_state *state, u16 IntermediateFreqkHz,
+ 		goto error;
+ 
+ 	/* Re-configure MPEG output, requires knowledge of channel bitrate */
+-	/* extAttr->currentChannel.constellation = channel->constellation; */
++	/* extAttr->currentChannel.modulation = channel->modulation; */
+ 	/* extAttr->currentChannel.symbolrate    = channel->symbolrate; */
+ 	status = MPEGTSDtoSetup(state, state->m_OperationMode);
+ 	if (status < 0)
+@@ -6211,11 +6213,11 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	return ConfigureI2CBridge(state, enable ? true : false);
+ }
+ 
+-static int drxk_set_parameters(struct dvb_frontend *fe,
+-			       struct dvb_frontend_parameters *p)
++static int drxk_set_parameters(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++	u32 delsys  = p->delivery_system;
+ 	struct drxk_state *state = fe->demodulator_priv;
+-	u32 delsys  = fe->dtv_property_cache.delivery_system;
+ 	u32 IF;
+ 
+ 	dprintk(1, "\n");
+@@ -6243,7 +6245,7 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 		fe->ops.tuner_ops.set_params(fe);
+ 	if (fe->ops.i2c_gate_ctrl)
+ 		fe->ops.i2c_gate_ctrl(fe, 0);
+-	state->param = *p;
++	state->props = *p;
+ 	fe->ops.tuner_ops.get_if_frequency(fe, &IF);
+ 	Start(state, 0, IF);
+ 
+@@ -6252,13 +6254,6 @@ static int drxk_set_parameters(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int drxk_c_get_frontend(struct dvb_frontend *fe,
+-			       struct dvb_frontend_parameters *p)
+-{
+-	dprintk(1, "\n");
+-	return 0;
+-}
+-
+ static int drxk_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ {
+ 	struct drxk_state *state = fe->demodulator_priv;
+@@ -6356,41 +6351,8 @@ static int drxk_t_sleep(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int drxk_t_get_frontend(struct dvb_frontend *fe,
+-			       struct dvb_frontend_parameters *p)
+-{
+-	dprintk(1, "\n");
+-
+-	return 0;
+-}
+-
+-static int drxk_c_get_property(struct dvb_frontend *fe, struct dtv_property *p)
+-{
+-	switch (p->cmd) {
+-	case DTV_ENUM_DELSYS:
+-		p->u.buffer.data[0] = SYS_DVBC_ANNEX_A;
+-		p->u.buffer.data[1] = SYS_DVBC_ANNEX_C;
+-		p->u.buffer.len = 2;
+-		break;
+-	default:
+-		break;
+-	}
+-	return 0;
+-}
+-static int drxk_t_get_property(struct dvb_frontend *fe, struct dtv_property *p)
+-{
+-	switch (p->cmd) {
+-	case DTV_ENUM_DELSYS:
+-		p->u.buffer.data[0] = SYS_DVBT;
+-		p->u.buffer.len = 1;
+-		break;
+-	default:
+-		break;
+-	}
+-	return 0;
+-}
+-
+ static struct dvb_frontend_ops drxk_c_ops = {
++	.delsys = { SYS_DVBC_ANNEX_A, SYS_DVBC_ANNEX_C },
+ 	.info = {
+ 		 .name = "DRXK DVB-C",
+ 		 .type = FE_QAM,
+@@ -6406,9 +6368,7 @@ static struct dvb_frontend_ops drxk_c_ops = {
+ 	.sleep = drxk_c_sleep,
+ 	.i2c_gate_ctrl = drxk_gate_ctrl,
+ 
+-	.set_frontend_legacy = drxk_set_parameters,
+-	.get_frontend_legacy = drxk_c_get_frontend,
+-	.get_property = drxk_c_get_property,
++	.set_frontend = drxk_set_parameters,
+ 	.get_tune_settings = drxk_c_get_tune_settings,
+ 
+ 	.read_status = drxk_read_status,
+@@ -6419,6 +6379,7 @@ static struct dvb_frontend_ops drxk_c_ops = {
+ };
+ 
+ static struct dvb_frontend_ops drxk_t_ops = {
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		 .name = "DRXK DVB-T",
+ 		 .type = FE_OFDM,
+@@ -6439,9 +6400,7 @@ static struct dvb_frontend_ops drxk_t_ops = {
+ 	.sleep = drxk_t_sleep,
+ 	.i2c_gate_ctrl = drxk_gate_ctrl,
+ 
+-	.set_frontend_legacy = drxk_set_parameters,
+-	.get_frontend_legacy = drxk_t_get_frontend,
+-	.get_property = drxk_t_get_property,
++	.set_frontend = drxk_set_parameters,
+ 
+ 	.read_status = drxk_read_status,
+ 	.read_ber = drxk_read_ber,
+diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
+index 85a423f..60bcd61 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.h
++++ b/drivers/media/dvb/frontends/drxk_hard.h
+@@ -197,7 +197,7 @@ struct DRXKOfdmScCmd_t {
+ struct drxk_state {
+ 	struct dvb_frontend c_frontend;
+ 	struct dvb_frontend t_frontend;
+-	struct dvb_frontend_parameters param;
++	struct dtv_frontend_properties props;
+ 	struct device *dev;
+ 
+ 	struct i2c_adapter *i2c;
+-- 
+1.7.8.352.g876a6
 
