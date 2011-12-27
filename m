@@ -1,303 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51727 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756962Ab1LNSOQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 13:14:16 -0500
-Date: Wed, 14 Dec 2011 19:14:01 +0100
-From: martin@neutronstar.dyndns.org
-To: Igor Grinberg <grinberg@compulab.co.il>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tony Lindgren <tony@atomide.com>, linux-omap@vger.kernel.org,
-	Hiremath Vaibhav <hvaibhav@ti.com>,
-	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v3] arm: omap3evm: Add support for an MT9M032 based
- camera board.
-References: <1323825934-13320-1-git-send-email-martin@neutronstar.dyndns.org>
- <4EE86CF7.1010002@compulab.co.il>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EE86CF7.1010002@compulab.co.il>
-Message-Id: <1323886442.815408.21905@localhost>
+Received: from mx1.redhat.com ([209.132.183.28]:7535 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753914Ab1L0BJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:45 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19jAj017924
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:45 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 82/91] [media] tlg2300: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:09:10 -0200
+Message-Id: <1324948159-23709-83-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-82-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-57-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-58-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-59-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-60-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-61-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-62-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-63-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-64-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-65-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-66-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-67-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-68-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-69-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-70-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-71-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-72-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-73-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-74-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-75-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-76-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-77-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-78-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-79-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-80-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-81-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-82-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 14, 2011 at 11:31:35AM +0200, Igor Grinberg wrote:
-> Hi Martin,
-> 
-> On 12/14/11 03:25, Martin Hostettler wrote:
-> > Adds board support for an MT9M032 based camera to omap3evm.
-> > 
-> > Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
-> > ---
-> >  arch/arm/mach-omap2/Makefile                |    3 +-
-> >  arch/arm/mach-omap2/board-omap3evm-camera.c |  155 +++++++++++++++++++++++++++
-> >  arch/arm/mach-omap2/board-omap3evm.c        |    4 +
-> >  3 files changed, 161 insertions(+), 1 deletions(-)
-> >  create mode 100644 arch/arm/mach-omap2/board-omap3evm-camera.c
-> > 
-> > Changes in V3
-> >  * Added missing copyright and attribution.
-> >  * switched to gpio_request_array for gpio init.
-> >  * removed device_initcall and added call to omap3_evm_camera_init into omap3_evm_init
-> > 
-> > Changes in V2:
-> >  * ported to current mainline
-> >  * Style fixes
-> >  * Fix error handling
-> > 
-> > diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> > index b009f17..6045789 100644
-> > --- a/arch/arm/mach-omap2/Makefile
-> > +++ b/arch/arm/mach-omap2/Makefile
-> > @@ -196,7 +196,8 @@ obj-$(CONFIG_MACH_OMAP3530_LV_SOM)      += board-omap3logic.o
-> >  obj-$(CONFIG_MACH_OMAP3_TORPEDO)        += board-omap3logic.o
-> >  obj-$(CONFIG_MACH_ENCORE)		+= board-omap3encore.o
-> >  obj-$(CONFIG_MACH_OVERO)		+= board-overo.o
-> > -obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o
-> > +obj-$(CONFIG_MACH_OMAP3EVM)		+= board-omap3evm.o \
-> > +					   board-omap3evm-camera.o
-> >  obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
-> >  obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
-> >  obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm-camera.c b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > new file mode 100644
-> > index 0000000..bffd5b8
-> > --- /dev/null
-> > +++ b/arch/arm/mach-omap2/board-omap3evm-camera.c
-> > @@ -0,0 +1,155 @@
-> > +/*
-> > + * Copyright (C) 2011 Texas Instruments Inc
-> > + * Copyright (C) 2010-2011 Lund Engineering
-> > + * Contact: Gil Lund <gwlund@lundeng.com>
-> > + * Authors:
-> > + *    Vaibhav Hiremath <hvaibhav@ti.com>
-> > + *    Martin Hostettler <martin@neutronstar.dyndns.org>
-> > + *
-> > + * Board intregration for a MT9M032 camera connected to IMAGE_CONN and I2C Bus 2
-> > + *
-> > + * This program is free software; you can redistribute it and/or
-> > + * modify it under the terms of the GNU General Public License
-> > + * version 2 as published by the Free Software Foundation.
-> > + *
-> > + * This program is distributed in the hope that it will be useful, but
-> > + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> > + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> > + * General Public License for more details.
-> > + *
-> > + * You should have received a copy of the GNU General Public License
-> > + * along with this program; if not, write to the Free Software
-> > + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> > + * 02110-1301 USA
-> > + */
-> > +
-> > +#include <linux/i2c.h>
-> > +#include <linux/init.h>
-> > +#include <linux/platform_device.h>
-> > +
-> > +#include <linux/gpio.h>
-> > +#include <plat/mux.h>
-> > +#include "mux.h"
-> > +
-> > +#include "../../../drivers/media/video/omap3isp/isp.h"
-> 
-> Laurent,
-> In one of the previous reviews, you stated:
-> "I'll probably split it and move the part required by board files to 
-> include/media/omap3isp.h".
-> Is there any progress on that?
-> 
-> > +#include "media/mt9m032.h"
-> > +
-> > +#include "devices.h"
-> > +
-> > +#define EVM_TWL_GPIO_BASE OMAP_MAX_GPIO_LINES
-> > +#define GPIO98_VID_DEC_RES	98
-> > +#define nCAM_VD_SEL		157
-> > +
-> > +#define MT9M032_I2C_BUS_NUM	2
-> > +
-> > +
-> > +enum omap3evmdc_mux {
-> > +	MUX_TVP5146,
-> > +	MUX_CAMERA_SENSOR,
-> > +	MUX_EXP_CAMERA_SENSOR,
-> > +};
-> > +
-> > +/**
-> > + * omap3evm_set_mux - Sets mux to enable signal routing to
-> > + *                           different peripherals present on new EVM board
-> > + * @mux_id: enum, mux id to enable
-> > + *
-> > + * Returns 0 for success or a negative error code
-> > + */
-> > +static int omap3evm_set_mux(enum omap3evmdc_mux mux_id)
-> > +{
-> > +	/* Set GPIO6 = 1 */
-> > +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 6, 1);
-> > +	gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +
-> > +	switch (mux_id) {
-> > +	case MUX_TVP5146:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +		gpio_set_value(nCAM_VD_SEL, 1);
-> > +		break;
-> > +
-> > +	case MUX_CAMERA_SENSOR:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 0);
-> > +		gpio_set_value(nCAM_VD_SEL, 0);
-> > +		break;
-> > +
-> > +	case MUX_EXP_CAMERA_SENSOR:
-> > +		gpio_set_value_cansleep(EVM_TWL_GPIO_BASE + 2, 1);
-> > +		break;
-> > +
-> > +	default:
-> > +		pr_err("omap3evm-camera: Invalid mux id #%d\n", mux_id);
-> > +		return -EINVAL;
-> > +	}
-> > +
-> > +	return 0;
-> > +}
-> 
-> I don't really care about that, but I don't see any mux
-> being set in the above function so the name and comments
-> are misleading.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-There's are video muxes on this board that's controlled by various
-gpios. It's not a mux in the omap chip if you've expected to see that.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-As this is an evaluation board it has a bunch of video connectors that 
-the user can choose from for different input devices.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/tlg2300/pd-common.h |    2 +-
+ drivers/media/video/tlg2300/pd-dvb.c    |   23 ++++++++++++-----------
+ 2 files changed, 13 insertions(+), 12 deletions(-)
 
+diff --git a/drivers/media/video/tlg2300/pd-common.h b/drivers/media/video/tlg2300/pd-common.h
+index 56564e6..5dd73b7 100644
+--- a/drivers/media/video/tlg2300/pd-common.h
++++ b/drivers/media/video/tlg2300/pd-common.h
+@@ -140,7 +140,7 @@ struct pd_dvb_adapter {
+ 	u8			reserved[3];
+ 
+ 	/* data for power resume*/
+-	struct dvb_frontend_parameters fe_param;
++	struct dtv_frontend_properties fe_param;
+ 
+ 	/* for channel scanning */
+ 	int		prev_freq;
+diff --git a/drivers/media/video/tlg2300/pd-dvb.c b/drivers/media/video/tlg2300/pd-dvb.c
+index f864c17..7998811 100644
+--- a/drivers/media/video/tlg2300/pd-dvb.c
++++ b/drivers/media/video/tlg2300/pd-dvb.c
+@@ -12,9 +12,9 @@
+ static void dvb_urb_cleanup(struct pd_dvb_adapter *pd_dvb);
+ 
+ static int dvb_bandwidth[][2] = {
+-	{ TLG_BW_8, BANDWIDTH_8_MHZ },
+-	{ TLG_BW_7, BANDWIDTH_7_MHZ },
+-	{ TLG_BW_6, BANDWIDTH_6_MHZ }
++	{ TLG_BW_8, 8000000 },
++	{ TLG_BW_7, 7000000 },
++	{ TLG_BW_6, 6000000 }
+ };
+ static int dvb_bandwidth_length = ARRAY_SIZE(dvb_bandwidth);
+ 
+@@ -146,9 +146,9 @@ static int fw_delay_overflow(struct pd_dvb_adapter *adapter)
+ 	return msec > 800 ? true : false;
+ }
+ 
+-static int poseidon_set_fe(struct dvb_frontend *fe,
+-			struct dvb_frontend_parameters *fep)
++static int poseidon_set_fe(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	s32 ret = 0, cmd_status = 0;
+ 	s32 i, bandwidth = -1;
+ 	struct poseidon *pd = fe->demodulator_priv;
+@@ -159,7 +159,7 @@ static int poseidon_set_fe(struct dvb_frontend *fe,
+ 
+ 	mutex_lock(&pd->lock);
+ 	for (i = 0; i < dvb_bandwidth_length; i++)
+-		if (fep->u.ofdm.bandwidth == dvb_bandwidth[i][1])
++		if (fep->bandwidth_hz == dvb_bandwidth[i][1])
+ 			bandwidth = dvb_bandwidth[i][0];
+ 
+ 	if (check_scan_ok(fep->frequency, bandwidth, pd_dvb)) {
+@@ -210,7 +210,7 @@ static int pm_dvb_resume(struct poseidon *pd)
+ 
+ 	poseidon_check_mode_dvbt(pd);
+ 	msleep(300);
+-	poseidon_set_fe(&pd_dvb->dvb_fe, &pd_dvb->fe_param);
++	poseidon_set_fe(&pd_dvb->dvb_fe);
+ 
+ 	dvb_start_streaming(pd_dvb);
+ 	return 0;
+@@ -227,12 +227,12 @@ static s32 poseidon_fe_init(struct dvb_frontend *fe)
+ 	pd->pm_resume  = pm_dvb_resume;
+ #endif
+ 	memset(&pd_dvb->fe_param, 0,
+-			sizeof(struct dvb_frontend_parameters));
++			sizeof(struct dtv_frontend_properties));
+ 	return 0;
+ }
+ 
+ static int poseidon_get_fe(struct dvb_frontend *fe,
+-			struct dvb_frontend_parameters *fep)
++			struct dtv_frontend_properties *fep)
+ {
+ 	struct poseidon *pd = fe->demodulator_priv;
+ 	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+@@ -332,6 +332,7 @@ static int poseidon_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
+ }
+ 
+ static struct dvb_frontend_ops poseidon_frontend_ops = {
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name		= "Poseidon DVB-T",
+ 		.type		= FE_OFDM,
+@@ -353,8 +354,8 @@ static struct dvb_frontend_ops poseidon_frontend_ops = {
+ 	.init = poseidon_fe_init,
+ 	.sleep = poseidon_fe_sleep,
+ 
+-	.set_frontend_legacy = poseidon_set_fe,
+-	.get_frontend_legacy = poseidon_get_fe,
++	.set_frontend = poseidon_set_fe,
++	.get_frontend = poseidon_get_fe,
+ 	.get_tune_settings = poseidon_fe_get_tune_settings,
+ 
+ 	.read_status	= poseidon_read_status,
+-- 
+1.7.8.352.g876a6
 
-> 
-> > +
-> > +static struct mt9m032_platform_data mt9m032_platform_data = {
-> > +	.ext_clock = 13500000,
-> > +	.pll_pre_div = 6,
-> > +	.pll_mul = 120,
-> > +	.pll_out_div = 5,
-> > +	.invert_pixclock = 1,
-> > +};
-> > +
-> > +static struct i2c_board_info camera_i2c_devices[] = {
-> > +	{
-> > +		I2C_BOARD_INFO(MT9M032_NAME, MT9M032_I2C_ADDR),
-> > +		.platform_data = &mt9m032_platform_data,
-> > +	},
-> > +};
-> > +
-> > +static struct isp_subdev_i2c_board_info camera_i2c_subdevs[] = {
-> > +	{
-> > +		.board_info = &camera_i2c_devices[0],
-> > +		.i2c_adapter_id = MT9M032_I2C_BUS_NUM,
-> > +	},
-> > +	{},
-> > +};
-> > +
-> > +static struct isp_v4l2_subdevs_group camera_subdevs[] = {
-> > +	{
-> > +		.subdevs = camera_i2c_subdevs,
-> > +		.interface = ISP_INTERFACE_PARALLEL,
-> > +		.bus = {
-> > +			.parallel = {
-> > +				.data_lane_shift = 1,
-> > +				.clk_pol = 0,
-> > +				.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
-> > +			}
-> > +		},
-> > +	},
-> > +	{},
-> > +};
-> > +
-> > +static struct isp_platform_data isp_platform_data = {
-> > +	.subdevs = camera_subdevs,
-> > +};
-> > +
-> > +
-> > +static struct gpio setup_gpios[] = {
-> > +	{ nCAM_VD_SEL,           GPIOF_OUT_INIT_HIGH, "nCAM_VD_SEL" },
-> > +	{ EVM_TWL_GPIO_BASE + 2, GPIOF_OUT_INIT_LOW,  "T2_GPIO2" },
-> > +	{ EVM_TWL_GPIO_BASE + 8, GPIOF_OUT_INIT_LOW, "nCAM_VD_EN" },
-> > +};
-> > +
-> > +
-> > +int __init omap3_evm_camera_init(void)
-> > +{
-> > +	int ret = -EINVAL;
-> 
-> No need to initialize the variable, as it is done three line below.
-
-Yes, i'll fix that.
-
-> 
-> > +
-> > +	omap_mux_init_gpio(nCAM_VD_SEL, OMAP_PIN_OUTPUT);
-> > +	ret = gpio_request_array(setup_gpios, ARRAY_SIZE(setup_gpios));
-> > +	if (ret < 0) {
-> > +		pr_err("omap3evm-camera: Failed to setup camera signal routing.\n");
-> > +		return ret;
-> > +	}
-> 
-> It looks like both above calls (gpio_request and mux_init)
-> can be moved to omap3evm_set_mux() function (or a renamed version of it),
-> so all the GPIO stuff will be close to each other instead of requesting
-> in one place and playing with values in another...
-
-I'd like to keep the one time setup and the theoretically run time switchable
-parts seperate. It doesn't complicate the code and if a brave soul wants to
-connect different camera modules and switch between them it's a more reviewable
-patch from here.
-
-> 
-> > +	omap3evm_set_mux(MUX_CAMERA_SENSOR);
-> 
-> So the plan is to add support for the 3 types,
-> but hard code to only one?
-> Can't this be runtime detected somehow?
-
-The mux code came from out of tree drivers. I did want to keep enough
-information so someone extending this board code for other setups doesn't have a
-hard time. I can't think of an reliable way to runtime detect what video source
-a specific use case would want. Ideally someone who needs one of the other
-video sources should add a more generic solution here. 
-
-> 
-> > +	ret = omap3_init_camera(&isp_platform_data);
-> > +	if (ret < 0) {
-> > +		gpio_free_array(setup_gpios, ARRAY_SIZE(setup_gpios));
-> > +		return ret;
-> > +	}
-> > +	return 0;
-> > +}
-> > diff --git a/arch/arm/mach-omap2/board-omap3evm.c b/arch/arm/mach-omap2/board-omap3evm.c
-> > index ec00b2e..1b50539 100644
-> > --- a/arch/arm/mach-omap2/board-omap3evm.c
-> > +++ b/arch/arm/mach-omap2/board-omap3evm.c
-> > @@ -617,6 +617,8 @@ static struct gpio omap3_evm_ehci_gpios[] __initdata = {
-> >  	{ OMAP3_EVM_EHCI_SELECT, GPIOF_OUT_INIT_LOW,   "select EHCI port" },
-> >  };
-> >  
-> > +int omap3_evm_camera_init(void);
-> > +
-> >  static void __init omap3_evm_init(void)
-> >  {
-> >  	omap3_evm_get_revision();
-> > @@ -672,6 +674,8 @@ static void __init omap3_evm_init(void)
-> >  		pr_err("error setting wl12xx data\n");
-> >  	platform_device_register(&omap3evm_wlan_regulator);
-> >  #endif
-> > +
-> > +	omap3_evm_camera_init();
-> >  }
-> >  
-> >  MACHINE_START(OMAP3EVM, "OMAP3 EVM")
-> 
-
- - Martin
-
-> -- 
-> Regards,
-> Igor.
