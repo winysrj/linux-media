@@ -1,70 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:11556 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:31907 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751586Ab1LIWMD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 9 Dec 2011 17:12:03 -0500
-Message-ID: <4EE287A9.3000502@redhat.com>
-Date: Fri, 09 Dec 2011 20:11:53 -0200
+	id S1753586Ab1L0BKC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:10:02 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR1A1LZ015751
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:10:01 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] drxk: Switch the delivery system on FE_SET_PROPERTY
-References: <1323454852-7426-1-git-send-email-mchehab@redhat.com> <4EE252E5.2050204@iki.fi> <4EE25A3C.9040404@redhat.com> <4EE25CB4.3000501@iki.fi>
-In-Reply-To: <4EE25CB4.3000501@iki.fi>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 01/91] [media] dvb-core: allow demods to specify the supported delivery systems supported standards.
+Date: Mon, 26 Dec 2011 23:07:49 -0200
+Message-Id: <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 09-12-2011 17:08, Antti Palosaari wrote:
-> On 12/09/2011 08:58 PM, Mauro Carvalho Chehab wrote:
->> On 09-12-2011 16:26, Antti Palosaari wrote:
->>> On 12/09/2011 08:20 PM, Mauro Carvalho Chehab wrote:
->>>> The DRX-K doesn't change the delivery system at set_properties,
->>>> but do it at frontend init. This causes problems on programs like
->>>> w_scan that, by default, opens both frontends.
->>>>
->>>> Instead, explicitly set the format when set_parameters callback is
->>>> called.
->>>
->>> May I ask why you don't use mfe_shared flag instead?
->>
->> Tested with it. Works. It takes a little more time to switch, but the
->> solution will be cleaner. version 2 will follow.
->
-> Yes, there is kind of loop timer which tries to take FE and swithing takes second or two
->because it waits FE is freed. I looked it when I did MFE and I did not understood why
->it was done like that.
->
-> cxd2820r has earlier simple lock (inside of demod driver) that just
-> returned error immediately when busy. It is a little bit mystery for
-> me why mfe_shared has that kind of waiting mechanism.
+DVB-S and DVB-T, as those were the standards supported by DVBv3.
 
-Still, it doesn't make much sense, at least on w_scan, as the only thing that is
-called with each adapter is FE_GET_INFO:
+New standards like DSS, ISDB and CTTB don't fit on any of the
+above types.
 
+while there's a way for the drivers to explicitly change whatever
+default DELSYS were filled inside the core, still a fake value is
+needed there, and a "compat" code to allow DVBv3 applications to
+work with those delivery systems is needed. This is good for a
+short term solution, while applications aren't using DVBv5 directly.
 
-open("/dev/dvb/adapter0/frontend0", O_RDWR|O_NONBLOCK) = 3
-ioctl(3, FE_GET_INFO, 0x635120)         = 0
-write(2, "\t/dev/dvb/adapter0/frontend0 -> "..., 92	/dev/dvb/adapter0/frontend0 -> DVB-C "DRXK DVB-C": specified was DVB-T -> SEARCH NEXT ONE.
-) = 92
-close(3)                                = 0
-open("/dev/dvb/adapter0/frontend1", O_RDWR|O_NONBLOCK) = 3
-ioctl(3, FE_GET_INFO, 0x635120)         = 0
-write(2, "\t/dev/dvb/adapter0/frontend1 -> "..., 52	/dev/dvb/adapter0/frontend1 -> DVB-T "DRXK DVB-T": ) = 52
-write(2, "good :-)\n", 9good :-)
-)               = 9
-close(3)                                = 0
+However, at long term, this is bad, as the compat code runs even
+if the application is using DVBv5. Also, the compat code is not
+perfect, and only works when the frontend is capable of auto-detecting
+the parameters that aren't visible by the faked delivery systems.
 
-Still, the second open takes about 4 seconds to complete, _even_ with O_NONBLOCK.
+So, let the frontend fill the supported delivery systems at the
+device properties directly, and, in the future, let the core to use
+the delsys to fill the reported info::type based on the delsys.
 
-There's something bad there, as it is violating POSIX.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++++++++++++
+ drivers/media/dvb/dvb-core/dvb_frontend.h |    8 ++++++++
+ 2 files changed, 21 insertions(+), 0 deletions(-)
 
->Could someone explain reason for that?
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 8dedff4..f17c411 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1252,6 +1252,19 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
+ 	const struct dvb_frontend_info *info = &fe->ops.info;
+ 	u32 ncaps = 0;
+ 
++	/*
++	 * If the frontend explicitly sets a list, use it, instead of
++	 * filling based on the info->type
++	 */
++	if (fe->ops.delsys[ncaps]) {
++		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
++			p->u.buffer.data[ncaps] = fe->ops.delsys[ncaps];
++			ncaps++;
++		}
++		p->u.buffer.len = ncaps;
++		return;
++	}
++
+ 	switch (info->type) {
+ 	case FE_QPSK:
+ 		p->u.buffer.data[ncaps++] = SYS_DVBS;
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index 895f88f..95f2134 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -42,6 +42,12 @@
+ 
+ #include "dvbdev.h"
+ 
++/*
++ * Maximum number of Delivery systems per frontend. It
++ * should be smaller or equal to 32
++ */
++#define MAX_DELSYS	8
++
+ struct dvb_frontend_tune_settings {
+ 	int min_delay_ms;
+ 	int step_size;
+@@ -254,6 +260,8 @@ struct dvb_frontend_ops {
+ 
+ 	struct dvb_frontend_info info;
+ 
++	u8 delsys[MAX_DELSYS];
++
+ 	void (*release)(struct dvb_frontend* fe);
+ 	void (*release_sec)(struct dvb_frontend* fe);
+ 
+-- 
+1.7.8.352.g876a6
 
-I dunno, but I think this needs to be fixed, at least when the frontend
-is opened with O_NONBLOCK.
-
-Regards,
-Mauro.
