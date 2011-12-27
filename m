@@ -1,134 +1,167 @@
-Return-path: <linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org>
-Received: from mail.tu-berlin.de ([130.149.7.33])
-	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <sakthisam@gmail.com>) id 1RQGrT-0002Zi-J9
-	for linux-dvb@linuxtv.org; Tue, 15 Nov 2011 12:07:59 +0100
-Received: from mail-bw0-f54.google.com ([209.85.214.54])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1RQGrT-00054g-Ak; Tue, 15 Nov 2011 12:07:31 +0100
-Received: by bkbzs8 with SMTP id zs8so9031103bkb.41
-	for <linux-dvb@linuxtv.org>; Tue, 15 Nov 2011 03:07:30 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAEEcfUd51j5s0F=48UgmNMeeYc8VOrbpDty_6885n369Nic_dA@mail.gmail.com>
-References: <CAEEcfUdT6GDUKe+41e1oWa8PSc-=WnKcE=F_JW4imOj9yDYd1g@mail.gmail.com>
-	<CAEEcfUf=jLV7MKdet94QRwDgX_SuCNgzNzhv6arxewUkgn2v4g@mail.gmail.com>
-	<CAEEcfUc+mNu7hx9h1nyFk5wMXZQfWcJW1UO_H4CvDjDwbJx41Q@mail.gmail.com>
-	<CAEEcfUf+3ghStbD_ac8wKfwQOoccd+dju4xBX1hQsqXp8nEN8A@mail.gmail.com>
-	<CAEEcfUf2RHDhHaNsze5q5Cvow_SdwD39cH5kH7n+rVsLvcMAKw@mail.gmail.com>
-	<CAEEcfUcRMieRx4A4_dcBFsJovQDVMmeOnsdB-S8JT7CJZ95WUw@mail.gmail.com>
-	<CAEEcfUd51j5s0F=48UgmNMeeYc8VOrbpDty_6885n369Nic_dA@mail.gmail.com>
-Date: Tue, 15 Nov 2011 16:37:30 +0530
-Message-ID: <CAEEcfUf=fVPs39PWj8RuVjOvAXDUBN+0uXW0st-azEqtLgMV-A@mail.gmail.com>
-From: sam <k.s.sampathkumarr@gmail.com>
-To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Help reading Muxing TS
-Reply-To: linux-media@vger.kernel.org
-List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
-List-Archive: <http://www.linuxtv.org/pipermail/linux-dvb>
-List-Post: <mailto:linux-dvb@linuxtv.org>
-List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
-List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
-	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: multipart/mixed; boundary="===============1737566609=="
-Sender: linux-dvb-bounces@linuxtv.org
-Errors-To: linux-dvb-bounces+mchehab=linuxtv.org@linuxtv.org
-List-ID: <linux-dvb@linuxtv.org>
+Return-path: <linux-media-owner@vger.kernel.org>
+Received: from mx1.redhat.com ([209.132.183.28]:16742 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753822Ab1L0BJm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 26 Dec 2011 20:09:42 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19flb017900
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:41 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC 62/91] [media] nxt200x: convert set_fontend to use DVBv5 parameters
+Date: Mon, 26 Dec 2011 23:08:50 -0200
+Message-Id: <1324948159-23709-63-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1324948159-23709-62-git-send-email-mchehab@redhat.com>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-2-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-3-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-4-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-5-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-6-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-7-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-8-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-9-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-10-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-11-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-12-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-13-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-14-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-15-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-16-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-17-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-18-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-19-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-20-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-21-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-22-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-23-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-25-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-26-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-27-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-28-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-29-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-30-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-31-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-32-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-33-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-34-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-35-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-36-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-37-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-38-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-39-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-40-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-41-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-42-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-43-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-44-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-45-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-46-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-47-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-48-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-49-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-50-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-51-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-52-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-53-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-54-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-55-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-56-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-57-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-58-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-59-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-60-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-61-git-send-email-mchehab@redhat.com>
+ <1324948159-23709-62-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Sender: linux-media-owner@vger.kernel.org
+List-ID: <linux-media.vger.kernel.org>
 
---===============1737566609==
-Content-Type: multipart/alternative; boundary=000e0ce0048e58d67a04b1c3fe24
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
---000e0ce0048e58d67a04b1c3fe24
-Content-Type: text/plain; charset=ISO-8859-1
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-*Dear Friend ,*
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/nxt200x.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-I am a professor , i want to do it for my research project for
-students.partial please help me.
+diff --git a/drivers/media/dvb/frontends/nxt200x.c b/drivers/media/dvb/frontends/nxt200x.c
+index efb8e46..b541614 100644
+--- a/drivers/media/dvb/frontends/nxt200x.c
++++ b/drivers/media/dvb/frontends/nxt200x.c
+@@ -528,9 +528,9 @@ static int nxt2004_load_firmware (struct dvb_frontend* fe, const struct firmware
+ 	return 0;
+ };
+ 
+-static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+-					     struct dvb_frontend_parameters *p)
++static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct nxt200x_state* state = fe->demodulator_priv;
+ 	u8 buf[5];
+ 
+@@ -546,7 +546,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	}
+ 
+ 	/* set additional params */
+-	switch (p->u.vsb.modulation) {
++	switch (p->modulation) {
+ 		case QAM_64:
+ 		case QAM_256:
+ 			/* Set punctured clock for QAM */
+@@ -576,7 +576,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	nxt200x_agc_reset(state);
+ 
+ 	/* set target power level */
+-	switch (p->u.vsb.modulation) {
++	switch (p->modulation) {
+ 		case QAM_64:
+ 		case QAM_256:
+ 			buf[0] = 0x74;
+@@ -620,7 +620,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	}
+ 
+ 	/* write sdmx input */
+-	switch (p->u.vsb.modulation) {
++	switch (p->modulation) {
+ 		case QAM_64:
+ 				buf[0] = 0x68;
+ 				break;
+@@ -714,7 +714,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	}
+ 
+ 	/* write agc ucgp0 */
+-	switch (p->u.vsb.modulation) {
++	switch (p->modulation) {
+ 		case QAM_64:
+ 				buf[0] = 0x02;
+ 				break;
+@@ -1203,7 +1203,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops nxt200x_ops = {
+-
++	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+ 		.name = "Nextwave NXT200X VSB/QAM frontend",
+ 		.type = FE_ATSC,
+@@ -1220,7 +1220,7 @@ static struct dvb_frontend_ops nxt200x_ops = {
+ 	.init = nxt200x_init,
+ 	.sleep = nxt200x_sleep,
+ 
+-	.set_frontend_legacy = nxt200x_setup_frontend_parameters,
++	.set_frontend = nxt200x_setup_frontend_parameters,
+ 	.get_tune_settings = nxt200x_get_tune_settings,
+ 
+ 	.read_status = nxt200x_read_status,
+-- 
+1.7.8.352.g876a6
 
-I want to Multiplex n number of TS using *mplex*, i got downloaded from *
-mjpeg.sourceforge.ne*t and installed , how to mux continuously Real time.
-
-Command :* iso13818ts <file1.ts> <file2.ts>.....<filen.ts> > Muxout.ts  *
-
-the output "*muxout.ts*" not playing in al lvideo player but i can able to
-play the video in *mplayer* by giving specific *ProgramID* of TS file.And
-also i cant see any PID Values in *TSReader *and *Streamxpert* Software, i
-think it has no SI table , how to generate the Mux out TS with SI table ,
-which should play in all video player such as vlc player.
-
-I can give *Remote login to my mux server* , do can you help me, i also
-mailed to Oskar , author of *mplex* softweare but he was busy.*. mail*
-
-*Regards
-Sam*
-
---000e0ce0048e58d67a04b1c3fe24
-Content-Type: text/html; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
-
-<div class=3D"gmail_quote"><div><div></div><div class=3D"h5"><div class=3D"=
-gmail_quote"><div><div></div><div><div class=3D"gmail_quote"><div><div><div=
- class=3D"gmail_quote"><div><div><div class=3D"gmail_quote"><div><div></div=
-><div><div class=3D"gmail_quote">
-<div><div></div><div><div class=3D"gmail_quote">
-<b>Dear Friend ,</b><br>
-<br>I am a professor , i want to do it for my research project for students=
-.partial please help me.<br>
-
-<br>I want to Multiplex n number of TS using <b>mplex</b>, i got downloaded=
- from <b><a href=3D"http://mjpeg.sourceforge.ne" target=3D"_blank">mjpeg.so=
-urceforge.ne</a></b>t and installed , how to mux continuously Real time.<br=
->
-
-
-
-
-
-
-
-<br>Command :<b> iso13818ts &lt;file1.ts&gt; &lt;file2.ts&gt;.....&lt;filen=
-.ts&gt; &gt; Muxout.ts=A0 </b><br><br>the output &quot;<b>muxout.ts</b>&quo=
-t; not playing in al lvideo player but i can able to play the video in <b>m=
-player</b> by giving specific <b>ProgramID</b> of TS file.And also i cant s=
-ee any PID Values in <b>TSReader </b>and <b>Streamxpert</b> Software, i thi=
-nk it has no SI table , how to generate the Mux out TS with SI table , whic=
-h should play in all video player such as vlc player.<br>
-
-
-
-
-
-
-
-<br>I can give <b>Remote login to my mux server</b> , do can you help me, i=
- also mailed to Oskar , author of <b>mplex</b> softweare but he was busy.<b=
->. mail</b><br><br><b>Regards<br><font color=3D"#888888">Sam</font></b><br>
-
-
-
-
-
-
-
-</div>
-</div></div></div><br>
-</div></div></div></div></div></div></div></div></div>
-</div></div></div><br><br></div></div></div><br>
-
---000e0ce0048e58d67a04b1c3fe24--
-
-
---===============1737566609==
-Content-Type: text/plain; charset="us-ascii"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-
-_______________________________________________
-linux-dvb users mailing list
-For V4L/DVB development, please use instead linux-media@vger.kernel.org
-linux-dvb@linuxtv.org
-http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb
---===============1737566609==--
