@@ -1,27 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:54264 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563Ab1LLLoD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 06:44:03 -0500
-Received: by qcqz2 with SMTP id z2so3432630qcq.19
-        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 03:44:02 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
+Received: from smtp.nokia.com ([147.243.1.48]:27226 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752627Ab1L1NBe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Dec 2011 08:01:34 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	shawn.guo@linaro.org, richard.zhao@linaro.org,
-	fabio.estevam@freescale.com, kernel@pengutronix.de,
-	s.hauer@pengutronix.de, r.schwebel@pengutronix.de
-Subject: [PATCH v4 0/2] Add support form eMMa-PrP in i.MX2 chips as a mem2mem device.
-Date: Mon, 12 Dec 2011 12:43:43 +0100
-Message-Id: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
+Cc: laurent.pinchart@ideasonboard.com
+Subject: [PATCH v2 1/1] v4l: Add DPCM compressed formats
+Date: Wed, 28 Dec 2011 15:01:30 +0200
+Message-Id: <1325077290-9524-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1325067657-32556-2-git-send-email-sakari.ailus@iki.fi>
+References: <1325067657-32556-2-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes since v3:
- Patch order inverted as requested by Mauro.
- Now adjusting of the image dimensions is made using  v4l_bound_align_image().
- Some coding style fixes.
+Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
+ .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ include/linux/videodev2.h                          |    3 ++
+ 4 files changed, 34 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+index 7b27409..c1c62a9 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+@@ -1,4 +1,4 @@
+-    <refentry>
++    <refentry id="pixfmt-srggb10">
+       <refmeta>
+ 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
+ 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+new file mode 100644
+index 0000000..985440c
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+@@ -0,0 +1,29 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>
++	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
++	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
++	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
++	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
++	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>The following four pixel formats are raw sRGB / Bayer
++	formats with 10 bits per colour compressed to 8 bits each,
++	using the DPCM. DPCM, differential pulse-code modulation, is
++	lossy. Each colour component consumes 8 bits of memory. In
++	other respects this format is similar to
++	<xref linkend="pixfmt-srggb10">.</xref></para>
++
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 2ff6b77..9b06c7b 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10dpcm8;
+     &sub-srggb12;
+   </section>
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 0f8f904..622570c 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -365,7 +365,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
++#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
++#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+ #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
++#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+ 	/*
+ 	 * 10bit raw bayer, expanded to 16 bits
+ 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+-- 
+1.7.2.5
 
