@@ -1,97 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51730 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751764Ab1LUWSy (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:21126 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751619Ab1L1GXx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 21 Dec 2011 17:18:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Subject: Re: [PATCH 1/2] media: add new mediabus format enums for dm365
-Date: Wed, 21 Dec 2011 23:18:54 +0100
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com> <201112210058.33006.laurent.pinchart@ideasonboard.com> <E99FAA59F8D8D34D8A118DD37F7C8F75018904@DBDE01.ent.ti.com>
-In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F75018904@DBDE01.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112212318.55517.laurent.pinchart@ideasonboard.com>
+	Wed, 28 Dec 2011 01:23:53 -0500
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LWW0012ZHQX9RM0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Dec 2011 15:23:51 +0900 (KST)
+Received: from riverful-ubuntu.165.213.246.161 ([165.213.219.119])
+ by mmp1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTPA id <0LWW007D6HRPXC40@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Dec 2011 15:23:50 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	kyungmin.park@samsung.com,
+	"HeungJun, Kim" <riverful.kim@samsung.com>
+Subject: [RFC PATCH 4/4] v4l: Add V4L2_CID_ANTISHAKE button control
+Date: Wed, 28 Dec 2011 15:23:48 +0900
+Message-id: <1325053428-2626-5-git-send-email-riverful.kim@samsung.com>
+In-reply-to: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manju,
+It adds the new CID for setting Anti-shake. This CID is provided as
+button type. This can commands only if the camera turn on/off this function.
 
-On Wednesday 21 December 2011 14:54:18 Hadli, Manjunath wrote:
-> On Wed, Dec 21, 2011 at 05:28:31, Laurent Pinchart wrote:
-> > On Friday 16 December 2011 15:20:24 Hadli, Manjunath wrote:
-> > > On Thu, Dec 15, 2011 at 18:32:44, Laurent Pinchart wrote:
-> > > > On Thursday 15 December 2011 13:24:57 Manjunath Hadli wrote:
-> > > > > add new enum entry V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 into
-> > > > > mbus_pixel_code to represent A-LAW compressed Bayer format. This
-> > > > > corresponds to pixel format - V4L2_PIX_FMT_SGRBG10ALAW8.
-> > > > > add UV8 and NV12 ( Y and C separate with UV interleaved) which are
-> > > > > supported on dm365.
-> > > > > 
-> > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > > > ---
-> > > > > 
-> > > > >  include/linux/v4l2-mediabus.h |   10 ++++++++--
-> > > > >  1 files changed, 8 insertions(+), 2 deletions(-)
-> > > > 
-> > > > Please also update the documentation in
-> > > > Documentation/DocBook/media/v4l.
-> > > > 
-> > > > > diff --git a/include/linux/v4l2-mediabus.h
-> > > > > b/include/linux/v4l2-mediabus.h index 5ea7f75..d408654 100644
-> > > > > --- a/include/linux/v4l2-mediabus.h
-> > > > > +++ b/include/linux/v4l2-mediabus.h
-> > > > > @@ -47,7 +47,7 @@ enum v4l2_mbus_pixelcode {
-> > > > > 
-> > > > >  	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
-> > > > >  	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
-> > > > > 
-> > > > > -	/* YUV (including grey) - next is 0x2014 */
-> > > > > +	/* YUV (including grey) - next is 0x2016 */
-> > > > > 
-> > > > >  	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
-> > > > >  	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-> > > > >  	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
-> > > > > 
-> > > > > @@ -67,8 +67,10 @@ enum v4l2_mbus_pixelcode {
-> > > > > 
-> > > > >  	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
-> > > > >  	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
-> > > > >  	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
-> > > > > 
-> > > > > +	V4L2_MBUS_FMT_NV12_1X20 = 0x2014,
-> > > > > +	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
-> > > > 
-> > > > NV12, on the bus ? How does that work ? (The documentation should
-> > > > answer my question :-))
-> > > 
-> > > Well, this is on the internal bus not exposed outside, but
-> > > nevertheless bus between two subdevs or two independent hardware
-> > > blocks. For example Resizer supports NV12 on its pad. Is there any
-> > > other way to treat this?
-> > 
-> > How is NV12 transferred on the bus in that case ? Are all luma samples
-> > transferred first, followed by all chroma samples ?
-> 
-> It uses parallel bus of 16 bits, where Y and C are transmitted
-> simultaneously on 8 bits each. NV12 uses a dummy C byte for every valid
-> one.
-> So I guess we call it V4L2_MBUS_FMT_YDYC_1X16 or V4L2_MBUS_FMT_YCYD_1X16?
-> That way we will be able to document the format in the documentation also.
+Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |   11 +++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    2 ++
+ include/linux/videodev2.h                    |    1 +
+ 3 files changed, 14 insertions(+), 0 deletions(-)
 
-That sounds good (YDYC8_1X16 to be precise). Hans, Guennadi, Sakari, any 
-opinion ?
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index bed6c66..73ff05c 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2970,6 +2970,17 @@ it one step further. This is a write-only control.</entry>
+ 	  </row>
+ 
+ 	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_ANTISHAKE</constant></entry>
++	    <entry>button</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Anti-Shake. It makes
++	    the image be more stabilized from the image's shakeness.
++	    This function can be provided according to the capability
++	    of the hardware(sensor or AP's multimedia block).</entry>
++	  </row>
++
++	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
+ 	    <entry>boolean</entry>
+ 	  </row><row><entry spanname="descr">Prevent video from being acquired
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 66110bc..05ff6bb 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -599,6 +599,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_PRESET_WHITE_BALANCE:	return "White Balance, Preset";
+ 	case V4L2_CID_SCENEMODE:		return "Scenemode";
+ 	case V4L2_CID_WDR:			return "Wide Dynamic Range";
++	case V4L2_CID_ANTISHAKE:		return "Antishake";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -689,6 +690,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_PAN_RESET:
+ 	case V4L2_CID_TILT_RESET:
+ 	case V4L2_CID_WDR:
++	case V4L2_CID_ANTISHAKE:
+ 	case V4L2_CID_FLASH_STROBE:
+ 	case V4L2_CID_FLASH_STROBE_STOP:
+ 		*type = V4L2_CTRL_TYPE_BUTTON;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index f85ad6c..ddd775f 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1647,6 +1647,7 @@ enum v4l2_scenemode {
+ };
+ 
+ #define V4L2_CID_WDR				(V4L2_CID_CAMERA_CLASS_BASE+21)
++#define V4L2_CID_ANTISHAKE			(V4L2_CID_CAMERA_CLASS_BASE+22)
+ 
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
 -- 
-Regards,
+1.7.4.1
 
-Laurent Pinchart
