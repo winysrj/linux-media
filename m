@@ -1,136 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3532 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753639Ab1LOOPv (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:21126 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751302Ab1L1GXw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 09:15:51 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Wed, 28 Dec 2011 01:23:52 -0500
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LWW0012ZHQX9RM0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Dec 2011 15:23:50 +0900 (KST)
+Received: from riverful-ubuntu.165.213.246.161 ([165.213.219.119])
+ by mmp1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTPA id <0LWW007D6HRPXC40@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Dec 2011 15:23:50 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv3 PATCH 4/8] v4l2-ctrls: add new controls for MPEG decoder devices.
-Date: Thu, 15 Dec 2011 15:15:33 +0100
-Message-Id: <cb7da361e50401aecdc8d44b764df58a953bf863.1323957539.git.hans.verkuil@cisco.com>
-In-Reply-To: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
-References: <1323958537-7026-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <26fac753ffa549b2ffdc5fe64a50e0a9637c2b16.1323957539.git.hans.verkuil@cisco.com>
-References: <26fac753ffa549b2ffdc5fe64a50e0a9637c2b16.1323957539.git.hans.verkuil@cisco.com>
+Cc: mchehab@redhat.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	kyungmin.park@samsung.com,
+	"HeungJun, Kim" <riverful.kim@samsung.com>
+Subject: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
+Date: Wed, 28 Dec 2011 15:23:45 +0900
+Message-id: <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
+In-reply-to: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+It adds the new CID for setting White Balance Preset. This CID is provided as
+menu type using the following items:
+0 - V4L2_WHITE_BALANCE_INCANDESCENT,
+1 - V4L2_WHITE_BALANCE_FLUORESCENT,
+2 - V4L2_WHITE_BALANCE_DAYLIGHT,
+3 - V4L2_WHITE_BALANCE_CLOUDY,
+4 - V4L2_WHITE_BALANCE_SHADE,
 
-As discussed during the 2011 V4L-DVB workshop we want to create a proper V4L2
-decoder API that replaces the DVBv5 API that has been used until now.
-
-This adds the four controls necessary to be able to switch ivtv over to this
-new API.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/v4l2-ctrls.c |   23 +++++++++++++++++++++++
- include/linux/videodev2.h        |   13 +++++++++++++
- 2 files changed, 36 insertions(+), 0 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml |   38 ++++++++++++++++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |   12 ++++++++
+ include/linux/videodev2.h                    |    9 ++++++
+ 3 files changed, 59 insertions(+), 0 deletions(-)
 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index c0422c6..350c138 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2841,6 +2841,44 @@ it one step further. This is a write-only control.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+ 
++	  <row id="v4l2-preset-white-balance">
++	    <entry spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp;</entry>
++	    <entry>enum&nbsp;v4l2_preset_white_balance</entry>
++	  </row><row><entry spanname="descr">This control sets
++	  the camera's white balance by the presets. These preset is provided
++	  by the type of the enum values which are generally provided
++	  by several digital cameras. But, it dosen't mean that the specific
++	  preset always can be counterposed with the unique white balance value.
++	  This is a read/write control.</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_WHITE_BALANCE_INCANDESCENT</constant>&nbsp;</entry>
++		  <entry>White Balance Incandescent/Tungster preset.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_WHITE_BALANCE_FLUORESCENT</constant>&nbsp;</entry>
++		  <entry>White Balance Fluorescent preset.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_WHITE_BALANCE_DAYLIGHT</constant>&nbsp;</entry>
++		  <entry>White Balance Daylight preset.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_WHITE_BALANCE_CLOUDY</constant>&nbsp;</entry>
++		  <entry>White Balance Cloudy preset.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_WHITE_BALANCE_SHADE</constant>&nbsp;</entry>
++		  <entry>White Balance Share preset.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry></entry></row>
++
+ 	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
+ 	    <entry>boolean</entry>
 diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 0f415da..f9469e3 100644
+index 0f415da..f51b576 100644
 --- a/drivers/media/video/v4l2-ctrls.c
 +++ b/drivers/media/video/v4l2-ctrls.c
-@@ -175,6 +175,15 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		"16-bit CRC",
+@@ -234,6 +234,14 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Vivid",
  		NULL
  	};
-+	static const char * const mpeg_audio_dec_playback[] = {
-+		"Auto",
-+		"Stereo",
-+		"Left",
-+		"Right",
-+		"Mono",
-+		"Swapped Stereo",
-+		NULL
++	static const char * const preset_white_balance[] = {
++		"Incandescent",
++		"Fluorescent",
++		"Daylight",
++		"Cloudy",
++		"Shade",
++		NULL,
 +	};
- 	static const char * const mpeg_video_encoding[] = {
- 		"MPEG-1",
- 		"MPEG-2",
-@@ -374,6 +383,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg_audio_emphasis;
- 	case V4L2_CID_MPEG_AUDIO_CRC:
- 		return mpeg_audio_crc;
-+	case V4L2_CID_MPEG_AUDIO_DEC_PLAYBACK:
-+	case V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_PLAYBACK:
-+		return mpeg_audio_dec_playback;
- 	case V4L2_CID_MPEG_VIDEO_ENCODING:
- 		return mpeg_video_encoding;
- 	case V4L2_CID_MPEG_VIDEO_ASPECT:
-@@ -491,6 +503,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_AUDIO_MUTE:		return "Audio Mute";
- 	case V4L2_CID_MPEG_AUDIO_AAC_BITRATE:	return "Audio AAC Bitrate";
- 	case V4L2_CID_MPEG_AUDIO_AC3_BITRATE:	return "Audio AC-3 Bitrate";
-+	case V4L2_CID_MPEG_AUDIO_DEC_PLAYBACK:	return "Audio Playback";
-+	case V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_PLAYBACK: return "Audio Multilingual Playback";
- 	case V4L2_CID_MPEG_VIDEO_ENCODING:	return "Video Encoding";
- 	case V4L2_CID_MPEG_VIDEO_ASPECT:	return "Video Aspect";
- 	case V4L2_CID_MPEG_VIDEO_B_FRAMES:	return "Video B Frames";
-@@ -545,6 +559,8 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MAX_MB:		return "The Number of MB in a Slice";
- 	case V4L2_CID_MPEG_VIDEO_MULTI_SLICE_MODE:		return "The Slice Partitioning Method";
- 	case V4L2_CID_MPEG_VIDEO_VBV_SIZE:			return "VBV Buffer Size";
-+	case V4L2_CID_MPEG_VIDEO_DEC_PTS:			return "Video Decoder PTS";
-+	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:			return "Video Decoder Frame Count";
+ 	static const char * const tune_preemphasis[] = {
+ 		"No Preemphasis",
+ 		"50 useconds",
+@@ -390,6 +398,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return camera_exposure_auto;
+ 	case V4L2_CID_COLORFX:
+ 		return colorfx;
++	case V4L2_CID_PRESET_WHITE_BALANCE:
++		return preset_white_balance;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 		return tune_preemphasis;
+ 	case V4L2_CID_FLASH_LED_MODE:
+@@ -567,6 +577,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
+ 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+ 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
++	case V4L2_CID_PRESET_WHITE_BALANCE:	return "White Balance, Preset";
  
- 	/* CAMERA controls */
+ 	/* FM Radio Modulator control */
  	/* Keep the order of the 'case's the same as in videodev2.h! */
-@@ -673,6 +689,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_AUDIO_MODE_EXTENSION:
- 	case V4L2_CID_MPEG_AUDIO_EMPHASIS:
- 	case V4L2_CID_MPEG_AUDIO_CRC:
-+	case V4L2_CID_MPEG_AUDIO_DEC_PLAYBACK:
-+	case V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_PLAYBACK:
- 	case V4L2_CID_MPEG_VIDEO_ENCODING:
- 	case V4L2_CID_MPEG_VIDEO_ASPECT:
- 	case V4L2_CID_MPEG_VIDEO_BITRATE_MODE:
-@@ -723,6 +741,11 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
- 		break;
-+	case V4L2_CID_MPEG_VIDEO_DEC_FRAME:
-+	case V4L2_CID_MPEG_VIDEO_DEC_PTS:
-+		*type = V4L2_CTRL_TYPE_INTEGER64;
-+		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_VOLATILE;
-+		break;
- 	default:
- 		*type = V4L2_CTRL_TYPE_INTEGER;
- 		break;
+@@ -680,6 +691,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 	case V4L2_CID_COLORFX:
++	case V4L2_CID_PRESET_WHITE_BALANCE:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 	case V4L2_CID_FLASH_LED_MODE:
+ 	case V4L2_CID_FLASH_STROBE_SOURCE:
 diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 406f7f7..225ac29 100644
+index 3d62631..a842de0 100644
 --- a/include/linux/videodev2.h
 +++ b/include/linux/videodev2.h
-@@ -1350,6 +1350,16 @@ enum v4l2_mpeg_audio_ac3_bitrate {
- 	V4L2_MPEG_AUDIO_AC3_BITRATE_576K = 17,
- 	V4L2_MPEG_AUDIO_AC3_BITRATE_640K = 18,
- };
-+#define V4L2_CID_MPEG_AUDIO_DEC_PLAYBACK	(V4L2_CID_MPEG_BASE+112)
-+enum v4l2_mpeg_audio_dec_playback {
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_AUTO	    = 0,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_STEREO	    = 1,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_LEFT	    = 2,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_RIGHT	    = 3,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_MONO	    = 4,
-+	V4L2_MPEG_AUDIO_DEC_PLAYBACK_SWAPPED_STEREO = 5,
-+};
-+#define V4L2_CID_MPEG_AUDIO_DEC_MULTILINGUAL_PLAYBACK (V4L2_CID_MPEG_BASE+113)
+@@ -1618,6 +1618,15 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
+ #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
  
- /*  MPEG video controls specific to multiplexed streams */
- #define V4L2_CID_MPEG_VIDEO_ENCODING 		(V4L2_CID_MPEG_BASE+200)
-@@ -1400,6 +1410,9 @@ enum v4l2_mpeg_video_multi_slice_mode {
- 	V4L2_MPEG_VIDEO_MULTI_SICE_MODE_MAX_BYTES	= 2,
- };
- #define V4L2_CID_MPEG_VIDEO_VBV_SIZE			(V4L2_CID_MPEG_BASE+222)
-+#define V4L2_CID_MPEG_VIDEO_DEC_PTS			(V4L2_CID_MPEG_BASE+223)
-+#define V4L2_CID_MPEG_VIDEO_DEC_FRAME			(V4L2_CID_MPEG_BASE+224)
++#define V4L2_CID_PRESET_WHITE_BALANCE		(V4L2_CID_CAMERA_CLASS_BASE+19)
++enum v4l2_preset_white_balance {
++	V4L2_WHITE_BALANCE_INCANDESCENT = 0,
++	V4L2_WHITE_BALANCE_FLUORESCENT = 1,
++	V4L2_WHITE_BALANCE_DAYLIGHT = 2,
++	V4L2_WHITE_BALANCE_CLOUDY = 3,
++	V4L2_WHITE_BALANCE_SHADE = 4,
++};
 +
- #define V4L2_CID_MPEG_VIDEO_H263_I_FRAME_QP		(V4L2_CID_MPEG_BASE+300)
- #define V4L2_CID_MPEG_VIDEO_H263_P_FRAME_QP		(V4L2_CID_MPEG_BASE+301)
- #define V4L2_CID_MPEG_VIDEO_H263_B_FRAME_QP		(V4L2_CID_MPEG_BASE+302)
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
 -- 
-1.7.7.3
+1.7.4.1
 
