@@ -1,106 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16295 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752688Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:32 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9UKb015918
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 62/94] [media] nxt200x: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:59 -0200
-Message-Id: <1325257711-12274-63-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout4.samsung.com ([203.254.224.34]:21126 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751351Ab1L1GXw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 28 Dec 2011 01:23:52 -0500
+Received: from epcpsbgm1.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LWW0012ZHQX9RM0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Dec 2011 15:23:50 +0900 (KST)
+Received: from riverful-ubuntu.165.213.246.161 ([165.213.219.119])
+ by mmp1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTPA id <0LWW007D6HRPXC40@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 28 Dec 2011 15:23:50 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, hverkuil@xs4all.nl, sakari.ailus@iki.fi,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	kyungmin.park@samsung.com,
+	"HeungJun, Kim" <riverful.kim@samsung.com>
+Subject: [RFC PATCH 3/4] v4l: Add V4L2_CID_WDR button control
+Date: Wed, 28 Dec 2011 15:23:47 +0900
+Message-id: <1325053428-2626-4-git-send-email-riverful.kim@samsung.com>
+In-reply-to: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+It adds the new CID for setting White Balance Preset. This CID is provided as
+button type. This can commands only if the camera turn on/off this function.
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: HeungJun, Kim <riverful.kim@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb/frontends/nxt200x.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml |   12 ++++++++++++
+ drivers/media/video/v4l2-ctrls.c             |    2 ++
+ include/linux/videodev2.h                    |    2 ++
+ 3 files changed, 16 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/nxt200x.c b/drivers/media/dvb/frontends/nxt200x.c
-index efb8e46..b541614 100644
---- a/drivers/media/dvb/frontends/nxt200x.c
-+++ b/drivers/media/dvb/frontends/nxt200x.c
-@@ -528,9 +528,9 @@ static int nxt2004_load_firmware (struct dvb_frontend* fe, const struct firmware
- 	return 0;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index afe1845..bed6c66 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2958,6 +2958,18 @@ it one step further. This is a write-only control.</entry>
+ 	  <row><entry></entry></row>
+ 
+ 	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_WDR</constant></entry>
++	    <entry>button</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Wide Dynamic Range. It makes
++	    the image be more clear by adjusting the image's intensity
++	    of the illumination. This function can be provided according to
++	    the capability of the hardware(sensor or AP's multimedia block).
++	    </entry>
++	  </row>
++
++	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_PRIVACY</constant>&nbsp;</entry>
+ 	    <entry>boolean</entry>
+ 	  </row><row><entry spanname="descr">Prevent video from being acquired
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index fef58c2..66110bc 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -598,6 +598,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+ 	case V4L2_CID_PRESET_WHITE_BALANCE:	return "White Balance, Preset";
+ 	case V4L2_CID_SCENEMODE:		return "Scenemode";
++	case V4L2_CID_WDR:			return "Wide Dynamic Range";
+ 
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -687,6 +688,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		break;
+ 	case V4L2_CID_PAN_RESET:
+ 	case V4L2_CID_TILT_RESET:
++	case V4L2_CID_WDR:
+ 	case V4L2_CID_FLASH_STROBE:
+ 	case V4L2_CID_FLASH_STROBE_STOP:
+ 		*type = V4L2_CTRL_TYPE_BUTTON;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index bc14feb..f85ad6c 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1646,6 +1646,8 @@ enum v4l2_scenemode {
+ 	V4L2_SCENEMODE_CANDLE = 14,
  };
  
--static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
--					     struct dvb_frontend_parameters *p)
-+static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct nxt200x_state* state = fe->demodulator_priv;
- 	u8 buf[5];
- 
-@@ -546,7 +546,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
- 	}
- 
- 	/* set additional params */
--	switch (p->u.vsb.modulation) {
-+	switch (p->modulation) {
- 		case QAM_64:
- 		case QAM_256:
- 			/* Set punctured clock for QAM */
-@@ -576,7 +576,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
- 	nxt200x_agc_reset(state);
- 
- 	/* set target power level */
--	switch (p->u.vsb.modulation) {
-+	switch (p->modulation) {
- 		case QAM_64:
- 		case QAM_256:
- 			buf[0] = 0x74;
-@@ -620,7 +620,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
- 	}
- 
- 	/* write sdmx input */
--	switch (p->u.vsb.modulation) {
-+	switch (p->modulation) {
- 		case QAM_64:
- 				buf[0] = 0x68;
- 				break;
-@@ -714,7 +714,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
- 	}
- 
- 	/* write agc ucgp0 */
--	switch (p->u.vsb.modulation) {
-+	switch (p->modulation) {
- 		case QAM_64:
- 				buf[0] = 0x02;
- 				break;
-@@ -1203,7 +1203,7 @@ error:
- }
- 
- static struct dvb_frontend_ops nxt200x_ops = {
--
-+	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
- 	.info = {
- 		.name = "Nextwave NXT200X VSB/QAM frontend",
- 		.type = FE_ATSC,
-@@ -1220,7 +1220,7 @@ static struct dvb_frontend_ops nxt200x_ops = {
- 	.init = nxt200x_init,
- 	.sleep = nxt200x_sleep,
- 
--	.set_frontend_legacy = nxt200x_setup_frontend_parameters,
-+	.set_frontend = nxt200x_setup_frontend_parameters,
- 	.get_tune_settings = nxt200x_get_tune_settings,
- 
- 	.read_status = nxt200x_read_status,
++#define V4L2_CID_WDR				(V4L2_CID_CAMERA_CLASS_BASE+21)
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
 -- 
-1.7.8.352.g876a6
+1.7.4.1
 
