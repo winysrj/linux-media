@@ -1,65 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:40013 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751326Ab1LFRhD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 12:37:03 -0500
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVS002Z6M9O02@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 06 Dec 2011 17:37:00 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVS0032GM9NFN@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 06 Dec 2011 17:37:00 +0000 (GMT)
-Date: Tue, 06 Dec 2011 18:36:59 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH/RFC v2 4/4] v4l: Update subdev drivers to handle
- framesamples parameter
-In-reply-to: <201112061712.30748.laurent.pinchart@ideasonboard.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	g.liakhovetski@gmx.de, sakari.ailus@iki.fi,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4EDE52BB.9060400@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7BIT
-References: <1322734853-8759-1-git-send-email-s.nawrocki@samsung.com>
- <1322734853-8759-5-git-send-email-s.nawrocki@samsung.com>
- <201112061712.30748.laurent.pinchart@ideasonboard.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:38112 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751829Ab1L2JHx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Dec 2011 04:07:53 -0500
+Received: by vbbfc26 with SMTP id fc26so10107198vbb.19
+        for <linux-media@vger.kernel.org>; Thu, 29 Dec 2011 01:07:52 -0800 (PST)
+MIME-Version: 1.0
+Date: Thu, 29 Dec 2011 10:07:52 +0100
+Message-ID: <CAJZeATR2RcbhH9zNQwkHRoy4hKTK02xzk8LBwCzvkSisoZePCg@mail.gmail.com>
+Subject: Mystique SaTiX-S2 Sky Xpress DUAL card
+From: Andreas Mair <amair.sob@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hello,
 
-On 12/06/2011 05:12 PM, Laurent Pinchart wrote:
-> On Thursday 01 December 2011 11:20:53 Sylwester Nawrocki wrote:
->> Update the sub-device drivers having a devnode enabled so they properly
->> handle the new framesamples field of struct v4l2_mbus_framefmt.
->> These drivers don't support compressed (entropy encoded) formats so the
->> framesamples field is simply initialized to 0.
-> 
-> Wouldn't it be better to memset the whole structure before filling it ? This 
-> would handle reserved fields as well. One option would be to make the caller 
+I'm using that card in my Linux VDR box:
+http://www.dvbshop.net/product_info.php/info/p2440_Mystique-SaTiX-S2-Sky-Xpress-DUAL--USALS--DiseqC-1-2--Win-Linux.html
 
-Sounds like a good improvement to me. Then we wouldn't have to do any
-modifications when in future someone converts the reserved field into
-something useful.
+That's the lspci output:
+=========== SNIP =========
+$ lspci -vvvnn
+02:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
+CX23885 PCI Video and Audio Decoder [14f1:8852] (rev 02)
+        Subsystem: Device [4254:0952]
+        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
+<TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0, Cache Line Size: 64 bytes
+        Interrupt: pin A routed to IRQ 16
+        Region 0: Memory at fe400000 (64-bit, non-prefetchable) [size=2M]
+        Capabilities: [40] Express (v1) Endpoint, MSI 00
+                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
+<64ns, L1 <1us
+                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
+                DevCtl: Report errors: Correctable- Non-Fatal- Fatal-
+Unsupported-
+                        RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop+
+                        MaxPayload 128 bytes, MaxReadReq 512 bytes
+                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+
+AuxPwr- TransPend-
+                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1,
+Latency L0 <2us, L1 <4us
+                        ClockPM- Surprise- LLActRep- BwNot-
+                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
+                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
+                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train-
+SlotClk+ DLActive- BWMgmt- ABWMgmt-
+        Capabilities: [80] Power Management version 2
+                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
+PME(D0+,D1+,D2+,D3hot+,D3cold-)
+                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
+        Capabilities: [90] Vital Product Data
+                Product Name: "
+                End
+        Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
+                Address: 0000000000000000  Data: 0000
+        Capabilities: [100] Advanced Error Reporting
+                UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
+UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq+ ACSViol-
+                UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
+UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
+                UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt-
+UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
+                CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
+                CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
+                AERCap: First Error Pointer: 14, GenCap- CGenEn- ChkCap- ChkEn-
+        Capabilities: [200] Virtual Channel <?>
+        Kernel driver in use: cx23885
+        Kernel modules: cx23885
+=========== SNAP =========
 
-> zero the structure, I think that would likely result in a smaller patch.
+So this is different to what's written at
+http://linuxtv.org/wiki/index.php/Mystique_SaTiX-S2_Dual
+I guess it's more like that card: http://linuxtv.org/wiki/index.php/DVBSKY_S952
 
-Do you mean to memset the whole structure before v4l2_subdev_call, in
-subdev_do_ioctl() ? I guess no, since it could only be done for get_fmt.
+I'm using the drivers found at http://www.dvbsky.net/Support.html
+(http://www.dvbsky.net/download/linux-3.0-media-20111024-bst-111205.tar.gz).
+I didn't get that card running with kernel 3.0.6 and haven't seen
+support for that card in any linuxtv.org repository I've looked into.
 
-> 
->> There is a few other drivers that expose a devnode (mt9p031, mt9t001,
->> mt9v032) but they already implicitly initialize the new data structure
->> field to 0, so they don't need to be touched.
+Now I wonder:
+- Who is responsible for that drivers? Someone at DVBSky.net?
+- Is there a chance to get that drivers into the kernel?
+- Has anybody else on this list this card running?
 
-
-Regards,
+Best regards,
+Andreas
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+http://andreas.vdr-developer.org --- VDRAdmin-AM & EnigmaNG & VDRSymbols
+VDR user #303
