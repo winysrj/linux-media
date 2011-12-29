@@ -1,175 +1,328 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:33785 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751450Ab1LQVIM (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21899 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753983Ab1L2MjS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 17 Dec 2011 16:08:12 -0500
-From: linuxtv@stefanringel.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCHv2 3/3] cx23885: add Terratec Cinergy T pcie dual
-Date: Sat, 17 Dec 2011 22:07:52 +0100
-Message-Id: <1324156072-16084-1-git-send-email-linuxtv@stefanringel.de>
+	Thu, 29 Dec 2011 07:39:18 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 29 Dec 2011 13:39:03 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 02/11] mm: compaction: introduce
+ isolate_{free,migrate}pages_range().
+In-reply-to: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1325162352-24709-3-git-send-email-m.szyprowski@samsung.com>
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+From: Michal Nazarewicz <mina86@mina86.com>
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+This commit introduces isolate_freepages_range() and
+isolate_migratepages_range() functions.  The first one replaces
+isolate_freepages_block() and the second one extracts functionality
+from isolate_migratepages().
+
+They are more generic and instead of operating on pageblocks operate
+on PFN ranges.
+
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/video/cx23885/cx23885-cards.c |   13 +++++
- drivers/media/video/cx23885/cx23885-dvb.c   |   66 +++++++++++++++++++++++++++
- drivers/media/video/cx23885/cx23885.h       |    1 +
- 3 files changed, 80 insertions(+), 0 deletions(-)
+ mm/compaction.c |  184 ++++++++++++++++++++++++++++++++++++++-----------------
+ 1 files changed, 127 insertions(+), 57 deletions(-)
 
-diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
-index ac03c26..4704289 100644
---- a/drivers/media/video/cx23885/cx23885-cards.c
-+++ b/drivers/media/video/cx23885/cx23885-cards.c
-@@ -467,6 +467,13 @@ struct cx23885_board cx23885_boards[] = {
- 					CX25840_VIN7_CH3,
- 			},
- 		},
-+	[CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL] = {
-+		.name		= "TerraTec Cinergy T PCIe Dual",
-+		.porta		= CX23885_ANALOG_VIDEO,
-+		.portb		= CX23885_MPEG_DVB,
-+		.portc		= CX23885_MOEG_DVB,
-+		.num_fds_portc	= 2,
-+		},
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 899d956..ae73b6f 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -54,55 +54,86 @@ static unsigned long release_freepages(struct list_head *freelist)
+ 	return count;
+ }
+ 
+-/* Isolate free pages onto a private freelist. Must hold zone->lock */
+-static unsigned long isolate_freepages_block(struct zone *zone,
+-				unsigned long blockpfn,
+-				struct list_head *freelist)
++/**
++ * isolate_freepages_range() - isolate free pages, must hold zone->lock.
++ * @zone:	Zone pages are in.
++ * @start_pfn:	The first PFN to start isolating.
++ * @end_pfn:	The one-past-last PFN.
++ * @freelist:	A list to save isolated pages to.
++ *
++ * If @freelist is not provided, holes in range (either non-free pages
++ * or invalid PFNs) are considered an error and function undos its
++ * actions and returns zero.
++ *
++ * If @freelist is provided, function will simply skip non-free and
++ * missing pages and put only the ones isolated on the list.
++ *
++ * Returns number of isolated pages.  This may be more then end_pfn-start_pfn
++ * if end fell in a middle of a free page.
++ */
++static unsigned long
++isolate_freepages_range(struct zone *zone,
++			unsigned long start_pfn, unsigned long end_pfn,
++			struct list_head *freelist)
+ {
+-	unsigned long zone_end_pfn, end_pfn;
+-	int nr_scanned = 0, total_isolated = 0;
+-	struct page *cursor;
+-
+-	/* Get the last PFN we should scan for free pages at */
+-	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+-	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
++	unsigned long nr_scanned = 0, total_isolated = 0;
++	unsigned long pfn = start_pfn;
++	struct page *page;
+ 
+-	/* Find the first usable PFN in the block to initialse page cursor */
+-	for (; blockpfn < end_pfn; blockpfn++) {
+-		if (pfn_valid_within(blockpfn))
+-			break;
+-	}
+-	cursor = pfn_to_page(blockpfn);
++	VM_BUG_ON(!pfn_valid(pfn));
++	page = pfn_to_page(pfn);
+ 
+ 	/* Isolate free pages. This assumes the block is valid */
+-	for (; blockpfn < end_pfn; blockpfn++, cursor++) {
+-		int isolated, i;
+-		struct page *page = cursor;
++	while (pfn < end_pfn) {
++		int n = 0, i;
+ 
+-		if (!pfn_valid_within(blockpfn))
+-			continue;
+-		nr_scanned++;
++		if (!pfn_valid_within(pfn))
++			goto next;
++		++nr_scanned;
+ 
+ 		if (!PageBuddy(page))
+-			continue;
++			goto next;
+ 
+ 		/* Found a free page, break it into order-0 pages */
+-		isolated = split_free_page(page);
+-		total_isolated += isolated;
+-		for (i = 0; i < isolated; i++) {
+-			list_add(&page->lru, freelist);
+-			page++;
++		n = split_free_page(page);
++		total_isolated += n;
++		if (freelist) {
++			struct page *p = page;
++			for (i = n; i; --i, ++p)
++				list_add(&p->lru, freelist);
+ 		}
+ 
+-		/* If a page was split, advance to the end of it */
+-		if (isolated) {
+-			blockpfn += isolated - 1;
+-			cursor += isolated - 1;
++next:
++		if (!n) {
++			/* If n == 0, we have isolated no pages. */
++			if (!freelist)
++				goto cleanup;
++			n = 1;
+ 		}
++
++		/*
++		 * If we pass max order page, we might end up in a different
++		 * vmemmap, so account for that.
++		 */
++		pfn += n;
++		if (pfn & (MAX_ORDER_NR_PAGES - 1))
++			page += n;
++		else
++			page = pfn_to_page(pfn);
  	}
- };
- const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
-@@ -671,6 +678,10 @@ struct cx23885_subid cx23885_subids[] = {
- 		.subvendor = 0x14f1,
- 		.subdevice = 0x8502,
- 		.card      = CX23885_BOARD_MYGICA_X8507,
-+	}, {
-+		.subvendor = 0x153b,
-+		.subdevice = 0x117e,
-+		.card	   = CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL,
- 	},
- };
- const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
-@@ -1431,6 +1442,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 		break;
- 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
- 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
-+	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
- 		ts1->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
- 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
- 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-@@ -1504,6 +1516,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
- 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
- 	case CX23885_BOARD_MPX885:
- 	case CX23885_BOARD_MYGICA_X8507:
-+	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
- 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
- 				&dev->i2c_bus[2].i2c_adap,
- 				"cx25840", 0x88 >> 1, NULL);
-diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
-index bcb45be..c3b8285 100644
---- a/drivers/media/video/cx23885/cx23885-dvb.c
-+++ b/drivers/media/video/cx23885/cx23885-dvb.c
-@@ -61,6 +61,8 @@
- #include "cx23885-f300.h"
- #include "altera-ci.h"
- #include "stv0367.h"
-+#include "drxk.h"
-+#include "mt2063.h"
  
- static unsigned int debug;
+ 	trace_mm_compaction_isolate_freepages(nr_scanned, total_isolated);
+ 	return total_isolated;
++
++cleanup:
++	/*
++	 * Undo what we have done so far, and return.  We know all pages from
++	 * [start_pfn, pfn) are free because we have just freed them.  If one of
++	 * the page in the range was not freed, we would end up here earlier.
++	 */
++	for (; start_pfn < pfn; ++start_pfn)
++		__free_page(pfn_to_page(start_pfn));
++	return 0;
+ }
  
-@@ -617,6 +619,24 @@ static struct xc5000_config netup_xc5000_config[] = {
- 	},
- };
+ /* Returns true if the page is within a block suitable for migration to */
+@@ -135,7 +166,7 @@ static void isolate_freepages(struct zone *zone,
+ 				struct compact_control *cc)
+ {
+ 	struct page *page;
+-	unsigned long high_pfn, low_pfn, pfn;
++	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
+ 	unsigned long flags;
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
+@@ -155,6 +186,8 @@ static void isolate_freepages(struct zone *zone,
+ 	 */
+ 	high_pfn = min(low_pfn, pfn);
  
-+struct static drxk_config terratec_drxk_config[] = {
-+	{
-+		.adr = 0x29,
-+		.no_i2c_bridge = 1,
-+	}, {
-+		.adr = 0x2a,
-+		.no_i2c_bridge = 1,
-+	},
++	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
++
+ 	/*
+ 	 * Isolate free pages until enough are available to migrate the
+ 	 * pages on cc->migratepages. We stop searching if the migrate
+@@ -191,7 +224,9 @@ static void isolate_freepages(struct zone *zone,
+ 		isolated = 0;
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		if (suitable_migration_target(page)) {
+-			isolated = isolate_freepages_block(zone, pfn, freelist);
++			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
++			isolated = isolate_freepages_range(zone, pfn,
++					end_pfn, freelist);
+ 			nr_freepages += isolated;
+ 		}
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+@@ -250,31 +285,34 @@ typedef enum {
+ 	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
+ } isolate_migrate_t;
+ 
+-/*
+- * Isolate all pages that can be migrated from the block pointed to by
+- * the migrate scanner within compact_control.
++/**
++ * isolate_migratepages_range() - isolate all migrate-able pages in range.
++ * @zone:	Zone pages are in.
++ * @cc:		Compaction control structure.
++ * @low_pfn:	The first PFN of the range.
++ * @end_pfn:	The one-past-the-last PFN of the range.
++ *
++ * Isolate all pages that can be migrated from the range specified by
++ * [low_pfn, end_pfn).  Returns zero if there is a fatal signal
++ * pending), otherwise PFN of the first page that was not scanned
++ * (which may be both less, equal to or more then end_pfn).
++ *
++ * Assumes that cc->migratepages is empty and cc->nr_migratepages is
++ * zero.
++ *
++ * Other then cc->migratepages and cc->nr_migratetypes this function
++ * does not modify any cc's fields, ie. it does not modify (or read
++ * for that matter) cc->migrate_pfn.
+  */
+-static isolate_migrate_t isolate_migratepages(struct zone *zone,
+-					struct compact_control *cc)
++static unsigned long
++isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
++			   unsigned long low_pfn, unsigned long end_pfn)
+ {
+-	unsigned long low_pfn, end_pfn;
+ 	unsigned long last_pageblock_nr = 0, pageblock_nr;
+ 	unsigned long nr_scanned = 0, nr_isolated = 0;
+ 	struct list_head *migratelist = &cc->migratepages;
+ 	isolate_mode_t mode = ISOLATE_ACTIVE|ISOLATE_INACTIVE;
+ 
+-	/* Do not scan outside zone boundaries */
+-	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
+-
+-	/* Only scan within a pageblock boundary */
+-	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
+-
+-	/* Do not cross the free scanner or scan within a memory hole */
+-	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
+-		cc->migrate_pfn = end_pfn;
+-		return ISOLATE_NONE;
+-	}
+-
+ 	/*
+ 	 * Ensure that there are not too many pages isolated from the LRU
+ 	 * list by either parallel reclaimers or compaction. If there are,
+@@ -283,12 +321,12 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 	while (unlikely(too_many_isolated(zone))) {
+ 		/* async migration should just abort */
+ 		if (!cc->sync)
+-			return ISOLATE_ABORT;
++			return 0;
+ 
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+ 		if (fatal_signal_pending(current))
+-			return ISOLATE_ABORT;
++			return 0;
+ 	}
+ 
+ 	/* Time to isolate some pages for migration */
+@@ -365,17 +403,49 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 		nr_isolated++;
+ 
+ 		/* Avoid isolating too much */
+-		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX)
++		if (cc->nr_migratepages == COMPACT_CLUSTER_MAX) {
++			++low_pfn;
+ 			break;
++		}
+ 	}
+ 
+ 	acct_isolated(zone, cc);
+ 
+ 	spin_unlock_irq(&zone->lru_lock);
+-	cc->migrate_pfn = low_pfn;
+ 
+ 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
+ 
++	return low_pfn;
 +}
 +
-+struct static mt2063_config terratec_mt2063_config[] = {
-+	{
-+		.tuner_address = 0x60,
-+	}, {
-+		.tuner_address = 0x67,
-+	},
-+};
++/*
++ * Isolate all pages that can be migrated from the block pointed to by
++ * the migrate scanner within compact_control.
++ */
++static isolate_migrate_t isolate_migratepages(struct zone *zone,
++					struct compact_control *cc)
++{
++	unsigned long low_pfn, end_pfn;
 +
- int netup_altera_fpga_rw(void *device, int flag, int data, int read)
- {
- 	struct cx23885_dev *dev = (struct cx23885_dev *)device;
-@@ -1118,6 +1138,52 @@ static int dvb_register(struct cx23885_tsport *port)
- 				goto frontend_detach;
- 		}
- 		break;
-+	case CX23885_BOARD_TERRATREC_CINERGY_T_PCIE_DUAL:
-+		i2c_bus = &dev->i2c_bus[0];
-+		i2c_bus2 = &dev->i2c_bus[1];
-+		mfe_shared = 1;
-+		fe1 = videobuf_dvb_get_frontend(&port->frontend, 2);
++	/* Do not scan outside zone boundaries */
++	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
 +
-+		switch (port->nr) {
-+		/* port B */
-+		case 1:
-+			/* fe0 dvb-t */
-+			fe0->dvb.frontend = dvb_attach(drxk_attach,
-+				&terratec_drxk_config[0],
-+				&i2c_bus->i2c_adap, NULL);
++	/* Only scan within a pageblock boundary */
++	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
 +
-+			if (fe0->dvb.frontend != NULL) {
-+				if (!dvb_attach(mt2063_attach,
-+						fe0->dvb.frontend,
-+						&terratec_mt2063_config[0],
-+						&i2c_bus2->i2c_adap))
-+					goto frontend_deatch;
-+			}
-+			break;
-+		/* port C */
-+		case 2:
-+			/* fe0 dvb-t, fe1 dvb-c */
-+			fe0->dvb.frontend = dvb_attach(drxk_attach,
-+				&terratec_drxk_config[1],
-+				&i2c_bus->i2c_adap, &fe1->dvb.frontend);
++	/* Do not cross the free scanner or scan within a memory hole */
++	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
++		cc->migrate_pfn = end_pfn;
++		return ISOLATE_NONE;
++	}
 +
-+			if (fe0->dvb.frontend != NULL) {
-+				if (!dvb_attach(mt2063_attach,
-+						fe0->dvb.frontend,
-+						&terratec_mt2063_config[1],
-+						&i2c_bus2->i2c_adap))
-+					goto frontend_deatch;
-+			}
++	/* Perform the isolation */
++	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
++	if (!low_pfn)
++		return ISOLATE_ABORT;
 +
-+			if (fe1->dvb.frontend != NULL) {
-+				if (!dvb_attach(mt2063_attach,
-+						fe1->dvb.frontend,
-+						&terratec_mt2063_config[1],
-+						&i2c_bus2->i2c_adap))
-+					goto frontend_deatch;
-+			}
-+		}
-+		break;
- 	default:
- 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
- 			" isn't supported yet\n",
-diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
-index 519f40d..066f181 100644
---- a/drivers/media/video/cx23885/cx23885.h
-+++ b/drivers/media/video/cx23885/cx23885.h
-@@ -88,6 +88,7 @@
- #define CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000 31
- #define CX23885_BOARD_MPX885                   32
- #define CX23885_BOARD_MYGICA_X8507             33
-+#define CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL 34
++	cc->migrate_pfn = low_pfn;
++
+ 	return ISOLATE_SUCCESS;
+ }
  
- #define GPIO_0 0x00000001
- #define GPIO_1 0x00000002
 -- 
-1.7.7
+1.7.1.569.g6f426
 
