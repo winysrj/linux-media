@@ -1,90 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:42862 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752334Ab1LLE2T convert rfc822-to-8bit (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:60912 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753983Ab1L2Mj3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 23:28:19 -0500
-Received: by wgbds13 with SMTP id ds13so7578521wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 20:28:18 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EE346E0.7050606@iki.fi>
-References: <CAHFNz9+=T5XGok+LvhVqeSVdWt=Ng6wgXqcHdtdw19a+whx1bw@mail.gmail.com>
-	<4EE346E0.7050606@iki.fi>
-Date: Mon, 12 Dec 2011 09:58:17 +0530
-Message-ID: <CAHFNz9+WEJHhJoUywwzCF=Jv7TRY9xG2rKuRxP=Ff0jvq40SSA@mail.gmail.com>
-Subject: Re: v4 [PATCH 09/10] CXD2820r: Query DVB frontend delivery capabilities
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Thu, 29 Dec 2011 07:39:29 -0500
+Date: Thu, 29 Dec 2011 13:39:12 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 11/11] ARM: Samsung: use CMA for 2 memory banks for s5p-mfc
+ device
+In-reply-to: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1325162352-24709-12-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 10, 2011 at 5:17 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Hello Manu,
-> That patch looks now much acceptable than the older for my eyes, since you
-> removed that .set_state() (change from .set_params() to .set_state()) I
-> criticized. Thanks!
->
+Replace custom memory bank initialization using memblock_reserve and
+dma_declare_coherent with a single call to CMA's dma_declare_contiguous.
 
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ arch/arm/plat-s5p/dev-mfc.c |   51 ++++++-------------------------------------
+ 1 files changed, 7 insertions(+), 44 deletions(-)
 
-:-)
+diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
+index a30d36b..fcb8400 100644
+--- a/arch/arm/plat-s5p/dev-mfc.c
++++ b/arch/arm/plat-s5p/dev-mfc.c
+@@ -14,6 +14,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
++#include <linux/dma-contiguous.h>
+ #include <linux/memblock.h>
+ #include <linux/ioport.h>
+ 
+@@ -22,52 +23,14 @@
+ #include <plat/irqs.h>
+ #include <plat/mfc.h>
+ 
+-struct s5p_mfc_reserved_mem {
+-	phys_addr_t	base;
+-	unsigned long	size;
+-	struct device	*dev;
+-};
+-
+-static struct s5p_mfc_reserved_mem s5p_mfc_mem[2] __initdata;
+-
+ void __init s5p_mfc_reserve_mem(phys_addr_t rbase, unsigned int rsize,
+ 				phys_addr_t lbase, unsigned int lsize)
+ {
+-	int i;
+-
+-	s5p_mfc_mem[0].dev = &s5p_device_mfc_r.dev;
+-	s5p_mfc_mem[0].base = rbase;
+-	s5p_mfc_mem[0].size = rsize;
+-
+-	s5p_mfc_mem[1].dev = &s5p_device_mfc_l.dev;
+-	s5p_mfc_mem[1].base = lbase;
+-	s5p_mfc_mem[1].size = lsize;
+-
+-	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
+-		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
+-		if (memblock_remove(area->base, area->size)) {
+-			printk(KERN_ERR "Failed to reserve memory for MFC device (%ld bytes at 0x%08lx)\n",
+-			       area->size, (unsigned long) area->base);
+-			area->base = 0;
+-		}
+-	}
+-}
+-
+-static int __init s5p_mfc_memory_init(void)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
+-		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
+-		if (!area->base)
+-			continue;
++	if (dma_declare_contiguous(&s5p_device_mfc_r.dev, rsize, rbase, 0))
++		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
++		       rsize, (unsigned long) rbase);
+ 
+-		if (dma_declare_coherent_memory(area->dev, area->base,
+-				area->base, area->size,
+-				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0)
+-			printk(KERN_ERR "Failed to declare coherent memory for MFC device (%ld bytes at 0x%08lx)\n",
+-			       area->size, (unsigned long) area->base);
+-	}
+-	return 0;
++	if (dma_declare_contiguous(&s5p_device_mfc_l.dev, lsize, lbase, 0))
++		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
++		       rsize, (unsigned long) rbase);
+ }
+-device_initcall(s5p_mfc_memory_init);
+-- 
+1.7.1.569.g6f426
 
->
-> On 12/10/2011 06:44 AM, Manu Abraham wrote:
->>
->>  static int cxd2820r_set_frontend(struct dvb_frontend *fe,
->
-> [...]
->>
->> +       switch (c->delivery_system) {
->> +       case SYS_DVBT:
->> +               ret = cxd2820r_init_t(fe);
->
->
->> +               ret = cxd2820r_set_frontend_t(fe, p);
->
->
->
-> Anyhow, I don't now like idea you have put .init() calls to .set_frontend().
-> Could you move .init() happen in .init() callback as it was earlier?
-
-This was there in the earlier patch as well. Maybe you have a
-new issue now ? ;-)
-
-ok.
-
-The argument what you make doesn't hold well, Why ?
-
-int cxd2820r_init_t(struct dvb_frontend *fe)
-{
-	ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
-}
-
-
-int cxd2820r_init_c(struct dvb_frontend *fe)
-{
-	ret = cxd2820r_wr_reg(priv, 0x00085, 0x07);
-}
-
-
-Now, you might like to point that, the Base I2C address location
-is different comparing DVB-T/DVBT2 to DVB-C
-
-So, If you have the init as in earlier with a common init, then you
-will likely init the wrong device at .init(), as init is called open().
-So, this might result in an additional register write, which could
-be avoided altogether.  One register access is not definitely
-something to brag about, but is definitely a small incremental
-difference. Other than that this register write doesn't do anything
-more than an ADC_START. So starting the ADC at init doesn't
-make sense. But does so when you want to select the right ADC.
-So definitely, this change is an improvement. Also, you can
-compare the time taken for the device to tune now. It is quite
-a lot faster compared to without this patch. So you or any other
-user should be happy. :-)
-
-
-I don't think that in any way, the init should be used at init as
-you say, which sounds pretty much incorrect.
