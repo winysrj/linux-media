@@ -1,109 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53845 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab1K3X0B (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:21899 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753579Ab1L2MjY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 18:26:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] omap3isp: video: Don't WARN() on unknown pixel formats
-Date: Thu, 1 Dec 2011 00:26:07 +0100
-Cc: linux-media@vger.kernel.org
-References: <1322480254-10461-1-git-send-email-laurent.pinchart@ideasonboard.com> <201111300306.41892.laurent.pinchart@ideasonboard.com> <4ED5EADA.502@iki.fi>
-In-Reply-To: <4ED5EADA.502@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112010026.07592.laurent.pinchart@ideasonboard.com>
+	Thu, 29 Dec 2011 07:39:24 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Thu, 29 Dec 2011 13:39:05 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 04/11] mm: page_alloc: introduce alloc_contig_range()
+In-reply-to: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Michal Nazarewicz <mina86@mina86.com>
 
-On Wednesday 30 November 2011 09:35:38 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Monday 28 November 2011 17:01:12 Sakari Ailus wrote:
-> >> On Mon, Nov 28, 2011 at 12:37:34PM +0100, Laurent Pinchart wrote:
-> >>> When mapping from a V4L2 pixel format to a media bus format in the
-> >>> VIDIOC_TRY_FMT and VIDIOC_S_FMT handlers, the requested format may be
-> >>> unsupported by the driver. Return a hardcoded format instead of
-> >>> WARN()ing in that case.
-> >>> 
-> >>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >>> ---
-> >>> 
-> >>>  drivers/media/video/omap3isp/ispvideo.c |    8 ++++----
-> >>>  1 files changed, 4 insertions(+), 4 deletions(-)
-> >>> 
-> >>> diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> >>> b/drivers/media/video/omap3isp/ispvideo.c index d100072..ffe7ce9 100644
-> >>> --- a/drivers/media/video/omap3isp/ispvideo.c
-> >>> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> >>> @@ -210,14 +210,14 @@ static void isp_video_pix_to_mbus(const struct
-> >>> v4l2_pix_format *pix,
-> >>> 
-> >>>  	mbus->width = pix->width;
-> >>>  	mbus->height = pix->height;
-> >>> 
-> >>> -	for (i = 0; i < ARRAY_SIZE(formats); ++i) {
-> >>> +	/* Skip the last format in the loop so that it will be selected if 
-no
-> >>> +	 * match is found.
-> >>> +	 */
-> >>> +	for (i = 0; i < ARRAY_SIZE(formats) - 1; ++i) {
-> >>> 
-> >>>  		if (formats[i].pixelformat == pix->pixelformat)
-> >>>  		
-> >>>  			break;
-> >>>  	
-> >>>  	}
-> >>> 
-> >>> -	if (WARN_ON(i == ARRAY_SIZE(formats)))
-> >>> -		return;
-> >>> -
-> >>> 
-> >>>  	mbus->code = formats[i].code;
-> >>>  	mbus->colorspace = pix->colorspace;
-> >>>  	mbus->field = pix->field;
-> >> 
-> >> In case of setting or trying an invalid format, instead of selecting a
-> >> default format, shouldn't we leave the format unchanced --- the current
-> >> setting is valid after all.
-> > 
-> > TRY/SET operations must succeed. The format we select when an invalid
-> > format is requested isn't specified. We could keep the current format,
-> > but wouldn't that be more confusing for applications ? The format they
-> > would get in response to a TRY/SET operation would then potentially
-> > depend on the previous SET operations.
-> 
-> I don't think a change to something that has nothing to do what was
-> requested is better than not changing it. The application has requested
-> a particular format; changing it to something else isn't useful for the
-> application. And if the application would try more than invalid format
-> in a row, they both would yield to the same default format.
-> 
-> I would personally not change it.
+This commit adds the alloc_contig_range() function which tries
+to allocate given range of pages.  It tries to migrate all
+already allocated pages that fall in the range thus freeing them.
+Once all pages in the range are freed they are removed from the
+buddy system thus allocated for the caller to use.
 
-I can agree with you for S_FMT, but I have more doubts about TRY_FMT. Making 
-TRY_FMT return the current format if the requested format is not supported 
-seems confusing to me. And if we make TRY_FMT return a fixed format in that 
-case, why not making S_FMT do the same ? :-)
+__alloc_contig_migrate_range() borrows some code from KAMEZAWA
+Hiroyuki's __alloc_contig_pages().
 
-> What I can find in the spec is this:
-> 
-> "When the application calls the VIDIOC_S_FMT ioctl with a pointer to a
-> v4l2_format structure the driver checks and adjusts the parameters
-> against hardware abilities."
-> 
-> I wonder how other drivers behave.
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ include/linux/page-isolation.h |    3 +
+ mm/page_alloc.c                |  190 ++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 193 insertions(+), 0 deletions(-)
 
-uvcvideo returns -EINVAL, which I think should be fixed.
-
-The sensor drivers I wrote return a fixed format (this isn't strictly 
-S_FMT/TRY_FMT, but I think it's related).
-
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 051c1b1..d305080 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -33,5 +33,8 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ extern int set_migratetype_isolate(struct page *page);
+ extern void unset_migratetype_isolate(struct page *page);
+ 
++/* The below functions must be run on a range from a single zone. */
++int alloc_contig_range(unsigned long start, unsigned long end);
++void free_contig_range(unsigned long pfn, unsigned nr_pages);
+ 
+ #endif
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index f88b320..47b0a85 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -57,6 +57,7 @@
+ #include <linux/ftrace_event.h>
+ #include <linux/memcontrol.h>
+ #include <linux/prefetch.h>
++#include <linux/migrate.h>
+ 
+ #include <asm/tlbflush.h>
+ #include <asm/div64.h>
+@@ -5711,6 +5712,195 @@ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+ 
++static unsigned long pfn_align_to_maxpage_down(unsigned long pfn)
++{
++	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
++}
++
++static unsigned long pfn_align_to_maxpage_up(unsigned long pfn)
++{
++	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
++}
++
++static struct page *
++__cma_migrate_alloc(struct page *page, unsigned long private, int **resultp)
++{
++	return alloc_page(GFP_HIGHUSER_MOVABLE);
++}
++
++static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
++{
++	/* This function is based on compact_zone() from compaction.c. */
++
++	unsigned long pfn = start;
++	int ret = -EBUSY;
++	unsigned tries = 0;
++
++	struct compact_control cc = {
++		.nr_migratepages = 0,
++		.order = -1,
++		.zone = page_zone(pfn_to_page(start)),
++		.sync = true,
++	};
++	INIT_LIST_HEAD(&cc.migratepages);
++
++	migrate_prep_local();
++
++	while (pfn < end || cc.nr_migratepages) {
++		/* Abort on signal */
++		if (fatal_signal_pending(current)) {
++			ret = -EINTR;
++			goto done;
++		}
++
++		/* Get some pages to migrate. */
++		if (list_empty(&cc.migratepages)) {
++			cc.nr_migratepages = 0;
++			pfn = isolate_migratepages_range(cc.zone, &cc,
++							 pfn, end);
++			if (!pfn) {
++				ret = -EINTR;
++				goto done;
++			}
++			tries = 0;
++		}
++
++		/* Try to migrate. */
++		ret = migrate_pages(&cc.migratepages, __cma_migrate_alloc,
++				    0, false, true);
++
++		/* Migrated all of them? Great! */
++		if (list_empty(&cc.migratepages))
++			continue;
++
++		/* Try five times. */
++		if (++tries == 5) {
++			ret = ret < 0 ? ret : -EBUSY;
++			goto done;
++		}
++
++		/* Before each time drain everything and reschedule. */
++		lru_add_drain_all();
++		drain_all_pages();
++		cond_resched();
++	}
++	ret = 0;
++
++done:
++	/* Make sure all pages are isolated. */
++	if (!ret) {
++		lru_add_drain_all();
++		drain_all_pages();
++		if (WARN_ON(test_pages_isolated(start, end)))
++			ret = -EBUSY;
++	}
++
++	/* Release pages */
++	putback_lru_pages(&cc.migratepages);
++
++	return ret;
++}
++
++/**
++ * alloc_contig_range() -- tries to allocate given range of pages
++ * @start:	start PFN to allocate
++ * @end:	one-past-the-last PFN to allocate
++ *
++ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
++ * aligned, hovewer it's callers responsibility to guarantee that we
++ * are the only thread that changes migrate type of pageblocks the
++ * pages fall in.
++ *
++ * Returns zero on success or negative error code.  On success all
++ * pages which PFN is in (start, end) are allocated for the caller and
++ * need to be freed with free_contig_range().
++ */
++int alloc_contig_range(unsigned long start, unsigned long end)
++{
++	unsigned long outer_start, outer_end;
++	int ret;
++
++	/*
++	 * What we do here is we mark all pageblocks in range as
++	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
++	 * align the range to MAX_ORDER pages so that page allocator
++	 * won't try to merge buddies from different pageblocks and
++	 * change MIGRATE_ISOLATE to some other migration type.
++	 *
++	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
++	 * migrate the pages from an unaligned range (ie. pages that
++	 * we are interested in).  This will put all the pages in
++	 * range back to page allocator as MIGRATE_ISOLATE.
++	 *
++	 * When this is done, we take the pages in range from page
++	 * allocator removing them from the buddy system.  This way
++	 * page allocator will never consider using them.
++	 *
++	 * This lets us mark the pageblocks back as
++	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
++	 * MAX_ORDER aligned range but not in the unaligned, original
++	 * range are put back to page allocator so that buddy can use
++	 * them.
++	 */
++
++	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
++				       pfn_align_to_maxpage_up(end));
++	if (ret)
++		goto done;
++
++	ret = __alloc_contig_migrate_range(start, end);
++	if (ret)
++		goto done;
++
++	/*
++	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
++	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
++	 * more, all pages in [start, end) are free in page allocator.
++	 * What we are going to do is to allocate all pages from
++	 * [start, end) (that is remove them from page allocater).
++	 *
++	 * The only problem is that pages at the beginning and at the
++	 * end of interesting range may be not aligned with pages that
++	 * page allocator holds, ie. they can be part of higher order
++	 * pages.  Because of this, we reserve the bigger range and
++	 * once this is done free the pages we are not interested in.
++	 */
++
++	ret = 0;
++	while (!PageBuddy(pfn_to_page(start & (~0UL << ret))))
++		if (WARN_ON(++ret >= MAX_ORDER)) {
++			ret = -EINVAL;
++			goto done;
++		}
++
++	outer_start = start & (~0UL << ret);
++	outer_end = isolate_freepages_range(page_zone(pfn_to_page(outer_start)),
++					    outer_start, end, NULL);
++	if (!outer_end) {
++		ret = -EBUSY;
++		goto done;
++	}
++	outer_end += outer_start;
++
++	/* Free head and tail (if any) */
++	if (start != outer_start)
++		free_contig_range(outer_start, start - outer_start);
++	if (end != outer_end)
++		free_contig_range(end, outer_end - end);
++
++	ret = 0;
++done:
++	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
++				pfn_align_to_maxpage_up(end));
++	return ret;
++}
++
++void free_contig_range(unsigned long pfn, unsigned nr_pages)
++{
++	for (; nr_pages--; ++pfn)
++		__free_page(pfn_to_page(pfn));
++}
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+  * All pages in the range must be isolated before calling this.
 -- 
-Regards,
+1.7.1.569.g6f426
 
-Laurent Pinchart
