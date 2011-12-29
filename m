@@ -1,212 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7535 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753914Ab1L0BJp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:45 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19jAj017924
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:45 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 82/91] [media] tlg2300: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:09:10 -0200
-Message-Id: <1324948159-23709-83-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-82-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
- <1324948159-23709-56-git-send-email-mchehab@redhat.com>
- <1324948159-23709-57-git-send-email-mchehab@redhat.com>
- <1324948159-23709-58-git-send-email-mchehab@redhat.com>
- <1324948159-23709-59-git-send-email-mchehab@redhat.com>
- <1324948159-23709-60-git-send-email-mchehab@redhat.com>
- <1324948159-23709-61-git-send-email-mchehab@redhat.com>
- <1324948159-23709-62-git-send-email-mchehab@redhat.com>
- <1324948159-23709-63-git-send-email-mchehab@redhat.com>
- <1324948159-23709-64-git-send-email-mchehab@redhat.com>
- <1324948159-23709-65-git-send-email-mchehab@redhat.com>
- <1324948159-23709-66-git-send-email-mchehab@redhat.com>
- <1324948159-23709-67-git-send-email-mchehab@redhat.com>
- <1324948159-23709-68-git-send-email-mchehab@redhat.com>
- <1324948159-23709-69-git-send-email-mchehab@redhat.com>
- <1324948159-23709-70-git-send-email-mchehab@redhat.com>
- <1324948159-23709-71-git-send-email-mchehab@redhat.com>
- <1324948159-23709-72-git-send-email-mchehab@redhat.com>
- <1324948159-23709-73-git-send-email-mchehab@redhat.com>
- <1324948159-23709-74-git-send-email-mchehab@redhat.com>
- <1324948159-23709-75-git-send-email-mchehab@redhat.com>
- <1324948159-23709-76-git-send-email-mchehab@redhat.com>
- <1324948159-23709-77-git-send-email-mchehab@redhat.com>
- <1324948159-23709-78-git-send-email-mchehab@redhat.com>
- <1324948159-23709-79-git-send-email-mchehab@redhat.com>
- <1324948159-23709-80-git-send-email-mchehab@redhat.com>
- <1324948159-23709-81-git-send-email-mchehab@redhat.com>
- <1324948159-23709-82-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:60912 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754203Ab1L2MjW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Dec 2011 07:39:22 -0500
+Date: Thu, 29 Dec 2011 13:39:07 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 06/11] mm: page_isolation: MIGRATE_CMA isolation functions added
+In-reply-to: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1325162352-24709-7-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+From: Michal Nazarewicz <mina86@mina86.com>
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+This commit changes various functions that change pages and
+pageblocks migrate type between MIGRATE_ISOLATE and
+MIGRATE_MOVABLE in such a way as to allow to work with
+MIGRATE_CMA migrate type.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/video/tlg2300/pd-common.h |    2 +-
- drivers/media/video/tlg2300/pd-dvb.c    |   23 ++++++++++++-----------
- 2 files changed, 13 insertions(+), 12 deletions(-)
+ include/linux/page-isolation.h |   23 ++++++++++++-----------
+ mm/memory-failure.c            |    2 +-
+ mm/memory_hotplug.c            |    6 +++---
+ mm/page_alloc.c                |   18 ++++++++++++------
+ mm/page_isolation.c            |   15 ++++++++-------
+ 5 files changed, 36 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/media/video/tlg2300/pd-common.h b/drivers/media/video/tlg2300/pd-common.h
-index 56564e6..5dd73b7 100644
---- a/drivers/media/video/tlg2300/pd-common.h
-+++ b/drivers/media/video/tlg2300/pd-common.h
-@@ -140,7 +140,7 @@ struct pd_dvb_adapter {
- 	u8			reserved[3];
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index af650db..c8004dc 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -3,7 +3,7 @@
  
- 	/* data for power resume*/
--	struct dvb_frontend_parameters fe_param;
-+	struct dtv_frontend_properties fe_param;
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+- * If specified range includes migrate types other than MOVABLE,
++ * If specified range includes migrate types other than MOVABLE or CMA,
+  * this will fail with -EBUSY.
+  *
+  * For isolating all pages in the range finally, the caller have to
+@@ -11,30 +11,31 @@
+  * test it.
+  */
+ extern int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			 unsigned migratetype);
  
- 	/* for channel scanning */
- 	int		prev_freq;
-diff --git a/drivers/media/video/tlg2300/pd-dvb.c b/drivers/media/video/tlg2300/pd-dvb.c
-index f864c17..7998811 100644
---- a/drivers/media/video/tlg2300/pd-dvb.c
-+++ b/drivers/media/video/tlg2300/pd-dvb.c
-@@ -12,9 +12,9 @@
- static void dvb_urb_cleanup(struct pd_dvb_adapter *pd_dvb);
+ /*
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+  * target range is [start_pfn, end_pfn)
+  */
+ extern int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			unsigned migratetype);
  
- static int dvb_bandwidth[][2] = {
--	{ TLG_BW_8, BANDWIDTH_8_MHZ },
--	{ TLG_BW_7, BANDWIDTH_7_MHZ },
--	{ TLG_BW_6, BANDWIDTH_6_MHZ }
-+	{ TLG_BW_8, 8000000 },
-+	{ TLG_BW_7, 7000000 },
-+	{ TLG_BW_6, 6000000 }
- };
- static int dvb_bandwidth_length = ARRAY_SIZE(dvb_bandwidth);
+ /*
+- * test all pages in [start_pfn, end_pfn)are isolated or not.
++ * Test all pages in [start_pfn, end_pfn) are isolated or not.
+  */
+-extern int
+-test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
++int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
  
-@@ -146,9 +146,9 @@ static int fw_delay_overflow(struct pd_dvb_adapter *adapter)
- 	return msec > 800 ? true : false;
+ /*
+- * Internal funcs.Changes pageblock's migrate type.
+- * Please use make_pagetype_isolated()/make_pagetype_movable().
++ * Internal functions. Changes pageblock's migrate type.
+  */
+-extern int set_migratetype_isolate(struct page *page);
+-extern void unset_migratetype_isolate(struct page *page);
++int set_migratetype_isolate(struct page *page);
++void unset_migratetype_isolate(struct page *page, unsigned migratetype);
+ 
+ /* The below functions must be run on a range from a single zone. */
+-int alloc_contig_range(unsigned long start, unsigned long end);
++int alloc_contig_range(unsigned long start, unsigned long end,
++		       unsigned migratetype);
+ void free_contig_range(unsigned long pfn, unsigned nr_pages);
+ 
+ /* CMA stuff */
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 06d3479..3cf809d 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1400,7 +1400,7 @@ static int get_any_page(struct page *p, unsigned long pfn, int flags)
+ 		/* Not a free page */
+ 		ret = 1;
+ 	}
+-	unset_migratetype_isolate(p);
++	unset_migratetype_isolate(p, MIGRATE_MOVABLE);
+ 	unlock_memory_hotplug();
+ 	return ret;
+ }
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 2168489..2a44d55 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -891,7 +891,7 @@ static int __ref offline_pages(unsigned long start_pfn,
+ 	nr_pages = end_pfn - start_pfn;
+ 
+ 	/* set above range as isolated */
+-	ret = start_isolate_page_range(start_pfn, end_pfn);
++	ret = start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -956,7 +956,7 @@ repeat:
+ 	   We cannot do rollback at this point. */
+ 	offline_isolated_pages(start_pfn, end_pfn);
+ 	/* reset pagetype flags and makes migrate type to be MOVABLE */
+-	undo_isolate_page_range(start_pfn, end_pfn);
++	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 	/* removal success */
+ 	zone->present_pages -= offlined_pages;
+ 	zone->zone_pgdat->node_present_pages -= offlined_pages;
+@@ -981,7 +981,7 @@ failed_removal:
+ 		start_pfn, end_pfn);
+ 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
+ 	/* pushback to free area */
+-	undo_isolate_page_range(start_pfn, end_pfn);
++	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 
+ out:
+ 	unlock_memory_hotplug();
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 06a7861..8b47c85 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5734,7 +5734,7 @@ out:
+ 	return ret;
  }
  
--static int poseidon_set_fe(struct dvb_frontend *fe,
--			struct dvb_frontend_parameters *fep)
-+static int poseidon_set_fe(struct dvb_frontend *fe)
+-void unset_migratetype_isolate(struct page *page)
++void unset_migratetype_isolate(struct page *page, unsigned migratetype)
  {
-+	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
- 	s32 ret = 0, cmd_status = 0;
- 	s32 i, bandwidth = -1;
- 	struct poseidon *pd = fe->demodulator_priv;
-@@ -159,7 +159,7 @@ static int poseidon_set_fe(struct dvb_frontend *fe,
- 
- 	mutex_lock(&pd->lock);
- 	for (i = 0; i < dvb_bandwidth_length; i++)
--		if (fep->u.ofdm.bandwidth == dvb_bandwidth[i][1])
-+		if (fep->bandwidth_hz == dvb_bandwidth[i][1])
- 			bandwidth = dvb_bandwidth[i][0];
- 
- 	if (check_scan_ok(fep->frequency, bandwidth, pd_dvb)) {
-@@ -210,7 +210,7 @@ static int pm_dvb_resume(struct poseidon *pd)
- 
- 	poseidon_check_mode_dvbt(pd);
- 	msleep(300);
--	poseidon_set_fe(&pd_dvb->dvb_fe, &pd_dvb->fe_param);
-+	poseidon_set_fe(&pd_dvb->dvb_fe);
- 
- 	dvb_start_streaming(pd_dvb);
- 	return 0;
-@@ -227,12 +227,12 @@ static s32 poseidon_fe_init(struct dvb_frontend *fe)
- 	pd->pm_resume  = pm_dvb_resume;
- #endif
- 	memset(&pd_dvb->fe_param, 0,
--			sizeof(struct dvb_frontend_parameters));
-+			sizeof(struct dtv_frontend_properties));
- 	return 0;
+ 	struct zone *zone;
+ 	unsigned long flags;
+@@ -5742,8 +5742,8 @@ void unset_migratetype_isolate(struct page *page)
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-	move_freepages_block(zone, page, MIGRATE_MOVABLE);
++	set_pageblock_migratetype(page, migratetype);
++	move_freepages_block(zone, page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
  }
- 
- static int poseidon_get_fe(struct dvb_frontend *fe,
--			struct dvb_frontend_parameters *fep)
-+			struct dtv_frontend_properties *fep)
+@@ -5841,6 +5841,10 @@ done:
+  * alloc_contig_range() -- tries to allocate given range of pages
+  * @start:	start PFN to allocate
+  * @end:	one-past-the-last PFN to allocate
++ * @migratetype:	migratetype of the underlaying pageblocks (either
++ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
++ *			in range must have the same migratetype and it must
++ *			be either of the two.
+  *
+  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
+  * aligned, hovewer it's callers responsibility to guarantee that we
+@@ -5851,7 +5855,8 @@ done:
+  * pages which PFN is in (start, end) are allocated for the caller and
+  * need to be freed with free_contig_range().
+  */
+-int alloc_contig_range(unsigned long start, unsigned long end)
++int alloc_contig_range(unsigned long start, unsigned long end,
++		       unsigned migratetype)
  {
- 	struct poseidon *pd = fe->demodulator_priv;
- 	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
-@@ -332,6 +332,7 @@ static int poseidon_read_unc_blocks(struct dvb_frontend *fe, u32 *unc)
+ 	unsigned long outer_start, outer_end;
+ 	int ret;
+@@ -5880,7 +5885,8 @@ int alloc_contig_range(unsigned long start, unsigned long end)
+ 	 */
+ 
+ 	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
+-				       pfn_align_to_maxpage_up(end));
++				       pfn_align_to_maxpage_up(end),
++				       migratetype);
+ 	if (ret)
+ 		goto done;
+ 
+@@ -5927,7 +5933,7 @@ int alloc_contig_range(unsigned long start, unsigned long end)
+ 	ret = 0;
+ done:
+ 	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
+-				pfn_align_to_maxpage_up(end));
++				pfn_align_to_maxpage_up(end), migratetype);
+ 	return ret;
  }
  
- static struct dvb_frontend_ops poseidon_frontend_ops = {
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		.name		= "Poseidon DVB-T",
- 		.type		= FE_OFDM,
-@@ -353,8 +354,8 @@ static struct dvb_frontend_ops poseidon_frontend_ops = {
- 	.init = poseidon_fe_init,
- 	.sleep = poseidon_fe_sleep,
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 4ae42bb..c9f0477 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -24,6 +24,7 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * to be MIGRATE_ISOLATE.
+  * @start_pfn: The lower PFN of the range to be isolated.
+  * @end_pfn: The upper PFN of the range to be isolated.
++ * @migratetype: migrate type to set in error recovery.
+  *
+  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
+  * the range will never be allocated. Any free pages and pages freed in the
+@@ -32,8 +33,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * start_pfn/end_pfn must be aligned to pageblock_order.
+  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+-int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			     unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	unsigned long undo_pfn;
+@@ -56,7 +57,7 @@ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+ 	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn));
++		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
  
--	.set_frontend_legacy = poseidon_set_fe,
--	.get_frontend_legacy = poseidon_get_fe,
-+	.set_frontend = poseidon_set_fe,
-+	.get_frontend = poseidon_get_fe,
- 	.get_tune_settings = poseidon_fe_get_tune_settings,
- 
- 	.read_status	= poseidon_read_status,
+ 	return -EBUSY;
+ }
+@@ -64,8 +65,8 @@ undo:
+ /*
+  * Make isolated pages available again.
+  */
+-int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			    unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
+@@ -77,7 +78,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			continue;
+-		unset_migratetype_isolate(page);
++		unset_migratetype_isolate(page, migratetype);
+ 	}
+ 	return 0;
+ }
+@@ -86,7 +87,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+  * all pages in [start_pfn...end_pfn) must be in the same zone.
+  * zone->lock must be held before call this.
+  *
+- * Returns 1 if all pages in the range is isolated.
++ * Returns 1 if all pages in the range are isolated.
+  */
+ static int
+ __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn)
 -- 
-1.7.8.352.g876a6
+1.7.1.569.g6f426
 
