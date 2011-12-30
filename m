@@ -1,59 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:50889 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753009Ab1LFGv2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 01:51:28 -0500
-Date: Tue, 6 Dec 2011 07:51:19 +0100
-From: Thierry Reding <thierry.reding@avionic-design.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Stefan Ringel <linuxtv@stefanringel.de>,
-	linux-media@vger.kernel.org, d.belimov@gmail.com
-Subject: Re: [PATCH 3/5] tm6000: bugfix interrupt reset
-Message-ID: <20111206065119.GA26724@avionic-0098.mockup.avionic-design.de>
-References: <1322509580-14460-1-git-send-email-linuxtv@stefanringel.de>
- <1322509580-14460-3-git-send-email-linuxtv@stefanringel.de>
- <20111205072131.GB7341@avionic-0098.mockup.avionic-design.de>
- <4EDCB33E.8090100@redhat.com>
- <20111205153800.GA32512@avionic-0098.mockup.avionic-design.de>
- <4EDD0BBF.3020804@redhat.com>
- <4EDD235A.9000100@stefanringel.de>
- <4EDD268E.9010603@redhat.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="EVF5PPMfhYS0aIcm"
-Content-Disposition: inline
-In-Reply-To: <4EDD268E.9010603@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45545 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752703Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:32 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9UHi009149
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 63/94] [media] or51132: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:00 -0200
+Message-Id: <1325257711-12274-64-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
---EVF5PPMfhYS0aIcm
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-* Mauro Carvalho Chehab wrote:
-> That means that all we need is to get rid of TM6000_QUIRK_NO_USB_DELAY.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/or51132.c |   34 ++++++++++++++++----------------
+ 1 files changed, 17 insertions(+), 17 deletions(-)
 
-I've just reviewed my patches again and it seems that no-USB-delay quirk
-patch was only partially applied. The actual location where it was introduced
-was in tm6000_read_write_usb() to allow the msleep(5) to be skipped, which on
-some devices isn't required and significantly speeds up firmware upload. So I
-don't think we should get rid of it.
+diff --git a/drivers/media/dvb/frontends/or51132.c b/drivers/media/dvb/frontends/or51132.c
+index e0c952c..2d9e81b 100644
+--- a/drivers/media/dvb/frontends/or51132.c
++++ b/drivers/media/dvb/frontends/or51132.c
+@@ -306,9 +306,9 @@ static int modulation_fw_class(fe_modulation_t modulation)
+ 	}
+ }
+ 
+-static int or51132_set_parameters(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *param)
++static int or51132_set_parameters(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	int ret;
+ 	struct or51132_state* state = fe->demodulator_priv;
+ 	const struct firmware *fw;
+@@ -317,8 +317,8 @@ static int or51132_set_parameters(struct dvb_frontend* fe,
+ 
+ 	/* Upload new firmware only if we need a different one */
+ 	if (modulation_fw_class(state->current_modulation) !=
+-	    modulation_fw_class(param->u.vsb.modulation)) {
+-		switch(modulation_fw_class(param->u.vsb.modulation)) {
++	    modulation_fw_class(p->modulation)) {
++		switch(modulation_fw_class(p->modulation)) {
+ 		case MOD_FWCLASS_VSB:
+ 			dprintk("set_parameters VSB MODE\n");
+ 			fwname = OR51132_VSB_FIRMWARE;
+@@ -335,7 +335,7 @@ static int or51132_set_parameters(struct dvb_frontend* fe,
+ 			break;
+ 		default:
+ 			printk("or51132: Modulation type(%d) UNSUPPORTED\n",
+-			       param->u.vsb.modulation);
++			       p->modulation);
+ 			return -1;
+ 		}
+ 		printk("or51132: Waiting for firmware upload(%s)...\n",
+@@ -357,8 +357,8 @@ static int or51132_set_parameters(struct dvb_frontend* fe,
+ 		state->config->set_ts_params(fe, clock_mode);
+ 	}
+ 	/* Change only if we are actually changing the modulation */
+-	if (state->current_modulation != param->u.vsb.modulation) {
+-		state->current_modulation = param->u.vsb.modulation;
++	if (state->current_modulation != p->modulation) {
++		state->current_modulation = p->modulation;
+ 		or51132_setmode(fe);
+ 	}
+ 
+@@ -371,12 +371,12 @@ static int or51132_set_parameters(struct dvb_frontend* fe,
+ 	or51132_setmode(fe);
+ 
+ 	/* Update current frequency */
+-	state->current_frequency = param->frequency;
++	state->current_frequency = p->frequency;
+ 	return 0;
+ }
+ 
+ static int or51132_get_parameters(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *param)
++				  struct dtv_frontend_properties *p)
+ {
+ 	struct or51132_state* state = fe->demodulator_priv;
+ 	int status;
+@@ -389,9 +389,9 @@ start:
+ 		return -EREMOTEIO;
+ 	}
+ 	switch(status&0xff) {
+-		case 0x06: param->u.vsb.modulation = VSB_8; break;
+-		case 0x43: param->u.vsb.modulation = QAM_64; break;
+-		case 0x45: param->u.vsb.modulation = QAM_256; break;
++		case 0x06: p->modulation = VSB_8; break;
++		case 0x43: p->modulation = QAM_64; break;
++		case 0x45: p->modulation = QAM_256; break;
+ 		default:
+ 			if (retry--) goto start;
+ 			printk(KERN_WARNING "or51132: unknown status 0x%02x\n",
+@@ -400,10 +400,10 @@ start:
+ 	}
+ 
+ 	/* FIXME: Read frequency from frontend, take AFC into account */
+-	param->frequency = state->current_frequency;
++	p->frequency = state->current_frequency;
+ 
+ 	/* FIXME: How to read inversion setting? Receiver 6 register? */
+-	param->inversion = INVERSION_AUTO;
++	p->inversion = INVERSION_AUTO;
+ 
+ 	return 0;
+ }
+@@ -579,7 +579,7 @@ struct dvb_frontend* or51132_attach(const struct or51132_config* config,
+ }
+ 
+ static struct dvb_frontend_ops or51132_ops = {
+-
++	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+ 		.name			= "Oren OR51132 VSB/QAM Frontend",
+ 		.type			= FE_ATSC,
+@@ -597,8 +597,8 @@ static struct dvb_frontend_ops or51132_ops = {
+ 	.init = or51132_init,
+ 	.sleep = or51132_sleep,
+ 
+-	.set_frontend_legacy = or51132_set_parameters,
+-	.get_frontend_legacy = or51132_get_parameters,
++	.set_frontend = or51132_set_parameters,
++	.get_frontend = or51132_get_parameters,
+ 	.get_tune_settings = or51132_get_tune_settings,
+ 
+ 	.read_status = or51132_read_status,
+-- 
+1.7.8.352.g876a6
 
-If it helps I can rebase the code against your branch (which one would that
-be exactly?) and resend the rest of the series.
-
-Thierry
-
---EVF5PPMfhYS0aIcm
-Content-Type: application/pgp-signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iEYEARECAAYFAk7du2cACgkQZ+BJyKLjJp+7rgCgo/XL8aCZnRl+vRFBKFa8NF1e
-sawAn1vCeQCVGN2EEqV3Pof9dkpfJU3E
-=7Z52
------END PGP SIGNATURE-----
-
---EVF5PPMfhYS0aIcm--
