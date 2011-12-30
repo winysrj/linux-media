@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26263 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:6670 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752486Ab1L3PJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:29 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9T9T026565
+	id S1752567Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:31 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Vh1015920
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:29 -0500
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 50/94] [media] si21xx: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:47 -0200
-Message-Id: <1325257711-12274-51-git-send-email-mchehab@redhat.com>
+Subject: [PATCHv2 64/94] [media] or51211: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:01 -0200
+Message-Id: <1325257711-12274-65-git-send-email-mchehab@redhat.com>
 In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
 References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
@@ -28,55 +28,57 @@ struct.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/frontends/si21xx.c |   21 +++------------------
- 1 files changed, 3 insertions(+), 18 deletions(-)
+ drivers/media/dvb/frontends/or51211.c |   12 ++++++------
+ 1 files changed, 6 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/si21xx.c b/drivers/media/dvb/frontends/si21xx.c
-index badf449..e223f35 100644
---- a/drivers/media/dvb/frontends/si21xx.c
-+++ b/drivers/media/dvb/frontends/si21xx.c
-@@ -690,20 +690,7 @@ static int si21xx_setacquire(struct dvb_frontend *fe, int symbrate,
- 	return status;
+diff --git a/drivers/media/dvb/frontends/or51211.c b/drivers/media/dvb/frontends/or51211.c
+index 2f2c7f8..58ddf55 100644
+--- a/drivers/media/dvb/frontends/or51211.c
++++ b/drivers/media/dvb/frontends/or51211.c
+@@ -218,13 +218,13 @@ static int or51211_setmode(struct dvb_frontend* fe, int mode)
+ 	return 0;
  }
  
--static int si21xx_set_property(struct dvb_frontend *fe, struct dtv_property *p)
--{
--	dprintk("%s(..)\n", __func__);
--	return 0;
--}
--
--static int si21xx_get_property(struct dvb_frontend *fe, struct dtv_property *p)
--{
--	dprintk("%s(..)\n", __func__);
--	return 0;
--}
--
--static int si21xx_set_frontend(struct dvb_frontend *fe,
--					struct dvb_frontend_parameters *dfp)
-+static int si21xx_set_frontend(struct dvb_frontend *fe)
+-static int or51211_set_parameters(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *param)
++static int or51211_set_parameters(struct dvb_frontend* fe)
  {
- 	struct si21xx_state *state = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -877,7 +864,7 @@ static void si21xx_release(struct dvb_frontend *fe)
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct or51211_state* state = fe->demodulator_priv;
+ 
+ 	/* Change only if we are actually changing the channel */
+-	if (state->current_frequency != param->frequency) {
++	if (state->current_frequency != p->frequency) {
+ 		if (fe->ops.tuner_ops.set_params) {
+ 			fe->ops.tuner_ops.set_params(fe);
+ 			if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
+@@ -234,7 +234,7 @@ static int or51211_set_parameters(struct dvb_frontend* fe,
+ 		or51211_setmode(fe,0);
+ 
+ 		/* Update current frequency */
+-		state->current_frequency = param->frequency;
++		state->current_frequency = p->frequency;
+ 	}
+ 	return 0;
+ }
+@@ -544,7 +544,7 @@ struct dvb_frontend* or51211_attach(const struct or51211_config* config,
  }
  
- static struct dvb_frontend_ops si21xx_ops = {
+ static struct dvb_frontend_ops or51211_ops = {
 -
-+	.delsys = { SYS_DVBS },
++        .delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
  	.info = {
- 		.name			= "SL SI21XX DVB-S",
- 		.type			= FE_QPSK,
-@@ -908,9 +895,7 @@ static struct dvb_frontend_ops si21xx_ops = {
- 	.set_tone = si21xx_set_tone,
- 	.set_voltage = si21xx_set_voltage,
+ 		.name               = "Oren OR51211 VSB Frontend",
+ 		.type               = FE_ATSC,
+@@ -561,7 +561,7 @@ static struct dvb_frontend_ops or51211_ops = {
+ 	.init = or51211_init,
+ 	.sleep = or51211_sleep,
  
--	.set_property = si21xx_set_property,
--	.get_property = si21xx_get_property,
--	.set_frontend_legacy = si21xx_set_frontend,
-+	.set_frontend = si21xx_set_frontend,
- };
+-	.set_frontend_legacy = or51211_set_parameters,
++	.set_frontend = or51211_set_parameters,
+ 	.get_tune_settings = or51211_get_tune_settings,
  
- struct dvb_frontend *si21xx_attach(const struct si21xx_config *config,
+ 	.read_status = or51211_read_status,
 -- 
 1.7.8.352.g876a6
 
