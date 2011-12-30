@@ -1,59 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50170 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752703Ab1L1Kdu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 05:33:50 -0500
-Date: Wed, 28 Dec 2011 12:33:45 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] v4l: Add DPCM compressed formats
-Message-ID: <20111228103345.GS3677@valkosipuli.localdomain>
-References: <20111228102028.GR3677@valkosipuli.localdomain>
- <1325067657-32556-1-git-send-email-sakari.ailus@iki.fi>
- <201112281125.15080.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201112281125.15080.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:4073 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752097Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:27 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9QOv024155
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:26 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 11/94] [media] cx24116: report delivery system and cleanups
+Date: Fri, 30 Dec 2011 13:07:08 -0200
+Message-Id: <1325257711-12274-12-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Dec 28, 2011 at 11:25:13AM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Wednesday 28 December 2011 11:20:56 Sakari Ailus wrote:
-> > Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  include/linux/videodev2.h |    3 +++
-> >  1 files changed, 3 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 0f8f904..560e468 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -365,7 +365,10 @@ struct v4l2_pix_format {
-> >  #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR..
-> > BGBG.. */ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /*
-> > 12  RGRG.. GBGB.. */ /* 10bit raw bayer DPCM compressed to 8 bits */
-> > +#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('B', 'D', 'B', '1')
-> > +#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('B', 'D', 'G', '1')
-> >  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-> > +#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('B', 'D', 'R', '1')
-> >  	/*
-> >  	 * 10bit raw bayer, expanded to 16 bits
-> >  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
-> 
-> Could you please have a look at the discussion about a similar patch in 
-> http://patchwork.linuxtv.org/patch/8844/ ?
+This is one of the first drivers using DVBv5. It relies only
+on DVBv5 way, but still it contains some stub for unused
+methods. Remove them, add the delivery system and do some
+trivial cleanups.
 
-Oh, I had missed that, even if I was cc'd... :-P
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/cx24116.c |   33 ++++++++++++---------------------
+ 1 files changed, 12 insertions(+), 21 deletions(-)
 
-Thanks.
-
+diff --git a/drivers/media/dvb/frontends/cx24116.c b/drivers/media/dvb/frontends/cx24116.c
+index 445ae88..f24819a 100644
+--- a/drivers/media/dvb/frontends/cx24116.c
++++ b/drivers/media/dvb/frontends/cx24116.c
+@@ -1212,25 +1212,10 @@ static int cx24116_sleep(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int cx24116_set_property(struct dvb_frontend *fe,
+-	struct dtv_property *tvp)
+-{
+-	dprintk("%s(..)\n", __func__);
+-	return 0;
+-}
+-
+-static int cx24116_get_property(struct dvb_frontend *fe,
+-	struct dtv_property *tvp)
+-{
+-	dprintk("%s(..)\n", __func__);
+-	return 0;
+-}
+-
+ /* dvb-core told us to tune, the tv property cache will be complete,
+  * it's safe for is to pull values and use them for tuning purposes.
+  */
+-static int cx24116_set_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int cx24116_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct cx24116_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -1458,9 +1443,17 @@ tuned:  /* Set/Reset B/W */
+ static int cx24116_tune(struct dvb_frontend *fe, struct dvb_frontend_parameters *params,
+ 	unsigned int mode_flags, unsigned int *delay, fe_status_t *status)
+ {
++	/*
++	 * It is safe to discard "params" here, as the DVB core will sync
++	 * fe->dtv_property_cache with fepriv->parameters_in, where the
++	 * DVBv3 params are stored. The only practical usage for it indicate
++	 * that re-tuning is needed, e. g. (fepriv->state & FESTATE_RETUNE) is
++	 * true.
++	 */
++
+ 	*delay = HZ / 5;
+ 	if (params) {
+-		int ret = cx24116_set_frontend(fe, params);
++		int ret = cx24116_set_frontend(fe);
+ 		if (ret)
+ 			return ret;
+ 	}
+@@ -1473,7 +1466,7 @@ static int cx24116_get_algo(struct dvb_frontend *fe)
+ }
+ 
+ static struct dvb_frontend_ops cx24116_ops = {
+-
++	.delsys = { SYS_DVBS, SYS_DVBS2 },
+ 	.info = {
+ 		.name = "Conexant CX24116/CX24118",
+ 		.type = FE_QPSK,
+@@ -1507,9 +1500,7 @@ static struct dvb_frontend_ops cx24116_ops = {
+ 	.get_frontend_algo = cx24116_get_algo,
+ 	.tune = cx24116_tune,
+ 
+-	.set_property = cx24116_set_property,
+-	.get_property = cx24116_get_property,
+-	.set_frontend_legacy = cx24116_set_frontend,
++	.set_frontend = cx24116_set_frontend,
+ };
+ 
+ MODULE_DESCRIPTION("DVB Frontend module for Conexant cx24116/cx24118 hardware");
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8.352.g876a6
+
