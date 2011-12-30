@@ -1,121 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:55178 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750823Ab1LLFBR convert rfc822-to-8bit (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:21689 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751131Ab1L3GgD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 00:01:17 -0500
-Received: by wgbdr13 with SMTP id dr13so10584744wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 21:01:16 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4EE355AF.8090302@redhat.com>
-References: <CAHFNz9Jbu-Kb8+s5DmEX8NOP6K8yjwNXYucUqmUEH_LcQAvpGA@mail.gmail.com>
-	<4EE355AF.8090302@redhat.com>
-Date: Mon, 12 Dec 2011 10:31:16 +0530
-Message-ID: <CAHFNz9L-yFhvMJoq-64604OZXt443hPe_mfebH857jMUNH-LtA@mail.gmail.com>
-Subject: Re: v4 [PATCH 08/10] TDA18271c2dd: Allow frontend to set DELSYS
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 30 Dec 2011 01:36:03 -0500
+Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LX000B1N7NZMEI0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 30 Dec 2011 15:36:00 +0900 (KST)
+Received: from NORIVERFULK04 ([165.213.219.118])
+ by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LX000L577NZLT80@mmp2.samsung.com>
+ for linux-media@vger.kernel.org; Fri, 30 Dec 2011 15:36:00 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+To: 'Sakari Ailus' <sakari.ailus@iki.fi>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	'Hans de Goede' <hdegoede@redhat.com>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+ <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
+ <4EFB1B04.6060305@gmail.com>
+ <201112281451.39399.laurent.pinchart@ideasonboard.com>
+ <20111229233406.GU3677@valkosipuli.localdomain>
+In-reply-to: <20111229233406.GU3677@valkosipuli.localdomain>
+Subject: RE: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
+Date: Fri, 30 Dec 2011 15:35:59 +0900
+Message-id: <000801ccc6bd$4b844520$e28ccf60$%kim@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Dec 10, 2011 at 6:20 PM, Mauro Carvalho Chehab
-<mchehab@redhat.com> wrote:
-> On 10-12-2011 02:44, Manu Abraham wrote:
->>
->> From 707877f5a61b3259704d42e7dd5e647e9196e9a4 Mon Sep 17 00:00:00 2001
->> From: Manu Abraham <abraham.manu@gmail.com>
->> Date: Thu, 24 Nov 2011 19:56:34 +0530
->> Subject: [PATCH 08/10] TDA18271c2dd: Allow frontend to set DELSYS, rather
->> than querying fe->ops.info.type
->>
->> With any tuner that can tune to multiple delivery systems/standards, it
->> does
->> query fe->ops.info.type to determine frontend type and set the delivery
->> system type. fe->ops.info.type can handle only 4 delivery systems, viz
->> FE_QPSK,
->> FE_QAM, FE_OFDM and FE_ATSC.
->>
->> Signed-off-by: Manu Abraham <abraham.manu@gmail.com>
->> ---
->>  drivers/media/dvb/frontends/tda18271c2dd.c |   42
->> ++++++++++++++++++++--------
->>  1 files changed, 30 insertions(+), 12 deletions(-)
->>
->> diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c
->> b/drivers/media/dvb/frontends/tda18271c2dd.c
->> index 1b1bf20..43a3dd4 100644
->> --- a/drivers/media/dvb/frontends/tda18271c2dd.c
->> +++ b/drivers/media/dvb/frontends/tda18271c2dd.c
->> @@ -1145,28 +1145,46 @@ static int set_params(struct dvb_frontend *fe,
->>        int status = 0;
->>        int Standard;
->>
->> -       state->m_Frequency = params->frequency;
->> +       u32 bw;
->> +       fe_delivery_system_t delsys;
->>
->> -       if (fe->ops.info.type == FE_OFDM)
->> -               switch (params->u.ofdm.bandwidth) {
->> -               case BANDWIDTH_6_MHZ:
->> +       delsys  = fe->dtv_property_cache.delivery_system;
->> +       bw      = fe->dtv_property_cache.bandwidth_hz;
->> +
->> +       state->m_Frequency = fe->dtv_property_cache.frequency;
->> +
->> +       if (!delsys || !state->m_Frequency) {
->> +               printk(KERN_ERR "Invalid delsys:%d freq:%d\n", delsys,
->> state->m_Frequency);
->> +               return -EINVAL;
->> +       }
->> +
->> +       switch (delsys) {
->> +       case SYS_DVBT:
->> +       case SYS_DVBT2:
->> +               if (!bw)
->> +                       return -EINVAL;
->> +               switch (bw) {
->> +               case 6000000:
->>                        Standard = HF_DVBT_6MHZ;
->>                        break;
->> -               case BANDWIDTH_7_MHZ:
->> +               case 7000000:
->>                        Standard = HF_DVBT_7MHZ;
->>                        break;
->>                default:
->> -               case BANDWIDTH_8_MHZ:
->> +               case 8000000:
->>                        Standard = HF_DVBT_8MHZ;
->>                        break;
->>                }
->> -       else if (fe->ops.info.type == FE_QAM) {
->> -               if (params->u.qam.symbol_rate <= MAX_SYMBOL_RATE_6MHz)
->> -                       Standard = HF_DVBC_6MHZ;
->> -               else
->> -                       Standard = HF_DVBC_8MHZ;
->> -       } else
->> +               break;
->> +       case SYS_DVBC_ANNEX_A:
->> +               Standard = HF_DVBC_6MHZ;
->> +               break;
->> +       case SYS_DVBC_ANNEX_C:
->> +               Standard = HF_DVBC_8MHZ;
->> +               break;
->
->
-> No, this is wrong. This patch doesn't apply anymore, due to the recent
-> changes that estimate the bandwidth based on the roll-off factor. Reverting
-> it breaks for DVB-C @ 6MHz spaced channels (and likely decreases quality
-> or breaks for 7MHz spaced ones too).
+Hi Sakari,
 
+Thanks for the comments!
 
-The changes that which you mention (which you state breaks 7MHz
-spacing) is much newer than these patch series. Alas, how do you
-expect people to push out patches every now and then, when you
-simply whack patches in. It is not the issue with the people sending
-patches, but how you handled the patch series. I have reworked the
-patches the 4th time, while you simply whack patches without any
-feedback. Time after time, lot of different people have argued with
-you not to simply whack in patches as you seem fit. Who is to blame ?
+Your comments help me to order my thoughts and re-send RFC.
+
+Anyway, I hope to be happy new year :)
+
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Sakari Ailus
+> Sent: Friday, December 30, 2011 8:34 AM
+> To: Laurent Pinchart
+> Cc: Sylwester Nawrocki; HeungJun, Kim; linux-media@vger.kernel.org;
+> mchehab@redhat.com; hverkuil@xs4all.nl; kyungmin.park@samsung.com; Hans de
+> Goede
+> Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
+> control
+> 
+> Hi Laurent, Sylwester and HeungJun,
+> 
+> On Wed, Dec 28, 2011 at 02:51:38PM +0100, Laurent Pinchart wrote:
+> > Hi,
+> >
+> > On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
+> > > On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
+> > > > It adds the new CID for setting White Balance Preset. This CID is
+> > > > provided as menu type using the following items:
+> > > > 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
+> > > > 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
+> > > > 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
+> > > > 3 - V4L2_WHITE_BALANCE_CLOUDY,
+> > > > 4 - V4L2_WHITE_BALANCE_SHADE,
+> > >
+> > > I have been also investigating those white balance presets recently and
+> > > noticed they're also needed for the pwc driver. Looking at
+> > > drivers/media/video/pwc/pwc-v4l2.c there is something like:
+> > >
+> > > const char * const pwc_auto_whitebal_qmenu[] = {
+> > > 	"Indoor (Incandescant Lighting) Mode",
+> > > 	"Outdoor (Sunlight) Mode",
+> > > 	"Indoor (Fluorescent Lighting) Mode",
+> > > 	"Manual Mode",
+> > > 	"Auto Mode",
+> > > 	NULL
+> > > };
+> > >
+> > > static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
+> > > 	.ops	= &pwc_ctrl_ops,
+> > > 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
+> > > 	.type	= V4L2_CTRL_TYPE_MENU,
+> > > 	.max	= awb_auto,
+> > > 	.qmenu	= pwc_auto_whitebal_qmenu,
+> > > };
+> > >
+> > > ...
+> > >
+> > > 	cfg = pwc_auto_white_balance_cfg;
+> > > 	cfg.name = v4l2_ctrl_get_name(cfg.id);
+> > > 	cfg.def = def;
+> > > 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
+> > >
+> > > So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
+> > > with custom entries. That's interesting... However it works in practice
+> > > and applications have access to what's provided by hardware.
+> > > Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
+> > > that :)
+> > >
+> > > Nevertheless, redefining standard controls in particular drivers sounds
+> > > a little dubious. I wonder if this is a generally agreed approach ?
+> >
+> > No agreed with me at least :-)
+> >
+> > > Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
+> > > V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE
+need
+> > > to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
+> >
+> > Is the preset a fixed white balance setting, or is it an auto white balance
+> > with the algorithm tuned for a particular configuration ? In the first case,
+> > does it correspond to a fixed white balance temperature value ?
+> 
+> While I'm waiting for a final answer to this, I guess it's the second. There
+> are three things involved here:
+> 
+> - V4L2_CID_WHITE_BALANCE_TEMPERATURE: relatively low level control telling
+>   the colour temperature of the light source. Setting a value for this
+>   essentially means using manual white balance.
+> 
+> - V4L2_CID_AUTO_WHITE_BALANCE: automatic white balance enabled or disabled.
+> 
+> The new control proposed by HeungJun is input for the automatic white
+> balance algorithm unless I'm mistaken. Whether or not the value is static,
+> however, might be considered of secondary importance: it is a name instead
+> of a number and clearly intended to be used as a high level control. I'd
+> still expect it to be a hint for the algorithm.
+> 
+> The value of the new control would have an effect as long as automatic white
+> balance is enabled.
+No, it's a kind of Manual White Balance, not Auto. It's the same level of
+V4L2_CID_WHITE_BALANCE_TEMPERATURE. So, only when V4L2_CID_AUTO_WHITE_BALANCE is
+
+disabled, this control is enabled.
+
+The relationship between each white balance controls by my understanding is
+here.
+
+Auto White Balance
+  - V4L2_CID_AUTO_WHITE_BALANCE(Boolean)
+    : enable/disable Auto white balance.
+    : Enable means current mode is Auto, and disable means current mode is
+Manual
+
+Manual White Balance
+  - V4L2_CID_WHITE_BALANCE_TEMPERATURE(integer)
+    : Setting the temperature of Manual
+    : Only when the V4L2_CID_AUTO_WHITE_BALANCE is disabled, and current mode
+Manual.
+
+- V4L2_CID_WHITE_BALANCE_PRESET(menu) - I suggested
+    : Setting the specific temperature value(but, the value is not fetched by
+user) of Manual
+    : Only when the V4L2_CID_AUTO_WHITE_BALANCE is disabled, and current mode
+Manual.
+
+The "input" is right. And, this "input" just triggers the ISP(sensor) set the
+specific
+manual white balance value embedded in the ISP. 
+I think this control does not affect the Auto White Balance.
+
+Regards,
+Heungjun Kim
+
+> 
+> >
+> > > > diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> > > > b/Documentation/DocBook/media/v4l/controls.xml index c0422c6..350c138
+> > > > 100644
+> > > > --- a/Documentation/DocBook/media/v4l/controls.xml
+> > > > +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > > > @@ -2841,6 +2841,44 @@ it one step further. This is a write-only
+> > > > control.</entry>
+> > > >
+> > > >  	  </row>
+> > > >  	  <row><entry></entry></row>
+> > > >
+> > > > +	  <row id="v4l2-preset-white-balance">
+> > > > +	    <entry
+> > > > spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp;</
+> > > > entry>
+> > >
+> > > Wouldn't V4L2_CID_WHITE_BALANCE_PRESET be better ?
+> >
+> > That's what I was about to say.
+> 
+> And the menu items would contain the same prefix with CID_ removed. They're
+> going to be long, but I don't see that as an issue for menu items.
+> 
+> Cheers,
+> 
+> --
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
