@@ -1,240 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:17045 "EHLO mgw-da02.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:13444 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751944Ab1LTU2S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 15:28:18 -0500
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com
-Subject: [RFC 13/17] omap3isp: Configure CSI-2 phy based on platform data
-Date: Tue, 20 Dec 2011 22:28:05 +0200
-Message-Id: <1324412889-17961-13-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <4EF0EFC9.6080501@maxwell.research.nokia.com>
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com>
+	id S1752760Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:32 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9WX4024235
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 74/94] [media] friio-fe: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:11 -0200
+Message-Id: <1325257711-12274-75-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Configure CSI-2 phy based on platform data in the ISP driver rather than in
-platform code.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/omap3isp/isp.c       |   38 ++++++++++++--
- drivers/media/video/omap3isp/isp.h       |    3 -
- drivers/media/video/omap3isp/ispcsiphy.c |   83 ++++++++++++++++++++++++++----
- drivers/media/video/omap3isp/ispcsiphy.h |    4 ++
- 4 files changed, 111 insertions(+), 17 deletions(-)
+ drivers/media/dvb/dvb-usb/friio-fe.c |   30 +++++++++++++++---------------
+ 1 files changed, 15 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index b818cac..6020fd7 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -737,7 +737,7 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 	struct isp_device *isp = pipe->output->isp;
- 	struct media_entity *entity;
- 	struct media_pad *pad;
--	struct v4l2_subdev *subdev;
-+	struct v4l2_subdev *subdev = NULL, *prev_subdev;
- 	unsigned long flags;
- 	int ret;
- 
-@@ -759,11 +759,41 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 			break;
- 
- 		entity = pad->entity;
-+		prev_subdev = subdev;
- 		subdev = media_entity_to_v4l2_subdev(entity);
- 
--		ret = v4l2_subdev_call(subdev, video, s_stream, mode);
--		if (ret < 0 && ret != -ENOIOCTLCMD)
--			return ret;
-+		/* Configure CSI-2 receiver based on sensor format. */
-+		if (prev_subdev == &isp->isp_csi2a.subdev
-+		    || prev_subdev == &isp->isp_csi2c.subdev) {
-+			struct v4l2_subdev_format fmt;
-+
-+			fmt.pad = pad->index;
-+			fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+			ret = v4l2_subdev_call(subdev, pad, get_fmt,
-+					       NULL, &fmt);
-+			if (ret < 0)
-+				return -EPIPE;
-+
-+			ret = omap3isp_csiphy_config(
-+				isp, prev_subdev, subdev,
-+				&fmt.format);
-+			if (ret < 0)
-+				return -EPIPE;
-+
-+			/* Start CSI-2 after configuration. */
-+			ret = v4l2_subdev_call(prev_subdev, video,
-+					       s_stream, mode);
-+			if (ret < 0 && ret != -ENOIOCTLCMD)
-+				return ret;
-+		}
-+
-+		/* Start any other subdev except the CSI-2 receivers. */
-+		if (subdev != &isp->isp_csi2a.subdev
-+		    && subdev != &isp->isp_csi2c.subdev) {
-+			ret = v4l2_subdev_call(subdev, video, s_stream, mode);
-+			if (ret < 0 && ret != -ENOIOCTLCMD)
-+				return ret;
-+		}
- 
- 		if (subdev == &isp->isp_ccdc.subdev) {
- 			v4l2_subdev_call(&isp->isp_aewb.subdev, video,
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index 705946e..c5935ae 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -126,9 +126,6 @@ struct isp_reg {
- 
- struct isp_platform_callback {
- 	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
--	int (*csiphy_config)(struct isp_csiphy *phy,
--			     struct isp_csiphy_dphy_cfg *dphy,
--			     struct isp_csiphy_lanes_cfg *lanes);
- 	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
- };
- 
-diff --git a/drivers/media/video/omap3isp/ispcsiphy.c b/drivers/media/video/omap3isp/ispcsiphy.c
-index 5be37ce..f027ece 100644
---- a/drivers/media/video/omap3isp/ispcsiphy.c
-+++ b/drivers/media/video/omap3isp/ispcsiphy.c
-@@ -28,6 +28,8 @@
- #include <linux/device.h>
- #include <linux/regulator/consumer.h>
- 
-+#include "../../../../arch/arm/mach-omap2/control.h"
-+
- #include "isp.h"
- #include "ispreg.h"
- #include "ispcsiphy.h"
-@@ -138,15 +140,78 @@ static void csiphy_dphy_config(struct isp_csiphy *phy)
- 	isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+diff --git a/drivers/media/dvb/dvb-usb/friio-fe.c b/drivers/media/dvb/dvb-usb/friio-fe.c
+index 7973aaf..375815d 100644
+--- a/drivers/media/dvb/dvb-usb/friio-fe.c
++++ b/drivers/media/dvb/dvb-usb/friio-fe.c
+@@ -283,22 +283,23 @@ static int jdvbt90502_set_property(struct dvb_frontend *fe,
  }
  
--static int csiphy_config(struct isp_csiphy *phy,
--			 struct isp_csiphy_dphy_cfg *dphy,
--			 struct isp_csiphy_lanes_cfg *lanes)
-+/*
-+ * TCLK values are OK at their reset values
-+ */
-+#define TCLK_TERM	0
-+#define TCLK_MISS	1
-+#define TCLK_SETTLE	14
-+
-+int omap3isp_csiphy_config(struct isp_device *isp,
-+			   struct v4l2_subdev *csi2_subdev,
-+			   struct v4l2_subdev *sensor,
-+			   struct v4l2_mbus_framefmt *sensor_fmt)
+ static int jdvbt90502_get_frontend(struct dvb_frontend *fe,
+-				   struct dvb_frontend_parameters *p)
++				   struct dtv_frontend_properties *p)
  {
-+	struct isp_v4l2_subdevs_group *subdevs = sensor->host_priv;
-+	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
-+	struct isp_csiphy_dphy_cfg csi2phy;
-+	int csi2_ddrclk_khz;
-+	struct isp_csiphy_lanes_cfg *lanes;
- 	unsigned int used_lanes = 0;
- 	unsigned int i;
-+	u32 cam_phy_ctrl;
-+
-+	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
-+	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
-+		lanes = subdevs->bus.ccp2.lanecfg;
-+	else
-+		lanes = subdevs->bus.csi2.lanecfg;
-+
-+	if (!lanes) {
-+		dev_err(isp->dev, "no lane configuration\n");
-+		return -EINVAL;
-+	}
-+
-+	cam_phy_ctrl = omap_readl(
-+		OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
-+	/*
-+	 * SCM.CONTROL_CAMERA_PHY_CTRL
-+	 * - bit[4]    : CSIPHY1 data sent to CSIB
-+	 * - bit [3:2] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
-+	 * - bit [1:0] : CSIPHY2 config: 00 d-phy, 01/10 ccp2
-+	 */
-+	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1)
-+		cam_phy_ctrl |= 1 << 2;
-+	else if (subdevs->interface == ISP_INTERFACE_CSI2C_PHY1)
-+		cam_phy_ctrl &= 1 << 2;
-+
-+	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
-+		cam_phy_ctrl |= 1;
-+	else if (subdevs->interface == ISP_INTERFACE_CSI2A_PHY2)
-+		cam_phy_ctrl &= 1;
-+
-+	/* FIXME: Do 34xx / 35xx require something here? */
-+	if (cpu_is_omap3630())
-+		omap_writel(cam_phy_ctrl,
-+			    OMAP343X_CTRL_BASE
-+			    + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
-+
-+	csi2_ddrclk_khz = sensor_fmt->pixelrate
-+		/ (2 * csi2->phy->num_data_lanes)
-+		* omap3isp_video_format_info(sensor_fmt->code)->bpp;
-+
-+	/*
-+	 * THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1.
-+	 * THS_SETTLE: Programmed value = ceil(90 ns/DDRClk period) + 3.
-+	 */
-+	csi2phy.ths_term = DIV_ROUND_UP(25 * csi2_ddrclk_khz, 2000000) - 1;
-+	csi2phy.ths_settle = DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3;
-+	csi2phy.tclk_term = TCLK_TERM;
-+	csi2phy.tclk_miss = TCLK_MISS;
-+	csi2phy.tclk_settle = TCLK_SETTLE;
- 
- 	/* Clock and data lanes verification */
--	for (i = 0; i < phy->num_data_lanes; i++) {
-+	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
- 		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
- 			return -EINVAL;
- 
-@@ -162,10 +227,10 @@ static int csiphy_config(struct isp_csiphy *phy,
- 	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
- 		return -EINVAL;
- 
--	mutex_lock(&phy->mutex);
--	phy->dphy = *dphy;
--	phy->lanes = *lanes;
--	mutex_unlock(&phy->mutex);
-+	mutex_lock(&csi2->phy->mutex);
-+	csi2->phy->dphy = csi2phy;
-+	csi2->phy->lanes = *lanes;
-+	mutex_unlock(&csi2->phy->mutex);
- 
+ 	p->inversion = INVERSION_AUTO;
+-	p->u.ofdm.bandwidth = BANDWIDTH_6_MHZ;
+-	p->u.ofdm.code_rate_HP = FEC_AUTO;
+-	p->u.ofdm.code_rate_LP = FEC_AUTO;
+-	p->u.ofdm.constellation = QAM_64;
+-	p->u.ofdm.transmission_mode = TRANSMISSION_MODE_AUTO;
+-	p->u.ofdm.guard_interval = GUARD_INTERVAL_AUTO;
+-	p->u.ofdm.hierarchy_information = HIERARCHY_AUTO;
++	p->bandwidth_hz = 6000000;
++	p->code_rate_HP = FEC_AUTO;
++	p->code_rate_LP = FEC_AUTO;
++	p->modulation = QAM_64;
++	p->transmission_mode = TRANSMISSION_MODE_AUTO;
++	p->guard_interval = GUARD_INTERVAL_AUTO;
++	p->hierarchy = HIERARCHY_AUTO;
  	return 0;
  }
-@@ -225,8 +290,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
- 	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
- 	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
  
--	isp->platform_cb.csiphy_config = csiphy_config;
+-static int jdvbt90502_set_frontend(struct dvb_frontend *fe,
+-				   struct dvb_frontend_parameters *p)
++static int jdvbt90502_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++
+ 	/**
+ 	 * NOTE: ignore all the parameters except frequency.
+ 	 *       others should be fixed to the proper value for ISDB-T,
+@@ -438,14 +439,13 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops jdvbt90502_ops = {
 -
- 	phy2->isp = isp;
- 	phy2->csi2 = &isp->isp_csi2a;
- 	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
-diff --git a/drivers/media/video/omap3isp/ispcsiphy.h b/drivers/media/video/omap3isp/ispcsiphy.h
-index e93a661..9f93222 100644
---- a/drivers/media/video/omap3isp/ispcsiphy.h
-+++ b/drivers/media/video/omap3isp/ispcsiphy.h
-@@ -56,6 +56,10 @@ struct isp_csiphy {
- 	struct isp_csiphy_dphy_cfg dphy;
- };
++	.delsys = { SYS_ISDBT },
+ 	.info = {
+ 		.name			= "Comtech JDVBT90502 ISDB-T",
+ 		.type			= FE_OFDM,
+ 		.frequency_min		= 473000000, /* UHF 13ch, center */
+ 		.frequency_max		= 767142857, /* UHF 62ch, center */
+-		.frequency_stepsize	= JDVBT90502_PLL_CLK /
+-							JDVBT90502_PLL_DIVIDER,
++		.frequency_stepsize	= JDVBT90502_PLL_CLK / JDVBT90502_PLL_DIVIDER,
+ 		.frequency_tolerance	= 0,
  
-+int omap3isp_csiphy_config(struct isp_device *isp,
-+			   struct v4l2_subdev *csi2_subdev,
-+			   struct v4l2_subdev *sensor,
-+			   struct v4l2_mbus_framefmt *fmt);
- int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
- void omap3isp_csiphy_release(struct isp_csiphy *phy);
- int omap3isp_csiphy_init(struct isp_device *isp);
+ 		/* NOTE: this driver ignores all parameters but frequency. */
+@@ -466,8 +466,8 @@ static struct dvb_frontend_ops jdvbt90502_ops = {
+ 
+ 	.set_property = jdvbt90502_set_property,
+ 
+-	.set_frontend_legacy = jdvbt90502_set_frontend,
+-	.get_frontend_legacy = jdvbt90502_get_frontend,
++	.set_frontend = jdvbt90502_set_frontend,
++	.get_frontend = jdvbt90502_get_frontend,
+ 
+ 	.read_status = jdvbt90502_read_status,
+ 	.read_signal_strength = jdvbt90502_read_signal_strength,
 -- 
-1.7.2.5
+1.7.8.352.g876a6
 
