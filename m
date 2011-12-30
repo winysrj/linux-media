@@ -1,79 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26419 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:20262 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753500Ab1L0BJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:28 -0500
+	id S1752833Ab1L3PJe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:34 -0500
 Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19SfP032593
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Y4Q024249
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:28 -0500
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:34 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 24/91] [media] em28xx-dvb: don't initialize drx-d non-used fields with zero
-Date: Mon, 26 Dec 2011 23:08:12 -0200
-Message-Id: <1324948159-23709-25-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-24-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
+Subject: [PATCHv2 77/94] [media] vp702x-fe: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:14 -0200
+Message-Id: <1325257711-12274-78-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's no need to initialize unused fields with zero, as Kernel does
-it automatically. Don't do that, in order to save some space at the
-data segment.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-This also allows the removal of the unused pll_set callback.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/em28xx/em28xx-dvb.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+ drivers/media/dvb/dvb-usb/vp702x-fe.c |   17 +++++++++--------
+ 1 files changed, 9 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-index 3868c1e..28be043 100644
---- a/drivers/media/video/em28xx/em28xx-dvb.c
-+++ b/drivers/media/video/em28xx/em28xx-dvb.c
-@@ -302,10 +302,12 @@ static struct zl10353_config em28xx_zl10353_xc3028_no_i2c_gate = {
- };
+diff --git a/drivers/media/dvb/dvb-usb/vp702x-fe.c b/drivers/media/dvb/dvb-usb/vp702x-fe.c
+index 8ff5aab..fa0b811 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x-fe.c
++++ b/drivers/media/dvb/dvb-usb/vp702x-fe.c
+@@ -135,9 +135,9 @@ static int vp702x_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_front
+ 	return 0;
+ }
  
- static struct drxd_config em28xx_drxd = {
--	.index = 0, .demod_address = 0x70, .demod_revision = 0xa2,
--	.demoda_address = 0x00, .pll_address = 0x00,
--	.pll_type = DRXD_PLL_NONE, .clock = 12000, .insert_rs_byte = 1,
--	.pll_set = NULL, .osc_deviation = NULL, .IF = 42800000,
-+	.demod_address = 0x70,
-+	.demod_revision = 0xa2,
-+	.pll_type = DRXD_PLL_NONE,
-+	.clock = 12000,
-+	.insert_rs_byte = 1,
-+	.IF = 42800000,
- 	.disable_i2c_gate_ctrl = 1,
- };
+-static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *fep)
++static int vp702x_fe_set_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct vp702x_fe_state *st = fe->demodulator_priv;
+ 	struct vp702x_device_state *dst = st->d->priv;
+ 	u32 freq = fep->frequency/1000;
+@@ -155,14 +155,14 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
+ 	cmd[1] =  freq       & 0xff;
+ 	cmd[2] = 1; /* divrate == 4 -> frequencyRef[1] -> 1 here */
  
+-	sr = (u64) (fep->u.qpsk.symbol_rate/1000) << 20;
++	sr = (u64) (fep->symbol_rate/1000) << 20;
+ 	do_div(sr,88000);
+ 	cmd[3] = (sr >> 12) & 0xff;
+ 	cmd[4] = (sr >> 4)  & 0xff;
+ 	cmd[5] = (sr << 4)  & 0xf0;
+ 
+ 	deb_fe("setting frontend to: %u -> %u (%x) LNB-based GHz, symbolrate: %d -> %lu (%lx)\n",
+-			fep->frequency,freq,freq, fep->u.qpsk.symbol_rate,
++			fep->frequency,freq,freq, fep->symbol_rate,
+ 			(unsigned long) sr, (unsigned long) sr);
+ 
+ /*	if (fep->inversion == INVERSION_ON)
+@@ -171,7 +171,7 @@ static int vp702x_fe_set_frontend(struct dvb_frontend* fe,
+ 	if (st->voltage == SEC_VOLTAGE_18)
+ 		cmd[6] |= 0x40;
+ 
+-/*	if (fep->u.qpsk.symbol_rate > 8000000)
++/*	if (fep->symbol_rate > 8000000)
+ 		cmd[6] |= 0x20;
+ 
+ 	if (fep->frequency < 1531000)
+@@ -212,7 +212,7 @@ static int vp702x_fe_sleep(struct dvb_frontend *fe)
+ }
+ 
+ static int vp702x_fe_get_frontend(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *fep)
++				  struct dtv_frontend_properties *fep)
+ {
+ 	deb_fe("%s\n",__func__);
+ 	return 0;
+@@ -350,6 +350,7 @@ error:
+ 
+ 
+ static struct dvb_frontend_ops vp702x_fe_ops = {
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name           = "Twinhan DST-like frontend (VP7021/VP7020) DVB-S",
+ 		.type           = FE_QPSK,
+@@ -370,8 +371,8 @@ static struct dvb_frontend_ops vp702x_fe_ops = {
+ 	.init  = vp702x_fe_init,
+ 	.sleep = vp702x_fe_sleep,
+ 
+-	.set_frontend_legacy = vp702x_fe_set_frontend,
+-	.get_frontend_legacy = vp702x_fe_get_frontend,
++	.set_frontend = vp702x_fe_set_frontend,
++	.get_frontend = vp702x_fe_get_frontend,
+ 	.get_tune_settings = vp702x_fe_get_tune_settings,
+ 
+ 	.read_status = vp702x_fe_read_status,
 -- 
 1.7.8.352.g876a6
 
