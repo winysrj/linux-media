@@ -1,90 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:45575 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752551Ab1LMMT7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 13 Dec 2011 07:19:59 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: [PATCH] vpif_capture.c: v4l2_device_register() is called too
- late in vpif_probe()
-Date: Tue, 13 Dec 2011 12:19:52 +0000
-Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F75015F19@DBDE01.ent.ti.com>
-References: <201112131044.42862.hverkuil@xs4all.nl>
-In-Reply-To: <201112131044.42862.hverkuil@xs4all.nl>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:46044 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751555Ab1L3IlK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 03:41:10 -0500
+Message-ID: <4EFD7955.8070603@redhat.com>
+Date: Fri, 30 Dec 2011 09:41:57 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
+To: "HeungJun, Kim" <riverful.kim@samsung.com>
+CC: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
+	"'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
+	"'Sylwester Nawrocki'" <snjw23@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <1325053428-2626-2-git-send-email-riverful.kim@samsung.com> <4EFB1B04.6060305@gmail.com> <201112281451.39399.laurent.pinchart@ideasonboard.com> <20111229233406.GU3677@valkosipuli.localdomain> <000801ccc6bd$4b844520$e28ccf60$%kim@samsung.com>
+In-Reply-To: <000801ccc6bd$4b844520$e28ccf60$%kim@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Hi,
 
-On Tue, Dec 13, 2011 at 15:14:42, Hans Verkuil wrote:
-> The function v4l2_device_register() is called too late in vpif_probe().
-> This meant that vpif_obj.v4l2_dev is accessed before it is initialized which caused a crash.
-> 
-> This used to work in the past, but video_register_device() is now actually using the v4l2_dev pointer.
-I also found this issue today. Good catch!
-> 
-> Note that vpif_display.c doesn't have this bug, there v4l2_device_register() is called at the beginning of vpif_probe.
-> 
-> Signed-off-by: Georgios Plakaris <gplakari@cisco.com>
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-> index 49e4deb..6504e40 100644
-> --- a/drivers/media/video/davinci/vpif_capture.c
-> +++ b/drivers/media/video/davinci/vpif_capture.c
-> @@ -2177,6 +2177,12 @@ static __init int vpif_probe(struct platform_device *pdev)
->  		return err;
->  	}
->  
-> +	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
-> +	if (err) {
-> +		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
-> +		return err;
-> +	}
-> +
->  	k = 0;
->  	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
->  		for (i = res->start; i <= res->end; i++) { @@ -2246,12 +2252,6 @@ static __init int vpif_probe(struct platform_device *pdev)
->  		goto probe_out;
->  	}
->  
-> -	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
-> -	if (err) {
-> -		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
-> -		goto probe_subdev_out;
-> -	}
-> -
->  	for (i = 0; i < subdev_count; i++) {
->  		subdevdata = &config->subdev_info[i];
->  		vpif_obj.sd[i] =
-> @@ -2281,7 +2281,6 @@ probe_subdev_out:
->  
->  	j = VPIF_CAPTURE_MAX_DEVICES;
->  probe_out:
-> -	v4l2_device_unregister(&vpif_obj.v4l2_dev);
->  	for (k = 0; k < j; k++) {
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[k];
-> @@ -2303,6 +2302,7 @@ vpif_int_err:
->  		if (res)
->  			i = res->end;
->  	}
-> +	v4l2_device_unregister(&vpif_obj.v4l2_dev);
->  	return err;
->  }
->  
-> 
-> 
-> 
+On 12/30/2011 07:35 AM, HeungJun, Kim wrote:
+> Hi Sakari,
+>
+> Thanks for the comments!
+>
+> Your comments help me to order my thoughts and re-send RFC.
+>
 
-ACKed by me. <Manjunath.hadli@ti.com>
+<snip>
 
-Thx,
--Manju
+>> The value of the new control would have an effect as long as automatic white
+>> balance is enabled.
+> No, it's a kind of Manual White Balance, not Auto. It's the same level of
+> V4L2_CID_WHITE_BALANCE_TEMPERATURE. So, only when V4L2_CID_AUTO_WHITE_BALANCE is
+>
+> disabled, this control is enabled.
+>
+> The relationship between each white balance controls by my understanding is
+> here.
+>
+> Auto White Balance
+>    - V4L2_CID_AUTO_WHITE_BALANCE(Boolean)
+>      : enable/disable Auto white balance.
+>      : Enable means current mode is Auto, and disable means current mode is
+> Manual
+>
+> Manual White Balance
+>    - V4L2_CID_WHITE_BALANCE_TEMPERATURE(integer)
+>      : Setting the temperature of Manual
+>      : Only when the V4L2_CID_AUTO_WHITE_BALANCE is disabled, and current mode
+> Manual.
+>
+> - V4L2_CID_WHITE_BALANCE_PRESET(menu) - I suggested
+>      : Setting the specific temperature value(but, the value is not fetched by
+> user) of Manual
+>      : Only when the V4L2_CID_AUTO_WHITE_BALANCE is disabled, and current mode
+> Manual.
+>
+> The "input" is right. And, this "input" just triggers the ISP(sensor) set the
+> specific
+> manual white balance value embedded in the ISP.
+> I think this control does not affect the Auto White Balance.
 
+Right, so the above is exactly why I ended up making the pwc whitebalance
+control the way it is, the user can essentially choice between a number
+of options:
+1) auto whitebal
+2) a number of preset whitebal values (seems your proposal has some more then the pwc
+    driver, which is fine)
+3) manual whitebal, at which point the user may set whitebal through one of:
+    a) a color temperature control
+    b) red and blue balance controls
+    c) red, green and blue gains
+
+Notice that we also need to add some standardized controls for the 3c case, but that
+is a different discussion.
+
+Seeing how this discussion has evolved I believe that what I did in the pwc driver
+is actually right from the user pov, the user gets one simple menu control which
+allows the user to choice between auto / preset 1 - x / manual and since as
+described above choosing one of the options excludes the other options from being
+active I believe having this all in one control is the right thing to do.
+
+Regards,
+
+Hans
