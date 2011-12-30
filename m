@@ -1,161 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53767 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753884Ab1L0BJo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:44 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19iKm017920
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:44 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 55/91] [media] stv0299: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:43 -0200
-Message-Id: <1324948159-23709-56-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-55-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
- <1324948159-23709-14-git-send-email-mchehab@redhat.com>
- <1324948159-23709-15-git-send-email-mchehab@redhat.com>
- <1324948159-23709-16-git-send-email-mchehab@redhat.com>
- <1324948159-23709-17-git-send-email-mchehab@redhat.com>
- <1324948159-23709-18-git-send-email-mchehab@redhat.com>
- <1324948159-23709-19-git-send-email-mchehab@redhat.com>
- <1324948159-23709-20-git-send-email-mchehab@redhat.com>
- <1324948159-23709-21-git-send-email-mchehab@redhat.com>
- <1324948159-23709-22-git-send-email-mchehab@redhat.com>
- <1324948159-23709-23-git-send-email-mchehab@redhat.com>
- <1324948159-23709-24-git-send-email-mchehab@redhat.com>
- <1324948159-23709-25-git-send-email-mchehab@redhat.com>
- <1324948159-23709-26-git-send-email-mchehab@redhat.com>
- <1324948159-23709-27-git-send-email-mchehab@redhat.com>
- <1324948159-23709-28-git-send-email-mchehab@redhat.com>
- <1324948159-23709-29-git-send-email-mchehab@redhat.com>
- <1324948159-23709-30-git-send-email-mchehab@redhat.com>
- <1324948159-23709-31-git-send-email-mchehab@redhat.com>
- <1324948159-23709-32-git-send-email-mchehab@redhat.com>
- <1324948159-23709-33-git-send-email-mchehab@redhat.com>
- <1324948159-23709-34-git-send-email-mchehab@redhat.com>
- <1324948159-23709-35-git-send-email-mchehab@redhat.com>
- <1324948159-23709-36-git-send-email-mchehab@redhat.com>
- <1324948159-23709-37-git-send-email-mchehab@redhat.com>
- <1324948159-23709-38-git-send-email-mchehab@redhat.com>
- <1324948159-23709-39-git-send-email-mchehab@redhat.com>
- <1324948159-23709-40-git-send-email-mchehab@redhat.com>
- <1324948159-23709-41-git-send-email-mchehab@redhat.com>
- <1324948159-23709-42-git-send-email-mchehab@redhat.com>
- <1324948159-23709-43-git-send-email-mchehab@redhat.com>
- <1324948159-23709-44-git-send-email-mchehab@redhat.com>
- <1324948159-23709-45-git-send-email-mchehab@redhat.com>
- <1324948159-23709-46-git-send-email-mchehab@redhat.com>
- <1324948159-23709-47-git-send-email-mchehab@redhat.com>
- <1324948159-23709-48-git-send-email-mchehab@redhat.com>
- <1324948159-23709-49-git-send-email-mchehab@redhat.com>
- <1324948159-23709-50-git-send-email-mchehab@redhat.com>
- <1324948159-23709-51-git-send-email-mchehab@redhat.com>
- <1324948159-23709-52-git-send-email-mchehab@redhat.com>
- <1324948159-23709-53-git-send-email-mchehab@redhat.com>
- <1324948159-23709-54-git-send-email-mchehab@redhat.com>
- <1324948159-23709-55-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout4.samsung.com ([203.254.224.34]:29224 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750777Ab1L3FVG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 00:21:06 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 8BIT
+Content-type: text/plain; charset=UTF-8; format=flowed
+Received: from epcpsbgm2.samsung.com (mailout4.samsung.com [203.254.224.34])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LX0001OT471TMI0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 30 Dec 2011 14:21:04 +0900 (KST)
+Received: from [165.213.219.119] by mmp1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTPA id <0LX0006EZ474HQ10@mmp1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 30 Dec 2011 14:21:04 +0900 (KST)
+Message-id: <4EFD4A41.6050908@samsung.com>
+Date: Fri, 30 Dec 2011 14:21:05 +0900
+From: "Kim, Heungjun" <riverful.kim@samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: 'Sylwester Nawrocki' <snjw23@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, kyungmin.park@samsung.com,
+	'Hans de Goede' <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+ <201112281451.39399.laurent.pinchart@ideasonboard.com>
+ <001101ccc5e7$d9f48620$8ddd9260$%kim@samsung.com>
+ <201112300058.01726.laurent.pinchart@ideasonboard.com>
+In-reply-to: <201112300058.01726.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+On 2011년 12월 30일 08:58, Laurent Pinchart wrote:
+> Hi,
+>
+> On Thursday 29 December 2011 06:08:07 HeungJun, Kim wrote:
+>> On Wednesday, December 28, 2011 10:52 PM Laurent Pinchart wrote:
+>>> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
+>>>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
+>>>>> It adds the new CID for setting White Balance Preset. This CID is
+>>>>> provided as menu type using the following items:
+>>>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
+>>>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
+>>>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
+>>>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
+>>>>> 4 - V4L2_WHITE_BALANCE_SHADE,
+>>>> I have been also investigating those white balance presets recently and
+>>>> noticed they're also needed for the pwc driver. Looking at
+>>>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
+>>>>
+>>>> const char * const pwc_auto_whitebal_qmenu[] = {
+>>>>
+>>>> 	"Indoor (Incandescant Lighting) Mode",
+>>>> 	"Outdoor (Sunlight) Mode",
+>>>> 	"Indoor (Fluorescent Lighting) Mode",
+>>>> 	"Manual Mode",
+>>>> 	"Auto Mode",
+>>>> 	NULL
+>>>>
+>>>> };
+>>>>
+>>>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
+>>>>
+>>>> 	.ops	=&pwc_ctrl_ops,
+>>>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
+>>>> 	.type	= V4L2_CTRL_TYPE_MENU,
+>>>> 	.max	= awb_auto,
+>>>> 	.qmenu	= pwc_auto_whitebal_qmenu,
+>>>>
+>>>> };
+>>>>
+>>>> ...
+>>>>
+>>>> 	cfg = pwc_auto_white_balance_cfg;
+>>>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
+>>>> 	cfg.def = def;
+>>>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl,&cfg, NULL);
+>>>>
+>>>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
+>>>> with custom entries. That's interesting... However it works in practice
+>>>> and applications have access to what's provided by hardware.
+>>>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit
+>>>> for that :)
+>>>>
+>>>> Nevertheless, redefining standard controls in particular drivers sounds
+>>>> a little dubious. I wonder if this is a generally agreed approach ?
+>>> No agreed with me at least :-)
+>> I guess the WBP menu controls of pwc driver is probably defined in the
+>> other headers, for users being well known the PWC hardware. So it should
+>> be managed separately to videodev2.h. Is it right? Even if the way might
+>> be slightly different, it can't avoid to be "managed separately".
+>>
+>> It means the users being not well known the specific hardware like PWC,
+>> have difficulty to use that driver well.
+>> And, at least, It doesn't looks generic API for me.
+>> In this case, the unfamiliar user with such unique hardware, can use
+>> whatever he wants to use finally, after finding&  looking around the
+>> headers.
+> I think Sylwester was just pointing the pwc driver out as implementing a
+> custom white balance preset control to make sure we're aware of it, not to
+> advocate such an approach. We need to make sure that the generic white balance
+> preset control can handle the pwc driver's needs.
+Ok, I understand what I miss on your point.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/stv0299.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+>> On the other hand, if the definition is defined in the videodev2.h, or at
+>> least the videodev2.h also include separated API's headers(I'm not sure
+>> this way, but my real meaning is needed to be consolidated only one way to
+>> control hardware, like videodev2.h), it looks more be better.
+>>
+>> As such meaning, I agreed to Sylwester's word "dubious".
+>>
+>> But, here's the thing.
+>> If the any control suggested does not look general function on camera,
+>> and it is used "only at the specific hardware", we should avoid this.
+>>
+>> As you know, the White Balance Preset is very general camera's feature,
+>> and the term's name is also very normal to the digital camera users.
+>> Almost digital camera have this function.
+>>
+>> Probably, Laurent might be concern about such "generality". Am I right?
+> I agree that a generic white balance preset control is needed. I think the
+> documentation should be improved though, to clearly define how the control
+> works.
+So, your point is the documentation which is described how these 
+controls interact previous controls,
+e.g, like WHITE_BALANCE_PRESET as I suggested and previous remained 
+DO/TEMPRATURE, etc.
 
-diff --git a/drivers/media/dvb/frontends/stv0299.c b/drivers/media/dvb/frontends/stv0299.c
-index 6aeabaf..abf4bff 100644
---- a/drivers/media/dvb/frontends/stv0299.c
-+++ b/drivers/media/dvb/frontends/stv0299.c
-@@ -559,8 +559,9 @@ static int stv0299_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
- 	return 0;
- }
- 
--static int stv0299_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters * p)
-+static int stv0299_set_frontend(struct dvb_frontend* fe)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct stv0299_state* state = fe->demodulator_priv;
- 	int invval = 0;
- 
-@@ -583,19 +584,19 @@ static int stv0299_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
- 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
- 	}
- 
--	stv0299_set_FEC (state, p->u.qpsk.fec_inner);
--	stv0299_set_symbolrate (fe, p->u.qpsk.symbol_rate);
-+	stv0299_set_FEC (state, p->fec_inner);
-+	stv0299_set_symbolrate (fe, p->symbol_rate);
- 	stv0299_writeregI(state, 0x22, 0x00);
- 	stv0299_writeregI(state, 0x23, 0x00);
- 
- 	state->tuner_frequency = p->frequency;
--	state->fec_inner = p->u.qpsk.fec_inner;
--	state->symbol_rate = p->u.qpsk.symbol_rate;
-+	state->fec_inner = p->fec_inner;
-+	state->symbol_rate = p->symbol_rate;
- 
- 	return 0;
- }
- 
--static int stv0299_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters * p)
-+static int stv0299_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties * p)
- {
- 	struct stv0299_state* state = fe->demodulator_priv;
- 	s32 derot_freq;
-@@ -614,8 +615,8 @@ static int stv0299_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
- 	if (state->config->invert) invval = (~invval) & 1;
- 	p->inversion = invval ? INVERSION_ON : INVERSION_OFF;
- 
--	p->u.qpsk.fec_inner = stv0299_get_fec (state);
--	p->u.qpsk.symbol_rate = stv0299_get_symbolrate (state);
-+	p->fec_inner = stv0299_get_fec (state);
-+	p->symbol_rate = stv0299_get_symbolrate (state);
- 
- 	return 0;
- }
-@@ -705,7 +706,7 @@ error:
- }
- 
- static struct dvb_frontend_ops stv0299_ops = {
--
-+	.delsys = { SYS_DVBS },
- 	.info = {
- 		.name			= "ST STV0299 DVB-S",
- 		.type			= FE_QPSK,
-@@ -729,8 +730,8 @@ static struct dvb_frontend_ops stv0299_ops = {
- 	.write = stv0299_write,
- 	.i2c_gate_ctrl = stv0299_i2c_gate_ctrl,
- 
--	.set_frontend_legacy = stv0299_set_frontend,
--	.get_frontend_legacy = stv0299_get_frontend,
-+	.set_frontend = stv0299_set_frontend,
-+	.get_frontend = stv0299_get_frontend,
- 	.get_tune_settings = stv0299_get_tune_settings,
- 
- 	.read_status = stv0299_read_status,
--- 
-1.7.8.352.g876a6
+>>>> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
+>>>> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE
+>>>> need to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be
+>>>> effective ?
+>>> Is the preset a fixed white balance setting, or is it an auto white
+>>> balance with the algorithm tuned for a particular configuration ? In the
+>>> first case, does it correspond to a fixed white balance temperature
+>>> value ?
+>>>
+>>> [snip]
+>>>
+>>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+>>>>> b/Documentation/DocBook/media/v4l/controls.xml index c0422c6..350c138
+>>>>> 100644
+>>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>>>>> @@ -2841,6 +2841,44 @@ it one step further. This is a write-only
+>>>>> control.</entry>
+>>>>>
+>>>>>   	</row>
+>>>>>   	<row><entry></entry></row>
+>>>>>
+>>>>> +	<row id="v4l2-preset-white-balance">
+>>>>> +	<entry
+>>>>> spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp
+>>>>> ;</ entry>
+>>>> Wouldn't V4L2_CID_WHITE_BALANCE_PRESET be better ?
+>>> That's what I was about to say.
+>> I saw the controls related with White Balance and most cid's name
+>> is V4L2_CID_XXXX_WHITE_BALANCE. So, I just used that name.
+>> But, I don't know why the PRESET's position is important.
+>> Can anyone explain to me?
+>> After I know it, I seems to talk about this subject.
+>>
+>> Anyway, I guess Laurent had in mind for another class "preset".
+> I'm not sure about the name, but I think it might make sense to put those
+> high-level camera controls in a new class.
+>
 
