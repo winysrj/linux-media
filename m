@@ -1,75 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:60400 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:7087 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933208Ab1LFNfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Dec 2011 08:35:06 -0500
-Message-ID: <4EDE1A06.1060108@linuxtv.org>
-Date: Tue, 06 Dec 2011 14:35:02 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
-	Florian Fainelli <f.fainelli@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <4EDD2C82.7040804@linuxtv.org> <20111205205554.2caeb496@lxorguk.ukuu.org.uk> <4EDD3583.30405@linuxtv.org> <20111206111829.GB17194@sirena.org.uk> <4EDE0400.1070304@linuxtv.org> <4EDE1457.7070408@redhat.com>
-In-Reply-To: <4EDE1457.7070408@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1752572Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:31 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9VTl024217
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 66/94] [media] s55h1411: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:03 -0200
+Message-Id: <1325257711-12274-67-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06.12.2011 14:10, Mauro Carvalho Chehab wrote:
-> On 06-12-2011 10:01, Andreas Oberritter wrote:
->> On 06.12.2011 12:18, Mark Brown wrote:
->>> On Mon, Dec 05, 2011 at 10:20:03PM +0100, Andreas Oberritter wrote:
->>>> On 05.12.2011 21:55, Alan Cox wrote:
->>>>> The USB case is quite different because your latency is very tightly
->>>>> bounded, your dead device state is rigidly defined, and your loss of
->>>>> device is accurately and immediately signalled.
->>>
->>>>> Quite different.
->>>
->>>> How can usbip work if networking and usb are so different and what's so
->>>> different between vtunerc and usbip, that made it possible to put usbip
->>>> into drivers/staging?
->>>
->>> USB-IP is a hack that will only work well on a tightly bounded set of
->>> networks - if you run it over a lightly loaded local network it can
->>> work adequately.  This starts to break down as you vary the network
->>> configuration.
->>
->> I see. So it has problems that vtunerc doesn't have.
-> 
-> The vtunerc has the same issues. High latency (due to high loads,  high
-> latency links or whatever) affects it badly, and may cause application
-> breakages if if the device is opened are using O_NONBLOCK mode [1].
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-O_NONBLOCK doesn't mean that an ioctl must consume zero time. It just
-means that it should return instead of waiting for (more) data to become
-available or writeable.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-Mauro, if the network is broken, any application using the network will
-break. No specially designed protocol will fix that.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/s5h1411.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-If you want to enforce strict maximum latencies, you can do that in the
-userspace daemon using the vtunerc interface. It has all imaginable
-possibilities to control data flow over the network and to return errors
-to vtunerc. For a DVB API application it doesn't matter whether a tuning
-request fails with EIO because a USB device has been removed, a PCI
-device encountered an I2C error or because the vtuner userspace daemon
-returned an error.
+diff --git a/drivers/media/dvb/frontends/s5h1411.c b/drivers/media/dvb/frontends/s5h1411.c
+index cb221aa..08f568c 100644
+--- a/drivers/media/dvb/frontends/s5h1411.c
++++ b/drivers/media/dvb/frontends/s5h1411.c
+@@ -585,9 +585,9 @@ static int s5h1411_register_reset(struct dvb_frontend *fe)
+ }
+ 
+ /* Talk to the demod, set the FEC, GUARD, QAM settings etc */
+-static int s5h1411_set_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int s5h1411_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct s5h1411_state *state = fe->demodulator_priv;
+ 
+ 	dprintk("%s(frequency=%d)\n", __func__, p->frequency);
+@@ -596,7 +596,7 @@ static int s5h1411_set_frontend(struct dvb_frontend *fe,
+ 
+ 	state->current_frequency = p->frequency;
+ 
+-	s5h1411_enable_modulation(fe, p->u.vsb.modulation);
++	s5h1411_enable_modulation(fe, p->modulation);
+ 
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		if (fe->ops.i2c_gate_ctrl)
+@@ -841,12 +841,12 @@ static int s5h1411_read_ber(struct dvb_frontend *fe, u32 *ber)
+ }
+ 
+ static int s5h1411_get_frontend(struct dvb_frontend *fe,
+-				struct dvb_frontend_parameters *p)
++				struct dtv_frontend_properties *p)
+ {
+ 	struct s5h1411_state *state = fe->demodulator_priv;
+ 
+ 	p->frequency = state->current_frequency;
+-	p->u.vsb.modulation = state->current_modulation;
++	p->modulation = state->current_modulation;
+ 
+ 	return 0;
+ }
+@@ -915,7 +915,7 @@ error:
+ EXPORT_SYMBOL(s5h1411_attach);
+ 
+ static struct dvb_frontend_ops s5h1411_ops = {
+-
++	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+ 		.name			= "Samsung S5H1411 QAM/8VSB Frontend",
+ 		.type			= FE_ATSC,
+@@ -928,8 +928,8 @@ static struct dvb_frontend_ops s5h1411_ops = {
+ 	.init                 = s5h1411_init,
+ 	.sleep                = s5h1411_sleep,
+ 	.i2c_gate_ctrl        = s5h1411_i2c_gate_ctrl,
+-	.set_frontend_legacy         = s5h1411_set_frontend,
+-	.get_frontend_legacy = s5h1411_get_frontend,
++	.set_frontend         = s5h1411_set_frontend,
++	.get_frontend         = s5h1411_get_frontend,
+ 	.get_tune_settings    = s5h1411_get_tune_settings,
+ 	.read_status          = s5h1411_read_status,
+ 	.read_ber             = s5h1411_read_ber,
+-- 
+1.7.8.352.g876a6
 
-> [1] Btw, if some DVB ioctl currently waits in O_NONBLOCK, this is a POSIX
-> violation that needs to be fixed.
-
-To the best of my knowledge, this doesn't happen.
-
-I think we all realized some days ago that the code is not going to be
-merged upstream anytime in the foreseeable future. You can stop using
-such pointless arguments.
-
-Regards,
-Andreas
