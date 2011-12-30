@@ -1,154 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pop1-levy.go180.net ([216.229.186.150]:41486 "EHLO
-	mail.my180.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752128Ab1L3XRS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 18:17:18 -0500
-From: Reuben Stokes <okonomiyakisan@gohighspeed.com>
-To: Gareth Williams <gareth@garethwilliams.me.uk>
-Subject: Re: em28xx: new board id [eb1a:5051]
-Date: Fri, 30 Dec 2011 15:16:55 -0800
-Cc: linux-media@vger.kernel.org
-References: <201112291513.16680.okonomiyakisan@gohighspeed.com> <201112300504.46944.okonomiyakisan@gohighspeed.com> <1325284077.9483.7.camel@mint>
-In-Reply-To: <1325284077.9483.7.camel@mint>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62512 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752563Ab1L3Kaj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 05:30:39 -0500
+Received: by wgbdr13 with SMTP id dr13so24174114wgb.1
+        for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 02:30:38 -0800 (PST)
+Message-ID: <4EFD92C9.1030704@gmail.com>
+Date: Fri, 30 Dec 2011 11:30:33 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: "HeungJun, Kim" <riverful.kim@samsung.com>
+CC: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, kyungmin.park@samsung.com,
+	'Hans de Goede' <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <1325053428-2626-2-git-send-email-riverful.kim@samsung.com> <4EFB1B04.6060305@gmail.com> <201112281451.39399.laurent.pinchart@ideasonboard.com> <001101ccc5e7$d9f48620$8ddd9260$%kim@samsung.com>
+In-Reply-To: <001101ccc5e7$d9f48620$8ddd9260$%kim@samsung.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112301516.55814.okonomiyakisan@gohighspeed.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 30 December 2011 14:27:57 Gareth Williams wrote:
-> On Fri, 2011-12-30 at 05:04 -0800, Reuben Stokes wrote:
-> > On Friday 30 December 2011 02:01:35 you wrote:
-> > > On Thu, 2011-12-29 at 15:13 -0800, Reuben Stokes wrote:
-> > > > Hi,
-> > > > 
-> > > > Not nearly as linux-savvy as most of the users here, but I attempted to operate a "Raygo USB Video Recorder" (audio/video capture device). Don't know if my efforts qualify as a "test".
-> > > > 
-> > > > 
-> > > > Model Number: 
-> > > > R12-41373
-> > > > 
-> > > > Display name: 
-> > > > USB 2861 Device
-> > > > 
-> > > > lsusb: 
-> > > > Bus 001 Device 002: ID eb1a:5051 eMPIA Technology, Inc. 
-> > > > 
-> > > > dmesg:
-> > > > [ 7182.076058] usb 1-1: new high speed USB device using ehci_hcd and address 3
-> > > > [ 7182.212702] usb 1-1: New USB device found, idVendor=eb1a, idProduct=5051
-> > > > [ 7182.212714] usb 1-1: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-> > > > [ 7182.212723] usb 1-1: Product: USB 2861 Device
-> > > > [ 7182.212729] usb 1-1: SerialNumber: 0
-> > > > 
-> > > > System:
-> > > > HP Pavilion dv6910 laptop
-> > > > AMD Turion X2 CPU (64 bit)
-> > > > Mepis 11; 64 bit( based on Debian Squeeze)
-> > > > 
-> > > > 
-> > > > Tried
-> > > > -------
-> > > > * Installed em28xx drivers using instructions found at linuxtv.org.
-> > > >   I note however that this particular vendor/product ID is not validated in the em28xx devices list.
-> > > > * As new drivers do not automatically load, I use command: modprobe em28xx
-> > > >    After this "modprobe -l | grep em28xx" yields
-> > > >         kernel/drivers/media/video/em28xx/em28xx-alsa.ko
-> > > >         kernel/drivers/media/video/em28xx/em28xx.ko
-> > > >         kernel/drivers/media/video/em28xx/em28xx-dvb.ko
-> > > > * Device comes with a driver CD for Windows which does work in Windows.
-> > > > 
-> > > > End result is the device is not recognized as a capture device option in any software tried including vlc, cheese, guvcview, kdenlive.
-> > > > 
-> > > > Any help getting this to work in Linux would be appreciated as it completely sucks in my bloated, memory-hogging, 32-bit Windows Vista.
-> > > > 
-> > > > Reuben <okonomiyakisan@gohighspeed.com>
-> > > > --
-> > > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > > the body of a message to majordomo@vger.kernel.org
-> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > 
-> > > Reuben,
-> > > 
-> > > If you're willing, then open up the device and see what the chips within
-> > > are.  You believe it's em28xx based, but there may well be additional
-> > > devices in there for audio and video.
-> > > 
-> > > Once you've found out what's inside it will be easier to get it working.
-> > > It may be as simple as getting the driver to recognise the USB Vendor ID
-> > > or it may require much more work.
-> > > 
-> > > Regards,
-> > > 
-> > > Gareth
-> > > 
-> > > --
-> > > To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> > > the body of a message to majordomo@vger.kernel.org
-> > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > 
-> > > 
-> > 
-> > Thank you very much for the response.
-> > 
-> > Okay, opening it was easier than first suspected. 
-> > 
-> > The main (biggest) chip reads with nice big letters and a logo:
-> > eMPIA
-> > EM2860
-> > P86J3-011
-> > 201047-01AG
-> > 
-> > Less useful information inlcudes:
-> > 
-> > A smaller chip on the flip side of the circuit board, in letters visible only through a magnifying glass, reads:
-> > eMPIA
-> > TECHNOLOGY
-> > EMP202
-> > T10164
-> > 1052
-> > 
-> > The circuit board itself is stamped:
-> > PM22860-2GOB
-> > 
-> > Again, thank you.
-> > 
-> > Reuben
-> Reuben,
-> 
-> Was there another chip on there?  The EMP202 is an audio chip that can
-> covert analogue audio to digital PCM (and vice versa).  The EM2860 sends
-> this digital audio along with digital video over USB.  For this to work
-> though, the device will need to convert analogue video to digital and
-> will need another chip to do this.  An example would be a SAA7113 from
-> Philips. Have another look and post back here.
-> 
-> The two chips you've identified are commonly used in for this type of
-> device and should be easily configurable in the em28xx driver.  We just
-> need the video chip now! And a tail wind...
-> 
-> Regards,
-> 
-> Gareth
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> 
+Hi HeungJun,
 
-Good call.  There is another chip. The logo appears to be the Texas Instrument logo. It's stamped:
-5150AM1
-09T
-C9JJ
+On 12/29/2011 06:08 AM, HeungJun, Kim wrote:
+>> -----Original Message-----
+>> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+>> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+>> Sent: Wednesday, December 28, 2011 10:52 PM
+>> To: Sylwester Nawrocki
+>> Cc: HeungJun, Kim; linux-media@vger.kernel.org; mchehab@redhat.com;
+>> hverkuil@xs4all.nl; sakari.ailus@iki.fi; kyungmin.park@samsung.com; Hans de
+>> Goede
+>> Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
+>> control
+>>
+>> Hi,
+>>
+>> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
+>>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
+>>>> It adds the new CID for setting White Balance Preset. This CID is
+>>>> provided as menu type using the following items:
+>>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
+>>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
+>>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
+>>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
+>>>> 4 - V4L2_WHITE_BALANCE_SHADE,
+>>>
+>>> I have been also investigating those white balance presets recently and
+>>> noticed they're also needed for the pwc driver. Looking at
+>>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
+>>>
+>>> const char * const pwc_auto_whitebal_qmenu[] = {
+>>> 	"Indoor (Incandescant Lighting) Mode",
+>>> 	"Outdoor (Sunlight) Mode",
+>>> 	"Indoor (Fluorescent Lighting) Mode",
+>>> 	"Manual Mode",
+>>> 	"Auto Mode",
+>>> 	NULL
+>>> };
+>>>
+>>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
+>>> 	.ops	= &pwc_ctrl_ops,
+>>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
+>>> 	.type	= V4L2_CTRL_TYPE_MENU,
+>>> 	.max	= awb_auto,
+>>> 	.qmenu	= pwc_auto_whitebal_qmenu,
+>>> };
+>>>
+>>> ...
+>>>
+>>> 	cfg = pwc_auto_white_balance_cfg;
+>>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
+>>> 	cfg.def = def;
+>>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
+>>>
+>>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
+>>> with custom entries. That's interesting... However it works in practice
+>>> and applications have access to what's provided by hardware.
+>>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
+>>> that :)
+>>>
+>>> Nevertheless, redefining standard controls in particular drivers sounds
+>>> a little dubious. I wonder if this is a generally agreed approach ?
+>>
+>> No agreed with me at least :-)
+>
+> I guess the WBP menu controls of pwc driver is probably defined in the other
+> headers, for users being well known the PWC hardware. So it should be managed
+> separately to videodev2.h. Is it right? Even if the way might be slightly
+> different, it can't avoid to be "managed separately".
+> 
+> It means the users being not well known the specific hardware like PWC,
+> have difficulty to use that driver well.
+> And, at least, It doesn't looks generic API for me.
+> In this case, the unfamiliar user with such unique hardware, can use
+> whatever he wants to use finally, after finding & looking around the headers.
 
-lsusb lists the product ID as "5051", but the chip clearly reads "5150...". I have no idea if those two numbers are suppose to be the same of if they have nothing to do with each other, but I thought I'd confirm the numbers.
+Applications can query drivers for supported controls and populate user control
+panels dynamically, based on information from VIDIOC_QUERYCTRL and VIDIOC_QUERYMENU
+ioctls. Not needing to rely on menu items definition in videodev2.h.
+I had a feeling you weren't considering such case. :)
 
-Also, I noted in my earlier post that the circuit board was stamped " PM22860-2GOB", but I made a typo.  It's actually, " PM42860-2GOB".
+Perhaps it's uncommon in embedded systems though.
 
-Thank you for the continued help!!
+--
 
-Reuben
+Regards,
+Sylwester
