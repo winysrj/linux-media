@@ -1,65 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:58101 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:16295 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753671Ab1LCSRa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 3 Dec 2011 13:17:30 -0500
-Message-ID: <4EDA67B1.0@linuxtv.org>
-Date: Sat, 03 Dec 2011 19:17:21 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Alan Cox <alan@lxorguk.ukuu.org.uk>
-CC: VDR User <user.vdr@gmail.com>, HoP <jpetrous@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com> <4ED6C5B8.8040803@linuxtv.org> <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <4EDA4AB4.90303@linuxtv.org> <CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com> <20111203174247.0bbab100@lxorguk.ukuu.org.uk>
-In-Reply-To: <20111203174247.0bbab100@lxorguk.ukuu.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1752688Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:32 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9UKb015918
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 62/94] [media] nxt200x: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:59 -0200
+Message-Id: <1325257711-12274-63-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 03.12.2011 18:42, Alan Cox wrote:
-> On Sat, 3 Dec 2011 09:21:23 -0800
-> VDR User <user.vdr@gmail.com> wrote:
-> 
->> On Sat, Dec 3, 2011 at 8:13 AM, Andreas Oberritter <obi@linuxtv.org> wrote:
->>> You could certainly build a library to reach a different goal. The goal
->>> of vtuner is to access remote tuners with any existing program
->>> implementing the DVB API.
->>
->> So you could finally use VDR as a server/client setup using vtuner,
->> right?
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Yes.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
->> With full OSD, timer, etc? Yes, I'm aware that streamdev
->> exists. It was horrible when I tried it last (a long time ago) and I
->> understand it's gotten better. But it's not a suitable replacement for
->> a real server/client setup. It sounds like using vtuner, this would
->> finally be possible and since Klaus has no intention of ever
->> modernizing VDR into server/client (that I'm aware of), it's also the
->> only suitable option as well.
-> 
-> I would expect it to still suck. One of the problems you have with trying
-> to pretend things are not networked is that you fake asynchronous events
-> synchronously, you can't properly cover error cases and as a result you
-> get things like ioctls that hang for two minutes or fail in bogus and
-> bizarre ways. If you loop via userspace you've also got to deal with
-> deadlocks and all sorts of horrible cornercases like the user space
-> daemon dying.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/nxt200x.c |   16 ++++++++--------
+ 1 files changed, 8 insertions(+), 8 deletions(-)
 
-USB tuners may be removed anytime during any ioctl, too. Handling such
-error cases is therefore already a requirement, at least for
-hotplug-capable software.
+diff --git a/drivers/media/dvb/frontends/nxt200x.c b/drivers/media/dvb/frontends/nxt200x.c
+index efb8e46..b541614 100644
+--- a/drivers/media/dvb/frontends/nxt200x.c
++++ b/drivers/media/dvb/frontends/nxt200x.c
+@@ -528,9 +528,9 @@ static int nxt2004_load_firmware (struct dvb_frontend* fe, const struct firmware
+ 	return 0;
+ };
+ 
+-static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+-					     struct dvb_frontend_parameters *p)
++static int nxt200x_setup_frontend_parameters(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct nxt200x_state* state = fe->demodulator_priv;
+ 	u8 buf[5];
+ 
+@@ -546,7 +546,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	}
+ 
+ 	/* set additional params */
+-	switch (p->u.vsb.modulation) {
++	switch (p->modulation) {
+ 		case QAM_64:
+ 		case QAM_256:
+ 			/* Set punctured clock for QAM */
+@@ -576,7 +576,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	nxt200x_agc_reset(state);
+ 
+ 	/* set target power level */
+-	switch (p->u.vsb.modulation) {
++	switch (p->modulation) {
+ 		case QAM_64:
+ 		case QAM_256:
+ 			buf[0] = 0x74;
+@@ -620,7 +620,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	}
+ 
+ 	/* write sdmx input */
+-	switch (p->u.vsb.modulation) {
++	switch (p->modulation) {
+ 		case QAM_64:
+ 				buf[0] = 0x68;
+ 				break;
+@@ -714,7 +714,7 @@ static int nxt200x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	}
+ 
+ 	/* write agc ucgp0 */
+-	switch (p->u.vsb.modulation) {
++	switch (p->modulation) {
+ 		case QAM_64:
+ 				buf[0] = 0x02;
+ 				break;
+@@ -1203,7 +1203,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops nxt200x_ops = {
+-
++	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+ 		.name = "Nextwave NXT200X VSB/QAM frontend",
+ 		.type = FE_ATSC,
+@@ -1220,7 +1220,7 @@ static struct dvb_frontend_ops nxt200x_ops = {
+ 	.init = nxt200x_init,
+ 	.sleep = nxt200x_sleep,
+ 
+-	.set_frontend_legacy = nxt200x_setup_frontend_parameters,
++	.set_frontend = nxt200x_setup_frontend_parameters,
+ 	.get_tune_settings = nxt200x_get_tune_settings,
+ 
+ 	.read_status = nxt200x_read_status,
+-- 
+1.7.8.352.g876a6
 
-> There is a reason properly working client/server code looks different -
-> it's not a trivial transformation and faking it kernel side won't be any
-> better than faking it in user space - it may well even be a worse fake.
-
-It's certainly not suitable for every possible use case in the world.
-For many, however, I think it's the optimal solution.
-
-Regards,
-Andreas
