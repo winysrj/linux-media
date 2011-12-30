@@ -1,57 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:40680 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752623Ab1LJKds (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Dec 2011 05:33:48 -0500
-Date: Sat, 10 Dec 2011 12:33:44 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, riverful.kim@samsung.com,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC/PATCH 1/5] v4l: Convert V4L2_CID_FOCUS_AUTO control to a
- menu control
-Message-ID: <20111210103344.GF1967@valkosipuli.localdomain>
-References: <1323011776-15967-1-git-send-email-snjw23@gmail.com>
- <1323011776-15967-2-git-send-email-snjw23@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1323011776-15967-2-git-send-email-snjw23@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:59461 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752777Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:32 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Wc6024237
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 92/94] [media] s921: Properly report the delivery system
+Date: Fri, 30 Dec 2011 13:08:29 -0200
+Message-Id: <1325257711-12274-93-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Before this patch, a query for the delivery systems were
+returned SYS_UNDEFINED.
 
-On Sun, Dec 04, 2011 at 04:16:12PM +0100, Sylwester Nawrocki wrote:
-> Change the V4L2_CID_FOCUS_AUTO control type from boolean to a menu
-> type. In case of boolean control we had values 0 and 1 corresponding
-> to manual and automatic focus respectively.
-> 
-> The V4L2_CID_FOCUS_AUTO menu control has currently following items:
->   0 - V4L2_FOCUS_MANUAL,
->   1 - V4L2_FOCUS_AUTO,
->   2 - V4L2_FOCUS_AUTO_MACRO,
->   3 - V4L2_FOCUS_AUTO_CONTINUOUS.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    1 -
+ drivers/media/dvb/frontends/s921.c        |    1 +
+ 2 files changed, 1 insertions(+), 1 deletions(-)
 
-I would put the macro mode to a separate menu since it's configuration for
-how the regular AF works rather than really different mode.
-
-...
-
-> @@ -567,6 +576,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_PRIVACY:			return "Privacy";
->  	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
->  	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
-> +	case V4L2_CID_DO_AUTO_FOCUS:		return "Do Auto Focus";
-
-I'd perhaps use "begin" or "start". How does the user learn the autofocus
-has finished? I think this looks like quite similar problem than telling the
-flash strobe status to the user. The solution could also be similar to that.
-
-Cheers,
-
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 9131f1a..9dd30be 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1309,7 +1309,6 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
+ 		p->u.buffer.len = ncaps;
+ 		return;
+ 	}
+-
+ 	switch (info->type) {
+ 	case FE_QPSK:
+ 		p->u.buffer.data[ncaps++] = SYS_DVBS;
+diff --git a/drivers/media/dvb/frontends/s921.c b/drivers/media/dvb/frontends/s921.c
+index 2e15f92..7652d3f 100644
+--- a/drivers/media/dvb/frontends/s921.c
++++ b/drivers/media/dvb/frontends/s921.c
+@@ -440,6 +440,7 @@ static int s921_get_frontend(struct dvb_frontend *fe,
+ 
+ 	/* FIXME: Probably it is possible to get it from regs f1 and f2 */
+ 	p->frequency = state->currentfreq;
++	p->delivery_system = SYS_ISDBT;
+ 
+ 	return 0;
+ }
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8.352.g876a6
+
