@@ -1,134 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:33750 "EHLO gir.skynet.ie"
+Received: from mx1.redhat.com ([209.132.183.28]:13963 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751203Ab1LLQa4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 11:30:56 -0500
-Date: Mon, 12 Dec 2011 16:30:52 +0000
-From: Mel Gorman <mel@csn.ul.ie>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Ankita Garg <ankita@in.ibm.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 02/11] mm: compaction: introduce
- isolate_{free,migrate}pages_range().
-Message-ID: <20111212163052.GK3277@csn.ul.ie>
-References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
- <1321634598-16859-3-git-send-email-m.szyprowski@samsung.com>
- <20111212140728.GC3277@csn.ul.ie>
- <op.v6dub1ms3l0zgt@mpn-glaptop>
+	id S1752507Ab1L3Lf3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 06:35:29 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUBZT4l012439
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 06:35:29 -0500
+Received: from shalem.localdomain (vpn1-4-84.ams2.redhat.com [10.36.4.84])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id pBUBZRTY032413
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 06:35:28 -0500
+Message-ID: <4EFDA23F.4050909@redhat.com>
+Date: Fri, 30 Dec 2011 12:36:31 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <op.v6dub1ms3l0zgt@mpn-glaptop>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 3.3] gspca patches
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Dec 12, 2011 at 04:22:39PM +0100, Michal Nazarewicz wrote:
-> > <SNIP>
-> >
-> >>+		if (!pfn_valid_within(pfn))
-> >>+			goto skip;
-> >
-> >The flow of this function in general with gotos of skipped and next
-> >is confusing in comparison to the existing function. For example,
-> >if this PFN is not valid, and no freelist is provided, then we call
-> >__free_page() on a PFN that is known to be invalid.
-> >
-> >>+		++nr_scanned;
-> >>+
-> >>+		if (!PageBuddy(page)) {
-> >>+skip:
-> >>+			if (freelist)
-> >>+				goto next;
-> >>+			for (; start < pfn; ++start)
-> >>+				__free_page(pfn_to_page(pfn));
-> >>+			return 0;
-> >>+		}
-> >
-> >So if a PFN is valid and !PageBuddy and no freelist is provided, we
-> >call __free_page() on it regardless of reference count. That does not
-> >sound safe.
-> 
-> Sorry about that.  It's a bug in the code which was caught later on.  The
-> code should read ???__free_page(pfn_to_page(start))???.
-> 
+Hi Mauro et all,
 
-That will call free on valid PFNs but why is it safe to call
-__free_page() at all?  You say later that CMA requires that all
-pages in the range be valid but if the pages are in use, that does
-not mean that calling __free_page() is safe. I suspect you have not
-seen a problem because the pages in the range were free as expected
-and not in use because of MIGRATE_ISOLATE.
+Note this pull req obsoletes my previous pull req, it has the new
+jl20005bcd driver removed, because as JF Moine pointed out the jl2005bcd
+driver needs some small cleanups before submission.
 
-> >> 		/* Found a free page, break it into order-0 pages */
-> >> 		isolated = split_free_page(page);
-> >> 		total_isolated += isolated;
-> >>-		for (i = 0; i < isolated; i++) {
-> >>-			list_add(&page->lru, freelist);
-> >>-			page++;
-> >>+		if (freelist) {
-> >>+			struct page *p = page;
-> >>+			for (i = isolated; i; --i, ++p)
-> >>+				list_add(&p->lru, freelist);
-> >> 		}
-> >>
-> >>-		/* If a page was split, advance to the end of it */
-> >>-		if (isolated) {
-> >>-			blockpfn += isolated - 1;
-> >>-			cursor += isolated - 1;
-> >>-		}
-> >>+next:
-> >>+		pfn += isolated;
-> >>+		page += isolated;
-> >
-> >The name isolated is now confusing because it can mean either
-> >pages isolated or pages scanned depending on context. Your patch
-> >appears to be doing a lot more than is necessary to convert
-> >isolate_freepages_block into isolate_freepages_range and at this point,
-> >it's unclear why you did that.
-> 
-> When CMA uses this function, it requires all pages in the range to be valid
-> and free. (Both conditions should be met but you never know.) 
+Please pull from my tree, for a few small gspca fixes
+(including the bulk mode fix I send earlier for 3.2).
 
-It seems racy but I guess you are depending on MIGRATE_ISOLATE to keep
-things sane which is fine. However, I strongly suspect that if there
-is a race and a page is in use, then you will need to retry the
-migration step. Calling __free_page does not look right because
-something still has a reference to the page.
+The following changes since commit 1a5cd29631a6b75e49e6ad8a770ab9d69cda0fa2:
 
-> This change
-> adds a second way isolate_freepages_range() works, which is when freelist is
-> not specified, abort on invalid or non-free page, but continue as usual if
-> freelist is provided.
-> 
+   [media] tda10021: Add support for DVB-C Annex C (2011-12-20 14:01:08 -0200)
 
-Ok, I think you should be able to do that by not calling split_free_page
-or adding to the list if !freelist with a comment explaining why the
-pages are left on the buddy lists for the caller to figure out. Bail if
-a page-in-use is found and have the caller check that the return value
-of isolate_freepages_block == end_pfn - start_pfn.
+are available in the git repository at:
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.3
 
-> I can try and restructure this function a bit so that there are fewer ???gotos???,
-> but without the above change, CMA won't really be able to use it effectively
-> (it would have to provide a freelist and then validate if pages on it are
-> added in order).
-> 
+Hans de Goede (3):
+       gspca: Fix bulk mode cameras no longer working (regression fix)
+       gspca_pac207: Raise max exposure + various autogain setting tweaks
+       gscpa_vicam: Fix oops if unplugged while streaming
 
-Please do and double check that __free_page logic too.
+  drivers/media/video/gspca/gspca.c  |    4 ++--
+  drivers/media/video/gspca/pac207.c |   10 +++++-----
+  drivers/media/video/gspca/vicam.c  |    3 ++-
+  3 files changed, 9 insertions(+), 8 deletions(-)
 
--- 
-Mel Gorman
-SUSE Labs
+Thanks & Regards,
+
+Hans
