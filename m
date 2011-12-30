@@ -1,75 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bw0-f46.google.com ([209.85.214.46]:50185 "EHLO
-	mail-bw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab1LJTPc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 10 Dec 2011 14:15:32 -0500
-Received: by bkcjm19 with SMTP id jm19so202545bkc.19
-        for <linux-media@vger.kernel.org>; Sat, 10 Dec 2011 11:15:31 -0800 (PST)
-Message-ID: <4EE3AFC0.5030507@gmail.com>
-Date: Sat, 10 Dec 2011 22:15:12 +0300
-From: Alex <alex.vizor@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: uvcvideo: Failed to query (SET_CUR) UVC control 10 on unit 2:
- -32 (exp. 2).
-References: <4ED29713.1010202@gmail.com> <201111300251.55083.laurent.pinchart@ideasonboard.com> <4EDF4484.5090108@gmail.com> <201112071208.37000.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201112071208.37000.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:12105 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752563Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:31 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9UZ2026577
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 60/94] [media] tda10071: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:57 -0200
+Message-Id: <1325257711-12274-61-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-On 12/07/2011 02:08 PM, Laurent Pinchart wrote:
-> Hi Alex,
->
-> On Wednesday 07 December 2011 11:48:36 Alex wrote:
->> On 11/30/2011 04:51 AM, Laurent Pinchart wrote:
->>> On Monday 28 November 2011 22:53:19 Alex wrote:
->>>> On 11/28/2011 10:20 PM, Laurent Pinchart wrote:
->>>>> On Monday 28 November 2011 20:14:25 Alex wrote:
->>>>>> On 11/28/2011 10:08 PM, Laurent Pinchart wrote:
->>>>>>> On Monday 28 November 2011 19:04:22 Alex wrote:
->>>>>>>> Fortunately my laptop is alive now so I'm sending you lsusb output.
->>>>>>> Thanks. Would you mind re-running lsusb -v -d '04f2:b221' as root ?
->>>>>>> What laptop brand/model is the camera embedded in ?
->>>>>>>
->>>>>>>> About reverting commit - will try bit later.
->>>>>>> I've received reports that reverting the commit helps. A proper patch
->>>>>>> has also been posted to the linux-usb mailing list ("EHCI : Fix a
->>>>>>> regression in the ISO scheduler"). It would be nice if you could
->>>>>>> check whether that fixes your first issue as well.
->>>>>> That is lsusb output you asked. Laptop is Thinkpad T420s. Camera works
->>>>>> OK with 3.1.x kernel BTW.
->>>>> Thank you.
->>>>>
->>>>>> Could you send this fix patch to me please?
->>>>> http://www.spinics.net/lists/linux-usb/msg54992.html
->>>>>
->>>>> It was the first hit on Google...
->>>> Laurent,
->>>>
->>>> Seems this patch didn't help I recompiled kernel and still get same
->>>> error: [  101.100914] uvcvideo: Failed to query (SET_CUR) UVC control
->>>> 10 on unit 2: -32 (exp. 2).
->>>> [  103.900163] uvcvideo: Failed to query (SET_CUR) UVC control 10 on
->>>> unit 2: -32 (exp. 2).
->>>> [  103.909735] uvcvideo: Failed to submit URB 0 (-28).
->>>> [  107.896939] uvcvideo: Failed to query (SET_CUR) UVC control 10 on
->>>> unit 2: -32 (exp. 2).
->>> I'm surprised. The patch has been included in 3.1.4, could you please try
->>> it ?
->> Laurent,
->>
->> It works ok with 3.1.4 as with all other 3.1.x version. But doesn't work
->> with 3.2-rc4 and previous
-> The fix for the "Failed to submit URB" error is in Linus' tree, and will be in
-> v3.2-rc5.
->
-It works OK with 3.2-rc5,
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-Thanks,
-Alex
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/tda10071.c |   10 +++++-----
+ 1 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/tda10071.c b/drivers/media/dvb/frontends/tda10071.c
+index e9e00ea..68dcce6 100644
+--- a/drivers/media/dvb/frontends/tda10071.c
++++ b/drivers/media/dvb/frontends/tda10071.c
+@@ -636,8 +636,7 @@ error:
+ 	return ret;
+ }
+ 
+-static int tda10071_set_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *params)
++static int tda10071_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct tda10071_priv *priv = fe->demodulator_priv;
+ 	struct tda10071_cmd cmd;
+@@ -778,7 +777,7 @@ error:
+ }
+ 
+ static int tda10071_get_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++	struct dtv_frontend_properties *p)
+ {
+ 	struct tda10071_priv *priv = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -1217,6 +1216,7 @@ error:
+ EXPORT_SYMBOL(tda10071_attach);
+ 
+ static struct dvb_frontend_ops tda10071_ops = {
++	.delsys = { SYS_DVBT, SYS_DVBT2 },
+ 	.info = {
+ 		.name = "NXP TDA10071",
+ 		.type = FE_QPSK,
+@@ -1247,8 +1247,8 @@ static struct dvb_frontend_ops tda10071_ops = {
+ 	.init = tda10071_init,
+ 	.sleep = tda10071_sleep,
+ 
+-	.set_frontend_legacy = tda10071_set_frontend,
+-	.get_frontend_legacy = tda10071_get_frontend,
++	.set_frontend = tda10071_set_frontend,
++	.get_frontend = tda10071_get_frontend,
+ 
+ 	.read_status = tda10071_read_status,
+ 	.read_snr = tda10071_read_snr,
+-- 
+1.7.8.352.g876a6
+
