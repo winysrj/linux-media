@@ -1,55 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57711 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751716Ab1LTRQl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 12:16:41 -0500
-Message-ID: <4EF0C2F5.6040801@iki.fi>
-Date: Tue, 20 Dec 2011 19:16:37 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:46918 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751744Ab1L3Vma (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 16:42:30 -0500
+Date: Fri, 30 Dec 2011 23:42:26 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [PATCH 1/4] V4L: Add JPEG compression control class
+Message-ID: <20111230214225.GB3677@valkosipuli.localdomain>
+References: <4EBECD11.8090709@gmail.com>
+ <1325015011-11904-1-git-send-email-snjw23@gmail.com>
+ <1325015011-11904-2-git-send-email-snjw23@gmail.com>
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR 3.3] HDIC HD29L2 DMB-TH demodulator driv
-References: <4EE929D5.6010106@iki.fi> <4EF0A92B.6010504@redhat.com> <4EF0ACFD.6040903@iki.fi> <201112201725.57381.pboettcher@kernellabs.com>
-In-Reply-To: <201112201725.57381.pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1325015011-11904-2-git-send-email-snjw23@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12/20/2011 06:25 PM, Patrick Boettcher wrote:
-> Hi all,
->
-> On Tuesday 20 December 2011 16:42:53 Antti Palosaari wrote:
->> Adding those to API is not mission impossible. Interleaver is only
->> new parameter and all the rest are just extending values. But my
->> time is limited... and I really would like to finally got Anysee
->> smart card reader integrated to USB serial first.
->
-> And if it is added we should not forget to discuess whether DMB-TH is
-> the "right" name. (If this has already been addressed in another thread
-> please point me to it).
->
-> I know this standard under at least 2 different names: CTTB and DTMB.
->
-> Which is the one to choose?
+Hi Sylwester,
 
-Yes, there is many names and it is not even clear for me what are 
-differences between names. I called it DMB-TH since existing Kernel 
-drivers have selected that name.
+On Tue, Dec 27, 2011 at 08:43:28PM +0100, Sylwester Nawrocki wrote:
+...
+> +#define	V4L2_CID_JPEG_ACTIVE_MARKERS		(V4L2_CID_JPEG_CLASS_BASE + 4)
 
-http://en.wikipedia.org/wiki/CMMB
-http://en.wikipedia.org/wiki/DTMB
-http://en.wikipedia.org/wiki/Digital_Multimedia_Broadcasting
-http://en.wikipedia.org/wiki/Digital_Terrestrial_Multimedia_Broadcast
+Just a few comments. I like the approach, and I'd just remove the 'S' from
+the CID name.
 
-CMMB
-CTTB
-DTMB (DTMB-T/H, DMB-T/H)
-DMB (T-DMB)
+Cheers,
 
-
-Antti
 -- 
-http://palosaari.fi/
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
