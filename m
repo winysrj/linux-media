@@ -1,150 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:18492 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751478Ab1LGGCX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 7 Dec 2011 01:02:23 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	nicolas.ferre@atmel.com, Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH v2 1/2] [media] V4L: atmel-isi: add code to enable/disable ISI_MCK clock
-Date: Wed,  7 Dec 2011 14:01:52 +0800
-Message-Id: <1323237713-25734-1-git-send-email-josh.wu@atmel.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:43026 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019Ab1L3SR4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 13:17:56 -0500
+Date: Fri, 30 Dec 2011 20:17:51 +0200
+From: 'Sakari Ailus' <sakari.ailus@iki.fi>
+To: "HeungJun, Kim" <riverful.kim@samsung.com>
+Cc: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Sylwester Nawrocki' <snjw23@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	'Hans de Goede' <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
+ control
+Message-ID: <20111230181750.GV3677@valkosipuli.localdomain>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+ <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
+ <4EFB1B04.6060305@gmail.com>
+ <201112281451.39399.laurent.pinchart@ideasonboard.com>
+ <20111229233406.GU3677@valkosipuli.localdomain>
+ <000801ccc6bd$4b844520$e28ccf60$%kim@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <000801ccc6bd$4b844520$e28ccf60$%kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch
-- add ISI_MCK clock enable/disable code.
-- change field name in isi_platform_data structure
+Hi HeungJun,
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-[g.liakhovetski@gmx.de: fix label names]
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
----
-Hi, Guennadi
+On Fri, Dec 30, 2011 at 03:35:59PM +0900, HeungJun, Kim wrote:
+> Hi Sakari,
+> 
+> Thanks for the comments!
+> 
+> Your comments help me to order my thoughts and re-send RFC.
+> 
+> Anyway, I hope to be happy new year :)
+> 
+> > -----Original Message-----
+> > From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> > owner@vger.kernel.org] On Behalf Of Sakari Ailus
+> > Sent: Friday, December 30, 2011 8:34 AM
+> > To: Laurent Pinchart
+> > Cc: Sylwester Nawrocki; HeungJun, Kim; linux-media@vger.kernel.org;
+> > mchehab@redhat.com; hverkuil@xs4all.nl; kyungmin.park@samsung.com; Hans de
+> > Goede
+> > Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
+> > control
+> > 
+> > Hi Laurent, Sylwester and HeungJun,
+> > 
+> > On Wed, Dec 28, 2011 at 02:51:38PM +0100, Laurent Pinchart wrote:
+> > > Hi,
+> > >
+> > > On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
+> > > > On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
+> > > > > It adds the new CID for setting White Balance Preset. This CID is
+> > > > > provided as menu type using the following items:
+> > > > > 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
+> > > > > 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
+> > > > > 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
+> > > > > 3 - V4L2_WHITE_BALANCE_CLOUDY,
+> > > > > 4 - V4L2_WHITE_BALANCE_SHADE,
+> > > >
+> > > > I have been also investigating those white balance presets recently and
+> > > > noticed they're also needed for the pwc driver. Looking at
+> > > > drivers/media/video/pwc/pwc-v4l2.c there is something like:
+> > > >
+> > > > const char * const pwc_auto_whitebal_qmenu[] = {
+> > > > 	"Indoor (Incandescant Lighting) Mode",
+> > > > 	"Outdoor (Sunlight) Mode",
+> > > > 	"Indoor (Fluorescent Lighting) Mode",
+> > > > 	"Manual Mode",
+> > > > 	"Auto Mode",
+> > > > 	NULL
+> > > > };
+> > > >
+> > > > static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
+> > > > 	.ops	= &pwc_ctrl_ops,
+> > > > 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
+> > > > 	.type	= V4L2_CTRL_TYPE_MENU,
+> > > > 	.max	= awb_auto,
+> > > > 	.qmenu	= pwc_auto_whitebal_qmenu,
+> > > > };
+> > > >
+> > > > ...
+> > > >
+> > > > 	cfg = pwc_auto_white_balance_cfg;
+> > > > 	cfg.name = v4l2_ctrl_get_name(cfg.id);
+> > > > 	cfg.def = def;
+> > > > 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
+> > > >
+> > > > So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
+> > > > with custom entries. That's interesting... However it works in practice
+> > > > and applications have access to what's provided by hardware.
+> > > > Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
+> > > > that :)
+> > > >
+> > > > Nevertheless, redefining standard controls in particular drivers sounds
+> > > > a little dubious. I wonder if this is a generally agreed approach ?
+> > >
+> > > No agreed with me at least :-)
+> > >
+> > > > Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
+> > > > V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE
+> need
+> > > > to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
+> > >
+> > > Is the preset a fixed white balance setting, or is it an auto white balance
+> > > with the algorithm tuned for a particular configuration ? In the first case,
+> > > does it correspond to a fixed white balance temperature value ?
+> > 
+> > While I'm waiting for a final answer to this, I guess it's the second. There
+> > are three things involved here:
+> > 
+> > - V4L2_CID_WHITE_BALANCE_TEMPERATURE: relatively low level control telling
+> >   the colour temperature of the light source. Setting a value for this
+> >   essentially means using manual white balance.
+> > 
+> > - V4L2_CID_AUTO_WHITE_BALANCE: automatic white balance enabled or disabled.
+> > 
+> > The new control proposed by HeungJun is input for the automatic white
+> > balance algorithm unless I'm mistaken. Whether or not the value is static,
+> > however, might be considered of secondary importance: it is a name instead
+> > of a number and clearly intended to be used as a high level control. I'd
+> > still expect it to be a hint for the algorithm.
+> > 
+> > The value of the new control would have an effect as long as automatic white
+> > balance is enabled.
+> No, it's a kind of Manual White Balance, not Auto. It's the same level of
+> V4L2_CID_WHITE_BALANCE_TEMPERATURE. So, only when V4L2_CID_AUTO_WHITE_BALANCE is
+> 
+> disabled, this control is enabled.
 
-this is the v2 version of the patch series. it is based on staging/for_v3.3.
-The second patch add clk_prepare()/clk_unprepare() functions, and fix the label name issues.
+I guess M-5MOLS doesn't provide a colour temperature or any other means to
+specify white balance manually besides the presets?
 
-Best Regards,
-Josh Wu
+> The relationship between each white balance controls by my understanding is
+> here.
+> 
+> Auto White Balance
+>   - V4L2_CID_AUTO_WHITE_BALANCE(Boolean)
+>     : enable/disable Auto white balance.
+>     : Enable means current mode is Auto, and disable means current mode is
+> Manual
+> 
+> Manual White Balance
+>   - V4L2_CID_WHITE_BALANCE_TEMPERATURE(integer)
+>     : Setting the temperature of Manual
+>     : Only when the V4L2_CID_AUTO_WHITE_BALANCE is disabled, and current mode
+> Manual.
 
- drivers/media/video/atmel-isi.c |   31 +++++++++++++++++++++++++++++--
- include/media/atmel-isi.h       |    4 +++-
- 2 files changed, 32 insertions(+), 3 deletions(-)
+Yes, if the white balance is specified as colour temperature. As Hans noted,
+there are other way to specify it. If auto wb is enabled, this control also
+could be busy to tell the colour temperature estimate. That depends on the
+device, though.
 
-diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-index fbc904f..ea4eef4 100644
---- a/drivers/media/video/atmel-isi.c
-+++ b/drivers/media/video/atmel-isi.c
-@@ -90,7 +90,10 @@ struct atmel_isi {
- 	struct isi_dma_desc		dma_desc[MAX_BUFFER_NUM];
- 
- 	struct completion		complete;
-+	/* ISI peripherial clock */
- 	struct clk			*pclk;
-+	/* ISI_MCK, feed to camera sensor to generate pixel clock */
-+	struct clk			*mck;
- 	unsigned int			irq;
- 
- 	struct isi_platform_data	*pdata;
-@@ -766,6 +769,12 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
- 	if (ret)
- 		return ret;
- 
-+	ret = clk_enable(isi->mck);
-+	if (ret) {
-+		clk_disable(isi->pclk);
-+		return ret;
-+	}
-+
- 	isi->icd = icd;
- 	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -779,6 +788,7 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
- 
- 	BUG_ON(icd != isi->icd);
- 
-+	clk_disable(isi->mck);
- 	clk_disable(isi->pclk);
- 	isi->icd = NULL;
- 
-@@ -874,7 +884,7 @@ static int isi_camera_set_bus_param(struct soc_camera_device *icd, u32 pixfmt)
- 
- 	if (isi->pdata->has_emb_sync)
- 		cfg1 |= ISI_CFG1_EMB_SYNC;
--	if (isi->pdata->isi_full_mode)
-+	if (isi->pdata->full_mode)
- 		cfg1 |= ISI_CFG1_FULL_MODE;
- 
- 	isi_writel(isi, ISI_CTRL, ISI_CTRL_DIS);
-@@ -912,6 +922,7 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
- 			isi->fb_descriptors_phys);
- 
- 	iounmap(isi->regs);
-+	clk_put(isi->mck);
- 	clk_put(isi->pclk);
- 	kfree(isi);
- 
-@@ -930,7 +941,7 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
- 	struct isi_platform_data *pdata;
- 
- 	pdata = dev->platform_data;
--	if (!pdata || !pdata->data_width_flags) {
-+	if (!pdata || !pdata->data_width_flags || !pdata->mck_hz) {
- 		dev_err(&pdev->dev,
- 			"No config available for Atmel ISI\n");
- 		return -EINVAL;
-@@ -959,6 +970,19 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&isi->video_buffer_list);
- 	INIT_LIST_HEAD(&isi->dma_desc_head);
- 
-+	/* Get ISI_MCK, provided by programmable clock or external clock */
-+	isi->mck = clk_get(dev, "isi_mck");
-+	if (IS_ERR_OR_NULL(isi->mck)) {
-+		dev_err(dev, "Failed to get isi_mck\n");
-+		ret = isi->mck ? PTR_ERR(isi->mck) : -EINVAL;
-+		goto err_clk_get;
-+	}
-+
-+	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
-+	ret = clk_set_rate(isi->mck, pdata->mck_hz);
-+	if (ret < 0)
-+		goto err_set_mck_rate;
-+
- 	isi->p_fb_descriptors = dma_alloc_coherent(&pdev->dev,
- 				sizeof(struct fbd) * MAX_BUFFER_NUM,
- 				&isi->fb_descriptors_phys,
-@@ -1034,6 +1058,9 @@ err_alloc_ctx:
- 			isi->p_fb_descriptors,
- 			isi->fb_descriptors_phys);
- err_alloc_descriptors:
-+err_set_mck_rate:
-+	clk_put(isi->mck);
-+err_clk_get:
- 	kfree(isi);
- err_alloc_isi:
- 	clk_put(pclk);
-diff --git a/include/media/atmel-isi.h b/include/media/atmel-isi.h
-index 26cece5..6568230 100644
---- a/include/media/atmel-isi.h
-+++ b/include/media/atmel-isi.h
-@@ -110,10 +110,12 @@ struct isi_platform_data {
- 	u8 hsync_act_low;
- 	u8 vsync_act_low;
- 	u8 pclk_act_falling;
--	u8 isi_full_mode;
-+	u8 full_mode;
- 	u32 data_width_flags;
- 	/* Using for ISI_CFG1 */
- 	u32 frate;
-+	/* Using for ISI_MCK */
-+	u32 mck_hz;
- };
- 
- #endif /* __ATMEL_ISI_H__ */
+> - V4L2_CID_WHITE_BALANCE_PRESET(menu) - I suggested
+>     : Setting the specific temperature value(but, the value is not fetched by
+> user) of Manual
+>     : Only when the V4L2_CID_AUTO_WHITE_BALANCE is disabled, and current mode
+> Manual.
+
+if that really is just a fixed white balance preset with a name, this
+definitely makes sense.
+
+Kind regards,
+
 -- 
-1.6.3.3
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
