@@ -1,62 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:60277 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753038Ab1LFNRK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 08:17:10 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Rob Clark <rob@ti.com>
-Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
-Date: Tue, 6 Dec 2011 13:16:58 +0000
-Cc: Daniel Vetter <daniel@ffwll.ch>, t.stanislaws@samsung.com,
-	linux@arm.linux.org.uk, linux-kernel@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-mm@kvack.org, m.szyprowski@samsung.com,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com> <CAKMK7uHw3OpMAtVib=e=s_us9Tx9TebzehGg59d4-g9dUXr+pQ@mail.gmail.com> <CAF6AEGto-+oSqguuWyPunUbtE65GpNiXh21srQzrChiBQMb1Nw@mail.gmail.com>
-In-Reply-To: <CAF6AEGto-+oSqguuWyPunUbtE65GpNiXh21srQzrChiBQMb1Nw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112061316.58858.arnd@arndb.de>
+Received: from mx1.redhat.com ([209.132.183.28]:59697 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752778Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:32 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9WqG015944
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 93/94] dvb_frontend: Fix inversion breakage due to DVBv5 conversion
+Date: Fri, 30 Dec 2011 13:08:30 -0200
+Message-Id: <1325257711-12274-94-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 05 December 2011, Rob Clark wrote:
-> > On the topic of a coherency model for dmabuf, I think we need to look at
-> > dma_buf_attachment_map/unmap (and also the mmap variants cpu_start and
-> > cpu_finish or whatever they might get called) as barriers:
-> >
-> > So after a dma_buf_map, all previsously completed dma operations (i.e.
-> > unmap already called) and any cpu writes (i.e. cpu_finish called) will be
-> > coherent. Similar rule holds for cpu access through the userspace mmap,
-> > only writes completed before the cpu_start will show up.
-> >
-> > Similar, writes done by the device are only guaranteed to show up after
-> > the _unmap. Dito for cpu writes and cpu_finish.
-> >
-> > In short we always need two function calls to denote the start/end of the
-> > "critical section".
-> 
-> Yup, this was exactly my assumption.  But I guess it is better to spell it out.
+On several places inside dvb_frontend, only the DVBv3 parameters
+were updated. Change it to be sure that, on all places, the DVBv5
+parameters will be changed instead.
 
-I still don't understand how this is going to help you if you let
-multiple drivers enter and leave the critical section without serializing
-against one another. That doesn't sound like what I know as critical
-section.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   38 ++++++++++++++++-------------
+ 1 files changed, 21 insertions(+), 17 deletions(-)
 
-Given some reasonable constraints (all devices must be in the same coherency
-domain, for instance), you can probably define it in a way that you can
-have multiple devices mapping the same buffer at the same time, and
-when no device has mapped the buffer you can have as many concurrent
-kernel and user space accesses on the same buffer as you like. But you
-must still guarantee that no software touches a noncoherent buffer while
-it is mapped into any device and vice versa.
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 9dd30be..9d092a6 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -288,12 +288,13 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
+ 	int ready = 0;
+ 	int fe_set_err = 0;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+-	int original_inversion = fepriv->parameters_in.inversion;
+-	u32 original_frequency = fepriv->parameters_in.frequency;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache, tmp;
++	int original_inversion = c->inversion;
++	u32 original_frequency = c->frequency;
+ 
+ 	/* are we using autoinversion? */
+ 	autoinversion = ((!(fe->ops.info.caps & FE_CAN_INVERSION_AUTO)) &&
+-			 (fepriv->parameters_in.inversion == INVERSION_AUTO));
++			 (c->inversion == INVERSION_AUTO));
+ 
+ 	/* setup parameters correctly */
+ 	while(!ready) {
+@@ -359,19 +360,20 @@ static int dvb_frontend_swzigzag_autotune(struct dvb_frontend *fe, int check_wra
+ 		fepriv->auto_step, fepriv->auto_sub_step, fepriv->started_auto_step);
+ 
+ 	/* set the frontend itself */
+-	fepriv->parameters_in.frequency += fepriv->lnb_drift;
++	c->frequency += fepriv->lnb_drift;
+ 	if (autoinversion)
+-		fepriv->parameters_in.inversion = fepriv->inversion;
++		c->inversion = fepriv->inversion;
++	tmp = *c;
+ 	if (fe->ops.set_frontend)
+ 		fe_set_err = fe->ops.set_frontend(fe);
+-	fepriv->parameters_out = fepriv->parameters_in;
++	*c = tmp;
+ 	if (fe_set_err < 0) {
+ 		fepriv->state = FESTATE_ERROR;
+ 		return fe_set_err;
+ 	}
+ 
+-	fepriv->parameters_in.frequency = original_frequency;
+-	fepriv->parameters_in.inversion = original_inversion;
++	c->frequency = original_frequency;
++	c->inversion = original_inversion;
+ 
+ 	fepriv->auto_sub_step++;
+ 	return 0;
+@@ -382,6 +384,7 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
+ 	fe_status_t s = 0;
+ 	int retval = 0;
+ 	struct dvb_frontend_private *fepriv = fe->frontend_priv;
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache, tmp;
+ 
+ 	/* if we've got no parameters, just keep idling */
+ 	if (fepriv->state & FESTATE_IDLE) {
+@@ -393,9 +396,10 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
+ 	/* in SCAN mode, we just set the frontend when asked and leave it alone */
+ 	if (fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT) {
+ 		if (fepriv->state & FESTATE_RETUNE) {
++			tmp = *c;
+ 			if (fe->ops.set_frontend)
+ 				retval = fe->ops.set_frontend(fe);
+-			fepriv->parameters_out = fepriv->parameters_in;
++			*c = tmp;
+ 			if (retval < 0)
+ 				fepriv->state = FESTATE_ERROR;
+ 			else
+@@ -425,8 +429,8 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
+ 
+ 		/* if we're tuned, then we have determined the correct inversion */
+ 		if ((!(fe->ops.info.caps & FE_CAN_INVERSION_AUTO)) &&
+-		    (fepriv->parameters_in.inversion == INVERSION_AUTO)) {
+-			fepriv->parameters_in.inversion = fepriv->inversion;
++		    (c->inversion == INVERSION_AUTO)) {
++			c->inversion = fepriv->inversion;
+ 		}
+ 		return;
+ 	}
+@@ -1976,14 +1980,14 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 
+ 		/* force auto frequency inversion if requested */
+ 		if (dvb_force_auto_inversion) {
+-			fepriv->parameters_in.inversion = INVERSION_AUTO;
++			c->inversion = INVERSION_AUTO;
+ 		}
+ 		if (fe->ops.info.type == FE_OFDM) {
+ 			/* without hierarchical coding code_rate_LP is irrelevant,
+ 			 * so we tolerate the otherwise invalid FEC_NONE setting */
+-			if (fepriv->parameters_in.u.ofdm.hierarchy_information == HIERARCHY_NONE &&
+-			    fepriv->parameters_in.u.ofdm.code_rate_LP == FEC_NONE)
+-				fepriv->parameters_in.u.ofdm.code_rate_LP = FEC_AUTO;
++			if (c->hierarchy == HIERARCHY_NONE &&
++			    c->code_rate_LP == FEC_NONE)
++				c->code_rate_LP = FEC_AUTO;
+ 		}
+ 
+ 		/* get frontend-specific tuning settings */
+@@ -1996,8 +2000,8 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 			switch(fe->ops.info.type) {
+ 			case FE_QPSK:
+ 				fepriv->min_delay = HZ/20;
+-				fepriv->step_size = fepriv->parameters_in.u.qpsk.symbol_rate / 16000;
+-				fepriv->max_drift = fepriv->parameters_in.u.qpsk.symbol_rate / 2000;
++				fepriv->step_size = c->symbol_rate / 16000;
++				fepriv->max_drift = c->symbol_rate / 2000;
+ 				break;
+ 
+ 			case FE_QAM:
+-- 
+1.7.8.352.g876a6
 
-Why can't we just mandate that all mappings into the kernel must be
-coherent and that user space accesses must either be coherent as well
-or be done by user space that uses explicit serialization with all
-DMA accesses?
-
-	Arnd
