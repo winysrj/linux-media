@@ -1,53 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:55237 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754508Ab1LBPDQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 10:03:16 -0500
-From: Ming Lei <ming.lei@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: [RFC PATCH v1 0/7] media&omap4: introduce face detection(FD) driver
-Date: Fri,  2 Dec 2011 23:02:45 +0800
-Message-Id: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:21310 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752585Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:31 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9VnI026584
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 67/94] [media] tda8083: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:04 -0200
+Message-Id: <1325257711-12274-68-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-These v1 patches(against -next tree) introduce v4l2 based face
-detection(FD) device driver, and enable FD hardware[1] on omap4 SoC..
-The idea of implementing it on v4l2 is from from Alan Cox, Sylwester
-and Greg-Kh.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-For verification purpose, I write one user space utility[2] to
-test the module and driver, follows its basic functions:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/tda8083.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
-	- detect faces in input grayscal picture(PGM raw, 320 by 240)
-	- detect faces in input y8 format video stream
-	- plot a rectangle to mark the detected faces, and save it as 
-	another same type grayscal picture
-
-Looks the performance of the module is not bad, see some detection
-results on the link[3][4].
-
-Face detection can be used to implement some interesting applications
-(camera, face unlock, baby monitor, ...).
-
-TODO:
-	- implement FD setting interfaces with v4l2 controls or
-	ext controls
-
-thanks,
---
-Ming Lei
-
-[1], Ch9 of OMAP4 Technical Reference Manual
-[2], http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
-[3], http://kernel.ubuntu.com/~ming/dev/fdif/output
-[4], All pictures are taken from http://www.google.com/imghp
-and converted to pnm from jpeg format, only for test purpose.
+diff --git a/drivers/media/dvb/frontends/tda8083.c b/drivers/media/dvb/frontends/tda8083.c
+index 7ff2946..88a22d3 100644
+--- a/drivers/media/dvb/frontends/tda8083.c
++++ b/drivers/media/dvb/frontends/tda8083.c
+@@ -315,8 +315,9 @@ static int tda8083_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int tda8083_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int tda8083_set_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct tda8083_state* state = fe->demodulator_priv;
+ 
+ 	if (fe->ops.tuner_ops.set_params) {
+@@ -325,8 +326,8 @@ static int tda8083_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 	}
+ 
+ 	tda8083_set_inversion (state, p->inversion);
+-	tda8083_set_fec (state, p->u.qpsk.fec_inner);
+-	tda8083_set_symbolrate (state, p->u.qpsk.symbol_rate);
++	tda8083_set_fec (state, p->fec_inner);
++	tda8083_set_symbolrate (state, p->symbol_rate);
+ 
+ 	tda8083_writereg (state, 0x00, 0x3c);
+ 	tda8083_writereg (state, 0x00, 0x04);
+@@ -334,7 +335,7 @@ static int tda8083_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 	return 0;
+ }
+ 
+-static int tda8083_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int tda8083_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
+ {
+ 	struct tda8083_state* state = fe->demodulator_priv;
+ 
+@@ -342,8 +343,8 @@ static int tda8083_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 	/*p->frequency = ???;*/
+ 	p->inversion = (tda8083_readreg (state, 0x0e) & 0x80) ?
+ 			INVERSION_ON : INVERSION_OFF;
+-	p->u.qpsk.fec_inner = tda8083_get_fec (state);
+-	/*p->u.qpsk.symbol_rate = tda8083_get_symbolrate (state);*/
++	p->fec_inner = tda8083_get_fec (state);
++	/*p->symbol_rate = tda8083_get_symbolrate (state);*/
+ 
+ 	return 0;
+ }
+@@ -438,7 +439,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops tda8083_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name			= "Philips TDA8083 DVB-S",
+ 		.type			= FE_QPSK,
+@@ -461,8 +462,8 @@ static struct dvb_frontend_ops tda8083_ops = {
+ 	.init = tda8083_init,
+ 	.sleep = tda8083_sleep,
+ 
+-	.set_frontend_legacy = tda8083_set_frontend,
+-	.get_frontend_legacy = tda8083_get_frontend,
++	.set_frontend = tda8083_set_frontend,
++	.get_frontend = tda8083_get_frontend,
+ 
+ 	.read_status = tda8083_read_status,
+ 	.read_signal_strength = tda8083_read_signal_strength,
+-- 
+1.7.8.352.g876a6
 
