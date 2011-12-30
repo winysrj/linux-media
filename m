@@ -1,71 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:37029 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751905Ab1LEGUn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 5 Dec 2011 01:20:43 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAA7C2qgDOgqZqkXE+E=H1yTrA0Uc4r-31y40BVa2=BxOaJY6Kw@mail.gmail.com>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-	<4ED6C5B8.8040803@linuxtv.org>
-	<4ED75F53.30709@redhat.com>
-	<CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
-	<20111202231909.1ca311e2@lxorguk.ukuu.org.uk>
-	<4EDA4AB4.90303@linuxtv.org>
-	<CAA7C2qjfWW8=kePZDO4nYR913RyuP-t+u8P9LV4mDh9bANr3=Q@mail.gmail.com>
-	<CAJbz7-15mzUNV7ZLSkAOg1Vb8briysitsR7xK94G+3-KT=ZXbA@mail.gmail.com>
-	<CAA7C2qgDOgqZqkXE+E=H1yTrA0Uc4r-31y40BVa2=BxOaJY6Kw@mail.gmail.com>
-Date: Mon, 5 Dec 2011 07:20:42 +0100
-Message-ID: <CAJbz7-1JLc0yq=9NUTNiP5zcG7vyC9ao_seU8rudCwXi3YoGdQ@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-From: HoP <jpetrous@gmail.com>
-To: VDR User <user.vdr@gmail.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:59438 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752673Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:32 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Vkb009167
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 78/94] [media] vp7045-fe: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:15 -0200
+Message-Id: <1325257711-12274-79-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Well, initial report was made on vdr-portal because of our hardware announce,
->> but you can be sure the same is true if server is build on any linux hardware.
->> Here is some note:
->> http://www.vdr-portal.de/board18-vdr-hardware/board84-allgemein/106610-das-neue-netzwerk-client-der-f%C3%BCr-vdr-verwenden-k%C3%B6nnen/?highlight=vtuner
->>
->> Additional info you can find (or ask) on our forum:
->> http://forum.nessiedvb.org/forum/viewforum.php?f=11
->>
->> Please note, that compilation of vtunerc kernel driver (or loopback, or pigback
->> or whatever name the code should be used) is simple - no need for any
->> kernel real patching is required. Code can be compiled outside of the
->> kernel tree
->> (of course kernel headers are still needed).
->>
->> Some useful hints regarding userland application daemons you
->> can find in our wiki:
->> http://wiki.nessiedvb.org/wiki/doku.php?id=vtuner_mode
->>
->> When you get vtunerc and vtunerd applications connected, try
->> simple command line tuning (szap/tzap or czap) to check
->> if it works correctly. Only if you get zapping working switch
->> to vdr.
->
-> Thanks for the info and links. I do know many guys who would be
-> interested in this if it can provide good server/client ability with
-> VDR. However, a large number of us only speak english so places like
-> vdr-portal aren't much use a lot of the time. If you have english
-> forums somewhere, that link would be far more useful I think.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-No problem. Simply ignore first URL. All others are english :-)
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-I would recommend start from how-it-works-diagram:
-http://code.google.com/p/vtuner/wiki/BigPicture
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/vp7045-fe.c |   23 ++++++++---------------
+ 1 files changed, 8 insertions(+), 15 deletions(-)
 
-and then have a look  at wiki. where you can some
-step-by-step info.
+diff --git a/drivers/media/dvb/dvb-usb/vp7045-fe.c b/drivers/media/dvb/dvb-usb/vp7045-fe.c
+index f8b5d8c..53d658a0 100644
+--- a/drivers/media/dvb/dvb-usb/vp7045-fe.c
++++ b/drivers/media/dvb/dvb-usb/vp7045-fe.c
+@@ -103,9 +103,9 @@ static int vp7045_fe_get_tune_settings(struct dvb_frontend* fe, struct dvb_front
+ 	return 0;
+ }
+ 
+-static int vp7045_fe_set_frontend(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *fep)
++static int vp7045_fe_set_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct vp7045_fe_state *state = fe->demodulator_priv;
+ 	u8 buf[5];
+ 	u32 freq = fep->frequency / 1000;
+@@ -115,11 +115,10 @@ static int vp7045_fe_set_frontend(struct dvb_frontend* fe,
+ 	buf[2] =  freq        & 0xff;
+ 	buf[3] = 0;
+ 
+-	switch (fep->u.ofdm.bandwidth) {
+-		case BANDWIDTH_8_MHZ: buf[4] = 8; break;
+-		case BANDWIDTH_7_MHZ: buf[4] = 7; break;
+-		case BANDWIDTH_6_MHZ: buf[4] = 6; break;
+-		case BANDWIDTH_AUTO: return -EOPNOTSUPP;
++	switch (fep->bandwidth_hz) {
++		case 8000000: buf[4] = 8; break;
++		case 7000000: buf[4] = 7; break;
++		case 6000000: buf[4] = 6; break;
+ 		default:
+ 			return -EINVAL;
+ 	}
+@@ -128,12 +127,6 @@ static int vp7045_fe_set_frontend(struct dvb_frontend* fe,
+ 	return 0;
+ }
+ 
+-static int vp7045_fe_get_frontend(struct dvb_frontend* fe,
+-				  struct dvb_frontend_parameters *fep)
+-{
+-	return 0;
+-}
+-
+ static void vp7045_fe_release(struct dvb_frontend* fe)
+ {
+ 	struct vp7045_fe_state *state = fe->demodulator_priv;
+@@ -159,6 +152,7 @@ error:
+ 
+ 
+ static struct dvb_frontend_ops vp7045_fe_ops = {
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name			= "Twinhan VP7045/46 USB DVB-T",
+ 		.type			= FE_OFDM,
+@@ -180,8 +174,7 @@ static struct dvb_frontend_ops vp7045_fe_ops = {
+ 	.init = vp7045_fe_init,
+ 	.sleep = vp7045_fe_sleep,
+ 
+-	.set_frontend_legacy = vp7045_fe_set_frontend,
+-	.get_frontend_legacy = vp7045_fe_get_frontend,
++	.set_frontend = vp7045_fe_set_frontend,
+ 	.get_tune_settings = vp7045_fe_get_tune_settings,
+ 
+ 	.read_status = vp7045_fe_read_status,
+-- 
+1.7.8.352.g876a6
 
-Anyway, don't hesitate to ask any question in our forum
-or write me directly.
-
-Honza
