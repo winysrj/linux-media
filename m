@@ -1,146 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:62749 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752294Ab1L2KZ3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 29 Dec 2011 05:25:29 -0500
-Received: by wibhm6 with SMTP id hm6so6176808wib.19
-        for <linux-media@vger.kernel.org>; Thu, 29 Dec 2011 02:25:28 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAJZeATR2RcbhH9zNQwkHRoy4hKTK02xzk8LBwCzvkSisoZePCg@mail.gmail.com>
-References: <CAJZeATR2RcbhH9zNQwkHRoy4hKTK02xzk8LBwCzvkSisoZePCg@mail.gmail.com>
-Date: Thu, 29 Dec 2011 12:25:28 +0200
-Message-ID: <CAF0Ff2nEtqW4DVkjS00931izKHXsTu6Y-bG+BD1ez1UR7Tminw@mail.gmail.com>
-Subject: Re: Mystique SaTiX-S2 Sky Xpress DUAL card
-From: Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-To: Andreas Mair <amair.sob@googlemail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:28866 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752530Ab1L3PJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:30 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9UYw009135
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 55/94] [media] stv0299: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:52 -0200
+Message-Id: <1325257711-12274-56-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hello Andreas,
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-i've checked the Linux drivers for the card you referred to and
-whoever made it is breaking all the rules claiming copyright over the
-whole driver adding at the beginning:
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-"Copyright (C) 2010 Bestunar Inc."
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/stv0299.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-when they just patched the driver very slightly adding only new
-initialization values - if they wish they can claim copyright only
-over those small changes (even they are just number constants provided
-by the chip maker). in any case that's ridiculous, because i made that
-driver and the copyright notice is:
+diff --git a/drivers/media/dvb/frontends/stv0299.c b/drivers/media/dvb/frontends/stv0299.c
+index 6aeabaf..abf4bff 100644
+--- a/drivers/media/dvb/frontends/stv0299.c
++++ b/drivers/media/dvb/frontends/stv0299.c
+@@ -559,8 +559,9 @@ static int stv0299_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int stv0299_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters * p)
++static int stv0299_set_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stv0299_state* state = fe->demodulator_priv;
+ 	int invval = 0;
+ 
+@@ -583,19 +584,19 @@ static int stv0299_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
+ 
+-	stv0299_set_FEC (state, p->u.qpsk.fec_inner);
+-	stv0299_set_symbolrate (fe, p->u.qpsk.symbol_rate);
++	stv0299_set_FEC (state, p->fec_inner);
++	stv0299_set_symbolrate (fe, p->symbol_rate);
+ 	stv0299_writeregI(state, 0x22, 0x00);
+ 	stv0299_writeregI(state, 0x23, 0x00);
+ 
+ 	state->tuner_frequency = p->frequency;
+-	state->fec_inner = p->u.qpsk.fec_inner;
+-	state->symbol_rate = p->u.qpsk.symbol_rate;
++	state->fec_inner = p->fec_inner;
++	state->symbol_rate = p->symbol_rate;
+ 
+ 	return 0;
+ }
+ 
+-static int stv0299_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters * p)
++static int stv0299_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties * p)
+ {
+ 	struct stv0299_state* state = fe->demodulator_priv;
+ 	s32 derot_freq;
+@@ -614,8 +615,8 @@ static int stv0299_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 	if (state->config->invert) invval = (~invval) & 1;
+ 	p->inversion = invval ? INVERSION_ON : INVERSION_OFF;
+ 
+-	p->u.qpsk.fec_inner = stv0299_get_fec (state);
+-	p->u.qpsk.symbol_rate = stv0299_get_symbolrate (state);
++	p->fec_inner = stv0299_get_fec (state);
++	p->symbol_rate = stv0299_get_symbolrate (state);
+ 
+ 	return 0;
+ }
+@@ -705,7 +706,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops stv0299_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name			= "ST STV0299 DVB-S",
+ 		.type			= FE_QPSK,
+@@ -729,8 +730,8 @@ static struct dvb_frontend_ops stv0299_ops = {
+ 	.write = stv0299_write,
+ 	.i2c_gate_ctrl = stv0299_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = stv0299_set_frontend,
+-	.get_frontend_legacy = stv0299_get_frontend,
++	.set_frontend = stv0299_set_frontend,
++	.get_frontend = stv0299_get_frontend,
+ 	.get_tune_settings = stv0299_get_tune_settings,
+ 
+ 	.read_status = stv0299_read_status,
+-- 
+1.7.8.352.g876a6
 
-http://git.linuxtv.org/media_tree.git/blob/61c4f2c81c61f73549928dfd9f3e8f26aa36a8cf:/drivers/media/dvb/frontends/ds3000.c
-
-    Montage Technology DS3000/TS2020 - DVBS/S2 Demodulator/Tuner driver
-    Copyright (C) 2009 Konstantin Dimitrov <kosio.dimitrov@gmail.com>
-
-    Copyright (C) 2009 TurboSight.com
-
-and i strongly opposed that copyright massage can be changed in the
-way like they did especially over the changes they made.
-
-also, the whole 'ds3000' driver, even it's licensed under GPL, was
-submitted to the Linux kernel without my formal permission that to be
-done, i.e. you can think for that as it was leaked to the Linux kernel
-from third-parties and not the driver author and copyright-holder.
-
-so, it seems to me "Bestunar Inc" is some obscure Chinese company most
-probably cloning hardware rather than spent any time doing
-development, which or course also don't honor the work put in
-development of open-source driver for the chips they're using and try
-very hard to make it look like they did it or that they did something
-more significant than what they actually did. i'm sure you can
-understand my position and my opinion that such companies shouldn't be
-supported in any possible way.
-
-best regards,
-konstantin
-
-On Thu, Dec 29, 2011 at 11:07 AM, Andreas Mair <amair.sob@googlemail.com> wrote:
-> Hello,
->
-> I'm using that card in my Linux VDR box:
-> http://www.dvbshop.net/product_info.php/info/p2440_Mystique-SaTiX-S2-Sky-Xpress-DUAL--USALS--DiseqC-1-2--Win-Linux.html
->
-> That's the lspci output:
-> =========== SNIP =========
-> $ lspci -vvvnn
-> 02:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
-> CX23885 PCI Video and Audio Decoder [14f1:8852] (rev 02)
->        Subsystem: Device [4254:0952]
->        Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-> ParErr- Stepping- SERR- FastB2B- DisINTx-
->        Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->        Latency: 0, Cache Line Size: 64 bytes
->        Interrupt: pin A routed to IRQ 16
->        Region 0: Memory at fe400000 (64-bit, non-prefetchable) [size=2M]
->        Capabilities: [40] Express (v1) Endpoint, MSI 00
->                DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
-> <64ns, L1 <1us
->                        ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
->                DevCtl: Report errors: Correctable- Non-Fatal- Fatal-
-> Unsupported-
->                        RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop+
->                        MaxPayload 128 bytes, MaxReadReq 512 bytes
->                DevSta: CorrErr- UncorrErr+ FatalErr- UnsuppReq+
-> AuxPwr- TransPend-
->                LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1,
-> Latency L0 <2us, L1 <4us
->                        ClockPM- Surprise- LLActRep- BwNot-
->                LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
->                        ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
->                LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train-
-> SlotClk+ DLActive- BWMgmt- ABWMgmt-
->        Capabilities: [80] Power Management version 2
->                Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
-> PME(D0+,D1+,D2+,D3hot+,D3cold-)
->                Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
->        Capabilities: [90] Vital Product Data
->                Product Name: "
->                End
->        Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
->                Address: 0000000000000000  Data: 0000
->        Capabilities: [100] Advanced Error Reporting
->                UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
-> UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq+ ACSViol-
->                UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
-> UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
->                UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt-
-> UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
->                CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
->                CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
->                AERCap: First Error Pointer: 14, GenCap- CGenEn- ChkCap- ChkEn-
->        Capabilities: [200] Virtual Channel <?>
->        Kernel driver in use: cx23885
->        Kernel modules: cx23885
-> =========== SNAP =========
->
-> So this is different to what's written at
-> http://linuxtv.org/wiki/index.php/Mystique_SaTiX-S2_Dual
-> I guess it's more like that card: http://linuxtv.org/wiki/index.php/DVBSKY_S952
->
-> I'm using the drivers found at http://www.dvbsky.net/Support.html
-> (http://www.dvbsky.net/download/linux-3.0-media-20111024-bst-111205.tar.gz).
-> I didn't get that card running with kernel 3.0.6 and haven't seen
-> support for that card in any linuxtv.org repository I've looked into.
->
-> Now I wonder:
-> - Who is responsible for that drivers? Someone at DVBSky.net?
-> - Is there a chance to get that drivers into the kernel?
-> - Has anybody else on this list this card running?
->
-> Best regards,
-> Andreas
-> --
-> http://andreas.vdr-developer.org --- VDRAdmin-AM & EnigmaNG & VDRSymbols
-> VDR user #303
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
