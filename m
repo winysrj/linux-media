@@ -1,39 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ims-d14.mx.aol.com ([205.188.249.151]:42299 "EHLO
-	ims-d14.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752054Ab1LKQE2 (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:42568 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752953Ab1L3LYg convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 11 Dec 2011 11:04:28 -0500
-Received: from oms-db02.r1000.mx.aol.com (oms-db02.r1000.mx.aol.com [205.188.58.2])
-	by ims-d14.mx.aol.com (8.14.1/8.14.1) with ESMTP id pBBG3QdV009796
-	for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 11:03:43 -0500
-Received: from mtaout-ma03.r1000.mx.aol.com (mtaout-ma03.r1000.mx.aol.com [172.29.41.3])
-	by oms-db02.r1000.mx.aol.com (AOL Outbound OMS Interface) with ESMTP id CE95D1C000084
-	for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 11:03:43 -0500 (EST)
-Received: from [192.168.5.24] (unknown [89.165.21.235])
-	(using SSLv3 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by mtaout-ma03.r1000.mx.aol.com (MUA/Third Party Client Interface) with ESMTPSA id C02B8E0000CD
-	for <linux-media@vger.kernel.org>; Sun, 11 Dec 2011 11:03:41 -0500 (EST)
-Message-ID: <1323619307.5157.6.camel@linux-wuzg.site>
-Subject: AF9035 DVB-T stick
-From: Programer <samsungwave523@aol.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset="UTF-8"
-Date: Sun, 11 Dec 2011 19:31:47 +0330
+	Fri, 30 Dec 2011 06:24:36 -0500
+Date: Fri, 30 Dec 2011 12:26:08 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Subject: Re: [GIT PATCHES FOR 3.3] gspca patches and new jl2005bcd driver
+Message-ID: <20111230122608.7f08efe7@tele>
+In-Reply-To: <4EFD98E6.6010107@redhat.com>
+References: <4EFD8494.4050506@redhat.com>
+	<20111230112411.3089e281@tele>
+	<4EFD98E6.6010107@redhat.com>
 Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dear sir
-i have AF9035 DVB-T stick:
+On Fri, 30 Dec 2011 11:56:38 +0100
+Hans de Goede <hdegoede@redhat.com> wrote:
 
-> Bus 002 Device 003: ID 15a4:1001 Afatech Technologies, Inc. AF9015/AF9035 DVB-T stick
+> I took it as is from Theodore, I guess we should do a separate cleanup
+> patch on top to preserve the history / authorship. Since I'm busy testing
+> the new isoc bandwidth stuff today, could you perhaps do a cleanup patch for this?
 
-on OpenSuse 12.1 32Bit :
+Yes, but the first step is to remove this patch from the pull request, and only you may do it (it is only 3 git commands and an email - otherwise, it has no sense to add two empty lines in a patch and to remove them in an other one!).
 
-> 3.1.0-1.2-default
-> 
-> how use this usb DVB-T Device ???
-
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
