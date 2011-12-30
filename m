@@ -1,80 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:55237 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754065Ab1LBPDc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 2 Dec 2011 10:03:32 -0500
-From: Ming Lei <ming.lei@canonical.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Tony Lindgren <tony@atomide.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, Greg KH <greg@kroah.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>,
-	linux-omap@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	Ming Lei <ming.lei@canonical.com>
-Subject: [RFC PATCH v1 2/7] omap4: build fdif omap device from hwmod
-Date: Fri,  2 Dec 2011 23:02:47 +0800
-Message-Id: <1322838172-11149-3-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
-References: <1322838172-11149-1-git-send-email-ming.lei@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45355 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752084Ab1L3PJ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:26 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9QZj024151
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:26 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 10/94] [media] cx24110: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:07 -0200
+Message-Id: <1325257711-12274-11-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- arch/arm/mach-omap2/devices.c |   33 +++++++++++++++++++++++++++++++++
- 1 files changed, 33 insertions(+), 0 deletions(-)
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index 1166bdc..a392af5 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -728,6 +728,38 @@ void __init omap242x_init_mmc(struct omap_mmc_platform_data **mmc_data)
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/cx24110.c |   21 +++++++++++----------
+ 1 files changed, 11 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/cx24110.c b/drivers/media/dvb/frontends/cx24110.c
+index 278034d..6f85bb1 100644
+--- a/drivers/media/dvb/frontends/cx24110.c
++++ b/drivers/media/dvb/frontends/cx24110.c
+@@ -531,25 +531,26 @@ static int cx24110_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
  
- #endif
+-static int cx24110_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int cx24110_set_frontend(struct dvb_frontend* fe)
+ {
+ 	struct cx24110_state *state = fe->demodulator_priv;
+-
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
  
-+static struct platform_device* __init omap4_init_fdif(void)
-+{
-+	int id = -1;
-+	struct platform_device *pd;
-+	struct omap_hwmod *oh;
-+	const char *dev_name = "fdif";
-+
-+	oh = omap_hwmod_lookup("fdif");
-+	if (!oh) {
-+		pr_err("Could not look up fdif hwmod\n");
-+		return NULL;
-+	}
-+
-+	pd = omap_device_build(dev_name, id, oh, NULL, 0, NULL, 0, 0);
-+	WARN(IS_ERR(pd), "Can't build omap_device for %s.\n",
-+				dev_name);
-+	return pd;
-+}
-+
-+static void __init omap_init_fdif(void)
-+{
-+	if (cpu_is_omap44xx()) {
-+		struct platform_device *pd;
-+
-+		pd = omap4_init_fdif();
-+		if (!pd)
-+			return;
-+
-+		pm_runtime_enable(&pd->dev);
-+	}
-+}
-+
- /*-------------------------------------------------------------------------*/
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		fe->ops.tuner_ops.set_params(fe);
+ 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
  
- #if defined(CONFIG_HDQ_MASTER_OMAP) || defined(CONFIG_HDQ_MASTER_OMAP_MODULE)
-@@ -808,6 +840,7 @@ static int __init omap2_init_devices(void)
- 	omap_init_sham();
- 	omap_init_aes();
- 	omap_init_vout();
-+	omap_init_fdif();
+-	cx24110_set_inversion (state, p->inversion);
+-	cx24110_set_fec (state, p->u.qpsk.fec_inner);
+-	cx24110_set_symbolrate (state, p->u.qpsk.symbol_rate);
++	cx24110_set_inversion(state, p->inversion);
++	cx24110_set_fec(state, p->fec_inner);
++	cx24110_set_symbolrate(state, p->symbol_rate);
+ 	cx24110_writereg(state,0x04,0x05); /* start acquisition */
  
  	return 0;
  }
+ 
+-static int cx24110_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int cx24110_get_frontend(struct dvb_frontend* fe,
++				struct dtv_frontend_properties *p)
+ {
+ 	struct cx24110_state *state = fe->demodulator_priv;
+ 	s32 afc; unsigned sclk;
+@@ -571,7 +572,7 @@ static int cx24110_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 	p->frequency += afc;
+ 	p->inversion = (cx24110_readreg (state, 0x22) & 0x10) ?
+ 				INVERSION_ON : INVERSION_OFF;
+-	p->u.qpsk.fec_inner = cx24110_get_fec (state);
++	p->fec_inner = cx24110_get_fec (state);
+ 
+ 	return 0;
+ }
+@@ -623,7 +624,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops cx24110_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name = "Conexant CX24110 DVB-S",
+ 		.type = FE_QPSK,
+@@ -643,8 +644,8 @@ static struct dvb_frontend_ops cx24110_ops = {
+ 
+ 	.init = cx24110_initfe,
+ 	.write = _cx24110_pll_write,
+-	.set_frontend_legacy = cx24110_set_frontend,
+-	.get_frontend_legacy = cx24110_get_frontend,
++	.set_frontend = cx24110_set_frontend,
++	.get_frontend = cx24110_get_frontend,
+ 	.read_status = cx24110_read_status,
+ 	.read_ber = cx24110_read_ber,
+ 	.read_signal_strength = cx24110_read_signal_strength,
 -- 
-1.7.5.4
+1.7.8.352.g876a6
 
