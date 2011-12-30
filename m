@@ -1,102 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:27226 "EHLO mgw-sa02.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:42935 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752627Ab1L1NBe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 28 Dec 2011 08:01:34 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH v2 1/1] v4l: Add DPCM compressed formats
-Date: Wed, 28 Dec 2011 15:01:30 +0200
-Message-Id: <1325077290-9524-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1325067657-32556-2-git-send-email-sakari.ailus@iki.fi>
-References: <1325067657-32556-2-git-send-email-sakari.ailus@iki.fi>
+	id S1752583Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:31 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9ViU015926
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 68/94] [media] vez1820: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:05 -0200
+Message-Id: <1325257711-12274-69-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- include/linux/videodev2.h                          |    3 ++
- 4 files changed, 34 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+ drivers/media/dvb/frontends/ves1820.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-index 7b27409..c1c62a9 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-@@ -1,4 +1,4 @@
--    <refentry>
-+    <refentry id="pixfmt-srggb10">
-       <refmeta>
- 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
- 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-new file mode 100644
-index 0000000..985440c
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-@@ -0,0 +1,29 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>
-+	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
-+	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
-+	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
-+	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
-+	 </refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
-+	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>The following four pixel formats are raw sRGB / Bayer
-+	formats with 10 bits per colour compressed to 8 bits each,
-+	using the DPCM. DPCM, differential pulse-code modulation, is
-+	lossy. Each colour component consumes 8 bits of memory. In
-+	other respects this format is similar to
-+	<xref linkend="pixfmt-srggb10">.</xref></para>
-+
-+      </refsect1>
-+    </refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 2ff6b77..9b06c7b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
-     &sub-srggb8;
-     &sub-sbggr16;
-     &sub-srggb10;
-+    &sub-srggb10dpcm8;
-     &sub-srggb12;
-   </section>
+diff --git a/drivers/media/dvb/frontends/ves1820.c b/drivers/media/dvb/frontends/ves1820.c
+index 7961231..ef1b5fe 100644
+--- a/drivers/media/dvb/frontends/ves1820.c
++++ b/drivers/media/dvb/frontends/ves1820.c
+@@ -205,15 +205,16 @@ static int ves1820_init(struct dvb_frontend* fe)
+ 	return 0;
+ }
  
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 0f8f904..622570c 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -365,7 +365,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
- 	/* 10bit raw bayer DPCM compressed to 8 bits */
-+#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
-+#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
- #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-+#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
- 	/*
- 	 * 10bit raw bayer, expanded to 16 bits
- 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+-static int ves1820_set_parameters(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int ves1820_set_parameters(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ves1820_state* state = fe->demodulator_priv;
+ 	static const u8 reg0x00[] = { 0x00, 0x04, 0x08, 0x0c, 0x10 };
+ 	static const u8 reg0x01[] = { 140, 140, 106, 100, 92 };
+ 	static const u8 reg0x05[] = { 135, 100, 70, 54, 38 };
+ 	static const u8 reg0x08[] = { 162, 116, 67, 52, 35 };
+ 	static const u8 reg0x09[] = { 145, 150, 106, 126, 107 };
+-	int real_qam = p->u.qam.modulation - QAM_16;
++	int real_qam = p->modulation - QAM_16;
+ 
+ 	if (real_qam < 0 || real_qam > 4)
+ 		return -EINVAL;
+@@ -223,7 +224,7 @@ static int ves1820_set_parameters(struct dvb_frontend* fe, struct dvb_frontend_p
+ 		if (fe->ops.i2c_gate_ctrl) fe->ops.i2c_gate_ctrl(fe, 0);
+ 	}
+ 
+-	ves1820_set_symbolrate(state, p->u.qam.symbol_rate);
++	ves1820_set_symbolrate(state, p->symbol_rate);
+ 	ves1820_writereg(state, 0x34, state->pwm);
+ 
+ 	ves1820_writereg(state, 0x01, reg0x01[real_qam]);
+@@ -309,7 +310,7 @@ static int ves1820_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int ves1820_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int ves1820_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
+ {
+ 	struct ves1820_state* state = fe->demodulator_priv;
+ 	int sync;
+@@ -320,7 +321,7 @@ static int ves1820_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 	if (verbose) {
+ 		/* AFC only valid when carrier has been recovered */
+ 		printk(sync & 2 ? "ves1820: AFC (%d) %dHz\n" :
+-			"ves1820: [AFC (%d) %dHz]\n", afc, -((s32) p->u.qam.symbol_rate * afc) >> 10);
++			"ves1820: [AFC (%d) %dHz]\n", afc, -((s32) p->symbol_rate * afc) >> 10);
+ 	}
+ 
+ 	if (!state->config->invert) {
+@@ -329,13 +330,13 @@ static int ves1820_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_par
+ 		p->inversion = (!(state->reg0 & 0x20)) ? INVERSION_ON : INVERSION_OFF;
+ 	}
+ 
+-	p->u.qam.modulation = ((state->reg0 >> 2) & 7) + QAM_16;
++	p->modulation = ((state->reg0 >> 2) & 7) + QAM_16;
+ 
+-	p->u.qam.fec_inner = FEC_NONE;
++	p->fec_inner = FEC_NONE;
+ 
+ 	p->frequency = ((p->frequency + 31250) / 62500) * 62500;
+ 	if (sync & 2)
+-		p->frequency -= ((s32) p->u.qam.symbol_rate * afc) >> 10;
++		p->frequency -= ((s32) p->symbol_rate * afc) >> 10;
+ 
+ 	return 0;
+ }
+@@ -405,7 +406,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops ves1820_ops = {
+-
++	.delsys = { SYS_DVBC_ANNEX_A },
+ 	.info = {
+ 		.name = "VLSI VES1820 DVB-C",
+ 		.type = FE_QAM,
+@@ -425,8 +426,8 @@ static struct dvb_frontend_ops ves1820_ops = {
+ 	.init = ves1820_init,
+ 	.sleep = ves1820_sleep,
+ 
+-	.set_frontend_legacy = ves1820_set_parameters,
+-	.get_frontend_legacy = ves1820_get_frontend,
++	.set_frontend = ves1820_set_parameters,
++	.get_frontend = ves1820_get_frontend,
+ 	.get_tune_settings = ves1820_get_tune_settings,
+ 
+ 	.read_status = ves1820_read_status,
 -- 
-1.7.2.5
+1.7.8.352.g876a6
 
