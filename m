@@ -1,171 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:35872 "EHLO comal.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:7552 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752107Ab1LZJY2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 04:24:28 -0500
-From: Sumit Semwal <sumit.semwal@ti.com>
-To: <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <linux-mm@kvack.org>,
-	<linaro-mm-sig@lists.linaro.org>,
-	<dri-devel@lists.freedesktop.org>, <linux-media@vger.kernel.org>,
-	<arnd@arndb.de>, <airlied@redhat.com>
-CC: <linux@arm.linux.org.uk>, <jesse.barker@linaro.org>,
-	<m.szyprowski@samsung.com>, <rob@ti.com>, <daniel@ffwll.ch>,
-	<t.stanislaws@samsung.com>, <patches@linaro.org>,
-	Sumit Semwal <sumit.semwal@ti.com>
-Subject: [PATCH 0/3] Introduce DMA buffer sharing mechanism
-Date: Mon, 26 Dec 2011 14:53:14 +0530
-Message-ID: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	id S1752595Ab1L3PJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:31 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Vj3026586
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:31 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 70/94] [media] dst: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:08:07 -0200
+Message-Id: <1325257711-12274-71-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Everyone,
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Post some discussion as an RFC, here is the patch for introducing 
-DMA buffer sharing mechanism - change history is in the changelog below.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-Various subsystems - V4L2, GPU-accessors, DRI to name a few - have felt the 
-need to have a common mechanism to share memory buffers across different
-devices - ARM, video hardware, GPU.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/bt8xx/dst.c |   63 +++++++++++++++++++++--------------------
+ 1 files changed, 32 insertions(+), 31 deletions(-)
 
-This need comes forth from a variety of use cases including cameras, image 
-processing, video recorders, sound processing, DMA engines, GPU and display
-buffers, amongst others.
-
-This patch attempts to define such a buffer sharing mechanism - it is the
-result of discussions from a couple of memory-management mini-summits held by
-Linaro to understand and address common needs around memory management. [1]
-
-A new dma_buf buffer object is added, with operations and API to allow easy
-sharing of this buffer object across devices.
-
-The framework allows:
-- a new buffer object to be created with fixed size, associated with a file 
-   pointer and allocator-defined operations for this buffer object. This
-   operation is called the 'export' operation.
-- different devices to 'attach' themselves to this buffer object, to facilitate
-   backing storage negotiation, using dma_buf_attach() API.
-- this exported buffer object to be shared with the other entity by asking for
-   its 'file-descriptor (fd)', and sharing the fd across.
-- a received fd to get the buffer object back, where it can be accessed using
-   the associated exporter-defined operations.
-- the exporter and user to share the buffer object's scatterlist using
-   map_dma_buf and unmap_dma_buf operations.
-
-Documentation present in the patch-set gives more details.
-
-For 1st version, dma-buf is marked as an EXPERIMENTAL driver, which we can
-remove for later versions with additional usage and testing.
-
-*IMPORTANT*: [see https://lkml.org/lkml/2011/12/20/211 for more details]
-For this first version, A buffer shared using the dma_buf sharing API:
-- *may* be exported to user space using "mmap" *ONLY* by exporter, outside of
-   this framework.
-- may be used *ONLY* by importers that do not need CPU access to the buffer.
-
-This is based on design suggestions from many people at the mini-summits,
-most notably from Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
-Daniel Vetter <daniel@ffwll.ch>.
-
-The implementation is inspired from proof-of-concept patch-set from
-Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer sharing
-between two v4l2 devices. [2]
-
-Some sample implementations and WIP for dma-buf users and exporters are
-available at [3] and [4]. [These are not being submitted for discussion /
-inclusion right now, but are for reference only]
-
-References:
-[1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
-[2]: http://lwn.net/Articles/454389
-[3]: Dave Airlie's prime support:
-   http://cgit.freedesktop.org/~airlied/linux/log/?h=drm-prime-dmabuf
-[4]: Rob Clark's sharing between DRM and V4L2:
-   https://github.com/robclark/kernel-omap4/commits/drmplane-dmabuf
-
-Patchset based on top of 3.2-rc7, the current version can be found at
-
-http://git.linaro.org/gitweb?p=people/sumitsemwal/linux-3.x.git
-Branch: dmabuf-patch-v1
-
-Earlier versions:
-RFC:
-v3 at: https://lkml.org/lkml/2011/12/19/50
-v2 at: https://lkml.org/lkml/2011/12/2/53
-v1 at: https://lkml.org/lkml/2011/10/11/92
-
-Wish you all happy vacations and a very happy, joyous and prosperous new year
-2012 :)
-
-Best regards,
-~Sumit Semwal
-
-History:
-v4:
-- Review comments incorporated:
-   - from Konrad Rzeszutek Wilk [https://lkml.org/lkml/2011/12/20/209]
-     - corrected language in some comments
-     - re-ordered struct definitions for readability
-     - added might_sleep() call in dma_buf_map_attachment() wrapper
-     
-   - from Rob Clark [https://lkml.org/lkml/2011/12/23/196]
-     - Made dma-buf EXPERIMENTAL for 1st version.
-
-v3:
-- Review comments incorporated:
-   - from Konrad Rzeszutek Wilk [https://lkml.org/lkml/2011/12/3/45]
-     - replaced BUG_ON with WARN_ON - various places
-     - added some error-checks
-     - replaced EXPORT_SYMBOL with EXPORT_SYMBOL_GPL
-     - some cosmetic / documentation comments
-
-   - from Arnd Bergmann, Daniel Vetter, Rob Clark
-      [https://lkml.org/lkml/2011/12/5/321]
-     - removed mmap() fop and dma_buf_op, also the sg_sync* operations, and
-        documented that mmap is not allowed for exported buffer
-     - updated documentation to clearly state when migration is allowed
-     - changed kconfig
-     - some error code checks
-
-   - from Rob Clark [https://lkml.org/lkml/2011/12/5/572]
-     - update documentation to allow map_dma_buf to return -EINTR
-
-v2:
-- Review comments incorporated:
-   - from Tomasz Stanislawski [https://lkml.org/lkml/2011/10/14/136]
-     - kzalloc moved out of critical section
-     - corrected some in-code comments
-
-   - from Dave Airlie [https://lkml.org/lkml/2011/11/25/123]
-
-   - from Daniel Vetter and Rob Clark [https://lkml.org/lkml/2011/11/26/53]
-     - use struct sg_table in place of struct scatterlist
-     - rename {get,put}_scatterlist to {map,unmap}_dma_buf
-     - add new wrapper APIs dma_buf_{map,unmap}_attachment for ease of users
-     
-- documentation updates as per review comments from Randy Dunlap
-     [https://lkml.org/lkml/2011/10/12/439]
-
-v1: original
-
-
-Sumit Semwal (3):
-  dma-buf: Introduce dma buffer sharing mechanism
-  dma-buf: Documentation for buffer sharing framework
-  dma-buf: mark EXPERIMENTAL for 1st release.
-
- Documentation/dma-buf-sharing.txt |  224 ++++++++++++++++++++++++++++
- drivers/base/Kconfig              |   11 ++
- drivers/base/Makefile             |    1 +
- drivers/base/dma-buf.c            |  291 +++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h           |  176 ++++++++++++++++++++++
- 5 files changed, 703 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/dma-buf-sharing.txt
- create mode 100644 drivers/base/dma-buf.c
- create mode 100644 include/linux/dma-buf.h
-
+diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
+index 6afc083..7d60893 100644
+--- a/drivers/media/dvb/bt8xx/dst.c
++++ b/drivers/media/dvb/bt8xx/dst.c
+@@ -386,7 +386,7 @@ static int dst_set_freq(struct dst_state *state, u32 freq)
+ 	return 0;
+ }
+ 
+-static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
++static int dst_set_bandwidth(struct dst_state *state, u32 bandwidth)
+ {
+ 	state->bandwidth = bandwidth;
+ 
+@@ -394,7 +394,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
+ 		return -EOPNOTSUPP;
+ 
+ 	switch (bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	case 6000000:
+ 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
+ 			state->tx_tuna[7] = 0x06;
+ 		else {
+@@ -402,7 +402,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
+ 			state->tx_tuna[7] = 0x00;
+ 		}
+ 		break;
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
+ 			state->tx_tuna[7] = 0x07;
+ 		else {
+@@ -410,7 +410,7 @@ static int dst_set_bandwidth(struct dst_state *state, fe_bandwidth_t bandwidth)
+ 			state->tx_tuna[7] = 0x00;
+ 		}
+ 		break;
+-	case BANDWIDTH_8_MHZ:
++	case 8000000:
+ 		if (state->dst_hw_cap & DST_TYPE_HAS_CA)
+ 			state->tx_tuna[7] = 0x08;
+ 		else {
+@@ -1561,7 +1561,7 @@ static int dst_init(struct dvb_frontend *fe)
+ 	state->tone = SEC_TONE_OFF;
+ 	state->diseq_flags = 0;
+ 	state->k22 = 0x02;
+-	state->bandwidth = BANDWIDTH_7_MHZ;
++	state->bandwidth = 7000000;
+ 	state->cur_jiff = jiffies;
+ 	if (state->dst_type == DST_TYPE_IS_SAT)
+ 		memcpy(state->tx_tuna, ((state->type_flags & DST_TYPE_HAS_VLF) ? sat_tuna_188 : sat_tuna_204), sizeof (sat_tuna_204));
+@@ -1609,8 +1609,9 @@ static int dst_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	return retval;
+ }
+ 
+-static int dst_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
++static int dst_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	int retval = -EINVAL;
+ 	struct dst_state *state = fe->demodulator_priv;
+ 
+@@ -1623,17 +1624,17 @@ static int dst_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_paramet
+ 		if (state->dst_type == DST_TYPE_IS_SAT) {
+ 			if (state->type_flags & DST_TYPE_HAS_OBS_REGS)
+ 				dst_set_inversion(state, p->inversion);
+-			dst_set_fec(state, p->u.qpsk.fec_inner);
+-			dst_set_symbolrate(state, p->u.qpsk.symbol_rate);
++			dst_set_fec(state, p->fec_inner);
++			dst_set_symbolrate(state, p->symbol_rate);
+ 			dst_set_polarization(state);
+-			dprintk(verbose, DST_DEBUG, 1, "Set Symbolrate=[%d]", p->u.qpsk.symbol_rate);
++			dprintk(verbose, DST_DEBUG, 1, "Set Symbolrate=[%d]", p->symbol_rate);
+ 
+ 		} else if (state->dst_type == DST_TYPE_IS_TERR)
+-			dst_set_bandwidth(state, p->u.ofdm.bandwidth);
++			dst_set_bandwidth(state, p->bandwidth_hz);
+ 		else if (state->dst_type == DST_TYPE_IS_CABLE) {
+-			dst_set_fec(state, p->u.qam.fec_inner);
+-			dst_set_symbolrate(state, p->u.qam.symbol_rate);
+-			dst_set_modulation(state, p->u.qam.modulation);
++			dst_set_fec(state, p->fec_inner);
++			dst_set_symbolrate(state, p->symbol_rate);
++			dst_set_modulation(state, p->modulation);
+ 		}
+ 		retval = dst_write_tuna(fe);
+ 	}
+@@ -1683,7 +1684,7 @@ static int dst_get_tuning_algo(struct dvb_frontend *fe)
+ 	return dst_algo ? DVBFE_ALGO_HW : DVBFE_ALGO_SW;
+ }
+ 
+-static int dst_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
++static int dst_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
+ {
+ 	struct dst_state *state = fe->demodulator_priv;
+ 
+@@ -1691,14 +1692,14 @@ static int dst_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_paramet
+ 	if (state->dst_type == DST_TYPE_IS_SAT) {
+ 		if (state->type_flags & DST_TYPE_HAS_OBS_REGS)
+ 			p->inversion = state->inversion;
+-		p->u.qpsk.symbol_rate = state->symbol_rate;
+-		p->u.qpsk.fec_inner = dst_get_fec(state);
++		p->symbol_rate = state->symbol_rate;
++		p->fec_inner = dst_get_fec(state);
+ 	} else if (state->dst_type == DST_TYPE_IS_TERR) {
+-		p->u.ofdm.bandwidth = state->bandwidth;
++		p->bandwidth_hz = state->bandwidth;
+ 	} else if (state->dst_type == DST_TYPE_IS_CABLE) {
+-		p->u.qam.symbol_rate = state->symbol_rate;
+-		p->u.qam.fec_inner = dst_get_fec(state);
+-		p->u.qam.modulation = dst_get_modulation(state);
++		p->symbol_rate = state->symbol_rate;
++		p->fec_inner = dst_get_fec(state);
++		p->modulation = dst_get_modulation(state);
+ 	}
+ 
+ 	return 0;
+@@ -1756,7 +1757,7 @@ struct dst_state *dst_attach(struct dst_state *state, struct dvb_adapter *dvb_ad
+ EXPORT_SYMBOL(dst_attach);
+ 
+ static struct dvb_frontend_ops dst_dvbt_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name = "DST DVB-T",
+ 		.type = FE_OFDM,
+@@ -1777,8 +1778,8 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
+ 	.release = dst_release,
+ 	.init = dst_init,
+ 	.tune = dst_tune_frontend,
+-	.set_frontend_legacy = dst_set_frontend,
+-	.get_frontend_legacy = dst_get_frontend,
++	.set_frontend = dst_set_frontend,
++	.get_frontend = dst_get_frontend,
+ 	.get_frontend_algo = dst_get_tuning_algo,
+ 	.read_status = dst_read_status,
+ 	.read_signal_strength = dst_read_signal_strength,
+@@ -1786,7 +1787,7 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
+ };
+ 
+ static struct dvb_frontend_ops dst_dvbs_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name = "DST DVB-S",
+ 		.type = FE_QPSK,
+@@ -1803,8 +1804,8 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
+ 	.release = dst_release,
+ 	.init = dst_init,
+ 	.tune = dst_tune_frontend,
+-	.set_frontend_legacy = dst_set_frontend,
+-	.get_frontend_legacy = dst_get_frontend,
++	.set_frontend = dst_set_frontend,
++	.get_frontend = dst_get_frontend,
+ 	.get_frontend_algo = dst_get_tuning_algo,
+ 	.read_status = dst_read_status,
+ 	.read_signal_strength = dst_read_signal_strength,
+@@ -1816,7 +1817,7 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
+ };
+ 
+ static struct dvb_frontend_ops dst_dvbc_ops = {
+-
++	.delsys = { SYS_DVBC_ANNEX_A },
+ 	.info = {
+ 		.name = "DST DVB-C",
+ 		.type = FE_QAM,
+@@ -1837,8 +1838,8 @@ static struct dvb_frontend_ops dst_dvbc_ops = {
+ 	.release = dst_release,
+ 	.init = dst_init,
+ 	.tune = dst_tune_frontend,
+-	.set_frontend_legacy = dst_set_frontend,
+-	.get_frontend_legacy = dst_get_frontend,
++	.set_frontend = dst_set_frontend,
++	.get_frontend = dst_get_frontend,
+ 	.get_frontend_algo = dst_get_tuning_algo,
+ 	.read_status = dst_read_status,
+ 	.read_signal_strength = dst_read_signal_strength,
+@@ -1860,8 +1861,8 @@ static struct dvb_frontend_ops dst_atsc_ops = {
+ 	.release = dst_release,
+ 	.init = dst_init,
+ 	.tune = dst_tune_frontend,
+-	.set_frontend_legacy = dst_set_frontend,
+-	.get_frontend_legacy = dst_get_frontend,
++	.set_frontend = dst_set_frontend,
++	.get_frontend = dst_get_frontend,
+ 	.get_frontend_algo = dst_get_tuning_algo,
+ 	.read_status = dst_read_status,
+ 	.read_signal_strength = dst_read_signal_strength,
 -- 
-1.7.5.4
+1.7.8.352.g876a6
 
