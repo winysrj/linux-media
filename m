@@ -1,263 +1,362 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:41168 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751055Ab1LFQMX convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 6 Dec 2011 11:12:23 -0500
-Received: from epcpsbgm1.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LVS00EZTICJM8P0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 07 Dec 2011 01:12:21 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LVS00GG0ICFZ380@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Wed, 07 Dec 2011 01:12:21 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mauro Carvalho Chehab' <mchehab@redhat.com>
-Cc: 'Sakari Ailus' <sakari.ailus@iki.fi>,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	=?utf-8?Q?'Sebastian_Dr=C3=B6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED905E0.5020706@redhat.com>
- <007201ccb118$633ff890$29bfe9b0$%debski@samsung.com>
- <201112061301.01010.laurent.pinchart@ideasonboard.com>
- <20111206142821.GC938@valkosipuli.localdomain> <4EDE29AA.8090203@redhat.com>
- <00de01ccb42a$7cddab70$76990250$%debski@samsung.com>
- <4EDE375B.6010900@redhat.com>
-In-reply-to: <4EDE375B.6010900@redhat.com>
-Subject: RE: [RFC] Resolution change support in video codecs in v4l2
-Date: Tue, 06 Dec 2011 17:11:34 +0100
-Message-id: <00df01ccb431$bd28d9f0$377a8dd0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-transfer-encoding: 8BIT
-Content-language: en-gb
+Received: from mx1.redhat.com ([209.132.183.28]:24211 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752353Ab1L3PJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:28 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Sp5024171
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 34/94] [media] lgdt3305: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:31 -0200
+Message-Id: <1325257711-12274-35-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
-> Sent: 06 December 2011 16:40
-> 
-> On 06-12-2011 13:19, Kamil Debski wrote:
-> >> From: Mauro Carvalho Chehab [mailto:mchehab@redhat.com]
-> >> Sent: 06 December 2011 15:42
-> >>
-> >> On 06-12-2011 12:28, 'Sakari Ailus' wrote:
-> >>> Hi all,
-> >>>
-> >>> On Tue, Dec 06, 2011 at 01:00:59PM +0100, Laurent Pinchart wrote:
-> >>> ...
-> >>>>>>>>> 2) new requirement is for a bigger buffer. DMA transfers need to
-> be
-> >>>>>>>>> stopped before actually writing inside the buffer (otherwise,
-> memory
-> >>>>>>>>> will be corrupted).
-> >>>>>>>>>
-> >>>>>>>>> In this case, all queued buffers should be marked with an error
-> flag.
-> >>>>>>>>> So, both V4L2_BUF_FLAG_FORMATCHANGED and V4L2_BUF_FLAG_ERROR
-> should
-> >>>>>>>>> raise. The new format should be available via G_FMT.
-> >>>>
-> >>>> I'd like to reword this as follows:
-> >>>>
-> >>>> 1. In all cases, the application needs to be informed that the format
-> has
-> >>>> changed.
-> >>>>
-> >>>> V4L2_BUF_FLAG_FORMATCHANGED (or a similar flag) is all we need. G_FMT
-> >> will
-> >>>> report the new format.
-> >>>>
-> >>>> 2. In all cases, the application must have the option of reallocating
-> >> buffers
-> >>>> if it wishes.
-> >>>>
-> >>>> In order to support this, the driver needs to wait until the
-> application
-> >>>> acknowledged the format change before it starts decoding the stream.
-> >>>> Otherwise, if the codec started decoding the new stream to the existing
-> >>>> buffers by itself, applications wouldn't have the option of freeing the
-> >>>> existing buffers and allocating smaller ones.
-> >>>>
-> >>>> STREAMOFF/STREAMON is one way of acknowledging the format change. I'm
-> not
-> >>>> opposed to other ways of doing that, but I think we need an
-> >> acknowledgment API
-> >>>> to tell the driver to proceed.
-> >>>
-> >>> Forcing STRAEMOFF/STRAEMON has two major advantages:
-> >>>
-> >>> 1) The application will have an ability to free and reallocate buffers
-> if
-> >> it
-> >>> wishes so, and
-> >>>
-> >>> 2) It will get explicit information on the changed format. Alternative
-> >> would
-> >>> require an additional API to query the format of buffers in cases the
-> >>> information isn't implicitly available.
-> >>
-> >> As already said, a simple flag may give this meaning. Alternatively (or
-> >> complementary,
-> >> an event may be generated, containing the new format).
-> >>>
-> >>> If we do not require STRAEMOFF/STREAMON, the stream would have to be
-> >> paused
-> >>> until the application chooses to continue it after dealing with its
-> >> buffers
-> >>> and formats.
-> >>
-> >> No. STREAMOFF is always used to stop the stream. We can't make it mean
-> >> otherwise.
-> >>
-> >> So, after calling it, application should assume that frames will be lost,
-> >> while
-> >> the DMA engine doesn't start again.
-> >
-> > Do you mean all buffers or just those that are queued in hardware?
-> 
-> Of course the ones queued.
-> 
-> > What has been processed stays processed, it should not matter to the
-> buffers
-> > that have been processed.
-> 
-> Sure.
-> 
-> > The compressed buffer that is queued in the driver and that caused the
-> resolution
-> > change is on the OUTPUT queue.
-> 
-> Not necessarily. If the buffer is smaller than the size needed for the
-> resolution
-> change, what is there is trash, as it could be a partially filled buffer or
-> an
-> empty buffer, depending if the driver detected about the format change after
-> or
-> before start filling it.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-I see the problem. If a bigger buffer is needed it's clear. A buffer with
-no sane data is returned and *_FORMAT_CHANGED | *_ERROR flags are set.
-If the resolution is changed but it fits the current conditions (size + number
-of buffers) then what should be the contents of the returned buffer?
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-I think that still it should contain no useful data, just *_FORMAT_CHANGED | *_ERROR
-flags set. Then the application could decide whether it keeps the current
-size/alignment/... or should it allocate new buffers. Then ACK the driver.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/lgdt3305.c |   97 ++++++++++++++++----------------
+ 1 files changed, 49 insertions(+), 48 deletions(-)
 
-For our (Samsung) hw this is not a problem, we could always use the existing buffers
-if it is possible (size). But Sakari had reported that he might need to adjust some
-alignment property. Also, having memory constraints, the application might choose
-to allocate smaller buffers.
-
-
-> 
-> > STREMOFF is only done on the CAPTURE queue, so it
-> > stays queued and information is retained.
-> >
-> >  From CAPTURE all processed buffers have already been dequeued, so yes the
-> content of
-> > the buffers queued in hw is lost. But this is ok, because after the
-> resolution change
-> > the previous frames are not used in prediction.
-> 
-> No. According with the spec:
-> 
-> 	The VIDIOC_STREAMON and VIDIOC_STREAMOFF ioctl start and stop the
-> capture or
-> 	output process during streaming (memory mapping or user pointer) I/O.
-> 
-> 	Specifically the capture hardware is disabled and no input buffers are
-> filled
-> 	(if there are any empty buffers in the incoming queue) until
-> VIDIOC_STREAMON
-> 	has been called. Accordingly the output hardware is disabled, no video
-> signal
-> 	is produced until VIDIOC_STREAMON has been called. The ioctl will
-> succeed
-> 	only when at least one output buffer is in the incoming queue.
-> 
-> 	The VIDIOC_STREAMOFF ioctl, apart of aborting or finishing any DMA in
-> progress,
-> 	unlocks any user pointer buffers locked in physical memory, and it
-> removes all
-> 	buffers from the incoming and outgoing queues. That means all images
-> captured
-> 	but not dequeued yet will be lost, likewise all images enqueued for
-> output
-> 	but not transmitted yet. I/O returns to the same state as after
-> calling
-> 	VIDIOC_REQBUFS and can be restarted accordingly.
-
-The thing is that we have two queues in memory-to-memory devices.
-I think the above does apply to the CAPTURE queue:
-- no processing is done after STREAMOFF
-- buffers that have been queue are dequeued and their content is lost
-Am I wrong?
-
-The buffer that had to be kept is on the OUTPUT queue.
-(the compressed data that caused the resolution change).
-
-> 
-> > My initial idea was to acknowledge the resolution change by G_FMT.
-> > Later in our chat it had evolved into S_FMT. Then it mutated into
-> > STREAMOFF/STREAMON on the CAPTURE queue.
-> 
-> Why application should ack with it? If the application doesn't ack, it can
-> just send
-> a VIDIOC_STREAMOFF. If application doesn't do it, and the buffer size is
-> enough to
-> proceed, the hardware should just keep doing the DMA transfers and assume
-> that the
-> applications are OK.
-> 
-> >> For things like MPEG decoders, Hans proposed an ioctl, that could use to
-> >> pause
-> >> and continue the decoding.
-> >
-> > This still could be useful... But processing will also pause when hw runs
-> out
-> > of buffers. It will be resumed after the application consumes/produces new
-> > buffers and enqueue them.
-> 
-> No. Capture devices will start loosing frames. For other types, it makes
-> sense to
-> implicitly pause/continue.
-
-I have meant memory-to-memory devices. The will not do any processing if any of
-these conditions is false:
-- there is enough queued buffers on the CAPTURE queue
-- there is enough queued buffers on the OUTPUT queue
-- streaming is on the CAPTURE queue
-- streaming is on the OUTPUT queue
-
-In case of purely CAPTURE device then, yes, it will start losing frames and
-the idea of a pause ioctl is useful. On the other hand, a pause is not that
-different from losing frames.
-
-I still think that for m2m devices a pause ioctl is not necessary. No buffers
-to process means no processing is done.
-
-> 
-> >>> I'd still return a specific error when the size changes since it's more
-> >>> explicit that something is not right, rather than just a flag. But if
-> I'm
-> >>> alone in thinking so I won't insist.
-> >>>
-> >>> Regards,
-> >>>
-> >
-
-
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+diff --git a/drivers/media/dvb/frontends/lgdt3305.c b/drivers/media/dvb/frontends/lgdt3305.c
+index e1a9c92..58eb7bc 100644
+--- a/drivers/media/dvb/frontends/lgdt3305.c
++++ b/drivers/media/dvb/frontends/lgdt3305.c
+@@ -266,7 +266,7 @@ fail:
+ }
+ 
+ static int lgdt3305_set_modulation(struct lgdt3305_state *state,
+-				   struct dvb_frontend_parameters *param)
++				   struct dtv_frontend_properties *p)
+ {
+ 	u8 opermode;
+ 	int ret;
+@@ -279,7 +279,7 @@ static int lgdt3305_set_modulation(struct lgdt3305_state *state,
+ 
+ 	opermode &= ~0x03;
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		opermode |= 0x03;
+ 		break;
+@@ -298,11 +298,11 @@ fail:
+ }
+ 
+ static int lgdt3305_set_filter_extension(struct lgdt3305_state *state,
+-					 struct dvb_frontend_parameters *param)
++					 struct dtv_frontend_properties *p)
+ {
+ 	int val;
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		val = 0;
+ 		break;
+@@ -321,11 +321,11 @@ static int lgdt3305_set_filter_extension(struct lgdt3305_state *state,
+ /* ------------------------------------------------------------------------ */
+ 
+ static int lgdt3305_passband_digital_agc(struct lgdt3305_state *state,
+-					 struct dvb_frontend_parameters *param)
++					 struct dtv_frontend_properties *p)
+ {
+ 	u16 agc_ref;
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		agc_ref = 0x32c4;
+ 		break;
+@@ -348,11 +348,11 @@ static int lgdt3305_passband_digital_agc(struct lgdt3305_state *state,
+ }
+ 
+ static int lgdt3305_rfagc_loop(struct lgdt3305_state *state,
+-			       struct dvb_frontend_parameters *param)
++			       struct dtv_frontend_properties *p)
+ {
+ 	u16 ifbw, rfbw, agcdelay;
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		agcdelay = 0x04c0;
+ 		rfbw     = 0x8000;
+@@ -398,11 +398,11 @@ static int lgdt3305_rfagc_loop(struct lgdt3305_state *state,
+ }
+ 
+ static int lgdt3305_agc_setup(struct lgdt3305_state *state,
+-			      struct dvb_frontend_parameters *param)
++			      struct dtv_frontend_properties *p)
+ {
+ 	int lockdten, acqen;
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		lockdten = 0;
+ 		acqen = 0;
+@@ -432,15 +432,15 @@ static int lgdt3305_agc_setup(struct lgdt3305_state *state,
+ 		return -EINVAL;
+ 	}
+ 
+-	return lgdt3305_rfagc_loop(state, param);
++	return lgdt3305_rfagc_loop(state, p);
+ }
+ 
+ static int lgdt3305_set_agc_power_ref(struct lgdt3305_state *state,
+-				      struct dvb_frontend_parameters *param)
++				      struct dtv_frontend_properties *p)
+ {
+ 	u16 usref = 0;
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		if (state->cfg->usref_8vsb)
+ 			usref = state->cfg->usref_8vsb;
+@@ -473,14 +473,14 @@ static int lgdt3305_set_agc_power_ref(struct lgdt3305_state *state,
+ /* ------------------------------------------------------------------------ */
+ 
+ static int lgdt3305_spectral_inversion(struct lgdt3305_state *state,
+-				       struct dvb_frontend_parameters *param,
++				       struct dtv_frontend_properties *p,
+ 				       int inversion)
+ {
+ 	int ret;
+ 
+ 	lg_dbg("(%d)\n", inversion);
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		ret = lgdt3305_write_reg(state, LGDT3305_CR_CTRL_7,
+ 					 inversion ? 0xf9 : 0x79);
+@@ -497,13 +497,13 @@ static int lgdt3305_spectral_inversion(struct lgdt3305_state *state,
+ }
+ 
+ static int lgdt3305_set_if(struct lgdt3305_state *state,
+-			   struct dvb_frontend_parameters *param)
++			   struct dtv_frontend_properties *p)
+ {
+ 	u16 if_freq_khz;
+ 	u8 nco1, nco2, nco3, nco4;
+ 	u64 nco;
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		if_freq_khz = state->cfg->vsb_if_khz;
+ 		break;
+@@ -517,7 +517,7 @@ static int lgdt3305_set_if(struct lgdt3305_state *state,
+ 
+ 	nco = if_freq_khz / 10;
+ 
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		nco <<= 24;
+ 		do_div(nco, 625);
+@@ -677,13 +677,13 @@ fail:
+ 	return ret;
+ }
+ 
+-static int lgdt3304_set_parameters(struct dvb_frontend *fe,
+-				   struct dvb_frontend_parameters *param)
++static int lgdt3304_set_parameters(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct lgdt3305_state *state = fe->demodulator_priv;
+ 	int ret;
+ 
+-	lg_dbg("(%d, %d)\n", param->frequency, param->u.vsb.modulation);
++	lg_dbg("(%d, %d)\n", p->frequency, p->modulation);
+ 
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		ret = fe->ops.tuner_ops.set_params(fe);
+@@ -691,23 +691,23 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe,
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+ 		if (lg_fail(ret))
+ 			goto fail;
+-		state->current_frequency = param->frequency;
++		state->current_frequency = p->frequency;
+ 	}
+ 
+-	ret = lgdt3305_set_modulation(state, param);
++	ret = lgdt3305_set_modulation(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+-	ret = lgdt3305_passband_digital_agc(state, param);
++	ret = lgdt3305_passband_digital_agc(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+-	ret = lgdt3305_agc_setup(state, param);
++	ret = lgdt3305_agc_setup(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+ 	/* reg 0x030d is 3304-only... seen in vsb and qam usbsnoops... */
+-	switch (param->u.vsb.modulation) {
++	switch (p->modulation) {
+ 	case VSB_8:
+ 		lgdt3305_write_reg(state, 0x030d, 0x00);
+ 		lgdt3305_write_reg(state, LGDT3305_CR_CTR_FREQ_1, 0x4f);
+@@ -718,7 +718,7 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe,
+ 	case QAM_64:
+ 	case QAM_256:
+ 		lgdt3305_write_reg(state, 0x030d, 0x14);
+-		ret = lgdt3305_set_if(state, param);
++		ret = lgdt3305_set_if(state, p);
+ 		if (lg_fail(ret))
+ 			goto fail;
+ 		break;
+@@ -727,13 +727,13 @@ static int lgdt3304_set_parameters(struct dvb_frontend *fe,
+ 	}
+ 
+ 
+-	ret = lgdt3305_spectral_inversion(state, param,
++	ret = lgdt3305_spectral_inversion(state, p,
+ 					  state->cfg->spectral_inversion
+ 					  ? 1 : 0);
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+-	state->current_modulation = param->u.vsb.modulation;
++	state->current_modulation = p->modulation;
+ 
+ 	ret = lgdt3305_mpeg_mode(state, state->cfg->mpeg_mode);
+ 	if (lg_fail(ret))
+@@ -747,13 +747,13 @@ fail:
+ 	return ret;
+ }
+ 
+-static int lgdt3305_set_parameters(struct dvb_frontend *fe,
+-				   struct dvb_frontend_parameters *param)
++static int lgdt3305_set_parameters(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct lgdt3305_state *state = fe->demodulator_priv;
+ 	int ret;
+ 
+-	lg_dbg("(%d, %d)\n", param->frequency, param->u.vsb.modulation);
++	lg_dbg("(%d, %d)\n", p->frequency, p->modulation);
+ 
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		ret = fe->ops.tuner_ops.set_params(fe);
+@@ -761,20 +761,20 @@ static int lgdt3305_set_parameters(struct dvb_frontend *fe,
+ 			fe->ops.i2c_gate_ctrl(fe, 0);
+ 		if (lg_fail(ret))
+ 			goto fail;
+-		state->current_frequency = param->frequency;
++		state->current_frequency = p->frequency;
+ 	}
+ 
+-	ret = lgdt3305_set_modulation(state, param);
++	ret = lgdt3305_set_modulation(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+-	ret = lgdt3305_passband_digital_agc(state, param);
++	ret = lgdt3305_passband_digital_agc(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+-	ret = lgdt3305_set_agc_power_ref(state, param);
++	ret = lgdt3305_set_agc_power_ref(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+-	ret = lgdt3305_agc_setup(state, param);
++	ret = lgdt3305_agc_setup(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+@@ -786,20 +786,20 @@ static int lgdt3305_set_parameters(struct dvb_frontend *fe,
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+-	ret = lgdt3305_set_if(state, param);
++	ret = lgdt3305_set_if(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+-	ret = lgdt3305_spectral_inversion(state, param,
++	ret = lgdt3305_spectral_inversion(state, p,
+ 					  state->cfg->spectral_inversion
+ 					  ? 1 : 0);
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+-	ret = lgdt3305_set_filter_extension(state, param);
++	ret = lgdt3305_set_filter_extension(state, p);
+ 	if (lg_fail(ret))
+ 		goto fail;
+ 
+-	state->current_modulation = param->u.vsb.modulation;
++	state->current_modulation = p->modulation;
+ 
+ 	ret = lgdt3305_mpeg_mode(state, state->cfg->mpeg_mode);
+ 	if (lg_fail(ret))
+@@ -814,14 +814,14 @@ fail:
+ }
+ 
+ static int lgdt3305_get_frontend(struct dvb_frontend *fe,
+-				 struct dvb_frontend_parameters *param)
++				 struct dtv_frontend_properties *p)
+ {
+ 	struct lgdt3305_state *state = fe->demodulator_priv;
+ 
+ 	lg_dbg("\n");
+ 
+-	param->u.vsb.modulation = state->current_modulation;
+-	param->frequency = state->current_frequency;
++	p->modulation = state->current_modulation;
++	p->frequency = state->current_frequency;
+ 	return 0;
+ }
+ 
+@@ -1176,8 +1176,8 @@ static struct dvb_frontend_ops lgdt3304_ops = {
+ 	},
+ 	.i2c_gate_ctrl        = lgdt3305_i2c_gate_ctrl,
+ 	.init                 = lgdt3305_init,
+-	.set_frontend_legacy         = lgdt3304_set_parameters,
+-	.get_frontend_legacy = lgdt3305_get_frontend,
++	.set_frontend         = lgdt3304_set_parameters,
++	.get_frontend         = lgdt3305_get_frontend,
+ 	.get_tune_settings    = lgdt3305_get_tune_settings,
+ 	.read_status          = lgdt3305_read_status,
+ 	.read_ber             = lgdt3305_read_ber,
+@@ -1188,6 +1188,7 @@ static struct dvb_frontend_ops lgdt3304_ops = {
+ };
+ 
+ static struct dvb_frontend_ops lgdt3305_ops = {
++	.delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+ 	.info = {
+ 		.name = "LG Electronics LGDT3305 VSB/QAM Frontend",
+ 		.type               = FE_ATSC,
+@@ -1199,8 +1200,8 @@ static struct dvb_frontend_ops lgdt3305_ops = {
+ 	.i2c_gate_ctrl        = lgdt3305_i2c_gate_ctrl,
+ 	.init                 = lgdt3305_init,
+ 	.sleep                = lgdt3305_sleep,
+-	.set_frontend_legacy         = lgdt3305_set_parameters,
+-	.get_frontend_legacy = lgdt3305_get_frontend,
++	.set_frontend         = lgdt3305_set_parameters,
++	.get_frontend         = lgdt3305_get_frontend,
+ 	.get_tune_settings    = lgdt3305_get_tune_settings,
+ 	.read_status          = lgdt3305_read_status,
+ 	.read_ber             = lgdt3305_read_ber,
+-- 
+1.7.8.352.g876a6
 
