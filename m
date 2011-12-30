@@ -1,73 +1,180 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ironport2-out.teksavvy.com ([206.248.154.181]:39653 "EHLO
-	ironport2-out.teksavvy.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754427Ab1LFP25 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Dec 2011 10:28:57 -0500
-Message-ID: <4EDE34B7.9030609@teksavvy.com>
-Date: Tue, 06 Dec 2011 10:28:55 -0500
-From: Mark Lord <kernel@teksavvy.com>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Eddi De Pieri <eddi@depieri.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE HVR-930C
- again
-References: <1321800978-27912-1-git-send-email-mchehab@redhat.com> <1321800978-27912-2-git-send-email-mchehab@redhat.com> <1321800978-27912-3-git-send-email-mchehab@redhat.com> <1321800978-27912-4-git-send-email-mchehab@redhat.com> <1321800978-27912-5-git-send-email-mchehab@redhat.com> <CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com> <4EDD0F01.7040808@redhat.com> <CAGoCfizRuBEgBhfnzyrE=aJD-WMXCz9OmkoEqQCDpqmYXU2=zA@mail.gmail.com> <CAGoCfiywqY+U0+t9tget1X09=apDm46GpGCa-_QiGp+JhyLXxQ@mail.gmail.com> <CAKdnbx7Ayg6AGS-u=z9Pg6pHV6UN_ZiB-kQ1rv78zG9nm+U9TA@mail.gmail.com> <CAGoCfiwwt898OwmNNwrboT7q5v-sNQuTP6TxCdtY-fFauAyHrA@mail.gmail.com> <4EDE0FD7.4020603@teksavvy.com> <4EDE1C0C.2060701@redhat.com> <CAGoCfizuMQMz3_ihh1AB2uRUn5-1DkCVju1VFMzOnUkqA+tJJQ@mail.gmail.com>
-In-Reply-To: <CAGoCfizuMQMz3_ihh1AB2uRUn5-1DkCVju1VFMzOnUkqA+tJJQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:21130 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752446Ab1L3PJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:29 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9SN8015896
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 43/94] [media] sp887x: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:40 -0200
+Message-Id: <1325257711-12274-44-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11-12-06 08:56 AM, Devin Heitmueller wrote:
-> On Tue, Dec 6, 2011 at 8:43 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> The driver who binds everything is the bridge driver. In your case, it is
->> the au0828 driver.
->>
->> What you're experiencing seems to be some race issue inside it, and not at
->> xc5000.
->>
->> On a quick look on it, I'm noticing that there's no lock at
->> au0828_usb_probe().
->>
->> Also, it uses a separate lock for analog and for digital:
->>
->>        mutex_init(&dev->mutex);
->>        mutex_init(&dev->dvb.lock);
->>
->> Probably, the right thing to do would be to use just one lock for both
->> rising
->> it at usb_probe, lowering it just before return 0. This will avoid any open
->> operations while the device is not fully initialized. Btw, newer udev's open
->> the analog part of the driver just after V4L register, in order to get the
->> device capabilities. This is known to cause race conditions, if the locking
->> schema is not working properly.
-> 
-> Just to be clear, we're now talking about a completely different race
-> condition that has nothing to do with the subject at hand, and this
-> discussion should probably be moved to a new thread.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-If this discussion does change threads, could you folks please copy me
-on it?  I'm already subscribed to several other kernel mailing lists
-in my roles as developer and maintainer of various bits, but I would
-like to avoid having yet another daily deluge added to my inbox.  :)
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-That said, I can test possible fixes for this stuff,
-and am rather interested to see it resolved.
-..
-> The notion that this is something that has been there for over a year
-> is something I only learned of in the last couple of days.  All the
-> complaints I had seen thus far were from existing users who were
-> perfectly happy until they upgraded their kernel a couple of months
-> ago and then started seeing the problem.
-..
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/sp887x.c |   49 +++++++++++++++++++++------------
+ 1 files changed, 31 insertions(+), 18 deletions(-)
 
-It's always exhibited races for me here.  I have long since worked around
-the issue(s), so my own systems currently behave.   But with the newer
-HVR-950Q revision (B4F0), the issue is far more prevalent than before.
+diff --git a/drivers/media/dvb/frontends/sp887x.c b/drivers/media/dvb/frontends/sp887x.c
+index 33ec08a..4b28d6a 100644
+--- a/drivers/media/dvb/frontends/sp887x.c
++++ b/drivers/media/dvb/frontends/sp887x.c
+@@ -209,13 +209,13 @@ static int sp887x_initial_setup (struct dvb_frontend* fe, const struct firmware
+ 	return 0;
+ };
+ 
+-static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
++static int configure_reg0xc05 (struct dtv_frontend_properties *p, u16 *reg0xc05)
+ {
+ 	int known_parameters = 1;
+ 
+ 	*reg0xc05 = 0x000;
+ 
+-	switch (p->u.ofdm.constellation) {
++	switch (p->modulation) {
+ 	case QPSK:
+ 		break;
+ 	case QAM_16:
+@@ -231,7 +231,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
+ 		return -EINVAL;
+ 	};
+ 
+-	switch (p->u.ofdm.hierarchy_information) {
++	switch (p->hierarchy) {
+ 	case HIERARCHY_NONE:
+ 		break;
+ 	case HIERARCHY_1:
+@@ -250,7 +250,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
+ 		return -EINVAL;
+ 	};
+ 
+-	switch (p->u.ofdm.code_rate_HP) {
++	switch (p->code_rate_HP) {
+ 	case FEC_1_2:
+ 		break;
+ 	case FEC_2_3:
+@@ -303,17 +303,30 @@ static void divide (int n, int d, int *quotient_i, int *quotient_f)
+ }
+ 
+ static void sp887x_correct_offsets (struct sp887x_state* state,
+-				    struct dvb_frontend_parameters *p,
++				    struct dtv_frontend_properties *p,
+ 				    int actual_freq)
+ {
+ 	static const u32 srate_correction [] = { 1879617, 4544878, 8098561 };
+-	int bw_index = p->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
++	int bw_index;
+ 	int freq_offset = actual_freq - p->frequency;
+ 	int sysclock = 61003; //[kHz]
+ 	int ifreq = 36000000;
+ 	int freq;
+ 	int frequency_shift;
+ 
++	switch (p->bandwidth_hz) {
++	default:
++	case 8000000:
++		bw_index = 0;
++		break;
++	case 7000000:
++		bw_index = 1;
++		break;
++	case 6000000:
++		bw_index = 2;
++		break;
++	}
++
+ 	if (p->inversion == INVERSION_ON)
+ 		freq = ifreq - freq_offset;
+ 	else
+@@ -333,17 +346,17 @@ static void sp887x_correct_offsets (struct sp887x_state* state,
+ 	sp887x_writereg(state, 0x30a, frequency_shift & 0xfff);
+ }
+ 
+-static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
+-					     struct dvb_frontend_parameters *p)
++static int sp887x_setup_frontend_parameters (struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct sp887x_state* state = fe->demodulator_priv;
+ 	unsigned actual_freq;
+ 	int err;
+ 	u16 val, reg0xc05;
+ 
+-	if (p->u.ofdm.bandwidth != BANDWIDTH_8_MHZ &&
+-	    p->u.ofdm.bandwidth != BANDWIDTH_7_MHZ &&
+-	    p->u.ofdm.bandwidth != BANDWIDTH_6_MHZ)
++	if (p->bandwidth_hz != 8000000 &&
++	    p->bandwidth_hz != 7000000 &&
++	    p->bandwidth_hz != 6000000)
+ 		return -EINVAL;
+ 
+ 	if ((err = configure_reg0xc05(p, &reg0xc05)))
+@@ -369,9 +382,9 @@ static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	sp887x_correct_offsets(state, p, actual_freq);
+ 
+ 	/* filter for 6/7/8 Mhz channel */
+-	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
++	if (p->bandwidth_hz == 6000000)
+ 		val = 2;
+-	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
++	else if (p->bandwidth_hz == 7000000)
+ 		val = 1;
+ 	else
+ 		val = 0;
+@@ -379,16 +392,16 @@ static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
+ 	sp887x_writereg(state, 0x311, val);
+ 
+ 	/* scan order: 2k first = 0, 8k first = 1 */
+-	if (p->u.ofdm.transmission_mode == TRANSMISSION_MODE_2K)
++	if (p->transmission_mode == TRANSMISSION_MODE_2K)
+ 		sp887x_writereg(state, 0x338, 0x000);
+ 	else
+ 		sp887x_writereg(state, 0x338, 0x001);
+ 
+ 	sp887x_writereg(state, 0xc05, reg0xc05);
+ 
+-	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
++	if (p->bandwidth_hz == 6000000)
+ 		val = 2 << 3;
+-	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
++	else if (p->bandwidth_hz == 7000000)
+ 		val = 3 << 3;
+ 	else
+ 		val = 0 << 3;
+@@ -579,7 +592,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops sp887x_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name = "Spase SP887x DVB-T",
+ 		.type = FE_OFDM,
+@@ -598,7 +611,7 @@ static struct dvb_frontend_ops sp887x_ops = {
+ 	.sleep = sp887x_sleep,
+ 	.i2c_gate_ctrl = sp887x_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = sp887x_setup_frontend_parameters,
++	.set_frontend = sp887x_setup_frontend_parameters,
+ 	.get_tune_settings = sp887x_get_tune_settings,
+ 
+ 	.read_status = sp887x_read_status,
+-- 
+1.7.8.352.g876a6
 
-I may try Mauro's locking suggestion -- more detail or a patch would be useful.
-
-Mauro?
