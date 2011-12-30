@@ -1,107 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:52181 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752563Ab1LLLoM (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:41016 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751217Ab1L3Hw2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 06:44:12 -0500
-Received: by qadb15 with SMTP id b15so4501847qad.19
-        for <linux-media@vger.kernel.org>; Mon, 12 Dec 2011 03:44:11 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org, m.szyprowski@samsung.com,
-	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	shawn.guo@linaro.org, richard.zhao@linaro.org,
-	fabio.estevam@freescale.com, kernel@pengutronix.de,
-	s.hauer@pengutronix.de, r.schwebel@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v4 2/2] MX2: Add platform definitions for eMMa-PrP device.
-Date: Mon, 12 Dec 2011 12:43:45 +0100
-Message-Id: <1323690225-15799-3-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
+	Fri, 30 Dec 2011 02:52:28 -0500
+Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LX000MMFB7AJX00@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 30 Dec 2011 16:52:27 +0900 (KST)
+Received: from NORIVERFULK04 ([165.213.219.118])
+ by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LX000C3KB7E0D50@mmp1.samsung.com>
+ for linux-media@vger.kernel.org; Fri, 30 Dec 2011 16:52:26 +0900 (KST)
+From: "HeungJun, Kim" <riverful.kim@samsung.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	kyungmin.park@samsung.com
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+ <201112281501.25091.laurent.pinchart@ideasonboard.com>
+ <001601ccc5f1$4db353d0$e919fb70$%kim@samsung.com>
+ <201112300116.28572.laurent.pinchart@ideasonboard.com>
+In-reply-to: <201112300116.28572.laurent.pinchart@ideasonboard.com>
+Subject: RE: [RFC PATCH 0/4] Add some new camera controls
+Date: Fri, 30 Dec 2011 16:52:26 +0900
+Message-id: <000101ccc6c7$f9384db0$eba8e910$%kim@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-eMMa-PrP device included in Freescale i.MX2 chips can also
-be used separately to process memory buffers. This patch
-provides arch glue code for the driver which provides this
-functionality.
+Hi,
 
-Acked-by: Sascha Hauer <s.hauer@pengutronix.de>
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- arch/arm/mach-imx/clock-imx27.c                 |    2 +-
- arch/arm/mach-imx/devices-imx27.h               |    2 ++
- arch/arm/plat-mxc/devices/platform-mx2-camera.c |   18 ++++++++++++++++++
- arch/arm/plat-mxc/include/mach/devices-common.h |    2 ++
- 4 files changed, 23 insertions(+), 1 deletions(-)
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Laurent Pinchart
+> Sent: Friday, December 30, 2011 9:16 AM
+> To: HeungJun, Kim
+> Cc: linux-media@vger.kernel.org; mchehab@redhat.com; hverkuil@xs4all.nl;
+> sakari.ailus@iki.fi; s.nawrocki@samsung.com; kyungmin.park@samsung.com
+> Subject: Re: [RFC PATCH 0/4] Add some new camera controls
+> 
+> Hi,
+> 
+> On Thursday 29 December 2011 07:15:46 HeungJun, Kim wrote:
+> > On Wednesday, December 28, 2011 11:01 PM Laurent Pinchart wrote:
+> > > On Wednesday 28 December 2011 07:23:44 HeungJun, Kim wrote:
+> > > > Hi everyone,
+> > > >
+> > > > This RFC patch series include new 4 controls ID for digital camera.
+> > > > I about to suggest these controls by the necessity enabling the M-5MOLS
+> > > > sensor's function, and I hope to discuss this in here.
+> > >
+> > > Thanks for the patches.
+> > >
+> > > The new controls introduced by these patches are very high level. Should
+> > > they be put in their own class ? I also think we should specify how
+> > > those high- level controls interact with low-level controls, otherwise
+> > > applications will likely get very confused.
+> >
+> > I did not consider yet, but I think it's first to define about what
+> > low-/high- is. I think this is not high- level controls. And, honestly, I
+> > don't understand it's really important to categorize low-/high-, or not.
+> >
+> > IMHO, The importance is the just complexity of interacting with each
+> > modules. If this means the level of low-/high-, I can understand this.
+> > But I'm wrong, please explain this. :)
+> 
+> Low level controls are usually handled in hardware and pretty much self-
+> contained. High level controls are usually software algorithms (possibly
+> running on the sensor itself) that modify low level controls behind the scene.
+> 
+> If a sensor exposes both an exposure time control and a scene mode control
+> that modifies exposure time handling, documentation of the scene mode control
+> must explain how the two interacts and what applications can and can't do.
+Ok, thanks for the explanation.
+I should include the ISP's contents in the documentation, and this might be
+the key I explain easily.
 
-diff --git a/arch/arm/mach-imx/clock-imx27.c b/arch/arm/mach-imx/clock-imx27.c
-index 88fe00a..dc2d7a5 100644
---- a/arch/arm/mach-imx/clock-imx27.c
-+++ b/arch/arm/mach-imx/clock-imx27.c
-@@ -661,7 +661,7 @@ static struct clk_lookup lookups[] = {
- 	_REGISTER_CLOCK(NULL, "dma", dma_clk)
- 	_REGISTER_CLOCK(NULL, "rtic", rtic_clk)
- 	_REGISTER_CLOCK(NULL, "brom", brom_clk)
--	_REGISTER_CLOCK(NULL, "emma", emma_clk)
-+	_REGISTER_CLOCK("m2m-emmaprp.0", NULL, emma_clk)
- 	_REGISTER_CLOCK(NULL, "slcdc", slcdc_clk)
- 	_REGISTER_CLOCK("imx27-fec.0", NULL, fec_clk)
- 	_REGISTER_CLOCK(NULL, "emi", emi_clk)
-diff --git a/arch/arm/mach-imx/devices-imx27.h b/arch/arm/mach-imx/devices-imx27.h
-index 2f727d7..28537a5 100644
---- a/arch/arm/mach-imx/devices-imx27.h
-+++ b/arch/arm/mach-imx/devices-imx27.h
-@@ -50,6 +50,8 @@ extern const struct imx_imx_uart_1irq_data imx27_imx_uart_data[];
- extern const struct imx_mx2_camera_data imx27_mx2_camera_data;
- #define imx27_add_mx2_camera(pdata)	\
- 	imx_add_mx2_camera(&imx27_mx2_camera_data, pdata)
-+#define imx27_add_mx2_emmaprp(pdata)	\
-+	imx_add_mx2_emmaprp(&imx27_mx2_camera_data)
- 
- extern const struct imx_mxc_ehci_data imx27_mxc_ehci_otg_data;
- #define imx27_add_mxc_ehci_otg(pdata)	\
-diff --git a/arch/arm/plat-mxc/devices/platform-mx2-camera.c b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-index b3f4828..11eace9 100644
---- a/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-+++ b/arch/arm/plat-mxc/devices/platform-mx2-camera.c
-@@ -62,3 +62,21 @@ struct platform_device *__init imx_add_mx2_camera(
- 			res, data->iobaseemmaprp ? 4 : 2,
- 			pdata, sizeof(*pdata), DMA_BIT_MASK(32));
- }
-+
-+struct platform_device *__init imx_add_mx2_emmaprp(
-+		const struct imx_mx2_camera_data *data)
-+{
-+	struct resource res[] = {
-+		{
-+			.start = data->iobaseemmaprp,
-+			.end = data->iobaseemmaprp + data->iosizeemmaprp - 1,
-+			.flags = IORESOURCE_MEM,
-+		}, {
-+			.start = data->irqemmaprp,
-+			.end = data->irqemmaprp,
-+			.flags = IORESOURCE_IRQ,
-+		},
-+	};
-+	return imx_add_platform_device_dmamask("m2m-emmaprp", 0,
-+			res, 2, NULL, 0, DMA_BIT_MASK(32));
-+}
-diff --git a/arch/arm/plat-mxc/include/mach/devices-common.h b/arch/arm/plat-mxc/include/mach/devices-common.h
-index def9ba5..1b2258d 100644
---- a/arch/arm/plat-mxc/include/mach/devices-common.h
-+++ b/arch/arm/plat-mxc/include/mach/devices-common.h
-@@ -223,6 +223,8 @@ struct imx_mx2_camera_data {
- struct platform_device *__init imx_add_mx2_camera(
- 		const struct imx_mx2_camera_data *data,
- 		const struct mx2_camera_platform_data *pdata);
-+struct platform_device *__init imx_add_mx2_emmaprp(
-+		const struct imx_mx2_camera_data *data);
- 
- #include <mach/mxc_ehci.h>
- struct imx_mxc_ehci_data {
--- 
-1.7.0.4
+I'll prepare the next RFC add the more details in the document.
+Probably, it seems to be lack of explanation about these controls I suggested.
+
+Regards,
+Heungjun Kim
+
+> 
+> > There is some different story, I just got the N900 some days ago :).
+> > The purpose is just understanding Nokia and TI OMAP camera architecture
+> > well. Probably, it helps for me to talk more easily, and I'll be able to
+> > speak more well
+> > with omap workers - you and Sakari.
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
