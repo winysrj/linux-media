@@ -1,121 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17494 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754073Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:06 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp4LQ018657
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:04 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 03/47] [media] qt1010: remove fake implementaion of get_bandwidth()
-Date: Sat, 24 Dec 2011 13:50:08 -0200
-Message-Id: <1324741852-26138-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-3-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp503.mail.kks.yahoo.co.jp ([114.111.99.164]:27730 "HELO
+	smtp503.mail.kks.yahoo.co.jp" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751145Ab1L3GxE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 01:53:04 -0500
+Message-ID: <4EFD5E3D.8090305@yahoo.co.jp>
+Date: Fri, 30 Dec 2011 15:46:21 +0900
+From: Akihiro TSUKADA <tskd2@yahoo.co.jp>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: RFC: dvbzap application based on DVBv5 API
+References: <4EFCC9A7.9050907@redhat.com>
+In-Reply-To: <4EFCC9A7.9050907@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver implements a fake get_bandwidth() callback. In
-reallity, the tuner driver won't adjust its low-pass
-filter based on a bandwidth, and were just providing a fake
-method for demods to read whatever was "set".
+> [channel name]
+> 	property = value
+> ...
+> 	property = value
 
-This code is useless, as none of the drivers that use
-this tuner seems to require a get_bandwidth() callback.
+Currently, at least gstreamer's dvbbasebin and mplayer assumue that
+the channel configuration file has the format of one line per channel.
+So when I personally patched them to use v5 parameters,
+I chose the one-line-per-channel format of
+  <channel name>:propname=val|...|propname=val:<service id>, for example,
+ NHKBS1:DTV_DELIVERY_SYSTEM=SYS_ISDBS|DTV_VOLTAGE=1|DTV_FREQUENCY=1318000|DTV_ISDBS_TS_ID=0x40f2:103
+, to minimize modification (hopefully).
+I understand that it is not that difficult nor complicated 
+to adapt applications to use the ini file style format,
+but the old one line style format seems slightly easier.
 
-While here, convert set_params to use the DVBv5 way to pass
-parameters to tuners.
+and I wish that the channel configuration can allow nicknames/aliases,
+as the canonical channel name can be long to type in or difficult to remember correctly.
+If I remember right, MythTV has its own database,
+and it would be convenient if we could share the database,
+because applications currently have their own channel configuration separately,
+and the configuration change like new service or parameter changes must be
+propagated manually.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/qt1010.c      |   16 ++++------------
- drivers/media/common/tuners/qt1010_priv.h |    1 -
- 2 files changed, 4 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/common/tuners/qt1010.c b/drivers/media/common/tuners/qt1010.c
-index cd461c2..bd433ad 100644
---- a/drivers/media/common/tuners/qt1010.c
-+++ b/drivers/media/common/tuners/qt1010.c
-@@ -85,6 +85,7 @@ static void qt1010_dump_regs(struct qt1010_priv *priv)
- static int qt1010_set_params(struct dvb_frontend *fe,
- 			     struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	struct qt1010_priv *priv;
- 	int err;
- 	u32 freq, div, mod1, mod2;
-@@ -144,13 +145,11 @@ static int qt1010_set_params(struct dvb_frontend *fe,
- #define FREQ2  4000000 /* 4 MHz Quartz oscillator in the stick? */
- 
- 	priv = fe->tuner_priv;
--	freq = params->frequency;
-+	freq = c->frequency;
- 	div = (freq + QT1010_OFFSET) / QT1010_STEP;
- 	freq = (div * QT1010_STEP) - QT1010_OFFSET;
- 	mod1 = (freq + QT1010_OFFSET) % FREQ1;
- 	mod2 = (freq + QT1010_OFFSET) % FREQ2;
--	priv->bandwidth =
--		(fe->ops.info.type == FE_OFDM) ? params->u.ofdm.bandwidth : 0;
- 	priv->frequency = freq;
- 
- 	if (fe->ops.i2c_gate_ctrl)
-@@ -321,6 +320,7 @@ static int qt1010_init(struct dvb_frontend *fe)
- {
- 	struct qt1010_priv *priv = fe->tuner_priv;
- 	struct dvb_frontend_parameters params;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int err = 0;
- 	u8 i, tmpval, *valptr = NULL;
- 
-@@ -397,7 +397,7 @@ static int qt1010_init(struct dvb_frontend *fe)
- 		if ((err = qt1010_init_meas2(priv, i, &tmpval)))
- 			return err;
- 
--	params.frequency = 545000000; /* Sigmatek DVB-110 545000000 */
-+	c->frequency = 545000000; /* Sigmatek DVB-110 545000000 */
- 				      /* MSI Megasky 580 GL861 533000000 */
- 	return qt1010_set_params(fe, &params);
- }
-@@ -416,13 +416,6 @@ static int qt1010_get_frequency(struct dvb_frontend *fe, u32 *frequency)
- 	return 0;
- }
- 
--static int qt1010_get_bandwidth(struct dvb_frontend *fe, u32 *bandwidth)
--{
--	struct qt1010_priv *priv = fe->tuner_priv;
--	*bandwidth = priv->bandwidth;
--	return 0;
--}
--
- static int qt1010_get_if_frequency(struct dvb_frontend *fe, u32 *frequency)
- {
- 	*frequency = 36125000;
-@@ -443,7 +436,6 @@ static const struct dvb_tuner_ops qt1010_tuner_ops = {
- 
- 	.set_params    = qt1010_set_params,
- 	.get_frequency = qt1010_get_frequency,
--	.get_bandwidth = qt1010_get_bandwidth,
- 	.get_if_frequency = qt1010_get_if_frequency,
- };
- 
-diff --git a/drivers/media/common/tuners/qt1010_priv.h b/drivers/media/common/tuners/qt1010_priv.h
-index 090cf47..2c42d3f 100644
---- a/drivers/media/common/tuners/qt1010_priv.h
-+++ b/drivers/media/common/tuners/qt1010_priv.h
-@@ -99,7 +99,6 @@ struct qt1010_priv {
- 	u8 reg25_init_val;
- 
- 	u32 frequency;
--	u32 bandwidth;
- };
- 
- #endif
--- 
-1.7.8.352.g876a6
-
+regards,
+Akihiro
