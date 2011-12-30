@@ -1,46 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:43745 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750892Ab1LNGSF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 14 Dec 2011 01:18:05 -0500
-Date: Wed, 14 Dec 2011 09:17:36 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: David =?iso-8859-1?Q?H=E4rdeman?= <david@hardeman.nu>,
-	Jarod Wilson <jarod@redhat.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] tm6000: using an uninitialized variable in debug code
-Message-ID: <20111214061736.GA7499@elgon.mountain>
+Received: from mx1.redhat.com ([209.132.183.28]:61002 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752507Ab1L3LiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 06:38:07 -0500
+Message-ID: <4EFDA2D6.7000202@redhat.com>
+Date: Fri, 30 Dec 2011 12:39:02 +0100
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Theodore Kilgore <kilgota@banach.math.auburn.edu>
+Subject: Re: [GIT PATCHES FOR 3.3] gspca patches and new jl2005bcd driver
+References: <4EFD8494.4050506@redhat.com> <20111230112411.3089e281@tele> <4EFD98E6.6010107@redhat.com> <20111230122608.7f08efe7@tele>
+In-Reply-To: <20111230122608.7f08efe7@tele>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dprintk() dereferences "ir".  I'm not sure why gcc doesn't complain
-about this.
+Hi,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+On 12/30/2011 12:26 PM, Jean-Francois Moine wrote:
+> On Fri, 30 Dec 2011 11:56:38 +0100
+> Hans de Goede<hdegoede@redhat.com>  wrote:
+>
+>> I took it as is from Theodore, I guess we should do a separate cleanup
+>> patch on top to preserve the history / authorship. Since I'm busy testing
+>> the new isoc bandwidth stuff today, could you perhaps do a cleanup patch for this?
+>
+> Yes, but the first step is to remove this patch from the pull request, and only you may do it (it is only 3 git commands and an email - otherwise, it has no sense to add two empty lines in a patch and to remove them in an other one!).
 
-diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
-index 8d92527..7844607 100644
---- a/drivers/media/video/tm6000/tm6000-input.c
-+++ b/drivers/media/video/tm6000/tm6000-input.c
-@@ -408,13 +408,13 @@ int tm6000_ir_init(struct tm6000_core *dev)
- 	if (!dev->ir_codes)
- 		return 0;
- 
--	dprintk(2, "%s\n",__func__);
--
- 	ir = kzalloc(sizeof(*ir), GFP_ATOMIC);
- 	rc = rc_allocate_device();
- 	if (!ir || !rc)
- 		goto out;
- 
-+	dprintk(2, "%s\n", __func__);
-+
- 	/* record handles to ourself */
- 	ir->dev = dev;
- 	dev->ir = ir;
+Done.
+
+I'll re-add it later, squashing the white-space fixes into the
+patch and adding a patch on top to fix:
+-err versus pr_err
+-PDEBUG used with D_ERR everywhere where most cases should have
+  a different level
+-the missing pixfmt documentation
+
+Regards,
+
+Hans
