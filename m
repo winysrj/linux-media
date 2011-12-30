@@ -1,352 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58979 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751800Ab1LaKXG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 31 Dec 2011 05:23:06 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBVAN66g020655
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 05:23:06 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] [media] cxd2820: convert get|set_fontend to use DVBv5 parameters
-Date: Sat, 31 Dec 2011 08:22:58 -0200
-Message-Id: <1325326980-27464-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325326980-27464-1-git-send-email-mchehab@redhat.com>
-References: <1325326980-27464-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-68.nebula.fi ([83.145.220.68]:54225 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750943Ab1L3Ulu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 15:41:50 -0500
+Date: Fri, 30 Dec 2011 22:41:44 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"HeungJun, Kim" <riverful.kim@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	Hans de Goede <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
+ control
+Message-ID: <20111230204144.GX3677@valkosipuli.localdomain>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+ <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
+ <4EFB1B04.6060305@gmail.com>
+ <201112281451.39399.laurent.pinchart@ideasonboard.com>
+ <20111229233406.GU3677@valkosipuli.localdomain>
+ <4EFD8F0F.6060505@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EFD8F0F.6060505@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi Sylwester,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+On Fri, Dec 30, 2011 at 11:14:39AM +0100, Sylwester Nawrocki wrote:
+> Hi Sakari,
+> 
+> On 12/30/2011 12:34 AM, Sakari Ailus wrote:
+> > On Wed, Dec 28, 2011 at 02:51:38PM +0100, Laurent Pinchart wrote:
+> >> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
+> >>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
+> >>>> It adds the new CID for setting White Balance Preset. This CID is
+> >>>> provided as menu type using the following items:
+> >>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
+> >>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
+> >>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
+> >>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
+> >>>> 4 - V4L2_WHITE_BALANCE_SHADE,
+> >>>
+> >>> I have been also investigating those white balance presets recently and
+> >>> noticed they're also needed for the pwc driver. Looking at
+> >>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
+> >>>
+> >>> const char * const pwc_auto_whitebal_qmenu[] = {
+> >>> 	"Indoor (Incandescant Lighting) Mode",
+> >>> 	"Outdoor (Sunlight) Mode",
+> >>> 	"Indoor (Fluorescent Lighting) Mode",
+> >>> 	"Manual Mode",
+> >>> 	"Auto Mode",
+> >>> 	NULL
+> >>> };
+> >>>
+> >>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
+> >>> 	.ops	= &pwc_ctrl_ops,
+> >>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
+> >>> 	.type	= V4L2_CTRL_TYPE_MENU,
+> >>> 	.max	= awb_auto,
+> >>> 	.qmenu	= pwc_auto_whitebal_qmenu,
+> >>> };
+> >>>
+> >>> ...
+> >>>
+> >>> 	cfg = pwc_auto_white_balance_cfg;
+> >>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
+> >>> 	cfg.def = def;
+> >>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
+> >>>
+> >>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
+> >>> with custom entries. That's interesting... However it works in practice
+> >>> and applications have access to what's provided by hardware.
+> >>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
+> >>> that :)
+> >>>
+> >>> Nevertheless, redefining standard controls in particular drivers sounds
+> >>> a little dubious. I wonder if this is a generally agreed approach ?
+> >>
+> >> No agreed with me at least :-)
+> >>
+> >>> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
+> >>> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE need
+> >>> to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
+> >>
+> >> Is the preset a fixed white balance setting, or is it an auto white balance 
+> >> with the algorithm tuned for a particular configuration ? In the first case, 
+> >> does it correspond to a fixed white balance temperature value ?
+> > 
+> > While I'm waiting for a final answer to this, I guess it's the second. There
+> > are three things involved here:
+> > 
+> > - V4L2_CID_WHITE_BALANCE_TEMPERATURE: relatively low level control telling
+> >   the colour temperature of the light source. Setting a value for this
+> >   essentially means using manual white balance.
+> > 
+> > - V4L2_CID_AUTO_WHITE_BALANCE: automatic white balance enabled or disabled.
+> 
+> Was the third thing the V4L2_CID_DO_WHITE_BALANCE control that you wanted to
+> say ? It's also quite essential functionality, to be able to fix white balance
+> after pointing camera to a white object. And I would expect
+> V4L2_CID_WHITE_BALANCE_PRESET control's documentation to state how an
+> interaction with V4L2_CID_DO_WHITE_BALANCE looks like.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/cxd2820r_c.c    |    6 +--
- drivers/media/dvb/frontends/cxd2820r_core.c |   62 +++++++++-----------------
- drivers/media/dvb/frontends/cxd2820r_priv.h |   18 +++-----
- drivers/media/dvb/frontends/cxd2820r_t.c    |    6 +--
- drivers/media/dvb/frontends/cxd2820r_t2.c   |    6 +--
- 5 files changed, 34 insertions(+), 64 deletions(-)
+I expected the new control to be the third thing as configuration for the
+awb algorithm, which it turned out not to be.
 
-diff --git a/drivers/media/dvb/frontends/cxd2820r_c.c b/drivers/media/dvb/frontends/cxd2820r_c.c
-index 9d081ef..9454049 100644
---- a/drivers/media/dvb/frontends/cxd2820r_c.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_c.c
-@@ -21,8 +21,7 @@
- 
- #include "cxd2820r_priv.h"
- 
--int cxd2820r_set_frontend_c(struct dvb_frontend *fe,
--			    struct dvb_frontend_parameters *params)
-+int cxd2820r_set_frontend_c(struct dvb_frontend *fe)
- {
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -105,8 +104,7 @@ error:
- 	return ret;
- }
- 
--int cxd2820r_get_frontend_c(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+int cxd2820r_get_frontend_c(struct dvb_frontend *fe)
- {
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
-index f4718d5..56b7c28 100644
---- a/drivers/media/dvb/frontends/cxd2820r_core.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_core.c
-@@ -246,8 +246,7 @@ u32 cxd2820r_div_u64_round_closest(u64 dividend, u32 divisor)
- 	return div_u64(dividend + (divisor / 2), divisor);
- }
- 
--static int cxd2820r_set_frontend(struct dvb_frontend *fe,
--				 struct dvb_frontend_parameters *p)
-+static int cxd2820r_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
-@@ -258,7 +257,7 @@ static int cxd2820r_set_frontend(struct dvb_frontend *fe,
- 		ret = cxd2820r_init_t(fe);
- 		if (ret < 0)
- 			goto err;
--		ret = cxd2820r_set_frontend_t(fe, p);
-+		ret = cxd2820r_set_frontend_t(fe);
- 		if (ret < 0)
- 			goto err;
- 		break;
-@@ -266,15 +265,15 @@ static int cxd2820r_set_frontend(struct dvb_frontend *fe,
- 		ret = cxd2820r_init_t(fe);
- 		if (ret < 0)
- 			goto err;
--		ret = cxd2820r_set_frontend_t2(fe, p);
-+		ret = cxd2820r_set_frontend_t2(fe);
- 		if (ret < 0)
- 			goto err;
- 		break;
--	case SYS_DVBC_ANNEX_AC:
-+	case SYS_DVBC_ANNEX_A:
- 		ret = cxd2820r_init_c(fe);
- 		if (ret < 0)
- 			goto err;
--		ret = cxd2820r_set_frontend_c(fe, p);
-+		ret = cxd2820r_set_frontend_c(fe);
- 		if (ret < 0)
- 			goto err;
- 		break;
-@@ -298,7 +297,7 @@ static int cxd2820r_read_status(struct dvb_frontend *fe, fe_status_t *status)
- 	case SYS_DVBT2:
- 		ret = cxd2820r_read_status_t2(fe, status);
- 		break;
--	case SYS_DVBC_ANNEX_AC:
-+	case SYS_DVBC_ANNEX_A:
- 		ret = cxd2820r_read_status_c(fe, status);
- 		break;
- 	default:
-@@ -309,20 +308,20 @@ static int cxd2820r_read_status(struct dvb_frontend *fe, fe_status_t *status)
- }
- 
- static int cxd2820r_get_frontend(struct dvb_frontend *fe,
--				 struct dvb_frontend_parameters *p)
-+				 struct dtv_frontend_properties *c)
- {
- 	int ret;
- 
- 	dbg("%s: delsys=%d", __func__, fe->dtv_property_cache.delivery_system);
- 	switch (fe->dtv_property_cache.delivery_system) {
- 	case SYS_DVBT:
--		ret = cxd2820r_get_frontend_t(fe, p);
-+		ret = cxd2820r_get_frontend_t(fe);
- 		break;
- 	case SYS_DVBT2:
--		ret = cxd2820r_get_frontend_t2(fe, p);
-+		ret = cxd2820r_get_frontend_t2(fe);
- 		break;
--	case SYS_DVBC_ANNEX_AC:
--		ret = cxd2820r_get_frontend_c(fe, p);
-+	case SYS_DVBC_ANNEX_A:
-+		ret = cxd2820r_get_frontend_c(fe);
- 		break;
- 	default:
- 		ret = -EINVAL;
-@@ -343,7 +342,7 @@ static int cxd2820r_read_ber(struct dvb_frontend *fe, u32 *ber)
- 	case SYS_DVBT2:
- 		ret = cxd2820r_read_ber_t2(fe, ber);
- 		break;
--	case SYS_DVBC_ANNEX_AC:
-+	case SYS_DVBC_ANNEX_A:
- 		ret = cxd2820r_read_ber_c(fe, ber);
- 		break;
- 	default:
-@@ -365,7 +364,7 @@ static int cxd2820r_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
- 	case SYS_DVBT2:
- 		ret = cxd2820r_read_signal_strength_t2(fe, strength);
- 		break;
--	case SYS_DVBC_ANNEX_AC:
-+	case SYS_DVBC_ANNEX_A:
- 		ret = cxd2820r_read_signal_strength_c(fe, strength);
- 		break;
- 	default:
-@@ -387,7 +386,7 @@ static int cxd2820r_read_snr(struct dvb_frontend *fe, u16 *snr)
- 	case SYS_DVBT2:
- 		ret = cxd2820r_read_snr_t2(fe, snr);
- 		break;
--	case SYS_DVBC_ANNEX_AC:
-+	case SYS_DVBC_ANNEX_A:
- 		ret = cxd2820r_read_snr_c(fe, snr);
- 		break;
- 	default:
-@@ -409,7 +408,7 @@ static int cxd2820r_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- 	case SYS_DVBT2:
- 		ret = cxd2820r_read_ucblocks_t2(fe, ucblocks);
- 		break;
--	case SYS_DVBC_ANNEX_AC:
-+	case SYS_DVBC_ANNEX_A:
- 		ret = cxd2820r_read_ucblocks_c(fe, ucblocks);
- 		break;
- 	default:
-@@ -436,7 +435,7 @@ static int cxd2820r_sleep(struct dvb_frontend *fe)
- 	case SYS_DVBT2:
- 		ret = cxd2820r_sleep_t2(fe);
- 		break;
--	case SYS_DVBC_ANNEX_AC:
-+	case SYS_DVBC_ANNEX_A:
- 		ret = cxd2820r_sleep_c(fe);
- 		break;
- 	default:
-@@ -459,7 +458,7 @@ static int cxd2820r_get_tune_settings(struct dvb_frontend *fe,
- 	case SYS_DVBT2:
- 		ret = cxd2820r_get_tune_settings_t2(fe, s);
- 		break;
--	case SYS_DVBC_ANNEX_AC:
-+	case SYS_DVBC_ANNEX_A:
- 		ret = cxd2820r_get_tune_settings_c(fe, s);
- 		break;
- 	default:
-@@ -479,7 +478,7 @@ static enum dvbfe_search cxd2820r_search(struct dvb_frontend *fe,
- 	dbg("%s: delsys=%d", __func__, fe->dtv_property_cache.delivery_system);
- 
- 	/* switch between DVB-T and DVB-T2 when tune fails */
--	if (priv->last_tune_failed && (priv->delivery_system != SYS_DVBC_ANNEX_AC)) {
-+	if (priv->last_tune_failed && (priv->delivery_system != SYS_DVBC_ANNEX_A)) {
- 		if (priv->delivery_system == SYS_DVBT)
- 			c->delivery_system = SYS_DVBT2;
- 		else
-@@ -487,7 +486,7 @@ static enum dvbfe_search cxd2820r_search(struct dvb_frontend *fe,
- 	}
- 
- 	/* set frontend */
--	ret = cxd2820r_set_frontend(fe, p);
-+	ret = cxd2820r_set_frontend(fe);
- 	if (ret)
- 		goto error;
- 
-@@ -555,24 +554,9 @@ static int cxd2820r_i2c_gate_ctrl(struct dvb_frontend *fe, int enable)
- 	return cxd2820r_wr_reg_mask(priv, 0xdb, enable ? 1 : 0, 0x1);
- }
- 
--static int cxd2820r_get_property(struct dvb_frontend *fe, struct dtv_property *p)
--{
--	dbg("%s()\n", __func__);
--
--	switch (p->cmd) {
--	case DTV_ENUM_DELSYS:
--		p->u.buffer.data[0] = SYS_DVBT;
--		p->u.buffer.data[1] = SYS_DVBT2;
--		p->u.buffer.data[2] = SYS_DVBC_ANNEX_AC;
--		p->u.buffer.len = 3;
--		break;
--	default:
--		break;
--	}
--	return 0;
--}
--
- static const struct dvb_frontend_ops cxd2820r_ops = {
-+	.delsys = { SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A },
-+
- 	/* default: DVB-T/T2 */
- 	.info = {
- 		.name = "Sony CXD2820R (DVB-T/T2)",
-@@ -603,7 +587,7 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
- 	.get_tune_settings	= cxd2820r_get_tune_settings,
- 	.i2c_gate_ctrl		= cxd2820r_i2c_gate_ctrl,
- 
--	.get_frontend_legacy	= cxd2820r_get_frontend,
-+	.get_frontend		= cxd2820r_get_frontend,
- 
- 	.get_frontend_algo	= cxd2820r_get_frontend_algo,
- 	.search			= cxd2820r_search,
-@@ -613,8 +597,6 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
- 	.read_ber		= cxd2820r_read_ber,
- 	.read_ucblocks		= cxd2820r_read_ucblocks,
- 	.read_signal_strength	= cxd2820r_read_signal_strength,
--
--	.get_property		= cxd2820r_get_property,
- };
- 
- struct dvb_frontend *cxd2820r_attach(const struct cxd2820r_config *cfg,
-diff --git a/drivers/media/dvb/frontends/cxd2820r_priv.h b/drivers/media/dvb/frontends/cxd2820r_priv.h
-index 94dcf7f..9a9822c 100644
---- a/drivers/media/dvb/frontends/cxd2820r_priv.h
-+++ b/drivers/media/dvb/frontends/cxd2820r_priv.h
-@@ -86,11 +86,9 @@ int cxd2820r_rd_reg(struct cxd2820r_priv *priv, u32 reg, u8 *val);
- 
- /* cxd2820r_c.c */
- 
--int cxd2820r_get_frontend_c(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p);
-+int cxd2820r_get_frontend_c(struct dvb_frontend *fe);
- 
--int cxd2820r_set_frontend_c(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *params);
-+int cxd2820r_set_frontend_c(struct dvb_frontend *fe);
- 
- int cxd2820r_read_status_c(struct dvb_frontend *fe, fe_status_t *status);
- 
-@@ -111,11 +109,9 @@ int cxd2820r_get_tune_settings_c(struct dvb_frontend *fe,
- 
- /* cxd2820r_t.c */
- 
--int cxd2820r_get_frontend_t(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p);
-+int cxd2820r_get_frontend_t(struct dvb_frontend *fe);
- 
--int cxd2820r_set_frontend_t(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *params);
-+int cxd2820r_set_frontend_t(struct dvb_frontend *fe);
- 
- int cxd2820r_read_status_t(struct dvb_frontend *fe, fe_status_t *status);
- 
-@@ -136,11 +132,9 @@ int cxd2820r_get_tune_settings_t(struct dvb_frontend *fe,
- 
- /* cxd2820r_t2.c */
- 
--int cxd2820r_get_frontend_t2(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p);
-+int cxd2820r_get_frontend_t2(struct dvb_frontend *fe);
- 
--int cxd2820r_set_frontend_t2(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *params);
-+int cxd2820r_set_frontend_t2(struct dvb_frontend *fe);
- 
- int cxd2820r_read_status_t2(struct dvb_frontend *fe, fe_status_t *status);
- 
-diff --git a/drivers/media/dvb/frontends/cxd2820r_t.c b/drivers/media/dvb/frontends/cxd2820r_t.c
-index d0b854a..1a02623 100644
---- a/drivers/media/dvb/frontends/cxd2820r_t.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_t.c
-@@ -21,8 +21,7 @@
- 
- #include "cxd2820r_priv.h"
- 
--int cxd2820r_set_frontend_t(struct dvb_frontend *fe,
--			    struct dvb_frontend_parameters *p)
-+int cxd2820r_set_frontend_t(struct dvb_frontend *fe)
- {
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -142,8 +141,7 @@ error:
- 	return ret;
- }
- 
--int cxd2820r_get_frontend_t(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+int cxd2820r_get_frontend_t(struct dvb_frontend *fe)
- {
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-diff --git a/drivers/media/dvb/frontends/cxd2820r_t2.c b/drivers/media/dvb/frontends/cxd2820r_t2.c
-index c62cf4d..3a5759e 100644
---- a/drivers/media/dvb/frontends/cxd2820r_t2.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_t2.c
-@@ -21,8 +21,7 @@
- 
- #include "cxd2820r_priv.h"
- 
--int cxd2820r_set_frontend_t2(struct dvb_frontend *fe,
--			     struct dvb_frontend_parameters *params)
-+int cxd2820r_set_frontend_t2(struct dvb_frontend *fe)
- {
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-@@ -156,8 +155,7 @@ error:
- 
- }
- 
--int cxd2820r_get_frontend_t2(struct dvb_frontend *fe,
--	struct dvb_frontend_parameters *p)
-+int cxd2820r_get_frontend_t2(struct dvb_frontend *fe)
- {
- 	struct cxd2820r_priv *priv = fe->demodulator_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+I don't quite understand the purpose of the do_white_balance; the automatic
+white balance algorithm is operational until it's disabled, and after
+disabling it the white balance shouldn't change. What is the extra
+functionality that the do_white_balance control implements?
+
+If we agree white_balance_preset works at the same level as
+white_balance_temerature control, this becomes more simple. I guess no
+driver should implement both.
+
+> > The new control proposed by HeungJun is input for the automatic white
+> > balance algorithm unless I'm mistaken. Whether or not the value is static,
+> > however, might be considered of secondary importance: it is a name instead
+> > of a number and clearly intended to be used as a high level control. I'd
+> > still expect it to be a hint for the algorithm.
+> > 
+> > The value of the new control would have an effect as long as automatic white
+> > balance is enabled.
+> 
+> The idea to treat the preset as a hint to the algorithm is interesting, however
+> as it turns out this are just static values (R/B balance) in manual WB mode.
+
+Agreed, if there's a device doing this we will add another control at that
+time.
+
+> I expect some parameters for adjusting auto WB algorithm (WB (R/G/B) gain bias
+> or something similar) to be present in sensor's ISP as well. If I remember well
+> I've seen something like this in one of sensor's documentations.
+
+Sounds reasonable.
+
+> 
+> >>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> >>>> b/Documentation/DocBook/media/v4l/controls.xml index c0422c6..350c138
+> >>>> 100644
+> >>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+> >>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> >>>> @@ -2841,6 +2841,44 @@ it one step further. This is a write-only
+> >>>> control.</entry>
+> >>>>
+> >>>>  	  </row>
+> >>>>  	  <row><entry></entry></row>
+> >>>>
+> >>>> +	  <row id="v4l2-preset-white-balance">
+> >>>> +	    <entry
+> >>>> spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp;</
+> >>>> entry>
+> >>>
+> >>> Wouldn't V4L2_CID_WHITE_BALANCE_PRESET be better ?
+> >>
+> >> That's what I was about to say.
+> > 
+> > And the menu items would contain the same prefix with CID_ removed. They're
+> > going to be long, but I don't see that as an issue for menu items.
+> 
+> Should we call it V4L2_CID_WB_PRESET then ?
+> 
+> Anyway V4L2_WHITE_BALANCE_PRESET_INCADESCENT for example is not that long,
+> we have control names that almost reach 80 characters :)
+
+I'd prefer the long one but I have no strong opinion either way.
+
 -- 
-1.7.8.352.g876a6
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
