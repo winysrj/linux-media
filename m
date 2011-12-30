@@ -1,136 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:47238 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:4318 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933389Ab1LFOij (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 6 Dec 2011 09:38:39 -0500
-Message-ID: <4EDE28EB.7050407@linuxtv.org>
-Date: Tue, 06 Dec 2011 15:38:35 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Alan Cox <alan@lxorguk.ukuu.org.uk>, HoP <jpetrous@gmail.com>,
-	Florian Fainelli <f.fainelli@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <4ED75F53.30709@redhat.com> <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com> <20111202231909.1ca311e2@lxorguk.ukuu.org.uk> <CAJbz7-0Xnd30nJsb7SfT+j6uki+6PJpD77DY4zARgh_29Z=-+g@mail.gmail.com> <4EDC9B17.2080701@gmail.com> <CAJbz7-2maWS6mx9WHUWLiW8gC-2PxLD3nc-3y7o9hMtYxN6ZwQ@mail.gmail.com> <4EDD01BA.40208@redhat.com> <4EDD2C82.7040804@linuxtv.org> <20111205205554.2caeb496@lxorguk.ukuu.org.uk> <4EDD3583.30405@linuxtv.org> <20111206111829.GB17194@sirena.org.uk> <4EDE0400.1070304@linuxtv.org> <4EDE1457.7070408@redhat.com> <4EDE1A06.1060108@linuxtv.org> <4EDE22F0.30909@redhat.com>
-In-Reply-To: <4EDE22F0.30909@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S1752308Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:27 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rf1015882
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 29/94] [media] ec100: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:26 -0200
+Message-Id: <1325257711-12274-30-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06.12.2011 15:13, Mauro Carvalho Chehab wrote:
-> O_NONBLOCK
->     When opening a FIFO with O_RDONLY or O_WRONLY set:
-                     ^^^^ This does not apply.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-[...]
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
->     When opening a block special or character special file that supports
-> non-blocking opens:
-> 
->         If O_NONBLOCK is set, the open() function shall return without
-> blocking for the device to be ready or available. Subsequent behavior of
-> the device is device-specific.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/ec100.c |   19 ++++++++++---------
+ 1 files changed, 10 insertions(+), 9 deletions(-)
 
-This is the important part:
-- It specifies the behaviour of open(), not ioctl(). I don't see a
-reason why open should block with vtunerc.
-- Read again: "Subsequent behavior of the device is device-specific."
+diff --git a/drivers/media/dvb/frontends/ec100.c b/drivers/media/dvb/frontends/ec100.c
+index 20decd7..39e0811 100644
+--- a/drivers/media/dvb/frontends/ec100.c
++++ b/drivers/media/dvb/frontends/ec100.c
+@@ -76,15 +76,15 @@ static int ec100_read_reg(struct ec100_state *state, u8 reg, u8 *val)
+ 	return 0;
+ }
+ 
+-static int ec100_set_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *params)
++static int ec100_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct ec100_state *state = fe->demodulator_priv;
+ 	int ret;
+ 	u8 tmp, tmp2;
+ 
+-	deb_info("%s: freq:%d bw:%d\n", __func__, params->frequency,
+-		params->u.ofdm.bandwidth);
++	deb_info("%s: freq:%d bw:%d\n", __func__, c->frequency,
++		c->bandwidth_hz);
+ 
+ 	/* program tuner */
+ 	if (fe->ops.tuner_ops.set_params)
+@@ -108,16 +108,16 @@ static int ec100_set_frontend(struct dvb_frontend *fe,
+ 	   B 0x1b | 0xb7 | 0x00 | 0x49
+ 	   B 0x1c | 0x55 | 0x64 | 0x72 */
+ 
+-	switch (params->u.ofdm.bandwidth) {
+-	case BANDWIDTH_6_MHZ:
++	switch (c->bandwidth_hz) {
++	case 6000000:
+ 		tmp = 0xb7;
+ 		tmp2 = 0x55;
+ 		break;
+-	case BANDWIDTH_7_MHZ:
++	case 7000000:
+ 		tmp = 0x00;
+ 		tmp2 = 0x64;
+ 		break;
+-	case BANDWIDTH_8_MHZ:
++	case 8000000:
+ 	default:
+ 		tmp = 0x49;
+ 		tmp2 = 0x72;
+@@ -306,6 +306,7 @@ error:
+ EXPORT_SYMBOL(ec100_attach);
+ 
+ static struct dvb_frontend_ops ec100_ops = {
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name = "E3C EC100 DVB-T",
+ 		.type = FE_OFDM,
+@@ -321,7 +322,7 @@ static struct dvb_frontend_ops ec100_ops = {
+ 	},
+ 
+ 	.release = ec100_release,
+-	.set_frontend_legacy = ec100_set_frontend,
++	.set_frontend = ec100_set_frontend,
+ 	.get_tune_settings = ec100_get_tune_settings,
+ 	.read_status = ec100_read_status,
+ 	.read_ber = ec100_read_ber,
+-- 
+1.7.8.352.g876a6
 
->         If O_NONBLOCK is clear, the open() function shall block the
-> calling thread until the device is ready or available before returning.
-> 
->     Otherwise, the behavior of O_NONBLOCK is unspecified.
-> 
-> Basically, syscall should not block waiting for some data to be read (or
-> written).
-
-That's because open() does not read or write.
-
-> The ioctl definition defines [EAGAIN] error code, if, for any reason, an
-> ioctl would block.
-
-Fine.
-
-> Btw, the vtunerc doesn't handle O_NONBLOCK flag. For each DVB ioctl, for
-> example
-> read_snr[1], it calls wait_event_interruptible()[2], even if the
-> application opens
-> it with O_NONBLOCK flag. So, it is likely that non-blocking-mode
-> applications
-> will break.
-
-Of course, read operations must wait until the value read is available
-or an error (e.g. timeout, i/o error) occurs. Whether it's an i2c
-transfer, an usb transfer or a network transfer doesn't make a
-difference. Every transfer takes a nonzero amount of time.
-
-As Honza already demonstrated, in a typical LAN setup, this takes only
-few milliseconds, which with fast devices may even be faster than some
-slow local devices using many delays in their driver code.
-
-If an application breaks because of that, then it's a bug in the
-application which may as well be triggered by a local driver and thus
-needs to be fixed anyway.
-
->> Mauro, if the network is broken, any application using the network will
->> break. No specially designed protocol will fix that.
-> 
-> A high delay network (even a congested one) is not broken, if it can
-> still provide the throughput required by the application, and a latency/QoS
-> that would fit.
-
-Then neither vtunerc nor any other application will break. Fine.
-
->> If you want to enforce strict maximum latencies, you can do that in the
->> userspace daemon using the vtunerc interface. It has all imaginable
->> possibilities to control data flow over the network and to return errors
->> to vtunerc.
-> 
-> Yes, you can do anything you want at the userspace daemon, but the
-> non-userspace daemon aware applications will know nothing about it, and
-> this is the flaw on this design: Applications can't negotiate what network
-> parameters are ok or not for its usecase.
-
-How do you negotiate network parameters with your ISP and all involved
-parties on the internet on the way from your DSL line to some other
-peer? Let me answer it: You don't.
-
->> For a DVB API application it doesn't matter whether a tuning
->> request fails with EIO because a USB device has been removed, a PCI
->> device encountered an I2C error or because the vtuner userspace daemon
->> returned an error.
-> 
-> When you go to network, there are several errors that are transitory.
-> For example,
-> a dropped link may cause the routing protocol (RIP, BGP or whatever) to
-> re-direct
-> several routes (or, on a LAN, a spanning-tree re-negotiation), causing a
-> temporary
-> failure to deliver a few packets. All network-based application are written
-> to consider temporary failures.
-
-I seriously doubt that, unless "consider" means "print an error and
-exit" or "all" means "some".
-
-Anyway, such temporary failures can be handled by the userspace daemon.
-
-> This is fundamentally different than an application designed to talk
-> directly with
-> the hardware, where an error is generally fatal.
-
-Fatal or not, if you return a temporary error code like EAGAIN, for
-example, that's not the case.
-
-Do you recommend applications to just die if an ioctl fails?
-
-Btw.: How do you handle firmware uploads via I2C in non-blocking mode?
-Should applications always fail if a firmware upload that takes longer
-than some ms, e.g. when tuning to a different delivery system or when
-the firmware is yet to be loaded before the first ioctl may run?
-
-Regards,
-Andreas
