@@ -1,112 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5404 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753872Ab1L0BJn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 26 Dec 2011 20:09:43 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBR19hfL005519
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 26 Dec 2011 20:09:43 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC 13/91] [media] av7110: convert set_fontend to use DVBv5 parameters
-Date: Mon, 26 Dec 2011 23:08:01 -0200
-Message-Id: <1324948159-23709-14-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-13-git-send-email-mchehab@redhat.com>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
- <1324948159-23709-2-git-send-email-mchehab@redhat.com>
- <1324948159-23709-3-git-send-email-mchehab@redhat.com>
- <1324948159-23709-4-git-send-email-mchehab@redhat.com>
- <1324948159-23709-5-git-send-email-mchehab@redhat.com>
- <1324948159-23709-6-git-send-email-mchehab@redhat.com>
- <1324948159-23709-7-git-send-email-mchehab@redhat.com>
- <1324948159-23709-8-git-send-email-mchehab@redhat.com>
- <1324948159-23709-9-git-send-email-mchehab@redhat.com>
- <1324948159-23709-10-git-send-email-mchehab@redhat.com>
- <1324948159-23709-11-git-send-email-mchehab@redhat.com>
- <1324948159-23709-12-git-send-email-mchehab@redhat.com>
- <1324948159-23709-13-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58325 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754826Ab1L3ALC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 29 Dec 2011 19:11:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "HeungJun, Kim" <riverful.kim@samsung.com>
+Subject: Re: [RFC PATCH 2/4] v4l: Add V4L2_CID_SCENEMODE menu control
+Date: Fri, 30 Dec 2011 01:11:08 +0100
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	kyungmin.park@samsung.com
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <201112281456.05515.laurent.pinchart@ideasonboard.com> <001201ccc5ec$709ca6d0$51d5f470$%kim@samsung.com>
+In-Reply-To: <001201ccc5ec$709ca6d0$51d5f470$%kim@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201112300111.09581.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using dvb_frontend_parameters struct, that were
-designed for a subset of the supported standards, use the DVBv5
-cache information.
+Hi,
 
-Also, fill the supported delivery systems at dvb_frontend_ops
-struct.
+On Thursday 29 December 2011 06:40:57 HeungJun, Kim wrote:
+> On Wednesday, December 28, 2011 10:56 PM Laurent Pinchart wrote:
+> > On Wednesday 28 December 2011 07:23:46 HeungJun, Kim wrote:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/ttpci/av7110.c |   13 ++++++-------
- drivers/media/dvb/ttpci/av7110.h |    3 +--
- 2 files changed, 7 insertions(+), 9 deletions(-)
+[snip]
 
-diff --git a/drivers/media/dvb/ttpci/av7110.c b/drivers/media/dvb/ttpci/av7110.c
-index c615ed7..e0df729 100644
---- a/drivers/media/dvb/ttpci/av7110.c
-+++ b/drivers/media/dvb/ttpci/av7110.c
-@@ -1971,15 +1971,14 @@ static int av7110_fe_lock_fix(struct av7110* av7110, fe_status_t status)
- 	return ret;
- }
- 
--static int av7110_fe_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters* params)
-+static int av7110_fe_set_frontend(struct dvb_frontend *fe)
- {
- 	struct av7110* av7110 = fe->dvb->priv;
- 
- 	int ret = av7110_fe_lock_fix(av7110, 0);
--	if (!ret) {
--		av7110->saved_fe_params = *params;
--		ret = av7110->fe_set_frontend(fe, params);
--	}
-+	if (!ret)
-+		ret = av7110->fe_set_frontend(fe);
-+
- 	return ret;
- }
- 
-@@ -2088,7 +2087,7 @@ static void dvb_s_recover(struct av7110* av7110)
- 	msleep(20);
- 	av7110_fe_set_tone(av7110->fe, av7110->saved_tone);
- 
--	av7110_fe_set_frontend(av7110->fe, &av7110->saved_fe_params);
-+	av7110_fe_set_frontend(av7110->fe);
- }
- 
- static u8 read_pwm(struct av7110* av7110)
-@@ -2283,7 +2282,7 @@ static int frontend_init(struct av7110 *av7110)
- 		FE_FUNC_OVERRIDE(av7110->fe->ops.set_tone, av7110->fe_set_tone, av7110_fe_set_tone);
- 		FE_FUNC_OVERRIDE(av7110->fe->ops.set_voltage, av7110->fe_set_voltage, av7110_fe_set_voltage);
- 		FE_FUNC_OVERRIDE(av7110->fe->ops.dishnetwork_send_legacy_command, av7110->fe_dishnetwork_send_legacy_command, av7110_fe_dishnetwork_send_legacy_command);
--		FE_FUNC_OVERRIDE(av7110->fe->ops.set_frontend_legacy, av7110->fe_set_frontend, av7110_fe_set_frontend);
-+		FE_FUNC_OVERRIDE(av7110->fe->ops.set_frontend, av7110->fe_set_frontend, av7110_fe_set_frontend);
- 
- 		ret = dvb_register_frontend(&av7110->dvb_adapter, av7110->fe);
- 		if (ret < 0) {
-diff --git a/drivers/media/dvb/ttpci/av7110.h b/drivers/media/dvb/ttpci/av7110.h
-index d85b851..16f0e0e 100644
---- a/drivers/media/dvb/ttpci/av7110.h
-+++ b/drivers/media/dvb/ttpci/av7110.h
-@@ -272,7 +272,6 @@ struct av7110 {
- 
- 	/* crash recovery */
- 	void				(*recover)(struct av7110* av7110);
--	struct dvb_frontend_parameters	saved_fe_params;
- 	fe_sec_voltage_t		saved_voltage;
- 	fe_sec_tone_mode_t		saved_tone;
- 	struct dvb_diseqc_master_cmd	saved_master_cmd;
-@@ -286,7 +285,7 @@ struct av7110 {
- 	int (*fe_set_tone)(struct dvb_frontend* fe, fe_sec_tone_mode_t tone);
- 	int (*fe_set_voltage)(struct dvb_frontend* fe, fe_sec_voltage_t voltage);
- 	int (*fe_dishnetwork_send_legacy_command)(struct dvb_frontend* fe, unsigned long cmd);
--	int (*fe_set_frontend)(struct dvb_frontend* fe, struct dvb_frontend_parameters* params);
-+	int (*fe_set_frontend)(struct dvb_frontend* fe);
- };
- 
- 
+> > > diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> > > b/Documentation/DocBook/media/v4l/controls.xml index 350c138..afe1845
+> > > 100644
+> > > --- a/Documentation/DocBook/media/v4l/controls.xml
+> > > +++ b/Documentation/DocBook/media/v4l/controls.xml
+> > > @@ -2879,6 +2879,94 @@ it one step further. This is a write-only
+> > > control.</entry> </row>
+> > > 
+> > >  	  <row><entry></entry></row>
+> > > 
+> > > +	  <row id="v4l2-scenemode">
+> > > +	    <entry
+> > > spanname="id"><constant>V4L2_CID_SCENEMODE</constant>&nbsp;</entry> +
+> > > <entry>enum&nbsp;v4l2_scenemode</entry>
+> > > +	  </row><row><entry spanname="descr">This control sets
+> > > +	  the camera's scenemode, and it is provided by the type of
+> > > +	  the enum values. The "None" mode means the status
+> > > +	  when scenemode algorithm is not activated, like after booting
+> > > time.
+> > > +	  On the other hand, the "Normal" mode means the scenemode algorithm
+> > > +	  is activated on the normal mode.</entry>
+> > 
+> > What low-level parameters do the scene mode control ? How does it
+> > interact with the related controls ?
+> 
+> For using this control, in M-5MOLS sensor case, several register is
+> configured, like Exposure(locking/Indexed preset/mode), Focus(locking),
+> WhiteBalance, etc. And I think the process interacting and syncing the
+> register's value should be up to the each drivers, and the m5mols driver
+> will be.
+
+Does it mean that the scene mode is handled by the driver, which then 
+configures exposure, focus, white balance, ... ?
+
+> Anyways, could you explain the difference with low- and high- in more
+> details?
+> 
+> :)
+> 
+> I still did not understand well.
+
+The concepts are a bit ill-defined currently. We have low-level sensor 
+controls such as exposure time, gains, ... The controls you propose offer a 
+higher level interface, likely using software-based algorithms running on the 
+sensor instead of just applying hardware parameters.
+
+> > > +	  </row>
+> > > +	  <row>
+> > > +	    <entrytbl spanname="descr" cols="2">
+> > > +	      <tbody valign="top">
+> > > +		<row>
+> > > +		  <entry><constant>V4L2_SCENEMODE_NONE</constant>&nbsp;</entry>
+> > > +		  <entry>Scenemode None.</entry>
+> > > +		</row>
+> > > +		<row>
+> > > +
+> 
+> <entry><constant>V4L2_SCENEMODE_NORMAL</constant>&nbsp;</entry>
+> 
+> > > +		  <entry>Scenemode Normal.</entry>
+> > > +		</row>
+> > > +		<row>
+> > > +
+> > 
+> > <entry><constant>V4L2_SCENEMODE_PORTRAIT</constant>&nbsp;</entry>
+> > 
+> > > +		  <entry>Scenemode Portrait.</entry>
+> > 
+> > Could you please describe the scene modes in more details ?
+> 
+> Yes, the photographer should adjust the exposure(luminance), focus, iso,
+> etc, for getting better image according to each specific circumstances.
+> But, it's uncomfortable to set all controls at every time.
+> The scene mode can make this at one time. It is just not only setting once.
+> According to fixed scene circumstance, the internal algorithm is also
+> needed for it.
+> 
+> This function is usually provided as just preset, but, it's not just
+> preset, because the specific algorithm is existed for "scene mode",
+> except the collection of the camera control preset.
+> 
+> The enumeration I suggest, can cover almost scene mode. Of course, the term
+> is fixed. The M-5MOLS can use all the scene mode.
+> Please, see drivers/media/video/m5mols/m5mols_contro.c.
+
+What I meant when asking you to explain the scene modes in more details was to 
+improve the documentation by adding a detailed description of each scene mode.
+
 -- 
-1.7.8.352.g876a6
+Regards,
 
+Laurent Pinchart
