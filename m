@@ -1,101 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:61052 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752952Ab1LLOlK convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 09:41:10 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Mel Gorman" <mel@csn.ul.ie>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 04/11] mm: compaction: export some of the functions
-References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
- <1321634598-16859-5-git-send-email-m.szyprowski@samsung.com>
- <20111212142906.GE3277@csn.ul.ie>
-Date: Mon, 12 Dec 2011 15:41:04 +0100
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v6dseqji3l0zgt@mpn-glaptop>
-In-Reply-To: <20111212142906.GE3277@csn.ul.ie>
+Received: from mx1.redhat.com ([209.132.183.28]:38590 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752362Ab1L3PJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:28 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9SnF024178
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 37/94] [media] mb86a16: Add delivery system type at fe struct
+Date: Fri, 30 Dec 2011 13:07:34 -0200
+Message-Id: <1325257711-12274-38-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 12 Dec 2011 15:29:07 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/mb86a16.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-> On Fri, Nov 18, 2011 at 05:43:11PM +0100, Marek Szyprowski wrote:
->> From: Michal Nazarewicz <mina86@mina86.com>
->>
->> This commit exports some of the functions from compaction.c file
->> outside of it adding their declaration into internal.h header
->> file so that other mm related code can use them.
->>
->> This forced compaction.c to always be compiled (as opposed to being
->> compiled only if CONFIG_COMPACTION is defined) but as to avoid
->> introducing code that user did not ask for, part of the compaction.c
->> is now wrapped in on #ifdef.
->>
->> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
->> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
->> ---
->>  mm/Makefile     |    3 +-
->>  mm/compaction.c |  112 +++++++++++++++++++++++--------------------------------
->>  mm/internal.h   |   35 +++++++++++++++++
->>  3 files changed, 83 insertions(+), 67 deletions(-)
->>
->> diff --git a/mm/Makefile b/mm/Makefile
->> index 50ec00e..24ed801 100644
->> --- a/mm/Makefile
->> +++ b/mm/Makefile
->> @@ -13,7 +13,7 @@ obj-y			:= filemap.o mempool.o oom_kill.o fadvise.o \
->>  			   readahead.o swap.o truncate.o vmscan.o shmem.o \
->>  			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
->>  			   page_isolation.o mm_init.o mmu_context.o percpu.o \
->> -			   $(mmu-y)
->> +			   $(mmu-y) compaction.o
->
-> That should be
->
-> compaction.o $(mmu-y)
->
-> for consistency.
->
-> Overall, this patch implies that CMA is always compiled in.
-
-Not really.  But yes, it produces some bloat when neither CMA nor
-compaction are compiled.  I assume that linker will be able to deal
-with that (since the functions are not EXPORT_SYMBOL'ed).
-
-Note also that the was majority of compaction.c is #ifdef'd though
-so only a handful of functions are compiled.
-
-> Why not just make CMA depend on COMPACTION to keep things simplier?
-
-I could imagine that someone would want to have CMA but not compaction,
-hence I decided to give that choice.
-
-> For example, if you enable CMA and do not enable COMPACTION, you
-> lose things like the vmstat counters that can aid debugging. In
-> fact, as parts of compaction.c are using defines like COMPACTBLOCKS,
-> I'm not even sure compaction.c can compile without CONFIG_COMPACTION
-> because of the vmstat stuff.
-
+diff --git a/drivers/media/dvb/frontends/mb86a16.c b/drivers/media/dvb/frontends/mb86a16.c
+index c283112..292ba7b 100644
+--- a/drivers/media/dvb/frontends/mb86a16.c
++++ b/drivers/media/dvb/frontends/mb86a16.c
+@@ -1814,6 +1814,7 @@ static enum dvbfe_algo mb86a16_frontend_algo(struct dvb_frontend *fe)
+ }
+ 
+ static struct dvb_frontend_ops mb86a16_ops = {
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name			= "Fujitsu MB86A16 DVB-S",
+ 		.type			= FE_QPSK,
 -- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+1.7.8.352.g876a6
+
