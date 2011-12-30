@@ -1,59 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:48614 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752435Ab1LAO6l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 09:58:41 -0500
+Received: from smtp.network4kmu.at ([88.116.122.38]:18397 "EHLO
+	smtp.network4kmu.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750738Ab1L3OBA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 09:01:00 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp.network4kmu.at (Postfix) with ESMTP id E096034030
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 15:00:58 +0100 (CET)
+Received: from smtp.network4kmu.at ([127.0.0.1])
+	by localhost (smtp.network4kmu.at [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id tC2aQYXSvQzu for <linux-media@vger.kernel.org>;
+	Fri, 30 Dec 2011 15:00:55 +0100 (CET)
+Received: from smtp.network4kmu.at (SMTP.NETWORK4KMU.AT [192.168.1.2])
+	by smtp.network4kmu.at (Postfix) with ESMTP id B7EE73402D
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 15:00:55 +0100 (CET)
+Date: Fri, 30 Dec 2011 15:00:55 +0100 (CET)
+From: Franco =?utf-8?Q?K=C3=B6nig?= <info@network4kmu.at>
+To: linux-media@vger.kernel.org
+Subject: Terratec Cinergy S2 USB HD
+Message-ID: <24352ae6-10ec-427d-b378-9cd4ce269e4b@SMTP.NETWORK4KMU.AT>
+In-Reply-To: <e43882ec-7409-44cf-a408-0c2483cfb883@SMTP.NETWORK4KMU.AT>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-In-Reply-To: <4ED75F53.30709@redhat.com>
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-	<4ED6C5B8.8040803@linuxtv.org>
-	<4ED75F53.30709@redhat.com>
-Date: Thu, 1 Dec 2011 15:58:41 +0100
-Message-ID: <CAJbz7-0td1FaDkuAkSGQRdgG5pkxjYMUGLDi0Y5BrBF2=6aVCw@mail.gmail.com>
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver
- because of worrying about possible misusage?
-From: HoP <jpetrous@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Linux Media Team 
 
-let me ask you some details of your interesting idea (how to
-achieve the same functionality as with vtunerc driver):
+Is there a way to get running my Cinergy S2 USB HD under Ubuntu 11.10? 
+Or should i give it back and buy a supported card? 
 
-[...]
+Greetz 
 
-> The driver, as proposed, is not really a driver, as it doesn't support any
-> hardware. The kernel driver would be used to just copy data from one
-> userspace
-
-Please stop learning me what can be called driver and what nope.
-Your definition is nonsense and I don't want to follow you on it.
-
-> application to the other. The same result could be obtained in userspace,
-> by implementing a library. Such library could even use LD_PRELOAD to support
-> binary only applications, like what libv4l does. In terms of performance,
-> such library would probably perform better than a kernel driver, as there's
-> no need to do context switching for each call, and no need to talk with a
-> device (where kernel outperforms userspace). Also, depending on how such
-> library
-> is implemented, double buffering might be avoided.
->
-> So, from architectural POV, this code should be written as an userspace
-> library.
-> BTW, alsa also came with the same results, years ago, as audio remote
-> streaming is supported via userspace tools, like pulseaudio.
-
-Can you show me, how then can be reused most important part
-of dvb-core subsystem like tuning and demuxing? Or do you want me
-to invent wheels and to recode everything in the library? Of course
-I can be wrong, I'm no big kernel hacker. So please show me the
-way for it. BTW, even if you can find the way, then data copying
-from userspace to the kernel and back is also necessery. I really
-don't see any advantage of you solution.
-
-Honza
+franco 
