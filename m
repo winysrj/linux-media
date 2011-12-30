@@ -1,1242 +1,1215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:49008 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753894Ab1L0NuH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 08:50:07 -0500
-Message-ID: <4EF9CD07.6080608@infradead.org>
-Date: Tue, 27 Dec 2011 11:49:59 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mx1.redhat.com ([209.132.183.28]:49434 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750877Ab1L3OlU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 09:41:20 -0500
+Message-ID: <4EFDCD83.3090609@redhat.com>
+Date: Fri, 30 Dec 2011 12:41:07 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
 To: Andreas Oberritter <obi@linuxtv.org>
 CC: Linux Media Mailing List <linux-media@vger.kernel.org>
 Subject: Re: [PATCH RFC 03/91] [media] dvb-core: add support for a DVBv5 get_frontend()
  callback
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com> <1324948159-23709-3-git-send-email-mchehab@redhat.com> <1324948159-23709-4-git-send-email-mchehab@redhat.com> <4EF9B860.4000103@linuxtv.org>
-In-Reply-To: <4EF9B860.4000103@linuxtv.org>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com> <1324948159-23709-3-git-send-email-mchehab@redhat.com> <1324948159-23709-4-git-send-email-mchehab@redhat.com> <4EF9B860.4000103@linuxtv.org> <4EF9CD07.6080608@infradead.org> <4EF9DA66.1070409@linuxtv.org> <4EF9FFC2.30705@infradead.org> <4EFA2EC4.6020901@linuxtv.org> <4EFA4881.9050906@infradead.org>
+In-Reply-To: <4EFA4881.9050906@infradead.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27-12-2011 10:21, Andreas Oberritter wrote:
-> On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
->> The old method is renamed to get_frontend_legacy(), while not all
->> frontends are converted.
+Hi Andreas,
+
+On 27-12-2011 20:36, Mauro Carvalho Chehab wrote:
+> On 27-12-2011 18:47, Andreas Oberritter wrote:
+>> On 27.12.2011 18:26, Mauro Carvalho Chehab wrote:
+>>> One usage of such call would be to retrieve the autodetected properties,
+>>> after having a frontend lock.
 >>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->> ---
->>  drivers/media/dvb/bt8xx/dst.c               |    8 +-
->>  drivers/media/dvb/dvb-core/dvb_frontend.c   |  102 ++++++++++++++++++++------
->>  drivers/media/dvb/dvb-core/dvb_frontend.h   |    5 +-
->>  drivers/media/dvb/dvb-usb/af9005-fe.c       |    4 +-
->>  drivers/media/dvb/dvb-usb/cinergyT2-fe.c    |    2 +-
->>  drivers/media/dvb/dvb-usb/dtt200u-fe.c      |    2 +-
->>  drivers/media/dvb/dvb-usb/friio-fe.c        |    2 +-
->>  drivers/media/dvb/dvb-usb/mxl111sf-demod.c  |    2 +-
->>  drivers/media/dvb/dvb-usb/vp702x-fe.c       |    2 +-
->>  drivers/media/dvb/dvb-usb/vp7045-fe.c       |    2 +-
->>  drivers/media/dvb/firewire/firedtv-fe.c     |    2 +-
->>  drivers/media/dvb/frontends/af9013.c        |    2 +-
->>  drivers/media/dvb/frontends/atbm8830.c      |    2 +-
->>  drivers/media/dvb/frontends/au8522_dig.c    |    2 +-
->>  drivers/media/dvb/frontends/cx22700.c       |    2 +-
->>  drivers/media/dvb/frontends/cx22702.c       |    2 +-
->>  drivers/media/dvb/frontends/cx24110.c       |    2 +-
->>  drivers/media/dvb/frontends/cx24123.c       |    2 +-
->>  drivers/media/dvb/frontends/cxd2820r_core.c |    4 +-
->>  drivers/media/dvb/frontends/dib3000mb.c     |    2 +-
->>  drivers/media/dvb/frontends/dib3000mc.c     |    2 +-
->>  drivers/media/dvb/frontends/dib7000m.c      |    2 +-
->>  drivers/media/dvb/frontends/dib7000p.c      |    2 +-
->>  drivers/media/dvb/frontends/dib8000.c       |    4 +-
->>  drivers/media/dvb/frontends/dib9000.c       |    4 +-
->>  drivers/media/dvb/frontends/drxd_hard.c     |    2 +-
->>  drivers/media/dvb/frontends/drxk_hard.c     |    4 +-
->>  drivers/media/dvb/frontends/dvb_dummy_fe.c  |    6 +-
->>  drivers/media/dvb/frontends/it913x-fe.c     |    2 +-
->>  drivers/media/dvb/frontends/l64781.c        |    2 +-
->>  drivers/media/dvb/frontends/lgdt3305.c      |    4 +-
->>  drivers/media/dvb/frontends/lgdt330x.c      |    4 +-
->>  drivers/media/dvb/frontends/lgs8gl5.c       |    2 +-
->>  drivers/media/dvb/frontends/lgs8gxx.c       |    2 +-
->>  drivers/media/dvb/frontends/mb86a20s.c      |    2 +-
->>  drivers/media/dvb/frontends/mt312.c         |    2 +-
->>  drivers/media/dvb/frontends/mt352.c         |    2 +-
->>  drivers/media/dvb/frontends/or51132.c       |    2 +-
->>  drivers/media/dvb/frontends/s5h1409.c       |    2 +-
->>  drivers/media/dvb/frontends/s5h1411.c       |    2 +-
->>  drivers/media/dvb/frontends/s5h1420.c       |    2 +-
->>  drivers/media/dvb/frontends/s5h1432.c       |    2 +-
->>  drivers/media/dvb/frontends/s921.c          |    2 +-
->>  drivers/media/dvb/frontends/stb0899_drv.c   |    2 +-
->>  drivers/media/dvb/frontends/stb6100.c       |    4 +-
->>  drivers/media/dvb/frontends/stv0297.c       |    2 +-
->>  drivers/media/dvb/frontends/stv0299.c       |    2 +-
->>  drivers/media/dvb/frontends/stv0367.c       |    4 +-
->>  drivers/media/dvb/frontends/stv0900_core.c  |    2 +-
->>  drivers/media/dvb/frontends/tda10021.c      |    2 +-
->>  drivers/media/dvb/frontends/tda10023.c      |    2 +-
->>  drivers/media/dvb/frontends/tda10048.c      |    2 +-
->>  drivers/media/dvb/frontends/tda1004x.c      |    4 +-
->>  drivers/media/dvb/frontends/tda10071.c      |    2 +-
->>  drivers/media/dvb/frontends/tda10086.c      |    2 +-
->>  drivers/media/dvb/frontends/tda8083.c       |    2 +-
->>  drivers/media/dvb/frontends/ves1820.c       |    2 +-
->>  drivers/media/dvb/frontends/ves1x93.c       |    2 +-
->>  drivers/media/dvb/frontends/zl10353.c       |    2 +-
->>  drivers/media/dvb/siano/smsdvb.c            |    2 +-
->>  drivers/media/video/tlg2300/pd-dvb.c        |    2 +-
->>  drivers/staging/media/as102/as102_fe.c      |    2 +-
->>  62 files changed, 157 insertions(+), 100 deletions(-)
->>
->> diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
->> index 4658bd6..6afc083 100644
->> --- a/drivers/media/dvb/bt8xx/dst.c
->> +++ b/drivers/media/dvb/bt8xx/dst.c
->> @@ -1778,7 +1778,7 @@ static struct dvb_frontend_ops dst_dvbt_ops = {
->>  	.init = dst_init,
->>  	.tune = dst_tune_frontend,
->>  	.set_frontend_legacy = dst_set_frontend,
->> -	.get_frontend = dst_get_frontend,
->> +	.get_frontend_legacy = dst_get_frontend,
->>  	.get_frontend_algo = dst_get_tuning_algo,
->>  	.read_status = dst_read_status,
->>  	.read_signal_strength = dst_read_signal_strength,
->> @@ -1804,7 +1804,7 @@ static struct dvb_frontend_ops dst_dvbs_ops = {
->>  	.init = dst_init,
->>  	.tune = dst_tune_frontend,
->>  	.set_frontend_legacy = dst_set_frontend,
->> -	.get_frontend = dst_get_frontend,
->> +	.get_frontend_legacy = dst_get_frontend,
->>  	.get_frontend_algo = dst_get_tuning_algo,
->>  	.read_status = dst_read_status,
->>  	.read_signal_strength = dst_read_signal_strength,
->> @@ -1838,7 +1838,7 @@ static struct dvb_frontend_ops dst_dvbc_ops = {
->>  	.init = dst_init,
->>  	.tune = dst_tune_frontend,
->>  	.set_frontend_legacy = dst_set_frontend,
->> -	.get_frontend = dst_get_frontend,
->> +	.get_frontend_legacy = dst_get_frontend,
->>  	.get_frontend_algo = dst_get_tuning_algo,
->>  	.read_status = dst_read_status,
->>  	.read_signal_strength = dst_read_signal_strength,
->> @@ -1861,7 +1861,7 @@ static struct dvb_frontend_ops dst_atsc_ops = {
->>  	.init = dst_init,
->>  	.tune = dst_tune_frontend,
->>  	.set_frontend_legacy = dst_set_frontend,
->> -	.get_frontend = dst_get_frontend,
->> +	.get_frontend_legacy = dst_get_frontend,
->>  	.get_frontend_algo = dst_get_tuning_algo,
->>  	.read_status = dst_read_status,
->>  	.read_signal_strength = dst_read_signal_strength,
->> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> index eca6170..1eefb91 100644
->> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->> @@ -139,6 +139,14 @@ struct dvb_frontend_private {
->>  };
->>  
->>  static void dvb_frontend_wakeup(struct dvb_frontend *fe);
->> +static int dtv_get_frontend(struct dvb_frontend *fe,
->> +			    struct dtv_frontend_properties *c,
->> +			    struct dvb_frontend_parameters *p_out);
->> +
->> +static bool has_get_frontend(struct dvb_frontend *fe)
->> +{
->> +	return fe->ops.get_frontend || fe->ops.get_frontend_legacy;
->> +}
->>  
->>  static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
->>  {
->> @@ -149,8 +157,8 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
->>  
->>  	dprintk ("%s\n", __func__);
->>  
->> -	if ((status & FE_HAS_LOCK) && fe->ops.get_frontend)
->> -		fe->ops.get_frontend(fe, &fepriv->parameters_out);
->> +	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
->> +		dtv_get_frontend(fe, NULL, &fepriv->parameters_out);
->>  
->>  	mutex_lock(&events->mtx);
->>  
->> @@ -1097,11 +1105,10 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
->>  /* Ensure the cached values are set correctly in the frontend
->>   * legacy tuning structures, for the advanced tuning API.
->>   */
->> -static void dtv_property_legacy_params_sync(struct dvb_frontend *fe)
->> +static void dtv_property_legacy_params_sync(struct dvb_frontend *fe,
->> +					    struct dvb_frontend_parameters *p)
->>  {
->>  	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->> -	struct dvb_frontend_parameters *p = &fepriv->parameters_in;
->>  
->>  	p->frequency = c->frequency;
->>  	p->inversion = c->inversion;
->> @@ -1223,6 +1230,7 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
->>  static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>  {
->>  	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->> +	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->>  
->>  	/* For legacy delivery systems we don't need the delivery_system to
->>  	 * be specified, but we populate the older structures from the cache
->> @@ -1231,7 +1239,7 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>  	if(is_legacy_delivery_system(c->delivery_system)) {
->>  
->>  		dprintk("%s() legacy, modulation = %d\n", __func__, c->modulation);
->> -		dtv_property_legacy_params_sync(fe);
->> +		dtv_property_legacy_params_sync(fe, &fepriv->parameters_in);
->>  
->>  	} else {
->>  		dprintk("%s() adv, modulation = %d\n", __func__, c->modulation);
->> @@ -1246,6 +1254,58 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
->>  	}
->>  }
->>  
->> +/**
->> + * dtv_get_frontend - calls a callback for retrieving DTV parameters
->> + * @fe:		struct dvb_frontend pointer
->> + * @c:		struct dtv_frontend_properties pointer (DVBv5 cache)
->> + * @p_out	struct dvb_frontend_parameters pointer (DVBv3 FE struct)
->> + *
->> + * This routine calls either the DVBv3 or DVBv5 get_frontend call.
->> + * If c is not null, it will update the DVBv5 cache struct pointed by it.
->> + * If p_out is not null, it will update the DVBv3 params pointed by it.
->> + */
->> +static int dtv_get_frontend(struct dvb_frontend *fe,
->> +			    struct dtv_frontend_properties *c,
->> +			    struct dvb_frontend_parameters *p_out)
->> +{
->> +	const struct dtv_frontend_properties *cache = &fe->dtv_property_cache;
->> +	struct dtv_frontend_properties tmp_cache;
->> +	struct dvb_frontend_parameters tmp_out;
->> +	bool fill_cache = (c != NULL);
->> +	bool fill_params = (p_out != NULL);
->> +	int r;
->> +
->> +	if (!p_out)
->> +		p_out = & tmp_out;
->> +
->> +	if (!c)
->> +		c = &tmp_cache;
->> +	else
->> +		memcpy(c, cache, sizeof(*c));
->> +
->> +	/* Then try the DVBv5 one */
->> +	if (fe->ops.get_frontend) {
->> +		r = fe->ops.get_frontend(fe, c);
->> +		if (unlikely(r < 0))
->> +			return r;
->> +		if (fill_params)
->> +			dtv_property_legacy_params_sync(fe, p_out);
->> +		return 0;
->> +	}
->> +
->> +	/* As no DVBv5 call exists, use the DVBv3 one */
->> +	if (fe->ops.get_frontend_legacy) {
->> +		r = fe->ops.get_frontend_legacy(fe, p_out);
->> +		if (unlikely(r < 0))
->> +			return r;
->> +		if (fill_cache)
->> +			dtv_property_cache_sync(fe, c, p_out);
->> +		return 0;
->> +	}
->> +
->> +	return -EOPNOTSUPP;
->> +}
->> +
->>  static int dvb_frontend_ioctl_legacy(struct file *file,
->>  			unsigned int cmd, void *parg);
->>  static int dvb_frontend_ioctl_properties(struct file *file,
->> @@ -1296,24 +1356,12 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
->>  }
->>  
->>  static int dtv_property_process_get(struct dvb_frontend *fe,
->> +				    const struct dtv_frontend_properties *c,
->>  				    struct dtv_property *tvp,
->>  				    struct file *file)
->>  {
->> -	const struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->> -	struct dvb_frontend_private *fepriv = fe->frontend_priv;
->> -	struct dtv_frontend_properties cdetected;
->>  	int r;
->>  
->> -	/*
->> -	 * If the driver implements a get_frontend function, then convert
->> -	 * detected parameters to S2API properties.
->> -	 */
->> -	if (fe->ops.get_frontend) {
->> -		cdetected = *c;
->> -		dtv_property_cache_sync(fe, &cdetected, &fepriv->parameters_out);
->> -		c = &cdetected;
->> -	}
->> -
->>  	switch(tvp->cmd) {
->>  	case DTV_ENUM_DELSYS:
->>  		dtv_set_default_delivery_caps(fe, tvp);
->> @@ -1685,6 +1733,7 @@ static int dvb_frontend_ioctl_properties(struct file *file,
->>  
->>  	} else
->>  	if(cmd == FE_GET_PROPERTY) {
->> +		struct dtv_frontend_properties cache_out;
->>  
->>  		tvps = (struct dtv_properties __user *)parg;
->>  
->> @@ -1707,8 +1756,13 @@ static int dvb_frontend_ioctl_properties(struct file *file,
->>  			goto out;
->>  		}
->>  
->> +		/*
->> +		 * Fills the cache out struct with the cache contents, plus
->> +		 * the data retrieved from get_frontend/get_frontend_legacy.
->> +		 */
->> +		dtv_get_frontend(fe, &cache_out, NULL);
+>> Btw., dvb_frontend already refreshes the cache whenever the lock status
+>> changes, i.e. when generating frontend events.
 > 
-> Unlike before, this code actually calls the get_frontend driver
-> callback, causing unwanted I2C traffic for every property. Please drop
-> this behavioural change.
+> True. Well, if all agree, we can add a patch after this series removing
+> the extra parameter from get_frontend(), making it symmetric to the set
+> calls.
 
-Look again: get_frontend() is called only once, when the user requests
-FE_GET_PROPERTY.
+The enclosed patch should do the trick. It also optimizes a little bit
+the dtv_get_frontend() static function.
 
-This will only generate i2c traffic if the frontend implements get_frontend,
-and if it needs to retrieve something from the hardware.
+-
+[PATCH] [media] dvb: don't require a parameter for get_frontend
 
-Btw, there's an optimization on it done by patch 83/91 [1]: if the driver
-doesn't implement get_frontend, it should return the cached values.
+Just like set_frontend, use the dvb cache properties for get_frontend.
+This is more consistent, as both functions are now symetric. Also,
+at the places get_frontend is called, it makes sense to update the
+cache.
 
-[1] http://patchwork.linuxtv.org/patch/9057/
+Most of this patch were generated by this small perl script:
 
-> Btw, this doesn't match the patch description.
-> 
->>  		for (i = 0; i < tvps->num; i++) {
->> -			err = dtv_property_process_get(fe, tvp + i, file);
->> +			err = dtv_property_process_get(fe, &cache_out, tvp + i, file);
+	while (<>) { $file .= $_; }
+	if ($file =~ m/\.get_frontend\s*=\s*([\d\w_]+)/) {
+		my $get = $1;
+		$file =~ s/($get)(\s*\([^\,\)]+)\,\s*struct\s+dtv_frontend_properties\s*\*\s*([_\d\w]+)\)\s*\{/\1\2)\n{\n\tstruct dtv_frontend_properties *\3 = &fe->dtv_property_cache;/g;
+	}
+	print $file;
 
-This loop will sync the data from the cache into the users data, but it won't call
-get_frontend().
+Of course, the changes at dvb_frontend.[ch] were made by hand,
+as well as the changes on a few other places, where get_frontend()
+is called internally inside the driver.
 
-Btw, if you take a look inside dtv_property_process_get(), you'll see
-that get_property() is called every time, for each property.
+On some places, get_frontend() were just a void function. Those
+occurrences were removed, as the DVB core handles such cases.
 
-So, the basic difference is that get_property() will serialize for every property,
-while get_frontend() is called only once.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
->>  			if (err < 0)
->>  				goto out;
->>  			(tvp + i)->result = err;
->> @@ -2008,10 +2062,10 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
->>  		break;
->>  
->>  	case FE_GET_FRONTEND:
->> -		if (fe->ops.get_frontend) {
->> -			err = fe->ops.get_frontend(fe, &fepriv->parameters_out);
->> -			memcpy(parg, &fepriv->parameters_out, sizeof(struct dvb_frontend_parameters));
->> -		}
->> +		err = dtv_get_frontend(fe, NULL, &fepriv->parameters_out);
->> +		if (err >= 0)
->> +			memcpy(parg, &fepriv->parameters_out,
->> +			       sizeof(struct dvb_frontend_parameters));
->>  		break;
->>  
->>  	case FE_SET_FRONTEND_TUNE_MODE:
->> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
->> index dd44964..06ec17a 100644
->> --- a/drivers/media/dvb/dvb-core/dvb_frontend.h
->> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
->> @@ -256,6 +256,8 @@ struct analog_demod_ops {
->>  	int (*set_config)(struct dvb_frontend *fe, void *priv_cfg);
->>  };
->>  
->> +struct dtv_frontend_properties;
->> +
->>  struct dvb_frontend_ops {
->>  
->>  	struct dvb_frontend_info info;
->> @@ -284,7 +286,8 @@ struct dvb_frontend_ops {
->>  	int (*set_frontend)(struct dvb_frontend* fe);
->>  	int (*get_tune_settings)(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* settings);
->>  
->> -	int (*get_frontend)(struct dvb_frontend* fe, struct dvb_frontend_parameters* params);
->> +	int (*get_frontend_legacy)(struct dvb_frontend *fe, struct dvb_frontend_parameters *params);
->> +	int (*get_frontend)(struct dvb_frontend *fe, struct dtv_frontend_properties *props);
->>  
->>  	int (*read_status)(struct dvb_frontend* fe, fe_status_t* status);
->>  	int (*read_ber)(struct dvb_frontend* fe, u32* ber);
->> diff --git a/drivers/media/dvb/dvb-usb/af9005-fe.c b/drivers/media/dvb/dvb-usb/af9005-fe.c
->> index f216933..e9addd8 100644
->> --- a/drivers/media/dvb/dvb-usb/af9005-fe.c
->> +++ b/drivers/media/dvb/dvb-usb/af9005-fe.c
->> @@ -1239,7 +1239,7 @@ static int af9005_fe_get_frontend(struct dvb_frontend *fe,
->>  				      &temp);
->>  	if (ret)
->>  		return ret;
->> -	deb_info("===== fe_get_frontend ==============\n");
->> +	deb_info("===== fe_get_frontend_legacy = =============\n");
->>  	deb_info("CONSTELLATION ");
->>  	switch (temp) {
->>  	case 0:
->> @@ -1476,7 +1476,7 @@ static struct dvb_frontend_ops af9005_fe_ops = {
->>  	.ts_bus_ctrl = af9005_ts_bus_ctrl,
->>  
->>  	.set_frontend_legacy = af9005_fe_set_frontend,
->> -	.get_frontend = af9005_fe_get_frontend,
->> +	.get_frontend_legacy = af9005_fe_get_frontend,
->>  
->>  	.read_status = af9005_fe_read_status,
->>  	.read_ber = af9005_fe_read_ber,
->> diff --git a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
->> index cad2284..40d50f7 100644
->> --- a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
->> +++ b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
->> @@ -341,7 +341,7 @@ static struct dvb_frontend_ops cinergyt2_fe_ops = {
->>  	.sleep			= cinergyt2_fe_sleep,
->>  
->>  	.set_frontend_legacy		= cinergyt2_fe_set_frontend,
->> -	.get_frontend		= cinergyt2_fe_get_frontend,
->> +	.get_frontend_legacy = cinergyt2_fe_get_frontend,
->>  	.get_tune_settings	= cinergyt2_fe_get_tune_settings,
->>  
->>  	.read_status		= cinergyt2_fe_read_status,
->> diff --git a/drivers/media/dvb/dvb-usb/dtt200u-fe.c b/drivers/media/dvb/dvb-usb/dtt200u-fe.c
->> index ef9f7e4..7ce8227 100644
->> --- a/drivers/media/dvb/dvb-usb/dtt200u-fe.c
->> +++ b/drivers/media/dvb/dvb-usb/dtt200u-fe.c
->> @@ -194,7 +194,7 @@ static struct dvb_frontend_ops dtt200u_fe_ops = {
->>  	.sleep = dtt200u_fe_sleep,
->>  
->>  	.set_frontend_legacy = dtt200u_fe_set_frontend,
->> -	.get_frontend = dtt200u_fe_get_frontend,
->> +	.get_frontend_legacy = dtt200u_fe_get_frontend,
->>  	.get_tune_settings = dtt200u_fe_get_tune_settings,
->>  
->>  	.read_status = dtt200u_fe_read_status,
->> diff --git a/drivers/media/dvb/dvb-usb/friio-fe.c b/drivers/media/dvb/dvb-usb/friio-fe.c
->> index c98e2cc..7973aaf 100644
->> --- a/drivers/media/dvb/dvb-usb/friio-fe.c
->> +++ b/drivers/media/dvb/dvb-usb/friio-fe.c
->> @@ -467,7 +467,7 @@ static struct dvb_frontend_ops jdvbt90502_ops = {
->>  	.set_property = jdvbt90502_set_property,
->>  
->>  	.set_frontend_legacy = jdvbt90502_set_frontend,
->> -	.get_frontend = jdvbt90502_get_frontend,
->> +	.get_frontend_legacy = jdvbt90502_get_frontend,
->>  
->>  	.read_status = jdvbt90502_read_status,
->>  	.read_signal_strength = jdvbt90502_read_signal_strength,
->> diff --git a/drivers/media/dvb/dvb-usb/mxl111sf-demod.c b/drivers/media/dvb/dvb-usb/mxl111sf-demod.c
->> index 6639d3a..b798cc8 100644
->> --- a/drivers/media/dvb/dvb-usb/mxl111sf-demod.c
->> +++ b/drivers/media/dvb/dvb-usb/mxl111sf-demod.c
->> @@ -571,7 +571,7 @@ static struct dvb_frontend_ops mxl111sf_demod_ops = {
->>  	.i2c_gate_ctrl        = mxl111sf_i2c_gate_ctrl,
->>  #endif
->>  	.set_frontend_legacy         = mxl111sf_demod_set_frontend,
->> -	.get_frontend         = mxl111sf_demod_get_frontend,
->> +	.get_frontend_legacy = mxl111sf_demod_get_frontend,
->>  	.get_tune_settings    = mxl111sf_demod_get_tune_settings,
->>  	.read_status          = mxl111sf_demod_read_status,
->>  	.read_signal_strength = mxl111sf_demod_read_signal_strength,
->> diff --git a/drivers/media/dvb/dvb-usb/vp702x-fe.c b/drivers/media/dvb/dvb-usb/vp702x-fe.c
->> index ee2177e..8ff5aab 100644
->> --- a/drivers/media/dvb/dvb-usb/vp702x-fe.c
->> +++ b/drivers/media/dvb/dvb-usb/vp702x-fe.c
->> @@ -371,7 +371,7 @@ static struct dvb_frontend_ops vp702x_fe_ops = {
->>  	.sleep = vp702x_fe_sleep,
->>  
->>  	.set_frontend_legacy = vp702x_fe_set_frontend,
->> -	.get_frontend = vp702x_fe_get_frontend,
->> +	.get_frontend_legacy = vp702x_fe_get_frontend,
->>  	.get_tune_settings = vp702x_fe_get_tune_settings,
->>  
->>  	.read_status = vp702x_fe_read_status,
->> diff --git a/drivers/media/dvb/dvb-usb/vp7045-fe.c b/drivers/media/dvb/dvb-usb/vp7045-fe.c
->> index 4f708c7..f8b5d8c 100644
->> --- a/drivers/media/dvb/dvb-usb/vp7045-fe.c
->> +++ b/drivers/media/dvb/dvb-usb/vp7045-fe.c
->> @@ -181,7 +181,7 @@ static struct dvb_frontend_ops vp7045_fe_ops = {
->>  	.sleep = vp7045_fe_sleep,
->>  
->>  	.set_frontend_legacy = vp7045_fe_set_frontend,
->> -	.get_frontend = vp7045_fe_get_frontend,
->> +	.get_frontend_legacy = vp7045_fe_get_frontend,
->>  	.get_tune_settings = vp7045_fe_get_tune_settings,
->>  
->>  	.read_status = vp7045_fe_read_status,
->> diff --git a/drivers/media/dvb/firewire/firedtv-fe.c b/drivers/media/dvb/firewire/firedtv-fe.c
->> index a887abc..1eb5ad3 100644
->> --- a/drivers/media/dvb/firewire/firedtv-fe.c
->> +++ b/drivers/media/dvb/firewire/firedtv-fe.c
->> @@ -174,7 +174,7 @@ void fdtv_frontend_init(struct firedtv *fdtv, const char *name)
->>  	ops->sleep			= fdtv_sleep;
->>  
->>  	ops->set_frontend_legacy	= fdtv_set_frontend;
->> -	ops->get_frontend		= fdtv_get_frontend;
->> +	ops->get_frontend_legacy = fdtv_get_frontend;
->>  
->>  	ops->get_property		= fdtv_get_property;
->>  	ops->set_property		= fdtv_set_property;
->> diff --git a/drivers/media/dvb/frontends/af9013.c b/drivers/media/dvb/frontends/af9013.c
->> index a041d7f..540ed0f 100644
->> --- a/drivers/media/dvb/frontends/af9013.c
->> +++ b/drivers/media/dvb/frontends/af9013.c
->> @@ -1530,7 +1530,7 @@ static struct dvb_frontend_ops af9013_ops = {
->>  	.i2c_gate_ctrl = af9013_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = af9013_set_frontend,
->> -	.get_frontend = af9013_get_frontend,
->> +	.get_frontend_legacy = af9013_get_frontend,
->>  
->>  	.get_tune_settings = af9013_get_tune_settings,
->>  
->> diff --git a/drivers/media/dvb/frontends/atbm8830.c b/drivers/media/dvb/frontends/atbm8830.c
->> index 5fc30f3..c4e0909 100644
->> --- a/drivers/media/dvb/frontends/atbm8830.c
->> +++ b/drivers/media/dvb/frontends/atbm8830.c
->> @@ -450,7 +450,7 @@ static struct dvb_frontend_ops atbm8830_ops = {
->>  	.i2c_gate_ctrl = atbm8830_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = atbm8830_set_fe,
->> -	.get_frontend = atbm8830_get_fe,
->> +	.get_frontend_legacy = atbm8830_get_fe,
->>  	.get_tune_settings = atbm8830_get_tune_settings,
->>  
->>  	.read_status = atbm8830_read_status,
->> diff --git a/drivers/media/dvb/frontends/au8522_dig.c b/drivers/media/dvb/frontends/au8522_dig.c
->> index 4b74cc8..327d6fe 100644
->> --- a/drivers/media/dvb/frontends/au8522_dig.c
->> +++ b/drivers/media/dvb/frontends/au8522_dig.c
->> @@ -1024,7 +1024,7 @@ static struct dvb_frontend_ops au8522_ops = {
->>  	.sleep                = au8522_sleep,
->>  	.i2c_gate_ctrl        = au8522_i2c_gate_ctrl,
->>  	.set_frontend_legacy         = au8522_set_frontend,
->> -	.get_frontend         = au8522_get_frontend,
->> +	.get_frontend_legacy = au8522_get_frontend,
->>  	.get_tune_settings    = au8522_get_tune_settings,
->>  	.read_status          = au8522_read_status,
->>  	.read_ber             = au8522_read_ber,
->> diff --git a/drivers/media/dvb/frontends/cx22700.c b/drivers/media/dvb/frontends/cx22700.c
->> index ce1e74f..7ac95de 100644
->> --- a/drivers/media/dvb/frontends/cx22700.c
->> +++ b/drivers/media/dvb/frontends/cx22700.c
->> @@ -420,7 +420,7 @@ static struct dvb_frontend_ops cx22700_ops = {
->>  	.i2c_gate_ctrl = cx22700_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = cx22700_set_frontend,
->> -	.get_frontend = cx22700_get_frontend,
->> +	.get_frontend_legacy = cx22700_get_frontend,
->>  	.get_tune_settings = cx22700_get_tune_settings,
->>  
->>  	.read_status = cx22700_read_status,
->> diff --git a/drivers/media/dvb/frontends/cx22702.c b/drivers/media/dvb/frontends/cx22702.c
->> index 2cea13e..a04cff8 100644
->> --- a/drivers/media/dvb/frontends/cx22702.c
->> +++ b/drivers/media/dvb/frontends/cx22702.c
->> @@ -623,7 +623,7 @@ static const struct dvb_frontend_ops cx22702_ops = {
->>  	.i2c_gate_ctrl = cx22702_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = cx22702_set_tps,
->> -	.get_frontend = cx22702_get_frontend,
->> +	.get_frontend_legacy = cx22702_get_frontend,
->>  	.get_tune_settings = cx22702_get_tune_settings,
->>  
->>  	.read_status = cx22702_read_status,
->> diff --git a/drivers/media/dvb/frontends/cx24110.c b/drivers/media/dvb/frontends/cx24110.c
->> index c75f9da..278034d 100644
->> --- a/drivers/media/dvb/frontends/cx24110.c
->> +++ b/drivers/media/dvb/frontends/cx24110.c
->> @@ -644,7 +644,7 @@ static struct dvb_frontend_ops cx24110_ops = {
->>  	.init = cx24110_initfe,
->>  	.write = _cx24110_pll_write,
->>  	.set_frontend_legacy = cx24110_set_frontend,
->> -	.get_frontend = cx24110_get_frontend,
->> +	.get_frontend_legacy = cx24110_get_frontend,
->>  	.read_status = cx24110_read_status,
->>  	.read_ber = cx24110_read_ber,
->>  	.read_signal_strength = cx24110_read_signal_strength,
->> diff --git a/drivers/media/dvb/frontends/cx24123.c b/drivers/media/dvb/frontends/cx24123.c
->> index 1342429..96f99a8 100644
->> --- a/drivers/media/dvb/frontends/cx24123.c
->> +++ b/drivers/media/dvb/frontends/cx24123.c
->> @@ -1147,7 +1147,7 @@ static struct dvb_frontend_ops cx24123_ops = {
->>  
->>  	.init = cx24123_initfe,
->>  	.set_frontend_legacy = cx24123_set_frontend,
->> -	.get_frontend = cx24123_get_frontend,
->> +	.get_frontend_legacy = cx24123_get_frontend,
->>  	.read_status = cx24123_read_status,
->>  	.read_ber = cx24123_read_ber,
->>  	.read_signal_strength = cx24123_read_signal_strength,
->> diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
->> index e8ace56..97bc353 100644
->> --- a/drivers/media/dvb/frontends/cxd2820r_core.c
->> +++ b/drivers/media/dvb/frontends/cxd2820r_core.c
->> @@ -823,7 +823,7 @@ static const struct dvb_frontend_ops cxd2820r_ops[2] = {
->>  		.get_tune_settings = cxd2820r_get_tune_settings,
->>  		.i2c_gate_ctrl = cxd2820r_i2c_gate_ctrl,
->>  
->> -		.get_frontend = cxd2820r_get_frontend,
->> +		.get_frontend_legacy = cxd2820r_get_frontend,
->>  
->>  		.get_frontend_algo = cxd2820r_get_frontend_algo,
->>  		.search = cxd2820r_search,
->> @@ -853,7 +853,7 @@ static const struct dvb_frontend_ops cxd2820r_ops[2] = {
->>  		.i2c_gate_ctrl = cxd2820r_i2c_gate_ctrl,
->>  
->>  		.set_frontend_legacy = cxd2820r_set_frontend,
->> -		.get_frontend = cxd2820r_get_frontend,
->> +		.get_frontend_legacy = cxd2820r_get_frontend,
->>  
->>  		.read_status = cxd2820r_read_status,
->>  		.read_snr = cxd2820r_read_snr,
->> diff --git a/drivers/media/dvb/frontends/dib3000mb.c b/drivers/media/dvb/frontends/dib3000mb.c
->> index 987eb17..77af240 100644
->> --- a/drivers/media/dvb/frontends/dib3000mb.c
->> +++ b/drivers/media/dvb/frontends/dib3000mb.c
->> @@ -817,7 +817,7 @@ static struct dvb_frontend_ops dib3000mb_ops = {
->>  	.sleep = dib3000mb_sleep,
->>  
->>  	.set_frontend_legacy = dib3000mb_set_frontend_and_tuner,
->> -	.get_frontend = dib3000mb_get_frontend,
->> +	.get_frontend_legacy = dib3000mb_get_frontend,
->>  	.get_tune_settings = dib3000mb_fe_get_tune_settings,
->>  
->>  	.read_status = dib3000mb_read_status,
->> diff --git a/drivers/media/dvb/frontends/dib3000mc.c b/drivers/media/dvb/frontends/dib3000mc.c
->> index 19fca6e..7ec0e02 100644
->> --- a/drivers/media/dvb/frontends/dib3000mc.c
->> +++ b/drivers/media/dvb/frontends/dib3000mc.c
->> @@ -920,7 +920,7 @@ static struct dvb_frontend_ops dib3000mc_ops = {
->>  
->>  	.set_frontend_legacy         = dib3000mc_set_frontend,
->>  	.get_tune_settings    = dib3000mc_fe_get_tune_settings,
->> -	.get_frontend         = dib3000mc_get_frontend,
->> +	.get_frontend_legacy = dib3000mc_get_frontend,
->>  
->>  	.read_status          = dib3000mc_read_status,
->>  	.read_ber             = dib3000mc_read_ber,
->> diff --git a/drivers/media/dvb/frontends/dib7000m.c b/drivers/media/dvb/frontends/dib7000m.c
->> index cc6a710..45c1105 100644
->> --- a/drivers/media/dvb/frontends/dib7000m.c
->> +++ b/drivers/media/dvb/frontends/dib7000m.c
->> @@ -1453,7 +1453,7 @@ static struct dvb_frontend_ops dib7000m_ops = {
->>  
->>  	.set_frontend_legacy         = dib7000m_set_frontend,
->>  	.get_tune_settings    = dib7000m_fe_get_tune_settings,
->> -	.get_frontend         = dib7000m_get_frontend,
->> +	.get_frontend_legacy = dib7000m_get_frontend,
->>  
->>  	.read_status          = dib7000m_read_status,
->>  	.read_ber             = dib7000m_read_ber,
->> diff --git a/drivers/media/dvb/frontends/dib7000p.c b/drivers/media/dvb/frontends/dib7000p.c
->> index 1e81b5b..feb82b0 100644
->> --- a/drivers/media/dvb/frontends/dib7000p.c
->> +++ b/drivers/media/dvb/frontends/dib7000p.c
->> @@ -2441,7 +2441,7 @@ static struct dvb_frontend_ops dib7000p_ops = {
->>  
->>  	.set_frontend_legacy = dib7000p_set_frontend,
->>  	.get_tune_settings = dib7000p_fe_get_tune_settings,
->> -	.get_frontend = dib7000p_get_frontend,
->> +	.get_frontend_legacy = dib7000p_get_frontend,
->>  
->>  	.read_status = dib7000p_read_status,
->>  	.read_ber = dib7000p_read_ber,
->> diff --git a/drivers/media/dvb/frontends/dib8000.c b/drivers/media/dvb/frontends/dib8000.c
->> index f9c98ba..9860062 100644
->> --- a/drivers/media/dvb/frontends/dib8000.c
->> +++ b/drivers/media/dvb/frontends/dib8000.c
->> @@ -2824,7 +2824,7 @@ static int dib8000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
->>  		if (stat&FE_HAS_SYNC) {
->>  			dprintk("TMCC lock on the slave%i", index_frontend);
->>  			/* synchronize the cache with the other frontends */
->> -			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend], fep);
->> +			state->fe[index_frontend]->ops.get_frontend_legacy(state->fe[index_frontend], fep);
->>  			for (sub_index_frontend = 0; (sub_index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[sub_index_frontend] != NULL); sub_index_frontend++) {
->>  				if (sub_index_frontend != index_frontend) {
->>  					state->fe[sub_index_frontend]->dtv_property_cache.isdbt_sb_mode = state->fe[index_frontend]->dtv_property_cache.isdbt_sb_mode;
->> @@ -3481,7 +3481,7 @@ static const struct dvb_frontend_ops dib8000_ops = {
->>  
->>  	.set_frontend_legacy = dib8000_set_frontend,
->>  	.get_tune_settings = dib8000_fe_get_tune_settings,
->> -	.get_frontend = dib8000_get_frontend,
->> +	.get_frontend_legacy = dib8000_get_frontend,
->>  
->>  	.read_status = dib8000_read_status,
->>  	.read_ber = dib8000_read_ber,
->> diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
->> index c7b4910..4d82a4a 100644
->> --- a/drivers/media/dvb/frontends/dib9000.c
->> +++ b/drivers/media/dvb/frontends/dib9000.c
->> @@ -1883,7 +1883,7 @@ static int dib9000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
->>  			dprintk("TPS lock on the slave%i", index_frontend);
->>  
->>  			/* synchronize the cache with the other frontends */
->> -			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend], fep);
->> +			state->fe[index_frontend]->ops.get_frontend_legacy(state->fe[index_frontend], fep);
->>  			for (sub_index_frontend = 0; (sub_index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[sub_index_frontend] != NULL);
->>  			     sub_index_frontend++) {
->>  				if (sub_index_frontend != index_frontend) {
->> @@ -2515,7 +2515,7 @@ static struct dvb_frontend_ops dib9000_ops = {
->>  
->>  	.set_frontend_legacy = dib9000_set_frontend,
->>  	.get_tune_settings = dib9000_fe_get_tune_settings,
->> -	.get_frontend = dib9000_get_frontend,
->> +	.get_frontend_legacy = dib9000_get_frontend,
->>  
->>  	.read_status = dib9000_read_status,
->>  	.read_ber = dib9000_read_ber,
->> diff --git a/drivers/media/dvb/frontends/drxd_hard.c b/drivers/media/dvb/frontends/drxd_hard.c
->> index 8118bb3..ca05a24 100644
->> --- a/drivers/media/dvb/frontends/drxd_hard.c
->> +++ b/drivers/media/dvb/frontends/drxd_hard.c
->> @@ -2957,7 +2957,7 @@ static struct dvb_frontend_ops drxd_ops = {
->>  	.i2c_gate_ctrl = drxd_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = drxd_set_frontend,
->> -	.get_frontend = drxd_get_frontend,
->> +	.get_frontend_legacy = drxd_get_frontend,
->>  	.get_tune_settings = drxd_get_tune_settings,
->>  
->>  	.read_status = drxd_read_status,
->> diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
->> index 1205944..2299e1d3 100644
->> --- a/drivers/media/dvb/frontends/drxk_hard.c
->> +++ b/drivers/media/dvb/frontends/drxk_hard.c
->> @@ -6407,7 +6407,7 @@ static struct dvb_frontend_ops drxk_c_ops = {
->>  	.i2c_gate_ctrl = drxk_gate_ctrl,
->>  
->>  	.set_frontend_legacy = drxk_set_parameters,
->> -	.get_frontend = drxk_c_get_frontend,
->> +	.get_frontend_legacy = drxk_c_get_frontend,
->>  	.get_property = drxk_c_get_property,
->>  	.get_tune_settings = drxk_c_get_tune_settings,
->>  
->> @@ -6440,7 +6440,7 @@ static struct dvb_frontend_ops drxk_t_ops = {
->>  	.i2c_gate_ctrl = drxk_gate_ctrl,
->>  
->>  	.set_frontend_legacy = drxk_set_parameters,
->> -	.get_frontend = drxk_t_get_frontend,
->> +	.get_frontend_legacy = drxk_t_get_frontend,
->>  	.get_property = drxk_t_get_property,
->>  
->>  	.read_status = drxk_read_status,
->> diff --git a/drivers/media/dvb/frontends/dvb_dummy_fe.c b/drivers/media/dvb/frontends/dvb_dummy_fe.c
->> index 322bcd7..31e1dd6 100644
->> --- a/drivers/media/dvb/frontends/dvb_dummy_fe.c
->> +++ b/drivers/media/dvb/frontends/dvb_dummy_fe.c
->> @@ -193,7 +193,7 @@ static struct dvb_frontend_ops dvb_dummy_fe_ofdm_ops = {
->>  	.sleep = dvb_dummy_fe_sleep,
->>  
->>  	.set_frontend_legacy = dvb_dummy_fe_set_frontend,
->> -	.get_frontend = dvb_dummy_fe_get_frontend,
->> +	.get_frontend_legacy = dvb_dummy_fe_get_frontend,
->>  
->>  	.read_status = dvb_dummy_fe_read_status,
->>  	.read_ber = dvb_dummy_fe_read_ber,
->> @@ -223,7 +223,7 @@ static struct dvb_frontend_ops dvb_dummy_fe_qam_ops = {
->>  	.sleep = dvb_dummy_fe_sleep,
->>  
->>  	.set_frontend_legacy = dvb_dummy_fe_set_frontend,
->> -	.get_frontend = dvb_dummy_fe_get_frontend,
->> +	.get_frontend_legacy = dvb_dummy_fe_get_frontend,
->>  
->>  	.read_status = dvb_dummy_fe_read_status,
->>  	.read_ber = dvb_dummy_fe_read_ber,
->> @@ -255,7 +255,7 @@ static struct dvb_frontend_ops dvb_dummy_fe_qpsk_ops = {
->>  	.sleep = dvb_dummy_fe_sleep,
->>  
->>  	.set_frontend_legacy = dvb_dummy_fe_set_frontend,
->> -	.get_frontend = dvb_dummy_fe_get_frontend,
->> +	.get_frontend_legacy = dvb_dummy_fe_get_frontend,
->>  
->>  	.read_status = dvb_dummy_fe_read_status,
->>  	.read_ber = dvb_dummy_fe_read_ber,
->> diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
->> index 54d8534..a13f897 100644
->> --- a/drivers/media/dvb/frontends/it913x-fe.c
->> +++ b/drivers/media/dvb/frontends/it913x-fe.c
->> @@ -940,7 +940,7 @@ static struct dvb_frontend_ops it913x_fe_ofdm_ops = {
->>  	.sleep = it913x_fe_sleep,
->>  
->>  	.set_frontend_legacy = it913x_fe_set_frontend,
->> -	.get_frontend = it913x_fe_get_frontend,
->> +	.get_frontend_legacy = it913x_fe_get_frontend,
->>  
->>  	.read_status = it913x_fe_read_status,
->>  	.read_signal_strength = it913x_fe_read_signal_strength,
->> diff --git a/drivers/media/dvb/frontends/l64781.c b/drivers/media/dvb/frontends/l64781.c
->> index fd4170a..1f1c598 100644
->> --- a/drivers/media/dvb/frontends/l64781.c
->> +++ b/drivers/media/dvb/frontends/l64781.c
->> @@ -585,7 +585,7 @@ static struct dvb_frontend_ops l64781_ops = {
->>  	.sleep = l64781_sleep,
->>  
->>  	.set_frontend_legacy = apply_frontend_param,
->> -	.get_frontend = get_frontend,
->> +	.get_frontend_legacy = get_frontend,
->>  	.get_tune_settings = l64781_get_tune_settings,
->>  
->>  	.read_status = l64781_read_status,
->> diff --git a/drivers/media/dvb/frontends/lgdt3305.c b/drivers/media/dvb/frontends/lgdt3305.c
->> index 8f15178..e1a9c92 100644
->> --- a/drivers/media/dvb/frontends/lgdt3305.c
->> +++ b/drivers/media/dvb/frontends/lgdt3305.c
->> @@ -1177,7 +1177,7 @@ static struct dvb_frontend_ops lgdt3304_ops = {
->>  	.i2c_gate_ctrl        = lgdt3305_i2c_gate_ctrl,
->>  	.init                 = lgdt3305_init,
->>  	.set_frontend_legacy         = lgdt3304_set_parameters,
->> -	.get_frontend         = lgdt3305_get_frontend,
->> +	.get_frontend_legacy = lgdt3305_get_frontend,
->>  	.get_tune_settings    = lgdt3305_get_tune_settings,
->>  	.read_status          = lgdt3305_read_status,
->>  	.read_ber             = lgdt3305_read_ber,
->> @@ -1200,7 +1200,7 @@ static struct dvb_frontend_ops lgdt3305_ops = {
->>  	.init                 = lgdt3305_init,
->>  	.sleep                = lgdt3305_sleep,
->>  	.set_frontend_legacy         = lgdt3305_set_parameters,
->> -	.get_frontend         = lgdt3305_get_frontend,
->> +	.get_frontend_legacy = lgdt3305_get_frontend,
->>  	.get_tune_settings    = lgdt3305_get_tune_settings,
->>  	.read_status          = lgdt3305_read_status,
->>  	.read_ber             = lgdt3305_read_ber,
->> diff --git a/drivers/media/dvb/frontends/lgdt330x.c b/drivers/media/dvb/frontends/lgdt330x.c
->> index bdae349..21bffc0 100644
->> --- a/drivers/media/dvb/frontends/lgdt330x.c
->> +++ b/drivers/media/dvb/frontends/lgdt330x.c
->> @@ -774,7 +774,7 @@ static struct dvb_frontend_ops lgdt3302_ops = {
->>  	},
->>  	.init                 = lgdt330x_init,
->>  	.set_frontend_legacy         = lgdt330x_set_parameters,
->> -	.get_frontend         = lgdt330x_get_frontend,
->> +	.get_frontend_legacy = lgdt330x_get_frontend,
->>  	.get_tune_settings    = lgdt330x_get_tune_settings,
->>  	.read_status          = lgdt3302_read_status,
->>  	.read_ber             = lgdt330x_read_ber,
->> @@ -797,7 +797,7 @@ static struct dvb_frontend_ops lgdt3303_ops = {
->>  	},
->>  	.init                 = lgdt330x_init,
->>  	.set_frontend_legacy         = lgdt330x_set_parameters,
->> -	.get_frontend         = lgdt330x_get_frontend,
->> +	.get_frontend_legacy = lgdt330x_get_frontend,
->>  	.get_tune_settings    = lgdt330x_get_tune_settings,
->>  	.read_status          = lgdt3303_read_status,
->>  	.read_ber             = lgdt330x_read_ber,
->> diff --git a/drivers/media/dvb/frontends/lgs8gl5.c b/drivers/media/dvb/frontends/lgs8gl5.c
->> index 65a5c5d..f4e82a6 100644
->> --- a/drivers/media/dvb/frontends/lgs8gl5.c
->> +++ b/drivers/media/dvb/frontends/lgs8gl5.c
->> @@ -435,7 +435,7 @@ static struct dvb_frontend_ops lgs8gl5_ops = {
->>  	.init = lgs8gl5_init,
->>  
->>  	.set_frontend_legacy = lgs8gl5_set_frontend,
->> -	.get_frontend = lgs8gl5_get_frontend,
->> +	.get_frontend_legacy = lgs8gl5_get_frontend,
->>  	.get_tune_settings = lgs8gl5_get_tune_settings,
->>  
->>  	.read_status = lgs8gl5_read_status,
->> diff --git a/drivers/media/dvb/frontends/lgs8gxx.c b/drivers/media/dvb/frontends/lgs8gxx.c
->> index 5684b61..05bfa05 100644
->> --- a/drivers/media/dvb/frontends/lgs8gxx.c
->> +++ b/drivers/media/dvb/frontends/lgs8gxx.c
->> @@ -1014,7 +1014,7 @@ static struct dvb_frontend_ops lgs8gxx_ops = {
->>  	.i2c_gate_ctrl = lgs8gxx_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = lgs8gxx_set_fe,
->> -	.get_frontend = lgs8gxx_get_fe,
->> +	.get_frontend_legacy = lgs8gxx_get_fe,
->>  	.get_tune_settings = lgs8gxx_get_tune_settings,
->>  
->>  	.read_status = lgs8gxx_read_status,
->> diff --git a/drivers/media/dvb/frontends/mb86a20s.c b/drivers/media/dvb/frontends/mb86a20s.c
->> index 3ae6d1f..2dfea6c 100644
->> --- a/drivers/media/dvb/frontends/mb86a20s.c
->> +++ b/drivers/media/dvb/frontends/mb86a20s.c
->> @@ -628,7 +628,7 @@ static struct dvb_frontend_ops mb86a20s_ops = {
->>  
->>  	.init = mb86a20s_initfe,
->>  	.set_frontend_legacy = mb86a20s_set_frontend,
->> -	.get_frontend = mb86a20s_get_frontend,
->> +	.get_frontend_legacy = mb86a20s_get_frontend,
->>  	.read_status = mb86a20s_read_status,
->>  	.read_signal_strength = mb86a20s_read_signal_strength,
->>  	.tune = mb86a20s_tune,
->> diff --git a/drivers/media/dvb/frontends/mt312.c b/drivers/media/dvb/frontends/mt312.c
->> index efae45f..8f5d2d2 100644
->> --- a/drivers/media/dvb/frontends/mt312.c
->> +++ b/drivers/media/dvb/frontends/mt312.c
->> @@ -762,7 +762,7 @@ static struct dvb_frontend_ops mt312_ops = {
->>  	.i2c_gate_ctrl = mt312_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = mt312_set_frontend,
->> -	.get_frontend = mt312_get_frontend,
->> +	.get_frontend_legacy = mt312_get_frontend,
->>  	.get_tune_settings = mt312_get_tune_settings,
->>  
->>  	.read_status = mt312_read_status,
->> diff --git a/drivers/media/dvb/frontends/mt352.c b/drivers/media/dvb/frontends/mt352.c
->> index 2bd68c5..021108d 100644
->> --- a/drivers/media/dvb/frontends/mt352.c
->> +++ b/drivers/media/dvb/frontends/mt352.c
->> @@ -593,7 +593,7 @@ static struct dvb_frontend_ops mt352_ops = {
->>  	.write = _mt352_write,
->>  
->>  	.set_frontend_legacy = mt352_set_parameters,
->> -	.get_frontend = mt352_get_parameters,
->> +	.get_frontend_legacy = mt352_get_parameters,
->>  	.get_tune_settings = mt352_get_tune_settings,
->>  
->>  	.read_status = mt352_read_status,
->> diff --git a/drivers/media/dvb/frontends/or51132.c b/drivers/media/dvb/frontends/or51132.c
->> index 461f9fd..e0c952c 100644
->> --- a/drivers/media/dvb/frontends/or51132.c
->> +++ b/drivers/media/dvb/frontends/or51132.c
->> @@ -598,7 +598,7 @@ static struct dvb_frontend_ops or51132_ops = {
->>  	.sleep = or51132_sleep,
->>  
->>  	.set_frontend_legacy = or51132_set_parameters,
->> -	.get_frontend = or51132_get_parameters,
->> +	.get_frontend_legacy = or51132_get_parameters,
->>  	.get_tune_settings = or51132_get_tune_settings,
->>  
->>  	.read_status = or51132_read_status,
->> diff --git a/drivers/media/dvb/frontends/s5h1409.c b/drivers/media/dvb/frontends/s5h1409.c
->> index 0b6e6c5..f39216c 100644
->> --- a/drivers/media/dvb/frontends/s5h1409.c
->> +++ b/drivers/media/dvb/frontends/s5h1409.c
->> @@ -1009,7 +1009,7 @@ static struct dvb_frontend_ops s5h1409_ops = {
->>  	.init                 = s5h1409_init,
->>  	.i2c_gate_ctrl        = s5h1409_i2c_gate_ctrl,
->>  	.set_frontend_legacy         = s5h1409_set_frontend,
->> -	.get_frontend         = s5h1409_get_frontend,
->> +	.get_frontend_legacy = s5h1409_get_frontend,
->>  	.get_tune_settings    = s5h1409_get_tune_settings,
->>  	.read_status          = s5h1409_read_status,
->>  	.read_ber             = s5h1409_read_ber,
->> diff --git a/drivers/media/dvb/frontends/s5h1411.c b/drivers/media/dvb/frontends/s5h1411.c
->> index 67ab85c..cb221aa 100644
->> --- a/drivers/media/dvb/frontends/s5h1411.c
->> +++ b/drivers/media/dvb/frontends/s5h1411.c
->> @@ -929,7 +929,7 @@ static struct dvb_frontend_ops s5h1411_ops = {
->>  	.sleep                = s5h1411_sleep,
->>  	.i2c_gate_ctrl        = s5h1411_i2c_gate_ctrl,
->>  	.set_frontend_legacy         = s5h1411_set_frontend,
->> -	.get_frontend         = s5h1411_get_frontend,
->> +	.get_frontend_legacy = s5h1411_get_frontend,
->>  	.get_tune_settings    = s5h1411_get_tune_settings,
->>  	.read_status          = s5h1411_read_status,
->>  	.read_ber             = s5h1411_read_ber,
->> diff --git a/drivers/media/dvb/frontends/s5h1420.c b/drivers/media/dvb/frontends/s5h1420.c
->> index e2cecf4..44ec27d 100644
->> --- a/drivers/media/dvb/frontends/s5h1420.c
->> +++ b/drivers/media/dvb/frontends/s5h1420.c
->> @@ -961,7 +961,7 @@ static struct dvb_frontend_ops s5h1420_ops = {
->>  	.i2c_gate_ctrl = s5h1420_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = s5h1420_set_frontend,
->> -	.get_frontend = s5h1420_get_frontend,
->> +	.get_frontend_legacy = s5h1420_get_frontend,
->>  	.get_tune_settings = s5h1420_get_tune_settings,
->>  
->>  	.read_status = s5h1420_read_status,
->> diff --git a/drivers/media/dvb/frontends/s5h1432.c b/drivers/media/dvb/frontends/s5h1432.c
->> index a0dbbdc..f22c71e 100644
->> --- a/drivers/media/dvb/frontends/s5h1432.c
->> +++ b/drivers/media/dvb/frontends/s5h1432.c
->> @@ -397,7 +397,7 @@ static struct dvb_frontend_ops s5h1432_ops = {
->>  	.init = s5h1432_init,
->>  	.sleep = s5h1432_sleep,
->>  	.set_frontend_legacy = s5h1432_set_frontend,
->> -	.get_frontend = s5h1432_get_frontend,
->> +	.get_frontend_legacy = s5h1432_get_frontend,
->>  	.get_tune_settings = s5h1432_get_tune_settings,
->>  	.read_status = s5h1432_read_status,
->>  	.read_ber = s5h1432_read_ber,
->> diff --git a/drivers/media/dvb/frontends/s921.c b/drivers/media/dvb/frontends/s921.c
->> index 6615979..5e8f2a8 100644
->> --- a/drivers/media/dvb/frontends/s921.c
->> +++ b/drivers/media/dvb/frontends/s921.c
->> @@ -535,7 +535,7 @@ static struct dvb_frontend_ops s921_ops = {
->>  
->>  	.init = s921_initfe,
->>  	.set_frontend_legacy = s921_set_frontend,
->> -	.get_frontend = s921_get_frontend,
->> +	.get_frontend_legacy = s921_get_frontend,
->>  	.read_status = s921_read_status,
->>  	.read_signal_strength = s921_read_signal_strength,
->>  	.tune = s921_tune,
->> diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
->> index 9c93d9f..9fa31d5 100644
->> --- a/drivers/media/dvb/frontends/stb0899_drv.c
->> +++ b/drivers/media/dvb/frontends/stb0899_drv.c
->> @@ -1648,7 +1648,7 @@ static struct dvb_frontend_ops stb0899_ops = {
->>  	.get_frontend_algo		= stb0899_frontend_algo,
->>  	.search				= stb0899_search,
->>  	.track				= stb0899_track,
->> -	.get_frontend			= stb0899_get_frontend,
->> +	.get_frontend_legacy = stb0899_get_frontend,
->>  
->>  
->>  	.read_status			= stb0899_read_status,
->> diff --git a/drivers/media/dvb/frontends/stb6100.c b/drivers/media/dvb/frontends/stb6100.c
->> index bc1a8af..7f68fd3 100644
->> --- a/drivers/media/dvb/frontends/stb6100.c
->> +++ b/drivers/media/dvb/frontends/stb6100.c
->> @@ -335,9 +335,9 @@ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
->>  
->>  	dprintk(verbose, FE_DEBUG, 1, "Version 2010-8-14 13:51");
->>  
->> -	if (fe->ops.get_frontend) {
->> +	if (fe->ops.get_frontend_legacy) {
->>  		dprintk(verbose, FE_DEBUG, 1, "Get frontend parameters");
->> -		fe->ops.get_frontend(fe, &p);
->> +		fe->ops.get_frontend_legacy(fe, &p);
->>  	}
->>  	srate = p.u.qpsk.symbol_rate;
->>  
->> diff --git a/drivers/media/dvb/frontends/stv0297.c b/drivers/media/dvb/frontends/stv0297.c
->> index 63a3e1b..5d7c288 100644
->> --- a/drivers/media/dvb/frontends/stv0297.c
->> +++ b/drivers/media/dvb/frontends/stv0297.c
->> @@ -707,7 +707,7 @@ static struct dvb_frontend_ops stv0297_ops = {
->>  	.i2c_gate_ctrl = stv0297_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = stv0297_set_frontend,
->> -	.get_frontend = stv0297_get_frontend,
->> +	.get_frontend_legacy = stv0297_get_frontend,
->>  
->>  	.read_status = stv0297_read_status,
->>  	.read_ber = stv0297_read_ber,
->> diff --git a/drivers/media/dvb/frontends/stv0299.c b/drivers/media/dvb/frontends/stv0299.c
->> index 4f248e1..6aeabaf 100644
->> --- a/drivers/media/dvb/frontends/stv0299.c
->> +++ b/drivers/media/dvb/frontends/stv0299.c
->> @@ -730,7 +730,7 @@ static struct dvb_frontend_ops stv0299_ops = {
->>  	.i2c_gate_ctrl = stv0299_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = stv0299_set_frontend,
->> -	.get_frontend = stv0299_get_frontend,
->> +	.get_frontend_legacy = stv0299_get_frontend,
->>  	.get_tune_settings = stv0299_get_tune_settings,
->>  
->>  	.read_status = stv0299_read_status,
->> diff --git a/drivers/media/dvb/frontends/stv0367.c b/drivers/media/dvb/frontends/stv0367.c
->> index 7752d13..e0a2438 100644
->> --- a/drivers/media/dvb/frontends/stv0367.c
->> +++ b/drivers/media/dvb/frontends/stv0367.c
->> @@ -2286,7 +2286,7 @@ static struct dvb_frontend_ops stv0367ter_ops = {
->>  	.sleep = stv0367ter_sleep,
->>  	.i2c_gate_ctrl = stv0367ter_gate_ctrl,
->>  	.set_frontend_legacy = stv0367ter_set_frontend,
->> -	.get_frontend = stv0367ter_get_frontend,
->> +	.get_frontend_legacy = stv0367ter_get_frontend,
->>  	.get_tune_settings = stv0367_get_tune_settings,
->>  	.read_status = stv0367ter_read_status,
->>  	.read_ber = stv0367ter_read_ber,/* too slow */
->> @@ -3404,7 +3404,7 @@ static struct dvb_frontend_ops stv0367cab_ops = {
->>  	.sleep					= stv0367cab_sleep,
->>  	.i2c_gate_ctrl				= stv0367cab_gate_ctrl,
->>  	.set_frontend_legacy				= stv0367cab_set_frontend,
->> -	.get_frontend				= stv0367cab_get_frontend,
->> +	.get_frontend_legacy = stv0367cab_get_frontend,
->>  	.read_status				= stv0367cab_read_status,
->>  /*	.read_ber				= stv0367cab_read_ber, */
->>  	.read_signal_strength			= stv0367cab_read_strength,
->> diff --git a/drivers/media/dvb/frontends/stv0900_core.c b/drivers/media/dvb/frontends/stv0900_core.c
->> index 2b8d78c..df46654 100644
->> --- a/drivers/media/dvb/frontends/stv0900_core.c
->> +++ b/drivers/media/dvb/frontends/stv0900_core.c
->> @@ -1908,7 +1908,7 @@ static struct dvb_frontend_ops stv0900_ops = {
->>  	},
->>  	.release			= stv0900_release,
->>  	.init				= stv0900_init,
->> -	.get_frontend                   = stv0900_get_frontend,
->> +	.get_frontend_legacy = stv0900_get_frontend,
->>  	.sleep				= stv0900_sleep,
->>  	.get_frontend_algo		= stv0900_frontend_algo,
->>  	.i2c_gate_ctrl			= stv0900_i2c_gate_ctrl,
->> diff --git a/drivers/media/dvb/frontends/tda10021.c b/drivers/media/dvb/frontends/tda10021.c
->> index 0bbf681..3976d22 100644
->> --- a/drivers/media/dvb/frontends/tda10021.c
->> +++ b/drivers/media/dvb/frontends/tda10021.c
->> @@ -525,7 +525,7 @@ static struct dvb_frontend_ops tda10021_ops = {
->>  	.i2c_gate_ctrl = tda10021_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = tda10021_set_parameters,
->> -	.get_frontend = tda10021_get_frontend,
->> +	.get_frontend_legacy = tda10021_get_frontend,
->>  	.get_property = tda10021_get_property,
->>  
->>  	.read_status = tda10021_read_status,
->> diff --git a/drivers/media/dvb/frontends/tda10023.c b/drivers/media/dvb/frontends/tda10023.c
->> index f79841b..de535a4 100644
->> --- a/drivers/media/dvb/frontends/tda10023.c
->> +++ b/drivers/media/dvb/frontends/tda10023.c
->> @@ -610,7 +610,7 @@ static struct dvb_frontend_ops tda10023_ops = {
->>  	.i2c_gate_ctrl = tda10023_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = tda10023_set_parameters,
->> -	.get_frontend = tda10023_get_frontend,
->> +	.get_frontend_legacy = tda10023_get_frontend,
->>  	.get_property = tda10023_get_property,
->>  	.read_status = tda10023_read_status,
->>  	.read_ber = tda10023_read_ber,
->> diff --git a/drivers/media/dvb/frontends/tda10048.c b/drivers/media/dvb/frontends/tda10048.c
->> index 479ff85..bba249b 100644
->> --- a/drivers/media/dvb/frontends/tda10048.c
->> +++ b/drivers/media/dvb/frontends/tda10048.c
->> @@ -1189,7 +1189,7 @@ static struct dvb_frontend_ops tda10048_ops = {
->>  	.init = tda10048_init,
->>  	.i2c_gate_ctrl = tda10048_i2c_gate_ctrl,
->>  	.set_frontend_legacy = tda10048_set_frontend,
->> -	.get_frontend = tda10048_get_frontend,
->> +	.get_frontend_legacy = tda10048_get_frontend,
->>  	.get_tune_settings = tda10048_get_tune_settings,
->>  	.read_status = tda10048_read_status,
->>  	.read_ber = tda10048_read_ber,
->> diff --git a/drivers/media/dvb/frontends/tda1004x.c b/drivers/media/dvb/frontends/tda1004x.c
->> index dd41057..2dbb070 100644
->> --- a/drivers/media/dvb/frontends/tda1004x.c
->> +++ b/drivers/media/dvb/frontends/tda1004x.c
->> @@ -1252,7 +1252,7 @@ static struct dvb_frontend_ops tda10045_ops = {
->>  	.i2c_gate_ctrl = tda1004x_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = tda1004x_set_fe,
->> -	.get_frontend = tda1004x_get_fe,
->> +	.get_frontend_legacy = tda1004x_get_fe,
->>  	.get_tune_settings = tda1004x_get_tune_settings,
->>  
->>  	.read_status = tda1004x_read_status,
->> @@ -1322,7 +1322,7 @@ static struct dvb_frontend_ops tda10046_ops = {
->>  	.i2c_gate_ctrl = tda1004x_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = tda1004x_set_fe,
->> -	.get_frontend = tda1004x_get_fe,
->> +	.get_frontend_legacy = tda1004x_get_fe,
->>  	.get_tune_settings = tda1004x_get_tune_settings,
->>  
->>  	.read_status = tda1004x_read_status,
->> diff --git a/drivers/media/dvb/frontends/tda10071.c b/drivers/media/dvb/frontends/tda10071.c
->> index 7bffa65..e9e00ea 100644
->> --- a/drivers/media/dvb/frontends/tda10071.c
->> +++ b/drivers/media/dvb/frontends/tda10071.c
->> @@ -1248,7 +1248,7 @@ static struct dvb_frontend_ops tda10071_ops = {
->>  	.sleep = tda10071_sleep,
->>  
->>  	.set_frontend_legacy = tda10071_set_frontend,
->> -	.get_frontend = tda10071_get_frontend,
->> +	.get_frontend_legacy = tda10071_get_frontend,
->>  
->>  	.read_status = tda10071_read_status,
->>  	.read_snr = tda10071_read_snr,
->> diff --git a/drivers/media/dvb/frontends/tda10086.c b/drivers/media/dvb/frontends/tda10086.c
->> index be4649f..8501100 100644
->> --- a/drivers/media/dvb/frontends/tda10086.c
->> +++ b/drivers/media/dvb/frontends/tda10086.c
->> @@ -723,7 +723,7 @@ static struct dvb_frontend_ops tda10086_ops = {
->>  	.i2c_gate_ctrl = tda10086_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = tda10086_set_frontend,
->> -	.get_frontend = tda10086_get_frontend,
->> +	.get_frontend_legacy = tda10086_get_frontend,
->>  	.get_tune_settings = tda10086_get_tune_settings,
->>  
->>  	.read_status = tda10086_read_status,
->> diff --git a/drivers/media/dvb/frontends/tda8083.c b/drivers/media/dvb/frontends/tda8083.c
->> index 9d1466f..7ff2946 100644
->> --- a/drivers/media/dvb/frontends/tda8083.c
->> +++ b/drivers/media/dvb/frontends/tda8083.c
->> @@ -462,7 +462,7 @@ static struct dvb_frontend_ops tda8083_ops = {
->>  	.sleep = tda8083_sleep,
->>  
->>  	.set_frontend_legacy = tda8083_set_frontend,
->> -	.get_frontend = tda8083_get_frontend,
->> +	.get_frontend_legacy = tda8083_get_frontend,
->>  
->>  	.read_status = tda8083_read_status,
->>  	.read_signal_strength = tda8083_read_signal_strength,
->> diff --git a/drivers/media/dvb/frontends/ves1820.c b/drivers/media/dvb/frontends/ves1820.c
->> index 6fb8eb5..7961231 100644
->> --- a/drivers/media/dvb/frontends/ves1820.c
->> +++ b/drivers/media/dvb/frontends/ves1820.c
->> @@ -426,7 +426,7 @@ static struct dvb_frontend_ops ves1820_ops = {
->>  	.sleep = ves1820_sleep,
->>  
->>  	.set_frontend_legacy = ves1820_set_parameters,
->> -	.get_frontend = ves1820_get_frontend,
->> +	.get_frontend_legacy = ves1820_get_frontend,
->>  	.get_tune_settings = ves1820_get_tune_settings,
->>  
->>  	.read_status = ves1820_read_status,
->> diff --git a/drivers/media/dvb/frontends/ves1x93.c b/drivers/media/dvb/frontends/ves1x93.c
->> index f80f152..a95619e 100644
->> --- a/drivers/media/dvb/frontends/ves1x93.c
->> +++ b/drivers/media/dvb/frontends/ves1x93.c
->> @@ -530,7 +530,7 @@ static struct dvb_frontend_ops ves1x93_ops = {
->>  	.i2c_gate_ctrl = ves1x93_i2c_gate_ctrl,
->>  
->>  	.set_frontend_legacy = ves1x93_set_frontend,
->> -	.get_frontend = ves1x93_get_frontend,
->> +	.get_frontend_legacy = ves1x93_get_frontend,
->>  
->>  	.read_status = ves1x93_read_status,
->>  	.read_ber = ves1x93_read_ber,
->> diff --git a/drivers/media/dvb/frontends/zl10353.c b/drivers/media/dvb/frontends/zl10353.c
->> index 8b6c2a4..35334da 100644
->> --- a/drivers/media/dvb/frontends/zl10353.c
->> +++ b/drivers/media/dvb/frontends/zl10353.c
->> @@ -676,7 +676,7 @@ static struct dvb_frontend_ops zl10353_ops = {
->>  	.write = zl10353_write,
->>  
->>  	.set_frontend_legacy = zl10353_set_parameters,
->> -	.get_frontend = zl10353_get_parameters,
->> +	.get_frontend_legacy = zl10353_get_parameters,
->>  	.get_tune_settings = zl10353_get_tune_settings,
->>  
->>  	.read_status = zl10353_read_status,
->> diff --git a/drivers/media/dvb/siano/smsdvb.c b/drivers/media/dvb/siano/smsdvb.c
->> index fa17f02..df08d6a 100644
->> --- a/drivers/media/dvb/siano/smsdvb.c
->> +++ b/drivers/media/dvb/siano/smsdvb.c
->> @@ -806,7 +806,7 @@ static struct dvb_frontend_ops smsdvb_fe_ops = {
->>  	.release = smsdvb_release,
->>  
->>  	.set_frontend_legacy = smsdvb_set_frontend,
->> -	.get_frontend = smsdvb_get_frontend,
->> +	.get_frontend_legacy = smsdvb_get_frontend,
->>  	.get_tune_settings = smsdvb_get_tune_settings,
->>  
->>  	.read_status = smsdvb_read_status,
->> diff --git a/drivers/media/video/tlg2300/pd-dvb.c b/drivers/media/video/tlg2300/pd-dvb.c
->> index 51a7d55..f864c17 100644
->> --- a/drivers/media/video/tlg2300/pd-dvb.c
->> +++ b/drivers/media/video/tlg2300/pd-dvb.c
->> @@ -354,7 +354,7 @@ static struct dvb_frontend_ops poseidon_frontend_ops = {
->>  	.sleep = poseidon_fe_sleep,
->>  
->>  	.set_frontend_legacy = poseidon_set_fe,
->> -	.get_frontend = poseidon_get_fe,
->> +	.get_frontend_legacy = poseidon_get_fe,
->>  	.get_tune_settings = poseidon_fe_get_tune_settings,
->>  
->>  	.read_status	= poseidon_read_status,
->> diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
->> index 161bcbe..b0c5128 100644
->> --- a/drivers/staging/media/as102/as102_fe.c
->> +++ b/drivers/staging/media/as102/as102_fe.c
->> @@ -297,7 +297,7 @@ static struct dvb_frontend_ops as102_fe_ops = {
->>  	},
->>  
->>  	.set_frontend_legacy	= as102_fe_set_frontend,
->> -	.get_frontend		= as102_fe_get_frontend,
->> +	.get_frontend_legacy	= as102_fe_get_frontend,
->>  	.get_tune_settings	= as102_fe_get_tune_settings,
->>  
->>  	.read_status		= as102_fe_read_status,
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+diff --git a/drivers/media/dvb/bt8xx/dst.c b/drivers/media/dvb/bt8xx/dst.c
+index 80b1f2a..9c5cbf1 100644
+--- a/drivers/media/dvb/bt8xx/dst.c
++++ b/drivers/media/dvb/bt8xx/dst.c
+@@ -1685,8 +1685,9 @@ static int dst_get_tuning_algo(struct dvb_frontend *fe)
+ 	return dst_algo ? DVBFE_ALGO_HW : DVBFE_ALGO_SW;
+ }
+ 
+-static int dst_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
++static int dst_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct dst_state *state = fe->demodulator_priv;
+ 
+ 	p->frequency = state->decode_freq;
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 9d092a6..9a7ee92 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -143,7 +143,6 @@ struct dvb_frontend_private {
+ 
+ static void dvb_frontend_wakeup(struct dvb_frontend *fe);
+ static int dtv_get_frontend(struct dvb_frontend *fe,
+-			    struct dtv_frontend_properties *c,
+ 			    struct dvb_frontend_parameters *p_out);
+ 
+ static bool has_get_frontend(struct dvb_frontend *fe)
+@@ -161,7 +160,7 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
+ 	dprintk ("%s\n", __func__);
+ 
+ 	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
+-		dtv_get_frontend(fe, NULL, &fepriv->parameters_out);
++		dtv_get_frontend(fe, &fepriv->parameters_out);
+ 
+ 	mutex_lock(&events->mtx);
+ 
+@@ -1261,33 +1260,20 @@ static void dtv_property_cache_submit(struct dvb_frontend *fe)
+  * If p_out is not null, it will update the DVBv3 params pointed by it.
+  */
+ static int dtv_get_frontend(struct dvb_frontend *fe,
+-			    struct dtv_frontend_properties *c,
+ 			    struct dvb_frontend_parameters *p_out)
+ {
+-	const struct dtv_frontend_properties *cache = &fe->dtv_property_cache;
+-	struct dtv_frontend_properties tmp_cache;
+-	struct dvb_frontend_parameters tmp_out;
+-	bool fill_params = (p_out != NULL);
+ 	int r;
+ 
+-	if (!p_out)
+-		p_out = & tmp_out;
+-
+-	if (!c)
+-		c = &tmp_cache;
+-	else
+-		memcpy(c, cache, sizeof(*c));
+-
+ 	if (fe->ops.get_frontend) {
+-		r = fe->ops.get_frontend(fe, c);
++		r = fe->ops.get_frontend(fe);
+ 		if (unlikely(r < 0))
+ 			return r;
+-		if (fill_params)
++		if (p_out)
+ 			dtv_property_legacy_params_sync(fe, p_out);
+ 		return 0;
+ 	}
+ 
+-	/* As everything is in cache, this is always supported */
++	/* As everything is in cache, get_frontend fops are always supported */
+ 	return 0;
+ }
+ 
+@@ -1717,8 +1703,6 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 
+ 	} else
+ 	if(cmd == FE_GET_PROPERTY) {
+-		struct dtv_frontend_properties cache_out;
+-
+ 		tvps = (struct dtv_properties __user *)parg;
+ 
+ 		dprintk("%s() properties.num = %d\n", __func__, tvps->num);
+@@ -1744,9 +1728,9 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 		 * Fills the cache out struct with the cache contents, plus
+ 		 * the data retrieved from get_frontend.
+ 		 */
+-		dtv_get_frontend(fe, &cache_out, NULL);
++		dtv_get_frontend(fe, NULL);
+ 		for (i = 0; i < tvps->num; i++) {
+-			err = dtv_property_process_get(fe, &cache_out, tvp + i, file);
++			err = dtv_property_process_get(fe, c, tvp + i, file);
+ 			if (err < 0)
+ 				goto out;
+ 			(tvp + i)->result = err;
+@@ -2043,7 +2027,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 		break;
+ 
+ 	case FE_GET_FRONTEND:
+-		err = dtv_get_frontend(fe, NULL, &fepriv->parameters_out);
++		err = dtv_get_frontend(fe, &fepriv->parameters_out);
+ 		if (err >= 0)
+ 			memcpy(parg, &fepriv->parameters_out,
+ 			       sizeof(struct dvb_frontend_parameters));
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index 382d97f..1ee2e7f 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -284,7 +284,7 @@ struct dvb_frontend_ops {
+ 	int (*set_frontend)(struct dvb_frontend* fe);
+ 	int (*get_tune_settings)(struct dvb_frontend* fe, struct dvb_frontend_tune_settings* settings);
+ 
+-	int (*get_frontend)(struct dvb_frontend *fe, struct dtv_frontend_properties *props);
++	int (*get_frontend)(struct dvb_frontend *fe);
+ 
+ 	int (*read_status)(struct dvb_frontend* fe, fe_status_t* status);
+ 	int (*read_ber)(struct dvb_frontend* fe, u32* ber);
+diff --git a/drivers/media/dvb/dvb-usb/af9005-fe.c b/drivers/media/dvb/dvb-usb/af9005-fe.c
+index 6c1ef61..27ad0a3 100644
+--- a/drivers/media/dvb/dvb-usb/af9005-fe.c
++++ b/drivers/media/dvb/dvb-usb/af9005-fe.c
+@@ -1225,9 +1225,9 @@ static int af9005_fe_set_frontend(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int af9005_fe_get_frontend(struct dvb_frontend *fe,
+-				  struct dtv_frontend_properties *fep)
++static int af9005_fe_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct af9005_fe_state *state = fe->demodulator_priv;
+ 	int ret;
+ 	u8 temp;
+diff --git a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
+index 0b49d44..0b85564 100644
+--- a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
++++ b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
+@@ -296,12 +296,6 @@ static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe)
+ 	return (err < 0) ? err : 0;
+ }
+ 
+-static int cinergyt2_fe_get_frontend(struct dvb_frontend *fe,
+-				  struct dtv_frontend_properties *fep)
+-{
+-	return 0;
+-}
+-
+ static void cinergyt2_fe_release(struct dvb_frontend *fe)
+ {
+ 	struct cinergyt2_fe_state *state = fe->demodulator_priv;
+@@ -352,7 +346,6 @@ static struct dvb_frontend_ops cinergyt2_fe_ops = {
+ 	.sleep			= cinergyt2_fe_sleep,
+ 
+ 	.set_frontend		= cinergyt2_fe_set_frontend,
+-	.get_frontend		= cinergyt2_fe_get_frontend,
+ 	.get_tune_settings	= cinergyt2_fe_get_tune_settings,
+ 
+ 	.read_status		= cinergyt2_fe_read_status,
+diff --git a/drivers/media/dvb/dvb-usb/dtt200u-fe.c b/drivers/media/dvb/dvb-usb/dtt200u-fe.c
+index 643242e..270747d 100644
+--- a/drivers/media/dvb/dvb-usb/dtt200u-fe.c
++++ b/drivers/media/dvb/dvb-usb/dtt200u-fe.c
+@@ -133,9 +133,9 @@ static int dtt200u_fe_set_frontend(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int dtt200u_fe_get_frontend(struct dvb_frontend* fe,
+-				  struct dtv_frontend_properties *fep)
++static int dtt200u_fe_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct dtt200u_fe_state *state = fe->demodulator_priv;
+ 	memcpy(fep,&state->fep,sizeof(struct dtv_frontend_properties));
+ 	return 0;
+diff --git a/drivers/media/dvb/dvb-usb/friio-fe.c b/drivers/media/dvb/dvb-usb/friio-fe.c
+index 375815d..0660a87 100644
+--- a/drivers/media/dvb/dvb-usb/friio-fe.c
++++ b/drivers/media/dvb/dvb-usb/friio-fe.c
+@@ -282,9 +282,9 @@ static int jdvbt90502_set_property(struct dvb_frontend *fe,
+ 	return r;
+ }
+ 
+-static int jdvbt90502_get_frontend(struct dvb_frontend *fe,
+-				   struct dtv_frontend_properties *p)
++static int jdvbt90502_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	p->inversion = INVERSION_AUTO;
+ 	p->bandwidth_hz = 6000000;
+ 	p->code_rate_HP = FEC_AUTO;
+diff --git a/drivers/media/dvb/dvb-usb/mxl111sf-demod.c b/drivers/media/dvb/dvb-usb/mxl111sf-demod.c
+index c61f246..694e207 100644
+--- a/drivers/media/dvb/dvb-usb/mxl111sf-demod.c
++++ b/drivers/media/dvb/dvb-usb/mxl111sf-demod.c
+@@ -507,9 +507,9 @@ static int mxl111sf_demod_read_signal_strength(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int mxl111sf_demod_get_frontend(struct dvb_frontend *fe,
+-				       struct dtv_frontend_properties *p)
++static int mxl111sf_demod_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct mxl111sf_demod_state *state = fe->demodulator_priv;
+ 
+ 	mxl_dbg("()");
+diff --git a/drivers/media/dvb/dvb-usb/vp702x-fe.c b/drivers/media/dvb/dvb-usb/vp702x-fe.c
+index fa0b811..178e938 100644
+--- a/drivers/media/dvb/dvb-usb/vp702x-fe.c
++++ b/drivers/media/dvb/dvb-usb/vp702x-fe.c
+@@ -211,13 +211,6 @@ static int vp702x_fe_sleep(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int vp702x_fe_get_frontend(struct dvb_frontend* fe,
+-				  struct dtv_frontend_properties *fep)
+-{
+-	deb_fe("%s\n",__func__);
+-	return 0;
+-}
+-
+ static int vp702x_fe_send_diseqc_msg (struct dvb_frontend* fe,
+ 				    struct dvb_diseqc_master_cmd *m)
+ {
+@@ -372,7 +365,6 @@ static struct dvb_frontend_ops vp702x_fe_ops = {
+ 	.sleep = vp702x_fe_sleep,
+ 
+ 	.set_frontend = vp702x_fe_set_frontend,
+-	.get_frontend = vp702x_fe_get_frontend,
+ 	.get_tune_settings = vp702x_fe_get_tune_settings,
+ 
+ 	.read_status = vp702x_fe_read_status,
+diff --git a/drivers/media/dvb/firewire/firedtv-fe.c b/drivers/media/dvb/firewire/firedtv-fe.c
+index e1705a9..39f5caa 100644
+--- a/drivers/media/dvb/firewire/firedtv-fe.c
++++ b/drivers/media/dvb/firewire/firedtv-fe.c
+@@ -149,22 +149,6 @@ static int fdtv_set_frontend(struct dvb_frontend *fe)
+ 	return avc_tuner_dsd(fdtv, p);
+ }
+ 
+-static int fdtv_get_frontend(struct dvb_frontend *fe,
+-			     struct dtv_frontend_properties *params)
+-{
+-	return -EOPNOTSUPP;
+-}
+-
+-static int fdtv_get_property(struct dvb_frontend *fe, struct dtv_property *tvp)
+-{
+-	return 0;
+-}
+-
+-static int fdtv_set_property(struct dvb_frontend *fe, struct dtv_property *tvp)
+-{
+-	return 0;
+-}
+-
+ void fdtv_frontend_init(struct firedtv *fdtv, const char *name)
+ {
+ 	struct dvb_frontend_ops *ops = &fdtv->fe.ops;
+@@ -174,10 +158,6 @@ void fdtv_frontend_init(struct firedtv *fdtv, const char *name)
+ 	ops->sleep			= fdtv_sleep;
+ 
+ 	ops->set_frontend		= fdtv_set_frontend;
+-	ops->get_frontend		= fdtv_get_frontend;
+-
+-	ops->get_property		= fdtv_get_property;
+-	ops->set_property		= fdtv_set_property;
+ 
+ 	ops->read_status		= fdtv_read_status;
+ 	ops->read_ber			= fdtv_read_ber;
+diff --git a/drivers/media/dvb/frontends/af9013.c b/drivers/media/dvb/frontends/af9013.c
+index a8aefe9..e630d46 100644
+--- a/drivers/media/dvb/frontends/af9013.c
++++ b/drivers/media/dvb/frontends/af9013.c
+@@ -670,9 +670,9 @@ error:
+ 	return ret;
+ }
+ 
+-static int af9013_get_frontend(struct dvb_frontend *fe,
+-			       struct dtv_frontend_properties *c)
++static int af9013_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct af9013_state *state = fe->demodulator_priv;
+ 	int ret;
+ 	u8 i, buf[3];
+diff --git a/drivers/media/dvb/frontends/atbm8830.c b/drivers/media/dvb/frontends/atbm8830.c
+index c4edbbe..ff86074 100644
+--- a/drivers/media/dvb/frontends/atbm8830.c
++++ b/drivers/media/dvb/frontends/atbm8830.c
+@@ -297,9 +297,9 @@ static int atbm8830_set_fe(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int atbm8830_get_fe(struct dvb_frontend *fe,
+-			   struct dtv_frontend_properties *c)
++static int atbm8830_get_fe(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	dprintk("%s\n", __func__);
+ 
+ 	/* TODO: get real readings from device */
+diff --git a/drivers/media/dvb/frontends/au8522_dig.c b/drivers/media/dvb/frontends/au8522_dig.c
+index 027d45d..762cd5e 100644
+--- a/drivers/media/dvb/frontends/au8522_dig.c
++++ b/drivers/media/dvb/frontends/au8522_dig.c
+@@ -911,9 +911,9 @@ static int au8522_read_ber(struct dvb_frontend *fe, u32 *ber)
+ 	return au8522_read_ucblocks(fe, ber);
+ }
+ 
+-static int au8522_get_frontend(struct dvb_frontend *fe,
+-			       struct dtv_frontend_properties *c)
++static int au8522_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct au8522_state *state = fe->demodulator_priv;
+ 
+ 	c->frequency = state->current_frequency;
+diff --git a/drivers/media/dvb/frontends/cx22700.c b/drivers/media/dvb/frontends/cx22700.c
+index 3c571b9..d5d61a5 100644
+--- a/drivers/media/dvb/frontends/cx22700.c
++++ b/drivers/media/dvb/frontends/cx22700.c
+@@ -341,9 +341,9 @@ static int cx22700_set_frontend(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int cx22700_get_frontend(struct dvb_frontend* fe,
+-				struct dtv_frontend_properties *c)
++static int cx22700_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct cx22700_state* state = fe->demodulator_priv;
+ 	u8 reg09 = cx22700_readreg (state, 0x09);
+ 
+diff --git a/drivers/media/dvb/frontends/cx22702.c b/drivers/media/dvb/frontends/cx22702.c
+index 225ce84..587c3ec 100644
+--- a/drivers/media/dvb/frontends/cx22702.c
++++ b/drivers/media/dvb/frontends/cx22702.c
+@@ -546,9 +546,9 @@ static int cx22702_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	return 0;
+ }
+ 
+-static int cx22702_get_frontend(struct dvb_frontend *fe,
+-				struct dtv_frontend_properties *c)
++static int cx22702_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct cx22702_state *state = fe->demodulator_priv;
+ 
+ 	u8 reg0C = cx22702_readreg(state, 0x0C);
+diff --git a/drivers/media/dvb/frontends/cx24110.c b/drivers/media/dvb/frontends/cx24110.c
+index 6f85bb1..98014fc 100644
+--- a/drivers/media/dvb/frontends/cx24110.c
++++ b/drivers/media/dvb/frontends/cx24110.c
+@@ -549,9 +549,9 @@ static int cx24110_set_frontend(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int cx24110_get_frontend(struct dvb_frontend* fe,
+-				struct dtv_frontend_properties *p)
++static int cx24110_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct cx24110_state *state = fe->demodulator_priv;
+ 	s32 afc; unsigned sclk;
+ 
+diff --git a/drivers/media/dvb/frontends/cx24123.c b/drivers/media/dvb/frontends/cx24123.c
+index faafb1f..ad5d1a4 100644
+--- a/drivers/media/dvb/frontends/cx24123.c
++++ b/drivers/media/dvb/frontends/cx24123.c
+@@ -959,9 +959,9 @@ static int cx24123_set_frontend(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int cx24123_get_frontend(struct dvb_frontend *fe,
+-				struct dtv_frontend_properties *p)
++static int cx24123_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct cx24123_state *state = fe->demodulator_priv;
+ 
+ 	dprintk("\n");
+diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
+index 96ceed7..b14e509 100644
+--- a/drivers/media/dvb/frontends/cxd2820r_core.c
++++ b/drivers/media/dvb/frontends/cxd2820r_core.c
+@@ -381,9 +381,9 @@ static int cxd2820r_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	return ret;
+ }
+ 
+-static int cxd2820r_get_frontend(struct dvb_frontend *fe,
+-				 struct dtv_frontend_properties *c)
++static int cxd2820r_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct cxd2820r_priv *priv = fe->demodulator_priv;
+ 	int ret;
+ 	dbg("%s: delsys=%d", __func__, fe->dtv_property_cache.delivery_system);
+diff --git a/drivers/media/dvb/frontends/dib3000mb.c b/drivers/media/dvb/frontends/dib3000mb.c
+index 432d1b0..01a1e30 100644
+--- a/drivers/media/dvb/frontends/dib3000mb.c
++++ b/drivers/media/dvb/frontends/dib3000mb.c
+@@ -112,8 +112,7 @@ static u16 dib3000_seq[2][2][2] =     /* fft,gua,   inv   */
+ 		}
+ 	};
+ 
+-static int dib3000mb_get_frontend(struct dvb_frontend* fe,
+-				  struct dtv_frontend_properties *c);
++static int dib3000mb_get_frontend(struct dvb_frontend* fe);
+ 
+ static int dib3000mb_set_frontend(struct dvb_frontend* fe, int tuner)
+ {
+@@ -360,7 +359,7 @@ static int dib3000mb_set_frontend(struct dvb_frontend* fe, int tuner)
+ 		deb_setf("search_state after autosearch %d after %d checks\n",search_state,as_count);
+ 
+ 		if (search_state == 1) {
+-			if (dib3000mb_get_frontend(fe, c) == 0) {
++			if (dib3000mb_get_frontend(fe) == 0) {
+ 				deb_setf("reading tuning data from frontend succeeded.\n");
+ 				return dib3000mb_set_frontend(fe, 0);
+ 			}
+@@ -451,9 +450,9 @@ static int dib3000mb_fe_init(struct dvb_frontend* fe, int mobile_mode)
+ 	return 0;
+ }
+ 
+-static int dib3000mb_get_frontend(struct dvb_frontend* fe,
+-				  struct dtv_frontend_properties *c)
++static int dib3000mb_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct dib3000_state* state = fe->demodulator_priv;
+ 	fe_code_rate_t *cr;
+ 	u16 tps_val;
+diff --git a/drivers/media/dvb/frontends/dib3000mc.c b/drivers/media/dvb/frontends/dib3000mc.c
+index d98a010..f2ad9ae 100644
+--- a/drivers/media/dvb/frontends/dib3000mc.c
++++ b/drivers/media/dvb/frontends/dib3000mc.c
+@@ -632,9 +632,9 @@ struct i2c_adapter * dib3000mc_get_tuner_i2c_master(struct dvb_frontend *demod,
+ 
+ EXPORT_SYMBOL(dib3000mc_get_tuner_i2c_master);
+ 
+-static int dib3000mc_get_frontend(struct dvb_frontend* fe,
+-				  struct dtv_frontend_properties *fep)
++static int dib3000mc_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct dib3000mc_state *state = fe->demodulator_priv;
+ 	u16 tps = dib3000mc_read_word(state,458);
+ 
+@@ -689,7 +689,7 @@ static int dib3000mc_get_frontend(struct dvb_frontend* fe,
+ 
+ static int dib3000mc_set_frontend(struct dvb_frontend* fe)
+ {
+-	struct dtv_frontend_properties *fep = &fe->dtv_property_cache, tmp;
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct dib3000mc_state *state = fe->demodulator_priv;
+ 	int ret;
+ 
+@@ -712,8 +712,6 @@ static int dib3000mc_set_frontend(struct dvb_frontend* fe)
+ 	    fep->code_rate_HP   == FEC_AUTO) {
+ 		int i = 1000, found;
+ 
+-		tmp = *fep;
+-
+ 		dib3000mc_autosearch_start(fe);
+ 		do {
+ 			msleep(1);
+@@ -724,7 +722,7 @@ static int dib3000mc_set_frontend(struct dvb_frontend* fe)
+ 		if (found == 0 || found == 1)
+ 			return 0; // no channel found
+ 
+-		dib3000mc_get_frontend(fe, &tmp);
++		dib3000mc_get_frontend(fe);
+ 	}
+ 
+ 	ret = dib3000mc_tune(fe);
+diff --git a/drivers/media/dvb/frontends/dib7000m.c b/drivers/media/dvb/frontends/dib7000m.c
+index b6a25a2..aa6a798 100644
+--- a/drivers/media/dvb/frontends/dib7000m.c
++++ b/drivers/media/dvb/frontends/dib7000m.c
+@@ -1154,9 +1154,9 @@ static int dib7000m_identify(struct dib7000m_state *state)
+ }
+ 
+ 
+-static int dib7000m_get_frontend(struct dvb_frontend* fe,
+-				 struct dtv_frontend_properties *fep)
++static int dib7000m_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct dib7000m_state *state = fe->demodulator_priv;
+ 	u16 tps = dib7000m_read_word(state,480);
+ 
+@@ -1214,7 +1214,7 @@ static int dib7000m_get_frontend(struct dvb_frontend* fe,
+ 
+ static int dib7000m_set_frontend(struct dvb_frontend* fe)
+ {
+-	struct dtv_frontend_properties *fep = &fe->dtv_property_cache, tmp;
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct dib7000m_state *state = fe->demodulator_priv;
+ 	int time, ret;
+ 
+@@ -1239,8 +1239,6 @@ static int dib7000m_set_frontend(struct dvb_frontend* fe)
+ 		fep->code_rate_HP      == FEC_AUTO) {
+ 		int i = 800, found;
+ 
+-		tmp = *fep;
+-
+ 		dib7000m_autosearch_start(fe);
+ 		do {
+ 			msleep(1);
+@@ -1251,7 +1249,7 @@ static int dib7000m_set_frontend(struct dvb_frontend* fe)
+ 		if (found == 0 || found == 1)
+ 			return 0; // no channel found
+ 
+-		dib7000m_get_frontend(fe, &tmp);
++		dib7000m_get_frontend(fe);
+ 	}
+ 
+ 	ret = dib7000m_tune(fe);
+diff --git a/drivers/media/dvb/frontends/dib7000p.c b/drivers/media/dvb/frontends/dib7000p.c
+index c92c1a0..361bdb1 100644
+--- a/drivers/media/dvb/frontends/dib7000p.c
++++ b/drivers/media/dvb/frontends/dib7000p.c
+@@ -1384,9 +1384,9 @@ static int dib7000p_identify(struct dib7000p_state *st)
+ 	return 0;
+ }
+ 
+-static int dib7000p_get_frontend(struct dvb_frontend *fe,
+-				 struct dtv_frontend_properties *fep)
++static int dib7000p_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct dib7000p_state *state = fe->demodulator_priv;
+ 	u16 tps = dib7000p_read_word(state, 463);
+ 
+@@ -1482,7 +1482,7 @@ static int dib7000p_get_frontend(struct dvb_frontend *fe,
+ 
+ static int dib7000p_set_frontend(struct dvb_frontend *fe)
+ {
+-	struct dtv_frontend_properties *fep = &fe->dtv_property_cache, tmp;
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct dib7000p_state *state = fe->demodulator_priv;
+ 	int time, ret;
+ 
+@@ -1509,7 +1509,6 @@ static int dib7000p_set_frontend(struct dvb_frontend *fe)
+ 		fep->guard_interval == GUARD_INTERVAL_AUTO || fep->modulation == QAM_AUTO || fep->code_rate_HP == FEC_AUTO) {
+ 		int i = 800, found;
+ 
+-		tmp = *fep;
+ 		dib7000p_autosearch_start(fe);
+ 		do {
+ 			msleep(1);
+@@ -1520,7 +1519,7 @@ static int dib7000p_set_frontend(struct dvb_frontend *fe)
+ 		if (found == 0 || found == 1)
+ 			return 0;
+ 
+-		dib7000p_get_frontend(fe, &tmp);
++		dib7000p_get_frontend(fe);
+ 	}
+ 
+ 	ret = dib7000p_tune(fe);
+diff --git a/drivers/media/dvb/frontends/dib8000.c b/drivers/media/dvb/frontends/dib8000.c
+index 115c099..fe07d74 100644
+--- a/drivers/media/dvb/frontends/dib8000.c
++++ b/drivers/media/dvb/frontends/dib8000.c
+@@ -2810,7 +2810,7 @@ int dib8000_set_tune_state(struct dvb_frontend *fe, enum frontend_tune_state tun
+ }
+ EXPORT_SYMBOL(dib8000_set_tune_state);
+ 
+-static int dib8000_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *c)
++static int dib8000_get_frontend(struct dvb_frontend *fe)
+ {
+ 	struct dib8000_state *state = fe->demodulator_priv;
+ 	u16 i, val = 0;
+@@ -2824,7 +2824,7 @@ static int dib8000_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_pro
+ 		if (stat&FE_HAS_SYNC) {
+ 			dprintk("TMCC lock on the slave%i", index_frontend);
+ 			/* synchronize the cache with the other frontends */
+-			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend], c);
++			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend]);
+ 			for (sub_index_frontend = 0; (sub_index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[sub_index_frontend] != NULL); sub_index_frontend++) {
+ 				if (sub_index_frontend != index_frontend) {
+ 					state->fe[sub_index_frontend]->dtv_property_cache.isdbt_sb_mode = state->fe[index_frontend]->dtv_property_cache.isdbt_sb_mode;
+@@ -3088,7 +3088,7 @@ static int dib8000_set_frontend(struct dvb_frontend *fe)
+ 
+ 		dprintk("tune success on frontend%i", index_frontend_success);
+ 
+-		dib8000_get_frontend(fe, &state->fe[0]->dtv_property_cache);
++		dib8000_get_frontend(fe);
+ 	}
+ 
+ 	for (index_frontend = 0, ret = 0; (ret >= 0) && (index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[index_frontend] != NULL); index_frontend++)
+diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
+index 974c2b7..2312b4d 100644
+--- a/drivers/media/dvb/frontends/dib9000.c
++++ b/drivers/media/dvb/frontends/dib9000.c
+@@ -1867,7 +1867,7 @@ static int dib9000_fe_get_tune_settings(struct dvb_frontend *fe, struct dvb_fron
+ 	return 0;
+ }
+ 
+-static int dib9000_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *c)
++static int dib9000_get_frontend(struct dvb_frontend *fe)
+ {
+ 	struct dib9000_state *state = fe->demodulator_priv;
+ 	u8 index_frontend, sub_index_frontend;
+@@ -1883,7 +1883,7 @@ static int dib9000_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_pro
+ 			dprintk("TPS lock on the slave%i", index_frontend);
+ 
+ 			/* synchronize the cache with the other frontends */
+-			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend], c);
++			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend]);
+ 			for (sub_index_frontend = 0; (sub_index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[sub_index_frontend] != NULL);
+ 			     sub_index_frontend++) {
+ 				if (sub_index_frontend != index_frontend) {
+@@ -2054,7 +2054,7 @@ static int dib9000_set_frontend(struct dvb_frontend *fe)
+ 
+ 	/* synchronize all the channel cache */
+ 	state->get_frontend_internal = 1;
+-	dib9000_get_frontend(state->fe[0], &state->fe[0]->dtv_property_cache);
++	dib9000_get_frontend(state->fe[0]);
+ 	state->get_frontend_internal = 0;
+ 
+ 	/* retune the other frontends with the found channel */
+diff --git a/drivers/media/dvb/frontends/dvb_dummy_fe.c b/drivers/media/dvb/frontends/dvb_dummy_fe.c
+index b5e2a70..0f0796b 100644
+--- a/drivers/media/dvb/frontends/dvb_dummy_fe.c
++++ b/drivers/media/dvb/frontends/dvb_dummy_fe.c
+@@ -68,8 +68,10 @@ static int dvb_dummy_fe_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int dvb_dummy_fe_get_frontend(struct dvb_frontend *fe,
+-				     struct dtv_frontend_properties *c)
++/*
++ * Only needed if it actually reads something from the hardware
++ */
++static int dvb_dummy_fe_get_frontend(struct dvb_frontend *fe)
+ {
+ 	return 0;
+ }
+diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
+index 5a353cb..187d9ea 100644
+--- a/drivers/media/dvb/frontends/it913x-fe.c
++++ b/drivers/media/dvb/frontends/it913x-fe.c
+@@ -572,9 +572,9 @@ static int it913x_fe_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	return 0;
+ }
+ 
+-static int it913x_fe_get_frontend(struct dvb_frontend *fe,
+-			struct dtv_frontend_properties *p)
++static int it913x_fe_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct it913x_fe_state *state = fe->demodulator_priv;
+ 	int ret;
+ 	u8 reg[8];
+diff --git a/drivers/media/dvb/frontends/l64781.c b/drivers/media/dvb/frontends/l64781.c
+index 1784e34..4fc6dda 100644
+--- a/drivers/media/dvb/frontends/l64781.c
++++ b/drivers/media/dvb/frontends/l64781.c
+@@ -243,9 +243,9 @@ static int apply_frontend_param (struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int get_frontend(struct dvb_frontend* fe,
+-			struct dtv_frontend_properties *p)
++static int get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct l64781_state* state = fe->demodulator_priv;
+ 	int tmp;
+ 
+diff --git a/drivers/media/dvb/frontends/lgdt3305.c b/drivers/media/dvb/frontends/lgdt3305.c
+index 58eb7bc..0b289b2 100644
+--- a/drivers/media/dvb/frontends/lgdt3305.c
++++ b/drivers/media/dvb/frontends/lgdt3305.c
+@@ -813,9 +813,9 @@ fail:
+ 	return ret;
+ }
+ 
+-static int lgdt3305_get_frontend(struct dvb_frontend *fe,
+-				 struct dtv_frontend_properties *p)
++static int lgdt3305_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct lgdt3305_state *state = fe->demodulator_priv;
+ 
+ 	lg_dbg("\n");
+diff --git a/drivers/media/dvb/frontends/lgdt330x.c b/drivers/media/dvb/frontends/lgdt330x.c
+index f117eeb..cf69df3 100644
+--- a/drivers/media/dvb/frontends/lgdt330x.c
++++ b/drivers/media/dvb/frontends/lgdt330x.c
+@@ -428,9 +428,9 @@ static int lgdt330x_set_parameters(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int lgdt330x_get_frontend(struct dvb_frontend *fe,
+-				 struct dtv_frontend_properties *p)
++static int lgdt330x_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct lgdt330x_state *state = fe->demodulator_priv;
+ 	p->frequency = state->current_frequency;
+ 	return 0;
+diff --git a/drivers/media/dvb/frontends/lgs8gl5.c b/drivers/media/dvb/frontends/lgs8gl5.c
+index 0f4bc16..8f2f43b 100644
+--- a/drivers/media/dvb/frontends/lgs8gl5.c
++++ b/drivers/media/dvb/frontends/lgs8gl5.c
+@@ -336,9 +336,9 @@ lgs8gl5_set_frontend(struct dvb_frontend *fe)
+ 
+ 
+ static int
+-lgs8gl5_get_frontend(struct dvb_frontend *fe,
+-		struct dtv_frontend_properties *p)
++lgs8gl5_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct lgs8gl5_state *state = fe->demodulator_priv;
+ 	u8 inv = lgs8gl5_read_reg(state, REG_INVERSION);
+ 
+diff --git a/drivers/media/dvb/frontends/lgs8gxx.c b/drivers/media/dvb/frontends/lgs8gxx.c
+index da7d8f6..a47add2 100644
+--- a/drivers/media/dvb/frontends/lgs8gxx.c
++++ b/drivers/media/dvb/frontends/lgs8gxx.c
+@@ -691,9 +691,9 @@ static int lgs8gxx_set_fe(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int lgs8gxx_get_fe(struct dvb_frontend *fe,
+-			  struct dtv_frontend_properties *fe_params)
++static int lgs8gxx_get_fe(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *fe_params = &fe->dtv_property_cache;
+ 	dprintk("%s\n", __func__);
+ 
+ 	/* TODO: get real readings from device */
+diff --git a/drivers/media/dvb/frontends/mb86a20s.c b/drivers/media/dvb/frontends/mb86a20s.c
+index d71d6ee..4267e51 100644
+--- a/drivers/media/dvb/frontends/mb86a20s.c
++++ b/drivers/media/dvb/frontends/mb86a20s.c
+@@ -525,9 +525,9 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ 	return rc;
+ }
+ 
+-static int mb86a20s_get_frontend(struct dvb_frontend *fe,
+-				 struct dtv_frontend_properties *p)
++static int mb86a20s_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 
+ 	/* FIXME: For now, it does nothing */
+ 
+diff --git a/drivers/media/dvb/frontends/mt312.c b/drivers/media/dvb/frontends/mt312.c
+index 3e4512a..90aac0d 100644
+--- a/drivers/media/dvb/frontends/mt312.c
++++ b/drivers/media/dvb/frontends/mt312.c
+@@ -636,9 +636,9 @@ static int mt312_set_frontend(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int mt312_get_frontend(struct dvb_frontend *fe,
+-			      struct dtv_frontend_properties *p)
++static int mt312_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct mt312_state *state = fe->demodulator_priv;
+ 	int ret;
+ 
+diff --git a/drivers/media/dvb/frontends/mt352.c b/drivers/media/dvb/frontends/mt352.c
+index 0155fa8..84129ae 100644
+--- a/drivers/media/dvb/frontends/mt352.c
++++ b/drivers/media/dvb/frontends/mt352.c
+@@ -311,9 +311,9 @@ static int mt352_set_parameters(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int mt352_get_parameters(struct dvb_frontend* fe,
+-				struct dtv_frontend_properties *op)
++static int mt352_get_parameters(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *op = &fe->dtv_property_cache;
+ 	struct mt352_state* state = fe->demodulator_priv;
+ 	u16 tps;
+ 	u16 div;
+diff --git a/drivers/media/dvb/frontends/or51132.c b/drivers/media/dvb/frontends/or51132.c
+index 2d9e81b..5bb6f3e 100644
+--- a/drivers/media/dvb/frontends/or51132.c
++++ b/drivers/media/dvb/frontends/or51132.c
+@@ -375,9 +375,9 @@ static int or51132_set_parameters(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int or51132_get_parameters(struct dvb_frontend* fe,
+-				  struct dtv_frontend_properties *p)
++static int or51132_get_parameters(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct or51132_state* state = fe->demodulator_priv;
+ 	int status;
+ 	int retry = 1;
+diff --git a/drivers/media/dvb/frontends/s5h1409.c b/drivers/media/dvb/frontends/s5h1409.c
+index 2641fd5..21baea8 100644
+--- a/drivers/media/dvb/frontends/s5h1409.c
++++ b/drivers/media/dvb/frontends/s5h1409.c
+@@ -925,9 +925,9 @@ static int s5h1409_read_ber(struct dvb_frontend *fe, u32 *ber)
+ 	return s5h1409_read_ucblocks(fe, ber);
+ }
+ 
+-static int s5h1409_get_frontend(struct dvb_frontend *fe,
+-				struct dtv_frontend_properties *p)
++static int s5h1409_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct s5h1409_state *state = fe->demodulator_priv;
+ 
+ 	p->frequency = state->current_frequency;
+diff --git a/drivers/media/dvb/frontends/s5h1411.c b/drivers/media/dvb/frontends/s5h1411.c
+index 08f568c..b8c7feb 100644
+--- a/drivers/media/dvb/frontends/s5h1411.c
++++ b/drivers/media/dvb/frontends/s5h1411.c
+@@ -840,9 +840,9 @@ static int s5h1411_read_ber(struct dvb_frontend *fe, u32 *ber)
+ 	return s5h1411_read_ucblocks(fe, ber);
+ }
+ 
+-static int s5h1411_get_frontend(struct dvb_frontend *fe,
+-				struct dtv_frontend_properties *p)
++static int s5h1411_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct s5h1411_state *state = fe->demodulator_priv;
+ 
+ 	p->frequency = state->current_frequency;
+diff --git a/drivers/media/dvb/frontends/s5h1420.c b/drivers/media/dvb/frontends/s5h1420.c
+index 0726494..3d0334a 100644
+--- a/drivers/media/dvb/frontends/s5h1420.c
++++ b/drivers/media/dvb/frontends/s5h1420.c
+@@ -765,9 +765,9 @@ static int s5h1420_set_frontend(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int s5h1420_get_frontend(struct dvb_frontend* fe,
+-				struct dtv_frontend_properties *p)
++static int s5h1420_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct s5h1420_state* state = fe->demodulator_priv;
+ 
+ 	p->frequency = state->tunedfreq + s5h1420_getfreqoffset(state);
+diff --git a/drivers/media/dvb/frontends/s921.c b/drivers/media/dvb/frontends/s921.c
+index 7652d3f..6012e10 100644
+--- a/drivers/media/dvb/frontends/s921.c
++++ b/drivers/media/dvb/frontends/s921.c
+@@ -433,9 +433,9 @@ static int s921_set_frontend(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int s921_get_frontend(struct dvb_frontend *fe,
+-	struct dtv_frontend_properties *p)
++static int s921_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct s921_state *state = fe->demodulator_priv;
+ 
+ 	/* FIXME: Probably it is possible to get it from regs f1 and f2 */
+diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
+index 9fad627..c9e1785 100644
+--- a/drivers/media/dvb/frontends/stb0899_drv.c
++++ b/drivers/media/dvb/frontends/stb0899_drv.c
+@@ -1569,8 +1569,9 @@ static enum dvbfe_search stb0899_search(struct dvb_frontend *fe)
+ 	return DVBFE_ALGO_SEARCH_ERROR;
+ }
+ 
+-static int stb0899_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
++static int stb0899_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stb0899_state *state		= fe->demodulator_priv;
+ 	struct stb0899_internal *internal	= &state->internal;
+ 
+diff --git a/drivers/media/dvb/frontends/stb6100.c b/drivers/media/dvb/frontends/stb6100.c
+index a566763..2d7c901 100644
+--- a/drivers/media/dvb/frontends/stb6100.c
++++ b/drivers/media/dvb/frontends/stb6100.c
+@@ -337,7 +337,7 @@ static int stb6100_set_frequency(struct dvb_frontend *fe, u32 frequency)
+ 
+ 	if (fe->ops.get_frontend) {
+ 		dprintk(verbose, FE_DEBUG, 1, "Get frontend parameters");
+-		fe->ops.get_frontend(fe, &p);
++		fe->ops.get_frontend(fe);
+ 	}
+ 	srate = p.symbol_rate;
+ 
+diff --git a/drivers/media/dvb/frontends/stv0297.c b/drivers/media/dvb/frontends/stv0297.c
+index 88e8e52..dd0a190 100644
+--- a/drivers/media/dvb/frontends/stv0297.c
++++ b/drivers/media/dvb/frontends/stv0297.c
+@@ -614,8 +614,9 @@ timeout:
+ 	return 0;
+ }
+ 
+-static int stv0297_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
++static int stv0297_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stv0297_state *state = fe->demodulator_priv;
+ 	int reg_00, reg_83;
+ 
+diff --git a/drivers/media/dvb/frontends/stv0299.c b/drivers/media/dvb/frontends/stv0299.c
+index ad6f3a6..114d112 100644
+--- a/drivers/media/dvb/frontends/stv0299.c
++++ b/drivers/media/dvb/frontends/stv0299.c
+@@ -596,8 +596,9 @@ static int stv0299_set_frontend(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int stv0299_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties * p)
++static int stv0299_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stv0299_state* state = fe->demodulator_priv;
+ 	s32 derot_freq;
+ 	int invval;
+diff --git a/drivers/media/dvb/frontends/stv0367.c b/drivers/media/dvb/frontends/stv0367.c
+index 7c8964f6..6786b9e 100644
+--- a/drivers/media/dvb/frontends/stv0367.c
++++ b/drivers/media/dvb/frontends/stv0367.c
+@@ -1926,9 +1926,9 @@ static int stv0367ter_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	return 0;
+ }
+ 
+-static int stv0367ter_get_frontend(struct dvb_frontend *fe,
+-				   struct dtv_frontend_properties *p)
++static int stv0367ter_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stv0367_state *state = fe->demodulator_priv;
+ 	struct stv0367ter_state *ter_state = state->ter_state;
+ 
+@@ -3136,9 +3136,9 @@ static int stv0367cab_set_frontend(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int stv0367cab_get_frontend(struct dvb_frontend *fe,
+-				   struct dtv_frontend_properties *p)
++static int stv0367cab_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stv0367_state *state = fe->demodulator_priv;
+ 	struct stv0367cab_state *cab_state = state->cab_state;
+ 
+diff --git a/drivers/media/dvb/frontends/stv0900_core.c b/drivers/media/dvb/frontends/stv0900_core.c
+index 8af1e624..33325ae 100644
+--- a/drivers/media/dvb/frontends/stv0900_core.c
++++ b/drivers/media/dvb/frontends/stv0900_core.c
+@@ -1843,9 +1843,9 @@ static int stv0900_sleep(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int stv0900_get_frontend(struct dvb_frontend *fe,
+-				struct dtv_frontend_properties *p)
++static int stv0900_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stv0900_state *state = fe->demodulator_priv;
+ 	struct stv0900_internal *intp = state->internal;
+ 	enum fe_stv0900_demod_num demod = state->demod;
+diff --git a/drivers/media/dvb/frontends/tda10021.c b/drivers/media/dvb/frontends/tda10021.c
+index c8ab01b..035e0e2 100644
+--- a/drivers/media/dvb/frontends/tda10021.c
++++ b/drivers/media/dvb/frontends/tda10021.c
+@@ -386,8 +386,9 @@ static int tda10021_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int tda10021_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
++static int tda10021_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct tda10021_state* state = fe->demodulator_priv;
+ 	int sync;
+ 	s8 afc = 0;
+diff --git a/drivers/media/dvb/frontends/tda10023.c b/drivers/media/dvb/frontends/tda10023.c
+index 8f451dc..55d7563 100644
+--- a/drivers/media/dvb/frontends/tda10023.c
++++ b/drivers/media/dvb/frontends/tda10023.c
+@@ -456,8 +456,9 @@ static int tda10023_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int tda10023_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
++static int tda10023_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct tda10023_state* state = fe->demodulator_priv;
+ 	int sync,inv;
+ 	s8 afc = 0;
+diff --git a/drivers/media/dvb/frontends/tda10048.c b/drivers/media/dvb/frontends/tda10048.c
+index dfd1d5a..99bf0c0 100644
+--- a/drivers/media/dvb/frontends/tda10048.c
++++ b/drivers/media/dvb/frontends/tda10048.c
+@@ -1028,9 +1028,9 @@ static int tda10048_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 	return 0;
+ }
+ 
+-static int tda10048_get_frontend(struct dvb_frontend *fe,
+-	struct dtv_frontend_properties *p)
++static int tda10048_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct tda10048_state *state = fe->demodulator_priv;
+ 
+ 	dprintk(1, "%s()\n", __func__);
+diff --git a/drivers/media/dvb/frontends/tda1004x.c b/drivers/media/dvb/frontends/tda1004x.c
+index d5e68af..e180103 100644
+--- a/drivers/media/dvb/frontends/tda1004x.c
++++ b/drivers/media/dvb/frontends/tda1004x.c
+@@ -895,8 +895,9 @@ static int tda1004x_set_fe(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int tda1004x_get_fe(struct dvb_frontend* fe, struct dtv_frontend_properties *fe_params)
++static int tda1004x_get_fe(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *fe_params = &fe->dtv_property_cache;
+ 	struct tda1004x_state* state = fe->demodulator_priv;
+ 
+ 	dprintk("%s\n", __func__);
+diff --git a/drivers/media/dvb/frontends/tda10071.c b/drivers/media/dvb/frontends/tda10071.c
+index 68dcce6..d9e0bd9 100644
+--- a/drivers/media/dvb/frontends/tda10071.c
++++ b/drivers/media/dvb/frontends/tda10071.c
+@@ -776,9 +776,9 @@ error:
+ 	return ret;
+ }
+ 
+-static int tda10071_get_frontend(struct dvb_frontend *fe,
+-	struct dtv_frontend_properties *p)
++static int tda10071_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct tda10071_priv *priv = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret, i;
+diff --git a/drivers/media/dvb/frontends/tda10086.c b/drivers/media/dvb/frontends/tda10086.c
+index cfc6e0e..83256d5 100644
+--- a/drivers/media/dvb/frontends/tda10086.c
++++ b/drivers/media/dvb/frontends/tda10086.c
+@@ -457,8 +457,9 @@ static int tda10086_set_frontend(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int tda10086_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *fe_params)
++static int tda10086_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *fe_params = &fe->dtv_property_cache;
+ 	struct tda10086_state* state = fe->demodulator_priv;
+ 	u8 val;
+ 	int tmp;
+diff --git a/drivers/media/dvb/frontends/tda8083.c b/drivers/media/dvb/frontends/tda8083.c
+index 88a22d3..7a16e8d 100644
+--- a/drivers/media/dvb/frontends/tda8083.c
++++ b/drivers/media/dvb/frontends/tda8083.c
+@@ -335,8 +335,9 @@ static int tda8083_set_frontend(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int tda8083_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
++static int tda8083_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct tda8083_state* state = fe->demodulator_priv;
+ 
+ 	/*  FIXME: get symbolrate & frequency offset...*/
+diff --git a/drivers/media/dvb/frontends/ves1820.c b/drivers/media/dvb/frontends/ves1820.c
+index ef1b5fe..37ff9f0 100644
+--- a/drivers/media/dvb/frontends/ves1820.c
++++ b/drivers/media/dvb/frontends/ves1820.c
+@@ -310,8 +310,9 @@ static int ves1820_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int ves1820_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *p)
++static int ves1820_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ves1820_state* state = fe->demodulator_priv;
+ 	int sync;
+ 	s8 afc = 0;
+diff --git a/drivers/media/dvb/frontends/ves1x93.c b/drivers/media/dvb/frontends/ves1x93.c
+index 15929c2..13f3a21 100644
+--- a/drivers/media/dvb/frontends/ves1x93.c
++++ b/drivers/media/dvb/frontends/ves1x93.c
+@@ -403,9 +403,9 @@ static int ves1x93_set_frontend(struct dvb_frontend* fe)
+ 	return 0;
+ }
+ 
+-static int ves1x93_get_frontend(struct dvb_frontend* fe,
+-				struct dtv_frontend_properties *p)
++static int ves1x93_get_frontend(struct dvb_frontend* fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct ves1x93_state* state = fe->demodulator_priv;
+ 	int afc;
+ 
+diff --git a/drivers/media/dvb/frontends/zl10353.c b/drivers/media/dvb/frontends/zl10353.c
+index 39c1bdb..816fa86 100644
+--- a/drivers/media/dvb/frontends/zl10353.c
++++ b/drivers/media/dvb/frontends/zl10353.c
+@@ -371,9 +371,9 @@ static int zl10353_set_parameters(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int zl10353_get_parameters(struct dvb_frontend *fe,
+-				  struct dtv_frontend_properties *c)
++static int zl10353_get_parameters(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct zl10353_state *state = fe->demodulator_priv;
+ 	int s6, s9;
+ 	u16 tps;
+diff --git a/drivers/media/dvb/siano/smsdvb.c b/drivers/media/dvb/siano/smsdvb.c
+index 71ee9fa..198cc0e 100644
+--- a/drivers/media/dvb/siano/smsdvb.c
++++ b/drivers/media/dvb/siano/smsdvb.c
+@@ -739,9 +739,9 @@ static int smsdvb_set_frontend(struct dvb_frontend *fe)
+ 	}
+ }
+ 
+-static int smsdvb_get_frontend(struct dvb_frontend *fe,
+-			      struct dtv_frontend_properties *fep)
++static int smsdvb_get_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct smsdvb_client_t *client =
+ 		container_of(fe, struct smsdvb_client_t, frontend);
+ 
+diff --git a/drivers/media/video/tlg2300/pd-dvb.c b/drivers/media/video/tlg2300/pd-dvb.c
+index 7998811..d7aac42 100644
+--- a/drivers/media/video/tlg2300/pd-dvb.c
++++ b/drivers/media/video/tlg2300/pd-dvb.c
+@@ -231,9 +231,9 @@ static s32 poseidon_fe_init(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int poseidon_get_fe(struct dvb_frontend *fe,
+-			struct dtv_frontend_properties *fep)
++static int poseidon_get_fe(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *fep = &fe->dtv_property_cache;
+ 	struct poseidon *pd = fe->demodulator_priv;
+ 	struct pd_dvb_adapter *pd_dvb = &pd->dvb_data;
+ 
