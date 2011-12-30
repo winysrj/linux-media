@@ -1,67 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52139 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756446Ab1LESft (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 5 Dec 2011 13:35:49 -0500
-Message-ID: <4EDD0F01.7040808@redhat.com>
-Date: Mon, 05 Dec 2011 16:35:45 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39749 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751019Ab1L3SmR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 13:42:17 -0500
+Date: Fri, 30 Dec 2011 20:42:12 +0200
+From: 'Sakari Ailus' <sakari.ailus@iki.fi>
+To: Hans de Goede <hdegoede@redhat.com>
+Cc: "HeungJun, Kim" <riverful.kim@samsung.com>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	'Sylwester Nawrocki' <snjw23@gmail.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
+ control
+Message-ID: <20111230184212.GW3677@valkosipuli.localdomain>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+ <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
+ <4EFB1B04.6060305@gmail.com>
+ <201112281451.39399.laurent.pinchart@ideasonboard.com>
+ <20111229233406.GU3677@valkosipuli.localdomain>
+ <000801ccc6bd$4b844520$e28ccf60$%kim@samsung.com>
+ <4EFD7955.8070603@redhat.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: linux-media@vger.kernel.org, Eddi De Pieri <eddi@depieri.net>
-Subject: Re: [PATCH 5/8] [media] em28xx: initial support for HAUPPAUGE HVR-930C
- again
-References: <1321800978-27912-1-git-send-email-mchehab@redhat.com> <1321800978-27912-2-git-send-email-mchehab@redhat.com> <1321800978-27912-3-git-send-email-mchehab@redhat.com> <1321800978-27912-4-git-send-email-mchehab@redhat.com> <1321800978-27912-5-git-send-email-mchehab@redhat.com> <CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com>
-In-Reply-To: <CAGoCfiwv1MWnJc+3HL+9-E=o+HG09jjdGYOfpoXSoPd+wW3oHg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EFD7955.8070603@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05-12-2011 16:23, Devin Heitmueller wrote:
-> On Sun, Nov 20, 2011 at 9:56 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com>  wrote:
->> diff --git a/drivers/media/common/tuners/xc5000.c b/drivers/media/common/tuners/xc5000.c
->> index ecd1f95..048f489 100644
->> --- a/drivers/media/common/tuners/xc5000.c
->> +++ b/drivers/media/common/tuners/xc5000.c
->> @@ -1004,6 +1004,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
->>         struct xc5000_priv *priv = fe->tuner_priv;
->>         int ret = 0;
->>
->> +       mutex_lock(&xc5000_list_mutex);
->> +
->>         if (xc5000_is_firmware_loaded(fe) != XC_RESULT_SUCCESS) {
->>                 ret = xc5000_fwupload(fe);
->>                 if (ret != XC_RESULT_SUCCESS)
->> @@ -1023,6 +1025,8 @@ static int xc_load_fw_and_init_tuner(struct dvb_frontend *fe)
->>         /* Default to "CABLE" mode */
->>         ret |= xc_write_reg(priv, XREG_SIGNALSOURCE, XC_RF_MODE_CABLE);
->>
->> +       mutex_unlock(&xc5000_list_mutex);
->> +
->>         return ret;
->>   }
->
-> What's up with this change?  Is this a bugfix for some race condition?
->   Why is it jammed into a patch for some particular product?
->
-> It seems like a change such as this could significantly change the
-> timing of tuner initialization if you have multiple xc5000 based
-> products that might have a slow i2c bus.  Was that intentional?
->
-> This patch should be NACK'd and resubmitted as it's own bugfix where
-> it's implications can be fully understood in the context of all the
-> other products that use xc5000.
+Hi Hans,
 
-It is too late for nacking the patch, as there are several other patches
-were already applied on the top of it, and we don't rebase the
-linux-media.git tree.
+On Fri, Dec 30, 2011 at 09:41:57AM +0100, Hans de Goede wrote:
+...
+> Right, so the above is exactly why I ended up making the pwc whitebalance
+> control the way it is, the user can essentially choice between a number
+> of options:
+> 1) auto whitebal
+> 2) a number of preset whitebal values (seems your proposal has some more then the pwc
+>    driver, which is fine)
+> 3) manual whitebal, at which point the user may set whitebal through one of:
+>    a) a color temperature control
+>    b) red and blue balance controls
+>    c) red, green and blue gains
 
-Assuming that this is due to some bug that Eddi picked during xc5000
-init, what it can be done now is to write a patch that would replace
-this xc5000-global mutex lock into a some other per-device locking
-schema.
+d) red, green, blue and... another green. This is how some raw bayer sensors
+can be controlled.
+
+> Notice that we also need to add some standardized controls for the 3c case, but that
+> is a different discussion.
+
+I was planning to add the gain to low-level controls once the other  sensor
+controls have been properly discussed, and hopefully approved, first.
+
+> Seeing how this discussion has evolved I believe that what I did in the pwc driver
+> is actually right from the user pov, the user gets one simple menu control which
+> allows the user to choice between auto / preset 1 - x / manual and since as
+> described above choosing one of the options excludes the other options from being
+> active I believe having this all in one control is the right thing to do.
+
+I still think automatic white balance should be separate from the rest, as
+it currently is (V4L2_CID_AUTO_WHITE_BALANCE). If such presets aren't
+available, the way the user would enable automatic white balance changes,
+which is bad.
+
+Also the automatic white balance algorithms may have related controls, which
+would bring back the same situatio of some controls not being active at all
+times --- which I don't see as a problem at all.
 
 Regards,
-Mauro.
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi     jabber/XMPP/Gmail: sailus@retiisi.org.uk
