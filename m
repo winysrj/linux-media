@@ -1,78 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:45983 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752720Ab1LLOXI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 09:23:08 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Mel Gorman" <mel@csn.ul.ie>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Ankita Garg" <ankita@in.ibm.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>
-Subject: Re: [PATCH 01/11] mm: page_alloc: handle MIGRATE_ISOLATE in
- free_pcppages_bulk()
-References: <1321634598-16859-1-git-send-email-m.szyprowski@samsung.com>
- <1321634598-16859-2-git-send-email-m.szyprowski@samsung.com>
- <20111212134235.GB3277@csn.ul.ie>
-Date: Mon, 12 Dec 2011 15:23:02 +0100
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v6drko0p3l0zgt@mpn-glaptop>
-In-Reply-To: <20111212134235.GB3277@csn.ul.ie>
+Received: from mx1.redhat.com ([209.132.183.28]:34496 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752158Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:27 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rs7015864
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 18/94] [media] cx24113: cleanup: remove unused init
+Date: Fri, 30 Dec 2011 13:07:15 -0200
+Message-Id: <1325257711-12274-19-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Fri, Nov 18, 2011 at 05:43:08PM +0100, Marek Szyprowski wrote:
->> From: Michal Nazarewicz <mina86@mina86.com>
->> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
->> index 9dd443d..58d1a2e 100644
->> --- a/mm/page_alloc.c
->> +++ b/mm/page_alloc.c
->> @@ -628,6 +628,18 @@ static void free_pcppages_bulk(struct zone *zone, int count,
->>  			page = list_entry(list->prev, struct page, lru);
->>  			/* must delete as __free_one_page list manipulates */
->>  			list_del(&page->lru);
->> +
->> +			/*
->> +			 * When page is isolated in set_migratetype_isolate()
->> +			 * function it's page_private is not changed since the
->> +			 * function has no way of knowing if it can touch it.
->> +			 * This means that when a page is on PCP list, it's
->> +			 * page_private no longer matches the desired migrate
->> +			 * type.
->> +			 */
->> +			if (get_pageblock_migratetype(page) == MIGRATE_ISOLATE)
->> +				set_page_private(page, MIGRATE_ISOLATE);
->> +
+There's no need to initialize with zero. This only wastes
+space at the data segment.
 
-On Mon, 12 Dec 2011 14:42:35 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> How much of a problem is this in practice?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/cx24113.c |    2 --
+ 1 files changed, 0 insertions(+), 2 deletions(-)
 
-IIRC, this lead to allocation being made from area marked as isolated
-or some such.
-
-> [...] I'd go as far to say that it would be preferable to drain the
-> per-CPU lists after you set pageblocks MIGRATE_ISOLATE. The IPIs also have
-> overhead but it will be incurred for the rare rather than the common case.
-
-I'll look into that.
-
+diff --git a/drivers/media/dvb/frontends/cx24113.c b/drivers/media/dvb/frontends/cx24113.c
+index 4b8794f..3883c3b 100644
+--- a/drivers/media/dvb/frontends/cx24113.c
++++ b/drivers/media/dvb/frontends/cx24113.c
+@@ -547,11 +547,9 @@ static const struct dvb_tuner_ops cx24113_tuner_ops = {
+ 	.release       = cx24113_release,
+ 
+ 	.init          = cx24113_init,
+-	.sleep         = NULL,
+ 
+ 	.set_params    = cx24113_set_params,
+ 	.get_frequency = cx24113_get_frequency,
+-	.get_bandwidth = NULL,
+ 	.get_status    = cx24113_get_status,
+ };
+ 
 -- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+1.7.8.352.g876a6
+
