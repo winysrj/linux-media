@@ -1,67 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from r02s01.colo.vollmar.net ([83.151.24.194]:43412 "EHLO
-	holzeisen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754520Ab1L0SAO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 13:00:14 -0500
-Message-ID: <4EFA07AB.8080001@holzeisen.de>
-Date: Tue, 27 Dec 2011 19:00:11 +0100
-From: Thomas Holzeisen <thomas@holzeisen.de>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media@vger.kernel.org
-Subject: Re: af9015: Second Tuner hangs after a while
-References: <4EF9F5E9.9020908@holzeisen.de> <4EF9FF86.7020605@iki.fi>
-In-Reply-To: <4EF9FF86.7020605@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:5688 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752534Ab1L3PJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:30 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Uuv024201
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 54/94] [media] stv0297: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:51 -0200
+Message-Id: <1325257711-12274-55-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I managed to get the Oops when disconnecting:
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Message from syslogd@xbmc at Dec 27 17:53:32 ...
- kernel:[  493.144450] Oops: 0000 [#1] SMP
-Message from syslogd@xbmc at Dec 27 17:53:32 ...
- kernel:[  493.147537] Process kworker/0:4 (pid: 1912, ti=f2f94000 task=f44d6180 task.ti=f2f94000)
-Message from syslogd@xbmc at Dec 27 17:53:32 ...
- kernel:[  493.147682] Stack:
-Message from syslogd@xbmc at Dec 27 17:53:32 ...
- kernel:[  493.148008] Call Trace:
-Message from syslogd@xbmc at Dec 27 17:53:32 ...
- kernel:[  493.148008] Code: f8 75 09 83 ea 28 74 04 89 d0 eb e7 83 c0 10 e9 ba 73 d9 c8 55 89 cd 57 56 89 c6 53 bb a1
-ff ff ff 83 ec 08 89 54 24 04 8b 40 08
-Message from syslogd@xbmc at Dec 27 17:53:32 ...
- kernel:[  493.148008] EIP: [<f850c92e>] i2c_transfer+0x17/0xb7 [i2c_core] SS:ESP 0068:f2f95eec
-Message from syslogd@xbmc at Dec 27 17:53:32 ...
- kernel:[  493.148008] CR2: 0000000000000002
-Message from syslogd@xbmc at Dec 27 17:53:32 ...
- kernel:[  493.164072] Oops: 0000 [#2] SMP
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/stv0297.c |   35 +++++++++++++++++----------------
+ 1 files changed, 18 insertions(+), 17 deletions(-)
 
-Antti Palosaari wrote:
-> On 12/27/2011 06:44 PM, Thomas Holzeisen wrote:
->> Until some time ago, there was not even a remote chance getting this Dual-Tuner Stick to work. When trying to tune in a
->> second transponder, the log got spammed with these:
->>
->> [  835.412375] af9015: command failed:1
->> [  835.412383] mxl5005s I2C write failed
->>
->> However, I applied the patches ba730b56cc9afbcb10f329c17320c9e535c43526 and 61875c55170f2cf275263b4ba77e6cc787596d9f
->> from Antti Palosaari. For the first time I got able to receive two Transponders at once. Sadly after a while the second
->> adapter stops working, showing the I2C erros above. The first adapter keeps working. Also attaching and removing the
->> stick does not work out very well.
-> 
->> this is repeatable to me every time. Removing the stick when in warm state, leads to kernel oops every time. Kernel
->> Version is 3.1.2.
-> 
-> Rather interesting problems. As I understand there is two success reports and of course tests I have done. This is first
-> report having problems.
-> 
-> I have PULL requested those changes about one month ago and hope those will committed soon in order to get more
-> testers... It is big change, basically whole driver is rewritten and as it is one of the most popular devices it will be
-> big chaos after Kernel merge if there will be problems like you have. For now I will still be and wait more reports.
-> 
-> 
-> regards
-> Antti
+diff --git a/drivers/media/dvb/frontends/stv0297.c b/drivers/media/dvb/frontends/stv0297.c
+index 5d7c288..88e8e52 100644
+--- a/drivers/media/dvb/frontends/stv0297.c
++++ b/drivers/media/dvb/frontends/stv0297.c
+@@ -404,8 +404,9 @@ static int stv0297_read_ucblocks(struct dvb_frontend *fe, u32 * ucblocks)
+ 	return 0;
+ }
+ 
+-static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
++static int stv0297_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct stv0297_state *state = fe->demodulator_priv;
+ 	int u_threshold;
+ 	int initial_u;
+@@ -417,7 +418,7 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
+ 	unsigned long timeout;
+ 	fe_spectral_inversion_t inversion;
+ 
+-	switch (p->u.qam.modulation) {
++	switch (p->modulation) {
+ 	case QAM_16:
+ 	case QAM_32:
+ 	case QAM_64:
+@@ -519,16 +520,16 @@ static int stv0297_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
+ 	stv0297_writereg_mask(state, 0x69, 0x0f, 0x00);
+ 
+ 	/* set parameters */
+-	stv0297_set_qam(state, p->u.qam.modulation);
+-	stv0297_set_symbolrate(state, p->u.qam.symbol_rate / 1000);
+-	stv0297_set_sweeprate(state, sweeprate, p->u.qam.symbol_rate / 1000);
++	stv0297_set_qam(state, p->modulation);
++	stv0297_set_symbolrate(state, p->symbol_rate / 1000);
++	stv0297_set_sweeprate(state, sweeprate, p->symbol_rate / 1000);
+ 	stv0297_set_carrieroffset(state, carrieroffset);
+ 	stv0297_set_inversion(state, inversion);
+ 
+ 	/* kick off lock */
+ 	/* Disable corner detection for higher QAMs */
+-	if (p->u.qam.modulation == QAM_128 ||
+-		p->u.qam.modulation == QAM_256)
++	if (p->modulation == QAM_128 ||
++		p->modulation == QAM_256)
+ 		stv0297_writereg_mask(state, 0x88, 0x08, 0x00);
+ 	else
+ 		stv0297_writereg_mask(state, 0x88, 0x08, 0x08);
+@@ -613,7 +614,7 @@ timeout:
+ 	return 0;
+ }
+ 
+-static int stv0297_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
++static int stv0297_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
+ {
+ 	struct stv0297_state *state = fe->demodulator_priv;
+ 	int reg_00, reg_83;
+@@ -625,24 +626,24 @@ static int stv0297_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
+ 	p->inversion = (reg_83 & 0x08) ? INVERSION_ON : INVERSION_OFF;
+ 	if (state->config->invert)
+ 		p->inversion = (p->inversion == INVERSION_ON) ? INVERSION_OFF : INVERSION_ON;
+-	p->u.qam.symbol_rate = stv0297_get_symbolrate(state) * 1000;
+-	p->u.qam.fec_inner = FEC_NONE;
++	p->symbol_rate = stv0297_get_symbolrate(state) * 1000;
++	p->fec_inner = FEC_NONE;
+ 
+ 	switch ((reg_00 >> 4) & 0x7) {
+ 	case 0:
+-		p->u.qam.modulation = QAM_16;
++		p->modulation = QAM_16;
+ 		break;
+ 	case 1:
+-		p->u.qam.modulation = QAM_32;
++		p->modulation = QAM_32;
+ 		break;
+ 	case 2:
+-		p->u.qam.modulation = QAM_128;
++		p->modulation = QAM_128;
+ 		break;
+ 	case 3:
+-		p->u.qam.modulation = QAM_256;
++		p->modulation = QAM_256;
+ 		break;
+ 	case 4:
+-		p->u.qam.modulation = QAM_64;
++		p->modulation = QAM_64;
+ 		break;
+ 	}
+ 
+@@ -706,8 +707,8 @@ static struct dvb_frontend_ops stv0297_ops = {
+ 	.sleep = stv0297_sleep,
+ 	.i2c_gate_ctrl = stv0297_i2c_gate_ctrl,
+ 
+-	.set_frontend_legacy = stv0297_set_frontend,
+-	.get_frontend_legacy = stv0297_get_frontend,
++	.set_frontend = stv0297_set_frontend,
++	.get_frontend = stv0297_get_frontend,
+ 
+ 	.read_status = stv0297_read_status,
+ 	.read_ber = stv0297_read_ber,
+-- 
+1.7.8.352.g876a6
 
