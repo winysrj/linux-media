@@ -1,95 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20197 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:28953 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755226Ab1LVLUX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 06:20:23 -0500
+	id S1752376Ab1L3PJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:28 -0500
 Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBMBKNCt019825
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9SMG024185
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 22 Dec 2011 06:20:23 -0500
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v3 10/28] [media] dvb_core: estimate bw for all non-terrestial systems
-Date: Thu, 22 Dec 2011 09:19:58 -0200
-Message-Id: <1324552816-25704-11-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324552816-25704-10-git-send-email-mchehab@redhat.com>
-References: <1324552816-25704-1-git-send-email-mchehab@redhat.com>
- <1324552816-25704-2-git-send-email-mchehab@redhat.com>
- <1324552816-25704-3-git-send-email-mchehab@redhat.com>
- <1324552816-25704-4-git-send-email-mchehab@redhat.com>
- <1324552816-25704-5-git-send-email-mchehab@redhat.com>
- <1324552816-25704-6-git-send-email-mchehab@redhat.com>
- <1324552816-25704-7-git-send-email-mchehab@redhat.com>
- <1324552816-25704-8-git-send-email-mchehab@redhat.com>
- <1324552816-25704-9-git-send-email-mchehab@redhat.com>
- <1324552816-25704-10-git-send-email-mchehab@redhat.com>
+Subject: [PATCHv2 38/94] [media] mb86a20s: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:35 -0200
+Message-Id: <1325257711-12274-39-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of just estimating the bandwidth for DVB-C annex A/C,
-also fill it at the core for ATSC and DVB-C annex B. This
-simplifies the logic inside the tuners, as all non-satellite
-tuners can just use c->bandwidth_hz for all supported
-delivery systems.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
+
+Actually, this driver needs to fill/use the ISDB-T proprieties.
+
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/dvb-core/dvb_frontend.c |   35 ++++++++++++++++++++++------
- 1 files changed, 27 insertions(+), 8 deletions(-)
+ drivers/media/dvb/frontends/mb86a20s.c |   26 ++++++++++++++++----------
+ 1 files changed, 16 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 1e1bc64..9f123b3 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1184,19 +1184,38 @@ static void dtv_property_adv_params_sync(struct dvb_frontend *fe)
- 	}
- 
- 	/*
--	 * On DVB-C, the bandwidth is a function of roll-off and symbol rate.
--	 * The bandwidth is required for DVB-C tuners, in order to avoid
--	 * inter-channel noise. Instead of estimating the minimal required
--	 * bandwidth on every single driver, calculates it here and fills
--	 * it at the cache bandwidth parameter.
-+	 * Be sure that the bandwidth will be filled for all
-+	 * non-satellite systems, as tuners need to know what
-+	 * low pass/Nyquist half filter should be applied, in
-+	 * order to avoid inter-channel noise.
-+	 *
-+	 * ISDB-T and DVB-T/T2 already sets bandwidth.
-+	 * ATSC and DVB-C don't set, so, the core should fill it.
-+	 *
-+	 * On DVB-C Annex A and C, the bandwidth is a function of
-+	 * the roll-off and symbol rate. Annex B defines different
-+	 * roll-off factors depending on the modulation. Fortunately,
-+	 * Annex B is only used with 6MHz, so there's no need to
-+	 * calculate it.
-+	 *
- 	 * While not officially supported, a side effect of handling it at
- 	 * the cache level is that a program could retrieve the bandwidth
--	 * via DTV_BANDWIDTH_HZ, wich may be useful for test programs.
-+	 * via DTV_BANDWIDTH_HZ, which may be useful for test programs.
- 	 */
--	if (c->delivery_system == SYS_DVBC_ANNEX_A)
-+	switch (c->delivery_system) {
-+	case SYS_ATSC:
-+	case SYS_DVBC_ANNEX_B:
-+		c->bandwidth_hz = 6000000;
-+		break;
-+	case SYS_DVBC_ANNEX_A:
- 		rolloff = 115;
--	if (c->delivery_system == SYS_DVBC_ANNEX_C)
-+		break;
-+	case SYS_DVBC_ANNEX_C:
- 		rolloff = 113;
-+		break;
-+	default:
-+		break;
-+	}
- 	if (rolloff)
- 		c->bandwidth_hz = (c->symbol_rate * rolloff) / 100;
+diff --git a/drivers/media/dvb/frontends/mb86a20s.c b/drivers/media/dvb/frontends/mb86a20s.c
+index 2dfea6c..a67d7ef 100644
+--- a/drivers/media/dvb/frontends/mb86a20s.c
++++ b/drivers/media/dvb/frontends/mb86a20s.c
+@@ -485,11 +485,16 @@ static int mb86a20s_read_status(struct dvb_frontend *fe, fe_status_t *status)
+ 	return 0;
  }
+ 
+-static int mb86a20s_set_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int mb86a20s_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct mb86a20s_state *state = fe->demodulator_priv;
+ 	int rc;
++#if 0
++	/*
++	 * FIXME: Properly implement the set frontend properties
++	 */
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
++#endif
+ 
+ 	dprintk("\n");
+ 
+@@ -521,15 +526,15 @@ static int mb86a20s_set_frontend(struct dvb_frontend *fe,
+ }
+ 
+ static int mb86a20s_get_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++				 struct dtv_frontend_properties *p)
+ {
+ 
+ 	/* FIXME: For now, it does nothing */
+ 
+-	fe->dtv_property_cache.bandwidth_hz = 6000000;
+-	fe->dtv_property_cache.transmission_mode = TRANSMISSION_MODE_AUTO;
+-	fe->dtv_property_cache.guard_interval = GUARD_INTERVAL_AUTO;
+-	fe->dtv_property_cache.isdbt_partial_reception = 0;
++	p->bandwidth_hz = 6000000;
++	p->transmission_mode = TRANSMISSION_MODE_AUTO;
++	p->guard_interval = GUARD_INTERVAL_AUTO;
++	p->isdbt_partial_reception = 0;
+ 
+ 	return 0;
+ }
+@@ -545,7 +550,7 @@ static int mb86a20s_tune(struct dvb_frontend *fe,
+ 	dprintk("\n");
+ 
+ 	if (params != NULL)
+-		rc = mb86a20s_set_frontend(fe, params);
++		rc = mb86a20s_set_frontend(fe);
+ 
+ 	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
+ 		mb86a20s_read_status(fe, status);
+@@ -608,6 +613,7 @@ error:
+ EXPORT_SYMBOL(mb86a20s_attach);
+ 
+ static struct dvb_frontend_ops mb86a20s_ops = {
++	.delsys = { SYS_ISDBT },
+ 	/* Use dib8000 values per default */
+ 	.info = {
+ 		.name = "Fujitsu mb86A20s",
+@@ -627,8 +633,8 @@ static struct dvb_frontend_ops mb86a20s_ops = {
+ 	.release = mb86a20s_release,
+ 
+ 	.init = mb86a20s_initfe,
+-	.set_frontend_legacy = mb86a20s_set_frontend,
+-	.get_frontend_legacy = mb86a20s_get_frontend,
++	.set_frontend = mb86a20s_set_frontend,
++	.get_frontend = mb86a20s_get_frontend,
+ 	.read_status = mb86a20s_read_status,
+ 	.read_signal_strength = mb86a20s_read_signal_strength,
+ 	.tune = mb86a20s_tune,
 -- 
 1.7.8.352.g876a6
 
