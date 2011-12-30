@@ -1,59 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:52166 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:33979 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751422Ab1L0MZo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 07:25:44 -0500
-Message-ID: <4EF9B945.5080706@linuxtv.org>
-Date: Tue, 27 Dec 2011 13:25:41 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 24/91] [media] em28xx-dvb: don't initialize drx-d
- non-used fields with zero
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-10-git-send-email-mchehab@redhat.com> <1324948159-23709-11-git-send-email-mchehab@redhat.com> <1324948159-23709-12-git-send-email-mchehab@redhat.com> <1324948159-23709-13-git-send-email-mchehab@redhat.com> <1324948159-23709-14-git-send-email-mchehab@redhat.com> <1324948159-23709-15-git-send-email-mchehab@redhat.com> <1324948159-23709-16-git-send-email-mchehab@redhat.com> <1324948159-23709-17-git-send-email-mchehab@redhat.com> <1324948159-23709-18-git-send-email-mchehab@redhat.com> <1324948159-23709-19-git-send-email-mchehab@redhat.com> <1324948159-23709-20-git-send-email-mchehab@redhat.com> <1324948159-23709-21-git-send-email-mchehab@redhat.com> <1324948159-23709-22-git-send-email-mchehab@redhat.com> <1324948159-23709-23-git-send-email-mchehab@redhat.com> <1324948159-23709-24-git-send-email-mchehab@redhat.com> <1324948159-23709-25-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324948159-23709-25-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1752317Ab1L3PJ2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:28 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rk9009113
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 32/94] [media] lgs8gl5: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:29 -0200
+Message-Id: <1325257711-12274-33-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.12.2011 02:08, Mauro Carvalho Chehab wrote:
-> There's no need to initialize unused fields with zero, as Kernel does
-> it automatically. Don't do that, in order to save some space at the
-> data segment.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-No space is saved for members of a struct, unless the complete struct is
-initialized to zero.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-Anyway, it improves readability.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/lgs8gl5.c |   28 ++++++++++++++--------------
+ 1 files changed, 14 insertions(+), 14 deletions(-)
 
-> This also allows the removal of the unused pll_set callback.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/video/em28xx/em28xx-dvb.c |   10 ++++++----
->  1 files changed, 6 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
-> index 3868c1e..28be043 100644
-> --- a/drivers/media/video/em28xx/em28xx-dvb.c
-> +++ b/drivers/media/video/em28xx/em28xx-dvb.c
-> @@ -302,10 +302,12 @@ static struct zl10353_config em28xx_zl10353_xc3028_no_i2c_gate = {
->  };
->  
->  static struct drxd_config em28xx_drxd = {
-> -	.index = 0, .demod_address = 0x70, .demod_revision = 0xa2,
-> -	.demoda_address = 0x00, .pll_address = 0x00,
-> -	.pll_type = DRXD_PLL_NONE, .clock = 12000, .insert_rs_byte = 1,
-> -	.pll_set = NULL, .osc_deviation = NULL, .IF = 42800000,
-> +	.demod_address = 0x70,
-> +	.demod_revision = 0xa2,
-> +	.pll_type = DRXD_PLL_NONE,
-> +	.clock = 12000,
-> +	.insert_rs_byte = 1,
-> +	.IF = 42800000,
->  	.disable_i2c_gate_ctrl = 1,
->  };
->  
+diff --git a/drivers/media/dvb/frontends/lgs8gl5.c b/drivers/media/dvb/frontends/lgs8gl5.c
+index f4e82a6..0f4bc16 100644
+--- a/drivers/media/dvb/frontends/lgs8gl5.c
++++ b/drivers/media/dvb/frontends/lgs8gl5.c
+@@ -311,14 +311,14 @@ lgs8gl5_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ 
+ 
+ static int
+-lgs8gl5_set_frontend(struct dvb_frontend *fe,
+-		struct dvb_frontend_parameters *p)
++lgs8gl5_set_frontend(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct lgs8gl5_state *state = fe->demodulator_priv;
+ 
+ 	dprintk("%s\n", __func__);
+ 
+-	if (p->u.ofdm.bandwidth != BANDWIDTH_8_MHZ)
++	if (p->bandwidth_hz != 8000000)
+ 		return -EINVAL;
+ 
+ 	if (fe->ops.tuner_ops.set_params) {
+@@ -337,21 +337,20 @@ lgs8gl5_set_frontend(struct dvb_frontend *fe,
+ 
+ static int
+ lgs8gl5_get_frontend(struct dvb_frontend *fe,
+-		struct dvb_frontend_parameters *p)
++		struct dtv_frontend_properties *p)
+ {
+ 	struct lgs8gl5_state *state = fe->demodulator_priv;
+ 	u8 inv = lgs8gl5_read_reg(state, REG_INVERSION);
+-	struct dvb_ofdm_parameters *o = &p->u.ofdm;
+ 
+ 	p->inversion = (inv & REG_INVERSION_ON) ? INVERSION_ON : INVERSION_OFF;
+ 
+-	o->code_rate_HP = FEC_1_2;
+-	o->code_rate_LP = FEC_7_8;
+-	o->guard_interval = GUARD_INTERVAL_1_32;
+-	o->transmission_mode = TRANSMISSION_MODE_2K;
+-	o->constellation = QAM_64;
+-	o->hierarchy_information = HIERARCHY_NONE;
+-	o->bandwidth = BANDWIDTH_8_MHZ;
++	p->code_rate_HP = FEC_1_2;
++	p->code_rate_LP = FEC_7_8;
++	p->guard_interval = GUARD_INTERVAL_1_32;
++	p->transmission_mode = TRANSMISSION_MODE_2K;
++	p->modulation = QAM_64;
++	p->hierarchy = HIERARCHY_NONE;
++	p->bandwidth_hz = 8000000;
+ 
+ 	return 0;
+ }
+@@ -413,6 +412,7 @@ EXPORT_SYMBOL(lgs8gl5_attach);
+ 
+ 
+ static struct dvb_frontend_ops lgs8gl5_ops = {
++	.delsys = { SYS_DMBTH },
+ 	.info = {
+ 		.name			= "Legend Silicon LGS-8GL5 DMB-TH",
+ 		.type			= FE_OFDM,
+@@ -434,8 +434,8 @@ static struct dvb_frontend_ops lgs8gl5_ops = {
+ 
+ 	.init = lgs8gl5_init,
+ 
+-	.set_frontend_legacy = lgs8gl5_set_frontend,
+-	.get_frontend_legacy = lgs8gl5_get_frontend,
++	.set_frontend = lgs8gl5_set_frontend,
++	.get_frontend = lgs8gl5_get_frontend,
+ 	.get_tune_settings = lgs8gl5_get_tune_settings,
+ 
+ 	.read_status = lgs8gl5_read_status,
+-- 
+1.7.8.352.g876a6
 
