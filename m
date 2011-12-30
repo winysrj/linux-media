@@ -1,102 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50377 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753283Ab1LUACJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 19:02:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-Subject: Re: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
-Date: Wed, 21 Dec 2011 01:02:08 +0100
-Cc: LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com> <201112151400.48321.laurent.pinchart@ideasonboard.com> <E99FAA59F8D8D34D8A118DD37F7C8F75016B83@DBDE01.ent.ti.com>
-In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F75016B83@DBDE01.ent.ti.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112210102.09117.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:8337 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752527Ab1L3PJa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:30 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9UYk024197
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 53/94] [media] stv0288: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:50 -0200
+Message-Id: <1325257711-12274-54-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manju,
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-On Friday 16 December 2011 14:42:48 Hadli, Manjunath wrote:
-> On Thu, Dec 15, 2011 at 18:30:47, Laurent Pinchart wrote:
-> > On Thursday 15 December 2011 13:24:58 Manjunath Hadli wrote:
-> > > add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer format
-> > > frames compressed by A-LAW alogorithm.
-> > > add V4L2_PIX_FMT_UV8 to represent storage of C (UV interleved) only.
-> > > 
-> > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
-> > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > > ---
-> > > 
-> > >  include/linux/videodev2.h |    6 ++++++
-> > >  1 files changed, 6 insertions(+), 0 deletions(-)
-> > 
-> > Could you please also document these formats in
-> > Documentation/DocBook/media/v4l ?
-> 
-> I will. Sorry to have missed that out.
-> 
-> > > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > > index 4b752d5..969112d 100644
-> > > --- a/include/linux/videodev2.h
-> > > +++ b/include/linux/videodev2.h
-> > > @@ -338,6 +338,9 @@ struct v4l2_pix_format {
-> > > 
-> > >  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8 
-> > >  YUV
-> > > 
-> > > 4:2:0 16x16 macroblocks */ #define V4L2_PIX_FMT_M420   
-> > > v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv
-> > > interleaved */
-> > > 
-> > > +/* Chrominance formats */
-> > > +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8 
-> > > UV 4:4 */ +
-> > > 
-> > >  /* two planes -- one Y, one Cr + Cb interleaved  */
-> > >  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12 
-> > >  Y/CbCr
-> > > 
-> > > 4:2:0  */ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1')
-> > > /* 12  Y/CrCb 4:2:0  */ @@ -366,6 +369,9 @@ struct v4l2_pix_format {
-> > > #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12 
-> > > RGRG.. GBGB.. */ /* 10bit raw bayer DPCM compressed to 8 bits */ 
-> > > #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-> > > +	/* 10bit raw bayer a-law compressed to 8 bits */ #define
-> > > +V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
-> > > +
-> > 
-> > That's not very future-proof, how would you describe SGBRG10ALAW8 for
-> > instance ?
-> > 
-> > Maybe it's time to standardize FOURCCs for Bayer new formats. We have 4
-> > characters, we could start with 'B' to denote Bayer, followed by one
-> > character for the order, one for the compression, and one for the number
-> > of bits.
-> 
-> I agree.
-> May be ('B', 'G', 'A', '8') is fine for the above?
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-We need to describe at last BGGR, GBRG, GRBG and RGGB. We could use 'B', 'g', 
-'G' and 'R' respectively for the second character. The third character would 
-be 'A' for A-law and 'D' for DPCM, and the fourth character could describe the 
-bus width in bits from 0 to 15 with '0' - '9', 'A' - 'F'. However, I suspect 
-that we will need 16-bit wide busses for raw Bayer at some point, and a 0 
-width is definitely not useful. We could thus offset the width by some value.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/stv0288.c |    9 +++------
+ 1 files changed, 3 insertions(+), 6 deletions(-)
 
-This is just a preliminary idea, I'm open to suggestions.
-
-> > >  	/*
-> > >  	
-> > >  	 * 10bit raw bayer, expanded to 16 bits
-> > >  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
-
+diff --git a/drivers/media/dvb/frontends/stv0288.c b/drivers/media/dvb/frontends/stv0288.c
+index 105f0bf..b0ddebc 100644
+--- a/drivers/media/dvb/frontends/stv0288.c
++++ b/drivers/media/dvb/frontends/stv0288.c
+@@ -458,8 +458,7 @@ static int stv0288_get_property(struct dvb_frontend *fe, struct dtv_property *p)
+ 	return 0;
+ }
+ 
+-static int stv0288_set_frontend(struct dvb_frontend *fe,
+-					struct dvb_frontend_parameters *dfp)
++static int stv0288_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct stv0288_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -481,8 +480,6 @@ static int stv0288_set_frontend(struct dvb_frontend *fe,
+ 		state->config->set_ts_params(fe, 0);
+ 
+ 	/* only frequency & symbol_rate are used for tuner*/
+-	dfp->frequency = c->frequency;
+-	dfp->u.qpsk.symbol_rate = c->symbol_rate;
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		fe->ops.tuner_ops.set_params(fe);
+ 		if (fe->ops.i2c_gate_ctrl)
+@@ -545,7 +542,7 @@ static void stv0288_release(struct dvb_frontend *fe)
+ }
+ 
+ static struct dvb_frontend_ops stv0288_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name			= "ST STV0288 DVB-S",
+ 		.type			= FE_QPSK,
+@@ -579,7 +576,7 @@ static struct dvb_frontend_ops stv0288_ops = {
+ 
+ 	.set_property = stv0288_set_property,
+ 	.get_property = stv0288_get_property,
+-	.set_frontend_legacy = stv0288_set_frontend,
++	.set_frontend = stv0288_set_frontend,
+ };
+ 
+ struct dvb_frontend *stv0288_attach(const struct stv0288_config *config,
 -- 
-Regards,
+1.7.8.352.g876a6
 
-Laurent Pinchart
