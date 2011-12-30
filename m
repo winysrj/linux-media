@@ -1,18 +1,18 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21130 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:45843 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752446Ab1L3PJ3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:29 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9SN8015896
+	id S1752672Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:32 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Uwf009147
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:28 -0500
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:30 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 43/94] [media] sp887x: convert set_fontend to use DVBv5 parameters
-Date: Fri, 30 Dec 2011 13:07:40 -0200
-Message-Id: <1325257711-12274-44-git-send-email-mchehab@redhat.com>
+Subject: [PATCHv2 61/94] [media] tda10086: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:58 -0200
+Message-Id: <1325257711-12274-62-git-send-email-mchehab@redhat.com>
 In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
 References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
@@ -28,153 +28,157 @@ struct.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/frontends/sp887x.c |   49 +++++++++++++++++++++------------
- 1 files changed, 31 insertions(+), 18 deletions(-)
+ drivers/media/dvb/frontends/tda10086.c |   46 ++++++++++++++++----------------
+ 1 files changed, 23 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/sp887x.c b/drivers/media/dvb/frontends/sp887x.c
-index 33ec08a..4b28d6a 100644
---- a/drivers/media/dvb/frontends/sp887x.c
-+++ b/drivers/media/dvb/frontends/sp887x.c
-@@ -209,13 +209,13 @@ static int sp887x_initial_setup (struct dvb_frontend* fe, const struct firmware
- 	return 0;
- };
+diff --git a/drivers/media/dvb/frontends/tda10086.c b/drivers/media/dvb/frontends/tda10086.c
+index 8501100..81fa57b 100644
+--- a/drivers/media/dvb/frontends/tda10086.c
++++ b/drivers/media/dvb/frontends/tda10086.c
+@@ -267,7 +267,7 @@ static int tda10086_send_burst (struct dvb_frontend* fe, fe_sec_mini_cmd_t minic
+ }
  
--static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
-+static int configure_reg0xc05 (struct dtv_frontend_properties *p, u16 *reg0xc05)
+ static int tda10086_set_inversion(struct tda10086_state *state,
+-				  struct dvb_frontend_parameters *fe_params)
++				  struct dtv_frontend_properties *fe_params)
  {
- 	int known_parameters = 1;
+ 	u8 invval = 0x80;
  
- 	*reg0xc05 = 0x000;
+@@ -292,7 +292,7 @@ static int tda10086_set_inversion(struct tda10086_state *state,
+ }
  
--	switch (p->u.ofdm.constellation) {
-+	switch (p->modulation) {
- 	case QPSK:
- 		break;
- 	case QAM_16:
-@@ -231,7 +231,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
- 		return -EINVAL;
- 	};
+ static int tda10086_set_symbol_rate(struct tda10086_state *state,
+-				    struct dvb_frontend_parameters *fe_params)
++				    struct dtv_frontend_properties *fe_params)
+ {
+ 	u8 dfn = 0;
+ 	u8 afs = 0;
+@@ -303,7 +303,7 @@ static int tda10086_set_symbol_rate(struct tda10086_state *state,
+ 	u32 tmp;
+ 	u32 bdr;
+ 	u32 bdri;
+-	u32 symbol_rate = fe_params->u.qpsk.symbol_rate;
++	u32 symbol_rate = fe_params->symbol_rate;
  
--	switch (p->u.ofdm.hierarchy_information) {
-+	switch (p->hierarchy) {
- 	case HIERARCHY_NONE:
- 		break;
- 	case HIERARCHY_1:
-@@ -250,7 +250,7 @@ static int configure_reg0xc05 (struct dvb_frontend_parameters *p, u16 *reg0xc05)
- 		return -EINVAL;
- 	};
+ 	dprintk ("%s %i\n", __func__, symbol_rate);
  
--	switch (p->u.ofdm.code_rate_HP) {
-+	switch (p->code_rate_HP) {
+@@ -367,13 +367,13 @@ static int tda10086_set_symbol_rate(struct tda10086_state *state,
+ }
+ 
+ static int tda10086_set_fec(struct tda10086_state *state,
+-			    struct dvb_frontend_parameters *fe_params)
++			    struct dtv_frontend_properties *fe_params)
+ {
+ 	u8 fecval;
+ 
+-	dprintk ("%s %i\n", __func__, fe_params->u.qpsk.fec_inner);
++	dprintk ("%s %i\n", __func__, fe_params->fec_inner);
+ 
+-	switch(fe_params->u.qpsk.fec_inner) {
++	switch(fe_params->fec_inner) {
  	case FEC_1_2:
+ 		fecval = 0x00;
  		break;
- 	case FEC_2_3:
-@@ -303,17 +303,30 @@ static void divide (int n, int d, int *quotient_i, int *quotient_f)
+@@ -409,9 +409,9 @@ static int tda10086_set_fec(struct tda10086_state *state,
+ 	return 0;
  }
  
- static void sp887x_correct_offsets (struct sp887x_state* state,
--				    struct dvb_frontend_parameters *p,
-+				    struct dtv_frontend_properties *p,
- 				    int actual_freq)
+-static int tda10086_set_frontend(struct dvb_frontend* fe,
+-				 struct dvb_frontend_parameters *fe_params)
++static int tda10086_set_frontend(struct dvb_frontend* fe)
  {
- 	static const u32 srate_correction [] = { 1879617, 4544878, 8098561 };
--	int bw_index = p->u.ofdm.bandwidth - BANDWIDTH_8_MHZ;
-+	int bw_index;
- 	int freq_offset = actual_freq - p->frequency;
- 	int sysclock = 61003; //[kHz]
- 	int ifreq = 36000000;
- 	int freq;
- 	int frequency_shift;
++	struct dtv_frontend_properties *fe_params = &fe->dtv_property_cache;
+ 	struct tda10086_state *state = fe->demodulator_priv;
+ 	int ret;
+ 	u32 freq = 0;
+@@ -452,12 +452,12 @@ static int tda10086_set_frontend(struct dvb_frontend* fe,
+ 	tda10086_write_mask(state, 0x10, 0x40, 0x40);
+ 	tda10086_write_mask(state, 0x00, 0x01, 0x00);
  
-+	switch (p->bandwidth_hz) {
-+	default:
-+	case 8000000:
-+		bw_index = 0;
-+		break;
-+	case 7000000:
-+		bw_index = 1;
-+		break;
-+	case 6000000:
-+		bw_index = 2;
-+		break;
-+	}
-+
- 	if (p->inversion == INVERSION_ON)
- 		freq = ifreq - freq_offset;
- 	else
-@@ -333,17 +346,17 @@ static void sp887x_correct_offsets (struct sp887x_state* state,
- 	sp887x_writereg(state, 0x30a, frequency_shift & 0xfff);
+-	state->symbol_rate = fe_params->u.qpsk.symbol_rate;
++	state->symbol_rate = fe_params->symbol_rate;
+ 	state->frequency = fe_params->frequency;
+ 	return 0;
  }
  
--static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
--					     struct dvb_frontend_parameters *p)
-+static int sp887x_setup_frontend_parameters (struct dvb_frontend *fe)
+-static int tda10086_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *fe_params)
++static int tda10086_get_frontend(struct dvb_frontend* fe, struct dtv_frontend_properties *fe_params)
  {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct sp887x_state* state = fe->demodulator_priv;
- 	unsigned actual_freq;
- 	int err;
- 	u16 val, reg0xc05;
+ 	struct tda10086_state* state = fe->demodulator_priv;
+ 	u8 val;
+@@ -467,7 +467,7 @@ static int tda10086_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_pa
+ 	dprintk ("%s\n", __func__);
  
--	if (p->u.ofdm.bandwidth != BANDWIDTH_8_MHZ &&
--	    p->u.ofdm.bandwidth != BANDWIDTH_7_MHZ &&
--	    p->u.ofdm.bandwidth != BANDWIDTH_6_MHZ)
-+	if (p->bandwidth_hz != 8000000 &&
-+	    p->bandwidth_hz != 7000000 &&
-+	    p->bandwidth_hz != 6000000)
+ 	/* check for invalid symbol rate */
+-	if (fe_params->u.qpsk.symbol_rate < 500000)
++	if (fe_params->symbol_rate < 500000)
  		return -EINVAL;
  
- 	if ((err = configure_reg0xc05(p, &reg0xc05)))
-@@ -369,9 +382,9 @@ static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
- 	sp887x_correct_offsets(state, p, actual_freq);
+ 	/* calculate the updated frequency (note: we convert from Hz->kHz) */
+@@ -516,34 +516,34 @@ static int tda10086_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_pa
+ 		tmp |= 0xffffff00;
+ 	tmp = (tmp * 480 * (1<<1)) / 128;
+ 	tmp = ((state->symbol_rate/1000) * tmp) / (1000000/1000);
+-	fe_params->u.qpsk.symbol_rate = state->symbol_rate + tmp;
++	fe_params->symbol_rate = state->symbol_rate + tmp;
  
- 	/* filter for 6/7/8 Mhz channel */
--	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
-+	if (p->bandwidth_hz == 6000000)
- 		val = 2;
--	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
-+	else if (p->bandwidth_hz == 7000000)
- 		val = 1;
- 	else
- 		val = 0;
-@@ -379,16 +392,16 @@ static int sp887x_setup_frontend_parameters (struct dvb_frontend* fe,
- 	sp887x_writereg(state, 0x311, val);
+ 	/* the FEC */
+ 	val = (tda10086_read_byte(state, 0x0d) & 0x70) >> 4;
+ 	switch(val) {
+ 	case 0x00:
+-		fe_params->u.qpsk.fec_inner = FEC_1_2;
++		fe_params->fec_inner = FEC_1_2;
+ 		break;
+ 	case 0x01:
+-		fe_params->u.qpsk.fec_inner = FEC_2_3;
++		fe_params->fec_inner = FEC_2_3;
+ 		break;
+ 	case 0x02:
+-		fe_params->u.qpsk.fec_inner = FEC_3_4;
++		fe_params->fec_inner = FEC_3_4;
+ 		break;
+ 	case 0x03:
+-		fe_params->u.qpsk.fec_inner = FEC_4_5;
++		fe_params->fec_inner = FEC_4_5;
+ 		break;
+ 	case 0x04:
+-		fe_params->u.qpsk.fec_inner = FEC_5_6;
++		fe_params->fec_inner = FEC_5_6;
+ 		break;
+ 	case 0x05:
+-		fe_params->u.qpsk.fec_inner = FEC_6_7;
++		fe_params->fec_inner = FEC_6_7;
+ 		break;
+ 	case 0x06:
+-		fe_params->u.qpsk.fec_inner = FEC_7_8;
++		fe_params->fec_inner = FEC_7_8;
+ 		break;
+ 	case 0x07:
+-		fe_params->u.qpsk.fec_inner = FEC_8_9;
++		fe_params->fec_inner = FEC_8_9;
+ 		break;
+ 	}
  
- 	/* scan order: 2k first = 0, 8k first = 1 */
--	if (p->u.ofdm.transmission_mode == TRANSMISSION_MODE_2K)
-+	if (p->transmission_mode == TRANSMISSION_MODE_2K)
- 		sp887x_writereg(state, 0x338, 0x000);
- 	else
- 		sp887x_writereg(state, 0x338, 0x001);
- 
- 	sp887x_writereg(state, 0xc05, reg0xc05);
- 
--	if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
-+	if (p->bandwidth_hz == 6000000)
- 		val = 2 << 3;
--	else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
-+	else if (p->bandwidth_hz == 7000000)
- 		val = 3 << 3;
- 	else
- 		val = 0 << 3;
-@@ -579,7 +592,7 @@ error:
+@@ -701,7 +701,7 @@ static void tda10086_release(struct dvb_frontend* fe)
  }
  
- static struct dvb_frontend_ops sp887x_ops = {
+ static struct dvb_frontend_ops tda10086_ops = {
 -
-+	.delsys = { SYS_DVBT },
++	.delsys = { SYS_DVBS },
  	.info = {
- 		.name = "Spase SP887x DVB-T",
- 		.type = FE_OFDM,
-@@ -598,7 +611,7 @@ static struct dvb_frontend_ops sp887x_ops = {
- 	.sleep = sp887x_sleep,
- 	.i2c_gate_ctrl = sp887x_i2c_gate_ctrl,
+ 		.name     = "Philips TDA10086 DVB-S",
+ 		.type     = FE_QPSK,
+@@ -722,8 +722,8 @@ static struct dvb_frontend_ops tda10086_ops = {
+ 	.sleep = tda10086_sleep,
+ 	.i2c_gate_ctrl = tda10086_i2c_gate_ctrl,
  
--	.set_frontend_legacy = sp887x_setup_frontend_parameters,
-+	.set_frontend = sp887x_setup_frontend_parameters,
- 	.get_tune_settings = sp887x_get_tune_settings,
+-	.set_frontend_legacy = tda10086_set_frontend,
+-	.get_frontend_legacy = tda10086_get_frontend,
++	.set_frontend = tda10086_set_frontend,
++	.get_frontend = tda10086_get_frontend,
+ 	.get_tune_settings = tda10086_get_tune_settings,
  
- 	.read_status = sp887x_read_status,
+ 	.read_status = tda10086_read_status,
 -- 
 1.7.8.352.g876a6
 
