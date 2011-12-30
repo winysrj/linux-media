@@ -1,108 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:44451 "EHLO ffm.saftware.de"
+Received: from mx1.redhat.com ([209.132.183.28]:14148 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754336Ab1L0OdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 27 Dec 2011 09:33:08 -0500
-Message-ID: <4EF9D71E.5090606@linuxtv.org>
-Date: Tue, 27 Dec 2011 15:33:02 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFC 01/91] [media] dvb-core: allow demods to specify the
- supported delivery systems supported standards.
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com> <1324948159-23709-2-git-send-email-mchehab@redhat.com> <4EF9B606.3090908@linuxtv.org> <4EF9C7FA.9070203@infradead.org>
-In-Reply-To: <4EF9C7FA.9070203@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1752307Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:27 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9RsN009105
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 28/94] [media] dvb_dummy_fe: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:25 -0200
+Message-Id: <1325257711-12274-29-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.12.2011 14:28, Mauro Carvalho Chehab wrote:
-> On 27-12-2011 10:11, Andreas Oberritter wrote:
->> On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
->>> DVB-S and DVB-T, as those were the standards supported by DVBv3.
->>
->> The description seems to be incomplete.
->>
->>> New standards like DSS, ISDB and CTTB don't fit on any of the
->>> above types.
->>>
->>> while there's a way for the drivers to explicitly change whatever
->>> default DELSYS were filled inside the core, still a fake value is
->>> needed there, and a "compat" code to allow DVBv3 applications to
->>> work with those delivery systems is needed. This is good for a
->>> short term solution, while applications aren't using DVBv5 directly.
->>>
->>> However, at long term, this is bad, as the compat code runs even
->>> if the application is using DVBv5. Also, the compat code is not
->>> perfect, and only works when the frontend is capable of auto-detecting
->>> the parameters that aren't visible by the faked delivery systems.
->>>
->>> So, let the frontend fill the supported delivery systems at the
->>> device properties directly, and, in the future, let the core to use
->>> the delsys to fill the reported info::type based on the delsys.
->>>
->>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>> ---
->>>  drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++++++++++++
->>>  drivers/media/dvb/dvb-core/dvb_frontend.h |    8 ++++++++
->>>  2 files changed, 21 insertions(+), 0 deletions(-)
->>>
->>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>> index 8dedff4..f17c411 100644
->>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>> @@ -1252,6 +1252,19 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
->>>  	const struct dvb_frontend_info *info = &fe->ops.info;
->>>  	u32 ncaps = 0;
->>>  
->>> +	/*
->>> +	 * If the frontend explicitly sets a list, use it, instead of
->>> +	 * filling based on the info->type
->>> +	 */
->>> +	if (fe->ops.delsys[ncaps]) {
->>> +		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
->>> +			p->u.buffer.data[ncaps] = fe->ops.delsys[ncaps];
->>> +			ncaps++;
->>> +		}
->>> +		p->u.buffer.len = ncaps;
->>> +		return;
->>> +	}
->>> +
->>
->> I don't understand what this is trying to solve. This is already handled
->> by the get_property driver callback.
->>
->> dtv_set_default_delivery_caps() only sets some defaults for drivers not
->> implementing get_property yet.
-> 
-> dtv_set_default_delivery_caps() does the wrong thing for delivery systems
-> like ISDB-T, ISDB-S, DSS, DMB-TH, as it fills data with a fake value that
-> is there at fe->ops.info.type. 
-> 
-> The fake values there should be used only for DVBv3 legacy calls emulation
-> on those delivery systems that are not fully compatible with a DVBv3 call.
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-That's right. Still, there's no need to introduce fe->ops.delsys,
-because the drivers in question could just implement get_property
-instead. At least that's what we discussed and AFAIR agreed upon when
-Manu recently submitted his patches regarding enumeration of delivery
-systems.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/dvb_dummy_fe.c |   23 ++++++++++++-----------
+ 1 files changed, 12 insertions(+), 11 deletions(-)
 
-> At the end, I think we should deprecate the fe->ops.info.type, as its
-> contents is not reliable (as it can represent something else). 
-> 
-> Btw, there are several places at dvb_frontend.c that uses the info.type
-> to assume the delivery system. This leads DVB core to do the wrong assumptions
-> for non-DVBv3 supported systems. The right way is to use a new field that
-> really represents the supported delivery systems by a given frontend, instead
-> of relying on fe->ops.info.type.
-> 
-> 
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+diff --git a/drivers/media/dvb/frontends/dvb_dummy_fe.c b/drivers/media/dvb/frontends/dvb_dummy_fe.c
+index 31e1dd6..b5e2a70 100644
+--- a/drivers/media/dvb/frontends/dvb_dummy_fe.c
++++ b/drivers/media/dvb/frontends/dvb_dummy_fe.c
+@@ -68,12 +68,13 @@ static int dvb_dummy_fe_read_ucblocks(struct dvb_frontend* fe, u32* ucblocks)
+ 	return 0;
+ }
+ 
+-static int dvb_dummy_fe_get_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int dvb_dummy_fe_get_frontend(struct dvb_frontend *fe,
++				     struct dtv_frontend_properties *c)
+ {
+ 	return 0;
+ }
+ 
+-static int dvb_dummy_fe_set_frontend(struct dvb_frontend* fe, struct dvb_frontend_parameters *p)
++static int dvb_dummy_fe_set_frontend(struct dvb_frontend* fe)
+ {
+ 	if (fe->ops.tuner_ops.set_params) {
+ 		fe->ops.tuner_ops.set_params(fe);
+@@ -171,7 +172,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops dvb_dummy_fe_ofdm_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name			= "Dummy DVB-T",
+ 		.type			= FE_OFDM,
+@@ -192,8 +193,8 @@ static struct dvb_frontend_ops dvb_dummy_fe_ofdm_ops = {
+ 	.init = dvb_dummy_fe_init,
+ 	.sleep = dvb_dummy_fe_sleep,
+ 
+-	.set_frontend_legacy = dvb_dummy_fe_set_frontend,
+-	.get_frontend_legacy = dvb_dummy_fe_get_frontend,
++	.set_frontend = dvb_dummy_fe_set_frontend,
++	.get_frontend = dvb_dummy_fe_get_frontend,
+ 
+ 	.read_status = dvb_dummy_fe_read_status,
+ 	.read_ber = dvb_dummy_fe_read_ber,
+@@ -203,7 +204,7 @@ static struct dvb_frontend_ops dvb_dummy_fe_ofdm_ops = {
+ };
+ 
+ static struct dvb_frontend_ops dvb_dummy_fe_qam_ops = {
+-
++	.delsys = { SYS_DVBC_ANNEX_A },
+ 	.info = {
+ 		.name			= "Dummy DVB-C",
+ 		.type			= FE_QAM,
+@@ -222,8 +223,8 @@ static struct dvb_frontend_ops dvb_dummy_fe_qam_ops = {
+ 	.init = dvb_dummy_fe_init,
+ 	.sleep = dvb_dummy_fe_sleep,
+ 
+-	.set_frontend_legacy = dvb_dummy_fe_set_frontend,
+-	.get_frontend_legacy = dvb_dummy_fe_get_frontend,
++	.set_frontend = dvb_dummy_fe_set_frontend,
++	.get_frontend = dvb_dummy_fe_get_frontend,
+ 
+ 	.read_status = dvb_dummy_fe_read_status,
+ 	.read_ber = dvb_dummy_fe_read_ber,
+@@ -233,7 +234,7 @@ static struct dvb_frontend_ops dvb_dummy_fe_qam_ops = {
+ };
+ 
+ static struct dvb_frontend_ops dvb_dummy_fe_qpsk_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name			= "Dummy DVB-S",
+ 		.type			= FE_QPSK,
+@@ -254,8 +255,8 @@ static struct dvb_frontend_ops dvb_dummy_fe_qpsk_ops = {
+ 	.init = dvb_dummy_fe_init,
+ 	.sleep = dvb_dummy_fe_sleep,
+ 
+-	.set_frontend_legacy = dvb_dummy_fe_set_frontend,
+-	.get_frontend_legacy = dvb_dummy_fe_get_frontend,
++	.set_frontend = dvb_dummy_fe_set_frontend,
++	.get_frontend = dvb_dummy_fe_get_frontend,
+ 
+ 	.read_status = dvb_dummy_fe_read_status,
+ 	.read_ber = dvb_dummy_fe_read_ber,
+-- 
+1.7.8.352.g876a6
 
