@@ -1,100 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39951 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752287Ab1LSLwX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 19 Dec 2011 06:52:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-Date: Mon, 19 Dec 2011 12:52:23 +0100
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com, Mauro Carvalho Chehab <mchehab@infradead.org>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com> <Pine.LNX.4.64.1112191237300.23694@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1112191237300.23694@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112191252.24101.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:27816 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752111Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:27 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Qkg009097
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:26 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCHv2 14/94] [media] cx23123: convert set_fontend to use DVBv5 parameters
+Date: Fri, 30 Dec 2011 13:07:11 -0200
+Message-Id: <1325257711-12274-15-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-On Monday 19 December 2011 12:43:28 Guennadi Liakhovetski wrote:
-> On Mon, 19 Dec 2011, javier Martin wrote:
-> > On 19 December 2011 11:58, Guennadi Liakhovetski wrote:
-> > > On Mon, 19 Dec 2011, javier Martin wrote:
-> > >> On 19 December 2011 11:41, Guennadi Liakhovetski wrote:
-> > >> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> > >> >> On Monday 19 December 2011 11:13:58 Guennadi Liakhovetski wrote:
-> > >> >> > On Mon, 19 Dec 2011, Laurent Pinchart wrote:
-> > >> >> > > On Monday 19 December 2011 09:09:34 Guennadi Liakhovetski wrote:
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-[snip]
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/cx24123.c |   40 ++++++++++++++++----------------
+ 1 files changed, 20 insertions(+), 20 deletions(-)
 
-> > >> >> > > > Good, this would mean, we need additional subdevice
-> > >> >> > > > operations along the lines of enum_input and enum_output,
-> > >> >> > > > and maybe also g_input and g_output?
-> > >> >> > > 
-> > >> >> > > What about implementing pad support in the subdevice ? Input
-> > >> >> > > enumeration could then be performed without a subdev
-> > >> >> > > operation.
-> > >> >> > 
-> > >> >> > soc-camera doesn't support pad operations yet.
-> > >> >> 
-> > >> >> soc-camera doesn't support enum_input yet either, so you need to
-> > >> >> implement something anyway ;-)
-> > >> >> 
-> > >> >> You wouldn't need to call a pad operation here, you would just need
-> > >> >> to iterate through the pads provided by the subdev.
-> > >> > 
-> > >> > tvp5150 doesn't implement it either yet. So, I would say, it is a
-> > >> > better solution ATM to fix this functionality independent of the
-> > >> > pad-level API.
-> > >> 
-> > >> I agree,
-> > >> I cannot contribute to implement pad-level API stuff since I can't
-> > >> test it with tvp5150.
-> > >> 
-> > >> Would you accept a patch implementing only S_INPUT?
-> > > 
-> > > Sorry, maybe I'm missing something, but how would it work? I mean, how
-> > > can we accept from the user any S_INPUT request with index != 0, if we
-> > > always return only 0 in reply to ENUM_INPUT? Ok, G_INPUT we could
-> > > implement internally in soc-camera: return 0 by default, then remember
-> > > last set input number per soc-camera device / subdev. But
-> > > ENUM_INPUT?...
-> > 
-> > It clearly is not a complete solution but at least it allows setting
-> > input 0 in broken drivers such as tvp5150 which have input 1 enabled
-> > by default, while soc-camera assumes input 0 is enabled.
-> 
-> I would really prefer an addition of an .enum_input() video subdev
-> operation.
-
-I agree that input enumeration is needed, but I really think this should be 
-handled through pads, no with a new subdev operation. I don't like the idea of 
-introducing a new operation that will already be deprecated from the very 
-beginning.
-
-Implementing this through pads isn't difficult. You don't need to implement 
-any pad operation in the tvp5150 driver. All you need to do is setup an array 
-of pads at probe time with information provided through platform data. soc-
-camera should then just access the pads array and implement enum_input 
-internally.
-
-> Please, try to propose such a patch. If it absolutely gets
-> rejected, maybe we can add a hack to soc-camera, returning -ENOSYS or
-> -ENOIOCTLCMD in reply to ENUM_INPUT with index > 0, like saying "we have
-> no idea, whether this device has any more inputs, than #0, try at your own
-> risk." But this would be a user-visible change in behaviour, so, actually
-> a bad thing (TM).
-
+diff --git a/drivers/media/dvb/frontends/cx24123.c b/drivers/media/dvb/frontends/cx24123.c
+index 4dfe786..a8af0bd 100644
+--- a/drivers/media/dvb/frontends/cx24123.c
++++ b/drivers/media/dvb/frontends/cx24123.c
+@@ -526,9 +526,9 @@ static int cx24123_set_symbolrate(struct cx24123_state *state, u32 srate)
+  * to be configured and the correct band selected.
+  * Calculate those values.
+  */
+-static int cx24123_pll_calculate(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int cx24123_pll_calculate(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct cx24123_state *state = fe->demodulator_priv;
+ 	u32 ndiv = 0, adiv = 0, vco_div = 0;
+ 	int i = 0;
+@@ -548,8 +548,8 @@ static int cx24123_pll_calculate(struct dvb_frontend *fe,
+ 	 * FILTUNE programming bits */
+ 	for (i = 0; i < ARRAY_SIZE(cx24123_AGC_vals); i++) {
+ 		agcv = &cx24123_AGC_vals[i];
+-		if ((agcv->symbolrate_low <= p->u.qpsk.symbol_rate) &&
+-		    (agcv->symbolrate_high >= p->u.qpsk.symbol_rate)) {
++		if ((agcv->symbolrate_low <= p->symbol_rate) &&
++		    (agcv->symbolrate_high >= p->symbol_rate)) {
+ 			state->VCAarg = agcv->VCAprogdata;
+ 			state->VGAarg = agcv->VGAprogdata;
+ 			state->FILTune = agcv->FILTune;
+@@ -658,15 +658,15 @@ static int cx24123_pll_writereg(struct dvb_frontend *fe, u32 data)
+ 	return 0;
+ }
+ 
+-static int cx24123_pll_tune(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int cx24123_pll_tune(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 	struct cx24123_state *state = fe->demodulator_priv;
+ 	u8 val;
+ 
+ 	dprintk("frequency=%i\n", p->frequency);
+ 
+-	if (cx24123_pll_calculate(fe, p) != 0) {
++	if (cx24123_pll_calculate(fe) != 0) {
+ 		err("%s: cx24123_pll_calcutate failed\n", __func__);
+ 		return -EINVAL;
+ 	}
+@@ -924,10 +924,10 @@ static int cx24123_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	return 0;
+ }
+ 
+-static int cx24123_set_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int cx24123_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct cx24123_state *state = fe->demodulator_priv;
++	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
+ 
+ 	dprintk("\n");
+ 
+@@ -935,14 +935,14 @@ static int cx24123_set_frontend(struct dvb_frontend *fe,
+ 		state->config->set_ts_params(fe, 0);
+ 
+ 	state->currentfreq = p->frequency;
+-	state->currentsymbolrate = p->u.qpsk.symbol_rate;
++	state->currentsymbolrate = p->symbol_rate;
+ 
+ 	cx24123_set_inversion(state, p->inversion);
+-	cx24123_set_fec(state, p->u.qpsk.fec_inner);
+-	cx24123_set_symbolrate(state, p->u.qpsk.symbol_rate);
++	cx24123_set_fec(state, p->fec_inner);
++	cx24123_set_symbolrate(state, p->symbol_rate);
+ 
+ 	if (!state->config->dont_use_pll)
+-		cx24123_pll_tune(fe, p);
++		cx24123_pll_tune(fe);
+ 	else if (fe->ops.tuner_ops.set_params)
+ 		fe->ops.tuner_ops.set_params(fe);
+ 	else
+@@ -960,7 +960,7 @@ static int cx24123_set_frontend(struct dvb_frontend *fe,
+ }
+ 
+ static int cx24123_get_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++				struct dtv_frontend_properties *p)
+ {
+ 	struct cx24123_state *state = fe->demodulator_priv;
+ 
+@@ -970,12 +970,12 @@ static int cx24123_get_frontend(struct dvb_frontend *fe,
+ 		err("%s: Failed to get inversion status\n", __func__);
+ 		return -EREMOTEIO;
+ 	}
+-	if (cx24123_get_fec(state, &p->u.qpsk.fec_inner) != 0) {
++	if (cx24123_get_fec(state, &p->fec_inner) != 0) {
+ 		err("%s: Failed to get fec status\n", __func__);
+ 		return -EREMOTEIO;
+ 	}
+ 	p->frequency = state->currentfreq;
+-	p->u.qpsk.symbol_rate = state->currentsymbolrate;
++	p->symbol_rate = state->currentsymbolrate;
+ 
+ 	return 0;
+ }
+@@ -1014,7 +1014,7 @@ static int cx24123_tune(struct dvb_frontend *fe,
+ 	int retval = 0;
+ 
+ 	if (params != NULL)
+-		retval = cx24123_set_frontend(fe, params);
++		retval = cx24123_set_frontend(fe);
+ 
+ 	if (!(mode_flags & FE_TUNE_MODE_ONESHOT))
+ 		cx24123_read_status(fe, status);
+@@ -1125,7 +1125,7 @@ error:
+ EXPORT_SYMBOL(cx24123_attach);
+ 
+ static struct dvb_frontend_ops cx24123_ops = {
+-
++	.delsys = { SYS_DVBS },
+ 	.info = {
+ 		.name = "Conexant CX24123/CX24109",
+ 		.type = FE_QPSK,
+@@ -1145,8 +1145,8 @@ static struct dvb_frontend_ops cx24123_ops = {
+ 	.release = cx24123_release,
+ 
+ 	.init = cx24123_initfe,
+-	.set_frontend_legacy = cx24123_set_frontend,
+-	.get_frontend_legacy = cx24123_get_frontend,
++	.set_frontend = cx24123_set_frontend,
++	.get_frontend = cx24123_get_frontend,
+ 	.read_status = cx24123_read_status,
+ 	.read_ber = cx24123_read_ber,
+ 	.read_signal_strength = cx24123_read_signal_strength,
 -- 
-Regards,
+1.7.8.352.g876a6
 
-Laurent Pinchart
