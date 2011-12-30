@@ -1,112 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:36935 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753065Ab1LOJVs (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47298 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754843Ab1L3AQU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 04:21:48 -0500
-Message-ID: <4EE9BC25.7020303@infradead.org>
-Date: Thu, 15 Dec 2011 07:21:41 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+	Thu, 29 Dec 2011 19:16:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "HeungJun, Kim" <riverful.kim@samsung.com>
+Subject: Re: [RFC PATCH 0/4] Add some new camera controls
+Date: Fri, 30 Dec 2011 01:16:28 +0100
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, s.nawrocki@samsung.com,
+	kyungmin.park@samsung.com
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <201112281501.25091.laurent.pinchart@ideasonboard.com> <001601ccc5f1$4db353d0$e919fb70$%kim@samsung.com>
+In-Reply-To: <001601ccc5f1$4db353d0$e919fb70$%kim@samsung.com>
 MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
-	stable@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [patch -longterm] V4L/DVB: v4l2-ioctl: integer overflow in video_usercopy()
-References: <20111215063445.GA2424@elgon.mountain>
-In-Reply-To: <20111215063445.GA2424@elgon.mountain>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201112300116.28572.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15-12-2011 04:34, Dan Carpenter wrote:
-> On a 32bit system the multiplication here could overflow.  p->count is
-> used in some of the V4L drivers.
+Hi,
 
-ULONG_MAX / sizeof(v4l2_ext_control) is too much. This ioctl is used on things
-like setting MPEG paramenters, where several parameters need adjustments at
-the same time. I risk to say that 64 is probably a reasonably safe upper limit.
+On Thursday 29 December 2011 07:15:46 HeungJun, Kim wrote:
+> On Wednesday, December 28, 2011 11:01 PM Laurent Pinchart wrote:
+> > On Wednesday 28 December 2011 07:23:44 HeungJun, Kim wrote:
+> > > Hi everyone,
+> > > 
+> > > This RFC patch series include new 4 controls ID for digital camera.
+> > > I about to suggest these controls by the necessity enabling the M-5MOLS
+> > > sensor's function, and I hope to discuss this in here.
+> > 
+> > Thanks for the patches.
+> > 
+> > The new controls introduced by these patches are very high level. Should
+> > they be put in their own class ? I also think we should specify how
+> > those high- level controls interact with low-level controls, otherwise
+> > applications will likely get very confused.
+> 
+> I did not consider yet, but I think it's first to define about what
+> low-/high- is. I think this is not high- level controls. And, honestly, I
+> don't understand it's really important to categorize low-/high-, or not.
+> 
+> IMHO, The importance is the just complexity of interacting with each
+> modules. If this means the level of low-/high-, I can understand this.
+> But I'm wrong, please explain this. :)
 
-Btw, the upstream code also seems to have the same issue:
+Low level controls are usually handled in hardware and pretty much self-
+contained. High level controls are usually software algorithms (possibly 
+running on the sensor itself) that modify low level controls behind the scene.
 
-static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
-                            void * __user *user_ptr, void ***kernel_ptr)
-{
-...
-	if (ctrls->count != 0) {
-...	
-	*array_size = sizeof(struct v4l2_ext_control)
-                                    * ctrls->count;
-	ret = 1;
-...
-}
-	
-long
-video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
-               v4l2_kioctl func)
-{
-...
-        err = check_array_args(cmd, parg, &array_size, &user_ptr, &kernel_ptr);
-        if (err < 0)
-                goto out;
-        has_array_args = err;
+If a sensor exposes both an exposure time control and a scene mode control 
+that modifies exposure time handling, documentation of the scene mode control 
+must explain how the two interacts and what applications can and can't do.
 
-        if (has_array_args) {
-                mbuf = kmalloc(array_size, GFP_KERNEL);
-...
+> There is some different story, I just got the N900 some days ago :).
+> The purpose is just understanding Nokia and TI OMAP camera architecture
+> well. Probably, it helps for me to talk more easily, and I'll be able to
+> speak more well
+> with omap workers - you and Sakari.
 
-so, if is there any overflow at check_array_args(), instead of returning
-an error to userspace, it will allocate the array with less space than
-needed. 
-
-On both upstream and longterm, I think that it is more reasonable to 
-state a limit for the maximum number of controls that can be passed at
-the same time, and live with that.
-
-A dummy check says:
-$ more include/linux/videodev2.h |grep V4L2_CID|wc -l
-    209
-
-So, an upper limit of 256 is enough to allow userspace to change all existing controls
-at the same time.
-
-The proper way seems to add a define at include/linux/videodev2.h
-and enforce it at the usercopy code.
-
+-- 
 Regards,
-Mauro
 
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> ---
-> This is a patch against the 2.6.32-longterm kernel.  In the stock
-> kernel, this code was totally rewritten and fixed in 2010 by d14e6d76ebf
-> "[media] v4l: Add multi-planar ioctl handling code".
-> 
-> Hopefully, someone can Ack this and we merge it into the stable tree.
-> 
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index 265bfb5..7196303 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -414,6 +414,9 @@ video_usercopy(struct file *file, unsigned int cmd, unsigned long arg,
->  		p->error_idx = p->count;
->  		user_ptr = (void __user *)p->controls;
->  		if (p->count) {
-> +			err = -EINVAL;
-> +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
-> +				goto out_ext_ctrl;
->  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
->  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
->  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
-> @@ -1912,6 +1915,9 @@ long video_ioctl2(struct file *file,
->  		p->error_idx = p->count;
->  		user_ptr = (void __user *)p->controls;
->  		if (p->count) {
-> +			err = -EINVAL;
-> +			if (p->count > ULONG_MAX / sizeof(struct v4l2_ext_control))
-> +				goto out_ext_ctrl;
->  			ctrls_size = sizeof(struct v4l2_ext_control) * p->count;
->  			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
->  			mbuf = kmalloc(ctrls_size, GFP_KERNEL);
-
+Laurent Pinchart
