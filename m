@@ -1,107 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1025 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:59879 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755331Ab1LXPvG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:06 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp5Pj017032
+	id S1752730Ab1L3PJc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:32 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9WTk024228
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:05 -0500
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:32 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 07/47] [media] max2165: use DVBv5 parameters on set_params()
-Date: Sat, 24 Dec 2011 13:50:12 -0200
-Message-Id: <1324741852-26138-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-7-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
+Subject: [PATCHv2 87/94] [media] dvb: remove the track() fops
+Date: Fri, 30 Dec 2011 13:08:24 -0200
+Message-Id: <1325257711-12274-88-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner.
+This callback is not used anywhere. Maybe it were used in the
+past to optimize the custom algo, but, as it is not used anymore,
+let's just remove it.
+
+If later needed, some patch may re-add it with a proper
+implementation.
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/common/tuners/max2165.c |   36 +++++++++++---------------------
- 1 files changed, 13 insertions(+), 23 deletions(-)
+ drivers/media/dvb/dvb-core/dvb_frontend.c  |    5 +----
+ drivers/media/dvb/dvb-core/dvb_frontend.h  |    1 -
+ drivers/media/dvb/frontends/stb0899_drv.c  |   21 ---------------------
+ drivers/media/dvb/frontends/stv0900_core.c |    7 -------
+ 4 files changed, 1 insertions(+), 33 deletions(-)
 
-diff --git a/drivers/media/common/tuners/max2165.c b/drivers/media/common/tuners/max2165.c
-index 9883617..0343449 100644
---- a/drivers/media/common/tuners/max2165.c
-+++ b/drivers/media/common/tuners/max2165.c
-@@ -151,7 +151,7 @@ static int max2165_set_bandwidth(struct max2165_priv *priv, u32 bw)
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 18a7e23..68d284b 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -637,10 +637,7 @@ restart:
+ 					}
+ 				}
+ 				/* Track the carrier if the search was successful */
+-				if (fepriv->algo_status == DVBFE_ALGO_SEARCH_SUCCESS) {
+-					if (fe->ops.track)
+-						fe->ops.track(fe, &fepriv->parameters_in);
+-				} else {
++				if (fepriv->algo_status != DVBFE_ALGO_SEARCH_SUCCESS) {
+ 					fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
+ 					fepriv->delay = HZ / 2;
+ 				}
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h b/drivers/media/dvb/dvb-core/dvb_frontend.h
+index 79f01ce..52efcbd 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+@@ -307,7 +307,6 @@ struct dvb_frontend_ops {
+ 	 * tuning algorithms, rather than a simple swzigzag
+ 	 */
+ 	enum dvbfe_search (*search)(struct dvb_frontend *fe);
+-	int (*track)(struct dvb_frontend *fe, struct dvb_frontend_parameters *p);
+ 
+ 	struct dvb_tuner_ops tuner_ops;
+ 	struct analog_demod_ops analog_ops;
+diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
+index 93afc79..9fad627 100644
+--- a/drivers/media/dvb/frontends/stb0899_drv.c
++++ b/drivers/media/dvb/frontends/stb0899_drv.c
+@@ -1568,26 +1568,6 @@ static enum dvbfe_search stb0899_search(struct dvb_frontend *fe)
+ 
+ 	return DVBFE_ALGO_SEARCH_ERROR;
+ }
+-/*
+- * stb0899_track
+- * periodically check the signal level against a specified
+- * threshold level and perform derotator centering.
+- * called once we have a lock from a successful search
+- * event.
+- *
+- * Will be called periodically called to maintain the
+- * lock.
+- *
+- * Will be used to get parameters as well as info from
+- * the decoded baseband header
+- *
+- * Once a new lock has established, the internal state
+- * frequency (internal->freq) is updated
+- */
+-static int stb0899_track(struct dvb_frontend *fe, struct dvb_frontend_parameters *p)
+-{
+-	return 0;
+-}
+ 
+ static int stb0899_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *p)
  {
- 	u8 val;
+@@ -1647,7 +1627,6 @@ static struct dvb_frontend_ops stb0899_ops = {
  
--	if (bw == BANDWIDTH_8_MHZ)
-+	if (bw == 8000000)
- 		val = priv->bb_filter_8mhz_cfg;
- 	else
- 		val = priv->bb_filter_7mhz_cfg;
-@@ -261,35 +261,25 @@ static int max2165_set_params(struct dvb_frontend *fe,
- 	struct dvb_frontend_parameters *params)
+ 	.get_frontend_algo		= stb0899_frontend_algo,
+ 	.search				= stb0899_search,
+-	.track				= stb0899_track,
+ 	.get_frontend                   = stb0899_get_frontend,
+ 
+ 
+diff --git a/drivers/media/dvb/frontends/stv0900_core.c b/drivers/media/dvb/frontends/stv0900_core.c
+index 83e9a81..8af1e624 100644
+--- a/drivers/media/dvb/frontends/stv0900_core.c
++++ b/drivers/media/dvb/frontends/stv0900_core.c
+@@ -1658,12 +1658,6 @@ static int stv0900_read_status(struct dvb_frontend *fe, enum fe_status *status)
+ 	return 0;
+ }
+ 
+-static int stv0900_track(struct dvb_frontend *fe,
+-			struct dvb_frontend_parameters *p)
+-{
+-	return 0;
+-}
+-
+ static int stv0900_stop_ts(struct dvb_frontend *fe, int stop_ts)
  {
- 	struct max2165_priv *priv = fe->tuner_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int ret;
  
--	dprintk("%s() frequency=%d (Hz)\n", __func__, params->frequency);
--	if (fe->ops.info.type == FE_ATSC) {
--			return -EINVAL;
--	} else if (fe->ops.info.type == FE_OFDM) {
--		dprintk("%s() OFDM\n", __func__);
--		switch (params->u.ofdm.bandwidth) {
--		case BANDWIDTH_6_MHZ:
--			return -EINVAL;
--		case BANDWIDTH_7_MHZ:
--		case BANDWIDTH_8_MHZ:
--			priv->frequency = params->frequency;
--			priv->bandwidth = params->u.ofdm.bandwidth;
--			break;
--		default:
--			printk(KERN_ERR "MAX2165 bandwidth not set!\n");
--			return -EINVAL;
--		}
--	} else {
--		printk(KERN_ERR "MAX2165 modulation type not supported!\n");
-+	switch (c->bandwidth_hz) {
-+	case 7000000:
-+	case 8000000:
-+		priv->frequency = c->frequency;
-+		break;
-+	default:
-+		printk(KERN_INFO "MAX2165: bandwidth %d Hz not supported.\n",
-+		       c->bandwidth_hz);
- 		return -EINVAL;
- 	}
- 
--	dprintk("%s() frequency=%d\n", __func__, priv->frequency);
-+	dprintk("%s() frequency=%d\n", __func__, c->frequency);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
--	max2165_set_bandwidth(priv, priv->bandwidth);
-+	max2165_set_bandwidth(priv, c->bandwidth_hz);
- 	ret = max2165_set_rf(priv, priv->frequency);
- 	mdelay(50);
- 	max2165_debug_status(priv);
-@@ -370,7 +360,7 @@ static int max2165_init(struct dvb_frontend *fe)
- 
- 	max2165_read_rom_table(priv);
- 
--	max2165_set_bandwidth(priv, BANDWIDTH_8_MHZ);
-+	max2165_set_bandwidth(priv, 8000000);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 			fe->ops.i2c_gate_ctrl(fe, 0);
+@@ -1891,7 +1885,6 @@ static struct dvb_frontend_ops stv0900_ops = {
+ 	.diseqc_recv_slave_reply	= stv0900_recv_slave_reply,
+ 	.set_tone			= stv0900_set_tone,
+ 	.search				= stv0900_search,
+-	.track				= stv0900_track,
+ 	.read_status			= stv0900_read_status,
+ 	.read_ber			= stv0900_read_ber,
+ 	.read_signal_strength		= stv0900_read_signal_strength,
 -- 
 1.7.8.352.g876a6
 
