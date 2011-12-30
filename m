@@ -1,109 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34898 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:46464 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755600Ab1LXPvI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:08 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp7Eq018694
+	id S1752178Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 30 Dec 2011 10:09:27 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rbs026530
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
+	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 41/47] [media] dib0070: Remove unused dvb_frontend_parameters
-Date: Sat, 24 Dec 2011 13:50:46 -0200
-Message-Id: <1324741852-26138-42-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-41-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
- <1324741852-26138-10-git-send-email-mchehab@redhat.com>
- <1324741852-26138-11-git-send-email-mchehab@redhat.com>
- <1324741852-26138-12-git-send-email-mchehab@redhat.com>
- <1324741852-26138-13-git-send-email-mchehab@redhat.com>
- <1324741852-26138-14-git-send-email-mchehab@redhat.com>
- <1324741852-26138-15-git-send-email-mchehab@redhat.com>
- <1324741852-26138-16-git-send-email-mchehab@redhat.com>
- <1324741852-26138-17-git-send-email-mchehab@redhat.com>
- <1324741852-26138-18-git-send-email-mchehab@redhat.com>
- <1324741852-26138-19-git-send-email-mchehab@redhat.com>
- <1324741852-26138-20-git-send-email-mchehab@redhat.com>
- <1324741852-26138-21-git-send-email-mchehab@redhat.com>
- <1324741852-26138-22-git-send-email-mchehab@redhat.com>
- <1324741852-26138-23-git-send-email-mchehab@redhat.com>
- <1324741852-26138-24-git-send-email-mchehab@redhat.com>
- <1324741852-26138-25-git-send-email-mchehab@redhat.com>
- <1324741852-26138-26-git-send-email-mchehab@redhat.com>
- <1324741852-26138-27-git-send-email-mchehab@redhat.com>
- <1324741852-26138-28-git-send-email-mchehab@redhat.com>
- <1324741852-26138-29-git-send-email-mchehab@redhat.com>
- <1324741852-26138-30-git-send-email-mchehab@redhat.com>
- <1324741852-26138-31-git-send-email-mchehab@redhat.com>
- <1324741852-26138-32-git-send-email-mchehab@redhat.com>
- <1324741852-26138-33-git-send-email-mchehab@redhat.com>
- <1324741852-26138-34-git-send-email-mchehab@redhat.com>
- <1324741852-26138-35-git-send-email-mchehab@redhat.com>
- <1324741852-26138-36-git-send-email-mchehab@redhat.com>
- <1324741852-26138-37-git-send-email-mchehab@redhat.com>
- <1324741852-26138-38-git-send-email-mchehab@redhat.com>
- <1324741852-26138-39-git-send-email-mchehab@redhat.com>
- <1324741852-26138-40-git-send-email-mchehab@redhat.com>
- <1324741852-26138-41-git-send-email-mchehab@redhat.com>
+Subject: [PATCHv2 19/94] [media] dib9000: Get rid of the remaining DVBv3 legacy stuff
+Date: Fri, 30 Dec 2011 13:07:16 -0200
+Message-Id: <1325257711-12274-20-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
+References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
 To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+dib9000 is almost ok, with regards to the usage of DVBv5 parameters.
+It has just a few stuff using the old way, at set_frontend.
+
+Replace them by the DVBv5 way, and add the delivery system.
+
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/frontends/dib0070.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/dvb/frontends/dib9000.c |   19 +++++++++++--------
+ 1 files changed, 11 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/dib0070.c b/drivers/media/dvb/frontends/dib0070.c
-index dc1cb17..4ca3441 100644
---- a/drivers/media/dvb/frontends/dib0070.c
-+++ b/drivers/media/dvb/frontends/dib0070.c
-@@ -150,7 +150,7 @@ static int dib0070_write_reg(struct dib0070_state *state, u8 reg, u16 val)
-     } \
- } while (0)
+diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
+index 0488068..a3a9fb1 100644
+--- a/drivers/media/dvb/frontends/dib9000.c
++++ b/drivers/media/dvb/frontends/dib9000.c
+@@ -1867,7 +1867,7 @@ static int dib9000_fe_get_tune_settings(struct dvb_frontend *fe, struct dvb_fron
+ 	return 0;
+ }
  
--static int dib0070_set_bandwidth(struct dvb_frontend *fe, struct dvb_frontend_parameters *ch)
-+static int dib0070_set_bandwidth(struct dvb_frontend *fe)
+-static int dib9000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *fep)
++static int dib9000_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *c)
  {
-     struct dib0070_state *state = fe->tuner_priv;
-     u16 tmp = dib0070_read_reg(state, 0x02) & 0x3fff;
-@@ -335,7 +335,7 @@ static const struct dib0070_lna_match dib0070_lna[] = {
- };
+ 	struct dib9000_state *state = fe->demodulator_priv;
+ 	u8 index_frontend, sub_index_frontend;
+@@ -1883,7 +1883,7 @@ static int dib9000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
+ 			dprintk("TPS lock on the slave%i", index_frontend);
  
- #define LPF	100
--static int dib0070_tune_digital(struct dvb_frontend *fe, struct dvb_frontend_parameters *ch)
-+static int dib0070_tune_digital(struct dvb_frontend *fe)
+ 			/* synchronize the cache with the other frontends */
+-			state->fe[index_frontend]->ops.get_frontend_legacy(state->fe[index_frontend], fep);
++			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend], c);
+ 			for (sub_index_frontend = 0; (sub_index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[sub_index_frontend] != NULL);
+ 			     sub_index_frontend++) {
+ 				if (sub_index_frontend != index_frontend) {
+@@ -1958,7 +1958,7 @@ static int dib9000_set_channel_status(struct dvb_frontend *fe, struct dvb_fronte
+ 	return 0;
+ }
+ 
+-static int dib9000_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *fep)
++static int dib9000_set_frontend(struct dvb_frontend *fe)
  {
-     struct dib0070_state *state = fe->tuner_priv;
+ 	struct dib9000_state *state = fe->demodulator_priv;
+ 	int sleep_time, sleep_time_slave;
+@@ -1983,8 +1983,10 @@ static int dib9000_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
+ 	fe->dtv_property_cache.delivery_system = SYS_DVBT;
  
-@@ -507,7 +507,7 @@ static int dib0070_tune_digital(struct dvb_frontend *fe, struct dvb_frontend_par
+ 	/* set the master status */
+-	if (fep->u.ofdm.transmission_mode == TRANSMISSION_MODE_AUTO ||
+-	    fep->u.ofdm.guard_interval == GUARD_INTERVAL_AUTO || fep->u.ofdm.constellation == QAM_AUTO || fep->u.ofdm.code_rate_HP == FEC_AUTO) {
++	if (state->fe[0]->dtv_property_cache.transmission_mode == TRANSMISSION_MODE_AUTO ||
++	    state->fe[0]->dtv_property_cache.guard_interval == GUARD_INTERVAL_AUTO ||
++	    state->fe[0]->dtv_property_cache.modulation == QAM_AUTO ||
++	    state->fe[0]->dtv_property_cache.code_rate_HP == FEC_AUTO) {
+ 		/* no channel specified, autosearch the channel */
+ 		state->channel_status.status = CHANNEL_STATUS_PARAMETERS_UNKNOWN;
+ 	} else
+@@ -2052,7 +2054,7 @@ static int dib9000_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
  
- 	*tune_state = CT_TUNER_STEP_5;
-     } else if (*tune_state == CT_TUNER_STEP_5) {
--	dib0070_set_bandwidth(fe, ch);
-+	dib0070_set_bandwidth(fe);
- 	*tune_state = CT_TUNER_STOP;
-     } else {
- 	ret = FE_CALLBACK_TIME_NEVER; /* tuner finished, time to call again infinite */
-@@ -524,7 +524,7 @@ static int dib0070_tune(struct dvb_frontend *fe, struct dvb_frontend_parameters
-     state->tune_state = CT_TUNER_START;
+ 	/* synchronize all the channel cache */
+ 	state->get_frontend_internal = 1;
+-	dib9000_get_frontend(state->fe[0], fep);
++	dib9000_get_frontend(state->fe[0], &state->fe[0]->dtv_property_cache);
+ 	state->get_frontend_internal = 0;
  
-     do {
--	ret = dib0070_tune_digital(fe, p);
-+	ret = dib0070_tune_digital(fe);
- 	if (ret != FE_CALLBACK_TIME_NEVER)
- 		msleep(ret/10);
- 	else
+ 	/* retune the other frontends with the found channel */
+@@ -2495,6 +2497,7 @@ error:
+ EXPORT_SYMBOL(dib9000_attach);
+ 
+ static struct dvb_frontend_ops dib9000_ops = {
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		 .name = "DiBcom 9000",
+ 		 .type = FE_OFDM,
+@@ -2513,9 +2516,9 @@ static struct dvb_frontend_ops dib9000_ops = {
+ 	.init = dib9000_wakeup,
+ 	.sleep = dib9000_sleep,
+ 
+-	.set_frontend_legacy = dib9000_set_frontend,
++	.set_frontend = dib9000_set_frontend,
+ 	.get_tune_settings = dib9000_fe_get_tune_settings,
+-	.get_frontend_legacy = dib9000_get_frontend,
++	.get_frontend = dib9000_get_frontend,
+ 
+ 	.read_status = dib9000_read_status,
+ 	.read_ber = dib9000_read_ber,
 -- 
 1.7.8.352.g876a6
 
