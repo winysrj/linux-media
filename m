@@ -1,314 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37104 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753264Ab1LAAPT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 19:15:19 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	<sakari.ailus@iki.fi>, Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH v2 09/11] arm: omap4430sdp: Add support for omap4iss camera
-Date: Wed, 30 Nov 2011 18:14:58 -0600
-Message-ID: <1322698500-29924-10-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:58039 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752151Ab1LaLSA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 06:18:00 -0500
+Received: by iaeh11 with SMTP id h11so26653414iae.19
+        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 03:17:59 -0800 (PST)
+Message-ID: <4EFEEF65.6040703@gmail.com>
+Date: Sat, 31 Dec 2011 05:17:57 -0600
+From: Patrick Dickey <pdickeybeta@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Dorozel Csaba <mrjuuzer@upcmail.hu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ir-kbd-i2c / rc-hauppauge / linux-3.x broken
+References: <20111230120658.DXPH19694.viefep13-int.chello.at@edge04.upcmail.net> <4EFDF229.8090103@redhat.com> <20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net> <4EFEECF4.3010709@redhat.com>
+In-Reply-To: <4EFEECF4.3010709@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This adds support for camera interface with the support for
-following sensors:
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
 
-- OV5640
-- OV5650
+On 12/31/2011 05:07 AM, Mauro Carvalho Chehab wrote:
+> On 31-12-2011 08:15, Dorozel Csaba wrote:
+>>> Basically, the bridge driver is not sending the complete RC-5 
+>>> keycode to the IR core, but just the 8 least siginificant
+>>> bits. So, it is loosing the 0x1e00 code for the Hauppauge grey
+>>> remote.
+>>> 
+>>> The fix should be at saa7134-input. It should be something
+>>> like the enclosed patch (I'm just guessing there that code3
+>>> contains the MSB bits - you may need to adjust it to match the
+>>> IR decoder there):
+>> 
+>> I'm absolutly not a programer but an unhappy linux user who want
+>> his working remote back. Know nothing about c code, MSB bits ...
+>> After apply your fix looks what happening but remote is still
+>> broken.
+>> 
+>> user juuzer # ir-keytable -t Testing events. Please, press CTRL-C
+>> to abort. 1325324726.066129: event MSC: scancode = de3d 
+>> 1325324726.066131: event sync 1325324726.169132: event MSC:
+>> scancode = de3d 1325324726.169134: event sync 1325324727.508129:
+>> event MSC: scancode = fe3d 1325324727.508131: event sync 
+>> 1325324727.611132: event MSC: scancode = fe3d 1325324727.611134:
+>> event sync 1325324730.084132: event MSC: scancode = de3d 
+>> 1325324730.084134: event sync 1325324730.187132: event MSC:
+>> scancode = de3d
+>> 
+>> It seems the code3 sometimes return with de (11011110) sometimes
+>> fe (11111110). Is it possible to bitwise left 3 then bitwise
+>> right 3 so the result in both case is 1e (00011110) ? Or its
+>> totaly wrong ?
+> 
+> An RC-5 code is just 14 bits. I found some Hauppauge decoders
+> returning just 12 bits on some places. It seems that all it needs
+> is to do a code3 | 0x3f, in order to discard the two most
+> significant bits (MSB).
+> 
+> So, the enclosed patch should fix the issues. Please test.
+> 
+> Regards, Mauro -
+> 
+> saa7134-input: Fix get_key_hvr1110() handling
+> 
+> Instead of returning just 8 bits, return the full RC-5 code
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/media/video/saa7134/saa7134-input.c
+> b/drivers/media/video/saa7134/saa7134-input.c index
+> d4ee24b..29c8efd 100644 ---
+> a/drivers/media/video/saa7134/saa7134-input.c +++
+> b/drivers/media/video/saa7134/saa7134-input.c @@ -249,8 +249,8 @@
+> static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32
+> *ir_raw) return 0;
+> 
+> /* return key */ -	*ir_key = code4; -	*ir_raw = code4; +	*ir_key =
+> 0x3fff & (code4 | code3 << 8); +	*ir_raw = *ir_key; return 1; }
+> 
+> 
+> Regards, Mauro
+>> 
+> 
+> -- To unsubscribe from this list: send the line "unsubscribe
+> linux-media" in the body of a message to majordomo@vger.kernel.org 
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/Kconfig                |   27 ++++
- arch/arm/mach-omap2/Makefile               |    2 +
- arch/arm/mach-omap2/board-4430sdp-camera.c |  221 ++++++++++++++++++++++++++++
- 3 files changed, 250 insertions(+), 0 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-4430sdp-camera.c
+Will this work regardless of what remote is being used?  Currently I'm
+using a Windows Media Center Remote (Hauppauge HVR-1600 provided it)
+with a combination of saa7134 (MSI TV@nywhere Plus) and Hauppauge
+HVR-1600 tuners. Right now, the Hauppauge works fine (all of this is
+in Mythtv 0.24), but the MSI crashes when I change channels.
 
-diff --git a/arch/arm/mach-omap2/Kconfig b/arch/arm/mach-omap2/Kconfig
-index 5034147..f883abb 100644
---- a/arch/arm/mach-omap2/Kconfig
-+++ b/arch/arm/mach-omap2/Kconfig
-@@ -323,6 +323,33 @@ config MACH_OMAP_4430SDP
- 	select OMAP_PACKAGE_CBS
- 	select REGULATOR_FIXED_VOLTAGE
- 
-+config MACH_OMAP_4430SDP_CAMERA_SUPPORT
-+	bool "OMAP 4430 SDP board Camera support"
-+	depends on MACH_OMAP_4430SDP
-+	select MEDIA_SUPPORT
-+	select MEDIA_CONTROLLER
-+	select VIDEO_DEV
-+	select VIDEO_V4L2_SUBDEV_API
-+	select VIDEO_OMAP4
-+	help
-+	  Enable Camera HW support for OMAP 4430 SDP board
-+	  This is for using the OMAP4 ISS CSI2A Camera sensor
-+	  interface.
-+
-+choice
-+	prompt "Camera sensor to use"
-+	depends on MACH_OMAP_4430SDP_CAMERA_SUPPORT
-+	default MACH_OMAP_4430SDP_CAM_OV5650
-+
-+	config MACH_OMAP_4430SDP_CAM_OV5640
-+		bool "Use OmniVision OV5640 Camera"
-+		select VIDEO_OV5640
-+
-+	config MACH_OMAP_4430SDP_CAM_OV5650
-+		bool "Use OmniVision OV5650 Camera"
-+		select VIDEO_OV5650
-+endchoice
-+
- config MACH_OMAP4_PANDA
- 	bool "OMAP4 Panda Board"
- 	default y
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 69ab1c0..8bc446a 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -235,6 +235,8 @@ obj-$(CONFIG_MACH_TI8168EVM)		+= board-ti8168evm.o
- 
- # Platform specific device init code
- 
-+obj-$(CONFIG_MACH_OMAP_4430SDP_CAMERA_SUPPORT)	+= board-4430sdp-camera.o
-+
- omap-flash-$(CONFIG_MTD_NAND_OMAP2)	:= board-flash.o
- omap-flash-$(CONFIG_MTD_ONENAND_OMAP2)	:= board-flash.o
- obj-y					+= $(omap-flash-y) $(omap-flash-m)
-diff --git a/arch/arm/mach-omap2/board-4430sdp-camera.c b/arch/arm/mach-omap2/board-4430sdp-camera.c
-new file mode 100644
-index 0000000..e62ee50
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-4430sdp-camera.c
-@@ -0,0 +1,221 @@
-+#include <linux/gpio.h>
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/i2c/twl.h>
-+#include <linux/mfd/twl6040.h>
-+
-+#include <plat/i2c.h>
-+#include <plat/omap-pm.h>
-+
-+#include <asm/mach-types.h>
-+
-+#include <media/ov5640.h>
-+#include <media/ov5650.h>
-+
-+#include "devices.h"
-+#include "../../../drivers/media/video/omap4iss/iss.h"
-+
-+#include "control.h"
-+#include "mux.h"
-+
-+#define OMAP4430SDP_GPIO_CAM_PDN_C	39
-+
-+static struct clk *sdp4430_cam_aux_clk;
-+
-+static int sdp4430_ov5640_power(struct v4l2_subdev *subdev, int on)
-+{
-+	struct iss_device *iss = v4l2_dev_to_iss_device(subdev->v4l2_dev);
-+	int ret = 0;
-+	struct iss_csiphy_dphy_cfg dphy;
-+	struct iss_csiphy_lanes_cfg lanes;
-+#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
-+	unsigned int ddr_freq = 480; /* FIXME: Do an actual query for this */
-+#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
-+	unsigned int ddr_freq = 336; /* FIXME: Do an actual query for this */
-+#endif
-+
-+	memset(&lanes, 0, sizeof(lanes));
-+	memset(&dphy, 0, sizeof(dphy));
-+
-+	lanes.clk.pos = 1;
-+	lanes.clk.pol = 0;
-+	lanes.data[0].pos = 2;
-+	lanes.data[0].pol = 0;
-+#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
-+	lanes.data[1].pos = 3;
-+	lanes.data[1].pol = 0;
-+#endif
-+
-+	dphy.ths_term = ((((12500 * ddr_freq + 1000000) / 1000000) - 1) & 0xFF);
-+	dphy.ths_settle = ((((90000 * ddr_freq + 1000000) / 1000000) + 3) & 0xFF);
-+	dphy.tclk_term = 0;
-+	dphy.tclk_miss = 1;
-+	dphy.tclk_settle = 14;
-+
-+	if (on) {
-+		u8 gpoctl = 0;
-+
-+		/* TWL6030_BASEADD_AUX */
-+		twl_i2c_write_u8(15, 0x00, 0xB);
-+		twl_i2c_write_u8(15, 0x80, 0x1);
-+
-+		mdelay(50);
-+
-+		/* TWL6030_BASEADD_PM_SLAVE_MISC */
-+		twl_i2c_write_u8(21, 0xFF, 0x5E);
-+		twl_i2c_write_u8(21, 0x13, 0x5F);
-+
-+		mdelay(50);
-+
-+		twl_i2c_write_u8(15, 0x40, 0x1);
-+
-+		twl_i2c_read_u8(TWL_MODULE_AUDIO_VOICE, &gpoctl,
-+				TWL6040_REG_GPOCTL);
-+		twl_i2c_write_u8(TWL_MODULE_AUDIO_VOICE, gpoctl | TWL6040_GPO3,
-+				TWL6040_REG_GPOCTL);
-+
-+		mdelay(10);
-+
-+		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_C, 1);
-+		mdelay(10);
-+		clk_enable(sdp4430_cam_aux_clk); /* Enable XCLK */
-+		mdelay(10);
-+
-+		iss->platform_cb.csiphy_config(&iss->csiphy1, &dphy, &lanes);
-+	} else {
-+		clk_disable(sdp4430_cam_aux_clk);
-+		mdelay(1);
-+		gpio_set_value(OMAP4430SDP_GPIO_CAM_PDN_C, 0);
-+	}
-+
-+	return ret;
-+}
-+
-+#define OV5640_I2C_ADDRESS   (0x3C)
-+#define OV5650_I2C_ADDRESS   (0x36)
-+
-+#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
-+static struct ov5650_platform_data ov_platform_data = {
-+#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
-+static struct ov5640_platform_data ov_platform_data = {
-+#endif
-+      .s_power = sdp4430_ov5640_power,
-+};
-+
-+static struct i2c_board_info ov_camera_i2c_device = {
-+#ifdef CONFIG_MACH_OMAP_4430SDP_CAM_OV5650
-+	I2C_BOARD_INFO("ov5650", OV5650_I2C_ADDRESS),
-+#elif defined(CONFIG_MACH_OMAP_4430SDP_CAM_OV5640)
-+	I2C_BOARD_INFO("ov5640", OV5640_I2C_ADDRESS),
-+#endif
-+	.platform_data = &ov_platform_data,
-+};
-+
-+static struct iss_subdev_i2c_board_info ov_camera_subdevs[] = {
-+	{
-+		.board_info = &ov_camera_i2c_device,
-+		.i2c_adapter_id = 3,
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct iss_v4l2_subdevs_group sdp4430_camera_subdevs[] = {
-+	{
-+		.subdevs = ov_camera_subdevs,
-+		.interface = ISS_INTERFACE_CSI2A_PHY1,
-+	},
-+	{ },
-+};
-+
-+static void sdp4430_omap4iss_set_constraints(struct iss_device *iss, bool enable)
-+{
-+	if (!iss)
-+		return;
-+
-+	/* FIXME: Look for something more precise as a good throughtput limit */
-+	omap_pm_set_min_bus_tput(iss->dev, OCP_INITIATOR_AGENT,
-+				 enable ? 800000 : -1);
-+}
-+
-+static struct iss_platform_data sdp4430_iss_platform_data = {
-+	.subdevs = sdp4430_camera_subdevs,
-+	.set_constraints = sdp4430_omap4iss_set_constraints,
-+};
-+
-+static struct omap_device_pad omap4iss_pads[] = {
-+	{
-+		.name   = "csi21_dx0.csi21_dx0",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dy0.csi21_dy0",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dx1.csi21_dx1",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dy1.csi21_dy1",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dx2.csi21_dx2",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+	{
-+		.name   = "csi21_dy2.csi21_dy2",
-+		.enable = OMAP_MUX_MODE0 | OMAP_INPUT_EN,
-+	},
-+};
-+
-+static struct omap_board_data omap4iss_data = {
-+	.id	    		= 1,
-+	.pads	 		= omap4iss_pads,
-+	.pads_cnt       	= ARRAY_SIZE(omap4iss_pads),
-+};
-+
-+static int __init sdp4430_camera_init(void)
-+{
-+	if (!machine_is_omap_4430sdp())
-+		return 0;
-+
-+	sdp4430_cam_aux_clk = clk_get(NULL, "auxclk3_ck");
-+	if (IS_ERR(sdp4430_cam_aux_clk)) {
-+		printk(KERN_ERR "Unable to get auxclk3_ck\n");
-+		return -ENODEV;
-+	}
-+
-+	if (clk_set_rate(sdp4430_cam_aux_clk,
-+			clk_round_rate(sdp4430_cam_aux_clk, 24000000)))
-+		return -EINVAL;
-+
-+	/*
-+	 * CSI2 1(A):
-+	 *   LANEENABLE[4:0] = 00111(0x7) - Lanes 0, 1 & 2 enabled
-+	 *   CTRLCLKEN = 1 - Active high enable for CTRLCLK
-+	 *   CAMMODE = 0 - DPHY mode
-+	 */
-+	omap4_ctrl_pad_writel((omap4_ctrl_pad_readl(
-+				OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX) &
-+			  ~(OMAP4_CAMERARX_CSI21_LANEENABLE_MASK |
-+			    OMAP4_CAMERARX_CSI21_CAMMODE_MASK)) |
-+			 (0x7 << OMAP4_CAMERARX_CSI21_LANEENABLE_SHIFT) |
-+			 OMAP4_CAMERARX_CSI21_CTRLCLKEN_MASK,
-+			 OMAP4_CTRL_MODULE_PAD_CORE_CONTROL_CAMERA_RX);
-+
-+	omap_mux_init_gpio(OMAP4430SDP_GPIO_CAM_PDN_C, OMAP_PIN_OUTPUT);
-+
-+	/* Init FREF_CLK3_OUT */
-+	omap_mux_init_signal("fref_clk3_out", OMAP_PIN_OUTPUT);
-+
-+	if (gpio_request(OMAP4430SDP_GPIO_CAM_PDN_C, "CAM_PDN_C"))
-+		printk(KERN_WARNING "Cannot request GPIO %d\n",
-+			OMAP4430SDP_GPIO_CAM_PDN_C);
-+	else
-+		gpio_direction_output(OMAP4430SDP_GPIO_CAM_PDN_C, 0);
-+
-+	omap4_init_camera(&sdp4430_iss_platform_data, &omap4iss_data);
-+	return 0;
-+}
-+late_initcall(sdp4430_camera_init);
--- 
-1.7.7.4
+Have a great day:)
+Patrick.
 
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk7+72UACgkQMp6rvjb3CAR2tQCgqSAc55bQyDEe3Z4vu0sUYAne
+RrQAoIU89vMVzI8UBH8v+dJxl3RsHj44
+=3joI
+-----END PGP SIGNATURE-----
