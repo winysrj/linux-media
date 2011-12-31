@@ -1,103 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:63893 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759674Ab1LOWnz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 15 Dec 2011 17:43:55 -0500
-Received: by wgbdr13 with SMTP id dr13so4842399wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 15 Dec 2011 14:43:54 -0800 (PST)
-Message-ID: <1323989024.21705.16.camel@tvbox>
-Subject: [PATCH] it913x changed firmware loader for chip version 2 types
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Adrian N <adexmail@tlen.pl>
-Date: Thu, 15 Dec 2011 22:43:44 +0000
-In-Reply-To: <1323967323.2273.17.camel@tvbox>
-References: <1323719580.2235.3.camel@tvbox>
-	 <loom.20111214T071004-336@post.gmane.org> <4EEA16BA.4070209@tlen.pl>
-	 <1323967323.2273.17.camel@tvbox>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx1.redhat.com ([209.132.183.28]:6111 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752093Ab1LaLHk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 06:07:40 -0500
+Message-ID: <4EFEECF4.3010709@redhat.com>
+Date: Sat, 31 Dec 2011 09:07:32 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Dorozel Csaba <mrjuuzer@upcmail.hu>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ir-kbd-i2c / rc-hauppauge / linux-3.x broken
+References: <20111230120658.DXPH19694.viefep13-int.chello.at@edge04.upcmail.net> <4EFDF229.8090103@redhat.com> <20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net>
+In-Reply-To: <20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2011-12-15 at 16:42 +0000, Malcolm Priestley wrote:
-> > [ 1103.536156] it913x: Chip Version=ec Chip Type=5830
-> > [ 1104.336178] it913x: Dual mode=92 Remote=92 Tuner Type=92
-> > [ 1106.248116] dvb-usb: found a 'ITE 9135(9006) Generic' in cold state, 
-> > will try to load a firmware
-> > [ 1106.253773] dvb-usb: downloading firmware from file 
-> > 'dvb-usb-it9135-02.fw'
-> > [ 1106.452123] it913x: FRM Starting Firmware Download
-> > [ 1130.756039] it913x: FRM Firmware Download Failed (ffffff92)
-> > [ 1130.956168] it913x: Chip Version=79 Chip Type=5823
-> > [ 1131.592192] it913x: DEV it913x Error
-> > [ 1131.592271] usbcore: registered new interface driver it913x
-> > 
-> > No frontend is generated anyway.
+On 31-12-2011 08:15, Dorozel Csaba wrote:
+>> Basically, the bridge driver is not sending the complete RC-5
+>> keycode to the IR core, but just the 8 least siginificant bits.
+>> So, it is loosing the 0x1e00 code for the Hauppauge grey remote.
+>>
+>> The fix should be at saa7134-input. It should be something like
+>> the enclosed patch (I'm just guessing there that code3 contains
+>> the MSB bits - you may need to adjust it to match the IR decoder
+>> there):
 > 
-> Looks like the the firmware is not at all compatible with your device.
+> I'm absolutly not a programer but an unhappy linux user who want his working remote back.
+> Know nothing about c code, MSB bits ... After apply your fix looks what happening but remote is
+> still broken.
 > 
-> Have you applied the patch cleanly to the latest media_build?
+> user juuzer # ir-keytable -t
+> Testing events. Please, press CTRL-C to abort.
+> 1325324726.066129: event MSC: scancode = de3d
+> 1325324726.066131: event sync
+> 1325324726.169132: event MSC: scancode = de3d
+> 1325324726.169134: event sync
+> 1325324727.508129: event MSC: scancode = fe3d
+> 1325324727.508131: event sync
+> 1325324727.611132: event MSC: scancode = fe3d
+> 1325324727.611134: event sync
+> 1325324730.084132: event MSC: scancode = de3d
+> 1325324730.084134: event sync
+> 1325324730.187132: event MSC: scancode = de3d
 > 
-> These appear to be new version of the 9006. A supplier is sending me one
-> of these devices.
-> 
-> As a last resort see if the device works with dvb-usb-it9137-01.fw
-> 
-> You will have force to use this firmware
-> dvb-usb-it913x firmware=1
+> It seems the code3 sometimes return with de (11011110) sometimes fe (11111110). Is it possible
+> to bitwise left 3 then bitwise right 3 so the result in both case is 1e (00011110) ? Or its totaly
+> wrong ?
 
-Here is a modified firmware loader for version 2 types.
+An RC-5 code is just 14 bits. I found some Hauppauge decoders returning
+just 12 bits on some places. It seems that all it needs is to do a
+code3 | 0x3f, in order to discard the two most significant bits (MSB).
 
-The firmware must be as in original
-./dvb_get_firmware it9135
+So, the enclosed patch should fix the issues. Please test.
+
+Regards,
+Mauro
+-
+
+saa7134-input: Fix get_key_hvr1110() handling
+
+Instead of returning just 8 bits, return the full RC-5 code
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/video/saa7134/saa7134-input.c b/drivers/media/video/saa7134/saa7134-input.c
+index d4ee24b..29c8efd 100644
+--- a/drivers/media/video/saa7134/saa7134-input.c
++++ b/drivers/media/video/saa7134/saa7134-input.c
+@@ -249,8 +249,8 @@ static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+ 		return 0;
  
-
-dd if=dvb-usb-it9135.fw ibs=1 skip=12866 count=5817 of=dvb-usb-it9135-02.fw
-
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/it913x.c |    9 +++++++--
- 1 files changed, 7 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
-index 6f6072b..9290bd8 100644
---- a/drivers/media/dvb/dvb-usb/it913x.c
-+++ b/drivers/media/dvb/dvb-usb/it913x.c
-@@ -557,7 +557,7 @@ static int it913x_download_firmware(struct usb_device *udev,
- 					const struct firmware *fw)
- {
- 	int ret = 0, i = 0, pos = 0;
--	u8 packet_size;
-+	u8 packet_size, min_pkt;
- 	u8 *fw_data;
- 
- 	ret = it913x_wr_reg(udev, DEV_0,  I2C_CLK, I2C_CLK_100);
-@@ -569,11 +569,16 @@ static int it913x_download_firmware(struct usb_device *udev,
- 	/* The firmware must start with 03 XX 00 */
- 	/* and be the extact firmware length */
- 
-+	if (it913x_config.chip_ver == 2)
-+		min_pkt = 0x11;
-+	else
-+		min_pkt = 0x19;
-+
- 	while (i <= fw->size) {
- 		if (((fw->data[i] == 0x3) && (fw->data[i + 2] == 0x0))
- 			|| (i == fw->size)) {
- 			packet_size = i - pos;
--			if ((packet_size > 0x19) || (i == fw->size)) {
-+			if ((packet_size > min_pkt) || (i == fw->size)) {
- 				fw_data = (u8 *)(fw->data + pos);
- 				pos += packet_size;
- 				if (packet_size > 0)
--- 
-1.7.7.3
+ 	/* return key */
+-	*ir_key = code4;
+-	*ir_raw = code4;
++	*ir_key = 0x3fff & (code4 | code3 << 8);
++	*ir_raw = *ir_key;
+ 	return 1;
+ }
 
 
-
-
+Regards,
+Mauro
+> 
 
