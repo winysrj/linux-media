@@ -1,107 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46464 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752178Ab1L3PJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 30 Dec 2011 10:09:27 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBUF9Rbs026530
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 30 Dec 2011 10:09:27 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCHv2 19/94] [media] dib9000: Get rid of the remaining DVBv3 legacy stuff
-Date: Fri, 30 Dec 2011 13:07:16 -0200
-Message-Id: <1325257711-12274-20-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-References: <1325257711-12274-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:59256 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752887Ab1LaMLF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 07:11:05 -0500
+Received: by iaeh11 with SMTP id h11so26708103iae.19
+        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 04:11:05 -0800 (PST)
+Date: Sat, 31 Dec 2011 06:10:57 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: David Fries <david@fries.net>
+Cc: Istvan Varga <istvan_v@mailbox.hu>, linux-media@vger.kernel.org,
+	Darron Broad <darron@kewl.org>,
+	Steven Toth <stoth@kernellabs.com>, Janne Grunau <j@jannau.net>
+Subject: [PATCH 8/9] [media] dvb-usb: handle errors from dvb_net_init
+Message-ID: <20111231121057.GJ16802@elie.Belkin>
+References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
+ <20111231115117.GB16802@elie.Belkin>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20111231115117.GB16802@elie.Belkin>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-dib9000 is almost ok, with regards to the usage of DVBv5 parameters.
-It has just a few stuff using the old way, at set_frontend.
+>From an audit of dvb_net_init callers, now that that function
+returns -errno on error.
 
-Replace them by the DVBv5 way, and add the delivery system.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 ---
- drivers/media/dvb/frontends/dib9000.c |   19 +++++++++++--------
- 1 files changed, 11 insertions(+), 8 deletions(-)
+ drivers/media/dvb/dvb-usb/dvb-usb-dvb.c |    8 +++++++-
+ 1 files changed, 7 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/dib9000.c b/drivers/media/dvb/frontends/dib9000.c
-index 0488068..a3a9fb1 100644
---- a/drivers/media/dvb/frontends/dib9000.c
-+++ b/drivers/media/dvb/frontends/dib9000.c
-@@ -1867,7 +1867,7 @@ static int dib9000_fe_get_tune_settings(struct dvb_frontend *fe, struct dvb_fron
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
+index ba4a7517354f..ddf282f355b3 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
+@@ -141,11 +141,17 @@ int dvb_usb_adapter_dvb_init(struct dvb_usb_adapter *adap, short *adapter_nums)
+ 		goto err_dmx_dev;
+ 	}
+ 
+-	dvb_net_init(&adap->dvb_adap, &adap->dvb_net, &adap->demux.dmx);
++	if ((ret = dvb_net_init(&adap->dvb_adap, &adap->dvb_net,
++						&adap->demux.dmx)) < 0) {
++		err("dvb_net_init failed: error %d",ret);
++		goto err_net_init;
++	}
+ 
+ 	adap->state |= DVB_USB_ADAP_STATE_DVB;
  	return 0;
- }
  
--static int dib9000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *fep)
-+static int dib9000_get_frontend(struct dvb_frontend *fe, struct dtv_frontend_properties *c)
- {
- 	struct dib9000_state *state = fe->demodulator_priv;
- 	u8 index_frontend, sub_index_frontend;
-@@ -1883,7 +1883,7 @@ static int dib9000_get_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 			dprintk("TPS lock on the slave%i", index_frontend);
- 
- 			/* synchronize the cache with the other frontends */
--			state->fe[index_frontend]->ops.get_frontend_legacy(state->fe[index_frontend], fep);
-+			state->fe[index_frontend]->ops.get_frontend(state->fe[index_frontend], c);
- 			for (sub_index_frontend = 0; (sub_index_frontend < MAX_NUMBER_OF_FRONTENDS) && (state->fe[sub_index_frontend] != NULL);
- 			     sub_index_frontend++) {
- 				if (sub_index_frontend != index_frontend) {
-@@ -1958,7 +1958,7 @@ static int dib9000_set_channel_status(struct dvb_frontend *fe, struct dvb_fronte
- 	return 0;
- }
- 
--static int dib9000_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_parameters *fep)
-+static int dib9000_set_frontend(struct dvb_frontend *fe)
- {
- 	struct dib9000_state *state = fe->demodulator_priv;
- 	int sleep_time, sleep_time_slave;
-@@ -1983,8 +1983,10 @@ static int dib9000_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 	fe->dtv_property_cache.delivery_system = SYS_DVBT;
- 
- 	/* set the master status */
--	if (fep->u.ofdm.transmission_mode == TRANSMISSION_MODE_AUTO ||
--	    fep->u.ofdm.guard_interval == GUARD_INTERVAL_AUTO || fep->u.ofdm.constellation == QAM_AUTO || fep->u.ofdm.code_rate_HP == FEC_AUTO) {
-+	if (state->fe[0]->dtv_property_cache.transmission_mode == TRANSMISSION_MODE_AUTO ||
-+	    state->fe[0]->dtv_property_cache.guard_interval == GUARD_INTERVAL_AUTO ||
-+	    state->fe[0]->dtv_property_cache.modulation == QAM_AUTO ||
-+	    state->fe[0]->dtv_property_cache.code_rate_HP == FEC_AUTO) {
- 		/* no channel specified, autosearch the channel */
- 		state->channel_status.status = CHANNEL_STATUS_PARAMETERS_UNKNOWN;
- 	} else
-@@ -2052,7 +2054,7 @@ static int dib9000_set_frontend(struct dvb_frontend *fe, struct dvb_frontend_par
- 
- 	/* synchronize all the channel cache */
- 	state->get_frontend_internal = 1;
--	dib9000_get_frontend(state->fe[0], fep);
-+	dib9000_get_frontend(state->fe[0], &state->fe[0]->dtv_property_cache);
- 	state->get_frontend_internal = 0;
- 
- 	/* retune the other frontends with the found channel */
-@@ -2495,6 +2497,7 @@ error:
- EXPORT_SYMBOL(dib9000_attach);
- 
- static struct dvb_frontend_ops dib9000_ops = {
-+	.delsys = { SYS_DVBT },
- 	.info = {
- 		 .name = "DiBcom 9000",
- 		 .type = FE_OFDM,
-@@ -2513,9 +2516,9 @@ static struct dvb_frontend_ops dib9000_ops = {
- 	.init = dib9000_wakeup,
- 	.sleep = dib9000_sleep,
- 
--	.set_frontend_legacy = dib9000_set_frontend,
-+	.set_frontend = dib9000_set_frontend,
- 	.get_tune_settings = dib9000_fe_get_tune_settings,
--	.get_frontend_legacy = dib9000_get_frontend,
-+	.get_frontend = dib9000_get_frontend,
- 
- 	.read_status = dib9000_read_status,
- 	.read_ber = dib9000_read_ber,
++err_net_init:
++	dvb_dmxdev_release(&adap->dmxdev);
+ err_dmx_dev:
+ 	dvb_dmx_release(&adap->demux);
+ err_dmx:
 -- 
-1.7.8.352.g876a6
+1.7.8.2+next.20111228
 
