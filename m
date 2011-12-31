@@ -1,122 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42225 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754826Ab1LARYn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 1 Dec 2011 12:24:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sergio Aguirre <saaguirre@ti.com>
-Subject: Re: [PATCH v2 05/11] OMAP4: Add base addresses for ISS
-Date: Thu, 1 Dec 2011 18:24:48 +0100
-Cc: linux-media@vger.kernel.org, linux-omap@vger.kernel.org,
-	sakari.ailus@iki.fi
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com> <1322698500-29924-6-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1322698500-29924-6-git-send-email-saaguirre@ti.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40995 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752385Ab1LaMAb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 07:00:31 -0500
+Date: Sat, 31 Dec 2011 14:00:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, riverful.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC/PATCH 1/5] v4l: Convert V4L2_CID_FOCUS_AUTO control to a
+ menu control
+Message-ID: <20111231120025.GD3677@valkosipuli.localdomain>
+References: <1323011776-15967-1-git-send-email-snjw23@gmail.com>
+ <1323011776-15967-2-git-send-email-snjw23@gmail.com>
+ <20111210103344.GF1967@valkosipuli.localdomain>
+ <4EE36FE1.1080601@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112011824.49591.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EE36FE1.1080601@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergio,
+Hi Sylwester,
 
-On Thursday 01 December 2011 01:14:54 Sergio Aguirre wrote:
-> NOTE: This isn't the whole list of features that the
-> ISS supports, but the only ones supported at the moment.
+Apologies for my late answer.
+
+On Sat, Dec 10, 2011 at 03:42:41PM +0100, Sylwester Nawrocki wrote:
+> Hi Sakari,
 > 
-> Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
-> ---
->  arch/arm/mach-omap2/devices.c              |   32
-> ++++++++++++++++++++++++++++ arch/arm/plat-omap/include/plat/omap44xx.h | 
->   9 +++++++
->  2 files changed, 41 insertions(+), 0 deletions(-)
+> On 12/10/2011 11:33 AM, Sakari Ailus wrote:
+> > On Sun, Dec 04, 2011 at 04:16:12PM +0100, Sylwester Nawrocki wrote:
+> >> Change the V4L2_CID_FOCUS_AUTO control type from boolean to a menu
+> >> type. In case of boolean control we had values 0 and 1 corresponding
+> >> to manual and automatic focus respectively.
+> >>
+> >> The V4L2_CID_FOCUS_AUTO menu control has currently following items:
+> >>   0 - V4L2_FOCUS_MANUAL,
+> >>   1 - V4L2_FOCUS_AUTO,
+> >>   2 - V4L2_FOCUS_AUTO_MACRO,
+> >>   3 - V4L2_FOCUS_AUTO_CONTINUOUS.
+> > 
+> > I would put the macro mode to a separate menu since it's configuration for
+> > how the regular AF works rather than really different mode.
 > 
-> diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-> index c15cfad..b48aeea 100644
-> --- a/arch/arm/mach-omap2/devices.c
-> +++ b/arch/arm/mach-omap2/devices.c
-> @@ -32,6 +32,7 @@
->  #include <plat/omap_hwmod.h>
->  #include <plat/omap_device.h>
->  #include <plat/omap4-keypad.h>
-> +#include <plat/omap4-iss.h>
+> Yes, makes sense. Most likely there could be also continuous macro auto focus..
+> I don't have yet an idea what could be a name for that new menu though.
 
-I try to keep headers sorted alphabetically when possible, but that might just 
-be me.
+V4L2_CID_FOCUS_AUTO_DISTANCE? It could then have choices FULL or MACRO.
 
+> Many Samsung devices have also something like guided auto focus, where the
+> application can specify location in the frame for focusing on. IIRC this could
+> be also single-shot or continuous. So it could make sense to group MACRO and
+> "guided" auto focus in one menu, what do you think ?
+
+I think it could be a separate menu. It's not connected to the distance
+parameter. We also need to discuss how the af statistics window
+configuration is done. I'm not certain there could even be a standardised
+interface which could be used to control it all.
+
+> >> @@ -567,6 +576,7 @@ const char *v4l2_ctrl_get_name(u32 id)
+> >>  	case V4L2_CID_PRIVACY:			return "Privacy";
+> >>  	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+> >>  	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
+> >> +	case V4L2_CID_DO_AUTO_FOCUS:		return "Do Auto Focus";
+> > 
+> > I'd perhaps use "begin" or "start". How does the user learn the autofocus
 > 
->  #include "mux.h"
->  #include "control.h"
-> @@ -217,6 +218,37 @@ int omap3_init_camera(struct isp_platform_data *pdata)
->  	return platform_device_register(&omap3isp_device);
->  }
+> I agree, it's not something than is finished after G_CTRL call returns.
 > 
-> +int omap4_init_camera(struct iss_platform_data *pdata, struct
-> omap_board_data *bdata)
-> +{
-> +	struct platform_device *pdev;
-> +	struct omap_hwmod *oh;
-> +	struct iss_platform_data *omap4iss_pdata;
-> +	char *oh_name = "iss";
-> +	char *name = "omap4iss";
-
-Would const char or static const char help the compiler putting the strings to 
-a read-only section ?
-
-> +	unsigned int id = -1;
-> +
-> +	oh = omap_hwmod_lookup(oh_name);
-> +	if (!oh) {
-> +		pr_err("Could not look up %s\n", oh_name);
-> +		return -ENODEV;
-> +	}
-> +
-> +	omap4iss_pdata = pdata;
-> +
-> +	pdev = omap_device_build(name, id, oh, omap4iss_pdata,
-> +			sizeof(struct iss_platform_data), NULL, 0, 0);
-
-This is the only location where id is used, maybe you could pass -1 directly 
-to the function ?
-
-> +
-> +	if (IS_ERR(pdev)) {
-> +		WARN(1, "Can't build omap_device for %s:%s.\n",
-> +						name, oh->name);
-> +		return PTR_ERR(pdev);
-> +	}
-> +
-> +	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
-> +
-> +	return 0;
-> +}
-> +
->  static inline void omap_init_camera(void)
->  {
->  #if defined(CONFIG_VIDEO_OMAP2) || defined(CONFIG_VIDEO_OMAP2_MODULE)
-> diff --git a/arch/arm/plat-omap/include/plat/omap44xx.h
-> b/arch/arm/plat-omap/include/plat/omap44xx.h index ea2b8a6..31432aa 100644
-> --- a/arch/arm/plat-omap/include/plat/omap44xx.h
-> +++ b/arch/arm/plat-omap/include/plat/omap44xx.h
-> @@ -49,6 +49,15 @@
->  #define OMAP44XX_MAILBOX_BASE		(L4_44XX_BASE + 0xF4000)
->  #define OMAP44XX_HSUSB_OTG_BASE		(L4_44XX_BASE + 0xAB000)
+> V4L2_CID_START_AUTO_FOCUS sounds better to me.
 > 
-> +#define OMAP44XX_ISS_BASE			0x52000000
-> +#define OMAP44XX_ISS_TOP_BASE			(OMAP44XX_ISS_BASE + 0x0)
-> +#define OMAP44XX_ISS_CSI2_A_REGS1_BASE		(OMAP44XX_ISS_BASE + 0x1000)
-> +#define OMAP44XX_ISS_CAMERARX_CORE1_BASE	(OMAP44XX_ISS_BASE + 0x1170)
-> +
-> +#define OMAP44XX_ISS_TOP_END			(OMAP44XX_ISS_TOP_BASE + 256 - 1)
-> +#define OMAP44XX_ISS_CSI2_A_REGS1_END		(OMAP44XX_ISS_CSI2_A_REGS1_BASE +
-> 368 - 1) +#define
-> OMAP44XX_ISS_CAMERARX_CORE1_END		(OMAP44XX_ISS_CAMERARX_CORE1_BASE + 32 -
-> 1) +
->  #define OMAP4_MMU1_BASE			0x55082000
->  #define OMAP4_MMU2_BASE			0x4A066000
+> > has finished? I think this looks like quite similar problem than telling the
+> > flash strobe status to the user. The solution could also be similar to that.
+> 
+> I guess you're suggesting an auto focus status control? Together with the control
+> events it would be nice interface for notifying the applications.
+
+I agree.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
