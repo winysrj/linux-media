@@ -1,115 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:35965 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755Ab1LTUU3 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 20 Dec 2011 15:20:29 -0500
-MIME-Version: 1.0
-In-Reply-To: <20111220193117.GD3883@phenom.ffwll.local>
-References: <1324283611-18344-1-git-send-email-sumit.semwal@ti.com>
-	<20111220193117.GD3883@phenom.ffwll.local>
-Date: Tue, 20 Dec 2011 20:20:28 +0000
-Message-ID: <CAPM=9tzi5MyCBMJhWBM_ouL=QOaxX3K6KZ8K+t7dUYJLQrF+yA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC v3 0/2] Introduce DMA buffer sharing mechanism
-From: Dave Airlie <airlied@gmail.com>
-To: Sumit Semwal <sumit.semwal@ti.com>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com, rob@ti.com,
-	t.stanislaws@samsung.com, patches@linaro.org
-Cc: daniel@ffwll.ch
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:38468 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751942Ab1LaKXH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 05:23:07 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBVAN6Ub032138
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 05:23:06 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/3] [media] af9013: convert get|set_fontend to use DVBv5 parameters
+Date: Sat, 31 Dec 2011 08:22:59 -0200
+Message-Id: <1325326980-27464-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325326980-27464-1-git-send-email-mchehab@redhat.com>
+References: <1325326980-27464-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>
->> This is RFC v3 for DMA buffer sharing mechanism - changes from v2 are in the
->> changelog below.
->>
->> Various subsystems - V4L2, GPU-accessors, DRI to name a few - have felt the
->> need to have a common mechanism to share memory buffers across different
->> devices - ARM, video hardware, GPU.
->>
->> This need comes forth from a variety of use cases including cameras, image
->> processing, video recorders, sound processing, DMA engines, GPU and display
->> buffers, and others.
->>
->> This RFC is an attempt to define such a buffer sharing mechanism- it is the
->> result of discussions from a couple of memory-management mini-summits held by
->> Linaro to understand and address common needs around memory management. [1]
->>
->> A new dma_buf buffer object is added, with operations and API to allow easy
->> sharing of this buffer object across devices.
->>
->> The framework allows:
->> - a new buffer-object to be created with fixed size.
->> - different devices to 'attach' themselves to this buffer, to facilitate
->>   backing storage negotiation, using dma_buf_attach() API.
->> - association of a file pointer with each user-buffer and associated
->>    allocator-defined operations on that buffer. This operation is called the
->>    'export' operation.
->> - this exported buffer-object to be shared with the other entity by asking for
->>    its 'file-descriptor (fd)', and sharing the fd across.
->> - a received fd to get the buffer object back, where it can be accessed using
->>    the associated exporter-defined operations.
->> - the exporter and user to share the scatterlist using map_dma_buf and
->>    unmap_dma_buf operations.
->>
->> Documentation present in the patch-set gives more details.
->>
->> This is based on design suggestions from many people at the mini-summits,
->> most notably from Arnd Bergmann <arnd@arndb.de>, Rob Clark <rob@ti.com> and
->> Daniel Vetter <daniel@ffwll.ch>.
->>
->> The implementation is inspired from proof-of-concept patch-set from
->> Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer sharing
->> between two v4l2 devices. [2]
->>
->> References:
->> [1]: https://wiki.linaro.org/OfficeofCTO/MemoryManagement
->> [2]: http://lwn.net/Articles/454389
->>
->> Patchset based on top of 3.2-rc3, the current version can be found at
->>
->> http://git.linaro.org/gitweb?p=people/sumitsemwal/linux-3.x.git
->> Branch: dma-buf-upstr-v2
->>
->> Earlier versions:
->> v2 at: https://lkml.org/lkml/2011/12/2/53
->> v1 at: https://lkml.org/lkml/2011/10/11/92
->>
->> Best regards,
->> ~Sumit Semwal
->
-> I think this is a really good v1 version of dma_buf. It contains all the
-> required bits (with well-specified semantics in the doc patch) to
-> implement some basic use-cases and start fleshing out the integration with
-> various subsystem (like drm and v4l). All the things still under
-> discussion like
-> - userspace mmap support
-> - more advanced (and more strictly specified) coherency models
-> - and shared infrastructure for implementing exporters
-> are imo much clearer once we have a few example drivers at hand and a
-> better understanding of some of the insane corner cases we need to be able
-> to handle.
->
-> And I think any risk that the resulting clarifications will break a basic
-> use-case is really minimal, so I think it'd be great if this could go into
-> 3.3 (maybe as some kind of staging/experimental infrastructure).
->
-> Hence for both patches:
-> Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Instead of using dvb_frontend_parameters struct, that were
+designed for a subset of the supported standards, use the DVBv5
+cache information.
 
-Yeah I'm with Daniel, I like this one, I can definitely build the drm
-buffer sharing layer on top of this.
+Also, fill the supported delivery systems at dvb_frontend_ops
+struct.
 
-How do we see this getting merged? I'm quite happy to push it to Linus
-if we don't have an identified path, though it could go via a Linaro
-tree as well.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/af9013.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-so feel free to add:
-Reviewed-by: Dave Airlie <airlied@redhat.com>
+diff --git a/drivers/media/dvb/frontends/af9013.c b/drivers/media/dvb/frontends/af9013.c
+index 8a8f78a..a70358c 100644
+--- a/drivers/media/dvb/frontends/af9013.c
++++ b/drivers/media/dvb/frontends/af9013.c
+@@ -572,8 +572,7 @@ static int af9013_get_tune_settings(struct dvb_frontend *fe,
+ 	return 0;
+ }
+ 
+-static int af9013_set_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++static int af9013_set_frontend(struct dvb_frontend *fe)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+@@ -847,10 +846,9 @@ err:
+ }
+ 
+ static int af9013_get_frontend(struct dvb_frontend *fe,
+-	struct dvb_frontend_parameters *p)
++			       struct dtv_frontend_properties *c)
+ {
+ 	struct af9013_state *state = fe->demodulator_priv;
+-	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	int ret;
+ 	u8 buf[3];
+ 
+@@ -1482,6 +1480,7 @@ err:
+ EXPORT_SYMBOL(af9013_attach);
+ 
+ static struct dvb_frontend_ops af9013_ops = {
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name = "Afatech AF9013",
+ 		.type = FE_OFDM,
+@@ -1512,8 +1511,8 @@ static struct dvb_frontend_ops af9013_ops = {
+ 	.sleep = af9013_sleep,
+ 
+ 	.get_tune_settings = af9013_get_tune_settings,
+-	.set_frontend_legacy = af9013_set_frontend,
+-	.get_frontend_legacy = af9013_get_frontend,
++	.set_frontend = af9013_set_frontend,
++	.get_frontend = af9013_get_frontend,
+ 
+ 	.read_status = af9013_read_status,
+ 	.read_snr = af9013_read_snr,
+-- 
+1.7.8.352.g876a6
 
-Dave.
