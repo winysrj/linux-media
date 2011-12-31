@@ -1,106 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:41924 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751057Ab1LHKa3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 05:30:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-Date: Thu, 8 Dec 2011 11:30:37 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	mchehab@redhat.com, m.szyprowski@samsung.com,
-	jonghun.han@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com> <201111291958.48671.laurent.pinchart@ideasonboard.com> <4EE083D2.3010102@samsung.com>
-In-Reply-To: <4EE083D2.3010102@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:12584 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752551Ab1LaMEW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 07:04:22 -0500
+Message-ID: <4EFEFA33.8090904@redhat.com>
+Date: Sat, 31 Dec 2011 10:04:03 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+To: Patrick Dickey <pdickeybeta@gmail.com>
+CC: Dorozel Csaba <mrjuuzer@upcmail.hu>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: ir-kbd-i2c / rc-hauppauge / linux-3.x broken
+References: <20111230120658.DXPH19694.viefep13-int.chello.at@edge04.upcmail.net> <4EFDF229.8090103@redhat.com> <20111231101532.GHMQ11861.viefep20-int.chello.at@edge04.upcmail.net> <4EFEECF4.3010709@redhat.com> <4EFEEF65.6040703@gmail.com>
+In-Reply-To: <4EFEEF65.6040703@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201112081130.37875.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Thursday 08 December 2011 10:30:58 Sylwester Nawrocki wrote:
-> On 11/29/2011 07:58 PM, Laurent Pinchart wrote:
-> > On Tuesday 29 November 2011 19:30:25 Hans Verkuil wrote:
-> >> On Tuesday, November 29, 2011 19:10:39 Laurent Pinchart wrote:
-> >>> On Tuesday 29 November 2011 17:40:10 Sylwester Nawrocki wrote:
-> >>>> On 11/29/2011 12:08 PM, Hans Verkuil wrote:
-> >>>>> On Monday 28 November 2011 14:02:49 Sylwester Nawrocki wrote:
-> >>>>>> On 11/28/2011 01:39 PM, Hans Verkuil wrote:
-> >>>>>>> On Monday 28 November 2011 13:13:32 Sylwester Nawrocki wrote:
-> >>>>>>>> On 11/28/2011 12:38 PM, Hans Verkuil wrote:
-> >>>>>>>>> On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
-> >>>>> Here is a patch that updates the range. It also sends a control event
-> >>>>> telling any listener that the range has changed. Tested with vivi and
-> >>>>> a modified v4l2-ctl.
-> >>>>> 
-> >>>>> The only thing missing is a DocBook entry for that new event flag and
-> >>>>> perhaps some more documentation in places.
-> >>>>> 
-> >>>>> Let me know how this works for you, and if it is really needed, then
-> >>>>> I can add it to the control framework.
-> >>>> 
-> >>>> Thanks for your work, it's very appreciated.
-> >>>> 
-> >>>> I've tested the patch with s5p-fimc and it works well. I just didn't
-> >>>> check the event part yet.
-> >>>> 
-> >>>> I spoke to Kamil as in the past he considered the control range
-> >>>> updating at the codec driver. But since separate controls are used for
-> >>>> different encoding standards, this is not needed it any more.
-> >>>> 
-> >>>> Nevertheless I have at least two use cases, for the alpha control and
-> >>>> for the image sensor driver. In case of the camera sensor, different
-> >>>> device revisions may have different step and maximum value for some
-> >>>> controls, depending on firmware.
-> >>>> By using v4l2_ctrl_range_update() I don't need to invoke lengthy
-> >>>> sensor start-up procedure just to find out properties of some
-> >>>> controls.
-> >>> 
-> >>> Wouldn't it be confusing for applications to start with a range and
-> >>> have it updated at runtime ?
-> >> 
-> >> Good question. It was a nice exercise creating the range_update()
-> >> function and it works well, but it this something we want to do?
-> > 
-> > I think that being able to modify the range is a very useful
-> > functionality. It's just that in this case the sensor would start with a
-> > default range and switch to another based on the model. It would be
-> > better if we could start with the right range from the start.
-> > 
-> >> If we do, then we should mark such controls with a flag (_VOLATILE_RANGE
-> >> or something like that) so apps know that the range isn't fixed.
-> >> 
-> >> I think that when it comes to apps writing or reading such a control
-> >> directly it isn't a problem. But for applications that automatically
-> >> generate control panels (xawtv et al) it is rather complex to support
-> >> such things.
+On 31-12-2011 09:17, Patrick Dickey wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
 > 
-> Hans,
+> On 12/31/2011 05:07 AM, Mauro Carvalho Chehab wrote:
+>> On 31-12-2011 08:15, Dorozel Csaba wrote:
+>>>> Basically, the bridge driver is not sending the complete RC-5 
+>>>> keycode to the IR core, but just the 8 least siginificant
+>>>> bits. So, it is loosing the 0x1e00 code for the Hauppauge grey
+>>>> remote.
+>>>>
+>>>> The fix should be at saa7134-input. It should be something
+>>>> like the enclosed patch (I'm just guessing there that code3
+>>>> contains the MSB bits - you may need to adjust it to match the
+>>>> IR decoder there):
+>>>
+>>> I'm absolutly not a programer but an unhappy linux user who want
+>>> his working remote back. Know nothing about c code, MSB bits ...
+>>> After apply your fix looks what happening but remote is still
+>>> broken.
+>>>
+>>> user juuzer # ir-keytable -t Testing events. Please, press CTRL-C
+>>> to abort. 1325324726.066129: event MSC: scancode = de3d 
+>>> 1325324726.066131: event sync 1325324726.169132: event MSC:
+>>> scancode = de3d 1325324726.169134: event sync 1325324727.508129:
+>>> event MSC: scancode = fe3d 1325324727.508131: event sync 
+>>> 1325324727.611132: event MSC: scancode = fe3d 1325324727.611134:
+>>> event sync 1325324730.084132: event MSC: scancode = de3d 
+>>> 1325324730.084134: event sync 1325324730.187132: event MSC:
+>>> scancode = de3d
+>>>
+>>> It seems the code3 sometimes return with de (11011110) sometimes
+>>> fe (11111110). Is it possible to bitwise left 3 then bitwise
+>>> right 3 so the result in both case is 1e (00011110) ? Or its
+>>> totaly wrong ?
+>>
+>> An RC-5 code is just 14 bits. I found some Hauppauge decoders
+>> returning just 12 bits on some places. It seems that all it needs
+>> is to do a code3 | 0x3f, in order to discard the two most
+>> significant bits (MSB).
+>>
+>> So, the enclosed patch should fix the issues. Please test.
+>>
+>> Regards, Mauro -
+>>
+>> saa7134-input: Fix get_key_hvr1110() handling
+>>
+>> Instead of returning just 8 bits, return the full RC-5 code
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> diff --git a/drivers/media/video/saa7134/saa7134-input.c
+>> b/drivers/media/video/saa7134/saa7134-input.c index
+>> d4ee24b..29c8efd 100644 ---
+>> a/drivers/media/video/saa7134/saa7134-input.c +++
+>> b/drivers/media/video/saa7134/saa7134-input.c @@ -249,8 +249,8 @@
+>> static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32
+>> *ir_raw) return 0;
+>>
+>> /* return key */ -	*ir_key = code4; -	*ir_raw = code4; +	*ir_key =
+>> 0x3fff & (code4 | code3 << 8); +	*ir_raw = *ir_key; return 1; }
+>>
+>>
+>> Regards, Mauro
+>>>
+>>
+>> -- To unsubscribe from this list: send the line "unsubscribe
+>> linux-media" in the body of a message to majordomo@vger.kernel.org 
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> are you going to carry on with the control range update patches ?
-> I'd like to push the alpha colour control for v3.3 but it depends
-> on the controls framework updates now.
+> Will this work regardless of what remote is being used?
+
+No, they're separate issues. That fix is for HVR-1110 IR keycode
+handling. It shouldn't affect anything else.
+
+> Currently I'm
+> using a Windows Media Center Remote (Hauppauge HVR-1600 provided it)
+> with a combination of saa7134 (MSI TV@nywhere Plus) and Hauppauge
+> HVR-1600 tuners. Right now, the Hauppauge works fine (all of this is
+> in Mythtv 0.24), but the MSI crashes when I change channels.
+
+So, there's some bug at the MSI handling. Please test the latest
+media-build kernel and see if the crash condition still exists there.
+If so, please open a separate thread describing what's happening and
+posting the error logs (from dmesg).
+
+
+> Have a great day:)
+> Patrick.
 > 
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.11 (GNU/Linux)
+> Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
 > 
-> Another use case for control range update would be with an auto-exposure
-> metering spot location controls. An available range for x and y coordinates
-> would depend on selected pixel resolution. If we would have created two
-> controls for (x, y) their range would depend on pixel (width, height)
-> respectively. So when a new format is set such controls would need to get
-> their range updated.
+> iEYEARECAAYFAk7+72UACgkQMp6rvjb3CAR2tQCgqSAc55bQyDEe3Z4vu0sUYAne
+> RrQAoIU89vMVzI8UBH8v+dJxl3RsHj44
+> =3joI
+> -----END PGP SIGNATURE-----
 
-To be honest I'm not sure whether points, and especially rectangles, should be 
-handled as controls. We have no structure-like control type at the moment, 
-adding points might be possible, but rectangles would require either 2 point-
-liek controls or 4 controls (left, top, width, height). I don't really like 
-that. A new API (possibly based on the selection API ?) might be better.
-
--- 
-Regards,
-
-Laurent Pinchart
