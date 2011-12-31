@@ -1,83 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40194 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102Ab1LRXzs (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:62016 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752551Ab1LaMDa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 18 Dec 2011 18:55:48 -0500
-Received: from localhost.localdomain (unknown [91.178.220.210])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5864E35B9F
-	for <linux-media@vger.kernel.org>; Sun, 18 Dec 2011 23:55:47 +0000 (UTC)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [RFC/PATCH 1/3] v4l: Add custom compat_ioctl operation
-Date: Mon, 19 Dec 2011 00:55:44 +0100
-Message-Id: <1324252546-18437-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1324252546-18437-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1324252546-18437-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sat, 31 Dec 2011 07:03:30 -0500
+Received: by eekc4 with SMTP id c4so14252766eek.19
+        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 04:03:29 -0800 (PST)
+Message-ID: <4EFEFA08.805@gmail.com>
+Date: Sat, 31 Dec 2011 13:03:20 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Scott Jiang <scott.jiang.linux@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: v4l: how to get blanking clock count?
+References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com> <20111230213301.GA3677@valkosipuli.localdomain> <CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com> <20111231113529.GC3677@valkosipuli.localdomain>
+In-Reply-To: <20111231113529.GC3677@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Drivers implementing custom ioctls need to handle 32-bit/64-bit
-compatibility themselves. Provide them with a way to do so.
+Hi Sakari,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |   13 ++++++++++---
- include/media/v4l2-dev.h                  |    3 +++
- 2 files changed, 13 insertions(+), 3 deletions(-)
+On 12/31/2011 12:35 PM, Sakari Ailus wrote:
+> On Sat, Dec 31, 2011 at 02:57:31PM +0800, Scott Jiang wrote:
+>> 2011/12/31 Sakari Ailus <sakari.ailus@iki.fi>:
+>>> On Fri, Dec 30, 2011 at 03:20:43PM +0800, Scott Jiang wrote:
+>>>> Our bridge driver needs to know line clock count including active
+>>>> lines and blanking area.
+>>>> I can compute active clock count according to pixel format, but how
+>>>> can I get this in blanking area in current framework?
+>>>
+>>> Such information is not available currently over the V4L2 subdev interface.
+>>> Please see this patchset:
+>>>
+>>> <URL:http://www.spinics.net/lists/linux-media/msg41765.html>
+>>>
+>>> Patches 7 and 8 are probably the most interesting for you. This is an RFC
+>>> patchset so the final implementation could well still change.
+>>>
+>> Hi Sakari,
+>>
+>> Thanks for your reply. Your patch added VBLANK and HBLANK control, but
+>> my case isn't a user control.
+>> That is to say, you can't specify a blanking control value for sensor.
+> 
+> I the case of your bridge, that may not be possible, but that's the only one
+> I've heard of so I think it's definitely a special case. In that case the
+> sensor driver can't be allowed to change the blanking periods while
+> streaming is ongoing.
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index c68531b..5787e57 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -16,6 +16,7 @@
- #include <linux/compat.h>
- #include <linux/videodev2.h>
- #include <linux/module.h>
-+#include <media/v4l2-dev.h>
- #include <media/v4l2-ioctl.h>
- 
- #ifdef CONFIG_COMPAT
-@@ -937,6 +938,7 @@ static long do_video_ioctl(struct file *file, unsigned int cmd, unsigned long ar
- 
- long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- {
-+	struct video_device *vdev = video_devdata(file);
- 	long ret = -ENOIOCTLCMD;
- 
- 	if (!file->f_op->unlocked_ioctl)
-@@ -1023,9 +1025,14 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 		break;
- 
- 	default:
--		printk(KERN_WARNING "compat_ioctl32: "
--			"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
--			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
-+		if (vdev->fops->compat_ioctl)
-+			ret = vdev->fops->compat_ioctl(file, cmd, arg);
-+
-+		if (ret == -ENOIOCTLCMD)
-+			printk(KERN_WARNING "compat_ioctl32: "
-+				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
-+				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
-+				cmd);
- 		break;
- 	}
- 	return ret;
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index c7c40f1..5d4462c 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -62,6 +62,9 @@ struct v4l2_file_operations {
- 	unsigned int (*poll) (struct file *, struct poll_table_struct *);
- 	long (*ioctl) (struct file *, unsigned int, unsigned long);
- 	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
-+#ifdef CONFIG_COMPAT
-+	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
-+#endif
- 	unsigned long (*get_unmapped_area) (struct file *, unsigned long,
- 				unsigned long, unsigned long, unsigned long);
- 	int (*mmap) (struct file *, struct vm_area_struct *);
--- 
-1.7.3.4
+I agree, it's just a matter of adding proper logic at the sensor driver.
+However it might be a bit tricky, the bridge would have to validate blanking
+values before actually enabling streaming.
 
+> framesamples proposed by Sylwester for v4l2_mbus_framefmt could, and
+> probably should, be exposed as a control with similar property.
+
+Yeah, I'm going to try to add it to your proposed image source control
+class.
+
+>> And you added pixel clock rate in mbus format, I think if I add two
+>> more parametres such as VBLANK lines and HBLANK clocks I can solve
+>> this problem. In fact, active lines and blanking lines are essential
+>> params to define an image.
+> 
+> Only the active lines and rows are, blanking period is just an idle period
+> where no image data is transferred. It does not affect the resulting image
+> in any way.
+
+--
+Regards,
+Sylwester
