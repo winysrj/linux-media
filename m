@@ -1,92 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37938 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751423Ab1LLK6s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 12 Dec 2011 05:58:48 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-Date: Mon, 12 Dec 2011 11:59:02 +0100
-Cc: "'Sakari Ailus'" <sakari.ailus@iki.fi>,
-	"'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	"'Sebastian =?iso-8859-1?q?Dr=F6ge=27?="
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01> <20111206143538.GD938@valkosipuli.localdomain> <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
-In-Reply-To: <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:60426 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751701Ab1LaTKo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 14:10:44 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBVJAitC022940
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 14:10:44 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] fs/compat_ioctl: it needs to see the DVBv3 compat stuff
+Date: Sat, 31 Dec 2011 17:09:05 -0200
+Message-Id: <1325358545-15039-1-git-send-email-mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201112121159.03471.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+Only the ioctl core should see the DVBv3 compat stuff, as its
+contents are not available anymore to the drivers.
 
-On Tuesday 06 December 2011 16:03:33 Kamil Debski wrote:
-> On 06 December 2011 15:36 Sakari Ailus wrote:
-> > On Fri, Dec 02, 2011 at 02:50:17PM -0200, Mauro Carvalho Chehab wrote:
-> > > On 02-12-2011 11:57, Sakari Ailus wrote:
-> > > > Some codecs need to be able to access buffers which have already been
-> > > > decoded to decode more buffers. Key frames, simply.
-> > > 
-> > > Ok, but let's not add unneeded things at the API if you're not sure. If
-> > > we have such need for a given hardware, then add it. Otherwise, keep it
-> > > simple.
-> >
-> > This is not so much dependent on hardware but on the standards which the
-> > cdoecs implement.
-> > 
-> > > > The user space still wants to be able to show these buffers, so a new
-> > > > flag would likely be required --- V4L2_BUF_FLAG_READ_ONLY, for
-> > > > example.
-> > > 
-> > > Huh? Assuming a capture device, when kernel makes a buffer available to
-> > > userspace, kernel should not touch on it anymore (not even for read -
-> > > although reading from it probably won't cause any issues, as video
-> > > applications in general don't write into those buffers). The opposite is
-> > > true for output devices: once userspace fills it, and queues, it should
-> > > not touch that buffer again.
-> > > 
-> > > This is part of the queue/dequeue logic. I can't see any need for an
-> > > extra flag to explicitly say that.
-> > 
-> > There is a reason to do so. An example of this is below. The
-> > memory-to-memory device has two queues, output can capture. A video
-> > decoder memory-to-memory device's output queue handles compressed video
-> > and the capture queue provides the application decoded frames.
-> > 
-> > Certain frames in the stream are key frames, meaning that the decoding of
-> > the following non-key frames requires access to the key frame. The number
-> > of non-key frame can be relatively large, say 16, depending on the
-> > codec.
-> > 
-> > If the user should wait for all the frames to be decoded before the key
-> > frame can be shown, then either the key frame is to be skipped or
-> > delayed. Both of the options are highly undesirable.
-> 
-> I don't think that such a delay is worrisome. This is only initial delay.
-> The hw will process these N buffers and after that it works exactly the
-> same as it would without the delay in terms of processing time.
+As fs/compat_ioctl also handles DVBv3 ioctl's, it needs those
+definitions:
 
-For offline video decoding (such as playing a movie for instance) that's 
-probably not a big issue. For online video decoding (video conferencing) where 
-you want to minimize latency it can be.
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: array type has incomplete element type
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: array type has incomplete element type
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: array type has incomplete element type
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1345: error: initializer element is not constant
+    fs/compat_ioctl.c:1345: error: (near initialization for ‘ioctl_pointer[462]’)
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: array type has incomplete element type
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: array type has incomplete element type
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: array type has incomplete element type
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_parameters’
+    fs/compat_ioctl.c:1346: error: initializer element is not constant
+    fs/compat_ioctl.c:1346: error: (near initialization for ‘ioctl_pointer[463]’)
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: array type has incomplete element type
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: array type has incomplete element type
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: array type has incomplete element type
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: invalid application of ‘sizeof’ to incomplete type ‘struct dvb_frontend_event’
+    fs/compat_ioctl.c:1347: error: initializer element is not constant
+    fs/compat_ioctl.c:1347: error: (near initialization for ‘ioctl_pointer[464]’)
 
-> > Alternatively one could allocate the double number of buffers required.
-> > At 1080p and 16 buffers this could be roughly 66 MB. Additionally,
-> > starting the playback is delayed for the duration for the decoding of
-> > those frames. I think we should not force users to do so.
-> 
-> I really don't think it is necessary to allocate twice as many buffers.
-> Assuming that hw needs K buffers you may alloc N (= K + L) and the
-> application may use all these L buffers at a time.
+Reported-by: Michael Krufky <mkrufky@linuxtv.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ fs/compat_ioctl.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index 51352de..32200c2 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -105,6 +105,7 @@
+ 
+ #include <linux/hiddev.h>
+ 
++#define __DVB_CORE__
+ #include <linux/dvb/audio.h>
+ #include <linux/dvb/dmx.h>
+ #include <linux/dvb/frontend.h>
 -- 
-Regards,
+1.7.8.352.g876a6
 
-Laurent Pinchart
