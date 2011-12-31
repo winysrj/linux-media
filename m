@@ -1,146 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:50671 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755601Ab1LXPvI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 24 Dec 2011 10:51:08 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBOFp7i9030860
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 24 Dec 2011 10:51:07 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v4 27/47] [media] bsbe1, bsru6, tdh1: use DVBv5 parameters on set_params()
-Date: Sat, 24 Dec 2011 13:50:32 -0200
-Message-Id: <1324741852-26138-28-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-27-git-send-email-mchehab@redhat.com>
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com>
- <1324741852-26138-2-git-send-email-mchehab@redhat.com>
- <1324741852-26138-3-git-send-email-mchehab@redhat.com>
- <1324741852-26138-4-git-send-email-mchehab@redhat.com>
- <1324741852-26138-5-git-send-email-mchehab@redhat.com>
- <1324741852-26138-6-git-send-email-mchehab@redhat.com>
- <1324741852-26138-7-git-send-email-mchehab@redhat.com>
- <1324741852-26138-8-git-send-email-mchehab@redhat.com>
- <1324741852-26138-9-git-send-email-mchehab@redhat.com>
- <1324741852-26138-10-git-send-email-mchehab@redhat.com>
- <1324741852-26138-11-git-send-email-mchehab@redhat.com>
- <1324741852-26138-12-git-send-email-mchehab@redhat.com>
- <1324741852-26138-13-git-send-email-mchehab@redhat.com>
- <1324741852-26138-14-git-send-email-mchehab@redhat.com>
- <1324741852-26138-15-git-send-email-mchehab@redhat.com>
- <1324741852-26138-16-git-send-email-mchehab@redhat.com>
- <1324741852-26138-17-git-send-email-mchehab@redhat.com>
- <1324741852-26138-18-git-send-email-mchehab@redhat.com>
- <1324741852-26138-19-git-send-email-mchehab@redhat.com>
- <1324741852-26138-20-git-send-email-mchehab@redhat.com>
- <1324741852-26138-21-git-send-email-mchehab@redhat.com>
- <1324741852-26138-22-git-send-email-mchehab@redhat.com>
- <1324741852-26138-23-git-send-email-mchehab@redhat.com>
- <1324741852-26138-24-git-send-email-mchehab@redhat.com>
- <1324741852-26138-25-git-send-email-mchehab@redhat.com>
- <1324741852-26138-26-git-send-email-mchehab@redhat.com>
- <1324741852-26138-27-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from einhorn.in-berlin.de ([192.109.42.8]:53075 "EHLO
+	einhorn.in-berlin.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752938Ab1LaMic (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 07:38:32 -0500
+Date: Sat, 31 Dec 2011 13:38:03 +0100
+From: Stefan Richter <stefanr@s5r6.in-berlin.de>
+To: Jonathan Nieder <jrnieder@gmail.com>
+Cc: David Fries <david@fries.net>, Istvan Varga <istvan_v@mailbox.hu>,
+	linux-media@vger.kernel.org, Darron Broad <darron@kewl.org>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: Re: [PATCH 9/9] [media] firedtv: handle errors from dvb_net_init
+Message-ID: <20111231133803.7d6bc3f5@stein>
+In-Reply-To: <20111231121956.GK16802@elie.Belkin>
+References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
+	<20111231115117.GB16802@elie.Belkin>
+	<20111231121956.GK16802@elie.Belkin>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-set the tuner
+On Dec 31 Jonathan Nieder wrote:
+> It is not common for dvb_net_init to fail, but after the patch
+> "dvb_net_init: return -errno on error" it can fail due to running out
+> of memory.  Handle this.
+> From an audit of dvb_net_init callers.
+> 
+> Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/bsbe1.h |    5 +++--
- drivers/media/dvb/frontends/bsru6.h |    7 ++++---
- drivers/media/dvb/frontends/tdhd1.h |    9 +++++----
- 3 files changed, 12 insertions(+), 9 deletions(-)
+Reviewed-by: Stefan Richter <stefanr@s5r6.in-berlin.de>
 
-diff --git a/drivers/media/dvb/frontends/bsbe1.h b/drivers/media/dvb/frontends/bsbe1.h
-index 5e431eb..e008946 100644
---- a/drivers/media/dvb/frontends/bsbe1.h
-+++ b/drivers/media/dvb/frontends/bsbe1.h
-@@ -71,16 +71,17 @@ static int alps_bsbe1_set_symbol_rate(struct dvb_frontend* fe, u32 srate, u32 ra
- 
- static int alps_bsbe1_tuner_set_params(struct dvb_frontend* fe, struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	int ret;
- 	u8 data[4];
- 	u32 div;
- 	struct i2c_msg msg = { .addr = 0x61, .flags = 0, .buf = data, .len = sizeof(data) };
- 	struct i2c_adapter *i2c = fe->tuner_priv;
- 
--	if ((params->frequency < 950000) || (params->frequency > 2150000))
-+	if ((p->frequency < 950000) || (p->frequency > 2150000))
- 		return -EINVAL;
- 
--	div = params->frequency / 1000;
-+	div = p->frequency / 1000;
- 	data[0] = (div >> 8) & 0x7f;
- 	data[1] = div & 0xff;
- 	data[2] = 0x80 | ((div & 0x18000) >> 10) | 0x1;
-diff --git a/drivers/media/dvb/frontends/bsru6.h b/drivers/media/dvb/frontends/bsru6.h
-index c480c83..cd8c675 100644
---- a/drivers/media/dvb/frontends/bsru6.h
-+++ b/drivers/media/dvb/frontends/bsru6.h
-@@ -103,21 +103,22 @@ static int alps_bsru6_set_symbol_rate(struct dvb_frontend *fe, u32 srate, u32 ra
- 
- static int alps_bsru6_tuner_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	u8 buf[4];
- 	u32 div;
- 	struct i2c_msg msg = { .addr = 0x61, .flags = 0, .buf = buf, .len = sizeof(buf) };
- 	struct i2c_adapter *i2c = fe->tuner_priv;
- 
--	if ((params->frequency < 950000) || (params->frequency > 2150000))
-+	if ((p->frequency < 950000) || (p->frequency > 2150000))
- 		return -EINVAL;
- 
--	div = (params->frequency + (125 - 1)) / 125;	// round correctly
-+	div = (p->frequency + (125 - 1)) / 125;	// round correctly
- 	buf[0] = (div >> 8) & 0x7f;
- 	buf[1] = div & 0xff;
- 	buf[2] = 0x80 | ((div & 0x18000) >> 10) | 4;
- 	buf[3] = 0xC4;
- 
--	if (params->frequency > 1530000)
-+	if (p->frequency > 1530000)
- 		buf[3] = 0xc0;
- 
- 	if (fe->ops.i2c_gate_ctrl)
-diff --git a/drivers/media/dvb/frontends/tdhd1.h b/drivers/media/dvb/frontends/tdhd1.h
-index 51f1706..9db221b 100644
---- a/drivers/media/dvb/frontends/tdhd1.h
-+++ b/drivers/media/dvb/frontends/tdhd1.h
-@@ -42,22 +42,23 @@ static struct tda1004x_config alps_tdhd1_204a_config = {
- 
- static int alps_tdhd1_204a_tuner_set_params(struct dvb_frontend *fe, struct dvb_frontend_parameters *params)
- {
-+	struct dtv_frontend_properties *p = &fe->dtv_property_cache;
- 	struct i2c_adapter *i2c = fe->tuner_priv;
- 	u8 data[4];
- 	struct i2c_msg msg = { .addr = 0x61, .flags = 0, .buf = data, .len = sizeof(data) };
- 	u32 div;
- 
--	div = (params->frequency + 36166666) / 166666;
-+	div = (p->frequency + 36166666) / 166666;
- 
- 	data[0] = (div >> 8) & 0x7f;
- 	data[1] = div & 0xff;
- 	data[2] = 0x85;
- 
--	if (params->frequency >= 174000000 && params->frequency <= 230000000)
-+	if (p->frequency >= 174000000 && p->frequency <= 230000000)
- 		data[3] = 0x02;
--	else if (params->frequency >= 470000000 && params->frequency <= 823000000)
-+	else if (p->frequency >= 470000000 && p->frequency <= 823000000)
- 		data[3] = 0x0C;
--	else if (params->frequency > 823000000 && params->frequency <= 862000000)
-+	else if (p->frequency > 823000000 && p->frequency <= 862000000)
- 		data[3] = 0x8C;
- 	else
- 		return -EINVAL;
+[...]
+> --- a/drivers/media/dvb/firewire/firedtv-dvb.c
+> +++ b/drivers/media/dvb/firewire/firedtv-dvb.c
+> @@ -203,7 +203,9 @@ int fdtv_dvb_register(struct firedtv *fdtv, const
+> char *name) if (err)
+>  		goto fail_rem_frontend;
+>  
+> -	dvb_net_init(&fdtv->adapter, &fdtv->dvbnet, &fdtv->demux.dmx);
+> +	err = dvb_net_init(&fdtv->adapter, &fdtv->dvbnet,
+> &fdtv->demux.dmx);
+> +	if (err)
+> +		goto fail_disconnect_frontend;
+>  
+>  	fdtv_frontend_init(fdtv, name);
+>  	err = dvb_register_frontend(&fdtv->adapter, &fdtv->fe);
+> @@ -218,6 +220,7 @@ int fdtv_dvb_register(struct firedtv *fdtv, const
+> char *name) 
+>  fail_net_release:
+>  	dvb_net_release(&fdtv->dvbnet);
+> +fail_disconnect_frontend:
+>  	fdtv->demux.dmx.close(&fdtv->demux.dmx);
+>  fail_rem_frontend:
+>  	fdtv->demux.dmx.remove_frontend(&fdtv->demux.dmx,
+> &fdtv->frontend);
+
 -- 
-1.7.8.352.g876a6
-
+Stefan Richter
+-=====-==-== ==-- =====
+http://arcgraph.de/sr/
