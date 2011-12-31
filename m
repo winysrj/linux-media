@@ -1,53 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:37103 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753253Ab1LAAPS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 19:15:18 -0500
-From: Sergio Aguirre <saaguirre@ti.com>
-To: <linux-media@vger.kernel.org>
-CC: <linux-omap@vger.kernel.org>, <laurent.pinchart@ideasonboard.com>,
-	<sakari.ailus@iki.fi>, Sergio Aguirre <saaguirre@ti.com>
-Subject: [PATCH v2 11/11] arm: Add support for CMA for omap4iss driver
-Date: Wed, 30 Nov 2011 18:15:00 -0600
-Message-ID: <1322698500-29924-12-git-send-email-saaguirre@ti.com>
-In-Reply-To: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
-References: <1322698500-29924-1-git-send-email-saaguirre@ti.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:36891 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752342Ab1LaLfe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 06:35:34 -0500
+Date: Sat, 31 Dec 2011 13:35:29 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: v4l: how to get blanking clock count?
+Message-ID: <20111231113529.GC3677@valkosipuli.localdomain>
+References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
+ <20111230213301.GA3677@valkosipuli.localdomain>
+ <CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sergio Aguirre <saaguirre@ti.com>
----
- arch/arm/mach-omap2/devices.c |    8 ++++++++
- 1 files changed, 8 insertions(+), 0 deletions(-)
+Hi Scott,
 
-diff --git a/arch/arm/mach-omap2/devices.c b/arch/arm/mach-omap2/devices.c
-index b48aeea..e411c4e 100644
---- a/arch/arm/mach-omap2/devices.c
-+++ b/arch/arm/mach-omap2/devices.c
-@@ -17,6 +17,9 @@
- #include <linux/err.h>
- #include <linux/slab.h>
- #include <linux/of.h>
-+#ifdef CONFIG_CMA
-+#include <linux/dma-contiguous.h>
-+#endif
- 
- #include <mach/hardware.h>
- #include <mach/irqs.h>
-@@ -246,6 +249,11 @@ int omap4_init_camera(struct iss_platform_data *pdata, struct omap_board_data *b
- 
- 	oh->mux = omap_hwmod_mux_init(bdata->pads, bdata->pads_cnt);
- 
-+#ifdef CONFIG_CMA
-+	/* Create private 32MiB contiguous memory area for omap4iss device */
-+	dma_declare_contiguous(&pdev->dev, 32*SZ_1M, 0, 0);
-+#endif
-+
- 	return 0;
- }
- 
+On Sat, Dec 31, 2011 at 02:57:31PM +0800, Scott Jiang wrote:
+> 2011/12/31 Sakari Ailus <sakari.ailus@iki.fi>:
+> > Hi Scott,
+> >
+> > On Fri, Dec 30, 2011 at 03:20:43PM +0800, Scott Jiang wrote:
+> >> Hi Hans and Guennadi,
+> >>
+> >> Our bridge driver needs to know line clock count including active
+> >> lines and blanking area.
+> >> I can compute active clock count according to pixel format, but how
+> >> can I get this in blanking area in current framework?
+> >
+> > Such information is not available currently over the V4L2 subdev interface.
+> > Please see this patchset:
+> >
+> > <URL:http://www.spinics.net/lists/linux-media/msg41765.html>
+> >
+> > Patches 7 and 8 are probably the most interesting for you. This is an RFC
+> > patchset so the final implementation could well still change.
+> >
+> Hi Sakari,
+> 
+> Thanks for your reply. Your patch added VBLANK and HBLANK control, but
+> my case isn't a user control.
+> That is to say, you can't specify a blanking control value for sensor.
+
+I the case of your bridge, that may not be possible, but that's the only one
+I've heard of so I think it's definitely a special case. In that case the
+sensor driver can't be allowed to change the blanking periods while
+streaming is ongoing.
+
+framesamples proposed by Sylwester for v4l2_mbus_framefmt could, and
+probably should, be exposed as a control with similar property.
+
+> And you added pixel clock rate in mbus format, I think if I add two
+> more parametres such as VBLANK lines and HBLANK clocks I can solve
+> this problem. In fact, active lines and blanking lines are essential
+> params to define an image.
+
+Only the active lines and rows are, blanking period is just an idle period
+where no image data is transferred. It does not affect the resulting image
+in any way.
+
 -- 
-1.7.7.4
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
