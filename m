@@ -1,103 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:23982 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754996Ab1LVKv7 convert rfc822-to-8bit (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:35557 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752551Ab1LaMIx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 22 Dec 2011 05:51:59 -0500
-Date: Thu, 22 Dec 2011 11:51:51 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [patch 1/2] [media] Staging: dt3155v4l: update to newer API
-In-reply-to: <20111222062907.GA19975@elgon.mountain>
-To: 'Dan Carpenter' <dan.carpenter@oracle.com>,
-	'Mauro Carvalho Chehab' <mchehab@infradead.org>
-Cc: 'Greg Kroah-Hartman' <gregkh@suse.de>,
-	'H Hartley Sweeten' <hsweeten@visionengravers.com>,
-	'Paul Gortmaker' <paul.gortmaker@windriver.com>,
-	'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Message-id: <011201ccc097$b66d68c0$23483a40$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <20111222062907.GA19975@elgon.mountain>
+	Sat, 31 Dec 2011 07:08:53 -0500
+Received: by iaeh11 with SMTP id h11so26705667iae.19
+        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 04:08:53 -0800 (PST)
+Date: Sat, 31 Dec 2011 06:08:45 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: David Fries <david@fries.net>
+Cc: Istvan Varga <istvan_v@mailbox.hu>, linux-media@vger.kernel.org,
+	Darron Broad <darron@kewl.org>,
+	Steven Toth <stoth@kernellabs.com>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: [PATCH 7/9] [media] dm1105: handle errors from dvb_net_init
+Message-ID: <20111231120845.GI16802@elie.Belkin>
+References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
+ <20111231115117.GB16802@elie.Belkin>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20111231115117.GB16802@elie.Belkin>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Clean up and error out if dvb_net_init fails (for example due to
+ENOMEM).  This involves moving the dvb_net_init call to before
+frontend_init to make cleaning up a little easier.
 
-On Thursday, December 22, 2011 7:29 AM Dan Carpenter wrote:
+>From an audit of dvb_net_init callers, now that dvb_net_init lets
+callers know about errors.
 
-> I changed the function definitions for dt3155_queue_setup() to match the
-> newer API.  The dt3155_start_streaming() function didn't do anything so
-> I just removed it.
-> 
-> This silences the following gcc warnings:
-> drivers/staging/media/dt3155v4l/dt3155v4l.c:307:2: warning: initialization from incompatible
-> pointer type [enabled by default]
-> drivers/staging/media/dt3155v4l/dt3155v4l.c:307:2: warning: (near initialization for
-> ‘q_ops.queue_setup’) [enabled by default]
-> drivers/staging/media/dt3155v4l/dt3155v4l.c:311:2: warning: initialization from incompatible
-> pointer type [enabled by default]
-> drivers/staging/media/dt3155v4l/dt3155v4l.c:311:2: warning: (near initialization for
-> ‘q_ops.start_streaming’) [enabled by default]
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ drivers/media/dvb/dm1105/dm1105.c |    5 ++++-
+ 1 files changed, 4 insertions(+), 1 deletions(-)
 
-It looks correct.
-
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
-> ---
-> Please double check that this is sufficient.  I'm not very familiar with
-> this code.
-> 
-> diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> index 04e93c4..25c6025 100644
-> --- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> +++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> @@ -218,9 +218,10 @@ dt3155_start_acq(struct dt3155_priv *pd)
->   *	driver-specific callbacks (vb2_ops)
->   */
->  static int
-> -dt3155_queue_setup(struct vb2_queue *q, unsigned int *num_buffers,
-> -			unsigned int *num_planes, unsigned long sizes[],
-> -						void *alloc_ctxs[])
-> +dt3155_queue_setup(struct vb2_queue *q, const struct v4l2_format *fmt,
-> +		unsigned int *num_buffers, unsigned int *num_planes,
-> +		unsigned int sizes[], void *alloc_ctxs[])
-> +
->  {
->  	struct dt3155_priv *pd = vb2_get_drv_priv(q);
->  	void *ret;
-> @@ -262,12 +263,6 @@ dt3155_buf_prepare(struct vb2_buffer *vb)
->  }
-> 
->  static int
-> -dt3155_start_streaming(struct vb2_queue *q)
-> -{
-> -	return 0;
-> -}
-> -
-> -static int
->  dt3155_stop_streaming(struct vb2_queue *q)
->  {
->  	struct dt3155_priv *pd = vb2_get_drv_priv(q);
-> @@ -308,7 +303,6 @@ const struct vb2_ops q_ops = {
->  	.wait_prepare = dt3155_wait_prepare,
->  	.wait_finish = dt3155_wait_finish,
->  	.buf_prepare = dt3155_buf_prepare,
-> -	.start_streaming = dt3155_start_streaming,
->  	.stop_streaming = dt3155_stop_streaming,
->  	.buf_queue = dt3155_buf_queue,
->  };
-
-
-Best regards
+diff --git a/drivers/media/dvb/dm1105/dm1105.c b/drivers/media/dvb/dm1105/dm1105.c
+index 55e6533f15e9..70e040b999e7 100644
+--- a/drivers/media/dvb/dm1105/dm1105.c
++++ b/drivers/media/dvb/dm1105/dm1105.c
+@@ -1115,11 +1115,14 @@ static int __devinit dm1105_probe(struct pci_dev *pdev,
+ 	if (ret < 0)
+ 		goto err_remove_mem_frontend;
+ 
++	ret = dvb_net_init(dvb_adapter, &dev->dvbnet, dmx);
++	if (ret < 0)
++		goto err_disconnect_frontend;
++
+ 	ret = frontend_init(dev);
+ 	if (ret < 0)
+ 		goto err_disconnect_frontend;
+ 
+-	dvb_net_init(dvb_adapter, &dev->dvbnet, dmx);
+ 	dm1105_ir_init(dev);
+ 
+ 	INIT_WORK(&dev->work, dm1105_dmx_buffer);
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+1.7.8.2+next.20111228
 
