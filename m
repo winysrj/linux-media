@@ -1,108 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:48569 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751157Ab1LHJbB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 8 Dec 2011 04:31:01 -0500
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LVV00ASBP3NM9@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Dec 2011 09:30:59 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LVV007URP3N8S@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 08 Dec 2011 09:30:59 +0000 (GMT)
-Date: Thu, 08 Dec 2011 10:30:58 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v2 1/2] v4l: Add new alpha component control
-In-reply-to: <201111291958.48671.laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	m.szyprowski@samsung.com, jonghun.han@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <4EE083D2.3010102@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7BIT
-References: <1322235572-22016-1-git-send-email-s.nawrocki@samsung.com>
- <201111291910.40076.laurent.pinchart@ideasonboard.com>
- <201111291930.25608.hverkuil@xs4all.nl>
- <201111291958.48671.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:54773 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752998Ab1LaMj4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 07:39:56 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id pBVCdtKh028443
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 07:39:56 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] dvb: Add ops.delsys to the remaining frontends
+Date: Sat, 31 Dec 2011 10:39:49 -0200
+Message-Id: <1325335189-31016-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11/29/2011 07:58 PM, Laurent Pinchart wrote:
-> On Tuesday 29 November 2011 19:30:25 Hans Verkuil wrote:
->> On Tuesday, November 29, 2011 19:10:39 Laurent Pinchart wrote:
->>> On Tuesday 29 November 2011 17:40:10 Sylwester Nawrocki wrote:
->>>> On 11/29/2011 12:08 PM, Hans Verkuil wrote:
->>>>> On Monday 28 November 2011 14:02:49 Sylwester Nawrocki wrote:
->>>>>> On 11/28/2011 01:39 PM, Hans Verkuil wrote:
->>>>>>> On Monday 28 November 2011 13:13:32 Sylwester Nawrocki wrote:
->>>>>>>> On 11/28/2011 12:38 PM, Hans Verkuil wrote:
->>>>>>>>> On Friday 25 November 2011 16:39:31 Sylwester Nawrocki wrote:
->>>>> Here is a patch that updates the range. It also sends a control event
->>>>> telling any listener that the range has changed. Tested with vivi and
->>>>> a modified v4l2-ctl.
->>>>>
->>>>> The only thing missing is a DocBook entry for that new event flag and
->>>>> perhaps some more documentation in places.
->>>>>
->>>>> Let me know how this works for you, and if it is really needed, then
->>>>> I can add it to the control framework.
->>>>
->>>> Thanks for your work, it's very appreciated.
->>>>
->>>> I've tested the patch with s5p-fimc and it works well. I just didn't
->>>> check the event part yet.
->>>>
->>>> I spoke to Kamil as in the past he considered the control range
->>>> updating at the codec driver. But since separate controls are used for
->>>> different encoding standards, this is not needed it any more.
->>>>
->>>> Nevertheless I have at least two use cases, for the alpha control and
->>>> for the image sensor driver. In case of the camera sensor, different
->>>> device revisions may have different step and maximum value for some
->>>> controls, depending on firmware.
->>>> By using v4l2_ctrl_range_update() I don't need to invoke lengthy sensor
->>>> start-up procedure just to find out properties of some controls.
->>>
->>> Wouldn't it be confusing for applications to start with a range and have
->>> it updated at runtime ?
->>
->> Good question. It was a nice exercise creating the range_update() function
->> and it works well, but it this something we want to do?
-> 
-> I think that being able to modify the range is a very useful functionality. 
-> It's just that in this case the sensor would start with a default range and 
-> switch to another based on the model. It would be better if we could start 
-> with the right range from the start.
-> 
->> If we do, then we should mark such controls with a flag (_VOLATILE_RANGE or
->> something like that) so apps know that the range isn't fixed.
->>
->> I think that when it comes to apps writing or reading such a control
->> directly it isn't a problem. But for applications that automatically
->> generate control panels (xawtv et al) it is rather complex to support such
->> things.
+A few drivers don't have .delsys. Add it, in order to allow
+future patches for dvb_frontend.c to not use info.type.
 
-Hans,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/s5h1432.c  |    2 +-
+ drivers/media/dvb/frontends/stv0297.c  |    2 +-
+ drivers/media/dvb/frontends/tda10048.c |    2 +-
+ drivers/media/dvb/pt1/va1j5jf8007s.c   |    1 +
+ drivers/media/dvb/pt1/va1j5jf8007t.c   |    1 +
+ 5 files changed, 5 insertions(+), 3 deletions(-)
 
-are you going to carry on with the control range update patches ?
-I'd like to push the alpha colour control for v3.3 but it depends
-on the controls framework updates now.
-
-
-Another use case for control range update would be with an auto-exposure
-metering spot location controls. An available range for x and y coordinates
-would depend on selected pixel resolution. If we would have created two
-controls for (x, y) their range would depend on pixel (width, height)
-respectively. So when a new format is set such controls would need to get
-their range updated.
-
+diff --git a/drivers/media/dvb/frontends/s5h1432.c b/drivers/media/dvb/frontends/s5h1432.c
+index 3a9050f..baa3aae 100644
+--- a/drivers/media/dvb/frontends/s5h1432.c
++++ b/drivers/media/dvb/frontends/s5h1432.c
+@@ -375,7 +375,7 @@ error:
+ EXPORT_SYMBOL(s5h1432_attach);
+ 
+ static struct dvb_frontend_ops s5h1432_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		 .name = "Samsung s5h1432 DVB-T Frontend",
+ 		 .type = FE_OFDM,
+diff --git a/drivers/media/dvb/frontends/stv0297.c b/drivers/media/dvb/frontends/stv0297.c
+index dd0a190..8f74762 100644
+--- a/drivers/media/dvb/frontends/stv0297.c
++++ b/drivers/media/dvb/frontends/stv0297.c
+@@ -690,7 +690,7 @@ error:
+ }
+ 
+ static struct dvb_frontend_ops stv0297_ops = {
+-
++	.delsys = { SYS_DVBC },
+ 	.info = {
+ 		 .name = "ST STV0297 DVB-C",
+ 		 .type = FE_QAM,
+diff --git a/drivers/media/dvb/frontends/tda10048.c b/drivers/media/dvb/frontends/tda10048.c
+index 99bf0c0..57711cb 100644
+--- a/drivers/media/dvb/frontends/tda10048.c
++++ b/drivers/media/dvb/frontends/tda10048.c
+@@ -1157,7 +1157,7 @@ error:
+ EXPORT_SYMBOL(tda10048_attach);
+ 
+ static struct dvb_frontend_ops tda10048_ops = {
+-
++	.delsys = { SYS_DVBT },
+ 	.info = {
+ 		.name			= "NXP TDA10048HN DVB-T",
+ 		.type			= FE_OFDM,
+diff --git a/drivers/media/dvb/pt1/va1j5jf8007s.c b/drivers/media/dvb/pt1/va1j5jf8007s.c
+index 78344e3..ef74440 100644
+--- a/drivers/media/dvb/pt1/va1j5jf8007s.c
++++ b/drivers/media/dvb/pt1/va1j5jf8007s.c
+@@ -579,6 +579,7 @@ static void va1j5jf8007s_release(struct dvb_frontend *fe)
+ }
+ 
+ static struct dvb_frontend_ops va1j5jf8007s_ops = {
++	.delsys = { SYS_ISDBS },
+ 	.info = {
+ 		.name = "VA1J5JF8007/VA1J5JF8011 ISDB-S",
+ 		.type = FE_QPSK,
+diff --git a/drivers/media/dvb/pt1/va1j5jf8007t.c b/drivers/media/dvb/pt1/va1j5jf8007t.c
+index c642820..6eeabc8 100644
+--- a/drivers/media/dvb/pt1/va1j5jf8007t.c
++++ b/drivers/media/dvb/pt1/va1j5jf8007t.c
+@@ -428,6 +428,7 @@ static void va1j5jf8007t_release(struct dvb_frontend *fe)
+ }
+ 
+ static struct dvb_frontend_ops va1j5jf8007t_ops = {
++	.delsys = { SYS_ISDBT },
+ 	.info = {
+ 		.name = "VA1J5JF8007/VA1J5JF8011 ISDB-T",
+ 		.type = FE_OFDM,
 -- 
+1.7.8.352.g876a6
 
-Thanks,
-Sylwester
