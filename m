@@ -1,89 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ffm.saftware.de ([83.141.3.46]:45405 "EHLO ffm.saftware.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752222Ab1LAAJd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 30 Nov 2011 19:09:33 -0500
-Message-ID: <4ED6C5B8.8040803@linuxtv.org>
-Date: Thu, 01 Dec 2011 01:09:28 +0100
-From: Andreas Oberritter <obi@linuxtv.org>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:65215 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752385Ab1LaLyZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 31 Dec 2011 06:54:25 -0500
+Received: by iaeh11 with SMTP id h11so26690924iae.19
+        for <linux-media@vger.kernel.org>; Sat, 31 Dec 2011 03:54:24 -0800 (PST)
+Date: Sat, 31 Dec 2011 05:54:16 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: David Fries <david@fries.net>
+Cc: Istvan Varga <istvan_v@mailbox.hu>, linux-media@vger.kernel.org,
+	Darron Broad <darron@kewl.org>,
+	Steven Toth <stoth@kernellabs.com>,
+	Hans Petter Selasky <hselasky@c2i.net>
+Subject: [PATCH 1/9] [media] DVB: dvb_net_init: return -errno on error
+Message-ID: <20111231115416.GC16802@elie.Belkin>
+References: <E1RgiId-0003Qe-SC@www.linuxtv.org>
+ <20111231115117.GB16802@elie.Belkin>
 MIME-Version: 1.0
-To: HoP <jpetrous@gmail.com>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [RFC] vtunerc: virtual DVB device - is it ok to NACK driver because
- of worrying about possible misusage?
-References: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-In-Reply-To: <CAJbz7-2T33c+2uTciEEnzRTaHF7yMW9aYKNiiLniH8dPUYKw_w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20111231115117.GB16802@elie.Belkin>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 30.11.2011 22:38, HoP wrote:
-> Hi folks.
-> 
-> I need to warn you that my mail is a bit little longer then I would like
-> to be.But I'm not able to ask my question without some
-> background information.
-> 
-> On June 19th, I was sending the driver to the Linux-media
-> mailing list. Original announcement is there:
-> 
-> http://www.spinics.net/lists/linux-media/msg34240.html
-> 
-> One would say that the code describes very well what it does = adds
-> virtual DVB device. To be more clear on it I have even done some
-> small picture:
-> 
-> http://www.nessiedvb.org/wiki/doku.php?id=vtuner_bigpicture
-> 
-> I was hoping to get any feedback regarding code implementation.
-> It was my first code for the kernel and I felt very well that some
-> part can be done better or even simpler.
-> 
-> What really surprised me badly was that when I read all 54 responses
-> I have counted only two real technical answers!!! All rest were about
-> POLITICAL issues - code was NACKed w/o any technical discussion.
-> Because of fear of possible abusing of driver.
-> 
-> I didn't know that there existed very big movement against such
-> code in dvb-core subsystem before.
-> 
-> I have one big problem with it. I can even imagine that some "bad guys"
-> could abuse virtual driver to use it for distribution close-source drivers
-> in the binary blobs. But is it that - worrying about bad boys abusing -
-> the sufficient reason for such aggressive NACK which I did? Then would
-> be better to remove loadable module API fully from kernel. Is it the right way?
-> 
-> Please confirm me that worrying about abusive act is enough to NACK
-> particular driver. Then I may be definitely understand I'm doing something
-> wrong and will stay (with such enemy driver) out of tree.
-> 
-> I can't understand that because I see very similar drivers in kernel for ages
-> (nbd, or even more similar is usbip) and seems they don't hamper to anybody.
-> 
-> I would like to note that I don't want to start any flame-war, so very short
-> answer would be enough for me.,
+dvb_net_init unconditionally returns 0.  Callers such as
+videobuf_dvb_register_frontend examine dvbnet->dvbdev instead of the
+return value to tell whether the operation succeeded.  If it has been
+set to a valid pointer, success; if it was left equal to NULL,
+failure.
 
-Hello Honza,
+Alas, there is an edge case where that logic does not work as well:
+when network support has been compiled out (CONFIG_DVB_NET=n), we want
+dvb_net_init and related operations to behave as no-ops and always
+succeed, but there is no appropriate value to which to set dvb->dvbdev
+to indicate this.
 
-I still support the inclusion of your virtual DVB device driver, once
-the technical issues[1] are solved (design clean interface based on
-DVBv5 etc.). Mauro promised to consider it for inclusion then[2]. A
-quick view at your code indicates that this clean-up hasn't happened
-yet, e.g. there are hacks to support DVB-S2 over DVBv3 which aren't
-necessary anymore with v5.
+Let dvb_net_init return a meaningful error code, as preparation for
+adapting callers to look at that instead.
 
-Regarding the kernellabs.com people[3] lobbying against your
-contribution: Don't give up! If all attempts of merging your work
-through the media subsystem are failing, try convincing some major
-distributions to include your work. This would make their arguments
-meaningless. On the long run, good code is likely to win over politics.
+The only immediate impact of this patch should be to make the few
+callers that already check for an error code from dvb_net_init behave
+a little more sensibly when it fails.
 
-Regards,
-Andreas
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+ drivers/media/dvb/dvb-core/dvb_net.c |    4 +---
+ 1 files changed, 1 insertions(+), 3 deletions(-)
 
-[1] http://www.spinics.net/lists/linux-media/msg34349.html
-[2] http://www.spinics.net/lists/linux-media/msg34352.html
-[3] http://www.kernellabs.com/blog/?page_id=6
-[4]
-http://code.google.com/p/vtuner/source/browse/vtunerc_proxyfe.c?repo=linux-driver#177
+diff --git a/drivers/media/dvb/dvb-core/dvb_net.c b/drivers/media/dvb/dvb-core/dvb_net.c
+index 93d9869e0f15..8766ce8c354d 100644
+--- a/drivers/media/dvb/dvb-core/dvb_net.c
++++ b/drivers/media/dvb/dvb-core/dvb_net.c
+@@ -1510,9 +1510,7 @@ int dvb_net_init (struct dvb_adapter *adap, struct dvb_net *dvbnet,
+ 	for (i=0; i<DVB_NET_DEVICES_MAX; i++)
+ 		dvbnet->state[i] = 0;
+ 
+-	dvb_register_device (adap, &dvbnet->dvbdev, &dvbdev_net,
++	return dvb_register_device(adap, &dvbnet->dvbdev, &dvbdev_net,
+ 			     dvbnet, DVB_DEVICE_NET);
+-
+-	return 0;
+ }
+ EXPORT_SYMBOL(dvb_net_init);
+-- 
+1.7.8.2+next.20111228
+
