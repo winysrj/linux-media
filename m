@@ -1,59 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53562 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751574Ab2ACOAH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 09:00:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: MEM2MEM devices: how to handle sequence number?
-Date: Tue, 3 Jan 2012 15:00:22 +0100
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de, Pawel Osciak <p.osciak@gmail.com>
-References: <CACKLOr0H4enuADtWcUkZCS_V92mmLD8K5CgScbGo7w9nbT=-CA@mail.gmail.com> <201201021206.06397.laurent.pinchart@ideasonboard.com> <CACKLOr3gc9o7JYzG+rV9Mp9C7xtgf0Q5W7vgxQ5H8wQDvO-ong@mail.gmail.com>
-In-Reply-To: <CACKLOr3gc9o7JYzG+rV9Mp9C7xtgf0Q5W7vgxQ5H8wQDvO-ong@mail.gmail.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:33551 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750925Ab2AAQtR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 11:49:17 -0500
+Received: by eekc4 with SMTP id c4so14775601eek.19
+        for <linux-media@vger.kernel.org>; Sun, 01 Jan 2012 08:49:16 -0800 (PST)
+Message-ID: <4F008E87.1070706@gmail.com>
+Date: Sun, 01 Jan 2012 17:49:11 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, riverful.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC/PATCH 1/5] v4l: Convert V4L2_CID_FOCUS_AUTO control to a
+ menu control
+References: <1323011776-15967-1-git-send-email-snjw23@gmail.com> <1323011776-15967-2-git-send-email-snjw23@gmail.com> <20111210103344.GF1967@valkosipuli.localdomain> <4EE36FE1.1080601@gmail.com> <20111231120025.GD3677@valkosipuli.localdomain>
+In-Reply-To: <20111231120025.GD3677@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201031500.23732.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
-
-On Monday 02 January 2012 12:44:08 javier Martin wrote:
-> Just one more question about this.
+On 12/31/2011 01:00 PM, Sakari Ailus wrote:
+> Hi Sylwester,
 > 
-> The v4l2 encoder, which is the last element in my processing chain, is
-> an H.264 encoder that has to know about previous frames to encode.
-> For these kind of devices it is very useful to know whether a frame
-> has been lost to introduce a skip frame and improve the encoding
-> process.
-> 
-> But, with the current approach we don't have any way to communicate
-> this to the device.
-> 
-> One option would be that the user specified a sequence number when
-> issuing VIDIOC_QBUF at the output queue so that the device could
-> detect any discontinuity and introduce a skip frame. But this would
-> break your rule that sequence number introduced at the output queue
-> has to be ignored by the driver.
+> Apologies for my late answer.
 
-That's a use case I haven't thought about. Using sequence numbers could indeed 
-help in that case. My concern is that most (if not all) applications don't set 
-the sequence number before queuing a buffer, so requiring them to do so could 
-introduce breakages. This could be limited to H.264 encoders (or more 
-generally codecs) though.
+No problem, thanks for your comments!
 
-Another option would be to queue a 0-bytes frame. That might be a bit hackish 
-though.
+> On Sat, Dec 10, 2011 at 03:42:41PM +0100, Sylwester Nawrocki wrote:
+>> Hi Sakari,
+>>
+>> On 12/10/2011 11:33 AM, Sakari Ailus wrote:
+>>> On Sun, Dec 04, 2011 at 04:16:12PM +0100, Sylwester Nawrocki wrote:
+>>>> Change the V4L2_CID_FOCUS_AUTO control type from boolean to a menu
+>>>> type. In case of boolean control we had values 0 and 1 corresponding
+>>>> to manual and automatic focus respectively.
+>>>>
+>>>> The V4L2_CID_FOCUS_AUTO menu control has currently following items:
+>>>>   0 - V4L2_FOCUS_MANUAL,
+>>>>   1 - V4L2_FOCUS_AUTO,
+>>>>   2 - V4L2_FOCUS_AUTO_MACRO,
+>>>>   3 - V4L2_FOCUS_AUTO_CONTINUOUS.
+>>>
+>>> I would put the macro mode to a separate menu since it's configuration for
+>>> how the regular AF works rather than really different mode.
+>>
+>> Yes, makes sense. Most likely there could be also continuous macro auto focus..
+>> I don't have yet an idea what could be a name for that new menu though.
+> 
+> V4L2_CID_FOCUS_AUTO_DISTANCE? It could then have choices FULL or MACRO.
+
+How about V4L2_CID_FOCUS_AUTO_SCAN_RANGE ? Which would then have choices:
+	NORMAL,
+	MACRO,
+	INFINITY
+?
+
+>> Many Samsung devices have also something like guided auto focus, where the
+>> application can specify location in the frame for focusing on. IIRC this could
+>> be also single-shot or continuous. So it could make sense to group MACRO and
+>> "guided" auto focus in one menu, what do you think ?
+> 
+> I think it could be a separate menu. It's not connected to the distance
+
+OK, let me summarize
+
+* controls for starting/stopping auto focusing (V4L2_CID_FOCUS_AUTO == false)
+
+  V4L2_CID_START_AUTO_FOCUS (button) - start auto focusing,
+  V4L2_CID_STOP_AUTO_FOCUS  (button) - stop auto focusing (might be also
+                                       useful in V4L2_FOCUS_AUTO == true),
+* auto focus status
+
+  V4L2_CID_AUTO_FOCUS_STATUS (menu, read-only) - whether focusing is in
+                                                 progress or not,
+  possible entries:
+
+  - V4L2_AUTO_FOCUS_STATUS_IDLE,    // auto focusing not enabled or force stopped
+  - V4L2_AUTO_FOCUS_STATUS_BUSY,    // focusing in progress
+  - V4L2_AUTO_FOCUS_STATUS_SUCCESS, // single-shot auto focusing succeed
+                                    // or continuous AF in progress
+  - V4L2_AUTO_FOCUS_STATUS_FAIL,    // auto focusing failed
+
+
+* V4L2_CID_FOCUS_AUTO would retain its current semantics:
+
+  V4L2_CID_FOCUS_AUTO (boolean) - selects auto/manual focus
+      false - manual
+      true  - auto continuous
+
+* AF algorithm scan range, V4L2_CID_FOCUS_AUTO_SCAN_RANGE with choices:
+
+  - V4L2_AUTO_FOCUS_SCAN_RANGE_NORMAL,
+  - V4L2_AUTO_FOCUS_SCAN_RANGE_MACRO,
+  - V4L2_AUTO_FOCUS_SCAN_RANGE_INFINITY
+
+
+New menu control to choose behaviour of auto focus (either single-shot
+or continuous):
+
+* select auto focus mode
+
+V4L2_CID_AUTO_FOCUS_MODE
+        V4L2_AUTO_FOCUS_MODE_NORMAL     - "normal" auto focus (whole frame?)
+        V4L2_AUTO_FOCUS_MODE_SPOT       - spot location passed with other
+                                          controls or selection API
+        V4L2_AUTO_FOCUS_MODE_RECTANGLE  - rectangle passed with other
+                                          controls or selection API
+
+
+> parameter. We also need to discuss how the af statistics window
+> configuration is done. I'm not certain there could even be a standardised
+
+Do we need multiple windows for AF statistics ?
+
+If not, I'm inclined to use four separate controls for window configuration.
+(X, Y, WIDTH, HEIGHT). This was Hans' preference in previous discussions [1].
+
+> interface which could be used to control it all.
+
+
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg25647.html
 
 -- 
 Regards,
-
-Laurent Pinchart
+Sylwester
