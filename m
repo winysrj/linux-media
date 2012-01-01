@@ -1,106 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:37170 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756825Ab2ADVHN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 16:07:13 -0500
-Date: Wed, 4 Jan 2012 23:07:08 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"HeungJun, Kim" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com
-Subject: Re: [RFC PATCH 0/4] Add some new camera controls
-Message-ID: <20120104210708.GK9323@valkosipuli.localdomain>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <201112281501.25091.laurent.pinchart@ideasonboard.com>
- <4EFD9E10.1050407@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4EFD9E10.1050407@gmail.com>
+Received: from fep19.mx.upcmail.net ([62.179.121.39]:63426 "EHLO
+	fep19.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751505Ab2AAJ5k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 04:57:40 -0500
+Date: Sun, 1 Jan 2012 10:57:39 +0100
+From: Dorozel Csaba <mrjuuzer@upcmail.hu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] [media] saa7134: fix IR handling for HVR-1110
+In-Reply-To: <1325365138-18745-1-git-send-email-mchehab@redhat.com>
+References: <20111231132217.DZKT1551.viefep16-int.chello.at@edge01.upcmail.net>
+	<1325365138-18745-1-git-send-email-mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Message-Id: <20120101095737.QDJP1220.viefep19-int.chello.at@edge04.upcmail.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
 
-On Fri, Dec 30, 2011 at 12:18:40PM +0100, Sylwester Nawrocki wrote:
-> On 12/28/2011 03:01 PM, Laurent Pinchart wrote:
-> > On Wednesday 28 December 2011 07:23:44 HeungJun, Kim wrote:
-> >> This RFC patch series include new 4 controls ID for digital camera.
-> >> I about to suggest these controls by the necessity enabling the M-5MOLS
-> >> sensor's function, and I hope to discuss this in here.
-> > 
-> > Thanks for the patches.
-> > 
-> > The new controls introduced by these patches are very high level. Should they 
-> > be put in their own class ? I also think we should specify how those high-
-> > level controls interact with low-level controls, otherwise applications will 
-> > likely get very confused.
+> Return the complete RC-5 code, instead of just the 8 least significant
+> bits.
 > 
-> I agree we may need a separate control class for those high-level controls.
-> They are mostly applicable to software ISP algorithms, run either on digital
-> signal processor embedded in the sensor or on a processor being part of an SoC.
+> Reported-by: Dorozel Csaba <mrjuuzer@upcmail.hu>
+> Tested-by: Dorozel Csaba <mrjuuzer@upcmail.hu>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 > 
-> Thus we would three levels of controls for camera,
->  1) image source class (lowest possible level), dealing mostly with hardware
->     registers;
-
-I intended the image source class for controls which only deal with the a/d
-conversion itself. Other controls would be elsewhere.
-
-There hasn't been a final decision on this yet, but an alternative which has
-been also discussed is just to call this a "low level" control class.
-
->  2) "normal" camera controls (V4L2_CID_CAMERA_CLASS) [2];
->  3) high level camera controls (for camera software algorithms)
-
-Almost all the automatic anything algorithms are impelemented in software.
-But when software is involved, the possibilities are mostly limitless; it's
-a matter of imagination what kind of interesting white balance algorithms 
-
-> plus some camera controls are in the user controls class. I'm not sure why there
-> are camera controls in the user control class, perhaps there was no camera
-> class yet at the time V4L2_CID_EXPOSURE or V4L2_CID_BACKLIGHT_COMPENSATION were
-> added. I might be missing something else.
-
-The camera control class is relatively new, so that's likely what happened.
-
-Speaking of the classes --- I could resend my patch which allows changing
-controls in different classes in the same s_ext_ctrls call --- I looked at
-it some time ago and no driver had any limitations on this; it's just the
-documentation and the control framework which do.
-
-> I'm afraid a little it might be hard to distinguish if some control should
-> belong to 2) or 3), as sensors' logic complexity and advancement varies.
-
-I can see two main use cases:
-
-1. V4L2 / V4L2 subdev / MC as the low level API for camera control and
-
-2. Regular V4L2 applications.
-
-For most controls it's clear which of the two classes they belong to.
-
-> Although I can see an advantage of logically separating controls which have
-> influence on one or more other (lower level) controls. And separate control
-> class would be helpful in that.
+> ---
 > 
-> The candidates to such control class might be:
+> Please, re-test this patch. It is a more detailed version of the
+> previous one, with a few more documentation, and some cleanups.
 > 
-> * V4L2_CID_METERING_MODE,
-> * V4L2_CID_EXPOSURE_BIAS,
-> * V4L2_CID_ISO,
-> * V4L2_CID_WHITE_BALANCE_PRESET,
-> * V4L2_CID_SCENEMODE,
-> * V4L2_CID_WDR,
-> * V4L2_CID_ANTISHAKE,
+> 
+>  drivers/media/video/saa7134/saa7134-input.c |   23 ++++++++++++++---------
+>  1 files changed, 14 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/video/saa7134/saa7134-input.c
+> b/drivers/media/video/saa7134/saa7134-input.c index d4ee24b..0e4926a 100644
+> --- a/drivers/media/video/saa7134/saa7134-input.c
+> +++ b/drivers/media/video/saa7134/saa7134-input.c
+> @@ -235,22 +235,27 @@ static int get_key_purpletv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+>  
+>  static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
+>  {
+> -	unsigned char buf[5], cod4, code3, code4;
+> +	unsigned char buf[5], scancode;
+>  
+>  	/* poll IR chip */
+>  	if (5 != i2c_master_recv(ir->c, buf, 5))
+>  		return -EIO;
+>  
+> -	cod4	= buf[4];
+> -	code4	= (cod4 >> 2);
+> -	code3	= buf[3];
+> -	if (code3 == 0)
+> -		/* no key pressed */
+> +	/* Check if some key were pressed */
+> +	if (!(buf[0] & 0x80))
+>  		return 0;
+>  
+> -	/* return key */
+> -	*ir_key = code4;
+> -	*ir_raw = code4;
+> +	/*
+> +	 * buf[3] & 0x80 is always high.
+> +	 * buf[3] & 0x40 is a parity bit. A repeat event is marked
+> +	 * by preserving it into two separate readings
+> +	 * buf[4] bits 0 and 1, and buf[1] and buf[2] are always
+> +	 * zero.
+> +	 */
+> +	scancode = 0x1fff & ((buf[3] << 8) | (buf[4] >> 2));
+> +
+> +	*ir_key = scancode;
+> +	*ir_raw = scancode;
+>  	return 1;
+>  }
+>  
 
-The list looks good to me.
+Something is wrong with this patch.
 
-Cheers,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+user linux-current # ir-keytable -t -d /dev/input/event6
+Testing events. Please, press CTRL-C to abort.
+1325411805.906573: event MSC: scancode = 3d
+1325411805.906575: event sync
+1325411806.524576: event MSC: scancode = 3d
+1325411806.524578: event sync
+1325411806.627576: event MSC: scancode = 3d
+1325411806.627578: event sync
+1325411806.833581: event MSC: scancode = 3d
+1325411806.833583: event sync
+1325411806.936582: event MSC: scancode = 3d
+1325411806.936583: event sync
+1325411807.039576: event MSC: scancode = 3d
+1325411807.039577: event sync
+1325411807.245576: event MSC: scancode = 3d
+1325411807.245578: event sync
