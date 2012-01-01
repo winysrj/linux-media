@@ -1,132 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40807 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751024Ab2APOBp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 09:01:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 09/23] v4l: Add DPCM compressed formats
-Date: Mon, 16 Jan 2012 15:01:50 +0100
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-References: <4F0DFE92.80102@iki.fi> <1326317220-15339-9-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1326317220-15339-9-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201161501.51287.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:46086 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752874Ab2AAULY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Jan 2012 15:11:24 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q01KBO22021855
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 1 Jan 2012 15:11:24 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 7/9] [media] dvb: get rid of fepriv->parameters_in
+Date: Sun,  1 Jan 2012 18:11:16 -0200
+Message-Id: <1325448678-13001-8-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
+References: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This var were used during DVBv3 times, in order to keep a copy
+of the parameters used by the events. This is not needed anymore,
+as the parameters are now dynamically generated from the DVBv5
+structure.
 
-Thanks for the patch.
+So, just get rid of it. That means that a DVBv5 pure call won't
+use anymore any DVBv3 parameters.
 
-On Wednesday 11 January 2012 22:26:46 Sakari Ailus wrote:
-> Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
->  .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29
-> ++++++++++++++++++++ Documentation/DocBook/media/v4l/pixfmt.xml         | 
->   1 +
->  include/linux/videodev2.h                          |    3 ++
->  4 files changed, 34 insertions(+), 1 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-> b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml index
-> 7b27409..c1c62a9 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-> @@ -1,4 +1,4 @@
-> -    <refentry>
-> +    <refentry id="pixfmt-srggb10">
->        <refmeta>
->  	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
->  	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-> b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml new file mode
-> 100644
-> index 0000000..985440c
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-> @@ -0,0 +1,29 @@
-> +    <refentry>
-> +      <refmeta>
-> +	<refentrytitle>
-> +	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
-> +	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
-> +	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
-> +	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   27 ++-------------------------
+ 1 files changed, 2 insertions(+), 25 deletions(-)
 
-Could you briefly explain the rationale behind the FOURCCs in the patch commit 
-message ? Manjunath needs similar FOURCCs for A-law compression, what should 
-he use ?
-
-> +	 </refentrytitle>
-> +	&manvol;
-> +      </refmeta>
-> +      <refnamediv>
-> +	<refname
-> id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</consta
-> nt></refname> +	<refname
-> id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</consta
-> nt></refname> +	<refname
-> id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</consta
-> nt></refname> +	<refname
-> id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</consta
-> nt></refname> +	<refpurpose>10-bit Bayer formats compressed to 8
-> bits</refpurpose> +      </refnamediv>
-> +      <refsect1>
-> +	<title>Description</title>
-> +
-> +	<para>The following four pixel formats are raw sRGB / Bayer
-> +	formats with 10 bits per colour compressed to 8 bits each,
-> +	using the DPCM. DPCM, differential pulse-code modulation, is
-
-s/the DPCM/DPCM/ ?
-
-> +	lossy. Each colour component consumes 8 bits of memory. In
-> +	other respects this format is similar to
-> +	<xref linkend="pixfmt-srggb10">.</xref></para>
-> +
-> +      </refsect1>
-> +    </refentry>
-> diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml
-> b/Documentation/DocBook/media/v4l/pixfmt.xml index 2ff6b77..9b06c7b 100644
-> --- a/Documentation/DocBook/media/v4l/pixfmt.xml
-> +++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-> @@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of
-> the Linux framebuffer API.< &sub-srggb8;
->      &sub-sbggr16;
->      &sub-srggb10;
-> +    &sub-srggb10dpcm8;
->      &sub-srggb12;
->    </section>
-> 
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index c9d07c7..c5bf1db 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -365,7 +365,10 @@ struct v4l2_pix_format {
->  #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR..
-> BGBG.. */ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /*
-> 12  RGRG.. GBGB.. */ /* 10bit raw bayer DPCM compressed to 8 bits */
-> +#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
-> +#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
->  #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-> +#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
->  	/*
->  	 * 10bit raw bayer, expanded to 16 bits
->  	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
-
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index ea3d0a3..678e329 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -108,7 +108,6 @@ struct dvb_frontend_private {
+ 
+ 	/* thread/frontend values */
+ 	struct dvb_device *dvbdev;
+-	struct dvb_frontend_parameters parameters_in;
+ 	struct dvb_frontend_parameters parameters_out;
+ 	struct dvb_fe_events events;
+ 	struct semaphore sem;
+@@ -696,7 +695,6 @@ restart:
+ 					fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
+ 					fepriv->delay = HZ / 2;
+ 				}
+-				fepriv->parameters_out = fepriv->parameters_in;
+ 				fe->ops.read_status(fe, &s);
+ 				if (s != fepriv->status) {
+ 					dvb_frontend_add_event(fe, s); /* update event list */
+@@ -1561,8 +1559,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ {
+ 	int r = 0;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+-	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+-	dtv_property_dump(tvp);
+ 
+ 	/* Allow the frontend to validate incoming properties */
+ 	if (fe->ops.set_property) {
+@@ -1587,9 +1583,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
+ 		c->state = tvp->cmd;
+ 		dprintk("%s() Finalised property cache\n", __func__);
+ 
+-		/* Needed, due to status update */
+-		dtv_property_legacy_params_sync(fe, &fepriv->parameters_in);
+-
+ 		r = dtv_set_frontend(fe);
+ 		break;
+ 	case DTV_FREQUENCY:
+@@ -1851,15 +1844,6 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
+ 		return -EINVAL;
+ 
+ 	/*
+-	 * Initialize output parameters to match the values given by
+-	 * the user. FE_SET_FRONTEND triggers an initial frontend event
+-	 * with status = 0, which copies output parameters to userspace.
+-	 *
+-	 * This is still needed for DVBv5 calls, due to event state update.
+-	 */
+-	fepriv->parameters_out = fepriv->parameters_in;
+-
+-	/*
+ 	 * Be sure that the bandwidth will be filled for all
+ 	 * non-satellite systems, as tuners need to know what
+ 	 * low pass/Nyquist half filter should be applied, in
+@@ -2173,15 +2157,11 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 		break;
+ 
+ 	case FE_SET_FRONTEND:
+-		/* Synchronise DVBv5 parameters from DVBv3 */
+-		memcpy (&fepriv->parameters_in, parg,
+-			sizeof (struct dvb_frontend_parameters));
+-
+ 		err = set_delivery_system(fe, SYS_UNDEFINED);
+ 		if (err)
+ 			break;
+ 
+-		err = dtv_property_cache_sync(fe, c, &fepriv->parameters_in);
++		err = dtv_property_cache_sync(fe, c, parg);
+ 		if (err)
+ 			break;
+ 		err = dtv_set_frontend(fe);
+@@ -2191,10 +2171,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+ 		break;
+ 
+ 	case FE_GET_FRONTEND:
+-		err = dtv_get_frontend(fe, &fepriv->parameters_out);
+-		if (err >= 0)
+-			memcpy(parg, &fepriv->parameters_out,
+-			       sizeof(struct dvb_frontend_parameters));
++		err = dtv_get_frontend(fe, parg);
+ 		break;
+ 
+ 	case FE_SET_FRONTEND_TUNE_MODE:
 -- 
-Regards,
+1.7.8.352.g876a6
 
-Laurent Pinchart
