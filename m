@@ -1,76 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15298 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932129Ab2AXSr3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 13:47:29 -0500
-Message-ID: <4F1EFCB4.4070201@redhat.com>
-Date: Tue, 24 Jan 2012 16:47:16 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40712 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752969Ab2AAUx6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 15:53:58 -0500
+Date: Sun, 1 Jan 2012 22:53:52 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	"Semwal, Sumit" <sumit.semwal@ti.com>, linux@arm.linux.org.uk,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	laurent.pinchart@ideasonboard.com
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+Message-ID: <20120101205352.GI3677@valkosipuli.localdomain>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+ <201112091413.03736.arnd@arndb.de>
+ <20111220090306.GO3677@valkosipuli.localdomain>
+ <201112201536.49754.arnd@arndb.de>
 MIME-Version: 1.0
-To: Lars Hanisch <dvb@flensrocker.de>
-CC: Christian Brunner <chb@muc.de>, linux-media@vger.kernel.org,
-	thomas.schloeter@gmx.net
-Subject: Re: [PATCH] dvb: satellite channel routing (unicable) support
-References: <20110928190421.GA13539@sir.fritz.box> <4E837ACF.60804@flensrocker.de> <4F1EAB97.6060301@redhat.com> <4F1EF8C1.2000508@flensrocker.de>
-In-Reply-To: <4F1EF8C1.2000508@flensrocker.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201112201536.49754.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-01-2012 16:30, Lars Hanisch escreveu:
-> Hi,
+Hi Arnd,
+
+On Tue, Dec 20, 2011 at 03:36:49PM +0000, Arnd Bergmann wrote:
+> On Tuesday 20 December 2011, Sakari Ailus wrote:
+> > (I'm jumping into the discussion in the middle, and might miss something
+> > that has already been talked about. I still hope what I'm about to say is
+> > relevant. :-))
 > 
-> Am 24.01.2012 14:01, schrieb Mauro Carvalho Chehab:
-> [...]
->>>   That would be awesome to have this functionality in the kernel. I maintained the "unicable"-patch for the vdr (written by some guy from the vdr-portal.de who sadly doesn't seem to respond to mails via that forum anymore).
->>>   It would be great if all the work could be summarized in one ioctl.
->>
->> I don't think that SCR/Unicable, bandstacking, LNBf settings, rotor
->> control, etc. should belong to the Kernel. There are too many variants,
->> and several of them are not properly standardized or properly implemented.
->> Also, the actual options to use will depend on what type of DiSEqC components
->> used on his particular setup. So, it would be very difficult to write
->> something at the Kernel that will fit in all cases.
->>
->> What the Kernel should support is the capability of sending/receiving DiSEqC
->> commands, allowing userspace libraries to do the job of setting it. Such
->> feature is already there, so there's no need to change anything there.
->>
->> That's said, I'm working on a library to be used by applications that want
->> to talk with DVB devices. Together, with the library, there are a scanning
->> tool and a zapping tool.
->>
->> So, inspired by this patch, and using a public tech note about SCR/Unicable [1],
->> I wrote an Unicable patch for such library:
->>
->>     http://git.linuxtv.org/v4l-utils.git/commit/6c2c00ed3722465ed781ad49567e34dc7a5f92e7
->>
->> I'm currently without DVB-S/DVB-S2 antennas, so, I was not able to test it.
->>
->> It would be very nice if you could help us by testing if those tools are
->> working with DVB-S with SCR, and, if not, help fixing its support.
+> It certainly is relevant.
 > 
->  Maybe the absence of a good libdvb lead to such patches as the SCR-patch. 
+> > In subsystems such as V4L2 where drivers deal with such large buffers, the
+> > buffers stay mapped all the time. The user explicitly gives the control of
+> > the buffers to the driver and eventually gets them back. This is already
+> > part of those APIs, whether they're using dma_buf or not. The user could
+> > have, and often has, the same buffers mapped elsewhere.
+> 
+> Do you normally use streaming (dma_{map,sync,unmap}_*) or consistent
+> (dma_{alloc,free}_*) mappings for this then?
 
-Yes, that's my opinion too. That's one of the reasons why I'm writing it, even for
-hardware that I can't test. I even added an option to read and write from a few
-commonly used file formats.
+The OMAP 3 ISP driver I'm familiar with uses the OMAP 3 IOMMU / IOVMM API
+which is to be replaced by dmabuf. I'm trying to understand how the dma
+api / dma-buf should be used to achieve a superset of that functionality.
 
-> I understand why such functionality should not be in the kernel. Hopefully the 
-> libdvb will combine all nice features for dvb hardware so no application has to build
-> its own implementations. Another advantage will be that there will be only one place 
-> where to configure your hardware setup (like SCR, "use only specific delivery system 
-> of hybrid cards" etc.).
+I think I'm interested in the DMA mapping API. I replied to Sumit's new
+patchset, you're cc'd.
 
-Yes. Currently, I think that there are very few things missing there. The only two
-I'm aware of are:
-	- DiSEqC rotor control;
-	- SCR auto-discovery, for bi-directional DiSEqC hardware;
-	- ATSC-specific tables parsing (for libscan);
-	- DVB-S2 non-emulated-mode descriptor.
+> > When it comes to passing these buffers between different hardware devices,
+> > either V4L2 or not, the user might not want to perform extra cache flush
+> > when the buffer memory itself is not being touched by the CPU in the process
+> > at all. I'd consider it impossible for the driver to know how the user space
+> > intends to user the buffer.
+> 
+> The easiest solution to this problem would be to only allow consistent mappings
+> to be shared using the dma_buf mechanism. That means we never have to flush.
 
->  I myself have only DVB-C but I know someone with a SCR-setup and will try to convince him to test this.
+Do you mean the memory would be non-cacheable? Accessing memory w/o caching
+is typically prohibitively expensive, so I don't think this could ever be
+the primary means to do the above.
 
-Thank you!
-Mauro
+In some cases non-cacheable can perform better, taking into account the time
+which is required for flusing the cache and the other consequences of that,
+but I still think it's more of an exception than a rule.
+
+> If you don't need the CPU to touch the buffer, that would not have any cost
+> at all, we could even have no kernel mapping at all instead of an uncached
+> mapping on ARM.
+
+I think in general creating unused mappings should really be avoided.
+Creating them consumes time, effort at creation time and possibly also in
+cache related operations.
+
+> > Flushing the cache is quite expensive: typically it's the best to flush the
+> > whole data cache when one needs to flush buffers. The V4L2 DQBUF and QBUF
+> > IOCTLs already have flags to suggest special cache handling for buffers.
+> 
+> [sidenote: whether it makes sense to flush individual cache lines or the entire
+> cache is a decision best left to the architectures. On systems with larger
+> caches than on ARM, e.g. 64MB instead of 512KB, you really want to keep
+> the cache intact.]
+
+That also depend on the buffer size and what the rest of the system is
+doing. I could imagine buffer size, system memory data rate, CPU frequency,
+cache line width and the properties of the cache all affect how fast both of
+the operations are.
+
+It would probably be possible to perform a heuristic analysis on this at
+system startup similar to different software raid algorithm implementations
+( e.g. to use MMX or SSE for sw raid).
+
+Some additional complexity will arise from the fact that on some ARM machines
+one must know all the CPU MMU mappings pointing to a piece of physical
+memory to properly flush them, AFAIR. Naturally a good alternative on such
+system is to pperform full dcache flush / cleaning.
+
+Also, cache handling only affects systems without coherent cache. ARM CPUs
+are finding their ways to servers as well, but I'd guess it'll still take a
+while before we have ARM CPUs with 64 MiB of cache..
+
+Kind regards,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
