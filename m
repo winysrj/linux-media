@@ -1,269 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:40689 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933947Ab2AKV1M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:27:12 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH 01/23] v4l: Introduce integer menu controls
-Date: Wed, 11 Jan 2012 23:26:38 +0200
-Message-Id: <1326317220-15339-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F0DFE92.80102@iki.fi>
-References: <4F0DFE92.80102@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:38615 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752726Ab2AAPi0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 10:38:26 -0500
+Received: by eekc4 with SMTP id c4so14751797eek.19
+        for <linux-media@vger.kernel.org>; Sun, 01 Jan 2012 07:38:25 -0800 (PST)
+Message-ID: <4F007DED.4070201@gmail.com>
+Date: Sun, 01 Jan 2012 16:38:21 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"HeungJun, Kim" <riverful.kim@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	Hans de Goede <hdegoede@redhat.com>,
+	Luca Risolia <luca.risolia@studio.unibo.it>
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <1325053428-2626-2-git-send-email-riverful.kim@samsung.com> <4EFB1B04.6060305@gmail.com> <201112281451.39399.laurent.pinchart@ideasonboard.com> <20111229233406.GU3677@valkosipuli.localdomain> <4EFD8F0F.6060505@gmail.com> <20111230204144.GX3677@valkosipuli.localdomain>
+In-Reply-To: <20111230204144.GX3677@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create a new control type called V4L2_CTRL_TYPE_INTEGER_MENU. Integer menu
-controls are just like menu controls but the menu items are 64-bit integers
-rather than strings.
+Hi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/v4l2-ctrls.c |   73 +++++++++++++++++++++++++++++---------
- include/linux/videodev2.h        |    6 +++-
- include/media/v4l2-ctrls.h       |    6 +++-
- 3 files changed, 66 insertions(+), 19 deletions(-)
+On 12/30/2011 09:41 PM, Sakari Ailus wrote:
+> On Fri, Dec 30, 2011 at 11:14:39AM +0100, Sylwester Nawrocki wrote:
+>> On 12/30/2011 12:34 AM, Sakari Ailus wrote:
+>>> On Wed, Dec 28, 2011 at 02:51:38PM +0100, Laurent Pinchart wrote:
+>>>> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
+>>>>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
+>>>>>> It adds the new CID for setting White Balance Preset. This CID is
+>>>>>> provided as menu type using the following items:
+>>>>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
+>>>>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
+>>>>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
+>>>>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
+>>>>>> 4 - V4L2_WHITE_BALANCE_SHADE,
+>>>>>
+>>>>> I have been also investigating those white balance presets recently and
+>>>>> noticed they're also needed for the pwc driver. Looking at
+>>>>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
+>>>>>
+>>>>> const char * const pwc_auto_whitebal_qmenu[] = {
+>>>>> 	"Indoor (Incandescant Lighting) Mode",
+>>>>> 	"Outdoor (Sunlight) Mode",
+>>>>> 	"Indoor (Fluorescent Lighting) Mode",
+>>>>> 	"Manual Mode",
+>>>>> 	"Auto Mode",
+>>>>> 	NULL
+>>>>> };
+>>>>>
+>>>>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
+>>>>> 	.ops	= &pwc_ctrl_ops,
+>>>>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
+>>>>> 	.type	= V4L2_CTRL_TYPE_MENU,
+>>>>> 	.max	= awb_auto,
+>>>>> 	.qmenu	= pwc_auto_whitebal_qmenu,
+>>>>> };
+>>>>>
+>>>>> ...
+>>>>>
+>>>>> 	cfg = pwc_auto_white_balance_cfg;
+>>>>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
+>>>>> 	cfg.def = def;
+>>>>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
+>>>>>
+>>>>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
+>>>>> with custom entries. That's interesting... However it works in practice
+>>>>> and applications have access to what's provided by hardware.
+>>>>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
+>>>>> that :)
+>>>>>
+>>>>> Nevertheless, redefining standard controls in particular drivers sounds
+>>>>> a little dubious. I wonder if this is a generally agreed approach ?
+>>>>
+>>>> No agreed with me at least :-)
+>>>>
+>>>>> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
+>>>>> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE need
+>>>>> to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
+>>>>
+>>>> Is the preset a fixed white balance setting, or is it an auto white balance 
+>>>> with the algorithm tuned for a particular configuration ? In the first case, 
+>>>> does it correspond to a fixed white balance temperature value ?
+>>>
+>>> While I'm waiting for a final answer to this, I guess it's the second. There
+>>> are three things involved here:
+>>>
+>>> - V4L2_CID_WHITE_BALANCE_TEMPERATURE: relatively low level control telling
+>>>   the colour temperature of the light source. Setting a value for this
+>>>   essentially means using manual white balance.
+>>>
+>>> - V4L2_CID_AUTO_WHITE_BALANCE: automatic white balance enabled or disabled.
+>>
+>> Was the third thing the V4L2_CID_DO_WHITE_BALANCE control that you wanted to
+>> say ? It's also quite essential functionality, to be able to fix white balance
+>> after pointing camera to a white object. And I would expect
+>> V4L2_CID_WHITE_BALANCE_PRESET control's documentation to state how an
+>> interaction with V4L2_CID_DO_WHITE_BALANCE looks like.
+> 
+> I expected the new control to be the third thing as configuration for the
+> awb algorithm, which it turned out not to be.
+> 
+> I don't quite understand the purpose of the do_white_balance; the automatic
+> white balance algorithm is operational until it's disabled, and after
+> disabling it the white balance shouldn't change. What is the extra
+> functionality that the do_white_balance control implements?
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index 0f415da..605d4dd 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -804,7 +804,8 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
- 		ev->u.ctrl.value64 = ctrl->cur.val64;
- 	ev->u.ctrl.minimum = ctrl->minimum;
- 	ev->u.ctrl.maximum = ctrl->maximum;
--	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU
-+	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
- 		ev->u.ctrl.step = 1;
- 	else
- 		ev->u.ctrl.step = ctrl->step;
-@@ -1035,10 +1036,13 @@ static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 		if (val < ctrl->minimum || val > ctrl->maximum)
- 			return -ERANGE;
--		if (ctrl->qmenu[val][0] == '\0' ||
--		    (ctrl->menu_skip_mask & (1 << val)))
-+		if (ctrl->menu_skip_mask & (1 << val))
-+			return -EINVAL;
-+		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
-+		    ctrl->qmenu[val][0] == '\0')
- 			return -EINVAL;
- 		return 0;
- 
-@@ -1295,7 +1299,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, const char *name, enum v4l2_ctrl_type type,
- 			s32 min, s32 max, u32 step, s32 def,
--			u32 flags, const char * const *qmenu, void *priv)
-+			u32 flags, const char * const *qmenu,
-+			const s64 *qmenu_int, void *priv)
- {
- 	struct v4l2_ctrl *ctrl;
- 	unsigned sz_extra = 0;
-@@ -1308,6 +1313,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	    (type == V4L2_CTRL_TYPE_INTEGER && step == 0) ||
- 	    (type == V4L2_CTRL_TYPE_BITMASK && max == 0) ||
- 	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
-+	    (type == V4L2_CTRL_TYPE_INTEGER_MENU && qmenu_int == NULL) ||
- 	    (type == V4L2_CTRL_TYPE_STRING && max == 0)) {
- 		handler_set_err(hdl, -ERANGE);
- 		return NULL;
-@@ -1318,6 +1324,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	}
- 	if ((type == V4L2_CTRL_TYPE_INTEGER ||
- 	     type == V4L2_CTRL_TYPE_MENU ||
-+	     type == V4L2_CTRL_TYPE_INTEGER_MENU ||
- 	     type == V4L2_CTRL_TYPE_BOOLEAN) &&
- 	    (def < min || def > max)) {
- 		handler_set_err(hdl, -ERANGE);
-@@ -1352,7 +1359,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->minimum = min;
- 	ctrl->maximum = max;
- 	ctrl->step = step;
--	ctrl->qmenu = qmenu;
-+	if (type == V4L2_CTRL_TYPE_MENU)
-+		ctrl->qmenu = qmenu;
-+	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
-+		ctrl->qmenu_int = qmenu_int;
- 	ctrl->priv = priv;
- 	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
- 
-@@ -1379,6 +1389,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	struct v4l2_ctrl *ctrl;
- 	const char *name = cfg->name;
- 	const char * const *qmenu = cfg->qmenu;
-+	const s64 *qmenu_int = cfg->qmenu_int;
- 	enum v4l2_ctrl_type type = cfg->type;
- 	u32 flags = cfg->flags;
- 	s32 min = cfg->min;
-@@ -1390,18 +1401,24 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
- 								&def, &flags);
- 
--	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU);
-+	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
-+		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
- 	if (is_menu)
- 		WARN_ON(step);
- 	else
- 		WARN_ON(cfg->menu_skip_mask);
--	if (is_menu && qmenu == NULL)
-+	if (cfg->type == V4L2_CTRL_TYPE_MENU && qmenu == NULL)
- 		qmenu = v4l2_ctrl_get_menu(cfg->id);
-+	else if (cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU &&
-+		 qmenu_int == NULL) {
-+		handler_set_err(hdl, -EINVAL);
-+		return NULL;
-+	}
- 
- 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step,
--			def, flags, qmenu, priv);
-+			def, flags, qmenu, qmenu_int, priv);
- 	if (ctrl)
- 		ctrl->is_private = cfg->is_private;
- 	return ctrl;
-@@ -1418,12 +1435,13 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 	u32 flags;
- 
- 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
--	if (type == V4L2_CTRL_TYPE_MENU) {
-+	if (type == V4L2_CTRL_TYPE_MENU
-+	    || type == V4L2_CTRL_TYPE_INTEGER_MENU) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--				    min, max, step, def, flags, NULL, NULL);
-+			     min, max, step, def, flags, NULL, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std);
- 
-@@ -1445,7 +1463,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--				    0, max, mask, def, flags, qmenu, NULL);
-+			     0, max, mask, def, flags, qmenu, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
- 
-@@ -1609,6 +1627,9 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
- 		break;
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
-+		break;
- 	case V4L2_CTRL_TYPE_BITMASK:
- 		printk(KERN_CONT "0x%08x", ctrl->cur.val);
- 		break;
-@@ -1745,7 +1766,8 @@ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc)
- 	qc->minimum = ctrl->minimum;
- 	qc->maximum = ctrl->maximum;
- 	qc->default_value = ctrl->default_value;
--	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU
-+	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
- 		qc->step = 1;
- 	else
- 		qc->step = ctrl->step;
-@@ -1775,16 +1797,33 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
- 
- 	qm->reserved = 0;
- 	/* Sanity checks */
--	if (ctrl->qmenu == NULL ||
--	    i < ctrl->minimum || i > ctrl->maximum)
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_MENU:
-+		if (ctrl->qmenu == NULL)
-+			return -EINVAL;
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		if (ctrl->qmenu_int == NULL)
-+			return -EINVAL;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (i < ctrl->minimum || i > ctrl->maximum)
- 		return -EINVAL;
-+
- 	/* Use mask to see if this menu item should be skipped */
- 	if (ctrl->menu_skip_mask & (1 << i))
- 		return -EINVAL;
- 	/* Empty menu items should also be skipped */
--	if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
--		return -EINVAL;
--	strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU) {
-+		if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
-+			return -EINVAL;
-+		strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
-+	} else {
-+		qm->value = ctrl->qmenu_int[i];
-+	}
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_querymenu);
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 4b752d5..9633c69 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1094,6 +1094,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
- 	V4L2_CTRL_TYPE_STRING        = 7,
- 	V4L2_CTRL_TYPE_BITMASK       = 8,
-+	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-@@ -1113,7 +1114,10 @@ struct v4l2_queryctrl {
- struct v4l2_querymenu {
- 	__u32		id;
- 	__u32		index;
--	__u8		name[32];	/* Whatever */
-+	union {
-+		__u8	name[32];	/* Whatever */
-+		__s64	value;
-+	};
- 	__u32		reserved;
- };
- 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index eeb3df6..f7819e7 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -129,7 +129,10 @@ struct v4l2_ctrl {
- 		u32 step;
- 		u32 menu_skip_mask;
- 	};
--	const char * const *qmenu;
-+	union {
-+		const char * const *qmenu;
-+		const s64 *qmenu_int;
-+	};
- 	unsigned long flags;
- 	union {
- 		s32 val;
-@@ -219,6 +222,7 @@ struct v4l2_ctrl_config {
- 	u32 flags;
- 	u32 menu_skip_mask;
- 	const char * const *qmenu;
-+	const s64 *qmenu_int;
- 	unsigned int is_private:1;
- };
- 
--- 
-1.7.2.5
+Maybe DO_WHITE_BALANCE was inspired by some hardware's behaviour, I don't
+know. I have nothing against this control. It allows you to perform one-shot
+white balance in a given moment in time. Simple and clear.
 
+> If we agree white_balance_preset works at the same level as
+> white_balance_temerature control, this becomes more simple. I guess no
+> driver should implement both.
+
+Yes, AFAIU those presets are just WB temperature, with names instead
+of numbers. Thus it doesn't make much sense to expose both at the driver.
+
+But in manual white balance mode camera could be switched to new WB value,
+with component gain/balance controls, DO_WHITE_BALANCE or whatever, rendering
+the preset setting invalid. Should we then have an invalid/unknown item in
+the presets menu ? This would be only allowed to set by driver, i.e. read-only
+for applications. If device provide multiple means for setting white balance
+it is quite likely that at some point wb might not match any preset.
+
+Having auto, manual and presets in one menu control wouldn't require that,
+but we rather can't just change the V4L2_CID_WHITE_BALANCE control type now.
+
+>>> The new control proposed by HeungJun is input for the automatic white
+>>> balance algorithm unless I'm mistaken. Whether or not the value is static,
+>>> however, might be considered of secondary importance: it is a name instead
+>>> of a number and clearly intended to be used as a high level control. I'd
+>>> still expect it to be a hint for the algorithm.
+>>>
+>>> The value of the new control would have an effect as long as automatic white
+>>> balance is enabled.
+>>
+>> The idea to treat the preset as a hint to the algorithm is interesting, however
+>> as it turns out this are just static values (R/B balance) in manual WB mode.
+> 
+> Agreed, if there's a device doing this we will add another control at that
+> time.
+
+Ack.
+
+>> I expect some parameters for adjusting auto WB algorithm (WB (R/G/B) gain bias
+>> or something similar) to be present in sensor's ISP as well. If I remember well
+>> I've seen something like this in one of sensor's documentations.
+> 
+> Sounds reasonable.
+> 
+>>>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+>>>>>> b/Documentation/DocBook/media/v4l/controls.xml index c0422c6..350c138
+>>>>>> 100644
+>>>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>>>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>>>>>> @@ -2841,6 +2841,44 @@ it one step further. This is a write-only
+>>>>>> control.</entry>
+>>>>>>
+>>>>>>  	  </row>
+>>>>>>  	  <row><entry></entry></row>
+>>>>>>
+>>>>>> +	  <row id="v4l2-preset-white-balance">
+>>>>>> +	    <entry
+>>>>>> spanname="id"><constant>V4L2_CID_PRESET_WHITE_BALANCE</constant>&nbsp;</
+>>>>>> entry>
+>>>>>
+>>>>> Wouldn't V4L2_CID_WHITE_BALANCE_PRESET be better ?
+>>>>
+>>>> That's what I was about to say.
+>>>
+>>> And the menu items would contain the same prefix with CID_ removed. They're
+>>> going to be long, but I don't see that as an issue for menu items.
+>>
+>> Should we call it V4L2_CID_WB_PRESET then ?
+>>
+>> Anyway V4L2_WHITE_BALANCE_PRESET_INCADESCENT for example is not that long,
+>> we have control names that almost reach 80 characters :)
+> 
+> I'd prefer the long one but I have no strong opinion either way.
+
+Ok, let's keep the long one then.
+
+
+Happy New Year! :)
+
+S.
