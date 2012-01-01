@@ -1,60 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57641 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750811Ab2AOWxF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 17:53:05 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 06/17] v4l: Add selections documentation.
-Date: Sun, 15 Jan 2012 23:53:08 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <201201061243.56158.laurent.pinchart@ideasonboard.com> <4F0B2EF0.5080203@maxwell.research.nokia.com>
-In-Reply-To: <4F0B2EF0.5080203@maxwell.research.nokia.com>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:57951 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750803Ab2AAQGy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 11:06:54 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201152353.08912.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <op.v7ew5cvg3l0zgt@mpn-glaptop>
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+	<1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
+	<CAOtvUMeAVgDwRNsDTcG07ChYnAuNgNJjQ+sKALJ79=Ezikos-A@mail.gmail.com>
+	<op.v7ew5cvg3l0zgt@mpn-glaptop>
+Date: Sun, 1 Jan 2012 18:06:53 +0200
+Message-ID: <CAOtvUMfKDiLwxaH5FCS6wC=CgPiDz3ZAPbVv4b=Oxdx4ZpMCYw@mail.gmail.com>
+Subject: Re: [PATCH 01/11] mm: page_alloc: set_migratetype_isolate: drain PCP
+ prior to isolating
+From: Gilad Ben-Yossef <gilad@benyossef.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+2012/1/1 Michal Nazarewicz <mina86@mina86.com>:
+>> On Thu, Dec 29, 2011 at 2:39 PM, Marek Szyprowski
+>> <m.szyprowski@samsung.com> wrote:
 
-On Monday 09 January 2012 19:16:16 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Tuesday 20 December 2011 21:27:58 Sakari Ailus wrote:
+...
+> On Sun, 01 Jan 2012 08:49:13 +0100, Gilad Ben-Yossef <gilad@benyossef.com>
+> wrote:
+>>
+>> Please consider whether sending an IPI to all processors in the system
+>> and interrupting them is appropriate here.
+>>
+>> You seem to assume that it is probable that each CPU of the possibly
+>> 4,096 (MAXSMP on x86) has a per-cpu page for the specified zone,
+>
+>
+> I'm not really assuming that (in fact I expect what you fear, ie. that
+> most CPUs won't have pages from specified zone an PCP list), however,
+> I really need to make sure to get them off all PCP lists.
+>
 
-[snip]
+True, the question is whether or not you have to send a global IPI to do that.
 
-> >> The PADDED target
-> >> +      provides the width and height for the padded image,
-> > 
-> > Is it valid for both crop and compose rectangles ?
-> 
-> I think all targets are valid for all rectangles. Should I mention that?
-> 
-> The practical use cases may be more limited, though. I wonder if I
-> should remove the padded targets until we get use cases for them. I
-> included them for the reason that they also exist in the V4L2.
-> 
-> Tomasz, Sylwester: do you have use for the PADDED targets?
-> 
-> I think we also must define what will be done in cases where crop (on
-> either sink or source) / scaling / composition is not supported by the
-> subdev. That's currently undefined. I think it'd be most clear to return
-> an error code but I'm not sure which one --- EINVAL is an obvious
-> candidate but that is also returned when the pad is wrong. It looks
-> still like the best choice to me.
+>
+>> otherwise you're just interrupting them out of doing something useful,
+>> or save power idle for nothing.
+>
+>
+> Exactly what's happening now anyway.
+>
+>
 
-If the rectangle isn't supported, EINVAL is appropriate. Do we need a way to 
-discover what rectangles are supported ?
+Indeed.
 
-If the rectangle is supported by the size is out of range, the driver should 
-adjust it instead of returning an error.
+>> While that may or may not be a reasonable assumption for the general
+>> drain_all_pages that drains pcps from all zones, I feel it is less
+>> likely to be the right thing once you limit the drain to a single
+>> zone.
+>
+>
+> Currently, set_migratetype_isolate() seem to do more then it needs to,
+> ie. it drains all the pages even though all it cares about is a single
+>
+> zone.
+
+I agree your patch is better then current state. I just did want to add
+yet another global IPI I'll have to chase afterwards.. :-)
+>
+>> Some background on my attempt to reduce "IPI noise" in the system in
+>> this context is probably useful here as
+>> well: https://lkml.org/lkml/2011/11/22/133
+>
+>
+> Looks interesting, I'm not entirely sure why it does not end up a race
+> condition, but in case of __zone_drain_all_pages() we already hold
+
+If a page is in the PCP list when we check, you'll send the IPI and all is well.
+
+If it isn't when we check and gets added later you could just the same have
+situation where we send the IPI, try to do try an empty PCP list and then
+the page gets added. So we are not adding a race condition that is not there
+already :-)
+
+> zone->lock, so my fears are somehow gone..  I'll give it a try, and prepare
+> a patch for __zone_drain_all_pages().
+>
+
+I plan to send V5 of the IPI noise patch after some testing. It has a new
+version of the drain_all_pages, with no allocation in the reclaim path
+and no locking. You might want to wait till that one is out to base on it.
+
+
+Thank you for considering my feedback :-)
+
+Gilad
+
 
 -- 
-Regards,
+Gilad Ben-Yossef
+Chief Coffee Drinker
+gilad@benyossef.com
+Israel Cell: +972-52-8260388
+US Cell: +1-973-8260388
+http://benyossef.com
 
-Laurent Pinchart
+"Unfortunately, cache misses are an equal opportunity pain provider."
+-- Mike Galbraith, LKML
