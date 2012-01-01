@@ -1,90 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44903 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:30700 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752768Ab2ASLeG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 06:34:06 -0500
-Message-ID: <4F17FFA3.4040103@redhat.com>
-Date: Thu, 19 Jan 2012 09:33:55 -0200
+	id S1752928Ab2AAULY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 1 Jan 2012 15:11:24 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q01KBOd9002849
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 1 Jan 2012 15:11:24 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: DVBv5 test report
-References: <4F17422E.1030408@iki.fi>
-In-Reply-To: <4F17422E.1030408@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 8/9] [media] dvb: deprecate the usage of ops->info.type
+Date: Sun,  1 Jan 2012 18:11:17 -0200
+Message-Id: <1325448678-13001-9-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
+References: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-01-2012 20:05, Antti Palosaari escreveu:
-> I tested almost all DVB-T/T2/C devices I have and all seems to be working, excluding Anysee models when using legacy zap.
-> 
-> Anysee  anysee_streaming_ctrl() will fail because mutex_lock_interruptible() returns -EINTR in anysee_ctrl_msg() function when zap is killed using ctrl+c. This will led error returned to DVB-USB-core and log writing "dvb-usb: error while stopping stream."
-> 
-> http://git.linuxtv.org/media_tree.git/blob/refs/heads/master:/drivers/media/dvb/dvb-usb/anysee.c
-> 
-> http://git.linuxtv.org/media_tree.git/blob/refs/heads/master:/drivers/media/dvb/dvb-usb/dvb-usb-urb.c
-> 
-> If I change mutex_lock_interruptible() => mutex_lock() it will work. I think it gets SIGINT (ctrl+c) from userland, but how this haven't been issue earlier?
-> 
-> Anyone have idea what's wrong/reason here?
+Mark info.type as deprecated inside the header, recommending
+the usage of DTV_ENUM_DELSYS DVBv5 command instead.
 
-No idea. That part of the code wasn't changed recently, AFAIK, and
-for sure it weren't affected by the frontend changes.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Documentation/DocBook/media/dvb/frontend.xml |    4 ++++
+ include/linux/dvb/frontend.h                 |    2 +-
+ 2 files changed, 5 insertions(+), 1 deletions(-)
 
-I suspect that the bug was already there, but it weren't noticed
-before.
-
-The fix seems to be as simple as:
-
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-index ddf282f..6e707b5 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-@@ -32,7 +32,8 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
- 		if (adap->props.fe[adap->active_fe].streaming_ctrl != NULL) {
- 			ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
- 			if (ret < 0) {
--				err("error while stopping stream.");
-+				if (ret != -EAGAIN)
-+					err("error while stopping stream.");
- 				return ret;
- 			}
- 		}
-
-And make sure to remap -EINTR as -EAGAIN, leaving to the
-userspace to retry it. Alternatively, the dvb frontend core 
-or the anysee could retry it after a while for streaming
-stop.
-
-Another alternative that would likely work better would
-be to just use mutex_lock() for streaming stop, but this
-would require the review of all implementations for
-streaming_ctrl
-
-> 
-> 
-> here are tested drivers, working fine:
-> dvb_usb_ec168,ec100,mxl5005s
-> dvb_usb_au6610,zl10353,qt101
-> dvb_usb_af9015,af9013,tda18218
-> dvb_usb_af9015,af9013,tda18218
-> dvb_usb_af9015,af9013,qt1010
-> dvb_usb_af9015,af9013,mxl5005s
-> dvb_usb_af9015,af9013,mxl5007t
-> dvb_usb_gl861,zl10353,qt1010
-> dvb_usb_ce6230,zl10353,mxl5005s
-> em28xx_dvb,tda10023,tuner_simple
-> dvb_ttusb_budget,stv0297
-> dvb_usb_mxl111sf
-> em28xx_dvb,cxd2820r,tda18271
-
-Thanks for testing it!
-
-Regards,
-Mauro.
-> 
-> 
-> Antti
+diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
+index 28d7ea5..aeaed59 100644
+--- a/Documentation/DocBook/media/dvb/frontend.xml
++++ b/Documentation/DocBook/media/dvb/frontend.xml
+@@ -63,6 +63,10 @@ transmission. The fontend types are given by fe_type_t type, defined as:</para>
+ <para>Newer formats like DVB-S2, ISDB-T, ISDB-S and DVB-T2 are not described at the above, as they're
+ supported via the new <link linkend="FE_GET_SET_PROPERTY">FE_GET_PROPERTY/FE_GET_SET_PROPERTY</link> ioctl's, using the <link linkend="DTV-DELIVERY-SYSTEM">DTV_DELIVERY_SYSTEM</link> parameter.
+ </para>
++
++<para>The usage of this field is deprecated, as it doesn't report all supported standards, and
++will provide an incomplete information for frontends that support multiple delivery systems.
++Please use <link linkend="DTV_ENUM_DELSYS">DTV_ENUM_DELSYS</link> instead.</para>
+ </section>
+ 
+ <section id="fe-caps-t">
+diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
+index 7e7cb64..cb4428a 100644
+--- a/include/linux/dvb/frontend.h
++++ b/include/linux/dvb/frontend.h
+@@ -72,7 +72,7 @@ typedef enum fe_caps {
+ 
+ struct dvb_frontend_info {
+ 	char       name[128];
+-	fe_type_t  type;
++	fe_type_t  type;			/* DEPRECATED. Use DTV_ENUM_DELSYS instead */
+ 	__u32      frequency_min;
+ 	__u32      frequency_max;
+ 	__u32      frequency_stepsize;
+-- 
+1.7.8.352.g876a6
 
