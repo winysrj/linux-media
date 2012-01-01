@@ -1,147 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:14988 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752930Ab2AUQEr (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:47 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4k6g017809
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:46 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 35/35] [media] az6007: CodingStyle fixes
-Date: Sat, 21 Jan 2012 14:04:37 -0200
-Message-Id: <1327161877-16784-36-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-35-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
- <1327161877-16784-11-git-send-email-mchehab@redhat.com>
- <1327161877-16784-12-git-send-email-mchehab@redhat.com>
- <1327161877-16784-13-git-send-email-mchehab@redhat.com>
- <1327161877-16784-14-git-send-email-mchehab@redhat.com>
- <1327161877-16784-15-git-send-email-mchehab@redhat.com>
- <1327161877-16784-16-git-send-email-mchehab@redhat.com>
- <1327161877-16784-17-git-send-email-mchehab@redhat.com>
- <1327161877-16784-18-git-send-email-mchehab@redhat.com>
- <1327161877-16784-19-git-send-email-mchehab@redhat.com>
- <1327161877-16784-20-git-send-email-mchehab@redhat.com>
- <1327161877-16784-21-git-send-email-mchehab@redhat.com>
- <1327161877-16784-22-git-send-email-mchehab@redhat.com>
- <1327161877-16784-23-git-send-email-mchehab@redhat.com>
- <1327161877-16784-24-git-send-email-mchehab@redhat.com>
- <1327161877-16784-25-git-send-email-mchehab@redhat.com>
- <1327161877-16784-26-git-send-email-mchehab@redhat.com>
- <1327161877-16784-27-git-send-email-mchehab@redhat.com>
- <1327161877-16784-28-git-send-email-mchehab@redhat.com>
- <1327161877-16784-29-git-send-email-mchehab@redhat.com>
- <1327161877-16784-30-git-send-email-mchehab@redhat.com>
- <1327161877-16784-31-git-send-email-mchehab@redhat.com>
- <1327161877-16784-32-git-send-email-mchehab@redhat.com>
- <1327161877-16784-33-git-send-email-mchehab@redhat.com>
- <1327161877-16784-34-git-send-email-mchehab@redhat.com>
- <1327161877-16784-35-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:34917 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751211Ab2AAS4J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 13:56:09 -0500
+Received: by eekc4 with SMTP id c4so14816657eek.19
+        for <linux-media@vger.kernel.org>; Sun, 01 Jan 2012 10:56:08 -0800 (PST)
+Message-ID: <4F00AC43.6000905@gmail.com>
+Date: Sun, 01 Jan 2012 19:56:03 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCHv4 1/2] v4l: Add new framesamples field to struct v4l2_mbus_framefmt
+References: <201112120131.24192.laurent.pinchart@ideasonboard.com> <1323865388-26994-1-git-send-email-s.nawrocki@samsung.com> <1323865388-26994-2-git-send-email-s.nawrocki@samsung.com> <201112210120.56888.laurent.pinchart@ideasonboard.com> <20111226125301.GQ3677@valkosipuli.localdomain> <4EFB4D3D.1080105@gmail.com> <20111231131612.GE3677@valkosipuli.localdomain>
+In-Reply-To: <20111231131612.GE3677@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/az6007.c |   27 +++++++++++++--------------
- 1 files changed, 13 insertions(+), 14 deletions(-)
+Hi Sakari,
 
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index 14733b8..02efd94 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -211,9 +211,7 @@ static int az6007_rc_query(struct dvb_usb_device *d)
- 	if ((st->data[3] ^ st->data[4]) == 0xff)
- 		code = code << 8 | st->data[3];
- 	else
--		code = code << 16 | st->data[3] << 8| st->data[4];
--
--	printk("remote query key: %04x\n", code);
-+		code = code << 16 | st->data[3] << 8 | st->data[4];
- 
- 	rc_keydown(d->rc_dev, code, st->data[5]);
- 
-@@ -302,11 +300,11 @@ int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
- 		ret = az6007_write(d, FX2_SCON1, 0, 3, NULL, 0);
- 		if (ret < 0)
- 			return ret;
--		msleep (150);
-+		msleep(150);
- 		ret = az6007_write(d, FX2_SCON1, 1, 3, NULL, 0);
- 		if (ret < 0)
- 			return ret;
--		msleep (430);
-+		msleep(430);
- 		ret = az6007_write(d, AZ6007_POWER, 0, 0, NULL, 0);
- 		if (ret < 0)
- 			return ret;
-@@ -362,8 +360,8 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
- 			value = addr | (1 << 8);
- 			length = 6 + msgs[i + 1].len;
- 			len = msgs[i + 1].len;
--			ret = __az6007_read(d->udev, req, value, index, st->data,
--					       length);
-+			ret = __az6007_read(d->udev, req, value, index,
-+					    st->data, length);
- 			if (ret >= len) {
- 				for (j = 0; j < len; j++) {
- 					msgs[i + 1].buf[j] = st->data[j + 5];
-@@ -391,10 +389,11 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
- 			for (j = 0; j < len; j++) {
- 				st->data[j] = msgs[i].buf[j + 1];
- 				if (dvb_usb_az6007_debug & 2)
--					printk(KERN_CONT "0x%02x ", st->data[j]);
-+					printk(KERN_CONT "0x%02x ",
-+					       st->data[j]);
- 			}
--			ret =  __az6007_write(d->udev, req, value, index, st->data,
--						 length);
-+			ret =  __az6007_write(d->udev, req, value, index,
-+					      st->data, length);
- 		} else {
- 			/* read bytes */
- 			if (dvb_usb_az6007_debug & 2)
-@@ -406,8 +405,8 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
- 			value = addr;
- 			length = msgs[i].len + 6;
- 			len = msgs[i].len;
--			ret = __az6007_read(d->udev, req, value, index, st->data,
--					       length);
-+			ret = __az6007_read(d->udev, req, value, index,
-+					    st->data, length);
- 			for (j = 0; j < len; j++) {
- 				msgs[i].buf[j] = st->data[j + 5];
- 				if (dvb_usb_az6007_debug & 2)
-@@ -466,7 +465,7 @@ int az6007_identify_state(struct usb_device *udev,
- 		__az6007_write(udev, 0x00, 0, 0, NULL, 0);
- 	}
- 
--	deb_info("Device is on %s state\n", *cold? "warm" : "cold");
-+	deb_info("Device is on %s state\n", *cold ? "warm" : "cold");
- 	return 0;
- }
- 
-@@ -514,7 +513,7 @@ static struct dvb_usb_device_properties az6007_properties = {
- 					}
- 				}
- 			},
--		}}
-+		} }
- 	} },
- 	.power_ctrl       = az6007_power_ctrl,
- 	.read_mac_address = az6007_read_mac_addr,
--- 
-1.7.8
+On 12/31/2011 02:16 PM, Sakari Ailus wrote:
+>>> I could think of an in-kernel counterpart for v4l2_mbus_framefmt, say,
+>>> v4l2_mbus_framedesc. This could then be passed from subdev to another using
+>>> a new subdev op.
+>>
+>> That might be needed eventually. But I'm not a great fan in general of yet
+>> another set of callbacks for media bus frame format set up.
+>>
+>>> Something else that should probably belong there is information on the frame
+>>> format: contrary to what I've previously thought, the sensor metadata is
+>>> often sent as part of the same CSI-2 channel. There also can be other types
+>>> of data, such as dummy data and data for black level calibration. I wouldn't
+>>> want to export all this to the user space --- it shouldn't probably need to
+>>> care about it.
+>>>
+>>> The transmitter of the data (sensor) has this information and the CSI-2
+>>> receiver needs it. Same for the framesamples, as far as I understand.
+>>
+>> We could try to design some standard data structure for frame metadata -
+>> that's how I understood the meaning of struct v4l2_mbus_framedesc.
+>> But I doubt such attempts will be sucessful. And how can we distinguish
+>> which data is valid and applicable when there is lots of weird stuff in one
+>> data structure ? Using media bus pixel code only ?
+> 
+> I think the media bus pixel code which is exported to the user space should
+> not be involved with the metadata.
 
+Then we need to find some method to distinguish streams with metadata on the
+media bus, to be able to discard it before sending to user space.
+I assume this is where struct v4l2_mbus_framedesc and related ops would help ?
+
+Maybe we could create v4l2_mbus_framedesc with length (framesamples) member
+in it and additionally 994 reserved bytes for future extensions ;-), e.g.
+
+struct v4l2_mbus_framedesc {
+	unsigned int length;
+	unsigned int rserved[994];
+};
+
+struct v4l2_subdev_pad_ops {
+	  ....
+	int get_framedesc(int pad, struct v4l2_framedesc *fdesc);
+	int set_framedesc(int pad, struct v4l2_framedesc fdesc);
+};
+
+This would ensure same media bus format code regardless of frame meta data
+presence.
+
+In case metadata is sent in same CSI channel, the required buffer length
+might be greater than what would width/height and pixel code suggest.
+
+> The metadata is something that the user is likely interested only in the
+> form it is in the system memory. It won't be processed in any way before
+> it gets written to memory. The chosen mbus code may affect the format of the
+> metadata, but that's something the sensor driver knows  -- and I've yet to
+> see a case where the user could choose the desired metadata format.
+
+> Alternatively we could make the metadata path a separate path from the image
+> data. I wonder how feasible that approach would be --- the subdevs would
+> still be the same.
+
+I was also considering metadata as sensor specific data structure retrieved
+by the host after a frame has been captured and appending that data to a user
+buffer. For such buffers a separate fourcc would be needed.
+
+>>> Pixelrate is also used to figure out whether a pipeline can do streaming or
+>>> not; the pixel rate originating from the sensor could be higher than the
+>>> maximum of the ISP. For this reason, as well as for providing timing
+>>> information, access to pixelrate is reequired in the user space.
+>>>
+>>> Configuring the framesamples could be done on the sensor using a control if
+>>> necessary.
+>>
+>> Sure, that could work. But as I mentioned before, the host drivers would have
+>> to be getting such control internally from subdevs. Not so nice IMHO. Although
+>> I'm not in big opposition to that too.
+>>
+>> Grepping for v4l2_ctrl_g_ctrl() all the drivers appear to use it locally only.
+> 
+> I don't think there's anything that really would prohibit doing this. There
+> would need to be a way for the host to make a control read-only, to prevent
+> changing framesamples while streaming.
+
+I would rather make subdev driver to ensure all negotiated paramaters, which
+changed during streaming could crash the system, stay unchanged after streaming
+started. It's as simple as checking entity stream_count in s_ctrl() and
+prohibiting change of control value if stream_count > 0.
+
+> Pad-specific controls likely require more work than this.
+
+Hym, I'd forgotten, the fact framesamples are per pad was an argument against
+using v4l2 control for this parameter. We still need per pad controls for the
+blanking controls, but for framesamples maybe it's better to just add subdev
+callback, as acessing this parameter on subdevs directly from space isn't
+really essential..
+
+>>> Just my 5 euro cents. Perhaps we could discuss the topic on #v4l-meeting
+>>> some time?
+>>
+>> I'm available any time this week. :)
+> 
+> I think the solution could be related to frame metadata if we intend to
+> specify the frame format. Btw. how does the framesamples relate to blanking?
+
+Framesamples and blanking are on completely different levels. Framesamples
+takes into account only active frame data, so H/V blanking doesn't matter here.
+Framesamples is not intended for raw formats where blanking is applicable.
+
+Framesamples only determines length of compressed stream, and blanking doesn't
+really affect the data passed to and generated by a jpeg encoder.
+
+> The metadata in a regular frame spans a few lines in the top and sometimes
+> also on the bottom of that frame.
+
+How do you handle it now, i.e. how the host finds out how much memory it needs
+for a frame ? Or is the metadata just overwriting "valid" lines ?
+
+> Late next week is fine for me.
+
+Ok, I'll try to reserve some time then.
+
+--
+
+Regards,
+Sylwester
