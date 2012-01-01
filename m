@@ -1,76 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog124.obsmtp.com ([74.125.149.151]:58961 "EHLO
-	na3sys009aog124.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753575Ab2AaPih (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jan 2012 10:38:37 -0500
-Received: by mail-tul01m020-f169.google.com with SMTP id ta7so87292obb.28
-        for <linux-media@vger.kernel.org>; Tue, 31 Jan 2012 07:38:36 -0800 (PST)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:60554 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750850Ab2AAHtP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 02:49:15 -0500
 MIME-Version: 1.0
-In-Reply-To: <20120130220139.GB16140@valkosipuli.localdomain>
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
-	<201201201729.00230.laurent.pinchart@ideasonboard.com>
-	<000601ccd9ae$5bd5fff0$1381ffd0$%szyprowski@samsung.com>
-	<201201231048.47433.laurent.pinchart@ideasonboard.com>
-	<CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
-	<20120125232816.GA15297@valkosipuli.localdomain>
-	<20120126112726.GC3896@phenom.ffwll.local>
-	<4F25278B.3090903@iki.fi>
-	<20120129130340.GA4312@phenom.ffwll.local>
-	<20120130220139.GB16140@valkosipuli.localdomain>
-Date: Tue, 31 Jan 2012 09:38:35 -0600
-Message-ID: <CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-From: "Clark, Rob" <rob@ti.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, patches@linaro.org
+In-Reply-To: <1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+	<1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
+Date: Sun, 1 Jan 2012 09:49:13 +0200
+Message-ID: <CAOtvUMeAVgDwRNsDTcG07ChYnAuNgNJjQ+sKALJ79=Ezikos-A@mail.gmail.com>
+Subject: Re: [PATCH 01/11] mm: page_alloc: set_migratetype_isolate: drain PCP
+ prior to isolating
+From: Gilad Ben-Yossef <gilad@benyossef.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 30, 2012 at 4:01 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+On Thu, Dec 29, 2011 at 2:39 PM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
 >
->> So to summarize I understand your constraints - gpu drivers have worked
->> like v4l a few years ago. The thing I'm trying to achieve with this
->> constant yelling is just to raise awereness for these issues so that
->> people aren't suprised when drm starts pulling tricks on dma_bufs.
+> When set_migratetype_isolate() sets pageblock's migrate type, it does
+> not change each page_private data.  This makes sense, as the function
+> has no way of knowing what kind of information page_private stores.
+...
 >
-> I think we should be able to mark dma_bufs non-relocatable so also DRM can
-> work with these buffers. Or alternatively, as Laurent proposed, V4L2 be
-> prepared for moving the buffers around. Are there other reasons to do so
-> than paging them out of system memory to make room for something else?
+>
+> A side effect is that instead of draining pages from all zones,
+> set_migratetype_isolate() now drain only pages from zone pageblock it
+> operates on is in.
+>
+...
 
-fwiw, from GPU perspective, the DRM device wouldn't be actively
-relocating buffers just for the fun of it.  I think it is more that we
-want to give the GPU driver the flexibility to relocate when it really
-needs to.  For example, maybe user has camera app running, then puts
-it in the background and opens firefox which tries to allocate a big
-set of pixmaps putting pressure on GPU memory..
 
-I guess the root issue is who is doing the IOMMU programming for the
-camera driver.  I guess if this is something built in to the camera
-driver then when it calls dma_buf_map() it probably wants some hint
-that the backing pages haven't moved so in the common case (ie. buffer
-hasn't moved) it doesn't have to do anything expensive.
+>
+> +/* Caller must hold zone->lock. */
+> +static void __zone_drain_local_pages(void *arg)
+> +{
+> +       struct per_cpu_pages *pcp;
+> +       struct zone *zone = arg;
+> +       unsigned long flags;
+> +
+> +       local_irq_save(flags);
+> +       pcp = &per_cpu_ptr(zone->pageset, smp_processor_id())->pcp;
+> +       if (pcp->count) {
+> +               /* Caller holds zone->lock, no need to grab it. */
+> +               __free_pcppages_bulk(zone, pcp->count, pcp);
+> +               pcp->count = 0;
+> +       }
+> +       local_irq_restore(flags);
+> +}
+> +
+> +/*
+> + * Like drain_all_pages() but operates on a single zone.  Caller must
+> + * hold zone->lock.
+> + */
+> +static void __zone_drain_all_pages(struct zone *zone)
+> +{
+> +       on_each_cpu(__zone_drain_local_pages, zone, 1);
+> +}
+> +
 
-On omap4 v4l2+drm example I have running, it is actually the DRM
-driver doing the "IOMMU" programming.. so v4l2 camera really doesn't
-need to care about it.  (And the IOMMU programming here is pretty
-fast.)  But I suppose this maybe doesn't represent all cases.  I
-suppose if a camera didn't really sit behind an IOMMU but uses
-something more like a DMA descriptor list would want to know if it
-needed to regenerate it's descriptor list.  Or likewise if camera has
-an IOMMU that isn't really using the IOMMU framework (although maybe
-that is easier to solve).  But I think a hint returned from
-dma_buf_map() would do the job?
+Please consider whether sending an IPI to all processors in the system
+and interrupting them is appropriate here.
 
-BR,
--R
+You seem to assume that it is probable that each CPU of the possibly
+4,096 (MAXSMP on x86) has a per-cpu page
+for the specified zone, otherwise you're just interrupting them out of
+doing something useful, or save power idle
+for nothing.
+
+While that may or may not be a reasonable assumption for the general
+drain_all_pages that drains pcps from
+all zones, I feel it is less likely to be the right thing once you
+limit the drain to a single zone.
+
+Some background on my attempt to reduce "IPI noise" in the system in
+this context is probably useful here as
+well: https://lkml.org/lkml/2011/11/22/133
+
+Thanks :-)
+Gilad
+
+
+
+-- 
+Gilad Ben-Yossef
+Chief Coffee Drinker
+gilad@benyossef.com
+Israel Cell: +972-52-8260388
+US Cell: +1-973-8260388
+http://benyossef.com
+
+"Unfortunately, cache misses are an equal opportunity pain provider."
+-- Mike Galbraith, LKML
