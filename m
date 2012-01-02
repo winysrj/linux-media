@@ -1,70 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:60819 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756306Ab2ADQfa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 11:35:30 -0500
-Date: Wed, 4 Jan 2012 17:35:27 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-In-Reply-To: <CACKLOr0FxA72dhkjnVHCiWuT-VGYpcdk6WX9ubWoAnLkm7gnBQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1201041717130.30506@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
- <201112191105.25855.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1112191113230.23694@axis700.grange>
- <201112191120.40084.laurent.pinchart@ideasonboard.com>
- <Pine.LNX.4.64.1112191139560.23694@axis700.grange>
- <CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com>
- <Pine.LNX.4.64.1112191155340.23694@axis700.grange>
- <CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com>
- <4EEF66C2.7030003@infradead.org> <CACKLOr2hQnEteOey3kt2zv8Wrr12+b9DU-Zk66+c-k-F=9pqNw@mail.gmail.com>
- <Pine.LNX.4.64.1201031557130.7204@axis700.grange>
- <CACKLOr0FxA72dhkjnVHCiWuT-VGYpcdk6WX9ubWoAnLkm7gnBQ@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34903 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753058Ab2ABTAP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 14:00:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Javier Martin <javier.martin@vista-silicon.com>
+Subject: Re: [PATCH 1/2] media: vb2: support userptr for PFN mappings.
+Date: Mon, 2 Jan 2012 20:00:28 +0100
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+References: <1325513543-17299-1-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1325513543-17299-1-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201022000.30078.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 4 Jan 2012, javier Martin wrote:
+Hi Javier,
 
-[snip]
+Thanks for the patch.
 
-> For ov7725 it is a natural thing to do since it was originally
-> developed for soc-camera and it can easily do the following to access
-> platform data:
+On Monday 02 January 2012 15:12:22 Javier Martin wrote:
+> Some video devices need to use contiguous memory
+> which is not backed by pages as it happens with
+> vmalloc. This patch provides userptr handling for
+> those devices.
+
+What's your main use case ? Capturing to the frame buffer ?
+
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  drivers/media/video/videobuf2-vmalloc.c |   66
+> +++++++++++++++++++----------- 1 files changed, 42 insertions(+), 24
+> deletions(-)
 > 
-> struct soc_camera_link	*icl = soc_camera_i2c_to_link(client);
-> pdata = icl->priv;
-> 
-> However, tvp5150 is not aware about soc_camera. I should be able to
-> tell whether it's being used with soc-camera or not. If soc camera was
-> used I would do the previous method to retrieve platform data.
-> But if soc-camera was not used I would do the classic method:
-> 
-> struct tvp5150_platform_data *pdata = client->dev.platform_data;
-> 
-> The problem is how to distinguish in tvp5150 whether I am using
-> soc_camera or not.
+> diff --git a/drivers/media/video/videobuf2-vmalloc.c
+> b/drivers/media/video/videobuf2-vmalloc.c index 03aa62f..5bc7cec 100644
+> --- a/drivers/media/video/videobuf2-vmalloc.c
+> +++ b/drivers/media/video/videobuf2-vmalloc.c
+> @@ -15,6 +15,7 @@
+>  #include <linux/sched.h>
+>  #include <linux/slab.h>
+>  #include <linux/vmalloc.h>
+> +#include <linux/io.h>
 
-Right, that _is_ the problem now. And we've known about it since the very 
-first time we started to think about re-using the subdev drivers. The only 
-solution I see so far is to introduce a standard platform data struct for 
-all subdevices, similar to soc_camera_link. We could use it as a basis, of 
-course, use a generic name, maybe reconsider fields - rename / remove / 
-add, but the principle would be the same: a standard platform data struct 
-with an optional private field.
+Please keep headers sorted alphabetically.
 
-Alternatively - would it be possible to find all tvp5150 users and port 
-them to use struct soc_camera_link too?
+>  #include <media/videobuf2-core.h>
+>  #include <media/videobuf2-memops.h>
+> @@ -71,6 +72,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx,
+> unsigned long vaddr, struct vb2_vmalloc_buf *buf;
+>  	unsigned long first, last;
+>  	int n_pages, offset;
+> +	struct vm_area_struct *vma;
+> +	unsigned long int physp;
+> 
+>  	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+>  	if (!buf)
+> @@ -80,23 +83,34 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx,
+> unsigned long vaddr, offset = vaddr & ~PAGE_MASK;
+>  	buf->size = size;
+> 
+> -	first = vaddr >> PAGE_SHIFT;
+> -	last  = (vaddr + size - 1) >> PAGE_SHIFT;
+> -	buf->n_pages = last - first + 1;
+> -	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
+> -	if (!buf->pages)
+> -		goto fail_pages_array_alloc;
+> -
+> -	/* current->mm->mmap_sem is taken by videobuf2 core */
+> -	n_pages = get_user_pages(current, current->mm, vaddr & PAGE_MASK,
+> -					buf->n_pages, write, 1, /* force */
+> -					buf->pages, NULL);
+> -	if (n_pages != buf->n_pages)
+> -		goto fail_get_user_pages;
+> -
+> -	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
+> -	if (!buf->vaddr)
+> -		goto fail_get_user_pages;
+> +	vma = find_vma(current->mm, vaddr);
+> +	if (vma && (vma->vm_flags & VM_IO) && (vma->vm_pgoff)) {
+> +		physp = (vma->vm_pgoff << PAGE_SHIFT) + (vaddr - vma->vm_start);
+> +		buf->vaddr = ioremap_nocache(physp, size);
+> +		if (!buf->vaddr)
+> +			goto fail_pages_array_alloc;
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+What if the region spans multiple VMAs ? Shouldn't you at least verify that 
+the region is physically contiguous, and that all VMAs share the same flags ? 
+That's what the OMAP3 ISP driver does (in ispqueue.c). Maybe it's overkill 
+though.
+
+If you do that, the could might be cleaner if you split this function in two, 
+as in the OMAP3 ISP driver.
+
+> +	} else {
+> +		first = vaddr >> PAGE_SHIFT;
+> +		last  = (vaddr + size - 1) >> PAGE_SHIFT;
+> +		buf->n_pages = last - first + 1;
+> +		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
+> +				     GFP_KERNEL);
+> +		if (!buf->pages)
+> +			goto fail_pages_array_alloc;
+> +
+> +		/* current->mm->mmap_sem is taken by videobuf2 core */
+> +		n_pages = get_user_pages(current, current->mm,
+> +					 vaddr & PAGE_MASK, buf->n_pages,
+> +					 write,1, /* force */
+> +					 buf->pages, NULL);
+> +		if (n_pages != buf->n_pages)
+> +			goto fail_get_user_pages;
+> +
+> +		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
+> +					PAGE_KERNEL);
+> +		if (!buf->vaddr)
+> +			goto fail_get_user_pages;
+> +	}
+> 
+>  	buf->vaddr += offset;
+>  	return buf;
+> @@ -120,14 +134,18 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+>  	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+>  	unsigned int i;
+> 
+> -	if (vaddr)
+> -		vm_unmap_ram((void *)vaddr, buf->n_pages);
+> -	for (i = 0; i < buf->n_pages; ++i) {
+> -		if (buf->write)
+> -			set_page_dirty_lock(buf->pages[i]);
+> -		put_page(buf->pages[i]);
+> +	if (buf->pages) {
+> +		if (vaddr)
+> +			vm_unmap_ram((void *)vaddr, buf->n_pages);
+> +		for (i = 0; i < buf->n_pages; ++i) {
+> +			if (buf->write)
+> +				set_page_dirty_lock(buf->pages[i]);
+> +			put_page(buf->pages[i]);
+> +		}
+> +		kfree(buf->pages);
+> +	} else {
+> +		iounmap(buf->vaddr);
+>  	}
+> -	kfree(buf->pages);
+>  	kfree(buf);
+>  }
+
+-- 
+Regards,
+
+Laurent Pinchart
