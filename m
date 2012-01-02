@@ -1,63 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34027 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752113Ab2AXPhw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 10:37:52 -0500
-Message-ID: <4F1ED04B.9040106@iki.fi>
-Date: Tue, 24 Jan 2012 17:37:47 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: "Hawes, Mark" <MARK.HAWES@au.fujitsu.com>,
-	linux-media@vger.kernel.org
-Subject: Re: HVR 4000 hybrid card still producing multiple frontends for single
- adapter
-References: <44895934A66CD441A02DCF15DD759BA0011CAE69@SYDEXCHTMP2.au.fjanz.com>	<4F1E9A78.7020203@iki.fi>	<CAGoCfizF=aO-JTLLCAK=QgsPSVP13SzbB9j6wCFfVzGXc4hnfw@mail.gmail.com>	<4F1EC725.7090204@iki.fi> <CAGoCfiwZ2_+rQgXxq9DF_veGZ8vqaZf2JtUSi8SyLW_pd6VFAA@mail.gmail.com>
-In-Reply-To: <CAGoCfiwZ2_+rQgXxq9DF_veGZ8vqaZf2JtUSi8SyLW_pd6VFAA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:11080 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751488Ab2ABKuR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 05:50:17 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LX600L3B3FRBQ50@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 02 Jan 2012 10:50:15 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LX60059P3FQQG@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 02 Jan 2012 10:50:15 +0000 (GMT)
+Date: Mon, 02 Jan 2012 11:50:09 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
+In-reply-to: <CACKLOr1noPCG4yW4drZ6Y=tmkqrzaBOF8k_7QJfFwDqV370RaA@mail.gmail.com>
+To: 'javier Martin' <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Message-id: <008e01ccc93c$4c398300$e4ac8900$%szyprowski@samsung.com>
+Content-language: pl
+References: <201112120024.04418.laurent.pinchart@ideasonboard.com>
+ <1323962729-5689-1-git-send-email-m.szyprowski@samsung.com>
+ <CACKLOr1noPCG4yW4drZ6Y=tmkqrzaBOF8k_7QJfFwDqV370RaA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/24/2012 05:16 PM, Devin Heitmueller wrote:
-> On Tue, Jan 24, 2012 at 9:58 AM, Antti Palosaari<crope@iki.fi>  wrote:
->> So what was the actual benefit then just introduce one way more to implement
->> same thing. As I sometime understood from Manu's talk there will not be
->> difference if my device is based of DVB-T + DVB-C demod combination or just
->> single chip that does same. Now there is devices that have same
->> characteristics but different interface.
->
-> For one thing, you cannot use DVB-T and DVB-C at the same time if
-> they're on the same demod.  With many of the devices that have S/S2
-> and DVB-T, you can be using them both in parallel.  Having multiple
-> frontends actually makes sense since you don't want two applications
-> talking to the same frontend at the same time but operating on
-> different tuners/streams.
+Hello Javier,
 
-For the demods that are not shared (like tuner shared) we register own 
-frontend under own adapter. I don't see that is going to change. It have 
-been ages as it is and I have not seen none have said it is needed to 
-change.
+On Monday, January 02, 2012 11:45 AM You wrote:
 
-> That said, there could be opportunities for consolidation if the
-> demods could not be used in parallel, but I believe that would require
-> a nontrivial restructuring of the core code and API.  In my opinion
-> the entry point for the kernel ABI should *never* have been the
-> demodulator but rather the bridge driver (where you can exercise
-> greater control over what can be used in parallel).
+> what is the status of this patch? Did you finally merge it in any tree?
+> 
+> I am willing to extend it so that it can support pfn mappings as soon
+> as it's ready.
 
-Under the current situation I see it is better to select only one 
-method. As it is now single frontend then it is just needed to make 
-"virtual" frontend that combines multiple frontends as single and offers 
-it through API.
+This patch has been merged to media-next kernel branch. You can download it
+here:
+http://git.linuxtv.org/media_tree.git/shortlog/refs/heads/staging/for_v3.3
 
-And one thing I would like to mention, frontend is just logical entity 
-that represent DigitalTV hardware. It is rather much mapped as hardware 
-point of view to demod driver callbacks but it is not needed :)
-
-
-regards
-Antti
-
+Best regards
 -- 
-http://palosaari.fi/
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
+
