@@ -1,56 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qy0-f174.google.com ([209.85.216.174]:51218 "EHLO
-	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757717Ab2AEXOg convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 18:14:36 -0500
-Received: by qcqz2 with SMTP id z2so622001qcq.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 15:14:36 -0800 (PST)
+Received: from smtp14.mail.ru ([94.100.176.91]:56754 "EHLO smtp14.mail.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751084Ab2ABKNx (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 2 Jan 2012 05:13:53 -0500
+Message-ID: <4F018314.7040407@list.ru>
+Date: Mon, 02 Jan 2012 14:12:36 +0400
+From: Stas Sergeev <stsp@list.ru>
 MIME-Version: 1.0
-In-Reply-To: <CAGoCfiyz+Uy9b8CP7N-BZd0M=J=55aKr0LpWi7AqAtKQYXN+Mw@mail.gmail.com>
-References: <CAGoCfiw7c8=o5doJcYctmRbsj-idmxsRKVE5OzCOQ_xhLGBxMg@mail.gmail.com>
-	<4F0627E5.9050004@yahoo.com>
-	<CAGoCfixsMvcxAV2ww8KVCKGWdzX3dxjVu9coDN1Fi32a5jQHpQ@mail.gmail.com>
-	<CAGoCfiyz+Uy9b8CP7N-BZd0M=J=55aKr0LpWi7AqAtKQYXN+Mw@mail.gmail.com>
-Date: Fri, 6 Jan 2012 00:14:36 +0100
-Message-ID: <CAHF9RencXhtfbq0s788a5F37_LVvXPqO-vJjsZDSntA_Hm2-gg@mail.gmail.com>
-Subject: Re: Support for RC-6 in em28xx driver?
-From: =?ISO-8859-1?Q?Simon_S=F8ndergaard?= <john7doe@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Chris Rankin <rankincj@yahoo.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media@vger.kernel.org
+Subject: [resend][patch][saa7134] fix automute for capturing audio
+References: <4E19D2F7.6060803@list.ru> <4E259B0C.90107@list.ru> <4E25A26A.2000204@infradead.org> <4E25A7C2.3050609@list.ru> <4E25C7AE.5020503@infradead.org> <4E25CF35.7000802@list.ru> <4E25DB37.8020609@infradead.org> <4E25FDE4.7040805@list.ru> <4E262772.9060509@infradead.org> <4E266799.8030706@list.ru> <4E26AEC0.5000405@infradead.org> <4E26B1E7.2080107@list.ru> <4E26B29B.4010109@infradead.org> <4E292BED.60108@list.ru> <4E296D00.9040608@infradead.org> <4E296F6C.9080107@list.ru> <4E2971D4.1060109@infradead.org> <4E29738F.7040605@list.ru> <4E297505.7090307@infradead.org> <4E29E02A.1020402@list.ru> <4E2A23C7.3040209@infradead.org> <4E2A7BF0.8080606@list.ru> <4E2AC742.8020407@infradead.org> <4E2ACAAD.4050602@list.ru> <4E2AE40F.7030108@infradead.org> <4E2C5A35.9030404@list.ru> <4E2C6638.2040707@infrade ad.org> <4E760BCA.6080900@list.ru> <4E7DB798.4060201@infradead.org> <4E7DBB1C.1090407@list.ru> <4E7DC93C.9080101@infradead.org> <4E7DCEC1.6010405@list.ru> <4E7DD1A5.5080204@infradead.org>
+In-Reply-To: <4E7DD1A5.5080204@infradead.org>
+Content-Type: multipart/mixed;
+ boundary="------------000509020302020404080104"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 5, 2012 at 11:51 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Thu, Jan 5, 2012 at 5:48 PM, Devin Heitmueller
-> <dheitmueller@kernellabs.com> wrote:
->> Yes, it can.  Like almost every IR receiver provided by the linux
->> media subsystem, the 290e is configured with the keymap of the
->> pinnacle remote *by default*.  There are userland tools (e.g.
->> ir-keytable) which allow you to load keymaps in for other remotes.
->
-> I should clarify my previous statement by saying that the support for
-> other remotes is constrained by what the hardware supports.  If the IR
-> receiver hardware only supports RC5 and NEC, then you can't use an RC6
-> remote with it.
->
-> But to your point, I actually used my Hauppauge remote when I
-> originally wrote the em2874 IR support (and only at the end
-> reconfigured it to use the PCTV remote).
->
-> Devin
->
+This is a multi-part message in MIME format.
+--------------000509020302020404080104
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Chris,
+Mauro, are you available to take a look into patch?
 
-If the driver supported RC6 out of the box, the I should be able to
-use the hp remote on my mythbuntu machine:
+24.09.2011 16:48, Mauro Carvalho Chehab wrote:
+> A first scan at driver's init can be removed, IMO.
+Done, sorry for the delay.
+Patch is attached.
 
-sudo ir-keytable -p rc-6 -c -w /lib/udev/rc_keymaps/rc6_mce
+The attached patch fixes the automute logic of saa7134.
+It avoids the white noise on the pulseaudio startup.
+(pulseaudio reads the saa7134 alsa device on startup)
 
-/etc/rc_maps.cfg could be updated to make the choice permanent
+Signed-off-by: Stas Sergeev <stsp@users.sourceforge.net>
 
-Br,
-/Simon
+
+--------------000509020302020404080104
+Content-Type: text/plain;
+ name="0001-saa7134-fix-automute-logic.patch"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment;
+ filename="0001-saa7134-fix-automute-logic.patch"
+
+RnJvbSBkOGM4YTA1NDQ5YjA2ZWU3NTk5ZTdjN2Q5ZThhYWVhYTA3ZDBmYWRiIE1vbiBTZXAg
+MTcgMDA6MDA6MDAgMjAwMQpGcm9tOiBTdGFzIFNlcmdlZXYgPHN0c3BAdXNlcnMuc291cmNl
+Zm9yZ2UubmV0PgpEYXRlOiBTdW4sIDQgRGVjIDIwMTEgMDA6MzI6MDYgKzA0MDAKU3ViamVj
+dDogW1BBVENIXSBbc2FhNzEzNF0gZml4IGF1dG9tdXRlIGxvZ2ljCgotLS0KIGRyaXZlcnMv
+bWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWNvcmUuYyAgICB8ICAgIDEgLQogZHJpdmVy
+cy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtdHZhdWRpby5jIHwgICA2MyArKysrKysr
+KysrKysrKy0tLS0tLS0tLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0
+LXZpZGVvLmMgICB8ICAgIDIgKwogZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcx
+MzQuaCAgICAgICAgIHwgICAgMSArCiA0IGZpbGVzIGNoYW5nZWQsIDQwIGluc2VydGlvbnMo
+KyksIDI3IGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8v
+c2FhNzEzNC9zYWE3MTM0LWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9z
+YWE3MTM0LWNvcmUuYwppbmRleCBjYTY1Y2RhLi41ZmJiNGU0IDEwMDY0NAotLS0gYS9kcml2
+ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1jb3JlLmMKKysrIGIvZHJpdmVycy9t
+ZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtY29yZS5jCkBAIC0xMjYzLDcgKzEyNjMsNiBA
+QCBzdGF0aWMgaW50IHNhYTcxMzRfcmVzdW1lKHN0cnVjdCBwY2lfZGV2ICpwY2lfZGV2KQog
+CXNhYTcxMzRfdHZhdWRpb19zZXRtdXRlKGRldik7CiAJc2FhNzEzNF90dmF1ZGlvX3NldHZv
+bHVtZShkZXYsIGRldi0+Y3RsX3ZvbHVtZSk7CiAJc2FhNzEzNF90dmF1ZGlvX2luaXQoZGV2
+KTsKLQlzYWE3MTM0X3R2YXVkaW9fZG9fc2NhbihkZXYpOwogCXNhYTcxMzRfZW5hYmxlX2ky
+cyhkZXYpOwogCXNhYTcxMzRfaHdfZW5hYmxlMihkZXYpOwogCmRpZmYgLS1naXQgYS9kcml2
+ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC10dmF1ZGlvLmMgYi9kcml2ZXJzL21l
+ZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC10dmF1ZGlvLmMKaW5kZXggNTdlNjQ2Yi4uZWMx
+ZGY2ZiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQt
+dHZhdWRpby5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LXR2
+YXVkaW8uYwpAQCAtMzMyLDYgKzMzMiwxMyBAQCBzdGF0aWMgaW50IHR2YXVkaW9fY2hlY2tj
+YXJyaWVyKHN0cnVjdCBzYWE3MTM0X2RldiAqZGV2LCBzdHJ1Y3QgbWFpbnNjYW4gKnNjYW4p
+CiB7CiAJX19zMzIgbGVmdCxyaWdodCx2YWx1ZTsKIAorCWlmICghKGRldi0+dHZub3JtLT5p
+ZCAmIHNjYW4tPnN0ZCkpIHsKKwkJdmFsdWUgPSAwOworCQlkcHJpbnRrKCJza2lwcGluZyAl
+ZC4lMDNkIE1IeiBbJTRzXVxuIiwKKwkJCXNjYW4tPmNhcnIgLyAxMDAwLCBzY2FuLT5jYXJy
+ICUgMTAwMCwgc2Nhbi0+bmFtZSk7CisJCXJldHVybiAwOworCX0KKwogCWlmIChhdWRpb19k
+ZWJ1ZyA+IDEpIHsKIAkJaW50IGk7CiAJCWRwcmludGsoImRlYnVnICVkOiIsc2Nhbi0+Y2Fy
+cik7CkBAIC0zNDgsMzAgKzM1NSwyNSBAQCBzdGF0aWMgaW50IHR2YXVkaW9fY2hlY2tjYXJy
+aWVyKHN0cnVjdCBzYWE3MTM0X2RldiAqZGV2LCBzdHJ1Y3QgbWFpbnNjYW4gKnNjYW4pCiAJ
+CX0KIAkJcHJpbnRrKCJcbiIpOwogCX0KLQlpZiAoZGV2LT50dm5vcm0tPmlkICYgc2Nhbi0+
+c3RkKSB7Ci0JCXR2YXVkaW9fc2V0Y2FycmllcihkZXYsc2Nhbi0+Y2Fyci05MCxzY2FuLT5j
+YXJyLTkwKTsKLQkJc2FhX3JlYWRsKFNBQTcxMzRfTEVWRUxfUkVBRE9VVDEgPj4gMik7Ci0J
+CWlmICh0dmF1ZGlvX3NsZWVwKGRldixTQ0FOX1NBTVBMRV9ERUxBWSkpCi0JCQlyZXR1cm4g
+LTE7Ci0JCWxlZnQgPSBzYWFfcmVhZGwoU0FBNzEzNF9MRVZFTF9SRUFET1VUMSA+PiAyKTsK
+LQotCQl0dmF1ZGlvX3NldGNhcnJpZXIoZGV2LHNjYW4tPmNhcnIrOTAsc2Nhbi0+Y2Fycis5
+MCk7Ci0JCXNhYV9yZWFkbChTQUE3MTM0X0xFVkVMX1JFQURPVVQxID4+IDIpOwotCQlpZiAo
+dHZhdWRpb19zbGVlcChkZXYsU0NBTl9TQU1QTEVfREVMQVkpKQotCQkJcmV0dXJuIC0xOwot
+CQlyaWdodCA9IHNhYV9yZWFkbChTQUE3MTM0X0xFVkVMX1JFQURPVVQxID4+IDIpOwotCi0J
+CWxlZnQgPj49IDE2OwotCQlyaWdodCA+Pj0gMTY7Ci0JCXZhbHVlID0gbGVmdCA+IHJpZ2h0
+ID8gbGVmdCAtIHJpZ2h0IDogcmlnaHQgLSBsZWZ0OwotCQlkcHJpbnRrKCJzY2FubmluZyAl
+ZC4lMDNkIE1IeiBbJTRzXSA9PiAgZGMgaXMgJTVkIFslZC8lZF1cbiIsCi0JCQlzY2FuLT5j
+YXJyIC8gMTAwMCwgc2Nhbi0+Y2FyciAlIDEwMDAsCi0JCQlzY2FuLT5uYW1lLCB2YWx1ZSwg
+bGVmdCwgcmlnaHQpOwotCX0gZWxzZSB7Ci0JCXZhbHVlID0gMDsKLQkJZHByaW50aygic2tp
+cHBpbmcgJWQuJTAzZCBNSHogWyU0c11cbiIsCi0JCQlzY2FuLT5jYXJyIC8gMTAwMCwgc2Nh
+bi0+Y2FyciAlIDEwMDAsIHNjYW4tPm5hbWUpOwotCX0KKworCXR2YXVkaW9fc2V0Y2Fycmll
+cihkZXYsc2Nhbi0+Y2Fyci05MCxzY2FuLT5jYXJyLTkwKTsKKwlzYWFfcmVhZGwoU0FBNzEz
+NF9MRVZFTF9SRUFET1VUMSA+PiAyKTsKKwlpZiAodHZhdWRpb19zbGVlcChkZXYsU0NBTl9T
+QU1QTEVfREVMQVkpKQorCQlyZXR1cm4gLTE7CisJbGVmdCA9IHNhYV9yZWFkbChTQUE3MTM0
+X0xFVkVMX1JFQURPVVQxID4+IDIpOworCisJdHZhdWRpb19zZXRjYXJyaWVyKGRldixzY2Fu
+LT5jYXJyKzkwLHNjYW4tPmNhcnIrOTApOworCXNhYV9yZWFkbChTQUE3MTM0X0xFVkVMX1JF
+QURPVVQxID4+IDIpOworCWlmICh0dmF1ZGlvX3NsZWVwKGRldixTQ0FOX1NBTVBMRV9ERUxB
+WSkpCisJCXJldHVybiAtMTsKKwlyaWdodCA9IHNhYV9yZWFkbChTQUE3MTM0X0xFVkVMX1JF
+QURPVVQxID4+IDIpOworCisJbGVmdCA+Pj0gMTY7CisJcmlnaHQgPj49IDE2OworCXZhbHVl
+ID0gbGVmdCA+IHJpZ2h0ID8gbGVmdCAtIHJpZ2h0IDogcmlnaHQgLSBsZWZ0OworCWRwcmlu
+dGsoInNjYW5uaW5nICVkLiUwM2QgTUh6IFslNHNdID0+ICBkYyBpcyAlNWQgWyVkLyVkXVxu
+IiwKKwkJc2Nhbi0+Y2FyciAvIDEwMDAsIHNjYW4tPmNhcnIgJSAxMDAwLAorCQlzY2FuLT5u
+YW1lLCB2YWx1ZSwgbGVmdCwgcmlnaHQpOwogCXJldHVybiB2YWx1ZTsKIH0KIApAQCAtNTQ2
+LDYgKzU0OCw3IEBAIHN0YXRpYyBpbnQgdHZhdWRpb190aHJlYWQodm9pZCAqZGF0YSkKIAkJ
+CQlkZXYtPnR2bm9ybS0+bmFtZSwgY2Fycmllci8xMDAwLCBjYXJyaWVyJTEwMDAsCiAJCQkJ
+bWF4MSwgbWF4Mik7CiAJCQlkZXYtPmxhc3RfY2FycmllciA9IGNhcnJpZXI7CisJCQlkZXYt
+PmF1dG9tdXRlID0gMDsKIAogCQl9IGVsc2UgaWYgKDAgIT0gZGV2LT5sYXN0X2NhcnJpZXIp
+IHsKIAkJCS8qIG5vIGNhcnJpZXIgLS0gdHJ5IGxhc3QgZGV0ZWN0ZWQgb25lIGFzIGZhbGxi
+YWNrICovCkBAIC01NTMsNiArNTU2LDcgQEAgc3RhdGljIGludCB0dmF1ZGlvX3RocmVhZCh2
+b2lkICpkYXRhKQogCQkJZHByaW50aygiYXVkaW8gY2FycmllciBzY2FuIGZhaWxlZCwgIgog
+CQkJCSJ1c2luZyAlZC4lMDNkIE1IeiBbbGFzdCBkZXRlY3RlZF1cbiIsCiAJCQkJY2Fycmll
+ci8xMDAwLCBjYXJyaWVyJTEwMDApOworCQkJZGV2LT5hdXRvbXV0ZSA9IDE7CiAKIAkJfSBl
+bHNlIHsKIAkJCS8qIG5vIGNhcnJpZXIgKyBubyBmYWxsYmFjayAtLSB1c2UgZGVmYXVsdCAq
+LwpAQCAtNTYwLDkgKzU2NCw5IEBAIHN0YXRpYyBpbnQgdHZhdWRpb190aHJlYWQodm9pZCAq
+ZGF0YSkKIAkJCWRwcmludGsoImF1ZGlvIGNhcnJpZXIgc2NhbiBmYWlsZWQsICIKIAkJCQki
+dXNpbmcgJWQuJTAzZCBNSHogW2RlZmF1bHRdXG4iLAogCQkJCWNhcnJpZXIvMTAwMCwgY2Fy
+cmllciUxMDAwKTsKKwkJCWRldi0+YXV0b211dGUgPSAxOwogCQl9CiAJCXR2YXVkaW9fc2V0
+Y2FycmllcihkZXYsY2FycmllcixjYXJyaWVyKTsKLQkJZGV2LT5hdXRvbXV0ZSA9IDA7CiAJ
+CXNhYV9hbmRvcmIoU0FBNzEzNF9TVEVSRU9fREFDX09VVFBVVF9TRUxFQ1QsIDB4MzAsIDB4
+MDApOwogCQlzYWE3MTM0X3R2YXVkaW9fc2V0bXV0ZShkZXYpOwogCQkvKiBmaW5kIHRoZSBl
+eGFjdCB0diBhdWRpbyBub3JtICovCkBAIC0xMDIwLDYgKzEwMjQsNyBAQCBpbnQgc2FhNzEz
+NF90dmF1ZGlvX2luaXQyKHN0cnVjdCBzYWE3MTM0X2RldiAqZGV2KQogCX0KIAogCWRldi0+
+dGhyZWFkLnRocmVhZCA9IE5VTEw7CisJZGV2LT50aHJlYWQuc2NhbjEgPSBkZXYtPnRocmVh
+ZC5zY2FuMiA9IDA7CiAJaWYgKG15X3RocmVhZCkgewogCQlzYWE3MTM0X3R2YXVkaW9faW5p
+dChkZXYpOwogCQkvKiBzdGFydCB0dmF1ZGlvIHRocmVhZCAqLwpAQCAtMTAyOSwxMyArMTAz
+NCwxOSBAQCBpbnQgc2FhNzEzNF90dmF1ZGlvX2luaXQyKHN0cnVjdCBzYWE3MTM0X2RldiAq
+ZGV2KQogCQkJICAgICAgIGRldi0+bmFtZSk7CiAJCQkvKiBYWFg6IG1pc3NpbmcgZXJyb3Ig
+aGFuZGxpbmcgaGVyZSAqLwogCQl9Ci0JCXNhYTcxMzRfdHZhdWRpb19kb19zY2FuKGRldik7
+CiAJfQogCiAJc2FhNzEzNF9lbmFibGVfaTJzKGRldik7CiAJcmV0dXJuIDA7CiB9CiAKK2lu
+dCBzYWE3MTM0X3R2YXVkaW9fY2xvc2Uoc3RydWN0IHNhYTcxMzRfZGV2ICpkZXYpCit7CisJ
+ZGV2LT5hdXRvbXV0ZSA9IDE7CisJLyogYW55dGhpbmcgZWxzZSB0byB1bmRvPyAqLworCXJl
+dHVybiAwOworfQorCiBpbnQgc2FhNzEzNF90dmF1ZGlvX2Zpbmkoc3RydWN0IHNhYTcxMzRf
+ZGV2ICpkZXYpCiB7CiAJLyogc2h1dGRvd24gdHZhdWRpbyB0aHJlYWQgKi8KZGlmZiAtLWdp
+dCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LXZpZGVvLmMgYi9kcml2
+ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC12aWRlby5jCmluZGV4IDljZjc5MTRm
+Li40MTcwMzRlIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2Fh
+NzEzNC12aWRlby5jCisrKyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0
+LXZpZGVvLmMKQEAgLTE0NjIsNiArMTQ2Miw4IEBAIHN0YXRpYyBpbnQgdmlkZW9fcmVsZWFz
+ZShzdHJ1Y3QgZmlsZSAqZmlsZSkKIAlzdHJ1Y3Qgc2FhNjU4OF9jb21tYW5kIGNtZDsKIAl1
+bnNpZ25lZCBsb25nIGZsYWdzOwogCisJc2FhNzEzNF90dmF1ZGlvX2Nsb3NlKGRldik7CisK
+IAkvKiB0dXJuIG9mZiBvdmVybGF5ICovCiAJaWYgKHJlc19jaGVjayhmaCwgUkVTT1VSQ0Vf
+T1ZFUkxBWSkpIHsKIAkJc3Bpbl9sb2NrX2lycXNhdmUoJmRldi0+c2xvY2ssZmxhZ3MpOwpk
+aWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQuaCBiL2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LmgKaW5kZXggOWI1NTA2OC4uNjIx
+YjFlZCAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQu
+aAorKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC5oCkBAIC04MTcs
+NiArODE3LDcgQEAgdm9pZCBzYWE3MTM0X3R2YXVkaW9faW5pdChzdHJ1Y3Qgc2FhNzEzNF9k
+ZXYgKmRldik7CiBpbnQgc2FhNzEzNF90dmF1ZGlvX2luaXQyKHN0cnVjdCBzYWE3MTM0X2Rl
+diAqZGV2KTsKIGludCBzYWE3MTM0X3R2YXVkaW9fZmluaShzdHJ1Y3Qgc2FhNzEzNF9kZXYg
+KmRldik7CiBpbnQgc2FhNzEzNF90dmF1ZGlvX2RvX3NjYW4oc3RydWN0IHNhYTcxMzRfZGV2
+ICpkZXYpOworaW50IHNhYTcxMzRfdHZhdWRpb19jbG9zZShzdHJ1Y3Qgc2FhNzEzNF9kZXYg
+KmRldik7CiAKIGludCBzYWFfZHNwX3dyaXRlbChzdHJ1Y3Qgc2FhNzEzNF9kZXYgKmRldiwg
+aW50IHJlZywgdTMyIHZhbHVlKTsKIAotLSAKMS43LjYuNAoK
+--------------000509020302020404080104--
