@@ -1,127 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1958 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756525Ab2AJUwC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 15:52:02 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/1] v4l: Ignore ctrl_class in the control framework
-Date: Tue, 10 Jan 2012 21:51:43 +0100
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	teturtia@gmail.com
-References: <1326222862-15936-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1326222862-15936-1-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201102151.43106.hverkuil@xs4all.nl>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:59985 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752335Ab2ABOMf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 09:12:35 -0500
+Received: by werm1 with SMTP id m1so7432655wer.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Jan 2012 06:12:33 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 1/2] media: vb2: support userptr for PFN mappings.
+Date: Mon,  2 Jan 2012 15:12:22 +0100
+Message-Id: <1325513543-17299-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Some video devices need to use contiguous memory
+which is not backed by pages as it happens with
+vmalloc. This patch provides userptr handling for
+those devices.
 
-On Tuesday, January 10, 2012 20:14:22 Sakari Ailus wrote:
-> Back in the old days there was probably a reason to require that controls
-> that are being used to access using VIDIOC_{TRY,G,S}_EXT_CTRLS belonged to
-> the same class. These days such reason does not exist, or at least cannot be
-> remembered, and concrete examples of the opposite can be seen: a single
-> (sub)device may well offer controls that belong to different classes and
-> there is no reason to deny changing them atomically.
-> 
-> This patch removes the check for v4l2_ext_controls.ctrl_class in the control
-> framework. The control framework issues the s_ctrl() op to the drivers
-> separately so changing the behaviour does not really change how this works
-> from the drivers' perspective.
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/videobuf2-vmalloc.c |   66 +++++++++++++++++++-----------
+ 1 files changed, 42 insertions(+), 24 deletions(-)
 
-What is the rationale of this patch? It does change the behavior of the API.
-There are still some drivers that use the extended control API without the
-control framework (pvrusb2, and some other cx2341x-based drivers), and that
-do test the ctrl_class argument.
+diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
+index 03aa62f..5bc7cec 100644
+--- a/drivers/media/video/videobuf2-vmalloc.c
++++ b/drivers/media/video/videobuf2-vmalloc.c
+@@ -15,6 +15,7 @@
+ #include <linux/sched.h>
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
++#include <linux/io.h>
+ 
+ #include <media/videobuf2-core.h>
+ #include <media/videobuf2-memops.h>
+@@ -71,6 +72,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	struct vb2_vmalloc_buf *buf;
+ 	unsigned long first, last;
+ 	int n_pages, offset;
++	struct vm_area_struct *vma;
++	unsigned long int physp;
+ 
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+@@ -80,23 +83,34 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
+ 
+-	first = vaddr >> PAGE_SHIFT;
+-	last  = (vaddr + size - 1) >> PAGE_SHIFT;
+-	buf->n_pages = last - first + 1;
+-	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
+-	if (!buf->pages)
+-		goto fail_pages_array_alloc;
+-
+-	/* current->mm->mmap_sem is taken by videobuf2 core */
+-	n_pages = get_user_pages(current, current->mm, vaddr & PAGE_MASK,
+-					buf->n_pages, write, 1, /* force */
+-					buf->pages, NULL);
+-	if (n_pages != buf->n_pages)
+-		goto fail_get_user_pages;
+-
+-	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
+-	if (!buf->vaddr)
+-		goto fail_get_user_pages;
++	vma = find_vma(current->mm, vaddr);
++	if (vma && (vma->vm_flags & VM_IO) && (vma->vm_pgoff)) {
++		physp = (vma->vm_pgoff << PAGE_SHIFT) + (vaddr - vma->vm_start);
++		buf->vaddr = ioremap_nocache(physp, size);
++		if (!buf->vaddr)
++			goto fail_pages_array_alloc;
++	} else {
++		first = vaddr >> PAGE_SHIFT;
++		last  = (vaddr + size - 1) >> PAGE_SHIFT;
++		buf->n_pages = last - first + 1;
++		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
++				     GFP_KERNEL);
++		if (!buf->pages)
++			goto fail_pages_array_alloc;
++
++		/* current->mm->mmap_sem is taken by videobuf2 core */
++		n_pages = get_user_pages(current, current->mm,
++					 vaddr & PAGE_MASK, buf->n_pages,
++					 write,1, /* force */
++					 buf->pages, NULL);
++		if (n_pages != buf->n_pages)
++			goto fail_get_user_pages;
++
++		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
++					PAGE_KERNEL);
++		if (!buf->vaddr)
++			goto fail_get_user_pages;
++	}
+ 
+ 	buf->vaddr += offset;
+ 	return buf;
+@@ -120,14 +134,18 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
+ 
+-	if (vaddr)
+-		vm_unmap_ram((void *)vaddr, buf->n_pages);
+-	for (i = 0; i < buf->n_pages; ++i) {
+-		if (buf->write)
+-			set_page_dirty_lock(buf->pages[i]);
+-		put_page(buf->pages[i]);
++	if (buf->pages) {
++		if (vaddr)
++			vm_unmap_ram((void *)vaddr, buf->n_pages);
++		for (i = 0; i < buf->n_pages; ++i) {
++			if (buf->write)
++				set_page_dirty_lock(buf->pages[i]);
++			put_page(buf->pages[i]);
++		}
++		kfree(buf->pages);
++	} else {
++		iounmap(buf->vaddr);
+ 	}
+-	kfree(buf->pages);
+ 	kfree(buf);
+ }
+ 
+-- 
+1.7.0.4
 
-I don't see any substantial gain by changing the current behavior of the
-control framework.
-
-Apps can just set ctrl_class to 0 and then the control framework will no
-longer check the control class. And yes, this still has to be properly
-documented in the spec.
-
-The reason for the ctrl_class check is that without the control framework it
-was next to impossible to allow atomic setting of controls of different
-classes, since control of different classes would typically also be handled
-by different drivers. By limiting the controls to one class it made it much
-easier for drivers to implement this API.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/v4l2-ctrls.c |   18 +++++-------------
->  1 files changed, 5 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-> index da1f4c2..fff3bb3 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -1855,9 +1855,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  
->  		cs->error_idx = i;
->  
-> -		if (cs->ctrl_class && V4L2_CTRL_ID2CLASS(id) != cs->ctrl_class)
-> -			return -EINVAL;
-> -
->  		/* Old-style private controls are not allowed for
->  		   extended controls */
->  		if (id >= V4L2_CID_PRIVATE_BASE)
-> @@ -1918,13 +1915,10 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
->  }
->  
->  /* Handles the corner case where cs->count == 0. It checks whether the
-> -   specified control class exists. If that class ID is 0, then it checks
-> -   whether there are any controls at all. */
-> -static int class_check(struct v4l2_ctrl_handler *hdl, u32 ctrl_class)
-> +   there are any controls at all. */
-> +static int handler_check(struct v4l2_ctrl_handler *hdl)
->  {
-> -	if (ctrl_class == 0)
-> -		return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
-> -	return find_ref_lock(hdl, ctrl_class | 1) ? 0 : -EINVAL;
-> +	return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
->  }
->  
->  
-> @@ -1938,13 +1932,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
->  	int i, j;
->  
->  	cs->error_idx = cs->count;
-> -	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
->  
->  	if (hdl == NULL)
->  		return -EINVAL;
->  
->  	if (cs->count == 0)
-> -		return class_check(hdl, cs->ctrl_class);
-> +		return handler_check(hdl);
->  
->  	if (cs->count > ARRAY_SIZE(helper)) {
->  		helpers = kmalloc(sizeof(helper[0]) * cs->count, GFP_KERNEL);
-> @@ -2160,13 +2153,12 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
->  	int ret;
->  
->  	cs->error_idx = cs->count;
-> -	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
->  
->  	if (hdl == NULL)
->  		return -EINVAL;
->  
->  	if (cs->count == 0)
-> -		return class_check(hdl, cs->ctrl_class);
-> +		return handler_check(hdl);
->  
->  	if (cs->count > ARRAY_SIZE(helper)) {
->  		helpers = kmalloc(sizeof(helper[0]) * cs->count, GFP_KERNEL);
-> 
