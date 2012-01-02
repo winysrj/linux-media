@@ -1,43 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sargas.telkomsa.net ([196.25.211.69]:29021 "EHLO
-	sargas.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755327Ab2AXK7J convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 05:59:09 -0500
-Date: Tue, 24 Jan 2012 12:59:00 +0200 (SAST)
-From: =?utf-8?Q?Western_Union_Company_=C2=A9?=
-	<online445428@telkomsa.net>
-Reply-To: =?utf-8?Q?Western_Union_Company_=C2=A9?=
-	  <westernoffice79@yahoo.com.hk>
-Message-ID: <1566846021.360394.1327402740908.JavaMail.root@zimbra3-vm1.telkomsa.net>
-Subject: New  Year  Promo  To  Our  Beneficiary!!!
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:51825 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752606Ab2ABVuL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 16:50:11 -0500
+Received: by eekc4 with SMTP id c4so15487694eek.19
+        for <linux-media@vger.kernel.org>; Mon, 02 Jan 2012 13:50:10 -0800 (PST)
+Message-ID: <4F02268F.4050107@gmail.com>
+Date: Mon, 02 Jan 2012 22:50:07 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: undisclosed-recipients:;
+To: "Kim, Heungjun" <riverful.kim@samsung.com>
+CC: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, sakari.ailus@iki.fi, kyungmin.park@samsung.com,
+	'Hans de Goede' <hdegoede@redhat.com>
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com> <1325053428-2626-2-git-send-email-riverful.kim@samsung.com> <4EFB1B04.6060305@gmail.com> <201112281451.39399.laurent.pinchart@ideasonboard.com> <001101ccc5e7$d9f48620$8ddd9260$%kim@samsung.com> <4EFD92C9.1030704@gmail.com> <4F0134DC.507@samsung.com>
+In-Reply-To: <4F0134DC.507@samsung.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Beneficiary,
- 
-We are here to notify you that the sum of  $250,000 U.S.Dollars was generated and awarded to you by the Western Union Foundation in conjunction with the African Union Foundation.This award was been selected through the internet, where your e-mail address was indicated and notified.The Western Union  Foundation, All the email addresses of the people that are active online,among the millions of our customers who use Western Union in their business transactions.Four people are selected Every year  to benefit from this promotion and you are one of the Selected Winners.
+Hi HeungJun,
 
-To avoid misappropriation of funds, proper verifications must be carried out before the fund is transferred. We require the details below for verification so that the transfer can be carried out.
+On 01/02/2012 05:38 AM, Kim, Heungjun wrote:
+> On 2011년 12월 30일 19:30, Sylwester Nawrocki wrote:
+>> On 12/29/2011 06:08 AM, HeungJun, Kim wrote:
+>>> I guess the WBP menu controls of pwc driver is probably defined in the other
+>>> headers, for users being well known the PWC hardware. So it should be managed
+>>> separately to videodev2.h. Is it right? Even if the way might be slightly
+>>> different, it can't avoid to be "managed separately".
+>>>
+>>> It means the users being not well known the specific hardware like PWC,
+>>> have difficulty to use that driver well.
+>>> And, at least, It doesn't looks generic API for me.
+>>> In this case, the unfamiliar user with such unique hardware, can use
+>>> whatever he wants to use finally, after finding&  looking around the headers.
+>> Applications can query drivers for supported controls and populate user control
+>> panels dynamically, based on information from VIDIOC_QUERYCTRL and
+>> VIDIOC_QUERYMENU
+>> ioctls. Not needing to rely on menu items definition in videodev2.h.
+>> I had a feeling you weren't considering such case. :)
+> You're right in that meaning. And it might be a good point.
+> But, I think these 2 ioctl can not handle about this issue.
+> 
+> Before using VIDIOC_QUERYCTRL and VIDIOC_QUERYMENU, the user should know which
+> CID name
+> is used in the videodev2.h, and anyway it can not be avoidable the user find out
+> this name in it. :)
 
-1. Receiver's Full Name:
-2. Receiver's Address:
-3. Receiver's Country:
-4. Receiver's Telephone Number:
-5. Receiver's Occupation:
+Yes, in many cases it is required to know the CID in advance, however it is not
+mandatory for all applications.
 
-  Send the above details to us via the email addresses stated below:
- 
-Western Union District Manager (Mr. Mike Moris)
-Website:www.westernunion.com
-E-mail: westernoffice79@yahoo.com.hk
+> At least I've seen nobody makes the application just to open(), queryctrl(),
+> querymenu(), and close(),
+> only for scanning the specific control is existed or not.
+> Until now, I have known these 2 ioctl is generally used for formating the UI
+> componets like button, menu, and etc, on the screen.
 
-Note: You were selected as a winner on this promotion and I personally advise that you use the funds wisely. However, we need your information as stated above to commence the transaction due process.
+Yup.
 
-As soon as these details are received and verified, the fund will be transferred to you.
+> So, it's safe to say that the user who knows that specific control is also know
+> the CID name,
+> the user knows such specific controls don't need even VIDIOC_QUERYCTRL and
+> VIDIOC_QUERYMENU.
 
-Copyright © 2001-2011 The Western Union Company , All Rights Reserved.
+I respectfully disagree. Properly written applications must use VIDIOC_QUERYCTRL/
+VIDIOC_QUERYMENU ioctls, as many v4l2 controls have now driver-specific value
+range.
+
+Please see this application for instance [1], it doesn't hard code any control
+IDs in it, it only uses V4L2_CID_BASE, V4L2_CID_PRIVATE_BASE and V4L2_CID_LASTP1.
+
+Yet, it can handle any control, as long as it supports the control's type.
+
+> And IMHO, this is not related about pulling out the hidden(?) controls generally
+> used in the camera,
+> on the videodev2.h. I think it's only generic defined in videodev2.h.
+> 
+> I really had wondered why the controls I thought very general for camera is in
+> hidden(?) the specific driver,
+> not in the videodev2.h. It was just start to consider this issues.
+
+I think you misunderstood me, I didn't mean to force anyone to use private
+controls for common features. :)
+
+> Regards,
+> Heungjun Kim
+> 
+>> Perhaps it's uncommon in embedded systems though.
+
+[1] http://sourceforge.net/projects/v4l2ucp/files/v4l2ucp/2.0/
+
+-- 
+
+Regards,
+Sylwester
