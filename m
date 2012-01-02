@@ -1,197 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:40078 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753820Ab2A3QOv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 11:14:51 -0500
-Date: Mon, 30 Jan 2012 16:14:47 +0000
-From: Mel Gorman <mel@csn.ul.ie>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 02/15] mm: page_alloc: update migrate type of pages on
- pcp when isolating
-Message-ID: <20120130161447.GU25268@csn.ul.ie>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <1327568457-27734-3-git-send-email-m.szyprowski@samsung.com>
- <20120130111522.GE25268@csn.ul.ie>
- <op.v8wlu8ws3l0zgt@mpn-glaptop>
+Received: from mail-ww0-f42.google.com ([74.125.82.42]:48939 "EHLO
+	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750970Ab2ABGUr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 01:20:47 -0500
+Received: by wgbds13 with SMTP id ds13so21267913wgb.1
+        for <linux-media@vger.kernel.org>; Sun, 01 Jan 2012 22:20:45 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <op.v8wlu8ws3l0zgt@mpn-glaptop>
+In-Reply-To: <4EF9FB1A.5090509@infradead.org>
+References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
+	<1324948159-23709-2-git-send-email-mchehab@redhat.com>
+	<4EF9B606.3090908@linuxtv.org>
+	<4EF9C7FA.9070203@infradead.org>
+	<4EF9D71E.5090606@linuxtv.org>
+	<4EF9FB1A.5090509@infradead.org>
+Date: Mon, 2 Jan 2012 11:50:45 +0530
+Message-ID: <CAHFNz9JgHoTfA6pSy-n_By9MMVm3a0w5115G+ig7yzhm8MiU8g@mail.gmail.com>
+Subject: Re: [PATCH RFC 01/91] [media] dvb-core: allow demods to specify the
+ supported delivery systems supported standards.
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Andreas Oberritter <obi@linuxtv.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 30, 2012 at 04:41:22PM +0100, Michal Nazarewicz wrote:
-> On Mon, 30 Jan 2012 12:15:22 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> 
-> >On Thu, Jan 26, 2012 at 10:00:44AM +0100, Marek Szyprowski wrote:
-> >>From: Michal Nazarewicz <mina86@mina86.com>
-> >>@@ -139,3 +139,27 @@ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
-> >> 	spin_unlock_irqrestore(&zone->lock, flags);
-> >> 	return ret ? 0 : -EBUSY;
-> >> }
-> >>+
-> >>+/* must hold zone->lock */
-> >>+void update_pcp_isolate_block(unsigned long pfn)
-> >>+{
-> >>+	unsigned long end_pfn = pfn + pageblock_nr_pages;
-> >>+	struct page *page;
-> >>+
-> >>+	while (pfn < end_pfn) {
-> >>+		if (!pfn_valid_within(pfn)) {
-> >>+			++pfn;
-> >>+			continue;
-> >>+		}
-> >>+
-> 
-> On Mon, 30 Jan 2012 12:15:22 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> >There is a potential problem here that you need to be aware of.
-> >set_pageblock_migratetype() is called from start_isolate_page_range().
-> >I do not think there is a guarantee that pfn + pageblock_nr_pages is
-> >not in a different block of MAX_ORDER_NR_PAGES. If that is right then
-> >your options are to add a check like this;
-> >
-> >if ((pfn & (MAX_ORDER_NR_PAGES - 1)) == 0 && !pfn_valid(pfn))
-> >	break;
-> >
-> >or else ensure that end_pfn is always MAX_ORDER_NR_PAGES aligned and in
-> >the same block as pfn and relying on the caller to have called
-> >pfn_valid.
-> 
-> 	pfn = round_down(pfn, pageblock_nr_pages);
-> 	end_pfn = pfn + pageblock_nr_pages;
-> 
-> should do the trick as well, right?  move_freepages_block() seem to be
-> doing the same thing.
-> 
-
-That would also do it the trick.
-
-> >>+		page = pfn_to_page(pfn);
-> >>+		if (PageBuddy(page)) {
-> >>+			pfn += 1 << page_order(page);
-> >>+		} else if (page_count(page) == 0) {
-> >>+			set_page_private(page, MIGRATE_ISOLATE);
-> >>+			++pfn;
-> >
-> >This is dangerous for two reasons. If the page_count is 0, it could
-> >be because the page is in the process of being freed and is not
-> >necessarily on the per-cpu lists yet and you cannot be sure if the
-> >contents of page->private are important. Second, there is nothing to
-> >prevent another CPU allocating this page from its per-cpu list while
-> >the private field is getting updated from here which might lead to
-> >some interesting races.
-> >
-> >I recognise that what you are trying to do is respond to Gilad's
-> >request that you really check if an IPI here is necessary. I think what
-> >you need to do is check if a page with a count of 0 is encountered
-> >and if it is, then a draining of the per-cpu lists is necessary. To
-> >address Gilad's concerns, be sure to only this this once per attempt at
-> >CMA rather than for every page encountered with a count of 0 to avoid a
-> >storm of IPIs.
-> 
-> It's actually more then that.
-> 
-> This is the same issue that I first fixed with a change to free_pcppages_bulk()
-> function[1].  At the time of positing, you said you'd like me to try and find
-> a different solution which would not involve paying the price of calling
-> get_pageblock_migratetype().  Later I also realised that this solution is
-> not enough.
-> 
-> [1] http://article.gmane.org/gmane.linux.kernel.mm/70314
-> 
-
-Yes. I had forgotten the history but looking at that patch again,
-I would reach the conclusion that this was adding a new call to
-get_pageblock_migratetype() in the bulk free path. That would affect
-everybody whether they were using CMA or not.
-
-> My next attempt was to run drain PCP list while holding zone->lock[2], but that
-> quickly proven to be broken approach when Marek started testing it on an SMP
-> system.
-> 
-> [2] http://article.gmane.org/gmane.linux.kernel.mm/72016
-> 
-> This patch is yet another attempt of solving this old issue.  Even though it has
-> a potential race condition we came to conclusion that the actual chances of
-> causing any problems are slim.  Various stress tests did not, in fact, show
-> the race to be an issue.
-> 
-
-It is a really small race. To cause a problem CPU 1 must find a page
-with count 0, CPU 2 must then allocate the page and set page->private
-before CPU 1 overwrites that value but it's there.
-
-> The problem is that if a page is on a PCP list, and it's underlaying pageblocks'
-> migrate type is changed to MIGRATE_ISOLATE, the page (i) will still remain on PCP
-> list and thus someone can allocate it, and (ii) when removed from PCP list, the
-> page will be put on freelist of migrate type it had prior to change.
-> 
-> (i) is actually not such a big issue since the next thing that happens after
-> isolation is migration so all the pages will get freed.  (ii) is actual problem
-> and if [1] is not an acceptable solution I really don't have a good fix for that.
-> 
-> One things that comes to mind is calling drain_all_pages() prior to acquiring
-> zone->lock in set_migratetype_isolate().  This is however prone to races since
-> after the drain and before the zone->lock is acquired, pages might get moved
-> back to PCP list.
-> 
-> Draining PCP list after acquiring zone->lock is not possible because
-> smp_call_function_many() cannot be called with interrupts disabled, and changing
-> spin_lock_irqsave() to spin_lock() followed by local_irq_save() causes a dead
-> lock (that's what [2] attempted to do).
-> 
-> Any suggestions are welcome!
-> 
-
-[1] is still not preferred as I'd still like to keep the impact
-of CMA to the normal paths to be as close to 0 as possible. In
-update_pcp_isolate_block() how about something like this?
-
-if (page_count(page) == 0) {
-	spin_unlock_irqrestore(zone->lock, flags);
-	drain_all_pages()
-	spin_lock_irqsave(zone->lock, flags);
-	if (PageBuddy(page)) {
-		order = page_order(page);
-		list_del(&page->lru);
-		list_add_tail(&page->lru, &zone->free_area[order].free_list[MIGRATE_ISOLATE]);
-		set_page_private(page, MIGRATE_ISOLATE);
-	}
-}
-
-If the page is !PageBuddy, it does not matter as alloc_contig_range()
-is just about to migrate it.
+On Tue, Dec 27, 2011 at 10:36 PM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+> On 27-12-2011 12:33, Andreas Oberritter wrote:
+>> On 27.12.2011 14:28, Mauro Carvalho Chehab wrote:
+>>> On 27-12-2011 10:11, Andreas Oberritter wrote:
+>>>> On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
+>>>>> DVB-S and DVB-T, as those were the standards supported by DVBv3.
+>>>>
+>>>> The description seems to be incomplete.
+>>>>
+>>>>> New standards like DSS, ISDB and CTTB don't fit on any of the
+>>>>> above types.
+>>>>>
+>>>>> while there's a way for the drivers to explicitly change whatever
+>>>>> default DELSYS were filled inside the core, still a fake value is
+>>>>> needed there, and a "compat" code to allow DVBv3 applications to
+>>>>> work with those delivery systems is needed. This is good for a
+>>>>> short term solution, while applications aren't using DVBv5 directly.
+>>>>>
+>>>>> However, at long term, this is bad, as the compat code runs even
+>>>>> if the application is using DVBv5. Also, the compat code is not
+>>>>> perfect, and only works when the frontend is capable of auto-detecting
+>>>>> the parameters that aren't visible by the faked delivery systems.
+>>>>>
+>>>>> So, let the frontend fill the supported delivery systems at the
+>>>>> device properties directly, and, in the future, let the core to use
+>>>>> the delsys to fill the reported info::type based on the delsys.
+>>>>>
+>>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>>>> ---
+>>>>>  drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++++++++++++
+>>>>>  drivers/media/dvb/dvb-core/dvb_frontend.h |    8 ++++++++
+>>>>>  2 files changed, 21 insertions(+), 0 deletions(-)
+>>>>>
+>>>>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>>>>> index 8dedff4..f17c411 100644
+>>>>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+>>>>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+>>>>> @@ -1252,6 +1252,19 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
+>>>>>    const struct dvb_frontend_info *info = &fe->ops.info;
+>>>>>    u32 ncaps = 0;
+>>>>>
+>>>>> +  /*
+>>>>> +   * If the frontend explicitly sets a list, use it, instead of
+>>>>> +   * filling based on the info->type
+>>>>> +   */
+>>>>> +  if (fe->ops.delsys[ncaps]) {
+>>>>> +          while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
+>>>>> +                  p->u.buffer.data[ncaps] = fe->ops.delsys[ncaps];
+>>>>> +                  ncaps++;
+>>>>> +          }
+>>>>> +          p->u.buffer.len = ncaps;
+>>>>> +          return;
+>>>>> +  }
+>>>>> +
+>>>>
+>>>> I don't understand what this is trying to solve. This is already handled
+>>>> by the get_property driver callback.
+>>>>
+>>>> dtv_set_default_delivery_caps() only sets some defaults for drivers not
+>>>> implementing get_property yet.
+>>>
+>>> dtv_set_default_delivery_caps() does the wrong thing for delivery systems
+>>> like ISDB-T, ISDB-S, DSS, DMB-TH, as it fills data with a fake value that
+>>> is there at fe->ops.info.type.
+>>>
+>>> The fake values there should be used only for DVBv3 legacy calls emulation
+>>> on those delivery systems that are not fully compatible with a DVBv3 call.
+>>
+>> That's right. Still, there's no need to introduce fe->ops.delsys,
+>> because the drivers in question could just implement get_property
+>> instead. At least that's what we discussed and AFAIR agreed upon when
+>> Manu recently submitted his patches regarding enumeration of delivery
+>> systems.
+>
+> Manu's patches were applied (well, except for two patches related to af9013
+> driver that are/were under discussion between Manu and Antti).
+>
+> Manu's approach is good, as it provided a way to enumerate the
+> standards without much changes, offering a way for userspace to
+> query the delivery system, at the expense of serializing a driver
+> call for each property.
+>
+> Yet, it doesn't allow the DVB core to detect the supported
+> delivery systems on a sane way [1].
+>
+> The addition of fe->ops.delsys is going one step further, as it will
+> allow, at the long term, the removal of info.type.
+>
+> There are two reasons why we need to get rid of info.type:
+>
+> 1) dvb_frontend core can be changed to use fe->ops.delsys
+>   internally, instead of info.type, in order to fix some
+>   bugs inside it, where it does the wrong assumption, because
+>   the frontend is lying about the delivery system;
 
 
-> >>+		} else {
-> >>+			++pfn;
-> >>+		}
-> >>+	}
-> >>+}
-> 
-> -- 
-> Best regards,                                         _     _
-> .o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-> ..o | Computer Science,  Micha?? ???mina86??? Nazarewicz    (o o)
-> ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
-> 
+The frontend doesn't lie about the delivery system, but just announces
+the delivery system to which the device is initialized by default.
 
--- 
-Mel Gorman
-SUSE Labs
+
+>
+> 2) There is no sane way to fill fe->ops.info.type for Multi delivery
+>   system frontends, like DRX-K, that supports both DVB-T and DVB-C.
+>   The type can be filled with either FE_QAM or FE_OFDM, not with both.
+>   So, choosing either type will be plain wrong, and may cause bad
+>   side effects inside dvb_frontend.
+
+
+for any multi-standard demodulator, you cannot
+announce 2 or more delivery systems as the default
+initialized one. Logically, also it doesn't make sense
+to announce 2 delivery systems as default. You have
+now introduced an ambiguity as to what mode it is
+now initialized.
+
+for any multi-standard device, the device is initialized
+to only 1 single delivery system and only that should
+be announced and available through info.type
+for the same reason fe->ops.info.type shouldn't be
+filled by anybody else other than the driver alone.
