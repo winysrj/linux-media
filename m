@@ -1,50 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58910 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932252Ab2ARR5r (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 12:57:47 -0500
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:55139 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751009Ab2ABIvr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 03:51:47 -0500
+Received: by wgbdr13 with SMTP id dr13so26391173wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 02 Jan 2012 00:51:46 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] cxd2820r: fix dvb_frontend_ops
-Date: Wed, 18 Jan 2012 19:57:33 +0200
-Message-Id: <1326909453-12367-1-git-send-email-crope@iki.fi>
+Cc: mchehab@infradead.org, g.liakhovetski@gmx.de, lethal@linux-sh.org,
+	hans.verkuil@cisco.com, s.hauer@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] media i.MX27 camera: properly detect frame loss.
+Date: Mon,  2 Jan 2012 09:51:33 +0100
+Message-Id: <1325494293-3968-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix bug introduced by multi-frontend to single-frontend change.
+As V4L2 specification states, frame_count must also
+regard lost frames so that the user can handle that
+case properly.
 
-* Add missing DVB-C caps
-* Change frontend name as single frontend does all the standards
+This patch adds a mechanism to increment the frame
+counter even when a video buffer is not available
+and a discard buffer is used.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/dvb/frontends/cxd2820r_core.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+ drivers/media/video/mx2_camera.c |   54 ++++++++++++++++++++++++--------------
+ 1 files changed, 34 insertions(+), 20 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
-index caae7f7..5fe591d 100644
---- a/drivers/media/dvb/frontends/cxd2820r_core.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_core.c
-@@ -562,7 +562,7 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
- 	.delsys = { SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A },
- 	/* default: DVB-T/T2 */
- 	.info = {
--		.name = "Sony CXD2820R (DVB-T/T2)",
-+		.name = "Sony CXD2820R",
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index ca76dd2..b244714 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -256,6 +256,7 @@ struct mx2_camera_dev {
+ 	size_t			discard_size;
+ 	struct mx2_fmt_cfg	*emma_prp;
+ 	u32			frame_count;
++	unsigned int		firstirq;
+ };
  
- 		.caps =	FE_CAN_FEC_1_2			|
- 			FE_CAN_FEC_2_3			|
-@@ -572,7 +572,9 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
- 			FE_CAN_FEC_AUTO			|
- 			FE_CAN_QPSK			|
- 			FE_CAN_QAM_16			|
-+			FE_CAN_QAM_32			|
- 			FE_CAN_QAM_64			|
-+			FE_CAN_QAM_128			|
- 			FE_CAN_QAM_256			|
- 			FE_CAN_QAM_AUTO			|
- 			FE_CAN_TRANSMISSION_MODE_AUTO	|
+ /* buffer for one video frame */
+@@ -370,6 +371,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+ 
+ 	pcdev->icd = icd;
+ 	pcdev->frame_count = 0;
++	pcdev->firstirq = 1;
+ 
+ 	dev_info(icd->parent, "Camera driver attached to camera %d\n",
+ 		 icd->devnum);
+@@ -572,6 +574,7 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
+ 	struct soc_camera_host *ici =
+ 		to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
++	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+ 	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+ 	unsigned long flags;
+ 
+@@ -584,6 +587,26 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
+ 	list_add_tail(&vb->queue, &pcdev->capture);
+ 
+ 	if (mx27_camera_emma(pcdev)) {
++		if (prp->cfg.channel == 1) {
++			writel(PRP_CNTL_CH1EN |
++				PRP_CNTL_CSIEN |
++				prp->cfg.in_fmt |
++				prp->cfg.out_fmt |
++				PRP_CNTL_CH1_LEN |
++				PRP_CNTL_CH1BYP |
++				PRP_CNTL_CH1_TSKIP(0) |
++				PRP_CNTL_IN_TSKIP(0),
++				pcdev->base_emma + PRP_CNTL);
++		} else {
++			writel(PRP_CNTL_CH2EN |
++				PRP_CNTL_CSIEN |
++				prp->cfg.in_fmt |
++				prp->cfg.out_fmt |
++				PRP_CNTL_CH2_LEN |
++				PRP_CNTL_CH2_TSKIP(0) |
++				PRP_CNTL_IN_TSKIP(0),
++				pcdev->base_emma + PRP_CNTL);
++		}
+ 		goto out;
+ 	} else { /* cpu_is_mx25() */
+ 		u32 csicr3, dma_inten = 0;
+@@ -747,16 +770,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 		writel(pcdev->discard_buffer_dma,
+ 				pcdev->base_emma + PRP_DEST_RGB2_PTR);
+ 
+-		writel(PRP_CNTL_CH1EN |
+-				PRP_CNTL_CSIEN |
+-				prp->cfg.in_fmt |
+-				prp->cfg.out_fmt |
+-				PRP_CNTL_CH1_LEN |
+-				PRP_CNTL_CH1BYP |
+-				PRP_CNTL_CH1_TSKIP(0) |
+-				PRP_CNTL_IN_TSKIP(0),
+-				pcdev->base_emma + PRP_CNTL);
+-
+ 		writel((icd->user_width << 16) | icd->user_height,
+ 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+ 		writel((icd->user_width << 16) | icd->user_height,
+@@ -784,15 +797,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 				pcdev->base_emma + PRP_SOURCE_CR_PTR);
+ 		}
+ 
+-		writel(PRP_CNTL_CH2EN |
+-			PRP_CNTL_CSIEN |
+-			prp->cfg.in_fmt |
+-			prp->cfg.out_fmt |
+-			PRP_CNTL_CH2_LEN |
+-			PRP_CNTL_CH2_TSKIP(0) |
+-			PRP_CNTL_IN_TSKIP(0),
+-			pcdev->base_emma + PRP_CNTL);
+-
+ 		writel((icd->user_width << 16) | icd->user_height,
+ 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+ 
+@@ -1214,7 +1218,6 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 		vb->state = state;
+ 		do_gettimeofday(&vb->ts);
+ 		vb->field_count = pcdev->frame_count * 2;
+-		pcdev->frame_count++;
+ 
+ 		wake_up(&vb->done);
+ 	}
+@@ -1239,6 +1242,17 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 		return;
+ 	}
+ 
++	/*
++	 * According to V4L2 specification, first valid sequence number must
++	 * be 0. However, by design the first received frame is written to the
++	 * discard buffer even when a video buffer is available. For that reason
++	 * we don't increment frame_count the first time.
++	 */
++	if (pcdev->firstirq)
++		pcdev->firstirq = 0;
++	else
++		pcdev->frame_count++;
++
+ 	buf = list_entry(pcdev->capture.next,
+ 			struct mx2_buffer, vb.queue);
+ 
 -- 
-1.7.4.4
+1.7.0.4
 
