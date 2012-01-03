@@ -1,123 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:62530 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932127Ab2ANUlk convert rfc822-to-8bit (ORCPT
+Received: from out5.smtp.messagingengine.com ([66.111.4.29]:56903 "EHLO
+	out5.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755308Ab2ACVDq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 15:41:40 -0500
-Received: by mail-bk0-f46.google.com with SMTP id w12so741691bku.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 12:41:39 -0800 (PST)
+	Tue, 3 Jan 2012 16:03:46 -0500
+Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id 465F120B61
+	for <linux-media@vger.kernel.org>; Tue,  3 Jan 2012 16:03:46 -0500 (EST)
+Date: Tue, 3 Jan 2012 12:55:39 -0800
+From: Greg KH <greg@kroah.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	stable@vger.kernel.org
+Subject: Re: [patch -longterm] V4L/DVB: v4l2-ioctl: integer overflow in
+ video_usercopy()
+Message-ID: <20120103205539.GC17131@kroah.com>
+References: <20111215063445.GA2424@elgon.mountain>
+ <4EE9BC25.7020303@infradead.org>
+ <201112151033.35153.hverkuil@xs4all.nl>
+ <4EE9C2E6.1060304@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <1326572518.1243.43.camel@palomino.walls.org>
-References: <CAEN_-SDUfyu34YSV6Lr4yADkNmr6=+TALN0xvrCODFPeRedkFA@mail.gmail.com>
-	<1326572518.1243.43.camel@palomino.walls.org>
-Date: Sat, 14 Jan 2012 21:41:39 +0100
-Message-ID: <CAEN_-SD2UrAZZebJv8RD5ZiAHUkpzRCYLSwqQpAOwwN8o1tLSQ@mail.gmail.com>
-Subject: Re: cx25840: improve audio for cx2388x drivers
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-2
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EE9C2E6.1060304@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, Dec 15, 2011 at 07:50:30AM -0200, Mauro Carvalho Chehab wrote:
+> On 15-12-2011 07:33, Hans Verkuil wrote:
+> > On Thursday, December 15, 2011 10:21:41 Mauro Carvalho Chehab wrote:
+> >> On 15-12-2011 04:34, Dan Carpenter wrote:
+> >>> On a 32bit system the multiplication here could overflow.  p->count is
+> >>> used in some of the V4L drivers.
+> >>
+> >> ULONG_MAX / sizeof(v4l2_ext_control) is too much. This ioctl is used on things
+> >> like setting MPEG paramenters, where several parameters need adjustments at
+> >> the same time. I risk to say that 64 is probably a reasonably safe upper limit.
+> > 
+> > Let's make it 1024. That gives more than enough room for expansion without taking
+> > too much memory.
+> >
+> > Especially for video encoders a lot of controls are needed, and sensor drivers
+> > are also getting more complex, so 64 is a bit too low for my taste.
+> > 
+> > I agree that limiting this to some sensible value is a good idea.
+> 
+> I'm fine with 1024. Yet, this could easily be changed to whatever upper value needed,
+> and still be backward compatible.
 
-Dne 14. ledna 2012 21:21 Andy Walls <awalls@md.metrocast.net> napsal(a):
-> On Sat, 2012-01-14 at 19:44 +0100, Miroslav Slugeò wrote:
->> Searching for testers, this patch is big one, it was more then week of
->> work and testing, so i appriciate any comments and recommendations.
->
-> Hi Miroslav,
->
-> I have not exhaustively revied this patch, but some general comments:
->
-> 1. This patch manipulates some video signal tracking behavior (chroma
-> lock speed), that is not mentioned in the commit message, and is likely
-> not related to audio detection.  Why?
+Ok, can someone please send me the "accepted" version of this patch for
+inclusion in the 2.6.32-stable tree?
 
-1. cx23885_initialize
-a) changing order of Luma and Crhoma setting to nost set this before
-completing PLL setup (0x414 and 0x420)
-b) moving format auto detection and Chroma AGC with Chroma killer with
-same reason
-c) 0x13c reseting is necessary not only for cx25840_initialize but
-also for cx23885_initialize, i tested this and on some cards it will
-fail to autodetect correct video standard without proper reset, it is
-also mentioned in datasheet.
-d) reseting video decoder for same reason 0x4a4 and 0x402
-e) 0x401 - removing fast lock is mentioned in datasheet and it is also
-behavior for original card drivers, i don't why it was active
+thanks,
 
-2. set_input function with writing to video registers, everything is
-exactly like from datasheet old implementation was just for NTSC
-format detection, there was no PAL and SECAM behavior.
-
-That should be reasons for writing to video register, i know that it
-is better to split this patch to 2 or more small patches, but it is
-all about detection of analog standards.
-
->
-> 2. I myself, have multiple types of cards supported by the cx25840
-> module in my machine: PVR-150, PVR-500, HVR-1850, etc.  Having a module
-> parameter, "audio_standard_force", that applies globally, instead of per
-> card model, is not the right thing to do.
-
-This is easy to do, but real purpose of such option is only for
-testing, for broken cards there should be always setting in main
-driver like pvr150_workaround.
-
->
-> 3. You have to be very careful when changing anything in the cx25840
-> module.  It is very easy to introduce a regression for other boards.
->
-> The A/V core and microcontroller firmware in the CX2584[0123] and
-> CX23418 chips are similar to each other.
->
-> The A/V core and microcontroller firmware in the CX2388[578] and
-> CX2310[012] chips are similar to each other.
->
-> However, the differences between these two groups of chips are
-> noticable.  When in doubt, you cannot rely on information in the
-> CX25840/1/2/3 data sheet to apply to the CX2388[578] and CX2310[012]
-> chips.
->
-> (To ease code maintence and regression testing, I have wanted to split
-> the support for the CX2310[012] and CX2388[578] chips out to another
-> module.  Such a split eased code maintenance and testing for the cx18
-> driver and CX23418 boards.  However, I haven't had any time. :( )
-
-Real changes for cx2310x driver is only in audio part and PAL + SECAM
-detection, everything else should be intact.
-
->
-> 4. The CX2584x chips have differences in audio decoding capability:
->
->        CX25843 Worldwide Audio Decoding
->        CX25842 A2, NICAM, FM, AM Audio Decoding
->        CX25841 BTSC (with DBX), EIA-J Audio Decoding
->        CX25840 BTSC (without DBX), EIA-J Audio Decoding
->
-> (I have seen all but the CX25840 used in actual board designs.)
->
-> Does your patch consider the chips with limited broadcast audio
-> decoding?
-
-I  think no, but only real difference is in set_input function which
-could set unsupported mode when user requested this.
-
->
-> 5. Even though the CX2583[67] chips do not have audio, some board
-> designs still use the AUX_PLL clock normally used for the audio clock in
-> the other chips.  Make sure it AUX_PLL setup is not affected for the
-> CX2483[67] chips.  (I don't think you did, but I only skimmed the
-> patch).
-
-No changes to AUX_PLL settings at all.
-
->
-> Regards,
-> Andy
->
-
-M.
+greg k-h
