@@ -1,198 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:7649 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752930Ab2AAULY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Jan 2012 15:11:24 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q01KBO6T002853
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 1 Jan 2012 15:11:24 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 5/9] [media] dvb_frontend: Fix DVBv3 emulation
-Date: Sun,  1 Jan 2012 18:11:14 -0200
-Message-Id: <1325448678-13001-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-References: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42876 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753245Ab2ACNzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 08:55:19 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Subject: Re: [RFC/PATCH 1/5] v4l: Convert V4L2_CID_FOCUS_AUTO control to a menu control
+Date: Tue, 3 Jan 2012 14:55:34 +0100
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl, riverful.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+References: <1323011776-15967-1-git-send-email-snjw23@gmail.com> <201201021217.00336.laurent.pinchart@ideasonboard.com> <4F0219C3.1030401@gmail.com>
+In-Reply-To: <4F0219C3.1030401@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201031455.35771.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For frontends with ISDB-T, DVB-T2, CMDBTH, etc, some code is
-needed, in order to provide emulation. Add such code, and check
-if the desired delivery system is supported by the frontend.
+Hi Sylwester,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |  140 ++++++++++++++++++++++++++++-
- 1 files changed, 139 insertions(+), 1 deletions(-)
+On Monday 02 January 2012 21:55:31 Sylwester Nawrocki wrote:
+> On 01/02/2012 12:16 PM, Laurent Pinchart wrote:
+> >> * controls for starting/stopping auto focusing (V4L2_CID_FOCUS_AUTO ==
+> >> false)
+> >> 
+> >>   V4L2_CID_START_AUTO_FOCUS (button) - start auto focusing,
+> >>   V4L2_CID_STOP_AUTO_FOCUS  (button) - stop auto focusing (might be also
+> >>   
+> >>                                        useful in V4L2_FOCUS_AUTO ==
+> >>                                        true),
+> > 
+> > Maybe V4L2_CID_AUTO_FOCUS_START and V4L2_CID_AUTO_FOCUS_STOP to be
+> > consistent with the other proposed controls ?
+> 
+> Yes, you're right, I'll change them to make consistent with others.
+> I've noticed that too, but a little bit too late:)
+> 
+> >> * auto focus status
+> >> 
+> >>   V4L2_CID_AUTO_FOCUS_STATUS (menu, read-only) - whether focusing is in
+> >>   
+> >>                                                  progress or not,
+> >>   
+> >>   possible entries:
+> >>   
+> >>   - V4L2_AUTO_FOCUS_STATUS_IDLE,    // auto focusing not enabled or
+> >>   force
+> >>   
+> >>                                        stopped
+> >>   
+> >>   - V4L2_AUTO_FOCUS_STATUS_BUSY,    // focusing in progress
+> >>   - V4L2_AUTO_FOCUS_STATUS_SUCCESS, // single-shot auto focusing succeed
+> >>   
+> >>                                     // or continuous AF in progress
+> >>   
+> >>   - V4L2_AUTO_FOCUS_STATUS_FAIL,    // auto focusing failed
+> >> 
+> >> * V4L2_CID_FOCUS_AUTO would retain its current semantics:
+> >>   V4L2_CID_FOCUS_AUTO (boolean) - selects auto/manual focus
+> >>   
+> >>       false - manual
+> >>       true  - auto continuous
+> >> 
+> >> * AF algorithm scan range, V4L2_CID_FOCUS_AUTO_SCAN_RANGE with choices:
+> >>   - V4L2_AUTO_FOCUS_SCAN_RANGE_NORMAL,
+> >>   - V4L2_AUTO_FOCUS_SCAN_RANGE_MACRO,
+> >>   - V4L2_AUTO_FOCUS_SCAN_RANGE_INFINITY
+> 
+> ...
+> 
+> >> * select auto focus mode
+> >> 
+> >> V4L2_CID_AUTO_FOCUS_MODE
+> >> 
+> >>         V4L2_AUTO_FOCUS_MODE_NORMAL     - "normal" auto focus (whole
+> >>         frame?) V4L2_AUTO_FOCUS_MODE_SPOT       - spot location passed
+> >>         with other controls or selection API
+> >>         V4L2_AUTO_FOCUS_MODE_RECTANGLE  - rectangle passed with other
+> >>         controls or selection API
+> > 
+> > Soudns good to me.
+> > 
+> >>> parameter. We also need to discuss how the af statistics window
+> >>> configuration is done. I'm not certain there could even be a
+> >>> standardised
+> >> 
+> >> Do we need multiple windows for AF statistics ?
+> >> 
+> >> If not, I'm inclined to use four separate controls for window
+> >> configuration. (X, Y, WIDTH, HEIGHT). This was Hans' preference in
+> >> previous discussions [1].
+> > 
+> > For the OMAP3 ISP we need multiple statistics windows. AEWB can use more
+> > than 32 windows. Having separate controls for that wouldn't be
+> > practical.
+> 
+> OK, so the control API in current form doesn't seem capable of setting up
+> the statistics windows. There is also little space in struct
+> v4l2_ext_control for any major extensions.
+> 
+> We might need to define dedicated set of selection targets in the selection
+> API for handling multiple windows.
+> 
+> Yet, to avoid forcing applications to use the selection API where
+> rectangles aren't needed - only single spot coordinates, how about
+> defining following two controls ?
+> 
+> * AF spot coordinates when focus mode is set to V4L2_AUTO_FOCUS_MODE_SPOT
+> 
+>  - V4L2_CID_AUTO_FOCUS_POSITION_X - horizontal position in pixels relative
+>                                     to the left of frame
+>  - V4L2_CID_AUTO_FOCUS_POSITION_Y - vertical position in pixels relative
+>                                     to the top of frame
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 7f6ce06..c1b3b30 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1422,6 +1422,139 @@ static int dtv_property_process_get(struct dvb_frontend *fe,
- 
- static int dtv_set_frontend(struct dvb_frontend *fe);
- 
-+static bool is_dvbv3_delsys(u32 delsys)
-+{
-+	bool status;
-+
-+	status = (delsys == SYS_DVBT) || (delsys == SYS_DVBC_ANNEX_A) ||
-+		 (delsys == SYS_DVBS) || (delsys == SYS_ATSC);
-+
-+	return status;
-+}
-+
-+static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
-+{
-+	int ncaps, i;
-+	u32 delsys = SYS_UNDEFINED;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	enum dvbv3_emulation_type type;
-+
-+	if (desired_system == SYS_UNDEFINED) {
-+		/*
-+		 * A DVBv3 call doesn't know what's the desired system.
-+		 * So, don't change the current delivery system. Instead,
-+		 * find the closest DVBv3 system that matches the delivery
-+		 * system.
-+		 */
-+		if (is_dvbv3_delsys(c->delivery_system)) {
-+			dprintk("%s() Using delivery system to %d\n",
-+				__func__, c->delivery_system);
-+			return 0;
-+		}
-+		type = dvbv3_type(c->delivery_system);
-+		switch (type) {
-+		case DVBV3_QPSK:
-+			desired_system = FE_QPSK;
-+			break;
-+		case DVBV3_QAM:
-+			desired_system = FE_QAM;
-+			break;
-+		case DVBV3_ATSC:
-+			desired_system = FE_ATSC;
-+			break;
-+		case DVBV3_OFDM:
-+			desired_system = FE_OFDM;
-+			break;
-+		default:
-+			dprintk("%s(): This frontend doesn't support DVBv3 calls\n",
-+				__func__);
-+			return -EINVAL;
-+		}
-+		delsys = c->delivery_system;
-+	} else {
-+		/*
-+		 * Check if the desired delivery system is supported
-+		 */
-+		ncaps = 0;
-+		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
-+			if (fe->ops.delsys[ncaps] == desired_system) {
-+				c->delivery_system = desired_system;
-+				dprintk("%s() Changing delivery system to %d\n",
-+					__func__, desired_system);
-+				return 0;
-+			}
-+		}
-+		type = dvbv3_type(desired_system);
-+
-+		/*
-+		 * The delivery system is not supported. See if it can be
-+		 * emulated.
-+		 * The emulation only works if the desired system is one of the
-+		 * DVBv3 delivery systems
-+		 */
-+		if (!is_dvbv3_delsys(desired_system)) {
-+			dprintk("%s() can't use a DVBv3 FE_SET_FRONTEND call on this frontend\n",
-+				__func__);
-+			return -EINVAL;
-+		}
-+
-+		/*
-+		 * Get the last non-DVBv3 delivery system that has the same type
-+		 * of the desired system
-+		 */
-+		ncaps = 0;
-+		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
-+			if ((dvbv3_type(fe->ops.delsys[ncaps]) == type) &&
-+			    !is_dvbv3_delsys(fe->ops.delsys[ncaps]))
-+				delsys = fe->ops.delsys[ncaps];
-+			ncaps++;
-+		}
-+		/* There's nothing compatible with the desired delivery system */
-+		if (delsys == SYS_UNDEFINED) {
-+			dprintk("%s() Incompatible DVBv3 FE_SET_FRONTEND call for this frontend\n",
-+				__func__);
-+			return -EINVAL;
-+		}
-+		c->delivery_system = delsys;
-+	}
-+
-+	/*
-+	 * Emulate newer delivery systems like ISDBT, DVBT and DMBTH
-+	 * for older DVBv5 applications. The emulation will try to use
-+	 * the auto mode for most things, and will assume that the desired
-+	 * delivery system is the last one at the ops.delsys[] array
-+	 */
-+	dprintk("%s() Using delivery system %d emulated as if it were a %d\n",
-+		__func__, delsys, desired_system);
-+
-+	/*
-+	 * For now, uses it for ISDB-T, DMBTH and DVB-T2
-+	 * For DVB-S2 and DVB-TURBO, assumes that the DVB-S parameters are enough.
-+	 */
-+	if (type == DVBV3_OFDM) {
-+		c->modulation = QAM_AUTO;
-+		c->code_rate_HP = FEC_AUTO;
-+		c->code_rate_LP = FEC_AUTO;
-+		c->transmission_mode = TRANSMISSION_MODE_AUTO;
-+		c->guard_interval = GUARD_INTERVAL_AUTO;
-+		c->hierarchy = HIERARCHY_AUTO;
-+
-+		c->isdbt_partial_reception = -1;
-+		c->isdbt_sb_mode = -1;
-+		c->isdbt_sb_subchannel = -1;
-+		c->isdbt_sb_segment_idx = -1;
-+		c->isdbt_sb_segment_count = -1;
-+		c->isdbt_layer_enabled = 0x7;
-+		for (i = 0; i < 3; i++) {
-+			c->layer[i].fec = FEC_AUTO;
-+			c->layer[i].modulation = QAM_AUTO;
-+			c->layer[i].interleaving = -1;
-+			c->layer[i].segment_count = -1;
-+		}
-+	}
-+	return 0;
-+}
-+
- static int dtv_property_process_set(struct dvb_frontend *fe,
- 				    struct dtv_property *tvp,
- 				    struct file *file)
-@@ -1484,7 +1617,7 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		c->rolloff = tvp->u.data;
- 		break;
- 	case DTV_DELIVERY_SYSTEM:
--		c->delivery_system = tvp->u.data;
-+		r = set_delivery_system(fe, tvp->u.data);
- 		break;
- 	case DTV_VOLTAGE:
- 		c->voltage = tvp->u.data;
-@@ -2043,6 +2176,11 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		/* Synchronise DVBv5 parameters from DVBv3 */
- 		memcpy (&fepriv->parameters_in, parg,
- 			sizeof (struct dvb_frontend_parameters));
-+
-+		err = set_delivery_system(fe, SYS_UNDEFINED);
-+		if (err)
-+			break;
-+
- 		err = dtv_property_cache_sync(fe, c, &fepriv->parameters_in);
- 		if (err)
- 			break;
+What about a point control type instead ? :-) X and Y coordinates could be 
+stored on 32 bits each.
+
 -- 
-1.7.8.352.g876a6
+Regards,
 
+Laurent Pinchart
