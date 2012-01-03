@@ -1,107 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.pripojeni.net ([178.22.112.14]:32769 "EHLO
-	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754181Ab2AJRXl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 12:23:41 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@infradead.org
-Cc: mikekrufky@gmail.com, linux-media@vger.kernel.org,
-	jirislaby@gmail.com, linux-kernel@vger.kernel.org,
-	Jiri Slaby <jslaby@suse.cz>
-Subject: [PATCH 1/4] DVB: dib0700, move Nova-TD Stick to a separate set
-Date: Tue, 10 Jan 2012 18:11:22 +0100
-Message-Id: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
+Received: from mx1.redhat.com ([209.132.183.28]:46268 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751462Ab2ACIig (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 3 Jan 2012 03:38:36 -0500
+Message-ID: <4F02BEC5.2080204@redhat.com>
+Date: Tue, 03 Jan 2012 09:39:33 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Vasily Khoruzhick <anarsoul@gmail.com>
+CC: Hans de Goede <j.w.r.degoede@hhs.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] libv4l: add hflip quirk for dealextreme cam sku #44507
+References: <1325535901-15251-1-git-send-email-anarsoul@gmail.com>
+In-Reply-To: <1325535901-15251-1-git-send-email-anarsoul@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To properly support the three LEDs which are on the stick, we need
-a special handling in the ->frontend_attach function. Thus let's have
-a separate ->frontend_attach instead of ifs in the common one.
-
-The hadnling itself will be added in further patches.
-
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
----
- drivers/media/dvb/dvb-usb/dib0700_devices.c |   57 ++++++++++++++++++++++++--
- 1 files changed, 52 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-index 81ef4b4..3c6ee54 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-@@ -3892,7 +3892,58 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 			}
- 		},
- 
--		.num_device_descs = 6,
-+		.num_device_descs = 1,
-+		.devices = {
-+			{   "Hauppauge Nova-TD Stick (52009)",
-+				{ &dib0700_usb_id_table[35], NULL },
-+				{ NULL },
-+			},
-+		},
-+
-+		.rc.core = {
-+			.rc_interval      = DEFAULT_RC_INTERVAL,
-+			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
-+			.module_name	  = "dib0700",
-+			.rc_query         = dib0700_rc_query_old_firmware,
-+			.allowed_protos   = RC_TYPE_RC5 |
-+					    RC_TYPE_RC6 |
-+					    RC_TYPE_NEC,
-+			.change_protocol = dib0700_change_protocol,
-+		},
-+	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
-+
-+		.num_adapters = 2,
-+		.adapter = {
-+			{
-+			.num_frontends = 1,
-+			.fe = {{
-+				.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-+				.pid_filter_count = 32,
-+				.pid_filter       = stk70x0p_pid_filter,
-+				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
-+				.frontend_attach  = stk7070pd_frontend_attach0,
-+				.tuner_attach     = dib7070p_tuner_attach,
-+
-+				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
-+			}},
-+				.size_of_priv     = sizeof(struct dib0700_adapter_state),
-+			}, {
-+			.num_frontends = 1,
-+			.fe = {{
-+				.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
-+				.pid_filter_count = 32,
-+				.pid_filter       = stk70x0p_pid_filter,
-+				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
-+				.frontend_attach  = stk7070pd_frontend_attach1,
-+				.tuner_attach     = dib7070p_tuner_attach,
-+
-+				DIB0700_DEFAULT_STREAMING_CONFIG(0x03),
-+			}},
-+				.size_of_priv     = sizeof(struct dib0700_adapter_state),
-+			}
-+		},
-+
-+		.num_device_descs = 5,
- 		.devices = {
- 			{   "DiBcom STK7070PD reference design",
- 				{ &dib0700_usb_id_table[17], NULL },
-@@ -3902,10 +3953,6 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 				{ &dib0700_usb_id_table[18], NULL },
- 				{ NULL },
- 			},
--			{   "Hauppauge Nova-TD Stick (52009)",
--				{ &dib0700_usb_id_table[35], NULL },
--				{ NULL },
--			},
- 			{   "Hauppauge Nova-TD-500 (84xxx)",
- 				{ &dib0700_usb_id_table[36], NULL },
- 				{ NULL },
--- 
-1.7.8
+Hi,
 
 
+Thanks for the patch.
+
+I'm sorry, but a quick google shows that your cam has a usb id used by various generic
+cameras, including some microscopes, see:
+http://blog.littleimpact.de/index.php/2011/10/16/using-biolux-nv-on-ubuntu-linux/
+
+Enabling flipping on all these models because one has the sensor mounted upside down
+is the wrong thing to do.
+
+Instead you could add the following to your /etc/profile
+export LIBV4LCONTROL_FLAGS=3
+
+Note this will flip the image from all cameras you plug into your computer, or you
+can keep a patched libv4l around for yourself.
+
+Regards,
+
+Hans
+
+
+On 01/02/2012 09:25 PM, Vasily Khoruzhick wrote:
+> Signed-off-by: Vasily Khoruzhick<anarsoul@gmail.com>
+> ---
+>   lib/libv4lconvert/control/libv4lcontrol.c |    2 ++
+>   1 files changed, 2 insertions(+), 0 deletions(-)
+>
+> diff --git a/lib/libv4lconvert/control/libv4lcontrol.c b/lib/libv4lconvert/control/libv4lcontrol.c
+> index 12fa874..a9908ac 100644
+> --- a/lib/libv4lconvert/control/libv4lcontrol.c
+> +++ b/lib/libv4lconvert/control/libv4lcontrol.c
+> @@ -51,6 +51,8 @@ static const struct v4lcontrol_flags_info v4lcontrol_flags[] = {
+>   	/* Genius E-M 112 (also want whitebalance by default) */
+>   	{ 0x093a, 0x2476, 0, NULL, NULL,
+>   		V4LCONTROL_HFLIPPED|V4LCONTROL_VFLIPPED | V4LCONTROL_WANTS_WB, 1500 },
+> +	/* uvc-compatible cam from dealextreme (sku #44507) */
+> +	{ 0x18ec, 0x3366, 0, NULL, NULL, V4LCONTROL_HFLIPPED },
+>
+>   	/* Laptops (and all in one PC's) */
+>   	{ 0x0402, 0x5606, 0,
