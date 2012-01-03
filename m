@@ -1,118 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:37660 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751722Ab2A3NFo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 08:05:44 -0500
-Date: Mon, 30 Jan 2012 13:05:40 +0000
-From: Mel Gorman <mel@csn.ul.ie>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 11/15] mm: trigger page reclaim in alloc_contig_range()
- to stabilize watermarks
-Message-ID: <20120130130540.GN25268@csn.ul.ie>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <1327568457-27734-12-git-send-email-m.szyprowski@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <1327568457-27734-12-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:40510 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab2ACK2k (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 05:28:40 -0500
+Received: by werm1 with SMTP id m1so7764612wer.19
+        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 02:28:39 -0800 (PST)
+Message-ID: <1325586512.14924.7.camel@tvbox>
+Subject: [PATCH] it913x-fe ver 1.13 add BER and UNC monitoring
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Tue, 03 Jan 2012 10:28:32 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 26, 2012 at 10:00:53AM +0100, Marek Szyprowski wrote:
-> alloc_contig_range() performs memory allocation so it also should keep
-> track on keeping the correct level of memory watermarks. This commit adds
-> a call to *_slowpath style reclaim to grab enough pages to make sure that
-> the final collection of contiguous pages from freelists will not starve
-> the system.
-> 
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: Michal Nazarewicz <mina86@mina86.com>
-> ---
->  mm/page_alloc.c |   36 ++++++++++++++++++++++++++++++++++++
->  1 files changed, 36 insertions(+), 0 deletions(-)
-> 
-> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> index e35d06b..05eaa82 100644
-> --- a/mm/page_alloc.c
-> +++ b/mm/page_alloc.c
-> @@ -5613,6 +5613,34 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
->  	return ret;
->  }
->  
-> +/*
-> + * Trigger memory pressure bump to reclaim some pages in order to be able to
-> + * allocate 'count' pages in single page units. Does similar work as
-> + *__alloc_pages_slowpath() function.
-> + */
-> +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
-> +{
-> +	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
-> +	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
-> +	int did_some_progress = 0;
-> +	int order = 1;
-> +	unsigned long watermark;
-> +
-> +	/* Obey watermarks as if the page was being allocated */
-> +	watermark = low_wmark_pages(zone) + count;
-> +	while (!zone_watermark_ok(zone, 0, watermark, 0, 0)) {
-> +		wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
-> +
-> +		did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
-> +						      NULL);
-> +		if (!did_some_progress) {
-> +			/* Exhausted what can be done so it's blamo time */
-> +			out_of_memory(zonelist, gfp_mask, order, NULL);
-> +		}
+Add BER monitoring with Pre-Viterbi error rate.
 
-There are three problems here
+Add UCBLOCKS based on Aborted packets.
 
-1. CMA can trigger the OOM killer.
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/frontends/it913x-fe.c |   21 +++++++++++++++++----
+ drivers/media/dvb/frontends/it913x-fe.h |   10 ++++++++++
+ 2 files changed, 27 insertions(+), 4 deletions(-)
 
-That seems like overkill to me but as I do not know the consequences
-of CMA failing, it's your call.
-
-2. You cannot guarantee that try_to_free_pages will free pages from the
-   zone you care about or that kswapd will do anything
-
-You check the watermarks and take into account the size of the pending
-CMA allocation. kswapd in vmscan.c on the other hand will simply check
-the watermarks and probably go back to sleep. You should be aware of
-this in case you ever get bugs that CMA takes too long and that it
-appears to be stuck in this loop with kswapd staying asleep.
-
-3. You reclaim from zones other than your target zone
-
-try_to_free_pages is not necessarily going to free pages in the
-zone you are checking for. It'll work on ARM in many cases because
-there will be only one zone but on other arches, this logic will
-be problematic and will potentially livelock. You need to pass in
-a zonelist that only contains the zone that CMA cares about. If it
-cannot reclaim, did_some_progress == 0 and it'll exit. Otherwise
-there is a possibility that this will loop forever reclaiming pages
-from the wrong zones.
-
-I won't ack this particular patch but I am not going to insist that
-you fix these prior to merging either. If you leave problem 3 as it
-is, I would really like to see a comment explaning the problem for
-future users of CMA on other arches (if they exist).
-
+diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
+index 8088e62..70131b9 100644
+--- a/drivers/media/dvb/frontends/it913x-fe.c
++++ b/drivers/media/dvb/frontends/it913x-fe.c
+@@ -66,6 +66,7 @@ struct it913x_fe_state {
+ 	u8 tun_fdiv;
+ 	u8 tun_clk_mode;
+ 	u32 tun_fn_min;
++	u32 ucblocks;
+ };
+ 
+ static int it913x_read_reg(struct it913x_fe_state *state,
+@@ -553,14 +554,26 @@ static int it913x_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 
+ static int it913x_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
+ {
+-	*ber = 0;
++	struct it913x_fe_state *state = fe->demodulator_priv;
++	int ret;
++	u8 reg[5];
++	/* Read Aborted Packets and Pre-Viterbi error rate 5 bytes */
++	ret = it913x_read_reg(state, RSD_ABORT_PKT_LSB, reg, sizeof(reg));
++	state->ucblocks += (u32)(reg[1] << 8) | reg[0];
++	*ber = (u32)(reg[4] << 16) | (reg[3] << 8) | reg[2];
+ 	return 0;
+ }
+ 
+ static int it913x_fe_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
+ {
+-	*ucblocks = 0;
+-	return 0;
++	struct it913x_fe_state *state = fe->demodulator_priv;
++	int ret;
++	u8 reg[2];
++	/* Aborted Packets */
++	ret = it913x_read_reg(state, RSD_ABORT_PKT_LSB, reg, sizeof(reg));
++	state->ucblocks += (u32)(reg[1] << 8) | reg[0];
++	*ucblocks = state->ucblocks;
++	return ret;
+ }
+ 
+ static int it913x_fe_get_frontend(struct dvb_frontend *fe,
+@@ -951,5 +964,5 @@ static struct dvb_frontend_ops it913x_fe_ofdm_ops = {
+ 
+ MODULE_DESCRIPTION("it913x Frontend and it9137 tuner");
+ MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
+-MODULE_VERSION("1.12");
++MODULE_VERSION("1.13");
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/dvb/frontends/it913x-fe.h b/drivers/media/dvb/frontends/it913x-fe.h
+index 5ee3e2f..c4a908e 100644
+--- a/drivers/media/dvb/frontends/it913x-fe.h
++++ b/drivers/media/dvb/frontends/it913x-fe.h
+@@ -148,6 +148,16 @@ static inline struct dvb_frontend *it913x_fe_attach(
+ #define COEFF_1_2048		0x0001
+ #define XTAL_CLK		0x0025
+ #define BFS_FCW			0x0029
++
++/* Error Regs */
++#define RSD_ABORT_PKT_LSB	0x0032
++#define RSD_ABORT_PKT_MSB	0x0033
++#define RSD_BIT_ERR_0_7		0x0034
++#define RSD_BIT_ERR_8_15	0x0035
++#define RSD_BIT_ERR_23_16	0x0036
++#define RSD_BIT_COUNT_LSB	0x0037
++#define RSD_BIT_COUNT_MSB	0x0038
++
+ #define TPSD_LOCK		0x003c
+ #define TRAINING_MODE		0x0040
+ #define ADC_X_2			0x0045
 -- 
-Mel Gorman
-SUSE Labs
+1.7.7.3
+
+
+
