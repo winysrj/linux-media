@@ -1,51 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:58539 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756304Ab2ANSdY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 13:33:24 -0500
-Received: by bkuw12 with SMTP id w12so700296bku.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:33:23 -0800 (PST)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:40354 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752060Ab2ACI4D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 03:56:03 -0500
+Received: by werm1 with SMTP id m1so7725775wer.19
+        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 00:56:01 -0800 (PST)
 MIME-Version: 1.0
-Date: Sat, 14 Jan 2012 19:33:23 +0100
-Message-ID: <CAEN_-SBe8-QHa+7SnTVGc4aU-axXb2mfHR+w2imsUygNxDyAag@mail.gmail.com>
-Subject: Update xc4000 tuner definition
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015175cada462839204b681374a
+In-Reply-To: <CACKLOr0YczU+jGOuKoRNvOUYhMbc3x_LVk3Gnt-dq+KfppwzFA@mail.gmail.com>
+References: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
+	<CACKLOr1RujFbuTnF=DkCTB=paVUq7=j1Ru_RU7DWyuJedM+Cvg@mail.gmail.com>
+	<4F021DCE.8000105@gmail.com>
+	<CACKLOr0YczU+jGOuKoRNvOUYhMbc3x_LVk3Gnt-dq+KfppwzFA@mail.gmail.com>
+Date: Tue, 3 Jan 2012 09:56:01 +0100
+Message-ID: <CACKLOr2v2esqNKaApvZZaAXxzMQVpjuooG4GomXRj_Rv_NMh5A@mail.gmail.com>
+Subject: Re: [PATCH v4 0/2] Add support form eMMa-PrP in i.MX2 chips as a
+ mem2mem device.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
+	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com, shawn.guo@linaro.org,
+	richard.zhao@linaro.org, fabio.estevam@freescale.com,
+	kernel@pengutronix.de, s.hauer@pengutronix.de,
+	r.schwebel@pengutronix.de,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015175cada462839204b681374a
-Content-Type: text/plain; charset=ISO-8859-1
+Added Mauro to CC.
 
+On 3 January 2012 08:43, javier Martin <javier.martin@vista-silicon.com> wrote:
+> On 2 January 2012 22:12, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+>> Hi Javier,
+>>
+>> On 01/02/2012 10:31 AM, javier Martin wrote:
+>>> Hi,
+>>> do you have any more concerns or comments on this patch?
+>>> I can't find it in media_tree. Has it been merged somewhere else?
+>>
+>> If you think your driver is good enough for merging, if you didn't
+>> do so already, you should normally send Mauro a git pull request.
+>> Please see:
+>>
+>> http://linuxtv.org/wiki/index.php/Maintaining_Git_trees#how_to_submit_a_-git_pull_request
+>>
+>> And here you can find some examples:
+>> http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=PULL&archive=both
+>
+> Do you mean I have to set up a public GIT repository? Is this mandatory?
+> I am not a subsystem maintainer, just casual developer.
+>
+> What about this?
+>
+> http://linuxtv.org/wiki/index.php/Maintaining_Git_trees#Patches_submitted_via_email
 
-
---0015175cada462839204b681374a
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="xc4000-fix-duplicate-tuner-number.patch"
-Content-Disposition: attachment;
-	filename="xc4000-fix-duplicate-tuner-number.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gxez58520
-
-U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
-b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBTdW4sIDEx
-IERlYyAyMDExIDIyOjQ3OjMyICswMTAwClN1YmplY3Q6IFtQQVRDSF0gVXBkYXRlIHhjNDAwMCB0
-dW5lciBkZWZpbml0aW9uLCBudW1iZXIgODEgaXMgYWxyZWFkeSBpbiB1c2UgYnkgVFVORVJfUEFS
-VFNOSUNfUFRJXzVORjA1CgotLS0KIGluY2x1ZGUvbWVkaWEvdHVuZXIuaCB8ICAgIDMgKystCiAx
-IGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1n
-aXQgYS9pbmNsdWRlL21lZGlhL3R1bmVyLmggYi9pbmNsdWRlL21lZGlhL3R1bmVyLmgKaW5kZXgg
-ODljMjkwYi4uMjllMTkyMCAxMDA2NDQKLS0tIGEvaW5jbHVkZS9tZWRpYS90dW5lci5oCisrKyBi
-L2luY2x1ZGUvbWVkaWEvdHVuZXIuaApAQCAtMTI3LDcgKzEyNyw2IEBACiAjZGVmaW5lIFRVTkVS
-X1BISUxJUFNfRk1EMTIxNk1FWF9NSzMJNzgKICNkZWZpbmUgVFVORVJfUEhJTElQU19GTTEyMTZN
-SzUJCTc5CiAjZGVmaW5lIFRVTkVSX1BISUxJUFNfRlExMjE2TE1FX01LMwk4MAkvKiBBY3RpdmUg
-bG9vcHRocm91Z2gsIG5vIEZNICovCi0jZGVmaW5lIFRVTkVSX1hDNDAwMAkJCTgxCS8qIFhjZWl2
-ZSBTaWxpY29uIFR1bmVyICovCiAKICNkZWZpbmUgVFVORVJfUEFSVFNOSUNfUFRJXzVORjA1CTgx
-CiAjZGVmaW5lIFRVTkVSX1BISUxJUFNfQ1UxMjE2TCAgICAgICAgICAgODIKQEAgLTEzNiw2ICsx
-MzUsOCBAQAogI2RlZmluZSBUVU5FUl9QSElMSVBTX0ZRMTIzNl9NSzUJODUJLyogTlRTQywgVERB
-OTg4NSwgbm8gRk0gcmFkaW8gKi8KICNkZWZpbmUgVFVORVJfVEVOQV9UTkZfNTMzNwkJODYKIAor
-I2RlZmluZSBUVU5FUl9YQzQwMDAJCQk4NwkvKiBYY2VpdmUgU2lsaWNvbiBUdW5lciAqLworCiAv
-KiB0diBjYXJkIHNwZWNpZmljICovCiAjZGVmaW5lIFREQTk4ODdfUFJFU0VOVCAJCSgxPDwwKQog
-I2RlZmluZSBUREE5ODg3X1BPUlQxX0lOQUNUSVZFIAkJKDE8PDEpCi0tIAoxLjcuMi4zCgo=
---0015175cada462839204b681374a--
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
