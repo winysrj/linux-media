@@ -1,51 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:35255 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753834Ab2AXQA2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 11:00:28 -0500
-Message-ID: <4F1ED598.9010406@gmx.de>
-Date: Tue, 24 Jan 2012 17:00:24 +0100
-From: Stefan Blochberger <Stefan.Blochberger@gmx.de>
+Received: from mail.zitomedia.net ([67.58.160.20]:44631 "HELO
+	mail.zitomedia.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753947Ab2ACQZP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 11:25:15 -0500
+Message-ID: <4F032A9D.6030500@zitomedia.com>
+Date: Tue, 03 Jan 2012 11:19:41 -0500
+From: Matt Bernardi <matt.bernardi@zitomedia.com>
 MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: iMon stopped working
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+Subject: Re: multicast to analog EIA channel
+References: <S1753911Ab2ACPsA/20120103154800Z+462@vger.kernel.org> <4F032A71.10609@zitomedia.com>
+In-Reply-To: <4F032A71.10609@zitomedia.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-My iMon LCD is not working anymore. The build module (imon.ko) has jaust
-a size of ~6kb. the last working one had ~33kb. Can you pleas check,
-what happned.
+Hello,
 
-The faulty imon.ko is loading and also gives output on modinfo, but does
-not give any error alt loading nor it is crealting die /dev/lcd.
+I am new to the mailing list and wanted to pick some of your guys brains 
+about something. I work for a small cable service provider. What I am 
+trying to do is receive a multicast stream, modulate it and send it out 
+as an EIA analog channel. I have everything in place but the hardware to 
+do it.
 
-this Output is taken from loading the dvb-s driver:
-Jan 24 10:18:55 [kernel] Latest git patches (needed if you report a bug
-to linux-media@vger.kernel.org):
-Jan 24 10:18:55 [kernel] _59b30294e14fa6a370fdd2bc2921cca1f977ef16 Merge
-branch 'v4l_for_linus' into staging/for_v3.4
-Jan 24 10:18:55 [kernel] _72565224609a23a60d10fcdf42f87a2fa8f7b16d
-[media] cxd2820r: sleep on DVB-T/T2 delivery system switch
-Jan 24 10:18:55 [kernel] _46de20a78ae4b122b79fc02633e9a6c3d539ecad
-[media] anysee: fix CI init
+I know there is equipment built for this specific reason(RGP SEP, 
+APEX1000, etc) but this is just going to be a temporary fix as we are 
+doing a total video overhaul and moving to all MPEG4 capable equipment. 
+I am a fairly experienced linux user and I figured there is a way to 
+accomplish this with linux but all of my reasearch hasn't really helped 
+so I'm reaching out to you. Has anyone ever done this? or know of any 
+good reference sites for this?
 
--- 
-Gruß aus Gelnhausen
-  Stefan Blochberger
-_______________________________________________________
+Any info would be greatly appreciated.
 
- Diese eMail kann mit Hilfe Ihrer elektronischen
- Signatur (PGP) auf Echtheit überprüft werden.
- ->> Internet-Seite: http://Stefan.Blochberger.de
-_______________________________________________________
-
- Das Wurstfingerphänomen:
- Tippst Du zwei Tasten gleichzeitig, wird derjenige
- Buchstabe auf dem Monitor erscheinen,
- den Du nicht wolltest. [Murphy's Gesetz]
-_______________________________________________________
-Nr.: 40 von 195
-
+Thanks again,
+Matt Bernardi
