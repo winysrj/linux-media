@@ -1,74 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:51534 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201Ab2AQKQb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 05:16:31 -0500
-Date: Tue, 17 Jan 2012 11:16:27 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Hans Verkuil <hansverk@cisco.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Rupert Eibauer <Rupert.Eibauer@ces.ch>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [git:v4l-dvb/for_v3.3] [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT
- documentation
-In-Reply-To: <201201171113.14927.hansverk@cisco.com>
-Message-ID: <Pine.LNX.4.64.1201171115300.21882@axis700.grange>
-References: <E1Rmmdy-0002zt-5K@www.linuxtv.org> <Pine.LNX.4.64.1201162315200.15379@axis700.grange>
- <201201171113.14927.hansverk@cisco.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:63952 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574Ab2ACMnl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 07:43:41 -0500
+Date: Tue, 3 Jan 2012 15:44:20 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Rusty Russell <rusty@rustcorp.com.au>
+Cc: lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Pawel Moll <pawel.moll@arm.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 12/15] module_param: make bool parameters really bool
+ (drivers & misc)
+Message-ID: <20120103124420.GA3626@mwanda>
+References: <87ehw6sesk.fsf@rustcorp.com.au>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="oyUTqETQ0mS9luUI"
+Content-Disposition: inline
+In-Reply-To: <87ehw6sesk.fsf@rustcorp.com.au>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans
 
-On Tue, 17 Jan 2012, Hans Verkuil wrote:
+--oyUTqETQ0mS9luUI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-> On Monday 16 January 2012 23:16:31 Guennadi Liakhovetski wrote:
-> > On Mon, 16 Jan 2012, Mauro Carvalho Chehab wrote:
-> > > This is an automatic generated email to let you know that the following
-> > > patch were queued at the http://git.linuxtv.org/media_tree.git tree:
-> > > 
-> > > Subject: [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT documentation
-> > > Author:  Hans Verkuil <hans.verkuil@cisco.com>
-> > > Date:    Wed Jan 11 07:37:54 2012 -0300
-> > 
-> > [snip]
-> > 
-> > > diff --git a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
-> > > b/Documentation/DocBook/media/v4l/vidioc-g-output.xml index
-> > > fd45f1c..4533068 100644
-> > > --- a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
-> > > +++ b/Documentation/DocBook/media/v4l/vidioc-g-output.xml
-> > > @@ -61,8 +61,9 @@ desired output in an integer and call the
-> > > 
-> > >  <constant>VIDIOC_S_OUTPUT</constant> ioctl with a pointer to this
-> > >  integer. Side effects are possible. For example outputs may support
-> > >  different video standards, so the driver may implicitly switch the
-> > >  current
-> > > 
-> > > -standard. It is good practice to select an output before querying or
-> > > -negotiating any other parameters.</para>
-> > > +standard.
-> > > +standard. Because of these possible side effects applications
-> > > +must select an output before querying or negotiating any other
-> > > parameters.</para>
-> > 
-> > something seems to be wrong here.
-> 
-> Hi Guennadi!
-> 
-> What's wrong here? I've no idea what you mean.
+> diff --git a/drivers/video/intelfb/intelfbdrv.c b/drivers/video/intelfb/i=
+ntelfbdrv.c
+> --- a/drivers/video/intelfb/intelfbdrv.c
+> +++ b/drivers/video/intelfb/intelfbdrv.c
+> @@ -230,16 +230,16 @@ MODULE_DESCRIPTION("Framebuffer driver f
+>  MODULE_LICENSE("Dual BSD/GPL");
+>  MODULE_DEVICE_TABLE(pci, intelfb_pci_table);
+> =20
+> -static int accel        =3D 1;
+> +static bool accel       =3D 1;
+>  static int vram         =3D 4;
+> -static int hwcursor     =3D 0;
+> -static int mtrr         =3D 1;
+> -static int fixed        =3D 0;
+> -static int noinit       =3D 0;
+> -static int noregister   =3D 0;
+> -static int probeonly    =3D 0;
+> -static int idonly       =3D 0;
+> -static int bailearly    =3D 0;
+> +static bool hwcursor    =3D 0;
+> +static bool mtrr        =3D 1;
+> +static bool fixed       =3D 0;
+> +static bool noinit      =3D 0;
+> +static bool noregister  =3D 0;
+> +static bool probeonly   =3D 0;
+> +static bool idonly      =3D 0;
+> +static bool bailearly   =3D 0;
 
-> > > +standard.
-> > > +standard. Because of these possible side effects applications
+bailearly should be an int here.  It's part of some ugly debug code
+where a value of 3 means bailout at point 3.  Maybe we should just
+remove it instead...
 
-doesn't seem to make much sense?
+regards,
+dan carpenter
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+--oyUTqETQ0mS9luUI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPAvgjAAoJEOnZkXI/YHqRx6EP/jovDezfg3JzgRdJA0HNNNdh
+U6Wug7WJ3JTumKizWdrwEtUz4nV/tvZkSGF5WUy5YqPRa4zAHbiBJlMzHuYMP8ci
+dnpbRp9LiBH9hrwOfTPYBwPOmQAXa/Zvq7jB/2M77kd0Wi0h/jgDv0saTC0dpgVw
+XIxFU4O9ziuZD+Yh0YcYvoJPOzLy7ifSyQm8dld0GvQ7LUXi8iBa3S5t1F7Rwlkc
+fN0jZGDDdcOZKmTINXiBaov6PaspFrAI0GxXGYX6LbM7OqECth8UtFPwwUMMAEmi
+pAOqwFXbDCjGzy5JZ3RIgtm6ccBJWE09bQFQ7EEM9A/udg5rij9zxfOXREHqdJfE
+1lKff1lAV9DenpwuEQfZ+ADqYjTpjpqWqaaTuiwvve/zJN8uginrHkIQyqjWDSC2
+hj3LBIzTnQAFgjz/CBQimGfnZZG1y0UtdTWRjI29632ImoYfgvFHMDY8y+AYuk9t
+mtK5JFSxJmw3hRrSHGDgGNmx//UzlmLab62bXM4vRvGh8z1DiswlwX7ZAmEzcI6K
+pWelV17TgsrS0h5RcqeAVGRtsNvrXVMaNG9uaOah7JUpGKIklciM4iaUdSH2drq0
+Rhuky04PyzPs5rTc3CnRU2+7NjVNvzFPD1LQ5mWUzijQmLgGgEjYIU6h9eo5MZXk
+b3zAboXTeP/CDiwAiBFE
+=ObDb
+-----END PGP SIGNATURE-----
+
+--oyUTqETQ0mS9luUI--
