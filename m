@@ -1,126 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48578 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408Ab2AHBBv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jan 2012 20:01:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 13/17] omap3isp: Configure CSI-2 phy based on platform data
-Date: Sun, 8 Jan 2012 02:02:11 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <201201061101.02843.laurent.pinchart@ideasonboard.com> <4F08CC6C.8080209@maxwell.research.nokia.com>
-In-Reply-To: <4F08CC6C.8080209@maxwell.research.nokia.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:43474 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751467Ab2ADSqf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 13:46:35 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] drxk: Fix regression introduced by commit '[media] Remove Annex A/C selection via roll-off factor'
+Date: Wed, 4 Jan 2012 19:45:58 +0100
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+Content-Disposition: inline
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201080202.11719.laurent.pinchart@ideasonboard.com>
+Message-Id: <201201041945.58852@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Fix regression introduced by commit '[media] Remove Annex A/C selection via roll-off factor'
+As a result of this commit, DVB-T tuning did not work anymore.
 
-On Saturday 07 January 2012 23:51:24 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Tuesday 20 December 2011 21:28:05 Sakari Ailus wrote:
-> >> From: Sakari Ailus <sakari.ailus@iki.fi>
-> >> 
-> >> Configure CSI-2 phy based on platform data in the ISP driver rather than
-> >> in platform code.
-> >> 
-> >> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
 
-[snip]
-
-> >> diff --git a/drivers/media/video/omap3isp/ispcsiphy.c
-> >> b/drivers/media/video/omap3isp/ispcsiphy.c index 5be37ce..f027ece 100644
-> >> --- a/drivers/media/video/omap3isp/ispcsiphy.c
-> >> +++ b/drivers/media/video/omap3isp/ispcsiphy.c
-> >> @@ -28,6 +28,8 @@
-> >> 
-> >>  #include <linux/device.h>
-> >>  #include <linux/regulator/consumer.h>
-> >> 
-> >> +#include "../../../../arch/arm/mach-omap2/control.h"
-> >> +
-> > 
-> > #include <mach/control.h>
-> > 
-> > (untested) ?
-> 
-> I'm afraid it won't work. The above directory isn't in any include path
-> and likely shouldn't be. That file is included locally elsewhere, I
-> believe.
-
-You're right, I spoke too fast.
-
-> I wonder what would be the right way to access that register definition
-> I need from the file:
-> 
-> 	OMAP343X_CTRL_BASE
-> 	OMAP3630_CONTROL_CAMERA_PHY_CTRL
-
-Maybe the file (or part of it) should be moved to an include directory ?
-
-> >>  #include "isp.h"
-> >>  #include "ispreg.h"
-> >>  #include "ispcsiphy.h"
-> >> 
-> >> @@ -138,15 +140,78 @@ static void csiphy_dphy_config(struct isp_csiphy
-> >> *phy) isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
-> >> 
-> >>  }
-> >> 
-> >> -static int csiphy_config(struct isp_csiphy *phy,
-> >> -			 struct isp_csiphy_dphy_cfg *dphy,
-> >> -			 struct isp_csiphy_lanes_cfg *lanes)
-> >> +/*
-> >> + * TCLK values are OK at their reset values
-> >> + */
-> >> +#define TCLK_TERM	0
-> >> +#define TCLK_MISS	1
-> >> +#define TCLK_SETTLE	14
-> >> +
-> >> +int omap3isp_csiphy_config(struct isp_device *isp,
-> >> +			   struct v4l2_subdev *csi2_subdev,
-> >> +			   struct v4l2_subdev *sensor,
-> >> +			   struct v4l2_mbus_framefmt *sensor_fmt)
-> >> 
-> >>  {
-> >> 
-> >> +	struct isp_v4l2_subdevs_group *subdevs = sensor->host_priv;
-> >> +	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
-> >> +	struct isp_csiphy_dphy_cfg csi2phy;
-> >> +	int csi2_ddrclk_khz;
-> >> +	struct isp_csiphy_lanes_cfg *lanes;
-> >> 
-> >>  	unsigned int used_lanes = 0;
-> >>  	unsigned int i;
-> >> 
-> >> +	u32 cam_phy_ctrl;
-> >> +
-> >> +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
-> >> +	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
-> >> +		lanes = subdevs->bus.ccp2.lanecfg;
-> >> +	else
-> >> +		lanes = subdevs->bus.csi2.lanecfg;
-> > 
-> > Shouldn't lane configuration be retrieved from the sensor instead ?
-> > Sensors could use different lane configuration depending on the mode.
-> > This could also be implemented later when needed, but I don't think it
-> > would be too difficult to get it right now.
-> 
-> I think we'd first need to standardise the CSI-2 bus configuration. I
-> don't see a practical need to make the lane configuration dynamic. You
-> could just use a lower frequency to achieve the same if you really need to.
-> 
-> Ideally it might be nice to do but there's really nothing I know that
-> required or even benefited from it --- at least for now.
-
-Does this mean that lane configuration needs to be duplicated in board code, 
-on for the SMIA++ platform data and one of the OMAP3 ISP platform data ?
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 36e1c82..13f22a1 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -6235,6 +6235,8 @@ static int drxk_set_parameters(struct dvb_frontend *fe)
+ 	case SYS_DVBC_ANNEX_C:
+ 		state->m_itut_annex_c = true;
+ 		break;
++	case SYS_DVBT:
++		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
 
 -- 
-Regards,
-
-Laurent Pinchart
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
