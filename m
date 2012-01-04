@@ -1,63 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:45627 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754449Ab2AERam (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:30:42 -0500
+Received: from rcsinet15.oracle.com ([148.87.113.117]:55065 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755234Ab2ADNec (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 08:34:32 -0500
+Date: Wed, 4 Jan 2012 16:35:18 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [patch -longterm] V4L/DVB: v4l2-ioctl: integer overflow in
+ video_usercopy()
+Message-ID: <20120104133518.GA1506@mwanda>
+References: <20111215063445.GA2424@elgon.mountain>
+ <4EE9BC25.7020303@infradead.org>
+ <201112151033.35153.hverkuil@xs4all.nl>
+ <4EE9C2E6.1060304@infradead.org>
+ <20120103205539.GC17131@kroah.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
-References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Thu, 5 Jan 2012 09:30:22 -0800
-Message-ID: <CA+55aFyYE3_bU5Gr59aSd3zZGAeGo_D66os3o9vZjyVyMhocng@mail.gmail.com>
-Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
- passthrough ioctls on partition devices)
-To: Paolo Bonzini <pbonzini@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org
-Cc: Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org,
-	security@kernel.org, pmatouse@redhat.com, agk@redhat.com,
-	jbottomley@parallels.com, mchristi@redhat.com, msnitzer@redhat.com,
-	Christoph Hellwig <hch@lst.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
+Content-Disposition: inline
+In-Reply-To: <20120103205539.GC17131@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 5, 2012 at 9:02 AM, Linus Torvalds
-<torvalds@linux-foundation.org> wrote:
->
-> Added, linux-media and Mauro to the Cc, because I'm about to commit
-> something like the attached patch to see if anything breaks. We may
-> have to revert it if things get too nasty, but we should have done
-> this years and years ago, so let's hope not.
 
-Ok, so "It works for me". I'll delay committing it in case somebody
-has some quick obvious fixes or comments (like noticing other cases
-like the blk_ioctl.c one), but on the whole I think I'll commit it
-later today, just so that it will be as early as possible in the merge
-window in case there is ENOTTY/EINVAL confusion.
+--sm4nu43k4a2Rpi4c
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-The good news is that no user space can *ever* care about
-ENOTTY/EINVAL in the "generic case", since different drivers have
-returned different error returns for years. So user space that doesn't
-know exactly what it is dealing with will pretty much by definition
-not be affected. Except perhaps in a good way - if it uses "perror()"
-or "strerror()" or similar, it will now give a much better error
-string of "Inappropriate ioctl for device".
+On Tue, Jan 03, 2012 at 12:55:39PM -0800, Greg KH wrote:
+> Ok, can someone please send me the "accepted" version of this patch for
+> inclusion in the 2.6.32-stable tree?
+>=20
 
-However, some applications don't work with "generic devices", but
-instead work with a very specific device or perhaps a very specific
-subset.
+Sorry for that.  Holidays and all.  I'll send a patch tomorrow.
 
-So the exception would be user space apps that know exactly which
-driver they are talking about, and that particular driver used to
-always return EINVAL before, and now the ENOIOCTLCMD -> ENOTTY fix
-means that it returns the proper ENOTTY - and the application has
-never seen it, and never tested against it, and breaks.
+regards,
+dan carpenter
 
-I don't *think* this happens outside of the media drivers, but we'll
-see. It may be that we will have to make certain drivers return EINVAL
-explicitly rather than ENOIOCTLCMD and add a comment about why. Sad,
-if so, so we'll have little choice. Let's see what the breakage (if
-any - cross your fingers) looks like.
 
-                               Linus
+--sm4nu43k4a2Rpi4c
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPBFWWAAoJEOnZkXI/YHqR/nEP/1tTLjhrAqvxGtp912DNgVJ3
+08fNL2NvBY8bJaiQG0jF5RQmlHMPjTlQorAO1x6nXlk1IuXcVMdoY0k5QfQ76ggm
+7k7tE+qyqQUsLzHoryAbl4FkRrjq4296xLzXWTUhz/nRO+lxbKAR+nJDuIcMtnkT
+3RrwPurmwzmYoDpbRiKgglmhIQU/vC9FLdCB/5NMJ0WYTgt5vEMVbsiPBmer+d62
+bSfY35lxqTcrX3ssUodtdiVBpneHchhsIbSEEkqhHdXAxktkQO+W7e2jpL22oc1a
+mgsopBKT6vr8Qe8lsiYEYoCcOGXF7nkgF8RkcKuh9kUJHU0iCJ6ApgO+o9GBB9M6
+iLNQ7G15YkKRjJ5RolTVJaJagUbQXzxfjsz3wQSWmod8mFAYw4I0qeK2EzJ++Slt
+RfiBtcKz7tVSb/bMck8DITOW+a/waVoIuUOnwMt8U7S5SiWtG2sffqOVSbeqOFf0
+/FjiCRKY+qgKZNOG6a0DnglID84L8PZqCg9NGakIigrEfi714vxsSROzKcexKL6K
+kKrBAjx0I6st14ZFHMCHPl4UobHD1d/RsC8OTUiPDzqwL8NTOeFt307Cb7SxVHBz
+/Fs9RIl3Uar6sDVGoTmg8x+A/eZIeb73ehe1SpAPFeWUT0uHqP2RGpNOqTwHBLXq
+kJhuKcmvBlHhmVLqSF8H
+=bxfR
+-----END PGP SIGNATURE-----
+
+--sm4nu43k4a2Rpi4c--
