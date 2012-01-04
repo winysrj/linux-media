@@ -1,68 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relay01.mx.bawue.net ([193.7.176.67]:41405 "EHLO
-	relay01.mx.bawue.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753362Ab2ANNNW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 08:13:22 -0500
-Message-ID: <4F117E07.4060202@zorglub.s.bawue.de>
-Date: Sat, 14 Jan 2012 14:07:19 +0100
-From: Eric Lavarde <deb@zorglub.s.bawue.de>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:43253 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753229Ab2ADJ7q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 04:59:46 -0500
+Received: by vbbfc26 with SMTP id fc26so13194359vbb.19
+        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 01:59:45 -0800 (PST)
 MIME-Version: 1.0
-To: Jonathan Nieder <jrnieder@gmail.com>
-CC: linux-media@vger.kernel.org,
-	Ralph Metzler <rmetzler@digitaldevices.de>,
-	Oliver Endriss <o.endriss@gmx.de>
-Subject: Re: [ddbridge] suspend-to-disk takes about a minute ("I2C timeout")
- if vdr in use on ASUS P8H67-M EVO
-References: <4ED0CD0C.7010403@zorglub.s.bawue.de> <20111212022944.GA30031@elie.hsd1.il.comcast.net> <4EE7402B.1010203@zorglub.s.bawue.de> <20111224071906.GA11131@elie.Belkin>
-In-Reply-To: <20111224071906.GA11131@elie.Belkin>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20120104093909.GA9323@valkosipuli.localdomain>
+References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
+	<20111230213301.GA3677@valkosipuli.localdomain>
+	<CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com>
+	<20111231113529.GC3677@valkosipuli.localdomain>
+	<4EFEFA08.805@gmail.com>
+	<CAHG8p1AjoV1gBhQGFm0rEYSkHrpG+XtQB7kYXc8x5nuqjW4Z4g@mail.gmail.com>
+	<20120104082742.GL3677@valkosipuli.localdomain>
+	<CAHG8p1DxPJthH8JOH9AEmLyCwas4O0f16ytk3FeknaPLnP_-2g@mail.gmail.com>
+	<20120104093909.GA9323@valkosipuli.localdomain>
+Date: Wed, 4 Jan 2012 17:59:45 +0800
+Message-ID: <CAHG8p1BmtK5dydPZxsT7hoE1JoSFsN1MsXA0qaeVQBzpCeb0VQ@mail.gmail.com>
+Subject: Re: v4l: how to get blanking clock count?
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On 24/12/11 08:19, Jonathan Nieder wrote:
->> [  570.265915] I2C timeout
->> [  570.265921] IRS 00000001
-> [...]
->> [... hundreds of line of this type ...]
+>> If I disable this interrupt, other errors like fifo underflow are ignored.
+>> Perhaps I can add a parameter in platform data to let user decide to
+>> register this interrupt or not.
 >
-> Ok, sounds like nothing good.
+> I think a more generic solution would be preferrable. If that causes
+> ignoring real errors, that's of course bad. I  wonder if there would be a
+> way around that.
 >
-> This error message comes from the ddb_i2c_cmd() function in the
-> ddbridge driver.  I don't think it's supposed to fail like that. :)
+> Is there a publicly available datasheet for the bridge that I could take a
+> look at?
 >
-> Ralph, Oliver, any hints for debugging this?  The above is with a
-> v3.1-based kernel.  More details are below, at
-> <http://bugs.debian.org/650081>, and in messages after the first one
-> at<http://bugs.debian.org/562008>.
->
-I don't want to keep you from trying to fix the problem :-) but:
-1. the ddbridge module doesn't come from the standard kernel package but 
-from [1]
-2. in the mean time, the maintainer / author (UFO, perhaps even reading 
-these lines) has stated under [2] that the modules are not meant to 
-support suspend/resume.
-
-Also, because my main issue is with not being able to get my PC to wake 
-up at a given time from the command line and _not_ with not being able 
-to suspend, and because I read that Kernel guys don't like to work on 
-"dirty" kernels, I have now a dual boot setup between "pure kernel" and 
-"dirty kernel with ddbridge".
-Let me know if I can do anything to bring forward the resolution of any 
-issue reported. And don't forget to tell me with which Kernel I should test.
-
-This said, I don't see any noticeable difference between both kernels in 
-regard of not waking up...
-
-Eric
-
-Links (in German, let me know if I need to translate something):
-
-[1] 
-http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/105803-aktuelle-treiber-f%C3%BCr-octopus-ddbridge-cines2-ngene-ddbridge-duoflex-s2-duoflex-ct-cinect-sowie-tt-s2-6400/
-
-[2] 
-http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p1046383-aktuelle-treiber-f%C3%BCr-octopus-ddbridge-cines2-ngene-ddbridge-duoflex-s2-duoflex-ct-cinect-sowie-tt-s2-6400/#post1046383
+Yes, http://www.analog.com/en/processors-dsp/blackfin/adsp-bf548/processors/technical-documentation/index.html.
+There is a hardware reference manual for bf54x, bridge is eppi.
