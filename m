@@ -1,61 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:52847 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753628Ab2APJBT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 04:01:19 -0500
-Date: Mon, 16 Jan 2012 09:01:10 +0000
-From: Mel Gorman <mel@csn.ul.ie>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 04/11] mm: page_alloc: introduce alloc_contig_range()
-Message-ID: <20120116090110.GA2929@csn.ul.ie>
-References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
- <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
- <20120110141613.GB3910@csn.ul.ie>
- <op.v71gpt1b3l0zgt@mpn-glaptop>
+Received: from moutng.kundenserver.de ([212.227.17.10]:52821 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750791Ab2ADROG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 12:14:06 -0500
+Date: Wed, 4 Jan 2012 18:13:58 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <201201041801.08322.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1201041808260.30506@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+ <CACKLOr0FxA72dhkjnVHCiWuT-VGYpcdk6WX9ubWoAnLkm7gnBQ@mail.gmail.com>
+ <Pine.LNX.4.64.1201041717130.30506@axis700.grange>
+ <201201041801.08322.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <op.v71gpt1b3l0zgt@mpn-glaptop>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 13, 2012 at 09:04:31PM +0100, Michal Nazarewicz wrote:
-> >On Thu, Dec 29, 2011 at 01:39:05PM +0100, Marek Szyprowski wrote:
-> >>From: Michal Nazarewicz <mina86@mina86.com>
-> >>+	/* Make sure all pages are isolated. */
-> >>+	if (!ret) {
-> >>+		lru_add_drain_all();
-> >>+		drain_all_pages();
-> >>+		if (WARN_ON(test_pages_isolated(start, end)))
-> >>+			ret = -EBUSY;
-> >>+	}
-> 
-> On Tue, 10 Jan 2012 15:16:13 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> >Another global IPI seems overkill. Drain pages only from the local CPU
-> >(drain_pages(get_cpu()); put_cpu()) and test if the pages are isolated.
-> 
-> Is get_cpu() + put_cpu() required? Won't drain_local_pages() work?
-> 
+On Wed, 4 Jan 2012, Laurent Pinchart wrote:
 
-drain_local_pages() calls smp_processor_id() without preemption
-disabled. 
+> Hi Guennadi,
+> 
+> On Wednesday 04 January 2012 17:35:27 Guennadi Liakhovetski wrote:
+> > On Wed, 4 Jan 2012, javier Martin wrote:
+> > 
+> > [snip]
+> > 
+> > > For ov7725 it is a natural thing to do since it was originally
+> > > developed for soc-camera and it can easily do the following to access
+> > > platform data:
+> > > 
+> > > struct soc_camera_link	*icl = soc_camera_i2c_to_link(client);
+> > > pdata = icl->priv;
+> > > 
+> > > However, tvp5150 is not aware about soc_camera. I should be able to
+> > > tell whether it's being used with soc-camera or not. If soc camera was
+> > > used I would do the previous method to retrieve platform data.
+> > > But if soc-camera was not used I would do the classic method:
+> > > 
+> > > struct tvp5150_platform_data *pdata = client->dev.platform_data;
+> > > 
+> > > The problem is how to distinguish in tvp5150 whether I am using
+> > > soc_camera or not.
+> > 
+> > Right, that _is_ the problem now. And we've known about it since the very
+> > first time we started to think about re-using the subdev drivers. The only
+> > solution I see so far is to introduce a standard platform data struct for
+> > all subdevices, similar to soc_camera_link. We could use it as a basis, of
+> > course, use a generic name, maybe reconsider fields - rename / remove /
+> > add, but the principle would be the same: a standard platform data struct
+> > with an optional private field.
+> 
+> Why is that needed ? Why can't a tvp5150-specific platform data structure do ?
 
--- 
-Mel Gorman
-SUSE Labs
+Javier has actually explained this already. Ok, again: he wants to use 
+tvp5150 with an soc-camera host driver, i.e., with the soc-camera 
+subsystem. And the soc-camera core sets board_info->platform_data itself 
+to a pointer to the struct soc_camera_link instance.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
