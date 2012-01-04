@@ -1,130 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:28617 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185Ab2ACJ0u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 04:26:50 -0500
-Received: from epcpsbgm1.samsung.com (mailout2.samsung.com [203.254.224.25])
- by mailout2.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LX7001FPU8M8XD0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Jan 2012 18:26:49 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LX7001LIU8KYC70@mmp2.samsung.com>
- for linux-media@vger.kernel.org; Tue, 03 Jan 2012 18:26:49 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, mchehab@redhat.com,
-	'Hans Verkuil' <hans.verkuil@cisco.com>
-References: <1324994844-9883-1-git-send-email-k.debski@samsung.com>
- <201201030214.07855.laurent.pinchart@ideasonboard.com>
-In-reply-to: <201201030214.07855.laurent.pinchart@ideasonboard.com>
-Subject: RE: [PATCH] s5p-mfc: Fix volatile controls setup
-Date: Tue, 03 Jan 2012 10:26:43 +0100
-Message-id: <008201ccc9f9$d17558b0$74600a10$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+Received: from smtp-68.nebula.fi ([83.145.220.68]:48125 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755425Ab2ADUjk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 15:39:40 -0500
+Date: Wed, 4 Jan 2012 22:39:34 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"HeungJun, Kim" <riverful.kim@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
+	Hans de Goede <hdegoede@redhat.com>,
+	Luca Risolia <luca.risolia@studio.unibo.it>
+Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
+ control
+Message-ID: <20120104203933.GJ9323@valkosipuli.localdomain>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+ <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
+ <4EFB1B04.6060305@gmail.com>
+ <201112281451.39399.laurent.pinchart@ideasonboard.com>
+ <20111229233406.GU3677@valkosipuli.localdomain>
+ <4EFD8F0F.6060505@gmail.com>
+ <20111230204144.GX3677@valkosipuli.localdomain>
+ <4F007DED.4070201@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4F007DED.4070201@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sylwester,
 
-Thanks for pointing this out, my comment is below.
-Hans, I would be grateful if you could also read this and comment :)
-
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: 03 January 2012 02:14
+On Sun, Jan 01, 2012 at 04:38:21PM +0100, Sylwester Nawrocki wrote:
+> On 12/30/2011 09:41 PM, Sakari Ailus wrote:
+> > On Fri, Dec 30, 2011 at 11:14:39AM +0100, Sylwester Nawrocki wrote:
+> >> On 12/30/2011 12:34 AM, Sakari Ailus wrote:
+> >>> On Wed, Dec 28, 2011 at 02:51:38PM +0100, Laurent Pinchart wrote:
+> >>>> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
+> >>>>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
+> >>>>>> It adds the new CID for setting White Balance Preset. This CID is
+> >>>>>> provided as menu type using the following items:
+> >>>>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
+> >>>>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
+> >>>>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
+> >>>>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
+> >>>>>> 4 - V4L2_WHITE_BALANCE_SHADE,
+> >>>>>
+> >>>>> I have been also investigating those white balance presets recently and
+> >>>>> noticed they're also needed for the pwc driver. Looking at
+> >>>>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
+> >>>>>
+> >>>>> const char * const pwc_auto_whitebal_qmenu[] = {
+> >>>>> 	"Indoor (Incandescant Lighting) Mode",
+> >>>>> 	"Outdoor (Sunlight) Mode",
+> >>>>> 	"Indoor (Fluorescent Lighting) Mode",
+> >>>>> 	"Manual Mode",
+> >>>>> 	"Auto Mode",
+> >>>>> 	NULL
+> >>>>> };
+> >>>>>
+> >>>>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
+> >>>>> 	.ops	= &pwc_ctrl_ops,
+> >>>>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
+> >>>>> 	.type	= V4L2_CTRL_TYPE_MENU,
+> >>>>> 	.max	= awb_auto,
+> >>>>> 	.qmenu	= pwc_auto_whitebal_qmenu,
+> >>>>> };
+> >>>>>
+> >>>>> ...
+> >>>>>
+> >>>>> 	cfg = pwc_auto_white_balance_cfg;
+> >>>>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
+> >>>>> 	cfg.def = def;
+> >>>>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
+> >>>>>
+> >>>>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
+> >>>>> with custom entries. That's interesting... However it works in practice
+> >>>>> and applications have access to what's provided by hardware.
+> >>>>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
+> >>>>> that :)
+> >>>>>
+> >>>>> Nevertheless, redefining standard controls in particular drivers sounds
+> >>>>> a little dubious. I wonder if this is a generally agreed approach ?
+> >>>>
+> >>>> No agreed with me at least :-)
+> >>>>
+> >>>>> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
+> >>>>> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE need
+> >>>>> to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
+> >>>>
+> >>>> Is the preset a fixed white balance setting, or is it an auto white balance 
+> >>>> with the algorithm tuned for a particular configuration ? In the first case, 
+> >>>> does it correspond to a fixed white balance temperature value ?
+> >>>
+> >>> While I'm waiting for a final answer to this, I guess it's the second. There
+> >>> are three things involved here:
+> >>>
+> >>> - V4L2_CID_WHITE_BALANCE_TEMPERATURE: relatively low level control telling
+> >>>   the colour temperature of the light source. Setting a value for this
+> >>>   essentially means using manual white balance.
+> >>>
+> >>> - V4L2_CID_AUTO_WHITE_BALANCE: automatic white balance enabled or disabled.
+> >>
+> >> Was the third thing the V4L2_CID_DO_WHITE_BALANCE control that you wanted to
+> >> say ? It's also quite essential functionality, to be able to fix white balance
+> >> after pointing camera to a white object. And I would expect
+> >> V4L2_CID_WHITE_BALANCE_PRESET control's documentation to state how an
+> >> interaction with V4L2_CID_DO_WHITE_BALANCE looks like.
+> > 
+> > I expected the new control to be the third thing as configuration for the
+> > awb algorithm, which it turned out not to be.
+> > 
+> > I don't quite understand the purpose of the do_white_balance; the automatic
+> > white balance algorithm is operational until it's disabled, and after
+> > disabling it the white balance shouldn't change. What is the extra
+> > functionality that the do_white_balance control implements?
 > 
-> Hi Kamil,
+> Maybe DO_WHITE_BALANCE was inspired by some hardware's behaviour, I don't
+> know. I have nothing against this control. It allows you to perform one-shot
+> white balance in a given moment in time. Simple and clear.
+
+Well, yes, if you have an automatic white balance algorithm which supports
+"one-shot" mode. Typically it's rather a feedback loop. I guess this means
+"just run one iteration".
+
+Something like this should possibly be used to get the white balance correct
+by pointing the camera to an object of known colour (white typically, I
+think). But this isn't it, at least based on the description in the spec.
+
+> > If we agree white_balance_preset works at the same level as
+> > white_balance_temerature control, this becomes more simple. I guess no
+> > driver should implement both.
 > 
-> On Tuesday 27 December 2011 15:07:24 Kamil Debski wrote:
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > ---
-> >  drivers/media/video/s5p-mfc/s5p_mfc_dec.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> >
-> > diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> > b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c index 844a4d7..c25ec02 100644
-> > --- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> > +++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> > @@ -165,7 +165,7 @@ static struct mfc_control controls[] = {
-> >  		.maximum = 32,
-> >  		.step = 1,
-> >  		.default_value = 1,
-> > -		.flags = V4L2_CTRL_FLAG_VOLATILE,
-> > +		.is_volatile = 1,
-> >  	},
-> >  };
+> Yes, AFAIU those presets are just WB temperature, with names instead
+> of numbers. Thus it doesn't make much sense to expose both at the driver.
 > 
-> Why so ? is_volatile got removed in commit
-> 88365105d683187e02a4f75220eaf51fd0c0b6e0.
-> 
+> But in manual white balance mode camera could be switched to new WB value,
+> with component gain/balance controls, DO_WHITE_BALANCE or whatever, rendering
+> the preset setting invalid. Should we then have an invalid/unknown item in
+> the presets menu ? This would be only allowed to set by driver, i.e. read-only
+> for applications. If device provide multiple means for setting white balance
+> it is quite likely that at some point wb might not match any preset.
 
-Yep, this commit broke MFC, as after it has been applied volatile flag was not
-set for any of the controls. 
+That's very true. I think an "undefined" menu item would be an option, at
+least I can't think of a better one right now.
 
->From 88365105d683187e02a4f75220eaf51fd0c0b6e0.
------------------- drivers/media/video/s5p-mfc/s5p_mfc_dec.c ------------------
-index 32f8989..bfbe084 100644
-@@ -165,7 +165,7 @@ static struct mfc_control controls[] = {
- 		.maximum = 32,
- 		.step = 1,
- 		.default_value = 1,
--		.is_volatile = 1,
-+		.flags = V4L2_CTRL_FLAG_VOLATILE,
- 	},
- };
- 
-@@ -1020,7 +1020,7 @@ int s5p_mfc_dec_ctrls_setup(struct s5p_mfc_ctx *ctx)
- 			return ctx->ctrl_handler.error;
- 		}
- 		if (controls[i].is_volatile && ctx->ctrls[i])
--			ctx->ctrls[i]->is_volatile = 1;
-+			ctx->ctrls[i]->flags |= V4L2_CTRL_FLAG_VOLATILE;
- 	}
- 	return 0;
- }
+> Having auto, manual and presets in one menu control wouldn't require that,
+> but we rather can't just change the V4L2_CID_WHITE_BALANCE control type now.
 
-See? In the controls array the is_volatile field was no longer set, but it was
-used
-in the s5p_mfc_dec_ctrls_setup. Thus is was always 0.
+In that case, "manual" would be just another name for "unknown" in case
+where automatic white balance has been turned off.
 
-The v4l2_ctrl_new_custom/v4l2_ctrl_new_std functions set the flags field
-(which is done in v4l2_ctrl_fill).
-It is also possible to |= the flag with the current contents of the field.
+Also, as Hans noted, colour temperature is just one way to specify white
+balance. I guess that to achieve a perfect result we should acquire the
+whole spectrum for each pixel, and make an estimation on the spectrum of the
+light source. That doesn't sound feasible. :-)
 
--		if (controls[i].is_volatile && ctx->ctrls[i])
-+		if (ctx->ctrls[i])
--			ctx->ctrls[i]->flags |= V4L2_CTRL_FLAG_VOLATILE;
-+			ctx->ctrls[i]->flags |= controls[i].flags;
-This is possible, as it would set all the flags set in controls[] array.
+But there are other options than just colour temperature. That still might
+be the only really practical one for the end user.
 
-Also checking for V4L2_CTRL_FLAG_VOLATILE in controls[x].flags and then setting
-ctx->ctrls[i]->flags |= V4L2_CTRL_FLAG_VOLATILE is possible, but I think it is
-not
-necessary. The above solution should work fine as well. 
+Cheers,
 
-The thing is that I did not notice Hans's commit and thought that it was my
-mistake in MFC.
-Thus I have fixed it in the simplest way. (It would be nice if I had been added
-to CC of that patch)
-
-Hans, if you could comment on which from the aforementioned solutions do you find
-the best?
-The one from my commit, or the proposed above?
-
-Also - maybe VOLATILE flag for V4L2_CID_MIN_BUFFERS_FOR_CAPTURE should be set in
-v4l2_ctrl_fill?
-Though I am not sure it would be the case for all devices.
-
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
