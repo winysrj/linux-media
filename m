@@ -1,24 +1,29 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:47888 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751770Ab2ASNoJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 08:44:09 -0500
-Received: by eekc14 with SMTP id c14so1327545eek.19
-        for <linux-media@vger.kernel.org>; Thu, 19 Jan 2012 05:44:08 -0800 (PST)
-From: Gregor Jasny <gjasny@googlemail.com>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] keytable: Fix copy and paste error for SANYO IR protocol
-Date: Thu, 19 Jan 2012 14:42:42 +0100
-Message-Id: <1326980563-8194-1-git-send-email-gjasny@googlemail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60402 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754338Ab2ADOIh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 09:08:37 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: I2C and SPI subdevs unregistration
+Date: Wed, 4 Jan 2012 15:08:52 +0100
+Cc: linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201041508.53792.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Hans,
 
-There seems to be a copy and paste error in the Sanyo protocol handling.
-Please commit or ack this patch.
+Do you know why I2C and SPI devices are unregistered in 
+v4l2_device_unregister() but not in v4l2_device_unregister_subdev() ? If I 
+call the later manually before calling v4l2_device_unregister(), the I2C and 
+SPI devices won't be unregistered. Is that expected ?
 
-Thanks,
-Gregor
+-- 
+Regards,
+
+Laurent Pinchart
