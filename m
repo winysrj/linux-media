@@ -1,48 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:41555 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751033Ab2AUMcY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 07:32:24 -0500
-Message-ID: <4F1AB053.109@gmail.com>
-Date: Sat, 21 Jan 2012 13:32:19 +0100
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Axel Lin <axel.lin@gmail.com>
-CC: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andrew Chew <achew@nvidia.com>,
-	Paul Mundt <lethal@linux-sh.org>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Johannes Obermaier <johannes.obermaier@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] convert drivers/media/* to use module_i2c_driver()
-References: <1327140645.3928.1.camel@phoenix>
-In-Reply-To: <1327140645.3928.1.camel@phoenix>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:51244 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754978Ab2ADDWq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 22:22:46 -0500
+Received: by ggdk6 with SMTP id k6so10125260ggd.19
+        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 19:22:45 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, Fabio Estevam <festevam@gmail.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH] drivers: media: tuners: Fix dependency for MEDIA_TUNER_TEA5761
+Date: Wed,  4 Jan 2012 01:22:27 -0200
+Message-Id: <1325647347-14564-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/21/2012 11:10 AM, Axel Lin wrote:
-> This patch converts the drivers in drivers/media/* to use the
-> module_i2_driver() macro which makes the code smaller and a bit simpler.
-> 
-> Signed-off-by: Axel Lin<axel.lin@gmail.com>
+Fix the following build warning:
 
-For s5k6aa, noon010pc30, sr030pc30, m5mols modules,
+warning: (MEDIA_TUNER) selects MEDIA_TUNER_TEA5761 which has unmet direct 
+dependencies (MEDIA_SUPPORT && VIDEO_MEDIA && I2C && EXPERIMENTAL)
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+ drivers/media/common/tuners/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
---
-Thanks,
-Sylwester
+diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
+index 996302a..eb5f61e 100644
+--- a/drivers/media/common/tuners/Kconfig
++++ b/drivers/media/common/tuners/Kconfig
+@@ -26,7 +26,7 @@ config MEDIA_TUNER
+ 	select MEDIA_TUNER_XC4000 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_MT20XX if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TDA8290 if !MEDIA_TUNER_CUSTOMISE
+-	select MEDIA_TUNER_TEA5761 if !MEDIA_TUNER_CUSTOMISE
++	select MEDIA_TUNER_TEA5761 if !MEDIA_TUNER_CUSTOMISE && EXPERIMENTAL
+ 	select MEDIA_TUNER_TEA5767 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TDA9887 if !MEDIA_TUNER_CUSTOMISE
+-- 
+1.7.1
+
