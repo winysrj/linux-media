@@ -1,147 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:22400 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933921Ab2AKV1M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:27:12 -0500
+Received: from smtp-68.nebula.fi ([83.145.220.68]:37170 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756825Ab2ADVHN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 16:07:13 -0500
+Date: Wed, 4 Jan 2012 23:07:08 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH 02/23] v4l: Document integer menu controls
-Date: Wed, 11 Jan 2012 23:26:39 +0200
-Message-Id: <1326317220-15339-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F0DFE92.80102@iki.fi>
-References: <4F0DFE92.80102@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"HeungJun, Kim" <riverful.kim@samsung.com>,
+	linux-media@vger.kernel.org, mchehab@redhat.com,
+	hverkuil@xs4all.nl, s.nawrocki@samsung.com,
+	kyungmin.park@samsung.com
+Subject: Re: [RFC PATCH 0/4] Add some new camera controls
+Message-ID: <20120104210708.GK9323@valkosipuli.localdomain>
+References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
+ <201112281501.25091.laurent.pinchart@ideasonboard.com>
+ <4EFD9E10.1050407@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EFD9E10.1050407@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
- 3 files changed, 54 insertions(+), 2 deletions(-)
+Hi Sylwester,
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index b68698f..985c536 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2379,6 +2379,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
-       </orderedlist>
-     </section>
- 
-+    <section>
-+      <title>V4L2 in Linux 3.4</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added integer menus, the new type will be
-+	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
-+
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
- 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index 2ab365c..8646fbc 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -128,6 +128,13 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
- 
-       <revision>
-+	<revnumber>3.4</revnumber>
-+	<date>2011-11-24</date>
-+	<authorinitials>sa</authorinitials>
-+	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
-+      </revision>
-+
-+      <revision>
- 	<revnumber>3.2</revnumber>
- 	<date>2011-08-26</date>
- 	<authorinitials>hv</authorinitials>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 0ac0057..02064b0 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -215,11 +215,12 @@ the array to zero.</entry>
- 
-     <table pgwide="1" frame="none" id="v4l2-querymenu">
-       <title>struct <structname>v4l2_querymenu</structname></title>
--      <tgroup cols="3">
-+      <tgroup cols="4">
- 	&cs-str;
- 	<tbody valign="top">
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>id</structfield></entry>
- 	    <entry>Identifies the control, set by the application
- from the respective &v4l2-queryctrl;
-@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>index</structfield></entry>
- 	    <entry>Index of the menu item, starting at zero, set by
- 	    the application.</entry>
- 	  </row>
- 	  <row>
-+	    <entry>union</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
- 	    <entry><structfield>name</structfield>[32]</entry>
- 	    <entry>Name of the menu item, a NUL-terminated ASCII
--string. This information is intended for the user.</entry>
-+string. This information is intended for the user. This field is valid
-+for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s64</entry>
-+	    <entry><structfield>value</structfield></entry>
-+	    <entry>
-+              Value of the integer menu item. This field is valid for
-+              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
-+              controls.
-+            </entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>reserved</structfield></entry>
- 	    <entry>Reserved for future extensions. Drivers must set
- the array to zero.</entry>
-@@ -292,6 +313,20 @@ the menu items can be enumerated with the
- <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
-+	    <entry>&ge; 0</entry>
-+	    <entry>1</entry>
-+	    <entry>N-1</entry>
-+	    <entry>
-+              The control has a menu of N choices. The values of the
-+              menu items can be enumerated with the
-+              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
-+              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
-+              except that instead of strings, the menu items are
-+              signed 64-bit integers.
-+            </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
- 	    <entry>0</entry>
- 	    <entry>n/a</entry>
+On Fri, Dec 30, 2011 at 12:18:40PM +0100, Sylwester Nawrocki wrote:
+> On 12/28/2011 03:01 PM, Laurent Pinchart wrote:
+> > On Wednesday 28 December 2011 07:23:44 HeungJun, Kim wrote:
+> >> This RFC patch series include new 4 controls ID for digital camera.
+> >> I about to suggest these controls by the necessity enabling the M-5MOLS
+> >> sensor's function, and I hope to discuss this in here.
+> > 
+> > Thanks for the patches.
+> > 
+> > The new controls introduced by these patches are very high level. Should they 
+> > be put in their own class ? I also think we should specify how those high-
+> > level controls interact with low-level controls, otherwise applications will 
+> > likely get very confused.
+> 
+> I agree we may need a separate control class for those high-level controls.
+> They are mostly applicable to software ISP algorithms, run either on digital
+> signal processor embedded in the sensor or on a processor being part of an SoC.
+> 
+> Thus we would three levels of controls for camera,
+>  1) image source class (lowest possible level), dealing mostly with hardware
+>     registers;
+
+I intended the image source class for controls which only deal with the a/d
+conversion itself. Other controls would be elsewhere.
+
+There hasn't been a final decision on this yet, but an alternative which has
+been also discussed is just to call this a "low level" control class.
+
+>  2) "normal" camera controls (V4L2_CID_CAMERA_CLASS) [2];
+>  3) high level camera controls (for camera software algorithms)
+
+Almost all the automatic anything algorithms are impelemented in software.
+But when software is involved, the possibilities are mostly limitless; it's
+a matter of imagination what kind of interesting white balance algorithms 
+
+> plus some camera controls are in the user controls class. I'm not sure why there
+> are camera controls in the user control class, perhaps there was no camera
+> class yet at the time V4L2_CID_EXPOSURE or V4L2_CID_BACKLIGHT_COMPENSATION were
+> added. I might be missing something else.
+
+The camera control class is relatively new, so that's likely what happened.
+
+Speaking of the classes --- I could resend my patch which allows changing
+controls in different classes in the same s_ext_ctrls call --- I looked at
+it some time ago and no driver had any limitations on this; it's just the
+documentation and the control framework which do.
+
+> I'm afraid a little it might be hard to distinguish if some control should
+> belong to 2) or 3), as sensors' logic complexity and advancement varies.
+
+I can see two main use cases:
+
+1. V4L2 / V4L2 subdev / MC as the low level API for camera control and
+
+2. Regular V4L2 applications.
+
+For most controls it's clear which of the two classes they belong to.
+
+> Although I can see an advantage of logically separating controls which have
+> influence on one or more other (lower level) controls. And separate control
+> class would be helpful in that.
+> 
+> The candidates to such control class might be:
+> 
+> * V4L2_CID_METERING_MODE,
+> * V4L2_CID_EXPOSURE_BIAS,
+> * V4L2_CID_ISO,
+> * V4L2_CID_WHITE_BALANCE_PRESET,
+> * V4L2_CID_SCENEMODE,
+> * V4L2_CID_WDR,
+> * V4L2_CID_ANTISHAKE,
+
+The list looks good to me.
+
+Cheers,
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
