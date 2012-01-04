@@ -1,129 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:21391 "EHLO mgw-sa02.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:20321 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932545Ab2AKV05 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:26:57 -0500
-Message-ID: <4F0DFE92.80102@iki.fi>
-Date: Wed, 11 Jan 2012 23:26:42 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	id S1751467Ab2ADSuR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 13:50:17 -0500
+Message-ID: <4F049F60.5040509@redhat.com>
+Date: Wed, 04 Jan 2012 16:50:08 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <dacohen@gmail.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
-	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com
-Subject: [PATCH 0/23] V4L2 subdev and sensor control changes, SMIA++ driver
- and N9 camera board code
-Content-Type: text/plain; charset=ISO-8859-1
+To: gennarone@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 16/47] [media] tuner-xc2028: use DVBv5 parameters on
+ set_params()
+References: <1324741852-26138-1-git-send-email-mchehab@redhat.com> <1324741852-26138-2-git-send-email-mchehab@redhat.com> <1324741852-26138-3-git-send-email-mchehab@redhat.com> <1324741852-26138-4-git-send-email-mchehab@redhat.com> <1324741852-26138-5-git-send-email-mchehab@redhat.com> <1324741852-26138-6-git-send-email-mchehab@redhat.com> <1324741852-26138-7-git-send-email-mchehab@redhat.com> <1324741852-26138-8-git-send-email-mchehab@redhat.com> <1324741852-26138-9-git-send-email-mchehab@redhat.com> <1324741852-26138-10-git-send-email-mchehab@redhat.com> <1324741852-26138-11-git-send-email-mchehab@redhat.com> <1324741852-26138-12-git-send-email-mchehab@redhat.com> <1324741852-26138-13-git-send-email-mchehab@redhat.com> <1324741852-26138-14-git-send-email-mchehab@redhat.com> <1324741852-26138-15-git-send-email-mchehab@redhat.com> <1324741852-26138-16-git-send-email-mchehab@redhat.com> <1324741852-26138-17-git-send-email-mchehab@redhat.com> <4F02065E.4060406@gmail.com>
+In-Reply-To: <4F02065E.4060406@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+On 02-01-2012 17:32, Gianluca Gennari wrote:
+> Il 24/12/2011 16:50, Mauro Carvalho Chehab ha scritto:
+>> Instead of using DVBv3 parameters, rely on DVBv5 parameters to
+>> set the tuner.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>  drivers/media/common/tuners/tuner-xc2028.c |   83 ++++++++++++----------------
+>>  1 files changed, 36 insertions(+), 47 deletions(-)
+>>
+>> diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+>> index e531267..8c0dc6a1 100644
+>> --- a/drivers/media/common/tuners/tuner-xc2028.c
+>> +++ b/drivers/media/common/tuners/tuner-xc2028.c
+>> @@ -1087,65 +1087,26 @@ static int xc2028_set_analog_freq(struct dvb_frontend *fe,
+>>  static int xc2028_set_params(struct dvb_frontend *fe,
+>>  			     struct dvb_frontend_parameters *p)
+>>  {
+>> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>> +	u32 delsys = c->delivery_system;
+>> +	u32 bw = c->bandwidth_hz;
+>>  	struct xc2028_data *priv = fe->tuner_priv;
+>>  	unsigned int       type=0;
+>> -	fe_bandwidth_t     bw = BANDWIDTH_8_MHZ;
+>>  	u16                demod = 0;
+>>  
+>>  	tuner_dbg("%s called\n", __func__);
+>>  
+>> -	switch(fe->ops.info.type) {
+>> -	case FE_OFDM:
+>> -		bw = p->u.ofdm.bandwidth;
+>> +	switch (delsys) {
+>> +	case SYS_DVBT:
+>> +	case SYS_DVBT2:
+>>  		/*
+>>  		 * The only countries with 6MHz seem to be Taiwan/Uruguay.
+>>  		 * Both seem to require QAM firmware for OFDM decoding
+>>  		 * Tested in Taiwan by Terry Wu <terrywu2009@gmail.com>
+>>  		 */
+>> -		if (bw == BANDWIDTH_6_MHZ)
+>> +		if (bw <= 6000000)
+>>  			type |= QAM;
+>> -		break;
+>> -	case FE_ATSC:
+>> -		bw = BANDWIDTH_6_MHZ;
+>> -		/* The only ATSC firmware (at least on v2.7) is D2633 */
+>> -		type |= ATSC | D2633;
+>> -		break;
+>> -	/* DVB-S and pure QAM (FE_QAM) are not supported */
+>> -	default:
+>> -		return -EINVAL;
+>> -	}
+>> -
+>> -	switch (bw) {
+>> -	case BANDWIDTH_8_MHZ:
+>> -		if (p->frequency < 470000000)
+>> -			priv->ctrl.vhfbw7 = 0;
+>> -		else
+>> -			priv->ctrl.uhfbw8 = 1;
+>> -		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV8;
+>> -		type |= F8MHZ;
+>> -		break;
+>> -	case BANDWIDTH_7_MHZ:
+>> -		if (p->frequency < 470000000)
+>> -			priv->ctrl.vhfbw7 = 1;
+>> -		else
+>> -			priv->ctrl.uhfbw8 = 0;
+>> -		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV7;
+>> -		type |= F8MHZ;
+>> -		break;
+>> -	case BANDWIDTH_6_MHZ:
+>> -		type |= DTV6;
+>> -		priv->ctrl.vhfbw7 = 0;
+>> -		priv->ctrl.uhfbw8 = 0;
+>> -		break;
+>> -	default:
+>> -		tuner_err("error: bandwidth not supported.\n");
+>> -	};
+>>  
+>> -	/*
+>> -	  Selects between D2633 or D2620 firmware.
+>> -	  It doesn't make sense for ATSC, since it should be D2633 on all cases
+>> -	 */
+>> -	if (fe->ops.info.type != FE_ATSC) {
+>>  		switch (priv->ctrl.type) {
+>>  		case XC2028_D2633:
+>>  			type |= D2633;
+>> @@ -1161,6 +1122,34 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+>>  			else
+>>  				type |= D2620;
+>>  		}
+>> +		break;
+>> +	case SYS_ATSC:
+>> +		/* The only ATSC firmware (at least on v2.7) is D2633 */
+>> +		type |= ATSC | D2633;
+>> +		break;
+>> +	/* DVB-S and pure QAM (FE_QAM) are not supported */
+>> +	default:
+>> +		return -EINVAL;
+>> +	}
+>> +
+>> +	if (bw <= 6000000) {
+>> +		type |= DTV6;
+>> +		priv->ctrl.vhfbw7 = 0;
+>> +		priv->ctrl.uhfbw8 = 0;
+>> +	} else if (bw <= 7000000) {
+>> +		if (c->frequency < 470000000)
+>> +			priv->ctrl.vhfbw7 = 1;
+>> +		else
+>> +			priv->ctrl.uhfbw8 = 0;
+>> +		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV7;
+>> +		type |= F8MHZ;
+>> +	} else {
+>> +		if (c->frequency < 470000000)
+>> +			priv->ctrl.vhfbw7 = 0;
+>> +		else
+>> +			priv->ctrl.uhfbw8 = 1;
+>> +		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV8;
+>> +		type |= F8MHZ;
+>>  	}
+>>  
+>>  	/* All S-code tables need a 200kHz shift */
+>> @@ -1185,7 +1174,7 @@ static int xc2028_set_params(struct dvb_frontend *fe,
+>>  		 */
+>>  	}
+>>  
+>> -	return generic_set_freq(fe, p->frequency,
+>> +	return generic_set_freq(fe, c->frequency,
+>>  				V4L2_TUNER_DIGITAL_TV, type, 0, demod);
+>>  }
+>>  
+> 
+> Hi Mauro,
+> I've tested the new media_build tree with the DVBv5 modifications on my
+> Terratec Cinergy Hybrid T USB XS (0ccd:0042).
+> 
+> The card works fine, but there is small issue: with the old code the
+> BASE firmware was loaded only 1 time, now it seems to be loaded each
+> time a new frequency is tuned (forcing reload of the other firmwares too).
+> 
+> This is a log of the firmware loads after some channel surfing:
+> 
+> OLD CODE:
+> 
+> [ 8701.753768] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
+> (7), id 0000000000000000.
+> [ 8702.804153] xc2028 0-0061: Loading firmware for type=D2633 DTV7 (90),
+> id 0000000000000000.
+> [ 8702.819274] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> [ 8758.361730] xc2028 0-0061: Loading firmware for type=D2633 DTV78
+> (110), id 0000000000000000.
+> [ 8758.376951] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> 
+> (note that the first frequency was in VHF band, then I switched to a new
+> frequency in UHF band, so the DTV78 firmware was loaded)
+> 
+> NEW CODE:
+> 
+> [19398.450453] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
+> (7), id 0000000000000000.
+> [19399.563210] xc2028 0-0061: Loading firmware for type=D2633 DTV8
+> (210), id 0000000000000000.
+> [19399.579467] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> [19458.001144] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
+> (7), id 0000000000000000.
+> [19459.084473] xc2028 0-0061: Loading firmware for type=D2633 DTV8
+> (210), id 0000000000000000.
+> [19459.100183] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> [19471.695347] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
+> (7), id 0000000000000000.
+> [19472.763449] xc2028 0-0061: Loading firmware for type=D2633 DTV8
+> (210), id 0000000000000000.
+> [19472.780660] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> [19497.928003] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
+> (7), id 0000000000000000.
+> [19498.999729] xc2028 0-0061: Loading firmware for type=D2633 DTV8
+> (210), id 0000000000000000.
+> [19499.015212] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> [19510.258833] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
+> (7), id 0000000000000000.
+> [19511.346135] xc2028 0-0061: Loading firmware for type=D2633 DTV78
+> (110), id 0000000000000000.
+> [19511.361506] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> [19523.956877] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
+> (7), id 0000000000000000.
+> [19525.028394] xc2028 0-0061: Loading firmware for type=D2633 DTV78
+> (110), id 0000000000000000.
+> [19525.044622] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> [19538.526806] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
+> (7), id 0000000000000000.
+> [19539.602083] xc2028 0-0061: Loading firmware for type=D2633 DTV78
+> (110), id 0000000000000000.
+> [19539.617613] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
+> DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+> 
+> (here I started with a UHF frequency, but each time a new frequency is
+> requested all firmwares are loaded anyway, starting from the BASE one).
 
-This the second version of my patchset that contains:
+Weird. This patch preserves the logic that decides what firmware should be
+used.
 
-- Integer menu controls [2],
-- Selection IOCTL for subdevs [3],
-- Sensor control changes [5,7],
-- link_validate() media entity and V4L2 subdev pad ops,
-- OMAP 3 ISP driver improvements [4],
-- SMIA++ sensor driver and
-- rm680/rm696 board code (a.k.a Nokia N9 and N950)
+That's said, maybe the driver should just use DTV78 firmwwares on all cases.
 
-More detailed information and discussion can be found in the references.
-The RFC version of the patchset can be found in [6] for more recent
-discussion. I want to thank all the reviewers of the previous patchset
-up to now; especially Sylwester Nawrocki and Laurent Pinchart.
-
-Comments and questions are very, very welcome.
-
-I have made changes based on the comments I've gotten so far, the
-details can be found below. There are a few minor things to be changed
-in the selection API which I haven't done yet, and this is why:
-
-I have one question left. Will we go forward with the subdev selection
-API, or shall a more generic properties API cover that functionality, as
-well as the functionality of current controls API?
-
-Changes to the RFC v1 include:
-
-- Integer controls:
-  - Target Linux 3.4 instead of 3.3
-  - Proper control type check in querymenu
-  - vivi compile fixes
-
-- Subdev selections
-  - Pad try fields combined to single struct
-  - Correctly set sel.which based on crop->which in crop fall-back
-
-- Subdev selection documentation
-  - Better explanation on image processing in subdevs
-  - Added a diagram to visualise subdev configuration
-  - Fixed DocBook syntax issues
-  - Mark VIDIOC_SUBDEV_S_CROP and VIDIOC_SUBDEV_G_CROP obsolete
-
-- Pixel rate
-  - Pixel rate is now a 64-bit control, not part of v4l2_mbus_framefmt
-  - Unit for pixel rate is pixels / second
-  - Pixel rate is read-only
-
-- Link frequency is now in Hz --- documented as such also
-
-- Link validation instead of pipeline validation
-  - Each link is validated by calling link_validate op
-    - Added link validation op to media_entity_ops
-  - Link validation op in pad ops makes this easy for subdev drivers
-  - media_entity_pipeline_start() may return an error code now
-    - This might affect other drivers, but will warn in compilation.
-      No adverse effects are caused if the driver does not use
-      link_validate().
-
-- OMAP 3 ISP
-  - Make lanecfg as part of the platform data structure, not pointer
-  - Document lane configuration structures
-  - Link validation moved to respective subdev drivers from ispvideo.c
-    - isp_validate_pipeline() removed
-
-- SMIA++ driver
-  - Update pixel order based on vflip and hflip
-  - Cleanups in the main driver, register definitions and PLL code
-  - Depend on V4L2_V4L2_SUBDEV_API and MEDIA_CONTROLLER
-  - Use pr_* macros instead of printk
-  - Improved error handling for i2c_transfer()
-  - Removed useless definitions
-  - Don't access try crop / compose directly but use helper functions
-  - Add xshutdown to platform data
-  - Move driver under smiapp directory
-
-- rm680 board code
-  - Use REGULATOR_SUPPLY() where possible
-  - Removed printk()'s
-  - Don't include private smiapp headers
+On what Country do you live?
 
 
-References:
+> 
+> Best regards,
+> Gianluca Gennari
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-[1] http://www.spinics.net/lists/linux-omap/msg61295.html
-
-[2] http://www.spinics.net/lists/linux-media/msg40796.html
-
-[3] http://www.spinics.net/lists/linux-media/msg41503.html
-
-[4] http://www.spinics.net/lists/linux-media/msg41542.html
-
-[5] http://www.spinics.net/lists/linux-media/msg40861.html
-
-[6] http://www.spinics.net/lists/linux-media/msg41765.html
-
-[7] http://www.spinics.net/lists/linux-media/msg42848.html
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
