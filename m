@@ -1,60 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:65334 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751056Ab2AERjA convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:39:00 -0500
+Received: from smtp-68.nebula.fi ([83.145.220.68]:34659 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755460Ab2ADPyT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 10:54:19 -0500
+Date: Wed, 4 Jan 2012 17:54:13 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+Subject: Re: [PATCH] v4l2: v4l2-fh: v4l2_fh_is_singular should use list
+ head to test
+Message-ID: <20120104155413.GH9323@valkosipuli.localdomain>
+References: <1324481454-30066-1-git-send-email-scott.jiang.linux@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4F05DD37.6010407@redhat.com>
-References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
- <4F05DD37.6010407@redhat.com>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Thu, 5 Jan 2012 09:38:37 -0800
-Message-ID: <CA+55aFygZYYTVN2OL7zcwOkKMXU+rUCb=fmfH6GNMru+ZfbCXw@mail.gmail.com>
-Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
- passthrough ioctls on partition devices)
-To: Paolo Bonzini <pbonzini@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
-	linux-kernel@vger.kernel.org, security@kernel.org,
-	pmatouse@redhat.com, agk@redhat.com, jbottomley@parallels.com,
-	mchristi@redhat.com, msnitzer@redhat.com,
-	Christoph Hellwig <hch@lst.de>,
-	Al Viro <viro@zeniv.linux.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1324481454-30066-1-git-send-email-scott.jiang.linux@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 5, 2012 at 9:26 AM, Paolo Bonzini <pbonzini@redhat.com> wrote:
-> On 01/05/2012 06:02 PM, Linus Torvalds wrote:
->>
->> +       return  ret == -EINVAL ||
->> +               ret == -ENOTTY ||
->> +               ret == ENOIOCTLCMD;
->
->
-> Missing minus before ENOIOCTLCMD.
+Hi Scott,
 
-Oops, thanks, fixed.
+Thanks for the patch.
 
-Also, I do realize that the patch results in a warning about
-"compat_ioctl_error()" no longer being used. I've removed it in my
-tree, but I do wonder if we could perhaps have some kind of better
-check, so maybe it is useful if somebody can come up with a saner way
-to do it. Or at least a way that doesn't cause the kind of crazy code
-that net/socket.c had.
+On Wed, Dec 21, 2011 at 10:30:54AM -0500, Scott Jiang wrote:
+> list_is_singular accepts a list head to test whether a list has just one entry.
+> fh->list is the entry, fh->vdev->fh_list is the list head.
+> 
+> Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+> ---
+>  drivers/media/video/v4l2-fh.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
+> index 9e3fc04..8292c4a 100644
+> --- a/drivers/media/video/v4l2-fh.c
+> +++ b/drivers/media/video/v4l2-fh.c
+> @@ -113,7 +113,7 @@ int v4l2_fh_is_singular(struct v4l2_fh *fh)
+>  	if (fh == NULL || fh->vdev == NULL)
+>  		return 0;
+>  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
+> -	is_singular = list_is_singular(&fh->list);
+> +	is_singular = list_is_singular(&fh->vdev->fh_list);
+>  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
+>  	return is_singular;
+>  }
 
-And I notice that not only net/socket.c had workarounds for the bogus
-warning, but fs/compat_ioctl.c itself does too: it's why we have those
-IGNORE_IOCTL() entries.
+Is there an issue that this patch resolves, or am I missing something? As
+far as I can see, the list_is_singular() test returns the same result
+whether you are testing a list item which is part of the list, or its head
+in struct video_device.
 
-So *maybe* we can reinstate that compat_ioctl_error() check, and just
-remove the net/socket.c stuff, and make sure that all the ioctls that
-net/socket.c had hacks for are mentioned as IGNORE_IOCTL's. Dunno.
+Kind regards,
 
-Anybody have strong opinions either way? Has that printout helped
-compat ioctl debugging a lot lately and we really want to maintain it?
-Otherwise I'm inclined to remove it (we can always reinstate it later,
-it's not like removal is necessarily final).
-
-                            Linus
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
