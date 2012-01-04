@@ -1,65 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:51252 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751227Ab2ASOR5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:17:57 -0500
-Received: by yenm6 with SMTP id m6so1401862yen.19
-        for <linux-media@vger.kernel.org>; Thu, 19 Jan 2012 06:17:57 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.17.10]:60108 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753426Ab2ADV0K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 16:26:10 -0500
+Date: Wed, 4 Jan 2012 22:26:07 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <201201042147.49921.laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1201042152130.30506@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+ <201201041801.08322.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1201041808260.30506@axis700.grange>
+ <201201042147.49921.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-In-Reply-To: <4F182013.90401@mlbassoc.com>
-References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com>
-	<201201191350.51761.laurent.pinchart@ideasonboard.com>
-	<4F181711.1020201@mlbassoc.com>
-	<201201191428.35340.laurent.pinchart@ideasonboard.com>
-	<4F181C24.9030806@mlbassoc.com>
-	<4F182013.90401@mlbassoc.com>
-Date: Thu, 19 Jan 2012 15:17:57 +0100
-Message-ID: <CA+2YH7vMFgzwrdBsXzBdYKG5kb8bTwtPnAnp8z_zjFFQenzzFQ@mail.gmail.com>
-Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
-From: Enrico <ebutera@users.berlios.de>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 19, 2012 at 2:52 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> On 2012-01-19 06:35, Gary Thomas wrote:
->> My camera init code is attached. In the previous kernel, the I2C bus was
->> probed implicitly when I initialized the OMAP3ISP. I thought I remembered
->> some discussion about how that worked (maybe changing), so this is
->> probably
->> where the problem starts.
->>
->> If you have an example, I can check my setup against it.
->
->
-> Note: I reworked how the sensor+I2C was initialized to be
->        omap3_init_camera(&cobra3530p73_isp_platform_data);
->
->  omap_register_i2c_bus(cobra3530p73_isp_platform_data.subdevs->subdevs[0].i2c_adapter_id,
-> 400,
->
->  cobra3530p73_isp_platform_data.subdevs->subdevs[0].board_info, 1);
->
-> The TVP5150 is now found, but 'media-ctl -p' still dies :-(
+On Wed, 4 Jan 2012, Laurent Pinchart wrote:
 
-Have a look at [1] (the linux_3.2.bb file to see the list of
-patches,inside linux-3.2 directory for the actual patches), it's based
-on mainline kernel 3.2 and the bt656 patches i submitted months ago,
-it should be easy to adapt it for you board.
+> On Wednesday 04 January 2012 18:13:58 Guennadi Liakhovetski wrote:
+> > On Wed, 4 Jan 2012, Laurent Pinchart wrote:
+> > > On Wednesday 04 January 2012 17:35:27 Guennadi Liakhovetski wrote:
+> > > > On Wed, 4 Jan 2012, javier Martin wrote:
+> > > > 
+> > > > [snip]
+> > > > 
+> > > > > For ov7725 it is a natural thing to do since it was originally
+> > > > > developed for soc-camera and it can easily do the following to access
+> > > > > platform data:
+> > > > > 
+> > > > > struct soc_camera_link	*icl = soc_camera_i2c_to_link(client);
+> > > > > pdata = icl->priv;
+> > > > > 
+> > > > > However, tvp5150 is not aware about soc_camera. I should be able to
+> > > > > tell whether it's being used with soc-camera or not. If soc camera
+> > > > > was used I would do the previous method to retrieve platform data.
+> > > > > But if soc-camera was not used I would do the classic method:
+> > > > > 
+> > > > > struct tvp5150_platform_data *pdata = client->dev.platform_data;
+> > > > > 
+> > > > > The problem is how to distinguish in tvp5150 whether I am using
+> > > > > soc_camera or not.
+> > > > 
+> > > > Right, that _is_ the problem now. And we've known about it since the
+> > > > very first time we started to think about re-using the subdev drivers.
+> > > > The only solution I see so far is to introduce a standard platform
+> > > > data struct for all subdevices, similar to soc_camera_link. We could
+> > > > use it as a basis, of course, use a generic name, maybe reconsider
+> > > > fields - rename / remove / add, but the principle would be the same: a
+> > > > standard platform data struct with an optional private field.
+> > > 
+> > > Why is that needed ? Why can't a tvp5150-specific platform data structure
+> > > do ?
+> > 
+> > Javier has actually explained this already.
+> 
+> Sorry for not having followed.
+> 
+> > Ok, again: he wants to use tvp5150 with an soc-camera host driver, i.e.,
+> > with the soc-camera subsystem. And the soc-camera core sets board_info->
+> > platform_data itself to a pointer to the struct soc_camera_link instance.
+> 
+> That looks to me like it's the part to be changed...
 
-<rant>
-Really, there are patches for all these problems since months (from
-me, Javier, TI), but because no maintainer cared (apart from Laurent)
-they were never reviewed/applied and there is always someone who comes
-back with all the usual problems (additional yuv format, bt656 mode,
-tvp5150 that doesn't work...).
-</rant>
+Well, we could do this, but this would require changing a few soc-camera 
+subdev drivers and respective platforms and (slightly) the core itself.
 
-Enrico
+The soc-camera core needs access to the struct soc_camera_link instance, 
+supplied by the platform. It is passed in .platform_data of the soc-camera 
+client platform device, there's no need to change that. struct 
+soc_camera_link::board_info points to struct i2c_board_info, this is also 
+ok. Basically, that's all the soc-camera core needs - access to these two 
+structs. Next, subdevice drivers also need access to struct 
+soc_camera_link and to their private data. If we let platforms pass 
+subdevice driver private data in i2c_board_info::platform_data, then each 
+driver will need to invent its own way how to also get to struct 
+soc_camera_link. They would either have to point at it from their private 
+data or embed it therein.
 
-[1]: https://github.com/ebutera/meta-igep/tree/master/recipes-kernel/linux
+So, yes, it is doable. AFAICS currently these subdevice drivers
+
+soc_camera_platform
+rj54n1cb0c
+tw9910
+mt9t112
+ov772x
+
+and these platforms
+
+sh/ecovec24
+sh/kfr2r09
+sh/migor
+sh/ap325rxa
+
+arm/mackerel
+
+are affected and have to be modified. After which the core can be fixed 
+too. I could do that, but not sure when I find the time. Javier, if you 
+like, feel free to give it a try.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
