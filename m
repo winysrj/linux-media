@@ -1,292 +1,256 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:54283 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030345Ab2AFPpB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 10:45:01 -0500
-Date: Fri, 6 Jan 2012 17:44:55 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCHv4 1/2] v4l: Add new framesamples field to struct
- v4l2_mbus_framefmt
-Message-ID: <20120106154455.GO9323@valkosipuli.localdomain>
-References: <201112120131.24192.laurent.pinchart@ideasonboard.com>
- <1323865388-26994-1-git-send-email-s.nawrocki@samsung.com>
- <1323865388-26994-2-git-send-email-s.nawrocki@samsung.com>
- <201112210120.56888.laurent.pinchart@ideasonboard.com>
- <20111226125301.GQ3677@valkosipuli.localdomain>
- <4EFB4D3D.1080105@gmail.com>
- <20111231131612.GE3677@valkosipuli.localdomain>
- <4F00AC43.6000905@gmail.com>
- <20120104122142.GB9323@valkosipuli.localdomain>
- <4F04D7D4.5050109@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4F04D7D4.5050109@gmail.com>
+Received: from mailout1.samsung.com ([203.254.224.24]:52225 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751398Ab2ADKTR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 05:19:17 -0500
+Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LX90019URBHZJJ0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 04 Jan 2012 19:19:15 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LX900HPJRBX7K60@mmp1.samsung.com>
+ for linux-media@vger.kernel.org; Wed, 04 Jan 2012 19:19:14 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sakari Ailus' <sakari.ailus@iki.fi>
+Cc: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	=?iso-8859-1?Q?'Sebastian_Dr=F6ge'?=
+	<sebastian.droege@collabora.co.uk>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
+ <4ED8C61C.3060404@redhat.com> <20111202135748.GO29805@valkosipuli.localdomain>
+ <4ED901C9.2050109@redhat.com> <20111206143538.GD938@valkosipuli.localdomain>
+ <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
+ <20111209195440.GB1967@valkosipuli.localdomain>
+ <003501ccb8b7$3617d800$a2478800$%debski@samsung.com>
+ <20120101222928.GJ3677@valkosipuli.localdomain>
+In-reply-to: <20120101222928.GJ3677@valkosipuli.localdomain>
+Subject: RE: [RFC] Resolution change support in video codecs in v4l2
+Date: Wed, 04 Jan 2012 11:19:08 +0100
+Message-id: <009b01cccaca$4e9a2070$ebce6150$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=iso-8859-1
+Content-transfer-encoding: 8BIT
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Sakari,
 
-On Wed, Jan 04, 2012 at 11:51:00PM +0100, Sylwester Nawrocki wrote:
-> On 01/04/2012 01:21 PM, Sakari Ailus wrote:
-> > On Sun, Jan 01, 2012 at 07:56:03PM +0100, Sylwester Nawrocki wrote:
-> >> On 12/31/2011 02:16 PM, Sakari Ailus wrote:
-> >>>>> Something else that should probably belong there is information on the frame
-> >>>>> format: contrary to what I've previously thought, the sensor metadata is
-> >>>>> often sent as part of the same CSI-2 channel. There also can be other types
-> >>>>> of data, such as dummy data and data for black level calibration. I wouldn't
-> >>>>> want to export all this to the user space --- it shouldn't probably need to
-> >>>>> care about it.
-> >>>>>
-> >>>>> The transmitter of the data (sensor) has this information and the CSI-2
-> >>>>> receiver needs it. Same for the framesamples, as far as I understand.
-> >>>>
-> >>>> We could try to design some standard data structure for frame metadata -
-> >>>> that's how I understood the meaning of struct v4l2_mbus_framedesc.
-> >>>> But I doubt such attempts will be sucessful. And how can we distinguish
-> >>>> which data is valid and applicable when there is lots of weird stuff in one
-> >>>> data structure ? Using media bus pixel code only ?
-> >>>
-> >>> I think the media bus pixel code which is exported to the user space should
-> >>> not be involved with the metadata.
-> >>
-> >> Then we need to find some method to distinguish streams with metadata on the
-> >> media bus, to be able to discard it before sending to user space.
-> >> I assume this is where struct v4l2_mbus_framedesc and related ops would help ?
-> > 
-> > I'd think so.
-> > 
-> >> Maybe we could create v4l2_mbus_framedesc with length (framesamples) member
-> >> in it and additionally 994 reserved bytes for future extensions ;-), e.g.
-> >>
-> >> struct v4l2_mbus_framedesc {
-> >> 	unsigned int length;
-> >> 	unsigned int rserved[994];
-> >> };
-> > 
-> > Do we need to export this to the user space? In the first phase I'd like to
+> From: 'Sakari Ailus' [mailto:sakari.ailus@iki.fi]
+> Sent: 01 January 2012 23:29
+decs in v4l2
 > 
-> No, that wasn't my intention. The reserved field was supposed to be a joke,
-> we of course don't need any reserved members in the kernel space.
-
-Oh, I have to admit I missed the joke completely. ;)
-
-> > keep that static (i.e. only get op would be supported) and only visible in
-> > the kernel. That would leave much more room for changes later on, if needed.
+> Hi Kamil,
 > 
-> I'd prefer it to be R/W, i.e. having both get and set ops available. Maybe
-> not for all fields though.
-
-I guess we should gather all the requirements and write and RFC based on the
-findings. I know at least about three different scenarios:
-
-- metadata as part of the image, receiver writes it to the same buffer,
-- metadata as part of the image, receiver writes it to a different buffer and
-- metadata arriver through a separate csi or ccp2 channel
-
-All may include metadata at bottom and / or top of the image.
-
-> >> struct v4l2_subdev_pad_ops {
-> >> 	  ....
-> >> 	int get_framedesc(int pad, struct v4l2_framedesc *fdesc);
-> >> 	int set_framedesc(int pad, struct v4l2_framedesc fdesc);
-> >> };
-> >>
-> >> This would ensure same media bus format code regardless of frame meta data
-> >> presence.
-> >>
-> >> In case metadata is sent in same CSI channel, the required buffer length
-> >> might be greater than what would width/height and pixel code suggest.
-> > 
-> > Partly for this reason we have g_skip_top_lines() op in sensor ops. It
-> > instructs the receiver to discard the metadata, and possibly other data
-> > which isn't as interesting --- could be just dummy.
+> Apologies for my later reply.
 > 
-> I see.
+> On Mon, Dec 12, 2011 at 11:17:06AM +0100, Kamil Debski wrote:
+> > > -----Original Message-----
+> > > From: 'Sakari Ailus' [mailto:sakari.ailus@iki.fi]
+> > > Sent: 09 December 2011 20:55
+> > > To: Kamil Debski
+> > > Cc: 'Mauro Carvalho Chehab'; linux-media@vger.kernel.org; 'Laurent
+> Pinchart';
+> > > 'Sebastian Dröge'; Sylwester Nawrocki; Marek Szyprowski
+> > > Subject: Re: [RFC] Resolution change support in video codecs in v4l2
+> > >
+> > > Hi Kamil,
+> > >
+> > > On Tue, Dec 06, 2011 at 04:03:33PM +0100, Kamil Debski wrote:
+> > > ...
+> > > > > > >The user space still wants to be able to show these buffers, so a
+> new
+> > > > > flag
+> > > > > > >would likely be required --- V4L2_BUF_FLAG_READ_ONLY, for example.
+> > > > > >
+> > > > > > Huh? Assuming a capture device, when kernel makes a buffer
+> available
+> > > to
+> > > > > userspace,
+> > > > > > kernel should not touch on it anymore (not even for read -
+> although
+> > > > > reading from
+> > > > > > it probably won't cause any issues, as video applications in
+> general
+> > > don't
+> > > > > write
+> > > > > > into those buffers). The opposite is true for output devices: once
+> > > > > userspace fills it,
+> > > > > > and queues, it should not touch that buffer again.
+> > > > > >
+> > > > > > This is part of the queue/dequeue logic. I can't see any need for
+> an
+> > > extra
+> > > > > > flag to explicitly say that.
+> > > > >
+> > > > > There is a reason to do so. An example of this is below. The
+> > > > > memory-to-memory device has two queues, output can capture. A video
+> > > decoder
+> > > > > memory-to-memory device's output queue handles compressed video and
+> the
+> > > > > capture queue provides the application decoded frames.
+> > > > >
+> > > > > Certain frames in the stream are key frames, meaning that the
+> decoding
+> > > of
+> > > > > the following non-key frames requires access to the key frame. The
+> > > number of
+> > > > > non-key frame can be relatively large, say 16, depending on the
+> codec.
+> > > > >
+> > > > > If the user should wait for all the frames to be decoded before the
+> key
+> > > > > frame can be shown, then either the key frame is to be skipped or
+> > > delayed.
+> > > > > Both of the options are highly undesirable.
+> > > >
+> > > > I don't think that such a delay is worrisome. This is only initial
+> delay.
+> > > > The hw will process these N buffers and after that it works exactly
+> the
+> > > same
+> > > > as it would without the delay in terms of processing time.
+> > >
+> > > Well, yes, but consider that the decoder also processes key frames when
+> the
+> > > decoding is in progress. The dequeueing of the key frames (and any
+> further
+> > > frames as long as the key frame is needed by the decoder) will be
+> delayed
+> > > until the key frame is no longer required.
+> > >
+> > > You need extra buffers to cope with such a situation, and in the worst
+> case,
+> > > or when the decoder is just as fast as you want to show the frames on
+> the
+> > > display, you need double the amount of buffers compared to what you'd
+> really
+> > > need for decoding. To make matters worse, this tends to happen at
+> largest
+> > > resolutions.
+> > >
+> > > I think we'd like to avoid this.
+> >
+> > I really, really, don’t see why you say that we would need double the
+> number of
+> > buffers?
+> >
+> > Let's suppose that the stream may reference 2 previous frames.
+> >
+> > Frame number:     123456789ABCDEF
+> > Returned frame:     123456789ABCDEF
+> > Buffers returned:   123123123123... (in case we have only 3 buffers)
+> >
+> > See? After we decode frame number 3 we can return frame number 3. Thus we
+> need
+> > minimum of 3 buffers. If we want to have 4 for simultaneous the use of
+> > application
+> > we allocate 7.
+> >
+> > The current codec handling system has been build on the following
+> assumptions:
+> > - the buffers should be dequeued in order
+> > - the buffers should be only dequeued when they are no longer is use
 > 
-> > Some CSI-2 receivers are able to write this to a different memory location;
-> > we could expose this as a different video node. I'm proposing a different
-> > video node since this is a separate queue: the format (in-memory pixel
-> > format and dimensions) is different, and it is beneficial to have access to
-> > this data as soon as possible. There is a caveat, though, if we also wish to
-> > support metadata which is appended to the frame, rather than prependeded.
+> What does "in use" mean to you? Both read and write, or just read?
+
+In use means both read and write in this context.
+
+> Assume frame 1 is required to decode frames 2 and 3.
 > 
-> I think it is recurring topic in our discussions, I guess nobody really needs
-> it since it haven't been implemented yet. ;)
+> If we delay dequeueing of te first of the above three frames since the codec
+> accesses it for reading, we will also delay dequeueing of any subsequent
+> frames until the first frame is decoded. If this is repeated, and assuming
+> the speed of the decoder is the same as playback of those frames, the player
+> will require a minimum of six frames to cope with the uneven time interval
+> the decoder will be able to give those frames to the player. Otherwise, only
+> three frames would be enough.
 
-It is needed, especially if you have camera control algorithms in the user
-space. You can get around it in some cases, but the end result isn't pretty
-nor reliable.
+Why six frames?
 
-> Multi-planar buffers were meant also for handling meta data, only variable
-> number of planes support would need to be added. For instance the driver could
-> pass only the buffer with meta data plane if required.
+Why "the uneven time interval the decoder will be able to give those frames to
+the player"?
 
-Multi-planar buffers are definitely a part of the solution when the metadata
-is part of the same memory buffer.
+If you look again here
 
-What I think would be needed is separation of pixel formats of different
-planes: we do not want to create new pixel format out of every possible
-combination of metadata and pixel format.
+> > Frame number:     123456789ABCDEF
+> > Returned frame:     123456789ABCDEF
+> > Buffers returned:   123123123123... (in case we have only 3 buffers)
 
-> >>> The metadata is something that the user is likely interested only in the
-> >>> form it is in the system memory. It won't be processed in any way before
-> >>> it gets written to memory. The chosen mbus code may affect the format of the
-> >>> metadata, but that's something the sensor driver knows  -- and I've yet to
-> >>> see a case where the user could choose the desired metadata format.
-> >>
-> >>> Alternatively we could make the metadata path a separate path from the image
-> >>> data. I wonder how feasible that approach would be --- the subdevs would
-> >>> still be the same.
-> >>
-> >> I was also considering metadata as sensor specific data structure retrieved
-> >> by the host after a frame has been captured and appending that data to a user
-> >> buffer. For such buffers a separate fourcc would be needed.
-> > 
-> > Why after?
+You can see that with 3 buffers you get a constant delay of 2 frames. In most
+cases (and
+I am just dropping the cases when you feed the coded with compressed slices and
+not whole frames) you queue one source stream frame and you get one decoded
+frame.
+Simple as that.
+
 > 
-> Because there is no way to retrieve it before ? :)
+> > This takes care of the delay related problems by requiring more buffers.
+> > You have an initial delay then the frames are returned with a constant
+> rate.
+> >
+> > Dequeuing of any frame will be delayed until it is no longer used - it
+> doesn't
+> > matter whether it is a key (I) frame, P frame o r a B frame. Actually B
+> frames
+> > shouldn't be used as reference. Usually a frame is referencing only 2-3
+> previous
+> > and maybe 1 ahead (for B-frames) frames and they don't need to be I-frames.
+> Still
+> > the interval between I-frames may be 16 or even many, many, more.
 > 
-> > There are benefits in getting this to the user space without extra delays?
+> Considering it can be 16 or even more, I see even more reason in returning
+> frames when hardware only reads them.
+
+It can be 31337 P-frames after an I-frame but it doesn't matter, as the codec
+will never ever need more than X frames for reference. Usually the X is small, 
+like 2-3. I have never seen a number as high as 16. After this X frames are
+processed
+and kept it will allow to dequeue frames with no additional delay.
+This is a CONSTANT delay. 
+
+P-frames are equally good as reference as I-frames. No need to keep the I-frame
+for an indefinite time.
+
+In other words: interval between I-frames is NOT the number of buffers that
+have to be kept as reference.
+
 > 
-> It doesn't matter that much because image data is already post-processed.
-> And the case I was mentioning was about still capture, asisted in the sensor
-> (SoC).
+> I'm not against making it configurable for the user, keeping the traditional
+> behaviour could be beneficial as well if the user wishes to further precess
+> the frames in-place.
 
-Your use case is different and it might not make a difference in that one.
-However, I'm thinking of camera control algorithms; they need to know how
-the frame is exposes so they can program new setting for the sensor. To
-avoid introducing unnecessary delays in the process, this needs to be done
-as soon as possible.
+I am not saying you are. I just totally don't understand some of your statements
+and the numbers you have come up with.
+(the ones next to two big "Why?" question for example).
 
-> >>>>> Pixelrate is also used to figure out whether a pipeline can do streaming or
-> >>>>> not; the pixel rate originating from the sensor could be higher than the
-> >>>>> maximum of the ISP. For this reason, as well as for providing timing
-> >>>>> information, access to pixelrate is reequired in the user space.
-> >>>>>
-> >>>>> Configuring the framesamples could be done on the sensor using a control if
-> >>>>> necessary.
-> >>>>
-> >>>> Sure, that could work. But as I mentioned before, the host drivers would have
-> >>>> to be getting such control internally from subdevs. Not so nice IMHO. Although
-> >>>> I'm not in big opposition to that too.
-> >>>>
-> >>>> Grepping for v4l2_ctrl_g_ctrl() all the drivers appear to use it locally only.
-> >>>
-> >>> I don't think there's anything that really would prohibit doing this. There
-> >>> would need to be a way for the host to make a control read-only, to prevent
-> >>> changing framesamples while streaming.
-> >>
-> >> I would rather make subdev driver to ensure all negotiated paramaters, which
-> >> changed during streaming could crash the system, stay unchanged after streaming
-> >> started. It's as simple as checking entity stream_count in s_ctrl() and
-> >> prohibiting change of control value if stream_count > 0.
-> > 
-> > That's easy, but the values of these controls could still change between
-> > pipeline validation and stream startup: the sensor driver always will be the
-> > last one to start streaming.
 > 
-> Are you sure ? The host first calls media_pipeline_start(), this increments
-> stream_count on all subdevs, and only after that the host performs pipeline
-> validation. At streamoff media_pipeline_stop() is called and the controls
-> may be changed again. It only requires special treatment of stream_count
-> at the subdevs.
-
-Good point. The driver itself could make these controls return EBUSY.
-
-> Btw, for setting controls busy the V4L2_CTRL_FLAG_GRABBED flag can be used.
-> However, IMHO it shouldn't be the host's business to mess with its subdevs'
-> control properties. If controls aren't inherited by the host and they belong
-> to a subdev it's probably better to leave the low level control operations
-> to the subdev driver only.
-
-There is no other way in some cases I can see --- Scott Jiang had such a
-case: the parallel receiver cannot tolerate changes to blanking while
-streaming. All other such receivers can, so it definitely musn't be sensor's
-decision to deny such changes.
-
-> >>> Pad-specific controls likely require more work than this.
-> >>
-> >> Hym, I'd forgotten, the fact framesamples are per pad was an argument against
-> >> using v4l2 control for this parameter. We still need per pad controls for the
-> >> blanking controls, but for framesamples maybe it's better to just add subdev
-> >> callback, as acessing this parameter on subdevs directly from space isn't
-> >> really essential..
-> > 
-> > Blanking controls are subdev-specific, not pad-specific. In practice the
-> > pixel array subdevs will always have just one pad, but there is still the
-> > principal difference. :-)
+> ...
 > 
-> Yeah, that makes sense. :-) Even in case when we have two output pads from
-> a MIPI-CSI  transmitter, each for a separate channel, and per pad media bus
-> formats the per pad blanking wouldn't rather make sense.
-
-Should we have more pads in that case? There's still just a single bus...
-
-> > Pixel rate could be another per-pad control. That might have to be checked
-> > before stream startup, just like framesamples. That's information which is
-> > mostly needed in the kernel space, but the user space still would sometimes
-> > like to take a look at it. Giving the responsibility to the user to carry
-> > the pixel rate through the whole pipeline without a way to even modify would
-> > be is a little excessive.
+> > Anyway I can definitely recommend the book "H.264 and MPEG-4 video
+> compression:
+> > Video coding for next-generation multimedia" by Iain E.G. Richardson. It
+> is a
+> > good
+> > book about video coding and modern codecs with many things explained. It
+> would
+> > help
+> > to get you around with codecs and could answer many of your questions.
+> > http://www.amazon.com/H-264-MPEG-4-Video-Compression-
+> Generation/dp/0470848375
 > 
-> But it's supposed to be read-only ? What would be a reason to propagate it then ?
+> Thanks for the pointer.
 
-It is read-only but it still has to be propagated. It is used to configure
-subdevs along the pipeline, as well as to check the pixel rate isn't too
-high for some of them.
+You're welcome.
 
-If it is not propagated by the user, the subdevs that need the information
-will never get it since no propagation will be done by the kernel.
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
 
-> >>>>> Just my 5 euro cents. Perhaps we could discuss the topic on #v4l-meeting
-> >>>>> some time?
-> >>>>
-> >>>> I'm available any time this week. :)
-> >>>
-> >>> I think the solution could be related to frame metadata if we intend to
-> >>> specify the frame format. Btw. how does the framesamples relate to blanking?
-> >>
-> >> Framesamples and blanking are on completely different levels. Framesamples
-> >> takes into account only active frame data, so H/V blanking doesn't matter here.
-> >> Framesamples is not intended for raw formats where blanking is applicable.
-> >>
-> >> Framesamples only determines length of compressed stream, and blanking doesn't
-> >> really affect the data passed to and generated by a jpeg encoder.
-> > 
-> > So in fact the blanking controls make no difference, but the hardware might
-> 
-> Yeah.
-> 
-> > add some extra blanking, say, if it's not able to send the whole image over
-> > the bus as one chunk?
-> 
-> Concept of blanking really doesn???t make sense on media bus when sending compressed
-> stream. The transmission of one frame could be performed in any number of bursts
-> of any length.
-> 
-> >>> The metadata in a regular frame spans a few lines in the top and sometimes
-> >>> also on the bottom of that frame.
-> >>
-> >> How do you handle it now, i.e. how the host finds out how much memory it needs
-> >> for a frame ? Or is the metadata just overwriting "valid" lines ?
-> > 
-> > Well... we don't handle it. ;-) All that's being done is that it's
-> > discarded.
-> 
-> OK, that's the simpler way then:)
 
->From drivers' point of view, yes. However, this causes issues elsewhere,
-including extra delays and needing to know detailed hardware specific timing
-information in user space.
-
-Kind regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
