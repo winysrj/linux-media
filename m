@@ -1,40 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:44538 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932077Ab2AIPRG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 10:17:06 -0500
-MIME-Version: 1.0
-In-Reply-To: <CAAQKjZMEsuib18RYE7OvZPUqhKnvrZ8i3+EMuZSXr9KPVygo_Q@mail.gmail.com>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
-	<CAAQKjZPFh6666JKc-XJfKYePQ_F0MNF6FkY=zKypWb52VVX3YQ@mail.gmail.com>
-	<20120109081030.GA3723@phenom.ffwll.local>
-	<CAAQKjZMEsuib18RYE7OvZPUqhKnvrZ8i3+EMuZSXr9KPVygo_Q@mail.gmail.com>
-Date: Mon, 9 Jan 2012 09:17:05 -0600
-Message-ID: <CAF6AEGsTGOxyTX6Xijvm8UXGjtVTtYg5X5xfJo8D+47o+xU+bA@mail.gmail.com>
-Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
-From: Rob Clark <rob@ti.com>
-To: InKi Dae <daeinki@gmail.com>
-Cc: Sumit Semwal <sumit.semwal@ti.com>, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org, linux@arm.linux.org.uk, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>,
-	daniel@ffwll.ch
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:56458 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752303Ab2ADTUJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 14:20:09 -0500
+Received: by eekc4 with SMTP id c4so16921540eek.19
+        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 11:20:08 -0800 (PST)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH v3] xc3028: fix center frequency calculation for DTV78 firmware
+Date: Wed,  4 Jan 2012 20:17:19 +0100
+Message-Id: <1325704639-21010-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 9, 2012 at 4:10 AM, InKi Dae <daeinki@gmail.com> wrote:
-> note : in case of sharing a buffer between v4l2 and drm driver, the
-> memory info would be copied vb2_xx_buf to xx_gem or xx_gem to
-> vb2_xx_buf through sg table. in this case, only memory info is used to
-> share, not some objects.
+Hi all,
+this v3 version has been sent through "git send-email" to avoid
+line-wrapping problems. This patch replaces the previous one proposed
+in the thread "xc3028: force reload of DTV7 firmware in VHF band with
+Zarlink demodulator".
 
-which v4l2/vb2 patches are you looking at?  The patches I was using,
-vb2 holds a reference to the 'struct dma_buf *' internally, not just
-keeping the sg_table
+The problem is that the firmware DTV78 works fine in UHF band (8 MHz
+bandwidth) but is not working at all in VHF band (7 MHz bandwidth).
+Reading the comments inside the code, I figured out that the real
+problem could be connected to the formula used to calculate the center
+frequency offset in VHF band.
 
-BR,
--R
+In fact, removing this adjustment fixes the problem:
+
+		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
+			offset -= 500000;
+
+This is coherent to what was implemented for the DTV7 firmware by an
+Australian user:
+
+		if (priv->cur_fw.type & DTV7)
+			offset += 500000;
+
+In the end, now the center frequency is the same for all firmwares
+(DTV7, DTV8, DTV78) and doesn't depend on channel bandwidth.
+
+The final code looks clean and simple, and there is no need for any
+"magic" adjustment:
+
+		if (priv->cur_fw.type & DTV6)
+			offset = 1750000;
+		else	/* DTV7 or DTV8 or DTV78 */
+			offset = 2750000;
+
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/common/tuners/tuner-xc2028.c |   26 ++++++++++++++++----------
+ 1 files changed, 16 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
+index bdcbfd7..2755599 100644
+--- a/drivers/media/common/tuners/tuner-xc2028.c
++++ b/drivers/media/common/tuners/tuner-xc2028.c
+@@ -962,14 +962,24 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 		 * For DTV 7/8, the firmware uses BW = 8000, so it needs a
+ 		 * further adjustment to get the frequency center on VHF
+ 		 */
++
++		/*
++		 * The firmware DTV78 used to work fine in UHF band (8 MHz
++		 * bandwidth) but not at all in VHF band (7 MHz bandwidth).
++		 * The real problem was connected to the formula used to
++		 * calculate the center frequency offset in VHF band.
++		 * In fact, removing the 500KHz adjustment fixed the problem.
++		 * This is coherent to what was implemented for the DTV7
++		 * firmware.
++		 * In the end, now the center frequency is the same for all 3
++		 * firmwares (DTV7, DTV8, DTV78) and doesn't depend on channel
++		 * bandwidth.
++		 */
++
+ 		if (priv->cur_fw.type & DTV6)
+ 			offset = 1750000;
+-		else if (priv->cur_fw.type & DTV7)
+-			offset = 2250000;
+-		else	/* DTV8 or DTV78 */
++		else	/* DTV7 or DTV8 or DTV78 */
+ 			offset = 2750000;
+-		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
+-			offset -= 500000;
+ 
+ 		/*
+ 		 * xc3028 additional "magic"
+@@ -979,17 +989,13 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
+ 		 * newer firmwares
+ 		 */
+ 
+-#if 1
+ 		/*
+ 		 * The proper adjustment would be to do it at s-code table.
+ 		 * However, this didn't work, as reported by
+ 		 * Robert Lowery <rglowery@exemail.com.au>
+ 		 */
+ 
+-		if (priv->cur_fw.type & DTV7)
+-			offset += 500000;
+-
+-#else
++#if 0
+ 		/*
+ 		 * Still need tests for XC3028L (firmware 3.2 or upper)
+ 		 * So, for now, let's just comment the per-firmware
+-- 
+1.7.5.4
+
