@@ -1,89 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56699 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754008Ab2ATQLv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jan 2012 11:11:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-Date: Fri, 20 Jan 2012 17:11:50 +0100
-Cc: Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
-	rob@ti.com, daniel@ffwll.ch, patches@linaro.org
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <201201201612.31821.laurent.pinchart@ideasonboard.com> <4F198DF0.7000801@samsung.com>
-In-Reply-To: <4F198DF0.7000801@samsung.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:64570 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754522Ab2ADJKl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 04:10:41 -0500
+Received: by vcbfk14 with SMTP id fk14so12998858vcb.19
+        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 01:10:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201201711.50965.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <20120104082742.GL3677@valkosipuli.localdomain>
+References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
+	<20111230213301.GA3677@valkosipuli.localdomain>
+	<CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com>
+	<20111231113529.GC3677@valkosipuli.localdomain>
+	<4EFEFA08.805@gmail.com>
+	<CAHG8p1AjoV1gBhQGFm0rEYSkHrpG+XtQB7kYXc8x5nuqjW4Z4g@mail.gmail.com>
+	<20120104082742.GL3677@valkosipuli.localdomain>
+Date: Wed, 4 Jan 2012 17:10:40 +0800
+Message-ID: <CAHG8p1DxPJthH8JOH9AEmLyCwas4O0f16ytk3FeknaPLnP_-2g@mail.gmail.com>
+Subject: Re: v4l: how to get blanking clock count?
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+2012/1/4 Sakari Ailus <sakari.ailus@iki.fi>:
+> Hi Scott,
+>
+> On Wed, Jan 04, 2012 at 01:50:17PM +0800, Scott Jiang wrote:
+>> >> I the case of your bridge, that may not be possible, but that's the only one
+>> >> I've heard of so I think it's definitely a special case. In that case the
+>> >> sensor driver can't be allowed to change the blanking periods while
+>> >> streaming is ongoing.
+>> >
+>> > I agree, it's just a matter of adding proper logic at the sensor driver.
+>> > However it might be a bit tricky, the bridge would have to validate blanking
+>> > values before actually enabling streaming.
+>> >
+>> Yes, this value doesn't affect the result image. The hardware only
+>> raises a error interrupt to signify that a horizontal tracking
+>> overflow has
+>> occurred, that means the programmed number of samples did not match up
+>> with the actual number of samples counted between assertions of
+>> HSYNC(I can only set active samples now).
+>
+> Is there no way to disable this tracking, and just rely on hsync as everyone
+> else does? Sounds like the hardware tries to do something it shouldn't...
+>
+If I disable this interrupt, other errors like fifo underflow are ignored.
+Perhaps I can add a parameter in platform data to let user decide to
+register this interrupt or not.
 
-On Friday 20 January 2012 16:53:20 Tomasz Stanislawski wrote:
-> On 01/20/2012 04:12 PM, Laurent Pinchart wrote:
-> > On Friday 20 January 2012 11:58:39 Tomasz Stanislawski wrote:
-> >> On 01/20/2012 11:41 AM, Sumit Semwal wrote:
-> >>> On 20 January 2012 00:37, Pawel Osciak<pawel@osciak.com>   wrote:
-> >>>> Hi Sumit,
-> >>>> Thank you for your work. Please find my comments below.
-> >>> 
-> >>> Hi Pawel,
-> 
-> <snip>
-> 
-> >>>>>    struct vb2_mem_ops {
-> >>>>>    
-> >>>>>          void            *(*alloc)(void *alloc_ctx, unsigned long
-> >>>>>          size);
-> >>>>> 
-> >>>>> @@ -65,6 +82,16 @@ struct vb2_mem_ops {
-> >>>>> 
-> >>>>>                                          unsigned long size, int
-> >>>>>                                          write);
-> >>>>>          
-> >>>>>          void            (*put_userptr)(void *buf_priv);
-> >>>>> 
-> >>>>> +       /* Comment from Rob Clark: XXX: I think the attach / detach
-> >>>>> could be handled +        * in the vb2 core, and vb2_mem_ops really
-> >>>>> just need to get/put the +        * sglist (and make sure that the
-> >>>>> sglist fits it's needs..) +        */
-> >>>> 
-> >>>> I *strongly* agree with Rob here. Could you explain the reason behind
-> >>>> not doing this?
-> >>>> Allocator should ideally not have to be aware of attaching/detaching,
-> >>>> this is not specific to an allocator.
-> >>> 
-> >>> Ok, I thought we'll start with this version first, and then refine.
-> >>> But you guys are right.
-> >> 
-> >> I think that it is not possible to move attach/detach to vb2-core. The
-> >> problem is that dma_buf_attach needs 'struct device' argument. This
-> >> pointer is not available in vb2-core. This pointer is delivered by
-> >> device's driver in "void *alloc_context".
-> >> 
-> >> Moving information about device would introduce new problems like:
-> >> - breaking layering in vb2
-> >> - some allocators like vb2-vmalloc do not posses any device related
-> >> attributes
-> > 
-> > What about passing the device to vb2-core then ?
-> 
-> IMO, One way to do this is adding field 'struct device *dev' to struct
-> vb2_queue. This field should be filled by a driver prior to calling
-> vb2_queue_init.
-
-I haven't looked into the details, but that sounds good to me. Do we have use 
-cases where a queue is allocated before knowing which physical device it will 
-be used for ?
-
--- 
-Regards,
-
-Laurent Pinchart
+Scott
