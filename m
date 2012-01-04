@@ -1,110 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21022 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752936Ab2AAULY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Jan 2012 15:11:24 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q01KBOiY021913
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 1 Jan 2012 15:11:24 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 6/9] [media] dvb-core: Fix ISDB-T defaults
-Date: Sun,  1 Jan 2012 18:11:15 -0200
-Message-Id: <1325448678-13001-7-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-References: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:57532 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751553Ab2ADPrH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 10:47:07 -0500
+Received: by wgbdr13 with SMTP id dr13so29148409wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 07:47:06 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, pawel@osciak.com,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 1/2 v3] media: vb2: support userptr for PFN mappings.
+Date: Wed,  4 Jan 2012 16:46:51 +0100
+Message-Id: <1325692011-7041-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-using -1 for ISDB-T parameters do the wrong thing. Fix it.
+Some video devices need to use contiguous memory
+which is not backed by pages as it happens with
+vmalloc. This patch provides userptr handling for
+those devices.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/dvb-core/dvb_frontend.c |   56 ++++++++++++++--------------
- 1 files changed, 28 insertions(+), 28 deletions(-)
+Changes since v2:
+ - Do not grab mm->mmap_sem.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index c1b3b30..ea3d0a3 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -951,17 +951,17 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
- 	c->sectone = SEC_TONE_OFF;
- 	c->pilot = PILOT_AUTO;
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/videobuf2-vmalloc.c |   71 +++++++++++++++++++++----------
+ 1 files changed, 48 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
+index 03aa62f..e621db6 100644
+--- a/drivers/media/video/videobuf2-vmalloc.c
++++ b/drivers/media/video/videobuf2-vmalloc.c
+@@ -10,6 +10,7 @@
+  * the Free Software Foundation.
+  */
  
--	c->isdbt_partial_reception = -1;
--	c->isdbt_sb_mode = -1;
--	c->isdbt_sb_subchannel = -1;
--	c->isdbt_sb_segment_idx = -1;
--	c->isdbt_sb_segment_count = -1;
--	c->isdbt_layer_enabled = 0x7;
-+	c->isdbt_partial_reception = 0;
-+	c->isdbt_sb_mode = 0;
-+	c->isdbt_sb_subchannel = 0;
-+	c->isdbt_sb_segment_idx = 0;
-+	c->isdbt_sb_segment_count = 0;
-+	c->isdbt_layer_enabled = 0;
- 	for (i = 0; i < 3; i++) {
- 		c->layer[i].fec = FEC_AUTO;
- 		c->layer[i].modulation = QAM_AUTO;
--		c->layer[i].interleaving = -1;
--		c->layer[i].segment_count = -1;
-+		c->layer[i].interleaving = 0;
-+		c->layer[i].segment_count = 0;
- 	}
++#include <linux/io.h>
+ #include <linux/module.h>
+ #include <linux/mm.h>
+ #include <linux/sched.h>
+@@ -22,6 +23,7 @@
+ struct vb2_vmalloc_buf {
+ 	void				*vaddr;
+ 	struct page			**pages;
++	struct vm_area_struct		*vma;
+ 	int				write;
+ 	unsigned long			size;
+ 	unsigned int			n_pages;
+@@ -71,6 +73,9 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	struct vb2_vmalloc_buf *buf;
+ 	unsigned long first, last;
+ 	int n_pages, offset;
++	struct vm_area_struct *vma;
++	struct vm_area_struct *res_vma;
++	dma_addr_t physp;
  
- 	c->isdbs_ts_id = 0;
-@@ -1528,28 +1528,28 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
- 		__func__, delsys, desired_system);
+ 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
+ 	if (!buf)
+@@ -80,23 +85,37 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
+ 	offset = vaddr & ~PAGE_MASK;
+ 	buf->size = size;
  
- 	/*
--	 * For now, uses it for ISDB-T, DMBTH and DVB-T2
--	 * For DVB-S2 and DVB-TURBO, assumes that the DVB-S parameters are enough.
-+	 * For now, handles ISDB-T calls. More code may be needed here for the
-+	 * other emulated stuff
- 	 */
- 	if (type == DVBV3_OFDM) {
--		c->modulation = QAM_AUTO;
--		c->code_rate_HP = FEC_AUTO;
--		c->code_rate_LP = FEC_AUTO;
--		c->transmission_mode = TRANSMISSION_MODE_AUTO;
--		c->guard_interval = GUARD_INTERVAL_AUTO;
--		c->hierarchy = HIERARCHY_AUTO;
+-	first = vaddr >> PAGE_SHIFT;
+-	last  = (vaddr + size - 1) >> PAGE_SHIFT;
+-	buf->n_pages = last - first + 1;
+-	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
+-	if (!buf->pages)
+-		goto fail_pages_array_alloc;
+ 
+-	/* current->mm->mmap_sem is taken by videobuf2 core */
+-	n_pages = get_user_pages(current, current->mm, vaddr & PAGE_MASK,
+-					buf->n_pages, write, 1, /* force */
+-					buf->pages, NULL);
+-	if (n_pages != buf->n_pages)
+-		goto fail_get_user_pages;
 -
--		c->isdbt_partial_reception = -1;
--		c->isdbt_sb_mode = -1;
--		c->isdbt_sb_subchannel = -1;
--		c->isdbt_sb_segment_idx = -1;
--		c->isdbt_sb_segment_count = -1;
--		c->isdbt_layer_enabled = 0x7;
--		for (i = 0; i < 3; i++) {
--			c->layer[i].fec = FEC_AUTO;
--			c->layer[i].modulation = QAM_AUTO;
--			c->layer[i].interleaving = -1;
--			c->layer[i].segment_count = -1;
-+		if (c->delivery_system == SYS_ISDBT) {
-+			dprintk("%s() Using defaults for SYS_ISDBT\n",
-+				__func__);
-+			if (!c->bandwidth_hz)
-+				c->bandwidth_hz = 6000000;
+-	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
+-	if (!buf->vaddr)
+-		goto fail_get_user_pages;
++	vma = find_vma(current->mm, vaddr);
++	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
++		if (vb2_get_contig_userptr(vaddr, size, &res_vma, &physp))
++			goto fail_pages_array_alloc;
++		buf->vma = res_vma;
++		buf->vaddr = ioremap_nocache(physp, size);
++		if (!buf->vaddr)
++			goto fail_pages_array_alloc;
++	} else {
++		first = vaddr >> PAGE_SHIFT;
++		last  = (vaddr + size - 1) >> PAGE_SHIFT;
++		buf->n_pages = last - first + 1;
++		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
++				     GFP_KERNEL);
++		if (!buf->pages)
++			goto fail_pages_array_alloc;
 +
-+			c->isdbt_partial_reception = 0;
-+			c->isdbt_sb_mode = 0;
-+			c->isdbt_sb_subchannel = 0;
-+			c->isdbt_sb_segment_idx = 0;
-+			c->isdbt_sb_segment_count = 0;
-+			c->isdbt_layer_enabled = 0;
-+			for (i = 0; i < 3; i++) {
-+				c->layer[i].fec = FEC_AUTO;
-+				c->layer[i].modulation = QAM_AUTO;
-+				c->layer[i].interleaving = 0;
-+				c->layer[i].segment_count = 0;
-+			}
- 		}
++		/* current->mm->mmap_sem is taken by videobuf2 core */
++		n_pages = get_user_pages(current, current->mm,
++					 vaddr & PAGE_MASK, buf->n_pages,
++					 write, 1, /* force */
++					 buf->pages, NULL);
++		if (n_pages != buf->n_pages)
++			goto fail_get_user_pages;
++
++		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
++					PAGE_KERNEL);
++		if (!buf->vaddr)
++			goto fail_get_user_pages;
++	}
+ 
+ 	buf->vaddr += offset;
+ 	return buf;
+@@ -120,14 +139,20 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
+ 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
+ 	unsigned int i;
+ 
+-	if (vaddr)
+-		vm_unmap_ram((void *)vaddr, buf->n_pages);
+-	for (i = 0; i < buf->n_pages; ++i) {
+-		if (buf->write)
+-			set_page_dirty_lock(buf->pages[i]);
+-		put_page(buf->pages[i]);
++	if (buf->pages) {
++		if (vaddr)
++			vm_unmap_ram((void *)vaddr, buf->n_pages);
++		for (i = 0; i < buf->n_pages; ++i) {
++			if (buf->write)
++				set_page_dirty_lock(buf->pages[i]);
++			put_page(buf->pages[i]);
++		}
++		kfree(buf->pages);
++	} else {
++		if (buf->vma)
++			vb2_put_vma(buf->vma);
++		iounmap(buf->vaddr);
  	}
- 	return 0;
+-	kfree(buf->pages);
+ 	kfree(buf);
+ }
+ 
 -- 
-1.7.8.352.g876a6
+1.7.0.4
 
