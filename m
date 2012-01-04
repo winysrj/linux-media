@@ -1,144 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23234 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752884Ab2AUQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:45 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4jm1023695
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:45 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 26/35] [media] drxk: Allow enabling MERR/MVAL cfg
-Date: Sat, 21 Jan 2012 14:04:28 -0200
-Message-Id: <1327161877-16784-27-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-26-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
- <1327161877-16784-11-git-send-email-mchehab@redhat.com>
- <1327161877-16784-12-git-send-email-mchehab@redhat.com>
- <1327161877-16784-13-git-send-email-mchehab@redhat.com>
- <1327161877-16784-14-git-send-email-mchehab@redhat.com>
- <1327161877-16784-15-git-send-email-mchehab@redhat.com>
- <1327161877-16784-16-git-send-email-mchehab@redhat.com>
- <1327161877-16784-17-git-send-email-mchehab@redhat.com>
- <1327161877-16784-18-git-send-email-mchehab@redhat.com>
- <1327161877-16784-19-git-send-email-mchehab@redhat.com>
- <1327161877-16784-20-git-send-email-mchehab@redhat.com>
- <1327161877-16784-21-git-send-email-mchehab@redhat.com>
- <1327161877-16784-22-git-send-email-mchehab@redhat.com>
- <1327161877-16784-23-git-send-email-mchehab@redhat.com>
- <1327161877-16784-24-git-send-email-mchehab@redhat.com>
- <1327161877-16784-25-git-send-email-mchehab@redhat.com>
- <1327161877-16784-26-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-68.nebula.fi ([83.145.220.68]:38171 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753977Ab2ADPPX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 10:15:23 -0500
+Date: Wed, 4 Jan 2012 17:15:16 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, riverful.kim@samsung.com,
+	s.nawrocki@samsung.com
+Subject: Re: [RFC/PATCH] v4l: Add V4L2_CID_FLASH_HW_STROBE_MODE control
+Message-ID: <20120104151516.GF9323@valkosipuli.localdomain>
+References: <1323115006-4385-1-git-send-email-snjw23@gmail.com>
+ <20111205224155.GB938@valkosipuli.localdomain>
+ <4EE364C7.1090805@gmail.com>
+ <20111214215145.GA3677@valkosipuli.localdomain>
+ <4EFB3E9F.1070408@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4EFB3E9F.1070408@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those two settings are different when used with az6007. Add
-a config option to enable it.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/az6007.c      |    1 +
- drivers/media/dvb/frontends/drxk.h      |    2 ++
- drivers/media/dvb/frontends/drxk_hard.c |   11 +++++++++--
- drivers/media/dvb/frontends/drxk_hard.h |    1 +
- 4 files changed, 13 insertions(+), 2 deletions(-)
+Hi Sylwester,
 
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index bf8d201..81fdc90 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -67,6 +67,7 @@ static struct drxk_config terratec_h7_drxk = {
- 	.parallel_ts = true,
- 	.dynamic_clk = true,
- 	.single_master = true,
-+	.enable_merr_cfg = true,
- 	.no_i2c_bridge = false,
- 	.chunk_size = 64,
- 	.mpeg_out_clk_strength = 0x02,
-diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
-index ca921c7..9d64e4f 100644
---- a/drivers/media/dvb/frontends/drxk.h
-+++ b/drivers/media/dvb/frontends/drxk.h
-@@ -12,6 +12,7 @@
-  * 			Serial otherwise.
-  * @dynamic_clk:	True means that the clock will be dynamically
-  *			adjusted. Static clock otherwise.
-+ * @enable_merr_cfg:	Enable SIO_PDR_PERR_CFG/SIO_PDR_MVAL_CFG.
-  * @single_master:	Device is on the single master mode
-  * @no_i2c_bridge:	Don't switch the I2C bridge to talk with tuner
-  * @antenna_gpio:	GPIO bit used to control the antenna
-@@ -29,6 +30,7 @@ struct drxk_config {
- 	bool	no_i2c_bridge;
- 	bool	parallel_ts;
- 	bool	dynamic_clk;
-+	bool	enable_merr_cfg;
- 
- 	bool	antenna_dvbt;
- 	u16	antenna_gpio;
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index d25b0d2..5fa1927 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -1179,6 +1179,7 @@ static int MPEGTSConfigurePins(struct drxk_state *state, bool mpegEnable)
- 	int status = -1;
- 	u16 sioPdrMclkCfg = 0;
- 	u16 sioPdrMdxCfg = 0;
-+	u16 err_cfg = 0;
- 
- 	dprintk(1, ": mpeg %s, %s mode\n",
- 		mpegEnable ? "enable" : "disable",
-@@ -1244,12 +1245,17 @@ static int MPEGTSConfigurePins(struct drxk_state *state, bool mpegEnable)
- 		status = write16(state, SIO_PDR_MSTRT_CFG__A, sioPdrMdxCfg);
- 		if (status < 0)
- 			goto error;
--		status = write16(state, SIO_PDR_MERR_CFG__A, 0x0000);	/* Disable */
-+
-+		if (state->enable_merr_cfg)
-+			err_cfg = sioPdrMdxCfg;
-+
-+		status = write16(state, SIO_PDR_MERR_CFG__A, err_cfg);
- 		if (status < 0)
- 			goto error;
--		status = write16(state, SIO_PDR_MVAL_CFG__A, 0x0000);	/* Disable */
-+		status = write16(state, SIO_PDR_MVAL_CFG__A, err_cfg);
- 		if (status < 0)
- 			goto error;
-+
- 		if (state->m_enableParallel == true) {
- 			/* paralel -> enable MD1 to MD7 */
- 			status = write16(state, SIO_PDR_MD1_CFG__A, sioPdrMdxCfg);
-@@ -6379,6 +6385,7 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 	state->antenna_gpio = config->antenna_gpio;
- 	state->antenna_dvbt = config->antenna_dvbt;
- 	state->m_ChunkSize = config->chunk_size;
-+	state->enable_merr_cfg = config->enable_merr_cfg;
- 
- 	if (config->dynamic_clk) {
- 		state->m_DVBTStaticCLK = 0;
-diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
-index 3a58b73..4bbf841 100644
---- a/drivers/media/dvb/frontends/drxk_hard.h
-+++ b/drivers/media/dvb/frontends/drxk_hard.h
-@@ -332,6 +332,7 @@ struct drxk_state {
- 
- 	u16	UIO_mask;	/* Bits used by UIO */
- 
-+	bool	enable_merr_cfg;
- 	bool	single_master;
- 	bool	no_i2c_bridge;
- 	bool	antenna_dvbt;
+On Wed, Dec 28, 2011 at 05:06:55PM +0100, Sylwester Nawrocki wrote:
+> On 12/14/2011 10:51 PM, Sakari Ailus wrote:
+> > On Sat, Dec 10, 2011 at 02:55:19PM +0100, Sylwester Nawrocki wrote:
+> >> On 12/05/2011 11:41 PM, Sakari Ailus wrote:
+> >>> On Mon, Dec 05, 2011 at 08:56:46PM +0100, Sylwester Nawrocki wrote:
+> >>>> The V4L2_CID_FLASH_HW_STROBE_MODE mode control is intended
+> >>>> for devices that are source of an external flash strobe for flash
+> >>>> devices. This part seems to be missing in current Flash control
+> >>>> class, i.e. a means for configuring devices that are not camera
+> >>>> flash drivers but involve a flash related functionality.
+> >>>>
+> >>>> The V4L2_CID_FLASH_HW_STROBE_MODE control enables the user
+> >>>> to determine the flash control behavior, for instance, at an image
+> >>>> sensor device.
+> >>>>
+> >>>> The control has effect only when V4L2_CID_FLASH_STROBE_SOURCE control
+> >>>> is set to V4L2_FLASH_STROBE_SOURCE_EXTERNAL at a flash subdev, if
+> >>>> a flash subdev is present in the system.
+> >>>>
+> >>>> Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+> >>>> ---
+> >>>>
+> >>>> Hi Sakari,
+> >>>>
+> >>>> My apologies for not bringing this earlier when you were designing
+> >>>> the Flash control API.
+> >>>> It seems like a use case were a sensor controller drives a strobe
+> >>>> signal for a Flash and the sensor side requires some set up doesn't
+> >>>> quite fit in the Flash Control API.
+> >>>>
+> >>>> Or is there already a control allowing to set Flash strobe mode at
+> >>>> the sensor to: OFF, ON (per each exposed frame), AUTO ?
+> >>
+> >> Thank you for the in-depth opinion (and sorry for the delayed response).
+> > 
+> > You're welcome! Thanks for bringing up the topic! :-)
+> > 
+> >>> The flash API defines the API for the flash, not for the sensor which might
+> >>> be controlling the flash through the hardware strobe pin. I left that out
+> >>> deliberately before I could see what kind of controls would be needed for
+> >>> that.
+> >>>
+> >>> If I understand you correctly, this control is intended to configure the
+> >>> flash strobe per-frame? That may be somewhat hardware-dependent.
+> >>
+> >> Yes, per captured frame. Actually the controls I proposed were meant to select
+> >> specific flash strobe algorithm. What refinements could be relevant for those
+> >> algorithms may be a different question. Something like the proposed controls
+> >> is really almost all that is offered by many of hardware we use.
+> > 
+> > 
+> > 
+> >>> Some hardware is able to strobe the flash for the "next possible frame" or
+> >>> for the first frame when the streaming is started. In either of the cases,
+> >>> the frames before and after the one exposed with the flash typically are
+> >>> ruined because the flash has exposed only a part of them. You typically want
+> >>> to discard such frames.
+> >>
+> >> Is this the case for Xenon flash as well, or LED only ?
+> > 
+> > Both xenon and LED.
+> > 
+> >> I think the fact that we're using video capture like interface for still 
+> >> capture adds complexity in such cases.
+> > 
+> > It also adds flexibility. You can expose one frame with xenon flash w/o
+> > stopping streaming.
+> 
+> Yes, but only if you're able to control an image sensor and ISP at very low
+> level.
+
+For ISP I don't see it would matter, but for sensor, yes.
+
+In general most don't provide a way to expose frames in a stream with flash
+--- instead the stream has to be stopped first. I think this is what 
+users would expect to do in regular cases.
+
+If flash exposure isn't possible while streaming, the sensor can always tell
+the strobe control is busy. Do you think that would work for you?
+
+> >>> flash: LED flash typically remains on for the whole duration of the frame
+> >>> exposure, whereas on xenon flash the full frame must be being exposed when
+> >>> the flash is being fired.
+> >>
+> >> Indeed, I should have separated the LED and Xenon case in the first place.
+> >>
+> >> Do you think we could start with separate menu controls for LED and Xenon
+> >> flash strobe, e.g.
+> >>
+> >> V4L2_FLASH_LED_STROBE_MODE,
+> >> V4L2_FLASH_XENON_STROBE_MODE
+> >>
+> >> and then think of what controls would be needed for each particular mode
+> >> under these menus ?
+> > 
+> > Do we need to separate them? I don't think they're very different, with the
+> 
+> Perhaps we don't need to separate them this much. But the differences are
+> significant IHMO. However it could be enough if we pass information about
+> the flash type in sensor's platform data. (I wrote this before I've seen
+> your smiapp driver patches;)).
+
+Yeah; that might make sense. Smart sensors might even require information on
+the flash type etc. to be able to control it properly.
+
+> > possible exception of intensity control. For xenon flashes the intensity is
+> > at least sometimes controlled by the strobe pulse length.
+> > 
+> > Still, flash strobe start timing and length control are the same.
+> 
+> But strobe control signal characteristics may be different for Xenon lamp,
+> due to pre-flash strobes for example ? Does pre-flash really apply to
+> LED flashes as well ?
+
+Yes; we do that on the Nokia N9 and, I think, on the N900 as well.
+
+I think that from the sensor's point of view the low level controls are
+still the same, as well as the high level ones. I have to admit I haven't
+worked on xenon flash devices but I have neither seen any flash control
+functionality (related to hardware, I mean; there are some controls which
+are valid for xenon only, such as charging the capacitor on/of) which would
+only be valid for either flash types.
+
+> >>> Also different use cases may require different flash timing handling. [1]
+> >>
+> >> I think we need to be able to specify flash strobe delay relative to exposure
+> >> start in absolute time and relative to exposure time units.
+> > 
+> > I agree. I actually just sent a few patches which could be relevant to this,
+> > you're cc'd (patches 1 and 2):
+> > 
+> > <URL:http://www.mail-archive.com/linux-media@vger.kernel.org/msg39798.html>
+> > 
+> > What units your sensor uses naturally?
+> 
+> The one which allows to specify flash strobe delay and its length just accepts
+> absolute time with resolution determined by sensor master clock period.
+
+Same on the SMIA++.
+
+> But in many cases with a high brightness LED as flash the delay is handled by
+> sensor firmware with only relatively high level interface exposed to the user.
+> 
+> >>> Some sensors have a synchronised electrical shutter (or what was it called,
+> >>> something like that anyway); that causes the exposure of all the lines of
+> >>
+> >> I guess you mean two-curtain type shutter, like the one described here:
+> >>
+> >> http://camerapedia.wikia.com/wiki/Focal_plane_shutter
+> >> http://www.photozone.de/hi-speed-flash-sync
+> > 
+> > No, but I wasn't actually aware of that. :)
+> > 
+> > This is what I meant:
+> > 
+> > <URL:http://forums.dpreview.com/forums/read.asp?forum=1037&message=37167063>
+> 
+> Hmm, the characteristic of this kind of shutter might be similar to mechanical
+> shutter. So there would be at least 2 types of shutter from flash POV:
+>  - electronics rolling shutter,
+>  - mechanical (electronic synchronized) shutter.
+> 
+> Then maybe we could develop a control indicating shutter type:
+> 
+> V4L2_CID_FLASH_SHUTTER_TYPE
+>   V4L2_FLASH_ELECTRONIC_ROLLING_SHUTTER
+>   V4L2_FLASH_MECHANICAL_SHUTTER
+
+I agree; we should expose the type. Once we have ones with synchronous
+shutters. :-)
+
+Synchronous shutters are just as good as mechanical ones --- or likely even
+better; the exposure time can be controlled precisely, unlike on mechanical
+shutters.
+
+> But I don't know what to do with this information exactly at this moment.. :-)
+
+With the addition of the new sensor configuration controls, this allows to
+configure the flash timing so that the exposure only spans the desired area
+of the image at the desired point of time and duration.
+
+> >>> the sensor to stop at the same time. This effectively eliminates the rolling
+> >>> shutter effect. The user should know whether (s)he is using synchronised
+> >>> shutter or rolling shutter since that affects the timing a lot.
+> >>>
+> >>> How the control of the hardware strobe should look like to the user?
+> >>>
+> >>> I don't think the flash handling can be fully expressed by a single control
+> >>> --- except for end user applications. They very likely don't want to know
+> >>> about all the flash timing related details.
+> >>
+> >> Agreed.
+> >>
+> >>>
+> >>> Are you able tell more about your use case? How about the sensor providing
+> >>> the hardware strobe signal?
+> >>
+> >> As a light source a high intensity white LED is used. The LED current control
+> >> circuit is directly controlled by a sensor, let's say for simplicity through
+> >> one pin.
+> > 
+> > Can there be use for more? That said, I like simple things. ;)
+> 
+> :-) Yes, physically. However logically it's safe to assume we have only one for
+> strobe. Some Flash LED drivers might have more pins for operation mode control
+> like capacitor precharge, etc. E.g. like this one:
+> 
+> URL: http://www.maxim-ic.com/datasheet/index.mvp/id/4163
+
+This is an interesting one. I would have preferred I2C control interface,
+but whatever... :-) Sounds like the capacitor charge control might not be
+valid only for xenon flashes after all. ;-)
+
+> Some may use additional pin for intensity control (PWM), whereas for some the
+> intensity is controlled through I2C (and we might not always have a Flash subdev
+> driver for them - for instance a led class driver).
+> 
+> URL : http://para.maxim-ic.com/en/results.mvp?fam=whiteled
+
+But having a led class driver makes it somewhat difficult to work with V4L2,
+doesn't it? The pwm source likely isn't a gpio typically?
+
+Cheers,
+
 -- 
-1.7.8
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
