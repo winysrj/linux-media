@@ -1,74 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44509 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932248Ab2AEBBH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:07 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05117o2016626
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:07 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 12/47] [media] mt2063: Remove internal version checks
-Date: Wed,  4 Jan 2012 23:00:23 -0200
-Message-Id: <1325725258-27934-13-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37134 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754009Ab2ADUrd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 15:47:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+Date: Wed, 4 Jan 2012 21:47:49 +0100
+Cc: javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <201201041801.08322.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1201041808260.30506@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1201041808260.30506@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201042147.49921.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mt2063.c |    8 +-------
- 1 files changed, 1 insertions(+), 7 deletions(-)
+On Wednesday 04 January 2012 18:13:58 Guennadi Liakhovetski wrote:
+> On Wed, 4 Jan 2012, Laurent Pinchart wrote:
+> > On Wednesday 04 January 2012 17:35:27 Guennadi Liakhovetski wrote:
+> > > On Wed, 4 Jan 2012, javier Martin wrote:
+> > > 
+> > > [snip]
+> > > 
+> > > > For ov7725 it is a natural thing to do since it was originally
+> > > > developed for soc-camera and it can easily do the following to access
+> > > > platform data:
+> > > > 
+> > > > struct soc_camera_link	*icl = soc_camera_i2c_to_link(client);
+> > > > pdata = icl->priv;
+> > > > 
+> > > > However, tvp5150 is not aware about soc_camera. I should be able to
+> > > > tell whether it's being used with soc-camera or not. If soc camera
+> > > > was used I would do the previous method to retrieve platform data.
+> > > > But if soc-camera was not used I would do the classic method:
+> > > > 
+> > > > struct tvp5150_platform_data *pdata = client->dev.platform_data;
+> > > > 
+> > > > The problem is how to distinguish in tvp5150 whether I am using
+> > > > soc_camera or not.
+> > > 
+> > > Right, that _is_ the problem now. And we've known about it since the
+> > > very first time we started to think about re-using the subdev drivers.
+> > > The only solution I see so far is to introduce a standard platform
+> > > data struct for all subdevices, similar to soc_camera_link. We could
+> > > use it as a basis, of course, use a generic name, maybe reconsider
+> > > fields - rename / remove / add, but the principle would be the same: a
+> > > standard platform data struct with an optional private field.
+> > 
+> > Why is that needed ? Why can't a tvp5150-specific platform data structure
+> > do ?
+> 
+> Javier has actually explained this already.
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 0c4ae7f..98bc2e2 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -6,14 +6,12 @@
- 
- #include "mt2063.h"
- 
--/*  Version of this module                          */
--#define MT2063_VERSION 10018	/*  Version 01.18 */
--
- static unsigned int verbose;
- module_param(verbose, int, 0644);
- 
- /* Internal structures and types */
- 
-+/* FIXME: we probably don't need these new FE get/set property types for tuner */
- #define DVBFE_TUNER_OPEN			99
- #define DVBFE_TUNER_SOFTWARE_SHUTDOWN		100
- #define DVBFE_TUNER_CLEAR_POWER_MASKBITS	101
-@@ -118,8 +116,6 @@ module_param(verbose, int, 0644);
-  *  check against this version number to make sure that
-  *  it matches the version that the tuner driver knows about.
-  */
--/* Version 010201 => 1.21 */
--#define MT2063_AVOID_SPURS_INFO_VERSION 010201
- 
- /* DECT Frequency Avoidance */
- #define MT2063_DECT_AVOID_US_FREQS      0x00000001
-@@ -497,7 +493,6 @@ struct MT2063_Info_t {
- 	void *handle;
- 	void *hUserData;
- 	u32 address;
--	u32 version;
- 	u32 tuner_id;
- 	struct MT2063_AvoidSpursData_t AS_Data;
- 	u32 f_IF1_actual;
-@@ -3115,7 +3110,6 @@ static u32 MT2063_ReInit(void *h)
- 
- 	if (MT2063_NO_ERROR(status)) {
- 		/*  Initialize the tuner state.  */
--		pInfo->version = MT2063_VERSION;
- 		pInfo->tuner_id = pInfo->reg[MT2063_REG_PART_REV];
- 		pInfo->AS_Data.f_ref = MT2063_REF_FREQ;
- 		pInfo->AS_Data.f_if1_Center =
+Sorry for not having followed.
+
+> Ok, again: he wants to use tvp5150 with an soc-camera host driver, i.e.,
+> with the soc-camera subsystem. And the soc-camera core sets board_info->
+> platform_data itself to a pointer to the struct soc_camera_link instance.
+
+That looks to me like it's the part to be changed...
+
 -- 
-1.7.7.5
+Regards,
 
+Laurent Pinchart
