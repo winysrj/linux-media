@@ -1,67 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:34171 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753020Ab2AYPnO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:43:14 -0500
-Received: from mail1.matrix-vision.com (localhost [127.0.0.1])
-	by mail1.matrix-vision.com (Postfix) with ESMTP id 8C6D17220E
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 16:34:20 +0100 (CET)
-Received: from erinome (g2.matrix-vision.com [80.152.136.245])
-	by mail1.matrix-vision.com (Postfix) with ESMTPA id 602E2721E8
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 16:34:20 +0100 (CET)
-Received: from erinome (localhost [127.0.0.1])
-	by erinome (Postfix) with ESMTP id D3F176F8A
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 16:34:19 +0100 (CET)
-Received: from [192.168.65.136] (host65-136.intern.matrix-vision.de [192.168.65.136])
-	by erinome (Postfix) with ESMTPA id B93776F8A
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 16:34:19 +0100 (CET)
-Message-ID: <4F202102.5070701@matrix-vision.de>
-Date: Wed, 25 Jan 2012 16:34:26 +0100
-From: Kruno Mrak <kruno.mrak@matrix-vision.de>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:63699 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222Ab2AERrr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:47:47 -0500
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: omap3isp: sequence number in v4l2 buffer not incremented
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4F05DFF0.3000809@infradead.org>
+References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
+ <4F05DFF0.3000809@infradead.org>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 5 Jan 2012 09:47:26 -0800
+Message-ID: <CA+55aFyDJ5PJ75R_bSaV5KCpLANmNwCjCA=mYj4g+H+35NQSNQ@mail.gmail.com>
+Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
+ passthrough ioctls on partition devices)
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Paolo Bonzini <pbonzini@redhat.com>, linux-media@vger.kernel.org,
+	Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org,
+	security@kernel.org, pmatouse@redhat.com, agk@redhat.com,
+	jbottomley@parallels.com, mchristi@redhat.com, msnitzer@redhat.com,
+	Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Thu, Jan 5, 2012 at 9:37 AM, Mauro Carvalho Chehab
+<mchehab@infradead.org> wrote:
+>
+> For the media drivers, we've already fixed it, at the V4L side:
+> -EINVAL doesn't mean that an ioctl is not supported anymore.
+> I think that such fix went into Kernel 3.1.
 
-we have an omap based intelligent camera and
-image sensor is connected to camera parallel interface.
-Image capturing via "CCDC output" works fine.
-When streaming is on and reading "sequence" variable, it shows
-always -1.
-Looking at kernel-source ispvideo.c, i found following
-if-else statement:
+Ok, I'm happy to hear that the thing should be fixed. My grepping
+still found a fair amount of EINVAL returns both in code and in the
+Documentation subdirectory for media ioctls, but it really was just
+grepping with a few lines of context, so I didn't look closer at the
+semantics. I was just looking for certain patterns (ie grepping for
+"EINVAL" near ioctl or ENOIOCTLCMD etc) that I thought might indicate
+problem spots, and the media subdirectory had a lot of them.
 
-/* Do frame number propagation only if this is the output video node.
-  * Frame number either comes from the CSI receivers or it gets
-  * incremented here if H3A is not active.
-  * Note: There is no guarantee that the output buffer will finish
-  * first, so the input number might lag behind by 1 in some cases.
-  */
-if (video == pipe->output && !pipe->do_propagation)
-	buf->vbuf.sequence = atomic_inc_return(&pipe->frame_number);
-else
-	buf->vbuf.sequence = atomic_read(&pipe->frame_number);
+Can you test the patch with some media capture apps (preferably with
+the obvious fix for the problem that Paulo already pointed out -
+although that won't actually matter until some block driver starts
+using ENOIOCTLCMD there, so even the unfixed patch should mostly work
+for testing)?
 
-When i change to
-if (video == pipe->output && pipe->do_propagation)
-...
-the sequence variable is incremented.
-
-So my question:
-Could it be that "pipe->do_propagation" should be tested on true and
-not on false?
-If this change is wrong, how can i achieve that the sequence number is
-incremented?
-
-Thanks,
-Kruno Mrak
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
+                              Linus
