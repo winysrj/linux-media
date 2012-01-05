@@ -1,32 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:35463 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752763Ab2AEDO5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 22:14:57 -0500
-Received: by vcbfk14 with SMTP id fk14so87343vcb.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 19:14:56 -0800 (PST)
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53705 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755889Ab2AEPjr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 10:39:47 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Marek Szyprowski" <m.szyprowski@samsung.com>
+Cc: "Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Mel Gorman" <mel@csn.ul.ie>, "Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>,
+	"Benjamin Gaignard" <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH 01/11] mm: page_alloc: set_migratetype_isolate: drain PCP
+ prior to isolating
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+ <1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
+Date: Thu, 05 Jan 2012 16:39:43 +0100
 MIME-Version: 1.0
-In-Reply-To: <CALzAhNVYeeAfS+RycntPyz8nhLqow5CtCdwmxJpuHU6-6Kx8hQ@mail.gmail.com>
-References: <CALzAhNVYeeAfS+RycntPyz8nhLqow5CtCdwmxJpuHU6-6Kx8hQ@mail.gmail.com>
-Date: Thu, 5 Jan 2012 11:14:56 +0800
-Message-ID: <CAHG8p1AkT2iU7_QXSy7OU+pdnft1ByzUDFTqiRm4QrviL=Cs_A@mail.gmail.com>
-Subject: Re: subdev support for querying struct v4l2_input *
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Steven Toth <stoth@kernellabs.com>
-Cc: "Jacob Johan (Hans) Verkuil" <hverkuil@xs4all.nl>,
-	Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v7ma4hm33l0zgt@mpn-glaptop>
+In-Reply-To: <1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/1/5 Steven Toth <stoth@kernellabs.com>:
-> Hans,
+On Thu, 29 Dec 2011 13:39:02 +0100, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
 >
-> In the cx23885 driver as part of vidioc_enum_input call, I have a need
-> to return V4L2_IN_ST_NO_SIGNAL in the status
-> field as part of struct v4l2_input. Thus, when no signal is detected
-> by the video decoder it can be signalled to the calling application.
+> When set_migratetype_isolate() sets pageblock's migrate type, it does
+> not change each page_private data.  This makes sense, as the function
+> has no way of knowing what kind of information page_private stores.
 >
-v4l2_subdev_video_ops->g_input_status
+> Unfortunately, if a page is on PCP list, it's page_private indicates
+> its migrate type.  This means, that if a page on PCP list gets
+> isolated, a call to free_pcppages_bulk() will assume it has the old
+> migrate type rather than MIGRATE_ISOLATE.  This means, that a page
+> which should be isolated, will end up on a free list of it's old
+> migrate type.
+>
+> Coincidentally, at the very end, set_migratetype_isolate() calls
+> drain_all_pages() which leads to calling free_pcppages_bulk(), which
+> does the wrong thing.
+>
+> To avoid this situation, this commit moves the draining prior to
+> setting pageblock's migratetype and moving pages from old free list to
+> MIGRATETYPE_ISOLATE's free list.
+>
+> Because of spin locks this is a non-trivial change however as both
+> set_migratetype_isolate() and free_pcppages_bulk() grab zone->lock.
+> To solve this problem, this commit renames free_pcppages_bulk() to
+> __free_pcppages_bulk() and changes it so that it no longer grabs
+> zone->lock instead requiring caller to hold it.  This commit later
+> adds a __zone_drain_all_pages() function which works just like
+> drain_all_pages() expects that it drains only pages from a single zone
+> and assumes that caller holds zone->lock.
 
-Scott
+As it turns out, with some more testing on SMP systems, this whole patch
+turned out to be incorrect.
+
+We have been thinking about other approach and, if we were to use something
+else then the first patch from CMAv17[1], the best thing we could came up
+with was to unconditionally call drain_all_pages() at the beginning of
+set_migratetype_isolate() before the call to spin_lock_irqsave().  It has
+a possible race condition but a nightly stress test did have not shown any
+problems.
+
+Nonetheless, the cleanest, in my opinion, solution is to use the first patch
+ from CMAv17 which can be found at [1].
+
+So, to sum up: if you intend to test CMAv18, instead of applying this first
+patch either use first patch from CMAv17[1] or put an unconditional call to
+drain_all_pages() at the beginning of set_migrate_isolate() function.
+
+Sorry for the troubles.
+
+[1] http://www.spinics.net/lists/arm-kernel/msg148494.html
+
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
