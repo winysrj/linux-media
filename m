@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:59631 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754633Ab2AXJYj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 04:24:39 -0500
-Received: from cobaltpc1.localnet (dhcp-10-54-92-32.cisco.com [10.54.92.32])
-	by ams-core-2.cisco.com (8.14.3/8.14.3) with ESMTP id q0O9Ob1O007831
-	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 09:24:38 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [PATCH] vivi: don't set V4L2_CAP_DEVICE_CAPS for the device_caps field.
-Date: Tue, 24 Jan 2012 10:24:36 +0100
+Received: from devils.ext.ti.com ([198.47.26.153]:51806 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751467Ab2AELZH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 06:25:07 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [GIT PULL] davinci vpbe pull request
+Date: Thu, 5 Jan 2012 11:24:53 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F7501A3CF@DBDE01.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201241024.36234.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-V4L2_CAP_DEVICE_CAPS is valid for the capabilities field only as per
-the spec.
+Hi Mauro,
+ Can you please pull these vpbe patches which add the support for
+ DM365 and DM355 display?
 
-Found with v4l2-compliance.
+ The 3 vpbe patches were sent to you as a pull request earlier. Please  see this mail:
+ http://linux.omap.com/pipermail/davinci-linux-open-source/2011-November/023496.html
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/vivi.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ I have now rebased these to 3.2 since my earlier pull request was  not based on commits on Linus's tree.
+ As a result they look like recent commits, but have actually been  around for a long time.
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 84ea88d..5578c19 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -819,9 +819,9 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 	strcpy(cap->driver, "vivi");
- 	strcpy(cap->card, "vivi");
- 	strlcpy(cap->bus_info, dev->v4l2_dev.name, sizeof(cap->bus_info));
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
--			    V4L2_CAP_READWRITE | V4L2_CAP_DEVICE_CAPS;
--	cap->device_caps = cap->capabilities;
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-+			    V4L2_CAP_READWRITE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
- 
--- 
-1.7.7.3
+ Thx,
+ -Manju
 
+The following changes since commit 805a6af8dba5dfdd35ec35dc52ec0122400b2610:
+  Linus Torvalds (1):
+        Linux 3.2
+
+are available in the git repository at:
+
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for-mauro-v3.3
+
+Manjunath Hadli (3):
+      davinci vpbe: add dm365 VPBE display driver changes
+      davinci vpbe: add dm365 and dm355 specific OSD changes
+      davinci vpbe: add VENC block changes to enable dm365 and dm355
+
+ drivers/media/video/davinci/vpbe.c      |   48 +++-
+ drivers/media/video/davinci/vpbe_osd.c  |  473 ++++++++++++++++++++++++++++---  drivers/media/video/davinci/vpbe_venc.c |  205 ++++++++++++--
+ include/media/davinci/vpbe.h            |   16 +
+ include/media/davinci/vpbe_venc.h       |    4 +
+ 5 files changed, 678 insertions(+), 68 deletions(-)
