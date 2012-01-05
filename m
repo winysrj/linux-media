@@ -1,144 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:54900 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755067Ab2AYJ6l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 04:58:41 -0500
-Date: Wed, 25 Jan 2012 10:58:35 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>, baruch@tkos.co.il
-Subject: Re: [PATCH 1/4] media i.MX27 camera: migrate driver to videobuf2
-In-Reply-To: <1327059392-29240-2-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1201241819240.27814@axis700.grange>
-References: <1327059392-29240-1-git-send-email-javier.martin@vista-silicon.com>
- <1327059392-29240-2-git-send-email-javier.martin@vista-silicon.com>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:56774 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752465Ab2AEG11 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 01:27:27 -0500
+Date: Thu, 5 Jan 2012 09:28:22 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, stable@vger.kernel.org
+Subject: [patch -longterm v2] V4L/DVB: v4l2-ioctl: integer overflow in
+ video_usercopy()
+Message-ID: <20120105062822.GB10230@mwanda>
+References: <20111215063445.GA2424@elgon.mountain>
+ <4EE9BC25.7020303@infradead.org>
+ <201112151033.35153.hverkuil@xs4all.nl>
+ <4EE9C2E6.1060304@infradead.org>
+ <20120103205539.GC17131@kroah.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
+Content-Disposition: inline
+In-Reply-To: <20120103205539.GC17131@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch seems incomplete to me? On the one hand you're saying, you only 
-work with i.MX27, but you've left
 
-static void mx27_camera_frame_done(struct mx2_camera_dev *pcdev, int state)
-{
-	struct videobuf_buffer *vb;
+--l76fUT7nc3MelDdI
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-TBH, I don't understand how you've tested this patch: it doesn't compile 
-for me for i.MX27. And to use EMMA CONFIG_MACH_MX27 has to be on too, 
-right? Confused...
+If p->count is too high the multiplication could overflow and
+array_size would be lower than expected.  Mauro and Hans Verkuil
+suggested that we cap it at 1024.  That comes from the maximum
+number of controls with lots of room for expantion.
 
-On Fri, 20 Jan 2012, Javier Martin wrote:
+$ grep V4L2_CID include/linux/videodev2.h | wc -l
+211
 
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/mx2_camera.c |  277 ++++++++++++++++++--------------------
->  1 files changed, 128 insertions(+), 149 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index 68038e7..290ac9d 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-[snip]
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index b59e78c..9e2088c 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -858,6 +858,7 @@ struct v4l2_querymenu {
+ #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
+=20
+ /*  User-class control IDs defined by V4L2 */
++#define V4L2_CID_MAX_CTRLS		1024
+ #define V4L2_CID_BASE			(V4L2_CTRL_CLASS_USER | 0x900)
+ #define V4L2_CID_USER_BASE 		V4L2_CID_BASE
+ /*  IDs reserved for driver specific controls */
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-io=
+ctl.c
+index 265bfb5..d7332c7 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -414,6 +414,9 @@ video_usercopy(struct file *file, unsigned int cmd, uns=
+igned long arg,
+ 		p->error_idx =3D p->count;
+ 		user_ptr =3D (void __user *)p->controls;
+ 		if (p->count) {
++			err =3D -EINVAL;
++			if (p->count > V4L2_CID_MAX_CTRLS)
++				goto out_ext_ctrl;
+ 			ctrls_size =3D sizeof(struct v4l2_ext_control) * p->count;
+ 			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+ 			mbuf =3D kmalloc(ctrls_size, GFP_KERNEL);
+@@ -1912,6 +1915,9 @@ long video_ioctl2(struct file *file,
+ 		p->error_idx =3D p->count;
+ 		user_ptr =3D (void __user *)p->controls;
+ 		if (p->count) {
++			err =3D -EINVAL;
++			if (p->count > V4L2_CID_MAX_CTRLS)
++				goto out_ext_ctrl;
+ 			ctrls_size =3D sizeof(struct v4l2_ext_control) * p->count;
+ 			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
+ 			mbuf =3D kmalloc(ctrls_size, GFP_KERNEL);
 
-> @@ -256,13 +257,25 @@ struct mx2_camera_dev {
->  	size_t			discard_size;
->  	struct mx2_fmt_cfg	*emma_prp;
->  	u32			frame_count;
-> +	struct vb2_alloc_ctx	*alloc_ctx;
-> +};
-> +
-> +enum mx2_buffer_state {
-> +	MX2_STATE_NEEDS_INIT = 0,
-> +	MX2_STATE_PREPARED   = 1,
-> +	MX2_STATE_QUEUED     = 2,
-> +	MX2_STATE_ACTIVE     = 3,
-> +	MX2_STATE_DONE       = 4,
-> +	MX2_STATE_ERROR      = 5,
-> +	MX2_STATE_IDLE       = 6,
+--l76fUT7nc3MelDdI
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Are the numerical values important? If not - please, drop. And actually, 
-you don't need most of these states, I wouldn't be surprised, if you 
-didn't need them at all. You might want to revise them in a future patch.
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-[snip]
+iQIcBAEBAgAGBQJPBUMFAAoJEOnZkXI/YHqRYaUP/29M7sG2zs9NtuntaflAdyZ9
+CnOSCb5u/0yToAPCAWfS/Ayb9tgadZP0INlEg+Gegy2lV71jT3u14wgPsb0csVL0
+d58u4XhZ38f78nRcos+vUVPEpAmlCJtfN3cgyfBaYLEBjCClagYdjMKFXhfIJ/In
+V2jh/tDJBJ07YbqaEbKdNvHw8ceg2+EQowgArEpX/Z80cYqkffMZZ0zhC16487MJ
+udMtLaMyyVctpoUDDDtTA1gxGmqytUQwrRvHH8at2hBUuFW4obRFxVntvjGAQge7
+LAcgbp7/EwmBC7KIiaCoBYhtJAOmETYT8fIXqYbGSSlm/r9Cf+SVzrODHq9Rs6y6
+U3JnPpkA/fjh6a+SzgmtQeGH4d7gFFSfFAkpp1zG2wCPmt3BivjntqFy0qOnv7dp
+fWy8cb3qjqg6X3bKkMcZ7WFu3gzViz7h6Hsce4k56wJRfcA/Y8R7YA0DRDgTNyuH
+ldoI4Ge+7qpSRRf1aYsbE7fpPlfdiCwN+IHJv3D7qaXdNPtW4VwHxU3pSV6H+q74
+btcvryE3i+QgvFmLpYLC6jDtBhOm2nQSi5bTpobClaZ8EDNWMtFULKIJURIpiu5H
+P5VrZOCJnmVKhLmJI6UbLa3V1QHndYCeh0um/46FHyQI6KNJZQFjr7S9G5gDx/YE
+O5EmqdBKger9kYfwaNT9
+=6sSB
+-----END PGP SIGNATURE-----
 
-> @@ -467,59 +479,47 @@ static irqreturn_t mx25_camera_irq(int irq_csi, void *data)
->  /*
->   *  Videobuf operations
->   */
-> -static int mx2_videobuf_setup(struct videobuf_queue *vq, unsigned int *count,
-> -			      unsigned int *size)
-> +static int mx2_videobuf_setup(struct vb2_queue *vq,
-> +			const struct v4l2_format *fmt,
-> +			unsigned int *count, unsigned int *num_planes,
-> +			unsigned int sizes[], void *alloc_ctxs[])
->  {
-> -	struct soc_camera_device *icd = vq->priv_data;
-> +	struct soc_camera_device *icd = soc_camera_from_vb2q(vq);
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> +	struct mx2_camera_dev *pcdev = ici->priv;
->  	int bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
->  			icd->current_fmt->host_fmt);
-
-You choose not to support VIDIOC_CREATE_BUFS? You have to at least return 
-an error if fmt != NULL. Or consider supporting it - look at mx3_camera.c 
-or sh_mobile_ceu_camera.c (btw, atmel-isi.c has to be fixed with this 
-respect too). If you decide to support it, you'll also have to drop 
-.buf_prepare() (see, e.g., 07f92448045a23d27dbc3ece3abcb6bafc618d43)
-
-[snip]
-
-> @@ -529,46 +529,34 @@ static int mx2_videobuf_prepare(struct videobuf_queue *vq,
->  	 * This can be useful if you want to see if we actually fill
->  	 * the buffer with something
->  	 */
-> -	memset((void *)vb->baddr, 0xaa, vb->bsize);
-> +	memset((void *)vb2_plane_vaddr(vb, 0),
-> +	       0xaa, vb2_get_plane_payload(vb, 0));
->  #endif
->  
-> -	if (buf->code	!= icd->current_fmt->code ||
-> -	    vb->width	!= icd->user_width ||
-> -	    vb->height	!= icd->user_height ||
-> -	    vb->field	!= field) {
-> +	if (buf->code	!= icd->current_fmt->code) {
->  		buf->code	= icd->current_fmt->code;
-> -		vb->width	= icd->user_width;
-> -		vb->height	= icd->user_height;
-> -		vb->field	= field;
-> -		vb->state	= VIDEOBUF_NEEDS_INIT;
-> +		buf->state	= MX2_STATE_NEEDS_INIT;
-
-This looks broken or most likely redundant to me. The check for a changed 
-code was there to reallocate the buffer, doesn't seem to make much sense 
-now.
-
-[snip]
-
-> @@ -686,10 +673,10 @@ static void mx2_videobuf_release(struct videobuf_queue *vq,
->  	 * types.
->  	 */
->  	spin_lock_irqsave(&pcdev->lock, flags);
-> -	if (vb->state == VIDEOBUF_QUEUED) {
-> -		list_del(&vb->queue);
-> -		vb->state = VIDEOBUF_ERROR;
-> -	} else if (cpu_is_mx25() && vb->state == VIDEOBUF_ACTIVE) {
-> +	if (buf->state == MX2_STATE_QUEUED || buf->state == MX2_STATE_ACTIVE) {
-> +		list_del_init(&buf->queue);
-> +		buf->state = MX2_STATE_NEEDS_INIT;
-> +	} else if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
-
-This doesn't look right. You already have " || buf->state == 
-MX2_STATE_ACTIVE" above, so, this latter condition is never entered?
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+--l76fUT7nc3MelDdI--
