@@ -1,138 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:1025 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752817Ab2AUQEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:43 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4hcN023681
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:43 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 12/35] [media] drxk: Don't assume a default firmware name
-Date: Sat, 21 Jan 2012 14:04:14 -0200
-Message-Id: <1327161877-16784-13-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-12-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
- <1327161877-16784-11-git-send-email-mchehab@redhat.com>
- <1327161877-16784-12-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:39218 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932235Ab2AEXHd convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 18:07:33 -0500
+Received: by qcqz2 with SMTP id z2so619113qcq.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 15:07:32 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfiw7c8=o5doJcYctmRbsj-idmxsRKVE5OzCOQ_xhLGBxMg@mail.gmail.com>
+References: <CAHF9RemG4M2apwcbUG+7YvkLrbpoZmE6Nh2XMHPT4FM3jRW_Ng@mail.gmail.com>
+	<CAGoCfiwEeFiU+0scdZ48nbDfF-NCg8Ac701XkCZtXuTjckq0ng@mail.gmail.com>
+	<CAHF9Re=V8MOH-wg8TWeMjSC9d-iOtWAWH-RshPAxbBjiP65OJQ@mail.gmail.com>
+	<CAGoCfiw7c8=o5doJcYctmRbsj-idmxsRKVE5OzCOQ_xhLGBxMg@mail.gmail.com>
+Date: Fri, 6 Jan 2012 00:07:32 +0100
+Message-ID: <CAHF9RemRjBz8whMHi79dgXk3TYCs0nEftOD0SSh1O-5Ych989Q@mail.gmail.com>
+Subject: Re: Support for RC-6 in em28xx driver?
+From: =?ISO-8859-1?Q?Simon_S=F8ndergaard?= <john7doe@gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move the ngene/ddbridge firmware into their drivers.
+2012/1/5 Devin Heitmueller <dheitmueller@kernellabs.com>:
+> 2012/1/5 Simon Søndergaard <john7doe@gmail.com>:
+>> 2012/1/5 Devin Heitmueller <dheitmueller@kernellabs.com>:
+>>> 2012/1/5 Simon Søndergaard <john7doe@gmail.com>:
+>>>> Hi,
+>>>>
+>>>> I recently purchased a PCTV 290e USB Stick (em28174) it comes with a
+>>>> remote almost as small as the stick itself... I've been able to get
+>>>> both stick and remote to work. I also own an MCE media center remote
+>>>> from HP (this make
+>>>> http://www.ebay.com/itm/Original-Win7-PC-MCE-Media-Center-HP-Remote-Controller-/170594956920)
+>>>> that sends RC-6 codes. While it do have a windows logo I still think
+>>>> it is vastly superior to the one that shipped with the stick :-)
+>>>>
+>>>> If I understand it correctly em28174 is a derivative of em2874?
+>>>>
+>>>> In em28xx-input.c it is stated that: "em2874 supports more protocols.
+>>>> For now, let's just announce the two protocols that were already
+>>>> tested"
+>>>>
+>>>> I've been searching high and low for a datasheet for em28(1)74, but
+>>>> have been unable to find it online. Do anyone know if one of the
+>>>> protocols supported is RC-6? and if so how do I get a copy of the
+>>>> datasheet?
+>>>
+>>> The 2874 supports NEC, RC-5, and RC-6/6A.  I did the original support
+>>> (based on the docs provided under NDA) but ironically enough I didn't
+>>> have an RC6 remote kicking around so I didn't do the support for it.
+>>>
+>>> IR receivers for MCE devices are dirt cheap (< $20), and if you're
+>>> doing a media center then it's likely the PCTV 290e probably isn't in
+>>> line-of-site for a remote anyway.
+>>
+>> The 290e will be in line of sight.
+>>
+>> Perhaps the info is already there, not sure why I overlooked it in the
+>> first place:
+>>
+>> EM2874_IR_RC6_MODE_0    0x08
+>> EM2874_IR_RC6_MODE_6A 0x0b
+>
+> Ah, so I guess I did put at least some of the info into the driver.
+> Also, for RC6 make sure bits 0-1 are 00 and for RC6A they need to be
+> set based on the number of bytes expected to be received (2 bytes=00,
+> 3bytes=01, 4bytes=10).  The received data gets stored in 0x52-0x55 (I
+> don't remember if the driver actually looks are 0x54/55 currently
+> since they aren't used for NEC or RC5)..
+>
 
-There are two reasons for that:
-	1) The firmware used there didn't work for a few devices
-I tested here (Terratec H5, H6 and H7);
-	2) At least Terratec H7 doesn't seem to require a firmware
-for it to work.
+The driver already reads up to 0x55.
 
-After this change, if firmware is not specified, the driver will
-use a rom-based firmware (this seems to be the case for Terratec
-H7, although I need to better check the USB dumps to be sure about
-that).
+Do you mean bits 0-1 of EM2874_R50_IR_CONFIG? The Driver code and the
+defines above is in LSB 0 syntax, so bit 0-1 would overlap with the
+0x0b value... Regardless I tried using 0x8b, 0x4b, 0x0b, 0x0a and 0x09
+as the value for EM2874_R50_IR_CONFIG, but I never observed any
+changes to EM2874_R51_IR :-(
 
-In any case, the firmware seems to be optional, as the DRX-K driver
-don't return the firmware load error.
+I'm assuming that read count should still be read from EM2874_R51_IR
+regardless of the mode
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/ddbridge/ddbridge-core.c |    1 +
- drivers/media/dvb/dvb-usb/az6007.c         |    8 +++++---
- drivers/media/dvb/frontends/drxk_hard.c    |    4 +---
- drivers/media/dvb/ngene/ngene-cards.c      |    1 +
- 4 files changed, 8 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
-index 2f31648..243dbb3 100644
---- a/drivers/media/dvb/ddbridge/ddbridge-core.c
-+++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
-@@ -578,6 +578,7 @@ static int demod_attach_drxk(struct ddb_input *input)
- 	struct drxk_config config;
- 
- 	memset(&config, 0, sizeof(config));
-+	config.microcode_name = "drxk_a3.mc";
- 	config.adr = 0x29 + (input->nr & 1);
- 
- 	fe = input->fe = dvb_attach(drxk_attach, &config, i2c);
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index bb597c6..523972f 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -55,7 +55,8 @@ static struct drxk_config terratec_h7_drxk = {
- 	.adr = 0x29,
- 	.single_master = 1,
- 	.no_i2c_bridge = 0,
--	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
-+	.max_size = 64,
-+//	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
- };
- 
- static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
-@@ -127,7 +128,8 @@ static int az6007_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
- 	debug_dump(b, blen, deb_xfer);
- 
- 	if (blen > 64) {
--		err("az6007: doesn't suport I2C transactions longer than 64 bytes\n");
-+		err("az6007: tried to write %d bytes, but I2C max size is 64 bytes\n",
-+		    blen);
- 		return -EOPNOTSUPP;
- 	}
- 
-@@ -395,6 +397,7 @@ static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
- 	adap->fe2->tuner_priv = adap->fe->tuner_priv;
- 	memcpy(&adap->fe2->ops.tuner_ops,
- 	       &adap->fe->ops.tuner_ops, sizeof(adap->fe->ops.tuner_ops));
-+
- 	return 0;
- 
- out_free:
-@@ -572,7 +575,6 @@ static struct dvb_usb_device_properties az6007_properties = {
- 	.num_adapters = 1,
- 	.adapter = {
- 		{
--			/* .caps             = DVB_USB_ADAP_RECEIVES_204_BYTE_TS, */
- 			.streaming_ctrl   = az6007_streaming_ctrl,
- 			.frontend_attach  = az6007_frontend_attach,
- 
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 6980ed7..4b99255 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -6070,9 +6070,7 @@ static int init_drxk(struct drxk_state *state)
- 		if (status < 0)
- 			goto error;
- 
--		if (!state->microcode_name)
--			load_microcode(state, "drxk_a3.mc");
--		else
-+		if (state->microcode_name)
- 			load_microcode(state, state->microcode_name);
- 
- 		/* disable token-ring bus through OFDM block for possible ucode upload */
-diff --git a/drivers/media/dvb/ngene/ngene-cards.c b/drivers/media/dvb/ngene/ngene-cards.c
-index 8418c02..7539a5d 100644
---- a/drivers/media/dvb/ngene/ngene-cards.c
-+++ b/drivers/media/dvb/ngene/ngene-cards.c
-@@ -216,6 +216,7 @@ static int demod_attach_drxk(struct ngene_channel *chan,
- 	struct drxk_config config;
- 
- 	memset(&config, 0, sizeof(config));
-+	config.microcode_name = "drxk_a3.mc";
- 	config.adr = 0x29 + (chan->number ^ 2);
- 
- 	chan->fe = dvb_attach(drxk_attach, &config, i2c);
--- 
-1.7.8
-
+Br,
+/Simon
