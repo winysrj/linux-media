@@ -1,471 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:43631 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097Ab2A3MHP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 07:07:15 -0500
-Received: by wgbed3 with SMTP id ed3so4517189wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2012 04:07:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1201271737580.32661@axis700.grange>
-References: <1327579472-31597-1-git-send-email-javier.martin@vista-silicon.com>
-	<1327579472-31597-3-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1201271737580.32661@axis700.grange>
-Date: Mon, 30 Jan 2012 13:07:14 +0100
-Message-ID: <CACKLOr3do-RUJMYszfBEyTFJMY_ru0uL2GQjst7VUPXpXfpzwQ@mail.gmail.com>
-Subject: Re: [PATCH v2 3/4] media i.MX27 camera: improve discard buffer handling.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de,
-	baruch@tkos.co.il
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:62056 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932281Ab2AEBBH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:07 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05117Zo029442
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:07 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 14/47] [media] mt2063: Remove unused data structures
+Date: Wed,  4 Jan 2012 23:00:25 -0200
+Message-Id: <1325725258-27934-15-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27 January 2012 19:13, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> On Thu, 26 Jan 2012, Javier Martin wrote:
->
->> The way discard buffer was previously handled lead
->> to possible races that made a buffer that was not
->> yet ready to be overwritten by new video data. This
->> is easily detected at 25fps just adding "#define DEBUG"
->> to enable the "memset" check and seeing how the image
->> is corrupted.
->>
->> A new "discard" queue and two discard buffers have
->> been added to make them flow trough the pipeline
->> of queues and thus provide suitable event ordering.
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->>  Changes since v1:
->>  - Don't allocate discard buffer on every set_fmt.
->>
->> ---
->>  drivers/media/video/mx2_camera.c |  261 +++++++++++++++++++++-----------------
->>  1 files changed, 144 insertions(+), 117 deletions(-)
->>
->> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
->> index 045c018..71054ab 100644
->> --- a/drivers/media/video/mx2_camera.c
->> +++ b/drivers/media/video/mx2_camera.c
->> @@ -237,7 +237,8 @@ struct mx2_buffer {
->>       struct list_head                queue;
->>       enum mx2_buffer_state           state;
->>
->> -     int bufnum;
->> +     int                             bufnum;
->> +     bool                            discard;
->>  };
->>
->>  struct mx2_camera_dev {
->> @@ -256,6 +257,7 @@ struct mx2_camera_dev {
->>
->>       struct list_head        capture;
->>       struct list_head        active_bufs;
->> +     struct list_head        discard;
->>
->>       spinlock_t              lock;
->>
->> @@ -268,6 +270,7 @@ struct mx2_camera_dev {
->>
->>       u32                     csicr1;
->>
->> +     struct mx2_buffer       buf_discard[2];
->>       void                    *discard_buffer;
->>       dma_addr_t              discard_buffer_dma;
->>       size_t                  discard_size;
->> @@ -329,6 +332,30 @@ static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
->>       return &mx27_emma_prp_table[0];
->>  };
->>
->> +static void mx27_update_emma_buf(struct mx2_camera_dev *pcdev,
->> +                              unsigned long phys, int bufnum)
->> +{
->> +     struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->> +
->> +     if (prp->cfg.channel == 1) {
->> +             writel(phys, pcdev->base_emma +
->> +                             PRP_DEST_RGB1_PTR + 4 * bufnum);
->> +     } else {
->> +             writel(phys, pcdev->base_emma +
->> +                     PRP_DEST_Y_PTR - 0x14 * bufnum);
->> +             if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
->> +                     u32 imgsize = pcdev->icd->user_height *
->> +                                     pcdev->icd->user_width;
->> +
->> +                     writel(phys + imgsize,
->> +                     pcdev->base_emma + PRP_DEST_CB_PTR -
->> +                     0x14 * bufnum);
->> +                     writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
->> +                     PRP_DEST_CR_PTR - 0x14 * bufnum);
->
-> Please fix indentation.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mt2063.c |   97 +++++-----------------------------
+ 1 files changed, 14 insertions(+), 83 deletions(-)
 
-OK, will do in v3.
-
->> +             }
->> +     }
->> +}
->> +
->>  static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
->>  {
->>       unsigned long flags;
->> @@ -377,7 +404,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->>       writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
->>
->>       pcdev->icd = icd;
->> -     pcdev->frame_count = -1;
->> +     pcdev->frame_count = 0;
->>
->>       dev_info(icd->parent, "Camera driver attached to camera %d\n",
->>                icd->devnum);
->> @@ -631,7 +658,7 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
->>
->>       spin_lock_irqsave(&pcdev->lock, flags);
->>       if (mx27_camera_emma(pcdev)) {
->> -             list_del_init(&buf->queue);
->> +             INIT_LIST_HEAD(&buf->queue);
->
-> The buffer had to be deleted from the queue to clean up the queue. The
-> "_init" was actually not needed. Now, that you do
-> INIT_LIST_HEAD(&pcdev->capture); and INIT_LIST_HEAD(&pcdev->active_bufs);
-> in .stop_streaming(), you don't need to do anything about your individual
-> buffers. You never test list_empty(&buf->queue), so, it doesn't matter
-> what they contain.
-
-Fine, v3 will solve this.
-
->>       } else if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
->>               if (pcdev->fb1_active == buf) {
->>                       pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
->> @@ -647,6 +674,34 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
->>       spin_unlock_irqrestore(&pcdev->lock, flags);
->>  }
->>
->> +static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
->> +             int bytesperline)
->> +{
->> +     struct soc_camera_host *ici =
->> +             to_soc_camera_host(icd->parent);
->> +     struct mx2_camera_dev *pcdev = ici->priv;
->> +     struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->> +
->> +     writel((icd->user_width << 16) | icd->user_height,
->> +            pcdev->base_emma + PRP_SRC_FRAME_SIZE);
->> +     writel(prp->cfg.src_pixel,
->> +            pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
->> +     if (prp->cfg.channel == 1) {
->> +             writel((icd->user_width << 16) | icd->user_height,
->> +                     pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
->> +             writel(bytesperline,
->> +                     pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
->> +             writel(prp->cfg.ch1_pixel,
->> +                     pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
->> +     } else { /* channel 2 */
->> +             writel((icd->user_width << 16) | icd->user_height,
->> +                     pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
->> +     }
->> +
->> +     /* Enable interrupts */
->> +     writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
->> +}
->> +
->>  static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
->>  {
->>       struct soc_camera_device *icd = soc_camera_from_vb2q(q);
->> @@ -654,7 +709,11 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
->>               to_soc_camera_host(icd->parent);
->>       struct mx2_camera_dev *pcdev = ici->priv;
->>       struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->> +     struct vb2_buffer *vb;
->> +     struct mx2_buffer *buf;
->>       unsigned long flags;
->> +     unsigned long phys;
->> +     int bytesperline;
->>       int ret = 0;
->>
->>       spin_lock_irqsave(&pcdev->lock, flags);
->> @@ -664,6 +723,63 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
->>                       goto err;
->>               }
->>
->> +             buf = list_entry(pcdev->capture.next,
->> +                              struct mx2_buffer, queue);
->> +             buf->bufnum = 0;
->> +             vb = &buf->vb;
->> +             buf->state = MX2_STATE_ACTIVE;
->> +
->> +             phys = vb2_dma_contig_plane_dma_addr(vb, 0);
->> +             mx27_update_emma_buf(pcdev, phys, buf->bufnum);
->> +             list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
->> +
->> +             buf = list_entry(pcdev->capture.next,
->> +                              struct mx2_buffer, queue);
->> +             buf->bufnum = 1;
->> +             vb = &buf->vb;
->> +             buf->state = MX2_STATE_ACTIVE;
->> +
->> +             phys = vb2_dma_contig_plane_dma_addr(vb, 0);
->> +             mx27_update_emma_buf(pcdev, phys, buf->bufnum);
->> +             list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
->> +
->> +             if (pcdev->discard_buffer) {
->> +                     dma_free_coherent(ici->v4l2_dev.dev,
->> +                             pcdev->discard_size, pcdev->discard_buffer,
->> +                             pcdev->discard_buffer_dma);
->
-> dma_free_coherent() should better go into stop_streaming.
->
->> +
->> +                     pcdev->buf_discard[0].discard = true;
->> +                     INIT_LIST_HEAD(&pcdev->buf_discard[0].queue);
->
-> No need to init before adding.
->
->> +                     list_add_tail(&pcdev->buf_discard[0].queue,
->> +                                   &pcdev->discard);
->> +
->> +                     pcdev->buf_discard[1].discard = true;
->> +                     INIT_LIST_HEAD(&pcdev->buf_discard[1].queue);
->> +                     list_add_tail(&pcdev->buf_discard[1].queue,
->> +                                   &pcdev->discard);
->
-> Now, do I understand it right, that on the first start_streaming
-> pcdev->discard_buffer == NULL, so, you don't enter here and you don't add
-> discard buffers onto the discard list, and still it works? That would
-> confirm my suspicion, that all thess manipulations with the discard buffer
-> list are unneeded.
-
-Not actually, it is true that this is clearly a mistake and I'm glad
-you noticed. However, the fact that it worked is because I never had a
-frame lost while testing. This discard_buffer code is still needed. I
-am currently preparing a v3 version of the patch where I've made sure
-that when a frame is lost discard buffers are now use properly.
-
->> +             }
->> +
->> +             bytesperline = soc_mbus_bytes_per_line(icd->user_width,
->> +                             icd->current_fmt->host_fmt);
->> +             if (bytesperline < 0)
->> +                     return bytesperline;
->> +
->> +             /*
->> +              * I didn't manage to properly enable/disable the prp
->> +              * on a per frame basis during running transfers,
->> +              * thus we allocate a buffer here and use it to
->> +              * discard frames when no buffer is available.
->> +              * Feel free to work on this ;)
->> +              */
->> +             pcdev->discard_size = icd->user_height * bytesperline;
->> +             pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
->> +                             pcdev->discard_size, &pcdev->discard_buffer_dma,
->> +                             GFP_KERNEL);
->> +             if (!pcdev->discard_buffer)
->> +                     return -ENOMEM;
->> +
->> +             mx27_camera_emma_buf_init(icd, bytesperline);
->> +
->>               if (prp->cfg.channel == 1) {
->>                       writel(PRP_CNTL_CH1EN |
->>                               PRP_CNTL_CSIEN |
->> @@ -711,6 +827,9 @@ static int mx2_stop_streaming(struct vb2_queue *q)
->>                       writel(cntl & ~PRP_CNTL_CH2EN,
->>                              pcdev->base_emma + PRP_CNTL);
->>               }
->> +             INIT_LIST_HEAD(&pcdev->capture);
->> +             INIT_LIST_HEAD(&pcdev->active_bufs);
->> +             INIT_LIST_HEAD(&pcdev->discard);
->>       }
->>       spin_unlock_irqrestore(&pcdev->lock, flags);
->>
->> @@ -766,63 +885,6 @@ static int mx27_camera_emma_prp_reset(struct mx2_camera_dev *pcdev)
->>       return -ETIMEDOUT;
->>  }
->>
->> -static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
->> -             int bytesperline)
->> -{
->> -     struct soc_camera_host *ici =
->> -             to_soc_camera_host(icd->parent);
->> -     struct mx2_camera_dev *pcdev = ici->priv;
->> -     struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->> -     u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
->> -
->> -     if (prp->cfg.channel == 1) {
->> -             writel(pcdev->discard_buffer_dma,
->> -                             pcdev->base_emma + PRP_DEST_RGB1_PTR);
->> -             writel(pcdev->discard_buffer_dma,
->> -                             pcdev->base_emma + PRP_DEST_RGB2_PTR);
->> -
->> -             writel((icd->user_width << 16) | icd->user_height,
->> -                     pcdev->base_emma + PRP_SRC_FRAME_SIZE);
->> -             writel((icd->user_width << 16) | icd->user_height,
->> -                     pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
->> -             writel(bytesperline,
->> -                     pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
->> -             writel(prp->cfg.src_pixel,
->> -                     pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
->> -             writel(prp->cfg.ch1_pixel,
->> -                     pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
->> -     } else { /* channel 2 */
->> -             writel(pcdev->discard_buffer_dma,
->> -                     pcdev->base_emma + PRP_DEST_Y_PTR);
->> -             writel(pcdev->discard_buffer_dma,
->> -                     pcdev->base_emma + PRP_SOURCE_Y_PTR);
->> -
->> -             if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
->> -                     writel(pcdev->discard_buffer_dma + imgsize,
->> -                             pcdev->base_emma + PRP_DEST_CB_PTR);
->> -                     writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
->> -                             pcdev->base_emma + PRP_DEST_CR_PTR);
->> -                     writel(pcdev->discard_buffer_dma + imgsize,
->> -                             pcdev->base_emma + PRP_SOURCE_CB_PTR);
->> -                     writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
->> -                             pcdev->base_emma + PRP_SOURCE_CR_PTR);
->> -             }
->> -
->> -             writel((icd->user_width << 16) | icd->user_height,
->> -                     pcdev->base_emma + PRP_SRC_FRAME_SIZE);
->> -
->> -             writel((icd->user_width << 16) | icd->user_height,
->> -                     pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
->> -
->> -             writel(prp->cfg.src_pixel,
->> -                     pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
->> -
->> -     }
->> -
->> -     /* Enable interrupts */
->> -     writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
->> -}
->> -
->>  static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
->>               __u32 pixfmt)
->>  {
->> @@ -906,27 +968,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
->>               ret = mx27_camera_emma_prp_reset(pcdev);
->>               if (ret)
->>                       return ret;
->> -
->> -             if (pcdev->discard_buffer)
->> -                     dma_free_coherent(ici->v4l2_dev.dev,
->> -                             pcdev->discard_size, pcdev->discard_buffer,
->> -                             pcdev->discard_buffer_dma);
->> -
->> -             /*
->> -              * I didn't manage to properly enable/disable the prp
->> -              * on a per frame basis during running transfers,
->> -              * thus we allocate a buffer here and use it to
->> -              * discard frames when no buffer is available.
->> -              * Feel free to work on this ;)
->> -              */
->> -             pcdev->discard_size = icd->user_height * bytesperline;
->> -             pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
->> -                             pcdev->discard_size, &pcdev->discard_buffer_dma,
->> -                             GFP_KERNEL);
->> -             if (!pcdev->discard_buffer)
->> -                     return -ENOMEM;
->> -
->> -             mx27_camera_emma_buf_init(icd, bytesperline);
->>       } else if (cpu_is_mx25()) {
->>               writel((bytesperline * icd->user_height) >> 2,
->>                               pcdev->base_csi + CSIRXCNT);
->> @@ -1174,18 +1215,24 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
->>  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>               int bufnum)
->>  {
->> -     u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
->> -     struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->>       struct mx2_buffer *buf;
->>       struct vb2_buffer *vb;
->>       unsigned long phys;
->>
->> -     if (!list_empty(&pcdev->active_bufs)) {
->> -             buf = list_entry(pcdev->active_bufs.next,
->> -                     struct mx2_buffer, queue);
->> +     BUG_ON(list_empty(&pcdev->active_bufs));
->
-> Well, I understand, this is unexpected, but punishing the user for flaky
-> hardware, that has sent an interrupt at an unexpected point of time...
-> Unless you never have your interrupt enabled with the empty active list.
-> Also, the check
->
->        if ((((status & (3 << 5)) == (3 << 5)) ||
->                ((status & (3 << 3)) == (3 << 3)))
->                        && !list_empty(&pcdev->active_bufs)) {
->
-> in mx27_camera_emma_irq() can now be simplified - list_empty() isn't
-> needed there any more.
-
-OK, will fix it.
-
->> +
->> +     buf = list_entry(pcdev->active_bufs.next,
->> +                      struct mx2_buffer, queue);
->>
->> -             BUG_ON(buf->bufnum != bufnum);
->> +     BUG_ON(buf->bufnum != bufnum);
->>
->> +     if (buf->discard) {
->> +             /*
->> +              * Discard buffer must not be returned to user space.
->> +              * Just return it to the discard queue.
->> +              */
->> +             list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
->> +     } else {
->>               vb = &buf->vb;
->>  #ifdef DEBUG
->>               phys = vb2_dma_contig_plane_dma_addr(vb, 0);
->> @@ -1207,6 +1254,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>                       }
->>               }
->>  #endif
->> +
->>               dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb,
->>                               vb2_plane_vaddr(vb, 0),
->>                               vb2_get_plane_payload(vb, 0));
->> @@ -1219,30 +1267,19 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>
->>       pcdev->frame_count++;
->>
->> -     if (list_empty(&pcdev->capture)) {
->> -             if (prp->cfg.channel == 1) {
->> -                     writel(pcdev->discard_buffer_dma, pcdev->base_emma +
->> -                                     PRP_DEST_RGB1_PTR + 4 * bufnum);
->> -             } else {
->> -                     writel(pcdev->discard_buffer_dma, pcdev->base_emma +
->> -                                             PRP_DEST_Y_PTR -
->> -                                             0x14 * bufnum);
->> -                     if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
->> -                             writel(pcdev->discard_buffer_dma + imgsize,
->> -                                    pcdev->base_emma + PRP_DEST_CB_PTR -
->> -                                    0x14 * bufnum);
->> -                             writel(pcdev->discard_buffer_dma +
->> -                                    ((5 * imgsize) / 4), pcdev->base_emma +
->> -                                    PRP_DEST_CR_PTR - 0x14 * bufnum);
->> -                     }
->> -             }
->> +     if (list_empty(&pcdev->capture) && !list_empty(&pcdev->discard)) {
->
-> Can the discard list be empty here actually?
->
->> +             buf = list_entry(pcdev->discard.next,
->> +                     struct mx2_buffer, queue);
->
-> Someone might actually begin using the list_first_entry() macro;-) Yes,
-> I'll follow:-)
-
-If you accept my offer of a separate cleanup series I will gladly
-include this ^^
-
-
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index a1acfcc..30c72c0 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -16,53 +16,35 @@ module_param(verbose, int, 0644);
+ #define DVBFE_TUNER_SOFTWARE_SHUTDOWN		100
+ #define DVBFE_TUNER_CLEAR_POWER_MASKBITS	101
+ 
+-/* FIXME: Those error codes need conversion*/
++/* FIXME: Those two error codes need conversion*/
+ /*  Error:  Upconverter PLL is not locked  */
+ #define MT2063_UPC_UNLOCK                   (0x80000002)
+ /*  Error:  Downconverter PLL is not locked  */
+ #define MT2063_DNC_UNLOCK                   (0x80000004)
++
+ /*  Info: Unavoidable LO-related spur may be present in the output  */
+-#define MT2063_SPUR_PRESENT_ERR                 (0x00800000)
++#define MT2063_SPUR_PRESENT_ERR             (0x00800000)
+ 
+ /*  Info: Mask of bits used for # of LO-related spurs that were avoided during tuning  */
+ #define MT2063_SPUR_CNT_MASK                (0x001f0000)
+ #define MT2063_SPUR_SHIFT                   (16)
+ 
+-
+-/*  Info: Tuner input frequency is out of range */
+-#define MT2063_FIN_RANGE                    (0x01000000)
+-
+-/*  Info: Tuner output frequency is out of range */
+-#define MT2063_FOUT_RANGE                   (0x02000000)
+-
+ /*  Info: Upconverter frequency is out of range (may be reason for MT_UPC_UNLOCK) */
+ #define MT2063_UPC_RANGE                    (0x04000000)
+ 
+ /*  Info: Downconverter frequency is out of range (may be reason for MT_DPC_UNLOCK) */
+ #define MT2063_DNC_RANGE                    (0x08000000)
+ 
+-/*
+- *  Data Types
+- */
+-
+ #define MAX_UDATA         (4294967295)	/*  max value storable in u32   */
+ 
+-/*
+- * Define an MTxxxx_CNT macro for each type of tuner that will be built
+- * into your application (e.g., MT2121, MT2060). MT_TUNER_CNT
+- * must be set to the SUM of all of the MTxxxx_CNT macros.
+- *
+- * #define MT2050_CNT  (1)
+- * #define MT2060_CNT  (1)
+- * #define MT2111_CNT  (1)
+- * #define MT2121_CNT  (3)
+- */
+-
+-
+ #define MT2063_TUNER_CNT               (1)	/*  total num of MicroTuner tuners  */
+ #define MT2063_I2C (0xC0)
+ 
+ /*
++ *  Data Types
++ */
++
++/*
+  *  Constant defining the version of the following structure
+  *  and therefore the API for this code.
+  *
+@@ -89,8 +71,6 @@ enum MT2063_DECT_Avoid_Type {
+ 
+ #define MT2063_MAX_ZONES 48
+ 
+-struct MT2063_ExclZone_t;
+-
+ struct MT2063_ExclZone_t {
+ 	u32 min_;
+ 	u32 max_;
+@@ -130,57 +110,6 @@ struct MT2063_AvoidSpursData_t {
+ };
+ 
+ /*
+- *  Values returned by the MT2063's on-chip temperature sensor
+- *  to be read/written.
+- */
+-enum MT2063_Temperature {
+-	MT2063_T_0C = 0,	/*  Temperature approx 0C           */
+-	MT2063_T_10C,		/*  Temperature approx 10C          */
+-	MT2063_T_20C,		/*  Temperature approx 20C          */
+-	MT2063_T_30C,		/*  Temperature approx 30C          */
+-	MT2063_T_40C,		/*  Temperature approx 40C          */
+-	MT2063_T_50C,		/*  Temperature approx 50C          */
+-	MT2063_T_60C,		/*  Temperature approx 60C          */
+-	MT2063_T_70C,		/*  Temperature approx 70C          */
+-	MT2063_T_80C,		/*  Temperature approx 80C          */
+-	MT2063_T_90C,		/*  Temperature approx 90C          */
+-	MT2063_T_100C,		/*  Temperature approx 100C         */
+-	MT2063_T_110C,		/*  Temperature approx 110C         */
+-	MT2063_T_120C,		/*  Temperature approx 120C         */
+-	MT2063_T_130C,		/*  Temperature approx 130C         */
+-	MT2063_T_140C,		/*  Temperature approx 140C         */
+-	MT2063_T_150C,		/*  Temperature approx 150C         */
+-};
+-
+-/*
+- * Parameters for selecting GPIO bits
+- */
+-enum MT2063_GPIO_Attr {
+-	MT2063_GPIO_IN,
+-	MT2063_GPIO_DIR,
+-	MT2063_GPIO_OUT,
+-};
+-
+-enum MT2063_GPIO_ID {
+-	MT2063_GPIO0,
+-	MT2063_GPIO1,
+-	MT2063_GPIO2,
+-};
+-
+-/*
+- *  Parameter for function MT2063_SetExtSRO that specifies the external
+- *  SRO drive frequency.
+- *
+- *  MT2063_EXT_SRO_OFF is the power-up default value.
+- */
+-enum MT2063_Ext_SRO {
+-	MT2063_EXT_SRO_OFF,	/*  External SRO drive off          */
+-	MT2063_EXT_SRO_BY_4,	/*  External SRO drive divide by 4  */
+-	MT2063_EXT_SRO_BY_2,	/*  External SRO drive divide by 2  */
+-	MT2063_EXT_SRO_BY_1	/*  External SRO drive divide by 1  */
+-};
+-
+-/*
+  *  Parameter for function MT2063_SetPowerMask that specifies the power down
+  *  of various sections of the MT2063.
+  */
+@@ -456,7 +385,6 @@ struct MT2063_Info_t {
+ 	u32 num_regs;
+ 	u8 reg[MT2063_REG_END_REGS];
+ };
+-typedef struct MT2063_Info_t *pMT2063_Info_t;
+ 
+ enum MTTune_atv_standard {
+ 	MTTUNEA_UNKNOWN = 0,
+@@ -498,7 +426,8 @@ static u32 MT2063_Close(struct MT2063_Info_t *pInfo);
+ static u32 MT2063_GetReg(struct MT2063_Info_t *pInfo, u8 reg, u8 * val);
+ static u32 MT2063_GetParam(struct MT2063_Info_t *pInfo, enum MT2063_Param param, u32 * pValue);
+ static u32 MT2063_SetReg(struct MT2063_Info_t *pInfo, u8 reg, u8 val);
+-static u32 MT2063_SetParam(struct MT2063_Info_t *pInfo, enum MT2063_Param param, u32 nValue);
++static u32 MT2063_SetParam(struct MT2063_Info_t *pInfo, enum MT2063_Param param,
++			   enum MT2063_DNC_Output_Enable nValue);
+ 
+ /*****************/
+ /* From drivers/media/common/tuners/mt2063_cfg.h */
+@@ -2236,7 +2165,7 @@ static u32 MT2063_GetLocked(struct MT2063_Info_t *pInfo)
+ **         06-24-2008    PINZ   Ver 1.18: Add Get/SetParam CTFILT_SW
+ **
+ ****************************************************************************/
+-static u32 MT2063_GetParam(struct MT2063_Info_t *pInfo, enum MT2063_Param param, u32 * pValue)
++static u32 MT2063_GetParam(struct MT2063_Info_t *pInfo, enum MT2063_Param param, u32 *pValue)
+ {
+ 	u32 status = 0;	/* Status to be returned        */
+ 	u32 Div;
+@@ -3221,7 +3150,9 @@ static u32 MT2063_ReInit(struct MT2063_Info_t *pInfo)
+ **         06-24-2008    PINZ   Ver 1.18: Add Get/SetParam CTFILT_SW
+ **
+ ****************************************************************************/
+-static u32 MT2063_SetParam(struct MT2063_Info_t *pInfo, enum MT2063_Param param, u32 nValue)
++static u32 MT2063_SetParam(struct MT2063_Info_t *pInfo,
++		           enum MT2063_Param param,
++			   enum MT2063_DNC_Output_Enable nValue)
+ {
+ 	u32 status = 0;	/* Status to be returned        */
+ 	u8 val = 0;
+@@ -3599,7 +3530,7 @@ static u32 MT2063_SetParam(struct MT2063_Info_t *pInfo, enum MT2063_Param param,
+ 
+ 	case MT2063_DNC_OUTPUT_ENABLE:
+ 		/* selects, which DNC output is used */
+-		switch ((enum MT2063_DNC_Output_Enable)nValue) {
++		switch (nValue) {
+ 		case MT2063_DNC_NONE:
+ 			{
+ 				val = (pInfo->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.7.5
+
