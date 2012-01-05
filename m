@@ -1,52 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:61541 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751224Ab2AGIBp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jan 2012 03:01:45 -0500
-Received: by iaeh11 with SMTP id h11so3847009iae.19
-        for <linux-media@vger.kernel.org>; Sat, 07 Jan 2012 00:01:44 -0800 (PST)
-Date: Sat, 7 Jan 2012 02:01:36 -0600
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	"Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org
-Subject: [PATCH 0/2] Re: [RFC/PATCH] [media] dw2102: use symbolic names for
- dw2102_table indices
-Message-ID: <20120107080136.GA10247@elie.hsd1.il.comcast.net>
-References: <20111222215356.GA4499@rotes76.wohnheim.uni-kl.de>
- <20111222234446.GB10497@elie.Belkin>
- <201112231820.03693.pboettcher@kernellabs.com>
- <20111223230045.GE21769@elie.Belkin>
- <4F06F512.9090704@redhat.com>
+Received: from nm3-vm0.bt.bullet.mail.ukl.yahoo.com ([217.146.182.230]:39298
+	"HELO nm3-vm0.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S932570Ab2AEWvl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jan 2012 17:51:41 -0500
+Message-ID: <4F0627E5.9050004@yahoo.com>
+Date: Thu, 05 Jan 2012 22:44:53 +0000
+From: Chris Rankin <rankincj@yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4F06F512.9090704@redhat.com>
+To: dheitmueller@kernellabs.com
+CC: linux-media@vger.kernel.org
+Subject: Re: Support for RC-6 in em28xx driver?
+References: <CAGoCfiw7c8=o5doJcYctmRbsj-idmxsRKVE5OzCOQ_xhLGBxMg@mail.gmail.com>
+In-Reply-To: <CAGoCfiw7c8=o5doJcYctmRbsj-idmxsRKVE5OzCOQ_xhLGBxMg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(-cc: Eduard)
-Mauro Carvalho Chehab wrote:
+Hi,
 
-> This looks like a good idea to me. From time to time, when conflict rises,
-> sometimes those dvb-usb tables with the magic numbers got unnoticed
-> conflicts.
->
-> So, I'm picking this one.
+As someone who also owns a PCTV 290e device, I must agree that the remote 
+control that it ships with is useless for VDR. Its biggest flaw is a lack of 
+red, green, yellow and blue buttons, unlike the very nice remote control that 
+ships with the Hauppauge NOVA-T2.
 
-Yay. :)
+Are you suggesting that the 290e could (potentially) use *any* NEC, RC-5 or 
+RC-6/6A remote control, please? Because I would find that "useful"... ;-).
 
-> It should be noticed that this is a common constructor used inside the
-> dvb-usb drivers. IMHO, an approach like that should be extended to the
-> other drivers as well.
-
-Here's a few.  Many more to go.
-
-Jonathan Nieder (2):
-  [media] a800: use symbolic names for a800_table indices
-  [media] af9005, af9015: use symbolic names for USB id table indices
-
- drivers/media/dvb/dvb-usb/a800.c   |   21 ++-
- drivers/media/dvb/dvb-usb/af9005.c |   14 ++-
- drivers/media/dvb/dvb-usb/af9015.c |  316 +++++++++++++++++++++++++++---------
- 3 files changed, 260 insertions(+), 91 deletions(-)
+Cheers,
+Chris
