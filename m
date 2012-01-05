@@ -1,143 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:52923 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932482Ab2ASQNR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 11:13:17 -0500
-Received: by mail-yw0-f46.google.com with SMTP id o21so57212yho.19
-        for <linux-media@vger.kernel.org>; Thu, 19 Jan 2012 08:13:17 -0800 (PST)
+Received: from mxweb5.versatel.de ([82.140.32.141]:34312 "EHLO
+	mxweb5.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756535Ab2AES7M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 13:59:12 -0500
+Received: from cinnamon-sage.de (i577A35D2.versanet.de [87.122.53.210])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q05IcVKe015172
+	for <linux-media@vger.kernel.org>; Thu, 5 Jan 2012 19:38:31 +0100
+Received: from 192.168.23.2:50127 by cinnamon-sage.de for <dheitmueller@kernellabs.com>,<mchehab@redhat.com>,<linux-media@vger.kernel.org> ; 05.01.2012 19:38:31
+Message-ID: <4F05EE24.50209@flensrocker.de>
+Date: Thu, 05 Jan 2012 19:38:28 +0100
+From: Lars Hanisch <dvb@flensrocker.de>
 MIME-Version: 1.0
-In-Reply-To: <4F182A79.6000603@mlbassoc.com>
-References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com>
- <201201191350.51761.laurent.pinchart@ideasonboard.com> <4F181711.1020201@mlbassoc.com>
- <201201191428.35340.laurent.pinchart@ideasonboard.com> <4F181C24.9030806@mlbassoc.com>
- <CAAwP0s3_U1tzRM3TcW+hGCVvm+aowwO9f6g6t8_pvZSJxyMrgA@mail.gmail.com> <4F182A79.6000603@mlbassoc.com>
-From: Javier Martinez Canillas <martinez.javier@gmail.com>
-Date: Thu, 19 Jan 2012 17:12:56 +0100
-Message-ID: <CAAwP0s0bR2funmWFcHg+o7ydnVQmc81gKTahBy+gO9Z2uDgLvQ@mail.gmail.com>
-Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
-To: Gary Thomas <gary@mlbassoc.com>, Enrico <ebutera@users.berlios.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/5] Fix dvb-core set_delivery_system and port drxk to
+ one frontend
+References: <1325777872-14696-1-git-send-email-mchehab@redhat.com> <CAGoCfizKsxALXAMbCO=XGkODkXy2sBJ1NzbhBQ2TAkurnG-maQ@mail.gmail.com>
+In-Reply-To: <CAGoCfizKsxALXAMbCO=XGkODkXy2sBJ1NzbhBQ2TAkurnG-maQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 19, 2012 at 3:36 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> On 2012-01-19 07:11, Javier Martinez Canillas wrote:
->>
->> On Thu, Jan 19, 2012 at 2:35 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
->>>
->>> On 2012-01-19 06:28, Laurent Pinchart wrote:
->>>>
->>>>
->>>> Hi Gary,
->>>>
->>>> On Thursday 19 January 2012 14:13:53 Gary Thomas wrote:
->>>>>
->>>>>
->>>>> On 2012-01-19 05:50, Laurent Pinchart wrote:
->>>>>>
->>>>>>
->>>>>> On Thursday 19 January 2012 13:41:57 Gary Thomas wrote:
->>>>>>>
->>>>>>>
->>>>>>> On 2012-01-17 08:33, Laurent Pinchart wrote:
->>>>>>>      <snip>
->>>>>>>>
->>>>>>>>
->>>>>>>>
->>>>>>>> I already had a couple of YUV support patches in my OMAP3 ISP tree
->>>>>>>> at
->>>>>>>> git.kernel.org. I've rebased them on top of the lastest V4L/DVB tree
->>>>>>>> and pushed them to
->>>>>>>>
->>>>>>>>
->>>>>>>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp
->>>>>>>> - omap3isp-yuv. Could you please try them, and see if they're usable
->>>>>>>> with your sensor ?
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> I just tried this kernel with my board.  The media control
->>>>>>> infrastructure comes up and all of the devices are created, but I
->>>>>>> can't
->>>>>>> access them.
->>>>>>>
->>>>>>>   From the bootup log:
->>>>>>>     Linux media interface: v0.10
->>>>>>>     Linux video capture interface: v2.00
->>>>>>
->>>>>>
->>>>>>
->>>>>> Any message from the omap3isp driver and from the sensor driver ?
->>>>>
->>>>>
->>>>>
->>>>> No, it doesn't appear that the sensor was probed (or maybe it failed
->>>>> but
->>>>> no messages).  I'll check into this.
->>>>
->>>>
->>>>
->>>> Is the omap3-isp driver compiled as a module ? If so, make sure
->>>> iommu2.ko
->>>> is
->>>> loaded first. 'rmmod omap3-isp&&    modprobe iommu2&&    modprobe
->>>> omap3-isp'
->>>> is a
->>>>
->>>> quick way to test it.
->>>
->>>
->>>
->>> I have everything compiled in - no modules.
->>>
->>
->> At least for me, it only worked when compiled both the omap3-isp and
->> tvp5150 drivers as a module. If I compile them built-in, it fails.
+Hi,
+
+  First: I'm no driver but an application developer.
+
+Am 05.01.2012 17:40, schrieb Devin Heitmueller:
+> On Thu, Jan 5, 2012 at 10:37 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com>  wrote:
+>> With all these series applied, it is now possible to use frontend 0
+>> for all delivery systems. As the current tools don't support changing
+>> the delivery system, the dvb-fe-tool (on my experimental tree[1]) can now
+>> be used to change between them:
 >
+> Hi Mauro,
 >
-> Can you share your board/sensor init code from your board-init.c
-> so I can see how to manage this as a module?
+> While from a functional standpoint I think this is a good change (and
+> we probably should have done it this way all along), is there not
+> concern that this could be interpreted by regular users as a
+> regression?  Right now they get two frontends, and they can use all
+> their existing tools.  We're moving to a model where if users upgraded
+> their kernel they would now require some new userland tool to do
+> something that the kernel was allowing them to do previously.
 >
+> Sure, it's not "ABI breakage" in the classic sense but the net effect
+> is the same - stuff that used to work stops working and now they need
+> new tools or to recompile their existing tools to include new
+> functionality (which as you mentioned, none of those tools have
+> today).
 
-Hi Gary,
+  Since now there isn't any consistent behaviour of hybrid multifrontend devices. Some create multiple frontends but 
+only one demux/dvr (like drx-k), others create all devices for every delivery system (HVR 4000). But they all could only 
+be opened mutually exclusive. In case of vdr (my favourite app) you have to trick with udev, symlinks, "remove unwanted 
+frontends" etc. to get the devices in a shape so the application can use it. I don't know how mythtv is handling such 
+devices, but I think there will be something like driver-dependend code in the one or other way.
 
-The board specific init code is the same for both cases
-(built-in/module), the only difference is how you compile the
-omap3-isp and tvp5150 drivers.
+  The spec isn't really meaningful for hybrid devices. Maybe we should start there and claim something the driver 
+developer can follow.
 
-Just set to m the Kconfig symbols CONFIG_VIDEO_OMAP3 and
-CONFIG_VIDEO_TVP5150 in your .config file:
+> Perhaps you would consider some sort of module option that would let
+> users fall back to the old behavior?
 
-CONFIG_VIDEO_OMAP3=m
-CONFIG_VIDEO_TVP5150=m
+  That would be fine but better would be a module option that will initialize frontend0 to the "connected" delivery 
+system. In case of DVB-C/-T you don't switch frequently from one to the other. You would need extra hardware like a 
+splitter which switches inputs if there are e.g. 5V for an active antenna (which means: switch to the dvb-t-input). Is 
+there any DVB-T card which can supply such voltage? And is it controllable via an ioctl (like LNB power supply in DVB-S)?
 
-But if it help you, here [1] is the definitions for all the platform
-device/data structures needed to register the TVP5150 with the omap3
-isp code (isp_platform_data, isp_v4l2_subdevs_group,
-isp_subdev_i2c_board_info, etc) and here [2] is the actual camera
-initialization configuring the tvp reset and power down GPIO pins and
-calling omap3_init_camera().
+  Anyway, I think, if there's finally a solution so all drivers behave the same, the tools and applications will handle 
+this new model in the near future.
 
-And take a look to our modified TVP5150 [3] and OMAP3 ISP CCDC [4] drivers.
+  Please do something... :-)
 
-This is based on an 2.6.37 kernel, but the API has not changed so it
-should be also applicable to your kernel.
+Regards,
+Lars.
 
-But I suggested to look at Enrico patches that were forward ported to
-3.2, you probably can use those as is.
-
-Hope it helps,
-
-[1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/exp-igep0022.c;h=475228832412c99a0a52a4652518279a59b87d0c;hb=db3cb47adf10504d3847d54927de50b2fa94c008
-[2]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/board-igep00x0.c;h=1051c6fe949b9b8915101c9d8ac324aaed32cd7c;hb=db3cb47adf10504d3847d54927de50b2fa94c008
-[3]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=blob;f=drivers/media/video/tvp5150.c;h=0b76e0ead27da45067265bb5c144f17994215db6;hb=db3cb47adf10504d3847d54927de50b2fa94c008
-[4]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=blob;f=drivers/media/video/isp/ispccdc.c;h=28579f49a2495d25f675dabf37dadfe34a5218fa;hb=db3cb47adf10504d3847d54927de50b2fa94c008
-
--- 
-Javier Martínez Canillas
-(+34) 682 39 81 69
-Barcelona, Spain
+>
+> Devin
+>
