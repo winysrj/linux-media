@@ -1,59 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65333 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754041Ab2ANOvU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 09:51:20 -0500
-Message-ID: <4F119664.5080507@redhat.com>
-Date: Sat, 14 Jan 2012 12:51:16 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:60907 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755164Ab2AEPql (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 10:46:41 -0500
+Received: by eaad14 with SMTP id d14so423081eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 07:46:39 -0800 (PST)
 MIME-Version: 1.0
-To: Jim Darby <uberscubajim@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] dvb-core: preserve the delivery system at cache
- clear
-References: <4F101940.2020408@gmail.com> <1326462636-8869-1-git-send-email-mchehab@redhat.com> <4F10C586.3030600@gmail.com>
-In-Reply-To: <4F10C586.3030600@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAEN_-SAxtNYP9Vbg3G+yzpP+UknJ26PY2ha2gGO_gqLTafKENA@mail.gmail.com>
+References: <CAEN_-SAxtNYP9Vbg3G+yzpP+UknJ26PY2ha2gGO_gqLTafKENA@mail.gmail.com>
+Date: Thu, 5 Jan 2012 16:46:39 +0100
+Message-ID: <CAEN_-SA1J64nuueksoy0BLRRh-ngPhEibysxPoDTVt+C4xQ3qQ@mail.gmail.com>
+Subject: Re: Add support for two new types of Leadtek Winfast TV 2000XP tuner
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=14dae9473a738e53b304b5c9d6e0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 13-01-2012 22:00, Jim Darby escreveu:
-> Thanks for the patch Mauro. According to Gianluca that solves the backwards compatibility issue. This is great news.
+--14dae9473a738e53b304b5c9d6e0
+Content-Type: text/plain; charset=ISO-8859-1
 
-Good!
+Resending signed-off version
 
-> In other news I've tried a few experiments. Firstly I tried using a 3.2.0 unmodified straight out of the box kernel on my Core 2 64-bit system. I was unable to produce any faults. This would tend to lead one to suspect that it's a 32-bit problem or that my 32-bit machine is a bit flaky or slow.
-> 
-> So, as I wanted to try the new alpha 3 for Mageia 2 (a Mandriva fork) out and it has a 3.0 kernel that seemed to be a good idea. The bad news is that I'd run out of hardware. So I thought I'd be clever and run it as a virtual machine on my Core 2 system.
-> 
-> The good news is that it correctly recognised the stick and it seemed to work for standard definition. However, after setting it to record some HDTV programmes it failed. More importantly it failed in the same way as the 32-bit system.
-> 
-> This makes me think it's some kind of timing problem. The USB passthrough of VirtualBox may well not operate at the performance required for HDTV. Also by this time I'd put the stick on a USB extension lead which may have adversely affected the power feed.
+--14dae9473a738e53b304b5c9d6e0
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="cx88-add-support-for-two-Leadtek-Winfast-cards.patch"
+Content-Disposition: attachment;
+	filename="cx88-add-support-for-two-Leadtek-Winfast-cards.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gx1y79ni0
 
-Never used the USB passthrough of VirtualBox. At KVM, Hans de Goede wrote several patches 
-to allow it to work with webcams.
-
-On my tests with it with video cards, sometimes it works, sometimes it doesn't.
-
-
-> For my next series of tests I plan to run it again on bare hardware. I'm going to try and use my older Core 2 machine which should have the CPU and electrical power.
-> 
-> None of which explains why it works on the 32-bit Athlon XP 2200+ when it's running 3.0.0 though. And has done so reliably for some time. Maybe some other things are happening in the kernel that much up the device timing or something.
-> 
-> Anyway, I'll keep people posted as to the progression of the testing.
-
->From DVB drivers perspective, a full 32bits system should work just like a 64 bits one.
-
-Btw, I was working with a 32 bits kernel for my ISDB-T tests with the dvbv5-scan tool
-I'm writing. I'm now using a 64 bits kernel for DVB-C, and everything is working
-as fine as before.
-> 
-> Best regards,
-> 
-> Jim.
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
+b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
+IERlYyAyMDExIDAwOjIwOjI0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gQWRkIHN1cHBvcnQgZm9y
+IHR3byBuZXcgdHlwZXMgb2YgTGVhZHRlayBXaW5mYXN0IFRWIDIwMDBYUCB0dW5lciwgYXV0aG9y
+IG9mCiB0aGlzIHBhdGNoIGlzIElzdHZhbiBWYXJnYS4gT25seSByZXNlbmRpbmcgY3VycmVudCBy
+ZWZvcm1hdGVkIHZlcnNpb24gYWdhaW5zdAogYWN0dWFsIGdpdC4KCi0tLQogZHJpdmVycy9tZWRp
+YS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYyB8ICAgOTEgKysrKysrKysrKysrKysrKysrKysrKysr
+KysrKysrKysrCiBkcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jIHwgICAgNCAr
+KwogZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaCAgICAgICB8ICAgIDIgKwogMyBmaWxl
+cyBjaGFuZ2VkLCA5NyBpbnNlcnRpb25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBh
+L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMgYi9kcml2ZXJzL21lZGlhL3Zp
+ZGVvL2N4ODgvY3g4OC1jYXJkcy5jCmluZGV4IDM5MjlkOTMuLmRjYTM2OWQgMTAwNjQ0Ci0tLSBh
+L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMKKysrIGIvZHJpdmVycy9tZWRp
+YS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYwpAQCAtMTY0Myw2ICsxNjQzLDc4IEBAIHN0YXRpYyBj
+b25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1tdID0gewogCQkJLmdwaW8zICA9IDB4
+MDAwMCwKIAkJfSwKIAl9LAorCVtDWDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTF82
+RjM2XSA9IHsKKwkJLm5hbWUgICAgICAgICAgID0gIkxlYWR0ZWsgVFYyMDAwIFhQIEdsb2JhbCAo
+U0M0MTAwKSIsCisJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDNDAwMCwKKwkJLnR1bmVyX2Fk
+ZHIgICAgID0gMHg2MSwKKwkJLnJhZGlvX3R5cGUgICAgID0gVU5TRVQsCisJCS5yYWRpb19hZGRy
+ICAgICA9IEFERFJfVU5TRVQsCisJCS5pbnB1dCAgICAgICAgICA9IHsgeworCQkJLnR5cGUgICA9
+IENYODhfVk1VWF9URUxFVklTSU9OLAorCQkJLnZtdXggICA9IDAsCisJCQkuZ3BpbzAgID0gMHgw
+NDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDAwMDAsCisJCQkuZ3Bp
+bzIgID0gMHgwQzA0LCAgICAgICAvKiBwaW4gMTggPSAxLCBwaW4gMTkgPSAwICovCisJCQkuZ3Bp
+bzMgID0gMHgwMDAwLAorCQl9LCB7CisJCQkudHlwZSAgID0gQ1g4OF9WTVVYX0NPTVBPU0lURTEs
+CisJCQkudm11eCAgID0gMSwKKwkJCS5ncGlvMCAgPSAweDA0MDAsICAgICAgIC8qIHBpbiAyID0g
+MCAqLworCQkJLmdwaW8xICA9IDB4MDAwMCwKKwkJCS5ncGlvMiAgPSAweDBDMEMsICAgICAgIC8q
+IHBpbiAxOCA9IDEsIHBpbiAxOSA9IDEgKi8KKwkJCS5ncGlvMyAgPSAweDAwMDAsCisJCX0sIHsK
+KwkJCS50eXBlICAgPSBDWDg4X1ZNVVhfU1ZJREVPLAorCQkJLnZtdXggICA9IDIsCisJCQkuZ3Bp
+bzAgID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAweDAwMDAs
+CisJCQkuZ3BpbzIgID0gMHgwQzBDLCAgICAgICAvKiBwaW4gMTggPSAxLCBwaW4gMTkgPSAxICov
+CisJCQkuZ3BpbzMgID0gMHgwMDAwLAorCQl9IH0sCisJCS5yYWRpbyA9IHsKKwkJCS50eXBlICAg
+PSBDWDg4X1JBRElPLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgIC8qIHBpbiAyID0gMCAq
+LworCQkJLmdwaW8xICA9IDB4MDAwMCwKKwkJCS5ncGlvMiAgPSAweDBDMDAsICAgICAgIC8qIHBp
+biAxOCA9IDAsIHBpbiAxOSA9IDAgKi8KKwkJCS5ncGlvMyAgPSAweDAwMDAsCisJCX0sCisJfSwK
+KwlbQ1g4OF9CT0FSRF9XSU5GQVNUX1RWMjAwMF9YUF9HTE9CQUxfNkY0M10gPSB7CisJCS5uYW1l
+ICAgICAgICAgICA9ICJMZWFkdGVrIFRWMjAwMCBYUCBHbG9iYWwgKFhDNDEwMCkiLAorCQkudHVu
+ZXJfdHlwZSAgICAgPSBUVU5FUl9YQzQwMDAsCisJCS50dW5lcl9hZGRyICAgICA9IDB4NjEsCisJ
+CS5yYWRpb190eXBlICAgICA9IFVOU0VULAorCQkucmFkaW9fYWRkciAgICAgPSBBRERSX1VOU0VU
+LAorCQkuaW5wdXQgICAgICAgICAgPSB7IHsKKwkJCS50eXBlICAgPSBDWDg4X1ZNVVhfVEVMRVZJ
+U0lPTiwKKwkJCS52bXV4ICAgPSAwLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAgICAgLyogcGlu
+IDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDQwLCAgICAgICAvKiBwaW4gMTQgPSAxLCBwaW4g
+MTMgPSAwICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQkJLmdwaW8zICA9IDB4MDAwMCwKKwkJ
+fSwgeworCQkJLnR5cGUgICA9IENYODhfVk1VWF9DT01QT1NJVEUxLAorCQkJLnZtdXggICA9IDEs
+CisJCQkuZ3BpbzAgID0gMHgwNDAwLCAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAg
+PSAweDYwNjAsICAgICAgIC8qIHBpbiAxNCA9IDEsIHBpbiAxMyA9IDEgKi8KKwkJCS5ncGlvMiAg
+PSAweDAwMDAsCisJCQkuZ3BpbzMgID0gMHgwMDAwLAorCQl9LCB7CisJCQkudHlwZSAgID0gQ1g4
+OF9WTVVYX1NWSURFTywKKwkJCS52bXV4ICAgPSAyLAorCQkJLmdwaW8wICA9IDB4MDQwMCwgICAg
+ICAgLyogcGluIDIgPSAwICovCisJCQkuZ3BpbzEgID0gMHg2MDYwLCAgICAgICAvKiBwaW4gMTQg
+PSAxLCBwaW4gMTMgPSAxICovCisJCQkuZ3BpbzIgID0gMHgwMDAwLAorCQkJLmdwaW8zICA9IDB4
+MDAwMCwKKwkJfSB9LAorCQkucmFkaW8gPSB7CisJCQkudHlwZSAgID0gQ1g4OF9SQURJTywKKwkJ
+CS5ncGlvMCAgPSAweDA0MDAsICAgICAgICAvKiBwaW4gMiA9IDAgKi8KKwkJCS5ncGlvMSAgPSAw
+eDYwMDAsICAgICAgICAvKiBwaW4gMTQgPSAxLCBwaW4gMTMgPSAwICovCisJCQkuZ3BpbzIgID0g
+MHgwMDAwLAorCQkJLmdwaW8zICA9IDB4MDAwMCwKKwkJfSwKKwl9LAogCVtDWDg4X0JPQVJEX1BP
+V0VSQ09MT1JfUkVBTF9BTkdFTF0gPSB7CiAJCS5uYW1lICAgICAgICAgICA9ICJQb3dlckNvbG9y
+IFJBMzMwIiwJLyogTG9uZyBuYW1lcyBtYXkgY29uZnVzZSBMSVJDLiAqLwogCQkudHVuZXJfdHlw
+ZSAgICAgPSBUVU5FUl9YQzIwMjgsCkBAIC0yNzE5LDYgKzI3OTEsMjEgQEAgc3RhdGljIGNvbnN0
+IHN0cnVjdCBjeDg4X3N1YmlkIGN4ODhfc3ViaWRzW10gPSB7CiAJCS5zdWJkZXZpY2UgPSAweDY2
+MTgsCiAJCS5jYXJkICAgICAgPSBDWDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTCwK
+IAl9LCB7CisJCS8qIFRWMjAwMCBYUCBHbG9iYWwgWzEwN2Q6NjYxOF0gKi8KKwkJLnN1YnZlbmRv
+ciA9IDB4MTA3ZCwKKwkJLnN1YmRldmljZSA9IDB4NjYxOSwKKwkJLmNhcmQgICAgICA9IENYODhf
+Qk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMLAorCX0sIHsKKwkJLyogV2luRmFzdCBUVjIw
+MDAgWFAgR2xvYmFsIHdpdGggWEM0MDAwIHR1bmVyICovCisJCS5zdWJ2ZW5kb3IgPSAweDEwN2Qs
+CisJCS5zdWJkZXZpY2UgPSAweDZmMzYsCisJCS5jYXJkICAgICAgPSBDWDg4X0JPQVJEX1dJTkZB
+U1RfVFYyMDAwX1hQX0dMT0JBTF82RjM2LAorCX0sIHsKKwkJLyogV2luRmFzdCBUVjIwMDAgWFAg
+R2xvYmFsIHdpdGggWEM0MDAwIHR1bmVyIGFuZCBkaWZmZXJlbnQgR1BJT3MgKi8KKwkJLnN1YnZl
+bmRvciA9IDB4MTA3ZCwKKwkJLnN1YmRldmljZSA9IDB4NmY0MywKKwkJLmNhcmQgICAgICA9IENY
+ODhfQk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMXzZGNDMsCisJfSwgewogCQkuc3VidmVu
+ZG9yID0gMHhiMDM0LAogCQkuc3ViZGV2aWNlID0gMHgzMDM0LAogCQkuY2FyZCAgICAgID0gQ1g4
+OF9CT0FSRF9QUk9GXzczMDEsCkBAIC0zMDc1LDYgKzMxNjIsOCBAQCBzdGF0aWMgaW50IGN4ODhf
+eGM0MDAwX3R1bmVyX2NhbGxiYWNrKHN0cnVjdCBjeDg4X2NvcmUgKmNvcmUsCiAJc3dpdGNoIChj
+b3JlLT5ib2FyZG5yKSB7CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEhfWEM0MDAw
+OgogCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIwMDBIX1BMVVM6CisJY2FzZSBDWDg4X0JP
+QVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTF82RjM2OgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5G
+QVNUX1RWMjAwMF9YUF9HTE9CQUxfNkY0MzoKIAkJcmV0dXJuIGN4ODhfeGM0MDAwX3dpbmZhc3Qy
+MDAwaF9wbHVzX2NhbGxiYWNrKGNvcmUsCiAJCQkJCQkJICAgICAgY29tbWFuZCwgYXJnKTsKIAl9
+CkBAIC0zMjUwLDYgKzMzMzksOCBAQCBzdGF0aWMgdm9pZCBjeDg4X2NhcmRfc2V0dXBfcHJlX2ky
+YyhzdHJ1Y3QgY3g4OF9jb3JlICpjb3JlKQogCiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRW
+MTgwMEhfWEM0MDAwOgogCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIwMDBIX1BMVVM6CisJ
+Y2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTF82RjM2OgorCWNhc2UgQ1g4
+OF9CT0FSRF9XSU5GQVNUX1RWMjAwMF9YUF9HTE9CQUxfNkY0MzoKIAkJY3g4OF94YzQwMDBfd2lu
+ZmFzdDIwMDBoX3BsdXNfY2FsbGJhY2soY29yZSwKIAkJCQkJCSAgICAgICBYQzQwMDBfVFVORVJf
+UkVTRVQsIDApOwogCQlicmVhazsKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4
+OC9jeDg4LWlucHV0LmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1pbnB1dC5jCmlu
+ZGV4IGU2MTQyMDEuLmViZjQ0OGMgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4
+OC9jeDg4LWlucHV0LmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtaW5wdXQu
+YwpAQCAtMTAzLDYgKzEwMyw4IEBAIHN0YXRpYyB2b2lkIGN4ODhfaXJfaGFuZGxlX2tleShzdHJ1
+Y3QgY3g4OF9JUiAqaXIpCiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEhfWEM0MDAw
+OgogCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjIwMDBIX1BMVVM6CiAJY2FzZSBDWDg4X0JP
+QVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTDoKKwljYXNlIENYODhfQk9BUkRfV0lORkFTVF9U
+VjIwMDBfWFBfR0xPQkFMXzZGMzY6CisJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQ
+X0dMT0JBTF82RjQzOgogCQlncGlvID0gKGdwaW8gJiAweDZmZikgfCAoKGN4X3JlYWQoTU9fR1Ax
+X0lPKSA8PCA4KSAmIDB4OTAwKTsKIAkJYXV4Z3BpbyA9IGdwaW87CiAJCWJyZWFrOwpAQCAtMzAy
+LDYgKzMwNCw4IEBAIGludCBjeDg4X2lyX2luaXQoc3RydWN0IGN4ODhfY29yZSAqY29yZSwgc3Ry
+dWN0IHBjaV9kZXYgKnBjaSkKIAljYXNlIENYODhfQk9BUkRfV0lORkFTVDIwMDBYUF9FWFBFUlQ6
+CiAJY2FzZSBDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTAwMDoKIAljYXNlIENYODhfQk9BUkRfV0lO
+RkFTVF9UVjIwMDBfWFBfR0xPQkFMOgorCWNhc2UgQ1g4OF9CT0FSRF9XSU5GQVNUX1RWMjAwMF9Y
+UF9HTE9CQUxfNkYzNjoKKwljYXNlIENYODhfQk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFM
+XzZGNDM6CiAJCWlyX2NvZGVzID0gUkNfTUFQX1dJTkZBU1Q7CiAJCWlyLT5ncGlvX2FkZHIgPSBN
+T19HUDBfSU87CiAJCWlyLT5tYXNrX2tleWNvZGUgPSAweDhmODsKZGlmZiAtLWdpdCBhL2RyaXZl
+cnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LmggYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4
+OC5oCmluZGV4IGZhOGQzMDcuLmM5NjU5ZGUgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3g4OC9jeDg4LmgKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODguaApAQCAt
+MjQ0LDYgKzI0NCw4IEBAIGV4dGVybiBjb25zdCBzdHJ1Y3Qgc3JhbV9jaGFubmVsIGNvbnN0IGN4
+ODhfc3JhbV9jaGFubmVsc1tdOwogI2RlZmluZSBDWDg4X0JPQVJEX1RFVklJX1M0NjQgICAgICAg
+ICAgICAgIDg2CiAjZGVmaW5lIENYODhfQk9BUkRfV0lORkFTVF9EVFYyMDAwSF9QTFVTICAgODcK
+ICNkZWZpbmUgQ1g4OF9CT0FSRF9XSU5GQVNUX0RUVjE4MDBIX1hDNDAwMCA4OAorI2RlZmluZSBD
+WDg4X0JPQVJEX1dJTkZBU1RfVFYyMDAwX1hQX0dMT0JBTF82RjM2IDg5CisjZGVmaW5lIENYODhf
+Qk9BUkRfV0lORkFTVF9UVjIwMDBfWFBfR0xPQkFMXzZGNDMgOTAKIAogZW51bSBjeDg4X2l0eXBl
+IHsKIAlDWDg4X1ZNVVhfQ09NUE9TSVRFMSA9IDEsCi0tIAoxLjcuMi4zCgo=
+--14dae9473a738e53b304b5c9d6e0--
