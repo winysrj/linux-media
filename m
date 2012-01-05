@@ -1,48 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:50080 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752006Ab2ABNTo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 08:19:44 -0500
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LX600AM1ACUI5@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Jan 2012 13:19:42 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LX600K2RACTRL@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Jan 2012 13:19:42 +0000 (GMT)
-Date: Mon, 02 Jan 2012 14:19:25 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH] s5p-g2d: fixed a bug in controls setting function
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	Kamil Debski <k.debski@samsung.com>
-Message-id: <1325510365-28595-1-git-send-email-k.debski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
+Received: from devils.ext.ti.com ([198.47.26.153]:50200 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755379Ab2AEKma (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 05:42:30 -0500
+From: Sumit Semwal <sumit.semwal@ti.com>
+To: <linaro-mm-sig@lists.linaro.org>, <linux-media@vger.kernel.org>,
+	<arnd@arndb.de>
+CC: <jesse.barker@linaro.org>, <m.szyprowski@samsung.com>,
+	<rob@ti.com>, <daniel@ffwll.ch>, <t.stanislaws@samsung.com>,
+	<patches@linaro.org>, Sumit Semwal <sumit.semwal@ti.com>
+Subject: [RFCv1 3/4] v4l:vb: remove warnings about MEMORY_DMABUF
+Date: Thu, 5 Jan 2012 16:11:57 +0530
+Message-ID: <1325760118-27997-4-git-send-email-sumit.semwal@ti.com>
+In-Reply-To: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-g2d/g2d.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Adding DMABUF memory type causes videobuf to complain about not using it
+in some switch cases. This patch removes these warnings.
 
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index 1f156c8..22e15e5 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -184,6 +184,7 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
- 			ctx->rop = ROP4_INVERT;
- 		else
- 			ctx->rop = ROP4_COPY;
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+---
+ drivers/media/video/videobuf-core.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index de4fa4e..b457c8b 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -335,6 +335,9 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
+ 	case V4L2_MEMORY_OVERLAY:
+ 		b->m.offset  = vb->boff;
+ 		break;
++	case V4L2_MEMORY_DMABUF:
++		/* DMABUF is not handled in videobuf framework */
 +		break;
- 	default:
- 		v4l2_err(&ctx->dev->v4l2_dev, "unknown control\n");
- 		return -EINVAL;
+ 	}
+ 
+ 	b->flags    = 0;
+@@ -411,6 +414,7 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
+ 			break;
+ 		case V4L2_MEMORY_USERPTR:
+ 		case V4L2_MEMORY_OVERLAY:
++		case V4L2_MEMORY_DMABUF:
+ 			/* nothing */
+ 			break;
+ 		}
 -- 
-1.7.0.4
+1.7.5.4
 
