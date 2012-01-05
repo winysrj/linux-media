@@ -1,124 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:57951 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750803Ab2AAQGy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 11:06:54 -0500
-MIME-Version: 1.0
-In-Reply-To: <op.v7ew5cvg3l0zgt@mpn-glaptop>
-References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
-	<1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
-	<CAOtvUMeAVgDwRNsDTcG07ChYnAuNgNJjQ+sKALJ79=Ezikos-A@mail.gmail.com>
-	<op.v7ew5cvg3l0zgt@mpn-glaptop>
-Date: Sun, 1 Jan 2012 18:06:53 +0200
-Message-ID: <CAOtvUMfKDiLwxaH5FCS6wC=CgPiDz3ZAPbVv4b=Oxdx4ZpMCYw@mail.gmail.com>
-Subject: Re: [PATCH 01/11] mm: page_alloc: set_migratetype_isolate: drain PCP
- prior to isolating
-From: Gilad Ben-Yossef <gilad@benyossef.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:52880 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932183Ab2AEBBG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:06 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05116tC016352
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:06 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 05/47] [media] mt2063: Fix the driver to make it compile
+Date: Wed,  4 Jan 2012 23:00:16 -0200
+Message-Id: <1325725258-27934-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/1/1 Michal Nazarewicz <mina86@mina86.com>:
->> On Thu, Dec 29, 2011 at 2:39 PM, Marek Szyprowski
->> <m.szyprowski@samsung.com> wrote:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mt2063.c |    1 -
+ drivers/media/common/tuners/mt2063.h |   25 +++++++++++++++++--------
+ 2 files changed, 17 insertions(+), 9 deletions(-)
 
-...
-> On Sun, 01 Jan 2012 08:49:13 +0100, Gilad Ben-Yossef <gilad@benyossef.com>
-> wrote:
->>
->> Please consider whether sending an IPI to all processors in the system
->> and interrupting them is appropriate here.
->>
->> You seem to assume that it is probable that each CPU of the possibly
->> 4,096 (MAXSMP on x86) has a per-cpu page for the specified zone,
->
->
-> I'm not really assuming that (in fact I expect what you fear, ie. that
-> most CPUs won't have pages from specified zone an PCP list), however,
-> I really need to make sure to get them off all PCP lists.
->
-
-True, the question is whether or not you have to send a global IPI to do that.
-
->
->> otherwise you're just interrupting them out of doing something useful,
->> or save power idle for nothing.
->
->
-> Exactly what's happening now anyway.
->
->
-
-Indeed.
-
->> While that may or may not be a reasonable assumption for the general
->> drain_all_pages that drains pcps from all zones, I feel it is less
->> likely to be the right thing once you limit the drain to a single
->> zone.
->
->
-> Currently, set_migratetype_isolate() seem to do more then it needs to,
-> ie. it drains all the pages even though all it cares about is a single
->
-> zone.
-
-I agree your patch is better then current state. I just did want to add
-yet another global IPI I'll have to chase afterwards.. :-)
->
->> Some background on my attempt to reduce "IPI noise" in the system in
->> this context is probably useful here as
->> well: https://lkml.org/lkml/2011/11/22/133
->
->
-> Looks interesting, I'm not entirely sure why it does not end up a race
-> condition, but in case of __zone_drain_all_pages() we already hold
-
-If a page is in the PCP list when we check, you'll send the IPI and all is well.
-
-If it isn't when we check and gets added later you could just the same have
-situation where we send the IPI, try to do try an empty PCP list and then
-the page gets added. So we are not adding a race condition that is not there
-already :-)
-
-> zone->lock, so my fears are somehow gone..  I'll give it a try, and prepare
-> a patch for __zone_drain_all_pages().
->
-
-I plan to send V5 of the IPI noise patch after some testing. It has a new
-version of the drain_all_pages, with no allocation in the reclaim path
-and no locking. You might want to wait till that one is out to base on it.
-
-
-Thank you for considering my feedback :-)
-
-Gilad
-
-
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index 1d36e51..cd3b206 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -4,7 +4,6 @@
+ #include <linux/module.h>
+ #include <linux/string.h>
+ 
+-#include "drxk_type.h"
+ #include "mt2063.h"
+ 
+ /*  Version of this module                          */
+diff --git a/drivers/media/common/tuners/mt2063.h b/drivers/media/common/tuners/mt2063.h
+index 8fa4411..80af9af 100644
+--- a/drivers/media/common/tuners/mt2063.h
++++ b/drivers/media/common/tuners/mt2063.h
+@@ -1,9 +1,19 @@
+ #ifndef __MT2063_H__
+ #define __MT2063_H__
+ 
+-#include <linux/dvb/frontend.h>
+ #include "dvb_frontend.h"
+ 
++enum Bool_t {
++  FALSE = 0,
++  TRUE
++};
++
++typedef unsigned long  u32_t;
++
++#define DVBFE_TUNER_OPEN			99
++#define DVBFE_TUNER_SOFTWARE_SHUTDOWN		100
++#define DVBFE_TUNER_CLEAR_POWER_MASKBITS	101
++
+ #define MT2063_ERROR (1 << 31)
+ #define MT2063_USER_ERROR (1 << 30)
+ 
+@@ -618,17 +628,16 @@ struct mt2063_state {
+ 	u32 reference;
+ };
+ 
+-#if defined(CONFIG_DVB_MT2063) || (defined(CONFIG_DVB_MT2063_MODULE) && defined(MODULE))
+-
+-extern struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+-					  struct mt2063_config *config,
+-					  struct i2c_adapter *i2c);
++#if defined(CONFIG_MEDIA_TUNER_MT2063) || (defined(CONFIG_MEDIA_TUNER_MT2063_MODULE) && defined(MODULE))
++struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
++				   struct mt2063_config *config,
++				   struct i2c_adapter *i2c);
+ 
+ #else
+ 
+ static inline struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+-						 struct mt2063_config *config,
+-						 struct i2c_adapter *i2c)
++				   struct mt2063_config *config,
++				   struct i2c_adapter *i2c)
+ {
+ 	printk(KERN_WARNING "%s: Driver disabled by Kconfig\n", __func__);
+ 	return NULL;
 -- 
-Gilad Ben-Yossef
-Chief Coffee Drinker
-gilad@benyossef.com
-Israel Cell: +972-52-8260388
-US Cell: +1-973-8260388
-http://benyossef.com
+1.7.7.5
 
-"Unfortunately, cache misses are an equal opportunity pain provider."
--- Mike Galbraith, LKML
