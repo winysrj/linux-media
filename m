@@ -1,51 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:24595 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751707Ab2AOLc3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 06:32:29 -0500
-Date: Sun, 15 Jan 2012 14:32:19 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Huang Shijie <shijie8@gmail.com>
-Cc: Kang Yong <kangyong@telegent.com>,
-	Zhang Xiaobing <xbzhang@telegent.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] tlg2300: fix up check_firmware() return
-Message-ID: <20120115113219.GG20463@elgon.mountain>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:37768 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754234Ab2AEVGU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 16:06:20 -0500
+Received: by vbbfc26 with SMTP id fc26so717923vbb.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 13:06:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <CAHF9Re=V8MOH-wg8TWeMjSC9d-iOtWAWH-RshPAxbBjiP65OJQ@mail.gmail.com>
+References: <CAHF9RemG4M2apwcbUG+7YvkLrbpoZmE6Nh2XMHPT4FM3jRW_Ng@mail.gmail.com>
+	<CAGoCfiwEeFiU+0scdZ48nbDfF-NCg8Ac701XkCZtXuTjckq0ng@mail.gmail.com>
+	<CAHF9Re=V8MOH-wg8TWeMjSC9d-iOtWAWH-RshPAxbBjiP65OJQ@mail.gmail.com>
+Date: Thu, 5 Jan 2012 16:06:19 -0500
+Message-ID: <CAGoCfiw7c8=o5doJcYctmRbsj-idmxsRKVE5OzCOQ_xhLGBxMg@mail.gmail.com>
+Subject: Re: Support for RC-6 in em28xx driver?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Simon_S=F8ndergaard?= <john7doe@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The caller doesn't check the return value of check_firmware() but static
-checkers complain.  It currently returns negative error codes, or zero
-or greater on success but since the return type is boolean the values
-are truncated to one or zero.  I've changed it to return an int,
-negative on error and zero on success.
+2012/1/5 Simon Søndergaard <john7doe@gmail.com>:
+> 2012/1/5 Devin Heitmueller <dheitmueller@kernellabs.com>:
+>> 2012/1/5 Simon Søndergaard <john7doe@gmail.com>:
+>>> Hi,
+>>>
+>>> I recently purchased a PCTV 290e USB Stick (em28174) it comes with a
+>>> remote almost as small as the stick itself... I've been able to get
+>>> both stick and remote to work. I also own an MCE media center remote
+>>> from HP (this make
+>>> http://www.ebay.com/itm/Original-Win7-PC-MCE-Media-Center-HP-Remote-Controller-/170594956920)
+>>> that sends RC-6 codes. While it do have a windows logo I still think
+>>> it is vastly superior to the one that shipped with the stick :-)
+>>>
+>>> If I understand it correctly em28174 is a derivative of em2874?
+>>>
+>>> In em28xx-input.c it is stated that: "em2874 supports more protocols.
+>>> For now, let's just announce the two protocols that were already
+>>> tested"
+>>>
+>>> I've been searching high and low for a datasheet for em28(1)74, but
+>>> have been unable to find it online. Do anyone know if one of the
+>>> protocols supported is RC-6? and if so how do I get a copy of the
+>>> datasheet?
+>>
+>> The 2874 supports NEC, RC-5, and RC-6/6A.  I did the original support
+>> (based on the docs provided under NDA) but ironically enough I didn't
+>> have an RC6 remote kicking around so I didn't do the support for it.
+>>
+>> IR receivers for MCE devices are dirt cheap (< $20), and if you're
+>> doing a media center then it's likely the PCTV 290e probably isn't in
+>> line-of-site for a remote anyway.
+>
+> The 290e will be in line of sight.
+>
+> Perhaps the info is already there, not sure why I overlooked it in the
+> first place:
+>
+> EM2874_IR_RC6_MODE_0    0x08
+> EM2874_IR_RC6_MODE_6A 0x0b
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Ah, so I guess I did put at least some of the info into the driver.
+Also, for RC6 make sure bits 0-1 are 00 and for RC6A they need to be
+set based on the number of bytes expected to be received (2 bytes=00,
+3bytes=01, 4bytes=10).  The received data gets stored in 0x52-0x55 (I
+don't remember if the driver actually looks are 0x54/55 currently
+since they aren't used for NEC or RC5)..
 
-diff --git a/drivers/media/video/tlg2300/pd-main.c b/drivers/media/video/tlg2300/pd-main.c
-index 129f135..c096b3f 100644
---- a/drivers/media/video/tlg2300/pd-main.c
-+++ b/drivers/media/video/tlg2300/pd-main.c
-@@ -374,7 +374,7 @@ static inline void set_map_flags(struct poseidon *pd, struct usb_device *udev)
- }
- #endif
- 
--static bool check_firmware(struct usb_device *udev, int *down_firmware)
-+static int check_firmware(struct usb_device *udev, int *down_firmware)
- {
- 	void *buf;
- 	int ret;
-@@ -398,7 +398,7 @@ static bool check_firmware(struct usb_device *udev, int *down_firmware)
- 		*down_firmware = 1;
- 		return firmware_download(udev);
- 	}
--	return ret;
-+	return 0;
- }
- 
- static int poseidon_probe(struct usb_interface *interface,
+> RC5 and RC6 use same carrier frequency? so do I need another value for
+> EM28XX_R0F_XCLK?
+
+You shouldn't need to touch the XCLK register.
+
+Good luck!
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
