@@ -1,79 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01.sz.bfs.de ([194.94.69.103]:23870 "EHLO mx01.sz.bfs.de"
+Received: from mx1.redhat.com ([209.132.183.28]:43026 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751211Ab2ASK0p (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 05:26:45 -0500
-Message-ID: <4F17EFE1.3060804@bfs.de>
-Date: Thu, 19 Jan 2012 11:26:41 +0100
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch 2/2] [media] ds3000: off by one in ds3000_read_snr()
-References: <20120117073021.GB11358@elgon.mountain> <4F16FC26.80306@bfs.de> <20120119093327.GI3356@mwanda>
-In-Reply-To: <20120119093327.GI3356@mwanda>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	id S932304Ab2AEBBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:10 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH 00/47] Add mt2063 frontend driver
+Date: Wed,  4 Jan 2012 23:00:11 -0200
+Message-Id: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add a new driver for mt2063 tuner. 
 
+This driver come originally from Terratec:
+	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
 
-Am 19.01.2012 10:33, schrieb Dan Carpenter:
-> On Wed, Jan 18, 2012 at 06:06:46PM +0100, walter harms wrote:
->>
->>
->> Am 17.01.2012 08:30, schrieb Dan Carpenter:
->>> This is a static checker patch and I don't have the hardware to test
->>> this, so please review it carefully.  The dvbs2_snr_tab[] array has 80
->>> elements so when we cap it at 80, that's off by one.  I would have
->>> assumed that the test was wrong but in the lines right before we have
->>> the same test but use "snr_reading - 1" as the array offset.  I've done
->>> the same thing here.
->>>
->>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->>>
->>> diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
->>> index af65d01..3f5ae0a 100644
->>> --- a/drivers/media/dvb/frontends/ds3000.c
->>> +++ b/drivers/media/dvb/frontends/ds3000.c
->>> @@ -681,7 +681,7 @@ static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
->>>  			snr_reading = dvbs2_noise_reading / tmp;
->>>  			if (snr_reading > 80)
->>>  				snr_reading = 80;
->>> -			*snr = -(dvbs2_snr_tab[snr_reading] / 1000);
->>> +			*snr = -(dvbs2_snr_tab[snr_reading - 1] / 1000);
->>>  		}
->>>  		dprintk("%s: raw / cooked = 0x%02x / 0x%04x\n", __func__,
->>>  				snr_reading, *snr);
->>
->> hi dan,
->>
->> perhaps it is more useful to do it in the check above ?
-> 
-> It looks like the check is correct but we need to shift all the
-> values by one.  Again, I don't have this hardware, I'm just going by
-> the context.
-> 
-I do not have the hardware either so this is pure theoretical.
+And it is GPL'd, as declared at MODULE_LICENSE().
 
-Access to the data field depends on the value of dvbs2_noise_reading/tmp
-even when the data are reasonable like 50/100 snr_reading would become 0
-and the index suddenly is -1.
+The original code doesn't met Linux Coding Style, and had several bad issues
+on it. This patch series import the original driver, convert it to use the 
+DVBv5 structures, instead of the DVBv3 ones, and make it work.
 
-just my 2 cents.
+This driver is part of my experimental tree for az6007:
+	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/az6007-2
 
-re,
- wh
+There are still some non-tuner related issues on the az6007, so the az6007 
+driver is not ready for submission. Yet, Stefan is working on another driver
+that needs mt2063 and this driver works.
 
+So, there's no reason to postpone its addition upstream.
 
->> thinking about that why not replace the number (80) with ARRAY_SIZE() ?
-> 
-> That would be a cleanup, yes but it could go in a separate patch.
-> 
-> regards,
-> dan carpenter
-> 
+I decided to add, at the end, two small patches for DRX-K, also part of the
+az6007 series. One is a debug msg improvement, and the other one adds support
+for selecting between parallel and serial mode. The default didn't change, so
+it should also be ok to apply it.
+
+Mauro Carvalho Chehab (47):
+  [media] add driver for mt2063
+  [media] mt2063: CodingStyle fixes
+  [media] mt2063: Fix some Coding styles at mt2063.h
+  [media] mt2063: Move code from mt2063_cfg.h
+  [media] mt2063: Fix the driver to make it compile
+  [media] mt2063: Use standard Linux types, instead of redefining them
+  [media] mt2063: Remove most of the #if's
+  [media] mt2063: Re-define functions as static
+  [media] mt2063: Remove unused stuff
+  [media] mt2063: get rid of compilation warnings
+  [media] mt2063: Move data structures to the driver
+  [media] mt2063: Remove internal version checks
+  [media] mt2063: Use Unix standard error handling
+  [media] mt2063: Remove unused data structures
+  [media] mt2063: Merge the two state structures into one
+  [media] mt2063: Use state for the state structure
+  [media] mt2063: Remove the code for more than one adjacent mt2063  tuners
+  [media] mt2063: Rewrite read/write logic at the driver
+  [media] mt2063: Simplify some functions
+  [media] mt2063: Simplify device init logic
+  [media] mt2063: Don't violate the DVB API
+  [media] mt2063: Use linux default max function
+  [media] mt2063: Remove several unused parameters
+  [media] mt2063: simplify lockstatus logic
+  [media] mt2063: Simplify mt2063_setTune logic
+  [media] mt2063: Rework on the publicly-exported functions
+  [media] mt2063: Remove setParm/getParm abstraction layer
+  [media] mt2063: Reorder the code to avoid function prototypes
+  [media] mt2063: Cleanup some function prototypes
+  [media] mt2063: make checkpatch.pl happy
+  [media] mt2063: Fix analog/digital set params logic
+  [media] mt2063: Fix comments
+  [media] mt2063: Rearrange the delivery system functions
+  [media] mt2063: Properly document the author of the original driver
+  [media] mt2063: Convert it to the DVBv5 way for set_params()
+  [media] mt2063: Add some debug printk's
+  [media] mt2063: Rewrite tuning logic
+  [media] mt2063: Remove two unused temporary vars
+  [media] mt2063: don't crash if device is not initialized
+  [media] mt2063: Print a message about the detected mt2063 type
+  [media] mt2063: Fix i2c read message
+  [media] mt2063: print the detected version
+  [media] mt2063: add some useful info for the dvb callback calls
+  [media] mt2063: Add support for get_if_frequency()
+  [media] mt2063: Add it to the building system
+  [media] drxk: Improve a few debug messages
+  [media] drxk: Add support for parallel mode and prints mpeg mode
+
+ drivers/media/common/tuners/Kconfig     |    7 +
+ drivers/media/common/tuners/Makefile    |    1 +
+ drivers/media/common/tuners/mt2063.c    | 2307 +++++++++++++++++++++++++++++++
+ drivers/media/common/tuners/mt2063.h    |   36 +
+ drivers/media/dvb/frontends/drxk.h      |    3 +
+ drivers/media/dvb/frontends/drxk_hard.c |   26 +-
+ 6 files changed, 2371 insertions(+), 9 deletions(-)
+ create mode 100644 drivers/media/common/tuners/mt2063.c
+ create mode 100644 drivers/media/common/tuners/mt2063.h
+
+-- 
+1.7.7.5
+
