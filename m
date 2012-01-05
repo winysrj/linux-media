@@ -1,168 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:56730 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752554Ab2AYPFl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:05:41 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by bear.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0PF5dDG032720
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 09:05:40 -0600
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH 2/4] davinci: vpif: make generic changes to re-use the vpif drivers on da850/omap-l138 soc
-Date: Wed, 25 Jan 2012 20:35:32 +0530
-Message-ID: <1327503934-28186-3-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1327503934-28186-1-git-send-email-manjunath.hadli@ti.com>
-References: <1327503934-28186-1-git-send-email-manjunath.hadli@ti.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:60564 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754084Ab2AEKXl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 05:23:41 -0500
+Date: Thu, 5 Jan 2012 11:23:38 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: javier Martin <javier.martin@vista-silicon.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	saaguirre@ti.com
+Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
+In-Reply-To: <Pine.LNX.4.64.1201042152130.30506@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1201051119320.23644@axis700.grange>
+References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
+ <201201041801.08322.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1201041808260.30506@axis700.grange>
+ <201201042147.49921.laurent.pinchart@ideasonboard.com>
+ <Pine.LNX.4.64.1201042152130.30506@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-change the dm646x specific strings in the driver to make
-them generic across platforms. In this case change all the
-strings which have a dm646x connotation to vpif which is a
-platform independent ip.
+On Wed, 4 Jan 2012, Guennadi Liakhovetski wrote:
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> On Wed, 4 Jan 2012, Laurent Pinchart wrote:
+> 
+> > On Wednesday 04 January 2012 18:13:58 Guennadi Liakhovetski wrote:
+> > > On Wed, 4 Jan 2012, Laurent Pinchart wrote:
+> > > > On Wednesday 04 January 2012 17:35:27 Guennadi Liakhovetski wrote:
+> > > > > On Wed, 4 Jan 2012, javier Martin wrote:
+> > > > > 
+> > > > > [snip]
+> > > > > 
+> > > > > > For ov7725 it is a natural thing to do since it was originally
+> > > > > > developed for soc-camera and it can easily do the following to access
+> > > > > > platform data:
+> > > > > > 
+> > > > > > struct soc_camera_link	*icl = soc_camera_i2c_to_link(client);
+> > > > > > pdata = icl->priv;
+> > > > > > 
+> > > > > > However, tvp5150 is not aware about soc_camera. I should be able to
+> > > > > > tell whether it's being used with soc-camera or not. If soc camera
+> > > > > > was used I would do the previous method to retrieve platform data.
+> > > > > > But if soc-camera was not used I would do the classic method:
+> > > > > > 
+> > > > > > struct tvp5150_platform_data *pdata = client->dev.platform_data;
+> > > > > > 
+> > > > > > The problem is how to distinguish in tvp5150 whether I am using
+> > > > > > soc_camera or not.
+> > > > > 
+> > > > > Right, that _is_ the problem now. And we've known about it since the
+> > > > > very first time we started to think about re-using the subdev drivers.
+> > > > > The only solution I see so far is to introduce a standard platform
+> > > > > data struct for all subdevices, similar to soc_camera_link. We could
+> > > > > use it as a basis, of course, use a generic name, maybe reconsider
+> > > > > fields - rename / remove / add, but the principle would be the same: a
+> > > > > standard platform data struct with an optional private field.
+> > > > 
+> > > > Why is that needed ? Why can't a tvp5150-specific platform data structure
+> > > > do ?
+> > > 
+> > > Javier has actually explained this already.
+> > 
+> > Sorry for not having followed.
+> > 
+> > > Ok, again: he wants to use tvp5150 with an soc-camera host driver, i.e.,
+> > > with the soc-camera subsystem. And the soc-camera core sets board_info->
+> > > platform_data itself to a pointer to the struct soc_camera_link instance.
+> > 
+> > That looks to me like it's the part to be changed...
+> 
+> Well, we could do this, but this would require changing a few soc-camera 
+> subdev drivers and respective platforms and (slightly) the core itself.
+> 
+> The soc-camera core needs access to the struct soc_camera_link instance, 
+> supplied by the platform. It is passed in .platform_data of the soc-camera 
+> client platform device, there's no need to change that. struct 
+> soc_camera_link::board_info points to struct i2c_board_info, this is also 
+> ok. Basically, that's all the soc-camera core needs - access to these two 
+> structs. Next, subdevice drivers also need access to struct 
+> soc_camera_link and to their private data. If we let platforms pass 
+> subdevice driver private data in i2c_board_info::platform_data, then each 
+> driver will need to invent its own way how to also get to struct 
+> soc_camera_link. They would either have to point at it from their private 
+> data or embed it therein.
+> 
+> So, yes, it is doable. AFAICS currently these subdevice drivers
+> 
+> soc_camera_platform
+> rj54n1cb0c
+> tw9910
+> mt9t112
+> ov772x
+> 
+> and these platforms
+> 
+> sh/ecovec24
+> sh/kfr2r09
+> sh/migor
+> sh/ap325rxa
+> 
+> arm/mackerel
+> 
+> are affected and have to be modified. After which the core can be fixed 
+> too. I could do that, but not sure when I find the time. Javier, if you 
+> like, feel free to give it a try.
+
+Thinking a bit more about this, looks like the drivers don't have to be 
+modified in fact. We just would have to make the reference from 
+soc_camera_link::board_info to the specific struct i2c_board_info in 
+platform data on the above platforms and remove it from soc_camera.c. This 
+would look ugly in platform data, because structs i2c_board_info and 
+soc_camera_link would then hold pointers to each other, but it would work.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/davinci/vpif.c         |    2 +-
- drivers/media/video/davinci/vpif_capture.c |    9 ++++-----
- drivers/media/video/davinci/vpif_display.c |   14 +++++++-------
- drivers/media/video/davinci/vpif_display.h |    2 +-
- 4 files changed, 13 insertions(+), 14 deletions(-)
-
-diff --git a/drivers/media/video/davinci/vpif.c b/drivers/media/video/davinci/vpif.c
-index af96802..774bcd3 100644
---- a/drivers/media/video/davinci/vpif.c
-+++ b/drivers/media/video/davinci/vpif.c
-@@ -1,5 +1,5 @@
- /*
-- * vpif - DM646x Video Port Interface driver
-+ * vpif - Video Port Interface driver
-  * VPIF is a receiver and transmitter for video data. It has two channels(0, 1)
-  * that receiveing video byte stream and two channels(2, 3) for video output.
-  * The hardware supports SDTV, HDTV formats, raw data capture.
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index 33d865d..010cce4 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -1684,7 +1684,7 @@ static int vpif_querycap(struct file *file, void  *priv,
- 
- 	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING;
- 	strlcpy(cap->driver, "vpif capture", sizeof(cap->driver));
--	strlcpy(cap->bus_info, "DM646x Platform", sizeof(cap->bus_info));
-+	strlcpy(cap->bus_info, "VPIF Platform", sizeof(cap->bus_info));
- 	strlcpy(cap->card, config->card_name, sizeof(cap->card));
- 
- 	return 0;
-@@ -2192,7 +2192,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
- 		for (i = res->start; i <= res->end; i++) {
- 			if (request_irq(i, vpif_channel_isr, IRQF_DISABLED,
--					"DM646x_Capture",
-+					"VPIF_Capture",
- 				(void *)(&vpif_obj.dev[k]->channel_id))) {
- 				err = -EBUSY;
- 				i--;
-@@ -2221,7 +2221,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		vfd->v4l2_dev = &vpif_obj.v4l2_dev;
- 		vfd->release = video_device_release;
- 		snprintf(vfd->name, sizeof(vfd->name),
--			 "DM646x_VPIFCapture_DRIVER_V%s",
-+			 "VPIF_Capture_DRIVER_V%s",
- 			 VPIF_CAPTURE_VERSION);
- 		/* Set video_dev to the video device */
- 		ch->video_dev = vfd;
-@@ -2276,8 +2276,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 			vpif_obj.sd[i]->grp_id = 1 << i;
- 	}
- 
--	v4l2_info(&vpif_obj.v4l2_dev,
--			"DM646x VPIF capture driver initialized\n");
-+	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
- 	return 0;
- 
- probe_subdev_out:
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index b315ccf..6f3eabb 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -48,7 +48,7 @@ MODULE_DESCRIPTION("TI DaVinci VPIF Display driver");
- MODULE_LICENSE("GPL");
- MODULE_VERSION(VPIF_DISPLAY_VERSION);
- 
--#define DM646X_V4L2_STD (V4L2_STD_525_60 | V4L2_STD_625_50)
-+#define VPIF_V4L2_STD (V4L2_STD_525_60 | V4L2_STD_625_50)
- 
- #define vpif_err(fmt, arg...)	v4l2_err(&vpif_obj.v4l2_dev, fmt, ## arg)
- #define vpif_dbg(level, debug, fmt, arg...)	\
-@@ -976,7 +976,7 @@ static int vpif_s_std(struct file *file, void *priv, v4l2_std_id *std_id)
- 	struct common_obj *common = &ch->common[VPIF_VIDEO_INDEX];
- 	int ret = 0;
- 
--	if (!(*std_id & DM646X_V4L2_STD))
-+	if (!(*std_id & VPIF_V4L2_STD))
- 		return -EINVAL;
- 
- 	if (common->started) {
-@@ -1227,7 +1227,7 @@ static int vpif_enum_output(struct file *file, void *fh,
- 
- 	strcpy(output->name, config->output[output->index]);
- 	output->type = V4L2_OUTPUT_TYPE_ANALOG;
--	output->std = DM646X_V4L2_STD;
-+	output->std = VPIF_V4L2_STD;
- 
- 	return 0;
- }
-@@ -1612,7 +1612,7 @@ static struct video_device vpif_video_template = {
- 	.name		= "vpif",
- 	.fops		= &vpif_fops,
- 	.ioctl_ops	= &vpif_ioctl_ops,
--	.tvnorms	= DM646X_V4L2_STD,
-+	.tvnorms	= VPIF_V4L2_STD,
- 	.current_norm	= V4L2_STD_625_50,
- 
- };
-@@ -1714,7 +1714,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
- 		for (i = res->start; i <= res->end; i++) {
- 			if (request_irq(i, vpif_channel_isr, IRQF_DISABLED,
--					"DM646x_Display",
-+					"VPIF_Display",
- 				(void *)(&vpif_obj.dev[k]->channel_id))) {
- 				err = -EBUSY;
- 				goto vpif_int_err;
-@@ -1744,7 +1744,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		vfd->v4l2_dev = &vpif_obj.v4l2_dev;
- 		vfd->release = video_device_release;
- 		snprintf(vfd->name, sizeof(vfd->name),
--			 "DM646x_VPIFDisplay_DRIVER_V%s",
-+			 "VPIF_Display_DRIVER_V%s",
- 			 VPIF_DISPLAY_VERSION);
- 
- 		/* Set video_dev to the video device */
-@@ -1826,7 +1826,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	}
- 
- 	v4l2_info(&vpif_obj.v4l2_dev,
--			"DM646x VPIF display driver initialized\n");
-+			" VPIF display driver initialized\n");
- 	return 0;
- 
- probe_subdev_out:
-diff --git a/drivers/media/video/davinci/vpif_display.h b/drivers/media/video/davinci/vpif_display.h
-index 56879d1..dd4887c 100644
---- a/drivers/media/video/davinci/vpif_display.h
-+++ b/drivers/media/video/davinci/vpif_display.h
-@@ -1,5 +1,5 @@
- /*
-- * DM646x display header file
-+ * VPIF display header file
-  *
-  * Copyright (C) 2009 Texas Instruments Incorporated - http://www.ti.com/
-  *
--- 
-1.6.2.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
