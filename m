@@ -1,119 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:59815 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752242Ab2AZJBM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 04:01:12 -0500
-Date: Thu, 26 Jan 2012 10:00:57 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 15/15] ARM: Samsung: use CMA for 2 memory banks for s5p-mfc
- device
-In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Message-id: <1327568457-27734-16-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31613 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932315Ab2AEBBL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:11 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511BQG016662
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:11 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 33/47] [media] mt2063: Rearrange the delivery system functions
+Date: Wed,  4 Jan 2012 23:00:44 -0200
+Message-Id: <1325725258-27934-34-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace custom memory bank initialization using memblock_reserve and
-dma_declare_coherent with a single call to CMA's dma_declare_contiguous.
+No functional changes on this patch. Better organize the delivery
+system information and data types, putting everything together,
+to improve readability.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- arch/arm/plat-s5p/dev-mfc.c |   51 ++++++-------------------------------------
- 1 files changed, 7 insertions(+), 44 deletions(-)
+ drivers/media/common/tuners/mt2063.c |  143 ++++++++++++++++------------------
+ 1 files changed, 66 insertions(+), 77 deletions(-)
 
-diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
-index a30d36b..fcb8400 100644
---- a/arch/arm/plat-s5p/dev-mfc.c
-+++ b/arch/arm/plat-s5p/dev-mfc.c
-@@ -14,6 +14,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
-+#include <linux/dma-contiguous.h>
- #include <linux/memblock.h>
- #include <linux/ioport.h>
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index 181deac..5e9655a 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -130,19 +130,6 @@ enum MT2063_Mask_Bits {
+ };
  
-@@ -22,52 +23,14 @@
- #include <plat/irqs.h>
- #include <plat/mfc.h>
- 
--struct s5p_mfc_reserved_mem {
--	phys_addr_t	base;
--	unsigned long	size;
--	struct device	*dev;
+ /*
+- *  Parameter for selecting tuner mode
+- */
+-enum MT2063_RCVR_MODES {
+-	MT2063_CABLE_QAM = 0,	/* Digital cable              */
+-	MT2063_CABLE_ANALOG,	/* Analog cable               */
+-	MT2063_OFFAIR_COFDM,	/* Digital offair             */
+-	MT2063_OFFAIR_COFDM_SAWLESS,	/* Digital offair without SAW */
+-	MT2063_OFFAIR_ANALOG,	/* Analog offair              */
+-	MT2063_OFFAIR_8VSB,	/* Analog offair              */
+-	MT2063_NUM_RCVR_MODES
 -};
 -
--static struct s5p_mfc_reserved_mem s5p_mfc_mem[2] __initdata;
--
- void __init s5p_mfc_reserve_mem(phys_addr_t rbase, unsigned int rsize,
- 				phys_addr_t lbase, unsigned int lsize)
- {
--	int i;
--
--	s5p_mfc_mem[0].dev = &s5p_device_mfc_r.dev;
--	s5p_mfc_mem[0].base = rbase;
--	s5p_mfc_mem[0].size = rsize;
--
--	s5p_mfc_mem[1].dev = &s5p_device_mfc_l.dev;
--	s5p_mfc_mem[1].base = lbase;
--	s5p_mfc_mem[1].size = lsize;
--
--	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
--		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
--		if (memblock_remove(area->base, area->size)) {
--			printk(KERN_ERR "Failed to reserve memory for MFC device (%ld bytes at 0x%08lx)\n",
--			       area->size, (unsigned long) area->base);
--			area->base = 0;
--		}
--	}
--}
--
--static int __init s5p_mfc_memory_init(void)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
--		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
--		if (!area->base)
--			continue;
-+	if (dma_declare_contiguous(&s5p_device_mfc_r.dev, rsize, rbase, 0))
-+		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
-+		       rsize, (unsigned long) rbase);
+-/*
+  *  Possible values for MT2063_DNC_OUTPUT
+  */
+ enum MT2063_DNC_Output_Enable {
+@@ -904,37 +891,6 @@ static u32 MT2063_AvoidSpurs(struct MT2063_AvoidSpursData_t *pAS_Info)
+ #define MT2063_B2       (0x9D)
+ #define MT2063_B3       (0x9E)
  
--		if (dma_declare_coherent_memory(area->dev, area->base,
--				area->base, area->size,
--				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0)
--			printk(KERN_ERR "Failed to declare coherent memory for MFC device (%ld bytes at 0x%08lx)\n",
--			       area->size, (unsigned long) area->base);
--	}
--	return 0;
-+	if (dma_declare_contiguous(&s5p_device_mfc_l.dev, lsize, lbase, 0))
-+		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
-+		       rsize, (unsigned long) rbase);
+-/*
+- *  Constants for setting receiver modes.
+- *  (6 modes defined at this time, enumerated by MT2063_RCVR_MODES)
+- *  (DNC1GC & DNC2GC are the values, which are used, when the specific
+- *   DNC Output is selected, the other is always off)
+- *
+- *                enum MT2063_RCVR_MODES
+- * -------------+----------------------------------------------
+- * Mode 0 :     | MT2063_CABLE_QAM
+- * Mode 1 :     | MT2063_CABLE_ANALOG
+- * Mode 2 :     | MT2063_OFFAIR_COFDM
+- * Mode 3 :     | MT2063_OFFAIR_COFDM_SAWLESS
+- * Mode 4 :     | MT2063_OFFAIR_ANALOG
+- * Mode 5 :     | MT2063_OFFAIR_8VSB
+- * --------------+----------------------------------------------
+- */
+-static const u8 RFAGCEN[] = { 0, 0, 0, 0, 0, 0 };
+-static const u8 LNARIN[] = { 0, 0, 3, 3, 3, 3 };
+-static const u8 FIFFQEN[] = { 1, 1, 1, 1, 1, 1 };
+-static const u8 FIFFQ[] = { 0, 0, 0, 0, 0, 0 };
+-static const u8 DNC1GC[] = { 0, 0, 0, 0, 0, 0 };
+-static const u8 DNC2GC[] = { 0, 0, 0, 0, 0, 0 };
+-static const u8 ACLNAMAX[] = { 31, 31, 31, 31, 31, 31 };
+-static const u8 LNATGT[] = { 44, 43, 43, 43, 43, 43 };
+-static const u8 RFOVDIS[] = { 0, 0, 0, 0, 0, 0 };
+-static const u8 ACRFMAX[] = { 31, 31, 31, 31, 31, 31 };
+-static const u8 PD1TGT[] = { 36, 36, 38, 38, 36, 38 };
+-static const u8 FIFOVDIS[] = { 0, 0, 0, 0, 0, 0 };
+-static const u8 ACFIFMAX[] = { 29, 29, 29, 29, 29, 29 };
+-static const u8 PD2TGT[] = { 40, 33, 38, 42, 30, 38 };
+-
+ /**
+  * mt2063_lockStatus - Checks to see if LO1 and LO2 are locked
+  *
+@@ -977,6 +933,67 @@ static unsigned int mt2063_lockStatus(struct mt2063_state *state)
  }
--device_initcall(s5p_mfc_memory_init);
+ 
+ /*
++ *  Constants for setting receiver modes.
++ *  (6 modes defined at this time, enumerated by mt2063_delivery_sys)
++ *  (DNC1GC & DNC2GC are the values, which are used, when the specific
++ *   DNC Output is selected, the other is always off)
++ *
++ *                enum mt2063_delivery_sys
++ * -------------+----------------------------------------------
++ * Mode 0 :     | MT2063_CABLE_QAM
++ * Mode 1 :     | MT2063_CABLE_ANALOG
++ * Mode 2 :     | MT2063_OFFAIR_COFDM
++ * Mode 3 :     | MT2063_OFFAIR_COFDM_SAWLESS
++ * Mode 4 :     | MT2063_OFFAIR_ANALOG
++ * Mode 5 :     | MT2063_OFFAIR_8VSB
++ * --------------+----------------------------------------------
++ *
++ *                |<----------   Mode  -------------->|
++ *    Reg Field   |  0  |  1  |  2  |  3  |  4  |  5  |
++ *    ------------+-----+-----+-----+-----+-----+-----+
++ *    RFAGCen     | OFF | OFF | OFF | OFF | OFF | OFF
++ *    LNARin      |   0 |   0 |   3 |   3 |  3  |  3
++ *    FIFFQen     |   1 |   1 |   1 |   1 |  1  |  1
++ *    FIFFq       |   0 |   0 |   0 |   0 |  0  |  0
++ *    DNC1gc      |   0 |   0 |   0 |   0 |  0  |  0
++ *    DNC2gc      |   0 |   0 |   0 |   0 |  0  |  0
++ *    GCU Auto    |   1 |   1 |   1 |   1 |  1  |  1
++ *    LNA max Atn |  31 |  31 |  31 |  31 | 31  | 31
++ *    LNA Target  |  44 |  43 |  43 |  43 | 43  | 43
++ *    ign  RF Ovl |   0 |   0 |   0 |   0 |  0  |  0
++ *    RF  max Atn |  31 |  31 |  31 |  31 | 31  | 31
++ *    PD1 Target  |  36 |  36 |  38 |  38 | 36  | 38
++ *    ign FIF Ovl |   0 |   0 |   0 |   0 |  0  |  0
++ *    FIF max Atn |   5 |   5 |   5 |   5 |  5  |  5
++ *    PD2 Target  |  40 |  33 |  42 |  42 | 33  | 42
++ */
++
++enum mt2063_delivery_sys {
++	MT2063_CABLE_QAM = 0,		/* Digital cable              */
++	MT2063_CABLE_ANALOG,		/* Analog cable               */
++	MT2063_OFFAIR_COFDM,		/* Digital offair             */
++	MT2063_OFFAIR_COFDM_SAWLESS,	/* Digital offair without SAW */
++	MT2063_OFFAIR_ANALOG,		/* Analog offair              */
++	MT2063_OFFAIR_8VSB,		/* Analog offair              */
++	MT2063_NUM_RCVR_MODES
++};
++
++static const u8 RFAGCEN[] = { 0, 0, 0, 0, 0, 0 };
++static const u8 LNARIN[] = { 0, 0, 3, 3, 3, 3 };
++static const u8 FIFFQEN[] = { 1, 1, 1, 1, 1, 1 };
++static const u8 FIFFQ[] = { 0, 0, 0, 0, 0, 0 };
++static const u8 DNC1GC[] = { 0, 0, 0, 0, 0, 0 };
++static const u8 DNC2GC[] = { 0, 0, 0, 0, 0, 0 };
++static const u8 ACLNAMAX[] = { 31, 31, 31, 31, 31, 31 };
++static const u8 LNATGT[] = { 44, 43, 43, 43, 43, 43 };
++static const u8 RFOVDIS[] = { 0, 0, 0, 0, 0, 0 };
++static const u8 ACRFMAX[] = { 31, 31, 31, 31, 31, 31 };
++static const u8 PD1TGT[] = { 36, 36, 38, 38, 36, 38 };
++static const u8 FIFOVDIS[] = { 0, 0, 0, 0, 0, 0 };
++static const u8 ACFIFMAX[] = { 29, 29, 29, 29, 29, 29 };
++static const u8 PD2TGT[] = { 40, 33, 38, 42, 30, 38 };
++
++/*
+  * mt2063_set_dnc_output_enable()
+  */
+ static u32 mt2063_get_dnc_output_enable(struct mt2063_state *state,
+@@ -1119,48 +1136,20 @@ static u32 mt2063_set_dnc_output_enable(struct mt2063_state *state,
+ }
+ 
+ /*
+- * MT2063_SetReceiverMode() - Set the MT2063 receiver mode
+-**
+- *                 enum MT2063_RCVR_MODES
+- * --------------+----------------------------------------------
+- *  Mode 0 :     | MT2063_CABLE_QAM
+- *  Mode 1 :     | MT2063_CABLE_ANALOG
+- *  Mode 2 :     | MT2063_OFFAIR_COFDM
+- *  Mode 3 :     | MT2063_OFFAIR_COFDM_SAWLESS
+- *  Mode 4 :     | MT2063_OFFAIR_ANALOG
+- *  Mode 5 :     | MT2063_OFFAIR_8VSB
+- * --------------+----------------------------------------------
++ * MT2063_SetReceiverMode() - Set the MT2063 receiver mode, according with
++ * 			      the selected enum mt2063_delivery_sys type.
++ *
+  *  (DNC1GC & DNC2GC are the values, which are used, when the specific
+  *   DNC Output is selected, the other is always off)
+  *
+- *                |<----------   Mode  -------------->|
+- *    Reg Field   |  0  |  1  |  2  |  3  |  4  |  5  |
+- *    ------------+-----+-----+-----+-----+-----+-----+
+- *    RFAGCen     | OFF | OFF | OFF | OFF | OFF | OFF
+- *    LNARin      |   0 |   0 |   3 |   3 |  3  |  3
+- *    FIFFQen     |   1 |   1 |   1 |   1 |  1  |  1
+- *    FIFFq       |   0 |   0 |   0 |   0 |  0  |  0
+- *    DNC1gc      |   0 |   0 |   0 |   0 |  0  |  0
+- *    DNC2gc      |   0 |   0 |   0 |   0 |  0  |  0
+- *    GCU Auto    |   1 |   1 |   1 |   1 |  1  |  1
+- *    LNA max Atn |  31 |  31 |  31 |  31 | 31  | 31
+- *    LNA Target  |  44 |  43 |  43 |  43 | 43  | 43
+- *    ign  RF Ovl |   0 |   0 |   0 |   0 |  0  |  0
+- *    RF  max Atn |  31 |  31 |  31 |  31 | 31  | 31
+- *    PD1 Target  |  36 |  36 |  38 |  38 | 36  | 38
+- *    ign FIF Ovl |   0 |   0 |   0 |   0 |  0  |  0
+- *    FIF max Atn |   5 |   5 |   5 |   5 |  5  |  5
+- *    PD2 Target  |  40 |  33 |  42 |  42 | 33  | 42
+- *
+- *
+  * @state:	ptr to mt2063_state structure
+- * @Mode:	desired reciever mode
++ * @Mode:	desired reciever delivery system
+  *
+  * Note: Register cache must be valid for it to work
+  */
+ 
+ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
+-				  enum MT2063_RCVR_MODES Mode)
++				  enum mt2063_delivery_sys Mode)
+ {
+ 	u32 status = 0;	/* Status to be returned        */
+ 	u8 val;
 -- 
-1.7.1.569.g6f426
+1.7.7.5
 
