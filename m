@@ -1,78 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:47106 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752835Ab2A3Mmy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 07:42:54 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Mel Gorman" <mel@csn.ul.ie>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>,
-	"Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 03/15] mm: compaction: introduce
- isolate_migratepages_range().
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <1327568457-27734-4-git-send-email-m.szyprowski@samsung.com>
- <20120130112428.GF25268@csn.ul.ie>
-Date: Mon, 30 Jan 2012 13:42:50 +0100
+Received: from rcsinet15.oracle.com ([148.87.113.117]:43702 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756057Ab2AERzs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:55:48 -0500
+Date: Thu, 5 Jan 2012 20:56:20 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Greg KH <greg@kroah.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [patch -longterm v2] V4L/DVB: v4l2-ioctl: integer overflow in
+ video_usercopy()
+Message-ID: <20120105175620.GB3644@mwanda>
+References: <20111215063445.GA2424@elgon.mountain>
+ <4EE9BC25.7020303@infradead.org>
+ <201112151033.35153.hverkuil@xs4all.nl>
+ <4EE9C2E6.1060304@infradead.org>
+ <20120103205539.GC17131@kroah.com>
+ <20120105062822.GB10230@mwanda>
+ <20120105164358.GA26153@kroah.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v8wdlovn3l0zgt@mpn-glaptop>
-In-Reply-To: <20120130112428.GF25268@csn.ul.ie>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="ZfOjI3PrQbgiZnxM"
+Content-Disposition: inline
+In-Reply-To: <20120105164358.GA26153@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Thu, Jan 26, 2012 at 10:00:45AM +0100, Marek Szyprowski wrote:
->> From: Michal Nazarewicz <mina86@mina86.com>
->> @@ -313,7 +316,7 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
->>  		} else if (!locked)
->>  			spin_lock_irq(&zone->lru_lock);
->>
->> -		if (!pfn_valid_within(low_pfn))
->> +		if (!pfn_valid(low_pfn))
->>  			continue;
->>  		nr_scanned++;
->>
 
-On Mon, 30 Jan 2012 12:24:28 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> This chunk looks unrelated to the rest of the patch.
->
-> I think what you are doing is patching around a bug that CMA exposed
-> which is very similar to the bug report at
-> http://www.spinics.net/lists/linux-mm/msg29260.html . Is this true?
->
-> If so, I posted a fix that only calls pfn_valid() when necessary. Can
-> you check if that works for you and if so, drop this hunk please? If
-> the patch does not work for you, then this hunk still needs to be
-> in a separate patch and handled separately as it would also be a fix
-> for -stable.
+--ZfOjI3PrQbgiZnxM
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-I'll actually never encountered this bug myself and CMA is unlikely to
-expose it, since it always operates on continuous memory regions with
-no holes.
+On Thu, Jan 05, 2012 at 08:43:58AM -0800, Greg KH wrote:
+> On Thu, Jan 05, 2012 at 09:28:22AM +0300, Dan Carpenter wrote:
+> > If p->count is too high the multiplication could overflow and
+> > array_size would be lower than expected.  Mauro and Hans Verkuil
+> > suggested that we cap it at 1024.  That comes from the maximum
+> > number of controls with lots of room for expantion.
+> >=20
+> > $ grep V4L2_CID include/linux/videodev2.h | wc -l
+> > 211
+> >=20
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>=20
+> So this patch is only for 2.6.32?  But the original needs to get into
+> Linus's tree first (which is what I'm guessing the other patch you sent
+> is, right?)
 
-I've made this change because looking at the code it seemed like this
-may cause problems in some cases.  The crash that you linked to looks
-like the kind of problem I was thinking about.
+Yep.
 
-I'll drop this hunk and let you resolve this independently of CMA.
+regards,
+dan carpenter
 
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+
+--ZfOjI3PrQbgiZnxM
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPBeRDAAoJEOnZkXI/YHqRxrQP/iRWbNxcOGz7m8vMij8GL9i4
+H60w8ouuvSXJyjY8cDxDPQRJsF3ziutY7wuz/7kMO1bFpHWQ5XZPQOgCKgiy+YIN
+Eo0WRd9ZNOdyf9l1oYB0Q505dT8Wn4yfHVdB5QHEAiHZUieH1MTx2dJ3GjDp7t+X
+msOp4AohjrrXIkP1QkUfHNnMv283FytrjtBgt6Zdy+7jME8CVLI6YORZT9c0Rcxz
+jJ8sHdDIxvUtFdqoll3kD2gUz31pMDC8qtHlbCNIHfFHvl6UnGsbNT7Wg/A2r4W8
+9xZLn1+/CsbKGN+1aLhTJfRGFfe5tSaQQnRE5xzo8AIW9q+g/BSdrjbwCp/ypvPW
+Tbt2yKomZFNeXEikydgYOSYQbSmCt4ItbeW+8RZVmop+9wrwt87ZkS1Cqh1qHojb
+wP7jEJZPAU+OTY5CkZBK7VjwWtcyMzpGEHk3n+hWnq3hxzbD+gWAlVV8QCVNjevA
+pkKfZCSVoqY/NakQ8uKNdjxsZ8XjhAC7s4dISlaRc0x3BAWDlu0KhBLztEyMQcz0
+pKRfAla7lx6UHkbMy7jxoi9PUzQ3JdagyljFsIyXK8PINER5YAwaZeVBzDA80AV3
+hZKlEHyHklmkC6WVDWnDOUlNv45q+fBHzVKLEibUTulEmMdRhdL/FYlN1huHy2a1
+f1FVJcrh0B8EQHSh1v7j
+=B1XB
+-----END PGP SIGNATURE-----
+
+--ZfOjI3PrQbgiZnxM--
