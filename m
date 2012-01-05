@@ -1,176 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:57799 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752181Ab2ACLpq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 06:45:46 -0500
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LX800N2H0O70T@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Jan 2012 11:45:43 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LX8002300O79J@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Jan 2012 11:45:43 +0000 (GMT)
-Date: Tue, 03 Jan 2012 12:45:40 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 1/2 v2] media: vb2: support userptr for PFN mappings.
-In-reply-to: <1325589531-23607-1-git-send-email-javier.martin@vista-silicon.com>
-To: 'Javier Martin' <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com
-Message-id: <00e501ccca0d$379a5ab0$a6cf1010$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1325589531-23607-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55397 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932744Ab2AEQLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 11:11:43 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC 04/17] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Date: Thu, 5 Jan 2012 17:12:00 +0100
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1324412889-17961-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201051712.00970.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Sakari,
 
-On Tuesday, January 03, 2012 12:19 PM Javier Martin wrote:
+Thanks for the patch.
 
-> Some video devices need to use contiguous memory
-> which is not backed by pages as it happens with
-> vmalloc. This patch provides userptr handling for
-> those devices.
+On Tuesday 20 December 2011 21:27:56 Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
 > 
+> Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
+> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+> 
+> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+
+As those ioctls are experimental, should we deprecate them ?
+
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 > ---
-> Changes since v1:
->  - Use vb2_get_contig_userptr() which provides page
->  locking and contiguous memory check.
+>  drivers/media/video/v4l2-subdev.c |   26 ++++++++++++++++++++-
+>  include/linux/v4l2-subdev.h       |   45 ++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-subdev.h       |    5 ++++
+>  3 files changed, 75 insertions(+), 1 deletions(-)
 > 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/videobuf2-vmalloc.c |   74 +++++++++++++++++++++----------
->  1 files changed, 51 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-> index 03aa62f..8248e56 100644
-> --- a/drivers/media/video/videobuf2-vmalloc.c
-> +++ b/drivers/media/video/videobuf2-vmalloc.c
-> @@ -10,6 +10,7 @@
->   * the Free Software Foundation.
->   */
-> 
-> +#include <linux/io.h>
->  #include <linux/module.h>
->  #include <linux/mm.h>
->  #include <linux/sched.h>
-> @@ -22,6 +23,7 @@
->  struct vb2_vmalloc_buf {
->  	void				*vaddr;
->  	struct page			**pages;
-> +	struct vm_area_struct		*vma;
->  	int				write;
->  	unsigned long			size;
->  	unsigned int			n_pages;
-> @@ -71,6 +73,9 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
->  	struct vb2_vmalloc_buf *buf;
->  	unsigned long first, last;
->  	int n_pages, offset;
-> +	struct vm_area_struct *vma;
-> +	struct vm_area_struct *res_vma;
-> +	dma_addr_t physp;
-> 
->  	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->  	if (!buf)
-> @@ -80,23 +85,40 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
->  	offset = vaddr & ~PAGE_MASK;
->  	buf->size = size;
-> 
-> -	first = vaddr >> PAGE_SHIFT;
-> -	last  = (vaddr + size - 1) >> PAGE_SHIFT;
-> -	buf->n_pages = last - first + 1;
-> -	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
-> -	if (!buf->pages)
-> -		goto fail_pages_array_alloc;
-> 
-> -	/* current->mm->mmap_sem is taken by videobuf2 core */
-> -	n_pages = get_user_pages(current, current->mm, vaddr & PAGE_MASK,
-> -					buf->n_pages, write, 1, /* force */
-> -					buf->pages, NULL);
-> -	if (n_pages != buf->n_pages)
-> -		goto fail_get_user_pages;
-> -
-> -	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
-> -	if (!buf->vaddr)
-> -		goto fail_get_user_pages;
-> +	down_read(&current->mm->mmap_sem);
+> diff --git a/drivers/media/video/v4l2-subdev.c
+> b/drivers/media/video/v4l2-subdev.c index 65ade5f..e8ae098 100644
+> --- a/drivers/media/video/v4l2-subdev.c
+> +++ b/drivers/media/video/v4l2-subdev.c
+> @@ -36,13 +36,17 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh,
+> struct v4l2_subdev *sd) {
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+>  	/* Allocate try format and crop in the same memory block */
+> -	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
+> +	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop)
+> +			       + sizeof(*fh->try_compose))
+>  			      * sd->entity.num_pads, GFP_KERNEL);
 
-mm->mmap_sem is already grabbed by the videobuf2-core to avoid deadlocks. You 
-must not take it again here.
+Could you check how the 3 structures are aligned on 64-bit platforms ? I'm a 
+bit worried about the compiler expecting a 64-bit alignment for one of them, 
+and getting only a 32-bit alignment in the end.
 
-> +	vma = find_vma(current->mm, vaddr);
-> +	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
-> +		up_read(&current->mm->mmap_sem);
-> +		if (vb2_get_contig_userptr(vaddr, size, &res_vma, &physp))
-> +			goto fail_pages_array_alloc;
-> +		buf->vma = res_vma;
-> +		buf->vaddr = ioremap_nocache(physp, size);
-> +		if (!buf->vaddr)
-> +			goto fail_pages_array_alloc;
-> +	} else {
-> +		up_read(&current->mm->mmap_sem);
-> +		first = vaddr >> PAGE_SHIFT;
-> +		last  = (vaddr + size - 1) >> PAGE_SHIFT;
-> +		buf->n_pages = last - first + 1;
-> +		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
-> +				     GFP_KERNEL);
-> +		if (!buf->pages)
-> +			goto fail_pages_array_alloc;
-> +
-> +		/* current->mm->mmap_sem is taken by videobuf2 core */
-> +		n_pages = get_user_pages(current, current->mm,
-> +					 vaddr & PAGE_MASK, buf->n_pages,
-> +					 write, 1, /* force */
-> +					 buf->pages, NULL);
-> +		if (n_pages != buf->n_pages)
-> +			goto fail_get_user_pages;
-> +
-> +		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
-> +					PAGE_KERNEL);
-> +		if (!buf->vaddr)
-> +			goto fail_get_user_pages;
-> +	}
+What about using kcalloc ?
+
+>  	if (fh->try_fmt == NULL)
+>  		return -ENOMEM;
 > 
->  	buf->vaddr += offset;
->  	return buf;
-> @@ -120,14 +142,20 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
->  	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
->  	unsigned int i;
-> 
-> -	if (vaddr)
-> -		vm_unmap_ram((void *)vaddr, buf->n_pages);
-> -	for (i = 0; i < buf->n_pages; ++i) {
-> -		if (buf->write)
-> -			set_page_dirty_lock(buf->pages[i]);
-> -		put_page(buf->pages[i]);
-> +	if (buf->pages) {
-> +		if (vaddr)
-> +			vm_unmap_ram((void *)vaddr, buf->n_pages);
-> +		for (i = 0; i < buf->n_pages; ++i) {
-> +			if (buf->write)
-> +				set_page_dirty_lock(buf->pages[i]);
-> +			put_page(buf->pages[i]);
-> +		}
-> +		kfree(buf->pages);
-> +	} else {
-> +		if (buf->vma)
-> +			vb2_put_vma(buf->vma);
-> +		iounmap(buf->vaddr);
->  	}
-> -	kfree(buf->pages);
->  	kfree(buf);
+>  	fh->try_crop = (struct v4l2_rect *)
+>  		(fh->try_fmt + sd->entity.num_pads);
+> +
+> +	fh->try_compose = (struct v4l2_rect *)
+> +		(fh->try_crop + sd->entity.num_pads);
+>  #endif
+>  	return 0;
 >  }
+> @@ -281,6 +285,26 @@ static long subdev_do_ioctl(struct file *file,
+> unsigned int cmd, void *arg) return v4l2_subdev_call(sd, pad,
+> enum_frame_interval, subdev_fh, fie);
+>  	}
+> +
+> +	case VIDIOC_SUBDEV_G_SELECTION: {
+> +		struct v4l2_subdev_selection *sel = arg;
 
-Best regards
+Shouldn't you check sel->which ?
+
+> +		if (sel->pad >= sd->entity.num_pads)
+> +			return -EINVAL;
+> +
+> +		return v4l2_subdev_call(
+> +			sd, pad, get_selection, subdev_fh, sel);
+> +	}
+> +
+> +	case VIDIOC_SUBDEV_S_SELECTION: {
+> +		struct v4l2_subdev_selection *sel = arg;
+
+And here too ?
+
+> +		if (sel->pad >= sd->entity.num_pads)
+> +			return -EINVAL;
+> +
+> +		return v4l2_subdev_call(
+> +			sd, pad, set_selection, subdev_fh, sel);
+> +	}
+>  #endif
+>  	default:
+>  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+> diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+> index ed29cbb..d53d775 100644
+> --- a/include/linux/v4l2-subdev.h
+> +++ b/include/linux/v4l2-subdev.h
+> @@ -123,6 +123,47 @@ struct v4l2_subdev_frame_interval_enum {
+>  	__u32 reserved[9];
+>  };
+> 
+> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
+> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
+> +#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
+> +
+> +/* active cropping area */
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0
+> +/* default cropping area */
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_DEFAULT		1
+> +/* cropping bounds */
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			2
+> +/* current composing area */
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		256
+> +/* default composing area */
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_DEFAULT		257
+> +/* composing bounds */
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		258
+> +
+> +
+> +/**
+> + * struct v4l2_subdev_selection - selection info
+> + *
+> + * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
+> + * @pad: pad number, as reported by the media API
+> + * @target: selection target, used to choose one of possible rectangles
+> + * @flags: constraints flags
+> + * @r: coordinates of selection window
+> + * @reserved: for future use, rounds structure size to 64 bytes, set to
+> zero + *
+> + * Hardware may use multiple helper window to process a video stream.
+> + * The structure is used to exchange this selection areas between
+> + * an application and a driver.
+> + */
+> +struct v4l2_subdev_selection {
+> +	__u32 which;
+> +	__u32 pad;
+> +	__u32 target;
+> +	__u32 flags;
+> +	struct v4l2_rect r;
+> +	__u32 reserved[8];
+> +};
+> +
+>  #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+>  #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+>  #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+> @@ -137,5 +178,9 @@ struct v4l2_subdev_frame_interval_enum {
+>  			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
+>  #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
+>  #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
+> +#define VIDIOC_SUBDEV_G_SELECTION \
+> +	_IOWR('V', 61, struct v4l2_subdev_selection)
+> +#define VIDIOC_SUBDEV_S_SELECTION \
+> +	_IOWR('V', 62, struct v4l2_subdev_selection)
+> 
+>  #endif
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index f0f3358..26eeaa4 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
+>  		       struct v4l2_subdev_crop *crop);
+>  	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>  		       struct v4l2_subdev_crop *crop);
+> +	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> +			     struct v4l2_subdev_selection *sel);
+> +	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> +			     struct v4l2_subdev_selection *sel);
+>  };
+> 
+>  struct v4l2_subdev_ops {
+> @@ -551,6 +555,7 @@ struct v4l2_subdev_fh {
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+>  	struct v4l2_mbus_framefmt *try_fmt;
+>  	struct v4l2_rect *try_crop;
+> +	struct v4l2_rect *try_compose;
+>  #endif
+>  };
+
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
 
-
-
+Laurent Pinchart
