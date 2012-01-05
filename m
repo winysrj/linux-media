@@ -1,72 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:55478 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720Ab2AZQBR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 11:01:17 -0500
-Date: Thu, 26 Jan 2012 17:01:15 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/8] soc-camera: Add plane layout information to struct
- soc_mbus_pixelfmt
-In-Reply-To: <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1201261659480.10057@axis700.grange>
-References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from casper.infradead.org ([85.118.1.10]:60229 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758091Ab2AETKE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 14:10:04 -0500
+Message-ID: <4F05F57A.2070007@infradead.org>
+Date: Thu, 05 Jan 2012 17:09:46 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Paolo Bonzini <pbonzini@redhat.com>, linux-media@vger.kernel.org,
+	Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org,
+	security@kernel.org, pmatouse@redhat.com, agk@redhat.com,
+	jbottomley@parallels.com, mchristi@redhat.com, msnitzer@redhat.com,
+	Christoph Hellwig <hch@lst.de>
+Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
+ passthrough ioctls on partition devices)
+References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com> <4F05DFF0.3000809@infradead.org> <CA+55aFyDJ5PJ75R_bSaV5KCpLANmNwCjCA=mYj4g+H+35NQSNQ@mail.gmail.com>
+In-Reply-To: <CA+55aFyDJ5PJ75R_bSaV5KCpLANmNwCjCA=mYj4g+H+35NQSNQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-One more question:
-
-On Wed, 25 Jan 2012, Laurent Pinchart wrote:
-
-> To compute the number of bytes per line according to the V4L2
-> specification, we need information about planes layout for planar
-> formats. The new enum soc_mbus_layout convey that information.
+On 05-01-2012 15:47, Linus Torvalds wrote:
+> On Thu, Jan 5, 2012 at 9:37 AM, Mauro Carvalho Chehab
+> <mchehab@infradead.org> wrote:
+>>
+>> For the media drivers, we've already fixed it, at the V4L side:
+>> -EINVAL doesn't mean that an ioctl is not supported anymore.
+>> I think that such fix went into Kernel 3.1.
 > 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/video/atmel-isi.c            |    1 +
->  drivers/media/video/mx3_camera.c           |    2 +
->  drivers/media/video/omap1_camera.c         |    8 ++++++
->  drivers/media/video/pxa_camera.c           |    1 +
->  drivers/media/video/sh_mobile_ceu_camera.c |    4 +++
->  drivers/media/video/soc_mediabus.c         |   33 ++++++++++++++++++++++++++++
->  include/media/soc_mediabus.h               |   19 ++++++++++++++++
->  7 files changed, 68 insertions(+), 0 deletions(-)
+> Ok, I'm happy to hear that the thing should be fixed. My grepping
+> still found a fair amount of EINVAL returns both in code and in the
+> Documentation subdirectory for media ioctls, but it really was just
+> grepping with a few lines of context, so I didn't look closer at the
+> semantics. I was just looking for certain patterns (ie grepping for
+> "EINVAL" near ioctl or ENOIOCTLCMD etc) that I thought might indicate
+> problem spots, and the media subdirectory had a lot of them.
 
-[snip]
+Yeah, there are lots of EINVAL there, as the API is fairly complex
+(about 80 ioctl's for V4L, plus a similar set for DVB),  but there's
+an ioctl dispatcher inside the V4L core that handles the ENOTTY case,
+at drivers/media/video/v4l2-ioctl.c.
 
-> diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-> index 73f1e7e..18b0864 100644
-> --- a/include/media/soc_mediabus.h
-> +++ b/include/media/soc_mediabus.h
-> @@ -47,6 +47,24 @@ enum soc_mbus_order {
->  };
->  
->  /**
-> + * enum soc_mbus_layout - planes layout in memory
-> + * @SOC_MBUS_LAYOUT_PACKED:		color components packed
-> + * @SOC_MBUS_LAYOUT_PLANAR_Y_U_V:	YUV components stored in 3 planes
-> + * @SOC_MBUS_LAYOUT_PLANAR_2Y_C:	YUV components stored in a luma and a
-> + *					chroma plane (C plane is half the size
-> + *					of Y plane)
-> + * @SOC_MBUS_LAYOUT_PLANAR_Y_C:		YUV components stored in a luma and a
-> + *					chroma plane (C plane is the same size
-> + *					as Y plane)
-> + */
-> +enum soc_mbus_layout {
-> +	SOC_MBUS_LAYOUT_PACKED = 0,
-> +	SOC_MBUS_LAYOUT_PLANAR_Y_U_V,
+You'll see some -EINVAL things there, but they're due to errors
+on parameters (the semantics there is somewhat complex, to avoid
+returning -ENOTTY where a -EINVAL should be returned, instead).
 
-Shouldn't we call this SOC_MBUS_LAYOUT_PLANAR_2Y_U_V?
+In summary, the code there is:
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+static long __video_do_ioctl(struct file *file,
+                unsigned int cmd, void *arg)
+{
+...
+        long ret = -ENOTTY;
+...
+	switch (cmd) {
+		/*
+		 * several ioctl callbacks here. if they're not
+		 * implemented, break (e. g. -ENOTTY will be returned).
+		 */
+...
+	}
+...
+        return ret;
+
+The context there is too big for noticing it with a few lines of
+context, and too complex as well, as some ioctl's may be implemented 
+by more than one callback, depending on what's needed, and some 
+others have a default implementation there. This is somewhat similar 
+to file ops callbacks.
+
+> Can you test the patch with some media capture apps (preferably with
+> the obvious fix for the problem that Paulo already pointed out -
+> although that won't actually matter until some block driver starts
+> using ENOIOCTLCMD there, so even the unfixed patch should mostly work
+> for testing)?
+
+Sure. I'm currently traveling, so I have just my "first aids kit" of devices
+but they should be enough for testing it. I'll return you as soon as I finish
+compiling the kernel on this slow 4 years-old notebook and run some
+tests with the usual applications.
+
+Regards,
+Mauro
