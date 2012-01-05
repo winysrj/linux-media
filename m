@@ -1,51 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39264 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075Ab2AWOhq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 09:37:46 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 05/10] v4l: add buffer exporting via dmabuf
-Date: Mon, 23 Jan 2012 15:37:49 +0100
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl, pawel@osciak.com
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com> <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com> <4F1D6F88.5080202@redhat.com>
-In-Reply-To: <4F1D6F88.5080202@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201231537.51678.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:36856 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932247Ab2AEBBH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:07 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05117l0016627
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:07 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 10/47] [media] mt2063: get rid of compilation warnings
+Date: Wed,  4 Jan 2012 23:00:21 -0200
+Message-Id: <1325725258-27934-11-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mt2063.c |   35 +++++++++++++--------------------
+ drivers/media/common/tuners/mt2063.h |   11 +++++++++-
+ 2 files changed, 24 insertions(+), 22 deletions(-)
 
-On Monday 23 January 2012 15:32:40 Mauro Carvalho Chehab wrote:
-> Em 23-01-2012 11:51, Tomasz Stanislawski escreveu:
-> > This patch adds extension to V4L2 api. It allow to export a mmap buffer
-> > as file descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer
-> > offset used by mmap and return a file descriptor on success.
-> 
-> This requires more discussions.
-> 
-> The usecase for this new API seems to replace the features previously
-> provided by the overlay mode. There, not only the buffer were exposed to
-> userspace, but some control were provided, in order to control the overlay
-> window.
-> 
-> Please start a separate thread about that, explaining how are you imagining
-> that a V4L2 application would use such ioctl.
-
-I think this is currently just a proof of concept. I'm sure Tomasz will 
-discuss the V4L2 API extension on the linux-media list when the code will be 
-stabilized.
-
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index c181332..43e543e 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -26,7 +26,7 @@ static u32 MT2063_SetParam(void *h, enum MT2063_Param param, u32 nValue);
+ /*****************/
+ /* From drivers/media/common/tuners/mt2063_cfg.h */
+ 
+-static unsigned int mt2063_setTune(struct dvb_frontend *fe, u32 f_in,
++unsigned int mt2063_setTune(struct dvb_frontend *fe, u32 f_in,
+ 				   u32 bw_in,
+ 				   enum MTTune_atv_standard tv_type)
+ {
+@@ -57,7 +57,7 @@ static unsigned int mt2063_setTune(struct dvb_frontend *fe, u32 f_in,
+ 	return err;
+ }
+ 
+-static unsigned int mt2063_lockStatus(struct dvb_frontend *fe)
++unsigned int mt2063_lockStatus(struct dvb_frontend *fe)
+ {
+ 	struct dvb_frontend_ops *frontend_ops = &fe->ops;
+ 	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
+@@ -79,7 +79,7 @@ static unsigned int mt2063_lockStatus(struct dvb_frontend *fe)
+ 	return err;
+ }
+ 
+-static unsigned int tuner_MT2063_Open(struct dvb_frontend *fe)
++unsigned int tuner_MT2063_Open(struct dvb_frontend *fe)
+ {
+ 	struct dvb_frontend_ops *frontend_ops = &fe->ops;
+ 	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
+@@ -102,7 +102,7 @@ static unsigned int tuner_MT2063_Open(struct dvb_frontend *fe)
+ 	return err;
+ }
+ 
+-static unsigned int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe)
++unsigned int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe)
+ {
+ 	struct dvb_frontend_ops *frontend_ops = &fe->ops;
+ 	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
+@@ -125,7 +125,7 @@ static unsigned int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe)
+ 	return err;
+ }
+ 
+-static unsigned int tuner_MT2063_ClearPowerMaskBits(struct dvb_frontend *fe)
++unsigned int tuner_MT2063_ClearPowerMaskBits(struct dvb_frontend *fe)
+ {
+ 	struct dvb_frontend_ops *frontend_ops = &fe->ops;
+ 	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
+@@ -357,13 +357,15 @@ static u32 MT2063_ReadSub(void *hUserData,
+ **   N/A   03-25-2004    DAD    Original
+ **
+ *****************************************************************************/
+-static void MT2063_Sleep(void *hUserData, u32 nMinDelayTime)
++static int MT2063_Sleep(struct dvb_frontend *fe)
+ {
+ 	/*
+ 	 **  ToDo:  Add code here to implement a OS blocking
+ 	 **         for a period of "nMinDelayTime" milliseconds.
+ 	 */
+-	msleep(nMinDelayTime);
++	msleep(10);
++
++	return 0;
+ }
+ 
+ //end of mt2063_userdef.c
+@@ -467,10 +469,7 @@ static u32 MT2063_RegisterTuner(struct MT2063_AvoidSpursData_t *pAS_Info)
+ 
+ static void MT2063_UnRegisterTuner(struct MT2063_AvoidSpursData_t *pAS_Info)
+ {
+-#if MT2063_TUNER_CNT == 1
+-	pAS_Info;
+-#else
+-
++#if MT2063_TUNER_CNT > 1
+ 	u32 index;
+ 
+ 	for (index = 0; index < TunerCount; index++) {
+@@ -1507,10 +1506,9 @@ static u32 MT2063_fLO_FractionalTerm(u32 f_ref, u32 num,
+ **   138   06-19-2007    DAD    Ver 1.00: Initial, derived from mt2067_b.
+ **
+ ******************************************************************************/
+-static u32 MT2063_Open(u32 MT2063_Addr, void ** hMT2063, void *hUserData)
++static u32 MT2063_Open(u32 MT2063_Addr, struct MT2063_Info_t **hMT2063, void *hUserData)
+ {
+ 	u32 status = MT2063_OK;	/*  Status to be returned.  */
+-	s32 i;
+ 	struct MT2063_Info_t *pInfo = NULL;
+ 	struct dvb_frontend *fe = (struct dvb_frontend *)hUserData;
+ 	struct mt2063_state *state = fe->tuner_priv;
+@@ -2432,7 +2430,7 @@ static u32 MT2063_ReInit(void *h)
+ 	u8 all_resets = 0xF0;	/* reset/load bits */
+ 	u32 status = MT2063_OK;	/* Status to be returned */
+ 	struct MT2063_Info_t *pInfo = (struct MT2063_Info_t *)h;
+-	u8 *def;
++	u8 *def = NULL;
+ 
+ 	u8 MT2063B0_defaults[] = {	/* Reg,  Value */
+ 		0x19, 0x05,
+@@ -3391,10 +3389,9 @@ static u32 MT2063_SetParam(void *h, enum MT2063_Param param, u32 nValue)
+ **   138   06-19-2007    DAD    Ver 1.00: Initial, derived from mt2067_b.
+ **
+ ****************************************************************************/
+-static u32 MT2063_ClearPowerMaskBits(void *h, enum MT2063_Mask_Bits Bits)
++static u32 MT2063_ClearPowerMaskBits(struct MT2063_Info_t *pInfo, enum MT2063_Mask_Bits Bits)
+ {
+ 	u32 status = MT2063_OK;	/* Status to be returned        */
+-	struct MT2063_Info_t *pInfo = (struct MT2063_Info_t *)h;
+ 
+ 	/*  Verify that the handle passed points to a valid tuner         */
+ 	if (MT2063_IsValidHandle(pInfo) == 0)
+@@ -3448,10 +3445,9 @@ static u32 MT2063_ClearPowerMaskBits(void *h, enum MT2063_Mask_Bits Bits)
+ **                              correct wakeup of the LNA
+ **
+ ****************************************************************************/
+-static u32 MT2063_SoftwareShutdown(void *h, u8 Shutdown)
++static u32 MT2063_SoftwareShutdown(struct MT2063_Info_t *pInfo, u8 Shutdown)
+ {
+ 	u32 status = MT2063_OK;	/* Status to be returned        */
+-	struct MT2063_Info_t *pInfo = (struct MT2063_Info_t *)h;
+ 
+ 	/*  Verify that the handle passed points to a valid tuner         */
+ 	if (MT2063_IsValidHandle(pInfo) == 0) {
+@@ -3964,9 +3960,6 @@ static u32 MT_Tune_atv(void *h, u32 f_in, u32 bw_in,
+ {
+ 
+ 	u32 status = MT2063_OK;
+-	struct MT2063_Info_t *pInfo = (struct MT2063_Info_t *)h;
+-	struct dvb_frontend *fe = (struct dvb_frontend *)pInfo->hUserData;
+-	struct mt2063_state *state = fe->tuner_priv;
+ 
+ 	s32 pict_car = 0;
+ 	s32 pict2chanb_vsb = 0;
+diff --git a/drivers/media/common/tuners/mt2063.h b/drivers/media/common/tuners/mt2063.h
+index abc1efc..5dece2c 100644
+--- a/drivers/media/common/tuners/mt2063.h
++++ b/drivers/media/common/tuners/mt2063.h
+@@ -524,7 +524,7 @@ struct mt2063_state {
+ 	struct dvb_tuner_ops ops;
+ 	struct dvb_frontend *frontend;
+ 	struct tuner_state status;
+-	const struct MT2063_Info_t *MT2063_ht;
++	struct MT2063_Info_t *MT2063_ht;
+ 	bool MT2063_init;
+ 
+ 	enum MTTune_atv_standard tv_type;
+@@ -549,6 +549,15 @@ static inline struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+ 	return NULL;
+ }
+ 
++unsigned int mt2063_setTune(struct dvb_frontend *fe, u32 f_in,
++				   u32 bw_in,
++				   enum MTTune_atv_standard tv_type);
++
++unsigned int mt2063_lockStatus(struct dvb_frontend *fe);
++unsigned int tuner_MT2063_Open(struct dvb_frontend *fe);
++unsigned int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe);
++unsigned int tuner_MT2063_ClearPowerMaskBits(struct dvb_frontend *fe);
++
+ #endif /* CONFIG_DVB_MT2063 */
+ 
+ #endif /* __MT2063_H__ */
 -- 
-Regards,
+1.7.7.5
 
-Laurent Pinchart
