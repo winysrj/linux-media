@@ -1,59 +1,550 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:15178 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753649Ab2AMTjm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jan 2012 14:39:42 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LXR002GP5A4B390@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Jan 2012 19:39:40 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LXR00JST5A4W1@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 13 Jan 2012 19:39:40 +0000 (GMT)
-Date: Fri, 13 Jan 2012 20:39:30 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH] s5p-jpeg: adapt to recent videobuf2 changes
-To: linux-media@vger.kernel.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1326483570-27571-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:28176 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932313Ab2AEBBL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:11 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511BLI029473
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:11 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 31/47] [media] mt2063: Fix analog/digital set params logic
+Date: Wed,  4 Jan 2012 23:00:42 -0200
+Message-Id: <1325725258-27934-32-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-queue_setup callback has been extended with struct v4l2_format *fmt
-parameter in 2d86401c2c commit. This patch adds this parameter to
-s5p-jpeg driver.
+The driver were using a hacky way of setting analog and digital
+frequencies. Remove the hack and properly add the tuner logic for
+each supported type of standard.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-CC: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+I was tempted to add more standards there, like SECAM and to fix
+radio (as stepping seems broken), but I opted to keep it as-is,
+as tests would be needed to add additional standards.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/s5p-jpeg/jpeg-core.c |    7 ++++---
- 1 files changed, 4 insertions(+), 3 deletions(-)
+ drivers/media/common/tuners/mt2063.c |  390 +++++++++++++++++-----------------
+ drivers/media/common/tuners/mt2063.h |    1 -
+ 2 files changed, 190 insertions(+), 201 deletions(-)
 
-diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
-index f841a3e..1105a87 100644
---- a/drivers/media/video/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
-@@ -989,9 +989,10 @@ static struct v4l2_m2m_ops s5p_jpeg_m2m_ops = {
-  * ============================================================================
-  */
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index 5154b9d..4f634ad 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -2,6 +2,7 @@
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/string.h>
++#include <linux/videodev2.h>
  
--static int s5p_jpeg_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
--				unsigned int *nplanes, unsigned int sizes[],
--				void *alloc_ctxs[])
-+static int s5p_jpeg_queue_setup(struct vb2_queue *vq,
-+			   const struct v4l2_format *fmt,
-+			   unsigned int *nbuffers, unsigned int *nplanes,
-+			   unsigned int sizes[], void *alloc_ctxs[])
+ #include "mt2063.h"
+ 
+@@ -201,21 +202,6 @@ enum MT2063_Register_Offsets {
+ 	MT2063_REG_END_REGS
+ };
+ 
+-enum MTTune_atv_standard {
+-	MTTUNEA_UNKNOWN = 0,
+-	MTTUNEA_PAL_B,
+-	MTTUNEA_PAL_G,
+-	MTTUNEA_PAL_I,
+-	MTTUNEA_PAL_L,
+-	MTTUNEA_PAL_MN,
+-	MTTUNEA_PAL_DK,
+-	MTTUNEA_DIGITAL,
+-	MTTUNEA_FMRADIO,
+-	MTTUNEA_DVBC,
+-	MTTUNEA_DVBT
+-};
+-
+-
+ struct mt2063_state {
+ 	struct i2c_adapter *i2c;
+ 
+@@ -224,7 +210,6 @@ struct mt2063_state {
+ 	struct dvb_frontend *frontend;
+ 	struct tuner_state status;
+ 
+-	enum MTTune_atv_standard tv_type;
+ 	u32 frequency;
+ 	u32 srate;
+ 	u32 bandwidth;
+@@ -258,9 +243,11 @@ static u32 mt2063_write(struct mt2063_state *state, u8 reg, u8 *data, u32 len)
+ 	msg.buf[0] = reg;
+ 	memcpy(msg.buf + 1, data, len);
+ 
+-	fe->ops.i2c_gate_ctrl(fe, 1);
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
+ 	ret = i2c_transfer(state->i2c, &msg, 1);
+-	fe->ops.i2c_gate_ctrl(fe, 0);
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	if (ret < 0)
+ 		printk(KERN_ERR "%s error ret=%d\n", __func__, ret);
+@@ -297,7 +284,8 @@ static u32 mt2063_read(struct mt2063_state *state,
+ 	struct dvb_frontend *fe = state->frontend;
+ 	u32 i = 0;
+ 
+-	fe->ops.i2c_gate_ctrl(fe, 1);
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
+ 	for (i = 0; i < cnt; i++) {
+ 		int ret;
+@@ -320,7 +308,9 @@ static u32 mt2063_read(struct mt2063_state *state,
+ 		if (ret < 0)
+ 			break;
+ 	}
+-	fe->ops.i2c_gate_ctrl(fe, 0);
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
++
+ 	return status;
+ }
+ 
+@@ -997,7 +987,7 @@ static const u8 PD2TGT[] = { 40, 33, 38, 42, 30, 38 };
+  *
+  * This function returns 0, if no lock, 1 if locked and a value < 1 if error
+  */
+-unsigned int mt2063_lockStatus(struct mt2063_state *state)
++static unsigned int mt2063_lockStatus(struct mt2063_state *state)
  {
- 	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(vq);
- 	struct s5p_jpeg_q_data *q_data = NULL;
+ 	const u32 nMaxWait = 100;	/*  wait a maximum of 100 msec   */
+ 	const u32 nPollRate = 2;	/*  poll status bits every 2 ms */
+@@ -1030,7 +1020,6 @@ unsigned int mt2063_lockStatus(struct mt2063_state *state)
+ 	 */
+ 	return 0;
+ }
+-EXPORT_SYMBOL_GPL(mt2063_lockStatus);
+ 
+ /*
+  * mt2063_set_dnc_output_enable()
+@@ -1922,132 +1911,6 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
+ 	return status;
+ }
+ 
+-int mt2063_setTune(struct dvb_frontend *fe, u32 f_in, u32 bw_in,
+-		   enum MTTune_atv_standard tv_type)
+-{
+-	struct mt2063_state *state = fe->tuner_priv;
+-	u32 status = 0;
+-	s32 pict_car = 0;
+-	s32 pict2chanb_vsb = 0;
+-	s32 pict2chanb_snd = 0;
+-	s32 pict2snd1 = 0;
+-	s32 pict2snd2 = 0;
+-	s32 ch_bw = 0;
+-	s32 if_mid = 0;
+-	s32 rcvr_mode = 0;
+-
+-	switch (tv_type) {
+-	case MTTUNEA_PAL_B:{
+-			pict_car = 38900000;
+-			ch_bw = 8000000;
+-			pict2chanb_vsb = -1250000;
+-			pict2snd1 = 5500000;
+-			pict2snd2 = 5742000;
+-			rcvr_mode = 1;
+-			break;
+-		}
+-	case MTTUNEA_PAL_G:{
+-			pict_car = 38900000;
+-			ch_bw = 7000000;
+-			pict2chanb_vsb = -1250000;
+-			pict2snd1 = 5500000;
+-			pict2snd2 = 0;
+-			rcvr_mode = 1;
+-			break;
+-		}
+-	case MTTUNEA_PAL_I:{
+-			pict_car = 38900000;
+-			ch_bw = 8000000;
+-			pict2chanb_vsb = -1250000;
+-			pict2snd1 = 6000000;
+-			pict2snd2 = 0;
+-			rcvr_mode = 1;
+-			break;
+-		}
+-	case MTTUNEA_PAL_L:{
+-			pict_car = 38900000;
+-			ch_bw = 8000000;
+-			pict2chanb_vsb = -1250000;
+-			pict2snd1 = 6500000;
+-			pict2snd2 = 0;
+-			rcvr_mode = 1;
+-			break;
+-		}
+-	case MTTUNEA_PAL_MN:{
+-			pict_car = 38900000;
+-			ch_bw = 6000000;
+-			pict2chanb_vsb = -1250000;
+-			pict2snd1 = 4500000;
+-			pict2snd2 = 0;
+-			rcvr_mode = 1;
+-			break;
+-		}
+-	case MTTUNEA_PAL_DK:{
+-			pict_car = 38900000;
+-			ch_bw = 8000000;
+-			pict2chanb_vsb = -1250000;
+-			pict2snd1 = 6500000;
+-			pict2snd2 = 0;
+-			rcvr_mode = 1;
+-			break;
+-		}
+-	case MTTUNEA_DIGITAL:{
+-			pict_car = 36125000;
+-			ch_bw = 8000000;
+-			pict2chanb_vsb = -(ch_bw / 2);
+-			pict2snd1 = 0;
+-			pict2snd2 = 0;
+-			rcvr_mode = 2;
+-			break;
+-		}
+-	case MTTUNEA_FMRADIO:{
+-			pict_car = 38900000;
+-			ch_bw = 8000000;
+-			pict2chanb_vsb = -(ch_bw / 2);
+-			pict2snd1 = 0;
+-			pict2snd2 = 0;
+-			rcvr_mode = 4;
+-			break;
+-		}
+-	case MTTUNEA_DVBC:{
+-			pict_car = 36125000;
+-			ch_bw = 8000000;
+-			pict2chanb_vsb = -(ch_bw / 2);
+-			pict2snd1 = 0;
+-			pict2snd2 = 0;
+-			rcvr_mode = MT2063_CABLE_QAM;
+-			break;
+-		}
+-	case MTTUNEA_DVBT:{
+-			pict_car = 36125000;
+-			ch_bw = bw_in;
+-			pict2chanb_vsb = -(ch_bw / 2);
+-			pict2snd1 = 0;
+-			pict2snd2 = 0;
+-			rcvr_mode = MT2063_OFFAIR_COFDM;
+-			break;
+-		}
+-	case MTTUNEA_UNKNOWN:
+-		break;
+-	default:
+-		break;
+-	}
+-
+-	pict2chanb_snd = pict2chanb_vsb - ch_bw;
+-	if_mid = pict_car - (pict2chanb_vsb + (ch_bw / 2));
+-
+-	state->AS_Data.f_LO2_Step = 125000;
+-	state->AS_Data.f_out = if_mid;
+-	state->AS_Data.f_out_bw = ch_bw + 750000;
+-	status = MT2063_SetReceiverMode(state, rcvr_mode);
+-	if (status < 0)
+-		return status;
+-
+-	status = MT2063_Tune(state, (f_in + (pict2chanb_vsb + (ch_bw / 2))));
+-
+-	return status;
+-}
+-
+ static const u8 MT2063B0_defaults[] = {
+ 	/* Reg,  Value */
+ 	0x19, 0x05,
+@@ -2300,83 +2163,208 @@ static int mt2063_init(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int mt2063_get_status(struct dvb_frontend *fe, u32 * status)
++static int mt2063_get_status(struct dvb_frontend *fe, u32 *tuner_status)
+ {
+-	int rc = 0;
++	struct mt2063_state *state = fe->tuner_priv;
++	int status;
+ 
+-	/* FIXME: add get tuner lock status */
++	*tuner_status = 0;
++	status = mt2063_lockStatus(state);
++	if (status < 0)
++		return status;
++	if (status)
++	    *tuner_status = TUNER_STATUS_LOCKED;
+ 
+-	return rc;
++	return 0;
+ }
+ 
+-static int mt2063_get_state(struct dvb_frontend *fe,
+-			    enum tuner_param param, struct tuner_state *tunstate)
++static int mt2063_release(struct dvb_frontend *fe)
+ {
+ 	struct mt2063_state *state = fe->tuner_priv;
+ 
+-	switch (param) {
+-	case DVBFE_TUNER_FREQUENCY:
+-		/* get frequency */
+-		break;
+-	case DVBFE_TUNER_TUNERSTEP:
+-		break;
+-	case DVBFE_TUNER_IFFREQ:
+-		break;
+-	case DVBFE_TUNER_BANDWIDTH:
+-		/* get bandwidth */
+-		break;
+-	case DVBFE_TUNER_REFCLOCK:
+-		tunstate->refclock = mt2063_lockStatus(state);
++	fe->tuner_priv = NULL;
++	kfree(state);
++
++	return 0;
++}
++
++static int mt2063_set_analog_params(struct dvb_frontend *fe,
++				    struct analog_parameters *params)
++{
++	struct mt2063_state *state = fe->tuner_priv;
++	s32 pict_car = 0;
++	s32 pict2chanb_vsb = 0;
++	s32 pict2chanb_snd = 0;
++	s32 pict2snd1 = 0;
++	s32 pict2snd2 = 0;
++	s32 ch_bw = 0;
++	s32 if_mid = 0;
++	s32 rcvr_mode = 0;
++	int status;
++
++	switch (params->mode) {
++	case V4L2_TUNER_RADIO:
++		pict_car = 38900000;
++		ch_bw = 8000000;
++		pict2chanb_vsb = -(ch_bw / 2);
++		pict2snd1 = 0;
++		pict2snd2 = 0;
++		rcvr_mode = MT2063_OFFAIR_ANALOG;
+ 		break;
+-	default:
++	case V4L2_TUNER_ANALOG_TV:
++		rcvr_mode = MT2063_CABLE_ANALOG;
++		if (params->std & ~V4L2_STD_MN) {
++			pict_car = 38900000;
++			ch_bw = 6000000;
++			pict2chanb_vsb = -1250000;
++			pict2snd1 = 4500000;
++			pict2snd2 = 0;
++		} else if (params->std & V4L2_STD_PAL_I) {
++			pict_car = 38900000;
++			ch_bw = 8000000;
++			pict2chanb_vsb = -1250000;
++			pict2snd1 = 6000000;
++			pict2snd2 = 0;
++		} else if (params->std & V4L2_STD_PAL_B) {
++			pict_car = 38900000;
++			ch_bw = 8000000;
++			pict2chanb_vsb = -1250000;
++			pict2snd1 = 5500000;
++			pict2snd2 = 5742000;
++		} else if (params->std & V4L2_STD_PAL_G) {
++			pict_car = 38900000;
++			ch_bw = 7000000;
++			pict2chanb_vsb = -1250000;
++			pict2snd1 = 5500000;
++			pict2snd2 = 0;
++		} else if (params->std & V4L2_STD_PAL_DK) {
++			pict_car = 38900000;
++			ch_bw = 8000000;
++			pict2chanb_vsb = -1250000;
++			pict2snd1 = 6500000;
++			pict2snd2 = 0;
++		} else {	/* PAL-L */
++			pict_car = 38900000;
++			ch_bw = 8000000;
++			pict2chanb_vsb = -1250000;
++			pict2snd1 = 6500000;
++			pict2snd2 = 0;
++		}
+ 		break;
+ 	}
++	pict2chanb_snd = pict2chanb_vsb - ch_bw;
++	if_mid = pict_car - (pict2chanb_vsb + (ch_bw / 2));
++
++	state->AS_Data.f_LO2_Step = 125000;	/* FIXME: probably 5000 for FM */
++	state->AS_Data.f_out = if_mid;
++	state->AS_Data.f_out_bw = ch_bw + 750000;
++	status = MT2063_SetReceiverMode(state, rcvr_mode);
++	if (status < 0)
++		return status;
++
++	status = MT2063_Tune(state, (params->frequency + (pict2chanb_vsb + (ch_bw / 2))));
++	if (status < 0)
++		return status;
+ 
+-	return (int)tunstate->refclock;
++	state->frequency = params->frequency;
++	return 0;
+ }
+ 
+-static int mt2063_set_state(struct dvb_frontend *fe,
+-			    enum tuner_param param, struct tuner_state *tunstate)
++/*
++ * As defined on EN 300 429, the DVB-C roll-off factor is 0.15.
++ * So, the amount of the needed bandwith is given by:
++ * 	Bw = Symbol_rate * (1 + 0.15)
++ * As such, the maximum symbol rate supported by 6 MHz is given by:
++ *	max_symbol_rate = 6 MHz / 1.15 = 5217391 Bauds
++ */
++#define MAX_SYMBOL_RATE_6MHz	5217391
++
++static int mt2063_set_params(struct dvb_frontend *fe,
++			     struct dvb_frontend_parameters *params)
+ {
+ 	struct mt2063_state *state = fe->tuner_priv;
+-	u32 status = 0;
+-
+-	switch (param) {
+-	case DVBFE_TUNER_FREQUENCY:
+-		/* set frequency */
+-
+-		status =
+-		    mt2063_setTune(fe,
+-				tunstate->frequency, tunstate->bandwidth,
+-				state->tv_type);
++	int status;
++	s32 pict_car = 0;
++	s32 pict2chanb_vsb = 0;
++	s32 pict2chanb_snd = 0;
++	s32 pict2snd1 = 0;
++	s32 pict2snd2 = 0;
++	s32 ch_bw = 0;
++	s32 if_mid = 0;
++	s32 rcvr_mode = 0;
+ 
+-		state->frequency = tunstate->frequency;
+-		break;
+-	case DVBFE_TUNER_TUNERSTEP:
+-		break;
+-	case DVBFE_TUNER_IFFREQ:
+-		break;
+-	case DVBFE_TUNER_BANDWIDTH:
+-		/* set bandwidth */
+-		state->bandwidth = tunstate->bandwidth;
++	switch (fe->ops.info.type) {
++	case FE_OFDM:
++		switch (params->u.ofdm.bandwidth) {
++		case BANDWIDTH_6_MHZ:
++			ch_bw = 6000000;
++			break;
++		case BANDWIDTH_7_MHZ:
++			ch_bw = 7000000;
++			break;
++		case BANDWIDTH_8_MHZ:
++			ch_bw = 8000000;
++			break;
++		default:
++			return -EINVAL;
++		}
++		rcvr_mode = MT2063_OFFAIR_COFDM;
++		pict_car = 36125000;
++		pict2chanb_vsb = -(ch_bw / 2);
++		pict2snd1 = 0;
++		pict2snd2 = 0;
+ 		break;
+-	case DVBFE_TUNER_REFCLOCK:
+-
++	case FE_QAM:
++		/*
++		 * Using a 8MHz bandwidth sometimes fail
++		 * with 6MHz-spaced channels, due to inter-carrier
++		 * interference. So, it is better to narrow-down the filter
++		 */
++		if (params->u.qam.symbol_rate <= MAX_SYMBOL_RATE_6MHz)
++			ch_bw = 6000000;
++		else
++			ch_bw = 8000000;
++		rcvr_mode = MT2063_CABLE_QAM;
++		pict_car = 36125000;
++		pict2snd1 = 0;
++		pict2snd2 = 0;
++		pict2chanb_vsb = -(ch_bw / 2);
+ 		break;
+ 	default:
+-		break;
++		return -EINVAL;
+ 	}
++	pict2chanb_snd = pict2chanb_vsb - ch_bw;
++	if_mid = pict_car - (pict2chanb_vsb + (ch_bw / 2));
++
++	state->AS_Data.f_LO2_Step = 125000;	/* FIXME: probably 5000 for FM */
++	state->AS_Data.f_out = if_mid;
++	state->AS_Data.f_out_bw = ch_bw + 750000;
++	status = MT2063_SetReceiverMode(state, rcvr_mode);
++	if (status < 0)
++		return status;
++
++	status = MT2063_Tune(state, (params->frequency + (pict2chanb_vsb + (ch_bw / 2))));
++
++	if (status < 0)
++	    return status;
+ 
+-	return (int)status;
++	state->frequency = params->frequency;
++	return 0;
+ }
+ 
+-static int mt2063_release(struct dvb_frontend *fe)
++static int mt2063_get_frequency(struct dvb_frontend *fe, u32 *freq)
+ {
+ 	struct mt2063_state *state = fe->tuner_priv;
+ 
+-	fe->tuner_priv = NULL;
+-	kfree(state);
++	*freq = state->frequency;
++	return 0;
++}
++
++static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
++{
++	struct mt2063_state *state = fe->tuner_priv;
+ 
++	*bw = state->AS_Data.f_out_bw - 750000;
+ 	return 0;
+ }
+ 
+@@ -2391,9 +2379,11 @@ static struct dvb_tuner_ops mt2063_ops = {
+ 	.init = mt2063_init,
+ 	.sleep = MT2063_Sleep,
+ 	.get_status = mt2063_get_status,
+-	.get_state = mt2063_get_state,
+-	.set_state = mt2063_set_state,
+-	.release = mt2063_release
++	.set_analog_params = mt2063_set_analog_params,
++	.set_params    = mt2063_set_params,
++	.get_frequency = mt2063_get_frequency,
++	.get_bandwidth = mt2063_get_bandwidth,
++	.release = mt2063_release,
+ };
+ 
+ struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+diff --git a/drivers/media/common/tuners/mt2063.h b/drivers/media/common/tuners/mt2063.h
+index b2e3abf..62d0e8e 100644
+--- a/drivers/media/common/tuners/mt2063.h
++++ b/drivers/media/common/tuners/mt2063.h
+@@ -28,7 +28,6 @@ int mt2063_setTune(struct dvb_frontend *fe, u32 f_in,
+ 				   enum MTTune_atv_standard tv_type);
+ 
+ /* FIXME: Should use the standard DVB attachment interfaces */
+-unsigned int mt2063_lockStatus(struct dvb_frontend *fe);
+ unsigned int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe);
+ unsigned int tuner_MT2063_ClearPowerMaskBits(struct dvb_frontend *fe);
+ 
 -- 
-1.7.1.569.g6f426
+1.7.7.5
 
