@@ -1,96 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:41004 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753382Ab2AJImd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 03:42:33 -0500
-Date: Tue, 10 Jan 2012 09:42:13 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCHv18 0/11] Contiguous Memory Allocator
-In-reply-to: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: 'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>, 'Arnd Bergmann' <arnd@arndb.de>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>,
-	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	'KyongHo Cho' <pullip.cho@samsung.com>
-Message-id: <012401cccf73$c013bf10$403b3d30$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:52012 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932316Ab2AEBBL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:11 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511BYm029482
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:11 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 39/47] [media] mt2063: don't crash if device is not initialized
+Date: Wed,  4 Jan 2012 23:00:50 -0200
+Message-Id: <1325725258-27934-40-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Instead of crash, return -ENODEV, if the device is not poperly
+initialized.
 
-To help everyone in testing and adapting our patches for his hardware 
-platform I've rebased our patches onto the latest v3.2 Linux kernel and
-prepared a few GIT branches in our public repository. These branches
-contain our memory management related patches posted in the following
-threads:
+Also, give a second chance for it to initialize, at set_params
+calls.
 
-"[PATCHv18 0/11] Contiguous Memory Allocator":
-http://www.spinics.net/lists/linux-mm/msg28125.html
-later called CMAv18,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mt2063.c |   25 +++++++++++++++++++++++++
+ 1 files changed, 25 insertions(+), 0 deletions(-)
 
-"[PATCH 00/14] DMA-mapping framework redesign preparation":
-http://www.spinics.net/lists/linux-sh/msg09777.html
-and
-"[PATCH 0/8 v4] ARM: DMA-mapping framework redesign":
-http://www.spinics.net/lists/arm-kernel/msg151147.html
-with the following update:
-http://www.spinics.net/lists/arm-kernel/msg154889.html
-later called DMAv5.
-
-These branches are available in our public GIT repository:
-
-git://git.infradead.org/users/kmpark/linux-samsung
-http://git.infradead.org/users/kmpark/linux-samsung/
-
-The following branches are available:
-
-1) 3.2-cma-v18
-Vanilla Linux v3.2 with fixed CMA v18 patches (first patch replaced
-with the one from v17 to fix SMP issues, see the respective thread).
-
-2) 3.2-dma-v5
-Vanilla Linux v3.2 + iommu/next (IOMMU maintainer's patches) branch
-with DMA-preparation and DMA-mapping framework redesign patches.
-
-3) 3.2-cma-v18-dma-v5
-Previous two branches merged together (DMA-mapping on top of CMA)
-
-4) 3.2-cma-v18-dma-v5-exynos
-Previous branch rebased on top of iommu/next + kgene/for-next (Samsung
-SoC platform maintainer's patches) with new Exynos4 IOMMU driver by 
-KyongHo Cho and relevant glue code.
-
-5) 3.2-dma-v5-exynos
-Branch from point 2 rebased on top of iommu/next + kgene/for-next 
-(Samsung SoC maintainer's patches) with new Exynos4 IOMMU driver by 
-KyongHo Cho and relevant glue code.
-
-I hope everyone will find a branch that suits his needs. :)
-
-Best regards
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index 92653a9..db347d9 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -220,6 +220,8 @@ enum MT2063_Register_Offsets {
+ struct mt2063_state {
+ 	struct i2c_adapter *i2c;
+ 
++	bool init;
++
+ 	const struct mt2063_config *config;
+ 	struct dvb_tuner_ops ops;
+ 	struct dvb_frontend *frontend;
+@@ -1974,6 +1976,8 @@ static int mt2063_init(struct dvb_frontend *fe)
+ 	if (status < 0)
+ 		return status;
+ 
++	state->init = true;
++
+ 	return 0;
+ }
+ 
+@@ -1984,6 +1988,9 @@ static int mt2063_get_status(struct dvb_frontend *fe, u32 *tuner_status)
+ 
+ 	dprintk(2, "\n");
+ 
++	if (!state->init)
++		return -ENODEV;
++
+ 	*tuner_status = 0;
+ 	status = mt2063_lockStatus(state);
+ 	if (status < 0)
+@@ -2019,6 +2026,12 @@ static int mt2063_set_analog_params(struct dvb_frontend *fe,
+ 
+ 	dprintk(2, "\n");
+ 
++	if (!state->init) {
++		status = mt2063_init(fe);
++		if (status < 0)
++			return status;
++	}
++
+ 	switch (params->mode) {
+ 	case V4L2_TUNER_RADIO:
+ 		pict_car = 38900000;
+@@ -2082,6 +2095,12 @@ static int mt2063_set_params(struct dvb_frontend *fe)
+ 	s32 if_mid;
+ 	s32 rcvr_mode;
+ 
++	if (!state->init) {
++		status = mt2063_init(fe);
++		if (status < 0)
++			return status;
++	}
++
+ 	dprintk(2, "\n");
+ 
+ 	if (c->bandwidth_hz == 0)
+@@ -2132,6 +2151,9 @@ static int mt2063_get_frequency(struct dvb_frontend *fe, u32 *freq)
+ 
+ 	dprintk(2, "\n");
+ 
++	if (!state->init)
++		return -ENODEV;
++
+ 	*freq = state->frequency;
+ 	return 0;
+ }
+@@ -2142,6 +2164,9 @@ static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
+ 
+ 	dprintk(2, "\n");
+ 
++	if (!state->init)
++		return -ENODEV;
++
+ 	*bw = state->AS_Data.f_out_bw - 750000;
+ 	return 0;
+ }
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+1.7.7.5
 
