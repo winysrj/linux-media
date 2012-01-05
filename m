@@ -1,71 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:53553 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755838Ab2AKI27 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 03:28:59 -0500
-Date: Wed, 11 Jan 2012 09:28:52 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Fabio Estevam <festevam@gmail.com>
-cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: Re: [PATCH] drivers: video: mx3_camera: Convert mx3_camera to use
- module_platform_driver()
-In-Reply-To: <1326250708-17643-1-git-send-email-festevam@gmail.com>
-Message-ID: <Pine.LNX.4.64.1201110928280.1191@axis700.grange>
-References: <1326250708-17643-1-git-send-email-festevam@gmail.com>
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:65334 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751056Ab2AERjA convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:39:00 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <4F05DD37.6010407@redhat.com>
+References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
+ <4F05DD37.6010407@redhat.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 5 Jan 2012 09:38:37 -0800
+Message-ID: <CA+55aFygZYYTVN2OL7zcwOkKMXU+rUCb=fmfH6GNMru+ZfbCXw@mail.gmail.com>
+Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
+ passthrough ioctls on partition devices)
+To: Paolo Bonzini <pbonzini@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
+	linux-kernel@vger.kernel.org, security@kernel.org,
+	pmatouse@redhat.com, agk@redhat.com, jbottomley@parallels.com,
+	mchristi@redhat.com, msnitzer@redhat.com,
+	Christoph Hellwig <hch@lst.de>,
+	Al Viro <viro@zeniv.linux.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Jan 2012, Fabio Estevam wrote:
+On Thu, Jan 5, 2012 at 9:26 AM, Paolo Bonzini <pbonzini@redhat.com> wrote:
+> On 01/05/2012 06:02 PM, Linus Torvalds wrote:
+>>
+>> +       return  ret == -EINVAL ||
+>> +               ret == -ENOTTY ||
+>> +               ret == ENOIOCTLCMD;
+>
+>
+> Missing minus before ENOIOCTLCMD.
 
-> Using module_platform_driver makes the code smaller and simpler.
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Oops, thanks, fixed.
 
-Isn't this covered by this:
+Also, I do realize that the patch results in a warning about
+"compat_ioctl_error()" no longer being used. I've removed it in my
+tree, but I do wonder if we could perhaps have some kind of better
+check, so maybe it is useful if somebody can come up with a saner way
+to do it. Or at least a way that doesn't cause the kind of crazy code
+that net/socket.c had.
 
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/43200
+And I notice that not only net/socket.c had workarounds for the bogus
+warning, but fs/compat_ioctl.c itself does too: it's why we have those
+IGNORE_IOCTL() entries.
 
-Thanks
-Guennadi
+So *maybe* we can reinstate that compat_ioctl_error() check, and just
+remove the net/socket.c stuff, and make sure that all the ioctls that
+net/socket.c had hacks for are mentioned as IGNORE_IOCTL's. Dunno.
 
-> ---
->  drivers/media/video/mx3_camera.c |   14 +-------------
->  1 files changed, 1 insertions(+), 13 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> index f44323f..7452277 100644
-> --- a/drivers/media/video/mx3_camera.c
-> +++ b/drivers/media/video/mx3_camera.c
-> @@ -1286,19 +1286,7 @@ static struct platform_driver mx3_camera_driver = {
->  	.remove		= __devexit_p(mx3_camera_remove),
->  };
->  
-> -
-> -static int __init mx3_camera_init(void)
-> -{
-> -	return platform_driver_register(&mx3_camera_driver);
-> -}
-> -
-> -static void __exit mx3_camera_exit(void)
-> -{
-> -	platform_driver_unregister(&mx3_camera_driver);
-> -}
-> -
-> -module_init(mx3_camera_init);
-> -module_exit(mx3_camera_exit);
-> +module_platform_driver(mx3_camera_driver);
->  
->  MODULE_DESCRIPTION("i.MX3x SoC Camera Host driver");
->  MODULE_AUTHOR("Guennadi Liakhovetski <lg@denx.de>");
-> -- 
-> 1.7.1
-> 
+Anybody have strong opinions either way? Has that printout helped
+compat ioctl debugging a lot lately and we really want to maintain it?
+Otherwise I'm inclined to remove it (we can always reinstate it later,
+it's not like removal is necessarily final).
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+                            Linus
