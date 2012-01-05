@@ -1,43 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42103 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752022Ab2AOUWh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 15:22:37 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 2/2] cxd2820r: do not switch to DVB-T when DVB-C fails
-Date: Sun, 15 Jan 2012 22:21:54 +0200
-Message-Id: <1326658914-3451-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1326658914-3451-1-git-send-email-crope@iki.fi>
-References: <1326658914-3451-1-git-send-email-crope@iki.fi>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:45627 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754449Ab2AERam (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:30:42 -0500
+MIME-Version: 1.0
+In-Reply-To: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
+References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Thu, 5 Jan 2012 09:30:22 -0800
+Message-ID: <CA+55aFyYE3_bU5Gr59aSd3zZGAeGo_D66os3o9vZjyVyMhocng@mail.gmail.com>
+Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
+ passthrough ioctls on partition devices)
+To: Paolo Bonzini <pbonzini@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org
+Cc: Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org,
+	security@kernel.org, pmatouse@redhat.com, agk@redhat.com,
+	jbottomley@parallels.com, mchristi@redhat.com, msnitzer@redhat.com,
+	Christoph Hellwig <hch@lst.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix another bug	introduced by recent multi-frontend to single-frontend change.
+On Thu, Jan 5, 2012 at 9:02 AM, Linus Torvalds
+<torvalds@linux-foundation.org> wrote:
+>
+> Added, linux-media and Mauro to the Cc, because I'm about to commit
+> something like the attached patch to see if anything breaks. We may
+> have to revert it if things get too nasty, but we should have done
+> this years and years ago, so let's hope not.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/dvb/frontends/cxd2820r_core.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+Ok, so "It works for me". I'll delay committing it in case somebody
+has some quick obvious fixes or comments (like noticing other cases
+like the blk_ioctl.c one), but on the whole I think I'll commit it
+later today, just so that it will be as early as possible in the merge
+window in case there is ENOTTY/EINVAL confusion.
 
-diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
-index 93e1b12..b789a90 100644
---- a/drivers/media/dvb/frontends/cxd2820r_core.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_core.c
-@@ -476,10 +476,10 @@ static enum dvbfe_search cxd2820r_search(struct dvb_frontend *fe)
- 	dbg("%s: delsys=%d", __func__, fe->dtv_property_cache.delivery_system);
- 
- 	/* switch between DVB-T and DVB-T2 when tune fails */
--	if (priv->last_tune_failed && (priv->delivery_system != SYS_DVBC_ANNEX_A)) {
-+	if (priv->last_tune_failed) {
- 		if (priv->delivery_system == SYS_DVBT)
- 			c->delivery_system = SYS_DVBT2;
--		else
-+		else if (priv->delivery_system == SYS_DVBT2)
- 			c->delivery_system = SYS_DVBT;
- 	}
- 
--- 
-1.7.4.4
+The good news is that no user space can *ever* care about
+ENOTTY/EINVAL in the "generic case", since different drivers have
+returned different error returns for years. So user space that doesn't
+know exactly what it is dealing with will pretty much by definition
+not be affected. Except perhaps in a good way - if it uses "perror()"
+or "strerror()" or similar, it will now give a much better error
+string of "Inappropriate ioctl for device".
 
+However, some applications don't work with "generic devices", but
+instead work with a very specific device or perhaps a very specific
+subset.
+
+So the exception would be user space apps that know exactly which
+driver they are talking about, and that particular driver used to
+always return EINVAL before, and now the ENOIOCTLCMD -> ENOTTY fix
+means that it returns the proper ENOTTY - and the application has
+never seen it, and never tested against it, and breaks.
+
+I don't *think* this happens outside of the media drivers, but we'll
+see. It may be that we will have to make certain drivers return EINVAL
+explicitly rather than ENOIOCTLCMD and add a comment about why. Sad,
+if so, so we'll have little choice. Let's see what the breakage (if
+any - cross your fingers) looks like.
+
+                               Linus
