@@ -1,627 +1,438 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:27495 "EHLO mgw-sa01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:5653 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751578Ab2AGXB4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 18:01:56 -0500
-Message-ID: <4F08CEDE.7030105@maxwell.research.nokia.com>
-Date: Sun, 08 Jan 2012 01:01:50 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com
-Subject: Re: [RFC 16/17] smiapp: Add driver.
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-16-git-send-email-sakari.ailus@maxwell.research.nokia.com> <4F072B6C.9060808@gmail.com>
-In-Reply-To: <4F072B6C.9060808@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S932299Ab2AEBBJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:09 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05119kv016374
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:09 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 30/47] [media] mt2063: make checkpatch.pl happy
+Date: Wed,  4 Jan 2012 23:00:41 -0200
+Message-Id: <1325725258-27934-31-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Fix everything but 80 columns and two msleep warnings
 
-Thanks for the review!!!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mt2063.c |  129 +++++++++++++---------------------
+ 1 files changed, 48 insertions(+), 81 deletions(-)
 
-Sylwester Nawrocki wrote:
-> Hi Sakari,
-> 
-> I have a just a few comments below. It was rather brief a review, given the
-> size of the patch.. :-)
-
-Good points. I'll make the changes, as well as those Laurent pointed
-out, and send a new version of the driver. I expect I'll be able to do
-that early next week.
-
-> On 12/20/2011 09:28 PM, Sakari Ailus wrote:
->> Add driver for SMIA++/SMIA image sensors. The driver exposes the sensor as
->> three subdevs, pixel array, binner and scaler --- in case the device has a
->> scaler.
->>
->> Currently it relies on the board code for external clock handling. There is
->> no fast way out of this dependency before the ISP drivers (omap3isp) among
->> others will be able to export that clock through the clock framework
->> instead.
->>
->> Signed-off-by: Sakari Ailus<sakari.ailus@maxwell.research.nokia.com>
->> ---
->>   drivers/media/video/Kconfig           |   13 +
->>   drivers/media/video/Makefile          |    3 +
->>   drivers/media/video/smiapp-core.c     | 2595 +++++++++++++++++++++++++++++++++
->>   drivers/media/video/smiapp-debug.h    |   32 +
->>   drivers/media/video/smiapp-limits.c   |  132 ++
->>   drivers/media/video/smiapp-limits.h   |  128 ++
->>   drivers/media/video/smiapp-pll.c      |  664 +++++++++
->>   drivers/media/video/smiapp-quirk.c    |  264 ++++
->>   drivers/media/video/smiapp-quirk.h    |   72 +
->>   drivers/media/video/smiapp-reg-defs.h |  733 ++++++++++
->>   drivers/media/video/smiapp-reg.h      |  119 ++
->>   drivers/media/video/smiapp-regs.c     |  222 +++
->>   drivers/media/video/smiapp.h          |  250 ++++
->>   include/media/smiapp-regs.h           |   51 +
->>   include/media/smiapp.h                |   82 +
->>   15 files changed, 5360 insertions(+), 0 deletions(-)
->>   create mode 100644 drivers/media/video/smiapp-core.c
->>   create mode 100644 drivers/media/video/smiapp-debug.h
->>   create mode 100644 drivers/media/video/smiapp-limits.c
->>   create mode 100644 drivers/media/video/smiapp-limits.h
->>   create mode 100644 drivers/media/video/smiapp-pll.c
->>   create mode 100644 drivers/media/video/smiapp-quirk.c
->>   create mode 100644 drivers/media/video/smiapp-quirk.h
->>   create mode 100644 drivers/media/video/smiapp-reg-defs.h
->>   create mode 100644 drivers/media/video/smiapp-reg.h
->>   create mode 100644 drivers/media/video/smiapp-regs.c
->>   create mode 100644 drivers/media/video/smiapp.h
-> 
-> How about creating new directory, e.g. drivers/media/video/smiapp/ ? 
-
-Good question. When I started working on this, I just had a few files
-which didn't justify creating a new directory. I think you're right; now
-it's time for that.
-
->>   create mode 100644 include/media/smiapp-regs.h
->>   create mode 100644 include/media/smiapp.h
->>
->> diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
->> index 4e8a0c4..0aa8f13 100644
->> --- a/drivers/media/video/Kconfig
->> +++ b/drivers/media/video/Kconfig
->> @@ -524,6 +524,19 @@ config VIDEO_S5K6AA
->>   	  This is a V4L2 sensor-level driver for Samsung S5K6AA(FX) 1.3M
->>   	  camera sensor with an embedded SoC image signal processor.
->>
->> +config VIDEO_SMIAPP
->> +	tristate "SMIA++/SMIA sensor support"
->> +	depends on I2C&&  VIDEO_V4L2
-> 
-> There is no dependency on VIDEO_V4L2_SUBDEV_API ?
-
-Yes, there is.
-
->> +	---help---
->> +	  This is a generic driver for SMIA++/SMIA camera modules.
->> +
->> +config VIDEO_SMIAPP_DEBUG
->> +	bool "Enable debugging for the generic SMIA++/SMIA driver"
->> +	depends on VIDEO_SMIAPP
->> +	---help---
->> +	  Enable debugging output in the generic SMIA++/SMIA driver. If you
->> +	  are developing the driver you might want to enable this.
->> +
->>   comment "Flash devices"
->>
->>   config VIDEO_ADP1653
->> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
->> index ddeaa6c..82a0cea 100644
->> --- a/drivers/media/video/Makefile
->> +++ b/drivers/media/video/Makefile
->> @@ -73,6 +73,9 @@ obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
->>   obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
->>   obj-$(CONFIG_VIDEO_M5MOLS)	+= m5mols/
->>   obj-$(CONFIG_VIDEO_S5K6AA)	+= s5k6aa.o
->> +smiapp-objs			+= smiapp-core.o smiapp-regs.o smiapp-pll.o \
->> +				   smiapp-quirk.o smiapp-limits.o
->> +obj-$(CONFIG_VIDEO_SMIAPP)	+= smiapp.o
->>   obj-$(CONFIG_VIDEO_ADP1653)	+= adp1653.o
->>
->>   obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
->> diff --git a/drivers/media/video/smiapp-core.c b/drivers/media/video/smiapp-core.c
->> new file mode 100644
->> index 0000000..1d15c1d
->> --- /dev/null
->> +++ b/drivers/media/video/smiapp-core.c
->> @@ -0,0 +1,2595 @@
->> +/*
->> + * drivers/media/video/smiapp-core.c
->> + *
->> + * Generic driver for SMIA/SMIA++ compliant camera modules
->> + *
->> + * Copyright (C) 2010--2011 Nokia Corporation
->> + * Contact: Sakari Ailus<sakari.ailus@maxwell.research.nokia.com>
->> + *
->> + * Based on smiapp driver by Vimarsh Zutshi
->> + * Based on jt8ev1.c by Vimarsh Zutshi
->> + * Based on smia-sensor.c by Tuukka Toivonen<tuukkat76@gmail.com>
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License
->> + * version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful, but
->> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->> + * General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->> + * 02110-1301 USA
->> + *
->> + */
->> +
->> +#include "smiapp-debug.h"
->> +
->> +#include<linux/delay.h>
->> +#include<linux/device.h>
->> +#include<linux/module.h>
->> +#include<linux/regulator/consumer.h>
->> +#include<linux/v4l2-mediabus.h>
->> +#include<media/v4l2-device.h>
->> +
->> +#include "smiapp.h"
->> +
->> +#define SMIAPP_ALIGN_DIM(dim, flags)	      \
->> +	(flags&  V4L2_SUBDEV_SEL_FLAG_SIZE_GE \
->> +	 ? ALIGN(dim, 2)		      \
->> +	 : dim&  ~1)
->> +
->> +/*
->> + * smiapp_module_idents - supported camera modules
->> + */
->> +static const struct smiapp_module_ident smiapp_module_idents[] = {
->> +	SMIAPP_IDENT_LQ(0x10, 0x4141, -1, "jt8ev1",&smiapp_jt8ev1_quirk),
->> +	SMIAPP_IDENT_LQ(0x10, 0x4241, -1, "imx125es",&smiapp_imx125es_quirk),
->> +	SMIAPP_IDENT_L(0x01, 0x022b, -1, "vs6555"),
->> +	SMIAPP_IDENT_L(0x0c, 0x208a, -1, "tcm8330md"),
->> +	SMIAPP_IDENT_L(0x01, 0x022e, -1, "vw6558"),
->> +	SMIAPP_IDENT_LQ(0x0c, 0x2134, -1, "tcm8500md",&smiapp_tcm8500md_quirk),
->> +	SMIAPP_IDENT_L(0x07, 0x7698, -1, "ovm7698"),
->> +	SMIAPP_IDENT_L(0x0b, 0x4242, -1, "smiapp-003"),
->> +	SMIAPP_IDENT_LQ(0x0c, 0x560f, -1, "jt8ew9",&smiapp_jt8ew9_quirk),
->> +	SMIAPP_IDENT_L(0x0c, 0x213e, -1, "et8en2"),
->> +	SMIAPP_IDENT_L(0x0c, 0x2184, -1, "tcm8580md"),
->> +};
->> +
->> +/*
->> + *
->> + * Dynamic Capability Identification
->> + *
->> + */
->> +
-> [...]
->> +/*
->> + *
->> + * V4L2 Controls handling
->> + *
->> + */
->> +
->> +static void __smiapp_update_exposure_limits(struct smiapp_sensor *sensor)
->> +{
->> +	struct v4l2_ctrl *ctrl = sensor->exposure;
->> +	int max;
->> +
->> +	max = sensor->pixel_array->compose[SMIAPP_PAD_SOURCE].height
->> +		+ sensor->vblank->val -
->> +		sensor->limits[SMIAPP_LIMIT_COARSE_INTEGRATION_TIME_MAX_MARGIN];
->> +
->> +	ctrl->maximum = max;
->> +	if (ctrl->default_value>  max)
->> +		ctrl->default_value = max;
->> +	if (ctrl->val>  max)
->> +		ctrl->val = max;
->> +	if (ctrl->cur.val>  max)
->> +		ctrl->cur.val = max;
->> +}
-> 
-> One more driver that needs control value range update. :)
-
-:-)
-
-Are there other drivers that would need something like that, too?
-Anything in the control framework that I have missed related to this?
-
->> +
-> [...]
->> +
->> +#define SCALING_GOODNESS		100000
->> +#define SCALING_GOODNESS_EXTREME	100000000
-> 
-> Interesting parameter.. :)
-> 
->> +static int scaling_goodness(struct v4l2_subdev *subdev, int w, int ask_w,
->> +			    int h, int ask_h, u32 flags)
->> +{
->> +	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
->> +	struct i2c_client *client = v4l2_get_subdevdata(subdev);
->> +	int val = 0;
->> +
->> +	w&= ~1;
->> +	ask_w&= ~1;
->> +	h&= ~1;
->> +	ask_h&= ~1;
->> +
->> +	if (flags&  V4L2_SUBDEV_SEL_FLAG_SIZE_GE) {
->> +		if (w<  ask_w)
->> +			val -= SCALING_GOODNESS;
->> +		if (h<  ask_h)
->> +			val -= SCALING_GOODNESS;
->> +	}
->> +
->> +	if (flags&  V4L2_SUBDEV_SEL_FLAG_SIZE_LE) {
->> +		if (w>  ask_w)
->> +			val -= SCALING_GOODNESS;
->> +		if (h>  ask_h)
->> +			val -= SCALING_GOODNESS;
->> +	}
->> +
->> +	val -= abs(w - ask_w);
->> +	val -= abs(h - ask_h);
->> +
->> +	if (w<  sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE])
->> +		val -= SCALING_GOODNESS_EXTREME;
->> +
->> +	dev_dbg(&client->dev, "w %d ask_w %d h %d ask_h %d goodness %d\n",
->> +		w, ask_h, h, ask_h, val);
->> +
->> +	return val;
->> +}
->> +
-> [...]
->> +static int smiapp_set_selection(struct v4l2_subdev *subdev,
->> +				struct v4l2_subdev_fh *fh,
->> +				struct v4l2_subdev_selection *sel)
->> +{
->> +	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
->> +	struct smiapp_subdev *ssd = to_smiapp_subdev(subdev);
->> +	struct v4l2_rect *comps, *crops;
->> +	int ret;
->> +
->> +	ret = __smiapp_sel_supported(subdev, sel);
->> +	if (ret)
->> +		return ret;
->> +
->> +	sel->r.left = sel->r.left&  ~1;
->> +	sel->r.top = sel->r.top&  ~1;
->> +	sel->r.width = SMIAPP_ALIGN_DIM(sel->r.width, sel->flags);
->> +	sel->r.height = SMIAPP_ALIGN_DIM(sel->r.height, sel->flags);
->> +
->> +	if (sel->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
->> +		crops = ssd->crop;
->> +		comps = ssd->compose;
->> +	} else {
->> +		crops = fh->try_crop;
->> +		comps = fh->try_compose;
->> +	}
->> +
->> +	sel->r.left&= ~1;
->> +	sel->r.top&= ~1;
->> +	sel->r.width&= ~1;
->> +	sel->r.height&= ~1;
->> +
->> +	sel->r.left = max(0, sel->r.left);
->> +	sel->r.top = max(0, sel->r.top);
->> +	sel->r.width = max(0, sel->r.width);
->> +	sel->r.height = max(0, sel->r.height);
->> +
->> +	sel->r.width = max_t(unsigned int,
->> +			     sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE],
->> +			     sel->r.width);
->> +	sel->r.height = max_t(unsigned int,
->> +			      sensor->limits[SMIAPP_LIMIT_MIN_Y_OUTPUT_SIZE],
->> +			      sel->r.height);
->> +
->> +	switch (sel->target) {
->> +	case V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE:
->> +		return smiapp_set_crop(subdev, fh, sel);
->> +	case V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE:
->> +		return smiapp_set_compose(subdev, fh, sel);
->> +	}
->> +
->> +	BUG();
->> +}
->> +
->> +static int smiapp_validate_pipeline(struct v4l2_subdev *subdev)
->> +{
->> +	struct smiapp_sensor *sensor = to_smiapp_sensor(subdev);
->> +	struct smiapp_subdev *ssds[] = {
->> +		sensor->scaler, sensor->binner, sensor->pixel_array };
->> +	int i;
->> +	struct smiapp_subdev *last = NULL;
->> +
->> +	if (sensor->src->crop[SMIAPP_PAD_SOURCE].width
->> +	<  sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE])
->> +		return -EPIPE;
->> +	if (sensor->src->crop[SMIAPP_PAD_SOURCE].height
->> +	<  sensor->limits[SMIAPP_LIMIT_MIN_Y_OUTPUT_SIZE])
->> +		return -EPIPE;
->> +
->> +	for (i = 0; i<  SMIAPP_SUBDEVS; i++) {
->> +		struct smiapp_subdev *this = ssds[i];
->> +
->> +		if (!this)
->> +			continue;
->> +
->> +		if (!last) {
->> +			last = this;
->> +			continue;
->> +		}
->> +
->> +		if (last->sink_fmt.width
->> +		    != this->compose[SMIAPP_PAD_SOURCE].width)
->> +			return -EPIPE;
->> +		if (last->sink_fmt.height
->> +		    != this->compose[SMIAPP_PAD_SOURCE].height)
->> +			return -EPIPE;
->> +
->> +		last = this;
->> +	}
->> +
->> +	return 0;
->> +}
->> +
-> [...]
->> +
->> +static int __init smiapp_init(void)
->> +{
->> +	int rval;
->> +
->> +	rval = i2c_add_driver(&smiapp_i2c_driver);
->> +	if (rval)
->> +		printk(KERN_ERR "Failed registering driver" SMIAPP_NAME "\n");
-> 
-> Using pr_<level> is expected for new drivers.
-
-Fixed.
-
->> +
->> +	return rval;
->> +}
->> +
->> +static void __exit smiapp_exit(void)
->> +{
->> +	i2c_del_driver(&smiapp_i2c_driver);
->> +}
->> +
->> +module_init(smiapp_init);
->> +module_exit(smiapp_exit);
->> +
->> +MODULE_AUTHOR("Sakari Ailus<sakari.ailus@maxwell.research.nokia.com>");
->> +MODULE_DESCRIPTION("Generic SMIA/SMIA++ camera module driver");
->> +MODULE_LICENSE("GPL");
-> 
-> [...]
->> +/*
->> + * Write to a 8/16-bit register.
->> + * Returns zero if successful, or non-zero otherwise.
->> + */
->> +int smia_i2c_write_reg(struct i2c_client *client, u32 reg, u32 val)
->> +{
->> +	struct i2c_msg msg[1];
->> +	unsigned char data[6];
->> +	unsigned int retries = 5;
->> +	unsigned int flags = reg>>  24;
->> +	unsigned int len = (u8)(reg>>  16);
->> +	u16 offset = reg;
->> +	int r;
->> +
->> +	if (!client->adapter)
->> +		return -ENODEV;
->> +
->> +	if ((len != SMIA_REG_8BIT&&  len != SMIA_REG_16BIT&&
->> +	     len != SMIA_REG_32BIT) || flags)
->> +		return -EINVAL;
->> +
->> +	smia_i2c_create_msg(client, len, offset, val, msg, data);
->> +
->> +	do {
->> +		/*
->> +		 * Due to unknown reason sensor stops responding. This
->> +		 * loop is a temporaty solution until the root cause
->> +		 * is found.
->> +		 */
->> +		r = i2c_transfer(client->adapter, msg, 1);
->> +		if (r>= 0)
->> +			break;
-> 
-> I think r == 0 indicates failure (0 messages transferred), it's probably
-> never returned in that case though. It might be better to test for r == 1.
-
-Fixed. By doing so one must make sure that when an error is encountered,
-a negative error code will be returned.
-
->> +
->> +		usleep_range(2000, 2000);
->> +	} while (retries--);
->> +
->> +	if (r<  0)
->> +		dev_err(&client->dev,
->> +			"wrote 0x%x to offset 0x%x error %d\n", val, offset, r);
->> +	else
->> +		r = 0; /* on success i2c_transfer() return messages trasfered */
->> +
->> +	if (retries<  5)
->> +		dev_err(&client->dev, "sensor i2c stall encountered. "
->> +			"retries: %d\n", 5 - retries);
->> +
->> +	return r;
->> +}
-> [...]
->> diff --git a/include/media/smiapp-regs.h b/include/media/smiapp-regs.h
->> new file mode 100644
->> index 0000000..3109b02
->> --- /dev/null
->> +++ b/include/media/smiapp-regs.h
->> @@ -0,0 +1,51 @@
->> +/*
->> + * include/media/smiapp-regs.h
->> + *
->> + * Generic driver for SMIA/SMIA++ compliant camera modules
->> + *
->> + * Copyright (C) 2011 Nokia Corporation
->> + * Contact: Sakari Ailus<sakari.ailus@maxwell.research.nokia.com>
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License
->> + * version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful, but
->> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->> + * General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->> + * 02110-1301 USA
->> + *
->> + */
->> +
->> +#ifndef SMIAPP_REGS_H
->> +#define SMIAPP_REGS_H
->> +
->> +#include<linux/i2c.h>
->> +#include<linux/types.h>
-> 
->> +#include<linux/videodev2.h>
->> +#include<linux/v4l2-subdev.h>
-> 
-> Are these two headers really needed ?
-> 
->> +
->> +struct v4l2_mbus_framefmt;
->> +struct v4l2_subdev_pad_mbus_code_enum;
-> 
-> Also these 2 lines seem redundant.
-
-Removed both. I think they're remnants from the time this header file
-used to contain something else as well.
-
->> +
->> +/* Use upper 8 bits of the type field for flags */
->> +#define SMIA_REG_FLAG_FLOAT		(1<<  24)
->> +
->> +#define SMIA_REG_8BIT			1
->> +#define SMIA_REG_16BIT			2
->> +#define SMIA_REG_32BIT			4
->> +struct smia_reg {
->> +	u16 type;
->> +	u16 reg;			/* 16-bit offset */
->> +	u32 val;			/* 8/16/32-bit value */
->> +};
->> +
->> +int smia_i2c_read_reg(struct i2c_client *client, u32 reg, u32 *val);
->> +int smia_i2c_write_reg(struct i2c_client *client, u32 reg, u32 val);
->> +
->> +#endif
->> diff --git a/include/media/smiapp.h b/include/media/smiapp.h
->> new file mode 100644
->> index 0000000..b302570
->> --- /dev/null
->> +++ b/include/media/smiapp.h
->> @@ -0,0 +1,82 @@
->> +/*
->> + * include/media/smiapp.h
->> + *
->> + * Generic driver for SMIA/SMIA++ compliant camera modules
->> + *
->> + * Copyright (C) 2011 Nokia Corporation
->> + * Contact: Sakari Ailus<sakari.ailus@maxwell.research.nokia.com>
->> + *
->> + * This program is free software; you can redistribute it and/or
->> + * modify it under the terms of the GNU General Public License
->> + * version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful, but
->> + * WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
->> + * General Public License for more details.
->> + *
->> + * You should have received a copy of the GNU General Public License
->> + * along with this program; if not, write to the Free Software
->> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
->> + * 02110-1301 USA
->> + *
->> + */
->> +
->> +#ifndef __SMIAPP_H_
->> +#define __SMIAPP_H_
->> +
->> +#include<media/smiapp-regs.h>
->> +#include<media/v4l2-subdev.h>
->> +
->> +#define SMIAPP_NAME		"smiapp"
->> +
->> +#define SMIAPP_DFL_I2C_ADDR	(0x20>>  1) /* Default I2C Address */
->> +#define SMIAPP_ALT_I2C_ADDR	(0x6e>>  1) /* Alternate I2C Address */
->> +
->> +#define SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK	0
->> +#define SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_STROBE	1
->> +#define SMIAPP_CSI_SIGNALLING_MODE_CSI2			2
->> +
->> +/*
->> + * Sometimes due to board layout considerations the camera module can be
->> + * mounted rotated. The typical rotation used is 180 degrees which can be
->> + * corrected by giving a default H-FLIP and V-FLIP in the sensor readout.
->> + * FIXME: rotation also changes the bayer pattern.
->> + */
->> +enum smiapp_module_board_orient {
->> +	SMIAPP_MODULE_BOARD_ORIENT_0 = 0,
->> +	SMIAPP_MODULE_BOARD_ORIENT_180,
->> +};
->> +
->> +struct smiapp_flash_strobe_parms {
->> +	u8 mode;
->> +	u32 strobe_width_high_us;
->> +	u16 strobe_delay;
->> +	u16 stobe_start_point;
->> +	u8 trigger;
->> +};
->> +
->> +struct smiapp_platform_data {
->> +	/*
->> +	 * Change the cci address if i2c_addr_alt is set.
->> +	 * Both default and alternate cci addr need to be present
->> +	 */
->> +	unsigned short i2c_addr_dfl;	/* Default i2c addr */
->> +	unsigned short i2c_addr_alt;	/* Alternate i2c addr */
->> +
->> +	unsigned int nvm_size;			/* bytes */
->> +	unsigned int ext_clk;			/* sensor external clk */
->> +
->> +	unsigned int lanes;		/* Number of CSI-2 lanes */
->> +	u8 csi_signalling_mode;		/* SMIAPP_CSI_SIGNALLING_MODE_* */
->> +	const s64 *op_sys_clock;
->> +
->> +	enum smiapp_module_board_orient module_board_orient;
->> +
->> +	struct smiapp_flash_strobe_parms *strobe_setup;
->> +
->> +	int (*set_xclk)(struct v4l2_subdev *sd, int hz);
->> +	int (*set_xshutdown)(struct v4l2_subdev *sd, u8 set);
-> 
-> There is no chance to avoid this callback, e.g. by passing GPIO(s) number(s)
-> directly to the driver ?
-
-I think Laurent also commented that. Yes, I'll fix that. We won't get
-completely rid of these callbacks until we can have the generic clock
-framework so we could control the ISP external clock to the sensor using
-the regular clk_* functions.
-
->> +};
->> +
->> +#endif /* __SMIAPP_H_  */
-
-Cheers,
-
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index d13b78b..5154b9d 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -263,7 +263,7 @@ static u32 mt2063_write(struct mt2063_state *state, u8 reg, u8 *data, u32 len)
+ 	fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	if (ret < 0)
+-		printk("mt2063_writeregs error ret=%d\n", ret);
++		printk(KERN_ERR "%s error ret=%d\n", __func__, ret);
+ 
+ 	return ret;
+ }
+@@ -287,7 +287,6 @@ static u32 mt2063_setreg(struct mt2063_state *state, u8 reg, u8 val)
+ 	return 0;
+ }
+ 
+-
+ /*
+  * mt2063_read - Read data from the I2C bus
+  */
+@@ -322,7 +321,7 @@ static u32 mt2063_read(struct mt2063_state *state,
+ 			break;
+ 	}
+ 	fe->ops.i2c_gate_ctrl(fe, 0);
+-	return (status);
++	return status;
+ }
+ 
+ /*
+@@ -600,10 +599,6 @@ static u32 MT2063_ChooseFirstIF(struct MT2063_AvoidSpursData_t *pAS_Info)
+ 		    ((f_Desired - pAS_Info->f_if1_Center +
+ 		      f_Step / 2) / f_Step);
+ 
+-	//assert;
+-	//if (!abs((s32) f_Center - (s32) pAS_Info->f_if1_Center) <= (s32) (f_Step/2))
+-	//          return 0;
+-
+ 	/*  Take MT_ExclZones, center around f_Center and change the resolution to f_Step  */
+ 	while (pNode != NULL) {
+ 		/*  floor function  */
+@@ -625,10 +620,6 @@ static u32 MT2063_ChooseFirstIF(struct MT2063_AvoidSpursData_t *pAS_Info)
+ 			zones[j - 1].max_ = tmpMax;
+ 		else {
+ 			/*  Add new zone  */
+-			//assert(j<MT2063_MAX_ZONES);
+-			//if (j>=MT2063_MAX_ZONES)
+-			//break;
+-
+ 			zones[j].min_ = tmpMin;
+ 			zones[j].max_ = tmpMax;
+ 			j++;
+@@ -903,15 +894,13 @@ static u32 MT2063_AvoidSpurs(struct MT2063_AvoidSpursData_t *pAS_Info)
+ 				delta_IF1 = zfIF1 - pAS_Info->f_if1_Center;
+ 			else
+ 				delta_IF1 = pAS_Info->f_if1_Center - zfIF1;
+-		}
++
++			pAS_Info->bSpurPresent = IsSpurInBand(pAS_Info, &fm, &fp);
+ 		/*
+ 		 **  Continue while the new 1st IF is still within the 1st IF bandwidth
+ 		 **  and there is a spur in the band (again)
+ 		 */
+-		while ((2 * delta_IF1 + pAS_Info->f_out_bw <=
+-			pAS_Info->f_if1_bw)
+-		       && (pAS_Info->bSpurPresent =
+-			   IsSpurInBand(pAS_Info, &fm, &fp)));
++		} while ((2 * delta_IF1 + pAS_Info->f_out_bw <= pAS_Info->f_if1_bw) && pAS_Info->bSpurPresent);
+ 
+ 		/*
+ 		 ** Use the LO-spur free values found.  If the search went all the way to
+@@ -930,19 +919,9 @@ static u32 MT2063_AvoidSpurs(struct MT2063_AvoidSpursData_t *pAS_Info)
+ 	    ((pAS_Info->
+ 	      nSpursFound << MT2063_SPUR_SHIFT) & MT2063_SPUR_CNT_MASK);
+ 
+-	return (status);
++	return status;
+ }
+ 
+-/*
+-**  The expected version of MT_AvoidSpursData_t
+-**  If the version is different, an updated file is needed from Microtune
+-*/
+-
+-typedef enum {
+-	MT2063_SET_ATTEN,
+-	MT2063_INCR_ATTEN,
+-	MT2063_DECR_ATTEN
+-} MT2063_ATTEN_CNTL_MODE;
+ 
+ /*
+  * Constants used by the tuning algorithm
+@@ -1044,8 +1023,7 @@ unsigned int mt2063_lockStatus(struct mt2063_state *state)
+ 			return TUNER_STATUS_LOCKED | TUNER_STATUS_STEREO;
+ 		}
+ 		msleep(nPollRate);	/*  Wait between retries  */
+-	}
+-	while (++nDelays < nMaxLoops);
++	} while (++nDelays < nMaxLoops);
+ 
+ 	/*
+ 	 * Got no lock or partial lock
+@@ -1058,7 +1036,7 @@ EXPORT_SYMBOL_GPL(mt2063_lockStatus);
+  * mt2063_set_dnc_output_enable()
+  */
+ static u32 mt2063_get_dnc_output_enable(struct mt2063_state *state,
+-				        enum MT2063_DNC_Output_Enable *pValue)
++					enum MT2063_DNC_Output_Enable *pValue)
+ {
+ 	if ((state->reg[MT2063_REG_DNC_GAIN] & 0x03) == 0x03) {	/* if DNC1 is off */
+ 		if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
+@@ -1078,7 +1056,7 @@ static u32 mt2063_get_dnc_output_enable(struct mt2063_state *state,
+  * mt2063_set_dnc_output_enable()
+  */
+ static u32 mt2063_set_dnc_output_enable(struct mt2063_state *state,
+-				        enum MT2063_DNC_Output_Enable nValue)
++					enum MT2063_DNC_Output_Enable nValue)
+ {
+ 	u32 status = 0;	/* Status to be returned        */
+ 	u8 val = 0;
+@@ -1201,7 +1179,7 @@ static u32 mt2063_set_dnc_output_enable(struct mt2063_state *state,
+ 		break;
+ 	}
+ 
+-	return (status);
++	return status;
+ }
+ 
+ /******************************************************************************
+@@ -1301,28 +1279,26 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
+ 	if (status >= 0) {
+ 		val =
+ 		    (state->
+-		     reg[MT2063_REG_PD1_TGT] & (u8) ~ 0x40) | (RFAGCEN[Mode]
++		     reg[MT2063_REG_PD1_TGT] & (u8) ~0x40) | (RFAGCEN[Mode]
+ 								   ? 0x40 :
+ 								   0x00);
+-		if (state->reg[MT2063_REG_PD1_TGT] != val) {
++		if (state->reg[MT2063_REG_PD1_TGT] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_PD1_TGT, val);
+-		}
+ 	}
+ 
+ 	/* LNARin */
+ 	if (status >= 0) {
+-		u8 val = (state-> reg[MT2063_REG_CTRL_2C] & (u8) ~ 0x03) |
++		u8 val = (state->reg[MT2063_REG_CTRL_2C] & (u8) ~0x03) |
+ 			 (LNARIN[Mode] & 0x03);
+ 		if (state->reg[MT2063_REG_CTRL_2C] != val)
+-			status |= mt2063_setreg(state, MT2063_REG_CTRL_2C,
+-					  val);
++			status |= mt2063_setreg(state, MT2063_REG_CTRL_2C, val);
+ 	}
+ 
+ 	/* FIFFQEN and FIFFQ */
+ 	if (status >= 0) {
+ 		val =
+ 		    (state->
+-		     reg[MT2063_REG_FIFF_CTRL2] & (u8) ~ 0xF0) |
++		     reg[MT2063_REG_FIFF_CTRL2] & (u8) ~0xF0) |
+ 		    (FIFFQEN[Mode] << 7) | (FIFFQ[Mode] << 4);
+ 		if (state->reg[MT2063_REG_FIFF_CTRL2] != val) {
+ 			status |=
+@@ -1334,7 +1310,7 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
+ 			    mt2063_setreg(state, MT2063_REG_FIFF_CTRL, val);
+ 			val =
+ 			    (state->
+-			     reg[MT2063_REG_FIFF_CTRL] & (u8) ~ 0x01);
++			     reg[MT2063_REG_FIFF_CTRL] & (u8) ~0x01);
+ 			status |=
+ 			    mt2063_setreg(state, MT2063_REG_FIFF_CTRL, val);
+ 		}
+@@ -1346,7 +1322,7 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
+ 
+ 	/* acLNAmax */
+ 	if (status >= 0) {
+-		u8 val = (state-> reg[MT2063_REG_LNA_OV] & (u8) ~ 0x1F) |
++		u8 val = (state->reg[MT2063_REG_LNA_OV] & (u8) ~0x1F) |
+ 			 (ACLNAMAX[Mode] & 0x1F);
+ 		if (state->reg[MT2063_REG_LNA_OV] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_LNA_OV, val);
+@@ -1354,7 +1330,7 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
+ 
+ 	/* LNATGT */
+ 	if (status >= 0) {
+-		u8 val = (state-> reg[MT2063_REG_LNA_TGT] & (u8) ~ 0x3F) |
++		u8 val = (state->reg[MT2063_REG_LNA_TGT] & (u8) ~0x3F) |
+ 			 (LNATGT[Mode] & 0x3F);
+ 		if (state->reg[MT2063_REG_LNA_TGT] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_LNA_TGT, val);
+@@ -1362,15 +1338,15 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
+ 
+ 	/* ACRF */
+ 	if (status >= 0) {
+-		u8 val = (state-> reg[MT2063_REG_RF_OV] & (u8) ~ 0x1F) |
+-		         (ACRFMAX[Mode] & 0x1F);
++		u8 val = (state->reg[MT2063_REG_RF_OV] & (u8) ~0x1F) |
++			 (ACRFMAX[Mode] & 0x1F);
+ 		if (state->reg[MT2063_REG_RF_OV] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_RF_OV, val);
+ 	}
+ 
+ 	/* PD1TGT */
+ 	if (status >= 0) {
+-		u8 val = (state-> reg[MT2063_REG_PD1_TGT] & (u8) ~ 0x3F) |
++		u8 val = (state->reg[MT2063_REG_PD1_TGT] & (u8) ~0x3F) |
+ 			 (PD1TGT[Mode] & 0x3F);
+ 		if (state->reg[MT2063_REG_PD1_TGT] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_PD1_TGT, val);
+@@ -1381,16 +1357,15 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
+ 		u8 val = ACFIFMAX[Mode];
+ 		if (state->reg[MT2063_REG_PART_REV] != MT2063_B3 && val > 5)
+ 			val = 5;
+-		val = (state-> reg[MT2063_REG_FIF_OV] & (u8) ~ 0x1F) |
++		val = (state->reg[MT2063_REG_FIF_OV] & (u8) ~0x1F) |
+ 		      (val & 0x1F);
+-		if (state->reg[MT2063_REG_FIF_OV] != val) {
++		if (state->reg[MT2063_REG_FIF_OV] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_FIF_OV, val);
+-		}
+ 	}
+ 
+ 	/* PD2TGT */
+ 	if (status >= 0) {
+-		u8 val = (state-> reg[MT2063_REG_PD2_TGT] & (u8) ~ 0x3F) |
++		u8 val = (state->reg[MT2063_REG_PD2_TGT] & (u8) ~0x3F) |
+ 		    (PD2TGT[Mode] & 0x3F);
+ 		if (state->reg[MT2063_REG_PD2_TGT] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_PD2_TGT, val);
+@@ -1398,31 +1373,24 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
+ 
+ 	/* Ignore ATN Overload */
+ 	if (status >= 0) {
+-		val =
+-		    (state->
+-		     reg[MT2063_REG_LNA_TGT] & (u8) ~ 0x80) | (RFOVDIS[Mode]
+-								   ? 0x80 :
+-								   0x00);
+-		if (state->reg[MT2063_REG_LNA_TGT] != val) {
++		val = (state->reg[MT2063_REG_LNA_TGT] & (u8) ~0x80) |
++		      (RFOVDIS[Mode] ? 0x80 : 0x00);
++		if (state->reg[MT2063_REG_LNA_TGT] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_LNA_TGT, val);
+-		}
+ 	}
+ 
+ 	/* Ignore FIF Overload */
+ 	if (status >= 0) {
+-		val =
+-		    (state->
+-		     reg[MT2063_REG_PD1_TGT] & (u8) ~ 0x80) |
+-		    (FIFOVDIS[Mode] ? 0x80 : 0x00);
+-		if (state->reg[MT2063_REG_PD1_TGT] != val) {
++		val = (state->reg[MT2063_REG_PD1_TGT] & (u8) ~0x80) |
++		      (FIFOVDIS[Mode] ? 0x80 : 0x00);
++		if (state->reg[MT2063_REG_PD1_TGT] != val)
+ 			status |= mt2063_setreg(state, MT2063_REG_PD1_TGT, val);
+-		}
+ 	}
+ 
+ 	if (status >= 0)
+ 		state->rcvr_mode = Mode;
+ 
+-	return (status);
++	return status;
+ }
+ 
+ /****************************************************************************
+@@ -1473,7 +1441,7 @@ static u32 MT2063_ClearPowerMaskBits(struct mt2063_state *state,
+ 				    &state->reg[MT2063_REG_PWR_1], 1);
+ 	}
+ 
+-	return (status);
++	return status;
+ }
+ 
+ /****************************************************************************
+@@ -1580,7 +1548,7 @@ static u32 MT2063_fLO_FractionalTerm(u32 f_ref, u32 num, u32 denom)
+ 	u32 loss = t1 % denom;
+ 	u32 term2 =
+ 	    (((f_ref & 0x00003FFF) * num + (loss << 14)) + (denom / 2)) / denom;
+-	return ((term1 << 14) + term2);
++	return (term1 << 14) + term2;
+ }
+ 
+ /****************************************************************************
+@@ -1610,8 +1578,8 @@ static u32 MT2063_fLO_FractionalTerm(u32 f_ref, u32 num, u32 denom)
+ **   138   06-19-2007    DAD    Ver 1.00: Initial, derived from mt2067_b.
+ **
+ ****************************************************************************/
+-static u32 MT2063_CalcLO1Mult(u32 * Div,
+-			      u32 * FracN,
++static u32 MT2063_CalcLO1Mult(u32 *Div,
++			      u32 *FracN,
+ 			      u32 f_LO,
+ 			      u32 f_LO_Step, u32 f_Ref)
+ {
+@@ -1653,8 +1621,8 @@ static u32 MT2063_CalcLO1Mult(u32 * Div,
+ **   138   06-19-2007    DAD    Ver 1.00: Initial, derived from mt2067_b.
+ **
+ ****************************************************************************/
+-static u32 MT2063_CalcLO2Mult(u32 * Div,
+-			      u32 * FracN,
++static u32 MT2063_CalcLO2Mult(u32 *Div,
++			      u32 *FracN,
+ 			      u32 f_LO,
+ 			      u32 f_LO_Step, u32 f_Ref)
+ {
+@@ -2039,7 +2007,6 @@ int mt2063_setTune(struct dvb_frontend *fe, u32 f_in, u32 bw_in,
+ 			pict2snd1 = 0;
+ 			pict2snd2 = 0;
+ 			rcvr_mode = 4;
+-			//f_in -= 2900000;
+ 			break;
+ 		}
+ 	case MTTUNEA_DVBC:{
+@@ -2053,7 +2020,7 @@ int mt2063_setTune(struct dvb_frontend *fe, u32 f_in, u32 bw_in,
+ 		}
+ 	case MTTUNEA_DVBT:{
+ 			pict_car = 36125000;
+-			ch_bw = bw_in;	//8000000
++			ch_bw = bw_in;
+ 			pict2chanb_vsb = -(ch_bw / 2);
+ 			pict2snd1 = 0;
+ 			pict2snd2 = 0;
+@@ -2074,7 +2041,7 @@ int mt2063_setTune(struct dvb_frontend *fe, u32 f_in, u32 bw_in,
+ 	state->AS_Data.f_out_bw = ch_bw + 750000;
+ 	status = MT2063_SetReceiverMode(state, rcvr_mode);
+ 	if (status < 0)
+-	    return status;
++		return status;
+ 
+ 	status = MT2063_Tune(state, (f_in + (pict2chanb_vsb + (ch_bw / 2))));
+ 
+@@ -2164,8 +2131,8 @@ static int mt2063_init(struct dvb_frontend *fe)
+ 
+ 	/* Check the part/rev code */
+ 	if (((state->reg[MT2063_REG_PART_REV] != MT2063_B0)	/*  MT2063 B0  */
+-	    &&(state->reg[MT2063_REG_PART_REV] != MT2063_B1)	/*  MT2063 B1  */
+-	    &&(state->reg[MT2063_REG_PART_REV] != MT2063_B3)))	/*  MT2063 B3  */
++	    && (state->reg[MT2063_REG_PART_REV] != MT2063_B1)	/*  MT2063 B1  */
++	    && (state->reg[MT2063_REG_PART_REV] != MT2063_B3)))	/*  MT2063 B3  */
+ 		return -ENODEV;	/*  Wrong tuner Part/Rev code */
+ 
+ 	/*  Check the 2nd byte of the Part/Rev code from the tuner */
+@@ -2173,7 +2140,7 @@ static int mt2063_init(struct dvb_frontend *fe)
+ 			     &state->reg[MT2063_REG_RSVD_3B], 1);
+ 
+ 	/* b7 != 0 ==> NOT MT2063 */
+-	if (status < 0 ||((state->reg[MT2063_REG_RSVD_3B] & 0x80) != 0x00))
++	if (status < 0 || ((state->reg[MT2063_REG_RSVD_3B] & 0x80) != 0x00))
+ 		return -ENODEV;	/*  Wrong tuner Part/Rev code */
+ 
+ 	/*  Reset the tuner  */
+@@ -2321,7 +2288,7 @@ static int mt2063_init(struct dvb_frontend *fe)
+ 
+ 	/*  Adjust each of the values in the ClearTune filter cross-over table  */
+ 	for (i = 0; i < 31; i++)
+-		state->CTFiltMax[i] =(state->CTFiltMax[i] / 768) * (fcu_osc + 640);
++		state->CTFiltMax[i] = (state->CTFiltMax[i] / 768) * (fcu_osc + 640);
+ 
+ 	status = MT2063_SoftwareShutdown(state, 1);
+ 	if (status < 0)
+@@ -2349,14 +2316,14 @@ static int mt2063_get_state(struct dvb_frontend *fe,
+ 
+ 	switch (param) {
+ 	case DVBFE_TUNER_FREQUENCY:
+-		//get frequency
++		/* get frequency */
+ 		break;
+ 	case DVBFE_TUNER_TUNERSTEP:
+ 		break;
+ 	case DVBFE_TUNER_IFFREQ:
+ 		break;
+ 	case DVBFE_TUNER_BANDWIDTH:
+-		//get bandwidth
++		/* get bandwidth */
+ 		break;
+ 	case DVBFE_TUNER_REFCLOCK:
+ 		tunstate->refclock = mt2063_lockStatus(state);
+@@ -2376,7 +2343,7 @@ static int mt2063_set_state(struct dvb_frontend *fe,
+ 
+ 	switch (param) {
+ 	case DVBFE_TUNER_FREQUENCY:
+-		//set frequency
++		/* set frequency */
+ 
+ 		status =
+ 		    mt2063_setTune(fe,
+@@ -2390,7 +2357,7 @@ static int mt2063_set_state(struct dvb_frontend *fe,
+ 	case DVBFE_TUNER_IFFREQ:
+ 		break;
+ 	case DVBFE_TUNER_BANDWIDTH:
+-		//set bandwidth
++		/* set bandwidth */
+ 		state->bandwidth = tunstate->bandwidth;
+ 		break;
+ 	case DVBFE_TUNER_REFCLOCK:
+@@ -2446,7 +2413,7 @@ struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+ 	fe->tuner_priv = state;
+ 	fe->ops.tuner_ops = mt2063_ops;
+ 
+-	printk("%s: Attaching MT2063 \n", __func__);
++	printk(KERN_INFO "%s: Attaching MT2063\n", __func__);
+ 	return fe;
+ 
+ error:
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+1.7.7.5
+
