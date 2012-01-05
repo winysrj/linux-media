@@ -1,87 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:26951 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:60242 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758290Ab2AEUqq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jan 2012 15:46:46 -0500
-Message-ID: <4F060C2D.6070107@redhat.com>
-Date: Thu, 05 Jan 2012 18:46:37 -0200
+	id S1755978Ab2AEPiA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 5 Jan 2012 10:38:00 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05Fc0aR004101
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 5 Jan 2012 10:38:00 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Stefan Ringel <linuxtv@stefanringel.de>
-CC: linux-media@vger.kernel.org, Oliver Endriss <o.endriss@gmx.de>
-Subject: Re: [PATCH 2/3] drxk: correction frontend attatching
-References: <1324155437-15834-1-git-send-email-linuxtv@stefanringel.de> <1324155437-15834-2-git-send-email-linuxtv@stefanringel.de> <201112180039.50208@orion.escape-edv.de> <201112180048.00667@orion.escape-edv.de> <4EED829E.6020407@stefanringel.de>
-In-Reply-To: <4EED829E.6020407@stefanringel.de>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/5] [media] drxk: remove ops.info.frequency_stepsize from DVB-C
+Date: Thu,  5 Jan 2012 13:37:48 -0200
+Message-Id: <1325777872-14696-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325777872-14696-1-git-send-email-mchehab@redhat.com>
+References: <1325777872-14696-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18-12-2011 04:05, Stefan Ringel wrote:
-> Am 18.12.2011 00:47, schrieb Oliver Endriss:
->> On Sunday 18 December 2011 00:39:49 Oliver Endriss wrote:
->>> On Saturday 17 December 2011 21:57:16 linuxtv@stefanringel.de wrote:
->>>> From: Stefan Ringel<linuxtv@stefanringel.de>
->>>>
->>>> all drxk have dvb-t, but not dvb-c.
->>>>
->>>> Signed-off-by: Stefan Ringel<linuxtv@stefanringel.de>
->>>> ---
->>>>   drivers/media/dvb/frontends/drxk_hard.c |    6 ++++--
->>>>   1 files changed, 4 insertions(+), 2 deletions(-)
->>>>
->>>> diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
->>>> index 038e470..8a59801 100644
->>>> --- a/drivers/media/dvb/frontends/drxk_hard.c
->>>> +++ b/drivers/media/dvb/frontends/drxk_hard.c
->>>> @@ -6460,9 +6460,11 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
->>>>       init_state(state);
->>>>       if (init_drxk(state)<  0)
->>>>           goto error;
->>>> -    *fe_t =&state->t_frontend;
->>>          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
->>>>
->>>> -    return&state->c_frontend;
->>>          ^^^^^^^^^^^^^^^^^^^^^^^^^^
->>>> +    if (state->m_hasDVBC)
->>>> +        *fe_t =&state->c_frontend;
->>>                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
->>>> +
->>>> +    return&state->t_frontend;
->>>                 ^^^^^^^^^^^^^^^^^^^
->>>>
->>>>   error:
->>>>       printk(KERN_ERR "drxk: not found\n");
->>> NAK, this changes the behaviour for existing drivers.
->>>
->>> What is the point to swap DVB-T and DVB-C frontends?
->>> If you really need this, please add an option to the config struct
->>> with default that does not change anything for existing drivers.
->> Correction:
->> Better do something like this (untested):
->>
->> if (state->m_hasDVBC) {
->>     *fe_t =&state->t_frontend;
->>     return state->c_frontend;
->> } else
->>     return&state->t_frontend;
->>
->> CU
->> Oliver
->>
-> What shall be that, explain? For me not practicable.
+ops.info.frequency_stepsize is used only for DVB-T & friends. For
+DVB-C, the step size is calculated using the symbol rate.
 
-The right thing to do here is to create just one frontend per DRX-K.
-This were already discussed in the past. Now that we have enough
-dvb-core infrastructure to support it, I've made the patches for it:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/frontends/drxk_hard.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-	http://news.gmane.org/gmane.linux.drivers.video-input-infrastructure
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index c8213f6..77e78f4 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -6356,7 +6356,6 @@ static struct dvb_frontend_ops drxk_c_ops = {
+ 	.delsys = { SYS_DVBC_ANNEX_A, SYS_DVBC_ANNEX_C },
+ 	.info = {
+ 		 .name = "DRXK DVB-C",
+-		 .frequency_stepsize = 62500,
+ 		 .frequency_min = 47000000,
+ 		 .frequency_max = 862000000,
+ 		 .symbol_rate_min = 870000,
+-- 
+1.7.7.5
 
-I took the m_hasDVBC and m_hasDVBT states into account, so DRX-K
-drivers that implement just one of the types should now be properly
-reported.
-
-It also made the attachment logic simpler.
-
-Regards,
-Mauro
