@@ -1,87 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:57258 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756376Ab2ANSbc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 13:31:32 -0500
-Received: by bkuw12 with SMTP id w12so699596bku.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:31:31 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 14 Jan 2012 19:31:31 +0100
-Message-ID: <CAEN_-SAXwqbDpnWpk+X=Z-xMbxGV9Ufh4aEr=ZRW-sg50XX-Mg@mail.gmail.com>
-Subject: cx88: all radio tuners using xc2028 or xc4000 tuner and radio should
- have radio_type UNSET
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+Received: from old.radier.ca ([76.10.149.124]:59993 "EHLO server.radier.ca"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1757846Ab2AEXQS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 18:16:18 -0500
+Received: from localhost (unknown [127.0.0.1])
+	by server.radier.ca (Postfix) with ESMTP id 8CC459ECE88
+	for <linux-media@vger.kernel.org>; Thu,  5 Jan 2012 18:16:15 -0500 (EST)
+Received: from server.radier.ca ([127.0.0.1])
+	by localhost (server.radier.ca [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id XYCeF1DbThmm for <linux-media@vger.kernel.org>;
+	Thu,  5 Jan 2012 18:16:14 -0500 (EST)
+Received: from tag-00481.capella.ca (unknown [206.47.153.50])
+	by server.radier.ca (Postfix) with ESMTPSA id 06C2A9ECE79
+	for <linux-media@vger.kernel.org>; Thu,  5 Jan 2012 18:16:13 -0500 (EST)
+From: Dmitriy Fitisov <dmitriy@radier.ca>
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 8BIT
+Subject: em2874 bulk endpoint support
+Date: Thu, 5 Jan 2012 18:16:12 -0500
+Message-Id: <A66B7710-DC6D-4A88-AF1C-2853C39617ED@radier.ca>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=000e0ce0f306ba92f104b6813014
+Mime-Version: 1.0 (Apple Message framework v1251.1)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---000e0ce0f306ba92f104b6813014
-Content-Type: text/plain; charset=ISO-8859-1
+Hello everyone,
+I know, Devin Heitmueller was about to add support  for em2874 bulk endpoint.
 
-Please apply as soon as possible, without this patch radio doesn't
-work on affected tuners!
+Is that still in plans?
 
-M.
+Thank you.
+Dmitriy 
 
---000e0ce0f306ba92f104b6813014
-Content-Type: text/x-patch; charset=US-ASCII; name="cx88-fix-radio-tuners.patch"
-Content-Disposition: attachment; filename="cx88-fix-radio-tuners.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gxez2t520
+Copying old thread:
+> On Oct 29, 2010, at 2:37 PM, Devin Heitmueller wrote:
+>
+> > On Fri, Oct 29, 2010 at 2:04 PM, Jarod Wilson <jarod at wilsonet.com
+> wrote:
+> >> On Oct 15, 2010, at 6:07 PM, Jarod Wilson wrote:...
+> >> So a spot of bad news here... I've been poking at one of Gavin's sticks inside a VM he set up for me, simultaneous with talking to one of the upstream em28xx driver authors. We now have a very good understanding of why the stick isn't working.
+> >> 
+> >> All known prior em28xx-based tuner sticks have had at least one isochronous usb endpoint, with a max packet size of 940 bytes, typically. This stick only has bulk usb endpoints and a max packet size of 512. Supporting this stick is actually going to require a fair bit of work in the em28xx driver core to support using bulk transfer instead of isochronous transfer.
+> >> 
+> >> Short version: don't buy this stick right now, its going to be a little while before its actually supported.
+> > 
+> > Jarod,
+> > 
+> > Just an FYI:  bulk support for em2874/em2884 is on my todo list for
+> > the near future.
+>
+>
+ Ah, very cool. I'm inclined to wait and let you do that part, since you know em28xx much better than I do, and I'll just focus on the device-specific implementation details (gpio settings, wiring up tuner and demod, etc). I'm assuming you have some other manufacturer's em2874/em2884 based devices to work on this for... :)
 
-U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
-b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBTdW4sIDEx
-IERlYyAyMDExIDIzOjAwOjA2ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gQWxsIHJhZGlvIHR1bmVy
-cyBpbiBjeDg4IGRyaXZlciB1c2luZyBzYW1lIGFkZHJlc3MgZm9yIHJhZGlvIGFuZCB0dW5lciwg
-c28gdGhlcmUgaXMgbm8gbmVlZCB0byBwcm9iZQogaXQgdHdpY2UgZm9yIHNhbWUgdHVuZXIgYW5k
-IHdlIGNhbiB1c2UgcmFkaW9fdHlwZSBVTlNFVCwgdGhpcyBhbHNvIGZpeCBicm9rZW4gcmFkaW8g
-c2luY2Uga2VybmVsIDIuNi4zOS1yYzEKIGZvciB0aG9zZSB0dW5lcnMuCgotLS0KIGRyaXZlcnMv
-bWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMgfCAgIDI0ICsrKysrKysrKysrKy0tLS0tLS0t
-LS0tLQogMSBmaWxlcyBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCAxMiBkZWxldGlvbnMoLSkK
-CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jIGIvZHJp
-dmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYwppbmRleCAwZDcxOWZhLi4zOTI5ZDkz
-IDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCisrKyBi
-L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMKQEAgLTE1NzMsOCArMTU3Myw4
-IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1tdID0gewogCQku
-bmFtZSAgICAgICAgICAgPSAiUGlubmFjbGUgSHlicmlkIFBDVFYiLAogCQkudHVuZXJfdHlwZSAg
-ICAgPSBUVU5FUl9YQzIwMjgsCiAJCS50dW5lcl9hZGRyICAgICA9IDB4NjEsCi0JCS5yYWRpb190
-eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKLQkJLnJhZGlvX2FkZHIgICAgID0gMHg2MSwKKwkJLnJh
-ZGlvX3R5cGUgICAgID0gVU5TRVQsCisJCS5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCiAJ
-CS5pbnB1dCAgICAgICAgICA9IHsgewogCQkJLnR5cGUgICA9IENYODhfVk1VWF9URUxFVklTSU9O
-LAogCQkJLnZtdXggICA9IDAsCkBAIC0xNjExLDggKzE2MTEsOCBAQCBzdGF0aWMgY29uc3Qgc3Ry
-dWN0IGN4ODhfYm9hcmQgY3g4OF9ib2FyZHNbXSA9IHsKIAkJLm5hbWUgICAgICAgICAgID0gIkxl
-YWR0ZWsgVFYyMDAwIFhQIEdsb2JhbCIsCiAJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDMjAy
-OCwKIAkJLnR1bmVyX2FkZHIgICAgID0gMHg2MSwKLQkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJf
-WEMyMDI4LAotCQkucmFkaW9fYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fdHlwZSAgICAgPSBV
-TlNFVCwKKwkJLnJhZGlvX2FkZHIgICAgID0gQUREUl9VTlNFVCwKIAkJLmlucHV0ICAgICAgICAg
-ID0geyB7CiAJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCiAJCQkudm11eCAgID0g
-MCwKQEAgLTIwNDMsOCArMjA0Myw4IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBj
-eDg4X2JvYXJkc1tdID0gewogCQkubmFtZSAgICAgICAgICAgPSAiVGVycmF0ZWMgQ2luZXJneSBI
-VCBQQ0kgTUtJSSIsCiAJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKIAkJLnR1bmVy
-X2FkZHIgICAgID0gMHg2MSwKLQkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAotCQku
-cmFkaW9fYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fdHlwZSAgICAgPSBVTlNFVCwKKwkJLnJh
-ZGlvX2FkZHIgICAgID0gQUREUl9VTlNFVCwKIAkJLmlucHV0ICAgICAgICAgID0geyB7CiAJCQku
-dHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCiAJCQkudm11eCAgID0gMCwKQEAgLTIwODIs
-OSArMjA4Miw5IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1td
-ID0gewogCVtDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEhdID0gewogCQkubmFtZSAgICAgICAg
-ICAgPSAiTGVhZHRlayBXaW5GYXN0IERUVjE4MDAgSHlicmlkIiwKIAkJLnR1bmVyX3R5cGUgICAg
-ID0gVFVORVJfWEMyMDI4LAotCQkucmFkaW9fdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCisJCS5y
-YWRpb190eXBlICAgICA9IFVOU0VULAogCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAotCQkucmFk
-aW9fYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fYWRkciAgICAgPSBBRERSX1VOU0VULAogCQkv
-KgogCQkgKiBHUElPIHNldHRpbmcKIAkJICoKQEAgLTIxMjMsOSArMjEyMyw5IEBAIHN0YXRpYyBj
-b25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1tdID0gewogCVtDWDg4X0JPQVJEX1dJ
-TkZBU1RfRFRWMTgwMEhfWEM0MDAwXSA9IHsKIAkJLm5hbWUJCT0gIkxlYWR0ZWsgV2luRmFzdCBE
-VFYxODAwIEggKFhDNDAwMCkiLAogCQkudHVuZXJfdHlwZQk9IFRVTkVSX1hDNDAwMCwKLQkJLnJh
-ZGlvX3R5cGUJPSBUVU5FUl9YQzQwMDAsCisJCS5yYWRpb190eXBlCT0gVU5TRVQsCiAJCS50dW5l
-cl9hZGRyCT0gMHg2MSwKLQkJLnJhZGlvX2FkZHIJPSAweDYxLAorCQkucmFkaW9fYWRkcgk9IEFE
-RFJfVU5TRVQsCiAJCS8qCiAJCSAqIEdQSU8gc2V0dGluZwogCQkgKgpAQCAtMjE2NCw5ICsyMTY0
-LDkgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJkIGN4ODhfYm9hcmRzW10gPSB7CiAJ
-W0NYODhfQk9BUkRfV0lORkFTVF9EVFYyMDAwSF9QTFVTXSA9IHsKIAkJLm5hbWUJCT0gIkxlYWR0
-ZWsgV2luRmFzdCBEVFYyMDAwIEggUExVUyIsCiAJCS50dW5lcl90eXBlCT0gVFVORVJfWEM0MDAw
-LAotCQkucmFkaW9fdHlwZQk9IFRVTkVSX1hDNDAwMCwKKwkJLnJhZGlvX3R5cGUJPSBVTlNFVCwK
-IAkJLnR1bmVyX2FkZHIJPSAweDYxLAotCQkucmFkaW9fYWRkcgk9IDB4NjEsCisJCS5yYWRpb19h
-ZGRyCT0gQUREUl9VTlNFVCwKIAkJLyoKIAkJICogR1BJTwogCQkgKiAgIDI6IDE6IG11dGUgYXVk
-aW8KLS0gCjEuNy4yLjMKCg==
---000e0ce0f306ba92f104b6813014--
+
