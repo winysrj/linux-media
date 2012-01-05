@@ -1,158 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40924 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755942Ab2ASPxH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 10:53:07 -0500
-Message-ID: <4F183C60.6010403@iki.fi>
-Date: Thu, 19 Jan 2012 17:53:04 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:52810 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758118Ab2AEUhy convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 15:37:54 -0500
+Received: by vcbfk14 with SMTP id fk14so683277vcb.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 12:37:54 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: DVBv5 test report
-References: <4F17422E.1030408@iki.fi> <4F17FFA3.4040103@redhat.com> <4F18053D.1050404@iki.fi> <4F181B19.4060300@redhat.com>
-In-Reply-To: <4F181B19.4060300@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAHF9RemG4M2apwcbUG+7YvkLrbpoZmE6Nh2XMHPT4FM3jRW_Ng@mail.gmail.com>
+References: <CAHF9RemG4M2apwcbUG+7YvkLrbpoZmE6Nh2XMHPT4FM3jRW_Ng@mail.gmail.com>
+Date: Thu, 5 Jan 2012 15:37:53 -0500
+Message-ID: <CAGoCfiwEeFiU+0scdZ48nbDfF-NCg8Ac701XkCZtXuTjckq0ng@mail.gmail.com>
+Subject: Re: Support for RC-6 in em28xx driver?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: =?ISO-8859-1?Q?Simon_S=F8ndergaard?= <john7doe@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/19/2012 03:31 PM, Mauro Carvalho Chehab wrote:
-> Em 19-01-2012 09:57, Antti Palosaari escreveu:
->> On 01/19/2012 01:33 PM, Mauro Carvalho Chehab wrote:
->>> Em 18-01-2012 20:05, Antti Palosaari escreveu:
->>>> I tested almost all DVB-T/T2/C devices I have and all seems to be working, excluding Anysee models when using legacy zap.
->>>>
->>>> Anysee  anysee_streaming_ctrl() will fail because mutex_lock_interruptible() returns -EINTR in anysee_ctrl_msg() function when zap is killed using ctrl+c. This will led error returned to DVB-USB-core and log writing "dvb-usb: error while stopping stream."
->>>>
->>>> http://git.linuxtv.org/media_tree.git/blob/refs/heads/master:/drivers/media/dvb/dvb-usb/anysee.c
->>>>
->>>> http://git.linuxtv.org/media_tree.git/blob/refs/heads/master:/drivers/media/dvb/dvb-usb/dvb-usb-urb.c
->>>>
->>>> If I change mutex_lock_interruptible() =>   mutex_lock() it will work. I think it gets SIGINT (ctrl+c) from userland, but how this haven't been issue earlier?
->>>>
->>>> Anyone have idea what's wrong/reason here?
->>>
->>> No idea. That part of the code wasn't changed recently, AFAIK, and
->>> for sure it weren't affected by the frontend changes.
->>>
->>> I suspect that the bug was already there, but it weren't noticed
->>> before.
->>
->> Yeah, that's what I suspect too. But it still looks weird since DVB USB generic
->> dvb_usb_generic_rw() function uses same mutex logic and it is very widely used
->> about all DVB USB drivers. The reason Anysee driver have own mutex is weird USB
->> message sequence that is 1xSEND 2xRECEIVE, instead normal 1xSEND 1xRECEIVE.
+2012/1/5 Simon Søndergaard <john7doe@gmail.com>:
+> Hi,
 >
-> I think that this is a sort of race issue: as you're taking more time at anysee,
-> it is more likely to receive the break while stopping the stream.
+> I recently purchased a PCTV 290e USB Stick (em28174) it comes with a
+> remote almost as small as the stick itself... I've been able to get
+> both stick and remote to work. I also own an MCE media center remote
+> from HP (this make
+> http://www.ebay.com/itm/Original-Win7-PC-MCE-Media-Center-HP-Remote-Controller-/170594956920)
+> that sends RC-6 codes. While it do have a windows logo I still think
+> it is vastly superior to the one that shipped with the stick :-)
+>
+> If I understand it correctly em28174 is a derivative of em2874?
+>
+> In em28xx-input.c it is stated that: "em2874 supports more protocols.
+> For now, let's just announce the two protocols that were already
+> tested"
+>
+> I've been searching high and low for a datasheet for em28(1)74, but
+> have been unable to find it online. Do anyone know if one of the
+> protocols supported is RC-6? and if so how do I get a copy of the
+> datasheet?
 
-I installed latest 3.2.1 Kernel and no that error seen so it is regression.
-Linux localhost.localdomain 3.2.1 #1 SMP Thu Jan 19 16:07:04 EET 2012 
-x86_64 x86_64 x86_64 GNU/Linux
+The 2874 supports NEC, RC-5, and RC-6/6A.  I did the original support
+(based on the docs provided under NDA) but ironically enough I didn't
+have an RC6 remote kicking around so I didn't do the support for it.
 
-Hardware does not stop streaming since streaming command is newer send - 
-it is mutex protecting control messages that returns EINTR and command 
-was terminated before it happens.
+IR receivers for MCE devices are dirt cheap (< $20), and if you're
+doing a media center then it's likely the PCTV 290e probably isn't in
+line-of-site for a remote anyway.  That said, if you still really want
+to see it supported I can probably find a couple of hours to do it (or
+walk Mauro through the register differences if he cares to).
 
+Devin
 
->> I did skeleton code below clear the issue.
->>
->> dvb_usb_generic_rw() {
->>     if ((ret = mutex_lock_interruptible(&d->usb_mutex)))
->>        return ret;
->>
->>     usb_bulk_msg(SEND BULK USB MESSAGE);
->>     usb_bulk_msg(RECEIVE BULK USB MESSAGE);
->>
->>     mutex_unlock(&d->usb_mutex);
->> }
->>
->> anysee_ctrl_msg() {
->>     if (mutex_lock_interruptible(&anysee_usb_mutex)<  0)
->>        return -EAGAIN;
->>
->>     dvb_usb_generic_rw();
->>     usb_bulk_msg(RECEIVE BULK USB MESSAGE); // really!
->>
->>     mutex_unlock(&anysee_usb_mutex);
->> }
->>
->>
->>>
->>> The fix seems to be as simple as:
->>>
->>> diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
->>> index ddf282f..6e707b5 100644
->>> --- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
->>> +++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
->>> @@ -32,7 +32,8 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
->>>            if (adap->props.fe[adap->active_fe].streaming_ctrl != NULL) {
->>>                ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
->>>                if (ret<   0) {
->>> -                err("error while stopping stream.");
->>> +                if (ret != -EAGAIN)
->>> +                    err("error while stopping stream.");
->>>                    return ret;
->>>                }
->>>            }
->>>
->>> And make sure to remap -EINTR as -EAGAIN, leaving to the
->>> userspace to retry it. Alternatively, the dvb frontend core
->>> or the anysee could retry it after a while for streaming
->>> stop.
->>>
->>> Another alternative that would likely work better would
->>> be to just use mutex_lock() for streaming stop, but this
->>> would require the review of all implementations for
->>> streaming_ctrl
->>
->> I think some changes for DVB USB are needed because after .streaming_ctrl()
->> fail it will not stream anything later attempts until device is re-plugged.
->> Having this kind of effect in case of single driver callback failure is not acceptable.
->
-> After thinking a little about it, I think that the best thing to do here is to
-> retry automatically, like the enclosed patch.
->
-> The patch doesn't take into account the device mode. If it were opened
-> in non-block mode, the right behaviour would likely to return -EAGAIN,
-> and let userspace to retry it.
->
->> regards
->> Antti
->
-> [PATCH] dvb-usb: Don't abort stop on -EAGAIN/-EINTR
->
-> Note: this patch is not complete. if the DVB demux device is opened on
-> block mode, it should instead be returning -EAGAIN.
->
-> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->
-> diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-> index ddf282f..215ce75 100644
-> --- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-> +++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
-> @@ -30,7 +30,9 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
->   		usb_urb_kill(&adap->fe_adap[adap->active_fe].stream);
->
->   		if (adap->props.fe[adap->active_fe].streaming_ctrl != NULL) {
-> -			ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
-> +			do {
-> +				ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
-> +			} while ((ret == -EAGAIN) || (ret == -EINTR));
->   			if (ret<  0) {
->   				err("error while stopping stream.");
->   				return ret;
->
-> --
-
-I have no knowledge which is correct and which is not. But as this is 
-regression problem I wish to know actual reason until code changes are done.
-
-I compiled latest 3.1.10 and 3.2.1 vanilla Kernels form kernel.org and 
-those worked as expected.
-
-regards
-Antti
 -- 
-http://palosaari.fi/
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
