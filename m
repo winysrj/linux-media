@@ -1,56 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:45498 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757459Ab2AEAst (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 19:48:49 -0500
-Received: by wgbdr13 with SMTP id dr13so18607wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 16:48:48 -0800 (PST)
+Received: from rcsinet15.oracle.com ([148.87.113.117]:36985 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752132Ab2AEGYM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 01:24:12 -0500
+Date: Thu, 5 Jan 2012 09:24:00 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch] [media] saa7134: use correct array offset
+Message-ID: <20120105062400.GB25744@elgon.mountain>
 MIME-Version: 1.0
-Date: Wed, 4 Jan 2012 19:48:47 -0500
-Message-ID: <CALzAhNVYeeAfS+RycntPyz8nhLqow5CtCdwmxJpuHU6-6Kx8hQ@mail.gmail.com>
-Subject: subdev support for querying struct v4l2_input *
-From: Steven Toth <stoth@kernellabs.com>
-To: "Jacob Johan (Hans) Verkuil" <hverkuil@xs4all.nl>
-Cc: Linux-Media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Smatch complains that i can be one passed the end of the array if we
+don't hit the break statement.  We should be using the "audio" here like
+we do in the other places.
 
-In the cx23885 driver as part of vidioc_enum_input call, I have a need
-to return V4L2_IN_ST_NO_SIGNAL in the status
-field as part of struct v4l2_input. Thus, when no signal is detected
-by the video decoder it can be signalled to the calling application.
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+Compile tested only.  Please review carefully.
 
-I looks like subdev_core_ops doesn't currently support this, or have I
-miss-understood something?
-
-The patch below is a snippet from a larger patch I have which:
-1. Adds this support to struct v4l2_subdev_core_ops
-2. Adds support to the cx25840 and cx23885 drivers and makes the
-feature available.
-
-Do you have any comments or thoughts on the subdev_ops patch below?
-
-Regards,
-
-- Steve
-
-Index: v4l-dvb/include/media/v4l2-subdev.h
-===================================================================
---- v4l-dvb.orig/include/media/v4l2-subdev.h    2012-01-03
-17:44:24.337826817 -0500
-+++ v4l-dvb/include/media/v4l2-subdev.h 2012-01-03 17:44:54.729826263 -0500
-@@ -172,6 +172,7 @@
-                               struct v4l2_event_subscription *sub);
-        int (*unsubscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
-                                 struct v4l2_event_subscription *sub);
-+       int (*enum_input)(struct v4l2_subdev *sd, struct v4l2_input *i);
- };
-
-
-
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+diff --git a/drivers/media/video/saa7134/saa7134-tvaudio.c b/drivers/media/video/saa7134/saa7134-tvaudio.c
+index ec1df6f..b7a99be 100644
+--- a/drivers/media/video/saa7134/saa7134-tvaudio.c
++++ b/drivers/media/video/saa7134/saa7134-tvaudio.c
+@@ -605,7 +605,7 @@ static int tvaudio_thread(void *data)
+ 			if (kthread_should_stop())
+ 				break;
+ 			if (UNSET == dev->thread.mode) {
+-				rx = tvaudio_getstereo(dev,&tvaudio[i]);
++				rx = tvaudio_getstereo(dev, &tvaudio[audio]);
+ 				mode = saa7134_tvaudio_rx2mode(rx);
+ 			} else {
+ 				mode = dev->thread.mode;
