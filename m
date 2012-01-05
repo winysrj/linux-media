@@ -1,148 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36128 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751124Ab2ATMiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jan 2012 07:38:07 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0KCc6Mm012637
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 07:38:06 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [RFC] dvb: Add DVBv5 properties for quality parameters
-Date: Fri, 20 Jan 2012 10:38:00 -0200
-Message-Id: <1327063080-29399-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45498 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757459Ab2AEAst (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 19:48:49 -0500
+Received: by wgbdr13 with SMTP id dr13so18607wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 16:48:48 -0800 (PST)
+MIME-Version: 1.0
+Date: Wed, 4 Jan 2012 19:48:47 -0500
+Message-ID: <CALzAhNVYeeAfS+RycntPyz8nhLqow5CtCdwmxJpuHU6-6Kx8hQ@mail.gmail.com>
+Subject: subdev support for querying struct v4l2_input *
+From: Steven Toth <stoth@kernellabs.com>
+To: "Jacob Johan (Hans) Verkuil" <hverkuil@xs4all.nl>
+Cc: Linux-Media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The DVBv3 quality parameters are limited on several ways:
-	- Doesn't provide any way to indicate the used measure;
-	- Userspace need to guess how to calculate the measure;
-	- Only a limited set of stats are supported;
-	- Doesn't provide QoS measure for the OFDM TPS/TMCC
-	  carriers, used to detect the network parameters for
-	  DVB-T/ISDB-T;
-	- Can't be called in a way to require them to be filled
-	  all at once (atomic reads from the hardware), with may
-	  cause troubles on interpreting them on userspace;
-	- On some OFDM delivery systems, the carriers can be
-	  independently modulated, having different properties.
-	  Currently, there's no way to report per-layer stats;
+Hans,
 
-This RFC adds the header definitions meant to solve that issues.
-After discussed, I'll write a patch for the DocBook and add support
-for it on some demods. Support for dvbv5-zap and dvbv5-scan tools
-will also have support for those features.
+In the cx23885 driver as part of vidioc_enum_input call, I have a need
+to return V4L2_IN_ST_NO_SIGNAL in the status
+field as part of struct v4l2_input. Thus, when no signal is detected
+by the video decoder it can be signalled to the calling application.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- include/linux/dvb/frontend.h |   78 +++++++++++++++++++++++++++++++++++++++++-
- 1 files changed, 77 insertions(+), 1 deletions(-)
+I looks like subdev_core_ops doesn't currently support this, or have I
+miss-understood something?
 
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index cb4428a..f9cdb7d 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -320,7 +320,21 @@ struct dvb_frontend_event {
- 
- #define DTV_ENUM_DELSYS		44
- 
--#define DTV_MAX_COMMAND				DTV_ENUM_DELSYS
-+/* Quality parameters */
-+#define DTV_ENUM_QUALITY	45	/* Enumerates supported QoS parameters */
-+#define DTV_QUALITY_SNR		46
-+#define DTV_QUALITY_CNR		47
-+#define DTV_QUALITY_EsNo	48
-+#define DTV_QUALITY_EbNo	49
-+#define DTV_QUALITY_RELATIVE	50
-+#define DTV_ERROR_BER		51
-+#define DTV_ERROR_PER		52
-+#define DTV_ERROR_PARAMS	53	/* Error count at TMCC or TPS carrier */
-+#define DTV_FE_STRENGTH		54
-+#define DTV_FE_SIGNAL		55
-+#define DTV_FE_UNC		56
-+
-+#define DTV_MAX_COMMAND		DTV_FE_UNC
- 
- typedef enum fe_pilot {
- 	PILOT_ON,
-@@ -372,12 +386,74 @@ struct dtv_cmds_h {
- 	__u32	reserved:30;	/* Align */
+The patch below is a snippet from a larger patch I have which:
+1. Adds this support to struct v4l2_subdev_core_ops
+2. Adds support to the cx25840 and cx23885 drivers and makes the
+feature available.
+
+Do you have any comments or thoughts on the subdev_ops patch below?
+
+Regards,
+
+- Steve
+
+Index: v4l-dvb/include/media/v4l2-subdev.h
+===================================================================
+--- v4l-dvb.orig/include/media/v4l2-subdev.h    2012-01-03
+17:44:24.337826817 -0500
++++ v4l-dvb/include/media/v4l2-subdev.h 2012-01-03 17:44:54.729826263 -0500
+@@ -172,6 +172,7 @@
+                               struct v4l2_event_subscription *sub);
+        int (*unsubscribe_event)(struct v4l2_subdev *sd, struct v4l2_fh *fh,
+                                 struct v4l2_event_subscription *sub);
++       int (*enum_input)(struct v4l2_subdev *sd, struct v4l2_input *i);
  };
- 
-+/**
-+ * Scale types for the quality parameters.
-+ * @FE_SCALE_DECIBEL: The scale is measured in dB, typically
-+ *		  used on signal measures.
-+ * @FE_SCALE_LINEAR: The scale is linear.
-+ *		     typically used on error QoS parameters.
-+ * @FE_SCALE_RELATIVE: The scale is relative.
-+ */
-+enum fecap_scale_params {
-+	FE_SCALE_DECIBEL,
-+	FE_SCALE_LINEAR,
-+	FE_SCALE_RELATIVE
-+};
-+
-+/**
-+ * struct dtv_status - Used for reading a DTV status property
-+ *
-+ * @value:	value of the measure. Should range from 0 to 0xffff;
-+ * @scale:	Filled with enum fecap_scale_params - the scale
-+ *		in usage for that parameter
-+ * @min:	minimum value. Not used if the scale is relative.
-+ *		For non-relative measures, define the measure
-+ *		associated with dtv_status.value == 0.
-+ * @max:	maximum value. Not used if the scale is	relative.
-+ *		For non-relative measures, define the measure
-+ *		associated with dtv_status.value == 0xffff.
-+ *
-+ * At userspace, min/max values should be used to calculate the
-+ * absolute value of that measure, if fecap_scale_params is not
-+ * FE_SCALE_RELATIVE, using the following formula:
-+ *	 measure = min + (value * (max - min) / 0xffff)
-+ *
-+ * For error count measures, typically, min = 0, and max = 0xffff,
-+ * and the measure represent the number of errors detected.
-+ *
-+ * Up to 4 status groups can be provided. This is for the
-+ * OFDM standards where the carriers can be grouped into
-+ * independent layers, each with its own modulation. When
-+ * such layers are used (for example, on ISDB-T), the status
-+ * should be filled with:
-+ *	stat.status[0] = global statistics;
-+ *	stat.status[1] = layer A statistics;
-+ *	stat.status[2] = layer B statistics;
-+ *	stat.status[3] = layer C statistics.
-+ * and stat.len should be filled with the latest filled status + 1.
-+ * If the frontend doesn't provide a global statistics,
-+ * stat.has_global should be 0.
-+ * Delivery systems that don't use it, should just set stat.len and
-+ * stat.has_global with 1, and fill just stat.status[0].
-+ */
-+struct dtv_status {
-+	__u16 value;
-+	__u16 scale;
-+	__s16 min;
-+	__s16 max;
-+} __attribute__ ((packed));
-+
- struct dtv_property {
- 	__u32 cmd;
- 	__u32 reserved[3];
- 	union {
- 		__u32 data;
- 		struct {
-+			__u8 len;
-+			__u8 has_global;
-+			struct dtv_status status[4];
-+		} stat;
-+		struct {
- 			__u8 data[32];
- 			__u32 len;
- 			__u32 reserved1[3];
--- 
-1.7.8
 
+
+
+-- 
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
