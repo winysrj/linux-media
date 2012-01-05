@@ -1,73 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37134 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754009Ab2ADUrd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 15:47:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-Date: Wed, 4 Jan 2012 21:47:49 +0100
-Cc: javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com> <201201041801.08322.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1201041808260.30506@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1201041808260.30506@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201042147.49921.laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:8572 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932306Ab2AEBBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 4 Jan 2012 20:01:10 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511AQG002495
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:10 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 35/47] [media] mt2063: Convert it to the DVBv5 way for set_params()
+Date: Wed,  4 Jan 2012 23:00:46 -0200
+Message-Id: <1325725258-27934-36-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 04 January 2012 18:13:58 Guennadi Liakhovetski wrote:
-> On Wed, 4 Jan 2012, Laurent Pinchart wrote:
-> > On Wednesday 04 January 2012 17:35:27 Guennadi Liakhovetski wrote:
-> > > On Wed, 4 Jan 2012, javier Martin wrote:
-> > > 
-> > > [snip]
-> > > 
-> > > > For ov7725 it is a natural thing to do since it was originally
-> > > > developed for soc-camera and it can easily do the following to access
-> > > > platform data:
-> > > > 
-> > > > struct soc_camera_link	*icl = soc_camera_i2c_to_link(client);
-> > > > pdata = icl->priv;
-> > > > 
-> > > > However, tvp5150 is not aware about soc_camera. I should be able to
-> > > > tell whether it's being used with soc-camera or not. If soc camera
-> > > > was used I would do the previous method to retrieve platform data.
-> > > > But if soc-camera was not used I would do the classic method:
-> > > > 
-> > > > struct tvp5150_platform_data *pdata = client->dev.platform_data;
-> > > > 
-> > > > The problem is how to distinguish in tvp5150 whether I am using
-> > > > soc_camera or not.
-> > > 
-> > > Right, that _is_ the problem now. And we've known about it since the
-> > > very first time we started to think about re-using the subdev drivers.
-> > > The only solution I see so far is to introduce a standard platform
-> > > data struct for all subdevices, similar to soc_camera_link. We could
-> > > use it as a basis, of course, use a generic name, maybe reconsider
-> > > fields - rename / remove / add, but the principle would be the same: a
-> > > standard platform data struct with an optional private field.
-> > 
-> > Why is that needed ? Why can't a tvp5150-specific platform data structure
-> > do ?
-> 
-> Javier has actually explained this already.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/common/tuners/mt2063.c |   46 ++++++++++++---------------------
+ 1 files changed, 17 insertions(+), 29 deletions(-)
 
-Sorry for not having followed.
-
-> Ok, again: he wants to use tvp5150 with an soc-camera host driver, i.e.,
-> with the soc-camera subsystem. And the soc-camera core sets board_info->
-> platform_data itself to a pointer to the struct soc_camera_link instance.
-
-That looks to me like it's the part to be changed...
-
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index b2678a4..75cb1d2 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -2051,9 +2051,9 @@ static int mt2063_set_analog_params(struct dvb_frontend *fe,
+  */
+ #define MAX_SYMBOL_RATE_6MHz	5217391
+ 
+-static int mt2063_set_params(struct dvb_frontend *fe,
+-			     struct dvb_frontend_parameters *params)
++static int mt2063_set_params(struct dvb_frontend *fe)
+ {
++	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+ 	struct mt2063_state *state = fe->tuner_priv;
+ 	int status;
+ 	s32 pict_car = 0;
+@@ -2065,37 +2065,25 @@ static int mt2063_set_params(struct dvb_frontend *fe,
+ 	s32 if_mid = 0;
+ 	s32 rcvr_mode = 0;
+ 
+-	switch (fe->ops.info.type) {
+-	case FE_OFDM:
+-		switch (params->u.ofdm.bandwidth) {
+-		case BANDWIDTH_6_MHZ:
+-			ch_bw = 6000000;
+-			break;
+-		case BANDWIDTH_7_MHZ:
+-			ch_bw = 7000000;
+-			break;
+-		case BANDWIDTH_8_MHZ:
+-			ch_bw = 8000000;
+-			break;
+-		default:
+-			return -EINVAL;
+-		}
++	if (c->bandwidth_hz == 0)
++		return -EINVAL;
++	if (c->bandwidth_hz <= 6000000)
++		ch_bw = 6000000;
++	else if (c->bandwidth_hz <= 7000000)
++		ch_bw = 7000000;
++	else
++		ch_bw = 8000000;
++
++	switch (c->delivery_system) {
++	case SYS_DVBT:
+ 		rcvr_mode = MT2063_OFFAIR_COFDM;
+ 		pict_car = 36125000;
+ 		pict2chanb_vsb = -(ch_bw / 2);
+ 		pict2snd1 = 0;
+ 		pict2snd2 = 0;
+ 		break;
+-	case FE_QAM:
+-		/*
+-		 * Using a 8MHz bandwidth sometimes fail
+-		 * with 6MHz-spaced channels, due to inter-carrier
+-		 * interference. So, it is better to narrow-down the filter
+-		 */
+-		if (params->u.qam.symbol_rate <= MAX_SYMBOL_RATE_6MHz)
+-			ch_bw = 6000000;
+-		else
+-			ch_bw = 8000000;
++	case SYS_DVBC_ANNEX_A:
++	case SYS_DVBC_ANNEX_C:
+ 		rcvr_mode = MT2063_CABLE_QAM;
+ 		pict_car = 36125000;
+ 		pict2snd1 = 0;
+@@ -2115,12 +2103,12 @@ static int mt2063_set_params(struct dvb_frontend *fe,
+ 	if (status < 0)
+ 		return status;
+ 
+-	status = MT2063_Tune(state, (params->frequency + (pict2chanb_vsb + (ch_bw / 2))));
++	status = MT2063_Tune(state, (c->frequency + (pict2chanb_vsb + (ch_bw / 2))));
+ 
+ 	if (status < 0)
+ 		return status;
+ 
+-	state->frequency = params->frequency;
++	state->frequency = c->frequency;
+ 	return 0;
+ }
+ 
 -- 
-Regards,
+1.7.7.5
 
-Laurent Pinchart
