@@ -1,82 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2876 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751692Ab2AONdX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 08:33:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [regression] v4l: Add custom compat_ioctl32 operation
-Date: Sun, 15 Jan 2012 14:32:52 +0100
-Cc: "Oleksij Rempel (Alexey Fisher)" <bug-track@fisher-privat.net>,
-	linux-uvc-devel@lists.sourceforge.net,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org
-References: <4F1297E2.7@fisher-privat.net> <201201151414.14060.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201151414.14060.laurent.pinchart@ideasonboard.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34918 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758648Ab2AFMAV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 07:00:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC 04/17] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Date: Fri, 6 Jan 2012 13:00:40 +0100
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <201201051712.00970.laurent.pinchart@ideasonboard.com> <4F06DA87.1050209@maxwell.research.nokia.com>
+In-Reply-To: <4F06DA87.1050209@maxwell.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201151432.52853.hverkuil@xs4all.nl>
+Message-Id: <201201061300.40486.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday, January 15, 2012 14:14:13 Laurent Pinchart wrote:
-> Hi Alexey,
-> 
-> On Sunday 15 January 2012 10:09:54 Oleksij Rempel (Alexey Fisher) wrote:
-> > hi Laurent,
+Hi Sakari,
+
+On Friday 06 January 2012 12:27:03 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Tuesday 20 December 2011 21:27:56 Sakari Ailus wrote:
+> >> From: Sakari Ailus <sakari.ailus@iki.fi>
+> >> 
+> >> Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+> >> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
+> >> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+> >> 
+> >> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
 > > 
-> > this patch seem to create circular module dependency. I get this error:
-> > WARNING: Module
-> > /lib/modules/3.2.0-00660-g1801bbe-dirty/kernel/drivers/media/video/videodev
-> > .ko ignored, due to loop
-> > WARNING: Loop detected:
-> > /lib/modules/3.2.0-00660-g1801bbe-dirty/kernel/drivers/media/video/v4l2-com
-> > pat-ioctl32.ko needs videodev.ko which needs v4l2-compat-ioctl32.ko again!
+> > As those ioctls are experimental, should we deprecate them ?
 > 
-> Thanks for the report.
+> I'm also in favour of doing that. But I'll make it a separate patch.
 > 
-> Hans, what do you think about the patch below ?
+> >> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> >> ---
+> >> 
+> >>  drivers/media/video/v4l2-subdev.c |   26 ++++++++++++++++++++-
+> >>  include/linux/v4l2-subdev.h       |   45
+> >>  ++++++++++++++++++++++++++++++++++ include/media/v4l2-subdev.h       |
+> >>     5 ++++
+> >>  3 files changed, 75 insertions(+), 1 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/video/v4l2-subdev.c
+> >> b/drivers/media/video/v4l2-subdev.c index 65ade5f..e8ae098 100644
+> >> --- a/drivers/media/video/v4l2-subdev.c
+> >> +++ b/drivers/media/video/v4l2-subdev.c
+> >> @@ -36,13 +36,17 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh,
+> >> struct v4l2_subdev *sd) {
+> >> 
+> >>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> >>  
+> >>  	/* Allocate try format and crop in the same memory block */
+> >> 
+> >> -	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
+> >> +	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop)
+> >> +			       + sizeof(*fh->try_compose))
+> >> 
+> >>  			      * sd->entity.num_pads, GFP_KERNEL);
+> > 
+> > Could you check how the 3 structures are aligned on 64-bit platforms ?
+> > I'm a bit worried about the compiler expecting a 64-bit alignment for
+> > one of them, and getting only a 32-bit alignment in the end.
+> > 
+> > What about using kcalloc ?
 > 
-> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-> index 3541388..8c4a94d 100644
-> --- a/drivers/media/video/Makefile
-> +++ b/drivers/media/video/Makefile
-> @@ -17,7 +17,7 @@ videodev-objs :=      v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
->  
->  obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
->  ifeq ($(CONFIG_COMPAT),y)
-> -  obj-$(CONFIG_VIDEO_DEV) += v4l2-compat-ioctl32.o
-> +  videodev-objs += v4l2-compat-ioctl32.o
->  endif
->  
->  obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
-> 
-> I don't see a very compelling reason to put v4l2_compat_ioctl32() in a
-> separate module. If that fine with you, I'll also remove the #ifdef
-> CONFIG_COMPAT from v4l2-compat-ioctl32.c.
+> kcalloc won't make a difference --- see the implementation. Do you think
+> this is really an issue in practice?
 
-Seems reasonable. Although I suggest that you move up the 'ifeq - endif' part
-to right after the 'videodev-objs := ...' line in the makefile. That's more
-logical in this case.
+It won't make a difference for the alignment, it's just that we allocate an 
+array, so kcalloc seemed right.
 
+> If we want to ensure alignment I'd just allocate them separately. Or
+> create a struct out of them locally, and get the pointers from that
+> struct --- then the alignment would be the same as if those were part of
+> a single struct. That achieves the desired result and also keeps error
+> handling trivial.
+>
+> I wouldn't want to start relying on the alignment based on the sizes of
+> these structures.
+
+Sounds good to me. Allocating them as part of a bigger structure internally 
+could be more efficient than separate allocations, but I'm fine with both.
+
+-- 
 Regards,
 
-	Hans
-
-> 
-> > commit bf5aa456853816f807a46c0d944efb997142ffaf
-> > Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Date:   Mon Dec 19 00:41:19 2011 +0100
-> > 
-> >     v4l: Add custom compat_ioctl32 operation
-> > 
-> >     Drivers implementing custom ioctls need to handle 32-bit/64-bit
-> >     compatibility themselves. Provide them with a way to do so.
-> > 
-> >     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> >     Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> 
+Laurent Pinchart
