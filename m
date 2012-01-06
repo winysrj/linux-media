@@ -1,251 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44237 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751023Ab2AHBws (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 20:52:48 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q081qllJ011118
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 7 Jan 2012 20:52:48 -0500
-Received: from [10.3.231.107] (vpn-231-107.phx2.redhat.com [10.3.231.107])
-	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q081qibg028012
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sat, 7 Jan 2012 20:52:46 -0500
-Message-ID: <4F08F6EB.2030508@redhat.com>
-Date: Sat, 07 Jan 2012 23:52:43 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
-References: <4F08385E.7050602@redhat.com>
-In-Reply-To: <4F08385E.7050602@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:46880 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030438Ab2AFSO7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 13:14:59 -0500
+Received: by mail-ee0-f46.google.com with SMTP id c4so1234158eek.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 10:14:58 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH/RFC v2 1/4] V4L: Add JPEG compression control class
+Date: Fri,  6 Jan 2012 19:14:39 +0100
+Message-Id: <1325873682-3754-2-git-send-email-snjw23@gmail.com>
+In-Reply-To: <4EBECD11.8090709@gmail.com>
+References: <4EBECD11.8090709@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07-01-2012 10:19, Mauro Carvalho Chehab wrote:
-> As previously commented at the ML, I'm developing a set of tools
-> using DVBv5 API. Instead of starting from something existing,
-> I decided to start from scratch, in order to avoid polluting it
-> with DVBv3 legacy stuff. Of course, I did some research inside
-> the existing tools, in order to fill in the blanks, using the
-> dvb-apps tzap as a reference for the first real application on it,
-> but removing a large amount of code (file parsers, etc).
-> 
-> They're now on a good shape, at least for my own usage ;)
-> 
-> In order to test, you should use:
-> 
-> git clone git://linuxtv.org/mchehab/experimental-v4l-utils.git
-> 
-> And then run "make". the utils are inside utils/dvb.
-> 
-> I plan to do some cleanup at the patches later (basically, changing
-> the patch descriptions), and add it inside the v4l-utils, in order 
-> to have the basic tools I use for testing media devices into the
-> same place.
-> 
-> DVB TOOLS
-> =========
-> 
-> This is a series of tools written to help testing and working with DVB,
-> using its latest V5 API. The tools can also work with the DVBv3 API.
-> 
-> The current tools are:
-> 
-> dvb-fe-tool - a simple test application, that reads from the frontend.
-> 	      it also allows to change the default delivery system.
-> 	      In the future, it may be used to change any property
-> 	      via command line.
-> 
-> dvb-format-convert - converts from zap and scan "initial-tuning-data-file"
-> 	      into the new format defined to work with DVBv5;
-> 
-> dvbv5-scan - a DVBv5 scan tool;
-> 
-> dvbv5-zap - a DVBv5 zap tool. It allow to tune into a DVB channel, and
-> 	    to watch to a DVB service (e. g. receiving the video and audio
-> 	    streams, via another application using the dvr device).
-> 
-> Each application code is very small, as most of the code are on some
-> generic code that will become a library in the future.
-> 
-> CONTENTS OF THE TREE
-> ====================
-> 
-> parse_string.c/parse_string.h: MPEG-TS string decoder with charset translator
-> 
-> Used to decode NIT/SDT service name, network provider and provider name.
-> It parses the charsets according with the DVB specs, converting them into
-> UTF-8 (or other charset), using iconv library.
-> 
-> descriptors.c/descriptors.h:  MPEG-TS descriptors parser
-> 
-> The code there is generig enough to decode the MPEG-TS descriptors,
-> with the DVB and other Digital TV extensions.
-> 
-> libscan.c/libscan/h: DVBv5 scanning library
-> 
-> This library is used to retrieve DVB information from the MPEG TS
-> headers, discovering the services associated to each DVB channel or
-> transponder. The services information is the basic info that most
-> DVB tools need to tune into a channel.
-> 
-> dvb-file.c/dvb-file.h: DVB file read/write library.
-> 
-> Allows parsing a DVB file (legacy or not) and to write data into a
-> DVB file (new format only).
-> 
-> dvb-fe.c/dvb-fe.h: DVB frontend library.
-> 
-> Allows talking with a DVB frontend via DVBv5 or DVBv3 API.
-> 
-> dvb-zap-format.c/dvb-legacy-channel-format.c:
-> 
-> Contains the data structures required in order to read from the legacy
-> formats (zap or scan "initial-tuning-data-file").
-> 
-> dvb_frontend.h: DVBv5 frontend API.
-> 
-> This is just a copy of the newest linux/dvb/frontend.h header.
-> I opted to keep a copy there, in order to allow working with the tools
-> without needing to copy the latest header into /usr/include.
-> 
-> dvb-v5.h/dvb-v5-std.h:
-> 
-> Ancillary files linked into dvb-fe code, used to parse DVB tables. The
-> dvbv5.h is generated by a small perl util, from the DVB FE API file.
-> 
-> dvb-demux.c/dvb-demux.h: DVB demux library.
-> 
-> Used by the dvbv5-zap utility.
-> 
-> dvb-fe-tool.c, dvb-format-convert.c, dvbv5-zap.c, dvbv5-scan.c: tools code.
-> 
-> Basically, parses the options from userspace and calls the other code
-> to do what was requested by the user.
-> 
-> CHANNEL/SERVICE FILE FORMAT
-> ===========================
-> 
-> Instead of having two different files, one for services, and another for
-> channels/transponders, I opted to use just one format for both. The
-> format is:
-> 
-> [channel]
-> key1=value1
-> key2=value2
-> key3=value3
-> ...
-> keyn=valuen
-> 
-> 
-> lines with # are discarted by the parsers. Also, whitespaces/tabs before
-> the keys and before/after the equal sign.
-> 
-> Be careful: whitespace in the middle of the value are not discarded.
-> 
-> A typical service would be like:
-> 
-> [TV Brasil HD]
->         VCHANNEL = 2.2
->         SERVICE_ID = 16160
->         VIDEO_PID = 770
->         AUDIO_PID = 514 614
->         FREQUENCY = 479142857
->         MODULATION = QAM/AUTO
->         BANDWIDTH_HZ = 6000000
->         INVERSION = AUTO
->         CODE_RATE_HP = AUTO
->         CODE_RATE_LP = NONE
->         GUARD_INTERVAL = AUTO
->         TRANSMISSION_MODE = AUTO
->         HIERARCHY = NONE
->         ISDBT_LAYER_ENABLED = 7
->         ISDBT_PARTIAL_RECEPTION = 0
->         ISDBT_SOUND_BROADCASTING = 0
->         ISDBT_SB_SUBCHANNEL_ID = 0
->         ISDBT_SB_SEGMENT_IDX = 0
->         ISDBT_SB_SEGMENT_COUNT = 0
->         ISDBT_LAYERA_FEC = AUTO
->         ISDBT_LAYERA_MODULATION = QAM/AUTO
->         ISDBT_LAYERA_SEGMENT_COUNT = 0
->         ISDBT_LAYERA_TIME_INTERLEAVING = 0
->         ISDBT_LAYERB_FEC = AUTO
->         ISDBT_LAYERB_MODULATION = QAM/AUTO
->         ISDBT_LAYERB_SEGMENT_COUNT = 0
->         ISDBT_LAYERB_TIME_INTERLEAVING = 0
->         ISDBT_LAYERC_FEC = AUTO
->         ISDBT_LAYERC_MODULATION = QAM/AUTO
->         ISDBT_LAYERC_SEGMENT_COUNT = 0
->         ISDBT_LAYERC_TIME_INTERLEAVING = 0
->         DELIVERY_SYSTEM = ISDBT
-> 
-> Just the channel description for it would be:
-> 
-> [CHANNEL]
->         FREQUENCY = 479142857
->         MODULATION = QAM/AUTO
->         BANDWIDTH_HZ = 6000000
->         INVERSION = AUTO
->         CODE_RATE_HP = AUTO
->         CODE_RATE_LP = NONE
->         GUARD_INTERVAL = AUTO
->         TRANSMISSION_MODE = AUTO
->         HIERARCHY = NONE
->         ISDBT_LAYER_ENABLED = 7
->         ISDBT_PARTIAL_RECEPTION = 0
->         ISDBT_SOUND_BROADCASTING = 0
->         ISDBT_SB_SUBCHANNEL_ID = 0
->         ISDBT_SB_SEGMENT_IDX = 0
->         ISDBT_SB_SEGMENT_COUNT = 0
->         ISDBT_LAYERA_FEC = AUTO
->         ISDBT_LAYERA_MODULATION = QAM/AUTO
->         ISDBT_LAYERA_SEGMENT_COUNT = 0
->         ISDBT_LAYERA_TIME_INTERLEAVING = 0
->         ISDBT_LAYERB_FEC = AUTO
->         ISDBT_LAYERB_MODULATION = QAM/AUTO
->         ISDBT_LAYERB_SEGMENT_COUNT = 0
->         ISDBT_LAYERB_TIME_INTERLEAVING = 0
->         ISDBT_LAYERC_FEC = AUTO
->         ISDBT_LAYERC_MODULATION = QAM/AUTO
->         ISDBT_LAYERC_SEGMENT_COUNT = 0
->         ISDBT_LAYERC_TIME_INTERLEAVING = 0
->         DELIVERY_SYSTEM = ISDBT
-> 
-> CURRENT ISSUES
-> ==============
-> 
-> The dvb-fe-tool and the dvb-format-convert are generic enough to work
-> with all delivery systems. However, the other two tools need to do
-> some diferent things, depending on the delivery system.
-> 
-> I'm currently with only ISDB-T signals here, so the other two
-> tools were tested only with it.
-> 
-> The dvbv5-zap in general won't work with Satellite delivery
-> systems. It lacks polarity settings, and it doesn't know anything
-> about LNB or DISEqC. It shouldn't hard to port those things into it, 
-> but a DVB-S signal is needed to test. As I don't have it curently,
-> I'm not working to add support for it at the moment. 
-> 
-> Patches are welcome.
+The V4L2_CID_JPEG_CLASS control class is intended to expose various
+adjustable parameters of JPEG encoders and decoders. Following controls
+are defined:
 
-I decided to add support for DVB-S, even without signal for testing.
-This probably means that it likely will not work ;) Well, seriously,
-we need testers for it.
+ - V4L2_CID_JPEG_CHROMA_SUBSAMPLING,
+ - V4L2_CID_JPEG_RESTART_INTERVAL,
+ - V4L2_CID_JPEG_COMPRESSION_QUALITY,
+ - V4L2_CID_JPEG_ACTIVE_MARKER.
 
-The current code should be doing the same that szap does, and should
-work with both dvbv5-zap and dvbv5-scan. The DISEqC code there is very
-simple, and there's no support for dishpro/bandstacking yet. It is
-probably not hard to add support for it.
+This covers only a part of relevant standard specifications. More
+controls should be added in future if required.
 
-There are still a few things missing there. For example, the current
-code will only use DISEqC satellite #0, as there's no code to change
-the satellite number yet.
+The purpose of V4L2_CID_JPEG_CLASS class is also to replace some
+functionality covered by VIDIOC_S/G_JPEGCOMP ioctls, i.e. the JPEG
+markers presence and compression quality control. The applications
+and drivers should switch from the ioctl to control based API, as
+described in the subsequent patches for the Media API DocBook.
 
-Anyway, testing and patches are welcome!
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   24 ++++++++++++++++++++++++
+ include/linux/videodev2.h        |   24 ++++++++++++++++++++++++
+ 2 files changed, 48 insertions(+), 0 deletions(-)
 
-Regards,
-Mauro
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index da1f4c2..1fd6435 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -353,6 +353,16 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		NULL,
+ 	};
+ 
++	static const char * const jpeg_chroma_subsampling[] = {
++		"4:4:4",
++		"4:2:2",
++		"4:2:0",
++		"4:1:1",
++		"4:1:0",
++		"Gray",
++		NULL,
++	};
++
+ 	switch (id) {
+ 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
+ 		return mpeg_audio_sampling_freq;
+@@ -414,6 +424,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return mpeg_mpeg4_level;
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+ 		return mpeg4_profile;
++	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
++		return jpeg_chroma_subsampling;
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -607,6 +620,14 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+ 	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
+ 
++	/* JPEG encoder controls */
++	/* Keep the order of the 'case's the same as in videodev2.h! */
++	case V4L2_CID_JPEG_CLASS:		return "JPEG Compression Controls";
++	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:	return "Chroma Subsampling";
++	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
++	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
++	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
++
+ 	default:
+ 		return NULL;
+ 	}
+@@ -693,6 +714,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
++	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_RDS_TX_PS_NAME:
+@@ -704,6 +726,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_CLASS:
+ 	case V4L2_CID_FM_TX_CLASS:
+ 	case V4L2_CID_FLASH_CLASS:
++	case V4L2_CID_JPEG_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+@@ -717,6 +740,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		*max = 0xFFFFFF;
+ 		break;
+ 	case V4L2_CID_FLASH_FAULT:
++	case V4L2_CID_JPEG_ACTIVE_MARKER:
+ 		*type = V4L2_CTRL_TYPE_BITMASK;
+ 		break;
+ 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 2965906..a13fd34 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1080,6 +1080,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
++#define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
+ 
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1688,6 +1689,29 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
+ 
++/*  JPEG-class control IDs defined by V4L2 */
++#define V4L2_CID_JPEG_CLASS_BASE		(V4L2_CTRL_CLASS_JPEG | 0x900)
++#define V4L2_CID_JPEG_CLASS			(V4L2_CTRL_CLASS_JPEG | 1)
++
++#define	V4L2_CID_JPEG_CHROMA_SUBSAMPLING	(V4L2_CID_JPEG_CLASS_BASE + 1)
++enum v4l2_jpeg_chroma_subsampling {
++	V4L2_JPEG_CHROMA_SUBSAMPLING_444	= 0,
++	V4L2_JPEG_CHROMA_SUBSAMPLING_422	= 1,
++	V4L2_JPEG_CHROMA_SUBSAMPLING_420	= 2,
++	V4L2_JPEG_CHROMA_SUBSAMPLING_411	= 3,
++	V4L2_JPEG_CHROMA_SUBSAMPLING_410	= 4,
++	V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY	= 5,
++};
++#define	V4L2_CID_JPEG_RESTART_INTERVAL		(V4L2_CID_JPEG_CLASS_BASE + 2)
++#define	V4L2_CID_JPEG_COMPRESSION_QUALITY	(V4L2_CID_JPEG_CLASS_BASE + 3)
++
++#define	V4L2_CID_JPEG_ACTIVE_MARKER		(V4L2_CID_JPEG_CLASS_BASE + 4)
++#define	V4L2_JPEG_ACTIVE_MARKER_APP0		(1 << 0)
++#define	V4L2_JPEG_ACTIVE_MARKER_APP1		(1 << 1)
++#define	V4L2_JPEG_ACTIVE_MARKER_COM		(1 << 16)
++#define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
++#define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
++
+ /*
+  *	T U N I N G
+  */
+-- 
+1.7.1
+
