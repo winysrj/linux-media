@@ -1,61 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:40590 "EHLO arroyo.ext.ti.com"
+Received: from mx1.redhat.com ([209.132.183.28]:47267 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752572Ab2AYPFl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:05:41 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0PF5dGM020856
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 09:05:40 -0600
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH 3/4] davinci: vpif: make request_irq flags as shared
-Date: Wed, 25 Jan 2012 20:35:33 +0530
-Message-ID: <1327503934-28186-4-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1327503934-28186-1-git-send-email-manjunath.hadli@ti.com>
-References: <1327503934-28186-1-git-send-email-manjunath.hadli@ti.com>
+	id S1755385Ab2AFTV3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jan 2012 14:21:29 -0500
+Message-ID: <4F0749B1.7030504@redhat.com>
+Date: Fri, 06 Jan 2012 17:21:21 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Mario Ceresa <mrceresa@gmail.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	V4L Mailing List <linux-media@vger.kernel.org>
+Subject: Re: em28xx: no sound on board 1b80:e309 (sveon stv40)
+References: <CAHVY3enRbcw-xKthuog5LXGMc_2tUAa0+owqbDm+C00mdWhV7w@mail.gmail.com> <CAHVY3emdMwEg9GPg1FMwVat3Xzn5AsoKZgveLvwHDxOFJiVtLA@mail.gmail.com> <CAGoCfixxiG+nxTRpLbvcy5CsktOtKk9k_3qwV4WUUhBHLaGPLQ@mail.gmail.com> <CAHVY3emdOaxQbCaZ1uRHTmVzfJ16aKq9yQedkDRXXowfcZYXCw@mail.gmail.com>
+In-Reply-To: <CAHVY3emdOaxQbCaZ1uRHTmVzfJ16aKq9yQedkDRXXowfcZYXCw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-omap-l138 shares the interrupt between capture and display.
-Make sure we are able to request for the same irq number
-by making a shared irq request.
+On 06-01-2012 17:16, Mario Ceresa wrote:
+> Hello Devin, you're right: here it goes!
 
-Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
----
- drivers/media/video/davinci/vpif_capture.c |    2 +-
- drivers/media/video/davinci/vpif_display.c |    2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+Hi Mario,
 
-diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
-index 010cce4..ad933e0 100644
---- a/drivers/media/video/davinci/vpif_capture.c
-+++ b/drivers/media/video/davinci/vpif_capture.c
-@@ -2191,7 +2191,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	k = 0;
- 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
- 		for (i = res->start; i <= res->end; i++) {
--			if (request_irq(i, vpif_channel_isr, IRQF_DISABLED,
-+			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
- 					"VPIF_Capture",
- 				(void *)(&vpif_obj.dev[k]->channel_id))) {
- 				err = -EBUSY;
-diff --git a/drivers/media/video/davinci/vpif_display.c b/drivers/media/video/davinci/vpif_display.c
-index 6f3eabb..c876c10 100644
---- a/drivers/media/video/davinci/vpif_display.c
-+++ b/drivers/media/video/davinci/vpif_display.c
-@@ -1713,7 +1713,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 	k = 0;
- 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
- 		for (i = res->start; i <= res->end; i++) {
--			if (request_irq(i, vpif_channel_isr, IRQF_DISABLED,
-+			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
- 					"VPIF_Display",
- 				(void *)(&vpif_obj.dev[k]->channel_id))) {
- 				err = -EBUSY;
--- 
-1.6.2.4
+Plese send it with your Signed-off-by:
+
+It is a requirement for merging the patches upstream.
+> 
+> Best,
+> 
+> Mario
+> 
+> On 6 January 2012 19:33, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
+>> On Fri, Jan 6, 2012 at 1:29 PM, Mario Ceresa <mrceresa@gmail.com> wrote:
+>>> Ok boys: just to let you know that everything works now.
+>>>
+>>> thinking that the problem was with the audio input, I noticed that
+>>> card=64 had an amux while card=19 no.
+>>>
+>>> .amux     = EM28XX_AMUX_LINE_IN,
+>>>
+>>> So I tried this card and modified the mplayer options accordingly:
+>>>
+>>> mplayer -tv device=/dev/video0:input=0:norm=PAL:forceaudio:alsa:immediatemode=0:audiorate=48000:amode=1:adevice=hw.2
+>>> tv://
+>>>
+>>> notice the forceaudio parameter that reads the audio even if no source
+>>> is reported from v4l (The same approach with card=19 does not work)
+>>>
+>>> The output was a bit slugglish so I switched off pulse audio control
+>>> of the board (https://bbs.archlinux.org/viewtopic.php?id=114228) and
+>>> now everything is ok!
+>>>
+>>> I hope this will help some lonenly googlers in the future :)
+>>>
+>>> Regards,
+>>>
+>>> Mario
+>>
+>> Hi Mario,
+>>
+>> Since you've spent the time to figure out the details of your
+>> particular hardware, you should really consider submitting a patch to
+>> the em28xx driver which adds your device's USB ID.  That would allow
+>> others who have that hardware to have it work "out of the box" with no
+>> need for figuring out the correct "cardid" value through
+>> experimentation as you had to.
+>>
+>> Cheers,
+>>
+>> Devin
+>>
+>> --
+>> Devin J. Heitmueller - Kernel Labs
+>> http://www.kernellabs.com
 
