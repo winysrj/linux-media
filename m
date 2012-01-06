@@ -1,508 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:40774 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934006Ab2AKV1X (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:27:23 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH 23/23] rm680: Add camera init
-Date: Wed, 11 Jan 2012 23:27:00 +0200
-Message-Id: <1326317220-15339-23-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F0DFE92.80102@iki.fi>
-References: <4F0DFE92.80102@iki.fi>
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:54700 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750894Ab2AFTQl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jan 2012 14:16:41 -0500
+Received: by obcwo16 with SMTP id wo16so2241991obc.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 11:16:40 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAGoCfixxiG+nxTRpLbvcy5CsktOtKk9k_3qwV4WUUhBHLaGPLQ@mail.gmail.com>
+References: <CAHVY3enRbcw-xKthuog5LXGMc_2tUAa0+owqbDm+C00mdWhV7w@mail.gmail.com>
+ <CAHVY3emdMwEg9GPg1FMwVat3Xzn5AsoKZgveLvwHDxOFJiVtLA@mail.gmail.com> <CAGoCfixxiG+nxTRpLbvcy5CsktOtKk9k_3qwV4WUUhBHLaGPLQ@mail.gmail.com>
+From: Mario Ceresa <mrceresa@gmail.com>
+Date: Fri, 6 Jan 2012 20:16:19 +0100
+Message-ID: <CAHVY3emdOaxQbCaZ1uRHTmVzfJ16aKq9yQedkDRXXowfcZYXCw@mail.gmail.com>
+Subject: Re: em28xx: no sound on board 1b80:e309 (sveon stv40)
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: V4L Mailing List <linux-media@vger.kernel.org>
+Content-Type: multipart/mixed; boundary=14dae9340a59734dc304b5e0e360
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+--14dae9340a59734dc304b5e0e360
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-This currently introduces an extra file to the arch/arm/mach-omap2
-directory: board-rm680-camera.c. Keeping the device tree in mind, the
-context of the file could be represented as static data with one exception:
-the external clock to the sensor.
+Hello Devin, you're right: here it goes!
 
-This external clock is provided by the OMAP 3 SoC and required by the
-sensor. The issue is that the clock originates from the ISP and not from
-PRCM block as the other clocks and thus is not supported by the clock
-framework. Otherwise the sensor driver could just clk_get() and clk_enable()
-it, just like the regulators and gpios.
+Best,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
----
- arch/arm/mach-omap2/Makefile             |    3 +-
- arch/arm/mach-omap2/board-rm680-camera.c |  375 ++++++++++++++++++++++++++++++
- arch/arm/mach-omap2/board-rm680.c        |   38 +++
- 3 files changed, 415 insertions(+), 1 deletions(-)
- create mode 100644 arch/arm/mach-omap2/board-rm680-camera.c
+Mario
 
-diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-index 69ab1c0..1444bc5 100644
---- a/arch/arm/mach-omap2/Makefile
-+++ b/arch/arm/mach-omap2/Makefile
-@@ -201,7 +201,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
- obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
- obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
- obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o \
--					   sdram-nokia.o
-+					   sdram-nokia.o \
-+					   board-rm680-camera.o
- obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
- 					   sdram-nokia.o \
- 					   board-rx51-peripherals.o \
-diff --git a/arch/arm/mach-omap2/board-rm680-camera.c b/arch/arm/mach-omap2/board-rm680-camera.c
-new file mode 100644
-index 0000000..5059821
---- /dev/null
-+++ b/arch/arm/mach-omap2/board-rm680-camera.c
-@@ -0,0 +1,375 @@
-+/**
-+ * arch/arm/mach-omap2/board-rm680-camera.c
-+ *
-+ * Copyright (C) 2010--2012 Nokia Corporation
-+ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-+ *
-+ * Based on board-rx71-camera.c by Vimarsh Zutshi
-+ * Based on board-rx51-camera.c by Sakari Ailus
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/gpio.h>
-+#include <linux/i2c.h>
-+#include <linux/mm.h>
-+#include <linux/platform_device.h>
-+#include <linux/videodev2.h>
-+
-+#include <asm/mach-types.h>
-+#include <plat/omap-pm.h>
-+
-+#include <media/omap3isp.h>
-+#include <media/smiapp.h>
-+
-+#include "../../../drivers/media/video/omap3isp/isp.h"
-+#include "devices.h"
-+
-+#define SEC_CAMERA_RESET_GPIO	97
-+
-+#define RM680_PRI_SENSOR	1
-+#define RM680_PRI_LENS		2
-+#define RM680_SEC_SENSOR	3
-+#define MAIN_CAMERA_XCLK	ISP_XCLK_A
-+#define SEC_CAMERA_XCLK		ISP_XCLK_B
-+
-+/*
-+ *
-+ * Main Camera Module EXTCLK
-+ * Used by the sensor and the actuator driver.
-+ *
-+ */
-+static struct camera_xclk {
-+	u32 hz;
-+	u32 lock;
-+	u8 xclksel;
-+} cameras_xclk;
-+
-+static DEFINE_MUTEX(lock_xclk);
-+
-+static int rm680_update_xclk(struct v4l2_subdev *subdev, u32 hz, u32 which,
-+			     u8 xclksel)
-+{
-+	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
-+	int ret;
-+
-+	mutex_lock(&lock_xclk);
-+
-+	if (which == RM680_SEC_SENSOR) {
-+		if (cameras_xclk.xclksel == MAIN_CAMERA_XCLK) {
-+			ret = -EBUSY;
-+			goto done;
-+		}
-+	} else {
-+		if (cameras_xclk.xclksel == SEC_CAMERA_XCLK) {
-+			ret = -EBUSY;
-+			goto done;
-+		}
-+	}
-+
-+	if (hz) {	/* Turn on */
-+		cameras_xclk.lock |= which;
-+		if (cameras_xclk.hz == 0) {
-+			isp->platform_cb.set_xclk(isp, hz, xclksel);
-+			cameras_xclk.hz = hz;
-+			cameras_xclk.xclksel = xclksel;
-+		}
-+	} else {	/* Turn off */
-+		cameras_xclk.lock &= ~which;
-+		if (cameras_xclk.lock == 0) {
-+			isp->platform_cb.set_xclk(isp, 0, xclksel);
-+			cameras_xclk.hz = 0;
-+			cameras_xclk.xclksel = 0;
-+		}
-+	}
-+
-+	ret = cameras_xclk.hz;
-+
-+done:
-+	mutex_unlock(&lock_xclk);
-+	return ret;
-+}
-+
-+/*
-+ *
-+ * Main Camera Sensor
-+ *
-+ */
-+
-+static int rm680_main_camera_set_xclk(struct v4l2_subdev *sd, int hz)
-+{
-+	return rm680_update_xclk(sd, hz, RM680_PRI_SENSOR, MAIN_CAMERA_XCLK);
-+}
-+
-+static struct smiapp_flash_strobe_parms rm680_main_camera_strobe_setup = {
-+	.mode			= 0x0c,
-+	.strobe_width_high_us	= 100000,
-+	.strobe_delay		= 0,
-+	.stobe_start_point	= 0,
-+	.trigger		= 0,
-+};
-+
-+static struct smiapp_platform_data rm696_main_camera_platform_data = {
-+	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
-+	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
-+	.nvm_size		= 16 * 64,
-+	.ext_clk		= (9.6 * 1000 * 1000),
-+	.lanes			= 2,
-+	/* bit rate / ddr / lanes */
-+	.op_sys_clock		= (s64 []){ 796800000 / 2 / 2,
-+					    840000000 / 2 / 2,
-+					    1996800000 / 2 / 2, 0 },
-+	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
-+	.strobe_setup		= &rm680_main_camera_strobe_setup,
-+	.set_xclk		= rm680_main_camera_set_xclk,
-+	.xshutdown		= SMIAPP_NO_XSHUTDOWN,
-+};
-+
-+static struct smiapp_platform_data rm680_main_camera_platform_data = {
-+	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
-+	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
-+	.nvm_size		= 16 * 64,
-+	.ext_clk		= (9.6 * 1000 * 1000),
-+	.lanes			= 2,
-+	.op_sys_clock		= (s64 []){ 840000000 / 2 / 2,
-+					    1334400000 / 2 / 2,
-+					    1593600000 / 2 / 2, 0 },
-+	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
-+	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
-+	.strobe_setup		= &rm680_main_camera_strobe_setup,
-+	.set_xclk		= rm680_main_camera_set_xclk,
-+	.xshutdown		= SMIAPP_NO_XSHUTDOWN,
-+};
-+
-+/*
-+ *
-+ * SECONDARY CAMERA Sensor
-+ *
-+ */
-+
-+#define SEC_CAMERA_XCLK		ISP_XCLK_B
-+
-+static int rm680_sec_camera_set_xclk(struct v4l2_subdev *sd, int hz)
-+{
-+	return rm680_update_xclk(sd, hz, RM680_SEC_SENSOR, SEC_CAMERA_XCLK);
-+}
-+
-+static struct smiapp_platform_data rm696_sec_camera_platform_data = {
-+	.ext_clk		= (10.8 * 1000 * 1000),
-+	.lanes			= 1,
-+	/* bit rate / ddr */
-+	.op_sys_clock		= (s64 []){ 13770000 * 10 / 2, 0 },
-+	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
-+	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
-+	.set_xclk		= rm680_sec_camera_set_xclk,
-+	.xshutdown		= SEC_CAMERA_RESET_GPIO,
-+};
-+
-+static struct smiapp_platform_data rm680_sec_camera_platform_data = {
-+	.ext_clk		= (10.8 * 1000 * 1000),
-+	.lanes			= 1,
-+	/* bit rate / ddr */
-+	.op_sys_clock		= (s64 []){ 11880000 * 10 / 2, 0 },
-+	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
-+	.set_xclk		= rm680_sec_camera_set_xclk,
-+	.xshutdown		= SEC_CAMERA_RESET_GPIO,
-+};
-+
-+/*
-+ *
-+ * Init all the modules
-+ *
-+ */
-+
-+#define CAMERA_I2C_BUS_NUM		2
-+#define AD5836_I2C_BUS_NUM		2
-+#define AS3645A_I2C_BUS_NUM		2
-+
-+static struct i2c_board_info rm696_camera_i2c_devices[] = {
-+	{
-+		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
-+		.platform_data = &rm696_main_camera_platform_data,
-+	},
-+	{
-+		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
-+		.platform_data = &rm696_sec_camera_platform_data,
-+	},
-+};
-+
-+static struct i2c_board_info rm680_camera_i2c_devices[] = {
-+	{
-+		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
-+		.platform_data = &rm680_main_camera_platform_data,
-+	},
-+	{
-+		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
-+		.platform_data = &rm680_sec_camera_platform_data,
-+	},
-+};
-+
-+static struct isp_subdev_i2c_board_info rm696_camera_primary_subdevs[] = {
-+	{
-+		.board_info = &rm696_camera_i2c_devices[0],
-+		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct isp_subdev_i2c_board_info rm696_camera_secondary_subdevs[] = {
-+	{
-+		.board_info = &rm696_camera_i2c_devices[1],
-+		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct isp_subdev_i2c_board_info rm680_camera_primary_subdevs[] = {
-+	{
-+		.board_info = &rm680_camera_i2c_devices[0],
-+		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct isp_subdev_i2c_board_info rm680_camera_secondary_subdevs[] = {
-+	{
-+		.board_info = &rm680_camera_i2c_devices[1],
-+		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct isp_v4l2_subdevs_group rm696_camera_subdevs[] = {
-+	{
-+		.subdevs = rm696_camera_primary_subdevs,
-+		.interface = ISP_INTERFACE_CSI2A_PHY2,
-+		.bus = { .csi2 = {
-+			.crc		= 1,
-+			.vpclk_div	= 1,
-+			.lanecfg	= {
-+				.clk = {
-+					.pol = 1,
-+					.pos = 2,
-+				},
-+				.data[0] = {
-+					.pol = 1,
-+					.pos = 1,
-+				},
-+				.data[1] = {
-+					.pol = 1,
-+					.pos = 3,
-+				},
-+			},
-+		} },
-+	},
-+	{
-+		.subdevs = rm696_camera_secondary_subdevs,
-+		.interface = ISP_INTERFACE_CCP2B_PHY1,
-+		.bus = { .ccp2 = {
-+			.strobe_clk_pol	= 0,
-+			.crc		= 0,
-+			.ccp2_mode	= 0,
-+			.phy_layer	= 0,
-+			.vpclk_div	= 2,
-+			.lanecfg	= {
-+				.clk = {
-+					.pol = 0,
-+					.pos = 1,
-+				},
-+				.data[0] = {
-+					.pol = 0,
-+					.pos = 2,
-+				},
-+			},
-+		} },
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct isp_v4l2_subdevs_group rm680_camera_subdevs[] = {
-+	{
-+		.subdevs = rm680_camera_primary_subdevs,
-+		.interface = ISP_INTERFACE_CSI2A_PHY2,
-+		.bus = { .csi2 = {
-+			.crc		= 1,
-+			.vpclk_div	= 1,
-+			.lanecfg	= {
-+				.clk = {
-+					.pol = 1,
-+					.pos = 2,
-+				},
-+				.data[0] = {
-+					.pol = 1,
-+					.pos = 3,
-+				},
-+				.data[1] = {
-+					.pol = 1,
-+					.pos = 1,
-+				},
-+			},
-+		} },
-+	},
-+	{
-+		.subdevs = rm680_camera_secondary_subdevs,
-+		.interface = ISP_INTERFACE_CCP2B_PHY1,
-+		.bus = { .ccp2 = {
-+			.strobe_clk_pol	= 0,
-+			.crc		= 0,
-+			.ccp2_mode	= 0,
-+			.phy_layer	= 0,
-+			.vpclk_div	= 2,
-+			.lanecfg	= {
-+				.clk = {
-+					.pol = 0,
-+					.pos = 1,
-+				},
-+				.data[0] = {
-+					.pol = 0,
-+					.pos = 2,
-+				},
-+			},
-+		} },
-+	},
-+	{ NULL, 0, },
-+};
-+
-+static struct isp_platform_data rm696_isp_platform_data = {
-+	.subdevs = rm696_camera_subdevs,
-+};
-+
-+static struct isp_platform_data rm680_isp_platform_data = {
-+	.subdevs = rm680_camera_subdevs,
-+};
-+
-+static inline int board_is_rm680(void)
-+{
-+	return (system_rev & 0x00f0) == 0x0020;
-+}
-+
-+void __init rm680_camera_init(void)
-+{
-+	struct isp_platform_data *pdata;
-+
-+	if (board_is_rm680())
-+		pdata = &rm680_isp_platform_data;
-+	else
-+		pdata = &rm696_isp_platform_data;
-+
-+	if (omap3_init_camera(pdata) < 0)
-+		pr_warn("%s: unable to register camera platform device\n",
-+			__func__);
-+}
-diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
-index a5bcc75..2c5c4db 100644
---- a/arch/arm/mach-omap2/board-rm680.c
-+++ b/arch/arm/mach-omap2/board-rm680.c
-@@ -66,6 +66,39 @@ static struct platform_device rm680_vemmc_device = {
- 	},
- };
- 
-+#define REGULATOR_INIT_DATA(_name, _min, _max, _apply, _ops_mask) \
-+	static struct regulator_init_data _name##_data = { \
-+		.constraints = { \
-+			.name                   = #_name, \
-+			.min_uV                 = _min, \
-+			.max_uV                 = _max, \
-+			.apply_uV               = _apply, \
-+			.valid_modes_mask       = REGULATOR_MODE_NORMAL | \
-+						REGULATOR_MODE_STANDBY, \
-+			.valid_ops_mask         = _ops_mask, \
-+		}, \
-+		.num_consumer_supplies  = ARRAY_SIZE(_name##_consumers), \
-+		.consumer_supplies      = _name##_consumers, \
-+}
-+#define REGULATOR_INIT_DATA_FIXED(_name, _voltage) \
-+	REGULATOR_INIT_DATA(_name, _voltage, _voltage, true, \
-+				REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_MODE)
-+
-+static struct regulator_consumer_supply rm680_vaux2_consumers[] = {
-+	REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),	/* OMAP ISP */
-+	REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),	/* OMAP ISP */
-+	REGULATOR_SUPPLY("vaux2", NULL),
-+};
-+REGULATOR_INIT_DATA_FIXED(rm680_vaux2, 1800000);
-+
-+static struct regulator_consumer_supply rm680_vaux3_consumers[] = {
-+	REGULATOR_SUPPLY("VANA", "2-0037"),	/* Main Camera Sensor */
-+	REGULATOR_SUPPLY("VANA", "2-000e"),	/* Main Camera Lens */
-+	REGULATOR_SUPPLY("VANA", "2-0010"),	/* Front Camera */
-+	REGULATOR_SUPPLY("vaux3", NULL),
-+};
-+REGULATOR_INIT_DATA_FIXED(rm680_vaux3, 2800000);
-+
- static struct platform_device *rm680_peripherals_devices[] __initdata = {
- 	&rm680_vemmc_device,
- };
-@@ -82,6 +115,8 @@ static struct twl4030_gpio_platform_data rm680_gpio_data = {
- static struct twl4030_platform_data rm680_twl_data = {
- 	.gpio			= &rm680_gpio_data,
- 	/* add rest of the children here */
-+	.vaux2			= &rm680_vaux2_data,
-+	.vaux3			= &rm680_vaux3_data,
- };
- 
- static void __init rm680_i2c_init(void)
-@@ -129,6 +164,8 @@ static struct omap_board_mux board_mux[] __initdata = {
- };
- #endif
- 
-+void rm680_camera_init(void);
-+
- static void __init rm680_init(void)
- {
- 	struct omap_sdrc_params *sdrc_params;
-@@ -141,6 +178,7 @@ static void __init rm680_init(void)
- 
- 	usb_musb_init(NULL);
- 	rm680_peripherals_init();
-+	rm680_camera_init();
- }
- 
- MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
--- 
-1.7.2.5
+On 6 January 2012 19:33, Devin Heitmueller <dheitmueller@kernellabs.com> wr=
+ote:
+> On Fri, Jan 6, 2012 at 1:29 PM, Mario Ceresa <mrceresa@gmail.com> wrote:
+>> Ok boys: just to let you know that everything works now.
+>>
+>> thinking that the problem was with the audio input, I noticed that
+>> card=3D64 had an amux while card=3D19 no.
+>>
+>> .amux =A0 =A0 =3D EM28XX_AMUX_LINE_IN,
+>>
+>> So I tried this card and modified the mplayer options accordingly:
+>>
+>> mplayer -tv device=3D/dev/video0:input=3D0:norm=3DPAL:forceaudio:alsa:im=
+mediatemode=3D0:audiorate=3D48000:amode=3D1:adevice=3Dhw.2
+>> tv://
+>>
+>> notice the forceaudio parameter that reads the audio even if no source
+>> is reported from v4l (The same approach with card=3D19 does not work)
+>>
+>> The output was a bit slugglish so I switched off pulse audio control
+>> of the board (https://bbs.archlinux.org/viewtopic.php?id=3D114228) and
+>> now everything is ok!
+>>
+>> I hope this will help some lonenly googlers in the future :)
+>>
+>> Regards,
+>>
+>> Mario
+>
+> Hi Mario,
+>
+> Since you've spent the time to figure out the details of your
+> particular hardware, you should really consider submitting a patch to
+> the em28xx driver which adds your device's USB ID. =A0That would allow
+> others who have that hardware to have it work "out of the box" with no
+> need for figuring out the correct "cardid" value through
+> experimentation as you had to.
+>
+> Cheers,
+>
+> Devin
+>
+> --
+> Devin J. Heitmueller - Kernel Labs
+> http://www.kernellabs.com
 
+--14dae9340a59734dc304b5e0e360
+Content-Type: text/x-patch; charset=US-ASCII; name="0001-Added-model-Sveon-STV40.patch"
+Content-Disposition: attachment;
+	filename="0001-Added-model-Sveon-STV40.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gx3l36u30
+
+RnJvbSBkZDMzNDY2M2IyMDJlYjA1NjliNTA2MjczYzc1ZjNhMGVkZTZiODAzIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBNYXJpbyBDZXJlc2EgPG1yY2VyZXNhQGdtYWlsLmNvbT4KRGF0
+ZTogRnJpLCA2IEphbiAyMDEyIDIwOjAwOjEyICswMTAwClN1YmplY3Q6IFtQQVRDSF0gQWRkZWQg
+bW9kZWwgU3Zlb24gU1RWNDAKCi0tLQogbGludXgvZHJpdmVycy9tZWRpYS92aWRlby9lbTI4eHgv
+ZW0yOHh4LWNhcmRzLmMgfCAgICAyICsrCiAxIGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygr
+KSwgMCBkZWxldGlvbnMoLSkKCmRpZmYgLS1naXQgYS9saW51eC9kcml2ZXJzL21lZGlhL3ZpZGVv
+L2VtMjh4eC9lbTI4eHgtY2FyZHMuYyBiL2xpbnV4L2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4
+L2VtMjh4eC1jYXJkcy5jCmluZGV4IDZjYWIyMmQuLmQ3OWM1ZDEgMTAwNjQ0Ci0tLSBhL2xpbnV4
+L2RyaXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1jYXJkcy5jCisrKyBiL2xpbnV4L2Ry
+aXZlcnMvbWVkaWEvdmlkZW8vZW0yOHh4L2VtMjh4eC1jYXJkcy5jCkBAIC0yMDMzLDYgKzIwMzMs
+OCBAQCBzdHJ1Y3QgdXNiX2RldmljZV9pZCBlbTI4eHhfaWRfdGFibGVbXSA9IHsKIAkJCS5kcml2
+ZXJfaW5mbyA9IEVNMjgxNzRfQk9BUkRfUENUVl80NjBFIH0sCiAJeyBVU0JfREVWSUNFKDB4MjA0
+MCwgMHgxNjA1KSwKIAkJCS5kcml2ZXJfaW5mbyA9IEVNMjg4NF9CT0FSRF9IQVVQUEFVR0VfV0lO
+VFZfSFZSXzkzMEMgfSwKKwl7IFVTQl9ERVZJQ0UoMHgxYjgwLCAweGUzMDkpLCAvKiBTdmVvbiBT
+VFY0MCAqLworCQkJLmRyaXZlcl9pbmZvID0gRU0yODYwX0JPQVJEX0VBU1lDQVAgfSwgCiAJeyB9
+LAogfTsKIE1PRFVMRV9ERVZJQ0VfVEFCTEUodXNiLCBlbTI4eHhfaWRfdGFibGUpOwotLSAKMS43
+LjcuNQoK
+--14dae9340a59734dc304b5e0e360--
