@@ -1,52 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:46781 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:20710 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750746Ab2AOVOm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 16:14:42 -0500
-Message-ID: <4F1341C0.2070608@iki.fi>
-Date: Sun, 15 Jan 2012 23:14:40 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1754248Ab2AFTMK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jan 2012 14:12:10 -0500
+Message-ID: <4F07477C.50900@redhat.com>
+Date: Fri, 06 Jan 2012 17:11:56 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Oliver Endriss <o.endriss@gmx.de>
 CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
-References: <4F08385E.7050602@redhat.com> <4F0CAF53.3090802@iki.fi> <4F0CB512.7010501@redhat.com> <4F131CD8.2060602@iki.fi> <4F13312B.8060005@iki.fi> <4F13404D.2020001@redhat.com>
-In-Reply-To: <4F13404D.2020001@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Subject: Re: [PATCH] drxk: Fix regression introduced by commit '[media] Remove
+ Annex A/C selection via roll-off factor'
+References: <201201041945.58852@orion.escape-edv.de>
+In-Reply-To: <201201041945.58852@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/15/2012 11:08 PM, Mauro Carvalho Chehab wrote:
-> Em 15-01-2012 18:03, Antti Palosaari escreveu:
->> On 01/15/2012 08:37 PM, Antti Palosaari wrote:
->>> On 01/11/2012 12:00 AM, Mauro Carvalho Chehab wrote:
->>>> On 10-01-2012 19:36, Antti Palosaari wrote:
+On 04-01-2012 16:45, Oliver Endriss wrote:
+> Fix regression introduced by commit '[media] Remove Annex A/C selection via roll-off factor'
+> As a result of this commit, DVB-T tuning did not work anymore.
+> 
+> Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
+> 
+> diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+> index 36e1c82..13f22a1 100644
+> --- a/drivers/media/dvb/frontends/drxk_hard.c
+> +++ b/drivers/media/dvb/frontends/drxk_hard.c
+> @@ -6235,6 +6235,8 @@ static int drxk_set_parameters(struct dvb_frontend *fe)
+>  	case SYS_DVBC_ANNEX_C:
+>  		state->m_itut_annex_c = true;
+>  		break;
+> +	case SYS_DVBT:
+> +		break;
+>  	default:
+>  		return -EINVAL;
+>  	}
+> 
+Hi Oliver,
 
->> That seems to be due to cxd2820r bug introduced by multi-frontend to single-frontend change.
->
-> Ok. Could you please fix it and send us a patch?
+Thanks for the patch! 
 
-I already sent it and few others too. CXD2820R is still missing HAS_LOCK 
-bit in DVB-C mode... This change introduces too many bugs as I have been 
-fixing those whole day and not even found all yet.
+It become obsoleted by the patch that converted the driver
+to create just one frontend:
+	http://git.linuxtv.org/media_tree.git/commitdiff/fa4b2a171d42ffc512b3a86922ad68e1355eb17a
 
->> But now I got that error:
->> [crope@localhost code]$ ./tmp/v4l-utils/utils/dvb/dvb-fe-tool --set-delsys=DVBC/ANNEX_A
->> Device or resource busy while opening /dev/dvb/adapter0/frontend0
->> Changing delivery system to: DVBC/ANNEX_A
->> Segmentation fault (core dumped)
->
-> There was a bug at the error code handling on dvb-fe-tool: basically, if it can't open
-> a device, it were using a NULL pointer. It was likely fixed by this commit:
->
-> http://git.linuxtv.org/v4l-utils.git/commit/1f669eed5433d17df4d8fb1fa43d2886f99d3991
+While I don't have DVB-T signal here, the logs were showing that the driver is
+switching properly between DVB-T and DVB-C.
 
-OK, will try.
+Yet, I'd appreciate if you could test it with a real signal,
+for us to be 100% sure that everything is working as expected.
 
-Thanks
-Antti
-
-
--- 
-http://palosaari.fi/
+Thanks!
+Mauro
