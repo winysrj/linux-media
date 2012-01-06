@@ -1,99 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:46693 "EHLO
-	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755165Ab2A0O1e convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jan 2012 09:27:34 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39560 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758483Ab2AFK0V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 05:26:21 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC 07/17] v4l: Add pixelrate to struct v4l2_mbus_framefmt
+Date: Fri, 6 Jan 2012 11:26:40 +0100
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1324412889-17961-7-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <00de01ccdce1$e7c8a360$b759ea20$%szyprowski@samsung.com>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
-	<1327568457-27734-13-git-send-email-m.szyprowski@samsung.com>
-	<CADMYwHw1B4RNV_9BqAg_M70da=g69Z3kyo5Cr6izCMwJ9LAtvA@mail.gmail.com>
-	<00de01ccdce1$e7c8a360$b759ea20$%szyprowski@samsung.com>
-Date: Fri, 27 Jan 2012 08:27:33 -0600
-Message-ID: <CAO8GWqnQg-W=TEc+CUc8hs=GrdCa9XCCWcedQx34cqURhNwNwA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 12/15] drivers: add Contiguous Memory Allocator
-From: "Clark, Rob" <rob@ti.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Ohad Ben-Cohen <ohad@wizery.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	linux-kernel@vger.kernel.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201061126.40692.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/1/27 Marek Szyprowski <m.szyprowski@samsung.com>:
-> Hi Ohad,
->
-> On Friday, January 27, 2012 10:44 AM Ohad Ben-Cohen wrote:
->
->> With v19, I can't seem to allocate big regions anymore (e.g. 101MiB).
->> In particular, this seems to fail:
->>
->> On Thu, Jan 26, 2012 at 11:00 AM, Marek Szyprowski
->> <m.szyprowski@samsung.com> wrote:
->> > +static int cma_activate_area(unsigned long base_pfn, unsigned long count)
->> > +{
->> > +       unsigned long pfn = base_pfn;
->> > +       unsigned i = count >> pageblock_order;
->> > +       struct zone *zone;
->> > +
->> > +       WARN_ON_ONCE(!pfn_valid(pfn));
->> > +       zone = page_zone(pfn_to_page(pfn));
->> > +
->> > +       do {
->> > +               unsigned j;
->> > +               base_pfn = pfn;
->> > +               for (j = pageblock_nr_pages; j; --j, pfn++) {
->> > +                       WARN_ON_ONCE(!pfn_valid(pfn));
->> > +                       if (page_zone(pfn_to_page(pfn)) != zone)
->> > +                               return -EINVAL;
->>
->> The above WARN_ON_ONCE is triggered, and then the conditional is
->> asserted (page_zone() retuns a "Movable" zone, whereas zone is
->> "Normal") and the function fails.
->>
->> This happens to me on OMAP4 with your 3.3-rc1-cma-v19 branch (and a
->> bunch of remoteproc/rpmsg patches).
->>
->> Do big allocations work for you ?
->
-> I've tested it with 256MiB on Exynos4 platform. Could you check if the
-> problem also appears on 3.2-cma-v19 branch (I've uploaded it a few hours
-> ago) and 3.2-cma-v18? Both are available on our public repo:
-> git://git.infradead.org/users/kmpark/linux-samsung/
->
-> The above code has not been changed since v16, so I'm really surprised
-> that it causes problems. Maybe the memory configuration or layout has
-> been changed in 3.3-rc1 for OMAP4?
+Hi Sakari,
 
-is highmem still an issue?  I remember hitting this WARN_ON_ONCE() but
-went away after I switched to a 2g/2g vm split (which avoids highmem)
+Thanks for the patch.
 
-BR,
--R
+On Tuesday 20 December 2011 21:27:59 Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> Pixelrate is an essential part of the image data parameters. Add this.
+> Together, the current parameters also define the frame rate.
+> 
+> Sensors do not have a concept of frame rate; pixelrate is much more
+> meaningful in this context. Also, it is best to combine the pixelrate with
+> the other format parameters since there are dependencies between them.
+>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/subdev-formats.xml |   10 +++++++++-
+>  include/linux/v4l2-mediabus.h                      |    4 +++-
+>  2 files changed, 12 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> b/Documentation/DocBook/media/v4l/subdev-formats.xml index
+> 49c532e..a6a6630 100644
+> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> @@ -35,7 +35,15 @@
+>  	</row>
+>  	<row>
+>  	  <entry>__u32</entry>
+> -	  <entry><structfield>reserved</structfield>[7]</entry>
+> +	  <entry><structfield>pixelrate</structfield></entry>
+> +	  <entry>Pixel rate in kp/s.
 
-> Best regards
-> --
-> Marek Szyprowski
-> Samsung Poland R&D Center
->
->
->
->
-> _______________________________________________
-> Linaro-mm-sig mailing list
-> Linaro-mm-sig@lists.linaro.org
-> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
+kPix/s or kPixel/s ?
+
+> This clock is the maximum rate at
+
+Is it really a clock ?
+
+> +	  which pixels are transferred on the bus. The
+> +	  <structfield>pixelrate</structfield> field is
+> +	  read-only.</entry>
+
+Does that mean that userspace isn't required to propagate the value down the 
+pipeline when configuring it ? I'm fine with that, but it should probably be 
+documented explictly somewhere to make sure that drivers don't rely on it.
+
+> +	</row>
+> +	<row>
+> +	  <entry>__u32</entry>
+> +	  <entry><structfield>reserved</structfield>[6]</entry>
+>  	  <entry>Reserved for future extensions. Applications and drivers must
+>  	  set the array to zero.</entry>
+>  	</row>
+> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+> index 5ea7f75..35c6b96 100644
+> --- a/include/linux/v4l2-mediabus.h
+> +++ b/include/linux/v4l2-mediabus.h
+> @@ -101,6 +101,7 @@ enum v4l2_mbus_pixelcode {
+>   * @code:	data format code (from enum v4l2_mbus_pixelcode)
+>   * @field:	used interlacing type (from enum v4l2_field)
+>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+> + * @pixel_clock: pixel clock, in kHz
+
+I think you forgot to update the comment.
+
+>   */
+>  struct v4l2_mbus_framefmt {
+>  	__u32			width;
+> @@ -108,7 +109,8 @@ struct v4l2_mbus_framefmt {
+>  	__u32			code;
+>  	__u32			field;
+>  	__u32			colorspace;
+> -	__u32			reserved[7];
+> +	__u32			pixelrate;
+> +	__u32			reserved[6];
+>  };
+> 
+>  #endif
+
+-- 
+Regards,
+
+Laurent Pinchart
