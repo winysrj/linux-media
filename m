@@ -1,45 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:37313 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751379Ab2AJIMQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 03:12:16 -0500
-Received: by werm1 with SMTP id m1so3252273wer.19
-        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 00:12:14 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4F0B6480.30900@kaiser-linux.li>
-References: <CADR1r6jbuGD5hecgC-gzVda1G=vCcOn4oMsf5TxcyEVWsWdVuQ@mail.gmail.com>
-	<01cc01ccce54$4f9e9770$eedbc650$@coexsi.fr>
-	<CADR1r6iKj7MrTVx4aObbMUVswwT-8LMgGR=BVtpX9r+PKWzw9g@mail.gmail.com>
-	<4F0B6480.30900@kaiser-linux.li>
-Date: Tue, 10 Jan 2012 09:12:14 +0100
-Message-ID: <CADR1r6jR+zrWMJoq9zKKVw+ucjFCc4BshfxZxhPoKfNduiFx-w@mail.gmail.com>
-Subject: Re: [DVB Digital Devices Cine CT V6] status support
-From: Martin Herrman <martin.herrman@gmail.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:54705 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030474Ab2AFSPD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 13:15:03 -0500
+Received: by eekc4 with SMTP id c4so1234218eek.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 10:15:02 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH/RFC v2 3/4] gspca: sonixj: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+Date: Fri,  6 Jan 2012 19:14:41 +0100
+Message-Id: <1325873682-3754-4-git-send-email-snjw23@gmail.com>
+In-Reply-To: <4EBECD11.8090709@gmail.com>
+References: <4EBECD11.8090709@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/1/9 Thomas Kaiser <linux-dvb@kaiser-linux.li>:
+The JPEG compression quality value can currently be read using the
+VIDIOC_G_JPEGCOMP ioctl. As the quality field of struct v4l2_jpgecomp
+is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY
+control, so after the deprecation period VIDIOC_G_JPEGCOMP ioctl
+handler can be removed, leaving the control the only user interface
+for retrieving the compression quality.
 
-> Hello Martin
->
-> I use the DD Cine CT V6 with DVB-C. It works without problems.
-> I got the driver before Oliver integrated it in his tree. Therefor I did not
-> compile Olivers tree, yet.
->
-> At the moment I run the card on Ubuntu 11.10 with kernel 3.0.0-14.
->
-> Hope this helps.
->
-> Thomas
+Cc: Jean-Francois Moine <moinejf@free.fr>
+Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
+---
+For completeness V4L2_CID_JPEG_ACTIVE_MARKER control might be 
+also added.
+---
+ drivers/media/video/gspca/sonixj.c |   23 +++++++++++++++++++++++
+ 1 files changed, 23 insertions(+), 0 deletions(-)
 
-Hi Thomas,
+diff --git a/drivers/media/video/gspca/sonixj.c b/drivers/media/video/gspca/sonixj.c
+index c55d667..c148081 100644
+--- a/drivers/media/video/gspca/sonixj.c
++++ b/drivers/media/video/gspca/sonixj.c
+@@ -45,6 +45,7 @@ enum e_ctrl {
+ 	SHARPNESS,
+ 	ILLUM,
+ 	FREQ,
++	QUALITY,
+ 	NCTRLS		/* number of controls */
+ };
+ 
+@@ -126,6 +127,7 @@ static void qual_upd(struct work_struct *work);
+ #define DEF_EN		0x80	/* defect pixel by 0: soft, 1: hard */
+ 
+ /* V4L2 controls supported by the driver */
++static int getjpegqual(struct gspca_dev *gspca_dev, s32 *val);
+ static void setbrightness(struct gspca_dev *gspca_dev);
+ static void setcontrast(struct gspca_dev *gspca_dev);
+ static void setcolors(struct gspca_dev *gspca_dev);
+@@ -286,6 +288,19 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
+ 	    },
+ 	    .set_control = setfreq
+ 	},
++[QUALITY] = {
++	    {
++		.id	 = V4L2_CID_JPEG_COMPRESSION_QUALITY,
++		.type    = V4L2_CTRL_TYPE_INTEGER,
++		.name    = "Compression Quality",
++		.minimum = QUALITY_MIN,
++		.maximum = QUALITY_MAX,
++		.step    = 1,
++		.default_value = QUALITY_DEF,
++		.flags	 = V4L2_CTRL_FLAG_READ_ONLY,
++	    },
++	    .get = getjpegqual
++	},
+ };
+ 
+ /* table of the disabled controls */
+@@ -2960,6 +2975,14 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+ 	return 0;
+ }
+ 
++static int getjpegqual(struct gspca_dev *gspca_dev, s32 *val)
++{
++	struct sd *sd = (struct sd *) gspca_dev;
++
++	*val = sd->quality;
++	return 0;
++}
++
+ static int sd_querymenu(struct gspca_dev *gspca_dev,
+ 			struct v4l2_querymenu *menu)
+ {
+-- 
+1.7.1
 
-that is very good news, thanks a lot for the confirmation. Time to
-order one myself!
-
-Regards,
-
-Martin
