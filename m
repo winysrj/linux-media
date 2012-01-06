@@ -1,99 +1,268 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:62574 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751166Ab2AFQUC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 11:20:02 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI passthrough ioctls on partition devices)
-Date: Fri, 6 Jan 2012 16:19:43 +0000
-Cc: Paolo Bonzini <pbonzini@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
-	linux-kernel@vger.kernel.org, security@kernel.org,
-	pmatouse@redhat.com, agk@redhat.com, jbottomley@parallels.com,
-	mchristi@redhat.com, msnitzer@redhat.com,
-	Christoph Hellwig <hch@lst.de>
-References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
-In-Reply-To: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:46176 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751751Ab2AFKAo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 05:00:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC 13/17] omap3isp: Configure CSI-2 phy based on platform data
+Date: Fri, 6 Jan 2012 11:01:02 +0100
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-13-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1324412889-17961-13-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201061619.43584.arnd@arndb.de>
+Message-Id: <201201061101.02843.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 05 January 2012, Linus Torvalds wrote:
+Hi Sakari,
 
-> And finally, ENOIOCTLCMD is a way to say ENOTTY in a sane manner, and
-> will now be turned into ENOTTY for the user space return (not EINVAL -
-> I have no idea where that idiocy came from, but it's clearly confused,
-> although it's also clearly very old).
+Thanks for the patch.
 
-To give some background here: While I did a lot of changes to the
-compat ioctl code over the years, I never touched the EINVAL/ENOTTY
-logic out of fear of breaking things further. Your patch is probably
-the right answer here and we should have done it long ago.
+On Tuesday 20 December 2011 21:28:05 Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> Configure CSI-2 phy based on platform data in the ISP driver rather than in
+> platform code.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/omap3isp/isp.c       |   38 ++++++++++++--
+>  drivers/media/video/omap3isp/isp.h       |    3 -
+>  drivers/media/video/omap3isp/ispcsiphy.c |   83 +++++++++++++++++++++++----
+>  drivers/media/video/omap3isp/ispcsiphy.h |    4 ++
+>  4 files changed, 111 insertions(+), 17 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index b818cac..6020fd7 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -737,7 +737,7 @@ static int isp_pipeline_enable(struct isp_pipeline
+> *pipe, struct isp_device *isp = pipe->output->isp;
+>  	struct media_entity *entity;
+>  	struct media_pad *pad;
+> -	struct v4l2_subdev *subdev;
+> +	struct v4l2_subdev *subdev = NULL, *prev_subdev;
+>  	unsigned long flags;
+>  	int ret;
+> 
+> @@ -759,11 +759,41 @@ static int isp_pipeline_enable(struct isp_pipeline
+> *pipe, break;
+> 
+>  		entity = pad->entity;
+> +		prev_subdev = subdev;
+>  		subdev = media_entity_to_v4l2_subdev(entity);
+> 
+> -		ret = v4l2_subdev_call(subdev, video, s_stream, mode);
+> -		if (ret < 0 && ret != -ENOIOCTLCMD)
+> -			return ret;
+> +		/* Configure CSI-2 receiver based on sensor format. */
+> +		if (prev_subdev == &isp->isp_csi2a.subdev
+> +		    || prev_subdev == &isp->isp_csi2c.subdev) {
+> +			struct v4l2_subdev_format fmt;
+> +
+> +			fmt.pad = pad->index;
+> +			fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +			ret = v4l2_subdev_call(subdev, pad, get_fmt,
+> +					       NULL, &fmt);
+> +			if (ret < 0)
+> +				return -EPIPE;
+> +
+> +			ret = omap3isp_csiphy_config(
+> +				isp, prev_subdev, subdev,
+> +				&fmt.format);
+> +			if (ret < 0)
+> +				return -EPIPE;
+> +
+> +			/* Start CSI-2 after configuration. */
+> +			ret = v4l2_subdev_call(prev_subdev, video,
+> +					       s_stream, mode);
+> +			if (ret < 0 && ret != -ENOIOCTLCMD)
+> +				return ret;
+> +		}
+> +
+> +		/* Start any other subdev except the CSI-2 receivers. */
+> +		if (subdev != &isp->isp_csi2a.subdev
+> +		    && subdev != &isp->isp_csi2c.subdev) {
+> +			ret = v4l2_subdev_call(subdev, video, s_stream, mode);
+> +			if (ret < 0 && ret != -ENOIOCTLCMD)
+> +				return ret;
+> +		}
 
-> This fixes the core files I noticed. It removes the insane
-> complaints from the compat_ioctl() (which would complain if you
-> returned ENOIOCTLCMD after an ioctl translation - the reason that is
-> totally insane is that somebody might use an ioctl on the wrong kind
-> of file descriptor, so even if it was translated perfectly fine,
-> ENOIOCTLCMD is a perfectly fine error return and shouldn't cause
-> warnings - and that allows us to remove stupid crap from the socket
-> ioctl code).
+What about moving this to the CSI2 s_stream subdev operation ?
 
-Now this behavior was entirely intentional. ENOIOCTLCMD was introduced
-explicitly so we could tell the difference between compat_ioctl handlers
-saying "I don't know how to translate this but common code might know"
-(ENOIOCTLCMD) and "I know that this is not a valid command code here"
-(ENOTTY plus whatever a broken driver might return).
+> 
+>  		if (subdev == &isp->isp_ccdc.subdev) {
+>  			v4l2_subdev_call(&isp->isp_aewb.subdev, video,
+> diff --git a/drivers/media/video/omap3isp/isp.h
+> b/drivers/media/video/omap3isp/isp.h index 705946e..c5935ae 100644
+> --- a/drivers/media/video/omap3isp/isp.h
+> +++ b/drivers/media/video/omap3isp/isp.h
+> @@ -126,9 +126,6 @@ struct isp_reg {
+> 
+>  struct isp_platform_callback {
+>  	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
+> -	int (*csiphy_config)(struct isp_csiphy *phy,
+> -			     struct isp_csiphy_dphy_cfg *dphy,
+> -			     struct isp_csiphy_lanes_cfg *lanes);
+>  	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
+>  };
+> 
+> diff --git a/drivers/media/video/omap3isp/ispcsiphy.c
+> b/drivers/media/video/omap3isp/ispcsiphy.c index 5be37ce..f027ece 100644
+> --- a/drivers/media/video/omap3isp/ispcsiphy.c
+> +++ b/drivers/media/video/omap3isp/ispcsiphy.c
+> @@ -28,6 +28,8 @@
+>  #include <linux/device.h>
+>  #include <linux/regulator/consumer.h>
+> 
+> +#include "../../../../arch/arm/mach-omap2/control.h"
+> +
 
-The distinction is used in two places:
+#include <mach/control.h>
 
-1. To let device drivers return early from fops->compat_ioctl when
-they want to avoid the overhead from searching the COMPATIBLE_IOCTL()
-table and from the (formerly large) switch statement in do_ioctl_trans(),
-or when they want to make sure that the common translation is not
-called. We have some really tricky bits in the socket code where
-the crazy SIOCDEVPRIVATE needs to be handled specially by some drivers
-while the majority can use the default siocdevprivate_ioctl() function.
+(untested) ?
 
-2. To return from do_ioctl_trans() when we know that there is no
-translation for the command number, so that the we can write a warning
-to the console (which you have now removed). This was initially more
-useful back when do_ioctl_trans() knew about practically all command
-numbers, but we have gradually moved all handlers into device drivers
-where they belong, and that has caused the problem that we get warnings
-whenever a user attempts an ioctl on a device that does not handle the
-command even when all the correct devices that support the command also
-have a compat handler. The common way we handle those is to add an
-IGNORE_IOCTL() entry for a command that repeatedly shows up in logs
-that way and is known to be handled correctly.
+>  #include "isp.h"
+>  #include "ispreg.h"
+>  #include "ispcsiphy.h"
+> @@ -138,15 +140,78 @@ static void csiphy_dphy_config(struct isp_csiphy
+> *phy) isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
+>  }
+> 
+> -static int csiphy_config(struct isp_csiphy *phy,
+> -			 struct isp_csiphy_dphy_cfg *dphy,
+> -			 struct isp_csiphy_lanes_cfg *lanes)
+> +/*
+> + * TCLK values are OK at their reset values
+> + */
+> +#define TCLK_TERM	0
+> +#define TCLK_MISS	1
+> +#define TCLK_SETTLE	14
+> +
+> +int omap3isp_csiphy_config(struct isp_device *isp,
+> +			   struct v4l2_subdev *csi2_subdev,
+> +			   struct v4l2_subdev *sensor,
+> +			   struct v4l2_mbus_framefmt *sensor_fmt)
+>  {
+> +	struct isp_v4l2_subdevs_group *subdevs = sensor->host_priv;
+> +	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
+> +	struct isp_csiphy_dphy_cfg csi2phy;
+> +	int csi2_ddrclk_khz;
+> +	struct isp_csiphy_lanes_cfg *lanes;
+>  	unsigned int used_lanes = 0;
+>  	unsigned int i;
+> +	u32 cam_phy_ctrl;
+> +
+> +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
+> +	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
+> +		lanes = subdevs->bus.ccp2.lanecfg;
+> +	else
+> +		lanes = subdevs->bus.csi2.lanecfg;
 
-I used to have patches to completely remove the remains of do_ioctl_trans()
-that can be resurrected if that helps, but it's mostly an independent
-issue.
+Shouldn't lane configuration be retrieved from the sensor instead ? Sensors 
+could use different lane configuration depending on the mode. This could also 
+be implemented later when needed, but I don't think it would be too difficult 
+to get it right now.
 
-While I agree that the existing compat_ioctl_error() method was somewhat
-broken, I'd like to keep having a way to get some indication from
-drivers that are missing ioctl translations. Ideally, we would move
-all of fs/compat_ioctl.c into drivers and then just warn when we register
-some file_operations on a 64 bit machine that have an ioctl but no
-compat_ioctl function, but that would be a large amount of work.
+> +
+> +	if (!lanes) {
+> +		dev_err(isp->dev, "no lane configuration\n");
+> +		return -EINVAL;
+> +	}
+> +
+> +	cam_phy_ctrl = omap_readl(
+> +		OMAP343X_CTRL_BASE + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
+> +	/*
+> +	 * SCM.CONTROL_CAMERA_PHY_CTRL
+> +	 * - bit[4]    : CSIPHY1 data sent to CSIB
+> +	 * - bit [3:2] : CSIPHY1 config: 00 d-phy, 01/10 ccp2
+> +	 * - bit [1:0] : CSIPHY2 config: 00 d-phy, 01/10 ccp2
+> +	 */
+> +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1)
+> +		cam_phy_ctrl |= 1 << 2;
+> +	else if (subdevs->interface == ISP_INTERFACE_CSI2C_PHY1)
+> +		cam_phy_ctrl &= 1 << 2;
+> +
+> +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
+> +		cam_phy_ctrl |= 1;
+> +	else if (subdevs->interface == ISP_INTERFACE_CSI2A_PHY2)
+> +		cam_phy_ctrl &= 1;
+> +
+> +	/* FIXME: Do 34xx / 35xx require something here? */
+> +	if (cpu_is_omap3630())
+> +		omap_writel(cam_phy_ctrl,
+> +			    OMAP343X_CTRL_BASE
+> +			    + OMAP3630_CONTROL_CAMERA_PHY_CTRL);
 
-For a simpler solution, we could keep the old warning message, but change
-the logic from
+You use cam_phy_ctrl inside the if statement only, you can move its 
+computation there.
 
-(.compat_ioctl == NULL || .compat_ioctl() == -ENOIOCTL) && (no generic handler)
+> +
+> +	csi2_ddrclk_khz = sensor_fmt->pixelrate
+> +		/ (2 * csi2->phy->num_data_lanes)
+> +		* omap3isp_video_format_info(sensor_fmt->code)->bpp;
+> +
+> +	/*
+> +	 * THS_TERM: Programmed value = ceil(12.5 ns/DDRClk period) - 1.
+> +	 * THS_SETTLE: Programmed value = ceil(90 ns/DDRClk period) + 3.
+> +	 */
+> +	csi2phy.ths_term = DIV_ROUND_UP(25 * csi2_ddrclk_khz, 2000000) - 1;
+> +	csi2phy.ths_settle = DIV_ROUND_UP(90 * csi2_ddrclk_khz, 1000000) + 3;
+> +	csi2phy.tclk_term = TCLK_TERM;
+> +	csi2phy.tclk_miss = TCLK_MISS;
+> +	csi2phy.tclk_settle = TCLK_SETTLE;
+> 
+>  	/* Clock and data lanes verification */
+> -	for (i = 0; i < phy->num_data_lanes; i++) {
+> +	for (i = 0; i < csi2->phy->num_data_lanes; i++) {
+>  		if (lanes->data[i].pol > 1 || lanes->data[i].pos > 3)
+>  			return -EINVAL;
+> 
+> @@ -162,10 +227,10 @@ static int csiphy_config(struct isp_csiphy *phy,
+>  	if (lanes->clk.pos == 0 || used_lanes & (1 << lanes->clk.pos))
+>  		return -EINVAL;
+> 
+> -	mutex_lock(&phy->mutex);
+> -	phy->dphy = *dphy;
+> -	phy->lanes = *lanes;
+> -	mutex_unlock(&phy->mutex);
+> +	mutex_lock(&csi2->phy->mutex);
+> +	csi2->phy->dphy = csi2phy;
+> +	csi2->phy->lanes = *lanes;
+> +	mutex_unlock(&csi2->phy->mutex);
+> 
+>  	return 0;
+>  }
+> @@ -225,8 +290,6 @@ int omap3isp_csiphy_init(struct isp_device *isp)
+>  	struct isp_csiphy *phy1 = &isp->isp_csiphy1;
+>  	struct isp_csiphy *phy2 = &isp->isp_csiphy2;
+> 
+> -	isp->platform_cb.csiphy_config = csiphy_config;
+> -
+>  	phy2->isp = isp;
+>  	phy2->csi2 = &isp->isp_csi2a;
+>  	phy2->num_data_lanes = ISP_CSIPHY2_NUM_DATA_LANES;
+> diff --git a/drivers/media/video/omap3isp/ispcsiphy.h
+> b/drivers/media/video/omap3isp/ispcsiphy.h index e93a661..9f93222 100644
+> --- a/drivers/media/video/omap3isp/ispcsiphy.h
+> +++ b/drivers/media/video/omap3isp/ispcsiphy.h
+> @@ -56,6 +56,10 @@ struct isp_csiphy {
+>  	struct isp_csiphy_dphy_cfg dphy;
+>  };
+> 
+> +int omap3isp_csiphy_config(struct isp_device *isp,
+> +			   struct v4l2_subdev *csi2_subdev,
+> +			   struct v4l2_subdev *sensor,
+> +			   struct v4l2_mbus_framefmt *fmt);
+>  int omap3isp_csiphy_acquire(struct isp_csiphy *phy);
+>  void omap3isp_csiphy_release(struct isp_csiphy *phy);
+>  int omap3isp_csiphy_init(struct isp_device *isp);
 
-to
+-- 
+Regards,
 
-(.ioctl != NULL && .compat_ioctl == NULL) && (no generic handler).
-
-and then fix the warnings we see by adding appropriate .compat_ioctl
-functions.
-
-	Arnd
+Laurent Pinchart
