@@ -1,76 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm1-vm0.bt.bullet.mail.ukl.yahoo.com ([217.146.182.223]:28885
-	"HELO nm1-vm0.bt.bullet.mail.ukl.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752778Ab2A1MbV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Jan 2012 07:31:21 -0500
-Received: from volcano.underworld (volcano.underworld [192.168.0.3])
-	by wellhouse.underworld (8.14.3/8.14.3/Debian-5+lenny1) with ESMTP id q0SCVGUX007732
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NOT)
-	for <linux-media@vger.kernel.org>; Sat, 28 Jan 2012 12:31:19 GMT
-Message-ID: <4F23EA94.9080004@yahoo.com>
-Date: Sat, 28 Jan 2012 12:31:16 +0000
-From: Chris Rankin <rankincj@yahoo.com>
+Received: from mx1.redhat.com ([209.132.183.28]:31761 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030309Ab2AFOi1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jan 2012 09:38:27 -0500
+Message-ID: <4F07075E.8050301@redhat.com>
+Date: Fri, 06 Jan 2012 12:38:22 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Fwd: em28xx leaks
-References: <4F22F94E.4010605@ct0.com>
-In-Reply-To: <4F22F94E.4010605@ct0.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH FOR 3.3] VIDIOC_LOG_STATUS support for sub-devices
+References: <4EFEEEB7.2020109@gmail.com>
+In-Reply-To: <4EFEEEB7.2020109@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Subject: em28xx leaks
-Date: Fri, 27 Jan 2012 13:21:50 -0600
-From: Todd Squires <squirest@ct0.com>
-Organisation: Core Technologies
-To: rankincj@yahoo.com
+On 31-12-2011 09:15, Sylwester Nawrocki wrote:
+> Hi Mauro,
+> 
+> The following changes since commit 3220eb73c5647af4c1f18e32c12dccb8adbac59d:
+> 
+>   s5p-fimc: Add support for alpha component configuration (2011-12-20 19:46:55
+> +0100)
+> 
+> are available in the git repository at:
+>   git://git.infradead.org/users/kmpark/linux-samsung v4l_mbus
+> 
+> This one patch enables VIDIOC_LOG_STATUS on subdev nodes.
+> 
+> Sylwester Nawrocki (1):
+>       v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
 
-Hi Chris,
 
-I've recently started using an em28xx, and have run into a memory
-leak in the 3.2.1 kernel.
+Weird... when trying to pull from your tree, several other patches appeared.
+After removing the ones that seemed to be already applied, there are still
+those that seemed to still apply:
 
-Poking around the Internet, I found that you've been recently
-submitting patches for this driver.
+Nov,17 2011: s5p-fimc: Prevent lock up caused by incomplete H/W initialization
+Oct, 1 2011: v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
+Dec, 9 2011: v4l: Add new framesamples field to struct v4l2_mbus_framefmt
+Dec,15 2011: v4l: Update subdev drivers to handle framesamples parameter
+Dec,12 2011: m5mols: Add buffer size configuration support for compressed streams
+Nov,21 2011: s5p-fimc: Add media bus framesamples support
 
-I have a program which opens a V4L2 device, configures it, reads a
-frame, then closes the device and exits. This program runs every
-minute or so. After a short time, I noticed my Linux machine
-complaining that vmalloc was out of memory.
+Could you please double-check and, if possible, rebase your tree, to avoid
+the risk of applying something that is not ok yet, nor to miss something?
 
-Digging into the driver, I found the problem is in em28xx_v4l2_close.
-
-Specifically, this test is not succeeding, and videobuf_stop is
-not being called when it should be:
-
-if (res_check(fh, EM28XX_RESOURCE_VIDEO)) {
-	videobuf_stop(&fh->vb_vidq);
-	res_free(fh, EM28XX_RESOURCE_VIDEO);
-}
-
-After failing to call videobuf_stop, em28xx_v4l2_close
-then calls this:
-
-videobuf_mmap_free(&fh->vb_vidq);
-
-and it fails to deallocate because it sees "fh->vb_vidq.reading" is
-still set. This leaks lots of memory.
-
-I hacked around the problem by sticking this in the code:
-
-if (fh->vb_vidq.reading)
-	videobuf_read_stop(&fh->vb_vidq);
-
-However, the proper fix is to go through the code and work out
-why EM28XX_RESOURCE_VIDEO is not getting set as it should be.
-
-Since I'm not terribly familiar with the driver, I figured I'd point
-this issue out to you. If you can fix it, please let me know.
-Otherwise I'll dig deeper and take care of it properly on my end
-when I get some free time.
-
-Cheers,
-
--Todd
+Thanks!
+Mauro
