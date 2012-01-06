@@ -1,272 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:49165 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750736Ab2ATKlm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jan 2012 05:41:42 -0500
-Received: by qabg24 with SMTP id g24so242408qab.19
-        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 02:41:41 -0800 (PST)
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:35114 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758756Ab2AFQcU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 11:32:20 -0500
+Received: by eekc4 with SMTP id c4so1170585eek.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 08:32:19 -0800 (PST)
+Content-Type: multipart/mixed; boundary=----------35vJyMzW08Iy26cUOK1ueP
+Subject: [PATCH] rc-videomate-m1f.c Rename to match remote controler name
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Fri, 06 Jan 2012 17:32:06 +0100
 MIME-Version: 1.0
-In-Reply-To: <CAMm-=zB+Sg4XZX_MLGt1fvURCFf8QbWcmZHSUbMYbGfiSz2+gg@mail.gmail.com>
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
- <1325760118-27997-3-git-send-email-sumit.semwal@ti.com> <CAMm-=zB+Sg4XZX_MLGt1fvURCFf8QbWcmZHSUbMYbGfiSz2+gg@mail.gmail.com>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Fri, 20 Jan 2012 16:11:20 +0530
-Message-ID: <CAO_48GEo8icpXrFh_VmGUF-MU2N9BU=xrVVN0VRG37j5NbC0sQ@mail.gmail.com>
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-To: Pawel Osciak <pawel@osciak.com>
-Cc: Sumit Semwal <sumit.semwal@ti.com>, linaro-mm-sig@lists.linaro.org,
-	linux-media@vger.kernel.org, arnd@arndb.de,
-	jesse.barker@linaro.org, m.szyprowski@samsung.com, rob@ti.com,
-	daniel@ffwll.ch, t.stanislaws@samsung.com, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+From: =?utf-8?B?U2FtdWVsIFJha2l0bmnEjWFu?= <samuel.rakitnican@gmail.com>
+Message-ID: <op.v7n77sv031sqp4@00-25-22-b5-7b-09.dummy.porta.siemens.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20 January 2012 00:37, Pawel Osciak <pawel@osciak.com> wrote:
-> Hi Sumit,
-> Thank you for your work. Please find my comments below.
-Hi Pawel,
+------------35vJyMzW08Iy26cUOK1ueP
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+Content-Transfer-Encoding: Quoted-Printable
 
-Thank you for finding time for this review, and your comments :) - my
-comments inline.
-[Also, as an aside, Tomasz has also been working on the vb2 adaptation
-to dma-buf, and his patches should be more comprehensive, in that he
-is also planning to include 'vb2 as exporter' of dma-buf. He might
-take and improve on this RFC, so it might be worthwhile to wait for
-it?]
->
-<snip>
->>  * __setup_offsets() - setup unique offsets ("cookies") for every plane in
->>  * every buffer on the queue
->>  */
->> @@ -228,6 +249,8 @@ static void __vb2_free_mem(struct vb2_queue *q, unsigned int buffers)
->>                /* Free MMAP buffers or release USERPTR buffers */
->>                if (q->memory == V4L2_MEMORY_MMAP)
->>                        __vb2_buf_mem_free(vb);
->> +               if (q->memory == V4L2_MEMORY_DMABUF)
->> +                       __vb2_buf_dmabuf_put(vb);
->>                else
->>                        __vb2_buf_userptr_put(vb);
->
-> This looks like a bug. If memory is MMAP, you'd __vb2_buf_mem_free(vb)
-> AND __vb2_buf_userptr_put(vb), which is wrong. Have you tested MMAP
-> and USERPTR with those patches applied?
->
-I agree - fairly stupid mistake on my end. will correct in the next version.
->>        }
->> @@ -350,6 +373,13 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
->>                 */
->>                memcpy(b->m.planes, vb->v4l2_planes,
->>                        b->length * sizeof(struct v4l2_plane));
->> +
->> +               if (q->memory == V4L2_MEMORY_DMABUF) {
->> +                       unsigned int plane;
->> +                       for (plane = 0; plane < vb->num_planes; ++plane) {
->> +                               b->m.planes[plane].m.fd = 0;
->
-> I'm confused here. Isn't this the way to return fd for userspace to
-> pass to other drivers? I was imagining that the userspace would be
-> getting an fd back in plane structure to pass to other drivers, i.e.
-> userspace dequeuing a DMABUF v4l2_buffer should be able to pass it
-> forward to another driver using fd found in dequeued buffer.
-> Shouldn't this also fill in length?
->
-Well, as a 'dma-buf' 'user', V4L2 will only get an FD from userspace
-to map it to a dma-buf. The 'give-an-fd-to-pass-to-other-drivers' is
-part of the exporter's functionality.
-That's why I guess we did it like this - the __fill_vb2_buffer() does
-copy data from userspace to vb2.
-But perhaps you're right; it might be needed if the userspace refers
-back to the fd from a dequeued buffer. Let me think through, and I
-will reply again.
->> +                       }
-<snip>
->> @@ -840,6 +899,11 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
->>                                        b->m.planes[plane].length;
->>                        }
->>                }
->> +               if (b->memory == V4L2_MEMORY_DMABUF) {
->> +                       for (plane = 0; plane < vb->num_planes; ++plane) {
->> +                               v4l2_planes[plane].m.fd = b->m.planes[plane].m.fd;
->
-> Shouldn't this fill length too?
-The reason this doesn't fill length is because length gets updated
-based on the actual size of the buffer from the dma-buf gotten from
-dma_buf_get() called in __qbuf_dmabuf().
->
->> +                       }
->> +               }
->>        } else {
->>                /*
->>                 * Single-planar buffers do not use planes array,
->> @@ -854,6 +918,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
->>                        v4l2_planes[0].m.userptr = b->m.userptr;
->>                        v4l2_planes[0].length = b->length;
->>                }
->> +               if (b->memory == V4L2_MEMORY_DMABUF) {
->> +                       v4l2_planes[0].m.fd = b->m.fd;
->
-> Ditto.
-see above.
->
->> +               }
->> +
->>        }
->>
->>        vb->v4l2_buf.field = b->field;
->> @@ -962,6 +1030,109 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->>  }
->>
->>  /**
->> + * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
->> + */
->> +static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
->> +{
->> +       struct v4l2_plane planes[VIDEO_MAX_PLANES];
->> +       struct vb2_queue *q = vb->vb2_queue;
->> +       void *mem_priv;
->> +       unsigned int plane;
->> +       int ret;
->> +       int write = !V4L2_TYPE_IS_OUTPUT(q->type);
->> +
->> +       /* Verify and copy relevant information provided by the userspace */
->> +       ret = __fill_vb2_buffer(vb, b, planes);
->> +       if (ret)
->> +               return ret;
->> +
->> +       for (plane = 0; plane < vb->num_planes; ++plane) {
->> +               struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
->> +
->> +               if (IS_ERR_OR_NULL(dbuf)) {
->> +                       dprintk(1, "qbuf: invalid dmabuf fd for "
->> +                               "plane %d\n", plane);
->> +                       ret = PTR_ERR(dbuf);
->> +                       goto err;
->> +               }
->> +
->> +               /* this doesn't get filled in until __fill_vb2_buffer(),
->> +                * since it isn't known until after dma_buf_get()..
->> +                */
->> +               planes[plane].length = dbuf->size;
->
-> But this is after dma_buf_get, unless I'm missing something... And
-> __fill_vb2_buffer() is not filing length...
-I guess replacing "this doesn't get filled in until
-__fill_vb2_buffer()" with "We fill length here instead of in
-__fill_vb2_buffer()" would make it clearer? This only informs about
-why length is being filled here.
->
->> +
->> +               /* Skip the plane if already verified */
->> +               if (dbuf == vb->planes[plane].dbuf) {
->> +                       dma_buf_put(dbuf);
->> +                       continue;
->> +               }
->
-> Won't this prevent us from using a buffer if the exporter only allows
-> exclusive access to it?
-I wouldn't think so; dma_buf_get() can be nested calls, and the
-dma_buf_put() should match correspoding dma_buf_get(). It is of course
-dependent on the exporter though.
->
->> +
->> +               dprintk(3, "qbuf: buffer description for plane %d changed, "
->
-> s/description/descriptor ?
-Right.
->
->> +                       "reattaching dma buf\n", plane);
->> +
->> +               /* Release previously acquired memory if present */
->> +               if (vb->planes[plane].mem_priv) {
->> +                       call_memop(q, plane, detach_dmabuf,
->> +                               vb->planes[plane].mem_priv);
->> +                       dma_buf_put(vb->planes[plane].dbuf);
->> +               }
->> +
->> +               vb->planes[plane].mem_priv = NULL;
->> +
->> +               /* Acquire each plane's memory */
->> +               mem_priv = q->mem_ops->attach_dmabuf(
->> +                               q->alloc_ctx[plane], dbuf);
->> +               if (IS_ERR(mem_priv)) {
->> +                       dprintk(1, "qbuf: failed acquiring dmabuf "
->> +                               "memory for plane %d\n", plane);
->> +                       ret = PTR_ERR(mem_priv);
->> +                       goto err;
->
-> Since mem_priv is not assigned back to plane's mem_priv if an error
-> happens here, we won't be calling dma_buf_put on this dbuf, even
-> though we called _get() above.
->
-Yes you're right of course - we should just do a dma-buf-put() for the
-new buf in the IS_ERR() case.
+This remote was added with support for card Compro VideoMate M1F.
 
-<snip>
->> + * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
->> + *                used for DMABUF memory types; alloc_ctx is the alloc context
->> + *                dbuf is the shared dma_buf; returns NULL on failure;
->> + *                allocator private per-buffer structure on success;
->> + *                this needs to be used for further accesses to the buffer
->> + * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
->> + *                buffer is no longer used; the buf_priv argument is the
->> + *                allocator private per-buffer structure previously returned
->> + *                from the attach_dmabuf callback
->> + * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
->> + *             of dmabuf is informed that this driver is going to use the
->> + *             dmabuf
->> + * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
->> + *               that this driver is done using the dmabuf for now
->
-> I feel this requires more clarification. For example, for both detach
-> and unmap this says "the current DMABUF buffer is no longer used" and
-> "driver is done using the dmabuf for now", respectively. Without prior
-> knowledge of dmabuf, you don't know which one to use in which
-> situation. Similarly, attach and map could be clarified as well.
-Ok - maybe I will put a small pseudo code here?
-like this:
-attach()
-while we will use it {
- map()
- dma .. etc etc
- unmap()
-}
-// finished using the buffer completely
-detach()
->
->> @@ -56,6 +71,8 @@ struct vb2_fileio_data;
->>  * Required ops for USERPTR types: get_userptr, put_userptr.
->>  * Required ops for MMAP types: alloc, put, num_users, mmap.
->>  * Required ops for read/write access types: alloc, put, num_users, vaddr
->> + * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
->> + *                               unmap_dmabuf.
->>  */
->>  struct vb2_mem_ops {
->>        void            *(*alloc)(void *alloc_ctx, unsigned long size);
->> @@ -65,6 +82,16 @@ struct vb2_mem_ops {
->>                                        unsigned long size, int write);
->>        void            (*put_userptr)(void *buf_priv);
->>
->> +       /* Comment from Rob Clark: XXX: I think the attach / detach could be handled
->> +        * in the vb2 core, and vb2_mem_ops really just need to get/put the
->> +        * sglist (and make sure that the sglist fits it's needs..)
->> +        */
->
-> I *strongly* agree with Rob here. Could you explain the reason behind
-> not doing this?
-> Allocator should ideally not have to be aware of attaching/detaching,
-> this is not specific to an allocator.
->
-Ok, I thought we'll start with this version first, and then refine.
-But you guys are right.
+This remote is shipped with various Compro cards, not this one only.
 
-> --
-> Best regards,
-> Pawel Osciak
+Furthermore this remote can be bought separately under name Compro
+VideoMate K100.
+	http://compro.com.tw/en/product/k100/k100.html
 
--- 
-Thanks and best regards,
-Sumit Semwal
-Linaro Kernel Engineer - Graphics working group
+So give it a proper name.
+
+
+Signed-off-by: Samuel Rakitni=C4=8Dan <samuel.rakitnican@gmail.com>
+------------35vJyMzW08Iy26cUOK1ueP
+Content-Disposition: attachment; filename=k100.diff
+Content-Type: application/octet-stream; name=k100.diff
+Content-Transfer-Encoding: Base64
+
+ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvcmMva2V5bWFwcy9NYWtlZmlsZSBi
+L2RyaXZlcnMvbWVkaWEvcmMva2V5bWFwcy9NYWtlZmlsZQppbmRleCAzNmU0ZDVl
+Li44MmQ4OThhIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3JjL2tleW1hcHMv
+TWFrZWZpbGUKKysrIGIvZHJpdmVycy9tZWRpYS9yYy9rZXltYXBzL01ha2VmaWxl
+CkBAIC04NSw3ICs4NSw3IEBAIG9iai0kKENPTkZJR19SQ19NQVApICs9IHJjLWFk
+c3RlY2gtZHZiLXQtcGNpLm8gXAogCQkJcmMtdHJla3N0b3IubyBcCiAJCQlyYy10
+dC0xNTAwLm8gXAogCQkJcmMtdHdpbmhhbjEwMjcubyBcCi0JCQlyYy12aWRlb21h
+dGUtbTFmLm8gXAorCQkJcmMtdmlkZW9tYXRlLWsxMDAubyBcCiAJCQlyYy12aWRl
+b21hdGUtczM1MC5vIFwKIAkJCXJjLXZpZGVvbWF0ZS10di1wdnIubyBcCiAJCQly
+Yy13aW5mYXN0Lm8gXApkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9yYy9rZXlt
+YXBzL3JjLXZpZGVvbWF0ZS1rMTAwLmMgYi9kcml2ZXJzL21lZGlhL3JjL2tleW1h
+cHMvcmMtdmlkZW9tYXRlLWsxMDAuYwppbmRleCAzYmQxZGUxLi4yM2VlMDVlIDEw
+MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3JjL2tleW1hcHMvcmMtdmlkZW9tYXRl
+LWsxMDAuYworKysgYi9kcml2ZXJzL21lZGlhL3JjL2tleW1hcHMvcmMtdmlkZW9t
+YXRlLWsxMDAuYwpAQCAtMSw0ICsxLDQgQEAKLS8qIHZpZGVvbWF0ZS1tMWYuaCAt
+IEtleXRhYmxlIGZvciB2aWRlb21hdGVfbTFmIFJlbW90ZSBDb250cm9sbGVyCisv
+KiB2aWRlb21hdGUtazEwMC5oIC0gS2V5dGFibGUgZm9yIHZpZGVvbWF0ZV9rMTAw
+IFJlbW90ZSBDb250cm9sbGVyCiAgKgogICoga2V5bWFwIGltcG9ydGVkIGZyb20g
+aXIta2V5bWFwcy5jCiAgKgpAQCAtMTMsNyArMTMsNyBAQAogI2luY2x1ZGUgPG1l
+ZGlhL3JjLW1hcC5oPgogI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgogCi1zdGF0
+aWMgc3RydWN0IHJjX21hcF90YWJsZSB2aWRlb21hdGVfbTFmW10gPSB7CitzdGF0
+aWMgc3RydWN0IHJjX21hcF90YWJsZSB2aWRlb21hdGVfazEwMFtdID0gewogCXsg
+MHgwMSwgS0VZX1BPV0VSIH0sCiAJeyAweDMxLCBLRVlfVFVORVIgfSwKIAl7IDB4
+MzMsIEtFWV9WSURFTyB9LApAQCAtNjcsMjcgKzY3LDI3IEBAIHN0YXRpYyBzdHJ1
+Y3QgcmNfbWFwX3RhYmxlIHZpZGVvbWF0ZV9tMWZbXSA9IHsKIAl7IDB4MTgsIEtF
+WV9URVhUIH0sCiB9OwogCi1zdGF0aWMgc3RydWN0IHJjX21hcF9saXN0IHZpZGVv
+bWF0ZV9tMWZfbWFwID0geworc3RhdGljIHN0cnVjdCByY19tYXBfbGlzdCB2aWRl
+b21hdGVfazEwMF9tYXAgPSB7CiAJLm1hcCA9IHsKLQkJLnNjYW4gICAgPSB2aWRl
+b21hdGVfbTFmLAotCQkuc2l6ZSAgICA9IEFSUkFZX1NJWkUodmlkZW9tYXRlX20x
+ZiksCisJCS5zY2FuICAgID0gdmlkZW9tYXRlX2sxMDAsCisJCS5zaXplICAgID0g
+QVJSQVlfU0laRSh2aWRlb21hdGVfazEwMCksCiAJCS5yY190eXBlID0gUkNfVFlQ
+RV9VTktOT1dOLCAgICAgLyogTGVnYWN5IElSIHR5cGUgKi8KLQkJLm5hbWUgICAg
+PSBSQ19NQVBfVklERU9NQVRFX00xRiwKKwkJLm5hbWUgICAgPSBSQ19NQVBfVklE
+RU9NQVRFX0sxMDAsCiAJfQogfTsKIAotc3RhdGljIGludCBfX2luaXQgaW5pdF9y
+Y19tYXBfdmlkZW9tYXRlX20xZih2b2lkKQorc3RhdGljIGludCBfX2luaXQgaW5p
+dF9yY19tYXBfdmlkZW9tYXRlX2sxMDAodm9pZCkKIHsKLQlyZXR1cm4gcmNfbWFw
+X3JlZ2lzdGVyKCZ2aWRlb21hdGVfbTFmX21hcCk7CisJcmV0dXJuIHJjX21hcF9y
+ZWdpc3RlcigmdmlkZW9tYXRlX2sxMDBfbWFwKTsKIH0KIAotc3RhdGljIHZvaWQg
+X19leGl0IGV4aXRfcmNfbWFwX3ZpZGVvbWF0ZV9tMWYodm9pZCkKK3N0YXRpYyB2
+b2lkIF9fZXhpdCBleGl0X3JjX21hcF92aWRlb21hdGVfazEwMCh2b2lkKQogewot
+CXJjX21hcF91bnJlZ2lzdGVyKCZ2aWRlb21hdGVfbTFmX21hcCk7CisJcmNfbWFw
+X3VucmVnaXN0ZXIoJnZpZGVvbWF0ZV9rMTAwX21hcCk7CiB9CiAKLW1vZHVsZV9p
+bml0KGluaXRfcmNfbWFwX3ZpZGVvbWF0ZV9tMWYpCi1tb2R1bGVfZXhpdChleGl0
+X3JjX21hcF92aWRlb21hdGVfbTFmKQorbW9kdWxlX2luaXQoaW5pdF9yY19tYXBf
+dmlkZW9tYXRlX2sxMDApCittb2R1bGVfZXhpdChleGl0X3JjX21hcF92aWRlb21h
+dGVfazEwMCkKIAogTU9EVUxFX0xJQ0VOU0UoIkdQTCIpOwogTU9EVUxFX0FVVEhP
+UigiUGF2ZWwgT3Nub3ZhIDxwdm9zbm92YUBnbWFpbC5jb20+Iik7CmRpZmYgLS1n
+aXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5j
+IGIvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaW5wdXQuYwpp
+bmRleCAxYjE1YjBkLi4yMmVjZDcyIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlh
+L3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5jCisrKyBiL2RyaXZlcnMvbWVk
+aWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlucHV0LmMKQEAgLTc1NSw3ICs3NTUs
+NyBAQCBpbnQgc2FhNzEzNF9pbnB1dF9pbml0MShzdHJ1Y3Qgc2FhNzEzNF9kZXYg
+KmRldikKIAkJcG9sbGluZyAgICAgID0gNTA7IC8qIG1zICovCiAJCWJyZWFrOwog
+CWNhc2UgU0FBNzEzNF9CT0FSRF9WSURFT01BVEVfTTFGOgotCQlpcl9jb2RlcyAg
+ICAgPSBSQ19NQVBfVklERU9NQVRFX00xRjsKKwkJaXJfY29kZXMgICAgID0gUkNf
+TUFQX1ZJREVPTUFURV9LMTAwOwogCQltYXNrX2tleWNvZGUgPSAweDBmZjAwOwog
+CQltYXNrX2tleXVwICAgPSAweDA0MDAwMDsKIAkJYnJlYWs7CmRpZmYgLS1naXQg
+YS9pbmNsdWRlL21lZGlhL3JjLW1hcC5oIGIvaW5jbHVkZS9tZWRpYS9yYy1tYXAu
+aAppbmRleCAxODNkNzAxLi5mNjg4YmRlIDEwMDY0NAotLS0gYS9pbmNsdWRlL21l
+ZGlhL3JjLW1hcC5oCisrKyBiL2luY2x1ZGUvbWVkaWEvcmMtbWFwLmgKQEAgLTE0
+Nyw3ICsxNDcsNyBAQCB2b2lkIHJjX21hcF9pbml0KHZvaWQpOwogI2RlZmluZSBS
+Q19NQVBfVFJFS1NUT1IgICAgICAgICAgICAgICAgICAicmMtdHJla3N0b3IiCiAj
+ZGVmaW5lIFJDX01BUF9UVF8xNTAwICAgICAgICAgICAgICAgICAgICJyYy10dC0x
+NTAwIgogI2RlZmluZSBSQ19NQVBfVFdJTkhBTl9WUDEwMjdfRFZCUyAgICAgICAi
+cmMtdHdpbmhhbjEwMjciCi0jZGVmaW5lIFJDX01BUF9WSURFT01BVEVfTTFGICAg
+ICAgICAgICAgICJyYy12aWRlb21hdGUtbTFmIgorI2RlZmluZSBSQ19NQVBfVklE
+RU9NQVRFX0sxMDAgICAgICAgICAgICAicmMtdmlkZW9tYXRlLWsxMDAiCiAjZGVm
+aW5lIFJDX01BUF9WSURFT01BVEVfUzM1MCAgICAgICAgICAgICJyYy12aWRlb21h
+dGUtczM1MCIKICNkZWZpbmUgUkNfTUFQX1ZJREVPTUFURV9UVl9QVlIgICAgICAg
+ICAgInJjLXZpZGVvbWF0ZS10di1wdnIiCiAjZGVmaW5lIFJDX01BUF9XSU5GQVNU
+ICAgICAgICAgICAgICAgICAgICJyYy13aW5mYXN0Igo=
+
+------------35vJyMzW08Iy26cUOK1ueP--
+
