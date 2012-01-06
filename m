@@ -1,87 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:60704 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754561Ab2ANSgx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 13:36:53 -0500
-Received: by bkuw12 with SMTP id w12so701431bku.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:36:51 -0800 (PST)
+Received: from mx1.redhat.com ([209.132.183.28]:16299 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752302Ab2AFNrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jan 2012 08:47:41 -0500
+Message-ID: <4F06FB76.8070205@redhat.com>
+Date: Fri, 06 Jan 2012 11:47:34 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Date: Sat, 14 Jan 2012 19:36:51 +0100
-Message-ID: <CAEN_-SB7cndkzKVKwxJ99nB1Km4auR0KeUHmpF_nQ96fP4sWZQ@mail.gmail.com>
-Subject: cx25840: allow seting and reading audio mode for radio
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015175cab9ed2a1a504b68143d3
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+CC: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] vpif_capture.c: v4l2_device_register() is called too
+ late in vpif_probe()
+References: <201112131044.42862.hverkuil@xs4all.nl> <E99FAA59F8D8D34D8A118DD37F7C8F75015F19@DBDE01.ent.ti.com>
+In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F75015F19@DBDE01.ent.ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015175cab9ed2a1a504b68143d3
-Content-Type: text/plain; charset=ISO-8859-1
+On 13-12-2011 10:19, Hadli, Manjunath wrote:
+> Hans,
+> 
+> On Tue, Dec 13, 2011 at 15:14:42, Hans Verkuil wrote:
+>> The function v4l2_device_register() is called too late in vpif_probe().
+>> This meant that vpif_obj.v4l2_dev is accessed before it is initialized which caused a crash.
+>>
+>> This used to work in the past, but video_register_device() is now actually using the v4l2_dev pointer.
+> I also found this issue today. Good catch!
+>>
+>> Note that vpif_display.c doesn't have this bug, there v4l2_device_register() is called at the beginning of vpif_probe.
+>>
+>> Signed-off-by: Georgios Plakaris <gplakari@cisco.com>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+>>
+>> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
+>> index 49e4deb..6504e40 100644
+>> --- a/drivers/media/video/davinci/vpif_capture.c
+>> +++ b/drivers/media/video/davinci/vpif_capture.c
+>> @@ -2177,6 +2177,12 @@ static __init int vpif_probe(struct platform_device *pdev)
+>>  		return err;
+>>  	}
+>>  
+>> +	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
+>> +	if (err) {
+>> +		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
+>> +		return err;
+>> +	}
+>> +
+>>  	k = 0;
+>>  	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
+>>  		for (i = res->start; i <= res->end; i++) { @@ -2246,12 +2252,6 @@ static __init int vpif_probe(struct platform_device *pdev)
+>>  		goto probe_out;
+>>  	}
+>>  
+>> -	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
+>> -	if (err) {
+>> -		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
+>> -		goto probe_subdev_out;
+>> -	}
+>> -
+>>  	for (i = 0; i < subdev_count; i++) {
+>>  		subdevdata = &config->subdev_info[i];
+>>  		vpif_obj.sd[i] =
+>> @@ -2281,7 +2281,6 @@ probe_subdev_out:
+>>  
+>>  	j = VPIF_CAPTURE_MAX_DEVICES;
+>>  probe_out:
+>> -	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+>>  	for (k = 0; k < j; k++) {
+>>  		/* Get the pointer to the channel object */
+>>  		ch = vpif_obj.dev[k];
+>> @@ -2303,6 +2302,7 @@ vpif_int_err:
+>>  		if (res)
+>>  			i = res->end;
+>>  	}
+>> +	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+>>  	return err;
+>>  }
+>>  
+>>
+>>
+>>
+> 
+> ACKed by me. <Manjunath.hadli@ti.com>
 
+Please, reply with the standard way:
+Acked-by: Manjunath Hadli <Manjunath.hadli@ti.com>
 
+Otherwise, patchwork will not catch your ack.
 
---0015175cab9ed2a1a504b68143d3
-Content-Type: text/x-patch; charset=US-ASCII; name="cx25840_g_tuner_radio_support.patch"
-Content-Disposition: attachment;
-	filename="cx25840_g_tuner_radio_support.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gxez9l2s0
+> 
+> Thx,
+> -Manju
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
-b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
-IERlYyAyMDExIDAwOjE5OjM0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gY3gyNTg0MF9nX3R1bmVy
-IGFuZCBjeDI1ODQwX3NfdHVuZXIgc2hvdWxkIHN1cHBvcnQgYWxzbyByYWRpbyBtb2RlIGZvciBk
-ZXRlY3RpbmcKIGN1cnJlbnQgYXVkaW8gbW9kZSwgYW5kIHdlIGNhbiB1c2UgY3gyNTg0MCByZWdp
-c3RlciAweDgwNSBmb3IgRk0gcmFkaW8gbG9jay4KCi0tLQpkaWZmIC1OYXVycCBhL2RyaXZlcnMv
-bWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
-Y3gyNTg0MC9jeDI1ODQwLWNvcmUuYwotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4NDAv
-Y3gyNTg0MC1jb3JlLmMJMjAxMi0wMS0wNSAwMDo1NTo0NC4wMDAwMDAwMDAgKzAxMDAKKysrIGIv
-ZHJpdmVycy9tZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4NDAtY29yZS5jCTIwMTItMDEtMDUgMTM6
-NDE6MjUuOTgxOTEwODA0ICswMTAwCkBAIC0xNTg5LDM3ICsxNTg5LDY4IEBAIHN0YXRpYyBpbnQg
-Y3gyNTg0MF9nX3R1bmVyKHN0cnVjdCB2NGwyX3MKIHsKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAq
-c3RhdGUgPSB0b19zdGF0ZShzZCk7CiAJc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHY0bDJf
-Z2V0X3N1YmRldmRhdGEoc2QpOwotCXU4IHZwcmVzID0gY3gyNTg0MF9yZWFkKGNsaWVudCwgMHg0
-MGUpICYgMHgyMDsKKwl1OCB2cHJlcyA9IDA7CiAJdTggbW9kZTsKLQlpbnQgdmFsID0gMDsKKwlp
-bnQgdmFsID0gVjRMMl9UVU5FUl9TVUJfTU9OTzsKIAotCWlmIChzdGF0ZS0+cmFkaW8pCi0JCXJl
-dHVybiAwOworCWlmICghc3RhdGUtPnJhZGlvKSB7CisJCXZwcmVzID0gY3gyNTg0MF9yZWFkKGNs
-aWVudCwgMHg0MGUpICYgMHgyMDsKKwkJdnQtPnNpZ25hbCA9IHZwcmVzID8gMHhmZmZmIDogMHgw
-OworCX0gZWxzZSB7CisJCS8qIFdvcmtzIG9ubHkgZm9yIDB4ZjkgQVVEX01PREUgKi8KKwkJbW9k
-ZSA9IGN4MjU4NDBfcmVhZChjbGllbnQsIDB4ODA1KTsKKwkJLyogdXNhYmxlIG1vZGVzIGZyb20g
-ZGF0YXNoZWV0IDB4MDEgLSAweDExICovCisJCXZ0LT5zaWduYWwgPSAoKG1vZGUgPj0gMSkgJiYg
-KG1vZGUgPD0gMHgxMSkpID8gMHhmZmZmIDogMDsKKwl9CiAKLQl2dC0+c2lnbmFsID0gdnByZXMg
-PyAweGZmZmYgOiAweDA7CiAJaWYgKGlzX2N4MjU4M3goc3RhdGUpKQogCQlyZXR1cm4gMDsKIAot
-CXZ0LT5jYXBhYmlsaXR5IHw9Ci0JCVY0TDJfVFVORVJfQ0FQX1NURVJFTyB8IFY0TDJfVFVORVJf
-Q0FQX0xBTkcxIHwKLQkJVjRMMl9UVU5FUl9DQVBfTEFORzIgfCBWNEwyX1RVTkVSX0NBUF9TQVA7
-CisJLyogc3RlcmVvIGZvciBhbGwgbW9kZXMsIGV2ZW4gcmFkaW8gKi8KKwl2dC0+Y2FwYWJpbGl0
-eSB8PSBWNEwyX1RVTkVSX0NBUF9TVEVSRU87CisKKwlpZiAoIXN0YXRlLT5yYWRpbykgeworCQl2
-dC0+Y2FwYWJpbGl0eSB8PSBWNEwyX1RVTkVSX0NBUF9MQU5HMSB8CisJCQlWNEwyX1RVTkVSX0NB
-UF9MQU5HMiB8IFY0TDJfVFVORVJfQ0FQX1NBUDsKKwl9CiAKIAltb2RlID0gY3gyNTg0MF9yZWFk
-KGNsaWVudCwgMHg4MDQpOwogCiAJLyogZ2V0IHJ4c3ViY2hhbnMgYW5kIGF1ZG1vZGUgKi8KLQlp
-ZiAoKG1vZGUgJiAweGYpID09IDEpCisJc3dpdGNoIChtb2RlICYgMHhmKSB7CisJY2FzZSAwOgor
-CQl2dC0+YXVkbW9kZSA9IFY0TDJfVFVORVJfTU9ERV9NT05POworCQlicmVhazsKKwljYXNlIDE6
-CiAJCXZhbCB8PSBWNEwyX1RVTkVSX1NVQl9TVEVSRU87Ci0JZWxzZQotCQl2YWwgfD0gVjRMMl9U
-VU5FUl9TVUJfTU9OTzsKLQotCWlmIChtb2RlID09IDIgfHwgbW9kZSA9PSA0KQorCQl2dC0+YXVk
-bW9kZSA9IFY0TDJfVFVORVJfTU9ERV9TVEVSRU87CisJCWJyZWFrOworCWNhc2UgMjoKKwljYXNl
-IDQ6CiAJCXZhbCA9IFY0TDJfVFVORVJfU1VCX0xBTkcxIHwgVjRMMl9UVU5FUl9TVUJfTEFORzI7
-CisJCS8qIGNhbid0IGRldGVjdCBleGFjdCBhdWRpbyBtb2RlICovCisJCXZ0LT5hdWRtb2RlID0g
-c3RhdGUtPmF1ZG1vZGU7CisJCWJyZWFrOworCWRlZmF1bHQ6CisJCS8qIGF1ZGlvIG1vZGUgaXMg
-Zm9yY2VkIG9yIHVua25vd24gKi8KKwkJc3dpdGNoIChzdGF0ZS0+YXVkbW9kZSkgeworCQljYXNl
-IFY0TDJfVFVORVJfTU9ERV9TVEVSRU86CisJCQl2YWwgfD0gVjRMMl9UVU5FUl9TVUJfU1RFUkVP
-OworCQkJYnJlYWs7CisJCWNhc2UgVjRMMl9UVU5FUl9NT0RFX0xBTkcxOgorCQljYXNlIFY0TDJf
-VFVORVJfTU9ERV9MQU5HMjoKKwkJY2FzZSBWNEwyX1RVTkVSX01PREVfTEFORzFfTEFORzI6CisJ
-CQl2YWwgPSBWNEwyX1RVTkVSX1NVQl9MQU5HMSB8IFY0TDJfVFVORVJfU1VCX0xBTkcyOworCQkJ
-YnJlYWs7CisJCX0KKwkJdnQtPmF1ZG1vZGUgPSBzdGF0ZS0+YXVkbW9kZTsKKwkJYnJlYWs7CisJ
-fQogCiAJaWYgKG1vZGUgJiAweDEwKQogCQl2YWwgfD0gVjRMMl9UVU5FUl9TVUJfU0FQOwogCiAJ
-dnQtPnJ4c3ViY2hhbnMgPSB2YWw7Ci0JdnQtPmF1ZG1vZGUgPSBzdGF0ZS0+YXVkbW9kZTsKIAly
-ZXR1cm4gMDsKIH0KIApAQCAtMTYyOCw5ICsxNjU5LDE0IEBAIHN0YXRpYyBpbnQgY3gyNTg0MF9z
-X3R1bmVyKHN0cnVjdCB2NGwyX3MKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAqc3RhdGUgPSB0b19z
-dGF0ZShzZCk7CiAJc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHY0bDJfZ2V0X3N1YmRldmRh
-dGEoc2QpOwogCi0JaWYgKHN0YXRlLT5yYWRpbyB8fCBpc19jeDI1ODN4KHN0YXRlKSkKKwlpZiAo
-aXNfY3gyNTgzeChzdGF0ZSkpCiAJCXJldHVybiAwOwogCisJLyogRk0gcmFkaW8gc3VwcG9ydHMg
-b25seSBtb25vIGFuZCBzdGVyZW8gbW9kZXMgKi8KKwlpZiAoKHN0YXRlLT5yYWRpbykgJiYKKwkg
-ICAgKHZ0LT5hdWRtb2RlICE9IFY0TDJfVFVORVJfTU9ERV9NT05PKSAmJgorCSAgICAodnQtPmF1
-ZG1vZGUgIT0gVjRMMl9UVU5FUl9NT0RFX1NURVJFTykpIHJldHVybiAtRUlOVkFMOworCiAJc3dp
-dGNoICh2dC0+YXVkbW9kZSkgewogCQljYXNlIFY0TDJfVFVORVJfTU9ERV9NT05POgogCQkJLyog
-bW9ubyAgICAgIC0+IG1vbm8KLS0gCjEuNy4yLjMKCg==
---0015175cab9ed2a1a504b68143d3--
