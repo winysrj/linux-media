@@ -1,83 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22688 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757767Ab2AROwe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 09:52:34 -0500
-Message-ID: <4F16DCAD.5010700@redhat.com>
-Date: Wed, 18 Jan 2012 12:52:29 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49583 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751971Ab2AFKNr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 05:13:47 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC 14/17] omap3isp: Use pixelrate from sensor media bus frameformat
+Date: Fri, 6 Jan 2012 11:14:05 +0100
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-14-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1324412889-17961-14-git-send-email-sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4l-utils migrated to autotools
-References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <4F16BF4D.4070404@googlemail.com> <4F16C11F.3040108@redhat.com> <4F16C2CA.2090401@googlemail.com>
-In-Reply-To: <4F16C2CA.2090401@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201061114.05973.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-01-2012 11:02, Gregor Jasny escreveu:
-> On 1/18/12 1:54 PM, Mauro Carvalho Chehab wrote:
->> Em 18-01-2012 10:47, Gregor Jasny escreveu:
->>> On 1/18/12 1:19 PM, Mauro Carvalho Chehab wrote:
->>>> It would be nice to write at the INSTALL what dependencies are needed for
->>>> the autotools to work, or, alternatively, to commit the files generated
->>>> by the autoreconf -vfi magic spell there [1].
->>>
->>> The end user gets a tarball created with "make dist" which contains all the m4 files.
->>
->> Ah, ok. It probably makes sense then to add some scripting at the server to do
->> a daily build, as the tarballs aren't updated very often. They're updated only
->> at the sub-releases:
->>     http://linuxtv.org/downloads/v4l-utils/
+Hi Sakari,
+
+Thanks for the patch.
+
+On Tuesday 20 December 2011 21:28:06 Sakari Ailus wrote:
+> From: Sakari Ailus <sakari.ailus@iki.fi>
 > 
-> Judging from the upside-down reports: not the lack of a buildable tarball but the lack of updated distribution packages is a problem. For Ubuntu we have a PPA repository with nightly builds:
+> Configure the ISP based on the pixelrate in media bus frame format.
+> Previously the same was configured from the board code.
 > 
-> https://launchpad.net/~libv4l/+archive/development
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/omap3isp/isp.c |   24 +++++++++++++++++++++---
+>  drivers/media/video/omap3isp/isp.h |    1 -
+>  2 files changed, 21 insertions(+), 4 deletions(-)
 > 
-> Do you have similar infrastructure for Fedora / RedHat, too?
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 6020fd7..92f9716 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -749,10 +749,14 @@ static int isp_pipeline_enable(struct isp_pipeline
+> *pipe,
+> 
+>  	entity = &pipe->output->video.entity;
+>  	while (1) {
+> -		pad = &entity->pads[0];
+> -		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+> +		/*
+> +		 * Is this an external subdev connected to us? If so,
+> +		 * we're done.
+> +		 */
+> +		if (subdev && subdev->host_priv)
+>  			break;
 
-There are two separate issues here:
+This doesn't seem to be related to the patch title. Should it be moved to a 
+separate patch ? You could also move the check to the bottom of the while 
+loop, it would allow you to remove the first part of the condition as subdev 
+will always be non-NULL then (or even possible as the while() condition).
 
-1) users that just get the distro packages.
+> +		pad = &entity->pads[0];
+>  		pad = media_entity_remote_source(pad);
+>  		if (pad == NULL ||
+>  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> @@ -762,6 +766,21 @@ static int isp_pipeline_enable(struct isp_pipeline
+> *pipe, prev_subdev = subdev;
+>  		subdev = media_entity_to_v4l2_subdev(entity);
+> 
+> +		/* Configure CCDC pixel clock */
+> +		if (subdev->host_priv) {
+> +			struct v4l2_subdev_format fmt;
+> +
+> +			fmt.pad = pad->index;
+> +			fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +			ret = v4l2_subdev_call(subdev, pad, get_fmt,
+> +					       NULL, &fmt);
+> +			if (ret < 0)
+> +				return -EINVAL;
+> +
+> +			isp_set_pixel_clock(isp,
+> +					    fmt.format.pixelrate * 1000);
+> +		}
+> +
+>  		/* Configure CSI-2 receiver based on sensor format. */
+>  		if (prev_subdev == &isp->isp_csi2a.subdev
+> 
+>  		    || prev_subdev == &isp->isp_csi2c.subdev) {
+> 
+> @@ -2102,7 +2121,6 @@ static int isp_probe(struct platform_device *pdev)
+> 
+>  	isp->autoidle = autoidle;
+>  	isp->platform_cb.set_xclk = isp_set_xclk;
+> -	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
+> 
+>  	mutex_init(&isp->isp_mutex);
+>  	spin_lock_init(&isp->stat_lock);
+> diff --git a/drivers/media/video/omap3isp/isp.h
+> b/drivers/media/video/omap3isp/isp.h index c5935ae..7d73a39 100644
+> --- a/drivers/media/video/omap3isp/isp.h
+> +++ b/drivers/media/video/omap3isp/isp.h
+> @@ -126,7 +126,6 @@ struct isp_reg {
+> 
+>  struct isp_platform_callback {
+>  	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
+> -	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
+>  };
+> 
+>  /*
 
-For them, the updated distro packages is the issue.
-
-For those, it is very good to have v4l-utils properly packaged on Ubuntu.
-Thanks for that!
-
-Hans is maintaining v4l-utils at Fedora. I don't think he's currently 
-using the -git unstable versions at Fedora Rawhide (the Fedora under 
-development distro). Yet, every time a new release is lauched, he
-updates the packages for Fedora.
-
-So, I think that this is now properly covered with Fedora and Ubuntu 
-(also Debian?). I think that Suse is also doing something similar.
-
-2) users that are testing the neat features that the newest package has.
-
-This covers most of the 900+ subscribers of the linux-media ML.
-
-Those users, in general, don't care much about the distro packages. They
-just want to download the latest sources and compile, in order to test
-the drivers/tools, and provide us feedback. We want to make life easier
-for them, as their test is very important for us to detect, in advance,
-when some regression is happened somewhere.
-
-For those users, it may make sense to have a daily tarball or some
-user-friendly scripting that would allow them to easily clone the
-git tree and use it.
-
+-- 
 Regards,
-Mauro
 
-
-> 
-> Thanks,
-> Gregor
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Laurent Pinchart
