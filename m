@@ -1,112 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.interlinx.bc.ca ([66.11.173.224]:34648 "EHLO
-	linux.interlinx.bc.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757623Ab2ARO3X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 09:29:23 -0500
-Received: from [10.75.22.1] (pc.ilinx [10.75.22.1])
-	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	by linux.interlinx.bc.ca (Postfix) with ESMTPSA id 047E475994
-	for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 09:22:54 -0500 (EST)
-Message-ID: <4F16D5BD.6060609@interlinx.bc.ca>
-Date: Wed, 18 Jan 2012 09:22:53 -0500
-From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:37654 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758734Ab2AFO6n (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 09:58:43 -0500
+Received: by eekc4 with SMTP id c4so1108138eek.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 06:58:41 -0800 (PST)
+Message-ID: <4F070C1D.4060300@gmail.com>
+Date: Fri, 06 Jan 2012 15:58:37 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: cx18-0: Could not find buf 90 for stream TS
-Content-Type: multipart/signed; micalg=pgp-sha1;
- protocol="application/pgp-signature";
- boundary="------------enig0300E3123248F62A1F5F1C26"
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com
+Subject: Re: [RFC 17/17] rm680: Add camera init
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-17-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+In-Reply-To: <1324412889-17961-17-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enig0300E3123248F62A1F5F1C26
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Sakari,
 
-[ Apologies if this ends up as a duplicate post but my first posting
-  (via gmane) a couple of hours ago is still not on the list ]
+On 12/20/2011 09:28 PM, Sakari Ailus wrote:
+> +
+> +static int rm680_sec_camera_set_xshutdown(struct v4l2_subdev *subdev, u8 set)
 
-I have an HVR-1600 on a 2.6.32[-33 Ubuntu] kernel (modinfo says the
-cx18 driver is version 1.2.0 with srcversion "DBC252062593953C879E266")
-which I have MythTV driving.  Last night a number of recordings from
-the analog tuner failed.  The first failure correlates to the following
-in the kernel log:
+It may be more efficient to just use u32.
 
-Jan 17 20:30:34 pvr kernel: [565436.263521] cx18-0: Could not find buf 90=
- for stream TS
-Jan 17 20:30:34 pvr kernel: [565436.610052] cx18-0: Skipped TS, buffer 83=
-, 19 times - it must have dropped out of rotation
-Jan 17 20:30:35 pvr kernel: [565437.360282] cx18-0: Could not find buf 50=
- for stream encoder MPEG
-Jan 17 20:30:35 pvr kernel: [565438.072959] cx18-0: Skipped encoder MPEG,=
- buffer 33, 61 times - it must have dropped out of rotation
-Jan 17 20:30:36 pvr kernel: [565438.537061] cx18-0: Skipped TS, buffer 67=
-, 19 times - it must have dropped out of rotation
-Jan 17 20:30:36 pvr kernel: [565438.590691] cx18-0: Skipped encoder MPEG,=
- buffer 49, 55 times - it must have dropped out of rotation
-Jan 17 20:30:38 pvr kernel: [565440.265314] cx18-0: Could not find buf 81=
- for stream encoder MPEG
-Jan 17 20:30:38 pvr kernel: [565440.780971] cx18-0: Skipped TS, buffer 68=
-, 19 times - it must have dropped out of rotation
-Jan 17 20:30:39 pvr kernel: [565441.705943] cx18-0: Skipped encoder MPEG,=
- buffer 41, 42 times - it must have dropped out of rotation
-Jan 17 20:32:01 pvr kernel: [565523.657123] cx18-0: Skipped encoder MPEG,=
- buffer 6, 62 times - it must have dropped out of rotation
-Jan 17 20:32:18 pvr kernel: [565540.248743] cx18-0: Skipped encoder MPEG,=
- buffer 62, 62 times - it must have dropped out of rotation
-Jan 17 20:32:19 pvr kernel: [565541.337101] cx18-0: Could not find buf 35=
- for stream encoder MPEG
-Jan 17 20:32:19 pvr kernel: [565541.862825] cx18-0: Skipped TS, buffer 73=
-, 19 times - it must have dropped out of rotation
-Jan 17 20:32:19 pvr kernel: [565541.975030] cx18-0: Skipped TS, buffer 82=
-, 16 times - it must have dropped out of rotation
-Jan 17 20:32:20 pvr kernel: [565543.105033] cx18-0: Unable to find blank =
-work order form to schedule incoming mailbox command processing
-Jan 17 20:32:21 pvr kernel: [565543.595668] cx18-0: Skipped encoder MPEG,=
- buffer 34, 44 times - it must have dropped out of rotation
-Jan 17 20:32:24 pvr kernel: [565546.512745] cx18-0: ignoring gop_end: not=
- (yet?) supported by the firmware
+> +{
+> +	gpio_set_value(SEC_CAMERA_RESET_GPIO, !!set);
+> +	return 0;
+> +}
+> +
+...
+> +void __init rm680_camera_init(void)
+> +{
+> +	struct isp_platform_data *pdata;
+> +	int rval;
+> +
+> +	rval = rm680_camera_hw_init();
+> +	if (rval) {
+> +		printk(KERN_WARNING "%s: unable to initialise camera\n",
 
-At the same time as the analog recording a digital recording stopped
-(very) short of completing with only having captured 36MB.
+pr_warn is preferred for new code.
 
-Beyond that, MythTV reports:
+> +		       __func__);
+> +		return;
+> +	}
+> +
+> +	if (board_is_rm680())
+> +		pdata =&rm680_isp_platform_data;
+> +	else
+> +		pdata =&rm696_isp_platform_data;
+> +
+> +	if (omap3_init_camera(pdata)<  0)
+> +		printk(KERN_WARNING
 
-2012-01-17 21:00:06.286397 W [2451/3732] RecThread mpegrecorder.cpp:1358 =
-(StartEncoding) - MPEGRec(/dev/video1): StartEncoding failed
-                        eno: Input/output error (5)
-=2E..
-2012-01-17 22:00:05.774512 W [2451/4335] RecThread mpegrecorder.cpp:1358 =
-(StartEncoding) - MPEGRec(/dev/video1): StartEncoding failed
-                        eno: Input/output error (5)
+pr_warn
 
-But ultimately all further recordings (both analog and digital) from
-that card failed.
+> +		       "%s: unable to register camera platform device\n",
+> +		       __func__);
+> +}
+...
+> +static struct regulator_consumer_supply rm680_vaux2_consumers[] = {
+> +	REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),	/* OMAP ISP */
+> +	REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),	/* OMAP ISP */
+> +	{
+> +		.supply		= "vaux2",
+> +	},
 
-Any ideas what happened?  I can leave this machine as is for a few
-hours in case anyone wants any information from it before I reboot it.
+Could also be
+	REGULATOR_SUPPLY("vaux2", NULL),
 
-Cheers,
-b.
+> +};
+> +REGULATOR_INIT_DATA_FIXED(rm680_vaux2, 1800000);
+> +
+> +static struct regulator_consumer_supply rm680_vaux3_consumers[] = {
+> +	REGULATOR_SUPPLY("VANA", "2-0037"),	/* Main Camera Sensor */
+> +	REGULATOR_SUPPLY("VANA", "2-000e"),	/* Main Camera Lens */
+> +	REGULATOR_SUPPLY("VANA", "2-0010"),	/* Front Camera */
+> +	{
+> +		.supply		= "vaux3",
+> +	},
 
+and 	REGULATOR_SUPPLY("vaux3", NULL),
 
+> +};
 
-
---------------enig0300E3123248F62A1F5F1C26
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iEYEARECAAYFAk8W1b0ACgkQl3EQlGLyuXAPZwCg4PTNflyj5lh9gRe47n6NH5X6
-rF4AoOh0J3zWJsdPoBGuArhG/537Tz97
-=e5rO
------END PGP SIGNATURE-----
-
---------------enig0300E3123248F62A1F5F1C26--
+--
+Regards,
+Sylwester
