@@ -1,86 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:45130 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1758716Ab2AGArI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 19:47:08 -0500
-From: Oliver Endriss <o.endriss@gmx.de>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] drxk: Fix regression introduced by commit '[media] Remove Annex A/C selection via roll-off factor'
-Date: Sat, 7 Jan 2012 01:45:40 +0100
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <201201041945.58852@orion.escape-edv.de> <4F07477C.50900@redhat.com>
-In-Reply-To: <4F07477C.50900@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+Received: from mail.free-electrons.com ([88.190.12.23]:38361 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752947Ab2AFVml (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 16:42:41 -0500
+Received: from skate (humanoidz.org [82.247.183.72])
+	by mail.free-electrons.com (Postfix) with ESMTPA id 335AC132
+	for <linux-media@vger.kernel.org>; Fri,  6 Jan 2012 22:37:35 +0100 (CET)
+Date: Fri, 6 Jan 2012 22:42:31 +0100
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: linux-media@vger.kernel.org
+Subject: cx231xx: possible circular locking dependency detected on 3.2
+Message-ID: <20120106224231.455a9896@skate>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201201070145.40842@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 06 January 2012 20:11:56 Mauro Carvalho Chehab wrote:
-> On 04-01-2012 16:45, Oliver Endriss wrote:
-> > Fix regression introduced by commit '[media] Remove Annex A/C selection via roll-off factor'
-> > As a result of this commit, DVB-T tuning did not work anymore.
-> > 
-> > Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
-> > 
-> > diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-> > index 36e1c82..13f22a1 100644
-> > --- a/drivers/media/dvb/frontends/drxk_hard.c
-> > +++ b/drivers/media/dvb/frontends/drxk_hard.c
-> > @@ -6235,6 +6235,8 @@ static int drxk_set_parameters(struct dvb_frontend *fe)
-> >  	case SYS_DVBC_ANNEX_C:
-> >  		state->m_itut_annex_c = true;
-> >  		break;
-> > +	case SYS_DVBT:
-> > +		break;
-> >  	default:
-> >  		return -EINVAL;
-> >  	}
-> > 
-> Hi Oliver,
-> 
-> Thanks for the patch! 
-> 
-> It become obsoleted by the patch that converted the driver
-> to create just one frontend:
-> 	http://git.linuxtv.org/media_tree.git/commitdiff/fa4b2a171d42ffc512b3a86922ad68e1355eb17a
+Hello,
 
-Agreed.
+I'm running the Hauppauge USB-Live 2 device on an ARM OMAP3 platform.
+After loading the cx231xx driver and launching v4l2grab, I immediately
+get:
 
-> While I don't have DVB-T signal here, the logs were showing that the driver is
-> switching properly between DVB-T and DVB-C.
-> 
-> Yet, I'd appreciate if you could test it with a real signal,
-> for us to be 100% sure that everything is working as expected.
+[  407.087158] cx231xx #0:  setPowerMode::mode = 48, No Change req.
+[  407.145477] 
+[  407.147064] ======================================================
+[  407.153533] [ INFO: possible circular locking dependency detected ]
+[  407.160095] 3.2.0-00007-gb928298 #18
+[  407.163848] -------------------------------------------------------
+[  407.170410] v4l2grab/680 is trying to acquire lock:
+[  407.175537]  (&mm->mmap_sem){++++++}, at: [<bf03e10c>] videobuf_qbuf+0x298/0x48c [videobuf_core]
+[  407.184783] 
+[  407.184783] but task is already holding lock:
+[  407.190887]  (&dev->lock#2){+.+.+.}, at: [<bf00e47c>] v4l2_ioctl+0xec/0x150 [videodev]
+[  407.199249] 
+[  407.199249] which lock already depends on the new lock.
+[  407.199249] 
+[  407.207824] 
+[  407.207824] the existing dependency chain (in reverse order) is:
+[  407.215667] 
+[  407.215667] -> #1 (&dev->lock#2){+.+.+.}:
+[  407.221435]        [<c008bac8>] lock_acquire+0x98/0x100
+[  407.226928]        [<c0471594>] mutex_lock_interruptible_nested+0x4c/0x37c
+[  407.234161]        [<bf00e378>] v4l2_mmap+0x94/0xac [videodev]
+[  407.240295]        [<c00eee5c>] mmap_region+0x2d4/0x468
+[  407.245788]        [<c00ef3a0>] sys_mmap_pgoff+0x78/0xc0
+[  407.251342]        [<c0013b00>] ret_fast_syscall+0x0/0x3c
+[  407.257019] 
+[  407.257019] -> #0 (&mm->mmap_sem){++++++}:
+[  407.262878]        [<c008b3f0>] __lock_acquire+0x1d04/0x1d94
+[  407.268829]        [<c008bac8>] lock_acquire+0x98/0x100
+[  407.274291]        [<c04726cc>] down_read+0x2c/0x3c
+[  407.279418]        [<bf03e10c>] videobuf_qbuf+0x298/0x48c [videobuf_core]
+[  407.286529]        [<bf00fbf4>] __video_do_ioctl+0x500/0x55a8 [videodev]
+[  407.293579]        [<bf00f2d0>] video_usercopy+0x128/0x4d8 [videodev]
+[  407.300354]        [<bf00e418>] v4l2_ioctl+0x88/0x150 [videodev]
+[  407.306671]        [<c0112cd4>] do_vfs_ioctl+0x7c/0x584
+[  407.312164]        [<c0113250>] sys_ioctl+0x74/0x7c
+[  407.317260]        [<c0013b00>] ret_fast_syscall+0x0/0x3c
+[  407.322937] 
+[  407.322937] other info that might help us debug this:
+[  407.322937] 
+[  407.331329]  Possible unsafe locking scenario:
+[  407.331329] 
+[  407.337524]        CPU0                    CPU1
+[  407.342285]        ----                    ----
+[  407.347015]   lock(&dev->lock);
+[  407.350311]                                lock(&mm->mmap_sem);
+[  407.356536]                                lock(&dev->lock);
+[  407.362457]   lock(&mm->mmap_sem);
+[  407.366027] 
+[  407.366027]  *** DEADLOCK ***
+[  407.366027] 
+[  407.372253] 1 lock held by v4l2grab/680:
+[  407.376342]  #0:  (&dev->lock#2){+.+.+.}, at: [<bf00e47c>] v4l2_ioctl+0xec/0x150 [videodev]
+[  407.385162] 
+[  407.385162] stack backtrace:
+[  407.389739] [<c001b3b0>] (unwind_backtrace+0x0/0xf0) from [<c0087c04>] (print_circular_bug+0x1d4/0x2f0)
+[  407.399597] [<c0087c04>] (print_circular_bug+0x1d4/0x2f0) from [<c008b3f0>] (__lock_acquire+0x1d04/0x1d94)
+[  407.409729] [<c008b3f0>] (__lock_acquire+0x1d04/0x1d94) from [<c008bac8>] (lock_acquire+0x98/0x100)
+[  407.419219] [<c008bac8>] (lock_acquire+0x98/0x100) from [<c04726cc>] (down_read+0x2c/0x3c)
+[  407.427886] [<c04726cc>] (down_read+0x2c/0x3c) from [<bf03e10c>] (videobuf_qbuf+0x298/0x48c [videobuf_core])
+[  407.438201] [<bf03e10c>] (videobuf_qbuf+0x298/0x48c [videobuf_core]) from [<bf00fbf4>] (__video_do_ioctl+0x500/0x55a8 [videodev])
+[  407.450469] [<bf00fbf4>] (__video_do_ioctl+0x500/0x55a8 [videodev]) from [<bf00f2d0>] (video_usercopy+0x128/0x4d8 [videodev])
+[  407.462341] [<bf00f2d0>] (video_usercopy+0x128/0x4d8 [videodev]) from [<bf00e418>] (v4l2_ioctl+0x88/0x150 [videodev])
+[  407.473480] [<bf00e418>] (v4l2_ioctl+0x88/0x150 [videodev]) from [<c0112cd4>] (do_vfs_ioctl+0x7c/0x584)
+[  407.483337] [<c0112cd4>] (do_vfs_ioctl+0x7c/0x584) from [<c0113250>] (sys_ioctl+0x74/0x7c)
+[  407.492004] [<c0113250>] (sys_ioctl+0x74/0x7c) from [<c0013b00>] (ret_fast_syscall+0x0/0x3c)
+[  407.500915] cx231xx #0: cx231xx_stop_stream():: ep_mask = 8
 
-A quick test showed that switching to DVB-T works.
-Sorry, I do not have a DVB-C signal here.
+Best regards,
 
-Btw, there are two lines, which are not harmful, but should be removed
-(bad formatting/dead code).
-
---- drxk_hard.c.old	2012-01-07 01:40:00.000000000 +0100
-+++ drxk_hard.c	2012-01-07 01:40:30.000000000 +0100
-@@ -6236,8 +6236,6 @@ static int drxk_set_parameters(struct dv
- 				SetOperationMode(state, OM_QAM_ITU_C);
- 			else
- 				SetOperationMode(state, OM_QAM_ITU_A);
--				break;
--			state->m_itut_annex_c = true;
- 			break;
- 		case SYS_DVBT:
- 			if (!state->m_hasDVBT)
-
-
-CU
-Oliver
-
+Thomas Petazzoni
 -- 
-----------------------------------------------------------------
-VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
-4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
-Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
-----------------------------------------------------------------
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
