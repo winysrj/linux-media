@@ -1,113 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:49369 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752805Ab2AOLvv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 06:51:51 -0500
-Received: by eaae11 with SMTP id e11so24265eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 03:51:49 -0800 (PST)
-Message-ID: <4F12BDD1.1000306@gmail.com>
-Date: Sun, 15 Jan 2012 12:51:45 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:45075 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757289Ab2AFAwr convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 19:52:47 -0500
+Received: by vcbfk14 with SMTP id fk14so821820vcb.19
+        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 16:52:47 -0800 (PST)
 MIME-Version: 1.0
-To: razza lists <razzalist@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppage Nova: doesn't know how to handle a DVBv3 call to delivery
- system 0
-References: <008301ccd316$0be6d440$23b47cc0$@gmail.com> <4F121361.2050403@gmail.com> <CAL+xqGZ1mBttt_e5bUorGFP+cc9RX3ooCkmAa9MSEAaLJ_o=mw@mail.gmail.com>
-In-Reply-To: <CAL+xqGZ1mBttt_e5bUorGFP+cc9RX3ooCkmAa9MSEAaLJ_o=mw@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <A66B7710-DC6D-4A88-AF1C-2853C39617ED@radier.ca>
+References: <A66B7710-DC6D-4A88-AF1C-2853C39617ED@radier.ca>
+Date: Thu, 5 Jan 2012 19:52:47 -0500
+Message-ID: <CAGoCfiwA1ZNQyKZbsvnsGU8z85PFPDM46_RvmyS853O+Rwnp1g@mail.gmail.com>
+Subject: Re: em2874 bulk endpoint support
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Dmitriy Fitisov <dmitriy@radier.ca>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 15/01/2012 12:35, razza lists ha scritto:
-> On Sat, Jan 14, 2012 at 11:44 PM, Gianluca Gennari <gennarone@gmail.com> wrote:
->>
->> Il 15/01/2012 00:41, RazzaList ha scritto:
->>> I have followed the build instructions for the Hauppauge MyTV.t device here
->>> - http://linuxtv.org/wiki/index.php/Hauppauge_myTV.t and built the drivers
->>> as detailed here -
->>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_D
->>> evice_Drivers on a CentOS 6.2 i386 build.
->>>
->>> When I use dvbscan, nothing happens. dmesg shows "
->>> dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
->>> delivery system 0"
->>>
->>> [root@cos6 ~]# cd /usr/bin
->>> [root@cos6 bin]# ./dvbscan /usr/share/dvb/dvb-t/uk-Hannington >
->>> /usr/share/dvb/dvb-t/channels.conf
->>> [root@cos6 bin]# dmesg | grep dvb
->>> dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in warm state.
->>> dvb-usb: will pass the complete MPEG2 transport stream to the software
->>> demuxer.
->>> dvb-usb: schedule remote query interval to 50 msecs.
->>> dvb-usb: Hauppauge Nova-T MyTV.t successfully initialized and connected.
->>> usbcore: registered new interface driver dvb_usb_dib0700
->>> dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
->>> delivery system 0
->>>
->>> I have searched but can't locate a fix. Any pointers?
->>>
->>>
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at ï¿½http://vger.kernel.org/majordomo-info.html
->>>
->>
->> Hi,
->> this patch will likely fix your problem:
->>
->> http://patchwork.linuxtv.org/patch/9492/
->>
->> Best regards,
->> Gianluca
-> 
-> It's very likely the case I'm doing something wrong and I apologise in
-> advance! However some help/guidance would be great...
-> 
-> I have downloaded the sources as described in the basic approach here
-> - http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
-> 
-> In the source there is no file called "dvb_frontend.c", so I assume I
-> start the media_build/build script?
-> If I do, eventually this creates
-> media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
-> 
-> I then apply the patch to
-> media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c, and I can
-> see the added elements...
-> ....
-> static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
-> {
->         struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->         int i;
->        	u32 delsys;
-> 
->         delsys = c->delivery_system;
->         memset(c, 0, sizeof(struct dtv_frontend_properties));
->         c->delivery_system = delsys;
-> 
->         c->state = DTV_CLEAR;
-> 
->         dprintk("%s() Clearing cache for delivery system %d\n", __func__,
->                	c->delivery_system);
-> ................
-> 
-> After a reboot (as I have not got a clue about unloading modules etc.)
-> I then execute make install but I still get the same error
-> "dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
-> delivery system 0" when I use dvbscan.
-> 
+On Thu, Jan 5, 2012 at 6:16 PM, Dmitriy Fitisov <dmitriy@radier.ca> wrote:
+> Hello everyone,
+> I know, Devin Heitmueller was about to add support  for em2874 bulk endpoint.
+>
+> Is that still in plans?
 
-You are almost there.
-After you apply the patch, you have to recompile the entire source tree.
-You can do it launching the "make" command inside the linux/ folder.
-Then reinstall the drivers giving "make install" from the media_build/
-folder, and reboot.
+The project that I was slated to do this work for got cancelled, and
+the only device I know of that requires bulk support is an obscure
+K-world product.  It just didn't make any sense to waste the time for
+one unpopular stick.
 
-Best regards,
-Gianluca
+Regards,
+
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
