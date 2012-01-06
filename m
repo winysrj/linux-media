@@ -1,111 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:56458 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752303Ab2ADTUJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 14:20:09 -0500
-Received: by eekc4 with SMTP id c4so16921540eek.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 11:20:08 -0800 (PST)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH v3] xc3028: fix center frequency calculation for DTV78 firmware
-Date: Wed,  4 Jan 2012 20:17:19 +0100
-Message-Id: <1325704639-21010-1-git-send-email-gennarone@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:30499 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030269Ab2AFKV4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 6 Jan 2012 05:21:56 -0500
+Message-ID: <4F06CB48.8050509@maxwell.research.nokia.com>
+Date: Fri, 06 Jan 2012 12:22:00 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+Subject: Re: [RFC 03/17] vivi: Add an integer menu test control
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-3-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201201051659.14528.laurent.pinchart@ideasonboard.com> <4F06CAC5.8010902@maxwell.research.nokia.com>
+In-Reply-To: <4F06CAC5.8010902@maxwell.research.nokia.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-this v3 version has been sent through "git send-email" to avoid
-line-wrapping problems. This patch replaces the previous one proposed
-in the thread "xc3028: force reload of DTV7 firmware in VHF band with
-Zarlink demodulator".
+Sakari Ailus wrote:
+...
+> I put it there to limit the maximum to 8 instead of 9, but 9 would be
+> equally good. I'll change it.
 
-The problem is that the firmware DTV78 works fine in UHF band (8 MHz
-bandwidth) but is not working at all in VHF band (7 MHz bandwidth).
-Reading the comments inside the code, I figured out that the real
-problem could be connected to the formula used to calculate the center
-frequency offset in VHF band.
+Or not. 8 is still the index of the last value. min is one  to start the
+menu from the second item. Would you like that to be changed to zero?
 
-In fact, removing this adjustment fixes the problem:
-
-		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
-			offset -= 500000;
-
-This is coherent to what was implemented for the DTV7 firmware by an
-Australian user:
-
-		if (priv->cur_fw.type & DTV7)
-			offset += 500000;
-
-In the end, now the center frequency is the same for all firmwares
-(DTV7, DTV8, DTV78) and doesn't depend on channel bandwidth.
-
-The final code looks clean and simple, and there is no need for any
-"magic" adjustment:
-
-		if (priv->cur_fw.type & DTV6)
-			offset = 1750000;
-		else	/* DTV7 or DTV8 or DTV78 */
-			offset = 2750000;
-
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/common/tuners/tuner-xc2028.c |   26 ++++++++++++++++----------
- 1 files changed, 16 insertions(+), 10 deletions(-)
-
-diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
-index bdcbfd7..2755599 100644
---- a/drivers/media/common/tuners/tuner-xc2028.c
-+++ b/drivers/media/common/tuners/tuner-xc2028.c
-@@ -962,14 +962,24 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
- 		 * For DTV 7/8, the firmware uses BW = 8000, so it needs a
- 		 * further adjustment to get the frequency center on VHF
- 		 */
-+
-+		/*
-+		 * The firmware DTV78 used to work fine in UHF band (8 MHz
-+		 * bandwidth) but not at all in VHF band (7 MHz bandwidth).
-+		 * The real problem was connected to the formula used to
-+		 * calculate the center frequency offset in VHF band.
-+		 * In fact, removing the 500KHz adjustment fixed the problem.
-+		 * This is coherent to what was implemented for the DTV7
-+		 * firmware.
-+		 * In the end, now the center frequency is the same for all 3
-+		 * firmwares (DTV7, DTV8, DTV78) and doesn't depend on channel
-+		 * bandwidth.
-+		 */
-+
- 		if (priv->cur_fw.type & DTV6)
- 			offset = 1750000;
--		else if (priv->cur_fw.type & DTV7)
--			offset = 2250000;
--		else	/* DTV8 or DTV78 */
-+		else	/* DTV7 or DTV8 or DTV78 */
- 			offset = 2750000;
--		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
--			offset -= 500000;
- 
- 		/*
- 		 * xc3028 additional "magic"
-@@ -979,17 +989,13 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
- 		 * newer firmwares
- 		 */
- 
--#if 1
- 		/*
- 		 * The proper adjustment would be to do it at s-code table.
- 		 * However, this didn't work, as reported by
- 		 * Robert Lowery <rglowery@exemail.com.au>
- 		 */
- 
--		if (priv->cur_fw.type & DTV7)
--			offset += 500000;
--
--#else
-+#if 0
- 		/*
- 		 * Still need tests for XC3028L (firmware 3.2 or upper)
- 		 * So, for now, let's just comment the per-firmware
 -- 
-1.7.5.4
-
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
