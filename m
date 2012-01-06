@@ -1,43 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:32858 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752710Ab2AaJmk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jan 2012 04:42:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Semwal, Sumit" <sumit.semwal@ti.com>
-Subject: Re: [PATCH] dma-buf: add dma_data_direction to unmap dma_buf_op
-Date: Tue, 31 Jan 2012 10:42:59 +0100
-Cc: dri-devel@lists.freedesktop.org, t.stanislaws@samsung.com,
-	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-References: <1327657408-15234-1-git-send-email-sumit.semwal@ti.com> <201201301519.07785.laurent.pinchart@ideasonboard.com> <CAB2ybb8RX5Sy7-s4-X2cLC9HcoTmsn_miYu0HysjHSU4aZ4BBw@mail.gmail.com>
-In-Reply-To: <CAB2ybb8RX5Sy7-s4-X2cLC9HcoTmsn_miYu0HysjHSU4aZ4BBw@mail.gmail.com>
+Received: from mailout-de.gmx.net ([213.165.64.23]:42442 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758249Ab2AFBC7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 20:02:59 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+Reply-To: Linux Media Mailing List <linux-media@vger.kernel.org>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH 0/5] Fix dvb-core set_delivery_system and port drxk to one frontend
+Date: Fri, 6 Jan 2012 02:02:36 +0100
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <1325777872-14696-1-git-send-email-mchehab@redhat.com> <CAGoCfizKsxALXAMbCO=XGkODkXy2sBJ1NzbhBQ2TAkurnG-maQ@mail.gmail.com>
+In-Reply-To: <CAGoCfizKsxALXAMbCO=XGkODkXy2sBJ1NzbhBQ2TAkurnG-maQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Content-Type: text/plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201311042.59917.laurent.pinchart@ideasonboard.com>
+Content-Disposition: inline
+Message-Id: <201201060202.37931@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sumit,
+On Thursday 05 January 2012 17:40:54 Devin Heitmueller wrote:
+> On Thu, Jan 5, 2012 at 10:37 AM, Mauro Carvalho Chehab
+> <mchehab@redhat.com> wrote:
+> > With all these series applied, it is now possible to use frontend 0
+> > for all delivery systems. As the current tools don't support changing
+> > the delivery system, the dvb-fe-tool (on my experimental tree[1]) can now
+> > be used to change between them:
+> 
+> Hi Mauro,
+> 
+> While from a functional standpoint I think this is a good change (and
+> we probably should have done it this way all along), is there not
+> concern that this could be interpreted by regular users as a
+> regression?  Right now they get two frontends, and they can use all
+> their existing tools.  We're moving to a model where if users upgraded
+> their kernel they would now require some new userland tool to do
+> something that the kernel was allowing them to do previously.
+> 
+> Sure, it's not "ABI breakage" in the classic sense but the net effect
+> is the same - stuff that used to work stops working and now they need
+> new tools or to recompile their existing tools to include new
+> functionality (which as you mentioned, none of those tools have
+> today).
+> 
+> Perhaps you would consider some sort of module option that would let
+> users fall back to the old behavior?
 
-> On Friday 27 January 2012 10:43:28 Sumit Semwal wrote:
+Imho it is not worth the effort. ;-)
 
-[snip]
+Usually there is a single type of signal on the cable (for example
+DVB-T or DVB-C, but not both). So the delivery system will not
+change during normal operation.
 
->  static inline void dma_buf_unmap_attachment(struct dma_buf_attachment
-> *attach,
-> -                                            struct sg_table *sg)
-> +                     struct sg_table *sg, enum dma_data_direction write)
+If an old application cannot setup the delivery system,
+and the default delivery system is the wrong one:
+Run a small tool to setup to the desired delivery system.
 
-On a second thought, would it make sense to store the direction in struct 
-dma_buf_attachment in dma_buf_map_attachment(), and pass the value directly to 
-the .unmap_dma_buf() instead of requiring the dma_buf_unmap_attachment() 
-caller to remember it ? Or is an attachment allowed to map the buffer several 
-times with different directions ?
+Afterwards the old application will work 'as is' with the combined
+frontend.
+
+I see no major problems with the new behaviour.
+
+CU
+Oliver
 
 -- 
-Regards,
-
-Laurent Pinchart
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
