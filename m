@@ -1,91 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:37587 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750894Ab2AGIFu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jan 2012 03:05:50 -0500
-Received: by iaeh11 with SMTP id h11so3850782iae.19
-        for <linux-media@vger.kernel.org>; Sat, 07 Jan 2012 00:05:50 -0800 (PST)
-Date: Sat, 7 Jan 2012 02:05:45 -0600
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Johannes Stezenbach <js@sig21.net>, linux-media@vger.kernel.org
-Subject: [PATCH 1/2] [media] a800: use symbolic names for a800_table indices
-Message-ID: <20120107080545.GB10247@elie.hsd1.il.comcast.net>
-References: <20111222215356.GA4499@rotes76.wohnheim.uni-kl.de>
- <20111222234446.GB10497@elie.Belkin>
- <201112231820.03693.pboettcher@kernellabs.com>
- <20111223230045.GE21769@elie.Belkin>
- <4F06F512.9090704@redhat.com>
- <20120107080136.GA10247@elie.hsd1.il.comcast.net>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120107080136.GA10247@elie.hsd1.il.comcast.net>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:46880 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030385Ab2AFSO5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 13:14:57 -0500
+Received: by eekc4 with SMTP id c4so1234158eek.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 10:14:56 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Luca Risolia <luca.risolia@studio.unibo.it>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+Subject: [PATCH/RFC v2 0/4] JPEG codecs control class
+Date: Fri,  6 Jan 2012 19:14:38 +0100
+Message-Id: <1325873682-3754-1-git-send-email-snjw23@gmail.com>
+In-Reply-To: <4EBECD11.8090709@gmail.com>
+References: <4EBECD11.8090709@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The USB id table opens with a comment:
+Hello,
 
-	/* do not change the order of the ID table */
+This patch set adds new control class - V4L2_CID_JPEG_CLASS with initially
+four controls in it. It also adds V4L2_CID_JPEG_COMPRESSION_QUALITY control
+to two gspca sub-devices: sonixj and zc3xx, as these where drivers I had
+the hardware handy for. The gspca patches have been tested with v4l2ucp
+and v4l2-ctl.
 
-because the dvb_usb_device_properties::devices field makes use of USB
-ids using hardcoded indices, as in "&a800_table[1]".  Inserting new
-USB ids before the end of the table can cause these indices to go
-stale and the code to misbehave.
+I could provide patches for some other drivers that currently use
+VIDIOC_S/G_JPEGCOMP ioctls for image quality setting only.
 
-In the spirit of "dw2102: use symbolic names for dw2102_table
-indices", use symbolic names for the indices and C99-style
-initializers to ensure they continue to refer to the entries they are
-supposed to.  Now you can reorder entries in the id table without
-fear.
+The initial RFC can be found at
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg39012.html
 
-Encouraged-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
----
- drivers/media/dvb/dvb-usb/a800.c |   21 ++++++++++++++-------
- 1 files changed, 14 insertions(+), 7 deletions(-)
+Changes since v1 [1]:
+ - renamed trailing 'S' from V4L2_CID_JPEG_ACTIVE_MARKERS;
+ - removed V4L2_JPEG_ACTIVE_MARKER_DAC and V4L2_JPEG_ACTIVE_MARKER_DNL
+   definitions as these are normally controlled by higher level compression
+   attributes and shouldn't be allowed to be discarded independently;
 
-diff --git a/drivers/media/dvb/dvb-usb/a800.c b/drivers/media/dvb/dvb-usb/a800.c
-index 2aef3c89e9fa..3f7ab144218b 100644
---- a/drivers/media/dvb/dvb-usb/a800.c
-+++ b/drivers/media/dvb/dvb-usb/a800.c
-@@ -110,11 +110,17 @@ static int a800_probe(struct usb_interface *intf,
- 				   THIS_MODULE, NULL, adapter_nr);
- }
- 
--/* do not change the order of the ID table */
-+enum a800_table_entry {
-+	AVERMEDIA_A800_COLD,
-+	AVERMEDIA_A800_WARM
-+};
-+
- static struct usb_device_id a800_table [] = {
--/* 00 */	{ USB_DEVICE(USB_VID_AVERMEDIA,     USB_PID_AVERMEDIA_DVBT_USB2_COLD) },
--/* 01 */	{ USB_DEVICE(USB_VID_AVERMEDIA,     USB_PID_AVERMEDIA_DVBT_USB2_WARM) },
--			{ }		/* Terminating entry */
-+	[AVERMEDIA_A800_COLD] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+					USB_PID_AVERMEDIA_DVBT_USB2_COLD)},
-+	[AVERMEDIA_A800_WARM] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+					USB_PID_AVERMEDIA_DVBT_USB2_WARM)},
-+	{ }
- };
- MODULE_DEVICE_TABLE (usb, a800_table);
- 
-@@ -169,9 +175,10 @@ static struct dvb_usb_device_properties a800_properties = {
- 	.generic_bulk_ctrl_endpoint = 0x01,
- 	.num_device_descs = 1,
- 	.devices = {
--		{   "AVerMedia AverTV DVB-T USB 2.0 (A800)",
--			{ &a800_table[0], NULL },
--			{ &a800_table[1], NULL },
-+		{
-+			.name = "AVerMedia AverTV DVB-T USB 2.0 (A800)",
-+			.cold_ids = {&a800_table[AVERMEDIA_A800_COLD], NULL},
-+			.warm_ids = {&a800_table[AVERMEDIA_A800_WARM], NULL},
- 		},
- 	}
- };
--- 
-1.7.8.3
+These patches are intended for v3.4. Comments are welcome.
 
+
+Sylwester Nawrocki (4):
+  V4L: Add JPEG compression control class
+  V4L: Add JPEG compression control class documentation
+  gspca: sonixj: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+  gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+
+ Documentation/DocBook/media/v4l/biblio.xml         |   20 +++
+ Documentation/DocBook/media/v4l/compat.xml         |   10 ++
+ Documentation/DocBook/media/v4l/controls.xml       |  161 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    9 +
+ .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |   16 ++-
+ drivers/media/video/gspca/sonixj.c                 |   23 +++
+ drivers/media/video/gspca/zc3xx.c                  |   54 +++++--
+ drivers/media/video/v4l2-ctrls.c                   |   24 +++
+ include/linux/videodev2.h                          |   24 +++
+ 9 files changed, 322 insertions(+), 19 deletions(-)
+
+--
+Thanks,
+Sylwester
+
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg41070.html
