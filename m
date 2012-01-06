@@ -1,113 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19746 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932327Ab2AEBBM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:12 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511Chh002517
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:12 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 47/47] [media] drxk: Add support for parallel mode and prints mpeg mode
-Date: Wed,  4 Jan 2012 23:00:58 -0200
-Message-Id: <1325725258-27934-48-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:40879 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752395Ab2AFRY1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 12:24:27 -0500
+Received: by ggdk6 with SMTP id k6so792885ggd.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 09:24:26 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAHVY3emBazYtJKwz-PaJKZQe3Gbi7JBP_zJp-Y-3n=ZtTR2JHg@mail.gmail.com>
+References: <CAHVY3e=Q8yRdXhgsoPBX-dvCHY=uF7adCievYoOTg15cOF6xGw@mail.gmail.com>
+ <CAHVY3emBazYtJKwz-PaJKZQe3Gbi7JBP_zJp-Y-3n=ZtTR2JHg@mail.gmail.com>
+From: Mario Ceresa <mrceresa@gmail.com>
+Date: Fri, 6 Jan 2012 18:24:05 +0100
+Message-ID: <CAHVY3empEzXBCw+GM_vjE+yXovTfY5KQ6=RyOfkBUEiM_2F7OQ@mail.gmail.com>
+Subject: Re: sveon stv40 usb stick
+To: V4L Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While the driver has support for both serial and parallel mode,
-There's was way to select serial mode via configuration. Add
-a config option for that, while keeping the default in serial mode.
+Last updates. It works with em28xx module from v4l git as a card 19:
+# modprobe em28xx card=19
+# echo 1b80 e309 > /sys/bus/usb/drivers/em28xx/new_id
 
-Also, at debug mode, it will now print a message when mpeg is
-enabled/disabled, and showing if parallel or serial mode were
-selected, helping developers to double-check if the DRX-K is at
-the right mode.
+[plugged in the usb] and
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/frontends/drxk.h      |    3 +++
- drivers/media/dvb/frontends/drxk_hard.c |   14 ++++++++------
- 2 files changed, 11 insertions(+), 6 deletions(-)
+$ mplayer -tv device=/dev/video0:input=1:norm=PAL:alsa:immediatemode=0:audiorate=48000:amode=1:adevice=hw.2
+tv://
 
-diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
-index e6d42e2..870432f 100644
---- a/drivers/media/dvb/frontends/drxk.h
-+++ b/drivers/media/dvb/frontends/drxk.h
-@@ -8,6 +8,8 @@
-  * struct drxk_config - Configure the initial parameters for DRX-K
-  *
-  * adr:			I2C Address of the DRX-K
-+ * parallel_ts:		true means that the device uses parallel TS,
-+ * 			Serial otherwise.
-  * single_master:	Device is on the single master mode
-  * no_i2c_bridge:	Don't switch the I2C bridge to talk with tuner
-  * antenna_gpio:	GPIO bit used to control the antenna
-@@ -22,6 +24,7 @@ struct drxk_config {
- 	u8	adr;
- 	bool	single_master;
- 	bool	no_i2c_bridge;
-+	bool	parallel_ts;
- 
- 	bool	antenna_dvbt;
- 	u16	antenna_gpio;
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 817d3ec..c8213f6 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -660,7 +660,6 @@ static int init_state(struct drxk_state *state)
- 	/* io_pad_cfg_mode output mode is drive always */
- 	/* io_pad_cfg_drive is set to power 2 (23 mA) */
- 	u32 ulGPIOCfg = 0x0113;
--	u32 ulSerialMode = 1;
- 	u32 ulInvertTSClock = 0;
- 	u32 ulTSDataStrength = DRXK_MPEG_SERIAL_OUTPUT_PIN_DRIVE_STRENGTH;
- 	u32 ulTSClockkStrength = DRXK_MPEG_OUTPUT_CLK_DRIVE_STRENGTH;
-@@ -811,8 +810,6 @@ static int init_state(struct drxk_state *state)
- 	/* MPEG output configuration */
- 	state->m_enableMPEGOutput = true;	/* If TRUE; enable MPEG ouput */
- 	state->m_insertRSByte = false;	/* If TRUE; insert RS byte */
--	state->m_enableParallel = true;	/* If TRUE;
--					   parallel out otherwise serial */
- 	state->m_invertDATA = false;	/* If TRUE; invert DATA signals */
- 	state->m_invertERR = false;	/* If TRUE; invert ERR signal */
- 	state->m_invertSTR = false;	/* If TRUE; invert STR signals */
-@@ -857,8 +854,6 @@ static int init_state(struct drxk_state *state)
- 	state->m_bPowerDown = false;
- 	state->m_currentPowerMode = DRX_POWER_DOWN;
- 
--	state->m_enableParallel = (ulSerialMode == 0);
--
- 	state->m_rfmirror = (ulRfMirror == 0);
- 	state->m_IfAgcPol = false;
- 	return 0;
-@@ -1195,7 +1190,9 @@ static int MPEGTSConfigurePins(struct drxk_state *state, bool mpegEnable)
- 	u16 sioPdrMclkCfg = 0;
- 	u16 sioPdrMdxCfg = 0;
- 
--	dprintk(1, "\n");
-+	dprintk(1, ": mpeg %s, %s mode\n",
-+		mpegEnable ? "enable" : "disable",
-+		state->m_enableParallel ? "parallel" : "serial");
- 
- 	/* stop lock indicator process */
- 	status = write16(state, SCU_RAM_GPIO__A, SCU_RAM_GPIO_HW_LOCK_IND_DISABLE);
-@@ -6432,6 +6429,11 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 	state->antenna_dvbt = config->antenna_dvbt;
- 	state->m_ChunkSize = config->chunk_size;
- 
-+	if (config->parallel_ts)
-+		state->m_enableParallel = true;
-+	else
-+		state->m_enableParallel = false;
-+
- 	/* NOTE: as more UIO bits will be used, add them to the mask */
- 	state->UIO_mask = config->antenna_gpio;
- 
--- 
-1.7.7.5
+But I have no audio... I will open a new thread only for the audio problem!
 
+Best,
+Mario
+
+
+On 6 January 2012 15:52, Mario Ceresa <mrceresa@gmail.com> wrote:
+> Hi again!
+>
+> following the thread "em28xx: new board id [eb1a:5051]" between Reuben
+> and Gareth I was able to advance a little:
+>
+> 1) I opened the usn stick and my chipsets are:
+> - USB interface: em2860
+> - Audio ADC: emp202
+> - Video ADC: saa7118h (philips)
+>
+> 2) I confirm that the stock em28xx driver can recognize the usb stick
+> but needs to specify a card manually as an option.
+>
+> 3) Using "modprobe em18xx card=19" (which corresponds to
+> "EM2860/SAA711X Reference Design") I can go so far as to get a
+> /dev/video0, but the preview is black no matter what i do.
+>
+> 4) I was able to eventually compile the v4l drivers but, as soon as I
+> inject the driver, I get a kernel oops (attached). I made no change to
+> the code obtained with git.
+>
+> I won't even mind to write some code myself, but I really have no idea
+> where to begin with!
+>
+> Thanks in advance for any help you might provide,
+>
+> Best,
+>
+> Mario
+>
+>
+>
+> On 3 January 2012 20:44, Mario Ceresa <mrceresa@gmail.com> wrote:
+>> Hello everybody!
+>> I recently bougth a Sveon STV40 usb stick to capture analogic video
+>> (http://www.sveon.com/fichaSTV40.html)
+>> I can use it in windows but my linux box (Fedora 16 -
+>> 3.1.6-1.fc16.x86_64 - gcc 4.6.2) can't recognize it.
+>> Is there any way I can fix this?
+>>
+>> These are the results of my investigation so far:
+>>
+>> 1) It is identified by lsusb as an Afatech board (1b80:e309) with an
+>> Empia 2861 chip (from dmesg and windows driver inf file)
+>> 2) I experimented with em28xx  because the chipset was empia and with
+>> af9015 because I found that the stv22 was supported
+>> (http://linuxtv.org/wiki/index.php/Afatech_AF9015). In both cases
+>> after I manually added the vendor:id to /sys/bus/usb/drivers/ driver
+>> started but in the end I was not able to succeed. With em28xx I could
+>> go as far as having a /dev/video0 device but with no signal and the
+>> dmesg log said to ask here for help :) . With the af9015 I had an
+>> early stop.
+>> 3) Both the logs are attached.
+>> 4) I used the driver shipped with the fedora stock kernel because I
+>> can't compile the ones that I get from
+>> git://linuxtv.org/media_build.git. I have an error at:
+>>
+>> CC [M]  media_build/v4l/as3645a.o
+>> media_build/v4l/as3645a.c: In function 'as3645a_probe':
+>> media_build/v4l/as3645a.c:815:2: error: implicit declaration of
+>> function 'kzalloc' [-Werror=implicit-function-declaration]
+>> media_build/v4l/as3645a.c:815:8: warning: assignment makes pointer
+>> from integer without a cast [enabled by default]
+>> cc1: some warnings being treated as errors
+>>
+>> Thank you in advance for any help you might provide on this issue!
+>>
+>> ,Best regards
+>>
+>> Mario
