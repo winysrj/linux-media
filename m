@@ -1,92 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:53705 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755889Ab2AEPjr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 10:39:47 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Marek Szyprowski" <m.szyprowski@samsung.com>
-Cc: "Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Mel Gorman" <mel@csn.ul.ie>, "Arnd Bergmann" <arnd@arndb.de>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Jonathan Corbet" <corbet@lwn.net>,
-	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
-	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>,
-	"Benjamin Gaignard" <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 01/11] mm: page_alloc: set_migratetype_isolate: drain PCP
- prior to isolating
-References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
- <1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
-Date: Thu, 05 Jan 2012 16:39:43 +0100
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:36911 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758970Ab2AFSkc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 13:40:32 -0500
+Received: by ghbg21 with SMTP id g21so829364ghb.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 10:40:31 -0800 (PST)
+Date: Fri, 6 Jan 2012 12:40:26 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Igor M. Liplianin" <liplianin@me.by>
+Subject: [PATCH] [media] dm1105: release dvbnet on frontend attachment failure
+Message-ID: <20120106184026.GH15740@elie.hsd1.il.comcast.net>
+References: <E1RjBAD-0006UI-HU@www.linuxtv.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v7ma4hm33l0zgt@mpn-glaptop>
-In-Reply-To: <1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <E1RjBAD-0006UI-HU@www.linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 29 Dec 2011 13:39:02 +0100, Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> From: Michal Nazarewicz <mina86@mina86.com>
->
-> When set_migratetype_isolate() sets pageblock's migrate type, it does
-> not change each page_private data.  This makes sense, as the function
-> has no way of knowing what kind of information page_private stores.
->
-> Unfortunately, if a page is on PCP list, it's page_private indicates
-> its migrate type.  This means, that if a page on PCP list gets
-> isolated, a call to free_pcppages_bulk() will assume it has the old
-> migrate type rather than MIGRATE_ISOLATE.  This means, that a page
-> which should be isolated, will end up on a free list of it's old
-> migrate type.
->
-> Coincidentally, at the very end, set_migratetype_isolate() calls
-> drain_all_pages() which leads to calling free_pcppages_bulk(), which
-> does the wrong thing.
->
-> To avoid this situation, this commit moves the draining prior to
-> setting pageblock's migratetype and moving pages from old free list to
-> MIGRATETYPE_ISOLATE's free list.
->
-> Because of spin locks this is a non-trivial change however as both
-> set_migratetype_isolate() and free_pcppages_bulk() grab zone->lock.
-> To solve this problem, this commit renames free_pcppages_bulk() to
-> __free_pcppages_bulk() and changes it so that it no longer grabs
-> zone->lock instead requiring caller to hold it.  This commit later
-> adds a __zone_drain_all_pages() function which works just like
-> drain_all_pages() expects that it drains only pages from a single zone
-> and assumes that caller holds zone->lock.
+The patch "dm1105: handle errors from dvb_net_init" moved the
+initialization of dvbnet to before frontend attachment but forgot
+to adjust the error handling when frontend attachment fails.
 
-As it turns out, with some more testing on SMP systems, this whole patch
-turned out to be incorrect.
+Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
+---
+Mauro Carvalho Chehab wrote:
 
-We have been thinking about other approach and, if we were to use something
-else then the first patch from CMAv17[1], the best thing we could came up
-with was to unconditionally call drain_all_pages() at the beginning of
-set_migratetype_isolate() before the call to spin_lock_irqsave().  It has
-a possible race condition but a nightly stress test did have not shown any
-problems.
+> Subject: [media] dm1105: handle errors from dvb_net_init
+[...]
+> --- a/drivers/media/dvb/dm1105/dm1105.c
+> +++ b/drivers/media/dvb/dm1105/dm1105.c
+> @@ -1115,11 +1115,14 @@ static int __devinit dm1105_probe(struct pci_dev *pdev,
+>  	if (ret < 0)
+>  		goto err_remove_mem_frontend;
+>  
+> +	ret = dvb_net_init(dvb_adapter, &dev->dvbnet, dmx);
+> +	if (ret < 0)
+> +		goto err_disconnect_frontend;
+> +
+>  	ret = frontend_init(dev);
+>  	if (ret < 0)
+>  		goto err_disconnect_frontend;
+>  
+> -	dvb_net_init(dvb_adapter, &dev->dvbnet, dmx);
 
-Nonetheless, the cleanest, in my opinion, solution is to use the first patch
- from CMAv17 which can be found at [1].
+This looks bogus --- my fault, sorry.  Here's a fixup on top.
 
-So, to sum up: if you intend to test CMAv18, instead of applying this first
-patch either use first patch from CMAv17[1] or put an unconditional call to
-drain_all_pages() at the beginning of set_migrate_isolate() function.
+If create_singlethread_workqueue or a later step fails, I suspect this
+still might not clean up as much as it should.  E.g., I expected to find
+something like
 
-Sorry for the troubles.
+	if (dev->fe->ops.release)
+		dev->fe->ops.release(dev->fe);
 
-[1] http://www.spinics.net/lists/arm-kernel/msg148494.html
+somewhere in the cleanup code.
 
+ drivers/media/dvb/dm1105/dm1105.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/dvb/dm1105/dm1105.c b/drivers/media/dvb/dm1105/dm1105.c
+index 70e040b999e7..a609b3a9b146 100644
+--- a/drivers/media/dvb/dm1105/dm1105.c
++++ b/drivers/media/dvb/dm1105/dm1105.c
+@@ -1121,7 +1121,7 @@ static int __devinit dm1105_probe(struct pci_dev *pdev,
+ 
+ 	ret = frontend_init(dev);
+ 	if (ret < 0)
+-		goto err_disconnect_frontend;
++		goto err_dvb_net;
+ 
+ 	dm1105_ir_init(dev);
+ 
 -- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+1.7.8.2
+
