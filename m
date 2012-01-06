@@ -1,61 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:55433 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752602Ab2AGR30 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 12:29:26 -0500
-Received: by obcwo16 with SMTP id wo16so2895441obc.19
-        for <linux-media@vger.kernel.org>; Sat, 07 Jan 2012 09:29:26 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.17.8]:62574 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751166Ab2AFQUC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 11:20:02 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI passthrough ioctls on partition devices)
+Date: Fri, 6 Jan 2012 16:19:43 +0000
+Cc: Paolo Bonzini <pbonzini@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
+	linux-kernel@vger.kernel.org, security@kernel.org,
+	pmatouse@redhat.com, agk@redhat.com, jbottomley@parallels.com,
+	mchristi@redhat.com, msnitzer@redhat.com,
+	Christoph Hellwig <hch@lst.de>
+References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
+In-Reply-To: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4F08385E.7050602@redhat.com>
-References: <4F08385E.7050602@redhat.com>
-Date: Sat, 7 Jan 2012 18:29:26 +0100
-Message-ID: <CAJbz7-0HUqWttzMhQ14nQQwjyc_sO=zL0uQDMciFECPttg_o9Q@mail.gmail.com>
-Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
-From: =?ISO-8859-2?Q?Honza_Petrou=B9?= <jpetrous@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201061619.43584.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro.
+On Thursday 05 January 2012, Linus Torvalds wrote:
 
-2012/1/7 Mauro Carvalho Chehab <mchehab@redhat.com>:
-> As previously commented at the ML, I'm developing a set of tools
-> using DVBv5 API. Instead of starting from something existing,
-> I decided to start from scratch, in order to avoid polluting it
-> with DVBv3 legacy stuff. Of course, I did some research inside
-> the existing tools, in order to fill in the blanks, using the
-> dvb-apps tzap as a reference for the first real application on it,
-> but removing a large amount of code (file parsers, etc).
->
-> They're now on a good shape, at least for my own usage ;)
->
-> In order to test, you should use:
->
-> git clone git://linuxtv.org/mchehab/experimental-v4l-utils.git
->
-> And then run "make". the utils are inside utils/dvb.
->
+> And finally, ENOIOCTLCMD is a way to say ENOTTY in a sane manner, and
+> will now be turned into ENOTTY for the user space return (not EINVAL -
+> I have no idea where that idiocy came from, but it's clearly confused,
+> although it's also clearly very old).
 
-Am I doing something wrong? After clone I can't find
-dvb subdirectory inside utils:
+To give some background here: While I did a lot of changes to the
+compat ioctl code over the years, I never touched the EINVAL/ENOTTY
+logic out of fear of breaking things further. Your patch is probably
+the right answer here and we should have done it long ago.
 
-[hop@localhost experimental-v4l-utils (master)]$ ll utils/
-celkem 48
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 decode_tm6000/
-drwxr-xr-x 3 hop hop 4096 led  7 18:21 keytable/
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 libmedia_dev/
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 libv4l2util/
--rw-r--r-- 1 hop hop  947 led  7 18:21 Makefile
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 qv4l2/
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 rds/
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 v4l2-compliance/
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 v4l2-ctl/
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 v4l2-dbg/
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 v4l2-sysfs-path/
-drwxr-xr-x 2 hop hop 4096 led  7 18:21 xc3028-firmware/
+> This fixes the core files I noticed. It removes the insane
+> complaints from the compat_ioctl() (which would complain if you
+> returned ENOIOCTLCMD after an ioctl translation - the reason that is
+> totally insane is that somebody might use an ioctl on the wrong kind
+> of file descriptor, so even if it was translated perfectly fine,
+> ENOIOCTLCMD is a perfectly fine error return and shouldn't cause
+> warnings - and that allows us to remove stupid crap from the socket
+> ioctl code).
 
+Now this behavior was entirely intentional. ENOIOCTLCMD was introduced
+explicitly so we could tell the difference between compat_ioctl handlers
+saying "I don't know how to translate this but common code might know"
+(ENOIOCTLCMD) and "I know that this is not a valid command code here"
+(ENOTTY plus whatever a broken driver might return).
 
-Honza
+The distinction is used in two places:
+
+1. To let device drivers return early from fops->compat_ioctl when
+they want to avoid the overhead from searching the COMPATIBLE_IOCTL()
+table and from the (formerly large) switch statement in do_ioctl_trans(),
+or when they want to make sure that the common translation is not
+called. We have some really tricky bits in the socket code where
+the crazy SIOCDEVPRIVATE needs to be handled specially by some drivers
+while the majority can use the default siocdevprivate_ioctl() function.
+
+2. To return from do_ioctl_trans() when we know that there is no
+translation for the command number, so that the we can write a warning
+to the console (which you have now removed). This was initially more
+useful back when do_ioctl_trans() knew about practically all command
+numbers, but we have gradually moved all handlers into device drivers
+where they belong, and that has caused the problem that we get warnings
+whenever a user attempts an ioctl on a device that does not handle the
+command even when all the correct devices that support the command also
+have a compat handler. The common way we handle those is to add an
+IGNORE_IOCTL() entry for a command that repeatedly shows up in logs
+that way and is known to be handled correctly.
+
+I used to have patches to completely remove the remains of do_ioctl_trans()
+that can be resurrected if that helps, but it's mostly an independent
+issue.
+
+While I agree that the existing compat_ioctl_error() method was somewhat
+broken, I'd like to keep having a way to get some indication from
+drivers that are missing ioctl translations. Ideally, we would move
+all of fs/compat_ioctl.c into drivers and then just warn when we register
+some file_operations on a 64 bit machine that have an ioctl but no
+compat_ioctl function, but that would be a large amount of work.
+
+For a simpler solution, we could keep the old warning message, but change
+the logic from
+
+(.compat_ioctl == NULL || .compat_ioctl() == -ENOIOCTL) && (no generic handler)
+
+to
+
+(.ioctl != NULL && .compat_ioctl == NULL) && (no generic handler).
+
+and then fix the warnings we see by adding appropriate .compat_ioctl
+functions.
+
+	Arnd
