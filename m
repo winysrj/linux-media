@@ -1,71 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:63668 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756885Ab2APV5e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 16:57:34 -0500
-Received: by eekc14 with SMTP id c14so288706eek.19
-        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2012 13:57:32 -0800 (PST)
-Message-ID: <4F149D45.3010603@gmail.com>
-Date: Mon, 16 Jan 2012 22:57:25 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:43867 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758968Ab2AFSZ0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 13:25:26 -0500
+Received: by yenm11 with SMTP id m11so791151yen.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 10:25:25 -0800 (PST)
+Date: Fri, 6 Jan 2012 12:25:19 -0600
+From: Jonathan Nieder <jrnieder@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Michael Hunold <michael@mihu.de>,
+	Johannes Stezenbach <js@sig21.net>,
+	Michael Krufky <mkrufky@linuxtv.org>
+Subject: [PATCH 0/2] Re: [git:v4l-dvb/for_v3.3] [media] dvb-bt8xx: handle
+ errors from dvb_net_init
+Message-ID: <20120106182519.GE15740@elie.hsd1.il.comcast.net>
+References: <E1RjBAD-0006Ue-NL@www.linuxtv.org>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com
-Subject: Re: [RFC 16/17] smiapp: Add driver.
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-16-git-send-email-sakari.ailus@maxwell.research.nokia.com> <4F072B6C.9060808@gmail.com> <4F08CEDE.7030105@maxwell.research.nokia.com>
-In-Reply-To: <4F08CEDE.7030105@maxwell.research.nokia.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <E1RjBAD-0006Ue-NL@www.linuxtv.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Mauro,
 
-On 01/08/2012 12:01 AM, Sakari Ailus wrote:
->>> +/*
->>> + *
->>> + * V4L2 Controls handling
->>> + *
->>> + */
->>> +
->>> +static void __smiapp_update_exposure_limits(struct smiapp_sensor *sensor)
->>> +{
->>> +	struct v4l2_ctrl *ctrl = sensor->exposure;
->>> +	int max;
->>> +
->>> +	max = sensor->pixel_array->compose[SMIAPP_PAD_SOURCE].height
->>> +		+ sensor->vblank->val -
->>> +		sensor->limits[SMIAPP_LIMIT_COARSE_INTEGRATION_TIME_MAX_MARGIN];
->>> +
->>> +	ctrl->maximum = max;
->>> +	if (ctrl->default_value>   max)
->>> +		ctrl->default_value = max;
->>> +	if (ctrl->val>   max)
->>> +		ctrl->val = max;
->>> +	if (ctrl->cur.val>   max)
->>> +		ctrl->cur.val = max;
->>> +}
->>
->> One more driver that needs control value range update. :)
-> 
-> :-)
-> 
-> Are there other drivers that would need something like that, too?
-> Anything in the control framework that I have missed related to this?
+Mauro Carvalho Chehab wrote:
 
-Yes, I needed that in s5p-fimc driver for the alpha component control.
-The alpha channel value range depends on colour format and the control 
-needs to be updated accordingly to changes done with VIDIOC_S_FMT.
+> Subject: [media] dvb-bt8xx: handle errors from dvb_net_init
+[...]
+> [mchehab.redhat.com: codingstyle fix: printk() should include KERN_ facility level]
+[...]
+> --- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+> +++ b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
+> @@ -782,7 +782,12 @@ static int __devinit dvb_bt8xx_load_card(struct dvb_bt8xx_card *card, u32 type)
+>  		goto err_remove_mem_frontend;
+>  	}
+>  
+> -	dvb_net_init(&card->dvb_adapter, &card->dvbnet, &card->demux.dmx);
+> +	result = dvb_net_init(&card->dvb_adapter, &card->dvbnet, &card->demux.dmx);
+> +	if (result < 0) {
+> +		printk(KERN_ERR,
+> +		       "dvb_bt8xx: dvb_net_init failed (errno = %d)\n", result);
 
-And no, there is yet nothing in the control framework to support this.
-Hans just prepared some proof-of-concept patch [1], but the decision was
-to hold on until there appear more drivers needing control value range
-update, due to hight complication of life in the userland.
+I think there is an extra comma here:
 
-[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg39674.html
+	$ make drivers/media/dvb/bt8xx/dvb-bt8xx.o
+	  CHK     include/linux/version.h
+	  CHK     include/generated/utsrelease.h
+	  CALL    scripts/checksyscalls.sh
+	  CC [M]  drivers/media/dvb/bt8xx/dvb-bt8xx.o
+	drivers/media/dvb/bt8xx/dvb-bt8xx.c: In function ‘dvb_bt8xx_load_card’:
+	drivers/media/dvb/bt8xx/dvb-bt8xx.c:788:10: warning: too many arguments for format [-Wformat-extra-args]
 
---
-Regards,
-Sylwester
+Perhaps it would be better to add the KERN_ levels throughout the file
+with a separate patch.  Like this:
+
+Jonathan Nieder (2):
+  [media] dvb-bt8xx: use dprintk for debug statements
+  [media] dvb-bt8xx: convert printks to pr_err()
+
+ drivers/media/dvb/bt8xx/dvb-bt8xx.c |   41 +++++++++++++++++------------------
+ 1 files changed, 20 insertions(+), 21 deletions(-)
