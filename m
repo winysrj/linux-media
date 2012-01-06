@@ -1,61 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:34659 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755460Ab2ADPyT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 10:54:19 -0500
-Date: Wed, 4 Jan 2012 17:54:13 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-Subject: Re: [PATCH] v4l2: v4l2-fh: v4l2_fh_is_singular should use list
- head to test
-Message-ID: <20120104155413.GH9323@valkosipuli.localdomain>
-References: <1324481454-30066-1-git-send-email-scott.jiang.linux@gmail.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:36003 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030325Ab2AFPBw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 10:01:52 -0500
+Received: by wibhm6 with SMTP id hm6so1122167wib.19
+        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 07:01:51 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1324481454-30066-1-git-send-email-scott.jiang.linux@gmail.com>
+Date: Fri, 6 Jan 2012 10:01:50 -0500
+Message-ID: <CALzAhNWsgMe-0uFJZzKnNx_9DWvvSvU9wZTPugkTT3vqDQ4qWQ@mail.gmail.com>
+Subject: [PULL] git://git.kernellabs.com/stoth/cx23885-hvr1850-fixups.git
+From: Steven Toth <stoth@kernellabs.com>
+To: Linux-Media <linux-media@vger.kernel.org>
+Cc: Mauro Chehab <mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Scott,
+Mauro,
 
-Thanks for the patch.
+Some changes to allow the querying of the NO_SIGNAL status feature on
+the cx25840 video decoder.
 
-On Wed, Dec 21, 2011 at 10:30:54AM -0500, Scott Jiang wrote:
-> list_is_singular accepts a list head to test whether a list has just one entry.
-> fh->list is the entry, fh->vdev->fh_list is the list head.
-> 
-> Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
-> ---
->  drivers/media/video/v4l2-fh.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
-> index 9e3fc04..8292c4a 100644
-> --- a/drivers/media/video/v4l2-fh.c
-> +++ b/drivers/media/video/v4l2-fh.c
-> @@ -113,7 +113,7 @@ int v4l2_fh_is_singular(struct v4l2_fh *fh)
->  	if (fh == NULL || fh->vdev == NULL)
->  		return 0;
->  	spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> -	is_singular = list_is_singular(&fh->list);
-> +	is_singular = list_is_singular(&fh->vdev->fh_list);
->  	spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
->  	return is_singular;
->  }
+The following changes since commit 45447e1e18131590203dba83f9044d6c48448e54:
+  [media] cx25840: Added g_std support to the video decoder driver
+(2012-01-04 19:16:15 -0500)
+are available in the git repository at:
+git://git.kernellabs.com/stoth/cx23885-hvr1850-fixups.git
+staging/for_v3.3
+Steven Toth (2):      [media] cx25840: Add support for g_input_status
+    [media] cx23885: Query the CX25840 during enum_input for status
+ drivers/media/video/cx23885/cx23885-video.c |    9 +++++++++
+drivers/media/video/cx25840/cx25840-core.c  |   16 ++++++++++++++++ 2
+files changed, 25 insertions(+), 0 deletions(-)
+Many thanks,
 
-Is there an issue that this patch resolves, or am I missing something? As
-far as I can see, the list_is_singular() test returns the same result
-whether you are testing a list item which is part of the list, or its head
-in struct video_device.
-
-Kind regards,
+- Steve
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
