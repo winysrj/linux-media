@@ -1,149 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:48939 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970Ab2ABGUr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 01:20:47 -0500
-Received: by wgbds13 with SMTP id ds13so21267913wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 01 Jan 2012 22:20:45 -0800 (PST)
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:35917 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751840Ab2AFGY4 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 01:24:56 -0500
+Received: by wgbdr13 with SMTP id dr13so1413979wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 22:24:55 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4EF9FB1A.5090509@infradead.org>
-References: <1324948159-23709-1-git-send-email-mchehab@redhat.com>
-	<1324948159-23709-2-git-send-email-mchehab@redhat.com>
-	<4EF9B606.3090908@linuxtv.org>
-	<4EF9C7FA.9070203@infradead.org>
-	<4EF9D71E.5090606@linuxtv.org>
-	<4EF9FB1A.5090509@infradead.org>
-Date: Mon, 2 Jan 2012 11:50:45 +0530
-Message-ID: <CAHFNz9JgHoTfA6pSy-n_By9MMVm3a0w5115G+ig7yzhm8MiU8g@mail.gmail.com>
-Subject: Re: [PATCH RFC 01/91] [media] dvb-core: allow demods to specify the
- supported delivery systems supported standards.
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Andreas Oberritter <obi@linuxtv.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <CAOy7-nOMhG8T+bPKMtWAX6LzBcGarUST-fp3HNUxf-PWLJCJEA@mail.gmail.com>
+References: <CAOy7-nNSu2v9VS9Bh5O5StvEAvoxA4DqN7KdSGfZZSje1_Fgnw@mail.gmail.com>
+	<201201031217.20473.laurent.pinchart@ideasonboard.com>
+	<CAOy7-nNH7ffkvi42=Zccx==SwwZJHPh9bw5gEBhbPqb+vRMt-Q@mail.gmail.com>
+	<CAOy7-nOMhG8T+bPKMtWAX6LzBcGarUST-fp3HNUxf-PWLJCJEA@mail.gmail.com>
+Date: Fri, 6 Jan 2012 14:24:54 +0800
+Message-ID: <CAOy7-nPtGHCbfN+kpcRsJGWAf-9ytikyQjTv=BJr_1susgm-sg@mail.gmail.com>
+Subject: Re: Using OMAP3 ISP live display and snapshot sample applications
+From: James <angweiyang@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Dec 27, 2011 at 10:36 PM, Mauro Carvalho Chehab
-<mchehab@infradead.org> wrote:
-> On 27-12-2011 12:33, Andreas Oberritter wrote:
->> On 27.12.2011 14:28, Mauro Carvalho Chehab wrote:
->>> On 27-12-2011 10:11, Andreas Oberritter wrote:
->>>> On 27.12.2011 02:07, Mauro Carvalho Chehab wrote:
->>>>> DVB-S and DVB-T, as those were the standards supported by DVBv3.
->>>>
->>>> The description seems to be incomplete.
->>>>
->>>>> New standards like DSS, ISDB and CTTB don't fit on any of the
->>>>> above types.
->>>>>
->>>>> while there's a way for the drivers to explicitly change whatever
->>>>> default DELSYS were filled inside the core, still a fake value is
->>>>> needed there, and a "compat" code to allow DVBv3 applications to
->>>>> work with those delivery systems is needed. This is good for a
->>>>> short term solution, while applications aren't using DVBv5 directly.
->>>>>
->>>>> However, at long term, this is bad, as the compat code runs even
->>>>> if the application is using DVBv5. Also, the compat code is not
->>>>> perfect, and only works when the frontend is capable of auto-detecting
->>>>> the parameters that aren't visible by the faked delivery systems.
->>>>>
->>>>> So, let the frontend fill the supported delivery systems at the
->>>>> device properties directly, and, in the future, let the core to use
->>>>> the delsys to fill the reported info::type based on the delsys.
->>>>>
->>>>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->>>>> ---
->>>>>  drivers/media/dvb/dvb-core/dvb_frontend.c |   13 +++++++++++++
->>>>>  drivers/media/dvb/dvb-core/dvb_frontend.h |    8 ++++++++
->>>>>  2 files changed, 21 insertions(+), 0 deletions(-)
->>>>>
->>>>> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>>> index 8dedff4..f17c411 100644
->>>>> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>>> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>>> @@ -1252,6 +1252,19 @@ static void dtv_set_default_delivery_caps(const struct dvb_frontend *fe, struct
->>>>>    const struct dvb_frontend_info *info = &fe->ops.info;
->>>>>    u32 ncaps = 0;
->>>>>
->>>>> +  /*
->>>>> +   * If the frontend explicitly sets a list, use it, instead of
->>>>> +   * filling based on the info->type
->>>>> +   */
->>>>> +  if (fe->ops.delsys[ncaps]) {
->>>>> +          while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
->>>>> +                  p->u.buffer.data[ncaps] = fe->ops.delsys[ncaps];
->>>>> +                  ncaps++;
->>>>> +          }
->>>>> +          p->u.buffer.len = ncaps;
->>>>> +          return;
->>>>> +  }
->>>>> +
->>>>
->>>> I don't understand what this is trying to solve. This is already handled
->>>> by the get_property driver callback.
->>>>
->>>> dtv_set_default_delivery_caps() only sets some defaults for drivers not
->>>> implementing get_property yet.
->>>
->>> dtv_set_default_delivery_caps() does the wrong thing for delivery systems
->>> like ISDB-T, ISDB-S, DSS, DMB-TH, as it fills data with a fake value that
->>> is there at fe->ops.info.type.
->>>
->>> The fake values there should be used only for DVBv3 legacy calls emulation
->>> on those delivery systems that are not fully compatible with a DVBv3 call.
+Hi Laurent,
+
+On Thu, Jan 5, 2012 at 5:55 PM, James <angweiyang@gmail.com> wrote:
+> Hi Laurent,
+>
+> On Wed, Jan 4, 2012 at 3:07 PM, James <angweiyang@gmail.com> wrote:
+>> Hi Laurent,
 >>
->> That's right. Still, there's no need to introduce fe->ops.delsys,
->> because the drivers in question could just implement get_property
->> instead. At least that's what we discussed and AFAIR agreed upon when
->> Manu recently submitted his patches regarding enumeration of delivery
->> systems.
+>> On Tue, Jan 3, 2012 at 7:17 PM, Laurent Pinchart
+>> <laurent.pinchart@ideasonboard.com> wrote:
+>>> Hi James,
+>>>
+>>> On Tuesday 03 January 2012 10:40:10 James wrote:
+>>>> Hi Laurent,
+>>>>
+>>>> Happy New Year!!
+>>>
+>>> Thank you. Happy New Year to you as well. May 2012 bring you a workable OMAP3
+>>> ISP solution ;-)
+>>>
+>>
+>> Yeah! that's on #1 of my 2012 wishlist!! (^^)
+>>
+>> But, it start off with a disappointment on the quest to get
+>> "gst-launch v4l2src" to work..
+>> http://patches.openembedded.org/patch/8895/
+>>
+>> Saw reported success in get v4l2src to work with MT9V032 by applying
+>> the hack but no luck with my Y12 monochrome sensor. (-.-)"
+>>
+>>>> I saw that there is a simple viewfinder in your repo for OMAP3 and
+>>>> wish to know more about it.
+>>>>
+>>>> http://git.ideasonboard.org/?p=omap3-isp-live.git;a=summary
+>>>>
+>>>> I intend to test it with my 12-bit (Y12) monochrome camera sensor
+>>>> driver, running on top of Gumstix's (Steve v3.0) kernel.
+>>>>
+>>>> Is it workable at the moment?
+>>>
+>>> The application is usable but supports raw Bayer sensors only at the moment.
+>>> It requires a frame buffer and an omap_vout device (both should be located
+>>> automatically) and configures the OMAP3 ISP pipeline automatically to produce
+>>> the display resolution.
+>>>
+>>
+>> Will there be a need to patch for Y12 support or workable out-of-the-box?
+>>
+>> Likely your previous notes, I know that 12-bit Y12 to the screen is an
+>> overkill but will it be able to capture Y12 from CCDC output and then
+>> output to the screen?
+>>
+>> Y12 sensor-> CCDC -> CCDC output -> screen
+>>
+>> I've one board connected to a LCD monitor via a DVI chip using GS's
+>> Tobi board as reference and another via 4.3" LG LCD Touchscreen using
+>> GS's Chestnut board as reference.
+>>
+>> Many thanks in adv
+>>
+>> --
+>> Regards,
+>> James
 >
-> Manu's patches were applied (well, except for two patches related to af9013
-> driver that are/were under discussion between Manu and Antti).
+> I did a native compilation on my overo and the result is as below.
 >
-> Manu's approach is good, as it provided a way to enumerate the
-> standards without much changes, offering a way for userspace to
-> query the delivery system, at the expense of serializing a driver
-> call for each property.
+> root@omap3-multi:~/omap3-isp-live# ln -s
+> /usr/src/linux-sakoman-pm-3.0-r102/include/ /usr/src/linux/usr/include
+> root@omap3-multi:~/omap3-isp-live# make KDIR=/usr/src/linux
+> CROSS_COMPILE=arm-angstrom-linux-gnueabi-
+> make -C isp CROSS_COMPILE=arm-angstrom-linux-gnueabi- KDIR=/usr/src/linux
+> make[1]: Entering directory `/home/root/omap3-isp-live/isp'
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -fPIC -c -o controls.o controls.c
+> In file included from /usr/src/linux/usr/include/linux/omap3isp.h:30:0,
+>                 from controls.c:25:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -fPIC -c -o media.o media.c
+> In file included from /usr/src/linux/usr/include/linux/videodev2.h:66:0,
+>                 from media.c:34:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -fPIC -c -o omap3isp.o omap3isp.c
+> In file included from /usr/src/linux/usr/include/linux/v4l2-mediabus.h:14:0,
+>                 from omap3isp-priv.h:26,
+>                 from omap3isp.c:31:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> omap3isp.c:271:13: warning: 'omap3_isp_pool_free_buffers' defined but not used
+> omap3isp.c: In function 'omap3_isp_pipeline_build':
+> omap3isp.c:329:15: warning: 'nbufs' may be used uninitialized in this function
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -fPIC -c -o subdev.o subdev.c
+> In file included from /usr/src/linux/usr/include/linux/v4l2-subdev.h:27:0,
+>                 from subdev.c:33:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> subdev.c:49:20: warning: 'pixelcode_to_string' defined but not used
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -fPIC -c -o v4l2.o v4l2.c
+> In file included from /usr/src/linux/usr/include/linux/videodev2.h:66:0,
+>                 from v4l2.c:36:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -fPIC -c -o v4l2-pool.o v4l2-pool.c
+> In file included from /usr/src/linux/usr/include/linux/videodev2.h:66:0,
+>                 from v4l2-pool.h:25,
+>                 from v4l2-pool.c:26:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> arm-angstrom-linux-gnueabi-gcc -o libomap3isp.so -shared controls.o
+> media.o omap3isp.o subdev.o v4l2.o v4l2-pool.o
+> make[1]: Leaving directory `/home/root/omap3-isp-live/isp'
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -c -o live.o live.c
+> In file included from /usr/src/linux/usr/include/linux/fb.h:4:0,
+>                 from live.c:44:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -c -o videoout.o videoout.c
+> In file included from /usr/src/linux/usr/include/linux/videodev2.h:66:0,
+>                 from videoout.c:23:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> arm-angstrom-linux-gnueabi-gcc -Lisp -o live live.o videoout.o -lomap3isp -lrt
+> arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
+> -I/usr/src/linux/usr/include -c -o snapshot.o snapshot.c
+> In file included from /usr/src/linux/usr/include/linux/spi/spidev.h:25:0,
+>                 from snapshot.c:41:
+> /usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
+> "Attempt to use kernel headers from user space, see
+> http://kernelnewbies.org/KernelHeaders"
+> arm-angstrom-linux-gnueabi-gcc -Lisp -o snapshot snapshot.o -lomap3isp -lrt
+> root@omap3-multi:~/omap3-isp-live# ls
+> LICENSE   README  live    live.o    snapshot.c  videoout.c  videoout.o
+> Makefile  isp     live.c  snapshot  snapshot.o  videoout.h
+> root@omap3-multi:~/omap3-isp-live# live --help
+> -sh: live: command not found
+> root@omap3-multi:~/omap3-isp-live# ./live --help
+> ./live: error while loading shared libraries: libomap3isp.so: cannot
+> open shared object file: No such file or directory
+> root@omap3-multi:~/omap3-isp-live# cd isp
+> root@omap3-multi:~/omap3-isp-live/isp# ls
+> LICENSE     libomap3isp.so  omap3isp-priv.h  subdev.h     v4l2-pool.o
+> Makefile    list.h          omap3isp.c       subdev.o     v4l2.c
+> controls.c  media.c         omap3isp.h       tools.h      v4l2.h
+> controls.h  media.h         omap3isp.o       v4l2-pool.c  v4l2.o
+> controls.o  media.o         subdev.c         v4l2-pool.h
+> root@omap3-multi:~/omap3-isp-live/isp# cd ..
+> root@omap3-multi:~/omap3-isp-live# ls /
+> bin   dev  home  linuxrc     media  proc  sys  usr
+> boot  etc  lib   lost+found  mnt    sbin  tmp  var
+> root@omap3-multi:~/omap3-isp-live# ls /usr/
+> arm-angstrom-linux-gnueabi  etc    include  libexec  share
+> bin                         games  lib      sbin     src
+> root@omap3-multi:~/omap3-isp-live#
 >
-> Yet, it doesn't allow the DVB core to detect the supported
-> delivery systems on a sane way [1].
+> I ran ./live --help and there is an error
+> ./live --help
+> ./live: error while loading shared libraries: libomap3isp.so: cannot
+> open shared object file: No such file or directory
 >
-> The addition of fe->ops.delsys is going one step further, as it will
-> allow, at the long term, the removal of info.type.
+> Please advise.
 >
-> There are two reasons why we need to get rid of info.type:
->
-> 1) dvb_frontend core can be changed to use fe->ops.delsys
->   internally, instead of info.type, in order to fix some
->   bugs inside it, where it does the wrong assumption, because
->   the frontend is lying about the delivery system;
+> Many thanks in adv.
 
+After googling for the warning, I proceed with the following steps to
+make the application on Steve's GNOME-R13 image from this site as it
+has all the tools for native-compilation on the Tobi board.
 
-The frontend doesn't lie about the delivery system, but just announces
-the delivery system to which the device is initialized by default.
+1) Inside /usr/src/linux, run "make headers_install ARCH=arm" and my
+/usr/include is now populated with lots of files.
 
+2) Inside omap3-isp-live, I ran "make KDIR=/usr/src/linux
+CROSS_COMPILE=arm-angstrom-linux-gnueabi-".
 
->
-> 2) There is no sane way to fill fe->ops.info.type for Multi delivery
->   system frontends, like DRX-K, that supports both DVB-T and DVB-C.
->   The type can be filled with either FE_QAM or FE_OFDM, not with both.
->   So, choosing either type will be plain wrong, and may cause bad
->   side effects inside dvb_frontend.
+This gave me an error about not finding linux/omap3isp.h file.
+Thus, I modified the 2 Makefile and replaced "-I$(KDIR)/usr/include"
+with "-I$(KDIR)/include"
 
+Ran "make KDIR=/usr/src/linux
+CROSS_COMPILE=arm-angstrom-linux-gnueabi-" again and it compiled
+nicely without warnings about using kernel headers from user space.
 
-for any multi-standard demodulator, you cannot
-announce 2 or more delivery systems as the default
-initialized one. Logically, also it doesn't make sense
-to announce 2 delivery systems as default. You have
-now introduced an ambiguity as to what mode it is
-now initialized.
+Only 3 warnings about
 
-for any multi-standard device, the device is initialized
-to only 1 single delivery system and only that should
-be announced and available through info.type
-for the same reason fe->ops.info.type shouldn't be
-filled by anybody else other than the driver alone.
+a) omap3isp.c:271:13: warning: 'omap3_isp_pool_free_buffers' defined
+but not used
+b) omap3isp.c:329:15: warning: 'nbufs' may be used uninitialized in
+this function
+c) subdev.c:49:20: warning: 'pixelcode_to_string' defined but not used
+
+Hope I got it right compiling it this time!! (^^)"
+
+3) Copied isp/libomap3isp.so to /usr/lib/ directory when this message
+appeared when I ran ./live -h
+
+"./live: error while loading shared libraries: libomap3isp.so: cannot
+open shared object file: No such file or directory"
+
+4) Ran ./live again and got this error message "unable to find video
+output device"
+
+overo: setting xclk to 25000000 hz
+Device /dev/videovero: setting xclk to 0 hz
+o6 opened: OMAP3 ISP resizer output (media).
+viewfinder configured for 2011 1024x768
+error: unable to find video output device
+
+The output of the DVI goes 'blue' and nothing shown.
+What is missing?
+
+lsmod shows the list of modules loaded.
+
+Module                  Size  Used by
+fuse                   59943  3
+bufferclass_ti          4976  0
+omaplfb                 8025  0
+pvrsrvkm              146868  2 bufferclass_ti,omaplfb
+mt9v032                 5958  1
+omap3_isp             104303  0
+v4l2_common             8543  2 mt9v032,omap3_isp
+videodev               78271  3 mt9v032,omap3_isp,v4l2_common
+libertas_sdio          14871  0
+media                  11885  3 mt9v032,omap3_isp,videodev
+libertas               92472  1 libertas_sdio
+cfg80211              157222  1 libertas
+lib80211                5291  1 libertas
+firmware_class          6269  2 libertas_sdio,libertas
+ads7846                10331  0
+ipv6                  226224  18
+
+5) Ran ./snapshot and it continues till Ctrl+C.
+Does it has any output others then those messages?
+
+Many thanks in adv.
+
+-- 
+Regards,
+James
