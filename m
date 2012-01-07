@@ -1,55 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:46093 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751707Ab2AOKzI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 05:55:08 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1RmNjv-0001gC-Gu
-	for linux-media@vger.kernel.org; Sun, 15 Jan 2012 11:55:07 +0100
-Received: from p54990898.dip0.t-ipconnect.de ([84.153.8.152])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 11:55:07 +0100
-Received: from aurel by p54990898.dip0.t-ipconnect.de with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 11:55:07 +0100
-To: linux-media@vger.kernel.org
-From: Aurel <aurel@gmx.de>
-Subject: White Balance Temperature
-Date: Sun, 15 Jan 2012 10:16:30 +0000 (UTC)
-Message-ID: <loom.20120115T110626-849@post.gmane.org>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:10890 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759239Ab2AGBzI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 20:55:08 -0500
+Message-ID: <0a833d4c5de7f07094de25c5769121e3.squirrel@www.codeaurora.org>
+In-Reply-To: <201201061144.49354.hverkuil@xs4all.nl>
+References: <4e9191cad2837e2710d3ccb8be4aa735.squirrel@www.codeaurora.org>
+    <201201061144.49354.hverkuil@xs4all.nl>
+Date: Fri, 6 Jan 2012 17:55:08 -0800 (PST)
+Subject: Re: Pause/Resume and flush for V4L2 codec drivers.
+From: vkalia@codeaurora.org
+To: "Hans Verkuil" <hverkuil@xs4all.nl>
+Cc: vkalia@codeaurora.org, linux-media@vger.kernel.org
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there
+Thanks Hans.
 
-my "Live! Cam Socialize HD VF0610", Device ID: 041e:4080, Driver: uvcvideo is
-running perfectly on Fedora 16 Linux, except one thing:
-When I try to switch on "White Balance Temperature, Auto" or just try to change
-"White Balance Temperature" slider I get a failure message and it won't work.
-All other controls, like contrast, gamma, etc. are working.
-"v4l2-ctl -d 1 --set-ctrl=white_balance_temperature_auto=1" produces an error
-message:
-"VIDIOC_S_CTRL: failed: Input/output error
-white_balance_temperature_auto: Input/output error"
+Yes it does solve a part of my problem - Pause/Resume. But I dont see any
+command defined for Flush yet. Do you think we should add one more command
+to Flush. Also, I see two more commands
 
-As soon as I boot Windows (inside Linux out of a Virtual Box), start the camera
-there and go back to Linux, I am able to adjust and switch on the White Balance
-things in Linux.
-"v4l2-ctl -d 1 --set-ctrl=white_balance_temperature_auto=1" working fine after
-running the camera in Windows.
+#define V4L2_DEC_CMD_START       (0)
+#define V4L2_DEC_CMD_STOP        (1)
 
-Everytime I switch off my computer or disconnect the camera, I have to run the
-camera in Windows again, bevor I can adjust White Balance in Linux.
+How should I use the above two commands for an encoding/decoding session?
+I was calling start/stop to hardware in streamon/streamoff earlier.
 
-What can I do to get White Balance controls working in Linux, without having to
-run the camera in Windows every time?
-Is there a special command I have to send to the camera for initializing or so?
+Thanks
+Vinay
 
-Best regards
-Aurel
+> On Friday, January 06, 2012 03:31:37 vkalia@codeaurora.org wrote:
+>> Hi
+>>
+>> I am trying to implement v4l2 driver for video decoders. The problem I
+>> am
+>> facing is how to send pause/resume and flush commands from user-space to
+>> v4l2 driver. I am thinking of using controls for this. Has anyone done
+>> this before or if anyone has any ideas please let me know. Appreciate
+>> your
+>> help.
+>
+> See this patch series:
+>
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg40516.html
+>
+> Does this give you what you need?
+>
+> Regards,
+>
+> 	Hans
+>
+>>
+>> Thanks
+>> Vinay
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media"
+>> in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+
 
