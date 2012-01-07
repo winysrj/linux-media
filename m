@@ -1,92 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gw-out2.cc.tut.fi ([130.230.160.33]:56179 "EHLO
-	mail-gw-out2.cc.tut.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753052Ab2AMNtx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jan 2012 08:49:53 -0500
-Message-ID: <4F1032F9.8020505@iki.fi>
-Date: Fri, 13 Jan 2012 15:34:49 +0200
-From: Anssi Hannula <anssi.hannula@iki.fi>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-input@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Jiri Kosina <jkosina@suse.cz>
-Subject: Re: Two devices, same USB ID: one needs HID, the other doesn't. How
- to solve this?
-References: <201201131142.33779.hverkuil@xs4all.nl>
-In-Reply-To: <201201131142.33779.hverkuil@xs4all.nl>
+Received: from mail.free-electrons.com ([88.190.12.23]:42115 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750866Ab2AGO3S convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jan 2012 09:29:18 -0500
+Received: from skate (humanoidz.org [82.247.183.72])
+	by mail.free-electrons.com (Postfix) with ESMTPA id A028B132
+	for <linux-media@vger.kernel.org>; Sat,  7 Jan 2012 15:23:58 +0100 (CET)
+Date: Sat, 7 Jan 2012 15:29:08 +0100
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: linux-media@vger.kernel.org
+Subject: Re: cx231xx: possible circular locking dependency detected on 3.2
+Message-ID: <20120107152908.3b8a78d8@skate>
+In-Reply-To: <20120106224231.455a9896@skate>
+References: <20120106224231.455a9896@skate>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.01.2012 12:42, Hans Verkuil wrote:
-> Hi!
+Le Fri, 6 Jan 2012 22:42:31 +0100,
+Thomas Petazzoni <thomas.petazzoni@free-electrons.com> a écrit :
 
-Hi!
+> Hello,
+> 
+> I'm running the Hauppauge USB-Live 2 device on an ARM OMAP3 platform.
+> After loading the cx231xx driver and launching v4l2grab, I immediately
+> get:
+> 
+> [  407.087158] cx231xx #0:  setPowerMode::mode = 48, No Change req.
+> [  407.145477] 
+> [  407.147064] ======================================================
+> [  407.153533] [ INFO: possible circular locking dependency detected ]
+> [  407.160095] 3.2.0-00007-gb928298 #18
+> [  407.163848] -------------------------------------------------------
 
-Adding Jiri Kosina, the HID maintainer.
+One code path is (mmap_sem taken before, video_device lock taken
+afterwards) :
 
-> I've made a video4linux driver for the USB Keene FM Transmitter. See:
-> 
-> http://www.amazon.co.uk/Keene-Electronics-USB-FM-Transmitter/dp/B003GCHPDY/ref=sr_1_1?ie=UTF8&qid=1326450476&sr=8-1
-> 
-> The driver code is here:
-> 
-> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/keene
-> 
-> Unfortunately this device has exactly the same USB ID as the Logitech AudioHub
-> USB speaker (http://www.logitech.com/en-us/439/3503).
-> 
-> The AudioHub has HID support for volume keys, but the FM transmitter needs
-> a custom V4L2 driver instead.
-> 
-> I've attached the full lsusb -v output of both devices, but this is the diff of
-> the two:
-> 
-> $ diff keene.txt audiohub.txt -u
-[...]
-> @@ -152,7 +151,7 @@
->            bCountryCode            0 Not supported
->            bNumDescriptors         1
->            bDescriptorType        34 Report
-> -          wDescriptorLength      22
-> +          wDescriptorLength      31
->           Report Descriptors: 
->             ** UNAVAILABLE **
->        Endpoint Descriptor:
-> 
-> As you can see, the differences are very small.
+ -> sys_mmap_pgoff()
+    grabs current->mm->mmap_sem at
+    http://lxr.free-electrons.com/source/mm/mmap.c#L1111
 
-The HID Report descriptors could be interesting as they differ. You can
-look at them in:
-/sys/kernel/debug/hid/*/rdesc
+    -> do_mmap_pgoff()
 
-I guess one option would be to make this a "regular" HID driver like
-those in drivers/hid/hid-*.c (and just set the v4l things up if the
-descriptor is as expected, otherwise let standard HID-input handle
-them), but there is the issue of where to place the driver, then, as it
-can't be both in drivers/hid and drivers/media...
+       -> mmap_region()
 
-Probably the easy way out is to simply add the device into
-drivers/hid/hid-core.c:hid_ignore(), by checking e.g.
-vendor+product+name, and hope all "B-LINK USB Audio" devices are FM
-transmitters (the name suggests that may not necessarily be the case,
-though). Report descriptor contents are not available at hid_ignore()
-point yet.
+          -> v4l2_mmap()
+             grabs struct video_device->lock at 
+             http://lxr.free-electrons.com/source/drivers/media/video/v4l2-dev.c#L396
 
-> In my git tree I worked around it by adding the USB ID to the ignore list
-> if the Keene driver is enabled, and ensuring that the Keene driver is
-> disabled by default.
-> 
-> But is there a better method to do this? At least the iProduct strings are
-> different, is that something that can be tested in hid-core.c?
-> 
-> Regards,
-> 
-> 	Hans
+The other code path is (video_device taken first, mmap_sem taken
+afterwards) :
 
+ -> v4l2_ioctl()
+    grabs video_device->lock at
+    http://lxr.free-electrons.com/source/drivers/media/video/v4l2-dev.c#L327
 
+    -> video_ioctl2()
+
+       -> video_usercopy()
+
+          -> __video_do_ioctl()
+
+             -> videobuf_qbuf()
+                grabs current->mm->mmap_sem at
+                http://lxr.free-electrons.com/source/drivers/media/video/videobuf-core.c#L537
+
+Regards,
+
+Thomas
 -- 
-Anssi Hannula
+Thomas Petazzoni, Free Electrons
+Kernel, drivers, real-time and embedded Linux
+development, consulting, training and support.
+http://free-electrons.com
