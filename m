@@ -1,39 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:63948 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751520Ab2AZPSN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 10:18:13 -0500
-Received: by vbbfc26 with SMTP id fc26so451583vbb.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Jan 2012 07:18:12 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4F213FEF.8030309@iki.fi>
-References: <CAGa-wNOCn6GDu0DGM7xNrVagp0sdNeif25vuE+sPyU3aaegGAw@mail.gmail.com>
-	<4F2117D6.20702@iki.fi>
-	<CAGa-wNNnaJbrLdAGA9cX=wMBwZYtVp8JLseeTGevDJH-tyDpeQ@mail.gmail.com>
-	<4F213FEF.8030309@iki.fi>
-Date: Thu, 26 Jan 2012 10:18:12 -0500
-Message-ID: <CAGoCfiwxyExePmtWRP_FVdoXA1wY2egg8b72dO878MtTF5iB3g@mail.gmail.com>
-Subject: Re: 290e locking issue
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Claus Olesen <ceolesen@gmail.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp.enix.org ([193.19.211.146]:35196 "EHLO smtp.enix.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752657Ab2AGOB6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jan 2012 09:01:58 -0500
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+To: linux-media@vger.kernel.org, dheitmueller@kernellabs.com,
+	srinivasa.deevi@conexant.com
+Cc: gregory.clement@free-electrons.com,
+	maxime.ripard@free-electrons.com,
+	michael.opdenacker@free-electrons.com
+Subject: cx231xx: various fixes
+Date: Sat,  7 Jan 2012 14:52:36 +0100
+Message-Id: <1325944360-28964-1-git-send-email-thomas.petazzoni@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 26, 2012 at 6:58 AM, Antti Palosaari <crope@iki.fi> wrote:
-> I think it is maybe some incapability of em28xx driver. Maybe it could be
-> something to do with USB HCI too...
+Hello,
 
->From a USB standpoint there isn't a whole lot the em28xx driver could
-do wrong.  It's an isoc device, and perhaps it's not clearing it's
-bandwidth reservation after streaming is done, but even in that case
-it shouldn't prevent a disk from working since those are typically
-bulk devices.
+Here are four patches fixing or cleaning up various things in the
+cx231xx.
 
-Devin
+Best regards,
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Thomas
+
