@@ -1,56 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from impaqm2.telefonica.net ([213.4.138.18]:60348 "EHLO
-	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751688Ab2A0Wf0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jan 2012 17:35:26 -0500
-From: Jose Alberto Reguero <jareguero@telefonica.net>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Fix drxk get_tune_settings for DVB-T
-Date: Fri, 27 Jan 2012 23:34:49 +0100
+Received: from casper.infradead.org ([85.118.1.10]:48189 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759355Ab2AGCFt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 21:05:49 -0500
+Message-ID: <4F07A874.5070408@infradead.org>
+Date: Sat, 07 Jan 2012 00:05:40 -0200
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
 MIME-Version: 1.0
-Content-Type: Multipart/Mixed;
-  boundary="Boundary-00=_JayIPtjyEZNUrWV"
-Message-Id: <201201272334.50166.jareguero@telefonica.net>
+To: Oliver Endriss <o.endriss@gmx.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.3] [media] dvb_frontend: Don't use ops->info.type
+ anymore
+References: <E1RiZbZ-0002R2-ND@www.linuxtv.org> <201201070136.45149@orion.escape-edv.de>
+In-Reply-To: <201201070136.45149@orion.escape-edv.de>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Boundary-00=_JayIPtjyEZNUrWV
-Content-Type: text/plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
+On 06-01-2012 22:36, Oliver Endriss wrote:
+> On Wednesday 04 January 2012 20:29:36 Mauro Carvalho Chehab wrote:
+>>  drivers/media/dvb/dvb-core/dvb_frontend.c |  541 ++++++++++++++---------------
+>>  1 files changed, 266 insertions(+), 275 deletions(-)
+>> ...
+>> -static int dvb_frontend_check_parameters(struct dvb_frontend *fe,
+>> -				struct dvb_frontend_parameters *parms)
+>> +static int dvb_frontend_check_parameters(struct dvb_frontend *fe)
+>>  {
+>> ...
+>> -	/* check for supported modulation */
+>> -	if (fe->ops.info.type == FE_QAM &&
+>> -	    (parms->u.qam.modulation > QAM_AUTO ||
+>> -	     !((1 << (parms->u.qam.modulation + 10)) & fe->ops.info.caps))) {
+>> -		printk(KERN_WARNING "DVB: adapter %i frontend %i modulation %u not supported\n",
+>> -		       fe->dvb->num, fe->id, parms->u.qam.modulation);
+>> +	/*
+>> +	 * check for supported modulation
+>> +	 *
+>> +	 * This is currently hacky. Also, it only works for DVB-S & friends,
+>> +	 * and not all modulations has FE_CAN flags
+>> +	 */
+>> +	switch (c->delivery_system) {
+>> +	case SYS_DVBS:
+>> +	case SYS_DVBS2:
+>> +	case SYS_TURBO:
+>> +		if ((c->modulation > QAM_AUTO ||
+>> +		    !((1 << (c->modulation + 10)) & fe->ops.info.caps))) {
+>                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+>> +			printk(KERN_WARNING
+>> +			       "DVB: adapter %i frontend %i modulation %u not supported\n",
+>> +			       fe->dvb->num, fe->id, c->modulation);
+>>  			return -EINVAL;
+>> +		}
+>> +		break;
+>> ...
+> 
+> This code is completely bogus: I get tons of warnings, if vdr tries to
+> tune to DVB-S2 (modulation == 9 == PSK_8) on my stv090x.
+> 
+> PSK_8 == 9 is > QAM_AUTO, and the shift operation does not make much
+> sense, except for modulation == 0 == QPSK.
+> 
+> The original version makes more sense for me.
 
-DVB-T also use step_size=0.
+Oliver,
 
-Jose Alberto
+At least for DVBv3 calls, the old code will also generate bogus
+warnings if you try to use a DVBv3 call to set PSK_8.
 
---Boundary-00=_JayIPtjyEZNUrWV
-Content-Type: text/x-patch;
-  charset="UTF-8";
-  name="drxk_hard.diff"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
-	filename="drxk_hard.diff"
+I almost removed this validation code during the conversion for several
+reasons:
 
-diff -ur linux/drivers/media/dvb/frontends/drxk_hard.c linux.new/drivers/media/dvb/frontends/drxk_hard.c
---- linux/drivers/media/dvb/frontends/drxk_hard.c	2012-01-22 02:53:17.000000000 +0100
-+++ linux.new/drivers/media/dvb/frontends/drxk_hard.c	2012-01-23 21:18:12.909138061 +0100
-@@ -6317,15 +6317,12 @@
- 	switch (p->delivery_system) {
- 	case SYS_DVBC_ANNEX_A:
- 	case SYS_DVBC_ANNEX_C:
-+	case SYS_DVBT:
- 		sets->min_delay_ms = 3000;
- 		sets->max_drift = 0;
- 		sets->step_size = 0;
- 		return 0;
- 	default:
--		/*
--		 * For DVB-T, let it use the default DVB core way, that is:
--		 *	fepriv->step_size = fe->ops.info.frequency_stepsize * 2
--		 */
- 		return -EINVAL;
- 	}
- }
+1) it does some "magic" by assuming that all QAM modulations are below
+  QAM_AUTO;
 
---Boundary-00=_JayIPtjyEZNUrWV--
+2) it checks modulation parameters only for DVB-S. IMO, or the core should
+invalid parameters for all delivery systems, or should let the frontend
+drivers do it;
+
+3) frontend drivers should already be checking for invalid parameters
+(most of them do it, anyway);
+
+4) not all modulations are mapped at fe->ops.info.caps, so it is not
+even possible to check for the valid modulations inside the core for
+some delivery systems;
+
+5) Why the core checks just the modulation, and doesn't check for other
+types of invalid parameters, like FEC and bandwidth?
+
+At the end, I decided to keep it, but added that note, as I really didn't
+like that part of the code.
+
+I can see two fixes for this:
+
+a) just remove the validation, and let the frontend check what's
+   supported;
+
+b) rewrite the code with a per-standard table of valid values.
+
+I vote for removing the validation logic there.
+
+Regards,
+Mauro
