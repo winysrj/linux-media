@@ -1,103 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:58689 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753905Ab2AKMIU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 07:08:20 -0500
-Date: Wed, 11 Jan 2012 13:08:17 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: Purpose of .init and .release methods in soc_camera framework
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384ECE79A897@EAPEX1MAIL1.st.com>
-Message-ID: <Pine.LNX.4.64.1201111302500.1191@axis700.grange>
-References: <D5ECB3C7A6F99444980976A8C6D896384ECE79A86C@EAPEX1MAIL1.st.com>
- <Pine.LNX.4.64.1201111242160.1191@axis700.grange>
- <D5ECB3C7A6F99444980976A8C6D896384ECE79A897@EAPEX1MAIL1.st.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mx1.redhat.com ([209.132.183.28]:29039 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750894Ab2AGHqT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jan 2012 02:46:19 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q077kIAU020372
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 7 Jan 2012 02:46:18 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC] [media] dvb: remove bogus modulation check
+Date: Sat,  7 Jan 2012 05:46:13 -0200
+Message-Id: <1325922373-469-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 11 Jan 2012, Bhupesh SHARMA wrote:
+This code is wrong as I should have coded it as SYS_DVBC, instead of
+SYS_DVBS & friends. Anyway, this check has other problems
 
-> Hi Guennadi,
-> 
-> > -----Original Message-----
-> > From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
-> > Sent: Wednesday, January 11, 2012 5:18 PM
-> > To: Bhupesh SHARMA
-> > Cc: linux-media@vger.kernel.org
-> > Subject: Re: Purpose of .init and .release methods in soc_camera
-> > framework
-> > 
-> > Hi Bhupesh
-> > 
-> > On Wed, 11 Jan 2012, Bhupesh SHARMA wrote:
-> > 
-> > > Hi Guennadi,
-> > >
-> > > I was reading the latest soc_camera framework documentation (see
-> > [1]).
-> > > I can see on line 71 to 73 the following text:
-> > >
-> > > " .add and .remove methods are called when a sensor is attached to or
-> > detached
-> > >  from the host, apart from performing host-internal tasks they shall
-> > also call
-> > >  sensor driver's .init and .release methods respectively."
-> > >
-> > > Now, I was puzzled on seeing that none of the soc_camera bridge
-> > drivers (
-> > > like PXA and SH Mobile) call the sensor's .init and .release from
-> > their
-> > > .add and .remove methods respectively.
-> > 
-> > .init() and .release() methods were a part of the soc-camera client
-> > API.
-> > It has been removed with the migration to the v4l2-subdev API.
-> 
-> Ok. So, can the documentation be updated to reflect the same.
+1) it does some "magic" by assuming that all QAM modulations are below
+  QAM_AUTO;
 
-That documentation has more problems, than just that. It shall be updated 
-at some point, yes...
+2) it checks modulation parameters only for one delivery system.
+   Or the core should check invalid parameters for all delivery
+   systems, or it should let the frontend drivers do it;
 
-> > > Also I cannot trace these calls in soc_camera.c layer
-> > >
-> > > Actually, I am working on a camera sensor that requires certain
-> > > patches to be written to it before it can start working:
-> > >
-> > > - Now, if I write these patches in the _probe_ of the sensor driver
-> > (similar
-> > > to the ST VS6624 driver here : [2]), my sensor can work well for the
-> > 1st run
-> > > of the user-space application. But, if I launch the application again
-> > the patches
-> > > need to be written to the sensor again as I have implemented an 'icl-
-> > >power' routine
-> > > which basically turns ON and OFF the sensor by toggling its CE (chip
-> > enable pin).
-> > >
-> > > - As the soc_camera layer provides no explicit call to the camera
-> > sensor driver
-> > > when an _open_ is invoked from the userland, when and how should I
-> > write the
-> > > patch registers.
-> > >
-> > > I can only think of using the .init routine to initialize the sensor
-> > patch registers
-> > > in such a case.
-> > 
-> > Why don't you perform that initialisation in your .power() method?
-> 
-> You mean in the icl->power method?
+3) frontend drivers should already be checking for invalid parameters
+   (most of them do it, anyway);
 
-No, I mean the v4l2-subdev struct v4l2_subdev_core_ops::s_power() method, 
-sorry for confusion.
+4) not all modulations are mapped at fe->ops.info.caps, so it is not
+   even possible to check for the valid modulations inside the core
+   for some delivery systems;
 
-Thanks
-Guennadi
+5) The core check is incomplete anyway: it only checks for a few
+   parameters. If moved into the core other parameters like bandwidth
+   and fec should also be checked;
+
+6) 2nd gen DVB-C uses OFDM. So, that test would fail for it.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/dvb/dvb-core/dvb_frontend.c |   23 -----------------------
+ 1 files changed, 0 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index 0e079a1..a904793 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -897,29 +897,6 @@ static int dvb_frontend_check_parameters(struct dvb_frontend *fe)
+ 		break;
+ 	}
+ 
+-	/*
+-	 * check for supported modulation
+-	 *
+-	 * This is currently hacky. Also, it only works for DVB-S & friends,
+-	 * and not all modulations has FE_CAN flags
+-	 */
+-	switch (c->delivery_system) {
+-	case SYS_DVBS:
+-	case SYS_DVBS2:
+-	case SYS_TURBO:
+-		if ((c->modulation > QAM_AUTO ||
+-		    !((1 << (c->modulation + 10)) & fe->ops.info.caps))) {
+-			printk(KERN_WARNING
+-			       "DVB: adapter %i frontend %i modulation %u not supported\n",
+-			       fe->dvb->num, fe->id, c->modulation);
+-			return -EINVAL;
+-		}
+-		break;
+-	default:
+-		/* FIXME: it makes sense to validate othere delsys here */
+-		break;
+-	}
+-
+ 	return 0;
+ }
+ 
+-- 
+1.7.7.5
+
