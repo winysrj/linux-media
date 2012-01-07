@@ -1,47 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:43726 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752723Ab2ANIrN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 03:47:13 -0500
-Date: Sat, 14 Jan 2012 09:47:31 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH/RFC v2 4/4] gspca: zc3xx: Add
- V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-Message-ID: <20120114094731.50471e94@tele>
-In-Reply-To: <1325873682-3754-5-git-send-email-snjw23@gmail.com>
-References: <4EBECD11.8090709@gmail.com>
-	<1325873682-3754-5-git-send-email-snjw23@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:59334 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751887Ab2AGNVN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jan 2012 08:21:13 -0500
+From: linxutv@stefanringel.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH v3] cx23885: add Terratec Cinergy T PCIe dual
+Date: Sat,  7 Jan 2012 14:20:48 +0100
+Message-Id: <1325942448-13428-1-git-send-email-linxutv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri,  6 Jan 2012 19:14:42 +0100
-Sylwester Nawrocki <snjw23@gmail.com> wrote:
+From: Stefan Ringel <linuxtv@stefanringel.de>
 
-> The JPEG compression quality control is currently done by means of the
-> VIDIOC_S/G_JPEGCOMP ioctls. As the quality field of struct v4l2_jpgecomp
-> is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY control,
-> so after the deprecation period VIDIOC_S/G_JPEGCOMP ioctl handlers can be
-> removed, leaving the control the only user interface for compression
-> quality configuration.
+Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+---
+ drivers/media/video/cx23885/cx23885-cards.c |   11 ++++++
+ drivers/media/video/cx23885/cx23885-dvb.c   |   53 +++++++++++++++++++++++++++
+ drivers/media/video/cx23885/cx23885.h       |    1 +
+ 3 files changed, 65 insertions(+), 0 deletions(-)
 
-This patch works, but it may be simplified.
-
-Instead of a '.set' pointer, the control descriptor for QUALITY may contain a '.set_control' pointing to a function which just does
-
-	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
-
-this function being also be called from the obsoleted function
-sd_setquality().
-
-Also, in sd_config, there is no need to initialize the variable
-sd->ctrls[QUALITY].val.
-
+diff --git a/drivers/media/video/cx23885/cx23885-cards.c b/drivers/media/video/cx23885/cx23885-cards.c
+index dc7864e..3c01be9 100644
+--- a/drivers/media/video/cx23885/cx23885-cards.c
++++ b/drivers/media/video/cx23885/cx23885-cards.c
+@@ -492,6 +492,11 @@ struct cx23885_board cx23885_boards[] = {
+ 					CX25840_VIN7_CH3,
+ 			},
+ 		},
++	},
++	[CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL] = {
++		.name		= "TerraTec Cinergy T PCIe Dual",
++		.portb		= CX23885_MPEG_DVB,
++		.portc		= CX23885_MPEG_DVB,
+ 	}
+ };
+ const unsigned int cx23885_bcount = ARRAY_SIZE(cx23885_boards);
+@@ -696,6 +701,10 @@ struct cx23885_subid cx23885_subids[] = {
+ 		.subvendor = 0x14f1,
+ 		.subdevice = 0x8502,
+ 		.card      = CX23885_BOARD_MYGICA_X8507,
++	}, {
++		.subvendor = 0x153b,
++		.subdevice = 0x117e,
++		.card      = CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL,
+ 	},
+ };
+ const unsigned int cx23885_idcount = ARRAY_SIZE(cx23885_subids);
+@@ -1458,6 +1467,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 		break;
+ 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
+ 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+ 		ts1->gen_ctrl_val  = 0xc; /* Serial bus + punctured clock */
+ 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+ 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+@@ -1530,6 +1540,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 	case CX23885_BOARD_HAUPPAUGE_HVR1500:
+ 	case CX23885_BOARD_MPX885:
+ 	case CX23885_BOARD_MYGICA_X8507:
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
+ 		dev->sd_cx25840 = v4l2_i2c_new_subdev(&dev->v4l2_dev,
+ 				&dev->i2c_bus[2].i2c_adap,
+ 				"cx25840", 0x88 >> 1, NULL);
+diff --git a/drivers/media/video/cx23885/cx23885-dvb.c b/drivers/media/video/cx23885/cx23885-dvb.c
+index a390622..af8a225 100644
+--- a/drivers/media/video/cx23885/cx23885-dvb.c
++++ b/drivers/media/video/cx23885/cx23885-dvb.c
+@@ -61,6 +61,8 @@
+ #include "cx23885-f300.h"
+ #include "altera-ci.h"
+ #include "stv0367.h"
++#include "drxk.h"
++#include "mt2063.h"
+ 
+ static unsigned int debug;
+ 
+@@ -600,6 +602,24 @@ static struct xc5000_config netup_xc5000_config[] = {
+ 	},
+ };
+ 
++static struct drxk_config terratec_drxk_config[] = {
++	{
++		.adr = 0x29,
++		.no_i2c_bridge = 1,
++	}, {
++		.adr = 0x2a,
++		.no_i2c_bridge = 1,
++	},
++};
++
++static struct mt2063_config terratec_mt2063_config[] = {
++	{
++		.tuner_address = 0x60,
++	}, {
++		.tuner_address = 0x67,
++	},
++};
++
+ int netup_altera_fpga_rw(void *device, int flag, int data, int read)
+ {
+ 	struct cx23885_dev *dev = (struct cx23885_dev *)device;
+@@ -1115,6 +1135,39 @@ static int dvb_register(struct cx23885_tsport *port)
+ 				goto frontend_detach;
+ 		}
+ 		break;
++	case CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL:
++		i2c_bus = &dev->i2c_bus[0];
++		i2c_bus2 = &dev->i2c_bus[1];
++
++		switch (port->nr) {
++		/* port b */
++		case 1:
++			fe0->dvb.frontend = dvb_attach(drxk_attach,
++					&terratec_drxk_config[0],
++					&i2c_bus->i2c_adap);
++			if (fe0->dvb.frontend != NULL) {
++				if (!dvb_attach(mt2063_attach,
++						fe0->dvb.frontend,
++						&terratec_mt2063_config[0],
++						&i2c_bus2->i2c_adap))
++					goto frontend_detach;
++			}
++			break;
++		/* port c */
++		case 2:
++			fe0->dvb.frontend = dvb_attach(drxk_attach,
++					&terratec_drxk_config[1],
++					&i2c_bus->i2c_adap);
++			if (fe0->dvb.frontend != NULL) {
++				if (!dvb_attach(mt2063_attach,
++						fe0->dvb.frontend,
++						&terratec_mt2063_config[1],
++						&i2c_bus2->i2c_adap))
++					goto frontend_detach;
++			}
++			break;
++		}
++		break;
+ 	default:
+ 		printk(KERN_INFO "%s: The frontend of your DVB/ATSC card "
+ 			" isn't supported yet\n",
+diff --git a/drivers/media/video/cx23885/cx23885.h b/drivers/media/video/cx23885/cx23885.h
+index 78fdb84..f020f05 100644
+--- a/drivers/media/video/cx23885/cx23885.h
++++ b/drivers/media/video/cx23885/cx23885.h
+@@ -88,6 +88,7 @@
+ #define CX23885_BOARD_LEADTEK_WINFAST_PXDVR3200_H_XC4000 31
+ #define CX23885_BOARD_MPX885                   32
+ #define CX23885_BOARD_MYGICA_X8507             33
++#define CX23885_BOARD_TERRATEC_CINERGY_T_PCIE_DUAL 34
+ 
+ #define GPIO_0 0x00000001
+ #define GPIO_1 0x00000002
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.7
+
