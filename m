@@ -1,112 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45011 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754592Ab2AYPvO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:51:14 -0500
-Received: by werb13 with SMTP id b13so3900527wer.19
-        for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 07:51:13 -0800 (PST)
+Received: from mailout-de.gmx.net ([213.165.64.22]:45130 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758716Ab2AGArI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 19:47:08 -0500
+From: Oliver Endriss <o.endriss@gmx.de>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] drxk: Fix regression introduced by commit '[media] Remove Annex A/C selection via roll-off factor'
+Date: Sat, 7 Jan 2012 01:45:40 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201201041945.58852@orion.escape-edv.de> <4F07477C.50900@redhat.com>
+In-Reply-To: <4F07477C.50900@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1201251123290.18778@axis700.grange>
-References: <1327059392-29240-1-git-send-email-javier.martin@vista-silicon.com>
-	<1327059392-29240-3-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1201251123290.18778@axis700.grange>
-Date: Wed, 25 Jan 2012 16:51:13 +0100
-Message-ID: <CACKLOr0smPoSMYqS=iS8tx2DoH1V_tjmoNdgFMDrqQeVZMcKHg@mail.gmail.com>
-Subject: Re: [PATCH 2/4] media i.MX27 camera: add start_stream and stop_stream callbacks.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de,
-	baruch@tkos.co.il
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201201070145.40842@orion.escape-edv.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Friday 06 January 2012 20:11:56 Mauro Carvalho Chehab wrote:
+> On 04-01-2012 16:45, Oliver Endriss wrote:
+> > Fix regression introduced by commit '[media] Remove Annex A/C selection via roll-off factor'
+> > As a result of this commit, DVB-T tuning did not work anymore.
+> > 
+> > Signed-off-by: Oliver Endriss <o.endriss@gmx.de>
+> > 
+> > diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+> > index 36e1c82..13f22a1 100644
+> > --- a/drivers/media/dvb/frontends/drxk_hard.c
+> > +++ b/drivers/media/dvb/frontends/drxk_hard.c
+> > @@ -6235,6 +6235,8 @@ static int drxk_set_parameters(struct dvb_frontend *fe)
+> >  	case SYS_DVBC_ANNEX_C:
+> >  		state->m_itut_annex_c = true;
+> >  		break;
+> > +	case SYS_DVBT:
+> > +		break;
+> >  	default:
+> >  		return -EINVAL;
+> >  	}
+> > 
+> Hi Oliver,
+> 
+> Thanks for the patch! 
+> 
+> It become obsoleted by the patch that converted the driver
+> to create just one frontend:
+> 	http://git.linuxtv.org/media_tree.git/commitdiff/fa4b2a171d42ffc512b3a86922ad68e1355eb17a
 
-On 25 January 2012 11:26, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> As discussed before, please, merge this patch with
->
-> "media i.MX27 camera: properly detect frame loss."
+Agreed.
 
-Yes. You can drop that patch already.
+> While I don't have DVB-T signal here, the logs were showing that the driver is
+> switching properly between DVB-T and DVB-C.
+> 
+> Yet, I'd appreciate if you could test it with a real signal,
+> for us to be 100% sure that everything is working as expected.
 
-> One more cosmetic note:
->
-> On Fri, 20 Jan 2012, Javier Martin wrote:
->
->> Add "start_stream" and "stop_stream" callback in order to enable
->> and disable the eMMa-PrP properly and save CPU usage avoiding
->> IRQs when the device is not streaming.
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->>  drivers/media/video/mx2_camera.c |  107 +++++++++++++++++++++++++++-----------
->>  1 files changed, 77 insertions(+), 30 deletions(-)
->>
->> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
->> index 290ac9d..4816da6 100644
->> --- a/drivers/media/video/mx2_camera.c
->> +++ b/drivers/media/video/mx2_camera.c
->> @@ -560,7 +560,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
->>       struct soc_camera_host *ici =
->>               to_soc_camera_host(icd->parent);
->>       struct mx2_camera_dev *pcdev = ici->priv;
->> -     struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->>       struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
->>       unsigned long flags;
->>
->> @@ -572,29 +571,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
->>       buf->state = MX2_STATE_QUEUED;
->>       list_add_tail(&buf->queue, &pcdev->capture);
->>
->> -     if (mx27_camera_emma(pcdev)) {
->> -             if (prp->cfg.channel == 1) {
->> -                     writel(PRP_CNTL_CH1EN |
->> -                             PRP_CNTL_CSIEN |
->> -                             prp->cfg.in_fmt |
->> -                             prp->cfg.out_fmt |
->> -                             PRP_CNTL_CH1_LEN |
->> -                             PRP_CNTL_CH1BYP |
->> -                             PRP_CNTL_CH1_TSKIP(0) |
->> -                             PRP_CNTL_IN_TSKIP(0),
->> -                             pcdev->base_emma + PRP_CNTL);
->> -             } else {
->> -                     writel(PRP_CNTL_CH2EN |
->> -                             PRP_CNTL_CSIEN |
->> -                             prp->cfg.in_fmt |
->> -                             prp->cfg.out_fmt |
->> -                             PRP_CNTL_CH2_LEN |
->> -                             PRP_CNTL_CH2_TSKIP(0) |
->> -                             PRP_CNTL_IN_TSKIP(0),
->> -                             pcdev->base_emma + PRP_CNTL);
->> -             }
->> -             goto out;
->> -     } else { /* cpu_is_mx25() */
->> +     if (!mx27_camera_emma(pcdev)) { /* cpu_is_mx25() */
->>               u32 csicr3, dma_inten = 0;
->>
->>               if (pcdev->fb1_active == NULL) {
->> @@ -629,8 +606,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
->>                       writel(csicr3, pcdev->base_csi + CSICR3);
->>               }
->>       }
->> -
->> -out:
->
-> To my taste you're a bit too aggressive on blank lines;-) This also holds
-> for the previous patch. Unless you absolutely have to edit your sources in
-> a 24-line terminal, keeping those empty lines would be appreciated:-)
+A quick test showed that switching to DVB-T works.
+Sorry, I do not have a DVB-C signal here.
 
-OK. I'll try to overcome my anger ^^
+Btw, there are two lines, which are not harmful, but should be removed
+(bad formatting/dead code).
 
-Regards.
+--- drxk_hard.c.old	2012-01-07 01:40:00.000000000 +0100
++++ drxk_hard.c	2012-01-07 01:40:30.000000000 +0100
+@@ -6236,8 +6236,6 @@ static int drxk_set_parameters(struct dv
+ 				SetOperationMode(state, OM_QAM_ITU_C);
+ 			else
+ 				SetOperationMode(state, OM_QAM_ITU_A);
+-				break;
+-			state->m_itut_annex_c = true;
+ 			break;
+ 		case SYS_DVBT:
+ 			if (!state->m_hasDVBT)
+
+
+CU
+Oliver
+
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+----------------------------------------------------------------
+VDR Remote Plugin 0.4.0: http://www.escape-edv.de/endriss/vdr/
+4 MByte Mod: http://www.escape-edv.de/endriss/dvb-mem-mod/
+Full-TS Mod: http://www.escape-edv.de/endriss/dvb-full-ts-mod/
+----------------------------------------------------------------
