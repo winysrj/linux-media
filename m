@@ -1,88 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:53800 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751920Ab2AIILE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 03:11:04 -0500
+Received: from smtp.nokia.com ([147.243.1.48]:44579 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752008Ab2AGXj6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jan 2012 18:39:58 -0500
+Message-ID: <4F08D7C2.3030203@maxwell.research.nokia.com>
+Date: Sun, 08 Jan 2012 01:39:46 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-In-Reply-To: <20120109081030.GA3723@phenom.ffwll.local>
-References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
-	<1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
-	<CAAQKjZPFh6666JKc-XJfKYePQ_F0MNF6FkY=zKypWb52VVX3YQ@mail.gmail.com>
-	<20120109081030.GA3723@phenom.ffwll.local>
-Date: Mon, 9 Jan 2012 08:11:03 +0000
-Message-ID: <CAPM=9twA_LRL_L88fF1010dQVAx4OY_pydPky_8qpGkAD5fOqg@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
- sharing mechanism
-From: Dave Airlie <airlied@gmail.com>
-To: InKi Dae <daeinki@gmail.com>, Sumit Semwal <sumit.semwal@ti.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
-	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
-	m.szyprowski@samsung.com, rob@ti.com, t.stanislaws@samsung.com,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Cc: daniel@ffwll.ch
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+Subject: Re: [RFC 12/17] omap3isp: Add lane configuration to platform data
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-12-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201201061106.04553.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201061106.04553.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 9, 2012 at 8:10 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Mon, Jan 09, 2012 at 03:20:48PM +0900, InKi Dae wrote:
->> I has test dmabuf based drm gem module for exynos and I found one problem.
->> you can refer to this test repository:
->> http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/exynos-drm-dmabuf
->>
->> at this repository, I added some exception codes for resource release
->> in addition to Dave's patch sets.
->>
->> let's suppose we use dmabuf based vb2 and drm gem with physically
->> continuous memory(no IOMMU) and we try to share allocated buffer
->> between them(v4l2 and drm driver).
->>
->> 1. request memory allocation through drm gem interface.
->> 2. request DRM_SET_PRIME ioctl with the gem handle to get a fd to the
->> gem object.
->> - internally, private gem based dmabuf moudle calls drm_buf_export()
->> to register allocated gem object to fd.
->> 3. request qbuf with the fd(got from 2) and DMABUF type to set the
->> buffer to v4l2 based device.
->> - internally, vb2 plug in module gets a buffer to the fd and then
->> calls dmabuf->ops->map_dmabuf() callback to get the sg table
->> containing physical memory info to the gem object. and then the
->> physical memory info would be copied to vb2_xx_buf object.
->> for DMABUF feature for v4l2 and videobuf2 framework, you can refer to
->> this repository:
->> git://github.com/robclark/kernel-omap4.git drmplane-dmabuf
->>
->> after that, if v4l2 driver want to release vb2_xx_buf object with
->> allocated memory region by user request, how should we do?. refcount
->> to vb2_xx_buf is dependent on videobuf2 framework. so when vb2_xx_buf
->> object is released videobuf2 framework don't know who is using the
->> physical memory region. so this physical memory region is released and
->> when drm driver tries to access the region or to release it also, a
->> problem would be induced.
->>
->> for this problem, I added get_shared_cnt() callback to dma-buf.h but
->> I'm not sure that this is good way. maybe there may be better way.
->> if there is any missing point, please let me know.
->
-> The dma_buf object needs to hold a reference on the underlying
-> (necessarily reference-counted) buffer object when the exporter creates
-> the dma_buf handle. This reference should then get dropped in the
-> exporters dma_buf->ops->release() function, which is only getting called
-> when the last reference to the dma_buf disappears.
->
-> If this doesn't work like that currently, we have a bug, and exporting the
-> reference count or something similar can't fix that.
->
-> Yours, Daniel
->
-> PS: Please cut down the original mail when replying, otherwise it's pretty
-> hard to find your response ;-)
+Hi Laurent,
 
-And also the importer needs to realise it doesn't own the pages in the
-sg_table and when its freeing its backing memory it shouldn't free
-those pages. So for GEM objects we have to keep track if we allocated
-the pages or we got them from an dma buf.
+Laurent Pinchart wrote:
+> On Tuesday 20 December 2011 21:28:04 Sakari Ailus wrote:
+>> From: Sakari Ailus <sakari.ailus@iki.fi>
+>>
+>> Add lane configuration (order of clock and data lane) to platform data on
+>> both CCP2 and CSI-2.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> ---
+>>  drivers/media/video/omap3isp/ispcsiphy.h |   15 ++-------------
+>>  include/media/omap3isp.h                 |   15 +++++++++++++++
+>>  2 files changed, 17 insertions(+), 13 deletions(-)
+>>
+>> diff --git a/drivers/media/video/omap3isp/ispcsiphy.h
+>> b/drivers/media/video/omap3isp/ispcsiphy.h index 9596dc6..e93a661 100644
+>> --- a/drivers/media/video/omap3isp/ispcsiphy.h
+>> +++ b/drivers/media/video/omap3isp/ispcsiphy.h
+>> @@ -27,22 +27,11 @@
+>>  #ifndef OMAP3_ISP_CSI_PHY_H
+>>  #define OMAP3_ISP_CSI_PHY_H
+>>
+>> +#include <media/omap3isp.h>
+>> +
+>>  struct isp_csi2_device;
+>>  struct regulator;
+>>
+>> -struct csiphy_lane {
+>> -	u8 pos;
+>> -	u8 pol;
+>> -};
+>> -
+>> -#define ISP_CSIPHY2_NUM_DATA_LANES	2
+>> -#define ISP_CSIPHY1_NUM_DATA_LANES	1
+>> -
+>> -struct isp_csiphy_lanes_cfg {
+>> -	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
+>> -	struct csiphy_lane clk;
+>> -};
+>> -
+>>  struct isp_csiphy_dphy_cfg {
+>>  	u8 ths_term;
+>>  	u8 ths_settle;
+>> diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+>> index e917b1d..8fe0bdf 100644
+>> --- a/include/media/omap3isp.h
+>> +++ b/include/media/omap3isp.h
+>> @@ -86,6 +86,19 @@ enum {
+>>  	ISP_CCP2_MODE_CCP2 = 1,
+>>  };
+>>
+>> +struct csiphy_lane {
+>> +	u8 pos;
+>> +	u8 pol;
+>> +};
+>> +
+>> +#define ISP_CSIPHY2_NUM_DATA_LANES	2
+>> +#define ISP_CSIPHY1_NUM_DATA_LANES	1
+>> +
+>> +struct isp_csiphy_lanes_cfg {
+>> +	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
+>> +	struct csiphy_lane clk;
+>> +};
+> 
+> Could you please document the two structures using kerneldoc ?
 
-Dave.
+Done.
+
+>> +
+>>  /**
+>>   * struct isp_ccp2_platform_data - CCP2 interface platform data
+>>   * @strobe_clk_pol: Strobe/clock polarity
+>> @@ -105,6 +118,7 @@ struct isp_ccp2_platform_data {
+>>  	unsigned int ccp2_mode:1;
+>>  	unsigned int phy_layer:1;
+>>  	unsigned int vpclk_div:2;
+>> +	struct isp_csiphy_lanes_cfg *lanecfg;
+> 
+> Lane configuration is mandatory, what about embedding struct 
+> isp_csiphy_lanes_cfg inside struct isp_ccp2_platform instead of having a 
+> pointer ?
+
+Done.
+
+>>  };
+>>
+>>  /**
+>> @@ -115,6 +129,7 @@ struct isp_ccp2_platform_data {
+>>  struct isp_csi2_platform_data {
+>>  	unsigned crc:1;
+>>  	unsigned vpclk_div:2;
+>> +	struct isp_csiphy_lanes_cfg *lanecfg;
+> 
+> Same here.
+
+Ditto.
+
+>>  };
+>>
+>>  struct isp_subdev_i2c_board_info {
+> 
+
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
