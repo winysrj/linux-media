@@ -1,42 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4555 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756010Ab2AKAWP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 19:22:15 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0B0MESc030276
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 19:22:15 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/6] [media] tda18271-fe: Fix support for ISDB-T
-Date: Tue, 10 Jan 2012 22:20:21 -0200
-Message-Id: <1326241226-6734-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34096 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab2AGPxt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jan 2012 10:53:49 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Subject: Re: [RFC 04/17] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Date: Sat, 7 Jan 2012 16:54:09 +0100
+Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <4F080BAF.1010800@maxwell.research.nokia.com> <4F0827E9.1070303@maxwell.research.nokia.com>
+In-Reply-To: <4F0827E9.1070303@maxwell.research.nokia.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201071654.09645.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/tda18271-fe.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+Hi Sakari,
 
-diff --git a/drivers/media/common/tuners/tda18271-fe.c b/drivers/media/common/tuners/tda18271-fe.c
-index d3d91ea..7e30304 100644
---- a/drivers/media/common/tuners/tda18271-fe.c
-+++ b/drivers/media/common/tuners/tda18271-fe.c
-@@ -946,6 +946,10 @@ static int tda18271_set_params(struct dvb_frontend *fe)
- 		map = &std_map->atsc_6;
- 		bw = 6000000;
- 		break;
-+	case SYS_ISDBT:
-+		map = &std_map->dvbt_6;
-+		bw = 6000000;
-+		break;
- 	case SYS_DVBT:
- 	case SYS_DVBT2:
- 		if (bw <= 6000000) {
+On Saturday 07 January 2012 12:09:29 Sakari Ailus wrote:
+> Sakari Ailus wrote:
+> ...
+> 
+> > On second thought, I think I'll combine them into a new anonymous struct
+> > the field name of which I call "pad", unless that requires too intrusive
+> > changes in other drivers. How about that?
+> 
+> And the answer to that is "no". The smia++ driver does store the format,
+> crop and compose values in arrays indexed by pad numbers which I think
+> is a natural thing for the driver to do. In many functiona the driver
+> uses internally it's trivial to choose the array either from driver's
+> internal data structure (V4L2_SUBDEV_FORMAT_ACTIVE) or the file handle
+> (V4L2_SUBDEV_FORMAT_TRY).
+> 
+> Alternatively a named struct could be created for the same, but the
+> drivers might not need all the fields at all, or choose to store them in
+> a different form.
+
+Drivers should use the v4l2_subdev_get_try_format(), 
+v4l2_subdev_get_try_crop() and v4l2_subdev_get_try_compose() functions to 
+access TRY formats and selection rectangles on file handles, so they shouldn't 
+care about the allocation details.
+
 -- 
-1.7.7.5
+Regards,
 
+Laurent Pinchart
