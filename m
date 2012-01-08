@@ -1,77 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:63878 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751111Ab2ADP2M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 10:28:12 -0500
-Received: by werm1 with SMTP id m1so8624321wer.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 07:28:11 -0800 (PST)
+Received: from smtp1-g21.free.fr ([212.27.42.1]:36195 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751873Ab2AHPI0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Jan 2012 10:08:26 -0500
+From: Robert Jarzmik <robert.jarzmik@free.fr>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/3] V4L: mt9m111: clean up and fix .s_crop() / .s_fmt()
+References: <Pine.LNX.4.64.1112211649070.30646@axis700.grange>
+Date: Sun, 08 Jan 2012 16:08:15 +0100
+In-Reply-To: <Pine.LNX.4.64.1112211649070.30646@axis700.grange> (Guennadi
+	Liakhovetski's message of "Wed, 21 Dec 2011 16:53:43 +0100 (CET)")
+Message-ID: <871uramduo.fsf@free.fr>
 MIME-Version: 1.0
-Date: Wed, 4 Jan 2012 10:28:10 -0500
-Message-ID: <CALzAhNUHJiwv5PmDPZyaxofA+1vBUw7WBV2EoT4VQNZZn--6fg@mail.gmail.com>
-Subject: [PULL] git://git.kernellabs.com/stoth/cx23885-hvr1850.git
- media-master branch
-From: Steven Toth <stoth@kernellabs.com>
-To: Linux-Media <linux-media@vger.kernel.org>
-Cc: Mauro Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> writes:
 
-I've been adding support to the CX23885 and CX25840 drivers for the
-Hauppauge HVR1850
-card. These patches enable the use of raw video, audio and/or the mpeg
-encoder, via all
-video and audio inputs. Support for the HVR1850 is now in pretty good shape.
+> Hi all
+>
+> While working on a context-switching test, I've cleaned up the mt9m111 
+> driver a bit and fixed its cropping and scaling functions. These are 
+> planned for 3.3.
 
-The card uses the CX23888 PCIe bridge which brings its own complexities and
-additional code to the CX25840. I've tested these patches against the
-HVR1700, HVR1800
-and HVR1850, everything appears to be working correctly.
+Hi Guennadi,
 
-These also fix a small regression in the HVR1800 driver related to the
-work done during
-October 2010 on the subdev conversion. Given that nobody has noticed
-in the last 12
-months it's not too important.
+I've looked more deeply into the patchset, and I have no comment, it all looks
+good. I've not been able to test it due to a ill tempered board, but I reviewed
+patches 1 and 2 with my manual, and patch 3 a bit, and checked compilation
+versus kernel 3.2.
 
-Tree is at git://git.kernellabs.com/stoth/cx23885-hvr1850.git
-media-master branch.
+So please find my:
+Acked-by: Robert Jarzmik <robert.jarzmik@free.fr>
 
-Patch series viewable at:
-
-http://git.kernellabs.com/?p=stoth/cx23885-hvr1850.git;a=shortlog;h=refs/heads/media-master
-
-    [media] cx25840: Added g_std support to the video decoder driver
-    [media] cx25840: Hauppauge HVR1850 Analog driver support (patch#4)
-    [media] cx25840: Add a flag to enable the CX23888 DIF to be enabled or not.
-    [media] cx23885: Hauppauge HVR1850 Analog driver support (patch#3)
-    [media] cx23885: Hauppauge HVR1850 Analog driver support (patch#2)
-    [media] cx23885: Hauppauge HVR1850 Analog driver support (patch#1)
-    [media] cx23885: Bugfix /sys/class/video4linux/videoX/name truncation
-    [media] cx23885: Control cleanup on the MPEG Encoder
-    [media] cx23885: Configure the MPEG encoder early to avoid jerky video
-    [media] cx23885: Ensure the MPEG encoder height is configured from the norm
-    [media] cx23885: Cleanup MPEG encoder GPIO handling
-    [media] cx25840 / cx23885: Fixing audio/volume regression
-
- b/drivers/media/video/cx23885/cx23885-417.c   |    4
- b/drivers/media/video/cx23885/cx23885-cards.c |   28
- b/drivers/media/video/cx23885/cx23885-core.c  |   24
- b/drivers/media/video/cx23885/cx23885-dvb.c   |   14
- b/drivers/media/video/cx23885/cx23885-video.c |  153 +
- b/drivers/media/video/cx23885/cx23885.h       |   12
- b/drivers/media/video/cx25840/cx25840-audio.c |   10
- b/drivers/media/video/cx25840/cx25840-core.c  |   36
- b/include/media/cx25840.h                     |    1
- drivers/media/video/cx23885/cx23885-417.c     |  137 -
- drivers/media/video/cx23885/cx23885-video.c   |   10
- drivers/media/video/cx25840/cx25840-core.c    | 3188 +++++++++++++++++++++++++-
- 12 files changed, 3487 insertions(+), 130 deletions(-)
-
-Thanks,
+Cheers.
 
 -- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+Robert
