@@ -1,41 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod6og107.obsmtp.com ([64.18.1.208]:39445 "HELO
-	exprod6og107.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751608Ab2AKQaP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 11:30:15 -0500
-Received: by bkbzu5 with SMTP id zu5so1092324bkb.39
-        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 08:30:13 -0800 (PST)
+Received: from smtp.nokia.com ([147.243.1.47]:28261 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754492Ab2AHVQR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Jan 2012 16:16:17 -0500
+Message-ID: <4F0A079F.5060100@maxwell.research.nokia.com>
+Date: Sun, 08 Jan 2012 23:16:15 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-Date: Wed, 11 Jan 2012 10:28:30 -0600
-Message-ID: <CAPc4S2YkA6pyz6z17N3M-XOFw8oibOz_UzgEHyxEJsF01EODFw@mail.gmail.com>
-Subject: "cannot allocate memory" with IO_METHOD_USERPTR
-From: Christopher Peters <cpeters@ucmo.edu>
-To: linux-media@vger.kernel.org
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+Subject: Re: [RFC 07/17] v4l: Add pixelrate to struct v4l2_mbus_framefmt
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-7-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201201061126.40692.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201061126.40692.laurent.pinchart@ideasonboard.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So as I said in my previous email, I got video out of my card.  Now
-I'm trying to capture video using a piece of software called
-"openreplay".  Its v4l2 capture code is based heavily on the capture
-example at http://v4l2spec.bytesex.org/spec/capture-example.html, so I
-thought I'd try compiling the example code to see what I got.
+Hi Laurent,
 
-When I ran the capture example with this command-line: "
-./capture_example -u" (to use application allocated buffers) I got:
+Laurent Pinchart wrote:
+> On Tuesday 20 December 2011 21:27:59 Sakari Ailus wrote:
+>> From: Sakari Ailus <sakari.ailus@iki.fi>
+>>
+>> Pixelrate is an essential part of the image data parameters. Add this.
+>> Together, the current parameters also define the frame rate.
+>>
+>> Sensors do not have a concept of frame rate; pixelrate is much more
+>> meaningful in this context. Also, it is best to combine the pixelrate with
+>> the other format parameters since there are dependencies between them.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> ---
+>>  Documentation/DocBook/media/v4l/subdev-formats.xml |   10 +++++++++-
+>>  include/linux/v4l2-mediabus.h                      |    4 +++-
+>>  2 files changed, 12 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> b/Documentation/DocBook/media/v4l/subdev-formats.xml index
+>> 49c532e..a6a6630 100644
+>> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+>> @@ -35,7 +35,15 @@
+>>  	</row>
+>>  	<row>
+>>  	  <entry>__u32</entry>
+>> -	  <entry><structfield>reserved</structfield>[7]</entry>
+>> +	  <entry><structfield>pixelrate</structfield></entry>
+>> +	  <entry>Pixel rate in kp/s.
+> 
+> kPix/s or kPixel/s ?
 
-"VIDIOC_QBUF error 12, Cannot allocate memory"
+Hmm. kilo-pixels / second?
 
-I'm running Mythbuntu 11.10, Ubuntu kernel 3.0.0-14-generic.  All
-CONFIG_*V4L* options are set to 'y' or 'm', and all modules matching
-"v4l2-*" are loaded.
+Albeit I have to say I'm increasingly inclined to think this field
+doesn't really belong to this struct --- we should discuss that tomorrow.
 
-What do I need to do to make application allocated buffers work?
+There are two things this is needed in the user space:
+
+1) To calculate detailed hardware timing information.
+
+2) To figure out whether streaming is possible, or to figure out why it
+failed in case it did.
+
+And in kernel space:
+
+1) To configure devices. The OMAP 3 ISP CSI-2 receiver and CCDC blocks
+must be configured based on the pixel rate.
+
+2) Validate pipeline pixel rate for each subdev. Some subdevs require it
+to be withint limits. A good example is the OMAP 3 ISP where most blocks
+have 100 Mp/s maximum whereas the CSI-2 receiver has 200 Mp/s maximum.
+
+This could be implemented using pad-specific controls. In drivers the
+subdev in sink end of the link would get the controls from the source.
+
+>> This clock is the maximum rate at
+> 
+> Is it really a clock ?
+> 
+>> +	  which pixels are transferred on the bus. The
+>> +	  <structfield>pixelrate</structfield> field is
+>> +	  read-only.</entry>
+> 
+> Does that mean that userspace isn't required to propagate the value down the 
+> pipeline when configuring it ? I'm fine with that, but it should probably be 
+> documented explictly somewhere to make sure that drivers don't rely on it.
+> 
+>> +	</row>
+>> +	<row>
+>> +	  <entry>__u32</entry>
+>> +	  <entry><structfield>reserved</structfield>[6]</entry>
+>>  	  <entry>Reserved for future extensions. Applications and drivers must
+>>  	  set the array to zero.</entry>
+>>  	</row>
+>> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+>> index 5ea7f75..35c6b96 100644
+>> --- a/include/linux/v4l2-mediabus.h
+>> +++ b/include/linux/v4l2-mediabus.h
+>> @@ -101,6 +101,7 @@ enum v4l2_mbus_pixelcode {
+>>   * @code:	data format code (from enum v4l2_mbus_pixelcode)
+>>   * @field:	used interlacing type (from enum v4l2_field)
+>>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
+>> + * @pixel_clock: pixel clock, in kHz
+> 
+> I think you forgot to update the comment.
+> 
+>>   */
+>>  struct v4l2_mbus_framefmt {
+>>  	__u32			width;
+>> @@ -108,7 +109,8 @@ struct v4l2_mbus_framefmt {
+>>  	__u32			code;
+>>  	__u32			field;
+>>  	__u32			colorspace;
+>> -	__u32			reserved[7];
+>> +	__u32			pixelrate;
+>> +	__u32			reserved[6];
+>>  };
+>>
+>>  #endif
+> 
+
 
 -- 
--
-Kit Peters (W0KEH), Engineer II
-KMOS TV Channel 6 / KTBG 90.9 FM
-University of Central Missouri
-http://kmos.org/ | http://ktbg.fm/
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
