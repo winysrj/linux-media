@@ -1,120 +1,251 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54155 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:44237 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752843Ab2AUQEo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:44 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4iDe021369
+	id S1751023Ab2AHBws (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jan 2012 20:52:48 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q081qllJ011118
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:44 -0500
+	for <linux-media@vger.kernel.org>; Sat, 7 Jan 2012 20:52:48 -0500
+Received: from [10.3.231.107] (vpn-231-107.phx2.redhat.com [10.3.231.107])
+	by int-mx12.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q081qibg028012
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 7 Jan 2012 20:52:46 -0500
+Message-ID: <4F08F6EB.2030508@redhat.com>
+Date: Sat, 07 Jan 2012 23:52:43 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 18/35] [media] az6007: Fix IR receive code
-Date: Sat, 21 Jan 2012 14:04:20 -0200
-Message-Id: <1327161877-16784-19-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-18-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
- <1327161877-16784-11-git-send-email-mchehab@redhat.com>
- <1327161877-16784-12-git-send-email-mchehab@redhat.com>
- <1327161877-16784-13-git-send-email-mchehab@redhat.com>
- <1327161877-16784-14-git-send-email-mchehab@redhat.com>
- <1327161877-16784-15-git-send-email-mchehab@redhat.com>
- <1327161877-16784-16-git-send-email-mchehab@redhat.com>
- <1327161877-16784-17-git-send-email-mchehab@redhat.com>
- <1327161877-16784-18-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
+References: <4F08385E.7050602@redhat.com>
+In-Reply-To: <4F08385E.7050602@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The code still needs to be commented, as there's a mutex
-missing at the az6007_read() call. A mutex there is needed,
-in order to prevent RC (or CI) calls while other operations
-are in progress.
+On 07-01-2012 10:19, Mauro Carvalho Chehab wrote:
+> As previously commented at the ML, I'm developing a set of tools
+> using DVBv5 API. Instead of starting from something existing,
+> I decided to start from scratch, in order to avoid polluting it
+> with DVBv3 legacy stuff. Of course, I did some research inside
+> the existing tools, in order to fill in the blanks, using the
+> dvb-apps tzap as a reference for the first real application on it,
+> but removing a large amount of code (file parsers, etc).
+> 
+> They're now on a good shape, at least for my own usage ;)
+> 
+> In order to test, you should use:
+> 
+> git clone git://linuxtv.org/mchehab/experimental-v4l-utils.git
+> 
+> And then run "make". the utils are inside utils/dvb.
+> 
+> I plan to do some cleanup at the patches later (basically, changing
+> the patch descriptions), and add it inside the v4l-utils, in order 
+> to have the basic tools I use for testing media devices into the
+> same place.
+> 
+> DVB TOOLS
+> =========
+> 
+> This is a series of tools written to help testing and working with DVB,
+> using its latest V5 API. The tools can also work with the DVBv3 API.
+> 
+> The current tools are:
+> 
+> dvb-fe-tool - a simple test application, that reads from the frontend.
+> 	      it also allows to change the default delivery system.
+> 	      In the future, it may be used to change any property
+> 	      via command line.
+> 
+> dvb-format-convert - converts from zap and scan "initial-tuning-data-file"
+> 	      into the new format defined to work with DVBv5;
+> 
+> dvbv5-scan - a DVBv5 scan tool;
+> 
+> dvbv5-zap - a DVBv5 zap tool. It allow to tune into a DVB channel, and
+> 	    to watch to a DVB service (e. g. receiving the video and audio
+> 	    streams, via another application using the dvr device).
+> 
+> Each application code is very small, as most of the code are on some
+> generic code that will become a library in the future.
+> 
+> CONTENTS OF THE TREE
+> ====================
+> 
+> parse_string.c/parse_string.h: MPEG-TS string decoder with charset translator
+> 
+> Used to decode NIT/SDT service name, network provider and provider name.
+> It parses the charsets according with the DVB specs, converting them into
+> UTF-8 (or other charset), using iconv library.
+> 
+> descriptors.c/descriptors.h:  MPEG-TS descriptors parser
+> 
+> The code there is generig enough to decode the MPEG-TS descriptors,
+> with the DVB and other Digital TV extensions.
+> 
+> libscan.c/libscan/h: DVBv5 scanning library
+> 
+> This library is used to retrieve DVB information from the MPEG TS
+> headers, discovering the services associated to each DVB channel or
+> transponder. The services information is the basic info that most
+> DVB tools need to tune into a channel.
+> 
+> dvb-file.c/dvb-file.h: DVB file read/write library.
+> 
+> Allows parsing a DVB file (legacy or not) and to write data into a
+> DVB file (new format only).
+> 
+> dvb-fe.c/dvb-fe.h: DVB frontend library.
+> 
+> Allows talking with a DVB frontend via DVBv5 or DVBv3 API.
+> 
+> dvb-zap-format.c/dvb-legacy-channel-format.c:
+> 
+> Contains the data structures required in order to read from the legacy
+> formats (zap or scan "initial-tuning-data-file").
+> 
+> dvb_frontend.h: DVBv5 frontend API.
+> 
+> This is just a copy of the newest linux/dvb/frontend.h header.
+> I opted to keep a copy there, in order to allow working with the tools
+> without needing to copy the latest header into /usr/include.
+> 
+> dvb-v5.h/dvb-v5-std.h:
+> 
+> Ancillary files linked into dvb-fe code, used to parse DVB tables. The
+> dvbv5.h is generated by a small perl util, from the DVB FE API file.
+> 
+> dvb-demux.c/dvb-demux.h: DVB demux library.
+> 
+> Used by the dvbv5-zap utility.
+> 
+> dvb-fe-tool.c, dvb-format-convert.c, dvbv5-zap.c, dvbv5-scan.c: tools code.
+> 
+> Basically, parses the options from userspace and calls the other code
+> to do what was requested by the user.
+> 
+> CHANNEL/SERVICE FILE FORMAT
+> ===========================
+> 
+> Instead of having two different files, one for services, and another for
+> channels/transponders, I opted to use just one format for both. The
+> format is:
+> 
+> [channel]
+> key1=value1
+> key2=value2
+> key3=value3
+> ...
+> keyn=valuen
+> 
+> 
+> lines with # are discarted by the parsers. Also, whitespaces/tabs before
+> the keys and before/after the equal sign.
+> 
+> Be careful: whitespace in the middle of the value are not discarded.
+> 
+> A typical service would be like:
+> 
+> [TV Brasil HD]
+>         VCHANNEL = 2.2
+>         SERVICE_ID = 16160
+>         VIDEO_PID = 770
+>         AUDIO_PID = 514 614
+>         FREQUENCY = 479142857
+>         MODULATION = QAM/AUTO
+>         BANDWIDTH_HZ = 6000000
+>         INVERSION = AUTO
+>         CODE_RATE_HP = AUTO
+>         CODE_RATE_LP = NONE
+>         GUARD_INTERVAL = AUTO
+>         TRANSMISSION_MODE = AUTO
+>         HIERARCHY = NONE
+>         ISDBT_LAYER_ENABLED = 7
+>         ISDBT_PARTIAL_RECEPTION = 0
+>         ISDBT_SOUND_BROADCASTING = 0
+>         ISDBT_SB_SUBCHANNEL_ID = 0
+>         ISDBT_SB_SEGMENT_IDX = 0
+>         ISDBT_SB_SEGMENT_COUNT = 0
+>         ISDBT_LAYERA_FEC = AUTO
+>         ISDBT_LAYERA_MODULATION = QAM/AUTO
+>         ISDBT_LAYERA_SEGMENT_COUNT = 0
+>         ISDBT_LAYERA_TIME_INTERLEAVING = 0
+>         ISDBT_LAYERB_FEC = AUTO
+>         ISDBT_LAYERB_MODULATION = QAM/AUTO
+>         ISDBT_LAYERB_SEGMENT_COUNT = 0
+>         ISDBT_LAYERB_TIME_INTERLEAVING = 0
+>         ISDBT_LAYERC_FEC = AUTO
+>         ISDBT_LAYERC_MODULATION = QAM/AUTO
+>         ISDBT_LAYERC_SEGMENT_COUNT = 0
+>         ISDBT_LAYERC_TIME_INTERLEAVING = 0
+>         DELIVERY_SYSTEM = ISDBT
+> 
+> Just the channel description for it would be:
+> 
+> [CHANNEL]
+>         FREQUENCY = 479142857
+>         MODULATION = QAM/AUTO
+>         BANDWIDTH_HZ = 6000000
+>         INVERSION = AUTO
+>         CODE_RATE_HP = AUTO
+>         CODE_RATE_LP = NONE
+>         GUARD_INTERVAL = AUTO
+>         TRANSMISSION_MODE = AUTO
+>         HIERARCHY = NONE
+>         ISDBT_LAYER_ENABLED = 7
+>         ISDBT_PARTIAL_RECEPTION = 0
+>         ISDBT_SOUND_BROADCASTING = 0
+>         ISDBT_SB_SUBCHANNEL_ID = 0
+>         ISDBT_SB_SEGMENT_IDX = 0
+>         ISDBT_SB_SEGMENT_COUNT = 0
+>         ISDBT_LAYERA_FEC = AUTO
+>         ISDBT_LAYERA_MODULATION = QAM/AUTO
+>         ISDBT_LAYERA_SEGMENT_COUNT = 0
+>         ISDBT_LAYERA_TIME_INTERLEAVING = 0
+>         ISDBT_LAYERB_FEC = AUTO
+>         ISDBT_LAYERB_MODULATION = QAM/AUTO
+>         ISDBT_LAYERB_SEGMENT_COUNT = 0
+>         ISDBT_LAYERB_TIME_INTERLEAVING = 0
+>         ISDBT_LAYERC_FEC = AUTO
+>         ISDBT_LAYERC_MODULATION = QAM/AUTO
+>         ISDBT_LAYERC_SEGMENT_COUNT = 0
+>         ISDBT_LAYERC_TIME_INTERLEAVING = 0
+>         DELIVERY_SYSTEM = ISDBT
+> 
+> CURRENT ISSUES
+> ==============
+> 
+> The dvb-fe-tool and the dvb-format-convert are generic enough to work
+> with all delivery systems. However, the other two tools need to do
+> some diferent things, depending on the delivery system.
+> 
+> I'm currently with only ISDB-T signals here, so the other two
+> tools were tested only with it.
+> 
+> The dvbv5-zap in general won't work with Satellite delivery
+> systems. It lacks polarity settings, and it doesn't know anything
+> about LNB or DISEqC. It shouldn't hard to port those things into it, 
+> but a DVB-S signal is needed to test. As I don't have it curently,
+> I'm not working to add support for it at the moment. 
+> 
+> Patches are welcome.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/az6007.c |   37 +++++++++++++++++++++++++----------
- 1 files changed, 26 insertions(+), 11 deletions(-)
+I decided to add support for DVB-S, even without signal for testing.
+This probably means that it likely will not work ;) Well, seriously,
+we need testers for it.
 
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index 912ba67..c9743ee 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -49,7 +49,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- #define AZ6007_I2C_WR		0xbd
- #define FX2_SCON1		0xc0
- #define AZ6007_TS_THROUGH	0xc7
--#define AZ6007_READ_IR		0xc5
-+#define AZ6007_READ_IR		0xb4
- 
- struct az6007_device_state {
- 	struct			dvb_ca_en50221 ca;
-@@ -172,30 +172,45 @@ static struct rc_map_table rc_map_az6007_table[] = {
- /* remote control stuff (does not work with my box) */
- static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
- {
--	return 0;
--#if 0
-+	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
- 	u8 key[10];
- 	int i;
- 
--	/* remove the following return to enabled remote querying */
-+	/*
-+	 * FIXME: remove the following return to enabled remote querying
-+	 * The driver likely needs proper locking to avoid troubles between
-+	 * this call and other concurrent calls.
-+	 */
-+	return 0;
- 
- 	az6007_read(d->udev, AZ6007_READ_IR, 0, 0, key, 10);
- 
--	deb_rc("remote query key: %x %d\n", key[1], key[1]);
--
- 	if (key[1] == 0x44) {
- 		*state = REMOTE_NO_KEY_PRESSED;
- 		return 0;
- 	}
- 
--	for (i = 0; i < ARRAY_SIZE(az6007_rc_keys); i++)
--		if (az6007_rc_keys[i].custom == key[1]) {
-+	/*
-+	 * FIXME: need to make something useful with the keycodes and to
-+	 * convert it to the non-legacy mode. Yet, it is producing some
-+	 * debug info already, like:
-+	 * 88 04 eb 02 fd ff 00 82 63 82 (terratec IR)
-+	 * 88 04 eb 03 fc 00 00 82 63 82 (terratec IR)
-+	 * 88 80 7e 0d f2 ff 00 82 63 82 (another NEC-extended based IR)
-+	 * I suspect that the IR data is at bytes 1 to 4, and byte 5 is parity
-+	 */
-+	deb_rc("remote query key: %x %d\n", key[1], key[1]);
-+	print_hex_dump_bytes("Remote: ", DUMP_PREFIX_NONE, key, 10);
-+
-+	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
-+		if (rc5_custom(&keymap[i]) == key[1]) {
-+			*event = keymap[i].keycode;
- 			*state = REMOTE_KEY_PRESSED;
--			*event = az6007_rc_keys[i].event;
--			break;
-+
-+			return 0;
- 		}
-+	}
- 	return 0;
--#endif
- }
- 
- #if 0
--- 
-1.7.8
+The current code should be doing the same that szap does, and should
+work with both dvbv5-zap and dvbv5-scan. The DISEqC code there is very
+simple, and there's no support for dishpro/bandstacking yet. It is
+probably not hard to add support for it.
 
+There are still a few things missing there. For example, the current
+code will only use DISEqC satellite #0, as there's no code to change
+the satellite number yet.
+
+Anyway, testing and patches are welcome!
+
+Regards,
+Mauro
