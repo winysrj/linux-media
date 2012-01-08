@@ -1,88 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:16719 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab2A2Blk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 28 Jan 2012 20:41:40 -0500
-Date: Sun, 29 Jan 2012 02:41:52 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Thierry Reding <thierry.reding@avionic-design.de>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Curtis McEnroe <programble@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH] tm6000: Don't use pointer after freeing it in
- tm6000_ir_fini()
-Message-ID: <alpine.LNX.2.00.1201290239460.20079@swampdragon.chaosbits.net>
+Received: from mx1.redhat.com ([209.132.183.28]:48875 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751388Ab2AHM5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 8 Jan 2012 07:57:51 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q08Cvpq7032505
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 8 Jan 2012 07:57:51 -0500
+Received: from [10.3.231.107] (vpn-231-107.phx2.redhat.com [10.3.231.107])
+	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id q08Cvmot010126
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sun, 8 Jan 2012 07:57:50 -0500
+Message-ID: <4F0992CB.6020702@redhat.com>
+Date: Sun, 08 Jan 2012 10:57:47 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: dvbv5-tools update - was: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
+References: <4F08385E.7050602@redhat.com> <4F08F6EB.2030508@redhat.com>
+In-Reply-To: <4F08F6EB.2030508@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In tm6000_ir_fini() there seems to be a problem. 
-rc_unregister_device(ir->rc); calls rc_free_device() on the pointer it is 
-given, which frees it.
+On 07-01-2012 23:52, Mauro Carvalho Chehab wrote:
+> I decided to add support for DVB-S, even without signal for testing.
+> This probably means that it likely will not work ;) Well, seriously,
+> we need testers for it.
+> 
+> The current code should be doing the same that szap does, and should
+> work with both dvbv5-zap and dvbv5-scan. The DISEqC code there is very
+> simple, and there's no support for dishpro/bandstacking yet. It is
+> probably not hard to add support for it.
+> 
+> There are still a few things missing there. For example, the current
+> code will only use DISEqC satellite #0, as there's no code to change
+> the satellite number yet.
+> 
+> Anyway, testing and patches are welcome!
 
-Subsequently the function does:
+I decided to rewrite the DISEqC code on it, in order to fix some
+bugs, and make the code clearer.
 
-  if (!ir->polling)
-    __tm6000_ir_int_stop(ir->rc);
+The updates are at the tree:
+	http://git.linuxtv.org/v4l-utils.git
 
-and __tm6000_ir_int_stop() dereferences the pointer it is given, which
-has already been freed.
+Basically, additional parameters for satellite delivery systems
+are now added to the zap and scan tools:
 
-and it also does:
+        - l <lnbf>
+selects the LNBf type. Using an invalid value like "help" shows
+what's currently supported.
 
-  tm6000_ir_stop(ir->rc);
+        - S <sat_number>
+Selects satellite number, between 0 to 3. If not specified,
+disables DISEqC. This actually changes the DISEqC "option" 
+and "position" parameter. According with the specs, for 
+position B, tone should be off, and tone burst should
+be miniA. 
 
-which also dereferences the (already freed) pointer.
+        -W <extra time in ms>
+The DISEqC logic will wait for 15 ms. If this parameter is         
+specified, it will add  the extra time to the 15ms delay.
 
-So, it seems that the call to rc_unregister_device() should be move
-below the calls to __tm6000_ir_int_stop() and tm6000_ir_stop(), so
-those don't operate on a already freed pointer.
+For LNBf devices that use bandstacking (e. g. they use different
+LO frequrencies for V and H polarization), the code will     
+always use 13 Volts and will disable tone/tone burst.
 
-But, I must admit that I don't know this code *at all*, so someone who
-knows the code should take a careful look before applying this
-patch. It is based purely on inspection of facts of what is beeing
-freed where and not at all on understanding what the code does or why.
-I don't even have a means to test it, so beyond testing that the
-change compiles it has seen no testing what-so-ever.
+Currently, C-Band multi and DishPro bandstacking LNBf's are
+supported.
 
-Anyway, here's a proposed patch.
+The code should now work with the following LNBfs:
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- drivers/media/video/tm6000/tm6000-input.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+UNIVERSAL
+        Europe
+        10800 to 11800 MHz and 11600 to 12700 MHz
+        Dual LO, IF = lowband 9750 MHz, highband 10600 MHz
 
-diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
-index 7844607..859eb90 100644
---- a/drivers/media/video/tm6000/tm6000-input.c
-+++ b/drivers/media/video/tm6000/tm6000-input.c
-@@ -481,8 +481,6 @@ int tm6000_ir_fini(struct tm6000_core *dev)
- 
- 	dprintk(2, "%s\n",__func__);
- 
--	rc_unregister_device(ir->rc);
--
- 	if (!ir->polling)
- 		__tm6000_ir_int_stop(ir->rc);
- 
-@@ -492,6 +490,7 @@ int tm6000_ir_fini(struct tm6000_core *dev)
- 	tm6000_flash_led(dev, 0);
- 	ir->pwled = 0;
- 
-+	rc_unregister_device(ir->rc);
- 
- 	kfree(ir);
- 	dev->ir = NULL;
--- 
-1.7.8.4
+DBS
+        Expressvu, North America
+        12200 to 12700 MHz
+        Single LO, IF = 11250 MHz
 
+STANDARD
+        Standard
+        10945 to 11450 MHz
+        Single LO, IF = 10000 MHz
 
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+ENHANCED
+        Astra
+        10700 to 11700 MHz
+        Single LO, IF = 9750 MHz
 
+C-BAND
+        Big Dish - Monopoint LNBf
+        3700 to 4200 MHz
+        Single LO, IF = 5150 MHz
+
+C-MULT
+        Big Dish - Multipoint LNBf
+        3700 to 4200 MHz
+        Dual LO, Bandstacking, LO POL_R 5150 MHZ, LO POL_L 5750 MHz
+
+DISHPRO
+        DishPro LNBf
+        12200 to 12700 MHz
+        Dual LO, Bandstacking, LO POL_R 11250 MHZ, LO POL_L 14350 MHz
+
+Tests are needed!
+
+Regards,
+Mauro
