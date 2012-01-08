@@ -1,76 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:58828 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755038Ab2AJJw2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 04:52:28 -0500
-Message-ID: <4F0C0A5A.9060708@iki.fi>
-Date: Tue, 10 Jan 2012 11:52:26 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mout2.freenet.de ([195.4.92.92]:33540 "EHLO mout2.freenet.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752594Ab2AGVBl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 7 Jan 2012 16:01:41 -0500
+Received: from [195.4.92.142] (helo=mjail2.freenet.de)
+	by mout2.freenet.de with esmtpa (ID saschasommer@freenet.de) (port 25) (Exim 4.76 #1)
+	id 1Rjd96-0007TM-OU
+	for linux-media@vger.kernel.org; Sat, 07 Jan 2012 21:45:44 +0100
+Received: from localhost ([::1]:43252 helo=mjail2.freenet.de)
+	by mjail2.freenet.de with esmtpa (ID saschasommer@freenet.de) (Exim 4.76 #1)
+	id 1Rjd96-0005AR-Ke
+	for linux-media@vger.kernel.org; Sat, 07 Jan 2012 21:45:44 +0100
+Received: from [195.4.92.18] (port=60524 helo=8.mx.freenet.de)
+	by mjail2.freenet.de with esmtpa (ID saschasommer@freenet.de) (Exim 4.76 #1)
+	id 1Rjd6Y-0004iH-45
+	for linux-media@vger.kernel.org; Sat, 07 Jan 2012 21:43:06 +0100
+Received: from p5499e75f.dip.t-dialin.net ([84.153.231.95]:41702 helo=madeira.sommer.dynalias.net)
+	by 8.mx.freenet.de with esmtpsa (ID saschasommer@freenet.de) (TLSv1:CAMELLIA256-SHA:256) (port 465) (Exim 4.76 #1)
+	id 1Rjd6X-0005mo-RQ
+	for linux-media@vger.kernel.org; Sat, 07 Jan 2012 21:43:06 +0100
+Message-ID: <4F09FF72.1050001@freenet.de>
+Date: Sun, 08 Jan 2012 21:41:22 +0100
+From: Sascha Sommer <saschasommer@freenet.de>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, tuukkat76@gmail.com,
-	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
-	snjw23@gmail.com
-Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09
- 14:00 GMT+2
-References: <20120104085633.GM3677@valkosipuli.localdomain> <201201100113.07211.laurent.pinchart@ideasonboard.com> <4F0C0822.6020604@iki.fi> <201201101050.52887.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201101050.52887.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] em28xx: Fix tuner_type for Terratec Cinergy 200 USB
+Content-Type: multipart/mixed;
+ boundary="------------050704060906090209080505"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Laurent Pinchart wrote:
-> Hi Sakari,
->
-> On Tuesday 10 January 2012 10:42:58 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> On Tuesday 10 January 2012 00:26:46 Sakari Ailus wrote:
->>>> Laurent Pinchart wrote:
->>>>> On Monday 09 January 2012 23:32:06 Sakari Ailus wrote:
->>>>>> Laurent Pinchart wrote:
->>>>>>> On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
->>>> ...
->>>>
->>>>>>>> A fourth section may be required as well: at this level the frame
->>>>>>>> rate (or frame time) range makes more sense than the low-level
->>>>>>>> blanking values. The blanking values can be calculated from the
->>>>>>>> frame time and a flag which tells whether either horizontal or
->>>>>>>> vertical blanking should be preferred.
->>>>>>>
->>>>>>> How does one typically select between horizontal and vertical
->>>>>>> blanking ? Do mixed modes make sense ?
->>>>>>
->>>>>> There are minimums and maximums for both. You can increase the frame
->>>>>> time by increasing value for either or both of them --- to achieve
->>>>>> very long frame times you may have to use both, but that's not very
->>>>>> common in practice. I think we should have a flag to tell which one
->>>>>> should be increased first --- the effect would be to have the minimum
->>>>>> possible value on the other.
->>>>>
->>>>> But how do you decide in practice which one to increase when you're an
->>>>> application (or middleware) developer ?
->>>>
->>>> I think it's the responsibility of this library to do that, unless the
->>>> user wants really, really precise control in which case they have to
->>>> deal with the blanking values directly. In general it should be the
->>>> library.
->>>
->>> And how does the library decide ? :-)
->>
->> frame_time = pixel_rate / ((width + hblank) * (height + vblank))
->>
->> The user gives you frame time and the configuration contains the
->> information which one to prefer. Let's say the user prefers hblank (from
->> the above):
->
-> That was my question, how does the user decide whether hblank or vblank is
-> preferred ?
+This is a multi-part message in MIME format.
+--------------050704060906090209080505
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 
-I think that should be defined in the configuration itself. It's very 
-unlikely there's any need to change this dynamically.
+Hello,
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+the card definition of the Terratec Cinergy 200 USB uses the wrong
+tuner type. Therefore some channels are currently missing.
+Attached patch fixes this problem.
+
+Regards
+
+Sascha
+
+--------------050704060906090209080505
+Content-Type: text/x-patch;
+ name="em28xx_fix_Terratec_Cinergy_200_USB_tuner.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="em28xx_fix_Terratec_Cinergy_200_USB_tuner.patch"
+
+Fix tuner type for the Terratec Cinergy 200 USB
+
+Signed-off-by: Sascha Sommer <saschasommer@freenet.de>
+
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 897a432..59694e6 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -1179,7 +1179,7 @@ struct em28xx_board em28xx_boards[] = {
+ 		.name         = "Terratec Cinergy 200 USB",
+ 		.is_em2800    = 1,
+ 		.has_ir_i2c   = 1,
+-		.tuner_type   = TUNER_LG_PAL_NEW_TAPC,
++		.tuner_type   = TUNER_LG_TALN,
+ 		.tda9887_conf = TDA9887_PRESENT,
+ 		.decoder      = EM28XX_SAA711X,
+ 		.input        = { {
+
+--------------050704060906090209080505--
