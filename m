@@ -1,204 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:21915 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751419Ab2AXMQO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 07:16:14 -0500
-Message-ID: <4F1EA107.2080600@redhat.com>
-Date: Tue, 24 Jan 2012 10:16:07 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from relay4-d.mail.gandi.net ([217.70.183.196]:52098 "EHLO
+	relay4-d.mail.gandi.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754651Ab2AHWYk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2012 17:24:40 -0500
+From: =?iso-8859-1?Q?S=E9bastien_RAILLARD_=28COEXSI=29?= <sr@coexsi.fr>
+To: "'Martin Herrman'" <martin.herrman@gmail.com>,
+	<linux-media@vger.kernel.org>
+References: <CADR1r6jbuGD5hecgC-gzVda1G=vCcOn4oMsf5TxcyEVWsWdVuQ@mail.gmail.com>
+In-Reply-To: <CADR1r6jbuGD5hecgC-gzVda1G=vCcOn4oMsf5TxcyEVWsWdVuQ@mail.gmail.com>
+Subject: RE: [DVB Digital Devices Cine CT V6] status support
+Date: Sun, 8 Jan 2012 23:24:38 +0100
+Message-ID: <01cc01ccce54$4f9e9770$eedbc650$@coexsi.fr>
 MIME-Version: 1.0
-To: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-CC: linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
-Subject: Re: [linux-media] Re: [PATCH] stb0899: fix the limits for signal
- strength values
-References: <4F18555D.3000205@tvdr.de> <4F1DB873.20206@redhat.com> <4F1E7B01.2050602@tvdr.de>
-In-Reply-To: <4F1E7B01.2050602@tvdr.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Content-Language: fr
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 24-01-2012 07:33, Klaus Schmidinger escreveu:
-> On 23.01.2012 20:43, Mauro Carvalho Chehab wrote:
->> Hi Klaus,
->>
->> The patch didn't apply. It seems to be due to your emailer that mangled the
->> whitespaces.
-> 
-> Sorry about that. Here it is again as an attachment.
 
-Thanks!
 
->> The patch looks correct on my eyes. Yet, I'd like to have Manu's ack on it.
->>
->> Em 19-01-2012 15:39, Klaus Schmidinger escreveu:
->>> stb0899_read_signal_strength() adds an offset to the result of the table lookup.
->>> That offset must correspond to the lowest value in the lookup table, to make sure
->>> the result doesn't get below 0, which would mean a "very high" value since the
->>> parameter is unsigned.
->>> 'strength' and 'snr' need to be initialized to 0 to make sure they have a
->>> defined result in case there is no "internal->lock".
->>>
->>> Signed-off-by: Klaus Schmidinger<Klaus.Schmidinger@tvdr.de>
->>>
->>> --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c   2011-06-11 16:54:32.000000000 +0200
->>> +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c   2011-06-11 16:23:00.000000000 +0200
->>> @@ -67,7 +67,7 @@
->>>    * Crude linear extrapolation below -84.8dBm and above -8.0dBm.
->>>    */
->>>   static const struct stb0899_tab stb0899_dvbsrf_tab[] = {
->>> -       { -950, -128 },
->>> +       { -750, -128 },
->>>          { -748,  -94 },
->>>          { -745,  -92 },
->>>          { -735,  -90 },
->>> @@ -131,7 +131,7 @@
->>>          { -730, 13645 },
->>>          { -750, 13909 },
->>>          { -766, 14153 },
->>> -       { -999, 16383 }
->>> +       { -950, 16383 }
->>>   };
->>>
->>>   /* DVB-S2 Es/N0 quant in dB/100 vs read value * 100*/
->>> @@ -964,6 +964,7 @@
->>>
->>>          int val;
->>>          u32 reg;
->>> +       *strength = 0;
->>
->> This is not needed, as strength is not initialized only on invalid delivery systems,
->> where -EINVAL is returned.
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
+> owner@vger.kernel.org] On Behalf Of Martin Herrman
+> Sent: dimanche 8 janvier 2012 23:15
+> To: linux-media@vger.kernel.org
+> Subject: [DVB Digital Devices Cine CT V6] status support
 > 
-> What about the 'if' conditions within the valid delivery system cases?
-> For instance
+> Dear list-members,
 > 
->         case SYS_DSS:
->                 if (internal->lock) {
->                         ...
->                         if (STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg)) {
->                            ...
->                                 *strength = ...
->                         }
->                 }
->                 break;
+> I'm building a HTPC based on Linux and searching for an DVB-C tuner card
+> that:
+> - fits the mobo (only pci-e/usb available, not pci or firewire)
+> - fits the case (antec fusion remote, big enough)
+> - is supported by linux
+> - is dual tuner
+> - supports encrypted HD content
+> - provides good quality
 > 
-> So there may be cases where strength has an undefined value, even
-> if this function returns 0.
+> digital devices cine ct v6 seems to be a perfect solution, together with
+> a softcam based on smargo cartreader.
+> 
+> http://shop.digital-
+> devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/62357162/Categori
+> es/HDTV_Karten_fuer_Mediacenter/Cine_PCIe_Serie/DVBC_T
+> 
+> But.. is this card supported by the Linux kernel?
+> 
 
-Good point. I wandering why gcc didn't complain about that. 
+The short answer is yes, and as far as I know, it's working fine with DVB-T
+(I've never tested the DVB-C).
+For support, you need to compile the drivers from Oliver Endriss as they are
+not merged in mainstream kernel.
 
->>>          switch (state->delsys) {
->>>          case SYS_DVBS:
->>>          case SYS_DSS:
->>> @@ -987,7 +988,7 @@
->>>                          val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
->>>
->>>                          *strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
->>> -                       *strength += 750;
->>> +                       *strength += 950;
->>>                          dprintk(state->verbose, FE_DEBUG, 1, "IF_AGC_GAIN = 0x%04x, C = %d * 0.1 dBm",
->>>                                  val&  0x3fff, *strength);
->>>                  }
->>> @@ -1009,6 +1010,7 @@
->>>          u8 buf[2];
->>>          u32 reg;
->>>
->>> +       *snr = 0;
->>
->> This is not needed, as strength is not initialized only on invalid delivery systems,
->> where -EINVAL is returned.
+Check here (kernel > 2.6.31):
+http://linuxtv.org/hg/~endriss/media_build_experimental/
+Or here (kernel < 2.6.36) :
+http://linuxtv.org/hg/~endriss/ngene-octopus-test/
+
+> In 3.2.0-rc7 kernel I have found the driver for most of the digital
+> devices cards, which includes the Cine S2 v6, but not the Cine CT v6.
+> (I have also found some experimental drivers for CI moduels in the
+> staging drivers section).
 > 
-> See above.
+> On the other hand, this discussion seems to indicate that drivers for
+> Cine CT v6 should be working at this time:
 > 
->>>          reg  = stb0899_read_reg(state, STB0899_VSTATUS);
->>>          switch (state->delsys) {
->>>          case SYS_DVBS:
->>
->> PS.: Another alternative for it would be the enclosed patch,
->> wich will be a little simpler, and will also preserve the slope
->> on the boundary values, used at the stb0899_table_lookup()
->> interpolation logic.
+> http://www.mail-archive.com/linux-media@vger.kernel.org/msg37183.html
 > 
-> Well, as long as there are no negative values for strength...
-> However, I don't quite see why the range is 750 - 950 for DVB-S
-> and 750 - 999 for DVB-S2. Shouldn't this be the same maximum
-> value in both cases?
-
-This is a very good question. Unfortunately, I don't have the datasheets
-for this device.
-
-Manu shold be able to answer that better than me.
-
-Based on the table lookup routine, I suspect that what those tables
-are doing are to interpolate some log curve by breaking it into a 
-few straight line segments. Changing from 999 to 950 will affect 
-such interpolation. So, it is better to check this at the datasheets
-before changing from -999 to -950, or from -750 to -950.
-
-Manu,
-
-Could you please review it?
-
-Thanks!
-Mauro
-
-Em 24-01-2012 07:33, Klaus Schmidinger escreveu:
+> Can you give me an update on the status of a possibly existing driver
+> for Cine CT v6?
 > 
-> stb0899: fix the limits for signal strength values
+> Much thanks in advance,
 > 
-> stb0899_read_signal_strength() adds an offset to the result of the table lookup.
-> That offset must correspond to the lowest value in the lookup table, to make sure
-> the result doesn't get below 0, which would mean a "very high" value since the
-> parameter is unsigned.
-> 'strength' and 'snr' need to be initialized to 0 to make sure they have a
-> defined result in case there is no "internal->lock".
-> 
-> Signed-off-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-> 
-> --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c	2011-06-11 16:54:32.000000000 +0200
-> +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c	2011-06-11 16:23:00.000000000 +0200
-> @@ -67,7 +67,7 @@
->   * Crude linear extrapolation below -84.8dBm and above -8.0dBm.
->   */
->  static const struct stb0899_tab stb0899_dvbsrf_tab[] = {
-> -	{ -950,	-128 },
-> +	{ -750,	-128 },
->  	{ -748,	 -94 },
->  	{ -745,	 -92 },
->  	{ -735,	 -90 },
-> @@ -131,7 +131,7 @@
->  	{ -730,	13645 },
->  	{ -750,	13909 },
->  	{ -766,	14153 },
-> -	{ -999,	16383 }
-> +	{ -950,	16383 }
->  };
->  
->  /* DVB-S2 Es/N0 quant in dB/100 vs read value * 100*/
-> @@ -964,6 +964,7 @@
->  
->  	int val;
->  	u32 reg;
-> +	*strength = 0;
->  	switch (state->delsys) {
->  	case SYS_DVBS:
->  	case SYS_DSS:
-> @@ -987,7 +988,7 @@
->  			val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
->  
->  			*strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
-> -			*strength += 750;
-> +			*strength += 950;
->  			dprintk(state->verbose, FE_DEBUG, 1, "IF_AGC_GAIN = 0x%04x, C = %d * 0.1 dBm",
->  				val & 0x3fff, *strength);
->  		}
-> @@ -1009,6 +1010,7 @@
->  	u8 buf[2];
->  	u32 reg;
->  
-> +	*snr = 0;
->  	reg  = stb0899_read_reg(state, STB0899_VSTATUS);
->  	switch (state->delsys) {
->  	case SYS_DVBS:
+> Martin
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> in the body of a message to majordomo@vger.kernel.org More majordomo
+> info at  http://vger.kernel.org/majordomo-info.html
 
