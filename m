@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:57376 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754965Ab2ADDmW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 22:42:22 -0500
-Received: by ggdk6 with SMTP id k6so10130340ggd.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 19:42:21 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, Fabio Estevam <festevam@gmail.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] drivers: media: radio: Fix dependencies for RADIO_WL128X
-Date: Wed,  4 Jan 2012 01:42:04 -0200
-Message-Id: <1325648524-24665-1-git-send-email-festevam@gmail.com>
+Received: from mail.cvh.edu.mx ([148.243.186.195]:47690 "EHLO mail.cvh.edu.mx"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754591Ab2AIOs1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jan 2012 09:48:27 -0500
+From: "United Nations(UN)" <info@un.com>
+Reply-To: unhelpdesk777@w.cn
+Subject: United Nations(UN)
+Date: Mon, 9 Jan 2012 08:39:58 -0600
+Message-Id: <20120109143736.M83747@un.com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset=iso-8859-1
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following build warning:
+Congratulations Beneficiary,
 
-warning: (RADIO_WL128X) selects TI_ST which has unmet direct dependencies (MISC_DEVICES && NET && GPIOLIB)
+your email has been selected by the United Nations(UN) for a cash grant award 
+of Six Hundred And Fifty Thousand Five hundred United State
+Dollar,($650,500.00USD)for this year 2011 award.Your email address was 
+selected during our random email balloting for the cash grant and if you
+receive this notification,it means that you are a lucky beneficiary of our 
+cash grant award.
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/media/radio/wl128x/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+A lump sum of ($650,500.00usd) have been credited to your E-mail 
+Address.Congrats...your grant pin number is (UNO-154/4456/011)
+Confirm this receipt by contacting 
 
-diff --git a/drivers/media/radio/wl128x/Kconfig b/drivers/media/radio/wl128x/Kconfig
-index 749f67b..86b2857 100644
---- a/drivers/media/radio/wl128x/Kconfig
-+++ b/drivers/media/radio/wl128x/Kconfig
-@@ -5,7 +5,7 @@ menu "Texas Instruments WL128x FM driver (ST based)"
- config RADIO_WL128X
- 	tristate "Texas Instruments WL128x FM Radio"
- 	depends on VIDEO_V4L2 && RFKILL
--	select TI_ST
-+	select TI_ST if NET && GPIOLIB
- 	help
- 	Choose Y here if you have this FM radio chip.
- 
+Dr.James Young.      
+Email: unhelpdesk777@w.cn
+Tell:  +60 11164 45676
+
+Name:___
+Address:___
+Age:___
+Sex:___
+Telephone____
+Occupation:___
+Country__
+
+Regards,
+Mrs. Susan Philip.
+UNITED NATIONS GENERAL
+
 -- 
-1.7.1
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
