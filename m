@@ -1,159 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:54137 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932322Ab2AEBBM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:12 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511BTJ016674
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:12 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 43/47] [media] mt2063: add some useful info for the dvb callback calls
-Date: Wed,  4 Jan 2012 23:00:54 -0200
-Message-Id: <1325725258-27934-44-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-we0-f174.google.com ([74.125.82.174]:44331 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753137Ab2AIKZ0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 05:25:26 -0500
+Date: Mon, 9 Jan 2012 11:27:26 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: InKi Dae <daeinki@gmail.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, linux@arm.linux.org.uk, arnd@arndb.de,
+	jesse.barker@linaro.org, m.szyprowski@samsung.com, rob@ti.com,
+	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>,
+	daniel@ffwll.ch
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+Message-ID: <20120109102726.GD3723@phenom.ffwll.local>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+ <1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
+ <CAAQKjZPFh6666JKc-XJfKYePQ_F0MNF6FkY=zKypWb52VVX3YQ@mail.gmail.com>
+ <20120109081030.GA3723@phenom.ffwll.local>
+ <CAAQKjZMEsuib18RYE7OvZPUqhKnvrZ8i3+EMuZSXr9KPVygo_Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAQKjZMEsuib18RYE7OvZPUqhKnvrZ8i3+EMuZSXr9KPVygo_Q@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The per-delivery system tables are confusing.
-Add an extra table that explains them, and some
-dprintk calls, that allows to check if mt2063 driver
-is working as expected.
+On Mon, Jan 09, 2012 at 07:10:25PM +0900, InKi Dae wrote:
+> 2012/1/9 Daniel Vetter <daniel@ffwll.ch>:
+> > On Mon, Jan 09, 2012 at 03:20:48PM +0900, InKi Dae wrote:
+> >> I has test dmabuf based drm gem module for exynos and I found one problem.
+> >> you can refer to this test repository:
+> >> http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/exynos-drm-dmabuf
+> >>
+> >> at this repository, I added some exception codes for resource release
+> >> in addition to Dave's patch sets.
+> >>
+> >> let's suppose we use dmabuf based vb2 and drm gem with physically
+> >> continuous memory(no IOMMU) and we try to share allocated buffer
+> >> between them(v4l2 and drm driver).
+> >>
+> >> 1. request memory allocation through drm gem interface.
+> >> 2. request DRM_SET_PRIME ioctl with the gem handle to get a fd to the
+> >> gem object.
+> >> - internally, private gem based dmabuf moudle calls drm_buf_export()
+> >> to register allocated gem object to fd.
+> >> 3. request qbuf with the fd(got from 2) and DMABUF type to set the
+> >> buffer to v4l2 based device.
+> >> - internally, vb2 plug in module gets a buffer to the fd and then
+> >> calls dmabuf->ops->map_dmabuf() callback to get the sg table
+> >> containing physical memory info to the gem object. and then the
+> >> physical memory info would be copied to vb2_xx_buf object.
+> >> for DMABUF feature for v4l2 and videobuf2 framework, you can refer to
+> >> this repository:
+> >> git://github.com/robclark/kernel-omap4.git drmplane-dmabuf
+> >>
+> >> after that, if v4l2 driver want to release vb2_xx_buf object with
+> >> allocated memory region by user request, how should we do?. refcount
+> >> to vb2_xx_buf is dependent on videobuf2 framework. so when vb2_xx_buf
+> >> object is released videobuf2 framework don't know who is using the
+> >> physical memory region. so this physical memory region is released and
+> >> when drm driver tries to access the region or to release it also, a
+> >> problem would be induced.
+> >>
+> >> for this problem, I added get_shared_cnt() callback to dma-buf.h but
+> >> I'm not sure that this is good way. maybe there may be better way.
+> >> if there is any missing point, please let me know.
+> >
+> > The dma_buf object needs to hold a reference on the underlying
+> > (necessarily reference-counted) buffer object when the exporter creates
+> > the dma_buf handle. This reference should then get dropped in the
+> > exporters dma_buf->ops->release() function, which is only getting called
+> > when the last reference to the dma_buf disappears.
+> >
+> 
+> when the exporter creates the dma_buf handle(for example, gem -> fd),
+> I think the refcount of gem object should be increased at this point,
+> and decreased by dma_buf->ops->release() again because when the
+> dma_buf is created and dma_buf_export() is called, this dma_buf refers
+> to the gem object one time. and in case of inporter(fd -> gem),
+> file->f_count of the dma_buf is increased and then when this gem
+> object is released by user request such as drm close or
+> drn_gem_close_ioctl, dma_buf_put() should be called by
+> dma_buf->ops->detach() to decrease file->f_count again because the gem
+> object refers to the dma_buf. for this, you can refer to my test
+> repository I mentioned above. but the problem is that when a buffer is
+> released by one side, another can't know whether the buffer already
+> was released or not.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mt2063.c |   68 +++++++++++++++++++++++----------
- 1 files changed, 47 insertions(+), 21 deletions(-)
+Nope, dma_buf_put should not be called by ->detach. The importer gets his
+reference when importing the dma_buf and needs to drop that reference
+himself when it's done using the buffer by calling dma_buf_put (i.e. after
+the last ->detach call). I think adding separate reference counting to
+->attach and ->detach is a waste of time and only papers over buggy
+importers.
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index de45c9d..6f14ee3 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -1008,29 +1008,38 @@ static unsigned int mt2063_lockStatus(struct mt2063_state *state)
-  */
- 
- enum mt2063_delivery_sys {
--	MT2063_CABLE_QAM = 0,		/* Digital cable              */
--	MT2063_CABLE_ANALOG,		/* Analog cable               */
--	MT2063_OFFAIR_COFDM,		/* Digital offair             */
--	MT2063_OFFAIR_COFDM_SAWLESS,	/* Digital offair without SAW */
--	MT2063_OFFAIR_ANALOG,		/* Analog offair              */
--	MT2063_OFFAIR_8VSB,		/* Analog offair              */
-+	MT2063_CABLE_QAM = 0,
-+	MT2063_CABLE_ANALOG,
-+	MT2063_OFFAIR_COFDM,
-+	MT2063_OFFAIR_COFDM_SAWLESS,
-+	MT2063_OFFAIR_ANALOG,
-+	MT2063_OFFAIR_8VSB,
- 	MT2063_NUM_RCVR_MODES
- };
- 
--static const u8 RFAGCEN[] = { 0, 0, 0, 0, 0, 0 };
--static const u8 LNARIN[] = { 0, 0, 3, 3, 3, 3 };
--static const u8 FIFFQEN[] = { 1, 1, 1, 1, 1, 1 };
--static const u8 FIFFQ[] = { 0, 0, 0, 0, 0, 0 };
--static const u8 DNC1GC[] = { 0, 0, 0, 0, 0, 0 };
--static const u8 DNC2GC[] = { 0, 0, 0, 0, 0, 0 };
--static const u8 ACLNAMAX[] = { 31, 31, 31, 31, 31, 31 };
--static const u8 LNATGT[] = { 44, 43, 43, 43, 43, 43 };
--static const u8 RFOVDIS[] = { 0, 0, 0, 0, 0, 0 };
--static const u8 ACRFMAX[] = { 31, 31, 31, 31, 31, 31 };
--static const u8 PD1TGT[] = { 36, 36, 38, 38, 36, 38 };
--static const u8 FIFOVDIS[] = { 0, 0, 0, 0, 0, 0 };
--static const u8 ACFIFMAX[] = { 29, 29, 29, 29, 29, 29 };
--static const u8 PD2TGT[] = { 40, 33, 38, 42, 30, 38 };
-+static const char *mt2063_mode_name[] = {
-+	[MT2063_CABLE_QAM]		= "digital cable",
-+	[MT2063_CABLE_ANALOG]		= "analog cable",
-+	[MT2063_OFFAIR_COFDM]		= "digital offair",
-+	[MT2063_OFFAIR_COFDM_SAWLESS]	= "digital offair without SAW",
-+	[MT2063_OFFAIR_ANALOG]		= "analog offair",
-+	[MT2063_OFFAIR_8VSB]		= "analog offair 8vsb",
-+};
-+
-+static const u8 RFAGCEN[]	= {  0,  0,  0,  0,  0,  0 };
-+static const u8 LNARIN[]	= {  0,  0,  3,  3,  3,  3 };
-+static const u8 FIFFQEN[]	= {  1,  1,  1,  1,  1,  1 };
-+static const u8 FIFFQ[]		= {  0,  0,  0,  0,  0,  0 };
-+static const u8 DNC1GC[]	= {  0,  0,  0,  0,  0,  0 };
-+static const u8 DNC2GC[]	= {  0,  0,  0,  0,  0,  0 };
-+static const u8 ACLNAMAX[]	= { 31, 31, 31, 31, 31, 31 };
-+static const u8 LNATGT[]	= { 44, 43, 43, 43, 43, 43 };
-+static const u8 RFOVDIS[]	= {  0,  0,  0,  0,  0,  0 };
-+static const u8 ACRFMAX[]	= { 31, 31, 31, 31, 31, 31 };
-+static const u8 PD1TGT[]	= { 36, 36, 38, 38, 36, 38 };
-+static const u8 FIFOVDIS[]	= {  0,  0,  0,  0,  0,  0 };
-+static const u8 ACFIFMAX[]	= { 29, 29, 29, 29, 29, 29 };
-+static const u8 PD2TGT[]	= { 40, 33, 38, 42, 30, 38 };
- 
- /*
-  * mt2063_set_dnc_output_enable()
-@@ -1315,8 +1324,11 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
- 			status |= mt2063_setreg(state, MT2063_REG_PD1_TGT, val);
- 	}
- 
--	if (status >= 0)
-+	if (status >= 0) {
- 		state->rcvr_mode = Mode;
-+		dprintk(1, "mt2063 mode changed to %s\n",
-+			mt2063_mode_name[state->rcvr_mode]);
-+	}
- 
- 	return status;
- }
-@@ -2023,6 +2035,8 @@ static int mt2063_get_status(struct dvb_frontend *fe, u32 *tuner_status)
- 	if (status)
- 		*tuner_status = TUNER_STATUS_LOCKED;
- 
-+	dprintk(1, "Tuner status: %d", *tuner_status);
-+
- 	return 0;
- }
- 
-@@ -2092,6 +2106,9 @@ static int mt2063_set_analog_params(struct dvb_frontend *fe,
- 	if (status < 0)
- 		return status;
- 
-+	dprintk(1, "Tuning to frequency: %d, bandwidth %d, foffset %d\n",
-+		params->frequency, ch_bw, pict2chanb_vsb);
-+
- 	status = MT2063_Tune(state, (params->frequency + (pict2chanb_vsb + (ch_bw / 2))));
- 	if (status < 0)
- 		return status;
-@@ -2161,6 +2178,9 @@ static int mt2063_set_params(struct dvb_frontend *fe)
- 	if (status < 0)
- 		return status;
- 
-+	dprintk(1, "Tuning to frequency: %d, bandwidth %d, foffset %d\n",
-+		c->frequency, ch_bw, pict2chanb_vsb);
-+
- 	status = MT2063_Tune(state, (c->frequency + (pict2chanb_vsb + (ch_bw / 2))));
- 
- 	if (status < 0)
-@@ -2180,6 +2200,9 @@ static int mt2063_get_frequency(struct dvb_frontend *fe, u32 *freq)
- 		return -ENODEV;
- 
- 	*freq = state->frequency;
-+
-+	dprintk(1, "frequency: %d\n", *freq);
-+
- 	return 0;
- }
- 
-@@ -2193,6 +2216,9 @@ static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
- 		return -ENODEV;
- 
- 	*bw = state->AS_Data.f_out_bw - 750000;
-+
-+	dprintk(1, "bandwidth: %d\n", *bw);
-+
- 	return 0;
- }
- 
+Additionally the importer does _not_ control the lifetime of an dma_buf
+object and it's underlying backing storage. It hence may _never_ free the
+backing storage itself, that's the job of the exporter.
+
+With that cleared up, referencing the exporters underlying buffer object
+from the dma_buf will just do the right thing.
+
+> note : in case of sharing a buffer between v4l2 and drm driver, the
+> memory info would be copied vb2_xx_buf to xx_gem or xx_gem to
+> vb2_xx_buf through sg table. in this case, only memory info is used to
+> share, not some objects.
+
+Hm, maybe I need to take a look at the currently proposed v4l dma_buf
+patches ;-) atm I don't have an idea what exactly you're talking about.
+
+Yours, Daniel
 -- 
-1.7.7.5
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
