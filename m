@@ -1,77 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:55317 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755066Ab2APPem (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 10:34:42 -0500
-Received: by bkas6 with SMTP id s6so710582bka.19
-        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2012 07:34:40 -0800 (PST)
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:60929 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754079Ab2AIOuf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 09:50:35 -0500
+Received: by wibhm6 with SMTP id hm6so2612896wib.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2012 06:50:34 -0800 (PST)
+Message-ID: <4F0AFEB7.9080605@gmail.com>
+Date: Mon, 09 Jan 2012 15:50:31 +0100
+From: Fredrik Lingvall <fredrik.lingvall@gmail.com>
 MIME-Version: 1.0
-Date: Mon, 16 Jan 2012 16:34:40 +0100
-Message-ID: <CAEN_-SDrXQBkhKeb4JxmqMxD+H5GdwAnTHGk1LuCGHs39RusSA@mail.gmail.com>
-Subject: cx25840: rewrite g_tuner for radio support and audio mode detection
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015175cd4d6f9c72804b6a6f329
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: media_build failures on 3.0.6 Gentoo
+References: <4EF1BA0D.4070002@gmail.com> <201201090022.51367.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201090022.51367.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015175cd4d6f9c72804b6a6f329
-Content-Type: text/plain; charset=ISO-8859-1
+On 01/09/12 00:22, Laurent Pinchart wrote:
+> Hi Fredrik,
+>
+> On Wednesday 21 December 2011 11:50:53 Fredrik Lingvall wrote:
+>> Hi,
+>>
+>> I get this build failure:
+> [snip]
+>
+>>    LD [M]  /usr/src/media_build/v4l/m5mols.o
+>>     CC [M]  /usr/src/media_build/v4l/s5k6aa.o
+>>     CC [M]  /usr/src/media_build/v4l/adp1653.o
+>>     CC [M]  /usr/src/media_build/v4l/as3645a.o
+>> /usr/src/media_build/v4l/as3645a.c: In function 'as3645a_probe':
+>> /usr/src/media_build/v4l/as3645a.c:815:2: error: implicit declaration of
+>> function 'kzalloc'
+>> /usr/src/media_build/v4l/as3645a.c:815:8: warning: assignment makes
+>> pointer from integer without a cast
+>> make[3]: *** [/usr/src/media_build/v4l/as3645a.o] Error 1
+>> make[2]: *** [_module_/usr/src/media_build/v4l] Error 2
+>> make[2]: Leaving directory `/usr/src/linux-3.0.6-gentoo'
+>> make[1]: *** [default] Error 2
+>> make[1]: Leaving directory `/usr/src/media_build/v4l'
+>> make: *** [all] Error 2
+>> build failed at ./build line 380.
+>> lin-tv media_build #
+> Could you please test this patch ?
+>
+>  From c7ecae9b57cb29eaa134943d086fb0d83865514e Mon Sep 17 00:00:00 2001
+> From: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+> Date: Mon, 9 Jan 2012 00:18:19 +0100
+> Subject: [PATCH] as3645a: Fix compilation by including slab.h
+>
+> The as3645a driver calls kzalloc(). Include slab.h.
+>
+> Reported-by: Fredrik Lingvall<fredrik.lingvall@gmail.com>
+> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+> ---
+>   drivers/media/video/as3645a.c |    1 +
+>   1 files changed, 1 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
+> index ec859a5..f241702 100644
+> --- a/drivers/media/video/as3645a.c
+> +++ b/drivers/media/video/as3645a.c
+> @@ -29,6 +29,7 @@
+>   #include<linux/i2c.h>
+>   #include<linux/module.h>
+>   #include<linux/mutex.h>
+> +#include<linux/slab.h>
+>
+>   #include<media/as3645a.h>
+>   #include<media/v4l2-ctrls.h>
+Laurent,
 
-Version 2, i moved reading from microcontroler register after is_cx2583x return.
+I have upgraded to the latest stable Gentoo kernel, that is 
+3.1.6-gentoo, and I don't see the build problem with
 
---0015175cd4d6f9c72804b6a6f329
-Content-Type: text/x-patch; charset=US-ASCII; name="cx25840_g_tuner_rewrite.patch"
-Content-Disposition: attachment; filename="cx25840_g_tuner_rewrite.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gxhnlbfl0
+http://linuxtv.org/downloads/drivers/linux-media-2012-01-07.tar.bz2
 
-U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
-b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
-IERlYyAyMDExIDAwOjE5OjM0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gY3gyNTg0MF9nX3R1bmVy
-IHNob3VsZCBzdXBwb3J0IGFsc28gcmFkaW8gbW9kZSBmb3IgZGV0ZWN0aW5nCiBjdXJyZW50IGF1
-ZGlvIG1vZGUsIGFuZCB3ZSBjYW4gdXNlIGN4MjU4NDAgcmVnaXN0ZXIgMHg4MDUgZm9yIEZNIHJh
-ZGlvIGxvY2ssCiBhbHNvIHJld29ya2VkIG1vZGUgZGV0ZWN0aW9uLgoKLS0tCmRpZmYgLU5hdXJw
-IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4NDAtY29yZS5jIGIvZHJpdmVycy9t
-ZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4NDAtY29yZS5jCi0tLSBhL2RyaXZlcnMvbWVkaWEvdmlk
-ZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDEyLTAxLTE2IDE2OjE4OjA2LjE4MTU4MzAyNiAr
-MDEwMAorKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4NDAvY3gyNTg0MC1jb3JlLmMJMjAx
-Mi0wMS0xNiAxNjoyMzozOC42NjU1ODMwMjYgKzAxMDAKQEAgLTE1ODksMzcgKzE1ODksNjggQEAg
-c3RhdGljIGludCBjeDI1ODQwX2dfdHVuZXIoc3RydWN0IHY0bDJfcwogewogCXN0cnVjdCBjeDI1
-ODQwX3N0YXRlICpzdGF0ZSA9IHRvX3N0YXRlKHNkKTsKIAlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xp
-ZW50ID0gdjRsMl9nZXRfc3ViZGV2ZGF0YShzZCk7Ci0JdTggdnByZXMgPSBjeDI1ODQwX3JlYWQo
-Y2xpZW50LCAweDQwZSkgJiAweDIwOworCXU4IHZwcmVzID0gMDsKIAl1OCBtb2RlOwotCWludCB2
-YWwgPSAwOworCWludCB2YWwgPSBWNEwyX1RVTkVSX1NVQl9NT05POwogCi0JaWYgKHN0YXRlLT5y
-YWRpbykKLQkJcmV0dXJuIDA7CisJaWYgKCFzdGF0ZS0+cmFkaW8pIHsKKwkJdnByZXMgPSBjeDI1
-ODQwX3JlYWQoY2xpZW50LCAweDQwZSkgJiAweDIwOworCQl2dC0+c2lnbmFsID0gdnByZXMgPyAw
-eGZmZmYgOiAweDA7CisJfQogCi0JdnQtPnNpZ25hbCA9IHZwcmVzID8gMHhmZmZmIDogMHgwOwog
-CWlmIChpc19jeDI1ODN4KHN0YXRlKSkKIAkJcmV0dXJuIDA7CiAKLQl2dC0+Y2FwYWJpbGl0eSB8
-PQotCQlWNEwyX1RVTkVSX0NBUF9TVEVSRU8gfCBWNEwyX1RVTkVSX0NBUF9MQU5HMSB8Ci0JCVY0
-TDJfVFVORVJfQ0FQX0xBTkcyIHwgVjRMMl9UVU5FUl9DQVBfU0FQOworCS8qIHN0ZXJlbyBmb3Ig
-YWxsIG1vZGVzLCBldmVuIHJhZGlvICovCisJdnQtPmNhcGFiaWxpdHkgfD0gVjRMMl9UVU5FUl9D
-QVBfU1RFUkVPOworCisJaWYgKCFzdGF0ZS0+cmFkaW8pIHsKKwkJdnQtPmNhcGFiaWxpdHkgfD0g
-VjRMMl9UVU5FUl9DQVBfTEFORzEgfAorCQkJVjRMMl9UVU5FUl9DQVBfTEFORzIgfCBWNEwyX1RV
-TkVSX0NBUF9TQVA7CisJfSBlbHNlIHsKKwkJLyogV29ya3Mgb25seSBmb3IgMHhmOSBBVURfTU9E
-RSAqLworCQltb2RlID0gY3gyNTg0MF9yZWFkKGNsaWVudCwgMHg4MDUpOworCQkvKiB1c2FibGUg
-bW9kZXMgZnJvbSBkYXRhc2hlZXQgMHgwMSAtIDB4MTEgKi8KKwkJdnQtPnNpZ25hbCA9ICgobW9k
-ZSA+PSAxKSAmJiAobW9kZSA8PSAweDExKSkgPyAweGZmZmYgOiAwOworCX0KIAogCW1vZGUgPSBj
-eDI1ODQwX3JlYWQoY2xpZW50LCAweDgwNCk7CiAKIAkvKiBnZXQgcnhzdWJjaGFucyBhbmQgYXVk
-bW9kZSAqLwotCWlmICgobW9kZSAmIDB4ZikgPT0gMSkKKwlzd2l0Y2ggKG1vZGUgJiAweGYpIHsK
-KwljYXNlIDA6CisJCXZ0LT5hdWRtb2RlID0gVjRMMl9UVU5FUl9NT0RFX01PTk87CisJCWJyZWFr
-OworCWNhc2UgMToKIAkJdmFsIHw9IFY0TDJfVFVORVJfU1VCX1NURVJFTzsKLQllbHNlCi0JCXZh
-bCB8PSBWNEwyX1RVTkVSX1NVQl9NT05POwotCi0JaWYgKG1vZGUgPT0gMiB8fCBtb2RlID09IDQp
-CisJCXZ0LT5hdWRtb2RlID0gVjRMMl9UVU5FUl9NT0RFX1NURVJFTzsKKwkJYnJlYWs7CisJY2Fz
-ZSAyOgorCWNhc2UgNDoKIAkJdmFsID0gVjRMMl9UVU5FUl9TVUJfTEFORzEgfCBWNEwyX1RVTkVS
-X1NVQl9MQU5HMjsKKwkJLyogY2FuJ3QgZGV0ZWN0IGV4YWN0IGF1ZGlvIG1vZGUgKi8KKwkJdnQt
-PmF1ZG1vZGUgPSBzdGF0ZS0+YXVkbW9kZTsKKwkJYnJlYWs7CisJZGVmYXVsdDoKKwkJLyogYXVk
-aW8gbW9kZSBpcyBmb3JjZWQgb3IgdW5rbm93biAqLworCQlzd2l0Y2ggKHN0YXRlLT5hdWRtb2Rl
-KSB7CisJCWNhc2UgVjRMMl9UVU5FUl9NT0RFX1NURVJFTzoKKwkJCXZhbCB8PSBWNEwyX1RVTkVS
-X1NVQl9TVEVSRU87CisJCQlicmVhazsKKwkJY2FzZSBWNEwyX1RVTkVSX01PREVfTEFORzE6CisJ
-CWNhc2UgVjRMMl9UVU5FUl9NT0RFX0xBTkcyOgorCQljYXNlIFY0TDJfVFVORVJfTU9ERV9MQU5H
-MV9MQU5HMjoKKwkJCXZhbCA9IFY0TDJfVFVORVJfU1VCX0xBTkcxIHwgVjRMMl9UVU5FUl9TVUJf
-TEFORzI7CisJCQlicmVhazsKKwkJfQorCQl2dC0+YXVkbW9kZSA9IHN0YXRlLT5hdWRtb2RlOwor
-CQlicmVhazsKKwl9CiAKIAlpZiAobW9kZSAmIDB4MTApCiAJCXZhbCB8PSBWNEwyX1RVTkVSX1NV
-Ql9TQVA7CiAKIAl2dC0+cnhzdWJjaGFucyA9IHZhbDsKLQl2dC0+YXVkbW9kZSA9IHN0YXRlLT5h
-dWRtb2RlOwogCXJldHVybiAwOwogfQogCi0tIAoxLjcuMi4zCgo=
---0015175cd4d6f9c72804b6a6f329--
+and above anymore (I had to enable DVB for Linux in the 3.1.6-gentoo 
+kernel) .
+
+As of linux-media-2012-01-07.tar.bz2 I can now see clear video with 
+mplayer on some channels (using the HVR-930C)  but it's not working 
+perfectly, in particular not with MythTV. I will do some more testing 
+and report back in the "Hauppauge HVR-930C problems" thread.
+
+Regards,
+
+/Fredrik
