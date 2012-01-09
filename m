@@ -1,95 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:34023 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753420Ab2APH5i (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 02:57:38 -0500
-Received: by qadc10 with SMTP id c10so1137qad.19
-        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 23:57:37 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56371 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755899Ab2AIWh2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 17:37:28 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09 14:00 GMT+2
+Date: Mon, 9 Jan 2012 23:37:49 +0100
+Cc: linux-media@vger.kernel.org, tuukkat76@gmail.com,
+	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	snjw23@gmail.com
+References: <20120104085633.GM3677@valkosipuli.localdomain> <201201092238.30469.laurent.pinchart@ideasonboard.com> <4F0B6AE6.7090008@iki.fi>
+In-Reply-To: <4F0B6AE6.7090008@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
-Date: Mon, 16 Jan 2012 16:57:37 +0900
-Message-ID: <CAH9JG2Uz3n+4ca7KvabO0pX_Mfbqp+YO7GpWR6CRWOwxcF7zxg@mail.gmail.com>
-Subject: Re: [RFCv1 0/4] v4l: DMA buffer sharing support as a user
-From: Kyungmin Park <kmpark@infradead.org>
-To: Sumit Semwal <sumit.semwal@ti.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
-	rob@ti.com, daniel@ffwll.ch, t.stanislaws@samsung.com,
-	patches <patches@linaro.org>,
-	=?UTF-8?B?64yA7J246riw?= <inki.dae@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201092337.51849.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-Since dma_buf is merged at v3.3-rc, I hope to merge this one also at
-this merge window.
-Now it's tested at OMAP. also it's used at exynos but not yet fully tested.
+On Monday 09 January 2012 23:32:06 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
+> >> Hi all,
+> >> 
+> >> We had an IRC meeting on the new sensor control interface on
+> >> #v4l-meeting as scheduled previously. The meeting log is available
+> >> here:
+> >> 
+> >> <URL:http://www.retiisi.org.uk/v4l2/v4l2-sensor-control-interface-2012-0
+> >> 1-0 9.txt>
+> >> 
+> >> My notes can be found below.
+> > 
+> > Thanks for the summary.
+> > 
+> >> Accessing V4L2 subdev and MC interfaces in user space: user space
+> >> libraries
+> >> =======================================================================
+> >> ====
+> >> 
+> >> While the V4L2 subdev and Media controller kernel interface is
+> >> functionally comprehensive, it is a relatively low level interface for
+> >> even for vendor-specific user space camera libraries. The issue is
+> >> intensified with the extension of the pipeline configuration performed
+> >> using the Media controller and V4L2 subdev interfaces to cover the
+> >> image processing performed on the sensor: this is part of the new
+> >> sensor control interface.
+> >> 
+> >> As we want to encourage SoC vendors to use the V4L2, we need to make
+> >> this as easy as possible for them.
+> >> 
+> >> The low level camera control libraries can be split into roughly two
+> >> categories: those which configure the image pipe and those which deal
+> >> with the 3A algorithms. The 3A algorithms are typically proprietary so
+> >> we concentrated to the pipeline configuration which is what the Media
+> >> controller and V4L2 subdev frameworks have been intended for.
+> >> 
+> >> Two libraries already exist for this: libmediactl and libv4l2subdev. The
+> >> former deals with topology enumeration and link configuration whereas
+> >> the latter is a generic library for V4L2 subdev configuration,
+> >> including format configuration.
+> >> 
+> >> The new sensor control interface moves the remaining policy decisions to
+> >> the user space: how the sensor's image pipe is configured, what pixel
+> >> rates are being used on the bus from the sensor to the ISP and how is
+> >> the blanking configured.
+> >> 
+> >> The role of the new library, called libv4l2pipe, is to interpret
+> >> text-based configuration file containing sections for various pipeline
+> >> format and link configurations, as well as V4L2 controls: the link
+> >> frequency is a control as well; but more on that below. The library may
+> >> be later on merged to libv4l2pipeauto which Sakari is working on.
+> >> 
+> >> Both pipeline format and link configurations are policy decisions and
+> >> thus can be expected to be use case specific. A format configuration is
+> >> dependent on a link configuration but the same link configuration can
+> >> be used with several format configurations. Thus the two should be
+> >> defined separately.
+> >> 
+> >> A third kind of section will be for setting controls. The only control
+> >> to be set will be the link frequency control but a new type of setting
+> >> warrants a new section.
+> >> 
+> >> A fourth section may be required as well: at this level the frame rate
+> >> (or frame time) range makes more sense than the low-level blanking
+> >> values. The blanking values can be calculated from the frame time and a
+> >> flag which tells whether either horizontal or vertical blanking should
+> >> be preferred.
+> > 
+> > How does one typically select between horizontal and vertical blanking ?
+> > Do mixed modes make sense ?
+> 
+> There are minimums and maximums for both. You can increase the frame
+> time by increasing value for either or both of them --- to achieve very
+> long frame times you may have to use both, but that's not very common in
+> practice. I think we should have a flag to tell which one should be
+> increased first --- the effect would be to have the minimum possible
+> value on the other.
 
-Thank you,
-Kyungmin Park
+But how do you decide in practice which one to increase when you're an 
+application (or middleware) developer ?
 
-On 1/5/12, Sumit Semwal <sumit.semwal@ti.com> wrote:
-> Hello Everyone,
+> >> A configuration consisting of all the above sections will define the
+> >> full pipeline configuration. The library must also provide a way to
+> >> enumerate, query and set these configurations.
+> >> 
+> >> With the existence of this library and the related new sensor control
+> >> interface, the V4L2 supports implementing digital cameras even better
+> >> than it used to.
+> >> 
+> >> The LGPL 2.1+ license used by libmediactl, libv4l2pipeauto and the
+> >> future libv4l2pipe(auto) is not seen an issue for Android to adopt
+> >> these libraries either.
+> >> 
+> >> In GStreamer middleware, libv4l2pipe is expected to be used by the
+> >> camera source component.
+> > 
+> > Should we try to draft how a 3A library should be implemented ? Do you
+> > think that might have implications on libv4l2pipe ?
+> 
+> We should, yes. I can't see any immediate effects from that to
+> libv4l2pipe. libv4l2pipe may need to provide some information to the 3A
+> library but that should mostly be it.
 >
-> A very happy new year 2012! :)
->
-> This patchset is an RFC for the way videobuf2 can be adapted to add support
-> for
-> DMA buffer sharing framework[1].
->
-> The original patch-set for the idea, and PoC of buffer sharing was by
-> Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer
-> sharing
-> between two v4l2 devices[2]. This RFC is needed to adapt these patches to
-> the
-> changes that have happened in the DMA buffer sharing framework over past few
-> months.
->
-> To begin with, I have tried to adapt only the dma-contig allocator, and only
-> as
-> a user of dma-buf buffer. I am currently working on the v4l2-as-an-exporter
-> changes, and will share as soon as I get it in some shape.
->
-> As with the PoC [2], the handle for sharing buffers is a file-descriptor
-> (fd).
-> The usage documentation is also a part of [1].
->
-> So, the current RFC has the following limitations:
-> - Only buffer sharing as a buffer user,
-> - doesn't handle cases where even for a contiguous buffer, the sg_table can
-> have
->    more than one scatterlist entry.
->
->
-> Thanks and best regards,
-> ~Sumit.
->
-> [1]: dma-buf patchset at: https://lkml.org/lkml/2011/12/26/29
-> [2]: http://lwn.net/Articles/454389
->
-> Sumit Semwal (4):
->   v4l: Add DMABUF as a memory type
->   v4l:vb2: add support for shared buffer (dma_buf)
->   v4l:vb: remove warnings about MEMORY_DMABUF
->   v4l:vb2: Add dma-contig allocator as dma_buf user
->
->  drivers/media/video/videobuf-core.c        |    4 +
->  drivers/media/video/videobuf2-core.c       |  186
-> +++++++++++++++++++++++++++-
->  drivers/media/video/videobuf2-dma-contig.c |  125 +++++++++++++++++++
->  include/linux/videodev2.h                  |    8 ++
->  include/media/videobuf2-core.h             |   30 +++++
->  5 files changed, 352 insertions(+), 1 deletions(-)
->
-> --
-> 1.7.5.4
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> >> The new sensor control interface
+> >> ================================
+> >> 
+> >> 
+> >> The common understanding was that the new sensor control interface is
+> >> mostly accepted. No patches have been acked since there have been lots
+> >> of trivial and some not so trivial issues in the patchset. There was an
+> >> exception to this, which is the pixel_rate field in struct
+> >> v4l2_mbus_framefmt.
+> >> 
+> >> The field is expected to be propagated by the user while the user has no
+> >> valid use case to modify it. The agreement was that instead of adding
+> >> the field to struct v4l2_mbus_framefmt, a new control will be
+> >> introduced instead.
+> >> 
+> >> A control has several good properties: it can be implemented where it is
+> >> valid: it isn't always possible to accurately specify the pixel rate in
+> >> some parts of the pipeline.
+> >> 
+> >> Sensor drivers should provide the pixel_rate control in two subdevs: the
+> >> pixel array and the one which is opposed to the ISP's bus receiver. The
+> >> pixel array's pixel rate is mostly required in the user space whereas
+> >> the pixel rate in the bus transmitter subdev (which may have other
+> >> functionality as well) is often required by the bus receivers, as well
+> >> as by the rest of the ISP.
+> >> 
+> >> Ideally the pixel_rate control is related to pads rather than subdevs
+> >> but 1) we don't have pad specific controls and 2) we don't stictly need
+> >> them right now since there only will be need for a single pixel_rate
+> >> control per subdev.
+> >> 
+> >> If pixel rate management will be implemented to prevent starting
+> >> pipelines which would fail to stream in cases where too high pixel
+> >> rates are used on particular subdevs, the concept of pad-specific
+> >> controls may be later revisited. Making the pixel_rate control
+> >> pad-specific only will change the interface towards the user space if
+> >> the pad where it is implemented is non-zero.
+> > 
+> > I'm fine with that. Let's use a control now, we'll revisit this later if
+> > needed.
+> 
+> Agreed.
+
+-- 
+Regards,
+
+Laurent Pinchart
