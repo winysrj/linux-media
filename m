@@ -1,196 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:59815 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752248Ab2AZJBN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 04:01:13 -0500
-Date: Thu, 26 Jan 2012 10:00:55 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 13/15] X86: integrate CMA with DMA-mapping subsystem
-In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Message-id: <1327568457-27734-14-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:41214 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755899Ab2AIWcL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 17:32:11 -0500
+Message-ID: <4F0B6AE6.7090008@iki.fi>
+Date: Tue, 10 Jan 2012 00:32:06 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, tuukkat76@gmail.com,
+	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	snjw23@gmail.com
+Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09
+ 14:00 GMT+2
+References: <20120104085633.GM3677@valkosipuli.localdomain> <20120109173825.GR9323@valkosipuli.localdomain> <201201092238.30469.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201092238.30469.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for CMA to dma-mapping subsystem for x86
-architecture that uses common pci-dma/pci-nommu implementation. This
-allows to test CMA on KVM/QEMU and a lot of common x86 boxes.
+Hi Laurent,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
----
- arch/x86/Kconfig                      |    1 +
- arch/x86/include/asm/dma-contiguous.h |   13 +++++++++++++
- arch/x86/include/asm/dma-mapping.h    |    4 ++++
- arch/x86/kernel/pci-dma.c             |   18 ++++++++++++++++--
- arch/x86/kernel/pci-nommu.c           |    8 +-------
- arch/x86/kernel/setup.c               |    2 ++
- 6 files changed, 37 insertions(+), 9 deletions(-)
- create mode 100644 arch/x86/include/asm/dma-contiguous.h
+Laurent Pinchart wrote:
+> On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
+>> Hi all,
+>>
+>> We had an IRC meeting on the new sensor control interface on #v4l-meeting
+>> as scheduled previously. The meeting log is available here:
+>>
+>> <URL:http://www.retiisi.org.uk/v4l2/v4l2-sensor-control-interface-2012-01-0
+>> 9.txt>
+>>
+>> My notes can be found below.
+>
+> Thanks for the summary.
+>
+>> Accessing V4L2 subdev and MC interfaces in user space: user space libraries
+>> ===========================================================================
+>>
+>> While the V4L2 subdev and Media controller kernel interface is functionally
+>> comprehensive, it is a relatively low level interface for even for
+>> vendor-specific user space camera libraries. The issue is intensified with
+>> the extension of the pipeline configuration performed using the Media
+>> controller and V4L2 subdev interfaces to cover the image processing
+>> performed on the sensor: this is part of the new sensor control interface.
+>>
+>> As we want to encourage SoC vendors to use the V4L2, we need to make this
+>> as easy as possible for them.
+>>
+>> The low level camera control libraries can be split into roughly two
+>> categories: those which configure the image pipe and those which deal with
+>> the 3A algorithms. The 3A algorithms are typically proprietary so we
+>> concentrated to the pipeline configuration which is what the Media
+>> controller and V4L2 subdev frameworks have been intended for.
+>>
+>> Two libraries already exist for this: libmediactl and libv4l2subdev. The
+>> former deals with topology enumeration and link configuration whereas the
+>> latter is a generic library for V4L2 subdev configuration, including format
+>> configuration.
+>>
+>> The new sensor control interface moves the remaining policy decisions to
+>> the user space: how the sensor's image pipe is configured, what pixel
+>> rates are being used on the bus from the sensor to the ISP and how is the
+>> blanking configured.
+>>
+>> The role of the new library, called libv4l2pipe, is to interpret text-based
+>> configuration file containing sections for various pipeline format and link
+>> configurations, as well as V4L2 controls: the link frequency is a control
+>> as well; but more on that below. The library may be later on merged to
+>> libv4l2pipeauto which Sakari is working on.
+>>
+>> Both pipeline format and link configurations are policy decisions and thus
+>> can be expected to be use case specific. A format configuration is
+>> dependent on a link configuration but the same link configuration can be
+>> used with several format configurations. Thus the two should be defined
+>> separately.
+>>
+>> A third kind of section will be for setting controls. The only control to
+>> be set will be the link frequency control but a new type of setting
+>> warrants a new section.
+>>
+>> A fourth section may be required as well: at this level the frame rate (or
+>> frame time) range makes more sense than the low-level blanking values. The
+>> blanking values can be calculated from the frame time and a flag which
+>> tells whether either horizontal or vertical blanking should be preferred.
+>
+> How does one typically select between horizontal and vertical blanking ? Do
+> mixed modes make sense ?
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 864cc6e..1e00736 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -31,6 +31,7 @@ config X86
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_FRAME_POINTERS
- 	select HAVE_DMA_ATTRS
-+	select HAVE_DMA_CONTIGUOUS if !SWIOTLB
- 	select HAVE_KRETPROBES
- 	select HAVE_OPTPROBES
- 	select HAVE_FTRACE_MCOUNT_RECORD
-diff --git a/arch/x86/include/asm/dma-contiguous.h b/arch/x86/include/asm/dma-contiguous.h
-new file mode 100644
-index 0000000..8fb117d
---- /dev/null
-+++ b/arch/x86/include/asm/dma-contiguous.h
-@@ -0,0 +1,13 @@
-+#ifndef ASMX86_DMA_CONTIGUOUS_H
-+#define ASMX86_DMA_CONTIGUOUS_H
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/device.h>
-+#include <linux/dma-contiguous.h>
-+#include <asm-generic/dma-contiguous.h>
-+
-+static inline void dma_contiguous_early_fixup(phys_addr_t base, unsigned long size) { }
-+
-+#endif
-+#endif
-diff --git a/arch/x86/include/asm/dma-mapping.h b/arch/x86/include/asm/dma-mapping.h
-index ed3065f..90ac6f0 100644
---- a/arch/x86/include/asm/dma-mapping.h
-+++ b/arch/x86/include/asm/dma-mapping.h
-@@ -13,6 +13,7 @@
- #include <asm/io.h>
- #include <asm/swiotlb.h>
- #include <asm-generic/dma-coherent.h>
-+#include <linux/dma-contiguous.h>
- 
- #ifdef CONFIG_ISA
- # define ISA_DMA_BIT_MASK DMA_BIT_MASK(24)
-@@ -61,6 +62,9 @@ extern int dma_set_mask(struct device *dev, u64 mask);
- extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 					dma_addr_t *dma_addr, gfp_t flag);
- 
-+extern void dma_generic_free_coherent(struct device *dev, size_t size,
-+				      void *vaddr, dma_addr_t dma_addr);
-+
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
- {
- 	if (!dev->dma_mask)
-diff --git a/arch/x86/kernel/pci-dma.c b/arch/x86/kernel/pci-dma.c
-index 1c4d769..d3c3723 100644
---- a/arch/x86/kernel/pci-dma.c
-+++ b/arch/x86/kernel/pci-dma.c
-@@ -99,14 +99,18 @@ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 				 dma_addr_t *dma_addr, gfp_t flag)
- {
- 	unsigned long dma_mask;
--	struct page *page;
-+	struct page *page = NULL;
-+	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
- 	dma_addr_t addr;
- 
- 	dma_mask = dma_alloc_coherent_mask(dev, flag);
- 
- 	flag |= __GFP_ZERO;
- again:
--	page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
-+	if (!(flag & GFP_ATOMIC))
-+		page = dma_alloc_from_contiguous(dev, count, get_order(size));
-+	if (!page)
-+		page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
- 	if (!page)
- 		return NULL;
- 
-@@ -126,6 +130,16 @@ again:
- 	return page_address(page);
- }
- 
-+void dma_generic_free_coherent(struct device *dev, size_t size, void *vaddr,
-+			       dma_addr_t dma_addr)
-+{
-+	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-+	struct page *page = virt_to_page(vaddr);
-+
-+	if (!dma_release_from_contiguous(dev, page, count))
-+		free_pages((unsigned long)vaddr, get_order(size));
-+}
-+
- /*
-  * See <Documentation/x86/x86_64/boot-options.txt> for the iommu kernel
-  * parameter documentation.
-diff --git a/arch/x86/kernel/pci-nommu.c b/arch/x86/kernel/pci-nommu.c
-index 3af4af8..656566f 100644
---- a/arch/x86/kernel/pci-nommu.c
-+++ b/arch/x86/kernel/pci-nommu.c
-@@ -74,12 +74,6 @@ static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
- 	return nents;
- }
- 
--static void nommu_free_coherent(struct device *dev, size_t size, void *vaddr,
--				dma_addr_t dma_addr)
--{
--	free_pages((unsigned long)vaddr, get_order(size));
--}
--
- static void nommu_sync_single_for_device(struct device *dev,
- 			dma_addr_t addr, size_t size,
- 			enum dma_data_direction dir)
-@@ -97,7 +91,7 @@ static void nommu_sync_sg_for_device(struct device *dev,
- 
- struct dma_map_ops nommu_dma_ops = {
- 	.alloc_coherent		= dma_generic_alloc_coherent,
--	.free_coherent		= nommu_free_coherent,
-+	.free_coherent		= dma_generic_free_coherent,
- 	.map_sg			= nommu_map_sg,
- 	.map_page		= nommu_map_page,
- 	.sync_single_for_device = nommu_sync_single_for_device,
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index d7d5099..be6795f 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -50,6 +50,7 @@
- #include <asm/pci-direct.h>
- #include <linux/init_ohci1394_dma.h>
- #include <linux/kvm_para.h>
-+#include <linux/dma-contiguous.h>
- 
- #include <linux/errno.h>
- #include <linux/kernel.h>
-@@ -938,6 +939,7 @@ void __init setup_arch(char **cmdline_p)
- 	}
- #endif
- 	memblock.current_limit = get_max_mapped();
-+	dma_contiguous_reserve(0);
- 
- 	/*
- 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
+There are minimums and maximums for both. You can increase the frame 
+time by increasing value for either or both of them --- to achieve very 
+long frame times you may have to use both, but that's not very common in 
+practice. I think we should have a flag to tell which one should be 
+increased first --- the effect would be to have the minimum possible 
+value on the other.
+
+>> A configuration consisting of all the above sections will define the full
+>> pipeline configuration. The library must also provide a way to enumerate,
+>> query and set these configurations.
+>>
+>> With the existence of this library and the related new sensor control
+>> interface, the V4L2 supports implementing digital cameras even better than
+>> it used to.
+>>
+>> The LGPL 2.1+ license used by libmediactl, libv4l2pipeauto and the future
+>> libv4l2pipe(auto) is not seen an issue for Android to adopt these libraries
+>> either.
+>>
+>> In GStreamer middleware, libv4l2pipe is expected to be used by the camera
+>> source component.
+>
+> Should we try to draft how a 3A library should be implemented ? Do you think
+> that might have implications on libv4l2pipe ?
+
+We should, yes. I can't see any immediate effects from that to 
+libv4l2pipe. libv4l2pipe may need to provide some information to the 3A 
+library but that should mostly be it.
+
+>> The new sensor control interface
+>> ================================
+>>
+>>
+>> The common understanding was that the new sensor control interface is
+>> mostly accepted. No patches have been acked since there have been lots of
+>> trivial and some not so trivial issues in the patchset. There was an
+>> exception to this, which is the pixel_rate field in struct
+>> v4l2_mbus_framefmt.
+>>
+>> The field is expected to be propagated by the user while the user has no
+>> valid use case to modify it. The agreement was that instead of adding the
+>> field to struct v4l2_mbus_framefmt, a new control will be introduced
+>> instead.
+>>
+>> A control has several good properties: it can be implemented where it is
+>> valid: it isn't always possible to accurately specify the pixel rate in
+>> some parts of the pipeline.
+>>
+>> Sensor drivers should provide the pixel_rate control in two subdevs: the
+>> pixel array and the one which is opposed to the ISP's bus receiver. The
+>> pixel array's pixel rate is mostly required in the user space whereas the
+>> pixel rate in the bus transmitter subdev (which may have other
+>> functionality as well) is often required by the bus receivers, as well as
+>> by the rest of the ISP.
+>>
+>> Ideally the pixel_rate control is related to pads rather than subdevs but
+>> 1) we don't have pad specific controls and 2) we don't stictly need them
+>> right now since there only will be need for a single pixel_rate control
+>> per subdev.
+>>
+>> If pixel rate management will be implemented to prevent starting pipelines
+>> which would fail to stream in cases where too high pixel rates are used on
+>> particular subdevs, the concept of pad-specific controls may be later
+>> revisited. Making the pixel_rate control pad-specific only will change the
+>> interface towards the user space if the pad where it is implemented is
+>> non-zero.
+>
+> I'm fine with that. Let's use a control now, we'll revisit this later if
+> needed.
+
+Agreed.
+
 -- 
-1.7.1.569.g6f426
-
+Sakari Ailus
+sakari.ailus@iki.fi
