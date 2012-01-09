@@ -1,43 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:51244 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754978Ab2ADDWq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 22:22:46 -0500
-Received: by ggdk6 with SMTP id k6so10125260ggd.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 19:22:45 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, Fabio Estevam <festevam@gmail.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH] drivers: media: tuners: Fix dependency for MEDIA_TUNER_TEA5761
-Date: Wed,  4 Jan 2012 01:22:27 -0200
-Message-Id: <1325647347-14564-1-git-send-email-festevam@gmail.com>
+Received: from gateway03.websitewelcome.com ([69.93.236.28]:41559 "EHLO
+	gateway03.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S933081Ab2AITwE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jan 2012 14:52:04 -0500
+Received: from ham01.websitewelcome.com (ham.websitewelcome.com [173.192.111.52])
+	by gateway03.websitewelcome.com (Postfix) with ESMTP id EEFCB4B6F9F4A
+	for <linux-media@vger.kernel.org>; Mon,  9 Jan 2012 12:52:27 -0600 (CST)
+Received: from gator886.hostgator.com (gator886.hostgator.com [174.120.40.226])
+	by ham01.websitewelcome.com (Postfix) with ESMTP id 1F23A49E791A
+	for <linux-media@vger.kernel.org>; Mon,  9 Jan 2012 12:52:26 -0600 (CST)
+From: "Charlie X. Liu" <charlie@sensoray.com>
+To: "'Christopher Peters'" <cpeters@ucmo.edu>,
+	<linux-media@vger.kernel.org>
+References: <CAPc4S2YPRWHhTJY0C5gMYtFgULHibfaqGuPOeU-fFxm9XfxYjg@mail.gmail.com>
+In-Reply-To: <CAPc4S2YPRWHhTJY0C5gMYtFgULHibfaqGuPOeU-fFxm9XfxYjg@mail.gmail.com>
+Subject: RE: No video on generic SAA7134 card
+Date: Mon, 9 Jan 2012 10:52:41 -0800
+Message-ID: <002e01ccceff$de2c4f90$9a84eeb0$@com>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Language: en-us
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix the following build warning:
+You may use "XawTV" first, as it's easier to use and config. For installing
+"XawTV", if you use an installed/LiveCD Ubuntu, run "sudo apt-get install
+xawtv" to get the "XawTV" app installed. Then,
 
-warning: (MEDIA_TUNER) selects MEDIA_TUNER_TEA5761 which has unmet direct 
-dependencies (MEDIA_SUPPORT && VIDEO_MEDIA && I2C && EXPERIMENTAL)
+$ xawtv -c /dev/video0 &		(for channel-1)
+$ xawtv -c /dev/video1 & 		(for channel-2)
+$ xawtv -c /dev/video2 &		(for channel-3)
+$ xawtv -c /dev/video3 &		(for channel-4)
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
- drivers/media/common/tuners/Kconfig |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+If card=default doesn't work, you may try run "modprobe -r saa7134_alsa",
+"modprobe -r saa7134", and "modprobe saa7134 card=73,73,73,73" or
+card=others to reload the saa7134 driver. Then, run "XawTV" and till find a
+proper card number for your card.
 
-diff --git a/drivers/media/common/tuners/Kconfig b/drivers/media/common/tuners/Kconfig
-index 996302a..eb5f61e 100644
---- a/drivers/media/common/tuners/Kconfig
-+++ b/drivers/media/common/tuners/Kconfig
-@@ -26,7 +26,7 @@ config MEDIA_TUNER
- 	select MEDIA_TUNER_XC4000 if !MEDIA_TUNER_CUSTOMISE
- 	select MEDIA_TUNER_MT20XX if !MEDIA_TUNER_CUSTOMISE
- 	select MEDIA_TUNER_TDA8290 if !MEDIA_TUNER_CUSTOMISE
--	select MEDIA_TUNER_TEA5761 if !MEDIA_TUNER_CUSTOMISE
-+	select MEDIA_TUNER_TEA5761 if !MEDIA_TUNER_CUSTOMISE && EXPERIMENTAL
- 	select MEDIA_TUNER_TEA5767 if !MEDIA_TUNER_CUSTOMISE
- 	select MEDIA_TUNER_SIMPLE if !MEDIA_TUNER_CUSTOMISE
- 	select MEDIA_TUNER_TDA9887 if !MEDIA_TUNER_CUSTOMISE
+Cood luck!
+
+
+Charlie X. Liu @ Sensoray Co. <http://www.sensoray.com/>
+
+
+-----Original Message-----
+From: linux-media-owner@vger.kernel.org
+[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Christopher Peters
+Sent: Monday, January 09, 2012 9:08 AM
+To: linux-media@vger.kernel.org
+Subject: No video on generic SAA7134 card
+
+I have one of these cards: http://tinyurl.com/7kupvw7 and I'd like to
+make it work on my Linux box.  It is seen by the kernel and detected
+as a generic SAA7134-based card.  However, when I hook up video to the
+card and attempt to view it in VLC, I don't see the video.  Instead I
+see a number of alternating dark grey and white lines, and the image
+flickers.  There's no change in the image if I disconnect the video
+source from one of the inputs and connect it to another (there are
+four in total) input).
+
+Suggestions?  Should I expect to get video if the card is detected as
+"generic", rather than a specific manufacturer / model?
+
+KP
+
 -- 
-1.7.1
+-
+Kit Peters (W0KEH), Engineer II
+KMOS TV Channel 6 / KTBG 90.9 FM
+University of Central Missouri
+http://kmos.org/ | http://ktbg.fm/
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
