@@ -1,500 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:53644 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751527Ab2AZJBD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 04:01:03 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 26 Jan 2012 10:00:42 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv19 00/15] Contiguous Memory Allocator
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Message-id: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:44698 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751230Ab2AIMG5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 07:06:57 -0500
+MIME-Version: 1.0
+In-Reply-To: <20120109102726.GD3723@phenom.ffwll.local>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+	<1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
+	<CAAQKjZPFh6666JKc-XJfKYePQ_F0MNF6FkY=zKypWb52VVX3YQ@mail.gmail.com>
+	<20120109081030.GA3723@phenom.ffwll.local>
+	<CAAQKjZMEsuib18RYE7OvZPUqhKnvrZ8i3+EMuZSXr9KPVygo_Q@mail.gmail.com>
+	<20120109102726.GD3723@phenom.ffwll.local>
+Date: Mon, 9 Jan 2012 21:06:56 +0900
+Message-ID: <CAAQKjZNSYWJ-nAwCJqJ1M_CZ7xiSDA8OgMRrwcuy7p1eDiU55Q@mail.gmail.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+From: InKi Dae <daeinki@gmail.com>
+To: InKi Dae <daeinki@gmail.com>, Sumit Semwal <sumit.semwal@ti.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, rob@ti.com, t.stanislaws@samsung.com,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Cc: daniel@ffwll.ch
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Welcome everyone!
-
-Yes, that's true. This is yet another release of the Contiguous Memory
-Allocator patches. This version mainly includes code cleanups requested
-by Mel Gorman and a few minor bug fixes.
-
-ARM integration code has not been changed since v16. It provides
-implementation of the ideas that has been discussed during Linaro Sprint
-meeting in Cambourne, August 2011. Here are the details:
-
-  This version provides a solution for complete integration of CMA to
-  DMA mapping subsystem on ARM architecture. The issue caused by double
-  dma pages mapping and possible aliasing in coherent memory mapping has
-  been finally resolved, both for GFP_ATOMIC case (allocations comes from
-  coherent memory pool) and non-GFP_ATOMIC case (allocations comes from
-  CMA managed areas).
-
-  For coherent, nommu, ARMv4 and ARMv5 systems the current DMA-mapping
-  implementation has been kept.
-
-  For ARMv6+ systems, CMA has been enabled and a special pool of coherent
-  memory for atomic allocations has been created. The size of this pool
-  defaults to DEFAULT_CONSISTEN_DMA_SIZE/8, but can be changed with
-  coherent_pool kernel parameter (if really required).
-
-  All atomic allocations are served from this pool. I've did a little
-  simplification here, because there is no separate pool for writecombine
-  memory - such requests are also served from coherent pool. I don't
-  think that such simplification is a problem here - I found no driver
-  that use dma_alloc_writecombine with GFP_ATOMIC flags.
-
-  All non-atomic allocation are served from CMA area. Kernel mappings are
-  updated to reflect required memory attributes changes. This is possible
-  because during early boot, all CMA area are remapped with 4KiB pages in
-  kernel low-memory.
-
-  This version have been tested on Samsung S5PC110 based Goni machine and
-  Exynos4 UniversalC210 board with various V4L2 multimedia drivers.
-
-  Coherent atomic allocations has been tested by manually enabling the dma
-  bounce for the s3c-sdhci device.
-
-All patches are prepared for Linux Kernel v3.3-rc1.
-
-A few words for these who see CMA for the first time:
-
-   The Contiguous Memory Allocator (CMA) makes it possible for device
-   drivers to allocate big contiguous chunks of memory after the system
-   has booted. 
-
-   The main difference from the similar frameworks is the fact that CMA
-   allows to transparently reuse memory region reserved for the big
-   chunk allocation as a system memory, so no memory is wasted when no
-   big chunk is allocated. Once the alloc request is issued, the
-   framework will migrate system pages to create a required big chunk of
-   physically contiguous memory.
-
-   For more information you can refer to nice LWN articles: 
-   http://lwn.net/Articles/447405/ and http://lwn.net/Articles/450286/
-   as well as links to previous versions of the CMA framework.
-
-   The CMA framework has been initially developed by Michal Nazarewicz
-   at Samsung Poland R&D Center. Since version 9, I've taken over the
-   development, because Michal has left the company. Since version v17
-   Michal is working again on CMA patches and the current version is
-   the result of our joint open-source effort.
-
-TODO (optional):
-- implement support for contiguous memory areas placed in HIGHMEM zone
-- resolve issue with movable pages with pending io operations
-
-Best regards
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
-Links to previous versions of the patchset:
-v18: <http://www.spinics.net/lists/linux-mm/msg28125.html>
-v17: <http://www.spinics.net/lists/arm-kernel/msg148499.html>
-v16: <http://www.spinics.net/lists/linux-mm/msg25066.html>
-v15: <http://www.spinics.net/lists/linux-mm/msg23365.html>
-v14: <http://www.spinics.net/lists/linux-media/msg36536.html>
-v13: (internal, intentionally not released)
-v12: <http://www.spinics.net/lists/linux-media/msg35674.html>
-v11: <http://www.spinics.net/lists/linux-mm/msg21868.html>
-v10: <http://www.spinics.net/lists/linux-mm/msg20761.html>
- v9: <http://article.gmane.org/gmane.linux.kernel.mm/60787>
- v8: <http://article.gmane.org/gmane.linux.kernel.mm/56855>
- v7: <http://article.gmane.org/gmane.linux.kernel.mm/55626>
- v6: <http://article.gmane.org/gmane.linux.kernel.mm/55626>
- v5: (intentionally left out as CMA v5 was identical to CMA v4)
- v4: <http://article.gmane.org/gmane.linux.kernel.mm/52010>
- v3: <http://article.gmane.org/gmane.linux.kernel.mm/51573>
- v2: <http://article.gmane.org/gmane.linux.kernel.mm/50986>
- v1: <http://article.gmane.org/gmane.linux.kernel.mm/50669>
-
-
-Changelog:
-
-v19:
-    1. Addressed another set of comments and suggestions from Mel Gorman, mainly
-       related to breaking patches into smaller, single-feature related chunks
-       and rewriting already existing functions in memory compaction code.
-
-    2. Reworked completely page reclaim code, removed it from split_free_page()
-       and introduce direct call from alloc_contig_range().
-
-    3. Merged a fix from Mans Rullgard for correct cma area limit alignment.
-
-    4. Replaced broken "mm: page_alloc: set_migratetype_isolate: drain PCP prior
-       to isolating" patch with "mm: page_alloc: update migrate type of pages on
-       pcp when isolating" which is another attempt to solve this issue without
-       touching free_pcppages_bulk().
-
-    5. Rebased onto v3.3-rc1
-
-v18:
-    1. Addressed comments and suggestions from Mel Gorman related to changes
-       in memory compaction code, most important points:
-	- removed "mm: page_alloc: handle MIGRATE_ISOLATE in free_pcppages_bulk()"
-	  and moved all the logic to set_migratetype_isolate - see
-	  "mm: page_alloc: set_migratetype_isolate: drain PCP prior to isolating"
-	  patch
-	- code in "mm: compaction: introduce isolate_{free,migrate}pages_range()"
-	  patch have been simplified and improved
-	- removed "mm: mmzone: introduce zone_pfn_same_memmap()" patch
-
-    2. Fixed crash on initialization if HIGHMEM is available on ARM platforms
-
-    3. Fixed problems with allocation of contiguous memory if all free pages
-       are occupied by page cache and reclaim is required.
-
-    4. Added a workaround for temporary migration failures (now CMA tries
-       to allocate different memory block in such case), what heavily increased
-       reliability of the CMA.
-
-    5. Minor cleanup here and there.
-
-    6. Rebased onto v3.2-rc7 kernel tree.
-
-v17:
-    1. Replaced whole CMA core memory migration code to the new one kindly
-       provided by Michal Nazarewicz. The new code is based on memory
-       compaction framework not the memory hotplug, like it was before. This
-       change has been suggested by Mel Godman.
-
-    2. Addressed most of the comments from Andrew Morton and Mel Gorman in
-       the rest of the CMA code.
-
-    3. Fixed broken initialization on ARM systems with DMA zone enabled.
-
-    4. Rebased onto v3.2-rc2 kernel.
-
-v16:
-    1. merged a fixup from Michal Nazarewicz to address comments from Dave
-       Hansen about checking if pfns belong to the same memory zone
-
-    2. merged a fix from Michal Nazarewicz for incorrect handling of pages
-       which belong to page block that is in MIGRATE_ISOLATE state, in very
-       rare cases the migrate type of page block might have been changed
-       from MIGRATE_CMA to MIGRATE_MOVABLE because of this bug
-
-    3. moved some common code to include/asm-generic
-
-    4. added support for x86 DMA-mapping framework for pci-dma hardware,
-       CMA can be now even more widely tested on KVM/QEMU and a lot of common
-       x86 boxes
-
-    5. rebased onto next-20111005 kernel tree, which includes changes in ARM
-       DMA-mapping subsystem (CONSISTENT_DMA_SIZE removal)
-
-    6. removed patch for CMA s5p-fimc device private regions (served only as
-       example) and provided the one that matches real life case - s5p-mfc
-       device
-
-v15:
-    1. fixed calculation of the total memory after activating CMA area (was
-       broken from v12)
-
-    2. more code cleanup in drivers/base/dma-contiguous.c
-
-    3. added address limit for default CMA area
-
-    4. rewrote ARM DMA integration:
-	- removed "ARM: DMA: steal memory for DMA coherent mappings" patch
-	- kept current DMA mapping implementation for coherent, nommu and
-	  ARMv4/ARMv5 systems
-	- enabled CMA for all ARMv6+ systems
-	- added separate, small pool for coherent atomic allocations, defaults
-	  to CONSISTENT_DMA_SIZE/8, but can be changed with kernel parameter
-	  coherent_pool=[size]
-
-v14:
-    1. Merged with "ARM: DMA: steal memory for DMA coherent mappings" 
-       patch, added support for GFP_ATOMIC allocations.
-
-    2. Added checks for NULL device pointer
-
-v13: (internal, intentionally not released)
-
-v12:
-    1. Fixed 2 nasty bugs in dma-contiguous allocator:
-       - alignment argument was not passed correctly
-       - range for dma_release_from_contiguous was not checked correctly
-
-    2. Added support for architecture specfic dma_contiguous_early_fixup()
-       function
-
-    3. CMA and DMA-mapping integration for ARM architechture has been
-       rewritten to take care of the memory aliasing issue that might
-       happen for newer ARM CPUs (mapping of the same pages with different
-       cache attributes is forbidden). TODO: add support for GFP_ATOMIC
-       allocations basing on the "ARM: DMA: steal memory for DMA coherent
-       mappings" patch and implement support for contiguous memory areas
-       that are placed in HIGHMEM zone
-
-v11:
-    1. Removed genalloc usage and replaced it with direct calls to
-       bitmap_* functions, dropped patches that are not needed
-       anymore (genalloc extensions)
-
-    2. Moved all contiguous area management code from mm/cma.c
-       to drivers/base/dma-contiguous.c
-
-    3. Renamed cm_alloc/free to dma_alloc/release_from_contiguous
-
-    4. Introduced global, system wide (default) contiguous area
-       configured with kernel config and kernel cmdline parameters
-
-    5. Simplified initialization to just one function:
-       dma_declare_contiguous()
-
-    6. Added example of device private memory contiguous area
-
-v10:
-    1. Rebased onto 3.0-rc2 and resolved all conflicts
-
-    2. Simplified CMA to be just a pure memory allocator, for use
-       with platfrom/bus specific subsystems, like dma-mapping.
-       Removed all device specific functions are calls.
-
-    3. Integrated with ARM DMA-mapping subsystem.
-
-    4. Code cleanup here and there.
-
-    5. Removed private context support.
-
-v9: 1. Rebased onto 2.6.39-rc1 and resolved all conflicts
-
-    2. Fixed a bunch of nasty bugs that happened when the allocation
-       failed (mainly kernel oops due to NULL ptr dereference).
-
-    3. Introduced testing code: cma-regions compatibility layer and
-       videobuf2-cma memory allocator module.
-
-v8: 1. The alloc_contig_range() function has now been separated from
-       CMA and put in page_allocator.c.  This function tries to
-       migrate all LRU pages in specified range and then allocate the
-       range using alloc_contig_freed_pages().
-
-    2. Support for MIGRATE_CMA has been separated from the CMA code.
-       I have not tested if CMA works with ZONE_MOVABLE but I see no
-       reasons why it shouldn't.
-
-    3. I have added a @private argument when creating CMA contexts so
-       that one can reserve memory and not share it with the rest of
-       the system.  This way, CMA acts only as allocation algorithm.
-
-v7: 1. A lot of functionality that handled driver->allocator_context
-       mapping has been removed from the patchset.  This is not to say
-       that this code is not needed, it's just not worth posting
-       everything in one patchset.
-
-       Currently, CMA is "just" an allocator.  It uses it's own
-       migratetype (MIGRATE_CMA) for defining ranges of pageblokcs
-       which behave just like ZONE_MOVABLE but dispite the latter can
-       be put in arbitrary places.
-
-    2. The migration code that was introduced in the previous version
-       actually started working.
-
-
-v6: 1. Most importantly, v6 introduces support for memory migration.
-       The implementation is not yet complete though.
-
-       Migration support means that when CMA is not using memory
-       reserved for it, page allocator can allocate pages from it.
-       When CMA wants to use the memory, the pages have to be moved
-       and/or evicted as to make room for CMA.
-
-       To make it possible it must be guaranteed that only movable and
-       reclaimable pages are allocated in CMA controlled regions.
-       This is done by introducing a MIGRATE_CMA migrate type that
-       guarantees exactly that.
-
-       Some of the migration code is "borrowed" from Kamezawa
-       Hiroyuki's alloc_contig_pages() implementation.  The main
-       difference is that thanks to MIGRATE_CMA migrate type CMA
-       assumes that memory controlled by CMA are is always movable or
-       reclaimable so that it makes allocation decisions regardless of
-       the whether some pages are actually allocated and migrates them
-       if needed.
-
-       The most interesting patches from the patchset that implement
-       the functionality are:
-
-         09/13: mm: alloc_contig_free_pages() added
-         10/13: mm: MIGRATE_CMA migration type added
-         11/13: mm: MIGRATE_CMA isolation functions added
-         12/13: mm: cma: Migration support added [wip]
-
-       Currently, kernel panics in some situations which I am trying
-       to investigate.
-
-    2. cma_pin() and cma_unpin() functions has been added (after
-       a conversation with Johan Mossberg).  The idea is that whenever
-       hardware does not use the memory (no transaction is on) the
-       chunk can be moved around.  This would allow defragmentation to
-       be implemented if desired.  No defragmentation algorithm is
-       provided at this time.
-
-    3. Sysfs support has been replaced with debugfs.  I always felt
-       unsure about the sysfs interface and when Greg KH pointed it
-       out I finally got to rewrite it to debugfs.
-
-
-v5: (intentionally left out as CMA v5 was identical to CMA v4)
-
-
-v4: 1. The "asterisk" flag has been removed in favour of requiring
-       that platform will provide a "*=<regions>" rule in the map
-       attribute.
-
-    2. The terminology has been changed slightly renaming "kind" to
-       "type" of memory.  In the previous revisions, the documentation
-       indicated that device drivers define memory kinds and now,
-
-v3: 1. The command line parameters have been removed (and moved to
-       a separate patch, the fourth one).  As a consequence, the
-       cma_set_defaults() function has been changed -- it no longer
-       accepts a string with list of regions but an array of regions.
-
-    2. The "asterisk" attribute has been removed.  Now, each region
-       has an "asterisk" flag which lets one specify whether this
-       region should by considered "asterisk" region.
-
-    3. SysFS support has been moved to a separate patch (the third one
-       in the series) and now also includes list of regions.
-
-v2: 1. The "cma_map" command line have been removed.  In exchange,
-       a SysFS entry has been created under kernel/mm/contiguous.
-
-       The intended way of specifying the attributes is
-       a cma_set_defaults() function called by platform initialisation
-       code.  "regions" attribute (the string specified by "cma"
-       command line parameter) can be overwritten with command line
-       parameter; the other attributes can be changed during run-time
-       using the SysFS entries.
-
-    2. The behaviour of the "map" attribute has been modified
-       slightly.  Currently, if no rule matches given device it is
-       assigned regions specified by the "asterisk" attribute.  It is
-       by default built from the region names given in "regions"
-       attribute.
-
-    3. Devices can register private regions as well as regions that
-       can be shared but are not reserved using standard CMA
-       mechanisms.  A private region has no name and can be accessed
-       only by devices that have the pointer to it.
-
-    4. The way allocators are registered has changed.  Currently,
-       a cma_allocator_register() function is used for that purpose.
-       Moreover, allocators are attached to regions the first time
-       memory is registered from the region or when allocator is
-       registered which means that allocators can be dynamic modules
-       that are loaded after the kernel booted (of course, it won't be
-       possible to allocate a chunk of memory from a region if
-       allocator is not loaded).
-
-    5. Index of new functions:
-
-    +static inline dma_addr_t __must_check
-    +cma_alloc_from(const char *regions, size_t size,
-    +               dma_addr_t alignment)
-
-    +static inline int
-    +cma_info_about(struct cma_info *info, const const char *regions)
-
-    +int __must_check cma_region_register(struct cma_region *reg);
-
-    +dma_addr_t __must_check
-    +cma_alloc_from_region(struct cma_region *reg,
-    +                      size_t size, dma_addr_t alignment);
-
-    +static inline dma_addr_t __must_check
-    +cma_alloc_from(const char *regions,
-    +               size_t size, dma_addr_t alignment);
-
-    +int cma_allocator_register(struct cma_allocator *alloc);
-
-
-Patches in this patchset:
-
-Marek Szyprowski (6):
-  mm: extract reclaim code from __alloc_pages_direct_reclaim()
-  mm: trigger page reclaim in alloc_contig_range() to stabilize
-    watermarks
-  drivers: add Contiguous Memory Allocator
-  X86: integrate CMA with DMA-mapping subsystem
-  ARM: integrate CMA with DMA-mapping subsystem
-  ARM: Samsung: use CMA for 2 memory banks for s5p-mfc device
-
-Michal Nazarewicz (9):
-  mm: page_alloc: remove trailing whitespace
-  mm: page_alloc: update migrate type of pages on pcp when isolating
-  mm: compaction: introduce isolate_migratepages_range().
-  mm: compaction: introduce isolate_freepages_range()
-  mm: compaction: export some of the functions
-  mm: page_alloc: introduce alloc_contig_range()
-  mm: page_alloc: change fallbacks array handling
-  mm: mmzone: MIGRATE_CMA migration type added
-  mm: page_isolation: MIGRATE_CMA isolation functions added
-
- Documentation/kernel-parameters.txt   |    9 +
- arch/Kconfig                          |    3 +
- arch/arm/Kconfig                      |    2 +
- arch/arm/include/asm/dma-contiguous.h |   16 ++
- arch/arm/include/asm/mach/map.h       |    1 +
- arch/arm/kernel/setup.c               |    9 +-
- arch/arm/mm/dma-mapping.c             |  368 ++++++++++++++++++++++++------
- arch/arm/mm/init.c                    |   22 ++-
- arch/arm/mm/mm.h                      |    3 +
- arch/arm/mm/mmu.c                     |   31 ++-
- arch/arm/plat-s5p/dev-mfc.c           |   51 +----
- arch/x86/Kconfig                      |    1 +
- arch/x86/include/asm/dma-contiguous.h |   13 +
- arch/x86/include/asm/dma-mapping.h    |    4 +
- arch/x86/kernel/pci-dma.c             |   18 ++-
- arch/x86/kernel/pci-nommu.c           |    8 +-
- arch/x86/kernel/setup.c               |    2 +
- drivers/base/Kconfig                  |   89 +++++++
- drivers/base/Makefile                 |    1 +
- drivers/base/dma-contiguous.c         |  404 ++++++++++++++++++++++++++++++++
- include/asm-generic/dma-contiguous.h  |   27 +++
- include/linux/device.h                |    4 +
- include/linux/dma-contiguous.h        |  110 +++++++++
- include/linux/mmzone.h                |   43 +++-
- include/linux/page-isolation.h        |   35 ++-
- mm/Kconfig                            |    2 +-
- mm/Makefile                           |    3 +-
- mm/compaction.c                       |  414 +++++++++++++++++++++------------
- mm/internal.h                         |   33 +++
- mm/memory-failure.c                   |    2 +-
- mm/memory_hotplug.c                   |    6 +-
- mm/page_alloc.c                       |  355 +++++++++++++++++++++++++---
- mm/page_isolation.c                   |   39 +++-
- mm/vmstat.c                           |    3 +
- 34 files changed, 1770 insertions(+), 361 deletions(-)
- create mode 100644 arch/arm/include/asm/dma-contiguous.h
- create mode 100644 arch/x86/include/asm/dma-contiguous.h
- create mode 100644 drivers/base/dma-contiguous.c
- create mode 100644 include/asm-generic/dma-contiguous.h
- create mode 100644 include/linux/dma-contiguous.h
-
--- 
-1.7.1.569.g6f426
-
+2012/1/9 Daniel Vetter <daniel@ffwll.ch>:
+> On Mon, Jan 09, 2012 at 07:10:25PM +0900, InKi Dae wrote:
+>> 2012/1/9 Daniel Vetter <daniel@ffwll.ch>:
+>> > On Mon, Jan 09, 2012 at 03:20:48PM +0900, InKi Dae wrote:
+>> >> I has test dmabuf based drm gem module for exynos and I found one problem.
+>> >> you can refer to this test repository:
+>> >> http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/exynos-drm-dmabuf
+>> >>
+>> >> at this repository, I added some exception codes for resource release
+>> >> in addition to Dave's patch sets.
+>> >>
+>> >> let's suppose we use dmabuf based vb2 and drm gem with physically
+>> >> continuous memory(no IOMMU) and we try to share allocated buffer
+>> >> between them(v4l2 and drm driver).
+>> >>
+>> >> 1. request memory allocation through drm gem interface.
+>> >> 2. request DRM_SET_PRIME ioctl with the gem handle to get a fd to the
+>> >> gem object.
+>> >> - internally, private gem based dmabuf moudle calls drm_buf_export()
+>> >> to register allocated gem object to fd.
+>> >> 3. request qbuf with the fd(got from 2) and DMABUF type to set the
+>> >> buffer to v4l2 based device.
+>> >> - internally, vb2 plug in module gets a buffer to the fd and then
+>> >> calls dmabuf->ops->map_dmabuf() callback to get the sg table
+>> >> containing physical memory info to the gem object. and then the
+>> >> physical memory info would be copied to vb2_xx_buf object.
+>> >> for DMABUF feature for v4l2 and videobuf2 framework, you can refer to
+>> >> this repository:
+>> >> git://github.com/robclark/kernel-omap4.git drmplane-dmabuf
+>> >>
+>> >> after that, if v4l2 driver want to release vb2_xx_buf object with
+>> >> allocated memory region by user request, how should we do?. refcount
+>> >> to vb2_xx_buf is dependent on videobuf2 framework. so when vb2_xx_buf
+>> >> object is released videobuf2 framework don't know who is using the
+>> >> physical memory region. so this physical memory region is released and
+>> >> when drm driver tries to access the region or to release it also, a
+>> >> problem would be induced.
+>> >>
+>> >> for this problem, I added get_shared_cnt() callback to dma-buf.h but
+>> >> I'm not sure that this is good way. maybe there may be better way.
+>> >> if there is any missing point, please let me know.
+>> >
+>> > The dma_buf object needs to hold a reference on the underlying
+>> > (necessarily reference-counted) buffer object when the exporter creates
+>> > the dma_buf handle. This reference should then get dropped in the
+>> > exporters dma_buf->ops->release() function, which is only getting called
+>> > when the last reference to the dma_buf disappears.
+>> >
+>>
+>> when the exporter creates the dma_buf handle(for example, gem -> fd),
+>> I think the refcount of gem object should be increased at this point,
+>> and decreased by dma_buf->ops->release() again because when the
+>> dma_buf is created and dma_buf_export() is called, this dma_buf refers
+>> to the gem object one time. and in case of inporter(fd -> gem),
+>> file->f_count of the dma_buf is increased and then when this gem
+>> object is released by user request such as drm close or
+>> drn_gem_close_ioctl, dma_buf_put() should be called by
+>> dma_buf->ops->detach() to decrease file->f_count again because the gem
+>> object refers to the dma_buf. for this, you can refer to my test
+>> repository I mentioned above. but the problem is that when a buffer is
+>> released by one side, another can't know whether the buffer already
+>> was released or not.
+>
+> Nope, dma_buf_put should not be called by ->detach. The importer gets his
+> reference when importing the dma_buf and needs to drop that reference
+> himself when it's done using the buffer by calling dma_buf_put (i.e. after
+> the last ->detach call).
+
+I'm afraid that there may be my missing points. I'm confusing. who is
+Importer and who is Exporter you think? Importer is fd goes to private
+buffer and Exporter is private buffer goes to fd? if so, yes, when the
+importer needs to drop that reference(the importer want to release
+that buffer), dma_buf_put() should be called somewhere and in my case,
+that function is called by drm_prime_gem_destory(). this function is
+included at Dave's patch sets and also dma_buf_detatch() is called
+there. and I just thought that here is right place. I didn't find the
+place dma_buf_put() is called anywhere. could you please tell me where
+dma_buf_put() should be called at you think?.
+
+for this, you can refer to Dave's repository:
+http://cgit.freedesktop.org/~airlied/linux/log/?h=drm-prime-dmabuf
+
+> I think adding separate reference counting to
+> ->attach and ->detach is a waste of time and only papers over buggy
+> importers.
+>
+
+ I mean  when fd goes to private buffer, that reference(file->f_count)
+would be increased by dma_buf_get() and  only ->detach is used to drop
+that reference.
+
+> Additionally the importer does _not_ control the lifetime of an dma_buf
+> object and it's underlying backing storage. It hence may _never_ free the
+> backing storage itself, that's the job of the exporter.
+>
+
+yes, my understanding is that if user app requested close(fd) call to
+the Importer, after close(fd), file->f_count would be decreased but
+would still has 1. because file->f_count already was 1 by the
+Exporter.
+
+> With that cleared up, referencing the exporters underlying buffer object
+> from the dma_buf will just do the right thing.
+>
+>> note : in case of sharing a buffer between v4l2 and drm driver, the
+>> memory info would be copied vb2_xx_buf to xx_gem or xx_gem to
+>> vb2_xx_buf through sg table. in this case, only memory info is used to
+>> share, not some objects.
+>
+> Hm, maybe I need to take a look at the currently proposed v4l dma_buf
+> patches ;-) atm I don't have an idea what exactly you're talking about.
+>
+
+I need to stop the confusing. thank you for your answer. :)
+
+> Yours, Daniel
+> --
+> Daniel Vetter
+> Mail: daniel@ffwll.ch
+> Mobile: +41 (0)79 365 57 48
