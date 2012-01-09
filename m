@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:46341 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750936Ab2AEJKY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jan 2012 04:10:24 -0500
+Received: from smtp-68.nebula.fi ([83.145.220.68]:37772 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932131Ab2AIX0s (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 18:26:48 -0500
+Message-ID: <4F0B77B6.2000304@iki.fi>
+Date: Tue, 10 Jan 2012 01:26:46 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com
-Subject: [PATCH 1/1] omap3isp: Check media bus code on links
-Date: Thu,  5 Jan 2012 11:10:19 +0200
-Message-Id: <1325754619-2520-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, tuukkat76@gmail.com,
+	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	snjw23@gmail.com
+Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09
+ 14:00 GMT+2
+References: <20120104085633.GM3677@valkosipuli.localdomain> <201201092238.30469.laurent.pinchart@ideasonboard.com> <4F0B6AE6.7090008@iki.fi> <201201092337.51849.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201092337.51849.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check media bus code on links. The user could configure different formats at
-different ends of the link, say, 8 bits-per-pixel in the source and 10
-bits-per-pixel in the sink. This leads to interesting and typically
-undesired results image-wise.
+Hi Laurent,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/ispvideo.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+Laurent Pinchart wrote:
+> On Monday 09 January 2012 23:32:06 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
+...
+>>>> A fourth section may be required as well: at this level the frame rate
+>>>> (or frame time) range makes more sense than the low-level blanking
+>>>> values. The blanking values can be calculated from the frame time and a
+>>>> flag which tells whether either horizontal or vertical blanking should
+>>>> be preferred.
+>>>
+>>> How does one typically select between horizontal and vertical blanking ?
+>>> Do mixed modes make sense ?
+>>
+>> There are minimums and maximums for both. You can increase the frame
+>> time by increasing value for either or both of them --- to achieve very
+>> long frame times you may have to use both, but that's not very common in
+>> practice. I think we should have a flag to tell which one should be
+>> increased first --- the effect would be to have the minimum possible
+>> value on the other.
+>
+> But how do you decide in practice which one to increase when you're an
+> application (or middleware) developer ?
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 615dae5..dbdd5b4 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -352,7 +352,8 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
- 
- 		/* Check if the two ends match */
- 		if (fmt_source.format.width != fmt_sink.format.width ||
--		    fmt_source.format.height != fmt_sink.format.height)
-+		    fmt_source.format.height != fmt_sink.format.height ||
-+		    fmt_source.format.code != fmt_sink.format.code)
- 			return -EPIPE;
- 
- 		if (shifter_link) {
+I think it's the responsibility of this library to do that, unless the 
+user wants really, really precise control in which case they have to 
+deal with the blanking values directly. In general it should be the library.
+
 -- 
-1.7.2.5
-
+Sakari Ailus
+sakari.ailus@iki.fi
