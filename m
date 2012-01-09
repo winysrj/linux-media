@@ -1,56 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:47949 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755617Ab2ANSX5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 13:23:57 -0500
-Date: Sat, 14 Jan 2012 19:24:14 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH/RFC v2 3/4] gspca: sonixj: Add
- V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-Message-ID: <20120114192414.05ad2e83@tele>
-In-Reply-To: <4F11BE7C.3060601@gmail.com>
-References: <4EBECD11.8090709@gmail.com>
-	<1325873682-3754-4-git-send-email-snjw23@gmail.com>
-	<20120114094720.781f89a5@tele>
-	<4F11BE7C.3060601@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:43470 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751412Ab2AIIFc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 03:05:32 -0500
+Received: by wibhm6 with SMTP id hm6so2341527wib.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2012 00:05:31 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <01cc01ccce54$4f9e9770$eedbc650$@coexsi.fr>
+References: <CADR1r6jbuGD5hecgC-gzVda1G=vCcOn4oMsf5TxcyEVWsWdVuQ@mail.gmail.com>
+	<01cc01ccce54$4f9e9770$eedbc650$@coexsi.fr>
+Date: Mon, 9 Jan 2012 09:05:31 +0100
+Message-ID: <CADR1r6iKj7MrTVx4aObbMUVswwT-8LMgGR=BVtpX9r+PKWzw9g@mail.gmail.com>
+Subject: Re: [DVB Digital Devices Cine CT V6] status support
+From: Martin Herrman <martin.herrman@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 14 Jan 2012 18:42:20 +0100
-Sylwester Nawrocki <sylvester.nawrocki@gmail.com> wrote:
+2012/1/8 SÈbastien RAILLARD (COEXSI) <sr@coexsi.fr>:
+>
+>> http://shop.digital-
+>> devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/62357162/Categori
+>> es/HDTV_Karten_fuer_Mediacenter/Cine_PCIe_Serie/DVBC_T
+>>
+>> But.. is this card supported by the Linux kernel?
+>>
+>
+> The short answer is yes, and as far as I know, it's working fine with DVB-T
+> (I've never tested the DVB-C).
+> For support, you need to compile the drivers from Oliver Endriss as they are
+> not merged in mainstream kernel.
+>
+> Check here (kernel > 2.6.31):
+> http://linuxtv.org/hg/~endriss/media_build_experimental/
+> Or here (kernel < 2.6.36) :
+> http://linuxtv.org/hg/~endriss/ngene-octopus-test/
 
-> Thank you for reviewing the patches. I wasn't sure I fully understood
-> the locking, hence I left the 'quality' field in 'struct sd' not removed. 
-> I've modified both subdrivers according to your suggestions. I would have 
-> one question before I send the corrected patches though. Unlike zc3xx, 
-> the configured quality value in sonixj driver changes dynamically, i.e. 
-> it drifts away in few seconds from whatever value the user sets. This makes
-> me wonder if .set_control operation should be implemented for the QUALITY
-> control, and whether to leave V4L2_CTRL_FLAG_READ_ONLY control flag or not.
-> 
-> There seem to be not much value in setting such control for the user,
-> but maybe it's different for other devices covered by the sonixj driver.
+Hi SÈbastien,
 
-Setting the JPEG quality in sonixj has been removed when automatic
-quality adjustment has been added (git commit b96cfc33e7). At this
-time, I let the JPEG get function, but it could have been removed as
-well: I don't think the users are interested by this quality, and the
-applications may find it looking at the quantization tables of the
-images.
+thanks for your quick and positive reply.
 
-Otherwise, letting the users/applications to set this quality is
-dangerous: if the quality is too high, the images cannot be fully
-transmitted because their size is too big for the USB 1.1 channel.
+Anyone here that tested it with DVB-C?
 
-So, IMO, you should let the sonixj as it is, and I will remove the
-get_jepgcomp.
+Are there any plans to merge this in the mainstream kernel?
 
--- 
-Ken ar c'henta√±	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+Regards,
+
+Martin
