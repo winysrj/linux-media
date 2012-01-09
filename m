@@ -1,135 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:38127 "EHLO
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40932 "EHLO
 	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750891Ab2AYX2V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 18:28:21 -0500
-Date: Thu, 26 Jan 2012 01:28:16 +0200
+	with ESMTP id S1751379Ab2AIRih (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 12:38:37 -0500
+Date: Mon, 9 Jan 2012 19:38:25 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, rob@ti.com,
-	patches@linaro.org
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-Message-ID: <20120125232816.GA15297@valkosipuli.localdomain>
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
- <201201201729.00230.laurent.pinchart@ideasonboard.com>
- <000601ccd9ae$5bd5fff0$1381ffd0$%szyprowski@samsung.com>
- <201201231048.47433.laurent.pinchart@ideasonboard.com>
- <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
+To: linux-media@vger.kernel.org
+Cc: tuukkat76@gmail.com, dacohen@gmail.com,
+	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
+	hverkuil@xs4all.nl, snjw23@gmail.com
+Subject: [ANN] Notes on IRC meeting on new sensor control interface,
+ 2012-01-09 14:00 GMT+2
+Message-ID: <20120109173825.GR9323@valkosipuli.localdomain>
+References: <20120104085633.GM3677@valkosipuli.localdomain>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
+In-Reply-To: <20120104085633.GM3677@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel and Laurent,
+Hi all,
 
-On Mon, Jan 23, 2012 at 11:35:01AM +0100, Daniel Vetter wrote:
-> On Mon, Jan 23, 2012 at 10:48, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > Hi Marek,
-> >
-> > On Monday 23 January 2012 10:06:57 Marek Szyprowski wrote:
-> >> On Friday, January 20, 2012 5:29 PM Laurent Pinchart wrote:
-> >> > On Friday 20 January 2012 17:20:22 Tomasz Stanislawski wrote:
-> >> > > >> IMO, One way to do this is adding field 'struct device *dev' to
-> >> > > >> struct vb2_queue. This field should be filled by a driver prior to
-> >> > > >> calling vb2_queue_init.
-> >> > > >
-> >> > > > I haven't looked into the details, but that sounds good to me. Do we
-> >> > > > have use cases where a queue is allocated before knowing which
-> >> > > > physical device it will be used for ?
-> >> > >
-> >> > > I don't think so. In case of S5P drivers, vb2_queue_init is called
-> >> > > while opening /dev/videoX.
-> >> > >
-> >> > > BTW. This struct device may help vb2 to produce logs with more
-> >> > > descriptive client annotation.
-> >> > >
-> >> > > What happens if such a device is NULL. It would happen for vmalloc
-> >> > > allocator used by VIVI?
-> >> >
-> >> > Good question. Should dma-buf accept NULL devices ? Or should vivi pass
-> >> > its V4L2 device to vb2 ?
-> >>
-> >> I assume you suggested using struct video_device->dev entry in such case.
-> >> It will not work. DMA-mapping API requires some parameters to be set for
-> >> the client device, like for example dma mask. struct video_device contains
-> >> only an artificial struct device entry, which has no relation to any
-> >> physical device and cannot be used for calling DMA-mapping functions.
-> >>
-> >> Performing dma_map_* operations with such artificial struct device doesn't
-> >> make any sense. It also slows down things significantly due to cache
-> >> flushing (forced by dma-mapping) which should be avoided if the buffer is
-> >> accessed only with CPU (like it is done by vb2-vmalloc style drivers).
-> >
-> > I agree that mapping the buffer to the physical device doesn't make any sense,
-> > as there's simple no physical device to map the buffer to. In that case we
-> > could simply skip the dma_map/dma_unmap calls.
-> 
-> See my other mail, dma_buf v1 does not support cpu access. So if you
-> don't have a device around, you can't use it in it's current form.
-> 
-> > Note, however, that dma-buf v1 explicitly does not support CPU access by the
-> > importer.
-> >
-> >> IMHO this case perfectly shows the design mistake that have been made. The
-> >> current version simply tries to do too much.
-> >>
-> >> Each client of dma_buf should 'map' the provided sgtable/scatterlist on its
-> >> own. Only the client device driver has all knowledge to make a proper
-> >> 'mapping'. Real physical devices usually will use dma_map_sg() for such
-> >> operation, while some virtual ones will only create a kernel mapping for
-> >> the provided scatterlist (like vivi with vmalloc memory module).
-> >
-> > I tend to agree with that. Depending on the importer device, drivers could
-> > then map/unmap the buffer around each DMA access, or keep a mapping and sync
-> > the buffer.
-> 
-> Again we've discussed adding a syncing op to the interface that would
-> allow keeping around mappings. The thing is that this also requires an
-> unmap callback or something similar, so that the exporter can inform
-> the importer that the memory just moved around. And the exporter
-> _needs_ to be able to do that, hence also the language in the doc that
-> importers need to braked all uses with a map/unmap and can't sit
-> forever on a dma_buf mapping.
 
-I'd also like to stress that being able to prepare video buffers and keep
-them around is a very important feature. The buffers should not be unmapped
-while the user space doesn't want that. Mapping buffer in V4L2 for every
-frame is prohibitively expensive and should only happen the first time the
-buffer is introduced to the buffer queue. Similarly unmapping should take
-place either explicitly (REQBUFS) IOCTL or implicitly (closing associated
-file handle).
+We had an IRC meeting on the new sensor control interface on #v4l-meeting
+as scheduled previously. The meeting log is available here:
 
-Could this be a single bit that tells whether the buffer can be moved around
-or not? Where exactly, I don't know.
+<URL:http://www.retiisi.org.uk/v4l2/v4l2-sensor-control-interface-2012-01-09.txt>
 
-> > What about splitting the map_dma_buf operation into an operation that backs
-> > the buffer with pages and returns an sg_list, and an operation that performs
-> > DMA synchronization with the exporter ? unmap_dma_buf would similarly be split
-> > in two operations.
-> 
-> Again for v1 that doesn't make sense because you can't do cpu access
-> anyway and you should not hang onto mappings forever. Furthermore we
-> have cases where an unmapped sg_list for cpu access simple makes no
-> sense.
+My notes can be found below.
 
-Why you "should not hang onto mappings forever"? This is currently done by
-virtually all V4L2 drivers where such mappings are relevant. Not doing so
-would really kill the performance i.e. it's infeasible. Same goes to (m)any
-other multimedia devices dealing with buffers containing streaming video
-data.
 
-Kind regards,
+Accessing V4L2 subdev and MC interfaces in user space: user space libraries
+===========================================================================
+
+While the V4L2 subdev and Media controller kernel interface is functionally
+comprehensive, it is a relatively low level interface for even for
+vendor-specific user space camera libraries. The issue is intensified with
+the extension of the pipeline configuration performed using the Media
+controller and V4L2 subdev interfaces to cover the image processing
+performed on the sensor: this is part of the new sensor control interface.
+
+As we want to encourage SoC vendors to use the V4L2, we need to make this as
+easy as possible for them.
+
+The low level camera control libraries can be split into roughly two
+categories: those which configure the image pipe and those which deal with
+the 3A algorithms. The 3A algorithms are typically proprietary so we
+concentrated to the pipeline configuration which is what the Media
+controller and V4L2 subdev frameworks have been intended for.
+
+Two libraries already exist for this: libmediactl and libv4l2subdev. The
+former deals with topology enumeration and link configuration whereas the
+latter is a generic library for V4L2 subdev configuration, including format
+configuration.
+
+The new sensor control interface moves the remaining policy decisions to the
+user space: how the sensor's image pipe is configured, what pixel rates are
+being used on the bus from the sensor to the ISP and how is the blanking
+configured.
+
+The role of the new library, called libv4l2pipe, is to interpret text-based
+configuration file containing sections for various pipeline format and link
+configurations, as well as V4L2 controls: the link frequency is a control as
+well; but more on that below. The library may be later on merged to
+libv4l2pipeauto which Sakari is working on.
+
+Both pipeline format and link configurations are policy decisions and thus
+can be expected to be use case specific. A format configuration is dependent
+on a link configuration but the same link configuration can be used with
+several format configurations. Thus the two should be defined separately.
+
+A third kind of section will be for setting controls. The only control to be
+set will be the link frequency control but a new type of setting warrants a
+new section.
+
+A fourth section may be required as well: at this level the frame rate (or
+frame time) range makes more sense than the low-level blanking values. The
+blanking values can be calculated from the frame time and a flag which tells
+whether either horizontal or vertical blanking should be preferred.
+
+A configuration consisting of all the above sections will define the full
+pipeline configuration. The library must also provide a way to enumerate,
+query and set these configurations.
+
+With the existence of this library and the related new sensor control
+interface, the V4L2 supports implementing digital cameras even better than
+it used to.
+
+The LGPL 2.1+ license used by libmediactl, libv4l2pipeauto and the future
+libv4l2pipe(auto) is not seen an issue for Android to adopt these libraries
+either.
+
+In GStreamer middleware, libv4l2pipe is expected to be used by the camera
+source component.
+
+
+The new sensor control interface
+================================
+
+
+The common understanding was that the new sensor control interface is mostly
+accepted. No patches have been acked since there have been lots of trivial
+and some not so trivial issues in the patchset. There was an exception to
+this, which is the pixel_rate field in struct v4l2_mbus_framefmt.
+
+The field is expected to be propagated by the user while the user has no
+valid use case to modify it. The agreement was that instead of adding the
+field to struct v4l2_mbus_framefmt, a new control will be introduced
+instead.
+
+A control has several good properties: it can be implemented where it is
+valid: it isn't always possible to accurately specify the pixel rate in some
+parts of the pipeline.
+
+Sensor drivers should provide the pixel_rate control in two subdevs: the
+pixel array and the one which is opposed to the ISP's bus receiver. The
+pixel array's pixel rate is mostly required in the user space whereas the
+pixel rate in the bus transmitter subdev (which may have other functionality
+as well) is often required by the bus receivers, as well as by the rest of
+the ISP.
+
+Ideally the pixel_rate control is related to pads rather than subdevs but 1)
+we don't have pad specific controls and 2) we don't stictly need them right
+now since there only will be need for a single pixel_rate control per
+subdev.
+
+If pixel rate management will be implemented to prevent starting pipelines
+which would fail to stream in cases where too high pixel rates are used on
+particular subdevs, the concept of pad-specific controls may be later
+revisited. Making the pixel_rate control pad-specific only will change the
+interface towards the user space if the pad where it is implemented is
+non-zero.
+
 
 -- 
 Sakari Ailus
