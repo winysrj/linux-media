@@ -1,57 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:48661 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751207Ab2AOIof (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 03:44:35 -0500
-Date: Sun, 15 Jan 2012 10:44:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: v4l: how to get blanking clock count?
-Message-ID: <20120115084429.GB11467@valkosipuli.localdomain>
-References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
- <20111230213301.GA3677@valkosipuli.localdomain>
- <CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com>
- <20111231113529.GC3677@valkosipuli.localdomain>
- <4EFEFA08.805@gmail.com>
- <CAHG8p1AjoV1gBhQGFm0rEYSkHrpG+XtQB7kYXc8x5nuqjW4Z4g@mail.gmail.com>
- <20120104082742.GL3677@valkosipuli.localdomain>
- <CAHG8p1DxPJthH8JOH9AEmLyCwas4O0f16ytk3FeknaPLnP_-2g@mail.gmail.com>
- <20120104093909.GA9323@valkosipuli.localdomain>
- <CAHG8p1BmtK5dydPZxsT7hoE1JoSFsN1MsXA0qaeVQBzpCeb0VQ@mail.gmail.com>
+Received: from sysphere.org ([97.107.129.246]:56743 "EHLO mail.sysphere.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755672Ab2AIP02 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 9 Jan 2012 10:26:28 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by mail.sysphere.org (Postfix) with ESMTP id 19A9C7E6F
+	for <linux-media@vger.kernel.org>; Mon,  9 Jan 2012 16:26:28 +0100 (CET)
+Date: Mon, 9 Jan 2012 16:26:28 +0100
+From: "Adrian C." <anrxc@sysphere.org>
+To: linux-media@vger.kernel.org
+Subject: Re: Support for IR on terratec/skystarhd2 mantis cards
+In-Reply-To: <alpine.LNX.2.00.1201082249010.28018@flfcurer.bet>
+Message-ID: <alpine.LNX.2.00.1201091622380.16265@flfcurer.bet>
+References: <alpine.LNX.2.00.1201082249010.28018@flfcurer.bet>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAHG8p1BmtK5dydPZxsT7hoE1JoSFsN1MsXA0qaeVQBzpCeb0VQ@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Scott,
+On Sun, 8 Jan 2012, Adrian C. wrote:
 
-On Wed, Jan 04, 2012 at 05:59:45PM +0800, Scott Jiang wrote:
-> >> If I disable this interrupt, other errors like fifo underflow are ignored.
-> >> Perhaps I can add a parameter in platform data to let user decide to
-> >> register this interrupt or not.
-> >
-> > I think a more generic solution would be preferrable. If that causes
-> > ignoring real errors, that's of course bad. I  wonder if there would be a
-> > way around that.
-> >
-> > Is there a publicly available datasheet for the bridge that I could take a
-> > look at?
-> >
-> Yes, http://www.analog.com/en/processors-dsp/blackfin/adsp-bf548/processors/technical-documentation/index.html.
-> There is a hardware reference manual for bf54x, bridge is eppi.
+> Patch broke linux 3.2 build and needed more minor changes
 
-Yeah, indeed it's the first time I see hardware like this. So to support
-this properly, we truly need the new sensor control interface and an ability
-to make those blanking values unchangeable.
+Don't get me wrong, it's not troublesome. Just API changes, new 
+includes... things I don't know changed as I don't track media 
+development.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Anyway it was pointed out to me Christoph Pinkl already submitted the 
+patch for review, fact I missed before patchwork.linuxtv.org/patch/7217
