@@ -1,52 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35037 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754717Ab2AQS5O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 13:57:14 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0HIvEl7024240
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 17 Jan 2012 13:57:14 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/4] [media] DocBook/dvbproperty.xml: Fix ISDB-T delivery system parameters
-Date: Tue, 17 Jan 2012 16:57:07 -0200
-Message-Id: <1326826629-29961-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1326826629-29961-2-git-send-email-mchehab@redhat.com>
-References: <1326826629-29961-1-git-send-email-mchehab@redhat.com>
- <1326826629-29961-2-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:53800 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751920Ab2AIILE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 03:11:04 -0500
+MIME-Version: 1.0
+In-Reply-To: <20120109081030.GA3723@phenom.ffwll.local>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+	<1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
+	<CAAQKjZPFh6666JKc-XJfKYePQ_F0MNF6FkY=zKypWb52VVX3YQ@mail.gmail.com>
+	<20120109081030.GA3723@phenom.ffwll.local>
+Date: Mon, 9 Jan 2012 08:11:03 +0000
+Message-ID: <CAPM=9twA_LRL_L88fF1010dQVAx4OY_pydPky_8qpGkAD5fOqg@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFC v2 1/2] dma-buf: Introduce dma buffer
+ sharing mechanism
+From: Dave Airlie <airlied@gmail.com>
+To: InKi Dae <daeinki@gmail.com>, Sumit Semwal <sumit.semwal@ti.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-mm@kvack.org, linaro-mm-sig@lists.linaro.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linux@arm.linux.org.uk, arnd@arndb.de, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, rob@ti.com, t.stanislaws@samsung.com,
+	Sumit Semwal <sumit.semwal@linaro.org>
+Cc: daniel@ffwll.ch
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The ISDB-T differs on its way to implement the hierarchical
-transmissions: instead of using a low-priority/high-priority
-FEC codes, it does that by using different layers, each layer
-with their groups of segments. So, those parameters don't make sense
-for ISDB-T.
+On Mon, Jan 9, 2012 at 8:10 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Mon, Jan 09, 2012 at 03:20:48PM +0900, InKi Dae wrote:
+>> I has test dmabuf based drm gem module for exynos and I found one problem.
+>> you can refer to this test repository:
+>> http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/exynos-drm-dmabuf
+>>
+>> at this repository, I added some exception codes for resource release
+>> in addition to Dave's patch sets.
+>>
+>> let's suppose we use dmabuf based vb2 and drm gem with physically
+>> continuous memory(no IOMMU) and we try to share allocated buffer
+>> between them(v4l2 and drm driver).
+>>
+>> 1. request memory allocation through drm gem interface.
+>> 2. request DRM_SET_PRIME ioctl with the gem handle to get a fd to the
+>> gem object.
+>> - internally, private gem based dmabuf moudle calls drm_buf_export()
+>> to register allocated gem object to fd.
+>> 3. request qbuf with the fd(got from 2) and DMABUF type to set the
+>> buffer to v4l2 based device.
+>> - internally, vb2 plug in module gets a buffer to the fd and then
+>> calls dmabuf->ops->map_dmabuf() callback to get the sg table
+>> containing physical memory info to the gem object. and then the
+>> physical memory info would be copied to vb2_xx_buf object.
+>> for DMABUF feature for v4l2 and videobuf2 framework, you can refer to
+>> this repository:
+>> git://github.com/robclark/kernel-omap4.git drmplane-dmabuf
+>>
+>> after that, if v4l2 driver want to release vb2_xx_buf object with
+>> allocated memory region by user request, how should we do?. refcount
+>> to vb2_xx_buf is dependent on videobuf2 framework. so when vb2_xx_buf
+>> object is released videobuf2 framework don't know who is using the
+>> physical memory region. so this physical memory region is released and
+>> when drm driver tries to access the region or to release it also, a
+>> problem would be induced.
+>>
+>> for this problem, I added get_shared_cnt() callback to dma-buf.h but
+>> I'm not sure that this is good way. maybe there may be better way.
+>> if there is any missing point, please let me know.
+>
+> The dma_buf object needs to hold a reference on the underlying
+> (necessarily reference-counted) buffer object when the exporter creates
+> the dma_buf handle. This reference should then get dropped in the
+> exporters dma_buf->ops->release() function, which is only getting called
+> when the last reference to the dma_buf disappears.
+>
+> If this doesn't work like that currently, we have a bug, and exporting the
+> reference count or something similar can't fix that.
+>
+> Yours, Daniel
+>
+> PS: Please cut down the original mail when replying, otherwise it's pretty
+> hard to find your response ;-)
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- Documentation/DocBook/media/dvb/dvbproperty.xml |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+And also the importer needs to realise it doesn't own the pages in the
+sg_table and when its freeing its backing memory it shouldn't free
+those pages. So for GEM objects we have to keep track if we allocated
+the pages or we got them from an dma buf.
 
-diff --git a/Documentation/DocBook/media/dvb/dvbproperty.xml b/Documentation/DocBook/media/dvb/dvbproperty.xml
-index 0496641..2de2bb3 100644
---- a/Documentation/DocBook/media/dvb/dvbproperty.xml
-+++ b/Documentation/DocBook/media/dvb/dvbproperty.xml
-@@ -740,11 +740,8 @@ typedef enum fe_hierarchy {
- 			<listitem><para><link linkend="DTV-MODULATION"><constant>DTV_MODULATION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-BANDWIDTH-HZ"><constant>DTV_BANDWIDTH_HZ</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-INVERSION"><constant>DTV_INVERSION</constant></link></para></listitem>
--			<listitem><para><link linkend="DTV-CODE-RATE-HP"><constant>DTV_CODE_RATE_HP</constant></link></para></listitem>
--			<listitem><para><link linkend="DTV-CODE-RATE-LP"><constant>DTV_CODE_RATE_LP</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-GUARD-INTERVAL"><constant>DTV_GUARD_INTERVAL</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-TRANSMISSION-MODE"><constant>DTV_TRANSMISSION_MODE</constant></link></para></listitem>
--			<listitem><para><link linkend="DTV-HIERARCHY"><constant>DTV_HIERARCHY</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-ISDBT-LAYER-ENABLED"><constant>DTV_ISDBT_LAYER_ENABLED</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-ISDBT-PARTIAL-RECEPTION"><constant>DTV_ISDBT_PARTIAL_RECEPTION</constant></link></para></listitem>
- 			<listitem><para><link linkend="DTV-ISDBT-SOUND-BROADCASTING"><constant>DTV_ISDBT_SOUND_BROADCASTING</constant></link></para></listitem>
--- 
-1.7.8
-
+Dave.
