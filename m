@@ -1,27 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6561 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757298Ab2ADX7Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 18:59:16 -0500
-Message-ID: <4F04E7CD.1050304@redhat.com>
-Date: Wed, 04 Jan 2012 21:59:09 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from exprod6ob108.obsmtp.com ([64.18.1.20]:50763 "HELO
+	exprod6ob108.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932429Ab2AIRIb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 12:08:31 -0500
+Received: by mail-ey0-f174.google.com with SMTP id d14so2123621eaa.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2012 09:08:25 -0800 (PST)
 MIME-Version: 1.0
-To: =?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.mmm@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Fix Leadtek DTV2000H radio tuner
-References: <CAEN_-SARAe306X5-gS7N8-_y7jP3zTRgOvUEdCE6cBh1azXOdA@mail.gmail.com> <CAEN_-SAM4j8kbG-1Vn3F_uF50ktyPSZcaWvJLX-hqgeTqtxDKQ@mail.gmail.com>
-In-Reply-To: <CAEN_-SAM4j8kbG-1Vn3F_uF50ktyPSZcaWvJLX-hqgeTqtxDKQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Date: Mon, 9 Jan 2012 11:08:24 -0600
+Message-ID: <CAPc4S2YPRWHhTJY0C5gMYtFgULHibfaqGuPOeU-fFxm9XfxYjg@mail.gmail.com>
+Subject: No video on generic SAA7134 card
+From: Christopher Peters <cpeters@ucmo.edu>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04-01-2012 21:54, Miroslav Slugeň wrote:
-> Resending signed version...
+I have one of these cards: http://tinyurl.com/7kupvw7 and I'd like to
+make it work on my Linux box.  It is seen by the kernel and detected
+as a generic SAA7134-based card.  However, when I hook up video to the
+card and attempt to view it in VLC, I don't see the video.  Instead I
+see a number of alternating dark grey and white lines, and the image
+flickers.  There's no change in the image if I disconnect the video
+source from one of the inputs and connect it to another (there are
+four in total) input).
 
-You need to do the same for the other patches you've sent ;)
+Suggestions?  Should I expect to get video if the card is detected as
+"generic", rather than a specific manufacturer / model?
 
-Thanks
-Mauro
+KP
 
+-- 
+-
+Kit Peters (W0KEH), Engineer II
+KMOS TV Channel 6 / KTBG 90.9 FM
+University of Central Missouri
+http://kmos.org/ | http://ktbg.fm/
