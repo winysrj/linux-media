@@ -1,64 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:36449 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756710Ab2AXVdq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 16:33:46 -0500
+Received: from rcsinet15.oracle.com ([148.87.113.117]:27627 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751536Ab2AIRr3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 12:47:29 -0500
+Date: Mon, 9 Jan 2012 20:48:17 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] af9013: change & to &&
+Message-ID: <20120109174817.GH3731@mwanda>
+References: <20120105062328.GA25744@elgon.mountain>
+ <4F0B26A1.2020402@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4F1A0783.9010501@xenotime.net>
-References: <20120120131243.7c867c7b96c75819b68aec8d@canb.auug.org.au>
-	<4F1A0783.9010501@xenotime.net>
-Date: Tue, 24 Jan 2012 22:33:43 +0100
-Message-ID: <CAMuHMdX8=x-=DQu0SCbqYK00+sP8a-kR=9KrUptAq-gqOXHAhA@mail.gmail.com>
-Subject: Re: linux-next: Tree for Jan 20 (drivers/media/radio/wl128x/)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Randy Dunlap <rdunlap@xenotime.net>,
-	Fabio Estevam <festevam@gmail.com>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="G44BJl3Aq1QbV/QL"
+Content-Disposition: inline
+In-Reply-To: <4F0B26A1.2020402@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jan 21, 2012 at 01:32, Randy Dunlap <rdunlap@xenotime.net> wrote:
-> On 01/19/2012 06:12 PM, Stephen Rothwell wrote:
->> Changes since 20120119:
->
-> on x86_64:
->
-> ERROR: "st_register" [drivers/media/radio/wl128x/fm_drv.ko] undefined!
-> ERROR: "st_unregister" [drivers/media/radio/wl128x/fm_drv.ko] undefined!
 
-Also in m68k allmodconfig since a while:
-http://kisskb.ellerman.id.au/kisskb/buildresult/5427875/
+--G44BJl3Aq1QbV/QL
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-config RADIO_WL128X
-        tristate "Texas Instruments WL128x FM Radio"
-        depends on VIDEO_V4L2 && RFKILL
-        select TI_ST if NET && GPIOLIB
+On Mon, Jan 09, 2012 at 07:40:49PM +0200, Antti Palosaari wrote:
+> Clear bug, I will test it later when applied to master if not
+> already. Thanks!
 
-config TI_ST
-        tristate "Shared transport core driver"
-        depends on NET && GPIOLIB
-        select FW_LOADER
+You're welcome, but it's not a bug because (1 & 1 & 0) is the same
+as (1 && 1 && 0) but if one of them wasn't a bool it would be a
+problem.  The other difference between & and && is that && has
+orderring guarantees but that's also not a factor here.
 
-On m68k allmodconfig, GPIOLIB is not enabled, hence TI_ST
-will not be selected, and st_{,un}register() won't be there.
-Shouldn't the whole RADIO_WL128X depend on NET && GPIOLIB?
-Or depend on TI_ST, instead of selecting it?
+regards,
+dan carpenter
 
-BTW, shouldn't it be called ti_st_un{,un}register()?
-At first I thought the link error was related to SCSI tape drives ;-)
 
-Gr{oetje,eeting}s,
+--G44BJl3Aq1QbV/QL
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-                        Geert
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+iQIcBAEBAgAGBQJPCyhhAAoJEOnZkXI/YHqR76oQAJW+H/Xl5GrYaKIXxJ7EQM3G
+OJrpcv2Dru+LZ+CA5MybNZKji9J6nVj1CE9W31DY/jo3uUPzqTBuCPLQcEOqff/O
+sHP69JFD8C+lTUJCVV2aHhpoF3IHFl87cEa1T+lsQjwQjgoUWyR5xeM2nd8qze/v
+OVaLGvnVQRwX6TjZoy1Uiz9yGxy+dvJ69C+ps74q5qtvU4A0viMT/X8CMJ35Qf8s
+v3Mcm7NNYW8zaX5JY6FI7lx4apfF90OmUiNL46+kBuUhcFIS9brko6QYo3xWR81p
+Mf1TAzKV8eOcAqHV8TXaJd9y8CR95RQZD7sSxk0vXKx6hJ9pRYFScw4Q+aOC9TsV
+O64lozP70WrMBcFb6oR/u9Yz9rra3w+eOPxsfBoUGPJUf3Fv6SXT8zOdnFUohW3g
+jYfaoRuvTymGJ6brgy4QWGO3g0pcgXFMhWftlZL9Ri03pBUV+t4QfZr+HIoDeC6Y
+e9oRpc5wbtNlmDdpOS0V0/h55TWW1Th8/Hr3dcpLwglP+L6px+PRBd0Fmh4napm8
+ED52+HeGexzYFk+jMYa+OMDG3QYg4UePT49F9E1txGp+Gwsf+OZcBp0P7MMscOK5
+Wst1XPGAlZxFpe8vi7pFyHNCaz8NbU5cL34py23BJ0Sn4Z+w5f8o9pQs13u/W16B
+EwP+8dQ2+/kRBNHVCxSA
+=TqZL
+-----END PGP SIGNATURE-----
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+--G44BJl3Aq1QbV/QL--
