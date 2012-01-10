@@ -1,56 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:42099 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750795Ab2AGOSy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jan 2012 09:18:54 -0500
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: linux-media@vger.kernel.org, mchehab@infradead.org,
-	dheitmueller@kernellabs.com, rankincj@yahoo.com, crope@iki.fi,
-	jarod@redhat.com
-Cc: gregory.clement@free-electrons.com,
-	maxime.ripard@free-electrons.com,
-	michael.opdenacker@free-electrons.com
-Subject: [PATCH] em28xx: simplify argument passing to em28xx_init_dev()
-Date: Sat,  7 Jan 2012 15:18:45 +0100
-Message-Id: <1325945925-3645-1-git-send-email-thomas.petazzoni@free-electrons.com>
+Received: from mx1.redhat.com ([209.132.183.28]:45720 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753459Ab2AJWWY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 17:22:24 -0500
+Message-ID: <4F0CBA13.7080305@redhat.com>
+Date: Tue, 10 Jan 2012 20:22:11 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/5] Fix dvb-core set_delivery_system and port drxk to
+ one frontend
+References: <1325777872-14696-1-git-send-email-mchehab@redhat.com> <4F0CB197.5010306@iki.fi>
+In-Reply-To: <4F0CB197.5010306@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 'struct em28xx *' pointer was passed by reference to the
-em28xx_init_dev() function, for no reason. Instead, just pass it by
-value, which is much more logical and simple.
+On 10-01-2012 19:45, Antti Palosaari wrote:
+> On 01/05/2012 05:37 PM, Mauro Carvalho Chehab wrote:
+>> With all these series applied, it is now possible to use frontend 0
+>> for all delivery systems. As the current tools don't support changing
+>> the delivery system, the dvb-fe-tool (on my experimental tree[1]) can now
+>> be used to change between them:
+>>
+>> For example, to use DVB-T with the standard scan:
+>>
+>> $ ./dvb-fe-tool -d DVBT&&  scan /usr/share/dvb/dvb-t/au-Adelaide
+>>
+>> [1] http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/shortlog/refs/heads/dvb-utils
+> 
+> I tested that now using nanoStick T2 cxd2820r driver. I got it working somehow, but I suspect there is some bugs at least for DVB-C. But forget those as now.
 
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
----
- drivers/media/video/em28xx/em28xx-cards.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+Well, we need to hardly test the DVB drivers after a 200+ patch series.
+Regressions will happen. I've cached a few already, but I'm sure there
+are others that are not that trivial.
 
-diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
-index 9b747c2..789054d 100644
---- a/drivers/media/video/em28xx/em28xx-cards.c
-+++ b/drivers/media/video/em28xx/em28xx-cards.c
-@@ -2832,11 +2832,10 @@ void em28xx_release_resources(struct em28xx *dev)
-  * em28xx_init_dev()
-  * allocates and inits the device structs, registers i2c bus and v4l device
-  */
--static int em28xx_init_dev(struct em28xx **devhandle, struct usb_device *udev,
-+static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			   struct usb_interface *interface,
- 			   int minor)
- {
--	struct em28xx *dev = *devhandle;
- 	int retval;
- 
- 	dev->udev = udev;
-@@ -3226,7 +3225,7 @@ static int em28xx_usb_probe(struct usb_interface *interface,
- 	/* allocate device struct */
- 	mutex_init(&dev->lock);
- 	mutex_lock(&dev->lock);
--	retval = em28xx_init_dev(&dev, udev, interface, nr);
-+	retval = em28xx_init_dev(dev, udev, interface, nr);
- 	if (retval) {
- 		mutex_unlock(&dev->lock);
- 		kfree(dev->alt_max_pkt_size);
--- 
-1.7.4.1
+> As it now registers only one frontend I must switch mode using dvb-fe-tool when I want to use DVB-C. Argh.
+> 
+> I don't see reason why it was needed to remove old DVB-C frontend1. Why it wasn't possible to leave FE1
+> as it was and enhance only functionality of FE0 like it is now? For that strategy we doesn't break old set-ups as now happens.
 
+This were discussed in the past:
+
+	http://www.spinics.net/lists/linux-media/msg35542.html
+
+In fact, I've proposed this strategy as one of the alternatives for MFE
+(approach 4):
+
+>>>>> Approach 4) fe0 is a frontend "superset"
+>>>>>
+>>>>> *adapter0
+>>>>> *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE superset
+>>>>> *frontend1 (DVB-S/DVB-S2)
+>>>>> *frontend2 (DVB-T/DVB-T2)
+>>>>> *frontend3 (DVB-C)
+>>>>> *frontend4 (ISDB-T)
+
+The arguments where that it would be confusing and it could be complex
+to maintain.
+
+I think that the better is to see what happens with the applications
+during this kernel cycle, and then decide what to do. A quick fix for 
+the issue at the applications side is very easy: for DVBv5.5 and upper,
+just try to force the frontend to change to the new delivery system
+via a DVBv5 call. If it accepts, it is a multi frontend devnode.
+
+A better fix is to also implement DTV_ENUM_DELSYS.
+
+Regards,
+Mauro
