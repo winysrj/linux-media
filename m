@@ -1,74 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29577 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752816Ab2AUQEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:43 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4hf7023677
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:43 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 10/35] [media] az6007: move device PID's to the proper place
-Date: Sat, 21 Jan 2012 14:04:12 -0200
-Message-Id: <1327161877-16784-11-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-10-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-68.nebula.fi ([83.145.220.68]:58828 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755038Ab2AJJw2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 04:52:28 -0500
+Message-ID: <4F0C0A5A.9060708@iki.fi>
+Date: Tue, 10 Jan 2012 11:52:26 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, tuukkat76@gmail.com,
+	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	snjw23@gmail.com
+Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09
+ 14:00 GMT+2
+References: <20120104085633.GM3677@valkosipuli.localdomain> <201201100113.07211.laurent.pinchart@ideasonboard.com> <4F0C0822.6020604@iki.fi> <201201101050.52887.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201101050.52887.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/az6007.c      |    4 ----
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    2 ++
- 2 files changed, 2 insertions(+), 4 deletions(-)
+Laurent Pinchart wrote:
+> Hi Sakari,
+>
+> On Tuesday 10 January 2012 10:42:58 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> On Tuesday 10 January 2012 00:26:46 Sakari Ailus wrote:
+>>>> Laurent Pinchart wrote:
+>>>>> On Monday 09 January 2012 23:32:06 Sakari Ailus wrote:
+>>>>>> Laurent Pinchart wrote:
+>>>>>>> On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
+>>>> ...
+>>>>
+>>>>>>>> A fourth section may be required as well: at this level the frame
+>>>>>>>> rate (or frame time) range makes more sense than the low-level
+>>>>>>>> blanking values. The blanking values can be calculated from the
+>>>>>>>> frame time and a flag which tells whether either horizontal or
+>>>>>>>> vertical blanking should be preferred.
+>>>>>>>
+>>>>>>> How does one typically select between horizontal and vertical
+>>>>>>> blanking ? Do mixed modes make sense ?
+>>>>>>
+>>>>>> There are minimums and maximums for both. You can increase the frame
+>>>>>> time by increasing value for either or both of them --- to achieve
+>>>>>> very long frame times you may have to use both, but that's not very
+>>>>>> common in practice. I think we should have a flag to tell which one
+>>>>>> should be increased first --- the effect would be to have the minimum
+>>>>>> possible value on the other.
+>>>>>
+>>>>> But how do you decide in practice which one to increase when you're an
+>>>>> application (or middleware) developer ?
+>>>>
+>>>> I think it's the responsibility of this library to do that, unless the
+>>>> user wants really, really precise control in which case they have to
+>>>> deal with the blanking values directly. In general it should be the
+>>>> library.
+>>>
+>>> And how does the library decide ? :-)
+>>
+>> frame_time = pixel_rate / ((width + hblank) * (height + vblank))
+>>
+>> The user gives you frame time and the configuration contains the
+>> information which one to prefer. Let's say the user prefers hblank (from
+>> the above):
+>
+> That was my question, how does the user decide whether hblank or vblank is
+> preferred ?
 
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index f946b1b..780a480 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -27,10 +27,6 @@
- 
- #define DVB_USB_LOG_PREFIX "az6007"
- 
--/* HACK: Should be moved to the right place */
--#define USB_PID_AZUREWAVE_6007		0x0ccd
--#define USB_PID_TERRATEC_H7		0x10b4
--
- /* debug */
- int dvb_usb_az6007_debug;
- module_param_named(debug, dvb_usb_az6007_debug, int, 0644);
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-index d390dda..b3e7be4 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -80,6 +80,7 @@
- #define USB_PID_ANSONIC_DVBT_USB			0x6000
- #define USB_PID_ANYSEE					0x861f
- #define USB_PID_AZUREWAVE_AD_TU700			0x3237
-+#define USB_PID_AZUREWAVE_6007				0x0ccd
- #define USB_PID_AVERMEDIA_DVBT_USB_COLD			0x0001
- #define USB_PID_AVERMEDIA_DVBT_USB_WARM			0x0002
- #define USB_PID_AVERMEDIA_DVBT_USB2_COLD		0xa800
-@@ -226,6 +227,7 @@
- #define USB_PID_TERRATEC_CINERGY_T_EXPRESS		0x0062
- #define USB_PID_TERRATEC_CINERGY_T_XXS			0x0078
- #define USB_PID_TERRATEC_CINERGY_T_XXS_2		0x00ab
-+#define USB_PID_TERRATEC_H7				0x10b4
- #define USB_PID_TERRATEC_T3				0x10a0
- #define USB_PID_TERRATEC_T5				0x10a1
- #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
+I think that should be defined in the configuration itself. It's very 
+unlikely there's any need to change this dynamically.
+
 -- 
-1.7.8
-
+Sakari Ailus
+sakari.ailus@iki.fi
