@@ -1,70 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39286 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747Ab2AWOl0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 09:41:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Csillag Kristof <csillag.kristof@gmail.com>
-Subject: Re: 720p webcam providing VDPAU-compatible video stream?
-Date: Mon, 23 Jan 2012 15:41:31 +0100
-Cc: linux-media@vger.kernel.org
-References: <4F1C0921.1060109@gmail.com>
-In-Reply-To: <4F1C0921.1060109@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-2"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201231541.32049.laurent.pinchart@ideasonboard.com>
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:38122 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752684Ab2AJAwK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 19:52:10 -0500
+Received: by yenm10 with SMTP id m10so506595yen.19
+        for <linux-media@vger.kernel.org>; Mon, 09 Jan 2012 16:52:09 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, Fabio Estevam <festevam@gmail.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH] drivers: video: cx231xx: Fix dependency for VIDEO_CX231XX_DVB
+Date: Mon,  9 Jan 2012 22:51:56 -0200
+Message-Id: <1326156716-3670-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kristof,
+Fix the following build warning:
 
-On Sunday 22 January 2012 14:03:29 Csillag Kristof wrote:
-> Dear linux-media users,
-> 
-> I have stopped following the advancements in Linux video
-> (and video hw in general) a while ago, so I am no longer
-> up to date with the current technologies,
-> therefore I seek your advice.
-> 
-> I am looking for for a webcam that
->   - works properly under GNU/Linux (without proprietary drivers)
->   - connects via USB 2.0
->   - can capture 720p video at 25 or 30 FPS
->   - provides a video stream that
->     - is hardware compressed by the camera
->     - can be recorded to a file with minimal CPU requirements
->       (Bonus points if it's wrapped a nice container format,
->       so that I can simply record it by something like
->       cat /dev/video0 > capture.mpeg
->       - like old Hauppauge PVR-250 cards )
->     - can be decoded by VDPAU hw acceleration
-> 
-> I have tried to look into this, and it seems that the status for H264
-> streams for UVC webcams is still problematic.
+warning: (VIDEO_CX231XX_DVB) selects DVB_MB86A20S which has unmet direct dependencies (MEDIA_SUPPORT && DVB_CAPTURE_DRIVERS && DVB_CORE && I2C)
 
-I think your best bet is still UVC + H.264, as that's what the market is 
-moving to. Any other compressed format (except for MJPEG) will likely be 
-proprietary.
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+ drivers/media/video/cx231xx/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-As you correctly mention, H.264 support isn't available yet in the UVC driver. 
-Patches are welcome ;-)
-
-> However, I don't specifically need neither UVC nor H264; any driver,
-> and any other VDPAU-supported format (like MPEG-2, VC-1, WMV9, etc)
-> could be OK.
-> 
-> I am not interested in sykpe; I only want to capture the 720p video stream
-> to files (with as low CPU usage as possible), and play it back
-> using mplayer, on NVidia cards supporting VDPAU hw acceleration
->   - again, with as low CPU usage, as possible.
-> 
-> Could someone please recommend me a device that can do this?
-> (Or tell me which device will likely get the required support soon?
-
+diff --git a/drivers/media/video/cx231xx/Kconfig b/drivers/media/video/cx231xx/Kconfig
+index c74ce9e..446f692 100644
+--- a/drivers/media/video/cx231xx/Kconfig
++++ b/drivers/media/video/cx231xx/Kconfig
+@@ -40,7 +40,7 @@ config VIDEO_CX231XX_ALSA
+ 
+ config VIDEO_CX231XX_DVB
+ 	tristate "DVB/ATSC Support for Cx231xx based TV cards"
+-	depends on VIDEO_CX231XX && DVB_CORE
++	depends on VIDEO_CX231XX && DVB_CORE && DVB_CAPTURE_DRIVERS
+ 	select VIDEOBUF_DVB
+ 	select MEDIA_TUNER_XC5000 if !MEDIA_TUNER_CUSTOMISE
+ 	select MEDIA_TUNER_TDA18271 if !MEDIA_TUNER_CUSTOMISE
 -- 
-Regards,
+1.7.1
 
-Laurent Pinchart
