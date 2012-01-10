@@ -1,70 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:53084 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751820Ab2ATNei (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jan 2012 08:34:38 -0500
-Received: by eekc14 with SMTP id c14so215090eek.19
-        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 05:34:37 -0800 (PST)
-Message-ID: <4F196D6A.3020704@gmail.com>
-Date: Fri, 20 Jan 2012 14:34:34 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-CC: Benjamin Limmer <benjamin.limmer@readytalk.com>
-Subject: Re: Build change in media_build to support Debian
-References: <52FE2DCC5CDB044F8C0070326FFDFBF30A3542@WYNENT02.readytalk.com> <4F193FF9.4030604@redhat.com>
-In-Reply-To: <4F193FF9.4030604@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.1.48]:42122 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932469Ab2AJTO2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 14:14:28 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH 1/1] v4l: Ignore ctrl_class in the control framework
+Date: Tue, 10 Jan 2012 21:14:22 +0200
+Message-Id: <1326222862-15936-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 20/01/2012 11:20, Mauro Carvalho Chehab ha scritto:
-> Em 19-01-2012 21:04, Benjamin Limmer escreveu:
->> commit 2949a7393f3e2598d4de49b408587462b11f819f
->> Author: Ben Limmer <benjamin.limmer@readytalk.com>
->> Date:   Thu Jan 19 16:01:15 2012 -0700
->>
->>     Update to build script to give Debian users the Ubunutu package hints. The aptitude package names are the same.
->>
->> diff --git a/build b/build
->> index c3947b3..6843033 100755
->> --- a/build
->> +++ b/build
->> @@ -134,6 +134,10 @@ sub give_hints()
->>                 give_arch_linux_hints;
->>                 return;
->>         }
->> +       if ($system_release =~ /Debian/) {
->> +               give_ubuntu_hints;
->> +               return; 
->> +       }
->>  
->>         # Fall-back to generic hint code
->>         foreach my $prog (@missing) {
->>
->>
->> Please see the above commit message. This is an easy change to support hints for debian users. I've confirmed these changes work on Debian Squeeze.
->>
->> -Ben Limmer--
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
-> Applied, thanks!
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Back in the old days there was probably a reason to require that controls
+that are being used to access using VIDIOC_{TRY,G,S}_EXT_CTRLS belonged to
+the same class. These days such reason does not exist, or at least cannot be
+remembered, and concrete examples of the opposite can be seen: a single
+(sub)device may well offer controls that belong to different classes and
+there is no reason to deny changing them atomically.
 
-Hi Mauro,
-after this patch, the "build" script on media_build has lost the
-"execute" permissions.
-Can you "chmod +x" it again?
+This patch removes the check for v4l2_ext_controls.ctrl_class in the control
+framework. The control framework issues the s_ctrl() op to the drivers
+separately so changing the behaviour does not really change how this works
+from the drivers' perspective.
 
-Best regards,
-Gianluca
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/v4l2-ctrls.c |   18 +++++-------------
+ 1 files changed, 5 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index da1f4c2..fff3bb3 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -1855,9 +1855,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ 
+ 		cs->error_idx = i;
+ 
+-		if (cs->ctrl_class && V4L2_CTRL_ID2CLASS(id) != cs->ctrl_class)
+-			return -EINVAL;
+-
+ 		/* Old-style private controls are not allowed for
+ 		   extended controls */
+ 		if (id >= V4L2_CID_PRIVATE_BASE)
+@@ -1918,13 +1915,10 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+ }
+ 
+ /* Handles the corner case where cs->count == 0. It checks whether the
+-   specified control class exists. If that class ID is 0, then it checks
+-   whether there are any controls at all. */
+-static int class_check(struct v4l2_ctrl_handler *hdl, u32 ctrl_class)
++   there are any controls at all. */
++static int handler_check(struct v4l2_ctrl_handler *hdl)
+ {
+-	if (ctrl_class == 0)
+-		return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
+-	return find_ref_lock(hdl, ctrl_class | 1) ? 0 : -EINVAL;
++	return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
+ }
+ 
+ 
+@@ -1938,13 +1932,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
+ 	int i, j;
+ 
+ 	cs->error_idx = cs->count;
+-	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
+ 
+ 	if (hdl == NULL)
+ 		return -EINVAL;
+ 
+ 	if (cs->count == 0)
+-		return class_check(hdl, cs->ctrl_class);
++		return handler_check(hdl);
+ 
+ 	if (cs->count > ARRAY_SIZE(helper)) {
+ 		helpers = kmalloc(sizeof(helper[0]) * cs->count, GFP_KERNEL);
+@@ -2160,13 +2153,12 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
+ 	int ret;
+ 
+ 	cs->error_idx = cs->count;
+-	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
+ 
+ 	if (hdl == NULL)
+ 		return -EINVAL;
+ 
+ 	if (cs->count == 0)
+-		return class_check(hdl, cs->ctrl_class);
++		return handler_check(hdl);
+ 
+ 	if (cs->count > ARRAY_SIZE(helper)) {
+ 		helpers = kmalloc(sizeof(helper[0]) * cs->count, GFP_KERNEL);
+-- 
+1.7.2.5
+
