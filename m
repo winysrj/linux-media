@@ -1,64 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56593 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753221Ab2AYM1s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 07:27:48 -0500
-Message-ID: <4F1FF53F.6090603@redhat.com>
-Date: Wed, 25 Jan 2012 10:27:43 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Benjamin Larsson <benjamin@southpole.se>
-CC: linux-media@vger.kernel.org
-Subject: Re: Hauppauge HVR-930C
-References: <4F1FF046.9050401@southpole.se>
-In-Reply-To: <4F1FF046.9050401@southpole.se>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mail.pripojeni.net ([178.22.112.14]:36062 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754181Ab2AJRWL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 12:22:11 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: mikekrufky@gmail.com, linux-media@vger.kernel.org,
+	jirislaby@gmail.com, linux-kernel@vger.kernel.org,
+	Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH 2/4] DVB: dib0700, separate stk7070pd initialization
+Date: Tue, 10 Jan 2012 18:11:23 +0100
+Message-Id: <1326215485-20846-2-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
+References: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 25-01-2012 10:06, Benjamin Larsson escreveu:
-> I tried a daily snapshot (2011-01-24) with this stick. And I'm getting these kind of errors in the log:
-> 
-> [43665.769571] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [43665.769857] drxk: 02 00 00 00 10 00 07 00 03 02                    ..........
-> [43686.121576] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [43686.121861] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-> [43706.465578] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [43706.465861] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-> [43709.669571] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [43709.669850] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
+The start is common for both stk7070pd and novatd specific routine.
+This is just a preparation for the next patch.
 
-This is just due to firmware differences. Yeah, a cleanup on these is needed.
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+---
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |   22 ++++++++++++++--------
+ 1 files changed, 14 insertions(+), 8 deletions(-)
 
-> 
-> First I tried the driver with the firmware that is downloaded with the get_firmware script. 
-> The adapter and frontends was registered properly but I did not get any TS from the stick. 
-> I then renamed the firmware file and the driver complained about missing firmware but stick 
-> started working anyway. So the drxk in my version of the card has a rom with microcode in it.
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index 3c6ee54..e5c2bd2 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -3066,19 +3066,25 @@ static struct dib7000p_config stk7070pd_dib7000p_config[2] = {
+ 	}
+ };
+ 
+-static int stk7070pd_frontend_attach0(struct dvb_usb_adapter *adap)
++static void stk7070pd_init(struct dvb_usb_device *dev)
+ {
+-	dib0700_set_gpio(adap->dev, GPIO6, GPIO_OUT, 1);
++	dib0700_set_gpio(dev, GPIO6, GPIO_OUT, 1);
+ 	msleep(10);
+-	dib0700_set_gpio(adap->dev, GPIO9, GPIO_OUT, 1);
+-	dib0700_set_gpio(adap->dev, GPIO4, GPIO_OUT, 1);
+-	dib0700_set_gpio(adap->dev, GPIO7, GPIO_OUT, 1);
+-	dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 0);
++	dib0700_set_gpio(dev, GPIO9, GPIO_OUT, 1);
++	dib0700_set_gpio(dev, GPIO4, GPIO_OUT, 1);
++	dib0700_set_gpio(dev, GPIO7, GPIO_OUT, 1);
++	dib0700_set_gpio(dev, GPIO10, GPIO_OUT, 0);
+ 
+-	dib0700_ctrl_clock(adap->dev, 72, 1);
++	dib0700_ctrl_clock(dev, 72, 1);
+ 
+ 	msleep(10);
+-	dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 1);
++	dib0700_set_gpio(dev, GPIO10, GPIO_OUT, 1);
++}
++
++static int stk7070pd_frontend_attach0(struct dvb_usb_adapter *adap)
++{
++	stk7070pd_init(adap->dev);
++
+ 	msleep(10);
+ 	dib0700_set_gpio(adap->dev, GPIO0, GPIO_OUT, 1);
+ 
+-- 
+1.7.8
 
-This is not uncommon. The uploaded firmware should be, in thesis, better than
-the one already on it.
-
-Are you testing it with DVB-C or DVB-T (or with both)? Here, DVB-C works properly
-on HVR-930C.
-
-> So things that would be nice to have is:
-> 
-> A log output that the drxk actually loaded the firmware file. Right now there is only log output when there is no firmware file detected.
-> Maybe add a log that the card might work without the drxk firmware.
-> Silence the SCU_RESULT_INVPAR debug output by default or find out what is causing the error messages.
-
-Feel free to submit a patch for drxk_hard.c.
-
-Regards,
-Mauro
-
-> 
-> MvH
-> Benjamin Larsson
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
