@@ -1,67 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:57694 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758962Ab2AFS0T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 13:26:19 -0500
-Received: by ghbg21 with SMTP id g21so822421ghb.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 10:26:19 -0800 (PST)
-Date: Fri, 6 Jan 2012 12:26:14 -0600
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Michael Hunold <michael@mihu.de>,
-	Johannes Stezenbach <js@sig21.net>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: [PATCH 1/2] [media] dvb-bt8xx: use dprintk for debug statements
-Message-ID: <20120106182614.GF15740@elie.hsd1.il.comcast.net>
-References: <E1RjBAD-0006Ue-NL@www.linuxtv.org>
- <20120106182519.GE15740@elie.hsd1.il.comcast.net>
+Received: from youngberry.canonical.com ([91.189.89.112]:49678 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755562Ab2AJLz2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 06:55:28 -0500
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120106182519.GE15740@elie.hsd1.il.comcast.net>
+In-Reply-To: <013701cccf81$7c0cdb90$742692b0$%szyprowski@samsung.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+	<1323871214-25435-5-git-send-email-ming.lei@canonical.com>
+	<010501ccc08c$1c7b7870$55726950$%szyprowski@samsung.com>
+	<CACVXFVOqMmakPW-aAdp005RDLuV5oc6-JfjQHr-2bFRzZi2zDQ@mail.gmail.com>
+	<015201ccc156$033f73a0$09be5ae0$%szyprowski@samsung.com>
+	<CACVXFVNdczv=tu7VG24766myCnGDRWAjkthbdfMwTGzTwFCoBA@mail.gmail.com>
+	<015301ccc15f$053e61d0$0fbb2570$%szyprowski@samsung.com>
+	<CACVXFVMrRTS7TUtj7bqCWeF4zx11yT6mOq4syOkZv=Ejoo0LMw@mail.gmail.com>
+	<013701cccf81$7c0cdb90$742692b0$%szyprowski@samsung.com>
+Date: Tue, 10 Jan 2012 19:55:25 +0800
+Message-ID: <CACVXFVMUfGCMGReJqoD5ap1QxiDMPEwnd9Sq2FZQRjCRxugEng@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 4/8] media: videobuf2: introduce VIDEOBUF2_PAGE memops
+From: Ming Lei <ming.lei@canonical.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Tony Lindgren <tony@atomide.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Alan Cox <alan@lxorguk.ukuu.org.uk>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, Pawel Osciak <p.osciak@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This way, the messages will be tagged with KERN_DEBUG and not clutter
-the log from dmesg unless the "debug" module parameter is set.
+Hi,
 
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
----
- drivers/media/dvb/bt8xx/dvb-bt8xx.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+On Tue, Jan 10, 2012 at 6:20 PM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
 
-diff --git a/drivers/media/dvb/bt8xx/dvb-bt8xx.c b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
-index b9d927270318..2f38cca7604b 100644
---- a/drivers/media/dvb/bt8xx/dvb-bt8xx.c
-+++ b/drivers/media/dvb/bt8xx/dvb-bt8xx.c
-@@ -205,7 +205,7 @@ static int cx24108_tuner_set_params(struct dvb_frontend *fe)
- 		0x00120000,0x00140000};
- 
- 	#define XTAL 1011100 /* Hz, really 1.0111 MHz and a /10 prescaler */
--	printk("cx24108 debug: entering SetTunerFreq, freq=%d\n",freq);
-+	dprintk("cx24108 debug: entering SetTunerFreq, freq=%d\n",freq);
- 
- 	/* This is really the bit driving the tuner chip cx24108 */
- 
-@@ -216,7 +216,7 @@ static int cx24108_tuner_set_params(struct dvb_frontend *fe)
- 
- 	/* decide which VCO to use for the input frequency */
- 	for(i = 1; (i < ARRAY_SIZE(osci) - 1) && (osci[i] < freq); i++);
--	printk("cx24108 debug: select vco #%d (f=%d)\n",i,freq);
-+	dprintk("cx24108 debug: select vco #%d (f=%d)\n",i,freq);
- 	band=bandsel[i];
- 	/* the gain values must be set by SetSymbolrate */
- 	/* compute the pll divider needed, from Conexant data sheet,
-@@ -232,7 +232,7 @@ static int cx24108_tuner_set_params(struct dvb_frontend *fe)
- 	    ((a&0x1f)<<11);
- 	/* everything is shifted left 11 bits to left-align the bits in the
- 	   32bit word. Output to the tuner goes MSB-aligned, after all */
--	printk("cx24108 debug: pump=%d, n=%d, a=%d\n",pump,n,a);
-+	dprintk("cx24108 debug: pump=%d, n=%d, a=%d\n",pump,n,a);
- 	cx24110_pll_write(fe,band);
- 	/* set vga and vca to their widest-band settings, as a precaution.
- 	   SetSymbolrate might not be called to set this up */
--- 
-1.7.8.2
+>> Sorry, could you describe the abuse problem in a bit detail?
+>
+> Videobuf2 requires memory module handlers to provide vaddr method to provide a pointer in
+> kernel virtual address space to video data (buffer content). It is used for example by
 
+Yes, this is what the patch is doing, __get_free_pages just  returns
+the kernel virtual
+address which will be passed to driver.
+
+> read()/write() io method emulator. Memory allocator/handler should not be specific to any
+> particular use case in the device driver. That's the design. Simple.
+
+Most of the patch is copied from videobuf-vmalloc.c, and the
+interfaces are totally same
+with videobuf-vmalloc.c.
+
+>
+> I your case you want to give pointer to struct page from the memory allocator to the
+
+In my case, the pointer to struct page is not required to the driver
+at all, so I think you
+have misunderstood the patch, don't I?
+
+> driver. The cookie method has been introduced exactly for this purpose. Memory allocator
+> also provides a simple inline function to convert generic 'void *' return type from cookie
+> method to allocator specific structure/pointer. vb2_dma_contig_plane_dma_addr() and
+> vb2_dma_sg_plane_desc() were examples how does passing allocator specific type though the
+> cookie method works.
+
+thanks,
+--
+Ming Lei
