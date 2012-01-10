@@ -1,39 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53234 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751382Ab2AZT0C (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:47799 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751552Ab2AJXpk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 14:26:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 3/8] soc-camera: Add plane layout information to struct soc_mbus_pixelfmt
-Date: Thu, 26 Jan 2012 20:26:11 +0100
-Cc: linux-media@vger.kernel.org
-References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com> <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1201261629031.10057@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1201261629031.10057@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Tue, 10 Jan 2012 18:45:40 -0500
+Received: by wgbdr10 with SMTP id dr10so163096wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 15:45:39 -0800 (PST)
+Message-ID: <1326239131.2956.3.camel@tvbox>
+Subject: [PATCH][BUG] it913x-fe fix typo error making SNR levels unstable.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Tue, 10 Jan 2012 23:45:31 +0000
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201262026.12387.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
 
-On Thursday 26 January 2012 16:38:31 Guennadi Liakhovetski wrote:
-> On Wed, 25 Jan 2012, Laurent Pinchart wrote:
-> > To compute the number of bytes per line according to the V4L2
-> > specification, we need information about planes layout for planar
-> > formats. The new enum soc_mbus_layout convey that information.
-> 
-> Maybe it is better to call that value not "the number of bytes per line
-> according to the V4L2 specification," but rather "the value of the
-> .bytesperline field?" Also, "conveys" seems a better fit to me:-)
+Fix error where SNR unstable and jumps levels.
 
-OK. I'll change that.
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/frontends/it913x-fe.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
+index 7290801..ccc36bf 100644
+--- a/drivers/media/dvb/frontends/it913x-fe.c
++++ b/drivers/media/dvb/frontends/it913x-fe.c
+@@ -525,7 +525,7 @@ static int it913x_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 
+ 	ret = it913x_read_reg(state, 0x2c, reg, sizeof(reg));
+ 
+-	snr_val = (u32)(reg[2] << 16) | (reg[1] < 8) | reg[0];
++	snr_val = (u32)(reg[2] << 16) | (reg[1] << 8) | reg[0];
+ 
+ 	ret |= it913x_read_reg(state, 0xf78b, reg, 1);
+ 	if (reg[0])
 -- 
-Regards,
+1.7.7.3
 
-Laurent Pinchart
+
