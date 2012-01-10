@@ -1,80 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:37965 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752594Ab2A3NZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 08:25:46 -0500
-Date: Mon, 30 Jan 2012 13:25:43 +0000
-From: Mel Gorman <mel@csn.ul.ie>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 03/15] mm: compaction: introduce
- isolate_migratepages_range().
-Message-ID: <20120130132543.GP25268@csn.ul.ie>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <1327568457-27734-4-git-send-email-m.szyprowski@samsung.com>
- <20120130112428.GF25268@csn.ul.ie>
- <op.v8wdlovn3l0zgt@mpn-glaptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <op.v8wdlovn3l0zgt@mpn-glaptop>
+Received: from mail.pripojeni.net ([178.22.112.14]:36063 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932584Ab2AJRWR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 12:22:17 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: mikekrufky@gmail.com, linux-media@vger.kernel.org,
+	jirislaby@gmail.com, linux-kernel@vger.kernel.org,
+	Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH 4/4] DVB: dib0700, add support for Nova-TD LEDs
+Date: Tue, 10 Jan 2012 18:11:25 +0100
+Message-Id: <1326215485-20846-4-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
+References: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 30, 2012 at 01:42:50PM +0100, Michal Nazarewicz wrote:
-> >On Thu, Jan 26, 2012 at 10:00:45AM +0100, Marek Szyprowski wrote:
-> >>From: Michal Nazarewicz <mina86@mina86.com>
-> >>@@ -313,7 +316,7 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
-> >> 		} else if (!locked)
-> >> 			spin_lock_irq(&zone->lru_lock);
-> >>
-> >>-		if (!pfn_valid_within(low_pfn))
-> >>+		if (!pfn_valid(low_pfn))
-> >> 			continue;
-> >> 		nr_scanned++;
-> >>
-> 
-> On Mon, 30 Jan 2012 12:24:28 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> >This chunk looks unrelated to the rest of the patch.
-> >
-> >I think what you are doing is patching around a bug that CMA exposed
-> >which is very similar to the bug report at
-> >http://www.spinics.net/lists/linux-mm/msg29260.html . Is this true?
-> >
-> >If so, I posted a fix that only calls pfn_valid() when necessary. Can
-> >you check if that works for you and if so, drop this hunk please? If
-> >the patch does not work for you, then this hunk still needs to be
-> >in a separate patch and handled separately as it would also be a fix
-> >for -stable.
-> 
-> I'll actually never encountered this bug myself and CMA is unlikely to
-> expose it, since it always operates on continuous memory regions with
-> no holes.
-> 
-> I've made this change because looking at the code it seemed like this
-> may cause problems in some cases.  The crash that you linked to looks
-> like the kind of problem I was thinking about.
-> 
-> I'll drop this hunk and let you resolve this independently of CMA.
-> 
+Add an override of read_status to intercept lock status. This allows
+us to switch LEDs appropriately on and off with signal un/locked.
 
-Ok, thanks.
+The second phase is to override sleep to properly turn off both.
 
+This is a hackish way to achieve that.
+
+Thanks to Mike Krufky for his help.
+
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+---
+ drivers/media/dvb/dvb-usb/dib0700.h         |    2 +
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |   41 ++++++++++++++++++++++++++-
+ 2 files changed, 42 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/dib0700.h b/drivers/media/dvb/dvb-usb/dib0700.h
+index 9bd6d51..7de125c 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700.h
++++ b/drivers/media/dvb/dvb-usb/dib0700.h
+@@ -48,6 +48,8 @@ struct dib0700_state {
+ 	u8 disable_streaming_master_mode;
+ 	u32 fw_version;
+ 	u32 nb_packet_buffer_size;
++	int (*read_status)(struct dvb_frontend *, fe_status_t *);
++	int (*sleep)(struct dvb_frontend* fe);
+ 	u8 buf[255];
+ };
+ 
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index 3ab45ae..f9e966a 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -3105,6 +3105,35 @@ static int stk7070pd_frontend_attach1(struct dvb_usb_adapter *adap)
+ 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
+ }
+ 
++static int novatd_read_status_override(struct dvb_frontend *fe,
++		fe_status_t *stat)
++{
++	struct dvb_usb_adapter *adap = fe->dvb->priv;
++	struct dvb_usb_device *dev = adap->dev;
++	struct dib0700_state *state = dev->priv;
++	int ret;
++
++	ret = state->read_status(fe, stat);
++
++	if (!ret)
++		dib0700_set_gpio(dev, adap->id == 0 ? GPIO1 : GPIO0, GPIO_OUT,
++				!!(*stat & FE_HAS_LOCK));
++
++	return ret;
++}
++
++static int novatd_sleep_override(struct dvb_frontend* fe)
++{
++	struct dvb_usb_adapter *adap = fe->dvb->priv;
++	struct dvb_usb_device *dev = adap->dev;
++	struct dib0700_state *state = dev->priv;
++
++	/* turn off LED */
++	dib0700_set_gpio(dev, adap->id == 0 ? GPIO1 : GPIO0, GPIO_OUT, 0);
++
++	return state->sleep(fe);
++}
++
+ /**
+  * novatd_frontend_attach - Nova-TD specific attach
+  *
+@@ -3114,6 +3143,7 @@ static int stk7070pd_frontend_attach1(struct dvb_usb_adapter *adap)
+ static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct dvb_usb_device *dev = adap->dev;
++	struct dib0700_state *st = dev->priv;
+ 
+ 	if (adap->id == 0) {
+ 		stk7070pd_init(dev);
+@@ -3134,7 +3164,16 @@ static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
+ 	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &dev->i2c_adap,
+ 			adap->id == 0 ? 0x80 : 0x82,
+ 			&stk7070pd_dib7000p_config[adap->id]);
+-	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
++
++	if (adap->fe_adap[0].fe == NULL)
++		return -ENODEV;
++
++	st->read_status = adap->fe_adap[0].fe->ops.read_status;
++	adap->fe_adap[0].fe->ops.read_status = novatd_read_status_override;
++	st->sleep = adap->fe_adap[0].fe->ops.sleep;
++	adap->fe_adap[0].fe->ops.sleep = novatd_sleep_override;
++
++	return 0;
+ }
+ 
+ /* S5H1411 */
 -- 
-Mel Gorman
-SUSE Labs
+1.7.8
+
+
