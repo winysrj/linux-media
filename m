@@ -1,107 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:40879 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752395Ab2AFRY1 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 12:24:27 -0500
-Received: by ggdk6 with SMTP id k6so792885ggd.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 09:24:26 -0800 (PST)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:42628 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755930Ab2AJBek convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 20:34:40 -0500
 MIME-Version: 1.0
-In-Reply-To: <CAHVY3emBazYtJKwz-PaJKZQe3Gbi7JBP_zJp-Y-3n=ZtTR2JHg@mail.gmail.com>
-References: <CAHVY3e=Q8yRdXhgsoPBX-dvCHY=uF7adCievYoOTg15cOF6xGw@mail.gmail.com>
- <CAHVY3emBazYtJKwz-PaJKZQe3Gbi7JBP_zJp-Y-3n=ZtTR2JHg@mail.gmail.com>
-From: Mario Ceresa <mrceresa@gmail.com>
-Date: Fri, 6 Jan 2012 18:24:05 +0100
-Message-ID: <CAHVY3empEzXBCw+GM_vjE+yXovTfY5KQ6=RyOfkBUEiM_2F7OQ@mail.gmail.com>
-Subject: Re: sveon stv40 usb stick
-To: V4L Mailing List <linux-media@vger.kernel.org>
+In-Reply-To: <CAF6AEGsTGOxyTX6Xijvm8UXGjtVTtYg5X5xfJo8D+47o+xU+bA@mail.gmail.com>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+	<1322816252-19955-2-git-send-email-sumit.semwal@ti.com>
+	<CAAQKjZPFh6666JKc-XJfKYePQ_F0MNF6FkY=zKypWb52VVX3YQ@mail.gmail.com>
+	<20120109081030.GA3723@phenom.ffwll.local>
+	<CAAQKjZMEsuib18RYE7OvZPUqhKnvrZ8i3+EMuZSXr9KPVygo_Q@mail.gmail.com>
+	<CAF6AEGsTGOxyTX6Xijvm8UXGjtVTtYg5X5xfJo8D+47o+xU+bA@mail.gmail.com>
+Date: Tue, 10 Jan 2012 10:34:39 +0900
+Message-ID: <CAAQKjZNM51Oenhi-S-9kyq_mLYHBEsMQA3M6=6L_XNnKu5pLbA@mail.gmail.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+From: InKi Dae <daeinki@gmail.com>
+To: Rob Clark <rob@ti.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, linux@arm.linux.org.uk, arnd@arndb.de,
+	jesse.barker@linaro.org, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>,
+	daniel@ffwll.ch
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Last updates. It works with em28xx module from v4l git as a card 19:
-# modprobe em28xx card=19
-# echo 1b80 e309 > /sys/bus/usb/drivers/em28xx/new_id
+2012/1/10 Rob Clark <rob@ti.com>:
+> On Mon, Jan 9, 2012 at 4:10 AM, InKi Dae <daeinki@gmail.com> wrote:
+>> note : in case of sharing a buffer between v4l2 and drm driver, the
+>> memory info would be copied vb2_xx_buf to xx_gem or xx_gem to
+>> vb2_xx_buf through sg table. in this case, only memory info is used to
+>> share, not some objects.
+>
+> which v4l2/vb2 patches are you looking at?  The patches I was using,
+> vb2 holds a reference to the 'struct dma_buf *' internally, not just
+> keeping the sg_table
+>
 
-[plugged in the usb] and
+yes, not keeping the sg_table. I mean... see a example below please.
 
-$ mplayer -tv device=/dev/video0:input=1:norm=PAL:alsa:immediatemode=0:audiorate=48000:amode=1:adevice=hw.2
-tv://
+static void vb2_dma_contig_map_dmabuf(void *mem_priv)
+{
+    struct sg_table *sg;
+     ...
+     sg = dma_buf_map_attachment(buf->db_attach, dir);
+     ...
+     buf->dma_addr = sg_dma_address(sg->sgl);
+     ...
+}
 
-But I have no audio... I will open a new thread only for the audio problem!
+at least with no IOMMU, the memory information(containing physical
+memory address) would be copied to vb2_xx_buf object if drm gem
+exported its own buffer and vb2 wants to use that buffer at this time,
+sg table is used to share that buffer. and the problem I pointed out
+is that this buffer(also physical memory region) could be released by
+vb2 framework(as you know, vb2_xx_buf object and the memory region for
+buf->dma_addr pointing) but the Exporter(drm gem) couldn't know that
+so some problems would be induced once drm gem tries to release or
+access that buffer. and I have tried to resolve this issue adding
+get_shared_cnt() callback to dma-buf.h but I'm not sure that this is
+good way. maybe there would be better way.
 
-Best,
-Mario
+Thanks.
 
-
-On 6 January 2012 15:52, Mario Ceresa <mrceresa@gmail.com> wrote:
-> Hi again!
->
-> following the thread "em28xx: new board id [eb1a:5051]" between Reuben
-> and Gareth I was able to advance a little:
->
-> 1) I opened the usn stick and my chipsets are:
-> - USB interface: em2860
-> - Audio ADC: emp202
-> - Video ADC: saa7118h (philips)
->
-> 2) I confirm that the stock em28xx driver can recognize the usb stick
-> but needs to specify a card manually as an option.
->
-> 3) Using "modprobe em18xx card=19" (which corresponds to
-> "EM2860/SAA711X Reference Design") I can go so far as to get a
-> /dev/video0, but the preview is black no matter what i do.
->
-> 4) I was able to eventually compile the v4l drivers but, as soon as I
-> inject the driver, I get a kernel oops (attached). I made no change to
-> the code obtained with git.
->
-> I won't even mind to write some code myself, but I really have no idea
-> where to begin with!
->
-> Thanks in advance for any help you might provide,
->
-> Best,
->
-> Mario
->
->
->
-> On 3 January 2012 20:44, Mario Ceresa <mrceresa@gmail.com> wrote:
->> Hello everybody!
->> I recently bougth a Sveon STV40 usb stick to capture analogic video
->> (http://www.sveon.com/fichaSTV40.html)
->> I can use it in windows but my linux box (Fedora 16 -
->> 3.1.6-1.fc16.x86_64 - gcc 4.6.2) can't recognize it.
->> Is there any way I can fix this?
->>
->> These are the results of my investigation so far:
->>
->> 1) It is identified by lsusb as an Afatech board (1b80:e309) with an
->> Empia 2861 chip (from dmesg and windows driver inf file)
->> 2) I experimented with em28xx  because the chipset was empia and with
->> af9015 because I found that the stv22 was supported
->> (http://linuxtv.org/wiki/index.php/Afatech_AF9015). In both cases
->> after I manually added the vendor:id to /sys/bus/usb/drivers/ driver
->> started but in the end I was not able to succeed. With em28xx I could
->> go as far as having a /dev/video0 device but with no signal and the
->> dmesg log said to ask here for help :) . With the af9015 I had an
->> early stop.
->> 3) Both the logs are attached.
->> 4) I used the driver shipped with the fedora stock kernel because I
->> can't compile the ones that I get from
->> git://linuxtv.org/media_build.git. I have an error at:
->>
->> CC [M]  media_build/v4l/as3645a.o
->> media_build/v4l/as3645a.c: In function 'as3645a_probe':
->> media_build/v4l/as3645a.c:815:2: error: implicit declaration of
->> function 'kzalloc' [-Werror=implicit-function-declaration]
->> media_build/v4l/as3645a.c:815:8: warning: assignment makes pointer
->> from integer without a cast [enabled by default]
->> cc1: some warnings being treated as errors
->>
->> Thank you in advance for any help you might provide on this issue!
->>
->> ,Best regards
->>
->> Mario
+> BR,
+> -R
