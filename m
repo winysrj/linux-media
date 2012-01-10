@@ -1,65 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:62608 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.10]:65323 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751834Ab2A2UwQ convert rfc822-to-8bit (ORCPT
+	with ESMTP id S1752371Ab2AJL3W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Jan 2012 15:52:16 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [PATCHv19 00/15] Contiguous Memory Allocator
-Date: Sun, 29 Jan 2012 20:51:46 +0000
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com> <201201261531.40551.arnd@arndb.de> <20120127162624.40cba14e.akpm@linux-foundation.org>
-In-Reply-To: <20120127162624.40cba14e.akpm@linux-foundation.org>
+	Tue, 10 Jan 2012 06:29:22 -0500
+Date: Tue, 10 Jan 2012 12:29:06 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Josh Wu <josh.wu@atmel.com>
+cc: linux-media@vger.kernel.org, mchehab@redhat.com,
+	linux-arm-kernel@lists.infradead.org, nicolas.ferre@atmel.com,
+	linux@arm.linux.org.uk, arnd@arndb.de
+Subject: Re: [PATCH RESEND v3 2/2] [media] V4L: atmel-isi: add
+ clk_prepare()/clk_unprepare() functions
+In-Reply-To: <1326193999-7609-1-git-send-email-josh.wu@atmel.com>
+Message-ID: <Pine.LNX.4.64.1201101224330.530@axis700.grange>
+References: <1326193999-7609-1-git-send-email-josh.wu@atmel.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-Message-Id: <201201292051.46297.arnd@arndb.de>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 28 January 2012, Andrew Morton wrote:
-> These patches don't seem to have as many acked-bys and reviewed-bys as
-> I'd expect.  Given the scope and duration of this, it would be useful
-> to gather these up.  But please ensure they are real ones - people
-> sometimes like to ack things without showing much sign of having
-> actually read them.
+Hi Josh
 
-I reviewed early versions of this patch set and had a lot of comments on the
-interfaces that were exposed to device drivers and platform maintainers.
+Right, sorry, I missed this one, I somehow developed an idea, that it has 
+been merged into the original patch, adding ISI_MCK handling. Now, I also 
+notice one detail, that we could improve:
 
-All of the comments were addressed back then and I gave an Acked-by.
-I assume that it was dropped in subsequent versions because the
-implementation changed significantly since, but I'm still happy with the
-way this looks to the user, in particular that it is practically invisible
-because all users just go through the dma mapping API instead of the
-horrors that were used in the original patches.
+On Tue, 10 Jan 2012, Josh Wu wrote:
 
->From an ARM architecture perspective, we have come to the point (some
-versions ago) where we actually require the CMA patchset for correctness,
-even on IOMMU based systems because it avoids some nasty corner cases
-with pages that are both in the linear kernel mapping and in an
-uncached mapping for DMA: We know that the code we are using in mainline
-is broken on ARMv6 and later and that CMA fixes that problem.
+> Signed-off-by: Josh Wu <josh.wu@atmel.com>
+> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
+> ---
+> Hi, Mauro
+> 
+> The first patch of this serie, [PATCH 1/2 v3] V4L: atmel-isi: add code to enable/disable ISI_MCK clock, is already queued in media tree. 
+> But this patch (the second one of this serie) is not acked yet. Would it be ok to for you to ack this patch?
+> 
+> Best Regards,
+> Josh Wu
+> 
+> v2: made the label name to be consistent.
+> 
+>  drivers/media/video/atmel-isi.c |   15 +++++++++++++++
+>  1 files changed, 15 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+> index ea4eef4..91ebcfb 100644
+> --- a/drivers/media/video/atmel-isi.c
+> +++ b/drivers/media/video/atmel-isi.c
+> @@ -922,7 +922,9 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+>  			isi->fb_descriptors_phys);
+>  
+>  	iounmap(isi->regs);
+> +	clk_unprepare(isi->mck);
+>  	clk_put(isi->mck);
+> +	clk_unprepare(isi->pclk);
+>  	clk_put(isi->pclk);
+>  	kfree(isi);
+>  
+> @@ -955,6 +957,12 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+>  	if (IS_ERR(pclk))
+>  		return PTR_ERR(pclk);
+>  
+> +	ret = clk_prepare(pclk);
+> +	if (ret) {
+> +		clk_put(pclk);
+> +		return ret;
 
-I'm not the right person to judge the memory management code changes,
-others need to comment on that. Aside from that:
+Don't think it's a good idea here. You already have clk_put(pclk) on the 
+error handling path below. So, just put a "goto err_clk_prepare_pclk" here 
+and the respective error below.
 
-Acked-by: Arnd Bergmann <arnd@arndb.de>
+Thanks
+Guennadi
 
-	Arnd
+> +	}
+> +
+>  	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
+>  	if (!isi) {
+>  		ret = -ENOMEM;
+> @@ -978,6 +986,10 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+>  		goto err_clk_get;
+>  	}
+>  
+> +	ret = clk_prepare(isi->mck);
+> +	if (ret)
+> +		goto err_clk_prepare_mck;
+> +
+>  	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
+>  	ret = clk_set_rate(isi->mck, pdata->mck_hz);
+>  	if (ret < 0)
+> @@ -1059,10 +1071,13 @@ err_alloc_ctx:
+>  			isi->fb_descriptors_phys);
+>  err_alloc_descriptors:
+>  err_set_mck_rate:
+> +	clk_unprepare(isi->mck);
+> +err_clk_prepare_mck:
+>  	clk_put(isi->mck);
+>  err_clk_get:
+>  	kfree(isi);
+>  err_alloc_isi:
+> +	clk_unprepare(pclk);
+>  	clk_put(pclk);
+>  
+>  	return ret;
+> -- 
+> 1.6.3.3
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
