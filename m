@@ -1,38 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.zitomedia.net ([67.58.160.20]:44631 "HELO
-	mail.zitomedia.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1753947Ab2ACQZP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 11:25:15 -0500
-Message-ID: <4F032A9D.6030500@zitomedia.com>
-Date: Tue, 03 Jan 2012 11:19:41 -0500
-From: Matt Bernardi <matt.bernardi@zitomedia.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42375 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932404Ab2AJRbk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 12:31:40 -0500
+Message-ID: <4F0C75F9.5000200@iki.fi>
+Date: Tue, 10 Jan 2012 19:31:37 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: multicast to analog EIA channel
-References: <S1753911Ab2ACPsA/20120103154800Z+462@vger.kernel.org> <4F032A71.10609@zitomedia.com>
-In-Reply-To: <4F032A71.10609@zitomedia.com>
+To: linux-media <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] mxl5007t: bugfix DVB-T 7 MHz and 8 MHz bandwidth
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+DVB-T did not work at all - only 6 MHz was working but it is not 
+commonly used.
+Fix it.
 
-I am new to the mailing list and wanted to pick some of your guys brains 
-about something. I work for a small cable service provider. What I am 
-trying to do is receive a multicast stream, modulate it and send it out 
-as an EIA analog channel. I have everything in place but the hardware to 
-do it.
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+  drivers/media/common/tuners/mxl5007t.c |    2 ++
+  1 files changed, 2 insertions(+), 0 deletions(-)
 
-I know there is equipment built for this specific reason(RGP SEP, 
-APEX1000, etc) but this is just going to be a temporary fix as we are 
-doing a total video overhaul and moving to all MPEG4 capable equipment. 
-I am a fairly experienced linux user and I figured there is a way to 
-accomplish this with linux but all of my reasearch hasn't really helped 
-so I'm reaching out to you. Has anyone ever done this? or know of any 
-good reference sites for this?
-
-Any info would be greatly appreciated.
-
-Thanks again,
-Matt Bernardi
+diff --git a/drivers/media/common/tuners/mxl5007t.c 
+b/drivers/media/common/tuners/mxl5007t.c
+index 8f4899b..69e453e 100644
+--- a/drivers/media/common/tuners/mxl5007t.c
++++ b/drivers/media/common/tuners/mxl5007t.c
+@@ -644,8 +644,10 @@ static int mxl5007t_set_params(struct dvb_frontend *fe)
+  			break;
+  		case 7000000:
+  			bw = MxL_BW_7MHz;
++			break;
+  		case 8000000:
+  			bw = MxL_BW_8MHz;
++			break;
+  		default:
+  			return -EINVAL;
+  		}
+-- 
+1.7.4.4
