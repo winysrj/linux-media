@@ -1,96 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:42122 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932469Ab2AJTO2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 14:14:28 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH 1/1] v4l: Ignore ctrl_class in the control framework
-Date: Tue, 10 Jan 2012 21:14:22 +0200
-Message-Id: <1326222862-15936-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail.pripojeni.net ([178.22.112.14]:32769 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754181Ab2AJRXl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 12:23:41 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: mikekrufky@gmail.com, linux-media@vger.kernel.org,
+	jirislaby@gmail.com, linux-kernel@vger.kernel.org,
+	Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH 1/4] DVB: dib0700, move Nova-TD Stick to a separate set
+Date: Tue, 10 Jan 2012 18:11:22 +0100
+Message-Id: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Back in the old days there was probably a reason to require that controls
-that are being used to access using VIDIOC_{TRY,G,S}_EXT_CTRLS belonged to
-the same class. These days such reason does not exist, or at least cannot be
-remembered, and concrete examples of the opposite can be seen: a single
-(sub)device may well offer controls that belong to different classes and
-there is no reason to deny changing them atomically.
+To properly support the three LEDs which are on the stick, we need
+a special handling in the ->frontend_attach function. Thus let's have
+a separate ->frontend_attach instead of ifs in the common one.
 
-This patch removes the check for v4l2_ext_controls.ctrl_class in the control
-framework. The control framework issues the s_ctrl() op to the drivers
-separately so changing the behaviour does not really change how this works
-from the drivers' perspective.
+The hadnling itself will be added in further patches.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
 ---
- drivers/media/video/v4l2-ctrls.c |   18 +++++-------------
- 1 files changed, 5 insertions(+), 13 deletions(-)
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |   57 ++++++++++++++++++++++++--
+ 1 files changed, 52 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index da1f4c2..fff3bb3 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -1855,9 +1855,6 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index 81ef4b4..3c6ee54 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -3892,7 +3892,58 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 			}
+ 		},
  
- 		cs->error_idx = i;
- 
--		if (cs->ctrl_class && V4L2_CTRL_ID2CLASS(id) != cs->ctrl_class)
--			return -EINVAL;
--
- 		/* Old-style private controls are not allowed for
- 		   extended controls */
- 		if (id >= V4L2_CID_PRIVATE_BASE)
-@@ -1918,13 +1915,10 @@ static int prepare_ext_ctrls(struct v4l2_ctrl_handler *hdl,
- }
- 
- /* Handles the corner case where cs->count == 0. It checks whether the
--   specified control class exists. If that class ID is 0, then it checks
--   whether there are any controls at all. */
--static int class_check(struct v4l2_ctrl_handler *hdl, u32 ctrl_class)
-+   there are any controls at all. */
-+static int handler_check(struct v4l2_ctrl_handler *hdl)
- {
--	if (ctrl_class == 0)
--		return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
--	return find_ref_lock(hdl, ctrl_class | 1) ? 0 : -EINVAL;
-+	return list_empty(&hdl->ctrl_refs) ? -EINVAL : 0;
- }
- 
- 
-@@ -1938,13 +1932,12 @@ int v4l2_g_ext_ctrls(struct v4l2_ctrl_handler *hdl, struct v4l2_ext_controls *cs
- 	int i, j;
- 
- 	cs->error_idx = cs->count;
--	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
- 
- 	if (hdl == NULL)
- 		return -EINVAL;
- 
- 	if (cs->count == 0)
--		return class_check(hdl, cs->ctrl_class);
-+		return handler_check(hdl);
- 
- 	if (cs->count > ARRAY_SIZE(helper)) {
- 		helpers = kmalloc(sizeof(helper[0]) * cs->count, GFP_KERNEL);
-@@ -2160,13 +2153,12 @@ static int try_set_ext_ctrls(struct v4l2_fh *fh, struct v4l2_ctrl_handler *hdl,
- 	int ret;
- 
- 	cs->error_idx = cs->count;
--	cs->ctrl_class = V4L2_CTRL_ID2CLASS(cs->ctrl_class);
- 
- 	if (hdl == NULL)
- 		return -EINVAL;
- 
- 	if (cs->count == 0)
--		return class_check(hdl, cs->ctrl_class);
-+		return handler_check(hdl);
- 
- 	if (cs->count > ARRAY_SIZE(helper)) {
- 		helpers = kmalloc(sizeof(helper[0]) * cs->count, GFP_KERNEL);
+-		.num_device_descs = 6,
++		.num_device_descs = 1,
++		.devices = {
++			{   "Hauppauge Nova-TD Stick (52009)",
++				{ &dib0700_usb_id_table[35], NULL },
++				{ NULL },
++			},
++		},
++
++		.rc.core = {
++			.rc_interval      = DEFAULT_RC_INTERVAL,
++			.rc_codes         = RC_MAP_DIB0700_RC5_TABLE,
++			.module_name	  = "dib0700",
++			.rc_query         = dib0700_rc_query_old_firmware,
++			.allowed_protos   = RC_TYPE_RC5 |
++					    RC_TYPE_RC6 |
++					    RC_TYPE_NEC,
++			.change_protocol = dib0700_change_protocol,
++		},
++	}, { DIB0700_DEFAULT_DEVICE_PROPERTIES,
++
++		.num_adapters = 2,
++		.adapter = {
++			{
++			.num_frontends = 1,
++			.fe = {{
++				.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++				.pid_filter_count = 32,
++				.pid_filter       = stk70x0p_pid_filter,
++				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
++				.frontend_attach  = stk7070pd_frontend_attach0,
++				.tuner_attach     = dib7070p_tuner_attach,
++
++				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
++			}},
++				.size_of_priv     = sizeof(struct dib0700_adapter_state),
++			}, {
++			.num_frontends = 1,
++			.fe = {{
++				.caps = DVB_USB_ADAP_HAS_PID_FILTER | DVB_USB_ADAP_PID_FILTER_CAN_BE_TURNED_OFF,
++				.pid_filter_count = 32,
++				.pid_filter       = stk70x0p_pid_filter,
++				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
++				.frontend_attach  = stk7070pd_frontend_attach1,
++				.tuner_attach     = dib7070p_tuner_attach,
++
++				DIB0700_DEFAULT_STREAMING_CONFIG(0x03),
++			}},
++				.size_of_priv     = sizeof(struct dib0700_adapter_state),
++			}
++		},
++
++		.num_device_descs = 5,
+ 		.devices = {
+ 			{   "DiBcom STK7070PD reference design",
+ 				{ &dib0700_usb_id_table[17], NULL },
+@@ -3902,10 +3953,6 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 				{ &dib0700_usb_id_table[18], NULL },
+ 				{ NULL },
+ 			},
+-			{   "Hauppauge Nova-TD Stick (52009)",
+-				{ &dib0700_usb_id_table[35], NULL },
+-				{ NULL },
+-			},
+ 			{   "Hauppauge Nova-TD-500 (84xxx)",
+ 				{ &dib0700_usb_id_table[36], NULL },
+ 				{ NULL },
 -- 
-1.7.2.5
+1.7.8
+
 
