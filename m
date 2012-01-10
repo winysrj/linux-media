@@ -1,61 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:56337 "EHLO
-	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753237Ab2AaNqH (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:43323 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755381Ab2AJXkq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jan 2012 08:46:07 -0500
-From: Danny Kukawka <danny.kukawka@bisect.de>
-To: Andy Walls <awalls@md.metrocast.net>
-Subject: Re: [PATCH 05/16] cx18: fix handling of 'radio' module parameter
-Date: Tue, 31 Jan 2012 14:45:18 +0100
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Rusty Russell <rusty@rustcorp.com.au>, mchehab@redhat.com
-References: <1327960820-11867-1-git-send-email-danny.kukawka@bisect.de> <1327960820-11867-6-git-send-email-danny.kukawka@bisect.de>
-In-Reply-To: <1327960820-11867-6-git-send-email-danny.kukawka@bisect.de>
+	Tue, 10 Jan 2012 18:40:46 -0500
+Message-ID: <4F0CCC7B.801@iki.fi>
+Date: Wed, 11 Jan 2012 01:40:43 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Disposition: inline
-Content-Type: text/plain;
-  charset="utf-8"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	teturtia@gmail.com
+Subject: Re: [PATCH 1/1] v4l: Ignore ctrl_class in the control framework
+References: <1326222862-15936-1-git-send-email-sakari.ailus@iki.fi> <201201102151.43106.hverkuil@xs4all.nl>
+In-Reply-To: <201201102151.43106.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201311445.20095.danny.kukawka@bisect.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Dienstag, 31. Januar 2012, Andy Walls wrote:
-> On Tue, 2012-01-31 at 05:01 -0500, Andy Walls wrote:
-> > On Mon, 2012-01-30 at 20:40 +0100, Danny Kukawka wrote:
-> > > Fixed handling of 'radio' module parameter from module_param_array
-> > > to module_param_named to fix these compiler warnings in cx18-driver.c:
-> >
-> > NACK.
-> >
-> > "radio" is an array of tristate values (-1, 0, 1) per installed card:
-> >
-> > 	static int radio[CX18_MAX_CARDS] = { -1, -1,
-> >
-> > and must remain an array or you will break the driver.
-> >
-> > Calling "radio_c" a module parameter named "radio" is wrong.
-> >
-> > The correct fix is to reverse Rusty Russel's patch to the driver in
-> > commit  90ab5ee94171b3e28de6bb42ee30b527014e0be7
-> > to change the "bool" back to an "int" as it should be in
+Hi Hans,
+
+Hans Verkuil wrote:
+> On Tuesday, January 10, 2012 20:14:22 Sakari Ailus wrote:
+>> Back in the old days there was probably a reason to require that controls
+>> that are being used to access using VIDIOC_{TRY,G,S}_EXT_CTRLS belonged to
+>> the same class. These days such reason does not exist, or at least cannot be
+>> remembered, and concrete examples of the opposite can be seen: a single
+>> (sub)device may well offer controls that belong to different classes and
+>> there is no reason to deny changing them atomically.
+>>
+>> This patch removes the check for v4l2_ext_controls.ctrl_class in the control
+>> framework. The control framework issues the s_ctrl() op to the drivers
+>> separately so changing the behaviour does not really change how this works
+>> from the drivers' perspective.
 >
->                       ^^^^
-> Sorry, a typo here.  Disregard the word "back".
+> What is the rationale of this patch? It does change the behavior of the API.
+> There are still some drivers that use the extended control API without the
+> control framework (pvrusb2, and some other cx2341x-based drivers), and that
+> do test the ctrl_class argument.
 
-Overseen this. But wouldn't be the correct fix in this case to:
-a) reverse the part of 90ab5ee94171b3e28de6bb42ee30b527014e0be7 to:
-   get: 
-   static unsigned radio_c = 1;
-   
-b) change the following line:
-   module_param_array(radio, bool, &radio_c, 0644);
-   to:
-   module_param_array(radio, int, &radio_c, 0644);
+These drivers still don't use the control framework. I don't see benefit 
+in checking the class for those drivers that don't really care about it.
 
-Without b) you would get a warning from the compiler again.
+Also, to be able to set controls without artificial limitations 
+applications have to set the ctrl_class field on some devices and on 
+some they must not.
 
-Danny 
+> I don't see any substantial gain by changing the current behavior of the
+> control framework.
+>
+> Apps can just set ctrl_class to 0 and then the control framework will no
+> longer check the control class. And yes, this still has to be properly
+> documented in the spec.
+
+That's a good point, indeed. Should the spec then say "on some drivers 
+you must set it while on some you must not"? The difficulty, albeit not 
+sure if it's a practical one, is that I don't think there's anything 
+that would hint applications into which of the two classes a driver 
+belongs to.
+
+> The reason for the ctrl_class check is that without the control framework it
+> was next to impossible to allow atomic setting of controls of different
+> classes, since control of different classes would typically also be handled
+> by different drivers. By limiting the controls to one class it made it much
+> easier for drivers to implement this API.
+
+Ok. But I don't think this patch would have any effect on those drivers.
+
+Regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
