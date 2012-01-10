@@ -1,82 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ozlabs.org ([203.10.76.45]:60637 "EHLO ozlabs.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755079Ab2ADCcA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 3 Jan 2012 21:32:00 -0500
-From: Rusty Russell <rusty@rustcorp.com.au>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: lkml - Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Pawel Moll <pawel.moll@arm.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 12/15] module_param: make bool parameters really bool (drivers & misc)
-In-Reply-To: <20120103124420.GA3626@mwanda>
-References: <87ehw6sesk.fsf@rustcorp.com.au> <20120103124420.GA3626@mwanda>
-Date: Wed, 04 Jan 2012 12:57:51 +1030
-Message-ID: <8762gsdwwo.fsf@rustcorp.com.au>
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:45345 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756414Ab2AJOut (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 09:50:49 -0500
+Received: by vbbfc26 with SMTP id fc26so3548496vbb.19
+        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 06:50:49 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+In-Reply-To: <CACG8oOqWkhmvdeu8AKgteU7DwFLuZXopggOfkG5oLJpxhsrt-w@mail.gmail.com>
+References: <CACG8oOqWkhmvdeu8AKgteU7DwFLuZXopggOfkG5oLJpxhsrt-w@mail.gmail.com>
+Date: Tue, 10 Jan 2012 09:50:49 -0500
+Message-ID: <CAGoCfixG00vKH9EAzKrRq7Heio4MCDB8GK+6dT15f45=yE6Oog@mail.gmail.com>
+Subject: Re: Hauppague 930C
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: "Elestedt, Fredrik" <fredrik@elestedt.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 3 Jan 2012 15:44:20 +0300, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-Non-text part: multipart/signed
-> > diff --git a/drivers/video/intelfb/intelfbdrv.c b/drivers/video/intelfb/intelfbdrv.c
-> > --- a/drivers/video/intelfb/intelfbdrv.c
-> > +++ b/drivers/video/intelfb/intelfbdrv.c
-> > @@ -230,16 +230,16 @@ MODULE_DESCRIPTION("Framebuffer driver f
-> >  MODULE_LICENSE("Dual BSD/GPL");
-> >  MODULE_DEVICE_TABLE(pci, intelfb_pci_table);
-> >  
-> > -static int accel        = 1;
-> > +static bool accel       = 1;
-> >  static int vram         = 4;
-> > -static int hwcursor     = 0;
-> > -static int mtrr         = 1;
-> > -static int fixed        = 0;
-> > -static int noinit       = 0;
-> > -static int noregister   = 0;
-> > -static int probeonly    = 0;
-> > -static int idonly       = 0;
-> > -static int bailearly    = 0;
-> > +static bool hwcursor    = 0;
-> > +static bool mtrr        = 1;
-> > +static bool fixed       = 0;
-> > +static bool noinit      = 0;
-> > +static bool noregister  = 0;
-> > +static bool probeonly   = 0;
-> > +static bool idonly      = 0;
-> > +static bool bailearly   = 0;
-> 
-> bailearly should be an int here.  It's part of some ugly debug code
-> where a value of 3 means bailout at point 3.  Maybe we should just
-> remove it instead...
+On Tue, Jan 10, 2012 at 8:46 AM, Elestedt, Fredrik <fredrik@elestedt.com> wrote:
+> Hi,
+>
+> I've searched high and low now for a recent post on analog support for
+> the Hauppauge 930C, but I can't find a thing.
+> Anyone have any update for me?
 
-Yeah, it never worked, since you could only ever set it to 0 or 1:
+The status is unchanged:  there is no driver for the analog video
+decoder, and nobody is currently working on writing one (no datasheets
+are publicly available so it would have to be reverse engineered).
 
-        module_param(bailearly, bool, 0);
+Regards,
 
-On Tue, 3 Jan 2012 15:58:13 +0300, Dan Carpenter <dan.carpenter@oracle.com> wrote:
-> On Thu, Dec 15, 2011 at 01:48:51PM +1030, Rusty Russell wrote:
-> > diff --git a/drivers/block/paride/pcd.c b/drivers/block/paride/pcd.c
-> > --- a/drivers/block/paride/pcd.c
-> > +++ b/drivers/block/paride/pcd.c
-...
-> > -static int verbose = 0;
-> > +static bool verbose = 0;
-> 
-> This should be int.  Verbose can be set to 2 for extra verbosity.
+Devin
 
-Again, I haven't made it more broken than it is already:
-
-        module_param(verbose, bool, 0644);
-
-I've split these two off into separate fixes.  Thanks!
-
-> Btw, these patches that touch a ton of drivers are the wrong idea.
-> If you ack any part of it, then get_maintainer.pl CCs you on every
-> single kernel patch until eventually you get old and die.
-
-I didn't know that; get_maintainer.pl usually produces too much spew for
-me anyway.  It could use some smarts.
-
-Cheers,
-Rusty.
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
