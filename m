@@ -1,581 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47334 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758144Ab2AFKVb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 05:21:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 17/17] rm680: Add camera init
-Date: Fri, 6 Jan 2012 11:21:49 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-17-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1324412889-17961-17-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:57611 "EHLO
+	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753365Ab2AJGJd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 01:09:33 -0500
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201061121.50048.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <CAF6AEGsQdd+K6-OOsdyFi_VVnMCniZFk2QvYqv8m8GgU7bd7zQ@mail.gmail.com>
+References: <1322816252-19955-1-git-send-email-sumit.semwal@ti.com>
+ <1322816252-19955-2-git-send-email-sumit.semwal@ti.com> <CAAQKjZPFh6666JKc-XJfKYePQ_F0MNF6FkY=zKypWb52VVX3YQ@mail.gmail.com>
+ <20120109081030.GA3723@phenom.ffwll.local> <CAAQKjZMEsuib18RYE7OvZPUqhKnvrZ8i3+EMuZSXr9KPVygo_Q@mail.gmail.com>
+ <CAF6AEGsTGOxyTX6Xijvm8UXGjtVTtYg5X5xfJo8D+47o+xU+bA@mail.gmail.com>
+ <CAAQKjZNM51Oenhi-S-9kyq_mLYHBEsMQA3M6=6L_XNnKu5pLbA@mail.gmail.com> <CAF6AEGsQdd+K6-OOsdyFi_VVnMCniZFk2QvYqv8m8GgU7bd7zQ@mail.gmail.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Tue, 10 Jan 2012 11:39:11 +0530
+Message-ID: <CAB2ybb-vZuriqE+KeBAkbc33y8YvNkT+f0xnMUeOdXmJH0dSag@mail.gmail.com>
+Subject: Re: [RFC v2 1/2] dma-buf: Introduce dma buffer sharing mechanism
+To: Rob Clark <rob@ti.com>
+Cc: InKi Dae <daeinki@gmail.com>, t.stanislaws@samsung.com,
+	linux@arm.linux.org.uk, arnd@arndb.de,
+	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	m.szyprowski@samsung.com, Sumit Semwal <sumit.semwal@linaro.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Tue, Jan 10, 2012 at 7:44 AM, Rob Clark <rob@ti.com> wrote:
+> On Mon, Jan 9, 2012 at 7:34 PM, InKi Dae <daeinki@gmail.com> wrote:
+>> 2012/1/10 Rob Clark <rob@ti.com>:
+>> at least with no IOMMU, the memory information(containing physical
+>> memory address) would be copied to vb2_xx_buf object if drm gem
+>> exported its own buffer and vb2 wants to use that buffer at this time,
+>> sg table is used to share that buffer. and the problem I pointed out
+>> is that this buffer(also physical memory region) could be released by
+>> vb2 framework(as you know, vb2_xx_buf object and the memory region for
+>> buf->dma_addr pointing) but the Exporter(drm gem) couldn't know that
+>> so some problems would be induced once drm gem tries to release or
+>> access that buffer. and I have tried to resolve this issue adding
+>> get_shared_cnt() callback to dma-buf.h but I'm not sure that this is
+>> good way. maybe there would be better way.
+Hi Inki,
+As also mentioned in the documentation patch, importer (the user of
+the buffer) - in this case for current RFC patches on
+v4l2-as-a-user[1] vb2 framework - shouldn't release the backing memory
+of the buffer directly - it should only use the dma-buf callbacks in
+the right sequence to let the exporter know that it is done using this
+buffer, so the exporter can release it if allowed and needed.
+>
+> the exporter (in this case your driver's drm/gem bits) shouldn't
+> release that mapping / sgtable until the importer (in this case v4l2)
+> calls dma_buf_unmap fxn..
+>
+> It would be an error if the importer did a dma_buf_put() without first
+> calling dma_buf_unmap_attachment() (if currently mapped) and then
+> dma_buf_detach() (if currently attached).  Perhaps somewhere there
+> should be some sanity checking debug code which could be enabled to do
+> a WARN_ON() if the importer does the wrong thing.  It shouldn't really
+> be part of the API, I don't think, but it actually does seem like a
+> good thing, esp. as new drivers start trying to use dmabuf, to have
+> some debug options which could be enabled.
+>
+> It is entirely possible that something was missed on the vb2 patches,
+> but the way it is intended to work is like this:
+> https://github.com/robclark/kernel-omap4/blob/0961428143cd10269223e3d0f24bc3a66a96185f/drivers/media/video/videobuf2-core.c#L92
+>
+> where it does a detach() before the dma_buf_put(), and the vb2-contig
+> backend checks here that it is also unmapped():
+> https://github.com/robclark/kernel-omap4/blob/0961428143cd10269223e3d0f24bc3a66a96185f/drivers/media/video/videobuf2-dma-contig.c#L251
 
-Thanks for the patch.
+The proposed RFC for V4L2 adaptation at [1] does exactly the same
+thing; detach() before dma_buf_put(), and check in vb2-contig backend
+for unmapped() as mentioned above.
 
-On Tuesday 20 December 2011 21:28:09 Sakari Ailus wrote:
-> This currently introduces an extra file to the arch/arm/mach-omap2
-> directory: board-rm680-camera.c. Keeping the device tree in mind, the
-> context of the file could be represented as static data with one exception:
-> the external clock to the sensor.
-> 
-> This external clock is provided by the OMAP 3 SoC and required by the
-> sensor. The issue is that the clock originates from the ISP and not from
-> PRCM block as the other clocks and thus is not supported by the clock
-> framework. Otherwise the sensor driver could just clk_get() and
-> clk_enable() it, just like the regulators and gpios.
+>
+> BR,
+> -R
+>
+BR,
+Sumit.
 
-This will hopefully be fixable with the new generic clock struct. Have you had 
-a look at it lately BTW ?
-
-> Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> ---
->  arch/arm/mach-omap2/Makefile             |    3 +-
->  arch/arm/mach-omap2/board-rm680-camera.c |  408
-> ++++++++++++++++++++++++++++++ arch/arm/mach-omap2/board-rm680.c        | 
->  42 +++
->  3 files changed, 452 insertions(+), 1 deletions(-)
->  create mode 100644 arch/arm/mach-omap2/board-rm680-camera.c
-> 
-> diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
-> index 69ab1c0..1444bc5 100644
-> --- a/arch/arm/mach-omap2/Makefile
-> +++ b/arch/arm/mach-omap2/Makefile
-> @@ -201,7 +201,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+=
-> board-omap3pandora.o obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
->  obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
->  obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o \
-> -					   sdram-nokia.o
-> +					   sdram-nokia.o \
-> +					   board-rm680-camera.o
->  obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
->  					   sdram-nokia.o \
->  					   board-rx51-peripherals.o \
-> diff --git a/arch/arm/mach-omap2/board-rm680-camera.c
-> b/arch/arm/mach-omap2/board-rm680-camera.c new file mode 100644
-> index 0000000..4cc1ced
-> --- /dev/null
-> +++ b/arch/arm/mach-omap2/board-rm680-camera.c
-> @@ -0,0 +1,408 @@
-> +/**
-> + * arch/arm/mach-omap2/board-rm680-camera.c
-> + *
-> + * Copyright (C) 2010--2011 Nokia Corporation
-
-2012 ? :-)
-
-> + * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-> + *
-> + * Based on board-rx71-camera.c by Vimarsh Zutshi
-
-This one isn't upstream, I'm not sure if it's worth mentioning it.
-
-> + * Based on board-rx51-camera.c by Sakari Ailus
-> + *
-> + * This program is free software; you can redistribute it and/or
-> + * modify it under the terms of the GNU General Public License
-> + * version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful, but
-> + * WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-> + * General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-> + * 02110-1301 USA
-> + *
-> + */
-> +
-> +#include <linux/delay.h>
-> +#include <linux/mm.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/videodev2.h>
-> +
-> +#include <linux/gpio.h>
-> +#include <plat/omap-pm.h>
-> +
-> +#include "../../../drivers/media/video/omap3isp/isp.h"
-
-What do we still miss in <media/omap3isp.h> ?
-
-> +#include <media/omap3isp.h>
-> +#include <media/smiapp.h>
-> +#include <asm/mach-types.h>
-> +
-> +#include "../../../drivers/media/video/smiapp.h"
-
-Time to create <media/smiapp.h> ?
-
-> +
-> +#include "devices.h"
-> +
-> +#define SEC_CAMERA_RESET_GPIO	97
-> +
-> +#define RM680_PRI_SENSOR	1
-> +#define RM680_PRI_LENS		2
-> +#define RM680_SEC_SENSOR	3
-> +#define MAIN_CAMERA_XCLK	ISP_XCLK_A
-> +#define SEC_CAMERA_XCLK		ISP_XCLK_B
-> +
-> +/*
-> + *
-> + * HW initialization
-> + *
-> + *
-> + */
-> +static int __init rm680_sec_camera_init(void)
-> +{
-> +	if (gpio_request(SEC_CAMERA_RESET_GPIO, "sec_camera reset") != 0) {
-> +		printk(KERN_INFO "%s: unable to acquire secondary "
-> +		       "camera reset gpio\n", __func__);
-> +		return -ENODEV;
-> +	}
-> +
-> +	/* XSHUTDOWN off, reset  */
-> +	gpio_direction_output(SEC_CAMERA_RESET_GPIO, 0);
-> +	gpio_set_value(SEC_CAMERA_RESET_GPIO, 0);
-
-gpio_request_one() would be helpful here (and possibly in other locations in 
-this file).
-
-> +
-> +	return 0;
-> +}
-> +
-> +static int __init rm680_camera_hw_init(void)
-> +{
-> +	return rm680_sec_camera_init();
-
-Maybe you could merge the two functions ?
-
-> +}
-> +
-> +/*
-> + *
-> + * Main Camera Module EXTCLK
-> + * Used by the sensor and the actuator driver.
-> + *
-> + */
-> +static struct camera_xclk {
-> +	u32 hz;
-> +	u32 lock;
-> +	u8 xclksel;
-> +} cameras_xclk;
-> +
-> +static DEFINE_MUTEX(lock_xclk);
-> +
-> +static int rm680_update_xclk(struct v4l2_subdev *subdev, u32 hz, u32
-> which, +			     u8 xclksel)
-> +{
-> +	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
-> +	int ret;
-> +
-> +	mutex_lock(&lock_xclk);
-> +
-> +	if (which == RM680_SEC_SENSOR) {
-> +		if (cameras_xclk.xclksel == MAIN_CAMERA_XCLK) {
-> +			ret = -EBUSY;
-> +			goto done;
-> +		}
-> +	} else {
-> +		if (cameras_xclk.xclksel == SEC_CAMERA_XCLK) {
-> +			ret = -EBUSY;
-> +			goto done;
-> +		}
-> +	}
-> +
-> +	if (hz) {	/* Turn on */
-> +		cameras_xclk.lock |= which;
-> +		if (cameras_xclk.hz == 0) {
-> +			isp->platform_cb.set_xclk(isp, hz, xclksel);
-> +			cameras_xclk.hz = hz;
-> +			cameras_xclk.xclksel = xclksel;
-> +		}
-> +	} else {	/* Turn off */
-> +		cameras_xclk.lock &= ~which;
-> +		if (cameras_xclk.lock == 0) {
-> +			isp->platform_cb.set_xclk(isp, 0, xclksel);
-> +			cameras_xclk.hz = 0;
-> +			cameras_xclk.xclksel = 0;
-> +		}
-> +	}
-> +
-> +	ret = cameras_xclk.hz;
-> +
-> +done:
-> +	mutex_unlock(&lock_xclk);
-> +	return ret;
-> +}
-> +
-> +/*
-> + *
-> + * Main Camera Sensor
-> + *
-> + */
-> +
-> +static struct isp_csiphy_lanes_cfg rm696_main_camera_csi2_lanecfg = {
-> +	.clk = {
-> +		.pol = 1,
-> +		.pos = 2,
-> +	},
-> +	.data[0] = {
-> +		.pol = 1,
-> +		.pos = 1,
-> +	},
-> +	.data[1] = {
-> +		.pol = 1,
-> +		.pos = 3,
-> +	},
-> +};
-> +
-> +static struct isp_csiphy_lanes_cfg rm680_main_camera_csi2_lanecfg = {
-> +	.clk = {
-> +		.pol = 1,
-> +		.pos = 2,
-> +	},
-> +	.data[0] = {
-> +		.pol = 1,
-> +		.pos = 3,
-> +	},
-> +	.data[1] = {
-> +		.pol = 1,
-> +		.pos = 1,
-> +	},
-> +};
-> +
-> +static int rm680_main_camera_set_xclk(struct v4l2_subdev *sd, int hz)
-> +{
-> +	return rm680_update_xclk(sd, hz, RM680_PRI_SENSOR, MAIN_CAMERA_XCLK);
-> +}
-> +
-> +static struct smiapp_flash_strobe_parms rm680_main_camera_strobe_setup = {
-> +	.mode			= 0x0c,
-> +	.strobe_width_high_us	= 100000,
-> +	.strobe_delay		= 0,
-> +	.stobe_start_point	= 0,
-> +	.trigger		= 0,
-> +};
-> +
-> +static struct smiapp_platform_data rm696_main_camera_platform_data = {
-> +	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
-> +	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
-> +	.nvm_size		= 16 * 64,
-> +	.ext_clk		= (9.6 * 1000 * 1000),
-> +	.lanes			= 2,
-> +	.op_sys_clock		= (s64 []){ 796800 / 2, 840000 / 2,
-> +					    1996800 / 2, 0 },
-> +	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
-> +	.strobe_setup		= &rm680_main_camera_strobe_setup,
-> +	.set_xclk		= rm680_main_camera_set_xclk,
-> +};
-> +
-> +static struct smiapp_platform_data rm680_main_camera_platform_data = {
-> +	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
-> +	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
-> +	.nvm_size		= 16 * 64,
-> +	.ext_clk		= (9.6 * 1000 * 1000),
-> +	.lanes			= 2,
-> +	.op_sys_clock		= (s64 []){ 840000 / 2, 1334400 / 2,
-> +					    1593600 / 2, 0 },
-> +	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
-> +	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
-> +	.strobe_setup		= &rm680_main_camera_strobe_setup,
-> +	.set_xclk		= rm680_main_camera_set_xclk,
-> +};
-> +
-> +/*
-> + *
-> + * SECONDARY CAMERA Sensor
-> + *
-> + */
-> +
-> +#define SEC_CAMERA_XCLK		ISP_XCLK_B
-> +
-> +static struct isp_csiphy_lanes_cfg rm680_sec_camera_csiphy_lanecfg = {
-> +	.clk = {
-> +		.pol = 0,
-> +		.pos = 1,
-> +	},
-> +	.data[0] = {
-> +		.pol = 0,
-> +		.pos = 2,
-> +	},
-> +};
-> +
-> +static int rm680_sec_camera_set_xclk(struct v4l2_subdev *sd, int hz)
-> +{
-> +	return rm680_update_xclk(sd, hz, RM680_SEC_SENSOR, SEC_CAMERA_XCLK);
-> +}
-> +
-> +static int rm680_sec_camera_set_xshutdown(struct v4l2_subdev *subdev, u8
-> set) +{
-> +	gpio_set_value(SEC_CAMERA_RESET_GPIO, !!set);
-> +	return 0;
-> +}
-> +
-> +static struct smiapp_platform_data rm696_sec_camera_platform_data = {
-> +	.ext_clk		= (10.8 * 1000 * 1000),
-> +	.lanes			= 1,
-> +	.op_sys_clock		= (s64 []){ 13770 * 10, 0 },
-> +	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
-> +	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
-> +	.set_xclk		= rm680_sec_camera_set_xclk,
-> +	.set_xshutdown		= rm680_sec_camera_set_xshutdown,
-> +};
-> +
-> +static struct smiapp_platform_data rm680_sec_camera_platform_data = {
-> +	.ext_clk		= (10.8 * 1000 * 1000),
-> +	.lanes			= 1,
-> +	.op_sys_clock		= (s64 []){ 11880 * 10, 0 },
-> +	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
-> +	.set_xclk		= rm680_sec_camera_set_xclk,
-> +	.set_xshutdown		= rm680_sec_camera_set_xshutdown,
-
-What about passing the GPIO number to the smiapp driver instead of using a 
-callback function ?
-
-> +};
-> +
-> +/*
-> + *
-> + * Init all the modules
-> + *
-> + */
-> +
-> +#define CAMERA_I2C_BUS_NUM		2
-> +#define AD5836_I2C_BUS_NUM		2
-> +#define AS3645A_I2C_BUS_NUM		2
-> +
-> +static struct i2c_board_info rm696_camera_i2c_devices[] = {
-> +	{
-> +		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
-> +		.platform_data = &rm696_main_camera_platform_data,
-> +	},
-> +	{
-> +		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
-> +		.platform_data = &rm696_sec_camera_platform_data,
-> +	},
-> +};
-> +
-> +static struct i2c_board_info rm680_camera_i2c_devices[] = {
-> +	{
-> +		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
-> +		.platform_data = &rm680_main_camera_platform_data,
-> +	},
-> +	{
-> +		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
-> +		.platform_data = &rm680_sec_camera_platform_data,
-> +	},
-> +};
-> +
-> +static struct isp_subdev_i2c_board_info rm696_camera_primary_subdevs[] = {
-> +	{
-> +		.board_info = &rm696_camera_i2c_devices[0],
-> +		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
-> +	},
-> +	{ NULL, 0, },
-> +};
-> +
-> +static struct isp_subdev_i2c_board_info rm696_camera_secondary_subdevs[] =
-> { +	{
-> +		.board_info = &rm696_camera_i2c_devices[1],
-> +		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
-> +	},
-> +	{ NULL, 0, },
-> +};
-> +
-> +static struct isp_subdev_i2c_board_info rm680_camera_primary_subdevs[] = {
-> +	{
-> +		.board_info = &rm680_camera_i2c_devices[0],
-> +		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
-> +	},
-> +	{ NULL, 0, },
-> +};
-> +
-> +static struct isp_subdev_i2c_board_info rm680_camera_secondary_subdevs[] =
-> { +	{
-> +		.board_info = &rm680_camera_i2c_devices[1],
-> +		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
-> +	},
-> +	{ NULL, 0, },
-> +};
-> +
-> +static struct isp_v4l2_subdevs_group rm696_camera_subdevs[] = {
-> +	{
-> +		.subdevs = rm696_camera_primary_subdevs,
-> +		.interface = ISP_INTERFACE_CSI2A_PHY2,
-> +		.bus = { .csi2 = {
-> +			.crc		= 1,
-> +			.vpclk_div	= 1,
-> +			.lanecfg	= &rm696_main_camera_csi2_lanecfg,
-> +		} },
-> +	},
-> +	{
-> +		.subdevs = rm696_camera_secondary_subdevs,
-> +		.interface = ISP_INTERFACE_CCP2B_PHY1,
-> +		.bus = { .ccp2 = {
-> +			.strobe_clk_pol	= 0,
-> +			.crc		= 0,
-> +			.ccp2_mode	= 0,
-> +			.phy_layer	= 0,
-> +			.vpclk_div	= 2,
-> +			.lanecfg	= &rm680_sec_camera_csiphy_lanecfg,
-> +		} },
-> +	},
-> +	{ NULL, 0, },
-> +};
-> +
-> +static struct isp_v4l2_subdevs_group rm680_camera_subdevs[] = {
-> +	{
-> +		.subdevs = rm680_camera_primary_subdevs,
-> +		.interface = ISP_INTERFACE_CSI2A_PHY2,
-> +		.bus = { .csi2 = {
-> +			.crc		= 1,
-> +			.vpclk_div	= 1,
-> +			.lanecfg	= &rm680_main_camera_csi2_lanecfg,
-> +		} },
-> +	},
-> +	{
-> +		.subdevs = rm680_camera_secondary_subdevs,
-> +		.interface = ISP_INTERFACE_CCP2B_PHY1,
-> +		.bus = { .ccp2 = {
-> +			.strobe_clk_pol	= 0,
-> +			.crc		= 0,
-> +			.ccp2_mode	= 0,
-> +			.phy_layer	= 0,
-> +			.vpclk_div	= 2,
-> +			.lanecfg	= &rm680_sec_camera_csiphy_lanecfg,
-> +		} },
-> +	},
-> +	{ NULL, 0, },
-> +};
-> +
-> +static struct isp_platform_data rm696_isp_platform_data = {
-> +	.subdevs = rm696_camera_subdevs,
-> +};
-> +
-> +static struct isp_platform_data rm680_isp_platform_data = {
-> +	.subdevs = rm680_camera_subdevs,
-> +};
-> +
-> +static inline int board_is_rm680(void)
-> +{
-> +	return (system_rev & 0x00f0) == 0x0020;
-> +}
-> +
-> +void __init rm680_camera_init(void)
-> +{
-> +	struct isp_platform_data *pdata;
-> +	int rval;
-> +
-> +	rval = rm680_camera_hw_init();
-> +	if (rval) {
-> +		printk(KERN_WARNING "%s: unable to initialise camera\n",
-> +		       __func__);
-> +		return;
-> +	}
-> +
-> +	if (board_is_rm680())
-> +		pdata = &rm680_isp_platform_data;
-> +	else
-> +		pdata = &rm696_isp_platform_data;
-> +
-> +	if (omap3_init_camera(pdata) < 0)
-> +		printk(KERN_WARNING
-> +		       "%s: unable to register camera platform device\n",
-> +		       __func__);
-> +}
-> diff --git a/arch/arm/mach-omap2/board-rm680.c
-> b/arch/arm/mach-omap2/board-rm680.c index a5bcc75..a1e33d4 100644
-> --- a/arch/arm/mach-omap2/board-rm680.c
-> +++ b/arch/arm/mach-omap2/board-rm680.c
-> @@ -66,6 +66,43 @@ static struct platform_device rm680_vemmc_device = {
->  	},
->  };
-> 
-> +#define REGULATOR_INIT_DATA(_name, _min, _max, _apply, _ops_mask) \
-> +	static struct regulator_init_data _name##_data = { \
-> +		.constraints = { \
-> +			.name                   = #_name, \
-> +			.min_uV                 = _min, \
-> +			.max_uV                 = _max, \
-> +			.apply_uV               = _apply, \
-> +			.valid_modes_mask       = REGULATOR_MODE_NORMAL | \
-> +						REGULATOR_MODE_STANDBY, \
-> +			.valid_ops_mask         = _ops_mask, \
-> +		}, \
-> +		.num_consumer_supplies  = ARRAY_SIZE(_name##_consumers), \
-> +		.consumer_supplies      = _name##_consumers, \
-> +}
-> +#define REGULATOR_INIT_DATA_FIXED(_name, _voltage) \
-> +	REGULATOR_INIT_DATA(_name, _voltage, _voltage, true, \
-> +				REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_MODE)
-> +
-> +static struct regulator_consumer_supply rm680_vaux2_consumers[] = {
-> +	REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),	/* OMAP ISP */
-> +	REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),	/* OMAP ISP */
-> +	{
-> +		.supply		= "vaux2",
-> +	},
-> +};
-> +REGULATOR_INIT_DATA_FIXED(rm680_vaux2, 1800000);
-> +
-> +static struct regulator_consumer_supply rm680_vaux3_consumers[] = {
-> +	REGULATOR_SUPPLY("VANA", "2-0037"),	/* Main Camera Sensor */
-> +	REGULATOR_SUPPLY("VANA", "2-000e"),	/* Main Camera Lens */
-
-The lens driver isn't upstream yet. We could keep the regulator supply 
-definition to avoid forgetting it later though.
-
-> +	REGULATOR_SUPPLY("VANA", "2-0010"),	/* Front Camera */
-> +	{
-> +		.supply		= "vaux3",
-> +	},
-> +};
-> +REGULATOR_INIT_DATA_FIXED(rm680_vaux3, 2800000);
-> +
->  static struct platform_device *rm680_peripherals_devices[] __initdata = {
->  	&rm680_vemmc_device,
->  };
-> @@ -82,6 +119,8 @@ static struct twl4030_gpio_platform_data rm680_gpio_data
-> = { static struct twl4030_platform_data rm680_twl_data = {
->  	.gpio			= &rm680_gpio_data,
->  	/* add rest of the children here */
-> +	.vaux2			= &rm680_vaux2_data,
-> +	.vaux3			= &rm680_vaux3_data,
->  };
-> 
->  static void __init rm680_i2c_init(void)
-> @@ -129,6 +168,8 @@ static struct omap_board_mux board_mux[] __initdata = {
->  };
->  #endif
-> 
-> +void rm680_camera_init(void);
-> +
->  static void __init rm680_init(void)
->  {
->  	struct omap_sdrc_params *sdrc_params;
-> @@ -141,6 +182,7 @@ static void __init rm680_init(void)
-> 
->  	usb_musb_init(NULL);
->  	rm680_peripherals_init();
-> +	rm680_camera_init();
->  }
-> 
->  MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
-
--- 
-Regards,
-
-Laurent Pinchart
+[1]: V4l2 as a dma-buf user RFC:
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966
