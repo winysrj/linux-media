@@ -1,52 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:53976 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753224Ab2AQUWm (ORCPT
+Received: from mail.pripojeni.net ([178.22.112.14]:36065 "EHLO
+	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932080Ab2AJRWx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 15:22:42 -0500
-Date: Tue, 17 Jan 2012 22:22:39 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH 19/23] omap3isp: Default error handling for ccp2, csi2,
- preview and resizer
-Message-ID: <20120117202239.GG13236@valkosipuli.localdomain>
-References: <4F0DFE92.80102@iki.fi>
- <1326317220-15339-19-git-send-email-sakari.ailus@iki.fi>
- <201201161550.08193.laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201201161550.08193.laurent.pinchart@ideasonboard.com>
+	Tue, 10 Jan 2012 12:22:53 -0500
+From: Jiri Slaby <jslaby@suse.cz>
+To: mchehab@infradead.org
+Cc: mikekrufky@gmail.com, linux-media@vger.kernel.org,
+	jirislaby@gmail.com, linux-kernel@vger.kernel.org,
+	Jiri Slaby <jslaby@suse.cz>
+Subject: [PATCH 3/4] DVB: dib0700, add corrected Nova-TD frontend_attach
+Date: Tue, 10 Jan 2012 18:11:24 +0100
+Message-Id: <1326215485-20846-3-git-send-email-jslaby@suse.cz>
+In-Reply-To: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
+References: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 16, 2012 at 03:50:07PM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> Thanks for the patch.
-> 
-> On Wednesday 11 January 2012 22:26:56 Sakari Ailus wrote:
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/video/omap3isp/ispccp2.c    |    2 ++
-> >  drivers/media/video/omap3isp/ispcsi2.c    |    2 ++
-> >  drivers/media/video/omap3isp/isppreview.c |    2 ++
-> >  drivers/media/video/omap3isp/ispresizer.c |    2 ++
-> >  drivers/media/video/omap3isp/ispvideo.c   |   18 ++++++++----------
-> >  5 files changed, 16 insertions(+), 10 deletions(-)
-> 
-> [snip]
-> 
-> Does the below code belong to this patch ? The commit message doesn't explain 
-> why this is needed.
+This means cut & paste from the former f. attach. But while at it write
+to the right GPIO to turn on the right LED. Also turn the other two
+off jsut for sure.
 
-I separated these changes from the rest. I'll send a new patchset in the
-near future.
+Signed-off-by: Jiri Slaby <jslaby@suse.cz>
+---
+ drivers/media/dvb/dvb-usb/dib0700_devices.c |   36 +++++++++++++++++++++++++-
+ 1 files changed, 34 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+index e5c2bd2..3ab45ae 100644
+--- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
++++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
+@@ -3105,6 +3105,38 @@ static int stk7070pd_frontend_attach1(struct dvb_usb_adapter *adap)
+ 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
+ }
+ 
++/**
++ * novatd_frontend_attach - Nova-TD specific attach
++ *
++ * Nova-TD has GPIO0, 1 and 2 for LEDs. So do not fiddle with them except for
++ * information purposes.
++ */
++static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
++{
++	struct dvb_usb_device *dev = adap->dev;
++
++	if (adap->id == 0) {
++		stk7070pd_init(dev);
++
++		/* turn the power LED on, the other two off (just in case) */
++		dib0700_set_gpio(dev, GPIO0, GPIO_OUT, 0);
++		dib0700_set_gpio(dev, GPIO1, GPIO_OUT, 0);
++		dib0700_set_gpio(dev, GPIO2, GPIO_OUT, 1);
++
++		if (dib7000p_i2c_enumeration(&dev->i2c_adap, 2, 18,
++					     stk7070pd_dib7000p_config) != 0) {
++			err("%s: dib7000p_i2c_enumeration failed.  Cannot continue\n",
++			    __func__);
++			return -ENODEV;
++		}
++	}
++
++	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &dev->i2c_adap,
++			adap->id == 0 ? 0x80 : 0x82,
++			&stk7070pd_dib7000p_config[adap->id]);
++	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
++}
++
+ /* S5H1411 */
+ static struct s5h1411_config pinnacle_801e_config = {
+ 	.output_mode   = S5H1411_PARALLEL_OUTPUT,
+@@ -3876,7 +3908,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 				.pid_filter_count = 32,
+ 				.pid_filter       = stk70x0p_pid_filter,
+ 				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
+-				.frontend_attach  = stk7070pd_frontend_attach0,
++				.frontend_attach  = novatd_frontend_attach,
+ 				.tuner_attach     = dib7070p_tuner_attach,
+ 
+ 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
+@@ -3889,7 +3921,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
+ 				.pid_filter_count = 32,
+ 				.pid_filter       = stk70x0p_pid_filter,
+ 				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
+-				.frontend_attach  = stk7070pd_frontend_attach1,
++				.frontend_attach  = novatd_frontend_attach,
+ 				.tuner_attach     = dib7070p_tuner_attach,
+ 
+ 				DIB0700_DEFAULT_STREAMING_CONFIG(0x03),
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8
+
+
