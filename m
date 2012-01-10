@@ -1,114 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:60554 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750850Ab2AAHtP convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 02:49:15 -0500
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57827 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933455Ab2AJAMo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 19:12:44 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09 14:00 GMT+2
+Date: Tue, 10 Jan 2012 01:13:06 +0100
+Cc: linux-media@vger.kernel.org, tuukkat76@gmail.com,
+	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
+	snjw23@gmail.com
+References: <20120104085633.GM3677@valkosipuli.localdomain> <201201092337.51849.laurent.pinchart@ideasonboard.com> <4F0B77B6.2000304@iki.fi>
+In-Reply-To: <4F0B77B6.2000304@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
-References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
-	<1325162352-24709-2-git-send-email-m.szyprowski@samsung.com>
-Date: Sun, 1 Jan 2012 09:49:13 +0200
-Message-ID: <CAOtvUMeAVgDwRNsDTcG07ChYnAuNgNJjQ+sKALJ79=Ezikos-A@mail.gmail.com>
-Subject: Re: [PATCH 01/11] mm: page_alloc: set_migratetype_isolate: drain PCP
- prior to isolating
-From: Gilad Ben-Yossef <gilad@benyossef.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201100113.07211.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Dec 29, 2011 at 2:39 PM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> From: Michal Nazarewicz <mina86@mina86.com>
->
-> When set_migratetype_isolate() sets pageblock's migrate type, it does
-> not change each page_private data.  This makes sense, as the function
-> has no way of knowing what kind of information page_private stores.
-...
->
->
-> A side effect is that instead of draining pages from all zones,
-> set_migratetype_isolate() now drain only pages from zone pageblock it
-> operates on is in.
->
-...
+Hi Sakari,
 
+On Tuesday 10 January 2012 00:26:46 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Monday 09 January 2012 23:32:06 Sakari Ailus wrote:
+> >> Laurent Pinchart wrote:
+> >>> On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
+> ...
+> 
+> >>>> A fourth section may be required as well: at this level the frame rate
+> >>>> (or frame time) range makes more sense than the low-level blanking
+> >>>> values. The blanking values can be calculated from the frame time and
+> >>>> a flag which tells whether either horizontal or vertical blanking
+> >>>> should be preferred.
+> >>> 
+> >>> How does one typically select between horizontal and vertical blanking
+> >>> ? Do mixed modes make sense ?
+> >> 
+> >> There are minimums and maximums for both. You can increase the frame
+> >> time by increasing value for either or both of them --- to achieve very
+> >> long frame times you may have to use both, but that's not very common in
+> >> practice. I think we should have a flag to tell which one should be
+> >> increased first --- the effect would be to have the minimum possible
+> >> value on the other.
+> > 
+> > But how do you decide in practice which one to increase when you're an
+> > application (or middleware) developer ?
+> 
+> I think it's the responsibility of this library to do that, unless the
+> user wants really, really precise control in which case they have to
+> deal with the blanking values directly. In general it should be the
+> library.
 
->
-> +/* Caller must hold zone->lock. */
-> +static void __zone_drain_local_pages(void *arg)
-> +{
-> +       struct per_cpu_pages *pcp;
-> +       struct zone *zone = arg;
-> +       unsigned long flags;
-> +
-> +       local_irq_save(flags);
-> +       pcp = &per_cpu_ptr(zone->pageset, smp_processor_id())->pcp;
-> +       if (pcp->count) {
-> +               /* Caller holds zone->lock, no need to grab it. */
-> +               __free_pcppages_bulk(zone, pcp->count, pcp);
-> +               pcp->count = 0;
-> +       }
-> +       local_irq_restore(flags);
-> +}
-> +
-> +/*
-> + * Like drain_all_pages() but operates on a single zone.  Caller must
-> + * hold zone->lock.
-> + */
-> +static void __zone_drain_all_pages(struct zone *zone)
-> +{
-> +       on_each_cpu(__zone_drain_local_pages, zone, 1);
-> +}
-> +
-
-Please consider whether sending an IPI to all processors in the system
-and interrupting them is appropriate here.
-
-You seem to assume that it is probable that each CPU of the possibly
-4,096 (MAXSMP on x86) has a per-cpu page
-for the specified zone, otherwise you're just interrupting them out of
-doing something useful, or save power idle
-for nothing.
-
-While that may or may not be a reasonable assumption for the general
-drain_all_pages that drains pcps from
-all zones, I feel it is less likely to be the right thing once you
-limit the drain to a single zone.
-
-Some background on my attempt to reduce "IPI noise" in the system in
-this context is probably useful here as
-well: https://lkml.org/lkml/2011/11/22/133
-
-Thanks :-)
-Gilad
-
-
+And how does the library decide ? :-)
 
 -- 
-Gilad Ben-Yossef
-Chief Coffee Drinker
-gilad@benyossef.com
-Israel Cell: +972-52-8260388
-US Cell: +1-973-8260388
-http://benyossef.com
+Regards,
 
-"Unfortunately, cache misses are an equal opportunity pain provider."
--- Mike Galbraith, LKML
+Laurent Pinchart
