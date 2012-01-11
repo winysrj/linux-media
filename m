@@ -1,132 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:43304 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755734Ab2AXLHu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 06:07:50 -0500
-Received: by iacb35 with SMTP id b35so5221998iac.19
-        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 03:07:49 -0800 (PST)
-Message-ID: <4F1E9100.90306@gmail.com>
-Date: Tue, 24 Jan 2012 16:37:44 +0530
-From: Subash Patel <subashrp@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:49868 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752172Ab2AKII0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 03:08:26 -0500
+Message-ID: <4F0D4370.2010702@maxwell.research.nokia.com>
+Date: Wed, 11 Jan 2012 10:08:16 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 MIME-Version: 1.0
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-CC: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	pawel@osciak.com, sumit.semwal@ti.com, jesse.barker@linaro.org,
-	kyungmin.park@samsung.com, daniel@ffwll.ch
-Subject: Re: [Linaro-mm-sig] [PATCH 05/10] v4l: add buffer exporting via dmabuf
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com> <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
-In-Reply-To: <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, dacohen@gmail.com,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [RFC 13/17] omap3isp: Configure CSI-2 phy based on platform data
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <201201061101.02843.laurent.pinchart@ideasonboard.com> <4F08CC6C.8080209@maxwell.research.nokia.com> <201201080202.11719.laurent.pinchart@ideasonboard.com> <4F096F3A.7020902@maxwell.research.nokia.com> <4F0978DB.2000601@gmail.com> <4F097B21.7080000@maxwell.research.nokia.com> <4F09957D.3070104@gmail.com>
+In-Reply-To: <4F09957D.3070104@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Thomasz,
+Hi Sylwester,
 
-Instead of adding another IOCTL to query the file-descriptor in 
-user-space, why dont we extend the existing ones in v4l2/vb2?
+Sylwester Nawrocki wrote:
+> On 01/08/2012 12:16 PM, Sakari Ailus wrote:
+>>>>>>> Shouldn't lane configuration be retrieved from the sensor instead ?
+>>>>>>> Sensors could use different lane configuration depending on the mode.
+>>>>>>> This could also be implemented later when needed, but I don't think it
+>>>>>>> would be too difficult to get it right now.
+>>>>>>
+>>>>>> I think we'd first need to standardise the CSI-2 bus configuration. I
+>>>>>> don't see a practical need to make the lane configuration dynamic. You
+>>>>>> could just use a lower frequency to achieve the same if you really need to.
+>>>>>>
+>>>>>> Ideally it might be nice to do but there's really nothing I know that
+>>>>>> required or even benefited from it --- at least for now.
+>>>>>
+>>>>> Does this mean that lane configuration needs to be duplicated in board code, 
+>>>>> on for the SMIA++ platform data and one of the OMAP3 ISP platform data ?
+>>>>
+>>>> It's mostly the number of lanes, and the polarity --- in theory it is
+>>>> possible to invert the signals on the bus, albeit I'm not sure if anyone
+>>>> does that; I can't see a reason for that, but hey, I don't know why it's
+>>>> possible to specify polarity either. :-)
+> 
+> I think it just enables to swap D+ and D- functions on the physical pins.
 
-When the memory type set is V4L2_MEMORY_DMABUF, call to VIDIOC_REQBUFS 
-/VIDIOC_QUERYBUF from driver can take/return the fd. We will need to add 
-another attribute to struct v4l2_requestbuffers for this.
+Good thinking. :-) Yeah, it's differential, so yes, I think so too now
+that you mention it.
 
-struct v4l2_requestbuffers {
-	...
-	__u32 buf_fd;
-};
+>>> I've never seen polarity configuration option in any datasheet, neither
+>>> MIPI CSI-2 or D-PHY mentions that. Does OMAP3 ISP really allow MIPI-CSI
+>>> lane signal polarity configuration ? MIPI-CSI2 uses differential signals
+>>> after all. What would be a point of changing polarity ?
+>>
+>> I don't know. It's also the same for CSI-1 on OMAP 3.
+>>
+>> This is actually one of the issues here: also device specific
+>> configuration is required. The standard configuration must contain
+>> probably at least what the spec defines.
+>>
+>>>> If both sides support mapping of the lanes, a mapping that matches on
+>>>> both sides has to be provided.
+>>>
+>>> In Samsung SoC (both sensor and host interface) I've seen only possibility
+>>> to configure the number of data lanes, FWIW I think it is assumed that
+>>> when you use e.g. 2 data lanes always lane1 and lane2 are utilised for
+>>> transmission, for 3 lanes - lane 1,2,3, etc. Also I've never seen on
+>>> schematics that someone wires data lane3 and lane4 when only 2 lanes
+>>> are utilised, so this makes me wonder if the lane mapping is ever needed.
+>>>
+>>> Has anyone different experience with that ?
+>>>
+>>> Also the standard seem to specify that Data1+ lane at a transmitter(Tx) is
+>>> connected to Data1+ lane at a receiver(Rx), Data1-(Tx) to Data1-(Rx),
+>>> Data2+(Tx) to Data2+(Rx), etc. I think this is needed due to explicitly
+>>> defined data distribution and merging scheme among the lanes, i.e. to allow
+>>> interworking of various receivers and transmitters.
+>>>
+>>> Thus it seems all we need need is just a number of data lanes used.
+>>
+>> The standard of course specifies that the data lanes must be connected
+>> correctly. :-) It can't specify which SoC pins do they use, so for added
+>> flexibility it's good to be able to reorder them.
+>>
+>> Have you ever worked with single-layer PCBs by any chance? :-) More
+>> layers are used these days but it still doesn't solve all possible issues.
+> 
+> Yes, I have. I know what you mean. It just seemed uncommon to me to reorder
+> the signals. But since H/W doing that exists..and that might become more
+> widely used in the future it might make sense to standardize lane
+> configuration.
 
-The application requesting buffer would set it to -1, and will receive 
-the fd's when it calls the vb2_querybuf. In the same way, application 
-which is trying to attach to already allocated buffer will set this to 
-valid fd when it calls vidioc_reqbuf, and in vb2_reqbuf depending on the 
-memory type, this can be checked and used to attach with the dma_buf for 
-the respective buffer.
+We'll need different mapping configuration for the receiver and the
+transmitter, and not all the hardware supports it. It won't be many
+bytes, though.
 
-Ofcourse, this requires changes in vb2_reqbufs and vb2_querybuf similar 
-to what you did in vb2_expbufs.
+>> So I think I can say reordering generally must be supported by software
+>> if the hardware can do that.
+> 
+> Yes, however there is always a board specific information involved, isn't it ?
+> I.e. transmitter can reorder signals between its pins, the same can happen at
+> a receiver and additionally the transmitter's pins can be connected differently
+> to the receiver pins, depending on the board ?
 
-Will there be any issues in such an approach?
+Exactly. That's the reason, I think, why the hardware does support it.
 
-Regards,
-Subash
+> Then do we make board specific information part of sensor's or host platform
+> data ? It probably should be at both, let's take an evaluation and a camera
+> daughter boards as an example.
+> 
+> We also need device tree bindings for that, if possible the best would be to
+> design common bindings, at least basic ones, to which device specific ones
+> could be added.
 
-On 01/23/2012 07:21 PM, Tomasz Stanislawski wrote:
-> This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
-> descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
-> mmap and return a file descriptor on success.
->
-> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
-> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
-> ---
->   drivers/media/video/v4l2-compat-ioctl32.c |    1 +
->   drivers/media/video/v4l2-ioctl.c          |   11 +++++++++++
->   include/linux/videodev2.h                 |    1 +
->   include/media/v4l2-ioctl.h                |    1 +
->   4 files changed, 14 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-> index c68531b..0f18b5e 100644
-> --- a/drivers/media/video/v4l2-compat-ioctl32.c
-> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
-> @@ -954,6 +954,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
->   	case VIDIOC_S_FBUF32:
->   	case VIDIOC_OVERLAY32:
->   	case VIDIOC_QBUF32:
-> +	case VIDIOC_EXPBUF:
->   	case VIDIOC_DQBUF32:
->   	case VIDIOC_STREAMON32:
->   	case VIDIOC_STREAMOFF32:
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index e1da8fc..cb29e00 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -207,6 +207,7 @@ static const char *v4l2_ioctls[] = {
->   	[_IOC_NR(VIDIOC_S_FBUF)]           = "VIDIOC_S_FBUF",
->   	[_IOC_NR(VIDIOC_OVERLAY)]          = "VIDIOC_OVERLAY",
->   	[_IOC_NR(VIDIOC_QBUF)]             = "VIDIOC_QBUF",
-> +	[_IOC_NR(VIDIOC_EXPBUF)]           = "VIDIOC_EXPBUF",
->   	[_IOC_NR(VIDIOC_DQBUF)]            = "VIDIOC_DQBUF",
->   	[_IOC_NR(VIDIOC_STREAMON)]         = "VIDIOC_STREAMON",
->   	[_IOC_NR(VIDIOC_STREAMOFF)]        = "VIDIOC_STREAMOFF",
-> @@ -932,6 +933,16 @@ static long __video_do_ioctl(struct file *file,
->   			dbgbuf(cmd, vfd, p);
->   		break;
->   	}
-> +	case VIDIOC_EXPBUF:
-> +	{
-> +		unsigned int *p = arg;
-> +
-> +		if (!ops->vidioc_expbuf)
-> +			break;
-> +
-> +		ret = ops->vidioc_expbuf(file, fh, *p);
-> +		break;
-> +	}
->   	case VIDIOC_DQBUF:
->   	{
->   		struct v4l2_buffer *p = arg;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 3c0ade1..448fbed 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -2183,6 +2183,7 @@ struct v4l2_create_buffers {
->   #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
->   #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
->   #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
-> +#define VIDIOC_EXPBUF		_IOWR('V', 16, __u32)
->   #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
->   #define VIDIOC_STREAMON		 _IOW('V', 18, int)
->   #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index 4d1c74a..8201546 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -120,6 +120,7 @@ struct v4l2_ioctl_ops {
->   	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
->   	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
->   	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
-> +	int (*vidioc_expbuf)  (struct file *file, void *fh, __u32 offset);
->   	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
->
->   	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
+Sounds good to me.
+
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
