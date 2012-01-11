@@ -1,50 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:48968 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755167Ab2APPci (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:58642 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751608Ab2AKQh4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 10:32:38 -0500
-Received: by mail-bk0-f46.google.com with SMTP id s6so708297bka.19
-        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2012 07:32:38 -0800 (PST)
+	Wed, 11 Jan 2012 11:37:56 -0500
+Received: by vbbfc26 with SMTP id fc26so644897vbb.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 08:37:55 -0800 (PST)
 MIME-Version: 1.0
-Date: Mon, 16 Jan 2012 16:32:38 +0100
-Message-ID: <CAEN_-SB9X_3OrLAG7D6kotprtu6Xza3=XSeVZFsV937tWJK3yQ@mail.gmail.com>
-Subject: cx25840: allow setting radio audio mode stereo/mono
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=00151740295caa0b8604b6a6ec4d
+In-Reply-To: <CAPc4S2YkA6pyz6z17N3M-XOFw8oibOz_UzgEHyxEJsF01EODFw@mail.gmail.com>
+References: <CAPc4S2YkA6pyz6z17N3M-XOFw8oibOz_UzgEHyxEJsF01EODFw@mail.gmail.com>
+Date: Wed, 11 Jan 2012 11:37:55 -0500
+Message-ID: <CAGoCfiy0zaUCUCU7fF=pdetc1TwgXAUCTLi3JM7nCLM8z+rdYg@mail.gmail.com>
+Subject: Re: "cannot allocate memory" with IO_METHOD_USERPTR
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Christopher Peters <cpeters@ucmo.edu>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---00151740295caa0b8604b6a6ec4d
-Content-Type: text/plain; charset=ISO-8859-1
+On Wed, Jan 11, 2012 at 11:28 AM, Christopher Peters <cpeters@ucmo.edu> wrote:
+> So as I said in my previous email, I got video out of my card.  Now
+> I'm trying to capture video using a piece of software called
+> "openreplay".  Its v4l2 capture code is based heavily on the capture
+> example at http://v4l2spec.bytesex.org/spec/capture-example.html, so I
+> thought I'd try compiling the example code to see what I got.
+>
+> When I ran the capture example with this command-line: "
+> ./capture_example -u" (to use application allocated buffers) I got:
+>
+> "VIDIOC_QBUF error 12, Cannot allocate memory"
+>
+> I'm running Mythbuntu 11.10, Ubuntu kernel 3.0.0-14-generic.  All
+> CONFIG_*V4L* options are set to 'y' or 'm', and all modules matching
+> "v4l2-*" are loaded.
+>
+> What do I need to do to make application allocated buffers work?
 
+USERPTR buffers don't work with many drivers (for example, those that
+use videobuf-vmalloc).  You should use the mmap method, which is
+supported by every card I can think of.
 
+Devin
 
---00151740295caa0b8604b6a6ec4d
-Content-Type: text/x-patch; charset=US-ASCII; name="cx25840_s_tuner_radio_support.patch"
-Content-Disposition: attachment;
-	filename="cx25840_s_tuner_radio_support.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gxhnkcq70
-
-U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
-b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
-IERlYyAyMDExIDAwOjE5OjM0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gY3gyNTg0MF9zX3R1bmVy
-IHNob3VsZCBzdXBwb3J0IGFsc28gcmFkaW8gbW9kZSBmb3Igc2V0dGluZwogc3RlcmVvIGFuZCBt
-b25vLgoKLS0tCmRpZmYgLU5hdXJwIGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4
-NDAtY29yZS5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4NDAtY29yZS5jCi0t
-LSBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDEyLTAxLTEy
-IDIwOjQyOjQ1LjAwMDAwMDAwMCArMDEwMAorKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4
-NDAvY3gyNTg0MC1jb3JlLmMJMjAxMi0wMS0xNiAxNjoxODowNi4xODE1ODMwMjYgKzAxMDAKQEAg
-LTE2MjgsOSArMTYyOCwxNCBAQCBzdGF0aWMgaW50IGN4MjU4NDBfc190dW5lcihzdHJ1Y3QgdjRs
-Ml9zCiAJc3RydWN0IGN4MjU4NDBfc3RhdGUgKnN0YXRlID0gdG9fc3RhdGUoc2QpOwogCXN0cnVj
-dCBpMmNfY2xpZW50ICpjbGllbnQgPSB2NGwyX2dldF9zdWJkZXZkYXRhKHNkKTsKIAotCWlmIChz
-dGF0ZS0+cmFkaW8gfHwgaXNfY3gyNTgzeChzdGF0ZSkpCisJaWYgKGlzX2N4MjU4M3goc3RhdGUp
-KQogCQlyZXR1cm4gMDsKIAorCS8qIEZNIHJhZGlvIHN1cHBvcnRzIG9ubHkgbW9ubyBhbmQgc3Rl
-cmVvIG1vZGVzICovCisJaWYgKChzdGF0ZS0+cmFkaW8pICYmCisJICAgICh2dC0+YXVkbW9kZSAh
-PSBWNEwyX1RVTkVSX01PREVfTU9OTykgJiYKKwkgICAgKHZ0LT5hdWRtb2RlICE9IFY0TDJfVFVO
-RVJfTU9ERV9TVEVSRU8pKSByZXR1cm4gLUVJTlZBTDsKKwogCXN3aXRjaCAodnQtPmF1ZG1vZGUp
-IHsKIAkJY2FzZSBWNEwyX1RVTkVSX01PREVfTU9OTzoKIAkJCS8qIG1vbm8gICAgICAtPiBtb25v
-Ci0tIAoxLjcuMi4zCgo=
---00151740295caa0b8604b6a6ec4d--
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
