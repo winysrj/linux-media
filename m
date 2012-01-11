@@ -1,167 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:48125 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755425Ab2ADUjk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 15:39:40 -0500
-Date: Wed, 4 Jan 2012 22:39:34 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"HeungJun, Kim" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, kyungmin.park@samsung.com,
-	Hans de Goede <hdegoede@redhat.com>,
-	Luca Risolia <luca.risolia@studio.unibo.it>
-Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu
- control
-Message-ID: <20120104203933.GJ9323@valkosipuli.localdomain>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
- <4EFB1B04.6060305@gmail.com>
- <201112281451.39399.laurent.pinchart@ideasonboard.com>
- <20111229233406.GU3677@valkosipuli.localdomain>
- <4EFD8F0F.6060505@gmail.com>
- <20111230204144.GX3677@valkosipuli.localdomain>
- <4F007DED.4070201@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4F007DED.4070201@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:33675 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756613Ab2AKAWP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 19:22:15 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0B0METg019529
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 19:22:15 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 5/6] [media] cx231xx: cx231xx_devused is racy
+Date: Tue, 10 Jan 2012 22:20:25 -0200
+Message-Id: <1326241226-6734-5-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1326241226-6734-1-git-send-email-mchehab@redhat.com>
+References: <1326241226-6734-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+cx231xx_devused is racy. Re-implement it in a proper way,
+to remove the risk of mangling it.
 
-On Sun, Jan 01, 2012 at 04:38:21PM +0100, Sylwester Nawrocki wrote:
-> On 12/30/2011 09:41 PM, Sakari Ailus wrote:
-> > On Fri, Dec 30, 2011 at 11:14:39AM +0100, Sylwester Nawrocki wrote:
-> >> On 12/30/2011 12:34 AM, Sakari Ailus wrote:
-> >>> On Wed, Dec 28, 2011 at 02:51:38PM +0100, Laurent Pinchart wrote:
-> >>>> On Wednesday 28 December 2011 14:35:00 Sylwester Nawrocki wrote:
-> >>>>> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
-> >>>>>> It adds the new CID for setting White Balance Preset. This CID is
-> >>>>>> provided as menu type using the following items:
-> >>>>>> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
-> >>>>>> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
-> >>>>>> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
-> >>>>>> 3 - V4L2_WHITE_BALANCE_CLOUDY,
-> >>>>>> 4 - V4L2_WHITE_BALANCE_SHADE,
-> >>>>>
-> >>>>> I have been also investigating those white balance presets recently and
-> >>>>> noticed they're also needed for the pwc driver. Looking at
-> >>>>> drivers/media/video/pwc/pwc-v4l2.c there is something like:
-> >>>>>
-> >>>>> const char * const pwc_auto_whitebal_qmenu[] = {
-> >>>>> 	"Indoor (Incandescant Lighting) Mode",
-> >>>>> 	"Outdoor (Sunlight) Mode",
-> >>>>> 	"Indoor (Fluorescent Lighting) Mode",
-> >>>>> 	"Manual Mode",
-> >>>>> 	"Auto Mode",
-> >>>>> 	NULL
-> >>>>> };
-> >>>>>
-> >>>>> static const struct v4l2_ctrl_config pwc_auto_white_balance_cfg = {
-> >>>>> 	.ops	= &pwc_ctrl_ops,
-> >>>>> 	.id	= V4L2_CID_AUTO_WHITE_BALANCE,
-> >>>>> 	.type	= V4L2_CTRL_TYPE_MENU,
-> >>>>> 	.max	= awb_auto,
-> >>>>> 	.qmenu	= pwc_auto_whitebal_qmenu,
-> >>>>> };
-> >>>>>
-> >>>>> ...
-> >>>>>
-> >>>>> 	cfg = pwc_auto_white_balance_cfg;
-> >>>>> 	cfg.name = v4l2_ctrl_get_name(cfg.id);
-> >>>>> 	cfg.def = def;
-> >>>>> 	pdev->auto_white_balance = v4l2_ctrl_new_custom(hdl, &cfg, NULL);
-> >>>>>
-> >>>>> So this driver re-defines V4L2_CID_AUTO_WHITE_BALANCE as a menu control
-> >>>>> with custom entries. That's interesting... However it works in practice
-> >>>>> and applications have access to what's provided by hardware.
-> >>>>> Perhaps V4L2_CID_AUTO_WHITE_BALANCE_TEMPERATURE would be a better fit for
-> >>>>> that :)
-> >>>>>
-> >>>>> Nevertheless, redefining standard controls in particular drivers sounds
-> >>>>> a little dubious. I wonder if this is a generally agreed approach ?
-> >>>>
-> >>>> No agreed with me at least :-)
-> >>>>
-> >>>>> Then, how does your V4L2_CID_PRESET_WHITE_BALANCE control interact with
-> >>>>> V4L2_CID_AUTO_WHITE_BALANCE control ? Does V4L2_CID_AUTO_WHITE_BALANCE need
-> >>>>> to be set to false for V4L2_CID_PRESET_WHITE_BALANCE to be effective ?
-> >>>>
-> >>>> Is the preset a fixed white balance setting, or is it an auto white balance 
-> >>>> with the algorithm tuned for a particular configuration ? In the first case, 
-> >>>> does it correspond to a fixed white balance temperature value ?
-> >>>
-> >>> While I'm waiting for a final answer to this, I guess it's the second. There
-> >>> are three things involved here:
-> >>>
-> >>> - V4L2_CID_WHITE_BALANCE_TEMPERATURE: relatively low level control telling
-> >>>   the colour temperature of the light source. Setting a value for this
-> >>>   essentially means using manual white balance.
-> >>>
-> >>> - V4L2_CID_AUTO_WHITE_BALANCE: automatic white balance enabled or disabled.
-> >>
-> >> Was the third thing the V4L2_CID_DO_WHITE_BALANCE control that you wanted to
-> >> say ? It's also quite essential functionality, to be able to fix white balance
-> >> after pointing camera to a white object. And I would expect
-> >> V4L2_CID_WHITE_BALANCE_PRESET control's documentation to state how an
-> >> interaction with V4L2_CID_DO_WHITE_BALANCE looks like.
-> > 
-> > I expected the new control to be the third thing as configuration for the
-> > awb algorithm, which it turned out not to be.
-> > 
-> > I don't quite understand the purpose of the do_white_balance; the automatic
-> > white balance algorithm is operational until it's disabled, and after
-> > disabling it the white balance shouldn't change. What is the extra
-> > functionality that the do_white_balance control implements?
-> 
-> Maybe DO_WHITE_BALANCE was inspired by some hardware's behaviour, I don't
-> know. I have nothing against this control. It allows you to perform one-shot
-> white balance in a given moment in time. Simple and clear.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/video/cx231xx/cx231xx-cards.c |   36 +++++++++++++-------------
+ 1 files changed, 18 insertions(+), 18 deletions(-)
 
-Well, yes, if you have an automatic white balance algorithm which supports
-"one-shot" mode. Typically it's rather a feedback loop. I guess this means
-"just run one iteration".
-
-Something like this should possibly be used to get the white balance correct
-by pointing the camera to an object of known colour (white typically, I
-think). But this isn't it, at least based on the description in the spec.
-
-> > If we agree white_balance_preset works at the same level as
-> > white_balance_temerature control, this becomes more simple. I guess no
-> > driver should implement both.
-> 
-> Yes, AFAIU those presets are just WB temperature, with names instead
-> of numbers. Thus it doesn't make much sense to expose both at the driver.
-> 
-> But in manual white balance mode camera could be switched to new WB value,
-> with component gain/balance controls, DO_WHITE_BALANCE or whatever, rendering
-> the preset setting invalid. Should we then have an invalid/unknown item in
-> the presets menu ? This would be only allowed to set by driver, i.e. read-only
-> for applications. If device provide multiple means for setting white balance
-> it is quite likely that at some point wb might not match any preset.
-
-That's very true. I think an "undefined" menu item would be an option, at
-least I can't think of a better one right now.
-
-> Having auto, manual and presets in one menu control wouldn't require that,
-> but we rather can't just change the V4L2_CID_WHITE_BALANCE control type now.
-
-In that case, "manual" would be just another name for "unknown" in case
-where automatic white balance has been turned off.
-
-Also, as Hans noted, colour temperature is just one way to specify white
-balance. I guess that to achieve a perfect result we should acquire the
-whole spectrum for each pixel, and make an estimation on the spectrum of the
-light source. That doesn't sound feasible. :-)
-
-But there are other options than just colour temperature. That still might
-be the only really practical one for the end user.
-
-Cheers,
-
+diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
+index bd82f01..1f2fbbf 100644
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c
++++ b/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -854,7 +854,7 @@ void cx231xx_release_resources(struct cx231xx *dev)
+ 	usb_put_dev(dev->udev);
+ 
+ 	/* Mark device as unused */
+-	cx231xx_devused &= ~(1 << dev->devno);
++	clear_bit(dev->devno, &cx231xx_devused);
+ 
+ 	kfree(dev->video_mode.alt_max_pkt_size);
+ 	kfree(dev->vbi_mode.alt_max_pkt_size);
+@@ -1039,21 +1039,21 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 		return -ENODEV;
+ 
+ 	/* Check to see next free device and mark as used */
+-	nr = find_first_zero_bit(&cx231xx_devused, CX231XX_MAXBOARDS);
+-	cx231xx_devused |= 1 << nr;
+-
+-	if (nr >= CX231XX_MAXBOARDS) {
+-		cx231xx_err(DRIVER_NAME
+-		 ": Supports only %i cx231xx boards.\n", CX231XX_MAXBOARDS);
+-		cx231xx_devused &= ~(1 << nr);
+-		return -ENOMEM;
+-	}
++	do {
++		nr = find_first_zero_bit(&cx231xx_devused, CX231XX_MAXBOARDS);
++		if (nr >= CX231XX_MAXBOARDS) {
++			/* No free device slots */
++			cx231xx_err(DRIVER_NAME ": Supports only %i devices.\n",
++					CX231XX_MAXBOARDS);
++			return -ENOMEM;
++		}
++	} while (test_and_set_bit(nr, &cx231xx_devused));
+ 
+ 	/* allocate memory for our device state and initialize it */
+ 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+ 	if (dev == NULL) {
+ 		cx231xx_err(DRIVER_NAME ": out of memory!\n");
+-		cx231xx_devused &= ~(1 << nr);
++		clear_bit(dev->devno, &cx231xx_devused);
+ 		return -ENOMEM;
+ 	}
+ 
+@@ -1129,7 +1129,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	if (assoc_desc->bFirstInterface != ifnum) {
+ 		cx231xx_err(DRIVER_NAME ": Not found "
+ 			    "matching IAD interface\n");
+-		cx231xx_devused &= ~(1 << nr);
++		clear_bit(dev->devno, &cx231xx_devused);
+ 		kfree(dev);
+ 		dev = NULL;
+ 		return -ENODEV;
+@@ -1148,7 +1148,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	retval = v4l2_device_register(&interface->dev, &dev->v4l2_dev);
+ 	if (retval) {
+ 		cx231xx_errdev("v4l2_device_register failed\n");
+-		cx231xx_devused &= ~(1 << nr);
++		clear_bit(dev->devno, &cx231xx_devused);
+ 		kfree(dev);
+ 		dev = NULL;
+ 		return -EIO;
+@@ -1156,7 +1156,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 	/* allocate device struct */
+ 	retval = cx231xx_init_dev(&dev, udev, nr);
+ 	if (retval) {
+-		cx231xx_devused &= ~(1 << dev->devno);
++		clear_bit(dev->devno, &cx231xx_devused);
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+ 		kfree(dev);
+ 		dev = NULL;
+@@ -1181,7 +1181,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 	if (dev->video_mode.alt_max_pkt_size == NULL) {
+ 		cx231xx_errdev("out of memory!\n");
+-		cx231xx_devused &= ~(1 << nr);
++		clear_bit(dev->devno, &cx231xx_devused);
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+ 		kfree(dev);
+ 		dev = NULL;
+@@ -1215,7 +1215,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 	if (dev->vbi_mode.alt_max_pkt_size == NULL) {
+ 		cx231xx_errdev("out of memory!\n");
+-		cx231xx_devused &= ~(1 << nr);
++		clear_bit(dev->devno, &cx231xx_devused);
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+ 		kfree(dev);
+ 		dev = NULL;
+@@ -1250,7 +1250,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 	if (dev->sliced_cc_mode.alt_max_pkt_size == NULL) {
+ 		cx231xx_errdev("out of memory!\n");
+-		cx231xx_devused &= ~(1 << nr);
++		clear_bit(dev->devno, &cx231xx_devused);
+ 		v4l2_device_unregister(&dev->v4l2_dev);
+ 		kfree(dev);
+ 		dev = NULL;
+@@ -1286,7 +1286,7 @@ static int cx231xx_usb_probe(struct usb_interface *interface,
+ 
+ 		if (dev->ts1_mode.alt_max_pkt_size == NULL) {
+ 			cx231xx_errdev("out of memory!\n");
+-			cx231xx_devused &= ~(1 << nr);
++			clear_bit(dev->devno, &cx231xx_devused);
+ 			v4l2_device_unregister(&dev->v4l2_dev);
+ 			kfree(dev);
+ 			dev = NULL;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.7.5
+
