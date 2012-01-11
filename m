@@ -1,50 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:18794 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569Ab2APNDU (ORCPT
+Received: from exprod6og115.obsmtp.com ([64.18.1.35]:57181 "HELO
+	exprod6og115.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932465Ab2AKOqr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 08:03:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Oliver Neukum <oneukum@suse.de>
-Subject: Re: [RFC PATCH 2/3] radio-keene: add a driver for the Keene FM Transmitter.
-Date: Mon, 16 Jan 2012 14:03:07 +0100
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
-	Jiri Kosina <jkosina@suse.cz>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1326716960-4424-1-git-send-email-hverkuil@xs4all.nl> <955b875452cd4dca966f87d45a31a718637b03c0.1326716517.git.hans.verkuil@cisco.com> <201201161346.46474.oneukum@suse.de>
-In-Reply-To: <201201161346.46474.oneukum@suse.de>
+	Wed, 11 Jan 2012 09:46:47 -0500
+Received: by bkwq16 with SMTP id q16so665485bkw.31
+        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 06:46:45 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201161403.07867.hverkuil@xs4all.nl>
+In-Reply-To: <CAPc4S2YnZBTY4F5q1152mUA7eipgLm6XQPH9PAv8x5O6rzvf4A@mail.gmail.com>
+References: <CAPc4S2YPRWHhTJY0C5gMYtFgULHibfaqGuPOeU-fFxm9XfxYjg@mail.gmail.com>
+	<CAPc4S2YnZBTY4F5q1152mUA7eipgLm6XQPH9PAv8x5O6rzvf4A@mail.gmail.com>
+Date: Wed, 11 Jan 2012 08:46:44 -0600
+Message-ID: <CAPc4S2Zh19n7xndyqG_BuwUaVFVCxRiYcHj=-sBSSmyhmKRs6Q@mail.gmail.com>
+Subject: Re: No video on generic SAA7134 card
+From: Christopher Peters <cpeters@ucmo.edu>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 16 January 2012 13:46:46 Oliver Neukum wrote:
-> Am Montag, 16. Januar 2012, 13:29:19 schrieb Hans Verkuil:
-> > +/* check if the device is present and register with v4l and usb if it is
-> > */ +static int usb_keene_probe(struct usb_interface *intf,
-> > +                               const struct usb_device_id *id)
-> > +{
-> > +       struct keene_device *radio;
-> > +       struct v4l2_ctrl_handler *hdl;
-> > +       int retval = 0;
-> > +
-> > +       radio = kzalloc(sizeof(struct keene_device), GFP_KERNEL);
-> > +
-> > +       if (!radio) {
-> > +               dev_err(&intf->dev, "kmalloc for keene_device failed\n");
-> > +               retval = -ENOMEM;
-> > +               goto err;
-> > +       }
-> 
-> Oh, I forgot. You have no guarantee the hid driver is already loaded.
-> This driver needs to also gracefully handle being called for a HID
-> device.
+I was able to get video out of the card using the option:
 
-And how do I do that? Do you have a pointer to another driver for me?
+options saa7134 card=33,33,33,33
 
-Regards,
-
-	Hans
+KP
+-- 
+-
+Kit Peters (W0KEH), Engineer II
+KMOS TV Channel 6 / KTBG 90.9 FM
+University of Central Missouri
+http://kmos.org/ | http://ktbg.fm/
