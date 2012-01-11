@@ -1,69 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38651 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752408Ab2A0Jfu (ORCPT
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:48768 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756760Ab2AKC1h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jan 2012 04:35:50 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 1/1] omap3isp: Prevent crash at module unload
-Date: Fri, 27 Jan 2012 10:36:02 +0100
-Cc: linux-media@vger.kernel.org, ohad@wizery.com
-References: <1327655155-6038-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1327655155-6038-1-git-send-email-sakari.ailus@iki.fi>
+	Tue, 10 Jan 2012 21:27:37 -0500
+Received: by yhjj63 with SMTP id j63so115680yhj.19
+        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 18:27:36 -0800 (PST)
+Message-ID: <4F0CF395.1090002@gmail.com>
+Date: Tue, 10 Jan 2012 20:27:33 -0600
+From: Patrick Dickey <pdickeybeta@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: LMML <linux-media@vger.kernel.org>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Mauro Carvalho Chehab <maurochehab@gmail.com>
+Subject: Adding support for PCTV-80e Tuner
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201271036.02588.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello everyone,
 
-Thanks for the patch.
+A few months ago, I posted a 25-patch series on the PCTV-80e Tuner to
+the mailing list, which was nacked. I've since rewrote the patches, but
+have an issue that I need some advice with.  I took Devin's advice, and
+created two patches using his hg patches. The only modifications that I
+made were to remove the Makefile and Kconfig entries, and then to move
+the drivers to the staging/media/frontends/drx39xyj directory.
 
-On Friday 27 January 2012 10:05:55 Sakari Ailus wrote:
-> iommu_domain_free() was called in isp_remove() before omap3isp_put().
-> omap3isp_put() must not save the context if the IOMMU no longer is there.
-> Fix this.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
-> The issue only seems to affect the staging/for_v3.4 branch in
-> media-tree.git.
-> 
->  drivers/media/video/omap3isp/isp.c |    4 +++-
->  1 files changed, 3 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/isp.c
-> b/drivers/media/video/omap3isp/isp.c index 12d5f92..c3ff142 100644
-> --- a/drivers/media/video/omap3isp/isp.c
-> +++ b/drivers/media/video/omap3isp/isp.c
-> @@ -1112,7 +1112,8 @@ isp_restore_context(struct isp_device *isp, struct
-> isp_reg *reg_list) static void isp_save_ctx(struct isp_device *isp)
->  {
->  	isp_save_context(isp, isp_reg_list);
-> -	omap_iommu_save_ctx(isp->dev);
-> +	if (isp->domain)
-> +		omap_iommu_save_ctx(isp->dev);
+I've got a couple of problems/questions, and am looking for opinions on
+how to deal with them. I included the mailing list in this, because
+there might be someone who's had similar issues, and because this issue
+might come up in the future with other projects.
 
-What about skipping the isp_save_ctx() call completely in omap3isp_put() when 
-isp->domain is NULL ? We don't need to save the ISP context either.
+So, here are my problems.
 
->  }
-> 
->  /*
-> @@ -1981,6 +1982,7 @@ static int isp_remove(struct platform_device *pdev)
->  	omap3isp_get(isp);
->  	iommu_detach_device(isp->domain, &pdev->dev);
->  	iommu_domain_free(isp->domain);
-> +	isp->domain = NULL;
->  	omap3isp_put(isp);
-> 
->  	free_irq(isp->irq_num, isp);
+1. If I try to make the media_git with just the two patches included, I
+get compilation errors in em28xx-cards.c. This is because it needs the
+drx39xxj.h file, which is in drivers/staging/media/frontends/drx39xyj
+(and hasn't been compiled).
 
--- 
-Regards,
+2. If I add an entry into the drivers/media Makefile and Kconfig,
+pointing to the drvers/staging/media/frontends/drx39xyj directory, it
+fails to compile because drx39xxj.c requires dvb_frontend.h from
+drivers/media/dvb/dvb-core, which hasn't been compiled yet.
 
-Laurent Pinchart
+The short question is how do I handle this situation?
+
+The longer questions are
+
+1.  Do I make entries in the drx39xyj/Makefile and Kconfig that point
+back to the dvb/dvb-core directory (or add the drivers/dvb/ entry before
+the drivers/staging/media/frontends/drx39xyj/ entry in the
+Makefile/Kconfig entries in drivers/media/)?
+
+2.  Do I submit my two patches, knowing that they will break compilation
+of the media_git tree at the em28xx-cards.c file?
+
+3.  Do I comment out the entries in em28xx-cards.c (or remove them from
+the patches altogether), so that everything will be made and we can work
+on the compilation and coding style issues in the drx39xyj files? (I
+would do this in a third patch, so that I can preserve Devin's original
+patches as much as possible)
+
+Right now, I have two patches that create the drivers and add them to
+the em28xx files where necessary, and that update the licensing and
+authorship (Devin's original updates). And I have a third patch, which
+adds a ccflags-y entry to the em28xx Makefile, pointing to the
+drivers/staging/media/frontends/drx39xyj directory (for finding the
+files it needs).
+
+Thanks for any information and advice. And if I should have just
+directed this to Devin and/or Mauro (or waited for a reply from an
+earlier email to Mauro), I'm sorry for the inconvenience that sending
+this to the entire list may have caused.
+
+Have a great day:)
+Patrick.
