@@ -1,61 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:34593 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750879Ab2ACHnK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 02:43:10 -0500
-Received: by wibhm6 with SMTP id hm6so8869463wib.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Jan 2012 23:43:09 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.17.9]:61175 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753634Ab2AKLrt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 06:47:49 -0500
+Date: Wed, 11 Jan 2012 12:47:43 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: Purpose of .init and .release methods in soc_camera framework
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384ECE79A86C@EAPEX1MAIL1.st.com>
+Message-ID: <Pine.LNX.4.64.1201111242160.1191@axis700.grange>
+References: <D5ECB3C7A6F99444980976A8C6D896384ECE79A86C@EAPEX1MAIL1.st.com>
 MIME-Version: 1.0
-In-Reply-To: <4F021DCE.8000105@gmail.com>
-References: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
-	<CACKLOr1RujFbuTnF=DkCTB=paVUq7=j1Ru_RU7DWyuJedM+Cvg@mail.gmail.com>
-	<4F021DCE.8000105@gmail.com>
-Date: Tue, 3 Jan 2012 08:43:09 +0100
-Message-ID: <CACKLOr0YczU+jGOuKoRNvOUYhMbc3x_LVk3Gnt-dq+KfppwzFA@mail.gmail.com>
-Subject: Re: [PATCH v4 0/2] Add support form eMMa-PrP in i.MX2 chips as a
- mem2mem device.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2 January 2012 22:12, Sylwester Nawrocki <snjw23@gmail.com> wrote:
-> Hi Javier,
->
-> On 01/02/2012 10:31 AM, javier Martin wrote:
->> Hi,
->> do you have any more concerns or comments on this patch?
->> I can't find it in media_tree. Has it been merged somewhere else?
->
-> If you think your driver is good enough for merging, if you didn't
-> do so already, you should normally send Mauro a git pull request.
-> Please see:
->
-> http://linuxtv.org/wiki/index.php/Maintaining_Git_trees#how_to_submit_a_-git_pull_request
->
-> And here you can find some examples:
-> http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=PULL&archive=both
+Hi Bhupesh
 
-Do you mean I have to set up a public GIT repository? Is this mandatory?
-I am not a subsystem maintainer, just casual developer.
+On Wed, 11 Jan 2012, Bhupesh SHARMA wrote:
 
-What about this?
+> Hi Guennadi,
+> 
+> I was reading the latest soc_camera framework documentation (see [1]).
+> I can see on line 71 to 73 the following text:
+> 
+> " .add and .remove methods are called when a sensor is attached to or detached
+>  from the host, apart from performing host-internal tasks they shall also call
+>  sensor driver's .init and .release methods respectively."
+> 
+> Now, I was puzzled on seeing that none of the soc_camera bridge drivers (
+> like PXA and SH Mobile) call the sensor's .init and .release from their
+> .add and .remove methods respectively.
 
-http://linuxtv.org/wiki/index.php/Maintaining_Git_trees#Patches_submitted_via_email
+.init() and .release() methods were a part of the soc-camera client API. 
+It has been removed with the migration to the v4l2-subdev API.
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+> Also I cannot trace these calls in soc_camera.c layer
+> 
+> Actually, I am working on a camera sensor that requires certain
+> patches to be written to it before it can start working:
+> 
+> - Now, if I write these patches in the _probe_ of the sensor driver (similar 
+> to the ST VS6624 driver here : [2]), my sensor can work well for the 1st run
+> of the user-space application. But, if I launch the application again the patches
+> need to be written to the sensor again as I have implemented an 'icl->power' routine
+> which basically turns ON and OFF the sensor by toggling its CE (chip enable pin).
+> 
+> - As the soc_camera layer provides no explicit call to the camera sensor driver
+> when an _open_ is invoked from the userland, when and how should I write the
+> patch registers.
+> 
+> I can only think of using the .init routine to initialize the sensor patch registers
+> in such a case.
+
+Why don't you perform that initialisation in your .power() method?
+
+Thanks
+Guennadi
+
+> Please share your views on the same.
+> 
+> [1] http://lxr.free-electrons.com/source/Documentation/video4linux/soc-camera.txt
+> [2] http://www.spinics.net/lists/linux-media/msg37805.html
+> 
+> 
+> Regards,
+> Bhupesh
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
