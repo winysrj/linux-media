@@ -1,58 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61600 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757532Ab2ARNyj (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:41469 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932487Ab2AKPXE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 08:54:39 -0500
-Received: by wgbdq11 with SMTP id dq11so3204378wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 05:54:38 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: [git:v4l-dvb/for_v3.3] [media] DVB: dib0700, add support for Nova-TD LEDs
-Date: Wed, 18 Jan 2012 14:54:34 +0100
+	Wed, 11 Jan 2012 10:23:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2 1/3] v4l: Add custom compat_ioctl32 operation
+Date: Wed, 11 Jan 2012 16:22:59 +0100
 Cc: linux-media@vger.kernel.org
-References: <E1RnU5E-0000Vf-T9@www.linuxtv.org> <4F16C6B8.8000402@linuxtv.org>
-In-Reply-To: <4F16C6B8.8000402@linuxtv.org>
+References: <1326295120-15391-1-git-send-email-laurent.pinchart@ideasonboard.com> <1326295120-15391-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1326295120-15391-2-git-send-email-laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201181454.34245.pboettcher@kernellabs.com>
+Message-Id: <201201111622.59264.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 January 2012 14:18:48 Michael Krufky wrote:
-> Mauro,
+On Wednesday 11 January 2012 16:18:38 Laurent Pinchart wrote:
+> Drivers implementing custom ioctls need to handle 32-bit/64-bit
+> compatibility themselves. Provide them with a way to do so.
 > 
-> Why was my sign-off changed to an Ack?
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+> ---
+>  drivers/media/video/v4l2-compat-ioctl32.c |   13 ++++++++++---
+>  include/media/v4l2-dev.h                  |    3 +++
+>  2 files changed, 13 insertions(+), 3 deletions(-)
 > 
-> As you can see, I worked *with* Jiri to help him create this
-> patchset.
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
+> b/drivers/media/video/v4l2-compat-ioctl32.c index c68531b..0340efc 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/compat.h>
+>  #include <linux/videodev2.h>
+>  #include <linux/module.h>
+> +#include <media/v4l2-dev.h>
+>  #include <media/v4l2-ioctl.h>
 > 
-> During review, I noticed a poorly named function, which I renamed
-> before pusging it into my own tree.  Patrick saw this, and merged my
-> changes into into his tree.
+>  #ifdef CONFIG_COMPAT
+> @@ -937,6 +938,7 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar
 > 
-> Why did I go through this effort to help another developer add value
-> to one of our drivers, and additional effort to make a small
-> cleanup, push the changes into my own tree and issue a pull request?
->  I was thanked by Patrick.  Everybody's signature is on the patch,
-> but you then go and remove my signature, and add a forged "ack"?  I
-> don't understand this, Mauro.
-
-I think it is my fault.
-
-I haven't merged your tree but I merged Jiri's patches as is. (git am)  
-I completely oversaw your pull request and issued mine. 
-
-Mauro in IRC told me that you issued a PULL request as well. Not being 
-aware that you have made any modifications Mauro suggest to pull from me 
-and add an Ack-By to the patches.
-
-So he did not remove anything but trusted me too much.
-
---
-Patrick Boettcher
-
-Kernel Labs Inc.
-http://www.kernellabs.com/
+>  long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned
+> long arg) {
+> +	struct video_device *vdev = video_devdata(file);
+>  	long ret = -ENOIOCTLCMD;
+> 
+>  	if (!file->f_op->unlocked_ioctl)
+> @@ -1023,9 +1025,14 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
+> int cmd, unsigned long arg) break;
+> 
+>  	default:
+> -		printk(KERN_WARNING "compat_ioctl32: "
+> -			"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+> -			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+> +		if (vdev->fops->compat_ioctl32)
+> +			ret = vdev->fops->compat_ioctl32(file, cmd, arg);
+> +
+> +		if (ret == -ENOIOCTLCMD)
+> +			printk(KERN_WARNING "compat_ioctl32: "
+> +				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+> +				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
+> +				cmd);
+>  		break;
+>  	}
+>  	return ret;
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index c7c40f1..96d2221 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -62,6 +62,9 @@ struct v4l2_file_operations {
+>  	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+>  	long (*ioctl) (struct file *, unsigned int, unsigned long);
+>  	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+> +#ifdef CONFIG_COMPAT
+> +	long (*compat_ioctl32) (struct file *, unsigned int, unsigned long);
+> +#endif
+>  	unsigned long (*get_unmapped_area) (struct file *, unsigned long,
+>  				unsigned long, unsigned long, unsigned long);
+>  	int (*mmap) (struct file *, struct vm_area_struct *);
