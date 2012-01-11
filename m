@@ -1,116 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37060 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757613Ab2AEQNk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 11:13:40 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 05/17] v4l: Support s_crop and g_crop through s/g_selection
-Date: Thu, 5 Jan 2012 17:13:57 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1324412889-17961-5-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:42177 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755357Ab2AKAlt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 19:41:49 -0500
+Message-ID: <4F0CDACA.5070100@iki.fi>
+Date: Wed, 11 Jan 2012 02:41:46 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201051713.58513.laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [GIT PULL FOR 3.3 v2] HDIC HD29L2 DMB-TH demodulator driver
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Mauro,
 
-Thanks for the patch.
+That is 2nd attempt to PULL that to the Kernel. If possible send that 
+still to the 3.3...
 
-On Tuesday 20 December 2011 21:27:57 Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Revert to s_selection if s_crop isn't implemented by a driver. Same for
-> g_selection / g_crop.
+As a DTMB support in out API is not ready I decided to move whole driver 
+to the staging.
 
-Shouldn't this say "Fall back" instead of "Revert" ?
+I fixed most of those findings you pointed out and left one bit 
+operation without fix (find_first_bit) still because it gave one warning...
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/v4l2-subdev.c |   37
-> +++++++++++++++++++++++++++++++++++-- 1 files changed, 35 insertions(+), 2
-> deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-subdev.c
-> b/drivers/media/video/v4l2-subdev.c index e8ae098..f8de551 100644
-> --- a/drivers/media/video/v4l2-subdev.c
-> +++ b/drivers/media/video/v4l2-subdev.c
-> @@ -226,6 +226,8 @@ static long subdev_do_ioctl(struct file *file, unsigned
-> int cmd, void *arg)
-> 
->  	case VIDIOC_SUBDEV_G_CROP: {
->  		struct v4l2_subdev_crop *crop = arg;
-> +		struct v4l2_subdev_selection sel;
-> +		int rval;
-> 
->  		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
->  		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> @@ -234,11 +236,27 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) if (crop->pad >= sd->entity.num_pads)
->  			return -EINVAL;
-> 
-> -		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-> +		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-> +		if (rval != -ENOIOCTLCMD)
-> +			return rval;
-> +
-> +		memset(&sel, 0, sizeof(sel));
-> +		sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+drivers/media/dvb/frontends/hd29l2.c: In function ‘hd29l2_rd_reg_mask’:
+drivers/media/dvb/frontends/hd29l2.c:139:2: warning: passing argument 1 
+of ‘find_first_bit’ from incompatible pointer type
+include/asm-generic/bitops/find.h:35:22: note: expected ‘const long 
+unsigned int *’ but argument is of type ‘u8 *’
 
-Shouldn't sel.which be set to crop->which ?
 
-> +		sel.pad = crop->pad;
-> +		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
-> +
-> +		rval = v4l2_subdev_call(
-> +			sd, pad, get_selection, subdev_fh, &sel);
-> +
-> +		crop->rect = sel.r;
-> +
-> +		return rval;
->  	}
-> 
->  	case VIDIOC_SUBDEV_S_CROP: {
->  		struct v4l2_subdev_crop *crop = arg;
-> +		struct v4l2_subdev_selection sel;
-> +		int rval;
-> 
->  		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
->  		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-> @@ -247,7 +265,22 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) if (crop->pad >= sd->entity.num_pads)
->  			return -EINVAL;
-> 
-> -		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-> +		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-> +		if (rval != -ENOIOCTLCMD)
-> +			return rval;
-> +
-> +		memset(&sel, 0, sizeof(sel));
-> +		sel.which = V4L2_SUBDEV_FORMAT_ACTIVE;
 
-Same here.
+Antti
 
-> +		sel.pad = crop->pad;
-> +		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
-> +		sel.r = crop->rect;
-> +
-> +		rval = v4l2_subdev_call(
-> +			sd, pad, set_selection, subdev_fh, &sel);
-> +
-> +		crop->rect = sel.r;
-> +
-> +		return rval;
->  	}
-> 
->  	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
+
+The following changes since commit 2f78604a433a12571ec3e54054fbfacc7525b307:
+
+   [media] Added model Sveon STV40 (2012-01-07 12:02:20 -0200)
+
+are available in the git repository at:
+   git://linuxtv.org/anttip/media_tree.git hdic_v2
+
+Antti Palosaari (8):
+       HDIC HD29L2 DMB-TH demodulator driver
+       HDIC HD29L2 DMB-TH USB2.0 reference design driver
+       hd29l2: synch for latest DVB core changes
+       mxl5007t: bugfix DVB-T 7 MHz and 8 MHz bandwidth
+       hd29l2: add debug for used IF frequency
+       dvb-core: define general callback value for demodulator
+       hd29l2: fix review findings
+       hd29l2: move to staging
+
+  drivers/media/common/tuners/mxl5007t.c     |    2 +
+  drivers/media/dvb/dvb-core/dvb_frontend.h  |    1 +
+  drivers/media/dvb/dvb-usb/Kconfig          |    7 +
+  drivers/media/dvb/dvb-usb/Makefile         |    3 +
+  drivers/media/dvb/dvb-usb/hdic.c           |  365 ++++++++++++
+  drivers/media/dvb/dvb-usb/hdic.h           |   45 ++
+  drivers/staging/media/Kconfig              |    2 +
+  drivers/staging/media/Makefile             |    1 +
+  drivers/staging/media/hd29l2/Kconfig       |    7 +
+  drivers/staging/media/hd29l2/Makefile      |    4 +
+  drivers/staging/media/hd29l2/TODO          |    3 +
+  drivers/staging/media/hd29l2/hd29l2.c      |  861 
+++++++++++++++++++++++++++++
+  drivers/staging/media/hd29l2/hd29l2.h      |   66 +++
+  drivers/staging/media/hd29l2/hd29l2_priv.h |  314 ++++++++++
+  14 files changed, 1681 insertions(+), 0 deletions(-)
+  create mode 100644 drivers/media/dvb/dvb-usb/hdic.c
+  create mode 100644 drivers/media/dvb/dvb-usb/hdic.h
+  create mode 100644 drivers/staging/media/hd29l2/Kconfig
+  create mode 100644 drivers/staging/media/hd29l2/Makefile
+  create mode 100644 drivers/staging/media/hd29l2/TODO
+  create mode 100644 drivers/staging/media/hd29l2/hd29l2.c
+  create mode 100644 drivers/staging/media/hd29l2/hd29l2.h
+  create mode 100644 drivers/staging/media/hd29l2/hd29l2_priv.h
 
 -- 
-Regards,
-
-Laurent Pinchart
+http://palosaari.fi/
