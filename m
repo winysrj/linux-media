@@ -1,83 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:46172 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751937Ab2A3FnC (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:58689 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753905Ab2AKMIU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 00:43:02 -0500
+	Wed, 11 Jan 2012 07:08:20 -0500
+Date: Wed, 11 Jan 2012 13:08:17 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Bhupesh SHARMA <bhupesh.sharma@st.com>
+cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Purpose of .init and .release methods in soc_camera framework
+In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384ECE79A897@EAPEX1MAIL1.st.com>
+Message-ID: <Pine.LNX.4.64.1201111302500.1191@axis700.grange>
+References: <D5ECB3C7A6F99444980976A8C6D896384ECE79A86C@EAPEX1MAIL1.st.com>
+ <Pine.LNX.4.64.1201111242160.1191@axis700.grange>
+ <D5ECB3C7A6F99444980976A8C6D896384ECE79A897@EAPEX1MAIL1.st.com>
 MIME-Version: 1.0
-In-Reply-To: <1327841453-1674-1-git-send-email-standby24x7@gmail.com>
-References: <1327841453-1674-1-git-send-email-standby24x7@gmail.com>
-Date: Mon, 30 Jan 2012 14:43:01 +0900
-Message-ID: <CAH9JG2USF-FYX0SL-y0Gby8oNvA=sFBV7uyvP+4oaa1nxRU5qA@mail.gmail.com>
-Subject: Re: [PATCH] [trivial] media: Fix typo in mixer_drv.c and hdmi_drv.c
-From: Kyungmin Park <kyungmin.park@samsung.com>
-To: Masanari Iida <standby24x7@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	trivial@kernel.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+On Wed, 11 Jan 2012, Bhupesh SHARMA wrote:
 
-On 1/29/12, Masanari Iida <standby24x7@gmail.com> wrote:
-> Correct typo "sucessful" to "successful" in
-> drivers/media/video/s5p-tv/mixer_drv.c
-> drivers/media/video/s5p-tv/hdmi_drv.c
->
-> Signed-off-by: Masanari Iida <standby24x7@gmail.com>
-> ---
->  drivers/media/video/s5p-tv/hdmi_drv.c  |    4 ++--
->  drivers/media/video/s5p-tv/mixer_drv.c |    2 +-
->  2 files changed, 3 insertions(+), 3 deletions(-)
->
-> diff --git a/drivers/media/video/s5p-tv/hdmi_drv.c
-> b/drivers/media/video/s5p-tv/hdmi_drv.c
-> index 8b41a04..3e0dd09 100644
-> --- a/drivers/media/video/s5p-tv/hdmi_drv.c
-> +++ b/drivers/media/video/s5p-tv/hdmi_drv.c
-> @@ -962,7 +962,7 @@ static int __devinit hdmi_probe(struct platform_device
-> *pdev)
->  	/* storing subdev for call that have only access to struct device */
->  	dev_set_drvdata(dev, sd);
->
-> -	dev_info(dev, "probe sucessful\n");
-> +	dev_info(dev, "probe successful\n");
->
->  	return 0;
->
-> @@ -1000,7 +1000,7 @@ static int __devexit hdmi_remove(struct
-> platform_device *pdev)
->  	iounmap(hdmi_dev->regs);
->  	hdmi_resources_cleanup(hdmi_dev);
->  	kfree(hdmi_dev);
-> -	dev_info(dev, "remove sucessful\n");
-> +	dev_info(dev, "remove successful\n");
->
->  	return 0;
->  }
-> diff --git a/drivers/media/video/s5p-tv/mixer_drv.c
-> b/drivers/media/video/s5p-tv/mixer_drv.c
-> index 0064309..a2c0c25 100644
-> --- a/drivers/media/video/s5p-tv/mixer_drv.c
-> +++ b/drivers/media/video/s5p-tv/mixer_drv.c
-> @@ -444,7 +444,7 @@ static int __devexit mxr_remove(struct platform_device
-> *pdev)
->
->  	kfree(mdev);
->
-> -	dev_info(dev, "remove sucessful\n");
-> +	dev_info(dev, "remove successful\n");
->  	return 0;
->  }
->
-> --
-> 1.7.6.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+> Hi Guennadi,
+> 
+> > -----Original Message-----
+> > From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de]
+> > Sent: Wednesday, January 11, 2012 5:18 PM
+> > To: Bhupesh SHARMA
+> > Cc: linux-media@vger.kernel.org
+> > Subject: Re: Purpose of .init and .release methods in soc_camera
+> > framework
+> > 
+> > Hi Bhupesh
+> > 
+> > On Wed, 11 Jan 2012, Bhupesh SHARMA wrote:
+> > 
+> > > Hi Guennadi,
+> > >
+> > > I was reading the latest soc_camera framework documentation (see
+> > [1]).
+> > > I can see on line 71 to 73 the following text:
+> > >
+> > > " .add and .remove methods are called when a sensor is attached to or
+> > detached
+> > >  from the host, apart from performing host-internal tasks they shall
+> > also call
+> > >  sensor driver's .init and .release methods respectively."
+> > >
+> > > Now, I was puzzled on seeing that none of the soc_camera bridge
+> > drivers (
+> > > like PXA and SH Mobile) call the sensor's .init and .release from
+> > their
+> > > .add and .remove methods respectively.
+> > 
+> > .init() and .release() methods were a part of the soc-camera client
+> > API.
+> > It has been removed with the migration to the v4l2-subdev API.
+> 
+> Ok. So, can the documentation be updated to reflect the same.
+
+That documentation has more problems, than just that. It shall be updated 
+at some point, yes...
+
+> > > Also I cannot trace these calls in soc_camera.c layer
+> > >
+> > > Actually, I am working on a camera sensor that requires certain
+> > > patches to be written to it before it can start working:
+> > >
+> > > - Now, if I write these patches in the _probe_ of the sensor driver
+> > (similar
+> > > to the ST VS6624 driver here : [2]), my sensor can work well for the
+> > 1st run
+> > > of the user-space application. But, if I launch the application again
+> > the patches
+> > > need to be written to the sensor again as I have implemented an 'icl-
+> > >power' routine
+> > > which basically turns ON and OFF the sensor by toggling its CE (chip
+> > enable pin).
+> > >
+> > > - As the soc_camera layer provides no explicit call to the camera
+> > sensor driver
+> > > when an _open_ is invoked from the userland, when and how should I
+> > write the
+> > > patch registers.
+> > >
+> > > I can only think of using the .init routine to initialize the sensor
+> > patch registers
+> > > in such a case.
+> > 
+> > Why don't you perform that initialisation in your .power() method?
+> 
+> You mean in the icl->power method?
+
+No, I mean the v4l2-subdev struct v4l2_subdev_core_ops::s_power() method, 
+sorry for confusion.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
