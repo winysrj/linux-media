@@ -1,134 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:53650 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753028Ab2AQUVn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 15:21:43 -0500
-Date: Tue, 17 Jan 2012 22:21:39 +0200
+Received: from smtp.nokia.com ([147.243.1.48]:21391 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932545Ab2AKV05 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 16:26:57 -0500
+Message-ID: <4F0DFE92.80102@iki.fi>
+Date: Wed, 11 Jan 2012 23:26:42 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH 17/23] v4l: Implement v4l2_subdev_link_validate()
-Message-ID: <20120117202139.GF13236@valkosipuli.localdomain>
-References: <4F0DFE92.80102@iki.fi>
- <1326317220-15339-17-git-send-email-sakari.ailus@iki.fi>
- <201201161544.08756.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201201161544.08756.laurent.pinchart@ideasonboard.com>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
+	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com
+Subject: [PATCH 0/23] V4L2 subdev and sensor control changes, SMIA++ driver
+ and N9 camera board code
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi everyone,
 
-Thanks for the review!
+This the second version of my patchset that contains:
 
-On Mon, Jan 16, 2012 at 03:44:08PM +0100, Laurent Pinchart wrote:
-> On Wednesday 11 January 2012 22:26:54 Sakari Ailus wrote:
-> > v4l2_subdev_link_validate() is the default op for validating a link. In
-> > V4L2 subdev context, it is used to call a pad op which performs the proper
-> > link check without much extra work.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/video/v4l2-subdev.c |   62
-> > +++++++++++++++++++++++++++++++++++++ include/media/v4l2-subdev.h       | 
-> >  10 ++++++
-> >  2 files changed, 72 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-subdev.c
-> > b/drivers/media/video/v4l2-subdev.c index 836270d..4b329a0 100644
-> > --- a/drivers/media/video/v4l2-subdev.c
-> > +++ b/drivers/media/video/v4l2-subdev.c
-> > @@ -367,6 +367,68 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
-> >  	.poll = subdev_poll,
-> >  };
-> > 
-> > +#ifdef CONFIG_MEDIA_CONTROLLER
-> > +int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
-> > +				      struct media_link *link,
-> > +				      struct v4l2_subdev_format *source_fmt,
-> > +				      struct v4l2_subdev_format *sink_fmt)
-> > +{
-> > +	if (source_fmt->format.width != sink_fmt->format.width
-> > +	    || source_fmt->format.height != sink_fmt->format.height
-> > +	    || source_fmt->format.code != sink_fmt->format.code)
-> > +		return -EINVAL;
-> > +
-> > +	return 0;
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
-> 
-> What about calling this function directly from v4l2_subdev_link_validate() if 
-> the pad::link_validate operation is NULL ? That wouldn't require changing all 
-> subdev drivers to explicitly use the default implementation.
+- Integer menu controls [2],
+- Selection IOCTL for subdevs [3],
+- Sensor control changes [5,7],
+- link_validate() media entity and V4L2 subdev pad ops,
+- OMAP 3 ISP driver improvements [4],
+- SMIA++ sensor driver and
+- rm680/rm696 board code (a.k.a Nokia N9 and N950)
 
-I can do that. I still want to keep the function available for those that
-want to call it explicitly to perform the above check.
+More detailed information and discussion can be found in the references.
+The RFC version of the patchset can be found in [6] for more recent
+discussion. I want to thank all the reviewers of the previous patchset
+up to now; especially Sylwester Nawrocki and Laurent Pinchart.
 
-> > +
-> > +static struct v4l2_subdev_format
-> > +*v4l2_subdev_link_validate_get_format(struct media_pad *pad,
-> > +				      struct v4l2_subdev_format *fmt)
-> > +{
-> > +	int rval;
-> > +
-> > +	switch (media_entity_type(pad->entity)) {
-> > +	case MEDIA_ENT_T_V4L2_SUBDEV:
-> > +		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > +		fmt->pad = pad->index;
-> > +		rval = v4l2_subdev_call(media_entity_to_v4l2_subdev(
-> > +						pad->entity),
-> > +					pad, get_fmt, NULL, fmt);
-> > +		if (rval < 0)
-> > +			return NULL;
-> > +		return fmt;
-> > +	case MEDIA_ENT_T_DEVNODE_V4L:
-> > +		return NULL;
-> > +	default:
-> > +		BUG();
-> 
-> Maybe WARN() and return NULL ?
+Comments and questions are very, very welcome.
 
-It's a clear driver BUG() if this happens. If you think the correct response
-to that is WARN() and return NULL, I can do that.
+I have made changes based on the comments I've gotten so far, the
+details can be found below. There are a few minor things to be changed
+in the selection API which I haven't done yet, and this is why:
 
-> > +	}
-> > +}
-> > +
-> > +int v4l2_subdev_link_validate(struct media_link *link)
-> > +{
-> > +	struct v4l2_subdev *sink = NULL, *source = NULL;
-> > +	struct v4l2_subdev_format _sink_fmt, _source_fmt;
-> > +	struct v4l2_subdev_format *sink_fmt, *source_fmt;
-> > +
-> > +	source_fmt = v4l2_subdev_link_validate_get_format(
-> > +		link->source, &_source_fmt);
-> > +	sink_fmt = v4l2_subdev_link_validate_get_format(
-> > +		link->sink, &_sink_fmt);
-> > +
-> > +	if (source_fmt)
-> > +		source = media_entity_to_v4l2_subdev(link->source->entity);
-> > +	if (sink_fmt)
-> > +		sink = media_entity_to_v4l2_subdev(link->sink->entity);
-> > +
-> > +	if (source_fmt && sink_fmt)
-> > +		return v4l2_subdev_call(sink, pad, link_validate, link,
-> > +					source_fmt, sink_fmt);
-> 
-> This looks overly complex. Why don't you return 0 if one of the two entities 
-> is of a type different than MEDIA_ENT_T_V4L2_SUBDEV, then retrieve the formats 
-> for the two entities and return 0 if one of the two operation fails, and 
-> finally call pad::link_validate ?
+I have one question left. Will we go forward with the subdev selection
+API, or shall a more generic properties API cover that functionality, as
+well as the functionality of current controls API?
 
-Now that you mention that, I agree. :-) I'll fix it.
+Changes to the RFC v1 include:
 
-Regards,
+- Integer controls:
+  - Target Linux 3.4 instead of 3.3
+  - Proper control type check in querymenu
+  - vivi compile fixes
+
+- Subdev selections
+  - Pad try fields combined to single struct
+  - Correctly set sel.which based on crop->which in crop fall-back
+
+- Subdev selection documentation
+  - Better explanation on image processing in subdevs
+  - Added a diagram to visualise subdev configuration
+  - Fixed DocBook syntax issues
+  - Mark VIDIOC_SUBDEV_S_CROP and VIDIOC_SUBDEV_G_CROP obsolete
+
+- Pixel rate
+  - Pixel rate is now a 64-bit control, not part of v4l2_mbus_framefmt
+  - Unit for pixel rate is pixels / second
+  - Pixel rate is read-only
+
+- Link frequency is now in Hz --- documented as such also
+
+- Link validation instead of pipeline validation
+  - Each link is validated by calling link_validate op
+    - Added link validation op to media_entity_ops
+  - Link validation op in pad ops makes this easy for subdev drivers
+  - media_entity_pipeline_start() may return an error code now
+    - This might affect other drivers, but will warn in compilation.
+      No adverse effects are caused if the driver does not use
+      link_validate().
+
+- OMAP 3 ISP
+  - Make lanecfg as part of the platform data structure, not pointer
+  - Document lane configuration structures
+  - Link validation moved to respective subdev drivers from ispvideo.c
+    - isp_validate_pipeline() removed
+
+- SMIA++ driver
+  - Update pixel order based on vflip and hflip
+  - Cleanups in the main driver, register definitions and PLL code
+  - Depend on V4L2_V4L2_SUBDEV_API and MEDIA_CONTROLLER
+  - Use pr_* macros instead of printk
+  - Improved error handling for i2c_transfer()
+  - Removed useless definitions
+  - Don't access try crop / compose directly but use helper functions
+  - Add xshutdown to platform data
+  - Move driver under smiapp directory
+
+- rm680 board code
+  - Use REGULATOR_SUPPLY() where possible
+  - Removed printk()'s
+  - Don't include private smiapp headers
+
+
+References:
+
+[1] http://www.spinics.net/lists/linux-omap/msg61295.html
+
+[2] http://www.spinics.net/lists/linux-media/msg40796.html
+
+[3] http://www.spinics.net/lists/linux-media/msg41503.html
+
+[4] http://www.spinics.net/lists/linux-media/msg41542.html
+
+[5] http://www.spinics.net/lists/linux-media/msg40861.html
+
+[6] http://www.spinics.net/lists/linux-media/msg41765.html
+
+[7] http://www.spinics.net/lists/linux-media/msg42848.html
+
+Kind regards,
 
 -- 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+sakari.ailus@iki.fi
