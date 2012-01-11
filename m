@@ -1,106 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:25621 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758144Ab2AFKT7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jan 2012 05:19:59 -0500
-Message-ID: <4F06CAC5.8010902@maxwell.research.nokia.com>
-Date: Fri, 06 Jan 2012 12:19:49 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-MIME-Version: 1.0
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:59684 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756622Ab2AKK26 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 05:28:58 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-Subject: Re: [RFC 03/17] vivi: Add an integer menu test control
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-3-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201201051659.14528.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201051659.14528.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH] Fix compile error in as3645a.c
+Date: Wed, 11 Jan 2012 11:28:40 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201201111054.20677.hverkuil@xs4all.nl> <201201111123.24963.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201111123.24963.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201111128.40740.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Laurent Pinchart wrote:
-> Hi Sakari,
+On Wednesday 11 January 2012 11:23:24 Laurent Pinchart wrote:
+> Hi Hans,
 > 
-> Thanks for the patch.
-
-Thanks for the review!
-
-> On Tuesday 20 December 2011 21:27:55 Sakari Ailus wrote:
->> From: Sakari Ailus <sakari.ailus@iki.fi>
->>
->> Add an integer menu test control for the vivi driver.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> ---
->>  drivers/media/video/vivi.c |   21 +++++++++++++++++++++
->>  1 files changed, 21 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
->> index 7d754fb..763ec23 100644
->> --- a/drivers/media/video/vivi.c
->> +++ b/drivers/media/video/vivi.c
->> @@ -177,6 +177,7 @@ struct vivi_dev {
->>  	struct v4l2_ctrl	   *menu;
->>  	struct v4l2_ctrl	   *string;
->>  	struct v4l2_ctrl	   *bitmask;
->> +	struct v4l2_ctrl	   *int_menu;
->>
->>  	spinlock_t                 slock;
->>  	struct mutex		   mutex;
->> @@ -503,6 +504,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct
->> vivi_buffer *buf) dev->boolean->cur.val,
->>  			dev->menu->qmenu[dev->menu->cur.val],
->>  			dev->string->cur.string);
->> +	snprintf(str, sizeof(str), " integer_menu %s, value %lld ",
->> +			dev->int_menu->qmenu[dev->int_menu->cur.val],
+> On Wednesday 11 January 2012 10:54:20 Hans Verkuil wrote:
+> > Building as3645a.c using media_build on kernel 3.2 gives this error:
+> > 
+> > media_build/v4l/as3645a.c: In function 'as3645a_probe':
+> > media_build/v4l/as3645a.c:815:2: error: implicit declaration of function
+> > 'kzalloc' [-Werror=implicit-function-declaration]
+> > media_build/v4l/as3645a.c:815:8: warning: assignment makes pointer from
+> > integer without a cast [enabled by default]
+> > media_build/v4l/as3645a.c:842:3: error: implicit declaration of function
+> > 'kfree' [-Werror=implicit-function-declaration] cc1: some warnings being
+> > treated as errors
+> > 
+> > The fix is trivial:
+> > 
+> > diff --git a/drivers/media/video/as3645a.c
+> > b/drivers/media/video/as3645a.c index ec859a5..f241702 100644
+> > --- a/drivers/media/video/as3645a.c
+> > +++ b/drivers/media/video/as3645a.c
+> > @@ -29,6 +29,7 @@
+> > 
+> >  #include <linux/i2c.h>
+> >  #include <linux/module.h>
+> >  #include <linux/mutex.h>
+> > 
+> > +#include <linux/slab.h>
+> > 
+> >  #include <media/as3645a.h>
+> >  #include <media/v4l2-ctrls.h>
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Shouldn't you print the content of qmenu_int as a 64-bit integer instead ?
+> I got the same fix queued up in my tree already. Should I consider I have
+> your ack ? :-)
 
-Oh, yes; I should. Also the value would be wrong, as well as the menu
-item array --- should be the int one.
+Yup!
 
->> +			dev->int64->cur.val64);
-> 
-> Shouldn't this be dev->int_menu->cur.val ?
-> 
->> +	gen_text(dev, vbuf, line++ * 16, 16, str);
->>  	mutex_unlock(&dev->ctrl_handler.lock);
->>  	gen_text(dev, vbuf, line++ * 16, 16, str);
->>  	if (dev->button_pressed) {
->> @@ -1183,6 +1188,22 @@ static const struct v4l2_ctrl_config
->> vivi_ctrl_bitmask = { .step = 0,
->>  };
->>
->> +static const s64 * const vivi_ctrl_int_menu_values[] = {
->> +	1, 1, 2, 3, 5, 8, 13, 21, 42,
->> +};
->> +
->> +static const struct v4l2_ctrl_config vivi_ctrl_string = {
->> +	.ops = &vivi_ctrl_ops,
->> +	.id = VIDI_CID_CUSTOM_BASE + 7
->> +	.name = "Integer menu",
->> +	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
->> +	.min = 1,
->> +	.max = 8,
-> 
-> There are 9 values in your vivi_ctrl_int_menu_values array. Is 8 on purpose 
-> here ?
+Regards,
 
-I put it there to limit the maximum to 8 instead of 9, but 9 would be
-equally good. I'll change it.
-
->> +	.def = 4,
->> +	.menu_skip_mask = 0x02,
->> +	.qmenu_int = &vivi_ctrl_int_menu_values,
->> +};
->> +
->>  static const struct v4l2_file_operations vivi_fops = {
->>  	.owner		= THIS_MODULE,
->>  	.open           = v4l2_fh_open,
-> 
-
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+	Hans
