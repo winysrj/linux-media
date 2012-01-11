@@ -1,106 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45048 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752909Ab2AUQEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:46 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4kT3021391
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:46 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 34/35] [media] az6007: Enable the driver at the building system
-Date: Sat, 21 Jan 2012 14:04:36 -0200
-Message-Id: <1327161877-16784-35-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-34-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
- <1327161877-16784-11-git-send-email-mchehab@redhat.com>
- <1327161877-16784-12-git-send-email-mchehab@redhat.com>
- <1327161877-16784-13-git-send-email-mchehab@redhat.com>
- <1327161877-16784-14-git-send-email-mchehab@redhat.com>
- <1327161877-16784-15-git-send-email-mchehab@redhat.com>
- <1327161877-16784-16-git-send-email-mchehab@redhat.com>
- <1327161877-16784-17-git-send-email-mchehab@redhat.com>
- <1327161877-16784-18-git-send-email-mchehab@redhat.com>
- <1327161877-16784-19-git-send-email-mchehab@redhat.com>
- <1327161877-16784-20-git-send-email-mchehab@redhat.com>
- <1327161877-16784-21-git-send-email-mchehab@redhat.com>
- <1327161877-16784-22-git-send-email-mchehab@redhat.com>
- <1327161877-16784-23-git-send-email-mchehab@redhat.com>
- <1327161877-16784-24-git-send-email-mchehab@redhat.com>
- <1327161877-16784-25-git-send-email-mchehab@redhat.com>
- <1327161877-16784-26-git-send-email-mchehab@redhat.com>
- <1327161877-16784-27-git-send-email-mchehab@redhat.com>
- <1327161877-16784-28-git-send-email-mchehab@redhat.com>
- <1327161877-16784-29-git-send-email-mchehab@redhat.com>
- <1327161877-16784-30-git-send-email-mchehab@redhat.com>
- <1327161877-16784-31-git-send-email-mchehab@redhat.com>
- <1327161877-16784-32-git-send-email-mchehab@redhat.com>
- <1327161877-16784-33-git-send-email-mchehab@redhat.com>
- <1327161877-16784-34-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62778 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932462Ab2AKLa4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 06:30:56 -0500
+Received: by wgbds12 with SMTP id ds12so454357wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 03:30:55 -0800 (PST)
+Message-ID: <4F0D72F1.8070806@gmail.com>
+Date: Wed, 11 Jan 2012 11:30:57 +0000
+From: Jim Darby <uberscubajim@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: Re: Possible regression in 3.2 kernel with PCTV Nanostick T2 (em28xx,
+ cxd2820r and tda18271)
+References: <4F0C3D1B.2010904@gmail.com> <4F0CE040.7020904@iki.fi>
+In-Reply-To: <4F0CE040.7020904@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the corresponding entries to allow building this driver.
+I thought I'd batch all the answers together.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/Kconfig  |    8 ++++++++
- drivers/media/dvb/dvb-usb/Makefile |    4 +++-
- 2 files changed, 11 insertions(+), 1 deletions(-)
+Andy suggested something about transfer buffers being dropped out of 
+rotation. I'm not sure exactly what this is but if it's anything like 
+ethernet buffering it would explain it. It would also explain why it 
+lasts longer on the lower bit rate standard definition TV rather than HDTV.
 
-diff --git a/drivers/media/dvb/dvb-usb/Kconfig b/drivers/media/dvb/dvb-usb/Kconfig
-index 9f203c6..e894bad 100644
---- a/drivers/media/dvb/dvb-usb/Kconfig
-+++ b/drivers/media/dvb/dvb-usb/Kconfig
-@@ -361,6 +361,14 @@ config DVB_USB_EC168
- 	help
- 	  Say Y here to support the E3C EC168 DVB-T USB2.0 receiver.
- 
-+config DVB_USB_AZ6007
-+	tristate "AzureWave 6007 and clones DVB-T/C USB2.0 support"
-+	depends on DVB_USB
-+	select DVB_DRXK if !DVB_FE_CUSTOMISE
-+	select MEDIA_TUNER_MT2063 if !DVB_FE_CUSTOMISE
-+	help
-+	  Say Y here to support theAfatech AF9005 based DVB-T/DVB-C receivers.
-+
- config DVB_USB_AZ6027
- 	tristate "Azurewave DVB-S/S2 USB2.0 AZ6027 support"
- 	depends on DVB_USB
-diff --git a/drivers/media/dvb/dvb-usb/Makefile b/drivers/media/dvb/dvb-usb/Makefile
-index 26c8b9e..d9549cb 100644
---- a/drivers/media/dvb/dvb-usb/Makefile
-+++ b/drivers/media/dvb/dvb-usb/Makefile
-@@ -54,7 +54,6 @@ obj-$(CONFIG_DVB_USB_DIB0700) += dvb-usb-dib0700.o
- dvb-usb-opera-objs = opera1.o
- obj-$(CONFIG_DVB_USB_OPERA1) += dvb-usb-opera.o
- 
--
- dvb-usb-af9005-objs = af9005.o af9005-fe.o
- obj-$(CONFIG_DVB_USB_AF9005) += dvb-usb-af9005.o
- 
-@@ -88,6 +87,9 @@ obj-$(CONFIG_DVB_USB_FRIIO) += dvb-usb-friio.o
- dvb-usb-ec168-objs = ec168.o
- obj-$(CONFIG_DVB_USB_EC168) += dvb-usb-ec168.o
- 
-+dvb-usb-az6007-objs = az6007.o
-+obj-$(CONFIG_DVB_USB_AZ6007) += dvb-usb-az6007.o
-+
- dvb-usb-az6027-objs = az6027.o
- obj-$(CONFIG_DVB_USB_AZ6027) += dvb-usb-az6027.o
- 
--- 
-1.7.8
+In response to Antti's question, I have indeed tested kernel 3.1.6. This 
+was where I originally noticed the problem. I upgraded to 3.2.0 to see 
+if had been fixed and when I found that it hadn't posted here.
 
+I pulled the LinuxTV.org v4l-dvb from mercurial but it looks more like a 
+patch than a full kernel (the previous one I pulled seven months ago was 
+a complete kernel). For reference the 3.0.0+ kernel that came from 
+LinuxTV.org v4l-dvb seven months ago has functioned flawlessly ever since.
+
+I've just downloaded the media_build.git stuff, installed the extra 
+packages it needed and it's be building now.
+
+The other card in the system is a very old Nova-T. It's got a LSI L64781 
+frontend on it.
+
+Finally Steven said that it might be signal, hardware or heat related. 
+I'm unsure of this because if I boot the machine with the 3.0.0+ kernel 
+with exactly the same user-land everything it functions perfectly and 
+has done for months.
+
+I'll report back on my adventures with the media_build changes to the 
+3.2 kernel.
+
+Best regards,
+
+Jim.
