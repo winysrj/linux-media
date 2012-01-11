@@ -1,48 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:51928 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752313Ab2AIKsY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 05:48:24 -0500
-Date: Mon, 9 Jan 2012 12:48:16 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: tuukkat76@gmail.com, dacohen@gmail.com,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	hverkuil@xs4all.nl, snjw23@gmail.com
-Subject: Re: [ANN] IRC meeting on new sensor control interface, 2012-01-09
- 14:00 GMT+2
-Message-ID: <20120109104815.GQ9323@valkosipuli.localdomain>
-References: <20120104085633.GM3677@valkosipuli.localdomain>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:48870 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933339Ab2AKTTi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 14:19:38 -0500
+Received: by wibhm14 with SMTP id hm14so644181wib.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 11:19:37 -0800 (PST)
+Message-ID: <4F0DE0C2.5050907@gmail.com>
+Date: Wed, 11 Jan 2012 19:19:30 +0000
+From: Jim Darby <uberscubajim@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120104085633.GM3677@valkosipuli.localdomain>
+To: linux-media@vger.kernel.org
+Subject: Re: Possible regression in 3.2 kernel with PCTV Nanostick T2 (em28xx,
+ cxd2820r and tda18271)
+References: <4F0C3D1B.2010904@gmail.com> <4F0CE040.7020904@iki.fi>
+In-Reply-To: <4F0CE040.7020904@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 11/01/12 01:05, Antti Palosaari wrote:
+> [snip]
+> Also latest LinuxTV.org devel could be interesting to see. There is 
+> one patch that changes em28xx driver endpoint configuration. But as 
+> that patch is going for 3.3 it should not be cause of issue, but I 
+> wonder if it could fix... Use media_build.git if possible.
 
-On Wed, Jan 04, 2012 at 10:56:33AM +0200, Sakari Ailus wrote:
-> Hi all,
-> 
-> I'd like to announce that we'll have an IRC meeting on #v4l-meeting channel
-> on the new sensor control interface. The date is next Monday 2012-01-09
-> 14:00 GMT + 2. Most important background information is this; it discusses
-> how image sensors should be controlled:
-> 
-> <URL:http://www.spinics.net/lists/linux-media/msg40861.html>
-> 
-> These changes currently depend on
-> 
-> - Integer menu controls [1],
-> - Selection IOCTL for subdevs [2] and
+Well, I built the kernel and installed it. Sadly I get entries of the 
+form: "dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 
+call to delivery system 0" which isn't what I was looking for. I guess 
+there's a new API? It would appear this is from the set frontend call.
 
-Based on Laurent's comments to the subdev selection patches, I drew a
-diagram to visualise format / crop / scaling and composition configuration.
-It's available here:
+This is most annoying as I'd like to try out the newest code.
 
-<URL:http://www.retiisi.org.uk/v4l2/tmp/format.eps>
+Is there a v3 to v3 transition document anywhere?
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Best regards,
+
+Jim.
