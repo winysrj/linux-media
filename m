@@ -1,109 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36851 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.128.26]:22438 "EHLO mgw-da02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757227Ab2ADXDv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 18:03:51 -0500
-Message-ID: <4F04DAD1.5030104@redhat.com>
-Date: Wed, 04 Jan 2012 21:03:45 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Steven Toth <stoth@kernellabs.com>
-CC: Linux-Media <linux-media@vger.kernel.org>
-Subject: Re: [PULL] git://git.kernellabs.com/stoth/cx23885-hvr1850.git media-master
- branch
-References: <CALzAhNUHJiwv5PmDPZyaxofA+1vBUw7WBV2EoT4VQNZZn--6fg@mail.gmail.com> <4F04D657.7050402@infradead.org>
-In-Reply-To: <4F04D657.7050402@infradead.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	id S933951Ab2AKV1Q (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 16:27:16 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH 10/23] omap3isp: Support additional in-memory compressed bayer formats
+Date: Wed, 11 Jan 2012 23:26:47 +0200
+Message-Id: <1326317220-15339-10-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4F0DFE92.80102@iki.fi>
+References: <4F0DFE92.80102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04-01-2012 20:44, Mauro Carvalho Chehab wrote:
-> On 04-01-2012 13:28, Steven Toth wrote:
->> Mauro,
->>
->> I've been adding support to the CX23885 and CX25840 drivers for the
->> Hauppauge HVR1850
->> card. These patches enable the use of raw video, audio and/or the mpeg
->> encoder, via all
->> video and audio inputs. Support for the HVR1850 is now in pretty good shape.
->>
->> The card uses the CX23888 PCIe bridge which brings its own complexities and
->> additional code to the CX25840. I've tested these patches against the
->> HVR1700, HVR1800
->> and HVR1850, everything appears to be working correctly.
->>
->> These also fix a small regression in the HVR1800 driver related to the
->> work done during
->> October 2010 on the subdev conversion. Given that nobody has noticed
->> in the last 12
->> months it's not too important.
->>
->> Tree is at git://git.kernellabs.com/stoth/cx23885-hvr1850.git
->> media-master branch.
-> 
-> Steve,
-> 
-> Please, always use git request-pull to generate pull requests, otherwise
-> patchwork won't catch and I may miss it.
-> 
-> Thanks,
-> Mauro
-> 
->>
->> Patch series viewable at:
->>
->> http://git.kernellabs.com/?p=stoth/cx23885-hvr1850.git;a=shortlog;h=refs/heads/media-master
+This also prevents accessing NULL pointer in csi2_try_format().
 
->>     [media] cx25840: Added g_std support to the video decoder driver
->>     [media] cx25840: Hauppauge HVR1850 Analog driver support (patch#4)
->>     [media] cx25840: Add a flag to enable the CX23888 DIF to be enabled or not.
->>     [media] cx23885: Hauppauge HVR1850 Analog driver support (patch#3)
->>     [media] cx23885: Hauppauge HVR1850 Analog driver support (patch#2)
->>     [media] cx23885: Hauppauge HVR1850 Analog driver support (patch#1)
->>     [media] cx23885: Bugfix /sys/class/video4linux/videoX/name truncation
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-Not applied the above patches, due to a compilation breakage on the next
-patch that are before them.
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index f229057..9cc5090 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -46,6 +46,10 @@
+  * Helper functions
+  */
+ 
++/*
++ * NOTE: When adding new media bus codes, always remember to add
++ * corresponding in-memory formats to the table below!!!
++ */
+ static struct isp_format_info formats[] = {
+ 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+ 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
+@@ -68,9 +72,18 @@ static struct isp_format_info formats[] = {
+ 	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
+ 	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
+ 	  V4L2_PIX_FMT_SRGGB8, 8, },
++	{ V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8, V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SBGGR10_1X10, 0,
++	  V4L2_PIX_FMT_SBGGR10DPCM8, 8, },
++	{ V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8, V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SGBRG10_1X10, 0,
++	  V4L2_PIX_FMT_SGBRG10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
+ 	  V4L2_MBUS_FMT_SGRBG10_1X10, 0,
+ 	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
++	{ V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8, V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8,
++	  V4L2_MBUS_FMT_SRGGB10_1X10, 0,
++	  V4L2_PIX_FMT_SRGGB10DPCM8, 8, },
+ 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
+ 	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
+ 	  V4L2_PIX_FMT_SBGGR10, 10, },
+-- 
+1.7.2.5
 
->>     [media] cx23885: Control cleanup on the MPEG Encoder
-
-There's something wrong on this patch. It breaks compilation:
-
-drivers/media/video/cx23885/cx23885-417.c: In function ‘vidioc_s_std’:
-drivers/media/video/cx23885/cx23885-417.c:1240:2: error: implicit declaration of function ‘cx23885_set_tvnorm’ [-Werror=implicit-function-declaration]
-drivers/media/video/cx23885/cx23885-417.c: In function ‘vidioc_enum_input’:
-drivers/media/video/cx23885/cx23885-417.c:1251:2: error: implicit declaration of function ‘cx23885_enum_input’ [-Werror=implicit-function-declaration]
-drivers/media/video/cx23885/cx23885-417.c: In function ‘vidioc_g_input’:
-drivers/media/video/cx23885/cx23885-417.c:1256:2: error: implicit declaration of function ‘cx23885_get_input’ [-Werror=implicit-function-declaration]
-drivers/media/video/cx23885/cx23885-417.c: In function ‘vidioc_s_input’:
-drivers/media/video/cx23885/cx23885-417.c:1261:2: error: implicit declaration of function ‘cx23885_set_input’ [-Werror=implicit-function-declaration]
-drivers/media/video/cx23885/cx23885-417.c: In function ‘vidioc_s_frequency’:
-drivers/media/video/cx23885/cx23885-417.c:1316:2: error: implicit declaration of function ‘cx23885_set_frequency’ [-Werror=implicit-function-declaration]
-drivers/media/video/cx23885/cx23885-417.c: In function ‘vidioc_g_ctrl’:
-drivers/media/video/cx23885/cx23885-417.c:1324:2: error: implicit declaration of function ‘cx23885_get_control’ [-Werror=implicit-function-declaration]
-drivers/media/video/cx23885/cx23885-417.c: In function ‘vidioc_s_ctrl’:
-drivers/media/video/cx23885/cx23885-417.c:1332:2: error: implicit declaration of function ‘cx23885_set_control’ [-Werror=implicit-function-declaration]
-cc1: some warnings being treated as errors
-
-Please fix it. No patch should break compilation, or it would affect
-"git bisect" handling with is bad not only for media developers, but for
-everybody else working with Kernel development.
-
->>     [media] cx23885: Configure the MPEG encoder early to avoid jerky video
-
-This one also breaks compilation: 
-
-drivers/media/video/cx23885/cx23885-417.c:1351:2: error: too few arguments to function ‘cx23885_initialize_codec’
-
-In this specific case, the fix is trivial, so, I've applied it, and added a
-reviewer note about the breakage fix.
-
->>     [media] cx23885: Ensure the MPEG encoder height is configured from the norm
->>     [media] cx23885: Cleanup MPEG encoder GPIO handling
->>     [media] cx25840 / cx23885: Fixing audio/volume regression
-
-Those were also applied.
-
-Regards,
-Mauro
