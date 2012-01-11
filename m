@@ -1,82 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:37768 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754234Ab2AEVGU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 16:06:20 -0500
-Received: by vbbfc26 with SMTP id fc26so717923vbb.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 13:06:19 -0800 (PST)
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:51537 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753203Ab2AKKrz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 05:47:55 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.3] V4L2 Spec updates
+Date: Wed, 11 Jan 2012 11:47:50 +0100
+Cc: Rupert Eibauer <Rupert.Eibauer@ces.ch>,
+	Archit Taneja <archit@ti.com>,
+	Vaibhav Hiremath <hvaibhav@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHF9Re=V8MOH-wg8TWeMjSC9d-iOtWAWH-RshPAxbBjiP65OJQ@mail.gmail.com>
-References: <CAHF9RemG4M2apwcbUG+7YvkLrbpoZmE6Nh2XMHPT4FM3jRW_Ng@mail.gmail.com>
-	<CAGoCfiwEeFiU+0scdZ48nbDfF-NCg8Ac701XkCZtXuTjckq0ng@mail.gmail.com>
-	<CAHF9Re=V8MOH-wg8TWeMjSC9d-iOtWAWH-RshPAxbBjiP65OJQ@mail.gmail.com>
-Date: Thu, 5 Jan 2012 16:06:19 -0500
-Message-ID: <CAGoCfiw7c8=o5doJcYctmRbsj-idmxsRKVE5OzCOQ_xhLGBxMg@mail.gmail.com>
-Subject: Re: Support for RC-6 in em28xx driver?
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: =?ISO-8859-1?Q?Simon_S=F8ndergaard?= <john7doe@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201111147.50943.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/1/5 Simon Søndergaard <john7doe@gmail.com>:
-> 2012/1/5 Devin Heitmueller <dheitmueller@kernellabs.com>:
->> 2012/1/5 Simon Søndergaard <john7doe@gmail.com>:
->>> Hi,
->>>
->>> I recently purchased a PCTV 290e USB Stick (em28174) it comes with a
->>> remote almost as small as the stick itself... I've been able to get
->>> both stick and remote to work. I also own an MCE media center remote
->>> from HP (this make
->>> http://www.ebay.com/itm/Original-Win7-PC-MCE-Media-Center-HP-Remote-Controller-/170594956920)
->>> that sends RC-6 codes. While it do have a windows logo I still think
->>> it is vastly superior to the one that shipped with the stick :-)
->>>
->>> If I understand it correctly em28174 is a derivative of em2874?
->>>
->>> In em28xx-input.c it is stated that: "em2874 supports more protocols.
->>> For now, let's just announce the two protocols that were already
->>> tested"
->>>
->>> I've been searching high and low for a datasheet for em28(1)74, but
->>> have been unable to find it online. Do anyone know if one of the
->>> protocols supported is RC-6? and if so how do I get a copy of the
->>> datasheet?
->>
->> The 2874 supports NEC, RC-5, and RC-6/6A.  I did the original support
->> (based on the docs provided under NDA) but ironically enough I didn't
->> have an RC6 remote kicking around so I didn't do the support for it.
->>
->> IR receivers for MCE devices are dirt cheap (< $20), and if you're
->> doing a media center then it's likely the PCTV 290e probably isn't in
->> line-of-site for a remote anyway.
->
-> The 290e will be in line of sight.
->
-> Perhaps the info is already there, not sure why I overlooked it in the
-> first place:
->
-> EM2874_IR_RC6_MODE_0    0x08
-> EM2874_IR_RC6_MODE_6A 0x0b
+Hi Mauro,
 
-Ah, so I guess I did put at least some of the info into the driver.
-Also, for RC6 make sure bits 0-1 are 00 and for RC6A they need to be
-set based on the number of bytes expected to be received (2 bytes=00,
-3bytes=01, 4bytes=10).  The received data gets stored in 0x52-0x55 (I
-don't remember if the driver actually looks are 0x54/55 currently
-since they aren't used for NEC or RC5)..
+Here are a bunch of V4L2 specification updates.
 
-> RC5 and RC6 use same carrier frequency? so do I need another value for
-> EM28XX_R0F_XCLK?
+The first three are from this earlier RFC:
 
-You shouldn't need to touch the XCLK register.
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/40701
 
-Good luck!
+There were no more comments, so this is the final pull request. It's unchanged
+from RFCv2.
 
-Devin
+The other two fix a long standing missing piece of documentation for extended
+controls (it was documented in v4l2-controls.txt, but never made it to the spec),
+and make it more explicit that changing input or output means that you need to
+query standards, formats, etc. again.
 
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+	Hans
+
+The following changes since commit 240ab508aa9fb7a294b0ecb563b19ead000b2463:
+
+  [media] [PATCH] don't reset the delivery system on DTV_CLEAR (2012-01-10 23:44:07 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/hverkuil/media_tree.git spec3
+
+Hans Verkuil (5):
+      v4l2 spec: clarify usage of V4L2_FBUF_FLAG_OVERLAY
+      zoran: do not set V4L2_FBUF_FLAG_OVERLAY.
+      omap_vout: add missing OVERLAY_OUTPUT cap and set V4L2_FBUF_FLAG_OVERLAY
+      V4L2 Spec: fix extended control documentation.
+      V4L2 Spec: improve the G/S_INPUT/OUTPUT documentation.
+
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |   18 +++++++++++----
+ Documentation/DocBook/media/v4l/vidioc-g-fbuf.xml  |   23 ++++++++++++-------
+ Documentation/DocBook/media/v4l/vidioc-g-input.xml |    4 +-
+ .../DocBook/media/v4l/vidioc-g-output.xml          |    5 ++-
+ Documentation/video4linux/v4l2-controls.txt        |   21 ------------------
+ drivers/media/video/omap/omap_vout.c               |    7 ++++-
+ drivers/media/video/zoran/zoran_driver.c           |    1 -
+ 7 files changed, 37 insertions(+), 42 deletions(-)
