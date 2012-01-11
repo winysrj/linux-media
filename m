@@ -1,78 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:39058 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753196Ab2A3Owd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 09:52:33 -0500
-Date: Mon, 30 Jan 2012 14:52:30 +0000
-From: Mel Gorman <mel@csn.ul.ie>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 08/15] mm: mmzone: MIGRATE_CMA migration type added
-Message-ID: <20120130145230.GQ25268@csn.ul.ie>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <1327568457-27734-9-git-send-email-m.szyprowski@samsung.com>
- <20120130123542.GL25268@csn.ul.ie>
- <op.v8wepotk3l0zgt@mpn-glaptop>
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:47715 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756735Ab2AKJyZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 04:54:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH] Fix compile error in as3645a.c
+Date: Wed, 11 Jan 2012 10:54:20 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
-Content-Disposition: inline
-In-Reply-To: <op.v8wepotk3l0zgt@mpn-glaptop>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201111054.20677.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 30, 2012 at 02:06:50PM +0100, Michal Nazarewicz wrote:
-> >>@@ -1017,11 +1049,14 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
-> >> 			rmv_page_order(page);
-> >>
-> >> 			/* Take ownership for orders >= pageblock_order */
-> >>-			if (current_order >= pageblock_order)
-> >>+			if (current_order >= pageblock_order &&
-> >>+			    !is_pageblock_cma(page))
-> >> 				change_pageblock_range(page, current_order,
-> >> 							start_migratetype);
-> >>
-> >>-			expand(zone, page, order, current_order, area, migratetype);
-> >>+			expand(zone, page, order, current_order, area,
-> >>+			       is_migrate_cma(start_migratetype)
-> >>+			     ? start_migratetype : migratetype);
-> >>
-> >
-> >What is this check meant to be doing?
-> >
-> >start_migratetype is determined by allocflags_to_migratetype() and
-> >that never will be MIGRATE_CMA so is_migrate_cma(start_migratetype)
-> >should always be false.
-> 
-> Right, thanks!  This should be the other way around, ie.:
-> 
-> +			expand(zone, page, order, current_order, area,
-> +			       is_migrate_cma(migratetype)
-> +			     ? migratetype : start_migratetype);
-> 
-> I'll fix this and the calls to is_pageblock_cma().
-> 
+Building as3645a.c using media_build on kernel 3.2 gives this error:
 
-That makes a lot more sense. Thanks.
+media_build/v4l/as3645a.c: In function 'as3645a_probe':
+media_build/v4l/as3645a.c:815:2: error: implicit declaration of function 'kzalloc' [-Werror=implicit-function-declaration]
+media_build/v4l/as3645a.c:815:8: warning: assignment makes pointer from integer without a cast [enabled by default]
+media_build/v4l/as3645a.c:842:3: error: implicit declaration of function 'kfree' [-Werror=implicit-function-declaration]
+cc1: some warnings being treated as errors
 
-I have a vague recollection that there was a problem with finding
-unmovable pages in MIGRATE_CMA regions. This might have been part of
-the problem.
+The fix is trivial:
 
--- 
-Mel Gorman
-SUSE Labs
+diff --git a/drivers/media/video/as3645a.c b/drivers/media/video/as3645a.c
+index ec859a5..f241702 100644
+--- a/drivers/media/video/as3645a.c
++++ b/drivers/media/video/as3645a.c
+@@ -29,6 +29,7 @@
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+ #include <linux/mutex.h>
++#include <linux/slab.h>
+ 
+ #include <media/as3645a.h>
+ #include <media/v4l2-ctrls.h>
+
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Regards,
+
+	Hans
