@@ -1,80 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50946 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752936Ab2AWJ4P (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:44838 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757615Ab2AKQBO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 04:56:15 -0500
-Date: Mon, 23 Jan 2012 10:56:09 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Axel Lin <axel.lin@gmail.com>
-cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrew Chew <achew@nvidia.com>,
-	Paul Mundt <lethal@linux-sh.org>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Johannes Obermaier <johannes.obermaier@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] convert drivers/media/* to use module_i2c_driver()
-In-Reply-To: <1327140645.3928.1.camel@phoenix>
-Message-ID: <Pine.LNX.4.64.1201231047330.11184@axis700.grange>
-References: <1327140645.3928.1.camel@phoenix>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 11 Jan 2012 11:01:14 -0500
+Received: by wibhm14 with SMTP id hm14so478078wib.19
+        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 08:01:13 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, g.liakhovetski@gmx.de, lethal@linux-sh.org,
+	hans.verkuil@cisco.com, s.hauer@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v2] media i.MX27 camera: properly detect frame loss.
+Date: Wed, 11 Jan 2012 17:01:04 +0100
+Message-Id: <1326297664-19089-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 21 Jan 2012, Axel Lin wrote:
+As V4L2 specification states, frame_count must also
+regard lost frames so that the user can handle that
+case properly.
 
-> This patch converts the drivers in drivers/media/* to use the
-> module_i2_driver() macro which makes the code smaller and a bit simpler.
-> 
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
-> Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> Cc: Heungjun Kim <riverful.kim@samsung.com>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Joonyoung Shim <jy0922.shim@samsung.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Andrew Chew <achew@nvidia.com>
-> Cc: Paul Mundt <lethal@linux-sh.org>
-> Cc: Michael Grzeschik <m.grzeschik@pengutronix.de>
-> Cc: Johannes Obermaier <johannes.obermaier@gmail.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Steven Toth <stoth@kernellabs.com>
-> ---
+This patch adds a mechanism to increment the frame
+counter even when a video buffer is not available
+and a discard buffer is used.
 
->  drivers/media/video/ak881x.c                  |   13 +----------
->  drivers/media/video/imx074.c                  |   13 +----------
->  drivers/media/video/mt9m001.c                 |   13 +----------
->  drivers/media/video/mt9m111.c                 |   13 +----------
->  drivers/media/video/mt9t031.c                 |   13 +----------
->  drivers/media/video/mt9t112.c                 |   16 +-------------
->  drivers/media/video/mt9v022.c                 |   13 +----------
->  drivers/media/video/ov2640.c                  |   16 +-------------
->  drivers/media/video/ov5642.c                  |   13 +----------
->  drivers/media/video/ov6650.c                  |   13 +----------
->  drivers/media/video/ov772x.c                  |   17 +--------------
->  drivers/media/video/ov9640.c                  |   13 +----------
->  drivers/media/video/ov9740.c                  |   13 +----------
->  drivers/media/video/rj54n1cb0c.c              |   13 +----------
->  drivers/media/video/tw9910.c                  |   16 +-------------
-
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-Thanks
-Guennadi
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Changes since v1:
+ - Initialize "frame_count" to -1 instead of using
+   "firstirq" variable.
+
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ drivers/media/video/mx2_camera.c |   45 ++++++++++++++++++++-----------------
+ 1 files changed, 24 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index ca76dd2..68038e7 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -369,7 +369,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+ 	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+ 
+ 	pcdev->icd = icd;
+-	pcdev->frame_count = 0;
++	pcdev->frame_count = -1;
+ 
+ 	dev_info(icd->parent, "Camera driver attached to camera %d\n",
+ 		 icd->devnum);
+@@ -572,6 +572,7 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
+ 	struct soc_camera_host *ici =
+ 		to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
++	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+ 	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
+ 	unsigned long flags;
+ 
+@@ -584,6 +585,26 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
+ 	list_add_tail(&vb->queue, &pcdev->capture);
+ 
+ 	if (mx27_camera_emma(pcdev)) {
++		if (prp->cfg.channel == 1) {
++			writel(PRP_CNTL_CH1EN |
++				PRP_CNTL_CSIEN |
++				prp->cfg.in_fmt |
++				prp->cfg.out_fmt |
++				PRP_CNTL_CH1_LEN |
++				PRP_CNTL_CH1BYP |
++				PRP_CNTL_CH1_TSKIP(0) |
++				PRP_CNTL_IN_TSKIP(0),
++				pcdev->base_emma + PRP_CNTL);
++		} else {
++			writel(PRP_CNTL_CH2EN |
++				PRP_CNTL_CSIEN |
++				prp->cfg.in_fmt |
++				prp->cfg.out_fmt |
++				PRP_CNTL_CH2_LEN |
++				PRP_CNTL_CH2_TSKIP(0) |
++				PRP_CNTL_IN_TSKIP(0),
++				pcdev->base_emma + PRP_CNTL);
++		}
+ 		goto out;
+ 	} else { /* cpu_is_mx25() */
+ 		u32 csicr3, dma_inten = 0;
+@@ -747,16 +768,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 		writel(pcdev->discard_buffer_dma,
+ 				pcdev->base_emma + PRP_DEST_RGB2_PTR);
+ 
+-		writel(PRP_CNTL_CH1EN |
+-				PRP_CNTL_CSIEN |
+-				prp->cfg.in_fmt |
+-				prp->cfg.out_fmt |
+-				PRP_CNTL_CH1_LEN |
+-				PRP_CNTL_CH1BYP |
+-				PRP_CNTL_CH1_TSKIP(0) |
+-				PRP_CNTL_IN_TSKIP(0),
+-				pcdev->base_emma + PRP_CNTL);
+-
+ 		writel((icd->user_width << 16) | icd->user_height,
+ 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+ 		writel((icd->user_width << 16) | icd->user_height,
+@@ -784,15 +795,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 				pcdev->base_emma + PRP_SOURCE_CR_PTR);
+ 		}
+ 
+-		writel(PRP_CNTL_CH2EN |
+-			PRP_CNTL_CSIEN |
+-			prp->cfg.in_fmt |
+-			prp->cfg.out_fmt |
+-			PRP_CNTL_CH2_LEN |
+-			PRP_CNTL_CH2_TSKIP(0) |
+-			PRP_CNTL_IN_TSKIP(0),
+-			pcdev->base_emma + PRP_CNTL);
+-
+ 		writel((icd->user_width << 16) | icd->user_height,
+ 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+ 
+@@ -1214,7 +1216,6 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 		vb->state = state;
+ 		do_gettimeofday(&vb->ts);
+ 		vb->field_count = pcdev->frame_count * 2;
+-		pcdev->frame_count++;
+ 
+ 		wake_up(&vb->done);
+ 	}
+@@ -1239,6 +1240,8 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 		return;
+ 	}
+ 
++	pcdev->frame_count++;
++
+ 	buf = list_entry(pcdev->capture.next,
+ 			struct mx2_buffer, vb.queue);
+ 
+-- 
+1.7.0.4
+
