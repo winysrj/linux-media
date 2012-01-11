@@ -1,103 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:40510 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185Ab2ACK2k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 05:28:40 -0500
-Received: by werm1 with SMTP id m1so7764612wer.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 02:28:39 -0800 (PST)
-Message-ID: <1325586512.14924.7.camel@tvbox>
-Subject: [PATCH] it913x-fe ver 1.13 add BER and UNC monitoring
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Tue, 03 Jan 2012 10:28:32 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from mx1.redhat.com ([209.132.183.28]:43998 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757017Ab2AKBon (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 20:44:43 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0B1ihXt007433
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 20:44:43 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] [PATCH] don't reset the delivery system on DTV_CLEAR
+Date: Tue, 10 Jan 2012 23:44:30 -0200
+Message-Id: <1326246270-29272-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add BER monitoring with Pre-Viterbi error rate.
+As a DVBv3 application may be relying on the delivery system,
+don't reset it at DTV_CLEAR. For DVBv5 applications, the
+delivery system should be set anyway.
 
-Add UCBLOCKS based on Aborted packets.
-
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/frontends/it913x-fe.c |   21 +++++++++++++++++----
- drivers/media/dvb/frontends/it913x-fe.h |   10 ++++++++++
- 2 files changed, 27 insertions(+), 4 deletions(-)
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
-index 8088e62..70131b9 100644
---- a/drivers/media/dvb/frontends/it913x-fe.c
-+++ b/drivers/media/dvb/frontends/it913x-fe.c
-@@ -66,6 +66,7 @@ struct it913x_fe_state {
- 	u8 tun_fdiv;
- 	u8 tun_clk_mode;
- 	u32 tun_fn_min;
-+	u32 ucblocks;
- };
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index a904793..b15db4f 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -909,7 +909,6 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
  
- static int it913x_read_reg(struct it913x_fe_state *state,
-@@ -553,14 +554,26 @@ static int it913x_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
+ 	c->state = DTV_CLEAR;
  
- static int it913x_fe_read_ber(struct dvb_frontend *fe, u32 *ber)
- {
--	*ber = 0;
-+	struct it913x_fe_state *state = fe->demodulator_priv;
-+	int ret;
-+	u8 reg[5];
-+	/* Read Aborted Packets and Pre-Viterbi error rate 5 bytes */
-+	ret = it913x_read_reg(state, RSD_ABORT_PKT_LSB, reg, sizeof(reg));
-+	state->ucblocks += (u32)(reg[1] << 8) | reg[0];
-+	*ber = (u32)(reg[4] << 16) | (reg[3] << 8) | reg[2];
- 	return 0;
- }
+-	c->delivery_system = fe->ops.delsys[0];
+ 	dprintk("%s() Clearing cache for delivery system %d\n", __func__,
+ 		c->delivery_system);
  
- static int it913x_fe_read_ucblocks(struct dvb_frontend *fe, u32 *ucblocks)
- {
--	*ucblocks = 0;
--	return 0;
-+	struct it913x_fe_state *state = fe->demodulator_priv;
-+	int ret;
-+	u8 reg[2];
-+	/* Aborted Packets */
-+	ret = it913x_read_reg(state, RSD_ABORT_PKT_LSB, reg, sizeof(reg));
-+	state->ucblocks += (u32)(reg[1] << 8) | reg[0];
-+	*ucblocks = state->ucblocks;
-+	return ret;
- }
- 
- static int it913x_fe_get_frontend(struct dvb_frontend *fe,
-@@ -951,5 +964,5 @@ static struct dvb_frontend_ops it913x_fe_ofdm_ops = {
- 
- MODULE_DESCRIPTION("it913x Frontend and it9137 tuner");
- MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
--MODULE_VERSION("1.12");
-+MODULE_VERSION("1.13");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/dvb/frontends/it913x-fe.h b/drivers/media/dvb/frontends/it913x-fe.h
-index 5ee3e2f..c4a908e 100644
---- a/drivers/media/dvb/frontends/it913x-fe.h
-+++ b/drivers/media/dvb/frontends/it913x-fe.h
-@@ -148,6 +148,16 @@ static inline struct dvb_frontend *it913x_fe_attach(
- #define COEFF_1_2048		0x0001
- #define XTAL_CLK		0x0025
- #define BFS_FCW			0x0029
+@@ -2377,6 +2376,8 @@ int dvb_register_frontend(struct dvb_adapter* dvb,
+ 	 * Initialize the cache to the proper values according with the
+ 	 * first supported delivery system (ops->delsys[0])
+ 	 */
 +
-+/* Error Regs */
-+#define RSD_ABORT_PKT_LSB	0x0032
-+#define RSD_ABORT_PKT_MSB	0x0033
-+#define RSD_BIT_ERR_0_7		0x0034
-+#define RSD_BIT_ERR_8_15	0x0035
-+#define RSD_BIT_ERR_23_16	0x0036
-+#define RSD_BIT_COUNT_LSB	0x0037
-+#define RSD_BIT_COUNT_MSB	0x0038
-+
- #define TPSD_LOCK		0x003c
- #define TRAINING_MODE		0x0040
- #define ADC_X_2			0x0045
++        fe->dtv_property_cache.delivery_system = fe->ops.delsys[0];
+ 	dvb_frontend_clear_cache(fe);
+ 
+ 	mutex_unlock(&frontend_mutex);
 -- 
-1.7.7.3
-
-
+1.7.7.5
 
