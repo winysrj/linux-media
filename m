@@ -1,74 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:63481 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755551Ab2ANSqb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 13:46:31 -0500
-Received: by bkuw12 with SMTP id w12so705036bku.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:46:30 -0800 (PST)
-MIME-Version: 1.0
-Date: Sat, 14 Jan 2012 19:41:01 +0100
-Message-ID: <CAEN_-SBtL8ecUz6SvHzFKjwG7bdnmsYj4=eqeQpfS68PTNT-Xw@mail.gmail.com>
-Subject: xc2028: add registers names from datasheet
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+Received: from smtp.nokia.com ([147.243.1.48]:21589 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933994Ab2AKV1U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 16:27:20 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015175cada4b3336104b6815270
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH 19/23] omap3isp: Default error handling for ccp2, csi2, preview and resizer
+Date: Wed, 11 Jan 2012 23:26:56 +0200
+Message-Id: <1326317220-15339-19-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4F0DFE92.80102@iki.fi>
+References: <4F0DFE92.80102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015175cada4b3336104b6815270
-Content-Type: text/plain; charset=ISO-8859-1
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispccp2.c    |    2 ++
+ drivers/media/video/omap3isp/ispcsi2.c    |    2 ++
+ drivers/media/video/omap3isp/isppreview.c |    2 ++
+ drivers/media/video/omap3isp/ispresizer.c |    2 ++
+ drivers/media/video/omap3isp/ispvideo.c   |   18 ++++++++----------
+ 5 files changed, 16 insertions(+), 10 deletions(-)
 
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index 904ca8c..ab0b4db 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -933,6 +933,7 @@ static const struct v4l2_subdev_pad_ops ccp2_sd_pad_ops = {
+ 	.enum_frame_size = ccp2_enum_frame_size,
+ 	.get_fmt = ccp2_get_format,
+ 	.set_fmt = ccp2_set_format,
++	.link_validate = v4l2_subdev_link_validate_default,
+ };
+ 
+ /* subdev operations */
+@@ -1029,6 +1030,7 @@ static int ccp2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations ccp2_media_ops = {
+ 	.link_setup = ccp2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index 0b3e705..ab6ae76 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -1151,6 +1151,7 @@ static const struct v4l2_subdev_pad_ops csi2_pad_ops = {
+ 	.enum_frame_size = csi2_enum_frame_size,
+ 	.get_fmt = csi2_get_format,
+ 	.set_fmt = csi2_set_format,
++	.link_validate = v4l2_subdev_link_validate_default,
+ };
+ 
+ /* subdev operations */
+@@ -1225,6 +1226,7 @@ static int csi2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations csi2_media_ops = {
+ 	.link_setup = csi2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index ccb876f..62c49d6 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -1986,6 +1986,7 @@ static const struct v4l2_subdev_pad_ops preview_v4l2_pad_ops = {
+ 	.set_fmt = preview_set_format,
+ 	.get_crop = preview_get_crop,
+ 	.set_crop = preview_set_crop,
++	.link_validate = v4l2_subdev_link_validate_default,
+ };
+ 
+ /* subdev operations */
+@@ -2081,6 +2082,7 @@ static int preview_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations preview_media_ops = {
+ 	.link_setup = preview_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 50e593b..ecc377b 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1535,6 +1535,7 @@ static const struct v4l2_subdev_pad_ops resizer_v4l2_pad_ops = {
+ 	.set_fmt = resizer_set_format,
+ 	.get_crop = resizer_g_crop,
+ 	.set_crop = resizer_s_crop,
++	.link_validate = v4l2_subdev_link_validate_default,
+ };
+ 
+ /* subdev operations */
+@@ -1606,6 +1607,7 @@ static int resizer_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations resizer_media_ops = {
+ 	.link_setup = resizer_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 2ff7f91..12b4d99 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -304,8 +304,6 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 	struct v4l2_subdev *subdev;
+ 	int ret;
+ 
+-	pipe->max_rate = pipe->l3_ick;
+-
+ 	subdev = isp_video_remote_subdev(pipe->output, NULL);
+ 	if (subdev == NULL)
+ 		return -EPIPE;
+@@ -988,11 +986,15 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	 */
+ 	pipe = video->video.entity.pipe
+ 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
++
++	if (video->isp->pdata->set_constraints)
++		video->isp->pdata->set_constraints(video->isp, true);
++	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
++	pipe->max_rate = pipe->l3_ick;
++
+ 	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+-	if (ret < 0) {
+-		mutex_unlock(&video->stream_lock);
+-		return ret;
+-	}
++	if (ret < 0)
++		goto error;
+ 
+ 	/* Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
+@@ -1024,10 +1026,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		pipe->output = far_end;
+ 	}
+ 
+-	if (video->isp->pdata->set_constraints)
+-		video->isp->pdata->set_constraints(video->isp, true);
+-	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+-
+ 	/* Validate the pipeline and update its state. */
+ 	ret = isp_video_validate_pipeline(pipe);
+ 	if (ret < 0)
+-- 
+1.7.2.5
 
-
---0015175cada4b3336104b6815270
-Content-Type: text/x-patch; charset=US-ASCII;
-	name="xc2028_add_registers_definition_from_datasheet.patch"
-Content-Disposition: attachment;
-	filename="xc2028_add_registers_definition_from_datasheet.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gxezf0vw0
-
-U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
-b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
-IERlYyAyMDExIDAwOjE5OjM0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gQWRkIHJlZ2lzdGVycyBu
-YW1lcyB0byBYQzIwMjggdHVuZXIgZnJvbSBkYXRhaHNlZXQgYW5kIHVzZSB0aGVtLgoKLS0tCmRp
-ZmYgLU5hdXJwIGEvZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1bmVyLXhjMjAyOC5jIGIv
-ZHJpdmVycy9tZWRpYS9jb21tb24vdHVuZXJzL3R1bmVyLXhjMjAyOC5jCi0tLSBhL2RyaXZlcnMv
-bWVkaWEvY29tbW9uL3R1bmVycy90dW5lci14YzIwMjguYwkyMDEyLTAxLTA1IDAwOjU1OjQ0LjAw
-MDAwMDAwMCArMDEwMAorKysgYi9kcml2ZXJzL21lZGlhL2NvbW1vbi90dW5lcnMvdHVuZXIteGMy
-MDI4LmMJMjAxMi0wMS0wNSAxMzo0NzoyMC41MDk5MTA4MDQgKzAxMDAKQEAgLTI0LDYgKzI0LDIx
-IEBACiAjaW5jbHVkZSA8bGludXgvZHZiL2Zyb250ZW5kLmg+CiAjaW5jbHVkZSAiZHZiX2Zyb250
-ZW5kLmgiCiAKKy8qIFJlZ2lzdGVycyAoV3JpdGUtb25seSkgKi8KKyNkZWZpbmUgWFJFR19JTklU
-ICAgICAgICAgMHgwMAorI2RlZmluZSBYUkVHX1JGX0ZSRVEgICAgICAweDAyCisjZGVmaW5lIFhS
-RUdfUE9XRVJfRE9XTiAgIDB4MDgKKworLyogUmVnaXN0ZXJzIChSZWFkLW9ubHkpICovCisjZGVm
-aW5lIFhSRUdfRlJFUV9FUlJPUiAgIDB4MDEKKyNkZWZpbmUgWFJFR19MT0NLICAgICAgICAgMHgw
-MgorI2RlZmluZSBYUkVHX1ZFUlNJT04gICAgICAweDA0CisjZGVmaW5lIFhSRUdfUFJPRFVDVF9J
-RCAgIDB4MDgKKyNkZWZpbmUgWFJFR19IU1lOQ19GUkVRICAgMHgxMAorI2RlZmluZSBYUkVHX0ZS
-QU1FX0xJTkVTICAweDIwCisjZGVmaW5lIFhSRUdfU05SICAgICAgICAgIDB4NDAKKworI2RlZmlu
-ZSBYUkVHX0FEQ19FTlYgICAgICAweDAxMDAKIAogc3RhdGljIGludCBkZWJ1ZzsKIG1vZHVsZV9w
-YXJhbShkZWJ1ZywgaW50LCAwNjQ0KTsKQEAgLTg4NSw3ICs5MDAsNyBAQCBzdGF0aWMgaW50IHhj
-MjAyOF9zaWduYWwoc3RydWN0IGR2Yl9mcm9uCiAJbXV0ZXhfbG9jaygmcHJpdi0+bG9jayk7CiAK
-IAkvKiBTeW5jIExvY2sgSW5kaWNhdG9yICovCi0JcmMgPSB4YzIwMjhfZ2V0X3JlZyhwcml2LCAw
-eDAwMDIsICZmcnFfbG9jayk7CisJcmMgPSB4YzIwMjhfZ2V0X3JlZyhwcml2LCBYUkVHX0xPQ0ss
-ICZmcnFfbG9jayk7CiAJaWYgKHJjIDwgMCkKIAkJZ290byByZXQ7CiAKQEAgLTg5NCw3ICs5MDks
-NyBAQCBzdGF0aWMgaW50IHhjMjAyOF9zaWduYWwoc3RydWN0IGR2Yl9mcm9uCiAJCXNpZ25hbCA9
-IDMyNzY4OwogCiAJLyogR2V0IFNOUiBvZiB0aGUgdmlkZW8gc2lnbmFsICovCi0JcmMgPSB4YzIw
-MjhfZ2V0X3JlZyhwcml2LCAweDAwNDAsICZzaWduYWwpOworCXJjID0geGMyMDI4X2dldF9yZWco
-cHJpdiwgWFJFR19TTlIsICZzaWduYWwpOwogCWlmIChyYyA8IDApCiAJCWdvdG8gcmV0OwogCkBA
-IC0xMDEzLDkgKzEwMjgsOSBAQCBzdGF0aWMgaW50IGdlbmVyaWNfc2V0X2ZyZXEoc3RydWN0IGR2
-Yl9mCiAKIAkvKiBDTUQ9IFNldCBmcmVxdWVuY3kgKi8KIAlpZiAocHJpdi0+ZmlybV92ZXJzaW9u
-IDwgMHgwMjAyKQotCQlyYyA9IHNlbmRfc2VxKHByaXYsIHsweDAwLCAweDAyLCAweDAwLCAweDAw
-fSk7CisJCXJjID0gc2VuZF9zZXEocHJpdiwgezB4MDAsIFhSRUdfUkZfRlJFUSwgMHgwMCwgMHgw
-MH0pOwogCWVsc2UKLQkJcmMgPSBzZW5kX3NlcShwcml2LCB7MHg4MCwgMHgwMiwgMHgwMCwgMHgw
-MH0pOworCQlyYyA9IHNlbmRfc2VxKHByaXYsIHsweDgwLCBYUkVHX1JGX0ZSRVEsIDB4MDAsIDB4
-MDB9KTsKIAlpZiAocmMgPCAwKQogCQlnb3RvIHJldDsKIApAQCAtMTIwNyw5ICsxMjIyLDkgQEAg
-c3RhdGljIGludCB4YzIwMjhfc2xlZXAoc3RydWN0IGR2Yl9mcm9udAogCW11dGV4X2xvY2soJnBy
-aXYtPmxvY2spOwogCiAJaWYgKHByaXYtPmZpcm1fdmVyc2lvbiA8IDB4MDIwMikKLQkJcmMgPSBz
-ZW5kX3NlcShwcml2LCB7MHgwMCwgMHgwOCwgMHgwMCwgMHgwMH0pOworCQlyYyA9IHNlbmRfc2Vx
-KHByaXYsIHsweDAwLCBYUkVHX1BPV0VSX0RPV04sIDB4MDAsIDB4MDB9KTsKIAllbHNlCi0JCXJj
-ID0gc2VuZF9zZXEocHJpdiwgezB4ODAsIDB4MDgsIDB4MDAsIDB4MDB9KTsKKwkJcmMgPSBzZW5k
-X3NlcShwcml2LCB7MHg4MCwgWFJFR19QT1dFUl9ET1dOLCAweDAwLCAweDAwfSk7CiAKIAlwcml2
-LT5jdXJfZncudHlwZSA9IDA7CS8qIG5lZWQgZmlybXdhcmUgcmVsb2FkICovCiAKLS0gCjEuNy4y
-LjMKCg==
---0015175cada4b3336104b6815270--
