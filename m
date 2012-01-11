@@ -1,60 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34431 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752523Ab2ABUSp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 15:18:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH 2/2] uvcvideo: Allow userptr IO mode.
-Date: Mon, 2 Jan 2012 21:18:57 +0100
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-References: <1325513543-17299-1-git-send-email-javier.martin@vista-silicon.com> <1325513543-17299-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1325513543-17299-2-git-send-email-javier.martin@vista-silicon.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201022118.59206.laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.128.24]:41462 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933979Ab2AKV1R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 16:27:17 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH 11/23] omap3isp: Move definitions required by board code under include/media.
+Date: Wed, 11 Jan 2012 23:26:48 +0200
+Message-Id: <1326317220-15339-11-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4F0DFE92.80102@iki.fi>
+References: <4F0DFE92.80102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+XCLK definitions are often required by the board code. Move them to public
+include file.
 
-Thanks for the patch.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/isp.h |    4 ----
+ include/media/omap3isp.h           |    4 ++++
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-On Monday 02 January 2012 15:12:23 Javier Martin wrote:
-> Userptr can be very useful if a UVC camera
-> is requested to use video buffers allocated
-> by another processing device. So that
-> buffers don't need to be copied.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I'll push the patch through my tree when 1/2 will be acked.
-
-> ---
->  drivers/media/video/uvc/uvc_queue.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/uvc/uvc_queue.c
-> b/drivers/media/video/uvc/uvc_queue.c index 518f77d..8f54e24 100644
-> --- a/drivers/media/video/uvc/uvc_queue.c
-> +++ b/drivers/media/video/uvc/uvc_queue.c
-> @@ -126,7 +126,7 @@ void uvc_queue_init(struct uvc_video_queue *queue, enum
-> v4l2_buf_type type, int drop_corrupted)
->  {
->  	queue->queue.type = type;
-> -	queue->queue.io_modes = VB2_MMAP;
-> +	queue->queue.io_modes = VB2_MMAP | VB2_USERPTR;
->  	queue->queue.drv_priv = queue;
->  	queue->queue.buf_struct_size = sizeof(struct uvc_buffer);
->  	queue->queue.ops = &uvc_queue_qops;
-
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index 705946e..ff1c422 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -239,10 +239,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
+ 			       const struct isp_parallel_platform_data *pdata,
+ 			       unsigned int shift);
+ 
+-#define ISP_XCLK_NONE			0
+-#define ISP_XCLK_A			1
+-#define ISP_XCLK_B			2
+-
+ struct isp_device *omap3isp_get(struct isp_device *isp);
+ void omap3isp_put(struct isp_device *isp);
+ 
+diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+index e917b1d..9c1a001 100644
+--- a/include/media/omap3isp.h
++++ b/include/media/omap3isp.h
+@@ -29,6 +29,10 @@
+ struct i2c_board_info;
+ struct isp_device;
+ 
++#define ISP_XCLK_NONE			0
++#define ISP_XCLK_A			1
++#define ISP_XCLK_B			2
++
+ enum isp_interface_type {
+ 	ISP_INTERFACE_PARALLEL,
+ 	ISP_INTERFACE_CSI2A_PHY2,
 -- 
-Regards,
+1.7.2.5
 
-Laurent Pinchart
