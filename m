@@ -1,541 +1,269 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3779 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754747Ab2APNKZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 08:10:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.1.47]:40689 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933947Ab2AKV1M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 16:27:12 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 01/10] radio-isa: add framework for ISA radio drivers.
-Date: Mon, 16 Jan 2012 14:09:57 +0100
-Message-Id: <30958c9eb2499987a608cdf411e578984b617046.1326717025.git.hans.verkuil@cisco.com>
-In-Reply-To: <1326719406-4538-1-git-send-email-hverkuil@xs4all.nl>
-References: <1326719406-4538-1-git-send-email-hverkuil@xs4all.nl>
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH 01/23] v4l: Introduce integer menu controls
+Date: Wed, 11 Jan 2012 23:26:38 +0200
+Message-Id: <1326317220-15339-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4F0DFE92.80102@iki.fi>
+References: <4F0DFE92.80102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Create a new control type called V4L2_CTRL_TYPE_INTEGER_MENU. Integer menu
+controls are just like menu controls but the menu items are 64-bit integers
+rather than strings.
 
-We have quite a few ISA radio drivers, which are all very similar.
-
-This framework makes it possible to reduce the code size of those drivers
-and makes it much easier to keep them up to date with the latest V4L2 API
-developments.
-
-Drivers rewritten to use this framework fully pass the v4l2-compliance tests
-and are properly using the ISA bus (so they can be found under /sys/bus/isa).
-
-It is now also possible to support multiple cards using the same driver
-(tested with two radio-gemtek cards).
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/radio/Kconfig     |    4 +
- drivers/media/radio/Makefile    |    1 +
- drivers/media/radio/radio-isa.c |  353 +++++++++++++++++++++++++++++++++++++++
- drivers/media/radio/radio-isa.h |  105 ++++++++++++
- 4 files changed, 463 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/radio-isa.c
- create mode 100644 drivers/media/radio/radio-isa.h
+ drivers/media/video/v4l2-ctrls.c |   73 +++++++++++++++++++++++++++++---------
+ include/linux/videodev2.h        |    6 +++-
+ include/media/v4l2-ctrls.h       |    6 +++-
+ 3 files changed, 66 insertions(+), 19 deletions(-)
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index e954781..2ad446f 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -167,6 +167,10 @@ menuconfig V4L_RADIO_ISA_DRIVERS
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 0f415da..605d4dd 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -804,7 +804,8 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
+ 		ev->u.ctrl.value64 = ctrl->cur.val64;
+ 	ev->u.ctrl.minimum = ctrl->minimum;
+ 	ev->u.ctrl.maximum = ctrl->maximum;
+-	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
++	if (ctrl->type == V4L2_CTRL_TYPE_MENU
++	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
+ 		ev->u.ctrl.step = 1;
+ 	else
+ 		ev->u.ctrl.step = ctrl->step;
+@@ -1035,10 +1036,13 @@ static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
+ 		return 0;
  
- if V4L_RADIO_ISA_DRIVERS
+ 	case V4L2_CTRL_TYPE_MENU:
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
+ 		if (val < ctrl->minimum || val > ctrl->maximum)
+ 			return -ERANGE;
+-		if (ctrl->qmenu[val][0] == '\0' ||
+-		    (ctrl->menu_skip_mask & (1 << val)))
++		if (ctrl->menu_skip_mask & (1 << val))
++			return -EINVAL;
++		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
++		    ctrl->qmenu[val][0] == '\0')
+ 			return -EINVAL;
+ 		return 0;
  
-+config RADIO_ISA
-+	depends on ISA
-+	tristate
-+
- config RADIO_CADET
- 	tristate "ADS Cadet AM/FM Tuner"
- 	depends on ISA && VIDEO_V4L2
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 390daf9..bb1911e 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -2,6 +2,7 @@
- # Makefile for the kernel character device drivers.
- #
+@@ -1295,7 +1299,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
+ 			u32 id, const char *name, enum v4l2_ctrl_type type,
+ 			s32 min, s32 max, u32 step, s32 def,
+-			u32 flags, const char * const *qmenu, void *priv)
++			u32 flags, const char * const *qmenu,
++			const s64 *qmenu_int, void *priv)
+ {
+ 	struct v4l2_ctrl *ctrl;
+ 	unsigned sz_extra = 0;
+@@ -1308,6 +1313,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	    (type == V4L2_CTRL_TYPE_INTEGER && step == 0) ||
+ 	    (type == V4L2_CTRL_TYPE_BITMASK && max == 0) ||
+ 	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
++	    (type == V4L2_CTRL_TYPE_INTEGER_MENU && qmenu_int == NULL) ||
+ 	    (type == V4L2_CTRL_TYPE_STRING && max == 0)) {
+ 		handler_set_err(hdl, -ERANGE);
+ 		return NULL;
+@@ -1318,6 +1324,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	}
+ 	if ((type == V4L2_CTRL_TYPE_INTEGER ||
+ 	     type == V4L2_CTRL_TYPE_MENU ||
++	     type == V4L2_CTRL_TYPE_INTEGER_MENU ||
+ 	     type == V4L2_CTRL_TYPE_BOOLEAN) &&
+ 	    (def < min || def > max)) {
+ 		handler_set_err(hdl, -ERANGE);
+@@ -1352,7 +1359,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
+ 	ctrl->minimum = min;
+ 	ctrl->maximum = max;
+ 	ctrl->step = step;
+-	ctrl->qmenu = qmenu;
++	if (type == V4L2_CTRL_TYPE_MENU)
++		ctrl->qmenu = qmenu;
++	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
++		ctrl->qmenu_int = qmenu_int;
+ 	ctrl->priv = priv;
+ 	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
  
-+obj-$(CONFIG_RADIO_ISA) += radio-isa.o
- obj-$(CONFIG_RADIO_AZTECH) += radio-aztech.o
- obj-$(CONFIG_RADIO_RTRACK2) += radio-rtrack2.o
- obj-$(CONFIG_RADIO_SF16FMI) += radio-sf16fmi.o
-diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
-new file mode 100644
-index 0000000..b9ccb5d
---- /dev/null
-+++ b/drivers/media/radio/radio-isa.c
-@@ -0,0 +1,353 @@
-+/*
-+ * Framework for ISA radio drivers.
-+ * This takes care of all the V4L2 scaffolding, allowing the ISA drivers
-+ * to concentrate on the actual hardware operation.
-+ *
-+ * Copyright (C) 2012 Hans Verkuil <hans.verkuil@cisco.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/ioport.h>
-+#include <linux/delay.h>
-+#include <linux/videodev2.h>
-+#include <linux/io.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+
-+#include "radio-isa.h"
-+
-+MODULE_AUTHOR("Hans Verkuil");
-+MODULE_DESCRIPTION("A framework for ISA radio drivers.");
-+MODULE_LICENSE("GPL");
-+
-+#define FREQ_LOW  (87U * 16000U)
-+#define FREQ_HIGH (108U * 16000U)
-+
-+static int radio_isa_querycap(struct file *file, void  *priv,
-+					struct v4l2_capability *v)
-+{
-+	struct radio_isa_card *isa = video_drvdata(file);
-+
-+	strlcpy(v->driver, isa->drv->driver.driver.name, sizeof(v->driver));
-+	strlcpy(v->card, isa->drv->card, sizeof(v->card));
-+	snprintf(v->bus_info, sizeof(v->bus_info), "ISA:%s", isa->v4l2_dev.name);
-+
-+	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+	return 0;
-+}
-+
-+static int radio_isa_g_tuner(struct file *file, void *priv,
-+				struct v4l2_tuner *v)
-+{
-+	struct radio_isa_card *isa = video_drvdata(file);
-+	const struct radio_isa_ops *ops = isa->drv->ops;
-+
-+	if (v->index > 0)
-+		return -EINVAL;
-+
-+	strlcpy(v->name, "FM", sizeof(v->name));
-+	v->type = V4L2_TUNER_RADIO;
-+	v->rangelow = FREQ_LOW;
-+	v->rangehigh = FREQ_HIGH;
-+	v->capability = V4L2_TUNER_CAP_LOW;
-+	if (isa->drv->has_stereo)
-+		v->capability |= V4L2_TUNER_CAP_STEREO;
-+
-+	if (ops->g_rxsubchans)
-+		v->rxsubchans = ops->g_rxsubchans(isa);
-+	else
-+		v->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
-+	v->audmode = isa->stereo ? V4L2_TUNER_MODE_STEREO : V4L2_TUNER_MODE_MONO;
-+	if (ops->g_signal)
-+		v->signal = ops->g_signal(isa);
-+	else
-+		v->signal = (v->rxsubchans & V4L2_TUNER_SUB_STEREO) ?
-+								0xffff : 0;
-+	return 0;
-+}
-+
-+static int radio_isa_s_tuner(struct file *file, void *priv,
-+				struct v4l2_tuner *v)
-+{
-+	struct radio_isa_card *isa = video_drvdata(file);
-+	const struct radio_isa_ops *ops = isa->drv->ops;
-+
-+	if (v->index)
-+		return -EINVAL;
-+	if (ops->s_stereo) {
-+		isa->stereo = (v->audmode == V4L2_TUNER_MODE_STEREO);
-+		return ops->s_stereo(isa, isa->stereo);
+@@ -1379,6 +1389,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 	struct v4l2_ctrl *ctrl;
+ 	const char *name = cfg->name;
+ 	const char * const *qmenu = cfg->qmenu;
++	const s64 *qmenu_int = cfg->qmenu_int;
+ 	enum v4l2_ctrl_type type = cfg->type;
+ 	u32 flags = cfg->flags;
+ 	s32 min = cfg->min;
+@@ -1390,18 +1401,24 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
+ 		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
+ 								&def, &flags);
+ 
+-	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU);
++	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
++		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
+ 	if (is_menu)
+ 		WARN_ON(step);
+ 	else
+ 		WARN_ON(cfg->menu_skip_mask);
+-	if (is_menu && qmenu == NULL)
++	if (cfg->type == V4L2_CTRL_TYPE_MENU && qmenu == NULL)
+ 		qmenu = v4l2_ctrl_get_menu(cfg->id);
++	else if (cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU &&
++		 qmenu_int == NULL) {
++		handler_set_err(hdl, -EINVAL);
++		return NULL;
 +	}
-+	return 0;
-+}
-+
-+static int radio_isa_s_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *f)
-+{
-+	struct radio_isa_card *isa = video_drvdata(file);
-+	int res;
-+
-+	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
-+		return -EINVAL;
-+	f->frequency = clamp(f->frequency, FREQ_LOW, FREQ_HIGH);
-+	res = isa->drv->ops->s_frequency(isa, f->frequency);
-+	if (res == 0)
-+		isa->freq = f->frequency;
-+	return res;
-+}
-+
-+static int radio_isa_g_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *f)
-+{
-+	struct radio_isa_card *isa = video_drvdata(file);
-+
-+	if (f->tuner != 0)
-+		return -EINVAL;
-+	f->type = V4L2_TUNER_RADIO;
-+	f->frequency = isa->freq;
-+	return 0;
-+}
-+
-+static int radio_isa_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct radio_isa_card *isa =
-+		container_of(ctrl->handler, struct radio_isa_card, hdl);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		return isa->drv->ops->s_mute_volume(isa, ctrl->val,
-+				isa->volume ? isa->volume->val : 0);
-+	}
-+	return -EINVAL;
-+}
-+
-+static int radio_isa_log_status(struct file *file, void *priv)
-+{
-+	struct radio_isa_card *isa = video_drvdata(file);
-+
-+	v4l2_info(&isa->v4l2_dev,
-+		"=================  START STATUS CARD =================\n");
-+	v4l2_info(&isa->v4l2_dev, "I/O Port = 0x%03x\n", isa->io);
-+	v4l2_ctrl_handler_log_status(&isa->hdl, isa->v4l2_dev.name);
-+	v4l2_info(&isa->v4l2_dev,
-+		"==================  END STATUS CARD ==================\n");
-+	return 0;
-+}
-+
-+static int radio_isa_subscribe_event(struct v4l2_fh *fh,
-+				struct v4l2_event_subscription *sub)
-+{
-+	if (sub->type == V4L2_EVENT_CTRL)
-+		return v4l2_event_subscribe(fh, sub, 0);
-+	return -EINVAL;
-+}
-+
-+static unsigned int radio_isa_poll(struct file *file,
-+					struct poll_table_struct *wait)
-+{
-+	struct v4l2_fh *fh = file->private_data;
-+
-+	if (v4l2_event_pending(fh))
-+		return POLLPRI;
-+	poll_wait(file, &fh->wait, wait);
-+	return 0;
-+}
-+
-+static const struct v4l2_ctrl_ops radio_isa_ctrl_ops = {
-+	.s_ctrl = radio_isa_s_ctrl,
-+};
-+
-+static const struct v4l2_file_operations radio_isa_fops = {
-+	.owner		= THIS_MODULE,
-+	.open		= v4l2_fh_open,
-+	.release	= v4l2_fh_release,
-+	.poll		= radio_isa_poll,
-+	.unlocked_ioctl	= video_ioctl2,
-+};
-+
-+static const struct v4l2_ioctl_ops radio_isa_ioctl_ops = {
-+	.vidioc_querycap    = radio_isa_querycap,
-+	.vidioc_g_tuner     = radio_isa_g_tuner,
-+	.vidioc_s_tuner     = radio_isa_s_tuner,
-+	.vidioc_g_frequency = radio_isa_g_frequency,
-+	.vidioc_s_frequency = radio_isa_s_frequency,
-+	.vidioc_log_status  = radio_isa_log_status,
-+	.vidioc_subscribe_event   = radio_isa_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-+};
-+
-+int radio_isa_match(struct device *pdev, unsigned int dev)
-+{
-+	struct radio_isa_driver *drv = pdev->platform_data;
-+
-+	return drv->probe || drv->io_params[dev] >= 0;
-+}
-+EXPORT_SYMBOL_GPL(radio_isa_match);
-+
-+static bool radio_isa_valid_io(const struct radio_isa_driver *drv, int io)
-+{
-+	int i;
-+
-+	for (i = 0; i < drv->num_of_io_ports; i++)
-+		if (drv->io_ports[i] == io)
-+			return true;
-+	return false;
-+}
-+
-+int radio_isa_probe(struct device *pdev, unsigned int dev)
-+{
-+	struct radio_isa_driver *drv = pdev->platform_data;
-+	const struct radio_isa_ops *ops = drv->ops;
-+	struct v4l2_device *v4l2_dev;
-+	struct radio_isa_card *isa;
-+	int res;
-+
-+	isa = drv->ops->alloc();
-+	if (isa == NULL)
-+		return -ENOMEM;
-+	dev_set_drvdata(pdev, isa);
-+	isa->drv = drv;
-+	isa->io = drv->io_params[dev];
-+	v4l2_dev = &isa->v4l2_dev;
-+	strlcpy(v4l2_dev->name, dev_name(pdev), sizeof(v4l2_dev->name));
-+
-+	if (drv->probe && ops->probe) {
-+		int i;
-+
-+		for (i = 0; i < drv->num_of_io_ports; ++i) {
-+			int io = drv->io_ports[i];
-+
-+			if (request_region(io, drv->region_size, v4l2_dev->name)) {
-+				bool found = ops->probe(isa, io);
-+
-+				release_region(io, drv->region_size);
-+				if (found) {
-+					isa->io = io;
-+					break;
-+				}
-+			}
-+		}
-+	}
-+
-+	if (!radio_isa_valid_io(drv, isa->io)) {
-+		int i;
-+
-+		if (isa->io < 0)
-+			return -ENODEV;
-+		v4l2_err(v4l2_dev, "you must set an I/O address with io=0x%03x",
-+				drv->io_ports[0]);
-+		for (i = 1; i < drv->num_of_io_ports; i++)
-+			printk(KERN_CONT "/0x%03x", drv->io_ports[i]);
-+		printk(KERN_CONT ".\n");
-+		kfree(isa);
+ 
+ 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name,
+ 			type, min, max,
+ 			is_menu ? cfg->menu_skip_mask : step,
+-			def, flags, qmenu, priv);
++			def, flags, qmenu, qmenu_int, priv);
+ 	if (ctrl)
+ 		ctrl->is_private = cfg->is_private;
+ 	return ctrl;
+@@ -1418,12 +1435,13 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
+ 	u32 flags;
+ 
+ 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
+-	if (type == V4L2_CTRL_TYPE_MENU) {
++	if (type == V4L2_CTRL_TYPE_MENU
++	    || type == V4L2_CTRL_TYPE_INTEGER_MENU) {
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, id, name, type,
+-				    min, max, step, def, flags, NULL, NULL);
++			     min, max, step, def, flags, NULL, NULL, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std);
+ 
+@@ -1445,7 +1463,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, id, name, type,
+-				    0, max, mask, def, flags, qmenu, NULL);
++			     0, max, mask, def, flags, qmenu, NULL, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+ 
+@@ -1609,6 +1627,9 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
+ 	case V4L2_CTRL_TYPE_MENU:
+ 		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
+ 		break;
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
++		break;
+ 	case V4L2_CTRL_TYPE_BITMASK:
+ 		printk(KERN_CONT "0x%08x", ctrl->cur.val);
+ 		break;
+@@ -1745,7 +1766,8 @@ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc)
+ 	qc->minimum = ctrl->minimum;
+ 	qc->maximum = ctrl->maximum;
+ 	qc->default_value = ctrl->default_value;
+-	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
++	if (ctrl->type == V4L2_CTRL_TYPE_MENU
++	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
+ 		qc->step = 1;
+ 	else
+ 		qc->step = ctrl->step;
+@@ -1775,16 +1797,33 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
+ 
+ 	qm->reserved = 0;
+ 	/* Sanity checks */
+-	if (ctrl->qmenu == NULL ||
+-	    i < ctrl->minimum || i > ctrl->maximum)
++	switch (ctrl->type) {
++	case V4L2_CTRL_TYPE_MENU:
++		if (ctrl->qmenu == NULL)
++			return -EINVAL;
++		break;
++	case V4L2_CTRL_TYPE_INTEGER_MENU:
++		if (ctrl->qmenu_int == NULL)
++			return -EINVAL;
++		break;
++	default:
 +		return -EINVAL;
 +	}
 +
-+	if (!request_region(isa->io, drv->region_size, v4l2_dev->name)) {
-+		v4l2_err(v4l2_dev, "port 0x%x already in use\n", isa->io);
-+		kfree(isa);
-+		return -EBUSY;
++	if (i < ctrl->minimum || i > ctrl->maximum)
+ 		return -EINVAL;
++
+ 	/* Use mask to see if this menu item should be skipped */
+ 	if (ctrl->menu_skip_mask & (1 << i))
+ 		return -EINVAL;
+ 	/* Empty menu items should also be skipped */
+-	if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
+-		return -EINVAL;
+-	strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
++	if (ctrl->type == V4L2_CTRL_TYPE_MENU) {
++		if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
++			return -EINVAL;
++		strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
++	} else {
++		qm->value = ctrl->qmenu_int[i];
 +	}
-+
-+	res = v4l2_device_register(pdev, v4l2_dev);
-+	if (res < 0) {
-+		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
-+		goto err_dev_reg;
-+	}
-+
-+	v4l2_ctrl_handler_init(&isa->hdl, 1);
-+	isa->mute = v4l2_ctrl_new_std(&isa->hdl, &radio_isa_ctrl_ops,
-+				V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-+	if (drv->max_volume)
-+		isa->volume = v4l2_ctrl_new_std(&isa->hdl, &radio_isa_ctrl_ops,
-+			V4L2_CID_AUDIO_VOLUME, 0, drv->max_volume, 1,
-+			drv->max_volume);
-+	v4l2_dev->ctrl_handler = &isa->hdl;
-+	if (isa->hdl.error) {
-+		res = isa->hdl.error;
-+		v4l2_err(v4l2_dev, "Could not register controls\n");
-+		goto err_hdl;
-+	}
-+	if (drv->max_volume)
-+		v4l2_ctrl_cluster(2, &isa->mute);
-+	v4l2_dev->ctrl_handler = &isa->hdl;
-+
-+	mutex_init(&isa->lock);
-+	isa->vdev.lock = &isa->lock;
-+	strlcpy(isa->vdev.name, v4l2_dev->name, sizeof(isa->vdev.name));
-+	isa->vdev.v4l2_dev = v4l2_dev;
-+	isa->vdev.fops = &radio_isa_fops;
-+	isa->vdev.ioctl_ops = &radio_isa_ioctl_ops;
-+	isa->vdev.release = video_device_release_empty;
-+	set_bit(V4L2_FL_USE_FH_PRIO, &isa->vdev.flags);
-+	video_set_drvdata(&isa->vdev, isa);
-+	isa->freq = 87 * 16000;
-+	isa->stereo = drv->has_stereo;
-+
-+	if (ops->init)
-+		res = ops->init(isa);
-+	if (!res)
-+		res = v4l2_ctrl_handler_setup(&isa->hdl);
-+	if (!res)
-+		res = ops->s_frequency(isa, isa->freq);
-+	if (!res && ops->s_stereo)
-+		res = ops->s_stereo(isa, isa->stereo);
-+	if (res < 0) {
-+		v4l2_err(v4l2_dev, "Could not setup card\n");
-+		goto err_node_reg;
-+	}
-+	res = video_register_device(&isa->vdev, VFL_TYPE_RADIO,
-+					drv->radio_nr_params[dev]);
-+	if (res < 0) {
-+		v4l2_err(v4l2_dev, "Could not register device node\n");
-+		goto err_node_reg;
-+	}
-+
-+	v4l2_info(v4l2_dev, "Initialized radio card %s on port 0x%03x\n",
-+			drv->card, isa->io);
-+	return 0;
-+
-+err_node_reg:
-+	v4l2_ctrl_handler_free(&isa->hdl);
-+err_hdl:
-+	v4l2_device_unregister(&isa->v4l2_dev);
-+err_dev_reg:
-+	release_region(isa->io, drv->region_size);
-+	kfree(isa);
-+	return res;
-+}
-+EXPORT_SYMBOL_GPL(radio_isa_probe);
-+
-+int radio_isa_remove(struct device *pdev, unsigned int dev)
-+{
-+	struct radio_isa_card *isa = dev_get_drvdata(pdev);
-+	const struct radio_isa_ops *ops = isa->drv->ops;
-+
-+	ops->s_mute_volume(isa, true, isa->volume ? isa->volume->cur.val : 0);
-+	video_unregister_device(&isa->vdev);
-+	v4l2_ctrl_handler_free(&isa->hdl);
-+	v4l2_device_unregister(&isa->v4l2_dev);
-+	release_region(isa->io, isa->drv->region_size);
-+	v4l2_info(&isa->v4l2_dev, "Removed radio card %s\n", isa->drv->card);
-+	kfree(isa);
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(radio_isa_remove);
-diff --git a/drivers/media/radio/radio-isa.h b/drivers/media/radio/radio-isa.h
-new file mode 100644
-index 0000000..8a0ea84
---- /dev/null
-+++ b/drivers/media/radio/radio-isa.h
-@@ -0,0 +1,105 @@
-+/*
-+ * Framework for ISA radio drivers.
-+ * This takes care of all the V4L2 scaffolding, allowing the ISA drivers
-+ * to concentrate on the actual hardware operation.
-+ *
-+ * Copyright (C) 2012 Hans Verkuil <hans.verkuil@cisco.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#ifndef _RADIO_ISA_H_
-+#define _RADIO_ISA_H_
-+
-+#include <linux/isa.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ctrls.h>
-+
-+struct radio_isa_driver;
-+struct radio_isa_ops;
-+
-+/* Core structure for radio ISA cards */
-+struct radio_isa_card {
-+	const struct radio_isa_driver *drv;
-+	struct v4l2_device v4l2_dev;
-+	struct v4l2_ctrl_handler hdl;
-+	struct video_device vdev;
-+	struct mutex lock;
-+	const struct radio_isa_ops *ops;
-+	struct {	/* mute/volume cluster */
-+		struct v4l2_ctrl *mute;
-+		struct v4l2_ctrl *volume;
+ 	return 0;
+ }
+ EXPORT_SYMBOL(v4l2_querymenu);
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 4b752d5..9633c69 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1094,6 +1094,7 @@ enum v4l2_ctrl_type {
+ 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
+ 	V4L2_CTRL_TYPE_STRING        = 7,
+ 	V4L2_CTRL_TYPE_BITMASK       = 8,
++	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
+ };
+ 
+ /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
+@@ -1113,7 +1114,10 @@ struct v4l2_queryctrl {
+ struct v4l2_querymenu {
+ 	__u32		id;
+ 	__u32		index;
+-	__u8		name[32];	/* Whatever */
++	union {
++		__u8	name[32];	/* Whatever */
++		__s64	value;
 +	};
-+	/* I/O port */
-+	int io;
-+
-+	/* Card is in stereo audio mode */
-+	bool stereo;
-+	/* Current frequency */
-+	u32 freq;
-+};
-+
-+struct radio_isa_ops {
-+	/* Allocate and initialize a radio_isa_card struct */
-+	struct radio_isa_card *(*alloc)(void);
-+	/* Probe whether a card is present at the given port */
-+	bool (*probe)(struct radio_isa_card *isa, int io);
-+	/* Special card initialization can be done here, this is called after
-+	 * the standard controls are registered, but before they are setup,
-+	 * thus allowing drivers to add their own controls here. */
-+	int (*init)(struct radio_isa_card *isa);
-+	/* Set mute and volume. */
-+	int (*s_mute_volume)(struct radio_isa_card *isa, bool mute, int volume);
-+	/* Set frequency */
-+	int (*s_frequency)(struct radio_isa_card *isa, u32 freq);
-+	/* Set stereo/mono audio mode */
-+	int (*s_stereo)(struct radio_isa_card *isa, bool stereo);
-+	/* Get rxsubchans value for VIDIOC_G_TUNER */
-+	u32 (*g_rxsubchans)(struct radio_isa_card *isa);
-+	/* Get the signal strength for VIDIOC_G_TUNER */
-+	u32 (*g_signal)(struct radio_isa_card *isa);
-+};
-+
-+/* Top level structure needed to instantiate the cards */
-+struct radio_isa_driver {
-+	struct isa_driver driver;
-+	const struct radio_isa_ops *ops;
-+	/* The module_param_array with the specified I/O ports */
-+	int *io_params;
-+	/* The module_param_array with the radio_nr values */
-+	int *radio_nr_params;
-+	/* Whether we should probe for possible cards */
-+	bool probe;
-+	/* The list of possible I/O ports */
-+	const int *io_ports;
-+	/* The size of that list */
-+	int num_of_io_ports;
-+	/* The region size to request */
-+	unsigned region_size;
-+	/* The name of the card */
-+	const char *card;
-+	/* Card can capture stereo audio */
-+	bool has_stereo;
-+	/* The maximum volume for the volume control. If 0, then there
-+	   is no volume control possible. */
-+	int max_volume;
-+};
-+
-+int radio_isa_match(struct device *pdev, unsigned int dev);
-+int radio_isa_probe(struct device *pdev, unsigned int dev);
-+int radio_isa_remove(struct device *pdev, unsigned int dev);
-+
-+#endif
+ 	__u32		reserved;
+ };
+ 
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index eeb3df6..f7819e7 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -129,7 +129,10 @@ struct v4l2_ctrl {
+ 		u32 step;
+ 		u32 menu_skip_mask;
+ 	};
+-	const char * const *qmenu;
++	union {
++		const char * const *qmenu;
++		const s64 *qmenu_int;
++	};
+ 	unsigned long flags;
+ 	union {
+ 		s32 val;
+@@ -219,6 +222,7 @@ struct v4l2_ctrl_config {
+ 	u32 flags;
+ 	u32 menu_skip_mask;
+ 	const char * const *qmenu;
++	const s64 *qmenu_int;
+ 	unsigned int is_private:1;
+ };
+ 
 -- 
-1.7.7.3
+1.7.2.5
 
