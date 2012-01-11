@@ -1,113 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52012 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932316Ab2AEBBL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:11 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511BYm029482
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:11 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 39/47] [media] mt2063: don't crash if device is not initialized
-Date: Wed,  4 Jan 2012 23:00:50 -0200
-Message-Id: <1325725258-27934-40-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from exprod6og117.obsmtp.com ([64.18.1.39]:52653 "HELO
+	exprod6og117.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751745Ab2AKQik convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 11:38:40 -0500
+Received: by eaao10 with SMTP id o10so268155eaa.10
+        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 08:38:37 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAPc4S2YkA6pyz6z17N3M-XOFw8oibOz_UzgEHyxEJsF01EODFw@mail.gmail.com>
+References: <CAPc4S2YkA6pyz6z17N3M-XOFw8oibOz_UzgEHyxEJsF01EODFw@mail.gmail.com>
+Date: Wed, 11 Jan 2012 10:38:37 -0600
+Message-ID: <CAPc4S2ZXE-vveYsg5Lq1JNjnFRqM4CQCNXmcR7Lfxmcg+0Rqsg@mail.gmail.com>
+Subject: Re: "cannot allocate memory" with IO_METHOD_USERPTR
+From: Christopher Peters <cpeters@ucmo.edu>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of crash, return -ENODEV, if the device is not poperly
-initialized.
+The board is a generic saa7134-based board, and the driver has been
+forced to treat it as an "AVerMedia DVD EZMaker" (i.e. the option
+"card=33" has been passed to the module)
 
-Also, give a second chance for it to initialize, at set_params
-calls.
+On Wed, Jan 11, 2012 at 10:28 AM, Christopher Peters <cpeters@ucmo.edu> wrote:
+> So as I said in my previous email, I got video out of my card.  Now
+> I'm trying to capture video using a piece of software called
+> "openreplay".  Its v4l2 capture code is based heavily on the capture
+> example at http://v4l2spec.bytesex.org/spec/capture-example.html, so I
+> thought I'd try compiling the example code to see what I got.
+>
+> When I ran the capture example with this command-line: "
+> ./capture_example -u" (to use application allocated buffers) I got:
+>
+> "VIDIOC_QBUF error 12, Cannot allocate memory"
+>
+> I'm running Mythbuntu 11.10, Ubuntu kernel 3.0.0-14-generic.  All
+> CONFIG_*V4L* options are set to 'y' or 'm', and all modules matching
+> "v4l2-*" are loaded.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mt2063.c |   25 +++++++++++++++++++++++++
- 1 files changed, 25 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 92653a9..db347d9 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -220,6 +220,8 @@ enum MT2063_Register_Offsets {
- struct mt2063_state {
- 	struct i2c_adapter *i2c;
- 
-+	bool init;
-+
- 	const struct mt2063_config *config;
- 	struct dvb_tuner_ops ops;
- 	struct dvb_frontend *frontend;
-@@ -1974,6 +1976,8 @@ static int mt2063_init(struct dvb_frontend *fe)
- 	if (status < 0)
- 		return status;
- 
-+	state->init = true;
-+
- 	return 0;
- }
- 
-@@ -1984,6 +1988,9 @@ static int mt2063_get_status(struct dvb_frontend *fe, u32 *tuner_status)
- 
- 	dprintk(2, "\n");
- 
-+	if (!state->init)
-+		return -ENODEV;
-+
- 	*tuner_status = 0;
- 	status = mt2063_lockStatus(state);
- 	if (status < 0)
-@@ -2019,6 +2026,12 @@ static int mt2063_set_analog_params(struct dvb_frontend *fe,
- 
- 	dprintk(2, "\n");
- 
-+	if (!state->init) {
-+		status = mt2063_init(fe);
-+		if (status < 0)
-+			return status;
-+	}
-+
- 	switch (params->mode) {
- 	case V4L2_TUNER_RADIO:
- 		pict_car = 38900000;
-@@ -2082,6 +2095,12 @@ static int mt2063_set_params(struct dvb_frontend *fe)
- 	s32 if_mid;
- 	s32 rcvr_mode;
- 
-+	if (!state->init) {
-+		status = mt2063_init(fe);
-+		if (status < 0)
-+			return status;
-+	}
-+
- 	dprintk(2, "\n");
- 
- 	if (c->bandwidth_hz == 0)
-@@ -2132,6 +2151,9 @@ static int mt2063_get_frequency(struct dvb_frontend *fe, u32 *freq)
- 
- 	dprintk(2, "\n");
- 
-+	if (!state->init)
-+		return -ENODEV;
-+
- 	*freq = state->frequency;
- 	return 0;
- }
-@@ -2142,6 +2164,9 @@ static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
- 
- 	dprintk(2, "\n");
- 
-+	if (!state->init)
-+		return -ENODEV;
-+
- 	*bw = state->AS_Data.f_out_bw - 750000;
- 	return 0;
- }
 -- 
-1.7.7.5
-
+-
+Kit Peters (W0KEH), Engineer II
+KMOS TV Channel 6 / KTBG 90.9 FM
+University of Central Missouri
+http://kmos.org/ | http://ktbg.fm/
