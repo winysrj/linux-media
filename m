@@ -1,68 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:37564 "EHLO
-	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753505Ab2AaP1f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jan 2012 10:27:35 -0500
-From: Danny Kukawka <danny.kukawka@bisect.de>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Rusty Russell <rusty@rustcorp.com.au>, mchehab@redhat.com
-Subject: [PATCH v3 2/2] ivtv-driver: fix handling of 'radio' module parameter
-Date: Tue, 31 Jan 2012 16:27:08 +0100
-Message-Id: <1328023628-15097-3-git-send-email-danny.kukawka@bisect.de>
-In-Reply-To: <1328023628-15097-1-git-send-email-danny.kukawka@bisect.de>
-References: <1328023628-15097-1-git-send-email-danny.kukawka@bisect.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from newsmtp5.atmel.com ([204.2.163.5]:1703 "EHLO sjogate2.atmel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756726Ab2AKD7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 22:59:09 -0500
+From: Josh Wu <josh.wu@atmel.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: linux-arm-kernel@lists.infradead.org, g.liakhovetski@gmx.de,
+	nicolas.ferre@atmel.com, linux@arm.linux.org.uk, arnd@arndb.de,
+	Josh Wu <josh.wu@atmel.com>
+Subject: [PATCH v4 2/2] [media] V4L: atmel-isi: add clk_prepare()/clk_unprepare() functions
+Date: Wed, 11 Jan 2012 11:58:29 +0800
+Message-Id: <1326254309-6090-1-git-send-email-josh.wu@atmel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reverse ivtv-driver part of commit
-90ab5ee94171b3e28de6bb42ee30b527014e0be7 and change
-module_param_array() type from bool to int to fix
-compiler warning:
-
-In function ‘__check_radio’:
-113:1: warning: return from incompatible pointer type [enabled by default]
-At top level:
-113:1: warning: initialization from incompatible pointer type [enabled by default]
-113:1: warning: (near initialization for ‘__param_arr_radio.num’) [enabled by default]
-
-v2: set radio_c to true instead of 1 since it's bool
-v3: corrected version, don't change to module_param_named(), change 
-    all to int/uint
-
-Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
+Signed-off-by: Josh Wu <josh.wu@atmel.com>
+Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
 ---
- drivers/media/video/ivtv/ivtv-driver.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+v2: made the label name to be consistent.
+v4: add goto for handling pclk prepare error.
 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 3949b7d..06192ae 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -99,7 +99,7 @@ static int i2c_clock_period[IVTV_MAX_CARDS] = { -1, -1, -1, -1, -1, -1, -1, -1,
+ drivers/media/video/atmel-isi.c |   14 ++++++++++++++
+ 1 files changed, 14 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
+index 9fe4519..ec3f6a0 100644
+--- a/drivers/media/video/atmel-isi.c
++++ b/drivers/media/video/atmel-isi.c
+@@ -922,7 +922,9 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
+ 			isi->fb_descriptors_phys);
  
- static unsigned int cardtype_c = 1;
- static unsigned int tuner_c = 1;
--static bool radio_c = 1;
-+static unsigned int radio_c = 1;
- static unsigned int i2c_clock_period_c = 1;
- static char pal[] = "---";
- static char secam[] = "--";
-@@ -139,7 +139,7 @@ static int tunertype = -1;
- static int newi2c = -1;
+ 	iounmap(isi->regs);
++	clk_unprepare(isi->mck);
+ 	clk_put(isi->mck);
++	clk_unprepare(isi->pclk);
+ 	clk_put(isi->pclk);
+ 	kfree(isi);
  
- module_param_array(tuner, int, &tuner_c, 0644);
--module_param_array(radio, bool, &radio_c, 0644);
-+module_param_array(radio, int, &radio_c, 0644);
- module_param_array(cardtype, int, &cardtype_c, 0644);
- module_param_string(pal, pal, sizeof(pal), 0644);
- module_param_string(secam, secam, sizeof(secam), 0644);
+@@ -955,6 +957,10 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 	if (IS_ERR(pclk))
+ 		return PTR_ERR(pclk);
+ 
++	ret = clk_prepare(pclk);
++	if (ret)
++		goto err_clk_prepare_pclk;
++
+ 	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
+ 	if (!isi) {
+ 		ret = -ENOMEM;
+@@ -978,6 +984,10 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
+ 		goto err_clk_get;
+ 	}
+ 
++	ret = clk_prepare(isi->mck);
++	if (ret)
++		goto err_clk_prepare_mck;
++
+ 	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
+ 	ret = clk_set_rate(isi->mck, pdata->mck_hz);
+ 	if (ret < 0)
+@@ -1059,10 +1069,14 @@ err_alloc_ctx:
+ 			isi->fb_descriptors_phys);
+ err_alloc_descriptors:
+ err_set_mck_rate:
++	clk_unprepare(isi->mck);
++err_clk_prepare_mck:
+ 	clk_put(isi->mck);
+ err_clk_get:
+ 	kfree(isi);
+ err_alloc_isi:
++	clk_unprepare(pclk);
++err_clk_prepare_pclk:
+ 	clk_put(pclk);
+ 
+ 	return ret;
 -- 
-1.7.7.3
+1.6.3.3
 
