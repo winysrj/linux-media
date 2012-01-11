@@ -1,152 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36211 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932322Ab2ARRvb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 12:51:31 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0IHpUaM025008
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 12:51:30 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] dvb: frontend API: Add a flag to indicate that get_frontend() can be called
-Date: Wed, 18 Jan 2012 15:51:24 -0200
-Message-Id: <1326909085-14256-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <201201181450.14089.pboettcher@kernellabs.com>
-References: <201201181450.14089.pboettcher@kernellabs.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:51730 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751231Ab2AKF21 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 00:28:27 -0500
+Received: by ggdk6 with SMTP id k6so162968ggd.19
+        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 21:28:26 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4F0CA115.6050605@redhat.com>
+References: <CALJK-QhGrjC9K8CasrUJ-aisZh8U_4-O3uh_-dq6cNBWUx_4WA@mail.gmail.com>
+	<4EE9AA21.1060101@gmail.com>
+	<CALJK-QjxDpC8Y_gPXeAJaT2si_pRREiuTW=T8CWSTxGprRhfkg@mail.gmail.com>
+	<4EEAFF47.5040003@gmail.com>
+	<CALJK-Qhpk7NtSezrft_6+4FZ7Y35k=41xrc6ebxf2DzEH6KCWw@mail.gmail.com>
+	<4EECB2C2.8050701@gmail.com>
+	<4EECE392.5080000@gmail.com>
+	<CALJK-QjChFbX7NH0qNhvaz=Hp8JfKENJMsLOsETiYO9ZyV_BOg@mail.gmail.com>
+	<4EEDB060.7070708@gmail.com>
+	<4EF747C7.10001@gmail.com>
+	<4F0C4E59.6050503@gmail.com>
+	<CALJK-QiZS1BOzgZz_r1J9rKCHJ0tSgPxAin8g8f8wg3=W76rGA@mail.gmail.com>
+	<4F0C9480.1090706@redhat.com>
+	<CALJK-QgsziJ-gmhN5k+pthT93RhuJ0NLe5LJ_rxo91qQP0nHwg@mail.gmail.com>
+	<4F0CA115.6050605@redhat.com>
+Date: Wed, 11 Jan 2012 07:28:26 +0200
+Message-ID: <CALJK-QjMHLYTFd48Ou9iAkcuUZ-LW=ryT9U=0YBup5S7t26Kqg@mail.gmail.com>
+Subject: Re: Hauppauge HVR-930C problems
+From: Mihai Dobrescu <msdobrescu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Fredrik Lingvall <fredrik.lingvall@gmail.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-get_frontend() can't be called too early, as the device may not have it
-yet. Yet, get_frontend() on OFDM standards can happen before FE_HAS_LOCK,
-as the TMCC carriers (ISDB-T) or the TPS carriers (DVB-T) require a very
-low signal to noise relation to be detected. The other carriers use
-different modulations, so they require a higher SNR.
+I've got the sources, I've successfully built everything.
+Where should I expect to have the binary files after the make install?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- Documentation/DocBook/media/dvb/frontend.xml |   59 +++++++++++++++++++++-----
- include/linux/dvb/frontend.h                 |   33 ++++++++++----
- 2 files changed, 72 insertions(+), 20 deletions(-)
+Thank you.
 
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index aeaed59..5426bdc 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -207,18 +207,55 @@ spec.</para>
- <para>Several functions of the frontend device use the fe_status data type defined
- by</para>
- <programlisting>
-- typedef enum fe_status {
--	 FE_HAS_SIGNAL     = 0x01,   /&#x22C6;  found something above the noise level &#x22C6;/
--	 FE_HAS_CARRIER    = 0x02,   /&#x22C6;  found a DVB signal  &#x22C6;/
--	 FE_HAS_VITERBI    = 0x04,   /&#x22C6;  FEC is stable  &#x22C6;/
--	 FE_HAS_SYNC       = 0x08,   /&#x22C6;  found sync bytes  &#x22C6;/
--	 FE_HAS_LOCK       = 0x10,   /&#x22C6;  everything's working... &#x22C6;/
--	 FE_TIMEDOUT       = 0x20,   /&#x22C6;  no lock within the last ~2 seconds &#x22C6;/
--	 FE_REINIT         = 0x40    /&#x22C6;  frontend was reinitialized,  &#x22C6;/
-- } fe_status_t;                      /&#x22C6;  application is recommned to reset &#x22C6;/
-+typedef enum fe_status {
-+	FE_HAS_SIGNAL		= 0x01,
-+	FE_HAS_CARRIER		= 0x02,
-+	FE_HAS_VITERBI		= 0x04,
-+	FE_HAS_SYNC		= 0x08,
-+	FE_HAS_LOCK		= 0x10,
-+	FE_TIMEDOUT		= 0x20,
-+	FE_REINIT		= 0x40,
-+	FE_HAS_PARAMETERS	= 0x80,
-+} fe_status_t;
- </programlisting>
--<para>to indicate the current state and/or state changes of the frontend hardware.
--</para>
-+<para>to indicate the current state and/or state changes of the frontend hardware:
-+</para>
-+
-+<informaltable><tgroup cols="2"><tbody>
-+<row>
-+<entry align="char">FE_HAS_SIGNAL</entry>
-+<entry align="char">The frontend has found something above the noise level</entry>
-+</row><row>
-+<entry align="char">FE_HAS_CARRIER</entry>
-+<entry align="char">The frontend has found a DVB signal</entry>
-+</row><row>
-+<entry align="char">FE_HAS_VITERBI</entry>
-+<entry align="char">The frontend FEC code is stable</entry>
-+</row><row>
-+<entry align="char">FE_HAS_SYNC</entry>
-+<entry align="char">Syncronization bytes was found</entry>
-+</row><row>
-+<entry align="char">FE_HAS_LOCK</entry>
-+<entry align="char">The DVB were locked and everything is working</entry>
-+</row><row>
-+<entry align="char">FE_TIMEDOUT</entry>
-+<entry align="char">no lock within the last about 2 seconds</entry>
-+</row><row>
-+<entry align="char">FE_REINIT</entry>
-+<entry align="char">The frontend was reinitialized, application is
-+recommended to reset DiSEqC, tone and parameters</entry>
-+</row><row>
-+<entry align="char">FE_HAS_PARAMETERS</entry>
-+<entry align="char"><link linkend="FE_GET_SET_PROPERTY">
-+<constant>FE_GET_PROPERTY/FE_SET_PROPERTY</constant></link> or
-+<link linkend="FE_GET_FRONTEND"><constant>FE_GET_FRONTEND</constant></link> can now be
-+called to provide the detected network parameters.
-+This should be risen for example when the DVB-T TPS/ISDB-T TMCC is locked.
-+This status can be risen before FE_HAS_SYNC, as the SNR required for
-+parameters detection is lower than the requirement for the other
-+carriers on the OFDM delivery systems.
-+</entry>
-+</row></tbody></tgroup></informaltable>
- 
- </section>
- 
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index cb4428a..38fa9ef 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -121,16 +121,31 @@ typedef enum fe_sec_mini_cmd {
- } fe_sec_mini_cmd_t;
- 
- 
-+/**
-+ * enum fe_status - enumerates the possible frontend status
-+ * @FE_HAS_SIGNAL:	found something above the noise level
-+ * @FE_HAS_CARRIER:	found a DVB signal
-+ * @FE_HAS_VITERBI:	FEC is stable
-+ * @FE_HAS_SYNC:	found sync bytes
-+ * @FE_HAS_LOCK:	everything's working
-+ * @FE_TIMEDOUT:	no lock within the last ~2 seconds
-+ * @FE_REINIT:		frontend was reinitialized, application is recommended
-+ *			to reset DiSEqC, tone and parameters
-+ * @FE_HAS_PARAMETERS:	get_frontend() can now be called to provide the
-+ *			detected network parameters. This should be risen
-+ *			for example when the DVB-T TPS/ISDB-T TMCC is locked.
-+ */
-+
- typedef enum fe_status {
--	FE_HAS_SIGNAL	= 0x01,   /* found something above the noise level */
--	FE_HAS_CARRIER	= 0x02,   /* found a DVB signal  */
--	FE_HAS_VITERBI	= 0x04,   /* FEC is stable  */
--	FE_HAS_SYNC	= 0x08,   /* found sync bytes  */
--	FE_HAS_LOCK	= 0x10,   /* everything's working... */
--	FE_TIMEDOUT	= 0x20,   /* no lock within the last ~2 seconds */
--	FE_REINIT	= 0x40    /* frontend was reinitialized,  */
--} fe_status_t;			  /* application is recommended to reset */
--				  /* DiSEqC, tone and parameters */
-+	FE_HAS_SIGNAL		= 0x01,
-+	FE_HAS_CARRIER		= 0x02,
-+	FE_HAS_VITERBI		= 0x04,
-+	FE_HAS_SYNC		= 0x08,
-+	FE_HAS_LOCK		= 0x10,
-+	FE_TIMEDOUT		= 0x20,
-+	FE_REINIT		= 0x40,
-+	FE_HAS_PARAMETERS	= 0x80,
-+} fe_status_t;
- 
- typedef enum fe_spectral_inversion {
- 	INVERSION_OFF,
--- 
-1.7.8
-
+On Tue, Jan 10, 2012 at 10:35 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> On 10-01-2012 18:23, Mihai Dobrescu wrote:
+>> I can't find dvb-fe-util tool.
+>
+> http://git.linuxtv.org/v4l-utils.git/blob/ad284d9ef6600e091515b0abd7cec64736097265:/utils/dvb/dvb-fe-tool.c
+>
+> Regards,
+> Mauro
+>
+>>
+>> On Tue, Jan 10, 2012 at 9:41 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>>> On 10-01-2012 17:30, Mihai Dobrescu wrote:
+>>>> Hello,
+>>>>
+>>>> Just compiled the latest again, but still no difference.
+>>>> kaffeine doesn't see any source in channels dialog, two devices are in
+>>>> 'Configure Television' dialog: DRXK DVB-C - device not connected - as
+>>>> Device 1 and DRXK DVB-C DVB-T as Device 2. Concerning the last one, no
+>>>> source is selected, as I am in Romania, which is not in the list
+>>>> scan_w finds nothing.
+>>>>
+>>>> What should I do next?
+>>>
+>>> Kaffeine doesn't work with MFE tuners (at least not the version I have).
+>>> It only sees one delivery system.
+>>>
+>>> If you're using the very latest version of the driver (the one at the
+>>> media-build tree), you can use the dvb-fe-util tool to change
+>>> the delivery system to DVB-C or to DVB-T.
+>>>
+>>> The tool is now part of the v4l-utils.
+>>>
+>>> You may also request a Kaffeine developer or to submit a patch for it,
+>>> in order to add support on it to detect the frontend supported
+>>> delivery systems and to change it dynamically.
+>>>
+>>>>
+>>>> Regards, Mike.
+>>>>
+>>>> On Tue, Jan 10, 2012 at 4:42 PM, Fredrik Lingvall
+>>>> <fredrik.lingvall@gmail.com> wrote:
+>>>>> On 12/25/11 16:56, Fredrik Lingvall wrote:
+>>>>>>
+>>>>>> On 12/18/11 10:20, Fredrik Lingvall wrote:
+>>>>>>>
+>>>>>>> On 12/17/11 20:53, Mihai Dobrescu wrote:
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> Mihai,
+>>>>>>>>
+>>>>>>>> I got some success. I did this,
+>>>>>>>>
+>>>>>>>> # cd /usr/src (for example)
+>>>>>>>>
+>>>>>>>> # git clone git://linuxtv.org/media_build.git
+>>>>>>>>
+>>>>>>>> # emerge dev-util/patchutils
+>>>>>>>> # emerge Proc-ProcessTable
+>>>>>>>>
+>>>>>>>> # cd media_build
+>>>>>>>> # ./build
+>>>>>>>> # make install
+>>>>>>>>
+>>>>>>>> Which will install the latest driver on your running kernel (just in
+>>>>>>>> case
+>>>>>>>> make sure /usr/src/linux points to your running kernel sources). Then
+>>>>>>>> reboot.
+>>>>>>>>
+>>>>>>>> You should now see that (among other) modules have loaded:
+>>>>>>>>
+>>>>>>>> # lsmod
+>>>>>>>>
+>>>>>>>> <snip>
+>>>>>>>>
+>>>>>>>> em28xx                 93528  1 em28xx_dvb
+>>>>>>>> v4l2_common             5254  1 em28xx
+>>>>>>>> videobuf_vmalloc        4167  1 em28xx
+>>>>>>>> videobuf_core          15151  2 em28xx,videobuf_vmalloc
+>>>>>>>>
+>>>>>>>> Then try w_scan and dvbscan etc. I got mythtv to scan too now. There
+>>>>>>>> were
+>>>>>>>> some warnings and timeouts and I'm not sure if this is normal or not.
+>>>>>>>>
+>>>>>>>> You can also do a dmesg -c while scanning to monitor the changes en the
+>>>>>>>> kernel log.
+>>>>>>>>
+>>>>>>>> Regards,
+>>>>>>>>
+>>>>>>>> /Fredrik
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> In my case I have:
+>>>>>>>>
+>>>>>>>> lsmod |grep em2
+>>>>>>>> em28xx_dvb             12608  0
+>>>>>>>> dvb_core               76187  1 em28xx_dvb
+>>>>>>>> em28xx                 82436  1 em28xx_dvb
+>>>>>>>> v4l2_common             5087  1 em28xx
+>>>>>>>> videodev               70123  2 em28xx,v4l2_common
+>>>>>>>> videobuf_vmalloc        3783  1 em28xx
+>>>>>>>> videobuf_core          12991  2 em28xx,videobuf_vmalloc
+>>>>>>>> rc_core                11695  11
+>>>>>>>>
+>>>>>>>> rc_hauppauge,ir_lirc_codec,ir_mce_kbd_decoder,ir_sanyo_decoder,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_rc5_decoder,em28xx,ir_nec_decoder
+>>>>>>>> tveeprom               12441  1 em28xx
+>>>>>>>> i2c_core               14232  9
+>>>>>>>>
+>>>>>>>> xc5000,drxk,em28xx_dvb,em28xx,v4l2_common,videodev,tveeprom,nvidia,i2c_i801
+>>>>>>>>
+>>>>>>>> yet, w_scan founds nothing.
+>>>>>>>
+>>>>>>>
+>>>>>>> I was able to scan using the "media_build" install method described above
+>>>>>>> but when trying to watch a free channel the image and sound was stuttering
+>>>>>>> severly. I have tried both MythTV and mplayer with similar results.
+>>>>>>>
+>>>>>>> I created the channel list for mplayer with:
+>>>>>>>
+>>>>>>> lintv ~ # dvbscan -x0 -fc /usr/share/dvb/dvb-c/no-Oslo-Get -o zap >
+>>>>>>> .mplayer/channels.conf
+>>>>>>>
+>>>>>>> And, for example,  I get this output from mplayer plus a very (blocky)
+>>>>>>> stuttering image and sound:
+>>>>>>>
+>>>>>>> lin-tv ~ # mplayer dvb://1@"TV8 Oslo" -ao jack
+>>>>>>>
+>>>>>>
+>>>>>> I did some more tests with release snapshots 2011-12-13, 2011-12-21, and
+>>>>>> 2011-12-25, respectively. I did this by changing
+>>>>>>
+>>>>>> LATEST_TAR :=
+>>>>>> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2
+>>>>>> LATEST_TAR_MD5 :=
+>>>>>> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
+>>>>>>
+>>>>>> in linux/Makefile to the corresponding release.
+>>>>>>
+>>>>>> Results:
+>>>>>>
+>>>>>> * linux-media-2011-12-13.tar.bz2
+>>>>>>
+>>>>>> The ./build script builds the drivers cleanly, scanning works, but
+>>>>>>  watching video does not work correctly.
+>>>>>>
+>>>>>> * linux-media-2011-12-21.tar.bz2
+>>>>>>
+>>>>>> The ./build script fails at the as3645a.c file (on this machine but I can
+>>>>>> build it on two other machines using the same kernel and kernel
+>>>>>> 2.6.39-gentoo-r3, respectively). I can build it with make menuconfig etc
+>>>>>> (where I disabled stuff I don't need, eg. disabling [ ] Media Controller API
+>>>>>> (EXPERIMENTAL) ). The em28xx generate a kernel core dump though [1].
+>>>>>>
+>>>>>> * linux-media-2011-12-25.tar.bz2
+>>>>>>
+>>>>>> Same problem as 2011-12-21.
+>>>>>>
+>>>>>> Regards,
+>>>>>>
+>>>>>> /Fredrik
+>>>>>>
+>>>>>
+>>>>> Here's some more test results.
+>>>>>
+>>>>> I have upgraded the kernel to 3.1.6-gentoo (where I enabled DVB when I build
+>>>>> the kernel). Both
+>>>>>
+>>>>> http://linuxtv.org/downloads/drivers/linux-media-2012-01-07.tar.bz2
+>>>>>
+>>>>> and
+>>>>>
+>>>>> http://linuxtv.org/downloads/drivers/linux-media-2012-01-08.tar.bz2
+>>>>>
+>>>>> now builds using the
+>>>>>
+>>>>> lin-tv ~ # cd /usr/src
+>>>>> lin-tv src # git clone git://linuxtv.org/media_build.git
+>>>>> lin-tv src # cd media_build
+>>>>> lin-tv media_build # ./build
+>>>>> lin-tv media_build # make install
+>>>>>
+>>>>> method. Scanning and (finally) watching video works but not flawlessly.
+>>>>>
+>>>>> I also suspect that I don't find all channels when I scan. I have scanned
+>>>>> using,
+>>>>>
+>>>>> * dvbscan -x 0 -fc /usr/share/dvb/dvb-c/no-Oslo-Get > .mplayer/channels.conf
+>>>>> * Kaffeine  (1.2.2)
+>>>>> * MythTV (0.25_pre20120103)
+>>>>>
+>>>>> respectively. Both kaffeine and mythtv reports a very low signal level (0%)
+>>>>> and an SNR of only 1%. (kaffeine). I'm not sure if the driver reports this
+>>>>> correctly though.
+>>>>>
+>>>>> Whatching live TV works on some channels but not all. HD channels seems more
+>>>>> difficult than SD channels,  and I have not figured out why some channels
+>>>>> work and some don't. I get
+>>>>>
+>>>>> Signal 0% | S/N 2.6dB | BE 0 | (_L_S) Partial Lock
+>>>>>
+>>>>> and no video on many channels in mythtv.
+>>>>>
+>>>>> Regards,
+>>>>>
+>>>>> /Fredrik
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>>>
+>>>
+>
