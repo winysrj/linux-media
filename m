@@ -1,101 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16299 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752302Ab2AFNrl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jan 2012 08:47:41 -0500
-Message-ID: <4F06FB76.8070205@redhat.com>
-Date: Fri, 06 Jan 2012 11:47:34 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45426 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757335Ab2AKJkl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 04:40:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: James <angweiyang@gmail.com>
+Subject: Re: Using OMAP3 ISP live display and snapshot sample applications
+Date: Wed, 11 Jan 2012 10:41:04 +0100
+Cc: linux-media@vger.kernel.org
+References: <CAOy7-nNSu2v9VS9Bh5O5StvEAvoxA4DqN7KdSGfZZSje1_Fgnw@mail.gmail.com> <201201081230.42414.laurent.pinchart@ideasonboard.com> <CAOy7-nNEYxbH2gqfS=hRuBMJWeX+cbm4ReNvncdoJMsazdQaDQ@mail.gmail.com>
+In-Reply-To: <CAOy7-nNEYxbH2gqfS=hRuBMJWeX+cbm4ReNvncdoJMsazdQaDQ@mail.gmail.com>
 MIME-Version: 1.0
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-CC: "'Hans Verkuil'" <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] vpif_capture.c: v4l2_device_register() is called too
- late in vpif_probe()
-References: <201112131044.42862.hverkuil@xs4all.nl> <E99FAA59F8D8D34D8A118DD37F7C8F75015F19@DBDE01.ent.ti.com>
-In-Reply-To: <E99FAA59F8D8D34D8A118DD37F7C8F75015F19@DBDE01.ent.ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="windows-1252"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201201111041.06017.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13-12-2011 10:19, Hadli, Manjunath wrote:
-> Hans,
-> 
-> On Tue, Dec 13, 2011 at 15:14:42, Hans Verkuil wrote:
->> The function v4l2_device_register() is called too late in vpif_probe().
->> This meant that vpif_obj.v4l2_dev is accessed before it is initialized which caused a crash.
->>
->> This used to work in the past, but video_register_device() is now actually using the v4l2_dev pointer.
-> I also found this issue today. Good catch!
->>
->> Note that vpif_display.c doesn't have this bug, there v4l2_device_register() is called at the beginning of vpif_probe.
->>
->> Signed-off-by: Georgios Plakaris <gplakari@cisco.com>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->>
->> diff --git a/drivers/media/video/davinci/vpif_capture.c b/drivers/media/video/davinci/vpif_capture.c
->> index 49e4deb..6504e40 100644
->> --- a/drivers/media/video/davinci/vpif_capture.c
->> +++ b/drivers/media/video/davinci/vpif_capture.c
->> @@ -2177,6 +2177,12 @@ static __init int vpif_probe(struct platform_device *pdev)
->>  		return err;
->>  	}
->>  
->> +	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
->> +	if (err) {
->> +		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
->> +		return err;
->> +	}
->> +
->>  	k = 0;
->>  	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, k))) {
->>  		for (i = res->start; i <= res->end; i++) { @@ -2246,12 +2252,6 @@ static __init int vpif_probe(struct platform_device *pdev)
->>  		goto probe_out;
->>  	}
->>  
->> -	err = v4l2_device_register(vpif_dev, &vpif_obj.v4l2_dev);
->> -	if (err) {
->> -		v4l2_err(vpif_dev->driver, "Error registering v4l2 device\n");
->> -		goto probe_subdev_out;
->> -	}
->> -
->>  	for (i = 0; i < subdev_count; i++) {
->>  		subdevdata = &config->subdev_info[i];
->>  		vpif_obj.sd[i] =
->> @@ -2281,7 +2281,6 @@ probe_subdev_out:
->>  
->>  	j = VPIF_CAPTURE_MAX_DEVICES;
->>  probe_out:
->> -	v4l2_device_unregister(&vpif_obj.v4l2_dev);
->>  	for (k = 0; k < j; k++) {
->>  		/* Get the pointer to the channel object */
->>  		ch = vpif_obj.dev[k];
->> @@ -2303,6 +2302,7 @@ vpif_int_err:
->>  		if (res)
->>  			i = res->end;
->>  	}
->> +	v4l2_device_unregister(&vpif_obj.v4l2_dev);
->>  	return err;
->>  }
->>  
->>
->>
->>
-> 
-> ACKed by me. <Manjunath.hadli@ti.com>
+Hi James,
 
-Please, reply with the standard way:
-Acked-by: Manjunath Hadli <Manjunath.hadli@ti.com>
-
-Otherwise, patchwork will not catch your ack.
-
+On Wednesday 11 January 2012 05:24:35 James wrote:
+> On Sun, Jan 8, 2012 at 7:30 PM, Laurent Pinchart wrote:
+> > On Sunday 08 January 2012 02:14:55 James wrote:
+> > 
+> > [snip]
+> > 
+> >> BTW, can you send me the defconfig file you used for testing on overo as
+> >> I couldn‘t compile your branch with mine.
+> > 
+> > Attached.
+> > 
+> >> I forgot to mentioned that I'm trying out the application with the
+> >> MT9V032 camera first on both Tobi & Chestnut board. Not with the new
+> >> monochrome sensor yet.
+> > 
+> > --
+> > Regards,
+> > 
+> > Laurent Pinchart
 > 
-> Thx,
-> -Manju
+> Thanks for the defconfig.
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> I'll proceed to try to build a fresh kernel based on your branch
+> "omap3isp-sensors-board".
+> 
+> I guess this is a better branch or should I try the YUV branch or others?
 
+That's the right branch. The YUV branch is just work in progress.
+
+> Test1 with MT9V032 and Test2 with monochrome sensor Y12.
+
+-- 
+Regards,
+
+Laurent Pinchart
