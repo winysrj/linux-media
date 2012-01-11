@@ -1,72 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:61814 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751119Ab2ABJxH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 04:53:07 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=UTF-8
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LX600DDA0SG9940@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Jan 2012 09:53:04 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LX600IL70SGKY@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 02 Jan 2012 09:53:04 +0000 (GMT)
-Date: Mon, 02 Jan 2012 10:53:04 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [RFC PATCH 1/4] v4l: Add V4L2_CID_PRESET_WHITE_BALANCE menu control
-In-reply-to: <4EFB1B04.6060305@gmail.com>
-To: "HeungJun, Kim" <riverful.kim@samsung.com>,
-	Hans de Goede <hdegoede@redhat.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, sakari.ailus@iki.fi,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com
-Message-id: <4F017E80.8060102@samsung.com>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <1325053428-2626-2-git-send-email-riverful.kim@samsung.com>
- <4EFB1B04.6060305@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:22400 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933921Ab2AKV1M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 16:27:12 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH 02/23] v4l: Document integer menu controls
+Date: Wed, 11 Jan 2012 23:26:39 +0200
+Message-Id: <1326317220-15339-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4F0DFE92.80102@iki.fi>
+References: <4F0DFE92.80102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
+ 3 files changed, 54 insertions(+), 2 deletions(-)
 
-On 12/28/2011 02:35 PM, Sylwester Nawrocki wrote:
-> On 12/28/2011 07:23 AM, HeungJun, Kim wrote:
->> It adds the new CID for setting White Balance Preset. This CID is provided as
->> menu type using the following items:
-
-How about adding
-
-V4L2_WHITE_BALANCE_PRESET_NONE or
-V4L2_WHITE_BALANCE_PRESET_UNDEFINED
-
-to this menu ? It might cover "Manual Mode" entry in pwc_auto_whitebal_qmenu.
-Also it might be useful not only as a read-only item for applications,
-when there are multiple means of setting up white balance supported by a
-driver, i.e. blue/red balance, component gains, etc.
-
->> 0 - V4L2_WHITE_BALANCE_INCANDESCENT,
->> 1 - V4L2_WHITE_BALANCE_FLUORESCENT,
->> 2 - V4L2_WHITE_BALANCE_DAYLIGHT,
->> 3 - V4L2_WHITE_BALANCE_CLOUDY,
->> 4 - V4L2_WHITE_BALANCE_SHADE,
-> 
-> I have been also investigating those white balance presets recently and noticed
-> they're also needed for the pwc driver. Looking at
-> drivers/media/video/pwc/pwc-v4l2.c there is something like:
-> 
-> const char * const pwc_auto_whitebal_qmenu[] = {
-> 	"Indoor (Incandescant Lighting) Mode",
-> 	"Outdoor (Sunlight) Mode",
-> 	"Indoor (Fluorescent Lighting) Mode",
-> 	"Manual Mode",
-> 	"Auto Mode",
-> 	NULL
-> };
-
-Regards,
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index b68698f..985c536 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2379,6 +2379,16 @@ that used it. It was originally scheduled for removal in 2.6.35.
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.4</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added integer menus, the new type will be
++	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index 2ab365c..8646fbc 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -128,6 +128,13 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.4</revnumber>
++	<date>2011-11-24</date>
++	<authorinitials>sa</authorinitials>
++	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
++      </revision>
++
++      <revision>
+ 	<revnumber>3.2</revnumber>
+ 	<date>2011-08-26</date>
+ 	<authorinitials>hv</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 0ac0057..02064b0 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -215,11 +215,12 @@ the array to zero.</entry>
+ 
+     <table pgwide="1" frame="none" id="v4l2-querymenu">
+       <title>struct <structname>v4l2_querymenu</structname></title>
+-      <tgroup cols="3">
++      <tgroup cols="4">
+ 	&cs-str;
+ 	<tbody valign="top">
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>id</structfield></entry>
+ 	    <entry>Identifies the control, set by the application
+ from the respective &v4l2-queryctrl;
+@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>index</structfield></entry>
+ 	    <entry>Index of the menu item, starting at zero, set by
+ 	    the application.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry>union</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>name</structfield>[32]</entry>
+ 	    <entry>Name of the menu item, a NUL-terminated ASCII
+-string. This information is intended for the user.</entry>
++string. This information is intended for the user. This field is valid
++for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__s64</entry>
++	    <entry><structfield>value</structfield></entry>
++	    <entry>
++              Value of the integer menu item. This field is valid for
++              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
++              controls.
++            </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>reserved</structfield></entry>
+ 	    <entry>Reserved for future extensions. Drivers must set
+ the array to zero.</entry>
+@@ -292,6 +313,20 @@ the menu items can be enumerated with the
+ <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
++	    <entry>&ge; 0</entry>
++	    <entry>1</entry>
++	    <entry>N-1</entry>
++	    <entry>
++              The control has a menu of N choices. The values of the
++              menu items can be enumerated with the
++              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
++              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
++              except that instead of strings, the menu items are
++              signed 64-bit integers.
++            </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
+ 	    <entry>0</entry>
+ 	    <entry>n/a</entry>
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+1.7.2.5
+
