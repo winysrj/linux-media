@@ -1,44 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:47799 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751552Ab2AJXpk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 18:45:40 -0500
-Received: by wgbdr10 with SMTP id dr10so163096wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 15:45:39 -0800 (PST)
-Message-ID: <1326239131.2956.3.camel@tvbox>
-Subject: [PATCH][BUG] it913x-fe fix typo error making SNR levels unstable.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Tue, 10 Jan 2012 23:45:31 +0000
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx1.redhat.com ([209.132.183.28]:2832 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757896Ab2AKTtO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 14:49:14 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0BJnDjU012514
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 14:49:14 -0500
+Received: from shalem.localdomain (vpn1-6-138.ams2.redhat.com [10.36.6.138])
+	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id q0BJnChT008766
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 14:49:13 -0500
+Message-ID: <4F0DE800.4040805@redhat.com>
+Date: Wed, 11 Jan 2012 20:50:24 +0100
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PATCHES FOR 3.3] More pwc cleanups and fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro,
 
-Fix error where SNR unstable and jumps levels.
+Please pull from my tree for some more pwc cleanups and fixes.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/frontends/it913x-fe.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+The following changes since commit 240ab508aa9fb7a294b0ecb563b19ead000b2463:
 
-diff --git a/drivers/media/dvb/frontends/it913x-fe.c b/drivers/media/dvb/frontends/it913x-fe.c
-index 7290801..ccc36bf 100644
---- a/drivers/media/dvb/frontends/it913x-fe.c
-+++ b/drivers/media/dvb/frontends/it913x-fe.c
-@@ -525,7 +525,7 @@ static int it913x_fe_read_snr(struct dvb_frontend *fe, u16 *snr)
- 
- 	ret = it913x_read_reg(state, 0x2c, reg, sizeof(reg));
- 
--	snr_val = (u32)(reg[2] << 16) | (reg[1] < 8) | reg[0];
-+	snr_val = (u32)(reg[2] << 16) | (reg[1] << 8) | reg[0];
- 
- 	ret |= it913x_read_reg(state, 0xf78b, reg, 1);
- 	if (reg[0])
--- 
-1.7.7.3
+   [media] [PATCH] don't reset the delivery system on DTV_CLEAR (2012-01-10 23:44:07 -0200)
 
+are available in the git repository at:
+   git://linuxtv.org/hgoede/gspca.git media-for_v3.3
 
+Hans de Goede (8):
+       pwc: Make fps runtime configurable through s_parm, drop fps module param
+       pwc: Make decoder data part of the main pwc struct
+       pwc: Fix pixfmt handling
+       pwc: Avoid sending mode info to the camera when it is not needed
+       pwc: Avoid unnecessarily rebuilding the decoder tables
+       pwc: Use one shared usb command buffer
+       pwc: Remove dev_hint module parameter
+       pwc: Simplify leds parameter parsing
+
+  drivers/media/video/pwc/pwc-ctrl.c  |  231 +++++++++++++++--------------------
+  drivers/media/video/pwc/pwc-dec1.c  |   16 +--
+  drivers/media/video/pwc/pwc-dec1.h  |    6 +-
+  drivers/media/video/pwc/pwc-dec23.c |   41 +++----
+  drivers/media/video/pwc/pwc-dec23.h |    9 +-
+  drivers/media/video/pwc/pwc-if.c    |  175 +++------------------------
+  drivers/media/video/pwc/pwc-misc.c  |    1 -
+  drivers/media/video/pwc/pwc-v4l.c   |   90 +++++++++++---
+  drivers/media/video/pwc/pwc.h       |   14 ++-
+  9 files changed, 227 insertions(+), 356 deletions(-)
+
+Regards,
+
+Hans
