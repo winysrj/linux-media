@@ -1,101 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.enix.org ([193.19.211.146]:35195 "EHLO smtp.enix.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751354Ab2AGOB5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 09:01:57 -0500
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: linux-media@vger.kernel.org, dheitmueller@kernellabs.com,
-	srinivasa.deevi@conexant.com
-Cc: gregory.clement@free-electrons.com,
-	maxime.ripard@free-electrons.com,
-	michael.opdenacker@free-electrons.com
-Subject: [PATCH 1/4] cx231xx: use URB_NO_TRANSFER_DMA_MAP on URBs allocated with usb_alloc_urb()
-Date: Sat,  7 Jan 2012 14:52:37 +0100
-Message-Id: <1325944360-28964-2-git-send-email-thomas.petazzoni@free-electrons.com>
-In-Reply-To: <1325944360-28964-1-git-send-email-thomas.petazzoni@free-electrons.com>
-References: <1325944360-28964-1-git-send-email-thomas.petazzoni@free-electrons.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:59886 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756757Ab2AKEYg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 23:24:36 -0500
+Received: by werm1 with SMTP id m1so224755wer.19
+        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 20:24:35 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <201201081230.42414.laurent.pinchart@ideasonboard.com>
+References: <CAOy7-nNSu2v9VS9Bh5O5StvEAvoxA4DqN7KdSGfZZSje1_Fgnw@mail.gmail.com>
+	<201201061409.30592.laurent.pinchart@ideasonboard.com>
+	<CAOy7-nMBw8Mry9iL0fYKQ1_Bpjp9Pm5hUzPE-SFD9JwGfpv3FA@mail.gmail.com>
+	<201201081230.42414.laurent.pinchart@ideasonboard.com>
+Date: Wed, 11 Jan 2012 12:24:35 +0800
+Message-ID: <CAOy7-nNEYxbH2gqfS=hRuBMJWeX+cbm4ReNvncdoJMsazdQaDQ@mail.gmail.com>
+Subject: Re: Using OMAP3 ISP live display and snapshot sample applications
+From: James <angweiyang@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-URBs allocated with usb_alloc_urb() are allocated from DMA-coherent
-areas, and therefore it is not necessary to call dma_map_single() on
-such buffers. Worst, on ARM, calling dma_map_single() on a
-DMA-coherent buffer will trigger a BUG_ON() in
-arch/arm/mm/dma-mapping.c.
+Hi Laurent,
 
-Therefore, we mark all URBs allocated with usb_alloc_urb() with the
-URB_NO_TRANSFER_DMA_MAP transfer_flags, so that the USB core does not
-do dma_map_single()/dma_unmap_single() on those buffers.
+On Sun, Jan 8, 2012 at 7:30 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi James,
+>
+> On Sunday 08 January 2012 02:14:55 James wrote:
+>
+> [snip]
+>
+>> BTW, can you send me the defconfig file you used for testing on overo as I
+>> couldn‘t compile your branch with mine.
+>
+> Attached.
+>
+>> I forgot to mentioned that I'm trying out the application with the MT9V032
+>> camera first on both Tobi & Chestnut board. Not with the new monochrome
+>> sensor yet.
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
 
-This is similar to 882787ff8fdeb0be790547ee9b22b281095e95da for the
-gspca driver, and has already been discussed on the linux-media list
-in the past:
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg37086.html.
+Thanks for the defconfig.
 
-Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
----
- drivers/media/video/cx231xx/cx231xx-audio.c |    4 ++--
- drivers/media/video/cx231xx/cx231xx-core.c  |    4 ++--
- drivers/media/video/cx231xx/cx231xx-vbi.c   |    2 +-
- 3 files changed, 5 insertions(+), 5 deletions(-)
+I'll proceed to try to build a fresh kernel based on your branch
+"omap3isp-sensors-board".
 
-diff --git a/drivers/media/video/cx231xx/cx231xx-audio.c b/drivers/media/video/cx231xx/cx231xx-audio.c
-index 30d13c1..e0b2d5c 100644
---- a/drivers/media/video/cx231xx/cx231xx-audio.c
-+++ b/drivers/media/video/cx231xx/cx231xx-audio.c
-@@ -298,7 +298,7 @@ static int cx231xx_init_audio_isoc(struct cx231xx *dev)
- 		urb->context = dev;
- 		urb->pipe = usb_rcvisocpipe(dev->udev,
- 						dev->adev.end_point_addr);
--		urb->transfer_flags = URB_ISO_ASAP;
-+		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
- 		urb->transfer_buffer = dev->adev.transfer_buffer[i];
- 		urb->interval = 1;
- 		urb->complete = cx231xx_audio_isocirq;
-@@ -356,7 +356,7 @@ static int cx231xx_init_audio_bulk(struct cx231xx *dev)
- 		urb->context = dev;
- 		urb->pipe = usb_rcvbulkpipe(dev->udev,
- 						dev->adev.end_point_addr);
--		urb->transfer_flags = 0;
-+		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
- 		urb->transfer_buffer = dev->adev.transfer_buffer[i];
- 		urb->complete = cx231xx_audio_bulkirq;
- 		urb->transfer_buffer_length = sb_size;
-diff --git a/drivers/media/video/cx231xx/cx231xx-core.c b/drivers/media/video/cx231xx/cx231xx-core.c
-index d4457f9..d4527f2 100644
---- a/drivers/media/video/cx231xx/cx231xx-core.c
-+++ b/drivers/media/video/cx231xx/cx231xx-core.c
-@@ -1071,7 +1071,7 @@ int cx231xx_init_isoc(struct cx231xx *dev, int max_packets,
- 				 sb_size, cx231xx_isoc_irq_callback, dma_q, 1);
- 
- 		urb->number_of_packets = max_packets;
--		urb->transfer_flags = URB_ISO_ASAP;
-+		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
- 
- 		k = 0;
- 		for (j = 0; j < max_packets; j++) {
-@@ -1182,7 +1182,7 @@ int cx231xx_init_bulk(struct cx231xx *dev, int max_packets,
- 			return -ENOMEM;
- 		}
- 		dev->video_mode.bulk_ctl.urb[i] = urb;
--		urb->transfer_flags = 0;
-+		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
- 
- 		dev->video_mode.bulk_ctl.transfer_buffer[i] =
- 		    usb_alloc_coherent(dev->udev, sb_size, GFP_KERNEL,
-diff --git a/drivers/media/video/cx231xx/cx231xx-vbi.c b/drivers/media/video/cx231xx/cx231xx-vbi.c
-index 1c7a4da..852878d 100644
---- a/drivers/media/video/cx231xx/cx231xx-vbi.c
-+++ b/drivers/media/video/cx231xx/cx231xx-vbi.c
-@@ -452,7 +452,7 @@ int cx231xx_init_vbi_isoc(struct cx231xx *dev, int max_packets,
- 			return -ENOMEM;
- 		}
- 		dev->vbi_mode.bulk_ctl.urb[i] = urb;
--		urb->transfer_flags = 0;
-+		urb->transfer_flags = URB_NO_TRANSFER_DMA_MAP;
- 
- 		dev->vbi_mode.bulk_ctl.transfer_buffer[i] =
- 		    kzalloc(sb_size, GFP_KERNEL);
+I guess this is a better branch or should I try the YUV branch or others?
+
+Test1 with MT9V032 and Test2 with monochrome sensor Y12.
+
+Thanks.
+
 -- 
-1.7.4.1
-
+Regards,
+James
