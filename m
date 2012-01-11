@@ -1,49 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:2001 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.48]:21573 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753937Ab2ARMy7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 07:54:59 -0500
-Message-ID: <4F16C11F.3040108@redhat.com>
-Date: Wed, 18 Jan 2012 10:54:55 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Gregor Jasny <gjasny@googlemail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4l-utils migrated to autotools
-References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <4F16BF4D.4070404@googlemail.com>
-In-Reply-To: <4F16BF4D.4070404@googlemail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S933983Ab2AKV1S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 16:27:18 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH 13/23] omap3isp: Add lane configuration to platform data
+Date: Wed, 11 Jan 2012 23:26:50 +0200
+Message-Id: <1326317220-15339-13-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4F0DFE92.80102@iki.fi>
+References: <4F0DFE92.80102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-01-2012 10:47, Gregor Jasny escreveu:
-> On 1/18/12 1:19 PM, Mauro Carvalho Chehab wrote:
->> It would be nice to write at the INSTALL what dependencies are needed for
->> the autotools to work, or, alternatively, to commit the files generated
->> by the autoreconf -vfi magic spell there [1].
-> 
-> The end user gets a tarball created with "make dist" which contains all the m4 files.
+Add lane configuration (order of clock and data lane) to platform data on
+both CCP2 and CSI-2.
 
-Ah, ok. It probably makes sense then to add some scripting at the server to do
-a daily build, as the tarballs aren't updated very often. They're updated only
-at the sub-releases:
-	http://linuxtv.org/downloads/v4l-utils/
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispcsiphy.h |   15 ++-------------
+ include/media/omap3isp.h                 |   25 +++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 13 deletions(-)
 
-> For the developers I will list the dependencies (autotools-dev, pkgconfig and libtool) explicitely.
+diff --git a/drivers/media/video/omap3isp/ispcsiphy.h b/drivers/media/video/omap3isp/ispcsiphy.h
+index 9596dc6..e93a661 100644
+--- a/drivers/media/video/omap3isp/ispcsiphy.h
++++ b/drivers/media/video/omap3isp/ispcsiphy.h
+@@ -27,22 +27,11 @@
+ #ifndef OMAP3_ISP_CSI_PHY_H
+ #define OMAP3_ISP_CSI_PHY_H
+ 
++#include <media/omap3isp.h>
++
+ struct isp_csi2_device;
+ struct regulator;
+ 
+-struct csiphy_lane {
+-	u8 pos;
+-	u8 pol;
+-};
+-
+-#define ISP_CSIPHY2_NUM_DATA_LANES	2
+-#define ISP_CSIPHY1_NUM_DATA_LANES	1
+-
+-struct isp_csiphy_lanes_cfg {
+-	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
+-	struct csiphy_lane clk;
+-};
+-
+ struct isp_csiphy_dphy_cfg {
+ 	u8 ths_term;
+ 	u8 ths_settle;
+diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+index 9c1a001..bc14099 100644
+--- a/include/media/omap3isp.h
++++ b/include/media/omap3isp.h
+@@ -91,6 +91,29 @@ enum {
+ };
+ 
+ /**
++ * struct isp_csiphy_lane: CCP2/CSI2 lane position and polarity
++ * @pos: position of the lane
++ * @pol: polarity of the lane
++ */
++struct isp_csiphy_lane {
++	u8 pos;
++	u8 pol;
++};
++
++#define ISP_CSIPHY2_NUM_DATA_LANES	2
++#define ISP_CSIPHY1_NUM_DATA_LANES	1
++
++/**
++ * struct isp_csiphy_lanes_cfg - CCP2/CSI2 lane configuration
++ * @data: Configuration of one or two data lanes
++ * @clk: Clock lane configuration
++ */
++struct isp_csiphy_lanes_cfg {
++	struct isp_csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
++	struct isp_csiphy_lane clk;
++};
++
++/**
+  * struct isp_ccp2_platform_data - CCP2 interface platform data
+  * @strobe_clk_pol: Strobe/clock polarity
+  *		0 - Non Inverted, 1 - Inverted
+@@ -109,6 +132,7 @@ struct isp_ccp2_platform_data {
+ 	unsigned int ccp2_mode:1;
+ 	unsigned int phy_layer:1;
+ 	unsigned int vpclk_div:2;
++	struct isp_csiphy_lanes_cfg lanecfg;
+ };
+ 
+ /**
+@@ -119,6 +143,7 @@ struct isp_ccp2_platform_data {
+ struct isp_csi2_platform_data {
+ 	unsigned crc:1;
+ 	unsigned vpclk_div:2;
++	struct isp_csiphy_lanes_cfg lanecfg;
+ };
+ 
+ struct isp_subdev_i2c_board_info {
+-- 
+1.7.2.5
 
-Ok, thanks!
-
->> Not sure if it is possible, but it would be great if the build output
->> would be less verbose. libtool adds a lot of additional (generally useless)
->> messages, with makes harder to see the compilation warnings in the
->> middle of all those garbage.
-> 
-> I will add the AM_SILENT_RULES option later.
-
-Just added it, and fixed two warnings I was not able to notice before, due to
-the excess of fast-scrolling messages that were appearing when compiling it
-here ;)
-
-Thanks,
-Mauro
