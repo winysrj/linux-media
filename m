@@ -1,299 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:3627 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.47]:40751 "EHLO mgw-sa01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932184Ab2AEBBH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:07 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05116FW016345
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:06 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 04/47] [media] mt2063: Move code from mt2063_cfg.h
-Date: Wed,  4 Jan 2012 23:00:15 -0200
-Message-Id: <1325725258-27934-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S933986Ab2AKV1T (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 11 Jan 2012 16:27:19 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH 18/23] omap3isp: Assume media_entity_pipeline_start may fail
+Date: Wed, 11 Jan 2012 23:26:55 +0200
+Message-Id: <1326317220-15339-18-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <4F0DFE92.80102@iki.fi>
+References: <4F0DFE92.80102@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mt2063.c     |  129 ++++++++++++++++++++++++++++++
- drivers/media/common/tuners/mt2063_cfg.h |  122 ----------------------------
- 2 files changed, 129 insertions(+), 122 deletions(-)
- delete mode 100644 drivers/media/common/tuners/mt2063_cfg.h
+Since media_entity_pipeline_start() now does link validation, it may
+actually fail. Perform the error handling.
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 0d64eb8..1d36e51 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -13,6 +13,135 @@
- static unsigned int verbose;
- module_param(verbose, int, 0644);
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispvideo.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 9cc5090..2ff7f91 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -988,7 +988,11 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	 */
+ 	pipe = video->video.entity.pipe
+ 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
+-	media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
++	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
++	if (ret < 0) {
++		mutex_unlock(&video->stream_lock);
++		return ret;
++	}
  
-+
-+/*****************/
-+/* From drivers/media/common/tuners/mt2063_cfg.h */
-+
-+static unsigned int mt2063_setTune(struct dvb_frontend *fe, UData_t f_in,
-+				   UData_t bw_in,
-+				   enum MTTune_atv_standard tv_type)
-+{
-+	//return (int)MT_Tune_atv(h, f_in, bw_in, tv_type);
-+
-+	struct dvb_frontend_ops *frontend_ops = NULL;
-+	struct dvb_tuner_ops *tuner_ops = NULL;
-+	struct tuner_state t_state;
-+	struct mt2063_state *mt2063State = fe->tuner_priv;
-+	int err = 0;
-+
-+	t_state.frequency = f_in;
-+	t_state.bandwidth = bw_in;
-+	mt2063State->tv_type = tv_type;
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->set_state) {
-+		if ((err =
-+		     tuner_ops->set_state(fe, DVBFE_TUNER_FREQUENCY,
-+					  &t_state)) < 0) {
-+			printk("%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+static unsigned int mt2063_lockStatus(struct dvb_frontend *fe)
-+{
-+	struct dvb_frontend_ops *frontend_ops = &fe->ops;
-+	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
-+	struct tuner_state t_state;
-+	int err = 0;
-+
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->get_state) {
-+		if ((err =
-+		     tuner_ops->get_state(fe, DVBFE_TUNER_REFCLOCK,
-+					  &t_state)) < 0) {
-+			printk("%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+	}
-+	return err;
-+}
-+
-+static unsigned int tuner_MT2063_Open(struct dvb_frontend *fe)
-+{
-+	struct dvb_frontend_ops *frontend_ops = &fe->ops;
-+	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
-+	struct tuner_state t_state;
-+	int err = 0;
-+
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->set_state) {
-+		if ((err =
-+		     tuner_ops->set_state(fe, DVBFE_TUNER_OPEN,
-+					  &t_state)) < 0) {
-+			printk("%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+static unsigned int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe)
-+{
-+	struct dvb_frontend_ops *frontend_ops = &fe->ops;
-+	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
-+	struct tuner_state t_state;
-+	int err = 0;
-+
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->set_state) {
-+		if ((err =
-+		     tuner_ops->set_state(fe, DVBFE_TUNER_SOFTWARE_SHUTDOWN,
-+					  &t_state)) < 0) {
-+			printk("%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+static unsigned int tuner_MT2063_ClearPowerMaskBits(struct dvb_frontend *fe)
-+{
-+	struct dvb_frontend_ops *frontend_ops = &fe->ops;
-+	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
-+	struct tuner_state t_state;
-+	int err = 0;
-+
-+	if (&fe->ops)
-+		frontend_ops = &fe->ops;
-+	if (&frontend_ops->tuner_ops)
-+		tuner_ops = &frontend_ops->tuner_ops;
-+	if (tuner_ops->set_state) {
-+		if ((err =
-+		     tuner_ops->set_state(fe, DVBFE_TUNER_CLEAR_POWER_MASKBITS,
-+					  &t_state)) < 0) {
-+			printk("%s: Invalid parameter\n", __func__);
-+			return err;
-+		}
-+	}
-+
-+	return err;
-+}
-+
-+/*****************/
-+
-+
- //i2c operation
- static int mt2063_writeregs(struct mt2063_state *state, u8 reg1,
- 			    u8 * data, int len)
-diff --git a/drivers/media/common/tuners/mt2063_cfg.h b/drivers/media/common/tuners/mt2063_cfg.h
-deleted file mode 100644
-index 5f80f02..0000000
---- a/drivers/media/common/tuners/mt2063_cfg.h
-+++ /dev/null
-@@ -1,122 +0,0 @@
--
--static unsigned int mt2063_setTune(struct dvb_frontend *fe, UData_t f_in,
--				   UData_t bw_in,
--				   enum MTTune_atv_standard tv_type)
--{
--	//return (int)MT_Tune_atv(h, f_in, bw_in, tv_type);
--
--	struct dvb_frontend_ops *frontend_ops = NULL;
--	struct dvb_tuner_ops *tuner_ops = NULL;
--	struct tuner_state t_state;
--	struct mt2063_state *mt2063State = fe->tuner_priv;
--	int err = 0;
--
--	t_state.frequency = f_in;
--	t_state.bandwidth = bw_in;
--	mt2063State->tv_type = tv_type;
--	if (&fe->ops)
--		frontend_ops = &fe->ops;
--	if (&frontend_ops->tuner_ops)
--		tuner_ops = &frontend_ops->tuner_ops;
--	if (tuner_ops->set_state) {
--		if ((err =
--		     tuner_ops->set_state(fe, DVBFE_TUNER_FREQUENCY,
--					  &t_state)) < 0) {
--			printk("%s: Invalid parameter\n", __func__);
--			return err;
--		}
--	}
--
--	return err;
--}
--
--static unsigned int mt2063_lockStatus(struct dvb_frontend *fe)
--{
--	struct dvb_frontend_ops *frontend_ops = &fe->ops;
--	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
--	struct tuner_state t_state;
--	int err = 0;
--
--	if (&fe->ops)
--		frontend_ops = &fe->ops;
--	if (&frontend_ops->tuner_ops)
--		tuner_ops = &frontend_ops->tuner_ops;
--	if (tuner_ops->get_state) {
--		if ((err =
--		     tuner_ops->get_state(fe, DVBFE_TUNER_REFCLOCK,
--					  &t_state)) < 0) {
--			printk("%s: Invalid parameter\n", __func__);
--			return err;
--		}
--	}
--	return err;
--}
--
--static unsigned int tuner_MT2063_Open(struct dvb_frontend *fe)
--{
--	struct dvb_frontend_ops *frontend_ops = &fe->ops;
--	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
--	struct tuner_state t_state;
--	int err = 0;
--
--	if (&fe->ops)
--		frontend_ops = &fe->ops;
--	if (&frontend_ops->tuner_ops)
--		tuner_ops = &frontend_ops->tuner_ops;
--	if (tuner_ops->set_state) {
--		if ((err =
--		     tuner_ops->set_state(fe, DVBFE_TUNER_OPEN,
--					  &t_state)) < 0) {
--			printk("%s: Invalid parameter\n", __func__);
--			return err;
--		}
--	}
--
--	return err;
--}
--
--static unsigned int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe)
--{
--	struct dvb_frontend_ops *frontend_ops = &fe->ops;
--	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
--	struct tuner_state t_state;
--	int err = 0;
--
--	if (&fe->ops)
--		frontend_ops = &fe->ops;
--	if (&frontend_ops->tuner_ops)
--		tuner_ops = &frontend_ops->tuner_ops;
--	if (tuner_ops->set_state) {
--		if ((err =
--		     tuner_ops->set_state(fe, DVBFE_TUNER_SOFTWARE_SHUTDOWN,
--					  &t_state)) < 0) {
--			printk("%s: Invalid parameter\n", __func__);
--			return err;
--		}
--	}
--
--	return err;
--}
--
--static unsigned int tuner_MT2063_ClearPowerMaskBits(struct dvb_frontend *fe)
--{
--	struct dvb_frontend_ops *frontend_ops = &fe->ops;
--	struct dvb_tuner_ops *tuner_ops = &frontend_ops->tuner_ops;
--	struct tuner_state t_state;
--	int err = 0;
--
--	if (&fe->ops)
--		frontend_ops = &fe->ops;
--	if (&frontend_ops->tuner_ops)
--		tuner_ops = &frontend_ops->tuner_ops;
--	if (tuner_ops->set_state) {
--		if ((err =
--		     tuner_ops->set_state(fe, DVBFE_TUNER_CLEAR_POWER_MASKBITS,
--					  &t_state)) < 0) {
--			printk("%s: Invalid parameter\n", __func__);
--			return err;
--		}
--	}
--
--	return err;
--}
+ 	/* Verify that the currently configured format matches the output of
+ 	 * the connected subdev.
 -- 
-1.7.7.5
+1.7.2.5
 
