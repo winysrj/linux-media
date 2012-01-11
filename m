@@ -1,69 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.pripojeni.net ([178.22.112.14]:36062 "EHLO
-	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754181Ab2AJRWL (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:64522 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754193Ab2AKO3s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 12:22:11 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@infradead.org
-Cc: mikekrufky@gmail.com, linux-media@vger.kernel.org,
-	jirislaby@gmail.com, linux-kernel@vger.kernel.org,
-	Jiri Slaby <jslaby@suse.cz>
-Subject: [PATCH 2/4] DVB: dib0700, separate stk7070pd initialization
-Date: Tue, 10 Jan 2012 18:11:23 +0100
-Message-Id: <1326215485-20846-2-git-send-email-jslaby@suse.cz>
-In-Reply-To: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
-References: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
+	Wed, 11 Jan 2012 09:29:48 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC/PATCH 1/3] v4l: Add custom compat_ioctl operation
+Date: Wed, 11 Jan 2012 15:29:44 +0100
+Cc: linux-media@vger.kernel.org
+References: <1324252546-18437-1-git-send-email-laurent.pinchart@ideasonboard.com> <1324252546-18437-2-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1324252546-18437-2-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201111529.44403.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The start is common for both stk7070pd and novatd specific routine.
-This is just a preparation for the next patch.
+Hi Laurent,
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
----
- drivers/media/dvb/dvb-usb/dib0700_devices.c |   22 ++++++++++++++--------
- 1 files changed, 14 insertions(+), 8 deletions(-)
+On Monday 19 December 2011 00:55:44 Laurent Pinchart wrote:
+> Drivers implementing custom ioctls need to handle 32-bit/64-bit
+> compatibility themselves. Provide them with a way to do so.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/v4l2-compat-ioctl32.c |   13 ++++++++++---
+>  include/media/v4l2-dev.h                  |    3 +++
+>  2 files changed, 13 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c
+> b/drivers/media/video/v4l2-compat-ioctl32.c index c68531b..5787e57 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -16,6 +16,7 @@
+>  #include <linux/compat.h>
+>  #include <linux/videodev2.h>
+>  #include <linux/module.h>
+> +#include <media/v4l2-dev.h>
+>  #include <media/v4l2-ioctl.h>
+> 
+>  #ifdef CONFIG_COMPAT
+> @@ -937,6 +938,7 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar
+> 
+>  long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned
+> long arg) {
+> +	struct video_device *vdev = video_devdata(file);
+>  	long ret = -ENOIOCTLCMD;
+> 
+>  	if (!file->f_op->unlocked_ioctl)
+> @@ -1023,9 +1025,14 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
+> int cmd, unsigned long arg) break;
+> 
+>  	default:
+> -		printk(KERN_WARNING "compat_ioctl32: "
+> -			"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+> -			_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd), cmd);
+> +		if (vdev->fops->compat_ioctl)
+> +			ret = vdev->fops->compat_ioctl(file, cmd, arg);
+> +
+> +		if (ret == -ENOIOCTLCMD)
+> +			printk(KERN_WARNING "compat_ioctl32: "
+> +				"unknown ioctl '%c', dir=%d, #%d (0x%08x)\n",
+> +				_IOC_TYPE(cmd), _IOC_DIR(cmd), _IOC_NR(cmd),
+> +				cmd);
+>  		break;
+>  	}
+>  	return ret;
+> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
+> index c7c40f1..5d4462c 100644
+> --- a/include/media/v4l2-dev.h
+> +++ b/include/media/v4l2-dev.h
+> @@ -62,6 +62,9 @@ struct v4l2_file_operations {
+>  	unsigned int (*poll) (struct file *, struct poll_table_struct *);
+>  	long (*ioctl) (struct file *, unsigned int, unsigned long);
+>  	long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+> +#ifdef CONFIG_COMPAT
+> +	long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
+> +#endif
 
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-index 3c6ee54..e5c2bd2 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-@@ -3066,19 +3066,25 @@ static struct dib7000p_config stk7070pd_dib7000p_config[2] = {
- 	}
- };
- 
--static int stk7070pd_frontend_attach0(struct dvb_usb_adapter *adap)
-+static void stk7070pd_init(struct dvb_usb_device *dev)
- {
--	dib0700_set_gpio(adap->dev, GPIO6, GPIO_OUT, 1);
-+	dib0700_set_gpio(dev, GPIO6, GPIO_OUT, 1);
- 	msleep(10);
--	dib0700_set_gpio(adap->dev, GPIO9, GPIO_OUT, 1);
--	dib0700_set_gpio(adap->dev, GPIO4, GPIO_OUT, 1);
--	dib0700_set_gpio(adap->dev, GPIO7, GPIO_OUT, 1);
--	dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 0);
-+	dib0700_set_gpio(dev, GPIO9, GPIO_OUT, 1);
-+	dib0700_set_gpio(dev, GPIO4, GPIO_OUT, 1);
-+	dib0700_set_gpio(dev, GPIO7, GPIO_OUT, 1);
-+	dib0700_set_gpio(dev, GPIO10, GPIO_OUT, 0);
- 
--	dib0700_ctrl_clock(adap->dev, 72, 1);
-+	dib0700_ctrl_clock(dev, 72, 1);
- 
- 	msleep(10);
--	dib0700_set_gpio(adap->dev, GPIO10, GPIO_OUT, 1);
-+	dib0700_set_gpio(dev, GPIO10, GPIO_OUT, 1);
-+}
-+
-+static int stk7070pd_frontend_attach0(struct dvb_usb_adapter *adap)
-+{
-+	stk7070pd_init(adap->dev);
-+
- 	msleep(10);
- 	dib0700_set_gpio(adap->dev, GPIO0, GPIO_OUT, 1);
- 
--- 
-1.7.8
+My only comment is that I would call this compat_ioctl32 to clearly show that 
+this concerns 32/64 bit conversion. Everywhere else it is also called that, so 
+we should keep the '32' at the end.
 
+Regards,
 
+	Hans
+
+>  	unsigned long (*get_unmapped_area) (struct file *, unsigned long,
+>  				unsigned long, unsigned long, unsigned long);
+>  	int (*mmap) (struct file *, struct vm_area_struct *);
