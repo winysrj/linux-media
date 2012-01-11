@@ -1,149 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:54330 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529Ab2ANTf3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 14:35:29 -0500
-Received: by mail-ey0-f174.google.com with SMTP id l12so562456eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 11:35:29 -0800 (PST)
-From: Sylwester Nawrocki <snjw23@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH/RFC v3 3/3] gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-Date: Sat, 14 Jan 2012 20:35:05 +0100
-Message-Id: <1326569705-20261-4-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1326569705-20261-1-git-send-email-sylvester.nawrocki@gmail.com>
-References: <20120114192414.05ad2e83@tele>
- <1326569705-20261-1-git-send-email-sylvester.nawrocki@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:59323 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756692Ab2AKAWP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 10 Jan 2012 19:22:15 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0B0MFsU002336
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 19:22:15 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/6] [media] cx231xx-input: stop polling if the device got removed.
+Date: Tue, 10 Jan 2012 22:20:22 -0200
+Message-Id: <1326241226-6734-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1326241226-6734-1-git-send-email-mchehab@redhat.com>
+References: <1326241226-6734-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The JPEG compression quality control is currently done by means of the
-VIDIOC_S/G_JPEGCOMP ioctls. As the quality field of struct v4l2_jpgecomp
-is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY control,
-so after the deprecation period VIDIOC_S/G_JPEGCOMP ioctl handlers can be
-removed, leaving the control the only user interface for compression
-quality configuration.
+If the device got removed, stops polling it. Also, un-registers
+it at input/evdev, as it won't work anymore. We can't free the
+IR structure yet, as the ir_remove method will be called later.
 
-Cc: Jean-Francois Moine <moinejf@free.fr>
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/gspca/zc3xx.c |   45 ++++++++++++++++++++++++------------
- 1 files changed, 30 insertions(+), 15 deletions(-)
+ drivers/media/video/cx231xx/cx231xx-input.c |    6 +++++-
+ drivers/media/video/ir-kbd-i2c.c            |   17 +++++++++++++----
+ 2 files changed, 18 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
-index f22e02f..b6a18c8 100644
---- a/drivers/media/video/gspca/zc3xx.c
-+++ b/drivers/media/video/gspca/zc3xx.c
-@@ -46,6 +46,7 @@ enum e_ctrl {
- 	AUTOGAIN,
- 	LIGHTFREQ,
- 	SHARPNESS,
-+	QUALITY,
- 	NCTRLS		/* number of controls */
- };
-
-@@ -57,11 +58,6 @@ struct sd {
-
- 	struct gspca_ctrl ctrls[NCTRLS];
-
--	u8 quality;			/* image quality */
--#define QUALITY_MIN 50
--#define QUALITY_MAX 80
--#define QUALITY_DEF 70
--
- 	u8 bridge;
- 	u8 sensor;		/* Type of image sensor chip */
- 	u16 chip_revision;
-@@ -101,6 +97,12 @@ static void setexposure(struct gspca_dev *gspca_dev);
- static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
- static void setlightfreq(struct gspca_dev *gspca_dev);
- static void setsharpness(struct gspca_dev *gspca_dev);
-+static void set_quality(struct gspca_dev *gspca_dev);
-+
-+/* JPEG image quality */
-+#define QUALITY_MIN 50
-+#define QUALITY_MAX 80
-+#define QUALITY_DEF 70
-
- static const struct ctrl sd_ctrls[NCTRLS] = {
- [BRIGHTNESS] = {
-@@ -188,6 +190,18 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
- 	    },
- 	    .set_control = setsharpness
- 	},
-+[QUALITY] = {
-+	    {
-+		.id	 = V4L2_CID_JPEG_COMPRESSION_QUALITY,
-+		.type    = V4L2_CTRL_TYPE_INTEGER,
-+		.name    = "Compression Quality",
-+		.minimum = QUALITY_MIN,
-+		.maximum = QUALITY_MAX,
-+		.step    = 1,
-+		.default_value = QUALITY_DEF,
-+	    },
-+	    .set_control = set_quality
-+	},
- };
-
- static const struct v4l2_pix_format vga_mode[] = {
-@@ -6411,7 +6425,6 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	sd->sensor = id->driver_info;
-
- 	gspca_dev->cam.ctrls = sd->ctrls;
--	sd->quality = QUALITY_DEF;
-
- 	return 0;
- }
-@@ -6685,7 +6698,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	/* create the JPEG header */
- 	jpeg_define(sd->jpeg_hdr, gspca_dev->height, gspca_dev->width,
- 			0x21);		/* JPEG 422 */
--	jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
-
- 	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
- 	switch (sd->sensor) {
-@@ -6893,19 +6906,21 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
- 	return -EINVAL;
- }
-
-+static void set_quality(struct gspca_dev *gspca_dev)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
-+}
-+
- static int sd_set_jcomp(struct gspca_dev *gspca_dev,
- 			struct v4l2_jpegcompression *jcomp)
+diff --git a/drivers/media/video/cx231xx/cx231xx-input.c b/drivers/media/video/cx231xx/cx231xx-input.c
+index 45e14ca..8a75a90 100644
+--- a/drivers/media/video/cx231xx/cx231xx-input.c
++++ b/drivers/media/video/cx231xx/cx231xx-input.c
+@@ -27,12 +27,16 @@
+ static int get_key_isdbt(struct IR_i2c *ir, u32 *ir_key,
+ 			 u32 *ir_raw)
  {
- 	struct sd *sd = (struct sd *) gspca_dev;
-
--	if (jcomp->quality < QUALITY_MIN)
--		sd->quality = QUALITY_MIN;
--	else if (jcomp->quality > QUALITY_MAX)
--		sd->quality = QUALITY_MAX;
--	else
--		sd->quality = jcomp->quality;
-+	sd->ctrls[QUALITY].val = clamp_t(u8, jcomp->quality,
-+					 QUALITY_MIN, QUALITY_MAX);
- 	if (gspca_dev->streaming)
--		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+		set_quality(gspca_dev);
- 	return gspca_dev->usb_err;
++	int	rc;
+ 	u8	cmd, scancode;
+ 
+ 	dev_dbg(&ir->rc->input_dev->dev, "%s\n", __func__);
+ 
+ 		/* poll IR chip */
+-	if (1 != i2c_master_recv(ir->c, &cmd, 1))
++	rc = i2c_master_recv(ir->c, &cmd, 1);
++	if (rc < 0)
++		return rc;
++	if (rc != 1)
+ 		return -EIO;
+ 
+ 	/* it seems that 0xFE indicates that a button is still hold
+diff --git a/drivers/media/video/ir-kbd-i2c.c b/drivers/media/video/ir-kbd-i2c.c
+index 3ab875d..37d0c20 100644
+--- a/drivers/media/video/ir-kbd-i2c.c
++++ b/drivers/media/video/ir-kbd-i2c.c
+@@ -244,7 +244,7 @@ static int get_key_avermedia_cardbus(struct IR_i2c *ir,
+ 
+ /* ----------------------------------------------------------------------- */
+ 
+-static void ir_key_poll(struct IR_i2c *ir)
++static int ir_key_poll(struct IR_i2c *ir)
+ {
+ 	static u32 ir_key, ir_raw;
+ 	int rc;
+@@ -253,20 +253,28 @@ static void ir_key_poll(struct IR_i2c *ir)
+ 	rc = ir->get_key(ir, &ir_key, &ir_raw);
+ 	if (rc < 0) {
+ 		dprintk(2,"error\n");
+-		return;
++		return rc;
+ 	}
+ 
+ 	if (rc) {
+ 		dprintk(1, "%s: keycode = 0x%04x\n", __func__, ir_key);
+ 		rc_keydown(ir->rc, ir_key, 0);
+ 	}
++	return 0;
  }
-
-@@ -6915,7 +6930,7 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
- 	struct sd *sd = (struct sd *) gspca_dev;
-
- 	memset(jcomp, 0, sizeof *jcomp);
--	jcomp->quality = sd->quality;
-+	jcomp->quality = sd->ctrls[QUALITY].val;
- 	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
- 			| V4L2_JPEG_MARKER_DQT;
- 	return 0;
---
-1.7.4.1
+ 
+ static void ir_work(struct work_struct *work)
+ {
++	int rc;
+ 	struct IR_i2c *ir = container_of(work, struct IR_i2c, work.work);
+ 
+-	ir_key_poll(ir);
++	rc = ir_key_poll(ir);
++	if (rc == -ENODEV) {
++		rc_unregister_device(ir->rc);
++		ir->rc = NULL;
++		return;
++	}
++
+ 	schedule_delayed_work(&ir->work, msecs_to_jiffies(ir->polling_interval));
+ }
+ 
+@@ -446,7 +454,8 @@ static int ir_remove(struct i2c_client *client)
+ 	cancel_delayed_work_sync(&ir->work);
+ 
+ 	/* unregister device */
+-	rc_unregister_device(ir->rc);
++	if (ir->rc)
++		rc_unregister_device(ir->rc);
+ 
+ 	/* free memory */
+ 	kfree(ir);
+-- 
+1.7.7.5
 
