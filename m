@@ -1,55 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:62778 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932462Ab2AKLa4 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:53553 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755838Ab2AKI27 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 06:30:56 -0500
-Received: by wgbds12 with SMTP id ds12so454357wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 03:30:55 -0800 (PST)
-Message-ID: <4F0D72F1.8070806@gmail.com>
-Date: Wed, 11 Jan 2012 11:30:57 +0000
-From: Jim Darby <uberscubajim@gmail.com>
+	Wed, 11 Jan 2012 03:28:59 -0500
+Date: Wed, 11 Jan 2012 09:28:52 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Fabio Estevam <festevam@gmail.com>
+cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [PATCH] drivers: video: mx3_camera: Convert mx3_camera to use
+ module_platform_driver()
+In-Reply-To: <1326250708-17643-1-git-send-email-festevam@gmail.com>
+Message-ID: <Pine.LNX.4.64.1201110928280.1191@axis700.grange>
+References: <1326250708-17643-1-git-send-email-festevam@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Possible regression in 3.2 kernel with PCTV Nanostick T2 (em28xx,
- cxd2820r and tda18271)
-References: <4F0C3D1B.2010904@gmail.com> <4F0CE040.7020904@iki.fi>
-In-Reply-To: <4F0CE040.7020904@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I thought I'd batch all the answers together.
+On Wed, 11 Jan 2012, Fabio Estevam wrote:
 
-Andy suggested something about transfer buffers being dropped out of 
-rotation. I'm not sure exactly what this is but if it's anything like 
-ethernet buffering it would explain it. It would also explain why it 
-lasts longer on the lower bit rate standard definition TV rather than HDTV.
+> Using module_platform_driver makes the code smaller and simpler.
+> 
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 
-In response to Antti's question, I have indeed tested kernel 3.1.6. This 
-was where I originally noticed the problem. I upgraded to 3.2.0 to see 
-if had been fixed and when I found that it hadn't posted here.
+Isn't this covered by this:
 
-I pulled the LinuxTV.org v4l-dvb from mercurial but it looks more like a 
-patch than a full kernel (the previous one I pulled seven months ago was 
-a complete kernel). For reference the 3.0.0+ kernel that came from 
-LinuxTV.org v4l-dvb seven months ago has functioned flawlessly ever since.
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/43200
 
-I've just downloaded the media_build.git stuff, installed the extra 
-packages it needed and it's be building now.
+Thanks
+Guennadi
 
-The other card in the system is a very old Nova-T. It's got a LSI L64781 
-frontend on it.
+> ---
+>  drivers/media/video/mx3_camera.c |   14 +-------------
+>  1 files changed, 1 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+> index f44323f..7452277 100644
+> --- a/drivers/media/video/mx3_camera.c
+> +++ b/drivers/media/video/mx3_camera.c
+> @@ -1286,19 +1286,7 @@ static struct platform_driver mx3_camera_driver = {
+>  	.remove		= __devexit_p(mx3_camera_remove),
+>  };
+>  
+> -
+> -static int __init mx3_camera_init(void)
+> -{
+> -	return platform_driver_register(&mx3_camera_driver);
+> -}
+> -
+> -static void __exit mx3_camera_exit(void)
+> -{
+> -	platform_driver_unregister(&mx3_camera_driver);
+> -}
+> -
+> -module_init(mx3_camera_init);
+> -module_exit(mx3_camera_exit);
+> +module_platform_driver(mx3_camera_driver);
+>  
+>  MODULE_DESCRIPTION("i.MX3x SoC Camera Host driver");
+>  MODULE_AUTHOR("Guennadi Liakhovetski <lg@denx.de>");
+> -- 
+> 1.7.1
+> 
 
-Finally Steven said that it might be signal, hardware or heat related. 
-I'm unsure of this because if I boot the machine with the 3.0.0+ kernel 
-with exactly the same user-land everything it functions perfectly and 
-has done for months.
-
-I'll report back on my adventures with the media_build changes to the 
-3.2 kernel.
-
-Best regards,
-
-Jim.
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
