@@ -1,79 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:53607 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758734Ab2AFOzW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 09:55:22 -0500
-Received: by eekc4 with SMTP id c4so1105900eek.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 06:55:21 -0800 (PST)
-Message-ID: <4F070B55.4080408@gmail.com>
-Date: Fri, 06 Jan 2012 15:55:17 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:41318 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751142Ab2ALSCs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jan 2012 13:02:48 -0500
+Received: by eaal12 with SMTP id l12so753011eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2012 10:02:47 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH FOR 3.3] VIDIOC_LOG_STATUS support for sub-devices
-References: <4EFEEEB7.2020109@gmail.com> <4F07075E.8050301@redhat.com>
-In-Reply-To: <4F07075E.8050301@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Thu, 12 Jan 2012 19:02:47 +0100
+Message-ID: <CANbcZdNK5v5i=a13sEE216-HjEnXXciWCe_jc139N3MVnKP5oA@mail.gmail.com>
+Subject: Problem with WinTV HVR-930C
+From: Daniel Rindt <daniel.rindt@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/06/2012 03:38 PM, Mauro Carvalho Chehab wrote:
-> On 31-12-2011 09:15, Sylwester Nawrocki wrote:
->> Hi Mauro,
->>
->> The following changes since commit 3220eb73c5647af4c1f18e32c12dccb8adbac59d:
->>
->>    s5p-fimc: Add support for alpha component configuration (2011-12-20 19:46:55
->> +0100)
->>
->> are available in the git repository at:
->>    git://git.infradead.org/users/kmpark/linux-samsung v4l_mbus
->>
->> This one patch enables VIDIOC_LOG_STATUS on subdev nodes.
->>
->> Sylwester Nawrocki (1):
->>        v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
->
->
-> Weird... when trying to pull from your tree, several other patches appeared.
-> After removing the ones that seemed to be already applied, there are still
-> those that seemed to still apply:
->
-> Nov,17 2011: s5p-fimc: Prevent lock up caused by incomplete H/W initialization
+Hello,
 
-This one was already requested in my previous pull request:
-http://patchwork.linuxtv.org/patch/8765/
+i am running Fedora 16 64bit and have no luck to get working the WinTV
+HVR-930C. Invoked command lsusb told me: Bus 001 Device 002: ID
+2040:1605 Hauppauge. Installed from update-testing-repository is the
+most recent kernel version kernel-3.1.8-2.fc16.x86_64.
 
-> Oct, 1 2011: v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
+Loaded the em28xx by hand and shows up this in dmesg:
+[  482.220534] IR NEC protocol handler initialized
+[  482.228352] IR RC5(x) protocol handler initialized
+[  482.229710] Linux media interface: v0.10
+[  482.235907] Linux video capture interface: v2.00
+[  482.240601] IR RC6 protocol handler initialized
+[  482.257921] IR JVC protocol handler initialized
+[  482.263175] IR Sony protocol handler initialized
+[  482.268460] IR MCE Keyboard/mouse protocol handler initialized
+[  482.273807] usbcore: registered new interface driver em28xx
+[  482.273816] em28xx driver loaded
+[  482.275215] lirc_dev: IR Remote Control driver registered, major 249
+[  482.285327] IR LIRC bridge handler initialized
 
-and this is the only one new I'd like you to apply for 3.3.
+I am in doubt that the newest development is included in this kernel
+release. Or maybe i have do something wrong. Your help is much
+appreciated.
 
-> Dec, 9 2011: v4l: Add new framesamples field to struct v4l2_mbus_framefmt
-> Dec,15 2011: v4l: Update subdev drivers to handle framesamples parameter
-> Dec,12 2011: m5mols: Add buffer size configuration support for compressed streams
-> Nov,21 2011: s5p-fimc: Add media bus framesamples support
-
-These are irrelevant and should be dropped. Sorry for the confusion, 
-I've sent this pull request when I didn't have write access to the
-git://git.infradead.org/users/kmpark/linux-samsung repository.
-
->
-> Could you please double-check and, if possible, rebase your tree, to avoid
-> the risk of applying something that is not ok yet, nor to miss something?
-
-Unfortunately I can't rebase at this moment, could do it only on Monday.
-If possible please apply only:
-
-  s5p-fimc: Prevent lock up caused by incomplete H/W initialization
-  v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
-
-for 3.3 and drop the bottom four.
-
---
-Thank you,
-Sylwester
-
-> Thanks!
-> Mauro
+Thanks
+Daniel
