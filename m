@@ -1,79 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:45992 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751310Ab2AEH5o (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 02:57:44 -0500
-Date: Thu, 5 Jan 2012 09:57:39 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org,
-	uclinux-dist-devel@blackfin.uclinux.org
-Subject: Re: [PATCH] v4l2: v4l2-fh: v4l2_fh_is_singular should use list
- head to test
-Message-ID: <20120105075739.GL9323@valkosipuli.localdomain>
-References: <1324481454-30066-1-git-send-email-scott.jiang.linux@gmail.com>
- <20120104155413.GH9323@valkosipuli.localdomain>
- <CAHG8p1C6-gi045OeapO=uqnhRR-j5Lh5SFfYF-Q0uF3L_XBzEQ@mail.gmail.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:35421 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751910Ab2ALQWz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jan 2012 11:22:55 -0500
+Received: by wgbds12 with SMTP id ds12so1978140wgb.1
+        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2012 08:22:54 -0800 (PST)
+Message-ID: <4F0F08DB.4050301@gmail.com>
+Date: Thu, 12 Jan 2012 17:22:51 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAHG8p1C6-gi045OeapO=uqnhRR-j5Lh5SFfYF-Q0uF3L_XBzEQ@mail.gmail.com>
+To: Jim Darby <uberscubajim@gmail.com>, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Possible regression in 3.2 kernel with PCTV Nanostick T2 (em28xx,
+ cxd2820r and tda18271)
+References: <4F0C3D1B.2010904@gmail.com> <4F0CE040.7020904@iki.fi> <4F0DE0C2.5050907@gmail.com>
+In-Reply-To: <4F0DE0C2.5050907@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 05, 2012 at 10:52:02AM +0800, Scott Jiang wrote:
-> 2012/1/4 Sakari Ailus <sakari.ailus@iki.fi>:
-> > Hi Scott,
-> >
-> > Thanks for the patch.
-> >
-> > On Wed, Dec 21, 2011 at 10:30:54AM -0500, Scott Jiang wrote:
-> >> list_is_singular accepts a list head to test whether a list has just one entry.
-> >> fh->list is the entry, fh->vdev->fh_list is the list head.
-> >>
-> >> Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
-> >> ---
-> >>  drivers/media/video/v4l2-fh.c |    2 +-
-> >>  1 files changed, 1 insertions(+), 1 deletions(-)
-> >>
-> >> diff --git a/drivers/media/video/v4l2-fh.c b/drivers/media/video/v4l2-fh.c
-> >> index 9e3fc04..8292c4a 100644
-> >> --- a/drivers/media/video/v4l2-fh.c
-> >> +++ b/drivers/media/video/v4l2-fh.c
-> >> @@ -113,7 +113,7 @@ int v4l2_fh_is_singular(struct v4l2_fh *fh)
-> >>       if (fh == NULL || fh->vdev == NULL)
-> >>               return 0;
-> >>       spin_lock_irqsave(&fh->vdev->fh_lock, flags);
-> >> -     is_singular = list_is_singular(&fh->list);
-> >> +     is_singular = list_is_singular(&fh->vdev->fh_list);
-> >>       spin_unlock_irqrestore(&fh->vdev->fh_lock, flags);
-> >>       return is_singular;
-> >>  }
-> >
-> > Is there an issue that this patch resolves, or am I missing something? As
-> > far as I can see, the list_is_singular() test returns the same result
-> > whether you are testing a list item which is part of the list, or its head
-> > in struct video_device.
-> >
-> Yes, the result is the same. But I don't think it's a good example
-> because it may abuse this api.
-> Can anybody figure out what this api needs you to pass in?  I confess
-> I am not sure about that.
+Il 11/01/2012 20:19, Jim Darby ha scritto:
+> On 11/01/12 01:05, Antti Palosaari wrote:
+>> [snip]
+>> Also latest LinuxTV.org devel could be interesting to see. There is
+>> one patch that changes em28xx driver endpoint configuration. But as
+>> that patch is going for 3.3 it should not be cause of issue, but I
+>> wonder if it could fix... Use media_build.git if possible.
+> 
+> Well, I built the kernel and installed it. Sadly I get entries of the
+> form: "dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3
+> call to delivery system 0" which isn't what I was looking for. I guess
+> there's a new API? It would appear this is from the set frontend call.
+> 
+> This is most annoying as I'd like to try out the newest code.
+> 
+> Is there a v3 to v3 transition document anywhere?
+> 
+> Best regards,
+> 
+> Jim.
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-That's true; it's more correct (and intuitive as well) to use the real list
-head for the purpose. But if the implementation really changed I bet a huge
-number of other things would break as well.
+Hi Jim,
+you spotted a regression in the latest media_build release from
+11/01/2012.
+I had the same problem here:
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+"dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+delivery system 0"
 
-Hans: you wrote the patch adding this code (dfddb244); what do you think?
+with 3 totally different sticks (em28xx, dvb-usb, as102).
 
-Regards,
+Everything was working fine with media_build drivers from 08/01/2011, so
+the problem originates from a patch committed in the last few days.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+In fact, I reverted this patch:
+
+http://patchwork.linuxtv.org/patch/9443/
+
+and Kaffeine started working again with all my DVB-T sticks.
+
+Best regards,
+Gianluca
