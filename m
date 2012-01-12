@@ -1,126 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:44579 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752008Ab2AGXj6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 18:39:58 -0500
-Message-ID: <4F08D7C2.3030203@maxwell.research.nokia.com>
-Date: Sun, 08 Jan 2012 01:39:46 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:32907 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754333Ab2ALRND (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jan 2012 12:13:03 -0500
+Received: by qcsg13 with SMTP id g13so1171088qcs.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2012 09:13:02 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-Subject: Re: [RFC 12/17] omap3isp: Add lane configuration to platform data
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-12-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201201061106.04553.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201061106.04553.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4F0F0BEF.8040002@gmail.com>
+References: <4F0C3D1B.2010904@gmail.com>
+	<4F0CE040.7020904@iki.fi>
+	<4F0DE0C2.5050907@gmail.com>
+	<4F0F08DB.4050301@gmail.com>
+	<4F0F0BEF.8040002@gmail.com>
+Date: Thu, 12 Jan 2012 17:13:01 +0000
+Message-ID: <CAH4Ag-BGukfwtU0-92Q0k5-KwMnZ=KTL1L_bLUaHRkORB9n8jg@mail.gmail.com>
+Subject: Re: Possible regression in 3.2 kernel with PCTV Nanostick T2 (em28xx,
+ cxd2820r and tda18271)
+From: Simon Jones <sijones2010@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+> I'm still unsure about the first. It might be a 32/64-bit problem (based on
+> evidence from Simon Jones), it might be flaky hardware or it might be a real
+> problem. I'm planning to build the 3.2.0 kernel (minus the linux-media
+> patches) for 64-bit on different hardware and see what happens.
+>
+> As for the second I suspect it might be a kaffeine problem. It might just
+> need recompiling with the new headers or it might need some work on it. I'll
+> investigate that after I've solved the first regression.
+>
 
-Laurent Pinchart wrote:
-> On Tuesday 20 December 2011 21:28:04 Sakari Ailus wrote:
->> From: Sakari Ailus <sakari.ailus@iki.fi>
->>
->> Add lane configuration (order of clock and data lane) to platform data on
->> both CCP2 and CSI-2.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> ---
->>  drivers/media/video/omap3isp/ispcsiphy.h |   15 ++-------------
->>  include/media/omap3isp.h                 |   15 +++++++++++++++
->>  2 files changed, 17 insertions(+), 13 deletions(-)
->>
->> diff --git a/drivers/media/video/omap3isp/ispcsiphy.h
->> b/drivers/media/video/omap3isp/ispcsiphy.h index 9596dc6..e93a661 100644
->> --- a/drivers/media/video/omap3isp/ispcsiphy.h
->> +++ b/drivers/media/video/omap3isp/ispcsiphy.h
->> @@ -27,22 +27,11 @@
->>  #ifndef OMAP3_ISP_CSI_PHY_H
->>  #define OMAP3_ISP_CSI_PHY_H
->>
->> +#include <media/omap3isp.h>
->> +
->>  struct isp_csi2_device;
->>  struct regulator;
->>
->> -struct csiphy_lane {
->> -	u8 pos;
->> -	u8 pol;
->> -};
->> -
->> -#define ISP_CSIPHY2_NUM_DATA_LANES	2
->> -#define ISP_CSIPHY1_NUM_DATA_LANES	1
->> -
->> -struct isp_csiphy_lanes_cfg {
->> -	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
->> -	struct csiphy_lane clk;
->> -};
->> -
->>  struct isp_csiphy_dphy_cfg {
->>  	u8 ths_term;
->>  	u8 ths_settle;
->> diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
->> index e917b1d..8fe0bdf 100644
->> --- a/include/media/omap3isp.h
->> +++ b/include/media/omap3isp.h
->> @@ -86,6 +86,19 @@ enum {
->>  	ISP_CCP2_MODE_CCP2 = 1,
->>  };
->>
->> +struct csiphy_lane {
->> +	u8 pos;
->> +	u8 pol;
->> +};
->> +
->> +#define ISP_CSIPHY2_NUM_DATA_LANES	2
->> +#define ISP_CSIPHY1_NUM_DATA_LANES	1
->> +
->> +struct isp_csiphy_lanes_cfg {
->> +	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
->> +	struct csiphy_lane clk;
->> +};
-> 
-> Could you please document the two structures using kerneldoc ?
+Might have been a bit prem on the working perfect.... cam home to the
+wife saying the system has crashed... looked in the logs and this is
+reported:
 
-Done.
+Jan 12 05:27:59 localhost kernel: [308040.577546] xhci_hcd
+0000:02:00.0: WARN: buffer overrun event on endpoint
+---> This error has occured since I built the system at christmas,
+have been ignoring it because it didn't seem to cause any issues.
 
->> +
->>  /**
->>   * struct isp_ccp2_platform_data - CCP2 interface platform data
->>   * @strobe_clk_pol: Strobe/clock polarity
->> @@ -105,6 +118,7 @@ struct isp_ccp2_platform_data {
->>  	unsigned int ccp2_mode:1;
->>  	unsigned int phy_layer:1;
->>  	unsigned int vpclk_div:2;
->> +	struct isp_csiphy_lanes_cfg *lanecfg;
-> 
-> Lane configuration is mandatory, what about embedding struct 
-> isp_csiphy_lanes_cfg inside struct isp_ccp2_platform instead of having a 
-> pointer ?
-
-Done.
-
->>  };
->>
->>  /**
->> @@ -115,6 +129,7 @@ struct isp_ccp2_platform_data {
->>  struct isp_csi2_platform_data {
->>  	unsigned crc:1;
->>  	unsigned vpclk_div:2;
->> +	struct isp_csiphy_lanes_cfg *lanecfg;
-> 
-> Same here.
-
-Ditto.
-
->>  };
->>
->>  struct isp_subdev_i2c_board_info {
-> 
+Jan 12 05:33:03 localhost kernel: [308344.766507] xhci_hcd
+0000:02:00.0: WARN: babble error on endpoint
+Jan 12 05:33:03 localhost kernel: [308344.766541] hub 1-0:1.0: port 1
+disabled by hub (EMI?), re-enabling...
+Jan 12 05:33:03 localhost kernel: [308344.766546] usb 1-1: USB
+disconnect, device number 2
+Jan 12 05:33:03 localhost kernel: [308344.766602] em28xx #0:
+disconnecting em28xx #0 video
+Jan 12 05:33:04 localhost kernel: [308344.805942] cxd2820r: i2c rd
+failed ret:-19 reg:10 len:1
+Jan 12 05:33:04 localhost kernel: [308344.849191] cxd2820r: i2c rd
+failed ret:-19 reg:26 len:2
+Jan 12 05:33:04 localhost kernel: [308344.859414] em28xx #0: V4L2
+device video0 deregistered
+Jan 12 05:33:04 localhost kernel: [308344.889276] cxd2820r: i2c rd
+failed ret:-19 reg:28 len:2
+Jan 12 05:36:00 localhost kernel: [308521.689250] INFO: task khubd:140
+blocked for more than 120 seconds.
+Jan 12 05:36:00 localhost kernel: [308521.689256] "echo 0 >
+/proc/sys/kernel/hung_task_timeout_secs" disables this message.
+Jan 12 05:36:00 localhost kernel: [308521.689262] khubd           D
+0000000105821dfa     0   140      2 0x00000000
+Jan 12 05:36:00 localhost kernel: [308521.689272]  ffff8804227e9b80
+0000000000000046 ffff880400000000 00000000435d27dc
+Jan 12 05:36:00 localhost kernel: [308521.689282]  ffff880423637200
+ffff8804227e9fd8 ffff8804227e9fd8 ffff8804227e9fd8
+Jan 12 05:36:00 localhost kernel: [308521.689290]  ffff8804244cf200
+ffff880423637200 ffff8804227e9b30 ffffffff814156f8
+Jan 12 05:36:00 localhost kernel: [308521.689299] Call Trace:
+Jan 12 05:36:00 localhost kernel: [308521.689311]
+[<ffffffff814156f8>] ? wait_for_common+0x128/0x160
+Jan 12 05:36:00 localhost kernel: [308521.689323]
+[<ffffffff8105cf70>] ? try_to_wake_up+0x290/0x290
+Jan 12 05:36:00 localhost kernel: [308521.689330]
+[<ffffffff8141574d>] ? wait_for_completion+0x1d/0x20
+Jan 12 05:36:00 localhost kernel: [308521.689337]
+[<ffffffff8141640f>] schedule+0x3f/0x60
+Jan 12 05:36:00 localhost kernel: [308521.689366]
+[<ffffffffa028f2c5>] dvb_unregister_frontend+0xc5/0x110 [dvb_core]
+Jan 12 05:36:00 localhost kernel: [308521.689376]
+[<ffffffff810868f0>] ? abort_exclusive_wait+0xb0/0xb0
+Jan 12 05:36:00 localhost kernel: [308521.689386]
+[<ffffffffa01fda22>] em28xx_dvb_fini+0xf2/0x150 [em28xx_dvb]
+Jan 12 05:36:00 localhost kernel: [308521.689400]
+[<ffffffffa037606e>] em28xx_close_extension+0x3e/0xa0 [em28xx]
+Jan 12 05:36:00 localhost kernel: [308521.689410]
+[<ffffffffa0373ef5>] em28xx_usb_disconnect+0xe5/0x190 [em28xx]
+Jan 12 05:36:00 localhost kernel: [308521.689436]
+[<ffffffffa0011242>] usb_unbind_interface+0x52/0x180 [usbcore]
+Jan 12 05:36:00 localhost kernel: [308521.689448]
+[<ffffffff8130071c>] __device_release_driver+0x7c/0xe0
+Jan 12 05:36:00 localhost kernel: [308521.689456]
+[<ffffffff813007ac>] device_release_driver+0x2c/0x40
+Jan 12 05:36:00 localhost kernel: [308521.689463]
+[<ffffffff81300258>] bus_remove_device+0x78/0xb0
+Jan 12 05:36:00 localhost kernel: [308521.689475]
+[<ffffffff812fdb5d>] device_del+0x12d/0x1b0
+Jan 12 05:36:00 localhost kernel: [308521.689482]
+[<ffffffffa000ef9f>] usb_disable_device+0xaf/0x1d0 [usbcore]
+Jan 12 05:36:00 localhost kernel: [308521.689489]
+[<ffffffffa00073a8>] usb_disconnect+0x98/0x130 [usbcore]
+Jan 12 05:36:00 localhost kernel: [308521.689497]
+[<ffffffffa00092fc>] hub_thread+0xa4c/0x12d0 [usbcore]
+Jan 12 05:36:00 localhost kernel: [308521.689500]
+[<ffffffff810868f0>] ? abort_exclusive_wait+0xb0/0xb0
+Jan 12 05:36:00 localhost kernel: [308521.689507]
+[<ffffffffa00088b0>] ? usb_remote_wakeup+0x40/0x40 [usbcore]
+Jan 12 05:36:00 localhost kernel: [308521.689510]
+[<ffffffff81085fac>] kthread+0x8c/0xa0
+Jan 12 05:36:00 localhost kernel: [308521.689513]
+[<ffffffff8141bd74>] kernel_thread_helper+0x4/0x10
+Jan 12 05:36:00 localhost kernel: [308521.689516]
+[<ffffffff81085f20>] ? kthread_worker_fn+0x190/0x190
+Jan 12 05:36:00 localhost kernel: [308521.689519]
+[<ffffffff8141bd70>] ? gs_change+0x13/0x13
 
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+It goes on longer than this, but think it's the same repeated
+information and call stack trace etc.
+
+But this could just be related to the usb drivers being a bit unstable
+on this motherboard.
