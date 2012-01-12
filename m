@@ -1,37 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm24-vm0.bullet.mail.ird.yahoo.com ([212.82.109.239]:37462 "HELO
-	nm24-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750740Ab2APFoN convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 00:44:13 -0500
-Message-ID: <1326692239.13275.YahooMailNeo@web24611.mail.ird.yahoo.com>
-Date: Mon, 16 Jan 2012 05:37:19 +0000 (GMT)
-From: pom pem <toufas2003@yahoo.gr>
-Reply-To: pom pem <toufas2003@yahoo.gr>
-Subject: driver needed
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:37711 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753527Ab2ALQgA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jan 2012 11:36:00 -0500
+Received: by werm1 with SMTP id m1so1486345wer.19
+        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2012 08:35:59 -0800 (PST)
+Message-ID: <4F0F0BEF.8040002@gmail.com>
+Date: Thu, 12 Jan 2012 16:35:59 +0000
+From: Jim Darby <uberscubajim@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-7
-Content-Transfer-Encoding: 8BIT
+To: gennarone@gmail.com
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Possible regression in 3.2 kernel with PCTV Nanostick T2 (em28xx,
+ cxd2820r and tda18271)
+References: <4F0C3D1B.2010904@gmail.com> <4F0CE040.7020904@iki.fi> <4F0DE0C2.5050907@gmail.com> <4F0F08DB.4050301@gmail.com>
+In-Reply-To: <4F0F08DB.4050301@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+On 12/01/12 16:22, Gianluca Gennari wrote:
+> Hi Jim,
+> you spotted a regression in the latest media_build release from
+> 11/01/2012.
+> I had the same problem here:
+>
+> "dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+> delivery system 0"
+>
+> with 3 totally different sticks (em28xx, dvb-usb, as102).
+>
+> Everything was working fine with media_build drivers from 08/01/2011, so
+> the problem originates from a patch committed in the last few days.
+>
+> In fact, I reverted this patch:
+>
+> http://patchwork.linuxtv.org/patch/9443/
+>
+> and Kaffeine started working again with all my DVB-T sticks.
+>
+> Best regards,
+> Gianluca
 
- I have this usb tv card called pixelview playtv usb2 pro
- I have made a lot of attempts to install it on various linux kernel and systems but no lack till now
- this card has the following specs
- 
- 
- model No    pv-tv309U+
- 
- ID              05e3:f102 Genesys Logic, Inc. VX7012 TV Box
- idProduct    0xf102 VX7012 TV Box 
- 
- 
- is there any driver that supports this card??
- can I do anything to make it work on linux??
- My current linux distro is avlinux 5.0.2
-Thank you in advance
-Pom
+I think that we need to be careful about two different problems here.
 
+The first is the regression that I originally reported. In this case the 
+device stops sending data after a variable period of time and we get to 
+miss the end of the programme that we're watching.
+
+The second, which is the one that Gianluca has spotted as well, is that 
+there seems to be some form of API change in the latest linux-media 
+which is causing kaffeine to stop working.
+
+I'm still unsure about the first. It might be a 32/64-bit problem (based 
+on evidence from Simon Jones), it might be flaky hardware or it might be 
+a real problem. I'm planning to build the 3.2.0 kernel (minus the 
+linux-media patches) for 64-bit on different hardware and see what happens.
+
+As for the second I suspect it might be a kaffeine problem. It might 
+just need recompiling with the new headers or it might need some work on 
+it. I'll investigate that after I've solved the first regression.
+
+Pedant mode: the kaffeine problem isn't really a regression as such. 
+It's more of a API versioning issue. More on this later.
+
+Hope this helps,
+
+Jim.
