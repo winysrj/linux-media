@@ -1,46 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34216 "EHLO mx1.redhat.com"
+Received: from mgw2.diku.dk ([130.225.96.92]:54336 "EHLO mgw2.diku.dk"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751089Ab2ABIAD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 2 Jan 2012 03:00:03 -0500
-Message-ID: <4F01643D.5000404@redhat.com>
-Date: Mon, 02 Jan 2012 09:01:01 +0100
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-CC: Jean-Francois Moine <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH for 3.2 URGENT] gspca: Fix bulk mode cameras no longer
- working (regression fix)
-References: <1325191002-25074-1-git-send-email-hdegoede@redhat.com> <1325191002-25074-2-git-send-email-hdegoede@redhat.com> <20111230112121.03e8b59b@tele> <4EFD985A.4050301@redhat.com> <alpine.LNX.2.00.1112311303100.30415@banach.math.auburn.edu>
-In-Reply-To: <alpine.LNX.2.00.1112311303100.30415@banach.math.auburn.edu>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1755850Ab2ALVti (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jan 2012 16:49:38 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: kernel-janitors@vger.kernel.org,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 4/5] drivers/media/video/s5p-mfc/s5p_mfc.c: adjust double test
+Date: Thu, 12 Jan 2012 22:49:30 +0100
+Message-Id: <1326404970-1084-5-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1326404970-1084-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1326404970-1084-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-On 12/31/2011 08:08 PM, Theodore Kilgore wrote:
+Rewrite a duplicated test to test the correct value
 
-<snip>
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-> Jean-Francois, Hans,
->
-> Without addressing finer points, please let me add the following:
->
-> 1. I figured out what was holding me back from getting 3.2 to work (it was
-> a config error, apparently originating between keyboard and chair).
->
-> 2. Based upon my testing today, something like this patch is clearly
-> necessary. Namely, I tested a mass storage camera. Without this patch it
-> would not stream. When I applied the patch, it did.
->
-> Therefore, I hope very much that the problem which occasioned this patch
-> gets fixed.
+// <smpl>
+@@
+expression E;
+@@
 
-No worries, this patch has already found its way into Linus' tree.
+(
+* E
+  || ... || E
+|
+* E
+  && ... && E
+)
+// </smpl>
 
-Regards,
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
 
-Hans
+---
+There is an img_height field, so it is my guess that that should be tested
+instead of testing the img_width field again.
+
+ drivers/media/video/s5p-mfc/s5p_mfc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
+index 8be8b54..53126f2 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+@@ -475,7 +475,7 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
+ 			ctx->mv_size = 0;
+ 		}
+ 		ctx->dpb_count = s5p_mfc_get_dpb_count();
+-		if (ctx->img_width == 0 || ctx->img_width == 0)
++		if (ctx->img_width == 0 || ctx->img_height == 0)
+ 			ctx->state = MFCINST_ERROR;
+ 		else
+ 			ctx->state = MFCINST_HEAD_PARSED;
+
