@@ -1,37 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55136 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752643Ab2AZPic (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 10:38:32 -0500
-Date: Thu, 26 Jan 2012 16:38:31 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/8] soc-camera: Add plane layout information to struct
- soc_mbus_pixelfmt
-In-Reply-To: <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1201261629031.10057@axis700.grange>
-References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mgw2.diku.dk ([130.225.96.92]:42210 "EHLO mgw2.diku.dk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755589Ab2ALVdP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 12 Jan 2012 16:33:15 -0500
+From: Julia Lawall <Julia.Lawall@lip6.fr>
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: kernel-janitors@vger.kernel.org,
+	Kamil Debski <k.debski@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: [PATCH 4/4] drivers/media/video/s5p-mfc/s5p_mfc.c: adjust double test
+Date: Thu, 12 Jan 2012 22:33:08 +0100
+Message-Id: <1326403988-872-5-git-send-email-Julia.Lawall@lip6.fr>
+In-Reply-To: <1326403988-872-1-git-send-email-Julia.Lawall@lip6.fr>
+References: <1326403988-872-1-git-send-email-Julia.Lawall@lip6.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 25 Jan 2012, Laurent Pinchart wrote:
+From: Julia Lawall <Julia.Lawall@lip6.fr>
 
-> To compute the number of bytes per line according to the V4L2
-> specification, we need information about planes layout for planar
-> formats. The new enum soc_mbus_layout convey that information.
+Rewrite a duplicated test to test the correct value
 
-Maybe it is better to call that value not "the number of bytes per line 
-according to the V4L2 specification," but rather "the value of the 
-.bytesperline field?" Also, "conveys" seems a better fit to me:-)
+The semantic match that finds this problem is as follows:
+(http://coccinelle.lip6.fr/)
 
-Thanks
-Guennadi
+// <smpl>
+@@
+expression E;
+@@
+
+(
+* E
+  || ... || E
+|
+* E
+  && ... && E
+)
+// </smpl>
+
+Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/s5p-mfc/s5p_mfc.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
+index 8be8b54..53126f2 100644
+--- a/drivers/media/video/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+@@ -475,7 +475,7 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx *ctx,
+ 			ctx->mv_size = 0;
+ 		}
+ 		ctx->dpb_count = s5p_mfc_get_dpb_count();
+-		if (ctx->img_width == 0 || ctx->img_width == 0)
++		if (ctx->img_width == 0 || ctx->img_height == 0)
+ 			ctx->state = MFCINST_ERROR;
+ 		else
+ 			ctx->state = MFCINST_HEAD_PARSED;
+
