@@ -1,148 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:55139 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751009Ab2ABIvr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 03:51:47 -0500
-Received: by wgbdr13 with SMTP id dr13so26391173wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 02 Jan 2012 00:51:46 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:15178 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753649Ab2AMTjm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jan 2012 14:39:42 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LXR002GP5A4B390@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Jan 2012 19:39:40 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LXR00JST5A4W1@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 13 Jan 2012 19:39:40 +0000 (GMT)
+Date: Fri, 13 Jan 2012 20:39:30 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH] s5p-jpeg: adapt to recent videobuf2 changes
 To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, g.liakhovetski@gmx.de, lethal@linux-sh.org,
-	hans.verkuil@cisco.com, s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH] media i.MX27 camera: properly detect frame loss.
-Date: Mon,  2 Jan 2012 09:51:33 +0100
-Message-Id: <1325494293-3968-1-git-send-email-javier.martin@vista-silicon.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1326483570-27571-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As V4L2 specification states, frame_count must also
-regard lost frames so that the user can handle that
-case properly.
+queue_setup callback has been extended with struct v4l2_format *fmt
+parameter in 2d86401c2c commit. This patch adds this parameter to
+s5p-jpeg driver.
 
-This patch adds a mechanism to increment the frame
-counter even when a video buffer is not available
-and a discard buffer is used.
-
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+CC: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 ---
- drivers/media/video/mx2_camera.c |   54 ++++++++++++++++++++++++--------------
- 1 files changed, 34 insertions(+), 20 deletions(-)
+ drivers/media/video/s5p-jpeg/jpeg-core.c |    7 ++++---
+ 1 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index ca76dd2..b244714 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -256,6 +256,7 @@ struct mx2_camera_dev {
- 	size_t			discard_size;
- 	struct mx2_fmt_cfg	*emma_prp;
- 	u32			frame_count;
-+	unsigned int		firstirq;
- };
+diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
+index f841a3e..1105a87 100644
+--- a/drivers/media/video/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
+@@ -989,9 +989,10 @@ static struct v4l2_m2m_ops s5p_jpeg_m2m_ops = {
+  * ============================================================================
+  */
  
- /* buffer for one video frame */
-@@ -370,6 +371,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 
- 	pcdev->icd = icd;
- 	pcdev->frame_count = 0;
-+	pcdev->firstirq = 1;
- 
- 	dev_info(icd->parent, "Camera driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -572,6 +574,7 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
- 	struct soc_camera_host *ici =
- 		to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
-+	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
- 	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
- 	unsigned long flags;
- 
-@@ -584,6 +587,26 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
- 	list_add_tail(&vb->queue, &pcdev->capture);
- 
- 	if (mx27_camera_emma(pcdev)) {
-+		if (prp->cfg.channel == 1) {
-+			writel(PRP_CNTL_CH1EN |
-+				PRP_CNTL_CSIEN |
-+				prp->cfg.in_fmt |
-+				prp->cfg.out_fmt |
-+				PRP_CNTL_CH1_LEN |
-+				PRP_CNTL_CH1BYP |
-+				PRP_CNTL_CH1_TSKIP(0) |
-+				PRP_CNTL_IN_TSKIP(0),
-+				pcdev->base_emma + PRP_CNTL);
-+		} else {
-+			writel(PRP_CNTL_CH2EN |
-+				PRP_CNTL_CSIEN |
-+				prp->cfg.in_fmt |
-+				prp->cfg.out_fmt |
-+				PRP_CNTL_CH2_LEN |
-+				PRP_CNTL_CH2_TSKIP(0) |
-+				PRP_CNTL_IN_TSKIP(0),
-+				pcdev->base_emma + PRP_CNTL);
-+		}
- 		goto out;
- 	} else { /* cpu_is_mx25() */
- 		u32 csicr3, dma_inten = 0;
-@@ -747,16 +770,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 		writel(pcdev->discard_buffer_dma,
- 				pcdev->base_emma + PRP_DEST_RGB2_PTR);
- 
--		writel(PRP_CNTL_CH1EN |
--				PRP_CNTL_CSIEN |
--				prp->cfg.in_fmt |
--				prp->cfg.out_fmt |
--				PRP_CNTL_CH1_LEN |
--				PRP_CNTL_CH1BYP |
--				PRP_CNTL_CH1_TSKIP(0) |
--				PRP_CNTL_IN_TSKIP(0),
--				pcdev->base_emma + PRP_CNTL);
--
- 		writel((icd->user_width << 16) | icd->user_height,
- 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 		writel((icd->user_width << 16) | icd->user_height,
-@@ -784,15 +797,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 				pcdev->base_emma + PRP_SOURCE_CR_PTR);
- 		}
- 
--		writel(PRP_CNTL_CH2EN |
--			PRP_CNTL_CSIEN |
--			prp->cfg.in_fmt |
--			prp->cfg.out_fmt |
--			PRP_CNTL_CH2_LEN |
--			PRP_CNTL_CH2_TSKIP(0) |
--			PRP_CNTL_IN_TSKIP(0),
--			pcdev->base_emma + PRP_CNTL);
--
- 		writel((icd->user_width << 16) | icd->user_height,
- 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 
-@@ -1214,7 +1218,6 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 		vb->state = state;
- 		do_gettimeofday(&vb->ts);
- 		vb->field_count = pcdev->frame_count * 2;
--		pcdev->frame_count++;
- 
- 		wake_up(&vb->done);
- 	}
-@@ -1239,6 +1242,17 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 		return;
- 	}
- 
-+	/*
-+	 * According to V4L2 specification, first valid sequence number must
-+	 * be 0. However, by design the first received frame is written to the
-+	 * discard buffer even when a video buffer is available. For that reason
-+	 * we don't increment frame_count the first time.
-+	 */
-+	if (pcdev->firstirq)
-+		pcdev->firstirq = 0;
-+	else
-+		pcdev->frame_count++;
-+
- 	buf = list_entry(pcdev->capture.next,
- 			struct mx2_buffer, vb.queue);
- 
+-static int s5p_jpeg_queue_setup(struct vb2_queue *vq, unsigned int *nbuffers,
+-				unsigned int *nplanes, unsigned int sizes[],
+-				void *alloc_ctxs[])
++static int s5p_jpeg_queue_setup(struct vb2_queue *vq,
++			   const struct v4l2_format *fmt,
++			   unsigned int *nbuffers, unsigned int *nplanes,
++			   unsigned int sizes[], void *alloc_ctxs[])
+ {
+ 	struct s5p_jpeg_ctx *ctx = vb2_get_drv_priv(vq);
+ 	struct s5p_jpeg_q_data *q_data = NULL;
 -- 
-1.7.0.4
+1.7.1.569.g6f426
 
