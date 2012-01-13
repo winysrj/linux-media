@@ -1,176 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56371 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755899Ab2AIWh2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 17:37:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09 14:00 GMT+2
-Date: Mon, 9 Jan 2012 23:37:49 +0100
-Cc: linux-media@vger.kernel.org, tuukkat76@gmail.com,
-	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
-	snjw23@gmail.com
-References: <20120104085633.GM3677@valkosipuli.localdomain> <201201092238.30469.laurent.pinchart@ideasonboard.com> <4F0B6AE6.7090008@iki.fi>
-In-Reply-To: <4F0B6AE6.7090008@iki.fi>
+Received: from impaqm3.telefonica.net ([213.4.138.19]:55228 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758041Ab2AMOrW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 13 Jan 2012 09:47:22 -0500
+From: Jose Alberto Reguero <jareguero@telefonica.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add brightness to OmniVision 5621 sensor
+Date: Fri, 13 Jan 2012 15:47:02 +0100
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201092337.51849.laurent.pinchart@ideasonboard.com>
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_mPEEP64hcm6yr/A"
+Message-Id: <201201131547.02527.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+--Boundary-00=_mPEEP64hcm6yr/A
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-On Monday 09 January 2012 23:32:06 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
-> >> Hi all,
-> >> 
-> >> We had an IRC meeting on the new sensor control interface on
-> >> #v4l-meeting as scheduled previously. The meeting log is available
-> >> here:
-> >> 
-> >> <URL:http://www.retiisi.org.uk/v4l2/v4l2-sensor-control-interface-2012-0
-> >> 1-0 9.txt>
-> >> 
-> >> My notes can be found below.
-> > 
-> > Thanks for the summary.
-> > 
-> >> Accessing V4L2 subdev and MC interfaces in user space: user space
-> >> libraries
-> >> =======================================================================
-> >> ====
-> >> 
-> >> While the V4L2 subdev and Media controller kernel interface is
-> >> functionally comprehensive, it is a relatively low level interface for
-> >> even for vendor-specific user space camera libraries. The issue is
-> >> intensified with the extension of the pipeline configuration performed
-> >> using the Media controller and V4L2 subdev interfaces to cover the
-> >> image processing performed on the sensor: this is part of the new
-> >> sensor control interface.
-> >> 
-> >> As we want to encourage SoC vendors to use the V4L2, we need to make
-> >> this as easy as possible for them.
-> >> 
-> >> The low level camera control libraries can be split into roughly two
-> >> categories: those which configure the image pipe and those which deal
-> >> with the 3A algorithms. The 3A algorithms are typically proprietary so
-> >> we concentrated to the pipeline configuration which is what the Media
-> >> controller and V4L2 subdev frameworks have been intended for.
-> >> 
-> >> Two libraries already exist for this: libmediactl and libv4l2subdev. The
-> >> former deals with topology enumeration and link configuration whereas
-> >> the latter is a generic library for V4L2 subdev configuration,
-> >> including format configuration.
-> >> 
-> >> The new sensor control interface moves the remaining policy decisions to
-> >> the user space: how the sensor's image pipe is configured, what pixel
-> >> rates are being used on the bus from the sensor to the ISP and how is
-> >> the blanking configured.
-> >> 
-> >> The role of the new library, called libv4l2pipe, is to interpret
-> >> text-based configuration file containing sections for various pipeline
-> >> format and link configurations, as well as V4L2 controls: the link
-> >> frequency is a control as well; but more on that below. The library may
-> >> be later on merged to libv4l2pipeauto which Sakari is working on.
-> >> 
-> >> Both pipeline format and link configurations are policy decisions and
-> >> thus can be expected to be use case specific. A format configuration is
-> >> dependent on a link configuration but the same link configuration can
-> >> be used with several format configurations. Thus the two should be
-> >> defined separately.
-> >> 
-> >> A third kind of section will be for setting controls. The only control
-> >> to be set will be the link frequency control but a new type of setting
-> >> warrants a new section.
-> >> 
-> >> A fourth section may be required as well: at this level the frame rate
-> >> (or frame time) range makes more sense than the low-level blanking
-> >> values. The blanking values can be calculated from the frame time and a
-> >> flag which tells whether either horizontal or vertical blanking should
-> >> be preferred.
-> > 
-> > How does one typically select between horizontal and vertical blanking ?
-> > Do mixed modes make sense ?
-> 
-> There are minimums and maximums for both. You can increase the frame
-> time by increasing value for either or both of them --- to achieve very
-> long frame times you may have to use both, but that's not very common in
-> practice. I think we should have a flag to tell which one should be
-> increased first --- the effect would be to have the minimum possible
-> value on the other.
+This patch add brightness control to OmniVision 5621 sensor.
 
-But how do you decide in practice which one to increase when you're an 
-application (or middleware) developer ?
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
 
-> >> A configuration consisting of all the above sections will define the
-> >> full pipeline configuration. The library must also provide a way to
-> >> enumerate, query and set these configurations.
-> >> 
-> >> With the existence of this library and the related new sensor control
-> >> interface, the V4L2 supports implementing digital cameras even better
-> >> than it used to.
-> >> 
-> >> The LGPL 2.1+ license used by libmediactl, libv4l2pipeauto and the
-> >> future libv4l2pipe(auto) is not seen an issue for Android to adopt
-> >> these libraries either.
-> >> 
-> >> In GStreamer middleware, libv4l2pipe is expected to be used by the
-> >> camera source component.
-> > 
-> > Should we try to draft how a 3A library should be implemented ? Do you
-> > think that might have implications on libv4l2pipe ?
-> 
-> We should, yes. I can't see any immediate effects from that to
-> libv4l2pipe. libv4l2pipe may need to provide some information to the 3A
-> library but that should mostly be it.
->
-> >> The new sensor control interface
-> >> ================================
-> >> 
-> >> 
-> >> The common understanding was that the new sensor control interface is
-> >> mostly accepted. No patches have been acked since there have been lots
-> >> of trivial and some not so trivial issues in the patchset. There was an
-> >> exception to this, which is the pixel_rate field in struct
-> >> v4l2_mbus_framefmt.
-> >> 
-> >> The field is expected to be propagated by the user while the user has no
-> >> valid use case to modify it. The agreement was that instead of adding
-> >> the field to struct v4l2_mbus_framefmt, a new control will be
-> >> introduced instead.
-> >> 
-> >> A control has several good properties: it can be implemented where it is
-> >> valid: it isn't always possible to accurately specify the pixel rate in
-> >> some parts of the pipeline.
-> >> 
-> >> Sensor drivers should provide the pixel_rate control in two subdevs: the
-> >> pixel array and the one which is opposed to the ISP's bus receiver. The
-> >> pixel array's pixel rate is mostly required in the user space whereas
-> >> the pixel rate in the bus transmitter subdev (which may have other
-> >> functionality as well) is often required by the bus receivers, as well
-> >> as by the rest of the ISP.
-> >> 
-> >> Ideally the pixel_rate control is related to pads rather than subdevs
-> >> but 1) we don't have pad specific controls and 2) we don't stictly need
-> >> them right now since there only will be need for a single pixel_rate
-> >> control per subdev.
-> >> 
-> >> If pixel rate management will be implemented to prevent starting
-> >> pipelines which would fail to stream in cases where too high pixel
-> >> rates are used on particular subdevs, the concept of pad-specific
-> >> controls may be later revisited. Making the pixel_rate control
-> >> pad-specific only will change the interface towards the user space if
-> >> the pad where it is implemented is non-zero.
-> > 
-> > I'm fine with that. Let's use a control now, we'll revisit this later if
-> > needed.
-> 
-> Agreed.
+Jose Alberto
 
--- 
-Regards,
+--Boundary-00=_mPEEP64hcm6yr/A
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="ov534_9-2.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="ov534_9-2.diff"
 
-Laurent Pinchart
+diff -ur linux/drivers/media/video/gspca/ov534_9.c linux.new/drivers/media/video/gspca/ov534_9.c
+--- linux/drivers/media/video/gspca/ov534_9.c	2012-01-07 05:45:50.000000000 +0100
++++ linux.new/drivers/media/video/gspca/ov534_9.c	2012-01-13 14:38:49.600419671 +0100
+@@ -1107,16 +1107,34 @@
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 	u8 val;
++	s8 sval;
+ 
+ 	if (gspca_dev->ctrl_dis & (1 << BRIGHTNESS))
+ 		return;
+-	val = sd->ctrls[BRIGHTNESS].val;
+-	if (val < 8)
+-		val = 15 - val;		/* f .. 8 */
+-	else
+-		val = val - 8;		/* 0 .. 7 */
+-	sccb_write(gspca_dev, 0x55,	/* brtn - brightness adjustment */
+-			0x0f | (val << 4));
++	if (sd->sensor == SENSOR_OV562x) {
++		sval = sd->ctrls[BRIGHTNESS].val;
++		val = 0x76;
++		val += sval;
++		sccb_write(gspca_dev, 0x24, val);
++		val = 0x6a;
++		val += sval;
++		sccb_write(gspca_dev, 0x25, val);
++		if (sval < -40)
++			val = 0x71;
++		else if (sval < 20)
++			val = 0x94;
++		else
++			val = 0xe6;
++		sccb_write(gspca_dev, 0x26, val);
++	} else {
++		val = sd->ctrls[BRIGHTNESS].val;
++		if (val < 8)
++			val = 15 - val;		/* f .. 8 */
++		else
++			val = val - 8;		/* 0 .. 7 */
++		sccb_write(gspca_dev, 0x55,	/* brtn - brightness adjustment */
++				0x0f | (val << 4));
++	}
+ }
+ 
+ static void setcontrast(struct gspca_dev *gspca_dev)
+@@ -1339,7 +1357,16 @@
+ 			reg_w(gspca_dev, 0x56, 0x17);
+ 	} else if ((sensor_id & 0xfff0) == 0x5620) {
+ 		sd->sensor = SENSOR_OV562x;
+-
++		gspca_dev->ctrl_dis = (1 << CONTRAST) |
++					(1 << AUTOGAIN) |
++					(1 << EXPOSURE) |
++					(1 << SHARPNESS) |
++					(1 << SATUR) |
++					(1 << LIGHTFREQ);
++
++		sd->ctrls[BRIGHTNESS].min = -90;
++		sd->ctrls[BRIGHTNESS].max = 90;
++		sd->ctrls[BRIGHTNESS].def = 0;
+ 		gspca_dev->cam.cam_mode = ov562x_mode;
+ 		gspca_dev->cam.nmodes = ARRAY_SIZE(ov562x_mode);
+ 
+@@ -1360,8 +1387,12 @@
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	if (sd->sensor == SENSOR_OV971x || sd->sensor == SENSOR_OV562x)
++	if (sd->sensor == SENSOR_OV971x)
+ 		return gspca_dev->usb_err;
++	else if (sd->sensor == SENSOR_OV562x) {
++		setbrightness(gspca_dev);
++		return gspca_dev->usb_err;
++	}
+ 	switch (gspca_dev->curr_mode) {
+ 	case QVGA_MODE:			/* 320x240 */
+ 		sccb_w_array(gspca_dev, ov965x_start_1_vga,
+
+--Boundary-00=_mPEEP64hcm6yr/A--
