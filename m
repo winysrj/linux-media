@@ -1,50 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:4364 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751833Ab2AWHxo (ORCPT
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:38400 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750855Ab2AMFdz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 02:53:44 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, Jiri Kosina <jkosina@suse.cz>,
-	Oliver Neukum <oneukum@suse.de>
-Subject: [RFCv2 PATCH 0/2] New driver for the Keene USB FM Transmitter
-Date: Mon, 23 Jan 2012 08:53:18 +0100
-Message-Id: <1327305200-3012-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 13 Jan 2012 00:33:55 -0500
+MIME-Version: 1.0
+In-Reply-To: <1326403988-872-5-git-send-email-Julia.Lawall@lip6.fr>
+References: <1326403988-872-1-git-send-email-Julia.Lawall@lip6.fr>
+	<1326403988-872-5-git-send-email-Julia.Lawall@lip6.fr>
+Date: Fri, 13 Jan 2012 14:33:54 +0900
+Message-ID: <CAH9JG2VcYqqvS6uu1upemTrfD_Cfq+4qh6VR=cxRFUT84g9MmQ@mail.gmail.com>
+Subject: Re: [PATCH 4/4] drivers/media/video/s5p-mfc/s5p_mfc.c: adjust double test
+From: Kyungmin Park <kyungmin.park@samsung.com>
+To: Julia Lawall <Julia.Lawall@lip6.fr>
+Cc: Kamil Debski <k.debski@samsung.com>,
+	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Jeongtae Park <jtp.park@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+All patches.
 
-Here is a V4L2 driver for the Keene USB FM Transmitter:
+Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-http://www.amazon.co.uk/Keene-Electronics-USB-FM-Transmitter/dp/B003GCHPDY
+To Marek,
+Please collect all patches and send git request pull.
 
-Changes from v1:
+Thank you,
+Kyungmin Park
 
-Incorporated comments from Oliver Neukum:
-
-- Use kmalloc to allocate the DMA buffer
-- Check the product name in the keene driver as well in case it is loaded
-  before the usbhid driver.
-
-It's been very useful to test V4L2 FM radio receivers.
-
-Note that the Keene FM transmitter USB device has the same USB ID as
-the Logitech AudioHub Speaker. Since the radio-keene driver needs to
-hijack the HID something needed to be done to differentiate the two.
-
-So hid-core was modified to decide this based on the product name.
-
-I have tested that this works with both a Keene device and a Logitech
-AudioHub device hooked up at the same time.
-
-Jiri, can you look at the last patch and let me know if it is OK
-from a HID point of view? If there are no more comments then I'd like
-to have it merged in the linux-media tree for v3.4 by the end of the week,
-but I need you Ack for the hid-core patch in order to do that.
-
-Regards,
-
-        Hans
-
+On 1/13/12, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
+> From: Julia Lawall <Julia.Lawall@lip6.fr>
+>
+> Rewrite a duplicated test to test the correct value
+>
+> The semantic match that finds this problem is as follows:
+> (http://coccinelle.lip6.fr/)
+>
+> // <smpl>
+> @@
+> expression E;
+> @@
+>
+> (
+> * E
+>   || ... || E
+> |
+> * E
+>   && ... && E
+> )
+> // </smpl>
+>
+> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
+>
+> ---
+>  drivers/media/video/s5p-mfc/s5p_mfc.c |    2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c
+> b/drivers/media/video/s5p-mfc/s5p_mfc.c
+> index 8be8b54..53126f2 100644
+> --- a/drivers/media/video/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
+> @@ -475,7 +475,7 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx
+> *ctx,
+>  			ctx->mv_size = 0;
+>  		}
+>  		ctx->dpb_count = s5p_mfc_get_dpb_count();
+> -		if (ctx->img_width == 0 || ctx->img_width == 0)
+> +		if (ctx->img_width == 0 || ctx->img_height == 0)
+>  			ctx->state = MFCINST_ERROR;
+>  		else
+>  			ctx->state = MFCINST_HEAD_PARSED;
+>
+>
+> _______________________________________________
+> linux-arm-kernel mailing list
+> linux-arm-kernel@lists.infradead.org
+> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+>
