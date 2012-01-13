@@ -1,42 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:64571 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753806Ab2ARMrN (ORCPT
+Received: from rcsinet15.oracle.com ([148.87.113.117]:38949 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752910Ab2AMMiD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 07:47:13 -0500
-Received: by eaac11 with SMTP id c11so917688eaa.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 04:47:11 -0800 (PST)
-Message-ID: <4F16BF4D.4070404@googlemail.com>
-Date: Wed, 18 Jan 2012 13:47:09 +0100
-From: Gregor Jasny <gjasny@googlemail.com>
+	Fri, 13 Jan 2012 07:38:03 -0500
+Date: Fri, 13 Jan 2012 15:37:57 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: pboettcher@dibcom.fr
+Cc: linux-media@vger.kernel.org
+Subject: re: V4L/DVB (12892): DVB-API: add support for ISDB-T and ISDB-Tsb
+ (version 5.1)
+Message-ID: <20120113123757.GA21686@elgon.mountain>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4l-utils migrated to autotools
-References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com>
-In-Reply-To: <4F16B8CC.3010503@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1/18/12 1:19 PM, Mauro Carvalho Chehab wrote:
-> It would be nice to write at the INSTALL what dependencies are needed for
-> the autotools to work, or, alternatively, to commit the files generated
-> by the autoreconf -vfi magic spell there [1].
+Hello Patrick Boettcher,
 
-The end user gets a tarball created with "make dist" which contains all 
-the m4 files.
+I know this patch is really old but I was hoping you still might be
+able to take a look at it.
 
-For the developers I will list the dependencies (autotools-dev, 
-pkgconfig and libtool) explicitely.
+The patch b6e760f30975: "V4L/DVB (12892): DVB-API: add support for 
+ISDB-T and ISDB-Tsb (version 5.1)" from Aug 3, 2009, leads to the 
+following warning:
+drivers/media/dvb/dvb-core/dvb_frontend.c:993:9: warning: Initializer entry defined twice
+drivers/media/dvb/dvb-core/dvb_frontend.c:1012:9:   also defined here
 
-> Not sure if it is possible, but it would be great if the build output
-> would be less verbose. libtool adds a lot of additional (generally useless)
-> messages, with makes harder to see the compilation warnings in the
-> middle of all those garbage.
+The following two sections are basically cut and paste except that the
+ones in the first section were changed to zeros.  The second set of
+initializers over writes the first, so probably we could just remove
+the first section?
 
-I will add the AM_SILENT_RULES option later.
+drivers/media/dvb/dvb-core/dvb_frontend.c
 
-Thanks,
-Gregor
++       _DTV_CMD(DTV_ISDBT_PARTIAL_RECEPTION, 1, 0),
++       _DTV_CMD(DTV_ISDBT_SOUND_BROADCASTING, 1, 0),
++       _DTV_CMD(DTV_ISDBT_SB_SUBCHANNEL_ID, 1, 0),
++       _DTV_CMD(DTV_ISDBT_SB_SEGMENT_IDX, 1, 0),
++       _DTV_CMD(DTV_ISDBT_SB_SEGMENT_COUNT, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERA_FEC, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERA_MODULATION, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERA_SEGMENT_COUNT, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERA_TIME_INTERLEAVING, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERB_FEC, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERB_MODULATION, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERB_SEGMENT_COUNT, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERB_TIME_INTERLEAVING, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERC_FEC, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERC_MODULATION, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERC_SEGMENT_COUNT, 1, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERC_TIME_INTERLEAVING, 1, 0),
++
++       _DTV_CMD(DTV_ISDBT_PARTIAL_RECEPTION, 0, 0),
++       _DTV_CMD(DTV_ISDBT_SOUND_BROADCASTING, 0, 0),
++       _DTV_CMD(DTV_ISDBT_SB_SUBCHANNEL_ID, 0, 0),
++       _DTV_CMD(DTV_ISDBT_SB_SEGMENT_IDX, 0, 0),
++       _DTV_CMD(DTV_ISDBT_SB_SEGMENT_COUNT, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERA_FEC, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERA_MODULATION, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERA_SEGMENT_COUNT, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERA_TIME_INTERLEAVING, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERB_FEC, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERB_MODULATION, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERB_SEGMENT_COUNT, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERB_TIME_INTERLEAVING, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERC_FEC, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERC_MODULATION, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERC_SEGMENT_COUNT, 0, 0),
++       _DTV_CMD(DTV_ISDBT_LAYERC_TIME_INTERLEAVING, 0, 0),
+
+regards,
+dan carpenter
+
