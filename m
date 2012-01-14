@@ -1,87 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:33174 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754848Ab2ADJzE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 04:55:04 -0500
-Received: by wgbdr13 with SMTP id dr13so28797760wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 01:55:03 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4F032AD7.7090003@gmail.com>
-References: <CAL9G6WVycJpFsCJEWDk_V-RbJ=_1Q42mMJy5cb+tw9MBfke9JA@mail.gmail.com>
-	<4F032AD7.7090003@gmail.com>
-Date: Wed, 4 Jan 2012 10:55:02 +0100
-Message-ID: <CAL9G6WWXp=sqiv3a42gyK34kznNL0wBLXu3ObhujQTnUpZbDOg@mail.gmail.com>
-Subject: Re: More adapters on v4l
-From: Josu Lazkano <josu.lazkano@gmail.com>
-To: gennarone@gmail.com
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-we0-f174.google.com ([74.125.82.174]:63155 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756678Ab2ANUlU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 15:41:20 -0500
+Received: by werb13 with SMTP id b13so1181861wer.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 12:41:19 -0800 (PST)
+Message-ID: <1326573673.2808.1.camel@tvbox>
+Subject: Re: [PATCH] [media] [PATCH] don't reset the delivery system on
+ DTV_CLEAR
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Sat, 14 Jan 2012 20:41:13 +0000
+In-Reply-To: <1326566854.2292.11.camel@tvbox>
+References: <1326246270-29272-1-git-send-email-mchehab@redhat.com>
+	 <1326566854.2292.11.camel@tvbox>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/1/3 Gianluca Gennari <gennarone@gmail.com>:
-> Il 03/01/2012 17:09, Josu Lazkano ha scritto:
->> Hello, I am trying to compile the v4l drivers, I make this way:
->>
->> mkdir /usr/local/src/dvb
->> cd /usr/local/src/dvb
->> git clone git://linuxtv.org/media_build.git
->> cd media_build
->> ./build
->>
->> I got this message on the end:
->>
->> **********************************************************
->> * Compilation finished. Use 'make install' to install them
->> **********************************************************
->>
->> But before the "make" I want to add more adapters changing the
->> "v4l/scripts/make_kconfig.pl" file to this:
->>
->> .config:CONFIG_DVB_MAX_ADAPTERS=16
->>
->> When I execute the "./build" it compile and I can not change the source.
->>
->> On the s2-liplianin branch I had no problem because I change it before
->> the "make" this way:
->>
->> mkdir /usr/local/src/dvb
->> cd /usr/local/src/dvb
->> wget http://mercurial.intuxication.org/hg/s2-liplianin/archive/tip.zip
->> unzip s2-liplianin-0b7d3cc65161.zip
->> cd s2-liplianin-0b7d3cc65161
->> ##change the adapter number###
->> make
->> make install
->>
->> Is possible to do the same with the v4l source?
->>
->> Thanks and best regards.
->>
->
-> Hi Josu,
-> you can do this way:
->
-> git clone git://linuxtv.org/media_build.git
-> cd media_build
-> ./build
-> ## you can ctrl-C as soon as it starts compiling the drivers, or wait
-> until the end ##
-> make menuconfig
-> ## change all the options you like and save ##
-> cd linux
-> make
-> cd ..
-> make install
->
-> Best regards,
-> Gianluca Gennari
+On Sat, 2012-01-14 at 18:47 +0000, Malcolm Priestley wrote:
+> On Tue, 2012-01-10 at 23:44 -0200, Mauro Carvalho Chehab wrote:
+> > As a DVBv3 application may be relying on the delivery system,
+> > don't reset it at DTV_CLEAR. For DVBv5 applications, the
+> > delivery system should be set anyway.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > ---
+> >  drivers/media/dvb/dvb-core/dvb_frontend.c |    3 ++-
+> >  1 files changed, 2 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> > index a904793..b15db4f 100644
+> > --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> > +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> > @@ -909,7 +909,6 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+> >  
+> >  	c->state = DTV_CLEAR;
+> >  
+> > -	c->delivery_system = fe->ops.delsys[0];
+> >  	dprintk("%s() Clearing cache for delivery system %d\n", __func__,
+> >  		c->delivery_system);
+> >  
+> > @@ -2377,6 +2376,8 @@ int dvb_register_frontend(struct dvb_adapter* dvb,
+> >  	 * Initialize the cache to the proper values according with the
+> >  	 * first supported delivery system (ops->delsys[0])
+> >  	 */
+> > +
+> > +        fe->dtv_property_cache.delivery_system = fe->ops.delsys[0];
+> >  	dvb_frontend_clear_cache(fe);
+> >  
+> >  	mutex_unlock(&frontend_mutex);
+> 
+> This patch breaks applications.
+> 
+> Due to the memset in dvb_frontend_clear_cache which clears
+> fe->dtv_property_cache.
+> ...
+> static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+> {
+> 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+> 	int i;
+> 
+> 	memset(c, 0, sizeof(struct dtv_frontend_properties));
+> ...
+> 
+> Also, the delivery system can not be reset when making a call to
+> DTV_CLEAR.
 
-Thanks!
+I have just noticed this is fix with patch;
 
-I comment the "make" line on the "build" script.
+dvb-core: preserve the delivery system at cache clear
 
-Best regards.
 
--- 
-Josu Lazkano
+
