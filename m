@@ -1,113 +1,321 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:35114 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758756Ab2AFQcU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 11:32:20 -0500
-Received: by eekc4 with SMTP id c4so1170585eek.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 08:32:19 -0800 (PST)
-Content-Type: multipart/mixed; boundary=----------35vJyMzW08Iy26cUOK1ueP
-Subject: [PATCH] rc-videomate-m1f.c Rename to match remote controler name
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 06 Jan 2012 17:32:06 +0100
-MIME-Version: 1.0
-From: =?utf-8?B?U2FtdWVsIFJha2l0bmnEjWFu?= <samuel.rakitnican@gmail.com>
-Message-ID: <op.v7n77sv031sqp4@00-25-22-b5-7b-09.dummy.porta.siemens.net>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:54330 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756529Ab2ANTf1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 14:35:27 -0500
+Received: by mail-ey0-f174.google.com with SMTP id l12so562456eaa.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 11:35:26 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Jean-Francois Moine <moinejf@free.fr>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH/RFC v3 2/3] V4L: Add JPEG compression control class documentation
+Date: Sat, 14 Jan 2012 20:35:04 +0100
+Message-Id: <1326569705-20261-3-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1326569705-20261-1-git-send-email-sylvester.nawrocki@gmail.com>
+References: <20120114192414.05ad2e83@tele>
+ <1326569705-20261-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-------------35vJyMzW08Iy26cUOK1ueP
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-Content-Transfer-Encoding: Quoted-Printable
+Add DocBook entries for the JPEG control class.
 
-This remote was added with support for card Compro VideoMate M1F.
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ Documentation/DocBook/media/v4l/biblio.xml         |   20 +++
+ Documentation/DocBook/media/v4l/compat.xml         |   10 ++
+ Documentation/DocBook/media/v4l/controls.xml       |  161 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    9 +
+ .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |   16 ++-
+ 5 files changed, 214 insertions(+), 2 deletions(-)
 
-This remote is shipped with various Compro cards, not this one only.
+diff --git a/Documentation/DocBook/media/v4l/biblio.xml b/Documentation/DocBook/media/v4l/biblio.xml
+index cea6fd3..7dc65c5 100644
+--- a/Documentation/DocBook/media/v4l/biblio.xml
++++ b/Documentation/DocBook/media/v4l/biblio.xml
+@@ -128,6 +128,26 @@ url="http://www.ijg.org">http://www.ijg.org</ulink>)</corpauthor>
+       <subtitle>Version 1.02</subtitle>
+     </biblioentry>
 
-Furthermore this remote can be bought separately under name Compro
-VideoMate K100.
-	http://compro.com.tw/en/product/k100/k100.html
++    <biblioentry id="itu-t81">
++      <abbrev>ITU-T.81</abbrev>
++      <authorgroup>
++	<corpauthor>International Telecommunication Union
++(<ulink url="http://www.itu.int">http://www.itu.int</ulink>)</corpauthor>
++      </authorgroup>
++      <title>ITU-T Recommendation T.81
++"Information Technology &mdash; Digital Compression and Coding of Continous-Tone
++Still Images &mdash; Requirements and Guidelines"</title>
++    </biblioentry>
++
++    <biblioentry id="w3c-jpeg-jfif">
++      <abbrev>W3C JPEG JFIF</abbrev>
++      <authorgroup>
++	<corpauthor>The World Wide Web Consortium (<ulink
++url="http://www.w3.org/Graphics/JPEG">http://www.w3.org</ulink>)</corpauthor>
++      </authorgroup>
++      <title>JPEG JFIF</title>
++    </biblioentry>
++
+     <biblioentry id="smpte12m">
+       <abbrev>SMPTE&nbsp;12M</abbrev>
+       <authorgroup>
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index c736380..9136038 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2396,6 +2396,16 @@ details.</para>
+       </orderedlist>
+     </section>
 
-So give it a proper name.
++    <section>
++      <title>V4L2 in Linux 3.4</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added <link linkend="jpeg-controls">JPEG compression control
++	  class</link>.</para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
 
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a1be378..b99f58b 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3377,6 +3377,167 @@ interface and may change in the future.</para>
+ 	</tbody>
+       </tgroup>
+       </table>
++    </section>
++
++    <section id="jpeg-controls">
++      <title>JPEG Control Reference</title>
++      <para>The JPEG class includes controls for common features of JPEG
++      encoders and decoders. Currently it includes features for codecs
++      implementing progressive baseline DCT compression process with
++      Huffman entrophy coding.</para>
++      <table pgwide="1" frame="none" id="jpeg-control-id">
++      <title>JPEG Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_JPEG_CLASS</constant>&nbsp;</entry>
++	    <entry>class</entry>
++	  </row><row><entry spanname="descr">The JPEG class descriptor. Calling
++	  &VIDIOC-QUERYCTRL; for this control will return a description of this
++	  control class.
++
++	</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_JPEG_CHROMA_SUBSAMPLING</constant></entry>
++	    <entry>menu</entry>
++	  </row>
++	  <row id="jpeg-chroma-subsampling-control">
++	    <entry spanname="descr">The chroma subsampling factors describe how
++	    each component of an input image is sampled, in respect to maximum
++	    sample rate in each spatial dimension. See <xref linkend="itu-t81"/>,
++	    clause A.1.1. for more details. The <constant>
++	    V4L2_CID_JPEG_CHROMA_SUBSAMPLING</constant> control determines how
++	    Cb and Cr components are downsampled after coverting an input image
++	    from RGB to Y'CbCr color space.
++	    </entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_444</constant>
++		  </entry><entry>No chroma subsampling, each pixel has
++		  Y, Cr and Cb values.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_422</constant>
++		  </entry><entry>Horizontally subsample Cr, Cb components
++		  by a factor of 2.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_420</constant>
++		  </entry><entry>Subsample Cr, Cb components horizontally
++		  and vertically by 2.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_411</constant>
++		  </entry><entry>Horizontally subsample Cr, Cb components
++		  by a factor of 4.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_410</constant>
++		  </entry><entry>Subsample Cr, Cb components horizontally
++		  by 4 and vertically by 2.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY</constant>
++		  </entry><entry>Use only luminance component.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_JPEG_RESTART_INTERVAL</constant>
++	    </entry><entry>integer</entry>
++	  </row>
++	  <row><entry spanname="descr">
++	      The restart interval determines an interval of inserting RSTm
++	      markers (m = 0..7). The purpose of these markers is to additionally
++	      reinitialize the encoder process, in order to process blocks of
++	      an image independently.
++	      For the lossy compression processes the restart interval unit is
++	      MCU (Minimum Coded Unit) and its value is contained in DRI
++	      (Define Restart Interval) marker. If <constant>
++	      V4L2_CID_JPEG_RESTART_INTERVAL</constant> control is set to 0,
++	      DRI and RSTm markers will not be inserted.
++	    </entry>
++	  </row>
++	  <row id="jpeg-quality-control">
++	    <entry spanname="id"><constant>V4L2_CID_JPEG_COMPRESION_QUALITY</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">
++	      <constant>V4L2_CID_JPEG_COMPRESION_QUALITY</constant> control
++	      determines trade-off between image quality and size.
++	      It provides simpler method for applications to control image quality,
++	      without a need for direct reconfiguration of luminance and chrominance
++	      quantization tables.
++
++	      In cases where a driver uses quantization tables configured directly
++	      by an application, using interfaces defined elsewhere, <constant>
++	      V4L2_CID_JPEG_COMPRESION_QUALITY</constant> control should be set
++	      by driver to 0.
 
-Signed-off-by: Samuel Rakitni=C4=8Dan <samuel.rakitnican@gmail.com>
-------------35vJyMzW08Iy26cUOK1ueP
-Content-Disposition: attachment; filename=k100.diff
-Content-Type: application/octet-stream; name=k100.diff
-Content-Transfer-Encoding: Base64
++	      <para>The value range of this control is driver-specific. Only
++	      positive, non-zero values are meaningful. The recommended range
++	      is 1 - 100, where larger values correspond to better image quality.
++	      </para>
++	    </entry>
++	    </row>
++	  <row id="jpeg-active-marker-control">
++	    <entry spanname="id"><constant>V4L2_CID_JPEG_ACTIVE_MARKER</constant></entry>
++	    <entry>bitmask</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Specify which JPEG markers are included
++	    in compressed stream. This control is valid only for encoders.
++	    </entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_APP0</constant></entry>
++		  <entry>Application data segment APP<subscript>0</subscript>.</entry>
++		</row><row>
++		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_APP1</constant></entry>
++		  <entry>Application data segment APP<subscript>1</subscript>.</entry>
++		</row><row>
++		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_COM</constant></entry>
++		  <entry>Comment segment.</entry>
++		</row><row>
++		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_DQT</constant></entry>
++		  <entry>Quantization tables segment.</entry>
++		</row><row>
++		  <entry><constant>V4L2_JPEG_ACTIVE_MARKER_DHT</constant></entry>
++		  <entry>Huffman tables segment.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++      <para>For more details about JPEG specification, refer
++      to <xref linkend="itu-t81"/>, <xref linkend="jfif"/>,
++      <xref linkend="w3c-jpeg-jfif"/>.</para>
+     </section>
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index e97c512..44f3820 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -128,6 +128,15 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
 
-ZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvcmMva2V5bWFwcy9NYWtlZmlsZSBi
-L2RyaXZlcnMvbWVkaWEvcmMva2V5bWFwcy9NYWtlZmlsZQppbmRleCAzNmU0ZDVl
-Li44MmQ4OThhIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3JjL2tleW1hcHMv
-TWFrZWZpbGUKKysrIGIvZHJpdmVycy9tZWRpYS9yYy9rZXltYXBzL01ha2VmaWxl
-CkBAIC04NSw3ICs4NSw3IEBAIG9iai0kKENPTkZJR19SQ19NQVApICs9IHJjLWFk
-c3RlY2gtZHZiLXQtcGNpLm8gXAogCQkJcmMtdHJla3N0b3IubyBcCiAJCQlyYy10
-dC0xNTAwLm8gXAogCQkJcmMtdHdpbmhhbjEwMjcubyBcCi0JCQlyYy12aWRlb21h
-dGUtbTFmLm8gXAorCQkJcmMtdmlkZW9tYXRlLWsxMDAubyBcCiAJCQlyYy12aWRl
-b21hdGUtczM1MC5vIFwKIAkJCXJjLXZpZGVvbWF0ZS10di1wdnIubyBcCiAJCQly
-Yy13aW5mYXN0Lm8gXApkaWZmIC0tZ2l0IGEvZHJpdmVycy9tZWRpYS9yYy9rZXlt
-YXBzL3JjLXZpZGVvbWF0ZS1rMTAwLmMgYi9kcml2ZXJzL21lZGlhL3JjL2tleW1h
-cHMvcmMtdmlkZW9tYXRlLWsxMDAuYwppbmRleCAzYmQxZGUxLi4yM2VlMDVlIDEw
-MDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3JjL2tleW1hcHMvcmMtdmlkZW9tYXRl
-LWsxMDAuYworKysgYi9kcml2ZXJzL21lZGlhL3JjL2tleW1hcHMvcmMtdmlkZW9t
-YXRlLWsxMDAuYwpAQCAtMSw0ICsxLDQgQEAKLS8qIHZpZGVvbWF0ZS1tMWYuaCAt
-IEtleXRhYmxlIGZvciB2aWRlb21hdGVfbTFmIFJlbW90ZSBDb250cm9sbGVyCisv
-KiB2aWRlb21hdGUtazEwMC5oIC0gS2V5dGFibGUgZm9yIHZpZGVvbWF0ZV9rMTAw
-IFJlbW90ZSBDb250cm9sbGVyCiAgKgogICoga2V5bWFwIGltcG9ydGVkIGZyb20g
-aXIta2V5bWFwcy5jCiAgKgpAQCAtMTMsNyArMTMsNyBAQAogI2luY2x1ZGUgPG1l
-ZGlhL3JjLW1hcC5oPgogI2luY2x1ZGUgPGxpbnV4L21vZHVsZS5oPgogCi1zdGF0
-aWMgc3RydWN0IHJjX21hcF90YWJsZSB2aWRlb21hdGVfbTFmW10gPSB7CitzdGF0
-aWMgc3RydWN0IHJjX21hcF90YWJsZSB2aWRlb21hdGVfazEwMFtdID0gewogCXsg
-MHgwMSwgS0VZX1BPV0VSIH0sCiAJeyAweDMxLCBLRVlfVFVORVIgfSwKIAl7IDB4
-MzMsIEtFWV9WSURFTyB9LApAQCAtNjcsMjcgKzY3LDI3IEBAIHN0YXRpYyBzdHJ1
-Y3QgcmNfbWFwX3RhYmxlIHZpZGVvbWF0ZV9tMWZbXSA9IHsKIAl7IDB4MTgsIEtF
-WV9URVhUIH0sCiB9OwogCi1zdGF0aWMgc3RydWN0IHJjX21hcF9saXN0IHZpZGVv
-bWF0ZV9tMWZfbWFwID0geworc3RhdGljIHN0cnVjdCByY19tYXBfbGlzdCB2aWRl
-b21hdGVfazEwMF9tYXAgPSB7CiAJLm1hcCA9IHsKLQkJLnNjYW4gICAgPSB2aWRl
-b21hdGVfbTFmLAotCQkuc2l6ZSAgICA9IEFSUkFZX1NJWkUodmlkZW9tYXRlX20x
-ZiksCisJCS5zY2FuICAgID0gdmlkZW9tYXRlX2sxMDAsCisJCS5zaXplICAgID0g
-QVJSQVlfU0laRSh2aWRlb21hdGVfazEwMCksCiAJCS5yY190eXBlID0gUkNfVFlQ
-RV9VTktOT1dOLCAgICAgLyogTGVnYWN5IElSIHR5cGUgKi8KLQkJLm5hbWUgICAg
-PSBSQ19NQVBfVklERU9NQVRFX00xRiwKKwkJLm5hbWUgICAgPSBSQ19NQVBfVklE
-RU9NQVRFX0sxMDAsCiAJfQogfTsKIAotc3RhdGljIGludCBfX2luaXQgaW5pdF9y
-Y19tYXBfdmlkZW9tYXRlX20xZih2b2lkKQorc3RhdGljIGludCBfX2luaXQgaW5p
-dF9yY19tYXBfdmlkZW9tYXRlX2sxMDAodm9pZCkKIHsKLQlyZXR1cm4gcmNfbWFw
-X3JlZ2lzdGVyKCZ2aWRlb21hdGVfbTFmX21hcCk7CisJcmV0dXJuIHJjX21hcF9y
-ZWdpc3RlcigmdmlkZW9tYXRlX2sxMDBfbWFwKTsKIH0KIAotc3RhdGljIHZvaWQg
-X19leGl0IGV4aXRfcmNfbWFwX3ZpZGVvbWF0ZV9tMWYodm9pZCkKK3N0YXRpYyB2
-b2lkIF9fZXhpdCBleGl0X3JjX21hcF92aWRlb21hdGVfazEwMCh2b2lkKQogewot
-CXJjX21hcF91bnJlZ2lzdGVyKCZ2aWRlb21hdGVfbTFmX21hcCk7CisJcmNfbWFw
-X3VucmVnaXN0ZXIoJnZpZGVvbWF0ZV9rMTAwX21hcCk7CiB9CiAKLW1vZHVsZV9p
-bml0KGluaXRfcmNfbWFwX3ZpZGVvbWF0ZV9tMWYpCi1tb2R1bGVfZXhpdChleGl0
-X3JjX21hcF92aWRlb21hdGVfbTFmKQorbW9kdWxlX2luaXQoaW5pdF9yY19tYXBf
-dmlkZW9tYXRlX2sxMDApCittb2R1bGVfZXhpdChleGl0X3JjX21hcF92aWRlb21h
-dGVfazEwMCkKIAogTU9EVUxFX0xJQ0VOU0UoIkdQTCIpOwogTU9EVUxFX0FVVEhP
-UigiUGF2ZWwgT3Nub3ZhIDxwdm9zbm92YUBnbWFpbC5jb20+Iik7CmRpZmYgLS1n
-aXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5j
-IGIvZHJpdmVycy9tZWRpYS92aWRlby9zYWE3MTM0L3NhYTcxMzQtaW5wdXQuYwpp
-bmRleCAxYjE1YjBkLi4yMmVjZDcyIDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlh
-L3ZpZGVvL3NhYTcxMzQvc2FhNzEzNC1pbnB1dC5jCisrKyBiL2RyaXZlcnMvbWVk
-aWEvdmlkZW8vc2FhNzEzNC9zYWE3MTM0LWlucHV0LmMKQEAgLTc1NSw3ICs3NTUs
-NyBAQCBpbnQgc2FhNzEzNF9pbnB1dF9pbml0MShzdHJ1Y3Qgc2FhNzEzNF9kZXYg
-KmRldikKIAkJcG9sbGluZyAgICAgID0gNTA7IC8qIG1zICovCiAJCWJyZWFrOwog
-CWNhc2UgU0FBNzEzNF9CT0FSRF9WSURFT01BVEVfTTFGOgotCQlpcl9jb2RlcyAg
-ICAgPSBSQ19NQVBfVklERU9NQVRFX00xRjsKKwkJaXJfY29kZXMgICAgID0gUkNf
-TUFQX1ZJREVPTUFURV9LMTAwOwogCQltYXNrX2tleWNvZGUgPSAweDBmZjAwOwog
-CQltYXNrX2tleXVwICAgPSAweDA0MDAwMDsKIAkJYnJlYWs7CmRpZmYgLS1naXQg
-YS9pbmNsdWRlL21lZGlhL3JjLW1hcC5oIGIvaW5jbHVkZS9tZWRpYS9yYy1tYXAu
-aAppbmRleCAxODNkNzAxLi5mNjg4YmRlIDEwMDY0NAotLS0gYS9pbmNsdWRlL21l
-ZGlhL3JjLW1hcC5oCisrKyBiL2luY2x1ZGUvbWVkaWEvcmMtbWFwLmgKQEAgLTE0
-Nyw3ICsxNDcsNyBAQCB2b2lkIHJjX21hcF9pbml0KHZvaWQpOwogI2RlZmluZSBS
-Q19NQVBfVFJFS1NUT1IgICAgICAgICAgICAgICAgICAicmMtdHJla3N0b3IiCiAj
-ZGVmaW5lIFJDX01BUF9UVF8xNTAwICAgICAgICAgICAgICAgICAgICJyYy10dC0x
-NTAwIgogI2RlZmluZSBSQ19NQVBfVFdJTkhBTl9WUDEwMjdfRFZCUyAgICAgICAi
-cmMtdHdpbmhhbjEwMjciCi0jZGVmaW5lIFJDX01BUF9WSURFT01BVEVfTTFGICAg
-ICAgICAgICAgICJyYy12aWRlb21hdGUtbTFmIgorI2RlZmluZSBSQ19NQVBfVklE
-RU9NQVRFX0sxMDAgICAgICAgICAgICAicmMtdmlkZW9tYXRlLWsxMDAiCiAjZGVm
-aW5lIFJDX01BUF9WSURFT01BVEVfUzM1MCAgICAgICAgICAgICJyYy12aWRlb21h
-dGUtczM1MCIKICNkZWZpbmUgUkNfTUFQX1ZJREVPTUFURV9UVl9QVlIgICAgICAg
-ICAgInJjLXZpZGVvbWF0ZS10di1wdnIiCiAjZGVmaW5lIFJDX01BUF9XSU5GQVNU
-ICAgICAgICAgICAgICAgICAgICJyYy13aW5mYXN0Igo=
+       <revision>
++	<revnumber>3.4</revnumber>
++	<date>2012-01-06</date>
++	<authorinitials>sn</authorinitials>
++	<revremark>Added <link linkend="jpeg-controls">JPEG compression
++	    control class.</link>
++	</revremark>
++      </revision>
++
++      <revision>
+ 	<revnumber>3.2</revnumber>
+ 	<date>2011-08-26</date>
+ 	<authorinitials>hv</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml b/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
+index 01ea24b..4874849 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
+@@ -57,6 +57,11 @@
+   <refsect1>
+     <title>Description</title>
 
-------------35vJyMzW08Iy26cUOK1ueP--
++    <para>These ioctls are <emphasis role="bold">deprecated</emphasis>.
++    New drivers and applications should use <link linkend="jpeg-controls">
++    JPEG class controls</link> for image quality and JPEG markers control.
++    </para>
++
+     <para>[to do]</para>
+
+     <para>Ronald Bultje elaborates:</para>
+@@ -86,7 +91,10 @@ to add them.</para>
+ 	  <row>
+ 	    <entry>int</entry>
+ 	    <entry><structfield>quality</structfield></entry>
+-	    <entry></entry>
++	    <entry>Deprecated. If <link linkend="jpeg-quality-control"><constant>
++	    V4L2_CID_JPEG_IMAGE_QUALITY</constant></link> control is exposed by
++	    a driver applications should use it instead and ignore this field.
++	    </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>int</entry>
+@@ -116,7 +124,11 @@ to add them.</para>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>jpeg_markers</structfield></entry>
+-	    <entry>See <xref linkend="jpeg-markers" />.</entry>
++	    <entry>See <xref linkend="jpeg-markers"/>. Deprecated.
++	    If <link linkend="jpeg-active-marker-control"><constant>
++	    V4L2_CID_JPEG_ACTIVE_MARKER</constant></link> control
++	    is exposed by a driver applications should use it instead
++	    and ignore this field.</entry>
+ 	  </row>
+ 	</tbody>
+       </tgroup>
+--
+1.7.4.1
 
