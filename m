@@ -1,49 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out4.smtp.messagingengine.com ([66.111.4.28]:44756 "EHLO
-	out4.smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753438Ab2AEQya (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:47949 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755617Ab2ANSX5 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jan 2012 11:54:30 -0500
-Received: from compute3.internal (compute3.nyi.mail.srv.osa [10.202.2.43])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id E608620F01
-	for <linux-media@vger.kernel.org>; Thu,  5 Jan 2012 11:54:29 -0500 (EST)
-Date: Thu, 5 Jan 2012 08:43:58 -0800
-From: Greg KH <greg@kroah.com>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [patch -longterm v2] V4L/DVB: v4l2-ioctl: integer overflow in
- video_usercopy()
-Message-ID: <20120105164358.GA26153@kroah.com>
-References: <20111215063445.GA2424@elgon.mountain>
- <4EE9BC25.7020303@infradead.org>
- <201112151033.35153.hverkuil@xs4all.nl>
- <4EE9C2E6.1060304@infradead.org>
- <20120103205539.GC17131@kroah.com>
- <20120105062822.GB10230@mwanda>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120105062822.GB10230@mwanda>
+	Sat, 14 Jan 2012 13:23:57 -0500
+Date: Sat, 14 Jan 2012 19:24:14 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFC v2 3/4] gspca: sonixj: Add
+ V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+Message-ID: <20120114192414.05ad2e83@tele>
+In-Reply-To: <4F11BE7C.3060601@gmail.com>
+References: <4EBECD11.8090709@gmail.com>
+	<1325873682-3754-4-git-send-email-snjw23@gmail.com>
+	<20120114094720.781f89a5@tele>
+	<4F11BE7C.3060601@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 05, 2012 at 09:28:22AM +0300, Dan Carpenter wrote:
-> If p->count is too high the multiplication could overflow and
-> array_size would be lower than expected.  Mauro and Hans Verkuil
-> suggested that we cap it at 1024.  That comes from the maximum
-> number of controls with lots of room for expantion.
+On Sat, 14 Jan 2012 18:42:20 +0100
+Sylwester Nawrocki <sylvester.nawrocki@gmail.com> wrote:
+
+> Thank you for reviewing the patches. I wasn't sure I fully understood
+> the locking, hence I left the 'quality' field in 'struct sd' not removed. 
+> I've modified both subdrivers according to your suggestions. I would have 
+> one question before I send the corrected patches though. Unlike zc3xx, 
+> the configured quality value in sonixj driver changes dynamically, i.e. 
+> it drifts away in few seconds from whatever value the user sets. This makes
+> me wonder if .set_control operation should be implemented for the QUALITY
+> control, and whether to leave V4L2_CTRL_FLAG_READ_ONLY control flag or not.
 > 
-> $ grep V4L2_CID include/linux/videodev2.h | wc -l
-> 211
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> There seem to be not much value in setting such control for the user,
+> but maybe it's different for other devices covered by the sonixj driver.
 
-So this patch is only for 2.6.32?  But the original needs to get into
-Linus's tree first (which is what I'm guessing the other patch you sent
-is, right?)
+Setting the JPEG quality in sonixj has been removed when automatic
+quality adjustment has been added (git commit b96cfc33e7). At this
+time, I let the JPEG get function, but it could have been removed as
+well: I don't think the users are interested by this quality, and the
+applications may find it looking at the quantization tables of the
+images.
 
-thanks,
+Otherwise, letting the users/applications to set this quality is
+dangerous: if the quality is too high, the images cannot be fully
+transmitted because their size is too big for the USB 1.1 channel.
 
-greg k-h
+So, IMO, you should let the sonixj as it is, and I will remove the
+get_jepgcomp.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
