@@ -1,48 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:50784 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752668Ab2ACMZW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 07:25:22 -0500
-Received: by qadc12 with SMTP id c12so9815675qad.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 04:25:22 -0800 (PST)
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:60704 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754561Ab2ANSgx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 13:36:53 -0500
+Received: by bkuw12 with SMTP id w12so701431bku.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:36:51 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <4F02BEC5.2080204@redhat.com>
-References: <1325535901-15251-1-git-send-email-anarsoul@gmail.com> <4F02BEC5.2080204@redhat.com>
-From: Vasily <anarsoul@gmail.com>
-Date: Tue, 3 Jan 2012 15:25:01 +0300
-Message-ID: <CA+E=qVcAtQbMeS4PjZ=h279ELjtFTowXSwL_VPq2xL296kvC2A@mail.gmail.com>
-Subject: Re: [PATCH] libv4l: add hflip quirk for dealextreme cam sku #44507
-To: Hans de Goede <hdegoede@redhat.com>
-Cc: Hans de Goede <j.w.r.degoede@hhs.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Date: Sat, 14 Jan 2012 19:36:51 +0100
+Message-ID: <CAEN_-SB7cndkzKVKwxJ99nB1Km4auR0KeUHmpF_nQ96fP4sWZQ@mail.gmail.com>
+Subject: cx25840: allow seting and reading audio mode for radio
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015175cab9ed2a1a504b68143d3
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/1/3 Hans de Goede <hdegoede@redhat.com>:
-> Hi,
->
->
-> Thanks for the patch.
->
-> I'm sorry, but a quick google shows that your cam has a usb id used by
-> various generic
-> cameras, including some microscopes, see:
-> http://blog.littleimpact.de/index.php/2011/10/16/using-biolux-nv-on-ubuntu-linux/
->
-> Enabling flipping on all these models because one has the sensor mounted
-> upside down
-> is the wrong thing to do.
->
-> Instead you could add the following to your /etc/profile
-> export LIBV4LCONTROL_FLAGS=3
->
-> Note this will flip the image from all cameras you plug into your computer,
-> or you
-> can keep a patched libv4l around for yourself.
+--0015175cab9ed2a1a504b68143d3
+Content-Type: text/plain; charset=ISO-8859-1
 
-Thanks, I'm OK with it :)
 
-> Regards,
->
-> Hans
+
+--0015175cab9ed2a1a504b68143d3
+Content-Type: text/x-patch; charset=US-ASCII; name="cx25840_g_tuner_radio_support.patch"
+Content-Disposition: attachment;
+	filename="cx25840_g_tuner_radio_support.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gxez9l2s0
+
+U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
+b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
+IERlYyAyMDExIDAwOjE5OjM0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gY3gyNTg0MF9nX3R1bmVy
+IGFuZCBjeDI1ODQwX3NfdHVuZXIgc2hvdWxkIHN1cHBvcnQgYWxzbyByYWRpbyBtb2RlIGZvciBk
+ZXRlY3RpbmcKIGN1cnJlbnQgYXVkaW8gbW9kZSwgYW5kIHdlIGNhbiB1c2UgY3gyNTg0MCByZWdp
+c3RlciAweDgwNSBmb3IgRk0gcmFkaW8gbG9jay4KCi0tLQpkaWZmIC1OYXVycCBhL2RyaXZlcnMv
+bWVkaWEvdmlkZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYyBiL2RyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3gyNTg0MC9jeDI1ODQwLWNvcmUuYwotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4NDAv
+Y3gyNTg0MC1jb3JlLmMJMjAxMi0wMS0wNSAwMDo1NTo0NC4wMDAwMDAwMDAgKzAxMDAKKysrIGIv
+ZHJpdmVycy9tZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4NDAtY29yZS5jCTIwMTItMDEtMDUgMTM6
+NDE6MjUuOTgxOTEwODA0ICswMTAwCkBAIC0xNTg5LDM3ICsxNTg5LDY4IEBAIHN0YXRpYyBpbnQg
+Y3gyNTg0MF9nX3R1bmVyKHN0cnVjdCB2NGwyX3MKIHsKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAq
+c3RhdGUgPSB0b19zdGF0ZShzZCk7CiAJc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHY0bDJf
+Z2V0X3N1YmRldmRhdGEoc2QpOwotCXU4IHZwcmVzID0gY3gyNTg0MF9yZWFkKGNsaWVudCwgMHg0
+MGUpICYgMHgyMDsKKwl1OCB2cHJlcyA9IDA7CiAJdTggbW9kZTsKLQlpbnQgdmFsID0gMDsKKwlp
+bnQgdmFsID0gVjRMMl9UVU5FUl9TVUJfTU9OTzsKIAotCWlmIChzdGF0ZS0+cmFkaW8pCi0JCXJl
+dHVybiAwOworCWlmICghc3RhdGUtPnJhZGlvKSB7CisJCXZwcmVzID0gY3gyNTg0MF9yZWFkKGNs
+aWVudCwgMHg0MGUpICYgMHgyMDsKKwkJdnQtPnNpZ25hbCA9IHZwcmVzID8gMHhmZmZmIDogMHgw
+OworCX0gZWxzZSB7CisJCS8qIFdvcmtzIG9ubHkgZm9yIDB4ZjkgQVVEX01PREUgKi8KKwkJbW9k
+ZSA9IGN4MjU4NDBfcmVhZChjbGllbnQsIDB4ODA1KTsKKwkJLyogdXNhYmxlIG1vZGVzIGZyb20g
+ZGF0YXNoZWV0IDB4MDEgLSAweDExICovCisJCXZ0LT5zaWduYWwgPSAoKG1vZGUgPj0gMSkgJiYg
+KG1vZGUgPD0gMHgxMSkpID8gMHhmZmZmIDogMDsKKwl9CiAKLQl2dC0+c2lnbmFsID0gdnByZXMg
+PyAweGZmZmYgOiAweDA7CiAJaWYgKGlzX2N4MjU4M3goc3RhdGUpKQogCQlyZXR1cm4gMDsKIAot
+CXZ0LT5jYXBhYmlsaXR5IHw9Ci0JCVY0TDJfVFVORVJfQ0FQX1NURVJFTyB8IFY0TDJfVFVORVJf
+Q0FQX0xBTkcxIHwKLQkJVjRMMl9UVU5FUl9DQVBfTEFORzIgfCBWNEwyX1RVTkVSX0NBUF9TQVA7
+CisJLyogc3RlcmVvIGZvciBhbGwgbW9kZXMsIGV2ZW4gcmFkaW8gKi8KKwl2dC0+Y2FwYWJpbGl0
+eSB8PSBWNEwyX1RVTkVSX0NBUF9TVEVSRU87CisKKwlpZiAoIXN0YXRlLT5yYWRpbykgeworCQl2
+dC0+Y2FwYWJpbGl0eSB8PSBWNEwyX1RVTkVSX0NBUF9MQU5HMSB8CisJCQlWNEwyX1RVTkVSX0NB
+UF9MQU5HMiB8IFY0TDJfVFVORVJfQ0FQX1NBUDsKKwl9CiAKIAltb2RlID0gY3gyNTg0MF9yZWFk
+KGNsaWVudCwgMHg4MDQpOwogCiAJLyogZ2V0IHJ4c3ViY2hhbnMgYW5kIGF1ZG1vZGUgKi8KLQlp
+ZiAoKG1vZGUgJiAweGYpID09IDEpCisJc3dpdGNoIChtb2RlICYgMHhmKSB7CisJY2FzZSAwOgor
+CQl2dC0+YXVkbW9kZSA9IFY0TDJfVFVORVJfTU9ERV9NT05POworCQlicmVhazsKKwljYXNlIDE6
+CiAJCXZhbCB8PSBWNEwyX1RVTkVSX1NVQl9TVEVSRU87Ci0JZWxzZQotCQl2YWwgfD0gVjRMMl9U
+VU5FUl9TVUJfTU9OTzsKLQotCWlmIChtb2RlID09IDIgfHwgbW9kZSA9PSA0KQorCQl2dC0+YXVk
+bW9kZSA9IFY0TDJfVFVORVJfTU9ERV9TVEVSRU87CisJCWJyZWFrOworCWNhc2UgMjoKKwljYXNl
+IDQ6CiAJCXZhbCA9IFY0TDJfVFVORVJfU1VCX0xBTkcxIHwgVjRMMl9UVU5FUl9TVUJfTEFORzI7
+CisJCS8qIGNhbid0IGRldGVjdCBleGFjdCBhdWRpbyBtb2RlICovCisJCXZ0LT5hdWRtb2RlID0g
+c3RhdGUtPmF1ZG1vZGU7CisJCWJyZWFrOworCWRlZmF1bHQ6CisJCS8qIGF1ZGlvIG1vZGUgaXMg
+Zm9yY2VkIG9yIHVua25vd24gKi8KKwkJc3dpdGNoIChzdGF0ZS0+YXVkbW9kZSkgeworCQljYXNl
+IFY0TDJfVFVORVJfTU9ERV9TVEVSRU86CisJCQl2YWwgfD0gVjRMMl9UVU5FUl9TVUJfU1RFUkVP
+OworCQkJYnJlYWs7CisJCWNhc2UgVjRMMl9UVU5FUl9NT0RFX0xBTkcxOgorCQljYXNlIFY0TDJf
+VFVORVJfTU9ERV9MQU5HMjoKKwkJY2FzZSBWNEwyX1RVTkVSX01PREVfTEFORzFfTEFORzI6CisJ
+CQl2YWwgPSBWNEwyX1RVTkVSX1NVQl9MQU5HMSB8IFY0TDJfVFVORVJfU1VCX0xBTkcyOworCQkJ
+YnJlYWs7CisJCX0KKwkJdnQtPmF1ZG1vZGUgPSBzdGF0ZS0+YXVkbW9kZTsKKwkJYnJlYWs7CisJ
+fQogCiAJaWYgKG1vZGUgJiAweDEwKQogCQl2YWwgfD0gVjRMMl9UVU5FUl9TVUJfU0FQOwogCiAJ
+dnQtPnJ4c3ViY2hhbnMgPSB2YWw7Ci0JdnQtPmF1ZG1vZGUgPSBzdGF0ZS0+YXVkbW9kZTsKIAly
+ZXR1cm4gMDsKIH0KIApAQCAtMTYyOCw5ICsxNjU5LDE0IEBAIHN0YXRpYyBpbnQgY3gyNTg0MF9z
+X3R1bmVyKHN0cnVjdCB2NGwyX3MKIAlzdHJ1Y3QgY3gyNTg0MF9zdGF0ZSAqc3RhdGUgPSB0b19z
+dGF0ZShzZCk7CiAJc3RydWN0IGkyY19jbGllbnQgKmNsaWVudCA9IHY0bDJfZ2V0X3N1YmRldmRh
+dGEoc2QpOwogCi0JaWYgKHN0YXRlLT5yYWRpbyB8fCBpc19jeDI1ODN4KHN0YXRlKSkKKwlpZiAo
+aXNfY3gyNTgzeChzdGF0ZSkpCiAJCXJldHVybiAwOwogCisJLyogRk0gcmFkaW8gc3VwcG9ydHMg
+b25seSBtb25vIGFuZCBzdGVyZW8gbW9kZXMgKi8KKwlpZiAoKHN0YXRlLT5yYWRpbykgJiYKKwkg
+ICAgKHZ0LT5hdWRtb2RlICE9IFY0TDJfVFVORVJfTU9ERV9NT05PKSAmJgorCSAgICAodnQtPmF1
+ZG1vZGUgIT0gVjRMMl9UVU5FUl9NT0RFX1NURVJFTykpIHJldHVybiAtRUlOVkFMOworCiAJc3dp
+dGNoICh2dC0+YXVkbW9kZSkgewogCQljYXNlIFY0TDJfVFVORVJfTU9ERV9NT05POgogCQkJLyog
+bW9ubyAgICAgIC0+IG1vbm8KLS0gCjEuNy4yLjMKCg==
+--0015175cab9ed2a1a504b68143d3--
