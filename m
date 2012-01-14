@@ -1,40 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:49188 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751052Ab2AVB7x (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 20:59:53 -0500
-Message-ID: <4F1B6D96.8000807@iki.fi>
-Date: Sun, 22 Jan 2012 03:59:50 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:59199 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755928Ab2ANRmb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 12:42:31 -0500
+Received: by eekd4 with SMTP id d4so1424963eek.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 09:42:29 -0800 (PST)
+Message-ID: <4F11BE7C.3060601@gmail.com>
+Date: Sat, 14 Jan 2012 18:42:20 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Jan Hoogenraad <jan-conceptronic@hoogenraad.net>
-Subject: Realtek RTL2831U
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFC v2 3/4] gspca: sonixj: Add V4L2_CID_JPEG_COMPRESSION_QUALITY
+ control support
+References: <4EBECD11.8090709@gmail.com>	<1325873682-3754-4-git-send-email-snjw23@gmail.com> <20120114094720.781f89a5@tele>
+In-Reply-To: <20120114094720.781f89a5@tele>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+On 01/14/2012 09:47 AM, Jean-Francois Moine wrote:
+> On Fri,  6 Jan 2012 19:14:41 +0100
+> Sylwester Nawrocki<snjw23@gmail.com>  wrote:
+> 
+>> The JPEG compression quality value can currently be read using the
+>> VIDIOC_G_JPEGCOMP ioctl. As the quality field of struct v4l2_jpgecomp
+>> is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY
+>> control, so after the deprecation period VIDIOC_G_JPEGCOMP ioctl
+>> handler can be removed, leaving the control the only user interface
+>> for retrieving the compression quality.
+> 	[snip]
+> 
+> This patch works, but, to follow the general control mechanism in gspca,
+> it should be better to remove the variable 'quality' of 'struct sd' and
+> to replace all 'sd->quality' by 'sd->ctrls[QUALITY].val'.
+> 
+> Then, initialization
+> 
+> 	sd->quality = QUALITY_DEF;
+> 
+> in sd_config() is no more useful, and there is no need to have a
+> getjpegqual() function, the control descriptor for QUALITY having just:
+> 
+> 	.set_control = setjpegqual
 
-I picked up again my old RTL2831U tree and upgraded to current level. It 
-supports only RTL2831U, not RTL2832U or any other. I think I will 
-pull-request it to the master in hope it get development effort. I have 
-no time for it. It is working, but does not do anything extra - just 
-show DVB-T picture. Only NEC remote. No signal statistics. No other USB 
-IDs than Realtek reference and 14aa:0160 has my device. New USB IDs 
-(patch or mail) are welcome.
+Thank you for reviewing the patches. I wasn't sure I fully understood
+the locking, hence I left the 'quality' field in 'struct sd' not removed. 
+I've modified both subdrivers according to your suggestions. I would have 
+one question before I send the corrected patches though. Unlike zc3xx, 
+the configured quality value in sonixj driver changes dynamically, i.e. 
+it drifts away in few seconds from whatever value the user sets. This makes
+me wonder if .set_control operation should be implemented for the QUALITY
+control, and whether to leave V4L2_CTRL_FLAG_READ_ONLY control flag or not.
 
-Here it is, PULL request is sent next week.
-http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/realtek
+There seem to be not much value in setting such control for the user,
+but maybe it's different for other devices covered by the sonixj driver.
 
-
-For the newer Realtek devices that same USB-bridge could be used, I 
-named it dvb_usb_rtl28xxu. I tested it also using RTL2832U and it 
-worked. RTL2832 demod driver I was using is stubbed test version and 
-thus I will not release it. Feel free to write RTL2832 demod driver :-)
-
-regards
-Antti
--- 
-http://palosaari.fi/
+--
+Best regards,
+Sylwester
