@@ -1,161 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49194 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756127Ab2ADQBW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 11:01:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Javier Martin <javier.martin@vista-silicon.com>
-Subject: Re: [PATCH 1/2 v3] media: vb2: support userptr for PFN mappings.
-Date: Wed, 4 Jan 2012 17:01:36 +0100
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	pawel@osciak.com, kyungmin.park@samsung.com
-References: <1325692011-7041-1-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1325692011-7041-1-git-send-email-javier.martin@vista-silicon.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201041701.37743.laurent.pinchart@ideasonboard.com>
+Received: from smtp1-g21.free.fr ([212.27.42.1]:43726 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752723Ab2ANIrN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 03:47:13 -0500
+Date: Sat, 14 Jan 2012 09:47:31 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFC v2 4/4] gspca: zc3xx: Add
+ V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+Message-ID: <20120114094731.50471e94@tele>
+In-Reply-To: <1325873682-3754-5-git-send-email-snjw23@gmail.com>
+References: <4EBECD11.8090709@gmail.com>
+	<1325873682-3754-5-git-send-email-snjw23@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier,
+On Fri,  6 Jan 2012 19:14:42 +0100
+Sylwester Nawrocki <snjw23@gmail.com> wrote:
 
-Thanks for the patch.
+> The JPEG compression quality control is currently done by means of the
+> VIDIOC_S/G_JPEGCOMP ioctls. As the quality field of struct v4l2_jpgecomp
+> is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY control,
+> so after the deprecation period VIDIOC_S/G_JPEGCOMP ioctl handlers can be
+> removed, leaving the control the only user interface for compression
+> quality configuration.
 
-On Wednesday 04 January 2012 16:46:51 Javier Martin wrote:
-> Some video devices need to use contiguous memory
-> which is not backed by pages as it happens with
-> vmalloc. This patch provides userptr handling for
-> those devices.
-> 
-> ---
-> Changes since v2:
->  - Do not grab mm->mmap_sem.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/videobuf2-vmalloc.c |   71
-> +++++++++++++++++++++---------- 1 files changed, 48 insertions(+), 23
-> deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-vmalloc.c
-> b/drivers/media/video/videobuf2-vmalloc.c index 03aa62f..e621db6 100644
-> --- a/drivers/media/video/videobuf2-vmalloc.c
-> +++ b/drivers/media/video/videobuf2-vmalloc.c
-> @@ -10,6 +10,7 @@
->   * the Free Software Foundation.
->   */
-> 
-> +#include <linux/io.h>
->  #include <linux/module.h>
->  #include <linux/mm.h>
->  #include <linux/sched.h>
-> @@ -22,6 +23,7 @@
->  struct vb2_vmalloc_buf {
->  	void				*vaddr;
->  	struct page			**pages;
-> +	struct vm_area_struct		*vma;
->  	int				write;
->  	unsigned long			size;
->  	unsigned int			n_pages;
-> @@ -71,6 +73,9 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx,
-> unsigned long vaddr, struct vb2_vmalloc_buf *buf;
->  	unsigned long first, last;
->  	int n_pages, offset;
-> +	struct vm_area_struct *vma;
-> +	struct vm_area_struct *res_vma;
-> +	dma_addr_t physp;
-> 
->  	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->  	if (!buf)
-> @@ -80,23 +85,37 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx,
-> unsigned long vaddr, offset = vaddr & ~PAGE_MASK;
->  	buf->size = size;
-> 
-> -	first = vaddr >> PAGE_SHIFT;
-> -	last  = (vaddr + size - 1) >> PAGE_SHIFT;
-> -	buf->n_pages = last - first + 1;
-> -	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
-> -	if (!buf->pages)
-> -		goto fail_pages_array_alloc;
-> 
-> -	/* current->mm->mmap_sem is taken by videobuf2 core */
-> -	n_pages = get_user_pages(current, current->mm, vaddr & PAGE_MASK,
-> -					buf->n_pages, write, 1, /* force */
-> -					buf->pages, NULL);
-> -	if (n_pages != buf->n_pages)
-> -		goto fail_get_user_pages;
-> -
-> -	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
-> -	if (!buf->vaddr)
-> -		goto fail_get_user_pages;
-> +	vma = find_vma(current->mm, vaddr);
-> +	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
-> +		if (vb2_get_contig_userptr(vaddr, size, &res_vma, &physp))
+This patch works, but it may be simplified.
 
-One small comment here. You don't use the vma variable from this point on, so 
-maybe you could remove res_vma and use vma instead.
+Instead of a '.set' pointer, the control descriptor for QUALITY may contain a '.set_control' pointing to a function which just does
 
-> +			goto fail_pages_array_alloc;
-> +		buf->vma = res_vma;
-> +		buf->vaddr = ioremap_nocache(physp, size);
-> +		if (!buf->vaddr)
-> +			goto fail_pages_array_alloc;
-> +	} else {
-> +		first = vaddr >> PAGE_SHIFT;
-> +		last  = (vaddr + size - 1) >> PAGE_SHIFT;
-> +		buf->n_pages = last - first + 1;
-> +		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
-> +				     GFP_KERNEL);
-> +		if (!buf->pages)
-> +			goto fail_pages_array_alloc;
-> +
-> +		/* current->mm->mmap_sem is taken by videobuf2 core */
-> +		n_pages = get_user_pages(current, current->mm,
-> +					 vaddr & PAGE_MASK, buf->n_pages,
-> +					 write, 1, /* force */
-> +					 buf->pages, NULL);
-> +		if (n_pages != buf->n_pages)
-> +			goto fail_get_user_pages;
-> +
-> +		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
-> +					PAGE_KERNEL);
-> +		if (!buf->vaddr)
-> +			goto fail_get_user_pages;
-> +	}
-> 
->  	buf->vaddr += offset;
->  	return buf;
-> @@ -120,14 +139,20 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
->  	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
->  	unsigned int i;
-> 
-> -	if (vaddr)
-> -		vm_unmap_ram((void *)vaddr, buf->n_pages);
-> -	for (i = 0; i < buf->n_pages; ++i) {
-> -		if (buf->write)
-> -			set_page_dirty_lock(buf->pages[i]);
-> -		put_page(buf->pages[i]);
-> +	if (buf->pages) {
-> +		if (vaddr)
-> +			vm_unmap_ram((void *)vaddr, buf->n_pages);
-> +		for (i = 0; i < buf->n_pages; ++i) {
-> +			if (buf->write)
-> +				set_page_dirty_lock(buf->pages[i]);
-> +			put_page(buf->pages[i]);
-> +		}
-> +		kfree(buf->pages);
-> +	} else {
-> +		if (buf->vma)
-> +			vb2_put_vma(buf->vma);
-> +		iounmap(buf->vaddr);
->  	}
-> -	kfree(buf->pages);
->  	kfree(buf);
->  }
+	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
+
+this function being also be called from the obsoleted function
+sd_setquality().
+
+Also, in sd_config, there is no need to initialize the variable
+sd->ctrls[QUALITY].val.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
