@@ -1,119 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58769 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751348Ab2AQGgd convert rfc822-to-8bit (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:49964 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756523Ab2ANTba convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 01:36:33 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: RE: [GIT PULL] davinci vpif pull request
-Date: Tue, 17 Jan 2012 06:36:19 +0000
-Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F7531742407@DBDE01.ent.ti.com>
-References: <E99FAA59F8D8D34D8A118DD37F7C8F7501B481@DBDE01.ent.ti.com>
- <4F14108F.5050505@redhat.com>
- <E99FAA59F8D8D34D8A118DD37F7C8F7531741938@DBDE01.ent.ti.com>
- <4F141E79.1040800@redhat.com>
- <E99FAA59F8D8D34D8A118DD37F7C8F7531742182@DBDE01.ent.ti.com>
- <4F14234C.5000404@redhat.com>
-In-Reply-To: <4F14234C.5000404@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Sat, 14 Jan 2012 14:31:30 -0500
+Received: by bkuw12 with SMTP id w12so720021bku.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 11:31:28 -0800 (PST)
 MIME-Version: 1.0
+In-Reply-To: <CALzAhNWBY2xB0WFQ-C4=oN8WuH8hbfu1Xq=W4k8a9oj3t9070Q@mail.gmail.com>
+References: <CAEN_-SDUfyu34YSV6Lr4yADkNmr6=+TALN0xvrCODFPeRedkFA@mail.gmail.com>
+	<CALzAhNWBY2xB0WFQ-C4=oN8WuH8hbfu1Xq=W4k8a9oj3t9070Q@mail.gmail.com>
+Date: Sat, 14 Jan 2012 20:31:27 +0100
+Message-ID: <CAEN_-SCnV0V=xo4WyvkMjQKaXFTuvnFS+D1Je7sJDp8-z=fxHg@mail.gmail.com>
+Subject: Re: cx25840: improve audio for cx2388x drivers
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: Steven Toth <stoth@kernellabs.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-2
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-On Mon, Jan 16, 2012 at 18:47:00, Mauro Carvalho Chehab wrote:
-> Em 16-01-2012 11:06, Hadli, Manjunath escreveu:
-> > Mauro,
-> > On Mon, Jan 16, 2012 at 18:26:25, Mauro Carvalho Chehab wrote:
-> >> Em 16-01-2012 10:45, Hadli, Manjunath escreveu:
-> >>> Mauro,
-> >>> On Mon, Jan 16, 2012 at 17:27:03, Mauro Carvalho Chehab wrote:
-> >>>> Em 11-01-2012 09:39, Hadli, Manjunath escreveu:
-> >>>>> Hi Mauro,
-> >>>>>   Can you please pull the following patch which removes some unnecessary inclusion
-> >>>>>   of machine specific header files from the main driver files?
-> >>>>>  
-> >>>>>   This patch has undergone sufficient review already. It is just a cleanup patch and I don't
-> >>>>>   expect any functionality to break because of this. The reason I did not club this with the
-> >>>>>   3 previous patches was because one of the previous patches on which this is dependent,
-> >>>>>   is now pulled in by Arnd.
-> >>>>>
-> >>>>>  Thanks and Regards,
-> >>>>> -Manju
-> >>>>>
-> >>>>>  
-> >>>>> The following changes since commit e343a895a9f342f239c5e3c5ffc6c0b1707e6244:
-> >>>>>   Linus Torvalds (1):
-> >>>>>         Merge tag 'for-linus' of 
-> >>>>> git://git.kernel.org/.../mst/vhost
-> >>>>>
-> >>>>> are available in the git repository at:
-> >>>>>
-> >>>>>   git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
-> >>>>> for-mauro-v3.3
-> >>>>>
-> >>>>> Manjunath Hadli (1):
-> >>>>>       davinci: vpif: remove machine specific header file inclusion 
-> >>>>> from the driver
-> >>>>
-> >>>> This patch is outdated and doesn't apply anymore. Could you please rebase it over my tree, branch "staging/for_v3.3"?
-> >>> This patch needs a recent accepted commit by Arnd which is available 
-> >>> on http://git.linuxtv.org/linux-2.6.git but not on staging.
-> >>
-> >> This tree is just a daily-updated copy of Linus one. It is mirrored there just to minimize the object copies at the other local trees.
-> >>
-> >>> Are you planning to rebase you staging tree to latest? When you do 
-> >>> that this Patch will apply. Please let me know if there is any other way you want me to do?
-> >>
-> >> Linus doesn't like when someone merge from a random place at his tree.
-> >> I'll merge from his tree at -rc1, but I'm not intending to merge it earlier than that, except if there are some strong reasons for that.
-> > Indeed, there are quite a few patches waiting to be pulled which are 
-> > dependent on this patch. I would urge you to pull this as early as possible.
-> 
-> Are those features target for 3.4? It is late for adding new features for 3.3.
-> 
-> If they aren't for 3.3, merging at 3.3-rc1 should be ok for your needs.
-  They are intended for 3.4. Merging at v3.3-rc1 is OK.
+I tested Leadtek DVR3200
 
-Regards,
--Manju
+http://linuxtv.org/wiki/index.php/Leadtek_WinFast_PxDVR3200_H
 
-> Otherwise, you need to point me the exact patch at Linus tree you need me to pull, and properly justify the need for this patch, and submit it together with the other ones you're needing for 3.3.
-> > 
-> > Rgds,
-> > -Manju
-> >>
-> >> Anyway, if you prefer to send this patch through Arnd's tree, feel free to add my acked-by: on that:
-> >>
-> >> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> >>>
-> >>> Regards,
-> >>> -Manju
-> >>>>
-> >>>> Thanks!
-> >>>> Mauro
-> >>>>
-> >>>>>
-> >>>>>  drivers/media/video/davinci/vpif.h         |    2 --
-> >>>>>  drivers/media/video/davinci/vpif_display.c |    2 --
-> >>>>>  include/media/davinci/vpif_types.h         |    2 ++
-> >>>>>  3 files changed, 2 insertions(+), 4 deletions(-)
-> >>>>> --
-> >>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" 
-> >>>>> in the body of a message to majordomo@vger.kernel.org More 
-> >>>>> majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >>>>
-> >>>>
-> >>>
-> >>
-> >>
-> > 
-> 
-> 
+XC4000 and XC3028 versions
 
+I know that there is not yet full support for those cards, but i have
+few patches which are waiting to be commited, after for both tuners
+should work:
+
+DVB-t (already)
+Analog TV with sound (not working)
+Analog Composite (not working)
+Analog S-Video (not working)
+Analog Component (not working)
+Analog FM radio (not even implemented)
+
+For now i am not able to fix MPEG2 which i don't understand and i
+can't test IR remote which i don't use.
+
+Why are you asking? :)
+
+M.
+
+Dne 14. ledna 2012 20:23 Steven Toth <stoth@kernellabs.com> napsal(a):
+> Miroslav, what cards did you test with?
+>
+> 2012/1/14 Miroslav Slugeò <thunder.mmm@gmail.com>:
+>> Searching for testers, this patch is big one, it was more then week of
+>> work and testing, so i appriciate any comments and recommendations.
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
