@@ -1,93 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:39314 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753360Ab2AaKKP (ORCPT
+Received: from relay01.mx.bawue.net ([193.7.176.67]:41405 "EHLO
+	relay01.mx.bawue.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753362Ab2ANNNW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jan 2012 05:10:15 -0500
-Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
- by mailout3.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LYN002Q4QW574X0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 31 Jan 2012 19:09:41 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LYN00CDSQW0EE10@mmp2.samsung.com>
- for linux-media@vger.kernel.org; Tue, 31 Jan 2012 19:09:41 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
-Cc: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	linux-media@vger.kernel.org, mchehab@infradead.org,
-	kyungmin.park@samsung.com, patches@linaro.org
-References: <1327917523-29836-1-git-send-email-sachin.kamat@linaro.org>
- <201201301311.48370.laurent.pinchart@ideasonboard.com>
- <008b01ccdf54$962229d0$c2667d70$%debski@samsung.com>
- <201201311030.25154.laurent.pinchart@ideasonboard.com>
-In-reply-to: <201201311030.25154.laurent.pinchart@ideasonboard.com>
-Subject: RE: [PATCH][media] s5p-g2d: Add HFLIP and VFLIP support
-Date: Tue, 31 Jan 2012 11:09:35 +0100
-Message-id: <00a601cce000$72522670$56f67350$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
-Content-language: en-gb
+	Sat, 14 Jan 2012 08:13:22 -0500
+Message-ID: <4F117E07.4060202@zorglub.s.bawue.de>
+Date: Sat, 14 Jan 2012 14:07:19 +0100
+From: Eric Lavarde <deb@zorglub.s.bawue.de>
+MIME-Version: 1.0
+To: Jonathan Nieder <jrnieder@gmail.com>
+CC: linux-media@vger.kernel.org,
+	Ralph Metzler <rmetzler@digitaldevices.de>,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: [ddbridge] suspend-to-disk takes about a minute ("I2C timeout")
+ if vdr in use on ASUS P8H67-M EVO
+References: <4ED0CD0C.7010403@zorglub.s.bawue.de> <20111212022944.GA30031@elie.hsd1.il.comcast.net> <4EE7402B.1010203@zorglub.s.bawue.de> <20111224071906.GA11131@elie.Belkin>
+In-Reply-To: <20111224071906.GA11131@elie.Belkin>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent and Sachin,
+Hello,
 
-> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> Sent: 31 January 2012 10:30
-> 
-> Hi Kamil,
-> 
-> On Monday 30 January 2012 14:39:22 Kamil Debski wrote:
-> > On 30 January 2012 13:12 Laurent Pinchart wrote:
-> > > On Monday 30 January 2012 10:58:43 Sachin Kamat wrote:
-> > > > This patch adds support for flipping the image horizontally and
-> > > > vertically.
-> 
-> [snip]
-> 
-> > > > +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
-> > > > +						V4L2_CID_HFLIP, 0, 1, 1,
-0);
-> > > > +	if (ctx->ctrl_handler.error)
-> > > > +		goto error;
-> > > > +
-> > > > +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
-> > > > +						V4L2_CID_VFLIP, 0, 1, 1,
-0);
-> > >
-> > > As a single register controls hflip and vflip, you should group the two
-> > > controls in a cluster.
-> >
-> > I think it doesn't matter in this use case. As register are not written
-> > in the g2d_s_ctrl. Because the driver uses multiple context it modifies
-> > the appropriate values in its context structure and registers are written
-> > when the transaction is run.
-> >
-> > Also there is no logical connection between horizontal and vertical flip.
-> > I think this is the case when using clusters. Here one is independent from
-> > another.
-> 
-> As the value is only written to hardware registers later, not in the s_ctrl()
-> handler, a cluster is (probably) not mandatory if the driver uses proper
-> locking. Otherwise there will be no guarantee that setting both hflip and
-> vflip in a single VIDIOC_S_EXT_CTRLS call will not result in one frame with
-> only hflip or vflip applied.
+On 24/12/11 08:19, Jonathan Nieder wrote:
+>> [  570.265915] I2C timeout
+>> [  570.265921] IRS 00000001
+> [...]
+>> [... hundreds of line of this type ...]
+>
+> Ok, sounds like nothing good.
+>
+> This error message comes from the ddb_i2c_cmd() function in the
+> ddbridge driver.  I don't think it's supposed to fail like that. :)
+>
+> Ralph, Oliver, any hints for debugging this?  The above is with a
+> v3.1-based kernel.  More details are below, at
+> <http://bugs.debian.org/650081>, and in messages after the first one
+> at<http://bugs.debian.org/562008>.
+>
+I don't want to keep you from trying to fix the problem :-) but:
+1. the ddbridge module doesn't come from the standard kernel package but 
+from [1]
+2. in the mean time, the maintainer / author (UFO, perhaps even reading 
+these lines) has stated under [2] that the modules are not meant to 
+support suspend/resume.
 
-I see your point - this could happen. So Sachin - I think you need to add the
-cluster.
-You can find documentation about this in
-Documentation/video4linux/v4l2-controls.txt
+Also, because my main issue is with not being able to get my PC to wake 
+up at a given time from the command line and _not_ with not being able 
+to suspend, and because I read that Kernel guys don't like to work on 
+"dirty" kernels, I have now a dual boot setup between "pure kernel" and 
+"dirty kernel with ddbridge".
+Let me know if I can do anything to bring forward the resolution of any 
+issue reported. And don't forget to tell me with which Kernel I should test.
 
-Also I have talked with Sylwester about locking. It turns out that a spinlock in
-device_run and s_ctrl is necessary. I'll add it after you send your patch,
-Sachin.
+This said, I don't see any noticeable difference between both kernels in 
+regard of not waking up...
 
-Best wishes,
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+Eric
 
+Links (in German, let me know if I need to translate something):
+
+[1] 
+http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/105803-aktuelle-treiber-f%C3%BCr-octopus-ddbridge-cines2-ngene-ddbridge-duoflex-s2-duoflex-ct-cinect-sowie-tt-s2-6400/
+
+[2] 
+http://www.vdr-portal.de/board16-video-disk-recorder/board85-hdtv-dvb-s2/p1046383-aktuelle-treiber-f%C3%BCr-octopus-ddbridge-cines2-ngene-ddbridge-duoflex-s2-duoflex-ct-cinect-sowie-tt-s2-6400/#post1046383
