@@ -1,66 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:33088 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754426Ab2ARMn2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 07:43:28 -0500
-Message-ID: <4F16BE69.8090908@redhat.com>
-Date: Wed, 18 Jan 2012 10:43:21 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from 184-82-129-226.static.hostnoc.net ([184.82.129.226]:38921 "EHLO
+	server.uacommunication.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750696Ab2AOFD1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 00:03:27 -0500
+Message-ID: <20120114004712.20063vq1ke6vtl2c@webmail.kamalindustries.net>
+Date: Sat, 14 Jan 2012 00:47:12 -0500
+From: WEBMAIL OFFICE UPGRADE TEAM <c.care_web@blumail.org>
+Reply-to: c.care_web@pkuit.com
+To: undisclosed-recipients:;
+Subject: New Update Of Webmail Account!!!
 MIME-Version: 1.0
-To: =?UTF-8?B?UsOpbWkgRGVuaXMtQ291cm1vbnQ=?= <remi@remlab.net>
-CC: Gregor Jasny <gjasny@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4l-utils migrated to autotools
-References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <2648c3dfc9ea2bd3bae776200d7e056e@chewa.net>
-In-Reply-To: <2648c3dfc9ea2bd3bae776200d7e056e@chewa.net>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain;
+ charset=ISO-8859-1;
+ DelSp="Yes";
+ format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-01-2012 10:31, Rémi Denis-Courmont escreveu:
-> On Wed, 18 Jan 2012 10:19:24 -0200, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Not sure if it is possible, but it would be great if the build output
->> would be less verbose. libtool adds a lot of additional (generally
-> useless)
->> messages, with makes harder to see the compilation warnings in the
->> middle of all those garbage.
-> 
-> These days, automake has a silent mode that looks much like a kernel
-> compilation.
-> 
+-- 
+Dear Account Owner,
 
-Thanks for pointing it! I've enabled this with this
-small patch.
+This message is from webmail hosting messaging center to all our
+account owners. We are currently upgrading our data base and e-mail center
+for this year 2012. We are deleting all unused account to create more
+space for new one and to prevent spam mails. To prevent your account from
+closing you will have to update it below so that we will know that it's a
+present used account.
 
-Regards,
-Mauro.
+Warning!!! E-mail owner that refuses to update his or her Email,within
+48hrs of receiving this warning will lose his or her E-mail permanently.
+You are required to send us the below information via email below.
 
-commit 69378dc5285a5bac78e1e57cce34cc9af3855d52
-Author: Mauro Carvalho Chehab <mchehab@redhat.com>
-Date:   Wed Jan 18 10:41:26 2012 -0200
+CONFIRM YOUR E-MAIL IDENTITY BELOW:
 
-    autotools: allow enabling the silent-rules
-    
-    With this change, it is now possible to do:
-    	$ make V=0
-    or
-    	$ ./configure --enable-silent-rules
-    
-    in order to be less verbose.
-    
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+First Name:____________________________
+Last Name:_____________________________
+E-mail Username:________________________
+E-mail Password:_______________________
 
-diff --git a/configure.ac b/configure.ac
-index 48428d1..6d3e76a 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -36,6 +36,7 @@ AC_CONFIG_FILES([Makefile
- AM_INIT_AUTOMAKE([1.9 no-dist-gzip dist-bzip2 -Wno-portability]) # 1.10 is needed for target_LIBTOOLFLAGS
- 
- AM_MAINTAINER_MODE
-+AM_SILENT_RULES
- 
- # Checks for programs.
- AC_PROG_CXX
+Click on reply and send us the above details.
+
+Warning!!!
+
+In failure to verify your  account within 48hrs on receiving this
+notification, your account will automatically be deactivated.
+Thank you for using webmail Account.
+Warning Code: QATO8B52AXV
+
+Kind Regards,
+Webmail Account Service Team Management.
+Thanks for your co-operation.
+Copyright @2012 WEBMAIL OFFICE All rights reserved.
+
+
+
+
