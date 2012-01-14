@@ -1,146 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:63042 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752883Ab2AUQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:45 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4jq3023691
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:45 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 25/35] [media] drxk: add support for Mpeg output clock drive strength config
-Date: Sat, 21 Jan 2012 14:04:27 -0200
-Message-Id: <1327161877-16784-26-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-25-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
- <1327161877-16784-11-git-send-email-mchehab@redhat.com>
- <1327161877-16784-12-git-send-email-mchehab@redhat.com>
- <1327161877-16784-13-git-send-email-mchehab@redhat.com>
- <1327161877-16784-14-git-send-email-mchehab@redhat.com>
- <1327161877-16784-15-git-send-email-mchehab@redhat.com>
- <1327161877-16784-16-git-send-email-mchehab@redhat.com>
- <1327161877-16784-17-git-send-email-mchehab@redhat.com>
- <1327161877-16784-18-git-send-email-mchehab@redhat.com>
- <1327161877-16784-19-git-send-email-mchehab@redhat.com>
- <1327161877-16784-20-git-send-email-mchehab@redhat.com>
- <1327161877-16784-21-git-send-email-mchehab@redhat.com>
- <1327161877-16784-22-git-send-email-mchehab@redhat.com>
- <1327161877-16784-23-git-send-email-mchehab@redhat.com>
- <1327161877-16784-24-git-send-email-mchehab@redhat.com>
- <1327161877-16784-25-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:39840 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756203Ab2ANSaI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 13:30:08 -0500
+Received: by bkuw12 with SMTP id w12so699151bku.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:30:07 -0800 (PST)
+MIME-Version: 1.0
+Date: Sat, 14 Jan 2012 19:30:06 +0100
+Message-ID: <CAEN_-SDpi9dBj7hVr5f-8ap0ns+iMh8vLAcGQfA4r7XfURTE5Q@mail.gmail.com>
+Subject: cx23885: small fix definition of radio tuners
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015175cab9eab87fa04b6812be2
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-usb/az6007.c      |    3 +--
- drivers/media/dvb/frontends/drxk.h      |    4 +++-
- drivers/media/dvb/frontends/drxk_hard.c |   12 ++++++------
- 3 files changed, 10 insertions(+), 9 deletions(-)
+--0015175cab9eab87fa04b6812be2
+Content-Type: text/plain; charset=ISO-8859-1
 
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index 00a0bf1..bf8d201 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -69,6 +69,7 @@ static struct drxk_config terratec_h7_drxk = {
- 	.single_master = true,
- 	.no_i2c_bridge = false,
- 	.chunk_size = 64,
-+	.mpeg_out_clk_strength = 0x02,
- 	.microcode_name = "dvb-usb-terratec-h7-az6007.fw",
- };
- 
-@@ -278,12 +279,10 @@ static int az6007_led_on_off(struct usb_interface *intf, int onoff)
- {
- 	struct usb_device *udev = interface_to_usbdev(intf);
- 	int ret;
--
- 	/* TS through */
- 	ret = az6007_write(udev, AZ6007_POWER, onoff, 0, NULL, 0);
- 	if (ret < 0)
- 		err("%s failed with error %d", __func__, ret);
--
- 	return ret;
- }
- 
-diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
-index 6b0fd2c..ca921c7 100644
---- a/drivers/media/dvb/frontends/drxk.h
-+++ b/drivers/media/dvb/frontends/drxk.h
-@@ -17,6 +17,7 @@
-  * @antenna_gpio:	GPIO bit used to control the antenna
-  * @antenna_dvbt:	GPIO bit for changing antenna to DVB-C. A value of 1
-  *			means that 1=DVBC, 0 = DVBT. Zero means the opposite.
-+ * @mpeg_out_clk_strength: DRXK Mpeg output clock drive strength.
-  * @microcode_name:	Name of the firmware file with the microcode
-  *
-  * On the *_gpio vars, bit 0 is UIO-1, bit 1 is UIO-2 and bit 2 is
-@@ -32,7 +33,8 @@ struct drxk_config {
- 	bool	antenna_dvbt;
- 	u16	antenna_gpio;
- 
--	int    chunk_size;
-+	u8	mpeg_out_clk_strength;
-+	int	chunk_size;
- 
- 	const char *microcode_name;
- };
-diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
-index 6570396..d25b0d2 100644
---- a/drivers/media/dvb/frontends/drxk_hard.c
-+++ b/drivers/media/dvb/frontends/drxk_hard.c
-@@ -91,10 +91,6 @@ bool IsA1WithRomCode(struct drxk_state *state)
- #define DRXK_MPEG_PARALLEL_OUTPUT_PIN_DRIVE_STRENGTH (0x03)
- #endif
- 
--#ifndef DRXK_MPEG_OUTPUT_CLK_DRIVE_STRENGTH
--#define DRXK_MPEG_OUTPUT_CLK_DRIVE_STRENGTH (0x06)
--#endif
--
- #define DEFAULT_DRXK_MPEG_LOCK_TIMEOUT 700
- #define DEFAULT_DRXK_DEMOD_LOCK_TIMEOUT 500
- 
-@@ -659,7 +655,6 @@ static int init_state(struct drxk_state *state)
- 	u32 ulGPIOCfg = 0x0113;
- 	u32 ulInvertTSClock = 0;
- 	u32 ulTSDataStrength = DRXK_MPEG_SERIAL_OUTPUT_PIN_DRIVE_STRENGTH;
--	u32 ulTSClockkStrength = DRXK_MPEG_OUTPUT_CLK_DRIVE_STRENGTH;
- 	u32 ulDVBTBitrate = 50000000;
- 	u32 ulDVBCBitrate = DRXK_QAM_SYMBOLRATE_MAX * 8;
- 
-@@ -820,7 +815,6 @@ static int init_state(struct drxk_state *state)
- 	state->m_DVBCBitrate = ulDVBCBitrate;
- 
- 	state->m_TSDataStrength = (ulTSDataStrength & 0x07);
--	state->m_TSClockkStrength = (ulTSClockkStrength & 0x07);
- 
- 	/* Maximum bitrate in b/s in case static clockrate is selected */
- 	state->m_mpegTsStaticBitrate = 19392658;
-@@ -6394,6 +6388,12 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
- 		state->m_DVBCStaticCLK = 1;
- 	}
- 
-+
-+	if (config->mpeg_out_clk_strength)
-+		state->m_TSClockkStrength = config->mpeg_out_clk_strength & 0x07;
-+	else
-+		state->m_TSClockkStrength = 0x06;
-+
- 	if (config->parallel_ts)
- 		state->m_enableParallel = true;
- 	else
--- 
-1.7.8
+This time with signed-off header.
 
+--0015175cab9eab87fa04b6812be2
+Content-Type: text/x-patch; charset=US-ASCII; name="cx23885-fix-radio-tuners.patch"
+Content-Disposition: attachment; filename="cx23885-fix-radio-tuners.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gxez0kmv0
+
+U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
+b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
+IERlYyAyMDExIDAwOjE5OjM0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gQWxsIHJhZGlvIHR1bmVy
+cyBpbiBjeDgzODg1IGRyaXZlciB1c2luZyBzYW1lIGFkZHJlc3MgZm9yIHJhZGlvIGFuZCB0dW5l
+ciwgc28gdGhlcmUgaXMgbm8gbmVlZCB0byBwcm9iZQogaXQgdHdpY2UgZm9yIHNhbWUgdHVuZXIg
+YW5kIHdlIGNhbiB1c2UgcmFkaW9fdHlwZSBVTlNFVC4gQmUgYXdhcmUgcmFkaW8gc3VwcG9ydCBp
+biBjeDIzODg1IGlzIG5vdCB5ZXQKIGNvbXBsZXRlZCwgc28gdGhpcyBpcyBvbmx5IG1pbm9yIGZp
+eCBmb3IgZnV0dXJlIHN1cHBvcnQuCgotLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9j
+eDIzODg1LWNhcmRzLmMgfCAgICA0ICsrLS0KIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25z
+KCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gy
+Mzg4NS9jeDIzODg1LWNhcmRzLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4
+NS1jYXJkcy5jCmluZGV4IGMzY2YwODkuLjE4N2M0NjIgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVk
+aWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LWNhcmRzLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRl
+by9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYwpAQCAtMjEzLDggKzIxMyw4IEBAIHN0cnVjdCBjeDIz
+ODg1X2JvYXJkIGN4MjM4ODVfYm9hcmRzW10gPSB7CiAJCS5wb3J0YwkJPSBDWDIzODg1X01QRUdf
+RFZCLAogCQkudHVuZXJfdHlwZQk9IFRVTkVSX1hDNDAwMCwKIAkJLnR1bmVyX2FkZHIJPSAweDYx
+LAotCQkucmFkaW9fdHlwZQk9IFRVTkVSX1hDNDAwMCwKLQkJLnJhZGlvX2FkZHIJPSAweDYxLAor
+CQkucmFkaW9fdHlwZQk9IFVOU0VULAorCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQsCiAJCS5p
+bnB1dAkJPSB7ewogCQkJLnR5cGUJPSBDWDIzODg1X1ZNVVhfVEVMRVZJU0lPTiwKIAkJCS52bXV4
+CT0gQ1gyNTg0MF9WSU4yX0NIMSB8Ci0tIAoxLjcuMi4zCgo=
+--0015175cab9eab87fa04b6812be2--
