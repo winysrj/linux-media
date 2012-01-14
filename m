@@ -1,50 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:37539 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754555Ab2AHWPK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2012 17:15:10 -0500
-Received: by wgbdr10 with SMTP id dr10so1105081wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 08 Jan 2012 14:15:08 -0800 (PST)
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:58539 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756304Ab2ANSdY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 13:33:24 -0500
+Received: by bkuw12 with SMTP id w12so700296bku.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:33:23 -0800 (PST)
 MIME-Version: 1.0
-Date: Sun, 8 Jan 2012 23:15:08 +0100
-Message-ID: <CADR1r6jbuGD5hecgC-gzVda1G=vCcOn4oMsf5TxcyEVWsWdVuQ@mail.gmail.com>
-Subject: [DVB Digital Devices Cine CT V6] status support
-From: Martin Herrman <martin.herrman@gmail.com>
+Date: Sat, 14 Jan 2012 19:33:23 +0100
+Message-ID: <CAEN_-SBe8-QHa+7SnTVGc4aU-axXb2mfHR+w2imsUygNxDyAag@mail.gmail.com>
+Subject: Update xc4000 tuner definition
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
 To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: multipart/mixed; boundary=0015175cada462839204b681374a
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear list-members,
+--0015175cada462839204b681374a
+Content-Type: text/plain; charset=ISO-8859-1
 
-I'm building a HTPC based on Linux and searching for an DVB-C tuner card that:
-- fits the mobo (only pci-e/usb available, not pci or firewire)
-- fits the case (antec fusion remote, big enough)
-- is supported by linux
-- is dual tuner
-- supports encrypted HD content
-- provides good quality
 
-digital devices cine ct v6 seems to be a perfect solution, together
-with a softcam based on smargo cartreader.
 
-http://shop.digital-devices.de/epages/62357162.sf/en_GB/?ObjectPath=/Shops/62357162/Categories/HDTV_Karten_fuer_Mediacenter/Cine_PCIe_Serie/DVBC_T
+--0015175cada462839204b681374a
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="xc4000-fix-duplicate-tuner-number.patch"
+Content-Disposition: attachment;
+	filename="xc4000-fix-duplicate-tuner-number.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gxez58520
 
-But.. is this card supported by the Linux kernel?
-
-In 3.2.0-rc7 kernel I have found the driver for most of the digital
-devices cards, which includes the Cine S2 v6, but not the Cine CT v6.
-(I have also found some experimental drivers for CI moduels in the
-staging drivers section).
-
-On the other hand, this discussion seems to indicate that drivers for
-Cine CT v6 should be working at this time:
-
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg37183.html
-
-Can you give me an update on the status of a possibly existing driver
-for Cine CT v6?
-
-Much thanks in advance,
-
-Martin
+U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
+b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBTdW4sIDEx
+IERlYyAyMDExIDIyOjQ3OjMyICswMTAwClN1YmplY3Q6IFtQQVRDSF0gVXBkYXRlIHhjNDAwMCB0
+dW5lciBkZWZpbml0aW9uLCBudW1iZXIgODEgaXMgYWxyZWFkeSBpbiB1c2UgYnkgVFVORVJfUEFS
+VFNOSUNfUFRJXzVORjA1CgotLS0KIGluY2x1ZGUvbWVkaWEvdHVuZXIuaCB8ICAgIDMgKystCiAx
+IGZpbGVzIGNoYW5nZWQsIDIgaW5zZXJ0aW9ucygrKSwgMSBkZWxldGlvbnMoLSkKCmRpZmYgLS1n
+aXQgYS9pbmNsdWRlL21lZGlhL3R1bmVyLmggYi9pbmNsdWRlL21lZGlhL3R1bmVyLmgKaW5kZXgg
+ODljMjkwYi4uMjllMTkyMCAxMDA2NDQKLS0tIGEvaW5jbHVkZS9tZWRpYS90dW5lci5oCisrKyBi
+L2luY2x1ZGUvbWVkaWEvdHVuZXIuaApAQCAtMTI3LDcgKzEyNyw2IEBACiAjZGVmaW5lIFRVTkVS
+X1BISUxJUFNfRk1EMTIxNk1FWF9NSzMJNzgKICNkZWZpbmUgVFVORVJfUEhJTElQU19GTTEyMTZN
+SzUJCTc5CiAjZGVmaW5lIFRVTkVSX1BISUxJUFNfRlExMjE2TE1FX01LMwk4MAkvKiBBY3RpdmUg
+bG9vcHRocm91Z2gsIG5vIEZNICovCi0jZGVmaW5lIFRVTkVSX1hDNDAwMAkJCTgxCS8qIFhjZWl2
+ZSBTaWxpY29uIFR1bmVyICovCiAKICNkZWZpbmUgVFVORVJfUEFSVFNOSUNfUFRJXzVORjA1CTgx
+CiAjZGVmaW5lIFRVTkVSX1BISUxJUFNfQ1UxMjE2TCAgICAgICAgICAgODIKQEAgLTEzNiw2ICsx
+MzUsOCBAQAogI2RlZmluZSBUVU5FUl9QSElMSVBTX0ZRMTIzNl9NSzUJODUJLyogTlRTQywgVERB
+OTg4NSwgbm8gRk0gcmFkaW8gKi8KICNkZWZpbmUgVFVORVJfVEVOQV9UTkZfNTMzNwkJODYKIAor
+I2RlZmluZSBUVU5FUl9YQzQwMDAJCQk4NwkvKiBYY2VpdmUgU2lsaWNvbiBUdW5lciAqLworCiAv
+KiB0diBjYXJkIHNwZWNpZmljICovCiAjZGVmaW5lIFREQTk4ODdfUFJFU0VOVCAJCSgxPDwwKQog
+I2RlZmluZSBUREE5ODg3X1BPUlQxX0lOQUNUSVZFIAkJKDE8PDEpCi0tIAoxLjcuMi4zCgo=
+--0015175cada462839204b681374a--
