@@ -1,63 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:41799 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754892Ab2AEKuK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 05:50:10 -0500
-Date: Thu, 5 Jan 2012 12:50:06 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/1] omap3isp: Check media bus code on links
-Message-ID: <20120105105005.GM9323@valkosipuli.localdomain>
-References: <1325754619-2520-1-git-send-email-sakari.ailus@iki.fi>
- <201201051112.14459.laurent.pinchart@ideasonboard.com>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:57258 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756376Ab2ANSbc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 13:31:32 -0500
+Received: by bkuw12 with SMTP id w12so699596bku.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:31:31 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201201051112.14459.laurent.pinchart@ideasonboard.com>
+Date: Sat, 14 Jan 2012 19:31:31 +0100
+Message-ID: <CAEN_-SAXwqbDpnWpk+X=Z-xMbxGV9Ufh4aEr=ZRW-sg50XX-Mg@mail.gmail.com>
+Subject: cx88: all radio tuners using xc2028 or xc4000 tuner and radio should
+ have radio_type UNSET
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=000e0ce0f306ba92f104b6813014
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+--000e0ce0f306ba92f104b6813014
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Thu, Jan 05, 2012 at 11:12:14AM +0100, Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Thursday 05 January 2012 10:10:19 Sakari Ailus wrote:
-> > Check media bus code on links. The user could configure different formats
-> > at different ends of the link, say, 8 bits-per-pixel in the source and 10
-> > bits-per-pixel in the sink. This leads to interesting and typically
-> > undesired results image-wise.
-> > 
-> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > ---
-> >  drivers/media/video/omap3isp/ispvideo.c |    3 ++-
-> >  1 files changed, 2 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> > b/drivers/media/video/omap3isp/ispvideo.c index 615dae5..dbdd5b4 100644
-> > --- a/drivers/media/video/omap3isp/ispvideo.c
-> > +++ b/drivers/media/video/omap3isp/ispvideo.c
-> > @@ -352,7 +352,8 @@ static int isp_video_validate_pipeline(struct
-> > isp_pipeline *pipe)
-> > 
-> >  		/* Check if the two ends match */
-> >  		if (fmt_source.format.width != fmt_sink.format.width ||
-> > -		    fmt_source.format.height != fmt_sink.format.height)
-> > +		    fmt_source.format.height != fmt_sink.format.height ||
-> > +		    fmt_source.format.code != fmt_sink.format.code)
-> 
-> If you scroll down a bit, the check is already present in the second branch of 
-> the if statement. The reason why the driver doesn't enforce the same format 
-> unconditionally is that the lane shifter on the CCDC sink link can shift data, 
-> so a special check is needed there.
+Please apply as soon as possible, without this patch radio doesn't
+work on affected tuners!
 
-Ooops. My mistake --- I had made an error in implementing
-validate_pipeline() op. Somehow my assumption was the resulted issue would
-be present in the original code.
+M.
 
-You may thus ignore this patch completely.
+--000e0ce0f306ba92f104b6813014
+Content-Type: text/x-patch; charset=US-ASCII; name="cx88-fix-radio-tuners.patch"
+Content-Disposition: attachment; filename="cx88-fix-radio-tuners.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gxez2t520
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
+b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBTdW4sIDEx
+IERlYyAyMDExIDIzOjAwOjA2ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gQWxsIHJhZGlvIHR1bmVy
+cyBpbiBjeDg4IGRyaXZlciB1c2luZyBzYW1lIGFkZHJlc3MgZm9yIHJhZGlvIGFuZCB0dW5lciwg
+c28gdGhlcmUgaXMgbm8gbmVlZCB0byBwcm9iZQogaXQgdHdpY2UgZm9yIHNhbWUgdHVuZXIgYW5k
+IHdlIGNhbiB1c2UgcmFkaW9fdHlwZSBVTlNFVCwgdGhpcyBhbHNvIGZpeCBicm9rZW4gcmFkaW8g
+c2luY2Uga2VybmVsIDIuNi4zOS1yYzEKIGZvciB0aG9zZSB0dW5lcnMuCgotLS0KIGRyaXZlcnMv
+bWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMgfCAgIDI0ICsrKysrKysrKysrKy0tLS0tLS0t
+LS0tLQogMSBmaWxlcyBjaGFuZ2VkLCAxMiBpbnNlcnRpb25zKCspLCAxMiBkZWxldGlvbnMoLSkK
+CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jIGIvZHJp
+dmVycy9tZWRpYS92aWRlby9jeDg4L2N4ODgtY2FyZHMuYwppbmRleCAwZDcxOWZhLi4zOTI5ZDkz
+IDEwMDY0NAotLS0gYS9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4ODgvY3g4OC1jYXJkcy5jCisrKyBi
+L2RyaXZlcnMvbWVkaWEvdmlkZW8vY3g4OC9jeDg4LWNhcmRzLmMKQEAgLTE1NzMsOCArMTU3Myw4
+IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1tdID0gewogCQku
+bmFtZSAgICAgICAgICAgPSAiUGlubmFjbGUgSHlicmlkIFBDVFYiLAogCQkudHVuZXJfdHlwZSAg
+ICAgPSBUVU5FUl9YQzIwMjgsCiAJCS50dW5lcl9hZGRyICAgICA9IDB4NjEsCi0JCS5yYWRpb190
+eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKLQkJLnJhZGlvX2FkZHIgICAgID0gMHg2MSwKKwkJLnJh
+ZGlvX3R5cGUgICAgID0gVU5TRVQsCisJCS5yYWRpb19hZGRyICAgICA9IEFERFJfVU5TRVQsCiAJ
+CS5pbnB1dCAgICAgICAgICA9IHsgewogCQkJLnR5cGUgICA9IENYODhfVk1VWF9URUxFVklTSU9O
+LAogCQkJLnZtdXggICA9IDAsCkBAIC0xNjExLDggKzE2MTEsOCBAQCBzdGF0aWMgY29uc3Qgc3Ry
+dWN0IGN4ODhfYm9hcmQgY3g4OF9ib2FyZHNbXSA9IHsKIAkJLm5hbWUgICAgICAgICAgID0gIkxl
+YWR0ZWsgVFYyMDAwIFhQIEdsb2JhbCIsCiAJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDMjAy
+OCwKIAkJLnR1bmVyX2FkZHIgICAgID0gMHg2MSwKLQkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJf
+WEMyMDI4LAotCQkucmFkaW9fYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fdHlwZSAgICAgPSBV
+TlNFVCwKKwkJLnJhZGlvX2FkZHIgICAgID0gQUREUl9VTlNFVCwKIAkJLmlucHV0ICAgICAgICAg
+ID0geyB7CiAJCQkudHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCiAJCQkudm11eCAgID0g
+MCwKQEAgLTIwNDMsOCArMjA0Myw4IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBj
+eDg4X2JvYXJkc1tdID0gewogCQkubmFtZSAgICAgICAgICAgPSAiVGVycmF0ZWMgQ2luZXJneSBI
+VCBQQ0kgTUtJSSIsCiAJCS50dW5lcl90eXBlICAgICA9IFRVTkVSX1hDMjAyOCwKIAkJLnR1bmVy
+X2FkZHIgICAgID0gMHg2MSwKLQkJLnJhZGlvX3R5cGUgICAgID0gVFVORVJfWEMyMDI4LAotCQku
+cmFkaW9fYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fdHlwZSAgICAgPSBVTlNFVCwKKwkJLnJh
+ZGlvX2FkZHIgICAgID0gQUREUl9VTlNFVCwKIAkJLmlucHV0ICAgICAgICAgID0geyB7CiAJCQku
+dHlwZSAgID0gQ1g4OF9WTVVYX1RFTEVWSVNJT04sCiAJCQkudm11eCAgID0gMCwKQEAgLTIwODIs
+OSArMjA4Miw5IEBAIHN0YXRpYyBjb25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1td
+ID0gewogCVtDWDg4X0JPQVJEX1dJTkZBU1RfRFRWMTgwMEhdID0gewogCQkubmFtZSAgICAgICAg
+ICAgPSAiTGVhZHRlayBXaW5GYXN0IERUVjE4MDAgSHlicmlkIiwKIAkJLnR1bmVyX3R5cGUgICAg
+ID0gVFVORVJfWEMyMDI4LAotCQkucmFkaW9fdHlwZSAgICAgPSBUVU5FUl9YQzIwMjgsCisJCS5y
+YWRpb190eXBlICAgICA9IFVOU0VULAogCQkudHVuZXJfYWRkciAgICAgPSAweDYxLAotCQkucmFk
+aW9fYWRkciAgICAgPSAweDYxLAorCQkucmFkaW9fYWRkciAgICAgPSBBRERSX1VOU0VULAogCQkv
+KgogCQkgKiBHUElPIHNldHRpbmcKIAkJICoKQEAgLTIxMjMsOSArMjEyMyw5IEBAIHN0YXRpYyBj
+b25zdCBzdHJ1Y3QgY3g4OF9ib2FyZCBjeDg4X2JvYXJkc1tdID0gewogCVtDWDg4X0JPQVJEX1dJ
+TkZBU1RfRFRWMTgwMEhfWEM0MDAwXSA9IHsKIAkJLm5hbWUJCT0gIkxlYWR0ZWsgV2luRmFzdCBE
+VFYxODAwIEggKFhDNDAwMCkiLAogCQkudHVuZXJfdHlwZQk9IFRVTkVSX1hDNDAwMCwKLQkJLnJh
+ZGlvX3R5cGUJPSBUVU5FUl9YQzQwMDAsCisJCS5yYWRpb190eXBlCT0gVU5TRVQsCiAJCS50dW5l
+cl9hZGRyCT0gMHg2MSwKLQkJLnJhZGlvX2FkZHIJPSAweDYxLAorCQkucmFkaW9fYWRkcgk9IEFE
+RFJfVU5TRVQsCiAJCS8qCiAJCSAqIEdQSU8gc2V0dGluZwogCQkgKgpAQCAtMjE2NCw5ICsyMTY0
+LDkgQEAgc3RhdGljIGNvbnN0IHN0cnVjdCBjeDg4X2JvYXJkIGN4ODhfYm9hcmRzW10gPSB7CiAJ
+W0NYODhfQk9BUkRfV0lORkFTVF9EVFYyMDAwSF9QTFVTXSA9IHsKIAkJLm5hbWUJCT0gIkxlYWR0
+ZWsgV2luRmFzdCBEVFYyMDAwIEggUExVUyIsCiAJCS50dW5lcl90eXBlCT0gVFVORVJfWEM0MDAw
+LAotCQkucmFkaW9fdHlwZQk9IFRVTkVSX1hDNDAwMCwKKwkJLnJhZGlvX3R5cGUJPSBVTlNFVCwK
+IAkJLnR1bmVyX2FkZHIJPSAweDYxLAotCQkucmFkaW9fYWRkcgk9IDB4NjEsCisJCS5yYWRpb19h
+ZGRyCT0gQUREUl9VTlNFVCwKIAkJLyoKIAkJICogR1BJTwogCQkgKiAgIDI6IDE6IG11dGUgYXVk
+aW8KLS0gCjEuNy4yLjMKCg==
+--000e0ce0f306ba92f104b6813014--
