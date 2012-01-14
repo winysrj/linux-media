@@ -1,73 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lo.gmane.org ([80.91.229.12]:37686 "EHLO lo.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751345Ab2AUMzQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 07:55:16 -0500
-Received: from list by lo.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1RoaTT-0002qz-9c
-	for linux-media@vger.kernel.org; Sat, 21 Jan 2012 13:55:15 +0100
-Received: from 93-97-197-17.zone5.bethere.co.uk ([93.97.197.17])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 13:55:15 +0100
-Received: from steve.myatt.2009 by 93-97-197-17.zone5.bethere.co.uk with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 13:55:15 +0100
-To: linux-media@vger.kernel.org
-From: Steve Myatt <steve.myatt.2009@gmail.com>
-Subject: Re: No video0, /dev/dvb/adapter0 present
-Date: Sat, 21 Jan 2012 12:38:42 +0000 (UTC)
-Message-ID: <loom.20120121T132944-762@post.gmane.org>
-References: <4BEE6B30.30303@ii.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:45581 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755551Ab2ANSro (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 13:47:44 -0500
+Received: by wgbds12 with SMTP id ds12so4161472wgb.1
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:47:43 -0800 (PST)
+Message-ID: <1326566854.2292.11.camel@tvbox>
+Subject: Re: [PATCH] [media] [PATCH] don't reset the delivery system on
+ DTV_CLEAR
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Date: Sat, 14 Jan 2012 18:47:34 +0000
+In-Reply-To: <1326246270-29272-1-git-send-email-mchehab@redhat.com>
+References: <1326246270-29272-1-git-send-email-mchehab@redhat.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cliffe <cliffe <at> ii.net> writes:
-
+On Tue, 2012-01-10 at 23:44 -0200, Mauro Carvalho Chehab wrote:
+> As a DVBv3 application may be relying on the delivery system,
+> don't reset it at DTV_CLEAR. For DVBv5 applications, the
+> delivery system should be set anyway.
 > 
-> Hello I would really appreciate some help.
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/dvb/dvb-core/dvb_frontend.c |    3 ++-
+>  1 files changed, 2 insertions(+), 1 deletions(-)
 > 
-[...cropped...]
-> [    9.079590] af9013: found a 'Afatech AF9013 DVB-T' in warm state.
-> [    9.082319] af9013: firmware version:4.95.0
-> [    9.094043] DVB: registering adapter 1 frontend 0 (Afatech AF9013 
-> DVB-T)...
-> [    9.094211] tda18271 1-00c0: creating new instance
-> [    9.096393] af9015: command failed:2
-> [    9.098032] tda18271_read_regs: [1-00c0|M] ERROR: i2c_transfer 
-> returned: -1
-> [    9.098046] Unknown device detected @ 1-00c0, device not supported.
-> [    9.100368] af9015: command failed:2
-[...cropped...]
-> Thanks,
-> 
-> Cliffe.
-> 
-> 
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index a904793..b15db4f 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -909,7 +909,6 @@ static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>  
+>  	c->state = DTV_CLEAR;
+>  
+> -	c->delivery_system = fe->ops.delsys[0];
+>  	dprintk("%s() Clearing cache for delivery system %d\n", __func__,
+>  		c->delivery_system);
+>  
+> @@ -2377,6 +2376,8 @@ int dvb_register_frontend(struct dvb_adapter* dvb,
+>  	 * Initialize the cache to the proper values according with the
+>  	 * first supported delivery system (ops->delsys[0])
+>  	 */
+> +
+> +        fe->dtv_property_cache.delivery_system = fe->ops.delsys[0];
+>  	dvb_frontend_clear_cache(fe);
+>  
+>  	mutex_unlock(&frontend_mutex);
+
+This patch breaks applications.
+
+Due to the memset in dvb_frontend_clear_cache which clears
+fe->dtv_property_cache.
+...
+static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+{
+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+	int i;
+
+	memset(c, 0, sizeof(struct dtv_frontend_properties));
+...
+
+Also, the delivery system can not be reset when making a call to
+DTV_CLEAR.
+
+So the delivery system must be set dvb_frontend_clear_cache.
+
+Regards
 
 
-Hi Cliffe
-
-Have you checked to see if there's a different report after a completely cold
-(power plug out) boot, compared to a warm reboot?
-
-I'm chasing what appears to me to be a similar problem, different card, same
-chips (by the look of it) and I found the same report in my syslog:
-
-Unknown device detected @ 1-00c0, device not supported.
-
-I see you haven't had any responses here; did you get any further with this?
-
-Symptoms in my system: got a dual tuner card (PEAK 221544AGPK PCI) which,
-following warm boot, doesn't see the second tuner. Suspect firmware not being
-loaded due to warm state. I'm documenting this at
-
-http://www.slm.dnsdojo.net/content/tech/myth/index.php#begin_peak.html
-
-Cheers
-Steve Myatt
+Malcolm
 
