@@ -1,60 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55559 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751546Ab2AOSB0 (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:55916 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756169Ab2ANS2U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 13:01:26 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Aurel <aurel@gmx.de>
-Subject: Re: White Balance Temperature
-Date: Sun, 15 Jan 2012 19:01:30 +0100
-Cc: linux-media@vger.kernel.org
-References: <loom.20120115T110626-849@post.gmane.org>
-In-Reply-To: <loom.20120115T110626-849@post.gmane.org>
+	Sat, 14 Jan 2012 13:28:20 -0500
+Received: by bkuw12 with SMTP id w12so698498bku.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:28:19 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201151901.31380.laurent.pinchart@ideasonboard.com>
+Date: Sat, 14 Jan 2012 19:28:19 +0100
+Message-ID: <CAEN_-SDqT6DHLmRsvqiTh+5DerxnFLHtSw+4utGs2Y0RnsAfhQ@mail.gmail.com>
+Subject: Fix possible null dereference for Leadtek DTV 3200H
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015175cab9e4b0c8d04b6812569
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Aurel,
+--0015175cab9e4b0c8d04b6812569
+Content-Type: text/plain; charset=ISO-8859-1
 
-On Sunday 15 January 2012 11:16:30 Aurel wrote:
-> Hi there
-> 
-> my "Live! Cam Socialize HD VF0610", Device ID: 041e:4080, Driver: uvcvideo
-> is running perfectly on Fedora 16 Linux, except one thing:
-> When I try to switch on "White Balance Temperature, Auto" or just try to
-> change "White Balance Temperature" slider I get a failure message and it
-> won't work. All other controls, like contrast, gamma, etc. are working.
-> "v4l2-ctl -d 1 --set-ctrl=white_balance_temperature_auto=1" produces an
-> error message:
-> "VIDIOC_S_CTRL: failed: Input/output error
-> white_balance_temperature_auto: Input/output error"
-> 
-> As soon as I boot Windows (inside Linux out of a Virtual Box), start the
-> camera there and go back to Linux, I am able to adjust and switch on the
-> White Balance things in Linux.
-> "v4l2-ctl -d 1 --set-ctrl=white_balance_temperature_auto=1" working fine
-> after running the camera in Windows.
-> 
-> Everytime I switch off my computer or disconnect the camera, I have to run
-> the camera in Windows again, bevor I can adjust White Balance in Linux.
-> 
-> What can I do to get White Balance controls working in Linux, without
-> having to run the camera in Windows every time?
-> Is there a special command I have to send to the camera for initializing or
-> so?
+This time with signed-off headers
 
-Not that I know of. If you use the stock UVC driver in Windows, without having 
-installed a custom driver for your device, that's quite unlikely.
+--0015175cab9e4b0c8d04b6812569
+Content-Type: text/x-patch; charset=US-ASCII;
+	name="cx23885-fix-possible-null-dereference.patch"
+Content-Disposition: attachment;
+	filename="cx23885-fix-possible-null-dereference.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gxeyxry00
 
-Could you dump the value of all controls in Linux before and after booting 
-Windows ?
-
--- 
-Regards,
-
-Laurent Pinchart
+U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
+b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBTdW4sIDEx
+IERlYyAyMDExIDIyOjU3OjU4ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gRml4IHBvc3NpYmxlIG51
+bGwgZGVyZWZlcmVuY2UgZm9yIExlYWR0ZWsgRFRWIDMyMDBIIFhDNDAwMCB0dW5lciB3aGVuIG5v
+IGZpcm13YXJlIGZpbGUgYXZhaWxhYmxlLgoKLS0tCiBkcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4
+ODUvY3gyMzg4NS1kdmIuYyB8ICAgIDUgKysrKysKIDEgZmlsZXMgY2hhbmdlZCwgNSBpbnNlcnRp
+b25zKCspLCAwIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8v
+Y3gyMzg4NS9jeDIzODg1LWR2Yi5jIGIvZHJpdmVycy9tZWRpYS92aWRlby9jeDIzODg1L2N4MjM4
+ODUtZHZiLmMKaW5kZXggYmNiNDViZS4uZjA0ODJiMiAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRp
+YS92aWRlby9jeDIzODg1L2N4MjM4ODUtZHZiLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRlby9j
+eDIzODg1L2N4MjM4ODUtZHZiLmMKQEAgLTk0MCw2ICs5NDAsMTEgQEAgc3RhdGljIGludCBkdmJf
+cmVnaXN0ZXIoc3RydWN0IGN4MjM4ODVfdHNwb3J0ICpwb3J0KQogCiAJCQlmZSA9IGR2Yl9hdHRh
+Y2goeGM0MDAwX2F0dGFjaCwgZmUwLT5kdmIuZnJvbnRlbmQsCiAJCQkJCSZkZXYtPmkyY19idXNb
+MV0uaTJjX2FkYXAsICZjZmcpOworCQkJaWYgKCFmZSkgeworCQkJCXByaW50ayhLRVJOX0VSUiAi
+JXMvMjogeGM0MDAwIGF0dGFjaCBmYWlsZWRcbiIsCisJCQkJICAgICAgIGRldi0+bmFtZSk7CisJ
+CQkJZ290byBmcm9udGVuZF9kZXRhY2g7CisJCQl9CiAJCX0KIAkJYnJlYWs7CiAJY2FzZSBDWDIz
+ODg1X0JPQVJEX1RCU182OTIwOgotLSAKMS43LjIuMwoK
+--0015175cab9e4b0c8d04b6812569--
