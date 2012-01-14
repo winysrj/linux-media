@@ -1,100 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:36950 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752447Ab2ATKCD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jan 2012 05:02:03 -0500
-Message-ID: <4F193B96.9020008@redhat.com>
-Date: Fri, 20 Jan 2012 08:01:58 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:36435 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756308Ab2ANUHG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 15:07:06 -0500
+Received: by eekd4 with SMTP id d4so1452170eek.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 12:07:05 -0800 (PST)
+Message-ID: <4F11E065.8080509@gmail.com>
+Date: Sat, 14 Jan 2012 21:07:01 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?RGVuaWxzb24gRmlndWVpcmVkbyBkZSBTw6E=?=
-	<denilsonsa@gmail.com>
+To: Jean-Francois Moine <moinejf@free.fr>
 CC: linux-media@vger.kernel.org
-Subject: Re: Siano DVB USB device called "Smart Plus"
-References: <CACGt9y=8FzimyQPx7gJQ=gVqDp7cRUojT53gJq2+TNKhH37Wpg@mail.gmail.com> <4F182BCF.60303@redhat.com> <CACGt9ymVoDWyG8rt3psCT-PmZ7zeB_8YTjv5ZZQ-2Mx2-pteag@mail.gmail.com>
-In-Reply-To: <CACGt9ymVoDWyG8rt3psCT-PmZ7zeB_8YTjv5ZZQ-2Mx2-pteag@mail.gmail.com>
+Subject: Re: [PATCH/RFC v2 3/4] gspca: sonixj: Add V4L2_CID_JPEG_COMPRESSION_QUALITY
+ control support
+References: <4EBECD11.8090709@gmail.com>	<1325873682-3754-4-git-send-email-snjw23@gmail.com>	<20120114094720.781f89a5@tele>	<4F11BE7C.3060601@gmail.com> <20120114192414.05ad2e83@tele>
+In-Reply-To: <20120114192414.05ad2e83@tele>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 20-01-2012 02:34, Denilson Figueiredo de Sá escreveu:
-> On Thu, Jan 19, 2012 at 12:42, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->>
->> From the product page, it is a 1-seg device. So, it likely uses a sms1xxx
->> chip.
+On 01/14/2012 07:24 PM, Jean-Francois Moine wrote:
 > 
-> Correct, Siano SMS1140.
+> Setting the JPEG quality in sonixj has been removed when automatic
+> quality adjustment has been added (git commit b96cfc33e7). At this
+> time, I let the JPEG get function, but it could have been removed as
+> well: I don't think the users are interested by this quality, and the
+> applications may find it looking at the quantization tables of the
+> images.
 > 
->> You'll likely need to add a new board entry there for it, and discover
->> the GPIO pins linked to the leds and infrared (the numbers for .board_cfg
->> and .led* on the above data structure). You can do it by either sniffing
->> the USB board traffic or by opening the device and carefully examining the
->> board tracks.
+> Otherwise, letting the users/applications to set this quality is
+> dangerous: if the quality is too high, the images cannot be fully
+> transmitted because their size is too big for the USB 1.1 channel.
 > 
-> I've added two photos of the circuit here:
-> http://linuxtv.org/wiki/index.php/Smart_Plus
-> 
-> Considering there are these lines at sms-usb.c:
->         { USB_DEVICE(0x187f, 0x0202),
->                 .driver_info = SMS1XXX_BOARD_SIANO_NICE },
-> 
-> I thought I didn't need to add a new board entry, just update the
-> current one.
+> So, IMO, you should let the sonixj as it is, and I will remove the
+> get_jepgcomp.
 
-You may need to add it anyway, as the device may not be equal to
-Siano Nice reference board.
+I see, indeed the quantization tables provide much more precise 
+information. I've dropped the sonixj patch from the series then.
 
-> Then I added a few lines, as shown below, but it seems
-> the driver still tries to load "dvb_nova_12mhz_b0.inp" instead of
-> "isdbt_nova_12mhz_b0.inp".
-
-No. there's a parameter for the smsmdtv module to select the right
-standard:
-
-drivers/media/dvb/siano/smscoreapi.c:module_param(default_mode, int, 0644);
-
-You need to pass "default_mode=6" for ISDB-T to work. Just renaming
-the firmware won't work. Of course, the firmware name entry needs to be
-filled.
-
-Btw, adding both firmwares work, as the same device can likely be used
-in Europe with DVB-T. So, maybe we can add some parameter there to specify
-the default mode. Not sure if such change would be easy though.
-
-> 
-> If I rename (or symlink) the firmware file, the driver loads the
-> firmware. After smsdvb module gets loaded, then there is a /dev/dvb/
-> entry for my device, but still the programs I tried (w_scan and vlc)
-> don't find any channels.
-> 
-> 
-> About the GPIO pins: even on Windows, the only LED from this device
-> does not blink. So I don't care about LED feedback. Also, right now
-> I'm not worried about IR remote, so I'm leaving that out.
-> 
-> Anyway, I can supply some usb logs if they would help debugging this.
-> 
-> 
-> --- sms-cards.c.orig    2012-01-20 00:42:47.000000000 -0200
-> +++ sms-cards.c 2012-01-20 01:05:11.000000000 -0200
-> @@ -92,6 +92,8 @@
->         /* 11 */
->                 .name = "Siano Nice Digital Receiver",
->                 .type = SMS_NOVA_B0,
-> +               .fw[DEVICE_MODE_ISDBT_BDA] = "isdbt_nova_12mhz_b0.inp",
-> +               .rc_codes = RC_MAP_HAUPPAUGE,
->         },
->         [SMS1XXX_BOARD_SIANO_VENICE] = {
->         /* 12 */
-> @@ -299,6 +301,7 @@
->         case SMS1XXX_BOARD_HAUPPAUGE_WINDHAM:
->         case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD:
->         case SMS1XXX_BOARD_HAUPPAUGE_TIGER_MINICARD_R2:
-> +       case SMS1XXX_BOARD_SIANO_NICE:
->                 request_module("smsdvb");
->                 break;
->         default:
-> 
-> 
-
+--
+Thanks,
+Sylwester
