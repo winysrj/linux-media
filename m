@@ -1,230 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:36323 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753058Ab2ABTcw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 14:32:52 -0500
-Received: by eekc4 with SMTP id c4so15413916eek.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Jan 2012 11:32:50 -0800 (PST)
-Message-ID: <4F02065E.4060406@gmail.com>
-Date: Mon, 02 Jan 2012 20:32:46 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:59690 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756284Ab2ANTkR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 14 Jan 2012 14:40:17 -0500
+Received: by vbmv11 with SMTP id v11so1898121vbm.19
+        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 11:40:16 -0800 (PST)
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 16/47] [media] tuner-xc2028: use DVBv5 parameters on
- set_params()
-References: <1324741852-26138-1-git-send-email-mchehab@redhat.com> <1324741852-26138-2-git-send-email-mchehab@redhat.com> <1324741852-26138-3-git-send-email-mchehab@redhat.com> <1324741852-26138-4-git-send-email-mchehab@redhat.com> <1324741852-26138-5-git-send-email-mchehab@redhat.com> <1324741852-26138-6-git-send-email-mchehab@redhat.com> <1324741852-26138-7-git-send-email-mchehab@redhat.com> <1324741852-26138-8-git-send-email-mchehab@redhat.com> <1324741852-26138-9-git-send-email-mchehab@redhat.com> <1324741852-26138-10-git-send-email-mchehab@redhat.com> <1324741852-26138-11-git-send-email-mchehab@redhat.com> <1324741852-26138-12-git-send-email-mchehab@redhat.com> <1324741852-26138-13-git-send-email-mchehab@redhat.com> <1324741852-26138-14-git-send-email-mchehab@redhat.com> <1324741852-26138-15-git-send-email-mchehab@redhat.com> <1324741852-26138-16-git-send-email-mchehab@redhat.com> <1324741852-26138-17-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1324741852-26138-17-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Date: Sat, 14 Jan 2012 21:40:16 +0200
+Message-ID: <CAEsXasEgJ48mqaDPfHA2BfhWvm1xcO=mKpMCMb0RyG_bcbxuVw@mail.gmail.com>
+Subject: Medion 2819 (saa7134 card=22 tuner=28) minor problems with radio applications
+From: Daftcho Tabakov <daftcho@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 24/12/2011 16:50, Mauro Carvalho Chehab ha scritto:
-> Instead of using DVBv3 parameters, rely on DVBv5 parameters to
-> set the tuner.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/common/tuners/tuner-xc2028.c |   83 ++++++++++++----------------
->  1 files changed, 36 insertions(+), 47 deletions(-)
-> 
-> diff --git a/drivers/media/common/tuners/tuner-xc2028.c b/drivers/media/common/tuners/tuner-xc2028.c
-> index e531267..8c0dc6a1 100644
-> --- a/drivers/media/common/tuners/tuner-xc2028.c
-> +++ b/drivers/media/common/tuners/tuner-xc2028.c
-> @@ -1087,65 +1087,26 @@ static int xc2028_set_analog_freq(struct dvb_frontend *fe,
->  static int xc2028_set_params(struct dvb_frontend *fe,
->  			     struct dvb_frontend_parameters *p)
->  {
-> +	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-> +	u32 delsys = c->delivery_system;
-> +	u32 bw = c->bandwidth_hz;
->  	struct xc2028_data *priv = fe->tuner_priv;
->  	unsigned int       type=0;
-> -	fe_bandwidth_t     bw = BANDWIDTH_8_MHZ;
->  	u16                demod = 0;
->  
->  	tuner_dbg("%s called\n", __func__);
->  
-> -	switch(fe->ops.info.type) {
-> -	case FE_OFDM:
-> -		bw = p->u.ofdm.bandwidth;
-> +	switch (delsys) {
-> +	case SYS_DVBT:
-> +	case SYS_DVBT2:
->  		/*
->  		 * The only countries with 6MHz seem to be Taiwan/Uruguay.
->  		 * Both seem to require QAM firmware for OFDM decoding
->  		 * Tested in Taiwan by Terry Wu <terrywu2009@gmail.com>
->  		 */
-> -		if (bw == BANDWIDTH_6_MHZ)
-> +		if (bw <= 6000000)
->  			type |= QAM;
-> -		break;
-> -	case FE_ATSC:
-> -		bw = BANDWIDTH_6_MHZ;
-> -		/* The only ATSC firmware (at least on v2.7) is D2633 */
-> -		type |= ATSC | D2633;
-> -		break;
-> -	/* DVB-S and pure QAM (FE_QAM) are not supported */
-> -	default:
-> -		return -EINVAL;
-> -	}
-> -
-> -	switch (bw) {
-> -	case BANDWIDTH_8_MHZ:
-> -		if (p->frequency < 470000000)
-> -			priv->ctrl.vhfbw7 = 0;
-> -		else
-> -			priv->ctrl.uhfbw8 = 1;
-> -		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV8;
-> -		type |= F8MHZ;
-> -		break;
-> -	case BANDWIDTH_7_MHZ:
-> -		if (p->frequency < 470000000)
-> -			priv->ctrl.vhfbw7 = 1;
-> -		else
-> -			priv->ctrl.uhfbw8 = 0;
-> -		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV7;
-> -		type |= F8MHZ;
-> -		break;
-> -	case BANDWIDTH_6_MHZ:
-> -		type |= DTV6;
-> -		priv->ctrl.vhfbw7 = 0;
-> -		priv->ctrl.uhfbw8 = 0;
-> -		break;
-> -	default:
-> -		tuner_err("error: bandwidth not supported.\n");
-> -	};
->  
-> -	/*
-> -	  Selects between D2633 or D2620 firmware.
-> -	  It doesn't make sense for ATSC, since it should be D2633 on all cases
-> -	 */
-> -	if (fe->ops.info.type != FE_ATSC) {
->  		switch (priv->ctrl.type) {
->  		case XC2028_D2633:
->  			type |= D2633;
-> @@ -1161,6 +1122,34 @@ static int xc2028_set_params(struct dvb_frontend *fe,
->  			else
->  				type |= D2620;
->  		}
-> +		break;
-> +	case SYS_ATSC:
-> +		/* The only ATSC firmware (at least on v2.7) is D2633 */
-> +		type |= ATSC | D2633;
-> +		break;
-> +	/* DVB-S and pure QAM (FE_QAM) are not supported */
-> +	default:
-> +		return -EINVAL;
-> +	}
-> +
-> +	if (bw <= 6000000) {
-> +		type |= DTV6;
-> +		priv->ctrl.vhfbw7 = 0;
-> +		priv->ctrl.uhfbw8 = 0;
-> +	} else if (bw <= 7000000) {
-> +		if (c->frequency < 470000000)
-> +			priv->ctrl.vhfbw7 = 1;
-> +		else
-> +			priv->ctrl.uhfbw8 = 0;
-> +		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV7;
-> +		type |= F8MHZ;
-> +	} else {
-> +		if (c->frequency < 470000000)
-> +			priv->ctrl.vhfbw7 = 0;
-> +		else
-> +			priv->ctrl.uhfbw8 = 1;
-> +		type |= (priv->ctrl.vhfbw7 && priv->ctrl.uhfbw8) ? DTV78 : DTV8;
-> +		type |= F8MHZ;
->  	}
->  
->  	/* All S-code tables need a 200kHz shift */
-> @@ -1185,7 +1174,7 @@ static int xc2028_set_params(struct dvb_frontend *fe,
->  		 */
->  	}
->  
-> -	return generic_set_freq(fe, p->frequency,
-> +	return generic_set_freq(fe, c->frequency,
->  				V4L2_TUNER_DIGITAL_TV, type, 0, demod);
->  }
->  
+Hi,
+Some years ago I managed to use my old Medion 2819 with the help of
+this maillist.
+Recently I upgraded the computer and installed Fedora 16. I use
+kradio4 for radio receiving. But after upgrade the radio plays in mono
+and there is no signal strength indicator. If I use radio program from
+xawtv the sound is stereo and there is indicator for the signal. But
+if I start kradio4 and close it and then start radio from xawtv the
+sound is again mono and there is no indicator. I can't understand what
+is wrong.
 
-Hi Mauro,
-I've tested the new media_build tree with the DVBv5 modifications on my
-Terratec Cinergy Hybrid T USB XS (0ccd:0042).
+This is dmesg | grep saa :
 
-The card works fine, but there is small issue: with the old code the
-BASE firmware was loaded only 1 time, now it seems to be loaded each
-time a new frequency is tuned (forcing reload of the other firmwares too).
+[   18.698710] saa7130/34: v4l2 driver version 0, 2, 17 loaded
+[   18.909694] saa7134 0000:04:01.0: PCI INT A -> GSI 17 (level, low) -> IRQ 17
+[   18.909702] saa7134[0]: found at 0000:04:01.0, rev: 1, irq: 17,
+latency: 32, mmio: 0xfa910000
+[   18.909711] saa7134[0]: subsystem: 1461:a70b, board: AverMedia M156
+/ Medion 2819 [card=22,autodetected]
+[   18.909746] saa7134[0]: board init: gpio is 3a8
+[   18.931449] input: saa7134 IR (AverMedia M156 / Me as
+/devices/pci0000:00/0000:00:1c.4/0000:03:00.0/0000:04:01.0/rc/rc0/input5
+[   18.931608] rc0: saa7134 IR (AverMedia M156 / Me as
+/devices/pci0000:00/0000:00:1c.4/0000:03:00.0/0000:04:01.0/rc/rc0
+[   19.065327] saa7134[0]: i2c eeprom 00: 61 14 0b a7 ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065338] saa7134[0]: i2c eeprom 10: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065348] saa7134[0]: i2c eeprom 20: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065357] saa7134[0]: i2c eeprom 30: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065366] saa7134[0]: i2c eeprom 40: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065375] saa7134[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065384] saa7134[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065399] saa7134[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065403] saa7134[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065407] saa7134[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065412] saa7134[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065416] saa7134[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065420] saa7134[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065424] saa7134[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065428] saa7134[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.065433] saa7134[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff
+ff ff ff ff ff ff ff
+[   19.116504] saa7134[0]: registered device video0 [v4l2]
+[   19.116546] saa7134[0]: registered device vbi0
+[   19.116606] saa7134[0]: registered device radio0
+[   19.117760] saa7134 ALSA driver for DMA sound loaded
+[   19.117782] saa7134[0]/alsa: saa7134[0] at 0xfa910000 irq 17
+registered as card -1
 
-This is a log of the firmware loads after some channel surfing:
+and
+dmesg | grep tuner
 
-OLD CODE:
+[   19.066416] i2c-core: driver [tuner] using legacy suspend method
+[   19.066417] i2c-core: driver [tuner] using legacy resume method
+[   19.088329] tuner 18-0043: Tuner 74 found with type(s) Radio TV.
+[   19.091381] tuner 18-0061: Tuner -1 found with type(s) Radio TV.
+[   19.096327] tuner-simple 18-0061: creating new instance
+[   19.096331] tuner-simple 18-0061: type set to 38 (Philips PAL/SECAM
+multi (FM1216ME MK3))
 
-[ 8701.753768] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[ 8702.804153] xc2028 0-0061: Loading firmware for type=D2633 DTV7 (90),
-id 0000000000000000.
-[ 8702.819274] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[ 8758.361730] xc2028 0-0061: Loading firmware for type=D2633 DTV78
-(110), id 0000000000000000.
-[ 8758.376951] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
+P.S.
 
-(note that the first frequency was in VHF band, then I switched to a new
-frequency in UHF band, so the DTV78 firmware was loaded)
+Booted later a Kubuntu 11.10 from flash pen - the result from kradio4
+is the same.
 
-NEW CODE:
-
-[19398.450453] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[19399.563210] xc2028 0-0061: Loading firmware for type=D2633 DTV8
-(210), id 0000000000000000.
-[19399.579467] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[19458.001144] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[19459.084473] xc2028 0-0061: Loading firmware for type=D2633 DTV8
-(210), id 0000000000000000.
-[19459.100183] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[19471.695347] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[19472.763449] xc2028 0-0061: Loading firmware for type=D2633 DTV8
-(210), id 0000000000000000.
-[19472.780660] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[19497.928003] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[19498.999729] xc2028 0-0061: Loading firmware for type=D2633 DTV8
-(210), id 0000000000000000.
-[19499.015212] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[19510.258833] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[19511.346135] xc2028 0-0061: Loading firmware for type=D2633 DTV78
-(110), id 0000000000000000.
-[19511.361506] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[19523.956877] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[19525.028394] xc2028 0-0061: Loading firmware for type=D2633 DTV78
-(110), id 0000000000000000.
-[19525.044622] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-[19538.526806] xc2028 0-0061: Loading firmware for type=BASE F8MHZ MTS
-(7), id 0000000000000000.
-[19539.602083] xc2028 0-0061: Loading firmware for type=D2633 DTV78
-(110), id 0000000000000000.
-[19539.617613] xc2028 0-0061: Loading SCODE for type=DTV6 QAM DTV7 DTV78
-DTV8 ZARLINK456 SCODE HAS_IF_4760 (620003e0), id 0000000000000000.
-
-(here I started with a UHF frequency, but each time a new frequency is
-requested all firmwares are loaded anyway, starting from the BASE one).
-
-Best regards,
-Gianluca Gennari
+Thank you in advance and all the best!
