@@ -1,75 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:61175 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753634Ab2AKLrt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 06:47:49 -0500
-Date: Wed, 11 Jan 2012 12:47:43 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Bhupesh SHARMA <bhupesh.sharma@st.com>
-cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Purpose of .init and .release methods in soc_camera framework
-In-Reply-To: <D5ECB3C7A6F99444980976A8C6D896384ECE79A86C@EAPEX1MAIL1.st.com>
-Message-ID: <Pine.LNX.4.64.1201111242160.1191@axis700.grange>
-References: <D5ECB3C7A6F99444980976A8C6D896384ECE79A86C@EAPEX1MAIL1.st.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:58437 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751950Ab2AOTIi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 14:08:38 -0500
+Received: from dyn3-82-128-184-189.psoas.suomi.net ([82.128.184.189] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1RmVRO-0000Gg-PU
+	for linux-media@vger.kernel.org; Sun, 15 Jan 2012 21:08:30 +0200
+Message-ID: <4F13242E.70007@iki.fi>
+Date: Sun, 15 Jan 2012 21:08:30 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-media <linux-media@vger.kernel.org>
+Subject: [PATCH FOR 3.3] cxd2820r: do not switch to DVB-T when DVB-C fails
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bhupesh
+Fix another bug	introduced by recent multi-frontend to single-frontend 
+change.
 
-On Wed, 11 Jan 2012, Bhupesh SHARMA wrote:
-
-> Hi Guennadi,
-> 
-> I was reading the latest soc_camera framework documentation (see [1]).
-> I can see on line 71 to 73 the following text:
-> 
-> " .add and .remove methods are called when a sensor is attached to or detached
->  from the host, apart from performing host-internal tasks they shall also call
->  sensor driver's .init and .release methods respectively."
-> 
-> Now, I was puzzled on seeing that none of the soc_camera bridge drivers (
-> like PXA and SH Mobile) call the sensor's .init and .release from their
-> .add and .remove methods respectively.
-
-.init() and .release() methods were a part of the soc-camera client API. 
-It has been removed with the migration to the v4l2-subdev API.
-
-> Also I cannot trace these calls in soc_camera.c layer
-> 
-> Actually, I am working on a camera sensor that requires certain
-> patches to be written to it before it can start working:
-> 
-> - Now, if I write these patches in the _probe_ of the sensor driver (similar 
-> to the ST VS6624 driver here : [2]), my sensor can work well for the 1st run
-> of the user-space application. But, if I launch the application again the patches
-> need to be written to the sensor again as I have implemented an 'icl->power' routine
-> which basically turns ON and OFF the sensor by toggling its CE (chip enable pin).
-> 
-> - As the soc_camera layer provides no explicit call to the camera sensor driver
-> when an _open_ is invoked from the userland, when and how should I write the
-> patch registers.
-> 
-> I can only think of using the .init routine to initialize the sensor patch registers
-> in such a case.
-
-Why don't you perform that initialisation in your .power() method?
-
-Thanks
-Guennadi
-
-> Please share your views on the same.
-> 
-> [1] http://lxr.free-electrons.com/source/Documentation/video4linux/soc-camera.txt
-> [2] http://www.spinics.net/lists/linux-media/msg37805.html
-> 
-> 
-> Regards,
-> Bhupesh
-
+Signed-off-by: Antti Palosaari <crope@iki.fi>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+  drivers/media/dvb/frontends/cxd2820r_core.c |    4 ++--
+  1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c 
+b/drivers/media/dvb/frontends/cxd2820r_core.c
+index 93e1b12..b789a90 100644
+--- a/drivers/media/dvb/frontends/cxd2820r_core.c
++++ b/drivers/media/dvb/frontends/cxd2820r_core.c
+@@ -476,10 +476,10 @@ static enum dvbfe_search cxd2820r_search(struct 
+dvb_frontend *fe)
+  	dbg("%s: delsys=%d", __func__, fe->dtv_property_cache.delivery_system);
+
+  	/* switch between DVB-T and DVB-T2 when tune fails */
+-	if (priv->last_tune_failed && (priv->delivery_system != 
+SYS_DVBC_ANNEX_A)) {
++	if (priv->last_tune_failed) {
+  		if (priv->delivery_system == SYS_DVBT)
+  			c->delivery_system = SYS_DVBT2;
+-		else
++		else if (priv->delivery_system == SYS_DVBT2)
+  			c->delivery_system = SYS_DVBT;
+  	}
+
+-- 
+1.7.4.4
