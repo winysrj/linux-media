@@ -1,272 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:36522 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752172Ab2AKJVI (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:52805 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176Ab2AOQWn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 04:21:08 -0500
-Received: by werm1 with SMTP id m1so347880wer.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 01:21:05 -0800 (PST)
-Message-ID: <4F0D547D.7040105@gmail.com>
-Date: Wed, 11 Jan 2012 10:21:01 +0100
-From: Fredrik Lingvall <fredrik.lingvall@gmail.com>
+	Sun, 15 Jan 2012 11:22:43 -0500
+Received: by eaae11 with SMTP id e11so76452eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 08:22:42 -0800 (PST)
+Message-ID: <4F12FD4D.6080805@gmail.com>
+Date: Sun, 15 Jan 2012 17:22:37 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Mihai Dobrescu <msdobrescu@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Hauppauge HVR-930C problems
-References: <CALJK-QhGrjC9K8CasrUJ-aisZh8U_4-O3uh_-dq6cNBWUx_4WA@mail.gmail.com> <4EE9AA21.1060101@gmail.com> <CALJK-QjxDpC8Y_gPXeAJaT2si_pRREiuTW=T8CWSTxGprRhfkg@mail.gmail.com> <4EEAFF47.5040003@gmail.com> <CALJK-Qhpk7NtSezrft_6+4FZ7Y35k=41xrc6ebxf2DzEH6KCWw@mail.gmail.com> <4EECB2C2.8050701@gmail.com> <4EECE392.5080000@gmail.com> <CALJK-QjChFbX7NH0qNhvaz=Hp8JfKENJMsLOsETiYO9ZyV_BOg@mail.gmail.com> <4EEDB060.7070708@gmail.com> <4EF747C7.10001@gmail.com> <4F0C4E59.6050503@gmail.com>
-In-Reply-To: <4F0C4E59.6050503@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+To: razza lists <razzalist@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Hauppage Nova: doesn't know how to handle a DVBv3 call to delivery
+ system 0
+References: <008301ccd316$0be6d440$23b47cc0$@gmail.com> <4F121361.2050403@gmail.com> <CAL+xqGZ1mBttt_e5bUorGFP+cc9RX3ooCkmAa9MSEAaLJ_o=mw@mail.gmail.com> <4F12BDD1.1000306@gmail.com> <4F12E18F.3020400@redhat.com> <CAL+xqGb8ggcY32pwJT7-qiSBZc-e-t+3JKWKQiJqBfFwQ16K6g@mail.gmail.com>
+In-Reply-To: <CAL+xqGb8ggcY32pwJT7-qiSBZc-e-t+3JKWKQiJqBfFwQ16K6g@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/10/12 15:42, Fredrik Lingvall wrote:
-> On 12/25/11 16:56, Fredrik Lingvall wrote:
->> On 12/18/11 10:20, Fredrik Lingvall wrote:
->>> On 12/17/11 20:53, Mihai Dobrescu wrote:
+Il 15/01/2012 16:04, razza lists ha scritto:
+> On 15 January 2012 14:24, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>> Em 15-01-2012 09:51, Gianluca Gennari escreveu:
+>>> Il 15/01/2012 12:35, razza lists ha scritto:
+>>>> On Sat, Jan 14, 2012 at 11:44 PM, Gianluca Gennari <gennarone@gmail.com> wrote:
+>>>>>
+>>>>> Il 15/01/2012 00:41, RazzaList ha scritto:
+>>>>>> I have followed the build instructions for the Hauppauge MyTV.t device here
+>>>>>> - http://linuxtv.org/wiki/index.php/Hauppauge_myTV.t and built the drivers
+>>>>>> as detailed here -
+>>>>>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_D
+>>>>>> evice_Drivers on a CentOS 6.2 i386 build.
+>>>>>>
+>>>>>> When I use dvbscan, nothing happens. dmesg shows "
+>>>>>> dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+>>>>>> delivery system 0"
+>>>>>>
+>>>>>> [root@cos6 ~]# cd /usr/bin
+>>>>>> [root@cos6 bin]# ./dvbscan /usr/share/dvb/dvb-t/uk-Hannington >
+>>>>>> /usr/share/dvb/dvb-t/channels.conf
+>>>>>> [root@cos6 bin]# dmesg | grep dvb
+>>>>>> dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in warm state.
+>>>>>> dvb-usb: will pass the complete MPEG2 transport stream to the software
+>>>>>> demuxer.
+>>>>>> dvb-usb: schedule remote query interval to 50 msecs.
+>>>>>> dvb-usb: Hauppauge Nova-T MyTV.t successfully initialized and connected.
+>>>>>> usbcore: registered new interface driver dvb_usb_dib0700
+>>>>>> dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+>>>>>> delivery system 0
+>>>>>>
+>>>>>> I have searched but can't locate a fix. Any pointers?
+>>>>>>
+>>>>>>
+>>>>>> --
+>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>>> More majordomo info at �http://vger.kernel.org/majordomo-info.html
+>>>>>>
+>>>>>
+>>>>> Hi,
+>>>>> this patch will likely fix your problem:
+>>>>>
+>>>>> http://patchwork.linuxtv.org/patch/9492/
+>>>>>
+>>>>> Best regards,
+>>>>> Gianluca
 >>>>
+>>>> It's very likely the case I'm doing something wrong and I apologise in
+>>>> advance! However some help/guidance would be great...
 >>>>
+>>>> I have downloaded the sources as described in the basic approach here
+>>>> - http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 >>>>
->>>> Mihai,
+>>>> In the source there is no file called "dvb_frontend.c", so I assume I
+>>>> start the media_build/build script?
+>>>> If I do, eventually this creates
+>>>> media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
 >>>>
->>>> I got some success. I did this,
+>>>> I then apply the patch to
+>>>> media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c, and I can
+>>>> see the added elements...
+>>>> ....
+>>>> static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+>>>> {
+>>>>         struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>>>>         int i;
+>>>>              u32 delsys;
 >>>>
->>>> # cd /usr/src (for example)
+>>>>         delsys = c->delivery_system;
+>>>>         memset(c, 0, sizeof(struct dtv_frontend_properties));
+>>>>         c->delivery_system = delsys;
 >>>>
->>>> # git clone git://linuxtv.org/media_build.git
+>>>>         c->state = DTV_CLEAR;
 >>>>
->>>> # emerge dev-util/patchutils
->>>> # emerge Proc-ProcessTable
+>>>>         dprintk("%s() Clearing cache for delivery system %d\n", __func__,
+>>>>                      c->delivery_system);
+>>>> ................
 >>>>
->>>> # cd media_build
->>>> # ./build
->>>> # make install
+>>>> After a reboot (as I have not got a clue about unloading modules etc.)
+>>>> I then execute make install but I still get the same error
+>>>> "dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+>>>> delivery system 0" when I use dvbscan.
 >>>>
->>>> Which will install the latest driver on your running kernel (just 
->>>> in case
->>>> make sure /usr/src/linux points to your running kernel sources). Then
->>>> reboot.
->>>>
->>>> You should now see that (among other) modules have loaded:
->>>>
->>>> # lsmod
->>>>
->>>> <snip>
->>>>
->>>> em28xx                 93528  1 em28xx_dvb
->>>> v4l2_common             5254  1 em28xx
->>>> videobuf_vmalloc        4167  1 em28xx
->>>> videobuf_core          15151  2 em28xx,videobuf_vmalloc
->>>>
->>>> Then try w_scan and dvbscan etc. I got mythtv to scan too now. 
->>>> There were
->>>> some warnings and timeouts and I'm not sure if this is normal or not.
->>>>
->>>> You can also do a dmesg -c while scanning to monitor the changes en 
->>>> the
->>>> kernel log.
->>>>
->>>> Regards,
->>>>
->>>> /Fredrik
->>>>
->>>>
->>>> In my case I have:
->>>>
->>>> lsmod |grep em2
->>>> em28xx_dvb             12608  0
->>>> dvb_core               76187  1 em28xx_dvb
->>>> em28xx                 82436  1 em28xx_dvb
->>>> v4l2_common             5087  1 em28xx
->>>> videodev               70123  2 em28xx,v4l2_common
->>>> videobuf_vmalloc        3783  1 em28xx
->>>> videobuf_core          12991  2 em28xx,videobuf_vmalloc
->>>> rc_core                11695  11
->>>> rc_hauppauge,ir_lirc_codec,ir_mce_kbd_decoder,ir_sanyo_decoder,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_rc5_decoder,em28xx,ir_nec_decoder 
->>>>
->>>> tveeprom               12441  1 em28xx
->>>> i2c_core               14232  9
->>>> xc5000,drxk,em28xx_dvb,em28xx,v4l2_common,videodev,tveeprom,nvidia,i2c_i801 
->>>>
->>>>
->>>> yet, w_scan founds nothing.
 >>>
->>> I was able to scan using the "media_build" install method described 
->>> above but when trying to watch a free channel the image and sound 
->>> was stuttering severly. I have tried both MythTV and mplayer with 
->>> similar results.
+>>> You are almost there.
+>>> After you apply the patch, you have to recompile the entire source tree.
+>>> You can do it launching the "make" command inside the linux/ folder.
+>>> Then reinstall the drivers giving "make install" from the media_build/
+>>> folder, and reboot.
+>>
+>> I've added the fixes for it today. So, tomorrow's tarballs should have this
+>> bug fixed.
+>>
 >>>
->>> I created the channel list for mplayer with:
->>>
->>> lintv ~ # dvbscan -x0 -fc /usr/share/dvb/dvb-c/no-Oslo-Get -o zap > 
->>> .mplayer/channels.conf
->>>
->>> And, for example,  I get this output from mplayer plus a very 
->>> (blocky) stuttering image and sound:
->>>
->>> lin-tv ~ # mplayer dvb://1@"TV8 Oslo" -ao jack
->>>
+>>> Best regards,
+>>> Gianluca
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >>
->> I did some more tests with release snapshots 2011-12-13, 2011-12-21, 
->> and 2011-12-25, respectively. I did this by changing
->>
->> LATEST_TAR := 
->> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2
->> LATEST_TAR_MD5 := 
->> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
->>
->> in linux/Makefile to the corresponding release.
->>
->> Results:
->>
->> * linux-media-2011-12-13.tar.bz2
->>
->> The ./build script builds the drivers cleanly, scanning works, but  
->> watching video does not work correctly.
->>
->> * linux-media-2011-12-21.tar.bz2
->>
->> The ./build script fails at the as3645a.c file (on this machine but I 
->> can build it on two other machines using the same kernel and kernel 
->> 2.6.39-gentoo-r3, respectively). I can build it with make menuconfig 
->> etc (where I disabled stuff I don't need, eg. disabling [ ] Media 
->> Controller API (EXPERIMENTAL) ). The em28xx generate a kernel core 
->> dump though [1].
->>
->> * linux-media-2011-12-25.tar.bz2
->>
->> Same problem as 2011-12-21.
->>
->> Regards,
->>
->> /Fredrik
->>
->
-> Here's some more test results.
->
-> I have upgraded the kernel to 3.1.6-gentoo (where I enabled DVB when I 
-> build the kernel). Both
->
-> http://linuxtv.org/downloads/drivers/linux-media-2012-01-07.tar.bz2
->
-> and
->
-> http://linuxtv.org/downloads/drivers/linux-media-2012-01-08.tar.bz2
->
-> now builds using the
->
-> lin-tv ~ # cd /usr/src
-> lin-tv src # git clone git://linuxtv.org/media_build.git
-> lin-tv src # cd media_build
-> lin-tv media_build # ./build
-> lin-tv media_build # make install
->
-> method. Scanning and (finally) watching video works but not flawlessly.
->
-> I also suspect that I don't find all channels when I scan. I have 
-> scanned using,
->
-> * dvbscan -x 0 -fc /usr/share/dvb/dvb-c/no-Oslo-Get > 
-> .mplayer/channels.conf
-> * Kaffeine  (1.2.2)
-> * MythTV (0.25_pre20120103)
->
-> respectively. Both kaffeine and mythtv reports a very low signal level 
-> (0%) and an SNR of only 1%. (kaffeine). I'm not sure if the driver 
-> reports this correctly though.
->
-> Whatching live TV works on some channels but not all. HD channels 
-> seems more difficult than SD channels,  and I have not figured out why 
-> some channels work and some don't. I get
->
-> Signal 0% | S/N 2.6dB | BE 0 | (_L_S) Partial Lock
->
-> and no video on many channels in mythtv.
->
-> Regards,
->
-> /Fredrik
->
+> I'm glad about that as I am getting nowhere fast. Looks like it's
+> better to rebuild the box in the week and save wasting your time.
+> After patching etc, I did manage to get a little bit further, but when
+> using dvbscan I got an error:
+> 
+> [root@cos6 bin]# dvbscan /usr/share/dvb/dvb-t/uk-Hannington >
+> /home/mythtv/channels.conf
+> Unable to query frontend status
 
-Tried the
+According to the dvbscan wiki page:
 
-http://linuxtv.org/downloads/drivers/linux-media-2012-01-11.tar.bz2
+http://linuxtv.org/wiki/index.php/Dvbscan
 
-release and the scan setting now looks different in MythTV  (it has more 
-parameters) and dvbscan fails (mythtv scanning fails too):
+if you get this error you should try other scanning utilities, like scan
+or w_scan. You can also try a real application, like Kaffeine.
 
-lin-tv ~ # dvbscan -xo -fc /usr/share/dvb/dvb-c/no-Oslo-Get
-scanning /usr/share/dvb/dvb-c/no-Oslo-Get
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-initial transponder 241000000 6900000 0 5
-initial transponder 272000000 6900000 0 5
-initial transponder 280000000 6900000 0 5
-initial transponder 290000000 6900000 0 5
-initial transponder 298000000 6900000 0 5
-initial transponder 306000000 6900000 0 5
-initial transponder 314000000 6900000 0 5
-initial transponder 322000000 6900000 0 5
-initial transponder 330000000 6900000 0 5
-initial transponder 338000000 6900000 0 5
-initial transponder 346000000 6900000 0 5
-initial transponder 354000000 6900000 0 5
-initial transponder 362000000 6900000 0 5
-initial transponder 370000000 6900000 0 5
-initial transponder 378000000 6900000 0 5
-initial transponder 386000000 6900000 0 5
-initial transponder 394000000 6900000 0 5
-initial transponder 410000000 6900000 0 5
-initial transponder 442000000 6952000 0 5
-initial transponder 482000000 6900000 0 5
-initial transponder 498000000 6900000 0 5
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-WARNING: frontend type (OFDM) is not compatible with requested tuning 
-type (QAM)
-ERROR: initial tuning failed
-dumping lists (0 services)
-Done.
-lin-tv ~ #
+Best regards,
+Gianluca
 
-
-/Fredrik
+> 
+> Dmesg output:
+> usb 1-3: new high speed USB device using ehci_hcd and address 2
+> usb 1-3: New USB device found, idVendor=2040, idProduct=7080
+> usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> usb 1-3: Product: myTV.t
+> usb 1-3: Manufacturer: Eskape Labs
+> usb 1-3: SerialNumber: 4030928317
+> usb 1-3: configuration #1 chosen from 1 choice
+> WARNING: You are using an experimental version of the media stack.
+> 	As the driver is backported to an older kernel, it doesn't offer
+> 	enough quality for its usage in production.
+> 	Use it with care.
+> Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
+> 	240ab508aa9fb7a294b0ecb563b19ead000b2463 [media] [PATCH] don't reset
+> the delivery system on DTV_CLEAR
+> 	9544e8a64795d75875ff4c680a43aa452a37b260 [media] [BUG] it913x-fe fix
+> typo error making SNR levels unstable
+> 	c147f61083e3e4a9c2aaecaaed976502defc3b7d [media] cx23885: Query the
+> CX25840 during enum_input for status
+> WARNING: You are using an experimental version of the media stack.
+> 	As the driver is backported to an older kernel, it doesn't offer
+> 	enough quality for its usage in production.
+> 	Use it with care.
+> Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
+> 	240ab508aa9fb7a294b0ecb563b19ead000b2463 [media] [PATCH] don't reset
+> the delivery system on DTV_CLEAR
+> 	9544e8a64795d75875ff4c680a43aa452a37b260 [media] [BUG] it913x-fe fix
+> typo error making SNR levels unstable
+> 	c147f61083e3e4a9c2aaecaaed976502defc3b7d [media] cx23885: Query the
+> CX25840 during enum_input for status
+> IR NEC protocol handler initialized
+> IR RC5(x) protocol handler initialized
+> IR RC6 protocol handler initialized
+> IR JVC protocol handler initialized
+> IR Sony protocol handler initialized
+> IR SANYO protocol handler initialized
+> IR MCE Keyboard/mouse protocol handler initialized
+> dib0700: loaded with support for 24 different device-types
+> dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in cold state, will try to
+> load a firmware
+> usb 1-3: firmware: requesting dvb-usb-dib0700-1.20.fw
+> lirc_dev: IR Remote Control driver registered, major 248
+> IR LIRC bridge handler initialized
+> dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
+> dib0700: firmware started successfully.
+> dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in warm state.
+> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+> DVB: registering new adapter (Hauppauge Nova-T MyTV.t)
+> DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
+> DiB0070: successfully identified
+> dvb-usb: Hauppauge Nova-T MyTV.t successfully initialized and connected.
+> usbcore: registered new interface driver dvb_usb_dib0700
+> 
 
