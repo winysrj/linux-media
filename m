@@ -1,60 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:48582 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757365Ab2AKKBB (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:49369 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752805Ab2AOLvv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 05:01:01 -0500
-Received: from cobaltpc1.localnet (dhcp-10-54-92-32.cisco.com [10.54.92.32])
-	by ams-core-1.cisco.com (8.14.3/8.14.3) with ESMTP id q0BA10jp030499
-	for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 10:01:00 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.3] Add per-device-node capabilities
-Date: Wed, 11 Jan 2012 11:00:57 +0100
+	Sun, 15 Jan 2012 06:51:51 -0500
+Received: by eaae11 with SMTP id e11so24265eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 03:51:49 -0800 (PST)
+Message-ID: <4F12BDD1.1000306@gmail.com>
+Date: Sun, 15 Jan 2012 12:51:45 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201111100.57356.hverkuil@xs4all.nl>
+To: razza lists <razzalist@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppage Nova: doesn't know how to handle a DVBv3 call to delivery
+ system 0
+References: <008301ccd316$0be6d440$23b47cc0$@gmail.com> <4F121361.2050403@gmail.com> <CAL+xqGZ1mBttt_e5bUorGFP+cc9RX3ooCkmAa9MSEAaLJ_o=mw@mail.gmail.com>
+In-Reply-To: <CAL+xqGZ1mBttt_e5bUorGFP+cc9RX3ooCkmAa9MSEAaLJ_o=mw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Il 15/01/2012 12:35, razza lists ha scritto:
+> On Sat, Jan 14, 2012 at 11:44 PM, Gianluca Gennari <gennarone@gmail.com> wrote:
+>>
+>> Il 15/01/2012 00:41, RazzaList ha scritto:
+>>> I have followed the build instructions for the Hauppauge MyTV.t device here
+>>> - http://linuxtv.org/wiki/index.php/Hauppauge_myTV.t and built the drivers
+>>> as detailed here -
+>>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_D
+>>> evice_Drivers on a CentOS 6.2 i386 build.
+>>>
+>>> When I use dvbscan, nothing happens. dmesg shows "
+>>> dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+>>> delivery system 0"
+>>>
+>>> [root@cos6 ~]# cd /usr/bin
+>>> [root@cos6 bin]# ./dvbscan /usr/share/dvb/dvb-t/uk-Hannington >
+>>> /usr/share/dvb/dvb-t/channels.conf
+>>> [root@cos6 bin]# dmesg | grep dvb
+>>> dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in warm state.
+>>> dvb-usb: will pass the complete MPEG2 transport stream to the software
+>>> demuxer.
+>>> dvb-usb: schedule remote query interval to 50 msecs.
+>>> dvb-usb: Hauppauge Nova-T MyTV.t successfully initialized and connected.
+>>> usbcore: registered new interface driver dvb_usb_dib0700
+>>> dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+>>> delivery system 0
+>>>
+>>> I have searched but can't locate a fix. Any pointers?
+>>>
+>>>
+>>> --
+>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>> the body of a message to majordomo@vger.kernel.org
+>>> More majordomo info at �http://vger.kernel.org/majordomo-info.html
+>>>
+>>
+>> Hi,
+>> this patch will likely fix your problem:
+>>
+>> http://patchwork.linuxtv.org/patch/9492/
+>>
+>> Best regards,
+>> Gianluca
+> 
+> It's very likely the case I'm doing something wrong and I apologise in
+> advance! However some help/guidance would be great...
+> 
+> I have downloaded the sources as described in the basic approach here
+> - http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+> 
+> In the source there is no file called "dvb_frontend.c", so I assume I
+> start the media_build/build script?
+> If I do, eventually this creates
+> media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
+> 
+> I then apply the patch to
+> media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c, and I can
+> see the added elements...
+> ....
+> static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+> {
+>         struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>         int i;
+>        	u32 delsys;
+> 
+>         delsys = c->delivery_system;
+>         memset(c, 0, sizeof(struct dtv_frontend_properties));
+>         c->delivery_system = delsys;
+> 
+>         c->state = DTV_CLEAR;
+> 
+>         dprintk("%s() Clearing cache for delivery system %d\n", __func__,
+>                	c->delivery_system);
+> ................
+> 
+> After a reboot (as I have not got a clue about unloading modules etc.)
+> I then execute make install but I still get the same error
+> "dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+> delivery system 0" when I use dvbscan.
+> 
 
-This is an updated version of RFCv3 (http://patchwork.linuxtv.org/patch/8834/)
-of this patch series. No changes, other than some documentation modifications
-to prevent a merge problem.
+You are almost there.
+After you apply the patch, you have to recompile the entire source tree.
+You can do it launching the "make" command inside the linux/ folder.
+Then reinstall the drivers giving "make install" from the media_build/
+folder, and reboot.
 
-There have been no comments since RFCv3, so this is the official pull request.
-
-I think it is fine to go into 3.3, but it's not a high prio thing, so if you
-want to delay this to 3.4 then that's OK with me as well.
-
-Regards,
-
-	Hans
-
-The following changes since commit 240ab508aa9fb7a294b0ecb563b19ead000b2463:
-
-  [media] [PATCH] don't reset the delivery system on DTV_CLEAR (2012-01-10 23:44:07 -0200)
-
-are available in the git repository at:
-  git://linuxtv.org/hverkuil/media_tree.git capsv4
-
-Hans Verkuil (3):
-      V4L2: Add per-device-node capabilities
-      vivi: set device_caps.
-      ivtv: setup per-device caps.
-
- Documentation/DocBook/media/v4l/compat.xml         |    4 ++
- Documentation/DocBook/media/v4l/v4l2.xml           |    9 ++++-
- .../DocBook/media/v4l/vidioc-querycap.xml          |   36 ++++++++++++++++++--
- drivers/media/video/cx231xx/cx231xx-417.c          |    1 -
- drivers/media/video/ivtv/ivtv-driver.h             |    1 +
- drivers/media/video/ivtv/ivtv-ioctl.c              |    7 +++-
- drivers/media/video/ivtv/ivtv-streams.c            |   14 ++++++++
- drivers/media/video/pvrusb2/pvrusb2-v4l2.c         |    1 -
- drivers/media/video/v4l2-ioctl.c                   |    6 ++-
- drivers/media/video/vivi.c                         |    5 ++-
- include/linux/videodev2.h                          |   29 +++++++++++-----
- 11 files changed, 92 insertions(+), 21 deletions(-)
+Best regards,
+Gianluca
