@@ -1,150 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52597 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751814Ab2AHLPS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2012 06:15:18 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 13/17] omap3isp: Configure CSI-2 phy based on platform data
-Date: Sun, 8 Jan 2012 12:15:36 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <201201080202.11719.laurent.pinchart@ideasonboard.com> <4F096F3A.7020902@maxwell.research.nokia.com>
-In-Reply-To: <4F096F3A.7020902@maxwell.research.nokia.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:33536 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751972Ab2AOLfj convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 06:35:39 -0500
+Received: by lahc1 with SMTP id c1so430164lah.19
+        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 03:35:38 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201081215.37801.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4F121361.2050403@gmail.com>
+References: <008301ccd316$0be6d440$23b47cc0$@gmail.com>
+	<4F121361.2050403@gmail.com>
+Date: Sun, 15 Jan 2012 11:35:38 +0000
+Message-ID: <CAL+xqGZ1mBttt_e5bUorGFP+cc9RX3ooCkmAa9MSEAaLJ_o=mw@mail.gmail.com>
+Subject: Re: Hauppage Nova: doesn't know how to handle a DVBv3 call to
+ delivery system 0
+From: razza lists <razzalist@gmail.com>
+To: gennarone@gmail.com
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Sat, Jan 14, 2012 at 11:44 PM, Gianluca Gennari <gennarone@gmail.com> wrote:
+>
+> Il 15/01/2012 00:41, RazzaList ha scritto:
+> > I have followed the build instructions for the Hauppauge MyTV.t device here
+> > - http://linuxtv.org/wiki/index.php/Hauppauge_myTV.t and built the drivers
+> > as detailed here -
+> > http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_D
+> > evice_Drivers on a CentOS 6.2 i386 build.
+> >
+> > When I use dvbscan, nothing happens. dmesg shows "
+> > dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+> > delivery system 0"
+> >
+> > [root@cos6 ~]# cd /usr/bin
+> > [root@cos6 bin]# ./dvbscan /usr/share/dvb/dvb-t/uk-Hannington >
+> > /usr/share/dvb/dvb-t/channels.conf
+> > [root@cos6 bin]# dmesg | grep dvb
+> > dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in warm state.
+> > dvb-usb: will pass the complete MPEG2 transport stream to the software
+> > demuxer.
+> > dvb-usb: schedule remote query interval to 50 msecs.
+> > dvb-usb: Hauppauge Nova-T MyTV.t successfully initialized and connected.
+> > usbcore: registered new interface driver dvb_usb_dib0700
+> > dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+> > delivery system 0
+> >
+> > I have searched but can't locate a fix. Any pointers?
+> >
+> >
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+>
+> Hi,
+> this patch will likely fix your problem:
+>
+> http://patchwork.linuxtv.org/patch/9492/
+>
+> Best regards,
+> Gianluca
 
-On Sunday 08 January 2012 11:26:02 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Saturday 07 January 2012 23:51:24 Sakari Ailus wrote:
-> >> Laurent Pinchart wrote:
-> >>> On Tuesday 20 December 2011 21:28:05 Sakari Ailus wrote:
-> >>>> From: Sakari Ailus <sakari.ailus@iki.fi>
-> >>>> 
-> >>>> Configure CSI-2 phy based on platform data in the ISP driver rather
-> >>>> than in platform code.
-> >>>> 
-> >>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > 
-> > [snip]
-> > 
-> >>>> diff --git a/drivers/media/video/omap3isp/ispcsiphy.c
-> >>>> b/drivers/media/video/omap3isp/ispcsiphy.c index 5be37ce..f027ece
-> >>>> 100644 --- a/drivers/media/video/omap3isp/ispcsiphy.c
-> >>>> +++ b/drivers/media/video/omap3isp/ispcsiphy.c
-> >>>> @@ -28,6 +28,8 @@
-> >>>> 
-> >>>>  #include <linux/device.h>
-> >>>>  #include <linux/regulator/consumer.h>
-> >>>> 
-> >>>> +#include "../../../../arch/arm/mach-omap2/control.h"
-> >>>> +
-> >>> 
-> >>> #include <mach/control.h>
-> >>> 
-> >>> (untested) ?
-> >> 
-> >> I'm afraid it won't work. The above directory isn't in any include path
-> >> and likely shouldn't be. That file is included locally elsewhere, I
-> >> believe.
-> > 
-> > You're right, I spoke too fast.
-> > 
-> >> I wonder what would be the right way to access that register definition
-> >> 
-> >> I need from the file:
-> >> 	OMAP343X_CTRL_BASE
-> >> 	OMAP3630_CONTROL_CAMERA_PHY_CTRL
-> > 
-> > Maybe the file (or part of it) should be moved to an include directory ?
-> 
-> Yes, but which one?
+It's very likely the case I'm doing something wrong and I apologise in
+advance! However some help/guidance would be great...
 
-Good question. The content of control.h doesn't seem to have been meant to be 
-exported. Maybe you should ask on linux-omap@vger.kernel.org ?
+I have downloaded the sources as described in the basic approach here
+- http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
-> >>>>  #include "isp.h"
-> >>>>  #include "ispreg.h"
-> >>>>  #include "ispcsiphy.h"
-> >>>> 
-> >>>> @@ -138,15 +140,78 @@ static void csiphy_dphy_config(struct isp_csiphy
-> >>>> *phy) isp_reg_writel(phy->isp, reg, phy->phy_regs, ISPCSIPHY_REG1);
-> >>>> 
-> >>>>  }
-> >>>> 
-> >>>> -static int csiphy_config(struct isp_csiphy *phy,
-> >>>> -			 struct isp_csiphy_dphy_cfg *dphy,
-> >>>> -			 struct isp_csiphy_lanes_cfg *lanes)
-> >>>> +/*
-> >>>> + * TCLK values are OK at their reset values
-> >>>> + */
-> >>>> +#define TCLK_TERM	0
-> >>>> +#define TCLK_MISS	1
-> >>>> +#define TCLK_SETTLE	14
-> >>>> +
-> >>>> +int omap3isp_csiphy_config(struct isp_device *isp,
-> >>>> +			   struct v4l2_subdev *csi2_subdev,
-> >>>> +			   struct v4l2_subdev *sensor,
-> >>>> +			   struct v4l2_mbus_framefmt *sensor_fmt)
-> >>>> 
-> >>>>  {
-> >>>> 
-> >>>> +	struct isp_v4l2_subdevs_group *subdevs = sensor->host_priv;
-> >>>> +	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(csi2_subdev);
-> >>>> +	struct isp_csiphy_dphy_cfg csi2phy;
-> >>>> +	int csi2_ddrclk_khz;
-> >>>> +	struct isp_csiphy_lanes_cfg *lanes;
-> >>>> 
-> >>>>  	unsigned int used_lanes = 0;
-> >>>>  	unsigned int i;
-> >>>> 
-> >>>> +	u32 cam_phy_ctrl;
-> >>>> +
-> >>>> +	if (subdevs->interface == ISP_INTERFACE_CCP2B_PHY1
-> >>>> +	    || subdevs->interface == ISP_INTERFACE_CCP2B_PHY2)
-> >>>> +		lanes = subdevs->bus.ccp2.lanecfg;
-> >>>> +	else
-> >>>> +		lanes = subdevs->bus.csi2.lanecfg;
-> >>> 
-> >>> Shouldn't lane configuration be retrieved from the sensor instead ?
-> >>> Sensors could use different lane configuration depending on the mode.
-> >>> This could also be implemented later when needed, but I don't think it
-> >>> would be too difficult to get it right now.
-> >> 
-> >> I think we'd first need to standardise the CSI-2 bus configuration. I
-> >> don't see a practical need to make the lane configuration dynamic. You
-> >> could just use a lower frequency to achieve the same if you really need
-> >> to.
-> >> 
-> >> Ideally it might be nice to do but there's really nothing I know that
-> >> required or even benefited from it --- at least for now.
-> > 
-> > Does this mean that lane configuration needs to be duplicated in board
-> > code, on for the SMIA++ platform data and one of the OMAP3 ISP platform
-> > data ?
-> 
-> It's mostly the number of lanes, and the polarity --- in theory it is
-> possible to invert the signals on the bus, albeit I'm not sure if anyone
-> does that; I can't see a reason for that, but hey, I don't know why it's
-> possible to specify polarity either. :-)
-> 
-> If both sides support mapping of the lanes, a mapping that matches on
-> both sides has to be provided.
-> 
-> I agree we should standardise the configuration of CSI-2 as well as the
-> configuration of other busses. However, I would prefer to do that later
-> on since I'm already depending on a number of other patches on the
-> SMIA++ driver.
+In the source there is no file called "dvb_frontend.c", so I assume I
+start the media_build/build script?
+If I do, eventually this creates
+media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
 
-OK.
+I then apply the patch to
+media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c, and I can
+see the added elements...
+....
+static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
+{
+        struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+        int i;
+       	u32 delsys;
 
--- 
-Regards,
+        delsys = c->delivery_system;
+        memset(c, 0, sizeof(struct dtv_frontend_properties));
+        c->delivery_system = delsys;
 
-Laurent Pinchart
+        c->state = DTV_CLEAR;
+
+        dprintk("%s() Clearing cache for delivery system %d\n", __func__,
+               	c->delivery_system);
+................
+
+After a reboot (as I have not got a clue about unloading modules etc.)
+I then execute make install but I still get the same error
+"dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
+delivery system 0" when I use dvbscan.
