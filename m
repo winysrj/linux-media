@@ -1,45 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:41318 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab2ALSCs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jan 2012 13:02:48 -0500
-Received: by eaal12 with SMTP id l12so753011eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2012 10:02:47 -0800 (PST)
+Received: from mail.kapsi.fi ([217.30.184.167]:45378 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751341Ab2AOVrO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 16:47:14 -0500
+Message-ID: <4F13495E.8030106@iki.fi>
+Date: Sun, 15 Jan 2012 23:47:10 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Date: Thu, 12 Jan 2012 19:02:47 +0100
-Message-ID: <CANbcZdNK5v5i=a13sEE216-HjEnXXciWCe_jc139N3MVnKP5oA@mail.gmail.com>
-Subject: Problem with WinTV HVR-930C
-From: Daniel Rindt <daniel.rindt@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
+References: <4F08385E.7050602@redhat.com> <4F0CAF53.3090802@iki.fi> <4F0CB512.7010501@redhat.com> <4F131CD8.2060602@iki.fi> <4F13312B.8060005@iki.fi> <4F13404D.2020001@redhat.com>
+In-Reply-To: <4F13404D.2020001@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 01/15/2012 11:08 PM, Mauro Carvalho Chehab wrote:
+> There was a bug at the error code handling on dvb-fe-tool: basically, if it can't open
+> a device, it were using a NULL pointer. It was likely fixed by this commit:
+>
+> http://git.linuxtv.org/v4l-utils.git/commit/1f669eed5433d17df4d8fb1fa43d2886f99d3991
 
-i am running Fedora 16 64bit and have no luck to get working the WinTV
-HVR-930C. Invoked command lsusb told me: Bus 001 Device 002: ID
-2040:1605 Hauppauge. Installed from update-testing-repository is the
-most recent kernel version kernel-3.1.8-2.fc16.x86_64.
+That bug was fixed as I tested.
 
-Loaded the em28xx by hand and shows up this in dmesg:
-[  482.220534] IR NEC protocol handler initialized
-[  482.228352] IR RC5(x) protocol handler initialized
-[  482.229710] Linux media interface: v0.10
-[  482.235907] Linux video capture interface: v2.00
-[  482.240601] IR RC6 protocol handler initialized
-[  482.257921] IR JVC protocol handler initialized
-[  482.263175] IR Sony protocol handler initialized
-[  482.268460] IR MCE Keyboard/mouse protocol handler initialized
-[  482.273807] usbcore: registered new interface driver em28xx
-[  482.273816] em28xx driver loaded
-[  482.275215] lirc_dev: IR Remote Control driver registered, major 249
-[  482.285327] IR LIRC bridge handler initialized
+But could you tell why dvb-fe-tool --set-delsys=DVBC/ANNEX_A calls 
+get_frontent() ?
 
-I am in doubt that the newest development is included in this kernel
-release. Or maybe i have do something wrong. Your help is much
-appreciated.
+That will cause this kind of calls in demod driver:
+init()
+get_frontend()
+get_frontend()
+sleep()
 
-Thanks
-Daniel
+My guess is that it resolves current delivery system. But as demod is 
+usually sleeping (not tuned) at that phase it does not know frontend 
+settings asked, like modulation etc. In case of cxd2820r those are 
+available after set_frontend() call. I think I will add check and return 
+-EINVAL in that case.
+
+regards
+Antti
+-- 
+http://palosaari.fi/
