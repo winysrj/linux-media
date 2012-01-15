@@ -1,128 +1,345 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:42215 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751010Ab2AYKeX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 05:34:23 -0500
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LYC00KSRO1A3U@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 Jan 2012 10:34:22 +0000 (GMT)
-Received: from [106.116.48.223] by spt2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTPA id <0LYC00H4IO199I@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 25 Jan 2012 10:34:22 +0000 (GMT)
-Date: Wed, 25 Jan 2012 11:34:19 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH 04/10] v4l: vb2: fixes for DMABUF support
-In-reply-to: <CAB2ybb8fXUARSriD2x-4TNLVtxpg5hA6NKjrAOOwzHJ0Cko6Ag@mail.gmail.com>
-To: "Semwal, Sumit" <sumit.semwal@ti.com>
-Cc: linux-media@vger.kernel.org
-Message-id: <4F1FDAAB.2040804@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
- <1327326675-8431-5-git-send-email-t.stanislaws@samsung.com>
- <4F1D6D3E.7020203@redhat.com> <4F1D6F68.5040202@samsung.com>
- <4F1D7418.50201@redhat.com> <4F1D7BF4.4040603@samsung.com>
- <CAB2ybb8fXUARSriD2x-4TNLVtxpg5hA6NKjrAOOwzHJ0Cko6Ag@mail.gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:41303 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751778Ab2AOToG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 14:44:06 -0500
+Message-ID: <4F132C82.9060105@maxwell.research.nokia.com>
+Date: Sun, 15 Jan 2012 21:44:02 +0200
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
+Subject: Re: [RFC 08/17] v4l: Image source control class
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <201201051723.41247.laurent.pinchart@ideasonboard.com> <4F11EAD3.9070004@maxwell.research.nokia.com> <201201150243.05381.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201150243.05381.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
-Hi Sumit,
-On 01/25/2012 06:35 AM, Semwal, Sumit wrote:
-> Hi Tomasz,
-> On Mon, Jan 23, 2012 at 8:55 PM, Tomasz Stanislawski
-> <t.stanislaws@samsung.com>  wrote:
->> Hi Mauro,
+Laurent Pinchart wrote:
+> On Saturday 14 January 2012 21:51:31 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> On Tuesday 20 December 2011 21:28:00 Sakari Ailus wrote:
+>>>> From: Sakari Ailus <sakari.ailus@iki.fi>
+>>>>
+>>>> Add image source control class. This control class is intended to
+>>>> contain low level controls which deal with control of the image capture
+>>>> process --- the A/D converter in image sensors, for example.
+>>>>
+>>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>>>> ---
+>>>>
+>>>>  Documentation/DocBook/media/v4l/controls.xml       |  101
+>>>>  +++++++++++++++++ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |
+>>>>     6 +
+>>>>  drivers/media/video/v4l2-ctrls.c                   |   10 ++
+>>>>  include/linux/videodev2.h                          |   10 ++
+>>>>  4 files changed, 127 insertions(+), 0 deletions(-)
+>>>>
+>>>> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+>>>> b/Documentation/DocBook/media/v4l/controls.xml index 3bc5ee8..69ede83
+>>>> 100644
+>>>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>>>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>>>> @@ -3356,6 +3356,107 @@ interface and may change in the future.</para>
+>>>>
+>>>>        </table>
+>>>>      
+>>>>      </section>
+>>>>
+>>>> +
+>>>> +    <section id="image-source-controls">
+>>>> +      <title>Image Source Control Reference</title>
+>>>> +
+>>>> +      <note>
+>>>> +	<title>Experimental</title>
+>>>> +
+>>>> +	<para>This is an <link
+>>>> +	linkend="experimental">experimental</link> interface and may
+>>>> +	change in the future.</para>
+>>>> +      </note>
+>>>> +
+>>>> +      <para>
+>>>> +	The Image Source control class is intended for low-level
+>>>> +	control of image source devices such as image sensors. The
+>>>> +	devices feature an analogue to digital converter and a bus
+>>>
+>>> Is the V4L2 documentation written in US or UK English ? US uses analog,
+>>> UK uses analogue. Analog would be shorter in control names.
 >>
+>> Both appear to be used, but the US English appears to be more commonly
+>> used. I guess it's mostly chosen by whatever happened to be used by the
+>> author of the patch. I prefer UK spelling which you might have noticed
+>> already. :-)
+> 
+> Yes I have. I haven't checked whether V4L2 prefers the UK or US spelling. I'll 
+> trust you on that.
+
+I have checked and most seem to have used US spelling. If you wish me to
+change it, I can do that.
+
+>> I remember there was a discussion on this topic years ago within the
+>> kernel community but I don't remember how it ended up with... LWN.net
+>> appears to remember better than I do, but by a quick check I can't find
+>> any definitive conclusion.
 >>
-> <snip>
+>> <URL:http://lwn.net/Articles/44262/>
+>> <URL:http://lkml.org/lkml/2003/8/7/245>
 >>
->> Ok. I should have given more details about the patch. I am sorry for missing
->> it. My kernel tree failed to compile after applying patches from
+>>>> +	transmitter to transmit the image data out of the device.
+>>>> +      </para>
+>>>> +
+>>>> +      <table pgwide="1" frame="none" id="image-source-control-id">
+>>>> +      <title>Image Source Control IDs</title>
+>>>> +
+>>>> +      <tgroup cols="4">
+>>>> +	<colspec colname="c1" colwidth="1*" />
+>>>> +	<colspec colname="c2" colwidth="6*" />
+>>>> +	<colspec colname="c3" colwidth="2*" />
+>>>> +	<colspec colname="c4" colwidth="6*" />
+>>>> +	<spanspec namest="c1" nameend="c2" spanname="id" />
+>>>> +	<spanspec namest="c2" nameend="c4" spanname="descr" />
+>>>> +	<thead>
+>>>> +	  <row>
+>>>> +	    <entry spanname="id" align="left">ID</entry>
+>>>> +	    <entry align="left">Type</entry>
+>>>> +	  </row><row rowsep="1"><entry spanname="descr"
+>>>> align="left">Description</entry> +	  </row>
+>>>> +	</thead>
+>>>> +	<tbody valign="top">
+>>>> +	  <row><entry></entry></row>
+>>>> +	  <row>
+>>>> +	    <entry
+>>>> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry> +
+>>>>
+>>>>   <entry>class</entry>
+>>>>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry
+>>>> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_VBLANK</constant></entry>
+>>>> +
+>>>>
+>>>>    <entry>integer</entry>
+>>>>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry spanname="descr">Vertical blanking. The idle
+>>>> +	    preriod after every frame during which no image data is
+>>>
+>>> s/preriod/period/
+>>>
+>>>> +	    produced. The unit of vertical blanking is a line. Every
+>>>> +	    line has length of the image width plus horizontal
+>>>> +	    blanking at the pixel clock specified by struct
+>>>> +	    v4l2_mbus_framefmt <xref linkend="v4l2-mbus-framefmt"
+>>>> +	    />.</entry>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry
+>>>> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_HBLANK</constant></entry>
+>>>> +
+>>>>
+>>>>    <entry>integer</entry>
+>>>>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry spanname="descr">Horizontal blanking. The idle
+>>>> +	    preriod after every line of image data during which no
+>>>
+>>> s/preriod/period/
+>>>
+>>>> +	    image data is produced. The unit of horizontal blanking is
+>>>> +	    pixels.</entry>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry
+>>>> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_LINK_FREQ</constant></entr
+>>>> y> +	    <entry>integer menu</entry>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry spanname="descr">Image source's data bus frequency.
+>>>
+>>> What's the frequency unit ? Sample/second ?
 >>
->> [1]
->> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
+>> Hz --- that's the unit of frequency. I fixed that in the new version.
+> 
+> Is the user supposed to compute the pixel clock from this information ? That's 
+> what the text below seems to imply.
+
+Apparently I have forgotten to update this in the new patchset. But yes,
+these factors do define it. The sensors' internal clock tree will be
+involved and calculation is non-trivial. This is why we also have the
+PIXEL_RATE control --- where I will refer to in the next patchset.
+
+>>>> +	    Together with the media bus pixel code, bus type (clock
+>>>> +	    cycles per sample), the data bus frequency defines the
+>>>> +	    pixel clock. <xref linkend="v4l2-mbus-framefmt" /> The
+>>>> +	    frame rate can be calculated from the pixel clock, image
+>>>> +	    width and height and horizontal and vertical blanking. The
+>>>> +	    frame rate control is performed by selecting the desired
+>>>> +	    horizontal and vertical blanking.
+>>>> +	    </entry>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry
+>>>> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN</constant></
+>>>> en try> +	    <entry>integer</entry>
+>>>> +	  </row>
+>>>> +	  <row>
+>>>> +	    <entry spanname="descr">Analogue gain is gain affecting
+>>>> +	    all colour components in the pixel matrix. The gain
+>>>> +	    operation is performed in the analogue domain before A/D
+>>>> +	    conversion.
+>>>
+>>> Should we define one gain per color component ?
 >>
->> I had to generate this patch to compile the code and test it. Most of the
->> fixes refer to Sumit's code and I think he will take care of those bugs.
-> Is your kernel tree a mainline kernel? I am pretty sure I posted out
-> the RFC after compile testing.
-
-Our development kernel often contains patches that are not posted to 
-opensource. The tree presented in the cover letter contains only patches 
-that were approved for opensource submission.
-
-Some of the patches that are not merged into the mainline may break 
-compilation if patches from the mailing list are applied on the top. The 
-example is 'media: vb2: remove plane argument from call_memop and 
-cleanup mempriv usage'. I had to add fixes to compile the code. Moreover 
-I had to test a working application that makes use of DMABUF 
-exporting/importing via V4L2 API. So I had to fix other issues that are 
-not only compilation related.
-
-As I remember we agreed that I had to post an incremental patchset.
-Therefore all needed fixes had to be present in the tree.
-
-The fixes were posted in this patchset to keep the whole work together.
-I expect that you already prepared a patch fixing majority of issues 
-from this patch. Many of them were mentioned in Pawel's and Laurent's 
-and Sakari's reviews. If you find fixes in this patch useful you can 
-merge them into next version of RFC 'v4l: DMA buffer sharing support as 
-a user'.
-
->
+>> I think that in the end we may need up to six analogue gains:
 >>
-> <snip>
+>> - Gain for all components
+> 
+> Many sensors that provide per-component gains also provide a global gain 
+> control that sets the four component gains. I'm not sure how (and if) we 
+> should handle that.
+
+If it directly affects all of them, I don't think we should support it.
+But if it's independent of the colour-specific ones, then, sure, it
+should be supported.
+
+>> - Blue gain
+>> - Red gain
+>> - Green gain (for both greens)
+>> - Gr gain
+>> - Gb gain
 >>
+>> It may be debatable whether Gr / Gb gain will always be the same or not.
+>> I'm not fully certain about that. As Hans G. suggested, it might be
+>> possible to go with just one for green.
+> 
+> I'm also unsure about that. Having different gains for the two green 
+> components doesn't seem very useful. On the other hand, if we find a use case 
+> later, we'll have to break driver ABIs.
+
+Let's add the gains later on. Now we'll need a single analogue gain for
+all components and that's good for the time being.
+
+>>>> +	    </entry>
+>>>> +	  </row>
+>>>> +	  <row><entry></entry></row>
+>>>> +	</tbody>
+>>>> +      </tgroup>
+>>>> +      </table>
+>>>> +
+>>>> +    </section>
+>>>> +
+>>>>
+>>>>  </section>
+>>>>  
+>>>>    <!--
+>>>>
+>>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>>>> b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml index
+>>>> 5122ce8..250c1cf 100644
+>>>> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>>>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>>>> @@ -257,6 +257,12 @@ These controls are described in <xref
+>>>>
+>>>>  These controls are described in <xref
+>>>>  
+>>>>  		linkend="flash-controls" />.</entry>
+>>>>  		
+>>>>  	  </row>
+>>>>
+>>>> +	  <row>
+>>>> +	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
+>>>> +	    <entry>0x9d0000</entry> <entry>The class containing image
+>>>> +	    source controls. These controls are described in <xref
+>>>> +	    linkend="image-source-controls" />.</entry>
+>>>> +	  </row>
+>>>>
+>>>>  	</tbody>
+>>>>  	
+>>>>        </tgroup>
+>>>>      
+>>>>      </table>
+>>>>
+>>>> diff --git a/drivers/media/video/v4l2-ctrls.c
+>>>> b/drivers/media/video/v4l2-ctrls.c index 083bb79..da1ec52 100644
+>>>> --- a/drivers/media/video/v4l2-ctrls.c
+>>>> +++ b/drivers/media/video/v4l2-ctrls.c
+>>>> @@ -606,6 +606,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>>>
+>>>>  	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+>>>>  	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
+>>>>
+>>>> +	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image source controls";
+>>>> +	case V4L2_CID_IMAGE_SOURCE_VBLANK:	return "Vertical blanking";
+>>>> +	case V4L2_CID_IMAGE_SOURCE_HBLANK:	return "Horizontal blanking";
+>>>> +	case V4L2_CID_IMAGE_SOURCE_LINK_FREQ:	return "Link frequency";
+>>>> +	case V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN: return "Analogue gain";
+>>>
+>>> Please capitalize each word, as done for the other controls.
 >>
->> I wanted to post the complete set of patches that produce compilable kernel.
->> Therefore most important bugs/issues had to be fixed and attached to the
->> patchset. Some of the issues in [1] were mentioned by Laurent and Sakari. I
->> hope Sumit will take care of those problems.
-> I must've misunderstood when you said 'I would like to take care of
-> these patches'. Please let me know if you'd like me to submit next
-> version of my RFC separately with fixes for these issues, or would you
-> manage that as part of your RFC patch series submission.
+>> This isn't done for the flash controls either, have you noticed that?
+>>
+>> Well, I guess I have to admit that they were added by myself. ;-)
+>>
+>> I can fix this for the next patchset.
+>>
+>>>>  	default:
+>>>>  		return NULL;
+>>>>  	
+>>>>  	}
+>>>>
+>>>> @@ -694,6 +700,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+>>>>
+>>>> v4l2_ctrl_type *type, case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+>>>>  		*type = V4L2_CTRL_TYPE_MENU;
+>>>>  		break;
+>>>>
+>>>> +	case V4L2_CID_IMAGE_SOURCE_LINK_FREQ:
+>>>> +		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
+>>>> +		break;
+>>>
+>>> Will this always be an integer menu control, or can you foresee cases
+>>> where the range would be continuous ?
+>>
+>> Good question. On some hardware this definitely is an integer menu, but
+>> hardware may exist where more selections would be available.
+>>
+>> However, on e.g. the SMIA++ sensor the calculation of the clock tree
+>> values depends heavily on the selected link rate. Choosing a wrong link
+>> rate may yield to the clock tree calculation to fail. So the driver
+>> likely would need to enforce some rules which values are allowed. That
+>> might prove unfeasible --- already the PLL code in the SMIA++ driver is
+>> relatively complex.
+>>
+>> I don't see much benefit in being able to specify this freely.
+> 
+> For SMIA++, definitely not. For other sensors, I don't know.
 
-This patchset is an RFC. It was my big mistake that I forgot to add this 
-to the title of the patchset. I am not going to post the patch with 
-fixes to your part any more. It would be great if you merged it into new 
-version of 'DMA buffer sharing support as a user'.
+At least one Aptina sensor had a clock tree which basically had a few
+dividers and a multiplier. The same restrictions apply.
 
-IMO, some parts should go as separate threads:
-- extension to DMA subsystem, introduction of dma_get_pages. This would 
-probably go to DMA mailing list.
-- redesign of dma-contig allocator (w/o dmabuf exporting/importing)
-- buffer importing via dmabuf in V4L2 and vb2-dma-contig
-- buffer exporting via dmabuf in V4L2 and vb2-dma-contig
+>> AFAIR the conclusion was that controls may only have one type when the
+>> control framework was written.
+> 
+> Yes, but I'm not sure whether that's a good conclusion :-)
 
-BTW. Could you state your opinion on presented solution for dma-buf 
-exporting in vb2-core and vb2-dma-contig allocator?
+It allows you to assume a type for controls, whether that's good or not.
+
+This could be one use case for that, but I don't really see much
+advantage in (attepmpting) to support fully free sensor link frequency
+configuration.
 
 Regards,
-Tomasz Stanislawski
 
->>
->>>
->>> Failing to do that will mean that important fixes for upstream
->>> will be missed.
->>
->>
->> Ok. It will be fixed.
->>
->>>
->>> Regards,
->>> Mauro
->>>
->>
->> Regards,
->> Tomasz Stanislawski
->>
-> Best regards,
-> ~Sumit.
-
+-- 
+Sakari Ailus
+sakari.ailus@maxwell.research.nokia.com
