@@ -1,59 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:21659 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933119Ab2AFKIF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jan 2012 05:08:05 -0500
-Message-ID: <4F06C7FC.3090704@maxwell.research.nokia.com>
-Date: Fri, 06 Jan 2012 12:07:56 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48871 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751219Ab2AONOK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 08:14:10 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Oleksij Rempel (Alexey Fisher)" <bug-track@fisher-privat.net>
+Subject: Re: [regression] v4l: Add custom compat_ioctl32 operation
+Date: Sun, 15 Jan 2012 14:14:13 +0100
+Cc: linux-uvc-devel@lists.sourceforge.net,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+References: <4F1297E2.7@fisher-privat.net>
+In-Reply-To: <4F1297E2.7@fisher-privat.net>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-Subject: Re: [RFC 02/17] v4l: Document integer menu controls
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-2-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201201051655.25660.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201051655.25660.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201151414.14060.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Alexey,
 
-Laurent Pinchart wrote:
-> Hi Sakari,
+On Sunday 15 January 2012 10:09:54 Oleksij Rempel (Alexey Fisher) wrote:
+> hi Laurent,
 > 
-> Thanks for the patch.
-> 
-> On Tuesday 20 December 2011 21:27:54 Sakari Ailus wrote:
->> From: Sakari Ailus <sakari.ailus@iki.fi>
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> ---
->>  Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
->>  Documentation/DocBook/media/v4l/v4l2.xml           |    7 ++++
->>  .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39
->> +++++++++++++++++++- 3 files changed, 54 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/compat.xml
->> b/Documentation/DocBook/media/v4l/compat.xml index b68698f..569efd1 100644
->> --- a/Documentation/DocBook/media/v4l/compat.xml
->> +++ b/Documentation/DocBook/media/v4l/compat.xml
->> @@ -2379,6 +2379,16 @@ that used it. It was originally scheduled for
->> removal in 2.6.35. </orderedlist>
->>      </section>
->>
->> +    <section>
->> +      <title>V4L2 in Linux 3.3</title>
-> 
-> Seems it will be for 3.4 :-) Same for Documentation/DocBook/media/v4l/v4l2.xml
+> this patch seem to create circular module dependency. I get this error:
+> WARNING: Module
+> /lib/modules/3.2.0-00660-g1801bbe-dirty/kernel/drivers/media/video/videodev
+> .ko ignored, due to loop
+> WARNING: Loop detected:
+> /lib/modules/3.2.0-00660-g1801bbe-dirty/kernel/drivers/media/video/v4l2-com
+> pat-ioctl32.ko needs videodev.ko which needs v4l2-compat-ioctl32.ko again!
 
-Right. I'll make the change for now but I don't of course mind if we get
-this to 3.3 already. However, if we want a driver using this go in at
-the same time, the smia++ driver for almost certain is not going to be
-3.3 since it depends on a large set of other patches.
+Thanks for the report.
 
-Regards,
+Hans, what do you think about the patch below ?
+
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 3541388..8c4a94d 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -17,7 +17,7 @@ videodev-objs :=      v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+ 
+ obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
+ ifeq ($(CONFIG_COMPAT),y)
+-  obj-$(CONFIG_VIDEO_DEV) += v4l2-compat-ioctl32.o
++  videodev-objs += v4l2-compat-ioctl32.o
+ endif
+ 
+ obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
+
+I don't see a very compelling reason to put v4l2_compat_ioctl32() in a
+separate module. If that fine with you, I'll also remove the #ifdef
+CONFIG_COMPAT from v4l2-compat-ioctl32.c.
+
+> commit bf5aa456853816f807a46c0d944efb997142ffaf
+> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Date:   Mon Dec 19 00:41:19 2011 +0100
+> 
+>     v4l: Add custom compat_ioctl32 operation
+> 
+>     Drivers implementing custom ioctls need to handle 32-bit/64-bit
+>     compatibility themselves. Provide them with a way to do so.
+> 
+>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>     Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+Regards,
+
+Laurent Pinchart
