@@ -1,55 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:59417 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753982Ab2A0Uuz (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2876 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751692Ab2AONdX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jan 2012 15:50:55 -0500
-Received: by eaal13 with SMTP id l13so378830eaa.19
-        for <linux-media@vger.kernel.org>; Fri, 27 Jan 2012 12:50:54 -0800 (PST)
-Message-ID: <4F230E2A.4080203@gmail.com>
-Date: Fri, 27 Jan 2012 21:50:50 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+	Sun, 15 Jan 2012 08:33:23 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [regression] v4l: Add custom compat_ioctl32 operation
+Date: Sun, 15 Jan 2012 14:32:52 +0100
+Cc: "Oleksij Rempel (Alexey Fisher)" <bug-track@fisher-privat.net>,
+	linux-uvc-devel@lists.sourceforge.net,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	linux-media@vger.kernel.org
+References: <4F1297E2.7@fisher-privat.net> <201201151414.14060.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201151414.14060.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 1/2] v4l2: standardize log start/end message.
-References: <1327687153-14757-1-git-send-email-hverkuil@xs4all.nl> <1844c31eb7b4515904824a6b26994f7bdd7eace8.1327686924.git.hans.verkuil@cisco.com>
-In-Reply-To: <1844c31eb7b4515904824a6b26994f7bdd7eace8.1327686924.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201151432.52853.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans,
+On Sunday, January 15, 2012 14:14:13 Laurent Pinchart wrote:
+> Hi Alexey,
+> 
+> On Sunday 15 January 2012 10:09:54 Oleksij Rempel (Alexey Fisher) wrote:
+> > hi Laurent,
+> > 
+> > this patch seem to create circular module dependency. I get this error:
+> > WARNING: Module
+> > /lib/modules/3.2.0-00660-g1801bbe-dirty/kernel/drivers/media/video/videodev
+> > .ko ignored, due to loop
+> > WARNING: Loop detected:
+> > /lib/modules/3.2.0-00660-g1801bbe-dirty/kernel/drivers/media/video/v4l2-com
+> > pat-ioctl32.ko needs videodev.ko which needs v4l2-compat-ioctl32.ko again!
+> 
+> Thanks for the report.
+> 
+> Hans, what do you think about the patch below ?
+> 
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index 3541388..8c4a94d 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -17,7 +17,7 @@ videodev-objs :=      v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
+>  
+>  obj-$(CONFIG_VIDEO_DEV) += videodev.o v4l2-int-device.o
+>  ifeq ($(CONFIG_COMPAT),y)
+> -  obj-$(CONFIG_VIDEO_DEV) += v4l2-compat-ioctl32.o
+> +  videodev-objs += v4l2-compat-ioctl32.o
+>  endif
+>  
+>  obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
+> 
+> I don't see a very compelling reason to put v4l2_compat_ioctl32() in a
+> separate module. If that fine with you, I'll also remove the #ifdef
+> CONFIG_COMPAT from v4l2-compat-ioctl32.c.
 
-On 01/27/2012 06:59 PM, Hans Verkuil wrote:
-> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-> index d0d7281..2348669 100644
-> --- a/drivers/media/video/v4l2-ioctl.c
-> +++ b/drivers/media/video/v4l2-ioctl.c
-> @@ -1911,7 +1911,15 @@ static long __video_do_ioctl(struct file *file,
->   	{
->   		if (!ops->vidioc_log_status)
->   			break;
-> +		if (vfd->v4l2_dev)
-> +			printk(KERN_INFO
-> +				"%s: =================  START STATUS  =================\n",
-> +				vfd->v4l2_dev->name);
->   		ret = ops->vidioc_log_status(file, fh);
-> +		if (vfd->v4l2_dev)
-> +			printk(KERN_INFO
-> +				"%s: ==================  END STATUS  ==================\n",
-> +				vfd->v4l2_dev->name);
+Seems reasonable. Although I suggest that you move up the 'ifeq - endif' part
+to right after the 'videodev-objs := ...' line in the makefile. That's more
+logical in this case.
 
-Nice cleanup, but wouldn't it be more appropriate to use pr_info() here
-instead ? AFAIK this is preferred logging style now.
+Regards,
 
---
+	Hans
 
-Thanks,
-Sylwester
+> 
+> > commit bf5aa456853816f807a46c0d944efb997142ffaf
+> > Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Date:   Mon Dec 19 00:41:19 2011 +0100
+> > 
+> >     v4l: Add custom compat_ioctl32 operation
+> > 
+> >     Drivers implementing custom ioctls need to handle 32-bit/64-bit
+> >     compatibility themselves. Provide them with a way to do so.
+> > 
+> >     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >     Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> 
