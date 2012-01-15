@@ -1,34 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:41394 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753703Ab2ALPDz (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:36268 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751130Ab2AOWVw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jan 2012 10:03:55 -0500
-Received: by vbmv11 with SMTP id v11so378109vbm.19
-        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2012 07:03:54 -0800 (PST)
+	Sun, 15 Jan 2012 17:21:52 -0500
+Received: by bkas6 with SMTP id s6so200146bka.19
+        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 14:21:51 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <loom.20120112T154151-25@post.gmane.org>
-References: <4EA85EE1.7080807@lockie.ca>
-	<loom.20120112T154151-25@post.gmane.org>
-Date: Thu, 12 Jan 2012 10:03:54 -0500
-Message-ID: <CAGoCfizvX3WdU5QLzAtXkucZ=N8TmKTnxDH0L6HFOYtcbuSHhg@mail.gmail.com>
-Subject: Re: cx23885[0]: videobuf_dvb_register_frontend failed (errno = -12)
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Markus Golser <elmargol@googlemail.com>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <1326572518.1243.43.camel@palomino.walls.org>
+References: <CAEN_-SDUfyu34YSV6Lr4yADkNmr6=+TALN0xvrCODFPeRedkFA@mail.gmail.com>
+	<1326572518.1243.43.camel@palomino.walls.org>
+Date: Sun, 15 Jan 2012 23:21:49 +0100
+Message-ID: <CAEN_-SCma-7qLrGnnKYd_kQdfYUdskbmG4SiFpfUnDfy-pq5qA@mail.gmail.com>
+Subject: Re: cx25840: improve audio for cx2388x drivers
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 12, 2012 at 9:42 AM, Markus Golser <elmargol@googlemail.com> wrote:
-> I have the same Problem.
-> Did you find any solution?
+Modified RegSpy.exe with patch, i used it to spot register changes in
+cx23885 and cx25840 chipsets.
 
-Assuming you compiled your kernel from source, enable CONFIG_DVB_NET
-in your .config.
+http://www.speedyshare.com/file/sVqSY/RegSpy.zip
+http://www.2shared.com/file/E_Gdj0ic/RegSpy.html
 
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Extra info: This RegSpy.exe is not enough, because some changes are
+fast, so if someone wants to use it it will be better to modify and
+remove unneded registers and change update time. I used this to
+display only 5 main values while recording window frame after frame to
+spot exact order of changes in registers.
