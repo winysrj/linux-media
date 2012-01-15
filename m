@@ -1,80 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48255 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab2AORcH (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:48661 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751207Ab2AOIof (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 12:32:07 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [media-ctl PATCH 1/1] libmediactl: Implement MEDIA_ENT_ID_FLAG_NEXT in media_get_entity_by_id()
-Date: Sun, 15 Jan 2012 18:31:54 +0100
-Cc: linux-media@vger.kernel.org
-References: <1326569616-7048-1-git-send-email-sakari.ailus@iki.fi> <201201151444.08443.laurent.pinchart@ideasonboard.com> <4F12F388.3000508@iki.fi>
-In-Reply-To: <4F12F388.3000508@iki.fi>
+	Sun, 15 Jan 2012 03:44:35 -0500
+Date: Sun, 15 Jan 2012 10:44:30 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: v4l: how to get blanking clock count?
+Message-ID: <20120115084429.GB11467@valkosipuli.localdomain>
+References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
+ <20111230213301.GA3677@valkosipuli.localdomain>
+ <CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com>
+ <20111231113529.GC3677@valkosipuli.localdomain>
+ <4EFEFA08.805@gmail.com>
+ <CAHG8p1AjoV1gBhQGFm0rEYSkHrpG+XtQB7kYXc8x5nuqjW4Z4g@mail.gmail.com>
+ <20120104082742.GL3677@valkosipuli.localdomain>
+ <CAHG8p1DxPJthH8JOH9AEmLyCwas4O0f16ytk3FeknaPLnP_-2g@mail.gmail.com>
+ <20120104093909.GA9323@valkosipuli.localdomain>
+ <CAHG8p1BmtK5dydPZxsT7hoE1JoSFsN1MsXA0qaeVQBzpCeb0VQ@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201151831.54375.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAHG8p1BmtK5dydPZxsT7hoE1JoSFsN1MsXA0qaeVQBzpCeb0VQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Scott,
 
-On Sunday 15 January 2012 16:40:56 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Saturday 14 January 2012 20:33:36 Sakari Ailus wrote:
-> >> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
-> >> ---
-> >> 
-> >>   src/mediactl.c |    9 +++++++--
-> >>   src/mediactl.h |    4 +++-
-> >>   2 files changed, 10 insertions(+), 3 deletions(-)
-> >> 
-> >> diff --git a/src/mediactl.c b/src/mediactl.c
-> >> index 5b8c587..f62fcdf 100644
-> >> --- a/src/mediactl.c
-> >> +++ b/src/mediactl.c
-> >> @@ -81,8 +81,13 @@ struct media_entity *media_get_entity_by_id(struct
-> >> media_device *media, for (i = 0; i<  media->entities_count; ++i) {
-> >> 
-> >>   		struct media_entity *entity =&media->entities[i];
-> >> 
-> >> -		if (entity->info.id == id)
-> >> -			return entity;
-> >> +		if (!(id&  MEDIA_ENT_ID_FLAG_NEXT)) {
-> >> +			if (entity->info.id == id)
-> >> +				return entity;
-> >> +		} else {
-> >> +			if (entity->info.id>= (id&  ~MEDIA_ENT_ID_FLAG_NEXT)
-> >> +				return entity;
-> >> +		}
-> > 
-> > Just one question that hasn't crossed my mind before, why do you need
-> > this ? If you want to enumerate entities in an application you can just
-> > iterate over media_device::entities.
-> 
-> We do have the MEDIA_ENT_ID_FLAG_NEXT flag which is intended to help in
-> entity enumeration. Currently the range of entity ids is contiguous in
-> all practical implementation but will that always be the case, also in
-> the future? A few things might break in the kernel if the range is
-> non-contiguous as well, but that's still internal to the kernel.
-> 
-> However, this is a user space library and if this interface change is
-> not made, we essentially are making a promise that the entity ranges
-> will always be contiguous.
+On Wed, Jan 04, 2012 at 05:59:45PM +0800, Scott Jiang wrote:
+> >> If I disable this interrupt, other errors like fifo underflow are ignored.
+> >> Perhaps I can add a parameter in platform data to let user decide to
+> >> register this interrupt or not.
+> >
+> > I think a more generic solution would be preferrable. If that causes
+> > ignoring real errors, that's of course bad. I  wonder if there would be a
+> > way around that.
+> >
+> > Is there a publicly available datasheet for the bridge that I could take a
+> > look at?
+> >
+> Yes, http://www.analog.com/en/processors-dsp/blackfin/adsp-bf548/processors/technical-documentation/index.html.
+> There is a hardware reference manual for bf54x, bridge is eppi.
 
-I definitely don't want to make that promise, but what's the point in calling 
-media_get_entity_by_id() for entity enumeration instead of iterating over the 
-media_device::entities array ?
-
-> I wouldn't as there's no need to do so.
-> 
-> I you think about programmable hardware, entities there are logical
-> rather than physical and their existence may be dependent on multiple
-> factors.
+Yeah, indeed it's the first time I see hardware like this. So to support
+this properly, we truly need the new sensor control interface and an ability
+to make those blanking values unchangeable.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
