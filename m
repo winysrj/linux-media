@@ -1,52 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:41473 "EHLO mgw-da01.nokia.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:52698 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933947Ab2AKV1S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:27:18 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH 15/23] omap3isp: Do not attempt to walk the pipeline outside the ISP
-Date: Wed, 11 Jan 2012 23:26:52 +0200
-Message-Id: <1326317220-15339-15-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F0DFE92.80102@iki.fi>
-References: <4F0DFE92.80102@iki.fi>
+	id S1751714Ab2AOShP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 13:37:15 -0500
+Message-ID: <4F131CD8.2060602@iki.fi>
+Date: Sun, 15 Jan 2012 20:37:12 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
+References: <4F08385E.7050602@redhat.com> <4F0CAF53.3090802@iki.fi> <4F0CB512.7010501@redhat.com>
+In-Reply-To: <4F0CB512.7010501@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not attempt to walk the pipeline outside of the ISP. The external subdevs
-will handle this internally.
+On 01/11/2012 12:00 AM, Mauro Carvalho Chehab wrote:
+> On 10-01-2012 19:36, Antti Palosaari wrote:
+>> Behaviour of new FE is strange for my eyes. Could you look and explain if it is intentional?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/isp.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
+I still see that it changes delivery system automatically to the DVB-T.
 
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index d268d55..3338176 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -767,7 +767,8 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 
- 		/*
- 		 * Configure CCDC pixel clock. host_priv != NULL so
--		 * this one is a sensor.
-+		 * this one is a sensor. We may also quit now since we
-+		 * wouldn't encounter more ISP subdevs anymore.
- 		 */
- 		if (subdev->host_priv) {
- 			struct v4l2_ext_controls ctrls;
-@@ -791,6 +792,7 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
- 			}
- 
- 			isp_set_pixel_clock(isp, ctrl.value64);
-+			break;
- 		}
- 
- 		if (subdev == &isp->isp_ccdc.subdev) {
+
+That is the latest commit:
+
+commit 149709f5b8a4a8678401facb5c670119751f6087
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Fri Jan 13 11:46:36 2012 -0200
+
+     [media] dvb-core: preserve the delivery system at cache clear
+
+     The changeset 240ab508aa is incomplete, as the first thing that
+     happens at cache clear is to do a memset with 0 to the cache.
+
+     So, the delivery system needs to be explicitly preserved there.
+
+     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+
+And here is log:
+
+[crope@localhost code]$ ./tmp/v4l-utils/utils/dvb/dvb-fe-tool 
+--set-delsys=DVBC/ANNEX_A
+Device Sony CXD2820R (DVB-T/T2) (/dev/dvb/adapter0/frontend0) capabilities:
+	CAN_2G_MODULATION CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 
+CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO 
+CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_64 CAN_QAM_256 
+CAN_QAM_AUTO CAN_QPSK CAN_TRANSMISSION_MODE_AUTO
+DVB API Version 5.5, Current v5 delivery system: DVBT
+Supported delivery systems: [DVBT] DVBT2 DVBC/ANNEX_A
+Changing delivery system to: DVBC/ANNEX_A
+[crope@localhost code]$ scan ../fi-Oulu-c
+scanning ../fi-Oulu-c
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 330000000 6875000 0 4
+initial transponder 370000000 6875000 0 4
+initial transponder 362000000 6875000 0 4
+initial transponder 354000000 6875000 0 4
+initial transponder 346000000 6875000 0 4
+initial transponder 338000000 6875000 0 4
+initial transponder 322000000 6875000 0 4
+initial transponder 314000000 6875000 0 4
+initial transponder 378000000 6875000 0 4
+initial transponder 306000000 6875000 0 4
+initial transponder 298000000 6875000 0 4
+initial transponder 290000000 6875000 0 5
+initial transponder 274000000 6875000 0 5
+initial transponder 266000000 6875000 0 5
+initial transponder 258000000 6875000 0 5
+initial transponder 250000000 6875000 0 5
+initial transponder 242000000 6875000 0 5
+ >>> tune to: 330000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_128
+^CERROR: interrupted by SIGINT, dumping partial result...
+dumping lists (0 services)
+Done.
+[crope@localhost code]$ scan ../fi-Oulu-c
+scanning ../fi-Oulu-c
+using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+initial transponder 330000000 6875000 0 4
+initial transponder 370000000 6875000 0 4
+initial transponder 362000000 6875000 0 4
+initial transponder 354000000 6875000 0 4
+initial transponder 346000000 6875000 0 4
+initial transponder 338000000 6875000 0 4
+initial transponder 322000000 6875000 0 4
+initial transponder 314000000 6875000 0 4
+initial transponder 378000000 6875000 0 4
+initial transponder 306000000 6875000 0 4
+initial transponder 298000000 6875000 0 4
+initial transponder 290000000 6875000 0 5
+initial transponder 274000000 6875000 0 5
+initial transponder 266000000 6875000 0 5
+initial transponder 258000000 6875000 0 5
+initial transponder 250000000 6875000 0 5
+initial transponder 242000000 6875000 0 5
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+WARNING: frontend type (OFDM) is not compatible with requested tuning 
+type (QAM)
+ERROR: initial tuning failed
+dumping lists (0 services)
+Done.
+[crope@localhost code]$ ./tmp/v4l-utils/utils/dvb/dvb-fe-tool 
+--set-delsys=DVBC/ANNEX_A
+Device Sony CXD2820R (DVB-T/T2) (/dev/dvb/adapter0/frontend0) capabilities:
+	CAN_2G_MODULATION CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 
+CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO 
+CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_64 CAN_QAM_256 
+CAN_QAM_AUTO CAN_QPSK CAN_TRANSMISSION_MODE_AUTO
+DVB API Version 5.5, Current v5 delivery system: DVBT
+Supported delivery systems: [DVBT] DVBT2 DVBC/ANNEX_A
+Changing delivery system to: DVBC/ANNEX_A
+[crope@localhost code]$
+
+
+regards
+Antti
+
 -- 
-1.7.2.5
-
+http://palosaari.fi/
