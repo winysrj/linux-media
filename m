@@ -1,94 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35709 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750923Ab2AWRQe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 12:16:34 -0500
-Message-ID: <4F1D95E7.50709@redhat.com>
-Date: Mon, 23 Jan 2012 15:16:23 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55559 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751546Ab2AOSB0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 13:01:26 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Aurel <aurel@gmx.de>
+Subject: Re: White Balance Temperature
+Date: Sun, 15 Jan 2012 19:01:30 +0100
+Cc: linux-media@vger.kernel.org
+References: <loom.20120115T110626-849@post.gmane.org>
+In-Reply-To: <loom.20120115T110626-849@post.gmane.org>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: DVBv5 test report
-References: <4F17422E.1030408@iki.fi> <4F17FFA3.4040103@redhat.com> <4F18053D.1050404@iki.fi> <4F181B19.4060300@redhat.com> <4F1D898A.8020802@iki.fi>
-In-Reply-To: <4F1D898A.8020802@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201151901.31380.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 23-01-2012 14:23, Antti Palosaari escreveu:
-> On 01/19/2012 03:31 PM, Mauro Carvalho Chehab wrote:
->> [PATCH] dvb-usb: Don't abort stop on -EAGAIN/-EINTR
->>
->> Note: this patch is not complete. if the DVB demux device is opened on
->> block mode, it should instead be returning -EAGAIN.
->>
->> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->>
->> diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
->> index ddf282f..215ce75 100644
->> --- a/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
->> +++ b/drivers/media/dvb/dvb-usb/dvb-usb-dvb.c
->> @@ -30,7 +30,9 @@ static int dvb_usb_ctrl_feed(struct dvb_demux_feed *dvbdmxfeed, int onoff)
->>           usb_urb_kill(&adap->fe_adap[adap->active_fe].stream);
->>
->>           if (adap->props.fe[adap->active_fe].streaming_ctrl != NULL) {
->> -            ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
->> +            do {
->> +                ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
->> +            } while ((ret == -EAGAIN) || (ret == -EINTR));
->>               if (ret<  0) {
->>                   err("error while stopping stream.");
->>                   return ret;
->>
+Hi Aurel,
+
+On Sunday 15 January 2012 11:16:30 Aurel wrote:
+> Hi there
 > 
-> That fixes it. But it loops do {...} while around 100 times every I stop zap. Over 100 times is rather much...
-
-Yes, this sounds too much. 
-
-The issue here is caused by the usage of mutex_lock_interruptible() inside the
-streaming_ctrl() callbacks, when the stream should stop.
-
-The new wait_queue wakeup inside the code made the issue more visible, but it
-could still happen without it, as a break could be hit during stream_ctl()
-stop call anyway.
-
-There are two possible fixes for it:
-
-1) The above solution.
-
-Eventually, a schedule() could be added there:
-            do {
-                ret = adap->props.fe[adap->active_fe].streaming_ctrl(adap, 0);
-		if (ret == -EINTR)
-			shedule();
-            } while (ret == -EINTR);
-
-2)
-
-Don't use mutex_lock_interruptible inside the driver's streaming_ctrl, 
-if the second parameter is 0 (stop).
-
-
-IMHO, (1) is cleaner, due to a few reasons:
-
-	- inside the drivers, the code will be symmetrical: it will call the same function for
-both onoff = 1 and onoff = 0.
-
-	- The patch is on just one place;
-
-	- with (2), extra care is needed when merging patches, as regressions and
-broken drivers could pass unnoticed.
-
+> my "Live! Cam Socialize HD VF0610", Device ID: 041e:4080, Driver: uvcvideo
+> is running perfectly on Fedora 16 Linux, except one thing:
+> When I try to switch on "White Balance Temperature, Auto" or just try to
+> change "White Balance Temperature" slider I get a failure message and it
+> won't work. All other controls, like contrast, gamma, etc. are working.
+> "v4l2-ctl -d 1 --set-ctrl=white_balance_temperature_auto=1" produces an
+> error message:
+> "VIDIOC_S_CTRL: failed: Input/output error
+> white_balance_temperature_auto: Input/output error"
 > 
-> And I think -EINTR is the only code to look, -EAGAIN is maybe for I2C and can be switched to native -EINTR also.
+> As soon as I boot Windows (inside Linux out of a Virtual Box), start the
+> camera there and go back to Linux, I am able to adjust and switch on the
+> White Balance things in Linux.
+> "v4l2-ctl -d 1 --set-ctrl=white_balance_temperature_auto=1" working fine
+> after running the camera in Windows.
+> 
+> Everytime I switch off my computer or disconnect the camera, I have to run
+> the camera in Windows again, bevor I can adjust White Balance in Linux.
+> 
+> What can I do to get White Balance controls working in Linux, without
+> having to run the camera in Windows every time?
+> Is there a special command I have to send to the camera for initializing or
+> so?
 
-Drivers need to be checked, if only -EINTR is added there, as drivers may
-be doing things like:
+Not that I know of. If you use the stock UVC driver in Windows, without having 
+installed a custom driver for your device, that's quite unlikely.
 
-	if (mutex_lock_interruptible(...))
-		return -EAGAIN;
+Could you dump the value of all controls in Linux before and after booting 
+Windows ?
 
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
