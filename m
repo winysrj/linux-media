@@ -1,90 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:62016 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754422Ab2ARBpB convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 20:45:01 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "sandeep patil" <psandeep.s@gmail.com>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jonathan Corbet" <corbet@lwn.net>, "Mel Gorman" <mel@csn.ul.ie>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 04/11] mm: page_alloc: introduce
- alloc_contig_range()
-References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
- <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
- <CA+K6fF6A1kPUW-2Mw5+W_QaTuLfU0_m0aMYRLOg98mFKwZOhtQ@mail.gmail.com>
- <op.v781mqwl3l0zgt@mpn-glaptop>
- <CA+K6fF64hjVBjx6NPspQSud2hkJQWzeXkceLAChPrO-k7eCF+g@mail.gmail.com>
-Date: Wed, 18 Jan 2012 02:44:57 +0100
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v79a47ve3l0zgt@mpn-glaptop>
-In-Reply-To: <CA+K6fF64hjVBjx6NPspQSud2hkJQWzeXkceLAChPrO-k7eCF+g@mail.gmail.com>
+Received: from lo.gmane.org ([80.91.229.12]:37554 "EHLO lo.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752022Ab2AOU0N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 15:26:13 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1RmWea-0003cj-2Y
+	for linux-media@vger.kernel.org; Sun, 15 Jan 2012 21:26:12 +0100
+Received: from p54990898.dip0.t-ipconnect.de ([84.153.8.152])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 21:26:12 +0100
+Received: from aurel by p54990898.dip0.t-ipconnect.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 21:26:12 +0100
+To: linux-media@vger.kernel.org
+From: Aurel <aurel@gmx.de>
+Subject: Re: White Balance Temperature
+Date: Sun, 15 Jan 2012 20:25:53 +0000 (UTC)
+Message-ID: <loom.20120115T210838-546@post.gmane.org>
+References: <loom.20120115T110626-849@post.gmane.org> <201201151901.31380.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> My understanding of that situation is that the page is on pcp list in which
->> cases it's page_private is not updated.  Draining and the first patch in
->> the series (and also the commit I've pointed to above) are designed to fix
->> that but I'm unsure why they don't work all the time.
+Laurent Pinchart <laurent.pinchart <at> ideasonboard.com> writes:
 
-On Wed, 18 Jan 2012 01:46:37 +0100, sandeep patil <psandeep.s@gmail.com> wrote:
-> Will verify this if the page is found on the pcp list as well .
+> 
+> Hi Aurel,
+> 
+> On Sunday 15 January 2012 11:16:30 Aurel wrote:
+> > Hi there
+> > 
+> > my "Live! Cam Socialize HD VF0610", Device ID: 041e:4080, Driver: uvcvideo
+> > is running perfectly on Fedora 16 Linux, except one thing:
+> > When I try to switch on "White Balance Temperature, Auto" or just try to
+> > change "White Balance Temperature" slider I get a failure message and it
+> > won't work. All other controls, like contrast, gamma, etc. are working.
+> > "v4l2-ctl -d 1 --set-ctrl=white_balance_temperature_auto=1" produces an
+> > error message:
+> > "VIDIOC_S_CTRL: failed: Input/output error
+> > white_balance_temperature_auto: Input/output error"
+> > 
+> > As soon as I boot Windows (inside Linux out of a Virtual Box), start the
+> > camera there and go back to Linux, I am able to adjust and switch on the
+> > White Balance things in Linux.
+> > "v4l2-ctl -d 1 --set-ctrl=white_balance_temperature_auto=1" working fine
+> > after running the camera in Windows.
+> > 
+> > Everytime I switch off my computer or disconnect the camera, I have to run
+> > the camera in Windows again, bevor I can adjust White Balance in Linux.
+> > 
+> > What can I do to get White Balance controls working in Linux, without
+> > having to run the camera in Windows every time?
+> > Is there a special command I have to send to the camera for initializing or
+> > so?
+> 
+> Not that I know of. If you use the stock UVC driver in Windows, without having 
+> installed a custom driver for your device, that's quite unlikely.
+> 
+> Could you dump the value of all controls in Linux before and after booting 
+> Windows ?
+> 
+Many thanks for your quick reply Laurent!
 
-I was wondering in general if “!PageBuddy(page) && !page_count(page)” means
-page is on PCP.  From what I've seen in page_isolate.c it seems to be the case.
+Here are the values before...
+[aurel@DualCore ~]$ v4l2-ctl -d 1 -L
+                     brightness (int)    : min=-128 max=127 step=1 default=0
+value=0
+                       contrast (int)    : min=64 max=255 step=1 default=128
+value=128
+                     saturation (int)    : min=0 max=255 step=1 default=128
+value=128
+                            hue (int)    : min=-128 max=127 step=1 default=0
+value=0
+ white_balance_temperature_auto (bool)   : default=1 value=0
+                          gamma (int)    : min=72 max=500 step=1 default=100
+value=128
+                           gain (int)    : min=0 max=2 step=1 default=0 value=0
+           power_line_frequency (menu)   : min=0 max=2 default=2 value=1
+                                0: Disabled
+                                1: 50 Hz
+                                2: 60 Hz
+      white_balance_temperature (int)    : min=2800 max=6500 step=1
+ default=4600 value=4600
+                      sharpness (int)    : min=0 max=100 step=1 default=0
+value=0
+         backlight_compensation (int)    : min=0 max=4 step=1 default=1 value=1
+                               
+                  exposure_auto (menu)   : min=0 max=3 default=1 value=3
+                                1: Manual Mode
+                                3: Aperture Priority Mode
+              exposure_absolute (int)    : min=2 max=20000 step=1 default=156
+value=16777372
+[aurel@DualCore ~]$
+...and after Windows...
+[aurel@DualCore ~]$ v4l2-ctl -d 1 -L
+                     brightness (int)    : min=-128 max=127 step=1 default=0
+value=0
+                       contrast (int)    : min=64 max=255 step=1 default=128
+value=128
+                     saturation (int)    : min=0 max=255 step=1 default=128
+value=137
+                            hue (int)    : min=-128 max=127 step=1 default=0
+value=0
+ white_balance_temperature_auto (bool)   : default=1 value=0
+                          gamma (int)    : min=72 max=500 step=1 default=100
+value=100
+                           gain (int)    : min=0 max=2 step=1 default=0 value=0
+           power_line_frequency (menu)   : min=0 max=2 default=2 value=1
+                                0: Disabled
+                                1: 50 Hz
+                                2: 60 Hz
+      white_balance_temperature (int)    : min=2800 max=6500 step=1
+default=4600 value=4600
+                      sharpness (int)    : min=0 max=100 step=1 default=0
+value=0
+         backlight_compensation (int)    : min=0 max=4 step=1 default=1 value=1
+                  exposure_auto (menu)   : min=0 max=3 default=1 value=3
+                                1: Manual Mode
+                                3: Aperture Priority Mode
+              exposure_absolute (int)    : min=2 max=20000 step=1 default=156
+value=16777372
+[aurel@DualCore ~]$ 
+...not so much difference. 
 
->>> I've also had a test case where it failed because (page_count() != 0)
+And may be I didn't tell right before: I did install the original Live! Central
+3 software by Creative in Windows. All I do is just start it and switch off
+again. 
+The interesting thing here is the "exposure_absolute" value. Much too high, but
+can also be changed before Windows.
 
-> With this, when it failed the page_count() returned a value of 2.  I am not
-> sure why, but I will try and see If I can reproduce this.
+Regards
+Aurel
 
-If I'm not mistaken, page_count() != 0 means the page is allocated.  I can see
-the following scenarios which can lead to page being allocated in when
-test_pages_isolated() is called:
 
-1. The page failed to migrate.  In this case however, the code would abort earlier.
 
-2. The page was migrated but then allocated.  This is not possible since
-    migrated pages are freed which puts the page on MIGRATE_ISOLATE freelist which
-    guarantees that the page will not be migrated.
 
-3. The page was removed from PCP list but with migratetype == MIGRATE_CMA.  This
-    is something the first patch in the series as well as the commit I've mentioned tries
-    to address so hopefully it won't be an issue any more.
-
-4. The page was allocated from PCP list.  This may happen because draining of PCP
-    list happens after IRQs are enabled in set_migratetype_isolate().  I don't have
-    a solution for that just yet.  One is to alter update_pcp_isolate_block() to
-    remove page from the PCP list.  I haven't looked at specifics of how to implement
-    this just yet.
-
->> Moving the check outside of __alloc_contig_migrate_range() after outer_start
->> is calculated in alloc_contig_range() could help.
->
-> I was going to suggest that, moving the check until after outer_start
-> is calculated will definitely help IMO. I am sure I've seen a case where
->
->   page_count(page) = page->private = 0 and PageBuddy(page) was false.
-
-Yep, I've pushed new content to my branch (git://github.com/mina86/linux-2.6.git cma)
-and will try to get Marek to test it some time soon (I'm currently swamped with
-non-Linux related work myself).
-
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
