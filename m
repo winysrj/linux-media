@@ -1,233 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25027 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:35524 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756672Ab2AJUfl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 15:35:41 -0500
-Message-ID: <4F0CA115.6050605@redhat.com>
-Date: Tue, 10 Jan 2012 18:35:33 -0200
+	id S1751407Ab2APAQm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 19:16:42 -0500
+Message-ID: <4F136C5E.6020806@redhat.com>
+Date: Sun, 15 Jan 2012 22:16:30 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Mihai Dobrescu <msdobrescu@gmail.com>
-CC: Fredrik Lingvall <fredrik.lingvall@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Hauppauge HVR-930C problems
-References: <CALJK-QhGrjC9K8CasrUJ-aisZh8U_4-O3uh_-dq6cNBWUx_4WA@mail.gmail.com> <4EE9AA21.1060101@gmail.com> <CALJK-QjxDpC8Y_gPXeAJaT2si_pRREiuTW=T8CWSTxGprRhfkg@mail.gmail.com> <4EEAFF47.5040003@gmail.com> <CALJK-Qhpk7NtSezrft_6+4FZ7Y35k=41xrc6ebxf2DzEH6KCWw@mail.gmail.com> <4EECB2C2.8050701@gmail.com> <4EECE392.5080000@gmail.com> <CALJK-QjChFbX7NH0qNhvaz=Hp8JfKENJMsLOsETiYO9ZyV_BOg@mail.gmail.com> <4EEDB060.7070708@gmail.com> <4EF747C7.10001@gmail.com> <4F0C4E59.6050503@gmail.com> <CALJK-QiZS1BOzgZz_r1J9rKCHJ0tSgPxAin8g8f8wg3=W76rGA@mail.gmail.com> <4F0C9480.1090706@redhat.com> <CALJK-QgsziJ-gmhN5k+pthT93RhuJ0NLe5LJ_rxo91qQP0nHwg@mail.gmail.com>
-In-Reply-To: <CALJK-QgsziJ-gmhN5k+pthT93RhuJ0NLe5LJ_rxo91qQP0nHwg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
+References: <4F08385E.7050602@redhat.com> <4F0CAF53.3090802@iki.fi> <4F0CB512.7010501@redhat.com> <4F131CD8.2060602@iki.fi> <4F13312B.8060005@iki.fi> <4F13404D.2020001@redhat.com> <4F13495E.8030106@iki.fi>
+In-Reply-To: <4F13495E.8030106@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10-01-2012 18:23, Mihai Dobrescu wrote:
-> I can't find dvb-fe-util tool.
+Em 15-01-2012 19:47, Antti Palosaari escreveu:
+> On 01/15/2012 11:08 PM, Mauro Carvalho Chehab wrote:
+>> There was a bug at the error code handling on dvb-fe-tool: basically, if it can't open
+>> a device, it were using a NULL pointer. It was likely fixed by this commit:
+>>
+>> http://git.linuxtv.org/v4l-utils.git/commit/1f669eed5433d17df4d8fb1fa43d2886f99d3991
+> 
+> That bug was fixed as I tested.
+> 
+> But could you tell why dvb-fe-tool --set-delsys=DVBC/ANNEX_A calls get_frontent() ?
 
-http://git.linuxtv.org/v4l-utils.git/blob/ad284d9ef6600e091515b0abd7cec64736097265:/utils/dvb/dvb-fe-tool.c
+That's what happens here, at the application level:
+
+$ strace dvb-fe-tool -d DVBC/ANNEX_A
+
+open("/dev/dvb/adapter0/frontend0", O_RDWR) = 3
+ioctl(3, FE_GET_INFO, 0xb070c4)         = 0
+fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 2), ...}) = 0
+mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f37922be000
+write(1, "Device DRXK DVB-C DVB-T (/dev/dv"..., 68Device DRXK DVB-C DVB-T (/dev/dvb/adapter0/frontend0) capabilities:
+) = 68
+write(1, "\tCAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC"..., 245	CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_32 CAN_QAM_64 CAN_QAM_128 CAN_QAM_256 CAN_RECOVER CAN_TRANSMISSION_MODE_AUTO 
+) = 245
+ioctl(3, FE_GET_PROPERTY, 0x7fff326ce310) = 0
+write(1, "DVB API Version 5.5, Current v5 "..., 54DVB API Version 5.5, Current v5 delivery system: DVBT
+) = 54
+ioctl(3, FE_GET_PROPERTY, 0x7fff326ce310) = 0
+write(1, "Supported delivery systems: DVBC"..., 62Supported delivery systems: DVBC/ANNEX_A DVBC/ANNEX_C [DVBT] 
+) = 62
+write(1, "Changing delivery system to: DVB"..., 42Changing delivery system to: DVBC/ANNEX_A
+) = 42
+ioctl(3, FE_SET_PROPERTY, 0x7fff326ce340) = 0
+close(3)                                = 0
+exit_group(0)                           = ?
+
+
+The first FE_GET_PROPERTY reads the DVB API version and the current delivery
+system:
+
+	parms->dvb_prop[0].cmd = DTV_API_VERSION;
+	parms->dvb_prop[1].cmd = DTV_DELIVERY_SYSTEM;
+
+	dtv_prop.num = 2;
+	dtv_prop.props = parms->dvb_prop;
+
+	/* Detect a DVBv3 device */
+	if (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
+		parms->dvb_prop[0].u.data = 0x300;
+		parms->dvb_prop[1].u.data = SYS_UNDEFINED;
+	}
+	parms->version = parms->dvb_prop[0].u.data;
+	parms->current_sys = parms->dvb_prop[1].u.data;
+
+The second FE_GET_PROPERTY is used only if DVB API v5.5 or upper is detected,
+and does:
+
+		parms->dvb_prop[0].cmd = DTV_ENUM_DELSYS;
+		parms->n_props = 1;
+		dtv_prop.num = 1;
+		dtv_prop.props = parms->dvb_prop;
+		if (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
+			perror("FE_GET_PROPERTY");
+			dvb_v5_free(parms);
+			close(fd);
+			return NULL;
+		}
+
+Both were called inside dvb_fe_open().
+
+The FE_SET_PROPERTY changes the property inside the DVBv5 cache,
+at dvb_set_sys():
+
+		dvb_prop[0].cmd = DTV_DELIVERY_SYSTEM;
+		dvb_prop[0].u.data = sys;
+		prop.num = 1;
+		prop.props = dvb_prop;
+
+		if (ioctl(parms->fd, FE_SET_PROPERTY, &prop) == -1) {
+			perror("Set delivery system");
+			return errno;
+		}
+
+The FE_SET_PROPERTY doesn't call a DTV_TUNE, so it shouldn't be calling the
+set frontend methods inside the driver.
+
+So, from the userspace applications standpoint, I'm not seeing anything wrong.
+
+> That will cause this kind of calls in demod driver:
+> init()
+> get_frontend()
+> get_frontend()
+> sleep()
+> 
+> My guess is that it resolves current delivery system. But as demod is usually sleeping (not tuned) at that phase it does not know frontend settings asked, like modulation etc. In case of cxd2820r those are available after set_frontend() call. I think I will add check and return -EINVAL in that case.
+
+
+What seems to be happening at dvb-core/dvb_frontend.h is due to this code:
+
+if(cmd == FE_GET_PROPERTY) {
+...
+                /*
+                 * Fills the cache out struct with the cache contents, plus
+                 * the data retrieved from get_frontend.
+                 */
+                dtv_get_frontend(fe, NULL);
+                for (i = 0; i < tvps->num; i++) {
+                        err = dtv_property_process_get(fe, c, tvp + i, file);
+                        if (err < 0)
+                                goto out;
+                        (tvp + i)->result = err;
+                }
+
+E. g. even if the FE_GET_PROPERTY is only reading the DVB version and calling
+DTV_ENUM_DELSYS, it is calling the dtv_get_frontend() to retrieve more data.
+
+What it can be done is to do something like:
+
+static bool need_get_frontend()
+{
+...
+	for (i = 0; i < tvps->num; i++)
+...
+}
+
+		if (need_get_frontend(tvps))
+	                dtv_get_frontend(fe, NULL);
+                for (i = 0; i < tvps->num; i++) {
+                        err = dtv_property_process_get(fe, c, tvp + i, file);
+                        if (err < 0)
+                                goto out;
+                        (tvp + i)->result = err;
+                }
+
+And add some logic inside need_get_frontend() to return false if the
+FE_GET_PROPERTY only wants static info, like DTV_ENUM_DELSYS, DTV_VERSION
+and DTV_DELIVERY_SYSTEM.
 
 Regards,
-Mauro
-
-> 
-> On Tue, Jan 10, 2012 at 9:41 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> On 10-01-2012 17:30, Mihai Dobrescu wrote:
->>> Hello,
->>>
->>> Just compiled the latest again, but still no difference.
->>> kaffeine doesn't see any source in channels dialog, two devices are in
->>> 'Configure Television' dialog: DRXK DVB-C - device not connected - as
->>> Device 1 and DRXK DVB-C DVB-T as Device 2. Concerning the last one, no
->>> source is selected, as I am in Romania, which is not in the list
->>> scan_w finds nothing.
->>>
->>> What should I do next?
->>
->> Kaffeine doesn't work with MFE tuners (at least not the version I have).
->> It only sees one delivery system.
->>
->> If you're using the very latest version of the driver (the one at the
->> media-build tree), you can use the dvb-fe-util tool to change
->> the delivery system to DVB-C or to DVB-T.
->>
->> The tool is now part of the v4l-utils.
->>
->> You may also request a Kaffeine developer or to submit a patch for it,
->> in order to add support on it to detect the frontend supported
->> delivery systems and to change it dynamically.
->>
->>>
->>> Regards, Mike.
->>>
->>> On Tue, Jan 10, 2012 at 4:42 PM, Fredrik Lingvall
->>> <fredrik.lingvall@gmail.com> wrote:
->>>> On 12/25/11 16:56, Fredrik Lingvall wrote:
->>>>>
->>>>> On 12/18/11 10:20, Fredrik Lingvall wrote:
->>>>>>
->>>>>> On 12/17/11 20:53, Mihai Dobrescu wrote:
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>>
->>>>>>> Mihai,
->>>>>>>
->>>>>>> I got some success. I did this,
->>>>>>>
->>>>>>> # cd /usr/src (for example)
->>>>>>>
->>>>>>> # git clone git://linuxtv.org/media_build.git
->>>>>>>
->>>>>>> # emerge dev-util/patchutils
->>>>>>> # emerge Proc-ProcessTable
->>>>>>>
->>>>>>> # cd media_build
->>>>>>> # ./build
->>>>>>> # make install
->>>>>>>
->>>>>>> Which will install the latest driver on your running kernel (just in
->>>>>>> case
->>>>>>> make sure /usr/src/linux points to your running kernel sources). Then
->>>>>>> reboot.
->>>>>>>
->>>>>>> You should now see that (among other) modules have loaded:
->>>>>>>
->>>>>>> # lsmod
->>>>>>>
->>>>>>> <snip>
->>>>>>>
->>>>>>> em28xx                 93528  1 em28xx_dvb
->>>>>>> v4l2_common             5254  1 em28xx
->>>>>>> videobuf_vmalloc        4167  1 em28xx
->>>>>>> videobuf_core          15151  2 em28xx,videobuf_vmalloc
->>>>>>>
->>>>>>> Then try w_scan and dvbscan etc. I got mythtv to scan too now. There
->>>>>>> were
->>>>>>> some warnings and timeouts and I'm not sure if this is normal or not.
->>>>>>>
->>>>>>> You can also do a dmesg -c while scanning to monitor the changes en the
->>>>>>> kernel log.
->>>>>>>
->>>>>>> Regards,
->>>>>>>
->>>>>>> /Fredrik
->>>>>>>
->>>>>>>
->>>>>>> In my case I have:
->>>>>>>
->>>>>>> lsmod |grep em2
->>>>>>> em28xx_dvb             12608  0
->>>>>>> dvb_core               76187  1 em28xx_dvb
->>>>>>> em28xx                 82436  1 em28xx_dvb
->>>>>>> v4l2_common             5087  1 em28xx
->>>>>>> videodev               70123  2 em28xx,v4l2_common
->>>>>>> videobuf_vmalloc        3783  1 em28xx
->>>>>>> videobuf_core          12991  2 em28xx,videobuf_vmalloc
->>>>>>> rc_core                11695  11
->>>>>>>
->>>>>>> rc_hauppauge,ir_lirc_codec,ir_mce_kbd_decoder,ir_sanyo_decoder,ir_sony_decoder,ir_jvc_decoder,ir_rc6_decoder,ir_rc5_decoder,em28xx,ir_nec_decoder
->>>>>>> tveeprom               12441  1 em28xx
->>>>>>> i2c_core               14232  9
->>>>>>>
->>>>>>> xc5000,drxk,em28xx_dvb,em28xx,v4l2_common,videodev,tveeprom,nvidia,i2c_i801
->>>>>>>
->>>>>>> yet, w_scan founds nothing.
->>>>>>
->>>>>>
->>>>>> I was able to scan using the "media_build" install method described above
->>>>>> but when trying to watch a free channel the image and sound was stuttering
->>>>>> severly. I have tried both MythTV and mplayer with similar results.
->>>>>>
->>>>>> I created the channel list for mplayer with:
->>>>>>
->>>>>> lintv ~ # dvbscan -x0 -fc /usr/share/dvb/dvb-c/no-Oslo-Get -o zap >
->>>>>> .mplayer/channels.conf
->>>>>>
->>>>>> And, for example,  I get this output from mplayer plus a very (blocky)
->>>>>> stuttering image and sound:
->>>>>>
->>>>>> lin-tv ~ # mplayer dvb://1@"TV8 Oslo" -ao jack
->>>>>>
->>>>>
->>>>> I did some more tests with release snapshots 2011-12-13, 2011-12-21, and
->>>>> 2011-12-25, respectively. I did this by changing
->>>>>
->>>>> LATEST_TAR :=
->>>>> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2
->>>>> LATEST_TAR_MD5 :=
->>>>> http://linuxtv.org/downloads/drivers/linux-media-LATEST.tar.bz2.md5
->>>>>
->>>>> in linux/Makefile to the corresponding release.
->>>>>
->>>>> Results:
->>>>>
->>>>> * linux-media-2011-12-13.tar.bz2
->>>>>
->>>>> The ./build script builds the drivers cleanly, scanning works, but
->>>>>  watching video does not work correctly.
->>>>>
->>>>> * linux-media-2011-12-21.tar.bz2
->>>>>
->>>>> The ./build script fails at the as3645a.c file (on this machine but I can
->>>>> build it on two other machines using the same kernel and kernel
->>>>> 2.6.39-gentoo-r3, respectively). I can build it with make menuconfig etc
->>>>> (where I disabled stuff I don't need, eg. disabling [ ] Media Controller API
->>>>> (EXPERIMENTAL) ). The em28xx generate a kernel core dump though [1].
->>>>>
->>>>> * linux-media-2011-12-25.tar.bz2
->>>>>
->>>>> Same problem as 2011-12-21.
->>>>>
->>>>> Regards,
->>>>>
->>>>> /Fredrik
->>>>>
->>>>
->>>> Here's some more test results.
->>>>
->>>> I have upgraded the kernel to 3.1.6-gentoo (where I enabled DVB when I build
->>>> the kernel). Both
->>>>
->>>> http://linuxtv.org/downloads/drivers/linux-media-2012-01-07.tar.bz2
->>>>
->>>> and
->>>>
->>>> http://linuxtv.org/downloads/drivers/linux-media-2012-01-08.tar.bz2
->>>>
->>>> now builds using the
->>>>
->>>> lin-tv ~ # cd /usr/src
->>>> lin-tv src # git clone git://linuxtv.org/media_build.git
->>>> lin-tv src # cd media_build
->>>> lin-tv media_build # ./build
->>>> lin-tv media_build # make install
->>>>
->>>> method. Scanning and (finally) watching video works but not flawlessly.
->>>>
->>>> I also suspect that I don't find all channels when I scan. I have scanned
->>>> using,
->>>>
->>>> * dvbscan -x 0 -fc /usr/share/dvb/dvb-c/no-Oslo-Get > .mplayer/channels.conf
->>>> * Kaffeine  (1.2.2)
->>>> * MythTV (0.25_pre20120103)
->>>>
->>>> respectively. Both kaffeine and mythtv reports a very low signal level (0%)
->>>> and an SNR of only 1%. (kaffeine). I'm not sure if the driver reports this
->>>> correctly though.
->>>>
->>>> Whatching live TV works on some channels but not all. HD channels seems more
->>>> difficult than SD channels,  and I have not figured out why some channels
->>>> work and some don't. I get
->>>>
->>>> Signal 0% | S/N 2.6dB | BE 0 | (_L_S) Partial Lock
->>>>
->>>> and no video on many channels in mythtv.
->>>>
->>>> Regards,
->>>>
->>>> /Fredrik
->>>>
->>>>
->>>>
->>>>
->>>>
->>
-
+Mauro.
