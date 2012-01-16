@@ -1,52 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:23876 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752022Ab2AOUjP (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:55317 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755066Ab2APPem (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 15:39:15 -0500
-Date: Sun, 15 Jan 2012 21:39:13 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: linux-media@vger.kernel.org
-cc: trivial@kernel.org, linux-kernel@vger.kernel.org,
-	Oliver Endriss <o.endriss@gmx.de>,
-	Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Ralph Metzler <rjkm@metzlerbros.de>
-Subject: [PATCH] Remove pointless linux/version.h include from
- drivers/media/dvb/frontends/tda18271c2dd.c
-Message-ID: <alpine.LNX.2.00.1201152137261.13389@swampdragon.chaosbits.net>
+	Mon, 16 Jan 2012 10:34:42 -0500
+Received: by bkas6 with SMTP id s6so710582bka.19
+        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2012 07:34:40 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Mon, 16 Jan 2012 16:34:40 +0100
+Message-ID: <CAEN_-SDrXQBkhKeb4JxmqMxD+H5GdwAnTHGk1LuCGHs39RusSA@mail.gmail.com>
+Subject: cx25840: rewrite g_tuner for radio support and audio mode detection
+From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: multipart/mixed; boundary=0015175cd4d6f9c72804b6a6f329
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As pointed out by 'make versioncheck', there's no need for
-drivers/media/dvb/frontends/tda18271c2dd.c to
-#include <linux/version.h>, so this patch removes the include.
+--0015175cd4d6f9c72804b6a6f329
+Content-Type: text/plain; charset=ISO-8859-1
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- drivers/media/dvb/frontends/tda18271c2dd.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+Version 2, i moved reading from microcontroler register after is_cx2583x return.
 
-diff --git a/drivers/media/dvb/frontends/tda18271c2dd.c b/drivers/media/dvb/frontends/tda18271c2dd.c
-index 1b1bf20..fbd108e 100644
---- a/drivers/media/dvb/frontends/tda18271c2dd.c
-+++ b/drivers/media/dvb/frontends/tda18271c2dd.c
-@@ -29,7 +29,6 @@
- #include <linux/delay.h>
- #include <linux/firmware.h>
- #include <linux/i2c.h>
--#include <linux/version.h>
- #include <asm/div64.h>
- 
- #include "dvb_frontend.h"
--- 
-1.7.8.3
+--0015175cd4d6f9c72804b6a6f329
+Content-Type: text/x-patch; charset=US-ASCII; name="cx25840_g_tuner_rewrite.patch"
+Content-Disposition: attachment; filename="cx25840_g_tuner_rewrite.patch"
+Content-Transfer-Encoding: base64
+X-Attachment-Id: f_gxhnlbfl0
 
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
+b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
+IERlYyAyMDExIDAwOjE5OjM0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gY3gyNTg0MF9nX3R1bmVy
+IHNob3VsZCBzdXBwb3J0IGFsc28gcmFkaW8gbW9kZSBmb3IgZGV0ZWN0aW5nCiBjdXJyZW50IGF1
+ZGlvIG1vZGUsIGFuZCB3ZSBjYW4gdXNlIGN4MjU4NDAgcmVnaXN0ZXIgMHg4MDUgZm9yIEZNIHJh
+ZGlvIGxvY2ssCiBhbHNvIHJld29ya2VkIG1vZGUgZGV0ZWN0aW9uLgoKLS0tCmRpZmYgLU5hdXJw
+IGEvZHJpdmVycy9tZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4NDAtY29yZS5jIGIvZHJpdmVycy9t
+ZWRpYS92aWRlby9jeDI1ODQwL2N4MjU4NDAtY29yZS5jCi0tLSBhL2RyaXZlcnMvbWVkaWEvdmlk
+ZW8vY3gyNTg0MC9jeDI1ODQwLWNvcmUuYwkyMDEyLTAxLTE2IDE2OjE4OjA2LjE4MTU4MzAyNiAr
+MDEwMAorKysgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjU4NDAvY3gyNTg0MC1jb3JlLmMJMjAx
+Mi0wMS0xNiAxNjoyMzozOC42NjU1ODMwMjYgKzAxMDAKQEAgLTE1ODksMzcgKzE1ODksNjggQEAg
+c3RhdGljIGludCBjeDI1ODQwX2dfdHVuZXIoc3RydWN0IHY0bDJfcwogewogCXN0cnVjdCBjeDI1
+ODQwX3N0YXRlICpzdGF0ZSA9IHRvX3N0YXRlKHNkKTsKIAlzdHJ1Y3QgaTJjX2NsaWVudCAqY2xp
+ZW50ID0gdjRsMl9nZXRfc3ViZGV2ZGF0YShzZCk7Ci0JdTggdnByZXMgPSBjeDI1ODQwX3JlYWQo
+Y2xpZW50LCAweDQwZSkgJiAweDIwOworCXU4IHZwcmVzID0gMDsKIAl1OCBtb2RlOwotCWludCB2
+YWwgPSAwOworCWludCB2YWwgPSBWNEwyX1RVTkVSX1NVQl9NT05POwogCi0JaWYgKHN0YXRlLT5y
+YWRpbykKLQkJcmV0dXJuIDA7CisJaWYgKCFzdGF0ZS0+cmFkaW8pIHsKKwkJdnByZXMgPSBjeDI1
+ODQwX3JlYWQoY2xpZW50LCAweDQwZSkgJiAweDIwOworCQl2dC0+c2lnbmFsID0gdnByZXMgPyAw
+eGZmZmYgOiAweDA7CisJfQogCi0JdnQtPnNpZ25hbCA9IHZwcmVzID8gMHhmZmZmIDogMHgwOwog
+CWlmIChpc19jeDI1ODN4KHN0YXRlKSkKIAkJcmV0dXJuIDA7CiAKLQl2dC0+Y2FwYWJpbGl0eSB8
+PQotCQlWNEwyX1RVTkVSX0NBUF9TVEVSRU8gfCBWNEwyX1RVTkVSX0NBUF9MQU5HMSB8Ci0JCVY0
+TDJfVFVORVJfQ0FQX0xBTkcyIHwgVjRMMl9UVU5FUl9DQVBfU0FQOworCS8qIHN0ZXJlbyBmb3Ig
+YWxsIG1vZGVzLCBldmVuIHJhZGlvICovCisJdnQtPmNhcGFiaWxpdHkgfD0gVjRMMl9UVU5FUl9D
+QVBfU1RFUkVPOworCisJaWYgKCFzdGF0ZS0+cmFkaW8pIHsKKwkJdnQtPmNhcGFiaWxpdHkgfD0g
+VjRMMl9UVU5FUl9DQVBfTEFORzEgfAorCQkJVjRMMl9UVU5FUl9DQVBfTEFORzIgfCBWNEwyX1RV
+TkVSX0NBUF9TQVA7CisJfSBlbHNlIHsKKwkJLyogV29ya3Mgb25seSBmb3IgMHhmOSBBVURfTU9E
+RSAqLworCQltb2RlID0gY3gyNTg0MF9yZWFkKGNsaWVudCwgMHg4MDUpOworCQkvKiB1c2FibGUg
+bW9kZXMgZnJvbSBkYXRhc2hlZXQgMHgwMSAtIDB4MTEgKi8KKwkJdnQtPnNpZ25hbCA9ICgobW9k
+ZSA+PSAxKSAmJiAobW9kZSA8PSAweDExKSkgPyAweGZmZmYgOiAwOworCX0KIAogCW1vZGUgPSBj
+eDI1ODQwX3JlYWQoY2xpZW50LCAweDgwNCk7CiAKIAkvKiBnZXQgcnhzdWJjaGFucyBhbmQgYXVk
+bW9kZSAqLwotCWlmICgobW9kZSAmIDB4ZikgPT0gMSkKKwlzd2l0Y2ggKG1vZGUgJiAweGYpIHsK
+KwljYXNlIDA6CisJCXZ0LT5hdWRtb2RlID0gVjRMMl9UVU5FUl9NT0RFX01PTk87CisJCWJyZWFr
+OworCWNhc2UgMToKIAkJdmFsIHw9IFY0TDJfVFVORVJfU1VCX1NURVJFTzsKLQllbHNlCi0JCXZh
+bCB8PSBWNEwyX1RVTkVSX1NVQl9NT05POwotCi0JaWYgKG1vZGUgPT0gMiB8fCBtb2RlID09IDQp
+CisJCXZ0LT5hdWRtb2RlID0gVjRMMl9UVU5FUl9NT0RFX1NURVJFTzsKKwkJYnJlYWs7CisJY2Fz
+ZSAyOgorCWNhc2UgNDoKIAkJdmFsID0gVjRMMl9UVU5FUl9TVUJfTEFORzEgfCBWNEwyX1RVTkVS
+X1NVQl9MQU5HMjsKKwkJLyogY2FuJ3QgZGV0ZWN0IGV4YWN0IGF1ZGlvIG1vZGUgKi8KKwkJdnQt
+PmF1ZG1vZGUgPSBzdGF0ZS0+YXVkbW9kZTsKKwkJYnJlYWs7CisJZGVmYXVsdDoKKwkJLyogYXVk
+aW8gbW9kZSBpcyBmb3JjZWQgb3IgdW5rbm93biAqLworCQlzd2l0Y2ggKHN0YXRlLT5hdWRtb2Rl
+KSB7CisJCWNhc2UgVjRMMl9UVU5FUl9NT0RFX1NURVJFTzoKKwkJCXZhbCB8PSBWNEwyX1RVTkVS
+X1NVQl9TVEVSRU87CisJCQlicmVhazsKKwkJY2FzZSBWNEwyX1RVTkVSX01PREVfTEFORzE6CisJ
+CWNhc2UgVjRMMl9UVU5FUl9NT0RFX0xBTkcyOgorCQljYXNlIFY0TDJfVFVORVJfTU9ERV9MQU5H
+MV9MQU5HMjoKKwkJCXZhbCA9IFY0TDJfVFVORVJfU1VCX0xBTkcxIHwgVjRMMl9UVU5FUl9TVUJf
+TEFORzI7CisJCQlicmVhazsKKwkJfQorCQl2dC0+YXVkbW9kZSA9IHN0YXRlLT5hdWRtb2RlOwor
+CQlicmVhazsKKwl9CiAKIAlpZiAobW9kZSAmIDB4MTApCiAJCXZhbCB8PSBWNEwyX1RVTkVSX1NV
+Ql9TQVA7CiAKIAl2dC0+cnhzdWJjaGFucyA9IHZhbDsKLQl2dC0+YXVkbW9kZSA9IHN0YXRlLT5h
+dWRtb2RlOwogCXJldHVybiAwOwogfQogCi0tIAoxLjcuMi4zCgo=
+--0015175cd4d6f9c72804b6a6f329--
