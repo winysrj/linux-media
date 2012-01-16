@@ -1,180 +1,281 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:51526 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752404Ab2A3MO0 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58502 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753921Ab2APN5Q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 07:14:26 -0500
-Received: by werb13 with SMTP id b13so3366296wer.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2012 04:14:25 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v3 2/4] media i.MX27 camera: add start_stream and stop_stream callbacks.
-Date: Mon, 30 Jan 2012 13:14:11 +0100
-Message-Id: <1327925653-13310-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1327925653-13310-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1327925653-13310-1-git-send-email-javier.martin@vista-silicon.com>
+	Mon, 16 Jan 2012 08:57:16 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 08/23] v4l: Image source control class
+Date: Mon, 16 Jan 2012 14:57:22 +0100
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+References: <4F0DFE92.80102@iki.fi> <1326317220-15339-8-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1326317220-15339-8-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201161457.23258.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add "start_stream" and "stop_stream" callback in order to enable
-and disable the eMMa-PrP properly and save CPU usage avoiding
-IRQs when the device is not streaming. This also makes the driver
-return 0 as the sequence number of the first frame.
+Hi Sakari,
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- - Make start_streaming cleaner.
+Thanks for the patch.
 
----
- drivers/media/video/mx2_camera.c |  100 ++++++++++++++++++++++++++++---------
- 1 files changed, 75 insertions(+), 25 deletions(-)
+On Wednesday 11 January 2012 22:26:45 Sakari Ailus wrote:
+> Add image source control class. This control class is intended to contain
+> low level controls which deal with control of the image capture process ---
+> the A/D converter in image sensors, for example.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/DocBook/media/v4l/controls.xml       |  112
+> ++++++++++++++++++++ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       | 
+>   6 +
+>  drivers/media/video/v4l2-ctrls.c                   |   15 +++
+>  include/linux/videodev2.h                          |   11 ++
+>  4 files changed, 144 insertions(+), 0 deletions(-)
+> 
+> diff --git a/Documentation/DocBook/media/v4l/controls.xml
+> b/Documentation/DocBook/media/v4l/controls.xml index 3bc5ee8..467ace3
+> 100644
+> --- a/Documentation/DocBook/media/v4l/controls.xml
+> +++ b/Documentation/DocBook/media/v4l/controls.xml
+> @@ -3356,6 +3356,118 @@ interface and may change in the future.</para>
+>        </table>
+> 
+>      </section>
+> +
+> +    <section id="image-source-controls">
+> +      <title>Image Source Control Reference</title>
+> +
+> +      <note>
+> +	<title>Experimental</title>
+> +
+> +	<para>This is an <link
+> +	linkend="experimental">experimental</link> interface and may
+> +	change in the future.</para>
+> +      </note>
+> +
+> +      <para>
+> +	The Image Source control class is intended for low-level
+> +	control of image source devices such as image sensors. The
+> +	devices feature an analogue to digital converter and a bus
+> +	transmitter to transmit the image data out of the device.
+> +      </para>
+> +
+> +      <table pgwide="1" frame="none" id="image-source-control-id">
+> +      <title>Image Source Control IDs</title>
+> +
+> +      <tgroup cols="4">
+> +	<colspec colname="c1" colwidth="1*" />
+> +	<colspec colname="c2" colwidth="6*" />
+> +	<colspec colname="c3" colwidth="2*" />
+> +	<colspec colname="c4" colwidth="6*" />
+> +	<spanspec namest="c1" nameend="c2" spanname="id" />
+> +	<spanspec namest="c2" nameend="c4" spanname="descr" />
+> +	<thead>
+> +	  <row>
+> +	    <entry spanname="id" align="left">ID</entry>
+> +	    <entry align="left">Type</entry>
+> +	  </row><row rowsep="1"><entry spanname="descr"
+> align="left">Description</entry> +	  </row>
+> +	</thead>
+> +	<tbody valign="top">
+> +	  <row><entry></entry></row>
+> +	  <row>
+> +	    <entry
+> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry> +	 
+>   <entry>class</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry
+> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_VBLANK</constant></entry> +	
+>    <entry>integer</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="descr">Vertical blanking. The idle
+> +	    preriod after every frame during which no image data is
+> +	    produced. The unit of vertical blanking is a line. Every
+> +	    line has length of the image width plus horizontal
+> +	    blanking at the pixel clock specified by struct
+> +	    v4l2_mbus_framefmt <xref linkend="v4l2-mbus-framefmt"
+> +	    />.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry
+> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_HBLANK</constant></entry> +	
+>    <entry>integer</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="descr">Horizontal blanking. The idle
+> +	    preriod after every line of image data during which no
+> +	    image data is produced. The unit of horizontal blanking is
+> +	    pixels.</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry
+> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_LINK_FREQ</constant></entry>
+> +	    <entry>integer menu</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="descr">Image source's data bus frequency.
+> +	    Together with the media bus pixel code, bus type (clock
+> +	    cycles per sample), the data bus frequency defines the
+> +	    pixel clock. <xref linkend="v4l2-mbus-framefmt" /> The
+> +	    frame rate can be calculated from the pixel clock, image
+> +	    width and height and horizontal and vertical blanking. The
+> +	    frame rate control is performed by selecting the desired
+> +	    horizontal and vertical blanking. The unit of this control
+> +	    is Hz.
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index ae7cae6..35ab971 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -377,7 +377,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
- 
- 	pcdev->icd = icd;
--	pcdev->frame_count = 0;
-+	pcdev->frame_count = -1;
- 
- 	dev_info(icd->parent, "Camera driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -656,11 +656,79 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
-+static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
-+{
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-+	struct soc_camera_host *ici =
-+		to_soc_camera_host(icd->parent);
-+	struct mx2_camera_dev *pcdev = ici->priv;
-+	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+I think we're still missing an explanation of how those controls interact with 
+each other, and how they should be used by userspace.
+
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry
+> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN</constant></en
+> try> +	    <entry>integer</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="descr">Analogue gain is gain affecting
+> +	    all colour components in the pixel matrix. The gain
+> +	    operation is performed in the analogue domain before A/D
+> +	    conversion.
+> +	    </entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry
+> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_PIXEL_RATE</constant></entry
+> > +	    <entry>64-bit integer</entry>
+> +	  </row>
+> +	  <row>
+> +	    <entry spanname="descr">Pixel rate in the source pads of
+> +	    the subdev. This control is read-only and its unit is
+> +	    pixels / second.
+> +	    </entry>
+> +	  </row>
+> +	  <row><entry></entry></row>
+> +	</tbody>
+> +      </tgroup>
+> +      </table>
+> +
+> +    </section>
+> +
+>  </section>
+> 
+>    <!--
+> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml index
+> 5122ce8..250c1cf 100644
+> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+> @@ -257,6 +257,12 @@ These controls are described in <xref
+>  These controls are described in <xref
+>  		linkend="flash-controls" />.</entry>
+>  	  </row>
+> +	  <row>
+> +	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
+> +	    <entry>0x9d0000</entry> <entry>The class containing image
+> +	    source controls. These controls are described in <xref
+> +	    linkend="image-source-controls" />.</entry>
+> +	  </row>
+>  	</tbody>
+>        </tgroup>
+>      </table>
+> diff --git a/drivers/media/video/v4l2-ctrls.c
+> b/drivers/media/video/v4l2-ctrls.c index 605d4dd..51b4559 100644
+> --- a/drivers/media/video/v4l2-ctrls.c
+> +++ b/drivers/media/video/v4l2-ctrls.c
+> @@ -606,6 +606,13 @@ const char *v4l2_ctrl_get_name(u32 id)
+>  	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+>  	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
+> 
+> +	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image source controls";
+> +	case V4L2_CID_IMAGE_SOURCE_VBLANK:	return "Vertical blanking";
+> +	case V4L2_CID_IMAGE_SOURCE_HBLANK:	return "Horizontal blanking";
+> +	case V4L2_CID_IMAGE_SOURCE_LINK_FREQ:	return "Link frequency";
+> +	case V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN: return "Analogue gain";
+> +	case V4L2_CID_IMAGE_SOURCE_PIXEL_RATE:	return "Pixel rate";
+> +
+>  	default:
+>  		return NULL;
+>  	}
+> @@ -694,6 +701,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> v4l2_ctrl_type *type, case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
+>  		*type = V4L2_CTRL_TYPE_MENU;
+>  		break;
+> +	case V4L2_CID_IMAGE_SOURCE_LINK_FREQ:
+> +		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
+> +		break;
+>  	case V4L2_CID_RDS_TX_PS_NAME:
+>  	case V4L2_CID_RDS_TX_RADIO_TEXT:
+>  		*type = V4L2_CTRL_TYPE_STRING;
+> @@ -703,6 +713,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> v4l2_ctrl_type *type, case V4L2_CID_MPEG_CLASS:
+>  	case V4L2_CID_FM_TX_CLASS:
+>  	case V4L2_CID_FLASH_CLASS:
+> +	case V4L2_CID_IMAGE_SOURCE_CLASS:
+>  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+>  		/* You can neither read not write these */
+>  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+> @@ -723,6 +734,10 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
+> v4l2_ctrl_type *type, *type = V4L2_CTRL_TYPE_INTEGER;
+>  		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+>  		break;
+> +	case V4L2_CID_IMAGE_SOURCE_PIXEL_RATE:
+> +		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+> +		*type = V4L2_CTRL_TYPE_INTEGER64;
+> +		break;
+>  	default:
+>  		*type = V4L2_CTRL_TYPE_INTEGER;
+>  		break;
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 9633c69..c9d07c7 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1080,6 +1080,7 @@ struct v4l2_ext_controls {
+>  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+>  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+>  #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
+> +#define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009d0000	/* Image source flash
+> controls */
+> 
+>  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+>  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+> @@ -1690,6 +1691,16 @@ enum v4l2_flash_strobe_source {
+>  #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+>  #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
+> 
+> +/* Image source controls */
+> +#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE |
+> 0x900) +#define V4L2_CID_IMAGE_SOURCE_CLASS		
+(V4L2_CTRL_CLASS_IMAGE_SOURCE
+> | 1) +
+> +#define V4L2_CID_IMAGE_SOURCE_VBLANK		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE 
 +
-+	if (mx27_camera_emma(pcdev)) {
-+		unsigned long flags;
-+		if (count < 2)
-+			return -EINVAL;
-+
-+		spin_lock_irqsave(&pcdev->lock, flags);
-+		if (prp->cfg.channel == 1) {
-+			writel(PRP_CNTL_CH1EN |
-+				PRP_CNTL_CSIEN |
-+				prp->cfg.in_fmt |
-+				prp->cfg.out_fmt |
-+				PRP_CNTL_CH1_LEN |
-+				PRP_CNTL_CH1BYP |
-+				PRP_CNTL_CH1_TSKIP(0) |
-+				PRP_CNTL_IN_TSKIP(0),
-+				pcdev->base_emma + PRP_CNTL);
-+		} else {
-+			writel(PRP_CNTL_CH2EN |
-+				PRP_CNTL_CSIEN |
-+				prp->cfg.in_fmt |
-+				prp->cfg.out_fmt |
-+				PRP_CNTL_CH2_LEN |
-+				PRP_CNTL_CH2_TSKIP(0) |
-+				PRP_CNTL_IN_TSKIP(0),
-+				pcdev->base_emma + PRP_CNTL);
-+		}
-+		spin_unlock_irqrestore(&pcdev->lock, flags);
-+	}
-+
-+	return 0;
-+}
-+
-+static int mx2_stop_streaming(struct vb2_queue *q)
-+{
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-+	struct soc_camera_host *ici =
-+		to_soc_camera_host(icd->parent);
-+	struct mx2_camera_dev *pcdev = ici->priv;
-+	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-+	unsigned long flags;
-+	u32 cntl;
-+
-+	spin_lock_irqsave(&pcdev->lock, flags);
-+	if (mx27_camera_emma(pcdev)) {
-+		cntl = readl(pcdev->base_emma + PRP_CNTL);
-+		if (prp->cfg.channel == 1) {
-+			writel(cntl & ~PRP_CNTL_CH1EN,
-+			       pcdev->base_emma + PRP_CNTL);
-+		} else {
-+			writel(cntl & ~PRP_CNTL_CH2EN,
-+			       pcdev->base_emma + PRP_CNTL);
-+		}
-+	}
-+	spin_unlock_irqrestore(&pcdev->lock, flags);
-+
-+	return 0;
-+}
-+
- static struct vb2_ops mx2_videobuf_ops = {
--	.queue_setup	= mx2_videobuf_setup,
--	.buf_prepare	= mx2_videobuf_prepare,
--	.buf_queue	= mx2_videobuf_queue,
--	.buf_cleanup	= mx2_videobuf_release,
-+	.queue_setup	 = mx2_videobuf_setup,
-+	.buf_prepare	 = mx2_videobuf_prepare,
-+	.buf_queue	 = mx2_videobuf_queue,
-+	.buf_cleanup	 = mx2_videobuf_release,
-+	.start_streaming = mx2_start_streaming,
-+	.stop_streaming	 = mx2_stop_streaming,
- };
- 
- static int mx2_camera_init_videobuf(struct vb2_queue *q,
-@@ -718,16 +786,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 		writel(pcdev->discard_buffer_dma,
- 				pcdev->base_emma + PRP_DEST_RGB2_PTR);
- 
--		writel(PRP_CNTL_CH1EN |
--				PRP_CNTL_CSIEN |
--				prp->cfg.in_fmt |
--				prp->cfg.out_fmt |
--				PRP_CNTL_CH1_LEN |
--				PRP_CNTL_CH1BYP |
--				PRP_CNTL_CH1_TSKIP(0) |
--				PRP_CNTL_IN_TSKIP(0),
--				pcdev->base_emma + PRP_CNTL);
--
- 		writel((icd->user_width << 16) | icd->user_height,
- 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 		writel((icd->user_width << 16) | icd->user_height,
-@@ -755,15 +813,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 				pcdev->base_emma + PRP_SOURCE_CR_PTR);
- 		}
- 
--		writel(PRP_CNTL_CH2EN |
--			PRP_CNTL_CSIEN |
--			prp->cfg.in_fmt |
--			prp->cfg.out_fmt |
--			PRP_CNTL_CH2_LEN |
--			PRP_CNTL_CH2_TSKIP(0) |
--			PRP_CNTL_IN_TSKIP(0),
--			pcdev->base_emma + PRP_CNTL);
--
- 		writel((icd->user_width << 16) | icd->user_height,
- 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 
-@@ -1169,11 +1218,12 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 
- 		list_del_init(&buf->queue);
- 		do_gettimeofday(&vb->v4l2_buf.timestamp);
--		pcdev->frame_count++;
- 		vb->v4l2_buf.sequence = pcdev->frame_count;
- 		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
- 	}
- 
-+	pcdev->frame_count++;
-+
- 	if (list_empty(&pcdev->capture)) {
- 		if (prp->cfg.channel == 1) {
- 			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
+> 1) +#define
+> V4L2_CID_IMAGE_SOURCE_HBLANK		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
+> +#define
+> V4L2_CID_IMAGE_SOURCE_LINK_FREQ		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
+> +#define
+> V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN	(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 4)
+> +#define
+> V4L2_CID_IMAGE_SOURCE_PIXEL_RATE	(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 5) +
+>  /*
+>   *	T U N I N G
+>   */
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
