@@ -1,82 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweb5.versatel.de ([82.140.32.141]:34312 "EHLO
-	mxweb5.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756535Ab2AES7M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 13:59:12 -0500
-Received: from cinnamon-sage.de (i577A35D2.versanet.de [87.122.53.210])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q05IcVKe015172
-	for <linux-media@vger.kernel.org>; Thu, 5 Jan 2012 19:38:31 +0100
-Received: from 192.168.23.2:50127 by cinnamon-sage.de for <dheitmueller@kernellabs.com>,<mchehab@redhat.com>,<linux-media@vger.kernel.org> ; 05.01.2012 19:38:31
-Message-ID: <4F05EE24.50209@flensrocker.de>
-Date: Thu, 05 Jan 2012 19:38:28 +0100
-From: Lars Hanisch <dvb@flensrocker.de>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:34023 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753420Ab2APH5i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jan 2012 02:57:38 -0500
+Received: by qadc10 with SMTP id c10so1137qad.19
+        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 23:57:37 -0800 (PST)
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] Fix dvb-core set_delivery_system and port drxk to
- one frontend
-References: <1325777872-14696-1-git-send-email-mchehab@redhat.com> <CAGoCfizKsxALXAMbCO=XGkODkXy2sBJ1NzbhBQ2TAkurnG-maQ@mail.gmail.com>
-In-Reply-To: <CAGoCfizKsxALXAMbCO=XGkODkXy2sBJ1NzbhBQ2TAkurnG-maQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+Date: Mon, 16 Jan 2012 16:57:37 +0900
+Message-ID: <CAH9JG2Uz3n+4ca7KvabO0pX_Mfbqp+YO7GpWR6CRWOwxcF7zxg@mail.gmail.com>
+Subject: Re: [RFCv1 0/4] v4l: DMA buffer sharing support as a user
+From: Kyungmin Park <kmpark@infradead.org>
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
+	rob@ti.com, daniel@ffwll.ch, t.stanislaws@samsung.com,
+	patches <patches@linaro.org>,
+	=?UTF-8?B?64yA7J246riw?= <inki.dae@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-  First: I'm no driver but an application developer.
+Since dma_buf is merged at v3.3-rc, I hope to merge this one also at
+this merge window.
+Now it's tested at OMAP. also it's used at exynos but not yet fully tested.
 
-Am 05.01.2012 17:40, schrieb Devin Heitmueller:
-> On Thu, Jan 5, 2012 at 10:37 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com>  wrote:
->> With all these series applied, it is now possible to use frontend 0
->> for all delivery systems. As the current tools don't support changing
->> the delivery system, the dvb-fe-tool (on my experimental tree[1]) can now
->> be used to change between them:
+Thank you,
+Kyungmin Park
+
+On 1/5/12, Sumit Semwal <sumit.semwal@ti.com> wrote:
+> Hello Everyone,
 >
-> Hi Mauro,
+> A very happy new year 2012! :)
 >
-> While from a functional standpoint I think this is a good change (and
-> we probably should have done it this way all along), is there not
-> concern that this could be interpreted by regular users as a
-> regression?  Right now they get two frontends, and they can use all
-> their existing tools.  We're moving to a model where if users upgraded
-> their kernel they would now require some new userland tool to do
-> something that the kernel was allowing them to do previously.
+> This patchset is an RFC for the way videobuf2 can be adapted to add support
+> for
+> DMA buffer sharing framework[1].
 >
-> Sure, it's not "ABI breakage" in the classic sense but the net effect
-> is the same - stuff that used to work stops working and now they need
-> new tools or to recompile their existing tools to include new
-> functionality (which as you mentioned, none of those tools have
-> today).
-
-  Since now there isn't any consistent behaviour of hybrid multifrontend devices. Some create multiple frontends but 
-only one demux/dvr (like drx-k), others create all devices for every delivery system (HVR 4000). But they all could only 
-be opened mutually exclusive. In case of vdr (my favourite app) you have to trick with udev, symlinks, "remove unwanted 
-frontends" etc. to get the devices in a shape so the application can use it. I don't know how mythtv is handling such 
-devices, but I think there will be something like driver-dependend code in the one or other way.
-
-  The spec isn't really meaningful for hybrid devices. Maybe we should start there and claim something the driver 
-developer can follow.
-
-> Perhaps you would consider some sort of module option that would let
-> users fall back to the old behavior?
-
-  That would be fine but better would be a module option that will initialize frontend0 to the "connected" delivery 
-system. In case of DVB-C/-T you don't switch frequently from one to the other. You would need extra hardware like a 
-splitter which switches inputs if there are e.g. 5V for an active antenna (which means: switch to the dvb-t-input). Is 
-there any DVB-T card which can supply such voltage? And is it controllable via an ioctl (like LNB power supply in DVB-S)?
-
-  Anyway, I think, if there's finally a solution so all drivers behave the same, the tools and applications will handle 
-this new model in the near future.
-
-  Please do something... :-)
-
-Regards,
-Lars.
-
+> The original patch-set for the idea, and PoC of buffer sharing was by
+> Tomasz Stanislawski <t.stanislaws@samsung.com>, who demonstrated buffer
+> sharing
+> between two v4l2 devices[2]. This RFC is needed to adapt these patches to
+> the
+> changes that have happened in the DMA buffer sharing framework over past few
+> months.
 >
-> Devin
+> To begin with, I have tried to adapt only the dma-contig allocator, and only
+> as
+> a user of dma-buf buffer. I am currently working on the v4l2-as-an-exporter
+> changes, and will share as soon as I get it in some shape.
+>
+> As with the PoC [2], the handle for sharing buffers is a file-descriptor
+> (fd).
+> The usage documentation is also a part of [1].
+>
+> So, the current RFC has the following limitations:
+> - Only buffer sharing as a buffer user,
+> - doesn't handle cases where even for a contiguous buffer, the sg_table can
+> have
+>    more than one scatterlist entry.
+>
+>
+> Thanks and best regards,
+> ~Sumit.
+>
+> [1]: dma-buf patchset at: https://lkml.org/lkml/2011/12/26/29
+> [2]: http://lwn.net/Articles/454389
+>
+> Sumit Semwal (4):
+>   v4l: Add DMABUF as a memory type
+>   v4l:vb2: add support for shared buffer (dma_buf)
+>   v4l:vb: remove warnings about MEMORY_DMABUF
+>   v4l:vb2: Add dma-contig allocator as dma_buf user
+>
+>  drivers/media/video/videobuf-core.c        |    4 +
+>  drivers/media/video/videobuf2-core.c       |  186
+> +++++++++++++++++++++++++++-
+>  drivers/media/video/videobuf2-dma-contig.c |  125 +++++++++++++++++++
+>  include/linux/videodev2.h                  |    8 ++
+>  include/media/videobuf2-core.h             |   30 +++++
+>  5 files changed, 352 insertions(+), 1 deletions(-)
+>
+> --
+> 1.7.5.4
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
