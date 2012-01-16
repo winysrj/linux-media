@@ -1,715 +1,541 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:53426 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754463Ab2ASE1e convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3779 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754747Ab2APNKZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 23:27:34 -0500
-Received: from mail-wi0-f174.google.com ([209.85.212.174])
-	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
-	(Exim 4.71)
-	(envelope-from <ming.lei@canonical.com>)
-	id 1Rnjb2-0000nZ-LR
-	for linux-media@vger.kernel.org; Thu, 19 Jan 2012 04:27:32 +0000
-Received: by wics10 with SMTP id s10so63881wic.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 20:27:32 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <4F109F1D.1050408@gmail.com>
-References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
-	<1323871214-25435-7-git-send-email-ming.lei@canonical.com>
-	<4F109F1D.1050408@gmail.com>
-Date: Thu, 19 Jan 2012 12:27:32 +0800
-Message-ID: <CACVXFVOBomAuEG2D0-5u7HbezWJrjQu+JeGjPoshWTgWcy3_nQ@mail.gmail.com>
-Subject: Re: [RFC PATCH v2 6/8] media: v4l2: introduce two IOCTLs for object detection
-From: Ming Lei <ming.lei@canonical.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, riverful.kim@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Mon, 16 Jan 2012 08:10:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 01/10] radio-isa: add framework for ISA radio drivers.
+Date: Mon, 16 Jan 2012 14:09:57 +0100
+Message-Id: <30958c9eb2499987a608cdf411e578984b617046.1326717025.git.hans.verkuil@cisco.com>
+In-Reply-To: <1326719406-4538-1-git-send-email-hverkuil@xs4all.nl>
+References: <1326719406-4538-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove other unrelated lists.
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+We have quite a few ISA radio drivers, which are all very similar.
+
+This framework makes it possible to reduce the code size of those drivers
+and makes it much easier to keep them up to date with the latest V4L2 API
+developments.
+
+Drivers rewritten to use this framework fully pass the v4l2-compliance tests
+and are properly using the ISA bus (so they can be found under /sys/bus/isa).
+
+It is now also possible to support multiple cards using the same driver
+(tested with two radio-gemtek cards).
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/Kconfig     |    4 +
+ drivers/media/radio/Makefile    |    1 +
+ drivers/media/radio/radio-isa.c |  353 +++++++++++++++++++++++++++++++++++++++
+ drivers/media/radio/radio-isa.h |  105 ++++++++++++
+ 4 files changed, 463 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/radio/radio-isa.c
+ create mode 100644 drivers/media/radio/radio-isa.h
+
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index e954781..2ad446f 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -167,6 +167,10 @@ menuconfig V4L_RADIO_ISA_DRIVERS
+ 
+ if V4L_RADIO_ISA_DRIVERS
+ 
++config RADIO_ISA
++	depends on ISA
++	tristate
++
+ config RADIO_CADET
+ 	tristate "ADS Cadet AM/FM Tuner"
+ 	depends on ISA && VIDEO_V4L2
+diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
+index 390daf9..bb1911e 100644
+--- a/drivers/media/radio/Makefile
++++ b/drivers/media/radio/Makefile
+@@ -2,6 +2,7 @@
+ # Makefile for the kernel character device drivers.
+ #
+ 
++obj-$(CONFIG_RADIO_ISA) += radio-isa.o
+ obj-$(CONFIG_RADIO_AZTECH) += radio-aztech.o
+ obj-$(CONFIG_RADIO_RTRACK2) += radio-rtrack2.o
+ obj-$(CONFIG_RADIO_SF16FMI) += radio-sf16fmi.o
+diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
+new file mode 100644
+index 0000000..b9ccb5d
+--- /dev/null
++++ b/drivers/media/radio/radio-isa.c
+@@ -0,0 +1,353 @@
++/*
++ * Framework for ISA radio drivers.
++ * This takes care of all the V4L2 scaffolding, allowing the ISA drivers
++ * to concentrate on the actual hardware operation.
++ *
++ * Copyright (C) 2012 Hans Verkuil <hans.verkuil@cisco.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/module.h>
++#include <linux/init.h>
++#include <linux/ioport.h>
++#include <linux/delay.h>
++#include <linux/videodev2.h>
++#include <linux/io.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
++
++#include "radio-isa.h"
++
++MODULE_AUTHOR("Hans Verkuil");
++MODULE_DESCRIPTION("A framework for ISA radio drivers.");
++MODULE_LICENSE("GPL");
++
++#define FREQ_LOW  (87U * 16000U)
++#define FREQ_HIGH (108U * 16000U)
++
++static int radio_isa_querycap(struct file *file, void  *priv,
++					struct v4l2_capability *v)
++{
++	struct radio_isa_card *isa = video_drvdata(file);
++
++	strlcpy(v->driver, isa->drv->driver.driver.name, sizeof(v->driver));
++	strlcpy(v->card, isa->drv->card, sizeof(v->card));
++	snprintf(v->bus_info, sizeof(v->bus_info), "ISA:%s", isa->v4l2_dev.name);
++
++	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
++	return 0;
++}
++
++static int radio_isa_g_tuner(struct file *file, void *priv,
++				struct v4l2_tuner *v)
++{
++	struct radio_isa_card *isa = video_drvdata(file);
++	const struct radio_isa_ops *ops = isa->drv->ops;
++
++	if (v->index > 0)
++		return -EINVAL;
++
++	strlcpy(v->name, "FM", sizeof(v->name));
++	v->type = V4L2_TUNER_RADIO;
++	v->rangelow = FREQ_LOW;
++	v->rangehigh = FREQ_HIGH;
++	v->capability = V4L2_TUNER_CAP_LOW;
++	if (isa->drv->has_stereo)
++		v->capability |= V4L2_TUNER_CAP_STEREO;
++
++	if (ops->g_rxsubchans)
++		v->rxsubchans = ops->g_rxsubchans(isa);
++	else
++		v->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
++	v->audmode = isa->stereo ? V4L2_TUNER_MODE_STEREO : V4L2_TUNER_MODE_MONO;
++	if (ops->g_signal)
++		v->signal = ops->g_signal(isa);
++	else
++		v->signal = (v->rxsubchans & V4L2_TUNER_SUB_STEREO) ?
++								0xffff : 0;
++	return 0;
++}
++
++static int radio_isa_s_tuner(struct file *file, void *priv,
++				struct v4l2_tuner *v)
++{
++	struct radio_isa_card *isa = video_drvdata(file);
++	const struct radio_isa_ops *ops = isa->drv->ops;
++
++	if (v->index)
++		return -EINVAL;
++	if (ops->s_stereo) {
++		isa->stereo = (v->audmode == V4L2_TUNER_MODE_STEREO);
++		return ops->s_stereo(isa, isa->stereo);
++	}
++	return 0;
++}
++
++static int radio_isa_s_frequency(struct file *file, void *priv,
++				struct v4l2_frequency *f)
++{
++	struct radio_isa_card *isa = video_drvdata(file);
++	int res;
++
++	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
++		return -EINVAL;
++	f->frequency = clamp(f->frequency, FREQ_LOW, FREQ_HIGH);
++	res = isa->drv->ops->s_frequency(isa, f->frequency);
++	if (res == 0)
++		isa->freq = f->frequency;
++	return res;
++}
++
++static int radio_isa_g_frequency(struct file *file, void *priv,
++				struct v4l2_frequency *f)
++{
++	struct radio_isa_card *isa = video_drvdata(file);
++
++	if (f->tuner != 0)
++		return -EINVAL;
++	f->type = V4L2_TUNER_RADIO;
++	f->frequency = isa->freq;
++	return 0;
++}
++
++static int radio_isa_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct radio_isa_card *isa =
++		container_of(ctrl->handler, struct radio_isa_card, hdl);
++
++	switch (ctrl->id) {
++	case V4L2_CID_AUDIO_MUTE:
++		return isa->drv->ops->s_mute_volume(isa, ctrl->val,
++				isa->volume ? isa->volume->val : 0);
++	}
++	return -EINVAL;
++}
++
++static int radio_isa_log_status(struct file *file, void *priv)
++{
++	struct radio_isa_card *isa = video_drvdata(file);
++
++	v4l2_info(&isa->v4l2_dev,
++		"=================  START STATUS CARD =================\n");
++	v4l2_info(&isa->v4l2_dev, "I/O Port = 0x%03x\n", isa->io);
++	v4l2_ctrl_handler_log_status(&isa->hdl, isa->v4l2_dev.name);
++	v4l2_info(&isa->v4l2_dev,
++		"==================  END STATUS CARD ==================\n");
++	return 0;
++}
++
++static int radio_isa_subscribe_event(struct v4l2_fh *fh,
++				struct v4l2_event_subscription *sub)
++{
++	if (sub->type == V4L2_EVENT_CTRL)
++		return v4l2_event_subscribe(fh, sub, 0);
++	return -EINVAL;
++}
++
++static unsigned int radio_isa_poll(struct file *file,
++					struct poll_table_struct *wait)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	if (v4l2_event_pending(fh))
++		return POLLPRI;
++	poll_wait(file, &fh->wait, wait);
++	return 0;
++}
++
++static const struct v4l2_ctrl_ops radio_isa_ctrl_ops = {
++	.s_ctrl = radio_isa_s_ctrl,
++};
++
++static const struct v4l2_file_operations radio_isa_fops = {
++	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= v4l2_fh_release,
++	.poll		= radio_isa_poll,
++	.unlocked_ioctl	= video_ioctl2,
++};
++
++static const struct v4l2_ioctl_ops radio_isa_ioctl_ops = {
++	.vidioc_querycap    = radio_isa_querycap,
++	.vidioc_g_tuner     = radio_isa_g_tuner,
++	.vidioc_s_tuner     = radio_isa_s_tuner,
++	.vidioc_g_frequency = radio_isa_g_frequency,
++	.vidioc_s_frequency = radio_isa_s_frequency,
++	.vidioc_log_status  = radio_isa_log_status,
++	.vidioc_subscribe_event   = radio_isa_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
++};
++
++int radio_isa_match(struct device *pdev, unsigned int dev)
++{
++	struct radio_isa_driver *drv = pdev->platform_data;
++
++	return drv->probe || drv->io_params[dev] >= 0;
++}
++EXPORT_SYMBOL_GPL(radio_isa_match);
++
++static bool radio_isa_valid_io(const struct radio_isa_driver *drv, int io)
++{
++	int i;
++
++	for (i = 0; i < drv->num_of_io_ports; i++)
++		if (drv->io_ports[i] == io)
++			return true;
++	return false;
++}
++
++int radio_isa_probe(struct device *pdev, unsigned int dev)
++{
++	struct radio_isa_driver *drv = pdev->platform_data;
++	const struct radio_isa_ops *ops = drv->ops;
++	struct v4l2_device *v4l2_dev;
++	struct radio_isa_card *isa;
++	int res;
++
++	isa = drv->ops->alloc();
++	if (isa == NULL)
++		return -ENOMEM;
++	dev_set_drvdata(pdev, isa);
++	isa->drv = drv;
++	isa->io = drv->io_params[dev];
++	v4l2_dev = &isa->v4l2_dev;
++	strlcpy(v4l2_dev->name, dev_name(pdev), sizeof(v4l2_dev->name));
++
++	if (drv->probe && ops->probe) {
++		int i;
++
++		for (i = 0; i < drv->num_of_io_ports; ++i) {
++			int io = drv->io_ports[i];
++
++			if (request_region(io, drv->region_size, v4l2_dev->name)) {
++				bool found = ops->probe(isa, io);
++
++				release_region(io, drv->region_size);
++				if (found) {
++					isa->io = io;
++					break;
++				}
++			}
++		}
++	}
++
++	if (!radio_isa_valid_io(drv, isa->io)) {
++		int i;
++
++		if (isa->io < 0)
++			return -ENODEV;
++		v4l2_err(v4l2_dev, "you must set an I/O address with io=0x%03x",
++				drv->io_ports[0]);
++		for (i = 1; i < drv->num_of_io_ports; i++)
++			printk(KERN_CONT "/0x%03x", drv->io_ports[i]);
++		printk(KERN_CONT ".\n");
++		kfree(isa);
++		return -EINVAL;
++	}
++
++	if (!request_region(isa->io, drv->region_size, v4l2_dev->name)) {
++		v4l2_err(v4l2_dev, "port 0x%x already in use\n", isa->io);
++		kfree(isa);
++		return -EBUSY;
++	}
++
++	res = v4l2_device_register(pdev, v4l2_dev);
++	if (res < 0) {
++		v4l2_err(v4l2_dev, "Could not register v4l2_device\n");
++		goto err_dev_reg;
++	}
++
++	v4l2_ctrl_handler_init(&isa->hdl, 1);
++	isa->mute = v4l2_ctrl_new_std(&isa->hdl, &radio_isa_ctrl_ops,
++				V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
++	if (drv->max_volume)
++		isa->volume = v4l2_ctrl_new_std(&isa->hdl, &radio_isa_ctrl_ops,
++			V4L2_CID_AUDIO_VOLUME, 0, drv->max_volume, 1,
++			drv->max_volume);
++	v4l2_dev->ctrl_handler = &isa->hdl;
++	if (isa->hdl.error) {
++		res = isa->hdl.error;
++		v4l2_err(v4l2_dev, "Could not register controls\n");
++		goto err_hdl;
++	}
++	if (drv->max_volume)
++		v4l2_ctrl_cluster(2, &isa->mute);
++	v4l2_dev->ctrl_handler = &isa->hdl;
++
++	mutex_init(&isa->lock);
++	isa->vdev.lock = &isa->lock;
++	strlcpy(isa->vdev.name, v4l2_dev->name, sizeof(isa->vdev.name));
++	isa->vdev.v4l2_dev = v4l2_dev;
++	isa->vdev.fops = &radio_isa_fops;
++	isa->vdev.ioctl_ops = &radio_isa_ioctl_ops;
++	isa->vdev.release = video_device_release_empty;
++	set_bit(V4L2_FL_USE_FH_PRIO, &isa->vdev.flags);
++	video_set_drvdata(&isa->vdev, isa);
++	isa->freq = 87 * 16000;
++	isa->stereo = drv->has_stereo;
++
++	if (ops->init)
++		res = ops->init(isa);
++	if (!res)
++		res = v4l2_ctrl_handler_setup(&isa->hdl);
++	if (!res)
++		res = ops->s_frequency(isa, isa->freq);
++	if (!res && ops->s_stereo)
++		res = ops->s_stereo(isa, isa->stereo);
++	if (res < 0) {
++		v4l2_err(v4l2_dev, "Could not setup card\n");
++		goto err_node_reg;
++	}
++	res = video_register_device(&isa->vdev, VFL_TYPE_RADIO,
++					drv->radio_nr_params[dev]);
++	if (res < 0) {
++		v4l2_err(v4l2_dev, "Could not register device node\n");
++		goto err_node_reg;
++	}
++
++	v4l2_info(v4l2_dev, "Initialized radio card %s on port 0x%03x\n",
++			drv->card, isa->io);
++	return 0;
++
++err_node_reg:
++	v4l2_ctrl_handler_free(&isa->hdl);
++err_hdl:
++	v4l2_device_unregister(&isa->v4l2_dev);
++err_dev_reg:
++	release_region(isa->io, drv->region_size);
++	kfree(isa);
++	return res;
++}
++EXPORT_SYMBOL_GPL(radio_isa_probe);
++
++int radio_isa_remove(struct device *pdev, unsigned int dev)
++{
++	struct radio_isa_card *isa = dev_get_drvdata(pdev);
++	const struct radio_isa_ops *ops = isa->drv->ops;
++
++	ops->s_mute_volume(isa, true, isa->volume ? isa->volume->cur.val : 0);
++	video_unregister_device(&isa->vdev);
++	v4l2_ctrl_handler_free(&isa->hdl);
++	v4l2_device_unregister(&isa->v4l2_dev);
++	release_region(isa->io, isa->drv->region_size);
++	v4l2_info(&isa->v4l2_dev, "Removed radio card %s\n", isa->drv->card);
++	kfree(isa);
++	return 0;
++}
++EXPORT_SYMBOL_GPL(radio_isa_remove);
+diff --git a/drivers/media/radio/radio-isa.h b/drivers/media/radio/radio-isa.h
+new file mode 100644
+index 0000000..8a0ea84
+--- /dev/null
++++ b/drivers/media/radio/radio-isa.h
+@@ -0,0 +1,105 @@
++/*
++ * Framework for ISA radio drivers.
++ * This takes care of all the V4L2 scaffolding, allowing the ISA drivers
++ * to concentrate on the actual hardware operation.
++ *
++ * Copyright (C) 2012 Hans Verkuil <hans.verkuil@cisco.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef _RADIO_ISA_H_
++#define _RADIO_ISA_H_
++
++#include <linux/isa.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ctrls.h>
++
++struct radio_isa_driver;
++struct radio_isa_ops;
++
++/* Core structure for radio ISA cards */
++struct radio_isa_card {
++	const struct radio_isa_driver *drv;
++	struct v4l2_device v4l2_dev;
++	struct v4l2_ctrl_handler hdl;
++	struct video_device vdev;
++	struct mutex lock;
++	const struct radio_isa_ops *ops;
++	struct {	/* mute/volume cluster */
++		struct v4l2_ctrl *mute;
++		struct v4l2_ctrl *volume;
++	};
++	/* I/O port */
++	int io;
++
++	/* Card is in stereo audio mode */
++	bool stereo;
++	/* Current frequency */
++	u32 freq;
++};
++
++struct radio_isa_ops {
++	/* Allocate and initialize a radio_isa_card struct */
++	struct radio_isa_card *(*alloc)(void);
++	/* Probe whether a card is present at the given port */
++	bool (*probe)(struct radio_isa_card *isa, int io);
++	/* Special card initialization can be done here, this is called after
++	 * the standard controls are registered, but before they are setup,
++	 * thus allowing drivers to add their own controls here. */
++	int (*init)(struct radio_isa_card *isa);
++	/* Set mute and volume. */
++	int (*s_mute_volume)(struct radio_isa_card *isa, bool mute, int volume);
++	/* Set frequency */
++	int (*s_frequency)(struct radio_isa_card *isa, u32 freq);
++	/* Set stereo/mono audio mode */
++	int (*s_stereo)(struct radio_isa_card *isa, bool stereo);
++	/* Get rxsubchans value for VIDIOC_G_TUNER */
++	u32 (*g_rxsubchans)(struct radio_isa_card *isa);
++	/* Get the signal strength for VIDIOC_G_TUNER */
++	u32 (*g_signal)(struct radio_isa_card *isa);
++};
++
++/* Top level structure needed to instantiate the cards */
++struct radio_isa_driver {
++	struct isa_driver driver;
++	const struct radio_isa_ops *ops;
++	/* The module_param_array with the specified I/O ports */
++	int *io_params;
++	/* The module_param_array with the radio_nr values */
++	int *radio_nr_params;
++	/* Whether we should probe for possible cards */
++	bool probe;
++	/* The list of possible I/O ports */
++	const int *io_ports;
++	/* The size of that list */
++	int num_of_io_ports;
++	/* The region size to request */
++	unsigned region_size;
++	/* The name of the card */
++	const char *card;
++	/* Card can capture stereo audio */
++	bool has_stereo;
++	/* The maximum volume for the volume control. If 0, then there
++	   is no volume control possible. */
++	int max_volume;
++};
++
++int radio_isa_match(struct device *pdev, unsigned int dev);
++int radio_isa_probe(struct device *pdev, unsigned int dev);
++int radio_isa_remove(struct device *pdev, unsigned int dev);
++
++#endif
+-- 
+1.7.7.3
 
-Hi Sylwester,
-
-Thanks for your comment.
-
-On Sat, Jan 14, 2012 at 5:16 AM, Sylwester Nawrocki <snjw23@gmail.com> wrote:
-> Hi Ming,
->
-> sorry for the late response. It's all looking better now, however there
-> is still a few things that could be improved.
->
-> On 12/14/2011 03:00 PM, Ming Lei wrote:
->> This patch introduces two new IOCTLs and related data
->> structure which will be used by the coming video device
->> with object detect capability.
->>
->> The two IOCTLs and related data structure will be used by
->> user space application to retrieve the results of object
->> detection.
->>
->> The utility fdif[1] is useing the two IOCTLs to find
->> objects(faces) deteced in raw images or video streams.
->>
->> [1],http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
->>
->> Signed-off-by: Ming Lei<ming.lei@canonical.com>
->> ---
->> v2:
->>       - extend face detection API to object detection API
->>       - introduce capability of V4L2_CAP_OBJ_DETECTION for object detection
->>       - 32/64 safe array parameter
->> ---
->>   drivers/media/video/v4l2-ioctl.c |   41 ++++++++++++-
->>   include/linux/videodev2.h        |  124 ++++++++++++++++++++++++++++++++++++++
->>   include/media/v4l2-ioctl.h       |    6 ++
->>   3 files changed, 170 insertions(+), 1 deletions(-)
->>
->> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
->> index ded8b72..575d445 100644
->> --- a/drivers/media/video/v4l2-ioctl.c
->> +++ b/drivers/media/video/v4l2-ioctl.c
->> @@ -2140,6 +2140,30 @@ static long __video_do_ioctl(struct file *file,
->>               dbgarg(cmd, "index=%d", b->index);
->>               break;
->>       }
->> +     case VIDIOC_G_OD_RESULT:
->> +     {
->> +             struct v4l2_od_result *or = arg;
->> +
->> +             if (!ops->vidioc_g_od_result)
->> +                     break;
->> +
->> +             ret = ops->vidioc_g_od_result(file, fh, or);
->> +
->> +             dbgarg(cmd, "index=%d", or->frm_seq);
->> +             break;
->> +     }
->
->> +     case VIDIOC_G_OD_COUNT:
->> +     {
->> +             struct v4l2_od_count *oc = arg;
->> +
->> +             if (!ops->vidioc_g_od_count)
->> +                     break;
->> +
->> +             ret = ops->vidioc_g_od_count(file, fh, oc);
->> +
->> +             dbgarg(cmd, "index=%d", oc->frm_seq);
->> +             break;
->> +     }
->
-> I'm uncertain if we need this ioctl at all. Now struct v4l2_od_result is:
-
-IMO, it can simplify user application very much if the ioctl of
-VIDIOC_G_OD_COUNT
-is kept, see below.
-
->
-> struct v4l2_od_result {
->        __u32                   frame_sequence;
->        __u32                   object_count;
->        __u32                   reserved[6];
->        struct v4l2_od_object   objects[0];
-> };
->
-> and
->
-> struct v4l2_od_object {
->        __u16                   type;
->        __u16                   confidence;
->        union {
->                struct v4l2_od_face_desc  face;
->                struct v4l2_od_eye_desc   eye;
->                struct v4l2_od_mouth_desc mouth;
->                __u8    rawdata[60];
->        } o;
-> };
->
-> If we had added a 'size' field to struct v4l2_od_result, i.e.
->
-> struct v4l2_od_result {
->        __u32                   size;
->        __u32                   frame_sequence;
->        __u32                   objects_count;
->        __u32                   reserved[5];
->        struct v4l2_od_object   objects[0];
-> };
->
-> the application could have allocated memory for the objects array and
-> have the 'size' member set to the size of that allocation. Then it
-> would have called VIDIOC_G_OD_RESULT and the driver would have filled
-> the 'objects'  array, if it was big enough for the requested result
-> data. The driver would also update the 'objects_count'. If the size
-> would be too small to fit the result data, i.e.
->
-> size < number_of_detected_objects * sizeof(struct v4l2_od_object)
->
-> the driver could return -ENOSPC error while also setting 'size' to
-> the required value. Something similar is done with
-
-Without VIDIOC_G_OD_COUNT ioctl, user applications has no way to
-know how many objects are detected in the specified frame, so it has
-to allocate much more space to send to VIDIOC_G_OD_RESULT. Sometimes
-it is enough, and sometimes it is not enough, looks a bit extra complicated
-logic is introduced to space application.
-
-> VIDIOC_G_EXT_CTRLS ioctl [3].
->
-> There is one more OD API requirement, for camera sensors with embedded
-> SoC ISP that support face detection, i.e. VIDIOC_G_OD_RESULT should
-> allow to retrieve face detection result for the very last image frame,
-> i.e. current frame.
-
-IMO, it is better to always retrieve detection result via frame sequence number
-if the seq can be known beforehand. But if it is difficult to get the
-seq number in
-user application for camera sensor case,  maybe we can introduce the flags to
-handle it.
-
->
-> One solution to support this could be adding a 'flags' field, i.e.
->
-> struct v4l2_od_result {
->        __u32                   size;
->        __u32                   flags;
->        __u32                   frame_sequence;
->        __u32                   objects_count;
->        __u16                   group_index;
->        __u16                   group_count;
->        __u16                   reserved[7];
->        struct v4l2_od_object   objects[0];
-> };
->
-> and additionally group_index to specify which face object the user is
-> interested in. I'm not saying we have to implement this now but it's
-
-IMO, it is difficult for user to describe which face objects they are interested
-in, also why not let user application to retrieve and handle all detected face
-objects?
-
-> good to consider beforehand. The group_count would be used to return
-> the number of detected faces. What do you think ?
-
-Sorry, I don't understand your point very clearly, what does group_count mean?
-
->
-> /* flags */
-> #define V4L2_OD_FL_SEL_FRAME_SEQ        (0 << 0)
-> #define V4L2_OD_FL_SEL_FRAME_LAST       (1 << 0)
-> #define V4L2_OD_FL_SEL_GROUP            (1 << 1)
->
-> Or maybe we should just use "face_" instead of "group_" ?
->
->>       default:
->>               if (!ops->vidioc_default)
->>                       break;
->> @@ -2241,7 +2265,22 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
->>
->>   static int is_64_32_array_args(unsigned int cmd, void *parg, int *extra_len)
->>   {
->> -     return 0;
->> +     int ret = 0;
->> +
->> +     switch (cmd) {
->> +     case VIDIOC_G_OD_RESULT: {
->> +             struct v4l2_od_result *or = parg;
->> +
->> +             *extra_len = or->obj_cnt *
->> +                     sizeof(struct v4l2_od_object);
->> +             ret = 1;
->> +             break;
->> +     }
->> +     default:
->> +             break;
->> +     }
->> +
->> +     return ret;
->>   }
->>
->>   long
->> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
->> index 4b752d5..c08ceaf 100644
->> --- a/include/linux/videodev2.h
->> +++ b/include/linux/videodev2.h
->> @@ -270,6 +270,9 @@ struct v4l2_capability {
->>   #define V4L2_CAP_RADIO                      0x00040000  /* is a radio device */
->>   #define V4L2_CAP_MODULATOR          0x00080000  /* has a modulator */
->>
->> +/* The device has capability of object detection */
->> +#define V4L2_CAP_OBJ_DETECTION               0x00100000
->> +
->>   #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
->>   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
->>   #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
->> @@ -2160,6 +2163,125 @@ struct v4l2_create_buffers {
->>       __u32                   reserved[8];
->>   };
->>
->> +/**
->> + * struct v4l2_od_obj_desc
->> + * @centerx: return, position in x direction of detected object
->
-> How about following convention:
->    * @centerx: [out] position of an object in horizontal direction
-
-Good.
-
-> ?
->> + * @centery: return, position in y direction of detected object
->> + * @sizex:   return, size in x direction of detected object
->
->    * @sizex:   [out] size of an object in horizontal direction
->
->> + * @sizey:   return, size in y direction of detected object
->> + * @angle:   return, angle of detected object
->> + *           0 deg ~ 359 deg, vertical is 0 deg, clockwise
->
-> So this is angle in Z axis as on figure [1], Roll [2], right ?
-
-I think the angle is neither [1] nor [2].
-
-The angle is not in Z axis, and it is in 2D plane, and the angle
-is from y axis(vertical) to line between (0, 0) and (centerx, centery).
-
-> First let's make this number in 0.01 deg units, then our range would
-> be 0 ... 35999. Then we need a proper description, it's all going to
-> be described in the Docbook so we don't need to be that verbose at
-> the comments.
-
-Sounds it is reasonable to use 0.01 unit.
-
->
->  * @angle: [out] angle of object rotation in Z axis (depth) in 0.01 deg units
->
-> Of course any better definitions are welcome :)
->
->> + * @reserved:        future extensions
->> + */
->> +struct v4l2_od_obj_desc {
->> +     __u16           centerx;
->> +     __u16           centery;
->> +     __u16           sizex;
->> +     __u16           sizey;
->> +     __u16           angle;
->> +     __u16           reserved[5];
->
-> I would prefer to avoid repeating myself again - for all pixel position
-> and size in v4l2 we normally use __u32, so let's follow this. Sending
-
-IMO, __u16 is enough to describe the position and size, also it can decrease
-size of related structure a lot. If they are defined as __u16, sizeof(struct
-v4l2_od_object) is about 64, 64*sizeof(struct v4l2_od_object) will be 4096 and
-can be hold in one page. But if they are defined as __u32,  64*sizeof(struct
-v4l2_od_object) will consume at least two pages.
-
-These position and size are consumed only by user space, so maybe the
-case is different with other v4l2 cases, but not sure.
-
-> same  patch over and over isn't helpful, even if by some miracle you've
-> had convinced me, there will be other people that won't accept that :-)
->
-> And let's not be afraid of adding new data types to v4l2, which likely
-> are anyway going to be needed in the future. How about:
->
-> struct v4l2_pix_position {
->        __s32   x;
->        __s32   y;
-> };
->
-> struct v4l2_pix_size {
->        __u32   width;
->        __u32   height;
-> };
-
-I opt to take __u16, so not introduce the two data structures.
-
->
-> Alternatively we might reuse the v4l2_frmsize_discrete structure,
-> however new structure has my preference.
->
-> struct v4l2_od_obj_desc {
->        struct v4l2_pix_position        center;
->        struct v4l2_pix_size            size;
->        __u16                           angle;
->        __u16                           reserved[5];
-> };
->
-> OR
->
-> struct v4l2_od_obj_desc {
->        struct v4l2_pix_position        center;
->        struct v4l2_frmsize_discrete    size;
->        __u16                           angle;
->        __u16                           reserved[3];
-> };
->
-> sizeof(struct v4l2_od_obj_desc) = 6 * 4
->
->> +};
->> +
->> +/**
->> + * struct v4l2_od_face_desc
->> + * @id:              return, used to be associated with detected eyes, mouth,
->> + *           and other objects inside this face, and each face in one
->> + *           frame has a unique id, start from 1
->> + * @smile_level:return, smile level of the face
->
-> For the smile_level it shouldn't hurt if we assume standard value range
-> of 0...99, but this would go to the DocBook, your comment above is fine,
-> except s/:return/: [out].
-
-Good, will update the comment.
-
->
->> + * @f:               return, face description
->> + */
->> +struct v4l2_od_face_desc {
->> +     __u16   id;
->
-> Actually I was going to propose something like this 'id' member:) I think
-> we'll also need a method for user space to retrieve FD result by such sort
-> of a key, in addition to or instead of the frame_sequence key.
-
-In fact, I introduce the 'id' as supplement of frame_sequence, not a
-replacement.
-You know that many objects may be detected in one single frame, so the
-field of 'id'
-is introduced to identify unique object in one single frame.
-
-But I am not sure if the 'id' should be used as key to retrieve detect
-result, which
-may introduce more IOCTLs and make interfaces more complicated, :-)
-
-> However, to be more generic, perhaps we could move it to the v4l2_od_obj_desc
-> structure ? And rename it to group_index, which would mean a positive non-zero
-
-Yes, it is OK.
-
-> sequence number assigned to a group of objects, e.g. it would be one value
-> per face, eyes and mouth data set ? What do you think ?
-
-We can assigned one unique value for one single detected object, but the 'id'
-or 'group_index' should be defined as __u32.
-
->
->> +     __u8    smile_level;
->> +     __u8    reserved[15];
->> +
->> +     struct v4l2_od_obj_desc f;
->> +};
->
-> It might be good idea to align the data structures' size to at least
-> 4 bytes. I would have changed your proposed structure to:
->
-> struct v4l2_od_face_desc {
->        __u16   id;
->        __u16   smile_level;
->        __u16   reserved[10];
->        struct v4l2_od_obj_desc face;
-> };
->
-> sizeof(struct v4l2_od_face_desc) = 12 * 4
-
-Agree.
-
->
->> +
->> +/**
->> + * struct v4l2_od_eye_desc
->> + * @face_id: return, used to associate with which face, 0 means
->> + *           no face associated with the eye
->> + * @blink_level:return, blink level of the eye
->> + * @e:               return, eye description
->> + */
->> +struct v4l2_od_eye_desc {
->> +     __u16   face_id;
->> +     __u8    blink_level;
->> +     __u8    reserved[15];
->> +
->> +     struct v4l2_od_obj_desc e;
->> +};
->
-> How about:
->
-> struct v4l2_od_eye_desc {
->        __u16   face_id;
->        __u16   blink_level;
->        __u16   reserved[10];
->        struct v4l2_od_obj_desc eye;
-> };
-> sizeof(struct v4l2_od_eye_desc) = 12 * 4
-
-Agree.
-
-> ?
->> +/**
->> + * struct v4l2_od_mouth_desc
->> + * @face_id: return, used to associate with which face, 0 means
->> + *           no face associated with the mouth
->> + * @m:               return, mouth description
->> + */
->> +struct v4l2_od_mouth_desc {
->> +     __u16   face_id;
->> +     __u8    reserved[16];
->> +
->> +     struct v4l2_od_obj_desc m;
->> +};
-> and
->
-> struct v4l2_od_mouth_desc {
->        __u16   face_id;
->        __u16   reserved[11];
->        struct v4l2_od_obj_desc mouth;
-> };
-> sizeof(struct v4l2_od_mouth_desc) = 12 * 4
-
-Agree.
-
->> +
->> +enum v4l2_od_type {
->> +     V4L2_OD_TYPE_FACE               = 1,
->> +     V4L2_OD_TYPE_LEFT_EYE           = 2,
->> +     V4L2_OD_TYPE_RIGHT_EYE          = 3,
->> +     V4L2_OD_TYPE_MOUTH              = 4,
->> +     V4L2_OD_TYPE_USER_DEFINED       = 255,
->
-> Let's not add any "user defined" types, at the time anything more
-> is needed it should be added here explicitly.
-
-I think that V4L2_OD_TYPE_USER_DEFINED can be used to parse
-detection results totally by user space for some dummy devices.
-
-But your worry is correct, how about keeping V4L2_OD_TYPE_USER_DEFINED
-and commenting its usage clearly?
-
->
->> +     V4L2_OD_TYPE_MAX_CNT            = 256,
->
->        V4L2_OD_TYPE_MAX                = 256, ?
->
-> But what do you think it is needed for ?
-
-No particular purpose, it can be removed.
-
->
->> +};
->> +
->> +/**
->> + * struct v4l2_od_object
->> + * @type:    return, type of detected object
->
-> How about
->
-> + * @type:      [out] object type (from enum v4l2_od_type)
-
-Agree.
-
-> ?
->> + * @confidence:      return, confidence level of detection result
->> + *           0: the heighest level, 100: the lowest level
->
->    * @confidence: [out] confidence level of the detection result
-> ?
-> Let's leave the range specification for the DocBook.
-
-OK.
-
->
->> + * @face:    return, detected face object description
->> + * @eye:     return, detected eye object description
->> + * @mouth:   return, detected mouth object description
->> + * @rawdata: return, user defined data
->
-> No user defined data please. How the applications are supposed to know what
-> rawdata means ? If any new structure is needed it should be added to the union.
-
-As I described above, we can support user defined object detection and
-let user space handle all results.
-
-> Let's treat 'rawdata' as a place holder only. This is how the "__u8 data[64];"
-> array is specified for struct v4l2_event:
->
-> "__u8   data[64]        Event data. Defined by the event type. The union
->                        should be used to define easily accessible type
->                        for events."
->
->> + */
->> +struct v4l2_od_object {
->> +     enum v4l2_od_type       type;
->
->        __u16                   type;
->
-> to avoid having enumeration in the user space interface ?
-
-IMO, 'enum v4l2_od_type' should be exported to user space.
-
->
->> +     __u16                   confidence;
->
->        __u32   reserved[7];
->
->> +     union {
->> +             struct v4l2_od_face_desc face;
->
->> +             struct v4l2_od_face_desc eye;
->> +             struct v4l2_od_face_desc mouth;
->
-> I guess you meant
->                struct v4l2_od_eye_desc   eye;
->                struct v4l2_od_mouth_desc mouth;
-
-Yes, sorry for the low level mistake, :-(
-
-> ?
->> +             __u8    rawdata[60];
->> +     } o;
->
-> won't probably hurt here and would allow future extensions.
->
->> +};
->
-> I think being able to fit struct v4l2_od_object in the "u" union of
-> struct v4l2_event is a must have, as events seem crucial for the
-
-The fact is that sizeof(struct v4l2_od_object) is certainly beyond
-64 bytes for object detection case with above change.
-
-> whole object detection interface. For instance user application could
-> set thresholds for some parameters to get notified with an event when
-> any gets out of configured bounds. The event interface could be also
-> used for retrieving OD result instead of polling with VIDIOC_G_OD_RESULT.
-> Currently struct v4l2_event is:
->
-> struct v4l2_event {
->        __u32                           type;
->        union {
->                struct v4l2_event_vsync         vsync;
->                struct v4l2_event_ctrl          ctrl;
->                struct v4l2_event_frame_sync    frame_sync;
->                __u8                            data[64];
->        } u;
->        __u32                           pending;
->        __u32                           sequence;
->        struct timespec                 timestamp;
->        __u32                           id;
->        __u32                           reserved[8];
-> };
->
-> Hence we have only 64 bytes for struct v4l2_event_od. It seems that
-> you kept that when designing the above data structures ?
-
-Yes and no.
-
->From the start, I hope that the event interface can be used to retrieve object
-detection result.
-
-When I found it is difficult to fit 'struct v4l2_od_object' into 64 bytes, I
-decide to introduce two IOCTLs for the purpose.
-
-Also I try to keep sizeof(struct v4l2_od_object) as few as possible since
-much more objects can be detected in one single frame(for example,
-about 35 faces can be detected in one single image in omap4 fdif case)
-
->
-> With my corrections above  sizeof(struct v4l2_od_object) (without the
-> reserved field would be 13 * 4, which isn't bad. I'm just a bit
-> concerned about the structures alignment.
-
-Even we may fit 'struct v4l2_od_object' into 64 bytes, it still can only hold
-one object, you know much more objects can be detected in one single
-frame.
-
->
->> +/**
->> + * struct v4l2_od_result - VIDIOC_G_OD_RESULT argument
->> + * @frm_seq: entry, frame sequence No.
->
->    * @frame_sequence: [in] frame sequence number
->
->> + * @obj_cnt: return, how many objects detected in frame @frame_seq
->    * @object_count: [out] number of object detected for @frame_sequence
->
->> + * @reserved:        reserved for future use
->> + * @od:              return, result of detected objects in frame @frame_seq
->
->    * @od: [out] objects detected for @frame_sequence ?
->
->> + */
->> +struct v4l2_od_result {
->> +     __u32                   frm_seq;
->> +     __u32                   obj_cnt;
->> +     __u32                   reserved[6];
->> +     struct v4l2_od_object   od[0];
->
-> Let's make this:
->
->        struct v4l2_od_object   objects[0];
-
-Good.
-
->
->> +};
->> +
->> +/**
->> + * struct v4l2_od_count - VIDIOC_G_OD_COUNT argument
->> + * @frm_seq: entry, frame sequence No. for ojbect detection
->> + * @obj_cnt: return, how many objects detected from the @frm_seq
->> + * @reserved:        reserved for future useage.
->> + */
->> +struct v4l2_od_count {
->> +     __u32   frm_seq;
->> +     __u32   obj_cnt;
->> +     __u32   reserved[6];
->> +};
->
-> This structure can go away if we change the VIDIOC_G_OD_RESULT
-> semantics as I described above..
-
-I am not sure if we can apply your change, see my comment above.
-
->
->> +
->>   /*
->>    *  I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
->>    *
->> @@ -2254,6 +2376,8 @@ struct v4l2_create_buffers {
->>      versions */
->>   #define VIDIOC_CREATE_BUFS  _IOWR('V', 92, struct v4l2_create_buffers)
->>   #define VIDIOC_PREPARE_BUF  _IOWR('V', 93, struct v4l2_buffer)
->> +#define VIDIOC_G_OD_COUNT    _IOWR('V', 94, struct v4l2_od_count)
->> +#define VIDIOC_G_OD_RESULT   _IOWR('V', 95, struct v4l2_od_result)
->>
->>   /* Reminder: when adding new ioctls please add support for them to
->>      drivers/media/video/v4l2-compat-ioctl32.c as well! */
->> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
->> index 4d1c74a..81a32a3 100644
->> --- a/include/media/v4l2-ioctl.h
->> +++ b/include/media/v4l2-ioctl.h
->> @@ -270,6 +270,12 @@ struct v4l2_ioctl_ops {
->>       int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
->>                                       struct v4l2_event_subscription *sub);
->>
->> +     /* object detect IOCTLs */
->> +     int (*vidioc_g_od_count) (struct file *file, void *fh,
->> +                                     struct v4l2_od_count *arg);
->
-> ..and this ioctl too.
->
->> +     int (*vidioc_g_od_result) (struct file *file, void *fh,
->> +                                     struct v4l2_od_result *arg);
->> +
->>       /* For other private ioctls */
->>       long (*vidioc_default)         (struct file *file, void *fh,
->>                                       bool valid_prio, int cmd, void *arg);
->
-> [1] http://i.stack.imgur.com/qb6hU.png
-> [2] http://www.dtic.mil/cgi-bin/GetTRDoc?AD=ADA434817
-> [3] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-ext-ctrls.html
-
-
-thanks,
---
-Ming Lei
