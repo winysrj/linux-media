@@ -1,66 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16136 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756208Ab2AEPiA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jan 2012 10:38:00 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05Fc0sU003006
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 5 Jan 2012 10:38:00 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/5] Fix dvb-core set_delivery_system and port drxk to one frontend
-Date: Thu,  5 Jan 2012 13:37:47 -0200
-Message-Id: <1325777872-14696-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54283 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754113Ab2APOIU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jan 2012 09:08:20 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 13/23] omap3isp: Add lane configuration to platform data
+Date: Mon, 16 Jan 2012 15:08:26 +0100
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+References: <4F0DFE92.80102@iki.fi> <1326317220-15339-13-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1326317220-15339-13-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201161508.26790.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series contain one feature and two bug fixes:
+Hi Sakari,
 
-1) it ports the DRX-K driver to use just one frontend for all three
-   delivery systems (DVB-C Annex A, DVB-C Annex C and DVB-T).
-   As not all DRX-K supports all three, it also adds a logic there to
-   show and accept only the delivery systems that are valid to the
-   detected DRX-K version;
+Thanks for the patch.
 
-2) fixes a bug at dvb_frontend that causes it to wait forever, while
-   changing to the second or upper delivery system (a var were not
-   incremented inside it);
+On Wednesday 11 January 2012 22:26:50 Sakari Ailus wrote:
+> Add lane configuration (order of clock and data lane) to platform data on
+> both CCP2 and CSI-2.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/omap3isp/ispcsiphy.h |   15 ++-------------
+>  include/media/omap3isp.h                 |   25 +++++++++++++++++++++++++
+>  2 files changed, 27 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispcsiphy.h
+> b/drivers/media/video/omap3isp/ispcsiphy.h index 9596dc6..e93a661 100644
+> --- a/drivers/media/video/omap3isp/ispcsiphy.h
+> +++ b/drivers/media/video/omap3isp/ispcsiphy.h
+> @@ -27,22 +27,11 @@
+>  #ifndef OMAP3_ISP_CSI_PHY_H
+>  #define OMAP3_ISP_CSI_PHY_H
+> 
+> +#include <media/omap3isp.h>
+> +
+>  struct isp_csi2_device;
+>  struct regulator;
+> 
+> -struct csiphy_lane {
+> -	u8 pos;
+> -	u8 pol;
+> -};
+> -
+> -#define ISP_CSIPHY2_NUM_DATA_LANES	2
+> -#define ISP_CSIPHY1_NUM_DATA_LANES	1
+> -
+> -struct isp_csiphy_lanes_cfg {
+> -	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
+> -	struct csiphy_lane clk;
+> -};
+> -
+>  struct isp_csiphy_dphy_cfg {
+>  	u8 ths_term;
+>  	u8 ths_settle;
+> diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+> index 9c1a001..bc14099 100644
+> --- a/include/media/omap3isp.h
+> +++ b/include/media/omap3isp.h
+> @@ -91,6 +91,29 @@ enum {
+>  };
+> 
+>  /**
+> + * struct isp_csiphy_lane: CCP2/CSI2 lane position and polarity
+> + * @pos: position of the lane
+> + * @pol: polarity of the lane
+> + */
+> +struct isp_csiphy_lane {
+> +	u8 pos;
+> +	u8 pol;
+> +};
+> +
+> +#define ISP_CSIPHY2_NUM_DATA_LANES	2
+> +#define ISP_CSIPHY1_NUM_DATA_LANES	1
 
-3) fixes a bug that a delivery system change would appear only on the
-   second call, for a DVBv3 application.
+Any reason not to put CSIPHY1 first ? :-)
 
-With all these series applied, it is now possible to use frontend 0
-for all delivery systems. As the current tools don't support changing
-the delivery system, the dvb-fe-tool (on my experimental tree[1]) can now
-be used to change between them:
+With that modification,
 
-For example, to use DVB-T with the standard scan:
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-$ ./dvb-fe-tool -d DVBT && scan /usr/share/dvb/dvb-t/au-Adelaide
-
-[1] http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/shortlog/refs/heads/dvb-utils
-
-
-Mauro Carvalho Chehab (5):
-  [media] drxk: remove ops.info.frequency_stepsize from DVB-C
-  [media] drxk: create only one frontend for both DVB-C and DVB-T
-  [media] drxk_hard: fix locking issues when changing the delsys
-  [media] dvb_frontend: regression fix: add a missing inc inside the
-    loop
-  [media] dvb_frontend: Update ops.info.type earlier
-
- drivers/media/dvb/ddbridge/ddbridge-core.c |    2 +-
- drivers/media/dvb/dvb-core/dvb_frontend.c  |   11 +-
- drivers/media/dvb/frontends/drxk.h         |    6 +-
- drivers/media/dvb/frontends/drxk_hard.c    |  206 ++++++++++++----------------
- drivers/media/dvb/frontends/drxk_hard.h    |    4 +-
- drivers/media/dvb/ngene/ngene-cards.c      |    2 +-
- drivers/media/video/em28xx/em28xx-dvb.c    |   28 +----
- 7 files changed, 104 insertions(+), 155 deletions(-)
+> +
+> +/**
+> + * struct isp_csiphy_lanes_cfg - CCP2/CSI2 lane configuration
+> + * @data: Configuration of one or two data lanes
+> + * @clk: Clock lane configuration
+> + */
+> +struct isp_csiphy_lanes_cfg {
+> +	struct isp_csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
+> +	struct isp_csiphy_lane clk;
+> +};
+> +
+> +/**
+>   * struct isp_ccp2_platform_data - CCP2 interface platform data
+>   * @strobe_clk_pol: Strobe/clock polarity
+>   *		0 - Non Inverted, 1 - Inverted
+> @@ -109,6 +132,7 @@ struct isp_ccp2_platform_data {
+>  	unsigned int ccp2_mode:1;
+>  	unsigned int phy_layer:1;
+>  	unsigned int vpclk_div:2;
+> +	struct isp_csiphy_lanes_cfg lanecfg;
+>  };
+> 
+>  /**
+> @@ -119,6 +143,7 @@ struct isp_ccp2_platform_data {
+>  struct isp_csi2_platform_data {
+>  	unsigned crc:1;
+>  	unsigned vpclk_div:2;
+> +	struct isp_csiphy_lanes_cfg lanecfg;
+>  };
+> 
+>  struct isp_subdev_i2c_board_info {
 
 -- 
-1.7.7.5
+Regards,
 
+Laurent Pinchart
