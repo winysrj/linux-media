@@ -1,61 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:40980 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752569Ab2APNEg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 08:04:36 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Oliver Neukum <oneukum@suse.de>
-Subject: Re: [RFC PATCH 1/3] v4l2-ctrls: fix ugly control name.
-Date: Mon, 16 Jan 2012 14:04:23 +0100
+Received: from cantor2.suse.de ([195.135.220.15]:50970 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752066Ab2APNJb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jan 2012 08:09:31 -0500
+From: Oliver Neukum <oneukum@suse.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [RFC PATCH 2/3] radio-keene: add a driver for the Keene FM Transmitter.
+Date: Mon, 16 Jan 2012 14:11:20 +0100
 Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
 	Jiri Kosina <jkosina@suse.cz>,
 	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1326716960-4424-1-git-send-email-hverkuil@xs4all.nl> <4f4e18b94612a34be98e2304a4d9b0cef74acd39.1326716517.git.hans.verkuil@cisco.com> <201201161400.00203.oneukum@suse.de>
-In-Reply-To: <201201161400.00203.oneukum@suse.de>
+References: <1326716960-4424-1-git-send-email-hverkuil@xs4all.nl> <201201161344.37499.oneukum@suse.de> <201201161402.06027.hverkuil@xs4all.nl>
+In-Reply-To: <201201161402.06027.hverkuil@xs4all.nl>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201161404.23328.hverkuil@xs4all.nl>
+Message-Id: <201201161411.20514.oneukum@suse.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 16 January 2012 14:00:00 Oliver Neukum wrote:
-> Am Montag, 16. Januar 2012, 13:29:18 schrieb Hans Verkuil:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
+Am Montag, 16. Januar 2012, 14:02:05 schrieb Hans Verkuil:
+> > > +/* Set frequency (if non-0), PA, mute and turn on/off the FM
+> > > transmitter. */ +static int keene_cmd_main(struct keene_device *radio,
+> > > unsigned freq, bool play) +{
+> > > +   unsigned short freq_send = freq ? (freq - 76 * 16000) / 800 : 0;
+> > > +   int ret;
+> > > +
+> > > +   radio->buffer[0] = 0x00;
+> > > +   radio->buffer[1] = 0x50;
+> > > +   radio->buffer[2] = (freq_send >> 8) & 0xff;
+> > > +   radio->buffer[3] = freq_send & 0xff;
 > > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> > 
-> >  drivers/media/video/v4l2-ctrls.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-ctrls.c
-> > b/drivers/media/video/v4l2-ctrls.c index da1f4c2..35316f9 100644
-> > --- a/drivers/media/video/v4l2-ctrls.c
-> > +++ b/drivers/media/video/v4l2-ctrls.c
-> > @@ -588,7 +588,7 @@ const char *v4l2_ctrl_get_name(u32 id)
-> > 
-> >  	case V4L2_CID_PILOT_TONE_ENABLED:	return "Pilot Tone Feature 
-Enabled";
-> >  	case V4L2_CID_PILOT_TONE_DEVIATION:	return "Pilot Tone Deviation";
-> >  	case V4L2_CID_PILOT_TONE_FREQUENCY:	return "Pilot Tone Frequency";
-> > 
-> > -	case V4L2_CID_TUNE_PREEMPHASIS:		return "Pre-emphasis 
-settings";
-> > +	case V4L2_CID_TUNE_PREEMPHASIS:		return "Pre-Emphasis";
-> > 
-> >  	case V4L2_CID_TUNE_POWER_LEVEL:		return "Tune Power Level";
-> >  	case V4L2_CID_TUNE_ANTENNA_CAPACITOR:	return "Tune Antenna 
-Capacitor";
+> > Please use the endianness macro appropriate here
 > 
-> This looks like generic code. What happens if a programm is looking for
-> this string?
+> I don't see any endianness issues here, but perhaps I missed something.
 
-User space can't rely on the name being constant. Perhaps in the future
-they can but not at the moment.
+You are doing the endianness conversion by hand. We have a nice macro
+for that that assures that special swapping cpu instructions will be used.
 
-Regards,
-
-	Hans
+	Regards
+		Oliver
