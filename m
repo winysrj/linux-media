@@ -1,347 +1,386 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48046 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752894Ab2AUQEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:46 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4j6h017803
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:46 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 29/35] [media] az6007: Protect read/write calls with a mutex
-Date: Sat, 21 Jan 2012 14:04:31 -0200
-Message-Id: <1327161877-16784-30-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-29-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
- <1327161877-16784-11-git-send-email-mchehab@redhat.com>
- <1327161877-16784-12-git-send-email-mchehab@redhat.com>
- <1327161877-16784-13-git-send-email-mchehab@redhat.com>
- <1327161877-16784-14-git-send-email-mchehab@redhat.com>
- <1327161877-16784-15-git-send-email-mchehab@redhat.com>
- <1327161877-16784-16-git-send-email-mchehab@redhat.com>
- <1327161877-16784-17-git-send-email-mchehab@redhat.com>
- <1327161877-16784-18-git-send-email-mchehab@redhat.com>
- <1327161877-16784-19-git-send-email-mchehab@redhat.com>
- <1327161877-16784-20-git-send-email-mchehab@redhat.com>
- <1327161877-16784-21-git-send-email-mchehab@redhat.com>
- <1327161877-16784-22-git-send-email-mchehab@redhat.com>
- <1327161877-16784-23-git-send-email-mchehab@redhat.com>
- <1327161877-16784-24-git-send-email-mchehab@redhat.com>
- <1327161877-16784-25-git-send-email-mchehab@redhat.com>
- <1327161877-16784-26-git-send-email-mchehab@redhat.com>
- <1327161877-16784-27-git-send-email-mchehab@redhat.com>
- <1327161877-16784-28-git-send-email-mchehab@redhat.com>
- <1327161877-16784-29-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:40435 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756621Ab2APVeA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jan 2012 16:34:00 -0500
+Received: by eaac11 with SMTP id c11so348726eaa.19
+        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2012 13:33:59 -0800 (PST)
+From: Sylwester Nawrocki <snjw23@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH/RFC][DRAFT] V4L: Add camera auto focus controls
+Date: Mon, 16 Jan 2012 22:33:42 +0100
+Message-Id: <1326749622-11446-1-git-send-email-sylvester.nawrocki@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will avoid interference with CI and IR I/O operations.
+The following auto focus controls are added:
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+ - V4L2_CID_AUTO_FOCUS_START - one-shot auto focus start
+ - V4L2_CID_AUTO_FOCUS_STOP -  one-shot auto focus start
+ - V4L2_CID_AUTO_FOCUS_STATUS - auto focus status
+ - V4L2_CID_AUTO_FOCUS_DISTANCE - auto focus scan reange selection
+ - V4L2_CID_AUTO_FOCUS_SELECTION - auto focus area selection
+ - V4L2_CID_AUTO_FOCUS_X_POSITION - horizontal AF spot position
+ - V4L2_CID_AUTO_FOCUS_Y_POSITION - vertical AF spot position
+ - V4L2_CID_AUTO_FOCUS_RECTANGLE_COUNT - number of AF statistics
+                                         rectangles
+ - V4L2_CID_AUTO_FOCUS_FACE_PRIORITY - enable/disable face priority
+                                       auto focus
+
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 ---
- drivers/media/dvb/dvb-usb/az6007.c |  122 ++++++++++++++++++------------------
- 1 files changed, 62 insertions(+), 60 deletions(-)
+Hello,
 
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index 534d326..6177332 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -53,17 +53,11 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- #define AZ6007_READ_IR		0xb4
- 
- struct az6007_device_state {
--	struct			dvb_ca_en50221 ca;
--	struct			mutex ca_mutex;
--	unsigned		warm : 1;
--
--	/* Due to DRX-K - probably need changes */
-+	struct mutex		mutex;
-+	struct dvb_ca_en50221	ca;
-+	unsigned		warm:1;
- 	int			(*gate_ctrl) (struct dvb_frontend *, int);
--	bool			tuner_attached;
--
- 	unsigned char		data[4096];
--
--	struct usb_data_stream *stream;
- };
- 
- static struct drxk_config terratec_h7_drxk = {
-@@ -107,8 +101,7 @@ static struct mt2063_config az6007_mt2063_config = {
- 	.refclock = 36125000,
- };
- 
--/* check for mutex FIXME */
--static int az6007_read(struct usb_device *udev, u8 req, u16 value,
-+static int __az6007_read(struct usb_device *udev, u8 req, u16 value,
- 			    u16 index, u8 *b, int blen)
- {
- 	int ret;
-@@ -130,7 +123,23 @@ static int az6007_read(struct usb_device *udev, u8 req, u16 value,
- 	return ret;
- }
- 
--static int az6007_write(struct usb_device *udev, u8 req, u16 value,
-+static int az6007_read(struct dvb_usb_device *d, u8 req, u16 value,
-+			    u16 index, u8 *b, int blen)
-+{
-+	struct az6007_device_state *st = d->priv;
-+	int ret;
+This is a draft of new Auto Focus controls, it incorporates comments
+from the previous discussions.
+
+I decided to drop the idea of of new pixel point control type for AF spot
+configuration, as the benefits from having it are minor comparing to the
+implementation efforts.
+
+Thanks,
+Sylwester
+---
+ Documentation/DocBook/media/v4l/controls.xml |  172 +++++++++++++++++++++++++-
+ drivers/media/video/v4l2-ctrls.c             |   44 +++++++-
+ include/linux/videodev2.h                    |   28 ++++
+ 3 files changed, 241 insertions(+), 3 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a1be378..1a5e90f 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -2798,13 +2798,181 @@ negative values towards infinity. This is a write-only control.</entry>
+ 	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_FOCUS_AUTO</constant>&nbsp;</entry>
+ 	    <entry>boolean</entry>
+-	  </row><row><entry spanname="descr">Enables automatic focus
+-adjustments. The effect of manual focus adjustments while this feature
++	  </row><row><entry spanname="descr">Enables continuous automatic
++focus adjustments. The effect of manual focus adjustments while this feature
+ is enabled is undefined, drivers should ignore such requests.</entry>
+ 	  </row>
+ 	  <row><entry></entry></row>
+
+ 	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUTO_FOCUS_START</constant>&nbsp;</entry>
++	    <entry>button</entry>
++	  </row><row><entry spanname="descr">Start single auto focus action.
++The effect of setting this control when <constant>V4L2_CID_FOCUS_AUTO</constant>
++is set to <constant>TRUE</constant> (1) is undefined, drivers should ignore
++such requests.</entry>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	if (mutex_lock_interruptible(&st->mutex) < 0)
-+		return -EAGAIN;
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUTO_FOCUS_STOP</constant>&nbsp;</entry>
++	    <entry>button</entry>
++	  </row><row><entry spanname="descr">Abort automatic focus started with
++<constant>V4L2_CID_AUTO_FOCUS_START</constant>. This control is effective only
++when the continuous automatic focus is disabled, i.e. <constant>
++V4L2_CID_FOCUS_AUTO</constant> control is set to <constant>FALSE</constant>
++(0).</entry>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	ret = __az6007_read(d->udev, req, value, index, b, blen);
++	  <row id="v4l2-auto-focus-status">
++	    <entry spanname="id">
++	      <constant>V4L2_CID_AUTO_FOCUS_STATUS</constant>&nbsp;</entry>
++	    <entry>enum&nbsp;v4l2_auto_focus_status</entry>
++	  </row>
++	  <row><entry spanname="descr">The automatic focus status. This is a read-only
++	  control.</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_STATUS_IDLE</constant>&nbsp;</entry>
++		  <entry>Automatic focus is inactive.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_STATUS_BUSY</constant>&nbsp;</entry>
++		  <entry>Automatic focusing is in progress and the focus is changing.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_STATUS_SUCCESS</constant>&nbsp;</entry>
++		  <entry>Automatic focus has completed or is continued successfully.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_STATUS_FAIL</constant>&nbsp;</entry>
++		  <entry>Automatic focus has failed.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	mutex_unlock(&st->mutex);
++	  <row id="v4l2-auto-focus-distance">
++	    <entry spanname="id">
++	      <constant>V4L2_CID_AUTO_FOCUS_DISTANCE</constant>&nbsp;</entry>
++	    <entry>enum&nbsp;v4l2_auto_focus_distance</entry>
++	  </row>
++	  <row><entry spanname="descr">The automatic focus distance range
++for which lens may be adjusted. </entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_DISTANCE_NORMAL</constant>&nbsp;</entry>
++		  <entry>The normal distance range of the camera. It is limited
++in order to achieve best auto focus performance.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_DISTANCE_MACRO</constant>&nbsp;</entry>
++		  <entry>Macro (close-up) auto focus distance range. The camera
++uses minimum possible distance, that it is capable of, for automatic focus.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_DISTANCE_INFINITY</constant>&nbsp;</entry>
++		  <entry>The camera is focused permanently at its farthest
++possible distance. This option is only supported by drivers that do not expose
++<constant>V4L2_CID_FOCUS_ABSOLUTE</constant> control.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	return ret;
-+}
++	  <row id="v4l2-auto-focus-selection">
++	    <entry spanname="id">
++	      <constant>V4L2_CID_AUTO_FOCUS_SELECTION</constant>&nbsp;</entry>
++	    <entry>enum&nbsp;v4l2_auto_focus_selection</entry>
++	  </row>
++	  <row><entry spanname="descr">This control determines which parts
++of an image frame are used for the auto focus statistics computation. It is
++valid for one-shot and continuous automatic focus. The effect of setting
++this control when <constant>V4L2_CID_AUTO_FOCUS_FACE_PRIORITY</constant>
++is set to <constant>TRUE</constant>(1) is undefined, drivers should ignore
++such requests.</entry>
++	  </row>
++	  <row>
++	    <entrytbl spanname="descr" cols="2">
++	      <tbody valign="top">
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_SELECTION_NORMAL</constant>&nbsp;</entry>
++		  <entry>Normal auto focus where an entire frame is used for
++the statistics computation.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_SELECTION_SPOT</constant>&nbsp;</entry>
++		  <entry>Focus on object within a frame specified by coordinates
++passed with <constant>V4L2_CID_AUTO_FOCUS_X_POSITION</constant> and <constant>
++V4L2_CID_AUTO_FOCUS_Y_POSITION</constant> controls. When these controls are not
++available the default point position is the center of a frame.</entry>
++		</row>
++		<row>
++		  <entry><constant>V4L2_AUTO_FOCUS_SELECTION_RECTANGLE</constant>&nbsp;</entry>
++		  <entry>The focus area is determined by one or more rectangles
++specified by means of the selection API. For more details on the windows selection
++see the <constant>V4L2_SELECTION_STAT_AF</constant> and <constant>
++V4L2_SUBDEV_SELECTION_STAT_AF</constant> selection targets description. The
++<constant>V4L2_CID_AUTO_FOCUS_RECTANGLE_COUNT</constant> control allows to
++determine an overall number of the selection rectangles.</entry>
++		</row>
++	      </tbody>
++	    </entrytbl>
++	  </row>
++	  <row><entry></entry></row>
 +
-+static int __az6007_write(struct usb_device *udev, u8 req, u16 value,
- 			     u16 index, u8 *b, int blen)
- {
- 	int ret;
-@@ -158,11 +167,29 @@ static int az6007_write(struct usb_device *udev, u8 req, u16 value,
- 	return 0;
- }
- 
-+static int az6007_write(struct dvb_usb_device *d, u8 req, u16 value,
-+			    u16 index, u8 *b, int blen)
-+{
-+	struct az6007_device_state *st = d->priv;
-+	int ret;
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUTO_FOCUS_X_POSITION
++	    </constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">Determine position of the spot
++in horizontal direction for <constant>V4L2_AUTO_FOCUS_SELECTION_SPOT</constant>
++auto focus. The unit is 1 pixel.</entry>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	if (mutex_lock_interruptible(&st->mutex) < 0)
-+		return -EAGAIN;
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUTO_FOCUS_Y_POSITION
++	    </constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">Determine position of the spot
++in verical direction for <constant>V4L2_AUTO_FOCUS_SELECTION_SPOT</constant>
++auto focus. The unit is 1 pixel.</entry>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	ret = __az6007_write(d->udev, req, value, index, b, blen);
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUTO_FOCUS_RECTANGLE_COUNT
++	    </constant>&nbsp;</entry>
++	    <entry>integer</entry>
++	  </row><row><entry spanname="descr">Specify number of the automatic
++focus statistics rectangles.</entry>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	mutex_unlock(&st->mutex);
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_AUTO_FOCUS_FACE_PRIORITY
++	    </constant>&nbsp;</entry>
++	    <entry>boolean</entry>
++	  </row><row><entry spanname="descr">Enable or disable face priority
++auto focus where the camera focus is driven by a face detection engine.
++When this control is set to <constant>TRUE</constant> (1) the <constant>
++V4L2_CID_AUTO_FOCUS_SELECTION</constant> control, if present, will be reset
++to <constant>V4L2_AUTO_FOCUS_SELECTION_NORMAL</constant> by the driver.
++</entry>
++	  </row>
++	  <row><entry></entry></row>
 +
-+	return ret;
-+}
++	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_ZOOM_ABSOLUTE</constant>&nbsp;</entry>
+ 	    <entry>integer</entry>
+ 	  </row><row><entry spanname="descr">Specify the objective lens
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index da1f4c2..59afd60 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -221,6 +221,26 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Aperture Priority Mode",
+ 		NULL
+ 	};
++	static const char * const camera_auto_focus_mode[] = {
++		"Auto Focus, Selection Normal",
++		"Auto Focus, Selection Spot",
++		"Auto Focus, Selection Rectangle",
++		NULL
++	};
++	static const char * const camera_auto_focus_status[] = {
++		"Auto Focus Status, Idle",
++		"Auto Focus Status, Busy",
++		"Auto Focus Status, Success",
++		"Auto Focus Status, Fail",
++		NULL
++	};
++	static const char * const camera_auto_focus_distance[] = {
++		"Auto Focus Distance, Normal",
++		"Auto Focus Distance, Macro",
++		"Auto Focus Distance, Infinity",
++		NULL
++	};
 +
- static int az6007_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
-+	struct dvb_usb_device *d = adap->dev;
+ 	static const char * const colorfx[] = {
+ 		"None",
+ 		"Black & White",
+@@ -388,6 +408,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		return camera_power_line_frequency;
+ 	case V4L2_CID_EXPOSURE_AUTO:
+ 		return camera_exposure_auto;
++	case V4L2_CID_AUTO_FOCUS_MODE:
++		return camera_auto_focus_mode;
++	case V4L2_CID_AUTO_FOCUS_DISTANCE:
++		return camera_auto_focus_distance;
++	case V4L2_CID_AUTO_FOCUS_STATUS:
++		return camera_auto_focus_status;
+ 	case V4L2_CID_COLORFX:
+ 		return colorfx;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+@@ -561,13 +587,22 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_TILT_ABSOLUTE:		return "Tilt, Absolute";
+ 	case V4L2_CID_FOCUS_ABSOLUTE:		return "Focus, Absolute";
+ 	case V4L2_CID_FOCUS_RELATIVE:		return "Focus, Relative";
+-	case V4L2_CID_FOCUS_AUTO:		return "Focus, Automatic";
++	case V4L2_CID_FOCUS_AUTO:		return "Focus, Automatic Continuous";
+ 	case V4L2_CID_ZOOM_ABSOLUTE:		return "Zoom, Absolute";
+ 	case V4L2_CID_ZOOM_RELATIVE:		return "Zoom, Relative";
+ 	case V4L2_CID_ZOOM_CONTINUOUS:		return "Zoom, Continuous";
+ 	case V4L2_CID_PRIVACY:			return "Privacy";
+ 	case V4L2_CID_IRIS_ABSOLUTE:		return "Iris, Absolute";
+ 	case V4L2_CID_IRIS_RELATIVE:		return "Iris, Relative";
++	case V4L2_CID_AUTO_FOCUS_START:		return "Auto Focus, Start";
++	case V4L2_CID_AUTO_FOCUS_STOP:		return "Auto Focus, Stop";
++	case V4L2_CID_AUTO_FOCUS_STATUS:	return "Auto Focus, Status";
++	case V4L2_CID_AUTO_FOCUS_DISTANCE:	return "Auto Focus, Distance";
++	case V4L2_CID_AUTO_FOCUS_SELECTION:	return "Auto Focus, Selection";
++	case V4L2_CID_AUTO_FOCUS_X_POSITION:	return "Auto Focus, Position X";
++	case V4L2_CID_AUTO_FOCUS_Y_POSITION:	return "Auto Focus, Position Y";
++	case V4L2_CID_AUTO_FOCUS_RECTANGLE_COUNT: return "Auto Focus, Rectangles Count";
++	case V4L2_CID_AUTO_FOCUS_FACE_PRIORITY:	return "Auto Focus, Face Priority";
+
+ 	/* FM Radio Modulator control */
+ 	/* Keep the order of the 'case's the same as in videodev2.h! */
+@@ -635,6 +670,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_PULLDOWN:
+ 	case V4L2_CID_EXPOSURE_AUTO_PRIORITY:
+ 	case V4L2_CID_FOCUS_AUTO:
++	case V4L2_CID_AUTO_FOCUS_FACE_PRIORITY:
+ 	case V4L2_CID_PRIVACY:
+ 	case V4L2_CID_AUDIO_LIMITER_ENABLED:
+ 	case V4L2_CID_AUDIO_COMPRESSION_ENABLED:
+@@ -659,6 +695,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_TILT_RESET:
+ 	case V4L2_CID_FLASH_STROBE:
+ 	case V4L2_CID_FLASH_STROBE_STOP:
++	case V4L2_CID_AUTO_FOCUS_START:
++	case V4L2_CID_AUTO_FOCUS_STOP:
+ 		*type = V4L2_CTRL_TYPE_BUTTON;
+ 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 		*min = *max = *step = *def = 0;
+@@ -680,6 +718,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_STREAM_TYPE:
+ 	case V4L2_CID_MPEG_STREAM_VBI_FMT:
+ 	case V4L2_CID_EXPOSURE_AUTO:
++	case V4L2_CID_AUTO_FOCUS_MODE:
++	case V4L2_CID_AUTO_FOCUS_DISTANCE:
++	case V4L2_CID_AUTO_FOCUS_STATUS:
+ 	case V4L2_CID_COLORFX:
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+ 	case V4L2_CID_FLASH_LED_MODE:
+@@ -770,6 +811,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 		*flags |= V4L2_CTRL_FLAG_WRITE_ONLY;
+ 		break;
+ 	case V4L2_CID_FLASH_STROBE_STATUS:
++	case V4L2_CID_AUTO_FOCUS_STATUS:
+ 	case V4L2_CID_FLASH_READY:
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY;
+ 		break;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 012a296..0808b12 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1662,6 +1662,34 @@ enum  v4l2_exposure_auto_type {
+ #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
+ #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
+
++#define V4L2_CID_AUTO_FOCUS_START		(V4L2_CID_CAMERA_CLASS_BASE+19)
++#define V4L2_CID_AUTO_FOCUS_STOP		(V4L2_CID_CAMERA_CLASS_BASE+20)
++#define V4L2_CID_AUTO_FOCUS_STATUS		(V4L2_CID_CAMERA_CLASS_BASE+21)
++enum v4l2_auto_focus_status {
++	V4L2_AUTO_FOCUS_STATUS_IDLE		= 0,
++	V4L2_AUTO_FOCUS_STATUS_BUSY		= 1,
++	V4L2_AUTO_FOCUS_STATUS_SUCCESS		= 2,
++	V4L2_AUTO_FOCUS_STATUS_FAIL		= 3,
++};
 +
- 	deb_info("%s: %s", __func__, onoff ? "enable" : "disable");
- 
--	return az6007_write(adap->dev->udev, 0xbc, onoff, 0, NULL, 0);
-+	return az6007_write(d, 0xbc, onoff, 0, NULL, 0);
- }
- 
- /* keys for the enclosed remote control */
-@@ -185,7 +212,7 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
- 	 */
- 	return 0;
- 
--	az6007_read(d->udev, AZ6007_READ_IR, 0, 0, key, 10);
-+	az6007_read(d, AZ6007_READ_IR, 0, 0, key, 10);
- 
- 	if (key[1] == 0x44) {
- 		*state = REMOTE_NO_KEY_PRESSED;
-@@ -218,7 +245,7 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
- static int az6007_read_mac_addr(struct dvb_usb_device *d, u8 mac[6])
- {
- 	int ret;
--	ret = az6007_read(d->udev, AZ6007_READ_DATA, 6, 0, mac, 6);
-+	ret = az6007_read(d, AZ6007_READ_DATA, 6, 0, mac, 6);
- 
- 	if (ret > 0)
- 		deb_info("%s: mac is %02x:%02x:%02x:%02x:%02x:%02x\n",
-@@ -228,18 +255,6 @@ static int az6007_read_mac_addr(struct dvb_usb_device *d, u8 mac[6])
- 	return ret;
- }
- 
--static int az6007_led_on_off(struct usb_interface *intf, int onoff)
--{
--	struct usb_device *udev = interface_to_usbdev(intf);
--	int ret;
--
--	/* TS through */
--	ret = az6007_write(udev, AZ6007_POWER, onoff, 0, NULL, 0);
--	if (ret < 0)
--		err("%s failed with error %d", __func__, ret);
--	return ret;
--}
--
- static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
- {
- 	struct az6007_device_state *st = adap->dev->priv;
-@@ -260,11 +275,6 @@ static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
- 
- static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
- {
--	struct az6007_device_state *st = adap->dev->priv;
--
--	if (st->tuner_attached)
--		return 0;
--
- 	deb_info("attaching tuner mt2063");
- 
- 	/* Attach mt2063 to DVB-C frontend */
-@@ -278,53 +288,45 @@ static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
- 	if (adap->fe_adap[0].fe->ops.i2c_gate_ctrl)
- 		adap->fe_adap[0].fe->ops.i2c_gate_ctrl(adap->fe_adap[0].fe, 0);
- 
--	st->tuner_attached = true;
--
- 	return 0;
- }
- 
- int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	struct az6007_device_state *st = d->priv;
--	struct usb_device *udev = d->udev;
- 	int ret;
- 
- 	deb_info("%s()\n", __func__);
- 
- 	if (!st->warm) {
--		u8 data[6];
-+		mutex_init(&st->mutex);
- 
--		az6007_read(udev, FX2_OED, 1, 0, data, 1); /* {0x01} */
--		az6007_read(udev, AZ6007_READ_DATA, 0, 8160, data, 1); /* {0x20} */
--		az6007_read(udev, AZ6007_READ_DATA, 0, 0, data, 5); /* {0x00, 0x00, 0x00, 0x00, 0x0a} */
--		az6007_read(udev, AZ6007_READ_DATA, 0, 4080, data, 6); /* {0x00, 0x08, 0x00, 0x0c, 0x22, 0x38} */
--
--		ret = az6007_write(udev, AZ6007_POWER, 0, 2, NULL, 0);
-+		ret = az6007_write(d, AZ6007_POWER, 0, 2, NULL, 0);
- 		if (ret < 0)
- 			return ret;
- 		msleep(60);
--		ret = az6007_write(udev, AZ6007_POWER, 1, 4, NULL, 0);
-+		ret = az6007_write(d, AZ6007_POWER, 1, 4, NULL, 0);
- 		if (ret < 0)
- 			return ret;
- 		msleep(100);
--		ret = az6007_write(udev, AZ6007_POWER, 1, 3, NULL, 0);
-+		ret = az6007_write(d, AZ6007_POWER, 1, 3, NULL, 0);
- 		if (ret < 0)
- 			return ret;
- 		msleep(20);
--		ret = az6007_write(udev, AZ6007_POWER, 1, 4, NULL, 0);
-+		ret = az6007_write(d, AZ6007_POWER, 1, 4, NULL, 0);
- 		if (ret < 0)
- 			return ret;
- 
- 		msleep(400);
--		ret = az6007_write(udev, FX2_SCON1, 0, 3, NULL, 0);
-+		ret = az6007_write(d, FX2_SCON1, 0, 3, NULL, 0);
- 		if (ret < 0)
- 			return ret;
- 		msleep (150);
--		ret = az6007_write(udev, FX2_SCON1, 1, 3, NULL, 0);
-+		ret = az6007_write(d, FX2_SCON1, 1, 3, NULL, 0);
- 		if (ret < 0)
- 			return ret;
- 		msleep (430);
--		ret = az6007_write(udev, AZ6007_POWER, 0, 0, NULL, 0);
-+		ret = az6007_write(d, AZ6007_POWER, 0, 0, NULL, 0);
- 		if (ret < 0)
- 			return ret;
- 
-@@ -336,8 +338,8 @@ int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
- 	if (!onoff)
- 		return 0;
- 
--	az6007_write(udev, AZ6007_POWER, 0, 0, NULL, 0);
--	az6007_write(udev, AZ6007_TS_THROUGH, 0, 0, NULL, 0);
-+	az6007_write(d, AZ6007_POWER, 0, 0, NULL, 0);
-+	az6007_write(d, AZ6007_TS_THROUGH, 0, 0, NULL, 0);
- 
- 	return 0;
- }
-@@ -355,7 +357,7 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
- 	int length;
- 	u8 req, addr;
- 
--	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
-+	if (mutex_lock_interruptible(&st->mutex) < 0)
- 		return -EAGAIN;
- 
- 	for (i = 0; i < num; i++) {
-@@ -379,7 +381,7 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
- 			value = addr | (1 << 8);
- 			length = 6 + msgs[i + 1].len;
- 			len = msgs[i + 1].len;
--			ret = az6007_read(d->udev, req, value, index, st->data,
-+			ret = __az6007_read(d->udev, req, value, index, st->data,
- 					       length);
- 			if (ret >= len) {
- 				for (j = 0; j < len; j++) {
-@@ -410,7 +412,7 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
- 				if (dvb_usb_az6007_debug & 2)
- 					printk(KERN_CONT "0x%02x ", st->data[j]);
- 			}
--			ret =  az6007_write(d->udev, req, value, index, st->data,
-+			ret =  __az6007_write(d->udev, req, value, index, st->data,
- 						 length);
- 		} else {
- 			/* read bytes */
-@@ -423,7 +425,7 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
- 			value = addr;
- 			length = msgs[i].len + 6;
- 			len = msgs[i].len;
--			ret = az6007_read(d->udev, req, value, index, st->data,
-+			ret = __az6007_read(d->udev, req, value, index, st->data,
- 					       length);
- 			for (j = 0; j < len; j++) {
- 				msgs[i].buf[j] = st->data[j + 5];
-@@ -438,7 +440,7 @@ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
- 			goto err;
- 	}
- err:
--	mutex_unlock(&d->i2c_mutex);
-+	mutex_unlock(&st->mutex);
- 
- 	if (ret < 0) {
- 		info("%s ERROR: %i", __func__, ret);
-@@ -465,16 +467,16 @@ int az6007_identify_state(struct usb_device *udev,
- 	u8 mac[6];
- 
- 	/* Try to read the mac address */
--	ret = az6007_read(udev, AZ6007_READ_DATA, 6, 0, mac, 6);
-+	ret = __az6007_read(udev, AZ6007_READ_DATA, 6, 0, mac, 6);
- 	if (ret == 6)
- 		*cold = 0;
- 	else
- 		*cold = 1;
- 
- 	if (*cold) {
--		az6007_write(udev, 0x09, 1, 0, NULL, 0);
--		az6007_write(udev, 0x00, 0, 0, NULL, 0);
--		az6007_write(udev, 0x00, 0, 0, NULL, 0);
-+		__az6007_write(udev, 0x09, 1, 0, NULL, 0);
-+		__az6007_write(udev, 0x00, 0, 0, NULL, 0);
-+		__az6007_write(udev, 0x00, 0, 0, NULL, 0);
- 	}
- 
- 	deb_info("Device is on %s state\n", *cold? "warm" : "cold");
-@@ -486,7 +488,7 @@ static struct dvb_usb_device_properties az6007_properties;
- static int az6007_usb_probe(struct usb_interface *intf,
- 			    const struct usb_device_id *id)
- {
--	az6007_led_on_off(intf, 0);
-+	struct usb_device *udev = interface_to_usbdev(intf);
- 
- 	return dvb_usb_device_init(intf, &az6007_properties,
- 				   THIS_MODULE, NULL, adapter_nr);
--- 
-1.7.8
++#define V4L2_CID_AUTO_FOCUS_DISTANCE		(V4L2_CID_CAMERA_CLASS_BASE+22)
++enum v4l2_auto_focus_distance {
++	V4L2_AUTO_FOCUS_DISTANCE_NORMAL		= 0,
++	V4L2_AUTO_FOCUS_DISTANCE_MACRO		= 1,
++	V4L2_AUTO_FOCUS_DISTANCE_INFINITY	= 2,
++};
++
++#define V4L2_CID_AUTO_FOCUS_SELECTION		(V4L2_CID_CAMERA_CLASS_BASE+23)
++enum v4l2_auto_focus_selection {
++	V4L2_AUTO_FOCUS_SELECTION_NORMAL	= 0,
++	V4L2_AUTO_FOCUS_SELECTION_SPOT		= 1,
++	V4L2_AUTO_FOCUS_SELECTION_RECTANGLE	= 2,
++};
++#define V4L2_CID_AUTO_FOCUS_X_POSITION		(V4L2_CID_CAMERA_CLASS_BASE+24)
++#define V4L2_CID_AUTO_FOCUS_Y_POSITION		(V4L2_CID_CAMERA_CLASS_BASE+25)
++#define V4L2_CID_AUTO_FOCUS_RECTANGLE_COUNT	(V4L2_CID_CAMERA_CLASS_BASE+26)
++#define V4L2_CID_AUTO_FOCUS_FACE_PRIORITY	(V4L2_CID_CAMERA_CLASS_BASE+27)
++
+ /* FM Modulator class control IDs */
+ #define V4L2_CID_FM_TX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_TX | 0x900)
+ #define V4L2_CID_FM_TX_CLASS			(V4L2_CTRL_CLASS_FM_TX | 1)
+--
+1.7.4.1
 
