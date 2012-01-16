@@ -1,256 +1,230 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:52225 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398Ab2ADKTR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 05:19:17 -0500
-Received: from epcpsbgm2.samsung.com (mailout1.samsung.com [203.254.224.24])
- by mailout1.samsung.com
- (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
- 2010)) with ESMTP id <0LX90019URBHZJJ0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 04 Jan 2012 19:19:15 +0900 (KST)
-Received: from AMDN157 ([106.116.48.215])
- by mmp1.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
- 64bit (built Sep  7 2010)) with ESMTPA id <0LX900HPJRBX7K60@mmp1.samsung.com>
- for linux-media@vger.kernel.org; Wed, 04 Jan 2012 19:19:14 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sakari Ailus' <sakari.ailus@iki.fi>
-Cc: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	=?iso-8859-1?Q?'Sebastian_Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED8C61C.3060404@redhat.com> <20111202135748.GO29805@valkosipuli.localdomain>
- <4ED901C9.2050109@redhat.com> <20111206143538.GD938@valkosipuli.localdomain>
- <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
- <20111209195440.GB1967@valkosipuli.localdomain>
- <003501ccb8b7$3617d800$a2478800$%debski@samsung.com>
- <20120101222928.GJ3677@valkosipuli.localdomain>
-In-reply-to: <20120101222928.GJ3677@valkosipuli.localdomain>
-Subject: RE: [RFC] Resolution change support in video codecs in v4l2
-Date: Wed, 04 Jan 2012 11:19:08 +0100
-Message-id: <009b01cccaca$4e9a2070$ebce6150$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-1
-Content-transfer-encoding: 8BIT
-Content-language: en-gb
+Received: from mx1.redhat.com ([209.132.183.28]:54310 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752906Ab2APC5W (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 15 Jan 2012 21:57:22 -0500
+Message-ID: <4F139205.8000303@redhat.com>
+Date: Mon, 16 Jan 2012 00:57:09 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
+References: <4F08385E.7050602@redhat.com> <4F0CAF53.3090802@iki.fi> <4F0CB512.7010501@redhat.com> <4F131CD8.2060602@iki.fi> <4F13312B.8060005@iki.fi> <4F13404D.2020001@redhat.com> <4F13495E.8030106@iki.fi> <4F136C5E.6020806@redhat.com>
+In-Reply-To: <4F136C5E.6020806@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-> From: 'Sakari Ailus' [mailto:sakari.ailus@iki.fi]
-> Sent: 01 January 2012 23:29
-decs in v4l2
+Em 15-01-2012 22:16, Mauro Carvalho Chehab escreveu:
+> Em 15-01-2012 19:47, Antti Palosaari escreveu:
+>> On 01/15/2012 11:08 PM, Mauro Carvalho Chehab wrote:
+>>> There was a bug at the error code handling on dvb-fe-tool: basically, if it can't open
+>>> a device, it were using a NULL pointer. It was likely fixed by this commit:
+>>>
+>>> http://git.linuxtv.org/v4l-utils.git/commit/1f669eed5433d17df4d8fb1fa43d2886f99d3991
+>>
+>> That bug was fixed as I tested.
+>>
+>> But could you tell why dvb-fe-tool --set-delsys=DVBC/ANNEX_A calls get_frontent() ?
 > 
-> Hi Kamil,
+> That's what happens here, at the application level:
 > 
-> Apologies for my later reply.
+> $ strace dvb-fe-tool -d DVBC/ANNEX_A
 > 
-> On Mon, Dec 12, 2011 at 11:17:06AM +0100, Kamil Debski wrote:
-> > > -----Original Message-----
-> > > From: 'Sakari Ailus' [mailto:sakari.ailus@iki.fi]
-> > > Sent: 09 December 2011 20:55
-> > > To: Kamil Debski
-> > > Cc: 'Mauro Carvalho Chehab'; linux-media@vger.kernel.org; 'Laurent
-> Pinchart';
-> > > 'Sebastian Dröge'; Sylwester Nawrocki; Marek Szyprowski
-> > > Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-> > >
-> > > Hi Kamil,
-> > >
-> > > On Tue, Dec 06, 2011 at 04:03:33PM +0100, Kamil Debski wrote:
-> > > ...
-> > > > > > >The user space still wants to be able to show these buffers, so a
-> new
-> > > > > flag
-> > > > > > >would likely be required --- V4L2_BUF_FLAG_READ_ONLY, for example.
-> > > > > >
-> > > > > > Huh? Assuming a capture device, when kernel makes a buffer
-> available
-> > > to
-> > > > > userspace,
-> > > > > > kernel should not touch on it anymore (not even for read -
-> although
-> > > > > reading from
-> > > > > > it probably won't cause any issues, as video applications in
-> general
-> > > don't
-> > > > > write
-> > > > > > into those buffers). The opposite is true for output devices: once
-> > > > > userspace fills it,
-> > > > > > and queues, it should not touch that buffer again.
-> > > > > >
-> > > > > > This is part of the queue/dequeue logic. I can't see any need for
-> an
-> > > extra
-> > > > > > flag to explicitly say that.
-> > > > >
-> > > > > There is a reason to do so. An example of this is below. The
-> > > > > memory-to-memory device has two queues, output can capture. A video
-> > > decoder
-> > > > > memory-to-memory device's output queue handles compressed video and
-> the
-> > > > > capture queue provides the application decoded frames.
-> > > > >
-> > > > > Certain frames in the stream are key frames, meaning that the
-> decoding
-> > > of
-> > > > > the following non-key frames requires access to the key frame. The
-> > > number of
-> > > > > non-key frame can be relatively large, say 16, depending on the
-> codec.
-> > > > >
-> > > > > If the user should wait for all the frames to be decoded before the
-> key
-> > > > > frame can be shown, then either the key frame is to be skipped or
-> > > delayed.
-> > > > > Both of the options are highly undesirable.
-> > > >
-> > > > I don't think that such a delay is worrisome. This is only initial
-> delay.
-> > > > The hw will process these N buffers and after that it works exactly
-> the
-> > > same
-> > > > as it would without the delay in terms of processing time.
-> > >
-> > > Well, yes, but consider that the decoder also processes key frames when
-> the
-> > > decoding is in progress. The dequeueing of the key frames (and any
-> further
-> > > frames as long as the key frame is needed by the decoder) will be
-> delayed
-> > > until the key frame is no longer required.
-> > >
-> > > You need extra buffers to cope with such a situation, and in the worst
-> case,
-> > > or when the decoder is just as fast as you want to show the frames on
-> the
-> > > display, you need double the amount of buffers compared to what you'd
-> really
-> > > need for decoding. To make matters worse, this tends to happen at
-> largest
-> > > resolutions.
-> > >
-> > > I think we'd like to avoid this.
-> >
-> > I really, really, don’t see why you say that we would need double the
-> number of
-> > buffers?
-> >
-> > Let's suppose that the stream may reference 2 previous frames.
-> >
-> > Frame number:     123456789ABCDEF
-> > Returned frame:     123456789ABCDEF
-> > Buffers returned:   123123123123... (in case we have only 3 buffers)
-> >
-> > See? After we decode frame number 3 we can return frame number 3. Thus we
-> need
-> > minimum of 3 buffers. If we want to have 4 for simultaneous the use of
-> > application
-> > we allocate 7.
-> >
-> > The current codec handling system has been build on the following
-> assumptions:
-> > - the buffers should be dequeued in order
-> > - the buffers should be only dequeued when they are no longer is use
+> open("/dev/dvb/adapter0/frontend0", O_RDWR) = 3
+> ioctl(3, FE_GET_INFO, 0xb070c4)         = 0
+> fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 2), ...}) = 0
+> mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f37922be000
+> write(1, "Device DRXK DVB-C DVB-T (/dev/dv"..., 68Device DRXK DVB-C DVB-T (/dev/dvb/adapter0/frontend0) capabilities:
+> ) = 68
+> write(1, "\tCAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC"..., 245	CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_32 CAN_QAM_64 CAN_QAM_128 CAN_QAM_256 CAN_RECOVER CAN_TRANSMISSION_MODE_AUTO 
+> ) = 245
+> ioctl(3, FE_GET_PROPERTY, 0x7fff326ce310) = 0
+> write(1, "DVB API Version 5.5, Current v5 "..., 54DVB API Version 5.5, Current v5 delivery system: DVBT
+> ) = 54
+> ioctl(3, FE_GET_PROPERTY, 0x7fff326ce310) = 0
+> write(1, "Supported delivery systems: DVBC"..., 62Supported delivery systems: DVBC/ANNEX_A DVBC/ANNEX_C [DVBT] 
+> ) = 62
+> write(1, "Changing delivery system to: DVB"..., 42Changing delivery system to: DVBC/ANNEX_A
+> ) = 42
+> ioctl(3, FE_SET_PROPERTY, 0x7fff326ce340) = 0
+> close(3)                                = 0
+> exit_group(0)                           = ?
 > 
-> What does "in use" mean to you? Both read and write, or just read?
-
-In use means both read and write in this context.
-
-> Assume frame 1 is required to decode frames 2 and 3.
 > 
-> If we delay dequeueing of te first of the above three frames since the codec
-> accesses it for reading, we will also delay dequeueing of any subsequent
-> frames until the first frame is decoded. If this is repeated, and assuming
-> the speed of the decoder is the same as playback of those frames, the player
-> will require a minimum of six frames to cope with the uneven time interval
-> the decoder will be able to give those frames to the player. Otherwise, only
-> three frames would be enough.
-
-Why six frames?
-
-Why "the uneven time interval the decoder will be able to give those frames to
-the player"?
-
-If you look again here
-
-> > Frame number:     123456789ABCDEF
-> > Returned frame:     123456789ABCDEF
-> > Buffers returned:   123123123123... (in case we have only 3 buffers)
-
-You can see that with 3 buffers you get a constant delay of 2 frames. In most
-cases (and
-I am just dropping the cases when you feed the coded with compressed slices and
-not whole frames) you queue one source stream frame and you get one decoded
-frame.
-Simple as that.
-
+> The first FE_GET_PROPERTY reads the DVB API version and the current delivery
+> system:
 > 
-> > This takes care of the delay related problems by requiring more buffers.
-> > You have an initial delay then the frames are returned with a constant
-> rate.
-> >
-> > Dequeuing of any frame will be delayed until it is no longer used - it
-> doesn't
-> > matter whether it is a key (I) frame, P frame o r a B frame. Actually B
-> frames
-> > shouldn't be used as reference. Usually a frame is referencing only 2-3
-> previous
-> > and maybe 1 ahead (for B-frames) frames and they don't need to be I-frames.
-> Still
-> > the interval between I-frames may be 16 or even many, many, more.
+> 	parms->dvb_prop[0].cmd = DTV_API_VERSION;
+> 	parms->dvb_prop[1].cmd = DTV_DELIVERY_SYSTEM;
 > 
-> Considering it can be 16 or even more, I see even more reason in returning
-> frames when hardware only reads them.
-
-It can be 31337 P-frames after an I-frame but it doesn't matter, as the codec
-will never ever need more than X frames for reference. Usually the X is small, 
-like 2-3. I have never seen a number as high as 16. After this X frames are
-processed
-and kept it will allow to dequeue frames with no additional delay.
-This is a CONSTANT delay. 
-
-P-frames are equally good as reference as I-frames. No need to keep the I-frame
-for an indefinite time.
-
-In other words: interval between I-frames is NOT the number of buffers that
-have to be kept as reference.
-
+> 	dtv_prop.num = 2;
+> 	dtv_prop.props = parms->dvb_prop;
 > 
-> I'm not against making it configurable for the user, keeping the traditional
-> behaviour could be beneficial as well if the user wishes to further precess
-> the frames in-place.
-
-I am not saying you are. I just totally don't understand some of your statements
-and the numbers you have come up with.
-(the ones next to two big "Why?" question for example).
-
+> 	/* Detect a DVBv3 device */
+> 	if (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
+> 		parms->dvb_prop[0].u.data = 0x300;
+> 		parms->dvb_prop[1].u.data = SYS_UNDEFINED;
+> 	}
+> 	parms->version = parms->dvb_prop[0].u.data;
+> 	parms->current_sys = parms->dvb_prop[1].u.data;
 > 
+> The second FE_GET_PROPERTY is used only if DVB API v5.5 or upper is detected,
+> and does:
+> 
+> 		parms->dvb_prop[0].cmd = DTV_ENUM_DELSYS;
+> 		parms->n_props = 1;
+> 		dtv_prop.num = 1;
+> 		dtv_prop.props = parms->dvb_prop;
+> 		if (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
+> 			perror("FE_GET_PROPERTY");
+> 			dvb_v5_free(parms);
+> 			close(fd);
+> 			return NULL;
+> 		}
+> 
+> Both were called inside dvb_fe_open().
+> 
+> The FE_SET_PROPERTY changes the property inside the DVBv5 cache,
+> at dvb_set_sys():
+> 
+> 		dvb_prop[0].cmd = DTV_DELIVERY_SYSTEM;
+> 		dvb_prop[0].u.data = sys;
+> 		prop.num = 1;
+> 		prop.props = dvb_prop;
+> 
+> 		if (ioctl(parms->fd, FE_SET_PROPERTY, &prop) == -1) {
+> 			perror("Set delivery system");
+> 			return errno;
+> 		}
+> 
+> The FE_SET_PROPERTY doesn't call a DTV_TUNE, so it shouldn't be calling the
+> set frontend methods inside the driver.
+> 
+> So, from the userspace applications standpoint, I'm not seeing anything wrong.
+> 
+>> That will cause this kind of calls in demod driver:
+>> init()
+>> get_frontend()
+>> get_frontend()
+>> sleep()
+>>
+>> My guess is that it resolves current delivery system. But as demod is usually sleeping (not tuned) at that phase it does not know frontend settings asked, like modulation etc. In case of cxd2820r those are available after set_frontend() call. I think I will add check and return -EINVAL in that case.
+> 
+> 
+> What seems to be happening at dvb-core/dvb_frontend.h is due to this code:
+> 
+> if(cmd == FE_GET_PROPERTY) {
 > ...
+>                 /*
+>                  * Fills the cache out struct with the cache contents, plus
+>                  * the data retrieved from get_frontend.
+>                  */
+>                 dtv_get_frontend(fe, NULL);
+>                 for (i = 0; i < tvps->num; i++) {
+>                         err = dtv_property_process_get(fe, c, tvp + i, file);
+>                         if (err < 0)
+>                                 goto out;
+>                         (tvp + i)->result = err;
+>                 }
 > 
-> > Anyway I can definitely recommend the book "H.264 and MPEG-4 video
-> compression:
-> > Video coding for next-generation multimedia" by Iain E.G. Richardson. It
-> is a
-> > good
-> > book about video coding and modern codecs with many things explained. It
-> would
-> > help
-> > to get you around with codecs and could answer many of your questions.
-> > http://www.amazon.com/H-264-MPEG-4-Video-Compression-
-> Generation/dp/0470848375
+> E. g. even if the FE_GET_PROPERTY is only reading the DVB version and calling
+> DTV_ENUM_DELSYS, it is calling the dtv_get_frontend() to retrieve more data.
 > 
-> Thanks for the pointer.
+> What it can be done is to do something like:
+> 
+> static bool need_get_frontend()
+> {
+> ...
+> 	for (i = 0; i < tvps->num; i++)
+> ...
+> }
+> 
+> 		if (need_get_frontend(tvps))
+> 	                dtv_get_frontend(fe, NULL);
+>                 for (i = 0; i < tvps->num; i++) {
+>                         err = dtv_property_process_get(fe, c, tvp + i, file);
+>                         if (err < 0)
+>                                 goto out;
+>                         (tvp + i)->result = err;
+>                 }
+> 
+> And add some logic inside need_get_frontend() to return false if the
+> FE_GET_PROPERTY only wants static info, like DTV_ENUM_DELSYS, DTV_VERSION
+> and DTV_DELIVERY_SYSTEM.
 
-You're welcome.
+The enclosed patch should do the trick
 
---
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
+-
+[PATCH RFC] Don't call get_frontend() if not needed
 
+If the frontend is in idle state, or a FE_GET_PROPERTY is called
+for reading the enumsys, api version or delivery system, don't
+call the frontend, as it is not needed.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+PS.: There's one extra printk here for test purposes. Of course, this should
+be removed at the final version.
+
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index f5fa7aa..3c80c92 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -1234,6 +1234,8 @@ static int dtv_get_frontend(struct dvb_frontend *fe,
+ {
+ 	int r;
+ 
++printk("%s()\n", __func__);
++
+ 	if (fe->ops.get_frontend) {
+ 		r = fe->ops.get_frontend(fe);
+ 		if (unlikely(r < 0))
+@@ -1739,12 +1741,35 @@ static int dvb_frontend_ioctl(struct file *file,
+ 	return err;
+ }
+ 
++static bool need_get_frontend_call(struct dtv_properties *tvps,
++				   struct dtv_property *tvp)
++{
++	int i;
++
++	/*
++	 * If the DTV command is just informational or cache read,
++	 * don't bother to call the frontend to handle.
++	 */
++	for (i = 0; i < tvps->num; i++) {
++		switch(tvp->cmd) {
++		case DTV_ENUM_DELSYS:
++	        case DTV_DELIVERY_SYSTEM:
++		case DTV_API_VERSION:
++			break;
++		default:
++			return true;
++		}
++	}
++	return false;
++}
++
+ static int dvb_frontend_ioctl_properties(struct file *file,
+ 			unsigned int cmd, void *parg)
+ {
+ 	struct dvb_device *dvbdev = file->private_data;
+ 	struct dvb_frontend *fe = dvbdev->priv;
+ 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
++	struct dvb_frontend_private *fepriv = fe->frontend_priv;
+ 	int err = 0;
+ 
+ 	struct dtv_properties *tvps = NULL;
+@@ -1812,7 +1837,8 @@ static int dvb_frontend_ioctl_properties(struct file *file,
+ 		 * Fills the cache out struct with the cache contents, plus
+ 		 * the data retrieved from get_frontend.
+ 		 */
+-		dtv_get_frontend(fe, NULL);
++		if (need_get_frontend_call(tvps, tvp) && fepriv->state != FESTATE_IDLE)
++			dtv_get_frontend(fe, NULL);
+ 		for (i = 0; i < tvps->num; i++) {
+ 			err = dtv_property_process_get(fe, c, tvp + i, file);
+ 			if (err < 0)
