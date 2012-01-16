@@ -1,40 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:57212 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751810Ab2ABKpK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 05:45:10 -0500
-Received: by wibhm6 with SMTP id hm6so8292622wib.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Jan 2012 02:45:09 -0800 (PST)
+Received: from nm24-vm0.bullet.mail.ird.yahoo.com ([212.82.109.239]:37462 "HELO
+	nm24-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1750740Ab2APFoN convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jan 2012 00:44:13 -0500
+Message-ID: <1326692239.13275.YahooMailNeo@web24611.mail.ird.yahoo.com>
+Date: Mon, 16 Jan 2012 05:37:19 +0000 (GMT)
+From: pom pem <toufas2003@yahoo.gr>
+Reply-To: pom pem <toufas2003@yahoo.gr>
+Subject: driver needed
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-In-Reply-To: <1323962729-5689-1-git-send-email-m.szyprowski@samsung.com>
-References: <201112120024.04418.laurent.pinchart@ideasonboard.com>
-	<1323962729-5689-1-git-send-email-m.szyprowski@samsung.com>
-Date: Mon, 2 Jan 2012 11:45:09 +0100
-Message-ID: <CACKLOr1noPCG4yW4drZ6Y=tmkqrzaBOF8k_7QJfFwDqV370RaA@mail.gmail.com>
-Subject: Re: [PATCH] media: vb2: vmalloc-based allocator user pointer handling
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=iso-8859-7
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-what is the status of this patch? Did you finally merge it in any tree?
+Hi
 
-I am willing to extend it so that it can support pfn mappings as soon
-as it's ready.
+ I have this usb tv card called pixelview playtv usb2 pro
+ I have made a lot of attempts to install it on various linux kernel and systems but no lack till now
+ this card has the following specs
+ 
+ 
+ model No    pv-tv309U+
+ 
+ ID              05e3:f102 Genesys Logic, Inc. VX7012 TV Box
+ idProduct    0xf102 VX7012 TV Box 
+ 
+ 
+ is there any driver that supports this card??
+ can I do anything to make it work on linux??
+ My current linux distro is avlinux 5.0.2
+Thank you in advance
+Pom
 
-Thank you.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
