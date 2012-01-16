@@ -1,339 +1,287 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57443 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758477Ab2AFLnh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 06:43:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 06/17] v4l: Add selections documentation.
-Date: Fri, 6 Jan 2012 12:43:55 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1324412889-17961-6-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:47832 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754031Ab2APQo2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 16 Jan 2012 11:44:28 -0500
+Received: by wgbdq11 with SMTP id dq11so890465wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2012 08:44:27 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: [PATCH RFCv2] add DTMB support for DVB API
+Date: Mon, 16 Jan 2012 17:44:21 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Andreas Oberritter <obi@linuxtv.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <4F119FC4.3090103@iki.fi>
+In-Reply-To: <4F119FC4.3090103@iki.fi>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-15"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201061243.56158.laurent.pinchart@ideasonboard.com>
+Message-Id: <201201161744.21618.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Thanks for the patch.
-
-On Tuesday 20 December 2011 21:27:58 Sakari Ailus wrote:
-
-[snip]
-
-> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
-> b/Documentation/DocBook/media/v4l/dev-subdev.xml index 0916a73..722db60
-> 100644
-> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
-
-[snip]
-
-> @@ -288,26 +288,81 @@
-
-[snip]
-
-> +      <para>Scaling operation changes the size of the image by scaling
-> +      it to new dimensions. Some sub-devices support it. The scaled
-> +      size (width and height) is represented by &v4l2-rect;. In the
-> +      case of scaling, top and left will always be zero. Scaling is
-> +      configured using &sub-subdev-g-selection; and
-> +      <constant>V4L2_SUBDEV_SEL_COMPOSE_ACTIVE</constant> selection
-> +      target on the sink pad of the subdev. The scaling is performed
-> +      related to the width and height of the crop rectangle on the
-> +      subdev's sink pad.</para>
-> +
-> +      <para>As for pad formats, drivers store try and active
-> +      rectangles for the selection targets of ACTIVE type <xref
-> +      linkend="v4l2-subdev-selection-targets">.</xref></para>
-> +
-> +      <para>On sink pads, cropping is applied relatively to the
-> +      current pad format. The pad format represents the image size as
-> +      received by the sub-device from the previous block in the
-> +      pipeline, and the crop rectangle represents the sub-image that
-> +      will be transmitted further inside the sub-device for
-> +      processing.</para>
-> +
-> +      <para>On source pads, cropping is similar to sink pads, with the
-> +      exception that the source size from which the cropping is
-> +      performed, is the COMPOSE rectangle on the sink pad. In both
-> +      sink and source pads, the crop rectangle must be entirely
-> +      containted inside the source image size for the crop
-> +      operation.</para>
-> +
-> +      <para>The drivers should always use the closest possible
-> +      rectangle the user requests on all selection targets, unless
-> +      specificly told otherwise<xref
-> +      linkend="v4l2-subdev-selection-flags">.</xref></para>
-> +    </section>
-
-This sounds a bit confusing to me. One issue is that composing is not formally 
-defined. I think it would help if you could draw a diagram that shows how the 
-operations are applied, and modify the text to describe the diagram, using the 
-natural order of the compose and crop operations on sink and source pads.
-
-> +    <section>
-> +      <title>Order of configuration and format propagation</title>
-> +
-> +      <para>The order of image processing steps will always be from
-> +      the sink pad towards the source pad. This is also reflected in
-> +      the order in which the configuration must be performed by the
-> +      user. The format is propagated within the subdev along the later
-> +      processing steps. For example, setting the sink pad format
-> +      causes all the selection rectangles and the source pad format to
-> +      be set to sink pad format --- if allowed by the hardware, and if
-> +      not, then closest possible. The coordinates to a step always
-> +      refer to the active size of the previous step.</para>
-
-This also sounds a bit ambiguous if I try to ignore the fact that I know how 
-it works :-) You should at least make it explicit that propagation inside 
-subdevs is performed by the driver(s), and that propagation outside subdevs is 
-to be handled by userspace.
-
-> +      <orderedlist>
-> +	<listitem>Sink pad format. The user configures the sink pad
-> +	format. This format defines the parameters of the image the
-> +	entity receives through the pad for further processing.</listitem>
+On Saturday 14 January 2012 16:31:16 Antti Palosaari wrote:
+> Version 2. I have made some changes from feedback got and
+> what I myself found better. I will add documentation later
+> after API issues are resolved.
+> Thanks to Andreas, Patrick and Mauro.
 > 
-> -      <para>Cropping behaviour on output pads is not defined.</para>
-> +	<listitem>Sink pad active crop selection. The sink pad crop
-> +	defines the performed to the sink pad format.</listitem>
+> Cc: Patrick Boettcher <pboettcher@kernellabs.com>
+> Cc: Andreas Oberritter <obi@linuxtv.org>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Antti Palosaari <crope@iki.fi>
+> ---
+>   drivers/media/dvb/dvb-core/dvb_frontend.c |   14 +++++++++++---
+>   drivers/media/dvb/dvb-core/dvb_frontend.h |    2 ++
+>   drivers/media/dvb/frontends/atbm8830.c    |    2 +-
+>   drivers/media/dvb/frontends/lgs8gl5.c     |    2 +-
+>   drivers/media/dvb/frontends/lgs8gxx.c     |    2 +-
+>   include/linux/dvb/frontend.h              |   22
+> +++++++++++++++++++--- include/linux/dvb/version.h               |  
+>  2 +-
+>   7 files changed, 36 insertions(+), 10 deletions(-)
 > 
-> +	<listitem>Sink pad active compose selection. The sink pad compose
-> +	rectangle defines the scaling ratio compared to the size of
-> +	the sink pad crop rectangle.</listitem>
-> +
-> +	<listitem>Source pad active crop selection. Crop on the source
-> +	pad defines crop performed to the image scaled according to
-> +	the sink pad compose rectangle.</listitem>
-> +
-> +	<listitem>Source pad active compose selection. The source pad
-> +	compose defines the size and location of the compose
-> +	rectangle.</listitem>
-> +
-> +	<listitem>Source pad format. The source pad format defines the
-> +	output pixel format of the subdev, as well as the other
-> +	parameters with the exception of the image width and
-> +	height.</listitem>
-> +
-> +      </orderedlist>
->      </section>
-> +
->    </section>
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> index b15db4f..abdc203 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+> @@ -177,7 +177,7 @@ static enum dvbv3_emulation_type dvbv3_type(u32
+> delivery_system)
+>   	case SYS_DVBT:
+>   	case SYS_DVBT2:
+>   	case SYS_ISDBT:
+> -	case SYS_DMBTH:
+> +	case SYS_DTMB:
+>   		return DVBV3_OFDM;
+>   	case SYS_ATSC:
+>   	case SYS_DVBC_ANNEX_B:
+> @@ -989,6 +989,7 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND
+> + 1] = {
+>   	_DTV_CMD(DTV_CODE_RATE_LP, 1, 0),
+>   	_DTV_CMD(DTV_GUARD_INTERVAL, 1, 0),
+>   	_DTV_CMD(DTV_TRANSMISSION_MODE, 1, 0),
+> +	_DTV_CMD(DTV_INTERLEAVING, 1, 0),
 > 
->    &sub-subdev-formats;
-
-[snip]
-
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-> b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml new file
-> mode 100644
-> index 0000000..5fbcd65
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-selection.xml
-> @@ -0,0 +1,226 @@
-
-[snip]
-
-> +  <refsect1>
-> +    <title>Description</title>
+>   	_DTV_CMD(DTV_ISDBT_PARTIAL_RECEPTION, 1, 0),
+>   	_DTV_CMD(DTV_ISDBT_SOUND_BROADCASTING, 1, 0),
+> @@ -1039,6 +1040,7 @@ static struct dtv_cmds_h
+> dtv_cmds[DTV_MAX_COMMAND + 1] = {
+>   	_DTV_CMD(DTV_GUARD_INTERVAL, 0, 0),
+>   	_DTV_CMD(DTV_TRANSMISSION_MODE, 0, 0),
+>   	_DTV_CMD(DTV_HIERARCHY, 0, 0),
+> +	_DTV_CMD(DTV_INTERLEAVING, 0, 0),
+> 
+>   	_DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
+>   };
+> @@ -1316,6 +1318,9 @@ static int dtv_property_process_get(struct
+> dvb_frontend *fe,
+>   	case DTV_HIERARCHY:
+>   		tvp->u.data = c->hierarchy;
+>   		break;
+> +	case DTV_INTERLEAVING:
+> +		tvp->u.data = c->interleaving;
+> +		break;
+> 
+>   	/* ISDB-T Support here */
+>   	case DTV_ISDBT_PARTIAL_RECEPTION:
+> @@ -1503,7 +1508,7 @@ static int set_delivery_system(struct
+> dvb_frontend *fe, u32 desired_system)
+>   	 * The DVBv3 or DVBv5 call is requesting a different system. So,
+>   	 * emulation is needed.
+>   	 *
+> -	 * Emulate newer delivery systems like ISDBT, DVBT and DMBTH
+> +	 * Emulate newer delivery systems like ISDBT, DVBT and DTMB
+>   	 * for older DVBv5 applications. The emulation will try to use
+>   	 * the auto mode for most things, and will assume that the desired
+>   	 * delivery system is the last one at the ops.delsys[] array
+> @@ -1625,6 +1630,9 @@ static int dtv_property_process_set(struct
+> dvb_frontend *fe,
+>   	case DTV_HIERARCHY:
+>   		c->hierarchy = tvp->u.data;
+>   		break;
+> +	case DTV_INTERLEAVING:
+> +		c->interleaving = tvp->u.data;
+> +		break;
+> 
+>   	/* ISDB-T Support here */
+>   	case DTV_ISDBT_PARTIAL_RECEPTION:
+> @@ -1896,7 +1904,7 @@ static int dtv_set_frontend(struct dvb_frontend
+> *fe) case SYS_DVBT:
+>   		case SYS_DVBT2:
+>   		case SYS_ISDBT:
+> -		case SYS_DMBTH:
+> +		case SYS_DTMB:
+>   			fepriv->min_delay = HZ / 20;
+>   			fepriv->step_size = fe->ops.info.frequency_stepsize * 2;
+>   			fepriv->max_drift = (fe->ops.info.frequency_stepsize * 2) + 
+1;
+> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h
+> b/drivers/media/dvb/dvb-core/dvb_frontend.h
+> index d63a821..fb2d57c 100644
+> --- a/drivers/media/dvb/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
+> @@ -353,6 +353,8 @@ struct dtv_frontend_properties {
+> 
+>   	fe_delivery_system_t	delivery_system;
+> 
+> +	fe_interleaving_t       interleaving;
 > +
-> +    <note>
-> +      <title>Experimental</title>
-> +      <para>This is an <link linkend="experimental">experimental</link>
-> +      interface and may change in the future.</para>
-> +    </note>
-> +
-> +    <para>The selections are used to configure various image
-> +    processing functionality performed by the subdevs which affect the
-> +    image size. This currently includes cropping, scaling and
-> +    composition.</para>
-> +
-> +    <para>The selections replace the crop API &sub-subdev-g-crop;. All
-> +    the function of the crop API, and more, are supported by the
-> +    selections API.</para>
-> +
-> +    <para>See <xref linkend="subdev">Sub-device interface</xref> for
-> +    more information on how each selection target affects the image
-> +    processing pipeline inside the subdevice.</para>
-> +
-> +    <section>
-> +      <title>Types of selection targets</title>
-> +
-> +      <para>The are four types of selection targets: active, default,
-> +      bounds and padding. The ACTIVE targets are the targets which
-> +      configure the hardware. The DEFAULT target provides the default
-> +      for the ACTIVE selection. The BOUNDS target will return the
-> +      maximum width and height of the target.
+>   	/* ISDB-T specifics */
+>   	u8			isdbt_partial_reception;
+>   	u8			isdbt_sb_mode;
+> diff --git a/drivers/media/dvb/frontends/atbm8830.c
+> b/drivers/media/dvb/frontends/atbm8830.c
+> index a2261ea..4e11dc4 100644
+> --- a/drivers/media/dvb/frontends/atbm8830.c
+> +++ b/drivers/media/dvb/frontends/atbm8830.c
+> @@ -428,7 +428,7 @@ static int atbm8830_i2c_gate_ctrl(struct
+> dvb_frontend *fe, int enable)
+>   }
+> 
+>   static struct dvb_frontend_ops atbm8830_ops = {
+> -	.delsys = { SYS_DMBTH },
+> +	.delsys = { SYS_DTMB },
+>   	.info = {
+>   		.name = "AltoBeam ATBM8830/8831 DMB-TH",
+>   		.frequency_min = 474000000,
+> diff --git a/drivers/media/dvb/frontends/lgs8gl5.c
+> b/drivers/media/dvb/frontends/lgs8gl5.c
+> index 2cec804..416cce3 100644
+> --- a/drivers/media/dvb/frontends/lgs8gl5.c
+> +++ b/drivers/media/dvb/frontends/lgs8gl5.c
+> @@ -412,7 +412,7 @@ EXPORT_SYMBOL(lgs8gl5_attach);
+> 
+> 
+>   static struct dvb_frontend_ops lgs8gl5_ops = {
+> -	.delsys = { SYS_DMBTH },
+> +	.delsys = { SYS_DTMB },
+>   	.info = {
+>   		.name			= "Legend Silicon LGS-8GL5 DMB-TH",
+>   		.frequency_min		= 474000000,
+> diff --git a/drivers/media/dvb/frontends/lgs8gxx.c
+> b/drivers/media/dvb/frontends/lgs8gxx.c
+> index 4de1d35..333fd6d 100644
+> --- a/drivers/media/dvb/frontends/lgs8gxx.c
+> +++ b/drivers/media/dvb/frontends/lgs8gxx.c
+> @@ -994,7 +994,7 @@ static int lgs8gxx_i2c_gate_ctrl(struct
+> dvb_frontend *fe, int enable)
+>   }
+> 
+>   static struct dvb_frontend_ops lgs8gxx_ops = {
+> -	.delsys = { SYS_DMBTH },
+> +	.delsys = { SYS_DTMB },
+>   	.info = {
+>   		.name = "Legend Silicon LGS8913/LGS8GXX DMB-TH",
+>   		.frequency_min = 474000000,
+> diff --git a/include/linux/dvb/frontend.h
+> b/include/linux/dvb/frontend.h index cb4428a..1835c11 100644
+> --- a/include/linux/dvb/frontend.h
+> +++ b/include/linux/dvb/frontend.h
+> @@ -152,6 +152,9 @@ typedef enum fe_code_rate {
+>   	FEC_AUTO,
+>   	FEC_3_5,
+>   	FEC_9_10,
+> +	FEC_04,
+> +	FEC_06,
+> +	FEC_08,
+>   } fe_code_rate_t;
+> 
+> 
+> @@ -169,6 +172,7 @@ typedef enum fe_modulation {
+>   	APSK_16,
+>   	APSK_32,
+>   	DQPSK,
+> +	QAM_4_NR,
+>   } fe_modulation_t;
+> 
+>   typedef enum fe_transmit_mode {
+> @@ -179,6 +183,8 @@ typedef enum fe_transmit_mode {
+>   	TRANSMISSION_MODE_1K,
+>   	TRANSMISSION_MODE_16K,
+>   	TRANSMISSION_MODE_32K,
+> +	TRANSMISSION_MODE_C1,
+> +	TRANSMISSION_MODE_C3780,
+>   } fe_transmit_mode_t;
+> 
+>   #if defined(__DVB_CORE__) || !defined (__KERNEL__)
+> @@ -202,6 +208,9 @@ typedef enum fe_guard_interval {
+>   	GUARD_INTERVAL_1_128,
+>   	GUARD_INTERVAL_19_128,
+>   	GUARD_INTERVAL_19_256,
+> +	GUARD_INTERVAL_PN420,
+> +	GUARD_INTERVAL_PN595,
+> +	GUARD_INTERVAL_PN945,
+>   } fe_guard_interval_t;
+> 
+> 
+> @@ -213,6 +222,11 @@ typedef enum fe_hierarchy {
+>   	HIERARCHY_AUTO
+>   } fe_hierarchy_t;
+> 
+> +typedef enum fe_interleaving {
+> +	INTERLEAVING_NONE,
+> +	INTERLEAVING_240,
+> +	INTERLEAVING_720,
+> +} fe_interleaving_t;
+> 
+>   #if defined(__DVB_CORE__) || !defined (__KERNEL__)
+>   struct dvb_qpsk_parameters {
+> @@ -319,8 +333,9 @@ struct dvb_frontend_event {
+>   #define DTV_DVBT2_PLP_ID	43
+> 
+>   #define DTV_ENUM_DELSYS		44
+> +#define DTV_INTERLEAVING			45
+> 
+> -#define DTV_MAX_COMMAND				DTV_ENUM_DELSYS
+> +#define DTV_MAX_COMMAND				DTV_INTERLEAVING
+> 
+>   typedef enum fe_pilot {
+>   	PILOT_ON,
+> @@ -349,7 +364,7 @@ typedef enum fe_delivery_system {
+>   	SYS_ISDBC,
+>   	SYS_ATSC,
+>   	SYS_ATSCMH,
+> -	SYS_DMBTH,
+> +	SYS_DTMB,
+>   	SYS_CMMB,
+>   	SYS_DAB,
+>   	SYS_DVBT2,
+> @@ -357,8 +372,9 @@ typedef enum fe_delivery_system {
+>   	SYS_DVBC_ANNEX_C,
+>   } fe_delivery_system_t;
+> 
+> -
+> +/* backward compatibility */
+>   #define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
+> +#define SYS_DMBTH SYS_DTMB /* DMB-TH is legacy name, use DTMB
+> instead */
+> 
+> 
+>   struct dtv_cmds_h {
+> diff --git a/include/linux/dvb/version.h
+> b/include/linux/dvb/version.h index 0559e2b..43d9e8d 100644
+> --- a/include/linux/dvb/version.h
+> +++ b/include/linux/dvb/version.h
+> @@ -24,6 +24,6 @@
+>   #define _DVBVERSION_H_
+> 
+>   #define DVB_API_VERSION 5
+> -#define DVB_API_VERSION_MINOR 5
+> +#define DVB_API_VERSION_MINOR 6
+> 
+>   #endif /*_DVBVERSION_H_*/
 
-What about the minimum ?
+If you like you can add, good work.
 
-> The PADDED target
-> +      provides the width and height for the padded image,
+Acked-by: Patrick Boettcher <pboettcher@kernellabs.com>
 
-Is it valid for both crop and compose rectangles ?
 
-> and is
-> +      directly affected by the ACTIVE target. The PADDED targets may
-> +      be configurable depending on the hardware.</para>
+--
+Patrick Boettcher
 
-If that's configurable drivers will need a way to store it in the file handle.
-
-> +    </section>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-subdev-selection-targets">
-> +      <title>V4L2 subdev selection targets</title>
-> +      <tgroup cols="3">
-> +        &cs-def;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE</constant></entry>
-> +	    <entry>0</entry>
-> +	    <entry>Active crop. Defines the cropping
-> +	    performed by the processing step.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_DEFAULT</constant></entry>
-> +	    <entry>1</entry>
-> +	    <entry>Default crop rectangle.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS</constant></entry>
-> +	    <entry>2</entry>
-> +	    <entry>Bounds of the crop rectangle.</entry>
-> +	  </row>
-> +	  <row>
-> +	   
-> <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE</constant></entry> +	 
->   <entry>256</entry>
-> +	    <entry>Active compose rectangle. Used to configure scaling
-> +	    on sink pads and composition on source pads.</entry>
-> +	  </row>
-> +	  <row>
-> +	   
-> <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_DEFAULT</constant></entry> +	
->    <entry>257</entry>
-> +	    <entry>Default compose rectangle.</entry>
-> +	  </row>
-> +	  <row>
-> +	   
-> <entry><constant>V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS</constant></entry> +	 
->   <entry>258</entry>
-> +	    <entry>Bounds of the compose rectangle.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-subdev-selection-flags">
-> +      <title>V4L2 subdev selection flags</title>
-> +      <tgroup cols="3">
-> +        &cs-def;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_GE</constant></entry>
-> +	    <entry>(1 &lt;&lt; 0)</entry>
-> +	    <entry>Suggest the driver it should choose greater or
-> +	    equal rectangle (in size) than was requested.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_SIZE_LE</constant></entry>
-> +	    <entry>(1 &lt;&lt; 1)</entry>
-> +	    <entry>Suggest the driver it should choose lesser or
-> +	    equal rectangle (in size) than was requested.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG</constant></entry>
-> +	    <entry>(1 &lt;&lt; 2)</entry>
-> +	    <entry>The configuration should not be propagated to any
-> +	    further processing steps. If this flag is not given, the
-> +	    configuration is propagated inside the subdevice to all
-> +	    further processing steps.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-subdev-selection">
-> +      <title>struct <structname>v4l2_subdev_selection</structname></title>
-> +      <tgroup cols="3">
-> +        &cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>which</structfield></entry>
-> +	    <entry>Active or try selection, from
-> +	    &v4l2-subdev-format-whence;.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>pad</structfield></entry>
-> +	    <entry>Pad number as reported by the media framework.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>target</structfield></entry>
-> +	    <entry>Target selection rectangle. See
-> +	    <xref linkend="v4l2-subdev-selection-targets">.</xref>.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>flags</structfield></entry>
-> +	    <entry>Flags. See
-> +	    <xref linkend="v4l2-subdev-selection-flags">.</xref></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>&v4l2-rect;</entry>
-> +	    <entry><structfield>rect</structfield></entry>
-> +	    <entry>Crop rectangle boundaries, in pixels.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[8]</entry>
-> +	    <entry>Reserved for future extensions. Applications and drivers must
-> +	    set the array to zero.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    &return-value;
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><errorcode>EBUSY</errorcode></term>
-> +	<listitem>
-> +	  <para>The selection rectangle can't be changed because the
-> +	  pad is currently busy. This can be caused, for instance, by
-> +	  an active video stream on the pad. The ioctl must not be
-> +	  retried without performing another action to fix the problem
-> +	  first. Only returned by
-> +	  <constant>VIDIOC_SUBDEV_S_SELECTION</constant></para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>EINVAL</errorcode></term>
-> +	<listitem>
-> +	  <para>The &v4l2-subdev-selection;
-> +	  <structfield>pad</structfield> references a non-existing
-> +	  pad, the <structfield>which</structfield> field references a
-> +	  non-existing format, or the selection target is not
-> +	  supported on the given subdev pad.</para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +</refentry>
-
--- 
-Regards,
-
-Laurent Pinchart
+Kernel Labs Inc.
+http://www.kernellabs.com/
