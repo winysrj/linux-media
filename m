@@ -1,166 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:5528 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755038Ab2AJJxX (ORCPT
+Received: from vms173013pub.verizon.net ([206.46.173.13]:52732 "EHLO
+	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755841Ab2APR4R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 04:53:23 -0500
-From: Hans Verkuil <hansverk@cisco.com>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [PATCH] s5p-mfc: Fix volatile controls setup
-Date: Tue, 10 Jan 2012 10:53:20 +0100
-Cc: "'Laurent Pinchart'" <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	kyungmin.park@samsung.com, mchehab@redhat.com,
-	"'Hans Verkuil'" <hans.verkuil@cisco.com>
-References: <1324994844-9883-1-git-send-email-k.debski@samsung.com> <201201030214.07855.laurent.pinchart@ideasonboard.com> <008201ccc9f9$d17558b0$74600a10$%debski@samsung.com>
-In-Reply-To: <008201ccc9f9$d17558b0$74600a10$%debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201101053.20113.hansverk@cisco.com>
+	Mon, 16 Jan 2012 12:56:17 -0500
+Received: from opus ([unknown] [71.170.160.242]) by vms173013.mailsrvcs.net
+ (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
+ with ESMTPA id <0LXW0068AKH9HC84@vms173013.mailsrvcs.net> for
+ linux-media@vger.kernel.org; Mon, 16 Jan 2012 11:55:57 -0600 (CST)
+Date: Mon, 16 Jan 2012 11:55:56 -0600
+From: David Engel <david@istwok.net>
+To: Linux Media <linux-media@vger.kernel.org>
+Subject: Strange problem, help needed
+Message-id: <20120116175556.GB29539@opus.istwok.net>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+Hi,
 
-Sorry for the delay, I've been on vacation.
+I have a MythTV backend with a Hauppauge HVR-2250 (dual tuner,
+ATSC?QAM, PCIe) and a Ceton InfiniTV4 (quad tuner, QAM/cable card,
+PCIe).  Over the weekend, I started intermittently seeing corrupt
+recordings that were painful to watch.
 
-On Tuesday 03 January 2012 10:26:43 Kamil Debski wrote:
-> Hi Laurent,
-> 
-> Thanks for pointing this out, my comment is below.
-> Hans, I would be grateful if you could also read this and comment :)
-> 
-> > From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
-> > Sent: 03 January 2012 02:14
-> > 
-> > Hi Kamil,
-> > 
-> > On Tuesday 27 December 2011 15:07:24 Kamil Debski wrote:
-> > > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > > ---
-> > > 
-> > >  drivers/media/video/s5p-mfc/s5p_mfc_dec.c |    2 +-
-> > >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> > > b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c index 844a4d7..c25ec02
-> > > 100644 --- a/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> > > +++ b/drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> > > @@ -165,7 +165,7 @@ static struct mfc_control controls[] = {
-> > > 
-> > >  		.maximum = 32,
-> > >  		.step = 1,
-> > >  		.default_value = 1,
-> > > 
-> > > -		.flags = V4L2_CTRL_FLAG_VOLATILE,
-> > > +		.is_volatile = 1,
-> > > 
-> > >  	},
-> > >  
-> > >  };
-> > 
-> > Why so ? is_volatile got removed in commit
-> > 88365105d683187e02a4f75220eaf51fd0c0b6e0.
-> 
-> Yep, this commit broke MFC, as after it has been applied volatile flag was
-> not set for any of the controls.
-> 
-> From 88365105d683187e02a4f75220eaf51fd0c0b6e0.
-> ------------------ drivers/media/video/s5p-mfc/s5p_mfc_dec.c
-> ------------------ index 32f8989..bfbe084 100644
-> @@ -165,7 +165,7 @@ static struct mfc_control controls[] = {
->  		.maximum = 32,
->  		.step = 1,
->  		.default_value = 1,
-> -		.is_volatile = 1,
-> +		.flags = V4L2_CTRL_FLAG_VOLATILE,
->  	},
->  };
+I eventually narrowed the problem down to when both tuners on the 2250
+are active at the same time.  In this case, both recordings have
+corruption (CRC errors, etc.).  The InfiniTV4 does not appear to be
+affected by anything going on on the 2250.  Likewise, the 2250 does
+not appear to be affected by anything going on on the InfiniTV4.
 
-Hmm, this change should be reverted. 'is_volatile' is a field of your own 
-struct, so there is no need to replace it. My mistake.
+I noticed something strange while diagnosinig the problem.  When the
+2250 is busy recording, top reports the CPU as being in wait for an
+abnormally high amount of time (~30% for one tuner busy and ~50% for
+both tuners busy).  I don't recall seeing that before.  I quickly
+tried a KWorld ATSC 110 on a different system and it showed no, or
+negligible wait time.
 
-> 
-> @@ -1020,7 +1020,7 @@ int s5p_mfc_dec_ctrls_setup(struct s5p_mfc_ctx *ctx)
->  			return ctx->ctrl_handler.error;
->  		}
->  		if (controls[i].is_volatile && ctx->ctrls[i])
-> -			ctx->ctrls[i]->is_volatile = 1;
-> +			ctx->ctrls[i]->flags |= V4L2_CTRL_FLAG_VOLATILE;
->  	}
->  	return 0;
->  }
+Thinking that the 2250 was going bad, I replaced it with two KWorld
+ATSC 110s (single tuner, ATSC/QAM, PCI).  The two 110s had the same
+problem as the 2250 -- corruption when both tuners are busy and
+unusually high wait time when either is busy.
 
-This change is fine.
+At this point, I'm suspecting a motherboard, memory or grounding
+issue, but would like some feedback in case there's anything I'm
+missing.  The high wait time seems extremely odd to me.  Perhaps it
+means something to those of you who are much more familiar with the
+cards and drivers.
 
-> 
-> See? In the controls array the is_volatile field was no longer set, but it
-> was used
-> in the s5p_mfc_dec_ctrls_setup. Thus is was always 0.
-> 
-> The v4l2_ctrl_new_custom/v4l2_ctrl_new_std functions set the flags field
-> (which is done in v4l2_ctrl_fill).
-> It is also possible to |= the flag with the current contents of the field.
-> 
-> -		if (controls[i].is_volatile && ctx->ctrls[i])
-> +		if (ctx->ctrls[i])
-> -			ctx->ctrls[i]->flags |= V4L2_CTRL_FLAG_VOLATILE;
-> +			ctx->ctrls[i]->flags |= controls[i].flags;
-> This is possible, as it would set all the flags set in controls[] array.
+Oh, the problem appear shortly after switching to the 3.1.9 kernel.  I
+also tried the 3.1.8 and 3.0.14 kernels to rule out software and there
+was no effect on the problem.
 
-This is also an option, but then the is_volatile field should also be removed
-from the mfc_control struct.
-
-> 
-> Also checking for V4L2_CTRL_FLAG_VOLATILE in controls[x].flags and then
-> setting ctx->ctrls[i]->flags |= V4L2_CTRL_FLAG_VOLATILE is possible, but I
-> think it is not
-> necessary. The above solution should work fine as well.
-> 
-> The thing is that I did not notice Hans's commit and thought that it was my
-> mistake in MFC.
-> Thus I have fixed it in the simplest way. (It would be nice if I had been
-> added to CC of that patch)
-
-Will try to remember for the next time :-)
-
-> Hans, if you could comment on which from the aforementioned solutions do
-> you find the best?
-> The one from my commit, or the proposed above?
-
-Looking at it some more I would go for your commit to get it fixed quickly,
-but I would recommend reworking the code in the longer term.
-
-You have two types of controls: device specific, for which you can use 
-v4l2_ctrl_new_custom() and struct v4l2_ctrl_config (no need for struct 
-mfc_control), or standard controls for which you can use v4l2_ctrl_new_std.
-
-So I would make an array of struct v4l2_ctrl_config containing the custom 
-controls, and call v4l2_ctrl_new_std() in the control setup function for the 
-standard controls. That way v4l2_ctrl_new_std() will fill in all the non-range 
-fields for you (thus ensuring consistency). For the volatile control you will 
-have to set the volatile flag manually.
-
-
-> 
-> Also - maybe VOLATILE flag for V4L2_CID_MIN_BUFFERS_FOR_CAPTURE should be
-> set in v4l2_ctrl_fill?
-> Though I am not sure it would be the case for all devices.
-
-I think it shouldn't be set (yet). When we get more devices in the future we 
-can reconsider.
-
-Regards,
-
-	Hans
-
-> 
-> Best wishes,
-> --
-> Kamil Debski
-> Linux Platform Group
-> Samsung Poland R&D Center
+David
+-- 
+David Engel
+david@istwok.net
