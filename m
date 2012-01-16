@@ -1,138 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:44838 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757615Ab2AKQBO (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:56660 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751975Ab2APMpU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 11:01:14 -0500
-Received: by wibhm14 with SMTP id hm14so478078wib.19
-        for <linux-media@vger.kernel.org>; Wed, 11 Jan 2012 08:01:13 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, g.liakhovetski@gmx.de, lethal@linux-sh.org,
-	hans.verkuil@cisco.com, s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v2] media i.MX27 camera: properly detect frame loss.
-Date: Wed, 11 Jan 2012 17:01:04 +0100
-Message-Id: <1326297664-19089-1-git-send-email-javier.martin@vista-silicon.com>
+	Mon, 16 Jan 2012 07:45:20 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: RE: [GIT PULL] davinci vpif pull request
+Date: Mon, 16 Jan 2012 12:45:05 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F7531741938@DBDE01.ent.ti.com>
+References: <E99FAA59F8D8D34D8A118DD37F7C8F7501B481@DBDE01.ent.ti.com>
+ <4F14108F.5050505@redhat.com>
+In-Reply-To: <4F14108F.5050505@redhat.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As V4L2 specification states, frame_count must also
-regard lost frames so that the user can handle that
-case properly.
+Mauro,
+On Mon, Jan 16, 2012 at 17:27:03, Mauro Carvalho Chehab wrote:
+> Em 11-01-2012 09:39, Hadli, Manjunath escreveu:
+> > Hi Mauro,
+> >   Can you please pull the following patch which removes some unnecessary inclusion
+> >   of machine specific header files from the main driver files?
+> >  
+> >   This patch has undergone sufficient review already. It is just a cleanup patch and I don't
+> >   expect any functionality to break because of this. The reason I did not club this with the
+> >   3 previous patches was because one of the previous patches on which this is dependent,
+> >   is now pulled in by Arnd.
+> > 
+> >  Thanks and Regards,
+> > -Manju
+> > 
+> >  
+> > The following changes since commit e343a895a9f342f239c5e3c5ffc6c0b1707e6244:
+> >   Linus Torvalds (1):
+> >         Merge tag 'for-linus' of git://git.kernel.org/.../mst/vhost
+> > 
+> > are available in the git repository at:
+> > 
+> >   git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for-mauro-v3.3
+> > 
+> > Manjunath Hadli (1):
+> >       davinci: vpif: remove machine specific header file inclusion 
+> > from the driver
+> 
+> This patch is outdated and doesn't apply anymore. Could you please rebase it over my tree, branch "staging/for_v3.3"?
+This patch needs a recent accepted commit by Arnd which is available on
+http://git.linuxtv.org/linux-2.6.git but not on staging.
+Are you planning to rebase you staging tree to latest? When you do that this 
+Patch will apply. Please let me know if there is any other way you want me to do?
 
-This patch adds a mechanism to increment the frame
-counter even when a video buffer is not available
-and a discard buffer is used.
-
----
-Changes since v1:
- - Initialize "frame_count" to -1 instead of using
-   "firstirq" variable.
-
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |   45 ++++++++++++++++++++-----------------
- 1 files changed, 24 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index ca76dd2..68038e7 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -369,7 +369,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
- 
- 	pcdev->icd = icd;
--	pcdev->frame_count = 0;
-+	pcdev->frame_count = -1;
- 
- 	dev_info(icd->parent, "Camera driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -572,6 +572,7 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
- 	struct soc_camera_host *ici =
- 		to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
-+	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
- 	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
- 	unsigned long flags;
- 
-@@ -584,6 +585,26 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
- 	list_add_tail(&vb->queue, &pcdev->capture);
- 
- 	if (mx27_camera_emma(pcdev)) {
-+		if (prp->cfg.channel == 1) {
-+			writel(PRP_CNTL_CH1EN |
-+				PRP_CNTL_CSIEN |
-+				prp->cfg.in_fmt |
-+				prp->cfg.out_fmt |
-+				PRP_CNTL_CH1_LEN |
-+				PRP_CNTL_CH1BYP |
-+				PRP_CNTL_CH1_TSKIP(0) |
-+				PRP_CNTL_IN_TSKIP(0),
-+				pcdev->base_emma + PRP_CNTL);
-+		} else {
-+			writel(PRP_CNTL_CH2EN |
-+				PRP_CNTL_CSIEN |
-+				prp->cfg.in_fmt |
-+				prp->cfg.out_fmt |
-+				PRP_CNTL_CH2_LEN |
-+				PRP_CNTL_CH2_TSKIP(0) |
-+				PRP_CNTL_IN_TSKIP(0),
-+				pcdev->base_emma + PRP_CNTL);
-+		}
- 		goto out;
- 	} else { /* cpu_is_mx25() */
- 		u32 csicr3, dma_inten = 0;
-@@ -747,16 +768,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 		writel(pcdev->discard_buffer_dma,
- 				pcdev->base_emma + PRP_DEST_RGB2_PTR);
- 
--		writel(PRP_CNTL_CH1EN |
--				PRP_CNTL_CSIEN |
--				prp->cfg.in_fmt |
--				prp->cfg.out_fmt |
--				PRP_CNTL_CH1_LEN |
--				PRP_CNTL_CH1BYP |
--				PRP_CNTL_CH1_TSKIP(0) |
--				PRP_CNTL_IN_TSKIP(0),
--				pcdev->base_emma + PRP_CNTL);
--
- 		writel((icd->user_width << 16) | icd->user_height,
- 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 		writel((icd->user_width << 16) | icd->user_height,
-@@ -784,15 +795,6 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 				pcdev->base_emma + PRP_SOURCE_CR_PTR);
- 		}
- 
--		writel(PRP_CNTL_CH2EN |
--			PRP_CNTL_CSIEN |
--			prp->cfg.in_fmt |
--			prp->cfg.out_fmt |
--			PRP_CNTL_CH2_LEN |
--			PRP_CNTL_CH2_TSKIP(0) |
--			PRP_CNTL_IN_TSKIP(0),
--			pcdev->base_emma + PRP_CNTL);
--
- 		writel((icd->user_width << 16) | icd->user_height,
- 			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 
-@@ -1214,7 +1216,6 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 		vb->state = state;
- 		do_gettimeofday(&vb->ts);
- 		vb->field_count = pcdev->frame_count * 2;
--		pcdev->frame_count++;
- 
- 		wake_up(&vb->done);
- 	}
-@@ -1239,6 +1240,8 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 		return;
- 	}
- 
-+	pcdev->frame_count++;
-+
- 	buf = list_entry(pcdev->capture.next,
- 			struct mx2_buffer, vb.queue);
- 
--- 
-1.7.0.4
+Regards,
+-Manju
+> 
+> Thanks!
+> Mauro
+> 
+> > 
+> >  drivers/media/video/davinci/vpif.h         |    2 --
+> >  drivers/media/video/davinci/vpif_display.c |    2 --
+> >  include/media/davinci/vpif_types.h         |    2 ++
+> >  3 files changed, 2 insertions(+), 4 deletions(-)
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" 
+> > in the body of a message to majordomo@vger.kernel.org More majordomo 
+> > info at  http://vger.kernel.org/majordomo-info.html
+> 
+> 
 
