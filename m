@@ -1,74 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out3-smtp.messagingengine.com ([66.111.4.27]:60652 "EHLO
-	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754694Ab2AYAHB (ORCPT
+Received: from na3sys009aog102.obsmtp.com ([74.125.149.69]:40716 "EHLO
+	na3sys009aog102.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750763Ab2APFgN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 19:07:01 -0500
-Received: from compute4.internal (compute4.nyi.mail.srv.osa [10.202.2.44])
-	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id DD87320FC2
-	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 19:06:59 -0500 (EST)
-Date: Tue, 24 Jan 2012 16:06:34 -0800
-From: Greg KH <greg@kroah.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Martin Schwidefsky <schwidefsky@de.ibm.com>,
-	Jiri Kosina <jkosina@suse.cz>,
-	Jesse Barnes <jbarnes@virtuousgeek.org>,
-	Dominik Brodowski <linux@dominikbrodowski.net>,
-	Sebastian Ott <sebott@linux.vnet.ibm.com>,
-	"David S. Miller" <davem@davemloft.net>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Michael Buesch <m@bues.ch>,
-	Joerg Roedel <joerg.roedel@amd.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	netdev@vger.kernel.org, linux-pcmcia@lists.infradead.org,
-	linux-s390@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
-	xen-devel@lists.xensource.com,
-	Kernel development list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 0/5] Get rid of get_driver() and put_driver()
-Message-ID: <20120125000634.GA1178@kroah.com>
-References: <Pine.LNX.4.44L0.1201241158540.1200-100000@iolanthe.rowland.org>
+	Mon, 16 Jan 2012 00:36:13 -0500
+Received: by mail-tul01m020-f181.google.com with SMTP id up10so4969061obb.12
+        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 21:36:13 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1201241158540.1200-100000@iolanthe.rowland.org>
+In-Reply-To: <CAB2ybb83ub=A45-m6o+RXqFOTUmXCgeFqs03WZDHeWeLe2+29w@mail.gmail.com>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+ <1325760118-27997-3-git-send-email-sumit.semwal@ti.com> <4F11E7D4.4050906@iki.fi>
+ <CAB2ybb83ub=A45-m6o+RXqFOTUmXCgeFqs03WZDHeWeLe2+29w@mail.gmail.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Mon, 16 Jan 2012 11:05:52 +0530
+Message-ID: <CAB2ybb-WyxnY+zw-_cAQYXQP2TWqJcBQ5hPGYCN3TLBnR7wHFA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [RFCv1 2/4] v4l:vb2: add support for shared
+ buffer (dma_buf)
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, patches@linaro.org, jesse.barker@linaro.org,
+	daniel@ffwll.ch,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hiroshi Doyu <hiroshi.doyu@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 24, 2012 at 01:33:37PM -0500, Alan Stern wrote:
-> Greg:
-> 
-> This patch series removes the get_driver() and put_driver() routines
-> from the kernel.
-> 
-> Those routines don't do anything useful.  Their comments say that they
-> increment and decrement the driver's reference count, just like
-> get_device()/put_device() and a lot of other utility routines.  But a
-> struct driver is _not_ like a struct device!  It resembles a piece of
-> code more than a piece of data -- it acts as an encapsulation of a
-> driver.  Incrementing its refcount doesn't have much meaning because a
-> driver's lifetime isn't determined by the structure's refcount; it's
-> determined by when the driver's module gets unloaded.
-> 
-> What really matters for a driver is whether or not it is registered.  
-> Drivers expect, for example, that none of their methods will be called
-> after driver_unregister() returns.  It doesn't matter if some other
-> thread still holds a reference to the driver structure; that reference
-> mustn't be used for accessing the driver code after unregistration.  
-> get_driver() does not do any checking for this.
-> 
-> People may have been misled by the kerneldoc into thinking that the
-> references obtained by get_driver() do somehow pin the driver structure
-> in memory.  This simply isn't true; all it pins is the associated
-> private structure.  Code that needs to pin a driver must do it some
-> other way (probably by calling try_module_get()).
-> 
-> In short, these routines don't do anything useful and they can actively 
-> mislead people.  Removing them won't introduce any bugs that aren't 
-> already present.  There is no reason to keep them.
+On Mon, Jan 16, 2012 at 11:03 AM, Semwal, Sumit <sumit.semwal@ti.com> wrote:
+>
+> On Sun, Jan 15, 2012 at 2:08 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>>
+>> Hi Sumit,
+>>
+>> Thanks for the patch!
+>
+Hi Sakari,
 
-Very nice work, all now applied, thanks for doing this.
+Thanks for reviewing this :)
+>>
+>>
+>> <snip>
+>> Shouldn't the buffer mapping only be done at the first call to
+>> __qbuf_dmabuf()? On latter calls, the cache would need to be handled
+>> according to presence of V4L2_BUF_FLAG_NO_CACHE_CLEAN /
+>> V4L2_BUF_FLAG_NO_CACHE_INVALIDATE in v4l2_buffer.
+>
+Well, the 'map / unmap' implementation is by design exporter-specific;
+so the exporter of the buffer may choose to, depending on the use
+case, 'map-and-keep' on first call to map_dmabuf, and do actual unmap
+only at 'release' time. This will mean that the {map,unmap}_dmabuf
+calls will be used mostly for 'access-bracketing' between multiple
+users, and not for actual map/unmap each time.
+Again, the framework is flexible enough to allow exporters to actually
+map/unmap as required (think cases where backing-storage migration
+might be needed while buffers are in use - in that case, when all
+current users have called unmap_XXX() on a buffer, it can be migrated,
+and the next map_XXX() calls could give different mappings back to the
+users).
+> The kernel 'users' of dma-buf [in case of this RFC, v4l2] should not ideally need to worry about the actual mapping/unmapping that is done; the buffer exporter in a particular use-case should be able to handle it.
+> <snip>
+>>
+>> Same here, except reverse: this only should be done when the buffer is
+>> destroyed --- either when the user explicitly calls reqbufs(0) or when
+>> the file handle owning this buffer is being closed.
+>>
+>> Mapping buffers at every prepare_buf and unmapping them in dqbuf is
+>> prohibitively expensive. Same goes for many other APIs than V4L2, I think.
+>>
+>> I wonder if the means to do this exists already.
+>>
+>> I have to admit I haven't followed the dma_buf discussion closely so I
+>> might be missing something relevant here.
+>
+Hope the above explanation helps. Please do not hesitate to contact if
+you need more details.
+>>
+>>
+>> Kind regards,
+>>
+>> --
+>> Sakari Ailus
+>> sakari.ailus@iki.fi
 
-greg k-h
+Best regards,
+~Sumit.
