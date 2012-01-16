@@ -1,56 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:34496 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754426Ab2ARMoO convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35837 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754053Ab2APNt1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 07:44:14 -0500
-Received: by wibhm6 with SMTP id hm6so2157523wib.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 04:44:13 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: "=?utf-8?q?R=C3=A9mi?= Denis-Courmont" <remi@remlab.net>
-Subject: Re: v4l-utils migrated to autotools
-Date: Wed, 18 Jan 2012 13:44:09 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Gregor Jasny <gjasny@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <2648c3dfc9ea2bd3bae776200d7e056e@chewa.net>
-In-Reply-To: <2648c3dfc9ea2bd3bae776200d7e056e@chewa.net>
+	Mon, 16 Jan 2012 08:49:27 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 01/23] v4l: Introduce integer menu controls
+Date: Mon, 16 Jan 2012 14:49:31 +0100
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+References: <4F0DFE92.80102@iki.fi> <1326317220-15339-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1326317220-15339-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201201181344.09700.pboettcher@kernellabs.com>
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201161449.33098.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 18 January 2012 13:31:01 Rémi Denis-Courmont wrote:
-> On Wed, 18 Jan 2012 10:19:24 -0200, Mauro Carvalho Chehab
+On Wednesday 11 January 2012 22:26:38 Sakari Ailus wrote:
+> Create a new control type called V4L2_CTRL_TYPE_INTEGER_MENU. Integer menu
+> controls are just like menu controls but the menu items are 64-bit integers
+> rather than strings.
 > 
-> <mchehab@redhat.com> wrote:
-> > Not sure if it is possible, but it would be great if the build
-> > output would be less verbose. libtool adds a lot of additional
-> > (generally
-> 
-> useless)
-> 
-> > messages, with makes harder to see the compilation warnings in the
-> > middle of all those garbage.
-> 
-> These days, automake has a silent mode that looks much like a kernel
-> compilation.
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-I missed the first message of this thread, that's why I hijacked it here 
-and it is short:
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I love cmake and can't understand why people are not preferring it over 
-autotools for user-space applications and conditional+configurable 
-builds. 
+-- 
+Regards,
 
-I hope my mail is not too off-topic.
-
-regards,
---
-Patrick Boettcher
-
-Kernel Labs Inc.
-http://www.kernellabs.com/
+Laurent Pinchart
