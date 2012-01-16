@@ -1,49 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:46924 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752822Ab2A0KNI convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1467 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754443Ab2APM3t (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jan 2012 05:13:08 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: [GIT PULL] davinci vpif pull request
-Date: Fri, 27 Jan 2012 10:12:59 +0000
-Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F7531744F4D@DBDE01.ent.ti.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Mon, 16 Jan 2012 07:29:49 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: linux-input@vger.kernel.org, Jiri Kosina <jkosina@suse.cz>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 3/3] hid-core: ignore the Keene FM transmitter.
+Date: Mon, 16 Jan 2012 13:29:20 +0100
+Message-Id: <5023b3e0c2020dd6ac6250d43413e51f206486fa.1326716517.git.hans.verkuil@cisco.com>
+In-Reply-To: <1326716960-4424-1-git-send-email-hverkuil@xs4all.nl>
+References: <1326716960-4424-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <4f4e18b94612a34be98e2304a4d9b0cef74acd39.1326716517.git.hans.verkuil@cisco.com>
+References: <4f4e18b94612a34be98e2304a4d9b0cef74acd39.1326716517.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
- Can you please pull the following patch for v3.3-rc1 which removes some unnecessary inclusion
- of machine specific header files from the main driver files?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
- This patch has undergone sufficient review already. It is just a cleanup patch and I don't
- expect any functionality to break because of this. 
+The Keene FM transmitter USB device has the same USB ID as
+the Logitech AudioHub Speaker, but it should ignore the hid.
+Check if the name is that of the Keene device.
 
- Thanks and Regards,
--Manju
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/hid/hid-core.c |   10 ++++++++++
+ drivers/hid/hid-ids.h  |    1 +
+ 2 files changed, 11 insertions(+), 0 deletions(-)
 
+diff --git a/drivers/hid/hid-core.c b/drivers/hid/hid-core.c
+index af35384..f02d197 100644
+--- a/drivers/hid/hid-core.c
++++ b/drivers/hid/hid-core.c
+@@ -1973,6 +1973,16 @@ static bool hid_ignore(struct hid_device *hdev)
+ 		if (hdev->product >= USB_DEVICE_ID_LOGITECH_HARMONY_FIRST &&
+ 				hdev->product <= USB_DEVICE_ID_LOGITECH_HARMONY_LAST)
+ 			return true;
++		/*
++		 * The Keene FM transmitter USB device has the same USB ID as
++		 * the Logitech AudioHub Speaker, but it should ignore the hid.
++		 * Check if the name is that of the Keene device.
++		 * For reference: the name of the AudioHub is
++		 * "HOLTEK  AudioHub Speaker".
++		 */
++		if (hdev->product == USB_DEVICE_ID_LOGITECH_AUDIOHUB &&
++			!strcmp(hdev->name, "HOLTEK  B-LINK USB Audio  "))
++				return true;
+ 		break;
+ 	case USB_VENDOR_ID_SOUNDGRAPH:
+ 		if (hdev->product >= USB_DEVICE_ID_SOUNDGRAPH_IMON_FIRST &&
+diff --git a/drivers/hid/hid-ids.h b/drivers/hid/hid-ids.h
+index 4a441a6..2f6dc92 100644
+--- a/drivers/hid/hid-ids.h
++++ b/drivers/hid/hid-ids.h
+@@ -440,6 +440,7 @@
+ #define USB_DEVICE_ID_LG_MULTITOUCH	0x0064
+ 
+ #define USB_VENDOR_ID_LOGITECH		0x046d
++#define USB_DEVICE_ID_LOGITECH_AUDIOHUB 0x0a0e
+ #define USB_DEVICE_ID_LOGITECH_RECEIVER	0xc101
+ #define USB_DEVICE_ID_LOGITECH_HARMONY_FIRST  0xc110
+ #define USB_DEVICE_ID_LOGITECH_HARMONY_LAST 0xc14f
+-- 
+1.7.7.3
 
-The following changes since commit 74ea15d909b31158f9b63190a95b52bc05586d4b:
-  Linus Torvalds (1):
-        Merge branch 'v4l_for_linus' of git://git.kernel.org/.../mchehab/linux-media
-
-
-are available in the git repository at:
-
-
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for-mauro-v3.3
-
-Manjunath Hadli (1):
-      davinci: vpif: remove machine specific header file inclusion from the driver
-
-
- drivers/media/video/davinci/vpif.h         |    2 --
- drivers/media/video/davinci/vpif_display.c |    2 --
- include/media/davinci/vpif_types.h         |    2 ++
- 3 files changed, 2 insertions(+), 4 deletions(-)
