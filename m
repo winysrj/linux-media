@@ -1,161 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:54330 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756529Ab2ANTfY (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:63668 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756885Ab2APV5e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 14:35:24 -0500
-Received: by mail-ey0-f174.google.com with SMTP id l12so562456eaa.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 11:35:23 -0800 (PST)
+	Mon, 16 Jan 2012 16:57:34 -0500
+Received: by eekc14 with SMTP id c14so288706eek.19
+        for <linux-media@vger.kernel.org>; Mon, 16 Jan 2012 13:57:32 -0800 (PST)
+Message-ID: <4F149D45.3010603@gmail.com>
+Date: Mon, 16 Jan 2012 22:57:25 +0100
 From: Sylwester Nawrocki <snjw23@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH/RFC v3 1/3] V4L: Add JPEG compression control class
-Date: Sat, 14 Jan 2012 20:35:03 +0100
-Message-Id: <1326569705-20261-2-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1326569705-20261-1-git-send-email-sylvester.nawrocki@gmail.com>
-References: <20120114192414.05ad2e83@tele>
- <1326569705-20261-1-git-send-email-sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com
+Subject: Re: [RFC 16/17] smiapp: Add driver.
+References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-16-git-send-email-sakari.ailus@maxwell.research.nokia.com> <4F072B6C.9060808@gmail.com> <4F08CEDE.7030105@maxwell.research.nokia.com>
+In-Reply-To: <4F08CEDE.7030105@maxwell.research.nokia.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_CID_JPEG_CLASS control class is intended to expose various
-adjustable parameters of JPEG encoders and decoders. Following controls
-are defined:
+Hi Sakari,
 
- - V4L2_CID_JPEG_CHROMA_SUBSAMPLING,
- - V4L2_CID_JPEG_RESTART_INTERVAL,
- - V4L2_CID_JPEG_COMPRESSION_QUALITY,
- - V4L2_CID_JPEG_ACTIVE_MARKER.
+On 01/08/2012 12:01 AM, Sakari Ailus wrote:
+>>> +/*
+>>> + *
+>>> + * V4L2 Controls handling
+>>> + *
+>>> + */
+>>> +
+>>> +static void __smiapp_update_exposure_limits(struct smiapp_sensor *sensor)
+>>> +{
+>>> +	struct v4l2_ctrl *ctrl = sensor->exposure;
+>>> +	int max;
+>>> +
+>>> +	max = sensor->pixel_array->compose[SMIAPP_PAD_SOURCE].height
+>>> +		+ sensor->vblank->val -
+>>> +		sensor->limits[SMIAPP_LIMIT_COARSE_INTEGRATION_TIME_MAX_MARGIN];
+>>> +
+>>> +	ctrl->maximum = max;
+>>> +	if (ctrl->default_value>   max)
+>>> +		ctrl->default_value = max;
+>>> +	if (ctrl->val>   max)
+>>> +		ctrl->val = max;
+>>> +	if (ctrl->cur.val>   max)
+>>> +		ctrl->cur.val = max;
+>>> +}
+>>
+>> One more driver that needs control value range update. :)
+> 
+> :-)
+> 
+> Are there other drivers that would need something like that, too?
+> Anything in the control framework that I have missed related to this?
 
-This covers only a part of relevant standard specifications. More
-controls should be added in future if required.
+Yes, I needed that in s5p-fimc driver for the alpha component control.
+The alpha channel value range depends on colour format and the control 
+needs to be updated accordingly to changes done with VIDIOC_S_FMT.
 
-The purpose of V4L2_CID_JPEG_CLASS class is also to replace some
-functionality covered by VIDIOC_S/G_JPEGCOMP ioctls, i.e. the JPEG
-markers presence and compression quality control. The applications
-and drivers should switch from the ioctl to control based API, as
-described in the subsequent patches for the Media API DocBook.
+And no, there is yet nothing in the control framework to support this.
+Hans just prepared some proof-of-concept patch [1], but the decision was
+to hold on until there appear more drivers needing control value range
+update, due to hight complication of life in the userland.
 
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
----
- drivers/media/video/v4l2-ctrls.c |   24 ++++++++++++++++++++++++
- include/linux/videodev2.h        |   24 ++++++++++++++++++++++++
- 2 files changed, 48 insertions(+), 0 deletions(-)
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg39674.html
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index da1f4c2..1fd6435 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -353,6 +353,16 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		NULL,
- 	};
-
-+	static const char * const jpeg_chroma_subsampling[] = {
-+		"4:4:4",
-+		"4:2:2",
-+		"4:2:0",
-+		"4:1:1",
-+		"4:1:0",
-+		"Gray",
-+		NULL,
-+	};
-+
- 	switch (id) {
- 	case V4L2_CID_MPEG_AUDIO_SAMPLING_FREQ:
- 		return mpeg_audio_sampling_freq;
-@@ -414,6 +424,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg_mpeg4_level;
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 		return mpeg4_profile;
-+	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
-+		return jpeg_chroma_subsampling;
-+
- 	default:
- 		return NULL;
- 	}
-@@ -607,6 +620,14 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
- 	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
-
-+	/* JPEG encoder controls */
-+	/* Keep the order of the 'case's the same as in videodev2.h! */
-+	case V4L2_CID_JPEG_CLASS:		return "JPEG Compression Controls";
-+	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:	return "Chroma Subsampling";
-+	case V4L2_CID_JPEG_RESTART_INTERVAL:	return "Restart Interval";
-+	case V4L2_CID_JPEG_COMPRESSION_QUALITY:	return "Compression Quality";
-+	case V4L2_CID_JPEG_ACTIVE_MARKER:	return "Active Markers";
-+
- 	default:
- 		return NULL;
- 	}
-@@ -693,6 +714,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_VIDEO_H264_VUI_SAR_IDC:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_LEVEL:
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
-+	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_RDS_TX_PS_NAME:
-@@ -704,6 +726,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_MPEG_CLASS:
- 	case V4L2_CID_FM_TX_CLASS:
- 	case V4L2_CID_FLASH_CLASS:
-+	case V4L2_CID_JPEG_CLASS:
- 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
- 		/* You can neither read not write these */
- 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-@@ -717,6 +740,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		*max = 0xFFFFFF;
- 		break;
- 	case V4L2_CID_FLASH_FAULT:
-+	case V4L2_CID_JPEG_ACTIVE_MARKER:
- 		*type = V4L2_CTRL_TYPE_BITMASK;
- 		break;
- 	case V4L2_CID_MIN_BUFFERS_FOR_CAPTURE:
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 012a296..5bd3725 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1123,6 +1123,7 @@ struct v4l2_ext_controls {
- #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
- #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
- #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
-+#define V4L2_CTRL_CLASS_JPEG 0x009d0000		/* JPEG-compression controls */
-
- #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
- #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-@@ -1732,6 +1733,29 @@ enum v4l2_flash_strobe_source {
- #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
- #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-
-+/*  JPEG-class control IDs defined by V4L2 */
-+#define V4L2_CID_JPEG_CLASS_BASE		(V4L2_CTRL_CLASS_JPEG | 0x900)
-+#define V4L2_CID_JPEG_CLASS			(V4L2_CTRL_CLASS_JPEG | 1)
-+
-+#define	V4L2_CID_JPEG_CHROMA_SUBSAMPLING	(V4L2_CID_JPEG_CLASS_BASE + 1)
-+enum v4l2_jpeg_chroma_subsampling {
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_444	= 0,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_422	= 1,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_420	= 2,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_411	= 3,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_410	= 4,
-+	V4L2_JPEG_CHROMA_SUBSAMPLING_GRAY	= 5,
-+};
-+#define	V4L2_CID_JPEG_RESTART_INTERVAL		(V4L2_CID_JPEG_CLASS_BASE + 2)
-+#define	V4L2_CID_JPEG_COMPRESSION_QUALITY	(V4L2_CID_JPEG_CLASS_BASE + 3)
-+
-+#define	V4L2_CID_JPEG_ACTIVE_MARKER		(V4L2_CID_JPEG_CLASS_BASE + 4)
-+#define	V4L2_JPEG_ACTIVE_MARKER_APP0		(1 << 0)
-+#define	V4L2_JPEG_ACTIVE_MARKER_APP1		(1 << 1)
-+#define	V4L2_JPEG_ACTIVE_MARKER_COM		(1 << 16)
-+#define	V4L2_JPEG_ACTIVE_MARKER_DQT		(1 << 17)
-+#define	V4L2_JPEG_ACTIVE_MARKER_DHT		(1 << 18)
-+
- /*
-  *	T U N I N G
-  */
 --
-1.7.4.1
-
+Regards,
+Sylwester
