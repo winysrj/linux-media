@@ -1,114 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52130 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758394Ab2AFAF1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jan 2012 19:05:27 -0500
-Message-ID: <4F063ABE.3020806@redhat.com>
-Date: Thu, 05 Jan 2012 22:05:18 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:42407 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755245Ab2AQT14 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 14:27:56 -0500
+Date: Tue, 17 Jan 2012 21:27:51 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH 13/23] omap3isp: Add lane configuration to platform data
+Message-ID: <20120117192751.GB13236@valkosipuli.localdomain>
+References: <4F0DFE92.80102@iki.fi>
+ <1326317220-15339-13-git-send-email-sakari.ailus@iki.fi>
+ <201201161508.26790.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Lars Hanisch <dvb@flensrocker.de>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] Fix dvb-core set_delivery_system and port drxk to
- one frontend
-References: <1325777872-14696-1-git-send-email-mchehab@redhat.com> <CAGoCfizKsxALXAMbCO=XGkODkXy2sBJ1NzbhBQ2TAkurnG-maQ@mail.gmail.com> <4F05EE24.50209@flensrocker.de>
-In-Reply-To: <4F05EE24.50209@flensrocker.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201201161508.26790.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05-01-2012 16:38, Lars Hanisch wrote:
-> Hi,
+Hi Laurent,
+
+Thanks for the review!
+
+On Mon, Jan 16, 2012 at 03:08:26PM +0100, Laurent Pinchart wrote:
+> On Wednesday 11 January 2012 22:26:50 Sakari Ailus wrote:
+> > Add lane configuration (order of clock and data lane) to platform data on
+> > both CCP2 and CSI-2.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  drivers/media/video/omap3isp/ispcsiphy.h |   15 ++-------------
+> >  include/media/omap3isp.h                 |   25 +++++++++++++++++++++++++
+> >  2 files changed, 27 insertions(+), 13 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/omap3isp/ispcsiphy.h
+> > b/drivers/media/video/omap3isp/ispcsiphy.h index 9596dc6..e93a661 100644
+> > --- a/drivers/media/video/omap3isp/ispcsiphy.h
+> > +++ b/drivers/media/video/omap3isp/ispcsiphy.h
+> > @@ -27,22 +27,11 @@
+> >  #ifndef OMAP3_ISP_CSI_PHY_H
+> >  #define OMAP3_ISP_CSI_PHY_H
+> > 
+> > +#include <media/omap3isp.h>
+> > +
+> >  struct isp_csi2_device;
+> >  struct regulator;
+> > 
+> > -struct csiphy_lane {
+> > -	u8 pos;
+> > -	u8 pol;
+> > -};
+> > -
+> > -#define ISP_CSIPHY2_NUM_DATA_LANES	2
+> > -#define ISP_CSIPHY1_NUM_DATA_LANES	1
+> > -
+> > -struct isp_csiphy_lanes_cfg {
+> > -	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
+> > -	struct csiphy_lane clk;
+> > -};
+> > -
+> >  struct isp_csiphy_dphy_cfg {
+> >  	u8 ths_term;
+> >  	u8 ths_settle;
+> > diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+> > index 9c1a001..bc14099 100644
+> > --- a/include/media/omap3isp.h
+> > +++ b/include/media/omap3isp.h
+> > @@ -91,6 +91,29 @@ enum {
+> >  };
+> > 
+> >  /**
+> > + * struct isp_csiphy_lane: CCP2/CSI2 lane position and polarity
+> > + * @pos: position of the lane
+> > + * @pol: polarity of the lane
+> > + */
+> > +struct isp_csiphy_lane {
+> > +	u8 pos;
+> > +	u8 pol;
+> > +};
+> > +
+> > +#define ISP_CSIPHY2_NUM_DATA_LANES	2
+> > +#define ISP_CSIPHY1_NUM_DATA_LANES	1
 > 
->  First: I'm no driver but an application developer.
+> Any reason not to put CSIPHY1 first ? :-)
+
+Yes. I believe wrote it that way. ;-)
+
+I'll change it.
+
+> With that modification,
 > 
-> Am 05.01.2012 17:40, schrieb Devin Heitmueller:
->> On Thu, Jan 5, 2012 at 10:37 AM, Mauro Carvalho Chehab
->> <mchehab@redhat.com>  wrote:
->>> With all these series applied, it is now possible to use frontend 0
->>> for all delivery systems. As the current tools don't support changing
->>> the delivery system, the dvb-fe-tool (on my experimental tree[1]) can now
->>> be used to change between them:
->>
->> Hi Mauro,
->>
->> While from a functional standpoint I think this is a good change (and
->> we probably should have done it this way all along), is there not
->> concern that this could be interpreted by regular users as a
->> regression?  Right now they get two frontends, and they can use all
->> their existing tools.  We're moving to a model where if users upgraded
->> their kernel they would now require some new userland tool to do
->> something that the kernel was allowing them to do previously.
->>
->> Sure, it's not "ABI breakage" in the classic sense but the net effect
->> is the same - stuff that used to work stops working and now they need
->> new tools or to recompile their existing tools to include new
->> functionality (which as you mentioned, none of those tools have
->> today).
-> 
-> Since now there isn't any consistent behaviour of hybrid multifrontend devices.
-> Some create multiple frontends but only one demux/dvr (like drx-k), others create 
-> all devices for every delivery system (HVR 4000). But they all could only be opened 
-> mutually exclusive. In case of vdr (my favourite app) you have to trick with udev,
-> symlinks, "remove unwanted frontends" etc. to get the devices in a shape so the 
-> application can use it. I don't know how mythtv is handling such devices, but I 
-> think there will be something like driver-dependend code in the one or other way.
-> 
-> The spec isn't really meaningful for hybrid devices. Maybe we should start 
-> there and claim something the driver developer can follow.
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-We had some discussions about that at the KS workshop. All people there
-agreed that the better is to use one frontend by physical device.
+Thanks!
 
-So, in the end of the day, all drivers should behave like what those DRX-K
-patches are doing.
-
->> Perhaps you would consider some sort of module option that would let
->> users fall back to the old behavior?
-> 
->  That would be fine but better would be a module option that will 
->  initialize frontend0 to the "connected" delivery system. In case of DVB-C/-T
->  you don't switch frequently from one to the other. You would need extra hardware 
->  like a splitter which switches inputs if there are e.g. 5V for an active antenna
->  (which means: switch to the dvb-t-input). Is there any DVB-T card which can supply
->  such voltage? And is it controllable via an ioctl (like LNB power supply in DVB-S)?
-
-This is called LNA. A proper LNA support is missing. I think we should 
-add a DVBv5 property to control it, on the devices that supports this feature.
-
-The DRX-K chips described at the drxk_hard.c don't support such feature, but
-there are other devices that supports it.
-
-Btw, there are some DRX-K devices with two separate demods and two separate
-frontends. A driver option won't work on such devices, as one frontend may
-be connected to DVB-C, and the other one to DVB-T.
-
-Also, the user may have more than one device of the same type (I have 3 sticks here
-with em28xx/drx-k) that could be used simultaneously. Again, a modprobe
-parameter won't fit, if the user wants to use some devices for one type, and
-the other ones for the second type.
-
-> 
->  Anyway, I think, if there's finally a solution so all drivers behave the same,
->  the tools and applications will handle this new model in the near future.
-
-Yes, that's what we expect ;)
-
-The DTV_ENUM_DELSYS and DTV_DELIVERY_SYSTEM properties are enough to
-properly support such devices.
-> 
->  Please do something... :-)
-> 
-> Regards,
-> Lars.
-> 
->>
->> Devin
->>
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
