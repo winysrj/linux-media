@@ -1,155 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55226 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932327Ab2ARRvb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 12:51:31 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0IHpUMJ011180
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 12:51:30 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] [media] dvb_frontend: Require FE_HAS_PARAMETERS for get_frontend()
-Date: Wed, 18 Jan 2012 15:51:25 -0200
-Message-Id: <1326909085-14256-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1326909085-14256-1-git-send-email-mchehab@redhat.com>
-References: <201201181450.14089.pboettcher@kernellabs.com>
- <1326909085-14256-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from devils.ext.ti.com ([198.47.26.153]:60824 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752142Ab2AQG75 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 01:59:57 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+CC: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: RE: [PATCH 2/2] v4l2: add new pixel formats supported on dm365
+Date: Tue, 17 Jan 2012 06:59:35 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F7531742424@DBDE01.ent.ti.com>
+References: <1323951898-16330-1-git-send-email-manjunath.hadli@ti.com>
+ <201112212323.26971.laurent.pinchart@ideasonboard.com>
+ <20111228111627.GT3677@valkosipuli.localdomain>
+ <201201021221.06660.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201021221.06660.laurent.pinchart@ideasonboard.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Calling get_frontend() before having either the frontend locked
-or the network signaling carriers locked won't work. So, block
-it at the DVB core.
+All,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   50 ++++++++++++++--------------
- 1 files changed, 25 insertions(+), 25 deletions(-)
+On Mon, Jan 02, 2012 at 16:51:06, Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> On Wednesday 28 December 2011 12:16:27 Sakari Ailus wrote:
+> > On Wed, Dec 21, 2011 at 11:23:26PM +0100, Laurent Pinchart wrote:
+> > > On Wednesday 21 December 2011 14:56:36 Hadli, Manjunath wrote:
+> > > > On Wed, Dec 21, 2011 at 05:32:08, Laurent Pinchart wrote:
+> > > > > On Friday 16 December 2011 14:42:48 Hadli, Manjunath wrote:
+> > > > > > On Thu, Dec 15, 2011 at 18:30:47, Laurent Pinchart wrote:
+> > > > > > > On Thursday 15 December 2011 13:24:58 Manjunath Hadli wrote:
+> > > > > > > > add new macro V4L2_PIX_FMT_SGRBG10ALAW8 to represent Bayer 
+> > > > > > > > format frames compressed by A-LAW alogorithm.
+> > > > > > > > add V4L2_PIX_FMT_UV8 to represent storage of C (UV 
+> > > > > > > > interleved) only.
+> > > > > > > > 
+> > > > > > > > Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> > > > > > > > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > > > > > > > ---
+> > > > > > > > 
+> > > > > > > >  include/linux/videodev2.h |    6 ++++++
+> > > > > > > >  1 files changed, 6 insertions(+), 0 deletions(-)
+> > > > > > > 
+> > > > > > > Could you please also document these formats in 
+> > > > > > > Documentation/DocBook/media/v4l ?
+> > > > > > 
+> > > > > > I will. Sorry to have missed that out.
+> > > > > > 
+> > > > > > > > diff --git a/include/linux/videodev2.h 
+> > > > > > > > b/include/linux/videodev2.h index 4b752d5..969112d 100644
+> > > > > > > > --- a/include/linux/videodev2.h
+> > > > > > > > +++ b/include/linux/videodev2.h
+> > > > > > > > @@ -338,6 +338,9 @@ struct v4l2_pix_format {
+> > > > > > > > 
+> > > > > > > >  #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2')
+> > > > > > > >  /*  8 YUV
+> > > > > > > > 
+> > > > > > > > 4:2:0 16x16 macroblocks */ #define V4L2_PIX_FMT_M420 
+> > > > > > > > v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines 
+> > > > > > > > y, 1 line uv interleaved */
+> > > > > > > > 
+> > > > > > > > +/* Chrominance formats */
+> > > > > > > > +#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ')
+> > > > > > > > /* 8 UV 4:4 */ +
+> > > > > > > > 
+> > > > > > > >  /* two planes -- one Y, one Cr + Cb interleaved  */
+> > > > > > > >  #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2')
+> > > > > > > >  /* 12 Y/CbCr
+> > > > > > > > 
+> > > > > > > > 4:2:0  */ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V',
+> > > > > > > > '2', '1') /* 12  Y/CrCb 4:2:0  */ @@ -366,6 +369,9 @@ 
+> > > > > > > > struct v4l2_pix_format { #define V4L2_PIX_FMT_SRGGB12 
+> > > > > > > > v4l2_fourcc('R', 'G', '1', '2') /* 12 RGRG.. GBGB.. */ /* 
+> > > > > > > > 10bit raw bayer DPCM compressed to 8 bits */ #define
+> > > > > > > > V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
+> > > > > > > > +	/* 10bit raw bayer a-law compressed to 8 bits */ #define
+> > > > > > > > +V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('A', 'L', 'W', '8')
+> > > > > > > > +
+> > > > > > > 
+> > > > > > > That's not very future-proof, how would you describe 
+> > > > > > > SGBRG10ALAW8 for instance ?
+> > > > > > > 
+> > > > > > > Maybe it's time to standardize FOURCCs for Bayer new 
+> > > > > > > formats. We have 4 characters, we could start with 'B' to 
+> > > > > > > denote Bayer, followed by one character for the order, one 
+> > > > > > > for the compression, and one for the number of bits.
+> > > > > > 
+> > > > > > I agree.
+> > > > > > May be ('B', 'G', 'A', '8') is fine for the above?
+> > > > > 
+> > > > > We need to describe at last BGGR, GBRG, GRBG and RGGB. We could 
+> > > > > use 'B', 'g', 'G' and 'R' respectively for the second character. 
+> > > > > The third character would be 'A' for A-law and 'D' for DPCM, and 
+> > > > > the fourth character could describe the bus width in bits from 0 
+> > > > > to 15 with '0' - '9', 'A' - 'F'. However, I suspect that we will 
+> > > > > need 16-bit wide busses for raw Bayer at some point, and a 0 
+> > > > > width is definitely not useful. We could thus offset the width by some value.
+> > > > > 
+> > > > > This is just a preliminary idea, I'm open to suggestions.
+> > > > 
+> > > > I think it is a very good suggestion that we can go with.
+> > > > B : BGGR
+> > > > g : GBRG
+> > > > G : GRBG
+> > > > R : RGGB
+> > > > 
+> > > > and 0-F can signify 1-16.
+> > > 
+> > > Hans, Guennadi, Sakari, any opinion on that as well ?
+> > 
+> > I think four letters simply aren't enough to universally describe a 
+> > media bus format in a human-readable way. We can aim to that, but we 
+> > will have to make compromises.
+> > 
+> > For example, DPCM compressed format has two important parameters 
+> > beyond pixel order and the colour space, the uncompressed depth and 
+> > the compressed depth. Typically one doesn't compress the data too 
+> > much, but things like
+> > 10-to-6 bits are well possible.
+> > 
+> > Could we use a single letter to tell that a format is both bayer and 
+> > DPCM compressed? I'd go for 'b'. Raw bayer alaw could be denoted by 'a'.
+> > 
+> > Then raw bayer, GBRG pixel order 10-to-7 bits would be called "bgA7". 
+> > The same in Alaw would be "agA7".
+> > 
+> > What do you think?
+> 
+> We can't come up with a naming scheme that will handle all possible combinations. I'm fine as long as the names we select have some kind of structure and handle the raw patterns currently available. I'd still like to hear Hans' opinion on this.
+Since we agree that the scheme will not be able to cover the spectrum 
+In the level of detail which we would like to, I think we should go with the 
+Above discussed scheme which seems logical. I will send out a detailed patch 
+With added documentation.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index fbbe545..a15c4ed 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -144,11 +144,6 @@ static void dvb_frontend_wakeup(struct dvb_frontend *fe);
- static int dtv_get_frontend(struct dvb_frontend *fe,
- 			    struct dvb_frontend_parameters *p_out);
- 
--static bool has_get_frontend(struct dvb_frontend *fe)
--{
--	return fe->ops.get_frontend;
--}
--
- /*
-  * Due to DVBv3 API calls, a delivery system should be mapped into one of
-  * the 4 DVBv3 delivery systems (FE_QPSK, FE_QAM, FE_OFDM or FE_ATSC),
-@@ -207,8 +202,12 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
- 
- 	dprintk ("%s\n", __func__);
- 
--	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
--		dtv_get_frontend(fe, &fepriv->parameters_out);
-+	/* FE_HAS_LOCK implies that the frontend has parameters */
-+	if (status & FE_HAS_LOCK)
-+		status |= FE_HAS_PARAMETERS;
-+
-+	fepriv->status = status;
-+	dtv_get_frontend(fe, &fepriv->parameters_out);
- 
- 	mutex_lock(&events->mtx);
- 
-@@ -465,7 +464,6 @@ static void dvb_frontend_swzigzag(struct dvb_frontend *fe)
- 			fe->ops.read_status(fe, &s);
- 		if (s != fepriv->status) {
- 			dvb_frontend_add_event(fe, s);
--			fepriv->status = s;
- 		}
- 	}
- 
-@@ -663,7 +661,6 @@ restart:
- 				if (s != fepriv->status && !(fepriv->tune_mode_flags & FE_TUNE_MODE_ONESHOT)) {
- 					dprintk("%s: state changed, adding current state\n", __func__);
- 					dvb_frontend_add_event(fe, s);
--					fepriv->status = s;
- 				}
- 				break;
- 			case DVBFE_ALGO_SW:
-@@ -698,7 +695,6 @@ restart:
- 				fe->ops.read_status(fe, &s);
- 				if (s != fepriv->status) {
- 					dvb_frontend_add_event(fe, s); /* update event list */
--					fepriv->status = s;
- 					if (!(s & FE_HAS_LOCK)) {
- 						fepriv->delay = HZ / 10;
- 						fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
-@@ -1213,18 +1209,26 @@ static int dtv_property_legacy_params_sync(struct dvb_frontend *fe,
- static int dtv_get_frontend(struct dvb_frontend *fe,
- 			    struct dvb_frontend_parameters *p_out)
- {
-+	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	int r;
- 
--	if (fe->ops.get_frontend) {
--		r = fe->ops.get_frontend(fe);
--		if (unlikely(r < 0))
--			return r;
--		if (p_out)
--			dtv_property_legacy_params_sync(fe, p_out);
--		return 0;
-+	/*
-+	 * If the frontend is not locked, the transmission information
-+	 * is not available. So, there's no sense on calling the frontend
-+	 * to get anything, as all it has is what is already inside the
-+	 * cache.
-+	 */
-+	if (fepriv->status & FE_HAS_PARAMETERS) {
-+		if (fe->ops.get_frontend) {
-+			r = fe->ops.get_frontend(fe);
-+			if (unlikely(r < 0))
-+				return r;
-+		}
- 	}
-+	if (p_out)
-+		dtv_property_legacy_params_sync(fe, p_out);
- 
--	/* As everything is in cache, get_frontend fops are always supported */
-+	/* As everything is in cache, get_frontend is always supported */
- 	return 0;
- }
- 
-@@ -1725,7 +1729,6 @@ static int dvb_frontend_ioctl_properties(struct file *file,
- {
- 	struct dvb_device *dvbdev = file->private_data;
- 	struct dvb_frontend *fe = dvbdev->priv;
--	struct dvb_frontend_private *fepriv = fe->frontend_priv;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
- 	int err = 0;
- 
-@@ -1795,11 +1798,9 @@ static int dvb_frontend_ioctl_properties(struct file *file,
- 		 * the data retrieved from get_frontend, if the frontend
- 		 * is not idle. Otherwise, returns the cached content
- 		 */
--		if (fepriv->state != FESTATE_IDLE) {
--			err = dtv_get_frontend(fe, NULL);
--			if (err < 0)
--				goto out;
--		}
-+		err = dtv_get_frontend(fe, NULL);
-+		if (err < 0)
-+			goto out;
- 		for (i = 0; i < tvps->num; i++) {
- 			err = dtv_property_process_get(fe, c, tvp + i, file);
- 			if (err < 0)
-@@ -1922,7 +1923,6 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
- 	dvb_frontend_clear_events(fe);
- 	dvb_frontend_add_event(fe, 0);
- 	dvb_frontend_wakeup(fe);
--	fepriv->status = 0;
- 
- 	return 0;
- }
--- 
-1.7.8
+
+Thx,
+-Manju
+
+> 
+> --
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
