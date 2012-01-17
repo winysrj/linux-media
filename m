@@ -1,51 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gir.skynet.ie ([193.1.99.77]:36313 "EHLO gir.skynet.ie"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751635Ab2A3K7c (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 05:59:32 -0500
-Date: Mon, 30 Jan 2012 10:59:28 +0000
-From: Mel Gorman <mel@csn.ul.ie>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Subject: Re: [PATCH 01/15] mm: page_alloc: remove trailing whitespace
-Message-ID: <20120130105928.GD25268@csn.ul.ie>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <1327568457-27734-2-git-send-email-m.szyprowski@samsung.com>
+Received: from rcsinet15.oracle.com ([148.87.113.117]:34880 "EHLO
+	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751423Ab2AQH25 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 02:28:57 -0500
+Date: Tue, 17 Jan 2012 10:28:51 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: "Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: [patch 1/2] [media] ds3000: using logical && instead of bitwise &
+Message-ID: <20120117072851.GA11358@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-15
+Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1327568457-27734-2-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jan 26, 2012 at 10:00:43AM +0100, Marek Szyprowski wrote:
-> From: Michal Nazarewicz <mina86@mina86.com>
-> 
-> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+The intent here was to test if the FE_HAS_LOCK was set.  The current
+test is equivalent to "if (status) { ..."
 
-Ordinarily, I do not like these sort of patches because they can
-interfere with git blame but as it is comments that are affected;
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-
-Thanks
-
--- 
-Mel Gorman
-SUSE Labs
+diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+index 9387770..af65d01 100644
+--- a/drivers/media/dvb/frontends/ds3000.c
++++ b/drivers/media/dvb/frontends/ds3000.c
+@@ -1195,7 +1195,7 @@ static int ds3000_set_frontend(struct dvb_frontend *fe)
+ 
+ 	for (i = 0; i < 30 ; i++) {
+ 		ds3000_read_status(fe, &status);
+-		if (status && FE_HAS_LOCK)
++		if (status & FE_HAS_LOCK)
+ 			break;
+ 
+ 		msleep(10);
