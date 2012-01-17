@@ -1,71 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:52821 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.8]:58550 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750791Ab2ADROG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 12:14:06 -0500
-Date: Wed, 4 Jan 2012 18:13:58 +0100 (CET)
+	with ESMTP id S1752960Ab2AQKyO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 05:54:14 -0500
+Date: Tue, 17 Jan 2012 11:54:10 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: javier Martin <javier.martin@vista-silicon.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Hans Verkuil <hansverk@cisco.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-In-Reply-To: <201201041801.08322.laurent.pinchart@ideasonboard.com>
-Message-ID: <Pine.LNX.4.64.1201041808260.30506@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
- <CACKLOr0FxA72dhkjnVHCiWuT-VGYpcdk6WX9ubWoAnLkm7gnBQ@mail.gmail.com>
- <Pine.LNX.4.64.1201041717130.30506@axis700.grange>
- <201201041801.08322.laurent.pinchart@ideasonboard.com>
+	Rupert Eibauer <Rupert.Eibauer@ces.ch>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [git:v4l-dvb/for_v3.3] [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT
+ documentation
+In-Reply-To: <4F155252.2060705@redhat.com>
+Message-ID: <Pine.LNX.4.64.1201171152210.21882@axis700.grange>
+References: <E1Rmmdy-0002zt-5K@www.linuxtv.org> <Pine.LNX.4.64.1201162315200.15379@axis700.grange>
+ <201201171113.14927.hansverk@cisco.com> <Pine.LNX.4.64.1201171115300.21882@axis700.grange>
+ <4F155252.2060705@redhat.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 4 Jan 2012, Laurent Pinchart wrote:
+On Tue, 17 Jan 2012, Mauro Carvalho Chehab wrote:
 
-> Hi Guennadi,
+> Em 17-01-2012 08:16, Guennadi Liakhovetski escreveu:
+> > Hi Hans
+> > 
+> > On Tue, 17 Jan 2012, Hans Verkuil wrote:
+> > 
+> >> On Monday 16 January 2012 23:16:31 Guennadi Liakhovetski wrote:
+> >>> On Mon, 16 Jan 2012, Mauro Carvalho Chehab wrote:
+> >>>> This is an automatic generated email to let you know that the following
+> >>>> patch were queued at the http://git.linuxtv.org/media_tree.git tree:
+> >>>>
+> >>>> Subject: [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT documentation
+> >>>> Author:  Hans Verkuil <hans.verkuil@cisco.com>
+> >>>> Date:    Wed Jan 11 07:37:54 2012 -0300
+> >>>
+> >>> [snip]
+> >>>
+> >>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+> >>>> b/Documentation/DocBook/media/v4l/vidioc-g-output.xml index
+> >>>> fd45f1c..4533068 100644
+> >>>> --- a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+> >>>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+> >>>> @@ -61,8 +61,9 @@ desired output in an integer and call the
+> >>>>
+> >>>>  <constant>VIDIOC_S_OUTPUT</constant> ioctl with a pointer to this
+> >>>>  integer. Side effects are possible. For example outputs may support
+> >>>>  different video standards, so the driver may implicitly switch the
+> >>>>  current
+> >>>>
+> >>>> -standard. It is good practice to select an output before querying or
+> >>>> -negotiating any other parameters.</para>
+> >>>> +standard.
+> >>>> +standard. Because of these possible side effects applications
+> >>>> +must select an output before querying or negotiating any other
+> >>>> parameters.</para>
+> >>>
+> >>> something seems to be wrong here.
+> >>
+> >> Hi Guennadi!
+> >>
+> >> What's wrong here? I've no idea what you mean.
+> > 
+> >>>> +standard.
+> >>>> +standard. Because of these possible side effects applications
+> > 
+> > doesn't seem to make much sense?
 > 
-> On Wednesday 04 January 2012 17:35:27 Guennadi Liakhovetski wrote:
-> > On Wed, 4 Jan 2012, javier Martin wrote:
-> > 
-> > [snip]
-> > 
-> > > For ov7725 it is a natural thing to do since it was originally
-> > > developed for soc-camera and it can easily do the following to access
-> > > platform data:
-> > > 
-> > > struct soc_camera_link	*icl = soc_camera_i2c_to_link(client);
-> > > pdata = icl->priv;
-> > > 
-> > > However, tvp5150 is not aware about soc_camera. I should be able to
-> > > tell whether it's being used with soc-camera or not. If soc camera was
-> > > used I would do the previous method to retrieve platform data.
-> > > But if soc-camera was not used I would do the classic method:
-> > > 
-> > > struct tvp5150_platform_data *pdata = client->dev.platform_data;
-> > > 
-> > > The problem is how to distinguish in tvp5150 whether I am using
-> > > soc_camera or not.
-> > 
-> > Right, that _is_ the problem now. And we've known about it since the very
-> > first time we started to think about re-using the subdev drivers. The only
-> > solution I see so far is to introduce a standard platform data struct for
-> > all subdevices, similar to soc_camera_link. We could use it as a basis, of
-> > course, use a generic name, maybe reconsider fields - rename / remove /
-> > add, but the principle would be the same: a standard platform data struct
-> > with an optional private field.
-> 
-> Why is that needed ? Why can't a tvp5150-specific platform data structure do ?
+> Are you referring to grammar?
 
-Javier has actually explained this already. Ok, again: he wants to use 
-tvp5150 with an soc-camera host driver, i.e., with the soc-camera 
-subsystem. And the soc-camera core sets board_info->platform_data itself 
-to a pointer to the struct soc_camera_link instance.
+Sorry, am I being blind? The above seems to produce
+
+<quote>
+different video standards, so the driver may implicitly switch the
+current standard. standard. Because of these possible side effects 
+applications
+</quote>
+
+i.e., double "standard." - one too many.
 
 Thanks
 Guennadi
+
+> I think that a comma is missing there [1]:
+> 
+> 	Because of these possible side effects, applications
+> 	must select an output before querying or negotiating any other
+> 	parameters.
+> 
+> IMO, reverting the order of the explanation clause is semantically better,
+> as it bolds the need to select an output, and put the phrase at the
+> cause-effect order:
+> 
+> 	Applications must select an output before querying or negotiating 
+> 	any other parameters, because of these possible side effects.
+> 
+> But this is really a matter of choice. In any case, except for the
+> comma, that makes sense for me.
+> 
+> [1] Rule 4 of http://grammar.ccc.commnet.edu/grammar/commas.htm
+> 
+> 
+> Regards,
+> Mauro
+> 
+
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
