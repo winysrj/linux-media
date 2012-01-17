@@ -1,84 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:29039 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750894Ab2AGHqT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 02:46:19 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q077kIAU020372
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 7 Jan 2012 02:46:18 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC] [media] dvb: remove bogus modulation check
-Date: Sat,  7 Jan 2012 05:46:13 -0200
-Message-Id: <1325922373-469-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-we0-f174.google.com ([74.125.82.174]:54889 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755964Ab2AQWTc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 17:19:32 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"sandeep patil" <psandeep.s@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jonathan Corbet" <corbet@lwn.net>, "Mel Gorman" <mel@csn.ul.ie>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 04/11] mm: page_alloc: introduce
+ alloc_contig_range()
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+ <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
+ <CA+K6fF6A1kPUW-2Mw5+W_QaTuLfU0_m0aMYRLOg98mFKwZOhtQ@mail.gmail.com>
+Date: Tue, 17 Jan 2012 23:19:28 +0100
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v781mqwl3l0zgt@mpn-glaptop>
+In-Reply-To: <CA+K6fF6A1kPUW-2Mw5+W_QaTuLfU0_m0aMYRLOg98mFKwZOhtQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This code is wrong as I should have coded it as SYS_DVBC, instead of
-SYS_DVBS & friends. Anyway, this check has other problems
+On Tue, 17 Jan 2012 22:54:28 +0100, sandeep patil <psandeep.s@gmail.com> wrote:
 
-1) it does some "magic" by assuming that all QAM modulations are below
-  QAM_AUTO;
+> Marek,
+>
+> I am running a CMA test where I keep allocating from a CMA region as long
+> as the allocation fails due to lack of space.
+>
+> However, I am seeing failures much before I expect them to happen.
+> When the allocation fails, I see a warning coming from __alloc_contig_range(),
+> because test_pages_isolated() returned "true".
 
-2) it checks modulation parameters only for one delivery system.
-   Or the core should check invalid parameters for all delivery
-   systems, or it should let the frontend drivers do it;
+Yeah, we are wondering ourselves about that.  Could you try cherry-picking
+commit ad10eb079c97e27b4d27bc755c605226ce1625de (update migrate type on pcp
+when isolating) from git://github.com/mina86/linux-2.6.git?  It probably won't
+apply cleanly but resolving the conflicts should not be hard (alternatively
+you can try branch cma from the same repo but it is a work in progress at the
+moment).
 
-3) frontend drivers should already be checking for invalid parameters
-   (most of them do it, anyway);
+> I tried to find out why this happened and added in a debug print inside
+> __test_page_isolated_in_pageblock(). Here's the resulting log ..
 
-4) not all modulations are mapped at fe->ops.info.caps, so it is not
-   even possible to check for the valid modulations inside the core
-   for some delivery systems;
+[...]
 
-5) The core check is incomplete anyway: it only checks for a few
-   parameters. If moved into the core other parameters like bandwidth
-   and fec should also be checked;
+> From the log it looks like the warning showed up because page->private
+> is set to MIGRATE_CMA instead of MIGRATE_ISOLATED.
 
-6) 2nd gen DVB-C uses OFDM. So, that test would fail for it.
+My understanding of that situation is that the page is on pcp list in which
+cases it's page_private is not updated.  Draining and the first patch in
+the series (and also the commit I've pointed to above) are designed to fix
+that but I'm unsure why they don't work all the time.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   23 -----------------------
- 1 files changed, 0 insertions(+), 23 deletions(-)
+> I've also had a test case where it failed because (page_count() != 0)
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 0e079a1..a904793 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -897,29 +897,6 @@ static int dvb_frontend_check_parameters(struct dvb_frontend *fe)
- 		break;
- 	}
- 
--	/*
--	 * check for supported modulation
--	 *
--	 * This is currently hacky. Also, it only works for DVB-S & friends,
--	 * and not all modulations has FE_CAN flags
--	 */
--	switch (c->delivery_system) {
--	case SYS_DVBS:
--	case SYS_DVBS2:
--	case SYS_TURBO:
--		if ((c->modulation > QAM_AUTO ||
--		    !((1 << (c->modulation + 10)) & fe->ops.info.caps))) {
--			printk(KERN_WARNING
--			       "DVB: adapter %i frontend %i modulation %u not supported\n",
--			       fe->dvb->num, fe->id, c->modulation);
--			return -EINVAL;
--		}
--		break;
--	default:
--		/* FIXME: it makes sense to validate othere delsys here */
--		break;
--	}
--
- 	return 0;
- }
- 
+
+
+> Have you or anyone else seen this during the CMA testing?
+>
+> Also, could this be because we are finding a page within (start, end)
+> that actually belongs to a higher order Buddy block ?
+
+Higher order free buddy blocks are skipped in the “if (PageBuddy(page))”
+path of __test_page_isolated_in_pageblock().  Then again, now that I think
+of it, something fishy may be happening on the edges.  Moving the check
+outside of __alloc_contig_migrate_range() after outer_start is calculated
+in alloc_contig_range() could help.  I'll take a look at it.
+
 -- 
-1.7.7.5
-
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
