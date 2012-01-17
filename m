@@ -1,95 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52543 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932591Ab2AEP64 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 10:58:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 03/17] vivi: Add an integer menu test control
-Date: Thu, 5 Jan 2012 16:59:13 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1324412889-17961-3-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:53976 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753224Ab2AQUWm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 15:22:42 -0500
+Date: Tue, 17 Jan 2012 22:22:39 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH 19/23] omap3isp: Default error handling for ccp2, csi2,
+ preview and resizer
+Message-ID: <20120117202239.GG13236@valkosipuli.localdomain>
+References: <4F0DFE92.80102@iki.fi>
+ <1326317220-15339-19-git-send-email-sakari.ailus@iki.fi>
+ <201201161550.08193.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201051659.14528.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201201161550.08193.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Thanks for the patch.
-
-On Tuesday 20 December 2011 21:27:55 Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
+On Mon, Jan 16, 2012 at 03:50:07PM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> Add an integer menu test control for the vivi driver.
+> Thanks for the patch.
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/vivi.c |   21 +++++++++++++++++++++
->  1 files changed, 21 insertions(+), 0 deletions(-)
+> On Wednesday 11 January 2012 22:26:56 Sakari Ailus wrote:
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  drivers/media/video/omap3isp/ispccp2.c    |    2 ++
+> >  drivers/media/video/omap3isp/ispcsi2.c    |    2 ++
+> >  drivers/media/video/omap3isp/isppreview.c |    2 ++
+> >  drivers/media/video/omap3isp/ispresizer.c |    2 ++
+> >  drivers/media/video/omap3isp/ispvideo.c   |   18 ++++++++----------
+> >  5 files changed, 16 insertions(+), 10 deletions(-)
 > 
-> diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-> index 7d754fb..763ec23 100644
-> --- a/drivers/media/video/vivi.c
-> +++ b/drivers/media/video/vivi.c
-> @@ -177,6 +177,7 @@ struct vivi_dev {
->  	struct v4l2_ctrl	   *menu;
->  	struct v4l2_ctrl	   *string;
->  	struct v4l2_ctrl	   *bitmask;
-> +	struct v4l2_ctrl	   *int_menu;
+> [snip]
 > 
->  	spinlock_t                 slock;
->  	struct mutex		   mutex;
-> @@ -503,6 +504,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct
-> vivi_buffer *buf) dev->boolean->cur.val,
->  			dev->menu->qmenu[dev->menu->cur.val],
->  			dev->string->cur.string);
-> +	snprintf(str, sizeof(str), " integer_menu %s, value %lld ",
-> +			dev->int_menu->qmenu[dev->int_menu->cur.val],
+> Does the below code belong to this patch ? The commit message doesn't explain 
+> why this is needed.
 
-Shouldn't you print the content of qmenu_int as a 64-bit integer instead ?
-
-> +			dev->int64->cur.val64);
-
-Shouldn't this be dev->int_menu->cur.val ?
-
-> +	gen_text(dev, vbuf, line++ * 16, 16, str);
->  	mutex_unlock(&dev->ctrl_handler.lock);
->  	gen_text(dev, vbuf, line++ * 16, 16, str);
->  	if (dev->button_pressed) {
-> @@ -1183,6 +1188,22 @@ static const struct v4l2_ctrl_config
-> vivi_ctrl_bitmask = { .step = 0,
->  };
-> 
-> +static const s64 * const vivi_ctrl_int_menu_values[] = {
-> +	1, 1, 2, 3, 5, 8, 13, 21, 42,
-> +};
-> +
-> +static const struct v4l2_ctrl_config vivi_ctrl_string = {
-> +	.ops = &vivi_ctrl_ops,
-> +	.id = VIDI_CID_CUSTOM_BASE + 7
-> +	.name = "Integer menu",
-> +	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
-> +	.min = 1,
-> +	.max = 8,
-
-There are 9 values in your vivi_ctrl_int_menu_values array. Is 8 on purpose 
-here ?
-
-> +	.def = 4,
-> +	.menu_skip_mask = 0x02,
-> +	.qmenu_int = &vivi_ctrl_int_menu_values,
-> +};
-> +
->  static const struct v4l2_file_operations vivi_fops = {
->  	.owner		= THIS_MODULE,
->  	.open           = v4l2_fh_open,
+I separated these changes from the rest. I'll send a new patchset in the
+near future.
 
 -- 
-Regards,
-
-Laurent Pinchart
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
