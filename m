@@ -1,111 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:29558 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751439Ab2AGW7l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 17:59:41 -0500
-Message-ID: <4F08CE57.6020600@maxwell.research.nokia.com>
-Date: Sun, 08 Jan 2012 00:59:35 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:60868 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752486Ab2AQI7K (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 03:59:10 -0500
+Received: by wibhm6 with SMTP id hm6so1186437wib.19
+        for <linux-media@vger.kernel.org>; Tue, 17 Jan 2012 00:59:09 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: V4L/DVB (12892): DVB-API: add support for ISDB-T and ISDB-Tsb (version 5.1)
+Date: Tue, 17 Jan 2012 09:58:59 +0100
+Cc: linux-media@vger.kernel.org
+References: <20120113123757.GA21686@elgon.mountain>
+In-Reply-To: <20120113123757.GA21686@elgon.mountain>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com
-Subject: Re: [RFC 17/17] rm680: Add camera init
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-17-git-send-email-sakari.ailus@maxwell.research.nokia.com> <4F070C1D.4060300@gmail.com>
-In-Reply-To: <4F070C1D.4060300@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201170959.00233.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-Thanks for the review!
-
-Sylwester Nawrocki wrote:
-> On 12/20/2011 09:28 PM, Sakari Ailus wrote:
->> +
->> +static int rm680_sec_camera_set_xshutdown(struct v4l2_subdev *subdev,
->> u8 set)
+On Friday 13 January 2012 13:37:57 Dan Carpenter wrote:
+> Hello Patrick Boettcher,
 > 
-> It may be more efficient to just use u32.
-
-The function got removed already. ;-)
-
->> +{
->> +    gpio_set_value(SEC_CAMERA_RESET_GPIO, !!set);
->> +    return 0;
->> +}
->> +
-> ...
->> +void __init rm680_camera_init(void)
->> +{
->> +    struct isp_platform_data *pdata;
->> +    int rval;
->> +
->> +    rval = rm680_camera_hw_init();
->> +    if (rval) {
->> +        printk(KERN_WARNING "%s: unable to initialise camera\n",
+> I know this patch is really old but I was hoping you still might be
+> able to take a look at it.
 > 
-> pr_warn is preferred for new code.
+> The patch b6e760f30975: "V4L/DVB (12892): DVB-API: add support for
+> ISDB-T and ISDB-Tsb (version 5.1)" from Aug 3, 2009, leads to the
+> following warning:
+> drivers/media/dvb/dvb-core/dvb_frontend.c:993:9: warning: Initializer
+> entry defined twice
+> drivers/media/dvb/dvb-core/dvb_frontend.c:1012:9:   also defined
+> here
 
-Fixed.
+How does this thing has lived such a long time without being noticed by 
+anyone? Very strange.
 
->> +               __func__);
->> +        return;
->> +    }
->> +
->> +    if (board_is_rm680())
->> +        pdata =&rm680_isp_platform_data;
->> +    else
->> +        pdata =&rm696_isp_platform_data;
->> +
->> +    if (omap3_init_camera(pdata)<  0)
->> +        printk(KERN_WARNING
+Of course this is wrong and it should be fixed by removing the second 
+section. IOW, we should keep the section with the 1s. 
+
+> drivers/media/dvb/dvb-core/dvb_frontend.c
 > 
-> pr_warn
+> +       _DTV_CMD(DTV_ISDBT_PARTIAL_RECEPTION, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_SOUND_BROADCASTING, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_SB_SUBCHANNEL_ID, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_SB_SEGMENT_IDX, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_SB_SEGMENT_COUNT, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERA_FEC, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERA_MODULATION, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERA_SEGMENT_COUNT, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERA_TIME_INTERLEAVING, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERB_FEC, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERB_MODULATION, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERB_SEGMENT_COUNT, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERB_TIME_INTERLEAVING, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERC_FEC, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERC_MODULATION, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERC_SEGMENT_COUNT, 1, 0),
+> +       _DTV_CMD(DTV_ISDBT_LAYERC_TIME_INTERLEAVING, 1, 0),
 
-Ditto.
+I prepared a patch for this in my repo. I will send a pull-request right 
+away.
 
->> +               "%s: unable to register camera platform device\n",
->> +               __func__);
->> +}
-> ...
->> +static struct regulator_consumer_supply rm680_vaux2_consumers[] = {
->> +    REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),    /* OMAP ISP */
->> +    REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),    /* OMAP ISP */
->> +    {
->> +        .supply        = "vaux2",
->> +    },
-> 
-> Could also be
->     REGULATOR_SUPPLY("vaux2", NULL),
+Thanks for pointing this out.
 
-Fixed.
-
->> +};
->> +REGULATOR_INIT_DATA_FIXED(rm680_vaux2, 1800000);
->> +
->> +static struct regulator_consumer_supply rm680_vaux3_consumers[] = {
->> +    REGULATOR_SUPPLY("VANA", "2-0037"),    /* Main Camera Sensor */
->> +    REGULATOR_SUPPLY("VANA", "2-000e"),    /* Main Camera Lens */
->> +    REGULATOR_SUPPLY("VANA", "2-0010"),    /* Front Camera */
->> +    {
->> +        .supply        = "vaux3",
->> +    },
-> 
-> and     REGULATOR_SUPPLY("vaux3", NULL),
-
-Ditto.
-
->> +};
-> 
-> -- 
-> Regards,
-> Sylwester
-> 
-
-
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+regards,
+--
+Patrick.
