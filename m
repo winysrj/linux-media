@@ -1,158 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35524 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:47486 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751407Ab2APAQm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 19:16:42 -0500
-Message-ID: <4F136C5E.6020806@redhat.com>
-Date: Sun, 15 Jan 2012 22:16:30 -0200
+	id S1752918Ab2AQKuK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 05:50:10 -0500
+Message-ID: <4F155252.2060705@redhat.com>
+Date: Tue, 17 Jan 2012 08:49:54 -0200
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
-References: <4F08385E.7050602@redhat.com> <4F0CAF53.3090802@iki.fi> <4F0CB512.7010501@redhat.com> <4F131CD8.2060602@iki.fi> <4F13312B.8060005@iki.fi> <4F13404D.2020001@redhat.com> <4F13495E.8030106@iki.fi>
-In-Reply-To: <4F13495E.8030106@iki.fi>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Hans Verkuil <hansverk@cisco.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Rupert Eibauer <Rupert.Eibauer@ces.ch>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [git:v4l-dvb/for_v3.3] [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT
+ documentation
+References: <E1Rmmdy-0002zt-5K@www.linuxtv.org> <Pine.LNX.4.64.1201162315200.15379@axis700.grange> <201201171113.14927.hansverk@cisco.com> <Pine.LNX.4.64.1201171115300.21882@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1201171115300.21882@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-01-2012 19:47, Antti Palosaari escreveu:
-> On 01/15/2012 11:08 PM, Mauro Carvalho Chehab wrote:
->> There was a bug at the error code handling on dvb-fe-tool: basically, if it can't open
->> a device, it were using a NULL pointer. It was likely fixed by this commit:
+Em 17-01-2012 08:16, Guennadi Liakhovetski escreveu:
+> Hi Hans
+> 
+> On Tue, 17 Jan 2012, Hans Verkuil wrote:
+> 
+>> On Monday 16 January 2012 23:16:31 Guennadi Liakhovetski wrote:
+>>> On Mon, 16 Jan 2012, Mauro Carvalho Chehab wrote:
+>>>> This is an automatic generated email to let you know that the following
+>>>> patch were queued at the http://git.linuxtv.org/media_tree.git tree:
+>>>>
+>>>> Subject: [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT documentation
+>>>> Author:  Hans Verkuil <hans.verkuil@cisco.com>
+>>>> Date:    Wed Jan 11 07:37:54 2012 -0300
+>>>
+>>> [snip]
+>>>
+>>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+>>>> b/Documentation/DocBook/media/v4l/vidioc-g-output.xml index
+>>>> fd45f1c..4533068 100644
+>>>> --- a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+>>>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+>>>> @@ -61,8 +61,9 @@ desired output in an integer and call the
+>>>>
+>>>>  <constant>VIDIOC_S_OUTPUT</constant> ioctl with a pointer to this
+>>>>  integer. Side effects are possible. For example outputs may support
+>>>>  different video standards, so the driver may implicitly switch the
+>>>>  current
+>>>>
+>>>> -standard. It is good practice to select an output before querying or
+>>>> -negotiating any other parameters.</para>
+>>>> +standard.
+>>>> +standard. Because of these possible side effects applications
+>>>> +must select an output before querying or negotiating any other
+>>>> parameters.</para>
+>>>
+>>> something seems to be wrong here.
 >>
->> http://git.linuxtv.org/v4l-utils.git/commit/1f669eed5433d17df4d8fb1fa43d2886f99d3991
+>> Hi Guennadi!
+>>
+>> What's wrong here? I've no idea what you mean.
 > 
-> That bug was fixed as I tested.
+>>>> +standard.
+>>>> +standard. Because of these possible side effects applications
 > 
-> But could you tell why dvb-fe-tool --set-delsys=DVBC/ANNEX_A calls get_frontent() ?
+> doesn't seem to make much sense?
 
-That's what happens here, at the application level:
+Are you referring to grammar?
 
-$ strace dvb-fe-tool -d DVBC/ANNEX_A
+I think that a comma is missing there [1]:
 
-open("/dev/dvb/adapter0/frontend0", O_RDWR) = 3
-ioctl(3, FE_GET_INFO, 0xb070c4)         = 0
-fstat(1, {st_mode=S_IFCHR|0620, st_rdev=makedev(136, 2), ...}) = 0
-mmap(NULL, 4096, PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0) = 0x7f37922be000
-write(1, "Device DRXK DVB-C DVB-T (/dev/dv"..., 68Device DRXK DVB-C DVB-T (/dev/dvb/adapter0/frontend0) capabilities:
-) = 68
-write(1, "\tCAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC"..., 245	CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_32 CAN_QAM_64 CAN_QAM_128 CAN_QAM_256 CAN_RECOVER CAN_TRANSMISSION_MODE_AUTO 
-) = 245
-ioctl(3, FE_GET_PROPERTY, 0x7fff326ce310) = 0
-write(1, "DVB API Version 5.5, Current v5 "..., 54DVB API Version 5.5, Current v5 delivery system: DVBT
-) = 54
-ioctl(3, FE_GET_PROPERTY, 0x7fff326ce310) = 0
-write(1, "Supported delivery systems: DVBC"..., 62Supported delivery systems: DVBC/ANNEX_A DVBC/ANNEX_C [DVBT] 
-) = 62
-write(1, "Changing delivery system to: DVB"..., 42Changing delivery system to: DVBC/ANNEX_A
-) = 42
-ioctl(3, FE_SET_PROPERTY, 0x7fff326ce340) = 0
-close(3)                                = 0
-exit_group(0)                           = ?
+	Because of these possible side effects, applications
+	must select an output before querying or negotiating any other
+	parameters.
 
+IMO, reverting the order of the explanation clause is semantically better,
+as it bolds the need to select an output, and put the phrase at the
+cause-effect order:
 
-The first FE_GET_PROPERTY reads the DVB API version and the current delivery
-system:
+	Applications must select an output before querying or negotiating 
+	any other parameters, because of these possible side effects.
 
-	parms->dvb_prop[0].cmd = DTV_API_VERSION;
-	parms->dvb_prop[1].cmd = DTV_DELIVERY_SYSTEM;
+But this is really a matter of choice. In any case, except for the
+comma, that makes sense for me.
 
-	dtv_prop.num = 2;
-	dtv_prop.props = parms->dvb_prop;
+[1] Rule 4 of http://grammar.ccc.commnet.edu/grammar/commas.htm
 
-	/* Detect a DVBv3 device */
-	if (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
-		parms->dvb_prop[0].u.data = 0x300;
-		parms->dvb_prop[1].u.data = SYS_UNDEFINED;
-	}
-	parms->version = parms->dvb_prop[0].u.data;
-	parms->current_sys = parms->dvb_prop[1].u.data;
-
-The second FE_GET_PROPERTY is used only if DVB API v5.5 or upper is detected,
-and does:
-
-		parms->dvb_prop[0].cmd = DTV_ENUM_DELSYS;
-		parms->n_props = 1;
-		dtv_prop.num = 1;
-		dtv_prop.props = parms->dvb_prop;
-		if (ioctl(fd, FE_GET_PROPERTY, &dtv_prop) == -1) {
-			perror("FE_GET_PROPERTY");
-			dvb_v5_free(parms);
-			close(fd);
-			return NULL;
-		}
-
-Both were called inside dvb_fe_open().
-
-The FE_SET_PROPERTY changes the property inside the DVBv5 cache,
-at dvb_set_sys():
-
-		dvb_prop[0].cmd = DTV_DELIVERY_SYSTEM;
-		dvb_prop[0].u.data = sys;
-		prop.num = 1;
-		prop.props = dvb_prop;
-
-		if (ioctl(parms->fd, FE_SET_PROPERTY, &prop) == -1) {
-			perror("Set delivery system");
-			return errno;
-		}
-
-The FE_SET_PROPERTY doesn't call a DTV_TUNE, so it shouldn't be calling the
-set frontend methods inside the driver.
-
-So, from the userspace applications standpoint, I'm not seeing anything wrong.
-
-> That will cause this kind of calls in demod driver:
-> init()
-> get_frontend()
-> get_frontend()
-> sleep()
-> 
-> My guess is that it resolves current delivery system. But as demod is usually sleeping (not tuned) at that phase it does not know frontend settings asked, like modulation etc. In case of cxd2820r those are available after set_frontend() call. I think I will add check and return -EINVAL in that case.
-
-
-What seems to be happening at dvb-core/dvb_frontend.h is due to this code:
-
-if(cmd == FE_GET_PROPERTY) {
-...
-                /*
-                 * Fills the cache out struct with the cache contents, plus
-                 * the data retrieved from get_frontend.
-                 */
-                dtv_get_frontend(fe, NULL);
-                for (i = 0; i < tvps->num; i++) {
-                        err = dtv_property_process_get(fe, c, tvp + i, file);
-                        if (err < 0)
-                                goto out;
-                        (tvp + i)->result = err;
-                }
-
-E. g. even if the FE_GET_PROPERTY is only reading the DVB version and calling
-DTV_ENUM_DELSYS, it is calling the dtv_get_frontend() to retrieve more data.
-
-What it can be done is to do something like:
-
-static bool need_get_frontend()
-{
-...
-	for (i = 0; i < tvps->num; i++)
-...
-}
-
-		if (need_get_frontend(tvps))
-	                dtv_get_frontend(fe, NULL);
-                for (i = 0; i < tvps->num; i++) {
-                        err = dtv_property_process_get(fe, c, tvp + i, file);
-                        if (err < 0)
-                                goto out;
-                        (tvp + i)->result = err;
-                }
-
-And add some logic inside need_get_frontend() to return false if the
-FE_GET_PROPERTY only wants static info, like DTV_ENUM_DELSYS, DTV_VERSION
-and DTV_DELIVERY_SYSTEM.
 
 Regards,
-Mauro.
+Mauro
