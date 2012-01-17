@@ -1,55 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:37772 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932131Ab2AIX0s (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 18:26:48 -0500
-Message-ID: <4F0B77B6.2000304@iki.fi>
-Date: Tue, 10 Jan 2012 01:26:46 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:56979 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755118Ab2AQVzM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 16:55:12 -0500
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, tuukkat76@gmail.com,
-	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
-	snjw23@gmail.com
-Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09
- 14:00 GMT+2
-References: <20120104085633.GM3677@valkosipuli.localdomain> <201201092238.30469.laurent.pinchart@ideasonboard.com> <4F0B6AE6.7090008@iki.fi> <201201092337.51849.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201092337.51849.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com> <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
+From: sandeep patil <psandeep.s@gmail.com>
+Date: Tue, 17 Jan 2012 13:54:28 -0800
+Message-ID: <CA+K6fF6A1kPUW-2Mw5+W_QaTuLfU0_m0aMYRLOg98mFKwZOhtQ@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 04/11] mm: page_alloc: introduce alloc_contig_range()
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Marek,
 
-Laurent Pinchart wrote:
-> On Monday 09 January 2012 23:32:06 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
-...
->>>> A fourth section may be required as well: at this level the frame rate
->>>> (or frame time) range makes more sense than the low-level blanking
->>>> values. The blanking values can be calculated from the frame time and a
->>>> flag which tells whether either horizontal or vertical blanking should
->>>> be preferred.
->>>
->>> How does one typically select between horizontal and vertical blanking ?
->>> Do mixed modes make sense ?
->>
->> There are minimums and maximums for both. You can increase the frame
->> time by increasing value for either or both of them --- to achieve very
->> long frame times you may have to use both, but that's not very common in
->> practice. I think we should have a flag to tell which one should be
->> increased first --- the effect would be to have the minimum possible
->> value on the other.
->
-> But how do you decide in practice which one to increase when you're an
-> application (or middleware) developer ?
+I am running a CMA test where I keep allocating from a CMA region as long
+as the allocation fails due to lack of space.
 
-I think it's the responsibility of this library to do that, unless the 
-user wants really, really precise control in which case they have to 
-deal with the blanking values directly. In general it should be the library.
+However, I am seeing failures much before I expect them to happen.
+When the allocation fails, I see a warning coming from __alloc_contig_range(),
+because test_pages_isolated() returned "true".
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+The new retry code does try a new range and eventually succeeds.
+
+
+> +
+> +static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+> +{
+> +
+> +done:
+> +       /* Make sure all pages are isolated. */
+> +       if (!ret) {
+> +               lru_add_drain_all();
+> +               drain_all_pages();
+> +               if (WARN_ON(test_pages_isolated(start, end)))
+> +                       ret = -EBUSY;
+> +       }
+
+I tried to find out why this happened and added in a debug print inside
+__test_page_isolated_in_pageblock(). Here's the resulting log ..
+
+---
+[  133.563140] !!! Found unexpected page(pfn=9aaab), (count=0),
+(isBuddy=no), (private=0x00000004), (flags=0x00000000), (_mapcount=0)
+!!!
+[  133.576690] ------------[ cut here ]------------
+[  133.582489] WARNING: at mm/page_alloc.c:5804 alloc_contig_range+0x1a4/0x2c4()
+[  133.594757] [<c003e814>] (unwind_backtrace+0x0/0xf0) from
+[<c0079c7c>] (warn_slowpath_common+0x4c/0x64)
+[  133.605468] [<c0079c7c>] (warn_slowpath_common+0x4c/0x64) from
+[<c0079cac>] (warn_slowpath_null+0x18/0x1c)
+[  133.616424] [<c0079cac>] (warn_slowpath_null+0x18/0x1c) from
+[<c00e0e84>] (alloc_contig_range+0x1a4/0x2c4)
+[  133.627471] EXT4-fs (mmcblk0p25): re-mounted. Opts: (null)
+[  133.633728] [<c00e0e84>] (alloc_contig_range+0x1a4/0x2c4) from
+[<c0266690>] (dma_alloc_from_contiguous+0x114/0x1c8)
+[  133.697113] !!! Found unexpected page(pfn=9aaac), (count=0),
+(isBuddy=no), (private=0x00000004), (flags=0x00000000), (_mapcount=0)
+!!!
+[  133.710510] EXT4-fs (mmcblk0p26): re-mounted. Opts: (null)
+[  133.716766] ------------[ cut here ]------------
+[  133.721954] WARNING: at mm/page_alloc.c:5804 alloc_contig_range+0x1a4/0x2c4()
+[  133.734100] Emergency Remount complete
+[  133.742584] [<c003e814>] (unwind_backtrace+0x0/0xf0) from
+[<c0079c7c>] (warn_slowpath_common+0x4c/0x64)
+[  133.753448] [<c0079c7c>] (warn_slowpath_common+0x4c/0x64) from
+[<c0079cac>] (warn_slowpath_null+0x18/0x1c)
+[  133.764373] [<c0079cac>] (warn_slowpath_null+0x18/0x1c) from
+[<c00e0e84>] (alloc_contig_range+0x1a4/0x2c4)
+[  133.775299] [<c00e0e84>] (alloc_contig_range+0x1a4/0x2c4) from
+[<c0266690>] (dma_alloc_from_contiguous+0x114/0x1c8)
+---
+
+>From the log it looks like the warning showed up because page->private
+is set to MIGRATE_CMA instead of MIGRATE_ISOLATED.
+I've also had a test case where it failed because (page_count() != 0)
+
+Have you or anyone else seen this during the CMA testing?
+
+Also, could this be because we are finding a page within (start, end)
+that actually belongs
+to a higher order Buddy block ?
+
+
+Thanks,
+Sandeep
