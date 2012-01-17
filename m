@@ -1,89 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58794 "EHLO mail.kapsi.fi"
+Received: from lo.gmane.org ([80.91.229.12]:59685 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755288Ab2AJVgW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 16:36:22 -0500
-Message-ID: <4F0CAF53.3090802@iki.fi>
-Date: Tue, 10 Jan 2012 23:36:19 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
-References: <4F08385E.7050602@redhat.com>
-In-Reply-To: <4F08385E.7050602@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1751550Ab2AQUrt (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 15:47:49 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1RnFwY-0004Jk-Sc
+	for linux-media@vger.kernel.org; Tue, 17 Jan 2012 21:47:47 +0100
+Received: from p54990F72.dip0.t-ipconnect.de ([84.153.15.114])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 17 Jan 2012 21:47:46 +0100
+Received: from aurel by p54990F72.dip0.t-ipconnect.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 17 Jan 2012 21:47:46 +0100
+To: linux-media@vger.kernel.org
+From: Aurel <aurel@gmx.de>
+Subject: Re: White Balance Temperature
+Date: Tue, 17 Jan 2012 20:47:33 +0000 (UTC)
+Message-ID: <loom.20120117T213805-568@post.gmane.org>
+References: <loom.20120115T110626-849@post.gmane.org> <201201151901.31380.laurent.pinchart@ideasonboard.com> <loom.20120115T210838-546@post.gmane.org> <201201171156.56692.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Behaviour of new FE is strange for my eyes. Could you look and explain 
-if it is intentional?
+Hi Laurent
 
-[crope@localhost dvb]$ ./dvb-fe-tool
-Device Sony CXD2820R (DVB-T/T2) (/dev/dvb/adapter0/frontend0) capabilities:
-	CAN_2G_MODULATION CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 
-CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO 
-CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_64 CAN_QAM_256 
-CAN_QAM_AUTO CAN_QPSK CAN_TRANSMISSION_MODE_AUTO
-DVB API Version 5.5, Current v5 delivery system: DVBT
-Supported delivery systems: [DVBT] DVBT2 DVBC/ANNEX_A
-[crope@localhost dvb]$ czap "MTV3 "
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/crope/.czap/channels.conf'
-  11 MTV3 :330000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_128:305:561:3
-  11 MTV3 : f 330000000, s 6875000, i 2, fec 0, qam 4, v 0x131, a 0x231, 
-s 0x3
-ERROR: frontend device is not a QAM (DVB-C) device
-[crope@localhost dvb]$ ./dvb-fe-tool --set-delsys=DVBC/ANNEX_A
-Device Sony CXD2820R (DVB-T/T2) (/dev/dvb/adapter0/frontend0) capabilities:
-	CAN_2G_MODULATION CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 
-CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO 
-CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_64 CAN_QAM_256 
-CAN_QAM_AUTO CAN_QPSK CAN_TRANSMISSION_MODE_AUTO
-DVB API Version 5.5, Current v5 delivery system: DVBT
-Supported delivery systems: [DVBT] DVBT2 DVBC/ANNEX_A
-Changing delivery system to: DVBC/ANNEX_A
-[crope@localhost dvb]$ ./dvb-fe-tool
-Device Sony CXD2820R (DVB-T/T2) (/dev/dvb/adapter0/frontend0) capabilities:
-	CAN_2G_MODULATION CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 
-CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO 
-CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_64 CAN_QAM_256 
-CAN_QAM_AUTO CAN_QPSK CAN_TRANSMISSION_MODE_AUTO
-DVB API Version 5.5, Current v5 delivery system: DVBC/ANNEX_A
-Supported delivery systems: DVBT DVBT2 [DVBC/ANNEX_A]
-[crope@localhost dvb]$ czap "MTV3 "
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/crope/.czap/channels.conf'
-  11 MTV3 :330000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_128:305:561:3
-  11 MTV3 : f 330000000, s 6875000, i 2, fec 0, qam 4, v 0x131, a 0x231, 
-s 0x3
-status 00 | signal ffff | snr 00c6 | ber 00000000 | unc 00000000 |
-^C
-[crope@localhost dvb]$ ./dvb-fe-tool
-Device Sony CXD2820R (DVB-T/T2) (/dev/dvb/adapter0/frontend0) capabilities:
-	CAN_2G_MODULATION CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 
-CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO 
-CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_64 CAN_QAM_256 
-CAN_QAM_AUTO CAN_QPSK CAN_TRANSMISSION_MODE_AUTO
-DVB API Version 5.5, Current v5 delivery system: DVBT
-Supported delivery systems: [DVBT] DVBT2 DVBC/ANNEX_A
-[crope@localhost dvb]$ czap "MTV3 "
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/crope/.czap/channels.conf'
-  11 MTV3 :330000000:INVERSION_AUTO:6875000:FEC_NONE:QAM_128:305:561:3
-  11 MTV3 : f 330000000, s 6875000, i 2, fec 0, qam 4, v 0x131, a 0x231, 
-s 0x3
-ERROR: frontend device is not a QAM (DVB-C) device
-[crope@localhost dvb]$ ./dvb-fe-tool
-Device Sony CXD2820R (DVB-T/T2) (/dev/dvb/adapter0/frontend0) capabilities:
-	CAN_2G_MODULATION CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 
-CAN_FEC_7_8 CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO 
-CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_64 CAN_QAM_256 
-CAN_QAM_AUTO CAN_QPSK CAN_TRANSMISSION_MODE_AUTO
-DVB API Version 5.5, Current v5 delivery system: DVBT
-Supported delivery systems: [DVBT] DVBT2 DVBC/ANNEX_A
-[crope@localhost dvb]$
+yes, I tried with saturation=137 and gamma=100, but no success.
 
--- 
-http://palosaari.fi/
+Unfortunately I am not so familiar with sniffing USB traffic, but I could try to
+send you a file captured with wireshark, when switching on the camera in
+Windows. Only thing I have to figure out, how to filter out required traffic,
+since it might be a very long file otherwise.
+Would this be ok for you?
+
+Regards
+Aurel
+
+
+
+
+
