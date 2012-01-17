@@ -1,138 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:39042 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751097Ab2A3MHs convert rfc822-to-8bit (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.161]:58485 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751429Ab2AQTpz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 07:07:48 -0500
-Received: by wics10 with SMTP id s10so3330710wic.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2012 04:07:46 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1201271914580.32661@axis700.grange>
-References: <1327579472-31597-1-git-send-email-javier.martin@vista-silicon.com>
-	<1327579472-31597-4-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1201271914580.32661@axis700.grange>
-Date: Mon, 30 Jan 2012 13:07:46 +0100
-Message-ID: <CACKLOr3UPWFTSLGquL6asr_WD8QRcSP79w=OvX9UpkHb82eSvQ@mail.gmail.com>
-Subject: Re: [PATCH v2 4/4] media i.MX27 camera: handle overflows properly.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 17 Jan 2012 14:45:55 -0500
+From: linuxtv@stefanringel.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH] dvbv5-scan: bugfix possible crash by parsing strings
+Date: Tue, 17 Jan 2012 20:45:42 +0100
+Message-Id: <1326829542-4134-1-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27 January 2012 19:16, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> (removed baruch@tkos.co.il - it bounces)
->
-> On Thu, 26 Jan 2012, Javier Martin wrote:
->
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->>  Changes since v1:
->>  - Make ifs in irq callback mutually exclusive.
->>  - Add new argument to mx27_camera_frame_done_emma() to handle errors.
->>
->> ---
->>  drivers/media/video/mx2_camera.c |   38 ++++++++++++++++----------------------
->>  1 files changed, 16 insertions(+), 22 deletions(-)
->>
->> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
->> index 71054ab..1759673 100644
->> --- a/drivers/media/video/mx2_camera.c
->> +++ b/drivers/media/video/mx2_camera.c
->> @@ -1213,7 +1213,7 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
->>  };
->>
->>  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->> -             int bufnum)
->> +             int bufnum, bool err)
->>  {
->>       struct mx2_buffer *buf;
->>       struct vb2_buffer *vb;
->> @@ -1262,7 +1262,10 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>               list_del_init(&buf->queue);
->>               do_gettimeofday(&vb->v4l2_buf.timestamp);
->>               vb->v4l2_buf.sequence = pcdev->frame_count;
->> -             vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
->> +             if (err)
->> +                     vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
->> +             else
->> +                     vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
->>       }
->>
->>       pcdev->frame_count++;
->> @@ -1297,21 +1300,12 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
->>       struct mx2_buffer *buf;
->>
->>       if (status & (1 << 7)) { /* overflow */
->> -             u32 cntl;
->> -             /*
->> -              * We only disable channel 1 here since this is the only
->> -              * enabled channel
->> -              *
->> -              * FIXME: the correct DMA overflow handling should be resetting
->> -              * the buffer, returning an error frame, and continuing with
->> -              * the next one.
->> -              */
->> -             cntl = readl(pcdev->base_emma + PRP_CNTL);
->> -             writel(cntl & ~(PRP_CNTL_CH1EN | PRP_CNTL_CH2EN),
->> -                    pcdev->base_emma + PRP_CNTL);
->> -             writel(cntl, pcdev->base_emma + PRP_CNTL);
->> -     }
->> -     if ((((status & (3 << 5)) == (3 << 5)) ||
->> +             buf = list_entry(pcdev->active_bufs.next,
->> +                     struct mx2_buffer, queue);
->> +             mx27_camera_frame_done_emma(pcdev,
->> +                                     buf->bufnum, 1);
->
-> use "true" for bool variables.
->
->> +             status &= ~(1 << 7);
->> +     } else if ((((status & (3 << 5)) == (3 << 5)) ||
->>               ((status & (3 << 3)) == (3 << 3)))
->>                       && !list_empty(&pcdev->active_bufs)) {
->>               /*
->> @@ -1320,13 +1314,13 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
->>                */
->>               buf = list_entry(pcdev->active_bufs.next,
->>                       struct mx2_buffer, queue);
->> -             mx27_camera_frame_done_emma(pcdev, buf->bufnum);
->> +             mx27_camera_frame_done_emma(pcdev, buf->bufnum, 0);
->
-> "false"
->
->>               status &= ~(1 << (6 - buf->bufnum)); /* mark processed */
->> +     } else if ((status & (1 << 6)) || (status & (1 << 4))) {
->> +             mx27_camera_frame_done_emma(pcdev, 0, 0);
->
-> "false"
->
->> +     } else if ((status & (1 << 5)) || (status & (1 << 3))) {
->> +             mx27_camera_frame_done_emma(pcdev, 1, 0);
->
-> "false"
->
->>       }
->> -     if ((status & (1 << 6)) || (status & (1 << 4)))
->> -             mx27_camera_frame_done_emma(pcdev, 0);
->> -     if ((status & (1 << 5)) || (status & (1 << 3)))
->> -             mx27_camera_frame_done_emma(pcdev, 1);
->>
->>       writel(status, pcdev->base_emma + PRP_INTRSTATUS);
->>
+From: Stefan Ringel <linuxtv@stefanringel.de>
 
-Don't worry, this will be fixed in v3.
+PID 0x0010, TableID 0x40 ID=0x3001, version 4, size 132
+        40 f0 81 30 01 c9 00 00 f0 26 40 18 44 56 42 2d
+        54 20 42 65 72 6c 69 6e 2f 42 72 61 6e 64 65 6e
+        62 75 72 67 6c 0a 01 01 49 9a 08 89 21 01 ec 00
+        f0 4e 01 01 21 14 f0 24 5a 0b 04 10 a6 40 1f 41
+        12 ff ff ff ff 6d 07 01 01 04 10 a6 40 00 41 0c
+        00 02 01 00 41 01 00 61 01 00 81 01 01 02 21 14
+        f0 1e 5a 0b 03 1c 82 40 1f 41 12 ff ff ff ff 41
+        0f 00 0b 01 00 0c 01 00 0d 01 00 0e 01 00 0f 01
+        5a 5e 75 59
+        section_length = 129 section 0, last section 0
+Descriptors table len 38
+network_name_descriptor (0x40), len 24
+        44 56 42 2d 54 20 42 65 72 6c 69 6e 2f 42 72 61
+        6e 64 65 6e 62 75 72 67
+*** glibc detected *** ./dvbv5-scan: free(): invalid pointer: 0x0000000000618dc0 ***
+======= Backtrace: =========
+/lib64/libc.so.6(+0x74c06)[0x7ffe9b15dc06]
+./dvbv5-scan[0x407ba6]
+./dvbv5-scan[0x407339]
+./dvbv5-scan[0x405c7e]
+./dvbv5-scan[0x4067d3]
+./dvbv5-scan[0x401749]
+/lib64/libc.so.6(__libc_start_main+0xed)[0x7ffe9b10a23d]
+./dvbv5-scan[0x401dd5]
+======= Memory map: ========
+00400000-0040e000 r-xp 00000000 08:03 15084544                           /home/stefan/build/dvb_utils/v4l-utils/utils/dvb/dvbv5-scan
+0060d000-0060e000 r--p 0000d000 08:03 15084544                           /home/stefan/build/dvb_utils/v4l-utils/utils/dvb/dvbv5-scan
+0060e000-00610000 rw-p 0000e000 08:03 15084544                           /home/stefan/build/dvb_utils/v4l-utils/utils/dvb/dvbv5-scan
+00610000-00631000 rw-p 00000000 00:00 0                                  [heap]
+7ffe9acd0000-7ffe9ace5000 r-xp 00000000 08:03 15859816                   /lib64/libgcc_s.so.1
+7ffe9ace5000-7ffe9aee4000 ---p 00015000 08:03 15859816                   /lib64/libgcc_s.so.1
+7ffe9aee4000-7ffe9aee5000 r--p 00014000 08:03 15859816                   /lib64/libgcc_s.so.1
+7ffe9aee5000-7ffe9aee6000 rw-p 00015000 08:03 15859816                   /lib64/libgcc_s.so.1
+7ffe9aee6000-7ffe9aee8000 r-xp 00000000 08:03 59904690                   /usr/lib64/gconv/ISO8859-1.so
+7ffe9aee8000-7ffe9b0e7000 ---p 00002000 08:03 59904690                   /usr/lib64/gconv/ISO8859-1.so
+7ffe9b0e7000-7ffe9b0e8000 r--p 00001000 08:03 59904690                   /usr/lib64/gconv/ISO8859-1.so
+7ffe9b0e8000-7ffe9b0e9000 rw-p 00002000 08:03 59904690                   /usr/lib64/gconv/ISO8859-1.so
+7ffe9b0e9000-7ffe9b26e000 r-xp 00000000 08:03 15859719                   /lib64/libc-2.14.1.so
+7ffe9b26e000-7ffe9b46e000 ---p 00185000 08:03 15859719                   /lib64/libc-2.14.1.so
+7ffe9b46e000-7ffe9b472000 r--p 00185000 08:03 15859719                   /lib64/libc-2.14.1.so
+7ffe9b472000-7ffe9b473000 rw-p 00189000 08:03 15859719                   /lib64/libc-2.14.1.so
+7ffe9b473000-7ffe9b478000 rw-p 00000000 00:00 0
+7ffe9b478000-7ffe9b498000 r-xp 00000000 08:03 15859714                   /lib64/ld-2.14.1.so
+7ffe9b671000-7ffe9b674000 rw-p 00000000 00:00 0
+7ffe9b68e000-7ffe9b68f000 rw-p 00000000 00:00 0
+7ffe9b68f000-7ffe9b696000 r--s 00000000 08:03 59904753                   /usr/lib64/gconv/gconv-modules.cache
+7ffe9b696000-7ffe9b698000 rw-p 00000000 00:00 0
+7ffe9b698000-7ffe9b699000 r--p 00020000 08:03 15859714                   /lib64/ld-2.14.1.so
+7ffe9b699000-7ffe9b69a000 rw-p 00021000 08:03 15859714                   /lib64/ld-2.14.1.so
+7ffe9b69a000-7ffe9b69b000 rw-p 00000000 00:00 0
+7fffab429000-7fffab44a000 rw-p 00000000 00:00 0                          [stack]
+7fffab51c000-7fffab51d000 r-xp 00000000 00:00 0                          [vdso]
+ffffffffff600000-ffffffffff601000 r-xp 00000000 00:00 0                  [vsyscall]
+Abgebrochen
+localhost:/home/stefan/build/dvb_utils/v4l-utils/utils/dvb #
 
 
+Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+---
+ utils/dvb/parse_string.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
+diff --git a/utils/dvb/parse_string.c b/utils/dvb/parse_string.c
+index f073a07..37f5c3a 100644
+--- a/utils/dvb/parse_string.c
++++ b/utils/dvb/parse_string.c
+@@ -410,8 +410,8 @@ void parse_string(char **dest, char **emph,
+ 		 * Handles the ISO/IEC 10646 1-byte control codes
+ 		 * (EN 300 468 v1.11.1 Table A.1)
+ 		 */
+-		tmp1 = malloc(len);
+-		tmp2 = malloc(len);
++		tmp1 = malloc(len + 2);
++		tmp2 = malloc(len + 2);
+ 		p = (char *)tmp1;
+ 		p2 = (char *)tmp2;
+ 		s = src;
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.7
+
