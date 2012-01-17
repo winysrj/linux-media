@@ -1,74 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:36080 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754603Ab2AHXbf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2012 18:31:35 -0500
-Received: by vbbfc26 with SMTP id fc26so2284903vbb.19
-        for <linux-media@vger.kernel.org>; Sun, 08 Jan 2012 15:31:35 -0800 (PST)
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:16336 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752554Ab2AQKN3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 17 Jan 2012 05:13:29 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [git:v4l-dvb/for_v3.3] [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT documentation
+Date: Tue, 17 Jan 2012 11:13:14 +0100
+Cc: linux-media@vger.kernel.org, linuxtv-commits@linuxtv.org,
+	Rupert Eibauer <Rupert.Eibauer@ces.ch>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <E1Rmmdy-0002zt-5K@www.linuxtv.org> <Pine.LNX.4.64.1201162315200.15379@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1201162315200.15379@axis700.grange>
 MIME-Version: 1.0
-Date: Mon, 9 Jan 2012 00:31:35 +0100
-Message-ID: <CADotOjP-3+CCN+mOaEHFiUUfsyr33zNW0Av8uXSzz0CF0BX1SA@mail.gmail.com>
-Subject: [PATCH] v4l-utils: ir-keytable file parsing errors
-From: Chris Pockele <chris.pockele.f1@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=20cf307d06cec88c8f04b60cae62
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201171113.14927.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---20cf307d06cec88c8f04b60cae62
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+On Monday 16 January 2012 23:16:31 Guennadi Liakhovetski wrote:
+> On Mon, 16 Jan 2012, Mauro Carvalho Chehab wrote:
+> > This is an automatic generated email to let you know that the following
+> > patch were queued at the http://git.linuxtv.org/media_tree.git tree:
+> > 
+> > Subject: [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT documentation
+> > Author:  Hans Verkuil <hans.verkuil@cisco.com>
+> > Date:    Wed Jan 11 07:37:54 2012 -0300
+> 
+> [snip]
+> 
+> > diff --git a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+> > b/Documentation/DocBook/media/v4l/vidioc-g-output.xml index
+> > fd45f1c..4533068 100644
+> > --- a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+> > +++ b/Documentation/DocBook/media/v4l/vidioc-g-output.xml
+> > @@ -61,8 +61,9 @@ desired output in an integer and call the
+> > 
+> >  <constant>VIDIOC_S_OUTPUT</constant> ioctl with a pointer to this
+> >  integer. Side effects are possible. For example outputs may support
+> >  different video standards, so the driver may implicitly switch the
+> >  current
+> > 
+> > -standard. It is good practice to select an output before querying or
+> > -negotiating any other parameters.</para>
+> > +standard.
+> > +standard. Because of these possible side effects applications
+> > +must select an output before querying or negotiating any other
+> > parameters.</para>
+> 
+> something seems to be wrong here.
 
-Hello,
+Hi Guennadi!
 
-While configuring a remote control I noticed that the ir-keytable
-utility would throw the message "Invalid parameter on line 1" if the
-first line following the "table ... type: ..." line is a comment.
-Also, if a configuration line is invalid, the line number indication
-of the error message is sometimes incorrect, because the comments
-before it are not counted.
-This happens because of the "continue" statement when processing
-comments (or the table/type line), thus skipping the line counter
-increase at the end of the loop.  The included patch fixes both
-problems by making sure the counter is always increased.
-The parse_cfgfile() function had a similar problem.
-
-For the "table ... type: ..." configuration line at the beginning of a
-keyfile, I suggest replacing the marker character by something
-different from '#'.  That way, it can be commented out by the user,
-and it doesn't have to be on the first line.  However, that's
-something for another patch and probably up to someone else to decide
-:-).  If desirable, I can generate such a patch.
+What's wrong here? I've no idea what you mean.
 
 Regards,
-Chris
 
-Signed-off-by: Chris Pockel=E9 <chris.pockele.f1@gmail.com>
-
---20cf307d06cec88c8f04b60cae62
-Content-Type: text/x-diff; charset=US-ASCII; name="fix_keyfile_lineno.patch"
-Content-Disposition: attachment; filename="fix_keyfile_lineno.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gx6ipoit0
-
-ZGlmZiAtcnUgYS91dGlscy9rZXl0YWJsZS9rZXl0YWJsZS5jIGIvdXRpbHMva2V5dGFibGUva2V5
-dGFibGUuYwotLS0gYS91dGlscy9rZXl0YWJsZS9rZXl0YWJsZS5jCTIwMTItMDEtMDggMTU6MjI6
-MTUuMDAwMDAwMDAwICswMTAwCisrKyBiL3V0aWxzL2tleXRhYmxlL2tleXRhYmxlLmMJMjAxMi0w
-MS0wOCAyMToxNzoxMS4yMTU4MjYwMTIgKzAxMDAKQEAgLTIwMSw5ICsyMDEsMTEgQEAKIAogCXdo
-aWxlIChmZ2V0cyhzLCBzaXplb2YocyksIGZpbikpIHsKIAkJY2hhciAqcCA9IHM7CisKKwkJbGlu
-ZSsrOwogCQl3aGlsZSAoKnAgPT0gJyAnIHx8ICpwID09ICdcdCcpCiAJCQlwKys7Ci0JCWlmICgh
-bGluZSAmJiBwWzBdID09ICcjJykgeworCQlpZiAobGluZT09MSAmJiBwWzBdID09ICcjJykgewog
-CQkJcCsrOwogCQkJcCA9IHN0cnRvayhwLCAiXG5cdCA9OiIpOwogCQkJZG8gewpAQCAtMjc4LDcg
-KzI4MCw2IEBACiAJCQlyZXR1cm4gRU5PTUVNOwogCQl9CiAJCW5leHRrZXkgPSBuZXh0a2V5LT5u
-ZXh0OwotCQlsaW5lKys7CiAJfQogCWZjbG9zZShmaW4pOwogCkBAIC0yODYsNyArMjg3LDcgQEAK
-IAogZXJyX2VpbnZhbDoKIAlmcHJpbnRmKHN0ZGVyciwgIkludmFsaWQgcGFyYW1ldGVyIG9uIGxp
-bmUgJWQgb2YgJXNcbiIsCi0JCWxpbmUgKyAxLCBmbmFtZSk7CisJCWxpbmUsIGZuYW1lKTsKIAly
-ZXR1cm4gRUlOVkFMOwogCiB9CkBAIC0zMTEsNiArMzEyLDggQEAKIAogCXdoaWxlIChmZ2V0cyhz
-LCBzaXplb2YocyksIGZpbikpIHsKIAkJY2hhciAqcCA9IHM7CisKKwkJbGluZSsrOwogCQl3aGls
-ZSAoKnAgPT0gJyAnIHx8ICpwID09ICdcdCcpCiAJCQlwKys7CiAKQEAgLTM0OCw3ICszNTEsNiBA
-QAogCQkJcmV0dXJuIEVOT01FTTsKIAkJfQogCQluZXh0Y2ZnID0gbmV4dGNmZy0+bmV4dDsKLQkJ
-bGluZSsrOwogCX0KIAlmY2xvc2UoZmluKTsKIApAQCAtMzU2LDcgKzM1OCw3IEBACiAKIGVycl9l
-aW52YWw6CiAJZnByaW50ZihzdGRlcnIsICJJbnZhbGlkIHBhcmFtZXRlciBvbiBsaW5lICVkIG9m
-ICVzXG4iLAotCQlsaW5lICsgMSwgZm5hbWUpOworCQlsaW5lLCBmbmFtZSk7CiAJcmV0dXJuIEVJ
-TlZBTDsKIAogfQo=
---20cf307d06cec88c8f04b60cae62--
+	Hans
