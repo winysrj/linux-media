@@ -1,91 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:52880 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932183Ab2AEBBG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:06 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05116tC016352
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:06 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 05/47] [media] mt2063: Fix the driver to make it compile
-Date: Wed,  4 Jan 2012 23:00:16 -0200
-Message-Id: <1325725258-27934-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail.interlinx.bc.ca ([66.11.173.224]:34648 "EHLO
+	linux.interlinx.bc.ca" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757623Ab2ARO3X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jan 2012 09:29:23 -0500
+Received: from [10.75.22.1] (pc.ilinx [10.75.22.1])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	by linux.interlinx.bc.ca (Postfix) with ESMTPSA id 047E475994
+	for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 09:22:54 -0500 (EST)
+Message-ID: <4F16D5BD.6060609@interlinx.bc.ca>
+Date: Wed, 18 Jan 2012 09:22:53 -0500
+From: "Brian J. Murrell" <brian@interlinx.bc.ca>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: cx18-0: Could not find buf 90 for stream TS
+Content-Type: multipart/signed; micalg=pgp-sha1;
+ protocol="application/pgp-signature";
+ boundary="------------enig0300E3123248F62A1F5F1C26"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mt2063.c |    1 -
- drivers/media/common/tuners/mt2063.h |   25 +++++++++++++++++--------
- 2 files changed, 17 insertions(+), 9 deletions(-)
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enig0300E3123248F62A1F5F1C26
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 1d36e51..cd3b206 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -4,7 +4,6 @@
- #include <linux/module.h>
- #include <linux/string.h>
- 
--#include "drxk_type.h"
- #include "mt2063.h"
- 
- /*  Version of this module                          */
-diff --git a/drivers/media/common/tuners/mt2063.h b/drivers/media/common/tuners/mt2063.h
-index 8fa4411..80af9af 100644
---- a/drivers/media/common/tuners/mt2063.h
-+++ b/drivers/media/common/tuners/mt2063.h
-@@ -1,9 +1,19 @@
- #ifndef __MT2063_H__
- #define __MT2063_H__
- 
--#include <linux/dvb/frontend.h>
- #include "dvb_frontend.h"
- 
-+enum Bool_t {
-+  FALSE = 0,
-+  TRUE
-+};
-+
-+typedef unsigned long  u32_t;
-+
-+#define DVBFE_TUNER_OPEN			99
-+#define DVBFE_TUNER_SOFTWARE_SHUTDOWN		100
-+#define DVBFE_TUNER_CLEAR_POWER_MASKBITS	101
-+
- #define MT2063_ERROR (1 << 31)
- #define MT2063_USER_ERROR (1 << 30)
- 
-@@ -618,17 +628,16 @@ struct mt2063_state {
- 	u32 reference;
- };
- 
--#if defined(CONFIG_DVB_MT2063) || (defined(CONFIG_DVB_MT2063_MODULE) && defined(MODULE))
--
--extern struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
--					  struct mt2063_config *config,
--					  struct i2c_adapter *i2c);
-+#if defined(CONFIG_MEDIA_TUNER_MT2063) || (defined(CONFIG_MEDIA_TUNER_MT2063_MODULE) && defined(MODULE))
-+struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
-+				   struct mt2063_config *config,
-+				   struct i2c_adapter *i2c);
- 
- #else
- 
- static inline struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
--						 struct mt2063_config *config,
--						 struct i2c_adapter *i2c)
-+				   struct mt2063_config *config,
-+				   struct i2c_adapter *i2c)
- {
- 	printk(KERN_WARNING "%s: Driver disabled by Kconfig\n", __func__);
- 	return NULL;
--- 
-1.7.7.5
+[ Apologies if this ends up as a duplicate post but my first posting
+  (via gmane) a couple of hours ago is still not on the list ]
 
+I have an HVR-1600 on a 2.6.32[-33 Ubuntu] kernel (modinfo says the
+cx18 driver is version 1.2.0 with srcversion "DBC252062593953C879E266")
+which I have MythTV driving.  Last night a number of recordings from
+the analog tuner failed.  The first failure correlates to the following
+in the kernel log:
+
+Jan 17 20:30:34 pvr kernel: [565436.263521] cx18-0: Could not find buf 90=
+ for stream TS
+Jan 17 20:30:34 pvr kernel: [565436.610052] cx18-0: Skipped TS, buffer 83=
+, 19 times - it must have dropped out of rotation
+Jan 17 20:30:35 pvr kernel: [565437.360282] cx18-0: Could not find buf 50=
+ for stream encoder MPEG
+Jan 17 20:30:35 pvr kernel: [565438.072959] cx18-0: Skipped encoder MPEG,=
+ buffer 33, 61 times - it must have dropped out of rotation
+Jan 17 20:30:36 pvr kernel: [565438.537061] cx18-0: Skipped TS, buffer 67=
+, 19 times - it must have dropped out of rotation
+Jan 17 20:30:36 pvr kernel: [565438.590691] cx18-0: Skipped encoder MPEG,=
+ buffer 49, 55 times - it must have dropped out of rotation
+Jan 17 20:30:38 pvr kernel: [565440.265314] cx18-0: Could not find buf 81=
+ for stream encoder MPEG
+Jan 17 20:30:38 pvr kernel: [565440.780971] cx18-0: Skipped TS, buffer 68=
+, 19 times - it must have dropped out of rotation
+Jan 17 20:30:39 pvr kernel: [565441.705943] cx18-0: Skipped encoder MPEG,=
+ buffer 41, 42 times - it must have dropped out of rotation
+Jan 17 20:32:01 pvr kernel: [565523.657123] cx18-0: Skipped encoder MPEG,=
+ buffer 6, 62 times - it must have dropped out of rotation
+Jan 17 20:32:18 pvr kernel: [565540.248743] cx18-0: Skipped encoder MPEG,=
+ buffer 62, 62 times - it must have dropped out of rotation
+Jan 17 20:32:19 pvr kernel: [565541.337101] cx18-0: Could not find buf 35=
+ for stream encoder MPEG
+Jan 17 20:32:19 pvr kernel: [565541.862825] cx18-0: Skipped TS, buffer 73=
+, 19 times - it must have dropped out of rotation
+Jan 17 20:32:19 pvr kernel: [565541.975030] cx18-0: Skipped TS, buffer 82=
+, 16 times - it must have dropped out of rotation
+Jan 17 20:32:20 pvr kernel: [565543.105033] cx18-0: Unable to find blank =
+work order form to schedule incoming mailbox command processing
+Jan 17 20:32:21 pvr kernel: [565543.595668] cx18-0: Skipped encoder MPEG,=
+ buffer 34, 44 times - it must have dropped out of rotation
+Jan 17 20:32:24 pvr kernel: [565546.512745] cx18-0: ignoring gop_end: not=
+ (yet?) supported by the firmware
+
+At the same time as the analog recording a digital recording stopped
+(very) short of completing with only having captured 36MB.
+
+Beyond that, MythTV reports:
+
+2012-01-17 21:00:06.286397 W [2451/3732] RecThread mpegrecorder.cpp:1358 =
+(StartEncoding) - MPEGRec(/dev/video1): StartEncoding failed
+                        eno: Input/output error (5)
+=2E..
+2012-01-17 22:00:05.774512 W [2451/4335] RecThread mpegrecorder.cpp:1358 =
+(StartEncoding) - MPEGRec(/dev/video1): StartEncoding failed
+                        eno: Input/output error (5)
+
+But ultimately all further recordings (both analog and digital) from
+that card failed.
+
+Any ideas what happened?  I can leave this machine as is for a few
+hours in case anyone wants any information from it before I reboot it.
+
+Cheers,
+b.
+
+
+
+
+--------------enig0300E3123248F62A1F5F1C26
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iEYEARECAAYFAk8W1b0ACgkQl3EQlGLyuXAPZwCg4PTNflyj5lh9gRe47n6NH5X6
+rF4AoOh0J3zWJsdPoBGuArhG/537Tz97
+=e5rO
+-----END PGP SIGNATURE-----
+
+--------------enig0300E3123248F62A1F5F1C26--
