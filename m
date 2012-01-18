@@ -1,48 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31256 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753090Ab2AWS12 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 13:27:28 -0500
-Message-ID: <4F1DA689.9090502@redhat.com>
-Date: Mon, 23 Jan 2012 16:27:21 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:61982 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756602Ab2ARM4O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jan 2012 07:56:14 -0500
+Received: by werb13 with SMTP id b13so325352wer.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 04:56:12 -0800 (PST)
+Message-ID: <4F16C16A.7000208@googlemail.com>
+Date: Wed, 18 Jan 2012 13:56:10 +0100
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-To: Chris Pockele <chris.pockele.f1@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] v4l-utils: ir-keytable file parsing errors
-References: <CADotOjP-3+CCN+mOaEHFiUUfsyr33zNW0Av8uXSzz0CF0BX1SA@mail.gmail.com>
-In-Reply-To: <CADotOjP-3+CCN+mOaEHFiUUfsyr33zNW0Av8uXSzz0CF0BX1SA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4l-utils migrated to autotools
+References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <2648c3dfc9ea2bd3bae776200d7e056e@chewa.net> <201201181344.09700.pboettcher@kernellabs.com>
+In-Reply-To: <201201181344.09700.pboettcher@kernellabs.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 08-01-2012 21:31, Chris Pockele escreveu:
-> Hello,
-> 
-> While configuring a remote control I noticed that the ir-keytable
-> utility would throw the message "Invalid parameter on line 1" if the
-> first line following the "table ... type: ..." line is a comment.
-> Also, if a configuration line is invalid, the line number indication
-> of the error message is sometimes incorrect, because the comments
-> before it are not counted.
-> This happens because of the "continue" statement when processing
-> comments (or the table/type line), thus skipping the line counter
-> increase at the end of the loop.  The included patch fixes both
-> problems by making sure the counter is always increased.
-> The parse_cfgfile() function had a similar problem.
+On 1/18/12 1:44 PM, Patrick Boettcher wrote:
+> I missed the first message of this thread, that's why I hijacked it here
+> and it is short:
+>
+> I love cmake and can't understand why people are not preferring it over
+> autotools for user-space applications and conditional+configurable
+> builds.
+>
+> I hope my mail is not too off-topic.
 
-Applied, thanks.
+My first attempt to add a sane buildsystem used cmake, too:
+https://github.com/gjasny/v4l-utils-cmake
 
-> For the "table ... type: ..." configuration line at the beginning of a
-> keyfile, I suggest replacing the marker character by something
-> different from '#'.  That way, it can be commented out by the user,
-> and it doesn't have to be on the first line.  However, that's
-> something for another patch and probably up to someone else to decide
-> :-).  If desirable, I can generate such a patch.
+But Hans (de Goede) preferred something more 'standard'. So I learned 
+autofoo. And I must admit it really got better during the years.
 
-Such patch is welcome, provided that it will keep working with the
-old format, in order to not mangle configs with the old format.
+And packaging is also easy:
+http://bazaar.launchpad.net/~libv4l/+junk/packaging/view/head:/rules
 
-Regards,
-Mauro
+Thanks,
+Gregor
