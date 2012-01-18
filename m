@@ -1,127 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:28261 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754492Ab2AHVQR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Jan 2012 16:16:17 -0500
-Message-ID: <4F0A079F.5060100@maxwell.research.nokia.com>
-Date: Sun, 08 Jan 2012 23:16:15 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+Received: from mail.hauppauge.com ([167.206.143.4]:3419 "EHLO
+	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757724Ab2AROi7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jan 2012 09:38:59 -0500
+Message-ID: <4F16D97C.5070005@linuxtv.org>
+Date: Wed, 18 Jan 2012 09:38:52 -0500
+From: Michael Krufky <mkrufky@linuxtv.org>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-Subject: Re: [RFC 07/17] v4l: Add pixelrate to struct v4l2_mbus_framefmt
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-7-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201201061126.40692.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201061126.40692.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [git:v4l-dvb/for_v3.3] [media] DVB: dib0700, add support for
+ Nova-TD LEDs
+References: <E1RnU5E-0000Vf-T9@www.linuxtv.org> <4F16C6B8.8000402@linuxtv.org> <201201181454.34245.pboettcher@kernellabs.com>
+In-Reply-To: <201201181454.34245.pboettcher@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Laurent Pinchart wrote:
-> On Tuesday 20 December 2011 21:27:59 Sakari Ailus wrote:
->> From: Sakari Ailus <sakari.ailus@iki.fi>
+On 01/18/2012 08:54 AM, Patrick Boettcher wrote:
+> On Wednesday 18 January 2012 14:18:48 Michael Krufky wrote:
+>> Mauro,
 >>
->> Pixelrate is an essential part of the image data parameters. Add this.
->> Together, the current parameters also define the frame rate.
+>> Why was my sign-off changed to an Ack?
 >>
->> Sensors do not have a concept of frame rate; pixelrate is much more
->> meaningful in this context. Also, it is best to combine the pixelrate with
->> the other format parameters since there are dependencies between them.
+>> As you can see, I worked *with* Jiri to help him create this
+>> patchset.
 >>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> ---
->>  Documentation/DocBook/media/v4l/subdev-formats.xml |   10 +++++++++-
->>  include/linux/v4l2-mediabus.h                      |    4 +++-
->>  2 files changed, 12 insertions(+), 2 deletions(-)
+>> During review, I noticed a poorly named function, which I renamed
+>> before pusging it into my own tree.  Patrick saw this, and merged my
+>> changes into into his tree.
 >>
->> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
->> b/Documentation/DocBook/media/v4l/subdev-formats.xml index
->> 49c532e..a6a6630 100644
->> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
->> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
->> @@ -35,7 +35,15 @@
->>  	</row>
->>  	<row>
->>  	  <entry>__u32</entry>
->> -	  <entry><structfield>reserved</structfield>[7]</entry>
->> +	  <entry><structfield>pixelrate</structfield></entry>
->> +	  <entry>Pixel rate in kp/s.
-> 
-> kPix/s or kPixel/s ?
+>> Why did I go through this effort to help another developer add value
+>> to one of our drivers, and additional effort to make a small
+>> cleanup, push the changes into my own tree and issue a pull request?
+>>   I was thanked by Patrick.  Everybody's signature is on the patch,
+>> but you then go and remove my signature, and add a forged "ack"?  I
+>> don't understand this, Mauro.
+>
+> I think it is my fault.
+>
+> I haven't merged your tree but I merged Jiri's patches as is. (git am)
+> I completely oversaw your pull request and issued mine.
+>
+> Mauro in IRC told me that you issued a PULL request as well. Not being
+> aware that you have made any modifications Mauro suggest to pull from me
+> and add an Ack-By to the patches.
+>
+> So he did not remove anything but trusted me too much.
 
-Hmm. kilo-pixels / second?
+Hmmmm...  That's unfortunate.  I also made various corrections in the 
+commit messages.
 
-Albeit I have to say I'm increasingly inclined to think this field
-doesn't really belong to this struct --- we should discuss that tomorrow.
+I *meant* this to go to Mauro, I didn't realize it was going to 
+linux-media list.  Now I see that there was a reply-to header set, so 
+that explains why "reply" had larger effects ;-)
 
-There are two things this is needed in the user space:
+Either way, Mauro, Can you remove those patches and re-apply them from 
+my tree?  Please feel free to add Patrick's Sign-off.
 
-1) To calculate detailed hardware timing information.
+For the record, I actually worked *with* Jiri on these patches -- I told 
+him how to toggle the LEDs, I told him which functions to override, and 
+I showed him examples of how it was done elsewhere within dib0700 as 
+well as how other drivers do it, and I encouraged him to submit these 
+patches because I am trying to get more people involved in DVB development.
 
-2) To figure out whether streaming is possible, or to figure out why it
-failed in case it did.
+I just feel violated to have my signature stripped away from something 
+that I took part in, and then to see additional signatures added on top 
+made matters worse.
 
-And in kernel space:
-
-1) To configure devices. The OMAP 3 ISP CSI-2 receiver and CCDC blocks
-must be configured based on the pixel rate.
-
-2) Validate pipeline pixel rate for each subdev. Some subdevs require it
-to be withint limits. A good example is the OMAP 3 ISP where most blocks
-have 100 Mp/s maximum whereas the CSI-2 receiver has 200 Mp/s maximum.
-
-This could be implemented using pad-specific controls. In drivers the
-subdev in sink end of the link would get the controls from the source.
-
->> This clock is the maximum rate at
-> 
-> Is it really a clock ?
-> 
->> +	  which pixels are transferred on the bus. The
->> +	  <structfield>pixelrate</structfield> field is
->> +	  read-only.</entry>
-> 
-> Does that mean that userspace isn't required to propagate the value down the 
-> pipeline when configuring it ? I'm fine with that, but it should probably be 
-> documented explictly somewhere to make sure that drivers don't rely on it.
-> 
->> +	</row>
->> +	<row>
->> +	  <entry>__u32</entry>
->> +	  <entry><structfield>reserved</structfield>[6]</entry>
->>  	  <entry>Reserved for future extensions. Applications and drivers must
->>  	  set the array to zero.</entry>
->>  	</row>
->> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
->> index 5ea7f75..35c6b96 100644
->> --- a/include/linux/v4l2-mediabus.h
->> +++ b/include/linux/v4l2-mediabus.h
->> @@ -101,6 +101,7 @@ enum v4l2_mbus_pixelcode {
->>   * @code:	data format code (from enum v4l2_mbus_pixelcode)
->>   * @field:	used interlacing type (from enum v4l2_field)
->>   * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
->> + * @pixel_clock: pixel clock, in kHz
-> 
-> I think you forgot to update the comment.
-> 
->>   */
->>  struct v4l2_mbus_framefmt {
->>  	__u32			width;
->> @@ -108,7 +109,8 @@ struct v4l2_mbus_framefmt {
->>  	__u32			code;
->>  	__u32			field;
->>  	__u32			colorspace;
->> -	__u32			reserved[7];
->> +	__u32			pixelrate;
->> +	__u32			reserved[6];
->>  };
->>
->>  #endif
-> 
+-Mike
 
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
