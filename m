@@ -1,58 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:20423 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752638Ab2A2UzO (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:56687 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757322Ab2ARNCF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Jan 2012 15:55:14 -0500
-Date: Sun, 29 Jan 2012 21:55:28 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: devel@driverdev.osuosl.org
-cc: linux-kernel@vger.kernel.org, linux-media@vger.kernel.org,
-	"R.M. Thomas" <rmthomas@sciolus.org>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Tomas Winkler <tomas.winkler@intel.com>,
-	Dan Carpenter <error27@gmail.com>
-Subject: [PATCH] staging, media, easycap: Fix mem leak in
- easycap_usb_probe()
-Message-ID: <alpine.LNX.2.00.1201292152590.27749@swampdragon.chaosbits.net>
+	Wed, 18 Jan 2012 08:02:05 -0500
+Received: by wibhm6 with SMTP id hm6so2170334wib.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 05:02:04 -0800 (PST)
+Message-ID: <4F16C2CA.2090401@googlemail.com>
+Date: Wed, 18 Jan 2012 14:02:02 +0100
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4l-utils migrated to autotools
+References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <4F16BF4D.4070404@googlemail.com> <4F16C11F.3040108@redhat.com>
+In-Reply-To: <4F16C11F.3040108@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If allocating 'pdata_urb' fails, the function will return -ENOMEM
-without freeing the memory allocated, just a few lines above, for
-'purb' and will leak that memory when 'purb' goes out of scope.
+On 1/18/12 1:54 PM, Mauro Carvalho Chehab wrote:
+> Em 18-01-2012 10:47, Gregor Jasny escreveu:
+>> On 1/18/12 1:19 PM, Mauro Carvalho Chehab wrote:
+>>> It would be nice to write at the INSTALL what dependencies are needed for
+>>> the autotools to work, or, alternatively, to commit the files generated
+>>> by the autoreconf -vfi magic spell there [1].
+>>
+>> The end user gets a tarball created with "make dist" which contains all the m4 files.
+>
+> Ah, ok. It probably makes sense then to add some scripting at the server to do
+> a daily build, as the tarballs aren't updated very often. They're updated only
+> at the sub-releases:
+> 	http://linuxtv.org/downloads/v4l-utils/
 
-This patch resolves the leak by freeing the allocated storage with
-usb_free_urb() before the return.
+Judging from the upside-down reports: not the lack of a buildable 
+tarball but the lack of updated distribution packages is a problem. For 
+Ubuntu we have a PPA repository with nightly builds:
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- drivers/staging/media/easycap/easycap_main.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+https://launchpad.net/~libv4l/+archive/development
 
-  compile tested only
+Do you have similar infrastructure for Fedora / RedHat, too?
 
-diff --git a/drivers/staging/media/easycap/easycap_main.c b/drivers/staging/media/easycap/easycap_main.c
-index 8ff5f38..3d439b7 100644
---- a/drivers/staging/media/easycap/easycap_main.c
-+++ b/drivers/staging/media/easycap/easycap_main.c
-@@ -3825,6 +3825,7 @@ static int easycap_usb_probe(struct usb_interface *intf,
- /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
- 			pdata_urb = kzalloc(sizeof(struct data_urb), GFP_KERNEL);
- 			if (!pdata_urb) {
-+				usb_free_urb(purb);
- 				SAM("ERROR: Could not allocate struct data_urb.\n");
- 				return -ENOMEM;
- 			}
--- 
-1.7.8.4
-
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+Thanks,
+Gregor
