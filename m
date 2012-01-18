@@ -1,33 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:38530 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751335Ab2AER0W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:26:22 -0500
-Message-ID: <4F05DD37.6010407@redhat.com>
-Date: Thu, 05 Jan 2012 18:26:15 +0100
-From: Paolo Bonzini <pbonzini@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:64571 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753806Ab2ARMrN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jan 2012 07:47:13 -0500
+Received: by eaac11 with SMTP id c11so917688eaa.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 04:47:11 -0800 (PST)
+Message-ID: <4F16BF4D.4070404@googlemail.com>
+Date: Wed, 18 Jan 2012 13:47:09 +0100
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
-	linux-kernel@vger.kernel.org, security@kernel.org,
-	pmatouse@redhat.com, agk@redhat.com, jbottomley@parallels.com,
-	mchristi@redhat.com, msnitzer@redhat.com,
-	Christoph Hellwig <hch@lst.de>
-Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
- passthrough ioctls on partition devices)
-References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
-In-Reply-To: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4l-utils migrated to autotools
+References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com>
+In-Reply-To: <4F16B8CC.3010503@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/05/2012 06:02 PM, Linus Torvalds wrote:
-> +	return	ret == -EINVAL ||
-> +		ret == -ENOTTY ||
-> +		ret == ENOIOCTLCMD;
+On 1/18/12 1:19 PM, Mauro Carvalho Chehab wrote:
+> It would be nice to write at the INSTALL what dependencies are needed for
+> the autotools to work, or, alternatively, to commit the files generated
+> by the autoreconf -vfi magic spell there [1].
 
-Missing minus before ENOIOCTLCMD.
+The end user gets a tarball created with "make dist" which contains all 
+the m4 files.
 
-Paolo
+For the developers I will list the dependencies (autotools-dev, 
+pkgconfig and libtool) explicitely.
+
+> Not sure if it is possible, but it would be great if the build output
+> would be less verbose. libtool adds a lot of additional (generally useless)
+> messages, with makes harder to see the compilation warnings in the
+> middle of all those garbage.
+
+I will add the AM_SILENT_RULES option later.
+
+Thanks,
+Gregor
