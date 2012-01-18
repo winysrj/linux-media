@@ -1,147 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:57553 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756212Ab2ADQTW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 11:19:22 -0500
-Received: by wgbdr13 with SMTP id dr13so29183376wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 08:19:20 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 1/2 v4] media: vb2: support userptr for PFN mappings.
-Date: Wed,  4 Jan 2012 17:19:07 +0100
-Message-Id: <1325693947-8848-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from banach.math.auburn.edu ([131.204.45.3]:38445 "EHLO
+	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753397Ab2ARQec (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jan 2012 11:34:32 -0500
+Date: Wed, 18 Jan 2012 10:42:38 -0600 (CST)
+From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+cc: Gregor Jasny <gjasny@googlemail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4l-utils migrated to autotools
+In-Reply-To: <4F16DCAD.5010700@redhat.com>
+Message-ID: <alpine.LNX.2.00.1201181023390.6337@banach.math.auburn.edu>
+References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <4F16BF4D.4070404@googlemail.com> <4F16C11F.3040108@redhat.com> <4F16C2CA.2090401@googlemail.com> <4F16DCAD.5010700@redhat.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some video devices need to use contiguous memory
-which is not backed by pages as it happens with
-vmalloc. This patch provides userptr handling for
-those devices.
 
----
-Changes since v3:
- - Remove vma_res variable.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/videobuf2-vmalloc.c |   70 +++++++++++++++++++++----------
- 1 files changed, 47 insertions(+), 23 deletions(-)
+On Wed, 18 Jan 2012, Mauro Carvalho Chehab wrote:
 
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-index 03aa62f..f9ff15f 100644
---- a/drivers/media/video/videobuf2-vmalloc.c
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -10,6 +10,7 @@
-  * the Free Software Foundation.
-  */
- 
-+#include <linux/io.h>
- #include <linux/module.h>
- #include <linux/mm.h>
- #include <linux/sched.h>
-@@ -22,6 +23,7 @@
- struct vb2_vmalloc_buf {
- 	void				*vaddr;
- 	struct page			**pages;
-+	struct vm_area_struct		*vma;
- 	int				write;
- 	unsigned long			size;
- 	unsigned int			n_pages;
-@@ -71,6 +73,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	struct vb2_vmalloc_buf *buf;
- 	unsigned long first, last;
- 	int n_pages, offset;
-+	struct vm_area_struct *vma;
-+	dma_addr_t physp;
- 
- 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (!buf)
-@@ -80,23 +84,37 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
--	first = vaddr >> PAGE_SHIFT;
--	last  = (vaddr + size - 1) >> PAGE_SHIFT;
--	buf->n_pages = last - first + 1;
--	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
--	if (!buf->pages)
--		goto fail_pages_array_alloc;
- 
--	/* current->mm->mmap_sem is taken by videobuf2 core */
--	n_pages = get_user_pages(current, current->mm, vaddr & PAGE_MASK,
--					buf->n_pages, write, 1, /* force */
--					buf->pages, NULL);
--	if (n_pages != buf->n_pages)
--		goto fail_get_user_pages;
--
--	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
--	if (!buf->vaddr)
--		goto fail_get_user_pages;
-+	vma = find_vma(current->mm, vaddr);
-+	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
-+		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
-+			goto fail_pages_array_alloc;
-+		buf->vma = vma;
-+		buf->vaddr = ioremap_nocache(physp, size);
-+		if (!buf->vaddr)
-+			goto fail_pages_array_alloc;
-+	} else {
-+		first = vaddr >> PAGE_SHIFT;
-+		last  = (vaddr + size - 1) >> PAGE_SHIFT;
-+		buf->n_pages = last - first + 1;
-+		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
-+				     GFP_KERNEL);
-+		if (!buf->pages)
-+			goto fail_pages_array_alloc;
-+
-+		/* current->mm->mmap_sem is taken by videobuf2 core */
-+		n_pages = get_user_pages(current, current->mm,
-+					 vaddr & PAGE_MASK, buf->n_pages,
-+					 write, 1, /* force */
-+					 buf->pages, NULL);
-+		if (n_pages != buf->n_pages)
-+			goto fail_get_user_pages;
-+
-+		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
-+					PAGE_KERNEL);
-+		if (!buf->vaddr)
-+			goto fail_get_user_pages;
-+	}
- 
- 	buf->vaddr += offset;
- 	return buf;
-@@ -120,14 +138,20 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
- 	unsigned int i;
- 
--	if (vaddr)
--		vm_unmap_ram((void *)vaddr, buf->n_pages);
--	for (i = 0; i < buf->n_pages; ++i) {
--		if (buf->write)
--			set_page_dirty_lock(buf->pages[i]);
--		put_page(buf->pages[i]);
-+	if (buf->pages) {
-+		if (vaddr)
-+			vm_unmap_ram((void *)vaddr, buf->n_pages);
-+		for (i = 0; i < buf->n_pages; ++i) {
-+			if (buf->write)
-+				set_page_dirty_lock(buf->pages[i]);
-+			put_page(buf->pages[i]);
-+		}
-+		kfree(buf->pages);
-+	} else {
-+		if (buf->vma)
-+			vb2_put_vma(buf->vma);
-+		iounmap(buf->vaddr);
- 	}
--	kfree(buf->pages);
- 	kfree(buf);
- }
- 
--- 
-1.7.0.4
+> Em 18-01-2012 11:02, Gregor Jasny escreveu:
+> > On 1/18/12 1:54 PM, Mauro Carvalho Chehab wrote:
+> >> Em 18-01-2012 10:47, Gregor Jasny escreveu:
+> >>> On 1/18/12 1:19 PM, Mauro Carvalho Chehab wrote:
+> >>>> It would be nice to write at the INSTALL what dependencies are needed for
+> >>>> the autotools to work, or, alternatively, to commit the files generated
+> >>>> by the autoreconf -vfi magic spell there [1].
+> >>>
+> >>> The end user gets a tarball created with "make dist" which contains all the m4 files.
+> >>
+> >> Ah, ok. It probably makes sense then to add some scripting at the server to do
+> >> a daily build, as the tarballs aren't updated very often. They're updated only
+> >> at the sub-releases:
+> >>     http://linuxtv.org/downloads/v4l-utils/
+> > 
+> > Judging from the upside-down reports: not the lack of a buildable tarball but the lack of updated distribution packages is a problem. For Ubuntu we have a PPA repository with nightly builds:
+> > 
+> > https://launchpad.net/~libv4l/+archive/development
+> > 
+> > Do you have similar infrastructure for Fedora / RedHat, too?
+> 
+> There are two separate issues here:
+> 
+> 1) users that just get the distro packages.
+> 
+> For them, the updated distro packages is the issue.
+> 
+> For those, it is very good to have v4l-utils properly packaged on Ubuntu.
+> Thanks for that!
+> 
+> Hans is maintaining v4l-utils at Fedora. I don't think he's currently 
+> using the -git unstable versions at Fedora Rawhide (the Fedora under 
+> development distro). Yet, every time a new release is lauched, he
+> updates the packages for Fedora.
+> 
+> So, I think that this is now properly covered with Fedora and Ubuntu 
+> (also Debian?). I think that Suse is also doing something similar.
+> 
+> 2) users that are testing the neat features that the newest package has.
+> 
+> This covers most of the 900+ subscribers of the linux-media ML.
+> 
+> Those users, in general, don't care much about the distro packages. They
+> just want to download the latest sources and compile, in order to test
+> the drivers/tools, and provide us feedback. We want to make life easier
+> for them, as their test is very important for us to detect, in advance,
+> when some regression is happened somewhere.
+> 
+> For those users, it may make sense to have a daily tarball or some
+> user-friendly scripting that would allow them to easily clone the
+> git tree and use it.
+> 
+> Regards,
+> Mauro
 
+As one of the people who comes under category (2) above, let me add a 
+couple of comments, here. 
+
+First, I was unaware of these changes until I found out about them the 
+hard way, a few days ago. Namely, I did a "git pull" and added the new 
+stuff to my working copy, then could not compile anything. The error I got 
+said that config.h is missing. Well, it took me all of about 5 minutes to 
+figure out that I had better re-read the Imstall file, which made things 
+totally clear. Run autoconf. Been there with other projects, done that. No 
+problems. I only saw some mail on the list about the changeover a couple 
+of days after that, and had a chuckle.
+
+Second, it is no big deal. Autoconf works quite nicely, so what is the 
+problem, exactly? I see not much need for "a daily tarball or some 
+user-friendly scripting" to "fix" something which does not appear to be a 
+problem. Well, there is a problem, but I do not see it as a serious one. 
+The problem is that one's tools have to be up to date. That is up to the 
+distro. But it is probably well known that some distros are better at 
+keeping up with things like this than are others.
+
+Theodore Kilgore
