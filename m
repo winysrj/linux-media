@@ -1,177 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58536 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714Ab2A3KUv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 05:20:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [RFC] Format and frame rate configuration in subdev video and pad ops
-Date: Mon, 30 Jan 2012 11:21:06 +0100
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-References: <4F251F40.1030808@iki.fi>
-In-Reply-To: <4F251F40.1030808@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:22688 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757767Ab2AROwe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jan 2012 09:52:34 -0500
+Message-ID: <4F16DCAD.5010700@redhat.com>
+Date: Wed, 18 Jan 2012 12:52:29 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Gregor Jasny <gjasny@googlemail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: v4l-utils migrated to autotools
+References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <4F16BF4D.4070404@googlemail.com> <4F16C11F.3040108@redhat.com> <4F16C2CA.2090401@googlemail.com>
+In-Reply-To: <4F16C2CA.2090401@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201301121.08062.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Em 18-01-2012 11:02, Gregor Jasny escreveu:
+> On 1/18/12 1:54 PM, Mauro Carvalho Chehab wrote:
+>> Em 18-01-2012 10:47, Gregor Jasny escreveu:
+>>> On 1/18/12 1:19 PM, Mauro Carvalho Chehab wrote:
+>>>> It would be nice to write at the INSTALL what dependencies are needed for
+>>>> the autotools to work, or, alternatively, to commit the files generated
+>>>> by the autoreconf -vfi magic spell there [1].
+>>>
+>>> The end user gets a tarball created with "make dist" which contains all the m4 files.
+>>
+>> Ah, ok. It probably makes sense then to add some scripting at the server to do
+>> a daily build, as the tarballs aren't updated very often. They're updated only
+>> at the sub-releases:
+>>     http://linuxtv.org/downloads/v4l-utils/
+> 
+> Judging from the upside-down reports: not the lack of a buildable tarball but the lack of updated distribution packages is a problem. For Ubuntu we have a PPA repository with nightly builds:
+> 
+> https://launchpad.net/~libv4l/+archive/development
+> 
+> Do you have similar infrastructure for Fedora / RedHat, too?
 
-On Sunday 29 January 2012 11:28:16 Sakari Ailus wrote:
-> Hi all,
-> 
-> We have now two type of subdev drivers, those which use the Media
-> controller framework and those which do not. The former group implements
-> v4l2_subdev_pad_ops for the purpose whereas the latter uses
-> v4l2_subdev_video_ops. In practice the two implement essentially the
-> same feature set.
-> 
-> Same goes for simple bus receiver drivers (also called bridge) whereas
-> all the more complex ISP drivers rightly use the pad ops.
-> 
-> The two groups of drivers are currently mostly not mixable, and the
-> reason is mostly the above, as far as I understand.
-> 
-> To improve interoperability, it would be relatively easy to provide
-> wrapper functions for either groups of the ISP / bus receiver drivers so
-> they do need not to be changed to support both.
+There are two separate issues here:
 
-This is something I've proposed a couple of months ago. I still stand by my 
-proposal, it's a good idea.
+1) users that just get the distro packages.
 
-> More complex sensor drivers, for example the SMIA++ exports more than
-> one subdev for the configuration of sensor's image processing --- there
-> is functionality which is present in ISPs only: cropping in three
-> different locations and scaling in two. Many of the decisions in the
-> configuration are policy decisions and thus belong to user space. This
-> kind of drivers cannot be utilised without Media controller support, and
-> thus I believe it is right for even simple bus receiver drivers to
-> implement Media controller support to allow all bridge / ISP drivers to
-> use them.
-> 
-> While not all the user space is not yet in place to support such drivers
-> I have not forgotten work on this library --- it just takes time.
-> 
-> There are two sets of wrappers that can be implemented to improve the
-> current situation. After the full transition to pad ops (should it ever
-> happen is to be decided, I guess) these wrappers could be removed.
-> 
-> Wrappers for sensor drivers to implement pad ops using video ops.
-> There's one pad on such subdevs and a few other restrictions: try
-> formats cannot be supported since there is no v4l2_fh support in video ops.
-> 
-> How should the try operations requiring v4l2_fh behave in this case?
-> Should they just return the current ACTIVE format (or crop) or should
-> they behave as ACTIVE version of the same op does? I might pick the
-> first option as it's less wrong. Complete support is not possible due to
-> lack of functionality in the interface.
+For them, the updated distro packages is the issue.
 
-I'm not sure I would implement such wrappers. I think we should instead 
-convert the sensor drivers to pad ops, and use the "video ops through pad ops" 
-wrapper if the sensor is used with an ISP that doesn't support pad ops yet.
+For those, it is very good to have v4l-utils properly packaged on Ubuntu.
+Thanks for that!
 
-> Wrappers for sensor drivers to implement video ops using pad ops. This
-> is trivial: all the information is available through the pad ops,  with
-> v4l2_subdev_format fields which == V4L2_SUBDEV_FORMAT_ACTIVE and pad == 0.
-> 
-> The same mostly goes for crop: v4l2_crop contains a subset of
-> information in v4l2_subdev_crop.
-> 
-> Conclusion: to achieve maximum compatibility with bridge / ISP drivers
-> using the two sets of ops, sensor / tuner etc. drivers should use pad
-> ops to implement format, crop and frame rate configuration and
-> enumeration. What is missing is a set of wrappers for sensor drivers to
-> allow bridge and ISP drivers using either set of ops to use these sensor
-> drivers.
-> 
-> Comments, questions?
-> 
-> relevant video ops:
-> 
-> int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
->                      enum v4l2_mbus_pixelcode *code);
-> int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
->                      struct v4l2_frmsizeenum *fsize);
-> int (*g_mbus_fmt)(struct v4l2_subdev *sd,
->                   struct v4l2_mbus_framefmt *fmt);
-> int (*try_mbus_fmt)(struct v4l2_subdev *sd,
->                     struct v4l2_mbus_framefmt *fmt);
-> int (*s_mbus_fmt)(struct v4l2_subdev *sd,
->                   struct v4l2_mbus_framefmt *fmt);
-> 
-> relevant pad ops:
-> 
-> int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh
->                       struct v4l2_subdev_mbus_code_enum *code);
-> int (*enum_frame_size)(struct v4l2_subdev *sd,
->                        struct v4l2_subdev_fh *fh,
->                        struct v4l2_subdev_frame_size_enum *fse);
-> int (*enum_frame_interval)(struct v4l2_subdev *sd,
->                            struct v4l2_subdev_fh *fh,
->                            struct v4l2_subdev_frame_interval_enum *fie)
-> int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->                struct v4l2_subdev_format *format);
-> int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->                struct v4l2_subdev_format *format);
-> 
-> /**
->  * struct v4l2_mbus_framefmt - frame format on the media bus
->  * @width:      frame width
->  * @height:     frame height
->  * @code:       data format code (from enum v4l2_mbus_pixelcode)
->  * @field:      used interlacing type (from enum v4l2_field)
->  * @colorspace: colorspace of the data (from enum v4l2_colorspace)
->  */
-> struct v4l2_mbus_framefmt {
->         __u32                   width;
->         __u32                   height;
->         __u32                   code;
->         __u32                   field;
->         __u32                   colorspace;
->         __u32                   reserved[7];
-> };
-> 
-> /**
->  * struct v4l2_subdev_format - Pad-level media bus format
->  * @which: format type (from enum v4l2_subdev_format_whence)
->  * @pad: pad number, as reported by the media API
->  * @format: media bus format (format code and frame size)
->  */
-> struct v4l2_subdev_format {
->         __u32 which;
->         __u32 pad;
->         struct v4l2_mbus_framefmt format;
->         __u32 reserved[8];
-> };
-> 
-> struct v4l2_crop {
->         enum v4l2_buf_type      type;
->         struct v4l2_rect        c;
-> };
-> 
-> /**
->  * struct v4l2_subdev_crop - Pad-level crop settings
->  * @which: format type (from enum v4l2_subdev_format_whence)
->  * @pad: pad number, as reported by the media API
->  * @rect: pad crop rectangle boundaries
->  */
-> struct v4l2_subdev_crop {
->         __u32 which;
->         __u32 pad;
->         struct v4l2_rect rect;
->         __u32 reserved[8];
-> };
-> 
-> Cheers,
+Hans is maintaining v4l-utils at Fedora. I don't think he's currently 
+using the -git unstable versions at Fedora Rawhide (the Fedora under 
+development distro). Yet, every time a new release is lauched, he
+updates the packages for Fedora.
 
--- 
+So, I think that this is now properly covered with Fedora and Ubuntu 
+(also Debian?). I think that Suse is also doing something similar.
+
+2) users that are testing the neat features that the newest package has.
+
+This covers most of the 900+ subscribers of the linux-media ML.
+
+Those users, in general, don't care much about the distro packages. They
+just want to download the latest sources and compile, in order to test
+the drivers/tools, and provide us feedback. We want to make life easier
+for them, as their test is very important for us to detect, in advance,
+when some regression is happened somewhere.
+
+For those users, it may make sense to have a daily tarball or some
+user-friendly scripting that would allow them to easily clone the
+git tree and use it.
+
 Regards,
+Mauro
 
-Laurent Pinchart
+
+> 
+> Thanks,
+> Gregor
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
