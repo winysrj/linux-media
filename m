@@ -1,39 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:54771 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750766Ab2AQI5E (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:59535 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756301Ab2ARArT convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 03:57:04 -0500
-Received: by iagf6 with SMTP id f6so3947771iag.19
-        for <linux-media@vger.kernel.org>; Tue, 17 Jan 2012 00:57:03 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: chehab@infradead.org, k.debski@samsung.com,
-	kyungmin.park@samsung.com, jtp.park@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH] [media] s5p-mfc: Remove linux/version.h include from s5p_mfc.c
-Date: Tue, 17 Jan 2012 14:22:41 +0530
-Message-Id: <1326790361-24498-1-git-send-email-sachin.kamat@linaro.org>
+	Tue, 17 Jan 2012 19:47:19 -0500
+MIME-Version: 1.0
+In-Reply-To: <op.v781mqwl3l0zgt@mpn-glaptop>
+References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com>
+ <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
+ <CA+K6fF6A1kPUW-2Mw5+W_QaTuLfU0_m0aMYRLOg98mFKwZOhtQ@mail.gmail.com> <op.v781mqwl3l0zgt@mpn-glaptop>
+From: sandeep patil <psandeep.s@gmail.com>
+Date: Tue, 17 Jan 2012 16:46:37 -0800
+Message-ID: <CA+K6fF64hjVBjx6NPspQSud2hkJQWzeXkceLAChPrO-k7eCF+g@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 04/11] mm: page_alloc: introduce alloc_contig_range()
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/video/s5p-mfc/s5p_mfc.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+> Yeah, we are wondering ourselves about that.  Could you try cherry-picking
+> commit ad10eb079c97e27b4d27bc755c605226ce1625de (update migrate type on pcp
+> when isolating) from git://github.com/mina86/linux-2.6.git?  It probably
+> won't
+> apply cleanly but resolving the conflicts should not be hard (alternatively
+> you can try branch cma from the same repo but it is a work in progress at
+> the
+> moment).
+>
 
-diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c b/drivers/media/video/s5p-mfc/s5p_mfc.c
-index e43e128..ec7f000 100644
---- a/drivers/media/video/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
-@@ -18,7 +18,6 @@
- #include <linux/platform_device.h>
- #include <linux/sched.h>
- #include <linux/slab.h>
--#include <linux/version.h>
- #include <linux/videodev2.h>
- #include <linux/workqueue.h>
- #include <media/videobuf2-core.h>
--- 
-1.7.4.1
+I'll try this patch and report back ,,
 
+
+>> is set to MIGRATE_CMA instead of MIGRATE_ISOLATED.
+>
+>
+> My understanding of that situation is that the page is on pcp list in which
+> cases it's page_private is not updated.  Draining and the first patch in
+> the series (and also the commit I've pointed to above) are designed to fix
+> that but I'm unsure why they don't work all the time.
+>
+>
+
+Will verify this if the page is found on the pcp list as well .
+
+>> I've also had a test case where it failed because (page_count() != 0)
+
+With this, when it failed the page_count()
+returned a value of 2. I am not sure why, but I will try and see If I can
+reproduce this.
+
+>
+>
+>> Have you or anyone else seen this during the CMA testing?
+>>
+>> Also, could this be because we are finding a page within (start, end)
+>> that actually belongs to a higher order Buddy block ?
+>
+>
+> Higher order free buddy blocks are skipped in the “if (PageBuddy(page))”
+> path of __test_page_isolated_in_pageblock().  Then again, now that I think
+> of it, something fishy may be happening on the edges.  Moving the check
+> outside of __alloc_contig_migrate_range() after outer_start is calculated
+> in alloc_contig_range() could help.  I'll take a look at it.
+
+I was going to suggest that, moving the check until after outer_start
+is calculated
+will definitely help IMO. I am sure I've seen a case where
+
+  page_count(page) = page->private = 0 and PageBuddy(page) was false.
+
+I will try and reproduce this as well.
+
+Thanks,
+Sandeep
