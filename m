@@ -1,131 +1,715 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:59985 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752335Ab2ABOMf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 2 Jan 2012 09:12:35 -0500
-Received: by werm1 with SMTP id m1so7432655wer.19
-        for <linux-media@vger.kernel.org>; Mon, 02 Jan 2012 06:12:33 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 1/2] media: vb2: support userptr for PFN mappings.
-Date: Mon,  2 Jan 2012 15:12:22 +0100
-Message-Id: <1325513543-17299-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:53426 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754463Ab2ASE1e convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 18 Jan 2012 23:27:34 -0500
+Received: from mail-wi0-f174.google.com ([209.85.212.174])
+	by youngberry.canonical.com with esmtpsa (TLS1.0:RSA_ARCFOUR_SHA1:16)
+	(Exim 4.71)
+	(envelope-from <ming.lei@canonical.com>)
+	id 1Rnjb2-0000nZ-LR
+	for linux-media@vger.kernel.org; Thu, 19 Jan 2012 04:27:32 +0000
+Received: by wics10 with SMTP id s10so63881wic.19
+        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 20:27:32 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4F109F1D.1050408@gmail.com>
+References: <1323871214-25435-1-git-send-email-ming.lei@canonical.com>
+	<1323871214-25435-7-git-send-email-ming.lei@canonical.com>
+	<4F109F1D.1050408@gmail.com>
+Date: Thu, 19 Jan 2012 12:27:32 +0800
+Message-ID: <CACVXFVOBomAuEG2D0-5u7HbezWJrjQu+JeGjPoshWTgWcy3_nQ@mail.gmail.com>
+Subject: Re: [RFC PATCH v2 6/8] media: v4l2: introduce two IOCTLs for object detection
+From: Ming Lei <ming.lei@canonical.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, riverful.kim@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some video devices need to use contiguous memory
-which is not backed by pages as it happens with
-vmalloc. This patch provides userptr handling for
-those devices.
+Remove other unrelated lists.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/videobuf2-vmalloc.c |   66 +++++++++++++++++++-----------
- 1 files changed, 42 insertions(+), 24 deletions(-)
+Hi Sylwester,
 
-diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-index 03aa62f..5bc7cec 100644
---- a/drivers/media/video/videobuf2-vmalloc.c
-+++ b/drivers/media/video/videobuf2-vmalloc.c
-@@ -15,6 +15,7 @@
- #include <linux/sched.h>
- #include <linux/slab.h>
- #include <linux/vmalloc.h>
-+#include <linux/io.h>
- 
- #include <media/videobuf2-core.h>
- #include <media/videobuf2-memops.h>
-@@ -71,6 +72,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	struct vb2_vmalloc_buf *buf;
- 	unsigned long first, last;
- 	int n_pages, offset;
-+	struct vm_area_struct *vma;
-+	unsigned long int physp;
- 
- 	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
- 	if (!buf)
-@@ -80,23 +83,34 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	offset = vaddr & ~PAGE_MASK;
- 	buf->size = size;
- 
--	first = vaddr >> PAGE_SHIFT;
--	last  = (vaddr + size - 1) >> PAGE_SHIFT;
--	buf->n_pages = last - first + 1;
--	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
--	if (!buf->pages)
--		goto fail_pages_array_alloc;
--
--	/* current->mm->mmap_sem is taken by videobuf2 core */
--	n_pages = get_user_pages(current, current->mm, vaddr & PAGE_MASK,
--					buf->n_pages, write, 1, /* force */
--					buf->pages, NULL);
--	if (n_pages != buf->n_pages)
--		goto fail_get_user_pages;
--
--	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
--	if (!buf->vaddr)
--		goto fail_get_user_pages;
-+	vma = find_vma(current->mm, vaddr);
-+	if (vma && (vma->vm_flags & VM_IO) && (vma->vm_pgoff)) {
-+		physp = (vma->vm_pgoff << PAGE_SHIFT) + (vaddr - vma->vm_start);
-+		buf->vaddr = ioremap_nocache(physp, size);
-+		if (!buf->vaddr)
-+			goto fail_pages_array_alloc;
-+	} else {
-+		first = vaddr >> PAGE_SHIFT;
-+		last  = (vaddr + size - 1) >> PAGE_SHIFT;
-+		buf->n_pages = last - first + 1;
-+		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
-+				     GFP_KERNEL);
-+		if (!buf->pages)
-+			goto fail_pages_array_alloc;
-+
-+		/* current->mm->mmap_sem is taken by videobuf2 core */
-+		n_pages = get_user_pages(current, current->mm,
-+					 vaddr & PAGE_MASK, buf->n_pages,
-+					 write,1, /* force */
-+					 buf->pages, NULL);
-+		if (n_pages != buf->n_pages)
-+			goto fail_get_user_pages;
-+
-+		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
-+					PAGE_KERNEL);
-+		if (!buf->vaddr)
-+			goto fail_get_user_pages;
-+	}
- 
- 	buf->vaddr += offset;
- 	return buf;
-@@ -120,14 +134,18 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
- 	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
- 	unsigned int i;
- 
--	if (vaddr)
--		vm_unmap_ram((void *)vaddr, buf->n_pages);
--	for (i = 0; i < buf->n_pages; ++i) {
--		if (buf->write)
--			set_page_dirty_lock(buf->pages[i]);
--		put_page(buf->pages[i]);
-+	if (buf->pages) {
-+		if (vaddr)
-+			vm_unmap_ram((void *)vaddr, buf->n_pages);
-+		for (i = 0; i < buf->n_pages; ++i) {
-+			if (buf->write)
-+				set_page_dirty_lock(buf->pages[i]);
-+			put_page(buf->pages[i]);
-+		}
-+		kfree(buf->pages);
-+	} else {
-+		iounmap(buf->vaddr);
- 	}
--	kfree(buf->pages);
- 	kfree(buf);
- }
- 
--- 
-1.7.0.4
+Thanks for your comment.
 
+On Sat, Jan 14, 2012 at 5:16 AM, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+> Hi Ming,
+>
+> sorry for the late response. It's all looking better now, however there
+> is still a few things that could be improved.
+>
+> On 12/14/2011 03:00 PM, Ming Lei wrote:
+>> This patch introduces two new IOCTLs and related data
+>> structure which will be used by the coming video device
+>> with object detect capability.
+>>
+>> The two IOCTLs and related data structure will be used by
+>> user space application to retrieve the results of object
+>> detection.
+>>
+>> The utility fdif[1] is useing the two IOCTLs to find
+>> objects(faces) deteced in raw images or video streams.
+>>
+>> [1],http://kernel.ubuntu.com/git?p=ming/fdif.git;a=shortlog;h=refs/heads/v4l2-fdif
+>>
+>> Signed-off-by: Ming Lei<ming.lei@canonical.com>
+>> ---
+>> v2:
+>>       - extend face detection API to object detection API
+>>       - introduce capability of V4L2_CAP_OBJ_DETECTION for object detection
+>>       - 32/64 safe array parameter
+>> ---
+>>   drivers/media/video/v4l2-ioctl.c |   41 ++++++++++++-
+>>   include/linux/videodev2.h        |  124 ++++++++++++++++++++++++++++++++++++++
+>>   include/media/v4l2-ioctl.h       |    6 ++
+>>   3 files changed, 170 insertions(+), 1 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+>> index ded8b72..575d445 100644
+>> --- a/drivers/media/video/v4l2-ioctl.c
+>> +++ b/drivers/media/video/v4l2-ioctl.c
+>> @@ -2140,6 +2140,30 @@ static long __video_do_ioctl(struct file *file,
+>>               dbgarg(cmd, "index=%d", b->index);
+>>               break;
+>>       }
+>> +     case VIDIOC_G_OD_RESULT:
+>> +     {
+>> +             struct v4l2_od_result *or = arg;
+>> +
+>> +             if (!ops->vidioc_g_od_result)
+>> +                     break;
+>> +
+>> +             ret = ops->vidioc_g_od_result(file, fh, or);
+>> +
+>> +             dbgarg(cmd, "index=%d", or->frm_seq);
+>> +             break;
+>> +     }
+>
+>> +     case VIDIOC_G_OD_COUNT:
+>> +     {
+>> +             struct v4l2_od_count *oc = arg;
+>> +
+>> +             if (!ops->vidioc_g_od_count)
+>> +                     break;
+>> +
+>> +             ret = ops->vidioc_g_od_count(file, fh, oc);
+>> +
+>> +             dbgarg(cmd, "index=%d", oc->frm_seq);
+>> +             break;
+>> +     }
+>
+> I'm uncertain if we need this ioctl at all. Now struct v4l2_od_result is:
+
+IMO, it can simplify user application very much if the ioctl of
+VIDIOC_G_OD_COUNT
+is kept, see below.
+
+>
+> struct v4l2_od_result {
+>        __u32                   frame_sequence;
+>        __u32                   object_count;
+>        __u32                   reserved[6];
+>        struct v4l2_od_object   objects[0];
+> };
+>
+> and
+>
+> struct v4l2_od_object {
+>        __u16                   type;
+>        __u16                   confidence;
+>        union {
+>                struct v4l2_od_face_desc  face;
+>                struct v4l2_od_eye_desc   eye;
+>                struct v4l2_od_mouth_desc mouth;
+>                __u8    rawdata[60];
+>        } o;
+> };
+>
+> If we had added a 'size' field to struct v4l2_od_result, i.e.
+>
+> struct v4l2_od_result {
+>        __u32                   size;
+>        __u32                   frame_sequence;
+>        __u32                   objects_count;
+>        __u32                   reserved[5];
+>        struct v4l2_od_object   objects[0];
+> };
+>
+> the application could have allocated memory for the objects array and
+> have the 'size' member set to the size of that allocation. Then it
+> would have called VIDIOC_G_OD_RESULT and the driver would have filled
+> the 'objects'  array, if it was big enough for the requested result
+> data. The driver would also update the 'objects_count'. If the size
+> would be too small to fit the result data, i.e.
+>
+> size < number_of_detected_objects * sizeof(struct v4l2_od_object)
+>
+> the driver could return -ENOSPC error while also setting 'size' to
+> the required value. Something similar is done with
+
+Without VIDIOC_G_OD_COUNT ioctl, user applications has no way to
+know how many objects are detected in the specified frame, so it has
+to allocate much more space to send to VIDIOC_G_OD_RESULT. Sometimes
+it is enough, and sometimes it is not enough, looks a bit extra complicated
+logic is introduced to space application.
+
+> VIDIOC_G_EXT_CTRLS ioctl [3].
+>
+> There is one more OD API requirement, for camera sensors with embedded
+> SoC ISP that support face detection, i.e. VIDIOC_G_OD_RESULT should
+> allow to retrieve face detection result for the very last image frame,
+> i.e. current frame.
+
+IMO, it is better to always retrieve detection result via frame sequence number
+if the seq can be known beforehand. But if it is difficult to get the
+seq number in
+user application for camera sensor case,  maybe we can introduce the flags to
+handle it.
+
+>
+> One solution to support this could be adding a 'flags' field, i.e.
+>
+> struct v4l2_od_result {
+>        __u32                   size;
+>        __u32                   flags;
+>        __u32                   frame_sequence;
+>        __u32                   objects_count;
+>        __u16                   group_index;
+>        __u16                   group_count;
+>        __u16                   reserved[7];
+>        struct v4l2_od_object   objects[0];
+> };
+>
+> and additionally group_index to specify which face object the user is
+> interested in. I'm not saying we have to implement this now but it's
+
+IMO, it is difficult for user to describe which face objects they are interested
+in, also why not let user application to retrieve and handle all detected face
+objects?
+
+> good to consider beforehand. The group_count would be used to return
+> the number of detected faces. What do you think ?
+
+Sorry, I don't understand your point very clearly, what does group_count mean?
+
+>
+> /* flags */
+> #define V4L2_OD_FL_SEL_FRAME_SEQ        (0 << 0)
+> #define V4L2_OD_FL_SEL_FRAME_LAST       (1 << 0)
+> #define V4L2_OD_FL_SEL_GROUP            (1 << 1)
+>
+> Or maybe we should just use "face_" instead of "group_" ?
+>
+>>       default:
+>>               if (!ops->vidioc_default)
+>>                       break;
+>> @@ -2241,7 +2265,22 @@ static int check_array_args(unsigned int cmd, void *parg, size_t *array_size,
+>>
+>>   static int is_64_32_array_args(unsigned int cmd, void *parg, int *extra_len)
+>>   {
+>> -     return 0;
+>> +     int ret = 0;
+>> +
+>> +     switch (cmd) {
+>> +     case VIDIOC_G_OD_RESULT: {
+>> +             struct v4l2_od_result *or = parg;
+>> +
+>> +             *extra_len = or->obj_cnt *
+>> +                     sizeof(struct v4l2_od_object);
+>> +             ret = 1;
+>> +             break;
+>> +     }
+>> +     default:
+>> +             break;
+>> +     }
+>> +
+>> +     return ret;
+>>   }
+>>
+>>   long
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index 4b752d5..c08ceaf 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -270,6 +270,9 @@ struct v4l2_capability {
+>>   #define V4L2_CAP_RADIO                      0x00040000  /* is a radio device */
+>>   #define V4L2_CAP_MODULATOR          0x00080000  /* has a modulator */
+>>
+>> +/* The device has capability of object detection */
+>> +#define V4L2_CAP_OBJ_DETECTION               0x00100000
+>> +
+>>   #define V4L2_CAP_READWRITE              0x01000000  /* read/write systemcalls */
+>>   #define V4L2_CAP_ASYNCIO                0x02000000  /* async I/O */
+>>   #define V4L2_CAP_STREAMING              0x04000000  /* streaming I/O ioctls */
+>> @@ -2160,6 +2163,125 @@ struct v4l2_create_buffers {
+>>       __u32                   reserved[8];
+>>   };
+>>
+>> +/**
+>> + * struct v4l2_od_obj_desc
+>> + * @centerx: return, position in x direction of detected object
+>
+> How about following convention:
+>    * @centerx: [out] position of an object in horizontal direction
+
+Good.
+
+> ?
+>> + * @centery: return, position in y direction of detected object
+>> + * @sizex:   return, size in x direction of detected object
+>
+>    * @sizex:   [out] size of an object in horizontal direction
+>
+>> + * @sizey:   return, size in y direction of detected object
+>> + * @angle:   return, angle of detected object
+>> + *           0 deg ~ 359 deg, vertical is 0 deg, clockwise
+>
+> So this is angle in Z axis as on figure [1], Roll [2], right ?
+
+I think the angle is neither [1] nor [2].
+
+The angle is not in Z axis, and it is in 2D plane, and the angle
+is from y axis(vertical) to line between (0, 0) and (centerx, centery).
+
+> First let's make this number in 0.01 deg units, then our range would
+> be 0 ... 35999. Then we need a proper description, it's all going to
+> be described in the Docbook so we don't need to be that verbose at
+> the comments.
+
+Sounds it is reasonable to use 0.01 unit.
+
+>
+>  * @angle: [out] angle of object rotation in Z axis (depth) in 0.01 deg units
+>
+> Of course any better definitions are welcome :)
+>
+>> + * @reserved:        future extensions
+>> + */
+>> +struct v4l2_od_obj_desc {
+>> +     __u16           centerx;
+>> +     __u16           centery;
+>> +     __u16           sizex;
+>> +     __u16           sizey;
+>> +     __u16           angle;
+>> +     __u16           reserved[5];
+>
+> I would prefer to avoid repeating myself again - for all pixel position
+> and size in v4l2 we normally use __u32, so let's follow this. Sending
+
+IMO, __u16 is enough to describe the position and size, also it can decrease
+size of related structure a lot. If they are defined as __u16, sizeof(struct
+v4l2_od_object) is about 64, 64*sizeof(struct v4l2_od_object) will be 4096 and
+can be hold in one page. But if they are defined as __u32,  64*sizeof(struct
+v4l2_od_object) will consume at least two pages.
+
+These position and size are consumed only by user space, so maybe the
+case is different with other v4l2 cases, but not sure.
+
+> same  patch over and over isn't helpful, even if by some miracle you've
+> had convinced me, there will be other people that won't accept that :-)
+>
+> And let's not be afraid of adding new data types to v4l2, which likely
+> are anyway going to be needed in the future. How about:
+>
+> struct v4l2_pix_position {
+>        __s32   x;
+>        __s32   y;
+> };
+>
+> struct v4l2_pix_size {
+>        __u32   width;
+>        __u32   height;
+> };
+
+I opt to take __u16, so not introduce the two data structures.
+
+>
+> Alternatively we might reuse the v4l2_frmsize_discrete structure,
+> however new structure has my preference.
+>
+> struct v4l2_od_obj_desc {
+>        struct v4l2_pix_position        center;
+>        struct v4l2_pix_size            size;
+>        __u16                           angle;
+>        __u16                           reserved[5];
+> };
+>
+> OR
+>
+> struct v4l2_od_obj_desc {
+>        struct v4l2_pix_position        center;
+>        struct v4l2_frmsize_discrete    size;
+>        __u16                           angle;
+>        __u16                           reserved[3];
+> };
+>
+> sizeof(struct v4l2_od_obj_desc) = 6 * 4
+>
+>> +};
+>> +
+>> +/**
+>> + * struct v4l2_od_face_desc
+>> + * @id:              return, used to be associated with detected eyes, mouth,
+>> + *           and other objects inside this face, and each face in one
+>> + *           frame has a unique id, start from 1
+>> + * @smile_level:return, smile level of the face
+>
+> For the smile_level it shouldn't hurt if we assume standard value range
+> of 0...99, but this would go to the DocBook, your comment above is fine,
+> except s/:return/: [out].
+
+Good, will update the comment.
+
+>
+>> + * @f:               return, face description
+>> + */
+>> +struct v4l2_od_face_desc {
+>> +     __u16   id;
+>
+> Actually I was going to propose something like this 'id' member:) I think
+> we'll also need a method for user space to retrieve FD result by such sort
+> of a key, in addition to or instead of the frame_sequence key.
+
+In fact, I introduce the 'id' as supplement of frame_sequence, not a
+replacement.
+You know that many objects may be detected in one single frame, so the
+field of 'id'
+is introduced to identify unique object in one single frame.
+
+But I am not sure if the 'id' should be used as key to retrieve detect
+result, which
+may introduce more IOCTLs and make interfaces more complicated, :-)
+
+> However, to be more generic, perhaps we could move it to the v4l2_od_obj_desc
+> structure ? And rename it to group_index, which would mean a positive non-zero
+
+Yes, it is OK.
+
+> sequence number assigned to a group of objects, e.g. it would be one value
+> per face, eyes and mouth data set ? What do you think ?
+
+We can assigned one unique value for one single detected object, but the 'id'
+or 'group_index' should be defined as __u32.
+
+>
+>> +     __u8    smile_level;
+>> +     __u8    reserved[15];
+>> +
+>> +     struct v4l2_od_obj_desc f;
+>> +};
+>
+> It might be good idea to align the data structures' size to at least
+> 4 bytes. I would have changed your proposed structure to:
+>
+> struct v4l2_od_face_desc {
+>        __u16   id;
+>        __u16   smile_level;
+>        __u16   reserved[10];
+>        struct v4l2_od_obj_desc face;
+> };
+>
+> sizeof(struct v4l2_od_face_desc) = 12 * 4
+
+Agree.
+
+>
+>> +
+>> +/**
+>> + * struct v4l2_od_eye_desc
+>> + * @face_id: return, used to associate with which face, 0 means
+>> + *           no face associated with the eye
+>> + * @blink_level:return, blink level of the eye
+>> + * @e:               return, eye description
+>> + */
+>> +struct v4l2_od_eye_desc {
+>> +     __u16   face_id;
+>> +     __u8    blink_level;
+>> +     __u8    reserved[15];
+>> +
+>> +     struct v4l2_od_obj_desc e;
+>> +};
+>
+> How about:
+>
+> struct v4l2_od_eye_desc {
+>        __u16   face_id;
+>        __u16   blink_level;
+>        __u16   reserved[10];
+>        struct v4l2_od_obj_desc eye;
+> };
+> sizeof(struct v4l2_od_eye_desc) = 12 * 4
+
+Agree.
+
+> ?
+>> +/**
+>> + * struct v4l2_od_mouth_desc
+>> + * @face_id: return, used to associate with which face, 0 means
+>> + *           no face associated with the mouth
+>> + * @m:               return, mouth description
+>> + */
+>> +struct v4l2_od_mouth_desc {
+>> +     __u16   face_id;
+>> +     __u8    reserved[16];
+>> +
+>> +     struct v4l2_od_obj_desc m;
+>> +};
+> and
+>
+> struct v4l2_od_mouth_desc {
+>        __u16   face_id;
+>        __u16   reserved[11];
+>        struct v4l2_od_obj_desc mouth;
+> };
+> sizeof(struct v4l2_od_mouth_desc) = 12 * 4
+
+Agree.
+
+>> +
+>> +enum v4l2_od_type {
+>> +     V4L2_OD_TYPE_FACE               = 1,
+>> +     V4L2_OD_TYPE_LEFT_EYE           = 2,
+>> +     V4L2_OD_TYPE_RIGHT_EYE          = 3,
+>> +     V4L2_OD_TYPE_MOUTH              = 4,
+>> +     V4L2_OD_TYPE_USER_DEFINED       = 255,
+>
+> Let's not add any "user defined" types, at the time anything more
+> is needed it should be added here explicitly.
+
+I think that V4L2_OD_TYPE_USER_DEFINED can be used to parse
+detection results totally by user space for some dummy devices.
+
+But your worry is correct, how about keeping V4L2_OD_TYPE_USER_DEFINED
+and commenting its usage clearly?
+
+>
+>> +     V4L2_OD_TYPE_MAX_CNT            = 256,
+>
+>        V4L2_OD_TYPE_MAX                = 256, ?
+>
+> But what do you think it is needed for ?
+
+No particular purpose, it can be removed.
+
+>
+>> +};
+>> +
+>> +/**
+>> + * struct v4l2_od_object
+>> + * @type:    return, type of detected object
+>
+> How about
+>
+> + * @type:      [out] object type (from enum v4l2_od_type)
+
+Agree.
+
+> ?
+>> + * @confidence:      return, confidence level of detection result
+>> + *           0: the heighest level, 100: the lowest level
+>
+>    * @confidence: [out] confidence level of the detection result
+> ?
+> Let's leave the range specification for the DocBook.
+
+OK.
+
+>
+>> + * @face:    return, detected face object description
+>> + * @eye:     return, detected eye object description
+>> + * @mouth:   return, detected mouth object description
+>> + * @rawdata: return, user defined data
+>
+> No user defined data please. How the applications are supposed to know what
+> rawdata means ? If any new structure is needed it should be added to the union.
+
+As I described above, we can support user defined object detection and
+let user space handle all results.
+
+> Let's treat 'rawdata' as a place holder only. This is how the "__u8 data[64];"
+> array is specified for struct v4l2_event:
+>
+> "__u8   data[64]        Event data. Defined by the event type. The union
+>                        should be used to define easily accessible type
+>                        for events."
+>
+>> + */
+>> +struct v4l2_od_object {
+>> +     enum v4l2_od_type       type;
+>
+>        __u16                   type;
+>
+> to avoid having enumeration in the user space interface ?
+
+IMO, 'enum v4l2_od_type' should be exported to user space.
+
+>
+>> +     __u16                   confidence;
+>
+>        __u32   reserved[7];
+>
+>> +     union {
+>> +             struct v4l2_od_face_desc face;
+>
+>> +             struct v4l2_od_face_desc eye;
+>> +             struct v4l2_od_face_desc mouth;
+>
+> I guess you meant
+>                struct v4l2_od_eye_desc   eye;
+>                struct v4l2_od_mouth_desc mouth;
+
+Yes, sorry for the low level mistake, :-(
+
+> ?
+>> +             __u8    rawdata[60];
+>> +     } o;
+>
+> won't probably hurt here and would allow future extensions.
+>
+>> +};
+>
+> I think being able to fit struct v4l2_od_object in the "u" union of
+> struct v4l2_event is a must have, as events seem crucial for the
+
+The fact is that sizeof(struct v4l2_od_object) is certainly beyond
+64 bytes for object detection case with above change.
+
+> whole object detection interface. For instance user application could
+> set thresholds for some parameters to get notified with an event when
+> any gets out of configured bounds. The event interface could be also
+> used for retrieving OD result instead of polling with VIDIOC_G_OD_RESULT.
+> Currently struct v4l2_event is:
+>
+> struct v4l2_event {
+>        __u32                           type;
+>        union {
+>                struct v4l2_event_vsync         vsync;
+>                struct v4l2_event_ctrl          ctrl;
+>                struct v4l2_event_frame_sync    frame_sync;
+>                __u8                            data[64];
+>        } u;
+>        __u32                           pending;
+>        __u32                           sequence;
+>        struct timespec                 timestamp;
+>        __u32                           id;
+>        __u32                           reserved[8];
+> };
+>
+> Hence we have only 64 bytes for struct v4l2_event_od. It seems that
+> you kept that when designing the above data structures ?
+
+Yes and no.
+
+>From the start, I hope that the event interface can be used to retrieve object
+detection result.
+
+When I found it is difficult to fit 'struct v4l2_od_object' into 64 bytes, I
+decide to introduce two IOCTLs for the purpose.
+
+Also I try to keep sizeof(struct v4l2_od_object) as few as possible since
+much more objects can be detected in one single frame(for example,
+about 35 faces can be detected in one single image in omap4 fdif case)
+
+>
+> With my corrections above  sizeof(struct v4l2_od_object) (without the
+> reserved field would be 13 * 4, which isn't bad. I'm just a bit
+> concerned about the structures alignment.
+
+Even we may fit 'struct v4l2_od_object' into 64 bytes, it still can only hold
+one object, you know much more objects can be detected in one single
+frame.
+
+>
+>> +/**
+>> + * struct v4l2_od_result - VIDIOC_G_OD_RESULT argument
+>> + * @frm_seq: entry, frame sequence No.
+>
+>    * @frame_sequence: [in] frame sequence number
+>
+>> + * @obj_cnt: return, how many objects detected in frame @frame_seq
+>    * @object_count: [out] number of object detected for @frame_sequence
+>
+>> + * @reserved:        reserved for future use
+>> + * @od:              return, result of detected objects in frame @frame_seq
+>
+>    * @od: [out] objects detected for @frame_sequence ?
+>
+>> + */
+>> +struct v4l2_od_result {
+>> +     __u32                   frm_seq;
+>> +     __u32                   obj_cnt;
+>> +     __u32                   reserved[6];
+>> +     struct v4l2_od_object   od[0];
+>
+> Let's make this:
+>
+>        struct v4l2_od_object   objects[0];
+
+Good.
+
+>
+>> +};
+>> +
+>> +/**
+>> + * struct v4l2_od_count - VIDIOC_G_OD_COUNT argument
+>> + * @frm_seq: entry, frame sequence No. for ojbect detection
+>> + * @obj_cnt: return, how many objects detected from the @frm_seq
+>> + * @reserved:        reserved for future useage.
+>> + */
+>> +struct v4l2_od_count {
+>> +     __u32   frm_seq;
+>> +     __u32   obj_cnt;
+>> +     __u32   reserved[6];
+>> +};
+>
+> This structure can go away if we change the VIDIOC_G_OD_RESULT
+> semantics as I described above..
+
+I am not sure if we can apply your change, see my comment above.
+
+>
+>> +
+>>   /*
+>>    *  I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+>>    *
+>> @@ -2254,6 +2376,8 @@ struct v4l2_create_buffers {
+>>      versions */
+>>   #define VIDIOC_CREATE_BUFS  _IOWR('V', 92, struct v4l2_create_buffers)
+>>   #define VIDIOC_PREPARE_BUF  _IOWR('V', 93, struct v4l2_buffer)
+>> +#define VIDIOC_G_OD_COUNT    _IOWR('V', 94, struct v4l2_od_count)
+>> +#define VIDIOC_G_OD_RESULT   _IOWR('V', 95, struct v4l2_od_result)
+>>
+>>   /* Reminder: when adding new ioctls please add support for them to
+>>      drivers/media/video/v4l2-compat-ioctl32.c as well! */
+>> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+>> index 4d1c74a..81a32a3 100644
+>> --- a/include/media/v4l2-ioctl.h
+>> +++ b/include/media/v4l2-ioctl.h
+>> @@ -270,6 +270,12 @@ struct v4l2_ioctl_ops {
+>>       int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
+>>                                       struct v4l2_event_subscription *sub);
+>>
+>> +     /* object detect IOCTLs */
+>> +     int (*vidioc_g_od_count) (struct file *file, void *fh,
+>> +                                     struct v4l2_od_count *arg);
+>
+> ..and this ioctl too.
+>
+>> +     int (*vidioc_g_od_result) (struct file *file, void *fh,
+>> +                                     struct v4l2_od_result *arg);
+>> +
+>>       /* For other private ioctls */
+>>       long (*vidioc_default)         (struct file *file, void *fh,
+>>                                       bool valid_prio, int cmd, void *arg);
+>
+> [1] http://i.stack.imgur.com/qb6hU.png
+> [2] http://www.dtic.mil/cgi-bin/GetTRDoc?AD=ADA434817
+> [3] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-ext-ctrls.html
+
+
+thanks,
+--
+Ming Lei
