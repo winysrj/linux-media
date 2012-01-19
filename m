@@ -1,195 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:49478 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750755Ab2AYK0t (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:51275 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751240Ab2ASOgr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 05:26:49 -0500
-Date: Wed, 25 Jan 2012 11:26:46 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de,
-	baruch@tkos.co.il
-Subject: Re: [PATCH 2/4] media i.MX27 camera: add start_stream and stop_stream
- callbacks.
-In-Reply-To: <1327059392-29240-3-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1201251123290.18778@axis700.grange>
-References: <1327059392-29240-1-git-send-email-javier.martin@vista-silicon.com>
- <1327059392-29240-3-git-send-email-javier.martin@vista-silicon.com>
+	Thu, 19 Jan 2012 09:36:47 -0500
+Message-ID: <4F182A79.6000603@mlbassoc.com>
+Date: Thu, 19 Jan 2012 07:36:41 -0700
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Javier Martinez Canillas <martinez.javier@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
+References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com> <201201191350.51761.laurent.pinchart@ideasonboard.com> <4F181711.1020201@mlbassoc.com> <201201191428.35340.laurent.pinchart@ideasonboard.com> <4F181C24.9030806@mlbassoc.com> <CAAwP0s3_U1tzRM3TcW+hGCVvm+aowwO9f6g6t8_pvZSJxyMrgA@mail.gmail.com>
+In-Reply-To: <CAAwP0s3_U1tzRM3TcW+hGCVvm+aowwO9f6g6t8_pvZSJxyMrgA@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As discussed before, please, merge this patch with
+On 2012-01-19 07:11, Javier Martinez Canillas wrote:
+> On Thu, Jan 19, 2012 at 2:35 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>> On 2012-01-19 06:28, Laurent Pinchart wrote:
+>>>
+>>> Hi Gary,
+>>>
+>>> On Thursday 19 January 2012 14:13:53 Gary Thomas wrote:
+>>>>
+>>>> On 2012-01-19 05:50, Laurent Pinchart wrote:
+>>>>>
+>>>>> On Thursday 19 January 2012 13:41:57 Gary Thomas wrote:
+>>>>>>
+>>>>>> On 2012-01-17 08:33, Laurent Pinchart wrote:
+>>>>>>       <snip>
+>>>>>>>
+>>>>>>>
+>>>>>>> I already had a couple of YUV support patches in my OMAP3 ISP tree at
+>>>>>>> git.kernel.org. I've rebased them on top of the lastest V4L/DVB tree
+>>>>>>> and pushed them to
+>>>>>>>
+>>>>>>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp
+>>>>>>> - omap3isp-yuv. Could you please try them, and see if they're usable
+>>>>>>> with your sensor ?
+>>>>>>
+>>>>>>
+>>>>>> I just tried this kernel with my board.  The media control
+>>>>>> infrastructure comes up and all of the devices are created, but I can't
+>>>>>> access them.
+>>>>>>
+>>>>>>    From the bootup log:
+>>>>>>      Linux media interface: v0.10
+>>>>>>      Linux video capture interface: v2.00
+>>>>>
+>>>>>
+>>>>> Any message from the omap3isp driver and from the sensor driver ?
+>>>>
+>>>>
+>>>> No, it doesn't appear that the sensor was probed (or maybe it failed but
+>>>> no messages).  I'll check into this.
+>>>
+>>>
+>>> Is the omap3-isp driver compiled as a module ? If so, make sure iommu2.ko
+>>> is
+>>> loaded first. 'rmmod omap3-isp&&    modprobe iommu2&&    modprobe omap3-isp'
+>>> is a
+>>>
+>>> quick way to test it.
+>>
+>>
+>> I have everything compiled in - no modules.
+>>
+>
+> At least for me, it only worked when compiled both the omap3-isp and
+> tvp5150 drivers as a module. If I compile them built-in, it fails.
 
-"media i.MX27 camera: properly detect frame loss."
+Can you share your board/sensor init code from your board-init.c
+so I can see how to manage this as a module?
 
-One more cosmetic note:
-
-On Fri, 20 Jan 2012, Javier Martin wrote:
-
-> Add "start_stream" and "stop_stream" callback in order to enable
-> and disable the eMMa-PrP properly and save CPU usage avoiding
-> IRQs when the device is not streaming.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/mx2_camera.c |  107 +++++++++++++++++++++++++++-----------
->  1 files changed, 77 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index 290ac9d..4816da6 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -560,7 +560,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
->  	struct soc_camera_host *ici =
->  		to_soc_camera_host(icd->parent);
->  	struct mx2_camera_dev *pcdev = ici->priv;
-> -	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->  	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
->  	unsigned long flags;
->  
-> @@ -572,29 +571,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
->  	buf->state = MX2_STATE_QUEUED;
->  	list_add_tail(&buf->queue, &pcdev->capture);
->  
-> -	if (mx27_camera_emma(pcdev)) {
-> -		if (prp->cfg.channel == 1) {
-> -			writel(PRP_CNTL_CH1EN |
-> -				PRP_CNTL_CSIEN |
-> -				prp->cfg.in_fmt |
-> -				prp->cfg.out_fmt |
-> -				PRP_CNTL_CH1_LEN |
-> -				PRP_CNTL_CH1BYP |
-> -				PRP_CNTL_CH1_TSKIP(0) |
-> -				PRP_CNTL_IN_TSKIP(0),
-> -				pcdev->base_emma + PRP_CNTL);
-> -		} else {
-> -			writel(PRP_CNTL_CH2EN |
-> -				PRP_CNTL_CSIEN |
-> -				prp->cfg.in_fmt |
-> -				prp->cfg.out_fmt |
-> -				PRP_CNTL_CH2_LEN |
-> -				PRP_CNTL_CH2_TSKIP(0) |
-> -				PRP_CNTL_IN_TSKIP(0),
-> -				pcdev->base_emma + PRP_CNTL);
-> -		}
-> -		goto out;
-> -	} else { /* cpu_is_mx25() */
-> +	if (!mx27_camera_emma(pcdev)) { /* cpu_is_mx25() */
->  		u32 csicr3, dma_inten = 0;
->  
->  		if (pcdev->fb1_active == NULL) {
-> @@ -629,8 +606,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
->  			writel(csicr3, pcdev->base_csi + CSICR3);
->  		}
->  	}
-> -
-> -out:
-
-To my taste you're a bit too aggressive on blank lines;-) This also holds 
-for the previous patch. Unless you absolutely have to edit your sources in 
-a 24-line terminal, keeping those empty lines would be appreciated:-)
+n.b. I really don't like messing with modules - it used to work
+fine, so IMO it should continue to do so.
 
 Thanks
-Guennadi
 
->  	spin_unlock_irqrestore(&pcdev->lock, flags);
->  }
->  
-> @@ -692,11 +667,83 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
->  	spin_unlock_irqrestore(&pcdev->lock, flags);
->  }
->  
-> +static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
-> +{
-> +	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-> +	struct soc_camera_host *ici =
-> +		to_soc_camera_host(icd->parent);
-> +	struct mx2_camera_dev *pcdev = ici->priv;
-> +	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-> +	unsigned long flags;
-> +	int ret = 0;
-> +
-> +	spin_lock_irqsave(&pcdev->lock, flags);
-> +	if (mx27_camera_emma(pcdev)) {
-> +		if (count < 2) {
-> +			ret = -EINVAL;
-> +			goto err;
-> +		}
-> +
-> +		if (prp->cfg.channel == 1) {
-> +			writel(PRP_CNTL_CH1EN |
-> +				PRP_CNTL_CSIEN |
-> +				prp->cfg.in_fmt |
-> +				prp->cfg.out_fmt |
-> +				PRP_CNTL_CH1_LEN |
-> +				PRP_CNTL_CH1BYP |
-> +				PRP_CNTL_CH1_TSKIP(0) |
-> +				PRP_CNTL_IN_TSKIP(0),
-> +				pcdev->base_emma + PRP_CNTL);
-> +		} else {
-> +			writel(PRP_CNTL_CH2EN |
-> +				PRP_CNTL_CSIEN |
-> +				prp->cfg.in_fmt |
-> +				prp->cfg.out_fmt |
-> +				PRP_CNTL_CH2_LEN |
-> +				PRP_CNTL_CH2_TSKIP(0) |
-> +				PRP_CNTL_IN_TSKIP(0),
-> +				pcdev->base_emma + PRP_CNTL);
-> +		}
-> +	}
-> +err:
-> +	spin_unlock_irqrestore(&pcdev->lock, flags);
-> +
-> +	return ret;
-> +}
-> +
-> +static int mx2_stop_streaming(struct vb2_queue *q)
-> +{
-> +	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-> +	struct soc_camera_host *ici =
-> +		to_soc_camera_host(icd->parent);
-> +	struct mx2_camera_dev *pcdev = ici->priv;
-> +	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-> +	unsigned long flags;
-> +	u32 cntl;
-> +
-> +	spin_lock_irqsave(&pcdev->lock, flags);
-> +	if (mx27_camera_emma(pcdev)) {
-> +		cntl = readl(pcdev->base_emma + PRP_CNTL);
-> +		if (prp->cfg.channel == 1) {
-> +			writel(cntl & ~PRP_CNTL_CH1EN,
-> +			       pcdev->base_emma + PRP_CNTL);
-> +		} else {
-> +			writel(cntl & ~PRP_CNTL_CH2EN,
-> +			       pcdev->base_emma + PRP_CNTL);
-> +		}
-> +	}
-> +	spin_unlock_irqrestore(&pcdev->lock, flags);
-> +
-> +	return 0;
-> +}
-> +
->  static struct vb2_ops mx2_videobuf_ops = {
-> -	.queue_setup	= mx2_videobuf_setup,
-> -	.buf_prepare	= mx2_videobuf_prepare,
-> -	.buf_queue	= mx2_videobuf_queue,
-> -	.buf_cleanup	= mx2_videobuf_release,
-> +	.queue_setup	 = mx2_videobuf_setup,
-> +	.buf_prepare	 = mx2_videobuf_prepare,
-> +	.buf_queue	 = mx2_videobuf_queue,
-> +	.buf_cleanup	 = mx2_videobuf_release,
-> +	.start_streaming = mx2_start_streaming,
-> +	.stop_streaming  = mx2_stop_streaming,
->  };
->  
->  static int mx2_camera_init_videobuf(struct vb2_queue *q,
-> -- 
-> 1.7.0.4
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
