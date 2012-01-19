@@ -1,166 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:41214 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755899Ab2AIWcL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 17:32:11 -0500
-Message-ID: <4F0B6AE6.7090008@iki.fi>
-Date: Tue, 10 Jan 2012 00:32:06 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:52923 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932482Ab2ASQNR convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jan 2012 11:13:17 -0500
+Received: by mail-yw0-f46.google.com with SMTP id o21so57212yho.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jan 2012 08:13:17 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, tuukkat76@gmail.com,
-	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
-	snjw23@gmail.com
-Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09
- 14:00 GMT+2
-References: <20120104085633.GM3677@valkosipuli.localdomain> <20120109173825.GR9323@valkosipuli.localdomain> <201201092238.30469.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201092238.30469.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4F182A79.6000603@mlbassoc.com>
+References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com>
+ <201201191350.51761.laurent.pinchart@ideasonboard.com> <4F181711.1020201@mlbassoc.com>
+ <201201191428.35340.laurent.pinchart@ideasonboard.com> <4F181C24.9030806@mlbassoc.com>
+ <CAAwP0s3_U1tzRM3TcW+hGCVvm+aowwO9f6g6t8_pvZSJxyMrgA@mail.gmail.com> <4F182A79.6000603@mlbassoc.com>
+From: Javier Martinez Canillas <martinez.javier@gmail.com>
+Date: Thu, 19 Jan 2012 17:12:56 +0100
+Message-ID: <CAAwP0s0bR2funmWFcHg+o7ydnVQmc81gKTahBy+gO9Z2uDgLvQ@mail.gmail.com>
+Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
+To: Gary Thomas <gary@mlbassoc.com>, Enrico <ebutera@users.berlios.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
-
-Laurent Pinchart wrote:
-> On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
->> Hi all,
+On Thu, Jan 19, 2012 at 3:36 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2012-01-19 07:11, Javier Martinez Canillas wrote:
 >>
->> We had an IRC meeting on the new sensor control interface on #v4l-meeting
->> as scheduled previously. The meeting log is available here:
+>> On Thu, Jan 19, 2012 at 2:35 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
+>>>
+>>> On 2012-01-19 06:28, Laurent Pinchart wrote:
+>>>>
+>>>>
+>>>> Hi Gary,
+>>>>
+>>>> On Thursday 19 January 2012 14:13:53 Gary Thomas wrote:
+>>>>>
+>>>>>
+>>>>> On 2012-01-19 05:50, Laurent Pinchart wrote:
+>>>>>>
+>>>>>>
+>>>>>> On Thursday 19 January 2012 13:41:57 Gary Thomas wrote:
+>>>>>>>
+>>>>>>>
+>>>>>>> On 2012-01-17 08:33, Laurent Pinchart wrote:
+>>>>>>>      <snip>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> I already had a couple of YUV support patches in my OMAP3 ISP tree
+>>>>>>>> at
+>>>>>>>> git.kernel.org. I've rebased them on top of the lastest V4L/DVB tree
+>>>>>>>> and pushed them to
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp
+>>>>>>>> - omap3isp-yuv. Could you please try them, and see if they're usable
+>>>>>>>> with your sensor ?
+>>>>>>>
+>>>>>>>
+>>>>>>>
+>>>>>>> I just tried this kernel with my board.  The media control
+>>>>>>> infrastructure comes up and all of the devices are created, but I
+>>>>>>> can't
+>>>>>>> access them.
+>>>>>>>
+>>>>>>>   From the bootup log:
+>>>>>>>     Linux media interface: v0.10
+>>>>>>>     Linux video capture interface: v2.00
+>>>>>>
+>>>>>>
+>>>>>>
+>>>>>> Any message from the omap3isp driver and from the sensor driver ?
+>>>>>
+>>>>>
+>>>>>
+>>>>> No, it doesn't appear that the sensor was probed (or maybe it failed
+>>>>> but
+>>>>> no messages).  I'll check into this.
+>>>>
+>>>>
+>>>>
+>>>> Is the omap3-isp driver compiled as a module ? If so, make sure
+>>>> iommu2.ko
+>>>> is
+>>>> loaded first. 'rmmod omap3-isp&&    modprobe iommu2&&    modprobe
+>>>> omap3-isp'
+>>>> is a
+>>>>
+>>>> quick way to test it.
+>>>
+>>>
+>>>
+>>> I have everything compiled in - no modules.
+>>>
 >>
->> <URL:http://www.retiisi.org.uk/v4l2/v4l2-sensor-control-interface-2012-01-0
->> 9.txt>
->>
->> My notes can be found below.
+>> At least for me, it only worked when compiled both the omap3-isp and
+>> tvp5150 drivers as a module. If I compile them built-in, it fails.
 >
-> Thanks for the summary.
 >
->> Accessing V4L2 subdev and MC interfaces in user space: user space libraries
->> ===========================================================================
->>
->> While the V4L2 subdev and Media controller kernel interface is functionally
->> comprehensive, it is a relatively low level interface for even for
->> vendor-specific user space camera libraries. The issue is intensified with
->> the extension of the pipeline configuration performed using the Media
->> controller and V4L2 subdev interfaces to cover the image processing
->> performed on the sensor: this is part of the new sensor control interface.
->>
->> As we want to encourage SoC vendors to use the V4L2, we need to make this
->> as easy as possible for them.
->>
->> The low level camera control libraries can be split into roughly two
->> categories: those which configure the image pipe and those which deal with
->> the 3A algorithms. The 3A algorithms are typically proprietary so we
->> concentrated to the pipeline configuration which is what the Media
->> controller and V4L2 subdev frameworks have been intended for.
->>
->> Two libraries already exist for this: libmediactl and libv4l2subdev. The
->> former deals with topology enumeration and link configuration whereas the
->> latter is a generic library for V4L2 subdev configuration, including format
->> configuration.
->>
->> The new sensor control interface moves the remaining policy decisions to
->> the user space: how the sensor's image pipe is configured, what pixel
->> rates are being used on the bus from the sensor to the ISP and how is the
->> blanking configured.
->>
->> The role of the new library, called libv4l2pipe, is to interpret text-based
->> configuration file containing sections for various pipeline format and link
->> configurations, as well as V4L2 controls: the link frequency is a control
->> as well; but more on that below. The library may be later on merged to
->> libv4l2pipeauto which Sakari is working on.
->>
->> Both pipeline format and link configurations are policy decisions and thus
->> can be expected to be use case specific. A format configuration is
->> dependent on a link configuration but the same link configuration can be
->> used with several format configurations. Thus the two should be defined
->> separately.
->>
->> A third kind of section will be for setting controls. The only control to
->> be set will be the link frequency control but a new type of setting
->> warrants a new section.
->>
->> A fourth section may be required as well: at this level the frame rate (or
->> frame time) range makes more sense than the low-level blanking values. The
->> blanking values can be calculated from the frame time and a flag which
->> tells whether either horizontal or vertical blanking should be preferred.
+> Can you share your board/sensor init code from your board-init.c
+> so I can see how to manage this as a module?
 >
-> How does one typically select between horizontal and vertical blanking ? Do
-> mixed modes make sense ?
 
-There are minimums and maximums for both. You can increase the frame 
-time by increasing value for either or both of them --- to achieve very 
-long frame times you may have to use both, but that's not very common in 
-practice. I think we should have a flag to tell which one should be 
-increased first --- the effect would be to have the minimum possible 
-value on the other.
+Hi Gary,
 
->> A configuration consisting of all the above sections will define the full
->> pipeline configuration. The library must also provide a way to enumerate,
->> query and set these configurations.
->>
->> With the existence of this library and the related new sensor control
->> interface, the V4L2 supports implementing digital cameras even better than
->> it used to.
->>
->> The LGPL 2.1+ license used by libmediactl, libv4l2pipeauto and the future
->> libv4l2pipe(auto) is not seen an issue for Android to adopt these libraries
->> either.
->>
->> In GStreamer middleware, libv4l2pipe is expected to be used by the camera
->> source component.
->
-> Should we try to draft how a 3A library should be implemented ? Do you think
-> that might have implications on libv4l2pipe ?
+The board specific init code is the same for both cases
+(built-in/module), the only difference is how you compile the
+omap3-isp and tvp5150 drivers.
 
-We should, yes. I can't see any immediate effects from that to 
-libv4l2pipe. libv4l2pipe may need to provide some information to the 3A 
-library but that should mostly be it.
+Just set to m the Kconfig symbols CONFIG_VIDEO_OMAP3 and
+CONFIG_VIDEO_TVP5150 in your .config file:
 
->> The new sensor control interface
->> ================================
->>
->>
->> The common understanding was that the new sensor control interface is
->> mostly accepted. No patches have been acked since there have been lots of
->> trivial and some not so trivial issues in the patchset. There was an
->> exception to this, which is the pixel_rate field in struct
->> v4l2_mbus_framefmt.
->>
->> The field is expected to be propagated by the user while the user has no
->> valid use case to modify it. The agreement was that instead of adding the
->> field to struct v4l2_mbus_framefmt, a new control will be introduced
->> instead.
->>
->> A control has several good properties: it can be implemented where it is
->> valid: it isn't always possible to accurately specify the pixel rate in
->> some parts of the pipeline.
->>
->> Sensor drivers should provide the pixel_rate control in two subdevs: the
->> pixel array and the one which is opposed to the ISP's bus receiver. The
->> pixel array's pixel rate is mostly required in the user space whereas the
->> pixel rate in the bus transmitter subdev (which may have other
->> functionality as well) is often required by the bus receivers, as well as
->> by the rest of the ISP.
->>
->> Ideally the pixel_rate control is related to pads rather than subdevs but
->> 1) we don't have pad specific controls and 2) we don't stictly need them
->> right now since there only will be need for a single pixel_rate control
->> per subdev.
->>
->> If pixel rate management will be implemented to prevent starting pipelines
->> which would fail to stream in cases where too high pixel rates are used on
->> particular subdevs, the concept of pad-specific controls may be later
->> revisited. Making the pixel_rate control pad-specific only will change the
->> interface towards the user space if the pad where it is implemented is
->> non-zero.
->
-> I'm fine with that. Let's use a control now, we'll revisit this later if
-> needed.
+CONFIG_VIDEO_OMAP3=m
+CONFIG_VIDEO_TVP5150=m
 
-Agreed.
+But if it help you, here [1] is the definitions for all the platform
+device/data structures needed to register the TVP5150 with the omap3
+isp code (isp_platform_data, isp_v4l2_subdevs_group,
+isp_subdev_i2c_board_info, etc) and here [2] is the actual camera
+initialization configuring the tvp reset and power down GPIO pins and
+calling omap3_init_camera().
+
+And take a look to our modified TVP5150 [3] and OMAP3 ISP CCDC [4] drivers.
+
+This is based on an 2.6.37 kernel, but the API has not changed so it
+should be also applicable to your kernel.
+
+But I suggested to look at Enrico patches that were forward ported to
+3.2, you probably can use those as is.
+
+Hope it helps,
+
+[1]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/exp-igep0022.c;h=475228832412c99a0a52a4652518279a59b87d0c;hb=db3cb47adf10504d3847d54927de50b2fa94c008
+[2]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=blob;f=arch/arm/mach-omap2/board-igep00x0.c;h=1051c6fe949b9b8915101c9d8ac324aaed32cd7c;hb=db3cb47adf10504d3847d54927de50b2fa94c008
+[3]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=blob;f=drivers/media/video/tvp5150.c;h=0b76e0ead27da45067265bb5c144f17994215db6;hb=db3cb47adf10504d3847d54927de50b2fa94c008
+[4]: http://git.igep.es/?p=pub/scm/linux-omap-2.6.git;a=blob;f=drivers/media/video/isp/ispccdc.c;h=28579f49a2495d25f675dabf37dadfe34a5218fa;hb=db3cb47adf10504d3847d54927de50b2fa94c008
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Javier Martínez Canillas
+(+34) 682 39 81 69
+Barcelona, Spain
