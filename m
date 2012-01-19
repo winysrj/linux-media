@@ -1,86 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:40608 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752132Ab2AaKOK (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50361 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751636Ab2ASN2g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jan 2012 05:14:10 -0500
-Subject: Re: [PATCH 05/16] cx18: fix handling of 'radio' module parameter
-From: Andy Walls <awalls@md.metrocast.net>
-To: Danny Kukawka <danny.kukawka@bisect.de>
-Cc: Rusty Russell <rusty@rustcorp.com.au>, mchehab@redhat.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Tue, 31 Jan 2012 05:13:22 -0500
-In-Reply-To: <1328004120.2821.8.camel@palomino.walls.org>
-References: <1327952458-7424-1-git-send-email-danny.kukawka@bisect.de>
-	 <1327952458-7424-6-git-send-email-danny.kukawka@bisect.de>
-	 <1328004120.2821.8.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8bit
-Message-ID: <1328004803.2821.15.camel@palomino.walls.org>
-Mime-Version: 1.0
+	Thu, 19 Jan 2012 08:28:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Gary Thomas <gary@mlbassoc.com>
+Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
+Date: Thu, 19 Jan 2012 14:28:34 +0100
+Cc: linux-media@vger.kernel.org
+References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com> <201201191350.51761.laurent.pinchart@ideasonboard.com> <4F181711.1020201@mlbassoc.com>
+In-Reply-To: <4F181711.1020201@mlbassoc.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201191428.35340.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 2012-01-31 at 05:01 -0500, Andy Walls wrote:
-> On Mon, 2012-01-30 at 20:40 +0100, Danny Kukawka wrote:
-> > Fixed handling of 'radio' module parameter from module_param_array
-> > to module_param_named to fix these compiler warnings in cx18-driver.c:
-> 
-> NACK.
-> 
-> "radio" is an array of tristate values (-1, 0, 1) per installed card:
-> 
-> 	static int radio[CX18_MAX_CARDS] = { -1, -1,
-> 
-> and must remain an array or you will break the driver.
-> 
-> Calling "radio_c" a module parameter named "radio" is wrong.
-> 
-> The correct fix is to reverse Rusty Russel's patch to the driver in
-> commit  90ab5ee94171b3e28de6bb42ee30b527014e0be7
-> to change the "bool" back to an "int" as it should be in
-                      ^^^^
-Sorry, a typo here.  Disregard the word "back".
+Hi Gary,
 
+On Thursday 19 January 2012 14:13:53 Gary Thomas wrote:
+> On 2012-01-19 05:50, Laurent Pinchart wrote:
+> > On Thursday 19 January 2012 13:41:57 Gary Thomas wrote:
+> >> On 2012-01-17 08:33, Laurent Pinchart wrote:
+> >>      <snip>
+> >>> 
+> >>> I already had a couple of YUV support patches in my OMAP3 ISP tree at
+> >>> git.kernel.org. I've rebased them on top of the lastest V4L/DVB tree
+> >>> and pushed them to
+> >>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp
+> >>> - omap3isp-yuv. Could you please try them, and see if they're usable
+> >>> with your sensor ?
+> >> 
+> >> I just tried this kernel with my board.  The media control
+> >> infrastructure comes up and all of the devices are created, but I can't
+> >> access them.
+> >> 
+> >>   From the bootup log:
+> >>     Linux media interface: v0.10
+> >>     Linux video capture interface: v2.00
+> > 
+> > Any message from the omap3isp driver and from the sensor driver ?
+> 
+> No, it doesn't appear that the sensor was probed (or maybe it failed but
+> no messages).  I'll check into this.
+
+Is the omap3-isp driver compiled as a module ? If so, make sure iommu2.ko is 
+loaded first. 'rmmod omap3-isp && modprobe iommu2 && modprobe omap3-isp' is a 
+quick way to test it.
+
+> Has the way of adding the sensors on the i2c bus changed?  I have my
+> TVP5150 on a i2c-2 all by itself and with the 3.0+ kernel, it was being
+> added when I initialized the camera subsystem.
+> 
+> Do you have an example driver (like the BeagleBoard one that was in
+> your omap3isp-sensors-next branch previously)?
+> 
+> >> When I try to access the devices:
+> >>     root@cobra3530p73:~# media-ctl -p
+> >>     Opening media device /dev/media0
+> >>     media_open_debug: Can't open media device /dev/media0
+> >>     Failed to open /dev/media0
+> > 
+> > Could you please strace that ?
+> 
+> Attached.  Looks like it blows up immediately.
+> 
+> Note: my media-ctl program was built from SRCREV
+> 7266b1b5433b5644a06f05edf61c36864ab11683
+> 
+> >> The devices look OK to me:
+> >>     root@cobra3530p73:~# ls -l /dev/v*  /dev/med*
+> >>     crw------- 1 root root 252, 0 Nov  8 10:44 /dev/media0
+> >>     crw-rw---- 1 root video 81,   7 Nov  8 10:44 /dev/v4l-subdev0
+> >>     crw-rw---- 1 root video 81,   8 Nov  8 10:44 /dev/v4l-subdev1
+> >>     crw-rw---- 1 root video 81,   9 Nov  8 10:44 /dev/v4l-subdev2
+> >>     crw-rw---- 1 root video 81,  10 Nov  8 10:44 /dev/v4l-subdev3
+> >>     crw-rw---- 1 root video 81,  11 Nov  8 10:44 /dev/v4l-subdev4
+> >>     crw-rw---- 1 root video 81,  12 Nov  8 10:44 /dev/v4l-subdev5
+> >>     crw-rw---- 1 root video 81,  13 Nov  8 10:44 /dev/v4l-subdev6
+> >>     crw-rw---- 1 root video 81,  14 Nov  8 10:44 /dev/v4l-subdev7
+> >>     crw-rw---- 1 root video 81,  15 Nov  8 10:44 /dev/v4l-subdev8
+> >>     crw-rw---- 1 root tty    7,   0 Nov  8 10:44 /dev/vcs
+> >>     crw-rw---- 1 root tty    7,   1 Nov  8 10:44 /dev/vcs1
+> >>     crw-rw---- 1 root tty    7, 128 Nov  8 10:44 /dev/vcsa
+> >>     crw-rw---- 1 root tty    7, 129 Nov  8 10:44 /dev/vcsa1
+> >>     crw-rw---- 1 root video 81,   0 Nov  8 10:44 /dev/video0
+> >>     crw-rw---- 1 root video 81,   1 Nov  8 10:44 /dev/video1
+> >>     crw-rw---- 1 root video 81,   2 Nov  8 10:44 /dev/video2
+> >>     crw-rw---- 1 root video 81,   3 Nov  8 10:44 /dev/video3
+> >>     crw-rw---- 1 root video 81,   4 Nov  8 10:44 /dev/video4
+> >>     crw-rw---- 1 root video 81,   5 Nov  8 10:44 /dev/video5
+> >>     crw-rw---- 1 root video 81,   6 Nov  8 10:44 /dev/video6
+> > 
+> > Have the device nodes have been created manually ?
+> 
+> No, automatically created by udev.
+
+-- 
 Regards,
-Andy
 
-> "module_param_array(radio, ...)"
-> 
-> Regards,
-> Andy
-> 
-> > In function ‘__check_radio’:
-> > 113:1: warning: return from incompatible pointer type [enabled by default]
-> > At top level:
-> > 113:1: warning: initialization from incompatible pointer type [enabled by default]
-> > 113:1: warning: (near initialization for ‘__param_arr_radio.num’) [enabled by default]
-> > 
-> > Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
-> > ---
-> >  drivers/media/video/cx18/cx18-driver.c |    2 +-
-> >  1 files changed, 1 insertions(+), 1 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
-> > index 349bd9c..27b5330 100644
-> > --- a/drivers/media/video/cx18/cx18-driver.c
-> > +++ b/drivers/media/video/cx18/cx18-driver.c
-> > @@ -110,7 +110,7 @@ static int retry_mmio = 1;
-> >  int cx18_debug;
-> >  
-> >  module_param_array(tuner, int, &tuner_c, 0644);
-> > -module_param_array(radio, bool, &radio_c, 0644);
-> > +module_param_named(radio, radio_c, bool, 0644);
-> >  module_param_array(cardtype, int, &cardtype_c, 0644);
-> >  module_param_string(pal, pal, sizeof(pal), 0644);
-> >  module_param_string(secam, secam, sizeof(secam), 0644);
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
+Laurent Pinchart
