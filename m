@@ -1,1299 +1,479 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:20128 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932309Ab2AEBBL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:11 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511AJf016386
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:10 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 27/47] [media] mt2063: Remove setParm/getParm abstraction layer
-Date: Wed,  4 Jan 2012 23:00:38 -0200
-Message-Id: <1325725258-27934-28-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:63819 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932485Ab2ASTIO convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jan 2012 14:08:14 -0500
+Received: by vcbfo1 with SMTP id fo1so214287vcb.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jan 2012 11:08:13 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <1325760118-27997-3-git-send-email-sumit.semwal@ti.com>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <1325760118-27997-3-git-send-email-sumit.semwal@ti.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Thu, 19 Jan 2012 11:07:32 -0800
+Message-ID: <CAMm-=zB+Sg4XZX_MLGt1fvURCFf8QbWcmZHSUbMYbGfiSz2+gg@mail.gmail.com>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
+	rob@ti.com, daniel@ffwll.ch, t.stanislaws@samsung.com,
+	patches@linaro.org, Sumit Semwal <sumit.semwal@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This layer just increases the code size for no good reason,
-and makes harder to debug.
+Hi Sumit,
+Thank you for your work. Please find my comments below.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mt2063.c | 1130 +++++-----------------------------
- drivers/media/common/tuners/mt2063.h |    2 +-
- 2 files changed, 172 insertions(+), 960 deletions(-)
+On Thu, Jan 5, 2012 at 2:41 AM, Sumit Semwal <sumit.semwal@ti.com> wrote:
+> This patch adds support for DMABUF memory type in videobuf2. It calls relevant
+> APIs of dma_buf for v4l reqbuf / qbuf / dqbuf operations.
+>
+> For this version, the support is for videobuf2 as a user of the shared buffer;
+> so the allocation of the buffer is done outside of V4L2. [A sample allocator of
+> dma-buf shared buffer is given at [1]]
+>
+> [1]: Rob Clark's DRM:
+>   https://github.com/robclark/kernel-omap4/commits/drmplane-dmabuf
+>
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+>   [original work in the PoC for buffer sharing]
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+> Signed-off-by: Sumit Semwal <sumit.semwal@linaro.org>
+> ---
+>  drivers/media/video/videobuf2-core.c |  186 +++++++++++++++++++++++++++++++++-
+>  include/media/videobuf2-core.h       |   30 ++++++
+>  2 files changed, 215 insertions(+), 1 deletions(-)
+>
+> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+> index 95a3f5e..6cd2f97 100644
+> --- a/drivers/media/video/videobuf2-core.c
+> +++ b/drivers/media/video/videobuf2-core.c
+> @@ -107,6 +107,27 @@ static void __vb2_buf_userptr_put(struct vb2_buffer *vb)
+>  }
+>
+>  /**
+> + * __vb2_buf_dmabuf_put() - release memory associated with
+> + * a DMABUF shared buffer
+> + */
+> +static void __vb2_buf_dmabuf_put(struct vb2_buffer *vb)
+> +{
+> +       struct vb2_queue *q = vb->vb2_queue;
+> +       unsigned int plane;
+> +
+> +       for (plane = 0; plane < vb->num_planes; ++plane) {
+> +               void *mem_priv = vb->planes[plane].mem_priv;
+> +
+> +               if (mem_priv) {
+> +                       call_memop(q, plane, detach_dmabuf, mem_priv);
+> +                       dma_buf_put(vb->planes[plane].dbuf);
+> +                       vb->planes[plane].dbuf = NULL;
+> +                       vb->planes[plane].mem_priv = NULL;
+> +               }
+> +       }
+> +}
+> +
+> +/**
+>  * __setup_offsets() - setup unique offsets ("cookies") for every plane in
+>  * every buffer on the queue
+>  */
+> @@ -228,6 +249,8 @@ static void __vb2_free_mem(struct vb2_queue *q, unsigned int buffers)
+>                /* Free MMAP buffers or release USERPTR buffers */
+>                if (q->memory == V4L2_MEMORY_MMAP)
+>                        __vb2_buf_mem_free(vb);
+> +               if (q->memory == V4L2_MEMORY_DMABUF)
+> +                       __vb2_buf_dmabuf_put(vb);
+>                else
+>                        __vb2_buf_userptr_put(vb);
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 0bf6292..f9ebe24 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -110,74 +110,6 @@ enum MT2063_Mask_Bits {
- };
- 
- /*
-- *  Parameter for function MT2063_GetParam & MT2063_SetParam that
-- *  specifies the tuning algorithm parameter to be read/written.
-- */
--enum MT2063_Param {
--	/*  min tuning step size                            (default: 50000 Hz) */
--	MT2063_STEPSIZE,
--
--	/*  input center frequency                         set by MT2063_Tune() */
--	MT2063_INPUT_FREQ,
--
--	/*  LO1 Frequency                                  set by MT2063_Tune() */
--	MT2063_LO1_FREQ,
--
--	/*  LO2 Frequency                                  set by MT2063_Tune() */
--	MT2063_LO2_FREQ,
--
--	/*  output center frequency                        set by MT2063_Tune() */
--	MT2063_OUTPUT_FREQ,
--
--	/*  output bandwidth                               set by MT2063_Tune() */
--	MT2063_OUTPUT_BW,
--
--	/* Receiver Mode for some parameters. 1 is DVB-T                        */
--	MT2063_RCVR_MODE,
--
--	/* directly set LNA attenuation, parameter is value to set              */
--	MT2063_ACLNA,
--
--	/* maximum LNA attenuation, parameter is value to set                   */
--	MT2063_ACLNA_MAX,
--
--	/* directly set ATN attenuation.  Paremeter is value to set.            */
--	MT2063_ACRF,
--
--	/* maxium ATN attenuation.  Paremeter is value to set.                  */
--	MT2063_ACRF_MAX,
--
--	/* directly set FIF attenuation.  Paremeter is value to set.            */
--	MT2063_ACFIF,
--
--	/* maxium FIF attenuation.  Paremeter is value to set.                  */
--	MT2063_ACFIF_MAX,
--
--	/*  LNA Rin                                                             */
--	MT2063_LNA_RIN,
--
--	/*  Power Detector LNA level target                                     */
--	MT2063_LNA_TGT,
--
--	/*  Power Detector 1 level                                              */
--	MT2063_PD1,
--
--	/*  Power Detector 1 level target                                       */
--	MT2063_PD1_TGT,
--
--	/*  Power Detector 2 level                                              */
--	MT2063_PD2,
--
--	/*  Power Detector 2 level target                                       */
--	MT2063_PD2_TGT,
--
--	/*  Selects, which DNC is activ                                         */
--	MT2063_DNC_OUTPUT_ENABLE,
--
--	MT2063_EOP		/*  last entry in enumerated list         */
--};
--
--/*
-  *  Parameter for selecting tuner mode
-  */
- enum MT2063_RCVR_MODES {
-@@ -311,11 +243,7 @@ struct mt2063_state {
- /* Prototypes */
- static void MT2063_AddExclZone(struct MT2063_AvoidSpursData_t *pAS_Info,
-                         u32 f_min, u32 f_max);
--static u32 MT2063_GetReg(struct mt2063_state *state, u8 reg, u8 * val);
--static u32 MT2063_GetParam(struct mt2063_state *state, enum MT2063_Param param, u32 * pValue);
- static u32 MT2063_SetReg(struct mt2063_state *state, u8 reg, u8 val);
--static u32 MT2063_SetParam(struct mt2063_state *state, enum MT2063_Param param,
--			   enum MT2063_DNC_Output_Enable nValue);
- static u32 MT2063_SoftwareShutdown(struct mt2063_state *state, u8 Shutdown);
- static u32 MT2063_ClearPowerMaskBits(struct mt2063_state *state, enum MT2063_Mask_Bits Bits);
- 
-@@ -1156,371 +1084,152 @@ unsigned int mt2063_lockStatus(struct mt2063_state *state)
- }
- EXPORT_SYMBOL_GPL(mt2063_lockStatus);
- 
--/****************************************************************************
--**
--**  Name: MT2063_GetParam
--**
--**  Description:    Gets a tuning algorithm parameter.
--**
--**                  This function provides access to the internals of the
--**                  tuning algorithm - mostly for testing purposes.
--**
--**  Parameters:     h           - Tuner handle (returned by MT2063_Open)
--**                  param       - Tuning algorithm parameter
--**                                (see enum MT2063_Param)
--**                  pValue      - ptr to returned value
--**
--**                  param                     Description
--**                  ----------------------    --------------------------------
--**                  MT2063_IC_ADDR            Serial Bus address of this tuner
--**                  MT2063_SRO_FREQ           crystal frequency
--**                  MT2063_STEPSIZE           minimum tuning step size
--**                  MT2063_INPUT_FREQ         input center frequency
--**                  MT2063_LO1_FREQ           LO1 Frequency
--**                  MT2063_LO1_STEPSIZE       LO1 minimum step size
--**                  MT2063_LO1_FRACN_AVOID    LO1 FracN keep-out region
--**                  MT2063_IF1_ACTUAL         Current 1st IF in use
--**                  MT2063_IF1_REQUEST        Requested 1st IF
--**                  MT2063_IF1_CENTER         Center of 1st IF SAW filter
--**                  MT2063_IF1_BW             Bandwidth of 1st IF SAW filter
--**                  MT2063_ZIF_BW             zero-IF bandwidth
--**                  MT2063_LO2_FREQ           LO2 Frequency
--**                  MT2063_LO2_STEPSIZE       LO2 minimum step size
--**                  MT2063_LO2_FRACN_AVOID    LO2 FracN keep-out region
--**                  MT2063_OUTPUT_FREQ        output center frequency
--**                  MT2063_OUTPUT_BW          output bandwidth
--**                  MT2063_LO_SEPARATION      min inter-tuner LO separation
--**                  MT2063_AS_ALG             ID of avoid-spurs algorithm in use
--**                  MT2063_MAX_HARM1          max # of intra-tuner harmonics
--**                  MT2063_MAX_HARM2          max # of inter-tuner harmonics
--**                  MT2063_EXCL_ZONES         # of 1st IF exclusion zones
--**                  MT2063_NUM_SPURS          # of spurs found/avoided
--**                  MT2063_SPUR_AVOIDED       >0 spurs avoided
--**                  MT2063_SPUR_PRESENT       >0 spurs in output (mathematically)
--**                  MT2063_RCVR_MODE          Predefined modes.
--**                  MT2063_ACLNA              LNA attenuator gain code
--**                  MT2063_ACRF               RF attenuator gain code
--**                  MT2063_ACFIF              FIF attenuator gain code
--**                  MT2063_ACLNA_MAX          LNA attenuator limit
--**                  MT2063_ACRF_MAX           RF attenuator limit
--**                  MT2063_ACFIF_MAX          FIF attenuator limit
--**                  MT2063_PD1                Actual value of PD1
--**                  MT2063_PD2                Actual value of PD2
--**                  MT2063_DNC_OUTPUT_ENABLE  DNC output selection
--**                  MT2063_VGAGC              VGA gain code
--**                  MT2063_VGAOI              VGA output current
--**                  MT2063_TAGC               TAGC setting
--**                  MT2063_AMPGC              AMP gain code
--**                  MT2063_AVOID_DECT         Avoid DECT Frequencies
--**                  MT2063_CTFILT_SW          Cleartune filter selection
--**
--**  Usage:          status |= MT2063_GetParam(hMT2063,
--**                                            MT2063_IF1_ACTUAL,
--**                                            &f_IF1_Actual);
--**
--**  Returns:        status:
--**                      MT_OK            - No errors
--**                      MT_INV_HANDLE    - Invalid tuner handle
--**                      MT_ARG_NULL      - Null pointer argument passed
--**                      MT_ARG_RANGE     - Invalid parameter requested
--**
--**  Dependencies:   USERS MUST CALL MT2063_Open() FIRST!
--**
--**  See Also:       MT2063_SetParam, MT2063_Open
--**
--**  Revision History:
--**
--**   SCR      Date      Author  Description
--**  -------------------------------------------------------------------------
--**   138   06-19-2007    DAD    Ver 1.00: Initial, derived from mt2067_b.
--**   154   09-13-2007    RSK    Ver 1.05: Get/SetParam changes for LOx_FREQ
--**         10-31-2007    PINZ   Ver 1.08: Get/SetParam add VGAGC, VGAOI, AMPGC, TAGC
--**   173 M 01-23-2008    RSK    Ver 1.12: Read LO1C and LO2C registers from HW
--**                                        in GetParam.
--**         04-18-2008    PINZ   Ver 1.15: Add SetParam LNARIN & PDxTGT
--**                                        Split SetParam up to ACLNA / ACLNA_MAX
--**                                        removed ACLNA_INRC/DECR (+RF & FIF)
--**                                        removed GCUAUTO / BYPATNDN/UP
--**   175 I 16-06-2008    PINZ   Ver 1.16: Add control to avoid US DECT freqs.
--**   175 I 06-19-2008    RSK    Ver 1.17: Refactor DECT control to SpurAvoid.
--**         06-24-2008    PINZ   Ver 1.18: Add Get/SetParam CTFILT_SW
--**
--****************************************************************************/
--static u32 MT2063_GetParam(struct mt2063_state *state, enum MT2063_Param param, u32 *pValue)
-+/*
-+ * mt2063_set_dnc_output_enable()
-+ */
-+static u32 mt2063_get_dnc_output_enable(struct mt2063_state *state,
-+				        enum MT2063_DNC_Output_Enable *pValue)
- {
--	u32 status = 0;	/* Status to be returned        */
--	u32 Div;
--	u32 Num;
--
--	if (pValue == NULL)
--		return -EINVAL;
-+	if ((state->reg[MT2063_REG_DNC_GAIN] & 0x03) == 0x03) {	/* if DNC1 is off */
-+		if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
-+			*pValue = MT2063_DNC_NONE;
-+		else
-+			*pValue = MT2063_DNC_2;
-+	} else {	/* DNC1 is on */
-+		if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
-+			*pValue = MT2063_DNC_1;
-+		else
-+			*pValue = MT2063_DNC_BOTH;
-+	}
-+	return 0;
-+}
- 
--	switch (param) {
--		/*  input center frequency                */
--	case MT2063_INPUT_FREQ:
--		*pValue = state->AS_Data.f_in;
--		break;
-+/*
-+ * mt2063_set_dnc_output_enable()
-+ */
-+static u32 mt2063_set_dnc_output_enable(struct mt2063_state *state,
-+				        enum MT2063_DNC_Output_Enable nValue)
-+{
-+	u32 status = 0;	/* Status to be returned        */
-+	u8 val = 0;
- 
--		/*  LO1 Frequency                         */
--	case MT2063_LO1_FREQ:
-+	/* selects, which DNC output is used */
-+	switch (nValue) {
-+	case MT2063_DNC_NONE:
- 		{
--			/* read the actual tuner register values for LO1C_1 and LO1C_2 */
--			status |=
--			    mt2063_read(state,
--					   MT2063_REG_LO1C_1,
--					   &state->
--					   reg[MT2063_REG_LO1C_1], 2);
--			Div = state->reg[MT2063_REG_LO1C_1];
--			Num = state->reg[MT2063_REG_LO1C_2] & 0x3F;
--			state->AS_Data.f_LO1 =
--			    (state->AS_Data.f_ref * Div) +
--			    MT2063_fLO_FractionalTerm(state->AS_Data.
--						      f_ref, Num, 64);
--		}
--		*pValue = state->AS_Data.f_LO1;
--		break;
-+			val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
-+			if (state->reg[MT2063_REG_DNC_GAIN] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_DNC_GAIN,
-+						  val);
- 
--		/*  Bandwidth of 1st IF SAW filter        */
--	case MT2063_IF1_BW:
--		*pValue = state->AS_Data.f_if1_bw;
--		break;
-+			val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
-+			if (state->reg[MT2063_REG_VGA_GAIN] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_VGA_GAIN,
-+						  val);
- 
--		/*  zero-IF bandwidth                     */
--	case MT2063_ZIF_BW:
--		*pValue = state->AS_Data.f_zif_bw;
--		break;
-+			val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
-+			if (state->reg[MT2063_REG_RSVD_20] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_RSVD_20,
-+						  val);
- 
--		/*  LO2 Frequency                         */
--	case MT2063_LO2_FREQ:
--		{
--			/* Read the actual tuner register values for LO2C_1, LO2C_2 and LO2C_3 */
--			status |=
--			    mt2063_read(state,
--					   MT2063_REG_LO2C_1,
--					   &state->
--					   reg[MT2063_REG_LO2C_1], 3);
--			Div =
--			    (state->reg[MT2063_REG_LO2C_1] & 0xFE) >> 1;
--			Num =
--			    ((state->
--			      reg[MT2063_REG_LO2C_1] & 0x01) << 12) |
--			    (state->
--			     reg[MT2063_REG_LO2C_2] << 4) | (state->
--							     reg
--							     [MT2063_REG_LO2C_3]
--							     & 0x00F);
--			state->AS_Data.f_LO2 =
--			    (state->AS_Data.f_ref * Div) +
--			    MT2063_fLO_FractionalTerm(state->AS_Data.
--						      f_ref, Num, 8191);
-+			break;
- 		}
--		*pValue = state->AS_Data.f_LO2;
--		break;
--
--		/*  LO2 FracN keep-out region             */
--	case MT2063_LO2_FRACN_AVOID:
--		*pValue = state->AS_Data.f_LO2_FracN_Avoid;
--		break;
--
--		/*  output center frequency               */
--	case MT2063_OUTPUT_FREQ:
--		*pValue = state->AS_Data.f_out;
--		break;
--
--		/*  output bandwidth                      */
--	case MT2063_OUTPUT_BW:
--		*pValue = state->AS_Data.f_out_bw - 750000;
--		break;
--
--		/*  Predefined receiver setup combination */
--	case MT2063_RCVR_MODE:
--		*pValue = state->rcvr_mode;
--		break;
--
--	case MT2063_PD1:
--	case MT2063_PD2: {
--		u8 mask = (param == MT2063_PD1 ? 0x01 : 0x03);	/* PD1 vs PD2 */
--		u8 orig = (state->reg[MT2063_REG_BYP_CTRL]);
--		u8 reg = (orig & 0xF1) | mask;	/* Only set 3 bits (not 5) */
--		int i;
--
--		*pValue = 0;
--
--		/* Initiate ADC output to reg 0x0A */
--		if (reg != orig)
--			status |=
--			    mt2063_write(state,
--					    MT2063_REG_BYP_CTRL,
--					    &reg, 1);
-+	case MT2063_DNC_1:
-+		{
-+			val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
-+			if (state->reg[MT2063_REG_DNC_GAIN] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_DNC_GAIN,
-+						  val);
- 
--		if (status < 0)
--			return (status);
-+			val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
-+			if (state->reg[MT2063_REG_VGA_GAIN] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_VGA_GAIN,
-+						  val);
- 
--		for (i = 0; i < 8; i++) {
--			status |=
--			    mt2063_read(state,
--					   MT2063_REG_ADC_OUT,
--					   &state->
--					   reg
--					   [MT2063_REG_ADC_OUT],
--					   1);
--
--			if (status >= 0)
--				*pValue +=
--				    state->
--				    reg[MT2063_REG_ADC_OUT];
--			else {
--				if (i)
--					*pValue /= i;
--				return (status);
--			}
--		}
--		*pValue /= 8;	/*  divide by number of reads  */
--		*pValue >>= 2;	/*  only want 6 MSB's out of 8  */
-+			val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
-+			if (state->reg[MT2063_REG_RSVD_20] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_RSVD_20,
-+						  val);
- 
--		/* Restore value of Register BYP_CTRL */
--		if (reg != orig)
--			status |=
--			    mt2063_write(state,
--					    MT2063_REG_BYP_CTRL,
--						&orig, 1);
-+			break;
- 		}
--		break;
--
--		/*  Get LNA attenuator code                */
--	case MT2063_ACLNA:
--	{
--		u8 val;
--		status |=
--		    MT2063_GetReg(state, MT2063_REG_XO_STATUS,
--				  &val);
--		*pValue = val & 0x1f;
--	}
--	break;
-+	case MT2063_DNC_2:
-+		{
-+			val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
-+			if (state->reg[MT2063_REG_DNC_GAIN] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_DNC_GAIN,
-+						  val);
- 
--	/*  Get RF attenuator code                */
--	case MT2063_ACRF:
--	{
--		u8 val;
--		status |=
--		    MT2063_GetReg(state, MT2063_REG_RF_STATUS,
--				  &val);
--		*pValue = val & 0x1f;
--	}
--	break;
-+			val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
-+			if (state->reg[MT2063_REG_VGA_GAIN] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_VGA_GAIN,
-+						  val);
- 
--	/*  Get FIF attenuator code               */
--	case MT2063_ACFIF:
--	{
--		u8 val;
--		status |=
--		    MT2063_GetReg(state, MT2063_REG_FIF_STATUS,
--				  &val);
--		*pValue = val & 0x1f;
--	}
--	break;
-+			val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
-+			if (state->reg[MT2063_REG_RSVD_20] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_RSVD_20,
-+						  val);
- 
--	/*  Get LNA attenuator limit              */
--	case MT2063_ACLNA_MAX:
--	{
--		u8 val;
--		status |=
--		    MT2063_GetReg(state, MT2063_REG_LNA_OV,
--				  &val);
--		*pValue = val & 0x1f;
--	}
--	break;
-+			break;
-+		}
-+	case MT2063_DNC_BOTH:
-+		{
-+			val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
-+			if (state->reg[MT2063_REG_DNC_GAIN] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_DNC_GAIN,
-+						  val);
- 
--	/*  Get RF attenuator limit               */
--	case MT2063_ACRF_MAX:
--	{
--		u8 val;
--		status |=
--		    MT2063_GetReg(state, MT2063_REG_RF_OV,
--				  &val);
--		*pValue = val & 0x1f;
--	}
--	break;
-+			val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
-+			if (state->reg[MT2063_REG_VGA_GAIN] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_VGA_GAIN,
-+						  val);
- 
--	/*  Get FIF attenuator limit               */
--	case MT2063_ACFIF_MAX:
--	{
--		u8 val;
--		status |=
--		    MT2063_GetReg(state, MT2063_REG_FIF_OV,
--				  &val);
--		*pValue = val & 0x1f;
--	}
--	break;
--
--	/*  Get current used DNC output */
--	case MT2063_DNC_OUTPUT_ENABLE:
--	{
--		if ((state->reg[MT2063_REG_DNC_GAIN] & 0x03) == 0x03) {	/* if DNC1 is off */
--			if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
--				*pValue =
--				    (u32) MT2063_DNC_NONE;
--			else
--				*pValue =
--				    (u32) MT2063_DNC_2;
--		} else {	/* DNC1 is on */
-+			val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
-+			if (state->reg[MT2063_REG_RSVD_20] !=
-+			    val)
-+				status |=
-+				    MT2063_SetReg(state,
-+						  MT2063_REG_RSVD_20,
-+						  val);
- 
--			if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
--				*pValue =
--				    (u32) MT2063_DNC_1;
--			else
--				*pValue =
--				    (u32) MT2063_DNC_BOTH;
-+			break;
- 		}
--	}
--	break;
--
- 	default:
--		status |= -ERANGE;
-+		break;
- 	}
--	return (status);
--}
--
--/****************************************************************************
--**
--**  Name: MT2063_GetReg
--**
--**  Description:    Gets an MT2063 register.
--**
--**  Parameters:     h           - Tuner handle (returned by MT2063_Open)
--**                  reg         - MT2063 register/subaddress location
--**                  *val        - MT2063 register/subaddress value
--**
--**  Returns:        status:
--**                      MT_OK            - No errors
--**                      MT_COMM_ERR      - Serial bus communications error
--**                      MT_INV_HANDLE    - Invalid tuner handle
--**                      MT_ARG_NULL      - Null pointer argument passed
--**                      MT_ARG_RANGE     - Argument out of range
--**
--**  Dependencies:   USERS MUST CALL MT2063_Open() FIRST!
--**
--**                  Use this function if you need to read a register from
--**                  the MT2063.
--**
--**  Revision History:
--**
--**   SCR      Date      Author  Description
--**  -------------------------------------------------------------------------
--**   138   06-19-2007    DAD    Ver 1.00: Initial, derived from mt2067_b.
--**
--****************************************************************************/
--static u32 MT2063_GetReg(struct mt2063_state *state, u8 reg, u8 * val)
--{
--	u32 status = 0;	/* Status to be returned        */
--
--	if (val == NULL)
--		return -EINVAL;
--
--	if (reg >= MT2063_REG_END_REGS)
--		return -ERANGE;
--
--	status = mt2063_read(state, reg, &state->reg[reg], 1);
- 
- 	return (status);
- }
-@@ -1632,7 +1341,11 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
- 
- 	/* LNARin */
- 	if (status >= 0) {
--		status |= MT2063_SetParam(state, MT2063_LNA_RIN, LNARIN[Mode]);
-+		u8 val = (state-> reg[MT2063_REG_CTRL_2C] & (u8) ~ 0x03) |
-+			 (LNARIN[Mode] & 0x03);
-+		if (state->reg[MT2063_REG_CTRL_2C] != val)
-+			status |= MT2063_SetReg(state, MT2063_REG_CTRL_2C,
-+					  val);
- 	}
- 
- 	/* FIFFQEN and FIFFQ */
-@@ -1658,40 +1371,59 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
- 	}
- 
- 	/* DNC1GC & DNC2GC */
--	status |= MT2063_GetParam(state, MT2063_DNC_OUTPUT_ENABLE, &longval);
--	status |= MT2063_SetParam(state, MT2063_DNC_OUTPUT_ENABLE, longval);
-+	status |= mt2063_get_dnc_output_enable(state, &longval);
-+	status |= mt2063_set_dnc_output_enable(state, longval);
- 
- 	/* acLNAmax */
- 	if (status >= 0) {
--		status |=
--		    MT2063_SetParam(state, MT2063_ACLNA_MAX, ACLNAMAX[Mode]);
-+		u8 val = (state-> reg[MT2063_REG_LNA_OV] & (u8) ~ 0x1F) |
-+			 (ACLNAMAX[Mode] & 0x1F);
-+		if (state->reg[MT2063_REG_LNA_OV] != val)
-+			status |= MT2063_SetReg(state, MT2063_REG_LNA_OV, val);
- 	}
- 
- 	/* LNATGT */
- 	if (status >= 0) {
--		status |= MT2063_SetParam(state, MT2063_LNA_TGT, LNATGT[Mode]);
-+		u8 val = (state-> reg[MT2063_REG_LNA_TGT] & (u8) ~ 0x3F) |
-+			 (LNATGT[Mode] & 0x3F);
-+		if (state->reg[MT2063_REG_LNA_TGT] != val)
-+			status |= MT2063_SetReg(state, MT2063_REG_LNA_TGT, val);
- 	}
- 
- 	/* ACRF */
- 	if (status >= 0) {
--		status |=
--		    MT2063_SetParam(state, MT2063_ACRF_MAX, ACRFMAX[Mode]);
-+		u8 val = (state-> reg[MT2063_REG_RF_OV] & (u8) ~ 0x1F) |
-+		         (ACRFMAX[Mode] & 0x1F);
-+		if (state->reg[MT2063_REG_RF_OV] != val)
-+			status |= MT2063_SetReg(state, MT2063_REG_RF_OV, val);
- 	}
- 
- 	/* PD1TGT */
- 	if (status >= 0) {
--		status |= MT2063_SetParam(state, MT2063_PD1_TGT, PD1TGT[Mode]);
-+		u8 val = (state-> reg[MT2063_REG_PD1_TGT] & (u8) ~ 0x3F) |
-+			 (PD1TGT[Mode] & 0x3F);
-+		if (state->reg[MT2063_REG_PD1_TGT] != val)
-+			status |= MT2063_SetReg(state, MT2063_REG_PD1_TGT, val);
- 	}
- 
- 	/* FIFATN */
- 	if (status >= 0) {
--		status |=
--		    MT2063_SetParam(state, MT2063_ACFIF_MAX, ACFIFMAX[Mode]);
-+		u8 val = ACFIFMAX[Mode];
-+		if (state->reg[MT2063_REG_PART_REV] != MT2063_B3 && val > 5)
-+			val = 5;
-+		val = (state-> reg[MT2063_REG_FIF_OV] & (u8) ~ 0x1F) |
-+		      (val & 0x1F);
-+		if (state->reg[MT2063_REG_FIF_OV] != val) {
-+			status |= MT2063_SetReg(state, MT2063_REG_FIF_OV, val);
-+		}
- 	}
- 
- 	/* PD2TGT */
- 	if (status >= 0) {
--		status |= MT2063_SetParam(state, MT2063_PD2_TGT, PD2TGT[Mode]);
-+		u8 val = (state-> reg[MT2063_REG_PD2_TGT] & (u8) ~ 0x3F) |
-+		    (PD2TGT[Mode] & 0x3F);
-+		if (state->reg[MT2063_REG_PD2_TGT] != val)
-+			status |= MT2063_SetReg(state, MT2063_REG_PD2_TGT, val);
- 	}
- 
- 	/* Ignore ATN Overload */
-@@ -1725,526 +1457,6 @@ static u32 MT2063_SetReceiverMode(struct mt2063_state *state,
- 
- /****************************************************************************
- **
--**  Name: MT2063_SetParam
--**
--**  Description:    Sets a tuning algorithm parameter.
--**
--**                  This function provides access to the internals of the
--**                  tuning algorithm.  You can override many of the tuning
--**                  algorithm defaults using this function.
--**
--**  Parameters:     h           - Tuner handle (returned by MT2063_Open)
--**                  param       - Tuning algorithm parameter
--**                                (see enum MT2063_Param)
--**                  nValue      - value to be set
--**
--**                  param                     Description
--**                  ----------------------    --------------------------------
--**                  MT2063_SRO_FREQ           crystal frequency
--**                  MT2063_STEPSIZE           minimum tuning step size
--**                  MT2063_LO1_FREQ           LO1 frequency
--**                  MT2063_LO1_STEPSIZE       LO1 minimum step size
--**                  MT2063_LO1_FRACN_AVOID    LO1 FracN keep-out region
--**                  MT2063_IF1_REQUEST        Requested 1st IF
--**                  MT2063_ZIF_BW             zero-IF bandwidth
--**                  MT2063_LO2_FREQ           LO2 frequency
--**                  MT2063_LO2_STEPSIZE       LO2 minimum step size
--**                  MT2063_LO2_FRACN_AVOID    LO2 FracN keep-out region
--**                  MT2063_OUTPUT_FREQ        output center frequency
--**                  MT2063_OUTPUT_BW          output bandwidth
--**                  MT2063_LO_SEPARATION      min inter-tuner LO separation
--**                  MT2063_MAX_HARM1          max # of intra-tuner harmonics
--**                  MT2063_MAX_HARM2          max # of inter-tuner harmonics
--**                  MT2063_RCVR_MODE          Predefined modes
--**                  MT2063_LNA_RIN            Set LNA Rin (*)
--**                  MT2063_LNA_TGT            Set target power level at LNA (*)
--**                  MT2063_PD1_TGT            Set target power level at PD1 (*)
--**                  MT2063_PD2_TGT            Set target power level at PD2 (*)
--**                  MT2063_ACLNA_MAX          LNA attenuator limit (*)
--**                  MT2063_ACRF_MAX           RF attenuator limit (*)
--**                  MT2063_ACFIF_MAX          FIF attenuator limit (*)
--**                  MT2063_DNC_OUTPUT_ENABLE  DNC output selection
--**                  MT2063_VGAGC              VGA gain code
--**                  MT2063_VGAOI              VGA output current
--**                  MT2063_TAGC               TAGC setting
--**                  MT2063_AMPGC              AMP gain code
--**                  MT2063_AVOID_DECT         Avoid DECT Frequencies
--**                  MT2063_CTFILT_SW          Cleartune filter selection
--**
--**                  (*) This parameter is set by MT2063_RCVR_MODE, do not call
--**                      additionally.
--**
--**  Usage:          status |= MT2063_SetParam(hMT2063,
--**                                            MT2063_STEPSIZE,
--**                                            50000);
--**
--**  Returns:        status:
--**                      MT_OK            - No errors
--**                      MT_INV_HANDLE    - Invalid tuner handle
--**                      MT_ARG_NULL      - Null pointer argument passed
--**                      MT_ARG_RANGE     - Invalid parameter requested
--**                                         or set value out of range
--**                                         or non-writable parameter
--**
--**  Dependencies:   USERS MUST CALL MT2063_Open() FIRST!
--**
--**  See Also:       MT2063_GetParam, MT2063_Open
--**
--**  Revision History:
--**
--**   SCR      Date      Author  Description
--**  -------------------------------------------------------------------------
--**   138   06-19-2007    DAD    Ver 1.00: Initial, derived from mt2067_b.
--**   154   09-13-2007    RSK    Ver 1.05: Get/SetParam changes for LOx_FREQ
--**         10-31-2007    PINZ   Ver 1.08: Get/SetParam add VGAGC, VGAOI, AMPGC, TAGC
--**         04-18-2008    PINZ   Ver 1.15: Add SetParam LNARIN & PDxTGT
--**                                        Split SetParam up to ACLNA / ACLNA_MAX
--**                                        removed ACLNA_INRC/DECR (+RF & FIF)
--**                                        removed GCUAUTO / BYPATNDN/UP
--**   175 I 06-06-2008    PINZ   Ver 1.16: Add control to avoid US DECT freqs.
--**   175 I 06-19-2008    RSK    Ver 1.17: Refactor DECT control to SpurAvoid.
--**         06-24-2008    PINZ   Ver 1.18: Add Get/SetParam CTFILT_SW
--**
--****************************************************************************/
--static u32 MT2063_SetParam(struct mt2063_state *state,
--		           enum MT2063_Param param,
--			   enum MT2063_DNC_Output_Enable nValue)
--{
--	u32 status = 0;	/* Status to be returned        */
--	u8 val = 0;
--
--	switch (param) {
--		/*  LO1 frequency                         */
--	case MT2063_LO1_FREQ:
--		{
--			/* Note: LO1 and LO2 are BOTH written at toggle of LDLOos  */
--			/* Capture the Divider and Numerator portions of other LO  */
--			u8 tempLO2CQ[3];
--			u8 tempLO2C[3];
--			u8 tmpOneShot;
--			u32 Div, FracN;
--			u8 restore = 0;
--
--			/* Buffer the queue for restoration later and get actual LO2 values. */
--			status |=
--			    mt2063_read(state,
--					   MT2063_REG_LO2CQ_1,
--					   &(tempLO2CQ[0]), 3);
--			status |=
--			    mt2063_read(state,
--					   MT2063_REG_LO2C_1,
--					   &(tempLO2C[0]), 3);
--
--			/* clear the one-shot bits */
--			tempLO2CQ[2] = tempLO2CQ[2] & 0x0F;
--			tempLO2C[2] = tempLO2C[2] & 0x0F;
--
--			/* only write the queue values if they are different from the actual. */
--			if ((tempLO2CQ[0] != tempLO2C[0]) ||
--			    (tempLO2CQ[1] != tempLO2C[1]) ||
--			    (tempLO2CQ[2] != tempLO2C[2])) {
--				/* put actual LO2 value into queue (with 0 in one-shot bits) */
--				status |=
--				    mt2063_write(state,
--						    MT2063_REG_LO2CQ_1,
--						    &(tempLO2C[0]), 3);
--
--				if (status == 0) {
--					/* cache the bytes just written. */
--					state->reg[MT2063_REG_LO2CQ_1] =
--					    tempLO2C[0];
--					state->reg[MT2063_REG_LO2CQ_2] =
--					    tempLO2C[1];
--					state->reg[MT2063_REG_LO2CQ_3] =
--					    tempLO2C[2];
--				}
--				restore = 1;
--			}
--
--			/* Calculate the Divider and Numberator components of LO1 */
--			status =
--			    MT2063_CalcLO1Mult(&Div, &FracN, nValue,
--					       state->AS_Data.f_ref /
--					       64,
--					       state->AS_Data.f_ref);
--			state->reg[MT2063_REG_LO1CQ_1] =
--			    (u8) (Div & 0x00FF);
--			state->reg[MT2063_REG_LO1CQ_2] =
--			    (u8) (FracN);
--			status |=
--			    mt2063_write(state,
--					    MT2063_REG_LO1CQ_1,
--					    &state->
--					    reg[MT2063_REG_LO1CQ_1], 2);
--
--			/* set the one-shot bit to load the pair of LO values */
--			tmpOneShot = tempLO2CQ[2] | 0xE0;
--			status |=
--			    mt2063_write(state,
--					    MT2063_REG_LO2CQ_3,
--					    &tmpOneShot, 1);
--
--			/* only restore the queue values if they were different from the actual. */
--			if (restore) {
--				/* put actual LO2 value into queue (0 in one-shot bits) */
--				status |=
--				    mt2063_write(state,
--						    MT2063_REG_LO2CQ_1,
--						    &(tempLO2CQ[0]), 3);
--
--				/* cache the bytes just written. */
--				state->reg[MT2063_REG_LO2CQ_1] =
--				    tempLO2CQ[0];
--				state->reg[MT2063_REG_LO2CQ_2] =
--				    tempLO2CQ[1];
--				state->reg[MT2063_REG_LO2CQ_3] =
--				    tempLO2CQ[2];
--			}
--
--			MT2063_GetParam(state,
--					MT2063_LO1_FREQ,
--					&state->AS_Data.f_LO1);
--		}
--		break;
--
--		/*  zero-IF bandwidth                     */
--	case MT2063_ZIF_BW:
--		state->AS_Data.f_zif_bw = nValue;
--		break;
--
--		/*  LO2 frequency                         */
--	case MT2063_LO2_FREQ:
--		{
--			/* Note: LO1 and LO2 are BOTH written at toggle of LDLOos  */
--			/* Capture the Divider and Numerator portions of other LO  */
--			u8 tempLO1CQ[2];
--			u8 tempLO1C[2];
--			u32 Div2;
--			u32 FracN2;
--			u8 tmpOneShot;
--			u8 restore = 0;
--
--			/* Buffer the queue for restoration later and get actual LO2 values. */
--			status |=
--			    mt2063_read(state,
--					   MT2063_REG_LO1CQ_1,
--					   &(tempLO1CQ[0]), 2);
--			status |=
--			    mt2063_read(state,
--					   MT2063_REG_LO1C_1,
--					   &(tempLO1C[0]), 2);
--
--			/* only write the queue values if they are different from the actual. */
--			if ((tempLO1CQ[0] != tempLO1C[0])
--			    || (tempLO1CQ[1] != tempLO1C[1])) {
--				/* put actual LO1 value into queue */
--				status |=
--				    mt2063_write(state,
--						    MT2063_REG_LO1CQ_1,
--						    &(tempLO1C[0]), 2);
--
--				/* cache the bytes just written. */
--				state->reg[MT2063_REG_LO1CQ_1] =
--				    tempLO1C[0];
--				state->reg[MT2063_REG_LO1CQ_2] =
--				    tempLO1C[1];
--				restore = 1;
--			}
--
--			/* Calculate the Divider and Numberator components of LO2 */
--			status =
--			    MT2063_CalcLO2Mult(&Div2, &FracN2, nValue,
--					       state->AS_Data.f_ref /
--					       8191,
--					       state->AS_Data.f_ref);
--			state->reg[MT2063_REG_LO2CQ_1] =
--			    (u8) ((Div2 << 1) |
--				      ((FracN2 >> 12) & 0x01)) & 0xFF;
--			state->reg[MT2063_REG_LO2CQ_2] =
--			    (u8) ((FracN2 >> 4) & 0xFF);
--			state->reg[MT2063_REG_LO2CQ_3] =
--			    (u8) ((FracN2 & 0x0F));
--			status |=
--			    mt2063_write(state,
--					    MT2063_REG_LO1CQ_1,
--					    &state->
--					    reg[MT2063_REG_LO1CQ_1], 3);
--
--			/* set the one-shot bit to load the LO values */
--			tmpOneShot =
--			    state->reg[MT2063_REG_LO2CQ_3] | 0xE0;
--			status |=
--			    mt2063_write(state,
--					    MT2063_REG_LO2CQ_3,
--					    &tmpOneShot, 1);
--
--			/* only restore LO1 queue value if they were different from the actual. */
--			if (restore) {
--				/* put previous LO1 queue value back into queue */
--				status |=
--				    mt2063_write(state,
--						    MT2063_REG_LO1CQ_1,
--						    &(tempLO1CQ[0]), 2);
--
--				/* cache the bytes just written. */
--				state->reg[MT2063_REG_LO1CQ_1] =
--				    tempLO1CQ[0];
--				state->reg[MT2063_REG_LO1CQ_2] =
--				    tempLO1CQ[1];
--			}
--
--			MT2063_GetParam(state,
--					MT2063_LO2_FREQ,
--					&state->AS_Data.f_LO2);
--		}
--		break;
--
--		/*  LO2 FracN keep-out region             */
--	case MT2063_LO2_FRACN_AVOID:
--		state->AS_Data.f_LO2_FracN_Avoid = nValue;
--		break;
--
--		/*  output center frequency               */
--	case MT2063_OUTPUT_FREQ:
--		state->AS_Data.f_out = nValue;
--		break;
--
--		/*  output bandwidth                      */
--	case MT2063_OUTPUT_BW:
--		state->AS_Data.f_out_bw = nValue + 750000;
--		break;
--
--	case MT2063_RCVR_MODE:
--		status |=
--		    MT2063_SetReceiverMode(state,
--					   (enum MT2063_RCVR_MODES)
--					   nValue);
--		break;
--
--		/* Set LNA Rin -- nValue is desired value */
--	case MT2063_LNA_RIN:
--		val =
--		    (state->
--		     reg[MT2063_REG_CTRL_2C] & (u8) ~ 0x03) |
--		    (nValue & 0x03);
--		if (state->reg[MT2063_REG_CTRL_2C] != val) {
--			status |=
--			    MT2063_SetReg(state, MT2063_REG_CTRL_2C,
--					  val);
--		}
--		break;
--
--		/* Set target power level at LNA -- nValue is desired value */
--	case MT2063_LNA_TGT:
--		val =
--		    (state->
--		     reg[MT2063_REG_LNA_TGT] & (u8) ~ 0x3F) |
--		    (nValue & 0x3F);
--		if (state->reg[MT2063_REG_LNA_TGT] != val) {
--			status |=
--			    MT2063_SetReg(state, MT2063_REG_LNA_TGT,
--					  val);
--		}
--		break;
--
--		/* Set target power level at PD1 -- nValue is desired value */
--	case MT2063_PD1_TGT:
--		val =
--		    (state->
--		     reg[MT2063_REG_PD1_TGT] & (u8) ~ 0x3F) |
--		    (nValue & 0x3F);
--		if (state->reg[MT2063_REG_PD1_TGT] != val) {
--			status |=
--			    MT2063_SetReg(state, MT2063_REG_PD1_TGT,
--					  val);
--		}
--		break;
--
--		/* Set target power level at PD2 -- nValue is desired value */
--	case MT2063_PD2_TGT:
--		val =
--		    (state->
--		     reg[MT2063_REG_PD2_TGT] & (u8) ~ 0x3F) |
--		    (nValue & 0x3F);
--		if (state->reg[MT2063_REG_PD2_TGT] != val) {
--			status |=
--			    MT2063_SetReg(state, MT2063_REG_PD2_TGT,
--					  val);
--		}
--		break;
--
--		/* Set LNA atten limit -- nValue is desired value */
--	case MT2063_ACLNA_MAX:
--		val =
--		    (state->
--		     reg[MT2063_REG_LNA_OV] & (u8) ~ 0x1F) | (nValue
--								  &
--								  0x1F);
--		if (state->reg[MT2063_REG_LNA_OV] != val) {
--			status |=
--			    MT2063_SetReg(state, MT2063_REG_LNA_OV,
--					  val);
--		}
--		break;
--
--		/* Set RF atten limit -- nValue is desired value */
--	case MT2063_ACRF_MAX:
--		val =
--		    (state->
--		     reg[MT2063_REG_RF_OV] & (u8) ~ 0x1F) | (nValue
--								 &
--								 0x1F);
--		if (state->reg[MT2063_REG_RF_OV] != val) {
--			status |=
--			    MT2063_SetReg(state, MT2063_REG_RF_OV, val);
--		}
--		break;
--
--		/* Set FIF atten limit -- nValue is desired value, max. 5 if no B3 */
--	case MT2063_ACFIF_MAX:
--		if (state->reg[MT2063_REG_PART_REV] != MT2063_B3
--		    && nValue > 5)
--			nValue = 5;
--		val =
--		    (state->
--		     reg[MT2063_REG_FIF_OV] & (u8) ~ 0x1F) | (nValue
--								  &
--								  0x1F);
--		if (state->reg[MT2063_REG_FIF_OV] != val) {
--			status |=
--			    MT2063_SetReg(state, MT2063_REG_FIF_OV,
--					  val);
--		}
--		break;
--
--	case MT2063_DNC_OUTPUT_ENABLE:
--		/* selects, which DNC output is used */
--		switch (nValue) {
--		case MT2063_DNC_NONE:
--			{
--				val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
--				if (state->reg[MT2063_REG_DNC_GAIN] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_DNC_GAIN,
--							  val);
--
--				val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
--				if (state->reg[MT2063_REG_VGA_GAIN] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_VGA_GAIN,
--							  val);
--
--				val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
--				if (state->reg[MT2063_REG_RSVD_20] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_RSVD_20,
--							  val);
--
--				break;
--			}
--		case MT2063_DNC_1:
--			{
--				val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
--				if (state->reg[MT2063_REG_DNC_GAIN] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_DNC_GAIN,
--							  val);
--
--				val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
--				if (state->reg[MT2063_REG_VGA_GAIN] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_VGA_GAIN,
--							  val);
--
--				val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
--				if (state->reg[MT2063_REG_RSVD_20] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_RSVD_20,
--							  val);
--
--				break;
--			}
--		case MT2063_DNC_2:
--			{
--				val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
--				if (state->reg[MT2063_REG_DNC_GAIN] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_DNC_GAIN,
--							  val);
--
--				val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
--				if (state->reg[MT2063_REG_VGA_GAIN] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_VGA_GAIN,
--							  val);
--
--				val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
--				if (state->reg[MT2063_REG_RSVD_20] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_RSVD_20,
--							  val);
--
--				break;
--			}
--		case MT2063_DNC_BOTH:
--			{
--				val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
--				if (state->reg[MT2063_REG_DNC_GAIN] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_DNC_GAIN,
--							  val);
--
--				val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
--				if (state->reg[MT2063_REG_VGA_GAIN] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_VGA_GAIN,
--							  val);
--
--				val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
--				if (state->reg[MT2063_REG_RSVD_20] !=
--				    val)
--					status |=
--					    MT2063_SetReg(state,
--							  MT2063_REG_RSVD_20,
--							  val);
--
--				break;
--			}
--		default:
--			break;
--		}
--		break;
--
--	default:
--		status |= -ERANGE;
--	}
--	return (status);
--}
--
--/****************************************************************************
--**
- **  Name: MT2063_ClearPowerMaskBits
- **
- **  Description:    Clears the power-down mask bits for various sections of
-@@ -2816,9 +2028,10 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
- 	return status;
- }
- 
--unsigned int mt2063_setTune(void *h, u32 f_in, u32 bw_in,
-+int mt2063_setTune(struct dvb_frontend *fe, u32 f_in, u32 bw_in,
- 			    enum MTTune_atv_standard tv_type)
- {
-+	struct mt2063_state *state = fe->tuner_priv;
- 	u32 status = 0;
- 	s32 pict_car = 0;
- 	s32 pict2chanb_vsb = 0;
-@@ -2828,7 +2041,6 @@ unsigned int mt2063_setTune(void *h, u32 f_in, u32 bw_in,
- 	s32 ch_bw = 0;
- 	s32 if_mid = 0;
- 	s32 rcvr_mode = 0;
--	u32 mode_get = 0;
- 
- 	switch (tv_type) {
- 	case MTTUNEA_PAL_B:{
-@@ -2931,16 +2143,16 @@ unsigned int mt2063_setTune(void *h, u32 f_in, u32 bw_in,
- 	pict2chanb_snd = pict2chanb_vsb - ch_bw;
- 	if_mid = pict_car - (pict2chanb_vsb + (ch_bw / 2));
- 
--	status |= MT2063_SetParam(h, MT2063_STEPSIZE, 125000);
--	status |= MT2063_SetParam(h, MT2063_OUTPUT_FREQ, if_mid);
--	status |= MT2063_SetParam(h, MT2063_OUTPUT_BW, ch_bw);
--	status |= MT2063_GetParam(h, MT2063_RCVR_MODE, &mode_get);
-+	state->AS_Data.f_LO2_Step = 125000;
-+	state->AS_Data.f_out = if_mid;
-+	state->AS_Data.f_out_bw = ch_bw + 750000;
-+	status = MT2063_SetReceiverMode(state, rcvr_mode);
-+	if (status < 0)
-+	    return status;
- 
--	status |= MT2063_SetParam(h, MT2063_RCVR_MODE, rcvr_mode);
--	status |= MT2063_Tune(h, (f_in + (pict2chanb_vsb + (ch_bw / 2))));
--	status |= MT2063_GetParam(h, MT2063_RCVR_MODE, &mode_get);
-+	status = MT2063_Tune(state, (f_in + (pict2chanb_vsb + (ch_bw / 2))));
- 
--	return (u32) status;
-+	return status;
- }
- 
- static const u8 MT2063B0_defaults[] = {
-@@ -3241,7 +2453,7 @@ static int mt2063_set_state(struct dvb_frontend *fe,
- 		//set frequency
- 
- 		status =
--		    mt2063_setTune(state,
-+		    mt2063_setTune(fe,
- 				tunstate->frequency, tunstate->bandwidth,
- 				state->tv_type);
- 
-diff --git a/drivers/media/common/tuners/mt2063.h b/drivers/media/common/tuners/mt2063.h
-index a95c11e..b2e3abf 100644
---- a/drivers/media/common/tuners/mt2063.h
-+++ b/drivers/media/common/tuners/mt2063.h
-@@ -23,7 +23,7 @@ static inline struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
- 	return NULL;
- }
- 
--unsigned int mt2063_setTune(struct dvb_frontend *fe, u32 f_in,
-+int mt2063_setTune(struct dvb_frontend *fe, u32 f_in,
- 				   u32 bw_in,
- 				   enum MTTune_atv_standard tv_type);
- 
+This looks like a bug. If memory is MMAP, you'd __vb2_buf_mem_free(vb)
+AND __vb2_buf_userptr_put(vb), which is wrong. Have you tested MMAP
+and USERPTR with those patches applied?
+
+>        }
+> @@ -350,6 +373,13 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>                 */
+>                memcpy(b->m.planes, vb->v4l2_planes,
+>                        b->length * sizeof(struct v4l2_plane));
+> +
+> +               if (q->memory == V4L2_MEMORY_DMABUF) {
+> +                       unsigned int plane;
+> +                       for (plane = 0; plane < vb->num_planes; ++plane) {
+> +                               b->m.planes[plane].m.fd = 0;
+
+I'm confused here. Isn't this the way to return fd for userspace to
+pass to other drivers? I was imagining that the userspace would be
+getting an fd back in plane structure to pass to other drivers, i.e.
+userspace dequeuing a DMABUF v4l2_buffer should be able to pass it
+forward to another driver using fd found in dequeued buffer.
+Shouldn't this also fill in length?
+
+> +                       }
+> +               }
+>        } else {
+>                /*
+>                 * We use length and offset in v4l2_planes array even for
+> @@ -361,6 +391,8 @@ static int __fill_v4l2_buffer(struct vb2_buffer *vb, struct v4l2_buffer *b)
+>                        b->m.offset = vb->v4l2_planes[0].m.mem_offset;
+>                else if (q->memory == V4L2_MEMORY_USERPTR)
+>                        b->m.userptr = vb->v4l2_planes[0].m.userptr;
+> +               else if (q->memory == V4L2_MEMORY_DMABUF)
+> +                       b->m.fd = 0;
+>        }
+>
+
+Same here...
+
+>        /*
+> @@ -452,6 +484,21 @@ static int __verify_mmap_ops(struct vb2_queue *q)
+>  }
+>
+>  /**
+> + * __verify_dmabuf_ops() - verify that all memory operations required for
+> + * DMABUF queue type have been provided
+> + */
+> +static int __verify_dmabuf_ops(struct vb2_queue *q)
+> +{
+> +       if (!(q->io_modes & VB2_DMABUF) || !q->mem_ops->attach_dmabuf
+> +                       || !q->mem_ops->detach_dmabuf
+> +                       || !q->mem_ops->map_dmabuf
+> +                       || !q->mem_ops->unmap_dmabuf)
+> +               return -EINVAL;
+> +
+> +       return 0;
+> +}
+> +
+> +/**
+>  * vb2_reqbufs() - Initiate streaming
+>  * @q:         videobuf2 queue
+>  * @req:       struct passed from userspace to vidioc_reqbufs handler in driver
+> @@ -485,6 +532,7 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+>        }
+>
+>        if (req->memory != V4L2_MEMORY_MMAP
+> +                       && req->memory != V4L2_MEMORY_DMABUF
+>                        && req->memory != V4L2_MEMORY_USERPTR) {
+>                dprintk(1, "reqbufs: unsupported memory type\n");
+>                return -EINVAL;
+> @@ -514,6 +562,11 @@ int vb2_reqbufs(struct vb2_queue *q, struct v4l2_requestbuffers *req)
+>                return -EINVAL;
+>        }
+>
+> +       if (req->memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
+> +               dprintk(1, "reqbufs: DMABUF for current setup unsupported\n");
+> +               return -EINVAL;
+> +       }
+> +
+>        if (req->count == 0 || q->num_buffers != 0 || q->memory != req->memory) {
+>                /*
+>                 * We already have buffers allocated, so first check if they
+> @@ -621,7 +674,8 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+>        }
+>
+>        if (create->memory != V4L2_MEMORY_MMAP
+> -                       && create->memory != V4L2_MEMORY_USERPTR) {
+> +                       && create->memory != V4L2_MEMORY_USERPTR
+> +                       && create->memory != V4L2_MEMORY_DMABUF) {
+>                dprintk(1, "%s(): unsupported memory type\n", __func__);
+>                return -EINVAL;
+>        }
+> @@ -645,6 +699,11 @@ int vb2_create_bufs(struct vb2_queue *q, struct v4l2_create_buffers *create)
+>                return -EINVAL;
+>        }
+>
+> +       if (create->memory == V4L2_MEMORY_DMABUF && __verify_dmabuf_ops(q)) {
+> +               dprintk(1, "%s(): DMABUF for current setup unsupported\n", __func__);
+> +               return -EINVAL;
+> +       }
+> +
+>        if (q->num_buffers == VIDEO_MAX_FRAME) {
+>                dprintk(1, "%s(): maximum number of buffers already allocated\n",
+>                        __func__);
+> @@ -840,6 +899,11 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
+>                                        b->m.planes[plane].length;
+>                        }
+>                }
+> +               if (b->memory == V4L2_MEMORY_DMABUF) {
+> +                       for (plane = 0; plane < vb->num_planes; ++plane) {
+> +                               v4l2_planes[plane].m.fd = b->m.planes[plane].m.fd;
+
+Shouldn't this fill length too?
+
+> +                       }
+> +               }
+>        } else {
+>                /*
+>                 * Single-planar buffers do not use planes array,
+> @@ -854,6 +918,10 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
+>                        v4l2_planes[0].m.userptr = b->m.userptr;
+>                        v4l2_planes[0].length = b->length;
+>                }
+> +               if (b->memory == V4L2_MEMORY_DMABUF) {
+> +                       v4l2_planes[0].m.fd = b->m.fd;
+
+Ditto.
+
+> +               }
+> +
+>        }
+>
+>        vb->v4l2_buf.field = b->field;
+> @@ -962,6 +1030,109 @@ static int __qbuf_mmap(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>  }
+>
+>  /**
+> + * __qbuf_dmabuf() - handle qbuf of a DMABUF buffer
+> + */
+> +static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+> +{
+> +       struct v4l2_plane planes[VIDEO_MAX_PLANES];
+> +       struct vb2_queue *q = vb->vb2_queue;
+> +       void *mem_priv;
+> +       unsigned int plane;
+> +       int ret;
+> +       int write = !V4L2_TYPE_IS_OUTPUT(q->type);
+> +
+> +       /* Verify and copy relevant information provided by the userspace */
+> +       ret = __fill_vb2_buffer(vb, b, planes);
+> +       if (ret)
+> +               return ret;
+> +
+> +       for (plane = 0; plane < vb->num_planes; ++plane) {
+> +               struct dma_buf *dbuf = dma_buf_get(planes[plane].m.fd);
+> +
+> +               if (IS_ERR_OR_NULL(dbuf)) {
+> +                       dprintk(1, "qbuf: invalid dmabuf fd for "
+> +                               "plane %d\n", plane);
+> +                       ret = PTR_ERR(dbuf);
+> +                       goto err;
+> +               }
+> +
+> +               /* this doesn't get filled in until __fill_vb2_buffer(),
+> +                * since it isn't known until after dma_buf_get()..
+> +                */
+> +               planes[plane].length = dbuf->size;
+
+But this is after dma_buf_get, unless I'm missing something... And
+__fill_vb2_buffer() is not filing length...
+
+> +
+> +               /* Skip the plane if already verified */
+> +               if (dbuf == vb->planes[plane].dbuf) {
+> +                       dma_buf_put(dbuf);
+> +                       continue;
+> +               }
+
+Won't this prevent us from using a buffer if the exporter only allows
+exclusive access to it?
+
+> +
+> +               dprintk(3, "qbuf: buffer description for plane %d changed, "
+
+s/description/descriptor ?
+
+> +                       "reattaching dma buf\n", plane);
+> +
+> +               /* Release previously acquired memory if present */
+> +               if (vb->planes[plane].mem_priv) {
+> +                       call_memop(q, plane, detach_dmabuf,
+> +                               vb->planes[plane].mem_priv);
+> +                       dma_buf_put(vb->planes[plane].dbuf);
+> +               }
+> +
+> +               vb->planes[plane].mem_priv = NULL;
+> +
+> +               /* Acquire each plane's memory */
+> +               mem_priv = q->mem_ops->attach_dmabuf(
+> +                               q->alloc_ctx[plane], dbuf);
+> +               if (IS_ERR(mem_priv)) {
+> +                       dprintk(1, "qbuf: failed acquiring dmabuf "
+> +                               "memory for plane %d\n", plane);
+> +                       ret = PTR_ERR(mem_priv);
+> +                       goto err;
+
+Since mem_priv is not assigned back to plane's mem_priv if an error
+happens here, we won't be calling dma_buf_put on this dbuf, even
+though we called _get() above.
+
+> +               }
+> +
+> +               vb->planes[plane].dbuf = dbuf;
+> +               vb->planes[plane].mem_priv = mem_priv;
+> +       }
+> +
+> +       /* TODO: This pins the buffer(s) with  dma_buf_map_attachment()).. but
+> +        * really we want to do this just before the DMA, not while queueing
+> +        * the buffer(s)..
+> +        */
+> +       for (plane = 0; plane < vb->num_planes; ++plane) {
+> +               ret = q->mem_ops->map_dmabuf(
+> +                               vb->planes[plane].mem_priv, write);
+> +               if (ret) {
+> +                       dprintk(1, "qbuf: failed mapping dmabuf "
+> +                               "memory for plane %d\n", plane);
+> +                       goto err;
+> +               }
+> +       }
+> +
+> +       /*
+> +        * Call driver-specific initialization on the newly acquired buffer,
+> +        * if provided.
+> +        */
+> +       ret = call_qop(q, buf_init, vb);
+> +       if (ret) {
+> +               dprintk(1, "qbuf: buffer initialization failed\n");
+> +               goto err;
+> +       }
+> +
+> +       /*
+> +        * Now that everything is in order, copy relevant information
+> +        * provided by userspace.
+> +        */
+> +       for (plane = 0; plane < vb->num_planes; ++plane)
+> +               vb->v4l2_planes[plane] = planes[plane];
+> +
+> +       return 0;
+> +err:
+> +       /* In case of errors, release planes that were already acquired */
+> +       __vb2_buf_dmabuf_put(vb);
+> +
+> +       return ret;
+> +}
+> +
+> +/**
+>  * __enqueue_in_driver() - enqueue a vb2_buffer in driver for processing
+>  */
+>  static void __enqueue_in_driver(struct vb2_buffer *vb)
+> @@ -985,6 +1156,9 @@ static int __buf_prepare(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+>        case V4L2_MEMORY_USERPTR:
+>                ret = __qbuf_userptr(vb, b);
+>                break;
+> +       case V4L2_MEMORY_DMABUF:
+> +               ret = __qbuf_dmabuf(vb, b);
+> +               break;
+>        default:
+>                WARN(1, "Invalid queue type\n");
+>                ret = -EINVAL;
+> @@ -1284,6 +1458,7 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+>  {
+>        struct vb2_buffer *vb = NULL;
+>        int ret;
+> +       unsigned int plane;
+>
+>        if (q->fileio) {
+>                dprintk(1, "dqbuf: file io in progress\n");
+> @@ -1307,6 +1482,15 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+>                return ret;
+>        }
+>
+> +       /* TODO: this unpins the buffer(dma_buf_unmap_attachment()).. but
+> +        * really we want tot do this just after DMA, not when the
+> +        * buffer is dequeued..
+> +        */
+> +       if (q->memory == V4L2_MEMORY_DMABUF)
+> +               for (plane = 0; plane < vb->num_planes; ++plane)
+> +                       call_memop(q, plane, unmap_dmabuf,
+> +                               vb->planes[plane].mem_priv);
+> +
+>        switch (vb->state) {
+>        case VB2_BUF_STATE_DONE:
+>                dprintk(3, "dqbuf: Returning done buffer\n");
+> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+> index a15d1f1..5c1836d 100644
+> --- a/include/media/videobuf2-core.h
+> +++ b/include/media/videobuf2-core.h
+> @@ -16,6 +16,7 @@
+>  #include <linux/mutex.h>
+>  #include <linux/poll.h>
+>  #include <linux/videodev2.h>
+> +#include <linux/dma-buf.h>
+>
+>  struct vb2_alloc_ctx;
+>  struct vb2_fileio_data;
+> @@ -41,6 +42,20 @@ struct vb2_fileio_data;
+>  *              argument to other ops in this structure
+>  * @put_userptr: inform the allocator that a USERPTR buffer will no longer
+>  *              be used
+> + * @attach_dmabuf: attach a shared struct dma_buf for a hardware operation;
+> + *                used for DMABUF memory types; alloc_ctx is the alloc context
+> + *                dbuf is the shared dma_buf; returns NULL on failure;
+> + *                allocator private per-buffer structure on success;
+> + *                this needs to be used for further accesses to the buffer
+> + * @detach_dmabuf: inform the exporter of the buffer that the current DMABUF
+> + *                buffer is no longer used; the buf_priv argument is the
+> + *                allocator private per-buffer structure previously returned
+> + *                from the attach_dmabuf callback
+> + * @map_dmabuf: request for access to the dmabuf from allocator; the allocator
+> + *             of dmabuf is informed that this driver is going to use the
+> + *             dmabuf
+> + * @unmap_dmabuf: releases access control to the dmabuf - allocator is notified
+> + *               that this driver is done using the dmabuf for now
+
+I feel this requires more clarification. For example, for both detach
+and unmap this says "the current DMABUF buffer is no longer used" and
+"driver is done using the dmabuf for now", respectively. Without prior
+knowledge of dmabuf, you don't know which one to use in which
+situation. Similarly, attach and map could be clarified as well.
+
+> @@ -56,6 +71,8 @@ struct vb2_fileio_data;
+>  * Required ops for USERPTR types: get_userptr, put_userptr.
+>  * Required ops for MMAP types: alloc, put, num_users, mmap.
+>  * Required ops for read/write access types: alloc, put, num_users, vaddr
+> + * Required ops for DMABUF types: attach_dmabuf, detach_dmabuf, map_dmabuf,
+> + *                               unmap_dmabuf.
+>  */
+>  struct vb2_mem_ops {
+>        void            *(*alloc)(void *alloc_ctx, unsigned long size);
+> @@ -65,6 +82,16 @@ struct vb2_mem_ops {
+>                                        unsigned long size, int write);
+>        void            (*put_userptr)(void *buf_priv);
+>
+> +       /* Comment from Rob Clark: XXX: I think the attach / detach could be handled
+> +        * in the vb2 core, and vb2_mem_ops really just need to get/put the
+> +        * sglist (and make sure that the sglist fits it's needs..)
+> +        */
+
+I *strongly* agree with Rob here. Could you explain the reason behind
+not doing this?
+Allocator should ideally not have to be aware of attaching/detaching,
+this is not specific to an allocator.
+
+> +       void            *(*attach_dmabuf)(void *alloc_ctx,
+> +                                         struct dma_buf *dbuf);
+> +       void            (*detach_dmabuf)(void *buf_priv);
+> +       int             (*map_dmabuf)(void *buf_priv, int write);
+> +       void            (*unmap_dmabuf)(void *buf_priv);
+> +
+>        void            *(*vaddr)(void *buf_priv);
+>        void            *(*cookie)(void *buf_priv);
+>
+> @@ -75,6 +102,7 @@ struct vb2_mem_ops {
+>
+>  struct vb2_plane {
+>        void                    *mem_priv;
+> +       struct dma_buf          *dbuf;
+>  };
+>
+>  /**
+> @@ -83,12 +111,14 @@ struct vb2_plane {
+>  * @VB2_USERPTR:       driver supports USERPTR with streaming API
+>  * @VB2_READ:          driver supports read() style access
+>  * @VB2_WRITE:         driver supports write() style access
+> + * @VB2_DMABUF:                driver supports DMABUF with streaming API
+>  */
+>  enum vb2_io_modes {
+>        VB2_MMAP        = (1 << 0),
+>        VB2_USERPTR     = (1 << 1),
+>        VB2_READ        = (1 << 2),
+>        VB2_WRITE       = (1 << 3),
+> +       VB2_DMABUF      = (1 << 4),
+>  };
+>
+>  /**
+> --
+> 1.7.5.4
+
 -- 
-1.7.7.5
-
+Best regards,
+Pawel Osciak
