@@ -1,88 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from newsmtp5.atmel.com ([204.2.163.5]:41182 "EHLO
-	sjogate2.atmel.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134Ab2AJLNp (ORCPT
+Received: from hermes.mlbassoc.com ([64.234.241.98]:50249 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542Ab2ASMl7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 06:13:45 -0500
-From: Josh Wu <josh.wu@atmel.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: linux-arm-kernel@lists.infradead.org, g.liakhovetski@gmx.de,
-	nicolas.ferre@atmel.com, linux@arm.linux.org.uk, arnd@arndb.de,
-	Josh Wu <josh.wu@atmel.com>
-Subject: [PATCH RESEND v3 2/2] [media] V4L: atmel-isi: add clk_prepare()/clk_unprepare() functions
-Date: Tue, 10 Jan 2012 19:13:19 +0800
-Message-Id: <1326193999-7609-1-git-send-email-josh.wu@atmel.com>
+	Thu, 19 Jan 2012 07:41:59 -0500
+Message-ID: <4F180F95.7050003@mlbassoc.com>
+Date: Thu, 19 Jan 2012 05:41:57 -0700
+From: Gary Thomas <gary@mlbassoc.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
+References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com> <201201171633.50619.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201171633.50619.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Josh Wu <josh.wu@atmel.com>
-Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
----
-Hi, Mauro
+On 2012-01-17 08:33, Laurent Pinchart wrote:
+    <snip>
+>
+> I already had a couple of YUV support patches in my OMAP3 ISP tree at
+> git.kernel.org. I've rebased them on top of the lastest V4L/DVB tree and
+> pushed them to
+> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+> omap3isp-yuv. Could you please try them, and see if they're usable with your
+> sensor ?
 
-The first patch of this serie, [PATCH 1/2 v3] V4L: atmel-isi: add code to enable/disable ISI_MCK clock, is already queued in media tree. 
-But this patch (the second one of this serie) is not acked yet. Would it be ok to for you to ack this patch?
+I just tried this kernel with my board.  The media control infrastructure
+comes up and all of the devices are created, but I can't access them.
 
-Best Regards,
-Josh Wu
+ From the bootup log:
+   Linux media interface: v0.10
+   Linux video capture interface: v2.00
 
-v2: made the label name to be consistent.
+When I try to access the devices:
+   root@cobra3530p73:~# media-ctl -p
+   Opening media device /dev/media0
+   media_open_debug: Can't open media device /dev/media0
+   Failed to open /dev/media0
 
- drivers/media/video/atmel-isi.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+The devices look OK to me:
+   root@cobra3530p73:~# ls -l /dev/v*  /dev/med*
+   crw------- 1 root root 252, 0 Nov  8 10:44 /dev/media0
+   crw-rw---- 1 root video 81,   7 Nov  8 10:44 /dev/v4l-subdev0
+   crw-rw---- 1 root video 81,   8 Nov  8 10:44 /dev/v4l-subdev1
+   crw-rw---- 1 root video 81,   9 Nov  8 10:44 /dev/v4l-subdev2
+   crw-rw---- 1 root video 81,  10 Nov  8 10:44 /dev/v4l-subdev3
+   crw-rw---- 1 root video 81,  11 Nov  8 10:44 /dev/v4l-subdev4
+   crw-rw---- 1 root video 81,  12 Nov  8 10:44 /dev/v4l-subdev5
+   crw-rw---- 1 root video 81,  13 Nov  8 10:44 /dev/v4l-subdev6
+   crw-rw---- 1 root video 81,  14 Nov  8 10:44 /dev/v4l-subdev7
+   crw-rw---- 1 root video 81,  15 Nov  8 10:44 /dev/v4l-subdev8
+   crw-rw---- 1 root tty    7,   0 Nov  8 10:44 /dev/vcs
+   crw-rw---- 1 root tty    7,   1 Nov  8 10:44 /dev/vcs1
+   crw-rw---- 1 root tty    7, 128 Nov  8 10:44 /dev/vcsa
+   crw-rw---- 1 root tty    7, 129 Nov  8 10:44 /dev/vcsa1
+   crw-rw---- 1 root video 81,   0 Nov  8 10:44 /dev/video0
+   crw-rw---- 1 root video 81,   1 Nov  8 10:44 /dev/video1
+   crw-rw---- 1 root video 81,   2 Nov  8 10:44 /dev/video2
+   crw-rw---- 1 root video 81,   3 Nov  8 10:44 /dev/video3
+   crw-rw---- 1 root video 81,   4 Nov  8 10:44 /dev/video4
+   crw-rw---- 1 root video 81,   5 Nov  8 10:44 /dev/video5
+   crw-rw---- 1 root video 81,   6 Nov  8 10:44 /dev/video6
 
-diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-index ea4eef4..91ebcfb 100644
---- a/drivers/media/video/atmel-isi.c
-+++ b/drivers/media/video/atmel-isi.c
-@@ -922,7 +922,9 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
- 			isi->fb_descriptors_phys);
- 
- 	iounmap(isi->regs);
-+	clk_unprepare(isi->mck);
- 	clk_put(isi->mck);
-+	clk_unprepare(isi->pclk);
- 	clk_put(isi->pclk);
- 	kfree(isi);
- 
-@@ -955,6 +957,12 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
- 	if (IS_ERR(pclk))
- 		return PTR_ERR(pclk);
- 
-+	ret = clk_prepare(pclk);
-+	if (ret) {
-+		clk_put(pclk);
-+		return ret;
-+	}
-+
- 	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
- 	if (!isi) {
- 		ret = -ENOMEM;
-@@ -978,6 +986,10 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
- 		goto err_clk_get;
- 	}
- 
-+	ret = clk_prepare(isi->mck);
-+	if (ret)
-+		goto err_clk_prepare_mck;
-+
- 	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
- 	ret = clk_set_rate(isi->mck, pdata->mck_hz);
- 	if (ret < 0)
-@@ -1059,10 +1071,13 @@ err_alloc_ctx:
- 			isi->fb_descriptors_phys);
- err_alloc_descriptors:
- err_set_mck_rate:
-+	clk_unprepare(isi->mck);
-+err_clk_prepare_mck:
- 	clk_put(isi->mck);
- err_clk_get:
- 	kfree(isi);
- err_alloc_isi:
-+	clk_unprepare(pclk);
- 	clk_put(pclk);
- 
- 	return ret;
+Ideas?
+
+Thanks
+
 -- 
-1.6.3.3
-
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
