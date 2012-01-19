@@ -1,100 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15977 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751790Ab2AEStK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 5 Jan 2012 13:49:10 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q05InA6x009474
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 5 Jan 2012 13:49:10 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] dvb_frontend: improve documentation on set_delivery_system()
-Date: Thu,  5 Jan 2012 16:49:01 -0200
-Message-Id: <1325789341-16976-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from acsinet15.oracle.com ([141.146.126.227]:36795 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750807Ab2ASMVK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jan 2012 07:21:10 -0500
+Date: Thu, 19 Jan 2012 15:22:02 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: walter harms <wharms@bfs.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch 2/2] [media] ds3000: off by one in ds3000_read_snr()
+Message-ID: <20120119122202.GJ3294@mwanda>
+References: <20120117073021.GB11358@elgon.mountain>
+ <4F16FC26.80306@bfs.de>
+ <20120119093327.GI3356@mwanda>
+ <4F17EFE1.3060804@bfs.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="UlxN1C6awaFNesUv"
+Content-Disposition: inline
+In-Reply-To: <4F17EFE1.3060804@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While this patch change some things, the updated fields there are
-used just on printk, so it shouldn't cause any functional changes.
 
-Yet, this routine is a little complex, so explain a little more
-how it works.
+--UlxN1C6awaFNesUv
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   27 ++++++++++++++++++---------
- 1 files changed, 18 insertions(+), 9 deletions(-)
+On Thu, Jan 19, 2012 at 11:26:41AM +0100, walter harms wrote:
+> >> perhaps it is more useful to do it in the check above ?
+> >=20
+> > It looks like the check is correct but we need to shift all the
+> > values by one.  Again, I don't have this hardware, I'm just going by
+> > the context.
+> >=20
+> I do not have the hardware either so this is pure theoretical.
+>=20
+> Access to the data field depends on the value of dvbs2_noise_reading/tmp
+> even when the data are reasonable like 50/100 snr_reading would become 0
+> and the index suddenly is -1.
+>=20
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index 128f677..0e079a1 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1440,9 +1440,13 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
- 	if (desired_system == SYS_UNDEFINED) {
- 		/*
- 		 * A DVBv3 call doesn't know what's the desired system.
--		 * So, don't change the current delivery system. Instead,
--		 * find the closest DVBv3 system that matches the delivery
--		 * system.
-+		 * Also, DVBv3 applications don't know that ops.info->type
-+		 * could be changed, and they simply dies when it doesn't
-+		 * match.
-+		 * So, don't change the current delivery system, as it
-+		 * may be trying to do the wrong thing, like setting an
-+		 * ISDB-T frontend as DVB-T. Instead, find the closest
-+		 * DVBv3 system that matches the delivery system.
- 		 */
- 		if (is_dvbv3_delsys(c->delivery_system)) {
- 			dprintk("%s() Using delivery system to %d\n",
-@@ -1452,27 +1456,29 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
- 		type = dvbv3_type(c->delivery_system);
- 		switch (type) {
- 		case DVBV3_QPSK:
--			desired_system = FE_QPSK;
-+			desired_system = SYS_DVBS;
- 			break;
- 		case DVBV3_QAM:
--			desired_system = FE_QAM;
-+			desired_system = SYS_DVBC_ANNEX_A;
- 			break;
- 		case DVBV3_ATSC:
--			desired_system = FE_ATSC;
-+			desired_system = SYS_ATSC;
- 			break;
- 		case DVBV3_OFDM:
--			desired_system = FE_OFDM;
-+			desired_system = SYS_DVBT;
- 			break;
- 		default:
- 			dprintk("%s(): This frontend doesn't support DVBv3 calls\n",
- 				__func__);
- 			return -EINVAL;
- 		}
--		delsys = c->delivery_system;
- 	} else {
- 		/*
--		 * Check if the desired delivery system is supported
-+		 * This is a DVBv5 call. So, it likely knows the supported
-+		 * delivery systems.
- 		 */
-+
-+		/* Check if the desired delivery system is supported */
- 		ncaps = 0;
- 		while (fe->ops.delsys[ncaps] && ncaps < MAX_DELSYS) {
- 			if (fe->ops.delsys[ncaps] == desired_system) {
-@@ -1518,6 +1524,9 @@ static int set_delivery_system(struct dvb_frontend *fe, u32 desired_system)
- 	}
- 
- 	/*
-+	 * The DVBv3 or DVBv5 call is requesting a different system. So,
-+	 * emulation is needed.
-+	 *
- 	 * Emulate newer delivery systems like ISDBT, DVBT and DMBTH
- 	 * for older DVBv5 applications. The emulation will try to use
- 	 * the auto mode for most things, and will assume that the desired
--- 
-1.7.7.5
+It's a good point.  I will redo the patch.
 
+regards,
+dan carpenter
+
+
+--UlxN1C6awaFNesUv
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
+
+iQIcBAEBAgAGBQJPGArpAAoJEOnZkXI/YHqRwskP/j9aQf1pbxNH68xqOf+Cm1ze
+gBOj1sjE8ErJ5eS5+OmL0NrN6+Brc8Hm32/Lq77yM0KrjrBnYtI5XeFKqppEKZUp
+BJ9b8XypMNGGsv/Q83v/c/Fl2Bl0vnMxmelzvzZzMitcjfWuxUQLyJA6+kTlzMz/
+Cdg9LreevLRRt+g0efGRrvdUqxUmtwgJEl8VXCsoVY1gAIl8yl4GY+RVPUYVHLbn
+je9lTJKi1SjNhSY2v5bPptqkT777LAF4Wxpy0qw20ZJbuTMejrTN67F83nxWl45G
++rgUo59THtYlaZrgx0NFXq3YCPfu2TEM2IX1zz/3rwTJgI82Imyk2vJI+H5xmbmd
++w3SM29/wN4EPHk4eJ4CTDiv3Qq1+5+UdNpst38X4646H/PG9nQeMgzmgnVgo2Vn
+AouSq8YFVVQpgLqFFBa3UgTIf7OfkQIf3W4vhEwNCrx4LzIpIHsLX0Qt6/0NJNtD
+srNjoKir3XzXA6Q5OhdcMJmh26n3mRzrPnvRSGHQLCn26rR05EGmxxFyT5U75JV6
+FyLnOxfps05KzAwllffrSXeAi+E3aKETI7ZlKLiBbNxGuszbi2qiu/Wh/sOPFM2I
+0Fj7fQPdDIUtQHzJ0c5H+5v472Cl5Gy/IqrT6OCu7z7mzDllBfWYzwIe1U6+hKbd
+SiJs0ZAA1RxMSuIr/Y+p
+=QBye
+-----END PGP SIGNATURE-----
+
+--UlxN1C6awaFNesUv--
