@@ -1,52 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:31761 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030309Ab2AFOi1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jan 2012 09:38:27 -0500
-Message-ID: <4F07075E.8050301@redhat.com>
-Date: Fri, 06 Jan 2012 12:38:22 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from acsinet15.oracle.com ([141.146.126.227]:43432 "EHLO
+	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756626Ab2ASJcj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jan 2012 04:32:39 -0500
+Date: Thu, 19 Jan 2012 12:33:27 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: walter harms <wharms@bfs.de>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch 2/2] [media] ds3000: off by one in ds3000_read_snr()
+Message-ID: <20120119093327.GI3356@mwanda>
+References: <20120117073021.GB11358@elgon.mountain>
+ <4F16FC26.80306@bfs.de>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH FOR 3.3] VIDIOC_LOG_STATUS support for sub-devices
-References: <4EFEEEB7.2020109@gmail.com>
-In-Reply-To: <4EFEEEB7.2020109@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="zgY/UHCnsaNnNXRx"
+Content-Disposition: inline
+In-Reply-To: <4F16FC26.80306@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31-12-2011 09:15, Sylwester Nawrocki wrote:
-> Hi Mauro,
-> 
-> The following changes since commit 3220eb73c5647af4c1f18e32c12dccb8adbac59d:
-> 
->   s5p-fimc: Add support for alpha component configuration (2011-12-20 19:46:55
-> +0100)
-> 
-> are available in the git repository at:
->   git://git.infradead.org/users/kmpark/linux-samsung v4l_mbus
-> 
-> This one patch enables VIDIOC_LOG_STATUS on subdev nodes.
-> 
-> Sylwester Nawrocki (1):
->       v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
+
+--zgY/UHCnsaNnNXRx
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
+
+On Wed, Jan 18, 2012 at 06:06:46PM +0100, walter harms wrote:
+>=20
+>=20
+> Am 17.01.2012 08:30, schrieb Dan Carpenter:
+> > This is a static checker patch and I don't have the hardware to test
+> > this, so please review it carefully.  The dvbs2_snr_tab[] array has 80
+> > elements so when we cap it at 80, that's off by one.  I would have
+> > assumed that the test was wrong but in the lines right before we have
+> > the same test but use "snr_reading - 1" as the array offset.  I've done
+> > the same thing here.
+> >=20
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> >=20
+> > diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/f=
+rontends/ds3000.c
+> > index af65d01..3f5ae0a 100644
+> > --- a/drivers/media/dvb/frontends/ds3000.c
+> > +++ b/drivers/media/dvb/frontends/ds3000.c
+> > @@ -681,7 +681,7 @@ static int ds3000_read_snr(struct dvb_frontend *fe,=
+ u16 *snr)
+> >  			snr_reading =3D dvbs2_noise_reading / tmp;
+> >  			if (snr_reading > 80)
+> >  				snr_reading =3D 80;
+> > -			*snr =3D -(dvbs2_snr_tab[snr_reading] / 1000);
+> > +			*snr =3D -(dvbs2_snr_tab[snr_reading - 1] / 1000);
+> >  		}
+> >  		dprintk("%s: raw / cooked =3D 0x%02x / 0x%04x\n", __func__,
+> >  				snr_reading, *snr);
+>=20
+> hi dan,
+>=20
+> perhaps it is more useful to do it in the check above ?
+
+It looks like the check is correct but we need to shift all the
+values by one.  Again, I don't have this hardware, I'm just going by
+the context.
+
+> thinking about that why not replace the number (80) with ARRAY_SIZE() ?
+
+That would be a cleanup, yes but it could go in a separate patch.
+
+regards,
+dan carpenter
 
 
-Weird... when trying to pull from your tree, several other patches appeared.
-After removing the ones that seemed to be already applied, there are still
-those that seemed to still apply:
+--zgY/UHCnsaNnNXRx
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Nov,17 2011: s5p-fimc: Prevent lock up caused by incomplete H/W initialization
-Oct, 1 2011: v4l: Add VIDIOC_LOG_STATUS support for sub-device nodes
-Dec, 9 2011: v4l: Add new framesamples field to struct v4l2_mbus_framefmt
-Dec,15 2011: v4l: Update subdev drivers to handle framesamples parameter
-Dec,12 2011: m5mols: Add buffer size configuration support for compressed streams
-Nov,21 2011: s5p-fimc: Add media bus framesamples support
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.11 (GNU/Linux)
 
-Could you please double-check and, if possible, rebase your tree, to avoid
-the risk of applying something that is not ok yet, nor to miss something?
+iQIcBAEBAgAGBQJPF+NnAAoJEOnZkXI/YHqRu4cQAIwegV2tAdtu3btAoEThma5Q
+zPfEiGleuUk7r2fna9OaX3opVPKPzYIWQcWvKR8S0La9lmbzyTpljUlQJMhv4tx0
+DpGdnjGvTwzh+3sVzudIdUad3f6Db1GDo4xeWZ17cXF91qkXTUYQwlE6+UeZIZod
+UJgTSa0zUTM7FmfpnSsUIPjTMBDCjWhV0VqU6K7pArizGcMkDk5kbKY61tsNHmBe
+R0i/WOdDRb3IPEcgZ7MQS3BhXMB8s96G1vI9ddSIqFSKOsY6ov2qBGE2a1KnTiRI
+p2aalkI59jzCUrT3zAwP/Es2HsBfqrwih59yIoLetEOuTiq7mTTv4CXebIv/uH7K
+RTlgyvULk0+PICTfLSlP18HAzoZxnIElesNdxvo5s/Ou4Fz2nVby0eUlbUblTa5l
+6Q5Ki0laV4GEq7r4wl/llD0ozyKWcCD2IqHpTrObBS0MyI/G9IeSB0npCzmzugTu
+orRM9Zt86UnPUNbNfCPGnTaeLjPR42qBX9+Ub8evB6ydDY94qKBs4if3e3kTNsGB
+F5aCkPU9c9vPCJEvp7C2F84GQ8PayOeZApiavPJZjJBcQ3NPXf6ATE7T1+bZOXA/
+IMGf59OBglCpWKfYMhLM1Hb5RjazcP3q06Jq19rACwYv5E49XLaOBOLac1+BF8Pp
+AbdLt/eWQGDVqfz4b2SO
+=k4bn
+-----END PGP SIGNATURE-----
 
-Thanks!
-Mauro
+--zgY/UHCnsaNnNXRx--
