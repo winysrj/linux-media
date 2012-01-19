@@ -1,140 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:58918 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757717Ab2AERiJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:38:09 -0500
-Message-ID: <4F05DFF0.3000809@infradead.org>
-Date: Thu, 05 Jan 2012 15:37:52 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from hermes.mlbassoc.com ([64.234.241.98]:52691 "EHLO
+	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751545Ab2ASRXF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jan 2012 12:23:05 -0500
+Message-ID: <4F185171.9080504@mlbassoc.com>
+Date: Thu, 19 Jan 2012 10:22:57 -0700
+From: Gary Thomas <gary@mlbassoc.com>
 MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Paolo Bonzini <pbonzini@redhat.com>, linux-media@vger.kernel.org,
-	Willy Tarreau <w@1wt.eu>, linux-kernel@vger.kernel.org,
-	security@kernel.org, pmatouse@redhat.com, agk@redhat.com,
-	jbottomley@parallels.com, mchristi@redhat.com, msnitzer@redhat.com,
-	Christoph Hellwig <hch@lst.de>
-Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
- passthrough ioctls on partition devices)
-References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
-In-Reply-To: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
+References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com> <201201191350.51761.laurent.pinchart@ideasonboard.com> <4F181711.1020201@mlbassoc.com> <201201191428.35340.laurent.pinchart@ideasonboard.com> <4F181C24.9030806@mlbassoc.com> <CAAwP0s3_U1tzRM3TcW+hGCVvm+aowwO9f6g6t8_pvZSJxyMrgA@mail.gmail.com> <4F182A79.6000603@mlbassoc.com> <4F184E0B.3010402@mlbassoc.com>
+In-Reply-To: <4F184E0B.3010402@mlbassoc.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05-01-2012 15:02, Linus Torvalds wrote:
-> On Thu, Jan 5, 2012 at 8:16 AM, Linus Torvalds
-> <torvalds@linux-foundation.org> wrote:
+On 2012-01-19 10:08, Gary Thomas wrote:
+> On 2012-01-19 07:36, Gary Thomas wrote:
+>> On 2012-01-19 07:11, Javier Martinez Canillas wrote:
+>>> On Thu, Jan 19, 2012 at 2:35 PM, Gary Thomas<gary@mlbassoc.com> wrote:
+>>>> On 2012-01-19 06:28, Laurent Pinchart wrote:
+>>>>>
+>>>>> Hi Gary,
+>>>>>
+>>>>> On Thursday 19 January 2012 14:13:53 Gary Thomas wrote:
+>>>>>>
+>>>>>> On 2012-01-19 05:50, Laurent Pinchart wrote:
+>>>>>>>
+>>>>>>> On Thursday 19 January 2012 13:41:57 Gary Thomas wrote:
+>>>>>>>>
+>>>>>>>> On 2012-01-17 08:33, Laurent Pinchart wrote:
+>>>>>>>> <snip>
+>>>>>>>>>
+>>>>>>>>>
+>>>>>>>>> I already had a couple of YUV support patches in my OMAP3 ISP tree at
+>>>>>>>>> git.kernel.org. I've rebased them on top of the lastest V4L/DVB tree
+>>>>>>>>> and pushed them to
+>>>>>>>>>
+>>>>>>>>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp
+>>>>>>>>> - omap3isp-yuv. Could you please try them, and see if they're usable
+>>>>>>>>> with your sensor ?
+>>>>>>>>
+>>>>>>>>
+>>>>>>>> I just tried this kernel with my board. The media control
+>>>>>>>> infrastructure comes up and all of the devices are created, but I can't
+>>>>>>>> access them.
+>>>>>>>>
+>>>>>>>> From the bootup log:
+>>>>>>>> Linux media interface: v0.10
+>>>>>>>> Linux video capture interface: v2.00
+>>>>>>>
+>>>>>>>
+>>>>>>> Any message from the omap3isp driver and from the sensor driver ?
+>>>>>>
+>>>>>>
+>>>>>> No, it doesn't appear that the sensor was probed (or maybe it failed but
+>>>>>> no messages). I'll check into this.
+>>>>>
+>>>>>
+>>>>> Is the omap3-isp driver compiled as a module ? If so, make sure iommu2.ko
+>>>>> is
+>>>>> loaded first. 'rmmod omap3-isp&& modprobe iommu2&& modprobe omap3-isp'
+>>>>> is a
+>>>>>
+>>>>> quick way to test it.
+>>>>
+>>>>
+>>>> I have everything compiled in - no modules.
+>>>>
+>>>
+>>> At least for me, it only worked when compiled both the omap3-isp and
+>>> tvp5150 drivers as a module. If I compile them built-in, it fails.
 >>
->> Just fix the *obvious* breakage in BLKROSET. It's clearly what the
->> code *intends* to do, it just didn't check for ENOIOCTLCMD.
-> 
-> So it seems from quick grepping that the block layer isn't actually
-> all that confused apart from that one BLK[SG]ETRO issue, although I'm
-> sure there are crazy drivers that think that EINVAL is the right error
-> return.
-> 
-> The *really* confused layer seems to be the damn media drivers. The
-> confusion there seems to go very deep indeed, where for some crazy
-> reason the media people seem to have made it part of the semantics
-> that "if a driver doesn't support a particular ioctl, it returns
-> EINVAL".
-> 
-> Added, linux-media and Mauro to the Cc, because I'm about to commit
-> something like the attached patch to see if anything breaks. We may
-> have to revert it if things get too nasty, but we should have done
-> this years and years ago, so let's hope not.
+>> Can you share your board/sensor init code from your board-init.c
+>> so I can see how to manage this as a module?
+>>
+>> n.b. I really don't like messing with modules - it used to work
+>> fine, so IMO it should continue to do so.
+>
+> I figured out part of the problem - I had tried to reuse my 3.0 kernel
+> config. Sadly, this left out major chunks, in particular the OMAP3ISP
+> was left out because OMAP_IOVMMU is new. I got this configured and it's
+> starting to initialize, but now it fails during boot:
+> kernel BUG at /local/pinchartl-media/drivers/media/media-entity.c:348
+> [<c02416c4>] (media_entity_create_link+0x60/0x138) from [<c0251c0c>] (isp_probe+0x938/0xba4)
+> [<c0251c0c>] (isp_probe+0x938/0xba4) from [<c01e381c>] (platform_drv_probe+0x1c/0x24)
+> [<c01e381c>] (platform_drv_probe+0x1c/0x24) from [<c01e24f4>] (driver_probe_device+0xcc/0x1b4)
+> [<c01e24f4>] (driver_probe_device+0xcc/0x1b4) from [<c01e1a0c>] (bus_for_each_drv+0x4c/0x8c)
+> [<c01e1a0c>] (bus_for_each_drv+0x4c/0x8c) from [<c01e2750>] (device_attach+0x74/0xa0)
+> [<c01e2750>] (device_attach+0x74/0xa0) from [<c01e1838>] (bus_probe_device+0x28/0x50)
+> [<c01e1838>] (bus_probe_device+0x28/0x50) from [<c01e07f8>] (device_add+0x40c/0x590)
+> [<c01e07f8>] (device_add+0x40c/0x590) from [<c01e3e44>] (platform_device_add+0x108/0x168)
+> [<c01e3e44>] (platform_device_add+0x108/0x168) from [<c0457c84>] (cobra3530p73_camera_init+0x13c/0x188)
+> [<c0457c84>] (cobra3530p73_camera_init+0x13c/0x188) from [<c0008730>] (do_one_initcall+0x94/0x15c)
+> [<c0008730>] (do_one_initcall+0x94/0x15c) from [<c044d21c>] (kernel_init+0x78/0x120)
+> [<c044d21c>] (kernel_init+0x78/0x120) from [<c00146c8>] (kernel_thread_exit+0x0/0x8)
+>
+> Any ideas what else I might have missed? My kernel config is attached in case
+> that helps.
 
-For the media drivers, we've already fixed it, at the V4L side:
--EINVAL doesn't mean that an ioctl is not supported anymore.
-I think that such fix went into Kernel 3.1.
+It turns out that drivers/media/video/tvp5150.c is not the most
+recent one posted - it has no v4l2_subdev support in it at all :-(
 
-There are still two different behaviors there:
-	at the V4L API: the return code is -ENOTTY;
-	at the DVB API: the return code is currrently -EOPNOTSUPP.
+I copied the one I've been using from my 3.0+ kernel and it
+now builds.  I can run media-ctl and configure the pipeline,
+etc, but sadly no data is captured at all :-(
 
-Yeah, I know that DVB is returning the wrong code. Fixing it is on
-my todo list, although with low priority, as the behavior inside the
-DVB part is consistent.
-
-On both DVB and V4L, -EINVAL now means only invalid parameters.
-
-Regards,
-Mauro
-
-> Basic rules: ENOTTY means "I don't recognize this ioctl". Yes, the
-> name is odd, and yes, it's for historical Unix reasons. ioctl's were
-> originally a way to control mainly terminal settings - think termios -
-> so when you did an ioctl on a file, you'd get "I'm not a tty, dummy".
-> File flags were controlled with fcntl().
-> 
-> In contrast, EINVAL means "there is something wrong with the
-> arguments", which very much implies "I do recognize the ioctl".
-> 
-> And finally, ENOIOCTLCMD is a way to say ENOTTY in a sane manner, and
-> will now be turned into ENOTTY for the user space return (not EINVAL -
-> I have no idea where that idiocy came from, but it's clearly confused,
-> although it's also clearly very old).
-> 
-> This fixes the core files I noticed. It removes the *insane*
-> complaints from the compat_ioctl() (which would complain if you
-> returned ENOIOCTLCMD after an ioctl translation - the reason that is
-> totally insane is that somebody might use an ioctl on the wrong kind
-> of file descriptor, so even if it was translated perfectly fine,
-> ENOIOCTLCMD is a perfectly fine error return and shouldn't cause
-> warnings - and that allows us to remove stupid crap from the socket
-> ioctl code).
-> 
-> Does this break things and need to be reverted? Maybe. There could be
-> user code that tests *explicitly* for EINVAL and considers that the
-> "wrong ioctl number", even though it's the wrong error return.
-> 
-> And we may have those kinds of mistakes inside the kernel too. We did
-> in the block layer BLKSETRO code, for example, as pointed out by
-> Paulo. That one is fixed here, but there may be others.
-> 
-> I didn't change any media layers, since there it's clearly an endemic
-> problem, and there it seems to be used as a "we pass media ioctls down
-> and drivers should by definition recognize them, so if they don't, we
-> assume the driver is limited and doesn't support those particular
-> settings and return EINVAL".
-> 
-> But in general, any code like this is WRONG:
-> 
->    switch (cmd) {
->    case MYIOCTL:
->       .. do something ..
->    default:
->       return -EINVAL;
->    }
-> 
-> while something like this is CORRECT:
-> 
->    switch (cmd) {
->    case MYIOCT:
->       if (arg)
->          return -EINVAL;
->       ...
-> 
->    case OTHERIOCT:
->       /* I recognize this one, but I don't support it */
->       return -EINVAL;
-> 
->    default:
->       return -ENOIOCTLCMD; // Or -ENOTTY - see below about the difference
->    }
-> 
-> where right now we do have some magic differences between ENOIOCTLCMD
-> and ENOTTY (the compat layer will try to do a translated ioctl *only*
-> if it gets ENOIOCTLCMD, iirc, so ENOTTY basically means "this is my
-> final answer").
-> 
-> I'll try it out on my own setup here to see what problems I can
-> trigger, but I thought I'd send it out first just as (a) a heads-up
-> and (b) to let others try it out and see.. See the block/ioctl.c code
-> for an example of the kinds of things we may need even just inside the
-> kernel (and the kinds of things that could cause problems for
-> user-space that makes a difference between EINVAL and ENOTTY).
-> 
->                              Linus
-
+-- 
+------------------------------------------------------------
+Gary Thomas                 |  Consulting for the
+MLB Associates              |    Embedded world
+------------------------------------------------------------
