@@ -1,118 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vms173019pub.verizon.net ([206.46.173.19]:51471 "EHLO
-	vms173019pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750855Ab2AQD5E (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50733 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932511Ab2ASQVz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 22:57:04 -0500
-Received: from opus ([unknown] [71.170.160.242]) by vms173019.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LXX00AWO9IFMF61@vms173019.mailsrvcs.net> for
- linux-media@vger.kernel.org; Mon, 16 Jan 2012 20:56:43 -0600 (CST)
-Date: Mon, 16 Jan 2012 20:56:39 -0600
-From: David Engel <david@istwok.net>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Linux Media <linux-media@vger.kernel.org>
-Subject: Re: Strange problem, help needed
-Message-id: <20120117025638.GA2688@opus.istwok.net>
-References: <20120116175556.GB29539@opus.istwok.net>
- <1326739528.2500.13.camel@palomino.walls.org>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
-In-reply-to: <1326739528.2500.13.camel@palomino.walls.org>
+	Thu, 19 Jan 2012 11:21:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 17/23] v4l: Implement v4l2_subdev_link_validate()
+Date: Thu, 19 Jan 2012 17:21:53 +0100
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+References: <4F0DFE92.80102@iki.fi> <201201161544.08756.laurent.pinchart@ideasonboard.com> <20120117202139.GF13236@valkosipuli.localdomain>
+In-Reply-To: <20120117202139.GF13236@valkosipuli.localdomain>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201191721.54343.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 16, 2012 at 01:45:24PM -0500, Andy Walls wrote:
-> On Mon, 2012-01-16 at 11:55 -0600, David Engel wrote:
-> > Hi,
+Hi Sakari,
+
+On Tuesday 17 January 2012 21:21:39 Sakari Ailus wrote:
+> On Mon, Jan 16, 2012 at 03:44:08PM +0100, Laurent Pinchart wrote:
+> > On Wednesday 11 January 2012 22:26:54 Sakari Ailus wrote:
+> > > v4l2_subdev_link_validate() is the default op for validating a link. In
+> > > V4L2 subdev context, it is used to call a pad op which performs the
+> > > proper link check without much extra work.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > > ---
+> > > 
+> > >  drivers/media/video/v4l2-subdev.c |   62
+> > > 
+> > > +++++++++++++++++++++++++++++++++++++ include/media/v4l2-subdev.h      
+> > > |
+> > > 
+> > >  10 ++++++
+> > >  2 files changed, 72 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/video/v4l2-subdev.c
+> > > b/drivers/media/video/v4l2-subdev.c index 836270d..4b329a0 100644
+> > > --- a/drivers/media/video/v4l2-subdev.c
+> > > +++ b/drivers/media/video/v4l2-subdev.c
+> > > @@ -367,6 +367,68 @@ const struct v4l2_file_operations v4l2_subdev_fops
+> > > = {
+> > > 
+> > >  	.poll = subdev_poll,
+> > >  
+> > >  };
+> > > 
+> > > +#ifdef CONFIG_MEDIA_CONTROLLER
+> > > +int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+> > > +				      struct media_link *link,
+> > > +				      struct v4l2_subdev_format *source_fmt,
+> > > +				      struct v4l2_subdev_format *sink_fmt)
+> > > +{
+> > > +	if (source_fmt->format.width != sink_fmt->format.width
+> > > +	    || source_fmt->format.height != sink_fmt->format.height
+> > > +	    || source_fmt->format.code != sink_fmt->format.code)
+> > > +		return -EINVAL;
+> > > +
+> > > +	return 0;
+> > > +}
+> > > +EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
 > > 
-> > I have a MythTV backend with a Hauppauge HVR-2250 (dual tuner,
-> > ATSC?QAM, PCIe) and a Ceton InfiniTV4 (quad tuner, QAM/cable card,
-> > PCIe).  Over the weekend, I started intermittently seeing corrupt
-> > recordings that were painful to watch.
+> > What about calling this function directly from
+> > v4l2_subdev_link_validate() if the pad::link_validate operation is NULL
+> > ? That wouldn't require changing all subdev drivers to explicitly use
+> > the default implementation.
+> 
+> I can do that. I still want to keep the function available for those that
+> want to call it explicitly to perform the above check.
+> 
+> > > +
+> > > +static struct v4l2_subdev_format
+> > > +*v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+> > > +				      struct v4l2_subdev_format *fmt)
+> > > +{
+> > > +	int rval;
+> > > +
+> > > +	switch (media_entity_type(pad->entity)) {
+> > > +	case MEDIA_ENT_T_V4L2_SUBDEV:
+> > > +		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> > > +		fmt->pad = pad->index;
+> > > +		rval = v4l2_subdev_call(media_entity_to_v4l2_subdev(
+> > > +						pad->entity),
+> > > +					pad, get_fmt, NULL, fmt);
+> > > +		if (rval < 0)
+> > > +			return NULL;
+> > > +		return fmt;
+> > > +	case MEDIA_ENT_T_DEVNODE_V4L:
+> > > +		return NULL;
+> > > +	default:
+> > > +		BUG();
 > > 
-> > I eventually narrowed the problem down to when both tuners on the 2250
-> > are active at the same time.  In this case, both recordings have
-> > corruption (CRC errors, etc.).  The InfiniTV4 does not appear to be
-> > affected by anything going on on the 2250.  Likewise, the 2250 does
-> > not appear to be affected by anything going on on the InfiniTV4.
+> > Maybe WARN() and return NULL ?
+> 
+> It's a clear driver BUG() if this happens. If you think the correct
+> response to that is WARN() and return NULL, I can do that.
+
+You're right.
+
+> > > +	}
+> > > +}
+> > > +
+> > > +int v4l2_subdev_link_validate(struct media_link *link)
+> > > +{
+> > > +	struct v4l2_subdev *sink = NULL, *source = NULL;
+> > > +	struct v4l2_subdev_format _sink_fmt, _source_fmt;
+> > > +	struct v4l2_subdev_format *sink_fmt, *source_fmt;
+> > > +
+> > > +	source_fmt = v4l2_subdev_link_validate_get_format(
+> > > +		link->source, &_source_fmt);
+> > > +	sink_fmt = v4l2_subdev_link_validate_get_format(
+> > > +		link->sink, &_sink_fmt);
+> > > +
+> > > +	if (source_fmt)
+> > > +		source = media_entity_to_v4l2_subdev(link->source->entity);
+> > > +	if (sink_fmt)
+> > > +		sink = media_entity_to_v4l2_subdev(link->sink->entity);
+> > > +
+> > > +	if (source_fmt && sink_fmt)
+> > > +		return v4l2_subdev_call(sink, pad, link_validate, link,
+> > > +					source_fmt, sink_fmt);
 > > 
-> > I noticed something strange while diagnosinig the problem.  When the
-> > 2250 is busy recording, top reports the CPU as being in wait for an
-> > abnormally high amount of time (~30% for one tuner busy and ~50% for
-> > both tuners busy).  I don't recall seeing that before.  I quickly
-> > tried a KWorld ATSC 110 on a different system and it showed no, or
-> > negligible wait time.
-> > 
-> > Thinking that the 2250 was going bad, I replaced it with two KWorld
-> > ATSC 110s (single tuner, ATSC/QAM, PCI).  The two 110s had the same
-> > problem as the 2250 -- corruption when both tuners are busy and
-> > unusually high wait time when either is busy.
-> > 
-> > At this point, I'm suspecting a motherboard, memory or grounding
-> > issue, but would like some feedback in case there's anything I'm
-> > missing.  The high wait time seems extremely odd to me.  Perhaps it
-> > means something to those of you who are much more familiar with the
-> > cards and drivers.
+> > This looks overly complex. Why don't you return 0 if one of the two
+> > entities is of a type different than MEDIA_ENT_T_V4L2_SUBDEV, then
+> > retrieve the formats for the two entities and return 0 if one of the two
+> > operation fails, and finally call pad::link_validate ?
 > 
-> A long time in IO Wait and (presumably) dropped video data buffers for a
-> TV card driver usually means:
-> 
-> a. The devices are not producing interrupts
-> b. Your system is dropping interrupts from the devices
-> c. Something in your system keeps interrupt processing disabled for a
-> long time.
-
-I tried the crude test of monitoring /proc/interrupts while recording.
-Using a third KWorld ATSC 110 on my development system, which isn't
-showing any problems, the driver serviced ~1200 interrupts per minute.
-I saw the same amount per card using two other 110s on my MythTV system, which
-is exhibiting the problem.
-
-> Of the above c. is unlikely.
-> 
-> The root causes of a. and b. are many and varied.  However most of those
-> root causes are under control of kernel software: core IRQ handling,
-> core PCI/e bus setup, or tv card driver modules and their supporting
-> modules.
-> 
-> Hardware related root causes would be buggy PCI chipsets, poor RF
-> signal, a motherboard problem, or a power problem.
-> 
-> I tend to blame the software before the hardware.
-> 
-> 
-> Sometimes, dust in the shared, conventional PCI bus can cause problems.
-> If you have conventional PCI slots in the system - whether you use them
-> or not -  unplug the conventional PCI cards, blow the dust out of all
-> the slots, and reseat the cards.  You should not need to do this for any
-> PCIe card slots, but it doesn't hurt.
-
-I also tried the HVR-2250 in my development system this evening.  It
-worked fine.  It's definitely something specific to my MythTV system.
-I can't do any further testing until Wednesday.  Thoroughly blowing
-out the case might have to wait until the weekend.
-
-Thanks for you help.
-
-David
-
-> Regards,
-> Andy 
-> 
-> > Oh, the problem appear shortly after switching to the 3.1.9 kernel.  I
-> > also tried the 3.1.8 and 3.0.14 kernels to rule out software and there
-> > was no effect on the problem.
-> 
-> > David
-> 
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Now that you mention that, I agree. :-) I'll fix it.
 
 -- 
-David Engel
-david@istwok.net
+Regards,
+
+Laurent Pinchart
