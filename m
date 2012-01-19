@@ -1,43 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:33421 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752037Ab2AWJFl (ORCPT
+Received: from v069871.home.net.pl ([79.96.75.21]:56574 "HELO
+	v069871.home.net.pl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932532Ab2ASSQu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 04:05:41 -0500
-Date: Mon, 23 Jan 2012 10:05:37 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: Re: [PATCH] [media] convert drivers/media/* to use module_i2c_driver()
-In-reply-to: <1327140645.3928.1.camel@phoenix>
-To: Axel Lin <axel.lin@gmail.com>
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andrew Chew <achew@nvidia.com>,
-	Paul Mundt <lethal@linux-sh.org>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Johannes Obermaier <johannes.obermaier@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-Message-id: <4F1D22E1.2040507@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7BIT
-References: <1327140645.3928.1.camel@phoenix>
+	Thu, 19 Jan 2012 13:16:50 -0500
+From: "=?UTF-8?B?UGwgRmluYW5jZSBUd8OzaiBQYXJ0bmVyIHcgRmluYW5zYWNo?="
+	<oferta@plfinance.pl>
+Date: Thu, 19 Jan 2012 19:10:07 +0100
+Subject: Finanse dla Domu i Twojej firmy - kredyty,
+ =?UTF-8?B?ICBuaWVydWNob21vxZtjaSA=?=,
+ =?UTF-8?B?ICB3c3BhcmNpZSBzcHJ6ZWRhxbx5?=,=?UTF-8?B?IGtzacSZZ293b8WbxIc=?=
+Content-Type: text/plain; charset=UTF-8
+MIME-Version: 1.0
+Message-ID: <89855fe724acf5a868456b315318189c.qmail@home.pl>
+Content-Transfer-Encoding: base64
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+U3phbm93bmkgUGHFhHN0d28sCgpad3JhY2FteSBzacSZIHogcHl0YW5pZW0gbyBtb8W8bGl3b8Wb
+xIcgemFwcmV6ZW50b3dhbmlhIG9mZXJ0eSBmaXJteSBQTCBGaW5hbmNlIAp3IHpha3Jlc2llIAot
+IHBvenlza2l3YW5pYSBrYXBpdGHFgnUgZGxhIGZpcm0gb3JheiBrbGllbnRhIGluZHl3aWR1YWxu
+ZWdvKGtyZWR5dHkgZmlybW93ZSwNCiBrcmVkeXR5IGhpcG90ZWN6bmUsIGtyZWR5dHkgZ290w7N3
+a293ZSwga3JlZHl0eSBpbndlc3R5Y3lqbmUpLAotIGtyZWR5dHkgYmV6IEJJSyBpIG5hIHphbGVn
+xYJvxZtjaSB3IFpVUyBpIFVTIAotcHJvZmVzam9uYWxuZWoga3NpxJlnb3dvxZtjaSBkbGEgRmly
+bSwKLSB6ZXduxJl0cnpuZSBzacWCeSBzcHJ6ZWRhxbx5IG9yYXogcG96eXNraXdhbmllIGtsaWVu
+dGEgcHJ6ZXogbWFpbGluZywKLSBrdXBubyBzcHJ6ZWRhxbwgbmllcnVjaG9tb8WbY2kKVyBwcnp5
+cGFka3UgemFpbnRlcmVzb3dhbmlhIG5hc3p5bWkgdXPFgnVnYW1pLCBwcm9zaW15IG9kcG93aWVk
+emllxIcgbmEgdMSFIAp3aWFkb21vxZvEhy4KSmXFm2xpIG5hdG9taWFzdCBuYXN6YSBvZmVydGEg
+bmllIGplc3QgdyB6YXNpxJlndSBQYcWEc3R3YSBrb21wZXRlbmNqaSwgCnVwcnplam1pZSBwcm9z
+aW15IG8gcHJ6ZWthemFuaWUgbmluaWVqc3plaiB3aWFkb21vxZtjaSBkbyBvc29ieS9vc8OzYiwg
+a3TDs3J5Y2ggDQp0YSB3aWFkb21vxZvEhyBtb8W8ZSBkb3R5Y3p5xIcuCgpOaW5pZWpzemUgemFw
+eXRhbmllIG5pZSBqZXN0IGluZm9ybWFjasSFIGhhbmRsb3fEhSwgYSBqZWR5bmllIHphcHl0YW5p
+ZW0gbyAKemdvZMSZIG5hIHByemVzecWCYW5pZSBpbmZvcm1hY2ppIGhhbmRsb3d5Y2ggZHJvZ8SF
+IGVsZWt0cm9uaWN6bsSFLCB6Z29kbmllIHogCmFydC4gMTAgdXN0YXd5IHogZG5pYSAxOCBsaXBj
+YSAyMDAyci4gbyDFm3dpYWRjemVuaXUgdXPFgnVnIGRyb2fEhSAKZWxla3Ryb25pY3puxIUuCihE
+ei5VLiB6IDIwMDJyLiBOciAxNDQsIHBveiAxMjA0IHogcMOzxbpuLiB6bS4pCgoKWiBwb3dhxbxh
+bmllbSwKLS0gClBsIEZpbmFuY2UKd3d3LnBsZmluYW5jZS5wbA==
 
-For module s5p-tv/hdmiphy
 
-Acked-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-
---
-Regards,
-Tomasz Stanislawski
