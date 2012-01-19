@@ -1,92 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47486 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752918Ab2AQKuK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 05:50:10 -0500
-Message-ID: <4F155252.2060705@redhat.com>
-Date: Tue, 17 Jan 2012 08:49:54 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:63347 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757031Ab2ASKHb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jan 2012 05:07:31 -0500
+Received: by lahc1 with SMTP id c1so2785067lah.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jan 2012 02:07:29 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH 2/2] [media] dvb_frontend: Require FE_HAS_PARAMETERS for get_frontend()
+Date: Thu, 19 Jan 2012 11:07:24 +0100
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <201201181450.14089.pboettcher@kernellabs.com> <1326909085-14256-1-git-send-email-mchehab@redhat.com> <1326909085-14256-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1326909085-14256-2-git-send-email-mchehab@redhat.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Hans Verkuil <hansverk@cisco.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Rupert Eibauer <Rupert.Eibauer@ces.ch>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [git:v4l-dvb/for_v3.3] [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT
- documentation
-References: <E1Rmmdy-0002zt-5K@www.linuxtv.org> <Pine.LNX.4.64.1201162315200.15379@axis700.grange> <201201171113.14927.hansverk@cisco.com> <Pine.LNX.4.64.1201171115300.21882@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1201171115300.21882@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201191107.25039.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 17-01-2012 08:16, Guennadi Liakhovetski escreveu:
-> Hi Hans
-> 
-> On Tue, 17 Jan 2012, Hans Verkuil wrote:
-> 
->> On Monday 16 January 2012 23:16:31 Guennadi Liakhovetski wrote:
->>> On Mon, 16 Jan 2012, Mauro Carvalho Chehab wrote:
->>>> This is an automatic generated email to let you know that the following
->>>> patch were queued at the http://git.linuxtv.org/media_tree.git tree:
->>>>
->>>> Subject: [media] V4L2 Spec: improve the G/S_INPUT/OUTPUT documentation
->>>> Author:  Hans Verkuil <hans.verkuil@cisco.com>
->>>> Date:    Wed Jan 11 07:37:54 2012 -0300
->>>
->>> [snip]
->>>
->>>> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
->>>> b/Documentation/DocBook/media/v4l/vidioc-g-output.xml index
->>>> fd45f1c..4533068 100644
->>>> --- a/Documentation/DocBook/media/v4l/vidioc-g-output.xml
->>>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-output.xml
->>>> @@ -61,8 +61,9 @@ desired output in an integer and call the
->>>>
->>>>  <constant>VIDIOC_S_OUTPUT</constant> ioctl with a pointer to this
->>>>  integer. Side effects are possible. For example outputs may support
->>>>  different video standards, so the driver may implicitly switch the
->>>>  current
->>>>
->>>> -standard. It is good practice to select an output before querying or
->>>> -negotiating any other parameters.</para>
->>>> +standard.
->>>> +standard. Because of these possible side effects applications
->>>> +must select an output before querying or negotiating any other
->>>> parameters.</para>
->>>
->>> something seems to be wrong here.
->>
->> Hi Guennadi!
->>
->> What's wrong here? I've no idea what you mean.
-> 
->>>> +standard.
->>>> +standard. Because of these possible side effects applications
-> 
-> doesn't seem to make much sense?
+Hi Mauro,
 
-Are you referring to grammar?
+On Wednesday 18 January 2012 18:51:25 Mauro Carvalho Chehab wrote:
+> Calling get_frontend() before having either the frontend locked
+> or the network signaling carriers locked won't work. So, block
+> it at the DVB core.
 
-I think that a comma is missing there [1]:
+I like the idea and also the implementation.
 
-	Because of these possible side effects, applications
-	must select an output before querying or negotiating any other
-	parameters.
+But before merging this needs more comments from other on the list. 
 
-IMO, reverting the order of the explanation clause is semantically better,
-as it bolds the need to select an output, and put the phrase at the
-cause-effect order:
+Even though it does not break anything for any current frontend-driver 
+it is important to have a wider base agreeing on that. Especially from 
+some other frontend-driver-writers.
 
-	Applications must select an output before querying or negotiating 
-	any other parameters, because of these possible side effects.
+For example I could imagine that a frontend HAS_LOCK, but is still not 
+able to report the parameters (USB-firmware-based frontends might be 
+poorly implemented). 
 
-But this is really a matter of choice. In any case, except for the
-comma, that makes sense for me.
+And so on...
 
-[1] Rule 4 of http://grammar.ccc.commnet.edu/grammar/commas.htm
+regards,
 
+--
+Patrick Boettcher
 
-Regards,
-Mauro
+Kernel Labs Inc.
+http://www.kernellabs.com/
