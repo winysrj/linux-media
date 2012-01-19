@@ -1,29 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:55322 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751264Ab2AHKis (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 8 Jan 2012 05:38:48 -0500
-Message-ID: <4F097233.4030706@gmx.de>
-Date: Sun, 08 Jan 2012 11:38:43 +0100
-From: Stefan Sassenberg <stefan.sassenberg@gmx.de>
-MIME-Version: 1.0
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:59449 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753272Ab2ASNo3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jan 2012 08:44:29 -0500
+Received: by eaac11 with SMTP id c11so1325485eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 19 Jan 2012 05:44:28 -0800 (PST)
+From: Gregor Jasny <gjasny@googlemail.com>
 To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: TT3650-USB CI with kernel 3.2
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Gregor Jasny <gjasny@googlemail.com>
+Subject: [PATCH] keytable: Fix copy and paste error for SANYO IR protocol
+Date: Thu, 19 Jan 2012 14:42:43 +0100
+Message-Id: <1326980563-8194-2-git-send-email-gjasny@googlemail.com>
+In-Reply-To: <1326980563-8194-1-git-send-email-gjasny@googlemail.com>
+References: <1326980563-8194-1-git-send-email-gjasny@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
+---
+ utils/keytable/keytable.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I just have installed a recent 3.2.0-gentoo-r1 kernel on my gentoo box. 
-I have set the dvb_usb debug level to 253 and see the following error in 
-the kernel logs when trying to see a video for which I need the CI: "iso 
-frame descriptor has an error: -75". What does -75 mean?
+diff --git a/utils/keytable/keytable.c b/utils/keytable/keytable.c
+index 93609d2..f03de26 100644
+--- a/utils/keytable/keytable.c
++++ b/utils/keytable/keytable.c
+@@ -226,7 +226,7 @@ static error_t parse_keyfile(char *fname, char **table)
+ 						else if (!strcasecmp(p,"sony"))
+ 							ch_proto |= SONY;
+ 						else if (!strcasecmp(p,"sanyo"))
+-							ch_proto |= SONY;
++							ch_proto |= SANYO;
+ 						else if (!strcasecmp(p,"other") || !strcasecmp(p,"unknown"))
+ 							ch_proto |= OTHER;
+ 						else {
+-- 
+1.7.8.3
 
-Regards
-
-Stefan
-
-Linux ds9 3.2.0-gentoo-r1 #1 SMP Fri Jan 6 23:53:00 CET 2012 x86_64 AMD 
-Athlon(tm) 64 X2 Dual Core Processor 5000+ AuthenticAMD GNU/Linux
