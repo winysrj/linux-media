@@ -1,75 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:36212 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751447Ab2AYFgM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 00:36:12 -0500
-Received: by mail-tul01m020-f181.google.com with SMTP id up10so6092161obb.26
-        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 21:36:11 -0800 (PST)
+Received: from mx01.sz.bfs.de ([194.94.69.103]:23870 "EHLO mx01.sz.bfs.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751211Ab2ASK0p (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 19 Jan 2012 05:26:45 -0500
+Message-ID: <4F17EFE1.3060804@bfs.de>
+Date: Thu, 19 Jan 2012 11:26:41 +0100
+From: walter harms <wharms@bfs.de>
+Reply-To: wharms@bfs.de
 MIME-Version: 1.0
-In-Reply-To: <4F1D7BF4.4040603@samsung.com>
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
- <1327326675-8431-5-git-send-email-t.stanislaws@samsung.com>
- <4F1D6D3E.7020203@redhat.com> <4F1D6F68.5040202@samsung.com>
- <4F1D7418.50201@redhat.com> <4F1D7BF4.4040603@samsung.com>
-From: "Semwal, Sumit" <sumit.semwal@ti.com>
-Date: Wed, 25 Jan 2012 11:05:50 +0530
-Message-ID: <CAB2ybb8fXUARSriD2x-4TNLVtxpg5hA6NKjrAOOwzHJ0Cko6Ag@mail.gmail.com>
-Subject: Re: [PATCH 04/10] v4l: vb2: fixes for DMABUF support
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	"Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch 2/2] [media] ds3000: off by one in ds3000_read_snr()
+References: <20120117073021.GB11358@elgon.mountain> <4F16FC26.80306@bfs.de> <20120119093327.GI3356@mwanda>
+In-Reply-To: <20120119093327.GI3356@mwanda>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-On Mon, Jan 23, 2012 at 8:55 PM, Tomasz Stanislawski
-<t.stanislaws@samsung.com> wrote:
-> Hi Mauro,
->
->
-<snip>
->
-> Ok. I should have given more details about the patch. I am sorry for missing
-> it. My kernel tree failed to compile after applying patches from
->
-> [1]
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
->
-> I had to generate this patch to compile the code and test it. Most of the
-> fixes refer to Sumit's code and I think he will take care of those bugs.
-Is your kernel tree a mainline kernel? I am pretty sure I posted out
-the RFC after compile testing.
 
->
-<snip>
->
->
-> I wanted to post the complete set of patches that produce compilable kernel.
-> Therefore most important bugs/issues had to be fixed and attached to the
-> patchset. Some of the issues in [1] were mentioned by Laurent and Sakari. I
-> hope Sumit will take care of those problems.
-I must've misunderstood when you said 'I would like to take care of
-these patches'. Please let me know if you'd like me to submit next
-version of my RFC separately with fixes for these issues, or would you
-manage that as part of your RFC patch series submission.
->
+
+Am 19.01.2012 10:33, schrieb Dan Carpenter:
+> On Wed, Jan 18, 2012 at 06:06:46PM +0100, walter harms wrote:
 >>
->> Failing to do that will mean that important fixes for upstream
->> will be missed.
->
->
-> Ok. It will be fixed.
->
 >>
->> Regards,
->> Mauro
+>> Am 17.01.2012 08:30, schrieb Dan Carpenter:
+>>> This is a static checker patch and I don't have the hardware to test
+>>> this, so please review it carefully.  The dvbs2_snr_tab[] array has 80
+>>> elements so when we cap it at 80, that's off by one.  I would have
+>>> assumed that the test was wrong but in the lines right before we have
+>>> the same test but use "snr_reading - 1" as the array offset.  I've done
+>>> the same thing here.
+>>>
+>>> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+>>>
+>>> diff --git a/drivers/media/dvb/frontends/ds3000.c b/drivers/media/dvb/frontends/ds3000.c
+>>> index af65d01..3f5ae0a 100644
+>>> --- a/drivers/media/dvb/frontends/ds3000.c
+>>> +++ b/drivers/media/dvb/frontends/ds3000.c
+>>> @@ -681,7 +681,7 @@ static int ds3000_read_snr(struct dvb_frontend *fe, u16 *snr)
+>>>  			snr_reading = dvbs2_noise_reading / tmp;
+>>>  			if (snr_reading > 80)
+>>>  				snr_reading = 80;
+>>> -			*snr = -(dvbs2_snr_tab[snr_reading] / 1000);
+>>> +			*snr = -(dvbs2_snr_tab[snr_reading - 1] / 1000);
+>>>  		}
+>>>  		dprintk("%s: raw / cooked = 0x%02x / 0x%04x\n", __func__,
+>>>  				snr_reading, *snr);
 >>
->
-> Regards,
-> Tomasz Stanislawski
->
-Best regards,
-~Sumit.
+>> hi dan,
+>>
+>> perhaps it is more useful to do it in the check above ?
+> 
+> It looks like the check is correct but we need to shift all the
+> values by one.  Again, I don't have this hardware, I'm just going by
+> the context.
+> 
+I do not have the hardware either so this is pure theoretical.
+
+Access to the data field depends on the value of dvbs2_noise_reading/tmp
+even when the data are reasonable like 50/100 snr_reading would become 0
+and the index suddenly is -1.
+
+just my 2 cents.
+
+re,
+ wh
+
+
+>> thinking about that why not replace the number (80) with ARRAY_SIZE() ?
+> 
+> That would be a cleanup, yes but it could go in a separate patch.
+> 
+> regards,
+> dan carpenter
+> 
