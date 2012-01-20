@@ -1,86 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57427 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756407Ab2AXNBZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 08:01:25 -0500
-Message-ID: <4F1EAB97.6060301@redhat.com>
-Date: Tue, 24 Jan 2012 11:01:11 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56699 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754008Ab2ATQLv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jan 2012 11:11:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Date: Fri, 20 Jan 2012 17:11:50 +0100
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
+	rob@ti.com, daniel@ffwll.ch, patches@linaro.org
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <201201201612.31821.laurent.pinchart@ideasonboard.com> <4F198DF0.7000801@samsung.com>
+In-Reply-To: <4F198DF0.7000801@samsung.com>
 MIME-Version: 1.0
-To: "L. Hanisch" <dvb@flensrocker.de>
-CC: Christian Brunner <chb@muc.de>, linux-media@vger.kernel.org,
-	thomas.schloeter@gmx.net
-Subject: Re: [PATCH] dvb: satellite channel routing (unicable) support
-References: <20110928190421.GA13539@sir.fritz.box> <4E837ACF.60804@flensrocker.de>
-In-Reply-To: <4E837ACF.60804@flensrocker.de>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201201711.50965.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Tomasz,
 
-Em 28-09-2011 16:51, L. Hanisch escreveu:
-> Hi,
+On Friday 20 January 2012 16:53:20 Tomasz Stanislawski wrote:
+> On 01/20/2012 04:12 PM, Laurent Pinchart wrote:
+> > On Friday 20 January 2012 11:58:39 Tomasz Stanislawski wrote:
+> >> On 01/20/2012 11:41 AM, Sumit Semwal wrote:
+> >>> On 20 January 2012 00:37, Pawel Osciak<pawel@osciak.com>   wrote:
+> >>>> Hi Sumit,
+> >>>> Thank you for your work. Please find my comments below.
+> >>> 
+> >>> Hi Pawel,
 > 
-> Am 28.09.2011 21:04, schrieb Christian Brunner:
->> This is an updated version of the unicable patch by Thomas Schloeter
->> for linux 3.1.
->>
->> The patch is an addition to the dvb_frontend code, that adds fully
->> transparent support for SCR to arbitrary applications that use the
->> DVB API.
->>
->> I know that this patch has been rejected, because unicable support
->> can be implemented in userspace, too. However I like it anyway,
->> because there is a lot of software without unicable support out
->> there. I'm just sending it, because I think it could be usefull
->> for others.
->>
->> DVB satellite channel routing (aka "SCR", "Unicable", "EN50494") is
->> a standard, where all satellite tuners share the sam cable and each of
->> them has a fixed intermediate frequency it is supposed to tune to.
->> Zapping is done by sending a special DiSEqC message while SEC voltage
->> is temporarily pulled from 14 to 18 volts. This message includes the
->> tuner's ID from 0 to 7, the frequency, band and polarisation to tune
->> to as well as one out of two satellite positions.
->>
->> By default SCR support is disabled and has to be enabled explicitly
->> via an ioctl command. At the same time you set the tuner's ID, the
->> frequency and other parameters. Thomas developed an utility
->> (dvb-scr-setup) to accomplish this task. It can be used unmodified.
->>
->> I'm using this patch successfully with a DUR-LINE UK 101 unicable LNB.
+> <snip>
 > 
->  That would be awesome to have this functionality in the kernel. I maintained the "unicable"-patch for the vdr (written by some guy from the vdr-portal.de who sadly doesn't seem to respond to mails via that forum anymore).
->  It would be great if all the work could be summarized in one ioctl.
+> >>>>>    struct vb2_mem_ops {
+> >>>>>    
+> >>>>>          void            *(*alloc)(void *alloc_ctx, unsigned long
+> >>>>>          size);
+> >>>>> 
+> >>>>> @@ -65,6 +82,16 @@ struct vb2_mem_ops {
+> >>>>> 
+> >>>>>                                          unsigned long size, int
+> >>>>>                                          write);
+> >>>>>          
+> >>>>>          void            (*put_userptr)(void *buf_priv);
+> >>>>> 
+> >>>>> +       /* Comment from Rob Clark: XXX: I think the attach / detach
+> >>>>> could be handled +        * in the vb2 core, and vb2_mem_ops really
+> >>>>> just need to get/put the +        * sglist (and make sure that the
+> >>>>> sglist fits it's needs..) +        */
+> >>>> 
+> >>>> I *strongly* agree with Rob here. Could you explain the reason behind
+> >>>> not doing this?
+> >>>> Allocator should ideally not have to be aware of attaching/detaching,
+> >>>> this is not specific to an allocator.
+> >>> 
+> >>> Ok, I thought we'll start with this version first, and then refine.
+> >>> But you guys are right.
+> >> 
+> >> I think that it is not possible to move attach/detach to vb2-core. The
+> >> problem is that dma_buf_attach needs 'struct device' argument. This
+> >> pointer is not available in vb2-core. This pointer is delivered by
+> >> device's driver in "void *alloc_context".
+> >> 
+> >> Moving information about device would introduce new problems like:
+> >> - breaking layering in vb2
+> >> - some allocators like vb2-vmalloc do not posses any device related
+> >> attributes
+> > 
+> > What about passing the device to vb2-core then ?
+> 
+> IMO, One way to do this is adding field 'struct device *dev' to struct
+> vb2_queue. This field should be filled by a driver prior to calling
+> vb2_queue_init.
 
-I don't think that SCR/Unicable, bandstacking, LNBf settings, rotor
-control, etc. should belong to the Kernel. There are too many variants,
-and several of them are not properly standardized or properly implemented.
-Also, the actual options to use will depend on what type of DiSEqC components
-used on his particular setup. So, it would be very difficult to write
-something at the Kernel that will fit in all cases.
+I haven't looked into the details, but that sounds good to me. Do we have use 
+cases where a queue is allocated before knowing which physical device it will 
+be used for ?
 
-What the Kernel should support is the capability of sending/receiving DiSEqC
-commands, allowing userspace libraries to do the job of setting it. Such
-feature is already there, so there's no need to change anything there.
-
-That's said, I'm working on a library to be used by applications that want
-to talk with DVB devices. Together, with the library, there are a scanning
-tool and a zapping tool.
-
-So, inspired by this patch, and using a public tech note about SCR/Unicable [1],
-I wrote an Unicable patch for such library:
-
-	http://git.linuxtv.org/v4l-utils.git/commit/6c2c00ed3722465ed781ad49567e34dc7a5f92e7
-
-I'm currently without DVB-S/DVB-S2 antennas, so, I was not able to test it.
-
-It would be very nice if you could help us by testing if those tools are
-working with DVB-S with SCR, and, if not, help fixing its support.
-
-[1] http://www.st.com/internet/com/TECHNICAL_RESOURCES/TECHNICAL_LITERATURE/APPLICATION_NOTE/CD00045084.pdf
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
