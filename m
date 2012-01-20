@@ -1,47 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cluster-k.mailcontrol.com ([116.50.57.190]:56839 "EHLO
-	cluster-k.mailcontrol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750948Ab2AXFNS convert rfc822-to-8bit (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:56717 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753864Ab2ATQOj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 00:13:18 -0500
-Received: from mail2.fujitsu.com.au (mail2.fujitsu.com.au [216.14.192.226])
-	by rly08k.srv.mailcontrol.com (MailControl) with ESMTP id q0O4fjBH009197
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 04:41:47 GMT
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail2.fujitsu.com.au (Postfix) with ESMTP id 953B14DB4CF
-	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 15:41:45 +1100 (EST)
-Received: from mail2.fujitsu.com.au ([127.0.0.1])
-	by localhost (mail2.fujitsu.com.au [127.0.0.1]) (amavisd-new, port 10024)
-	with LMTP id n9AuxyJxYY+O for <linux-media@vger.kernel.org>;
-	Tue, 24 Jan 2012 15:41:45 +1100 (EST)
-Received: from SYD0633.au.fujitsu.com (unknown [137.172.78.132])
-	(using TLSv1 with cipher RC4-MD5 (128/128 bits))
-	(Client did not present a certificate)
-	by mail2.fujitsu.com.au (Postfix) with ESMTP id 6C5D44DB4C6
-	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 15:41:45 +1100 (EST)
-Content-Class: urn:content-classes:message
+	Fri, 20 Jan 2012 11:14:39 -0500
+Received: by pbaa10 with SMTP id a10so407492pba.19
+        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 08:14:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Subject: HVR 4000 hybrid card still producing multiple frontends for single adapter
-Date: Tue, 24 Jan 2012 15:41:01 +1100
-Message-ID: <44895934A66CD441A02DCF15DD759BA0011CAE69@SYDEXCHTMP2.au.fjanz.com>
-From: "Hawes, Mark" <MARK.HAWES@au.fujitsu.com>
-To: <linux-media@vger.kernel.org>
+Date: Fri, 20 Jan 2012 18:14:39 +0200
+Message-ID: <CAJySFW+2FOjFEGyitbnNQBdaZ56RhGbZh0u4XhJ_8-7VgKe_cw@mail.gmail.com>
+Subject: Remote control driver issue
+From: Tayeb Meftah <tayeb.meftah@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-I have a HVR 4000 hybrid card  which provides both DVB-S2 and DVB-T capabilities on the one adapter. Using the current media tree build updated with the contents of the linux media drivers tarball dated 22/01/2012 the drivers for this card are still generating two frontends on the adapter as below:
-
-> Jan 23 12:16:44 Nutrigrain kernel: [    9.346240] DVB: registering adapter 1 frontend 0 (Conexant CX24116/CX24118)...
-> Jan 23 12:16:44 Nutrigrain kernel: [    9.349110] DVB: registering adapter 1 frontend 1 (Conexant CX22702 DVB-T)...
-
-I understand that this behaviour is now deprecated and that the correct behaviour should be to generate one front end with multiple capabilities. Can this please be corrected.
-
-Thanks,
-
-Mark Hawes.
-
+Hello folks,
+i am a linux-TV newby;
+dreaming to get my vdr up and runing for up to 4month
+i am a blind user and have a limited access to the linux machine due
+to my blindness, i access windows normaly, then ssh to linux (*SORY
+FOR THAT*)
+so,
+i set up my debian machine correctly, runing, dbvb card detected,
+scaned, working through multicast using mumuDVB
+thank a lot to the #linuxtv people on freenode
+they helped me a lot so i should return something:)
+i installed v4l into my debian machine
+if i do make load my remote control get detected
+but if i reboot;
+Couldn't find any node at /sys/class/rc/rc*.
+so please how to make it auto loadable?
+i should do that every time my pc reboot, make load
+thank you a lot
+BTW, can i help with mailing list moderation ?
