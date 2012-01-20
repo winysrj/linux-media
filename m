@@ -1,87 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53916 "EHLO mx1.redhat.com"
+Received: from lo.gmane.org ([80.91.229.12]:44984 "EHLO lo.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932318Ab2AEBBM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:12 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511BfI016666
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:11 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 40/47] [media] mt2063: Print a message about the detected mt2063 type
-Date: Wed,  4 Jan 2012 23:00:51 -0200
-Message-Id: <1325725258-27934-41-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1753773Ab2ATPxi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jan 2012 10:53:38 -0500
+Received: from list by lo.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1RoGmW-00058r-Rf
+	for linux-media@vger.kernel.org; Fri, 20 Jan 2012 16:53:36 +0100
+Received: from 217-67-201-162.itsa.net.pl ([217.67.201.162])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 16:53:36 +0100
+Received: from t.stanislaws by 217-67-201-162.itsa.net.pl with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 16:53:36 +0100
+To: linux-media@vger.kernel.org
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Date: Fri, 20 Jan 2012 16:53:20 +0100
+Message-ID: <4F198DF0.7000801@samsung.com>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <CAO_48GEo8icpXrFh_VmGUF-MU2N9BU=xrVVN0VRG37j5NbC0sQ@mail.gmail.com> <4F1948DF.2060207@samsung.com> <201201201612.31821.laurent.pinchart@ideasonboard.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
+	rob@ti.com, daniel@ffwll.ch, patches@linaro.org
+In-Reply-To: <201201201612.31821.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This also helps to identify when a device is not initialized,
-if the bridge doesn't return an error for a I2C failed transfer.
+Hi Laurent,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mt2063.c |   26 ++++++++++++++++++++++----
- 1 files changed, 22 insertions(+), 4 deletions(-)
+On 01/20/2012 04:12 PM, Laurent Pinchart wrote:
+> Hi Tomasz,
+>
+> On Friday 20 January 2012 11:58:39 Tomasz Stanislawski wrote:
+>> On 01/20/2012 11:41 AM, Sumit Semwal wrote:
+>>> On 20 January 2012 00:37, Pawel Osciak<pawel@osciak.com>   wrote:
+>>>> Hi Sumit,
+>>>> Thank you for your work. Please find my comments below.
+>>>
+>>> Hi Pawel,
+>>>
+<snip>
+>>>>>    struct vb2_mem_ops {
+>>>>>
+>>>>>          void            *(*alloc)(void *alloc_ctx, unsigned long size);
+>>>>>
+>>>>> @@ -65,6 +82,16 @@ struct vb2_mem_ops {
+>>>>>
+>>>>>                                          unsigned long size, int write);
+>>>>>
+>>>>>          void            (*put_userptr)(void *buf_priv);
+>>>>>
+>>>>> +       /* Comment from Rob Clark: XXX: I think the attach / detach
+>>>>> could be handled +        * in the vb2 core, and vb2_mem_ops really
+>>>>> just need to get/put the +        * sglist (and make sure that the
+>>>>> sglist fits it's needs..) +        */
+>>>>
+>>>> I *strongly* agree with Rob here. Could you explain the reason behind
+>>>> not doing this?
+>>>> Allocator should ideally not have to be aware of attaching/detaching,
+>>>> this is not specific to an allocator.
+>>>
+>>> Ok, I thought we'll start with this version first, and then refine.
+>>> But you guys are right.
+>>
+>> I think that it is not possible to move attach/detach to vb2-core. The
+>> problem is that dma_buf_attach needs 'struct device' argument. This
+>> pointer is not available in vb2-core. This pointer is delivered by
+>> device's driver in "void *alloc_context".
+>>
+>> Moving information about device would introduce new problems like:
+>> - breaking layering in vb2
+>> - some allocators like vb2-vmalloc do not posses any device related
+>> attributes
+>
+> What about passing the device to vb2-core then ?
+>
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index db347d9..fdf6050 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -1790,6 +1790,7 @@ static int mt2063_init(struct dvb_frontend *fe)
- 	struct mt2063_state *state = fe->tuner_priv;
- 	u8 all_resets = 0xF0;	/* reset/load bits */
- 	const u8 *def = NULL;
-+	char *step;
- 	u32 FCRUN;
- 	s32 maxReads;
- 	u32 fcu_osc;
-@@ -1807,10 +1808,24 @@ static int mt2063_init(struct dvb_frontend *fe)
- 	}
- 
- 	/* Check the part/rev code */
--	if (((state->reg[MT2063_REG_PART_REV] != MT2063_B0)	/*  MT2063 B0  */
--	    && (state->reg[MT2063_REG_PART_REV] != MT2063_B1)	/*  MT2063 B1  */
--	    && (state->reg[MT2063_REG_PART_REV] != MT2063_B3)))	/*  MT2063 B3  */
-+	switch (state->reg[MT2063_REG_PART_REV]) {
-+	case MT2063_B0:
-+		step = "B0";
-+		break;
-+	case MT2063_B1:
-+		step = "B1";
-+		break;
-+	case MT2063_B2:
-+		step = "B2";
-+		break;
-+	case MT2063_B3:
-+		step = "B3";
-+		break;
-+	default:
-+		printk(KERN_ERR "mt2063: Unknown mt2063 device ID (0x%02x)\n",
-+		       state->reg[MT2063_REG_PART_REV]);
- 		return -ENODEV;	/*  Wrong tuner Part/Rev code */
-+	}
- 
- 	/*  Check the 2nd byte of the Part/Rev code from the tuner */
- 	status = mt2063_read(state, MT2063_REG_RSVD_3B,
-@@ -1818,10 +1833,13 @@ static int mt2063_init(struct dvb_frontend *fe)
- 
- 	/* b7 != 0 ==> NOT MT2063 */
- 	if (status < 0 || ((state->reg[MT2063_REG_RSVD_3B] & 0x80) != 0x00)) {
--		printk(KERN_ERR "Can't read mt2063 2nd part ID\n");
-+		printk(KERN_ERR "mt2063: Unknown 2nd part ID\n");
- 		return -ENODEV;	/*  Wrong tuner Part/Rev code */
- 	}
- 
-+	dprintk(1, "Discovered a mt2063 %s (2nd part number 0x%02x)\n",
-+		step, state->reg[MT2063_REG_RSVD_3B]);
-+
- 	/*  Reset the tuner  */
- 	status = mt2063_write(state, MT2063_REG_LO2CQ_3, &all_resets, 1);
- 	if (status < 0)
--- 
-1.7.7.5
+IMO, One way to do this is adding field 'struct device *dev' to struct 
+vb2_queue. This field should be filled by a driver prior to calling 
+vb2_queue_init.
+
+Regards,
+Tomasz Stanislawski
 
