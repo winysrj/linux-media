@@ -1,208 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:41428 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933953Ab2AKV1M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:27:12 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH 04/23] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
-Date: Wed, 11 Jan 2012 23:26:41 +0200
-Message-Id: <1326317220-15339-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F0DFE92.80102@iki.fi>
-References: <4F0DFE92.80102@iki.fi>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:19061 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750877Ab2ATK6o (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jan 2012 05:58:44 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LY300A2XFTU6U40@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Jan 2012 10:58:42 +0000 (GMT)
+Received: from [106.116.48.223] by spt1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LY3005PPFTTI9@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 20 Jan 2012 10:58:42 +0000 (GMT)
+Date: Fri, 20 Jan 2012 11:58:39 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+In-reply-to: <CAO_48GEo8icpXrFh_VmGUF-MU2N9BU=xrVVN0VRG37j5NbC0sQ@mail.gmail.com>
+To: Sumit Semwal <sumit.semwal@linaro.org>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
+	rob@ti.com, daniel@ffwll.ch, patches@linaro.org
+Message-id: <4F1948DF.2060207@samsung.com>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+ <1325760118-27997-3-git-send-email-sumit.semwal@ti.com>
+ <CAMm-=zB+Sg4XZX_MLGt1fvURCFf8QbWcmZHSUbMYbGfiSz2+gg@mail.gmail.com>
+ <CAO_48GEo8icpXrFh_VmGUF-MU2N9BU=xrVVN0VRG37j5NbC0sQ@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
-IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
-VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
 
-VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+Hi Sumit and Pawel,
+Please find comments below.
+On 01/20/2012 11:41 AM, Sumit Semwal wrote:
+> On 20 January 2012 00:37, Pawel Osciak<pawel@osciak.com>  wrote:
+>> Hi Sumit,
+>> Thank you for your work. Please find my comments below.
+> Hi Pawel,
+>
+> Thank you for finding time for this review, and your comments :) - my
+> comments inline.
+> [Also, as an aside, Tomasz has also been working on the vb2 adaptation
+> to dma-buf, and his patches should be more comprehensive, in that he
+> is also planning to include 'vb2 as exporter' of dma-buf. He might
+> take and improve on this RFC, so it might be worthwhile to wait for
+> it?]
+>>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/v4l2-subdev.c |   34 +++++++++++++++++++--------
- include/linux/v4l2-subdev.h       |   45 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h       |   21 ++++++++++++++---
- 3 files changed, 86 insertions(+), 14 deletions(-)
+<snip>
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 65ade5f..9de25a6 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -35,14 +35,9 @@
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	/* Allocate try format and crop in the same memory block */
--	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
--			      * sd->entity.num_pads, GFP_KERNEL);
--	if (fh->try_fmt == NULL)
-+	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-+	if (fh->pad == NULL)
- 		return -ENOMEM;
--
--	fh->try_crop = (struct v4l2_rect *)
--		(fh->try_fmt + sd->entity.num_pads);
- #endif
- 	return 0;
- }
-@@ -50,9 +45,8 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- static void subdev_fh_free(struct v4l2_subdev_fh *fh)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	kfree(fh->try_fmt);
--	fh->try_fmt = NULL;
--	fh->try_crop = NULL;
-+	kfree(fh->pad);
-+	fh->pad = NULL;
- #endif
- }
- 
-@@ -281,6 +275,26 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
- 					fie);
- 	}
-+
-+	case VIDIOC_SUBDEV_G_SELECTION: {
-+		struct v4l2_subdev_selection *sel = arg;
-+
-+		if (sel->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(
-+			sd, pad, get_selection, subdev_fh, sel);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_SELECTION: {
-+		struct v4l2_subdev_selection *sel = arg;
-+
-+		if (sel->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(
-+			sd, pad, set_selection, subdev_fh, sel);
-+	}
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index ed29cbb..d53d775 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -123,6 +123,47 @@ struct v4l2_subdev_frame_interval_enum {
- 	__u32 reserved[9];
- };
- 
-+#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
-+#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
-+#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
-+
-+/* active cropping area */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0
-+/* default cropping area */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_DEFAULT		1
-+/* cropping bounds */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			2
-+/* current composing area */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		256
-+/* default composing area */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_DEFAULT		257
-+/* composing bounds */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		258
-+
-+
-+/**
-+ * struct v4l2_subdev_selection - selection info
-+ *
-+ * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
-+ * @pad: pad number, as reported by the media API
-+ * @target: selection target, used to choose one of possible rectangles
-+ * @flags: constraints flags
-+ * @r: coordinates of selection window
-+ * @reserved: for future use, rounds structure size to 64 bytes, set to zero
-+ *
-+ * Hardware may use multiple helper window to process a video stream.
-+ * The structure is used to exchange this selection areas between
-+ * an application and a driver.
-+ */
-+struct v4l2_subdev_selection {
-+	__u32 which;
-+	__u32 pad;
-+	__u32 target;
-+	__u32 flags;
-+	struct v4l2_rect r;
-+	__u32 reserved[8];
-+};
-+
- #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-@@ -137,5 +178,9 @@ struct v4l2_subdev_frame_interval_enum {
- 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
- #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
- #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
-+#define VIDIOC_SUBDEV_G_SELECTION \
-+	_IOWR('V', 61, struct v4l2_subdev_selection)
-+#define VIDIOC_SUBDEV_S_SELECTION \
-+	_IOWR('V', 62, struct v4l2_subdev_selection)
- 
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index f0f3358..feab950 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
- 		       struct v4l2_subdev_crop *crop);
- 	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       struct v4l2_subdev_crop *crop);
-+	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_selection *sel);
-+	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_selection *sel);
- };
- 
- struct v4l2_subdev_ops {
-@@ -549,8 +553,11 @@ struct v4l2_subdev {
- struct v4l2_subdev_fh {
- 	struct v4l2_fh vfh;
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	struct v4l2_mbus_framefmt *try_fmt;
--	struct v4l2_rect *try_crop;
-+	struct {
-+		struct v4l2_mbus_framefmt try_fmt;
-+		struct v4l2_rect try_crop;
-+		struct v4l2_rect try_compose;
-+	} *pad;
- #endif
- };
- 
-@@ -561,13 +568,19 @@ struct v4l2_subdev_fh {
- static inline struct v4l2_mbus_framefmt *
- v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
- {
--	return &fh->try_fmt[pad];
-+	return &fh->pad[pad].try_fmt;
- }
- 
- static inline struct v4l2_rect *
- v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
- {
--	return &fh->try_crop[pad];
-+	return &fh->pad[pad].try_crop;
-+}
-+
-+static inline struct v4l2_rect *
-+v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->pad[pad].try_compose;
- }
- #endif
- 
--- 
-1.7.2.5
+>>>   struct vb2_mem_ops {
+>>>         void            *(*alloc)(void *alloc_ctx, unsigned long size);
+>>> @@ -65,6 +82,16 @@ struct vb2_mem_ops {
+>>>                                         unsigned long size, int write);
+>>>         void            (*put_userptr)(void *buf_priv);
+>>>
+>>> +       /* Comment from Rob Clark: XXX: I think the attach / detach could be handled
+>>> +        * in the vb2 core, and vb2_mem_ops really just need to get/put the
+>>> +        * sglist (and make sure that the sglist fits it's needs..)
+>>> +        */
+>>
+>> I *strongly* agree with Rob here. Could you explain the reason behind
+>> not doing this?
+>> Allocator should ideally not have to be aware of attaching/detaching,
+>> this is not specific to an allocator.
+>>
+> Ok, I thought we'll start with this version first, and then refine.
+> But you guys are right.
+
+I think that it is not possible to move attach/detach to vb2-core. The 
+problem is that dma_buf_attach needs 'struct device' argument. This 
+pointer is not available in vb2-core. This pointer is delivered by 
+device's driver in "void *alloc_context".
+
+Moving information about device would introduce new problems like:
+- breaking layering in vb2
+- some allocators like vb2-vmalloc do not posses any device related 
+attributes
+
+Best regards,
+Tomasz Stanislawski
+
+>
+>> --
+>> Best regards,
+>> Pawel Osciak
+>
 
