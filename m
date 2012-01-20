@@ -1,54 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50200 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755379Ab2AEKma (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 05:42:30 -0500
-From: Sumit Semwal <sumit.semwal@ti.com>
-To: <linaro-mm-sig@lists.linaro.org>, <linux-media@vger.kernel.org>,
-	<arnd@arndb.de>
-CC: <jesse.barker@linaro.org>, <m.szyprowski@samsung.com>,
-	<rob@ti.com>, <daniel@ffwll.ch>, <t.stanislaws@samsung.com>,
-	<patches@linaro.org>, Sumit Semwal <sumit.semwal@ti.com>
-Subject: [RFCv1 3/4] v4l:vb: remove warnings about MEMORY_DMABUF
-Date: Thu, 5 Jan 2012 16:11:57 +0530
-Message-ID: <1325760118-27997-4-git-send-email-sumit.semwal@ti.com>
-In-Reply-To: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34467 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753612Ab2ATQ3A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jan 2012 11:29:00 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Date: Fri, 20 Jan 2012 17:28:58 +0100
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
+	rob@ti.com, daniel@ffwll.ch, patches@linaro.org
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <201201201711.50965.laurent.pinchart@ideasonboard.com> <4F199446.6040403@samsung.com>
+In-Reply-To: <4F199446.6040403@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201201729.00230.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adding DMABUF memory type causes videobuf to complain about not using it
-in some switch cases. This patch removes these warnings.
+On Friday 20 January 2012 17:20:22 Tomasz Stanislawski wrote:
+> >> IMO, One way to do this is adding field 'struct device *dev' to struct
+> >> vb2_queue. This field should be filled by a driver prior to calling
+> >> vb2_queue_init.
+> > 
+> > I haven't looked into the details, but that sounds good to me. Do we have
+> > use cases where a queue is allocated before knowing which physical
+> > device it will be used for ?
+> 
+> I don't think so. In case of S5P drivers, vb2_queue_init is called while
+> opening /dev/videoX.
+> 
+> BTW. This struct device may help vb2 to produce logs with more
+> descriptive client annotation.
+> 
+> What happens if such a device is NULL. It would happen for vmalloc
+> allocator used by VIVI?
 
-Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
----
- drivers/media/video/videobuf-core.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
+Good question. Should dma-buf accept NULL devices ? Or should vivi pass its 
+V4L2 device to vb2 ?
 
-diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-index de4fa4e..b457c8b 100644
---- a/drivers/media/video/videobuf-core.c
-+++ b/drivers/media/video/videobuf-core.c
-@@ -335,6 +335,9 @@ static void videobuf_status(struct videobuf_queue *q, struct v4l2_buffer *b,
- 	case V4L2_MEMORY_OVERLAY:
- 		b->m.offset  = vb->boff;
- 		break;
-+	case V4L2_MEMORY_DMABUF:
-+		/* DMABUF is not handled in videobuf framework */
-+		break;
- 	}
- 
- 	b->flags    = 0;
-@@ -411,6 +414,7 @@ int __videobuf_mmap_setup(struct videobuf_queue *q,
- 			break;
- 		case V4L2_MEMORY_USERPTR:
- 		case V4L2_MEMORY_OVERLAY:
-+		case V4L2_MEMORY_DMABUF:
- 			/* nothing */
- 			break;
- 		}
 -- 
-1.7.5.4
+Regards,
 
+Laurent Pinchart
