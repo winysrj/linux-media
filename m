@@ -1,166 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:42187 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753009Ab2AAW3e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 17:29:34 -0500
-Date: Mon, 2 Jan 2012 00:29:28 +0200
-From: 'Sakari Ailus' <sakari.ailus@iki.fi>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
-	'Sebastian =?iso-8859-1?Q?Dr=F6ge'?=
-	<sebastian.droege@collabora.co.uk>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-Message-ID: <20120101222928.GJ3677@valkosipuli.localdomain>
-References: <ADF13DA15EB3FE4FBA487CCC7BEFDF36225500763A@bssrvexch01>
- <4ED8C61C.3060404@redhat.com>
- <20111202135748.GO29805@valkosipuli.localdomain>
- <4ED901C9.2050109@redhat.com>
- <20111206143538.GD938@valkosipuli.localdomain>
- <00da01ccb428$3c9522c0$b5bf6840$%debski@samsung.com>
- <20111209195440.GB1967@valkosipuli.localdomain>
- <003501ccb8b7$3617d800$a2478800$%debski@samsung.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:59419 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752615Ab2ATNWa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jan 2012 08:22:30 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+CC: Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 1/2] media: add new mediabus format enums for dm365
+Date: Fri, 20 Jan 2012 18:52:18 +0530
+Message-ID: <1327065739-3362-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1327065739-3362-1-git-send-email-manjunath.hadli@ti.com>
+References: <1327065739-3362-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <003501ccb8b7$3617d800$a2478800$%debski@samsung.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+add new enum entries for supporting the media-bus formats on dm365.
+These include some bayer and some non-bayer formats.
+V4L2_MBUS_FMT_YDYC8_1X16 and V4L2_MBUS_FMT_UV8_1X8 are used
+internal to the hardware by the resizer.
+V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 represents the bayer ALAW format
+that is supported by dm365 hardware.
 
-Apologies for my later reply.
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/subdev-formats.xml |  171 ++++++++++++++++++++
+ include/linux/v4l2-mediabus.h                      |   10 +-
+ 2 files changed, 179 insertions(+), 2 deletions(-)
 
-On Mon, Dec 12, 2011 at 11:17:06AM +0100, Kamil Debski wrote:
-> > -----Original Message-----
-> > From: 'Sakari Ailus' [mailto:sakari.ailus@iki.fi]
-> > Sent: 09 December 2011 20:55
-> > To: Kamil Debski
-> > Cc: 'Mauro Carvalho Chehab'; linux-media@vger.kernel.org; 'Laurent Pinchart';
-> > 'Sebastian Dröge'; Sylwester Nawrocki; Marek Szyprowski
-> > Subject: Re: [RFC] Resolution change support in video codecs in v4l2
-> > 
-> > Hi Kamil,
-> > 
-> > On Tue, Dec 06, 2011 at 04:03:33PM +0100, Kamil Debski wrote:
-> > ...
-> > > > > >The user space still wants to be able to show these buffers, so a new
-> > > > flag
-> > > > > >would likely be required --- V4L2_BUF_FLAG_READ_ONLY, for example.
-> > > > >
-> > > > > Huh? Assuming a capture device, when kernel makes a buffer available
-> > to
-> > > > userspace,
-> > > > > kernel should not touch on it anymore (not even for read - although
-> > > > reading from
-> > > > > it probably won't cause any issues, as video applications in general
-> > don't
-> > > > write
-> > > > > into those buffers). The opposite is true for output devices: once
-> > > > userspace fills it,
-> > > > > and queues, it should not touch that buffer again.
-> > > > >
-> > > > > This is part of the queue/dequeue logic. I can't see any need for an
-> > extra
-> > > > > flag to explicitly say that.
-> > > >
-> > > > There is a reason to do so. An example of this is below. The
-> > > > memory-to-memory device has two queues, output can capture. A video
-> > decoder
-> > > > memory-to-memory device's output queue handles compressed video and the
-> > > > capture queue provides the application decoded frames.
-> > > >
-> > > > Certain frames in the stream are key frames, meaning that the decoding
-> > of
-> > > > the following non-key frames requires access to the key frame. The
-> > number of
-> > > > non-key frame can be relatively large, say 16, depending on the codec.
-> > > >
-> > > > If the user should wait for all the frames to be decoded before the key
-> > > > frame can be shown, then either the key frame is to be skipped or
-> > delayed.
-> > > > Both of the options are highly undesirable.
-> > >
-> > > I don't think that such a delay is worrisome. This is only initial delay.
-> > > The hw will process these N buffers and after that it works exactly the
-> > same
-> > > as it would without the delay in terms of processing time.
-> > 
-> > Well, yes, but consider that the decoder also processes key frames when the
-> > decoding is in progress. The dequeueing of the key frames (and any further
-> > frames as long as the key frame is needed by the decoder) will be delayed
-> > until the key frame is no longer required.
-> > 
-> > You need extra buffers to cope with such a situation, and in the worst case,
-> > or when the decoder is just as fast as you want to show the frames on the
-> > display, you need double the amount of buffers compared to what you'd really
-> > need for decoding. To make matters worse, this tends to happen at largest
-> > resolutions.
-> > 
-> > I think we'd like to avoid this.
-> 
-> I really, really, don’t see why you say that we would need double the number of
-> buffers?
-> 
-> Let's suppose that the stream may reference 2 previous frames.
-> 
-> Frame number:     123456789ABCDEF
-> Returned frame:     123456789ABCDEF
-> Buffers returned:   123123123123... (in case we have only 3 buffers)
-> 
-> See? After we decode frame number 3 we can return frame number 3. Thus we need
-> minimum of 3 buffers. If we want to have 4 for simultaneous the use of
-> application
-> we allocate 7. 
-> 
-> The current codec handling system has been build on the following assumptions:
-> - the buffers should be dequeued in order
-> - the buffers should be only dequeued when they are no longer is use
-
-What does "in use" mean to you? Both read and write, or just read?
-
-Assume frame 1 is required to decode frames 2 and 3.
-
-If we delay dequeueing of te first of the above three frames since the codec
-accesses it for reading, we will also delay dequeueing of any subsequent
-frames until the first frame is decoded. If this is repeated, and assuming
-the speed of the decoder is the same as playback of those frames, the player
-will require a minimum of six frames to cope with the uneven time interval
-the decoder will be able to give those frames to the player. Otherwise, only
-three frames would be enough.
-
-> This takes care of the delay related problems by requiring more buffers.
-> You have an initial delay then the frames are returned with a constant rate.
-> 
-> Dequeuing of any frame will be delayed until it is no longer used - it doesn't
-> matter whether it is a key (I) frame, P frame o r a B frame. Actually B frames
-> shouldn't be used as reference. Usually a frame is referencing only 2-3 previous
-> and maybe 1 ahead (for B-frames) frames and they don't need to be I-frames. Still
-> the interval between I-frames may be 16 or even many, many, more.
-
-Considering it can be 16 or even more, I see even more reason in returning
-frames when hardware only reads them.
-
-I'm not against making it configurable for the user, keeping the traditional
-behaviour could be beneficial as well if the user wishes to further precess
-the frames in-place.
-
-...
-
-> Anyway I can definitely recommend the book "H.264 and MPEG-4 video compression:
-> Video coding for next-generation multimedia" by Iain E.G. Richardson. It is a
-> good
-> book about video coding and modern codecs with many things explained. It would
-> help
-> to get you around with codecs and could answer many of your questions.
-> http://www.amazon.com/H-264-MPEG-4-Video-Compression-Generation/dp/0470848375
-
-Thanks for the pointer.
-
+diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+index 49c532e..48d92bb 100644
+--- a/Documentation/DocBook/media/v4l/subdev-formats.xml
++++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+@@ -356,6 +356,9 @@
+ 	<listitem><para>If the pixel components are DPCM-compressed, a mention of the
+ 	DPCM compression and the number of bits per compressed pixel component.</para>
+ 	</listitem>
++	<listitem><para>If the pixel components are ALAW-compressed, a mention of the
++	ALAW compression and the number of bits per compressed pixel component.</para>
++	</listitem>
+ 	<listitem><para>The number of bus samples per pixel. Pixels that are wider than
+ 	the bus width must be transferred in multiple samples. Common values are
+ 	1 and 2.</para></listitem>
+@@ -572,6 +575,74 @@
+ 	      <entry>r<subscript>1</subscript></entry>
+ 	      <entry>r<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-SBGGR10-ALAW8-1X8">
++	      <entry>V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8</entry>
++	      <entry>0x3015</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>b<subscript>7</subscript></entry>
++	      <entry>b<subscript>6</subscript></entry>
++	      <entry>b<subscript>5</subscript></entry>
++	      <entry>b<subscript>4</subscript></entry>
++	      <entry>b<subscript>3</subscript></entry>
++	      <entry>b<subscript>2</subscript></entry>
++	      <entry>b<subscript>1</subscript></entry>
++	      <entry>b<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-SGBRG10-ALAW8-1X8">
++	      <entry>V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8</entry>
++	      <entry>0x3016</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>g<subscript>7</subscript></entry>
++	      <entry>g<subscript>6</subscript></entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-SGRBG10-ALAW8-1X8">
++	      <entry>V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8</entry>
++	      <entry>0x3017</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>g<subscript>7</subscript></entry>
++	      <entry>g<subscript>6</subscript></entry>
++	      <entry>g<subscript>5</subscript></entry>
++	      <entry>g<subscript>4</subscript></entry>
++	      <entry>g<subscript>3</subscript></entry>
++	      <entry>g<subscript>2</subscript></entry>
++	      <entry>g<subscript>1</subscript></entry>
++	      <entry>g<subscript>0</subscript></entry>
++	    </row>
++	    <row id="V4L2-MBUS-FMT-SRGGB10-ALAW8-1X8">
++	      <entry>V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8</entry>
++	      <entry>0x3018</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>r<subscript>7</subscript></entry>
++	      <entry>r<subscript>6</subscript></entry>
++	      <entry>r<subscript>5</subscript></entry>
++	      <entry>r<subscript>4</subscript></entry>
++	      <entry>r<subscript>3</subscript></entry>
++	      <entry>r<subscript>2</subscript></entry>
++	      <entry>r<subscript>1</subscript></entry>
++	      <entry>r<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="V4L2-MBUS-FMT-SBGGR10-2X8-PADHI-BE">
+ 	      <entry>V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE</entry>
+ 	      <entry>0x3003</entry>
+@@ -965,6 +1036,56 @@
+ 	      <entry>y<subscript>1</subscript></entry>
+ 	      <entry>y<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-UV8-1X8">
++	      <entry>V4L2_MBUS_FMT_UV8_1X8</entry>
++	      <entry>0x2015</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>u<subscript>7</subscript></entry>
++	      <entry>u<subscript>6</subscript></entry>
++	      <entry>u<subscript>5</subscript></entry>
++	      <entry>u<subscript>4</subscript></entry>
++	      <entry>u<subscript>3</subscript></entry>
++	      <entry>u<subscript>2</subscript></entry>
++	      <entry>u<subscript>1</subscript></entry>
++	      <entry>u<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>v<subscript>7</subscript></entry>
++	      <entry>v<subscript>6</subscript></entry>
++	      <entry>v<subscript>5</subscript></entry>
++	      <entry>v<subscript>4</subscript></entry>
++	      <entry>v<subscript>3</subscript></entry>
++	      <entry>v<subscript>2</subscript></entry>
++	      <entry>v<subscript>1</subscript></entry>
++	      <entry>v<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="V4L2-MBUS-FMT-UYVY8-1_5X8">
+ 	      <entry>V4L2_MBUS_FMT_UYVY8_1_5X8</entry>
+ 	      <entry>0x2002</entry>
+@@ -2415,6 +2536,56 @@
+ 	      <entry>u<subscript>1</subscript></entry>
+ 	      <entry>u<subscript>0</subscript></entry>
+ 	    </row>
++	    <row id="V4L2-MBUS-FMT-YDYC8-1X16">
++	      <entry>V4L2_MBUS_FMT_YDYC8_1X16</entry>
++	      <entry>0x2014</entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>d<subscript>7</subscript></entry>
++	      <entry>d<subscript>6</subscript></entry>
++	      <entry>d<subscript>5</subscript></entry>
++	      <entry>d<subscript>4</subscript></entry>
++	      <entry>d<subscript>3</subscript></entry>
++	      <entry>d<subscript>2</subscript></entry>
++	      <entry>d<subscript>1</subscript></entry>
++	      <entry>d<subscript>0</subscript></entry>
++	    </row>
++	    <row>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry></entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>-</entry>
++	      <entry>y<subscript>7</subscript></entry>
++	      <entry>y<subscript>6</subscript></entry>
++	      <entry>y<subscript>5</subscript></entry>
++	      <entry>y<subscript>4</subscript></entry>
++	      <entry>y<subscript>3</subscript></entry>
++	      <entry>y<subscript>2</subscript></entry>
++	      <entry>y<subscript>1</subscript></entry>
++	      <entry>y<subscript>0</subscript></entry>
++	      <entry>c<subscript>7</subscript></entry>
++	      <entry>c<subscript>6</subscript></entry>
++	      <entry>c<subscript>5</subscript></entry>
++	      <entry>c<subscript>4</subscript></entry>
++	      <entry>c<subscript>3</subscript></entry>
++	      <entry>c<subscript>2</subscript></entry>
++	      <entry>c<subscript>1</subscript></entry>
++	      <entry>c<subscript>0</subscript></entry>
++	    </row>
+ 	    <row id="V4L2-MBUS-FMT-YUYV10-1X20">
+ 	      <entry>V4L2_MBUS_FMT_YUYV10_1X20</entry>
+ 	      <entry>0x200d</entry>
+diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
+index 5ea7f75..8d68fa1 100644
+--- a/include/linux/v4l2-mediabus.h
++++ b/include/linux/v4l2-mediabus.h
+@@ -47,8 +47,9 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_RGB565_2X8_BE = 0x1007,
+ 	V4L2_MBUS_FMT_RGB565_2X8_LE = 0x1008,
+ 
+-	/* YUV (including grey) - next is 0x2014 */
++	/* YUV (including grey) - next is 0x2016 */
+ 	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
++	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+ 	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+ 	V4L2_MBUS_FMT_VYUY8_1_5X8 = 0x2003,
+ 	V4L2_MBUS_FMT_YUYV8_1_5X8 = 0x2004,
+@@ -65,10 +66,11 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_VYUY8_1X16 = 0x2010,
+ 	V4L2_MBUS_FMT_YUYV8_1X16 = 0x2011,
+ 	V4L2_MBUS_FMT_YVYU8_1X16 = 0x2012,
++	V4L2_MBUS_FMT_YDYC8_1X16 = 0x2014,
+ 	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+ 	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+ 
+-	/* Bayer - next is 0x3015 */
++	/* Bayer - next is 0x3019 */
+ 	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
+ 	V4L2_MBUS_FMT_SGBRG8_1X8 = 0x3013,
+ 	V4L2_MBUS_FMT_SGRBG8_1X8 = 0x3002,
+@@ -77,6 +79,10 @@ enum v4l2_mbus_pixelcode {
+ 	V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8 = 0x300c,
+ 	V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8 = 0x3009,
+ 	V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8 = 0x300d,
++	V4L2_MBUS_FMT_SBGGR10_ALAW8_1X8 = 0x3015,
++	V4L2_MBUS_FMT_SGBRG10_ALAW8_1X8 = 0x3016,
++	V4L2_MBUS_FMT_SGRBG10_ALAW8_1X8 = 0x3017,
++	V4L2_MBUS_FMT_SRGGB10_ALAW8_1X8 = 0x3018,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE = 0x3003,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE = 0x3004,
+ 	V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE = 0x3005,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.6.2.4
+
