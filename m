@@ -1,50 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:30842 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751422Ab2ADGp3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 01:45:29 -0500
-Date: Wed, 4 Jan 2012 09:45:21 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org
-Subject: re: [media] cx23885-dvb: Remove a dirty hack that would require DVBv3
-Message-ID: <20120104064521.GA29273@elgon.mountain>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53084 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751820Ab2ATNei (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jan 2012 08:34:38 -0500
+Received: by eekc14 with SMTP id c14so215090eek.19
+        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 05:34:37 -0800 (PST)
+Message-ID: <4F196D6A.3020704@gmail.com>
+Date: Fri, 20 Jan 2012 14:34:34 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+CC: Benjamin Limmer <benjamin.limmer@readytalk.com>
+Subject: Re: Build change in media_build to support Debian
+References: <52FE2DCC5CDB044F8C0070326FFDFBF30A3542@WYNENT02.readytalk.com> <4F193FF9.4030604@redhat.com>
+In-Reply-To: <4F193FF9.4030604@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Mauro Carvalho Chehab,
+Il 20/01/2012 11:20, Mauro Carvalho Chehab ha scritto:
+> Em 19-01-2012 21:04, Benjamin Limmer escreveu:
+>> commit 2949a7393f3e2598d4de49b408587462b11f819f
+>> Author: Ben Limmer <benjamin.limmer@readytalk.com>
+>> Date:   Thu Jan 19 16:01:15 2012 -0700
+>>
+>>     Update to build script to give Debian users the Ubunutu package hints. The aptitude package names are the same.
+>>
+>> diff --git a/build b/build
+>> index c3947b3..6843033 100755
+>> --- a/build
+>> +++ b/build
+>> @@ -134,6 +134,10 @@ sub give_hints()
+>>                 give_arch_linux_hints;
+>>                 return;
+>>         }
+>> +       if ($system_release =~ /Debian/) {
+>> +               give_ubuntu_hints;
+>> +               return; 
+>> +       }
+>>  
+>>         # Fall-back to generic hint code
+>>         foreach my $prog (@missing) {
+>>
+>>
+>> Please see the above commit message. This is an easy change to support hints for debian users. I've confirmed these changes work on Debian Squeeze.
+>>
+>> -Ben Limmer--
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> Applied, thanks!
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
-This is a semi-automatic email about new static checker warnings.
+Hi Mauro,
+after this patch, the "build" script on media_build has lost the
+"execute" permissions.
+Can you "chmod +x" it again?
 
-The patch a7d44baaed0a: "[media] cx23885-dvb: Remove a dirty hack 
-that would require DVBv3" from Dec 26, 2011, leads to the following 
-Smatch complaint:
-
-drivers/media/video/cx23885/cx23885-dvb.c +135 cx23885_dvb_gate_ctrl()
-	 error: we previously assumed 'fe' could be null (see line 128)
-
-drivers/media/video/cx23885/cx23885-dvb.c
-   127	
-   128		if (fe && fe->dvb.frontend && fe->dvb.frontend->ops.i2c_gate_ctrl)
-                    ^^
-Old condition.
-
-   129			fe->dvb.frontend->ops.i2c_gate_ctrl(fe->dvb.frontend, open);
-   130	
-   131		/*
-   132		 * FIXME: Improve this path to avoid calling the
-   133		 * cx23885_dvb_set_frontend() every time it passes here.
-   134		 */
-   135		cx23885_dvb_set_frontend(fe->dvb.frontend);
-                                         ^^^^
-New dereference.
-
-   136	}
-   137	
-
-regards,
-dan carpenter
-
+Best regards,
+Gianluca
