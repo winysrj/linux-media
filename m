@@ -1,51 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43824 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750757Ab2AYWQT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 17:16:19 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0PMGIwx008843
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 17:16:19 -0500
-Message-ID: <4F207E2B.7060307@redhat.com>
-Date: Wed, 25 Jan 2012 17:11:55 -0500
-From: Jarod Wilson <jarod@redhat.com>
-MIME-Version: 1.0
-To: Corinna Vinschen <vinschen@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] imon: don't wedge hardware after early callbacks
-References: <20120124203605.GQ2456@calimero.vinschen.de> <1327524982-26593-1-git-send-email-jarod@redhat.com> <20120125221136.GX2456@calimero.vinschen.de>
-In-Reply-To: <20120125221136.GX2456@calimero.vinschen.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:43784 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755038Ab2ATXH0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jan 2012 18:07:26 -0500
+Received: by wics10 with SMTP id s10so847806wic.19
+        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 15:07:25 -0800 (PST)
+Message-ID: <1327100838.4284.2.camel@tvbox>
+Subject: [PATCH] it913x v1.23 use it913x_config.chip_ver to select firmware.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Fri, 20 Jan 2012 23:07:18 +0000
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Corinna Vinschen wrote:
-> Hi Jarod,
->
-> On Jan 25 15:56, Jarod Wilson wrote:
->> This patch is just a minor update to one titled "imon: Input from ffdc
->> device type ignored" from Corinna Vinschen. An earlier patch to prevent
->> an oops when we got early callbacks also has the nasty side-effect of
->> wedging imon hardware, as we don't acknowledge the urb. Rework the check
->> slightly here to bypass processing the packet, as the driver isn't yet
->> fully initialized, but still acknowlege the urb and submit a new rx_urb.
->> Do this for both interfaces -- irrelevant for ffdc hardware, but
->> relevant for newer hardware, though newer hardware doesn't spew the
->> constant stream of data as soon as the hardware is initialized like the
->> older ffdc devices, so they'd be less likely to trigger this anyway...
->
-> just a question, wouldn't it make sense to bump the version number of the
-> module to 0.9.4?  Or do you do that for functional changes only?
+As recommended by Jason at ITE, the chip version should select firmware.
 
-I've not been terribly consistent with it, but it does seem the last 
-time I bumped the version number *was* to have an easy way to tell if a 
-particular fix was included or not. We can bump it here too, doesn't 
-really matter to me.
+However, to continue to support IT9137 firmware with different configuration
+the driver will use udev->descriptor.idVendor to select the difference
+between IT9135 and IT9137.
 
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+---
+ drivers/media/dvb/dvb-usb/it913x.c |   19 +++++++------------
+ 1 files changed, 7 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
+index 654aa7c..59eb23c 100644
+--- a/drivers/media/dvb/dvb-usb/it913x.c
++++ b/drivers/media/dvb/dvb-usb/it913x.c
+@@ -388,19 +388,12 @@ static int ite_firmware_select(struct usb_device *udev,
+ {
+ 	int sw;
+ 	/* auto switch */
+-	if (le16_to_cpu(udev->descriptor.idProduct) ==
+-			USB_PID_ITETECH_IT9135)
+-		sw = IT9135_V1_FW;
+-	else if (le16_to_cpu(udev->descriptor.idProduct) ==
+-			USB_PID_ITETECH_IT9135_9005)
++	if (le16_to_cpu(udev->descriptor.idVendor) == USB_VID_KWORLD_2)
++		sw = IT9137_FW;
++	else if (it913x_config.chip_ver == 1)
+ 		sw = IT9135_V1_FW;
+-	else if (le16_to_cpu(udev->descriptor.idProduct) ==
+-			USB_PID_ITETECH_IT9135_9006) {
++	else
+ 		sw = IT9135_V2_FW;
+-		if (it913x_config.tuner_id_0 == 0)
+-			it913x_config.tuner_id_0 = IT9135_60;
+-	} else
+-		sw = IT9137_FW;
+ 
+ 	/* force switch */
+ 	if (dvb_usb_it913x_firmware != IT9135_AUTO)
+@@ -416,6 +409,8 @@ static int ite_firmware_select(struct usb_device *udev,
+ 		it913x_config.firmware_ver = 1;
+ 		it913x_config.adc_x2 = 1;
+ 		props->firmware = fw_it9135_v2;
++		if (it913x_config.tuner_id_0 == 0)
++			it913x_config.tuner_id_0 = IT9135_60;
+ 		break;
+ 	case IT9137_FW:
+ 	default:
+@@ -842,5 +837,5 @@ module_exit(it913x_module_exit);
+ 
+ MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+ MODULE_DESCRIPTION("it913x USB 2 Driver");
+-MODULE_VERSION("1.22");
++MODULE_VERSION("1.23");
+ MODULE_LICENSE("GPL");
 -- 
-Jarod Wilson
-jarod@redhat.com
+1.7.8.3
 
 
