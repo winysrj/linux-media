@@ -1,88 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:36157 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753003Ab2A0Kxh convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33505 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802Ab2ATPMc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jan 2012 05:53:37 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=iso-8859-2
-Date: Fri, 27 Jan 2012 11:53:29 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [Linaro-mm-sig] [PATCH 12/15] drivers: add Contiguous Memory
- Allocator
-In-reply-to: <CADMYwHw1B4RNV_9BqAg_M70da=g69Z3kyo5Cr6izCMwJ9LAtvA@mail.gmail.com>
-To: 'Ohad Ben-Cohen' <ohad@wizery.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Arnd Bergmann' <arnd@arndb.de>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>
-Message-id: <00de01ccdce1$e7c8a360$b759ea20$%szyprowski@samsung.com>
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <1327568457-27734-13-git-send-email-m.szyprowski@samsung.com>
- <CADMYwHw1B4RNV_9BqAg_M70da=g69Z3kyo5Cr6izCMwJ9LAtvA@mail.gmail.com>
+	Fri, 20 Jan 2012 10:12:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Date: Fri, 20 Jan 2012 16:12:31 +0100
+Cc: Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, m.szyprowski@samsung.com,
+	rob@ti.com, daniel@ffwll.ch, patches@linaro.org
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <CAO_48GEo8icpXrFh_VmGUF-MU2N9BU=xrVVN0VRG37j5NbC0sQ@mail.gmail.com> <4F1948DF.2060207@samsung.com>
+In-Reply-To: <4F1948DF.2060207@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201201612.31821.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ohad,
+Hi Tomasz,
 
-On Friday, January 27, 2012 10:44 AM Ohad Ben-Cohen wrote:
-
-> With v19, I can't seem to allocate big regions anymore (e.g. 101MiB).
-> In particular, this seems to fail:
+On Friday 20 January 2012 11:58:39 Tomasz Stanislawski wrote:
+> On 01/20/2012 11:41 AM, Sumit Semwal wrote:
+> > On 20 January 2012 00:37, Pawel Osciak<pawel@osciak.com>  wrote:
+> >> Hi Sumit,
+> >> Thank you for your work. Please find my comments below.
+> > 
+> > Hi Pawel,
+> > 
+> > Thank you for finding time for this review, and your comments :) - my
+> > comments inline.
+> > [Also, as an aside, Tomasz has also been working on the vb2 adaptation
+> > to dma-buf, and his patches should be more comprehensive, in that he
+> > is also planning to include 'vb2 as exporter' of dma-buf. He might
+> > take and improve on this RFC, so it might be worthwhile to wait for
+> > it?]
 > 
-> On Thu, Jan 26, 2012 at 11:00 AM, Marek Szyprowski
-> <m.szyprowski@samsung.com> wrote:
-> > +static int cma_activate_area(unsigned long base_pfn, unsigned long count)
-> > +{
-> > +       unsigned long pfn = base_pfn;
-> > +       unsigned i = count >> pageblock_order;
-> > +       struct zone *zone;
-> > +
-> > +       WARN_ON_ONCE(!pfn_valid(pfn));
-> > +       zone = page_zone(pfn_to_page(pfn));
-> > +
-> > +       do {
-> > +               unsigned j;
-> > +               base_pfn = pfn;
-> > +               for (j = pageblock_nr_pages; j; --j, pfn++) {
-> > +                       WARN_ON_ONCE(!pfn_valid(pfn));
-> > +                       if (page_zone(pfn_to_page(pfn)) != zone)
-> > +                               return -EINVAL;
+> <snip>
 > 
-> The above WARN_ON_ONCE is triggered, and then the conditional is
-> asserted (page_zone() retuns a "Movable" zone, whereas zone is
-> "Normal") and the function fails.
+> >>>   struct vb2_mem_ops {
+> >>>   
+> >>>         void            *(*alloc)(void *alloc_ctx, unsigned long size);
+> >>> 
+> >>> @@ -65,6 +82,16 @@ struct vb2_mem_ops {
+> >>> 
+> >>>                                         unsigned long size, int write);
+> >>>         
+> >>>         void            (*put_userptr)(void *buf_priv);
+> >>> 
+> >>> +       /* Comment from Rob Clark: XXX: I think the attach / detach
+> >>> could be handled +        * in the vb2 core, and vb2_mem_ops really
+> >>> just need to get/put the +        * sglist (and make sure that the
+> >>> sglist fits it's needs..) +        */
+> >> 
+> >> I *strongly* agree with Rob here. Could you explain the reason behind
+> >> not doing this?
+> >> Allocator should ideally not have to be aware of attaching/detaching,
+> >> this is not specific to an allocator.
+> > 
+> > Ok, I thought we'll start with this version first, and then refine.
+> > But you guys are right.
 > 
-> This happens to me on OMAP4 with your 3.3-rc1-cma-v19 branch (and a
-> bunch of remoteproc/rpmsg patches).
+> I think that it is not possible to move attach/detach to vb2-core. The
+> problem is that dma_buf_attach needs 'struct device' argument. This
+> pointer is not available in vb2-core. This pointer is delivered by
+> device's driver in "void *alloc_context".
 > 
-> Do big allocations work for you ?
+> Moving information about device would introduce new problems like:
+> - breaking layering in vb2
+> - some allocators like vb2-vmalloc do not posses any device related
+> attributes
 
-I've tested it with 256MiB on Exynos4 platform. Could you check if the
-problem also appears on 3.2-cma-v19 branch (I've uploaded it a few hours
-ago) and 3.2-cma-v18? Both are available on our public repo:
-git://git.infradead.org/users/kmpark/linux-samsung/
+What about passing the device to vb2-core then ?
 
-The above code has not been changed since v16, so I'm really surprised 
-that it causes problems. Maybe the memory configuration or layout has 
-been changed in 3.3-rc1 for OMAP4?
-
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Regards,
 
-
-
+Laurent Pinchart
