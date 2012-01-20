@@ -1,169 +1,194 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:33348 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754322Ab2AXA0Q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 19:26:16 -0500
-Received: by mail-tul01m020-f174.google.com with SMTP id va7so5042613obc.33
-        for <linux-media@vger.kernel.org>; Mon, 23 Jan 2012 16:26:15 -0800 (PST)
+Received: from bear.ext.ti.com ([192.94.94.41]:59418 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753034Ab2ATNWa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 20 Jan 2012 08:22:30 -0500
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+CC: Manjunath Hadli <manjunath.hadli@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [PATCH v2 2/2] v4l2: add new pixel formats supported on dm365
+Date: Fri, 20 Jan 2012 18:52:19 +0530
+Message-ID: <1327065739-3362-3-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1327065739-3362-1-git-send-email-manjunath.hadli@ti.com>
+References: <1327065739-3362-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <201201231154.21006.laurent.pinchart@ideasonboard.com>
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
-	<201201231048.47433.laurent.pinchart@ideasonboard.com>
-	<CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
-	<201201231154.21006.laurent.pinchart@ideasonboard.com>
-Date: Mon, 23 Jan 2012 18:26:15 -0600
-Message-ID: <CAO8GWqmv0mqk_=VvSmOCQkREFTRZ7L_xgRa9i=Wx8ap08m3zpw@mail.gmail.com>
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-From: "Clark, Rob" <rob@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jan 23, 2012 at 4:54 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Daniel,
->
-> On Monday 23 January 2012 11:35:01 Daniel Vetter wrote:
->> On Mon, Jan 23, 2012 at 10:48, Laurent Pinchart wrote:
->> > On Monday 23 January 2012 10:06:57 Marek Szyprowski wrote:
->> >> On Friday, January 20, 2012 5:29 PM Laurent Pinchart wrote:
->> >> > On Friday 20 January 2012 17:20:22 Tomasz Stanislawski wrote:
->> >> > > >> IMO, One way to do this is adding field 'struct device *dev' to
->> >> > > >> struct vb2_queue. This field should be filled by a driver prior
->> >> > > >> to calling vb2_queue_init.
->> >> > > >
->> >> > > > I haven't looked into the details, but that sounds good to me. Do
->> >> > > > we have use cases where a queue is allocated before knowing which
->> >> > > > physical device it will be used for ?
->> >> > >
->> >> > > I don't think so. In case of S5P drivers, vb2_queue_init is called
->> >> > > while opening /dev/videoX.
->> >> > >
->> >> > > BTW. This struct device may help vb2 to produce logs with more
->> >> > > descriptive client annotation.
->> >> > >
->> >> > > What happens if such a device is NULL. It would happen for vmalloc
->> >> > > allocator used by VIVI?
->> >> >
->> >> > Good question. Should dma-buf accept NULL devices ? Or should vivi
->> >> > pass its V4L2 device to vb2 ?
->> >>
->> >> I assume you suggested using struct video_device->dev entry in such
->> >> case. It will not work. DMA-mapping API requires some parameters to be
->> >> set for the client device, like for example dma mask. struct
->> >> video_device contains only an artificial struct device entry, which has
->> >> no relation to any physical device and cannot be used for calling
->> >> DMA-mapping functions.
->> >>
->> >> Performing dma_map_* operations with such artificial struct device
->> >> doesn't make any sense. It also slows down things significantly due to
->> >> cache flushing (forced by dma-mapping) which should be avoided if the
->> >> buffer is accessed only with CPU (like it is done by vb2-vmalloc style
->> >> drivers).
->> >
->> > I agree that mapping the buffer to the physical device doesn't make any
->> > sense, as there's simple no physical device to map the buffer to. In
->> > that case we could simply skip the dma_map/dma_unmap calls.
->>
->> See my other mail, dma_buf v1 does not support cpu access.
->
-> v1 is in the kernel now, let's start discussing v2 ;-)
->
->> So if you don't have a device around, you can't use it in it's current form.
->>
->> > Note, however, that dma-buf v1 explicitly does not support CPU access by
->> > the importer.
->> >
->> >> IMHO this case perfectly shows the design mistake that have been made.
->> >> The current version simply tries to do too much.
->> >>
->> >> Each client of dma_buf should 'map' the provided sgtable/scatterlist on
->> >> its own. Only the client device driver has all knowledge to make a
->> >> proper 'mapping'. Real physical devices usually will use dma_map_sg()
->> >> for such operation, while some virtual ones will only create a kernel
->> >> mapping for the provided scatterlist (like vivi with vmalloc memory
->> >> module).
->> >
->> > I tend to agree with that. Depending on the importer device, drivers
->> > could then map/unmap the buffer around each DMA access, or keep a
->> > mapping and sync the buffer.
->>
->> Again we've discussed adding a syncing op to the interface that would allow
->> keeping around mappings. The thing is that this also requires an unmap
->> callback or something similar, so that the exporter can inform the importer
->> that the memory just moved around. And the exporter _needs_ to be able to do
->> that, hence also the language in the doc that importers need to braked all
->> uses with a map/unmap and can't sit forever on a dma_buf mapping.
->
-> Not all exporters need to be able to move buffers around. If I'm not mistaken,
-> only DRM exporters need such a feature (which obviously makes it an important
-> feature). Does the exporter need to be able to do so at any time ? Buffers
-> can't obviously be moved around when they're used by an activa DMA, so I
-> expect the exporter to be able to wait. How long can it wait ?
+add new macro V4L2_PIX_FMT_SGRBG10ALAW8 and associated formats
+to represent Bayer format frames compressed by A-LAW alogorithm,
+add V4L2_PIX_FMT_UV8 to represent storage of C data (UV interleved)
+only.
 
-Offhand I think it would usually be a request from userspace (in some
-cases page faults (although I think only if there is hw de-tiling?),
-or command submission to gpu involving some buffer(s) that are not
-currently mapped) that would trigger the exporter to want to be able
-to evict something.  So could be blocked or something else
-evicted/moved instead.  Although perhaps not ideal for performance.
-(app/toolkit writers seem to have a love of temporary pixmaps, so
-x11/ddx driver can chew thru a huge number of new buffer allocations
-in very short amount of time)
+Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ .../DocBook/media/v4l/pixfmt-srggb10alaw8.xml      |   34 +++++++++++
+ Documentation/DocBook/media/v4l/pixfmt-uv8.xml     |   62 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    2 +
+ include/linux/videodev2.h                          |    9 +++
+ 4 files changed, 107 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-uv8.xml
 
-> I'm not sure I would like a callback approach. If we add a sync operation, the
-> exporter could signal to the importer that it must unmap the buffer by
-> returning an appropriate value from the sync operation. Would that be usable
-> for DRM ?
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+new file mode 100644
+index 0000000..8c1765c
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10alaw8.xml
+@@ -0,0 +1,34 @@
++	<refentry>
++	  <refmeta>
++	    <refentrytitle>
++	      V4L2_PIX_FMT_SRGGB10ALAW8 ('bBL8'),
++	      V4L2_PIX_FMT_SGBRG10ALAW8 ('bgL8'),
++	      V4L2_PIX_FMT_SGRBG10ALAW8 ('BGL8'),
++	      V4L2_PIX_FMT_SBGGR10ALAW8 ('bRL8'),
++	    </refentrytitle>
++	    &manvol;
++	  </refmeta>
++	  <refnamediv>
++	    <refname id="V4L2-PIX-FMT-SRGGB10ALAW8">
++	      <constant>V4L2_PIX_FMT_SRGGB10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SGRBG10ALAW8">
++	      <constant>V4L2_PIX_FMT_SGRBG10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SGBRG10ALAW8">
++	      <constant>V4L2_PIX_FMT_SGBRG10ALAW8</constant>
++	    </refname>
++	    <refname id="V4L2-PIX-FMT-SBGGR10ALAW8">
++	      <constant>V4L2_PIX_FMT_SBGGR10ALAW8</constant>
++	    </refname>
++	    <refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++	  </refnamediv>
++	  <refsect1>
++	    <title>Description</title>
++	    <para>The following four pixel formats are raw sRGB / Bayer
++	    formats with 10 bits per colour compressed to 8 bits each,
++	    using the A-LAW algorithm. Each colour component consumes 8
++	    bits of memory. In other respects this format is similar to
++	    <xref linkend="V4L2-PIX-FMT-SRGGB8">.</xref></para>
++	  </refsect1>
++	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-uv8.xml b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+new file mode 100644
+index 0000000..e3e6b11
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-uv8.xml
+@@ -0,0 +1,62 @@
++	<refentry id="V4L2-PIX-FMT-UV8">
++	  <refmeta>
++	    <refentrytitle>V4L2_PIX_FMT_UV8  ('UV8')</refentrytitle>
++	    &manvol;
++	  </refmeta>
++	  <refnamediv>
++	    <refname><constant>V4L2_PIX_FMT_UV8</constant></refname>
++	    <refpurpose>UV plane interleaved</refpurpose>
++	  </refnamediv>
++	  <refsect1>
++	    <title>Description</title>
++	    <para>In this format there is no Y plane, Only C plane. ie
++	    (UV interleaved)</para>
++	    <example>
++	    <title>
++	      <constant>V4L2_PIX_FMT_UV8</constant>
++	       pixel image
++	    </title>
++
++	    <formalpara>
++	      <title>Byte Order.</title>
++	      <para>Each cell is one byte.
++	        <informaltable frame="none">
++	        <tgroup cols="5" align="center">
++		  <colspec align="left" colwidth="2*" />
++		  <tbody valign="top">
++		    <row>
++		      <entry>start&nbsp;+&nbsp;0:</entry>
++		      <entry>Cb<subscript>00</subscript></entry>
++		      <entry>Cr<subscript>00</subscript></entry>
++		      <entry>Cb<subscript>01</subscript></entry>
++		      <entry>Cr<subscript>01</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;4:</entry>
++		      <entry>Cb<subscript>10</subscript></entry>
++		      <entry>Cr<subscript>10</subscript></entry>
++		      <entry>Cb<subscript>11</subscript></entry>
++		      <entry>Cr<subscript>11</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;8:</entry>
++		      <entry>Cb<subscript>20</subscript></entry>
++		      <entry>Cr<subscript>20</subscript></entry>
++		      <entry>Cb<subscript>21</subscript></entry>
++		      <entry>Cr<subscript>21</subscript></entry>
++		    </row>
++		    <row>
++		      <entry>start&nbsp;+&nbsp;12:</entry>
++		      <entry>Cb<subscript>30</subscript></entry>
++		      <entry>Cr<subscript>30</subscript></entry>
++		      <entry>Cb<subscript>31</subscript></entry>
++		      <entry>Cr<subscript>31</subscript></entry>
++		    </row>
++		  </tbody>
++		</tgroup>
++		</informaltable>
++	      </para>
++	      </formalpara>
++	    </example>
++	  </refsect1>
++	</refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 9ddc57c..0b62750 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10alaw8;
+     &sub-srggb12;
+   </section>
+ 
+@@ -696,6 +697,7 @@ information.</para>
+ 
+     &sub-packed-yuv;
+     &sub-grey;
++    &sub-uv8;
+     &sub-y10;
+     &sub-y12;
+     &sub-y10b;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 012a296..36b6d91 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -338,6 +338,9 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_HM12    v4l2_fourcc('H', 'M', '1', '2') /*  8  YUV 4:2:0 16x16 macroblocks */
+ #define V4L2_PIX_FMT_M420    v4l2_fourcc('M', '4', '2', '0') /* 12  YUV 4:2:0 2 lines y, 1 line uv interleaved */
+ 
++/* Chrominance formats */
++#define V4L2_PIX_FMT_UV8      v4l2_fourcc('U', 'V', '8', ' ') /*  8  UV 4:4 */
++
+ /* two planes -- one Y, one Cr + Cb interleaved  */
+ #define V4L2_PIX_FMT_NV12    v4l2_fourcc('N', 'V', '1', '2') /* 12  Y/CbCr 4:2:0  */
+ #define V4L2_PIX_FMT_NV21    v4l2_fourcc('N', 'V', '2', '1') /* 12  Y/CrCb 4:2:0  */
+@@ -366,6 +369,12 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
+ #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
++	/* 10bit raw bayer a-law compressed to 8 bits */
++#define V4L2_PIX_FMT_SRGGB10ALAW8 v4l2_fourcc('b', 'B', 'L', '8')
++#define V4L2_PIX_FMT_SGRBG10ALAW8 v4l2_fourcc('b', 'g', 'L', '8')
++#define V4L2_PIX_FMT_SGBRG10ALAW8 v4l2_fourcc('B', 'G', 'L', '8')
++#define V4L2_PIX_FMT_SBGGR10ALAW8 v4l2_fourcc('b', 'R', 'L', '8')
++
+ 	/*
+ 	 * 10bit raw bayer, expanded to 16 bits
+ 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+-- 
+1.6.2.4
 
-It does seem a bit over-complicated..  and deadlock prone.  Is there a
-reason the importer couldn't just unmap when DMA is completed, and the
-exporter give some hint on next map() that the buffer hasn't actually
-moved?
-
-BR,
--R
-
-> Another option would be to keep the mapping around, and check in the importer
-> if the buffer has moved. If so, the importer would tear the mapping down and
-> create a new one. This is a bit hackish though, as we would tear a mapping
-> down for a buffer that doesn't exist anymore. Nothing should be accessing the
-> mapping at that time, but it could be a security risk if we consider rogue
-> hardware (that's pretty far-fetched though, as rogue hardware can probably
-> already kill the system easily in many cases).
->
->> > What about splitting the map_dma_buf operation into an operation that
->> > backs the buffer with pages and returns an sg_list, and an operation that
->> > performs DMA synchronization with the exporter ? unmap_dma_buf would
->> > similarly be split in two operations.
->>
->> Again for v1 that doesn't make sense because you can't do cpu access anyway
->> and you should not hang onto mappings forever.
->
-> For performance reasons I'd like to hang onto the mapping as long as possible.
-> Creating and tearing down IOMMU mappings for large buffers is a costly
-> operation, and I don't want to spend time there every time I use a buffer if
-> the buffer hasn't moved since the previous time it was mapped.
->
->> Furthermore we have cases where an unmapped sg_list for cpu access simple
->> makes no sense.
->>
->> Yours, Daniel
->>
->> [Aside: You can do a dirty trick like prime that grabs the underlying
->> page of an already mapped sg list. Obviously highly non-portable.]
->
-> --
-> Regards,
->
-> Laurent Pinchart
