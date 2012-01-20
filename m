@@ -1,172 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:40278 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752511Ab2ATLgo (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53435 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753597Ab2ATPEH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 20 Jan 2012 06:36:44 -0500
-Received: by mail-we0-f174.google.com with SMTP id b13so314396wer.19
-        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 03:36:44 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, s.hauer@pengutronix.de, baruch@tkos.co.il,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 2/4] media i.MX27 camera: add start_stream and stop_stream callbacks.
-Date: Fri, 20 Jan 2012 12:36:30 +0100
-Message-Id: <1327059392-29240-3-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1327059392-29240-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1327059392-29240-1-git-send-email-javier.martin@vista-silicon.com>
+	Fri, 20 Jan 2012 10:04:07 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [Linaro-mm-sig] [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Date: Fri, 20 Jan 2012 16:04:04 +0100
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org, arnd@arndb.de, patches@linaro.org,
+	jesse.barker@linaro.org, daniel@ffwll.ch,
+	Hiroshi Doyu <hiroshi.doyu@gmail.com>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <4F11E7D4.4050906@iki.fi> <CAB2ybb83ub=A45-m6o+RXqFOTUmXCgeFqs03WZDHeWeLe2+29w@mail.gmail.com>
+In-Reply-To: <CAB2ybb83ub=A45-m6o+RXqFOTUmXCgeFqs03WZDHeWeLe2+29w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201201604.05966.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add "start_stream" and "stop_stream" callback in order to enable
-and disable the eMMa-PrP properly and save CPU usage avoiding
-IRQs when the device is not streaming.
+Hi Sumit,
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |  107 +++++++++++++++++++++++++++-----------
- 1 files changed, 77 insertions(+), 30 deletions(-)
+On Monday 16 January 2012 06:33:31 Semwal, Sumit wrote:
+> On Sun, Jan 15, 2012 at 2:08 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> > Hi Sumit,
+> > 
+> > Thanks for the patch!
+> 
+> Hi Sakari,
+> 
+> Thanks for reviewing this :)
+> 
+> > <snip>
+> > Shouldn't the buffer mapping only be done at the first call to
+> > __qbuf_dmabuf()? On latter calls, the cache would need to be handled
+> > according to presence of V4L2_BUF_FLAG_NO_CACHE_CLEAN /
+> > V4L2_BUF_FLAG_NO_CACHE_INVALIDATE in v4l2_buffer.
+> 
+> Well, the 'map / unmap' implementation is by design exporter-specific; so
+> the exporter of the buffer may choose to, depending on the use case,
+> 'map-and-keep' on first call to map_dmabuf, and do actual unmap only at
+> 'release' time. This will mean that the {map,unmap}_dmabuf calls will be
+> used mostly for 'access-bracketing' between multiple users, and not for
+> actual map/unmap each time.
+> Again, the framework is flexible enough to allow exporters to actually
+> map/unmap as required (think cases where backing-storage migration might be
+> needed while buffers are in use - in that case, when all current users have
+> called unmap_XXX() on a buffer, it can be migrated, and the next map_XXX()
+> calls could give different mappings back to the users).
+> The kernel 'users' of dma-buf [in case of this RFC, v4l2] should not
+> ideally need to worry about the actual mapping/unmapping that is done; the
+> buffer exporter in a particular use-case should be able to handle it.
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 290ac9d..4816da6 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -560,7 +560,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 	struct soc_camera_host *ici =
- 		to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
--	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
- 	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
- 	unsigned long flags;
- 
-@@ -572,29 +571,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 	buf->state = MX2_STATE_QUEUED;
- 	list_add_tail(&buf->queue, &pcdev->capture);
- 
--	if (mx27_camera_emma(pcdev)) {
--		if (prp->cfg.channel == 1) {
--			writel(PRP_CNTL_CH1EN |
--				PRP_CNTL_CSIEN |
--				prp->cfg.in_fmt |
--				prp->cfg.out_fmt |
--				PRP_CNTL_CH1_LEN |
--				PRP_CNTL_CH1BYP |
--				PRP_CNTL_CH1_TSKIP(0) |
--				PRP_CNTL_IN_TSKIP(0),
--				pcdev->base_emma + PRP_CNTL);
--		} else {
--			writel(PRP_CNTL_CH2EN |
--				PRP_CNTL_CSIEN |
--				prp->cfg.in_fmt |
--				prp->cfg.out_fmt |
--				PRP_CNTL_CH2_LEN |
--				PRP_CNTL_CH2_TSKIP(0) |
--				PRP_CNTL_IN_TSKIP(0),
--				pcdev->base_emma + PRP_CNTL);
--		}
--		goto out;
--	} else { /* cpu_is_mx25() */
-+	if (!mx27_camera_emma(pcdev)) { /* cpu_is_mx25() */
- 		u32 csicr3, dma_inten = 0;
- 
- 		if (pcdev->fb1_active == NULL) {
-@@ -629,8 +606,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 			writel(csicr3, pcdev->base_csi + CSICR3);
- 		}
- 	}
--
--out:
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
-@@ -692,11 +667,83 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
-+static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
-+{
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-+	struct soc_camera_host *ici =
-+		to_soc_camera_host(icd->parent);
-+	struct mx2_camera_dev *pcdev = ici->priv;
-+	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-+	unsigned long flags;
-+	int ret = 0;
-+
-+	spin_lock_irqsave(&pcdev->lock, flags);
-+	if (mx27_camera_emma(pcdev)) {
-+		if (count < 2) {
-+			ret = -EINVAL;
-+			goto err;
-+		}
-+
-+		if (prp->cfg.channel == 1) {
-+			writel(PRP_CNTL_CH1EN |
-+				PRP_CNTL_CSIEN |
-+				prp->cfg.in_fmt |
-+				prp->cfg.out_fmt |
-+				PRP_CNTL_CH1_LEN |
-+				PRP_CNTL_CH1BYP |
-+				PRP_CNTL_CH1_TSKIP(0) |
-+				PRP_CNTL_IN_TSKIP(0),
-+				pcdev->base_emma + PRP_CNTL);
-+		} else {
-+			writel(PRP_CNTL_CH2EN |
-+				PRP_CNTL_CSIEN |
-+				prp->cfg.in_fmt |
-+				prp->cfg.out_fmt |
-+				PRP_CNTL_CH2_LEN |
-+				PRP_CNTL_CH2_TSKIP(0) |
-+				PRP_CNTL_IN_TSKIP(0),
-+				pcdev->base_emma + PRP_CNTL);
-+		}
-+	}
-+err:
-+	spin_unlock_irqrestore(&pcdev->lock, flags);
-+
-+	return ret;
-+}
-+
-+static int mx2_stop_streaming(struct vb2_queue *q)
-+{
-+	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-+	struct soc_camera_host *ici =
-+		to_soc_camera_host(icd->parent);
-+	struct mx2_camera_dev *pcdev = ici->priv;
-+	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-+	unsigned long flags;
-+	u32 cntl;
-+
-+	spin_lock_irqsave(&pcdev->lock, flags);
-+	if (mx27_camera_emma(pcdev)) {
-+		cntl = readl(pcdev->base_emma + PRP_CNTL);
-+		if (prp->cfg.channel == 1) {
-+			writel(cntl & ~PRP_CNTL_CH1EN,
-+			       pcdev->base_emma + PRP_CNTL);
-+		} else {
-+			writel(cntl & ~PRP_CNTL_CH2EN,
-+			       pcdev->base_emma + PRP_CNTL);
-+		}
-+	}
-+	spin_unlock_irqrestore(&pcdev->lock, flags);
-+
-+	return 0;
-+}
-+
- static struct vb2_ops mx2_videobuf_ops = {
--	.queue_setup	= mx2_videobuf_setup,
--	.buf_prepare	= mx2_videobuf_prepare,
--	.buf_queue	= mx2_videobuf_queue,
--	.buf_cleanup	= mx2_videobuf_release,
-+	.queue_setup	 = mx2_videobuf_setup,
-+	.buf_prepare	 = mx2_videobuf_prepare,
-+	.buf_queue	 = mx2_videobuf_queue,
-+	.buf_cleanup	 = mx2_videobuf_release,
-+	.start_streaming = mx2_start_streaming,
-+	.stop_streaming  = mx2_stop_streaming,
- };
- 
- static int mx2_camera_init_videobuf(struct vb2_queue *q,
+I'm afraid it's more complex than that. Your patch calls q->mem_ops-
+>map_dmabuf() at every VIDIOC_QBUF call. The function will call 
+dma_buf_map_attachment(), which could cache the mapping somehow (even though 
+that triggers an alarm somewhere in my brain, deciding in the exporter how to 
+do so will likely cause issues - I'll try to sort my thoughts out on this), 
+but it will also be responsible for mapping the sg list to the V4L2 device 
+IOMMU (not for dma-contig obviously, but this code is in videobuf2-core.c). 
+This is an expensive operation that we don't want to perform at every 
+QBUF/DQBUF.
+
+V4L2 uses streaming DMA mappings, partly for performance reasons. That's 
+something dma-buf will likely need to support. Or you could argue that 
+streaming DMA mappings are broken by design on some platform anyway, but then 
+I'll expect a proposal for an efficient replacement :-)
+
+> <snip>
+> 
+> > Same here, except reverse: this only should be done when the buffer is
+> > destroyed --- either when the user explicitly calls reqbufs(0) or when
+> > the file handle owning this buffer is being closed.
+> > 
+> > Mapping buffers at every prepare_buf and unmapping them in dqbuf is
+> > prohibitively expensive. Same goes for many other APIs than V4L2, I
+> > think.
+> > 
+> > I wonder if the means to do this exists already.
+> > 
+> > I have to admit I haven't followed the dma_buf discussion closely so I
+> > might be missing something relevant here.
+> 
+> Hope the above explanation helps. Please do not hesitate to contact if you
+> need more details.
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
