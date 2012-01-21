@@ -1,155 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:60803 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751719Ab2A3KDp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 05:03:45 -0500
-Received: by pbaa10 with SMTP id a10so3627077pba.19
-        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2012 02:03:45 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, kyungmin.park@samsung.com,
-	k.debski@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH][media] s5p-g2d: Add HFLIP and VFLIP support
-Date: Mon, 30 Jan 2012 15:28:43 +0530
-Message-Id: <1327917523-29836-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:54155 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752843Ab2AUQEo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:44 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4iDe021369
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:44 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 18/35] [media] az6007: Fix IR receive code
+Date: Sat, 21 Jan 2012 14:04:20 -0200
+Message-Id: <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for flipping the image horizontally and vertically.
+The code still needs to be commented, as there's a mutex
+missing at the az6007_read() call. A mutex there is needed,
+in order to prevent RC (or CI) calls while other operations
+are in progress.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/video/s5p-g2d/g2d-hw.c |    5 +++
- drivers/media/video/s5p-g2d/g2d.c    |   47 +++++++++++++++++++++++++++------
- drivers/media/video/s5p-g2d/g2d.h    |    3 ++
- 3 files changed, 46 insertions(+), 9 deletions(-)
+ drivers/media/dvb/dvb-usb/az6007.c |   37 +++++++++++++++++++++++++----------
+ 1 files changed, 26 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
-index 39937cf..5b86cbe 100644
---- a/drivers/media/video/s5p-g2d/g2d-hw.c
-+++ b/drivers/media/video/s5p-g2d/g2d-hw.c
-@@ -77,6 +77,11 @@ void g2d_set_rop4(struct g2d_dev *d, u32 r)
- 	w(r, ROP4_REG);
- }
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index 912ba67..c9743ee 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -49,7 +49,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ #define AZ6007_I2C_WR		0xbd
+ #define FX2_SCON1		0xc0
+ #define AZ6007_TS_THROUGH	0xc7
+-#define AZ6007_READ_IR		0xc5
++#define AZ6007_READ_IR		0xb4
  
-+void g2d_set_flip(struct g2d_dev *d, u32 r)
-+{
-+	w(r, SRC_MSK_DIRECT_REG);
-+}
-+
- u32 g2d_cmd_stretch(u32 e)
+ struct az6007_device_state {
+ 	struct			dvb_ca_en50221 ca;
+@@ -172,30 +172,45 @@ static struct rc_map_table rc_map_az6007_table[] = {
+ /* remote control stuff (does not work with my box) */
+ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
  {
- 	e &= 1;
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index febaa67..dea9701 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -178,6 +178,7 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct g2d_ctx *ctx = container_of(ctrl->handler, struct g2d_ctx,
- 								ctrl_handler);
-+
- 	switch (ctrl->id) {
- 	case V4L2_CID_COLORFX:
- 		if (ctrl->val == V4L2_COLORFX_NEGATIVE)
-@@ -185,6 +186,21 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
- 		else
- 			ctx->rop = ROP4_COPY;
- 		break;
-+
-+	case V4L2_CID_HFLIP:
-+		if (ctrl->val == 1)
-+			ctx->hflip = 1;
-+		else
-+			ctx->hflip = 0;
-+		break;
-+
-+	case V4L2_CID_VFLIP:
-+		if (ctrl->val == 1)
-+			ctx->vflip = (1 << 1);
-+		else
-+			ctx->vflip = 0;
-+		break;
-+
- 	default:
- 		v4l2_err(&ctx->dev->v4l2_dev, "unknown control\n");
- 		return -EINVAL;
-@@ -200,11 +216,9 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
- {
- 	struct g2d_dev *dev = ctx->dev;
+-	return 0;
+-#if 0
++	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+ 	u8 key[10];
+ 	int i;
  
--	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 1);
--	if (ctx->ctrl_handler.error) {
--		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
--		return ctx->ctrl_handler.error;
--	}
-+	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
-+	if (ctx->ctrl_handler.error)
-+		goto error;
+-	/* remove the following return to enabled remote querying */
++	/*
++	 * FIXME: remove the following return to enabled remote querying
++	 * The driver likely needs proper locking to avoid troubles between
++	 * this call and other concurrent calls.
++	 */
++	return 0;
  
- 	v4l2_ctrl_new_std_menu(
- 		&ctx->ctrl_handler,
-@@ -214,12 +228,25 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
- 		~((1 << V4L2_COLORFX_NONE) | (1 << V4L2_COLORFX_NEGATIVE)),
- 		V4L2_COLORFX_NONE);
+ 	az6007_read(d->udev, AZ6007_READ_IR, 0, 0, key, 10);
  
--	if (ctx->ctrl_handler.error) {
--		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
--		return ctx->ctrl_handler.error;
--	}
-+	if (ctx->ctrl_handler.error)
-+		goto error;
+-	deb_rc("remote query key: %x %d\n", key[1], key[1]);
+-
+ 	if (key[1] == 0x44) {
+ 		*state = REMOTE_NO_KEY_PRESSED;
+ 		return 0;
+ 	}
+ 
+-	for (i = 0; i < ARRAY_SIZE(az6007_rc_keys); i++)
+-		if (az6007_rc_keys[i].custom == key[1]) {
++	/*
++	 * FIXME: need to make something useful with the keycodes and to
++	 * convert it to the non-legacy mode. Yet, it is producing some
++	 * debug info already, like:
++	 * 88 04 eb 02 fd ff 00 82 63 82 (terratec IR)
++	 * 88 04 eb 03 fc 00 00 82 63 82 (terratec IR)
++	 * 88 80 7e 0d f2 ff 00 82 63 82 (another NEC-extended based IR)
++	 * I suspect that the IR data is at bytes 1 to 4, and byte 5 is parity
++	 */
++	deb_rc("remote query key: %x %d\n", key[1], key[1]);
++	print_hex_dump_bytes("Remote: ", DUMP_PREFIX_NONE, key, 10);
 +
-+	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
-+						V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	if (ctx->ctrl_handler.error)
-+		goto error;
++	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
++		if (rc5_custom(&keymap[i]) == key[1]) {
++			*event = keymap[i].keycode;
+ 			*state = REMOTE_KEY_PRESSED;
+-			*event = az6007_rc_keys[i].event;
+-			break;
 +
-+	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
-+						V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	if (ctx->ctrl_handler.error)
-+		goto error;
- 
++			return 0;
+ 		}
++	}
  	return 0;
-+
-+error:
-+	v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
-+	return ctx->ctrl_handler.error;
-+
+-#endif
  }
  
- static int g2d_open(struct file *file)
-@@ -564,6 +591,8 @@ static void device_run(void *prv)
- 	g2d_set_dst_addr(dev, vb2_dma_contig_plane_dma_addr(dst, 0));
- 
- 	g2d_set_rop4(dev, ctx->rop);
-+	g2d_set_flip(dev, ctx->hflip | ctx->vflip);
-+
- 	if (ctx->in.c_width != ctx->out.c_width ||
- 		ctx->in.c_height != ctx->out.c_height)
- 		cmd |= g2d_cmd_stretch(1);
-diff --git a/drivers/media/video/s5p-g2d/g2d.h b/drivers/media/video/s5p-g2d/g2d.h
-index 5eae901..b3be3c8 100644
---- a/drivers/media/video/s5p-g2d/g2d.h
-+++ b/drivers/media/video/s5p-g2d/g2d.h
-@@ -59,6 +59,8 @@ struct g2d_ctx {
- 	struct g2d_frame	out;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	u32 rop;
-+	u32 hflip;
-+	u32 vflip;
- };
- 
- struct g2d_fmt {
-@@ -77,6 +79,7 @@ void g2d_set_dst_addr(struct g2d_dev *d, dma_addr_t a);
- void g2d_start(struct g2d_dev *d);
- void g2d_clear_int(struct g2d_dev *d);
- void g2d_set_rop4(struct g2d_dev *d, u32 r);
-+void g2d_set_flip(struct g2d_dev *d, u32 r);
- u32 g2d_cmd_stretch(u32 e);
- void g2d_set_cmd(struct g2d_dev *d, u32 c);
- 
+ #if 0
 -- 
-1.7.4.1
+1.7.8
 
