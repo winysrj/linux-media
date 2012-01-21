@@ -1,139 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:40932 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751379Ab2AIRih (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 12:38:37 -0500
-Date: Mon, 9 Jan 2012 19:38:25 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: tuukkat76@gmail.com, dacohen@gmail.com,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	hverkuil@xs4all.nl, snjw23@gmail.com
-Subject: [ANN] Notes on IRC meeting on new sensor control interface,
- 2012-01-09 14:00 GMT+2
-Message-ID: <20120109173825.GR9323@valkosipuli.localdomain>
-References: <20120104085633.GM3677@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120104085633.GM3677@valkosipuli.localdomain>
+Received: from mx1.redhat.com ([209.132.183.28]:23234 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752884Ab2AUQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:45 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4jm1023695
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:45 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 26/35] [media] drxk: Allow enabling MERR/MVAL cfg
+Date: Sat, 21 Jan 2012 14:04:28 -0200
+Message-Id: <1327161877-16784-27-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-26-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-21-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-22-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-23-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-24-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-25-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-26-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Those two settings are different when used with az6007. Add
+a config option to enable it.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c      |    1 +
+ drivers/media/dvb/frontends/drxk.h      |    2 ++
+ drivers/media/dvb/frontends/drxk_hard.c |   11 +++++++++--
+ drivers/media/dvb/frontends/drxk_hard.h |    1 +
+ 4 files changed, 13 insertions(+), 2 deletions(-)
 
-We had an IRC meeting on the new sensor control interface on #v4l-meeting
-as scheduled previously. The meeting log is available here:
-
-<URL:http://www.retiisi.org.uk/v4l2/v4l2-sensor-control-interface-2012-01-09.txt>
-
-My notes can be found below.
-
-
-Accessing V4L2 subdev and MC interfaces in user space: user space libraries
-===========================================================================
-
-While the V4L2 subdev and Media controller kernel interface is functionally
-comprehensive, it is a relatively low level interface for even for
-vendor-specific user space camera libraries. The issue is intensified with
-the extension of the pipeline configuration performed using the Media
-controller and V4L2 subdev interfaces to cover the image processing
-performed on the sensor: this is part of the new sensor control interface.
-
-As we want to encourage SoC vendors to use the V4L2, we need to make this as
-easy as possible for them.
-
-The low level camera control libraries can be split into roughly two
-categories: those which configure the image pipe and those which deal with
-the 3A algorithms. The 3A algorithms are typically proprietary so we
-concentrated to the pipeline configuration which is what the Media
-controller and V4L2 subdev frameworks have been intended for.
-
-Two libraries already exist for this: libmediactl and libv4l2subdev. The
-former deals with topology enumeration and link configuration whereas the
-latter is a generic library for V4L2 subdev configuration, including format
-configuration.
-
-The new sensor control interface moves the remaining policy decisions to the
-user space: how the sensor's image pipe is configured, what pixel rates are
-being used on the bus from the sensor to the ISP and how is the blanking
-configured.
-
-The role of the new library, called libv4l2pipe, is to interpret text-based
-configuration file containing sections for various pipeline format and link
-configurations, as well as V4L2 controls: the link frequency is a control as
-well; but more on that below. The library may be later on merged to
-libv4l2pipeauto which Sakari is working on.
-
-Both pipeline format and link configurations are policy decisions and thus
-can be expected to be use case specific. A format configuration is dependent
-on a link configuration but the same link configuration can be used with
-several format configurations. Thus the two should be defined separately.
-
-A third kind of section will be for setting controls. The only control to be
-set will be the link frequency control but a new type of setting warrants a
-new section.
-
-A fourth section may be required as well: at this level the frame rate (or
-frame time) range makes more sense than the low-level blanking values. The
-blanking values can be calculated from the frame time and a flag which tells
-whether either horizontal or vertical blanking should be preferred.
-
-A configuration consisting of all the above sections will define the full
-pipeline configuration. The library must also provide a way to enumerate,
-query and set these configurations.
-
-With the existence of this library and the related new sensor control
-interface, the V4L2 supports implementing digital cameras even better than
-it used to.
-
-The LGPL 2.1+ license used by libmediactl, libv4l2pipeauto and the future
-libv4l2pipe(auto) is not seen an issue for Android to adopt these libraries
-either.
-
-In GStreamer middleware, libv4l2pipe is expected to be used by the camera
-source component.
-
-
-The new sensor control interface
-================================
-
-
-The common understanding was that the new sensor control interface is mostly
-accepted. No patches have been acked since there have been lots of trivial
-and some not so trivial issues in the patchset. There was an exception to
-this, which is the pixel_rate field in struct v4l2_mbus_framefmt.
-
-The field is expected to be propagated by the user while the user has no
-valid use case to modify it. The agreement was that instead of adding the
-field to struct v4l2_mbus_framefmt, a new control will be introduced
-instead.
-
-A control has several good properties: it can be implemented where it is
-valid: it isn't always possible to accurately specify the pixel rate in some
-parts of the pipeline.
-
-Sensor drivers should provide the pixel_rate control in two subdevs: the
-pixel array and the one which is opposed to the ISP's bus receiver. The
-pixel array's pixel rate is mostly required in the user space whereas the
-pixel rate in the bus transmitter subdev (which may have other functionality
-as well) is often required by the bus receivers, as well as by the rest of
-the ISP.
-
-Ideally the pixel_rate control is related to pads rather than subdevs but 1)
-we don't have pad specific controls and 2) we don't stictly need them right
-now since there only will be need for a single pixel_rate control per
-subdev.
-
-If pixel rate management will be implemented to prevent starting pipelines
-which would fail to stream in cases where too high pixel rates are used on
-particular subdevs, the concept of pad-specific controls may be later
-revisited. Making the pixel_rate control pad-specific only will change the
-interface towards the user space if the pad where it is implemented is
-non-zero.
-
-
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index bf8d201..81fdc90 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -67,6 +67,7 @@ static struct drxk_config terratec_h7_drxk = {
+ 	.parallel_ts = true,
+ 	.dynamic_clk = true,
+ 	.single_master = true,
++	.enable_merr_cfg = true,
+ 	.no_i2c_bridge = false,
+ 	.chunk_size = 64,
+ 	.mpeg_out_clk_strength = 0x02,
+diff --git a/drivers/media/dvb/frontends/drxk.h b/drivers/media/dvb/frontends/drxk.h
+index ca921c7..9d64e4f 100644
+--- a/drivers/media/dvb/frontends/drxk.h
++++ b/drivers/media/dvb/frontends/drxk.h
+@@ -12,6 +12,7 @@
+  * 			Serial otherwise.
+  * @dynamic_clk:	True means that the clock will be dynamically
+  *			adjusted. Static clock otherwise.
++ * @enable_merr_cfg:	Enable SIO_PDR_PERR_CFG/SIO_PDR_MVAL_CFG.
+  * @single_master:	Device is on the single master mode
+  * @no_i2c_bridge:	Don't switch the I2C bridge to talk with tuner
+  * @antenna_gpio:	GPIO bit used to control the antenna
+@@ -29,6 +30,7 @@ struct drxk_config {
+ 	bool	no_i2c_bridge;
+ 	bool	parallel_ts;
+ 	bool	dynamic_clk;
++	bool	enable_merr_cfg;
+ 
+ 	bool	antenna_dvbt;
+ 	u16	antenna_gpio;
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index d25b0d2..5fa1927 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -1179,6 +1179,7 @@ static int MPEGTSConfigurePins(struct drxk_state *state, bool mpegEnable)
+ 	int status = -1;
+ 	u16 sioPdrMclkCfg = 0;
+ 	u16 sioPdrMdxCfg = 0;
++	u16 err_cfg = 0;
+ 
+ 	dprintk(1, ": mpeg %s, %s mode\n",
+ 		mpegEnable ? "enable" : "disable",
+@@ -1244,12 +1245,17 @@ static int MPEGTSConfigurePins(struct drxk_state *state, bool mpegEnable)
+ 		status = write16(state, SIO_PDR_MSTRT_CFG__A, sioPdrMdxCfg);
+ 		if (status < 0)
+ 			goto error;
+-		status = write16(state, SIO_PDR_MERR_CFG__A, 0x0000);	/* Disable */
++
++		if (state->enable_merr_cfg)
++			err_cfg = sioPdrMdxCfg;
++
++		status = write16(state, SIO_PDR_MERR_CFG__A, err_cfg);
+ 		if (status < 0)
+ 			goto error;
+-		status = write16(state, SIO_PDR_MVAL_CFG__A, 0x0000);	/* Disable */
++		status = write16(state, SIO_PDR_MVAL_CFG__A, err_cfg);
+ 		if (status < 0)
+ 			goto error;
++
+ 		if (state->m_enableParallel == true) {
+ 			/* paralel -> enable MD1 to MD7 */
+ 			status = write16(state, SIO_PDR_MD1_CFG__A, sioPdrMdxCfg);
+@@ -6379,6 +6385,7 @@ struct dvb_frontend *drxk_attach(const struct drxk_config *config,
+ 	state->antenna_gpio = config->antenna_gpio;
+ 	state->antenna_dvbt = config->antenna_dvbt;
+ 	state->m_ChunkSize = config->chunk_size;
++	state->enable_merr_cfg = config->enable_merr_cfg;
+ 
+ 	if (config->dynamic_clk) {
+ 		state->m_DVBTStaticCLK = 0;
+diff --git a/drivers/media/dvb/frontends/drxk_hard.h b/drivers/media/dvb/frontends/drxk_hard.h
+index 3a58b73..4bbf841 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.h
++++ b/drivers/media/dvb/frontends/drxk_hard.h
+@@ -332,6 +332,7 @@ struct drxk_state {
+ 
+ 	u16	UIO_mask;	/* Bits used by UIO */
+ 
++	bool	enable_merr_cfg;
+ 	bool	single_master;
+ 	bool	no_i2c_bridge;
+ 	bool	antenna_dvbt;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8
+
