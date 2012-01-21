@@ -1,98 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39237 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:19760 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751643Ab2AUPTm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 10:19:42 -0500
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH] anysee: repeat failed USB control messages
-Date: Sat, 21 Jan 2012 17:19:29 +0200
-Message-Id: <1327159169-14619-1-git-send-email-crope@iki.fi>
+	id S1752874Ab2AUQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:45 -0500
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4i6Y023685
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:45 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 21/35] [media] az6007: Change it to use the MFE solution adopted at dvb-usb
+Date: Sat, 21 Jan 2012 14:04:23 -0200
+Message-Id: <1327161877-16784-22-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-21-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-21-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Control message load increased heavily after CI/CAM support due
-to dvb_ca_en50221. It looks like CI/CAM drops to non-working
-state easily after error is returned to its callbacks. Due to
-that, add some logic to avoid errors repeating failed messages.
+This driver were written to use a previous solution for MFE at dvb-usb.
+Due to the internal API changes, change the binding to work with the
+new way.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/dvb/dvb-usb/anysee.c |   38 ++++++++++++++++++++++++++++++-----
- 1 files changed, 32 insertions(+), 6 deletions(-)
+ drivers/media/dvb/dvb-usb/az6007.c |   42 ++++++++++++++---------------------
+ 1 files changed, 17 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/anysee.c b/drivers/media/dvb/dvb-usb/anysee.c
-index fdee856..6eb7046 100644
---- a/drivers/media/dvb/dvb-usb/anysee.c
-+++ b/drivers/media/dvb/dvb-usb/anysee.c
-@@ -58,7 +58,7 @@ static int anysee_ctrl_msg(struct dvb_usb_device *d, u8 *sbuf, u8 slen,
- 	u8 *rbuf, u8 rlen)
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index b667854..92ded30 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -66,7 +66,7 @@ static struct drxk_config terratec_h7_drxk = {
+ 	.adr = 0x29,
+ 	.single_master = 1,
+ 	.no_i2c_bridge = 0,
+-	.max_size = 64,
++	.chunk_size = 64,
+ 	.microcode_name = "dvb-usb-terratec-h7-drxk.fw",
+ 	.parallel_ts = 1,
+ };
+@@ -290,26 +290,21 @@ static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
  {
- 	struct anysee_state *state = d->priv;
--	int act_len, ret;
-+	int act_len, ret, i;
- 	u8 buf[64];
+ 	struct az6007_device_state *st = adap->priv;
  
- 	memcpy(&buf[0], sbuf, slen);
-@@ -73,26 +73,52 @@ static int anysee_ctrl_msg(struct dvb_usb_device *d, u8 *sbuf, u8 slen,
- 	/* We need receive one message more after dvb_usb_generic_rw due
- 	   to weird transaction flow, which is 1 x send + 2 x receive. */
- 	ret = dvb_usb_generic_rw(d, buf, sizeof(buf), buf, sizeof(buf), 0);
--	if (!ret) {
-+	if (ret)
-+		goto error_unlock;
-+
-+	/* TODO FIXME: dvb_usb_generic_rw() fails rarely with error code -32
-+	 * (EPIPE, Broken pipe). Function supports currently msleep() as a
-+	 * parameter but I would not like to use it, since according to
-+	 * Documentation/timers/timers-howto.txt it should not be used such
-+	 * short, under < 20ms, sleeps. Repeating failed message would be
-+	 * better choice as not to add unwanted delays...
-+	 * Fixing that correctly is one of those or both;
-+	 * 1) use repeat if possible
-+	 * 2) add suitable delay
-+	 */
-+
-+	/* get answer, retry few times if error returned */
-+	for (i = 0; i < 3; i++) {
- 		/* receive 2nd answer */
- 		ret = usb_bulk_msg(d->udev, usb_rcvbulkpipe(d->udev,
- 			d->props.generic_bulk_ctrl_endpoint), buf, sizeof(buf),
- 			&act_len, 2000);
--		if (ret)
--			err("%s: recv bulk message failed: %d", __func__, ret);
--		else {
-+
-+		if (ret) {
-+			deb_info("%s: recv bulk message failed: %d",
-+					__func__, ret);
-+		} else {
- 			deb_xfer("<<< ");
- 			debug_dump(buf, rlen, deb_xfer);
+-	/* FIXME: dvb-usb will call this function twice! */
+-	if (adap->fe[0])
+-		return 0;
+-
+ 	BUG_ON(!st);
  
- 			if (buf[63] != 0x4f)
- 				deb_info("%s: cmd failed\n", __func__);
-+
-+			break;
- 		}
- 	}
+ 	az6007_frontend_poweron(adap);
  
-+	if (ret) {
-+		/* all retries failed, it is fatal */
-+		err("%s: recv bulk message failed: %d", __func__, ret);
-+		goto error_unlock;
-+	}
-+
- 	/* read request, copy returned data to return buf */
--	if (!ret && rbuf && rlen)
-+	if (rbuf && rlen)
- 		memcpy(rbuf, buf, rlen);
+ 	info("attaching demod drxk");
+-	adap->fe[0] = dvb_attach(drxk_attach, &terratec_h7_drxk,
+-			         &adap->dev->i2c_adap, &adap->fe[1]);
+-	if (!adap->fe[0])
++	adap->fe_adap[0].fe = dvb_attach(drxk_attach, &terratec_h7_drxk,
++					 &adap->dev->i2c_adap);
++	if (!adap->fe_adap[0].fe)
+ 		return -EINVAL;
  
-+error_unlock:
- 	mutex_unlock(&anysee_usb_mutex);
+-	adap->fe[0]->sec_priv = adap;
++	adap->fe_adap[0].fe->sec_priv = adap;
+ 	/* FIXME: do we need a pll semaphore? */
+ 	sema_init(&st->pll_mutex, 1);
+-	st->gate_ctrl = adap->fe[0]->ops.i2c_gate_ctrl;
+-	adap->fe[0]->ops.i2c_gate_ctrl = drxk_gate_ctrl;
+-	adap->dont_attach_fe[1] = true;
++	st->gate_ctrl = adap->fe_adap[0].fe->ops.i2c_gate_ctrl;
++	adap->fe_adap[0].fe->ops.i2c_gate_ctrl = drxk_gate_ctrl;
  
- 	return ret;
+ 	return 0;
+ }
+@@ -325,19 +320,15 @@ static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
+ 
+ 	info("attaching tuner mt2063");
+ 	/* Attach mt2063 to DVB-C frontend */
+-	if (adap->fe[0]->ops.i2c_gate_ctrl)
+-		adap->fe[0]->ops.i2c_gate_ctrl(adap->fe[0], 1);
+-	if (!dvb_attach(mt2063_attach, adap->fe[0], &az6007_mt2063_config,
++	if (adap->fe_adap[0].fe->ops.i2c_gate_ctrl)
++		adap->fe_adap[0].fe->ops.i2c_gate_ctrl(adap->fe_adap[0].fe, 1);
++	if (!dvb_attach(mt2063_attach, adap->fe_adap[0].fe, 
++			&az6007_mt2063_config,
+ 			&adap->dev->i2c_adap))
+ 		return -EINVAL;
+ 
+-	if (adap->fe[0]->ops.i2c_gate_ctrl)
+-		adap->fe[0]->ops.i2c_gate_ctrl(adap->fe[0], 0);
+-
+-	/* Hack - needed due to drxk */
+-	adap->fe[1]->tuner_priv = adap->fe[0]->tuner_priv;
+-	memcpy(&adap->fe[1]->ops.tuner_ops,
+-	       &adap->fe[0]->ops.tuner_ops, sizeof(adap->fe[0]->ops.tuner_ops));
++	if (adap->fe_adap[0].fe->ops.i2c_gate_ctrl)
++		adap->fe_adap[0].fe->ops.i2c_gate_ctrl(adap->fe_adap[0].fe, 0);
+ 
+ 	return 0;
+ }
+@@ -530,7 +521,8 @@ static struct dvb_usb_device_properties az6007_properties = {
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+-			.num_frontends    = 2,
++		.num_frontends = 1,
++		.fe = {{
+ 			.streaming_ctrl   = az6007_streaming_ctrl,
+ 			.tuner_attach     = az6007_tuner_attach,
+ 			.frontend_attach  = az6007_frontend_attach,
+@@ -547,8 +539,8 @@ static struct dvb_usb_device_properties az6007_properties = {
+ 				}
+ 			},
+ 			.size_of_priv     = sizeof(struct az6007_device_state),
+-		}
+-	},
++		}}
++	} },
+ 	.power_ctrl       = az6007_power_ctrl,
+ 	.read_mac_address = az6007_read_mac_addr,
+ 
 -- 
-1.7.4.4
+1.7.8
 
