@@ -1,77 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:47267 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:42963 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755385Ab2AFTV3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jan 2012 14:21:29 -0500
-Message-ID: <4F0749B1.7030504@redhat.com>
-Date: Fri, 06 Jan 2012 17:21:21 -0200
+	id S1752859Ab2AUQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:45 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4ixQ021375
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:44 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Mario Ceresa <mrceresa@gmail.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	V4L Mailing List <linux-media@vger.kernel.org>
-Subject: Re: em28xx: no sound on board 1b80:e309 (sveon stv40)
-References: <CAHVY3enRbcw-xKthuog5LXGMc_2tUAa0+owqbDm+C00mdWhV7w@mail.gmail.com> <CAHVY3emdMwEg9GPg1FMwVat3Xzn5AsoKZgveLvwHDxOFJiVtLA@mail.gmail.com> <CAGoCfixxiG+nxTRpLbvcy5CsktOtKk9k_3qwV4WUUhBHLaGPLQ@mail.gmail.com> <CAHVY3emdOaxQbCaZ1uRHTmVzfJ16aKq9yQedkDRXXowfcZYXCw@mail.gmail.com>
-In-Reply-To: <CAHVY3emdOaxQbCaZ1uRHTmVzfJ16aKq9yQedkDRXXowfcZYXCw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 19/35] [media] az6007: improve the error messages for az6007 read/write calls
+Date: Sat, 21 Jan 2012 14:04:21 -0200
+Message-Id: <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-01-2012 17:16, Mario Ceresa wrote:
-> Hello Devin, you're right: here it goes!
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-Hi Mario,
-
-Plese send it with your Signed-off-by:
-
-It is a requirement for merging the patches upstream.
-> 
-> Best,
-> 
-> Mario
-> 
-> On 6 January 2012 19:33, Devin Heitmueller <dheitmueller@kernellabs.com> wrote:
->> On Fri, Jan 6, 2012 at 1:29 PM, Mario Ceresa <mrceresa@gmail.com> wrote:
->>> Ok boys: just to let you know that everything works now.
->>>
->>> thinking that the problem was with the audio input, I noticed that
->>> card=64 had an amux while card=19 no.
->>>
->>> .amux     = EM28XX_AMUX_LINE_IN,
->>>
->>> So I tried this card and modified the mplayer options accordingly:
->>>
->>> mplayer -tv device=/dev/video0:input=0:norm=PAL:forceaudio:alsa:immediatemode=0:audiorate=48000:amode=1:adevice=hw.2
->>> tv://
->>>
->>> notice the forceaudio parameter that reads the audio even if no source
->>> is reported from v4l (The same approach with card=19 does not work)
->>>
->>> The output was a bit slugglish so I switched off pulse audio control
->>> of the board (https://bbs.archlinux.org/viewtopic.php?id=114228) and
->>> now everything is ok!
->>>
->>> I hope this will help some lonenly googlers in the future :)
->>>
->>> Regards,
->>>
->>> Mario
->>
->> Hi Mario,
->>
->> Since you've spent the time to figure out the details of your
->> particular hardware, you should really consider submitting a patch to
->> the em28xx driver which adds your device's USB ID.  That would allow
->> others who have that hardware to have it work "out of the box" with no
->> need for figuring out the correct "cardid" value through
->> experimentation as you had to.
->>
->> Cheers,
->>
->> Devin
->>
->> --
->> Devin J. Heitmueller - Kernel Labs
->> http://www.kernellabs.com
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index c9743ee..c9b6f80 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -110,16 +110,15 @@ static struct mt2063_config az6007_mt2063_config = {
+ static int az6007_read(struct usb_device *udev, u8 req, u16 value,
+ 			    u16 index, u8 *b, int blen)
+ {
+-	int ret = -1;
++	int ret;
+ 
+ 	ret = usb_control_msg(udev,
+ 			      usb_rcvctrlpipe(udev, 0),
+ 			      req,
+ 			      USB_TYPE_VENDOR | USB_DIR_IN,
+ 			      value, index, b, blen, 5000);
+-
+ 	if (ret < 0) {
+-		warn("usb in operation failed. (%d)", ret);
++		warn("usb read operation failed. (%d)", ret);
+ 		return -EIO;
+ 	}
+ 
+@@ -151,7 +150,7 @@ static int az6007_write(struct usb_device *udev, u8 req, u16 value,
+ 			      USB_TYPE_VENDOR | USB_DIR_OUT,
+ 			      value, index, b, blen, 5000);
+ 	if (ret != blen) {
+-		err("usb out operation failed. (%d)", ret);
++		err("usb write operation failed. (%d)", ret);
+ 		return -EIO;
+ 	}
+ 
+-- 
+1.7.8
 
