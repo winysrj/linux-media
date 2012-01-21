@@ -1,57 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:41366 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752796Ab2ADI4j (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 03:56:39 -0500
-Date: Wed, 4 Jan 2012 10:56:33 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: tuukkat76@gmail.com, dacohen@gmail.com,
-	laurent.pinchart@ideasonboard.com, g.liakhovetski@gmx.de,
-	hverkuil@xs4all.nl, snjw23@gmail.com
-Subject: [ANN] IRC meeting on new sensor control interface, 2012-01-09
- 14:00 GMT+2
-Message-ID: <20120104085633.GM3677@valkosipuli.localdomain>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Received: from mx1.redhat.com ([209.132.183.28]:45732 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752792Ab2AUQEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:43 -0500
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4gRP003082
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:43 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 05/35] [media] az6007: Comment the gate_ctl mutex
+Date: Sat, 21 Jan 2012 14:04:07 -0200
+Message-Id: <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+The mutex is there to protect the I2C gate. However, for some reason,
+it is being called twice:
 
-I'd like to announce that we'll have an IRC meeting on #v4l-meeting channel
-on the new sensor control interface. The date is next Monday 2012-01-09
-14:00 GMT + 2. Most important background information is this; it discusses
-how image sensors should be controlled:
+[ 2103.542796] usbcore: registered new interface driver dvb_usb_az6007
+[ 2103.772392] az6007: drxk_gate_ctrl: enable
+[ 2103.793900] az6007: drxk_gate_ctrl: enable
 
-<URL:http://www.spinics.net/lists/linux-media/msg40861.html>
+For now, let's just comment, to allow the driver to run.
 
-These changes currently depend on
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c |    6 +++++-
+ 1 files changed, 5 insertions(+), 1 deletions(-)
 
-- Integer menu controls [1],
-- Selection IOCTL for subdevs [2] and
-- validate_pipeline() V4L2 subdev pad op.
-
-The full patchset, with all the latest patches for the above, is available
-here. What also is there, is the SMIA++ driver which uses these interfaces.
-It can be used on the Nokia N9.
-
-<URL:http://www.spinics.net/lists/linux-media/msg41765.html>
-
-
-Questions and comments are always very, very welcome by e-mail as usual. The
-purpose of the meeting is to have a possibility for real-time discussion on
-the topic.
-
-
-[1] http://www.spinics.net/lists/linux-media/msg40796.html
-
-[2] http://www.spinics.net/lists/linux-media/msg41503.html
-
-
-Kind regards,
-
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index 56126d4..ed376b8 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -52,7 +52,7 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	struct az6007_device_state *st;
+ 	int status;
+ 
+-	info("%s", __func__);
++	info("%s: %s", __func__, enable? "enable" : "disable" );
+ 
+ 	if (!adap)
+ 		return -EINVAL;
+@@ -64,10 +64,14 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 
+ 
+ 	if (enable) {
++#if 0
+ 		down(&st->pll_mutex);
++#endif
+ 		status = st->gate_ctrl(fe, 1);
+ 	} else {
++#if 0
+ 		status = st->gate_ctrl(fe, 0);
++#endif
+ 		up(&st->pll_mutex);
+ 	}
+ 	return status;
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+1.7.8
+
