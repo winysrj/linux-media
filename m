@@ -1,718 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pop1-levy.go180.net ([216.229.186.150]:38026 "EHLO
-	mail.my180.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241Ab2AHIZF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Jan 2012 03:25:05 -0500
-From: Reuben Stokes <okonomiyakisan@gohighspeed.com>
-To: Gareth Williams <gareth@garethwilliams.me.uk>,
-	linux-media@vger.kernel.org
-Subject: Re: [Fwd: Re: em28xx: new board id [eb1a:5051]]
-Date: Sun, 8 Jan 2012 00:25:00 -0800
-References: <4f085290.8bcbe30a.4810.0bbc@mx.google.com> <201201070949.33302.okonomiyakisan@gohighspeed.com> <4f08956c.2165b40a.1e8e.4790@mx.google.com>
-In-Reply-To: <4f08956c.2165b40a.1e8e.4790@mx.google.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201080025.00785.okonomiyakisan@gohighspeed.com>
+Received: from mx1.redhat.com ([209.132.183.28]:29648 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752890Ab2AUQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:45 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4j7P003103
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:45 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 28/35] [media] az6007: Driver cleanup
+Date: Sat, 21 Jan 2012 14:04:30 -0200
+Message-Id: <1327161877-16784-29-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-28-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-21-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-22-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-23-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-24-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-25-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-26-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-27-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-28-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 07 January 2012 10:56:40 Gareth Williams wrote:
-> On Sat, 2012-01-07 at 09:49 -0800, Reuben Stokes wrote:
-> 
-> > On Saturday 07 January 2012 06:11:24 Gareth Williams wrote:
-> > > -------- Forwarded Message --------
-> > > 
-> > > > From: Gareth Williams <gareth@garethwilliams.me.uk>
-> > > > To: Reuben Stokes <okonomiyakisan@gohighspeed.com>
-> > > > Cc: linux-media@vger.kernel.org
-> > > > Subject: Re: em28xx: new board id [eb1a:5051]
-> > > > Date: Tue, 03 Jan 2012 17:59:50 +0000
-> > > > 
-> > > > 
-> > > > On Mon, 2012-01-02 at 21:32 -0800, Reuben Stokes wrote:
-> > > > > On Monday 02 January 2012 13:04:01 Gareth Williams wrote:
-> > > > > > On Sun, 2012-01-01 at 20:40 -0800, okonomiyakisan@my180.net wrote:
-> > > > > > > > On Sat, 2011-12-31 at 17:01 -0800, Reuben Stokes wrote:
-> > > > > > > >> On Saturday 31 December 2011 01:51:45 Gareth Williams wrote:
-> > > > > > > >> > On Fri, 2011-12-30 at 15:16 -0800, Reuben Stokes wrote:
-> > > > > > > >> > > On Friday 30 December 2011 14:27:57 Gareth Williams wrote:
-> > > > > > > >> > > > On Fri, 2011-12-30 at 05:04 -0800, Reuben Stokes wrote:
-> > > > > > > >> > > > > On Friday 30 December 2011 02:01:35 you wrote:
-> > > > > > > >> > > > > > On Thu, 2011-12-29 at 15:13 -0800, Reuben Stokes wrote:
-> > > > > > > >> > > > > > > Hi,
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > Not nearly as linux-savvy as most of the users here, but I
-> > > > > > > >> attempted to operate a "Raygo USB Video Recorder"
-> > > > > > > >> (audio/video capture device). Don't know if my efforts
-> > > > > > > >> qualify as a "test".
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > Model Number:
-> > > > > > > >> > > > > > > R12-41373
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > Display name:
-> > > > > > > >> > > > > > > USB 2861 Device
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > lsusb:
-> > > > > > > >> > > > > > > Bus 001 Device 002: ID eb1a:5051 eMPIA Technology, Inc.
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > dmesg:
-> > > > > > > >> > > > > > > [ 7182.076058] usb 1-1: new high speed USB device using
-> > > > > > > >> ehci_hcd and address 3
-> > > > > > > >> > > > > > > [ 7182.212702] usb 1-1: New USB device found, idVendor=eb1a,
-> > > > > > > >> idProduct=5051
-> > > > > > > >> > > > > > > [ 7182.212714] usb 1-1: New USB device strings: Mfr=0,
-> > > > > > > >> Product=1, SerialNumber=2
-> > > > > > > >> > > > > > > [ 7182.212723] usb 1-1: Product: USB 2861 Device
-> > > > > > > >> > > > > > > [ 7182.212729] usb 1-1: SerialNumber: 0
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > System:
-> > > > > > > >> > > > > > > HP Pavilion dv6910 laptop
-> > > > > > > >> > > > > > > AMD Turion X2 CPU (64 bit)
-> > > > > > > >> > > > > > > Mepis 11; 64 bit( based on Debian Squeeze)
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > Tried
-> > > > > > > >> > > > > > > -------
-> > > > > > > >> > > > > > > * Installed em28xx drivers using instructions found at
-> > > > > > > >> linuxtv.org.
-> > > > > > > >> > > > > > >   I note however that this particular vendor/product ID is
-> > > > > > > >> not validated in the em28xx devices list.
-> > > > > > > >> > > > > > > * As new drivers do not automatically load, I use command:
-> > > > > > > >> modprobe em28xx
-> > > > > > > >> > > > > > >    After this "modprobe -l | grep em28xx" yields
-> > > > > > > >> > > > > > >         kernel/drivers/media/video/em28xx/em28xx-alsa.ko
-> > > > > > > >> > > > > > >         kernel/drivers/media/video/em28xx/em28xx.ko
-> > > > > > > >> > > > > > >         kernel/drivers/media/video/em28xx/em28xx-dvb.ko
-> > > > > > > >> > > > > > > * Device comes with a driver CD for Windows which does work
-> > > > > > > >> in Windows.
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > End result is the device is not recognized as a capture
-> > > > > > > >> device option in any software tried including vlc, cheese,
-> > > > > > > >> guvcview, kdenlive.
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > Any help getting this to work in Linux would be appreciated
-> > > > > > > >> as it completely sucks in my bloated, memory-hogging, 32-bit
-> > > > > > > >> Windows Vista.
-> > > > > > > >> > > > > > >
-> > > > > > > >> > > > > > > Reuben <okonomiyakisan@gohighspeed.com>
-> > > > > > > >> > > > > > > --
-> > > > > > > >> > > > > > > To unsubscribe from this list: send the line "unsubscribe
-> > > > > > > >> linux-media" in
-> > > > > > > >> > > > > > > the body of a message to majordomo@vger.kernel.org
-> > > > > > > >> > > > > > > More majordomo info at
-> > > > > > > >> http://vger.kernel.org/majordomo-info.html
-> > > > > > > >> > > > > >
-> > > > > > > >> > > > > > Reuben,
-> > > > > > > >> > > > > >
-> > > > > > > >> > > > > > If you're willing, then open up the device and see what the
-> > > > > > > >> chips within
-> > > > > > > >> > > > > > are.  You believe it's em28xx based, but there may well be
-> > > > > > > >> additional
-> > > > > > > >> > > > > > devices in there for audio and video.
-> > > > > > > >> > > > > >
-> > > > > > > >> > > > > > Once you've found out what's inside it will be easier to get
-> > > > > > > >> it working.
-> > > > > > > >> > > > > > It may be as simple as getting the driver to recognise the USB
-> > > > > > > >> Vendor ID
-> > > > > > > >> > > > > > or it may require much more work.
-> > > > > > > >> > > > > >
-> > > > > > > >> > > > > > Regards,
-> > > > > > > >> > > > > >
-> > > > > > > >> > > > > > Gareth
-> > > > > > > >> > > > > >
-> > > > > > > >> > > > > > --
-> > > > > > > >> > > > > > To unsubscribe from this list: send the line "unsubscribe
-> > > > > > > >> linux-media" in
-> > > > > > > >> > > > > > the body of a message to majordomo@vger.kernel.org
-> > > > > > > >> > > > > > More majordomo info at
-> > > > > > > >> http://vger.kernel.org/majordomo-info.html
-> > > > > > > >> > > > > >
-> > > > > > > >> > > > > >
-> > > > > > > >> > > > >
-> > > > > > > >> > > > > Thank you very much for the response.
-> > > > > > > >> > > > >
-> > > > > > > >> > > > > Okay, opening it was easier than first suspected.
-> > > > > > > >> > > > >
-> > > > > > > >> > > > > The main (biggest) chip reads with nice big letters and a logo:
-> > > > > > > >> > > > > eMPIA
-> > > > > > > >> > > > > EM2860
-> > > > > > > >> > > > > P86J3-011
-> > > > > > > >> > > > > 201047-01AG
-> > > > > > > >> > > > >
-> > > > > > > >> > > > > Less useful information inlcudes:
-> > > > > > > >> > > > >
-> > > > > > > >> > > > > A smaller chip on the flip side of the circuit board, in letters
-> > > > > > > >> visible only through a magnifying glass, reads:
-> > > > > > > >> > > > > eMPIA
-> > > > > > > >> > > > > TECHNOLOGY
-> > > > > > > >> > > > > EMP202
-> > > > > > > >> > > > > T10164
-> > > > > > > >> > > > > 1052
-> > > > > > > >> > > > >
-> > > > > > > >> > > > > The circuit board itself is stamped:
-> > > > > > > >> > > > > PM22860-2GOB
-> > > > > > > >> > > > >
-> > > > > > > >> > > > > Again, thank you.
-> > > > > > > >> > > > >
-> > > > > > > >> > > > > Reuben
-> > > > > > > >> > > > Reuben,
-> > > > > > > >> > > >
-> > > > > > > >> > > > Was there another chip on there?  The EMP202 is an audio chip that
-> > > > > > > >> can
-> > > > > > > >> > > > covert analogue audio to digital PCM (and vice versa).  The EM2860
-> > > > > > > >> sends
-> > > > > > > >> > > > this digital audio along with digital video over USB.  For this to
-> > > > > > > >> work
-> > > > > > > >> > > > though, the device will need to convert analogue video to digital
-> > > > > > > >> and
-> > > > > > > >> > > > will need another chip to do this.  An example would be a SAA7113
-> > > > > > > >> from
-> > > > > > > >> > > > Philips. Have another look and post back here.
-> > > > > > > >> > > >
-> > > > > > > >> > > > The two chips you've identified are commonly used in for this type
-> > > > > > > >> of
-> > > > > > > >> > > > device and should be easily configurable in the em28xx driver.  We
-> > > > > > > >> just
-> > > > > > > >> > > > need the video chip now! And a tail wind...
-> > > > > > > >> > > >
-> > > > > > > >> > > > Regards,
-> > > > > > > >> > > >
-> > > > > > > >> > > > Gareth
-> > > > > > > >> > > >
-> > > > > > > >> > > > --
-> > > > > > > >> > > > To unsubscribe from this list: send the line "unsubscribe
-> > > > > > > >> linux-media" in
-> > > > > > > >> > > > the body of a message to majordomo@vger.kernel.org
-> > > > > > > >> > > > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > > > > > >> > > >
-> > > > > > > >> > > >
-> > > > > > > >> > >
-> > > > > > > >> > > Good call.  There is another chip. The logo appears to be the Texas
-> > > > > > > >> Instrument logo. It's stamped:
-> > > > > > > >> > > 5150AM1
-> > > > > > > >> > > 09T
-> > > > > > > >> > > C9JJ
-> > > > > > > >> > >
-> > > > > > > >> > > lsusb lists the product ID as "5051", but the chip clearly reads
-> > > > > > > >> "5150...". I have no idea if those two numbers are suppose to be the
-> > > > > > > >> same of if they have nothing to do with each other, but I thought
-> > > > > > > >> I'd confirm the numbers.
-> > > > > > > >> > >
-> > > > > > > >> > > Also, I noted in my earlier post that the circuit board was stamped
-> > > > > > > >> " PM22860-2GOB", but I made a typo.  It's actually, " PM42860-2GOB".
-> > > > > > > >> > >
-> > > > > > > >> > > Thank you for the continued help!!
-> > > > > > > >> > >
-> > > > > > > >> > > Reuben
-> > > > > > > >> >
-> > > > > > > >> > Reuben,
-> > > > > > > >> >
-> > > > > > > >> > A Google of that chip brings 'Ultralow Power NTSC/PAL/SECAM Video
-> > > > > > > >> > Decoder w/Robust Sync Detector' - exactly what we were looking for.
-> > > > > > > >> >
-> > > > > > > >> > You now need to download the video4linux drivers source code, modify
-> > > > > > > >> it
-> > > > > > > >> > so that your device is recognised and configured correctly, then
-> > > > > > > >> finally
-> > > > > > > >> > install the new driver.  It's not a daunting as it sounds.
-> > > > > > > >> >
-> > > > > > > >> > I don't know what Linux distro you're using, but somehow you need to
-> > > > > > > >> > install 'git' and other tools to compile C source.  On my Ubuntu based
-> > > > > > > >> > machine, 'build-essential' is a package that will download all I need.
-> > > > > > > >> > However, if you have a different distro, then you will need to work
-> > > > > > > >> out
-> > > > > > > >> > what's needed to compile the source.  As a minimum, you will need
-> > > > > > > >> > 'make', 'gcc', 'libc' I'd have thought.
-> > > > > > > >> >
-> > > > > > > >> > Once you have a system capable of downloading the source and building
-> > > > > > > >> > it, download the v4l source from git using:-
-> > > > > > > >> >
-> > > > > > > >> > cd ~
-> > > > > > > >> > git clone git://linuxtv.org/media_build.git v4l_driver
-> > > > > > > >> >
-> > > > > > > >> > This will download a copy of the v4l drivers into a directory called
-> > > > > > > >> > v4l_driver within your home directory.
-> > > > > > > >> >
-> > > > > > > >> > Next, 'cd v4l_driver' and 'make download untar' to extract some
-> > > > > > > >> > compressed files.
-> > > > > > > >> >
-> > > > > > > >> > Next 'make config' to check that make works - it may ask you to
-> > > > > > > >> download
-> > > > > > > >> > some libs for building the config gui.
-> > > > > > > >> >
-> > > > > > > >> > Finally, 'make' by itself will build the drivers.  This will build all
-> > > > > > > >> > drivers and as we haven't modified it yet, will be of no use apart
-> > > > > > > >> from
-> > > > > > > >> > showing that your system is capable of building these drivers.
-> > > > > > > >> >
-> > > > > > > >> > Let me know how you get on with this and then we'll attempt to
-> > > > > > > >> configure
-> > > > > > > >> > the drivers for your device - the exciting bit ;-)
-> > > > > > > >> >
-> > > > > > > >> > Apologies for only replying to you once a day, but I think the 8 hour
-> > > > > > > >> > time difference has a lot to do with it!
-> > > > > > > >> >
-> > > > > > > >> > Regards,
-> > > > > > > >> >
-> > > > > > > >> > Gareth
-> > > > > > > >> >
-> > > > > > > >> >
-> > > > > > > >> > --
-> > > > > > > >> > To unsubscribe from this list: send the line "unsubscribe linux-media"
-> > > > > > > >> in
-> > > > > > > >> > the body of a message to majordomo@vger.kernel.org
-> > > > > > > >> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> > > > > > > >> >
-> > > > > > > >> >
-> > > > > > > >>
-> > > > > > > >> Okay.  Followed your perfect directions.
-> > > > > > > >> Incidentally, I'm using a Debian based distro called Mepis.  Although it
-> > > > > > > >> uses it's own modified kernel, I believe it's a derivative of kernel
-> > > > > > > >> 2.6.36.
-> > > > > > > >>
-> > > > > > > >> I seemed to have had all the make/build components in place when I
-> > > > > > > >> started.  At least, it all seemed to work without a hitch.
-> > > > > > > >>
-> > > > > > > >> The 'make config' command never did result in me having to download any
-> > > > > > > >> libs to build a config gui, but it did ask me a series of questions in
-> > > > > > > >> regular command line format.  I answered with the default option on all
-> > > > > > > >> of them.
-> > > > > > > >>
-> > > > > > > >> As for the one answer a day you're providing, I am appreciative and
-> > > > > > > >> humbled I'm getting so much.  I think I would feel guilty if I took up
-> > > > > > > >> any more of your time than that.  Especially during the holiday season,
-> > > > > > > >> especially for a device I purchased because I was too cheap to get a
-> > > > > > > >> quality video/audio capture device.
-> > > > > > > >>
-> > > > > > > >> Speaking of holidays, I hope you're having a Happy New Year.
-> > > > > > > >>
-> > > > > > > >> I'm ready for the next step at your convenience.
-> > > > > > > >>
-> > > > > > > >> Thanks again,
-> > > > > > > >> Reuben
-> > > > > > > >>
-> > > > > > > > Reuben,
-> > > > > > > >
-> > > > > > > > Now that we know that we can build the drivers, it is time to go ahead
-> > > > > > > > and configure, build and install them.
-> > > > > > > >
-> > > > > > > > The 'make config' option allows you to chose which drivers you want to
-> > > > > > > > build.  By default, it will build most drivers.  As you are only
-> > > > > > > > interested in a very small subset of those, then it is worth configuring
-> > > > > > > > the build so that only the ones you need are built.
-> > > > > > > >
-> > > > > > > > Also, 'make xconfig' (preceding 'x') is a much nicer GUI based
-> > > > > > > > configuration (although you may need the qt-dev libraries installed).
-> > > > > > > > You basically, need to configure it so that only EM2860, EMP202 and
-> > > > > > > > TVP5150 is built.  However, be aware, that many of these configuration
-> > > > > > > > options are well and truly hidden amongst all the others.
-> > > > > > > >
-> > > > > > > > As a starter, try disabling everything except:
-> > > > > > > > Enable 'Multimedia support\Video For Linux'
-> > > > > > > > Enable 'Multimedia support\Customize analog and hybrid tuner modules to
-> > > > > > > > build' so that you can disable all tuners in 'Multimedia support
-> > > > > > > > \Customize TV tuners'
-> > > > > > > >
-> > > > > > > > As a quick test, when I ran 'grep =m v4l/.config | wc -l' within the
-> > > > > > > > '~/v4l_driver' directory (or whatever you named it), it return 28.  It
-> > > > > > > > checks how many modules are going to be built from your config.  If
-> > > > > > > > you're near that number then it should be OK; if it's much larger then
-> > > > > > > > you are probably configured to build too much.  Try again, if you have
-> > > > > > > > the patience!
-> > > > > > > >
-> > > > > > > > Once you're happy, run 'make' again.  If you get no errors, then it's
-> > > > > > > > time to go for it and modify the source code for your device.
-> > > > > > > >
-> > > > > > > > Change to directory 'linux/drivers/media/video/em28xx/' within your work
-> > > > > > > > area ('~/v4l_driver') and look at the file called 'em28xx-cards.c'.  At
-> > > > > > > > around line 797 you should see a section that starts:
-> > > > > > > > [EM2860_BOARD_TVP5150_REFERENCE_DESIGN] =
-> > > > > > > > By luck, this seems to have the same video chipset as you: EM2860 &
-> > > > > > > > TVP5150.  You can therefore configure the driver so that it recognises
-> > > > > > > > your USB Id as this card - it may work, it may not.
-> > > > > > > >
-> > > > > > > > At around line 2045 of the same file you should see two lines that
-> > > > > > > > start:	{ USB_DEVICE(0x2040, 0x1605),
-> > > > > > > > 			.driver_info = EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C },
-> > > > > > > > (this may show as three lines due to word-wrapping in your mail reader)
-> > > > > > > > Create a similar line after this with the USB Id of your device and the
-> > > > > > > > configuration you will use:-
-> > > > > > > > { USB_DEVICE(0xeb1a, 0x5051),
-> > > > > > > > 			.driver_info = EM2860_BOARD_TVP5150_REFERENCE_DESIGN },
-> > > > > > > > Note again: 1st line starts '{ USB_DEVICE' and 2nd line starts
-> > > > > > > > '.driver'. There is NO third line and there IS a comma at the end.
-> > > > > > > > Save the file.
-> > > > > > > > The simple modification above will tell the driver that it is
-> > > > > > > > responsible for that USB Id.
-> > > > > > > >
-> > > > > > > > Back in your working directory '~/v4l_driver' type 'make'.  If all goes
-> > > > > > > > well (no errors), follow it with 'sudo make install' to copy the newly
-> > > > > > > > built files into your working system.
-> > > > > > > >
-> > > > > > > > When you next plug in the device, it should be recognised.  Type 'dmesg
-> > > > > > > > | grep em28xx' to see what the system thinks.  You should see it being
-> > > > > > > > recognised.  It might work, or it might not!  Let me know how it goes.
-> > > > > > > > We can tweak the configuration etc to see if we can make the device work
-> > > > > > > > in Linux.
-> > > > > > > >
-> > > > > > > > If it does look OK in 'dmesg' then quickly run:-
-> > > > > > > >
-> > > > > > > > mplayer tv:// -tv
-> > > > > > > > driver=v4l2:device=/dev/video0:audiorate=48000:immediatemode=0:forceaudio:alsa:adevice=hw.1:buffersize=64
-> > > > > > > >
-> > > > > > > > (again one line) and you should see the video from composite and hear
-> > > > > > > > audio (you may need to turn the capture level up on your system).
-> > > > > > > >
-> > > > > > > > Good luck and a Happy New Year!
-> > > > > > > >
-> > > > > > > > Regards,
-> > > > > > > >
-> > > > > > > > Gareth
-> > > > > > > >
-> > > > > > > >
-> > > > > > > 
-> > > > > > > The end result is the device is still not recognized fully, but I see
-> > > > > > > glimmers of hope.
-> > > > > > > 
-> > > > > > > To begin with, the 'make xconfig' did not work. Trouble started with the
-> > > > > > > line,
-> > > > > > > "/lib/modules/2.6.36-1-mepis64-smp/source/scripts/basic/Makefile: No such
-> > > > > > > file or directory", and it went downhill from there.  I didn't spend any
-> > > > > > > time worrying about this and just used the regular command line "make
-> > > > > > > config'.
-> > > > > > > 
-> > > > > > > Hopefully, I found all the right options to enable, but I fear because I
-> > > > > > > did not see any options for anything with 'emp202'.
-> > > > > > > Incidentally, the return on 'grep =m v4l/.config | wc -l' for me was 56.
-> > > > > > > Precisely double what you got, but manageable, I thought. It shows, sadly,
-> > > > > > > that my direction following is not as precise as hoped or intended. 
-> > > > > > > Still, better to have too many drivers than not enough (I think).
-> > > > > > > 
-> > > > > > > The  'make' command, the addition to the em28xx.cards.c, and the 'make
-> > > > > > > install' command as root all seemed to work without errors.
-> > > > > > > 
-> > > > > > > At this point 'lsmod | grep em28xx' yielded nothing. As root I did
-> > > > > > > 'modprobe em28xx' and did another lsmod. This time I got
-> > > > > > > em28xx                 77393  0
-> > > > > > > v4l2_common             5075  1 em28xx
-> > > > > > > videobuf_vmalloc        3773  1 em28xx
-> > > > > > > videobuf_core          12892  2 em28xx,videobuf_vmalloc
-> > > > > > > tveeprom               12753  1 em28xx
-> > > > > > > videodev               66396  3 em28xx,v4l2_common,uvcvideo
-> > > > > > > i2c_core               16325  6
-> > > > > > > em28xx,v4l2_common,tveeprom,nvidia,videodev,i2c_nforce2
-> > > > > > > 
-> > > > > > > I plugged the device in and looked at dmesg:
-> > > > > > > dmesg | grep usb:
-> > > > > > > [ 6454.048064] usb 1-1: new high speed USB device using ehci_hcd and
-> > > > > > > address 5
-> > > > > > > [ 6454.184432] usb 1-1: New USB device found, idVendor=eb1a, idProduct=5051
-> > > > > > > [ 6454.184443] usb 1-1: New USB device strings: Mfr=0, Product=1,
-> > > > > > > SerialNumber=2
-> > > > > > > [ 6454.184452] usb 1-1: Product: USB 2861 Device
-> > > > > > > [ 6454.184457] usb 1-1: SerialNumber: 0
-> > > > > > > 
-> > > > > > > dmesg | grep em28xx:
-> > > > > > > [  553.016820] usbcore: registered new interface driver em28xx
-> > > > > > > [  553.016830] em28xx driver loaded
-> > > > > > > (note: I don't think I ever got linux to recognize it before, so this
-> > > > > > > seems like major progress and the reason I have a glimmer of hope.)
-> > > > > > > 
-> > > > > > > It looked fine, but the mplayer command turned on my built-in webcam.  I
-> > > > > > > knew the darn thing was my /dev/video0 device, but I wasn't thinking. I
-> > > > > > > changed the command to read '/dev/video1' and got:
-> > > > > > > MPlayer SVN-r32610-snapshot-Ubuntu-RVM (C) 2000-2010 MPlayer Team
-> > > > > > > Can't open joystick device /dev/input/js0: No such file or directory
-> > > > > > > Can't init input joystick
-> > > > > > > mplayer: could not connect to socket
-> > > > > > > mplayer: No such file or directory
-> > > > > > > Failed to open LIRC support. You will not be able to use your remote control.
-> > > > > > > Playing tv://.
-> > > > > > > TV file format detected.
-> > > > > > > Selected driver: v4l2
-> > > > > > >  name: Video 4 Linux 2 input
-> > > > > > >  author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
-> > > > > > >  comment: first try, more to come ;-)
-> > > > > > > v4l2: unable to open '/dev/video1': No such file or directory
-> > > > > > > v4l2: ioctl set mute failed: Bad file descriptor
-> > > > > > > v4l2: 0 frames successfully processed, 0 frames dropped.
-> > > > > > > 
-> > > > > > > I rebooted the machine and tried the device again with the same results. 
-> > > > > > > I even had to do the 'modprobe em28xx' to get the drivers loaded. Still
-> > > > > > > nothing.
-> > > > > > > 
-> > > > > > > None of my other video capture programs (vlc, cheese, guvcview) recognized
-> > > > > > > it at all.
-> > > > > > > 
-> > > > > > > Did I do something amiss, or do you think further tweaking is in order?
-> > > > > > > 
-> > > > > > > Again, thank you.
-> > > > > > > 
-> > > > > > > Reuben
-> > > > > > > 
-> > > > > > > 
-> > > > > > Reuben,
-> > > > > > 
-> > > > > > I don't think the driver has recognised your USB Id.  Double check that
-> > > > > > the two hex values you placed in your edits of the file are the same
-> > > > > > number as is shown by 'lsusb'.  All you've seen in the result of 'dmesg'
-> > > > > > is the driver loading.  If the driver recognises your USB device (which
-> > > > > > it should do if your modification worked ok) then you will get quite a
-> > > > > > few lines from dmesg.  Here is mine when I fit a similar device into my
-> > > > > > machine:-
-> > > > > > 
-> > > > > > [   65.774296] usb 2-1.2: new high speed USB device number 3 using
-> > > > > > ehci_hcd
-> > > > > > [   65.984316] em28xx: New device USB VIDBOX Audio @ 480 Mbps
-> > > > > > (eb1a:5006, interface 0, class 0)
-> > > > > > [   65.984478] em28xx #0: chip ID is em2860
-> > > > > > [   66.112534] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 06 50 50 00
-> > > > > > 20 03 6a 24 8e 28
-> > > > > > [   66.112550] em28xx #0: i2c eeprom 10: 00 00 24 57 06 02 00 00 00 00
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112565] em28xx #0: i2c eeprom 20: 02 00 01 00 f0 10 01 00 00 00
-> > > > > > 00 00 5b 00 00 00
-> > > > > > [   66.112579] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112593] em28xx #0: i2c eeprom 40: 00 00 03 00 00 00 00 00 00 00
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112607] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112621] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00
-> > > > > > 24 03 55 00 53 00
-> > > > > > [   66.112634] em28xx #0: i2c eeprom 70: 42 00 20 00 56 00 49 00 44 00
-> > > > > > 42 00 4f 00 58 00
-> > > > > > [   66.112648] em28xx #0: i2c eeprom 80: 20 00 41 00 75 00 64 00 69 00
-> > > > > > 6f 00 00 00 28 03
-> > > > > > [   66.112662] em28xx #0: i2c eeprom 90: 55 00 53 00 42 00 32 00 2e 00
-> > > > > > 30 00 20 00 56 00
-> > > > > > [   66.112676] em28xx #0: i2c eeprom a0: 49 00 44 00 42 00 4f 00 58 00
-> > > > > > 20 00 4e 00 57 00
-> > > > > > [   66.112690] em28xx #0: i2c eeprom b0: 30 00 33 00 00 00 00 00 00 00
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112696] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112702] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112708] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112714] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00
-> > > > > > 00 00 00 00 00 00
-> > > > > > [   66.112721] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash =
-> > > > > > 0x5129e4d9
-> > > > > > [   66.112723] em28xx #0: EEPROM info:
-> > > > > > [   66.112724] em28xx #0:	AC97 audio (5 sample rates)
-> > > > > > [   66.112725] em28xx #0:	500mA max power
-> > > > > > [   66.112726] em28xx #0:	Table at 0x24, strings=0x246a, 0x288e, 0x0000
-> > > > > > [   66.113891] em28xx #0: Identified as Honestech Vidbox NW03 (card=83)
-> > > > > > [   66.485024] saa7115 15-0025: saa7113 found (1f7113d0e100000) @ 0x4a
-> > > > > > (em28xx #0)
-> > > > > > [   67.255220] em28xx #0: Config register raw data: 0x50
-> > > > > > [   67.278929] em28xx #0: AC97 vendor ID = 0x83847650
-> > > > > > [   67.291041] em28xx #0: AC97 features = 0x6a90
-> > > > > > [   67.291045] em28xx #0: Empia 202 AC97 audio processor detected
-> > > > > > [   67.750130] em28xx #0: v4l2 driver version 0.1.3
-> > > > > > [   68.771595] em28xx #0: V4L2 video device registered as video0
-> > > > > > [   68.771599] em28xx #0: V4L2 VBI device registered as vbi0
-> > > > > > [   68.771619] em28xx audio device (eb1a:5006): interface 1, class 1
-> > > > > > [   68.771632] em28xx audio device (eb1a:5006): interface 2, class 1
-> > > > > > [   68.771651] usbcore: registered new interface driver em28xx
-> > > > > > [   68.771653] em28xx driver loaded
-> > > > > > [   68.814917] usbcore: registered new interface driver snd-usb-audio
-> > > > > > 
-> > > > > > Also, 'lsmod | grep em28xx' gives:-
-> > > > > > 
-> > > > > > em28xx                 93080  0 
-> > > > > > v4l2_common            15793  2 saa7115,em28xx
-> > > > > > videobuf_vmalloc       13336  1 em28xx
-> > > > > > videobuf_core          25097  2 em28xx,videobuf_vmalloc
-> > > > > > tveeprom               17009  1 em28xx
-> > > > > > videodev               86252  3 saa7115,em28xx,v4l2_common
-> > > > > > 
-> > > > > > You will see the em28xx driver loaded and also, in my case, the saa7115
-> > > > > > video decoder.  You will have the 5051 chip shown here, not saa7115
-> > > > > > though.
-> > > > > > 
-> > > > > > I'll send you my '.config' file which I've changed to build your video
-> > > > > > driver and now has 29 modules as a separate email.
-> > > > > > 
-> > > > > > So, to confirm:-
-> > > > > > 
-> > > > > > 1.  Make sure your device is not connected to the USB port.
-> > > > > > 2.  Modify the file to add the USB Id of your device as in my previous
-> > > > > > post, checking that the USB Id you add is the same as that given by
-> > > > > > 'lsusb' (they should both be prefixed by 0x to signify hex values).
-> > > > > > 3.  Either use 'make config' to configure only the drivers you need, or
-> > > > > > use the one I've sent you.
-> > > > > > 4.  Run 'make' and ensure no errors.
-> > > > > > 5.  Run 'sudo make install' and ensure no errors.
-> > > > > > 6.  Connect your device to the USB port.
-> > > > > > 7.  Check the result of 'dmesg'.
-> > > > > > 
-> > > > > > Let me know how it goes.
-> > > > > > 
-> > > > > > Regards,
-> > > > > > 
-> > > > > > Gareth
-> > > > > > 
-> > > > > > 
-> > > > > > 
-> > > > > Very, very close.  The device appears to be recognized and the lsmod and dmesg outputs are now similar to yours but reflecting the 5150 chip rather than the saa7115 as you noted.  Incidentally, this happened only after I rebooted.  The mplayer command you provided above does one of two things depending on how the device is hooked up the camcorder.
-> > > > > 
-> > > > > 1) If using the s-video line: The screen is black with a slim green bar at the bottom. No video image at all. The sound works great.
-> > > > > 
-> > > > > 2) If using composite video line: The green bar at the bottom takes up a quarter of the screen (i.e. video window). The top of part of the screen does show the video! (sort of). The video seems to be split horizontally so that the top part of the video is below the bottom part as if the video scrolled upwards and wrapped around to the bottom. All of the video lacks color and appears to be black and white (except of course for the green bar at the bottom). The sound works great.
-> > > > > 
-> > > > > Vlc and guvcview both recognize the device and give me the exact same results as mplayer.  My built-in webcam no longer works, but I am not worried about that at the moment.
-> > > > > 
-> > > > > I'm very excited that life seems to breathed into the thing now and am in awe of your knowledge, expertise, and patience.  I certainly hope that there is a way to get the video working properly.
-> > > > > 
-> > > > > Continued thanks.
-> > > > > 
-> > > > > Reuben
-> > > > > 
-> > > > > 
-> > > > > 
-> > > > Reuben,
-> > > > 
-> > > > Hopefully we'll continue to 'get there' and not stall at the last
-> > > > hurdle!
-> > > > 
-> > > > Try installing 'qv4l2' (hopefully available on your system too as it's
-> > > > Debian based, like mine).  This gives you a Qt based GUI with which to
-> > > > configure your video capture settings.  It has a preview option which
-> > > > opens 'mplayer' configured correctly for the settings.
-> > > > 
-> > > > I'm just wondering (and that's all it is) that maybe you are not
-> > > > capturing NTSC - assuming that you live in a NTSC part of the world.
-> > > > 
-> > > > If that doesn't help, post the tail end of 'dmesg' from when you insert
-> > > > the device.  Don't use 'dmesg | grep em28xx' as that misses out on a few
-> > > > lines.  Instead, run 'dmesg' and note the last entry, then run 'dmesg >
-> > > > dmesg.txt' and edit the resulting file ('dmesg.txt') so that you only
-> > > > have the entries since you inserted the device.  Then post it here.
-> > > > 
-> > > > Good luck.
-> > > > 
-> > > > Regards,
-> > > > 
-> > > > Gareth
-> > > > 
-> > > 
-> > > Reuben,
-> > > 
-> > > Did you get anywhere with this?
-> > > 
-> > > I was thinking that if you managed to get it to work, it might be worth
-> > > considering sending a patch in so that it works for everyone who
-> > > purchases the same device as yours and/or creating a wiki entry for it
-> > > at LinuxTV.
-> > > 
-> > > Regards,
-> > > 
-> > > Gareth
-> > > 
-> > Gareth,
-> > 
-> > Thanks a ton for checking up on me.  Indeed, I did not get your last set of directions.  Or if I did, I deleted the email before I read it (which is the most likely possibility).  That's particularly frustrating because I was anxiously looking for the email once or twice a day.   My apologies.
-> > 
-> > Here we go. Qv4l2 was indeed in the repo and is now installed.  For the video capture, it works great!  Full color, full viewing window, everything.  You were absolutely right about PAL vs NTSC.  Set at PAL, the video gives me the same results as I posted in the last message.  Set for NTSC, the video is clear and smooth.  Also, s-video works flawlessly.  Living with NTSC my whole life (I've lived in the U.S. and Japan, both NTSC regions), I've never actually seen a PAL broadcast trying to be played on an NTSC system or vice-versa.  I feel stupid for not having suspected this all week, (but not that stupid).  And Google should really have been more helpful than it was.
-> > 
-> > One (hopefully final) issue.  The video plays without sound.  I found 2 audio settings on qv4l2: volume and mute.  Volume's on high and mute is unchecked.  I remembered the mplayer line you gave produced very good audio with the PAL output so I tried the line but added 'norm=ntsc' one space after '-tv'.  The video worked great, but curiously, no sound.  I tried the command again without the ntsc setting and it went back to PAL output with great sound.
-> > 
-> > Here is the complete tail end of dmesg.
-> > 
-> > [57441.184054] usb 1-1: new high speed USB device using ehci_hcd and address 2
-> > [57441.319978] usb 1-1: New USB device found, idVendor=eb1a, idProduct=5051
-> > [57441.319991] usb 1-1: New USB device strings: Mfr=0, Product=1, SerialNumber=2
-> > [57441.320000] usb 1-1: Product: USB 2861 Device
-> > [57441.320026] usb 1-1: SerialNumber: 0
-> > [57441.770547] em28xx: New device USB 2861 Device @ 480 Mbps (eb1a:5051, interface 0, class 0)
-> > [57441.780028] em28xx #0: chip ID is em2860
-> > [57441.909218] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 51 50 50 00 20 03 6a 20 8a 04
-> > [57441.909246] em28xx #0: i2c eeprom 10: 00 00 24 57 06 02 00 00 00 00 00 00 00 00 00 00
-> > [57441.909268] em28xx #0: i2c eeprom 20: 02 00 01 00 f0 10 01 00 b8 00 00 00 5b 00 00 00
-> > [57441.909290] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01 00 00 00 00 00 00
-> > [57441.909311] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00 00 00 00 c4 00 00
-> > [57441.909332] em28xx #0: i2c eeprom 50: 00 a2 00 87 81 00 00 00 00 00 00 00 00 00 00 00
-> > [57441.909353] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00 20 03 55 00 53 00
-> > [57441.909374] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 36 00 31 00 20 00 44 00
-> > [57441.909395] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00 04 03 30 00 65 00
-> > [57441.909416] em28xx #0: i2c eeprom 90: 65 00 65 00 65 00 00 00 00 00 00 00 00 00 00 00
-> > [57441.909438] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > [57441.909458] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > [57441.909480] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > [57441.909500] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > [57441.909521] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > [57441.909542] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
-> > [57441.909568] em28xx #0: EEPROM ID= 0x9567eb1a, EEPROM hash = 0x11b79572
-> > [57441.909573] em28xx #0: EEPROM info:
-> > [57441.909579] em28xx #0:       AC97 audio (5 sample rates)
-> > [57441.909583] em28xx #0:       500mA max power
-> > [57441.909590] em28xx #0:       Table at 0x24, strings=0x206a, 0x048a, 0x0000
-> > [57441.910711] em28xx #0: Identified as EM2860/TVP5150 Reference Design (card=29)
-> > [57441.943575] tvp5150 6-005c: chip found @ 0xb8 (em28xx #0)
-> > [57442.052471] tvp5150 6-005c: tvp5150am1 detected.
-> > [57442.113339] em28xx #0: Config register raw data: 0x50
-> > [57442.137213] em28xx #0: AC97 vendor ID = 0xfef7fef7
-> > [57442.149214] em28xx #0: AC97 features = 0xfef7
-> > [57442.149220] em28xx #0: Unknown AC97 audio processor detected!
-> > [57444.765256] em28xx #0: v4l2 driver version 0.1.3
-> > [57445.768417] em28xx #0: V4L2 video device registered as video0
-> > [57445.768428] em28xx #0: V4L2 VBI device registered as vbi0
-> > [57445.768487] em28xx audio device (eb1a:5051): interface 1, class 1
-> > [57445.768524] em28xx audio device (eb1a:5051): interface 2, class 1
-> > [57445.768598] usbcore: registered new interface driver em28xx
-> > [57445.768604] em28xx driver loaded
-> > [57445.786347] usbcore: registered new interface driver snd-usb-audio
-> > 
-> > Again, thank you very much!  Each time you suggest something, it works and I get more hopeful.
-> > 
-> 
-> Reuben,
-> 
-> The Mencoder line should be:-
-> mplayer tv:// -tv
-> driver=v4l2:device=/dev/video0:norm=ntsc:audiorate=48000:immediatemode=0:forceaudio:alsa:adevice=hw.1:buffersize=64
-> 
-> 'norm=ntsc' can go anywhere after the 'device=' option and is delimited
-> from other options by colons ':'.
-> 
-> Alternatively, have you tried using TVTime instead of Mencoder?  A quick
-> Google shows a few people having issues with sound in Mencoder - maybe
-> it would be worth trying?  I used TVTime many years ago and it was very
-> good even then.
-> 
-> Also, can you confirm that one of the chips in the device is marked
-> EMP202?  The following extract from your 'dmesg':
-> 
->      [57442.137213] em28xx #0: AC97 vendor ID = 0xfef7fef7 
->      [57442.149214] em28xx #0: AC97 features = 0xfef7
->      [57442.149220] em28xx #0: Unknown AC97 audio processor detected!
-> 
-> shows that the audio processor has not been detected.  There is code in
-> the driver that detects the EMP202 based on the vendor ID, however the
-> Vendor ID that your device has (0xfef7fef7) isn't on the 'list'.
-> Therefore can you confirm that the chip is definitely marked EMP202?  As
-> these audio chips are all AC97 then I believe that they are compatible
-> to a certain extent, which may explain why you do get sound; it would be
-> better if it was detected correctly though.
-> 
-> Regards,
-> 
-> Gareth
-> 
-I looked at the chip again.  It reads exactly:
-eMPIA
-TECHNOLOGY
-EMP202
-T10164
-1052
+Remove commented test code, remove unused poweroff stuff, and
+fix the copyright data.
 
-Sound can exist, but every program treats it differently.  Adding 'norm=ntsc' where you indicated allowed the sound to work (I also added 'input=1' to use the s-video cord).  One program, guvcview, does not capture sound seemingly at first.  However, if I capture the video to an .avi file, I hear the sound on playback of that file.  I can get VLC to capture audio with video if I manually add 'alsa://plughw:1,0' to the audio device field (an option in the capture component of VLC).  TVtime and Qv4l2 have similar audio options, and I cannot seem to make either one capture sound at all.  I took a quick and inexpertly look at config files and man pages for both (qv4l2 didn't have a man page) to see if I can configure or add a command line parameter to direct the program to the audio, but I could find nothing.  For the programs that can get audio to work, are they getting the sound from a different driver than the where you hope they should be getting it? 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c |   56 ++++++++---------------------------
+ 1 files changed, 13 insertions(+), 43 deletions(-)
 
-Reuben
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index f0e4c01..534d326 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -7,8 +7,9 @@
+  *	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
+  * The original driver's license is GPL, as declared with MODULE_LICENSE()
+  *
+- *  Driver modifiyed by Mauro Carvalho Chehab <mchehab@redhat.com> in order
+- * 	to work with upstream drxk driver, and to fix some bugs.
++ * Copyright (c) 2010-2011 Mauro Carvalho Chehab <mchehab@redhat.com>
++ *	Driver modified by in order to work with upstream drxk driver, and
++ *	tons of bugs got fixed.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -58,7 +59,6 @@ struct az6007_device_state {
+ 
+ 	/* Due to DRX-K - probably need changes */
+ 	int			(*gate_ctrl) (struct dvb_frontend *, int);
+-	struct			semaphore pll_mutex;
+ 	bool			tuner_attached;
+ 
+ 	unsigned char		data[4096];
+@@ -94,17 +94,11 @@ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+ 	if (!st)
+ 		return -EINVAL;
+ 
+-	if (enable) {
+-#if 0
+-		down(&st->pll_mutex);
+-#endif
++	if (enable)
+ 		status = st->gate_ctrl(fe, 1);
+-	} else {
+-#if 0
++	else
+ 		status = st->gate_ctrl(fe, 0);
+-#endif
+-		up(&st->pll_mutex);
+-	}
++
+ 	return status;
+ }
+ 
+@@ -221,14 +215,6 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
+ 	return 0;
+ }
+ 
+-#if 0
+-int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
+-{
+-	u8 v = onoff;
+-	return az6007_write(d->udev, AZ6007_POWER, v , 3, NULL, 1);
+-}
+-#endif
+-
+ static int az6007_read_mac_addr(struct dvb_usb_device *d, u8 mac[6])
+ {
+ 	int ret;
+@@ -246,6 +232,7 @@ static int az6007_led_on_off(struct usb_interface *intf, int onoff)
+ {
+ 	struct usb_device *udev = interface_to_usbdev(intf);
+ 	int ret;
++
+ 	/* TS through */
+ 	ret = az6007_write(udev, AZ6007_POWER, onoff, 0, NULL, 0);
+ 	if (ret < 0)
+@@ -257,8 +244,6 @@ static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct az6007_device_state *st = adap->dev->priv;
+ 
+-	BUG_ON(!st);
+-
+ 	deb_info("attaching demod drxk");
+ 
+ 	adap->fe_adap[0].fe = dvb_attach(drxk_attach, &terratec_h7_drxk,
+@@ -267,8 +252,6 @@ static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
+ 		return -EINVAL;
+ 
+ 	adap->fe_adap[0].fe->sec_priv = adap;
+-	/* FIXME: do we need a pll semaphore? */
+-	sema_init(&st->pll_mutex, 1);
+ 	st->gate_ctrl = adap->fe_adap[0].fe->ops.i2c_gate_ctrl;
+ 	adap->fe_adap[0].fe->ops.i2c_gate_ctrl = drxk_gate_ctrl;
+ 
+@@ -282,9 +265,8 @@ static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
+ 	if (st->tuner_attached)
+ 		return 0;
+ 
+-	st->tuner_attached = true;
+-
+ 	deb_info("attaching tuner mt2063");
++
+ 	/* Attach mt2063 to DVB-C frontend */
+ 	if (adap->fe_adap[0].fe->ops.i2c_gate_ctrl)
+ 		adap->fe_adap[0].fe->ops.i2c_gate_ctrl(adap->fe_adap[0].fe, 1);
+@@ -296,6 +278,8 @@ static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
+ 	if (adap->fe_adap[0].fe->ops.i2c_gate_ctrl)
+ 		adap->fe_adap[0].fe->ops.i2c_gate_ctrl(adap->fe_adap[0].fe, 0);
+ 
++	st->tuner_attached = true;
++
+ 	return 0;
+ }
+ 
+@@ -355,25 +339,9 @@ int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 	az6007_write(udev, AZ6007_POWER, 0, 0, NULL, 0);
+ 	az6007_write(udev, AZ6007_TS_THROUGH, 0, 0, NULL, 0);
+ 
+-#if 0
+-	// Seems to be a poweroff sequence
+-	az6007_write(udev, 0xbc, 1, 3, NULL, 0);
+-	az6007_write(udev, 0xbc, 1, 4, NULL, 0);
+-	az6007_write(udev, 0xc0, 0, 3, NULL, 0);
+-	az6007_write(udev, 0xc0, 1, 3, NULL, 0);
+-	az6007_write(udev, 0xbc, 0, 1, NULL, 0);
+-#endif
+-
+ 	return 0;
+ }
+ 
+-static struct dvb_usb_device_properties az6007_properties;
+-
+-static void az6007_usb_disconnect(struct usb_interface *intf)
+-{
+-	dvb_usb_device_exit(intf);
+-}
+-
+ /* I2C */
+ static int az6007_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msgs[],
+ 			   int num)
+@@ -513,6 +481,8 @@ int az6007_identify_state(struct usb_device *udev,
+ 	return 0;
+ }
+ 
++static struct dvb_usb_device_properties az6007_properties;
++
+ static int az6007_usb_probe(struct usb_interface *intf,
+ 			    const struct usb_device_id *id)
+ {
+@@ -589,7 +559,6 @@ static struct usb_driver az6007_usb_driver = {
+ 	.name		= "dvb_usb_az6007",
+ 	.probe		= az6007_usb_probe,
+ 	.disconnect = dvb_usb_device_exit,
+-	/* .disconnect	= az6007_usb_disconnect, */
+ 	.id_table	= az6007_usb_table,
+ };
+ 
+@@ -619,6 +588,7 @@ module_init(az6007_usb_module_init);
+ module_exit(az6007_usb_module_exit);
+ 
+ MODULE_AUTHOR("Henry Wang <Henry.wang@AzureWave.com>");
++MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
+ MODULE_DESCRIPTION("Driver for AzureWave 6007 DVB-C/T USB2.0 and clones");
+ MODULE_VERSION("1.1");
+ MODULE_LICENSE("GPL");
+-- 
+1.7.8
 
