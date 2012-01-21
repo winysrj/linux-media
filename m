@@ -1,90 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:55397 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030301Ab2AFOwd convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 09:52:33 -0500
-Received: by ggdk6 with SMTP id k6so705679ggd.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 06:52:32 -0800 (PST)
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:56774 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752038Ab2AUOpq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 09:45:46 -0500
+Received: by eaac11 with SMTP id c11so697275eaa.19
+        for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 06:45:44 -0800 (PST)
+Message-ID: <4F1ACF96.1030102@gmail.com>
+Date: Sat, 21 Jan 2012 15:45:42 +0100
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAHVY3e=Q8yRdXhgsoPBX-dvCHY=uF7adCievYoOTg15cOF6xGw@mail.gmail.com>
-References: <CAHVY3e=Q8yRdXhgsoPBX-dvCHY=uF7adCievYoOTg15cOF6xGw@mail.gmail.com>
-From: Mario Ceresa <mrceresa@gmail.com>
-Date: Fri, 6 Jan 2012 15:52:11 +0100
-Message-ID: <CAHVY3emBazYtJKwz-PaJKZQe3Gbi7JBP_zJp-Y-3n=ZtTR2JHg@mail.gmail.com>
-Subject: Re: sveon stv40 usb stick
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH/RFC v4 3/3] gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY
+ control support
+References: <1326569705-20261-4-git-send-email-sylvester.nawrocki@gmail.com> <1326570797-20718-1-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1326570797-20718-1-git-send-email-sylvester.nawrocki@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again!
+On 01/14/2012 08:53 PM, Sylwester Nawrocki wrote:
+> The JPEG compression quality control is currently done by means of the
+> VIDIOC_S/G_JPEGCOMP ioctls. As the quality field of struct v4l2_jpgecomp
+> is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY control,
+> so after the deprecation period VIDIOC_S/G_JPEGCOMP ioctl handlers can be
+> removed, leaving the control the only user interface for compression
+> quality configuration.
+> 
+> Cc: Jean-Francois Moine<moinejf@free.fr>
+> Signed-off-by: Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
 
-following the thread "em28xx: new board id [eb1a:5051]" between Reuben
-and Gareth I was able to advance a little:
+Dear Jean-Francois,
 
-1) I opened the usn stick and my chipsets are:
-- USB interface: em2860
-- Audio ADC: emp202
-- Video ADC: saa7118h (philips)
+is this patch looking OK or you, or would you have any further remarks ?
+I'd like to add it to a pull request in coming week, together with remaining
+patches in this series plus a patch for some SoC JPEG codec driver.
+Please let me know if there is anything that could be changed/improved.
 
-2) I confirm that the stock em28xx driver can recognize the usb stick
-but needs to specify a card manually as an option.
+--
+Best regards,
+Sylwester
 
-3) Using "modprobe em18xx card=19" (which corresponds to
-"EM2860/SAA711X Reference Design") I can go so far as to get a
-/dev/video0, but the preview is black no matter what i do.
-
-4) I was able to eventually compile the v4l drivers but, as soon as I
-inject the driver, I get a kernel oops (attached). I made no change to
-the code obtained with git.
-
-I won't even mind to write some code myself, but I really have no idea
-where to begin with!
-
-Thanks in advance for any help you might provide,
-
-Best,
-
-Mario
-
-
-
-On 3 January 2012 20:44, Mario Ceresa <mrceresa@gmail.com> wrote:
-> Hello everybody!
-> I recently bougth a Sveon STV40 usb stick to capture analogic video
-> (http://www.sveon.com/fichaSTV40.html)
-> I can use it in windows but my linux box (Fedora 16 -
-> 3.1.6-1.fc16.x86_64 - gcc 4.6.2) can't recognize it.
-> Is there any way I can fix this?
->
-> These are the results of my investigation so far:
->
-> 1) It is identified by lsusb as an Afatech board (1b80:e309) with an
-> Empia 2861 chip (from dmesg and windows driver inf file)
-> 2) I experimented with em28xx  because the chipset was empia and with
-> af9015 because I found that the stv22 was supported
-> (http://linuxtv.org/wiki/index.php/Afatech_AF9015). In both cases
-> after I manually added the vendor:id to /sys/bus/usb/drivers/ driver
-> started but in the end I was not able to succeed. With em28xx I could
-> go as far as having a /dev/video0 device but with no signal and the
-> dmesg log said to ask here for help :) . With the af9015 I had an
-> early stop.
-> 3) Both the logs are attached.
-> 4) I used the driver shipped with the fedora stock kernel because I
-> can't compile the ones that I get from
-> git://linuxtv.org/media_build.git. I have an error at:
->
-> CC [M]  media_build/v4l/as3645a.o
-> media_build/v4l/as3645a.c: In function 'as3645a_probe':
-> media_build/v4l/as3645a.c:815:2: error: implicit declaration of
-> function 'kzalloc' [-Werror=implicit-function-declaration]
-> media_build/v4l/as3645a.c:815:8: warning: assignment makes pointer
-> from integer without a cast [enabled by default]
-> cc1: some warnings being treated as errors
->
-> Thank you in advance for any help you might provide on this issue!
->
-> ,Best regards
->
-> Mario
+> ---
+> Removed unneeded substitution of jpeg_set_qual() with set_quality().
+> 
+>   drivers/media/video/gspca/zc3xx.c |   43 +++++++++++++++++++++++++------------
+>   1 files changed, 29 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
+> index f22e02f..1b78598 100644
+> --- a/drivers/media/video/gspca/zc3xx.c
+> +++ b/drivers/media/video/gspca/zc3xx.c
+> @@ -46,6 +46,7 @@ enum e_ctrl {
+>   	AUTOGAIN,
+>   	LIGHTFREQ,
+>   	SHARPNESS,
+> +	QUALITY,
+>   	NCTRLS		/* number of controls */
+>   };
+> 
+> @@ -57,11 +58,6 @@ struct sd {
+> 
+>   	struct gspca_ctrl ctrls[NCTRLS];
+> 
+> -	u8 quality;			/* image quality */
+> -#define QUALITY_MIN 50
+> -#define QUALITY_MAX 80
+> -#define QUALITY_DEF 70
+> -
+>   	u8 bridge;
+>   	u8 sensor;		/* Type of image sensor chip */
+>   	u16 chip_revision;
+> @@ -101,6 +97,12 @@ static void setexposure(struct gspca_dev *gspca_dev);
+>   static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
+>   static void setlightfreq(struct gspca_dev *gspca_dev);
+>   static void setsharpness(struct gspca_dev *gspca_dev);
+> +static void set_quality(struct gspca_dev *gspca_dev);
+> +
+> +/* JPEG image quality */
+> +#define QUALITY_MIN 50
+> +#define QUALITY_MAX 80
+> +#define QUALITY_DEF 70
+> 
+>   static const struct ctrl sd_ctrls[NCTRLS] = {
+>   [BRIGHTNESS] = {
+> @@ -188,6 +190,18 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
+>   	    },
+>   	    .set_control = setsharpness
+>   	},
+> +[QUALITY] = {
+> +	    {
+> +		.id	 = V4L2_CID_JPEG_COMPRESSION_QUALITY,
+> +		.type    = V4L2_CTRL_TYPE_INTEGER,
+> +		.name    = "Compression Quality",
+> +		.minimum = QUALITY_MIN,
+> +		.maximum = QUALITY_MAX,
+> +		.step    = 1,
+> +		.default_value = QUALITY_DEF,
+> +	    },
+> +	    .set_control = set_quality
+> +	},
+>   };
+> 
+>   static const struct v4l2_pix_format vga_mode[] = {
+> @@ -6411,7 +6425,6 @@ static int sd_config(struct gspca_dev *gspca_dev,
+>   	sd->sensor = id->driver_info;
+> 
+>   	gspca_dev->cam.ctrls = sd->ctrls;
+> -	sd->quality = QUALITY_DEF;
+> 
+>   	return 0;
+>   }
+> @@ -6685,7 +6698,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
+>   	/* create the JPEG header */
+>   	jpeg_define(sd->jpeg_hdr, gspca_dev->height, gspca_dev->width,
+>   			0x21);		/* JPEG 422 */
+> -	jpeg_set_qual(sd->jpeg_hdr, sd->quality);
+> +	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
+> 
+>   	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
+>   	switch (sd->sensor) {
+> @@ -6893,17 +6906,19 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
+>   	return -EINVAL;
+>   }
+> 
+> +static void set_quality(struct gspca_dev *gspca_dev)
+> +{
+> +	struct sd *sd = (struct sd *) gspca_dev;
+> +	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
+> +}
+> +
+>   static int sd_set_jcomp(struct gspca_dev *gspca_dev,
+>   			struct v4l2_jpegcompression *jcomp)
+>   {
+>   	struct sd *sd = (struct sd *) gspca_dev;
+> 
+> -	if (jcomp->quality<  QUALITY_MIN)
+> -		sd->quality = QUALITY_MIN;
+> -	else if (jcomp->quality>  QUALITY_MAX)
+> -		sd->quality = QUALITY_MAX;
+> -	else
+> -		sd->quality = jcomp->quality;
+> +	sd->ctrls[QUALITY].val = clamp_t(u8, jcomp->quality,
+> +					 QUALITY_MIN, QUALITY_MAX);
+>   	if (gspca_dev->streaming)
+>   		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
+>   	return gspca_dev->usb_err;
+> @@ -6915,7 +6930,7 @@ static int sd_get_jcomp(struct gspca_dev *gspca_dev,
+>   	struct sd *sd = (struct sd *) gspca_dev;
+> 
+>   	memset(jcomp, 0, sizeof *jcomp);
+> -	jcomp->quality = sd->quality;
+> +	jcomp->quality = sd->ctrls[QUALITY].val;
+>   	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
+>   			| V4L2_JPEG_MARKER_DQT;
+>   	return 0;
