@@ -1,114 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48875 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:5408 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751388Ab2AHM5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 8 Jan 2012 07:57:51 -0500
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q08Cvpq7032505
+	id S1752867Ab2AUQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:45 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4iKd017789
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 8 Jan 2012 07:57:51 -0500
-Received: from [10.3.231.107] (vpn-231-107.phx2.redhat.com [10.3.231.107])
-	by int-mx01.intmail.prod.int.phx2.redhat.com (8.13.8/8.13.8) with ESMTP id q08Cvmot010126
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Sun, 8 Jan 2012 07:57:50 -0500
-Message-ID: <4F0992CB.6020702@redhat.com>
-Date: Sun, 08 Jan 2012 10:57:47 -0200
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:44 -0500
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: dvbv5-tools update - was: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
-References: <4F08385E.7050602@redhat.com> <4F08F6EB.2030508@redhat.com>
-In-Reply-To: <4F08F6EB.2030508@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 20/35] [media] az6007: Use the new MFE support at dvb-usb
+Date: Sat, 21 Jan 2012 14:04:22 -0200
+Message-Id: <1327161877-16784-21-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07-01-2012 23:52, Mauro Carvalho Chehab wrote:
-> I decided to add support for DVB-S, even without signal for testing.
-> This probably means that it likely will not work ;) Well, seriously,
-> we need testers for it.
-> 
-> The current code should be doing the same that szap does, and should
-> work with both dvbv5-zap and dvbv5-scan. The DISEqC code there is very
-> simple, and there's no support for dishpro/bandstacking yet. It is
-> probably not hard to add support for it.
-> 
-> There are still a few things missing there. For example, the current
-> code will only use DISEqC satellite #0, as there's no code to change
-> the satellite number yet.
-> 
-> Anyway, testing and patches are welcome!
+Use the newly dvb-usb MFE support added by
+changeset 9bd9e3bd2c57530dfe3057dd0aa9bdb37824925d.
 
-I decided to rewrite the DISEqC code on it, in order to fix some
-bugs, and make the code clearer.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c |   74 ++++++++++++++++++-----------------
+ 1 files changed, 38 insertions(+), 36 deletions(-)
 
-The updates are at the tree:
-	http://git.linuxtv.org/v4l-utils.git
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index c9b6f80..b667854 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -59,7 +59,7 @@ struct az6007_device_state {
+ 	/* Due to DRX-K - probably need changes */
+ 	int			(*gate_ctrl) (struct dvb_frontend *, int);
+ 	struct			semaphore pll_mutex;
+-	bool			dont_attach_fe1;
++	bool			tuner_attached;
+ };
+ 
+ static struct drxk_config terratec_h7_drxk = {
+@@ -290,56 +290,56 @@ static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
+ {
+ 	struct az6007_device_state *st = adap->priv;
+ 
+-	int result;
++	/* FIXME: dvb-usb will call this function twice! */
++	if (adap->fe[0])
++		return 0;
+ 
+ 	BUG_ON(!st);
+ 
+ 	az6007_frontend_poweron(adap);
+ 
+-	info("az6007: attaching demod drxk");
+-	adap->fe = dvb_attach(drxk_attach, &terratec_h7_drxk,
+-			      &adap->dev->i2c_adap, &adap->fe2);
+-	if (!adap->fe) {
+-		result = -EINVAL;
+-		goto out_free;
+-	}
+-
+-	deb_info("Setting hacks\n");
++	info("attaching demod drxk");
++	adap->fe[0] = dvb_attach(drxk_attach, &terratec_h7_drxk,
++			         &adap->dev->i2c_adap, &adap->fe[1]);
++	if (!adap->fe[0])
++		return -EINVAL;
+ 
++	adap->fe[0]->sec_priv = adap;
+ 	/* FIXME: do we need a pll semaphore? */
+-	adap->fe->sec_priv = adap;
+ 	sema_init(&st->pll_mutex, 1);
+-	st->gate_ctrl = adap->fe->ops.i2c_gate_ctrl;
+-	adap->fe->ops.i2c_gate_ctrl = drxk_gate_ctrl;
+-	adap->fe2->id = 1;
++	st->gate_ctrl = adap->fe[0]->ops.i2c_gate_ctrl;
++	adap->fe[0]->ops.i2c_gate_ctrl = drxk_gate_ctrl;
++	adap->dont_attach_fe[1] = true;
++
++	return 0;
++}
++
++static int az6007_tuner_attach(struct dvb_usb_adapter *adap)
++{
++	struct az6007_device_state *st = adap->priv;
++
++	if (st->tuner_attached)
++		return 0;
++
++	st->tuner_attached = true;
+ 
+-	info("az6007: attaching tuner mt2063");
++	info("attaching tuner mt2063");
+ 	/* Attach mt2063 to DVB-C frontend */
+-	if (adap->fe->ops.i2c_gate_ctrl)
+-		adap->fe->ops.i2c_gate_ctrl(adap->fe, 1);
+-	if (!dvb_attach(mt2063_attach, adap->fe, &az6007_mt2063_config,
+-			&adap->dev->i2c_adap)) {
+-		result = -EINVAL;
++	if (adap->fe[0]->ops.i2c_gate_ctrl)
++		adap->fe[0]->ops.i2c_gate_ctrl(adap->fe[0], 1);
++	if (!dvb_attach(mt2063_attach, adap->fe[0], &az6007_mt2063_config,
++			&adap->dev->i2c_adap))
++		return -EINVAL;
+ 
+-		goto out_free;
+-	}
+-	if (adap->fe->ops.i2c_gate_ctrl)
+-		adap->fe->ops.i2c_gate_ctrl(adap->fe, 0);
++	if (adap->fe[0]->ops.i2c_gate_ctrl)
++		adap->fe[0]->ops.i2c_gate_ctrl(adap->fe[0], 0);
+ 
+ 	/* Hack - needed due to drxk */
+-	adap->fe2->tuner_priv = adap->fe->tuner_priv;
+-	memcpy(&adap->fe2->ops.tuner_ops,
+-	       &adap->fe->ops.tuner_ops, sizeof(adap->fe->ops.tuner_ops));
++	adap->fe[1]->tuner_priv = adap->fe[0]->tuner_priv;
++	memcpy(&adap->fe[1]->ops.tuner_ops,
++	       &adap->fe[0]->ops.tuner_ops, sizeof(adap->fe[0]->ops.tuner_ops));
+ 
+ 	return 0;
+-
+-out_free:
+-	if (adap->fe)
+-		dvb_frontend_detach(adap->fe);
+-	adap->fe = NULL;
+-	adap->fe2 = NULL;
+-
+-	return result;
+ }
+ 
+ int az6007_power_ctrl(struct dvb_usb_device *d, int onoff)
+@@ -530,7 +530,9 @@ static struct dvb_usb_device_properties az6007_properties = {
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
++			.num_frontends    = 2,
+ 			.streaming_ctrl   = az6007_streaming_ctrl,
++			.tuner_attach     = az6007_tuner_attach,
+ 			.frontend_attach  = az6007_frontend_attach,
+ 
+ 			/* parameter for the MPEG2-data transfer */
+-- 
+1.7.8
 
-Basically, additional parameters for satellite delivery systems
-are now added to the zap and scan tools:
-
-        - l <lnbf>
-selects the LNBf type. Using an invalid value like "help" shows
-what's currently supported.
-
-        - S <sat_number>
-Selects satellite number, between 0 to 3. If not specified,
-disables DISEqC. This actually changes the DISEqC "option" 
-and "position" parameter. According with the specs, for 
-position B, tone should be off, and tone burst should
-be miniA. 
-
-        -W <extra time in ms>
-The DISEqC logic will wait for 15 ms. If this parameter is         
-specified, it will add  the extra time to the 15ms delay.
-
-For LNBf devices that use bandstacking (e. g. they use different
-LO frequrencies for V and H polarization), the code will     
-always use 13 Volts and will disable tone/tone burst.
-
-Currently, C-Band multi and DishPro bandstacking LNBf's are
-supported.
-
-The code should now work with the following LNBfs:
-
-UNIVERSAL
-        Europe
-        10800 to 11800 MHz and 11600 to 12700 MHz
-        Dual LO, IF = lowband 9750 MHz, highband 10600 MHz
-
-DBS
-        Expressvu, North America
-        12200 to 12700 MHz
-        Single LO, IF = 11250 MHz
-
-STANDARD
-        Standard
-        10945 to 11450 MHz
-        Single LO, IF = 10000 MHz
-
-ENHANCED
-        Astra
-        10700 to 11700 MHz
-        Single LO, IF = 9750 MHz
-
-C-BAND
-        Big Dish - Monopoint LNBf
-        3700 to 4200 MHz
-        Single LO, IF = 5150 MHz
-
-C-MULT
-        Big Dish - Multipoint LNBf
-        3700 to 4200 MHz
-        Dual LO, Bandstacking, LO POL_R 5150 MHZ, LO POL_L 5750 MHz
-
-DISHPRO
-        DishPro LNBf
-        12200 to 12700 MHz
-        Dual LO, Bandstacking, LO POL_R 11250 MHZ, LO POL_L 14350 MHz
-
-Tests are needed!
-
-Regards,
-Mauro
