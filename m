@@ -1,50 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:20614 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185Ab2ACJxP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 04:53:15 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LX700H5GVGPFT40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Jan 2012 09:53:13 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LX700DGLVGPFF@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 03 Jan 2012 09:53:13 +0000 (GMT)
-Date: Tue, 03 Jan 2012 10:53:13 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v4 0/2] Add support form eMMa-PrP in i.MX2 chips as a
- mem2mem device.
-In-reply-to: <CACKLOr0YczU+jGOuKoRNvOUYhMbc3x_LVk3Gnt-dq+KfppwzFA@mail.gmail.com>
-To: javier Martin <javier.martin@vista-silicon.com>
-Cc: Sylwester Nawrocki <snjw23@gmail.com>, linux-media@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, kernel@pengutronix.de,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Message-id: <4F02D009.8080009@samsung.com>
-References: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
- <CACKLOr1RujFbuTnF=DkCTB=paVUq7=j1Ru_RU7DWyuJedM+Cvg@mail.gmail.com>
- <4F021DCE.8000105@gmail.com>
- <CACKLOr0YczU+jGOuKoRNvOUYhMbc3x_LVk3Gnt-dq+KfppwzFA@mail.gmail.com>
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:45667 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049Ab2AUHkT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 02:40:19 -0500
+Received: by iacb35 with SMTP id b35so733749iac.19
+        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 23:40:18 -0800 (PST)
+From: pdickeybeta@gmail.com
+To: linux-media@vger.kernel.org
+Cc: Patrick Dickey <pdickeybeta@gmail.com>
+Subject: [PATCH 0/2] Import PCTV-80e Drivers from Devin Heitmueller's Repository
+Date: Sat, 21 Jan 2012 01:34:49 -0600
+Message-Id: <1327131291-5174-1-git-send-email-pdickeybeta@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/03/2012 08:43 AM, javier Martin wrote:
-> Do you mean I have to set up a public GIT repository? Is this mandatory?
-> I am not a subsystem maintainer, just casual developer.
+From: Patrick Dickey <pdickeybeta@gmail.com>
 
-It's not mandatory. But it helps Mauro to distinguish between RFC and patches
-for merging AFAIK. I think you can ask him to pickup patches from the mailing
-list directly.
+This series of patches will import the drx39xxj(drx39xyj) drivers from Devin
+Heitmueller's HG Repository for the Pinnacle PCTV-80e USB Tuner.
 
-> What about this?
-> 
-> http://linuxtv.org/wiki/index.php/Maintaining_Git_trees#Patches_submitted_via_email
+Patrick Dickey (2):
+  import-pctv-80e-from-devin-heitmueller-hg-repository
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>    
+    Signed-off-by: Patrick Dickey <pdickeybeta@gmail.com>
+  import-pctv-80e-from-devin-heitmueller-hg-repository
+    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>    
+    Signed-off-by: Patrick Dickey <pdickeybeta@gmail.com>
 
+ Documentation/video4linux/CARDLIST.em28xx          |    1 +
+ .../staging/media/dvb/frontends/drx39xyj/Kconfig   |    7 +
+ .../staging/media/dvb/frontends/drx39xyj/Makefile  |    3 +
+ .../media/dvb/frontends/drx39xyj/bsp_host.h        |   80 +
+ .../staging/media/dvb/frontends/drx39xyj/bsp_i2c.h |  217 +
+ .../media/dvb/frontends/drx39xyj/bsp_tuner.h       |  215 +
+ .../media/dvb/frontends/drx39xyj/bsp_types.h       |  229 +
+ .../media/dvb/frontends/drx39xyj/drx39xxj.c        |  457 +
+ .../media/dvb/frontends/drx39xyj/drx39xxj.h        |   40 +
+ .../media/dvb/frontends/drx39xyj/drx39xxj_dummy.c  |  134 +
+ .../media/dvb/frontends/drx39xyj/drx_dap_fasi.c    |  675 +
+ .../media/dvb/frontends/drx39xyj/drx_dap_fasi.h    |  268 +
+ .../media/dvb/frontends/drx39xyj/drx_driver.c      | 1600 ++
+ .../media/dvb/frontends/drx39xyj/drx_driver.h      | 2588 +++
+ .../dvb/frontends/drx39xyj/drx_driver_version.h    |   82 +
+ .../staging/media/dvb/frontends/drx39xyj/drxj.c    |16758 ++++++++++++++++++++
+ .../staging/media/dvb/frontends/drx39xyj/drxj.h    |  730 +
+ .../media/dvb/frontends/drx39xyj/drxj_map.h        |15359 ++++++++++++++++++
+ .../staging/media/dvb/frontends/drx39xyj/drxj_mc.h | 3939 +++++
+ .../media/dvb/frontends/drx39xyj/drxj_mc_vsb.h     |  744 +
+ .../media/dvb/frontends/drx39xyj/drxj_mc_vsbqam.h  | 1437 ++
+ .../media/dvb/frontends/drx39xyj/drxj_options.h    |   65 +
+ 22 files changed, 45628 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/Kconfig
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/Makefile
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_host.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_i2c.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_tuner.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_types.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj.c
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj_dummy.c
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_dap_fasi.c
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_dap_fasi.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver.c
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver_version.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj.c
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_map.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc_vsb.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc_vsbqam.h
+ create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_options.h
 
-Regards,
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+1.7.7.6
+
