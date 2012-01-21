@@ -1,78 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:55727 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751875Ab2ADHHd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 02:07:33 -0500
-Received: by werm1 with SMTP id m1so8340706wer.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 23:07:32 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201201031217.20473.laurent.pinchart@ideasonboard.com>
-References: <CAOy7-nNSu2v9VS9Bh5O5StvEAvoxA4DqN7KdSGfZZSje1_Fgnw@mail.gmail.com>
-	<201201031217.20473.laurent.pinchart@ideasonboard.com>
-Date: Wed, 4 Jan 2012 15:07:23 +0800
-Message-ID: <CAOy7-nNH7ffkvi42=Zccx==SwwZJHPh9bw5gEBhbPqb+vRMt-Q@mail.gmail.com>
-Subject: Re: Using OMAP3 ISP live display and snapshot sample applications
-From: James <angweiyang@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:26435 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752895Ab2AUQEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:46 -0500
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4kgL023701
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:46 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 30/35] [media] az6007: Be sure to use kmalloc'ed buffer for transfers
+Date: Sat, 21 Jan 2012 14:04:32 -0200
+Message-Id: <1327161877-16784-31-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-30-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-21-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-22-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-23-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-24-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-25-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-26-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-27-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-28-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-29-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-30-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+USB data transfers may not work if the buffer is allocated at
+the stack. Be sure to use kmalloc on all places where a buffer
+is needed.
 
-On Tue, Jan 3, 2012 at 7:17 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi James,
->
-> On Tuesday 03 January 2012 10:40:10 James wrote:
->> Hi Laurent,
->>
->> Happy New Year!!
->
-> Thank you. Happy New Year to you as well. May 2012 bring you a workable OMAP3
-> ISP solution ;-)
->
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c |   27 +++++++++++++++++----------
+ 1 files changed, 17 insertions(+), 10 deletions(-)
 
-Yeah! that's on #1 of my 2012 wishlist!! (^^)
-
-But, it start off with a disappointment on the quest to get
-"gst-launch v4l2src" to work..
-http://patches.openembedded.org/patch/8895/
-
-Saw reported success in get v4l2src to work with MT9V032 by applying
-the hack but no luck with my Y12 monochrome sensor. (-.-)"
-
->> I saw that there is a simple viewfinder in your repo for OMAP3 and
->> wish to know more about it.
->>
->> http://git.ideasonboard.org/?p=omap3-isp-live.git;a=summary
->>
->> I intend to test it with my 12-bit (Y12) monochrome camera sensor
->> driver, running on top of Gumstix's (Steve v3.0) kernel.
->>
->> Is it workable at the moment?
->
-> The application is usable but supports raw Bayer sensors only at the moment.
-> It requires a frame buffer and an omap_vout device (both should be located
-> automatically) and configures the OMAP3 ISP pipeline automatically to produce
-> the display resolution.
->
-
-Will there be a need to patch for Y12 support or workable out-of-the-box?
-
-Likely your previous notes, I know that 12-bit Y12 to the screen is an
-overkill but will it be able to capture Y12 from CCDC output and then
-output to the screen?
-
-Y12 sensor-> CCDC -> CCDC output -> screen
-
-I've one board connected to a LCD monitor via a DVI chip using GS's
-Tobi board as reference and another via 4.3" LG LCD Touchscreen using
-GS's Chestnut board as reference.
-
-Many thanks in adv
-
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index 6177332..142ef7b 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -201,8 +201,8 @@ static struct rc_map_table rc_map_az6007_table[] = {
+ /* remote control stuff (does not work with my box) */
+ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
+ {
++	struct az6007_device_state *st = d->priv;
+ 	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+-	u8 key[10];
+ 	int i;
+ 
+ 	/*
+@@ -212,9 +212,9 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
+ 	 */
+ 	return 0;
+ 
+-	az6007_read(d, AZ6007_READ_IR, 0, 0, key, 10);
++	az6007_read(d, AZ6007_READ_IR, 0, 0, st->data, 10);
+ 
+-	if (key[1] == 0x44) {
++	if (st->data[1] == 0x44) {
+ 		*state = REMOTE_NO_KEY_PRESSED;
+ 		return 0;
+ 	}
+@@ -228,11 +228,11 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
+ 	 * 88 80 7e 0d f2 ff 00 82 63 82 (another NEC-extended based IR)
+ 	 * I suspect that the IR data is at bytes 1 to 4, and byte 5 is parity
+ 	 */
+-	deb_rc("remote query key: %x %d\n", key[1], key[1]);
+-	print_hex_dump_bytes("Remote: ", DUMP_PREFIX_NONE, key, 10);
++	deb_rc("remote query key: %x %d\n", st->data[1], st->data[1]);
++	print_hex_dump_bytes("Remote: ", DUMP_PREFIX_NONE, st->data, 10);
+ 
+ 	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
+-		if (rc5_custom(&keymap[i]) == key[1]) {
++		if (rc5_custom(&keymap[i]) == st->data[1]) {
+ 			*event = keymap[i].keycode;
+ 			*state = REMOTE_KEY_PRESSED;
+ 
+@@ -244,8 +244,11 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
+ 
+ static int az6007_read_mac_addr(struct dvb_usb_device *d, u8 mac[6])
+ {
++	struct az6007_device_state *st = d->priv;
+ 	int ret;
+-	ret = az6007_read(d, AZ6007_READ_DATA, 6, 0, mac, 6);
++
++	ret = az6007_read(d, AZ6007_READ_DATA, 6, 0, st->data, 6);
++	memcpy(mac, st->data, sizeof(mac));
+ 
+ 	if (ret > 0)
+ 		deb_info("%s: mac is %02x:%02x:%02x:%02x:%02x:%02x\n",
+@@ -464,7 +467,11 @@ int az6007_identify_state(struct usb_device *udev,
+ 			  struct dvb_usb_device_description **desc, int *cold)
+ {
+ 	int ret;
+-	u8 mac[6];
++	u8 *mac;
++
++	mac = kmalloc(6, GFP_ATOMIC);
++	if (!mac)
++		return -ENOMEM;
+ 
+ 	/* Try to read the mac address */
+ 	ret = __az6007_read(udev, AZ6007_READ_DATA, 6, 0, mac, 6);
+@@ -473,6 +480,8 @@ int az6007_identify_state(struct usb_device *udev,
+ 	else
+ 		*cold = 1;
+ 
++	kfree(mac);
++
+ 	if (*cold) {
+ 		__az6007_write(udev, 0x09, 1, 0, NULL, 0);
+ 		__az6007_write(udev, 0x00, 0, 0, NULL, 0);
+@@ -488,8 +497,6 @@ static struct dvb_usb_device_properties az6007_properties;
+ static int az6007_usb_probe(struct usb_interface *intf,
+ 			    const struct usb_device_id *id)
+ {
+-	struct usb_device *udev = interface_to_usbdev(intf);
+-
+ 	return dvb_usb_device_init(intf, &az6007_properties,
+ 				   THIS_MODULE, NULL, adapter_nr);
+ }
 -- 
-Regards,
-James
+1.7.8
+
