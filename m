@@ -1,80 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:43702 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756057Ab2AERzs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 12:55:48 -0500
-Date: Thu, 5 Jan 2012 20:56:20 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Greg KH <greg@kroah.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [patch -longterm v2] V4L/DVB: v4l2-ioctl: integer overflow in
- video_usercopy()
-Message-ID: <20120105175620.GB3644@mwanda>
-References: <20111215063445.GA2424@elgon.mountain>
- <4EE9BC25.7020303@infradead.org>
- <201112151033.35153.hverkuil@xs4all.nl>
- <4EE9C2E6.1060304@infradead.org>
- <20120103205539.GC17131@kroah.com>
- <20120105062822.GB10230@mwanda>
- <20120105164358.GA26153@kroah.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="ZfOjI3PrQbgiZnxM"
-Content-Disposition: inline
-In-Reply-To: <20120105164358.GA26153@kroah.com>
+Received: from mx1.redhat.com ([209.132.183.28]:34348 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752896Ab2AUQEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:46 -0500
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4kdQ003108
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:46 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 31/35] [media] az6007: Fix IR handling
+Date: Sat, 21 Jan 2012 14:04:33 -0200
+Message-Id: <1327161877-16784-32-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-31-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-21-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-22-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-23-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-24-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-25-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-26-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-27-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-28-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-29-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-30-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-31-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c |   31 +++++++++++++------------------
+ 1 files changed, 13 insertions(+), 18 deletions(-)
 
---ZfOjI3PrQbgiZnxM
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index 142ef7b..a8aedb8 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -204,13 +204,7 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
+ 	struct az6007_device_state *st = d->priv;
+ 	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
+ 	int i;
+-
+-	/*
+-	 * FIXME: remove the following return to enabled remote querying
+-	 * The driver likely needs proper locking to avoid troubles between
+-	 * this call and other concurrent calls.
+-	 */
+-	return 0;
++	unsigned code = 0;
+ 
+ 	az6007_read(d, AZ6007_READ_IR, 0, 0, st->data, 10);
+ 
+@@ -219,20 +213,21 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
+ 		return 0;
+ 	}
+ 
+-	/*
+-	 * FIXME: need to make something useful with the keycodes and to
+-	 * convert it to the non-legacy mode. Yet, it is producing some
+-	 * debug info already, like:
+-	 * 88 04 eb 02 fd ff 00 82 63 82 (terratec IR)
+-	 * 88 04 eb 03 fc 00 00 82 63 82 (terratec IR)
+-	 * 88 80 7e 0d f2 ff 00 82 63 82 (another NEC-extended based IR)
+-	 * I suspect that the IR data is at bytes 1 to 4, and byte 5 is parity
+-	 */
+-	deb_rc("remote query key: %x %d\n", st->data[1], st->data[1]);
++	if ((st->data[1] ^ st->data[2]) == 0xff)
++		code = st->data[1];
++	else
++		code = st->data[1] << 8 | st->data[2];
++
++	if ((st->data[3] ^ st->data[4]) == 0xff)
++		code = code << 8 | st->data[3];
++	else
++		code = code << 16 | st->data[3] << 8| st->data[4];
++
++	printk("remote query key: %04x\n", code);
+ 	print_hex_dump_bytes("Remote: ", DUMP_PREFIX_NONE, st->data, 10);
+ 
+ 	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
+-		if (rc5_custom(&keymap[i]) == st->data[1]) {
++		if (rc5_custom(&keymap[i]) == code) {
+ 			*event = keymap[i].keycode;
+ 			*state = REMOTE_KEY_PRESSED;
+ 
+-- 
+1.7.8
 
-On Thu, Jan 05, 2012 at 08:43:58AM -0800, Greg KH wrote:
-> On Thu, Jan 05, 2012 at 09:28:22AM +0300, Dan Carpenter wrote:
-> > If p->count is too high the multiplication could overflow and
-> > array_size would be lower than expected.  Mauro and Hans Verkuil
-> > suggested that we cap it at 1024.  That comes from the maximum
-> > number of controls with lots of room for expantion.
-> >=20
-> > $ grep V4L2_CID include/linux/videodev2.h | wc -l
-> > 211
-> >=20
-> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->=20
-> So this patch is only for 2.6.32?  But the original needs to get into
-> Linus's tree first (which is what I'm guessing the other patch you sent
-> is, right?)
-
-Yep.
-
-regards,
-dan carpenter
-
-
---ZfOjI3PrQbgiZnxM
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPBeRDAAoJEOnZkXI/YHqRxrQP/iRWbNxcOGz7m8vMij8GL9i4
-H60w8ouuvSXJyjY8cDxDPQRJsF3ziutY7wuz/7kMO1bFpHWQ5XZPQOgCKgiy+YIN
-Eo0WRd9ZNOdyf9l1oYB0Q505dT8Wn4yfHVdB5QHEAiHZUieH1MTx2dJ3GjDp7t+X
-msOp4AohjrrXIkP1QkUfHNnMv283FytrjtBgt6Zdy+7jME8CVLI6YORZT9c0Rcxz
-jJ8sHdDIxvUtFdqoll3kD2gUz31pMDC8qtHlbCNIHfFHvl6UnGsbNT7Wg/A2r4W8
-9xZLn1+/CsbKGN+1aLhTJfRGFfe5tSaQQnRE5xzo8AIW9q+g/BSdrjbwCp/ypvPW
-Tbt2yKomZFNeXEikydgYOSYQbSmCt4ItbeW+8RZVmop+9wrwt87ZkS1Cqh1qHojb
-wP7jEJZPAU+OTY5CkZBK7VjwWtcyMzpGEHk3n+hWnq3hxzbD+gWAlVV8QCVNjevA
-pkKfZCSVoqY/NakQ8uKNdjxsZ8XjhAC7s4dISlaRc0x3BAWDlu0KhBLztEyMQcz0
-pKRfAla7lx6UHkbMy7jxoi9PUzQ3JdagyljFsIyXK8PINER5YAwaZeVBzDA80AV3
-hZKlEHyHklmkC6WVDWnDOUlNv45q+fBHzVKLEibUTulEmMdRhdL/FYlN1huHy2a1
-f1FVJcrh0B8EQHSh1v7j
-=B1XB
------END PGP SIGNATURE-----
-
---ZfOjI3PrQbgiZnxM--
