@@ -1,162 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:45757 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754213Ab2AFOEQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 09:04:16 -0500
-Received: by eekc4 with SMTP id c4so1070996eek.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 06:04:15 -0800 (PST)
-Message-ID: <4F06FF5B.8050707@gmail.com>
-Date: Fri, 06 Jan 2012 15:04:11 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCHv4 1/2] v4l: Add new framesamples field to struct v4l2_mbus_framefmt
-References: <201112120131.24192.laurent.pinchart@ideasonboard.com> <1323865388-26994-1-git-send-email-s.nawrocki@samsung.com> <1323865388-26994-2-git-send-email-s.nawrocki@samsung.com> <201112210120.56888.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201112210120.56888.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:1025 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752817Ab2AUQEn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:43 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4hcN023681
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:43 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 12/35] [media] drxk: Don't assume a default firmware name
+Date: Sat, 21 Jan 2012 14:04:14 -0200
+Message-Id: <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Move the ngene/ddbridge firmware into their drivers.
 
-On 12/21/2011 01:20 AM, Laurent Pinchart wrote:
-> On Wednesday 14 December 2011 13:23:07 Sylwester Nawrocki wrote:
->> The purpose of the new field is to allow the video pipeline elements
->> to negotiate memory buffer size for compressed data frames, where
->> the buffer size cannot be derived from pixel width and height and
->> the pixel code.
->>
->> For VIDIOC_SUBDEV_S_FMT and VIDIOC_SUBDEV_G_FMT ioctls, the
->> framesamples parameter should be calculated by the driver from pixel
->> width, height, color format and other parameters if required and
->> returned to the caller. This applies to compressed data formats only.
->>
->> The application should propagate the framesamples value, whatever
->> returned at the first sub-device within a data pipeline, i.e. at the
->> pipeline's data source.
->>
->> For compressed data formats the host drivers should internally
->> validate the framesamples parameter values before streaming is
->> enabled, to make sure the memory buffer size requirements are
->> satisfied along the pipeline.
->>
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> --
->> There is no changes in this patch comparing to v3.
->> ---
->>   Documentation/DocBook/media/v4l/dev-subdev.xml     |   10 ++++++++--
->>   Documentation/DocBook/media/v4l/subdev-formats.xml |    9 ++++++++-
->>   include/linux/v4l2-mediabus.h                      |    4 +++-
->>   3 files changed, 19 insertions(+), 4 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/dev-subdev.xml
->> b/Documentation/DocBook/media/v4l/dev-subdev.xml index 0916a73..b9d24eb
->> 100644
->> --- a/Documentation/DocBook/media/v4l/dev-subdev.xml
->> +++ b/Documentation/DocBook/media/v4l/dev-subdev.xml
->
->> @@ -160,7 +160,13 @@
->>         guaranteed to be supported by the device. In particular, drivers
->> guarantee that a returned format will not be further changed if passed to
->> an&VIDIOC-SUBDEV-S-FMT; call as-is (as long as external parameters, such
->> as
->> -      formats on other pads or links' configuration are not changed).
->> </para>
->> +      formats on other pads or links' configuration are not changed). When
->> +      a device contains a data encoder, the<structfield>
->> +<link linkend="v4l2-mbus-framefmt-framesamples">framesamples</link>
->> +</structfield>  field value may be further changed, if parameters of
->> the
->> +      encoding process are changed after the format has been negotiated. In
->> +      such situation applications should use&VIDIOC-SUBDEV-G-FMT; ioctl to
->> +      query an updated format.</para>
->
-> Sorry for answering so late. I've been thinking about this topic (as well as
-> the proposed new pixelclock field) quite a lot, and one question strikes me
-> here (please don't hate me): does userspace need to care about the
-> framesamples field ? It looks like the value is only used inside the kernel,
-> and we're relying on on userspace to propagate those values between subdevs.
+There are two reasons for that:
+	1) The firmware used there didn't work for a few devices
+I tested here (Terratec H5, H6 and H7);
+	2) At least Terratec H7 doesn't seem to require a firmware
+for it to work.
 
-How about a requirements for applications to configure the frame length only 
-on sensor (data source) subdev ? The sensor subdev would adjust it, if it 
-wouldn't have been consistent with other parameters in struct 
-v4l2_mbus_framefmt. And having it "undefined" for non-compressed formats 
-rather than requiring it to be set by subdevs to 0 ?
+After this change, if firmware is not specified, the driver will
+use a rom-based firmware (this seems to be the case for Terratec
+H7, although I need to better check the USB dumps to be sure about
+that).
 
-A standard function in the media core could be implemented, if ever needed,
-to set framesamples on any remaining subdevs in the pipeline. 
+In any case, the firmware seems to be optional, as the DRX-K driver
+don't return the firmware load error.
 
-Also the name "framesamples" is a bit odd, just "length" sounds better to me.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/ddbridge/ddbridge-core.c |    1 +
+ drivers/media/dvb/dvb-usb/az6007.c         |    8 +++++---
+ drivers/media/dvb/frontends/drxk_hard.c    |    4 +---
+ drivers/media/dvb/ngene/ngene-cards.c      |    1 +
+ 4 files changed, 8 insertions(+), 6 deletions(-)
 
-> If that's the case, wouldn't it be better to have an in-kernel API to handle
-> this ? I'm a bit concerned about forcing userspace to handle internal
-> information to userspace if there's no reason to do so.
->
-> What's the rationale between your solution, is there a need for the
-> framesamples information in userspace ?
-
-Yes, it would be useful. And the control API doesn't seem relevant for it.
-Maximum frame length is really a property of data frame on the media bus
-which struct v4l2_framefmt describes.
-Some sensors allow fine grained configuration of their embedded JPEG 
-encoders and having frame length configurable directly on subdevs would
-be useful.
-
---
-Regards,
-Sylwester
-
->>         <para>Drivers automatically propagate formats inside sub-devices.
->> When a try or active format is set on a pad, corresponding formats on
->> other pads diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml
->> b/Documentation/DocBook/media/v4l/subdev-formats.xml index
->> 49c532e..7c202a1 100644
->> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
->> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
->> @@ -33,9 +33,16 @@
->>   	<entry>Image colorspace, from&v4l2-colorspace;. See
->>   	<xref linkend="colorspaces" />  for details.</entry>
->>   	</row>
->> +	<row id="v4l2-mbus-framefmt-framesamples">
->> +	<entry>__u32</entry>
->> +	<entry><structfield>framesamples</structfield></entry>
->> +	<entry>Maximum number of bus samples per frame for compressed data
->> +	    formats. For uncompressed formats drivers and applications must
->> +	    set this parameter to zero.</entry>
->> +	</row>
->>   	<row>
->>   	<entry>__u32</entry>
->> -	<entry><structfield>reserved</structfield>[7]</entry>
->> +	<entry><structfield>reserved</structfield>[6]</entry>
->>   	<entry>Reserved for future extensions. Applications and drivers must
->>   	  set the array to zero.</entry>
->>   	</row>
->> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
->> index 5ea7f75..f18d6cd 100644
->> --- a/include/linux/v4l2-mediabus.h
->> +++ b/include/linux/v4l2-mediabus.h
->> @@ -101,6 +101,7 @@ enum v4l2_mbus_pixelcode {
->>    * @code:	data format code (from enum v4l2_mbus_pixelcode)
->>    * @field:	used interlacing type (from enum v4l2_field)
->>    * @colorspace:	colorspace of the data (from enum v4l2_colorspace)
->> + * @framesamples: maximum number of bus samples per frame
->>    */
->>   struct v4l2_mbus_framefmt {
->>   	__u32			width;
->> @@ -108,7 +109,8 @@ struct v4l2_mbus_framefmt {
->>   	__u32			code;
->>   	__u32			field;
->>   	__u32			colorspace;
->> -	__u32			reserved[7];
->> +	__u32			framesamples;
->> +	__u32			reserved[6];
->>   };
->>
->>   #endif
+diff --git a/drivers/media/dvb/ddbridge/ddbridge-core.c b/drivers/media/dvb/ddbridge/ddbridge-core.c
+index 2f31648..243dbb3 100644
+--- a/drivers/media/dvb/ddbridge/ddbridge-core.c
++++ b/drivers/media/dvb/ddbridge/ddbridge-core.c
+@@ -578,6 +578,7 @@ static int demod_attach_drxk(struct ddb_input *input)
+ 	struct drxk_config config;
+ 
+ 	memset(&config, 0, sizeof(config));
++	config.microcode_name = "drxk_a3.mc";
+ 	config.adr = 0x29 + (input->nr & 1);
+ 
+ 	fe = input->fe = dvb_attach(drxk_attach, &config, i2c);
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index bb597c6..523972f 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -55,7 +55,8 @@ static struct drxk_config terratec_h7_drxk = {
+ 	.adr = 0x29,
+ 	.single_master = 1,
+ 	.no_i2c_bridge = 0,
+-	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
++	.max_size = 64,
++//	.microcode_name = "dvb-usb-terratec-h5-drxk.fw",
+ };
+ 
+ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+@@ -127,7 +128,8 @@ static int az6007_usb_out_op(struct dvb_usb_device *d, u8 req, u16 value,
+ 	debug_dump(b, blen, deb_xfer);
+ 
+ 	if (blen > 64) {
+-		err("az6007: doesn't suport I2C transactions longer than 64 bytes\n");
++		err("az6007: tried to write %d bytes, but I2C max size is 64 bytes\n",
++		    blen);
+ 		return -EOPNOTSUPP;
+ 	}
+ 
+@@ -395,6 +397,7 @@ static int az6007_frontend_attach(struct dvb_usb_adapter *adap)
+ 	adap->fe2->tuner_priv = adap->fe->tuner_priv;
+ 	memcpy(&adap->fe2->ops.tuner_ops,
+ 	       &adap->fe->ops.tuner_ops, sizeof(adap->fe->ops.tuner_ops));
++
+ 	return 0;
+ 
+ out_free:
+@@ -572,7 +575,6 @@ static struct dvb_usb_device_properties az6007_properties = {
+ 	.num_adapters = 1,
+ 	.adapter = {
+ 		{
+-			/* .caps             = DVB_USB_ADAP_RECEIVES_204_BYTE_TS, */
+ 			.streaming_ctrl   = az6007_streaming_ctrl,
+ 			.frontend_attach  = az6007_frontend_attach,
+ 
+diff --git a/drivers/media/dvb/frontends/drxk_hard.c b/drivers/media/dvb/frontends/drxk_hard.c
+index 6980ed7..4b99255 100644
+--- a/drivers/media/dvb/frontends/drxk_hard.c
++++ b/drivers/media/dvb/frontends/drxk_hard.c
+@@ -6070,9 +6070,7 @@ static int init_drxk(struct drxk_state *state)
+ 		if (status < 0)
+ 			goto error;
+ 
+-		if (!state->microcode_name)
+-			load_microcode(state, "drxk_a3.mc");
+-		else
++		if (state->microcode_name)
+ 			load_microcode(state, state->microcode_name);
+ 
+ 		/* disable token-ring bus through OFDM block for possible ucode upload */
+diff --git a/drivers/media/dvb/ngene/ngene-cards.c b/drivers/media/dvb/ngene/ngene-cards.c
+index 8418c02..7539a5d 100644
+--- a/drivers/media/dvb/ngene/ngene-cards.c
++++ b/drivers/media/dvb/ngene/ngene-cards.c
+@@ -216,6 +216,7 @@ static int demod_attach_drxk(struct ngene_channel *chan,
+ 	struct drxk_config config;
+ 
+ 	memset(&config, 0, sizeof(config));
++	config.microcode_name = "drxk_a3.mc";
+ 	config.adr = 0x29 + (chan->number ^ 2);
+ 
+ 	chan->fe = dvb_attach(drxk_attach, &config, i2c);
+-- 
+1.7.8
 
