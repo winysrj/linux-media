@@ -1,40 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sargas.telkomsa.net ([196.25.211.69]:12831 "EHLO
-	sargas.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123Ab2AYXdN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 18:33:13 -0500
-Date: Thu, 26 Jan 2012 01:33:09 +0200 (SAST)
-From: online445428@telkomsa.net
-Message-ID: <61101702.410142.1327534389753.JavaMail.root@zimbra3-vm1.telkomsa.net>
-Subject: New  Year  Promo  To  Our  Beneficiary!!!
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: undisclosed-recipients:;
+Received: from mx1.redhat.com ([209.132.183.28]:10357 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752880Ab2AUQEp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 21 Jan 2012 11:04:45 -0500
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4jpi023689
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:45 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 24/35] [media] az6007: Use DRX-K dynamic clock mode
+Date: Sat, 21 Jan 2012 14:04:26 -0200
+Message-Id: <1327161877-16784-25-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1327161877-16784-24-git-send-email-mchehab@redhat.com>
+References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-2-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-3-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-4-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-5-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-6-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-7-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-8-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-9-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-10-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-11-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-12-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-13-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-14-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-15-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-16-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-17-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-18-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-19-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-20-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-21-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-22-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-23-git-send-email-mchehab@redhat.com>
+ <1327161877-16784-24-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Beneficiary,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/dvb-usb/az6007.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
+index 342f929..00a0bf1 100644
+--- a/drivers/media/dvb/dvb-usb/az6007.c
++++ b/drivers/media/dvb/dvb-usb/az6007.c
+@@ -64,11 +64,12 @@ struct az6007_device_state {
  
-We are here to notify you that the sum of  $250,000 U.S.Dollars was generated and awarded to you by the Western Union Foundation in conjunction with the African Union Foundation.This award was been selected through the internet, where your e-mail address was indicated and notified.The Western Union  Foundation, All the email addresses of the people that are active online,among the millions of our customers who use Western Union in their business transactions.Four people are selected Every year  to benefit from this promotion and you are one of the Selected Winners.
-
-To avoid misappropriation of funds, proper verifications must be carried out before the fund is transferred. We require the details below for verification so that the transfer can be carried out.
-
-1. Receiver's Full Name:
-2. Receiver's Address:
-3. Receiver's Country:
-4. Receiver's Telephone Number:
-5. Receiver's Occupation:
-
-  Send the above details to us via the email addresses stated below:
+ static struct drxk_config terratec_h7_drxk = {
+ 	.adr = 0x29,
+-	.single_master = 1,
+-	.no_i2c_bridge = 0,
++	.parallel_ts = true,
++	.dynamic_clk = true,
++	.single_master = true,
++	.no_i2c_bridge = false,
+ 	.chunk_size = 64,
+-	.microcode_name = "dvb-usb-terratec-h7-drxk.fw",
+-	.parallel_ts = 1,
++	.microcode_name = "dvb-usb-terratec-h7-az6007.fw",
+ };
  
-Western Union District Manager (Mr. Mike Moris)
-Website:www.westernunion.com
-E-mail: westernoffice79@yahoo.com.hk
+ static int drxk_gate_ctrl(struct dvb_frontend *fe, int enable)
+-- 
+1.7.8
 
-Note: You were selected as a winner on this promotion and I personally advise that you use the funds wisely. However, we need your information as stated above to commence the transaction due process.
-
-As soon as these details are received and verified, the fund will be transferred to you.
-
-Copyright © 2001-2011 The Western Union Company , All Rights Reserved.
