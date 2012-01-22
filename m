@@ -1,56 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:53440 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751220Ab2A2UcM convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Jan 2012 15:32:12 -0500
+Received: from mail-xsmtp4.externet.hu ([212.40.96.155]:56720 "EHLO
+	mail-xsmtp4.externet.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751715Ab2AVNKN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Jan 2012 08:10:13 -0500
+Message-ID: <4F1C0921.1060109@gmail.com>
+Date: Sun, 22 Jan 2012 14:03:29 +0100
+From: Csillag Kristof <csillag.kristof@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAN_cFWMPNRx75GC0d0Z5CZC0dPH=wv1YVuA+7j4pfFh9ww9bgg@mail.gmail.com>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
-	<201201261531.40551.arnd@arndb.de>
-	<20120127162624.40cba14e.akpm@linux-foundation.org>
-	<CAN_cFWMPNRx75GC0d0Z5CZC0dPH=wv1YVuA+7j4pfFh9ww9bgg@mail.gmail.com>
-Date: Sun, 29 Jan 2012 22:32:11 +0200
-Message-ID: <CAJL_dMtSArpbKXA3xGdsBH=j0L8m_SnpK=WPX+s5DqdU0OaJhA@mail.gmail.com>
-Subject: Re: [PATCHv19 00/15] Contiguous Memory Allocator
-From: Anca Emanuel <anca.emanuel@gmail.com>
-To: Rob Clark <rob.clark@linaro.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: 720p webcam providing VDPAU-compatible video stream?
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> Also there is the supreme tag: "Tested-by:.".  Ohad (at least) has been
->> testing the code.  Let's mention that.
->>
->
-> fyi Marek, I've been testing CMA as well, both in context of Ohad's
-> rpmsg driver and my omapdrm driver (and combination of the two)..  so
-> you can add:
->
-> Tested-by: Rob Clark <rob.clark@linaro.org>
->
-> And there are some others from linaro that have written a test driver,
-> and various stress test scripts using the test driver.  I guess that
-> could also count for some additional Tested-by's.
+Dear linux-media users,
 
-Convince them to report with Tested-by tag.
-This is a first step for them to face the open source.
+I have stopped following the advancements in Linux video
+(and video hw in general) a while ago, so I am no longer
+up to date with the current technologies,
+therefore I seek your advice.
+
+I am looking for for a webcam that
+  - works properly under GNU/Linux (without proprietary drivers)
+  - connects via USB 2.0
+  - can capture 720p video at 25 or 30 FPS
+  - provides a video stream that
+    - is hardware compressed by the camera
+    - can be recorded to a file with minimal CPU requirements
+      (Bonus points if it's wrapped a nice container format,
+      so that I can simply record it by something like
+      cat /dev/video0 > capture.mpeg
+      - like old Hauppauge PVR-250 cards )
+    - can be decoded by VDPAU hw acceleration
+
+I have tried to look into this, and it seems that the status for H264
+streams for UVC webcams is still problematic.
+
+However, I don't specifically need neither UVC nor H264; any driver,
+and any other VDPAU-supported format (like MPEG-2, VC-1, WMV9, etc)
+could be OK.
+
+I am not interested in sykpe; I only want to capture the 720p video stream
+to files (with as low CPU usage as possible), and play it back
+using mplayer, on NVidia cards supporting VDPAU hw acceleration
+  - again, with as low CPU usage, as possible.
+
+Could someone please recommend me a device that can do this?
+(Or tell me which device will likely get the required support soon?
+
+Thank you for your help:
+
+    Kristof Csillag
+
