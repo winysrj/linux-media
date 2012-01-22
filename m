@@ -1,127 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:53905 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752899Ab2AUQEq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 11:04:46 -0500
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0LG4krF003112
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 21 Jan 2012 11:04:46 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 32/35] [media] az6007: Convert IR to use the rc_core logic
-Date: Sat, 21 Jan 2012 14:04:34 -0200
-Message-Id: <1327161877-16784-33-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-32-git-send-email-mchehab@redhat.com>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <1327161877-16784-2-git-send-email-mchehab@redhat.com>
- <1327161877-16784-3-git-send-email-mchehab@redhat.com>
- <1327161877-16784-4-git-send-email-mchehab@redhat.com>
- <1327161877-16784-5-git-send-email-mchehab@redhat.com>
- <1327161877-16784-6-git-send-email-mchehab@redhat.com>
- <1327161877-16784-7-git-send-email-mchehab@redhat.com>
- <1327161877-16784-8-git-send-email-mchehab@redhat.com>
- <1327161877-16784-9-git-send-email-mchehab@redhat.com>
- <1327161877-16784-10-git-send-email-mchehab@redhat.com>
- <1327161877-16784-11-git-send-email-mchehab@redhat.com>
- <1327161877-16784-12-git-send-email-mchehab@redhat.com>
- <1327161877-16784-13-git-send-email-mchehab@redhat.com>
- <1327161877-16784-14-git-send-email-mchehab@redhat.com>
- <1327161877-16784-15-git-send-email-mchehab@redhat.com>
- <1327161877-16784-16-git-send-email-mchehab@redhat.com>
- <1327161877-16784-17-git-send-email-mchehab@redhat.com>
- <1327161877-16784-18-git-send-email-mchehab@redhat.com>
- <1327161877-16784-19-git-send-email-mchehab@redhat.com>
- <1327161877-16784-20-git-send-email-mchehab@redhat.com>
- <1327161877-16784-21-git-send-email-mchehab@redhat.com>
- <1327161877-16784-22-git-send-email-mchehab@redhat.com>
- <1327161877-16784-23-git-send-email-mchehab@redhat.com>
- <1327161877-16784-24-git-send-email-mchehab@redhat.com>
- <1327161877-16784-25-git-send-email-mchehab@redhat.com>
- <1327161877-16784-26-git-send-email-mchehab@redhat.com>
- <1327161877-16784-27-git-send-email-mchehab@redhat.com>
- <1327161877-16784-28-git-send-email-mchehab@redhat.com>
- <1327161877-16784-29-git-send-email-mchehab@redhat.com>
- <1327161877-16784-30-git-send-email-mchehab@redhat.com>
- <1327161877-16784-31-git-send-email-mchehab@redhat.com>
- <1327161877-16784-32-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from pitbull.cosy.sbg.ac.at ([141.201.2.122]:58299 "EHLO
+	pitbull.cosy.sbg.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751605Ab2AVMop convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 22 Jan 2012 07:44:45 -0500
+Cc: linux-media@vger.kernel.org
+Message-Id: <B3BCD6C8-B0B3-456F-8B0B-A4650A3F2666@cosy.sbg.ac.at>
+From: =?ISO-8859-1?Q?Christian_Pr=E4hauser?= <cpraehaus@cosy.sbg.ac.at>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+In-Reply-To: <4F1B70B6.10209@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed; delsp=yes
+Content-Transfer-Encoding: 8BIT
+Mime-Version: 1.0 (Apple Message framework v936)
+Subject: Re: DVB-S2 multistream support
+Date: Sun, 22 Jan 2012 13:44:42 +0100
+References: <4EF67721.9050102@unixsol.org> <4EF6DD91.2030800@iki.fi> <4EF6F84C.3000307@redhat.com> <CAF0Ff2kkFJYLUjVdmV9d9aWTsi-2ZHHEEjLrVSTCUnP+VTyxRg@mail.gmail.com> <4EF7066C.4070806@redhat.com> <loom.20111227T105753-96@post.gmane.org> <4F1B70B6.10209@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Hello Mauro,
+
+Am 22.01.2012 um 03:13 schrieb Mauro Carvalho Chehab:
+
+> Hi Christian,
+>
+> Em 27-12-2011 08:12, Christian Prähauser escreveu:
+>>>
+>>> Yes, I'm meaning something like what it was described there. I think
+>>> that the code written by Christian were never submitted upstream.
+>>>
+>>
+>> Hello Mauro,
+>>
+>> Konstantin drew my attention to this discussion. Indeed, some time  
+>> ago I wrote
+>> a base-band demux for LinuxDVB. It was part of a project to  
+>> integrate support
+>> for second-generation IP/DVB encapsulations (GSE). The BB-demux  
+>> allows to
+>> register filters for different ISIs and data types (raw, generic  
+>> stream,
+>> transport stream).
+>>
+>> I realized that the repo hosted at our University is down. If there  
+>> is interest,
+>> I can update my patches to the latest LinuxDVB version and we can  
+>> put them on a
+>> public repo e.g. at linuxdvb.org.
+>
+> Sorry, I didn't notice your comment on this thread until today. It  
+> sounds
+> interesting. Please post the patches at the ML, when they're  
+> available, for
+> us to review.
+
+No problem, I'll keep you informed about the status of the patches.
+
+Thanks and kind regards,
+Christian.
+
+>
+> Thanks!
+> Mauro
+>>
+>> Kind regards,
+>> Christian.
+>>
+>>
+>>
+>>
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux- 
+>> media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
 ---
- drivers/media/dvb/dvb-usb/az6007.c |   30 +++++++-----------------------
- 1 files changed, 7 insertions(+), 23 deletions(-)
+Dipl.-Ing. Christian Praehauser <cpraehaus@cosy.sbg.ac.at>
 
-diff --git a/drivers/media/dvb/dvb-usb/az6007.c b/drivers/media/dvb/dvb-usb/az6007.c
-index a8aedb8..2288916 100644
---- a/drivers/media/dvb/dvb-usb/az6007.c
-+++ b/drivers/media/dvb/dvb-usb/az6007.c
-@@ -192,26 +192,16 @@ static int az6007_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 	return az6007_write(d, 0xbc, onoff, 0, NULL, 0);
- }
- 
--/* keys for the enclosed remote control */
--static struct rc_map_table rc_map_az6007_table[] = {
--	{0x0001, KEY_1},
--	{0x0002, KEY_2},
--};
--
- /* remote control stuff (does not work with my box) */
--static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
-+static int az6007_rc_query(struct dvb_usb_device *d)
- {
- 	struct az6007_device_state *st = d->priv;
--	struct rc_map_table *keymap = d->props.rc.legacy.rc_map_table;
--	int i;
- 	unsigned code = 0;
- 
- 	az6007_read(d, AZ6007_READ_IR, 0, 0, st->data, 10);
- 
--	if (st->data[1] == 0x44) {
--		*state = REMOTE_NO_KEY_PRESSED;
-+	if (st->data[1] == 0x44)
- 		return 0;
--	}
- 
- 	if ((st->data[1] ^ st->data[2]) == 0xff)
- 		code = st->data[1];
-@@ -224,16 +214,9 @@ static int az6007_rc_query(struct dvb_usb_device *d, u32 * event, int *state)
- 		code = code << 16 | st->data[3] << 8| st->data[4];
- 
- 	printk("remote query key: %04x\n", code);
--	print_hex_dump_bytes("Remote: ", DUMP_PREFIX_NONE, st->data, 10);
- 
--	for (i = 0; i < d->props.rc.legacy.rc_map_size; i++) {
--		if (rc5_custom(&keymap[i]) == code) {
--			*event = keymap[i].keycode;
--			*state = REMOTE_KEY_PRESSED;
-+	rc_keydown(d->rc_dev, code, st->data[5]);
- 
--			return 0;
--		}
--	}
- 	return 0;
- }
- 
-@@ -536,11 +519,12 @@ static struct dvb_usb_device_properties az6007_properties = {
- 	.power_ctrl       = az6007_power_ctrl,
- 	.read_mac_address = az6007_read_mac_addr,
- 
--	.rc.legacy = {
--		.rc_map_table  = rc_map_az6007_table,
--		.rc_map_size  = ARRAY_SIZE(rc_map_az6007_table),
-+	.rc.core = {
- 		.rc_interval      = 400,
-+		.rc_codes         = RC_MAP_DIB0700_NEC_TABLE,
-+		.module_name	  = "az6007",
- 		.rc_query         = az6007_rc_query,
-+		.allowed_protos   = RC_TYPE_NEC,
- 	},
- 	.i2c_algo         = &az6007_i2c_algo,
- 
--- 
-1.7.8
-
+|| //\\//\\ || Multimedia Communications Group,
+||//  \/  \\|| Department of Computer Sciences, University of Salzburg
+http://www.cosy.sbg.ac.at/~cpraehaus/
+http://www.network-research.org/
+http://www.uni-salzburg.at/
