@@ -1,61 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:31955 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388Ab2APP1O (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:49701 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751335Ab2AVVO1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 10:27:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Kamil Debski <k.debski@samsung.com>
-Subject: Re: [RFC PATCH] Fixup control names to use consistent capitalization
-Date: Mon, 16 Jan 2012 16:26:58 +0100
-Cc: "'linux-media'" <linux-media@vger.kernel.org>,
-	"'Sakari Ailus'" <sakari.ailus@iki.fi>
-References: <201201161435.43652.hverkuil@xs4all.nl> <000201ccd458$6b3d6ce0$41b846a0$%debski@samsung.com>
-In-Reply-To: <000201ccd458$6b3d6ce0$41b846a0$%debski@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201161626.58976.hverkuil@xs4all.nl>
+	Sun, 22 Jan 2012 16:14:27 -0500
+From: Gordon Hecker <ghecker@gmx.de>
+To: linux-media@vger.kernel.org, Antti Palosaari <crope@iki.fi>
+Cc: Gordon Hecker <ghecker@gmx.de>
+Subject: [PATCH] af9015: fix i2c failures for dual-tuner devices
+Date: Sun, 22 Jan 2012 22:13:12 +0100
+Message-Id: <1327266792-8030-1-git-send-email-ghecker@gmx.de>
+In-Reply-To: <4F19EB13.7010502@iki.fi>
+References: <4F19EB13.7010502@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 16 January 2012 15:09:06 Kamil Debski wrote:
-> Hi Hans,
-> 
-> > From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> > Sent: 16 January 2012 14:36
-> > 
-> > Hi all,
-> > 
-> > This patch fixes several control names with inconsistent capitalization
-> > and other inconsistencies (and a spelling mistake in one name as well).
-> > 
-> > Kamil, Sakari, please take a look as most of the affected strings are
-> > either MPEG or Flash controls.
-> 
-> Thank you for your patch.
-> I've had a look at the codec controls and all seems fine.
-> 
-> > Note that I saw a few strings as well that are longer then 31 characters.
-> > Those will be cut off when returns in queryctrl. I'm not sure yet what to
-> > do about those.
-> 
-> I think it's sensible to abbreviate them. You can find one suggestion
-> below.
+The i2c failures were caused by enabling both i2c gates
+at the same time while putting the tuners asleep.
 
-...
+This patch removes the init() and sleep() callbacks from the tuner,
+to prevent frontend.c from calling
+  i2c_gate_ctrl
+  tuner init / sleep
+  i2c_gate_ctrl
+without holding the lock.
+tuner init() and sleep() are instead called in frontend init() and
+sleep().
 
-> > +	case V4L2_CID_MPEG_VIDEO_MAX_REF_PIC:			return "Max
-> > Number of Reference Pictures";
-> 
-> This could be "Max Number of Reference Pics" or "Max Number of Ref Pictures".
+Signed-off-by: Gordon Hecker <ghecker@gmx.de>
+---
+ drivers/media/dvb/dvb-usb/af9015.c |   31 +++++++++++++++++++++++++++++++
+ drivers/media/dvb/dvb-usb/af9015.h |    2 ++
+ 2 files changed, 33 insertions(+), 0 deletions(-)
 
-I'm going with the first one.
+diff --git a/drivers/media/dvb/dvb-usb/af9015.c b/drivers/media/dvb/dvb-usb/af9015.c
+index e755d76..b69b43b 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.c
++++ b/drivers/media/dvb/dvb-usb/af9015.c
+@@ -1141,7 +1141,18 @@ static int af9015_af9013_init(struct dvb_frontend *fe)
+ 		return -EAGAIN;
+ 
+ 	ret = priv->init[adap->id](fe);
++	if (ret)
++		goto err_unlock;
++
++	if (priv->tuner_ops_init[adap->id]) {
++		if (fe->ops.i2c_gate_ctrl)
++			fe->ops.i2c_gate_ctrl(fe, 1);
++		ret = priv->tuner_ops_init[adap->id](fe);
++		if (fe->ops.i2c_gate_ctrl)
++			fe->ops.i2c_gate_ctrl(fe, 0);
++	}
+ 
++err_unlock:
+ 	mutex_unlock(&adap->dev->usb_mutex);
+ 
+ 	return ret;
+@@ -1157,8 +1168,19 @@ static int af9015_af9013_sleep(struct dvb_frontend *fe)
+ 	if (mutex_lock_interruptible(&adap->dev->usb_mutex))
+ 		return -EAGAIN;
+ 
++	if (priv->tuner_ops_sleep[adap->id]) {
++		if (fe->ops.i2c_gate_ctrl)
++			fe->ops.i2c_gate_ctrl(fe, 1);
++		ret = priv->tuner_ops_sleep[adap->id](fe);
++		if (fe->ops.i2c_gate_ctrl)
++			fe->ops.i2c_gate_ctrl(fe, 0);
++		if (ret)
++			goto err_unlock;
++	}
++
+ 	ret = priv->sleep[adap->id](fe);
+ 
++err_unlock:
+ 	mutex_unlock(&adap->dev->usb_mutex);
+ 
+ 	return ret;
+@@ -1283,6 +1305,7 @@ static struct mxl5007t_config af9015_mxl5007t_config = {
+ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+ {
+ 	int ret;
++	struct af9015_state *state = adap->dev->priv;
+ 	deb_info("%s:\n", __func__);
+ 
+ 	switch (af9015_af9013_config[adap->id].tuner) {
+@@ -1340,6 +1363,14 @@ static int af9015_tuner_attach(struct dvb_usb_adapter *adap)
+ 		err("Unknown tuner id:%d",
+ 			af9015_af9013_config[adap->id].tuner);
+ 	}
++
++	state->tuner_ops_sleep[adap->id] =
++				adap->fe_adap[0].fe->ops.tuner_ops.sleep;
++	adap->fe_adap[0].fe->ops.tuner_ops.sleep = 0;
++
++	state->tuner_ops_init[adap->id] =
++				adap->fe_adap[0].fe->ops.tuner_ops.init;
++	adap->fe_adap[0].fe->ops.tuner_ops.init = 0;
+ 	return ret;
+ }
+ 
+diff --git a/drivers/media/dvb/dvb-usb/af9015.h b/drivers/media/dvb/dvb-usb/af9015.h
+index f619063..ee2ec5b 100644
+--- a/drivers/media/dvb/dvb-usb/af9015.h
++++ b/drivers/media/dvb/dvb-usb/af9015.h
+@@ -108,6 +108,8 @@ struct af9015_state {
+ 	int (*read_status[2]) (struct dvb_frontend *fe, fe_status_t *status);
+ 	int (*init[2]) (struct dvb_frontend *fe);
+ 	int (*sleep[2]) (struct dvb_frontend *fe);
++	int (*tuner_ops_init[2]) (struct dvb_frontend *fe);
++	int (*tuner_ops_sleep[2]) (struct dvb_frontend *fe);
+ };
+ 
+ struct af9015_config {
+-- 
+1.7.5.4
 
-I'll also change "Minimum Number of Capture Buffers" to "Min Number of Capture Buffers".
-Ditto for Output Buffers.
-
-Regards,
-
-	Hans
