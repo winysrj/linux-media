@@ -1,129 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:35490 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755462Ab2ADQD5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 11:03:57 -0500
-Received: by werm1 with SMTP id m1so8654696wer.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 08:03:56 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1201031557130.7204@axis700.grange>
-References: <1324022443-5967-1-git-send-email-javier.martin@vista-silicon.com>
-	<201112191105.25855.laurent.pinchart@ideasonboard.com>
-	<Pine.LNX.4.64.1112191113230.23694@axis700.grange>
-	<201112191120.40084.laurent.pinchart@ideasonboard.com>
-	<Pine.LNX.4.64.1112191139560.23694@axis700.grange>
-	<CACKLOr0Z4BnB3bHCs8BjhwpwcHBHsZA1rDNrxzDW+z3+-qSRgQ@mail.gmail.com>
-	<Pine.LNX.4.64.1112191155340.23694@axis700.grange>
-	<CACKLOr1=vFs8xDaDMSX146Y1h18q=+fPEBGHekgNq2xRVCOGsA@mail.gmail.com>
-	<4EEF66C2.7030003@infradead.org>
-	<CACKLOr2hQnEteOey3kt2zv8Wrr12+b9DU-Zk66+c-k-F=9pqNw@mail.gmail.com>
-	<Pine.LNX.4.64.1201031557130.7204@axis700.grange>
-Date: Wed, 4 Jan 2012 17:03:55 +0100
-Message-ID: <CACKLOr0FxA72dhkjnVHCiWuT-VGYpcdk6WX9ubWoAnLkm7gnBQ@mail.gmail.com>
-Subject: Re: [PATCH] V4L: soc-camera: provide support for S_INPUT.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	saaguirre@ti.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:50727 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751675Ab2AWOmz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 09:42:55 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LY900GG0A7HVU70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 14:42:53 +0000 (GMT)
+Received: from [106.116.48.223] by spt2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LY9003SMA7G1R@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 14:42:53 +0000 (GMT)
+Date: Mon, 23 Jan 2012 15:42:50 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 05/10] v4l: add buffer exporting via dmabuf
+In-reply-to: <4F1D6F88.5080202@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, pawel@osciak.com
+Message-id: <4F1D71EA.2060402@samsung.com>
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+ <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
+ <4F1D6F88.5080202@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi.
-Thanks for your help.
-
-On 3 January 2012 16:05, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Hi Javier
+Hi Mauro.
+On 01/23/2012 03:32 PM, Mauro Carvalho Chehab wrote:
+> Em 23-01-2012 11:51, Tomasz Stanislawski escreveu:
+>> This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
+>> descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
+>> mmap and return a file descriptor on success.
 >
-> On Tue, 3 Jan 2012, javier Martin wrote:
+> This requires more discussions.
 >
->> Guennadi,
->> probably you could answer me some question:
->>
->> as we agreed I'm trying to implement ENUM_INPUT support to soc-camera
->> through pads.
+> The usecase for this new API seems to replace the features previously provided
+> by the overlay mode. There, not only the buffer were exposed to userspace, but
+> some control were provided, in order to control the overlay window.
+
+This ioctl was introduced to support exporting of V4L2 buffers via 
+dma-buf interface. This framework was little common with overlay mode. 
+Could you describe what overlay mode feature is replaced by VIDIOC_EXPBUF?
+
 >
-> No, you probably mean in the subdev driver, not in soc-camera core.
+> Please start a separate thread about that, explaining how are you imagining that
+> a V4L2 application would use such ioctl.
+
+This patch is essential for full implementation of support for DMABUF 
+framework in V4L2. Therefore the patch cannot be moved to separate thread.
+
+Regrads,
+Tomasz Stanislawski
+
 >
->> This means I must be able to pass the tvp5150 decoder
->> some platform_data in order to configure what inputs are really routed
->> in my board.
->>
->> For that purpose I do the following in my board specific code:
->>
->>  static struct tvp5150_platform_data visstrim_tvp5150_data = {
->>       .inputs = 55,
->> };
->>
->> static struct i2c_board_info visstrim_i2c_camera =  {
->>       .type = "tvp5150",
->>       .addr = 0x5d,
->>       .platform_data = &visstrim_tvp5150_data,
->> };
->>
->> static struct soc_camera_link iclink_tvp5150 = {
->>       .bus_id         = 0,            /* Must match with the camera ID */
->>       .board_info     = &visstrim_i2c_camera,
->>       .i2c_adapter_id = 0,
->>       .power = visstrim_camera_power,
->>       .reset = visstrim_camera_reset,
->> };
->>
->> static struct platform_device visstrim_tvp5150_soc = {
->>       .name   = "soc-camera-pdrv",
->>       .id     = 0,
->>       .dev    = {
->>               .platform_data = &iclink_tvp5150,
->>       },
->> };
->>
->>
->> However, it seems soc-camera ignores "board_info.platform_data" field
->> and assigns a value of its own:
->>
->> http://lxr.linux.no/#linux+v3.1.6/drivers/media/video/soc_camera.c#L1006
->>
->>
->> How am I suppose to pass that information to the tvp5150 then?
+> Regards,
+> Mauro
+
+
+
 >
-> Have a look at some examples, e.g., arch/sh/boards/mach-migor/setup.c:
+>>
+>> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
+>> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+>> ---
+>>   drivers/media/video/v4l2-compat-ioctl32.c |    1 +
+>>   drivers/media/video/v4l2-ioctl.c          |   11 +++++++++++
+>>   include/linux/videodev2.h                 |    1 +
+>>   include/media/v4l2-ioctl.h                |    1 +
+>>   4 files changed, 14 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+>> index c68531b..0f18b5e 100644
+>> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+>> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+>> @@ -954,6 +954,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>>   	case VIDIOC_S_FBUF32:
+>>   	case VIDIOC_OVERLAY32:
+>>   	case VIDIOC_QBUF32:
+>> +	case VIDIOC_EXPBUF:
+>>   	case VIDIOC_DQBUF32:
+>>   	case VIDIOC_STREAMON32:
+>>   	case VIDIOC_STREAMOFF32:
+>> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+>> index e1da8fc..cb29e00 100644
+>> --- a/drivers/media/video/v4l2-ioctl.c
+>> +++ b/drivers/media/video/v4l2-ioctl.c
+>> @@ -207,6 +207,7 @@ static const char *v4l2_ioctls[] = {
+>>   	[_IOC_NR(VIDIOC_S_FBUF)]           = "VIDIOC_S_FBUF",
+>>   	[_IOC_NR(VIDIOC_OVERLAY)]          = "VIDIOC_OVERLAY",
+>>   	[_IOC_NR(VIDIOC_QBUF)]             = "VIDIOC_QBUF",
+>> +	[_IOC_NR(VIDIOC_EXPBUF)]           = "VIDIOC_EXPBUF",
+>>   	[_IOC_NR(VIDIOC_DQBUF)]            = "VIDIOC_DQBUF",
+>>   	[_IOC_NR(VIDIOC_STREAMON)]         = "VIDIOC_STREAMON",
+>>   	[_IOC_NR(VIDIOC_STREAMOFF)]        = "VIDIOC_STREAMOFF",
+>> @@ -932,6 +933,16 @@ static long __video_do_ioctl(struct file *file,
+>>   			dbgbuf(cmd, vfd, p);
+>>   		break;
+>>   	}
+>> +	case VIDIOC_EXPBUF:
+>> +	{
+>> +		unsigned int *p = arg;
+>> +
+>> +		if (!ops->vidioc_expbuf)
+>> +			break;
+>> +
+>> +		ret = ops->vidioc_expbuf(file, fh, *p);
+>> +		break;
+>> +	}
+>>   	case VIDIOC_DQBUF:
+>>   	{
+>>   		struct v4l2_buffer *p = arg;
+>> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+>> index 3c0ade1..448fbed 100644
+>> --- a/include/linux/videodev2.h
+>> +++ b/include/linux/videodev2.h
+>> @@ -2183,6 +2183,7 @@ struct v4l2_create_buffers {
+>>   #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
+>>   #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
+>>   #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
+>> +#define VIDIOC_EXPBUF		_IOWR('V', 16, __u32)
+>>   #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
+>>   #define VIDIOC_STREAMON		 _IOW('V', 18, int)
+>>   #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
+>> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+>> index 4d1c74a..8201546 100644
+>> --- a/include/media/v4l2-ioctl.h
+>> +++ b/include/media/v4l2-ioctl.h
+>> @@ -120,6 +120,7 @@ struct v4l2_ioctl_ops {
+>>   	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+>>   	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
+>>   	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
+>> +	int (*vidioc_expbuf)  (struct file *file, void *fh, __u32 offset);
+>>   	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
+>>
+>>   	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
 >
-> static struct soc_camera_link ov7725_link = {
->        .power          = ov7725_power,
->        .board_info     = &migor_i2c_camera[0],
->        .i2c_adapter_id = 0,
->        .priv           = &ov7725_info,
-> };
->
-> I.e., soc-camera expects you to use the struct soc_camera_link::priv field
-> for subdevice private platform data.
 
-For ov7725 it is a natural thing to do since it was originally
-developed for soc-camera and it can easily do the following to access
-platform data:
-
-struct soc_camera_link	*icl = soc_camera_i2c_to_link(client);
-pdata = icl->priv;
-
-However, tvp5150 is not aware about soc_camera. I should be able to
-tell whether it's being used with soc-camera or not. If soc camera was
-used I would do the previous method to retrieve platform data.
-But if soc-camera was not used I would do the classic method:
-
-struct tvp5150_platform_data *pdata = client->dev.platform_data;
-
-The problem is how to distinguish in tvp5150 whether I am using
-soc_camera or not.
-
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
