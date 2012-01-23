@@ -1,112 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19829 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750848Ab2ASLRL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 06:17:11 -0500
-Message-ID: <4F17FBB1.20608@redhat.com>
-Date: Thu, 19 Jan 2012 09:17:05 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 2/2] [media] dvb_frontend: Require FE_HAS_PARAMETERS for
- get_frontend()
-References: <201201181450.14089.pboettcher@kernellabs.com> <1326909085-14256-1-git-send-email-mchehab@redhat.com> <1326909085-14256-2-git-send-email-mchehab@redhat.com> <201201191107.25039.pboettcher@kernellabs.com>
-In-Reply-To: <201201191107.25039.pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61833 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752610Ab2AWNvi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 08:51:38 -0500
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LY9008107TZ9Q@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:35 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LY900C877TYFR@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:35 +0000 (GMT)
+Date: Mon, 23 Jan 2012 14:51:09 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 04/10] v4l: vb2: fixes for DMABUF support
+In-reply-to: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	pawel@osciak.com
+Message-id: <1327326675-8431-5-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 19-01-2012 08:07, Patrick Boettcher escreveu:
-> Hi Mauro,
-> 
-> On Wednesday 18 January 2012 18:51:25 Mauro Carvalho Chehab wrote:
->> Calling get_frontend() before having either the frontend locked
->> or the network signaling carriers locked won't work. So, block
->> it at the DVB core.
-> 
-> I like the idea and also the implementation.
-> 
-> But before merging this needs more comments from other on the list. 
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-core.c |   21 +++++++++------------
+ include/media/videobuf2-core.h       |    6 +++---
+ 2 files changed, 12 insertions(+), 15 deletions(-)
 
-Agreed.
-
-> Even though it does not break anything for any current frontend-driver 
-> it is important to have a wider base agreeing on that. Especially from 
-> some other frontend-driver-writers.
-> 
-> For example I could imagine that a frontend HAS_LOCK, but is still not 
-> able to report the parameters (USB-firmware-based frontends might be 
-> poorly implemented). 
-
-Yes, I understand. The description for "HAS_LOCK" is currently too generic,
-as it says "everything" is locked. If HAS_PARAMETERS can happen after that, 
-then the description for HAS_LOCK need to be changed to something like:
-
-	"Indicates that the frontend is ready to tune and zap into a channel.
-	 Note: The network detected parameters might not yet be locked. Please
-	 see FE_HAS_PARAMETERS if you need to call FE_GET_FRONTEND/FE_GET_PROPERTY."
-
-A change like that could speed up zapping, as, for zap, HAS_PARAMETERS is not
-needed.
-
-Looking inside the ISDB-T devices:
-
-In the specific case of mb86a20s (an ISDB-T frontend), the locks are inside
-a state machine. After the frame sync (state 7), it tests for TMCC. After TMCC 
-is locked (state 8), it waits for a while to rise the TS output lock (state 9). 
-
-So, at least on devices based on it, HAS_PARAMETERS will always happen before
-HAS_LOCK.
-
-At the Siano driver, the firmware API has only two lock's: RF and Demod. 
-The Demod lock probably means both HAS_PARAMETERS and HAS_LOCK. So, Demod
-lock will probably mean HAS_PARAMETERS | HAS_LOCK. Interesting enough, with
-Siano, one frontend call will return the entire TMCC table, plus the per-layer
-frontend statistics, including a measure for the TMCC carrier errors.
-
-At dib8000, the locks seem to be independent, but maybe there are some hardware
-requirements that require TMCC demod to happen, before rising the TS locks, 
-but you're the one that knows most about DibCom drivers ;)
-
->>@@ -207,8 +202,12 @@ static void dvb_frontend_add_event(struct dvb_frontend *fe, fe_status_t status)
->>  
->>  	dprintk ("%s\n", __func__);
->>  
->> -	if ((status & FE_HAS_LOCK) && has_get_frontend(fe))
->> -		dtv_get_frontend(fe, &fepriv->parameters_out);
->> +	/* FE_HAS_LOCK implies that the frontend has parameters */
->> +	if (status & FE_HAS_LOCK)
->> +		status |= FE_HAS_PARAMETERS;
->> +
-
-The above code should be replaced by pushing the FE_HAS_PARAMETERS
-lock flag into the frontends that implement get_frontend().
-This way, each lock can be independently implemented. Also,
-by not rising it on devices that don't implement get_frontend()
-will allow scan tools to decide to not rely on the demod to
-retrieve the network parameters.
-
-I didn't write such patch because I was too lazy ;) Seriously,
-It is better to do push that flag to the drivers on a separate
-patch, as it would be easier for review. I'll only write such
-thing after having some discussions about that. Writing such
-patch will give the opportunity to review each driver's logic
-and put FE_HAS_PARAMETERS into the right place.
-
-> 
-> And so on...
-> 
-> regards,
-> 
-> --
-> Patrick Boettcher
-> 
-> Kernel Labs Inc.
-> http://www.kernellabs.com/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index cb85874..59bb1bc 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -119,7 +119,7 @@ static void __vb2_buf_dmabuf_put(struct vb2_buffer *vb)
+ 		void *mem_priv = vb->planes[plane].mem_priv;
+ 
+ 		if (mem_priv) {
+-			call_memop(q, plane, detach_dmabuf, mem_priv);
++			call_memop(q, detach_dmabuf, mem_priv);
+ 			dma_buf_put(vb->planes[plane].dbuf);
+ 			vb->planes[plane].dbuf = NULL;
+ 			vb->planes[plane].mem_priv = NULL;
+@@ -907,6 +907,8 @@ static int __fill_vb2_buffer(struct vb2_buffer *vb, const struct v4l2_buffer *b,
+ 		if (b->memory == V4L2_MEMORY_DMABUF) {
+ 			for (plane = 0; plane < vb->num_planes; ++plane) {
+ 				v4l2_planes[plane].m.fd = b->m.planes[plane].m.fd;
++				v4l2_planes[plane].length =
++					b->m.planes[plane].length;
+ 			}
+ 		}
+ 	} else {
+@@ -1055,15 +1057,10 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		if (IS_ERR_OR_NULL(dbuf)) {
+ 			dprintk(1, "qbuf: invalid dmabuf fd for "
+ 				"plane %d\n", plane);
+-			ret = PTR_ERR(dbuf);
++			ret = -EINVAL;
+ 			goto err;
+ 		}
+ 
+-		/* this doesn't get filled in until __fill_vb2_buffer(),
+-		 * since it isn't known until after dma_buf_get()..
+-		 */
+-		planes[plane].length = dbuf->size;
+-
+ 		/* Skip the plane if already verified */
+ 		if (dbuf == vb->planes[plane].dbuf) {
+ 			dma_buf_put(dbuf);
+@@ -1075,7 +1072,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 
+ 		/* Release previously acquired memory if present */
+ 		if (vb->planes[plane].mem_priv) {
+-			call_memop(q, plane, detach_dmabuf,
++			call_memop(q, detach_dmabuf,
+ 				vb->planes[plane].mem_priv);
+ 			dma_buf_put(vb->planes[plane].dbuf);
+ 		}
+@@ -1083,8 +1080,8 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 		vb->planes[plane].mem_priv = NULL;
+ 
+ 		/* Acquire each plane's memory */
+-		mem_priv = q->mem_ops->attach_dmabuf(
+-				q->alloc_ctx[plane], dbuf);
++		mem_priv = q->mem_ops->attach_dmabuf(q->alloc_ctx[plane],
++			dbuf, planes[plane].length, write);
+ 		if (IS_ERR(mem_priv)) {
+ 			dprintk(1, "qbuf: failed acquiring dmabuf "
+ 				"memory for plane %d\n", plane);
+@@ -1102,7 +1099,7 @@ static int __qbuf_dmabuf(struct vb2_buffer *vb, const struct v4l2_buffer *b)
+ 	 */
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
+ 		ret = q->mem_ops->map_dmabuf(
+-				vb->planes[plane].mem_priv, write);
++			vb->planes[plane].mem_priv);
+ 		if (ret) {
+ 			dprintk(1, "qbuf: failed mapping dmabuf "
+ 				"memory for plane %d\n", plane);
+@@ -1497,7 +1494,7 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ 	 */
+ 	if (q->memory == V4L2_MEMORY_DMABUF)
+ 		for (plane = 0; plane < vb->num_planes; ++plane)
+-			call_memop(q, plane, unmap_dmabuf,
++			call_memop(q, unmap_dmabuf,
+ 				vb->planes[plane].mem_priv);
+ 
+ 	switch (vb->state) {
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index d8b8171..412c6a4 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -88,10 +88,10 @@ struct vb2_mem_ops {
+ 	 * in the vb2 core, and vb2_mem_ops really just need to get/put the
+ 	 * sglist (and make sure that the sglist fits it's needs..)
+ 	 */
+-	void		*(*attach_dmabuf)(void *alloc_ctx,
+-					  struct dma_buf *dbuf);
++	void		*(*attach_dmabuf)(void *alloc_ctx, struct dma_buf *dbuf,
++				unsigned long size, int write);
+ 	void		(*detach_dmabuf)(void *buf_priv);
+-	int		(*map_dmabuf)(void *buf_priv, int write);
++	int		(*map_dmabuf)(void *buf_priv);
+ 	void		(*unmap_dmabuf)(void *buf_priv);
+ 
+ 	void		*(*vaddr)(void *buf_priv);
+-- 
+1.7.5.4
 
