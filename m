@@ -1,161 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:46880 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030476Ab2AFSPF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 13:15:05 -0500
-Received: by mail-ee0-f46.google.com with SMTP id c4so1234158eek.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 10:15:04 -0800 (PST)
-From: Sylwester Nawrocki <snjw23@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Jean-Francois Moine <moinejf@free.fr>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Luca Risolia <luca.risolia@studio.unibo.it>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>
-Subject: [PATCH/RFC v2 4/4] gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-Date: Fri,  6 Jan 2012 19:14:42 +0100
-Message-Id: <1325873682-3754-5-git-send-email-snjw23@gmail.com>
-In-Reply-To: <4EBECD11.8090709@gmail.com>
-References: <4EBECD11.8090709@gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52196 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750904Ab2AWKyP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 05:54:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Date: Mon, 23 Jan 2012 11:54:20 +0100
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, rob@ti.com,
+	patches@linaro.org
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <201201231048.47433.laurent.pinchart@ideasonboard.com> <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
+In-Reply-To: <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201231154.21006.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The JPEG compression quality control is currently done by means of the
-VIDIOC_S/G_JPEGCOMP ioctls. As the quality field of struct v4l2_jpgecomp
-is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY control,
-so after the deprecation period VIDIOC_S/G_JPEGCOMP ioctl handlers can be
-removed, leaving the control the only user interface for compression
-quality configuration.
+Hi Daniel,
 
-Cc: Jean-Francois Moine <moinejf@free.fr>
-Signed-off-by: Sylwester Nawrocki <snjw23@gmail.com>
----
-For completeness V4L2_CID_JPEG_ACTIVE_MARKER control might be also added.
----
- drivers/media/video/gspca/zc3xx.c |   54 +++++++++++++++++++++++++-----------
- 1 files changed, 37 insertions(+), 17 deletions(-)
+On Monday 23 January 2012 11:35:01 Daniel Vetter wrote:
+> On Mon, Jan 23, 2012 at 10:48, Laurent Pinchart wrote:
+> > On Monday 23 January 2012 10:06:57 Marek Szyprowski wrote:
+> >> On Friday, January 20, 2012 5:29 PM Laurent Pinchart wrote:
+> >> > On Friday 20 January 2012 17:20:22 Tomasz Stanislawski wrote:
+> >> > > >> IMO, One way to do this is adding field 'struct device *dev' to
+> >> > > >> struct vb2_queue. This field should be filled by a driver prior
+> >> > > >> to calling vb2_queue_init.
+> >> > > > 
+> >> > > > I haven't looked into the details, but that sounds good to me. Do
+> >> > > > we have use cases where a queue is allocated before knowing which
+> >> > > > physical device it will be used for ?
+> >> > > 
+> >> > > I don't think so. In case of S5P drivers, vb2_queue_init is called
+> >> > > while opening /dev/videoX.
+> >> > > 
+> >> > > BTW. This struct device may help vb2 to produce logs with more
+> >> > > descriptive client annotation.
+> >> > > 
+> >> > > What happens if such a device is NULL. It would happen for vmalloc
+> >> > > allocator used by VIVI?
+> >> > 
+> >> > Good question. Should dma-buf accept NULL devices ? Or should vivi
+> >> > pass its V4L2 device to vb2 ?
+> >> 
+> >> I assume you suggested using struct video_device->dev entry in such
+> >> case. It will not work. DMA-mapping API requires some parameters to be
+> >> set for the client device, like for example dma mask. struct
+> >> video_device contains only an artificial struct device entry, which has
+> >> no relation to any physical device and cannot be used for calling
+> >> DMA-mapping functions.
+> >> 
+> >> Performing dma_map_* operations with such artificial struct device
+> >> doesn't make any sense. It also slows down things significantly due to
+> >> cache flushing (forced by dma-mapping) which should be avoided if the
+> >> buffer is accessed only with CPU (like it is done by vb2-vmalloc style
+> >> drivers).
+> > 
+> > I agree that mapping the buffer to the physical device doesn't make any
+> > sense, as there's simple no physical device to map the buffer to. In
+> > that case we could simply skip the dma_map/dma_unmap calls.
+> 
+> See my other mail, dma_buf v1 does not support cpu access.
 
-diff --git a/drivers/media/video/gspca/zc3xx.c b/drivers/media/video/gspca/zc3xx.c
-index f22e02f..019a93b 100644
---- a/drivers/media/video/gspca/zc3xx.c
-+++ b/drivers/media/video/gspca/zc3xx.c
-@@ -46,6 +46,7 @@ enum e_ctrl {
- 	AUTOGAIN,
- 	LIGHTFREQ,
- 	SHARPNESS,
-+	QUALITY,
- 	NCTRLS		/* number of controls */
- };
- 
-@@ -57,11 +58,6 @@ struct sd {
- 
- 	struct gspca_ctrl ctrls[NCTRLS];
- 
--	u8 quality;			/* image quality */
--#define QUALITY_MIN 50
--#define QUALITY_MAX 80
--#define QUALITY_DEF 70
--
- 	u8 bridge;
- 	u8 sensor;		/* Type of image sensor chip */
- 	u16 chip_revision;
-@@ -101,6 +97,12 @@ static void setexposure(struct gspca_dev *gspca_dev);
- static int sd_setautogain(struct gspca_dev *gspca_dev, __s32 val);
- static void setlightfreq(struct gspca_dev *gspca_dev);
- static void setsharpness(struct gspca_dev *gspca_dev);
-+static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val);
-+
-+/* JPEG image quality */
-+#define QUALITY_MIN 50
-+#define QUALITY_MAX 80
-+#define QUALITY_DEF 70
- 
- static const struct ctrl sd_ctrls[NCTRLS] = {
- [BRIGHTNESS] = {
-@@ -188,6 +190,18 @@ static const struct ctrl sd_ctrls[NCTRLS] = {
- 	    },
- 	    .set_control = setsharpness
- 	},
-+[QUALITY] = {
-+	    {
-+		.id	 = V4L2_CID_JPEG_COMPRESSION_QUALITY,
-+		.type    = V4L2_CTRL_TYPE_INTEGER,
-+		.name    = "Compression Quality",
-+		.minimum = QUALITY_MIN,
-+		.maximum = QUALITY_MAX,
-+		.step    = 1,
-+		.default_value = QUALITY_DEF,
-+	    },
-+	    .set = sd_setquality
-+	},
- };
- 
- static const struct v4l2_pix_format vga_mode[] = {
-@@ -6411,7 +6425,7 @@ static int sd_config(struct gspca_dev *gspca_dev,
- 	sd->sensor = id->driver_info;
- 
- 	gspca_dev->cam.ctrls = sd->ctrls;
--	sd->quality = QUALITY_DEF;
-+	sd->ctrls[QUALITY].val = QUALITY_DEF;
- 
- 	return 0;
- }
-@@ -6685,7 +6699,7 @@ static int sd_start(struct gspca_dev *gspca_dev)
- 	/* create the JPEG header */
- 	jpeg_define(sd->jpeg_hdr, gspca_dev->height, gspca_dev->width,
- 			0x21);		/* JPEG 422 */
--	jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+	jpeg_set_qual(sd->jpeg_hdr, sd->ctrls[QUALITY].val);
- 
- 	mode = gspca_dev->cam.cam_mode[gspca_dev->curr_mode].priv;
- 	switch (sd->sensor) {
-@@ -6893,29 +6907,35 @@ static int sd_querymenu(struct gspca_dev *gspca_dev,
- 	return -EINVAL;
- }
- 
--static int sd_set_jcomp(struct gspca_dev *gspca_dev,
--			struct v4l2_jpegcompression *jcomp)
-+static int sd_setquality(struct gspca_dev *gspca_dev, __s32 val)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
--	if (jcomp->quality < QUALITY_MIN)
--		sd->quality = QUALITY_MIN;
--	else if (jcomp->quality > QUALITY_MAX)
--		sd->quality = QUALITY_MAX;
--	else
--		sd->quality = jcomp->quality;
-+	sd->ctrls[QUALITY].val = val;
-+
- 	if (gspca_dev->streaming)
--		jpeg_set_qual(sd->jpeg_hdr, sd->quality);
-+		jpeg_set_qual(sd->jpeg_hdr, val);
-+
- 	return gspca_dev->usb_err;
- }
- 
-+static int sd_set_jcomp(struct gspca_dev *gspca_dev,
-+			struct v4l2_jpegcompression *jcomp)
-+{
-+	struct sd *sd = (struct sd *) gspca_dev;
-+
-+	sd->ctrls[QUALITY].val = clamp_t(u8, jcomp->quality,
-+					QUALITY_MIN, QUALITY_MAX);
-+	return sd_setquality(gspca_dev, sd->ctrls[QUALITY].val);
-+}
-+
- static int sd_get_jcomp(struct gspca_dev *gspca_dev,
- 			struct v4l2_jpegcompression *jcomp)
- {
- 	struct sd *sd = (struct sd *) gspca_dev;
- 
- 	memset(jcomp, 0, sizeof *jcomp);
--	jcomp->quality = sd->quality;
-+	jcomp->quality = sd->ctrls[QUALITY].val;
- 	jcomp->jpeg_markers = V4L2_JPEG_MARKER_DHT
- 			| V4L2_JPEG_MARKER_DQT;
- 	return 0;
+v1 is in the kernel now, let's start discussing v2 ;-)
+
+> So if you don't have a device around, you can't use it in it's current form.
+> 
+> > Note, however, that dma-buf v1 explicitly does not support CPU access by
+> > the importer.
+> > 
+> >> IMHO this case perfectly shows the design mistake that have been made.
+> >> The current version simply tries to do too much.
+> >> 
+> >> Each client of dma_buf should 'map' the provided sgtable/scatterlist on
+> >> its own. Only the client device driver has all knowledge to make a
+> >> proper 'mapping'. Real physical devices usually will use dma_map_sg()
+> >> for such operation, while some virtual ones will only create a kernel
+> >> mapping for the provided scatterlist (like vivi with vmalloc memory
+> >> module).
+> > 
+> > I tend to agree with that. Depending on the importer device, drivers
+> > could then map/unmap the buffer around each DMA access, or keep a
+> > mapping and sync the buffer.
+> 
+> Again we've discussed adding a syncing op to the interface that would allow
+> keeping around mappings. The thing is that this also requires an unmap
+> callback or something similar, so that the exporter can inform the importer
+> that the memory just moved around. And the exporter _needs_ to be able to do
+> that, hence also the language in the doc that importers need to braked all
+> uses with a map/unmap and can't sit forever on a dma_buf mapping.
+
+Not all exporters need to be able to move buffers around. If I'm not mistaken, 
+only DRM exporters need such a feature (which obviously makes it an important 
+feature). Does the exporter need to be able to do so at any time ? Buffers 
+can't obviously be moved around when they're used by an activa DMA, so I 
+expect the exporter to be able to wait. How long can it wait ?
+
+I'm not sure I would like a callback approach. If we add a sync operation, the 
+exporter could signal to the importer that it must unmap the buffer by 
+returning an appropriate value from the sync operation. Would that be usable 
+for DRM ?
+
+Another option would be to keep the mapping around, and check in the importer 
+if the buffer has moved. If so, the importer would tear the mapping down and 
+create a new one. This is a bit hackish though, as we would tear a mapping 
+down for a buffer that doesn't exist anymore. Nothing should be accessing the 
+mapping at that time, but it could be a security risk if we consider rogue 
+hardware (that's pretty far-fetched though, as rogue hardware can probably 
+already kill the system easily in many cases).
+
+> > What about splitting the map_dma_buf operation into an operation that
+> > backs the buffer with pages and returns an sg_list, and an operation that
+> > performs DMA synchronization with the exporter ? unmap_dma_buf would
+> > similarly be split in two operations.
+> 
+> Again for v1 that doesn't make sense because you can't do cpu access anyway
+> and you should not hang onto mappings forever.
+
+For performance reasons I'd like to hang onto the mapping as long as possible. 
+Creating and tearing down IOMMU mappings for large buffers is a costly 
+operation, and I don't want to spend time there every time I use a buffer if 
+the buffer hasn't moved since the previous time it was mapped.
+
+> Furthermore we have cases where an unmapped sg_list for cpu access simple
+> makes no sense.
+> 
+> Yours, Daniel
+> 
+> [Aside: You can do a dirty trick like prime that grabs the underlying
+> page of an already mapped sg list. Obviously highly non-portable.]
+
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
