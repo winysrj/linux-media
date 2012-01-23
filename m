@@ -1,49 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:43103 "EHLO smtp1-g21.free.fr"
+Received: from mx1.redhat.com ([209.132.183.28]:12301 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752723Ab2ANIrI convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 03:47:08 -0500
-Date: Sat, 14 Jan 2012 09:47:20 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH/RFC v2 3/4] gspca: sonixj: Add
- V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-Message-ID: <20120114094720.781f89a5@tele>
-In-Reply-To: <1325873682-3754-4-git-send-email-snjw23@gmail.com>
-References: <4EBECD11.8090709@gmail.com>
-	<1325873682-3754-4-git-send-email-snjw23@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	id S1751299Ab2AWLp0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 06:45:26 -0500
+Message-ID: <4F1D4852.9070002@redhat.com>
+Date: Mon, 23 Jan 2012 09:45:22 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?ISO-8859-1?Q?J=F6rg_Otte?= <jrg.otte@googlemail.com>
+CC: linux-kernel@vger.kernel.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [v3.3-rc1] media:dvb-t regression bisected
+References: <CADDKRnDHvptV_gODG8XgqEkWGW0AyDfJJkP1dU2uBL6rs5yzDA@mail.gmail.com>
+In-Reply-To: <CADDKRnDHvptV_gODG8XgqEkWGW0AyDfJJkP1dU2uBL6rs5yzDA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri,  6 Jan 2012 19:14:41 +0100
-Sylwester Nawrocki <snjw23@gmail.com> wrote:
+Em 22-01-2012 13:29, Jörg Otte escreveu:
+> with v3.3-rc1 I can not watch dvb-t. I get the following
+> errors from the media player (Kaffeine,vlc):
+> 
+> kaffeine(1801): DvbDevice::frontendEvent: tuning failed
+> vlc: [0xa278d78] main stream error: cannot pre fill buffer
+> 
+> I have a CinergyT2 usb-stick.
+> 
+> I was able to bisect the problem to:
+> commit 7830bbaff9f5f9cefcdc9acfb1783b230cc69fac
+> Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Date:   Mon Dec 26 15:41:01 2011 -0300
+> 
+> [media] cinergyT2-fe: convert set_fontend to use DVBv5 parameters
 
-> The JPEG compression quality value can currently be read using the
-> VIDIOC_G_JPEGCOMP ioctl. As the quality field of struct v4l2_jpgecomp
-> is being deprecated, we add the V4L2_CID_JPEG_COMPRESSION_QUALITY
-> control, so after the deprecation period VIDIOC_G_JPEGCOMP ioctl
-> handler can be removed, leaving the control the only user interface
-> for retrieving the compression quality.
-	[snip]
+Could you please try this patch?
 
-This patch works, but, to follow the general control mechanism in gspca,
-it should be better to remove the variable 'quality' of 'struct sd' and
-to replace all 'sd->quality' by 'sd->ctrls[QUALITY].val'.
+[PATCH] cinergyT2-fe: Fix bandwdith settings
 
-Then, initialization
+Changeset 7830bbaff9f mangled the bandwidth field for CinergyT2.
+Properly fill it.
 
-	sd->quality = QUALITY_DEF;
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-in sd_config() is no more useful, and there is no need to have a
-getjpegqual() function, the control descriptor for QUALITY having just:
-
-	.set_control = setjpegqual
-
--- 
-Ken ar c'hentaÃ±	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+diff --git a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
+index 8a57ed8..1efc028 100644
+--- a/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
++++ b/drivers/media/dvb/dvb-usb/cinergyT2-fe.c
+@@ -276,14 +276,15 @@ static int cinergyt2_fe_set_frontend(struct dvb_frontend *fe)
+ 	param.flags = 0;
+ 
+ 	switch (fep->bandwidth_hz) {
++	default:
+ 	case 8000000:
+-		param.bandwidth = 0;
++		param.bandwidth = 8;
+ 		break;
+ 	case 7000000:
+-		param.bandwidth = 1;
++		param.bandwidth = 7;
+ 		break;
+ 	case 6000000:
+-		param.bandwidth = 2;
++		param.bandwidth = 6;
+ 		break;
+ 	}
+ 
