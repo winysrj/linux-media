@@ -1,83 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42177 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755357Ab2AKAlt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 19:41:49 -0500
-Message-ID: <4F0CDACA.5070100@iki.fi>
-Date: Wed, 11 Jan 2012 02:41:46 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: [GIT PULL FOR 3.3 v2] HDIC HD29L2 DMB-TH demodulator driver
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:63229 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752311Ab2AWNvh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 08:51:37 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LY900A0W7TZVI@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:35 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LY900GK77TYU2@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:35 +0000 (GMT)
+Date: Mon, 23 Jan 2012 14:51:08 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 03/10] media: vb2: add prepare/finish callbacks to allocators
+In-reply-to: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	pawel@osciak.com
+Message-id: <1327326675-8431-4-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+From: Marek Szyprowski <m.szyprowski@samsung.com>
 
-That is 2nd attempt to PULL that to the Kernel. If possible send that 
-still to the 3.3...
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ drivers/media/video/videobuf2-core.c |   11 +++++++++++
+ include/media/videobuf2-core.h       |    2 ++
+ 2 files changed, 13 insertions(+), 0 deletions(-)
 
-As a DTMB support in out API is not ready I decided to move whole driver 
-to the staging.
-
-I fixed most of those findings you pointed out and left one bit 
-operation without fix (find_first_bit) still because it gave one warning...
-
-drivers/media/dvb/frontends/hd29l2.c: In function ‘hd29l2_rd_reg_mask’:
-drivers/media/dvb/frontends/hd29l2.c:139:2: warning: passing argument 1 
-of ‘find_first_bit’ from incompatible pointer type
-include/asm-generic/bitops/find.h:35:22: note: expected ‘const long 
-unsigned int *’ but argument is of type ‘u8 *’
-
-
-
-Antti
-
-
-The following changes since commit 2f78604a433a12571ec3e54054fbfacc7525b307:
-
-   [media] Added model Sveon STV40 (2012-01-07 12:02:20 -0200)
-
-are available in the git repository at:
-   git://linuxtv.org/anttip/media_tree.git hdic_v2
-
-Antti Palosaari (8):
-       HDIC HD29L2 DMB-TH demodulator driver
-       HDIC HD29L2 DMB-TH USB2.0 reference design driver
-       hd29l2: synch for latest DVB core changes
-       mxl5007t: bugfix DVB-T 7 MHz and 8 MHz bandwidth
-       hd29l2: add debug for used IF frequency
-       dvb-core: define general callback value for demodulator
-       hd29l2: fix review findings
-       hd29l2: move to staging
-
-  drivers/media/common/tuners/mxl5007t.c     |    2 +
-  drivers/media/dvb/dvb-core/dvb_frontend.h  |    1 +
-  drivers/media/dvb/dvb-usb/Kconfig          |    7 +
-  drivers/media/dvb/dvb-usb/Makefile         |    3 +
-  drivers/media/dvb/dvb-usb/hdic.c           |  365 ++++++++++++
-  drivers/media/dvb/dvb-usb/hdic.h           |   45 ++
-  drivers/staging/media/Kconfig              |    2 +
-  drivers/staging/media/Makefile             |    1 +
-  drivers/staging/media/hd29l2/Kconfig       |    7 +
-  drivers/staging/media/hd29l2/Makefile      |    4 +
-  drivers/staging/media/hd29l2/TODO          |    3 +
-  drivers/staging/media/hd29l2/hd29l2.c      |  861 
-++++++++++++++++++++++++++++
-  drivers/staging/media/hd29l2/hd29l2.h      |   66 +++
-  drivers/staging/media/hd29l2/hd29l2_priv.h |  314 ++++++++++
-  14 files changed, 1681 insertions(+), 0 deletions(-)
-  create mode 100644 drivers/media/dvb/dvb-usb/hdic.c
-  create mode 100644 drivers/media/dvb/dvb-usb/hdic.h
-  create mode 100644 drivers/staging/media/hd29l2/Kconfig
-  create mode 100644 drivers/staging/media/hd29l2/Makefile
-  create mode 100644 drivers/staging/media/hd29l2/TODO
-  create mode 100644 drivers/staging/media/hd29l2/hd29l2.c
-  create mode 100644 drivers/staging/media/hd29l2/hd29l2.h
-  create mode 100644 drivers/staging/media/hd29l2/hd29l2_priv.h
-
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 4c3a82e..cb85874 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -836,6 +836,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
+ 	unsigned long flags;
++	int plane;
+ 
+ 	if (vb->state != VB2_BUF_STATE_ACTIVE)
+ 		return;
+@@ -846,6 +847,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
+ 	dprintk(4, "Done processing on buffer %d, state: %d\n",
+ 			vb->v4l2_buf.index, vb->state);
+ 
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, finish, vb->planes[plane].mem_priv);
++
+ 	/* Add the buffer to the done buffers list */
+ 	spin_lock_irqsave(&q->done_lock, flags);
+ 	vb->state = state;
+@@ -1136,9 +1141,15 @@ err:
+ static void __enqueue_in_driver(struct vb2_buffer *vb)
+ {
+ 	struct vb2_queue *q = vb->vb2_queue;
++	int plane;
+ 
+ 	vb->state = VB2_BUF_STATE_ACTIVE;
+ 	atomic_inc(&q->queued_count);
++
++	/* sync buffers */
++	for (plane = 0; plane < vb->num_planes; ++plane)
++		call_memop(q, prepare, vb->planes[plane].mem_priv);
++
+ 	q->ops->buf_queue(vb);
+ }
+ 
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 35607f7..d8b8171 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -76,6 +76,8 @@ struct vb2_fileio_data;
+  */
+ struct vb2_mem_ops {
+ 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
++	void		(*prepare)(void *buf_priv);
++	void		(*finish)(void *buf_priv);
+ 	void		(*put)(void *buf_priv);
+ 
+ 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
 -- 
-http://palosaari.fi/
+1.7.5.4
+
