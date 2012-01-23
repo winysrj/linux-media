@@ -1,16 +1,19 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:44568 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753051Ab2AZWXp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 17:23:45 -0500
-Date: Thu, 26 Jan 2012 15:23:43 -0700
-From: Jonathan Corbet <corbet@lwn.net>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:33421 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752037Ab2AWJFl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 04:05:41 -0500
+Date: Mon, 23 Jan 2012 10:05:37 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH] [media] convert drivers/media/* to use module_i2c_driver()
+In-reply-to: <1327140645.3928.1.camel@phoenix>
 To: Axel Lin <axel.lin@gmail.com>
 Cc: linux-kernel@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@infradead.org>,
 	Kyungmin Park <kyungmin.park@samsung.com>,
 	Heungjun Kim <riverful.kim@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
 	Joonyoung Shim <jy0922.shim@samsung.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
@@ -21,25 +24,20 @@ Cc: linux-kernel@vger.kernel.org,
 	Johannes Obermaier <johannes.obermaier@gmail.com>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] convert drivers/media/* to use
- module_i2c_driver()
-Message-ID: <20120126152343.7c5da11c@dt>
-In-Reply-To: <1327140645.3928.1.camel@phoenix>
+Message-id: <4F1D22E1.2040507@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7BIT
 References: <1327140645.3928.1.camel@phoenix>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 21 Jan 2012 18:10:45 +0800
-Axel Lin <axel.lin@gmail.com> wrote:
+Hi,
 
-> This patch converts the drivers in drivers/media/* to use the
-> module_i2_driver() macro which makes the code smaller and a bit simpler.
+For module s5p-tv/hdmiphy
 
-For ov7670.c (belatedly):
+Acked-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
 
-	Acked-by: Jonathan Corbet <corbet@lwn.net>
-
-jon
+--
+Regards,
+Tomasz Stanislawski
