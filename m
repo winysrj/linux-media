@@ -1,484 +1,170 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43859 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752648Ab2AYPMb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:12:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 3/8] soc-camera: Add plane layout information to struct soc_mbus_pixelfmt
-Date: Wed, 25 Jan 2012 16:12:26 +0100
-Message-Id: <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:48312 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750824Ab2AWQnE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 11:43:04 -0500
+Message-ID: <4F1D8E05.4060109@redhat.com>
+Date: Mon, 23 Jan 2012 14:42:45 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, pawel@osciak.com
+Subject: Re: [PATCH 05/10] v4l: add buffer exporting via dmabuf
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com> <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com> <4F1D6F88.5080202@redhat.com> <4F1D71EA.2060402@samsung.com> <4F1D7705.3080601@redhat.com> <4F1D8324.5000709@samsung.com>
+In-Reply-To: <4F1D8324.5000709@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To compute the number of bytes per line according to the V4L2
-specification, we need information about planes layout for planar
-formats. The new enum soc_mbus_layout convey that information.
+Em 23-01-2012 13:56, Tomasz Stanislawski escreveu:
+> Hi Mauro,
+> 
+> On 01/23/2012 04:04 PM, Mauro Carvalho Chehab wrote:
+>> Em 23-01-2012 12:42, Tomasz Stanislawski escreveu:
+>>> Hi Mauro.
+>>> On 01/23/2012 03:32 PM, Mauro Carvalho Chehab wrote:
+>>>> Em 23-01-2012 11:51, Tomasz Stanislawski escreveu:
+>>>>> This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
+>>>>> descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
+>>>>> mmap and return a file descriptor on success.
+>>>>
+>>>> This requires more discussions.
+>>>>
+>>>> The usecase for this new API seems to replace the features previously provided
+>>>> by the overlay mode. There, not only the buffer were exposed to userspace, but
+>>>> some control were provided, in order to control the overlay window.
+>>>
+>>> This ioctl was introduced to support exporting of V4L2 buffers via dma-buf interface. This framework was little common with overlay mode. Could you describe what overlay mode feature is replaced by VIDIOC_EXPBUF?
+>>
+>> The V4L2 API doesn't just export "raw" buffers. It provides a logic to control
+>> the streams, with includes buffer settings, buffer queue/dequeue, buffer meta-data
+>> (like timestamps), etc.
+> 
+> The DMABUF buffers are handled by vb2-core. It provides control for queuing and passing streaming and metadata management (like timestamps) to the driver.
+> 
+>>
+>> I would expect to see something similar for the dma buffers.
+> 
+> Those features may be introduced to dma-buf. As I understand queue/dequeue refers to passing 
+> ownership between a CPU and a driver. It is handled in vb2-core. Passing buffer between multiple 
+> APIs like V4L2 and DRM will be probably handled in the userspace. Currently the dma-buf provides 
+> only the mechanism for mapping the same memory by multiple devices.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/atmel-isi.c            |    1 +
- drivers/media/video/mx3_camera.c           |    2 +
- drivers/media/video/omap1_camera.c         |    8 ++++++
- drivers/media/video/pxa_camera.c           |    1 +
- drivers/media/video/sh_mobile_ceu_camera.c |    4 +++
- drivers/media/video/soc_mediabus.c         |   33 ++++++++++++++++++++++++++++
- include/media/soc_mediabus.h               |   19 ++++++++++++++++
- 7 files changed, 68 insertions(+), 0 deletions(-)
+I'm not sure if the dma-buf itself should have such meta data, but the V4L2 API 
+likely needs it.
 
-diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-index 73f8d05..e104b19 100644
---- a/drivers/media/video/atmel-isi.c
-+++ b/drivers/media/video/atmel-isi.c
-@@ -624,6 +624,7 @@ static const struct soc_mbus_pixelfmt isi_camera_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- };
- 
-diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-index c68f07e..813323c 100644
---- a/drivers/media/video/mx3_camera.c
-+++ b/drivers/media/video/mx3_camera.c
-@@ -637,12 +637,14 @@ static const struct soc_mbus_pixelfmt mx3_camera_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	}, {
- 		.fourcc			= V4L2_PIX_FMT_GREY,
- 		.name			= "Monochrome 8 bit",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- };
- 
-diff --git a/drivers/media/video/omap1_camera.c b/drivers/media/video/omap1_camera.c
-index cebe4bf..76752e5 100644
---- a/drivers/media/video/omap1_camera.c
-+++ b/drivers/media/video/omap1_camera.c
-@@ -989,6 +989,7 @@ static const struct soc_mbus_lookup omap1_cam_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_VYUY8_2X8,
-@@ -998,6 +999,7 @@ static const struct soc_mbus_lookup omap1_cam_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_YUYV8_2X8,
-@@ -1007,6 +1009,7 @@ static const struct soc_mbus_lookup omap1_cam_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_YVYU8_2X8,
-@@ -1016,6 +1019,7 @@ static const struct soc_mbus_lookup omap1_cam_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-@@ -1025,6 +1029,7 @@ static const struct soc_mbus_lookup omap1_cam_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-@@ -1034,6 +1039,7 @@ static const struct soc_mbus_lookup omap1_cam_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB565_2X8_BE,
-@@ -1043,6 +1049,7 @@ static const struct soc_mbus_lookup omap1_cam_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB565_2X8_LE,
-@@ -1052,6 +1059,7 @@ static const struct soc_mbus_lookup omap1_cam_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- },
- };
-diff --git a/drivers/media/video/pxa_camera.c b/drivers/media/video/pxa_camera.c
-index e7da832..e618dc4 100644
---- a/drivers/media/video/pxa_camera.c
-+++ b/drivers/media/video/pxa_camera.c
-@@ -1233,6 +1233,7 @@ static const struct soc_mbus_pixelfmt pxa_camera_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PLANAR_Y_U_V,
- 	},
- };
- 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index fcf96b3..bd6ae79 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -957,24 +957,28 @@ static const struct soc_mbus_pixelfmt sh_mobile_ceu_formats[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_1_5X8,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PLANAR_2Y_C,
- 	}, {
- 		.fourcc			= V4L2_PIX_FMT_NV21,
- 		.name			= "NV21",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_1_5X8,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PLANAR_2Y_C,
- 	}, {
- 		.fourcc			= V4L2_PIX_FMT_NV16,
- 		.name			= "NV16",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PLANAR_Y_C,
- 	}, {
- 		.fourcc			= V4L2_PIX_FMT_NV61,
- 		.name			= "NV61",
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PLANAR_Y_C,
- 	},
- };
- 
-diff --git a/drivers/media/video/soc_mediabus.c b/drivers/media/video/soc_mediabus.c
-index cf7f219..44dba6c 100644
---- a/drivers/media/video/soc_mediabus.c
-+++ b/drivers/media/video/soc_mediabus.c
-@@ -24,6 +24,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_YVYU8_2X8,
-@@ -33,6 +34,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_UYVY8_2X8,
-@@ -42,6 +44,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_VYUY8_2X8,
-@@ -51,6 +54,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-@@ -60,6 +64,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE,
-@@ -69,6 +74,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB565_2X8_LE,
-@@ -78,6 +84,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB565_2X8_BE,
-@@ -87,6 +94,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SBGGR8_1X8,
-@@ -96,6 +104,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SBGGR10_1X10,
-@@ -105,6 +114,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_Y8_1X8,
-@@ -114,6 +124,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_Y10_1X10,
-@@ -123,6 +134,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_LE,
-@@ -132,6 +144,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_LE,
-@@ -141,6 +154,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADLO,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE,
-@@ -150,6 +164,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE,
-@@ -159,6 +174,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADLO,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_JPEG_1X8,
-@@ -168,6 +184,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample        = 8,
- 		.packing                = SOC_MBUS_PACKING_VARIABLE,
- 		.order                  = SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE,
-@@ -177,6 +194,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
- 		.order			= SOC_MBUS_ORDER_BE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_YUYV8_1_5X8,
-@@ -186,6 +204,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_1_5X8,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_YVYU8_1_5X8,
-@@ -195,6 +214,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_1_5X8,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_UYVY8_1X16,
-@@ -204,6 +224,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 16,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_VYUY8_1X16,
-@@ -213,6 +234,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 16,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_YUYV8_1X16,
-@@ -222,6 +244,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 16,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_YVYU8_1X16,
-@@ -231,6 +254,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 16,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SGRBG8_1X8,
-@@ -240,6 +264,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
-@@ -249,6 +274,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 8,
- 		.packing		= SOC_MBUS_PACKING_NONE,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SGBRG10_1X10,
-@@ -258,6 +284,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SGRBG10_1X10,
-@@ -267,6 +294,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SRGGB10_1X10,
-@@ -276,6 +304,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 10,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SBGGR12_1X12,
-@@ -285,6 +314,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 12,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SGBRG12_1X12,
-@@ -294,6 +324,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 12,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SGRBG12_1X12,
-@@ -303,6 +334,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 12,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- }, {
- 	.code = V4L2_MBUS_FMT_SRGGB12_1X12,
-@@ -312,6 +344,7 @@ static const struct soc_mbus_lookup mbus_fmt[] = {
- 		.bits_per_sample	= 12,
- 		.packing		= SOC_MBUS_PACKING_EXTEND16,
- 		.order			= SOC_MBUS_ORDER_LE,
-+		.layout			= SOC_MBUS_LAYOUT_PACKED,
- 	},
- },
- };
-diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
-index 73f1e7e..18b0864 100644
---- a/include/media/soc_mediabus.h
-+++ b/include/media/soc_mediabus.h
-@@ -47,6 +47,24 @@ enum soc_mbus_order {
- };
- 
- /**
-+ * enum soc_mbus_layout - planes layout in memory
-+ * @SOC_MBUS_LAYOUT_PACKED:		color components packed
-+ * @SOC_MBUS_LAYOUT_PLANAR_Y_U_V:	YUV components stored in 3 planes
-+ * @SOC_MBUS_LAYOUT_PLANAR_2Y_C:	YUV components stored in a luma and a
-+ *					chroma plane (C plane is half the size
-+ *					of Y plane)
-+ * @SOC_MBUS_LAYOUT_PLANAR_Y_C:		YUV components stored in a luma and a
-+ *					chroma plane (C plane is the same size
-+ *					as Y plane)
-+ */
-+enum soc_mbus_layout {
-+	SOC_MBUS_LAYOUT_PACKED = 0,
-+	SOC_MBUS_LAYOUT_PLANAR_Y_U_V,
-+	SOC_MBUS_LAYOUT_PLANAR_2Y_C,
-+	SOC_MBUS_LAYOUT_PLANAR_Y_C,
-+};
-+
-+/**
-  * struct soc_mbus_pixelfmt - Data format on the media bus
-  * @name:		Name of the format
-  * @fourcc:		Fourcc code, that will be obtained if the data is
-@@ -60,6 +78,7 @@ struct soc_mbus_pixelfmt {
- 	u32			fourcc;
- 	enum soc_mbus_packing	packing;
- 	enum soc_mbus_order	order;
-+	enum soc_mbus_layout	layout;
- 	u8			bits_per_sample;
- };
- 
--- 
-1.7.3.4
+>>
+>> With regards to the overlay mode, this is the old way to export DMA buffers between
+>> a video capture driver and a graphics adapter driver. A dma-buf interface will
+>> superseed the video overlay mode, as it will provide more features. Yet, care
+>> should be taken when writing the userspace interface, in order to be sure that all
+>> features needed will be provided there.
+>>
+> 
+> The s5p-tv and s5p-fimc do not have support for OVERLAY mode. As I know vb2-core 
+> has no support for the mode, either.
 
+True. It was decided that overlay is an old design, and a dma-buffer
+oriented approach would be needed. So, the decision were to not implement
+anything there, until a proper dma-buf support were not added.
+
+> What kind of features present in OVERLAYS are 
+> needed in dmabuf? Note that dmabuf do not have be used only for buffers with video data.
+
+That's a good point. Basically, Ovelay mode is supported by
+those 3 ioctl's:
+
+#define VIDIOC_G_FBUF            _IOR('V', 10, struct v4l2_framebuffer)
+#define VIDIOC_S_FBUF            _IOW('V', 11, struct v4l2_framebuffer)
+#define VIDIOC_OVERLAY           _IOW('V', 14, int)
+
+With use these structs:
+
+struct v4l2_pix_format {
+        __u32                   width;
+        __u32                   height;
+        __u32                   pixelformat;
+        enum v4l2_field         field;
+       	__u32                   bytesperline;
+        __u32                   sizeimage;
+        enum v4l2_colorspace    colorspace;
+        __u32                   priv;
+};
+
+struct v4l2_framebuffer {
+        __u32                   capability;
+        __u32                   flags;
+
+        void                    *base;		/* Should be replaced by the DMA buf specifics */
+        struct v4l2_pix_format  fmt;
+};
+/*  Flags for the 'capability' field. Read only */
+#define V4L2_FBUF_CAP_EXTERNOVERLAY     0x0001
+#define V4L2_FBUF_CAP_CHROMAKEY         0x0002
+#define V4L2_FBUF_CAP_LIST_CLIPPING     0x0004
+#define V4L2_FBUF_CAP_BITMAP_CLIPPING   0x0008
+#define V4L2_FBUF_CAP_LOCAL_ALPHA       0x0010
+#define V4L2_FBUF_CAP_GLOBAL_ALPHA      0x0020
+#define V4L2_FBUF_CAP_LOCAL_INV_ALPHA   0x0040
+#define V4L2_FBUF_CAP_SRC_CHROMAKEY     0x0080
+/*  Flags for the 'flags' field. */
+#define V4L2_FBUF_FLAG_PRIMARY          0x0001
+#define V4L2_FBUF_FLAG_OVERLAY          0x0002
+#define V4L2_FBUF_FLAG_CHROMAKEY        0x0004
+#define V4L2_FBUF_FLAG_LOCAL_ALPHA	0x0008
+#define V4L2_FBUF_FLAG_GLOBAL_ALPHA     0x0010
+#define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA  0x0020
+#define V4L2_FBUF_FLAG_SRC_CHROMAKEY    0x0040
+
+It should be noticed that devices that support OVERLAY can provide
+data on both dma-buffer sharing and via the standard MMAP/read() mode at
+the same time, each with a different video format. So, the VIDIOC_S_FBUF
+ioctl needs to set the pixel format, and image size for the overlay,
+while the other ioctl's set it for the MMAP (or read) mode.
+
+Buffer queue/dequeue happens internally, and can be started/stopped via
+a VIDIOC_OVERLAY call.
+
+>>>>
+>>>> Please start a separate thread about that, explaining how are you imagining that
+>>>> a V4L2 application would use such ioctl.
+> 
+> I will post a simple application that does buffer sharing between two V4L2 devices (camera and TV output).
+
+Ok.
+
+>>>
+>>> This patch is essential for full implementation of support for DMABUF framework in V4L2. Therefore the patch cannot be moved to separate thread.
+>>
+>> I'm not proposing to move the patch to a separate thread. All I'm saying
+>> is that the API extensions for dmabuf requires its own separate discussions.
+> 
+> I agree. However DMA patches plays important role in this PoC patchset so I decided to keep patches to together. Moreover I wanted this code to compile successfully.
+> 
+> I prefer to have a good reason for adding extension before proposing it on the mailing list. The DMA buffer sharing seams to be a right reason for adding dma_get_pages but comments for V4L2/Linaro people is needed.
+> 
+>>
+>> I couldn't guess, just from your patches, what ioctl's a V4L2 application
+>> like tvtime or xawtv would use the DMABUF.
+> 
+> DMABUF is dedicated for application that use streaming between at least two devices. 
+> Especially if those devices are controlled by different APIs, like DRM and V4L2. 
+> It would be probably used in the middle-ware like gstreamer or OpenMAX.
+
+This is what the X11 v4l extension driver does: it shares DMA buffers between V4L2 
+and DRM. The extension currently relies on XV extension, simply because this is what
+were available at the time the extension was written. I didn't have any time yet
+to port it to use something more modern.
+
+It is probably a good idea for you to take a look on it, when writing the API bits.
+Its source is available at:
+
+	http://cgit.freedesktop.org/xorg/driver/xf86-video-v4l/
+
+Regards,
+Mauro
