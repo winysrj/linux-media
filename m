@@ -1,114 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:65323 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752371Ab2AJL3W (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:34472 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752516Ab2AWJXV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 06:29:22 -0500
-Date: Tue, 10 Jan 2012 12:29:06 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Josh Wu <josh.wu@atmel.com>
-cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	linux-arm-kernel@lists.infradead.org, nicolas.ferre@atmel.com,
-	linux@arm.linux.org.uk, arnd@arndb.de
-Subject: Re: [PATCH RESEND v3 2/2] [media] V4L: atmel-isi: add
- clk_prepare()/clk_unprepare() functions
-In-Reply-To: <1326193999-7609-1-git-send-email-josh.wu@atmel.com>
-Message-ID: <Pine.LNX.4.64.1201101224330.530@axis700.grange>
-References: <1326193999-7609-1-git-send-email-josh.wu@atmel.com>
+	Mon, 23 Jan 2012 04:23:21 -0500
+Received: by werb13 with SMTP id b13so1924009wer.19
+        for <linux-media@vger.kernel.org>; Mon, 23 Jan 2012 01:23:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <Pine.LNX.4.64.1201231005280.11184@axis700.grange>
+References: <1326297664-19089-1-git-send-email-javier.martin@vista-silicon.com>
+	<Pine.LNX.4.64.1201211827381.16722@axis700.grange>
+	<Pine.LNX.4.64.1201221939340.1075@axis700.grange>
+	<CACKLOr1nemP0Wr5zEhGed7s+kGvTFq0t0NAfipRBwHPvVLB78g@mail.gmail.com>
+	<Pine.LNX.4.64.1201231005280.11184@axis700.grange>
+Date: Mon, 23 Jan 2012 10:23:20 +0100
+Message-ID: <CACKLOr2GGbFdLGdTYC18mHojAKUDObNQP3bwJLK8KJ0UdC7McQ@mail.gmail.com>
+Subject: Re: [PATCH v2] media i.MX27 camera: properly detect frame loss.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	lethal@linux-sh.org, hans.verkuil@cisco.com, s.hauer@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Josh
+Hi Guennadi,
 
-Right, sorry, I missed this one, I somehow developed an idea, that it has 
-been merged into the original patch, adding ISI_MCK handling. Now, I also 
-notice one detail, that we could improve:
+>> I suggest you hold on this patch until the new series is accepted and
+>> then merge both at the same time.
+>>
+>> What do you think?
+>
+> Ok, I'll be reviewing that patch series hopefully soon, and in principle
+> it is good, that the buffer counting will really be fixed in it, but in an
+> ideal world it would be better to have this your patch merged into patch
+> 2/4 of the series, agree? Would I be asking too much of you if I suggest
+> that? Feel free to explain why this wouldn't work or just reject if you're
+> just too tight on schedule. I'll see ifI can swallow it that way or maybe
+> merge myself :-)
 
-On Tue, 10 Jan 2012, Josh Wu wrote:
+If you, Sascha, or someone else comes up with some requests or fixes
+to the new series I don't mind to rebase it so you can just ignore
+this patch, since I would have to sent a v2 version of the series
+anyway.
 
-> Signed-off-by: Josh Wu <josh.wu@atmel.com>
-> Acked-by: Nicolas Ferre <nicolas.ferre@atmel.com>
-> ---
-> Hi, Mauro
-> 
-> The first patch of this serie, [PATCH 1/2 v3] V4L: atmel-isi: add code to enable/disable ISI_MCK clock, is already queued in media tree. 
-> But this patch (the second one of this serie) is not acked yet. Would it be ok to for you to ack this patch?
-> 
-> Best Regards,
-> Josh Wu
-> 
-> v2: made the label name to be consistent.
-> 
->  drivers/media/video/atmel-isi.c |   15 +++++++++++++++
->  1 files changed, 15 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/atmel-isi.c b/drivers/media/video/atmel-isi.c
-> index ea4eef4..91ebcfb 100644
-> --- a/drivers/media/video/atmel-isi.c
-> +++ b/drivers/media/video/atmel-isi.c
-> @@ -922,7 +922,9 @@ static int __devexit atmel_isi_remove(struct platform_device *pdev)
->  			isi->fb_descriptors_phys);
->  
->  	iounmap(isi->regs);
-> +	clk_unprepare(isi->mck);
->  	clk_put(isi->mck);
-> +	clk_unprepare(isi->pclk);
->  	clk_put(isi->pclk);
->  	kfree(isi);
->  
-> @@ -955,6 +957,12 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  	if (IS_ERR(pclk))
->  		return PTR_ERR(pclk);
->  
-> +	ret = clk_prepare(pclk);
-> +	if (ret) {
-> +		clk_put(pclk);
-> +		return ret;
+Regards.
 
-Don't think it's a good idea here. You already have clk_put(pclk) on the 
-error handling path below. So, just put a "goto err_clk_prepare_pclk" here 
-and the respective error below.
-
-Thanks
-Guennadi
-
-> +	}
-> +
->  	isi = kzalloc(sizeof(struct atmel_isi), GFP_KERNEL);
->  	if (!isi) {
->  		ret = -ENOMEM;
-> @@ -978,6 +986,10 @@ static int __devinit atmel_isi_probe(struct platform_device *pdev)
->  		goto err_clk_get;
->  	}
->  
-> +	ret = clk_prepare(isi->mck);
-> +	if (ret)
-> +		goto err_clk_prepare_mck;
-> +
->  	/* Set ISI_MCK's frequency, it should be faster than pixel clock */
->  	ret = clk_set_rate(isi->mck, pdata->mck_hz);
->  	if (ret < 0)
-> @@ -1059,10 +1071,13 @@ err_alloc_ctx:
->  			isi->fb_descriptors_phys);
->  err_alloc_descriptors:
->  err_set_mck_rate:
-> +	clk_unprepare(isi->mck);
-> +err_clk_prepare_mck:
->  	clk_put(isi->mck);
->  err_clk_get:
->  	kfree(isi);
->  err_alloc_isi:
-> +	clk_unprepare(pclk);
->  	clk_put(pclk);
->  
->  	return ret;
-> -- 
-> 1.6.3.3
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
