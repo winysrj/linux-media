@@ -1,97 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:40460 "EHLO mgw-da02.nokia.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:36403 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752130Ab2AGJJE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 04:09:04 -0500
-Message-ID: <4F080BAF.1010800@maxwell.research.nokia.com>
-Date: Sat, 07 Jan 2012 11:09:03 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	id S1754066Ab2AWURE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 15:17:04 -0500
+Message-ID: <4F1DC03D.4080204@iki.fi>
+Date: Mon, 23 Jan 2012 22:17:01 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-Subject: Re: [RFC 04/17] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
- IOCTLs
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <201201051712.00970.laurent.pinchart@ideasonboard.com> <4F06DA87.1050209@maxwell.research.nokia.com> <201201061300.40486.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201061300.40486.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [git:v4l-dvb/for_v3.4] [media] cxd2820r: fix dvb_frontend_ops
+References: <E1RpQFN-0000uK-Bc@www.linuxtv.org>
+In-Reply-To: <E1RpQFN-0000uK-Bc@www.linuxtv.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Are going to push these Kernel 3.4 as topic hints?
+These are fixes for 3.3, for example that patch in question...
 
-Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Friday 06 January 2012 12:27:03 Sakari Ailus wrote:
->> Laurent Pinchart wrote:
->>> On Tuesday 20 December 2011 21:27:56 Sakari Ailus wrote:
->>>> From: Sakari Ailus <sakari.ailus@iki.fi>
->>>>
->>>> Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
->>>> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
->>>> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
->>>>
->>>> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
->>>
->>> As those ioctls are experimental, should we deprecate them ?
->>
->> I'm also in favour of doing that. But I'll make it a separate patch.
->>
->>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->>>> ---
->>>>
->>>>  drivers/media/video/v4l2-subdev.c |   26 ++++++++++++++++++++-
->>>>  include/linux/v4l2-subdev.h       |   45
->>>>  ++++++++++++++++++++++++++++++++++ include/media/v4l2-subdev.h       |
->>>>     5 ++++
->>>>  3 files changed, 75 insertions(+), 1 deletions(-)
->>>>
->>>> diff --git a/drivers/media/video/v4l2-subdev.c
->>>> b/drivers/media/video/v4l2-subdev.c index 65ade5f..e8ae098 100644
->>>> --- a/drivers/media/video/v4l2-subdev.c
->>>> +++ b/drivers/media/video/v4l2-subdev.c
->>>> @@ -36,13 +36,17 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh,
->>>> struct v4l2_subdev *sd) {
->>>>
->>>>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
->>>>  
->>>>  	/* Allocate try format and crop in the same memory block */
->>>>
->>>> -	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
->>>> +	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop)
->>>> +			       + sizeof(*fh->try_compose))
->>>>
->>>>  			      * sd->entity.num_pads, GFP_KERNEL);
->>>
->>> Could you check how the 3 structures are aligned on 64-bit platforms ?
->>> I'm a bit worried about the compiler expecting a 64-bit alignment for
->>> one of them, and getting only a 32-bit alignment in the end.
->>>
->>> What about using kcalloc ?
->>
->> kcalloc won't make a difference --- see the implementation. Do you think
->> this is really an issue in practice?
-> 
-> It won't make a difference for the alignment, it's just that we allocate an 
-> array, so kcalloc seemed right.
-> 
->> If we want to ensure alignment I'd just allocate them separately. Or
->> create a struct out of them locally, and get the pointers from that
->> struct --- then the alignment would be the same as if those were part of
->> a single struct. That achieves the desired result and also keeps error
->> handling trivial.
->>
->> I wouldn't want to start relying on the alignment based on the sizes of
->> these structures.
-> 
-> Sounds good to me. Allocating them as part of a bigger structure internally 
-> could be more efficient than separate allocations, but I'm fine with both.
+Antti
 
-On second thought, I think I'll combine them into a new anonymous struct
-the field name of which I call "pad", unless that requires too intrusive
-changes in other drivers. How about that?
+On 01/23/2012 10:10 PM, Mauro Carvalho Chehab wrote:
+> This is an automatic generated email to let you know that the following patch were queued at the
+> http://git.linuxtv.org/media_tree.git tree:
+>
+> Subject: [media] cxd2820r: fix dvb_frontend_ops
+> Author:  Antti Palosaari<crope@iki.fi>
+> Date:    Wed Jan 18 13:57:33 2012 -0300
+>
+> Fix bug introduced by multi-frontend to single-frontend change.
+>
+> * Add missing DVB-C caps
+> * Change frontend name as single frontend does all the standards
+>
+> Signed-off-by: Antti Palosaari<crope@iki.fi>
+> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>
+>   drivers/media/dvb/frontends/cxd2820r_core.c |    4 +++-
+>   1 files changed, 3 insertions(+), 1 deletions(-)
+>
+> ---
+>
+> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=9bf31efa84c898a0cf294bacdfe8edcac24e6318
+>
+> diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
+> index caae7f7..5fe591d 100644
+> --- a/drivers/media/dvb/frontends/cxd2820r_core.c
+> +++ b/drivers/media/dvb/frontends/cxd2820r_core.c
+> @@ -562,7 +562,7 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
+>   	.delsys = { SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A },
+>   	/* default: DVB-T/T2 */
+>   	.info = {
+> -		.name = "Sony CXD2820R (DVB-T/T2)",
+> +		.name = "Sony CXD2820R",
+>
+>   		.caps =	FE_CAN_FEC_1_2			|
+>   			FE_CAN_FEC_2_3			|
+> @@ -572,7 +572,9 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
+>   			FE_CAN_FEC_AUTO			|
+>   			FE_CAN_QPSK			|
+>   			FE_CAN_QAM_16			|
+> +			FE_CAN_QAM_32			|
+>   			FE_CAN_QAM_64			|
+> +			FE_CAN_QAM_128			|
+>   			FE_CAN_QAM_256			|
+>   			FE_CAN_QAM_AUTO			|
+>   			FE_CAN_TRANSMISSION_MODE_AUTO	|
+
 
 -- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+http://palosaari.fi/
