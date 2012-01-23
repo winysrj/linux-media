@@ -1,73 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45720 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753459Ab2AJWWY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 17:22:24 -0500
-Message-ID: <4F0CBA13.7080305@redhat.com>
-Date: Tue, 10 Jan 2012 20:22:11 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/5] Fix dvb-core set_delivery_system and port drxk to
- one frontend
-References: <1325777872-14696-1-git-send-email-mchehab@redhat.com> <4F0CB197.5010306@iki.fi>
-In-Reply-To: <4F0CB197.5010306@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61833 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752194Ab2AWNvh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 08:51:37 -0500
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LY9008107TZ9Q@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:35 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LY900D9E7TYTD@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:35 +0000 (GMT)
+Date: Mon, 23 Jan 2012 14:51:05 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 00/10] Integration of videobuf2 with dmabuf
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	pawel@osciak.com
+Message-id: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 10-01-2012 19:45, Antti Palosaari wrote:
-> On 01/05/2012 05:37 PM, Mauro Carvalho Chehab wrote:
->> With all these series applied, it is now possible to use frontend 0
->> for all delivery systems. As the current tools don't support changing
->> the delivery system, the dvb-fe-tool (on my experimental tree[1]) can now
->> be used to change between them:
->>
->> For example, to use DVB-T with the standard scan:
->>
->> $ ./dvb-fe-tool -d DVBT&&  scan /usr/share/dvb/dvb-t/au-Adelaide
->>
->> [1] http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/shortlog/refs/heads/dvb-utils
-> 
-> I tested that now using nanoStick T2 cxd2820r driver. I got it working somehow, but I suspect there is some bugs at least for DVB-C. But forget those as now.
+Hello everyone,
+This patchset is an incremental patch to patchset created by Sumit
+Semwal [1].  The patches are dedicated to help find a better solution for
+support of buffer sharing by V4L2 API.  It is expected to start discussion on
+final installment for dma-buf in vb2-dma-contig allocator.  Current version of
+the patches contain little documentation. It is going to be fixed after
+achieving consensus about design for buffer exporting.  Moreover the API
+between vb2-core and the allocator should be revised.
 
-Well, we need to hardly test the DVB drivers after a 200+ patch series.
-Regressions will happen. I've cached a few already, but I'm sure there
-are others that are not that trivial.
+The amount of changes to vb2-dma-contig.c was significant making the difference
+patch very difficult to read.  Therefore the patch was split into two parts.
+One removes old file, the next patch creates the version of the file.
 
-> As it now registers only one frontend I must switch mode using dvb-fe-tool when I want to use DVB-C. Argh.
-> 
-> I don't see reason why it was needed to remove old DVB-C frontend1. Why it wasn't possible to leave FE1
-> as it was and enhance only functionality of FE0 like it is now? For that strategy we doesn't break old set-ups as now happens.
+The patchset contains extension for DMA API and its implementation for ARM
+architecture. Therefore the patchset should be applied on the top of:
 
-This were discussed in the past:
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/3.2-dma-v5
 
-	http://www.spinics.net/lists/linux-media/msg35542.html
+After applying patches from [2] and [1].
 
-In fact, I've proposed this strategy as one of the alternatives for MFE
-(approach 4):
+v1: List of changes since [1].
+- support for DMA api extension dma_get_pages, the function is used to retrieve pages
+ used to create DMA mapping.
+- small fixes/code cleanup to videobuf2
+- added prepare and finish callbacks to vb2 allocators, it is used keep consistency between dma-cpu acess to the memory (by Marek Szyprowski)
+- support for exporting of DMABUF buffer in V4L2 and Videobuf2, originated from [3].
+- support for dma-buf exporting in vb2-dma-contig allocator
+- support for DMABUF for s5p-tv and s5p-fimc (capture interface) drivers, originated from [3]
+- changed handling for userptr buffers (by Marek Szyprowski, Andrzej Pietrasiewicz)
+- let mmap method to use dma_mmap_writecombine call (by Marek Szyprowski)
 
->>>>> Approach 4) fe0 is a frontend "superset"
->>>>>
->>>>> *adapter0
->>>>> *frontend0 (DVB-S/DVB-S2/DVB-T/DVB-T2/DVB-C/ISDB-T) - aka: FE superset
->>>>> *frontend1 (DVB-S/DVB-S2)
->>>>> *frontend2 (DVB-T/DVB-T2)
->>>>> *frontend3 (DVB-C)
->>>>> *frontend4 (ISDB-T)
+[1] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
+[2] https://lkml.org/lkml/2011/12/26/29
+[3] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/36354/focus=36355
 
-The arguments where that it would be confusing and it could be complex
-to maintain.
 
-I think that the better is to see what happens with the applications
-during this kernel cycle, and then decide what to do. A quick fix for 
-the issue at the applications side is very easy: for DVBv5.5 and upper,
-just try to force the frontend to change to the new delivery system
-via a DVBv5 call. If it accepts, it is a multi frontend devnode.
+Marek Szyprowski (2):
+  [media] media: vb2: remove plane argument from call_memop and cleanup
+    mempriv usage
+  media: vb2: add prepare/finish callbacks to allocators
 
-A better fix is to also implement DTV_ENUM_DELSYS.
+Tomasz Stanislawski (8):
+  arm: dma: support for dma_get_pages
+  v4l: vb2: fixes for DMABUF support
+  v4l: add buffer exporting via dmabuf
+  v4l: vb2: add buffer exporting via dmabuf
+  v4l: vb2: remove dma-contig allocator
+  v4l: vb2-dma-contig: code refactoring, support for DMABUF exporting
+  v4l: fimc: integrate capture i-face with dmabuf
+  v4l: s5p-tv: mixer: integrate with dmabuf
 
-Regards,
-Mauro
+ arch/arm/include/asm/dma-mapping.h          |    8 +
+ arch/arm/mm/dma-mapping.c                   |   44 ++
+ drivers/media/video/s5p-fimc/fimc-capture.c |   11 +-
+ drivers/media/video/s5p-tv/mixer_video.c    |   11 +-
+ drivers/media/video/v4l2-compat-ioctl32.c   |    1 +
+ drivers/media/video/v4l2-ioctl.c            |   11 +
+ drivers/media/video/videobuf2-core.c        |  114 ++++-
+ drivers/media/video/videobuf2-dma-contig.c  |  754 +++++++++++++++++++++------
+ include/linux/dma-mapping.h                 |    2 +
+ include/linux/videodev2.h                   |    1 +
+ include/media/v4l2-ioctl.h                  |    1 +
+ include/media/videobuf2-core.h              |   10 +-
+ 12 files changed, 789 insertions(+), 179 deletions(-)
+
+-- 
+1.7.5.4
+
