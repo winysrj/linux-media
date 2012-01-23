@@ -1,66 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:40354 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752060Ab2ACI4D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 03:56:03 -0500
-Received: by werm1 with SMTP id m1so7725775wer.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 00:56:01 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CACKLOr0YczU+jGOuKoRNvOUYhMbc3x_LVk3Gnt-dq+KfppwzFA@mail.gmail.com>
-References: <1323690225-15799-1-git-send-email-javier.martin@vista-silicon.com>
-	<CACKLOr1RujFbuTnF=DkCTB=paVUq7=j1Ru_RU7DWyuJedM+Cvg@mail.gmail.com>
-	<4F021DCE.8000105@gmail.com>
-	<CACKLOr0YczU+jGOuKoRNvOUYhMbc3x_LVk3Gnt-dq+KfppwzFA@mail.gmail.com>
-Date: Tue, 3 Jan 2012 09:56:01 +0100
-Message-ID: <CACKLOr2v2esqNKaApvZZaAXxzMQVpjuooG4GomXRj_Rv_NMh5A@mail.gmail.com>
-Subject: Re: [PATCH v4 0/2] Add support form eMMa-PrP in i.MX2 chips as a
- mem2mem device.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: linux-media@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	m.szyprowski@samsung.com, laurent.pinchart@ideasonboard.com,
-	s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com, shawn.guo@linaro.org,
-	richard.zhao@linaro.org, fabio.estevam@freescale.com,
-	kernel@pengutronix.de, s.hauer@pengutronix.de,
-	r.schwebel@pengutronix.de,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:45383 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752311Ab2AWNvj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 08:51:39 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LY900GSJ7U0VU60@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LY9003U87TZ1R@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
+Date: Mon, 23 Jan 2012 14:51:14 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 09/10] v4l: fimc: integrate capture i-face with dmabuf
+In-reply-to: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	pawel@osciak.com
+Message-id: <1327326675-8431-10-git-send-email-t.stanislaws@samsung.com>
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Added Mauro to CC.
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5p-fimc/fimc-capture.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-On 3 January 2012 08:43, javier Martin <javier.martin@vista-silicon.com> wrote:
-> On 2 January 2012 22:12, Sylwester Nawrocki <snjw23@gmail.com> wrote:
->> Hi Javier,
->>
->> On 01/02/2012 10:31 AM, javier Martin wrote:
->>> Hi,
->>> do you have any more concerns or comments on this patch?
->>> I can't find it in media_tree. Has it been merged somewhere else?
->>
->> If you think your driver is good enough for merging, if you didn't
->> do so already, you should normally send Mauro a git pull request.
->> Please see:
->>
->> http://linuxtv.org/wiki/index.php/Maintaining_Git_trees#how_to_submit_a_-git_pull_request
->>
->> And here you can find some examples:
->> http://patchwork.linuxtv.org/project/linux-media/list/?state=*&q=PULL&archive=both
->
-> Do you mean I have to set up a public GIT repository? Is this mandatory?
-> I am not a subsystem maintainer, just casual developer.
->
-> What about this?
->
-> http://linuxtv.org/wiki/index.php/Maintaining_Git_trees#Patches_submitted_via_email
-
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index 2cc3b91..ba11c4a 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -1002,6 +1002,14 @@ static int fimc_cap_qbuf(struct file *file, void *priv,
+ 	return vb2_qbuf(&fimc->vid_cap.vbq, buf);
+ }
+ 
++static int fimc_cap_expbuf(struct file *file, void *priv,
++			  unsigned int offset)
++{
++	struct fimc_dev *fimc = video_drvdata(file);
++
++	return vb2_expbuf(&fimc->vid_cap.vbq, offset);
++}
++
+ static int fimc_cap_dqbuf(struct file *file, void *priv,
+ 			   struct v4l2_buffer *buf)
+ {
+@@ -1072,6 +1080,7 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
+ 
+ 	.vidioc_qbuf			= fimc_cap_qbuf,
+ 	.vidioc_dqbuf			= fimc_cap_dqbuf,
++	.vidioc_expbuf			= fimc_cap_expbuf,
+ 
+ 	.vidioc_streamon		= fimc_cap_streamon,
+ 	.vidioc_streamoff		= fimc_cap_streamoff,
+@@ -1451,7 +1460,7 @@ int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	q = &fimc->vid_cap.vbq;
+ 	memset(q, 0, sizeof(*q));
+ 	q->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+-	q->io_modes = VB2_MMAP | VB2_USERPTR;
++	q->io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
+ 	q->drv_priv = fimc->vid_cap.ctx;
+ 	q->ops = &fimc_capture_qops;
+ 	q->mem_ops = &vb2_dma_contig_memops;
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+1.7.5.4
+
