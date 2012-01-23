@@ -1,119 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:50794 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751155Ab2AVAPP (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:30476 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752057Ab2AWJd4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 19:15:15 -0500
-Date: Sun, 22 Jan 2012 01:14:56 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	lethal@linux-sh.org, hans.verkuil@cisco.com, s.hauer@pengutronix.de
-Subject: Re: [PATCH v2] media i.MX27 camera: properly detect frame loss.
-In-Reply-To: <1326297664-19089-1-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1201211827381.16722@axis700.grange>
-References: <1326297664-19089-1-git-send-email-javier.martin@vista-silicon.com>
+	Mon, 23 Jan 2012 04:33:56 -0500
+From: Hans Verkuil <hansverk@cisco.com>
+To: Axel Lin <axel.lin@gmail.com>
+Subject: Re: [PATCH] [media] convert drivers/media/* to use module_i2c_driver()
+Date: Mon, 23 Jan 2012 10:33:30 +0100
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andrew Chew <achew@nvidia.com>,
+	Paul Mundt <lethal@linux-sh.org>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Johannes Obermaier <johannes.obermaier@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+References: <1327140645.3928.1.camel@phoenix>
+In-Reply-To: <1327140645.3928.1.camel@phoenix>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201231033.30369.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+For modules:
 
-Please, excuse my curiosity and bear with my lack of understanding :-)
+adv7170
+adv7175
+bt819
+bt856
+bt866
+cs5345
+cx53l32a
+cx25840-core
+indycam
+ks0127
+m52790
+msp3400-driver
+saa6588
+saa6752hs
+saa7110
+saa7115
+saa7127
+saa717x
+saa7191
+tda7432
+tda9840
+tea6415c
+tea6420
+tlv320aic23b
+tuner-core
+tvaudio
+upd64031a
+upd64083
+vp27smpx
+wm8739
+wm8775
 
-On Wed, 11 Jan 2012, Javier Martin wrote:
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-> As V4L2 specification states, frame_count must also
-> regard lost frames so that the user can handle that
-> case properly.
-> 
-> This patch adds a mechanism to increment the frame
-> counter even when a video buffer is not available
-> and a discard buffer is used.
-> 
-> ---
-> Changes since v1:
->  - Initialize "frame_count" to -1 instead of using
->    "firstirq" variable.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/mx2_camera.c |   45 ++++++++++++++++++++-----------------
->  1 files changed, 24 insertions(+), 21 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index ca76dd2..68038e7 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -369,7 +369,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->  	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
->  
->  	pcdev->icd = icd;
-> -	pcdev->frame_count = 0;
-> +	pcdev->frame_count = -1;
+Regards,
 
-I'm adding a comment above this line:
-
-+	/* Discard the first frame, begin valid frames with 0 */
-
->  
->  	dev_info(icd->parent, "Camera driver attached to camera %d\n",
->  		 icd->devnum);
-> @@ -572,6 +572,7 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
->  	struct soc_camera_host *ici =
->  		to_soc_camera_host(icd->parent);
->  	struct mx2_camera_dev *pcdev = ici->priv;
-> +	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->  	struct mx2_buffer *buf = container_of(vb, struct mx2_buffer, vb);
->  	unsigned long flags;
->  
-> @@ -584,6 +585,26 @@ static void mx2_videobuf_queue(struct videobuf_queue *vq,
->  	list_add_tail(&vb->queue, &pcdev->capture);
->  
->  	if (mx27_camera_emma(pcdev)) {
-> +		if (prp->cfg.channel == 1) {
-> +			writel(PRP_CNTL_CH1EN |
-> +				PRP_CNTL_CSIEN |
-> +				prp->cfg.in_fmt |
-> +				prp->cfg.out_fmt |
-> +				PRP_CNTL_CH1_LEN |
-> +				PRP_CNTL_CH1BYP |
-> +				PRP_CNTL_CH1_TSKIP(0) |
-> +				PRP_CNTL_IN_TSKIP(0),
-> +				pcdev->base_emma + PRP_CNTL);
-> +		} else {
-> +			writel(PRP_CNTL_CH2EN |
-> +				PRP_CNTL_CSIEN |
-> +				prp->cfg.in_fmt |
-> +				prp->cfg.out_fmt |
-> +				PRP_CNTL_CH2_LEN |
-> +				PRP_CNTL_CH2_TSKIP(0) |
-> +				PRP_CNTL_IN_TSKIP(0),
-> +				pcdev->base_emma + PRP_CNTL);
-> +		}
-
-Enabling the channel on each QBUF didn't seem like a good idea to me, so,
-I looked a bit further. If you really want to be extremely careful to only
-capture frames, when so requested by the user, don't you have to disable
-channels upom STREAMOFF, i.e., when the last buffer is released by
-.buf_release()? I don't think it makes sense to keep counting buffers, 
-when not streaming - they are not really lost. So, wouldn't something like 
-this not be better:
-
- 	if (mx27_camera_emma(pcdev)) {
-+		if (pcdev->frame_count < 0)
-+			mx27_camera_emma_channel_enable(prp);
-
-and then disable in .buf_release() if your queue is empty?
-
->  		goto out;
-
-I think, this goto shall die, and with it the label too.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+	Hans
