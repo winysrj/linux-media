@@ -1,273 +1,354 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:57012 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:34026 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755035Ab2ANPbV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 10:31:21 -0500
-Message-ID: <4F119FC4.3090103@iki.fi>
-Date: Sat, 14 Jan 2012 17:31:16 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1752871Ab2AWOZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 09:25:08 -0500
+Message-ID: <4F1D6DB4.60904@redhat.com>
+Date: Mon, 23 Jan 2012 12:24:52 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	Andreas Oberritter <obi@linuxtv.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH RFCv2] add DTMB support for DVB API
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, pawel@osciak.com
+Subject: Re: [PATCH 07/10] v4l: vb2: remove dma-contig allocator
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com> <1327326675-8431-8-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1327326675-8431-8-git-send-email-t.stanislaws@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Version 2. I have made some changes from feedback got and
-what I myself found better. I will add documentation later
-after API issues are resolved.
-Thanks to Andreas, Patrick and Mauro.
+Em 23-01-2012 11:51, Tomasz Stanislawski escreveu:
+> This is temporary patch. The dma-contig changes were significant
+> and the difference patch would be very difficult to read.
 
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>
-Cc: Andreas Oberritter <obi@linuxtv.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
-  drivers/media/dvb/dvb-core/dvb_frontend.c |   14 +++++++++++---
-  drivers/media/dvb/dvb-core/dvb_frontend.h |    2 ++
-  drivers/media/dvb/frontends/atbm8830.c    |    2 +-
-  drivers/media/dvb/frontends/lgs8gl5.c     |    2 +-
-  drivers/media/dvb/frontends/lgs8gxx.c     |    2 +-
-  include/linux/dvb/frontend.h              |   22 +++++++++++++++++++---
-  include/linux/dvb/version.h               |    2 +-
-  7 files changed, 36 insertions(+), 10 deletions(-)
+NACK.
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c 
-b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index b15db4f..abdc203 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -177,7 +177,7 @@ static enum dvbv3_emulation_type dvbv3_type(u32 
-delivery_system)
-  	case SYS_DVBT:
-  	case SYS_DVBT2:
-  	case SYS_ISDBT:
--	case SYS_DMBTH:
-+	case SYS_DTMB:
-  		return DVBV3_OFDM;
-  	case SYS_ATSC:
-  	case SYS_DVBC_ANNEX_B:
-@@ -989,6 +989,7 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 
-1] = {
-  	_DTV_CMD(DTV_CODE_RATE_LP, 1, 0),
-  	_DTV_CMD(DTV_GUARD_INTERVAL, 1, 0),
-  	_DTV_CMD(DTV_TRANSMISSION_MODE, 1, 0),
-+	_DTV_CMD(DTV_INTERLEAVING, 1, 0),
+This breaks git bisect.
 
-  	_DTV_CMD(DTV_ISDBT_PARTIAL_RECEPTION, 1, 0),
-  	_DTV_CMD(DTV_ISDBT_SOUND_BROADCASTING, 1, 0),
-@@ -1039,6 +1040,7 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND 
-+ 1] = {
-  	_DTV_CMD(DTV_GUARD_INTERVAL, 0, 0),
-  	_DTV_CMD(DTV_TRANSMISSION_MODE, 0, 0),
-  	_DTV_CMD(DTV_HIERARCHY, 0, 0),
-+	_DTV_CMD(DTV_INTERLEAVING, 0, 0),
+> 
+> Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/video/videobuf2-dma-contig.c |  308 ----------------------------
+>  1 files changed, 0 insertions(+), 308 deletions(-)
+>  delete mode 100644 drivers/media/video/videobuf2-dma-contig.c
+> 
+> diff --git a/drivers/media/video/videobuf2-dma-contig.c b/drivers/media/video/videobuf2-dma-contig.c
+> deleted file mode 100644
+> index ea2699f..0000000
+> --- a/drivers/media/video/videobuf2-dma-contig.c
+> +++ /dev/null
+> @@ -1,308 +0,0 @@
+> -/*
+> - * videobuf2-dma-contig.c - DMA contig memory allocator for videobuf2
+> - *
+> - * Copyright (C) 2010 Samsung Electronics
+> - *
+> - * Author: Pawel Osciak <pawel@osciak.com>
+> - *
+> - * This program is free software; you can redistribute it and/or modify
+> - * it under the terms of the GNU General Public License as published by
+> - * the Free Software Foundation.
+> - */
+> -
+> -#include <linux/module.h>
+> -#include <linux/slab.h>
+> -#include <linux/dma-mapping.h>
+> -#include <linux/scatterlist.h>
+> -#include <linux/dma-buf.h>
+> -
+> -#include <media/videobuf2-core.h>
+> -#include <media/videobuf2-memops.h>
+> -
+> -struct vb2_dc_conf {
+> -	struct device		*dev;
+> -};
+> -
+> -struct vb2_dc_buf {
+> -	struct vb2_dc_conf		*conf;
+> -	void				*vaddr;
+> -	dma_addr_t			dma_addr;
+> -	unsigned long			size;
+> -	struct vm_area_struct		*vma;
+> -	struct dma_buf_attachment	*db_attach;
+> -	atomic_t			refcount;
+> -	struct vb2_vmarea_handler	handler;
+> -};
+> -
+> -static void vb2_dma_contig_put(void *buf_priv);
+> -
+> -static void *vb2_dma_contig_alloc(void *alloc_ctx, unsigned long size)
+> -{
+> -	struct vb2_dc_conf *conf = alloc_ctx;
+> -	struct vb2_dc_buf *buf;
+> -	/* TODO: add db_attach processing while adding DMABUF as exporter */
+> -
+> -	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+> -	if (!buf)
+> -		return ERR_PTR(-ENOMEM);
+> -
+> -	buf->vaddr = dma_alloc_coherent(conf->dev, size, &buf->dma_addr,
+> -					GFP_KERNEL);
+> -	if (!buf->vaddr) {
+> -		dev_err(conf->dev, "dma_alloc_coherent of size %ld failed\n",
+> -			size);
+> -		kfree(buf);
+> -		return ERR_PTR(-ENOMEM);
+> -	}
+> -
+> -	buf->conf = conf;
+> -	buf->size = size;
+> -
+> -	buf->handler.refcount = &buf->refcount;
+> -	buf->handler.put = vb2_dma_contig_put;
+> -	buf->handler.arg = buf;
+> -
+> -	atomic_inc(&buf->refcount);
+> -
+> -	return buf;
+> -}
+> -
+> -static void vb2_dma_contig_put(void *buf_priv)
+> -{
+> -	struct vb2_dc_buf *buf = buf_priv;
+> -
+> -	if (atomic_dec_and_test(&buf->refcount)) {
+> -		dma_free_coherent(buf->conf->dev, buf->size, buf->vaddr,
+> -				  buf->dma_addr);
+> -		kfree(buf);
+> -	}
+> -}
+> -
+> -static void *vb2_dma_contig_cookie(void *buf_priv)
+> -{
+> -	struct vb2_dc_buf *buf = buf_priv;
+> -
+> -	return &buf->dma_addr;
+> -}
+> -
+> -static void *vb2_dma_contig_vaddr(void *buf_priv)
+> -{
+> -	struct vb2_dc_buf *buf = buf_priv;
+> -	if (!buf)
+> -		return 0;
+> -
+> -	return buf->vaddr;
+> -}
+> -
+> -static unsigned int vb2_dma_contig_num_users(void *buf_priv)
+> -{
+> -	struct vb2_dc_buf *buf = buf_priv;
+> -
+> -	return atomic_read(&buf->refcount);
+> -}
+> -
+> -static int vb2_dma_contig_mmap(void *buf_priv, struct vm_area_struct *vma)
+> -{
+> -	struct vb2_dc_buf *buf = buf_priv;
+> -
+> -	if (!buf) {
+> -		printk(KERN_ERR "No buffer to map\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	return vb2_mmap_pfn_range(vma, buf->dma_addr, buf->size,
+> -				  &vb2_common_vm_ops, &buf->handler);
+> -}
+> -
+> -static void *vb2_dma_contig_get_userptr(void *alloc_ctx, unsigned long vaddr,
+> -					unsigned long size, int write)
+> -{
+> -	struct vb2_dc_buf *buf;
+> -	struct vm_area_struct *vma;
+> -	dma_addr_t dma_addr = 0;
+> -	int ret;
+> -
+> -	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+> -	if (!buf)
+> -		return ERR_PTR(-ENOMEM);
+> -
+> -	ret = vb2_get_contig_userptr(vaddr, size, &vma, &dma_addr);
+> -	if (ret) {
+> -		printk(KERN_ERR "Failed acquiring VMA for vaddr 0x%08lx\n",
+> -				vaddr);
+> -		kfree(buf);
+> -		return ERR_PTR(ret);
+> -	}
+> -
+> -	buf->size = size;
+> -	buf->dma_addr = dma_addr;
+> -	buf->vma = vma;
+> -
+> -	return buf;
+> -}
+> -
+> -static void vb2_dma_contig_put_userptr(void *mem_priv)
+> -{
+> -	struct vb2_dc_buf *buf = mem_priv;
+> -
+> -	if (!buf)
+> -		return;
+> -
+> -	vb2_put_vma(buf->vma);
+> -	kfree(buf);
+> -}
+> -
+> -static int vb2_dma_contig_map_dmabuf(void *mem_priv,
+> -					enum dma_data_direction direction)
+> -{
+> -	struct vb2_dc_buf *buf = mem_priv;
+> -	struct dma_buf *dmabuf;
+> -	struct sg_table *sg;
+> -
+> -	if (!buf || !buf->db_attach) {
+> -		printk(KERN_ERR "No dma buffer to pin\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	WARN_ON(buf->dma_addr);
+> -
+> -	if (direction == DMA_NONE) {
+> -		printk(KERN_ERR "Incorrect DMA direction\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	dmabuf = buf->db_attach->dmabuf;
+> -
+> -	/* get the associated scatterlist for this buffer */
+> -	sg = dma_buf_map_attachment(buf->db_attach, direction);
+> -
+> -	if (!sg) {
+> -		printk(KERN_ERR "Error getting dmabuf scatterlist\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	/*
+> -	 *  convert sglist to paddr:
+> -	 *  Assumption: for dma-contig, dmabuf would map to single entry
+> -	 *  Will return an error if it has more than one.
+> -	 */
+> -	if (sg->nents > 1) {
+> -		printk(KERN_ERR
+> -			"dmabuf scatterlist has more than 1 entry\n");
+> -		return -EINVAL;
+> -	}
+> -
+> -	buf->dma_addr = sg_dma_address(sg->sgl);
+> -	/* TODO: check the buffer size as per S_FMT */
+> -	buf->size = sg_dma_len(sg->sgl);
+> -
+> -	/* save this scatterlist in dmabuf for put_scatterlist */
+> -	dmabuf->priv = sg;
+> -
+> -	return 0;
+> -}
+> -
+> -static void vb2_dma_contig_unmap_dmabuf(void *mem_priv)
+> -{
+> -	struct vb2_dc_buf *buf = mem_priv;
+> -	struct dma_buf *dmabuf;
+> -	struct sg_table *sg;
+> -
+> -	if (!buf || !buf->db_attach)
+> -		return;
+> -
+> -	WARN_ON(!buf->dma_addr);
+> -
+> -	dmabuf = buf->db_attach->dmabuf;
+> -	sg = dmabuf->priv;
+> -
+> -	/* Put the sg for this buffer */
+> -	dma_buf_unmap_attachment(buf->db_attach, sg);
+> -
+> -	buf->dma_addr = 0;
+> -	buf->size = 0;
+> -}
+> -
+> -static void *vb2_dma_contig_attach_dmabuf(void *alloc_ctx, struct dma_buf *dbuf)
+> -{
+> -	struct vb2_dc_conf *conf = alloc_ctx;
+> -	struct vb2_dc_buf *buf;
+> -	struct dma_buf_attachment *dba;
+> -
+> -	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+> -	if (!buf)
+> -		return ERR_PTR(-ENOMEM);
+> -
+> -	/* create attachment for the dmabuf with the user device */
+> -	dba = dma_buf_attach(dbuf, conf->dev);
+> -	if (IS_ERR(dba)) {
+> -		printk(KERN_ERR "failed to attach dmabuf\n");
+> -		kfree(buf);
+> -		return dba;
+> -	}
+> -
+> -	buf->conf = conf;
+> -	buf->size = dba->dmabuf->size;
+> -	buf->db_attach = dba;
+> -	buf->dma_addr = 0; /* dma_addr is available only after map */
+> -
+> -	return buf;
+> -}
+> -
+> -static void vb2_dma_contig_detach_dmabuf(void *mem_priv)
+> -{
+> -	struct vb2_dc_buf *buf = mem_priv;
+> -
+> -	if (!buf)
+> -		return;
+> -
+> -	if (buf->dma_addr) {
+> -		vb2_dma_contig_unmap_dmabuf(buf);
+> -	}
+> -
+> -	/* detach this attachment */
+> -	dma_buf_detach(buf->db_attach->dmabuf, buf->db_attach);
+> -	buf->db_attach = NULL;
+> -
+> -	kfree(buf);
+> -}
+> -
+> -const struct vb2_mem_ops vb2_dma_contig_memops = {
+> -	.alloc		= vb2_dma_contig_alloc,
+> -	.put		= vb2_dma_contig_put,
+> -	.cookie		= vb2_dma_contig_cookie,
+> -	.vaddr		= vb2_dma_contig_vaddr,
+> -	.mmap		= vb2_dma_contig_mmap,
+> -	.get_userptr	= vb2_dma_contig_get_userptr,
+> -	.put_userptr	= vb2_dma_contig_put_userptr,
+> -	.map_dmabuf	= vb2_dma_contig_map_dmabuf,
+> -	.unmap_dmabuf	= vb2_dma_contig_unmap_dmabuf,
+> -	.attach_dmabuf	= vb2_dma_contig_attach_dmabuf,
+> -	.detach_dmabuf	= vb2_dma_contig_detach_dmabuf,
+> -	.num_users	= vb2_dma_contig_num_users,
+> -};
+> -EXPORT_SYMBOL_GPL(vb2_dma_contig_memops);
+> -
+> -void *vb2_dma_contig_init_ctx(struct device *dev)
+> -{
+> -	struct vb2_dc_conf *conf;
+> -
+> -	conf = kzalloc(sizeof *conf, GFP_KERNEL);
+> -	if (!conf)
+> -		return ERR_PTR(-ENOMEM);
+> -
+> -	conf->dev = dev;
+> -
+> -	return conf;
+> -}
+> -EXPORT_SYMBOL_GPL(vb2_dma_contig_init_ctx);
+> -
+> -void vb2_dma_contig_cleanup_ctx(void *alloc_ctx)
+> -{
+> -	kfree(alloc_ctx);
+> -}
+> -EXPORT_SYMBOL_GPL(vb2_dma_contig_cleanup_ctx);
+> -
+> -MODULE_DESCRIPTION("DMA-contig memory handling routines for videobuf2");
+> -MODULE_AUTHOR("Pawel Osciak <pawel@osciak.com>");
+> -MODULE_LICENSE("GPL");
 
-  	_DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
-  };
-@@ -1316,6 +1318,9 @@ static int dtv_property_process_get(struct 
-dvb_frontend *fe,
-  	case DTV_HIERARCHY:
-  		tvp->u.data = c->hierarchy;
-  		break;
-+	case DTV_INTERLEAVING:
-+		tvp->u.data = c->interleaving;
-+		break;
-
-  	/* ISDB-T Support here */
-  	case DTV_ISDBT_PARTIAL_RECEPTION:
-@@ -1503,7 +1508,7 @@ static int set_delivery_system(struct dvb_frontend 
-*fe, u32 desired_system)
-  	 * The DVBv3 or DVBv5 call is requesting a different system. So,
-  	 * emulation is needed.
-  	 *
--	 * Emulate newer delivery systems like ISDBT, DVBT and DMBTH
-+	 * Emulate newer delivery systems like ISDBT, DVBT and DTMB
-  	 * for older DVBv5 applications. The emulation will try to use
-  	 * the auto mode for most things, and will assume that the desired
-  	 * delivery system is the last one at the ops.delsys[] array
-@@ -1625,6 +1630,9 @@ static int dtv_property_process_set(struct 
-dvb_frontend *fe,
-  	case DTV_HIERARCHY:
-  		c->hierarchy = tvp->u.data;
-  		break;
-+	case DTV_INTERLEAVING:
-+		c->interleaving = tvp->u.data;
-+		break;
-
-  	/* ISDB-T Support here */
-  	case DTV_ISDBT_PARTIAL_RECEPTION:
-@@ -1896,7 +1904,7 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
-  		case SYS_DVBT:
-  		case SYS_DVBT2:
-  		case SYS_ISDBT:
--		case SYS_DMBTH:
-+		case SYS_DTMB:
-  			fepriv->min_delay = HZ / 20;
-  			fepriv->step_size = fe->ops.info.frequency_stepsize * 2;
-  			fepriv->max_drift = (fe->ops.info.frequency_stepsize * 2) + 1;
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.h 
-b/drivers/media/dvb/dvb-core/dvb_frontend.h
-index d63a821..fb2d57c 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.h
-@@ -353,6 +353,8 @@ struct dtv_frontend_properties {
-
-  	fe_delivery_system_t	delivery_system;
-
-+	fe_interleaving_t       interleaving;
-+
-  	/* ISDB-T specifics */
-  	u8			isdbt_partial_reception;
-  	u8			isdbt_sb_mode;
-diff --git a/drivers/media/dvb/frontends/atbm8830.c 
-b/drivers/media/dvb/frontends/atbm8830.c
-index a2261ea..4e11dc4 100644
---- a/drivers/media/dvb/frontends/atbm8830.c
-+++ b/drivers/media/dvb/frontends/atbm8830.c
-@@ -428,7 +428,7 @@ static int atbm8830_i2c_gate_ctrl(struct 
-dvb_frontend *fe, int enable)
-  }
-
-  static struct dvb_frontend_ops atbm8830_ops = {
--	.delsys = { SYS_DMBTH },
-+	.delsys = { SYS_DTMB },
-  	.info = {
-  		.name = "AltoBeam ATBM8830/8831 DMB-TH",
-  		.frequency_min = 474000000,
-diff --git a/drivers/media/dvb/frontends/lgs8gl5.c 
-b/drivers/media/dvb/frontends/lgs8gl5.c
-index 2cec804..416cce3 100644
---- a/drivers/media/dvb/frontends/lgs8gl5.c
-+++ b/drivers/media/dvb/frontends/lgs8gl5.c
-@@ -412,7 +412,7 @@ EXPORT_SYMBOL(lgs8gl5_attach);
-
-
-  static struct dvb_frontend_ops lgs8gl5_ops = {
--	.delsys = { SYS_DMBTH },
-+	.delsys = { SYS_DTMB },
-  	.info = {
-  		.name			= "Legend Silicon LGS-8GL5 DMB-TH",
-  		.frequency_min		= 474000000,
-diff --git a/drivers/media/dvb/frontends/lgs8gxx.c 
-b/drivers/media/dvb/frontends/lgs8gxx.c
-index 4de1d35..333fd6d 100644
---- a/drivers/media/dvb/frontends/lgs8gxx.c
-+++ b/drivers/media/dvb/frontends/lgs8gxx.c
-@@ -994,7 +994,7 @@ static int lgs8gxx_i2c_gate_ctrl(struct dvb_frontend 
-*fe, int enable)
-  }
-
-  static struct dvb_frontend_ops lgs8gxx_ops = {
--	.delsys = { SYS_DMBTH },
-+	.delsys = { SYS_DTMB },
-  	.info = {
-  		.name = "Legend Silicon LGS8913/LGS8GXX DMB-TH",
-  		.frequency_min = 474000000,
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index cb4428a..1835c11 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -152,6 +152,9 @@ typedef enum fe_code_rate {
-  	FEC_AUTO,
-  	FEC_3_5,
-  	FEC_9_10,
-+	FEC_04,
-+	FEC_06,
-+	FEC_08,
-  } fe_code_rate_t;
-
-
-@@ -169,6 +172,7 @@ typedef enum fe_modulation {
-  	APSK_16,
-  	APSK_32,
-  	DQPSK,
-+	QAM_4_NR,
-  } fe_modulation_t;
-
-  typedef enum fe_transmit_mode {
-@@ -179,6 +183,8 @@ typedef enum fe_transmit_mode {
-  	TRANSMISSION_MODE_1K,
-  	TRANSMISSION_MODE_16K,
-  	TRANSMISSION_MODE_32K,
-+	TRANSMISSION_MODE_C1,
-+	TRANSMISSION_MODE_C3780,
-  } fe_transmit_mode_t;
-
-  #if defined(__DVB_CORE__) || !defined (__KERNEL__)
-@@ -202,6 +208,9 @@ typedef enum fe_guard_interval {
-  	GUARD_INTERVAL_1_128,
-  	GUARD_INTERVAL_19_128,
-  	GUARD_INTERVAL_19_256,
-+	GUARD_INTERVAL_PN420,
-+	GUARD_INTERVAL_PN595,
-+	GUARD_INTERVAL_PN945,
-  } fe_guard_interval_t;
-
-
-@@ -213,6 +222,11 @@ typedef enum fe_hierarchy {
-  	HIERARCHY_AUTO
-  } fe_hierarchy_t;
-
-+typedef enum fe_interleaving {
-+	INTERLEAVING_NONE,
-+	INTERLEAVING_240,
-+	INTERLEAVING_720,
-+} fe_interleaving_t;
-
-  #if defined(__DVB_CORE__) || !defined (__KERNEL__)
-  struct dvb_qpsk_parameters {
-@@ -319,8 +333,9 @@ struct dvb_frontend_event {
-  #define DTV_DVBT2_PLP_ID	43
-
-  #define DTV_ENUM_DELSYS		44
-+#define DTV_INTERLEAVING			45
-
--#define DTV_MAX_COMMAND				DTV_ENUM_DELSYS
-+#define DTV_MAX_COMMAND				DTV_INTERLEAVING
-
-  typedef enum fe_pilot {
-  	PILOT_ON,
-@@ -349,7 +364,7 @@ typedef enum fe_delivery_system {
-  	SYS_ISDBC,
-  	SYS_ATSC,
-  	SYS_ATSCMH,
--	SYS_DMBTH,
-+	SYS_DTMB,
-  	SYS_CMMB,
-  	SYS_DAB,
-  	SYS_DVBT2,
-@@ -357,8 +372,9 @@ typedef enum fe_delivery_system {
-  	SYS_DVBC_ANNEX_C,
-  } fe_delivery_system_t;
-
--
-+/* backward compatibility */
-  #define SYS_DVBC_ANNEX_AC	SYS_DVBC_ANNEX_A
-+#define SYS_DMBTH SYS_DTMB /* DMB-TH is legacy name, use DTMB instead */
-
-
-  struct dtv_cmds_h {
-diff --git a/include/linux/dvb/version.h b/include/linux/dvb/version.h
-index 0559e2b..43d9e8d 100644
---- a/include/linux/dvb/version.h
-+++ b/include/linux/dvb/version.h
-@@ -24,6 +24,6 @@
-  #define _DVBVERSION_H_
-
-  #define DVB_API_VERSION 5
--#define DVB_API_VERSION_MINOR 5
-+#define DVB_API_VERSION_MINOR 6
-
-  #endif /*_DVBVERSION_H_*/
--- 
-1.7.4.4
