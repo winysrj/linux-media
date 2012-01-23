@@ -1,110 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17699 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752833Ab2AAULY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Jan 2012 15:11:24 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q01KBNUo021851
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 1 Jan 2012 15:11:23 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/9] [media] dvb_frontend: Handle all possible DVBv3 values for bandwidth
-Date: Sun,  1 Jan 2012 18:11:11 -0200
-Message-Id: <1325448678-13001-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-References: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:16931 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752637Ab2AWNvi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 08:51:38 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LY900GN47U0VS60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LY900DA47TZTD@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
+Date: Mon, 23 Jan 2012 14:51:15 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 10/10] v4l: s5p-tv: mixer: integrate with dmabuf
+In-reply-to: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	pawel@osciak.com
+Message-id: <1327326675-8431-11-git-send-email-t.stanislaws@samsung.com>
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Due to DVB-T2, several new possible values for bandwidth were added.
-As the DVBv3 struct were updated to handle them, the core needs to
-handle all of them, as a DVBv3 application might try to use it.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb/dvb-core/dvb_frontend.c |   55 ++++++++++++++++++++++-------
- 1 files changed, 42 insertions(+), 13 deletions(-)
+ drivers/media/video/s5p-tv/mixer_video.c |   11 ++++++++++-
+ 1 files changed, 10 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index b72b87e..33ce309 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -1079,15 +1079,29 @@ static void dtv_property_cache_sync(struct dvb_frontend *fe,
- 		c->modulation = p->u.qam.modulation;
- 		break;
- 	case FE_OFDM:
--		if (p->u.ofdm.bandwidth == BANDWIDTH_6_MHZ)
--			c->bandwidth_hz = 6000000;
--		else if (p->u.ofdm.bandwidth == BANDWIDTH_7_MHZ)
--			c->bandwidth_hz = 7000000;
--		else if (p->u.ofdm.bandwidth == BANDWIDTH_8_MHZ)
-+		switch (p->u.ofdm.bandwidth) {
-+		case BANDWIDTH_10_MHZ:
-+			c->bandwidth_hz = 10000000;
-+			break;
-+		case BANDWIDTH_8_MHZ:
- 			c->bandwidth_hz = 8000000;
--		else
--			/* Including BANDWIDTH_AUTO */
-+			break;
-+		case BANDWIDTH_7_MHZ:
-+			c->bandwidth_hz = 7000000;
-+			break;
-+		case BANDWIDTH_6_MHZ:
-+			c->bandwidth_hz = 6000000;
-+			break;
-+		case BANDWIDTH_5_MHZ:
-+			c->bandwidth_hz = 5000000;
-+			break;
-+		case BANDWIDTH_1_712_MHZ:
-+			c->bandwidth_hz = 1712000;
-+			break;
-+		case BANDWIDTH_AUTO:
- 			c->bandwidth_hz = 0;
-+		}
+diff --git a/drivers/media/video/s5p-tv/mixer_video.c b/drivers/media/video/s5p-tv/mixer_video.c
+index b47d0c0..65e0722 100644
+--- a/drivers/media/video/s5p-tv/mixer_video.c
++++ b/drivers/media/video/s5p-tv/mixer_video.c
+@@ -592,6 +592,14 @@ static int mxr_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
+ 	return vb2_dqbuf(&layer->vb_queue, p, file->f_flags & O_NONBLOCK);
+ }
+ 
++static int mxr_expbuf(struct file *file, void *priv, unsigned int offset)
++{
++	struct mxr_layer *layer = video_drvdata(file);
 +
- 		c->code_rate_HP = p->u.ofdm.code_rate_HP;
- 		c->code_rate_LP = p->u.ofdm.code_rate_LP;
- 		c->modulation = p->u.ofdm.constellation;
-@@ -1130,14 +1144,29 @@ static void dtv_property_legacy_params_sync(struct dvb_frontend *fe,
- 		break;
- 	case FE_OFDM:
- 		dprintk("%s() Preparing OFDM req\n", __func__);
--		if (c->bandwidth_hz == 6000000)
--			p->u.ofdm.bandwidth = BANDWIDTH_6_MHZ;
--		else if (c->bandwidth_hz == 7000000)
--			p->u.ofdm.bandwidth = BANDWIDTH_7_MHZ;
--		else if (c->bandwidth_hz == 8000000)
-+		switch (c->bandwidth_hz) {
-+		case 10000000:
-+			p->u.ofdm.bandwidth = BANDWIDTH_10_MHZ;
-+			break;
-+		case 8000000:
- 			p->u.ofdm.bandwidth = BANDWIDTH_8_MHZ;
--		else
-+			break;
-+		case 7000000:
-+			p->u.ofdm.bandwidth = BANDWIDTH_7_MHZ;
-+			break;
-+		case 6000000:
-+			p->u.ofdm.bandwidth = BANDWIDTH_6_MHZ;
-+			break;
-+		case 5000000:
-+			p->u.ofdm.bandwidth = BANDWIDTH_5_MHZ;
-+			break;
-+		case 1712000:
-+			p->u.ofdm.bandwidth = BANDWIDTH_1_712_MHZ;
-+			break;
-+		case 0:
-+		default:
- 			p->u.ofdm.bandwidth = BANDWIDTH_AUTO;
-+		}
- 		p->u.ofdm.code_rate_HP = c->code_rate_HP;
- 		p->u.ofdm.code_rate_LP = c->code_rate_LP;
- 		p->u.ofdm.constellation = c->modulation;
++	mxr_dbg(layer->mdev, "%s:%d\n", __func__, __LINE__);
++	return vb2_expbuf(&layer->vb_queue, offset);
++}
++
+ static int mxr_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+ {
+ 	struct mxr_layer *layer = video_drvdata(file);
+@@ -619,6 +627,7 @@ static const struct v4l2_ioctl_ops mxr_ioctl_ops = {
+ 	.vidioc_querybuf = mxr_querybuf,
+ 	.vidioc_qbuf = mxr_qbuf,
+ 	.vidioc_dqbuf = mxr_dqbuf,
++	.vidioc_expbuf = mxr_expbuf,
+ 	/* Streaming control */
+ 	.vidioc_streamon = mxr_streamon,
+ 	.vidioc_streamoff = mxr_streamoff,
+@@ -973,7 +982,7 @@ struct mxr_layer *mxr_base_layer_create(struct mxr_device *mdev,
+ 
+ 	layer->vb_queue = (struct vb2_queue) {
+ 		.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE,
+-		.io_modes = VB2_MMAP | VB2_USERPTR,
++		.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF,
+ 		.drv_priv = layer,
+ 		.buf_struct_size = sizeof(struct mxr_buffer),
+ 		.ops = &mxr_video_qops,
 -- 
-1.7.8.352.g876a6
+1.7.5.4
 
