@@ -1,97 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fep19.mx.upcmail.net ([62.179.121.39]:63426 "EHLO
-	fep19.mx.upcmail.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751505Ab2AAJ5k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 1 Jan 2012 04:57:40 -0500
-Date: Sun, 1 Jan 2012 10:57:39 +0100
-From: Dorozel Csaba <mrjuuzer@upcmail.hu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] saa7134: fix IR handling for HVR-1110
-In-Reply-To: <1325365138-18745-1-git-send-email-mchehab@redhat.com>
-References: <20111231132217.DZKT1551.viefep16-int.chello.at@edge01.upcmail.net>
-	<1325365138-18745-1-git-send-email-mchehab@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Message-Id: <20120101095737.QDJP1220.viefep19-int.chello.at@edge04.upcmail.net>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:45383 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752534Ab2AWNvh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 08:51:37 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LY900GOH7U0WH60@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LY900GKW7TZU2@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
+Date: Mon, 23 Jan 2012 14:51:11 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: [PATCH 06/10] v4l: vb2: add buffer exporting via dmabuf
+In-reply-to: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
+Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	pawel@osciak.com
+Message-id: <1327326675-8431-7-git-send-email-t.stanislaws@samsung.com>
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds extension to videobuf2-core. It allow to export a mmap buffer
+as a file descriptor.
 
-> Return the complete RC-5 code, instead of just the 8 least significant
-> bits.
-> 
-> Reported-by: Dorozel Csaba <mrjuuzer@upcmail.hu>
-> Tested-by: Dorozel Csaba <mrjuuzer@upcmail.hu>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> ---
-> 
-> Please, re-test this patch. It is a more detailed version of the
-> previous one, with a few more documentation, and some cleanups.
-> 
-> 
->  drivers/media/video/saa7134/saa7134-input.c |   23 ++++++++++++++---------
->  1 files changed, 14 insertions(+), 9 deletions(-)
-> 
-> diff --git a/drivers/media/video/saa7134/saa7134-input.c
-> b/drivers/media/video/saa7134/saa7134-input.c index d4ee24b..0e4926a 100644
-> --- a/drivers/media/video/saa7134/saa7134-input.c
-> +++ b/drivers/media/video/saa7134/saa7134-input.c
-> @@ -235,22 +235,27 @@ static int get_key_purpletv(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->  
->  static int get_key_hvr1110(struct IR_i2c *ir, u32 *ir_key, u32 *ir_raw)
->  {
-> -	unsigned char buf[5], cod4, code3, code4;
-> +	unsigned char buf[5], scancode;
->  
->  	/* poll IR chip */
->  	if (5 != i2c_master_recv(ir->c, buf, 5))
->  		return -EIO;
->  
-> -	cod4	= buf[4];
-> -	code4	= (cod4 >> 2);
-> -	code3	= buf[3];
-> -	if (code3 == 0)
-> -		/* no key pressed */
-> +	/* Check if some key were pressed */
-> +	if (!(buf[0] & 0x80))
->  		return 0;
->  
-> -	/* return key */
-> -	*ir_key = code4;
-> -	*ir_raw = code4;
-> +	/*
-> +	 * buf[3] & 0x80 is always high.
-> +	 * buf[3] & 0x40 is a parity bit. A repeat event is marked
-> +	 * by preserving it into two separate readings
-> +	 * buf[4] bits 0 and 1, and buf[1] and buf[2] are always
-> +	 * zero.
-> +	 */
-> +	scancode = 0x1fff & ((buf[3] << 8) | (buf[4] >> 2));
-> +
-> +	*ir_key = scancode;
-> +	*ir_raw = scancode;
->  	return 1;
->  }
->  
+Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/videobuf2-core.c |   60 ++++++++++++++++++++++++++++++++++
+ include/media/videobuf2-core.h       |    2 +
+ 2 files changed, 62 insertions(+), 0 deletions(-)
 
-Something is wrong with this patch.
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 59bb1bc..29cf6ed 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -1522,6 +1522,66 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
+ }
+ EXPORT_SYMBOL_GPL(vb2_dqbuf);
+ 
++static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
++			unsigned int *_buffer, unsigned int *_plane);
++
++/**
++ * vb2_expbuf() - Export a buffer as a file descriptor
++ * @q:		videobuf2 queue
++ * @b:		buffer structure passed from userspace to vidioc_expbuf handler
++ *		in driver
++ *
++ * The return values from this function are intended to be directly returned
++ * from vidioc_expbuf handler in driver.
++ */
++int vb2_expbuf(struct vb2_queue *q, unsigned int offset)
++{
++	struct vb2_buffer *vb = NULL;
++	struct vb2_plane *vb_plane;
++	unsigned int buffer, plane;
++	int ret;
++	struct dma_buf *dbuf;
++
++	if (q->memory != V4L2_MEMORY_MMAP) {
++		dprintk(1, "Queue is not currently set up for mmap\n");
++		return -EINVAL;
++	}
++
++	if (!q->mem_ops->get_dmabuf) {
++		dprintk(1, "Queue does not support DMA buffer exporting\n");
++		return -EINVAL;
++	}
++
++	/*
++	 * Find the plane corresponding to the offset passed by userspace.
++	 */
++	ret = __find_plane_by_offset(q, offset, &buffer, &plane);
++	if (ret) {
++		dprintk(1, "invalid offset %d\n", offset);
++		return ret;
++	}
++
++	vb = q->bufs[buffer];
++	vb_plane = &vb->planes[plane];
++
++	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
++	if (IS_ERR_OR_NULL(dbuf)) {
++		dprintk(1, "Failed to export buffer %d, plane %d\n",
++			buffer, plane);
++		return -EINVAL;
++	}
++
++	ret = dma_buf_fd(dbuf);
++	if (ret < 0)
++		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
++			buffer, plane, ret);
++	else
++		dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
++			buffer, plane, ret);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(vb2_expbuf);
++
+ /**
+  * __vb2_queue_cancel() - cancel and stop (pause) streaming
+  *
+diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
+index 412c6a4..3d43954 100644
+--- a/include/media/videobuf2-core.h
++++ b/include/media/videobuf2-core.h
+@@ -79,6 +79,7 @@ struct vb2_mem_ops {
+ 	void		(*prepare)(void *buf_priv);
+ 	void		(*finish)(void *buf_priv);
+ 	void		(*put)(void *buf_priv);
++	struct dma_buf *(*get_dmabuf)(void *buf_priv);
+ 
+ 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
+ 					unsigned long size, int write);
+@@ -348,6 +349,7 @@ int vb2_queue_init(struct vb2_queue *q);
+ void vb2_queue_release(struct vb2_queue *q);
+ 
+ int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
++int vb2_expbuf(struct vb2_queue *q, unsigned int offset);
+ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
+ 
+ int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+-- 
+1.7.5.4
 
-user linux-current # ir-keytable -t -d /dev/input/event6
-Testing events. Please, press CTRL-C to abort.
-1325411805.906573: event MSC: scancode = 3d
-1325411805.906575: event sync
-1325411806.524576: event MSC: scancode = 3d
-1325411806.524578: event sync
-1325411806.627576: event MSC: scancode = 3d
-1325411806.627578: event sync
-1325411806.833581: event MSC: scancode = 3d
-1325411806.833583: event sync
-1325411806.936582: event MSC: scancode = 3d
-1325411806.936583: event sync
-1325411807.039576: event MSC: scancode = 3d
-1325411807.039577: event sync
-1325411807.245576: event MSC: scancode = 3d
-1325411807.245578: event sync
