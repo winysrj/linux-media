@@ -1,110 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:58922 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751582Ab2AYU4k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 15:56:40 -0500
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0PKudtX028283
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 15:56:39 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Corinna Vinschen <vinschen@redhat.com>
-Subject: [PATCH] imon: don't wedge hardware after early callbacks
-Date: Wed, 25 Jan 2012 15:56:22 -0500
-Message-Id: <1327524982-26593-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <20120124203605.GQ2456@calimero.vinschen.de>
-References: <20120124203605.GQ2456@calimero.vinschen.de>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:14970 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750852Ab2AWJHI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 23 Jan 2012 04:07:08 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=us-ascii
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LY800GZJUNUWH20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 09:07:06 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LY800B12UNUGL@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 23 Jan 2012 09:07:06 +0000 (GMT)
+Date: Mon, 23 Jan 2012 10:06:57 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+In-reply-to: <201201201729.00230.laurent.pinchart@ideasonboard.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: 'Sumit Semwal' <sumit.semwal@linaro.org>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'Sumit Semwal' <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, patches@linaro.org
+Message-id: <000601ccd9ae$5bd5fff0$1381ffd0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+ <201201201711.50965.laurent.pinchart@ideasonboard.com>
+ <4F199446.6040403@samsung.com>
+ <201201201729.00230.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch is just a minor update to one titled "imon: Input from ffdc
-device type ignored" from Corinna Vinschen. An earlier patch to prevent
-an oops when we got early callbacks also has the nasty side-effect of
-wedging imon hardware, as we don't acknowledge the urb. Rework the check
-slightly here to bypass processing the packet, as the driver isn't yet
-fully initialized, but still acknowlege the urb and submit a new rx_urb.
-Do this for both interfaces -- irrelevant for ffdc hardware, but
-relevant for newer hardware, though newer hardware doesn't spew the
-constant stream of data as soon as the hardware is initialized like the
-older ffdc devices, so they'd be less likely to trigger this anyway...
+Hello,
 
-Tested with both an ffdc device and an 0042 device.
+On Friday, January 20, 2012 5:29 PM Laurent Pinchart wrote:
 
-CC: Corinna Vinschen <vinschen@redhat.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
----
- drivers/media/rc/imon.c |   24 +++++++++++++++++++++---
- 1 files changed, 21 insertions(+), 3 deletions(-)
+> On Friday 20 January 2012 17:20:22 Tomasz Stanislawski wrote:
+> > >> IMO, One way to do this is adding field 'struct device *dev' to struct
+> > >> vb2_queue. This field should be filled by a driver prior to calling
+> > >> vb2_queue_init.
+> > >
+> > > I haven't looked into the details, but that sounds good to me. Do we have
+> > > use cases where a queue is allocated before knowing which physical
+> > > device it will be used for ?
+> >
+> > I don't think so. In case of S5P drivers, vb2_queue_init is called while
+> > opening /dev/videoX.
+> >
+> > BTW. This struct device may help vb2 to produce logs with more
+> > descriptive client annotation.
+> >
+> > What happens if such a device is NULL. It would happen for vmalloc
+> > allocator used by VIVI?
+> 
+> Good question. Should dma-buf accept NULL devices ? Or should vivi pass its
+> V4L2 device to vb2 ?
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 6ed9646..0292741 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -1658,9 +1658,17 @@ static void usb_rx_callback_intf0(struct urb *urb)
- 		return;
- 
- 	ictx = (struct imon_context *)urb->context;
--	if (!ictx || !ictx->dev_present_intf0)
-+	if (!ictx)
- 		return;
- 
-+	/*
-+	 * if we get a callback before we're done configuring the hardware, we
-+	 * can't yet process the data, as there's nowhere to send it, but we
-+	 * still need to acknowledge the URB to avoid wedging the hardware
-+	 */
-+	if (!ictx->dev_present_intf0)
-+		goto out;
-+
- 	switch (urb->status) {
- 	case -ENOENT:		/* usbcore unlink successful! */
- 		return;
-@@ -1678,6 +1686,7 @@ static void usb_rx_callback_intf0(struct urb *urb)
- 		break;
- 	}
- 
-+out:
- 	usb_submit_urb(ictx->rx_urb_intf0, GFP_ATOMIC);
- }
- 
-@@ -1690,9 +1699,17 @@ static void usb_rx_callback_intf1(struct urb *urb)
- 		return;
- 
- 	ictx = (struct imon_context *)urb->context;
--	if (!ictx || !ictx->dev_present_intf1)
-+	if (!ictx)
- 		return;
- 
-+	/*
-+	 * if we get a callback before we're done configuring the hardware, we
-+	 * can't yet process the data, as there's nowhere to send it, but we
-+	 * still need to acknowledge the URB to avoid wedging the hardware
-+	 */
-+	if (!ictx->dev_present_intf1)
-+		goto out;
-+
- 	switch (urb->status) {
- 	case -ENOENT:		/* usbcore unlink successful! */
- 		return;
-@@ -1710,6 +1727,7 @@ static void usb_rx_callback_intf1(struct urb *urb)
- 		break;
- 	}
- 
-+out:
- 	usb_submit_urb(ictx->rx_urb_intf1, GFP_ATOMIC);
- }
- 
-@@ -2242,7 +2260,7 @@ find_endpoint_failed:
- 	mutex_unlock(&ictx->lock);
- 	usb_free_urb(rx_urb);
- rx_urb_alloc_failed:
--	dev_err(ictx->dev, "unable to initialize intf0, err %d\n", ret);
-+	dev_err(ictx->dev, "unable to initialize intf1, err %d\n", ret);
- 
- 	return NULL;
- }
+I assume you suggested using struct video_device->dev entry in such case. 
+It will not work. DMA-mapping API requires some parameters to be set for the 
+client device, like for example dma mask. struct video_device contains only an
+artificial struct device entry, which has no relation to any physical device 
+and cannot be used for calling DMA-mapping functions.
+
+Performing dma_map_* operations with such artificial struct device doesn't make
+any sense. It also slows down things significantly due to cache flushing 
+(forced by dma-mapping) which should be avoided if the buffer is accessed only 
+with CPU (like it is done by vb2-vmalloc style drivers).
+
+IMHO this case perfectly shows the design mistake that have been made. The
+current version simply tries to do too much. 
+
+Each client of dma_buf should 'map' the provided sgtable/scatterlist on its own.
+Only the client device driver has all knowledge to make a proper 'mapping'.
+Real physical devices usually will use dma_map_sg() for such operation, while
+some virtual ones will only create a kernel mapping for the provided scatterlist
+(like vivi with vmalloc memory module).
+
+Best regards
 -- 
-1.7.7.5
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
 
