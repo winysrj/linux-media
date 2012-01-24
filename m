@@ -1,55 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from old.radier.ca ([76.10.149.124]:59993 "EHLO server.radier.ca"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1757846Ab2AEXQS convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 18:16:18 -0500
-Received: from localhost (unknown [127.0.0.1])
-	by server.radier.ca (Postfix) with ESMTP id 8CC459ECE88
-	for <linux-media@vger.kernel.org>; Thu,  5 Jan 2012 18:16:15 -0500 (EST)
-Received: from server.radier.ca ([127.0.0.1])
-	by localhost (server.radier.ca [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id XYCeF1DbThmm for <linux-media@vger.kernel.org>;
-	Thu,  5 Jan 2012 18:16:14 -0500 (EST)
-Received: from tag-00481.capella.ca (unknown [206.47.153.50])
-	by server.radier.ca (Postfix) with ESMTPSA id 06C2A9ECE79
-	for <linux-media@vger.kernel.org>; Thu,  5 Jan 2012 18:16:13 -0500 (EST)
-From: Dmitriy Fitisov <dmitriy@radier.ca>
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
-Subject: em2874 bulk endpoint support
-Date: Thu, 5 Jan 2012 18:16:12 -0500
-Message-Id: <A66B7710-DC6D-4A88-AF1C-2853C39617ED@radier.ca>
-To: linux-media@vger.kernel.org
-Mime-Version: 1.0 (Apple Message framework v1251.1)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:51948 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750854Ab2AXPQ3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jan 2012 10:16:29 -0500
+Received: by vbbfc26 with SMTP id fc26so1262715vbb.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 07:16:28 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4F1EC725.7090204@iki.fi>
+References: <44895934A66CD441A02DCF15DD759BA0011CAE69@SYDEXCHTMP2.au.fjanz.com>
+	<4F1E9A78.7020203@iki.fi>
+	<CAGoCfizF=aO-JTLLCAK=QgsPSVP13SzbB9j6wCFfVzGXc4hnfw@mail.gmail.com>
+	<4F1EC725.7090204@iki.fi>
+Date: Tue, 24 Jan 2012 10:16:28 -0500
+Message-ID: <CAGoCfiwZ2_+rQgXxq9DF_veGZ8vqaZf2JtUSi8SyLW_pd6VFAA@mail.gmail.com>
+Subject: Re: HVR 4000 hybrid card still producing multiple frontends for
+ single adapter
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: "Hawes, Mark" <MARK.HAWES@au.fujitsu.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello everyone,
-I know, Devin Heitmueller was about to add support  for em2874 bulk endpoint.
+On Tue, Jan 24, 2012 at 9:58 AM, Antti Palosaari <crope@iki.fi> wrote:
+> So what was the actual benefit then just introduce one way more to implement
+> same thing. As I sometime understood from Manu's talk there will not be
+> difference if my device is based of DVB-T + DVB-C demod combination or just
+> single chip that does same. Now there is devices that have same
+> characteristics but different interface.
 
-Is that still in plans?
+For one thing, you cannot use DVB-T and DVB-C at the same time if
+they're on the same demod.  With many of the devices that have S/S2
+and DVB-T, you can be using them both in parallel.  Having multiple
+frontends actually makes sense since you don't want two applications
+talking to the same frontend at the same time but operating on
+different tuners/streams.
 
-Thank you.
-Dmitriy 
+That said, there could be opportunities for consolidation if the
+demods could not be used in parallel, but I believe that would require
+a nontrivial restructuring of the core code and API.  In my opinion
+the entry point for the kernel ABI should *never* have been the
+demodulator but rather the bridge driver (where you can exercise
+greater control over what can be used in parallel).
 
-Copying old thread:
-> On Oct 29, 2010, at 2:37 PM, Devin Heitmueller wrote:
->
-> > On Fri, Oct 29, 2010 at 2:04 PM, Jarod Wilson <jarod at wilsonet.com
-> wrote:
-> >> On Oct 15, 2010, at 6:07 PM, Jarod Wilson wrote:...
-> >> So a spot of bad news here... I've been poking at one of Gavin's sticks inside a VM he set up for me, simultaneous with talking to one of the upstream em28xx driver authors. We now have a very good understanding of why the stick isn't working.
-> >> 
-> >> All known prior em28xx-based tuner sticks have had at least one isochronous usb endpoint, with a max packet size of 940 bytes, typically. This stick only has bulk usb endpoints and a max packet size of 512. Supporting this stick is actually going to require a fair bit of work in the em28xx driver core to support using bulk transfer instead of isochronous transfer.
-> >> 
-> >> Short version: don't buy this stick right now, its going to be a little while before its actually supported.
-> > 
-> > Jarod,
-> > 
-> > Just an FYI:  bulk support for em2874/em2884 is on my todo list for
-> > the near future.
->
->
- Ah, very cool. I'm inclined to wait and let you do that part, since you know em28xx much better than I do, and I'll just focus on the device-specific implementation details (gpio settings, wiring up tuner and demod, etc). I'm assuming you have some other manufacturer's em2874/em2884 based devices to work on this for... :)
+Devin
 
-
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
