@@ -1,55 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18993 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:34027 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932310Ab2AEBBL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 4 Jan 2012 20:01:11 -0500
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0511AEi002503
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Wed, 4 Jan 2012 20:01:10 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 38/47] [media] mt2063: Remove two unused temporary vars
-Date: Wed,  4 Jan 2012 23:00:49 -0200
-Message-Id: <1325725258-27934-39-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-References: <1325725258-27934-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1752113Ab2AXPhw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jan 2012 10:37:52 -0500
+Message-ID: <4F1ED04B.9040106@iki.fi>
+Date: Tue, 24 Jan 2012 17:37:47 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: "Hawes, Mark" <MARK.HAWES@au.fujitsu.com>,
+	linux-media@vger.kernel.org
+Subject: Re: HVR 4000 hybrid card still producing multiple frontends for single
+ adapter
+References: <44895934A66CD441A02DCF15DD759BA0011CAE69@SYDEXCHTMP2.au.fjanz.com>	<4F1E9A78.7020203@iki.fi>	<CAGoCfizF=aO-JTLLCAK=QgsPSVP13SzbB9j6wCFfVzGXc4hnfw@mail.gmail.com>	<4F1EC725.7090204@iki.fi> <CAGoCfiwZ2_+rQgXxq9DF_veGZ8vqaZf2JtUSi8SyLW_pd6VFAA@mail.gmail.com>
+In-Reply-To: <CAGoCfiwZ2_+rQgXxq9DF_veGZ8vqaZf2JtUSi8SyLW_pd6VFAA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-mt2063.c:1531:12: warning: variable 'ofout' set but not used [-Wunused-but-set-variable]
-mt2063.c:1531:6: warning: variable 'ofin' set but not used [-Wunused-but-set-variable]
+On 01/24/2012 05:16 PM, Devin Heitmueller wrote:
+> On Tue, Jan 24, 2012 at 9:58 AM, Antti Palosaari<crope@iki.fi>  wrote:
+>> So what was the actual benefit then just introduce one way more to implement
+>> same thing. As I sometime understood from Manu's talk there will not be
+>> difference if my device is based of DVB-T + DVB-C demod combination or just
+>> single chip that does same. Now there is devices that have same
+>> characteristics but different interface.
+>
+> For one thing, you cannot use DVB-T and DVB-C at the same time if
+> they're on the same demod.  With many of the devices that have S/S2
+> and DVB-T, you can be using them both in parallel.  Having multiple
+> frontends actually makes sense since you don't want two applications
+> talking to the same frontend at the same time but operating on
+> different tuners/streams.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tuners/mt2063.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+For the demods that are not shared (like tuner shared) we register own 
+frontend under own adapter. I don't see that is going to change. It have 
+been ages as it is and I have not seen none have said it is needed to 
+change.
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index b72105d..92653a9 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -1528,7 +1528,6 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
- 	u32 LO2;		/*  2nd LO register value           */
- 	u32 Num2;		/*  Numerator for LO2 reg. value    */
- 	u32 ofLO1, ofLO2;	/*  last time's LO frequencies      */
--	u32 ofin, ofout;	/*  last time's I/O frequencies     */
- 	u8 fiffc = 0x80;	/*  FIFF center freq from tuner     */
- 	u32 fiffof;		/*  Offset from FIFF center freq    */
- 	const u8 LO1LK = 0x80;	/*  Mask for LO1 Lock bit           */
-@@ -1549,9 +1548,7 @@ static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
- 	 * Save original LO1 and LO2 register values
- 	 */
- 	ofLO1 = state->AS_Data.f_LO1;
--	ofLO2 = state->AS_Data.f_LO2;
--	ofin = state->AS_Data.f_in;
--	ofout = state->AS_Data.f_out;
-+	ofLO2 = state->AS_Data.f_LO2; 
- 
- 	/*
- 	 * Find and set RF Band setting
+> That said, there could be opportunities for consolidation if the
+> demods could not be used in parallel, but I believe that would require
+> a nontrivial restructuring of the core code and API.  In my opinion
+> the entry point for the kernel ABI should *never* have been the
+> demodulator but rather the bridge driver (where you can exercise
+> greater control over what can be used in parallel).
+
+Under the current situation I see it is better to select only one 
+method. As it is now single frontend then it is just needed to make 
+"virtual" frontend that combines multiple frontends as single and offers 
+it through API.
+
+And one thing I would like to mention, frontend is just logical entity 
+that represent DigitalTV hardware. It is rather much mapped as hardware 
+point of view to demod driver callbacks but it is not needed :)
+
+
+regards
+Antti
+
 -- 
-1.7.7.5
-
+http://palosaari.fi/
