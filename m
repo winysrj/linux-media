@@ -1,102 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43857 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752572Ab2AYPMd (ORCPT
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:37053 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755828Ab2AXKIk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:12:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 8/8] sh_mobile_ceu_camera: Support user-configurable line stride
-Date: Wed, 25 Jan 2012 16:12:31 +0100
-Message-Id: <1327504351-24413-9-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 24 Jan 2012 05:08:40 -0500
+Received: by obcva7 with SMTP id va7so4065084obc.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 02:08:39 -0800 (PST)
+MIME-Version: 1.0
+Date: Tue, 24 Jan 2012 11:08:39 +0100
+Message-ID: <CAAGRkmiPqTj6HwX1OjWfHu_SvmyU-SVwMzdJyiY5Mh0Cp0B0Uw@mail.gmail.com>
+Subject: drx-k and usb dvbc-dongles
+From: Bert Haverkamp <bert@bertenselena.net>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In image mode, the CEU allows configurable line strides up to 8188
-pixels.
+Dear all,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/sh_mobile_ceu_camera.c |   25 +++++++++++++++++--------
- 1 files changed, 17 insertions(+), 8 deletions(-)
+I've been scanning this mailing list periodically for a long time,
+checking for updates with respect to dvb-c devices. Particularly usb
+dongles.
+This would enable me to builld very compact PVR systems
+Many devices exist, but only a few(read nothing really) were thus far
+supported under linux. Almost all of them are based on the micronas
+drx-k.
+Today I learned from Devin that the drx-k has been integrated in the
+kernel in from 3.1 on.
 
-diff --git a/drivers/media/video/sh_mobile_ceu_camera.c b/drivers/media/video/sh_mobile_ceu_camera.c
-index 47b336b..ac98f47 100644
---- a/drivers/media/video/sh_mobile_ceu_camera.c
-+++ b/drivers/media/video/sh_mobile_ceu_camera.c
-@@ -338,19 +338,15 @@ static int sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
- 
- 	ceu_write(pcdev, top1, phys_addr_top);
- 	if (V4L2_FIELD_NONE != pcdev->field) {
--		if (planar)
--			phys_addr_bottom = phys_addr_top + icd->user_width;
--		else
--			phys_addr_bottom = phys_addr_top + icd->bytesperline;
-+		phys_addr_bottom = phys_addr_top + icd->bytesperline;
- 		ceu_write(pcdev, bottom1, phys_addr_bottom);
- 	}
- 
- 	if (planar) {
--		phys_addr_top += icd->user_width *
--			icd->user_height;
-+		phys_addr_top += icd->bytesperline * icd->user_height;
- 		ceu_write(pcdev, top2, phys_addr_top);
- 		if (V4L2_FIELD_NONE != pcdev->field) {
--			phys_addr_bottom = phys_addr_top + icd->user_width;
-+			phys_addr_bottom = phys_addr_top + icd->bytesperline;
- 			ceu_write(pcdev, bottom2, phys_addr_bottom);
- 		}
- 	}
-@@ -677,7 +673,7 @@ static void sh_mobile_ceu_set_rect(struct soc_camera_device *icd)
- 			in_width *= 2;
- 			left_offset *= 2;
- 		}
--		cdwdr_width = width;
-+		cdwdr_width = icd->bytesperline;
- 	} else {
- 		int bytes_per_line = soc_mbus_bytes_per_line(width,
- 						icd->current_fmt->host_fmt);
-@@ -1840,6 +1836,8 @@ static int sh_mobile_ceu_set_fmt(struct soc_camera_device *icd,
- 	return 0;
- }
- 
-+#define CEU_CHDW_MAX	8188U	/* Maximum line stride */
-+
- static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
- 				 struct v4l2_format *f)
- {
-@@ -1916,10 +1914,20 @@ static int sh_mobile_ceu_try_fmt(struct soc_camera_device *icd,
- 			pix->width = width;
- 		if (mf.height > height)
- 			pix->height = height;
-+
-+		pix->bytesperline = max(pix->bytesperline, pix->width);
-+		pix->bytesperline = min(pix->bytesperline, CEU_CHDW_MAX);
-+		pix->bytesperline &= ~3;
-+		break;
-+
-+	default:
-+		/* Configurable stride isn't supported in pass-through mode. */
-+		pix->bytesperline  = 0;
- 	}
- 
- 	pix->width	&= ~3;
- 	pix->height	&= ~3;
-+	pix->sizeimage	= 0;
- 
- 	dev_geo(icd->parent, "%s(): return %d, fmt 0x%x, %ux%u\n",
- 		__func__, ret, pix->pixelformat, pix->width, pix->height);
-@@ -2136,6 +2144,7 @@ static int __devinit sh_mobile_ceu_probe(struct platform_device *pdev)
- 	pcdev->ici.nr = pdev->id;
- 	pcdev->ici.drv_name = dev_name(&pdev->dev);
- 	pcdev->ici.ops = &sh_mobile_ceu_host_ops;
-+	pcdev->ici.capabilities = SOCAM_HOST_CAP_STRIDE;
- 
- 	pcdev->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
- 	if (IS_ERR(pcdev->alloc_ctx)) {
--- 
-1.7.3.4
+My question now is, are devices like the
+-Elgato EyeTV Hybrid
+-Terratec Cinergy HTC stick
+and others soon going to be supported? What is the expectation on this?
 
+More general: are there USB dvb-c dongles that currently or in the
+near future are or will be supported?
+
+Regards and many thanks for all the hard work
+
+Bert
