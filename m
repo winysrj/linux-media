@@ -1,59 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54677 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750953Ab2AULHv (ORCPT
+Received: from na3sys009aog121.obsmtp.com ([74.125.149.145]:41031 "EHLO
+	na3sys009aog121.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754938Ab2AXALI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 06:07:51 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Axel Lin <axel.lin@gmail.com>
-Subject: Re: [PATCH] [media] convert drivers/media/* to use module_i2c_driver()
-Date: Sat, 21 Jan 2012 12:07:50 +0100
-Cc: linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Heungjun Kim <riverful.kim@samsung.com>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Joonyoung Shim <jy0922.shim@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Andrew Chew <achew@nvidia.com>,
-	Paul Mundt <lethal@linux-sh.org>,
-	Michael Grzeschik <m.grzeschik@pengutronix.de>,
-	Johannes Obermaier <johannes.obermaier@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
-References: <1327140645.3928.1.camel@phoenix>
-In-Reply-To: <1327140645.3928.1.camel@phoenix>
+	Mon, 23 Jan 2012 19:11:08 -0500
+Received: by mail-tul01m020-f176.google.com with SMTP id wp18so4185013obc.7
+        for <linux-media@vger.kernel.org>; Mon, 23 Jan 2012 16:11:07 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201211207.52778.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4F1D918D.7070005@redhat.com>
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+	<1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
+	<4F1D6F88.5080202@redhat.com>
+	<4F1D71EA.2060402@samsung.com>
+	<4F1D7705.3080601@redhat.com>
+	<4F1D8324.5000709@samsung.com>
+	<4F1D8E05.4060109@redhat.com>
+	<4F1D918D.7070005@redhat.com>
+Date: Mon, 23 Jan 2012 18:11:06 -0600
+Message-ID: <CAO8GWqnTOD5YvRypohOw1nSu3vnx4bvfOm3KUu+A6-R4auW=3A@mail.gmail.com>
+Subject: Re: V4L2 Overlay mode replacement by dma-buf - was: Re: [PATCH 05/10]
+ v4l: add buffer exporting via dmabuf
+From: "Clark, Rob" <rob@ti.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
+	sumit.semwal@ti.com, jesse.barker@linaro.org, daniel@ffwll.ch,
+	m.szyprowski@samsung.com, kyungmin.park@samsung.com,
+	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
+	pawel@osciak.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Axel,
+On Mon, Jan 23, 2012 at 10:57 AM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+>
+>>> 2) The userspace API changes to properly support for dma buffers.
+>>>
+>>> If you're not ready to discuss (2), that's ok, but I'd like to follow
+>>> the discussions for it with care, not only for reviewing the actual
+>>> patches, but also since I want to be sure that it will address the
+>>> needs for xawtv and for the Xorg v4l driver.
+>>>
+>>
+>> The support of dmabuf could be easily added to framebuffer API.
+>> I expect that it would not be difficult to add it to Xv.
 
-Thanks for the patch.
+You might want to have a look at my dri2video proposal a while back.
+I plan some minor changes to make the api for multi-planar formats
+look a bit more like how addfb2 ended up (ie. array of handles,
+offsets, and pitches), but you could get the basic idea from:
 
-On Saturday 21 January 2012 11:10:45 Axel Lin wrote:
-> This patch converts the drivers in drivers/media/* to use the
-> module_i2_driver() macro which makes the code smaller and a bit simpler.
-> 
-> Signed-off-by: Axel Lin <axel.lin@gmail.com>
+http://patchwork.freedesktop.org/patch/7939/
 
-For the following modules,
+> A texture based API is likely needed, at least for it to work with
+> modern PC GPU's.
 
->  drivers/media/video/adp1653.c                 |   19 +----------------
->  drivers/media/video/as3645a.c                 |   19 +----------------
->  drivers/media/video/mt9p031.c                 |   13 +----------
->  drivers/media/video/mt9t001.c                 |   13 +----------
->  drivers/media/video/mt9v032.c                 |   13 +----------
+I suspect we will end up w/ an eglImage extension to go dmabuf fd <->
+eglImage, and perhaps handle barriers and userspace mappings.  That
+should, I think, be the best approach to best hide/abstract all the
+GPU crazy games from the rest of the world.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
--- 
-Regards,
-
-Laurent Pinchart
+BR,
+-R
