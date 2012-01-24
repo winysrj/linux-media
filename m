@@ -1,60 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:46473 "EHLO
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:64607 "EHLO
 	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752136Ab2ANAAK (ORCPT
+	with ESMTP id S1753393Ab2AXROL convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jan 2012 19:00:10 -0500
-Received: by wgbds12 with SMTP id ds12so3616193wgb.1
-        for <linux-media@vger.kernel.org>; Fri, 13 Jan 2012 16:00:09 -0800 (PST)
-Message-ID: <4F10C586.3030600@gmail.com>
-Date: Sat, 14 Jan 2012 00:00:06 +0000
-From: Jim Darby <uberscubajim@gmail.com>
+	Tue, 24 Jan 2012 12:14:11 -0500
+Received: by wgbed3 with SMTP id ed3so4265699wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 09:14:10 -0800 (PST)
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] [media] dvb-core: preserve the delivery system at cache
- clear
-References: <4F101940.2020408@gmail.com> <1326462636-8869-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1326462636-8869-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4F1EC725.7090204@iki.fi>
+References: <44895934A66CD441A02DCF15DD759BA0011CAE69@SYDEXCHTMP2.au.fjanz.com>
+	<4F1E9A78.7020203@iki.fi>
+	<CAGoCfizF=aO-JTLLCAK=QgsPSVP13SzbB9j6wCFfVzGXc4hnfw@mail.gmail.com>
+	<4F1EC725.7090204@iki.fi>
+Date: Tue, 24 Jan 2012 22:44:10 +0530
+Message-ID: <CAHFNz9K7g_M1+k9pjv2MmF0Xfti-_Nqi-93+bqBQ20Aw+PfLiQ@mail.gmail.com>
+Subject: Re: HVR 4000 hybrid card still producing multiple frontends for
+ single adapter
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	"Hawes, Mark" <MARK.HAWES@au.fujitsu.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the patch Mauro. According to Gianluca that solves the 
-backwards compatibility issue. This is great news.
+On Tue, Jan 24, 2012 at 8:28 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 01/24/2012 04:49 PM, Devin Heitmueller wrote:
+>>
+>> On Tue, Jan 24, 2012 at 6:48 AM, Antti Palosaari<crope@iki.fi>  wrote:
+>>>
+>>> On 01/24/2012 06:41 AM, Hawes, Mark wrote:
+>>>>
+>>>>
+>>>> Hi,
+>>>>
+>>>> I have a HVR 4000 hybrid card  which provides both DVB-S2 and DVB-T
+>>>> capabilities on the one adapter. Using the current media tree build
+>>>> updated
+>>>> with the contents of the linux media drivers tarball dated 22/01/2012
+>>>> the
+>>>> drivers for this card are still generating two frontends on the adapter
+>>>> as
+>>>> below:
+>>>>
+>>>>> Jan 23 12:16:44 Nutrigrain kernel: [    9.346240] DVB: registering
+>>>>> adapter 1 frontend 0 (Conexant CX24116/CX24118)...
+>>>>> Jan 23 12:16:44 Nutrigrain kernel: [    9.349110] DVB: registering
+>>>>> adapter 1 frontend 1 (Conexant CX22702 DVB-T)...
+>>>>
+>>>>
+>>>>
+>>>> I understand that this behaviour is now deprecated and that the correct
+>>>> behaviour should be to generate one front end with multiple
+>>>> capabilities.
+>>>> Can this please be corrected.
+>>>
+>>>
+>>>
+>>> Same applies for many other devices too. For example some older Anysee E7
+>>> models have two chip and two frontends whilst new one have only one. Also
+>>> TechnoTrend CT3650 and Hauppauge WinTV.
+>>>
+>>> Maybe it those are implemented later as one frontend, it not clear for
+>>> me.
+>>
+>>
+>> The merging of frontends is something that is only done if there are
+>> multiple modulation types on the same demodulator chip.  As the
+>> HVR-4000 has separate demods for DVB-T versus DVB-S2, they will always
+>> be represented by two separate frontends (for the foreseeable future).
+>>
+>> In other words, the recent work doesn't apply to this card (and others
+>> like it).
+>
+>
+> So what was the actual benefit then just introduce one way more to implement
+> same thing. As I sometime understood from Manu's talk there will not be
+> difference if my device is based of DVB-T + DVB-C demod combination or just
+> single chip that does same. Now there is devices that have same
+> characteristics but different interface.
 
-In other news I've tried a few experiments. Firstly I tried using a 
-3.2.0 unmodified straight out of the box kernel on my Core 2 64-bit 
-system. I was unable to produce any faults. This would tend to lead one 
-to suspect that it's a 32-bit problem or that my 32-bit machine is a bit 
-flaky or slow.
+Yes, you are right. I had a very preliminary patch to handle this,
+Will post it soon.
 
-So, as I wanted to try the new alpha 3 for Mageia 2 (a Mandriva fork) 
-out and it has a 3.0 kernel that seemed to be a good idea. The bad news 
-is that I'd run out of hardware. So I thought I'd be clever and run it 
-as a virtual machine on my Core 2 system.
-
-The good news is that it correctly recognised the stick and it seemed to 
-work for standard definition. However, after setting it to record some 
-HDTV programmes it failed. More importantly it failed in the same way as 
-the 32-bit system.
-
-This makes me think it's some kind of timing problem. The USB 
-passthrough of VirtualBox may well not operate at the performance 
-required for HDTV. Also by this time I'd put the stick on a USB 
-extension lead which may have adversely affected the power feed.
-
-For my next series of tests I plan to run it again on bare hardware. I'm 
-going to try and use my older Core 2 machine which should have the CPU 
-and electrical power.
-
-None of which explains why it works on the 32-bit Athlon XP 2200+ when 
-it's running 3.0.0 though. And has done so reliably for some time. Maybe 
-some other things are happening in the kernel that much up the device 
-timing or something.
-
-Anyway, I'll keep people posted as to the progression of the testing.
-
-Best regards,
-
-Jim.
+Regards,
+Manu
