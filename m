@@ -1,90 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hermes.mlbassoc.com ([64.234.241.98]:51275 "EHLO
-	mail.chez-thomas.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751240Ab2ASOgr (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:52038 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755186Ab2AXQgy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:36:47 -0500
-Message-ID: <4F182A79.6000603@mlbassoc.com>
-Date: Thu, 19 Jan 2012 07:36:41 -0700
-From: Gary Thomas <gary@mlbassoc.com>
+	Tue, 24 Jan 2012 11:36:54 -0500
+Received: by werb13 with SMTP id b13so3101022wer.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 08:36:53 -0800 (PST)
 MIME-Version: 1.0
-To: Javier Martinez Canillas <martinez.javier@gmail.com>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
-References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com> <201201191350.51761.laurent.pinchart@ideasonboard.com> <4F181711.1020201@mlbassoc.com> <201201191428.35340.laurent.pinchart@ideasonboard.com> <4F181C24.9030806@mlbassoc.com> <CAAwP0s3_U1tzRM3TcW+hGCVvm+aowwO9f6g6t8_pvZSJxyMrgA@mail.gmail.com>
-In-Reply-To: <CAAwP0s3_U1tzRM3TcW+hGCVvm+aowwO9f6g6t8_pvZSJxyMrgA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAC75eEi3a=vjRku3P2K4wx1KFj=JgZhccVgXzUPWuOwVoD0axA@mail.gmail.com>
+References: <CAC75eEi3a=vjRku3P2K4wx1KFj=JgZhccVgXzUPWuOwVoD0axA@mail.gmail.com>
+Date: Tue, 24 Jan 2012 11:36:53 -0500
+Message-ID: <CAC75eEhnMdLiW=6sxd3V9c0_xOHBMz27DbcxG9eKKaeCBnzZvw@mail.gmail.com>
+Subject: Compusa VC-211A no video
+From: Mike Falciani <mike@falciani.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2012-01-19 07:11, Javier Martinez Canillas wrote:
-> On Thu, Jan 19, 2012 at 2:35 PM, Gary Thomas<gary@mlbassoc.com>  wrote:
->> On 2012-01-19 06:28, Laurent Pinchart wrote:
->>>
->>> Hi Gary,
->>>
->>> On Thursday 19 January 2012 14:13:53 Gary Thomas wrote:
->>>>
->>>> On 2012-01-19 05:50, Laurent Pinchart wrote:
->>>>>
->>>>> On Thursday 19 January 2012 13:41:57 Gary Thomas wrote:
->>>>>>
->>>>>> On 2012-01-17 08:33, Laurent Pinchart wrote:
->>>>>>       <snip>
->>>>>>>
->>>>>>>
->>>>>>> I already had a couple of YUV support patches in my OMAP3 ISP tree at
->>>>>>> git.kernel.org. I've rebased them on top of the lastest V4L/DVB tree
->>>>>>> and pushed them to
->>>>>>>
->>>>>>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp
->>>>>>> - omap3isp-yuv. Could you please try them, and see if they're usable
->>>>>>> with your sensor ?
->>>>>>
->>>>>>
->>>>>> I just tried this kernel with my board.  The media control
->>>>>> infrastructure comes up and all of the devices are created, but I can't
->>>>>> access them.
->>>>>>
->>>>>>    From the bootup log:
->>>>>>      Linux media interface: v0.10
->>>>>>      Linux video capture interface: v2.00
->>>>>
->>>>>
->>>>> Any message from the omap3isp driver and from the sensor driver ?
->>>>
->>>>
->>>> No, it doesn't appear that the sensor was probed (or maybe it failed but
->>>> no messages).  I'll check into this.
->>>
->>>
->>> Is the omap3-isp driver compiled as a module ? If so, make sure iommu2.ko
->>> is
->>> loaded first. 'rmmod omap3-isp&&    modprobe iommu2&&    modprobe omap3-isp'
->>> is a
->>>
->>> quick way to test it.
->>
->>
->> I have everything compiled in - no modules.
->>
->
-> At least for me, it only worked when compiled both the omap3-isp and
-> tvp5150 drivers as a module. If I compile them built-in, it fails.
+I'm having a tough time getting a Compusa "VC-211A" USB video grabber
+working under Fedora 16 on a Dell E521.
 
-Can you share your board/sensor init code from your board-init.c
-so I can see how to manage this as a module?
+[root@shellder ~]# uname -a
+Linux shellder.falciani.com 3.1.9-1.fc16.i686 #1 SMP Fri Jan 13
+17:14:41 UTC 2012 i686 i686 i386 GNU/Linux
 
-n.b. I really don't like messing with modules - it used to work
-fine, so IMO it should continue to do so.
+
+Jan 22 15:15:44 shellder kernel: [59072.105044] usb 1-7: new high
+speed USB device number 5 using ehci_hcd
+Jan 22 15:15:44 shellder kernel: [59072.220074] usb 1-7: New USB
+device found, idVendor=eb1a, idProduct=2820
+Jan 22 15:15:44 shellder kernel: [59072.220081] usb 1-7: New USB
+device strings: Mfr=0, Product=0, SerialNumber=0
+Jan 22 15:15:44 shellder kernel: [59072.220656] em28xx: New device @
+480 Mbps (eb1a:2820, interface 0, class 0)
+Jan 22 15:15:44 shellder kernel: [59072.220815] em28xx #0: chip ID is
+em2820 (or em2710)
+Jan 22 15:15:44 shellder kernel: [59072.290926] em28xx #0: board has no eeprom
+Jan 22 15:15:44 shellder kernel: [59072.337170] em28xx #0: found i2c
+device @ 0x4a [saa7113h]
+Jan 22 15:15:44 shellder kernel: [59072.370919] em28xx #0: Your board
+has no unique USB ID.
+Jan 22 15:15:44 shellder kernel: [59072.370924] em28xx #0: A hint were
+successfully done, based on i2c devicelist hash.
+Jan 22 15:15:44 shellder kernel: [59072.370929] em28xx #0: This method
+is not 100% failproof.
+Jan 22 15:15:44 shellder kernel: [59072.370934] em28xx #0: If the
+board were missdetected, please email this log to:
+Jan 22 15:15:44 shellder kernel: [59072.370938] em28xx #0:      V4L
+Mailing List  <linux-media@vger.kernel.org>
+Jan 22 15:15:44 shellder kernel: [59072.370943] em28xx #0: Board
+detected as EM2860/SAA711X Reference Design
+Jan 22 15:15:44 shellder kernel: [59072.434031] em28xx #0: Identified
+as EM2860/SAA711X Reference Design (card=19)
+Jan 22 15:15:44 shellder kernel: [59072.434037] em28xx #0: Registering
+snapshot button...
+Jan 22 15:15:44 shellder kernel: [59072.434165] input: em28xx snapshot
+button as /devices/pci0000:00/0000:00:0b.1/usb1/1-7/input/input17
+Jan 22 15:15:44 shellder kernel: [59072.701150] saa7115 6-0025:
+saa7113 found (1f7113d0e100000) @ 0x4a (em28xx #0)
+Jan 22 15:15:45 shellder kernel: [59073.146869] em28xx #0: Config
+register raw data: 0x00
+Jan 22 15:15:45 shellder kernel: [59073.173739] em28xx #0: v4l2 driver
+version 0.1.3
+Jan 22 15:15:45 shellder kernel: [59073.427419] em28xx #0: V4L2 video
+device registered as video0
+Jan 22 15:15:45 shellder mtp-probe: checking bus 1, device 5:
+"/sys/devices/pci0000:00/0000:00:0b.1/usb1/1-7"
+Jan 22 15:15:45 shellder mtp-probe: bus: 1, device: 5 was not an MTP device
+
+UCView and VLC: No video to be captured
+
+lsusb (at a later date)
+Bus 001 Device 005: ID eb1a:2820 eMPIA Technology, Inc.
+
+I've tried:
+modprobe -r em28xx
+modprobe em28xx card=74
+Results: No video UCview
+
+
+modprobe -r em28xx
+modprobe em28xx card=5
+Results: No video UCview
+
+modprobe -r em28xx
+modprobe em28xx card=1
+Results: No video UCview
+
+Any ideas?
+
+I had great hope in the card=74 until I saw that it expected a EM2800
+and this seems to be a EM2820.
+
+Also, the device looks a lot like this but is marked differently
+http://www.cooldrives.com/usb-video-vcr-camcorder-analog-video-svideo-adapter.html
+
+Any idea on how to select Composite Video input?
 
 Thanks
-
-
--- 
-------------------------------------------------------------
-Gary Thomas                 |  Consulting for the
-MLB Associates              |    Embedded world
-------------------------------------------------------------
+--
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+Mike Falciani
+http://nj.falciani.com
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
