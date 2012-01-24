@@ -1,63 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:59886 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756757Ab2AKEYg convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50118 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756599Ab2AXOQP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 23:24:36 -0500
-Received: by werm1 with SMTP id m1so224755wer.19
-        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 20:24:35 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <201201081230.42414.laurent.pinchart@ideasonboard.com>
-References: <CAOy7-nNSu2v9VS9Bh5O5StvEAvoxA4DqN7KdSGfZZSje1_Fgnw@mail.gmail.com>
-	<201201061409.30592.laurent.pinchart@ideasonboard.com>
-	<CAOy7-nMBw8Mry9iL0fYKQ1_Bpjp9Pm5hUzPE-SFD9JwGfpv3FA@mail.gmail.com>
-	<201201081230.42414.laurent.pinchart@ideasonboard.com>
-Date: Wed, 11 Jan 2012 12:24:35 +0800
-Message-ID: <CAOy7-nNEYxbH2gqfS=hRuBMJWeX+cbm4ReNvncdoJMsazdQaDQ@mail.gmail.com>
-Subject: Re: Using OMAP3 ISP live display and snapshot sample applications
-From: James <angweiyang@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Tue, 24 Jan 2012 09:16:15 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Csillag Kristof <csillag.kristof@gmail.com>
+Subject: Re: 720p webcam providing VDPAU-compatible video stream?
+Date: Tue, 24 Jan 2012 15:16:21 +0100
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+References: <4F1C0921.1060109@gmail.com> <201201231541.32049.laurent.pinchart@ideasonboard.com> <4F1D8B51.4020507@gmail.com>
+In-Reply-To: <4F1D8B51.4020507@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-2"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201241516.21919.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Kristof,
 
-On Sun, Jan 8, 2012 at 7:30 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi James,
->
-> On Sunday 08 January 2012 02:14:55 James wrote:
->
-> [snip]
->
->> BTW, can you send me the defconfig file you used for testing on overo as I
->> couldn‘t compile your branch with mine.
->
-> Attached.
->
->> I forgot to mentioned that I'm trying out the application with the MT9V032
->> camera first on both Tobi & Chestnut board. Not with the new monochrome
->> sensor yet.
->
-> --
-> Regards,
->
-> Laurent Pinchart
+On Monday 23 January 2012 17:31:13 Csillag Kristof wrote:
+> At 2012-01-23 15:41, Laurent Pinchart wrote:
+> > I think your best bet is still UVC + H.264, as that's what the market is
+> > moving to. Any other compressed format (except for MJPEG) will likely be
+> > proprietary.
+> > 
+> > As you correctly mention, H.264 support isn't available yet in the UVC
+> > driver. Patches are welcome ;-)
+> 
+> So... do I understand it correctly that with the current hw/sw stack, my
+> original requirements can not be satisfied?
 
-Thanks for the defconfig.
+Not that I'm aware of.
 
-I'll proceed to try to build a fresh kernel based on your branch
-"omap3isp-sensors-board".
+> In that case, let's try with reduced requirements. What if I give up HD
+> resolution and H264?
+> 
+> Is there a camera that can provide a HW-compressed 480p video stream, in
+> MPEG-2 or something like that?
 
-I guess this is a better branch or should I try the YUV branch or others?
-
-Test1 with MT9V032 and Test2 with monochrome sensor Y12.
-
-Thanks.
+I don't think so. Once again, unless you can work with MJPEG, your best bet is 
+UVC and H.264. But you will need to write the code (or find someone who can 
+write it).
 
 -- 
 Regards,
-James
+
+Laurent Pinchart
