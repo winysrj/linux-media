@@ -1,115 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:42631 "EHLO mgw-sa01.nokia.com"
+Received: from racoon.tvdr.de ([188.40.50.18]:48718 "EHLO racoon.tvdr.de"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751453Ab2AGXFG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 7 Jan 2012 18:05:06 -0500
-Message-ID: <4F08CF9C.3040508@maxwell.research.nokia.com>
-Date: Sun, 08 Jan 2012 01:05:00 +0200
-From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
+	id S1754642Ab2AXJeC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jan 2012 04:34:02 -0500
+Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
+	by racoon.tvdr.de (8.14.3/8.14.3) with ESMTP id q0O9YD3J006218
+	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 10:34:14 +0100
+Received: from [192.168.100.10] (hawk.tvdr.de [192.168.100.10])
+	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id q0O9XrTa010973
+	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 10:33:54 +0100
+Message-ID: <4F1E7B01.2050602@tvdr.de>
+Date: Tue, 24 Jan 2012 10:33:53 +0100
+From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-Subject: Re: [RFC 14/17] omap3isp: Use pixelrate from sensor media bus frameformat
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-14-git-send-email-sakari.ailus@maxwell.research.nokia.com> <201201061114.05973.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201061114.05973.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+Subject: Re: [linux-media] Re: [PATCH] stb0899: fix the limits for signal
+ strength values
+References: <4F18555D.3000205@tvdr.de> <4F1DB873.20206@redhat.com>
+In-Reply-To: <4F1DB873.20206@redhat.com>
+Content-Type: multipart/mixed;
+ boundary="------------020705030101040801010701"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This is a multi-part message in MIME format.
+--------------020705030101040801010701
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Laurent Pinchart wrote:
-> On Tuesday 20 December 2011 21:28:06 Sakari Ailus wrote:
->> From: Sakari Ailus <sakari.ailus@iki.fi>
->>
->> Configure the ISP based on the pixelrate in media bus frame format.
->> Previously the same was configured from the board code.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> ---
->>  drivers/media/video/omap3isp/isp.c |   24 +++++++++++++++++++++---
->>  drivers/media/video/omap3isp/isp.h |    1 -
->>  2 files changed, 21 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/video/omap3isp/isp.c
->> b/drivers/media/video/omap3isp/isp.c index 6020fd7..92f9716 100644
->> --- a/drivers/media/video/omap3isp/isp.c
->> +++ b/drivers/media/video/omap3isp/isp.c
->> @@ -749,10 +749,14 @@ static int isp_pipeline_enable(struct isp_pipeline
->> *pipe,
->>
->>  	entity = &pipe->output->video.entity;
->>  	while (1) {
->> -		pad = &entity->pads[0];
->> -		if (!(pad->flags & MEDIA_PAD_FL_SINK))
->> +		/*
->> +		 * Is this an external subdev connected to us? If so,
->> +		 * we're done.
->> +		 */
->> +		if (subdev && subdev->host_priv)
->>  			break;
-> 
-> This doesn't seem to be related to the patch title. Should it be moved to a 
-> separate patch ? You could also move the check to the bottom of the while 
-> loop, it would allow you to remove the first part of the condition as subdev 
-> will always be non-NULL then (or even possible as the while() condition).
+On 23.01.2012 20:43, Mauro Carvalho Chehab wrote:
+> Hi Klaus,
+>
+> The patch didn't apply. It seems to be due to your emailer that mangled the
+> whitespaces.
 
-The change got removed based on your other suggestions. ;-) The CSI-2
-configuration moved to csi2_set_stream, so a lot of cruft got removed
-from here.
+Sorry about that. Here it is again as an attachment.
 
->> +		pad = &entity->pads[0];
->>  		pad = media_entity_remote_source(pad);
->>  		if (pad == NULL ||
->>  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->> @@ -762,6 +766,21 @@ static int isp_pipeline_enable(struct isp_pipeline
->> *pipe, prev_subdev = subdev;
->>  		subdev = media_entity_to_v4l2_subdev(entity);
+> The patch looks correct on my eyes. Yet, I'd like to have Manu's ack on it.
+>
+> Em 19-01-2012 15:39, Klaus Schmidinger escreveu:
+>> stb0899_read_signal_strength() adds an offset to the result of the table lookup.
+>> That offset must correspond to the lowest value in the lookup table, to make sure
+>> the result doesn't get below 0, which would mean a "very high" value since the
+>> parameter is unsigned.
+>> 'strength' and 'snr' need to be initialized to 0 to make sure they have a
+>> defined result in case there is no "internal->lock".
 >>
->> +		/* Configure CCDC pixel clock */
->> +		if (subdev->host_priv) {
->> +			struct v4l2_subdev_format fmt;
->> +
->> +			fmt.pad = pad->index;
->> +			fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
->> +			ret = v4l2_subdev_call(subdev, pad, get_fmt,
->> +					       NULL, &fmt);
->> +			if (ret < 0)
->> +				return -EINVAL;
->> +
->> +			isp_set_pixel_clock(isp,
->> +					    fmt.format.pixelrate * 1000);
->> +		}
->> +
->>  		/* Configure CSI-2 receiver based on sensor format. */
->>  		if (prev_subdev == &isp->isp_csi2a.subdev
+>> Signed-off-by: Klaus Schmidinger<Klaus.Schmidinger@tvdr.de>
 >>
->>  		    || prev_subdev == &isp->isp_csi2c.subdev) {
+>> --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c   2011-06-11 16:54:32.000000000 +0200
+>> +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c   2011-06-11 16:23:00.000000000 +0200
+>> @@ -67,7 +67,7 @@
+>>    * Crude linear extrapolation below -84.8dBm and above -8.0dBm.
+>>    */
+>>   static const struct stb0899_tab stb0899_dvbsrf_tab[] = {
+>> -       { -950, -128 },
+>> +       { -750, -128 },
+>>          { -748,  -94 },
+>>          { -745,  -92 },
+>>          { -735,  -90 },
+>> @@ -131,7 +131,7 @@
+>>          { -730, 13645 },
+>>          { -750, 13909 },
+>>          { -766, 14153 },
+>> -       { -999, 16383 }
+>> +       { -950, 16383 }
+>>   };
 >>
->> @@ -2102,7 +2121,6 @@ static int isp_probe(struct platform_device *pdev)
+>>   /* DVB-S2 Es/N0 quant in dB/100 vs read value * 100*/
+>> @@ -964,6 +964,7 @@
 >>
->>  	isp->autoidle = autoidle;
->>  	isp->platform_cb.set_xclk = isp_set_xclk;
->> -	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
->>
->>  	mutex_init(&isp->isp_mutex);
->>  	spin_lock_init(&isp->stat_lock);
->> diff --git a/drivers/media/video/omap3isp/isp.h
->> b/drivers/media/video/omap3isp/isp.h index c5935ae..7d73a39 100644
->> --- a/drivers/media/video/omap3isp/isp.h
->> +++ b/drivers/media/video/omap3isp/isp.h
->> @@ -126,7 +126,6 @@ struct isp_reg {
->>
->>  struct isp_platform_callback {
->>  	u32 (*set_xclk)(struct isp_device *isp, u32 xclk, u8 xclksel);
->> -	void (*set_pixel_clock)(struct isp_device *isp, unsigned int pixelclk);
->>  };
->>
->>  /*
-> 
+>>          int val;
+>>          u32 reg;
+>> +       *strength = 0;
+>
+> This is not needed, as strength is not initialized only on invalid delivery systems,
+> where -EINVAL is returned.
 
+What about the 'if' conditions within the valid delivery system cases?
+For instance
 
--- 
-Sakari Ailus
-sakari.ailus@maxwell.research.nokia.com
+         case SYS_DSS:
+                 if (internal->lock) {
+                         ...
+                         if (STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg)) {
+                            ...
+                                 *strength = ...
+                         }
+                 }
+                 break;
+
+So there may be cases where strength has an undefined value, even
+if this function returns 0.
+
+>>          switch (state->delsys) {
+>>          case SYS_DVBS:
+>>          case SYS_DSS:
+>> @@ -987,7 +988,7 @@
+>>                          val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
+>>
+>>                          *strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
+>> -                       *strength += 750;
+>> +                       *strength += 950;
+>>                          dprintk(state->verbose, FE_DEBUG, 1, "IF_AGC_GAIN = 0x%04x, C = %d * 0.1 dBm",
+>>                                  val&  0x3fff, *strength);
+>>                  }
+>> @@ -1009,6 +1010,7 @@
+>>          u8 buf[2];
+>>          u32 reg;
+>>
+>> +       *snr = 0;
+>
+> This is not needed, as strength is not initialized only on invalid delivery systems,
+> where -EINVAL is returned.
+
+See above.
+
+>>          reg  = stb0899_read_reg(state, STB0899_VSTATUS);
+>>          switch (state->delsys) {
+>>          case SYS_DVBS:
+>
+> PS.: Another alternative for it would be the enclosed patch,
+> wich will be a little simpler, and will also preserve the slope
+> on the boundary values, used at the stb0899_table_lookup()
+> interpolation logic.
+
+Well, as long as there are no negative values for strength...
+However, I don't quite see why the range is 750 - 950 for DVB-S
+and 750 - 999 for DVB-S2. Shouldn't this be the same maximum
+value in both cases?
+
+Klaus
+
+> [PATCH] stb0899: fix the limits for signal strength values
+>
+> The current minimal measures for strengh is 750 - 950, for table
+> stb0899_dvbsrf_tab[], and 750 - 999, for stb0899_dvbs2rf_tab[].
+> Both are negative values. However, the strength measure is unsigned.
+>
+> Don't allow negative values for strengh to underflow. Instead,
+> shift the scale, in order to have 0 as the lowest strength.
+>
+> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
+>
+> diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
+> index 38565be..9cfdcb2 100644
+> --- a/drivers/media/dvb/frontends/stb0899_drv.c
+> +++ b/drivers/media/dvb/frontends/stb0899_drv.c
+> @@ -975,7 +975,7 @@ static int stb0899_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+>   				val = (s32)(s8)STB0899_GETFIELD(AGCIQVALUE, reg);
+>
+>   				*strength = stb0899_table_lookup(stb0899_dvbsrf_tab, ARRAY_SIZE(stb0899_dvbsrf_tab) - 1, val);
+> -				*strength += 750;
+> +				*strength += 950;
+>   				dprintk(state->verbose, FE_DEBUG, 1, "AGCIQVALUE = 0x%02x, C = %d * 0.1 dBm",
+>   					val&  0xff, *strength);
+>   			}
+> @@ -987,7 +987,7 @@ static int stb0899_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+>   			val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
+>
+>   			*strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
+> -			*strength += 750;
+> +			*strength += 999;
+>   			dprintk(state->verbose, FE_DEBUG, 1, "IF_AGC_GAIN = 0x%04x, C = %d * 0.1 dBm",
+>   				val&  0x3fff, *strength);
+>   		}
+
+--------------020705030101040801010701
+Content-Type: text/x-patch;
+ name="03-stb0899_signal_strength_limits.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="03-stb0899_signal_strength_limits.diff"
+
+stb0899: fix the limits for signal strength values
+
+stb0899_read_signal_strength() adds an offset to the result of the table lookup.
+That offset must correspond to the lowest value in the lookup table, to make sure
+the result doesn't get below 0, which would mean a "very high" value since the
+parameter is unsigned.
+'strength' and 'snr' need to be initialized to 0 to make sure they have a
+defined result in case there is no "internal->lock".
+
+Signed-off-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+
+--- a/linux/drivers/media/dvb/frontends/stb0899_drv.c	2011-06-11 16:54:32.000000000 +0200
++++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c	2011-06-11 16:23:00.000000000 +0200
+@@ -67,7 +67,7 @@
+  * Crude linear extrapolation below -84.8dBm and above -8.0dBm.
+  */
+ static const struct stb0899_tab stb0899_dvbsrf_tab[] = {
+-	{ -950,	-128 },
++	{ -750,	-128 },
+ 	{ -748,	 -94 },
+ 	{ -745,	 -92 },
+ 	{ -735,	 -90 },
+@@ -131,7 +131,7 @@
+ 	{ -730,	13645 },
+ 	{ -750,	13909 },
+ 	{ -766,	14153 },
+-	{ -999,	16383 }
++	{ -950,	16383 }
+ };
+ 
+ /* DVB-S2 Es/N0 quant in dB/100 vs read value * 100*/
+@@ -964,6 +964,7 @@
+ 
+ 	int val;
+ 	u32 reg;
++	*strength = 0;
+ 	switch (state->delsys) {
+ 	case SYS_DVBS:
+ 	case SYS_DSS:
+@@ -987,7 +988,7 @@
+ 			val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
+ 
+ 			*strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
+-			*strength += 750;
++			*strength += 950;
+ 			dprintk(state->verbose, FE_DEBUG, 1, "IF_AGC_GAIN = 0x%04x, C = %d * 0.1 dBm",
+ 				val & 0x3fff, *strength);
+ 		}
+@@ -1009,6 +1010,7 @@
+ 	u8 buf[2];
+ 	u32 reg;
+ 
++	*snr = 0;
+ 	reg  = stb0899_read_reg(state, STB0899_VSTATUS);
+ 	switch (state->delsys) {
+ 	case SYS_DVBS:
+
+--------------020705030101040801010701--
