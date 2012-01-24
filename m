@@ -1,77 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([88.190.12.23]:42115 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866Ab2AGO3S convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 7 Jan 2012 09:29:18 -0500
-Received: from skate (humanoidz.org [82.247.183.72])
-	by mail.free-electrons.com (Postfix) with ESMTPA id A028B132
-	for <linux-media@vger.kernel.org>; Sat,  7 Jan 2012 15:23:58 +0100 (CET)
-Date: Sat, 7 Jan 2012 15:29:08 +0100
-From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
-To: linux-media@vger.kernel.org
-Subject: Re: cx231xx: possible circular locking dependency detected on 3.2
-Message-ID: <20120107152908.3b8a78d8@skate>
-In-Reply-To: <20120106224231.455a9896@skate>
-References: <20120106224231.455a9896@skate>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:36951 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756459Ab2AXNDY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jan 2012 08:03:24 -0500
+Received: by werb13 with SMTP id b13so2928009wer.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 05:03:23 -0800 (PST)
+Date: Tue, 24 Jan 2012 14:03:22 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, rob@ti.com,
+	patches@linaro.org
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Message-ID: <20120124130322.GD3980@phenom.ffwll.local>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+ <201201231048.47433.laurent.pinchart@ideasonboard.com>
+ <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
+ <201201231154.21006.laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+In-Reply-To: <201201231154.21006.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Le Fri, 6 Jan 2012 22:42:31 +0100,
-Thomas Petazzoni <thomas.petazzoni@free-electrons.com> a écrit :
-
-> Hello,
+On Mon, Jan 23, 2012 at 11:54:20AM +0100, Laurent Pinchart wrote:
+> On Monday 23 January 2012 11:35:01 Daniel Vetter wrote:
+> > See my other mail, dma_buf v1 does not support cpu access.
 > 
-> I'm running the Hauppauge USB-Live 2 device on an ARM OMAP3 platform.
-> After loading the cx231xx driver and launching v4l2grab, I immediately
-> get:
-> 
-> [  407.087158] cx231xx #0:  setPowerMode::mode = 48, No Change req.
-> [  407.145477] 
-> [  407.147064] ======================================================
-> [  407.153533] [ INFO: possible circular locking dependency detected ]
-> [  407.160095] 3.2.0-00007-gb928298 #18
-> [  407.163848] -------------------------------------------------------
+> v1 is in the kernel now, let's start discussing v2 ;-)
 
-One code path is (mmap_sem taken before, video_device lock taken
-afterwards) :
+Ok, I'm in ;-)
 
- -> sys_mmap_pgoff()
-    grabs current->mm->mmap_sem at
-    http://lxr.free-electrons.com/source/mm/mmap.c#L1111
+I've thought a bit about this, and I think a reasonable next step would be
+to enable cpu access from kernelspace. Userspace and mmap support is a
+hole different beast altogether and I think we should postpone that until
+we've got the kernel part hashed out.
 
-    -> do_mmap_pgoff()
+I'm thinking about adding 3 pairs of function to dma_buf (not to
+dma_buf_attachment).
 
-       -> mmap_region()
+dma_buf_get_backing_storage/put_backing_storage
+This will be used before/after kernel cpu access to ensure that the
+backing storage is in memory. E.g. gem objects can be swapped out, so
+they need to be pinned before we can access them. For exporters with
+static allocations this would be a no-op.
 
-          -> v4l2_mmap()
-             grabs struct video_device->lock at 
-             http://lxr.free-electrons.com/source/drivers/media/video/v4l2-dev.c#L396
+I think a start, length range would make sense, but the exporter is free
+to just swap in the entire object unconditionally. The range is specified
+in multiples of PAGE_SIZE - I don't think there's any usescase for a
+get/put_backing_storage which deals in smaller units.
 
-The other code path is (video_device taken first, mmap_sem taken
-afterwards) :
+The get/put functions are allowed to block and grab all kinds of looks.
+get is allowed to fail with e.g. -ENOMEM.
 
- -> v4l2_ioctl()
-    grabs video_device->lock at
-    http://lxr.free-electrons.com/source/drivers/media/video/v4l2-dev.c#L327
+dma_buf_kmap/kunmap
+This maps _one_ page into the kernels address space and out of it. This
+function also flushes/invalidates any caches required. Importers are not
+allowed to map more than 2 pages at the same time in total (to allow
+copies). This is because at least for gem objects the backing storage can
+be in high-mem.
 
-    -> video_ioctl2()
+Importers are allowed to sleep while holding such a kernel mapping.
 
-       -> video_usercopy()
+These functions are not allowed to fail (like kmap/kunmap).
 
-          -> __video_do_ioctl()
+dma_buf_kmap_atomic/kunmap_atomic
+For performance we want to also allow atomic mappigns. Only difference is
+that importers are not allowed to sleep while holding an atomic mapping.
 
-             -> videobuf_qbuf()
-                grabs current->mm->mmap_sem at
-                http://lxr.free-electrons.com/source/drivers/media/video/videobuf-core.c#L537
+These functions are again not allowed to fail.
 
-Regards,
+Comments, flames?
 
-Thomas
+If this sounds sensible I'll throw together a quick rfc over the next few
+days.
+
+Cheers, Daniel
+
+PS: Imo the next step after this would be adding userspace mmap support.
+This has the funky requirement that the exporter needs to be able to shot
+down any ptes before it moves around the buffer. I think solving that nice
+little problem is a good exercise to prepare us for solving similar "get
+of this buffer, now" issues with permanent device address space mappings
+...
 -- 
-Thomas Petazzoni, Free Electrons
-Kernel, drivers, real-time and embedded Linux
-development, consulting, training and support.
-http://free-electrons.com
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
