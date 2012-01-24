@@ -1,60 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vms173013pub.verizon.net ([206.46.173.13]:52732 "EHLO
-	vms173013pub.verizon.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755841Ab2APR4R (ORCPT
+Received: from sargas.telkomsa.net ([196.25.211.69]:29021 "EHLO
+	sargas.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755327Ab2AXK7J convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 12:56:17 -0500
-Received: from opus ([unknown] [71.170.160.242]) by vms173013.mailsrvcs.net
- (Sun Java(tm) System Messaging Server 7u2-7.02 32bit (built Apr 16 2009))
- with ESMTPA id <0LXW0068AKH9HC84@vms173013.mailsrvcs.net> for
- linux-media@vger.kernel.org; Mon, 16 Jan 2012 11:55:57 -0600 (CST)
-Date: Mon, 16 Jan 2012 11:55:56 -0600
-From: David Engel <david@istwok.net>
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: Strange problem, help needed
-Message-id: <20120116175556.GB29539@opus.istwok.net>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-disposition: inline
+	Tue, 24 Jan 2012 05:59:09 -0500
+Date: Tue, 24 Jan 2012 12:59:00 +0200 (SAST)
+From: =?utf-8?Q?Western_Union_Company_=C2=A9?=
+	<online445428@telkomsa.net>
+Reply-To: =?utf-8?Q?Western_Union_Company_=C2=A9?=
+	  <westernoffice79@yahoo.com.hk>
+Message-ID: <1566846021.360394.1327402740908.JavaMail.root@zimbra3-vm1.telkomsa.net>
+Subject: New  Year  Promo  To  Our  Beneficiary!!!
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Dear Beneficiary,
+ 
+We are here to notify you that the sum of  $250,000 U.S.Dollars was generated and awarded to you by the Western Union Foundation in conjunction with the African Union Foundation.This award was been selected through the internet, where your e-mail address was indicated and notified.The Western Union  Foundation, All the email addresses of the people that are active online,among the millions of our customers who use Western Union in their business transactions.Four people are selected Every year  to benefit from this promotion and you are one of the Selected Winners.
 
-I have a MythTV backend with a Hauppauge HVR-2250 (dual tuner,
-ATSC?QAM, PCIe) and a Ceton InfiniTV4 (quad tuner, QAM/cable card,
-PCIe).  Over the weekend, I started intermittently seeing corrupt
-recordings that were painful to watch.
+To avoid misappropriation of funds, proper verifications must be carried out before the fund is transferred. We require the details below for verification so that the transfer can be carried out.
 
-I eventually narrowed the problem down to when both tuners on the 2250
-are active at the same time.  In this case, both recordings have
-corruption (CRC errors, etc.).  The InfiniTV4 does not appear to be
-affected by anything going on on the 2250.  Likewise, the 2250 does
-not appear to be affected by anything going on on the InfiniTV4.
+1. Receiver's Full Name:
+2. Receiver's Address:
+3. Receiver's Country:
+4. Receiver's Telephone Number:
+5. Receiver's Occupation:
 
-I noticed something strange while diagnosinig the problem.  When the
-2250 is busy recording, top reports the CPU as being in wait for an
-abnormally high amount of time (~30% for one tuner busy and ~50% for
-both tuners busy).  I don't recall seeing that before.  I quickly
-tried a KWorld ATSC 110 on a different system and it showed no, or
-negligible wait time.
+  Send the above details to us via the email addresses stated below:
+ 
+Western Union District Manager (Mr. Mike Moris)
+Website:www.westernunion.com
+E-mail: westernoffice79@yahoo.com.hk
 
-Thinking that the 2250 was going bad, I replaced it with two KWorld
-ATSC 110s (single tuner, ATSC/QAM, PCI).  The two 110s had the same
-problem as the 2250 -- corruption when both tuners are busy and
-unusually high wait time when either is busy.
+Note: You were selected as a winner on this promotion and I personally advise that you use the funds wisely. However, we need your information as stated above to commence the transaction due process.
 
-At this point, I'm suspecting a motherboard, memory or grounding
-issue, but would like some feedback in case there's anything I'm
-missing.  The high wait time seems extremely odd to me.  Perhaps it
-means something to those of you who are much more familiar with the
-cards and drivers.
+As soon as these details are received and verified, the fund will be transferred to you.
 
-Oh, the problem appear shortly after switching to the 3.1.9 kernel.  I
-also tried the 3.1.8 and 3.0.14 kernels to rule out software and there
-was no effect on the problem.
-
-David
--- 
-David Engel
-david@istwok.net
+Copyright © 2001-2011 The Western Union Company , All Rights Reserved.
