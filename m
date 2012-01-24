@@ -1,227 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:57933 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751093Ab2AYC4n (ORCPT
+Received: from mail-iy0-f174.google.com ([209.85.210.174]:43304 "EHLO
+	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755734Ab2AXLHu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 24 Jan 2012 21:56:43 -0500
+	Tue, 24 Jan 2012 06:07:50 -0500
+Received: by iacb35 with SMTP id b35so5221998iac.19
+        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 03:07:49 -0800 (PST)
+Message-ID: <4F1E9100.90306@gmail.com>
+Date: Tue, 24 Jan 2012 16:37:44 +0530
+From: Subash Patel <subashrp@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.44L0.1201241258510.1200-100000@iolanthe.rowland.org>
-References: <Pine.LNX.4.44L0.1201241258510.1200-100000@iolanthe.rowland.org>
-Date: Wed, 25 Jan 2012 11:56:41 +0900
-Message-ID: <CAH9JG2WEQ4hzvd=Lunfi=Y7LYF19Gs0CNT3WACCxNT1EvzhoyA@mail.gmail.com>
-Subject: Re: [PATCH 1/5] Driver core: driver_find() drops reference before returning
-From: Kyungmin Park <kyungmin.park@samsung.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Greg KH <greg@kroah.com>,
-	Dmitry Torokhov <dmitry.torokhov@gmail.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Martin Schwidefsky <schwidefsky@de.ibm.com>,
-	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-s390@vger.kernel.org,
-	Kernel development list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+CC: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	pawel@osciak.com, sumit.semwal@ti.com, jesse.barker@linaro.org,
+	kyungmin.park@samsung.com, daniel@ffwll.ch
+Subject: Re: [Linaro-mm-sig] [PATCH 05/10] v4l: add buffer exporting via dmabuf
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com> <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
+In-Reply-To: <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For s5p-{fimc,tv}
+Hello Thomasz,
 
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Instead of adding another IOCTL to query the file-descriptor in 
+user-space, why dont we extend the existing ones in v4l2/vb2?
 
-On 1/25/12, Alan Stern <stern@rowland.harvard.edu> wrote:
-> As part of the removal of get_driver()/put_driver(), this patch
-> (as1510) changes driver_find(); it now drops the reference it acquires
-> before returning.  The patch also adjusts all the callers of
-> driver_find() to remove the now unnecessary calls to put_driver().
+When the memory type set is V4L2_MEMORY_DMABUF, call to VIDIOC_REQBUFS 
+/VIDIOC_QUERYBUF from driver can take/return the fd. We will need to add 
+another attribute to struct v4l2_requestbuffers for this.
+
+struct v4l2_requestbuffers {
+	...
+	__u32 buf_fd;
+};
+
+The application requesting buffer would set it to -1, and will receive 
+the fd's when it calls the vb2_querybuf. In the same way, application 
+which is trying to attach to already allocated buffer will set this to 
+valid fd when it calls vidioc_reqbuf, and in vb2_reqbuf depending on the 
+memory type, this can be checked and used to attach with the dma_buf for 
+the respective buffer.
+
+Ofcourse, this requires changes in vb2_reqbufs and vb2_querybuf similar 
+to what you did in vb2_expbufs.
+
+Will there be any issues in such an approach?
+
+Regards,
+Subash
+
+On 01/23/2012 07:21 PM, Tomasz Stanislawski wrote:
+> This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
+> descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
+> mmap and return a file descriptor on success.
 >
-> In addition, the patch adds a warning to driver_find(): Callers must
-> make sure the driver they are searching for does not get unloaded
-> while they are using it.  This has always been the case; driver_find()
-> has never prevented a driver from being unregistered or unloaded.
-> Hence the patch will not introduce any new bugs.  The existing callers
-> all seem to be okay in this respect, however I don't understand the
-> video drivers well enough to be certain about them.
->
-> Signed-off-by: Alan Stern <stern@rowland.harvard.edu>
-> CC: Dmitry Torokhov <dmitry.torokhov@gmail.com>
-> CC: Kyungmin Park <kyungmin.park@samsung.com>
-> CC: Andy Walls <awalls@md.metrocast.net>
-> CC: Martin Schwidefsky <schwidefsky@de.ibm.com>
->
+> Signed-off-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
+> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
 > ---
+>   drivers/media/video/v4l2-compat-ioctl32.c |    1 +
+>   drivers/media/video/v4l2-ioctl.c          |   11 +++++++++++
+>   include/linux/videodev2.h                 |    1 +
+>   include/media/v4l2-ioctl.h                |    1 +
+>   4 files changed, 14 insertions(+), 0 deletions(-)
 >
->  drivers/base/driver.c                       |    7 +++++--
->  drivers/input/gameport/gameport.c           |    1 -
->  drivers/input/serio/serio.c                 |    1 -
->  drivers/media/video/cx18/cx18-alsa-main.c   |    1 -
->  drivers/media/video/ivtv/ivtvfb.c           |    2 --
->  drivers/media/video/s5p-fimc/fimc-mdevice.c |    5 +----
->  drivers/media/video/s5p-tv/mixer_video.c    |    1 -
->  drivers/s390/net/smsgiucv_app.c             |    9 ++++-----
->  8 files changed, 10 insertions(+), 17 deletions(-)
+> diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
+> index c68531b..0f18b5e 100644
+> --- a/drivers/media/video/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/video/v4l2-compat-ioctl32.c
+> @@ -954,6 +954,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+>   	case VIDIOC_S_FBUF32:
+>   	case VIDIOC_OVERLAY32:
+>   	case VIDIOC_QBUF32:
+> +	case VIDIOC_EXPBUF:
+>   	case VIDIOC_DQBUF32:
+>   	case VIDIOC_STREAMON32:
+>   	case VIDIOC_STREAMOFF32:
+> diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+> index e1da8fc..cb29e00 100644
+> --- a/drivers/media/video/v4l2-ioctl.c
+> +++ b/drivers/media/video/v4l2-ioctl.c
+> @@ -207,6 +207,7 @@ static const char *v4l2_ioctls[] = {
+>   	[_IOC_NR(VIDIOC_S_FBUF)]           = "VIDIOC_S_FBUF",
+>   	[_IOC_NR(VIDIOC_OVERLAY)]          = "VIDIOC_OVERLAY",
+>   	[_IOC_NR(VIDIOC_QBUF)]             = "VIDIOC_QBUF",
+> +	[_IOC_NR(VIDIOC_EXPBUF)]           = "VIDIOC_EXPBUF",
+>   	[_IOC_NR(VIDIOC_DQBUF)]            = "VIDIOC_DQBUF",
+>   	[_IOC_NR(VIDIOC_STREAMON)]         = "VIDIOC_STREAMON",
+>   	[_IOC_NR(VIDIOC_STREAMOFF)]        = "VIDIOC_STREAMOFF",
+> @@ -932,6 +933,16 @@ static long __video_do_ioctl(struct file *file,
+>   			dbgbuf(cmd, vfd, p);
+>   		break;
+>   	}
+> +	case VIDIOC_EXPBUF:
+> +	{
+> +		unsigned int *p = arg;
+> +
+> +		if (!ops->vidioc_expbuf)
+> +			break;
+> +
+> +		ret = ops->vidioc_expbuf(file, fh, *p);
+> +		break;
+> +	}
+>   	case VIDIOC_DQBUF:
+>   	{
+>   		struct v4l2_buffer *p = arg;
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 3c0ade1..448fbed 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -2183,6 +2183,7 @@ struct v4l2_create_buffers {
+>   #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
+>   #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
+>   #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
+> +#define VIDIOC_EXPBUF		_IOWR('V', 16, __u32)
+>   #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
+>   #define VIDIOC_STREAMON		 _IOW('V', 18, int)
+>   #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index 4d1c74a..8201546 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -120,6 +120,7 @@ struct v4l2_ioctl_ops {
+>   	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
+>   	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
+>   	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
+> +	int (*vidioc_expbuf)  (struct file *file, void *fh, __u32 offset);
+>   	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
 >
-> Index: usb-3.3/drivers/base/driver.c
-> ===================================================================
-> --- usb-3.3.orig/drivers/base/driver.c
-> +++ usb-3.3/drivers/base/driver.c
-> @@ -234,7 +234,6 @@ int driver_register(struct device_driver
->
->  	other = driver_find(drv->name, drv->bus);
->  	if (other) {
-> -		put_driver(other);
->  		printk(KERN_ERR "Error: Driver '%s' is already registered, "
->  			"aborting...\n", drv->name);
->  		return -EBUSY;
-> @@ -275,7 +274,9 @@ EXPORT_SYMBOL_GPL(driver_unregister);
->   * Call kset_find_obj() to iterate over list of drivers on
->   * a bus to find driver by name. Return driver if found.
->   *
-> - * Note that kset_find_obj increments driver's reference count.
-> + * This routine provides no locking to prevent the driver it returns
-> + * from being unregistered or unloaded while the caller is using it.
-> + * The caller is responsible for preventing this.
->   */
->  struct device_driver *driver_find(const char *name, struct bus_type *bus)
->  {
-> @@ -283,6 +284,8 @@ struct device_driver *driver_find(const
->  	struct driver_private *priv;
->
->  	if (k) {
-> +		/* Drop reference added by kset_find_obj() */
-> +		kobject_put(k);
->  		priv = to_driver(k);
->  		return priv->driver;
->  	}
-> Index: usb-3.3/drivers/input/gameport/gameport.c
-> ===================================================================
-> --- usb-3.3.orig/drivers/input/gameport/gameport.c
-> +++ usb-3.3/drivers/input/gameport/gameport.c
-> @@ -449,7 +449,6 @@ static ssize_t gameport_rebind_driver(st
->  	} else if ((drv = driver_find(buf, &gameport_bus)) != NULL) {
->  		gameport_disconnect_port(gameport);
->  		error = gameport_bind_driver(gameport, to_gameport_driver(drv));
-> -		put_driver(drv);
->  	} else {
->  		error = -EINVAL;
->  	}
-> Index: usb-3.3/drivers/input/serio/serio.c
-> ===================================================================
-> --- usb-3.3.orig/drivers/input/serio/serio.c
-> +++ usb-3.3/drivers/input/serio/serio.c
-> @@ -441,7 +441,6 @@ static ssize_t serio_rebind_driver(struc
->  	} else if ((drv = driver_find(buf, &serio_bus)) != NULL) {
->  		serio_disconnect_port(serio);
->  		error = serio_bind_driver(serio, to_serio_driver(drv));
-> -		put_driver(drv);
->  		serio_remove_duplicate_events(serio, SERIO_RESCAN_PORT);
->  	} else {
->  		error = -EINVAL;
-> Index: usb-3.3/drivers/media/video/cx18/cx18-alsa-main.c
-> ===================================================================
-> --- usb-3.3.orig/drivers/media/video/cx18/cx18-alsa-main.c
-> +++ usb-3.3/drivers/media/video/cx18/cx18-alsa-main.c
-> @@ -285,7 +285,6 @@ static void __exit cx18_alsa_exit(void)
->
->  	drv = driver_find("cx18", &pci_bus_type);
->  	ret = driver_for_each_device(drv, NULL, NULL, cx18_alsa_exit_callback);
-> -	put_driver(drv);
->
->  	cx18_ext_init = NULL;
->  	printk(KERN_INFO "cx18-alsa: module unload complete\n");
-> Index: usb-3.3/drivers/media/video/ivtv/ivtvfb.c
-> ===================================================================
-> --- usb-3.3.orig/drivers/media/video/ivtv/ivtvfb.c
-> +++ usb-3.3/drivers/media/video/ivtv/ivtvfb.c
-> @@ -1293,7 +1293,6 @@ static int __init ivtvfb_init(void)
->
->  	drv = driver_find("ivtv", &pci_bus_type);
->  	err = driver_for_each_device(drv, NULL, &registered,
-> ivtvfb_callback_init);
-> -	put_driver(drv);
->  	if (!registered) {
->  		printk(KERN_ERR "ivtvfb:  no cards found\n");
->  		return -ENODEV;
-> @@ -1310,7 +1309,6 @@ static void ivtvfb_cleanup(void)
->
->  	drv = driver_find("ivtv", &pci_bus_type);
->  	err = driver_for_each_device(drv, NULL, NULL, ivtvfb_callback_cleanup);
-> -	put_driver(drv);
->  }
->
->  module_init(ivtvfb_init);
-> Index: usb-3.3/drivers/media/video/s5p-fimc/fimc-mdevice.c
-> ===================================================================
-> --- usb-3.3.orig/drivers/media/video/s5p-fimc/fimc-mdevice.c
-> +++ usb-3.3/drivers/media/video/s5p-fimc/fimc-mdevice.c
-> @@ -344,16 +344,13 @@ static int fimc_md_register_platform_ent
->  		return -ENODEV;
->  	ret = driver_for_each_device(driver, NULL, fmd,
->  				     fimc_register_callback);
-> -	put_driver(driver);
->  	if (ret)
->  		return ret;
->
->  	driver = driver_find(CSIS_DRIVER_NAME, &platform_bus_type);
-> -	if (driver) {
-> +	if (driver)
->  		ret = driver_for_each_device(driver, NULL, fmd,
->  					     csis_register_callback);
-> -		put_driver(driver);
-> -	}
->  	return ret;
->  }
->
-> Index: usb-3.3/drivers/media/video/s5p-tv/mixer_video.c
-> ===================================================================
-> --- usb-3.3.orig/drivers/media/video/s5p-tv/mixer_video.c
-> +++ usb-3.3/drivers/media/video/s5p-tv/mixer_video.c
-> @@ -58,7 +58,6 @@ static struct v4l2_subdev *find_and_regi
->  	}
->
->  done:
-> -	put_driver(drv);
->  	return sd;
->  }
->
-> Index: usb-3.3/drivers/s390/net/smsgiucv_app.c
-> ===================================================================
-> --- usb-3.3.orig/drivers/s390/net/smsgiucv_app.c
-> +++ usb-3.3/drivers/s390/net/smsgiucv_app.c
-> @@ -168,7 +168,7 @@ static int __init smsgiucv_app_init(void
->  	rc = dev_set_name(smsg_app_dev, KMSG_COMPONENT);
->  	if (rc) {
->  		kfree(smsg_app_dev);
-> -		goto fail_put_driver;
-> +		goto fail;
->  	}
->  	smsg_app_dev->bus = &iucv_bus;
->  	smsg_app_dev->parent = iucv_root;
-> @@ -177,7 +177,7 @@ static int __init smsgiucv_app_init(void
->  	rc = device_register(smsg_app_dev);
->  	if (rc) {
->  		put_device(smsg_app_dev);
-> -		goto fail_put_driver;
-> +		goto fail;
->  	}
->
->  	/* convert sender to uppercase characters */
-> @@ -191,12 +191,11 @@ static int __init smsgiucv_app_init(void
->  	rc = smsg_register_callback(SMSG_PREFIX, smsg_app_callback);
->  	if (rc) {
->  		device_unregister(smsg_app_dev);
-> -		goto fail_put_driver;
-> +		goto fail;
->  	}
->
->  	rc = 0;
-> -fail_put_driver:
-> -	put_driver(smsgiucv_drv);
-> +fail:
->  	return rc;
->  }
->  module_init(smsgiucv_app_init);
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-input" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+>   	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
