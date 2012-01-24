@@ -1,52 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58437 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751950Ab2AOTIi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 14:08:38 -0500
-Received: from dyn3-82-128-184-189.psoas.suomi.net ([82.128.184.189] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1RmVRO-0000Gg-PU
-	for linux-media@vger.kernel.org; Sun, 15 Jan 2012 21:08:30 +0200
-Message-ID: <4F13242E.70007@iki.fi>
-Date: Sun, 15 Jan 2012 21:08:30 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-xsmtp3.externet.hu ([212.40.96.154]:37138 "EHLO
+	mail-xsmtp3.externet.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751978Ab2AXOmK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jan 2012 09:42:10 -0500
+Message-ID: <4F1EC340.6080505@gmail.com>
+Date: Tue, 24 Jan 2012 15:42:08 +0100
+From: Csillag Kristof <csillag.kristof@gmail.com>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH FOR 3.3] cxd2820r: do not switch to DVB-T when DVB-C fails
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: 720p webcam providing VDPAU-compatible video stream?
+References: <4F1C0921.1060109@gmail.com> <201201231541.32049.laurent.pinchart@ideasonboard.com> <4F1D8B51.4020507@gmail.com> <201201241516.21919.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <201201241516.21919.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-2; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fix another bug	introduced by recent multi-frontend to single-frontend 
-change.
+At 2012-01-24 15:16, Laurent Pinchart wrote:
+> Hi Kristof,
+>
+> On Monday 23 January 2012 17:31:13 Csillag Kristof wrote:
+>> At 2012-01-23 15:41, Laurent Pinchart wrote:
+>>> I think your best bet is still UVC + H.264, as that's what the market is
+>>> moving to. Any other compressed format (except for MJPEG) will likely be
+>>> proprietary.
+>>>
+>>> As you correctly mention, H.264 support isn't available yet in the UVC
+>>> driver. Patches are welcome ;-)
+>> So... do I understand it correctly that with the current hw/sw stack, my
+>> original requirements can not be satisfied?
+> Not that I'm aware of.
+OK, thank you for confirming that. In this case, I will just give this 
+up, for now.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
-  drivers/media/dvb/frontends/cxd2820r_core.c |    4 ++--
-  1 files changed, 2 insertions(+), 2 deletions(-)
+>> In that case, let's try with reduced requirements. What if I give up HD
+>> resolution and H264?
+>>
+>> Is there a camera that can provide a HW-compressed 480p video stream, in
+>> MPEG-2 or something like that?
+> I don't think so. Once again, unless you can work with MJPEG, your best bet is
+> UVC and H.264. But you will need to write the code (or find someone who can
+> write it).
+>
+I could definitely write the code, but I wish to spend my (severely 
+limited) time and resources on other projects.
 
-diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c 
-b/drivers/media/dvb/frontends/cxd2820r_core.c
-index 93e1b12..b789a90 100644
---- a/drivers/media/dvb/frontends/cxd2820r_core.c
-+++ b/drivers/media/dvb/frontends/cxd2820r_core.c
-@@ -476,10 +476,10 @@ static enum dvbfe_search cxd2820r_search(struct 
-dvb_frontend *fe)
-  	dbg("%s: delsys=%d", __func__, fe->dtv_property_cache.delivery_system);
+Thank you for your help anyway:
 
-  	/* switch between DVB-T and DVB-T2 when tune fails */
--	if (priv->last_tune_failed && (priv->delivery_system != 
-SYS_DVBC_ANNEX_A)) {
-+	if (priv->last_tune_failed) {
-  		if (priv->delivery_system == SYS_DVBT)
-  			c->delivery_system = SYS_DVBT2;
--		else
-+		else if (priv->delivery_system == SYS_DVBT2)
-  			c->delivery_system = SYS_DVBT;
-  	}
+     Kristof
 
--- 
-1.7.4.4
