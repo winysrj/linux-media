@@ -1,116 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:34509 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754490Ab2ACSaR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 3 Jan 2012 13:30:17 -0500
-Received: by eekc4 with SMTP id c4so16105782eek.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 10:30:16 -0800 (PST)
-Message-ID: <4F034934.4010407@gmail.com>
-Date: Tue, 03 Jan 2012 19:30:12 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+Received: from mx1.redhat.com ([209.132.183.28]:21915 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751419Ab2AXMQO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 24 Jan 2012 07:16:14 -0500
+Message-ID: <4F1EA107.2080600@redhat.com>
+Date: Tue, 24 Jan 2012 10:16:07 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH v2] xc3028: fix center frequency calculation for DTV78 firmware
-Content-Type: text/plain; charset=UTF-8
+To: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+CC: linux-media@vger.kernel.org, Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [linux-media] Re: [PATCH] stb0899: fix the limits for signal
+ strength values
+References: <4F18555D.3000205@tvdr.de> <4F1DB873.20206@redhat.com> <4F1E7B01.2050602@tvdr.de>
+In-Reply-To: <4F1E7B01.2050602@tvdr.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
-this patch replaces the previous one proposed in the thread
-"xc3028: force reload of DTV7 firmware in VHF band with Zarlink
-demodulator".
-The problem is that the firmware DTV78 works fine in UHF band (8 MHz
-bandwidth) but is not working at all in VHF band (7 MHz bandwidth).
-Reading the comments inside the code, I figured out that the real
-problem could be connected to the formula used to calculate the center
-frequency offset in VHF band.
+Em 24-01-2012 07:33, Klaus Schmidinger escreveu:
+> On 23.01.2012 20:43, Mauro Carvalho Chehab wrote:
+>> Hi Klaus,
+>>
+>> The patch didn't apply. It seems to be due to your emailer that mangled the
+>> whitespaces.
+> 
+> Sorry about that. Here it is again as an attachment.
 
-In fact, removing this adjustment fixes the problem:
+Thanks!
 
-		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
-			offset -= 500000;
+>> The patch looks correct on my eyes. Yet, I'd like to have Manu's ack on it.
+>>
+>> Em 19-01-2012 15:39, Klaus Schmidinger escreveu:
+>>> stb0899_read_signal_strength() adds an offset to the result of the table lookup.
+>>> That offset must correspond to the lowest value in the lookup table, to make sure
+>>> the result doesn't get below 0, which would mean a "very high" value since the
+>>> parameter is unsigned.
+>>> 'strength' and 'snr' need to be initialized to 0 to make sure they have a
+>>> defined result in case there is no "internal->lock".
+>>>
+>>> Signed-off-by: Klaus Schmidinger<Klaus.Schmidinger@tvdr.de>
+>>>
+>>> --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c   2011-06-11 16:54:32.000000000 +0200
+>>> +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c   2011-06-11 16:23:00.000000000 +0200
+>>> @@ -67,7 +67,7 @@
+>>>    * Crude linear extrapolation below -84.8dBm and above -8.0dBm.
+>>>    */
+>>>   static const struct stb0899_tab stb0899_dvbsrf_tab[] = {
+>>> -       { -950, -128 },
+>>> +       { -750, -128 },
+>>>          { -748,  -94 },
+>>>          { -745,  -92 },
+>>>          { -735,  -90 },
+>>> @@ -131,7 +131,7 @@
+>>>          { -730, 13645 },
+>>>          { -750, 13909 },
+>>>          { -766, 14153 },
+>>> -       { -999, 16383 }
+>>> +       { -950, 16383 }
+>>>   };
+>>>
+>>>   /* DVB-S2 Es/N0 quant in dB/100 vs read value * 100*/
+>>> @@ -964,6 +964,7 @@
+>>>
+>>>          int val;
+>>>          u32 reg;
+>>> +       *strength = 0;
+>>
+>> This is not needed, as strength is not initialized only on invalid delivery systems,
+>> where -EINVAL is returned.
+> 
+> What about the 'if' conditions within the valid delivery system cases?
+> For instance
+> 
+>         case SYS_DSS:
+>                 if (internal->lock) {
+>                         ...
+>                         if (STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg)) {
+>                            ...
+>                                 *strength = ...
+>                         }
+>                 }
+>                 break;
+> 
+> So there may be cases where strength has an undefined value, even
+> if this function returns 0.
 
-This is coherent to what was implemented for the DTV7 firmware by an
-Australian user:
+Good point. I wandering why gcc didn't complain about that. 
 
-		if (priv->cur_fw.type & DTV7)
-			offset += 500000;
+>>>          switch (state->delsys) {
+>>>          case SYS_DVBS:
+>>>          case SYS_DSS:
+>>> @@ -987,7 +988,7 @@
+>>>                          val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
+>>>
+>>>                          *strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
+>>> -                       *strength += 750;
+>>> +                       *strength += 950;
+>>>                          dprintk(state->verbose, FE_DEBUG, 1, "IF_AGC_GAIN = 0x%04x, C = %d * 0.1 dBm",
+>>>                                  val&  0x3fff, *strength);
+>>>                  }
+>>> @@ -1009,6 +1010,7 @@
+>>>          u8 buf[2];
+>>>          u32 reg;
+>>>
+>>> +       *snr = 0;
+>>
+>> This is not needed, as strength is not initialized only on invalid delivery systems,
+>> where -EINVAL is returned.
+> 
+> See above.
+> 
+>>>          reg  = stb0899_read_reg(state, STB0899_VSTATUS);
+>>>          switch (state->delsys) {
+>>>          case SYS_DVBS:
+>>
+>> PS.: Another alternative for it would be the enclosed patch,
+>> wich will be a little simpler, and will also preserve the slope
+>> on the boundary values, used at the stb0899_table_lookup()
+>> interpolation logic.
+> 
+> Well, as long as there are no negative values for strength...
+> However, I don't quite see why the range is 750 - 950 for DVB-S
+> and 750 - 999 for DVB-S2. Shouldn't this be the same maximum
+> value in both cases?
 
-In the end, now the center frequency is the same for all firmwares
-(DTV7, DTV8, DTV78) and doesn't depend on channel bandwidth.
+This is a very good question. Unfortunately, I don't have the datasheets
+for this device.
 
-The final code looks clean and simple, and there is no need for any
-"magic" adjustment:
+Manu shold be able to answer that better than me.
 
-		if (priv->cur_fw.type & DTV6)
-			offset = 1750000;
-		else	/* DTV7 or DTV8 or DTV78 */
-			offset = 2750000;
+Based on the table lookup routine, I suspect that what those tables
+are doing are to interpolate some log curve by breaking it into a 
+few straight line segments. Changing from 999 to 950 will affect 
+such interpolation. So, it is better to check this at the datasheets
+before changing from -999 to -950, or from -750 to -950.
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/common/tuners/tuner-xc2028.c |   26
-++++++++++++++++----------
- 1 files changed, 16 insertions(+), 10 deletions(-)
+Manu,
 
-diff --git a/drivers/media/common/tuners/tuner-xc2028.c
-b/drivers/media/common/tuners/tuner-xc2028.c
-index bdcbfd7..2755599 100644
---- a/drivers/media/common/tuners/tuner-xc2028.c
-+++ b/drivers/media/common/tuners/tuner-xc2028.c
-@@ -962,14 +962,24 @@ static int generic_set_freq(struct dvb_frontend
-*fe, u32 freq /* in HZ */,
- 		 * For DTV 7/8, the firmware uses BW = 8000, so it needs a
- 		 * further adjustment to get the frequency center on VHF
- 		 */
-+
-+		/*
-+		 * The firmware DTV78 used to work fine in UHF band (8 MHz
-+		 * bandwidth) but not at all in VHF band (7 MHz bandwidth).
-+		 * The real problem was connected to the formula used to
-+		 * calculate the center frequency offset in VHF band.
-+		 * In fact, removing the 500KHz adjustment fixed the problem.
-+		 * This is coherent to what was implemented for the DTV7
-+		 * firmware.
-+		 * In the end, now the center frequency is the same for all 3
-+		 * firmwares (DTV7, DTV8, DTV78) and doesn't depend on channel
-+		 * bandwidth.
-+		 */
-+
- 		if (priv->cur_fw.type & DTV6)
- 			offset = 1750000;
--		else if (priv->cur_fw.type & DTV7)
--			offset = 2250000;
--		else	/* DTV8 or DTV78 */
-+		else	/* DTV7 or DTV8 or DTV78 */
- 			offset = 2750000;
--		if ((priv->cur_fw.type & DTV78) && freq < 470000000)
--			offset -= 500000;
+Could you please review it?
 
- 		/*
- 		 * xc3028 additional "magic"
-@@ -979,17 +989,13 @@ static int generic_set_freq(struct dvb_frontend
-*fe, u32 freq /* in HZ */,
- 		 * newer firmwares
- 		 */
+Thanks!
+Mauro
 
--#if 1
- 		/*
- 		 * The proper adjustment would be to do it at s-code table.
- 		 * However, this didn't work, as reported by
- 		 * Robert Lowery <rglowery@exemail.com.au>
- 		 */
+Em 24-01-2012 07:33, Klaus Schmidinger escreveu:
+> 
+> stb0899: fix the limits for signal strength values
+> 
+> stb0899_read_signal_strength() adds an offset to the result of the table lookup.
+> That offset must correspond to the lowest value in the lookup table, to make sure
+> the result doesn't get below 0, which would mean a "very high" value since the
+> parameter is unsigned.
+> 'strength' and 'snr' need to be initialized to 0 to make sure they have a
+> defined result in case there is no "internal->lock".
+> 
+> Signed-off-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+> 
+> --- a/linux/drivers/media/dvb/frontends/stb0899_drv.c	2011-06-11 16:54:32.000000000 +0200
+> +++ b/linux/drivers/media/dvb/frontends/stb0899_drv.c	2011-06-11 16:23:00.000000000 +0200
+> @@ -67,7 +67,7 @@
+>   * Crude linear extrapolation below -84.8dBm and above -8.0dBm.
+>   */
+>  static const struct stb0899_tab stb0899_dvbsrf_tab[] = {
+> -	{ -950,	-128 },
+> +	{ -750,	-128 },
+>  	{ -748,	 -94 },
+>  	{ -745,	 -92 },
+>  	{ -735,	 -90 },
+> @@ -131,7 +131,7 @@
+>  	{ -730,	13645 },
+>  	{ -750,	13909 },
+>  	{ -766,	14153 },
+> -	{ -999,	16383 }
+> +	{ -950,	16383 }
+>  };
+>  
+>  /* DVB-S2 Es/N0 quant in dB/100 vs read value * 100*/
+> @@ -964,6 +964,7 @@
+>  
+>  	int val;
+>  	u32 reg;
+> +	*strength = 0;
+>  	switch (state->delsys) {
+>  	case SYS_DVBS:
+>  	case SYS_DSS:
+> @@ -987,7 +988,7 @@
+>  			val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
+>  
+>  			*strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
+> -			*strength += 750;
+> +			*strength += 950;
+>  			dprintk(state->verbose, FE_DEBUG, 1, "IF_AGC_GAIN = 0x%04x, C = %d * 0.1 dBm",
+>  				val & 0x3fff, *strength);
+>  		}
+> @@ -1009,6 +1010,7 @@
+>  	u8 buf[2];
+>  	u32 reg;
+>  
+> +	*snr = 0;
+>  	reg  = stb0899_read_reg(state, STB0899_VSTATUS);
+>  	switch (state->delsys) {
+>  	case SYS_DVBS:
 
--		if (priv->cur_fw.type & DTV7)
--			offset += 500000;
--
--#else
-+#if 0
- 		/*
- 		 * Still need tests for XC3028L (firmware 3.2 or upper)
- 		 * So, for now, let's just comment the per-firmware
--- 
-1.7.5.4
