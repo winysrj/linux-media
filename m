@@ -1,96 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:63229 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752311Ab2AWNvh (ORCPT
+Received: from mxweb5.versatel.de ([82.140.32.141]:33511 "EHLO
+	mxweb5.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757362Ab2AXShg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 08:51:37 -0500
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LY900A0W7TZVI@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:35 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LY900GK77TYU2@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:35 +0000 (GMT)
-Date: Mon, 23 Jan 2012 14:51:08 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 03/10] media: vb2: add prepare/finish callbacks to allocators
-In-reply-to: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
-Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	pawel@osciak.com
-Message-id: <1327326675-8431-4-git-send-email-t.stanislaws@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+	Tue, 24 Jan 2012 13:37:36 -0500
+Received: from cinnamon-sage.de (i577A8E19.versanet.de [87.122.142.25])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q0OIbXg3008376
+	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 19:37:33 +0100
+Received: from 192.168.23.2:49482 by cinnamon-sage.de for <dheitmueller@kernellabs.com>,<crope@iki.fi>,<MARK.HAWES@au.fujitsu.com>,<linux-media@vger.kernel.org> ; 24.01.2012 19:37:33
+Message-ID: <4F1EFA6E.50704@flensrocker.de>
+Date: Tue, 24 Jan 2012 19:37:34 +0100
+From: Lars Hanisch <dvb@flensrocker.de>
+MIME-Version: 1.0
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Antti Palosaari <crope@iki.fi>,
+	"Hawes, Mark" <MARK.HAWES@au.fujitsu.com>,
+	linux-media@vger.kernel.org
+Subject: Re: HVR 4000 hybrid card still producing multiple frontends for single
+ adapter
+References: <44895934A66CD441A02DCF15DD759BA0011CAE69@SYDEXCHTMP2.au.fjanz.com> <4F1E9A78.7020203@iki.fi> <CAGoCfizF=aO-JTLLCAK=QgsPSVP13SzbB9j6wCFfVzGXc4hnfw@mail.gmail.com> <4F1EC725.7090204@iki.fi> <CAGoCfiwZ2_+rQgXxq9DF_veGZ8vqaZf2JtUSi8SyLW_pd6VFAA@mail.gmail.com>
+In-Reply-To: <CAGoCfiwZ2_+rQgXxq9DF_veGZ8vqaZf2JtUSi8SyLW_pd6VFAA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Marek Szyprowski <m.szyprowski@samsung.com>
+Hi,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- drivers/media/video/videobuf2-core.c |   11 +++++++++++
- include/media/videobuf2-core.h       |    2 ++
- 2 files changed, 13 insertions(+), 0 deletions(-)
+Am 24.01.2012 16:16, schrieb Devin Heitmueller:
+> On Tue, Jan 24, 2012 at 9:58 AM, Antti Palosaari<crope@iki.fi>  wrote:
+>> So what was the actual benefit then just introduce one way more to implement
+>> same thing. As I sometime understood from Manu's talk there will not be
+>> difference if my device is based of DVB-T + DVB-C demod combination or just
+>> single chip that does same. Now there is devices that have same
+>> characteristics but different interface.
+>
+> For one thing, you cannot use DVB-T and DVB-C at the same time if
+> they're on the same demod.  With many of the devices that have S/S2
+> and DVB-T, you can be using them both in parallel.  Having multiple
+> frontends actually makes sense since you don't want two applications
+> talking to the same frontend at the same time but operating on
+> different tuners/streams.
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 4c3a82e..cb85874 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -836,6 +836,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
- 	unsigned long flags;
-+	int plane;
- 
- 	if (vb->state != VB2_BUF_STATE_ACTIVE)
- 		return;
-@@ -846,6 +847,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
- 	dprintk(4, "Done processing on buffer %d, state: %d\n",
- 			vb->v4l2_buf.index, vb->state);
- 
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, finish, vb->planes[plane].mem_priv);
-+
- 	/* Add the buffer to the done buffers list */
- 	spin_lock_irqsave(&q->done_lock, flags);
- 	vb->state = state;
-@@ -1136,9 +1141,15 @@ err:
- static void __enqueue_in_driver(struct vb2_buffer *vb)
- {
- 	struct vb2_queue *q = vb->vb2_queue;
-+	int plane;
- 
- 	vb->state = VB2_BUF_STATE_ACTIVE;
- 	atomic_inc(&q->queued_count);
-+
-+	/* sync buffers */
-+	for (plane = 0; plane < vb->num_planes; ++plane)
-+		call_memop(q, prepare, vb->planes[plane].mem_priv);
-+
- 	q->ops->buf_queue(vb);
- }
- 
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 35607f7..d8b8171 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -76,6 +76,8 @@ struct vb2_fileio_data;
-  */
- struct vb2_mem_ops {
- 	void		*(*alloc)(void *alloc_ctx, unsigned long size);
-+	void		(*prepare)(void *buf_priv);
-+	void		(*finish)(void *buf_priv);
- 	void		(*put)(void *buf_priv);
- 
- 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
--- 
-1.7.5.4
+  The two frontends of the HVR 4000 can only be open mutually exclusive so I think the recent changes are for those 
+devices, aren't they? Sure you can connect DVB-T and DVB-S at the same time to the HVR 4000, but you can't use it in 
+parallel.
 
+Lars.
+
+>
+> That said, there could be opportunities for consolidation if the
+> demods could not be used in parallel, but I believe that would require
+> a nontrivial restructuring of the core code and API.  In my opinion
+> the entry point for the kernel ABI should *never* have been the
+> demodulator but rather the bridge driver (where you can exercise
+> greater control over what can be used in parallel).
+>
+> Devin
+>
