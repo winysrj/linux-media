@@ -1,104 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:48189 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759355Ab2AGCFt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 21:05:49 -0500
-Message-ID: <4F07A874.5070408@infradead.org>
-Date: Sat, 07 Jan 2012 00:05:40 -0200
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from sargas.telkomsa.net ([196.25.211.69]:12831 "EHLO
+	sargas.telkomsa.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab2AYXdN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jan 2012 18:33:13 -0500
+Date: Thu, 26 Jan 2012 01:33:09 +0200 (SAST)
+From: online445428@telkomsa.net
+Message-ID: <61101702.410142.1327534389753.JavaMail.root@zimbra3-vm1.telkomsa.net>
+Subject: New  Year  Promo  To  Our  Beneficiary!!!
 MIME-Version: 1.0
-To: Oliver Endriss <o.endriss@gmx.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.3] [media] dvb_frontend: Don't use ops->info.type
- anymore
-References: <E1RiZbZ-0002R2-ND@www.linuxtv.org> <201201070136.45149@orion.escape-edv.de>
-In-Reply-To: <201201070136.45149@orion.escape-edv.de>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06-01-2012 22:36, Oliver Endriss wrote:
-> On Wednesday 04 January 2012 20:29:36 Mauro Carvalho Chehab wrote:
->>  drivers/media/dvb/dvb-core/dvb_frontend.c |  541 ++++++++++++++---------------
->>  1 files changed, 266 insertions(+), 275 deletions(-)
->> ...
->> -static int dvb_frontend_check_parameters(struct dvb_frontend *fe,
->> -				struct dvb_frontend_parameters *parms)
->> +static int dvb_frontend_check_parameters(struct dvb_frontend *fe)
->>  {
->> ...
->> -	/* check for supported modulation */
->> -	if (fe->ops.info.type == FE_QAM &&
->> -	    (parms->u.qam.modulation > QAM_AUTO ||
->> -	     !((1 << (parms->u.qam.modulation + 10)) & fe->ops.info.caps))) {
->> -		printk(KERN_WARNING "DVB: adapter %i frontend %i modulation %u not supported\n",
->> -		       fe->dvb->num, fe->id, parms->u.qam.modulation);
->> +	/*
->> +	 * check for supported modulation
->> +	 *
->> +	 * This is currently hacky. Also, it only works for DVB-S & friends,
->> +	 * and not all modulations has FE_CAN flags
->> +	 */
->> +	switch (c->delivery_system) {
->> +	case SYS_DVBS:
->> +	case SYS_DVBS2:
->> +	case SYS_TURBO:
->> +		if ((c->modulation > QAM_AUTO ||
->> +		    !((1 << (c->modulation + 10)) & fe->ops.info.caps))) {
->                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
->> +			printk(KERN_WARNING
->> +			       "DVB: adapter %i frontend %i modulation %u not supported\n",
->> +			       fe->dvb->num, fe->id, c->modulation);
->>  			return -EINVAL;
->> +		}
->> +		break;
->> ...
-> 
-> This code is completely bogus: I get tons of warnings, if vdr tries to
-> tune to DVB-S2 (modulation == 9 == PSK_8) on my stv090x.
-> 
-> PSK_8 == 9 is > QAM_AUTO, and the shift operation does not make much
-> sense, except for modulation == 0 == QPSK.
-> 
-> The original version makes more sense for me.
+Dear Beneficiary,
+ 
+We are here to notify you that the sum of  $250,000 U.S.Dollars was generated and awarded to you by the Western Union Foundation in conjunction with the African Union Foundation.This award was been selected through the internet, where your e-mail address was indicated and notified.The Western Union  Foundation, All the email addresses of the people that are active online,among the millions of our customers who use Western Union in their business transactions.Four people are selected Every year  to benefit from this promotion and you are one of the Selected Winners.
 
-Oliver,
+To avoid misappropriation of funds, proper verifications must be carried out before the fund is transferred. We require the details below for verification so that the transfer can be carried out.
 
-At least for DVBv3 calls, the old code will also generate bogus
-warnings if you try to use a DVBv3 call to set PSK_8.
+1. Receiver's Full Name:
+2. Receiver's Address:
+3. Receiver's Country:
+4. Receiver's Telephone Number:
+5. Receiver's Occupation:
 
-I almost removed this validation code during the conversion for several
-reasons:
+  Send the above details to us via the email addresses stated below:
+ 
+Western Union District Manager (Mr. Mike Moris)
+Website:www.westernunion.com
+E-mail: westernoffice79@yahoo.com.hk
 
-1) it does some "magic" by assuming that all QAM modulations are below
-  QAM_AUTO;
+Note: You were selected as a winner on this promotion and I personally advise that you use the funds wisely. However, we need your information as stated above to commence the transaction due process.
 
-2) it checks modulation parameters only for DVB-S. IMO, or the core should
-invalid parameters for all delivery systems, or should let the frontend
-drivers do it;
+As soon as these details are received and verified, the fund will be transferred to you.
 
-3) frontend drivers should already be checking for invalid parameters
-(most of them do it, anyway);
-
-4) not all modulations are mapped at fe->ops.info.caps, so it is not
-even possible to check for the valid modulations inside the core for
-some delivery systems;
-
-5) Why the core checks just the modulation, and doesn't check for other
-types of invalid parameters, like FEC and bandwidth?
-
-At the end, I decided to keep it, but added that note, as I really didn't
-like that part of the code.
-
-I can see two fixes for this:
-
-a) just remove the validation, and let the frontend check what's
-   supported;
-
-b) rewrite the code with a per-standard table of valid values.
-
-I vote for removing the validation logic there.
-
-Regards,
-Mauro
+Copyright © 2001-2011 The Western Union Company , All Rights Reserved.
