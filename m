@@ -1,173 +1,226 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:32926 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752935Ab2A3OQl (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:13856 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752253Ab2AYPaj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 09:16:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Subash Patel <subashrp@gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 05/10] v4l: add buffer exporting via dmabuf
-Date: Mon, 30 Jan 2012 15:16:54 +0100
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	pawel@osciak.com, sumit.semwal@ti.com, jesse.barker@linaro.org,
-	kyungmin.park@samsung.com, daniel@ffwll.ch
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com> <4F1E9EAD.60505@samsung.com> <4F22A952.2080107@gmail.com>
-In-Reply-To: <4F22A952.2080107@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201301516.57631.laurent.pinchart@ideasonboard.com>
+	Wed, 25 Jan 2012 10:30:39 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LYD00KN01R13U@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 25 Jan 2012 15:30:37 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LYD009OJ1R0DB@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 25 Jan 2012 15:30:37 +0000 (GMT)
+Date: Wed, 25 Jan 2012 16:30:33 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] s5p-fimc: Add driver documentation
+To: linux-media@vger.kernel.org
+Cc: riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	m.szyprowski@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1327505433-2867-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Subash,
+Add short documentation providing the driver usage details.
 
-On Friday 27 January 2012 14:40:34 Subash Patel wrote:
-> On 01/24/2012 05:36 PM, Tomasz Stanislawski wrote:
-> > On 01/24/2012 12:07 PM, Subash Patel wrote:
-> >> 
-> >> Instead of adding another IOCTL to query the file-descriptor in
-> >> user-space, why dont we extend the existing ones in v4l2/vb2?
-> >> 
-> >> When the memory type set is V4L2_MEMORY_DMABUF, call to VIDIOC_REQBUFS
-> >> /VIDIOC_QUERYBUF from driver can take/return the fd. We will need to add
-> >> another attribute to struct v4l2_requestbuffers for this.
-> >> 
-> >> struct v4l2_requestbuffers {
-> >> ...
-> >> __u32 buf_fd;
-> >> };
-> >> 
-> >> The application requesting buffer would set it to -1, and will receive
-> >> the fd's when it calls the vb2_querybuf. In the same way, application
-> >> which is trying to attach to already allocated buffer will set this to
-> >> valid fd when it calls vidioc_reqbuf, and in vb2_reqbuf depending on the
-> >> memory type, this can be checked and used to attach with the dma_buf for
-> >> the respective buffer.
-> >> 
-> >> Ofcourse, this requires changes in vb2_reqbufs and vb2_querybuf similar
-> >> to what you did in vb2_expbufs.
-> >> 
-> >> Will there be any issues in such an approach?
-> > 
-> > I like your idea but IMO there are some issues which this approach.
-> > 
-> > The VIDIOC_REQBUF is used to create a collection of buffers (i.e. 5
-> > frames). Every frame is a separate buffer therefore it should have
-> > separate dmabuf file descriptor. This way you should add buffer index to
-> > v4l2_request_buffers. Of course but one could reuse count field but
-> > there is still problem with multiplane buffers (see below).
-> 
-> I agree.
-> 
-> > Please note that dmabuf file could be create only for buffers with MMAP
-> > memory type. The DMABUF memory type for VIDIOC_REQBUFS indicate that a
-> > buffer is imported from DMABUF file descriptor. Similar way like content
-> > of USERPTR buffers is taken from user pointer.
-> > 
-> > Therefore only MMAP buffers can be exported as DMABUF file descriptor.
-> 
-> I think for time being, mmap is best way we can share buffers between
-> IP's, like MM and GPU.
-> 
-> > If VIDIOC_REQUBUF is used for buffer exporting, how to request a bunch
-> > of buffers that are dedicated to obtain memory from DMABUF file
-> > descriptors?
-> 
-> I am not sure if I understand this question. But what I meant is,
-> VIDIOC_REQBUF with memory type V4L2_MEMORY_DMABUF will ask the driver to
-> allocate MMAP type memory and create the dmabuf handles for those. In
-> the next call to VIDIOC_QUERYBUF (which you do on each of the buffers
-> infact), driver will return the dmabuf file descriptors to user space.
-> This can be used by the user space to mmap(when dmabuf supports) or pass
-> it onto another process to share the buffers.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/video4linux/fimc.txt |  178 ++++++++++++++++++++++++++++++++++++
+ 1 files changed, 178 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/fimc.txt
 
-That would be nice, but VIDIOC_REQBUFS(DMABUF) is already used to allocate 
-buffers that will be imported using dma-buf. We need to handle both the 
-importer use case and the exporter use case, we can't handle both with just 
-VIDIOC_REQBUFS(DMABUF).
-
-> The recipient user process can now pass these dmabuf file descriptors in
-> VIDIOC_REQBUF itself to its driver (say another v4l2 based). In the
-> driver, when the user space calls VIDIOC_QUERYBUF for those buffers, we
-> can call dmabuf's attach() to actually link to the buffer. Does it make
-> sense?
-> 
-> > The second problem is VIDIOC_QUERYBUF. According to V4L2 spec, the
-> > memory type field is read only. The driver returns the same memory type
-> > as it was used in VIDIOC_REQBUFS. Therefore VIDIOC_QUERYBUF can only be
-> > used for MMAP buffers to obtain memoffset. For DMABUF it may return
-> > fd=-1 or most recently used file descriptor. As I remember, it was not
-> > defined yet.
-> 
-> I was thinking why not the memory type move out from enum to an int? In
-> that case, we can send ORed types, like
-> V4L2_MEMORY_MMAP|V4L2_MEMORY_DMABUF etc. Does it help?
-
-That would break our API, so we can't do that (although we could still OR enum 
-types).
-
-> > The third reason are multiplane buffers. This API was introduced if V4L2
-> > buffer (IMO it should be called a frame) consist of multiple memory
-> > buffers. Every plane can be mmapped separately. Therefore it should be
-> > possible to export every plane as separate DMABUF descriptor.
-> 
-> Do we require to export every plane as separate dmabuf? I think dmabuf
-> should cover entire multi-plane buffer instead of individual planes.
-
-It depends on the drivers you use. Some drivers require planes to be 
-contiguous in memory, in which case a single dma-buf will likely be used. 
-Other drivers can allocate the planes in separate memory regions. Several dma-
-buf objects then make sense.
-
-> How to calculate individual plane offsets should be the property of the
-> driver depending on its need for it.
->
-> > After some research it was found that memoffset is good identifier of a
-> > plane in a buffers. This id is also available in the userspace without
-> > any API extensions.
-> > 
-> > VIDIOC_EXPBUF was used to export a buffer by id, similar way as mmap
-> > uses this identifier to map a buffer to userspace. It seams to be the
-> > simplest solution.
-> 
-> Ok. Then dont you think when dmabuf supports mmaping the buffers,
-> VIDIOC_REQBUF will be useless? VIDIOC_EXPBUF will provide that functionality
-> as well.
-
-VIDIOC_REQBUFS will be used to allocate the buffers, and VIDIOC_EXPBUF will be 
-used to export them. Those are independent operations.
-
-> > Fourth reason, VIDIOC_REQBUF means that the application request a
-> > buffer. DMABUF framework is used to export existing buffers. Note that
-> > memory may not be pinned to a buffer for some APIs like DRM. I think
-> > that is should stated explicitly that application wants to export not
-> > request a buffer. Using VIDIOC_REQBUF seams to be an API abuse.
-> 
-> I agree that memory may not be static like V4L2 in case of DRM. But this
-> is still an issue even with a new IOCTL :) VIDIOC_REQBUF might not be
-> abused as far I feel. It is extended to a) request buffers if not
-> allocated b) request, as well as pass the information of already
-> allocated buffers if any. Both ways, we are using it for the same
-> purpose, requesting the buffers from corresponding driver.
-> 
-> > What is your opinion?
-> 
-> My concern is what will happen to applications which are already written
-> with existing V4L2 IOCTL flows on new framework? i.e., if I have developed
-> an application for say, just camera using s5p-fimc, and s5p-fimc driver
-> eventually moves to dmabuf. If the application wont move into new buffer
-> sharing framework, will things work in first place, and second will driver
-> state move even if the new IOCTL is not made (driver can question QBUF
-> without QUERYBUF and/or EXPBUF)?
-
-Things will not break. Your existing applications will still use MMAP and/or 
-USERPTR buffers. DMABUF support will add dma-buf import and export 
-capabilities, but it won't remove existing features.
-
+diff --git a/Documentation/video4linux/fimc.txt b/Documentation/video4linux/fimc.txt
+new file mode 100644
+index 0000000..81d6d2c
+--- /dev/null
++++ b/Documentation/video4linux/fimc.txt
+@@ -0,0 +1,178 @@
++Samsung S5P/EXYNOS4 FIMC driver
++
++Copyright (C) 2011 Samsung Electronics Co., Ltd.
++------------------------------------------------------------------------------
++
++This text describes the design of v4l2 driver for FIMC (Fully Interfactive
++Mobile Camera) devices present on Samsung SoC Application Processor series.
++FIMC IP is an integrated camera host interface, color space converter, image
++scaler and rotator. It's also capable of capturing data from LCD controller
++(FIMD) through the SoC internal writeback data path. On the SoCs this driver
++supports there are multiple instances of the IP (up to 4), having slightly
++different capabilities, like pixel alignment constraints, rotator availability,
++LCD writeback support, etc.
++The driver is located at drivers/media/video/s5p-fimc directory.
++
++
++1. Supported SoCs
++=================
++
++S5PC100 (mem-to-mem only), S5PV210, EXYNOS4210
++
++2. Supported features
++=====================
++
++ - camera parallel interface capture (ITU-R.BT601/565);
++ - camera serial interface capture (MIPI-CSI2);
++ - memory-to-memory processing (color space conversion, scaling, mirror;
++   and rotation);
++ - dynamic pipeline re-configuration at runtime (re-attachment of any FIMC
++   instance to any parallel video input or any MIPI-CSI front-end);
++ - runtime PM and system wide suspend/resume
++
++Not currently supported:
++ - LCD writeback input
++ - RGB alpha (exynos4 only)
++ - per frame clock gating (mem-to-mem)
++
++3. Files partitioning
++=====================
++
++- media device driver
++  drivers/media/video/s5p-fimc/fimc-mdevice.[ch]
++
++ - camera capture video device driver
++  drivers/media/video/s5p-fimc/fimc-capture.c
++
++ - MIPI-CSI2 receiver subdev
++  drivers/media/video/s5p-fimc/mipi-csis.[ch]
++
++ - video post-processor (mem-to-mem)
++  drivers/media/video/s5p-fimc/fimc-core.c
++
++ - common files
++  drivers/media/video/s5p-fimc/fimc-core.h
++  drivers/media/video/s5p-fimc/fimc-reg.h
++  drivers/media/video/s5p-fimc/regs-fimc.h
++
++4. User space interfaces
++========================
++
++4.1. Media device interface
++
++The driver supports Media Controller API as defined at
++http://http://linuxtv.org/downloads/v4l-dvb-apis/media_common.html
++The media device driver name is "SAMSUNG S5P FIMC".
++
++The purpose of this interface is to allow changing the assignment of FIMC instance
++to the SoC peripheral camera input at runtime and optionally to control internal
++connections of the MIPI-CSIS device(s) to the FIMC entities.
++
++The media device interface allows to configure the SoC for capturing image data
++from the sensor through more than one FIMC instance (e.g. for simultaneous
++viewfinder and capture data stream).
++Reconfiguration is done by enabling/disabling the media links created by
++the driver during initialization. The internal device topology can be easily
++discovered through media entity and links enumeration.
++
++4.2. Memory-to-memory video node
++
++V4L2 memory-to-memory interface at /dev/video? device node. This is standalone
++video device, it has no media pads. However please note the mem-to-mem and
++capture video node operation on same FIMC instance is not allowed. The driver
++detects such cases but the applications should prevent them to avoid an
++undefined behaviour.
++
++4.3. Capture video node
++
++The driver supports V4L2 Video Capture Interface as defined at:
++http://linuxtv.org/downloads/v4l-dvb-apis/devices.html
++
++At the capture and mem-to-mem video nodes only the multi-planar API is supported.
++For more details see: http://linuxtv.org/downloads/v4l-dvb-apis/planar-apis.html
++
++4.4. Camera capture subdevs
++
++Each FIMC instance exports a sub-device node (/dev/v4l-subdev?), a sub-device
++node is also created per each available and enabled at the platform level
++MIPI-CSI receiver device (currently up to two).
++
++4.5. sysfs
++
++In order to enable more precise camera pipeline control through the sub-device
++API the driver creates a sysfs entry associated with "s5p-fimc-md" platform
++device. The entry path is: /sys/platform/devices/s5p-fimc-md/subdev_conf_mode.
++
++In typical use case there could be a following capture pipeline configuration:
++sensor subdev -> mipi-csi subdev -> fimc subdev -> video node
++
++When we configure these devices through sub-device API at user space,
++the configuration flow must be from left to right, and the video node
++is configured as last one.
++When we don't use sub-device user space API the whole configuration of all
++devices belonging to the pipeline is done at video node.
++The sysfs entry allows to instruct the capture video node driver not to
++configure the sub-devices (format, crop), to avoid resetting the subdevs'
++configuration when the last configuration steps at the video node are performed.
++
++For full sub-device control support (subdevs configured at user space
++before starting streaming):
++# echo "sub-dev" > /sys/platform/devices/s5p-fimc-md/subdev_conf_mode
++
++For V4L2 video node control only (subdevs configured internally by the host
++driver):
++# echo "vid-dev" > /sys/platform/devices/s5p-fimc-md/subdev_conf_mode
++This is the default option.
++
++5. Device mapping to video and subdev device nodes
++==================================================
++
++Each FIMC instance creates two video device nodes, for camera capture and
++mem-to-mem, and a subdev node for more precise control of the FIMC capture
++subsystem. In addition separate v4l2 sub-device node is created per each
++MIPI-CSIS device.
++
++How to find out which /dev/video? or /dev/v4l-subdev? is assigned to which
++device?
++
++You can either grep through the kernel log to find relevant information, i.e.
++# dmesg | grep -i fimc
++(note that udev, if present, might still have rearranged the video nodes),
++
++or retrieve the information from /dev/media? with help of the media-ctl tool:
++# media-ctl -p
++
++6. Platform support
++===================
++
++The machine code (plat-s5p and arch/arm/mach-*) must select following options
++
++CONFIG_S5P_DEV_FIMC0 (mandatory)
++CONFIG_S5P_DEV_FIMC1 \
++CONFIG_S5P_DEV_FIMC2 | optional
++CONFIG_S5P_DEV_FIMC3 /
++CONFIG_S5P_SETUP_MIPIPHY \
++CONFIG_S5P_DEV_CSIS0     | optional for MIPI-CSI interface
++CONFIG_S5P_DEV_CSIS1     /
++
++Except that, relevant s5p_device_fimc? should be registered in the machine code
++in addition to a "s5p-fimc-md" platform device to which the media device driver
++is bound. The "s5p-fimc-md" device instance is required even if only mem-to-mem
++operation is used.
++
++The description of sensor(s) attached to FIMC/MIPI-CSIS camera inputs should be
++passed as the "s5p-fimc-md" device platform_data. The platform data structure
++is defined in file include/media/s5p_fimc.h.
++
++7. Build
++========
++
++This driver depends on following config options:
++PLAT_S5P,
++PM_RUNTIME,
++I2C,
++VIDEO_V4L2_SUBDEV_API,
++
++If the driver is built as a loadable kernel module (CONFIG_VIDEO_SAMSUNG_S5P_FIMC=m)
++two modules are created (in addition to the core v4l2 modules): s5p-fimc.ko and
++optional s5p-csis.ko (MIPI-CSI receiver subdev).
 -- 
-Regards,
+1.7.8.3
 
-Laurent Pinchart
