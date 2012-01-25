@@ -1,93 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.pripojeni.net ([178.22.112.14]:36065 "EHLO
-	smtp.pripojeni.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932080Ab2AJRWx (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:59466 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750812Ab2AYIJb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 12:22:53 -0500
-From: Jiri Slaby <jslaby@suse.cz>
-To: mchehab@infradead.org
-Cc: mikekrufky@gmail.com, linux-media@vger.kernel.org,
-	jirislaby@gmail.com, linux-kernel@vger.kernel.org,
-	Jiri Slaby <jslaby@suse.cz>
-Subject: [PATCH 3/4] DVB: dib0700, add corrected Nova-TD frontend_attach
-Date: Tue, 10 Jan 2012 18:11:24 +0100
-Message-Id: <1326215485-20846-3-git-send-email-jslaby@suse.cz>
-In-Reply-To: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
-References: <1326215485-20846-1-git-send-email-jslaby@suse.cz>
+	Wed, 25 Jan 2012 03:09:31 -0500
+Received: by werb13 with SMTP id b13so3578780wer.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 00:09:29 -0800 (PST)
+Date: Wed, 25 Jan 2012 09:09:29 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, rob@ti.com,
+	patches@linaro.org
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Message-ID: <20120125080929.GB3896@phenom.ffwll.local>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+ <201201231048.47433.laurent.pinchart@ideasonboard.com>
+ <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
+ <201201231154.21006.laurent.pinchart@ideasonboard.com>
+ <20120124130322.GD3980@phenom.ffwll.local>
+MIME-Version: 1.0
+In-Reply-To: <20120124130322.GD3980@phenom.ffwll.local>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This means cut & paste from the former f. attach. But while at it write
-to the right GPIO to turn on the right LED. Also turn the other two
-off jsut for sure.
+On Tue, Jan 24, 2012 at 02:03:22PM +0100, Daniel Vetter wrote:
+> On Mon, Jan 23, 2012 at 11:54:20AM +0100, Laurent Pinchart wrote:
+> > On Monday 23 January 2012 11:35:01 Daniel Vetter wrote:
+> > > See my other mail, dma_buf v1 does not support cpu access.
+> > 
+> > v1 is in the kernel now, let's start discussing v2 ;-)
+> 
+> Ok, I'm in ;-)
+> 
+> I've thought a bit about this, and I think a reasonable next step would be
+> to enable cpu access from kernelspace. Userspace and mmap support is a
+> hole different beast altogether and I think we should postpone that until
+> we've got the kernel part hashed out.
+> 
+> I'm thinking about adding 3 pairs of function to dma_buf (not to
+> dma_buf_attachment).
+> 
+> dma_buf_get_backing_storage/put_backing_storage
+> This will be used before/after kernel cpu access to ensure that the
+> backing storage is in memory. E.g. gem objects can be swapped out, so
+> they need to be pinned before we can access them. For exporters with
+> static allocations this would be a no-op.
+> 
+> I think a start, length range would make sense, but the exporter is free
+> to just swap in the entire object unconditionally. The range is specified
+> in multiples of PAGE_SIZE - I don't think there's any usescase for a
+> get/put_backing_storage which deals in smaller units.
+> 
+> The get/put functions are allowed to block and grab all kinds of looks.
+> get is allowed to fail with e.g. -ENOMEM.
+> 
+> dma_buf_kmap/kunmap
+> This maps _one_ page into the kernels address space and out of it. This
+> function also flushes/invalidates any caches required. Importers are not
+> allowed to map more than 2 pages at the same time in total (to allow
+> copies). This is because at least for gem objects the backing storage can
+> be in high-mem.
+> 
+> Importers are allowed to sleep while holding such a kernel mapping.
+> 
+> These functions are not allowed to fail (like kmap/kunmap).
+> 
+> dma_buf_kmap_atomic/kunmap_atomic
+> For performance we want to also allow atomic mappigns. Only difference is
+> that importers are not allowed to sleep while holding an atomic mapping.
+> 
+> These functions are again not allowed to fail.
 
-Signed-off-by: Jiri Slaby <jslaby@suse.cz>
----
- drivers/media/dvb/dvb-usb/dib0700_devices.c |   36 +++++++++++++++++++++++++-
- 1 files changed, 34 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-index e5c2bd2..3ab45ae 100644
---- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-@@ -3105,6 +3105,38 @@ static int stk7070pd_frontend_attach1(struct dvb_usb_adapter *adap)
- 	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
- }
- 
-+/**
-+ * novatd_frontend_attach - Nova-TD specific attach
-+ *
-+ * Nova-TD has GPIO0, 1 and 2 for LEDs. So do not fiddle with them except for
-+ * information purposes.
-+ */
-+static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
-+{
-+	struct dvb_usb_device *dev = adap->dev;
-+
-+	if (adap->id == 0) {
-+		stk7070pd_init(dev);
-+
-+		/* turn the power LED on, the other two off (just in case) */
-+		dib0700_set_gpio(dev, GPIO0, GPIO_OUT, 0);
-+		dib0700_set_gpio(dev, GPIO1, GPIO_OUT, 0);
-+		dib0700_set_gpio(dev, GPIO2, GPIO_OUT, 1);
-+
-+		if (dib7000p_i2c_enumeration(&dev->i2c_adap, 2, 18,
-+					     stk7070pd_dib7000p_config) != 0) {
-+			err("%s: dib7000p_i2c_enumeration failed.  Cannot continue\n",
-+			    __func__);
-+			return -ENODEV;
-+		}
-+	}
-+
-+	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach, &dev->i2c_adap,
-+			adap->id == 0 ? 0x80 : 0x82,
-+			&stk7070pd_dib7000p_config[adap->id]);
-+	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
-+}
-+
- /* S5H1411 */
- static struct s5h1411_config pinnacle_801e_config = {
- 	.output_mode   = S5H1411_PARALLEL_OUTPUT,
-@@ -3876,7 +3908,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 				.pid_filter_count = 32,
- 				.pid_filter       = stk70x0p_pid_filter,
- 				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
--				.frontend_attach  = stk7070pd_frontend_attach0,
-+				.frontend_attach  = novatd_frontend_attach,
- 				.tuner_attach     = dib7070p_tuner_attach,
- 
- 				DIB0700_DEFAULT_STREAMING_CONFIG(0x02),
-@@ -3889,7 +3921,7 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 				.pid_filter_count = 32,
- 				.pid_filter       = stk70x0p_pid_filter,
- 				.pid_filter_ctrl  = stk70x0p_pid_filter_ctrl,
--				.frontend_attach  = stk7070pd_frontend_attach1,
-+				.frontend_attach  = novatd_frontend_attach,
- 				.tuner_attach     = dib7070p_tuner_attach,
- 
- 				DIB0700_DEFAULT_STREAMING_CONFIG(0x03),
+I think we need to extend the kmap/kunmap functions with a few arguments
+to properly flush caches. I think a simple flag with read, write or
+read | write should be good enough.
+-Daniel
 -- 
-1.7.8
-
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
