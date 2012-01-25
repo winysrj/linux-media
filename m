@@ -1,56 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:49371 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755792Ab2AJN27 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 08:28:59 -0500
-Received: by wgbdt14 with SMTP id dt14so2613473wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 05:28:58 -0800 (PST)
-Message-ID: <4F0C3D1B.2010904@gmail.com>
-Date: Tue, 10 Jan 2012 13:28:59 +0000
-From: Jim Darby <uberscubajim@gmail.com>
+Received: from nm5-vm2.bullet.mail.ne1.yahoo.com ([98.138.90.153]:36158 "HELO
+	nm5-vm2.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1754144Ab2AYMul convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jan 2012 07:50:41 -0500
+References: 
+Message-ID: <1327495458.95081.YahooMailNeo@web125310.mail.ne1.yahoo.com>
+Date: Wed, 25 Jan 2012 04:44:18 -0800 (PST)
+From: Abby Cedar <abbycedar@yahoo.com.au>
+Reply-To: Abby Cedar <abbycedar@yahoo.com.au>
+Subject: Dvico FusionHDTV DVB-T Pro poweroff mode failure, err = -6
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Possible regression in 3.2 kernel with PCTV Nanostick T2 (em28xx,
- cxd2820r and tda18271)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I've been using a PCTV Nanostick T2 USB DVB-T2 receiver (one of the few 
-that supports DVB-T2) for over six months with a 3.0 kernel with no 
-problems.
+Hi,
 
-The key drivers in use are em28xx, cxd2820r and tda18271.
+Has anyone got power management to work with CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO? I've enabled debug and am seeing the following in the kernel log:
+... "xc2028 1-0061: Putting xc2028/3028 into poweroff mode."
+... "xc2028 1-0061: Error on line 1212: -6"
 
-Seeing the 3.2 kernel I thought I'd upgrade and now I seem to have hit a 
-problem.
+I could add ctl->disable_power_mgmt = 1; to cx88-cards.c to disable it and therefore the error message but am wondering why it isn't working. Is it even supported on this card?
 
-The Nanostick works fine for between 5 and 25 minutes and then without 
-any error messages cuts out. The TS drops to a tiny stream of non-TS 
-data. It seems to contain a lot of 0x00s and 0xffs.
+What am I missing out on by disabling poweroff mode? Is there a noticable power consumption (watts) difference?
 
-It looks like the problem of many years ago when the frontends would be 
-shut down if they were closed for more than a few minutes. However, it 
-would appear that the frontend fds are still open (according to fuser).
+Please let me know how I can help fix this.
 
-Some more system details:
-
-This is running on a 32-bit system.
-
-Everything works fine if I boot with the 3.0.0 kernel.
-
-The user-land application is kaffeine.
-
-There is a PCI DVB-T card in the system which operates fine even when 
-the Nanostick stops producing the correct output.
-
-I'm more than happy to build kernels and add debugging. I'm basically 
-just trying to find the maintainer for these modules so we can figure 
-out what's going wrong and fix it before 3.2 escapes into several 
-distros and we have this problem on a larger scale.
-
-Many thanks for your help,
-
-Jim.
+-- 
+Abby
