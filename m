@@ -1,105 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50361 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751636Ab2ASN2g (ORCPT
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:64191 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751072Ab2AYWQk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 08:28:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Gary Thomas <gary@mlbassoc.com>
-Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
-Date: Thu, 19 Jan 2012 14:28:34 +0100
-Cc: linux-media@vger.kernel.org
-References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com> <201201191350.51761.laurent.pinchart@ideasonboard.com> <4F181711.1020201@mlbassoc.com>
-In-Reply-To: <4F181711.1020201@mlbassoc.com>
+	Wed, 25 Jan 2012 17:16:40 -0500
+Received: by lagu2 with SMTP id u2so1024383lag.19
+        for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 14:16:39 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201191428.35340.laurent.pinchart@ideasonboard.com>
+Date: Wed, 25 Jan 2012 23:16:39 +0100
+Message-ID: <CAGa-wNOCn6GDu0DGM7xNrVagp0sdNeif25vuE+sPyU3aaegGAw@mail.gmail.com>
+Subject: 290e locking issue
+From: Claus Olesen <ceolesen@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gary,
-
-On Thursday 19 January 2012 14:13:53 Gary Thomas wrote:
-> On 2012-01-19 05:50, Laurent Pinchart wrote:
-> > On Thursday 19 January 2012 13:41:57 Gary Thomas wrote:
-> >> On 2012-01-17 08:33, Laurent Pinchart wrote:
-> >>      <snip>
-> >>> 
-> >>> I already had a couple of YUV support patches in my OMAP3 ISP tree at
-> >>> git.kernel.org. I've rebased them on top of the lastest V4L/DVB tree
-> >>> and pushed them to
-> >>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp
-> >>> - omap3isp-yuv. Could you please try them, and see if they're usable
-> >>> with your sensor ?
-> >> 
-> >> I just tried this kernel with my board.  The media control
-> >> infrastructure comes up and all of the devices are created, but I can't
-> >> access them.
-> >> 
-> >>   From the bootup log:
-> >>     Linux media interface: v0.10
-> >>     Linux video capture interface: v2.00
-> > 
-> > Any message from the omap3isp driver and from the sensor driver ?
-> 
-> No, it doesn't appear that the sensor was probed (or maybe it failed but
-> no messages).  I'll check into this.
-
-Is the omap3-isp driver compiled as a module ? If so, make sure iommu2.ko is 
-loaded first. 'rmmod omap3-isp && modprobe iommu2 && modprobe omap3-isp' is a 
-quick way to test it.
-
-> Has the way of adding the sensors on the i2c bus changed?  I have my
-> TVP5150 on a i2c-2 all by itself and with the 3.0+ kernel, it was being
-> added when I initialized the camera subsystem.
-> 
-> Do you have an example driver (like the BeagleBoard one that was in
-> your omap3isp-sensors-next branch previously)?
-> 
-> >> When I try to access the devices:
-> >>     root@cobra3530p73:~# media-ctl -p
-> >>     Opening media device /dev/media0
-> >>     media_open_debug: Can't open media device /dev/media0
-> >>     Failed to open /dev/media0
-> > 
-> > Could you please strace that ?
-> 
-> Attached.  Looks like it blows up immediately.
-> 
-> Note: my media-ctl program was built from SRCREV
-> 7266b1b5433b5644a06f05edf61c36864ab11683
-> 
-> >> The devices look OK to me:
-> >>     root@cobra3530p73:~# ls -l /dev/v*  /dev/med*
-> >>     crw------- 1 root root 252, 0 Nov  8 10:44 /dev/media0
-> >>     crw-rw---- 1 root video 81,   7 Nov  8 10:44 /dev/v4l-subdev0
-> >>     crw-rw---- 1 root video 81,   8 Nov  8 10:44 /dev/v4l-subdev1
-> >>     crw-rw---- 1 root video 81,   9 Nov  8 10:44 /dev/v4l-subdev2
-> >>     crw-rw---- 1 root video 81,  10 Nov  8 10:44 /dev/v4l-subdev3
-> >>     crw-rw---- 1 root video 81,  11 Nov  8 10:44 /dev/v4l-subdev4
-> >>     crw-rw---- 1 root video 81,  12 Nov  8 10:44 /dev/v4l-subdev5
-> >>     crw-rw---- 1 root video 81,  13 Nov  8 10:44 /dev/v4l-subdev6
-> >>     crw-rw---- 1 root video 81,  14 Nov  8 10:44 /dev/v4l-subdev7
-> >>     crw-rw---- 1 root video 81,  15 Nov  8 10:44 /dev/v4l-subdev8
-> >>     crw-rw---- 1 root tty    7,   0 Nov  8 10:44 /dev/vcs
-> >>     crw-rw---- 1 root tty    7,   1 Nov  8 10:44 /dev/vcs1
-> >>     crw-rw---- 1 root tty    7, 128 Nov  8 10:44 /dev/vcsa
-> >>     crw-rw---- 1 root tty    7, 129 Nov  8 10:44 /dev/vcsa1
-> >>     crw-rw---- 1 root video 81,   0 Nov  8 10:44 /dev/video0
-> >>     crw-rw---- 1 root video 81,   1 Nov  8 10:44 /dev/video1
-> >>     crw-rw---- 1 root video 81,   2 Nov  8 10:44 /dev/video2
-> >>     crw-rw---- 1 root video 81,   3 Nov  8 10:44 /dev/video3
-> >>     crw-rw---- 1 root video 81,   4 Nov  8 10:44 /dev/video4
-> >>     crw-rw---- 1 root video 81,   5 Nov  8 10:44 /dev/video5
-> >>     crw-rw---- 1 root video 81,   6 Nov  8 10:44 /dev/video6
-> > 
-> > Have the device nodes have been created manually ?
-> 
-> No, automatically created by udev.
-
--- 
-Regards,
-
-Laurent Pinchart
+just got 3.2.1-3.fc16.i686.PAE
+the issue that the driver had to be removed for the 290e to work after
+a replug is gone.
+the issue that a usb mem stick cannot be mounted while the 290e is
+plugged in still lingers.
+one workaround is to unplug the 290e and wait a little (no need to
+also remove the driver).
