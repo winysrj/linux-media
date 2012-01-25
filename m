@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:61982 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756602Ab2ARM4O (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43854 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751274Ab2AYPM3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 07:56:14 -0500
-Received: by werb13 with SMTP id b13so325352wer.19
-        for <linux-media@vger.kernel.org>; Wed, 18 Jan 2012 04:56:12 -0800 (PST)
-Message-ID: <4F16C16A.7000208@googlemail.com>
-Date: Wed, 18 Jan 2012 13:56:10 +0100
-From: Gregor Jasny <gjasny@googlemail.com>
-MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4l-utils migrated to autotools
-References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <2648c3dfc9ea2bd3bae776200d7e056e@chewa.net> <201201181344.09700.pboettcher@kernellabs.com>
-In-Reply-To: <201201181344.09700.pboettcher@kernellabs.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 25 Jan 2012 10:12:29 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 0/8] soc-camera: Add support for configurable line stride
+Date: Wed, 25 Jan 2012 16:12:23 +0100
+Message-Id: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1/18/12 1:44 PM, Patrick Boettcher wrote:
-> I missed the first message of this thread, that's why I hijacked it here
-> and it is short:
->
-> I love cmake and can't understand why people are not preferring it over
-> autotools for user-space applications and conditional+configurable
-> builds.
->
-> I hope my mail is not too off-topic.
+Hi Guennadi,
 
-My first attempt to add a sane buildsystem used cmake, too:
-https://github.com/gjasny/v4l-utils-cmake
+This patch set adds support for configurable line stride to the soc-camera
+framework and the sh_mobile_ceu_camera driver. I've successfully tested it on
+a Mackerel board with the on-board VGA sensor.
 
-But Hans (de Goede) preferred something more 'standard'. So I learned 
-autofoo. And I must admit it really got better during the years.
+Laurent Pinchart (8):
+  soc_camera: Use soc_camera_device::sizeimage to compute buffer sizes
+  soc_camera: Use soc_camera_device::bytesperline to compute line sizes
+  soc-camera: Add plane layout information to struct soc_mbus_pixelfmt
+  soc-camera: Fix bytes per line computation for planar formats
+  soc-camera: Add soc_mbus_image_size
+  soc-camera: Honor user-requested bytesperline and sizeimage
+  soc-camera: Support user-configurable line stride
+  sh_mobile_ceu_camera: Support user-configurable line stride
 
-And packaging is also easy:
-http://bazaar.launchpad.net/~libv4l/+junk/packaging/view/head:/rules
+ drivers/media/video/atmel-isi.c            |   18 ++------
+ drivers/media/video/mx1_camera.c           |   14 +-----
+ drivers/media/video/mx2_camera.c           |   16 ++-----
+ drivers/media/video/mx3_camera.c           |   41 +++++++++-------
+ drivers/media/video/omap1_camera.c         |   22 ++++-----
+ drivers/media/video/pxa_camera.c           |   15 +-----
+ drivers/media/video/sh_mobile_ceu_camera.c |   68 ++++++++++++++++-----------
+ drivers/media/video/soc_camera.c           |   35 ++++++++-------
+ drivers/media/video/soc_mediabus.c         |   54 ++++++++++++++++++++++
+ include/media/soc_camera.h                 |    4 ++
+ include/media/soc_mediabus.h               |   21 +++++++++
+ 11 files changed, 184 insertions(+), 124 deletions(-)
 
-Thanks,
-Gregor
+-- 
+Regards,
+
+Laurent Pinchart
+
