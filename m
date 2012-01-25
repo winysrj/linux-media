@@ -1,275 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35078 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757613Ab2AEQXX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 11:23:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 08/17] v4l: Image source control class
-Date: Thu, 5 Jan 2012 17:23:40 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-8-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1324412889-17961-8-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:58152 "EHLO
+	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751313Ab2AYOJn convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jan 2012 09:09:43 -0500
+Received: by mail-tul01m020-f170.google.com with SMTP id up3so4029017obb.15
+        for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 06:09:42 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201051723.41247.laurent.pinchart@ideasonboard.com>
+In-Reply-To: <4F1FDAAB.2040804@samsung.com>
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+ <1327326675-8431-5-git-send-email-t.stanislaws@samsung.com>
+ <4F1D6D3E.7020203@redhat.com> <4F1D6F68.5040202@samsung.com>
+ <4F1D7418.50201@redhat.com> <4F1D7BF4.4040603@samsung.com>
+ <CAB2ybb8fXUARSriD2x-4TNLVtxpg5hA6NKjrAOOwzHJ0Cko6Ag@mail.gmail.com> <4F1FDAAB.2040804@samsung.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Wed, 25 Jan 2012 19:39:21 +0530
+Message-ID: <CAB2ybb8DF=TY9rU-7mFT-Ashb634G9c-Ksc0V534hTWzQkN2+A@mail.gmail.com>
+Subject: Re: [PATCH 04/10] v4l: vb2: fixes for DMABUF support
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Tomasz,
+On Wed, Jan 25, 2012 at 4:04 PM, Tomasz Stanislawski
+<t.stanislaws@samsung.com> wrote:
+>
+> Hi Sumit,
+>
+> On 01/25/2012 06:35 AM, Semwal, Sumit wrote:
+>>
+>> Hi Tomasz,
+>> On Mon, Jan 23, 2012 at 8:55 PM, Tomasz Stanislawski
+>> <t.stanislaws@samsung.com>  wrote:
+>>>
+>>> Hi Mauro,
+>>>
+>>>
+>> <snip>
+>>>
+>>>
+>>> Ok. I should have given more details about the patch. I am sorry for
+>>> missing
+>>> it. My kernel tree failed to compile after applying patches from
+>>>
+>>> [1]
+>>>
+>>> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
+>>>
+>>> I had to generate this patch to compile the code and test it. Most of the
+>>> fixes refer to Sumit's code and I think he will take care of those bugs.
+>>
+>> Is your kernel tree a mainline kernel? I am pretty sure I posted out
+>> the RFC after compile testing.
+>
+>
+> Our development kernel often contains patches that are not posted to
+> opensource. The tree presented in the cover letter contains only patches
+> that were approved for opensource submission.
+Right; I understand that - I just wanted to make sure you didn't hit
+some problem with my patches that I didn't. Thanks for confirming that
+it was your dev kernel.
+>
+> Some of the patches that are not merged into the mainline may break
+> compilation if patches from the mailing list are applied on the top. The
+> example is 'media: vb2: remove plane argument from call_memop and cleanup
+> mempriv usage'. I had to add fixes to compile the code. Moreover I had to
+> test a working application that makes use of DMABUF exporting/importing via
+> V4L2 API. So I had to fix other issues that are not only compilation
+> related.
+>
+I understand.
+> As I remember we agreed that I had to post an incremental patchset.
+> Therefore all needed fixes had to be present in the tree.
+>
+> The fixes were posted in this patchset to keep the whole work together.
+> I expect that you already prepared a patch fixing majority of issues from
+> this patch. Many of them were mentioned in Pawel's and Laurent's and
+> Sakari's reviews. If you find fixes in this patch useful you can merge them
+> into next version of RFC 'v4l: DMA buffer sharing support as a user'.
+>
+>
+OK - this makes it quite clear; I will re-work my RFC then.
 
-Thanks for the patch.
+>>
+>>>
+>> <snip>
+>>>
+>>>
+>>>
+>>> I wanted to post the complete set of patches that produce compilable
+>>> kernel.
+>>> Therefore most important bugs/issues had to be fixed and attached to the
+>>> patchset. Some of the issues in [1] were mentioned by Laurent and Sakari.
+>>> I
+>>> hope Sumit will take care of those problems.
+>>
+>> I must've misunderstood when you said 'I would like to take care of
+>> these patches'. Please let me know if you'd like me to submit next
+>> version of my RFC separately with fixes for these issues, or would you
+>> manage that as part of your RFC patch series submission.
+>
+>
+> This patchset is an RFC. It was my big mistake that I forgot to add this to
+> the title of the patchset. I am not going to post the patch with fixes to
+> your part any more. It would be great if you merged it into new version of
+> 'DMA buffer sharing support as a user'.
+>
+That's OK with me.
 
-On Tuesday 20 December 2011 21:28:00 Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Add image source control class. This control class is intended to contain
-> low level controls which deal with control of the image capture process ---
-> the A/D converter in image sensors, for example.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml       |  101 +++++++++++++++++
->  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 +
->  drivers/media/video/v4l2-ctrls.c                   |   10 ++
->  include/linux/videodev2.h                          |   10 ++
->  4 files changed, 127 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml
-> b/Documentation/DocBook/media/v4l/controls.xml index 3bc5ee8..69ede83
-> 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -3356,6 +3356,107 @@ interface and may change in the future.</para>
->        </table>
-> 
->      </section>
-> +
-> +    <section id="image-source-controls">
-> +      <title>Image Source Control Reference</title>
-> +
-> +      <note>
-> +	<title>Experimental</title>
-> +
-> +	<para>This is an <link
-> +	linkend="experimental">experimental</link> interface and may
-> +	change in the future.</para>
-> +      </note>
-> +
-> +      <para>
-> +	The Image Source control class is intended for low-level
-> +	control of image source devices such as image sensors. The
-> +	devices feature an analogue to digital converter and a bus
+> IMO, some parts should go as separate threads:
+> - extension to DMA subsystem, introduction of dma_get_pages. This would
+> probably go to DMA mailing list.
+> - redesign of dma-contig allocator (w/o dmabuf exporting/importing)
+> - buffer importing via dmabuf in V4L2 and vb2-dma-contig
+> - buffer exporting via dmabuf in V4L2 and vb2-dma-contig
+>
+> BTW. Could you state your opinion on presented solution for dma-buf
+> exporting in vb2-core and vb2-dma-contig allocator?
+>
+I agree with your ordering of these parts; Also, with this ordering, I
+guess I should pay more attention to parts 1. (extension to DMA...)
+and 2. (redesign of dma-contig allocator...) - which I hope you are
+going to do? I can then base out my next version of RFC on these.
 
-Is the V4L2 documentation written in US or UK English ? US uses analog, UK 
-uses analogue. Analog would be shorter in control names.
-
-> +	transmitter to transmit the image data out of the device.
-> +      </para>
-> +
-> +      <table pgwide="1" frame="none" id="image-source-control-id">
-> +      <title>Image Source Control IDs</title>
-> +
-> +      <tgroup cols="4">
-> +	<colspec colname="c1" colwidth="1*" />
-> +	<colspec colname="c2" colwidth="6*" />
-> +	<colspec colname="c3" colwidth="2*" />
-> +	<colspec colname="c4" colwidth="6*" />
-> +	<spanspec namest="c1" nameend="c2" spanname="id" />
-> +	<spanspec namest="c2" nameend="c4" spanname="descr" />
-> +	<thead>
-> +	  <row>
-> +	    <entry spanname="id" align="left">ID</entry>
-> +	    <entry align="left">Type</entry>
-> +	  </row><row rowsep="1"><entry spanname="descr"
-> align="left">Description</entry> +	  </row>
-> +	</thead>
-> +	<tbody valign="top">
-> +	  <row><entry></entry></row>
-> +	  <row>
-> +	    <entry
-> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry> +	 
->   <entry>class</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry
-> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_VBLANK</constant></entry> +	
->    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Vertical blanking. The idle
-> +	    preriod after every frame during which no image data is
-
-s/preriod/period/
-
-> +	    produced. The unit of vertical blanking is a line. Every
-> +	    line has length of the image width plus horizontal
-> +	    blanking at the pixel clock specified by struct
-> +	    v4l2_mbus_framefmt <xref linkend="v4l2-mbus-framefmt"
-> +	    />.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry
-> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_HBLANK</constant></entry> +	
->    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Horizontal blanking. The idle
-> +	    preriod after every line of image data during which no
-
-s/preriod/period/
-
-> +	    image data is produced. The unit of horizontal blanking is
-> +	    pixels.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry
-> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_LINK_FREQ</constant></entry>
-> +	    <entry>integer menu</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Image source's data bus frequency.
-
-What's the frequency unit ? Sample/second ?
-
-> +	    Together with the media bus pixel code, bus type (clock
-> +	    cycles per sample), the data bus frequency defines the
-> +	    pixel clock. <xref linkend="v4l2-mbus-framefmt" /> The
-> +	    frame rate can be calculated from the pixel clock, image
-> +	    width and height and horizontal and vertical blanking. The
-> +	    frame rate control is performed by selecting the desired
-> +	    horizontal and vertical blanking.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry
-> spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN</constant></en
-> try> +	    <entry>integer</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry spanname="descr">Analogue gain is gain affecting
-> +	    all colour components in the pixel matrix. The gain
-> +	    operation is performed in the analogue domain before A/D
-> +	    conversion.
-
-Should we define one gain per color component ?
-
-> +	    </entry>
-> +	  </row>
-> +	  <row><entry></entry></row>
-> +	</tbody>
-> +      </tgroup>
-> +      </table>
-> +
-> +    </section>
-> +
->  </section>
-> 
->    <!--
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml index
-> 5122ce8..250c1cf 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-> @@ -257,6 +257,12 @@ These controls are described in <xref
->  These controls are described in <xref
->  		linkend="flash-controls" />.</entry>
->  	  </row>
-> +	  <row>
-> +	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
-> +	    <entry>0x9d0000</entry> <entry>The class containing image
-> +	    source controls. These controls are described in <xref
-> +	    linkend="image-source-controls" />.</entry>
-> +	  </row>
->  	</tbody>
->        </tgroup>
->      </table>
-> diff --git a/drivers/media/video/v4l2-ctrls.c
-> b/drivers/media/video/v4l2-ctrls.c index 083bb79..da1ec52 100644
-> --- a/drivers/media/video/v4l2-ctrls.c
-> +++ b/drivers/media/video/v4l2-ctrls.c
-> @@ -606,6 +606,12 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_FLASH_CHARGE:		return "Charge";
->  	case V4L2_CID_FLASH_READY:		return "Ready to strobe";
-> 
-> +	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image source controls";
-> +	case V4L2_CID_IMAGE_SOURCE_VBLANK:	return "Vertical blanking";
-> +	case V4L2_CID_IMAGE_SOURCE_HBLANK:	return "Horizontal blanking";
-> +	case V4L2_CID_IMAGE_SOURCE_LINK_FREQ:	return "Link frequency";
-> +	case V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN: return "Analogue gain";
-
-Please capitalize each word, as done for the other controls.
-
->  	default:
->  		return NULL;
->  	}
-> @@ -694,6 +700,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
-> v4l2_ctrl_type *type, case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
-> +	case V4L2_CID_IMAGE_SOURCE_LINK_FREQ:
-> +		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
-> +		break;
-
-Will this always be an integer menu control, or can you foresee cases where 
-the range would be continuous ?
-
-We already have drivers for Aptina parallel sensors that include a 
-configurable PLL. The pixel clock can be configured more or less freely in 
-that case, although I'm not sure if that's useful in practice.
-
->  	case V4L2_CID_RDS_TX_PS_NAME:
->  	case V4L2_CID_RDS_TX_RADIO_TEXT:
->  		*type = V4L2_CTRL_TYPE_STRING;
-> @@ -703,6 +712,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
-> v4l2_ctrl_type *type, case V4L2_CID_MPEG_CLASS:
->  	case V4L2_CID_FM_TX_CLASS:
->  	case V4L2_CID_FLASH_CLASS:
-> +	case V4L2_CID_IMAGE_SOURCE_CLASS:
->  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
->  		/* You can neither read not write these */
->  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> index 9633c69..0f8f904 100644
-> --- a/include/linux/videodev2.h
-> +++ b/include/linux/videodev2.h
-> @@ -1080,6 +1080,7 @@ struct v4l2_ext_controls {
->  #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
->  #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
->  #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
-> +#define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009d0000	/* Image source flash
-> controls */
-> 
->  #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
->  #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
-> @@ -1690,6 +1691,15 @@ enum v4l2_flash_strobe_source {
->  #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
->  #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
-> 
-> +/* Image source controls */
-> +#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE |
-> 0x900) +#define V4L2_CID_IMAGE_SOURCE_CLASS		
-(V4L2_CTRL_CLASS_IMAGE_SOURCE
-> | 1) +
-> +#define V4L2_CID_IMAGE_SOURCE_VBLANK		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE 
-+
-> 1) +#define
-> V4L2_CID_IMAGE_SOURCE_HBLANK		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
-> +#define
-> V4L2_CID_IMAGE_SOURCE_LINK_FREQ		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
-> +#define
-> V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN	(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 4)
-> +
->  /*
->   *	T U N I N G
->   */
-
--- 
-Regards,
-
-Laurent Pinchart
+I was OoO for past couple of days, hence missed all the action :) - I
+will try and go through your approach, and comment as soon as I can.
+Hopefully in a couple of days.
+> Regards,
+> Tomasz Stanislawski
+>
+>
+<snip>
+Best regards,
+~Sumit.
