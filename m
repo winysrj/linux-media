@@ -1,65 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50571 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753413Ab2A2SGq (ORCPT
+Received: from out3-smtp.messagingengine.com ([66.111.4.27]:60652 "EHLO
+	out3-smtp.messagingengine.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754694Ab2AYAHB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 29 Jan 2012 13:06:46 -0500
-Date: Sun, 29 Jan 2012 20:06:41 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	g.liakhovetski@gmx.de, teturtia@gmail.com
-Subject: [RFC] More on subdev selections API: composition
-Message-ID: <20120129180641.GA16140@valkosipuli.localdomain>
+	Tue, 24 Jan 2012 19:07:01 -0500
+Received: from compute4.internal (compute4.nyi.mail.srv.osa [10.202.2.44])
+	by gateway1.nyi.mail.srv.osa (Postfix) with ESMTP id DD87320FC2
+	for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 19:06:59 -0500 (EST)
+Date: Tue, 24 Jan 2012 16:06:34 -0800
+From: Greg KH <greg@kroah.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Dmitry Torokhov <dmitry.torokhov@gmail.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Martin Schwidefsky <schwidefsky@de.ibm.com>,
+	Jiri Kosina <jkosina@suse.cz>,
+	Jesse Barnes <jbarnes@virtuousgeek.org>,
+	Dominik Brodowski <linux@dominikbrodowski.net>,
+	Sebastian Ott <sebott@linux.vnet.ibm.com>,
+	"David S. Miller" <davem@davemloft.net>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Michael Buesch <m@bues.ch>,
+	Joerg Roedel <joerg.roedel@amd.com>,
+	linux-input@vger.kernel.org, linux-media@vger.kernel.org,
+	netdev@vger.kernel.org, linux-pcmcia@lists.infradead.org,
+	linux-s390@vger.kernel.org, USB list <linux-usb@vger.kernel.org>,
+	xen-devel@lists.xensource.com,
+	Kernel development list <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 0/5] Get rid of get_driver() and put_driver()
+Message-ID: <20120125000634.GA1178@kroah.com>
+References: <Pine.LNX.4.44L0.1201241158540.1200-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1201241158540.1200-100000@iolanthe.rowland.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Tue, Jan 24, 2012 at 01:33:37PM -0500, Alan Stern wrote:
+> Greg:
+> 
+> This patch series removes the get_driver() and put_driver() routines
+> from the kernel.
+> 
+> Those routines don't do anything useful.  Their comments say that they
+> increment and decrement the driver's reference count, just like
+> get_device()/put_device() and a lot of other utility routines.  But a
+> struct driver is _not_ like a struct device!  It resembles a piece of
+> code more than a piece of data -- it acts as an encapsulation of a
+> driver.  Incrementing its refcount doesn't have much meaning because a
+> driver's lifetime isn't determined by the structure's refcount; it's
+> determined by when the driver's module gets unloaded.
+> 
+> What really matters for a driver is whether or not it is registered.  
+> Drivers expect, for example, that none of their methods will be called
+> after driver_unregister() returns.  It doesn't matter if some other
+> thread still holds a reference to the driver structure; that reference
+> mustn't be used for accessing the driver code after unregistration.  
+> get_driver() does not do any checking for this.
+> 
+> People may have been misled by the kerneldoc into thinking that the
+> references obtained by get_driver() do somehow pin the driver structure
+> in memory.  This simply isn't true; all it pins is the associated
+> private structure.  Code that needs to pin a driver must do it some
+> other way (probably by calling try_module_get()).
+> 
+> In short, these routines don't do anything useful and they can actively 
+> mislead people.  Removing them won't introduce any bugs that aren't 
+> already present.  There is no reason to keep them.
 
-I had a discussion with Tomasz a few days ago on the selection API and how
-the composition fits to the proposal I made some time ago. I understand that
-in V4L2 API the composition bounds rectangle, onto which the scaled images
-are composed, is static in size. This makes no sense for subdevs as far as I
-can see.
+Very nice work, all now applied, thanks for doing this.
 
-In composition use cases there are also more than one sink pad whereas
-otherwise there is just a single pad in a subdev. In all use cases more than
-one source pad likely isn't uncommon.
-
-The problem with multiple sink pads is that which one you're referring to
-when you're configuring the first processing step on the source. Without
-composition there are no issues.
-
-What I can think of is to create a special composition target which is not
-bound to any pad, but reflects the size of the rectangle on which streams
-may be composed from source pad. Cropping on source pad refers to the
-coordinates of the composition rectangle. Composition target on sink pad in
-the original proposal would be renamed as the scaling target. There would
-also be no composition on source pads as it does not make that much sense.
-
-To make configuration simple, accessing any unsupported rectangles should
-return EINVAL. So devices not supporting composition would work as proposed
-earlier: the compose rectangle would be omitted and the sink crop (if
-supported) would refer to either scaling or crop targets or even the sink
-format directly.
-
-<URL:http://www.retiisi.org.uk/v4l2/tmp/format2.eps>
-
-Alternatively I think we could as well drop composition support at this
-point as we have no drivers using it. We still need to plan ahead how it
-could be supported as the need likely arises at some point. As far as I see
-the current interface proposal is compatible with composition.
-
-Should we discuss this further on #v4l-meeting, I propose Tuesday 2012-01-31
-15:00 Finnish time (13:00 GMT).
-
-Kind regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+greg k-h
