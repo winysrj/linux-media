@@ -1,82 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43859 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751895Ab2AYPMd (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:33914 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab2AYUHE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:12:33 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH 7/8] soc-camera: Support user-configurable line stride
-Date: Wed, 25 Jan 2012 16:12:30 +0100
-Message-Id: <1327504351-24413-8-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Wed, 25 Jan 2012 15:07:04 -0500
+Date: Wed, 25 Jan 2012 21:07:01 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Sumit Semwal <sumit.semwal@ti.com>, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, arnd@arndb.de, airlied@redhat.com,
+	linux@arm.linux.org.uk, jesse.barker@linaro.org,
+	m.szyprowski@samsung.com, rob@ti.com, daniel@ffwll.ch,
+	patches@linaro.org, Sumit Semwal <sumit.semwal@linaro.org>
+Subject: Re: [PATCH 1/3] dma-buf: Introduce dma buffer sharing mechanism
+Message-ID: <20120125200701.GH3896@phenom.ffwll.local>
+References: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com>
+ <1324891397-10877-2-git-send-email-sumit.semwal@ti.com>
+ <4F2035B1.4020204@samsung.com>
+MIME-Version: 1.0
+In-Reply-To: <4F2035B1.4020204@samsung.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a capabilities field to the soc_camera_host structure to flag hosts
-that support user-configurable line strides. soc_camera_try_fmt() then
-passes the user-provided bytesperline and sizeimage format fields to
-such hosts, and expects the host to check (and fix if needed) the
-values.
+On Wed, Jan 25, 2012 at 06:02:41PM +0100, Tomasz Stanislawski wrote:
+> Hi Sumit,
+> 
+> On 12/26/2011 10:23 AM, Sumit Semwal wrote:
+> >This is the first step in defining a dma buffer sharing mechanism.
+> >
+> >A new buffer object dma_buf is added, with operations and API to allow easy
+> >sharing of this buffer object across devices.
+> >
+> >The framework allows:
+> >- creation of a buffer object, its association with a file pointer, and
+> >    associated allocator-defined operations on that buffer. This operation is
+> >    called the 'export' operation.
+> >- different devices to 'attach' themselves to this exported buffer object, to
+> >   facilitate backing storage negotiation, using dma_buf_attach() API.
+> >- the exported buffer object to be shared with the other entity by asking for
+> >    its 'file-descriptor (fd)', and sharing the fd across.
+> >- a received fd to get the buffer object back, where it can be accessed using
+> >    the associated exporter-defined operations.
+> >- the exporter and user to share the scatterlist associated with this buffer
+> >    object using map_dma_buf and unmap_dma_buf operations.
+> >
+> 
+> [snip]
+> 
+> >+/**
+> >+ * struct dma_buf_attachment - holds device-buffer attachment data
+> >+ * @dmabuf: buffer for this attachment.
+> >+ * @dev: device attached to the buffer.
+> >+ * @node: list of dma_buf_attachment.
+> >+ * @priv: exporter specific attachment data.
+> >+ *
+> >+ * This structure holds the attachment information between the dma_buf buffer
+> >+ * and its user device(s). The list contains one attachment struct per device
+> >+ * attached to the buffer.
+> >+ */
+> >+struct dma_buf_attachment {
+> >+	struct dma_buf *dmabuf;
+> >+	struct device *dev;
+> >+	struct list_head node;
+> >+	void *priv;
+> >+};
+> >+
+> >+#ifdef CONFIG_DMA_SHARED_BUFFER
+> >+struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+> >+							struct device *dev);
+> >+void dma_buf_detach(struct dma_buf *dmabuf,
+> >+				struct dma_buf_attachment *dmabuf_attach);
+> >+struct dma_buf *dma_buf_export(void *priv, struct dma_buf_ops *ops,
+> >+			size_t size, int flags);
+> >+int dma_buf_fd(struct dma_buf *dmabuf);
+> >+struct dma_buf *dma_buf_get(int fd);
+> >+void dma_buf_put(struct dma_buf *dmabuf);
+> >+
+> >+struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
+> >+					enum dma_data_direction);
+> >+void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *);
+> 
+> I think that you should add enum dma_data_direction as an argument
+> unmap function. It was mentioned that the dma_buf_attachment should keep
+> cached and mapped sg_table for performance reasons. The field
+> dma_buf_attachment::priv seams to be a natural place to keep this sg_table.
+> To map a buffer the exporter calls dma_map_sg. It needs dma direction
+> as an argument. The problem is that dma_unmap_sg also needs this
+> argument but dma direction is not available neither in
+> dma_buf_unmap_attachment nor in unmap callback. Therefore the exporter
+> is forced to embed returned sg_table into a bigger structure where
+> dma direction is remembered. Refer to function vb2_dc_dmabuf_ops_map
+> at
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mx2_camera.c |    2 ++
- drivers/media/video/soc_camera.c |    6 ++++--
- include/media/soc_camera.h       |    4 ++++
- 3 files changed, 10 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index e9b228d..e8c8021 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -1430,6 +1430,8 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 	pcdev->soc_host.priv		= pcdev;
- 	pcdev->soc_host.v4l2_dev.dev	= &pdev->dev;
- 	pcdev->soc_host.nr		= pdev->id;
-+	if (cpu_is_mx25()) {
-+		pcdev->soc_host.capabilities = SOCAM_HOST_CAP_STRIDE;
- 	err = soc_camera_host_register(&pcdev->soc_host);
- 	if (err)
- 		goto exit_free_emma;
-diff --git a/drivers/media/video/soc_camera.c b/drivers/media/video/soc_camera.c
-index b49ad27..84aabc3 100644
---- a/drivers/media/video/soc_camera.c
-+++ b/drivers/media/video/soc_camera.c
-@@ -171,8 +171,10 @@ static int soc_camera_try_fmt(struct soc_camera_device *icd,
- 	dev_dbg(icd->pdev, "TRY_FMT(%c%c%c%c, %ux%u)\n",
- 		pixfmtstr(pix->pixelformat), pix->width, pix->height);
- 
--	pix->bytesperline = 0;
--	pix->sizeimage = 0;
-+	if (!(ici->capabilities & SOCAM_HOST_CAP_STRIDE)) {
-+		pix->bytesperline = 0;
-+		pix->sizeimage = 0;
-+	}
- 
- 	ret = ici->ops->try_fmt(icd, f);
- 	if (ret < 0)
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 5fb2c3d..b7d1d9b 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -56,10 +56,14 @@ struct soc_camera_device {
- 	};
- };
- 
-+/* Host supports programmable stride */
-+#define SOCAM_HOST_CAP_STRIDE		(1 << 0)
-+
- struct soc_camera_host {
- 	struct v4l2_device v4l2_dev;
- 	struct list_head list;
- 	unsigned char nr;				/* Host number */
-+	u32 capabilities;
- 	void *priv;
- 	const char *drv_name;
- 	struct soc_camera_host_ops *ops;
+Oops, makes sense. I've totally overlooked that we need to pass in the dma
+direction also for the unmap call to the dma subsystem. Sumit, can you
+stitch together that small patch?
+-Daniel
 -- 
-1.7.3.4
-
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
