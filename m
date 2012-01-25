@@ -1,81 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57339 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754617Ab2AJJu2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 04:50:28 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [ANN] Notes on IRC meeting on new sensor control interface, 2012-01-09 14:00 GMT+2
-Date: Tue, 10 Jan 2012 10:50:52 +0100
-Cc: linux-media@vger.kernel.org, tuukkat76@gmail.com,
-	dacohen@gmail.com, g.liakhovetski@gmx.de, hverkuil@xs4all.nl,
-	snjw23@gmail.com
-References: <20120104085633.GM3677@valkosipuli.localdomain> <201201100113.07211.laurent.pinchart@ideasonboard.com> <4F0C0822.6020604@iki.fi>
-In-Reply-To: <4F0C0822.6020604@iki.fi>
+Received: from comal.ext.ti.com ([198.47.26.152]:52899 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752465Ab2AYPFl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jan 2012 10:05:41 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0PF5dp6009764
+	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 09:05:40 -0600
+From: Manjunath Hadli <manjunath.hadli@ti.com>
+To: LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	Manjunath Hadli <manjunath.hadli@ti.com>
+Subject: [PATCH 0/4] davinci: add vpif support for da850/omap-l138
+Date: Wed, 25 Jan 2012 20:35:30 +0530
+Message-ID: <1327503934-28186-1-git-send-email-manjunath.hadli@ti.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201101050.52887.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+add vpif capture and display driver support for
+da850/omap-l138 by taking care of the interrupt 
+behavior changes and removing platform specific
+connotations.
 
-On Tuesday 10 January 2012 10:42:58 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Tuesday 10 January 2012 00:26:46 Sakari Ailus wrote:
-> >> Laurent Pinchart wrote:
-> >>> On Monday 09 January 2012 23:32:06 Sakari Ailus wrote:
-> >>>> Laurent Pinchart wrote:
-> >>>>> On Monday 09 January 2012 18:38:25 Sakari Ailus wrote:
-> >> ...
-> >> 
-> >>>>>> A fourth section may be required as well: at this level the frame
-> >>>>>> rate (or frame time) range makes more sense than the low-level
-> >>>>>> blanking values. The blanking values can be calculated from the
-> >>>>>> frame time and a flag which tells whether either horizontal or
-> >>>>>> vertical blanking should be preferred.
-> >>>>> 
-> >>>>> How does one typically select between horizontal and vertical
-> >>>>> blanking ? Do mixed modes make sense ?
-> >>>> 
-> >>>> There are minimums and maximums for both. You can increase the frame
-> >>>> time by increasing value for either or both of them --- to achieve
-> >>>> very long frame times you may have to use both, but that's not very
-> >>>> common in practice. I think we should have a flag to tell which one
-> >>>> should be increased first --- the effect would be to have the minimum
-> >>>> possible value on the other.
-> >>> 
-> >>> But how do you decide in practice which one to increase when you're an
-> >>> application (or middleware) developer ?
-> >> 
-> >> I think it's the responsibility of this library to do that, unless the
-> >> user wants really, really precise control in which case they have to
-> >> deal with the blanking values directly. In general it should be the
-> >> library.
-> > 
-> > And how does the library decide ? :-)
-> 
-> frame_time = pixel_rate / ((width + hblank) * (height + vblank))
-> 
-> The user gives you frame time and the configuration contains the
-> information which one to prefer. Let's say the user prefers hblank (from
-> the above):
+Manjunath Hadli (4):
+  davinci: vpif: add check for genuine interrupts in the isr
+  davinci: vpif: make generic changes to re-use the vpif drivers on
+    da850/omap-l138 soc
+  davinci: vpif: make request_irq flags as shared
+  davinci: da850: add build configuration for vpif drivers
 
-That was my question, how does the user decide whether hblank or vblank is 
-preferred ?
+ drivers/media/video/davinci/Kconfig        |   26 +++++++++++++++++++++++++-
+ drivers/media/video/davinci/Makefile       |    5 +++++
+ drivers/media/video/davinci/vpif.c         |    2 +-
+ drivers/media/video/davinci/vpif_capture.c |   16 ++++++++++------
+ drivers/media/video/davinci/vpif_display.c |   21 +++++++++++++--------
+ drivers/media/video/davinci/vpif_display.h |    2 +-
+ include/media/davinci/vpif_types.h         |    2 ++
+ 7 files changed, 57 insertions(+), 17 deletions(-)
 
-> (width + hblank) * frame_time = pixel_rate / (height + vblank_min)
-> 
-> hblank = pixel_rate / (height + vblank_min) / frame_time - width
-> 
-> width, height, pixel_rate and blankings are as in the pixel array.
-> Elsewhere these values may depend on the link frequency and other
-> factors so the pixel array is the only reliable place to do this.
-
--- 
-Regards,
-
-Laurent Pinchart
