@@ -1,141 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50733 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932511Ab2ASQVz (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:49531 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750952Ab2AYMR0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 11:21:55 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH 17/23] v4l: Implement v4l2_subdev_link_validate()
-Date: Thu, 19 Jan 2012 17:21:53 +0100
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-References: <4F0DFE92.80102@iki.fi> <201201161544.08756.laurent.pinchart@ideasonboard.com> <20120117202139.GF13236@valkosipuli.localdomain>
-In-Reply-To: <20120117202139.GF13236@valkosipuli.localdomain>
+	Wed, 25 Jan 2012 07:17:26 -0500
+Date: Wed, 25 Jan 2012 13:17:18 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de,
+	baruch@tkos.co.il
+Subject: Re: [PATCH 4/4] media i.MX27 camera: handle overflows properly.
+In-Reply-To: <1327059392-29240-5-git-send-email-javier.martin@vista-silicon.com>
+Message-ID: <Pine.LNX.4.64.1201251314230.18778@axis700.grange>
+References: <1327059392-29240-1-git-send-email-javier.martin@vista-silicon.com>
+ <1327059392-29240-5-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201191721.54343.laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Fri, 20 Jan 2012, Javier Martin wrote:
 
-On Tuesday 17 January 2012 21:21:39 Sakari Ailus wrote:
-> On Mon, Jan 16, 2012 at 03:44:08PM +0100, Laurent Pinchart wrote:
-> > On Wednesday 11 January 2012 22:26:54 Sakari Ailus wrote:
-> > > v4l2_subdev_link_validate() is the default op for validating a link. In
-> > > V4L2 subdev context, it is used to call a pad op which performs the
-> > > proper link check without much extra work.
-> > > 
-> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > ---
-> > > 
-> > >  drivers/media/video/v4l2-subdev.c |   62
-> > > 
-> > > +++++++++++++++++++++++++++++++++++++ include/media/v4l2-subdev.h      
-> > > |
-> > > 
-> > >  10 ++++++
-> > >  2 files changed, 72 insertions(+), 0 deletions(-)
-> > > 
-> > > diff --git a/drivers/media/video/v4l2-subdev.c
-> > > b/drivers/media/video/v4l2-subdev.c index 836270d..4b329a0 100644
-> > > --- a/drivers/media/video/v4l2-subdev.c
-> > > +++ b/drivers/media/video/v4l2-subdev.c
-> > > @@ -367,6 +367,68 @@ const struct v4l2_file_operations v4l2_subdev_fops
-> > > = {
-> > > 
-> > >  	.poll = subdev_poll,
-> > >  
-> > >  };
-> > > 
-> > > +#ifdef CONFIG_MEDIA_CONTROLLER
-> > > +int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
-> > > +				      struct media_link *link,
-> > > +				      struct v4l2_subdev_format *source_fmt,
-> > > +				      struct v4l2_subdev_format *sink_fmt)
-> > > +{
-> > > +	if (source_fmt->format.width != sink_fmt->format.width
-> > > +	    || source_fmt->format.height != sink_fmt->format.height
-> > > +	    || source_fmt->format.code != sink_fmt->format.code)
-> > > +		return -EINVAL;
-> > > +
-> > > +	return 0;
-> > > +}
-> > > +EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
-> > 
-> > What about calling this function directly from
-> > v4l2_subdev_link_validate() if the pad::link_validate operation is NULL
-> > ? That wouldn't require changing all subdev drivers to explicitly use
-> > the default implementation.
 > 
-> I can do that. I still want to keep the function available for those that
-> want to call it explicitly to perform the above check.
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  drivers/media/video/mx2_camera.c |   23 +++++++++--------------
+>  1 files changed, 9 insertions(+), 14 deletions(-)
 > 
-> > > +
-> > > +static struct v4l2_subdev_format
-> > > +*v4l2_subdev_link_validate_get_format(struct media_pad *pad,
-> > > +				      struct v4l2_subdev_format *fmt)
-> > > +{
-> > > +	int rval;
-> > > +
-> > > +	switch (media_entity_type(pad->entity)) {
-> > > +	case MEDIA_ENT_T_V4L2_SUBDEV:
-> > > +		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> > > +		fmt->pad = pad->index;
-> > > +		rval = v4l2_subdev_call(media_entity_to_v4l2_subdev(
-> > > +						pad->entity),
-> > > +					pad, get_fmt, NULL, fmt);
-> > > +		if (rval < 0)
-> > > +			return NULL;
-> > > +		return fmt;
-> > > +	case MEDIA_ENT_T_DEVNODE_V4L:
-> > > +		return NULL;
-> > > +	default:
-> > > +		BUG();
-> > 
-> > Maybe WARN() and return NULL ?
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index e0c5dd4..cdc614f 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -1274,7 +1274,10 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+>  		buf->state = state;
+>  		do_gettimeofday(&vb->v4l2_buf.timestamp);
+>  		vb->v4l2_buf.sequence = pcdev->frame_count;
+> -		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+> +		if (state == MX2_STATE_ERROR)
+> +			vb2_buffer_done(vb, VB2_BUF_STATE_ERROR);
+> +		else
+> +			vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+>  	}
+>  
+>  	pcdev->frame_count++;
+> @@ -1309,19 +1312,11 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+>  	struct mx2_buffer *buf;
+>  
+>  	if (status & (1 << 7)) { /* overflow */
+> -		u32 cntl;
+> -		/*
+> -		 * We only disable channel 1 here since this is the only
+> -		 * enabled channel
+> -		 *
+> -		 * FIXME: the correct DMA overflow handling should be resetting
+> -		 * the buffer, returning an error frame, and continuing with
+> -		 * the next one.
+> -		 */
+> -		cntl = readl(pcdev->base_emma + PRP_CNTL);
+> -		writel(cntl & ~(PRP_CNTL_CH1EN | PRP_CNTL_CH2EN),
+> -		       pcdev->base_emma + PRP_CNTL);
+> -		writel(cntl, pcdev->base_emma + PRP_CNTL);
+> +		buf = list_entry(pcdev->active_bufs.next,
+> +			struct mx2_buffer, queue);
+> +		mx27_camera_frame_done_emma(pcdev,
+> +					buf->bufnum, MX2_STATE_ERROR);
+> +		status &= ~(1 << 7);
+>  	}
+>  	if ((((status & (3 << 5)) == (3 << 5)) ||
+
+Does it make sense continuing processing here, if an error occurred? To me 
+all the four "if" statements in this function seem mutually-exclusive and 
+should be handled by a
+
+	if () {
+	} else if () {
+	...
+chain.
+
+>  		((status & (3 << 3)) == (3 << 3)))
+> -- 
+> 1.7.0.4
 > 
-> It's a clear driver BUG() if this happens. If you think the correct
-> response to that is WARN() and return NULL, I can do that.
 
-You're right.
-
-> > > +	}
-> > > +}
-> > > +
-> > > +int v4l2_subdev_link_validate(struct media_link *link)
-> > > +{
-> > > +	struct v4l2_subdev *sink = NULL, *source = NULL;
-> > > +	struct v4l2_subdev_format _sink_fmt, _source_fmt;
-> > > +	struct v4l2_subdev_format *sink_fmt, *source_fmt;
-> > > +
-> > > +	source_fmt = v4l2_subdev_link_validate_get_format(
-> > > +		link->source, &_source_fmt);
-> > > +	sink_fmt = v4l2_subdev_link_validate_get_format(
-> > > +		link->sink, &_sink_fmt);
-> > > +
-> > > +	if (source_fmt)
-> > > +		source = media_entity_to_v4l2_subdev(link->source->entity);
-> > > +	if (sink_fmt)
-> > > +		sink = media_entity_to_v4l2_subdev(link->sink->entity);
-> > > +
-> > > +	if (source_fmt && sink_fmt)
-> > > +		return v4l2_subdev_call(sink, pad, link_validate, link,
-> > > +					source_fmt, sink_fmt);
-> > 
-> > This looks overly complex. Why don't you return 0 if one of the two
-> > entities is of a type different than MEDIA_ENT_T_V4L2_SUBDEV, then
-> > retrieve the formats for the two entities and return 0 if one of the two
-> > operation fails, and finally call pad::link_validate ?
-> 
-> Now that you mention that, I agree. :-) I'll fix it.
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
