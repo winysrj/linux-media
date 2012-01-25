@@ -1,106 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:59815 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752176Ab2AZJBJ (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:57414 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752368Ab2AYLta convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 04:01:09 -0500
-Date: Thu, 26 Jan 2012 10:00:53 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 11/15] mm: trigger page reclaim in alloc_contig_range() to
- stabilize watermarks
-In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Message-id: <1327568457-27734-12-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+	Wed, 25 Jan 2012 06:49:30 -0500
+Date: Wed, 25 Jan 2012 12:49:50 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH/RFC v4 3/3] gspca: zc3xx: Add
+ V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+Message-ID: <20120125124950.77e56306@tele>
+In-Reply-To: <4F1ACF96.1030102@gmail.com>
+References: <1326569705-20261-4-git-send-email-sylvester.nawrocki@gmail.com>
+	<1326570797-20718-1-git-send-email-sylvester.nawrocki@gmail.com>
+	<4F1ACF96.1030102@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-alloc_contig_range() performs memory allocation so it also should keep
-track on keeping the correct level of memory watermarks. This commit adds
-a call to *_slowpath style reclaim to grab enough pages to make sure that
-the final collection of contiguous pages from freelists will not starve
-the system.
+On Sat, 21 Jan 2012 15:45:42 +0100
+Sylwester Nawrocki <sylvester.nawrocki@gmail.com> wrote:
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
----
- mm/page_alloc.c |   36 ++++++++++++++++++++++++++++++++++++
- 1 files changed, 36 insertions(+), 0 deletions(-)
+> is this patch looking OK or you, or would you have any further remarks ?
+> I'd like to add it to a pull request in coming week, together with remaining
+> patches in this series plus a patch for some SoC JPEG codec driver.
+> Please let me know if there is anything that could be changed/improved.
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index e35d06b..05eaa82 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5613,6 +5613,34 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
- 	return ret;
- }
- 
-+/*
-+ * Trigger memory pressure bump to reclaim some pages in order to be able to
-+ * allocate 'count' pages in single page units. Does similar work as
-+ *__alloc_pages_slowpath() function.
-+ */
-+static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
-+{
-+	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
-+	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
-+	int did_some_progress = 0;
-+	int order = 1;
-+	unsigned long watermark;
-+
-+	/* Obey watermarks as if the page was being allocated */
-+	watermark = low_wmark_pages(zone) + count;
-+	while (!zone_watermark_ok(zone, 0, watermark, 0, 0)) {
-+		wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
-+
-+		did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
-+						      NULL);
-+		if (!did_some_progress) {
-+			/* Exhausted what can be done so it's blamo time */
-+			out_of_memory(zonelist, gfp_mask, order, NULL);
-+		}
-+	}
-+	return count;
-+}
-+
- /**
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-@@ -5707,6 +5735,14 @@ int alloc_contig_range(unsigned long start, unsigned long end,
- 		goto done;
- 	}
- 
-+	/*
-+	 * Reclaim enough pages to make sure that contiguous allocation
-+	 * will not starve the system.
-+	 */
-+	__reclaim_pages(page_zone(pfn_to_page(outer_start)),
-+		        GFP_HIGHUSER_MOVABLE, end-start);
-+
-+	/* Grab isolated pages from freelists. */
- 	outer_end = isolate_freepages_range(outer_start, end);
- 	if (!outer_end) {
- 		ret = -EBUSY;
+Hi Sylwester,
+
+The patch is OK for me.
+
+Acked-by: Jean-Francois Moine <moinejf@free.fr>
+
+Thanks.
+
 -- 
-1.7.1.569.g6f426
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
