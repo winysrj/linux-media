@@ -1,78 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:45667 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751049Ab2AUHkT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 21 Jan 2012 02:40:19 -0500
-Received: by iacb35 with SMTP id b35so733749iac.19
-        for <linux-media@vger.kernel.org>; Fri, 20 Jan 2012 23:40:18 -0800 (PST)
-From: pdickeybeta@gmail.com
-To: linux-media@vger.kernel.org
-Cc: Patrick Dickey <pdickeybeta@gmail.com>
-Subject: [PATCH 0/2] Import PCTV-80e Drivers from Devin Heitmueller's Repository
-Date: Sat, 21 Jan 2012 01:34:49 -0600
-Message-Id: <1327131291-5174-1-git-send-email-pdickeybeta@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:56593 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753221Ab2AYM1s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 25 Jan 2012 07:27:48 -0500
+Message-ID: <4F1FF53F.6090603@redhat.com>
+Date: Wed, 25 Jan 2012 10:27:43 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Benjamin Larsson <benjamin@southpole.se>
+CC: linux-media@vger.kernel.org
+Subject: Re: Hauppauge HVR-930C
+References: <4F1FF046.9050401@southpole.se>
+In-Reply-To: <4F1FF046.9050401@southpole.se>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Patrick Dickey <pdickeybeta@gmail.com>
+Em 25-01-2012 10:06, Benjamin Larsson escreveu:
+> I tried a daily snapshot (2011-01-24) with this stick. And I'm getting these kind of errors in the log:
+> 
+> [43665.769571] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+> [43665.769857] drxk: 02 00 00 00 10 00 07 00 03 02                    ..........
+> [43686.121576] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+> [43686.121861] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
+> [43706.465578] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+> [43706.465861] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
+> [43709.669571] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
+> [43709.669850] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
 
-This series of patches will import the drx39xxj(drx39xyj) drivers from Devin
-Heitmueller's HG Repository for the Pinnacle PCTV-80e USB Tuner.
+This is just due to firmware differences. Yeah, a cleanup on these is needed.
 
-Patrick Dickey (2):
-  import-pctv-80e-from-devin-heitmueller-hg-repository
-    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>    
-    Signed-off-by: Patrick Dickey <pdickeybeta@gmail.com>
-  import-pctv-80e-from-devin-heitmueller-hg-repository
-    Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>    
-    Signed-off-by: Patrick Dickey <pdickeybeta@gmail.com>
+> 
+> First I tried the driver with the firmware that is downloaded with the get_firmware script. 
+> The adapter and frontends was registered properly but I did not get any TS from the stick. 
+> I then renamed the firmware file and the driver complained about missing firmware but stick 
+> started working anyway. So the drxk in my version of the card has a rom with microcode in it.
 
- Documentation/video4linux/CARDLIST.em28xx          |    1 +
- .../staging/media/dvb/frontends/drx39xyj/Kconfig   |    7 +
- .../staging/media/dvb/frontends/drx39xyj/Makefile  |    3 +
- .../media/dvb/frontends/drx39xyj/bsp_host.h        |   80 +
- .../staging/media/dvb/frontends/drx39xyj/bsp_i2c.h |  217 +
- .../media/dvb/frontends/drx39xyj/bsp_tuner.h       |  215 +
- .../media/dvb/frontends/drx39xyj/bsp_types.h       |  229 +
- .../media/dvb/frontends/drx39xyj/drx39xxj.c        |  457 +
- .../media/dvb/frontends/drx39xyj/drx39xxj.h        |   40 +
- .../media/dvb/frontends/drx39xyj/drx39xxj_dummy.c  |  134 +
- .../media/dvb/frontends/drx39xyj/drx_dap_fasi.c    |  675 +
- .../media/dvb/frontends/drx39xyj/drx_dap_fasi.h    |  268 +
- .../media/dvb/frontends/drx39xyj/drx_driver.c      | 1600 ++
- .../media/dvb/frontends/drx39xyj/drx_driver.h      | 2588 +++
- .../dvb/frontends/drx39xyj/drx_driver_version.h    |   82 +
- .../staging/media/dvb/frontends/drx39xyj/drxj.c    |16758 ++++++++++++++++++++
- .../staging/media/dvb/frontends/drx39xyj/drxj.h    |  730 +
- .../media/dvb/frontends/drx39xyj/drxj_map.h        |15359 ++++++++++++++++++
- .../staging/media/dvb/frontends/drx39xyj/drxj_mc.h | 3939 +++++
- .../media/dvb/frontends/drx39xyj/drxj_mc_vsb.h     |  744 +
- .../media/dvb/frontends/drx39xyj/drxj_mc_vsbqam.h  | 1437 ++
- .../media/dvb/frontends/drx39xyj/drxj_options.h    |   65 +
- 22 files changed, 45628 insertions(+), 0 deletions(-)
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/Kconfig
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/Makefile
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_host.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_i2c.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_tuner.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_types.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj.c
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj_dummy.c
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_dap_fasi.c
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_dap_fasi.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver.c
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver_version.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj.c
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_map.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc_vsb.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc_vsbqam.h
- create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_options.h
+This is not uncommon. The uploaded firmware should be, in thesis, better than
+the one already on it.
 
--- 
-1.7.7.6
+Are you testing it with DVB-C or DVB-T (or with both)? Here, DVB-C works properly
+on HVR-930C.
+
+> So things that would be nice to have is:
+> 
+> A log output that the drxk actually loaded the firmware file. Right now there is only log output when there is no firmware file detected.
+> Maybe add a log that the card might work without the drxk firmware.
+> Silence the SCU_RESULT_INVPAR debug output by default or find out what is causing the error messages.
+
+Feel free to submit a patch for drxk_hard.c.
+
+Regards,
+Mauro
+
+> 
+> MvH
+> Benjamin Larsson
+> -- 
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
