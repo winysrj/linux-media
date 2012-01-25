@@ -1,63 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:62337 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752151Ab2AMG2o (ORCPT
+Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:36212 "EHLO
+	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751447Ab2AYFgM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jan 2012 01:28:44 -0500
-Date: Fri, 13 Jan 2012 09:28:34 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Lucas De Marchi <lucas.demarchi@profusion.mobi>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] mb86a20s: fix off by one checks
-Message-ID: <20120113062834.GA23737@elgon.mountain>
+	Wed, 25 Jan 2012 00:36:12 -0500
+Received: by mail-tul01m020-f181.google.com with SMTP id up10so6092161obb.26
+        for <linux-media@vger.kernel.org>; Tue, 24 Jan 2012 21:36:11 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <4F1D7BF4.4040603@samsung.com>
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+ <1327326675-8431-5-git-send-email-t.stanislaws@samsung.com>
+ <4F1D6D3E.7020203@redhat.com> <4F1D6F68.5040202@samsung.com>
+ <4F1D7418.50201@redhat.com> <4F1D7BF4.4040603@samsung.com>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Wed, 25 Jan 2012 11:05:50 +0530
+Message-ID: <CAB2ybb8fXUARSriD2x-4TNLVtxpg5hA6NKjrAOOwzHJ0Cko6Ag@mail.gmail.com>
+Subject: Re: [PATCH 04/10] v4l: vb2: fixes for DMABUF support
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Clearly ">=" was intended here instead of ">".
+Hi Tomasz,
+On Mon, Jan 23, 2012 at 8:55 PM, Tomasz Stanislawski
+<t.stanislaws@samsung.com> wrote:
+> Hi Mauro,
+>
+>
+<snip>
+>
+> Ok. I should have given more details about the patch. I am sorry for missing
+> it. My kernel tree failed to compile after applying patches from
+>
+> [1]
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
+>
+> I had to generate this patch to compile the code and test it. Most of the
+> fixes refer to Sumit's code and I think he will take care of those bugs.
+Is your kernel tree a mainline kernel? I am pretty sure I posted out
+the RFC after compile testing.
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-
-diff --git a/drivers/media/dvb/frontends/mb86a20s.c b/drivers/media/dvb/frontends/mb86a20s.c
-index 38778a8..4e6f836 100644
---- a/drivers/media/dvb/frontends/mb86a20s.c
-+++ b/drivers/media/dvb/frontends/mb86a20s.c
-@@ -535,7 +535,7 @@ static int mb86a20s_get_modulation(struct mb86a20s_state *state,
- 		[2] = 0x8e,	/* Layer C */
- 	};
- 
--	if (layer > ARRAY_SIZE(reg))
-+	if (layer >= ARRAY_SIZE(reg))
- 		return -EINVAL;
- 	rc = mb86a20s_writereg(state, 0x6d, reg[layer]);
- 	if (rc < 0)
-@@ -568,7 +568,7 @@ static int mb86a20s_get_fec(struct mb86a20s_state *state,
- 		[2] = 0x8f,	/* Layer C */
- 	};
- 
--	if (layer > ARRAY_SIZE(reg))
-+	if (layer >= ARRAY_SIZE(reg))
- 		return -EINVAL;
- 	rc = mb86a20s_writereg(state, 0x6d, reg[layer]);
- 	if (rc < 0)
-@@ -603,7 +603,7 @@ static int mb86a20s_get_interleaving(struct mb86a20s_state *state,
- 		[2] = 0x90,	/* Layer C */
- 	};
- 
--	if (layer > ARRAY_SIZE(reg))
-+	if (layer >= ARRAY_SIZE(reg))
- 		return -EINVAL;
- 	rc = mb86a20s_writereg(state, 0x6d, reg[layer]);
- 	if (rc < 0)
-@@ -627,7 +627,7 @@ static int mb86a20s_get_segment_count(struct mb86a20s_state *state,
- 		[2] = 0x91,	/* Layer C */
- 	};
- 
--	if (layer > ARRAY_SIZE(reg))
-+	if (layer >= ARRAY_SIZE(reg))
- 		return -EINVAL;
- 	rc = mb86a20s_writereg(state, 0x6d, reg[layer]);
- 	if (rc < 0)
+>
+<snip>
+>
+>
+> I wanted to post the complete set of patches that produce compilable kernel.
+> Therefore most important bugs/issues had to be fixed and attached to the
+> patchset. Some of the issues in [1] were mentioned by Laurent and Sakari. I
+> hope Sumit will take care of those problems.
+I must've misunderstood when you said 'I would like to take care of
+these patches'. Please let me know if you'd like me to submit next
+version of my RFC separately with fixes for these issues, or would you
+manage that as part of your RFC patch series submission.
+>
+>>
+>> Failing to do that will mean that important fixes for upstream
+>> will be missed.
+>
+>
+> Ok. It will be fixed.
+>
+>>
+>> Regards,
+>> Mauro
+>>
+>
+> Regards,
+> Tomasz Stanislawski
+>
+Best regards,
+~Sumit.
