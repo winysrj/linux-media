@@ -1,271 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:16727 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751553Ab2AZJBD (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:55478 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751720Ab2AZQBR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 04:01:03 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Thu, 26 Jan 2012 10:00:48 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 06/15] mm: page_alloc: introduce alloc_contig_range()
-In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Message-id: <1327568457-27734-7-git-send-email-m.szyprowski@samsung.com>
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+	Thu, 26 Jan 2012 11:01:17 -0500
+Date: Thu, 26 Jan 2012 17:01:15 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/8] soc-camera: Add plane layout information to struct
+ soc_mbus_pixelfmt
+In-Reply-To: <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com>
+Message-ID: <Pine.LNX.4.64.1201261659480.10057@axis700.grange>
+References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com>
+ <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+One more question:
 
-This commit adds the alloc_contig_range() function which tries
-to allocate given range of pages.  It tries to migrate all
-already allocated pages that fall in the range thus freeing them.
-Once all pages in the range are freed they are removed from the
-buddy system thus allocated for the caller to use.
+On Wed, 25 Jan 2012, Laurent Pinchart wrote:
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> To compute the number of bytes per line according to the V4L2
+> specification, we need information about planes layout for planar
+> formats. The new enum soc_mbus_layout convey that information.
+> 
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/video/atmel-isi.c            |    1 +
+>  drivers/media/video/mx3_camera.c           |    2 +
+>  drivers/media/video/omap1_camera.c         |    8 ++++++
+>  drivers/media/video/pxa_camera.c           |    1 +
+>  drivers/media/video/sh_mobile_ceu_camera.c |    4 +++
+>  drivers/media/video/soc_mediabus.c         |   33 ++++++++++++++++++++++++++++
+>  include/media/soc_mediabus.h               |   19 ++++++++++++++++
+>  7 files changed, 68 insertions(+), 0 deletions(-)
+
+[snip]
+
+> diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+> index 73f1e7e..18b0864 100644
+> --- a/include/media/soc_mediabus.h
+> +++ b/include/media/soc_mediabus.h
+> @@ -47,6 +47,24 @@ enum soc_mbus_order {
+>  };
+>  
+>  /**
+> + * enum soc_mbus_layout - planes layout in memory
+> + * @SOC_MBUS_LAYOUT_PACKED:		color components packed
+> + * @SOC_MBUS_LAYOUT_PLANAR_Y_U_V:	YUV components stored in 3 planes
+> + * @SOC_MBUS_LAYOUT_PLANAR_2Y_C:	YUV components stored in a luma and a
+> + *					chroma plane (C plane is half the size
+> + *					of Y plane)
+> + * @SOC_MBUS_LAYOUT_PLANAR_Y_C:		YUV components stored in a luma and a
+> + *					chroma plane (C plane is the same size
+> + *					as Y plane)
+> + */
+> +enum soc_mbus_layout {
+> +	SOC_MBUS_LAYOUT_PACKED = 0,
+> +	SOC_MBUS_LAYOUT_PLANAR_Y_U_V,
+
+Shouldn't we call this SOC_MBUS_LAYOUT_PLANAR_2Y_U_V?
+
+Thanks
+Guennadi
 ---
- include/linux/page-isolation.h |    7 ++
- mm/page_alloc.c                |  183 ++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 190 insertions(+), 0 deletions(-)
-
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 8c02c2b..430cf61 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -39,5 +39,12 @@ extern void update_pcp_isolate_block(unsigned long pfn);
- extern int set_migratetype_isolate(struct page *page);
- extern void unset_migratetype_isolate(struct page *page);
- 
-+#ifdef CONFIG_CMA
-+
-+/* The below functions must be run on a range from a single zone. */
-+extern int alloc_contig_range(unsigned long start, unsigned long end);
-+extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
-+
-+#endif
- 
- #endif
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 70709e7..b4f50532 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -57,6 +57,7 @@
- #include <linux/ftrace_event.h>
- #include <linux/memcontrol.h>
- #include <linux/prefetch.h>
-+#include <linux/migrate.h>
- #include <linux/page-debug-flags.h>
- 
- #include <asm/tlbflush.h>
-@@ -5488,6 +5489,188 @@ out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
- 
-+#ifdef CONFIG_CMA
-+
-+static unsigned long pfn_align_to_maxpage_down(unsigned long pfn)
-+{
-+	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
-+}
-+
-+static unsigned long pfn_align_to_maxpage_up(unsigned long pfn)
-+{
-+	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
-+}
-+
-+static struct page *
-+__alloc_contig_migrate_alloc(struct page *page, unsigned long private,
-+			     int **resultp)
-+{
-+	return alloc_page(GFP_HIGHUSER_MOVABLE);
-+}
-+
-+/* [start, end) must belong to a single zone. */
-+static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-+{
-+	/* This function is based on compact_zone() from compaction.c. */
-+
-+	unsigned long pfn = start;
-+	unsigned int tries = 0;
-+	int ret = 0;
-+
-+	struct compact_control cc = {
-+		.nr_migratepages = 0,
-+		.order = -1,
-+		.zone = page_zone(pfn_to_page(start)),
-+		.sync = true,
-+	};
-+	INIT_LIST_HEAD(&cc.migratepages);
-+
-+	migrate_prep_local();
-+
-+	while (pfn < end || !list_empty(&cc.migratepages)) {
-+		if (fatal_signal_pending(current)) {
-+			ret = -EINTR;
-+			break;
-+		}
-+
-+		if (list_empty(&cc.migratepages)) {
-+			cc.nr_migratepages = 0;
-+			pfn = isolate_migratepages_range(cc.zone, &cc,
-+							 pfn, end);
-+			if (!pfn) {
-+				ret = -EINTR;
-+				break;
-+			}
-+			tries = 0;
-+		} else if (++tries == 5) {
-+			ret = ret < 0 ? ret : -EBUSY;
-+			break;
-+		}
-+
-+		ret = migrate_pages(&cc.migratepages,
-+				    __alloc_contig_migrate_alloc,
-+				    0, false, true);
-+	}
-+
-+	putback_lru_pages(&cc.migratepages);
-+	return ret;
-+}
-+
-+/**
-+ * alloc_contig_range() -- tries to allocate given range of pages
-+ * @start:	start PFN to allocate
-+ * @end:	one-past-the-last PFN to allocate
-+ *
-+ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-+ * aligned, however it's the caller's responsibility to guarantee that
-+ * we are the only thread that changes migrate type of pageblocks the
-+ * pages fall in.
-+ *
-+ * The PFN range must belong to a single zone.
-+ *
-+ * Returns zero on success or negative error code.  On success all
-+ * pages which PFN is in [start, end) are allocated for the caller and
-+ * need to be freed with free_contig_range().
-+ */
-+int alloc_contig_range(unsigned long start, unsigned long end)
-+{
-+	unsigned long outer_start, outer_end;
-+	int ret = 0, order;
-+
-+	/*
-+	 * What we do here is we mark all pageblocks in range as
-+	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
-+	 * align the range to MAX_ORDER pages so that page allocator
-+	 * won't try to merge buddies from different pageblocks and
-+	 * change MIGRATE_ISOLATE to some other migration type.
-+	 *
-+	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
-+	 * migrate the pages from an unaligned range (ie. pages that
-+	 * we are interested in).  This will put all the pages in
-+	 * range back to page allocator as MIGRATE_ISOLATE.
-+	 *
-+	 * When this is done, we take the pages in range from page
-+	 * allocator removing them from the buddy system.  This way
-+	 * page allocator will never consider using them.
-+	 *
-+	 * This lets us mark the pageblocks back as
-+	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
-+	 * MAX_ORDER aligned range but not in the unaligned, original
-+	 * range are put back to page allocator so that buddy can use
-+	 * them.
-+	 */
-+
-+	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
-+				       pfn_align_to_maxpage_up(end));
-+	if (ret)
-+		goto done;
-+
-+	ret = __alloc_contig_migrate_range(start, end);
-+	if (ret)
-+		goto done;
-+
-+	/*
-+	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
-+	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
-+	 * more, all pages in [start, end) are free in page allocator.
-+	 * What we are going to do is to allocate all pages from
-+	 * [start, end) (that is remove them from page allocater).
-+	 *
-+	 * The only problem is that pages at the beginning and at the
-+	 * end of interesting range may be not aligned with pages that
-+	 * page allocator holds, ie. they can be part of higher order
-+	 * pages.  Because of this, we reserve the bigger range and
-+	 * once this is done free the pages we are not interested in.
-+	 */
-+
-+	lru_add_drain_all();
-+	drain_all_pages();
-+
-+	order = 0;
-+	outer_start = start;
-+	while (!PageBuddy(pfn_to_page(outer_start))) {
-+		if (WARN_ON(++order >= MAX_ORDER)) {
-+			ret = -EINVAL;
-+			goto done;
-+		}
-+		outer_start &= ~0UL << order;
-+	}
-+
-+	/* Make sure the range is really isolated. */
-+	if (test_pages_isolated(outer_start, end)) {
-+		pr_warn("__alloc_contig_migrate_range: test_pages_isolated(%lx, %lx) failed\n",
-+		       outer_start, end);
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+
-+	outer_end = isolate_freepages_range(outer_start, end);
-+	if (!outer_end) {
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+
-+	/* Free head and tail (if any) */
-+	if (start != outer_start)
-+		free_contig_range(outer_start, start - outer_start);
-+	if (end != outer_end)
-+		free_contig_range(end, outer_end - end);
-+
-+done:
-+	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
-+				pfn_align_to_maxpage_up(end));
-+	return ret;
-+}
-+
-+void free_contig_range(unsigned long pfn, unsigned nr_pages)
-+{
-+	for (; nr_pages--; ++pfn)
-+		__free_page(pfn_to_page(pfn));
-+}
-+
-+#endif
-+
-+
- #ifdef CONFIG_MEMORY_HOTREMOVE
- /*
-  * All pages in the range must be isolated before calling this.
--- 
-1.7.1.569.g6f426
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
