@@ -1,48 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1768 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758620Ab2AFKpE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 05:45:04 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: vkalia@codeaurora.org
-Subject: Re: Pause/Resume and flush for V4L2 codec drivers.
-Date: Fri, 6 Jan 2012 11:44:49 +0100
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53234 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751382Ab2AZT0C (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 14:26:02 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 3/8] soc-camera: Add plane layout information to struct soc_mbus_pixelfmt
+Date: Thu, 26 Jan 2012 20:26:11 +0100
 Cc: linux-media@vger.kernel.org
-References: <4e9191cad2837e2710d3ccb8be4aa735.squirrel@www.codeaurora.org>
-In-Reply-To: <4e9191cad2837e2710d3ccb8be4aa735.squirrel@www.codeaurora.org>
+References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com> <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1201261629031.10057@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1201261629031.10057@axis700.grange>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
   charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201201061144.49354.hverkuil@xs4all.nl>
+Message-Id: <201201262026.12387.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, January 06, 2012 03:31:37 vkalia@codeaurora.org wrote:
-> Hi
+Hi Guennadi,
+
+On Thursday 26 January 2012 16:38:31 Guennadi Liakhovetski wrote:
+> On Wed, 25 Jan 2012, Laurent Pinchart wrote:
+> > To compute the number of bytes per line according to the V4L2
+> > specification, we need information about planes layout for planar
+> > formats. The new enum soc_mbus_layout convey that information.
 > 
-> I am trying to implement v4l2 driver for video decoders. The problem I am
-> facing is how to send pause/resume and flush commands from user-space to
-> v4l2 driver. I am thinking of using controls for this. Has anyone done
-> this before or if anyone has any ideas please let me know. Appreciate your
-> help.
+> Maybe it is better to call that value not "the number of bytes per line
+> according to the V4L2 specification," but rather "the value of the
+> .bytesperline field?" Also, "conveys" seems a better fit to me:-)
 
-See this patch series:
+OK. I'll change that.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg40516.html
-
-Does this give you what you need?
-
+-- 
 Regards,
 
-	Hans
-
-> 
-> Thanks
-> Vinay
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Laurent Pinchart
