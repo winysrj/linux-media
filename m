@@ -1,202 +1,336 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59823 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753509Ab2AWQ6H (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 11:58:07 -0500
-Message-ID: <4F1D918D.7070005@redhat.com>
-Date: Mon, 23 Jan 2012 14:57:49 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-CC: linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org,
-	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com, pawel@osciak.com
-Subject: V4L2 Overlay mode replacement by dma-buf - was: Re: [PATCH 05/10]
- v4l: add buffer exporting via dmabuf
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com> <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com> <4F1D6F88.5080202@redhat.com> <4F1D71EA.2060402@samsung.com> <4F1D7705.3080601@redhat.com> <4F1D8324.5000709@samsung.com> <4F1D8E05.4060109@redhat.com>
-In-Reply-To: <4F1D8E05.4060109@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:59815 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752244Ab2AZJBM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 04:01:12 -0500
+Date: Thu, 26 Jan 2012 10:00:50 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 08/15] mm: mmzone: MIGRATE_CMA migration type added
+In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1327568457-27734-9-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 23-01-2012 14:42, Mauro Carvalho Chehab escreveu:
-> Em 23-01-2012 13:56, Tomasz Stanislawski escreveu:
->> Hi Mauro,
->>
->> On 01/23/2012 04:04 PM, Mauro Carvalho Chehab wrote:
->>> Em 23-01-2012 12:42, Tomasz Stanislawski escreveu:
->>>> Hi Mauro.
->>>> On 01/23/2012 03:32 PM, Mauro Carvalho Chehab wrote:
->>>>> Em 23-01-2012 11:51, Tomasz Stanislawski escreveu:
->>>>>> This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
->>>>>> descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
->>>>>> mmap and return a file descriptor on success.
->>>>>
->>>>> This requires more discussions.
->>>>>
->>>>> The usecase for this new API seems to replace the features previously provided
->>>>> by the overlay mode. There, not only the buffer were exposed to userspace, but
->>>>> some control were provided, in order to control the overlay window.
->>>>
->>>> This ioctl was introduced to support exporting of V4L2 buffers via dma-buf interface. This framework was little common with overlay mode. Could you describe what overlay mode feature is replaced by VIDIOC_EXPBUF?
->>>
->>> The V4L2 API doesn't just export "raw" buffers. It provides a logic to control
->>> the streams, with includes buffer settings, buffer queue/dequeue, buffer meta-data
->>> (like timestamps), etc.
->>
->> The DMABUF buffers are handled by vb2-core. It provides control for queuing and passing streaming and metadata management (like timestamps) to the driver.
->>
->>>
->>> I would expect to see something similar for the dma buffers.
->>
->> Those features may be introduced to dma-buf. As I understand queue/dequeue refers to passing 
->> ownership between a CPU and a driver. It is handled in vb2-core. Passing buffer between multiple 
->> APIs like V4L2 and DRM will be probably handled in the userspace. Currently the dma-buf provides 
->> only the mechanism for mapping the same memory by multiple devices.
-> 
-> I'm not sure if the dma-buf itself should have such meta data, but the V4L2 API 
-> likely needs it.
-> 
->>>
->>> With regards to the overlay mode, this is the old way to export DMA buffers between
->>> a video capture driver and a graphics adapter driver. A dma-buf interface will
->>> superseed the video overlay mode, as it will provide more features. Yet, care
->>> should be taken when writing the userspace interface, in order to be sure that all
->>> features needed will be provided there.
->>>
->>
->> The s5p-tv and s5p-fimc do not have support for OVERLAY mode. As I know vb2-core 
->> has no support for the mode, either.
-> 
-> True. It was decided that overlay is an old design, and a dma-buffer
-> oriented approach would be needed. So, the decision were to not implement
-> anything there, until a proper dma-buf support were not added.
-> 
->> What kind of features present in OVERLAYS are 
->> needed in dmabuf? Note that dmabuf do not have be used only for buffers with video data.
-> 
-> That's a good point. Basically, Ovelay mode is supported by
-> those 3 ioctl's:
-> 
-> #define VIDIOC_G_FBUF            _IOR('V', 10, struct v4l2_framebuffer)
-> #define VIDIOC_S_FBUF            _IOW('V', 11, struct v4l2_framebuffer)
-> #define VIDIOC_OVERLAY           _IOW('V', 14, int)
-> 
-> With use these structs:
-> 
-> struct v4l2_pix_format {
->         __u32                   width;
->         __u32                   height;
->         __u32                   pixelformat;
->         enum v4l2_field         field;
->        	__u32                   bytesperline;
->         __u32                   sizeimage;
->         enum v4l2_colorspace    colorspace;
->         __u32                   priv;
-> };
-> 
-> struct v4l2_framebuffer {
->         __u32                   capability;
->         __u32                   flags;
-> 
->         void                    *base;		/* Should be replaced by the DMA buf specifics */
->         struct v4l2_pix_format  fmt;
-> };
-> /*  Flags for the 'capability' field. Read only */
-> #define V4L2_FBUF_CAP_EXTERNOVERLAY     0x0001
-> #define V4L2_FBUF_CAP_CHROMAKEY         0x0002
-> #define V4L2_FBUF_CAP_LIST_CLIPPING     0x0004
-> #define V4L2_FBUF_CAP_BITMAP_CLIPPING   0x0008
-> #define V4L2_FBUF_CAP_LOCAL_ALPHA       0x0010
-> #define V4L2_FBUF_CAP_GLOBAL_ALPHA      0x0020
-> #define V4L2_FBUF_CAP_LOCAL_INV_ALPHA   0x0040
-> #define V4L2_FBUF_CAP_SRC_CHROMAKEY     0x0080
-> /*  Flags for the 'flags' field. */
-> #define V4L2_FBUF_FLAG_PRIMARY          0x0001
-> #define V4L2_FBUF_FLAG_OVERLAY          0x0002
-> #define V4L2_FBUF_FLAG_CHROMAKEY        0x0004
-> #define V4L2_FBUF_FLAG_LOCAL_ALPHA	0x0008
-> #define V4L2_FBUF_FLAG_GLOBAL_ALPHA     0x0010
-> #define V4L2_FBUF_FLAG_LOCAL_INV_ALPHA  0x0020
-> #define V4L2_FBUF_FLAG_SRC_CHROMAKEY    0x0040
-> 
-> It should be noticed that devices that support OVERLAY can provide
-> data on both dma-buffer sharing and via the standard MMAP/read() mode at
-> the same time, each with a different video format. So, the VIDIOC_S_FBUF
-> ioctl needs to set the pixel format, and image size for the overlay,
-> while the other ioctl's set it for the MMAP (or read) mode.
-> 
-> Buffer queue/dequeue happens internally, and can be started/stopped via
-> a VIDIOC_OVERLAY call.
-> 
->>>>>
->>>>> Please start a separate thread about that, explaining how are you imagining that
->>>>> a V4L2 application would use such ioctl.
->>
->> I will post a simple application that does buffer sharing between two V4L2 devices (camera and TV output).
-> 
-> Ok.
-> 
->>>>
->>>> This patch is essential for full implementation of support for DMABUF framework in V4L2. Therefore the patch cannot be moved to separate thread.
->>>
->>> I'm not proposing to move the patch to a separate thread. All I'm saying
->>> is that the API extensions for dmabuf requires its own separate discussions.
->>
->> I agree. However DMA patches plays important role in this PoC patchset so I decided to keep patches to together. Moreover I wanted this code to compile successfully.
->>
->> I prefer to have a good reason for adding extension before proposing it on the mailing list. The DMA buffer sharing seams to be a right reason for adding dma_get_pages but comments for V4L2/Linaro people is needed.
->>
->>>
->>> I couldn't guess, just from your patches, what ioctl's a V4L2 application
->>> like tvtime or xawtv would use the DMABUF.
->>
->> DMABUF is dedicated for application that use streaming between at least two devices. 
->> Especially if those devices are controlled by different APIs, like DRM and V4L2. 
->> It would be probably used in the middle-ware like gstreamer or OpenMAX.
-> 
-> This is what the X11 v4l extension driver does: it shares DMA buffers between V4L2 
-> and DRM. The extension currently relies on XV extension, simply because this is what
-> were available at the time the extension was written. I didn't have any time yet
-> to port it to use something more modern.
-> 
-> It is probably a good idea for you to take a look on it, when writing the API bits.
-> Its source is available at:
-> 
-> 	http://cgit.freedesktop.org/xorg/driver/xf86-video-v4l/
+From: Michal Nazarewicz <mina86@mina86.com>
 
+The MIGRATE_CMA migration type has two main characteristics:
+(i) only movable pages can be allocated from MIGRATE_CMA
+pageblocks and (ii) page allocator will never change migration
+type of MIGRATE_CMA pageblocks.
 
-(I moved the comment from the other thread to this one, and renamed it,
- in order to have the DMA buf API discussion at the same place)
+This guarantees (to some degree) that page in a MIGRATE_CMA page
+block can always be migrated somewhere else (unless there's no
+memory left in the system).
 
->> 2) The userspace API changes to properly support for dma buffers.
->>
->> If you're not ready to discuss (2), that's ok, but I'd like to follow
->> the discussions for it with care, not only for reviewing the actual
->> patches, but also since I want to be sure that it will address the
->> needs for xawtv and for the Xorg v4l driver.
->>
-> 
-> The support of dmabuf could be easily added to framebuffer API.
-> I expect that it would not be difficult to add it to Xv.
+It is designed to be used for allocating big chunks (eg. 10MiB)
+of physically contiguous memory.  Once driver requests
+contiguous memory, pages from MIGRATE_CMA pageblocks may be
+migrated away to create a contiguous block.
 
-A texture based API is likely needed, at least for it to work with
-modern PC GPU's.
+To minimise number of migrations, MIGRATE_CMA migration type
+is the last type tried when page allocator falls back to other
+migration types then requested.
 
-> The selection API could be used to control scaling and composing
-> of video stream into framebuffer or a texture for composing manager.
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/linux/mmzone.h         |   43 +++++++++++++++++++++----
+ include/linux/page-isolation.h |    3 ++
+ mm/Kconfig                     |    2 +-
+ mm/compaction.c                |   11 +++++--
+ mm/page_alloc.c                |   68 +++++++++++++++++++++++++++++++++-------
+ mm/vmstat.c                    |    3 ++
+ 6 files changed, 107 insertions(+), 23 deletions(-)
 
-The current approach for Overlay mode is to put everything related to
-the overlay settings at VIDIOC_G_FBUF/VIDIOC_S_FBUF. The rationale was
-that the same video node supporting Overlay were also supporting MMAP
-and/or read() mode.
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 650ba2f..fcd4a14 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -35,13 +35,37 @@
+  */
+ #define PAGE_ALLOC_COSTLY_ORDER 3
+ 
+-#define MIGRATE_UNMOVABLE     0
+-#define MIGRATE_RECLAIMABLE   1
+-#define MIGRATE_MOVABLE       2
+-#define MIGRATE_PCPTYPES      3 /* the number of types on the pcp lists */
+-#define MIGRATE_RESERVE       3
+-#define MIGRATE_ISOLATE       4 /* can't allocate from here */
+-#define MIGRATE_TYPES         5
++enum {
++	MIGRATE_UNMOVABLE,
++	MIGRATE_RECLAIMABLE,
++	MIGRATE_MOVABLE,
++	MIGRATE_PCPTYPES,	/* the number of types on the pcp lists */
++	MIGRATE_RESERVE = MIGRATE_PCPTYPES,
++#ifdef CONFIG_CMA
++	/*
++	 * MIGRATE_CMA migration type is designed to mimic the way
++	 * ZONE_MOVABLE works.  Only movable pages can be allocated
++	 * from MIGRATE_CMA pageblocks and page allocator never
++	 * implicitly change migration type of MIGRATE_CMA pageblock.
++	 *
++	 * The way to use it is to change migratetype of a range of
++	 * pageblocks to MIGRATE_CMA which can be done by
++	 * __free_pageblock_cma() function.  What is important though
++	 * is that a range of pageblocks must be aligned to
++	 * MAX_ORDER_NR_PAGES should biggest page be bigger then
++	 * a single pageblock.
++	 */
++	MIGRATE_CMA,
++#endif
++	MIGRATE_ISOLATE,	/* can't allocate from here */
++	MIGRATE_TYPES
++};
++
++#ifdef CONFIG_CMA
++#  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
++#else
++#  define is_migrate_cma(migratetype) false
++#endif
+ 
+ #define for_each_migratetype_order(order, type) \
+ 	for (order = 0; order < MAX_ORDER; order++) \
+@@ -54,6 +78,11 @@ static inline int get_pageblock_migratetype(struct page *page)
+ 	return get_pageblock_flags_group(page, PB_migrate, PB_migrate_end);
+ }
+ 
++static inline bool is_pageblock_cma(struct page *page)
++{
++	return is_migrate_cma(get_pageblock_migratetype(page));
++}
++
+ struct free_area {
+ 	struct list_head	free_list[MIGRATE_TYPES];
+ 	unsigned long		nr_free;
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 430cf61..454dd29 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -45,6 +45,9 @@ extern void unset_migratetype_isolate(struct page *page);
+ extern int alloc_contig_range(unsigned long start, unsigned long end);
+ extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
+ 
++/* CMA stuff */
++extern void init_cma_reserved_pageblock(struct page *page);
++
+ #endif
+ 
+ #endif
+diff --git a/mm/Kconfig b/mm/Kconfig
+index e338407..3922002 100644
+--- a/mm/Kconfig
++++ b/mm/Kconfig
+@@ -198,7 +198,7 @@ config COMPACTION
+ config MIGRATION
+ 	bool "Page migration"
+ 	def_bool y
+-	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE || COMPACTION
++	depends on NUMA || ARCH_ENABLE_MEMORY_HOTREMOVE || COMPACTION || CMA
+ 	help
+ 	  Allows the migration of the physical location of pages of processes
+ 	  while the virtual addresses are not changed. This is useful in
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 3e21d28..a075b43 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -35,6 +35,11 @@ static unsigned long release_freepages(struct list_head *freelist)
+ 	return count;
+ }
+ 
++static inline bool migrate_async_suitable(int migratetype)
++{
++	return is_migrate_cma(migratetype) || migratetype == MIGRATE_MOVABLE;
++}
++
+ /*
+  * Isolate free pages onto a private freelist. Caller must hold zone->lock.
+  * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
+@@ -274,7 +279,7 @@ isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
+ 		 */
+ 		pageblock_nr = low_pfn >> pageblock_order;
+ 		if (!cc->sync && last_pageblock_nr != pageblock_nr &&
+-				get_pageblock_migratetype(page) != MIGRATE_MOVABLE) {
++		    migrate_async_suitable(get_pageblock_migratetype(page))) {
+ 			low_pfn += pageblock_nr_pages;
+ 			low_pfn = ALIGN(low_pfn, pageblock_nr_pages) - 1;
+ 			last_pageblock_nr = pageblock_nr;
+@@ -342,8 +347,8 @@ static bool suitable_migration_target(struct page *page)
+ 	if (PageBuddy(page) && page_order(page) >= pageblock_order)
+ 		return true;
+ 
+-	/* If the block is MIGRATE_MOVABLE, allow migration */
+-	if (migratetype == MIGRATE_MOVABLE)
++	/* If the block is MIGRATE_MOVABLE or MIGRATE_CMA, allow migration */
++	if (migrate_async_suitable(migratetype))
+ 		return true;
+ 
+ 	/* Otherwise skip the block */
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 0a9cc8e..0fcde78 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -750,6 +750,26 @@ void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
+ 	__free_pages(page, order);
+ }
+ 
++#ifdef CONFIG_CMA
++/*
++ * Free whole pageblock and set it's migration type to MIGRATE_CMA.
++ */
++void __init init_cma_reserved_pageblock(struct page *page)
++{
++	unsigned i = pageblock_nr_pages;
++	struct page *p = page;
++
++	do {
++		__ClearPageReserved(p);
++		set_page_count(p, 0);
++	} while (++p, --i);
++
++	set_page_refcounted(page);
++	set_pageblock_migratetype(page, MIGRATE_CMA);
++	__free_pages(page, pageblock_order);
++	totalram_pages += pageblock_nr_pages;
++}
++#endif
+ 
+ /*
+  * The order of subdivision here is critical for the IO subsystem.
+@@ -875,10 +895,15 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
+  */
+-static int fallbacks[MIGRATE_TYPES][3] = {
++static int fallbacks[MIGRATE_TYPES][4] = {
+ 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+ 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
++#ifdef CONFIG_CMA
++	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_CMA    , MIGRATE_RESERVE },
++	[MIGRATE_CMA]         = { MIGRATE_RESERVE }, /* Never used */
++#else
+ 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
++#endif
+ 	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
+ 	[MIGRATE_ISOLATE]     = { MIGRATE_RESERVE }, /* Never used */
+ };
+@@ -995,11 +1020,18 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ 			 * pages to the preferred allocation list. If falling
+ 			 * back for a reclaimable kernel allocation, be more
+ 			 * aggressive about taking ownership of free pages
++			 *
++			 * On the other hand, never change migration
++			 * type of MIGRATE_CMA pageblocks nor move CMA
++			 * pages on different free lists. We don't
++			 * want unmovable pages to be allocated from
++			 * MIGRATE_CMA areas.
+ 			 */
+-			if (unlikely(current_order >= (pageblock_order >> 1)) ||
+-					start_migratetype == MIGRATE_RECLAIMABLE ||
+-					page_group_by_mobility_disabled) {
+-				unsigned long pages;
++			if (!is_pageblock_cma(page) &&
++			    (unlikely(current_order >= pageblock_order / 2) ||
++			     start_migratetype == MIGRATE_RECLAIMABLE ||
++			     page_group_by_mobility_disabled)) {
++				int pages;
+ 				pages = move_freepages_block(zone, page,
+ 								start_migratetype);
+ 
+@@ -1017,11 +1049,14 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ 			rmv_page_order(page);
+ 
+ 			/* Take ownership for orders >= pageblock_order */
+-			if (current_order >= pageblock_order)
++			if (current_order >= pageblock_order &&
++			    !is_pageblock_cma(page))
+ 				change_pageblock_range(page, current_order,
+ 							start_migratetype);
+ 
+-			expand(zone, page, order, current_order, area, migratetype);
++			expand(zone, page, order, current_order, area,
++			       is_migrate_cma(start_migratetype)
++			     ? start_migratetype : migratetype);
+ 
+ 			trace_mm_page_alloc_extfrag(page, order, current_order,
+ 				start_migratetype, migratetype);
+@@ -1093,7 +1128,12 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
+ 			list_add(&page->lru, list);
+ 		else
+ 			list_add_tail(&page->lru, list);
+-		set_page_private(page, migratetype);
++#ifdef CONFIG_CMA
++		if (is_pageblock_cma(page))
++			set_page_private(page, MIGRATE_CMA);
++		else
++#endif
++			set_page_private(page, migratetype);
+ 		list = &page->lru;
+ 	}
+ 	__mod_zone_page_state(zone, NR_FREE_PAGES, -(i << order));
+@@ -1337,8 +1377,12 @@ int split_free_page(struct page *page)
+ 
+ 	if (order >= pageblock_order - 1) {
+ 		struct page *endpage = page + (1 << order) - 1;
+-		for (; page < endpage; page += pageblock_nr_pages)
+-			set_pageblock_migratetype(page, MIGRATE_MOVABLE);
++		for (; page < endpage; page += pageblock_nr_pages) {
++			int mt = get_pageblock_migratetype(page);
++			if (mt != MIGRATE_ISOLATE && !is_migrate_cma(mt))
++				set_pageblock_migratetype(page,
++							  MIGRATE_MOVABLE);
++		}
+ 	}
+ 
+ 	return 1 << order;
+@@ -5375,8 +5419,8 @@ __count_immobile_pages(struct zone *zone, struct page *page, int count)
+ 	 */
+ 	if (zone_idx(zone) == ZONE_MOVABLE)
+ 		return true;
+-
+-	if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE)
++	if (get_pageblock_migratetype(page) == MIGRATE_MOVABLE ||
++	    is_pageblock_cma(page))
+ 		return true;
+ 
+ 	pfn = page_to_pfn(page);
+diff --git a/mm/vmstat.c b/mm/vmstat.c
+index f600557..ace5383 100644
+--- a/mm/vmstat.c
++++ b/mm/vmstat.c
+@@ -613,6 +613,9 @@ static char * const migratetype_names[MIGRATE_TYPES] = {
+ 	"Reclaimable",
+ 	"Movable",
+ 	"Reserve",
++#ifdef CONFIG_CMA
++	"CMA",
++#endif
+ 	"Isolate",
+ };
+ 
+-- 
+1.7.1.569.g6f426
 
-A dmabuf-based overlay mode can either keep the same strategy, using
-an structure very similar to struct v4l2_framebuffer, or, alternatively,
-a new video node could be required, for the "overlay2" caps property.
-
-Regards,
-Mauro
