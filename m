@@ -1,51 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45547 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751544Ab2A0OSL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jan 2012 09:18:11 -0500
-Message-ID: <4F22B1E8.7050303@redhat.com>
-Date: Fri, 27 Jan 2012 12:17:12 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:55937 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752553Ab2AZPic convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 10:38:32 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Arnd Bergmann" <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Mel Gorman" <mel@csn.ul.ie>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>,
+	"Benjamin Gaignard" <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCHv19 00/15] Contiguous Memory Allocator
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <201201261531.40551.arnd@arndb.de>
+Date: Thu, 26 Jan 2012 16:38:28 +0100
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: RFC: removal of video/radio/vbi_nr module options?
-References: <201201270821.49381.hverkuil@xs4all.nl> <CAGoCfiynca-oSRnunwsa_y9xamD3Bn6Xnr40LUsmVcbmo6jkhA@mail.gmail.com>
-In-Reply-To: <CAGoCfiynca-oSRnunwsa_y9xamD3Bn6Xnr40LUsmVcbmo6jkhA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v8o62ey93l0zgt@mpn-glaptop>
+In-Reply-To: <201201261531.40551.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 27-01-2012 11:36, Devin Heitmueller escreveu:
-> On Fri, Jan 27, 2012 at 2:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi all,
->>
->> I'm working on cleaning up some old radio drivers and while doing that I
->> started wondering about the usefulness of the radio_nr module option (and
->> the corresponding video_nr/vbi_nr module options for video devices).
->>
->> Is that really still needed? It originates from pre-udev times, but it seems
->> fairly useless to me these days.
-> 
-> I can tell you from lurking in the mythtv-users IRC channel, that
-> there are still many, many users of video_nr.  Yes, they can in theory
-> accomplish the same thing through udev, but they aren't today, and if
-> you remove the functionality you'll have lots of users scambling to
-> figure out why stuff that previously worked is now broken.  This tends
-> to be more an issue with tuner cards than uvc devices, presumably
-> because MythTV starts up unattended and you're more likely to have
-> more than one capture device.
+On Thu, 26 Jan 2012 16:31:40 +0100, Arnd Bergmann <arnd@arndb.de> wrote:
+> I haven't followed the last two releases so closely. It seems that
+> in v17 the movable pages with pending i/o was still a major problem
+> but in v18 you added a solution. Is that right? What is still left
+> to be done here then?
 
-This were never needed by USB devices. In general, due to USB bandwidth
-constraints, users can't plug more than one or a few devices on a USB bus.
+In the current version, when allocation fails because of a page with
+pending I/O, CMA automatically tries allocation in another region.
 
-MythTV is not the only usercase for it. Surveillance system can have
-multiple devices in the same PCI card, and it is not uncommon to find
-hardware with multiple PCI multi-input cards. Several of those boards
-don't even have eeprom.
-
-Regards,
-Mauro
-
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
