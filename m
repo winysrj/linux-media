@@ -1,105 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:56774 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752465Ab2AEG11 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 01:27:27 -0500
-Date: Thu, 5 Jan 2012 09:28:22 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Greg KH <greg@kroah.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org, stable@vger.kernel.org
-Subject: [patch -longterm v2] V4L/DVB: v4l2-ioctl: integer overflow in
- video_usercopy()
-Message-ID: <20120105062822.GB10230@mwanda>
-References: <20111215063445.GA2424@elgon.mountain>
- <4EE9BC25.7020303@infradead.org>
- <201112151033.35153.hverkuil@xs4all.nl>
- <4EE9C2E6.1060304@infradead.org>
- <20120103205539.GC17131@kroah.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34705 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752008Ab2AZL6l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 06:58:41 -0500
+Message-ID: <4F213FEF.8030309@iki.fi>
+Date: Thu, 26 Jan 2012 13:58:39 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="l76fUT7nc3MelDdI"
-Content-Disposition: inline
-In-Reply-To: <20120103205539.GC17131@kroah.com>
+To: Claus Olesen <ceolesen@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: 290e locking issue
+References: <CAGa-wNOCn6GDu0DGM7xNrVagp0sdNeif25vuE+sPyU3aaegGAw@mail.gmail.com>	<4F2117D6.20702@iki.fi> <CAGa-wNNnaJbrLdAGA9cX=wMBwZYtVp8JLseeTGevDJH-tyDpeQ@mail.gmail.com>
+In-Reply-To: <CAGa-wNNnaJbrLdAGA9cX=wMBwZYtVp8JLseeTGevDJH-tyDpeQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 01/26/2012 01:46 PM, Claus Olesen wrote:
+> the dmesg output from inplug of 290e until usb mem stick mount timeout
+> with a cut marked "--- cut similar ---" between mount and timeout for
+> less output is
 
---l76fUT7nc3MelDdI
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+I think it is maybe some incapability of em28xx driver. Maybe it could 
+be something to do with USB HCI too...
 
-If p->count is too high the multiplication could overflow and
-array_size would be lower than expected.  Mauro and Hans Verkuil
-suggested that we cap it at 1024.  That comes from the maximum
-number of controls with lots of room for expantion.
 
-$ grep V4L2_CID include/linux/videodev2.h | wc -l
-211
+Could you test latest drivers using media_build.git ?
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index b59e78c..9e2088c 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -858,6 +858,7 @@ struct v4l2_querymenu {
- #define V4L2_CTRL_FLAG_NEXT_CTRL	0x80000000
-=20
- /*  User-class control IDs defined by V4L2 */
-+#define V4L2_CID_MAX_CTRLS		1024
- #define V4L2_CID_BASE			(V4L2_CTRL_CLASS_USER | 0x900)
- #define V4L2_CID_USER_BASE 		V4L2_CID_BASE
- /*  IDs reserved for driver specific controls */
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-io=
-ctl.c
-index 265bfb5..d7332c7 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -414,6 +414,9 @@ video_usercopy(struct file *file, unsigned int cmd, uns=
-igned long arg,
- 		p->error_idx =3D p->count;
- 		user_ptr =3D (void __user *)p->controls;
- 		if (p->count) {
-+			err =3D -EINVAL;
-+			if (p->count > V4L2_CID_MAX_CTRLS)
-+				goto out_ext_ctrl;
- 			ctrls_size =3D sizeof(struct v4l2_ext_control) * p->count;
- 			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
- 			mbuf =3D kmalloc(ctrls_size, GFP_KERNEL);
-@@ -1912,6 +1915,9 @@ long video_ioctl2(struct file *file,
- 		p->error_idx =3D p->count;
- 		user_ptr =3D (void __user *)p->controls;
- 		if (p->count) {
-+			err =3D -EINVAL;
-+			if (p->count > V4L2_CID_MAX_CTRLS)
-+				goto out_ext_ctrl;
- 			ctrls_size =3D sizeof(struct v4l2_ext_control) * p->count;
- 			/* Note: v4l2_ext_controls fits in sbuf[] so mbuf is still NULL. */
- 			mbuf =3D kmalloc(ctrls_size, GFP_KERNEL);
+>
+>> inplug 290e
+> [  112.367345] usb 2-3: new high-speed USB device number 2 using ehci_hcd
+> [  112.482773] usb 2-3: New USB device found, idVendor=2013, idProduct=024f
+> [  112.482783] usb 2-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> [  112.482790] usb 2-3: Product: PCTV 290e
+> [  112.482796] usb 2-3: Manufacturer: PCTV Systems
+> [  112.482801] usb 2-3: SerialNumber: 00000006VEJQ
+> [  112.988850] em28xx: New device PCTV Systems PCTV 290e @ 480 Mbps
+> (2013:024f, interface 0, class 0)
+> [  112.988929] em28xx #0: chip ID is em28174
+> [  113.284694] em28xx #0: Identified as PCTV nanoStick T2 290e (card=78)
+> [  113.340323] Registered IR keymap rc-pinnacle-pctv-hd
+> [  113.340594] input: em28xx IR (em28xx #0) as
+> /devices/pci0000:00/0000:00:1d.7/usb2/2-3/rc/rc1/input19
+> [  113.341677] rc1: em28xx IR (em28xx #0) as
+> /devices/pci0000:00/0000:00:1d.7/usb2/2-3/rc/rc1
+> [  113.342411] em28xx #0: v4l2 driver version 0.1.3
+> [  113.348855] em28xx #0: V4L2 video device registered as video1
+> [  113.350562] usbcore: registered new interface driver em28xx
+> [  113.350568] em28xx driver loaded
+> [  113.480057] tda18271 17-0060: creating new instance
+> [  113.485221] TDA18271HD/C2 detected @ 17-0060
+> [  113.724218] tda18271 17-0060: attaching existing instance
+> [  113.724227] DVB: registering new adapter (em28xx #0)
+> [  113.724235] DVB: registering adapter 0 frontend 0 (Sony CXD2820R
+> (DVB-T/T2))...
+> [  113.724763] DVB: registering adapter 0 frontend 1 (Sony CXD2820R (DVB-C))...
+> [  113.728614] em28xx #0: Successfully loaded em28xx-dvb
+> [  113.728617] Em28xx: Initialized (Em28xx dvb Extension) extension
+>> inplug usb mem stick
+> [  136.177341] usb 2-1: new high-speed USB device number 3 using ehci_hcd
+> [  136.308531] usb 2-1: New USB device found, idVendor=0bda, idProduct=0120
+> [  136.308541] usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+> [  136.308548] usb 2-1: Product: USB2.0-CRW
+> [  136.308554] usb 2-1: Manufacturer: Generic
+> [  136.308559] usb 2-1: SerialNumber: 20060413092100000
+> [  136.630379] Initializing USB Mass Storage driver...
+> [  136.630764] scsi6 : usb-storage 2-1:1.0
+> [  136.631270] usbcore: registered new interface driver usb-storage
+> [  136.631275] USB Mass Storage support registered.
+> [  137.636863] scsi 6:0:0:0: Direct-Access     Generic- Card Reader
+>    1.00 PQ: 0 ANSI: 0 CCS
+> [  137.639519] sd 6:0:0:0: Attached scsi generic sg3 type 0
+> [  138.446467] sd 6:0:0:0: [sdc] 15661056 512-byte logical blocks:
+> (8.01 GB/7.46 GiB)
+> [  138.447282] sd 6:0:0:0: [sdc] Write Protect is off
+> [  138.447291] sd 6:0:0:0: [sdc] Mode Sense: 03 00 00 00
+> [  138.448138] sd 6:0:0:0: [sdc] No Caching mode page present
+> [  138.448147] sd 6:0:0:0: [sdc] Assuming drive cache: write through
+> [  138.451639] sd 6:0:0:0: [sdc] No Caching mode page present
+> [  138.451647] sd 6:0:0:0: [sdc] Assuming drive cache: write through
+> [  138.452729]  sdc: sdc1
+>> mount usb mem stick sdc1
+> [  168.838133] usb 2-1: reset high-speed USB device number 3 using ehci_hcd
 
---l76fUT7nc3MelDdI
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+[... removed lot of similar USB errors ...]
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
+> driverbyte=DRIVER_SENSE
+> [  478.342504] sd 6:0:0:0: [sdc]  Sense Key : Illegal Request [current]
+> [  478.342510] sd 6:0:0:0: [sdc]  Add. Sense: Logical block address out of range
+> [  478.342517] sd 6:0:0:0: [sdc] CDB: Read(10): 28 00 00 00 20 00 00 00 01 00
+> [  478.342528] end_request: I/O error, dev sdc, sector 8192
+> [  478.342545] FAT-fs (sdc1): unable to read boot sector
+>
+>
+>
+> On Thu, Jan 26, 2012 at 10:07 AM, Antti Palosaari<crope@iki.fi>  wrote:
+>> On 01/26/2012 12:16 AM, Claus Olesen wrote:
+>>>
+>>> just got 3.2.1-3.fc16.i686.PAE
+>>> the issue that the driver had to be removed for the 290e to work after
+>>> a replug is gone.
+>>> the issue that a usb mem stick cannot be mounted while the 290e is
+>>> plugged in still lingers.
+>>> one workaround is to unplug the 290e and wait a little (no need to
+>>> also remove the driver).
+>>
+>>
+>> What it prints to the system log? Use tail -f /var/log/messages or dmesg.
+>>
+>>
+>> Antti
+>> --
+>> http://palosaari.fi/
 
-iQIcBAEBAgAGBQJPBUMFAAoJEOnZkXI/YHqRYaUP/29M7sG2zs9NtuntaflAdyZ9
-CnOSCb5u/0yToAPCAWfS/Ayb9tgadZP0INlEg+Gegy2lV71jT3u14wgPsb0csVL0
-d58u4XhZ38f78nRcos+vUVPEpAmlCJtfN3cgyfBaYLEBjCClagYdjMKFXhfIJ/In
-V2jh/tDJBJ07YbqaEbKdNvHw8ceg2+EQowgArEpX/Z80cYqkffMZZ0zhC16487MJ
-udMtLaMyyVctpoUDDDtTA1gxGmqytUQwrRvHH8at2hBUuFW4obRFxVntvjGAQge7
-LAcgbp7/EwmBC7KIiaCoBYhtJAOmETYT8fIXqYbGSSlm/r9Cf+SVzrODHq9Rs6y6
-U3JnPpkA/fjh6a+SzgmtQeGH4d7gFFSfFAkpp1zG2wCPmt3BivjntqFy0qOnv7dp
-fWy8cb3qjqg6X3bKkMcZ7WFu3gzViz7h6Hsce4k56wJRfcA/Y8R7YA0DRDgTNyuH
-ldoI4Ge+7qpSRRf1aYsbE7fpPlfdiCwN+IHJv3D7qaXdNPtW4VwHxU3pSV6H+q74
-btcvryE3i+QgvFmLpYLC6jDtBhOm2nQSi5bTpobClaZ8EDNWMtFULKIJURIpiu5H
-P5VrZOCJnmVKhLmJI6UbLa3V1QHndYCeh0um/46FHyQI6KNJZQFjr7S9G5gDx/YE
-O5EmqdBKger9kYfwaNT9
-=6sSB
------END PGP SIGNATURE-----
 
---l76fUT7nc3MelDdI--
+-- 
+http://palosaari.fi/
