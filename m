@@ -1,72 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:40698 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750760Ab2AOPk7 (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:39187 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752305Ab2AZTlC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 10:40:59 -0500
-Message-ID: <4F12F388.3000508@iki.fi>
-Date: Sun, 15 Jan 2012 17:40:56 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Thu, 26 Jan 2012 14:41:02 -0500
+Received: by vbbfc26 with SMTP id fc26so705101vbb.19
+        for <linux-media@vger.kernel.org>; Thu, 26 Jan 2012 11:41:00 -0800 (PST)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [media-ctl PATCH 1/1] libmediactl: Implement MEDIA_ENT_ID_FLAG_NEXT
- in media_get_entity_by_id()
-References: <1326569616-7048-1-git-send-email-sakari.ailus@iki.fi> <201201151444.08443.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201151444.08443.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGa-wNNgaboTTOP8UgrrbDjJbrFokKhJ03wpwYWs+_9MVQh+-w@mail.gmail.com>
+References: <CAGa-wNOCn6GDu0DGM7xNrVagp0sdNeif25vuE+sPyU3aaegGAw@mail.gmail.com>
+	<4F2117D6.20702@iki.fi>
+	<CAGa-wNNnaJbrLdAGA9cX=wMBwZYtVp8JLseeTGevDJH-tyDpeQ@mail.gmail.com>
+	<4F213FEF.8030309@iki.fi>
+	<CAGa-wNO5GihQcxBF88yXC7B=PO3upw-pN5YGzJ5Rm_+Sji9iBg@mail.gmail.com>
+	<4F21989A.9080300@iki.fi>
+	<CAGa-wNNgaboTTOP8UgrrbDjJbrFokKhJ03wpwYWs+_9MVQh+-w@mail.gmail.com>
+Date: Thu, 26 Jan 2012 14:41:00 -0500
+Message-ID: <CAGoCfizeVjnctXU3W-vDUw+-jxQu1tgxSTw2LRA-ja+RJ5e_uw@mail.gmail.com>
+Subject: Re: 290e locking issue
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Claus Olesen <ceolesen@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Thu, Jan 26, 2012 at 2:25 PM, Claus Olesen <ceolesen@gmail.com> wrote:
+> I just came to think of my old 800e because also it is a em28xx device
+> and for what it is worth I just tried it and it does not exhibit the
+> issue. it's dmesg is
 
-Laurent Pinchart wrote:
-> On Saturday 14 January 2012 20:33:36 Sakari Ailus wrote:
->> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
->> ---
->>   src/mediactl.c |    9 +++++++--
->>   src/mediactl.h |    4 +++-
->>   2 files changed, 10 insertions(+), 3 deletions(-)
->>
->> diff --git a/src/mediactl.c b/src/mediactl.c
->> index 5b8c587..f62fcdf 100644
->> --- a/src/mediactl.c
->> +++ b/src/mediactl.c
->> @@ -81,8 +81,13 @@ struct media_entity *media_get_entity_by_id(struct
->> media_device *media, for (i = 0; i<  media->entities_count; ++i) {
->>   		struct media_entity *entity =&media->entities[i];
->>
->> -		if (entity->info.id == id)
->> -			return entity;
->> +		if (!(id&  MEDIA_ENT_ID_FLAG_NEXT)) {
->> +			if (entity->info.id == id)
->> +				return entity;
->> +		} else {
->> +			if (entity->info.id>= (id&  ~MEDIA_ENT_ID_FLAG_NEXT)
->> +				return entity;
->> +		}
->
-> Just one question that hasn't crossed my mind before, why do you need this ?
-> If you want to enumerate entities in an application you can just iterate over
-> media_device::entities.
+Wow, that's *really* surprising (I did both the original em2874 driver
+support as well as the 800e driver, and as a result am intimately
+familiar with the differences).  I'm not sure what is going on there.
 
-We do have the MEDIA_ENT_ID_FLAG_NEXT flag which is intended to help in 
-entity enumeration. Currently the range of entity ids is contiguous in 
-all practical implementation but will that always be the case, also in 
-the future? A few things might break in the kernel if the range is 
-non-contiguous as well, but that's still internal to the kernel.
-
-However, this is a user space library and if this interface change is 
-not made, we essentially are making a promise that the entity ranges 
-will always be contiguous.
-
-I wouldn't as there's no need to do so.
-
-I you think about programmable hardware, entities there are logical 
-rather than physical and their existence may be dependent on multiple 
-factors.
+Devin
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
