@@ -1,156 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.hauppauge.com ([167.206.143.4]:3814 "EHLO
-	mail.hauppauge.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757397Ab2ARNeS (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64561 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750934Ab2AZJs0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 08:34:18 -0500
-Message-ID: <4F16C6B8.8000402@linuxtv.org>
-Date: Wed, 18 Jan 2012 08:18:48 -0500
-From: Michael Krufky <mkrufky@linuxtv.org>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.3] [media] DVB: dib0700, add support for
- Nova-TD LEDs
-References: <E1RnU5E-0000Vf-T9@www.linuxtv.org>
-In-Reply-To: <E1RnU5E-0000Vf-T9@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 26 Jan 2012 04:48:26 -0500
+Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LYE001OSGKOPL@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 26 Jan 2012 09:48:24 +0000 (GMT)
+Received: from [106.116.48.223] by spt2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTPA id <0LYE007OXGKN3U@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 26 Jan 2012 09:48:24 +0000 (GMT)
+Date: Thu, 26 Jan 2012 10:48:23 +0100
+From: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Subject: Re: [PATCH 05/10] v4l: add buffer exporting via dmabuf
+In-reply-to: <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, pawel@osciak.com
+Message-id: <4F212167.9090607@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1; format=flowed
+Content-transfer-encoding: 7BIT
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+ <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+Hi Everyone,
 
-Why was my sign-off changed to an Ack?
+I would like to present a simple test application used for testing 
+DMABUF support in V4L2. It is used to show how support for DMABUF may 
+look like in V4L2.
 
-As you can see, I worked *with* Jiri to help him create this patchset.
+The test application creates a simple pipeline between two V4L2 devices. 
+One of them is a capture device. The second one is an output device.
 
-During review, I noticed a poorly named function, which I renamed before 
-pusging it into my own tree.  Patrick saw this, and merged my changes 
-into into his tree.
+The buffers are exchanged using DMABUF mechanism. The application takes 
+additional argument to setup capture's size and rotation and compose 
+window on output device (controlled using VIDIOC_S_CROP).
 
-Why did I go through this effort to help another developer add value to 
-one of our drivers, and additional effort to make a small cleanup, push 
-the changes into my own tree and issue a pull request?  I was thanked by 
-Patrick.  Everybody's signature is on the patch, but you then go and 
-remove my signature, and add a forged "ack"?  I don't understand this, 
-Mauro.
+The application was tested on s5p-tv as output and s5p-fimc as capture.
+It is written in GNU99 standard
 
-Why didn't you just take my pull request?  Instead, you have changed my 
-signature?  What is the point of a signature if it will become mangled?
+Regards,
+Tomasz Stanislawski
 
-Please don't do this.  Or, if you have *some* legitimate reason to 
-change my signature, you should at LEAST check with me before committing 
-it into kernel history.
+----
 
--Mike
 
-On 01/17/2012 08:02 PM, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the
-> http://git.linuxtv.org/media_tree.git tree:
->
-> Subject: [media] DVB: dib0700, add support for Nova-TD LEDs
-> Author:  Jiri Slaby<jslaby@suse.cz>
-> Date:    Tue Jan 10 14:11:25 2012 -0300
->
-> Add an override of read_status to intercept lock status. This allows
-> us to switch LEDs appropriately on and off with signal un/locked.
->
-> The second phase is to override sleep to properly turn off both.
->
-> This is a hackish way to achieve that.
->
-> Thanks to Mike Krufky for his help.
->
-> Signed-off-by: Jiri Slaby<jslaby@suse.cz>
-> Acked-by: Michael Krufky<mkrufky@linuxtv.org>
-> Signed-off-by: Patrick Boettcher<pboettcher@kernellabs.com>
-> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->
->   drivers/media/dvb/dvb-usb/dib0700.h         |    2 +
->   drivers/media/dvb/dvb-usb/dib0700_devices.c |   41 ++++++++++++++++++++++++++-
->   2 files changed, 42 insertions(+), 1 deletions(-)
->
-> ---
->
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=d43272a4e898a1e43e5ac351ab625b7a40b39e88
->
-> diff --git a/drivers/media/dvb/dvb-usb/dib0700.h b/drivers/media/dvb/dvb-usb/dib0700.h
-> index 9bd6d51..7de125c 100644
-> --- a/drivers/media/dvb/dvb-usb/dib0700.h
-> +++ b/drivers/media/dvb/dvb-usb/dib0700.h
-> @@ -48,6 +48,8 @@ struct dib0700_state {
->   	u8 disable_streaming_master_mode;
->   	u32 fw_version;
->   	u32 nb_packet_buffer_size;
-> +	int (*read_status)(struct dvb_frontend *, fe_status_t *);
-> +	int (*sleep)(struct dvb_frontend* fe);
->   	u8 buf[255];
->   };
->
-> diff --git a/drivers/media/dvb/dvb-usb/dib0700_devices.c b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-> index 3ab45ae..f9e966a 100644
-> --- a/drivers/media/dvb/dvb-usb/dib0700_devices.c
-> +++ b/drivers/media/dvb/dvb-usb/dib0700_devices.c
-> @@ -3105,6 +3105,35 @@ static int stk7070pd_frontend_attach1(struct dvb_usb_adapter *adap)
->   	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
->   }
->
-> +static int novatd_read_status_override(struct dvb_frontend *fe,
-> +		fe_status_t *stat)
-> +{
-> +	struct dvb_usb_adapter *adap = fe->dvb->priv;
-> +	struct dvb_usb_device *dev = adap->dev;
-> +	struct dib0700_state *state = dev->priv;
-> +	int ret;
-> +
-> +	ret = state->read_status(fe, stat);
-> +
-> +	if (!ret)
-> +		dib0700_set_gpio(dev, adap->id == 0 ? GPIO1 : GPIO0, GPIO_OUT,
-> +				!!(*stat&  FE_HAS_LOCK));
-> +
-> +	return ret;
-> +}
-> +
-> +static int novatd_sleep_override(struct dvb_frontend* fe)
-> +{
-> +	struct dvb_usb_adapter *adap = fe->dvb->priv;
-> +	struct dvb_usb_device *dev = adap->dev;
-> +	struct dib0700_state *state = dev->priv;
-> +
-> +	/* turn off LED */
-> +	dib0700_set_gpio(dev, adap->id == 0 ? GPIO1 : GPIO0, GPIO_OUT, 0);
-> +
-> +	return state->sleep(fe);
-> +}
-> +
->   /**
->    * novatd_frontend_attach - Nova-TD specific attach
->    *
-> @@ -3114,6 +3143,7 @@ static int stk7070pd_frontend_attach1(struct dvb_usb_adapter *adap)
->   static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
->   {
->   	struct dvb_usb_device *dev = adap->dev;
-> +	struct dib0700_state *st = dev->priv;
->
->   	if (adap->id == 0) {
->   		stk7070pd_init(dev);
-> @@ -3134,7 +3164,16 @@ static int novatd_frontend_attach(struct dvb_usb_adapter *adap)
->   	adap->fe_adap[0].fe = dvb_attach(dib7000p_attach,&dev->i2c_adap,
->   			adap->id == 0 ? 0x80 : 0x82,
->   			&stk7070pd_dib7000p_config[adap->id]);
-> -	return adap->fe_adap[0].fe == NULL ? -ENODEV : 0;
-> +
-> +	if (adap->fe_adap[0].fe == NULL)
-> +		return -ENODEV;
-> +
-> +	st->read_status = adap->fe_adap[0].fe->ops.read_status;
-> +	adap->fe_adap[0].fe->ops.read_status = novatd_read_status_override;
-> +	st->sleep = adap->fe_adap[0].fe->ops.sleep;
-> +	adap->fe_adap[0].fe->ops.sleep = novatd_sleep_override;
-> +
-> +	return 0;
->   }
->
->   /* S5H1411 */
+#include <errno.h>
+#include <fcntl.h>
+#include <linux/videodev2.h>
+#include <math.h>
+#include <poll.h>
+#include <stdio.h>
+#include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
+#define ERRSTR strerror(errno)
+
+#define BYE_ON(cond, ...) \
+do { \
+	if (cond) { \
+		int errsv = errno; \
+		fprintf(stderr, "ERROR(%s:%d) : ", \
+			__FILE__, __LINE__); \
+		errno = errsv; \
+		fprintf(stderr,  __VA_ARGS__); \
+		abort(); \
+	} \
+} while(0)
+
+#define BUFFER_CNT	5
+
+int main(int argc, char *argv[])
+{
+	int ret;
+
+	BYE_ON(argc < 3, "bad args:\n\t%s input-node output-node "
+		"[w,h,rot] [left,top,w,h]\n", argv[0]);
+
+	int f_in, f_out;
+
+	f_in = open(argv[1], O_RDWR);
+	BYE_ON(f_in < 0, "open failed: %s\n", ERRSTR);
+
+	f_out = open(argv[2], O_RDWR);
+	BYE_ON(f_out < 0, "open failed: %s\n", ERRSTR);
+
+	/* configure desired image size */
+	struct v4l2_format fmt;
+	memset(&fmt, 0, sizeof fmt);
+	fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+	fmt.fmt.pix_mp.pixelformat = V4L2_PIX_FMT_RGB565;
+	int rotation = 0;
+	if (argc >= 4) {
+		ret = sscanf(argv[3], "%u,%u,%d",
+			&fmt.fmt.pix_mp.width,
+			&fmt.fmt.pix_mp.height,
+			&rotation);
+		BYE_ON(ret < 2, "incorrect sensor size and rotation\n");
+	}
+
+	if (rotation) {
+		struct v4l2_control ctrl = {
+			.id = V4L2_CID_ROTATE,
+			.value = rotation,
+		};
+		ret = ioctl(f_in, VIDIOC_S_CTRL, &ctrl);
+		BYE_ON(ret < 0, "VIDIOC_S_CTRL failed: %s\n", ERRSTR);
+	}
+
+	/* set format struct */
+	ret = ioctl(f_in, VIDIOC_S_FMT, &fmt);
+	BYE_ON(ret < 0, "VIDIOC_S_FMT failed: %s\n", ERRSTR);
+
+	/* get format struct */
+	ret = ioctl(f_in, VIDIOC_G_FMT, &fmt);
+	BYE_ON(ret < 0, "VIDIOC_G_FMT failed: %s\n", ERRSTR);
+	printf("G_FMT(f_in): width = %u, height = %u, 4cc = %.4s\n",
+		fmt.fmt.pix.width, fmt.fmt.pix.height,
+		(char*)&fmt.fmt.pix.pixelformat);
+
+	if (argc >= 5) {
+		struct v4l2_crop crop;
+		crop.type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+		ret = sscanf(argv[4], "%d,%d,%d,%d",
+			&crop.c.left, &crop.c.top,
+			&crop.c.width, &crop.c.height);
+		BYE_ON(ret != 4, "incorrect cropping format\n");
+		ret = ioctl(f_out, VIDIOC_S_CROP, &crop);
+		BYE_ON(ret < 0, "VIDIOC_S_CROP failed: %s\n", ERRSTR);
+	}
+
+	/* pass input format to output */
+	fmt.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+	ret = ioctl(f_out, VIDIOC_S_FMT, &fmt);
+	BYE_ON(ret < 0, "VIDIOC_S_FMT failed: %s\n", ERRSTR);
+
+	/* get format struct */
+	ret = ioctl(f_out, VIDIOC_G_FMT, &fmt);
+	BYE_ON(ret < 0, "VIDIOC_G_FMT failed: %s\n", ERRSTR);
+	printf("G_FMT(f_out): width = %u, height = %u, 4cc = %.4s\n",
+		fmt.fmt.pix.width, fmt.fmt.pix.height,
+		(char*)&fmt.fmt.pix.pixelformat);
+
+	/* allocate buffers */
+	struct v4l2_requestbuffers rqbufs;
+	rqbufs.count = BUFFER_CNT;
+	rqbufs.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+	rqbufs.memory = V4L2_MEMORY_MMAP;
+
+	ret = ioctl(f_in, VIDIOC_REQBUFS, &rqbufs);
+	BYE_ON(ret < 0, "VIDIOC_REQBUFS failed: %s\n", ERRSTR);
+	BYE_ON(rqbufs.count < BUFFER_CNT, "failed to get %d buffers\n", 
+BUFFER_CNT);
+
+	rqbufs.count = BUFFER_CNT;
+	rqbufs.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+	rqbufs.memory = V4L2_MEMORY_DMABUF;
+
+	ret = ioctl(f_out, VIDIOC_REQBUFS, &rqbufs);
+	BYE_ON(ret < 0, "VIDIOC_REQBUFS failed: %s\n", ERRSTR);
+	BYE_ON(rqbufs.count < BUFFER_CNT, "failed to get %d buffers\n", 
+BUFFER_CNT);
+
+	int fd[BUFFER_CNT];
+	/* buffers initalization */
+	for (int i = 0; i < BUFFER_CNT; ++i) {
+		struct v4l2_plane plane;
+		struct v4l2_buffer buf;
+
+		memset(&buf, 0, sizeof buf);
+		memset(&plane, 0, sizeof plane);
+		buf.index = i;
+		buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+		buf.memory = V4L2_MEMORY_MMAP;
+		buf.m.planes = &plane;
+		buf.length = 1;
+
+		/* get buffer properties from a driver */
+		ret = ioctl(f_in, VIDIOC_QUERYBUF, &buf);
+		BYE_ON(ret < 0, "VIDIOC_QUERYBUF for buffer %d failed: %s\n",
+			buf.index, ERRSTR);
+		BYE_ON(buf.memory != V4L2_MEMORY_MMAP, "bad memory type\n");
+		BYE_ON(buf.length != 1, "non singular plane format\n");
+
+		fd[i] = ioctl(f_in, VIDIOC_EXPBUF, &plane.m.mem_offset);
+		BYE_ON(fd[i] < 0, "VIDIOC_EXPBUF failed; %s\n", ERRSTR);
+
+		if (i < BUFFER_CNT / 2) {
+			/* enqueue low-index buffers to input */
+			ret = ioctl(f_in, VIDIOC_QBUF, &buf);
+		} else {
+			/* enqueue high-index buffers to output */
+			buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+			buf.memory = V4L2_MEMORY_DMABUF;
+			plane.m.fd = fd[i];
+			ret = ioctl(f_out, VIDIOC_QBUF, &buf);
+		}
+		BYE_ON(ret < 0, "VIDIOC_QBUF for buffer %d failed: %s\n",
+			buf.index, ERRSTR);
+	}
+
+	/* start streaming */
+	int type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+	ret = ioctl(f_in, VIDIOC_STREAMON, &type);
+	BYE_ON(ret < 0, "STREAMON failed: %s\n", ERRSTR);
+
+	type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+	ret = ioctl(f_out, VIDIOC_STREAMON, &type);
+	BYE_ON(ret < 0, "STREAMON failed: %s\n", ERRSTR);
+
+	/* setup polling */
+	struct pollfd fds[2] = {
+		{ .fd = f_in, .events = POLLIN },
+		{ .fd = f_out, .events = POLLOUT },
+	};
+
+	while ((ret = poll(fds, 2, 5000)) > 0) {
+		struct v4l2_buffer buf;
+		struct v4l2_plane plane;
+
+		memset(&buf, 0, sizeof buf);
+		memset(&plane, 0, sizeof plane);
+		buf.m.planes = &plane;
+		buf.length = 1;
+
+		if (fds[0].revents & POLLIN) {
+			/* dequeue buffer */
+			buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+			buf.memory = V4L2_MEMORY_MMAP;
+			ret = ioctl(f_in, VIDIOC_DQBUF, &buf);
+			BYE_ON(ret, "VIDIOC_DQBUF failed: %s\n", ERRSTR);
+
+			/* enqueue buffer */
+			buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+			buf.memory = V4L2_MEMORY_DMABUF;
+			plane.m.fd = fd[buf.index];
+			ret = ioctl(f_out, VIDIOC_QBUF, &buf);
+			BYE_ON(ret, "VIDIOC_QBUF failed: %s\n", ERRSTR);
+		}
+		if (fds[1].revents & POLLOUT) {
+			/* dequeue buffer */
+			buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+			buf.memory = V4L2_MEMORY_DMABUF;
+			ret = ioctl(f_out, VIDIOC_DQBUF, &buf);
+			BYE_ON(ret, "VIDIOC_DQBUF failed: %s\n", ERRSTR);
+
+			/* enqueue buffer */
+			buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+			buf.memory = V4L2_MEMORY_MMAP;
+			ret = ioctl(f_in, VIDIOC_QBUF, &buf);
+			BYE_ON(ret, "VIDIOC_QBUF failed: %s\n", ERRSTR);
+		}
+	}
+
+	BYE_ON(ret == 0, "polling timeout\n");
+	BYE_ON(1, "polling stopped: %s\n", ERRSTR);
+
+	return 0;
+}
