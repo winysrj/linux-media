@@ -1,42 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:39043 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752297Ab2ADFuS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 00:50:18 -0500
-Received: by vbbfc26 with SMTP id fc26so13096504vbb.19
-        for <linux-media@vger.kernel.org>; Tue, 03 Jan 2012 21:50:17 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44501 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750865Ab2AZJ6S (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 04:58:18 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Semwal, Sumit" <sumit.semwal@ti.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 1/3] dma-buf: Introduce dma buffer sharing mechanism
+Date: Thu, 26 Jan 2012 10:58:25 +0100
+Cc: linaro-mm-sig@lists.linaro.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-mm@kvack.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, airlied@redhat.com, linux@arm.linux.org.uk,
+	patches@linaro.org, jesse.barker@linaro.org, daniel@ffwll.ch
+References: <1324891397-10877-1-git-send-email-sumit.semwal@ti.com> <201201201423.46858.laurent.pinchart@ideasonboard.com> <CAB2ybb98BT8L569G_728x1ZXdFNaQCDZzW2+kB0ZNeFak5_g+Q@mail.gmail.com>
+In-Reply-To: <CAB2ybb98BT8L569G_728x1ZXdFNaQCDZzW2+kB0ZNeFak5_g+Q@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4EFEFA08.805@gmail.com>
-References: <CAHG8p1Ao8UDuCytunFjvGZ1Ugd_xVU9cf_iXv6YjcRD41aMYtw@mail.gmail.com>
-	<20111230213301.GA3677@valkosipuli.localdomain>
-	<CAHG8p1ACi7CGFEBVaSr5G1cUMqtH8wX2mRY6n1yKF8TqgJ0oYw@mail.gmail.com>
-	<20111231113529.GC3677@valkosipuli.localdomain>
-	<4EFEFA08.805@gmail.com>
-Date: Wed, 4 Jan 2012 13:50:17 +0800
-Message-ID: <CAHG8p1AjoV1gBhQGFm0rEYSkHrpG+XtQB7kYXc8x5nuqjW4Z4g@mail.gmail.com>
-Subject: Re: v4l: how to get blanking clock count?
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201261058.27098.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> I the case of your bridge, that may not be possible, but that's the only one
->> I've heard of so I think it's definitely a special case. In that case the
->> sensor driver can't be allowed to change the blanking periods while
->> streaming is ongoing.
->
-> I agree, it's just a matter of adding proper logic at the sensor driver.
-> However it might be a bit tricky, the bridge would have to validate blanking
-> values before actually enabling streaming.
->
-Yes, this value doesn't affect the result image. The hardware only
-raises a error interrupt to signify that a horizontal tracking
-overflow has
-occurred, that means the programmed number of samples did not match up
-with the actual number of samples counted between assertions of
-HSYNC(I can only set active samples now).
+Hi Sumit,
+
+On Wednesday 25 January 2012 14:56:52 Semwal, Sumit wrote:
+> On Fri, Jan 20, 2012 at 6:53 PM, Laurent Pinchart wrote:
+> > Hi Summit,
+> > 
+> > Sorry for the late review. I know that this code is now in mainline, but
+> > I still have a couple of comments. I'll send patches if you agree with
+> > them.
+> 
+> Hi Laurent,
+> 
+> Thanks for your review; apologies for being late in replying - I was
+> OoO for last couple of days.
+
+No worries.
+
+[snip]
+
+> Let me know if you'd send patches for these, or should I just go ahead and
+> correct.
+
+I'll send patches.
+
+Another small comment. The map_dma_buf operation is defined as
+
+        struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *,
+                                                enum dma_data_direction);
+
+If we want to let exporters cache the sg_table we should return a const struct 
+sg_table *. unmap_dma_buf will then take a const pointer as well, which would 
+need to be cast to a non-const pointer internally. What's your opinion on that 
+?
+
+-- 
+Regards,
+
+Laurent Pinchart
