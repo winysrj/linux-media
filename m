@@ -1,62 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:1502 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751970Ab2A0Th6 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:50624 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752126Ab2AZPdE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 27 Jan 2012 14:37:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 2/2] vivi: use v4l2_ctrl_subscribe_event.
-Date: Fri, 27 Jan 2012 20:37:47 +0100
-Message-Id: <b68d33f07fb777e5eb016ecbe5c5ff8fdd762027.1327692974.git.hans.verkuil@cisco.com>
-In-Reply-To: <1327693067-31914-1-git-send-email-hverkuil@xs4all.nl>
-References: <1327693067-31914-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <d337d3b894c22440382a14ea002755e4c8ed247f.1327692974.git.hans.verkuil@cisco.com>
-References: <d337d3b894c22440382a14ea002755e4c8ed247f.1327692974.git.hans.verkuil@cisco.com>
+	Thu, 26 Jan 2012 10:33:04 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: [PATCHv19 00/15] Contiguous Memory Allocator
+Date: Thu, 26 Jan 2012 15:31:40 +0000
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+In-Reply-To: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201261531.40551.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thursday 26 January 2012, Marek Szyprowski wrote:
+> Welcome everyone!
+> 
+> Yes, that's true. This is yet another release of the Contiguous Memory
+> Allocator patches. This version mainly includes code cleanups requested
+> by Mel Gorman and a few minor bug fixes.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/vivi.c |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
+Hi Marek,
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index cef8c91..28d7112 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1001,17 +1001,6 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 	return 0;
- }
- 
--static int vidioc_subscribe_event(struct v4l2_fh *fh,
--				struct v4l2_event_subscription *sub)
--{
--	switch (sub->type) {
--	case V4L2_EVENT_CTRL:
--		return v4l2_event_subscribe(fh, sub, 0);
--	default:
--		return -EINVAL;
--	}
--}
--
- /* --- controls ---------------------------------------------- */
- 
- static int vivi_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
-@@ -1203,7 +1192,7 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
- 	.vidioc_streamon      = vidioc_streamon,
- 	.vidioc_streamoff     = vidioc_streamoff,
- 	.vidioc_log_status    = v4l2_ctrl_log_status,
--	.vidioc_subscribe_event = vidioc_subscribe_event,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
--- 
-1.7.8.3
+Thanks for keeping up this work! I really hope it works out for the
+next merge window.
 
+> TODO (optional):
+> - implement support for contiguous memory areas placed in HIGHMEM zone
+> - resolve issue with movable pages with pending io operations
+
+Can you clarify these? I believe the contiguous memory areas in highmem
+is something that should really be after the existing code is merged
+into the upstream kernel and should better not be listed as TODO here.
+
+I haven't followed the last two releases so closely. It seems that
+in v17 the movable pages with pending i/o was still a major problem
+but in v18 you added a solution. Is that right? What is still left
+to be done here then?
+
+	Arnd
