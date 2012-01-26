@@ -1,84 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3557 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754743Ab2APNKX (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:59815 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752180Ab2AZJBK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 08:10:23 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 10/10] radio/Kconfig: cleanup.
-Date: Mon, 16 Jan 2012 14:10:06 +0100
-Message-Id: <345a807126e72f58acd59c5e13c5292eafc7350f.1326717025.git.hans.verkuil@cisco.com>
-In-Reply-To: <1326719406-4538-1-git-send-email-hverkuil@xs4all.nl>
-References: <1326719406-4538-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <30958c9eb2499987a608cdf411e578984b617046.1326717025.git.hans.verkuil@cisco.com>
-References: <30958c9eb2499987a608cdf411e578984b617046.1326717025.git.hans.verkuil@cisco.com>
+	Thu, 26 Jan 2012 04:01:10 -0500
+Date: Thu, 26 Jan 2012 10:00:52 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 10/15] mm: extract reclaim code from
+ __alloc_pages_direct_reclaim()
+In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1327568457-27734-11-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch extracts common reclaim code from __alloc_pages_direct_reclaim()
+function to separate function: __perform_reclaim() which can be later used
+by alloc_contig_range().
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
 ---
- drivers/media/radio/Kconfig |   23 -----------------------
- 1 files changed, 0 insertions(+), 23 deletions(-)
+ mm/page_alloc.c |   30 +++++++++++++++++++++---------
+ 1 files changed, 21 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index c31bd76..b074d4a 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -178,14 +178,6 @@ config RADIO_CADET
- 	  Choose Y here if you have one of these AM/FM radio cards, and then
- 	  fill in the port address below.
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 4e60c0b..e35d06b 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -2094,16 +2094,13 @@ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+ }
+ #endif /* CONFIG_COMPACTION */
  
--	  In order to control your radio card, you will need to use programs
--	  that are compatible with the Video For Linux API.  Information on
--	  this API and pointers to "v4l" programs may be found at
--	  <file:Documentation/video4linux/API.html>.
--
--	  Further documentation on this driver can be found on the WWW at
--	  <http://linux.blackhawke.net/cadet/>.
--
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called radio-cadet.
+-/* The really slow allocator path where we enter direct reclaim */
+-static inline struct page *
+-__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
+-	struct zonelist *zonelist, enum zone_type high_zoneidx,
+-	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
+-	int migratetype, unsigned long *did_some_progress)
++/* Perform direct synchronous page reclaim */
++static inline int
++__perform_reclaim(gfp_t gfp_mask, unsigned int order, struct zonelist *zonelist,
++		  nodemask_t *nodemask)
+ {
+-	struct page *page = NULL;
+ 	struct reclaim_state reclaim_state;
+-	bool drained = false;
++	int progress;
  
-@@ -314,11 +306,6 @@ config RADIO_MIROPCM20
- 	  sound card driver "Miro miroSOUND PCM1pro/PCM12/PCM20radio" as this
- 	  is required for the radio-miropcm20.
+ 	cond_resched();
  
--	  In order to control your radio card, you will need to use programs
--	  that are compatible with the Video For Linux API.  Information on
--	  this API and pointers to "v4l" programs may be found at
--	  <file:Documentation/video4linux/API.html>.
--
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called radio-miropcm20.
+@@ -2114,7 +2111,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
+ 	reclaim_state.reclaimed_slab = 0;
+ 	current->reclaim_state = &reclaim_state;
  
-@@ -328,11 +315,6 @@ config RADIO_SF16FMI
- 	---help---
- 	  Choose Y here if you have one of these FM radio cards.
+-	*did_some_progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
++	progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
  
--	  In order to control your radio card, you will need to use programs
--	  that are compatible with the Video For Linux API.  Information on
--	  this API and pointers to "v4l" programs may be found at
--	  <file:Documentation/video4linux/API.html>.
--
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called radio-sf16fmi.
+ 	current->reclaim_state = NULL;
+ 	lockdep_clear_current_reclaim_state();
+@@ -2122,6 +2119,21 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
  
-@@ -342,11 +324,6 @@ config RADIO_SF16FMR2
- 	---help---
- 	  Choose Y here if you have one of these FM radio cards.
+ 	cond_resched();
  
--	  In order to control your radio card, you will need to use programs
--	  that are compatible with the Video For Linux API.  Information on
--	  this API and pointers to "v4l" programs may be found on the WWW at
--	  <http://roadrunner.swansea.uk.linux.org/v4l.shtml>.
--
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called radio-sf16fmr2.
++	return progress;
++}
++
++/* The really slow allocator path where we enter direct reclaim */
++static inline struct page *
++__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
++	struct zonelist *zonelist, enum zone_type high_zoneidx,
++	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
++	int migratetype, unsigned long *did_some_progress)
++{
++	struct page *page = NULL;
++	bool drained = false;
++
++	*did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
++					       nodemask);
+ 	if (unlikely(!(*did_some_progress)))
+ 		return NULL;
  
 -- 
-1.7.7.3
+1.7.1.569.g6f426
 
