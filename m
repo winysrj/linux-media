@@ -1,75 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtprelay06.ispgateway.de ([80.67.31.96]:48923 "EHLO
-	smtprelay06.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751163Ab2AZN3E (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.162]:43693 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751085Ab2AZMVi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 08:29:04 -0500
-Received: from [80.67.16.116] (helo=webmailfront01.ispgateway.de)
-	by smtprelay06.ispgateway.de with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.68)
-	(envelope-from <mythtv@x-defense.de>)
-	id 1RqPNt-0003Xl-KS
-	for linux-media@vger.kernel.org; Thu, 26 Jan 2012 14:29:01 +0100
-Date: Thu, 26 Jan 2012 14:29:01 +0100
-Message-ID: <20120126142901.Horde.DfBnWbuWis5PIVUdkoJWv3A@www.domaingo-webmail.de>
-From: Thor <mythtv@x-defense.de>
-To: linux-media@vger.kernel.org
-Subject: Re: recurring Problem with CAM on Technotrend TT-connect CT-3650
-References: <20120124203600.Horde.EdlOc7uWis5PHwggbBnSPKA@www.domaingo-webmail.de>
-In-Reply-To: <20120124203600.Horde.EdlOc7uWis5PHwggbBnSPKA@www.domaingo-webmail.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed; DelSp=Yes
+	Thu, 26 Jan 2012 07:21:38 -0500
+Received: from morden (ip-109-90-229-210.unitymediagroup.de [109.90.229.210])
+	by smtp.strato.de (fruni mo19) (RZmta 27.5 DYNA|AUTH)
+	with (AES128-SHA encrypted) ESMTPA id C07194o0QBWfve
+	for <linux-media@vger.kernel.org>;
+	Thu, 26 Jan 2012 13:21:17 +0100 (MET)
+Received: from rjkm by morden with local (Exim 4.77)
+	(envelope-from <rjkm@morden.metzler>)
+	id 1RqOKL-00010Y-7P
+	for linux-media@vger.kernel.org; Thu, 26 Jan 2012 13:21:17 +0100
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-Content-Disposition: inline
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
+Message-ID: <20257.17724.917769.890215@morden.metzler>
+Date: Thu, 26 Jan 2012 13:21:16 +0100
+To: linux-media@vger.kernel.org
+Subject: Re: CI/CAM support for offline (from file) decoding
+In-Reply-To: <1528925641.20120125233437@bitklub.hu>
+References: <18710154015.20120125181510@bitklub.hu>
+	<4F20429F.6030003@maindata.sk>
+	<1528925641.20120125233437@bitklub.hu>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-no one ?
+Kovacs Balazs writes:
+ > Yes,  i  thought about that, but i need the Hardware CAM + CI, because
+ > it's chip paired encryption. It means in my situation that the EMM and
+ > ECM is also encrypted so it's hard to use in a SoftCam configuration.
+ > 
+ > I hope there's a solution in the DVB driver space.
+ > 
+ > I receive the signal via RF or IP. If via RF i think it can be decoded
+ > via  the  HW,  and  the  record  it  to  disk,  but i need the full TS
+ > decrypted, and i think it's not possible (to decrypt all the encrypted
+ > ES  which  can be 20-30-40 in real time when i receive the signal). In
+ > IP  configuration  it's also not possible. So i have the recorded full
+ > TS  pieces  and somehow i have to decrypt with a CAM+Card paired to each
+ > other.  Of  course  i know that the decryption is only possible if the
+ > Smartcard  has  the  authorization in those date ranges when the files
+ > was recorded. I have seen this kind of solution in Windows, but i need
+ > it on Linux now.
 
+Yes, you can do that, but only if the hardware supports it. Most cards
+with CAM/CI are hardwired in such a way that the transport stream
+comes from the demodulator, goes through the CAM/CI and then into the
+PCIe/PCI bridge. There are only a few cards where you can send a TS from
+memory to the CAM/CI and back.
 
-Zitat von Thor <mythtv@x-defense.de>:
-
-> hi all,
->
->
-> checked out git on january 8th.
->
-> have the cam working,but it stops working every two or 3 days (system
-> is running 24 hours)
-> sometimes it recovers on its own:
->
-> Jan 21 20:59:45 zotac kernel: [81316.229519] dvb_ca adapter 0: CAM
-> tried to send a buffer larger than the ecount size!
-> Jan 21 20:59:45 zotac kernel: [81316.229752] dvb_ca adapter 0: DVB CAM
-> link initialisation failed :(
-> Jan 21 20:59:52 zotac kernel: [81323.339595] dvb_ca adapter 0: DVB CAM
-> detected and initialised successfully
->
-> sometimes it doesn't :
->
-> Jan 24 04:35:54 zotac kernel: [281485.531723] dvb_ca adapter 0: CAM
-> tried to send a buffer larger than the link buffer size (32896 > 255)!
-> Jan 24 04:35:55 zotac kernel: [281485.629455] dvb_ca adapter 0: CAM
-> tried to send a buffer larger than the ecount size!
-> Jan 24 04:35:55 zotac kernel: [281485.629702] dvb_ca adapter 0: DVB
-> CAM link initialisation failed :(
->
-> rmmod -f dvb_usb_ttusb2 && modprobe dvb_usb_ttusb2 does bring it  
-> back to live.
->
-> I am running on 3.0.0-14-generic-pae #23-Ubuntu SMP Mon Nov 21
-> 22:07:10 UTC 2011 i686 i686 i386 GNU/Linux from mythbuntu.
->
-> is there any more info you would need ?
-> any advise available ?
->
-> tia
-> thorsten
->
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+-Ralph
 
 
 
+ 
