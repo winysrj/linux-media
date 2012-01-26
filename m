@@ -1,30 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from sysphere.org ([97.107.129.246]:56743 "EHLO mail.sysphere.org"
+Received: from tex.lwn.net ([70.33.254.29]:44568 "EHLO vena.lwn.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755672Ab2AIP02 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 9 Jan 2012 10:26:28 -0500
-Received: from localhost (localhost.localdomain [127.0.0.1])
-	by mail.sysphere.org (Postfix) with ESMTP id 19A9C7E6F
-	for <linux-media@vger.kernel.org>; Mon,  9 Jan 2012 16:26:28 +0100 (CET)
-Date: Mon, 9 Jan 2012 16:26:28 +0100
-From: "Adrian C." <anrxc@sysphere.org>
-To: linux-media@vger.kernel.org
-Subject: Re: Support for IR on terratec/skystarhd2 mantis cards
-In-Reply-To: <alpine.LNX.2.00.1201082249010.28018@flfcurer.bet>
-Message-ID: <alpine.LNX.2.00.1201091622380.16265@flfcurer.bet>
-References: <alpine.LNX.2.00.1201082249010.28018@flfcurer.bet>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	id S1753051Ab2AZWXp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 17:23:45 -0500
+Date: Thu, 26 Jan 2012 15:23:43 -0700
+From: Jonathan Corbet <corbet@lwn.net>
+To: Axel Lin <axel.lin@gmail.com>
+Cc: linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Heungjun Kim <riverful.kim@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Joonyoung Shim <jy0922.shim@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Andrew Chew <achew@nvidia.com>,
+	Paul Mundt <lethal@linux-sh.org>,
+	Michael Grzeschik <m.grzeschik@pengutronix.de>,
+	Johannes Obermaier <johannes.obermaier@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Steven Toth <stoth@kernellabs.com>, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] convert drivers/media/* to use
+ module_i2c_driver()
+Message-ID: <20120126152343.7c5da11c@dt>
+In-Reply-To: <1327140645.3928.1.camel@phoenix>
+References: <1327140645.3928.1.camel@phoenix>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 8 Jan 2012, Adrian C. wrote:
+On Sat, 21 Jan 2012 18:10:45 +0800
+Axel Lin <axel.lin@gmail.com> wrote:
 
-> Patch broke linux 3.2 build and needed more minor changes
+> This patch converts the drivers in drivers/media/* to use the
+> module_i2_driver() macro which makes the code smaller and a bit simpler.
 
-Don't get me wrong, it's not troublesome. Just API changes, new 
-includes... things I don't know changed as I don't track media 
-development.
+For ov7670.c (belatedly):
 
-Anyway it was pointed out to me Christoph Pinkl already submitted the 
-patch for review, fact I missed before patchwork.linuxtv.org/patch/7217
+	Acked-by: Jonathan Corbet <corbet@lwn.net>
+
+jon
