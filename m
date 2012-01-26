@@ -1,129 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61559 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757868Ab2ARPVH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 10:21:07 -0500
-Message-ID: <4F16E353.9000908@redhat.com>
-Date: Wed, 18 Jan 2012 13:20:51 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Michael Krufky <mkrufky@linuxtv.org>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [git:v4l-dvb/for_v3.3] [media] DVB: dib0700, add support for
- Nova-TD LEDs
-References: <E1RnU5E-0000Vf-T9@www.linuxtv.org> <4F16C6B8.8000402@linuxtv.org> <201201181454.34245.pboettcher@kernellabs.com> <4F16D97C.5070005@linuxtv.org>
-In-Reply-To: <4F16D97C.5070005@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:59806 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752067Ab2AZJBF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 04:01:05 -0500
+Date: Thu, 26 Jan 2012 10:00:51 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 09/15] mm: page_isolation: MIGRATE_CMA isolation functions added
+In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1327568457-27734-10-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 18-01-2012 12:38, Michael Krufky escreveu:
-> On 01/18/2012 08:54 AM, Patrick Boettcher wrote:
->> On Wednesday 18 January 2012 14:18:48 Michael Krufky wrote:
->>> Mauro,
->>>
->>> Why was my sign-off changed to an Ack?
->>>
->>> As you can see, I worked *with* Jiri to help him create this
->>> patchset.
->>>
->>> During review, I noticed a poorly named function, which I renamed
->>> before pusging it into my own tree.  Patrick saw this, and merged my
->>> changes into into his tree.
->>>
->>> Why did I go through this effort to help another developer add value
->>> to one of our drivers, and additional effort to make a small
->>> cleanup, push the changes into my own tree and issue a pull request?
->>>   I was thanked by Patrick.  Everybody's signature is on the patch,
->>> but you then go and remove my signature, and add a forged "ack"?  I
->>> don't understand this, Mauro.
->>
->> I think it is my fault.
->>
->> I haven't merged your tree but I merged Jiri's patches as is. (git am)
->> I completely oversaw your pull request and issued mine.
->>
->> Mauro in IRC told me that you issued a PULL request as well. Not being
->> aware that you have made any modifications Mauro suggest to pull from me
->> and add an Ack-By to the patches.
->>
->> So he did not remove anything but trusted me too much.
-> 
-> Hmmmm...  That's unfortunate.  I also made various corrections in the commit messages.
-> 
-> I *meant* this to go to Mauro, I didn't realize it was going to linux-media list. 
-> Now I see that there was a reply-to header set, so that explains why "reply" had larger effects ;-)
+From: Michal Nazarewicz <mina86@mina86.com>
 
-With turned to be a good thing, as Patrick could reply on it ;)
+This commit changes various functions that change pages and
+pageblocks migrate type between MIGRATE_ISOLATE and
+MIGRATE_MOVABLE in such a way as to allow to work with
+MIGRATE_CMA migrate type.
 
-> Either way, Mauro, Can you remove those patches and re-apply them from my tree?  Please feel free to add Patrick's Sign-off.
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ include/linux/page-isolation.h |   21 +++++++++++----------
+ mm/memory-failure.c            |    2 +-
+ mm/memory_hotplug.c            |    6 +++---
+ mm/page_alloc.c                |   18 ++++++++++++------
+ mm/page_isolation.c            |   15 ++++++++-------
+ 5 files changed, 35 insertions(+), 27 deletions(-)
 
-Sorry, but these would cause two very bad side effects:
-
-1) I would need to rebase the tree to actually remove them, or to mangle the
-history;
-
-2) I'm planning to send today the last patches for the merge window. Those patches
-are already at -next, together with a bunch of other patches. Removing them would
-mean that I would need to wait for another day, probably missing the merge window.
-> 
-> For the record, I actually worked *with* Jiri on these patches -- I told him 
-> how to toggle the LEDs, I told him which functions to override, and I showed him
-> examples of how it was done elsewhere within dib0700 as well as how other drivers do it,
-> and I encouraged him to submit these patches because I am trying to get more people 
-> involved in DVB development.
-
-Recorded.
-
-For the record, SOB is the "Developer's Certificate of Origin" [1], e. g. it is used to
-track who has manipulated the patch until it achieves upstream. It doesn't 
-identify who authored the patch [2]. The main author of the patch is identified 
-at the "From:". The other authors are identified inside the patch description,
-as there's no special meta-data for co-authors.
-
-Also for the record, when someone makes a patch for a maintained driver, I wait
-for a few days in order to see if the maintainer will apply it. If he applies, 
-I just pick from his tree. If the patch is trivial (new board addition, typo fixes),
-I may just apply it, if I know the maintainer won't complain (several maintainers
-seem to prefer this workflow, as they don't care enough to comment trivial patches).
-
-So, if you wanted your SOB on the patches, you should either do:
-
-	1) send it to Jiri for him to add them at the time the patches got posted;
-	2) Submit the patches yourself, with both SOB's.
-
-> I just feel violated to have my signature stripped away from something that I took part in,
-> and then to see additional signatures added on top made matters worse.
-
-Your signature wasn't stripped away. It was simply not there at the patches:
-	http://patchwork.linuxtv.org/patch/9429/
-	http://patchwork.linuxtv.org/patch/9426/
-	http://patchwork.linuxtv.org/patch/9427/
-	http://patchwork.linuxtv.org/patch/9428/
-
-As Patrick picked the patches from the ML, the patch flow was:
-
-Jiri -> Patrick -> me.
-
-That means 3 SOB's on it, in order to represent such patch flow.
-
-Regards,
-Mauro
-
-[1] http://linuxtv.org/wiki/index.php/Development:_Submitting_Patches#Developer.27s_Certificate_of_Origin_1.1
-
-[2] As a general rule, the author gets the first SOB. Yet, there are
-cases where someone's else takes the responsibility for submitting 
-that patch upstream.
-> 
-> -Mike
-> 
-> 
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 454dd29..0659713 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -3,7 +3,7 @@
+ 
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+- * If specified range includes migrate types other than MOVABLE,
++ * If specified range includes migrate types other than MOVABLE or CMA,
+  * this will fail with -EBUSY.
+  *
+  * For isolating all pages in the range finally, the caller have to
+@@ -11,20 +11,21 @@
+  * test it.
+  */
+ extern int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			 unsigned migratetype);
+ 
+ /*
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+  * target range is [start_pfn, end_pfn)
+  */
+ extern int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			unsigned migratetype);
+ 
+ /*
+- * test all pages in [start_pfn, end_pfn)are isolated or not.
++ * Test all pages in [start_pfn, end_pfn) are isolated or not.
+  */
+-extern int
+-test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
++int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ /*
+  * Check all pages in pageblock, find the ones on pcp list, and set
+@@ -33,16 +34,16 @@ test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ extern void update_pcp_isolate_block(unsigned long pfn);
+ 
+ /*
+- * Internal funcs.Changes pageblock's migrate type.
+- * Please use make_pagetype_isolated()/make_pagetype_movable().
++ * Internal functions. Changes pageblock's migrate type.
+  */
+ extern int set_migratetype_isolate(struct page *page);
+-extern void unset_migratetype_isolate(struct page *page);
++extern void unset_migratetype_isolate(struct page *page, unsigned migratetype);
+ 
+ #ifdef CONFIG_CMA
+ 
+ /* The below functions must be run on a range from a single zone. */
+-extern int alloc_contig_range(unsigned long start, unsigned long end);
++extern int alloc_contig_range(unsigned long start, unsigned long end,
++			      unsigned migratetype);
+ extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
+ 
+ /* CMA stuff */
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 56080ea..76b01bf 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1400,7 +1400,7 @@ static int get_any_page(struct page *p, unsigned long pfn, int flags)
+ 		/* Not a free page */
+ 		ret = 1;
+ 	}
+-	unset_migratetype_isolate(p);
++	unset_migratetype_isolate(p, MIGRATE_MOVABLE);
+ 	unlock_memory_hotplug();
+ 	return ret;
+ }
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 6629faf..fc898cb 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -891,7 +891,7 @@ static int __ref offline_pages(unsigned long start_pfn,
+ 	nr_pages = end_pfn - start_pfn;
+ 
+ 	/* set above range as isolated */
+-	ret = start_isolate_page_range(start_pfn, end_pfn);
++	ret = start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -956,7 +956,7 @@ repeat:
+ 	   We cannot do rollback at this point. */
+ 	offline_isolated_pages(start_pfn, end_pfn);
+ 	/* reset pagetype flags and makes migrate type to be MOVABLE */
+-	undo_isolate_page_range(start_pfn, end_pfn);
++	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 	/* removal success */
+ 	zone->present_pages -= offlined_pages;
+ 	zone->zone_pgdat->node_present_pages -= offlined_pages;
+@@ -981,7 +981,7 @@ failed_removal:
+ 		start_pfn, end_pfn);
+ 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
+ 	/* pushback to free area */
+-	undo_isolate_page_range(start_pfn, end_pfn);
++	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 
+ out:
+ 	unlock_memory_hotplug();
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 0fcde78..4e60c0b 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5520,7 +5520,7 @@ out:
+ 	return ret;
+ }
+ 
+-void unset_migratetype_isolate(struct page *page)
++void unset_migratetype_isolate(struct page *page, unsigned migratetype)
+ {
+ 	struct zone *zone;
+ 	unsigned long flags;
+@@ -5528,8 +5528,8 @@ void unset_migratetype_isolate(struct page *page)
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-	move_freepages_block(zone, page, MIGRATE_MOVABLE);
++	set_pageblock_migratetype(page, migratetype);
++	move_freepages_block(zone, page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+@@ -5605,6 +5605,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * alloc_contig_range() -- tries to allocate given range of pages
+  * @start:	start PFN to allocate
+  * @end:	one-past-the-last PFN to allocate
++ * @migratetype:	migratetype of the underlaying pageblocks (either
++ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
++ *			in range must have the same migratetype and it must
++ *			be either of the two.
+  *
+  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
+  * aligned, however it's the caller's responsibility to guarantee that
+@@ -5617,7 +5621,8 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * pages which PFN is in [start, end) are allocated for the caller and
+  * need to be freed with free_contig_range().
+  */
+-int alloc_contig_range(unsigned long start, unsigned long end)
++int alloc_contig_range(unsigned long start, unsigned long end,
++		       unsigned migratetype)
+ {
+ 	unsigned long outer_start, outer_end;
+ 	int ret = 0, order;
+@@ -5646,7 +5651,8 @@ int alloc_contig_range(unsigned long start, unsigned long end)
+ 	 */
+ 
+ 	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
+-				       pfn_align_to_maxpage_up(end));
++				       pfn_align_to_maxpage_up(end),
++				       migratetype);
+ 	if (ret)
+ 		goto done;
+ 
+@@ -5703,7 +5709,7 @@ int alloc_contig_range(unsigned long start, unsigned long end)
+ 
+ done:
+ 	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
+-				pfn_align_to_maxpage_up(end));
++				pfn_align_to_maxpage_up(end), migratetype);
+ 	return ret;
+ }
+ 
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 9ea2f6e..c80daa9 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -24,6 +24,7 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * to be MIGRATE_ISOLATE.
+  * @start_pfn: The lower PFN of the range to be isolated.
+  * @end_pfn: The upper PFN of the range to be isolated.
++ * @migratetype: migrate type to set in error recovery.
+  *
+  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
+  * the range will never be allocated. Any free pages and pages freed in the
+@@ -32,8 +33,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * start_pfn/end_pfn must be aligned to pageblock_order.
+  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+-int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			     unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	unsigned long undo_pfn;
+@@ -56,7 +57,7 @@ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+ 	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn));
++		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
+ 
+ 	return -EBUSY;
+ }
+@@ -64,8 +65,8 @@ undo:
+ /*
+  * Make isolated pages available again.
+  */
+-int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			    unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
+@@ -77,7 +78,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			continue;
+-		unset_migratetype_isolate(page);
++		unset_migratetype_isolate(page, migratetype);
+ 	}
+ 	return 0;
+ }
+@@ -86,7 +87,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+  * all pages in [start_pfn...end_pfn) must be in the same zone.
+  * zone->lock must be held before call this.
+  *
+- * Returns 1 if all pages in the range is isolated.
++ * Returns 1 if all pages in the range are isolated.
+  */
+ static int
+ __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn)
+-- 
+1.7.1.569.g6f426
 
