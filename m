@@ -1,61 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30700 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752928Ab2AAULY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Jan 2012 15:11:24 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q01KBOd9002849
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 1 Jan 2012 15:11:24 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 8/9] [media] dvb: deprecate the usage of ops->info.type
-Date: Sun,  1 Jan 2012 18:11:17 -0200
-Message-Id: <1325448678-13001-9-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-References: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:59815 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752242Ab2AZJBM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 04:01:12 -0500
+Date: Thu, 26 Jan 2012 10:00:57 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 15/15] ARM: Samsung: use CMA for 2 memory banks for s5p-mfc
+ device
+In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1327568457-27734-16-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mark info.type as deprecated inside the header, recommending
-the usage of DTV_ENUM_DELSYS DVBv5 command instead.
+Replace custom memory bank initialization using memblock_reserve and
+dma_declare_coherent with a single call to CMA's dma_declare_contiguous.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- Documentation/DocBook/media/dvb/frontend.xml |    4 ++++
- include/linux/dvb/frontend.h                 |    2 +-
- 2 files changed, 5 insertions(+), 1 deletions(-)
+ arch/arm/plat-s5p/dev-mfc.c |   51 ++++++-------------------------------------
+ 1 files changed, 7 insertions(+), 44 deletions(-)
 
-diff --git a/Documentation/DocBook/media/dvb/frontend.xml b/Documentation/DocBook/media/dvb/frontend.xml
-index 28d7ea5..aeaed59 100644
---- a/Documentation/DocBook/media/dvb/frontend.xml
-+++ b/Documentation/DocBook/media/dvb/frontend.xml
-@@ -63,6 +63,10 @@ transmission. The fontend types are given by fe_type_t type, defined as:</para>
- <para>Newer formats like DVB-S2, ISDB-T, ISDB-S and DVB-T2 are not described at the above, as they're
- supported via the new <link linkend="FE_GET_SET_PROPERTY">FE_GET_PROPERTY/FE_GET_SET_PROPERTY</link> ioctl's, using the <link linkend="DTV-DELIVERY-SYSTEM">DTV_DELIVERY_SYSTEM</link> parameter.
- </para>
-+
-+<para>The usage of this field is deprecated, as it doesn't report all supported standards, and
-+will provide an incomplete information for frontends that support multiple delivery systems.
-+Please use <link linkend="DTV_ENUM_DELSYS">DTV_ENUM_DELSYS</link> instead.</para>
- </section>
+diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
+index a30d36b..fcb8400 100644
+--- a/arch/arm/plat-s5p/dev-mfc.c
++++ b/arch/arm/plat-s5p/dev-mfc.c
+@@ -14,6 +14,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/platform_device.h>
+ #include <linux/dma-mapping.h>
++#include <linux/dma-contiguous.h>
+ #include <linux/memblock.h>
+ #include <linux/ioport.h>
  
- <section id="fe-caps-t">
-diff --git a/include/linux/dvb/frontend.h b/include/linux/dvb/frontend.h
-index 7e7cb64..cb4428a 100644
---- a/include/linux/dvb/frontend.h
-+++ b/include/linux/dvb/frontend.h
-@@ -72,7 +72,7 @@ typedef enum fe_caps {
+@@ -22,52 +23,14 @@
+ #include <plat/irqs.h>
+ #include <plat/mfc.h>
  
- struct dvb_frontend_info {
- 	char       name[128];
--	fe_type_t  type;
-+	fe_type_t  type;			/* DEPRECATED. Use DTV_ENUM_DELSYS instead */
- 	__u32      frequency_min;
- 	__u32      frequency_max;
- 	__u32      frequency_stepsize;
+-struct s5p_mfc_reserved_mem {
+-	phys_addr_t	base;
+-	unsigned long	size;
+-	struct device	*dev;
+-};
+-
+-static struct s5p_mfc_reserved_mem s5p_mfc_mem[2] __initdata;
+-
+ void __init s5p_mfc_reserve_mem(phys_addr_t rbase, unsigned int rsize,
+ 				phys_addr_t lbase, unsigned int lsize)
+ {
+-	int i;
+-
+-	s5p_mfc_mem[0].dev = &s5p_device_mfc_r.dev;
+-	s5p_mfc_mem[0].base = rbase;
+-	s5p_mfc_mem[0].size = rsize;
+-
+-	s5p_mfc_mem[1].dev = &s5p_device_mfc_l.dev;
+-	s5p_mfc_mem[1].base = lbase;
+-	s5p_mfc_mem[1].size = lsize;
+-
+-	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
+-		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
+-		if (memblock_remove(area->base, area->size)) {
+-			printk(KERN_ERR "Failed to reserve memory for MFC device (%ld bytes at 0x%08lx)\n",
+-			       area->size, (unsigned long) area->base);
+-			area->base = 0;
+-		}
+-	}
+-}
+-
+-static int __init s5p_mfc_memory_init(void)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
+-		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
+-		if (!area->base)
+-			continue;
++	if (dma_declare_contiguous(&s5p_device_mfc_r.dev, rsize, rbase, 0))
++		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
++		       rsize, (unsigned long) rbase);
+ 
+-		if (dma_declare_coherent_memory(area->dev, area->base,
+-				area->base, area->size,
+-				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0)
+-			printk(KERN_ERR "Failed to declare coherent memory for MFC device (%ld bytes at 0x%08lx)\n",
+-			       area->size, (unsigned long) area->base);
+-	}
+-	return 0;
++	if (dma_declare_contiguous(&s5p_device_mfc_l.dev, lsize, lbase, 0))
++		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
++		       rsize, (unsigned long) rbase);
+ }
+-device_initcall(s5p_mfc_memory_init);
 -- 
-1.7.8.352.g876a6
+1.7.1.569.g6f426
 
