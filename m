@@ -1,74 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:36403 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754066Ab2AWURE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 15:17:04 -0500
-Message-ID: <4F1DC03D.4080204@iki.fi>
-Date: Mon, 23 Jan 2012 22:17:01 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53240 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751781Ab2AZT0u (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 14:26:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 3/8] soc-camera: Add plane layout information to struct soc_mbus_pixelfmt
+Date: Thu, 26 Jan 2012 20:27:01 +0100
+Cc: linux-media@vger.kernel.org
+References: <1327504351-24413-1-git-send-email-laurent.pinchart@ideasonboard.com> <1327504351-24413-4-git-send-email-laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1201261659480.10057@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1201261659480.10057@axis700.grange>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [git:v4l-dvb/for_v3.4] [media] cxd2820r: fix dvb_frontend_ops
-References: <E1RpQFN-0000uK-Bc@www.linuxtv.org>
-In-Reply-To: <E1RpQFN-0000uK-Bc@www.linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201262027.01334.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Are going to push these Kernel 3.4 as topic hints?
-These are fixes for 3.3, for example that patch in question...
+Hi Guennadi,
 
-Antti
+On Thursday 26 January 2012 17:01:15 Guennadi Liakhovetski wrote:
+> One more question:
+> 
+> On Wed, 25 Jan 2012, Laurent Pinchart wrote:
+> > To compute the number of bytes per line according to the V4L2
+> > specification, we need information about planes layout for planar
+> > formats. The new enum soc_mbus_layout convey that information.
+> > 
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/video/atmel-isi.c            |    1 +
+> >  drivers/media/video/mx3_camera.c           |    2 +
+> >  drivers/media/video/omap1_camera.c         |    8 ++++++
+> >  drivers/media/video/pxa_camera.c           |    1 +
+> >  drivers/media/video/sh_mobile_ceu_camera.c |    4 +++
+> >  drivers/media/video/soc_mediabus.c         |   33
+> >  ++++++++++++++++++++++++++++ include/media/soc_mediabus.h              
+> >  |   19 ++++++++++++++++ 7 files changed, 68 insertions(+), 0
+> >  deletions(-)
+> 
+> [snip]
+> 
+> > diff --git a/include/media/soc_mediabus.h b/include/media/soc_mediabus.h
+> > index 73f1e7e..18b0864 100644
+> > --- a/include/media/soc_mediabus.h
+> > +++ b/include/media/soc_mediabus.h
+> > @@ -47,6 +47,24 @@ enum soc_mbus_order {
+> > 
+> >  };
+> >  
+> >  /**
+> > 
+> > + * enum soc_mbus_layout - planes layout in memory
+> > + * @SOC_MBUS_LAYOUT_PACKED:		color components packed
+> > + * @SOC_MBUS_LAYOUT_PLANAR_Y_U_V:	YUV components stored in 3 planes
+> > + * @SOC_MBUS_LAYOUT_PLANAR_2Y_C:	YUV components stored in a luma and a
+> > + *					chroma plane (C plane is half the size
+> > + *					of Y plane)
+> > + * @SOC_MBUS_LAYOUT_PLANAR_Y_C:		YUV components stored in a luma 
+and a
+> > + *					chroma plane (C plane is the same size
+> > + *					as Y plane)
+> > + */
+> > +enum soc_mbus_layout {
+> > +	SOC_MBUS_LAYOUT_PACKED = 0,
+> > +	SOC_MBUS_LAYOUT_PLANAR_Y_U_V,
+> 
+> Shouldn't we call this SOC_MBUS_LAYOUT_PLANAR_2Y_U_V?
 
-On 01/23/2012 10:10 PM, Mauro Carvalho Chehab wrote:
-> This is an automatic generated email to let you know that the following patch were queued at the
-> http://git.linuxtv.org/media_tree.git tree:
->
-> Subject: [media] cxd2820r: fix dvb_frontend_ops
-> Author:  Antti Palosaari<crope@iki.fi>
-> Date:    Wed Jan 18 13:57:33 2012 -0300
->
-> Fix bug introduced by multi-frontend to single-frontend change.
->
-> * Add missing DVB-C caps
-> * Change frontend name as single frontend does all the standards
->
-> Signed-off-by: Antti Palosaari<crope@iki.fi>
-> Signed-off-by: Mauro Carvalho Chehab<mchehab@redhat.com>
->
->   drivers/media/dvb/frontends/cxd2820r_core.c |    4 +++-
->   1 files changed, 3 insertions(+), 1 deletions(-)
->
-> ---
->
-> http://git.linuxtv.org/media_tree.git?a=commitdiff;h=9bf31efa84c898a0cf294bacdfe8edcac24e6318
->
-> diff --git a/drivers/media/dvb/frontends/cxd2820r_core.c b/drivers/media/dvb/frontends/cxd2820r_core.c
-> index caae7f7..5fe591d 100644
-> --- a/drivers/media/dvb/frontends/cxd2820r_core.c
-> +++ b/drivers/media/dvb/frontends/cxd2820r_core.c
-> @@ -562,7 +562,7 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
->   	.delsys = { SYS_DVBT, SYS_DVBT2, SYS_DVBC_ANNEX_A },
->   	/* default: DVB-T/T2 */
->   	.info = {
-> -		.name = "Sony CXD2820R (DVB-T/T2)",
-> +		.name = "Sony CXD2820R",
->
->   		.caps =	FE_CAN_FEC_1_2			|
->   			FE_CAN_FEC_2_3			|
-> @@ -572,7 +572,9 @@ static const struct dvb_frontend_ops cxd2820r_ops = {
->   			FE_CAN_FEC_AUTO			|
->   			FE_CAN_QPSK			|
->   			FE_CAN_QAM_16			|
-> +			FE_CAN_QAM_32			|
->   			FE_CAN_QAM_64			|
-> +			FE_CAN_QAM_128			|
->   			FE_CAN_QAM_256			|
->   			FE_CAN_QAM_AUTO			|
->   			FE_CAN_TRANSMISSION_MODE_AUTO	|
-
+I'll change that.
 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
