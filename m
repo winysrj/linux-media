@@ -1,234 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:45647 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757177Ab2ADWvF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 17:51:05 -0500
-Received: by eekc4 with SMTP id c4so17054925eek.19
-        for <linux-media@vger.kernel.org>; Wed, 04 Jan 2012 14:51:03 -0800 (PST)
-Message-ID: <4F04D7D4.5050109@gmail.com>
-Date: Wed, 04 Jan 2012 23:51:00 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCHv4 1/2] v4l: Add new framesamples field to struct v4l2_mbus_framefmt
-References: <201112120131.24192.laurent.pinchart@ideasonboard.com> <1323865388-26994-1-git-send-email-s.nawrocki@samsung.com> <1323865388-26994-2-git-send-email-s.nawrocki@samsung.com> <201112210120.56888.laurent.pinchart@ideasonboard.com> <20111226125301.GQ3677@valkosipuli.localdomain> <4EFB4D3D.1080105@gmail.com> <20111231131612.GE3677@valkosipuli.localdomain> <4F00AC43.6000905@gmail.com> <20120104122142.GB9323@valkosipuli.localdomain>
-In-Reply-To: <20120104122142.GB9323@valkosipuli.localdomain>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:59815 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752248Ab2AZJBN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 04:01:13 -0500
+Date: Thu, 26 Jan 2012 10:00:55 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 13/15] X86: integrate CMA with DMA-mapping subsystem
+In-reply-to: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Message-id: <1327568457-27734-14-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+This patch adds support for CMA to dma-mapping subsystem for x86
+architecture that uses common pci-dma/pci-nommu implementation. This
+allows to test CMA on KVM/QEMU and a lot of common x86 boxes.
 
-On 01/04/2012 01:21 PM, Sakari Ailus wrote:
-> On Sun, Jan 01, 2012 at 07:56:03PM +0100, Sylwester Nawrocki wrote:
->> On 12/31/2011 02:16 PM, Sakari Ailus wrote:
->>>>> Something else that should probably belong there is information on the frame
->>>>> format: contrary to what I've previously thought, the sensor metadata is
->>>>> often sent as part of the same CSI-2 channel. There also can be other types
->>>>> of data, such as dummy data and data for black level calibration. I wouldn't
->>>>> want to export all this to the user space --- it shouldn't probably need to
->>>>> care about it.
->>>>>
->>>>> The transmitter of the data (sensor) has this information and the CSI-2
->>>>> receiver needs it. Same for the framesamples, as far as I understand.
->>>>
->>>> We could try to design some standard data structure for frame metadata -
->>>> that's how I understood the meaning of struct v4l2_mbus_framedesc.
->>>> But I doubt such attempts will be sucessful. And how can we distinguish
->>>> which data is valid and applicable when there is lots of weird stuff in one
->>>> data structure ? Using media bus pixel code only ?
->>>
->>> I think the media bus pixel code which is exported to the user space should
->>> not be involved with the metadata.
->>
->> Then we need to find some method to distinguish streams with metadata on the
->> media bus, to be able to discard it before sending to user space.
->> I assume this is where struct v4l2_mbus_framedesc and related ops would help ?
-> 
-> I'd think so.
-> 
->> Maybe we could create v4l2_mbus_framedesc with length (framesamples) member
->> in it and additionally 994 reserved bytes for future extensions ;-), e.g.
->>
->> struct v4l2_mbus_framedesc {
->> 	unsigned int length;
->> 	unsigned int rserved[994];
->> };
-> 
-> Do we need to export this to the user space? In the first phase I'd like to
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+---
+ arch/x86/Kconfig                      |    1 +
+ arch/x86/include/asm/dma-contiguous.h |   13 +++++++++++++
+ arch/x86/include/asm/dma-mapping.h    |    4 ++++
+ arch/x86/kernel/pci-dma.c             |   18 ++++++++++++++++--
+ arch/x86/kernel/pci-nommu.c           |    8 +-------
+ arch/x86/kernel/setup.c               |    2 ++
+ 6 files changed, 37 insertions(+), 9 deletions(-)
+ create mode 100644 arch/x86/include/asm/dma-contiguous.h
 
-No, that wasn't my intention. The reserved field was supposed to be a joke,
-we of course don't need any reserved members in the kernel space.
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 864cc6e..1e00736 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -31,6 +31,7 @@ config X86
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+ 	select ARCH_WANT_FRAME_POINTERS
+ 	select HAVE_DMA_ATTRS
++	select HAVE_DMA_CONTIGUOUS if !SWIOTLB
+ 	select HAVE_KRETPROBES
+ 	select HAVE_OPTPROBES
+ 	select HAVE_FTRACE_MCOUNT_RECORD
+diff --git a/arch/x86/include/asm/dma-contiguous.h b/arch/x86/include/asm/dma-contiguous.h
+new file mode 100644
+index 0000000..8fb117d
+--- /dev/null
++++ b/arch/x86/include/asm/dma-contiguous.h
+@@ -0,0 +1,13 @@
++#ifndef ASMX86_DMA_CONTIGUOUS_H
++#define ASMX86_DMA_CONTIGUOUS_H
++
++#ifdef __KERNEL__
++
++#include <linux/device.h>
++#include <linux/dma-contiguous.h>
++#include <asm-generic/dma-contiguous.h>
++
++static inline void dma_contiguous_early_fixup(phys_addr_t base, unsigned long size) { }
++
++#endif
++#endif
+diff --git a/arch/x86/include/asm/dma-mapping.h b/arch/x86/include/asm/dma-mapping.h
+index ed3065f..90ac6f0 100644
+--- a/arch/x86/include/asm/dma-mapping.h
++++ b/arch/x86/include/asm/dma-mapping.h
+@@ -13,6 +13,7 @@
+ #include <asm/io.h>
+ #include <asm/swiotlb.h>
+ #include <asm-generic/dma-coherent.h>
++#include <linux/dma-contiguous.h>
+ 
+ #ifdef CONFIG_ISA
+ # define ISA_DMA_BIT_MASK DMA_BIT_MASK(24)
+@@ -61,6 +62,9 @@ extern int dma_set_mask(struct device *dev, u64 mask);
+ extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 					dma_addr_t *dma_addr, gfp_t flag);
+ 
++extern void dma_generic_free_coherent(struct device *dev, size_t size,
++				      void *vaddr, dma_addr_t dma_addr);
++
+ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+ {
+ 	if (!dev->dma_mask)
+diff --git a/arch/x86/kernel/pci-dma.c b/arch/x86/kernel/pci-dma.c
+index 1c4d769..d3c3723 100644
+--- a/arch/x86/kernel/pci-dma.c
++++ b/arch/x86/kernel/pci-dma.c
+@@ -99,14 +99,18 @@ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 				 dma_addr_t *dma_addr, gfp_t flag)
+ {
+ 	unsigned long dma_mask;
+-	struct page *page;
++	struct page *page = NULL;
++	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+ 	dma_addr_t addr;
+ 
+ 	dma_mask = dma_alloc_coherent_mask(dev, flag);
+ 
+ 	flag |= __GFP_ZERO;
+ again:
+-	page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
++	if (!(flag & GFP_ATOMIC))
++		page = dma_alloc_from_contiguous(dev, count, get_order(size));
++	if (!page)
++		page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
+ 	if (!page)
+ 		return NULL;
+ 
+@@ -126,6 +130,16 @@ again:
+ 	return page_address(page);
+ }
+ 
++void dma_generic_free_coherent(struct device *dev, size_t size, void *vaddr,
++			       dma_addr_t dma_addr)
++{
++	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
++	struct page *page = virt_to_page(vaddr);
++
++	if (!dma_release_from_contiguous(dev, page, count))
++		free_pages((unsigned long)vaddr, get_order(size));
++}
++
+ /*
+  * See <Documentation/x86/x86_64/boot-options.txt> for the iommu kernel
+  * parameter documentation.
+diff --git a/arch/x86/kernel/pci-nommu.c b/arch/x86/kernel/pci-nommu.c
+index 3af4af8..656566f 100644
+--- a/arch/x86/kernel/pci-nommu.c
++++ b/arch/x86/kernel/pci-nommu.c
+@@ -74,12 +74,6 @@ static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
+ 	return nents;
+ }
+ 
+-static void nommu_free_coherent(struct device *dev, size_t size, void *vaddr,
+-				dma_addr_t dma_addr)
+-{
+-	free_pages((unsigned long)vaddr, get_order(size));
+-}
+-
+ static void nommu_sync_single_for_device(struct device *dev,
+ 			dma_addr_t addr, size_t size,
+ 			enum dma_data_direction dir)
+@@ -97,7 +91,7 @@ static void nommu_sync_sg_for_device(struct device *dev,
+ 
+ struct dma_map_ops nommu_dma_ops = {
+ 	.alloc_coherent		= dma_generic_alloc_coherent,
+-	.free_coherent		= nommu_free_coherent,
++	.free_coherent		= dma_generic_free_coherent,
+ 	.map_sg			= nommu_map_sg,
+ 	.map_page		= nommu_map_page,
+ 	.sync_single_for_device = nommu_sync_single_for_device,
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index d7d5099..be6795f 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -50,6 +50,7 @@
+ #include <asm/pci-direct.h>
+ #include <linux/init_ohci1394_dma.h>
+ #include <linux/kvm_para.h>
++#include <linux/dma-contiguous.h>
+ 
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+@@ -938,6 +939,7 @@ void __init setup_arch(char **cmdline_p)
+ 	}
+ #endif
+ 	memblock.current_limit = get_max_mapped();
++	dma_contiguous_reserve(0);
+ 
+ 	/*
+ 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
+-- 
+1.7.1.569.g6f426
 
-> keep that static (i.e. only get op would be supported) and only visible in
-> the kernel. That would leave much more room for changes later on, if needed.
-
-I'd prefer it to be R/W, i.e. having both get and set ops available. Maybe
-not for all fields though.
-
->> struct v4l2_subdev_pad_ops {
->> 	  ....
->> 	int get_framedesc(int pad, struct v4l2_framedesc *fdesc);
->> 	int set_framedesc(int pad, struct v4l2_framedesc fdesc);
->> };
->>
->> This would ensure same media bus format code regardless of frame meta data
->> presence.
->>
->> In case metadata is sent in same CSI channel, the required buffer length
->> might be greater than what would width/height and pixel code suggest.
-> 
-> Partly for this reason we have g_skip_top_lines() op in sensor ops. It
-> instructs the receiver to discard the metadata, and possibly other data
-> which isn't as interesting --- could be just dummy.
-
-I see.
-
-> Some CSI-2 receivers are able to write this to a different memory location;
-> we could expose this as a different video node. I'm proposing a different
-> video node since this is a separate queue: the format (in-memory pixel
-> format and dimensions) is different, and it is beneficial to have access to
-> this data as soon as possible. There is a caveat, though, if we also wish to
-> support metadata which is appended to the frame, rather than prependeded.
-
-I think it is recurring topic in our discussions, I guess nobody really needs
-it since it haven't been implemented yet. ;)
-
-Multi-planar buffers were meant also for handling meta data, only variable
-number of planes support would need to be added. For instance the driver could
-pass only the buffer with meta data plane if required.
-
->>> The metadata is something that the user is likely interested only in the
->>> form it is in the system memory. It won't be processed in any way before
->>> it gets written to memory. The chosen mbus code may affect the format of the
->>> metadata, but that's something the sensor driver knows  -- and I've yet to
->>> see a case where the user could choose the desired metadata format.
->>
->>> Alternatively we could make the metadata path a separate path from the image
->>> data. I wonder how feasible that approach would be --- the subdevs would
->>> still be the same.
->>
->> I was also considering metadata as sensor specific data structure retrieved
->> by the host after a frame has been captured and appending that data to a user
->> buffer. For such buffers a separate fourcc would be needed.
-> 
-> Why after?
-
-Because there is no way to retrieve it before ? :)
-
-> There are benefits in getting this to the user space without extra delays?
-
-It doesn't matter that much because image data is already post-processed.
-And the case I was mentioning was about still capture, asisted in the sensor
-(SoC).
-
->>>>> Pixelrate is also used to figure out whether a pipeline can do streaming or
->>>>> not; the pixel rate originating from the sensor could be higher than the
->>>>> maximum of the ISP. For this reason, as well as for providing timing
->>>>> information, access to pixelrate is reequired in the user space.
->>>>>
->>>>> Configuring the framesamples could be done on the sensor using a control if
->>>>> necessary.
->>>>
->>>> Sure, that could work. But as I mentioned before, the host drivers would have
->>>> to be getting such control internally from subdevs. Not so nice IMHO. Although
->>>> I'm not in big opposition to that too.
->>>>
->>>> Grepping for v4l2_ctrl_g_ctrl() all the drivers appear to use it locally only.
->>>
->>> I don't think there's anything that really would prohibit doing this. There
->>> would need to be a way for the host to make a control read-only, to prevent
->>> changing framesamples while streaming.
->>
->> I would rather make subdev driver to ensure all negotiated paramaters, which
->> changed during streaming could crash the system, stay unchanged after streaming
->> started. It's as simple as checking entity stream_count in s_ctrl() and
->> prohibiting change of control value if stream_count > 0.
-> 
-> That's easy, but the values of these controls could still change between
-> pipeline validation and stream startup: the sensor driver always will be the
-> last one to start streaming.
-
-Are you sure ? The host first calls media_pipeline_start(), this increments
-stream_count on all subdevs, and only after that the host performs pipeline
-validation. At streamoff media_pipeline_stop() is called and the controls
-may be changed again. It only requires special treatment of stream_count
-at the subdevs.
-
-Btw, for setting controls busy the V4L2_CTRL_FLAG_GRABBED flag can be used.
-However, IMHO it shouldn't be the host's business to mess with its subdevs'
-control properties. If controls aren't inherited by the host and they belong
-to a subdev it's probably better to leave the low level control operations
-to the subdev driver only.
-
->>> Pad-specific controls likely require more work than this.
->>
->> Hym, I'd forgotten, the fact framesamples are per pad was an argument against
->> using v4l2 control for this parameter. We still need per pad controls for the
->> blanking controls, but for framesamples maybe it's better to just add subdev
->> callback, as acessing this parameter on subdevs directly from space isn't
->> really essential..
-> 
-> Blanking controls are subdev-specific, not pad-specific. In practice the
-> pixel array subdevs will always have just one pad, but there is still the
-> principal difference. :-)
-
-Yeah, that makes sense. :-) Even in case when we have two output pads from
-a MIPI-CSI  transmitter, each for a separate channel, and per pad media bus
-formats the per pad blanking wouldn't rather make sense.
-
-> Pixel rate could be another per-pad control. That might have to be checked
-> before stream startup, just like framesamples. That's information which is
-> mostly needed in the kernel space, but the user space still would sometimes
-> like to take a look at it. Giving the responsibility to the user to carry
-> the pixel rate through the whole pipeline without a way to even modify would
-> be is a little excessive.
-
-But it's supposed to be read-only ? What would be a reason to propagate it then ?
-
->>>>> Just my 5 euro cents. Perhaps we could discuss the topic on #v4l-meeting
->>>>> some time?
->>>>
->>>> I'm available any time this week. :)
->>>
->>> I think the solution could be related to frame metadata if we intend to
->>> specify the frame format. Btw. how does the framesamples relate to blanking?
->>
->> Framesamples and blanking are on completely different levels. Framesamples
->> takes into account only active frame data, so H/V blanking doesn't matter here.
->> Framesamples is not intended for raw formats where blanking is applicable.
->>
->> Framesamples only determines length of compressed stream, and blanking doesn't
->> really affect the data passed to and generated by a jpeg encoder.
-> 
-> So in fact the blanking controls make no difference, but the hardware might
-
-Yeah.
-
-> add some extra blanking, say, if it's not able to send the whole image over
-> the bus as one chunk?
-
-Concept of blanking really doesn’t make sense on media bus when sending compressed
-stream. The transmission of one frame could be performed in any number of bursts
-of any length.
-
->>> The metadata in a regular frame spans a few lines in the top and sometimes
->>> also on the bottom of that frame.
->>
->> How do you handle it now, i.e. how the host finds out how much memory it needs
->> for a frame ? Or is the metadata just overwriting "valid" lines ?
-> 
-> Well... we don't handle it. ;-) All that's being done is that it's
-> discarded.
-
-OK, that's the simpler way then:)
-
---
-
-Regards,
-Sylwester
