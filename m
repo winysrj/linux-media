@@ -1,82 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:52964 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757613Ab2AEQTJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 11:19:09 -0500
-Received: by eekc4 with SMTP id c4so472427eek.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 08:19:08 -0800 (PST)
-Message-ID: <4F05CD76.3080404@googlemail.com>
-Date: Thu, 05 Jan 2012 17:19:02 +0100
-From: e9hack <e9hack@googlemail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38651 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752408Ab2A0Jfu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jan 2012 04:35:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH 1/1] omap3isp: Prevent crash at module unload
+Date: Fri, 27 Jan 2012 10:36:02 +0100
+Cc: linux-media@vger.kernel.org, ohad@wizery.com
+References: <1327655155-6038-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1327655155-6038-1-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 4/9] [media] dvb_frontend: Don't use ops->info.type anymore
-References: <1325448678-13001-1-git-send-email-mchehab@redhat.com> <1325448678-13001-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325448678-13001-5-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-15
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201201271036.02588.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 01.01.2012 21:11, schrieb Mauro Carvalho Chehab:
-> Get rid of using ops->info.type defined on DVB drivers,
-> as it doesn't apply anymore.
-....
+Hi Sakari,
+
+Thanks for the patch.
+
+On Friday 27 January 2012 10:05:55 Sakari Ailus wrote:
+> iommu_domain_free() was called in isp_remove() before omap3isp_put().
+> omap3isp_put() must not save the context if the IOMMU no longer is there.
+> Fix this.
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 > ---
->  drivers/media/dvb/dvb-core/dvb_frontend.c |  541 ++++++++++++++---------------
->  1 files changed, 266 insertions(+), 275 deletions(-)
-....
-> diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-> index eefcb7f..7f6ce06 100644
-> @@ -1902,6 +1850,37 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
->  		memcpy(info, &fe->ops.info, sizeof(struct dvb_frontend_info));
->  		dvb_frontend_get_frequency_limits(fe, &info->frequency_min, &info->frequency_max);
->  
-> +		/*
-> +		 * Associate the 4 delivery systems supported by DVBv3
-> +		 * API with their DVBv5 counterpart. For the other standards,
-> +		 * use the closest type, assuming that it would hopefully
-> +		 * work with a DVBv3 application.
-> +		 * It should be noticed that, on multi-frontend devices with
-> +		 * different types (terrestrial and cable, for example),
-> +		 * a pure DVBv3 application won't be able to use all delivery
-> +		 * systems. Yet, changing the DVBv5 cache to the other delivery
-> +		 * system should be enough for making it work.
-> +		 */
-> +		switch (dvbv3_type(c->delivery_system)) {
-> +		case DVBV3_QPSK:
-> +			fe->ops.info.type = FE_QPSK;
-> +			break;
-> +		case DVBV3_ATSC:
-> +			fe->ops.info.type = FE_ATSC;
-> +			break;
-> +		case DVBV3_QAM:
-> +			fe->ops.info.type = FE_QAM;
-> +			break;
-> +		case DVBV3_OFDM:
-> +			fe->ops.info.type = FE_OFDM;
-> +			break;
-> +		default:
-> +			printk(KERN_ERR
-> +			       "%s: doesn't know how to handle a DVBv3 call to delivery system %i\n",
-> +			       __func__, c->delivery_system);
-> +			fe->ops.info.type = FE_OFDM;
-> +		}
-> +
+> The issue only seems to affect the staging/for_v3.4 branch in
+> media-tree.git.
+> 
+>  drivers/media/video/omap3isp/isp.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 12d5f92..c3ff142 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -1112,7 +1112,8 @@ isp_restore_context(struct isp_device *isp, struct
+> isp_reg *reg_list) static void isp_save_ctx(struct isp_device *isp)
+>  {
+>  	isp_save_context(isp, isp_reg_list);
+> -	omap_iommu_save_ctx(isp->dev);
+> +	if (isp->domain)
+> +		omap_iommu_save_ctx(isp->dev);
 
-Hi,
+What about skipping the isp_save_ctx() call completely in omap3isp_put() when 
+isp->domain is NULL ? We don't need to save the ISP context either.
 
-I think this is partly wrong. The old delivery system values must be set in the given data
-structure from caller:
+>  }
+> 
+>  /*
+> @@ -1981,6 +1982,7 @@ static int isp_remove(struct platform_device *pdev)
+>  	omap3isp_get(isp);
+>  	iommu_detach_device(isp->domain, &pdev->dev);
+>  	iommu_domain_free(isp->domain);
+> +	isp->domain = NULL;
+>  	omap3isp_put(isp);
+> 
+>  	free_irq(isp->irq_num, isp);
 
-fe->ops.info.type = FE_QAM;
-
-must be replace by
-
-info->type = FE_QAM;
-
+-- 
 Regards,
-Hartmut
+
+Laurent Pinchart
