@@ -1,157 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:21587 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933993Ab2AKV1U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:27:20 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH 16/23] media: Add link_validate op to check links to the sink pad
-Date: Wed, 11 Jan 2012 23:26:53 +0200
-Message-Id: <1326317220-15339-16-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F0DFE92.80102@iki.fi>
-References: <4F0DFE92.80102@iki.fi>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:46693 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755165Ab2A0O1e convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jan 2012 09:27:34 -0500
+MIME-Version: 1.0
+In-Reply-To: <00de01ccdce1$e7c8a360$b759ea20$%szyprowski@samsung.com>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+	<1327568457-27734-13-git-send-email-m.szyprowski@samsung.com>
+	<CADMYwHw1B4RNV_9BqAg_M70da=g69Z3kyo5Cr6izCMwJ9LAtvA@mail.gmail.com>
+	<00de01ccdce1$e7c8a360$b759ea20$%szyprowski@samsung.com>
+Date: Fri, 27 Jan 2012 08:27:33 -0600
+Message-ID: <CAO8GWqnQg-W=TEc+CUc8hs=GrdCa9XCCWcedQx34cqURhNwNwA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 12/15] drivers: add Contiguous Memory Allocator
+From: "Clark, Rob" <rob@ti.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Ohad Ben-Cohen <ohad@wizery.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	linux-kernel@vger.kernel.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/media-entity.c |   73 ++++++++++++++++++++++++++++++++++++++++-
- include/media/media-entity.h |    5 ++-
- 2 files changed, 74 insertions(+), 4 deletions(-)
+2012/1/27 Marek Szyprowski <m.szyprowski@samsung.com>:
+> Hi Ohad,
+>
+> On Friday, January 27, 2012 10:44 AM Ohad Ben-Cohen wrote:
+>
+>> With v19, I can't seem to allocate big regions anymore (e.g. 101MiB).
+>> In particular, this seems to fail:
+>>
+>> On Thu, Jan 26, 2012 at 11:00 AM, Marek Szyprowski
+>> <m.szyprowski@samsung.com> wrote:
+>> > +static int cma_activate_area(unsigned long base_pfn, unsigned long count)
+>> > +{
+>> > +       unsigned long pfn = base_pfn;
+>> > +       unsigned i = count >> pageblock_order;
+>> > +       struct zone *zone;
+>> > +
+>> > +       WARN_ON_ONCE(!pfn_valid(pfn));
+>> > +       zone = page_zone(pfn_to_page(pfn));
+>> > +
+>> > +       do {
+>> > +               unsigned j;
+>> > +               base_pfn = pfn;
+>> > +               for (j = pageblock_nr_pages; j; --j, pfn++) {
+>> > +                       WARN_ON_ONCE(!pfn_valid(pfn));
+>> > +                       if (page_zone(pfn_to_page(pfn)) != zone)
+>> > +                               return -EINVAL;
+>>
+>> The above WARN_ON_ONCE is triggered, and then the conditional is
+>> asserted (page_zone() retuns a "Movable" zone, whereas zone is
+>> "Normal") and the function fails.
+>>
+>> This happens to me on OMAP4 with your 3.3-rc1-cma-v19 branch (and a
+>> bunch of remoteproc/rpmsg patches).
+>>
+>> Do big allocations work for you ?
+>
+> I've tested it with 256MiB on Exynos4 platform. Could you check if the
+> problem also appears on 3.2-cma-v19 branch (I've uploaded it a few hours
+> ago) and 3.2-cma-v18? Both are available on our public repo:
+> git://git.infradead.org/users/kmpark/linux-samsung/
+>
+> The above code has not been changed since v16, so I'm really surprised
+> that it causes problems. Maybe the memory configuration or layout has
+> been changed in 3.3-rc1 for OMAP4?
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 056138f..62ef4b8 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -196,6 +196,35 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
- 
-+struct media_link_enum {
-+	int i;
-+	struct media_entity *entity;
-+	unsigned long flags, mask;
-+};
-+
-+static struct media_link
-+*media_link_walk_next(struct media_link_enum *link_enum)
-+{
-+	do {
-+		link_enum->i++;
-+		if (link_enum->i >= link_enum->entity->num_links)
-+			return NULL;
-+	} while ((link_enum->entity->links[link_enum->i].flags
-+		  & link_enum->mask) != link_enum->flags);
-+
-+	return &link_enum->entity->links[link_enum->i];
-+}
-+
-+static void media_link_walk_start(struct media_link_enum *link_enum,
-+				  struct media_entity *entity,
-+				  unsigned long flags, unsigned long mask)
-+{
-+	link_enum->i = -1;
-+	link_enum->entity = entity;
-+	link_enum->flags = flags;
-+	link_enum->mask = mask;
-+}
-+
- /* -----------------------------------------------------------------------------
-  * Pipeline management
-  */
-@@ -214,23 +243,63 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
-  * pipeline pointer must be identical for all nested calls to
-  * media_entity_pipeline_start().
-  */
--void media_entity_pipeline_start(struct media_entity *entity,
--				 struct media_pipeline *pipe)
-+__must_check int media_entity_pipeline_start(struct media_entity *entity,
-+					     struct media_pipeline *pipe)
- {
- 	struct media_device *mdev = entity->parent;
- 	struct media_entity_graph graph;
-+	struct media_entity *tmp = entity;
-+	int ret = 0;
- 
- 	mutex_lock(&mdev->graph_mutex);
- 
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		struct media_entity_graph tmp_graph;
-+		struct media_link_enum link_enum;
-+		struct media_link *link;
-+
- 		entity->stream_count++;
- 		WARN_ON(entity->pipe && entity->pipe != pipe);
- 		entity->pipe = pipe;
-+
-+		if (!entity->ops || !entity->ops->link_validate)
-+			continue;
-+
-+		media_link_walk_start(&link_enum, entity,
-+				      MEDIA_LNK_FL_ENABLED,
-+				      MEDIA_LNK_FL_ENABLED);
-+
-+		while ((link = media_link_walk_next(&link_enum))) {
-+			if (link->sink->entity != entity)
-+				continue;
-+
-+			ret = entity->ops->link_validate(link);
-+			if (ret < 0 && ret != -ENOIOCTLCMD)
-+				break;
-+		}
-+		if (!ret || ret == -ENOIOCTLCMD)
-+			continue;
-+
-+		/*
-+		 * Link validation on graph failed. We revert what we
-+		 * did and return the error.
-+		 */
-+		media_entity_graph_walk_start(&tmp_graph, tmp);
-+		do {
-+			tmp = media_entity_graph_walk_next(&tmp_graph);
-+			tmp->stream_count--;
-+			if (entity->stream_count == 0)
-+				entity->pipe = NULL;
-+		} while (tmp != entity);
-+
-+		break;
- 	}
- 
- 	mutex_unlock(&mdev->graph_mutex);
-+
-+	return ret == 0 || ret == -ENOIOCTLCMD ? 0 : ret;
- }
- EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
- 
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index cd8bca6..f7ba80a 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -46,6 +46,7 @@ struct media_entity_operations {
- 	int (*link_setup)(struct media_entity *entity,
- 			  const struct media_pad *local,
- 			  const struct media_pad *remote, u32 flags);
-+	int (*link_validate)(struct media_link *link);
- };
- 
- struct media_entity {
-@@ -140,8 +141,8 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- 		struct media_entity *entity);
- struct media_entity *
- media_entity_graph_walk_next(struct media_entity_graph *graph);
--void media_entity_pipeline_start(struct media_entity *entity,
--		struct media_pipeline *pipe);
-+__must_check int media_entity_pipeline_start(struct media_entity *entity,
-+					     struct media_pipeline *pipe);
- void media_entity_pipeline_stop(struct media_entity *entity);
- 
- #define media_entity_call(entity, operation, args...)			\
--- 
-1.7.2.5
+is highmem still an issue?  I remember hitting this WARN_ON_ONCE() but
+went away after I switched to a 2g/2g vm split (which avoids highmem)
 
+BR,
+-R
+
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung Poland R&D Center
+>
+>
+>
+>
+> _______________________________________________
+> Linaro-mm-sig mailing list
+> Linaro-mm-sig@lists.linaro.org
+> http://lists.linaro.org/mailman/listinfo/linaro-mm-sig
