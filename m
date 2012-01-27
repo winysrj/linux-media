@@ -1,75 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:43323 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755381Ab2AJXkq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 18:40:46 -0500
-Message-ID: <4F0CCC7B.801@iki.fi>
-Date: Wed, 11 Jan 2012 01:40:43 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:45547 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751544Ab2A0OSL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jan 2012 09:18:11 -0500
+Message-ID: <4F22B1E8.7050303@redhat.com>
+Date: Fri, 27 Jan 2012 12:17:12 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	teturtia@gmail.com
-Subject: Re: [PATCH 1/1] v4l: Ignore ctrl_class in the control framework
-References: <1326222862-15936-1-git-send-email-sakari.ailus@iki.fi> <201201102151.43106.hverkuil@xs4all.nl>
-In-Reply-To: <201201102151.43106.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: RFC: removal of video/radio/vbi_nr module options?
+References: <201201270821.49381.hverkuil@xs4all.nl> <CAGoCfiynca-oSRnunwsa_y9xamD3Bn6Xnr40LUsmVcbmo6jkhA@mail.gmail.com>
+In-Reply-To: <CAGoCfiynca-oSRnunwsa_y9xamD3Bn6Xnr40LUsmVcbmo6jkhA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Hans Verkuil wrote:
-> On Tuesday, January 10, 2012 20:14:22 Sakari Ailus wrote:
->> Back in the old days there was probably a reason to require that controls
->> that are being used to access using VIDIOC_{TRY,G,S}_EXT_CTRLS belonged to
->> the same class. These days such reason does not exist, or at least cannot be
->> remembered, and concrete examples of the opposite can be seen: a single
->> (sub)device may well offer controls that belong to different classes and
->> there is no reason to deny changing them atomically.
+Em 27-01-2012 11:36, Devin Heitmueller escreveu:
+> On Fri, Jan 27, 2012 at 2:21 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi all,
 >>
->> This patch removes the check for v4l2_ext_controls.ctrl_class in the control
->> framework. The control framework issues the s_ctrl() op to the drivers
->> separately so changing the behaviour does not really change how this works
->> from the drivers' perspective.
->
-> What is the rationale of this patch? It does change the behavior of the API.
-> There are still some drivers that use the extended control API without the
-> control framework (pvrusb2, and some other cx2341x-based drivers), and that
-> do test the ctrl_class argument.
+>> I'm working on cleaning up some old radio drivers and while doing that I
+>> started wondering about the usefulness of the radio_nr module option (and
+>> the corresponding video_nr/vbi_nr module options for video devices).
+>>
+>> Is that really still needed? It originates from pre-udev times, but it seems
+>> fairly useless to me these days.
+> 
+> I can tell you from lurking in the mythtv-users IRC channel, that
+> there are still many, many users of video_nr.  Yes, they can in theory
+> accomplish the same thing through udev, but they aren't today, and if
+> you remove the functionality you'll have lots of users scambling to
+> figure out why stuff that previously worked is now broken.  This tends
+> to be more an issue with tuner cards than uvc devices, presumably
+> because MythTV starts up unattended and you're more likely to have
+> more than one capture device.
 
-These drivers still don't use the control framework. I don't see benefit 
-in checking the class for those drivers that don't really care about it.
+This were never needed by USB devices. In general, due to USB bandwidth
+constraints, users can't plug more than one or a few devices on a USB bus.
 
-Also, to be able to set controls without artificial limitations 
-applications have to set the ctrl_class field on some devices and on 
-some they must not.
-
-> I don't see any substantial gain by changing the current behavior of the
-> control framework.
->
-> Apps can just set ctrl_class to 0 and then the control framework will no
-> longer check the control class. And yes, this still has to be properly
-> documented in the spec.
-
-That's a good point, indeed. Should the spec then say "on some drivers 
-you must set it while on some you must not"? The difficulty, albeit not 
-sure if it's a practical one, is that I don't think there's anything 
-that would hint applications into which of the two classes a driver 
-belongs to.
-
-> The reason for the ctrl_class check is that without the control framework it
-> was next to impossible to allow atomic setting of controls of different
-> classes, since control of different classes would typically also be handled
-> by different drivers. By limiting the controls to one class it made it much
-> easier for drivers to implement this API.
-
-Ok. But I don't think this patch would have any effect on those drivers.
+MythTV is not the only usercase for it. Surveillance system can have
+multiple devices in the same PCI card, and it is not uncommon to find
+hardware with multiple PCI multi-input cards. Several of those boards
+don't even have eeprom.
 
 Regards,
+Mauro
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
