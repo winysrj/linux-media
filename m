@@ -1,49 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-iy0-f174.google.com ([209.85.210.174]:55250 "EHLO
-	mail-iy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754469Ab2AJJvD (ORCPT
+Received: from comal.ext.ti.com ([198.47.26.152]:46924 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752822Ab2A0KNI convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 10 Jan 2012 04:51:03 -0500
-Received: by iabz25 with SMTP id z25so657831iab.19
-        for <linux-media@vger.kernel.org>; Tue, 10 Jan 2012 01:51:01 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com, sachin.kamat@linaro.org,
-	patches@linaro.org
-Subject: [PATCH] [media] s5p-fimc: Fix incorrect control ID assignment
-Date: Tue, 10 Jan 2012 15:16:57 +0530
-Message-Id: <1326188817-12549-1-git-send-email-sachin.kamat@linaro.org>
+	Fri, 27 Jan 2012 05:13:08 -0500
+From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
+To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: [GIT PULL] davinci vpif pull request
+Date: Fri, 27 Jan 2012 10:12:59 +0000
+Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F7531744F4D@DBDE01.ent.ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes the mismatch between control IDs (CID) and controls
-for hflip, vflip and rotate.
+Hi Mauro,
+ Can you please pull the following patch for v3.3-rc1 which removes some unnecessary inclusion
+ of machine specific header files from the main driver files?
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/video/s5p-fimc/fimc-core.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+ This patch has undergone sufficient review already. It is just a cleanup patch and I don't
+ expect any functionality to break because of this. 
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 07c6254..170f791 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -811,11 +811,11 @@ int fimc_ctrls_create(struct fimc_ctx *ctx)
- 	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
- 
- 	ctx->ctrl_rotate = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
--				     V4L2_CID_HFLIP, 0, 1, 1, 0);
-+					V4L2_CID_ROTATE, 0, 270, 90, 0);
- 	ctx->ctrl_hflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
--				    V4L2_CID_VFLIP, 0, 1, 1, 0);
-+					V4L2_CID_HFLIP, 0, 1, 1, 0);
- 	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &fimc_ctrl_ops,
--				    V4L2_CID_ROTATE, 0, 270, 90, 0);
-+					V4L2_CID_VFLIP, 0, 1, 1, 0);
- 	ctx->ctrls_rdy = ctx->ctrl_handler.error == 0;
- 
- 	return ctx->ctrl_handler.error;
--- 
-1.7.4.1
+ Thanks and Regards,
+-Manju
 
+
+The following changes since commit 74ea15d909b31158f9b63190a95b52bc05586d4b:
+  Linus Torvalds (1):
+        Merge branch 'v4l_for_linus' of git://git.kernel.org/.../mchehab/linux-media
+
+
+are available in the git repository at:
+
+
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for-mauro-v3.3
+
+Manjunath Hadli (1):
+      davinci: vpif: remove machine specific header file inclusion from the driver
+
+
+ drivers/media/video/davinci/vpif.h         |    2 --
+ drivers/media/video/davinci/vpif_display.c |    2 --
+ include/media/davinci/vpif_types.h         |    2 ++
+ 3 files changed, 2 insertions(+), 4 deletions(-)
