@@ -1,100 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:33720 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752569Ab2APNHG convert rfc822-to-8bit (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:52103 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756094Ab2A0Ptt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 08:07:06 -0500
-From: "Hadli, Manjunath" <manjunath.hadli@ti.com>
-To: "'Mauro Carvalho Chehab'" <mchehab@redhat.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	LMML <linux-media@vger.kernel.org>,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: RE: [GIT PULL] davinci vpif pull request
-Date: Mon, 16 Jan 2012 13:06:52 +0000
-Message-ID: <E99FAA59F8D8D34D8A118DD37F7C8F7531742182@DBDE01.ent.ti.com>
-References: <E99FAA59F8D8D34D8A118DD37F7C8F7501B481@DBDE01.ent.ti.com>
- <4F14108F.5050505@redhat.com>
- <E99FAA59F8D8D34D8A118DD37F7C8F7531741938@DBDE01.ent.ti.com>
- <4F141E79.1040800@redhat.com>
-In-Reply-To: <4F141E79.1040800@redhat.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 27 Jan 2012 10:49:49 -0500
+Received: by werb13 with SMTP id b13so1338319wer.19
+        for <linux-media@vger.kernel.org>; Fri, 27 Jan 2012 07:49:48 -0800 (PST)
+Date: Fri, 27 Jan 2012 16:49:49 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Sumit Semwal <sumit.semwal@ti.com>
+Cc: dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	linux-media@vger.kernel.org, t.stanislaws@samsung.com
+Subject: Re: [PATCH] dma-buf: add dma_data_direction to unmap dma_buf_op
+Message-ID: <20120127154949.GC3901@phenom.ffwll.local>
+References: <1327657408-15234-1-git-send-email-sumit.semwal@ti.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1327657408-15234-1-git-send-email-sumit.semwal@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
-On Mon, Jan 16, 2012 at 18:26:25, Mauro Carvalho Chehab wrote:
-> Em 16-01-2012 10:45, Hadli, Manjunath escreveu:
-> > Mauro,
-> > On Mon, Jan 16, 2012 at 17:27:03, Mauro Carvalho Chehab wrote:
-> >> Em 11-01-2012 09:39, Hadli, Manjunath escreveu:
-> >>> Hi Mauro,
-> >>>   Can you please pull the following patch which removes some unnecessary inclusion
-> >>>   of machine specific header files from the main driver files?
-> >>>  
-> >>>   This patch has undergone sufficient review already. It is just a cleanup patch and I don't
-> >>>   expect any functionality to break because of this. The reason I did not club this with the
-> >>>   3 previous patches was because one of the previous patches on which this is dependent,
-> >>>   is now pulled in by Arnd.
-> >>>
-> >>>  Thanks and Regards,
-> >>> -Manju
-> >>>
-> >>>  
-> >>> The following changes since commit e343a895a9f342f239c5e3c5ffc6c0b1707e6244:
-> >>>   Linus Torvalds (1):
-> >>>         Merge tag 'for-linus' of git://git.kernel.org/.../mst/vhost
-> >>>
-> >>> are available in the git repository at:
-> >>>
-> >>>   git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git 
-> >>> for-mauro-v3.3
-> >>>
-> >>> Manjunath Hadli (1):
-> >>>       davinci: vpif: remove machine specific header file inclusion 
-> >>> from the driver
-> >>
-> >> This patch is outdated and doesn't apply anymore. Could you please rebase it over my tree, branch "staging/for_v3.3"?
-> > This patch needs a recent accepted commit by Arnd which is available 
-> > on http://git.linuxtv.org/linux-2.6.git but not on staging.
+On Fri, Jan 27, 2012 at 03:13:28PM +0530, Sumit Semwal wrote:
+> Some exporters may use DMA map/unmap APIs in dma-buf ops, which require
+> enum dma_data_direction for both map and unmap operations.
 > 
-> This tree is just a daily-updated copy of Linus one. It is mirrored there just to minimize the object copies at the other local trees.
+> Thus, the unmap dma_buf_op also needs to have enum dma_data_direction as
+> a parameter.
 > 
-> > Are you planning to rebase you staging tree to latest? When you do 
-> > that this Patch will apply. Please let me know if there is any other way you want me to do?
-> 
-> Linus doesn't like when someone merge from a random place at his tree.
-> I'll merge from his tree at -rc1, but I'm not intending to merge it earlier than that, except if there are some strong reasons for that.
-Indeed, there are quite a few patches waiting to be pulled which are
-dependent on this patch. I would urge you to pull this as early as possible.
-
-Rgds,
--Manju
-> 
-> Anyway, if you prefer to send this patch through Arnd's tree, feel free to add my acked-by: on that:
-> 
-> Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > 
-> > Regards,
-> > -Manju
-> >>
-> >> Thanks!
-> >> Mauro
-> >>
-> >>>
-> >>>  drivers/media/video/davinci/vpif.h         |    2 --
-> >>>  drivers/media/video/davinci/vpif_display.c |    2 --
-> >>>  include/media/davinci/vpif_types.h         |    2 ++
-> >>>  3 files changed, 2 insertions(+), 4 deletions(-)
-> >>> --
-> >>> To unsubscribe from this list: send the line "unsubscribe linux-media" 
-> >>> in the body of a message to majordomo@vger.kernel.org More majordomo 
-> >>> info at  http://vger.kernel.org/majordomo-info.html
-> >>
-> >>
-> > 
-> 
-> 
-
+> Reported-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+> Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
+Reviewed-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+-- 
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
