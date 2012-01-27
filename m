@@ -1,63 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:59684 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756622Ab2AKK26 (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:39576 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751323Ab2A0Jh3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 05:28:58 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 27 Jan 2012 04:37:29 -0500
+Date: Fri, 27 Jan 2012 11:37:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH] Fix compile error in as3645a.c
-Date: Wed, 11 Jan 2012 11:28:40 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201201111054.20677.hverkuil@xs4all.nl> <201201111123.24963.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201111123.24963.laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, ohad@wizery.com
+Subject: Re: [PATCH 1/1] omap3isp: Prevent crash at module unload
+Message-ID: <20120127093724.GD15297@valkosipuli.localdomain>
+References: <1327655155-6038-1-git-send-email-sakari.ailus@iki.fi>
+ <201201271036.02588.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201111128.40740.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201201271036.02588.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 11 January 2012 11:23:24 Laurent Pinchart wrote:
-> Hi Hans,
+Hi Laurent,
+
+On Fri, Jan 27, 2012 at 10:36:02AM +0100, Laurent Pinchart wrote:
+> On Friday 27 January 2012 10:05:55 Sakari Ailus wrote:
+> > iommu_domain_free() was called in isp_remove() before omap3isp_put().
+> > omap3isp_put() must not save the context if the IOMMU no longer is there.
+> > Fix this.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> > The issue only seems to affect the staging/for_v3.4 branch in
+> > media-tree.git.
+> > 
+> >  drivers/media/video/omap3isp/isp.c |    4 +++-
+> >  1 files changed, 3 insertions(+), 1 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/omap3isp/isp.c
+> > b/drivers/media/video/omap3isp/isp.c index 12d5f92..c3ff142 100644
+> > --- a/drivers/media/video/omap3isp/isp.c
+> > +++ b/drivers/media/video/omap3isp/isp.c
+> > @@ -1112,7 +1112,8 @@ isp_restore_context(struct isp_device *isp, struct
+> > isp_reg *reg_list) static void isp_save_ctx(struct isp_device *isp)
+> >  {
+> >  	isp_save_context(isp, isp_reg_list);
+> > -	omap_iommu_save_ctx(isp->dev);
+> > +	if (isp->domain)
+> > +		omap_iommu_save_ctx(isp->dev);
 > 
-> On Wednesday 11 January 2012 10:54:20 Hans Verkuil wrote:
-> > Building as3645a.c using media_build on kernel 3.2 gives this error:
-> > 
-> > media_build/v4l/as3645a.c: In function 'as3645a_probe':
-> > media_build/v4l/as3645a.c:815:2: error: implicit declaration of function
-> > 'kzalloc' [-Werror=implicit-function-declaration]
-> > media_build/v4l/as3645a.c:815:8: warning: assignment makes pointer from
-> > integer without a cast [enabled by default]
-> > media_build/v4l/as3645a.c:842:3: error: implicit declaration of function
-> > 'kfree' [-Werror=implicit-function-declaration] cc1: some warnings being
-> > treated as errors
-> > 
-> > The fix is trivial:
-> > 
-> > diff --git a/drivers/media/video/as3645a.c
-> > b/drivers/media/video/as3645a.c index ec859a5..f241702 100644
-> > --- a/drivers/media/video/as3645a.c
-> > +++ b/drivers/media/video/as3645a.c
-> > @@ -29,6 +29,7 @@
-> > 
-> >  #include <linux/i2c.h>
-> >  #include <linux/module.h>
-> >  #include <linux/mutex.h>
-> > 
-> > +#include <linux/slab.h>
-> > 
-> >  #include <media/as3645a.h>
-> >  #include <media/v4l2-ctrls.h>
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> I got the same fix queued up in my tree already. Should I consider I have
-> your ack ? :-)
+> What about skipping the isp_save_ctx() call completely in omap3isp_put() when 
+> isp->domain is NULL ? We don't need to save the ISP context either.
 
-Yup!
+I'm fine with that. I'll resend this then.
 
-Regards,
-
-	Hans
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
