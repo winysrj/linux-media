@@ -1,56 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:48346 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758790Ab2AFRFS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 12:05:18 -0500
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:36650 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750924Ab2A0Jo0 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jan 2012 04:44:26 -0500
 MIME-Version: 1.0
-In-Reply-To: <201201061619.43584.arnd@arndb.de>
-References: <CA+55aFyzqCVwpuRNOt8a=fdoDq_khsbSHBs6cT=TLuzQ7ixwgg@mail.gmail.com>
- <201201061619.43584.arnd@arndb.de>
-From: Linus Torvalds <torvalds@linux-foundation.org>
-Date: Fri, 6 Jan 2012 09:04:56 -0800
-Message-ID: <CA+55aFxAhn8eqXnXKsxFK+DS_jYfPw7mzdsZHgWUu5ibRvyVMw@mail.gmail.com>
-Subject: Re: Broken ioctl error returns (was Re: [PATCH 2/3] block: fail SCSI
- passthrough ioctls on partition devices)
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Paolo Bonzini <pbonzini@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, Willy Tarreau <w@1wt.eu>,
-	linux-kernel@vger.kernel.org, security@kernel.org,
-	pmatouse@redhat.com, agk@redhat.com, jbottomley@parallels.com,
-	mchristi@redhat.com, msnitzer@redhat.com,
-	Christoph Hellwig <hch@lst.de>
+In-Reply-To: <1327568457-27734-13-git-send-email-m.szyprowski@samsung.com>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com> <1327568457-27734-13-git-send-email-m.szyprowski@samsung.com>
+From: Ohad Ben-Cohen <ohad@wizery.com>
+Date: Fri, 27 Jan 2012 11:44:05 +0200
+Message-ID: <CADMYwHw1B4RNV_9BqAg_M70da=g69Z3kyo5Cr6izCMwJ9LAtvA@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] [PATCH 12/15] drivers: add Contiguous Memory Allocator
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Russell King <linux@arm.linux.org.uk>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jan 6, 2012 at 8:19 AM, Arnd Bergmann <arnd@arndb.de> wrote:
->
-> For a simpler solution, we could keep the old warning message, but change
-> the logic from
->
-> (.compat_ioctl == NULL || .compat_ioctl() == -ENOIOCTL) && (no generic handler)
->
-> to
->
-> (.ioctl != NULL && .compat_ioctl == NULL) && (no generic handler).
->
-> and then fix the warnings we see by adding appropriate .compat_ioctl
-> functions.
+Hi Marek,
 
-So I have no problem with that. What I did have problems with was the
-net/socket.c kind of workarounds (which I noticed mainly because they
-had that whole EINVAL confusion built into them). Those were why I
-decided that the warning has to go.
+With v19, I can't seem to allocate big regions anymore (e.g. 101MiB).
+In particular, this seems to fail:
 
-But if you can re-introduce the warning without workarounds like
-those, I have no problem with us reintroducing the warning, even if it
-is technically not really kosher and will afaik still print that
-warning for the case of a compat-ioctl transform that *would* have
-been valid, just not for that particular file descriptor.
+On Thu, Jan 26, 2012 at 11:00 AM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> +static int cma_activate_area(unsigned long base_pfn, unsigned long count)
+> +{
+> +       unsigned long pfn = base_pfn;
+> +       unsigned i = count >> pageblock_order;
+> +       struct zone *zone;
+> +
+> +       WARN_ON_ONCE(!pfn_valid(pfn));
+> +       zone = page_zone(pfn_to_page(pfn));
+> +
+> +       do {
+> +               unsigned j;
+> +               base_pfn = pfn;
+> +               for (j = pageblock_nr_pages; j; --j, pfn++) {
+> +                       WARN_ON_ONCE(!pfn_valid(pfn));
+> +                       if (page_zone(pfn_to_page(pfn)) != zone)
+> +                               return -EINVAL;
 
-But the printout is small and not all that annoying, and explicitly
-limited in number, so I guess I don't mind a few false positives if it
-really can help find stale translation entries.
+The above WARN_ON_ONCE is triggered, and then the conditional is
+asserted (page_zone() retuns a "Movable" zone, whereas zone is
+"Normal") and the function fails.
 
-                       Linus
+This happens to me on OMAP4 with your 3.3-rc1-cma-v19 branch (and a
+bunch of remoteproc/rpmsg patches).
+
+Do big allocations work for you ?
+
+Thanks,
+Ohad.
