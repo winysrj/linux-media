@@ -1,67 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from rcsinet15.oracle.com ([148.87.113.117]:55065 "EHLO
-	rcsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755234Ab2ADNec (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 4 Jan 2012 08:34:32 -0500
-Date: Wed, 4 Jan 2012 16:35:18 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Greg KH <greg@kroah.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [patch -longterm] V4L/DVB: v4l2-ioctl: integer overflow in
- video_usercopy()
-Message-ID: <20120104133518.GA1506@mwanda>
-References: <20111215063445.GA2424@elgon.mountain>
- <4EE9BC25.7020303@infradead.org>
- <201112151033.35153.hverkuil@xs4all.nl>
- <4EE9C2E6.1060304@infradead.org>
- <20120103205539.GC17131@kroah.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="sm4nu43k4a2Rpi4c"
-Content-Disposition: inline
-In-Reply-To: <20120103205539.GC17131@kroah.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4479 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753409Ab2A0TiE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jan 2012 14:38:04 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] v4l2-ctrls: add helper functions for control events.
+Date: Fri, 27 Jan 2012 20:37:46 +0100
+Message-Id: <d337d3b894c22440382a14ea002755e4c8ed247f.1327692974.git.hans.verkuil@cisco.com>
+In-Reply-To: <1327693067-31914-1-git-send-email-hverkuil@xs4all.nl>
+References: <1327693067-31914-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---sm4nu43k4a2Rpi4c
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Many drivers just support control events, and most radio drivers just need
+to poll for control events. Add some functions to simplify those jobs.
 
-On Tue, Jan 03, 2012 at 12:55:39PM -0800, Greg KH wrote:
-> Ok, can someone please send me the "accepted" version of this patch for
-> inclusion in the 2.6.32-stable tree?
->=20
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/video/v4l2-ctrls.c |   20 ++++++++++++++++++++
+ include/media/v4l2-ctrls.h       |    9 +++++++++
+ 2 files changed, 29 insertions(+), 0 deletions(-)
 
-Sorry for that.  Holidays and all.  I'll send a patch tomorrow.
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index d070688..39829fa 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -2371,3 +2371,23 @@ int v4l2_ctrl_log_status(struct file *file, void *fh)
+ 	return 0;
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_log_status);
++
++int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
++				struct v4l2_event_subscription *sub)
++{
++	if (sub->type == V4L2_EVENT_CTRL)
++		return v4l2_event_subscribe(fh, sub, 0);
++	return -EINVAL;
++}
++EXPORT_SYMBOL(v4l2_ctrl_subscribe_event);
++
++unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait)
++{
++	struct v4l2_fh *fh = file->private_data;
++
++	if (v4l2_event_pending(fh))
++		return POLLPRI;
++	poll_wait(file, &fh->wait, wait);
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_ctrl_poll);
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index 5f246c2..3dbd066 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -33,6 +33,7 @@ struct video_device;
+ struct v4l2_subdev;
+ struct v4l2_subscribed_event;
+ struct v4l2_fh;
++struct poll_table_struct;
+ 
+ /** struct v4l2_ctrl_ops - The control operations that the driver has to provide.
+   * @g_volatile_ctrl: Get a new value for this control. Generally only relevant
+@@ -496,6 +497,14 @@ void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
+    associated with the filehandle. */
+ int v4l2_ctrl_log_status(struct file *file, void *fh);
+ 
++/* Can be used as a vidioc_subscribe_event function that just subscribes
++   control events. */
++int v4l2_ctrl_subscribe_event(struct v4l2_fh *fh,
++				struct v4l2_event_subscription *sub);
++
++/* Can be used as a poll function that just polls for control events. */
++unsigned int v4l2_ctrl_poll(struct file *file, struct poll_table_struct *wait);
++
+ /* Helpers for ioctl_ops. If hdl == NULL then they will all return -EINVAL. */
+ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc);
+ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm);
+-- 
+1.7.8.3
 
-regards,
-dan carpenter
-
-
---sm4nu43k4a2Rpi4c
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPBFWWAAoJEOnZkXI/YHqR/nEP/1tTLjhrAqvxGtp912DNgVJ3
-08fNL2NvBY8bJaiQG0jF5RQmlHMPjTlQorAO1x6nXlk1IuXcVMdoY0k5QfQ76ggm
-7k7tE+qyqQUsLzHoryAbl4FkRrjq4296xLzXWTUhz/nRO+lxbKAR+nJDuIcMtnkT
-3RrwPurmwzmYoDpbRiKgglmhIQU/vC9FLdCB/5NMJ0WYTgt5vEMVbsiPBmer+d62
-bSfY35lxqTcrX3ssUodtdiVBpneHchhsIbSEEkqhHdXAxktkQO+W7e2jpL22oc1a
-mgsopBKT6vr8Qe8lsiYEYoCcOGXF7nkgF8RkcKuh9kUJHU0iCJ6ApgO+o9GBB9M6
-iLNQ7G15YkKRjJ5RolTVJaJagUbQXzxfjsz3wQSWmod8mFAYw4I0qeK2EzJ++Slt
-RfiBtcKz7tVSb/bMck8DITOW+a/waVoIuUOnwMt8U7S5SiWtG2sffqOVSbeqOFf0
-/FjiCRKY+qgKZNOG6a0DnglID84L8PZqCg9NGakIigrEfi714vxsSROzKcexKL6K
-kKrBAjx0I6st14ZFHMCHPl4UobHD1d/RsC8OTUiPDzqwL8NTOeFt307Cb7SxVHBz
-/Fs9RIl3Uar6sDVGoTmg8x+A/eZIeb73ehe1SpAPFeWUT0uHqP2RGpNOqTwHBLXq
-kJhuKcmvBlHhmVLqSF8H
-=bxfR
------END PGP SIGNATURE-----
-
---sm4nu43k4a2Rpi4c--
