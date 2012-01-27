@@ -1,201 +1,453 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:46146 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754510Ab2AEJzm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 04:55:42 -0500
-Received: by werm1 with SMTP id m1so224228wer.19
-        for <linux-media@vger.kernel.org>; Thu, 05 Jan 2012 01:55:41 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.17.8]:62784 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751746Ab2A0SCw convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jan 2012 13:02:52 -0500
+Date: Fri, 27 Jan 2012 19:02:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH 3/4] media i.MX27 camera: improve discard buffer handling.
+In-Reply-To: <CACKLOr2zLAj4eFbjBsmN=OvCFCi9UcpWFQJF-SP4GkuP=sDwEw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1201271842570.32661@axis700.grange>
+References: <1327059392-29240-1-git-send-email-javier.martin@vista-silicon.com>
+ <1327059392-29240-4-git-send-email-javier.martin@vista-silicon.com>
+ <Pine.LNX.4.64.1201251127040.18778@axis700.grange>
+ <CACKLOr2zLAj4eFbjBsmN=OvCFCi9UcpWFQJF-SP4GkuP=sDwEw@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAOy7-nNH7ffkvi42=Zccx==SwwZJHPh9bw5gEBhbPqb+vRMt-Q@mail.gmail.com>
-References: <CAOy7-nNSu2v9VS9Bh5O5StvEAvoxA4DqN7KdSGfZZSje1_Fgnw@mail.gmail.com>
-	<201201031217.20473.laurent.pinchart@ideasonboard.com>
-	<CAOy7-nNH7ffkvi42=Zccx==SwwZJHPh9bw5gEBhbPqb+vRMt-Q@mail.gmail.com>
-Date: Thu, 5 Jan 2012 17:55:40 +0800
-Message-ID: <CAOy7-nOMhG8T+bPKMtWAX6LzBcGarUST-fp3HNUxf-PWLJCJEA@mail.gmail.com>
-Subject: Re: Using OMAP3 ISP live display and snapshot sample applications
-From: James <angweiyang@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+(removing baruch@tkos.co.il - it bounces)
 
-On Wed, Jan 4, 2012 at 3:07 PM, James <angweiyang@gmail.com> wrote:
-> Hi Laurent,
->
-> On Tue, Jan 3, 2012 at 7:17 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
->> Hi James,
->>
->> On Tuesday 03 January 2012 10:40:10 James wrote:
->>> Hi Laurent,
->>>
->>> Happy New Year!!
->>
->> Thank you. Happy New Year to you as well. May 2012 bring you a workable OMAP3
->> ISP solution ;-)
->>
->
-> Yeah! that's on #1 of my 2012 wishlist!! (^^)
->
-> But, it start off with a disappointment on the quest to get
-> "gst-launch v4l2src" to work..
-> http://patches.openembedded.org/patch/8895/
->
-> Saw reported success in get v4l2src to work with MT9V032 by applying
-> the hack but no luck with my Y12 monochrome sensor. (-.-)"
->
->>> I saw that there is a simple viewfinder in your repo for OMAP3 and
->>> wish to know more about it.
->>>
->>> http://git.ideasonboard.org/?p=omap3-isp-live.git;a=summary
->>>
->>> I intend to test it with my 12-bit (Y12) monochrome camera sensor
->>> driver, running on top of Gumstix's (Steve v3.0) kernel.
->>>
->>> Is it workable at the moment?
->>
->> The application is usable but supports raw Bayer sensors only at the moment.
->> It requires a frame buffer and an omap_vout device (both should be located
->> automatically) and configures the OMAP3 ISP pipeline automatically to produce
->> the display resolution.
->>
->
-> Will there be a need to patch for Y12 support or workable out-of-the-box?
->
-> Likely your previous notes, I know that 12-bit Y12 to the screen is an
-> overkill but will it be able to capture Y12 from CCDC output and then
-> output to the screen?
->
-> Y12 sensor-> CCDC -> CCDC output -> screen
->
-> I've one board connected to a LCD monitor via a DVI chip using GS's
-> Tobi board as reference and another via 4.3" LG LCD Touchscreen using
-> GS's Chestnut board as reference.
->
-> Many thanks in adv
->
-> --
-> Regards,
-> James
+On Thu, 26 Jan 2012, javier Martin wrote:
 
-I did a native compilation on my overo and the result is as below.
+> Hi Guennadi,
+> 
+> On 25 January 2012 13:12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> > On Fri, 20 Jan 2012, Javier Martin wrote:
+> >
+> >> The way discard buffer was previously handled lead
+> >> to possible races that made a buffer that was not
+> >> yet ready to be overwritten by new video data. This
+> >> is easily detected at 25fps just adding "#define DEBUG"
+> >> to enable the "memset" check and seeing how the image
+> >> is corrupted.
+> >>
+> >> A new "discard" queue and two discard buffers have
+> >> been added to make them flow trough the pipeline
+> >> of queues and thus provide suitable event ordering.
+> >
+> > Hmm, do I understand it right, that the problem is, that while the first
+> > frame went to the discard buffer, the second one went already to a user
+> > buffer, while it wasn't ready yet?
+> 
+> The problem is not only related to the discard buffer but also the way
+> valid buffers were handled in an unsafe basis.
+> For instance, the "buf->bufnum = !bufnum" issue. If you receive and
+> IRQ from bufnum = 0 you have to update buffer 0, not buffer 1.
+> 
+> >And you solve this by adding one more
+> > discard buffer? Wouldn't it be possible to either not start capture until
+> > .start_streaming() is issued, which should also be the case after your
+> > patch 2/4, or, at least, just reuse one discard buffer multiple times
+> > until user buffers are available?
+> >
+> > If I understand right, you don't really introduce two discard buffers,
+> > there's still only one data buffer, but you add two discard data objects
+> > and a list to keep them on. TBH, this seems severely over-engineered to
+> > me. What's wrong with just keeping one DMA data buffer and using it as
+> > long, as needed, and checking in your ISR, whether a proper buffer is
+> > present, by looking for list_empty(active)?
+> >
+> > I added a couple of comments below, but my biggest question really is -
+> > why are these two buffer objects needed? Please, consider getting rid of
+> > them. So, this is not a full review, if the objects get removed, most of
+> > this patch will change anyway.
+> 
+> 1. Why a discard buffer is needed?
+> 
+> When I first took a look at the code it only supported CH1 of the PrP
+> (i.e. RGB formats) and a discard buffer was used. My first reaction
+> was trying to get rid of that trick. Both CH1 and CH2 of the PrP have
+> two pointers that the engine uses to write video frames in a ping-pong
+> basis. However, there is a big difference between both channels: if
+> you want to detect frame loss in CH1 you have to continually feed the
+> two pointers with valid memory areas because the engine is always
+> writing and you can't stop it, and this is where the discard buffer
+> function is required, but CH2 has a mechanism to stop capturing and
+> keep counting loss frames, thus a discard buffer wouldn't be needed.
+> 
+> To sum up: the driver would be much cleaner without this discard
+> buffer trick but we would have to drop support for CH1 (RGB format).
+> Being respectful to CH1 support I decided to add CH2 by extending the
+> discard buffer strategy to both channels, since the code is cleaner
+> this way and doesn't make sense to manage both channels differently.
+> 
+> 2. Why two discard buffer objects are needed?
+> 
+> After enabling the DEBUG functionality that writes the buffers with
+> 0xaa before they are filled with video data, I discovered some of them
+> were being corrupted. When I tried to find the reason I found that we
+> really have a pipeline here:
+> 
+> -------------------               -----------------------
+>   capture (n) | ------------>  active_bufs (2)|
+> -------------------              ------------------------
+> 
+> where
+> "capture" has buffers that are queued and ready to be written into
+> "active_bufs" represents those buffers that are assigned to a pointer
+> in the PrP and has a maximum of 2 since there are two pointers that
+> are written in a ping-pong fashion
 
-root@omap3-multi:~/omap3-isp-live# ln -s
-/usr/src/linux-sakoman-pm-3.0-r102/include/ /usr/src/linux/usr/include
-root@omap3-multi:~/omap3-isp-live# make KDIR=/usr/src/linux
-CROSS_COMPILE=arm-angstrom-linux-gnueabi-
-make -C isp CROSS_COMPILE=arm-angstrom-linux-gnueabi- KDIR=/usr/src/linux
-make[1]: Entering directory `/home/root/omap3-isp-live/isp'
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -fPIC -c -o controls.o controls.c
-In file included from /usr/src/linux/usr/include/linux/omap3isp.h:30:0,
-                 from controls.c:25:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -fPIC -c -o media.o media.c
-In file included from /usr/src/linux/usr/include/linux/videodev2.h:66:0,
-                 from media.c:34:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -fPIC -c -o omap3isp.o omap3isp.c
-In file included from /usr/src/linux/usr/include/linux/v4l2-mediabus.h:14:0,
-                 from omap3isp-priv.h:26,
-                 from omap3isp.c:31:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-omap3isp.c:271:13: warning: 'omap3_isp_pool_free_buffers' defined but not used
-omap3isp.c: In function 'omap3_isp_pipeline_build':
-omap3isp.c:329:15: warning: 'nbufs' may be used uninitialized in this function
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -fPIC -c -o subdev.o subdev.c
-In file included from /usr/src/linux/usr/include/linux/v4l2-subdev.h:27:0,
-                 from subdev.c:33:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-subdev.c:49:20: warning: 'pixelcode_to_string' defined but not used
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -fPIC -c -o v4l2.o v4l2.c
-In file included from /usr/src/linux/usr/include/linux/videodev2.h:66:0,
-                 from v4l2.c:36:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -fPIC -c -o v4l2-pool.o v4l2-pool.c
-In file included from /usr/src/linux/usr/include/linux/videodev2.h:66:0,
-                 from v4l2-pool.h:25,
-                 from v4l2-pool.c:26:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-arm-angstrom-linux-gnueabi-gcc -o libomap3isp.so -shared controls.o
-media.o omap3isp.o subdev.o v4l2.o v4l2-pool.o
-make[1]: Leaving directory `/home/root/omap3-isp-live/isp'
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -c -o live.o live.c
-In file included from /usr/src/linux/usr/include/linux/fb.h:4:0,
-                 from live.c:44:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -c -o videoout.o videoout.c
-In file included from /usr/src/linux/usr/include/linux/videodev2.h:66:0,
-                 from videoout.c:23:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-arm-angstrom-linux-gnueabi-gcc -Lisp -o live live.o videoout.o -lomap3isp -lrt
-arm-angstrom-linux-gnueabi-gcc -O2 -W -Wall
--I/usr/src/linux/usr/include -c -o snapshot.o snapshot.c
-In file included from /usr/src/linux/usr/include/linux/spi/spidev.h:25:0,
-                 from snapshot.c:41:
-/usr/src/linux/usr/include/linux/types.h:13:2: warning: #warning
-"Attempt to use kernel headers from user space, see
-http://kernelnewbies.org/KernelHeaders"
-arm-angstrom-linux-gnueabi-gcc -Lisp -o snapshot snapshot.o -lomap3isp -lrt
-root@omap3-multi:~/omap3-isp-live# ls
-LICENSE   README  live	  live.o    snapshot.c	videoout.c  videoout.o
-Makefile  isp	  live.c  snapshot  snapshot.o	videoout.h
-root@omap3-multi:~/omap3-isp-live# live --help
--sh: live: command not found
-root@omap3-multi:~/omap3-isp-live# ./live --help
-./live: error while loading shared libraries: libomap3isp.so: cannot
-open shared object file: No such file or directory
-root@omap3-multi:~/omap3-isp-live# cd isp
-root@omap3-multi:~/omap3-isp-live/isp# ls
-LICENSE     libomap3isp.so  omap3isp-priv.h  subdev.h	  v4l2-pool.o
-Makefile    list.h	    omap3isp.c	     subdev.o	  v4l2.c
-controls.c  media.c	    omap3isp.h	     tools.h	  v4l2.h
-controls.h  media.h	    omap3isp.o	     v4l2-pool.c  v4l2.o
-controls.o  media.o	    subdev.c	     v4l2-pool.h
-root@omap3-multi:~/omap3-isp-live/isp# cd ..
-root@omap3-multi:~/omap3-isp-live# ls /
-bin   dev  home  linuxrc     media  proc  sys  usr
-boot  etc  lib	 lost+found  mnt    sbin  tmp  var
-root@omap3-multi:~/omap3-isp-live# ls /usr/
-arm-angstrom-linux-gnueabi  etc    include  libexec  share
-bin			    games  lib	    sbin     src
-root@omap3-multi:~/omap3-isp-live#
+Ok, I understand what the discard memory is used for and why you need to 
+write it twice to the hardware - to those two pointers. And I can kindof 
+agree, that using them uniformly with user buffers on the active list 
+simplifies handling. I just don't think it's a good idea to keep two 
+struct vb2_buffer instances around with no use. Maybe you could use 
+something like
 
-I ran ./live --help and there is an error
-./live --help
-./live: error while loading shared libraries: libomap3isp.so: cannot
-open shared object file: No such file or directory
+struct mx2_buf_internal {
+	struct list_head		queue;
+	int				bufnum;
+	bool				discard;
+};
 
-Please advise.
+struct mx2_buffer {
+	struct vb2_buffer		vb;
+	enum mx2_buffer_state		state;
+	struct mx2_buf_internal		internal;
+};
 
-Many thanks in adv.
+and only use struct mx2_buf_internal for your discard buffers.
 
--- 
-Regards,
-James
+Thanks
+Guennadi
+
+> 
+> However, with the previous approach, the discard buffer is kept
+> outside this pipeline as if it was a global variable which is usually
+> a dangerous practice and definitely it's wrong since the buffers are
+> corrupted.
+> 
+> 
+> On the other hand, if we add 2 discard buffer objects we will be able
+> to pass them through the pipeline as if they were normal buffers. We
+> chose 2 because this is the number of pointers of the PrP and thus,
+> the maximum of elements that can be in "active_bufs" queue (i.e. we
+> have to cover the case where both pointers are assigned discard
+> buffers). This has several advantages:
+>  - They can be treated in most cases as normal buffers which saves
+> code ("mx27_update_emma_buf" function).
+>  - The events are properly ordered: every time an IRQ comes you know
+> the first element in active_bufs queue is the buffer you want, if it
+> is not the case something has gone terribly wrong.
+>  - It's much easier to demonstrate mathematically that this will work
+> (I wasn't able with the previous approach).
+> 
+> 
+> >>
+> >> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> >> ---
+> >>  drivers/media/video/mx2_camera.c |  215 +++++++++++++++++++++-----------------
+> >>  1 files changed, 117 insertions(+), 98 deletions(-)
+> >>
+> >> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> >> index 4816da6..e0c5dd4 100644
+> >> --- a/drivers/media/video/mx2_camera.c
+> >> +++ b/drivers/media/video/mx2_camera.c
+> >> @@ -224,6 +224,28 @@ struct mx2_fmt_cfg {
+> >>       struct mx2_prp_cfg              cfg;
+> >>  };
+> >>
+> >> +enum mx2_buffer_state {
+> >> +     MX2_STATE_NEEDS_INIT = 0,
+> >> +     MX2_STATE_PREPARED   = 1,
+> >> +     MX2_STATE_QUEUED     = 2,
+> >> +     MX2_STATE_ACTIVE     = 3,
+> >> +     MX2_STATE_DONE       = 4,
+> >> +     MX2_STATE_ERROR      = 5,
+> >> +     MX2_STATE_IDLE       = 6,
+> >> +};
+> >> +
+> >> +/* buffer for one video frame */
+> >> +struct mx2_buffer {
+> >> +     /* common v4l buffer stuff -- must be first */
+> >> +     struct vb2_buffer               vb;
+> >> +     struct list_head                queue;
+> >> +     enum mx2_buffer_state           state;
+> >> +     enum v4l2_mbus_pixelcode        code;
+> >> +
+> >> +     int                             bufnum;
+> >> +     bool                            discard;
+> >> +};
+> >> +
+> >
+> > When submitting a patch series, it is usually good to avoid
+> > double-patching. E.g., in this case, your first patch adds these enum and
+> > struct and this patch moves them a couple of lines up. Please, place them
+> > at the correct location already with the first patch.
+> 
+> OK, I'll fix it in the next version.
+> 
+> >>  struct mx2_camera_dev {
+> >>       struct device           *dev;
+> >>       struct soc_camera_host  soc_host;
+> >> @@ -240,6 +262,7 @@ struct mx2_camera_dev {
+> >>
+> >>       struct list_head        capture;
+> >>       struct list_head        active_bufs;
+> >> +     struct list_head        discard;
+> >>
+> >>       spinlock_t              lock;
+> >>
+> >> @@ -252,6 +275,7 @@ struct mx2_camera_dev {
+> >>
+> >>       u32                     csicr1;
+> >>
+> >> +     struct mx2_buffer       buf_discard[2];
+> >>       void                    *discard_buffer;
+> >>       dma_addr_t              discard_buffer_dma;
+> >>       size_t                  discard_size;
+> >> @@ -260,27 +284,6 @@ struct mx2_camera_dev {
+> >>       struct vb2_alloc_ctx    *alloc_ctx;
+> >>  };
+> >>
+> >> -enum mx2_buffer_state {
+> >> -     MX2_STATE_NEEDS_INIT = 0,
+> >> -     MX2_STATE_PREPARED   = 1,
+> >> -     MX2_STATE_QUEUED     = 2,
+> >> -     MX2_STATE_ACTIVE     = 3,
+> >> -     MX2_STATE_DONE       = 4,
+> >> -     MX2_STATE_ERROR      = 5,
+> >> -     MX2_STATE_IDLE       = 6,
+> >> -};
+> >> -
+> >> -/* buffer for one video frame */
+> >> -struct mx2_buffer {
+> >> -     /* common v4l buffer stuff -- must be first */
+> >> -     struct vb2_buffer               vb;
+> >> -     struct list_head                queue;
+> >> -     enum mx2_buffer_state           state;
+> >> -     enum v4l2_mbus_pixelcode        code;
+> >> -
+> >> -     int bufnum;
+> >> -};
+> >> -
+> >>  static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+> >>       /*
+> >>        * This is a generic configuration which is valid for most
+> >> @@ -334,6 +337,29 @@ static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
+> >>       return &mx27_emma_prp_table[0];
+> >>  };
+> >>
+> >> +static void mx27_update_emma_buf(struct mx2_camera_dev *pcdev,
+> >> +                              unsigned long phys, int bufnum)
+> >> +{
+> >> +     u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
+> >
+> > Are only 1-byte-per-pixel formats supported? Ok, it is only used for
+> > YUV420, please, move this variable down in that "if".
+> >> +     struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+> >> +
+> >> +     if (prp->cfg.channel == 1) {
+> >> +             writel(phys, pcdev->base_emma +
+> >> +                             PRP_DEST_RGB1_PTR + 4 * bufnum);
+> >> +     } else {
+> >> +             writel(phys, pcdev->base_emma +
+> >> +                                     PRP_DEST_Y_PTR -
+> >> +                                     0x14 * bufnum);
+> >
+> > Join the above two lines, please.
+> >
+> >> +             if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
+> >> +                     writel(phys + imgsize,
+> >> +                     pcdev->base_emma + PRP_DEST_CB_PTR -
+> >> +                     0x14 * bufnum);
+> >> +                     writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
+> >> +                     PRP_DEST_CR_PTR - 0x14 * bufnum);
+> >> +             }
+> >> +     }
+> >> +}
+> >> +
+> >>  static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+> >>  {
+> >>       unsigned long flags;
+> >> @@ -382,7 +408,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+> >>       writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
+> >>
+> >>       pcdev->icd = icd;
+> >> -     pcdev->frame_count = -1;
+> >> +     pcdev->frame_count = 0;
+> >>
+> >>       dev_info(icd->parent, "Camera driver attached to camera %d\n",
+> >>                icd->devnum);
+> >> @@ -648,10 +674,9 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
+> >>        * types.
+> >>        */
+> >>       spin_lock_irqsave(&pcdev->lock, flags);
+> >> -     if (buf->state == MX2_STATE_QUEUED || buf->state == MX2_STATE_ACTIVE) {
+> >> -             list_del_init(&buf->queue);
+> >> -             buf->state = MX2_STATE_NEEDS_INIT;
+> >> -     } else if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
+> >> +     INIT_LIST_HEAD(&buf->queue);
+> >
+> > Wouldn't this leave the list, on which this buffer is, corrupted?
+> 
+> By the time this is called, the queues have already been initialized
+> (stream_stop).
+> 
+> >> +     buf->state = MX2_STATE_NEEDS_INIT;
+> >> +     if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
+> >>               if (pcdev->fb1_active == buf) {
+> >>                       pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
+> >>                       writel(0, pcdev->base_csi + CSIDMASA_FB1);
+> >> @@ -674,7 +699,10 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+> >>               to_soc_camera_host(icd->parent);
+> >>       struct mx2_camera_dev *pcdev = ici->priv;
+> >>       struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+> >> +     struct vb2_buffer *vb;
+> >> +     struct mx2_buffer *buf;
+> >>       unsigned long flags;
+> >> +     unsigned long phys;
+> >>       int ret = 0;
+> >>
+> >>       spin_lock_irqsave(&pcdev->lock, flags);
+> >> @@ -684,6 +712,26 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+> >>                       goto err;
+> >>               }
+> >>
+> >> +             buf = list_entry(pcdev->capture.next,
+> >> +                              struct mx2_buffer, queue);
+> >> +             buf->bufnum = 0;
+> >> +             vb = &buf->vb;
+> >> +             buf->state = MX2_STATE_ACTIVE;
+> >> +
+> >> +             phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+> >> +             mx27_update_emma_buf(pcdev, phys, buf->bufnum);
+> >> +             list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+> >> +
+> >> +             buf = list_entry(pcdev->capture.next,
+> >> +                              struct mx2_buffer, queue);
+> >> +             buf->bufnum = 1;
+> >> +             vb = &buf->vb;
+> >> +             buf->state = MX2_STATE_ACTIVE;
+> >> +
+> >> +             phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+> >> +             mx27_update_emma_buf(pcdev, phys, buf->bufnum);
+> >> +             list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+> >> +
+> >>               if (prp->cfg.channel == 1) {
+> >>                       writel(PRP_CNTL_CH1EN |
+> >>                               PRP_CNTL_CSIEN |
+> >> @@ -731,6 +779,9 @@ static int mx2_stop_streaming(struct vb2_queue *q)
+> >>                       writel(cntl & ~PRP_CNTL_CH2EN,
+> >>                              pcdev->base_emma + PRP_CNTL);
+> >>               }
+> >> +             INIT_LIST_HEAD(&pcdev->capture);
+> >> +             INIT_LIST_HEAD(&pcdev->active_bufs);
+> >> +             INIT_LIST_HEAD(&pcdev->discard);
+> >>       }
+> >>       spin_unlock_irqrestore(&pcdev->lock, flags);
+> >>
+> >> @@ -793,50 +844,21 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+> >>               to_soc_camera_host(icd->parent);
+> >>       struct mx2_camera_dev *pcdev = ici->priv;
+> >>       struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+> >> -     u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
+> >>
+> >> +     writel((icd->user_width << 16) | icd->user_height,
+> >> +            pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+> >> +     writel(prp->cfg.src_pixel,
+> >> +            pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+> >>       if (prp->cfg.channel == 1) {
+> >> -             writel(pcdev->discard_buffer_dma,
+> >> -                             pcdev->base_emma + PRP_DEST_RGB1_PTR);
+> >> -             writel(pcdev->discard_buffer_dma,
+> >> -                             pcdev->base_emma + PRP_DEST_RGB2_PTR);
+> >> -
+> >> -             writel((icd->user_width << 16) | icd->user_height,
+> >> -                     pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+> >>               writel((icd->user_width << 16) | icd->user_height,
+> >>                       pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
+> >>               writel(bytesperline,
+> >>                       pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
+> >> -             writel(prp->cfg.src_pixel,
+> >> -                     pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+> >>               writel(prp->cfg.ch1_pixel,
+> >>                       pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
+> >>       } else { /* channel 2 */
+> >> -             writel(pcdev->discard_buffer_dma,
+> >> -                     pcdev->base_emma + PRP_DEST_Y_PTR);
+> >> -             writel(pcdev->discard_buffer_dma,
+> >> -                     pcdev->base_emma + PRP_SOURCE_Y_PTR);
+> >> -
+> >> -             if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
+> >> -                     writel(pcdev->discard_buffer_dma + imgsize,
+> >> -                             pcdev->base_emma + PRP_DEST_CB_PTR);
+> >> -                     writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
+> >> -                             pcdev->base_emma + PRP_DEST_CR_PTR);
+> >> -                     writel(pcdev->discard_buffer_dma + imgsize,
+> >> -                             pcdev->base_emma + PRP_SOURCE_CB_PTR);
+> >> -                     writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
+> >> -                             pcdev->base_emma + PRP_SOURCE_CR_PTR);
+> >> -             }
+> >> -
+> >> -             writel((icd->user_width << 16) | icd->user_height,
+> >> -                     pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+> >> -
+> >>               writel((icd->user_width << 16) | icd->user_height,
+> >>                       pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
+> >> -
+> >> -             writel(prp->cfg.src_pixel,
+> >> -                     pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+> >> -
+> >>       }
+> >>
+> >>       /* Enable interrupts */
+> >> @@ -927,11 +949,22 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+> >>               if (ret)
+> >>                       return ret;
+> >>
+> >> -             if (pcdev->discard_buffer)
+> >> +             if (pcdev->discard_buffer) {
+> >>                       dma_free_coherent(ici->v4l2_dev.dev,
+> >>                               pcdev->discard_size, pcdev->discard_buffer,
+> >>                               pcdev->discard_buffer_dma);
+> >>
+> >> +                     pcdev->buf_discard[0].discard = true;
+> >> +                     INIT_LIST_HEAD(&pcdev->buf_discard[0].queue);
+> >> +                     list_add_tail(&pcdev->buf_discard[0].queue,
+> >> +                                   &pcdev->discard);
+> >> +
+> >> +                     pcdev->buf_discard[1].discard = true;
+> >> +                     INIT_LIST_HEAD(&pcdev->buf_discard[1].queue);
+> >> +                     list_add_tail(&pcdev->buf_discard[1].queue,
+> >> +                                   &pcdev->discard);
+> >> +             }
+> >> +
+> >
+> > So, you want to do this every time someone does S_FMT?...
+> 
+> Not really, good you noticed, let me fix it for v2.
+> 
+> Regards.
+> -- 
+> Javier Martin
+> Vista Silicon S.L.
+> CDTUC - FASE C - Oficina S-345
+> Avda de los Castros s/n
+> 39005- Santander. Cantabria. Spain
+> +34 942 25 32 60
+> www.vista-silicon.com
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
