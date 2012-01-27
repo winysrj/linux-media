@@ -1,105 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:21556 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933921Ab2AKV1P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:27:15 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from impaqm3.telefonica.net ([213.4.138.19]:55516 "EHLO
+	telefonica.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752176Ab2A0AE2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 26 Jan 2012 19:04:28 -0500
+From: Jose Alberto Reguero <jareguero@telefonica.net>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH 09/23] v4l: Add DPCM compressed formats
-Date: Wed, 11 Jan 2012 23:26:46 +0200
-Message-Id: <1326317220-15339-9-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F0DFE92.80102@iki.fi>
-References: <4F0DFE92.80102@iki.fi>
+Subject: [PATCH] add another Terratec H7 usb id to az6007
+Date: Fri, 27 Jan 2012 01:02:52 +0100
+MIME-Version: 1.0
+Content-Type: Multipart/Mixed;
+  boundary="Boundary-00=_tmeIPGlUKBIOAEk"
+Message-Id: <201201270102.53455.jareguero@telefonica.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
+--Boundary-00=_tmeIPGlUKBIOAEk
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- include/linux/videodev2.h                          |    3 ++
- 4 files changed, 34 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+This patch add another Terratec H7 usb id to az6007 driver.
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-index 7b27409..c1c62a9 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-@@ -1,4 +1,4 @@
--    <refentry>
-+    <refentry id="pixfmt-srggb10">
-       <refmeta>
- 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
- 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-new file mode 100644
-index 0000000..985440c
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-@@ -0,0 +1,29 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>
-+	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
-+	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
-+	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
-+	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
-+	 </refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
-+	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>The following four pixel formats are raw sRGB / Bayer
-+	formats with 10 bits per colour compressed to 8 bits each,
-+	using the DPCM. DPCM, differential pulse-code modulation, is
-+	lossy. Each colour component consumes 8 bits of memory. In
-+	other respects this format is similar to
-+	<xref linkend="pixfmt-srggb10">.</xref></para>
-+
-+      </refsect1>
-+    </refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 2ff6b77..9b06c7b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
-     &sub-srggb8;
-     &sub-sbggr16;
-     &sub-srggb10;
-+    &sub-srggb10dpcm8;
-     &sub-srggb12;
-   </section>
+Jose Alberto
+
+Signed-off-by: Jose Alberto Reguero <jareguero@telefonica.net>
+
+--Boundary-00=_tmeIPGlUKBIOAEk
+Content-Type: text/x-patch;
+  charset="UTF-8";
+  name="az6007.diff"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+	filename="az6007.diff"
+
+diff -ur linux/drivers/media/dvb/dvb-usb/az6007.c linux.new/drivers/media/dvb/dvb-usb/az6007.c
+--- linux/drivers/media/dvb/dvb-usb/az6007.c	2012-01-22 02:53:17.000000000 +0100
++++ linux.new/drivers/media/dvb/dvb-usb/az6007.c	2012-01-23 00:17:57.859087470 +0100
+@@ -481,6 +481,7 @@
+ static struct usb_device_id az6007_usb_table[] = {
+ 	{USB_DEVICE(USB_VID_AZUREWAVE, USB_PID_AZUREWAVE_6007)},
+ 	{USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7)},
++	{USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_H7_2)},
+ 	{0},
+ };
  
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index c9d07c7..c5bf1db 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -365,7 +365,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
- 	/* 10bit raw bayer DPCM compressed to 8 bits */
-+#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
-+#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
- #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-+#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
- 	/*
- 	 * 10bit raw bayer, expanded to 16 bits
- 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
--- 
-1.7.2.5
+@@ -534,7 +535,7 @@
+ 		  .warm_ids = { NULL },
+ 		},
+ 		{ .name = "TerraTec DTV StarBox DVB-T/C USB2.0 (az6007)",
+-		  .cold_ids = { &az6007_usb_table[1], NULL },
++		  .cold_ids = { &az6007_usb_table[1], &az6007_usb_table[2], NULL },
+ 		  .warm_ids = { NULL },
+ 		},
+ 		{ NULL },
+diff -ur linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h linux.new/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+--- linux/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2012-01-22 02:53:17.000000000 +0100
++++ linux.new/drivers/media/dvb/dvb-usb/dvb-usb-ids.h	2012-01-23 00:16:49.993324303 +0100
+@@ -228,6 +228,7 @@
+ #define USB_PID_TERRATEC_CINERGY_T_XXS			0x0078
+ #define USB_PID_TERRATEC_CINERGY_T_XXS_2		0x00ab
+ #define USB_PID_TERRATEC_H7				0x10b4
++#define USB_PID_TERRATEC_H7_2				0x10a3
+ #define USB_PID_TERRATEC_T3				0x10a0
+ #define USB_PID_TERRATEC_T5				0x10a1
+ #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
 
+--Boundary-00=_tmeIPGlUKBIOAEk--
