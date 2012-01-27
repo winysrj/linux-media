@@ -1,136 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:45383 "EHLO
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:59305 "EHLO
 	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534Ab2AWNvh (ORCPT
+	with ESMTP id S1752628Ab2A0PRK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 08:51:37 -0500
+	Fri, 27 Jan 2012 10:17:10 -0500
 MIME-version: 1.0
 Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LY900GOH7U0WH60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LY900GKW7TZU2@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
-Date: Mon, 23 Jan 2012 14:51:11 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 06/10] v4l: vb2: add buffer exporting via dmabuf
-In-reply-to: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
-Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	pawel@osciak.com
-Message-id: <1327326675-8431-7-git-send-email-t.stanislaws@samsung.com>
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+Content-type: text/plain; charset=us-ascii
+Date: Fri, 27 Jan 2012 16:17:03 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [Linaro-mm-sig] [PATCH 12/15] drivers: add Contiguous Memory
+ Allocator
+In-reply-to: <CAK=WgbZWHBKNQwcoY9OiXXH-r1n3XxB=ZODZJN-3vZopU2yhJA@mail.gmail.com>
+To: 'Ohad Ben-Cohen' <ohad@wizery.com>
+Cc: "'Clark, Rob'" <rob@ti.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Mel Gorman' <mel@csn.ul.ie>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	linux-kernel@vger.kernel.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Dave Hansen' <dave@linux.vnet.ibm.com>,
+	linaro-mm-sig@lists.linaro.org, linux-mm@kvack.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Message-id: <010501ccdd06$b9844f20$2c8ced60$%szyprowski@samsung.com>
+Content-language: pl
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-13-git-send-email-m.szyprowski@samsung.com>
+ <CADMYwHw1B4RNV_9BqAg_M70da=g69Z3kyo5Cr6izCMwJ9LAtvA@mail.gmail.com>
+ <00de01ccdce1$e7c8a360$b759ea20$%szyprowski@samsung.com>
+ <CAO8GWqnQg-W=TEc+CUc8hs=GrdCa9XCCWcedQx34cqURhNwNwA@mail.gmail.com>
+ <010301ccdd03$1ad15ab0$50741010$%szyprowski@samsung.com>
+ <CAK=WgbZWHBKNQwcoY9OiXXH-r1n3XxB=ZODZJN-3vZopU2yhJA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds extension to videobuf2-core. It allow to export a mmap buffer
-as a file descriptor.
+Hello,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/videobuf2-core.c |   60 ++++++++++++++++++++++++++++++++++
- include/media/videobuf2-core.h       |    2 +
- 2 files changed, 62 insertions(+), 0 deletions(-)
+On Friday, January 27, 2012 3:59 PM Ohad Ben-Cohen wrote:
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 59bb1bc..29cf6ed 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1522,6 +1522,66 @@ int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking)
- }
- EXPORT_SYMBOL_GPL(vb2_dqbuf);
- 
-+static int __find_plane_by_offset(struct vb2_queue *q, unsigned long off,
-+			unsigned int *_buffer, unsigned int *_plane);
-+
-+/**
-+ * vb2_expbuf() - Export a buffer as a file descriptor
-+ * @q:		videobuf2 queue
-+ * @b:		buffer structure passed from userspace to vidioc_expbuf handler
-+ *		in driver
-+ *
-+ * The return values from this function are intended to be directly returned
-+ * from vidioc_expbuf handler in driver.
-+ */
-+int vb2_expbuf(struct vb2_queue *q, unsigned int offset)
-+{
-+	struct vb2_buffer *vb = NULL;
-+	struct vb2_plane *vb_plane;
-+	unsigned int buffer, plane;
-+	int ret;
-+	struct dma_buf *dbuf;
-+
-+	if (q->memory != V4L2_MEMORY_MMAP) {
-+		dprintk(1, "Queue is not currently set up for mmap\n");
-+		return -EINVAL;
-+	}
-+
-+	if (!q->mem_ops->get_dmabuf) {
-+		dprintk(1, "Queue does not support DMA buffer exporting\n");
-+		return -EINVAL;
-+	}
-+
-+	/*
-+	 * Find the plane corresponding to the offset passed by userspace.
-+	 */
-+	ret = __find_plane_by_offset(q, offset, &buffer, &plane);
-+	if (ret) {
-+		dprintk(1, "invalid offset %d\n", offset);
-+		return ret;
-+	}
-+
-+	vb = q->bufs[buffer];
-+	vb_plane = &vb->planes[plane];
-+
-+	dbuf = call_memop(q, get_dmabuf, vb_plane->mem_priv);
-+	if (IS_ERR_OR_NULL(dbuf)) {
-+		dprintk(1, "Failed to export buffer %d, plane %d\n",
-+			buffer, plane);
-+		return -EINVAL;
-+	}
-+
-+	ret = dma_buf_fd(dbuf);
-+	if (ret < 0)
-+		dprintk(3, "buffer %d, plane %d failed to export (%d)\n",
-+			buffer, plane, ret);
-+	else
-+		dprintk(3, "buffer %d, plane %d exported as %d descriptor\n",
-+			buffer, plane, ret);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(vb2_expbuf);
-+
- /**
-  * __vb2_queue_cancel() - cancel and stop (pause) streaming
-  *
-diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-index 412c6a4..3d43954 100644
---- a/include/media/videobuf2-core.h
-+++ b/include/media/videobuf2-core.h
-@@ -79,6 +79,7 @@ struct vb2_mem_ops {
- 	void		(*prepare)(void *buf_priv);
- 	void		(*finish)(void *buf_priv);
- 	void		(*put)(void *buf_priv);
-+	struct dma_buf *(*get_dmabuf)(void *buf_priv);
- 
- 	void		*(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
- 					unsigned long size, int write);
-@@ -348,6 +349,7 @@ int vb2_queue_init(struct vb2_queue *q);
- void vb2_queue_release(struct vb2_queue *q);
- 
- int vb2_qbuf(struct vb2_queue *q, struct v4l2_buffer *b);
-+int vb2_expbuf(struct vb2_queue *q, unsigned int offset);
- int vb2_dqbuf(struct vb2_queue *q, struct v4l2_buffer *b, bool nonblocking);
- 
- int vb2_streamon(struct vb2_queue *q, enum v4l2_buf_type type);
+> 2012/1/27 Marek Szyprowski <m.szyprowski@samsung.com>:
+> > Ohad, could you tell a bit more about your issue?
+> 
+> Sure, feel free to ask.
+> 
+> > Does this 'large region'
+> > is a device private region (declared with dma_declare_contiguous())
+> 
+> Yes, it is.
+> 
+> See omap_rproc_reserve_cma() in:
+> 
+> http://git.kernel.org/?p=linux/kernel/git/ohad/remoteproc.git;a=commitdiff;h=dab6a2584550a6297
+> 46fa1dea2be8ffbe1910277
+
+There have been some vmalloc layout changes merged to v3.3-rc1. Please check
+if the hardcoded OMAP_RPROC_CMA_BASE+CONFIG_OMAP_DUCATI_CMA_SIZE fits into kernel
+low-memory. Some hints you can find after the "Virtual kernel memory layout:" 
+message during boot and using "cat /proc/iomem".
+
+Best regards
 -- 
-1.7.5.4
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
 
