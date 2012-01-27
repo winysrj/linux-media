@@ -1,105 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:56979 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755118Ab2AQVzM convert rfc822-to-8bit (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3470 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485Ab2A0R70 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 17 Jan 2012 16:55:12 -0500
-MIME-Version: 1.0
-In-Reply-To: <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
-References: <1325162352-24709-1-git-send-email-m.szyprowski@samsung.com> <1325162352-24709-5-git-send-email-m.szyprowski@samsung.com>
-From: sandeep patil <psandeep.s@gmail.com>
-Date: Tue, 17 Jan 2012 13:54:28 -0800
-Message-ID: <CA+K6fF6A1kPUW-2Mw5+W_QaTuLfU0_m0aMYRLOg98mFKwZOhtQ@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH 04/11] mm: page_alloc: introduce alloc_contig_range()
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Fri, 27 Jan 2012 12:59:26 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 1/2] v4l2: standardize log start/end message.
+Date: Fri, 27 Jan 2012 18:59:12 +0100
+Message-Id: <1844c31eb7b4515904824a6b26994f7bdd7eace8.1327686924.git.hans.verkuil@cisco.com>
+In-Reply-To: <1327687153-14757-1-git-send-email-hverkuil@xs4all.nl>
+References: <1327687153-14757-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Marek,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I am running a CMA test where I keep allocating from a CMA region as long
-as the allocation fails due to lack of space.
+For drivers that properly use the v4l2 framework (i.e. set v4l2_dev in the
+video_device struct), the start and end messages of VIDIOC_LOG_STATUS are
+now generated automatically. People tended to forget these, but the v4l2-ctl
+tool scans for these messages, and it also makes it easier to read the status
+output in the kernel log.
 
-However, I am seeing failures much before I expect them to happen.
-When the allocation fails, I see a warning coming from __alloc_contig_range(),
-because test_pages_isolated() returned "true".
+In saa7164 two empty log_status functions were removed.
 
-The new retry code does try a new range and eventually succeeds.
+Also added a helper function to v4l2-ctrl.c that can be used as the
+vidioc_log_status callback if all you need to do is to log the current control
+values.
 
-
-> +
-> +static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-> +{
-> +
-> +done:
-> +       /* Make sure all pages are isolated. */
-> +       if (!ret) {
-> +               lru_add_drain_all();
-> +               drain_all_pages();
-> +               if (WARN_ON(test_pages_isolated(start, end)))
-> +                       ret = -EBUSY;
-> +       }
-
-I tried to find out why this happened and added in a debug print inside
-__test_page_isolated_in_pageblock(). Here's the resulting log ..
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-[  133.563140] !!! Found unexpected page(pfn=9aaab), (count=0),
-(isBuddy=no), (private=0x00000004), (flags=0x00000000), (_mapcount=0)
-!!!
-[  133.576690] ------------[ cut here ]------------
-[  133.582489] WARNING: at mm/page_alloc.c:5804 alloc_contig_range+0x1a4/0x2c4()
-[  133.594757] [<c003e814>] (unwind_backtrace+0x0/0xf0) from
-[<c0079c7c>] (warn_slowpath_common+0x4c/0x64)
-[  133.605468] [<c0079c7c>] (warn_slowpath_common+0x4c/0x64) from
-[<c0079cac>] (warn_slowpath_null+0x18/0x1c)
-[  133.616424] [<c0079cac>] (warn_slowpath_null+0x18/0x1c) from
-[<c00e0e84>] (alloc_contig_range+0x1a4/0x2c4)
-[  133.627471] EXT4-fs (mmcblk0p25): re-mounted. Opts: (null)
-[  133.633728] [<c00e0e84>] (alloc_contig_range+0x1a4/0x2c4) from
-[<c0266690>] (dma_alloc_from_contiguous+0x114/0x1c8)
-[  133.697113] !!! Found unexpected page(pfn=9aaac), (count=0),
-(isBuddy=no), (private=0x00000004), (flags=0x00000000), (_mapcount=0)
-!!!
-[  133.710510] EXT4-fs (mmcblk0p26): re-mounted. Opts: (null)
-[  133.716766] ------------[ cut here ]------------
-[  133.721954] WARNING: at mm/page_alloc.c:5804 alloc_contig_range+0x1a4/0x2c4()
-[  133.734100] Emergency Remount complete
-[  133.742584] [<c003e814>] (unwind_backtrace+0x0/0xf0) from
-[<c0079c7c>] (warn_slowpath_common+0x4c/0x64)
-[  133.753448] [<c0079c7c>] (warn_slowpath_common+0x4c/0x64) from
-[<c0079cac>] (warn_slowpath_null+0x18/0x1c)
-[  133.764373] [<c0079cac>] (warn_slowpath_null+0x18/0x1c) from
-[<c00e0e84>] (alloc_contig_range+0x1a4/0x2c4)
-[  133.775299] [<c00e0e84>] (alloc_contig_range+0x1a4/0x2c4) from
-[<c0266690>] (dma_alloc_from_contiguous+0x114/0x1c8)
----
+ drivers/media/video/bt8xx/bttv-driver.c       |    4 ----
+ drivers/media/video/cx18/cx18-ioctl.c         |    4 ----
+ drivers/media/video/ivtv/ivtv-ioctl.c         |    5 -----
+ drivers/media/video/pwc/pwc-v4l.c             |   10 +---------
+ drivers/media/video/saa7164/saa7164-encoder.c |    6 ------
+ drivers/media/video/saa7164/saa7164-vbi.c     |    6 ------
+ drivers/media/video/v4l2-ctrls.c              |   12 ++++++++++++
+ drivers/media/video/v4l2-ioctl.c              |    8 ++++++++
+ drivers/media/video/vivi.c                    |   10 +---------
+ include/media/v4l2-ctrls.h                    |    4 ++++
+ 10 files changed, 26 insertions(+), 43 deletions(-)
 
->From the log it looks like the warning showed up because page->private
-is set to MIGRATE_CMA instead of MIGRATE_ISOLATED.
-I've also had a test case where it failed because (page_count() != 0)
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index 76c301f..e581b37 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -2035,11 +2035,7 @@ static int bttv_log_status(struct file *file, void *f)
+ 	struct bttv_fh *fh  = f;
+ 	struct bttv *btv = fh->btv;
+ 
+-	pr_info("%d: ========  START STATUS CARD #%d  ========\n",
+-		btv->c.nr, btv->c.nr);
+ 	bttv_call_all(btv, core, log_status);
+-	pr_info("%d: ========  END STATUS CARD   #%d  ========\n",
+-		btv->c.nr, btv->c.nr);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/cx18/cx18-ioctl.c b/drivers/media/video/cx18/cx18-ioctl.c
+index 66b1c15..be49f68 100644
+--- a/drivers/media/video/cx18/cx18-ioctl.c
++++ b/drivers/media/video/cx18/cx18-ioctl.c
+@@ -1085,8 +1085,6 @@ static int cx18_log_status(struct file *file, void *fh)
+ 	struct v4l2_audio audin;
+ 	int i;
+ 
+-	CX18_INFO("=================  START STATUS CARD #%d  "
+-		  "=================\n", cx->instance);
+ 	CX18_INFO("Version: %s  Card: %s\n", CX18_VERSION, cx->card_name);
+ 	if (cx->hw_flags & CX18_HW_TVEEPROM) {
+ 		struct tveeprom tv;
+@@ -1120,8 +1118,6 @@ static int cx18_log_status(struct file *file, void *fh)
+ 	CX18_INFO("Read MPEG/VBI: %lld/%lld bytes\n",
+ 			(long long)cx->mpg_data_received,
+ 			(long long)cx->vbi_data_inserted);
+-	CX18_INFO("==================  END STATUS CARD #%d  "
+-		  "==================\n", cx->instance);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/ivtv/ivtv-ioctl.c b/drivers/media/video/ivtv/ivtv-ioctl.c
+index b063077..2c92b12 100644
+--- a/drivers/media/video/ivtv/ivtv-ioctl.c
++++ b/drivers/media/video/ivtv/ivtv-ioctl.c
+@@ -1479,8 +1479,6 @@ static int ivtv_log_status(struct file *file, void *fh)
+ 	struct v4l2_audio audin;
+ 	int i;
+ 
+-	IVTV_INFO("=================  START STATUS CARD #%d  =================\n",
+-		       itv->instance);
+ 	IVTV_INFO("Version: %s Card: %s\n", IVTV_VERSION, itv->card_name);
+ 	if (itv->hw_flags & IVTV_HW_TVEEPROM) {
+ 		struct tveeprom tv;
+@@ -1569,9 +1567,6 @@ static int ivtv_log_status(struct file *file, void *fh)
+ 	IVTV_INFO("Read MPG/VBI: %lld/%lld bytes\n",
+ 			(long long)itv->mpg_data_received,
+ 			(long long)itv->vbi_data_inserted);
+-	IVTV_INFO("==================  END STATUS CARD #%d  ==================\n",
+-			itv->instance);
+-
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/video/pwc/pwc-v4l.c b/drivers/media/video/pwc/pwc-v4l.c
+index f495eeb..2834e3e 100644
+--- a/drivers/media/video/pwc/pwc-v4l.c
++++ b/drivers/media/video/pwc/pwc-v4l.c
+@@ -1146,14 +1146,6 @@ leave:
+ 	return ret;
+ }
+ 
+-static int pwc_log_status(struct file *file, void *priv)
+-{
+-	struct pwc_device *pdev = video_drvdata(file);
+-
+-	v4l2_ctrl_handler_log_status(&pdev->ctrl_handler, PWC_NAME);
+-	return 0;
+-}
+-
+ const struct v4l2_ioctl_ops pwc_ioctl_ops = {
+ 	.vidioc_querycap		    = pwc_querycap,
+ 	.vidioc_enum_input		    = pwc_enum_input,
+@@ -1169,7 +1161,7 @@ const struct v4l2_ioctl_ops pwc_ioctl_ops = {
+ 	.vidioc_dqbuf			    = pwc_dqbuf,
+ 	.vidioc_streamon		    = pwc_streamon,
+ 	.vidioc_streamoff		    = pwc_streamoff,
+-	.vidioc_log_status		    = pwc_log_status,
++	.vidioc_log_status		    = v4l2_ctrl_log_status,
+ 	.vidioc_enum_framesizes		    = pwc_enum_framesizes,
+ 	.vidioc_enum_frameintervals	    = pwc_enum_frameintervals,
+ 	.vidioc_g_parm			    = pwc_g_parm,
+diff --git a/drivers/media/video/saa7164/saa7164-encoder.c b/drivers/media/video/saa7164/saa7164-encoder.c
+index 2fd38a0..a9ed686 100644
+--- a/drivers/media/video/saa7164/saa7164-encoder.c
++++ b/drivers/media/video/saa7164/saa7164-encoder.c
+@@ -791,11 +791,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int vidioc_log_status(struct file *file, void *priv)
+-{
+-	return 0;
+-}
+-
+ static int fill_queryctrl(struct saa7164_encoder_params *params,
+ 	struct v4l2_queryctrl *c)
+ {
+@@ -1347,7 +1342,6 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_g_ext_ctrls	 = vidioc_g_ext_ctrls,
+ 	.vidioc_s_ext_ctrls	 = vidioc_s_ext_ctrls,
+ 	.vidioc_try_ext_ctrls	 = vidioc_try_ext_ctrls,
+-	.vidioc_log_status	 = vidioc_log_status,
+ 	.vidioc_queryctrl	 = vidioc_queryctrl,
+ 	.vidioc_g_chip_ident	 = saa7164_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+diff --git a/drivers/media/video/saa7164/saa7164-vbi.c b/drivers/media/video/saa7164/saa7164-vbi.c
+index e2e0341..273cf80 100644
+--- a/drivers/media/video/saa7164/saa7164-vbi.c
++++ b/drivers/media/video/saa7164/saa7164-vbi.c
+@@ -730,11 +730,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
+-static int vidioc_log_status(struct file *file, void *priv)
+-{
+-	return 0;
+-}
+-
+ static int fill_queryctrl(struct saa7164_vbi_params *params,
+ 	struct v4l2_queryctrl *c)
+ {
+@@ -1256,7 +1251,6 @@ static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
+ 	.vidioc_g_ext_ctrls	 = vidioc_g_ext_ctrls,
+ 	.vidioc_s_ext_ctrls	 = vidioc_s_ext_ctrls,
+ 	.vidioc_try_ext_ctrls	 = vidioc_try_ext_ctrls,
+-	.vidioc_log_status	 = vidioc_log_status,
+ 	.vidioc_queryctrl	 = vidioc_queryctrl,
+ #if 0
+ 	.vidioc_g_chip_ident	 = saa7164_g_chip_ident,
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index cccd42b..d070688 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -2359,3 +2359,15 @@ void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
+ 	v4l2_ctrl_unlock(ctrl);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_del_event);
++
++int v4l2_ctrl_log_status(struct file *file, void *fh)
++{
++	struct video_device *vfd = video_devdata(file);
++	struct v4l2_fh *vfh = file->private_data;
++
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags) && vfd->v4l2_dev)
++		v4l2_ctrl_handler_log_status(vfh->ctrl_handler,
++			vfd->v4l2_dev->name);
++	return 0;
++}
++EXPORT_SYMBOL(v4l2_ctrl_log_status);
+diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
+index d0d7281..2348669 100644
+--- a/drivers/media/video/v4l2-ioctl.c
++++ b/drivers/media/video/v4l2-ioctl.c
+@@ -1911,7 +1911,15 @@ static long __video_do_ioctl(struct file *file,
+ 	{
+ 		if (!ops->vidioc_log_status)
+ 			break;
++		if (vfd->v4l2_dev)
++			printk(KERN_INFO
++				"%s: =================  START STATUS  =================\n",
++				vfd->v4l2_dev->name);
+ 		ret = ops->vidioc_log_status(file, fh);
++		if (vfd->v4l2_dev)
++			printk(KERN_INFO
++				"%s: ==================  END STATUS  ==================\n",
++				vfd->v4l2_dev->name);
+ 		break;
+ 	}
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 84ea88d..cef8c91 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -959,14 +959,6 @@ static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
+ 	return vb2_streamoff(&dev->vb_vidq, i);
+ }
+ 
+-static int vidioc_log_status(struct file *file, void *priv)
+-{
+-	struct vivi_dev *dev = video_drvdata(file);
+-
+-	v4l2_ctrl_handler_log_status(&dev->ctrl_handler, dev->v4l2_dev.name);
+-	return 0;
+-}
+-
+ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id *i)
+ {
+ 	return 0;
+@@ -1210,7 +1202,7 @@ static const struct v4l2_ioctl_ops vivi_ioctl_ops = {
+ 	.vidioc_s_input       = vidioc_s_input,
+ 	.vidioc_streamon      = vidioc_streamon,
+ 	.vidioc_streamoff     = vidioc_streamoff,
+-	.vidioc_log_status    = vidioc_log_status,
++	.vidioc_log_status    = v4l2_ctrl_log_status,
+ 	.vidioc_subscribe_event = vidioc_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index eeb3df6..5f246c2 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -492,6 +492,10 @@ void v4l2_ctrl_add_event(struct v4l2_ctrl *ctrl,
+ void v4l2_ctrl_del_event(struct v4l2_ctrl *ctrl,
+ 		struct v4l2_subscribed_event *sev);
+ 
++/* Can be used as a vidioc_log_status function that just dumps all controls
++   associated with the filehandle. */
++int v4l2_ctrl_log_status(struct file *file, void *fh);
++
+ /* Helpers for ioctl_ops. If hdl == NULL then they will all return -EINVAL. */
+ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc);
+ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm);
+-- 
+1.7.8.3
 
-Have you or anyone else seen this during the CMA testing?
-
-Also, could this be because we are finding a page within (start, end)
-that actually belongs
-to a higher order Buddy block ?
-
-
-Thanks,
-Sandeep
