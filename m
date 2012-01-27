@@ -1,122 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:55604 "EHLO mx1.redhat.com"
+Received: from comal.ext.ti.com ([198.47.26.152]:45505 "EHLO comal.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752126Ab2AZPdx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 10:33:53 -0500
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q0QFXrNu027406
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 26 Jan 2012 10:33:53 -0500
-From: Jarod Wilson <jarod@redhat.com>
-To: linux-media@vger.kernel.org
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Corinna Vinschen <vinschen@redhat.com>
-Subject: [PATCH v2] imon: don't wedge hardware after early callbacks
-Date: Thu, 26 Jan 2012 10:33:47 -0500
-Message-Id: <1327592027-4999-1-git-send-email-jarod@redhat.com>
-In-Reply-To: <1327524982-26593-1-git-send-email-jarod@redhat.com>
-References: <1327524982-26593-1-git-send-email-jarod@redhat.com>
+	id S1751769Ab2A0Jno (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 27 Jan 2012 04:43:44 -0500
+From: Sumit Semwal <sumit.semwal@ti.com>
+To: <dri-devel@lists.freedesktop.org>,
+	<linaro-mm-sig@lists.linaro.org>, <linux-media@vger.kernel.org>
+CC: <t.stanislaws@samsung.com>, Sumit Semwal <sumit.semwal@ti.com>
+Subject: [PATCH] dma-buf: add dma_data_direction to unmap dma_buf_op
+Date: Fri, 27 Jan 2012 15:13:28 +0530
+Message-ID: <1327657408-15234-1-git-send-email-sumit.semwal@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch is just a minor update to one titled "imon: Input from ffdc
-device type ignored" from Corinna Vinschen. An earlier patch to prevent
-an oops when we got early callbacks also has the nasty side-effect of
-wedging imon hardware, as we don't acknowledge the urb. Rework the check
-slightly here to bypass processing the packet, as the driver isn't yet
-fully initialized, but still acknowlege the urb and submit a new rx_urb.
-Do this for both interfaces -- irrelevant for ffdc hardware, but
-relevant for newer hardware, though newer hardware doesn't spew the
-constant stream of data as soon as the hardware is initialized like the
-older ffdc devices, so they'd be less likely to trigger this anyway...
+Some exporters may use DMA map/unmap APIs in dma-buf ops, which require
+enum dma_data_direction for both map and unmap operations.
 
-Tested with both an ffdc device and an 0042 device.
+Thus, the unmap dma_buf_op also needs to have enum dma_data_direction as
+a parameter.
 
-v2: Per Corinna's suggestion and prior precedent, increment driver
-version number so we can more easily tell if a user has this fix.
-
-CC: Corinna Vinschen <vinschen@redhat.com>
-Signed-off-by: Jarod Wilson <jarod@redhat.com>
+Reported-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Sumit Semwal <sumit.semwal@ti.com>
 ---
- drivers/media/rc/imon.c |   26 ++++++++++++++++++++++----
- 1 files changed, 22 insertions(+), 4 deletions(-)
+ drivers/base/dma-buf.c  |    7 +++++--
+ include/linux/dma-buf.h |    8 +++++---
+ 2 files changed, 10 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index 6ed9646..046f529 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -47,7 +47,7 @@
- #define MOD_AUTHOR	"Jarod Wilson <jarod@wilsonet.com>"
- #define MOD_DESC	"Driver for SoundGraph iMON MultiMedia IR/Display"
- #define MOD_NAME	"imon"
--#define MOD_VERSION	"0.9.3"
-+#define MOD_VERSION	"0.9.4"
- 
- #define DISPLAY_MINOR_BASE	144
- #define DEVICE_NAME	"lcd%d"
-@@ -1658,9 +1658,17 @@ static void usb_rx_callback_intf0(struct urb *urb)
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 8afe2dd..c9a945f 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -271,16 +271,19 @@ EXPORT_SYMBOL_GPL(dma_buf_map_attachment);
+  * dma_buf_ops.
+  * @attach:	[in]	attachment to unmap buffer from
+  * @sg_table:	[in]	scatterlist info of the buffer to unmap
++ * @direction:  [in]    direction of DMA transfer
+  *
+  */
+ void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+-				struct sg_table *sg_table)
++				struct sg_table *sg_table,
++				enum dma_data_direction direction)
+ {
+ 	if (WARN_ON(!attach || !attach->dmabuf || !sg_table))
  		return;
  
- 	ictx = (struct imon_context *)urb->context;
--	if (!ictx || !ictx->dev_present_intf0)
-+	if (!ictx)
- 		return;
+ 	mutex_lock(&attach->dmabuf->lock);
+-	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table);
++	attach->dmabuf->ops->unmap_dma_buf(attach, sg_table,
++						direction);
+ 	mutex_unlock(&attach->dmabuf->lock);
  
-+	/*
-+	 * if we get a callback before we're done configuring the hardware, we
-+	 * can't yet process the data, as there's nowhere to send it, but we
-+	 * still need to acknowledge the URB to avoid wedging the hardware
-+	 */
-+	if (!ictx->dev_present_intf0)
-+		goto out;
-+
- 	switch (urb->status) {
- 	case -ENOENT:		/* usbcore unlink successful! */
- 		return;
-@@ -1678,6 +1686,7 @@ static void usb_rx_callback_intf0(struct urb *urb)
- 		break;
- 	}
+ }
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index 86f6241..847b026 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -63,7 +63,8 @@ struct dma_buf_ops {
+ 	struct sg_table * (*map_dma_buf)(struct dma_buf_attachment *,
+ 						enum dma_data_direction);
+ 	void (*unmap_dma_buf)(struct dma_buf_attachment *,
+-						struct sg_table *);
++						struct sg_table *,
++						enum dma_data_direction);
+ 	/* TODO: Add try_map_dma_buf version, to return immed with -EBUSY
+ 	 * if the call would block.
+ 	 */
+@@ -122,7 +123,8 @@ void dma_buf_put(struct dma_buf *dmabuf);
  
-+out:
- 	usb_submit_urb(ictx->rx_urb_intf0, GFP_ATOMIC);
+ struct sg_table *dma_buf_map_attachment(struct dma_buf_attachment *,
+ 					enum dma_data_direction);
+-void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *);
++void dma_buf_unmap_attachment(struct dma_buf_attachment *, struct sg_table *,
++				enum dma_data_direction);
+ #else
+ 
+ static inline struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+@@ -166,7 +168,7 @@ static inline struct sg_table *dma_buf_map_attachment(
  }
  
-@@ -1690,9 +1699,17 @@ static void usb_rx_callback_intf1(struct urb *urb)
- 		return;
- 
- 	ictx = (struct imon_context *)urb->context;
--	if (!ictx || !ictx->dev_present_intf1)
-+	if (!ictx)
- 		return;
- 
-+	/*
-+	 * if we get a callback before we're done configuring the hardware, we
-+	 * can't yet process the data, as there's nowhere to send it, but we
-+	 * still need to acknowledge the URB to avoid wedging the hardware
-+	 */
-+	if (!ictx->dev_present_intf1)
-+		goto out;
-+
- 	switch (urb->status) {
- 	case -ENOENT:		/* usbcore unlink successful! */
- 		return;
-@@ -1710,6 +1727,7 @@ static void usb_rx_callback_intf1(struct urb *urb)
- 		break;
- 	}
- 
-+out:
- 	usb_submit_urb(ictx->rx_urb_intf1, GFP_ATOMIC);
- }
- 
-@@ -2242,7 +2260,7 @@ find_endpoint_failed:
- 	mutex_unlock(&ictx->lock);
- 	usb_free_urb(rx_urb);
- rx_urb_alloc_failed:
--	dev_err(ictx->dev, "unable to initialize intf0, err %d\n", ret);
-+	dev_err(ictx->dev, "unable to initialize intf1, err %d\n", ret);
- 
- 	return NULL;
+ static inline void dma_buf_unmap_attachment(struct dma_buf_attachment *attach,
+-						struct sg_table *sg)
++			struct sg_table *sg, enum dma_data_direction write)
+ {
+ 	return;
  }
 -- 
-1.7.1
+1.7.5.4
 
