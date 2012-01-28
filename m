@@ -1,491 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1354 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754443Ab2APM3m (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:33445 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752773Ab2A1WCm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 16 Jan 2012 07:29:42 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sat, 28 Jan 2012 17:02:42 -0500
+Received: by wics10 with SMTP id s10so2400186wic.19
+        for <linux-media@vger.kernel.org>; Sat, 28 Jan 2012 14:02:40 -0800 (PST)
+Message-ID: <1327788154.2826.2.camel@tvbox>
+Subject: [PATCH] it913x ver 1.24 Make 0x60 default on version 2 devices.
+From: Malcolm Priestley <tvboxspy@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: linux-input@vger.kernel.org, Jiri Kosina <jkosina@suse.cz>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 2/3] radio-keene: add a driver for the Keene FM Transmitter.
-Date: Mon, 16 Jan 2012 13:29:19 +0100
-Message-Id: <955b875452cd4dca966f87d45a31a718637b03c0.1326716517.git.hans.verkuil@cisco.com>
-In-Reply-To: <1326716960-4424-1-git-send-email-hverkuil@xs4all.nl>
-References: <1326716960-4424-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <4f4e18b94612a34be98e2304a4d9b0cef74acd39.1326716517.git.hans.verkuil@cisco.com>
-References: <4f4e18b94612a34be98e2304a4d9b0cef74acd39.1326716517.git.hans.verkuil@cisco.com>
+Date: Sat, 28 Jan 2012 22:02:34 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Some version 2 devices have different tuner IDs. ID 0x38
+appears to have weak signal strength.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Apply default 0x60 to unknown IDs.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 ---
- drivers/media/radio/Kconfig       |   10 +
- drivers/media/radio/Makefile      |    1 +
- drivers/media/radio/radio-keene.c |  419 +++++++++++++++++++++++++++++++++++++
- 3 files changed, 430 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/radio/radio-keene.c
+ drivers/media/dvb/dvb-usb/it913x.c |   11 +++++++++--
+ 1 files changed, 9 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
-index e954781..48747df 100644
---- a/drivers/media/radio/Kconfig
-+++ b/drivers/media/radio/Kconfig
-@@ -80,6 +80,16 @@ config RADIO_SI4713
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called radio-si4713.
+diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
+index 50d578c..c80098a 100644
+--- a/drivers/media/dvb/dvb-usb/it913x.c
++++ b/drivers/media/dvb/dvb-usb/it913x.c
+@@ -409,8 +409,15 @@ static int ite_firmware_select(struct usb_device *udev,
+ 		it913x_config.firmware_ver = 1;
+ 		it913x_config.adc_x2 = 1;
+ 		props->firmware = fw_it9135_v2;
+-		if (it913x_config.tuner_id_0 == 0)
++		switch (it913x_config.tuner_id_0) {
++		case IT9135_61:
++		case IT9135_62:
++			break;
++		default:
++			info("Unknown tuner ID applying default 0x60");
++		case IT9135_60:
+ 			it913x_config.tuner_id_0 = IT9135_60;
++		}
+ 		break;
+ 	case IT9137_FW:
+ 	default:
+@@ -818,5 +825,5 @@ module_usb_driver(it913x_driver);
  
-+config USB_KEENE
-+	tristate "Keene FM Transmitter USB support"
-+	depends on USB && VIDEO_V4L2
-+	---help---
-+	  Say Y here if you want to connect this type of FM transmitter
-+	  to your computer's USB port.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called radio-keene.
-+
- config RADIO_TEA5764
- 	tristate "TEA5764 I2C FM radio support"
- 	depends on I2C && VIDEO_V4L2
-diff --git a/drivers/media/radio/Makefile b/drivers/media/radio/Makefile
-index 390daf9..aec5f6f 100644
---- a/drivers/media/radio/Makefile
-+++ b/drivers/media/radio/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_RADIO_MIROPCM20) += radio-miropcm20.o
- obj-$(CONFIG_USB_DSBR) += dsbr100.o
- obj-$(CONFIG_RADIO_SI470X) += si470x/
- obj-$(CONFIG_USB_MR800) += radio-mr800.o
-+obj-$(CONFIG_USB_KEENE) += radio-keene.o
- obj-$(CONFIG_RADIO_TEA5764) += radio-tea5764.o
- obj-$(CONFIG_RADIO_SAA7706H) += saa7706h.o
- obj-$(CONFIG_RADIO_TEF6862) += tef6862.o
-diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
-new file mode 100644
-index 0000000..1647a7f
---- /dev/null
-+++ b/drivers/media/radio/radio-keene.c
-@@ -0,0 +1,419 @@
-+/*
-+ * Copyright (c) 2012 Hans Verkuil <hverkuil@xs4all.nl>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-+ */
-+
-+/* kernel includes */
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/init.h>
-+#include <linux/slab.h>
-+#include <linux/input.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-event.h>
-+#include <linux/usb.h>
-+#include <linux/version.h>
-+#include <linux/mutex.h>
-+
-+/* driver and module definitions */
-+MODULE_AUTHOR("Hans Verkuil <hverkuil@xs4all.nl>");
-+MODULE_DESCRIPTION("Keene FM Transmitter driver");
-+MODULE_LICENSE("GPL");
-+
-+/* Actually, it advertises itself as a Logitech */
-+#define USB_KEENE_VENDOR 0x046d
-+#define USB_KEENE_PRODUCT 0x0a0e
-+
-+/* Probably USB_TIMEOUT should be modified in module parameter */
-+#define BUFFER_LENGTH 8
-+#define USB_TIMEOUT 500
-+
-+/* Frequency limits in MHz */
-+#define FREQ_MIN  76U
-+#define FREQ_MAX 108U
-+#define FREQ_MUL 16000U
-+
-+/* USB Device ID List */
-+static struct usb_device_id usb_keene_device_table[] = {
-+	{USB_DEVICE_AND_INTERFACE_INFO(USB_KEENE_VENDOR, USB_KEENE_PRODUCT,
-+							USB_CLASS_HID, 0, 0) },
-+	{ }						/* Terminating entry */
-+};
-+
-+MODULE_DEVICE_TABLE(usb, usb_keene_device_table);
-+
-+struct keene_device {
-+	struct usb_device *usbdev;
-+	struct usb_interface *intf;
-+	struct video_device vdev;
-+	struct v4l2_device v4l2_dev;
-+	struct v4l2_ctrl_handler hdl;
-+	struct mutex lock;
-+
-+	u8 buffer[BUFFER_LENGTH];
-+	unsigned curfreq;
-+	u8 tx;
-+	u8 pa;
-+	bool stereo;
-+	bool muted;
-+	bool preemph_75_us;
-+};
-+
-+static inline struct keene_device *to_keene_dev(struct v4l2_device *v4l2_dev)
-+{
-+	return container_of(v4l2_dev, struct keene_device, v4l2_dev);
-+}
-+
-+/* Set frequency (if non-0), PA, mute and turn on/off the FM transmitter. */
-+static int keene_cmd_main(struct keene_device *radio, unsigned freq, bool play)
-+{
-+	unsigned short freq_send = freq ? (freq - 76 * 16000) / 800 : 0;
-+	int ret;
-+
-+	radio->buffer[0] = 0x00;
-+	radio->buffer[1] = 0x50;
-+	radio->buffer[2] = (freq_send >> 8) & 0xff;
-+	radio->buffer[3] = freq_send & 0xff;
-+	radio->buffer[4] = radio->pa;
-+	/* If bit 4 is set, then tune to the frequency.
-+	   If bit 3 is set, then unmute; if bit 2 is set, then mute.
-+	   If bit 1 is set, then enter idle mode; if bit 0 is set,
-+	   then enter transit mode.
-+	 */
-+	radio->buffer[5] = (radio->muted ? 4 : 8) | (play ? 1 : 2) |
-+							(freq ? 0x10 : 0);
-+	radio->buffer[6] = 0x00;
-+	radio->buffer[7] = 0x00;
-+
-+	ret = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-+		9, 0x21, 0x200, 2, radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
-+
-+	if (ret < 0) {
-+		dev_warn(&radio->vdev.dev, "%s failed (%d)\n", __func__, ret);
-+		return ret;
-+	}
-+	if (freq)
-+		radio->curfreq = freq;
-+	return 0;
-+}
-+
-+/* Set TX, stereo and preemphasis mode (50 us vs 75 us). */
-+static int keene_cmd_set(struct keene_device *radio)
-+{
-+	int ret;
-+
-+	radio->buffer[0] = 0x00;
-+	radio->buffer[1] = 0x51;
-+	radio->buffer[2] = radio->tx;
-+	/* If bit 0 is set, then transmit mono, otherwise stereo.
-+	   If bit 2 is set, then enable 75 us preemphasis, otherwise
-+	   it is 50 us. */
-+	radio->buffer[3] = (!radio->stereo) | (radio->preemph_75_us ? 4 : 0);
-+	radio->buffer[4] = 0x00;
-+	radio->buffer[5] = 0x00;
-+	radio->buffer[6] = 0x00;
-+	radio->buffer[7] = 0x00;
-+
-+	ret = usb_control_msg(radio->usbdev, usb_sndctrlpipe(radio->usbdev, 0),
-+		9, 0x21, 0x200, 2, radio->buffer, BUFFER_LENGTH, USB_TIMEOUT);
-+
-+	if (ret < 0) {
-+		dev_warn(&radio->vdev.dev, "%s failed (%d)\n", __func__, ret);
-+		return ret;
-+	}
-+	return 0;
-+}
-+
-+/* Handle unplugging the device.
-+ * We call video_unregister_device in any case.
-+ * The last function called in this procedure is
-+ * usb_keene_device_release.
-+ */
-+static void usb_keene_disconnect(struct usb_interface *intf)
-+{
-+	struct keene_device *radio = to_keene_dev(usb_get_intfdata(intf));
-+
-+	v4l2_device_get(&radio->v4l2_dev);
-+	mutex_lock(&radio->lock);
-+	usb_set_intfdata(intf, NULL);
-+	video_unregister_device(&radio->vdev);
-+	v4l2_device_disconnect(&radio->v4l2_dev);
-+	mutex_unlock(&radio->lock);
-+	v4l2_device_put(&radio->v4l2_dev);
-+}
-+
-+static int vidioc_querycap(struct file *file, void *priv,
-+					struct v4l2_capability *v)
-+{
-+	struct keene_device *radio = video_drvdata(file);
-+
-+	strlcpy(v->driver, "radio-keene", sizeof(v->driver));
-+	strlcpy(v->card, "Keene FM Transmitter", sizeof(v->card));
-+	usb_make_path(radio->usbdev, v->bus_info, sizeof(v->bus_info));
-+	v->capabilities = V4L2_CAP_RADIO | V4L2_CAP_MODULATOR;
-+	return 0;
-+}
-+
-+static int vidioc_g_modulator(struct file *file, void *priv,
-+				struct v4l2_modulator *v)
-+{
-+	struct keene_device *radio = video_drvdata(file);
-+
-+	if (v->index > 0)
-+		return -EINVAL;
-+
-+	strlcpy(v->name, "FM", sizeof(v->name));
-+	v->rangelow = FREQ_MIN * FREQ_MUL;
-+	v->rangehigh = FREQ_MAX * FREQ_MUL;
-+	v->txsubchans = radio->stereo ? V4L2_TUNER_SUB_STEREO : V4L2_TUNER_SUB_MONO;
-+	v->capability = V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-+	return 0;
-+}
-+
-+static int vidioc_s_modulator(struct file *file, void *priv,
-+				struct v4l2_modulator *v)
-+{
-+	struct keene_device *radio = video_drvdata(file);
-+
-+	if (v->index > 0)
-+		return -EINVAL;
-+
-+	radio->stereo = (v->txsubchans == V4L2_TUNER_SUB_STEREO);
-+	return keene_cmd_set(radio);
-+}
-+
-+static int vidioc_s_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *f)
-+{
-+	struct keene_device *radio = video_drvdata(file);
-+
-+	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
-+		return -EINVAL;
-+	f->frequency = clamp(f->frequency,
-+			FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
-+	return keene_cmd_main(radio, f->frequency, true);
-+}
-+
-+static int vidioc_g_frequency(struct file *file, void *priv,
-+				struct v4l2_frequency *f)
-+{
-+	struct keene_device *radio = video_drvdata(file);
-+
-+	if (f->tuner != 0)
-+		return -EINVAL;
-+	f->type = V4L2_TUNER_RADIO;
-+	f->frequency = radio->curfreq;
-+	return 0;
-+}
-+
-+static int keene_s_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	static const u8 db2tx[] = {
-+	     /*	 -15,  -12,   -9,   -6,   -3,    0 dB */
-+		0x03, 0x13, 0x02, 0x12, 0x22, 0x32,
-+	     /*	   3,    6,    9,   12,   15,   18 dB */
-+		0x21, 0x31, 0x20, 0x30, 0x40, 0x50
-+	};
-+	struct keene_device *radio =
-+		container_of(ctrl->handler, struct keene_device, hdl);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_AUDIO_MUTE:
-+		radio->muted = ctrl->val;
-+		return keene_cmd_main(radio, 0, true);
-+
-+	case V4L2_CID_TUNE_POWER_LEVEL:
-+		/* To go from dBuV to the register value we apply the
-+		   following formula: */
-+		radio->pa = (ctrl->val - 71) * 100 / 62;
-+		return keene_cmd_main(radio, 0, true);
-+
-+	case V4L2_CID_TUNE_PREEMPHASIS:
-+		radio->preemph_75_us = ctrl->val == V4L2_PREEMPHASIS_75_uS;
-+		return keene_cmd_set(radio);
-+
-+	case V4L2_CID_AUDIO_COMPRESSION_GAIN:
-+		radio->tx = db2tx[(ctrl->val - ctrl->minimum) / ctrl->step];
-+		return keene_cmd_set(radio);
-+	}
-+	return -EINVAL;
-+}
-+
-+static int vidioc_subscribe_event(struct v4l2_fh *fh,
-+				struct v4l2_event_subscription *sub)
-+{
-+	switch (sub->type) {
-+	case V4L2_EVENT_CTRL:
-+		return v4l2_event_subscribe(fh, sub, 0);
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static unsigned int keene_poll(struct file *file, struct poll_table_struct *wait)
-+{
-+	struct v4l2_fh *fh = file->private_data;
-+	unsigned int res = 0;
-+
-+	if (v4l2_event_pending(fh))
-+		res |= POLLPRI;
-+	else
-+		poll_wait(file, &fh->wait, wait);
-+	return res;
-+}
-+
-+
-+/* File system interface */
-+static const struct v4l2_file_operations usb_keene_fops = {
-+	.owner		= THIS_MODULE,
-+	.open           = v4l2_fh_open,
-+	.release        = v4l2_fh_release,
-+	.poll		= keene_poll,
-+	.unlocked_ioctl	= video_ioctl2,
-+};
-+
-+static const struct v4l2_ctrl_ops keene_ctrl_ops = {
-+	.s_ctrl = keene_s_ctrl,
-+};
-+
-+static const struct v4l2_ioctl_ops usb_keene_ioctl_ops = {
-+	.vidioc_querycap    = vidioc_querycap,
-+	.vidioc_g_modulator = vidioc_g_modulator,
-+	.vidioc_s_modulator = vidioc_s_modulator,
-+	.vidioc_g_frequency = vidioc_g_frequency,
-+	.vidioc_s_frequency = vidioc_s_frequency,
-+	.vidioc_subscribe_event = vidioc_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
-+};
-+
-+static void usb_keene_video_device_release(struct v4l2_device *v4l2_dev)
-+{
-+	struct keene_device *radio = to_keene_dev(v4l2_dev);
-+
-+	/* free rest memory */
-+	v4l2_ctrl_handler_free(&radio->hdl);
-+	kfree(radio);
-+}
-+
-+/* check if the device is present and register with v4l and usb if it is */
-+static int usb_keene_probe(struct usb_interface *intf,
-+				const struct usb_device_id *id)
-+{
-+	struct keene_device *radio;
-+	struct v4l2_ctrl_handler *hdl;
-+	int retval = 0;
-+
-+	radio = kzalloc(sizeof(struct keene_device), GFP_KERNEL);
-+
-+	if (!radio) {
-+		dev_err(&intf->dev, "kmalloc for keene_device failed\n");
-+		retval = -ENOMEM;
-+		goto err;
-+	}
-+
-+	hdl = &radio->hdl;
-+	v4l2_ctrl_handler_init(hdl, 4);
-+	v4l2_ctrl_new_std(hdl, &keene_ctrl_ops, V4L2_CID_AUDIO_MUTE,
-+			0, 1, 1, 0);
-+	v4l2_ctrl_new_std_menu(hdl, &keene_ctrl_ops, V4L2_CID_TUNE_PREEMPHASIS,
-+			V4L2_PREEMPHASIS_75_uS, 1, V4L2_PREEMPHASIS_50_uS);
-+	v4l2_ctrl_new_std(hdl, &keene_ctrl_ops, V4L2_CID_TUNE_POWER_LEVEL,
-+			84, 118, 1, 118);
-+	v4l2_ctrl_new_std(hdl, &keene_ctrl_ops, V4L2_CID_AUDIO_COMPRESSION_GAIN,
-+			-15, 18, 3, 0);
-+	radio->pa = 118;
-+	radio->tx = 0x32;
-+	radio->stereo = true;
-+	radio->curfreq = 95.16 * FREQ_MUL;
-+	if (hdl->error) {
-+		retval = hdl->error;
-+
-+		v4l2_ctrl_handler_free(hdl);
-+		goto err_v4l2;
-+	}
-+	retval = v4l2_device_register(&intf->dev, &radio->v4l2_dev);
-+	if (retval < 0) {
-+		dev_err(&intf->dev, "couldn't register v4l2_device\n");
-+		goto err_v4l2;
-+	}
-+
-+	mutex_init(&radio->lock);
-+
-+	radio->v4l2_dev.ctrl_handler = hdl;
-+	radio->v4l2_dev.release = usb_keene_video_device_release;
-+	strlcpy(radio->vdev.name, radio->v4l2_dev.name,
-+		sizeof(radio->vdev.name));
-+	radio->vdev.v4l2_dev = &radio->v4l2_dev;
-+	radio->vdev.fops = &usb_keene_fops;
-+	radio->vdev.ioctl_ops = &usb_keene_ioctl_ops;
-+	radio->vdev.lock = &radio->lock;
-+	radio->vdev.release = video_device_release_empty;
-+
-+	radio->usbdev = interface_to_usbdev(intf);
-+	radio->intf = intf;
-+	usb_set_intfdata(intf, &radio->v4l2_dev);
-+
-+	video_set_drvdata(&radio->vdev, radio);
-+	set_bit(V4L2_FL_USE_FH_PRIO, &radio->vdev.flags);
-+
-+	retval = video_register_device(&radio->vdev, VFL_TYPE_RADIO, -1);
-+	if (retval < 0) {
-+		dev_err(&intf->dev, "could not register video device\n");
-+		goto err_vdev;
-+	}
-+	v4l2_ctrl_handler_setup(hdl);
-+	dev_info(&intf->dev, "V4L2 device registered as %s\n",
-+			video_device_node_name(&radio->vdev));
-+	return 0;
-+
-+err_vdev:
-+	v4l2_device_unregister(&radio->v4l2_dev);
-+err_v4l2:
-+	kfree(radio);
-+err:
-+	return retval;
-+}
-+
-+/* USB subsystem interface */
-+static struct usb_driver usb_keene_driver = {
-+	.name			= "radio-keene",
-+	.probe			= usb_keene_probe,
-+	.disconnect		= usb_keene_disconnect,
-+	.id_table		= usb_keene_device_table,
-+};
-+
-+static int __init keene_init(void)
-+{
-+	int retval = usb_register(&usb_keene_driver);
-+
-+	if (retval)
-+		pr_err(KBUILD_MODNAME
-+			": usb_register failed. Error number %d\n", retval);
-+
-+	return retval;
-+}
-+
-+static void __exit keene_exit(void)
-+{
-+	usb_deregister(&usb_keene_driver);
-+}
-+
-+module_init(keene_init);
-+module_exit(keene_exit);
-+
+ MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+ MODULE_DESCRIPTION("it913x USB 2 Driver");
+-MODULE_VERSION("1.23");
++MODULE_VERSION("1.24");
+ MODULE_LICENSE("GPL");
 -- 
-1.7.7.3
+1.7.8.3
+
 
