@@ -1,58 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pitbull.cosy.sbg.ac.at ([141.201.2.122]:33847 "EHLO
-	pitbull.cosy.sbg.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752279Ab2AYNbz (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55863 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751447Ab2A1A0Z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 08:31:55 -0500
-Cc: linux-media@vger.kernel.org, Dusan Statelov <statelov@maindata.sk>
-Message-Id: <94312768-7D52-435C-87DC-3688FB742925@cosy.sbg.ac.at>
-From: =?ISO-8859-1?Q?Christian_Pr=E4hauser?= <cpraehaus@cosy.sbg.ac.at>
-To: Marek Ochaba <ochaba@maindata.sk>
-In-Reply-To: <4F200057.9070603@maindata.sk>
-Content-Type: text/plain; charset=US-ASCII; format=flowed; delsp=yes
+	Fri, 27 Jan 2012 19:26:25 -0500
+Date: Fri, 27 Jan 2012 16:26:24 -0800
+From: Andrew Morton <akpm@linux-foundation.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCHv19 00/15] Contiguous Memory Allocator
+Message-Id: <20120127162624.40cba14e.akpm@linux-foundation.org>
+In-Reply-To: <201201261531.40551.arnd@arndb.de>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+	<201201261531.40551.arnd@arndb.de>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0 (Apple Message framework v936)
-Subject: Re: OT: looking for HW
-Date: Wed, 25 Jan 2012 14:31:53 +0100
-References: <4F200057.9070603@maindata.sk>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Marek,
+On Thu, 26 Jan 2012 15:31:40 +0000
+Arnd Bergmann <arnd@arndb.de> wrote:
 
-Am 25.01.2012 um 14:15 schrieb Marek Ochaba:
+> On Thursday 26 January 2012, Marek Szyprowski wrote:
+> > Welcome everyone!
+> > 
+> > Yes, that's true. This is yet another release of the Contiguous Memory
+> > Allocator patches. This version mainly includes code cleanups requested
+> > by Mel Gorman and a few minor bug fixes.
+> 
+> Hi Marek,
+> 
+> Thanks for keeping up this work! I really hope it works out for the
+> next merge window.
 
-> We are looking for OEM DVB-S2 modulator with ACM support, which  
-> should be
-> as extended PCI, PCI Expr. or USB card and supported under Linux. Does
-> anyone on this mailing list know about such card ?
+Someone please tell me when it's time to start paying attention
+again ;)
 
-Have a look at http://www.dektec.com/ or http://www.alitronika.com/. I  
-do not
-know if they support ACM. If you search for professional-grade OEM  
-hard- and software
-for DVB-S2 ACM you may have look at http://www.ipdvb.com/. They also  
-offer
-hard- and software components for OEM or system integrators.
+These patches don't seem to have as many acked-bys and reviewed-bys as
+I'd expect.  Given the scope and duration of this, it would be useful
+to gather these up.  But please ensure they are real ones - people
+sometimes like to ack things without showing much sign of having
+actually read them.
 
-Hope this helps!
-Kind regards,
-Christian.
+Also there is the supreme tag: "Tested-by:.".  Ohad (at least) has been
+testing the code.  Let's mention that.
 
->
-> -- 
-> Marek Ochaba
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux- 
-> media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
----
-Dipl.-Ing. Christian Praehauser <cpraehaus@cosy.sbg.ac.at>
+The patches do seem to have been going round in ever-decreasing circles
+lately and I think we have decided to merge them (yes?) so we may as well
+get on and do that and sort out remaining issues in-tree.
 
-|| //\\//\\ || Multimedia Communications Group,
-||//  \/  \\|| Department of Computer Sciences, University of Salzburg
-http://www.cosy.sbg.ac.at/~cpraehaus/
-http://www.network-research.org/
-http://www.uni-salzburg.at/
