@@ -1,86 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f46.google.com ([209.85.216.46]:38400 "EHLO
-	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750855Ab2AMFdz (ORCPT
+Received: from i118-21-156-233.s30.a048.ap.plala.or.jp ([118.21.156.233]:35594
+	"EHLO rinabert.homeip.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752134Ab2A2M5i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 13 Jan 2012 00:33:55 -0500
-MIME-Version: 1.0
-In-Reply-To: <1326403988-872-5-git-send-email-Julia.Lawall@lip6.fr>
-References: <1326403988-872-1-git-send-email-Julia.Lawall@lip6.fr>
-	<1326403988-872-5-git-send-email-Julia.Lawall@lip6.fr>
-Date: Fri, 13 Jan 2012 14:33:54 +0900
-Message-ID: <CAH9JG2VcYqqvS6uu1upemTrfD_Cfq+4qh6VR=cxRFUT84g9MmQ@mail.gmail.com>
-Subject: Re: [PATCH 4/4] drivers/media/video/s5p-mfc/s5p_mfc.c: adjust double test
-From: Kyungmin Park <kyungmin.park@samsung.com>
-To: Julia Lawall <Julia.Lawall@lip6.fr>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	kernel-janitors@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 29 Jan 2012 07:57:38 -0500
+From: Masanari Iida <standby24x7@gmail.com>
+To: kyungmin.park@samsung.com, linux-arm-kernel@lists.infradead.org
+Cc: linux-kernel@vger.kernel.org, trivial@kernel.org,
+	standby24x7@gmail.com, linux-media@vger.kernel.org
+Subject: [PATCH] [trivial] media: Fix typo in mixer_drv.c and hdmi_drv.c
+Date: Sun, 29 Jan 2012 21:50:53 +0900
+Message-Id: <1327841453-1674-1-git-send-email-standby24x7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All patches.
+Correct typo "sucessful" to "successful" in
+drivers/media/video/s5p-tv/mixer_drv.c
+drivers/media/video/s5p-tv/hdmi_drv.c
 
-Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ drivers/media/video/s5p-tv/hdmi_drv.c  |    4 ++--
+ drivers/media/video/s5p-tv/mixer_drv.c |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-To Marek,
-Please collect all patches and send git request pull.
+diff --git a/drivers/media/video/s5p-tv/hdmi_drv.c b/drivers/media/video/s5p-tv/hdmi_drv.c
+index 8b41a04..3e0dd09 100644
+--- a/drivers/media/video/s5p-tv/hdmi_drv.c
++++ b/drivers/media/video/s5p-tv/hdmi_drv.c
+@@ -962,7 +962,7 @@ static int __devinit hdmi_probe(struct platform_device *pdev)
+ 	/* storing subdev for call that have only access to struct device */
+ 	dev_set_drvdata(dev, sd);
+ 
+-	dev_info(dev, "probe sucessful\n");
++	dev_info(dev, "probe successful\n");
+ 
+ 	return 0;
+ 
+@@ -1000,7 +1000,7 @@ static int __devexit hdmi_remove(struct platform_device *pdev)
+ 	iounmap(hdmi_dev->regs);
+ 	hdmi_resources_cleanup(hdmi_dev);
+ 	kfree(hdmi_dev);
+-	dev_info(dev, "remove sucessful\n");
++	dev_info(dev, "remove successful\n");
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/video/s5p-tv/mixer_drv.c b/drivers/media/video/s5p-tv/mixer_drv.c
+index 0064309..a2c0c25 100644
+--- a/drivers/media/video/s5p-tv/mixer_drv.c
++++ b/drivers/media/video/s5p-tv/mixer_drv.c
+@@ -444,7 +444,7 @@ static int __devexit mxr_remove(struct platform_device *pdev)
+ 
+ 	kfree(mdev);
+ 
+-	dev_info(dev, "remove sucessful\n");
++	dev_info(dev, "remove successful\n");
+ 	return 0;
+ }
+ 
+-- 
+1.7.6.5
 
-Thank you,
-Kyungmin Park
-
-On 1/13/12, Julia Lawall <Julia.Lawall@lip6.fr> wrote:
-> From: Julia Lawall <Julia.Lawall@lip6.fr>
->
-> Rewrite a duplicated test to test the correct value
->
-> The semantic match that finds this problem is as follows:
-> (http://coccinelle.lip6.fr/)
->
-> // <smpl>
-> @@
-> expression E;
-> @@
->
-> (
-> * E
->   || ... || E
-> |
-> * E
->   && ... && E
-> )
-> // </smpl>
->
-> Signed-off-by: Julia Lawall <Julia.Lawall@lip6.fr>
->
-> ---
->  drivers/media/video/s5p-mfc/s5p_mfc.c |    2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/video/s5p-mfc/s5p_mfc.c
-> b/drivers/media/video/s5p-mfc/s5p_mfc.c
-> index 8be8b54..53126f2 100644
-> --- a/drivers/media/video/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/video/s5p-mfc/s5p_mfc.c
-> @@ -475,7 +475,7 @@ static void s5p_mfc_handle_seq_done(struct s5p_mfc_ctx
-> *ctx,
->  			ctx->mv_size = 0;
->  		}
->  		ctx->dpb_count = s5p_mfc_get_dpb_count();
-> -		if (ctx->img_width == 0 || ctx->img_width == 0)
-> +		if (ctx->img_width == 0 || ctx->img_height == 0)
->  			ctx->state = MFCINST_ERROR;
->  		else
->  			ctx->state = MFCINST_HEAD_PARSED;
->
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
->
