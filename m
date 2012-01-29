@@ -1,230 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:30843 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752197Ab2AFNUa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jan 2012 08:20:30 -0500
-Message-ID: <4F06F512.9090704@redhat.com>
-Date: Fri, 06 Jan 2012 11:20:18 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:50571 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753413Ab2A2SGq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Jan 2012 13:06:46 -0500
+Date: Sun, 29 Jan 2012 20:06:41 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: t.stanislaws@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	g.liakhovetski@gmx.de, teturtia@gmail.com
+Subject: [RFC] More on subdev selections API: composition
+Message-ID: <20120129180641.GA16140@valkosipuli.localdomain>
 MIME-Version: 1.0
-To: Jonathan Nieder <jrnieder@gmail.com>
-CC: Patrick Boettcher <pboettcher@kernellabs.com>,
-	"Igor M. Liplianin" <liplianin@me.by>, linux-media@vger.kernel.org,
-	Eduard Bloch <blade@debian.org>
-Subject: Re: [RFC/PATCH] [media] dw2102: use symbolic names for dw2102_table
- indices
-References: <20111222215356.GA4499@rotes76.wohnheim.uni-kl.de> <20111222234446.GB10497@elie.Belkin> <201112231820.03693.pboettcher@kernellabs.com> <20111223230045.GE21769@elie.Belkin>
-In-Reply-To: <20111223230045.GE21769@elie.Belkin>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 23-12-2011 21:00, Jonathan Nieder wrote:
-> dw2102_properties et al refer to entries in the USB-id table using
-> hard-coded indices, as in "&dw2102_table[6]", which means adding new
-> entries before the end of the list has the potential to introduce bugs
-> in code elsewhere in the file.
-> 
-> Use C99-style initializers with symbolic names for each index to avoid
-> this.  This way, other device tables wanting to reuse the USB ids can
-> use expressions like "&dw2102_table[TEVII_S630]" that do not change as
-> the entries in the table are reordered.
-> 
-> Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
-> ---
-> Patrick Boettcher wrote:
-> 
->> Due to the use of the reference in the USB-id table adding the new set at 
->> the end of the list is actually the best way. Adding them in the middle will 
->> cause a lot of changes and bugs.
-> 
-> Good catch.  That seems like an accident waiting to happen.  How about
-> something like this (untested)?
-> 
->  drivers/media/dvb/dvb-usb/dw2102.c |   78 ++++++++++++++++++++++--------------
->  1 files changed, 48 insertions(+), 30 deletions(-)
-> 
-> diff --git a/drivers/media/dvb/dvb-usb/dw2102.c b/drivers/media/dvb/dvb-usb/dw2102.c
-> index 64add7cb1fd3..9a1863dc7232 100644
-> --- a/drivers/media/dvb/dvb-usb/dw2102.c
-> +++ b/drivers/media/dvb/dvb-usb/dw2102.c
-> @@ -1435,22 +1435,40 @@ static int dw2102_rc_query(struct dvb_usb_device *d, u32 *event, int *state)
->  	return 0;
->  }
->  
-> +enum dw2102_table_entry {
-> +	CYPRESS_DW2102,
-> +	CYPRESS_DW2101,
-> +	CYPRESS_DW2104,
-> +	TEVII_S650,
-> +	TERRATEC_CINERGY_S,
-> +	CYPRESS_DW3101,
-> +	TEVII_S630,
-> +	PROF_1100,
-> +	TEVII_S660,
-> +	PROF_7500,
-> +	GENIATECH_SU3000,
-> +	TERRATEC_CINERGY_S2,
-> +	TEVII_S480_1,
-> +	TEVII_S480_2,
-> +	X3M_SPC1400HD,
-> +};
-> +
->  static struct usb_device_id dw2102_table[] = {
-> -	{USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW2102)},
-> -	{USB_DEVICE(USB_VID_CYPRESS, 0x2101)},
-> -	{USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW2104)},
-> -	{USB_DEVICE(0x9022, USB_PID_TEVII_S650)},
-> -	{USB_DEVICE(USB_VID_TERRATEC, USB_PID_CINERGY_S)},
-> -	{USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW3101)},
-> -	{USB_DEVICE(0x9022, USB_PID_TEVII_S630)},
-> -	{USB_DEVICE(0x3011, USB_PID_PROF_1100)},
-> -	{USB_DEVICE(0x9022, USB_PID_TEVII_S660)},
-> -	{USB_DEVICE(0x3034, 0x7500)},
-> -	{USB_DEVICE(0x1f4d, 0x3000)},
-> -	{USB_DEVICE(USB_VID_TERRATEC, 0x00a8)},
-> -	{USB_DEVICE(0x9022, USB_PID_TEVII_S480_1)},
-> -	{USB_DEVICE(0x9022, USB_PID_TEVII_S480_2)},
-> -	{USB_DEVICE(0x1f4d, 0x3100)},
-> +	[CYPRESS_DW2102] = {USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW2102)},
-> +	[CYPRESS_DW2101] = {USB_DEVICE(USB_VID_CYPRESS, 0x2101)},
-> +	[CYPRESS_DW2104] = {USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW2104)},
-> +	[TEVII_S650] = {USB_DEVICE(0x9022, USB_PID_TEVII_S650)},
-> +	[TERRATEC_CINERGY_S] = {USB_DEVICE(USB_VID_TERRATEC, USB_PID_CINERGY_S)},
-> +	[CYPRESS_DW3101] = {USB_DEVICE(USB_VID_CYPRESS, USB_PID_DW3101)},
-> +	[TEVII_S630] = {USB_DEVICE(0x9022, USB_PID_TEVII_S630)},
-> +	[PROF_1100] = {USB_DEVICE(0x3011, USB_PID_PROF_1100)},
-> +	[TEVII_S660] = {USB_DEVICE(0x9022, USB_PID_TEVII_S660)},
-> +	[PROF_7500] = {USB_DEVICE(0x3034, 0x7500)},
-> +	[GENIATECH_SU3000] = {USB_DEVICE(0x1f4d, 0x3000)},
-> +	[TERRATEC_CINERGY_S2] = {USB_DEVICE(USB_VID_TERRATEC, 0x00a8)},
-> +	[TEVII_S480_1] = {USB_DEVICE(0x9022, USB_PID_TEVII_S480_1)},
-> +	[TEVII_S480_2] = {USB_DEVICE(0x9022, USB_PID_TEVII_S480_2)},
-> +	[X3M_SPC1400HD] = {USB_DEVICE(0x1f4d, 0x3100)},
->  	{ }
->  };
->  
-> @@ -1610,15 +1628,15 @@ static struct dvb_usb_device_properties dw2102_properties = {
->  	.num_device_descs = 3,
->  	.devices = {
->  		{"DVBWorld DVB-S 2102 USB2.0",
-> -			{&dw2102_table[0], NULL},
-> +			{&dw2102_table[CYPRESS_DW2102], NULL},
->  			{NULL},
->  		},
->  		{"DVBWorld DVB-S 2101 USB2.0",
-> -			{&dw2102_table[1], NULL},
-> +			{&dw2102_table[CYPRESS_DW2101], NULL},
->  			{NULL},
->  		},
->  		{"TerraTec Cinergy S USB",
-> -			{&dw2102_table[4], NULL},
-> +			{&dw2102_table[TERRATEC_CINERGY_S], NULL},
->  			{NULL},
->  		},
->  	}
-> @@ -1664,11 +1682,11 @@ static struct dvb_usb_device_properties dw2104_properties = {
->  	.num_device_descs = 2,
->  	.devices = {
->  		{ "DVBWorld DW2104 USB2.0",
-> -			{&dw2102_table[2], NULL},
-> +			{&dw2102_table[CYPRESS_DW2104], NULL},
->  			{NULL},
->  		},
->  		{ "TeVii S650 USB2.0",
-> -			{&dw2102_table[3], NULL},
-> +			{&dw2102_table[TEVII_S650], NULL},
->  			{NULL},
->  		},
->  	}
-> @@ -1715,7 +1733,7 @@ static struct dvb_usb_device_properties dw3101_properties = {
->  	.num_device_descs = 1,
->  	.devices = {
->  		{ "DVBWorld DVB-C 3101 USB2.0",
-> -			{&dw2102_table[5], NULL},
-> +			{&dw2102_table[CYPRESS_DW3101], NULL},
->  			{NULL},
->  		},
->  	}
-> @@ -1761,7 +1779,7 @@ static struct dvb_usb_device_properties s6x0_properties = {
->  	.num_device_descs = 1,
->  	.devices = {
->  		{"TeVii S630 USB",
-> -			{&dw2102_table[6], NULL},
-> +			{&dw2102_table[TEVII_S630], NULL},
->  			{NULL},
->  		},
->  	}
-> @@ -1770,33 +1788,33 @@ static struct dvb_usb_device_properties s6x0_properties = {
->  struct dvb_usb_device_properties *p1100;
->  static struct dvb_usb_device_description d1100 = {
->  	"Prof 1100 USB ",
-> -	{&dw2102_table[7], NULL},
-> +	{&dw2102_table[PROF_1100], NULL},
->  	{NULL},
->  };
->  
->  struct dvb_usb_device_properties *s660;
->  static struct dvb_usb_device_description d660 = {
->  	"TeVii S660 USB",
-> -	{&dw2102_table[8], NULL},
-> +	{&dw2102_table[TEVII_S660], NULL},
->  	{NULL},
->  };
->  
->  static struct dvb_usb_device_description d480_1 = {
->  	"TeVii S480.1 USB",
-> -	{&dw2102_table[12], NULL},
-> +	{&dw2102_table[TEVII_S480_1], NULL},
->  	{NULL},
->  };
->  
->  static struct dvb_usb_device_description d480_2 = {
->  	"TeVii S480.2 USB",
-> -	{&dw2102_table[13], NULL},
-> +	{&dw2102_table[TEVII_S480_2], NULL},
->  	{NULL},
->  };
->  
->  struct dvb_usb_device_properties *p7500;
->  static struct dvb_usb_device_description d7500 = {
->  	"Prof 7500 USB DVB-S2",
-> -	{&dw2102_table[9], NULL},
-> +	{&dw2102_table[PROF_7500], NULL},
->  	{NULL},
->  };
->  
-> @@ -1842,15 +1860,15 @@ static struct dvb_usb_device_properties su3000_properties = {
->  	.num_device_descs = 3,
->  	.devices = {
->  		{ "SU3000HD DVB-S USB2.0",
-> -			{ &dw2102_table[10], NULL },
-> +			{ &dw2102_table[GENIATECH_SU3000], NULL },
->  			{ NULL },
->  		},
->  		{ "Terratec Cinergy S2 USB HD",
-> -			{ &dw2102_table[11], NULL },
-> +			{ &dw2102_table[TERRATEC_CINERGY_S2], NULL },
->  			{ NULL },
->  		},
->  		{ "X3M TV SPC1400HD PCI",
-> -			{ &dw2102_table[14], NULL },
-> +			{ &dw2102_table[X3M_SPC1400HD], NULL },
->  			{ NULL },
->  		},
->  	}
+Hi all,
 
+I had a discussion with Tomasz a few days ago on the selection API and how
+the composition fits to the proposal I made some time ago. I understand that
+in V4L2 API the composition bounds rectangle, onto which the scaled images
+are composed, is static in size. This makes no sense for subdevs as far as I
+can see.
 
-This looks like a good idea to me. From time to time, when conflict rises,
-sometimes those dvb-usb tables with the magic numbers got unnoticed
-conflicts.
+In composition use cases there are also more than one sink pad whereas
+otherwise there is just a single pad in a subdev. In all use cases more than
+one source pad likely isn't uncommon.
 
-So, I'm picking this one.
+The problem with multiple sink pads is that which one you're referring to
+when you're configuring the first processing step on the source. Without
+composition there are no issues.
 
-It should be noticed that this is a common constructor used inside the
-dvb-usb drivers. IMHO, an approach like that should be extended to the
-other drivers as well.
+What I can think of is to create a special composition target which is not
+bound to any pad, but reflects the size of the rectangle on which streams
+may be composed from source pad. Cropping on source pad refers to the
+coordinates of the composition rectangle. Composition target on sink pad in
+the original proposal would be renamed as the scaling target. There would
+also be no composition on source pads as it does not make that much sense.
 
-Regards,
-Mauro
+To make configuration simple, accessing any unsupported rectangles should
+return EINVAL. So devices not supporting composition would work as proposed
+earlier: the compose rectangle would be omitted and the sink crop (if
+supported) would refer to either scaling or crop targets or even the sink
+format directly.
+
+<URL:http://www.retiisi.org.uk/v4l2/tmp/format2.eps>
+
+Alternatively I think we could as well drop composition support at this
+point as we have no drivers using it. We still need to plan ahead how it
+could be supported as the need likely arises at some point. As far as I see
+the current interface proposal is compatible with composition.
+
+Should we discuss this further on #v4l-meeting, I propose Tuesday 2012-01-31
+15:00 Finnish time (13:00 GMT).
+
+Kind regards,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
