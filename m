@@ -1,95 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:38719 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752568Ab2A3W0A (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:58567 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752134Ab2A2NDq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 17:26:00 -0500
-Date: Tue, 31 Jan 2012 00:25:56 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"HeungJun, Kim" <riverful.kim@samsung.com>,
-	linux-media@vger.kernel.org, mchehab@redhat.com,
-	hverkuil@xs4all.nl, s.nawrocki@samsung.com,
-	kyungmin.park@samsung.com
-Subject: Re: [RFC PATCH 0/4] Add some new camera controls
-Message-ID: <20120130222555.GC16140@valkosipuli.localdomain>
-References: <1325053428-2626-1-git-send-email-riverful.kim@samsung.com>
- <201112281501.25091.laurent.pinchart@ideasonboard.com>
- <4EFD9E10.1050407@gmail.com>
- <20120104210708.GK9323@valkosipuli.localdomain>
- <4F242A07.5020602@gmail.com>
+	Sun, 29 Jan 2012 08:03:46 -0500
+Received: by wics10 with SMTP id s10so2690539wic.19
+        for <linux-media@vger.kernel.org>; Sun, 29 Jan 2012 05:03:45 -0800 (PST)
+Date: Sun, 29 Jan 2012 14:03:40 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Daniel Vetter <daniel@ffwll.ch>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, rob@ti.com,
+	patches@linaro.org
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Message-ID: <20120129130340.GA4312@phenom.ffwll.local>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+ <201201201729.00230.laurent.pinchart@ideasonboard.com>
+ <000601ccd9ae$5bd5fff0$1381ffd0$%szyprowski@samsung.com>
+ <201201231048.47433.laurent.pinchart@ideasonboard.com>
+ <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
+ <20120125232816.GA15297@valkosipuli.localdomain>
+ <20120126112726.GC3896@phenom.ffwll.local>
+ <4F25278B.3090903@iki.fi>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <4F242A07.5020602@gmail.com>
+In-Reply-To: <4F25278B.3090903@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
-
-On Sat, Jan 28, 2012 at 06:01:59PM +0100, Sylwester Nawrocki wrote:
-> On 01/04/2012 10:07 PM, Sakari Ailus wrote:
-> > On Fri, Dec 30, 2011 at 12:18:40PM +0100, Sylwester Nawrocki wrote:
-> >> Thus we would three levels of controls for camera,
-> >>   1) image source class (lowest possible level), dealing mostly with hardware
-> >>      registers;
+On Sun, Jan 29, 2012 at 01:03:39PM +0200, Sakari Ailus wrote:
+> Daniel Vetter wrote:
+> > On Thu, Jan 26, 2012 at 01:28:16AM +0200, Sakari Ailus wrote:
+> >> Why you "should not hang onto mappings forever"? This is currently done by
+> >> virtually all V4L2 drivers where such mappings are relevant. Not doing so
+> >> would really kill the performance i.e. it's infeasible. Same goes to (m)any
+> >> other multimedia devices dealing with buffers containing streaming video
+> >> data.
 > > 
-> > I intended the image source class for controls which only deal with the a/d
-> > conversion itself. Other controls would be elsewhere.
+> > Because I want dynamic memory managemt simple because everything else does
+> > not make sense. I know that in v4l things don't work that way, but in drm
+> > they _do_. And if you share tons of buffers with drm drivers and don't
+> > follow the rules, the OOM killer will come around and shot at your apps.
+> > Because at least in i915 we do slurp in as much memory as we can until the
+> > oom killer starts growling, at which point we kick out stuff.
 > > 
-> > There hasn't been a final decision on this yet, but an alternative which has
-> > been also discussed is just to call this a "low level" control class.
+> > I know that current dma_buf isn't there and for many use-cases discussed
+> > here we can get away without that complexity. So you actually can just map
+> > your dma_buf and never ever let go of that mapping again in many cases.
 > > 
-> >>   2) "normal" camera controls (V4L2_CID_CAMERA_CLASS) [2];
-> >>   3) high level camera controls (for camera software algorithms)
-> ...
+> > The only reason I'm such a stuborn bastard about all this is that drm/*
+> > will do dynamic bo management even with dma_buf sooner or later and you
+> > should better know that and why and the implications if you choose to
+> > ignore it.
 > > 
-> >> I'm afraid a little it might be hard to distinguish if some control should
-> >> belong to 2) or 3), as sensors' logic complexity and advancement varies.
-> > 
-> > I can see two main use cases:
-> > 
-> > 1. V4L2 / V4L2 subdev / MC as the low level API for camera control and
-> > 
-> > 2. Regular V4L2 applications.
-> > 
-> > For most controls it's clear which of the two classes they belong to.
+> > And obviously, the generic dma_buf interface needs to be able to support
+> > it.
 > 
-> Have you any ideas on what the class' name could be ? I thought about 
-> V4L2_CTRL_CLASS_HIGH_LEVEL_CAMERA or V4L2_CTRL_CLASS_CAMERA_USER although 
-> I'm not too happy with any of them and it seems hard to make up some 
-> reasonable name, when we already have V4L2_CTRL_CLASS_CAMERA.
+> I do not think we should completely ignore this issue, but I think we
+> might want to at least postpone the implementation for non-DRM
+> subsystems to an unknown future date. The reason is simply that it's
+> currently unfeasible for various reasons.
+> 
+> Sharing large buffers with GPUs (where you might want to manage them
+> independently of the user space) is uncommon; typically you're sharing
+> buffers for viewfinder that tend to be around few megabytes in size and
+> there may be typically up to five of them. Also, we're still far from
+> getting things working in the first place. Let's not complicate them
+> more than we have to.
+> 
+> The very reason why we're pre-allocating these large buffers in
+> applications is that you can readily use them when you need them.
+> Consider camera, for example: a common use case is to have a set of 24
+> MB buffers (for 12 Mp images) prepared while the viewfinder is running.
+> These buffers must be immediately usable when the user presses the
+> shutter button.
+> 
+> We don't want to continuously map and unmap buffers in viewfinder
+> either: that adds a significan CPU load for no technical reason
+> whatsoever. Typically viewfinder also involves running software
+> algorithms that consume much of the available CPU time, so adding an
+> unnecessary CPU hog to the picture doesn't sound that enticing.
+> 
+> If the performance of memory management can be improved to such an
+> extent it really takes much less than a millisecond or so to perform all
+> the pinning-to-memory, IOMMU mapping and so on systems for 24 MB buffers
+> on regular embedded systems I think I wouldn't have much against doing
+> so. Currently I think we're talking about numbers that are at least
+> 100-fold.
+> 
+> If you want to do this to buffers used only in DRM I'm fine with that.
 
-I might continue to use the current V4L2_CTRL_CLASS_CAMERA to that --- as
-far I understand most are quite high level controls. We could create a new
-class for the low level controls instead.
+A few things:
+- I do understand that there are use cases where allocate, pin & forget
+  works.
+- I'm perfectly fine if you do this in your special embedded product. Or
+  the entire v4l subsystem, I don't care much about that one, either.
 
-Should the new class be for camera controls only or for any low level
-controls? I'd perhaps vote for a camera, or even sensor low level class. (I
-actually call it image source class in the patchset.)
+But:
+- I'm fully convinced that all these special purpose single use-case
+  scenarios will show up sooner or later on a more general purpose
+  platform.
+- And as soon as your on a general purpose platform, you _want_ dynamic
+  memory management.
 
-Another question is how should we call the class for low level controls
-which may or may not be implemented in sensor. Digital gain, for example.
+I mean the entire reason people are pushing CMA is that preallocating gobs
+of memory statically really isn't that great an idea ...
 
-> >> Although I can see an advantage of logically separating controls which have
-> >> influence on one or more other (lower level) controls. And separate control
-> >> class would be helpful in that.
-> >>
-> >> The candidates to such control class might be:
-> >>
-> >> * V4L2_CID_METERING_MODE,
-> >> * V4L2_CID_EXPOSURE_BIAS,
-> >> * V4L2_CID_ISO,
-> >> * V4L2_CID_WHITE_BALANCE_PRESET,
-> >> * V4L2_CID_SCENEMODE,
-> >> * V4L2_CID_WDR,
-> >> * V4L2_CID_ANTISHAKE,
-> > 
-> > The list looks good to me.
+So to summarize I understand your constraints - gpu drivers have worked
+like v4l a few years ago. The thing I'm trying to achieve with this
+constant yelling is just to raise awereness for these issues so that
+people aren't suprised when drm starts pulling tricks on dma_bufs.
 
-Cheers,
-
+Cheers, Daniel
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
