@@ -1,175 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:15959 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751968Ab2AIKOU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 9 Jan 2012 05:14:20 -0500
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LXJ00MTP0FUYY@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 09 Jan 2012 10:14:18 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LXJ00DUP0FT0U@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 09 Jan 2012 10:14:18 +0000 (GMT)
-Date: Mon, 09 Jan 2012 11:14:01 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 1/2 v4] media: vb2: support userptr for PFN mappings.
-In-reply-to: <1325693947-8848-1-git-send-email-javier.martin@vista-silicon.com>
-To: 'Javier Martin' <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, pawel@osciak.com,
-	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com
-Message-id: <00ef01ccceb7$68f0cb90$3ad262b0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1325693947-8848-1-git-send-email-javier.martin@vista-silicon.com>
+Received: from moutng.kundenserver.de ([212.227.126.186]:62608 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834Ab2A2UwQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Jan 2012 15:52:16 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: Andrew Morton <akpm@linux-foundation.org>
+Subject: Re: [PATCHv19 00/15] Contiguous Memory Allocator
+Date: Sun, 29 Jan 2012 20:51:46 +0000
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com> <201201261531.40551.arnd@arndb.de> <20120127162624.40cba14e.akpm@linux-foundation.org>
+In-Reply-To: <20120127162624.40cba14e.akpm@linux-foundation.org>
+MIME-Version: 1.0
+Content-Type: Text/Plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+Message-Id: <201201292051.46297.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Saturday 28 January 2012, Andrew Morton wrote:
+> These patches don't seem to have as many acked-bys and reviewed-bys as
+> I'd expect.  Given the scope and duration of this, it would be useful
+> to gather these up.  But please ensure they are real ones - people
+> sometimes like to ack things without showing much sign of having
+> actually read them.
 
-On Wednesday, January 04, 2012 5:19 PM Javier Martin wrote:
+I reviewed early versions of this patch set and had a lot of comments on the
+interfaces that were exposed to device drivers and platform maintainers.
 
-> Some video devices need to use contiguous memory
-> which is not backed by pages as it happens with
-> vmalloc. This patch provides userptr handling for
-> those devices.
-> 
-> ---
-> Changes since v3:
->  - Remove vma_res variable.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+All of the comments were addressed back then and I gave an Acked-by.
+I assume that it was dropped in subsequent versions because the
+implementation changed significantly since, but I'm still happy with the
+way this looks to the user, in particular that it is practically invisible
+because all users just go through the dma mapping API instead of the
+horrors that were used in the original patches.
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+>From an ARM architecture perspective, we have come to the point (some
+versions ago) where we actually require the CMA patchset for correctness,
+even on IOMMU based systems because it avoids some nasty corner cases
+with pages that are both in the linear kernel mapping and in an
+uncached mapping for DMA: We know that the code we are using in mainline
+is broken on ARMv6 and later and that CMA fixes that problem.
 
-Do you plan to put a git tree with all your patches and send a pull request
-to Mauro? If not I will take this patch and put it on my vb2 branch.
+I'm not the right person to judge the memory management code changes,
+others need to comment on that. Aside from that:
 
-> ---
->  drivers/media/video/videobuf2-vmalloc.c |   70 +++++++++++++++++++++----------
->  1 files changed, 47 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/media/video/videobuf2-vmalloc.c b/drivers/media/video/videobuf2-vmalloc.c
-> index 03aa62f..f9ff15f 100644
-> --- a/drivers/media/video/videobuf2-vmalloc.c
-> +++ b/drivers/media/video/videobuf2-vmalloc.c
-> @@ -10,6 +10,7 @@
->   * the Free Software Foundation.
->   */
-> 
-> +#include <linux/io.h>
->  #include <linux/module.h>
->  #include <linux/mm.h>
->  #include <linux/sched.h>
-> @@ -22,6 +23,7 @@
->  struct vb2_vmalloc_buf {
->  	void				*vaddr;
->  	struct page			**pages;
-> +	struct vm_area_struct		*vma;
->  	int				write;
->  	unsigned long			size;
->  	unsigned int			n_pages;
-> @@ -71,6 +73,8 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
->  	struct vb2_vmalloc_buf *buf;
->  	unsigned long first, last;
->  	int n_pages, offset;
-> +	struct vm_area_struct *vma;
-> +	dma_addr_t physp;
-> 
->  	buf = kzalloc(sizeof(*buf), GFP_KERNEL);
->  	if (!buf)
-> @@ -80,23 +84,37 @@ static void *vb2_vmalloc_get_userptr(void *alloc_ctx, unsigned long vaddr,
->  	offset = vaddr & ~PAGE_MASK;
->  	buf->size = size;
-> 
-> -	first = vaddr >> PAGE_SHIFT;
-> -	last  = (vaddr + size - 1) >> PAGE_SHIFT;
-> -	buf->n_pages = last - first + 1;
-> -	buf->pages = kzalloc(buf->n_pages * sizeof(struct page *), GFP_KERNEL);
-> -	if (!buf->pages)
-> -		goto fail_pages_array_alloc;
-> 
-> -	/* current->mm->mmap_sem is taken by videobuf2 core */
-> -	n_pages = get_user_pages(current, current->mm, vaddr & PAGE_MASK,
-> -					buf->n_pages, write, 1, /* force */
-> -					buf->pages, NULL);
-> -	if (n_pages != buf->n_pages)
-> -		goto fail_get_user_pages;
-> -
-> -	buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1, PAGE_KERNEL);
-> -	if (!buf->vaddr)
-> -		goto fail_get_user_pages;
-> +	vma = find_vma(current->mm, vaddr);
-> +	if (vma && (vma->vm_flags & VM_PFNMAP) && (vma->vm_pgoff)) {
-> +		if (vb2_get_contig_userptr(vaddr, size, &vma, &physp))
-> +			goto fail_pages_array_alloc;
-> +		buf->vma = vma;
-> +		buf->vaddr = ioremap_nocache(physp, size);
-> +		if (!buf->vaddr)
-> +			goto fail_pages_array_alloc;
-> +	} else {
-> +		first = vaddr >> PAGE_SHIFT;
-> +		last  = (vaddr + size - 1) >> PAGE_SHIFT;
-> +		buf->n_pages = last - first + 1;
-> +		buf->pages = kzalloc(buf->n_pages * sizeof(struct page *),
-> +				     GFP_KERNEL);
-> +		if (!buf->pages)
-> +			goto fail_pages_array_alloc;
-> +
-> +		/* current->mm->mmap_sem is taken by videobuf2 core */
-> +		n_pages = get_user_pages(current, current->mm,
-> +					 vaddr & PAGE_MASK, buf->n_pages,
-> +					 write, 1, /* force */
-> +					 buf->pages, NULL);
-> +		if (n_pages != buf->n_pages)
-> +			goto fail_get_user_pages;
-> +
-> +		buf->vaddr = vm_map_ram(buf->pages, buf->n_pages, -1,
-> +					PAGE_KERNEL);
-> +		if (!buf->vaddr)
-> +			goto fail_get_user_pages;
-> +	}
-> 
->  	buf->vaddr += offset;
->  	return buf;
-> @@ -120,14 +138,20 @@ static void vb2_vmalloc_put_userptr(void *buf_priv)
->  	unsigned long vaddr = (unsigned long)buf->vaddr & PAGE_MASK;
->  	unsigned int i;
-> 
-> -	if (vaddr)
-> -		vm_unmap_ram((void *)vaddr, buf->n_pages);
-> -	for (i = 0; i < buf->n_pages; ++i) {
-> -		if (buf->write)
-> -			set_page_dirty_lock(buf->pages[i]);
-> -		put_page(buf->pages[i]);
-> +	if (buf->pages) {
-> +		if (vaddr)
-> +			vm_unmap_ram((void *)vaddr, buf->n_pages);
-> +		for (i = 0; i < buf->n_pages; ++i) {
-> +			if (buf->write)
-> +				set_page_dirty_lock(buf->pages[i]);
-> +			put_page(buf->pages[i]);
-> +		}
-> +		kfree(buf->pages);
-> +	} else {
-> +		if (buf->vma)
-> +			vb2_put_vma(buf->vma);
-> +		iounmap(buf->vaddr);
->  	}
-> -	kfree(buf->pages);
->  	kfree(buf);
->  }
-> 
-> --
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+	Arnd
