@@ -1,69 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:21549 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S933962Ab2AKV1O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 16:27:14 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH 07/23] v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
-Date: Wed, 11 Jan 2012 23:26:44 +0200
-Message-Id: <1326317220-15339-7-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <4F0DFE92.80102@iki.fi>
-References: <4F0DFE92.80102@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:32971 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752934Ab2A3NoJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 08:44:09 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 1/1] omap3isp: Prevent crash at module unload
+Date: Mon, 30 Jan 2012 14:44:24 +0100
+Cc: linux-media@vger.kernel.org
+References: <1327659531-1547-1-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1327659531-1547-1-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201301444.26029.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These two IOCTLS are obsoleted by VIDIOC_SUBDEV_G_SELECTION and
-VIDIOC_SUBDEV_S_SELECTION. Mark them obsolete.
+Hi Sakari,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/DocBook/media/v4l/compat.xml         |    7 +++++++
- .../DocBook/media/v4l/vidioc-subdev-g-crop.xml     |    9 ++++++---
- 2 files changed, 13 insertions(+), 3 deletions(-)
+Thanks for the patch.
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 985c536..a5be8a0 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2514,6 +2514,13 @@ interfaces and should not be implemented in new drivers.</para>
- <constant>VIDIOC_S_MPEGCOMP</constant> ioctls. Use Extended Controls,
- <xref linkend="extended-controls" />.</para>
-         </listitem>
-+        <listitem>
-+	  <para><constant>VIDIOC_SUBDEV_G_CROP</constant> and
-+	  <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctls. Use
-+	  <constant>VIDIOC_SUBDEV_G_SELECTION</constant> and
-+	  <constant>VIDIOC_SUBDEV_S_SELECTION</constant>, <xref
-+	  linkend="vidioc-subdev-g-selection" />.</para>
-+        </listitem>
-       </itemizedlist>
-     </section>
-   </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
-index 0619732..4cddd78 100644
---- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
-@@ -58,9 +58,12 @@
-     <title>Description</title>
- 
-     <note>
--      <title>Experimental</title>
--      <para>This is an <link linkend="experimental">experimental</link>
--      interface and may change in the future.</para>
-+      <title>Obsolete</title>
-+
-+      <para>This is an <link linkend="obsolete">obsolete</link>
-+      interface and may be removed in the future. It is superseded by
-+      <link linkend="vidioc-subdev-g-selection">the selection
-+      API</link>.</para>
-     </note>
- 
-     <para>To retrieve the current crop rectangle applications set the
+On Friday 27 January 2012 11:18:51 Sakari Ailus wrote:
+> iommu_domain_free() was called in isp_remove() before omap3isp_put().
+> omap3isp_put() must not save the context if the IOMMU no longer is there.
+> Fix this.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+Applied to my tree.
+
+> ---
+> Compared to v1, neither the ISP context is saved.
+> 
+>  drivers/media/video/omap3isp/isp.c |    4 +++-
+>  1 files changed, 3 insertions(+), 1 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 12d5f92..d4e0905 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -1495,7 +1495,8 @@ void omap3isp_put(struct isp_device *isp)
+>  	BUG_ON(isp->ref_count == 0);
+>  	if (--isp->ref_count == 0) {
+>  		isp_disable_interrupts(isp);
+> -		isp_save_ctx(isp);
+> +		if (isp->domain)
+> +			isp_save_ctx(isp);
+>  		if (isp->needs_reset) {
+>  			isp_reset(isp);
+>  			isp->needs_reset = false;
+> @@ -1981,6 +1982,7 @@ static int isp_remove(struct platform_device *pdev)
+>  	omap3isp_get(isp);
+>  	iommu_detach_device(isp->domain, &pdev->dev);
+>  	iommu_domain_free(isp->domain);
+> +	isp->domain = NULL;
+>  	omap3isp_put(isp);
+> 
+>  	free_irq(isp->irq_num, isp);
+
 -- 
-1.7.2.5
+Regards,
 
+Laurent Pinchart
