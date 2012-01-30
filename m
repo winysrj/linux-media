@@ -1,200 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:52805 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176Ab2AOQWn (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38757 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752609Ab2A3MRz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 11:22:43 -0500
-Received: by eaae11 with SMTP id e11so76452eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 15 Jan 2012 08:22:42 -0800 (PST)
-Message-ID: <4F12FD4D.6080805@gmail.com>
-Date: Sun, 15 Jan 2012 17:22:37 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: razza lists <razzalist@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Hauppage Nova: doesn't know how to handle a DVBv3 call to delivery
- system 0
-References: <008301ccd316$0be6d440$23b47cc0$@gmail.com> <4F121361.2050403@gmail.com> <CAL+xqGZ1mBttt_e5bUorGFP+cc9RX3ooCkmAa9MSEAaLJ_o=mw@mail.gmail.com> <4F12BDD1.1000306@gmail.com> <4F12E18F.3020400@redhat.com> <CAL+xqGb8ggcY32pwJT7-qiSBZc-e-t+3JKWKQiJqBfFwQ16K6g@mail.gmail.com>
-In-Reply-To: <CAL+xqGb8ggcY32pwJT7-qiSBZc-e-t+3JKWKQiJqBfFwQ16K6g@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Mon, 30 Jan 2012 07:17:55 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi
+Subject: [PATCH v3] omap3isp: Prevent pipelines that contain a crashed entity from starting
+Date: Mon, 30 Jan 2012 13:18:10 +0100
+Message-Id: <1327925890-18342-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 15/01/2012 16:04, razza lists ha scritto:
-> On 15 January 2012 14:24, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->> Em 15-01-2012 09:51, Gianluca Gennari escreveu:
->>> Il 15/01/2012 12:35, razza lists ha scritto:
->>>> On Sat, Jan 14, 2012 at 11:44 PM, Gianluca Gennari <gennarone@gmail.com> wrote:
->>>>>
->>>>> Il 15/01/2012 00:41, RazzaList ha scritto:
->>>>>> I have followed the build instructions for the Hauppauge MyTV.t device here
->>>>>> - http://linuxtv.org/wiki/index.php/Hauppauge_myTV.t and built the drivers
->>>>>> as detailed here -
->>>>>> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_D
->>>>>> evice_Drivers on a CentOS 6.2 i386 build.
->>>>>>
->>>>>> When I use dvbscan, nothing happens. dmesg shows "
->>>>>> dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
->>>>>> delivery system 0"
->>>>>>
->>>>>> [root@cos6 ~]# cd /usr/bin
->>>>>> [root@cos6 bin]# ./dvbscan /usr/share/dvb/dvb-t/uk-Hannington >
->>>>>> /usr/share/dvb/dvb-t/channels.conf
->>>>>> [root@cos6 bin]# dmesg | grep dvb
->>>>>> dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in warm state.
->>>>>> dvb-usb: will pass the complete MPEG2 transport stream to the software
->>>>>> demuxer.
->>>>>> dvb-usb: schedule remote query interval to 50 msecs.
->>>>>> dvb-usb: Hauppauge Nova-T MyTV.t successfully initialized and connected.
->>>>>> usbcore: registered new interface driver dvb_usb_dib0700
->>>>>> dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
->>>>>> delivery system 0
->>>>>>
->>>>>> I have searched but can't locate a fix. Any pointers?
->>>>>>
->>>>>>
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at �http://vger.kernel.org/majordomo-info.html
->>>>>>
->>>>>
->>>>> Hi,
->>>>> this patch will likely fix your problem:
->>>>>
->>>>> http://patchwork.linuxtv.org/patch/9492/
->>>>>
->>>>> Best regards,
->>>>> Gianluca
->>>>
->>>> It's very likely the case I'm doing something wrong and I apologise in
->>>> advance! However some help/guidance would be great...
->>>>
->>>> I have downloaded the sources as described in the basic approach here
->>>> - http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
->>>>
->>>> In the source there is no file called "dvb_frontend.c", so I assume I
->>>> start the media_build/build script?
->>>> If I do, eventually this creates
->>>> media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c
->>>>
->>>> I then apply the patch to
->>>> media_build/linux/drivers/media/dvb/dvb-core/dvb_frontend.c, and I can
->>>> see the added elements...
->>>> ....
->>>> static int dvb_frontend_clear_cache(struct dvb_frontend *fe)
->>>> {
->>>>         struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>>>         int i;
->>>>              u32 delsys;
->>>>
->>>>         delsys = c->delivery_system;
->>>>         memset(c, 0, sizeof(struct dtv_frontend_properties));
->>>>         c->delivery_system = delsys;
->>>>
->>>>         c->state = DTV_CLEAR;
->>>>
->>>>         dprintk("%s() Clearing cache for delivery system %d\n", __func__,
->>>>                      c->delivery_system);
->>>> ................
->>>>
->>>> After a reboot (as I have not got a clue about unloading modules etc.)
->>>> I then execute make install but I still get the same error
->>>> "dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
->>>> delivery system 0" when I use dvbscan.
->>>>
->>>
->>> You are almost there.
->>> After you apply the patch, you have to recompile the entire source tree.
->>> You can do it launching the "make" command inside the linux/ folder.
->>> Then reinstall the drivers giving "make install" from the media_build/
->>> folder, and reboot.
->>
->> I've added the fixes for it today. So, tomorrow's tarballs should have this
->> bug fixed.
->>
->>>
->>> Best regards,
->>> Gianluca
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
-> I'm glad about that as I am getting nowhere fast. Looks like it's
-> better to rebuild the box in the week and save wasting your time.
-> After patching etc, I did manage to get a little bit further, but when
-> using dvbscan I got an error:
-> 
-> [root@cos6 bin]# dvbscan /usr/share/dvb/dvb-t/uk-Hannington >
-> /home/mythtv/channels.conf
-> Unable to query frontend status
+The OMAP3 ISP preview engine will violate the L4 bus protocol if we try
+to write some of its internal registers after it failed to stop
+properly. This generates an external abort on non-linefetch fault,
+triggering a fatal kernel oops.
 
-According to the dvbscan wiki page:
+We can't always prevent preview engine stop failures (they can for
+instance be caused by a sensor crash), but we can improve the system
+reliability by refusing to start streaming on a pipeline that contains
+the preview engine if it failed to stop. The driver will then eventually
+reset the ISP (when all applications will have closed their file handles
+related to OMAP3 ISP device nodes), making the ISP usable again.
 
-http://linuxtv.org/wiki/index.php/Dvbscan
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/isp.c      |   27 +++++++++++++++++++++------
+ drivers/media/video/omap3isp/isp.h      |    3 ++-
+ drivers/media/video/omap3isp/ispvideo.c |    4 ++++
+ drivers/media/video/omap3isp/ispvideo.h |    2 ++
+ 4 files changed, 29 insertions(+), 7 deletions(-)
 
-if you get this error you should try other scanning utilities, like scan
-or w_scan. You can also try a real application, like Kaffeine.
+diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
+index 12d5f92..3db8583 100644
+--- a/drivers/media/video/omap3isp/isp.c
++++ b/drivers/media/video/omap3isp/isp.c
+@@ -739,6 +739,17 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
+ 	unsigned long flags;
+ 	int ret;
+ 
++	/* If the preview engine crashed it might not respond to read/write
++	 * operations on the L4 bus. This would result in a bus fault and a
++	 * kernel oops. Refuse to start streaming in that case. This check must
++	 * be performed before the loop below to avoid starting entities if the
++	 * pipeline won't start anyway (those entities would then likely fail to
++	 * stop, making the problem worse).
++	 */
++	if ((pipe->entities & isp->crashed) &
++	    (1U << isp->isp_prev.subdev.entity.id))
++		return -EIO;
++
+ 	spin_lock_irqsave(&pipe->lock, flags);
+ 	pipe->state &= ~(ISP_PIPELINE_IDLE_INPUT | ISP_PIPELINE_IDLE_OUTPUT);
+ 	spin_unlock_irqrestore(&pipe->lock, flags);
+@@ -879,13 +890,15 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+ 
+ 		if (ret) {
+ 			dev_info(isp->dev, "Unable to stop %s\n", subdev->name);
++			/* If the entity failed to stopped, assume it has
++			 * crashed. Mark it as such, the ISP will be reset when
++			 * applications will release it.
++			 */
++			isp->crashed |= 1U << subdev->entity.id;
+ 			failure = -ETIMEDOUT;
+ 		}
+ 	}
+ 
+-	if (failure < 0)
+-		isp->needs_reset = true;
+-
+ 	return failure;
+ }
+ 
+@@ -1069,6 +1082,7 @@ static int isp_reset(struct isp_device *isp)
+ 		udelay(1);
+ 	}
+ 
++	isp->crashed = 0;
+ 	return 0;
+ }
+ 
+@@ -1496,10 +1510,11 @@ void omap3isp_put(struct isp_device *isp)
+ 	if (--isp->ref_count == 0) {
+ 		isp_disable_interrupts(isp);
+ 		isp_save_ctx(isp);
+-		if (isp->needs_reset) {
++		/* Reset the ISP if an entity has failed to stop. This is the
++		 * only way to recover from such conditions.
++		 */
++		if (isp->crashed)
+ 			isp_reset(isp);
+-			isp->needs_reset = false;
+-		}
+ 		isp_disable_clocks(isp);
+ 	}
+ 	mutex_unlock(&isp->isp_mutex);
+diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
+index d96603e..f8d1f10 100644
+--- a/drivers/media/video/omap3isp/isp.h
++++ b/drivers/media/video/omap3isp/isp.h
+@@ -145,6 +145,7 @@ struct isp_platform_callback {
+  * @raw_dmamask: Raw DMA mask
+  * @stat_lock: Spinlock for handling statistics
+  * @isp_mutex: Mutex for serializing requests to ISP.
++ * @crashed: Bitmask of crashed entities (indexed by entity ID)
+  * @has_context: Context has been saved at least once and can be restored.
+  * @ref_count: Reference count for handling multiple ISP requests.
+  * @cam_ick: Pointer to camera interface clock structure.
+@@ -184,7 +185,7 @@ struct isp_device {
+ 	/* ISP Obj */
+ 	spinlock_t stat_lock;	/* common lock for statistic drivers */
+ 	struct mutex isp_mutex;	/* For handling ref_count field */
+-	bool needs_reset;
++	u32 crashed;
+ 	int has_context;
+ 	int ref_count;
+ 	unsigned int autoidle;
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index b020700..2107d99 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -292,6 +292,7 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 	int ret;
+ 
+ 	pipe->max_rate = pipe->l3_ick;
++	pipe->entities = 0;
+ 
+ 	subdev = isp_video_remote_subdev(pipe->output, NULL);
+ 	if (subdev == NULL)
+@@ -299,6 +300,9 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 
+ 	while (1) {
+ 		unsigned int shifter_link;
++
++		pipe->entities |= 1U << subdev->entity.id;
++
+ 		/* Retrieve the sink format */
+ 		pad = &subdev->entity.pads[0];
+ 		if (!(pad->flags & MEDIA_PAD_FL_SINK))
+diff --git a/drivers/media/video/omap3isp/ispvideo.h b/drivers/media/video/omap3isp/ispvideo.h
+index d91bdb91..c9187cb 100644
+--- a/drivers/media/video/omap3isp/ispvideo.h
++++ b/drivers/media/video/omap3isp/ispvideo.h
+@@ -88,6 +88,7 @@ enum isp_pipeline_state {
+ /*
+  * struct isp_pipeline - An ISP hardware pipeline
+  * @error: A hardware error occurred during capture
++ * @entities: Bitmask of entities in the pipeline (indexed by entity ID)
+  */
+ struct isp_pipeline {
+ 	struct media_pipeline pipe;
+@@ -96,6 +97,7 @@ struct isp_pipeline {
+ 	enum isp_pipeline_stream_state stream_state;
+ 	struct isp_video *input;
+ 	struct isp_video *output;
++	u32 entities;
+ 	unsigned long l3_ick;
+ 	unsigned int max_rate;
+ 	atomic_t frame_number;
+-- 
+Regards,
 
-Best regards,
-Gianluca
-
-> 
-> Dmesg output:
-> usb 1-3: new high speed USB device using ehci_hcd and address 2
-> usb 1-3: New USB device found, idVendor=2040, idProduct=7080
-> usb 1-3: New USB device strings: Mfr=1, Product=2, SerialNumber=3
-> usb 1-3: Product: myTV.t
-> usb 1-3: Manufacturer: Eskape Labs
-> usb 1-3: SerialNumber: 4030928317
-> usb 1-3: configuration #1 chosen from 1 choice
-> WARNING: You are using an experimental version of the media stack.
-> 	As the driver is backported to an older kernel, it doesn't offer
-> 	enough quality for its usage in production.
-> 	Use it with care.
-> Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-> 	240ab508aa9fb7a294b0ecb563b19ead000b2463 [media] [PATCH] don't reset
-> the delivery system on DTV_CLEAR
-> 	9544e8a64795d75875ff4c680a43aa452a37b260 [media] [BUG] it913x-fe fix
-> typo error making SNR levels unstable
-> 	c147f61083e3e4a9c2aaecaaed976502defc3b7d [media] cx23885: Query the
-> CX25840 during enum_input for status
-> WARNING: You are using an experimental version of the media stack.
-> 	As the driver is backported to an older kernel, it doesn't offer
-> 	enough quality for its usage in production.
-> 	Use it with care.
-> Latest git patches (needed if you report a bug to linux-media@vger.kernel.org):
-> 	240ab508aa9fb7a294b0ecb563b19ead000b2463 [media] [PATCH] don't reset
-> the delivery system on DTV_CLEAR
-> 	9544e8a64795d75875ff4c680a43aa452a37b260 [media] [BUG] it913x-fe fix
-> typo error making SNR levels unstable
-> 	c147f61083e3e4a9c2aaecaaed976502defc3b7d [media] cx23885: Query the
-> CX25840 during enum_input for status
-> IR NEC protocol handler initialized
-> IR RC5(x) protocol handler initialized
-> IR RC6 protocol handler initialized
-> IR JVC protocol handler initialized
-> IR Sony protocol handler initialized
-> IR SANYO protocol handler initialized
-> IR MCE Keyboard/mouse protocol handler initialized
-> dib0700: loaded with support for 24 different device-types
-> dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in cold state, will try to
-> load a firmware
-> usb 1-3: firmware: requesting dvb-usb-dib0700-1.20.fw
-> lirc_dev: IR Remote Control driver registered, major 248
-> IR LIRC bridge handler initialized
-> dvb-usb: downloading firmware from file 'dvb-usb-dib0700-1.20.fw'
-> dib0700: firmware started successfully.
-> dvb-usb: found a 'Hauppauge Nova-T MyTV.t' in warm state.
-> dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> DVB: registering new adapter (Hauppauge Nova-T MyTV.t)
-> DVB: registering adapter 0 frontend 0 (DiBcom 7000PC)...
-> DiB0070: successfully identified
-> dvb-usb: Hauppauge Nova-T MyTV.t successfully initialized and connected.
-> usbcore: registered new interface driver dvb_usb_dib0700
-> 
+Laurent Pinchart
 
