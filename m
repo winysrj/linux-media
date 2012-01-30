@@ -1,74 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:41757 "EHLO mx1.redhat.com"
+Received: from gir.skynet.ie ([193.1.99.77]:37965 "EHLO gir.skynet.ie"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752127Ab2ASOm2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 19 Jan 2012 09:42:28 -0500
-Message-ID: <4F182BCF.60303@redhat.com>
-Date: Thu, 19 Jan 2012 12:42:23 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1752594Ab2A3NZq (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 08:25:46 -0500
+Date: Mon, 30 Jan 2012 13:25:43 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH 03/15] mm: compaction: introduce
+ isolate_migratepages_range().
+Message-ID: <20120130132543.GP25268@csn.ul.ie>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-4-git-send-email-m.szyprowski@samsung.com>
+ <20120130112428.GF25268@csn.ul.ie>
+ <op.v8wdlovn3l0zgt@mpn-glaptop>
 MIME-Version: 1.0
-To: =?UTF-8?B?RGVuaWxzb24gRmlndWVpcmVkbyBkZSBTw6E=?=
-	<denilsonsa@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Siano DVB USB device called "Smart Plus"
-References: <CACGt9y=8FzimyQPx7gJQ=gVqDp7cRUojT53gJq2+TNKhH37Wpg@mail.gmail.com>
-In-Reply-To: <CACGt9y=8FzimyQPx7gJQ=gVqDp7cRUojT53gJq2+TNKhH37Wpg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <op.v8wdlovn3l0zgt@mpn-glaptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Denilson,
-
-Em 19-01-2012 11:31, Denilson Figueiredo de Sá escreveu:
-> I bought a USB DVB device in Brazil, but it doesn't work yet on my Linux system.
+On Mon, Jan 30, 2012 at 01:42:50PM +0100, Michal Nazarewicz wrote:
+> >On Thu, Jan 26, 2012 at 10:00:45AM +0100, Marek Szyprowski wrote:
+> >>From: Michal Nazarewicz <mina86@mina86.com>
+> >>@@ -313,7 +316,7 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+> >> 		} else if (!locked)
+> >> 			spin_lock_irq(&zone->lru_lock);
+> >>
+> >>-		if (!pfn_valid_within(low_pfn))
+> >>+		if (!pfn_valid(low_pfn))
+> >> 			continue;
+> >> 		nr_scanned++;
+> >>
 > 
-> I've already documented it at:
-> http://linuxtv.org/wiki/index.php/Smart_Plus
+> On Mon, 30 Jan 2012 12:24:28 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> >This chunk looks unrelated to the rest of the patch.
+> >
+> >I think what you are doing is patching around a bug that CMA exposed
+> >which is very similar to the bug report at
+> >http://www.spinics.net/lists/linux-mm/msg29260.html . Is this true?
+> >
+> >If so, I posted a fix that only calls pfn_valid() when necessary. Can
+> >you check if that works for you and if so, drop this hunk please? If
+> >the patch does not work for you, then this hunk still needs to be
+> >in a separate patch and handled separately as it would also be a fix
+> >for -stable.
 > 
-> The device works if I try to use it inside a VirtualBox virtual
-> machine running Windows.
+> I'll actually never encountered this bug myself and CMA is unlikely to
+> expose it, since it always operates on continuous memory regions with
+> no holes.
 > 
-> I believe the kernel driver that claims this device does not actually
-> support it.
+> I've made this change because looking at the code it seemed like this
+> may cause problems in some cases.  The crash that you linked to looks
+> like the kind of problem I was thinking about.
 > 
+> I'll drop this hunk and let you resolve this independently of CMA.
 > 
-> The device is called "USB 2.0 ISDB-T Stick", model UTV926 (according
-> to the manual), but I've also seen it mentioned as YS-926TV. USB
-> vendor:product is 187f:0202.
-> 
-> 
-> What can I do in order to make it work?
 
->From the product page, it is a 1-seg device. So, it likely uses a sms1xxx
-chip. The SMS1XXX_BOARD_HAUPPAUGE_WINDHAM board is likely close to this
-one. From drivers/media/dvb/siano/sms-cards.c:
+Ok, thanks.
 
-	[SMS1XXX_BOARD_HAUPPAUGE_WINDHAM] = {
-		.name	= "Hauppauge WinTV MiniStick",
-		.type	= SMS_NOVA_B0,
-		.fw[DEVICE_MODE_ISDBT_BDA] = "sms1xxx-hcw-55xxx-isdbt-02.fw",
-		.fw[DEVICE_MODE_DVBT_BDA] = "sms1xxx-hcw-55xxx-dvbt-02.fw",
-		.rc_codes = RC_MAP_HAUPPAUGE,
-		.board_cfg.leds_power = 26,
-		.board_cfg.led0 = 27,
-		.board_cfg.led1 = 28,
-		.board_cfg.ir = 9,
-		.led_power = 26,
-		.led_lo    = 27,
-		.led_hi    = 28,
-	},
-
-I wrote the ISDB-T support for it, and it works properly.
-
-You'll likely need to add a new board entry there for it, and discover
-the GPIO pins linked to the leds and infrared (the numbers for .board_cfg
-and .led* on the above data structure). You can do it by either sniffing
-the USB board traffic or by opening the device and carefully examining the
-board tracks.
-
-After you have a patch adding support for it, please submit us the patch.
-
-Regards,
-Mauro
-
+-- 
+Mel Gorman
+SUSE Labs
