@@ -1,455 +1,197 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:63594 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752681Ab2AYMN0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 07:13:26 -0500
-Date: Wed, 25 Jan 2012 13:12:55 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de,
-	baruch@tkos.co.il
-Subject: Re: [PATCH 3/4] media i.MX27 camera: improve discard buffer handling.
-In-Reply-To: <1327059392-29240-4-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1201251127040.18778@axis700.grange>
-References: <1327059392-29240-1-git-send-email-javier.martin@vista-silicon.com>
- <1327059392-29240-4-git-send-email-javier.martin@vista-silicon.com>
+Received: from gir.skynet.ie ([193.1.99.77]:40078 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753820Ab2A3QOv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 11:14:51 -0500
+Date: Mon, 30 Jan 2012 16:14:47 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH 02/15] mm: page_alloc: update migrate type of pages on
+ pcp when isolating
+Message-ID: <20120130161447.GU25268@csn.ul.ie>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-3-git-send-email-m.szyprowski@samsung.com>
+ <20120130111522.GE25268@csn.ul.ie>
+ <op.v8wlu8ws3l0zgt@mpn-glaptop>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <op.v8wlu8ws3l0zgt@mpn-glaptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 20 Jan 2012, Javier Martin wrote:
-
-> The way discard buffer was previously handled lead
-> to possible races that made a buffer that was not
-> yet ready to be overwritten by new video data. This
-> is easily detected at 25fps just adding "#define DEBUG"
-> to enable the "memset" check and seeing how the image
-> is corrupted.
+On Mon, Jan 30, 2012 at 04:41:22PM +0100, Michal Nazarewicz wrote:
+> On Mon, 30 Jan 2012 12:15:22 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
 > 
-> A new "discard" queue and two discard buffers have
-> been added to make them flow trough the pipeline
-> of queues and thus provide suitable event ordering.
-
-Hmm, do I understand it right, that the problem is, that while the first 
-frame went to the discard buffer, the second one went already to a user 
-buffer, while it wasn't ready yet? And you solve this by adding one more 
-discard buffer? Wouldn't it be possible to either not start capture until 
-.start_streaming() is issued, which should also be the case after your 
-patch 2/4, or, at least, just reuse one discard buffer multiple times 
-until user buffers are available?
-
-If I understand right, you don't really introduce two discard buffers, 
-there's still only one data buffer, but you add two discard data objects 
-and a list to keep them on. TBH, this seems severely over-engineered to 
-me. What's wrong with just keeping one DMA data buffer and using it as 
-long, as needed, and checking in your ISR, whether a proper buffer is 
-present, by looking for list_empty(active)?
-
-I added a couple of comments below, but my biggest question really is - 
-why are these two buffer objects needed? Please, consider getting rid of 
-them. So, this is not a full review, if the objects get removed, most of 
-this patch will change anyway.
-
+> >On Thu, Jan 26, 2012 at 10:00:44AM +0100, Marek Szyprowski wrote:
+> >>From: Michal Nazarewicz <mina86@mina86.com>
+> >>@@ -139,3 +139,27 @@ int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn)
+> >> 	spin_unlock_irqrestore(&zone->lock, flags);
+> >> 	return ret ? 0 : -EBUSY;
+> >> }
+> >>+
+> >>+/* must hold zone->lock */
+> >>+void update_pcp_isolate_block(unsigned long pfn)
+> >>+{
+> >>+	unsigned long end_pfn = pfn + pageblock_nr_pages;
+> >>+	struct page *page;
+> >>+
+> >>+	while (pfn < end_pfn) {
+> >>+		if (!pfn_valid_within(pfn)) {
+> >>+			++pfn;
+> >>+			continue;
+> >>+		}
+> >>+
 > 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/mx2_camera.c |  215 +++++++++++++++++++++-----------------
->  1 files changed, 117 insertions(+), 98 deletions(-)
+> On Mon, 30 Jan 2012 12:15:22 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> >There is a potential problem here that you need to be aware of.
+> >set_pageblock_migratetype() is called from start_isolate_page_range().
+> >I do not think there is a guarantee that pfn + pageblock_nr_pages is
+> >not in a different block of MAX_ORDER_NR_PAGES. If that is right then
+> >your options are to add a check like this;
+> >
+> >if ((pfn & (MAX_ORDER_NR_PAGES - 1)) == 0 && !pfn_valid(pfn))
+> >	break;
+> >
+> >or else ensure that end_pfn is always MAX_ORDER_NR_PAGES aligned and in
+> >the same block as pfn and relying on the caller to have called
+> >pfn_valid.
 > 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index 4816da6..e0c5dd4 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -224,6 +224,28 @@ struct mx2_fmt_cfg {
->  	struct mx2_prp_cfg		cfg;
->  };
->  
-> +enum mx2_buffer_state {
-> +	MX2_STATE_NEEDS_INIT = 0,
-> +	MX2_STATE_PREPARED   = 1,
-> +	MX2_STATE_QUEUED     = 2,
-> +	MX2_STATE_ACTIVE     = 3,
-> +	MX2_STATE_DONE       = 4,
-> +	MX2_STATE_ERROR      = 5,
-> +	MX2_STATE_IDLE       = 6,
-> +};
-> +
-> +/* buffer for one video frame */
-> +struct mx2_buffer {
-> +	/* common v4l buffer stuff -- must be first */
-> +	struct vb2_buffer		vb;
-> +	struct list_head		queue;
-> +	enum mx2_buffer_state		state;
-> +	enum v4l2_mbus_pixelcode	code;
-> +
-> +	int				bufnum;
-> +	bool				discard;
-> +};
-> +
+> 	pfn = round_down(pfn, pageblock_nr_pages);
+> 	end_pfn = pfn + pageblock_nr_pages;
+> 
+> should do the trick as well, right?  move_freepages_block() seem to be
+> doing the same thing.
+> 
 
-When submitting a patch series, it is usually good to avoid 
-double-patching. E.g., in this case, your first patch adds these enum and 
-struct and this patch moves them a couple of lines up. Please, place them 
-at the correct location already with the first patch.
+That would also do it the trick.
 
->  struct mx2_camera_dev {
->  	struct device		*dev;
->  	struct soc_camera_host	soc_host;
-> @@ -240,6 +262,7 @@ struct mx2_camera_dev {
->  
->  	struct list_head	capture;
->  	struct list_head	active_bufs;
-> +	struct list_head	discard;
->  
->  	spinlock_t		lock;
->  
-> @@ -252,6 +275,7 @@ struct mx2_camera_dev {
->  
->  	u32			csicr1;
->  
-> +	struct mx2_buffer	buf_discard[2];
->  	void			*discard_buffer;
->  	dma_addr_t		discard_buffer_dma;
->  	size_t			discard_size;
-> @@ -260,27 +284,6 @@ struct mx2_camera_dev {
->  	struct vb2_alloc_ctx	*alloc_ctx;
->  };
->  
-> -enum mx2_buffer_state {
-> -	MX2_STATE_NEEDS_INIT = 0,
-> -	MX2_STATE_PREPARED   = 1,
-> -	MX2_STATE_QUEUED     = 2,
-> -	MX2_STATE_ACTIVE     = 3,
-> -	MX2_STATE_DONE       = 4,
-> -	MX2_STATE_ERROR      = 5,
-> -	MX2_STATE_IDLE       = 6,
-> -};
-> -
-> -/* buffer for one video frame */
-> -struct mx2_buffer {
-> -	/* common v4l buffer stuff -- must be first */
-> -	struct vb2_buffer		vb;
-> -	struct list_head		queue;
-> -	enum mx2_buffer_state		state;
-> -	enum v4l2_mbus_pixelcode	code;
-> -
-> -	int bufnum;
-> -};
-> -
->  static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
->  	/*
->  	 * This is a generic configuration which is valid for most
-> @@ -334,6 +337,29 @@ static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
->  	return &mx27_emma_prp_table[0];
->  };
->  
-> +static void mx27_update_emma_buf(struct mx2_camera_dev *pcdev,
-> +				 unsigned long phys, int bufnum)
-> +{
-> +	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
+> >>+		page = pfn_to_page(pfn);
+> >>+		if (PageBuddy(page)) {
+> >>+			pfn += 1 << page_order(page);
+> >>+		} else if (page_count(page) == 0) {
+> >>+			set_page_private(page, MIGRATE_ISOLATE);
+> >>+			++pfn;
+> >
+> >This is dangerous for two reasons. If the page_count is 0, it could
+> >be because the page is in the process of being freed and is not
+> >necessarily on the per-cpu lists yet and you cannot be sure if the
+> >contents of page->private are important. Second, there is nothing to
+> >prevent another CPU allocating this page from its per-cpu list while
+> >the private field is getting updated from here which might lead to
+> >some interesting races.
+> >
+> >I recognise that what you are trying to do is respond to Gilad's
+> >request that you really check if an IPI here is necessary. I think what
+> >you need to do is check if a page with a count of 0 is encountered
+> >and if it is, then a draining of the per-cpu lists is necessary. To
+> >address Gilad's concerns, be sure to only this this once per attempt at
+> >CMA rather than for every page encountered with a count of 0 to avoid a
+> >storm of IPIs.
+> 
+> It's actually more then that.
+> 
+> This is the same issue that I first fixed with a change to free_pcppages_bulk()
+> function[1].  At the time of positing, you said you'd like me to try and find
+> a different solution which would not involve paying the price of calling
+> get_pageblock_migratetype().  Later I also realised that this solution is
+> not enough.
+> 
+> [1] http://article.gmane.org/gmane.linux.kernel.mm/70314
+> 
 
-Are only 1-byte-per-pixel formats supported? Ok, it is only used for 
-YUV420, please, move this variable down in that "if."
+Yes. I had forgotten the history but looking at that patch again,
+I would reach the conclusion that this was adding a new call to
+get_pageblock_migratetype() in the bulk free path. That would affect
+everybody whether they were using CMA or not.
 
-> +	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-> +
-> +	if (prp->cfg.channel == 1) {
-> +		writel(phys, pcdev->base_emma +
-> +				PRP_DEST_RGB1_PTR + 4 * bufnum);
-> +	} else {
-> +		writel(phys, pcdev->base_emma +
-> +					PRP_DEST_Y_PTR -
-> +					0x14 * bufnum);
+> My next attempt was to run drain PCP list while holding zone->lock[2], but that
+> quickly proven to be broken approach when Marek started testing it on an SMP
+> system.
+> 
+> [2] http://article.gmane.org/gmane.linux.kernel.mm/72016
+> 
+> This patch is yet another attempt of solving this old issue.  Even though it has
+> a potential race condition we came to conclusion that the actual chances of
+> causing any problems are slim.  Various stress tests did not, in fact, show
+> the race to be an issue.
+> 
 
-Join the above two lines, please.
+It is a really small race. To cause a problem CPU 1 must find a page
+with count 0, CPU 2 must then allocate the page and set page->private
+before CPU 1 overwrites that value but it's there.
 
-> +		if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
-> +			writel(phys + imgsize,
-> +			pcdev->base_emma + PRP_DEST_CB_PTR -
-> +			0x14 * bufnum);
-> +			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
-> +			PRP_DEST_CR_PTR - 0x14 * bufnum);
-> +		}
-> +	}
-> +}
-> +
->  static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
->  {
->  	unsigned long flags;
-> @@ -382,7 +408,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
->  	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
->  
->  	pcdev->icd = icd;
-> -	pcdev->frame_count = -1;
-> +	pcdev->frame_count = 0;
->  
->  	dev_info(icd->parent, "Camera driver attached to camera %d\n",
->  		 icd->devnum);
-> @@ -648,10 +674,9 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
->  	 * types.
->  	 */
->  	spin_lock_irqsave(&pcdev->lock, flags);
-> -	if (buf->state == MX2_STATE_QUEUED || buf->state == MX2_STATE_ACTIVE) {
-> -		list_del_init(&buf->queue);
-> -		buf->state = MX2_STATE_NEEDS_INIT;
-> -	} else if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
-> +	INIT_LIST_HEAD(&buf->queue);
+> The problem is that if a page is on a PCP list, and it's underlaying pageblocks'
+> migrate type is changed to MIGRATE_ISOLATE, the page (i) will still remain on PCP
+> list and thus someone can allocate it, and (ii) when removed from PCP list, the
+> page will be put on freelist of migrate type it had prior to change.
+> 
+> (i) is actually not such a big issue since the next thing that happens after
+> isolation is migration so all the pages will get freed.  (ii) is actual problem
+> and if [1] is not an acceptable solution I really don't have a good fix for that.
+> 
+> One things that comes to mind is calling drain_all_pages() prior to acquiring
+> zone->lock in set_migratetype_isolate().  This is however prone to races since
+> after the drain and before the zone->lock is acquired, pages might get moved
+> back to PCP list.
+> 
+> Draining PCP list after acquiring zone->lock is not possible because
+> smp_call_function_many() cannot be called with interrupts disabled, and changing
+> spin_lock_irqsave() to spin_lock() followed by local_irq_save() causes a dead
+> lock (that's what [2] attempted to do).
+> 
+> Any suggestions are welcome!
+> 
 
-Wouldn't this leave the list, on which this buffer is, corrupted?
+[1] is still not preferred as I'd still like to keep the impact
+of CMA to the normal paths to be as close to 0 as possible. In
+update_pcp_isolate_block() how about something like this?
 
-> +	buf->state = MX2_STATE_NEEDS_INIT;
-> +	if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
->  		if (pcdev->fb1_active == buf) {
->  			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
->  			writel(0, pcdev->base_csi + CSIDMASA_FB1);
-> @@ -674,7 +699,10 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
->  		to_soc_camera_host(icd->parent);
->  	struct mx2_camera_dev *pcdev = ici->priv;
->  	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-> +	struct vb2_buffer *vb;
-> +	struct mx2_buffer *buf;
->  	unsigned long flags;
-> +	unsigned long phys;
->  	int ret = 0;
->  
->  	spin_lock_irqsave(&pcdev->lock, flags);
-> @@ -684,6 +712,26 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
->  			goto err;
->  		}
->  
-> +		buf = list_entry(pcdev->capture.next,
-> +				 struct mx2_buffer, queue);
-> +		buf->bufnum = 0;
-> +		vb = &buf->vb;
-> +		buf->state = MX2_STATE_ACTIVE;
-> +
-> +		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-> +		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
-> +		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
-> +
-> +		buf = list_entry(pcdev->capture.next,
-> +				 struct mx2_buffer, queue);
-> +		buf->bufnum = 1;
-> +		vb = &buf->vb;
-> +		buf->state = MX2_STATE_ACTIVE;
-> +
-> +		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-> +		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
-> +		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
-> +
->  		if (prp->cfg.channel == 1) {
->  			writel(PRP_CNTL_CH1EN |
->  				PRP_CNTL_CSIEN |
-> @@ -731,6 +779,9 @@ static int mx2_stop_streaming(struct vb2_queue *q)
->  			writel(cntl & ~PRP_CNTL_CH2EN,
->  			       pcdev->base_emma + PRP_CNTL);
->  		}
-> +		INIT_LIST_HEAD(&pcdev->capture);
-> +		INIT_LIST_HEAD(&pcdev->active_bufs);
-> +		INIT_LIST_HEAD(&pcdev->discard);
->  	}
->  	spin_unlock_irqrestore(&pcdev->lock, flags);
->  
-> @@ -793,50 +844,21 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
->  		to_soc_camera_host(icd->parent);
->  	struct mx2_camera_dev *pcdev = ici->priv;
->  	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-> -	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
->  
-> +	writel((icd->user_width << 16) | icd->user_height,
-> +	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
-> +	writel(prp->cfg.src_pixel,
-> +	       pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
->  	if (prp->cfg.channel == 1) {
-> -		writel(pcdev->discard_buffer_dma,
-> -				pcdev->base_emma + PRP_DEST_RGB1_PTR);
-> -		writel(pcdev->discard_buffer_dma,
-> -				pcdev->base_emma + PRP_DEST_RGB2_PTR);
-> -
-> -		writel((icd->user_width << 16) | icd->user_height,
-> -			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
->  		writel((icd->user_width << 16) | icd->user_height,
->  			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
->  		writel(bytesperline,
->  			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
-> -		writel(prp->cfg.src_pixel,
-> -			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
->  		writel(prp->cfg.ch1_pixel,
->  			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
->  	} else { /* channel 2 */
-> -		writel(pcdev->discard_buffer_dma,
-> -			pcdev->base_emma + PRP_DEST_Y_PTR);
-> -		writel(pcdev->discard_buffer_dma,
-> -			pcdev->base_emma + PRP_SOURCE_Y_PTR);
-> -
-> -		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
-> -			writel(pcdev->discard_buffer_dma + imgsize,
-> -				pcdev->base_emma + PRP_DEST_CB_PTR);
-> -			writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
-> -				pcdev->base_emma + PRP_DEST_CR_PTR);
-> -			writel(pcdev->discard_buffer_dma + imgsize,
-> -				pcdev->base_emma + PRP_SOURCE_CB_PTR);
-> -			writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
-> -				pcdev->base_emma + PRP_SOURCE_CR_PTR);
-> -		}
-> -
-> -		writel((icd->user_width << 16) | icd->user_height,
-> -			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
-> -
->  		writel((icd->user_width << 16) | icd->user_height,
->  			pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
-> -
-> -		writel(prp->cfg.src_pixel,
-> -			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
-> -
->  	}
->  
->  	/* Enable interrupts */
-> @@ -927,11 +949,22 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
->  		if (ret)
->  			return ret;
->  
-> -		if (pcdev->discard_buffer)
-> +		if (pcdev->discard_buffer) {
->  			dma_free_coherent(ici->v4l2_dev.dev,
->  				pcdev->discard_size, pcdev->discard_buffer,
->  				pcdev->discard_buffer_dma);
->  
-> +			pcdev->buf_discard[0].discard = true;
-> +			INIT_LIST_HEAD(&pcdev->buf_discard[0].queue);
-> +			list_add_tail(&pcdev->buf_discard[0].queue,
-> +				      &pcdev->discard);
-> +
-> +			pcdev->buf_discard[1].discard = true;
-> +			INIT_LIST_HEAD(&pcdev->buf_discard[1].queue);
-> +			list_add_tail(&pcdev->buf_discard[1].queue,
-> +				      &pcdev->discard);
-> +		}
-> +
+if (page_count(page) == 0) {
+	spin_unlock_irqrestore(zone->lock, flags);
+	drain_all_pages()
+	spin_lock_irqsave(zone->lock, flags);
+	if (PageBuddy(page)) {
+		order = page_order(page);
+		list_del(&page->lru);
+		list_add_tail(&page->lru, &zone->free_area[order].free_list[MIGRATE_ISOLATE]);
+		set_page_private(page, MIGRATE_ISOLATE);
+	}
+}
 
-So, you want to do this every time someone does S_FMT?...
+If the page is !PageBuddy, it does not matter as alloc_contig_range()
+is just about to migrate it.
 
->  		/*
->  		 * I didn't manage to properly enable/disable the prp
->  		 * on a per frame basis during running transfers,
-> @@ -1193,18 +1226,24 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
->  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  		int bufnum, int state)
->  {
-> -	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
-> -	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->  	struct mx2_buffer *buf;
->  	struct vb2_buffer *vb;
->  	unsigned long phys;
->  
-> -	if (!list_empty(&pcdev->active_bufs)) {
-> -		buf = list_entry(pcdev->active_bufs.next,
-> -			struct mx2_buffer, queue);
-> +	BUG_ON(list_empty(&pcdev->active_bufs));
-> +
-> +	buf = list_entry(pcdev->active_bufs.next,
-> +			 struct mx2_buffer, queue);
->  
-> -		BUG_ON(buf->bufnum != bufnum);
-> +	BUG_ON(buf->bufnum != bufnum);
->  
-> +	if (buf->discard) {
-> +		/*
-> +		 * Discard buffer must not be returned to user space.
-> +		 * Just return it to the discard queue.
-> +		 */
-> +		list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
-> +	} else {
->  		vb = &buf->vb;
->  #ifdef DEBUG
->  		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-> @@ -1226,6 +1265,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  			}
->  		}
->  #endif
-> +
->  		dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb,
->  				vb2_plane_vaddr(vb, 0),
->  				vb2_get_plane_payload(vb, 0));
-> @@ -1237,32 +1277,21 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
->  	}
->  
-> -	if (list_empty(&pcdev->capture)) {
-> -		if (prp->cfg.channel == 1) {
-> -			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
-> -					PRP_DEST_RGB1_PTR + 4 * bufnum);
-> -		} else {
-> -			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
-> -						PRP_DEST_Y_PTR -
-> -						0x14 * bufnum);
-> -			if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
-> -				writel(pcdev->discard_buffer_dma + imgsize,
-> -				       pcdev->base_emma + PRP_DEST_CB_PTR -
-> -				       0x14 * bufnum);
-> -				writel(pcdev->discard_buffer_dma +
-> -				       ((5 * imgsize) / 4), pcdev->base_emma +
-> -				       PRP_DEST_CR_PTR - 0x14 * bufnum);
-> -			}
-> -		}
-> +	pcdev->frame_count++;
-> +
-> +	if (list_empty(&pcdev->capture) && !list_empty(&pcdev->discard)) {
-> +		buf = list_entry(pcdev->discard.next,
-> +			struct mx2_buffer, queue);
-> +		buf->bufnum = bufnum;
-> +		list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
-> +		mx27_update_emma_buf(pcdev, pcdev->discard_buffer_dma, bufnum);
->  		return;
->  	}
->  
-> -	pcdev->frame_count++;
-> -
->  	buf = list_entry(pcdev->capture.next,
->  			struct mx2_buffer, queue);
->  
-> -	buf->bufnum = !bufnum;
-> +	buf->bufnum = bufnum;
->  
->  	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
->  
-> @@ -1270,18 +1299,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  	buf->state = MX2_STATE_ACTIVE;
->  
->  	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-> -	if (prp->cfg.channel == 1) {
-> -		writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
-> -	} else {
-> -		writel(phys, pcdev->base_emma +
-> -				PRP_DEST_Y_PTR - 0x14 * bufnum);
-> -		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
-> -			writel(phys + imgsize, pcdev->base_emma +
-> -					PRP_DEST_CB_PTR - 0x14 * bufnum);
-> -			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
-> -					PRP_DEST_CR_PTR - 0x14 * bufnum);
-> -		}
-> -	}
-> +	mx27_update_emma_buf(pcdev, phys, bufnum);
->  }
->  
->  static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
-> @@ -1433,6 +1451,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  
->  	INIT_LIST_HEAD(&pcdev->capture);
->  	INIT_LIST_HEAD(&pcdev->active_bufs);
-> +	INIT_LIST_HEAD(&pcdev->discard);
->  	spin_lock_init(&pcdev->lock);
->  
->  	/*
+
+> >>+		} else {
+> >>+			++pfn;
+> >>+		}
+> >>+	}
+> >>+}
+> 
 > -- 
-> 1.7.0.4
+> Best regards,                                         _     _
+> .o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+> ..o | Computer Science,  Micha?? ???mina86??? Nazarewicz    (o o)
+> ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
 > 
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Mel Gorman
+SUSE Labs
