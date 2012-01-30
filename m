@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-xsmtp4.externet.hu ([212.40.96.155]:41081 "EHLO
-	mail-xsmtp4.externet.hu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751122Ab2AWQbP (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44823 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752694Ab2A3L6B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 11:31:15 -0500
-Message-ID: <4F1D8B51.4020507@gmail.com>
-Date: Mon, 23 Jan 2012 17:31:13 +0100
-From: Csillag Kristof <csillag.kristof@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: 720p webcam providing VDPAU-compatible video stream?
-References: <4F1C0921.1060109@gmail.com> <201201231541.32049.laurent.pinchart@ideasonboard.com>
-In-Reply-To: <201201231541.32049.laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-2; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 30 Jan 2012 06:58:01 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: stable@kernel.org
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] [media] omap3isp: ccdc: Fix crash in HS/VS interrupt handler
+Date: Mon, 30 Jan 2012 12:58:16 +0100
+Message-Id: <1327924696-17108-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At 2012-01-23 15:41, Laurent Pinchart wrote:
-> I think your best bet is still UVC + H.264, as that's what the market is
-> moving to. Any other compressed format (except for MJPEG) will likely be
-> proprietary.
->
-> As you correctly mention, H.264 support isn't available yet in the UVC driver.
-> Patches are welcome ;-)
+The HS/VS interrupt handler needs to access the pipeline object. It
+erronously tries to get it from the CCDC output video node, which isn't
+necessarily included in the pipeline. This leads to a NULL pointer
+dereference.
 
-So... do I understand it correctly that with the current hw/sw stack, my 
-original requirements can not be satisfied?
+Fix the bug by getting the pipeline object from the CCDC subdev entity.
 
-In that case, let's try with reduced requirements. What if I give up HD 
-resolution and H264?
+Reported-by: Gary Thomas <gary@mlbassoc.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: stable@kernel.org
+---
+ drivers/media/video/omap3isp/ispccdc.c |    3 +--
+ 1 files changed, 1 insertions(+), 2 deletions(-)
 
-Is there a camera that can provide a HW-compressed 480p video stream, in 
-MPEG-2 or something like that?
+This patch fixes a crash in v3.2 and is included in v3.3-rc1. It isn't
+applicable to previous kernel versions.
 
-Thank you:
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index b0b0fa5..9012b57 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1406,8 +1406,7 @@ static int __ccdc_handle_stopping(struct isp_ccdc_device *ccdc, u32 event)
+ 
+ static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
+ {
+-	struct isp_pipeline *pipe =
+-		to_isp_pipeline(&ccdc->video_out.video.entity);
++	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+ 	struct video_device *vdev = ccdc->subdev.devnode;
+ 	struct v4l2_event event;
+ 
+-- 
+Regards,
 
-    Kristof
-
-
-
-
+Laurent Pinchart
 
