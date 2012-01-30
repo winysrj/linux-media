@@ -1,126 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:62466 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758899Ab2AFS3W convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 6 Jan 2012 13:29:22 -0500
-Received: by obcwo16 with SMTP id wo16so2189773obc.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 10:29:22 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58536 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714Ab2A3KUv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 05:20:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [RFC] Format and frame rate configuration in subdev video and pad ops
+Date: Mon, 30 Jan 2012 11:21:06 +0100
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <snjw23@gmail.com>
+References: <4F251F40.1030808@iki.fi>
+In-Reply-To: <4F251F40.1030808@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAHVY3enRbcw-xKthuog5LXGMc_2tUAa0+owqbDm+C00mdWhV7w@mail.gmail.com>
-References: <CAHVY3enRbcw-xKthuog5LXGMc_2tUAa0+owqbDm+C00mdWhV7w@mail.gmail.com>
-From: Mario Ceresa <mrceresa@gmail.com>
-Date: Fri, 6 Jan 2012 19:29:01 +0100
-Message-ID: <CAHVY3emdMwEg9GPg1FMwVat3Xzn5AsoKZgveLvwHDxOFJiVtLA@mail.gmail.com>
-Subject: Re: em28xx: no sound on board 1b80:e309 (sveon stv40)
-To: V4L Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201301121.08062.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ok boys: just to let you know that everything works now.
+Hi Sakari,
 
-thinking that the problem was with the audio input, I noticed that
-card=64 had an amux while card=19 no.
+On Sunday 29 January 2012 11:28:16 Sakari Ailus wrote:
+> Hi all,
+> 
+> We have now two type of subdev drivers, those which use the Media
+> controller framework and those which do not. The former group implements
+> v4l2_subdev_pad_ops for the purpose whereas the latter uses
+> v4l2_subdev_video_ops. In practice the two implement essentially the
+> same feature set.
+> 
+> Same goes for simple bus receiver drivers (also called bridge) whereas
+> all the more complex ISP drivers rightly use the pad ops.
+> 
+> The two groups of drivers are currently mostly not mixable, and the
+> reason is mostly the above, as far as I understand.
+> 
+> To improve interoperability, it would be relatively easy to provide
+> wrapper functions for either groups of the ISP / bus receiver drivers so
+> they do need not to be changed to support both.
 
-.amux     = EM28XX_AMUX_LINE_IN,
+This is something I've proposed a couple of months ago. I still stand by my 
+proposal, it's a good idea.
 
-So I tried this card and modified the mplayer options accordingly:
+> More complex sensor drivers, for example the SMIA++ exports more than
+> one subdev for the configuration of sensor's image processing --- there
+> is functionality which is present in ISPs only: cropping in three
+> different locations and scaling in two. Many of the decisions in the
+> configuration are policy decisions and thus belong to user space. This
+> kind of drivers cannot be utilised without Media controller support, and
+> thus I believe it is right for even simple bus receiver drivers to
+> implement Media controller support to allow all bridge / ISP drivers to
+> use them.
+> 
+> While not all the user space is not yet in place to support such drivers
+> I have not forgotten work on this library --- it just takes time.
+> 
+> There are two sets of wrappers that can be implemented to improve the
+> current situation. After the full transition to pad ops (should it ever
+> happen is to be decided, I guess) these wrappers could be removed.
+> 
+> Wrappers for sensor drivers to implement pad ops using video ops.
+> There's one pad on such subdevs and a few other restrictions: try
+> formats cannot be supported since there is no v4l2_fh support in video ops.
+> 
+> How should the try operations requiring v4l2_fh behave in this case?
+> Should they just return the current ACTIVE format (or crop) or should
+> they behave as ACTIVE version of the same op does? I might pick the
+> first option as it's less wrong. Complete support is not possible due to
+> lack of functionality in the interface.
 
-mplayer -tv device=/dev/video0:input=0:norm=PAL:forceaudio:alsa:immediatemode=0:audiorate=48000:amode=1:adevice=hw.2
-tv://
+I'm not sure I would implement such wrappers. I think we should instead 
+convert the sensor drivers to pad ops, and use the "video ops through pad ops" 
+wrapper if the sensor is used with an ISP that doesn't support pad ops yet.
 
-notice the forceaudio parameter that reads the audio even if no source
-is reported from v4l (The same approach with card=19 does not work)
+> Wrappers for sensor drivers to implement video ops using pad ops. This
+> is trivial: all the information is available through the pad ops,  with
+> v4l2_subdev_format fields which == V4L2_SUBDEV_FORMAT_ACTIVE and pad == 0.
+> 
+> The same mostly goes for crop: v4l2_crop contains a subset of
+> information in v4l2_subdev_crop.
+> 
+> Conclusion: to achieve maximum compatibility with bridge / ISP drivers
+> using the two sets of ops, sensor / tuner etc. drivers should use pad
+> ops to implement format, crop and frame rate configuration and
+> enumeration. What is missing is a set of wrappers for sensor drivers to
+> allow bridge and ISP drivers using either set of ops to use these sensor
+> drivers.
+> 
+> Comments, questions?
+> 
+> relevant video ops:
+> 
+> int (*enum_mbus_fmt)(struct v4l2_subdev *sd, unsigned int index,
+>                      enum v4l2_mbus_pixelcode *code);
+> int (*enum_mbus_fsizes)(struct v4l2_subdev *sd,
+>                      struct v4l2_frmsizeenum *fsize);
+> int (*g_mbus_fmt)(struct v4l2_subdev *sd,
+>                   struct v4l2_mbus_framefmt *fmt);
+> int (*try_mbus_fmt)(struct v4l2_subdev *sd,
+>                     struct v4l2_mbus_framefmt *fmt);
+> int (*s_mbus_fmt)(struct v4l2_subdev *sd,
+>                   struct v4l2_mbus_framefmt *fmt);
+> 
+> relevant pad ops:
+> 
+> int (*enum_mbus_code)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh
+>                       struct v4l2_subdev_mbus_code_enum *code);
+> int (*enum_frame_size)(struct v4l2_subdev *sd,
+>                        struct v4l2_subdev_fh *fh,
+>                        struct v4l2_subdev_frame_size_enum *fse);
+> int (*enum_frame_interval)(struct v4l2_subdev *sd,
+>                            struct v4l2_subdev_fh *fh,
+>                            struct v4l2_subdev_frame_interval_enum *fie)
+> int (*get_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>                struct v4l2_subdev_format *format);
+> int (*set_fmt)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>                struct v4l2_subdev_format *format);
+> 
+> /**
+>  * struct v4l2_mbus_framefmt - frame format on the media bus
+>  * @width:      frame width
+>  * @height:     frame height
+>  * @code:       data format code (from enum v4l2_mbus_pixelcode)
+>  * @field:      used interlacing type (from enum v4l2_field)
+>  * @colorspace: colorspace of the data (from enum v4l2_colorspace)
+>  */
+> struct v4l2_mbus_framefmt {
+>         __u32                   width;
+>         __u32                   height;
+>         __u32                   code;
+>         __u32                   field;
+>         __u32                   colorspace;
+>         __u32                   reserved[7];
+> };
+> 
+> /**
+>  * struct v4l2_subdev_format - Pad-level media bus format
+>  * @which: format type (from enum v4l2_subdev_format_whence)
+>  * @pad: pad number, as reported by the media API
+>  * @format: media bus format (format code and frame size)
+>  */
+> struct v4l2_subdev_format {
+>         __u32 which;
+>         __u32 pad;
+>         struct v4l2_mbus_framefmt format;
+>         __u32 reserved[8];
+> };
+> 
+> struct v4l2_crop {
+>         enum v4l2_buf_type      type;
+>         struct v4l2_rect        c;
+> };
+> 
+> /**
+>  * struct v4l2_subdev_crop - Pad-level crop settings
+>  * @which: format type (from enum v4l2_subdev_format_whence)
+>  * @pad: pad number, as reported by the media API
+>  * @rect: pad crop rectangle boundaries
+>  */
+> struct v4l2_subdev_crop {
+>         __u32 which;
+>         __u32 pad;
+>         struct v4l2_rect rect;
+>         __u32 reserved[8];
+> };
+> 
+> Cheers,
 
-The output was a bit slugglish so I switched off pulse audio control
-of the board (https://bbs.archlinux.org/viewtopic.php?id=114228) and
-now everything is ok!
-
-I hope this will help some lonenly googlers in the future :)
-
+-- 
 Regards,
 
-Mario
-
-
-
-
-
-On 6 January 2012 18:48, Mario Ceresa <mrceresa@gmail.com> wrote:
-> Hello again!
->
-> I managed to obtain a nice video input from my sveon usb stick using
-> last em28xx v4l drivers from git and giving the module the hint
-> card=19.
->
-> But I have no audio.The card works flawlessy in windows.
->
-> The internal chipsets in the card are:
-> - USB interface: em2860
-> - Audio ADC: emp202
-> - Video ADC: saa7118h (philips)
->
-> Attached is the relevant dmseg output.
->
-> The usb audio card card correctly shows in pulseaudio volume control
-> and is recognized as hw.2 by alsa:
-> $ arecord -l
-> **** List of CAPTURE Hardware Devices ****
-> card 0: Intel [HDA Intel], device 0: AD198x Analog [AD198x Analog]
->  Subdevices: 3/3
->  Subdevice #0: subdevice #0
->  Subdevice #1: subdevice #1
->  Subdevice #2: subdevice #2
-> card 2: STV40 [USB 2861 Device (SVEON STV40)], device 0: USB Audio [USB Audio]
->  Subdevices: 1/1
->  Subdevice #0: subdevice #0
->
-> However, I'm not able to record any sound from it and mplayer says "no audio":
-> $ mplayer -tv device=/dev/video0:input=1:norm=PAL:alsa:immediatemode=0:audiorate=48000:amode=1:adevice=hw.2
-> tv://
-> MPlayer SVN-r33996-4.6.1 (C) 2000-2011 MPlayer Team
-> mplayer: could not connect to socket
-> mplayer: No such file or directory
-> Failed to open LIRC support. You will not be able to use your remote control.
->
-> Playing tv://.
-> TV file format detected.
-> Selected driver: v4l2
->  name: Video 4 Linux 2 input
->  author: Martin Olschewski <olschewski@zpr.uni-koeln.de>
->  comment: first try, more to come ;-)
-> Selected device: EM2860/SAA711X Reference Design
->  Capabilities:  video capture  VBI capture device  audio  read/write  streaming
->  supported norms: 0 = NTSC; 1 = NTSC-M; 2 = NTSC-M-JP; 3 = NTSC-M-KR;
-> 4 = NTSC-443; 5 = PAL; 6 = PAL-BG; 7 = PAL-H; 8 = PAL-I; 9 = PAL-DK;
-> 10 = PAL-M; 11 = PAL-N; 12 = PAL-Nc; 13 = PAL-60; 14 = SECAM; 15 =
-> SECAM-B; 16 = SECAM-G; 17 = SECAM-H; 18 = SECAM-DK; 19 = SECAM-L; 20 =
-> SECAM-Lc;
->  inputs: 0 = S-Video; 1 = Composite1;
->  Current input: 1
->  Current format: YUYV
-> v4l2: ioctl set format failed: Invalid argument
-> v4l2: ioctl set format failed: Invalid argument
-> v4l2: ioctl set format failed: Invalid argument
-> Selected input hasn't got a tuner!
-> ==========================================================================
-> Opening video decoder: [raw] RAW Uncompressed Video
-> Movie-Aspect is undefined - no prescaling applied.
-> VO: [vdpau] 640x480 => 640x480 Packed YUY2
-> Selected video codec: [rawyuy2] vfm: raw (RAW YUY2)
-> ==========================================================================
-> Audio: no sound
-> Starting playback...
-> V:   2.0  52/ 52  0%  5%  0.0% 0 0
-> v4l2: 59 frames successfully processed, 0 frames dropped.
->
-> Maybe has something to do with the last line in dmesg:
->
-> [  403.359333] ALSA sound/usb/mixer.c:845 2:1: cannot get min/max
-> values for control 2 (id 2)
->
-> Any ideas?
->
-> Mario
+Laurent Pinchart
