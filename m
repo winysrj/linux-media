@@ -1,100 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from banach.math.auburn.edu ([131.204.45.3]:38445 "EHLO
-	banach.math.auburn.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753397Ab2ARQec (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:60803 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751719Ab2A3KDp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 18 Jan 2012 11:34:32 -0500
-Date: Wed, 18 Jan 2012 10:42:38 -0600 (CST)
-From: Theodore Kilgore <kilgota@banach.math.auburn.edu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Gregor Jasny <gjasny@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: v4l-utils migrated to autotools
-In-Reply-To: <4F16DCAD.5010700@redhat.com>
-Message-ID: <alpine.LNX.2.00.1201181023390.6337@banach.math.auburn.edu>
-References: <4F134701.9000105@googlemail.com> <4F16B8CC.3010503@redhat.com> <4F16BF4D.4070404@googlemail.com> <4F16C11F.3040108@redhat.com> <4F16C2CA.2090401@googlemail.com> <4F16DCAD.5010700@redhat.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 30 Jan 2012 05:03:45 -0500
+Received: by pbaa10 with SMTP id a10so3627077pba.19
+        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2012 02:03:45 -0800 (PST)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, kyungmin.park@samsung.com,
+	k.debski@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH][media] s5p-g2d: Add HFLIP and VFLIP support
+Date: Mon, 30 Jan 2012 15:28:43 +0530
+Message-Id: <1327917523-29836-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch adds support for flipping the image horizontally and vertically.
 
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/video/s5p-g2d/g2d-hw.c |    5 +++
+ drivers/media/video/s5p-g2d/g2d.c    |   47 +++++++++++++++++++++++++++------
+ drivers/media/video/s5p-g2d/g2d.h    |    3 ++
+ 3 files changed, 46 insertions(+), 9 deletions(-)
 
-On Wed, 18 Jan 2012, Mauro Carvalho Chehab wrote:
+diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
+index 39937cf..5b86cbe 100644
+--- a/drivers/media/video/s5p-g2d/g2d-hw.c
++++ b/drivers/media/video/s5p-g2d/g2d-hw.c
+@@ -77,6 +77,11 @@ void g2d_set_rop4(struct g2d_dev *d, u32 r)
+ 	w(r, ROP4_REG);
+ }
+ 
++void g2d_set_flip(struct g2d_dev *d, u32 r)
++{
++	w(r, SRC_MSK_DIRECT_REG);
++}
++
+ u32 g2d_cmd_stretch(u32 e)
+ {
+ 	e &= 1;
+diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
+index febaa67..dea9701 100644
+--- a/drivers/media/video/s5p-g2d/g2d.c
++++ b/drivers/media/video/s5p-g2d/g2d.c
+@@ -178,6 +178,7 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct g2d_ctx *ctx = container_of(ctrl->handler, struct g2d_ctx,
+ 								ctrl_handler);
++
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_COLORFX:
+ 		if (ctrl->val == V4L2_COLORFX_NEGATIVE)
+@@ -185,6 +186,21 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
+ 		else
+ 			ctx->rop = ROP4_COPY;
+ 		break;
++
++	case V4L2_CID_HFLIP:
++		if (ctrl->val == 1)
++			ctx->hflip = 1;
++		else
++			ctx->hflip = 0;
++		break;
++
++	case V4L2_CID_VFLIP:
++		if (ctrl->val == 1)
++			ctx->vflip = (1 << 1);
++		else
++			ctx->vflip = 0;
++		break;
++
+ 	default:
+ 		v4l2_err(&ctx->dev->v4l2_dev, "unknown control\n");
+ 		return -EINVAL;
+@@ -200,11 +216,9 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
+ {
+ 	struct g2d_dev *dev = ctx->dev;
+ 
+-	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 1);
+-	if (ctx->ctrl_handler.error) {
+-		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
+-		return ctx->ctrl_handler.error;
+-	}
++	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
++	if (ctx->ctrl_handler.error)
++		goto error;
+ 
+ 	v4l2_ctrl_new_std_menu(
+ 		&ctx->ctrl_handler,
+@@ -214,12 +228,25 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
+ 		~((1 << V4L2_COLORFX_NONE) | (1 << V4L2_COLORFX_NEGATIVE)),
+ 		V4L2_COLORFX_NONE);
+ 
+-	if (ctx->ctrl_handler.error) {
+-		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
+-		return ctx->ctrl_handler.error;
+-	}
++	if (ctx->ctrl_handler.error)
++		goto error;
++
++	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
++						V4L2_CID_HFLIP, 0, 1, 1, 0);
++	if (ctx->ctrl_handler.error)
++		goto error;
++
++	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
++						V4L2_CID_VFLIP, 0, 1, 1, 0);
++	if (ctx->ctrl_handler.error)
++		goto error;
+ 
+ 	return 0;
++
++error:
++	v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
++	return ctx->ctrl_handler.error;
++
+ }
+ 
+ static int g2d_open(struct file *file)
+@@ -564,6 +591,8 @@ static void device_run(void *prv)
+ 	g2d_set_dst_addr(dev, vb2_dma_contig_plane_dma_addr(dst, 0));
+ 
+ 	g2d_set_rop4(dev, ctx->rop);
++	g2d_set_flip(dev, ctx->hflip | ctx->vflip);
++
+ 	if (ctx->in.c_width != ctx->out.c_width ||
+ 		ctx->in.c_height != ctx->out.c_height)
+ 		cmd |= g2d_cmd_stretch(1);
+diff --git a/drivers/media/video/s5p-g2d/g2d.h b/drivers/media/video/s5p-g2d/g2d.h
+index 5eae901..b3be3c8 100644
+--- a/drivers/media/video/s5p-g2d/g2d.h
++++ b/drivers/media/video/s5p-g2d/g2d.h
+@@ -59,6 +59,8 @@ struct g2d_ctx {
+ 	struct g2d_frame	out;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	u32 rop;
++	u32 hflip;
++	u32 vflip;
+ };
+ 
+ struct g2d_fmt {
+@@ -77,6 +79,7 @@ void g2d_set_dst_addr(struct g2d_dev *d, dma_addr_t a);
+ void g2d_start(struct g2d_dev *d);
+ void g2d_clear_int(struct g2d_dev *d);
+ void g2d_set_rop4(struct g2d_dev *d, u32 r);
++void g2d_set_flip(struct g2d_dev *d, u32 r);
+ u32 g2d_cmd_stretch(u32 e);
+ void g2d_set_cmd(struct g2d_dev *d, u32 c);
+ 
+-- 
+1.7.4.1
 
-> Em 18-01-2012 11:02, Gregor Jasny escreveu:
-> > On 1/18/12 1:54 PM, Mauro Carvalho Chehab wrote:
-> >> Em 18-01-2012 10:47, Gregor Jasny escreveu:
-> >>> On 1/18/12 1:19 PM, Mauro Carvalho Chehab wrote:
-> >>>> It would be nice to write at the INSTALL what dependencies are needed for
-> >>>> the autotools to work, or, alternatively, to commit the files generated
-> >>>> by the autoreconf -vfi magic spell there [1].
-> >>>
-> >>> The end user gets a tarball created with "make dist" which contains all the m4 files.
-> >>
-> >> Ah, ok. It probably makes sense then to add some scripting at the server to do
-> >> a daily build, as the tarballs aren't updated very often. They're updated only
-> >> at the sub-releases:
-> >>     http://linuxtv.org/downloads/v4l-utils/
-> > 
-> > Judging from the upside-down reports: not the lack of a buildable tarball but the lack of updated distribution packages is a problem. For Ubuntu we have a PPA repository with nightly builds:
-> > 
-> > https://launchpad.net/~libv4l/+archive/development
-> > 
-> > Do you have similar infrastructure for Fedora / RedHat, too?
-> 
-> There are two separate issues here:
-> 
-> 1) users that just get the distro packages.
-> 
-> For them, the updated distro packages is the issue.
-> 
-> For those, it is very good to have v4l-utils properly packaged on Ubuntu.
-> Thanks for that!
-> 
-> Hans is maintaining v4l-utils at Fedora. I don't think he's currently 
-> using the -git unstable versions at Fedora Rawhide (the Fedora under 
-> development distro). Yet, every time a new release is lauched, he
-> updates the packages for Fedora.
-> 
-> So, I think that this is now properly covered with Fedora and Ubuntu 
-> (also Debian?). I think that Suse is also doing something similar.
-> 
-> 2) users that are testing the neat features that the newest package has.
-> 
-> This covers most of the 900+ subscribers of the linux-media ML.
-> 
-> Those users, in general, don't care much about the distro packages. They
-> just want to download the latest sources and compile, in order to test
-> the drivers/tools, and provide us feedback. We want to make life easier
-> for them, as their test is very important for us to detect, in advance,
-> when some regression is happened somewhere.
-> 
-> For those users, it may make sense to have a daily tarball or some
-> user-friendly scripting that would allow them to easily clone the
-> git tree and use it.
-> 
-> Regards,
-> Mauro
-
-As one of the people who comes under category (2) above, let me add a 
-couple of comments, here. 
-
-First, I was unaware of these changes until I found out about them the 
-hard way, a few days ago. Namely, I did a "git pull" and added the new 
-stuff to my working copy, then could not compile anything. The error I got 
-said that config.h is missing. Well, it took me all of about 5 minutes to 
-figure out that I had better re-read the Imstall file, which made things 
-totally clear. Run autoconf. Been there with other projects, done that. No 
-problems. I only saw some mail on the list about the changeover a couple 
-of days after that, and had a chuckle.
-
-Second, it is no big deal. Autoconf works quite nicely, so what is the 
-problem, exactly? I see not much need for "a daily tarball or some 
-user-friendly scripting" to "fix" something which does not appear to be a 
-problem. Well, there is a problem, but I do not see it as a serious one. 
-The problem is that one's tools have to be up to date. That is up to the 
-distro. But it is probably well known that some distros are better at 
-keeping up with things like this than are others.
-
-Theodore Kilgore
