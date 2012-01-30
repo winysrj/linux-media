@@ -1,46 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:45378 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751341Ab2AOVrO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 16:47:14 -0500
-Message-ID: <4F13495E.8030106@iki.fi>
-Date: Sun, 15 Jan 2012 23:47:10 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [ANNOUNCE] DVBv5 tools version 0.0.1
-References: <4F08385E.7050602@redhat.com> <4F0CAF53.3090802@iki.fi> <4F0CB512.7010501@redhat.com> <4F131CD8.2060602@iki.fi> <4F13312B.8060005@iki.fi> <4F13404D.2020001@redhat.com>
-In-Reply-To: <4F13404D.2020001@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43740 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751921Ab2A3MTl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 07:19:41 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: javier.martin@vista-silicon.com
+Subject: [PATCH] mt9p031: Remove unused xskip and yskip fields in struct mt9p031
+Date: Mon, 30 Jan 2012 13:19:56 +0100
+Message-Id: <1327925996-18459-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/15/2012 11:08 PM, Mauro Carvalho Chehab wrote:
-> There was a bug at the error code handling on dvb-fe-tool: basically, if it can't open
-> a device, it were using a NULL pointer. It was likely fixed by this commit:
->
-> http://git.linuxtv.org/v4l-utils.git/commit/1f669eed5433d17df4d8fb1fa43d2886f99d3991
+The fields are set but never used, remove them.
 
-That bug was fixed as I tested.
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9p031.c |    4 ----
+ 1 files changed, 0 insertions(+), 4 deletions(-)
 
-But could you tell why dvb-fe-tool --set-delsys=DVBC/ANNEX_A calls 
-get_frontent() ?
-
-That will cause this kind of calls in demod driver:
-init()
-get_frontend()
-get_frontend()
-sleep()
-
-My guess is that it resolves current delivery system. But as demod is 
-usually sleeping (not tuned) at that phase it does not know frontend 
-settings asked, like modulation etc. In case of cxd2820r those are 
-available after set_frontend() call. I think I will add check and return 
--EINVAL in that case.
-
-regards
-Antti
+diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
+index 93c3ec7..0bdddbb 100644
+--- a/drivers/media/video/mt9p031.c
++++ b/drivers/media/video/mt9p031.c
+@@ -115,8 +115,6 @@ struct mt9p031 {
+ 	struct mt9p031_platform_data *pdata;
+ 	struct mutex power_lock; /* lock to protect power_count */
+ 	int power_count;
+-	u16 xskip;
+-	u16 yskip;
+ 
+ 	const struct mt9p031_pll_divs *pll;
+ 
+@@ -785,8 +783,6 @@ static int mt9p031_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+ 	format->field = V4L2_FIELD_NONE;
+ 	format->colorspace = V4L2_COLORSPACE_SRGB;
+ 
+-	mt9p031->xskip = 1;
+-	mt9p031->yskip = 1;
+ 	return mt9p031_set_power(subdev, 1);
+ }
+ 
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
