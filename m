@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51164 "EHLO mail.kapsi.fi"
+Received: from gir.skynet.ie ([193.1.99.77]:36864 "EHLO gir.skynet.ie"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750850Ab2AOSVM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 15 Jan 2012 13:21:12 -0500
-Received: from dyn3-82-128-184-189.psoas.suomi.net ([82.128.184.189] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1RmUhZ-0004f8-PR
-	for linux-media@vger.kernel.org; Sun, 15 Jan 2012 20:21:09 +0200
-Message-ID: <4F131902.8060305@iki.fi>
-Date: Sun, 15 Jan 2012 20:20:50 +0200
-From: Antti Palosaari <crope@iki.fi>
+	id S1752146Ab2A3Lzw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 06:55:52 -0500
+Date: Mon, 30 Jan 2012 11:55:48 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH 04/15] mm: compaction: introduce isolate_freepages_range()
+Message-ID: <20120130115548.GH25268@csn.ul.ie>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-5-git-send-email-m.szyprowski@samsung.com>
+ <20120130114820.GG25268@csn.ul.ie>
 MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-Subject: [PATCH FOR 3.3] anysee: do not attach same frontend twice
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <20120130114820.GG25268@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-cxd2820r implements only one frontend currently which
-handles all the standards.
+On Mon, Jan 30, 2012 at 11:48:20AM +0000, Mel Gorman wrote:
+> > +		if (!zone)
+> > +			zone = page_zone(pfn_to_page(pfn));
+> > +		else if (zone != page_zone(pfn_to_page(pfn)))
+> > +			break;
+> > +
+> 
+> So what you are checking for here is if you straddle zones.
+> You could just initialise zone outside of the for loop. You can
+> then check outside the loop if end_pfn is in a different zone to
+> start_pfn. If it is, either adjust end_pfn accordingly or bail the
+> entire operation avoiding the need for release_freepages() later. This
+> will be a little cheaper.
+> 
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
-  drivers/media/dvb/dvb-usb/anysee.c |   20 +++++++-------------
-  1 files changed, 7 insertions(+), 13 deletions(-)
+Whoops, silly me! You are watching for overlapping zones which can
+happen in some rare configurations and for that checking page_zone()
+like this is necessary. You can still initialise zone outside the loop
+but the page_zone() check is still necessary.
 
-diff --git a/drivers/media/dvb/dvb-usb/anysee.c 
-b/drivers/media/dvb/dvb-usb/anysee.c
-index df46015..ecc3add 100644
---- a/drivers/media/dvb/dvb-usb/anysee.c
-+++ b/drivers/media/dvb/dvb-usb/anysee.c
-@@ -877,24 +877,18 @@ static int anysee_frontend_attach(struct 
-dvb_usb_adapter *adap)
-  	case ANYSEE_HW_508T2C: /* 20 */
-  		/* E7 T2C */
-
-+		if (state->fe_id)
-+			break;
-+
-  		/* enable DVB-T/T2/C demod on IOE[5] */
-  		ret = anysee_wr_reg_mask(adap->dev, REG_IOE, (1 << 5), 0x20);
-  		if (ret)
-  			goto error;
-
--		if (state->fe_id == 0)  {
--			/* DVB-T/T2 */
--			adap->fe_adap[state->fe_id].fe =
--				dvb_attach(cxd2820r_attach,
--				&anysee_cxd2820r_config,
--				&adap->dev->i2c_adap, NULL);
--		} else {
--			/* DVB-C */
--			adap->fe_adap[state->fe_id].fe =
--				dvb_attach(cxd2820r_attach,
--				&anysee_cxd2820r_config,
--				&adap->dev->i2c_adap, adap->fe_adap[0].fe);
--		}
-+		/* attach demod */
-+		adap->fe_adap[state->fe_id].fe = dvb_attach(cxd2820r_attach,
-+				&anysee_cxd2820r_config, &adap->dev->i2c_adap,
-+				NULL);
-
-  		state->has_ci = true;
+My bad.
 
 -- 
-1.7.4.4
+Mel Gorman
+SUSE Labs
