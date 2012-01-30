@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:52899 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752465Ab2AYPFl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 25 Jan 2012 10:05:41 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by comal.ext.ti.com (8.13.7/8.13.7) with ESMTP id q0PF5dp6009764
-	for <linux-media@vger.kernel.org>; Wed, 25 Jan 2012 09:05:40 -0600
-From: Manjunath Hadli <manjunath.hadli@ti.com>
-To: LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	Manjunath Hadli <manjunath.hadli@ti.com>
-Subject: [PATCH 0/4] davinci: add vpif support for da850/omap-l138
-Date: Wed, 25 Jan 2012 20:35:30 +0530
-Message-ID: <1327503934-28186-1-git-send-email-manjunath.hadli@ti.com>
+Received: from nm8-vm1.bullet.mail.ne1.yahoo.com ([98.138.91.65]:34729 "HELO
+	nm8-vm1.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751854Ab2A3BVs convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 29 Jan 2012 20:21:48 -0500
+References: <1327495458.95081.YahooMailNeo@web125310.mail.ne1.yahoo.com>
+Message-ID: <1327886180.18009.YahooMailNeo@web125319.mail.ne1.yahoo.com>
+Date: Sun, 29 Jan 2012 17:16:20 -0800 (PST)
+From: Abby Cedar <abbycedar@yahoo.com.au>
+Reply-To: Abby Cedar <abbycedar@yahoo.com.au>
+Subject: Re: Dvico FusionHDTV DVB-T Pro poweroff mode failure, err = -6
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <1327495458.95081.YahooMailNeo@web125310.mail.ne1.yahoo.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-add vpif capture and display driver support for
-da850/omap-l138 by taking care of the interrupt 
-behavior changes and removing platform specific
-connotations.
+RegSpy showed incorrect GPIOs. I have included a patch that fixes this and the no sound on composite audio bugs here
+https://bugzilla.kernel.org/show_bug.cgi?id=42681
 
-Manjunath Hadli (4):
-  davinci: vpif: add check for genuine interrupts in the isr
-  davinci: vpif: make generic changes to re-use the vpif drivers on
-    da850/omap-l138 soc
-  davinci: vpif: make request_irq flags as shared
-  davinci: da850: add build configuration for vpif drivers
+-- 
 
- drivers/media/video/davinci/Kconfig        |   26 +++++++++++++++++++++++++-
- drivers/media/video/davinci/Makefile       |    5 +++++
- drivers/media/video/davinci/vpif.c         |    2 +-
- drivers/media/video/davinci/vpif_capture.c |   16 ++++++++++------
- drivers/media/video/davinci/vpif_display.c |   21 +++++++++++++--------
- drivers/media/video/davinci/vpif_display.h |    2 +-
- include/media/davinci/vpif_types.h         |    2 ++
- 7 files changed, 57 insertions(+), 17 deletions(-)
+Abby
+
+
+
+----- Original Message -----
+From: Abby Cedar <abbycedar@yahoo.com.au>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: 
+Sent: Wednesday, 25 January 2012 11:44 PM
+Subject: Dvico FusionHDTV DVB-T Pro poweroff mode failure, err = -6
+
+Hi,
+
+Has anyone got power management to work with CX88_BOARD_DVICO_FUSIONHDTV_DVB_T_PRO? I've enabled debug and am seeing the following in the kernel log:
+... "xc2028 1-0061: Putting xc2028/3028 into poweroff mode."
+... "xc2028 1-0061: Error on line 1212: -6"
+
+I could add ctl->disable_power_mgmt = 1; to cx88-cards.c to disable it and therefore the error message but am wondering why it isn't working. Is it even supported on this card?
+
+What am I missing out on by disabling poweroff mode? Is there a noticable power consumption (watts) difference?
+
+Please let me know how I can help fix this.
+
+-- 
+Abby
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
