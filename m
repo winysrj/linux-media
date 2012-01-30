@@ -1,105 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:63683 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752423Ab2A0Aj7 (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:57889 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751722Ab2A3NGx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 19:39:59 -0500
-Received: by ggnb1 with SMTP id b1so586752ggn.19
-        for <linux-media@vger.kernel.org>; Thu, 26 Jan 2012 16:39:59 -0800 (PST)
-Message-ID: <4F21F25A.7030002@gmail.com>
-Date: Thu, 26 Jan 2012 18:39:54 -0600
-From: Patrick Dickey <pdickeybeta@gmail.com>
+	Mon, 30 Jan 2012 08:06:53 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Mel Gorman" <mel@csn.ul.ie>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Jonathan Corbet" <corbet@lwn.net>,
+	"Shariq Hasnain" <shariq.hasnain@linaro.org>,
+	"Chunsang Jeong" <chunsang.jeong@linaro.org>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>,
+	"Benjamin Gaignard" <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH 08/15] mm: mmzone: MIGRATE_CMA migration type added
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-9-git-send-email-m.szyprowski@samsung.com>
+ <20120130123542.GL25268@csn.ul.ie>
+Date: Mon, 30 Jan 2012 14:06:50 +0100
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: [PATCH 0/2] Import PCTV-80e Drivers from Devin Heitmueller's
- Repository
-References: <1327131291-5174-1-git-send-email-pdickeybeta@gmail.com> <4F218114.7080300@redhat.com>
-In-Reply-To: <4F218114.7080300@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v8wepotk3l0zgt@mpn-glaptop>
+In-Reply-To: <20120130123542.GL25268@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/26/2012 10:36 AM, Mauro Carvalho Chehab wrote:
-> Em 21-01-2012 05:34, pdickeybeta@gmail.com escreveu:
->> From: Patrick Dickey <pdickeybeta@gmail.com>
+> On Thu, Jan 26, 2012 at 10:00:50AM +0100, Marek Szyprowski wrote:
+>> From: Michal Nazarewicz <mina86@mina86.com>
+>> @@ -875,10 +895,15 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+>>   * This array describes the order lists are fallen back to when
+>>   * the free lists for the desirable migrate type are depleted
+>>   */
+>> -static int fallbacks[MIGRATE_TYPES][3] = {
+>> +static int fallbacks[MIGRATE_TYPES][4] = {
+>>  	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+>>  	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+>> +#ifdef CONFIG_CMA
+>> +	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_CMA    , MIGRATE_RESERVE },
+
+On Mon, 30 Jan 2012 13:35:42 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> This is a curious choice. MIGRATE_CMA is allowed to contain movable
+> pages. By using MIGRATE_RECLAIMABLE and MIGRATE_UNMOVABLE for movable
+> pages instead of MIGRATE_CMA, you increase the changes that unmovable
+> pages will need to use MIGRATE_MOVABLE in the future which impacts
+> fragmentation avoidance. I would recommend that you change this to
+>
+> { MIGRATE_CMA, MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE }
+
+At the beginning the idea was to try hard not to get pages from MIGRATE_CMA
+allocated at all, thus it was put at the end of the fallbacks list, but on
+a busy system this probably won't help anyway, so I'll change it per your
+suggestion.
+
+>> @@ -1017,11 +1049,14 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+>>  			rmv_page_order(page);
 >>
->> This series of patches will import the drx39xxj(drx39xyj) drivers from Devin
->> Heitmueller's HG Repository for the Pinnacle PCTV-80e USB Tuner.
+>>  			/* Take ownership for orders >= pageblock_order */
+>> -			if (current_order >= pageblock_order)
+>> +			if (current_order >= pageblock_order &&
+>> +			    !is_pageblock_cma(page))
+>>  				change_pageblock_range(page, current_order,
+>>  							start_migratetype);
 >>
->> Patrick Dickey (2):
->>   import-pctv-80e-from-devin-heitmueller-hg-repository
->>     Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>    
->>     Signed-off-by: Patrick Dickey <pdickeybeta@gmail.com>
->>   import-pctv-80e-from-devin-heitmueller-hg-repository
->>     Signed-off-by: Devin Heitmueller <dheitmueller@kernellabs.com>    
->>     Signed-off-by: Patrick Dickey <pdickeybeta@gmail.com>
-> 
-> Patch 0 never arrived. Is there a place where I could get it?
-> If the patch is from some Devin's tree, maybe I can just get it there.
-
-I may have to resend them. Somehow the subject heading of the patches
-became mangled.  Patch 0, is just the cover letter, patch 1/2 and 2/2
-(which both have mangled subject headings) are the actual patches.
-
-The other two have the subject heading of [PATCH x/2] Import PCTV-80e
-Drivers from Devin Heitmueller's Repository#...  It combined the
-comments from the patch with the subject.
-
-Sorry for any inconvenience and confusion that this created.
-
-Have a great day:)
-Patrick.
-
-
-> 
+>> -			expand(zone, page, order, current_order, area, migratetype);
+>> +			expand(zone, page, order, current_order, area,
+>> +			       is_migrate_cma(start_migratetype)
+>> +			     ? start_migratetype : migratetype);
 >>
->>  Documentation/video4linux/CARDLIST.em28xx          |    1 +
->>  .../staging/media/dvb/frontends/drx39xyj/Kconfig   |    7 +
->>  .../staging/media/dvb/frontends/drx39xyj/Makefile  |    3 +
->>  .../media/dvb/frontends/drx39xyj/bsp_host.h        |   80 +
->>  .../staging/media/dvb/frontends/drx39xyj/bsp_i2c.h |  217 +
->>  .../media/dvb/frontends/drx39xyj/bsp_tuner.h       |  215 +
->>  .../media/dvb/frontends/drx39xyj/bsp_types.h       |  229 +
->>  .../media/dvb/frontends/drx39xyj/drx39xxj.c        |  457 +
->>  .../media/dvb/frontends/drx39xyj/drx39xxj.h        |   40 +
->>  .../media/dvb/frontends/drx39xyj/drx39xxj_dummy.c  |  134 +
->>  .../media/dvb/frontends/drx39xyj/drx_dap_fasi.c    |  675 +
->>  .../media/dvb/frontends/drx39xyj/drx_dap_fasi.h    |  268 +
->>  .../media/dvb/frontends/drx39xyj/drx_driver.c      | 1600 ++
->>  .../media/dvb/frontends/drx39xyj/drx_driver.h      | 2588 +++
->>  .../dvb/frontends/drx39xyj/drx_driver_version.h    |   82 +
->>  .../staging/media/dvb/frontends/drx39xyj/drxj.c    |16758 ++++++++++++++++++++
->>  .../staging/media/dvb/frontends/drx39xyj/drxj.h    |  730 +
->>  .../media/dvb/frontends/drx39xyj/drxj_map.h        |15359 ++++++++++++++++++
->>  .../staging/media/dvb/frontends/drx39xyj/drxj_mc.h | 3939 +++++
->>  .../media/dvb/frontends/drx39xyj/drxj_mc_vsb.h     |  744 +
->>  .../media/dvb/frontends/drx39xyj/drxj_mc_vsbqam.h  | 1437 ++
->>  .../media/dvb/frontends/drx39xyj/drxj_options.h    |   65 +
->>  22 files changed, 45628 insertions(+), 0 deletions(-)
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/Kconfig
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/Makefile
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_host.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_i2c.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_tuner.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/bsp_types.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj.c
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx39xxj_dummy.c
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_dap_fasi.c
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_dap_fasi.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver.c
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drx_driver_version.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj.c
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_map.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc_vsb.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_mc_vsbqam.h
->>  create mode 100644 drivers/staging/media/dvb/frontends/drx39xyj/drxj_options.h
->>
-> 
+>
+> What is this check meant to be doing?
+>
+> start_migratetype is determined by allocflags_to_migratetype() and
+> that never will be MIGRATE_CMA so is_migrate_cma(start_migratetype)
+> should always be false.
 
+Right, thanks!  This should be the other way around, ie.:
+
++			expand(zone, page, order, current_order, area,
++			       is_migrate_cma(migratetype)
++			     ? migratetype : start_migratetype);
+
+I'll fix this and the calls to is_pageblock_cma().
+
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
