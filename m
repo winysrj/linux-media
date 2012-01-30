@@ -1,121 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:46086 "EHLO mx1.redhat.com"
+Received: from gir.skynet.ie ([193.1.99.77]:36929 "EHLO gir.skynet.ie"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752874Ab2AAULY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 1 Jan 2012 15:11:24 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q01KBO22021855
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 1 Jan 2012 15:11:24 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 7/9] [media] dvb: get rid of fepriv->parameters_in
-Date: Sun,  1 Jan 2012 18:11:16 -0200
-Message-Id: <1325448678-13001-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-References: <1325448678-13001-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	id S1752543Ab2A3L53 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 06:57:29 -0500
+Date: Mon, 30 Jan 2012 11:57:26 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH 05/15] mm: compaction: export some of the functions
+Message-ID: <20120130115726.GI25268@csn.ul.ie>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-6-git-send-email-m.szyprowski@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1327568457-27734-6-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This var were used during DVBv3 times, in order to keep a copy
-of the parameters used by the events. This is not needed anymore,
-as the parameters are now dynamically generated from the DVBv5
-structure.
+On Thu, Jan 26, 2012 at 10:00:47AM +0100, Marek Szyprowski wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
+> 
+> This commit exports some of the functions from compaction.c file
+> outside of it adding their declaration into internal.h header
+> file so that other mm related code can use them.
+> 
+> This forced compaction.c to always be compiled (as opposed to being
+> compiled only if CONFIG_COMPACTION is defined) but as to avoid
+> introducing code that user did not ask for, part of the compaction.c
+> is now wrapped in on #ifdef.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> ---
+>  mm/Makefile     |    3 +-
+>  mm/compaction.c |  314 ++++++++++++++++++++++++++-----------------------------
+>  mm/internal.h   |   33 ++++++
+>  3 files changed, 184 insertions(+), 166 deletions(-)
+> 
+> diff --git a/mm/Makefile b/mm/Makefile
+> index 50ec00e..8aada89 100644
+> --- a/mm/Makefile
+> +++ b/mm/Makefile
+> @@ -13,7 +13,7 @@ obj-y			:= filemap.o mempool.o oom_kill.o fadvise.o \
+>  			   readahead.o swap.o truncate.o vmscan.o shmem.o \
+>  			   prio_tree.o util.o mmzone.o vmstat.o backing-dev.o \
+>  			   page_isolation.o mm_init.o mmu_context.o percpu.o \
+> -			   $(mmu-y)
+> +			   compaction.o $(mmu-y)
+>  obj-y += init-mm.o
+>  
+>  ifdef CONFIG_NO_BOOTMEM
+> @@ -32,7 +32,6 @@ obj-$(CONFIG_NUMA) 	+= mempolicy.o
+>  obj-$(CONFIG_SPARSEMEM)	+= sparse.o
+>  obj-$(CONFIG_SPARSEMEM_VMEMMAP) += sparse-vmemmap.o
+>  obj-$(CONFIG_SLOB) += slob.o
+> -obj-$(CONFIG_COMPACTION) += compaction.o
+>  obj-$(CONFIG_MMU_NOTIFIER) += mmu_notifier.o
+>  obj-$(CONFIG_KSM) += ksm.o
+>  obj-$(CONFIG_PAGE_POISONING) += debug-pagealloc.o
+> diff --git a/mm/compaction.c b/mm/compaction.c
+> index 63f82be..3e21d28 100644
+> --- a/mm/compaction.c
+> +++ b/mm/compaction.c
+> @@ -16,30 +16,11 @@
+>  #include <linux/sysfs.h>
+>  #include "internal.h"
+>  
+> +#if defined CONFIG_COMPACTION || defined CONFIG_CMA
+> +
 
-So, just get rid of it. That means that a DVBv5 pure call won't
-use anymore any DVBv3 parameters.
+This is pedantic but you reference CONFIG_CMA before the patch that
+declares it. The only time this really matters is when it breaks
+bisection but I do not think that is the case here.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |   27 ++-------------------------
- 1 files changed, 2 insertions(+), 25 deletions(-)
+Whether you fix this or not by moving the CONFIG_CMA check to the same
+patch that declares it in Kconfig
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index ea3d0a3..678e329 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -108,7 +108,6 @@ struct dvb_frontend_private {
- 
- 	/* thread/frontend values */
- 	struct dvb_device *dvbdev;
--	struct dvb_frontend_parameters parameters_in;
- 	struct dvb_frontend_parameters parameters_out;
- 	struct dvb_fe_events events;
- 	struct semaphore sem;
-@@ -696,7 +695,6 @@ restart:
- 					fepriv->algo_status |= DVBFE_ALGO_SEARCH_AGAIN;
- 					fepriv->delay = HZ / 2;
- 				}
--				fepriv->parameters_out = fepriv->parameters_in;
- 				fe->ops.read_status(fe, &s);
- 				if (s != fepriv->status) {
- 					dvb_frontend_add_event(fe, s); /* update event list */
-@@ -1561,8 +1559,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- {
- 	int r = 0;
- 	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	struct dvb_frontend_private *fepriv = fe->frontend_priv;
--	dtv_property_dump(tvp);
- 
- 	/* Allow the frontend to validate incoming properties */
- 	if (fe->ops.set_property) {
-@@ -1587,9 +1583,6 @@ static int dtv_property_process_set(struct dvb_frontend *fe,
- 		c->state = tvp->cmd;
- 		dprintk("%s() Finalised property cache\n", __func__);
- 
--		/* Needed, due to status update */
--		dtv_property_legacy_params_sync(fe, &fepriv->parameters_in);
--
- 		r = dtv_set_frontend(fe);
- 		break;
- 	case DTV_FREQUENCY:
-@@ -1851,15 +1844,6 @@ static int dtv_set_frontend(struct dvb_frontend *fe)
- 		return -EINVAL;
- 
- 	/*
--	 * Initialize output parameters to match the values given by
--	 * the user. FE_SET_FRONTEND triggers an initial frontend event
--	 * with status = 0, which copies output parameters to userspace.
--	 *
--	 * This is still needed for DVBv5 calls, due to event state update.
--	 */
--	fepriv->parameters_out = fepriv->parameters_in;
--
--	/*
- 	 * Be sure that the bandwidth will be filled for all
- 	 * non-satellite systems, as tuners need to know what
- 	 * low pass/Nyquist half filter should be applied, in
-@@ -2173,15 +2157,11 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		break;
- 
- 	case FE_SET_FRONTEND:
--		/* Synchronise DVBv5 parameters from DVBv3 */
--		memcpy (&fepriv->parameters_in, parg,
--			sizeof (struct dvb_frontend_parameters));
--
- 		err = set_delivery_system(fe, SYS_UNDEFINED);
- 		if (err)
- 			break;
- 
--		err = dtv_property_cache_sync(fe, c, &fepriv->parameters_in);
-+		err = dtv_property_cache_sync(fe, c, parg);
- 		if (err)
- 			break;
- 		err = dtv_set_frontend(fe);
-@@ -2191,10 +2171,7 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 		break;
- 
- 	case FE_GET_FRONTEND:
--		err = dtv_get_frontend(fe, &fepriv->parameters_out);
--		if (err >= 0)
--			memcpy(parg, &fepriv->parameters_out,
--			       sizeof(struct dvb_frontend_parameters));
-+		err = dtv_get_frontend(fe, parg);
- 		break;
- 
- 	case FE_SET_FRONTEND_TUNE_MODE:
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+
 -- 
-1.7.8.352.g876a6
-
+Mel Gorman
+SUSE Labs
