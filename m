@@ -1,113 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:45383 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752194Ab2AWNvi (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40195 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753167Ab2A3Oc7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 23 Jan 2012 08:51:38 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LY900GOH7U0WH60@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LY900GKV7TZU2@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 23 Jan 2012 13:51:36 +0000 (GMT)
-Date: Mon, 23 Jan 2012 14:51:10 +0100
-From: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Subject: [PATCH 05/10] v4l: add buffer exporting via dmabuf
-In-reply-to: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
-To: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org
-Cc: sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	t.stanislaws@samsung.com, kyungmin.park@samsung.com,
-	hverkuil@xs4all.nl, laurent.pinchart@ideasonboard.com,
-	pawel@osciak.com
-Message-id: <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com>
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+	Mon, 30 Jan 2012 09:32:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+Date: Mon, 30 Jan 2012 15:33:14 +0100
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, rob@ti.com,
+	patches@linaro.org
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <4F25278B.3090903@iki.fi> <20120129130340.GA4312@phenom.ffwll.local>
+In-Reply-To: <20120129130340.GA4312@phenom.ffwll.local>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201301533.15814.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds extension to V4L2 api. It allow to export a mmap buffer as file
-descriptor. New ioctl VIDIOC_EXPBUF is added. It takes a buffer offset used by
-mmap and return a file descriptor on success.
+Hi Daniel,
 
-Signed-off-by: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/v4l2-compat-ioctl32.c |    1 +
- drivers/media/video/v4l2-ioctl.c          |   11 +++++++++++
- include/linux/videodev2.h                 |    1 +
- include/media/v4l2-ioctl.h                |    1 +
- 4 files changed, 14 insertions(+), 0 deletions(-)
+On Sunday 29 January 2012 14:03:40 Daniel Vetter wrote:
+> On Sun, Jan 29, 2012 at 01:03:39PM +0200, Sakari Ailus wrote:
+> > Daniel Vetter wrote:
+> > > On Thu, Jan 26, 2012 at 01:28:16AM +0200, Sakari Ailus wrote:
+> > >> Why you "should not hang onto mappings forever"? This is currently
+> > >> done by virtually all V4L2 drivers where such mappings are relevant.
+> > >> Not doing so would really kill the performance i.e. it's infeasible.
+> > >> Same goes to (m)any other multimedia devices dealing with buffers
+> > >> containing streaming video data.
+> > > 
+> > > Because I want dynamic memory managemt simple because everything else
+> > > does not make sense. I know that in v4l things don't work that way,
+> > > but in drm they _do_. And if you share tons of buffers with drm
+> > > drivers and don't follow the rules, the OOM killer will come around
+> > > and shot at your apps. Because at least in i915 we do slurp in as much
+> > > memory as we can until the oom killer starts growling, at which point
+> > > we kick out stuff.
+> > > 
+> > > I know that current dma_buf isn't there and for many use-cases
+> > > discussed here we can get away without that complexity. So you
+> > > actually can just map your dma_buf and never ever let go of that
+> > > mapping again in many cases.
+> > > 
+> > > The only reason I'm such a stuborn bastard about all this is that drm/*
+> > > will do dynamic bo management even with dma_buf sooner or later and you
+> > > should better know that and why and the implications if you choose to
+> > > ignore it.
+> > > 
+> > > And obviously, the generic dma_buf interface needs to be able to
+> > > support it.
+> > 
+> > I do not think we should completely ignore this issue, but I think we
+> > might want to at least postpone the implementation for non-DRM
+> > subsystems to an unknown future date. The reason is simply that it's
+> > currently unfeasible for various reasons.
+> > 
+> > Sharing large buffers with GPUs (where you might want to manage them
+> > independently of the user space) is uncommon; typically you're sharing
+> > buffers for viewfinder that tend to be around few megabytes in size and
+> > there may be typically up to five of them. Also, we're still far from
+> > getting things working in the first place. Let's not complicate them
+> > more than we have to.
+> > 
+> > The very reason why we're pre-allocating these large buffers in
+> > applications is that you can readily use them when you need them.
+> > Consider camera, for example: a common use case is to have a set of 24
+> > MB buffers (for 12 Mp images) prepared while the viewfinder is running.
+> > These buffers must be immediately usable when the user presses the
+> > shutter button.
+> > 
+> > We don't want to continuously map and unmap buffers in viewfinder
+> > either: that adds a significan CPU load for no technical reason
+> > whatsoever. Typically viewfinder also involves running software
+> > algorithms that consume much of the available CPU time, so adding an
+> > unnecessary CPU hog to the picture doesn't sound that enticing.
+> > 
+> > If the performance of memory management can be improved to such an
+> > extent it really takes much less than a millisecond or so to perform all
+> > the pinning-to-memory, IOMMU mapping and so on systems for 24 MB buffers
+> > on regular embedded systems I think I wouldn't have much against doing
+> > so. Currently I think we're talking about numbers that are at least
+> > 100-fold.
+> > 
+> > If you want to do this to buffers used only in DRM I'm fine with that.
+> 
+> A few things:
+> - I do understand that there are use cases where allocate, pin & forget
+>   works.
 
-diff --git a/drivers/media/video/v4l2-compat-ioctl32.c b/drivers/media/video/v4l2-compat-ioctl32.c
-index c68531b..0f18b5e 100644
---- a/drivers/media/video/v4l2-compat-ioctl32.c
-+++ b/drivers/media/video/v4l2-compat-ioctl32.c
-@@ -954,6 +954,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
- 	case VIDIOC_S_FBUF32:
- 	case VIDIOC_OVERLAY32:
- 	case VIDIOC_QBUF32:
-+	case VIDIOC_EXPBUF:
- 	case VIDIOC_DQBUF32:
- 	case VIDIOC_STREAMON32:
- 	case VIDIOC_STREAMOFF32:
-diff --git a/drivers/media/video/v4l2-ioctl.c b/drivers/media/video/v4l2-ioctl.c
-index e1da8fc..cb29e00 100644
---- a/drivers/media/video/v4l2-ioctl.c
-+++ b/drivers/media/video/v4l2-ioctl.c
-@@ -207,6 +207,7 @@ static const char *v4l2_ioctls[] = {
- 	[_IOC_NR(VIDIOC_S_FBUF)]           = "VIDIOC_S_FBUF",
- 	[_IOC_NR(VIDIOC_OVERLAY)]          = "VIDIOC_OVERLAY",
- 	[_IOC_NR(VIDIOC_QBUF)]             = "VIDIOC_QBUF",
-+	[_IOC_NR(VIDIOC_EXPBUF)]           = "VIDIOC_EXPBUF",
- 	[_IOC_NR(VIDIOC_DQBUF)]            = "VIDIOC_DQBUF",
- 	[_IOC_NR(VIDIOC_STREAMON)]         = "VIDIOC_STREAMON",
- 	[_IOC_NR(VIDIOC_STREAMOFF)]        = "VIDIOC_STREAMOFF",
-@@ -932,6 +933,16 @@ static long __video_do_ioctl(struct file *file,
- 			dbgbuf(cmd, vfd, p);
- 		break;
- 	}
-+	case VIDIOC_EXPBUF:
-+	{
-+		unsigned int *p = arg;
-+
-+		if (!ops->vidioc_expbuf)
-+			break;
-+
-+		ret = ops->vidioc_expbuf(file, fh, *p);
-+		break;
-+	}
- 	case VIDIOC_DQBUF:
- 	{
- 		struct v4l2_buffer *p = arg;
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 3c0ade1..448fbed 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -2183,6 +2183,7 @@ struct v4l2_create_buffers {
- #define VIDIOC_S_FBUF		 _IOW('V', 11, struct v4l2_framebuffer)
- #define VIDIOC_OVERLAY		 _IOW('V', 14, int)
- #define VIDIOC_QBUF		_IOWR('V', 15, struct v4l2_buffer)
-+#define VIDIOC_EXPBUF		_IOWR('V', 16, __u32)
- #define VIDIOC_DQBUF		_IOWR('V', 17, struct v4l2_buffer)
- #define VIDIOC_STREAMON		 _IOW('V', 18, int)
- #define VIDIOC_STREAMOFF	 _IOW('V', 19, int)
-diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-index 4d1c74a..8201546 100644
---- a/include/media/v4l2-ioctl.h
-+++ b/include/media/v4l2-ioctl.h
-@@ -120,6 +120,7 @@ struct v4l2_ioctl_ops {
- 	int (*vidioc_reqbufs) (struct file *file, void *fh, struct v4l2_requestbuffers *b);
- 	int (*vidioc_querybuf)(struct file *file, void *fh, struct v4l2_buffer *b);
- 	int (*vidioc_qbuf)    (struct file *file, void *fh, struct v4l2_buffer *b);
-+	int (*vidioc_expbuf)  (struct file *file, void *fh, __u32 offset);
- 	int (*vidioc_dqbuf)   (struct file *file, void *fh, struct v4l2_buffer *b);
- 
- 	int (*vidioc_create_bufs)(struct file *file, void *fh, struct v4l2_create_buffers *b);
+I don't like the "forget" part :-)
+
+As a V4L2 developer, I'm not advocating for keeping mappings around forever, 
+but to keep them for as long as possible. Without such a feature, dma-buf 
+support in V4L2 will just be a proof-of-concept, with little use in real 
+products.
+
+> - I'm perfectly fine if you do this in your special embedded product. Or
+>   the entire v4l subsystem, I don't care much about that one, either.
+
+I thought the point of these discussions was to start caring about each-
+other's subsystems :-)
+
+> But:
+> - I'm fully convinced that all these special purpose single use-case
+>   scenarios will show up sooner or later on a more general purpose
+>   platform.
+> - And as soon as your on a general purpose platform, you _want_ dynamic
+>   memory management.
+
+I'm pretty sure we want dynamic memory management in special-purpose platforms 
+as well.
+
+> I mean the entire reason people are pushing CMA is that preallocating gobs
+> of memory statically really isn't that great an idea ...
+> 
+> So to summarize I understand your constraints - gpu drivers have worked like
+> v4l a few years ago. The thing I'm trying to achieve with this constant
+> yelling is just to raise awereness for these issues so that people aren't
+> suprised when drm starts pulling tricks on dma_bufs.
+
+Once again, our constraints is not that we need to keep mappings around 
+forever, but that we want to keep them for as long as possible. I don't think 
+DRM is an issue here, I'm perfectly fine with releasing the mapping when DRM 
+(or any other subsystem) needs to move the buffer. All we need here is a clear 
+API in dma-buf to handle this use case. Do you think this would be overly 
+complex ?
+
 -- 
-1.7.5.4
+Regards,
 
+Laurent Pinchart
