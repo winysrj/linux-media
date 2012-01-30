@@ -1,39 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from exprod6ob111.obsmtp.com ([64.18.1.26]:53108 "HELO
-	exprod6ob111.obsmtp.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752966Ab2AFUjk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 15:39:40 -0500
-Received: by eaac11 with SMTP id c11so2144987eaa.39
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 12:39:37 -0800 (PST)
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:63615 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751655Ab2A3JHs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 04:07:48 -0500
+Received: by wics10 with SMTP id s10so3201125wic.19
+        for <linux-media@vger.kernel.org>; Mon, 30 Jan 2012 01:07:46 -0800 (PST)
 MIME-Version: 1.0
-Date: Fri, 6 Jan 2012 14:39:37 -0600
-Message-ID: <CAPc4S2aqGXSdFnOnSsNM1dL6Xp9qJYMctFPExJ4M_9q890g6-w@mail.gmail.com>
-Subject: Best "card=n" option for no-name SAA7134-based card?
-From: Christopher Peters <cpeters@ucmo.edu>
-To: linux-media@vger.kernel.org
+In-Reply-To: <Pine.LNX.4.64.1201270952250.32661@axis700.grange>
+References: <1327579472-31597-1-git-send-email-javier.martin@vista-silicon.com>
+	<Pine.LNX.4.64.1201270952250.32661@axis700.grange>
+Date: Mon, 30 Jan 2012 10:07:44 +0100
+Message-ID: <CACKLOr3ewaB_H3WOgXLoY4VkaCXdYRFpapNKOaOm-CVVNNmNMw@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] media i.MX27 camera: migrate driver to videobuf2
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>, baruch@tkos.co.il
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At the recommendation of the developer of a piece of software called
-openreplay, I purchased one of these cards: http://tinyurl.com/7kupvw7
-from eBay.  Some Googling suggests the manufacturer *might* be an
-outfit called "wave-p". It's detected by the saa7134 module as a card
-with no EEPROM, so the module loads in generic mode.  I get four
-/dev/video<n> interfaces, but I get no video on any of the interfaces
-from xawtv, vlc, or mplayer.  I also don't see (as I saw from a
-Hauppauge card I have in the system) any encoders/decoders registered
-(e.g. " ivtv0: Registered device video4 for encoder MPG").
+Hi Guennadi,
+thank you for your time.
 
-Should I be able to get video from the card in generic mode?  If so,
-any suggestions on what I should be doing?  If not, what "card=n"
-option should I try?
+On 27 January 2012 16:25, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> A general question for mx2-camera: does it now after removal of legacy
+> i.MX27 support only support i.MX25 (state: unknown) and i.MX27 in eMMA
+> mode?
 
-Physically, the card has 4 Trident SAA7134 chips, a chip numbered
-P17C8140A  on the board and 4 BNC-F connectors on the bezel.
+I understand so.
 
---
-Kit Peters (W0KEH), Engineer II
-KMOS TV Channel 6 / KTBG 90.9 FM
-University of Central Missouri
-http://kmos.org/ | http://ktbg.fm/
+I'll send a v3 of this patch fixing what you've pointed out.
+
+Regards.
+-- 
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
