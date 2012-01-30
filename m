@@ -1,111 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:38146 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758790Ab2AFQ6B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 6 Jan 2012 11:58:01 -0500
-Received: by yenm11 with SMTP id m11so745640yen.19
-        for <linux-media@vger.kernel.org>; Fri, 06 Jan 2012 08:58:01 -0800 (PST)
-Date: Fri, 6 Jan 2012 10:57:56 -0600
-From: Jonathan Nieder <jrnieder@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Johannes Stezenbach <js@sig21.net>,
-	Patrick Boettcher <patrick.boettcher@dibcom.fr>
-Subject: [PATCH] [media] flexcop: CodingStyle fix: don't use "if ((ret =
- foo()) < 0)"
-Message-ID: <20120106165756.GB15740@elie.hsd1.il.comcast.net>
-References: <E1RjBAD-0006Us-QZ@www.linuxtv.org>
+Received: from gir.skynet.ie ([193.1.99.77]:37660 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751722Ab2A3NFo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 30 Jan 2012 08:05:44 -0500
+Date: Mon, 30 Jan 2012 13:05:40 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH 11/15] mm: trigger page reclaim in alloc_contig_range()
+ to stabilize watermarks
+Message-ID: <20120130130540.GN25268@csn.ul.ie>
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-12-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
-In-Reply-To: <E1RjBAD-0006Us-QZ@www.linuxtv.org>
+In-Reply-To: <1327568457-27734-12-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Lift assignments from "if" conditionals for readability.  No change
-in functionality intended.
+On Thu, Jan 26, 2012 at 10:00:53AM +0100, Marek Szyprowski wrote:
+> alloc_contig_range() performs memory allocation so it also should keep
+> track on keeping the correct level of memory watermarks. This commit adds
+> a call to *_slowpath style reclaim to grab enough pages to make sure that
+> the final collection of contiguous pages from freelists will not starve
+> the system.
+> 
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> CC: Michal Nazarewicz <mina86@mina86.com>
+> ---
+>  mm/page_alloc.c |   36 ++++++++++++++++++++++++++++++++++++
+>  1 files changed, 36 insertions(+), 0 deletions(-)
+> 
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index e35d06b..05eaa82 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -5613,6 +5613,34 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+>  	return ret;
+>  }
+>  
+> +/*
+> + * Trigger memory pressure bump to reclaim some pages in order to be able to
+> + * allocate 'count' pages in single page units. Does similar work as
+> + *__alloc_pages_slowpath() function.
+> + */
+> +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
+> +{
+> +	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+> +	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
+> +	int did_some_progress = 0;
+> +	int order = 1;
+> +	unsigned long watermark;
+> +
+> +	/* Obey watermarks as if the page was being allocated */
+> +	watermark = low_wmark_pages(zone) + count;
+> +	while (!zone_watermark_ok(zone, 0, watermark, 0, 0)) {
+> +		wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
+> +
+> +		did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
+> +						      NULL);
+> +		if (!did_some_progress) {
+> +			/* Exhausted what can be done so it's blamo time */
+> +			out_of_memory(zonelist, gfp_mask, order, NULL);
+> +		}
 
-Suggested-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-Signed-off-by: Jonathan Nieder <jrnieder@gmail.com>
----
-Mauro Carvalho Chehab wrote:
+There are three problems here
 
-> Subject: [media] flexcop: handle errors from dvb_net_init
-[...]
-> [mchehab@redhat.com: CodingStyle fix: don't use  "if ((ret = foo()) < 0)"]
+1. CMA can trigger the OOM killer.
 
-Here's a patch to take care of the other instances of that construct
-in the same file.
+That seems like overkill to me but as I do not know the consequences
+of CMA failing, it's your call.
 
- drivers/media/dvb/b2c2/flexcop.c |   21 ++++++++++++++-------
- 1 files changed, 14 insertions(+), 7 deletions(-)
+2. You cannot guarantee that try_to_free_pages will free pages from the
+   zone you care about or that kswapd will do anything
 
-diff --git a/drivers/media/dvb/b2c2/flexcop.c b/drivers/media/dvb/b2c2/flexcop.c
-index 4d3caca466fd..b1e8c99f469b 100644
---- a/drivers/media/dvb/b2c2/flexcop.c
-+++ b/drivers/media/dvb/b2c2/flexcop.c
-@@ -86,7 +86,8 @@ static int flexcop_dvb_init(struct flexcop_device *fc)
- 	fc->demux.stop_feed = flexcop_dvb_stop_feed;
- 	fc->demux.write_to_decoder = NULL;
- 
--	if ((ret = dvb_dmx_init(&fc->demux)) < 0) {
-+	ret = dvb_dmx_init(&fc->demux);
-+	if (ret < 0) {
- 		err("dvb_dmx failed: error %d", ret);
- 		goto err_dmx;
- 	}
-@@ -96,23 +97,27 @@ static int flexcop_dvb_init(struct flexcop_device *fc)
- 	fc->dmxdev.filternum = fc->demux.feednum;
- 	fc->dmxdev.demux = &fc->demux.dmx;
- 	fc->dmxdev.capabilities = 0;
--	if ((ret = dvb_dmxdev_init(&fc->dmxdev, &fc->dvb_adapter)) < 0) {
-+	ret = dvb_dmxdev_init(&fc->dmxdev, &fc->dvb_adapter);
-+	if (ret < 0) {
- 		err("dvb_dmxdev_init failed: error %d", ret);
- 		goto err_dmx_dev;
- 	}
- 
--	if ((ret = fc->demux.dmx.add_frontend(&fc->demux.dmx, &fc->hw_frontend)) < 0) {
-+	ret = fc->demux.dmx.add_frontend(&fc->demux.dmx, &fc->hw_frontend);
-+	if (ret < 0) {
- 		err("adding hw_frontend to dmx failed: error %d", ret);
- 		goto err_dmx_add_hw_frontend;
- 	}
- 
- 	fc->mem_frontend.source = DMX_MEMORY_FE;
--	if ((ret = fc->demux.dmx.add_frontend(&fc->demux.dmx, &fc->mem_frontend)) < 0) {
-+	ret = fc->demux.dmx.add_frontend(&fc->demux.dmx, &fc->mem_frontend);
-+	if (ret < 0) {
- 		err("adding mem_frontend to dmx failed: error %d", ret);
- 		goto err_dmx_add_mem_frontend;
- 	}
- 
--	if ((ret = fc->demux.dmx.connect_frontend(&fc->demux.dmx, &fc->hw_frontend)) < 0) {
-+	ret = fc->demux.dmx.connect_frontend(&fc->demux.dmx, &fc->hw_frontend);
-+	if (ret < 0) {
- 		err("connect frontend failed: error %d", ret);
- 		goto err_connect_frontend;
- 	}
-@@ -260,7 +265,8 @@ int flexcop_device_initialize(struct flexcop_device *fc)
- 	flexcop_hw_filter_init(fc);
- 	flexcop_smc_ctrl(fc, 0);
- 
--	if ((ret = flexcop_dvb_init(fc)))
-+	ret = flexcop_dvb_init(fc);
-+	if (ret)
- 		goto error;
- 
- 	/* i2c has to be done before doing EEProm stuff -
-@@ -278,7 +284,8 @@ int flexcop_device_initialize(struct flexcop_device *fc)
- 	} else
- 		warn("reading of MAC address failed.\n");
- 
--	if ((ret = flexcop_frontend_init(fc)))
-+	ret = flexcop_frontend_init(fc);
-+	if (ret)
- 		goto error;
- 
- 	flexcop_device_name(fc,"initialization of","complete");
+You check the watermarks and take into account the size of the pending
+CMA allocation. kswapd in vmscan.c on the other hand will simply check
+the watermarks and probably go back to sleep. You should be aware of
+this in case you ever get bugs that CMA takes too long and that it
+appears to be stuck in this loop with kswapd staying asleep.
+
+3. You reclaim from zones other than your target zone
+
+try_to_free_pages is not necessarily going to free pages in the
+zone you are checking for. It'll work on ARM in many cases because
+there will be only one zone but on other arches, this logic will
+be problematic and will potentially livelock. You need to pass in
+a zonelist that only contains the zone that CMA cares about. If it
+cannot reclaim, did_some_progress == 0 and it'll exit. Otherwise
+there is a possibility that this will loop forever reclaiming pages
+from the wrong zones.
+
+I won't ack this particular patch but I am not going to insist that
+you fix these prior to merging either. If you leave problem 3 as it
+is, I would really like to see a comment explaning the problem for
+future users of CMA on other arches (if they exist).
+
 -- 
-1.7.8.2
-
+Mel Gorman
+SUSE Labs
