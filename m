@@ -1,55 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:41647 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752216Ab2AaKgB (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55010 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752404Ab2A3MLc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 31 Jan 2012 05:36:01 -0500
-Received: by wics10 with SMTP id s10so4241658wic.19
-        for <linux-media@vger.kernel.org>; Tue, 31 Jan 2012 02:36:00 -0800 (PST)
-Date: Tue, 31 Jan 2012 11:36:02 +0100
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, t.stanislaws@samsung.com,
-	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] dma-buf: add dma_data_direction to unmap dma_buf_op
-Message-ID: <20120131103602.GD3911@phenom.ffwll.local>
-References: <1327657408-15234-1-git-send-email-sumit.semwal@ti.com>
- <201201301519.07785.laurent.pinchart@ideasonboard.com>
- <CAB2ybb8RX5Sy7-s4-X2cLC9HcoTmsn_miYu0HysjHSU4aZ4BBw@mail.gmail.com>
- <201201311042.59917.laurent.pinchart@ideasonboard.com>
+	Mon, 30 Jan 2012 07:11:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: Re: [PATCH][media] s5p-g2d: Add HFLIP and VFLIP support
+Date: Mon, 30 Jan 2012 13:11:46 +0100
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com, k.debski@samsung.com, patches@linaro.org
+References: <1327917523-29836-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1327917523-29836-1-git-send-email-sachin.kamat@linaro.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201201311042.59917.laurent.pinchart@ideasonboard.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201201301311.48370.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jan 31, 2012 at 10:42:59AM +0100, Laurent Pinchart wrote:
-> Hi Sumit,
-> 
-> > On Friday 27 January 2012 10:43:28 Sumit Semwal wrote:
-> 
-> [snip]
-> 
-> >  static inline void dma_buf_unmap_attachment(struct dma_buf_attachment
-> > *attach,
-> > -                                            struct sg_table *sg)
-> > +                     struct sg_table *sg, enum dma_data_direction write)
-> 
-> On a second thought, would it make sense to store the direction in struct 
-> dma_buf_attachment in dma_buf_map_attachment(), and pass the value directly to 
-> the .unmap_dma_buf() instead of requiring the dma_buf_unmap_attachment() 
-> caller to remember it ? Or is an attachment allowed to map the buffer several 
-> times with different directions ?
+Hi Sashin,
 
-Current dma api functions already require you to supply the direction
-argument on unmap and I think for cpu access I'm also leaning towards an
-interface where the importer has to supply the direction argument for both
-begin_access and end_access. So for consistency reasons I'm leaning
-towards adding it to unmap.
--Daniel
+Thanks for the patch.
+
+On Monday 30 January 2012 10:58:43 Sachin Kamat wrote:
+> This patch adds support for flipping the image horizontally and vertically.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+>  drivers/media/video/s5p-g2d/g2d-hw.c |    5 +++
+>  drivers/media/video/s5p-g2d/g2d.c    |   47 +++++++++++++++++++++++++------
+>  drivers/media/video/s5p-g2d/g2d.h    |    3 ++
+>  3 files changed, 46 insertions(+), 9 deletions(-)
+
+[snip]
+
+> diff --git a/drivers/media/video/s5p-g2d/g2d.c
+> b/drivers/media/video/s5p-g2d/g2d.c index febaa67..dea9701 100644
+> --- a/drivers/media/video/s5p-g2d/g2d.c
+> +++ b/drivers/media/video/s5p-g2d/g2d.c
+> @@ -178,6 +178,7 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
+>  {
+>  	struct g2d_ctx *ctx = container_of(ctrl->handler, struct g2d_ctx,
+>  								ctrl_handler);
+> +
+>  	switch (ctrl->id) {
+>  	case V4L2_CID_COLORFX:
+>  		if (ctrl->val == V4L2_COLORFX_NEGATIVE)
+> @@ -185,6 +186,21 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
+>  		else
+>  			ctx->rop = ROP4_COPY;
+>  		break;
+> +
+> +	case V4L2_CID_HFLIP:
+> +		if (ctrl->val == 1)
+> +			ctx->hflip = 1;
+> +		else
+> +			ctx->hflip = 0;
+> +		break;
+> +
+> +	case V4L2_CID_VFLIP:
+> +		if (ctrl->val == 1)
+> +			ctx->vflip = (1 << 1);
+> +		else
+> +			ctx->vflip = 0;
+> +		break;
+> +
+>  	default:
+>  		v4l2_err(&ctx->dev->v4l2_dev, "unknown control\n");
+>  		return -EINVAL;
+> @@ -200,11 +216,9 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
+>  {
+>  	struct g2d_dev *dev = ctx->dev;
+> 
+> -	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 1);
+> -	if (ctx->ctrl_handler.error) {
+> -		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
+> -		return ctx->ctrl_handler.error;
+> -	}
+> +	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
+> +	if (ctx->ctrl_handler.error)
+> +		goto error;
+
+There's not need to verify ctx->ctrl_handler.error after every call to 
+v4l2_ctrl_handler_init() or v4l2_ctrl_new_*(). You can verify it once only 
+after initialization all controls.
+
+> 
+>  	v4l2_ctrl_new_std_menu(
+>  		&ctx->ctrl_handler,
+> @@ -214,12 +228,25 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
+>  		~((1 << V4L2_COLORFX_NONE) | (1 << V4L2_COLORFX_NEGATIVE)),
+>  		V4L2_COLORFX_NONE);
+> 
+> -	if (ctx->ctrl_handler.error) {
+> -		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
+> -		return ctx->ctrl_handler.error;
+> -	}
+> +	if (ctx->ctrl_handler.error)
+> +		goto error;
+> +
+> +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
+> +						V4L2_CID_HFLIP, 0, 1, 1, 0);
+> +	if (ctx->ctrl_handler.error)
+> +		goto error;
+> +
+> +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
+> +						V4L2_CID_VFLIP, 0, 1, 1, 0);
+
+As a single register controls hflip and vflip, you should group the two 
+controls in a cluster.
+
+> +	if (ctx->ctrl_handler.error)
+> +		goto error;
+> 
+>  	return 0;
+> +
+> +error:
+> +	v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
+> +	return ctx->ctrl_handler.error;
+> +
+>  }
+> 
+>  static int g2d_open(struct file *file)
+> @@ -564,6 +591,8 @@ static void device_run(void *prv)
+>  	g2d_set_dst_addr(dev, vb2_dma_contig_plane_dma_addr(dst, 0));
+> 
+>  	g2d_set_rop4(dev, ctx->rop);
+> +	g2d_set_flip(dev, ctx->hflip | ctx->vflip);
+> +
+
+Is this called for every frame, or once at stream start only ? In the later 
+case, this means that hflip and vflip won't be changeable during streaming. Is 
+that on purpose ?
+
+>  	if (ctx->in.c_width != ctx->out.c_width ||
+>  		ctx->in.c_height != ctx->out.c_height)
+>  		cmd |= g2d_cmd_stretch(1);
+> diff --git a/drivers/media/video/s5p-g2d/g2d.h
+> b/drivers/media/video/s5p-g2d/g2d.h index 5eae901..b3be3c8 100644
+> --- a/drivers/media/video/s5p-g2d/g2d.h
+> +++ b/drivers/media/video/s5p-g2d/g2d.h
+> @@ -59,6 +59,8 @@ struct g2d_ctx {
+>  	struct g2d_frame	out;
+>  	struct v4l2_ctrl_handler ctrl_handler;
+>  	u32 rop;
+> +	u32 hflip;
+> +	u32 vflip;
+>  };
+> 
+>  struct g2d_fmt {
+> @@ -77,6 +79,7 @@ void g2d_set_dst_addr(struct g2d_dev *d, dma_addr_t a);
+>  void g2d_start(struct g2d_dev *d);
+>  void g2d_clear_int(struct g2d_dev *d);
+>  void g2d_set_rop4(struct g2d_dev *d, u32 r);
+> +void g2d_set_flip(struct g2d_dev *d, u32 r);
+>  u32 g2d_cmd_stretch(u32 e);
+>  void g2d_set_cmd(struct g2d_dev *d, u32 c);
+
 -- 
-Daniel Vetter
-Mail: daniel@ffwll.ch
-Mobile: +41 (0)79 365 57 48
+Regards,
+
+Laurent Pinchart
