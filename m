@@ -1,85 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:38091 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751720Ab2AZPsf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 26 Jan 2012 10:48:35 -0500
-Date: Thu, 26 Jan 2012 16:48:29 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCHv19 00/15] Contiguous Memory Allocator
-In-reply-to: <201201261531.40551.arnd@arndb.de>
-To: 'Arnd Bergmann' <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>,
-	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>
-Message-id: <009f01ccdc41$f30a5f70$d91f1e50$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <201201261531.40551.arnd@arndb.de>
+Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:56345 "EHLO
+	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753237Ab2AaNqM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jan 2012 08:46:12 -0500
+From: Danny Kukawka <danny.kukawka@bisect.de>
+To: Andy Walls <awalls@md.metrocast.net>
+Subject: Re: [PATCH v2 08/16] ivtv-driver: fix handling of 'radio' module parameter
+Date: Tue, 31 Jan 2012 14:45:25 +0100
+Cc: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, mchehab@redhat.com,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+References: <1327960820-11867-1-git-send-email-danny.kukawka@bisect.de> <1327960820-11867-9-git-send-email-danny.kukawka@bisect.de>
+In-Reply-To: <1327960820-11867-9-git-send-email-danny.kukawka@bisect.de>
+MIME-Version: 1.0
+Content-Disposition: inline
+Content-Type: text/plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201201311445.27230.danny.kukawka@bisect.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-
-On Thursday, January 26, 2012 4:32 PM Arnd Bergmann wrote:
-
-> On Thursday 26 January 2012, Marek Szyprowski wrote:
-> > Welcome everyone!
+On Dienstag, 31. Januar 2012, Andy Walls wrote:
+> On Mon, 2012-01-30 at 20:40 +0100, Danny Kukawka wrote:
+> > Fixed handling of 'radio' module parameter from module_param_array
+> > to module_param_named to fix these compiler warnings in ivtv-driver.c:
 > >
-> > Yes, that's true. This is yet another release of the Contiguous Memory
-> > Allocator patches. This version mainly includes code cleanups requested
-> > by Mel Gorman and a few minor bug fixes.
-> 
-> Hi Marek,
-> 
-> Thanks for keeping up this work! I really hope it works out for the
-> next merge window.
-> 
-> > TODO (optional):
-> > - implement support for contiguous memory areas placed in HIGHMEM zone
-> > - resolve issue with movable pages with pending io operations
-> 
-> Can you clarify these? I believe the contiguous memory areas in highmem
-> is something that should really be after the existing code is merged
-> into the upstream kernel and should better not be listed as TODO here.
+> > In function ‘__check_radio’:
+> > 113:1: warning: return from incompatible pointer type [enabled by
+> > default] At top level:
+> > 113:1: warning: initialization from incompatible pointer type [enabled by
+> > default] 113:1: warning: (near initialization for
+> > ‘__param_arr_radio.num’) [enabled by default]
+> >
+> > Set initial state of radio_c to true instead of 1.
+>
+> NACK.
+>
+> "radio" is an array of tristate values (-1, 0, 1) per installed card:
+>
+> 	static int radio[IVTV_MAX_CARDS] = { -1, -1,
+>
+> and must remain an array or you will break the driver.
+>
+> Calling "radio_c" a module parameter named "radio" is wrong.
+>
+> The correct fix is to reverse Rusty Russel's patch to the driver in
+> commit  90ab5ee94171b3e28de6bb42ee30b527014e0be7
+> to change the "bool" to an "int" as it should be in
+> "module_param_array(radio, ...)"
 
-Ok, I will remove it from the TODO list. Core memory management is very 
-little dependence on HIGHMEM, it is more about DMA-mapping framework to 
-be aware that there might be no lowmem mappings for the allocated pages.
-This can be easily added once the initial version got merged.
- 
-> I haven't followed the last two releases so closely. It seems that
-> in v17 the movable pages with pending i/o was still a major problem
-> but in v18 you added a solution. Is that right? What is still left
-> to be done here then?
+Overseen this. But wouldn't be the correct fix in this case to:
+a) reverse the part of 90ab5ee94171b3e28de6bb42ee30b527014e0be7 to get:
+   static unsigned int radio_c = 1;
 
-Since v18 the failed allocation is retried in a bit different place in 
-the contiguous memory area what heavily increased overall reliability.
+b) change the following line:
+   module_param_array(radio, bool, &radio_c, 0644);
+   to:
+   module_param_array(radio, int, &radio_c, 0644);
 
-This can be improved by making cma a bit more aware about pending io 
-operations, but I want to leave this after the initial merge.
+Without b) you would get a warning from the compiler again.
 
-I think that there are no major issues left to be resolved now.
-
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+Danny 
