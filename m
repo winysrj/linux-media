@@ -1,84 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:39760 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751860Ab2ALRee (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:41647 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752216Ab2AaKgB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 12 Jan 2012 12:34:34 -0500
-Received: by werm1 with SMTP id m1so1535988wer.19
-        for <linux-media@vger.kernel.org>; Thu, 12 Jan 2012 09:34:33 -0800 (PST)
-Message-ID: <4F0F199F.8080804@gmail.com>
-Date: Thu, 12 Jan 2012 18:34:23 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+	Tue, 31 Jan 2012 05:36:01 -0500
+Received: by wics10 with SMTP id s10so4241658wic.19
+        for <linux-media@vger.kernel.org>; Tue, 31 Jan 2012 02:36:00 -0800 (PST)
+Date: Tue, 31 Jan 2012 11:36:02 +0100
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, t.stanislaws@samsung.com,
+	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] dma-buf: add dma_data_direction to unmap dma_buf_op
+Message-ID: <20120131103602.GD3911@phenom.ffwll.local>
+References: <1327657408-15234-1-git-send-email-sumit.semwal@ti.com>
+ <201201301519.07785.laurent.pinchart@ideasonboard.com>
+ <CAB2ybb8RX5Sy7-s4-X2cLC9HcoTmsn_miYu0HysjHSU4aZ4BBw@mail.gmail.com>
+ <201201311042.59917.laurent.pinchart@ideasonboard.com>
 MIME-Version: 1.0
-To: Jim Darby <uberscubajim@gmail.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: Possible regression in 3.2 kernel with PCTV Nanostick T2 (em28xx,
- cxd2820r and tda18271)
-References: <4F0C3D1B.2010904@gmail.com> <4F0CE040.7020904@iki.fi> <4F0DE0C2.5050907@gmail.com> <4F0F08DB.4050301@gmail.com> <4F0F0BEF.8040002@gmail.com>
-In-Reply-To: <4F0F0BEF.8040002@gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201201311042.59917.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 12/01/2012 17:35, Jim Darby ha scritto:
-> On 12/01/12 16:22, Gianluca Gennari wrote:
->> Hi Jim,
->> you spotted a regression in the latest media_build release from
->> 11/01/2012.
->> I had the same problem here:
->>
->> "dvb_frontend_ioctl_legacy: doesn't know how to handle a DVBv3 call to
->> delivery system 0"
->>
->> with 3 totally different sticks (em28xx, dvb-usb, as102).
->>
->> Everything was working fine with media_build drivers from 08/01/2011, so
->> the problem originates from a patch committed in the last few days.
->>
->> In fact, I reverted this patch:
->>
->> http://patchwork.linuxtv.org/patch/9443/
->>
->> and Kaffeine started working again with all my DVB-T sticks.
->>
->> Best regards,
->> Gianluca
+On Tue, Jan 31, 2012 at 10:42:59AM +0100, Laurent Pinchart wrote:
+> Hi Sumit,
 > 
-> I think that we need to be careful about two different problems here.
+> > On Friday 27 January 2012 10:43:28 Sumit Semwal wrote:
 > 
-> The first is the regression that I originally reported. In this case the
-> device stops sending data after a variable period of time and we get to
-> miss the end of the programme that we're watching.
+> [snip]
 > 
-> The second, which is the one that Gianluca has spotted as well, is that
-> there seems to be some form of API change in the latest linux-media
-> which is causing kaffeine to stop working.
+> >  static inline void dma_buf_unmap_attachment(struct dma_buf_attachment
+> > *attach,
+> > -                                            struct sg_table *sg)
+> > +                     struct sg_table *sg, enum dma_data_direction write)
 > 
-> I'm still unsure about the first. It might be a 32/64-bit problem (based
-> on evidence from Simon Jones), it might be flaky hardware or it might be
-> a real problem. I'm planning to build the 3.2.0 kernel (minus the
-> linux-media patches) for 64-bit on different hardware and see what happens.
+> On a second thought, would it make sense to store the direction in struct 
+> dma_buf_attachment in dma_buf_map_attachment(), and pass the value directly to 
+> the .unmap_dma_buf() instead of requiring the dma_buf_unmap_attachment() 
+> caller to remember it ? Or is an attachment allowed to map the buffer several 
+> times with different directions ?
 
-Yes, of course reverting that patch is not going to affect your first issue.
-
-> As for the second I suspect it might be a kaffeine problem. It might
-> just need recompiling with the new headers or it might need some work on
-> it. I'll investigate that after I've solved the first regression.
-> 
-> Pedant mode: the kaffeine problem isn't really a regression as such.
-> It's more of a API versioning issue. More on this later.
-> 
-> Hope this helps,
-> 
-> Jim.
-> 
-
-I don't think the intention of that patch was to broke support for DVBv3
-applications when using a tuner with a single delivery system.
-That would be quite a big API change.
-
-Best regards,
-Gianluca
-
+Current dma api functions already require you to supply the direction
+argument on unmap and I think for cpu access I'm also leaning towards an
+interface where the importer has to supply the direction argument for both
+begin_access and end_access. So for consistency reasons I'm leaning
+towards adding it to unmap.
+-Daniel
+-- 
+Daniel Vetter
+Mail: daniel@ffwll.ch
+Mobile: +41 (0)79 365 57 48
