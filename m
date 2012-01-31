@@ -1,50 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:39840 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756203Ab2ANSaI (ORCPT
+Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:37564 "EHLO
+	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753505Ab2AaP1f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 14 Jan 2012 13:30:08 -0500
-Received: by bkuw12 with SMTP id w12so699151bku.19
-        for <linux-media@vger.kernel.org>; Sat, 14 Jan 2012 10:30:07 -0800 (PST)
+	Tue, 31 Jan 2012 10:27:35 -0500
+From: Danny Kukawka <danny.kukawka@bisect.de>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Rusty Russell <rusty@rustcorp.com.au>, mchehab@redhat.com
+Subject: [PATCH v3 2/2] ivtv-driver: fix handling of 'radio' module parameter
+Date: Tue, 31 Jan 2012 16:27:08 +0100
+Message-Id: <1328023628-15097-3-git-send-email-danny.kukawka@bisect.de>
+In-Reply-To: <1328023628-15097-1-git-send-email-danny.kukawka@bisect.de>
+References: <1328023628-15097-1-git-send-email-danny.kukawka@bisect.de>
 MIME-Version: 1.0
-Date: Sat, 14 Jan 2012 19:30:06 +0100
-Message-ID: <CAEN_-SDpi9dBj7hVr5f-8ap0ns+iMh8vLAcGQfA4r7XfURTE5Q@mail.gmail.com>
-Subject: cx23885: small fix definition of radio tuners
-From: =?ISO-8859-2?Q?Miroslav_Sluge=F2?= <thunder.mmm@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=0015175cab9eab87fa04b6812be2
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---0015175cab9eab87fa04b6812be2
-Content-Type: text/plain; charset=ISO-8859-1
+Reverse ivtv-driver part of commit
+90ab5ee94171b3e28de6bb42ee30b527014e0be7 and change
+module_param_array() type from bool to int to fix
+compiler warning:
 
-This time with signed-off header.
+In function ‘__check_radio’:
+113:1: warning: return from incompatible pointer type [enabled by default]
+At top level:
+113:1: warning: initialization from incompatible pointer type [enabled by default]
+113:1: warning: (near initialization for ‘__param_arr_radio.num’) [enabled by default]
 
---0015175cab9eab87fa04b6812be2
-Content-Type: text/x-patch; charset=US-ASCII; name="cx23885-fix-radio-tuners.patch"
-Content-Disposition: attachment; filename="cx23885-fix-radio-tuners.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_gxez0kmv0
+v2: set radio_c to true instead of 1 since it's bool
+v3: corrected version, don't change to module_param_named(), change 
+    all to int/uint
 
-U2lnbmVkLW9mZi1ieTogTWlyb3NsYXYgU2x1Z2VuIDx0aHVuZGVyLm1tbUBnbWFpbC5jb20+CkZy
-b206IE1pcm9zbGF2IFNsdWdlbiA8dGh1bmRlci5tbW1AZ21haWwuY29tPgpEYXRlOiBNb24sIDEy
-IERlYyAyMDExIDAwOjE5OjM0ICswMTAwClN1YmplY3Q6IFtQQVRDSF0gQWxsIHJhZGlvIHR1bmVy
-cyBpbiBjeDgzODg1IGRyaXZlciB1c2luZyBzYW1lIGFkZHJlc3MgZm9yIHJhZGlvIGFuZCB0dW5l
-ciwgc28gdGhlcmUgaXMgbm8gbmVlZCB0byBwcm9iZQogaXQgdHdpY2UgZm9yIHNhbWUgdHVuZXIg
-YW5kIHdlIGNhbiB1c2UgcmFkaW9fdHlwZSBVTlNFVC4gQmUgYXdhcmUgcmFkaW8gc3VwcG9ydCBp
-biBjeDIzODg1IGlzIG5vdCB5ZXQKIGNvbXBsZXRlZCwgc28gdGhpcyBpcyBvbmx5IG1pbm9yIGZp
-eCBmb3IgZnV0dXJlIHN1cHBvcnQuCgotLS0KIGRyaXZlcnMvbWVkaWEvdmlkZW8vY3gyMzg4NS9j
-eDIzODg1LWNhcmRzLmMgfCAgICA0ICsrLS0KIDEgZmlsZXMgY2hhbmdlZCwgMiBpbnNlcnRpb25z
-KCspLCAyIGRlbGV0aW9ucygtKQoKZGlmZiAtLWdpdCBhL2RyaXZlcnMvbWVkaWEvdmlkZW8vY3gy
-Mzg4NS9jeDIzODg1LWNhcmRzLmMgYi9kcml2ZXJzL21lZGlhL3ZpZGVvL2N4MjM4ODUvY3gyMzg4
-NS1jYXJkcy5jCmluZGV4IGMzY2YwODkuLjE4N2M0NjIgMTAwNjQ0Ci0tLSBhL2RyaXZlcnMvbWVk
-aWEvdmlkZW8vY3gyMzg4NS9jeDIzODg1LWNhcmRzLmMKKysrIGIvZHJpdmVycy9tZWRpYS92aWRl
-by9jeDIzODg1L2N4MjM4ODUtY2FyZHMuYwpAQCAtMjEzLDggKzIxMyw4IEBAIHN0cnVjdCBjeDIz
-ODg1X2JvYXJkIGN4MjM4ODVfYm9hcmRzW10gPSB7CiAJCS5wb3J0YwkJPSBDWDIzODg1X01QRUdf
-RFZCLAogCQkudHVuZXJfdHlwZQk9IFRVTkVSX1hDNDAwMCwKIAkJLnR1bmVyX2FkZHIJPSAweDYx
-LAotCQkucmFkaW9fdHlwZQk9IFRVTkVSX1hDNDAwMCwKLQkJLnJhZGlvX2FkZHIJPSAweDYxLAor
-CQkucmFkaW9fdHlwZQk9IFVOU0VULAorCQkucmFkaW9fYWRkcgk9IEFERFJfVU5TRVQsCiAJCS5p
-bnB1dAkJPSB7ewogCQkJLnR5cGUJPSBDWDIzODg1X1ZNVVhfVEVMRVZJU0lPTiwKIAkJCS52bXV4
-CT0gQ1gyNTg0MF9WSU4yX0NIMSB8Ci0tIAoxLjcuMi4zCgo=
---0015175cab9eab87fa04b6812be2--
+Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
+---
+ drivers/media/video/ivtv/ivtv-driver.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
+index 3949b7d..06192ae 100644
+--- a/drivers/media/video/ivtv/ivtv-driver.c
++++ b/drivers/media/video/ivtv/ivtv-driver.c
+@@ -99,7 +99,7 @@ static int i2c_clock_period[IVTV_MAX_CARDS] = { -1, -1, -1, -1, -1, -1, -1, -1,
+ 
+ static unsigned int cardtype_c = 1;
+ static unsigned int tuner_c = 1;
+-static bool radio_c = 1;
++static unsigned int radio_c = 1;
+ static unsigned int i2c_clock_period_c = 1;
+ static char pal[] = "---";
+ static char secam[] = "--";
+@@ -139,7 +139,7 @@ static int tunertype = -1;
+ static int newi2c = -1;
+ 
+ module_param_array(tuner, int, &tuner_c, 0644);
+-module_param_array(radio, bool, &radio_c, 0644);
++module_param_array(radio, int, &radio_c, 0644);
+ module_param_array(cardtype, int, &cardtype_c, 0644);
+ module_param_string(pal, pal, sizeof(pal), 0644);
+ module_param_string(secam, secam, sizeof(secam), 0644);
+-- 
+1.7.7.3
+
