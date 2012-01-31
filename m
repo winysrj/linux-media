@@ -1,68 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:45771 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756909Ab2AKKoI (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:39314 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753360Ab2AaKKP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 11 Jan 2012 05:44:08 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Rupert Eibauer <Rupert.Eibauer@ces.ch>
-Subject: Re: V4L spec possibly broken
-Date: Wed, 11 Jan 2012 11:44:03 +0100
-Cc: linux-media@vger.kernel.org
-References: <OFC0C35484.6D81A1B1-ONC1257982.003765AA-C1257982.003771F1@ces.ch>
-In-Reply-To: <OFC0C35484.6D81A1B1-ONC1257982.003765AA-C1257982.003771F1@ces.ch>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201111144.03446.hverkuil@xs4all.nl>
+	Tue, 31 Jan 2012 05:10:15 -0500
+Received: from epcpsbgm1.samsung.com (mailout3.samsung.com [203.254.224.33])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Exchange Server 7u4-19.01 64bit (built Sep  7
+ 2010)) with ESMTP id <0LYN002Q4QW574X0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 31 Jan 2012 19:09:41 +0900 (KST)
+Received: from AMDN157 ([106.116.48.215])
+ by mmp2.samsung.com (Oracle Communications Messaging Exchange Server 7u4-19.01
+ 64bit (built Sep  7 2010)) with ESMTPA id <0LYN00CDSQW0EE10@mmp2.samsung.com>
+ for linux-media@vger.kernel.org; Tue, 31 Jan 2012 19:09:41 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Laurent Pinchart' <laurent.pinchart@ideasonboard.com>
+Cc: 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com, patches@linaro.org
+References: <1327917523-29836-1-git-send-email-sachin.kamat@linaro.org>
+ <201201301311.48370.laurent.pinchart@ideasonboard.com>
+ <008b01ccdf54$962229d0$c2667d70$%debski@samsung.com>
+ <201201311030.25154.laurent.pinchart@ideasonboard.com>
+In-reply-to: <201201311030.25154.laurent.pinchart@ideasonboard.com>
+Subject: RE: [PATCH][media] s5p-g2d: Add HFLIP and VFLIP support
+Date: Tue, 31 Jan 2012 11:09:35 +0100
+Message-id: <00a601cce000$72522670$56f67350$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
+Content-language: en-gb
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 11 January 2012 11:05:36 Rupert Eibauer wrote:
-> Hello,
-> 
-> I am working on the linux driver for our new video capture board and
-> facing some compatibility problem which seems to be related to unclear
-> language in the V4L specification.
-> 
-> The device supports a larger number of inputs, but with a different set of
-> standards on each of them.
-> 
-> Now, the problem is that ffmpeg is using VIDIOC_ENUMSTD/VIDIOC_S_STD
-> before VIDIOC_S_INPUT.
-> So the driver has to give a list of supported standards before knowing
-> which input the device will be taking.
-> 
-> Currently I am experimenting with a workaround to remember the set
-> standard and then failing
-> on VIDIOC_S_INPUT when not compatible, but this seems to create more
-> problems than it solves. I have
-> the feeling that this behaviour is not covered by the specification, and
-> it makes the driver unnecesarily complex.
-> 
-> In my opinion, the standard is broken: on page
-> http://v4l2spec.bytesex.org/spec/r11217.htm, it says:
-> "It is good practice to select an input before querying or negotiating any
-> other parameters."
-> It should be changed to "Aplications must...", and ffmpeg needs fixing to
-> call VIDIOC_S_INPUT before VIDIOC_ENUMSTD.
-> 
-> I hope to get some opinion from you, if this is the right approach or not.
+Hi Laurent and Sachin,
 
-You are correct, it should be 'must' rather than 'good practice'.
-
-I've made a patch that updates the text accordingly. I'll post it soon 
-together with some other spec updates.
-
-Regards,
-
-	Hans
-
+> From: Laurent Pinchart [mailto:laurent.pinchart@ideasonboard.com]
+> Sent: 31 January 2012 10:30
 > 
-> Best regards,
-> Rupert Eibauer
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Hi Kamil,
+> 
+> On Monday 30 January 2012 14:39:22 Kamil Debski wrote:
+> > On 30 January 2012 13:12 Laurent Pinchart wrote:
+> > > On Monday 30 January 2012 10:58:43 Sachin Kamat wrote:
+> > > > This patch adds support for flipping the image horizontally and
+> > > > vertically.
+> 
+> [snip]
+> 
+> > > > +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
+> > > > +						V4L2_CID_HFLIP, 0, 1, 1,
+0);
+> > > > +	if (ctx->ctrl_handler.error)
+> > > > +		goto error;
+> > > > +
+> > > > +	v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
+> > > > +						V4L2_CID_VFLIP, 0, 1, 1,
+0);
+> > >
+> > > As a single register controls hflip and vflip, you should group the two
+> > > controls in a cluster.
+> >
+> > I think it doesn't matter in this use case. As register are not written
+> > in the g2d_s_ctrl. Because the driver uses multiple context it modifies
+> > the appropriate values in its context structure and registers are written
+> > when the transaction is run.
+> >
+> > Also there is no logical connection between horizontal and vertical flip.
+> > I think this is the case when using clusters. Here one is independent from
+> > another.
+> 
+> As the value is only written to hardware registers later, not in the s_ctrl()
+> handler, a cluster is (probably) not mandatory if the driver uses proper
+> locking. Otherwise there will be no guarantee that setting both hflip and
+> vflip in a single VIDIOC_S_EXT_CTRLS call will not result in one frame with
+> only hflip or vflip applied.
+
+I see your point - this could happen. So Sachin - I think you need to add the
+cluster.
+You can find documentation about this in
+Documentation/video4linux/v4l2-controls.txt
+
+Also I have talked with Sylwester about locking. It turns out that a spinlock in
+device_run and s_ctrl is necessary. I'll add it after you send your patch,
+Sachin.
+
+Best wishes,
+--
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
