@@ -1,53 +1,146 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44823 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752694Ab2A3L6B (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:35681 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753472Ab2AaRPK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 30 Jan 2012 06:58:01 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: stable@kernel.org
-Cc: linux-media@vger.kernel.org
-Subject: [PATCH] [media] omap3isp: ccdc: Fix crash in HS/VS interrupt handler
-Date: Mon, 30 Jan 2012 12:58:16 +0100
-Message-Id: <1327924696-17108-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 31 Jan 2012 12:15:10 -0500
+Date: Tue, 31 Jan 2012 18:15:04 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 11/15] mm: trigger page reclaim in alloc_contig_range() to
+ stabilize watermarks
+In-reply-to: <20120130130540.GN25268@csn.ul.ie>
+To: 'Mel Gorman' <mel@csn.ul.ie>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Dave Hansen' <dave@linux.vnet.ibm.com>,
+	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>
+Message-id: <023001cce03b$dfddf760$9f99e620$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-12-git-send-email-m.szyprowski@samsung.com>
+ <20120130130540.GN25268@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The HS/VS interrupt handler needs to access the pipeline object. It
-erronously tries to get it from the CCDC output video node, which isn't
-necessarily included in the pipeline. This leads to a NULL pointer
-dereference.
+Hello,
 
-Fix the bug by getting the pipeline object from the CCDC subdev entity.
+On Monday, January 30, 2012 2:06 PM Mel Gorman wrote:
 
-Reported-by: Gary Thomas <gary@mlbassoc.com>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: stable@kernel.org
----
- drivers/media/video/omap3isp/ispccdc.c |    3 +--
- 1 files changed, 1 insertions(+), 2 deletions(-)
+> On Thu, Jan 26, 2012 at 10:00:53AM +0100, Marek Szyprowski wrote:
+> > alloc_contig_range() performs memory allocation so it also should keep
+> > track on keeping the correct level of memory watermarks. This commit adds
+> > a call to *_slowpath style reclaim to grab enough pages to make sure that
+> > the final collection of contiguous pages from freelists will not starve
+> > the system.
+> >
+> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > CC: Michal Nazarewicz <mina86@mina86.com>
+> > ---
+> >  mm/page_alloc.c |   36 ++++++++++++++++++++++++++++++++++++
+> >  1 files changed, 36 insertions(+), 0 deletions(-)
+> >
+> > diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> > index e35d06b..05eaa82 100644
+> > --- a/mm/page_alloc.c
+> > +++ b/mm/page_alloc.c
+> > @@ -5613,6 +5613,34 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned
+> long end)
+> >  	return ret;
+> >  }
+> >
+> > +/*
+> > + * Trigger memory pressure bump to reclaim some pages in order to be able to
+> > + * allocate 'count' pages in single page units. Does similar work as
+> > + *__alloc_pages_slowpath() function.
+> > + */
+> > +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
+> > +{
+> > +	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+> > +	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
+> > +	int did_some_progress = 0;
+> > +	int order = 1;
+> > +	unsigned long watermark;
+> > +
+> > +	/* Obey watermarks as if the page was being allocated */
+> > +	watermark = low_wmark_pages(zone) + count;
+> > +	while (!zone_watermark_ok(zone, 0, watermark, 0, 0)) {
+> > +		wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
+> > +
+> > +		did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
+> > +						      NULL);
+> > +		if (!did_some_progress) {
+> > +			/* Exhausted what can be done so it's blamo time */
+> > +			out_of_memory(zonelist, gfp_mask, order, NULL);
+> > +		}
+> 
+> There are three problems here
+> 
+> 1. CMA can trigger the OOM killer.
+> 
+> That seems like overkill to me but as I do not know the consequences
+> of CMA failing, it's your call.
 
-This patch fixes a crash in v3.2 and is included in v3.3-rc1. It isn't
-applicable to previous kernel versions.
+This behavior is intended, we agreed that the contiguous allocations should
+have higher priority than others.
 
-diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
-index b0b0fa5..9012b57 100644
---- a/drivers/media/video/omap3isp/ispccdc.c
-+++ b/drivers/media/video/omap3isp/ispccdc.c
-@@ -1406,8 +1406,7 @@ static int __ccdc_handle_stopping(struct isp_ccdc_device *ccdc, u32 event)
- 
- static void ccdc_hs_vs_isr(struct isp_ccdc_device *ccdc)
- {
--	struct isp_pipeline *pipe =
--		to_isp_pipeline(&ccdc->video_out.video.entity);
-+	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
- 	struct video_device *vdev = ccdc->subdev.devnode;
- 	struct v4l2_event event;
- 
+> 2. You cannot guarantee that try_to_free_pages will free pages from the
+>    zone you care about or that kswapd will do anything
+> 
+> You check the watermarks and take into account the size of the pending
+> CMA allocation. kswapd in vmscan.c on the other hand will simply check
+> the watermarks and probably go back to sleep. You should be aware of
+> this in case you ever get bugs that CMA takes too long and that it
+> appears to be stuck in this loop with kswapd staying asleep.
+
+Right, I experienced this problem today. The simplest workaround I've 
+found is to adjust watermark before calling kswapd, but I'm not sure 
+that increasing min_free_kbytes and calling setup_per_zone_wmarks() is
+the nicest approach for it.
+
+> 3. You reclaim from zones other than your target zone
+> 
+> try_to_free_pages is not necessarily going to free pages in the
+> zone you are checking for. It'll work on ARM in many cases because
+> there will be only one zone but on other arches, this logic will
+> be problematic and will potentially livelock. You need to pass in
+> a zonelist that only contains the zone that CMA cares about. If it
+> cannot reclaim, did_some_progress == 0 and it'll exit. Otherwise
+> there is a possibility that this will loop forever reclaiming pages
+> from the wrong zones.
+
+Right. I tested it on a system with only one zone, so I never experienced 
+such problem. For the first version I think we might assume that the buffer
+allocated by alloc_contig_range() must fit the single zone. I will add some
+comments about it. Later we can extend it for more advanced cases. 
+
+> I won't ack this particular patch but I am not going to insist that
+> you fix these prior to merging either. If you leave problem 3 as it
+> is, I would really like to see a comment explaning the problem for
+> future users of CMA on other arches (if they exist).
+
+I will add more comments about the issues You have pointed out to make
+the life easier for other arch developers.
+
+Best regards
 -- 
-Regards,
+Marek Szyprowski
+Samsung Poland R&D Center
 
-Laurent Pinchart
+
 
