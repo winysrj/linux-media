@@ -1,192 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55397 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932744Ab2AEQLn (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 5 Jan 2012 11:11:43 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
-Subject: Re: [RFC 04/17] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
-Date: Thu, 5 Jan 2012 17:12:00 +0100
-Cc: linux-media@vger.kernel.org, dacohen@gmail.com, snjw23@gmail.com
-References: <4EF0EFC9.6080501@maxwell.research.nokia.com> <1324412889-17961-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
-In-Reply-To: <1324412889-17961-4-git-send-email-sakari.ailus@maxwell.research.nokia.com>
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:55522 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753368Ab2AaPBN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jan 2012 10:01:13 -0500
+References: <1327960820-11867-1-git-send-email-danny.kukawka@bisect.de> <1327960820-11867-9-git-send-email-danny.kukawka@bisect.de> <201201311445.27230.danny.kukawka@bisect.de>
+In-Reply-To: <201201311445.27230.danny.kukawka@bisect.de>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201201051712.00970.laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [PATCH v2 08/16] ivtv-driver: fix handling of 'radio' module parameter
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Tue, 31 Jan 2012 10:00:31 -0500
+To: Danny Kukawka <danny.kukawka@bisect.de>
+CC: ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, mchehab@redhat.com,
+	Rusty Russell <rusty@rustcorp.com.au>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Message-ID: <88b53197-44ea-4949-9758-534fad5d8a71@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Danny Kukawka <danny.kukawka@bisect.de> wrote:
 
-Thanks for the patch.
+>On Dienstag, 31. Januar 2012, Andy Walls wrote:
+>> On Mon, 2012-01-30 at 20:40 +0100, Danny Kukawka wrote:
+>> > Fixed handling of 'radio' module parameter from module_param_array
+>> > to module_param_named to fix these compiler warnings in
+>ivtv-driver.c:
+>> >
+>> > In function ‘__check_radio’:
+>> > 113:1: warning: return from incompatible pointer type [enabled by
+>> > default] At top level:
+>> > 113:1: warning: initialization from incompatible pointer type
+>[enabled by
+>> > default] 113:1: warning: (near initialization for
+>> > ‘__param_arr_radio.num’) [enabled by default]
+>> >
+>> > Set initial state of radio_c to true instead of 1.
+>>
+>> NACK.
+>>
+>> "radio" is an array of tristate values (-1, 0, 1) per installed card:
+>>
+>> 	static int radio[IVTV_MAX_CARDS] = { -1, -1,
+>>
+>> and must remain an array or you will break the driver.
+>>
+>> Calling "radio_c" a module parameter named "radio" is wrong.
+>>
+>> The correct fix is to reverse Rusty Russel's patch to the driver in
+>> commit  90ab5ee94171b3e28de6bb42ee30b527014e0be7
+>> to change the "bool" to an "int" as it should be in
+>> "module_param_array(radio, ...)"
+>
+>Overseen this. But wouldn't be the correct fix in this case to:
+>a) reverse the part of 90ab5ee94171b3e28de6bb42ee30b527014e0be7 to get:
+>   static unsigned int radio_c = 1;
+>
+>b) change the following line:
+>   module_param_array(radio, bool, &radio_c, 0644);
+>   to:
+>   module_param_array(radio, int, &radio_c, 0644);
+>
+>Without b) you would get a warning from the compiler again.
+>
+>Danny 
 
-On Tuesday 20 December 2011 21:27:56 Sakari Ailus wrote:
-> From: Sakari Ailus <sakari.ailus@iki.fi>
-> 
-> Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
-> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
-> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
-> 
-> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+Yes both need to happen.
 
-As those ioctls are experimental, should we deprecate them ?
+I mentioned b) in my original email.
 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/v4l2-subdev.c |   26 ++++++++++++++++++++-
->  include/linux/v4l2-subdev.h       |   45 ++++++++++++++++++++++++++++++++++
->  include/media/v4l2-subdev.h       |    5 ++++
->  3 files changed, 75 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/v4l2-subdev.c
-> b/drivers/media/video/v4l2-subdev.c index 65ade5f..e8ae098 100644
-> --- a/drivers/media/video/v4l2-subdev.c
-> +++ b/drivers/media/video/v4l2-subdev.c
-> @@ -36,13 +36,17 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh,
-> struct v4l2_subdev *sd) {
->  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
->  	/* Allocate try format and crop in the same memory block */
-> -	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
-> +	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop)
-> +			       + sizeof(*fh->try_compose))
->  			      * sd->entity.num_pads, GFP_KERNEL);
-
-Could you check how the 3 structures are aligned on 64-bit platforms ? I'm a 
-bit worried about the compiler expecting a 64-bit alignment for one of them, 
-and getting only a 32-bit alignment in the end.
-
-What about using kcalloc ?
-
->  	if (fh->try_fmt == NULL)
->  		return -ENOMEM;
-> 
->  	fh->try_crop = (struct v4l2_rect *)
->  		(fh->try_fmt + sd->entity.num_pads);
-> +
-> +	fh->try_compose = (struct v4l2_rect *)
-> +		(fh->try_crop + sd->entity.num_pads);
->  #endif
->  	return 0;
->  }
-> @@ -281,6 +285,26 @@ static long subdev_do_ioctl(struct file *file,
-> unsigned int cmd, void *arg) return v4l2_subdev_call(sd, pad,
-> enum_frame_interval, subdev_fh, fie);
->  	}
-> +
-> +	case VIDIOC_SUBDEV_G_SELECTION: {
-> +		struct v4l2_subdev_selection *sel = arg;
-
-Shouldn't you check sel->which ?
-
-> +		if (sel->pad >= sd->entity.num_pads)
-> +			return -EINVAL;
-> +
-> +		return v4l2_subdev_call(
-> +			sd, pad, get_selection, subdev_fh, sel);
-> +	}
-> +
-> +	case VIDIOC_SUBDEV_S_SELECTION: {
-> +		struct v4l2_subdev_selection *sel = arg;
-
-And here too ?
-
-> +		if (sel->pad >= sd->entity.num_pads)
-> +			return -EINVAL;
-> +
-> +		return v4l2_subdev_call(
-> +			sd, pad, set_selection, subdev_fh, sel);
-> +	}
->  #endif
->  	default:
->  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-> diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-> index ed29cbb..d53d775 100644
-> --- a/include/linux/v4l2-subdev.h
-> +++ b/include/linux/v4l2-subdev.h
-> @@ -123,6 +123,47 @@ struct v4l2_subdev_frame_interval_enum {
->  	__u32 reserved[9];
->  };
-> 
-> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
-> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
-> +#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
-> +
-> +/* active cropping area */
-> +#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0
-> +/* default cropping area */
-> +#define V4L2_SUBDEV_SEL_TGT_CROP_DEFAULT		1
-> +/* cropping bounds */
-> +#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			2
-> +/* current composing area */
-> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		256
-> +/* default composing area */
-> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_DEFAULT		257
-> +/* composing bounds */
-> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		258
-> +
-> +
-> +/**
-> + * struct v4l2_subdev_selection - selection info
-> + *
-> + * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
-> + * @pad: pad number, as reported by the media API
-> + * @target: selection target, used to choose one of possible rectangles
-> + * @flags: constraints flags
-> + * @r: coordinates of selection window
-> + * @reserved: for future use, rounds structure size to 64 bytes, set to
-> zero + *
-> + * Hardware may use multiple helper window to process a video stream.
-> + * The structure is used to exchange this selection areas between
-> + * an application and a driver.
-> + */
-> +struct v4l2_subdev_selection {
-> +	__u32 which;
-> +	__u32 pad;
-> +	__u32 target;
-> +	__u32 flags;
-> +	struct v4l2_rect r;
-> +	__u32 reserved[8];
-> +};
-> +
->  #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
->  #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
->  #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-> @@ -137,5 +178,9 @@ struct v4l2_subdev_frame_interval_enum {
->  			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
->  #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
->  #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
-> +#define VIDIOC_SUBDEV_G_SELECTION \
-> +	_IOWR('V', 61, struct v4l2_subdev_selection)
-> +#define VIDIOC_SUBDEV_S_SELECTION \
-> +	_IOWR('V', 62, struct v4l2_subdev_selection)
-> 
->  #endif
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index f0f3358..26eeaa4 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
->  		       struct v4l2_subdev_crop *crop);
->  	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
->  		       struct v4l2_subdev_crop *crop);
-> +	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> +			     struct v4l2_subdev_selection *sel);
-> +	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-> +			     struct v4l2_subdev_selection *sel);
->  };
-> 
->  struct v4l2_subdev_ops {
-> @@ -551,6 +555,7 @@ struct v4l2_subdev_fh {
->  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
->  	struct v4l2_mbus_framefmt *try_fmt;
->  	struct v4l2_rect *try_crop;
-> +	struct v4l2_rect *try_compose;
->  #endif
->  };
-
--- 
 Regards,
-
-Laurent Pinchart
+Andy
