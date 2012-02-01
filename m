@@ -1,172 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1088 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755674Ab2BXJfX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 04:35:23 -0500
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3489 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752499Ab2BAQkj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2012 11:40:39 -0500
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: PnP support for the new ISA radio framework?
-Date: Fri, 24 Feb 2012 10:35:13 +0100
-Cc: linux-media@vger.kernel.org
-References: <201202181733.34599.linux@rainbow-software.org> <201202222133.34620.linux@rainbow-software.org>
-In-Reply-To: <201202222133.34620.linux@rainbow-software.org>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.4] Add decoder API to V4L2
+Date: Wed, 1 Feb 2012 17:40:27 +0100
+Cc: Andy Walls <awalls@md.metrocast.net>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201202241035.13232.hverkuil@xs4all.nl>
+Message-Id: <201202011740.27842.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, February 22, 2012 21:33:29 Ondrej Zary wrote:
-> On Saturday 18 February 2012 17:33:32 Ondrej Zary wrote:
-> > Hello,
-> > there are some ISA radio cards with PnP support (e.g. SF16-FMI) but the new
-> > ISA radio framework has no PnP support.
-> >
-> > I got AOpen FX-3D/Pro Radio card which is AD1816 with Gemtek radio - and
-> > with PnP. But radio-gemtek fails to load because the radio I/O port is not
-> > enabled (and the driver does not support PnP).
-> >
-> > Tried to add PnP support to radio-isa but failed. Splitted non-isa_driver
-> > related parts from radio_isa_probe() to a separate function and tried to
-> > create radio_isa_pnp_probe() only to realize that I'm not able to access
-> > struct radio_isa_driver.
-> >
-> > radio_isa_probe() relies on the fact that "driver" (struct isa_driver) is
-> > the first element of struct radio_isa_driver, so these two structs have the
-> > same pointer:
-> > HW radio driver registers the driver by calling:
-> >   isa_register_driver(&gemtek_driver.driver, GEMTEK_MAX);
-> > radio_isa_probe() in radio-isa.c does:
-> >   struct radio_isa_driver *drv = pdev->platform_data;
-> >
-> > So adding struct pnp_driver to struct radio_isa_driver does not seem to be
-> > possible.
-> 
-> Adding PnP support to original radio-gemtek (before conversion to ISA radio
-> framework) is easy. A patch like this (mostly copied from radio-cadet) allows
-> radio on AOpen FX-3D/Pro Radio card to work.
-> But how to do this with the new driver?
+Hi Mauro,
 
-I've been looking at that and I think the best way is to add radio_isa_pnp_probe
-and radio_isa_pnp_remove functions that can be used with the pnp framework.
+Here is my pull request for the decoder API.
 
-Both radio_isa_probe and radio_isa_pnp_probe call the same probe() function that
-gets the radio_isa_driver pointer.
+The code is the same as the RFCv3 patch series:
 
-The struct radio_isa_driver should probably be modified as follows:
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg40516.html
 
-struct radio_isa_driver {
-        struct isa_driver *isa_drv;
-        struct pnp_driver *pnp_drv;
-        const struct radio_isa_ops *ops;
-	...
+and my previous pull request:
 
-Or perhaps even better:
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/43354
 
-struct radio_isa_driver {
-	union {
-	        struct isa_driver *isa_drv;
-        	struct pnp_driver *pnp_drv;
-	};
-        const struct radio_isa_ops *ops;
-	...
+except for being rebased to the latest for_v3.4 branch.
 
+BTW, my previous pull request is in patchwork:
 
-radio_isa_querycap uses driver.name, so I suspect struct radio_isa_driver
-should be extended with a const char *name that is set correctly by either
-radio_isa_probe or radio_isa_pnp_probe.
+http://patchwork.linuxtv.org/patch/9483/
 
-Another alternative seems to be what radio-sf16fmi.c does. It uses low-level
-pnp functions but not pnp_driver. This approach should fit easily into the
-radio-isa framework.
+but it is marked 'rejected'. I assume that is rejected for v3.3, and not
+rejected because of other issues since I am not aware of any objections
+to this patch series.
 
 Regards,
 
-	Hans
+        Hans
 
-> 
-> 
-> --- a/drivers/media/radio/radio-gemtek.c
-> +++ b/drivers/media/radio/radio-gemtek.c
-> @@ -23,6 +23,7 @@
->  #include <linux/videodev2.h>	/* kernel radio structs		*/
->  #include <linux/mutex.h>
->  #include <linux/io.h>		/* outb, outb_p			*/
-> +#include <linux/pnp.h>
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-device.h>
->  
-> @@ -329,6 +330,46 @@ static int gemtek_verify(struct gemtek *gt, int port)
->  	return 1;
->  }
->  
-> +#ifdef CONFIG_PNP
-> +
-> +static struct pnp_device_id gemtek_pnp_devices[] = {
-> +	/* AOpen FX-3D/Pro Radio */
-> +	{.id = "ADS7183", .driver_data = 0},
-> +	{.id = ""}
-> +};
-> +
-> +MODULE_DEVICE_TABLE(pnp, gemtek_pnp_devices);
-> +
-> +static int gemtek_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
-> +{
-> +	if (!dev)
-> +		return -ENODEV;
-> +	/* only support one device */
-> +	if (io > 0)
-> +		return -EBUSY;
-> +
-> +	if (!pnp_port_valid(dev, 0))
-> +		return -ENODEV;
-> +
-> +	io = pnp_port_start(dev, 0);
-> +
-> +	printk(KERN_INFO "radio-gemtek: PnP reports device at %#x\n", io);
-> +
-> +	return io;
-> +}
-> +
-> +static struct pnp_driver gemtek_pnp_driver = {
-> +	.name		= "radio-gemtek",
-> +	.id_table	= gemtek_pnp_devices,
-> +	.probe		= gemtek_pnp_probe,
-> +	.remove		= NULL,
-> +};
-> +
-> +#else
-> +static struct pnp_driver gemtek_pnp_driver;
-> +#endif
-> +
-> +
->  /*
->   * Automatic probing for card.
->   */
-> @@ -536,8 +577,11 @@ static int __init gemtek_init(void)
->  	mutex_init(&gt->lock);
->  
->  	gt->verified = -1;
-> +	if (io < 0)
-> +		pnp_register_driver(&gemtek_pnp_driver);
-> +	else
-> +		gemtek_probe(gt);
->  	gt->io = io;
-> -	gemtek_probe(gt);
->  	if (gt->io) {
->  		if (!request_region(gt->io, 1, "gemtek")) {
->  			v4l2_err(v4l2_dev, "I/O port 0x%x already in use.\n", gt->io);
-> @@ -608,6 +652,7 @@ static void __exit gemtek_exit(void)
->  	video_unregister_device(&gt->vdev);
->  	v4l2_device_unregister(&gt->v4l2_dev);
->  	release_region(gt->io, 1);
-> +	pnp_unregister_driver(&gemtek_pnp_driver);
->  }
->  
->  module_init(gemtek_init);
-> 
-> 
-> 
+
+The following changes since commit 59b30294e14fa6a370fdd2bc2921cca1f977ef16:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.4 (2012-01-23 18:11:30 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git decoder6
+
+Hans Verkuil (8):
+      v4l2: add VIDIOC_(TRY_)DECODER_CMD.
+      v4l spec: document VIDIOC_(TRY_)DECODER_CMD.
+      ivtv: implement new decoder command ioctls.
+      v4l2-ctrls: add new controls for MPEG decoder devices.
+      Document decoder controls.
+      ivtv: implement new decoder controls.
+      cx18/ddbridge: remove unused headers.
+      ivtv: add IVTV_IOC_PASSTHROUGH_MODE.
+
+ Documentation/DocBook/media/v4l/controls.xml       |   59 +++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    1 +
+ .../DocBook/media/v4l/vidioc-decoder-cmd.xml       |  256 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-encoder-cmd.xml       |    9 +-
+ drivers/media/dvb/ddbridge/ddbridge.h              |    2 -
+ drivers/media/video/cx18/cx18-driver.h             |    2 -
+ drivers/media/video/ivtv/ivtv-controls.c           |   62 +++++
+ drivers/media/video/ivtv/ivtv-controls.h           |    2 +
+ drivers/media/video/ivtv/ivtv-driver.c             |   37 +++-
+ drivers/media/video/ivtv/ivtv-driver.h             |   12 +-
+ drivers/media/video/ivtv/ivtv-fileops.c            |    2 +-
+ drivers/media/video/ivtv/ivtv-ioctl.c              |  181 +++++++-------
+ drivers/media/video/ivtv/ivtv-streams.c            |    9 +-
+ drivers/media/video/v4l2-compat-ioctl32.c          |    2 +
+ drivers/media/video/v4l2-ctrls.c                   |   23 ++
+ drivers/media/video/v4l2-ioctl.c                   |   28 +++
+ include/linux/ivtv.h                               |    6 +-
+ include/linux/videodev2.h                          |   66 +++++
+ include/media/v4l2-ioctl.h                         |    4 +
+ 19 files changed, 652 insertions(+), 111 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/vidioc-decoder-cmd.xml
