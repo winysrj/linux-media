@@ -1,86 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:33743 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751451Ab2BMOlS convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 09:41:18 -0500
-Received: by lagu2 with SMTP id u2so3945531lag.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 06:41:17 -0800 (PST)
+Received: from ozlabs.org ([203.10.76.45]:37338 "EHLO ozlabs.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752703Ab2BADo1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 31 Jan 2012 22:44:27 -0500
+From: Rusty Russell <rusty@rustcorp.com.au>
+To: Danny Kukawka <danny.kukawka@bisect.de>,
+	Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org, mchehab@redhat.com
+Subject: Re: [PATCH 05/16] cx18: fix handling of 'radio' module parameter
+In-Reply-To: <201201311445.20095.danny.kukawka@bisect.de>
+References: <1327960820-11867-1-git-send-email-danny.kukawka@bisect.de> <1327960820-11867-6-git-send-email-danny.kukawka@bisect.de> <201201311445.20095.danny.kukawka@bisect.de>
+Date: Wed, 01 Feb 2012 12:59:38 +1030
+Message-ID: <87fwevjnfx.fsf@rustcorp.com.au>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1202131508080.8277@axis700.grange>
-References: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
-	<1329141115-23133-6-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1202131508080.8277@axis700.grange>
-Date: Mon, 13 Feb 2012 15:41:15 +0100
-Message-ID: <CACKLOr3KeCTpee40LMyRnQ9BpSC0v2QxJS6R74YZnENN9a6HLw@mail.gmail.com>
-Subject: Re: [PATCH 5/6] media: i.MX27 camera: fix compilation warning.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	s.hauer@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13 February 2012 15:10, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Hi Javier
->
-> On Mon, 13 Feb 2012, Javier Martin wrote:
->
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->>  drivers/media/video/mx2_camera.c |   16 ++++++++--------
->>  1 files changed, 8 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
->> index d9028f1..8ccdb4a 100644
->> --- a/drivers/media/video/mx2_camera.c
->> +++ b/drivers/media/video/mx2_camera.c
->> @@ -1210,7 +1210,9 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
->>  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>               int bufnum, bool err)
->>  {
->> +#ifdef DEBUG
->>       struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->> +#endif
->>       struct mx2_buffer *buf;
->>       struct vb2_buffer *vb;
->>       unsigned long phys;
->> @@ -1232,18 +1234,16 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>               if (prp->cfg.channel == 1) {
->>                       if (readl(pcdev->base_emma + PRP_DEST_RGB1_PTR +
->>                               4 * bufnum) != phys) {
->> -                             dev_err(pcdev->dev, "%p != %p\n", phys,
->> -                                             readl(pcdev->base_emma +
->> -                                                     PRP_DEST_RGB1_PTR +
->> -                                                     4 * bufnum));
->> +                             dev_err(pcdev->dev, "%p != %p\n", (void *)phys,
->> +                                     (void *)readl(pcdev->base_emma +
->> +                                     PRP_DEST_RGB1_PTR + 4 * bufnum));
->>                       }
->>               } else {
->>                       if (readl(pcdev->base_emma + PRP_DEST_Y_PTR -
->>                               0x14 * bufnum) != phys) {
->> -                             dev_err(pcdev->dev, "%p != %p\n", phys,
->> -                                             readl(pcdev->base_emma +
->> -                                                     PRP_DEST_Y_PTR -
->> -                                                     0x14 * bufnum));
->> +                             dev_err(pcdev->dev, "%p != %p\n", (void *)phys,
->> +                                     (void *)readl(pcdev->base_emma +
->> +                                     PRP_DEST_Y_PTR - 0x14 * bufnum));
->
-> I think, just using %lx would be better.
+On Tue, 31 Jan 2012 14:45:18 +0100, Danny Kukawka <danny.kukawka@bisect.de> wrote:
+> On Dienstag, 31. Januar 2012, Andy Walls wrote:
+> Overseen this. But wouldn't be the correct fix in this case to:
+> a) reverse the part of 90ab5ee94171b3e28de6bb42ee30b527014e0be7 to:
+>    get: 
+>    static unsigned radio_c = 1;
+>    
+> b) change the following line:
+>    module_param_array(radio, bool, &radio_c, 0644);
+>    to:
+>    module_param_array(radio, int, &radio_c, 0644);
 
-Fixed.
-Please, see v2.
+Yes, sorry, my patch was complete crap here :(
 
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+If you want people to set it only to 1 or 0, you probably want "bint".
+
+Thanks,
+Rusty.
