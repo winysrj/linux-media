@@ -1,45 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:39173 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752758Ab2BRQeE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Feb 2012 11:34:04 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: PnP support for the new ISA radio framework?
-Date: Sat, 18 Feb 2012 17:33:32 +0100
-Cc: linux-media@vger.kernel.org
+Received: from mxweb4.versatel.de ([82.140.32.187]:53345 "EHLO
+	mxweb4.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751420Ab2BATUI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2012 14:20:08 -0500
+Received: from cinnamon-sage.de (i577A1B03.versanet.de [87.122.27.3])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q11HeheT006948
+	for <linux-media@vger.kernel.org>; Wed, 1 Feb 2012 18:40:43 +0100
+Received: from 192.168.23.2:49442 by cinnamon-sage.de for <h@realh.co.uk>,<linux-media@vger.kernel.org> ; 01.02.2012 18:40:42
+Message-ID: <4F29791C.6060201@flensrocker.de>
+Date: Wed, 01 Feb 2012 18:40:44 +0100
+From: Lars Hanisch <dvb@flensrocker.de>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="us-ascii"
+To: Tony Houghton <h@realh.co.uk>
+CC: linux-media@vger.kernel.org
+Subject: Re: DVB TS/PES filters
+References: <20120126154015.01eb2c18@tiber> <20120201133234.0b6222bc@junior>
+In-Reply-To: <20120201133234.0b6222bc@junior>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201202181733.34599.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-there are some ISA radio cards with PnP support (e.g. SF16-FMI) but the new 
-ISA radio framework has no PnP support.
+Hi,
 
-I got AOpen FX-3D/Pro Radio card which is AD1816 with Gemtek radio - and with 
-PnP. But radio-gemtek fails to load because the radio I/O port is not enabled 
-(and the driver does not support PnP).
+Am 01.02.2012 14:32, schrieb Tony Houghton:
+> On Thu, 26 Jan 2012 15:40:15 +0000
+> Tony Houghton<h@realh.co.uk>  wrote:
+>
+>> I could do with a little more information about DMX_SET_PES_FILTER.
+>> Specifically I want to use an output type of DMX_OUT_TS_TAP. I believe
+>> there's a limit on how many filters can be set, but I don't know
+>> whether the kernel imposes such a limit or whether it depends on the
+>> hardware, If the latter, how can I read the limit?
+>
+> Can anyone help me get more information about this (and the "magic
+> number" pid of 8192 for the whole stream)?
 
-Tried to add PnP support to radio-isa but failed. Splitted non-isa_driver 
-related parts from radio_isa_probe() to a separate function and tried to 
-create radio_isa_pnp_probe() only to realize that I'm not able to access 
-struct radio_isa_driver.
+  In the TS-header there are 13 bits for the PID, so it can be from 0 to 8191.
+  Therefore dvb-core interprets 8192 (and greater values I think) as "all PIDs".
 
-radio_isa_probe() relies on the fact that "driver" (struct isa_driver) is the 
-first element of struct radio_isa_driver, so these two structs have the same 
-pointer:
-HW radio driver registers the driver by calling:
-  isa_register_driver(&gemtek_driver.driver, GEMTEK_MAX);
-radio_isa_probe() in radio-isa.c does:
-  struct radio_isa_driver *drv = pdev->platform_data;
-
-So adding struct pnp_driver to struct radio_isa_driver does not seem to be 
-possible.
-
--- 
-Ondrej Zary
+Regards,
+Lars.
