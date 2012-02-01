@@ -1,121 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754226Ab2BVQtO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:49:14 -0500
-Date: Wed, 22 Feb 2012 17:48:57 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv23 16/16] ARM: Samsung: use CMA for 2 memory banks for s5p-mfc
- device
-In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329929337-16648-17-git-send-email-m.szyprowski@samsung.com>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:42515 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753710Ab2BAIrk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2012 03:47:40 -0500
 MIME-version: 1.0
-Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+Content-type: text/plain; charset=utf-8
+Date: Wed, 01 Feb 2012 09:47:33 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCHv19 00/15] Contiguous Memory Allocator
+In-reply-to: <CA+M3ks7h1t6DbPSAhPN6LJ5Dw84hSukfWG16avh2eZL+o4caJg@mail.gmail.com>
+To: 'Benjamin Gaignard' <benjamin.gaignard@linaro.org>,
+	'Michal Nazarewicz' <mina86@mina86.com>
+Cc: 'Andrew Morton' <akpm@linux-foundation.org>,
+	'Mel Gorman' <mel@csn.ul.ie>, 'Arnd Bergmann' <arnd@arndb.de>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Dave Hansen' <dave@linux.vnet.ibm.com>
+Message-id: <000201cce0be$240a88e0$6c1f9aa0$%szyprowski@samsung.com>
+Content-language: pl
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <201201261531.40551.arnd@arndb.de>
+ <20120127162624.40cba14e.akpm@linux-foundation.org>
+ <20120130132512.GO25268@csn.ul.ie> <op.v8wlzbc53l0zgt@mpn-glaptop>
+ <CA+M3ks7h1t6DbPSAhPN6LJ5Dw84hSukfWG16avh2eZL+o4caJg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace custom memory bank initialization using memblock_reserve and
-dma_declare_coherent with a single call to CMA's dma_declare_contiguous.
+Hello,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/arm/plat-s5p/dev-mfc.c |   51 ++++++-------------------------------------
- 1 files changed, 7 insertions(+), 44 deletions(-)
+On Tuesday, January 31, 2012 6:17 PM Benjamin Gaignard wrote:
 
-diff --git a/arch/arm/plat-s5p/dev-mfc.c b/arch/arm/plat-s5p/dev-mfc.c
-index a30d36b..fcb8400 100644
---- a/arch/arm/plat-s5p/dev-mfc.c
-+++ b/arch/arm/plat-s5p/dev-mfc.c
-@@ -14,6 +14,7 @@
- #include <linux/interrupt.h>
- #include <linux/platform_device.h>
- #include <linux/dma-mapping.h>
-+#include <linux/dma-contiguous.h>
- #include <linux/memblock.h>
- #include <linux/ioport.h>
- 
-@@ -22,52 +23,14 @@
- #include <plat/irqs.h>
- #include <plat/mfc.h>
- 
--struct s5p_mfc_reserved_mem {
--	phys_addr_t	base;
--	unsigned long	size;
--	struct device	*dev;
--};
--
--static struct s5p_mfc_reserved_mem s5p_mfc_mem[2] __initdata;
--
- void __init s5p_mfc_reserve_mem(phys_addr_t rbase, unsigned int rsize,
- 				phys_addr_t lbase, unsigned int lsize)
- {
--	int i;
--
--	s5p_mfc_mem[0].dev = &s5p_device_mfc_r.dev;
--	s5p_mfc_mem[0].base = rbase;
--	s5p_mfc_mem[0].size = rsize;
--
--	s5p_mfc_mem[1].dev = &s5p_device_mfc_l.dev;
--	s5p_mfc_mem[1].base = lbase;
--	s5p_mfc_mem[1].size = lsize;
--
--	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
--		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
--		if (memblock_remove(area->base, area->size)) {
--			printk(KERN_ERR "Failed to reserve memory for MFC device (%ld bytes at 0x%08lx)\n",
--			       area->size, (unsigned long) area->base);
--			area->base = 0;
--		}
--	}
--}
--
--static int __init s5p_mfc_memory_init(void)
--{
--	int i;
--
--	for (i = 0; i < ARRAY_SIZE(s5p_mfc_mem); i++) {
--		struct s5p_mfc_reserved_mem *area = &s5p_mfc_mem[i];
--		if (!area->base)
--			continue;
-+	if (dma_declare_contiguous(&s5p_device_mfc_r.dev, rsize, rbase, 0))
-+		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
-+		       rsize, (unsigned long) rbase);
- 
--		if (dma_declare_coherent_memory(area->dev, area->base,
--				area->base, area->size,
--				DMA_MEMORY_MAP | DMA_MEMORY_EXCLUSIVE) == 0)
--			printk(KERN_ERR "Failed to declare coherent memory for MFC device (%ld bytes at 0x%08lx)\n",
--			       area->size, (unsigned long) area->base);
--	}
--	return 0;
-+	if (dma_declare_contiguous(&s5p_device_mfc_l.dev, lsize, lbase, 0))
-+		printk(KERN_ERR "Failed to reserve memory for MFC device (%u bytes at 0x%08lx)\n",
-+		       rsize, (unsigned long) rbase);
- }
--device_initcall(s5p_mfc_memory_init);
+> I have rebase Linaro CMA test driver to be compatible with CMA v19, it now use
+> dma-mapping API instead of v17 CMA API.
+> A kernel for snowball with CMA v19 and test driver is available here: 
+> http://git.linaro.org/gitweb?p=people/bgaignard/linux-snowball-test-cma-v19.git;a=summary
+>
+> From this kernel build, I have execute CMA lava (the linaro automatic test tool) 
+> test, the same than we are running since v16, the test is OK.
+> With previous versions of CMA some the test has found issues when the memory was 
+> filled with reclaimables pages, but with v19 this issue is no more present.
+> Test logs are here:  https://validation.linaro.org/lava-server/scheduler/job/10841
+>
+> so you can add:
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+
+Thanks for Your contribution!
+
+Best regards
 -- 
-1.7.1.569.g6f426
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
 
