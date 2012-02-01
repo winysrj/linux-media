@@ -1,62 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:65530 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212Ab2BTB6z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:58:55 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 16/33] v4l: Improve sub-device documentation for pad ops
-Date: Mon, 20 Feb 2012 03:56:55 +0200
-Message-Id: <1329703032-31314-16-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Received: from eu1sys200aog110.obsmtp.com ([207.126.144.129]:46742 "EHLO
+	eu1sys200aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750932Ab2BAFBk convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 1 Feb 2012 00:01:40 -0500
+From: Bhupesh SHARMA <bhupesh.sharma@st.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	Rabin VINCENT <rabin.vincent@stericsson.com>,
+	Linus WALLEIJ <linus.walleij@stericsson.com>
+Date: Wed, 1 Feb 2012 13:01:22 +0800
+Subject: Handling <Ctrl-c> like events in 's_power' implementation when we
+ have a GPIO controlling the sensor CE
+Message-ID: <D5ECB3C7A6F99444980976A8C6D896384ED2897780@EAPEX1MAIL1.st.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document that format related configuration is done through pad ops in case
-the driver does use the media framework.
+Hi Guennadi,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- Documentation/video4linux/v4l2-framework.txt |    9 +++++++++
- 1 files changed, 9 insertions(+), 0 deletions(-)
+I don't know if you are the right person to ask this query (since
+it is also related to GPIO stuff), but here goes:
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index 659b2ba..f06c563 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -262,11 +262,16 @@ struct v4l2_subdev_video_ops {
- 	...
- };
- 
-+struct v4l2_subdev_pad_ops {
-+	...
-+};
-+
- struct v4l2_subdev_ops {
- 	const struct v4l2_subdev_core_ops  *core;
- 	const struct v4l2_subdev_tuner_ops *tuner;
- 	const struct v4l2_subdev_audio_ops *audio;
- 	const struct v4l2_subdev_video_ops *video;
-+	const struct v4l2_subdev_pad_ops *video;
- };
- 
- The core ops are common to all subdevs, the other categories are implemented
-@@ -303,6 +308,10 @@ Don't forget to cleanup the media entity before the sub-device is destroyed:
- 
- 	media_entity_cleanup(&sd->entity);
- 
-+If the subdev driver intends to process video and integrate with the media
-+framework, it must implement format related functionality using
-+v4l2_subdev_pad_ops instead of v4l2_subdev_video_ops.
-+
- A device (bridge) driver needs to register the v4l2_subdev with the
- v4l2_device:
- 
--- 
-1.7.2.5
+Our board has a I2C controlled camera sensor whose Chip Enable (CE)
+pin is driven via a GPIO. This GPIO is made available by a I2C-to-GPIO
+expander chip (STMPE801, see user manual [1])
+
+Now, when we implement the 's_power' routines as specified by the soc-camera
+framework, a peculiar issue arises:
+
+The 's_power' routine simply toggles the CE of the sensor as per the power-on/off
+command received from the framework/bridge driver. And this works absolutely fine
+in normal cases. As we have a GPIO on a external chip (STMPE801) we need to use 
+*_cansleep variants of the gpio_set/get routines (see [2] for reference) to toggle
+the GPIO values to power-on/off the sensor chip.
+
+Now, when we terminate a user application (a standard application like 'capture'
+available as a reference v4l2 test application) which was capturing a large
+number of frames from the sensor, using 'ctrl-c', I see that 's_power' is 
+correctly called with a power-off argument. However, the I2C controller driver
+(we use the standard SYNOPSYS designware device driver present in mainline,
+see [3]) returns -ERESTARTSYS in response to the write command we had requested
+for putting the sensor to power-off state (as it has received the <ctrl-c> kill
+signal).
+
+But as the gpio_set_val_* variants are inherently 'void' implementations, we have
+no mechanism to use and handle the -ERESTARTSYS value in the 's_power' implementation.
+I also found that the standard 'soc_camera.c' does not check the return value in
+'soc_camera_power_off' routines, but that is a easily fixable issue.
+
+Now, I want your opinions on how to get out of this mess.
+Perhaps changes in GPIO implementations? Or am I missing
+something here.
+
+References:
+[1] http://www.st.com/internet/analog/product/154542.jsp
+[2] http://lxr.linux.no/linux+v3.1.5/Documentation/gpio.txt#L195
+[3] http://lxr.linux.no/linux+v3.1.5/drivers/i2c/busses/i2c-designware.c
+
+Regards,
+Bhupesh 
+
+
+
+
 
