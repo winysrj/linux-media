@@ -1,71 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18865 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965021Ab2B1WBi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 17:01:38 -0500
-Message-ID: <4F4D4EBA.6000309@redhat.com>
-Date: Tue, 28 Feb 2012 19:01:30 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:39405 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932237Ab2BATq4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2012 14:46:56 -0500
+Received: by wgbdt10 with SMTP id dt10so1698710wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 01 Feb 2012 11:46:54 -0800 (PST)
+Message-ID: <4F2996A9.2000809@gmail.com>
+Date: Wed, 01 Feb 2012 20:46:49 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: linux-next: Tree for Feb 23 (media/radio)
-References: <20120223143722.d8814b493df968c229da5f20@canb.auug.org.au> <4F46AC34.8090704@xenotime.net> <4F4CF8C6.4030305@xenotime.net>
-In-Reply-To: <4F4CF8C6.4030305@xenotime.net>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com, k.debski@samsung.com,
+	patches@linaro.org, Kamil Debski <k.debski@samsung.com>
+Subject: Re: [PATCH v4] [media] s5p-g2d: Add HFLIP and VFLIP support
+References: <1328089723-18482-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1328089723-18482-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 28-02-2012 12:54, Randy Dunlap escreveu:
-> On 02/23/2012 01:14 PM, Randy Dunlap wrote:
-> 
->> On 02/22/2012 07:37 PM, Stephen Rothwell wrote:
->>> Hi all,
->>>
->>> Changes since 20120222:
->>
-> 
-> 
-> ping.
-> 
-> These build errors still happen in linux-next 20120228.
+Hi Sachin,
 
-It is likely due to Hans ISA patch series.
+On 02/01/2012 10:48 AM, Sachin Kamat wrote:
+> Add support for flipping the image horizontally and vertically.
+> 
+> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+> ---
+>   drivers/media/video/s5p-g2d/g2d-hw.c |    5 +++++
+>   drivers/media/video/s5p-g2d/g2d.c    |   27 ++++++++++++++++++++-------
+>   drivers/media/video/s5p-g2d/g2d.h    |    4 ++++
+>   3 files changed, 29 insertions(+), 7 deletions(-)
+> 
+> diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
+> index 39937cf..5b86cbe 100644
+> --- a/drivers/media/video/s5p-g2d/g2d-hw.c
+> +++ b/drivers/media/video/s5p-g2d/g2d-hw.c
+> @@ -77,6 +77,11 @@ void g2d_set_rop4(struct g2d_dev *d, u32 r)
+>   	w(r, ROP4_REG);
+>   }
+> 
+> +void g2d_set_flip(struct g2d_dev *d, u32 r)
+> +{
+> +	w(r, SRC_MSK_DIRECT_REG);
+> +}
 
-Hans,
+nit: This could be added instead to g2d.h as a "static inline" function.
+Whether you decide to change it or not:
 
-Could you please add the proper include file to the ISA radio framework?
+ Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Thanks!
-Mauro
-> 
-> 
->>
->> on i386:
->>
->> Looks like several source files need to #include <linux/slab.h>:
->>
->>
->> drivers/media/radio/radio-isa.c:246:3: error: implicit declaration of function 'kfree'
->> drivers/media/radio/radio-aztech.c:72:9: error: implicit declaration of function 'kzalloc'
->> drivers/media/radio/radio-aztech.c:72:22: warning: initialization makes pointer from integer without a cast
->> drivers/media/radio/radio-typhoon.c:76:9: error: implicit declaration of function 'kzalloc'
->> drivers/media/radio/radio-typhoon.c:76:23: warning: initialization makes pointer from integer without a cast
->> drivers/media/radio/radio-terratec.c:57:2: error: implicit declaration of function 'kzalloc'
->> drivers/media/radio/radio-terratec.c:57:2: warning: return makes pointer from integer without a cast
->> drivers/media/radio/radio-aimslab.c:67:9: error: implicit declaration of function 'kzalloc'
->> drivers/media/radio/radio-aimslab.c:67:22: warning: initialization makes pointer from integer without a cast
->> drivers/media/radio/radio-zoltrix.c:80:9: error: implicit declaration of function 'kzalloc'
->> drivers/media/radio/radio-zoltrix.c:80:24: warning: initialization makes pointer from integer without a cast
->> drivers/media/radio/radio-gemtek.c:183:9: error: implicit declaration of function 'kzalloc'
->> drivers/media/radio/radio-gemtek.c:183:22: warning: initialization makes pointer from integer without a cast
->> drivers/media/radio/radio-trust.c:57:9: error: implicit declaration of function 'kzalloc'
->> drivers/media/radio/radio-trust.c:57:21: warning: initialization makes pointer from integer without a cast
->>
-> 
-> 
-> 
+I assume Kamil is going to add locking in subsequent patch(es).
 
+--
+
+Regards,
+Sylwester
