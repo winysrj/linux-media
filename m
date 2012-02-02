@@ -1,64 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34581 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753981Ab2BBKEJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 05:04:09 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Subject: Re: [PATCH] dma-buf: add dma_data_direction to unmap dma_buf_op
-Date: Thu, 2 Feb 2012 11:04:29 +0100
-Cc: "Semwal, Sumit" <sumit.semwal@ti.com>, t.stanislaws@samsung.com,
-	linaro-mm-sig@lists.linaro.org, dri-devel@lists.freedesktop.org,
-	linux-media@vger.kernel.org
-References: <1327657408-15234-1-git-send-email-sumit.semwal@ti.com> <201201311042.59917.laurent.pinchart@ideasonboard.com> <20120131103602.GD3911@phenom.ffwll.local>
-In-Reply-To: <20120131103602.GD3911@phenom.ffwll.local>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:33402 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753525Ab2BBXMS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 18:12:18 -0500
+Received: by eaah12 with SMTP id h12so1244009eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 15:12:17 -0800 (PST)
+Message-ID: <4F2B184F.4030709@gmail.com>
+Date: Fri, 03 Feb 2012 00:12:15 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Andy Furniss <andyqos@ukfsn.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: PCTV 290e page allocation failure
+References: <4F2AC7BF.4040006@ukfsn.org> <4F2ADDCB.4060200@gmail.com> <4F2AEA81.90506@ukfsn.org>
+In-Reply-To: <4F2AEA81.90506@ukfsn.org>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201202021104.30326.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Daniel,
-
-On Tuesday 31 January 2012 11:36:02 Daniel Vetter wrote:
-> On Tue, Jan 31, 2012 at 10:42:59AM +0100, Laurent Pinchart wrote:
-> > Hi Sumit,
-> > 
-> > > On Friday 27 January 2012 10:43:28 Sumit Semwal wrote:
-> > [snip]
-> > 
-> > >  static inline void dma_buf_unmap_attachment(struct dma_buf_attachment
-> > > 
-> > > *attach,
-> > > -                                            struct sg_table *sg)
-> > > +                     struct sg_table *sg, enum dma_data_direction
-> > > write)
-> > 
-> > On a second thought, would it make sense to store the direction in struct
-> > dma_buf_attachment in dma_buf_map_attachment(), and pass the value
-> > directly to the .unmap_dma_buf() instead of requiring the
-> > dma_buf_unmap_attachment() caller to remember it ? Or is an attachment
-> > allowed to map the buffer several times with different directions ?
+Il 02/02/2012 20:56, Andy Furniss ha scritto:
+> Gianluca Gennari wrote:
 > 
-> Current dma api functions already require you to supply the direction
-> argument on unmap
+>> Hi Andy,
+>> I'm getting the same problem on a totally different system.
+> 
+> Hi Gianluca,
+> 
+> Thanks for the reply - it's good to know it's not just me.
+> 
+> What kernel are you using?
+> 
+> I see someone else had problems with > 3.0, I've got a 3.08 built on
+> this box, I'll try it out when I get a chance to reboot, though it took
+> a couple of days to show on my current kernel.
+> 
+> Andy.
+> 
 
-If I understand it correctly, that's mostly because the DMA API doesn't keep 
-track of DMA mappings in a way that it can store the direction on map(), and 
-use it on unmap(). In this case we have an attachment object that we can use 
-to cache the information.
+Hi Andy,
+I'm running 3.1.0 but I back-ported a few patches from 3.2.0 to update
+the PCTV 290e driver to the latest version.
+In the past months I run 2.6.18/2.6.31/3.0.3 before buying the PCTV
+290e, but I never had this problem with the old dvb-usb stick.
 
-> and I think for cpu access I'm also leaning towards an interface where the
-> importer has to supply the direction argument for both begin_access and
-> end_access. So for consistency reasons I'm leaning towards adding it to
-> unmap.
-
-I'm OK with keeping the direction as an argument to unmap() if you think 
-that's better.
-
--- 
 Regards,
+Gianluca
 
-Laurent Pinchart
+
