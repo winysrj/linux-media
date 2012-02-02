@@ -1,56 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:34023 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830Ab2BNIdG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 03:33:06 -0500
-Date: Tue, 14 Feb 2012 17:31:17 +0900
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv21 09/16] mm: page_isolation: MIGRATE_CMA isolation
- functions added
-Message-Id: <20120214173117.3f0bf523.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <1328895151-5196-10-git-send-email-m.szyprowski@samsung.com>
-References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
-	<1328895151-5196-10-git-send-email-m.szyprowski@samsung.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.128.26]:44522 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754305Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 12/31] v4l: Add DPCM compressed formats
+Date: Fri,  3 Feb 2012 01:54:32 +0200
+Message-Id: <1328226891-8968-12-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 10 Feb 2012 18:32:24 +0100
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
+Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
 
-> From: Michal Nazarewicz <mina86@mina86.com>
-> 
-> This commit changes various functions that change pages and
-> pageblocks migrate type between MIGRATE_ISOLATE and
-> MIGRATE_MOVABLE in such a way as to allow to work with
-> MIGRATE_CMA migrate type.
-> 
-> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Tested-by: Rob Clark <rob.clark@linaro.org>
-> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
+ .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
+ include/linux/videodev2.h                          |    3 ++
+ 4 files changed, 34 insertions(+), 1 deletions(-)
+ create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
 
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+index 7b27409..c1c62a9 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
+@@ -1,4 +1,4 @@
+-    <refentry>
++    <refentry id="pixfmt-srggb10">
+       <refmeta>
+ 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
+ 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
+diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+new file mode 100644
+index 0000000..40455f1
+--- /dev/null
++++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+@@ -0,0 +1,29 @@
++    <refentry>
++      <refmeta>
++	<refentrytitle>
++	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
++	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
++	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
++	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
++	 </refentrytitle>
++	&manvol;
++      </refmeta>
++      <refnamediv>
++	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
++	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
++	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
++      </refnamediv>
++      <refsect1>
++	<title>Description</title>
++
++	<para>The following four pixel formats are raw sRGB / Bayer formats
++	with 10 bits per colour compressed to 8 bits each, using DPCM
++	compression. DPCM, differential pulse-code modulation, is lossy.
++	Each colour component consumes 8 bits of memory. In other respects
++	this format is similar to <xref
++	linkend="pixfmt-srggb10">.</xref></para>
++
++      </refsect1>
++    </refentry>
+diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
+index 31eaae2..74d4fcd 100644
+--- a/Documentation/DocBook/media/v4l/pixfmt.xml
++++ b/Documentation/DocBook/media/v4l/pixfmt.xml
+@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
+     &sub-srggb8;
+     &sub-sbggr16;
+     &sub-srggb10;
++    &sub-srggb10dpcm8;
+     &sub-srggb12;
+   </section>
+ 
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index ed56c5c..dbade0e 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -378,7 +378,10 @@ struct v4l2_pix_format {
+ #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
+ #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
+ 	/* 10bit raw bayer DPCM compressed to 8 bits */
++#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
++#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
+ #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
++#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
+ 	/*
+ 	 * 10bit raw bayer, expanded to 16 bits
+ 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+-- 
+1.7.2.5
 
