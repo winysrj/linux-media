@@ -1,290 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:28301 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761254Ab2BNVs3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:48:29 -0500
-From: linuxtv@stefanringel.de
+Received: from smtp.nokia.com ([147.243.1.48]:18900 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754091Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 13/22] mt2063: new tune function
-Date: Tue, 14 Feb 2012 22:47:37 +0100
-Message-Id: <1329256066-8844-13-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
-References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 13/31] media: Add link_validate() op to check links to the sink pad
+Date: Fri,  3 Feb 2012 01:54:33 +0200
+Message-Id: <1328226891-8968-13-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+The purpose of the link_validate() op is to allow an entity driver to ensure
+that the properties of the pads at the both ends of the link are suitable
+for starting the pipeline. link_validate is called on sink pads on active
+links which belong to the active part of the graph.
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/common/tuners/mt2063.c |  225 ++++++++++++----------------------
- 1 files changed, 76 insertions(+), 149 deletions(-)
+ Documentation/media-framework.txt |   19 +++++++++++++
+ drivers/media/media-entity.c      |   53 +++++++++++++++++++++++++++++++++++-
+ include/media/media-entity.h      |    5 ++-
+ 3 files changed, 73 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 8cc58a1..452c517 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -172,16 +172,91 @@ static int mt2063_set_mode(struct mt2063_state *state, enum mt2063_delsys Mode)
- 	return 0;
- }
+diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+index 3a0f879..0e90169 100644
+--- a/Documentation/media-framework.txt
++++ b/Documentation/media-framework.txt
+@@ -335,6 +335,9 @@ the media_entity pipe field.
+ Calls to media_entity_pipeline_start() can be nested. The pipeline pointer must
+ be identical for all nested calls to the function.
  
-+#define MT2063_IF1	1510000
-+#define MT2063_OSC	16000
++media_entity_pipeline_start() may return an error. In that case, it will
++clean up any the changes it did by itself.
++
+ When stopping the stream, drivers must notify the entities with
  
-+static int mt2063_tune(struct mt2063_state *state)
-+{
-+	u32 f_lo1, f_lo2;
-+	u32 div1, num1, div2;
-+	u32 num2;
-+	bool lock = false;
- 
-+	dprintk(1, "\n");
- 
- 	/*
-+	 * it use ClearTune in auto mode, so it doesn't set ClearTune RF Band.
-+	 *
-+	 * first IF Filter Center frequency (f_if1) is static setted to 1510 MHz
-+	 * the reference osc is always 16 MHz
-+	 *
-+	 * f_if1 = (f_ref / 8) * (FIFFC + 640)
-+	 *
-+	 * f_if2_of = (f_if1 (f_ref / 64)) - ( 8 * FIFFC) - 4992
- 	 *
-+	 * f_lo1 = f_in + f_if1
-+	 *
-+	 * f_lo2 = f_lo1 - f_in - f_if2
- 	 *
- 	 */
--
-+	f_lo1 = state->frequency + MT2063_IF1;
-+	/* rounding it to a multiple of 250 kHz */
-+	f_lo1 = (f_lo1 / 250) * 250;
+ 	media_entity_pipeline_stop(struct media_entity *entity);
+@@ -351,3 +354,19 @@ If other operations need to be disallowed on streaming entities (such as
+ changing entities configuration parameters) drivers can explicitly check the
+ media_entity stream_count field to find out if an entity is streaming. This
+ operation must be done with the media_device graph_mutex held.
 +
-+	f_lo2 = f_lo1 - state->frequency - state->if2;
-+	/* rounding it to a multiple of 50 kHz */
-+	f_lo2 = ((f_lo2 + 25) / 50) * 50;
 +
-+	/* TODO: spuck check */
++Link validation
++---------------
 +
-+	/* f_lo1 = 16MHz * (div1 + num1/64) */
-+	num1 = f_lo1 / (MT2063_OSC / 64);
-+	div1 = num1 / 64;
-+	num1 &= 0x3f;
++Link validation is performed from media_entity_pipeline_start() for any
++entity which has sink pads in the pipeline. The
++media_entity::link_validate() callback is used for that purpose. In
++link_validate() callback, entity driver should check that the properties of
++the source pad of the connected entity and its own sink pad match. It is up
++to the type of the entity (and in the end, the properties of the hardware)
++what matching actually means.
 +
-+	/* f_lo2 = 16MHz * (div2 + num2/8192) */
-+	num2 = f_lo2 * 64 / (MT2063_OSC / 128);
-+	div2 = num2 / 8192;
-+	num2 &= 0x1fff;
-+
-+	state->frequency = f_lo1 - f_lo2 - state->if2;
-+
-+	dprintk(2, "Input frequency: %d kHz\n", state->frequency);
-+	dprintk(2, "first IF Filter central frequency: %d kHz\n", 1510000);
-+	dprintk(2, "IF Output frequency: %d kHz\n", state->if2);
-+	dprintk(2, "LO1 frequency: %d kHz\n", f_lo1);
-+	dprintk(2, "LO1 div: %d, 0x%02x\n", div1, div1);
-+	dprintk(2, "LO1 num: %d/64, 0x%02x\n", num1, num1);
-+	dprintk(2, "LO2 frequency: %d kHz\n", f_lo2);
-+	dprintk(2, "LO2 div: %d, 0x%02x\n", div2, div2);
-+	dprintk(2, "LO2 num: %d/8192, 0x%04x\n", num2, num2);
-+
-+	/* set first IF filter center frequency */
-+	mt2063_write(state, MT2063_REG_FIFFC, 115);
-+
-+	/* set LO1 */
-+	mt2063_write(state, MT2063_REG_LO1CQ_1, (div1 & 0xff));
-+	mt2063_write(state, MT2063_REG_LO1CQ_2, (num1 & 0x3f));
-+	/* set LO2, the lastest value with reset */
-+	mt2063_write(state, MT2063_REG_LO2CQ_1, (((div2 & 0x7f) << 1) |
-+						((num2 & 0x1000) >> 12)));
-+	mt2063_write(state, MT2063_REG_LO2CQ_2, ((num2 & 0x0ff0) >> 4));
-+	mt2063_write(state, MT2063_REG_LO2CQ_3, ( 0xe0 | (num2 & 0x000f)));
-+
-+	/* wait util it's lock */
- 	do {
-+		u8 status;
-+		/* read LO status bit */
-+		mt2063_read(state, MT2063_REG_LO_STATUS, &status);
-+
-+		if (state->tuner_id == MT2063_B0) {
-+			if ((status & 0xc0) == 0xc0)
-+				lock = true;
-+		} else {
-+			if ((status & 0x88) == 0x88)
-+				lock = true;
- 		}
-+	} while (!lock);
- 
- 	return 0;
- }
-@@ -207,165 +282,17 @@ static int mt2063_set_mode(struct mt2063_state *state, enum mt2063_delsys Mode)
++Subsystems should facilitate link validation by providing subsystem specific
++helper functions to provide easy access for commonly needed information, and
++in the end provide a way to use driver-specific callbacks.
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index 056138f..678ec07 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -214,23 +214,72 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+  * pipeline pointer must be identical for all nested calls to
+  * media_entity_pipeline_start().
+  */
+-void media_entity_pipeline_start(struct media_entity *entity,
+-				 struct media_pipeline *pipe)
++__must_check int media_entity_pipeline_start(struct media_entity *entity,
++					     struct media_pipeline *pipe)
  {
+ 	struct media_device *mdev = entity->parent;
+ 	struct media_entity_graph graph;
++	struct media_entity *entity_err = entity;
++	int ret = 0;
  
+ 	mutex_lock(&mdev->graph_mutex);
  
--/*
-- * MT2063_Tune() - Change the tuner's tuned frequency to RFin.
-- */
--static u32 MT2063_Tune(struct mt2063_state *state, u32 f_in)
--{				/* RF input center frequency   */
--
--	u32 status = 0;
--	u32 LO1;		/*  1st LO register value           */
--	u32 Num1;		/*  Numerator for LO1 reg. value    */
--	u32 f_IF1;		/*  1st IF requested                */
--	u32 LO2;		/*  2nd LO register value           */
--	u32 Num2;		/*  Numerator for LO2 reg. value    */
--	u32 ofLO1, ofLO2;	/*  last time's LO frequencies      */
--	u8 fiffc = 0x80;	/*  FIFF center freq from tuner     */
--	u32 fiffof;		/*  Offset from FIFF center freq    */
--	const u8 LO1LK = 0x80;	/*  Mask for LO1 Lock bit           */
--	u8 LO2LK = 0x08;	/*  Mask for LO2 Lock bit           */
--	u8 val;
--	u32 RFBand;
+ 	media_entity_graph_walk_start(&graph, entity);
  
--	dprintk(2, "\n");
--	/*  Check the input and output frequency ranges                   */
--	if ((f_in < MT2063_MIN_FIN_FREQ) || (f_in > MT2063_MAX_FIN_FREQ))
--		return -EINVAL;
--
--	if ((state->AS_Data.f_out < MT2063_MIN_FOUT_FREQ)
--	    || (state->AS_Data.f_out > MT2063_MAX_FOUT_FREQ))
--		return -EINVAL;
- 
--	/*
--	 * Save original LO1 and LO2 register values
--	 */
--	ofLO1 = state->AS_Data.f_LO1;
--	ofLO2 = state->AS_Data.f_LO2; 
- 
--	/*
--	 * Find and set RF Band setting
--	 */
--	if (state->ctfilt_sw == 1) {
--		val = (state->reg[MT2063_REG_CTUNE_CTRL] | 0x08);
--		if (state->reg[MT2063_REG_CTUNE_CTRL] != val) {
--			status |=
--			    mt2063_setreg(state, MT2063_REG_CTUNE_CTRL, val);
--		}
--		val = state->reg[MT2063_REG_CTUNE_OV];
--		state->reg[MT2063_REG_CTUNE_OV] =
--		    (u8) ((state->reg[MT2063_REG_CTUNE_OV] & ~0x1F)
--			      | RFBand);
--		if (state->reg[MT2063_REG_CTUNE_OV] != val) {
--			status |=
--			    mt2063_setreg(state, MT2063_REG_CTUNE_OV, val);
- 		}
+ 	while ((entity = media_entity_graph_walk_next(&graph))) {
++		int i;
++
+ 		entity->stream_count++;
+ 		WARN_ON(entity->pipe && entity->pipe != pipe);
+ 		entity->pipe = pipe;
++
++		/* Already streaming --- no need to check. */
++		if (entity->stream_count > 1)
++			continue;
++
++		if (!entity->ops || !entity->ops->link_validate)
++			continue;
++
++		for (i = 0; i < entity->num_links; i++) {
++			struct media_link *link = &entity->links[i];
++
++			/* Is this pad part of an enabled link? */
++			if ((link->flags & MEDIA_LNK_FL_ENABLED)
++			    != MEDIA_LNK_FL_ENABLED)
++				continue;
++
++			/* Are we the sink or not? */
++			if (link->sink->entity != entity)
++				continue;
++
++			ret = entity->ops->link_validate(link);
++			if (ret < 0 && ret != -ENOIOCTLCMD)
++				break;
++		}
++		if (ret < 0 && ret != -ENOIOCTLCMD)
++			goto error;
  	}
  
--	/*
--	 * Read the FIFF Center Frequency from the tuner
--	 */
--	if (status >= 0) {
--		status |=
--		    mt2063_read(state,
--				   MT2063_REG_FIFFC,
--				   &state->reg[MT2063_REG_FIFFC], 1);
--		fiffc = state->reg[MT2063_REG_FIFFC];
--	}
--	/*
--	 * Assign in the requested values
--	 */
--	state->AS_Data.f_in = f_in;
--	/*
--	 *  Check the upconverter and downconverter frequency ranges
--	 */
--	if ((state->AS_Data.f_LO1 < MT2063_MIN_UPC_FREQ)
--	    || (state->AS_Data.f_LO1 > MT2063_MAX_UPC_FREQ))
--		status |= MT2063_UPC_RANGE;
--	if ((state->AS_Data.f_LO2 < MT2063_MIN_DNC_FREQ)
--	    || (state->AS_Data.f_LO2 > MT2063_MAX_DNC_FREQ))
--		status |= MT2063_DNC_RANGE;
--	/*  LO2 Lock bit was in a different place for B0 version  */
--	if (state->tuner_id == MT2063_B0)
--		LO2LK = 0x40;
- 
--	/*
--	 *  If we have the same LO frequencies and we're already locked,
--	 *  then skip re-programming the LO registers.
--	 */
--	if ((ofLO1 != state->AS_Data.f_LO1)
--	    || (ofLO2 != state->AS_Data.f_LO2)
--	    || ((state->reg[MT2063_REG_LO_STATUS] & (LO1LK | LO2LK)) !=
--		(LO1LK | LO2LK))) {
--		/*
--		 * Calculate the FIFFOF register value
--		 *
--		 *           IF1_Actual
--		 * FIFFOF = ------------ - 8 * FIFFC - 4992
--		 *            f_ref/64
--		 */
--		fiffof =
--		    (state->AS_Data.f_LO1 -
--		     f_in) / (state->AS_Data.f_ref / 64) - 8 * (u32) fiffc -
--		    4992;
--		if (fiffof > 0xFF)
--			fiffof = 0xFF;
--
--		/*
--		 * Place all of the calculated values into the local tuner
--		 * register fields.
--		 */
--		if (status >= 0) {
--			state->reg[MT2063_REG_LO1CQ_1] = (u8) (LO1 & 0xFF);	/* DIV1q */
--			state->reg[MT2063_REG_LO1CQ_2] = (u8) (Num1 & 0x3F);	/* NUM1q */
--			state->reg[MT2063_REG_LO2CQ_1] = (u8) (((LO2 & 0x7F) << 1)	/* DIV2q */
--								   |(Num2 >> 12));	/* NUM2q (hi) */
--			state->reg[MT2063_REG_LO2CQ_2] = (u8) ((Num2 & 0x0FF0) >> 4);	/* NUM2q (mid) */
--			state->reg[MT2063_REG_LO2CQ_3] = (u8) (0xE0 | (Num2 & 0x000F));	/* NUM2q (lo) */
--
--			/*
--			 * Now write out the computed register values
--			 * IMPORTANT: There is a required order for writing
--			 *            (0x05 must follow all the others).
--			 */
--			status |= mt2063_write(state, MT2063_REG_LO1CQ_1, &state->reg[MT2063_REG_LO1CQ_1], 5);	/* 0x01 - 0x05 */
--			if (state->tuner_id == MT2063_B0) {
--				/* Re-write the one-shot bits to trigger the tune operation */
--				status |= mt2063_write(state, MT2063_REG_LO2CQ_3, &state->reg[MT2063_REG_LO2CQ_3], 1);	/* 0x05 */
--			}
--			/* Write out the FIFF offset only if it's changing */
--			if (state->reg[MT2063_REG_FIFF_OFFSET] !=
--			    (u8) fiffof) {
--				state->reg[MT2063_REG_FIFF_OFFSET] =
--				    (u8) fiffof;
--				status |=
--				    mt2063_write(state,
--						    MT2063_REG_FIFF_OFFSET,
--						    &state->
--						    reg[MT2063_REG_FIFF_OFFSET],
--						    1);
--			}
--		}
- 
--		/*
--		 * Check for LO's locking
--		 */
--
--		if (status < 0)
--			return status;
- 
--		status = mt2063_lockStatus(state);
--		if (status < 0)
--			return status;
--		if (!status)
--			return -EINVAL;		/* Couldn't lock */
- 
--		/*
--		 * If we locked OK, assign calculated data to mt2063_state structure
--		 */
--		state->f_IF1_actual = state->AS_Data.f_LO1 - f_in;
--	}
- 
--	return status;
+ 	mutex_unlock(&mdev->graph_mutex);
++
++	return 0;
++
++error:
++	/*
++	 * Link validation on graph failed. We revert what we did and
++	 * return the error.
++	 */
++	media_entity_graph_walk_start(&graph, entity_err);
++	do {
++		entity_err = media_entity_graph_walk_next(&graph);
++		entity_err->stream_count--;
++		if (entity_err->stream_count == 0)
++			entity_err->pipe = NULL;
++	} while (entity_err != entity);
++
++	mutex_unlock(&mdev->graph_mutex);
++
++	return ret;
  }
+ EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
  
- static int mt2063_init(struct dvb_frontend *fe)
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 29e7bba..0c16f51 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -46,6 +46,7 @@ struct media_entity_operations {
+ 	int (*link_setup)(struct media_entity *entity,
+ 			  const struct media_pad *local,
+ 			  const struct media_pad *remote, u32 flags);
++	int (*link_validate)(struct media_link *link);
+ };
+ 
+ struct media_entity {
+@@ -140,8 +141,8 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
+ 		struct media_entity *entity);
+ struct media_entity *
+ media_entity_graph_walk_next(struct media_entity_graph *graph);
+-void media_entity_pipeline_start(struct media_entity *entity,
+-		struct media_pipeline *pipe);
++__must_check int media_entity_pipeline_start(struct media_entity *entity,
++					     struct media_pipeline *pipe);
+ void media_entity_pipeline_stop(struct media_entity *entity);
+ 
+ #define media_entity_call(entity, operation, args...)			\
 -- 
-1.7.7.6
+1.7.2.5
 
