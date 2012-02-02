@@ -1,128 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:60938 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751226Ab2BZBJ1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 20:09:27 -0500
-Message-ID: <4F49862A.4060302@iki.fi>
-Date: Sun, 26 Feb 2012 03:08:58 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44372 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755235Ab2BBJy7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 04:54:59 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [Q] Interleaved formats on the media bus
+Date: Thu, 2 Feb 2012 10:55:18 +0100
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+References: <4F27CF29.5090905@samsung.com> <20120201100007.GA841@valkosipuli.localdomain> <4F2924F8.3040408@samsung.com>
+In-Reply-To: <4F2924F8.3040408@samsung.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 22/33] omap3isp: Assume media_entity_pipeline_start
- may fail
-References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-22-git-send-email-sakari.ailus@iki.fi> <2545266.6oAz1XvV7f@avalon>
-In-Reply-To: <2545266.6oAz1XvV7f@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201202021055.19705.laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sylwester,
 
-Laurent Pinchart wrote:
-> Thanks for the patch.
-
-Thanks for the comments.
-
-> On Monday 20 February 2012 03:57:01 Sakari Ailus wrote:
->> Since media_entity_pipeline_start() now does link validation, it may
->> actually fail. Perform the error handling.
->>
->> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
->> ---
->>  drivers/media/video/omap3isp/ispvideo.c |   20 ++++++++++++--------
->>  1 files changed, 12 insertions(+), 8 deletions(-)
->>
->> diff --git a/drivers/media/video/omap3isp/ispvideo.c
->> b/drivers/media/video/omap3isp/ispvideo.c index c191f13..17522db 100644
->> --- a/drivers/media/video/omap3isp/ispvideo.c
->> +++ b/drivers/media/video/omap3isp/ispvideo.c
->> @@ -993,14 +993,16 @@ isp_video_streamon(struct file *file, void *fh, enum
->> v4l2_buf_type type) */
->>  	pipe = video->video.entity.pipe
->>  	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
->> -	media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
->> +	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
->> +	if (ret < 0)
->> +		goto err_media_entity_pipeline_start;
->>
->>  	/* Verify that the currently configured format matches the output of
->>  	 * the connected subdev.
->>  	 */
->>  	ret = isp_video_check_format(video, vfh);
->>  	if (ret < 0)
->> -		goto error;
->> +		goto err_isp_video_check_format;
->>
->>  	video->bpl_padding = ret;
->>  	video->bpl_value = vfh->format.fmt.pix.bytesperline;
->> @@ -1017,7 +1019,7 @@ isp_video_streamon(struct file *file, void *fh, enum
->> v4l2_buf_type type) } else {
->>  		if (far_end == NULL) {
->>  			ret = -EPIPE;
->> -			goto error;
->> +			goto err_isp_video_check_format;
->>  		}
->>
->>  		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
->> @@ -1032,7 +1034,7 @@ isp_video_streamon(struct file *file, void *fh, enum
->> v4l2_buf_type type) /* Validate the pipeline and update its state. */
->>  	ret = isp_video_validate_pipeline(pipe);
->>  	if (ret < 0)
->> -		goto error;
->> +		goto err_isp_video_check_format;
->>
->>  	pipe->error = false;
->>
->> @@ -1054,7 +1056,7 @@ isp_video_streamon(struct file *file, void *fh, enum
->> v4l2_buf_type type)
->>
->>  	ret = omap3isp_video_queue_streamon(&vfh->queue);
->>  	if (ret < 0)
->> -		goto error;
->> +		goto err_isp_video_check_format;
->>
->>  	/* In sensor-to-memory mode, the stream can be started synchronously
->>  	 * to the stream on command. In memory-to-memory mode, it will be
->> @@ -1064,19 +1066,21 @@ isp_video_streamon(struct file *file, void *fh, enum
->> v4l2_buf_type type) ret = omap3isp_pipeline_set_stream(pipe,
->>  					      ISP_PIPELINE_STREAM_CONTINUOUS);
->>  		if (ret < 0)
->> -			goto error;
->> +			goto err_omap3isp_set_stream;
->>  		spin_lock_irqsave(&video->queue->irqlock, flags);
->>  		if (list_empty(&video->dmaqueue))
->>  			video->dmaqueue_flags |= ISP_VIDEO_DMAQUEUE_UNDERRUN;
->>  		spin_unlock_irqrestore(&video->queue->irqlock, flags);
->>  	}
->>
->> -error:
->>  	if (ret < 0) {
->> +err_omap3isp_set_stream:
->>  		omap3isp_video_queue_streamoff(&vfh->queue);
->> +err_isp_video_check_format:
->> +		media_entity_pipeline_stop(&video->video.entity);
->> +err_media_entity_pipeline_start:
->>  		if (video->isp->pdata->set_constraints)
->>  			video->isp->pdata->set_constraints(video->isp, false);
->> -		media_entity_pipeline_stop(&video->video.entity);
->>  		/* The DMA queue must be emptied here, otherwise CCDC interrupts
->>  		 * that will get triggered the next time the CCDC is powered up
->>  		 * will try to access buffers that might have been freed but
+On Wednesday 01 February 2012 12:41:44 Sylwester Nawrocki wrote:
+> On 02/01/2012 11:00 AM, Sakari Ailus wrote:
+> >> Some camera sensors generate data formats that cannot be described using
+> >> current convention of the media bus pixel code naming.
+> >> 
+> >> For instance, interleaved JPEG data and raw VYUY. Moreover interleaving
+> >> is rather vendor specific, IOW I imagine there might be many ways of how
+> >> the interleaving algorithm is designed.
+> > 
+> > Is that truly interleaved, or is that e.g. first yuv and then jpeg?
+> > Interleaving the two sounds quite strange to me.
 > 
-> As you add error labels, you can remove the if (ret < 0) test and move error 
-> handling to a separate block. set_constraint() should be called before 
-> media_entity_pipeline_stop() in that case. Another option is to leave error 
-> handling untouched, and to return directly when media_entity_pipeline_start() 
-> fails (after unlocking the mutex of course).
+> It's truly interleaved. There might be some chance for yuv/jpeg one after
+> the other, but the interleaved format needs to be supported.
+> 
+> >> I'm wondering how to handle this. For sure such an image format will
+> >> need a new vendor-specific fourcc. Should we have also vendor specific
+> >> media bus code ?
+> >> 
+> >> I would like to avoid vendor specific media bus codes as much as
+> >> possible. For instance defining something like
+> >> 
+> >> V4L2_MBUS_FMT_VYUY_JPEG_1X8
+> >> 
+> >> for interleaved VYUY and JPEG data might do, except it doesn't tell
+> >> anything about how the data is interleaved.
+> >> 
+> >> So maybe we could add some code describing interleaving (xxxx)
+> >> 
+> >> V4L2_MBUS_FMT_xxxx_VYUY_JPEG_1X8
+> >> 
+> >> or just the sensor name instead ?
+> > 
+> > If that format is truly vendor specific, I think a vendor or sensor
+> > specific media bus code / 4cc would be the way to go. On the other hand,
+> > you must be prepared to handle these formats in your ISP driver, too.
+> 
+> Yes, I don't see an issue in adding a support for a new format in
+> ISP/bridge driver, it needs to know anyway e.g. what MIPI-CSI data type
+> corresponds to the data from sensor.
+> 
+> > I'd guess that all the ISP would do to such formats is to write them to
+> > memory since I don't see much use for either in ISPs --- both typically
+> > are output of the ISP.
+> 
+> Yep, correct. In fact in those cases the sensor has complicated ISP built
+> in, so everything a bridge have to do is to pass data over to user space.
+> 
+> Also non-image data might need to be passed to user space as well.
+> 
+> > I think we will need to consider use cases where the sensors produce
+> > other data than just the plain image: I've heard of a sensor producing
+> > both (consecutively, I understand) and there are sensors that produce
+> > metadata as well. For those, we need to specify the format of the full
+> > frame, not just the image data part of it --- which we have called
+> > "frame" at least up to this point.
+> 
+> Yes, moreover such formats partly determine data layout in memory, rather
+> than really just a format on a video bus.
+> 
+> > If the case is that the ISP needs this kind of information from the
+> > sensor driver to be able to handle this kind of data, i.e. to write the
+> > JPEG and YUV to separate memory locations, I'm proposing to start
+> > working on this
+> 
+> It's not the case here, it would involve unnecessary copying in kernel
+> space. Even in case of whole consequitive data planes contiguous buffer is
+> needed. And it's not easy to split because the border between the data
+> planes cannot be arbitrarily aligned.
+> 
+> > now rather than creating a single hardware-specific solution.
+> 
+> Yes, I'm attempting rather generic approach, even just for that reason that
+> there are multiple Samsung sensors that output hybrid data. I've seen Sony
+> sensor doing that as well.
 
-I've added separate error handling part and moved the constraint
-settings patch before this one.
+Do all those sensors interleave the data in the same way ? This sounds quite 
+hackish and vendor-specific to me, I'm not sure if we should try to generalize 
+that. Maybe vendor-specific media bus format codes would be the way to go. I 
+don't expect ISPs to understand the format, they will likely be configured in 
+pass-through mode. Instead of adding explicit support for all those weird 
+formats to all ISP drivers, it might make sense to add a "binary blob" media 
+bus code to be used by the ISP.
 
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Regards,
+
+Laurent Pinchart
