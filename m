@@ -1,98 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36866 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751380Ab2BENaW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2012 08:30:22 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Q] Interleaved formats on the media bus
-Date: Sun, 05 Feb 2012 14:30:14 +0100
-Message-ID: <4116034.kVC1fDZsLk@avalon>
-In-Reply-To: <4F2D641A.5020900@gmail.com>
-References: <4F27CF29.5090905@samsung.com> <4637542.W3k3fJhoQF@avalon> <4F2D641A.5020900@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4469 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755504Ab2BBK2i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 05:28:38 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Davide Libenzi <davidel@xmailserver.org>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Enke Chen <enkechen@cisco.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv7 PATCH 1/4] eventpoll: set key to the correct events mask.
+Date: Thu,  2 Feb 2012 11:26:54 +0100
+Message-Id: <a92b9a00741769f3c38a54d3a6799509f9089452.1328176079.git.hans.verkuil@cisco.com>
+In-Reply-To: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
+References: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Saturday 04 February 2012 18:00:10 Sylwester Nawrocki wrote:
-> On 02/04/2012 12:34 PM, Laurent Pinchart wrote:
-> > On Thursday 02 February 2012 12:14:08 Sylwester Nawrocki wrote:
-> >> On 02/02/2012 10:55 AM, Laurent Pinchart wrote:
-> >>> Do all those sensors interleave the data in the same way ? This sounds
-> >>> quite
-> >> 
-> >> No, each one uses it's own interleaving method.
-> >> 
-> >>> hackish and vendor-specific to me, I'm not sure if we should try to
-> >>> generalize that. Maybe vendor-specific media bus format codes would be
-> >>> the way to go. I don't expect ISPs to understand the format, they will
-> >>> likely be configured in pass-through mode. Instead of adding explicit
-> >>> support for all those weird formats to all ISP drivers, it might make
-> >>> sense to add a "binary blob" media bus code to be used by the ISP.
-> >> 
-> >> This could work, except that there is no way to match a fourcc with media
-> >> bus code. Different fourcc would map to same media bus code, making it
-> >> impossible for the brigde to handle multiple sensors or one sensor
-> >> supporting multiple interleaved formats. Moreover there is a need to map
-> >> media bus code to the MIPI-CSI data ID. What if one sensor sends "binary"
-> >> blob with MIPI-CSI "User Define Data 1" and the other with "User Define
-> >> Data 2" ?
-> > 
-> > My gut feeling is that the information should be retrieved from the sensor
-> > driver. This is all pretty vendor-specific, and adding explicit support
-> > for such sensors to each bridge driver wouldn't be very clean. Could the
-> > bridge
-> 
-> We have many standard pixel codes in include/linux/v4l2-mediabus.h, yet each
-> bridge driver supports only a subset of them. I wouldn't expect a sudden
-> need for all existing bridge drivers to support some strange interleaved
-> image formats.
+The eventpoll implementation always left the key field at ~0 instead of
+using the requested events mask.
 
-Those media bus codes are standard, so implementing explicit support for them 
-in bridge drivers is fine with me. What I want to avoid is adding explicit 
-support for sensor-specific formats to bridges. There should be no dependency 
-between the bridge and the sensor.
+This was changed so the key field now contains the actual events that
+should be polled for as set by the caller.
 
-> > query the sensor using a subdev operation ?
-> 
-> There is also a MIPI-CSI2 receiver in between that needs to be configured.
-> I.e. it must know that it processes the User Defined Data 1, which implies
-> certain pixel alignment, etc. So far a media bus pixel codes have been
-> a base information to handle such things.
+This information is needed by drivers that need to e.g. start DMA if the
+caller wants to poll for incoming data as opposed to, say, exceptions.
 
-For CSI user-defined data types, I still think that the information required 
-to configure the CSI receiver should come from the sensor. Only the sensor 
-knows what user-defined data type it will generate.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ fs/eventpoll.c |   18 +++++++++++++++---
+ 1 files changed, 15 insertions(+), 3 deletions(-)
 
-> >> Maybe we could create e.g. V4L2_MBUS_FMT_USER?, for each MIPI-CSI User
-> >> Defined data identifier, but as I remember it was decided not to map
-> >> MIPI-CSI data codes directly onto media bus pixel codes.
-> > 
-> > Would setting the format directly on the sensor subdev be an option ?
-> 
-> Do you mean setting a MIPI-CSI2 format ?
-
-No, I mean setting the media bus code on the sensor output pad to a vendor-
-specific value.
-
-> It should work as long as the bridge driver can identify media bus code
-> given a fourcc. I can't recall situation where a reverse lookup is
-> necessary, i.e. struct v4l2_mbus_framefmt::code -> fourcc. This would
-> fail since e.g. JPEG and YUV/JPEG would both correspond to User 1 format.
-
+diff --git a/fs/eventpoll.c b/fs/eventpoll.c
+index aabdfc3..ca47608 100644
+--- a/fs/eventpoll.c
++++ b/fs/eventpoll.c
+@@ -682,9 +682,12 @@ static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
+ 			       void *priv)
+ {
+ 	struct epitem *epi, *tmp;
++	poll_table pt;
+ 
++	init_poll_funcptr(&pt, NULL);
+ 	list_for_each_entry_safe(epi, tmp, head, rdllink) {
+-		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
++		pt.key = epi->event.events;
++		if (epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
+ 		    epi->event.events)
+ 			return POLLIN | POLLRDNORM;
+ 		else {
+@@ -1065,6 +1068,7 @@ static int ep_insert(struct eventpoll *ep, struct epoll_event *event,
+ 	/* Initialize the poll table using the queue callback */
+ 	epq.epi = epi;
+ 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
++	epq.pt.key = event->events;
+ 
+ 	/*
+ 	 * Attach the item to the poll hooks and get current event bits.
+@@ -1159,6 +1163,9 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
+ {
+ 	int pwake = 0;
+ 	unsigned int revents;
++	poll_table pt;
++
++	init_poll_funcptr(&pt, NULL);
+ 
+ 	/*
+ 	 * Set the new event interest mask before calling f_op->poll();
+@@ -1166,13 +1173,14 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
+ 	 * f_op->poll() call and the new event set registering.
+ 	 */
+ 	epi->event.events = event->events;
++	pt.key = event->events;
+ 	epi->event.data = event->data; /* protected by mtx */
+ 
+ 	/*
+ 	 * Get current event bits. We can safely use the file* here because
+ 	 * its usage count has been increased by the caller of this function.
+ 	 */
+-	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
++	revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt);
+ 
+ 	/*
+ 	 * If the item is "hot" and it is not registered inside the ready
+@@ -1207,6 +1215,9 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
+ 	unsigned int revents;
+ 	struct epitem *epi;
+ 	struct epoll_event __user *uevent;
++	poll_table pt;
++
++	init_poll_funcptr(&pt, NULL);
+ 
+ 	/*
+ 	 * We can loop without lock because we are passed a task private list.
+@@ -1219,7 +1230,8 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
+ 
+ 		list_del_init(&epi->rdllink);
+ 
+-		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
++		pt.key = epi->event.events;
++		revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
+ 			epi->event.events;
+ 
+ 		/*
 -- 
-Regards,
+1.7.8.3
 
-Laurent Pinchart
