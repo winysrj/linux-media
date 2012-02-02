@@ -1,407 +1,509 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f42.google.com ([74.125.82.42]:45998 "EHLO
-	mail-ww0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab2BVNvx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 08:51:53 -0500
-Received: by wgbgn7 with SMTP id gn7so4911197wgb.1
-        for <linux-media@vger.kernel.org>; Wed, 22 Feb 2012 05:51:52 -0800 (PST)
-MIME-Version: 1.0
-From: Javier Martin <javier.martin@vista-silicon.com>
+Received: from smtp.nokia.com ([147.243.128.24]:50961 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755221Ab2BBXzF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:05 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: s.hauer@pengutronix.de, mchehab@infradead.org,
-	g.liakhovetski@gmx.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v2] media: i.MX27 camera: Add resizing support.
-Date: Wed, 22 Feb 2012 14:51:41 +0100
-Message-Id: <1329918701-16329-1-git-send-email-javier.martin@vista-silicon.com>
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 31/31] rm680: Add camera init
+Date: Fri,  3 Feb 2012 01:54:51 +0200
+Message-Id: <1328226891-8968-31-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the attached video sensor cannot provide the
-requested image size, try to use resizing engine
-included in the eMMa-PrP IP.
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-This patch supports both averaging and bilinear
-algorithms.
+This currently introduces an extra file to the arch/arm/mach-omap2
+directory: board-rm680-camera.c. Keeping the device tree in mind, the
+context of the file could be represented as static data with one exception:
+the external clock to the sensor.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+This external clock is provided by the OMAP 3 SoC and required by the
+sensor. The issue is that the clock originates from the ISP and not from
+PRCM block as the other clocks and thus is not supported by the clock
+framework. Otherwise the sensor driver could just clk_get() and clk_enable()
+it, just like the regulators and gpios.
+
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- Changes since v1:
- - Fix several cosmetic issues.
- - Don't return -EINVAL if resizing is not possible.
- - Only allow resizing for YUYV format at the moment.
- - Simplify some lines of code.
+ arch/arm/mach-omap2/Makefile             |    3 +-
+ arch/arm/mach-omap2/board-rm680-camera.c |  375 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-rm680.c        |   38 +++
+ 3 files changed, 415 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-rm680-camera.c
 
----
- drivers/media/video/mx2_camera.c |  256 +++++++++++++++++++++++++++++++++++++-
- 1 files changed, 252 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index fcb6b3f..453ad4c 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -19,6 +19,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/errno.h>
- #include <linux/fs.h>
-+#include <linux/gcd.h>
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
-@@ -204,10 +205,25 @@
- #define PRP_INTR_LBOVF		(1 << 7)
- #define PRP_INTR_CH2OVF		(1 << 8)
- 
-+/* Resizing registers */
-+#define PRP_RZ_VALID_TBL_LEN(x)	((x) << 24)
-+#define PRP_RZ_VALID_BILINEAR	(1 << 31)
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fc9b238..f92cc92 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -206,7 +206,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+ obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o \
+-					   sdram-nokia.o
++					   sdram-nokia.o \
++					   board-rm680-camera.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   sdram-nokia.o \
+ 					   board-rx51-peripherals.o \
+diff --git a/arch/arm/mach-omap2/board-rm680-camera.c b/arch/arm/mach-omap2/board-rm680-camera.c
+new file mode 100644
+index 0000000..5059821
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-rm680-camera.c
+@@ -0,0 +1,375 @@
++/**
++ * arch/arm/mach-omap2/board-rm680-camera.c
++ *
++ * Copyright (C) 2010--2012 Nokia Corporation
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * Based on board-rx71-camera.c by Vimarsh Zutshi
++ * Based on board-rx51-camera.c by Sakari Ailus
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
 +
- #define mx27_camera_emma(pcdev)	(cpu_is_mx27() && pcdev->use_emma)
- 
- #define MAX_VIDEO_MEM	16
- 
-+#define RESIZE_NUM_MIN	1
-+#define RESIZE_NUM_MAX	20
-+#define BC_COEF		3
-+#define SZ_COEF		(1 << BC_COEF)
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/i2c.h>
++#include <linux/mm.h>
++#include <linux/platform_device.h>
++#include <linux/videodev2.h>
 +
-+#define RESIZE_DIR_H	0
-+#define RESIZE_DIR_V	1
++#include <asm/mach-types.h>
++#include <plat/omap-pm.h>
 +
-+#define RESIZE_ALGO_BILINEAR 0
-+#define RESIZE_ALGO_AVERAGING 1
++#include <media/omap3isp.h>
++#include <media/smiapp.h>
 +
- struct mx2_prp_cfg {
- 	int channel;
- 	u32 in_fmt;
-@@ -217,6 +233,13 @@ struct mx2_prp_cfg {
- 	u32 irq_flags;
- };
- 
-+/* prp resizing parameters */
-+struct emma_prp_resize {
-+	int		algo; /* type of algorithm used */
-+	int		len; /* number of coefficients */
-+	unsigned char	s[RESIZE_NUM_MAX]; /* table of coefficients */
++#include "../../../drivers/media/video/omap3isp/isp.h"
++#include "devices.h"
++
++#define SEC_CAMERA_RESET_GPIO	97
++
++#define RM680_PRI_SENSOR	1
++#define RM680_PRI_LENS		2
++#define RM680_SEC_SENSOR	3
++#define MAIN_CAMERA_XCLK	ISP_XCLK_A
++#define SEC_CAMERA_XCLK		ISP_XCLK_B
++
++/*
++ *
++ * Main Camera Module EXTCLK
++ * Used by the sensor and the actuator driver.
++ *
++ */
++static struct camera_xclk {
++	u32 hz;
++	u32 lock;
++	u8 xclksel;
++} cameras_xclk;
++
++static DEFINE_MUTEX(lock_xclk);
++
++static int rm680_update_xclk(struct v4l2_subdev *subdev, u32 hz, u32 which,
++			     u8 xclksel)
++{
++	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
++	int ret;
++
++	mutex_lock(&lock_xclk);
++
++	if (which == RM680_SEC_SENSOR) {
++		if (cameras_xclk.xclksel == MAIN_CAMERA_XCLK) {
++			ret = -EBUSY;
++			goto done;
++		}
++	} else {
++		if (cameras_xclk.xclksel == SEC_CAMERA_XCLK) {
++			ret = -EBUSY;
++			goto done;
++		}
++	}
++
++	if (hz) {	/* Turn on */
++		cameras_xclk.lock |= which;
++		if (cameras_xclk.hz == 0) {
++			isp->platform_cb.set_xclk(isp, hz, xclksel);
++			cameras_xclk.hz = hz;
++			cameras_xclk.xclksel = xclksel;
++		}
++	} else {	/* Turn off */
++		cameras_xclk.lock &= ~which;
++		if (cameras_xclk.lock == 0) {
++			isp->platform_cb.set_xclk(isp, 0, xclksel);
++			cameras_xclk.hz = 0;
++			cameras_xclk.xclksel = 0;
++		}
++	}
++
++	ret = cameras_xclk.hz;
++
++done:
++	mutex_unlock(&lock_xclk);
++	return ret;
++}
++
++/*
++ *
++ * Main Camera Sensor
++ *
++ */
++
++static int rm680_main_camera_set_xclk(struct v4l2_subdev *sd, int hz)
++{
++	return rm680_update_xclk(sd, hz, RM680_PRI_SENSOR, MAIN_CAMERA_XCLK);
++}
++
++static struct smiapp_flash_strobe_parms rm680_main_camera_strobe_setup = {
++	.mode			= 0x0c,
++	.strobe_width_high_us	= 100000,
++	.strobe_delay		= 0,
++	.stobe_start_point	= 0,
++	.trigger		= 0,
 +};
 +
- /* prp configuration for a client-host fmt pair */
- struct mx2_fmt_cfg {
- 	enum v4l2_mbus_pixelcode	in_fmt;
-@@ -278,6 +301,8 @@ struct mx2_camera_dev {
- 	dma_addr_t		discard_buffer_dma;
- 	size_t			discard_size;
- 	struct mx2_fmt_cfg	*emma_prp;
-+	struct emma_prp_resize	resizing[2];
-+	unsigned int		s_width, s_height;
- 	u32			frame_count;
- 	struct vb2_alloc_ctx	*alloc_ctx;
++static struct smiapp_platform_data rm696_main_camera_platform_data = {
++	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
++	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
++	.nvm_size		= 16 * 64,
++	.ext_clk		= (9.6 * 1000 * 1000),
++	.lanes			= 2,
++	/* bit rate / ddr / lanes */
++	.op_sys_clock		= (s64 []){ 796800000 / 2 / 2,
++					    840000000 / 2 / 2,
++					    1996800000 / 2 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
++	.strobe_setup		= &rm680_main_camera_strobe_setup,
++	.set_xclk		= rm680_main_camera_set_xclk,
++	.xshutdown		= SMIAPP_NO_XSHUTDOWN,
++};
++
++static struct smiapp_platform_data rm680_main_camera_platform_data = {
++	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
++	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
++	.nvm_size		= 16 * 64,
++	.ext_clk		= (9.6 * 1000 * 1000),
++	.lanes			= 2,
++	.op_sys_clock		= (s64 []){ 840000000 / 2 / 2,
++					    1334400000 / 2 / 2,
++					    1593600000 / 2 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
++	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
++	.strobe_setup		= &rm680_main_camera_strobe_setup,
++	.set_xclk		= rm680_main_camera_set_xclk,
++	.xshutdown		= SMIAPP_NO_XSHUTDOWN,
++};
++
++/*
++ *
++ * SECONDARY CAMERA Sensor
++ *
++ */
++
++#define SEC_CAMERA_XCLK		ISP_XCLK_B
++
++static int rm680_sec_camera_set_xclk(struct v4l2_subdev *sd, int hz)
++{
++	return rm680_update_xclk(sd, hz, RM680_SEC_SENSOR, SEC_CAMERA_XCLK);
++}
++
++static struct smiapp_platform_data rm696_sec_camera_platform_data = {
++	.ext_clk		= (10.8 * 1000 * 1000),
++	.lanes			= 1,
++	/* bit rate / ddr */
++	.op_sys_clock		= (s64 []){ 13770000 * 10 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
++	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
++	.set_xclk		= rm680_sec_camera_set_xclk,
++	.xshutdown		= SEC_CAMERA_RESET_GPIO,
++};
++
++static struct smiapp_platform_data rm680_sec_camera_platform_data = {
++	.ext_clk		= (10.8 * 1000 * 1000),
++	.lanes			= 1,
++	/* bit rate / ddr */
++	.op_sys_clock		= (s64 []){ 11880000 * 10 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
++	.set_xclk		= rm680_sec_camera_set_xclk,
++	.xshutdown		= SEC_CAMERA_RESET_GPIO,
++};
++
++/*
++ *
++ * Init all the modules
++ *
++ */
++
++#define CAMERA_I2C_BUS_NUM		2
++#define AD5836_I2C_BUS_NUM		2
++#define AS3645A_I2C_BUS_NUM		2
++
++static struct i2c_board_info rm696_camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
++		.platform_data = &rm696_main_camera_platform_data,
++	},
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
++		.platform_data = &rm696_sec_camera_platform_data,
++	},
++};
++
++static struct i2c_board_info rm680_camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
++		.platform_data = &rm680_main_camera_platform_data,
++	},
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
++		.platform_data = &rm680_sec_camera_platform_data,
++	},
++};
++
++static struct isp_subdev_i2c_board_info rm696_camera_primary_subdevs[] = {
++	{
++		.board_info = &rm696_camera_i2c_devices[0],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm696_camera_secondary_subdevs[] = {
++	{
++		.board_info = &rm696_camera_i2c_devices[1],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm680_camera_primary_subdevs[] = {
++	{
++		.board_info = &rm680_camera_i2c_devices[0],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm680_camera_secondary_subdevs[] = {
++	{
++		.board_info = &rm680_camera_i2c_devices[1],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group rm696_camera_subdevs[] = {
++	{
++		.subdevs = rm696_camera_primary_subdevs,
++		.interface = ISP_INTERFACE_CSI2A_PHY2,
++		.bus = { .csi2 = {
++			.crc		= 1,
++			.vpclk_div	= 1,
++			.lanecfg	= {
++				.clk = {
++					.pol = 1,
++					.pos = 2,
++				},
++				.data[0] = {
++					.pol = 1,
++					.pos = 1,
++				},
++				.data[1] = {
++					.pol = 1,
++					.pos = 3,
++				},
++			},
++		} },
++	},
++	{
++		.subdevs = rm696_camera_secondary_subdevs,
++		.interface = ISP_INTERFACE_CCP2B_PHY1,
++		.bus = { .ccp2 = {
++			.strobe_clk_pol	= 0,
++			.crc		= 0,
++			.ccp2_mode	= 0,
++			.phy_layer	= 0,
++			.vpclk_div	= 2,
++			.lanecfg	= {
++				.clk = {
++					.pol = 0,
++					.pos = 1,
++				},
++				.data[0] = {
++					.pol = 0,
++					.pos = 2,
++				},
++			},
++		} },
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group rm680_camera_subdevs[] = {
++	{
++		.subdevs = rm680_camera_primary_subdevs,
++		.interface = ISP_INTERFACE_CSI2A_PHY2,
++		.bus = { .csi2 = {
++			.crc		= 1,
++			.vpclk_div	= 1,
++			.lanecfg	= {
++				.clk = {
++					.pol = 1,
++					.pos = 2,
++				},
++				.data[0] = {
++					.pol = 1,
++					.pos = 3,
++				},
++				.data[1] = {
++					.pol = 1,
++					.pos = 1,
++				},
++			},
++		} },
++	},
++	{
++		.subdevs = rm680_camera_secondary_subdevs,
++		.interface = ISP_INTERFACE_CCP2B_PHY1,
++		.bus = { .ccp2 = {
++			.strobe_clk_pol	= 0,
++			.crc		= 0,
++			.ccp2_mode	= 0,
++			.phy_layer	= 0,
++			.vpclk_div	= 2,
++			.lanecfg	= {
++				.clk = {
++					.pol = 0,
++					.pos = 1,
++				},
++				.data[0] = {
++					.pol = 0,
++					.pos = 2,
++				},
++			},
++		} },
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_platform_data rm696_isp_platform_data = {
++	.subdevs = rm696_camera_subdevs,
++};
++
++static struct isp_platform_data rm680_isp_platform_data = {
++	.subdevs = rm680_camera_subdevs,
++};
++
++static inline int board_is_rm680(void)
++{
++	return (system_rev & 0x00f0) == 0x0020;
++}
++
++void __init rm680_camera_init(void)
++{
++	struct isp_platform_data *pdata;
++
++	if (board_is_rm680())
++		pdata = &rm680_isp_platform_data;
++	else
++		pdata = &rm696_isp_platform_data;
++
++	if (omap3_init_camera(pdata) < 0)
++		pr_warn("%s: unable to register camera platform device\n",
++			__func__);
++}
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index fdeef9b..75d6d94 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -66,6 +66,39 @@ static struct platform_device rm680_vemmc_device = {
+ 	},
  };
-@@ -687,7 +712,7 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
  
--	writel((icd->user_width << 16) | icd->user_height,
-+	writel((pcdev->s_width << 16) | pcdev->s_height,
- 	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 	writel(prp->cfg.src_pixel,
- 	       pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
-@@ -707,6 +732,74 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 	writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
- }
- 
-+static void mx2_prp_resize_commit(struct mx2_camera_dev *pcdev)
-+{
-+	int dir;
-+
-+	for (dir = RESIZE_DIR_H; dir <= RESIZE_DIR_V; dir++) {
-+		unsigned char *s = pcdev->resizing[dir].s;
-+		int len = pcdev->resizing[dir].len;
-+		unsigned int coeff[2] = {0, 0};
-+		unsigned int valid  = 0;
-+		int i;
-+
-+		if (len == 0)
-+			continue;
-+
-+		for (i = RESIZE_NUM_MAX - 1; i >= 0; i--) {
-+			int j;
-+
-+			j = i > 9 ? 1 : 0;
-+			coeff[j] = (coeff[j] << BC_COEF) |
-+					(s[i] & (SZ_COEF - 1));
-+
-+			if (i == 5 || i == 15)
-+				coeff[j] <<= 1;
-+
-+			valid = (valid << 1) | (s[i] >> BC_COEF);
-+		}
-+
-+		valid |= PRP_RZ_VALID_TBL_LEN(len);
-+
-+		if (pcdev->resizing[dir].algo == RESIZE_ALGO_BILINEAR)
-+			valid |= PRP_RZ_VALID_BILINEAR;
-+
-+		if (pcdev->emma_prp->cfg.channel == 1) {
-+			if (dir == RESIZE_DIR_H) {
-+				writel(coeff[0], pcdev->base_emma +
-+							PRP_CH1_RZ_HORI_COEF1);
-+				writel(coeff[1], pcdev->base_emma +
-+							PRP_CH1_RZ_HORI_COEF2);
-+				writel(valid, pcdev->base_emma +
-+							PRP_CH1_RZ_HORI_VALID);
-+			} else {
-+				writel(coeff[0], pcdev->base_emma +
-+							PRP_CH1_RZ_VERT_COEF1);
-+				writel(coeff[1], pcdev->base_emma +
-+							PRP_CH1_RZ_VERT_COEF2);
-+				writel(valid, pcdev->base_emma +
-+							PRP_CH1_RZ_VERT_VALID);
-+			}
-+		} else {
-+			if (dir == RESIZE_DIR_H) {
-+				writel(coeff[0], pcdev->base_emma +
-+							PRP_CH2_RZ_HORI_COEF1);
-+				writel(coeff[1], pcdev->base_emma +
-+							PRP_CH2_RZ_HORI_COEF2);
-+				writel(valid, pcdev->base_emma +
-+							PRP_CH2_RZ_HORI_VALID);
-+			} else {
-+				writel(coeff[0], pcdev->base_emma +
-+							PRP_CH2_RZ_VERT_COEF1);
-+				writel(coeff[1], pcdev->base_emma +
-+							PRP_CH2_RZ_VERT_COEF2);
-+				writel(valid, pcdev->base_emma +
-+							PRP_CH2_RZ_VERT_VALID);
-+			}
-+		}
-+	}
++#define REGULATOR_INIT_DATA(_name, _min, _max, _apply, _ops_mask) \
++	static struct regulator_init_data _name##_data = { \
++		.constraints = { \
++			.name                   = #_name, \
++			.min_uV                 = _min, \
++			.max_uV                 = _max, \
++			.apply_uV               = _apply, \
++			.valid_modes_mask       = REGULATOR_MODE_NORMAL | \
++						REGULATOR_MODE_STANDBY, \
++			.valid_ops_mask         = _ops_mask, \
++		}, \
++		.num_consumer_supplies  = ARRAY_SIZE(_name##_consumers), \
++		.consumer_supplies      = _name##_consumers, \
 +}
++#define REGULATOR_INIT_DATA_FIXED(_name, _voltage) \
++	REGULATOR_INIT_DATA(_name, _voltage, _voltage, true, \
++				REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_MODE)
 +
- static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
++static struct regulator_consumer_supply rm680_vaux2_consumers[] = {
++	REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),	/* OMAP ISP */
++	REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),	/* OMAP ISP */
++	REGULATOR_SUPPLY("vaux2", NULL),
++};
++REGULATOR_INIT_DATA_FIXED(rm680_vaux2, 1800000);
++
++static struct regulator_consumer_supply rm680_vaux3_consumers[] = {
++	REGULATOR_SUPPLY("VANA", "2-0037"),	/* Main Camera Sensor */
++	REGULATOR_SUPPLY("VANA", "2-000e"),	/* Main Camera Lens */
++	REGULATOR_SUPPLY("VANA", "2-0010"),	/* Front Camera */
++	REGULATOR_SUPPLY("vaux3", NULL),
++};
++REGULATOR_INIT_DATA_FIXED(rm680_vaux3, 2800000);
++
+ static struct platform_device *rm680_peripherals_devices[] __initdata = {
+ 	&rm680_vemmc_device,
+ };
+@@ -82,6 +115,8 @@ static struct twl4030_gpio_platform_data rm680_gpio_data = {
+ static struct twl4030_platform_data rm680_twl_data = {
+ 	.gpio			= &rm680_gpio_data,
+ 	/* add rest of the children here */
++	.vaux2			= &rm680_vaux2_data,
++	.vaux3			= &rm680_vaux3_data,
+ };
+ 
+ static void __init rm680_i2c_init(void)
+@@ -129,6 +164,8 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
+ #endif
+ 
++void rm680_camera_init(void);
++
+ static void __init rm680_init(void)
  {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-@@ -773,6 +866,8 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 		list_add_tail(&pcdev->buf_discard[1].queue,
- 				      &pcdev->discard);
+ 	struct omap_sdrc_params *sdrc_params;
+@@ -141,6 +178,7 @@ static void __init rm680_init(void)
  
-+		mx2_prp_resize_commit(pcdev);
-+
- 		mx27_camera_emma_buf_init(icd, bytesperline);
- 
- 		if (prp->cfg.channel == 1) {
-@@ -1059,6 +1154,119 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
- 	return formats;
+ 	usb_musb_init(NULL);
+ 	rm680_peripherals_init();
++	rm680_camera_init();
  }
  
-+static int mx2_emmaprp_resize(struct mx2_camera_dev *pcdev,
-+			      struct v4l2_mbus_framefmt *mf_in,
-+			      struct v4l2_pix_format *pix_out)
-+{
-+	int num, den;
-+	unsigned long m;
-+	int i, dir;
-+
-+	for (dir = RESIZE_DIR_H; dir <= RESIZE_DIR_V; dir++) {
-+		unsigned char *s = pcdev->resizing[dir].s;
-+		int len = 0;
-+		int in, out;
-+
-+		if (dir == RESIZE_DIR_H) {
-+			in = mf_in->width;
-+			out = pix_out->width;
-+		} else {
-+			in = mf_in->height;
-+			out = pix_out->height;
-+		}
-+
-+		if (in < out)
-+			return -EINVAL;
-+		else if (in == out)
-+			continue;
-+
-+		/* Calculate ratio */
-+		m = gcd(in, out);
-+		num = in / m;
-+		den = out / m;
-+		if (num > RESIZE_NUM_MAX)
-+			return -EINVAL;
-+
-+		if ((num >= 2 * den) && (den == 1) &&
-+		    (num < 9) && (!(num & 0x01))) {
-+			int sum = 0;
-+			int j;
-+
-+			/* Average scaling for >= 2:1 ratios */
-+			/* Support can be added for num >=9 and odd values */
-+
-+			pcdev->resizing[dir].algo = RESIZE_ALGO_AVERAGING;
-+			len = num;
-+
-+			for (i = 0; i < (len / 2); i++)
-+				s[i] = 8;
-+
-+			do {
-+				for (i = 0; i < (len / 2); i++) {
-+					s[i] = s[i] >> 1;
-+					sum = 0;
-+					for (j = 0; j < (len / 2); j++)
-+						sum += s[j];
-+					if (sum == 4)
-+						break;
-+				}
-+			} while (sum != 4);
-+
-+			for (i = (len / 2); i < len; i++)
-+				s[i] = s[len - i - 1];
-+
-+			s[len - 1] |= SZ_COEF;
-+		} else {
-+			/* bilinear scaling for < 2:1 ratios */
-+			int v; /* overflow counter */
-+			int coeff, nxt; /* table output */
-+			int in_pos_inc = 2 * den;
-+			int out_pos = num;
-+			int out_pos_inc = 2 * num;
-+			int init_carry = num - den;
-+			int carry = init_carry;
-+
-+			pcdev->resizing[dir].algo = RESIZE_ALGO_BILINEAR;
-+			v = den + in_pos_inc;
-+			do {
-+				coeff = v - out_pos;
-+				out_pos += out_pos_inc;
-+				carry += out_pos_inc;
-+				for (nxt = 0; v < out_pos; nxt++) {
-+					v += in_pos_inc;
-+					carry -= in_pos_inc;
-+				}
-+
-+				if (len > RESIZE_NUM_MAX)
-+					return -EINVAL;
-+
-+				coeff = ((coeff << BC_COEF) +
-+					(in_pos_inc >> 1)) / in_pos_inc;
-+
-+				if (coeff >= (SZ_COEF - 1))
-+					coeff--;
-+
-+				coeff |= SZ_COEF;
-+				s[len] = (unsigned char)coeff;
-+				len++;
-+
-+				for (i = 1; i < nxt; i++) {
-+					if (len >= RESIZE_NUM_MAX)
-+						return -EINVAL;
-+					s[len] = 0;
-+					len++;
-+				}
-+			} while (carry != init_carry);
-+		}
-+		pcdev->resizing[dir].len = len;
-+		if (dir == RESIZE_DIR_H)
-+			mf_in->width = pix_out->width;
-+		else
-+			mf_in->height = pix_out->height;
-+	}
-+	return 0;
-+}
-+
- static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 			       struct v4l2_format *f)
- {
-@@ -1070,6 +1278,9 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 	struct v4l2_mbus_framefmt mf;
- 	int ret;
- 
-+	dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
-+		__func__, pix->width, pix->height);
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
- 	if (!xlate) {
- 		dev_warn(icd->parent, "Format %x not found\n",
-@@ -1087,6 +1298,22 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 	if (ret < 0 && ret != -ENOIOCTLCMD)
- 		return ret;
- 
-+	/* Store width and height returned by the sensor for resizing */
-+	pcdev->s_width = mf.width;
-+	pcdev->s_height = mf.height;
-+	dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
-+		__func__, pcdev->s_width, pcdev->s_height);
-+
-+	pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
-+						   xlate->host_fmt->fourcc);
-+
-+	memset(pcdev->resizing, 0, sizeof(pcdev->resizing));
-+	if ((mf.width != pix->width || mf.height != pix->height) &&
-+		pcdev->emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
-+		if (mx2_emmaprp_resize(pcdev, &mf, pix) < 0)
-+			dev_dbg(icd->parent, "%s: can't resize\n", __func__);
-+	}
-+
- 	if (mf.code != xlate->code)
- 		return -EINVAL;
- 
-@@ -1096,9 +1323,8 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 	pix->colorspace		= mf.colorspace;
- 	icd->current_fmt	= xlate;
- 
--	if (mx27_camera_emma(pcdev))
--		pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
--						xlate->host_fmt->fourcc);
-+	dev_dbg(icd->parent, "%s: returned params: width = %d, height = %d\n",
-+		__func__, pix->width, pix->height);
- 
- 	return 0;
- }
-@@ -1111,9 +1337,14 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
- 	struct v4l2_mbus_framefmt mf;
- 	__u32 pixfmt = pix->pixelformat;
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	struct mx2_camera_dev *pcdev = ici->priv;
- 	unsigned int width_limit;
- 	int ret;
- 
-+	dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
-+		__func__, pix->width, pix->height);
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
- 	if (pixfmt && !xlate) {
- 		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
-@@ -1163,6 +1394,20 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	if (ret < 0)
- 		return ret;
- 
-+	dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
-+		__func__, pcdev->s_width, pcdev->s_height);
-+
-+	/* If the sensor does not support image size try PrP resizing */
-+	pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
-+						   xlate->host_fmt->fourcc);
-+
-+	memset(pcdev->resizing, 0, sizeof(pcdev->resizing));
-+	if ((mf.width != pix->width || mf.height != pix->height) &&
-+		pcdev->emma_prp->cfg.in_fmt == PRP_CNTL_DATA_IN_YUV422) {
-+		if (mx2_emmaprp_resize(pcdev, &mf, pix) < 0)
-+			dev_dbg(icd->parent, "%s: can't resize\n", __func__);
-+	}
-+
- 	if (mf.field == V4L2_FIELD_ANY)
- 		mf.field = V4L2_FIELD_NONE;
- 	/*
-@@ -1181,6 +1426,9 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	pix->field	= mf.field;
- 	pix->colorspace	= mf.colorspace;
- 
-+	dev_dbg(icd->parent, "%s: returned params: width = %d, height = %d\n",
-+		__func__, pix->width, pix->height);
-+
- 	return 0;
- }
- 
+ MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
 -- 
-1.7.0.4
+1.7.2.5
 
