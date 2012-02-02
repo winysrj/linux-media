@@ -1,152 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:40974 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759293Ab2BNSyT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 13:54:19 -0500
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q1EIsJFN007237
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 14 Feb 2012 13:54:19 -0500
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] fintek-cir: add support for newer chip version
-Date: Tue, 14 Feb 2012 16:54:13 -0200
-Message-Id: <1329245653-27896-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3803 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755427Ab2BBL47 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 06:56:59 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Jiri Kosina <jkosina@suse.cz>, linux-input@vger.kernel.org
+Subject: [PATCH 0/6] Add support functions and the radio-keene driver
+Date: Thu,  2 Feb 2012 12:56:30 +0100
+Message-Id: <1328183796-3168-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
-Reviewed-by: Jarod Wilson <jarod@redhat.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/rc/fintek-cir.c |   26 ++++++++++++++++++--------
- drivers/media/rc/fintek-cir.h |    4 +++-
- 2 files changed, 21 insertions(+), 9 deletions(-)
+This patch series is for 3.4. It adds a V4L2 driver for the Keene USB FM
+Transmitter:
 
-diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
-index 7f7079b..392d4be 100644
---- a/drivers/media/rc/fintek-cir.c
-+++ b/drivers/media/rc/fintek-cir.c
-@@ -117,7 +117,7 @@ static u8 fintek_cir_reg_read(struct fintek_dev *fintek, u8 offset)
- static void cir_dump_regs(struct fintek_dev *fintek)
- {
- 	fintek_config_mode_enable(fintek);
--	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
-+	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
- 
- 	pr_reg("%s: Dump CIR logical device registers:\n", FINTEK_DRIVER_NAME);
- 	pr_reg(" * CR CIR BASE ADDR: 0x%x\n",
-@@ -143,7 +143,7 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
- 	u8 chip_major, chip_minor;
- 	u8 vendor_major, vendor_minor;
- 	u8 portsel, ir_class;
--	u16 vendor;
-+	u16 vendor, chip;
- 	int ret = 0;
- 
- 	fintek_config_mode_enable(fintek);
-@@ -176,6 +176,7 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
- 
- 	chip_major = fintek_cr_read(fintek, GCR_CHIP_ID_HI);
- 	chip_minor = fintek_cr_read(fintek, GCR_CHIP_ID_LO);
-+	chip  = chip_major << 8 | chip_minor;
- 
- 	vendor_major = fintek_cr_read(fintek, GCR_VENDOR_ID_HI);
- 	vendor_minor = fintek_cr_read(fintek, GCR_VENDOR_ID_LO);
-@@ -192,6 +193,15 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
- 	fintek->chip_major  = chip_major;
- 	fintek->chip_minor  = chip_minor;
- 	fintek->chip_vendor = vendor;
-+
-+	/*
-+	 * Newer reviews of this chipset uses port 8 instead of 5
-+	 */
-+	if ((chip != 0x0408) || (chip != 0x0804))
-+		fintek->logical_dev_cir = LOGICAL_DEV_CIR_REV2;
-+	else
-+		fintek->logical_dev_cir = LOGICAL_DEV_CIR_REV1;
-+
- 	spin_unlock_irqrestore(&fintek->fintek_lock, flags);
- 
- 	return ret;
-@@ -200,7 +210,7 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
- static void fintek_cir_ldev_init(struct fintek_dev *fintek)
- {
- 	/* Select CIR logical device and enable */
--	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
-+	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
- 	fintek_cr_write(fintek, LOGICAL_DEV_ENABLE, CIR_CR_DEV_EN);
- 
- 	/* Write allocated CIR address and IRQ information to hardware */
-@@ -381,7 +391,7 @@ static irqreturn_t fintek_cir_isr(int irq, void *data)
- 	fit_dbg_verbose("%s firing", __func__);
- 
- 	fintek_config_mode_enable(fintek);
--	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
-+	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
- 	fintek_config_mode_disable(fintek);
- 
- 	/*
-@@ -422,7 +432,7 @@ static void fintek_enable_cir(struct fintek_dev *fintek)
- 	fintek_config_mode_enable(fintek);
- 
- 	/* enable the CIR logical device */
--	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
-+	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
- 	fintek_cr_write(fintek, LOGICAL_DEV_ENABLE, CIR_CR_DEV_EN);
- 
- 	fintek_config_mode_disable(fintek);
-@@ -439,7 +449,7 @@ static void fintek_disable_cir(struct fintek_dev *fintek)
- 	fintek_config_mode_enable(fintek);
- 
- 	/* disable the CIR logical device */
--	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
-+	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
- 	fintek_cr_write(fintek, LOGICAL_DEV_DISABLE, CIR_CR_DEV_EN);
- 
- 	fintek_config_mode_disable(fintek);
-@@ -611,7 +621,7 @@ static int fintek_suspend(struct pnp_dev *pdev, pm_message_t state)
- 	fintek_config_mode_enable(fintek);
- 
- 	/* disable cir logical dev */
--	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
-+	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
- 	fintek_cr_write(fintek, LOGICAL_DEV_DISABLE, CIR_CR_DEV_EN);
- 
- 	fintek_config_mode_disable(fintek);
-@@ -634,7 +644,7 @@ static int fintek_resume(struct pnp_dev *pdev)
- 
- 	/* Enable CIR logical device */
- 	fintek_config_mode_enable(fintek);
--	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
-+	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
- 	fintek_cr_write(fintek, LOGICAL_DEV_ENABLE, CIR_CR_DEV_EN);
- 
- 	fintek_config_mode_disable(fintek);
-diff --git a/drivers/media/rc/fintek-cir.h b/drivers/media/rc/fintek-cir.h
-index 1b10b20..82516a1 100644
---- a/drivers/media/rc/fintek-cir.h
-+++ b/drivers/media/rc/fintek-cir.h
-@@ -88,6 +88,7 @@ struct fintek_dev {
- 	u8 chip_major;
- 	u8 chip_minor;
- 	u16 chip_vendor;
-+	u8 logical_dev_cir;
- 
- 	/* hardware features */
- 	bool hw_learning_capable;
-@@ -172,7 +173,8 @@ struct fintek_dev {
- #define LOGICAL_DEV_ENABLE	0x01
- 
- /* Logical device number of the CIR function */
--#define LOGICAL_DEV_CIR		0x05
-+#define LOGICAL_DEV_CIR_REV1	0x05
-+#define LOGICAL_DEV_CIR_REV2	0x08
- 
- /* CIR Logical Device (LDN 0x08) config registers */
- #define CIR_CR_COMMAND_INDEX	0x04
--- 
-1.7.8
+http://www.amazon.co.uk/Keene-Electronics-USB-FM-Transmitter/dp/B003GCHPDY
+
+This device is very useful to test V4L2 FM radio receivers.
+
+Changes since RFCv2 of the radio-keene driver:
+
+- Use the new v4l2 support functions.
+- Fix a QUERYCAP compliancy issue for 3.4.
+
+The first four add some v4l2 support functions that are used by the
+radio-keene driver in the fifth patch (and upcoming driver improvements
+in the near future).
+
+Note that the Keene FM transmitter USB device has the same USB ID as
+the Logitech AudioHub Speaker. Since the radio-keene driver needs to
+hijack the HID something needed to be done to differentiate the two.
+
+So hid-core was modified to decide this based on the product name.
+
+I have tested that this works with both a Keene device and a Logitech
+AudioHub device hooked up at the same time.
+
+Jiri is OK with it as well. This sixth patch is independent from the
+other five and can be merged either through linux-media (makes the most
+sense to me) or through linux-input. I leave that up to Mauro and Jiri.
+
+This patch series is also available in my git tree:
+
+The following changes since commit 59b30294e14fa6a370fdd2bc2921cca1f977ef16:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.4 (2012-01-23 18:11:30 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git keene
+
+Hans Verkuil (6):
+      v4l2: standardize log start/end message.
+      v4l2-subdev: add start/end messages for log_status.
+      v4l2-ctrls: add helper functions for control events.
+      vivi: use v4l2_ctrl_subscribe_event.
+      radio-keene: add a driver for the Keene FM Transmitter.
+      hid-core: ignore the Keene FM transmitter.
+
+ drivers/hid/hid-core.c                        |   10 +
+ drivers/hid/hid-ids.h                         |    1 +
+ drivers/media/radio/Kconfig                   |   10 +
+ drivers/media/radio/Makefile                  |    1 +
+ drivers/media/radio/radio-keene.c             |  427 +++++++++++++++++++++++++
+ drivers/media/video/bt8xx/bttv-driver.c       |    4 -
+ drivers/media/video/cx18/cx18-ioctl.c         |    4 -
+ drivers/media/video/ivtv/ivtv-ioctl.c         |    5 -
+ drivers/media/video/pwc/pwc-v4l.c             |   10 +-
+ drivers/media/video/saa7164/saa7164-encoder.c |    6 -
+ drivers/media/video/saa7164/saa7164-vbi.c     |    6 -                                                               
+ drivers/media/video/v4l2-ctrls.c              |   32 ++                                                              
+ drivers/media/video/v4l2-ioctl.c              |    6 +                                                               
+ drivers/media/video/v4l2-subdev.c             |   12 +-                                                              
+ drivers/media/video/vivi.c                    |   23 +--                                                             
+ include/media/v4l2-ctrls.h                    |   13 +                                                               
+ 16 files changed, 513 insertions(+), 57 deletions(-)                                                                 
+ create mode 100644 drivers/media/radio/radio-keene.c 
+
+Regards,
+
+	Hans
 
