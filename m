@@ -1,176 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3383 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755568Ab2BCKGU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 05:06:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 5/6] v4l2-common: add new support functions to match DV timings.
-Date: Fri,  3 Feb 2012 11:06:05 +0100
-Message-Id: <68cfc6be5d701f44ae06331be08a57c311169004.1328262332.git.hans.verkuil@cisco.com>
-In-Reply-To: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f884dc30bd71901ea5dad39dc3310fa5a7d9e9c2.1328262332.git.hans.verkuil@cisco.com>
-References: <f884dc30bd71901ea5dad39dc3310fa5a7d9e9c2.1328262332.git.hans.verkuil@cisco.com>
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:39577 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756021Ab2BBUtD convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 15:49:03 -0500
+Received: by obbup6 with SMTP id up6so3434548obb.10
+        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 12:49:00 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <20120202202303.GB4107@phenom.ffwll.local>
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
+	<20120130220139.GB16140@valkosipuli.localdomain>
+	<CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
+	<201202021119.44794.laurent.pinchart@ideasonboard.com>
+	<20120202202303.GB4107@phenom.ffwll.local>
+Date: Thu, 2 Feb 2012 14:49:00 -0600
+Message-ID: <CAO8GWqkX7zhvVvQLnDJ4D5pKm=PAEpTM-dXeiA92G-K4HsYneg@mail.gmail.com>
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+From: "Clark, Rob" <rob@ti.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Thu, Feb 2, 2012 at 2:23 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Thu, Feb 2, 2012 at 11:19, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+>>> On omap4 v4l2+drm example I have running, it is actually the DRM driver
+>>> doing the "IOMMU" programming.. so v4l2 camera really doesn't need to care
+>>> about it.  (And the IOMMU programming here is pretty fast.)  But I suppose
+>>> this maybe doesn't represent all cases. I suppose if a camera didn't really
+>>> sit behind an IOMMU but uses something more like a DMA descriptor list would
+>>> want to know if it needed to regenerate it's descriptor list. Or likewise if
+>>> camera has an IOMMU that isn't really using the IOMMU framework (although
+>>> maybe that is easier to solve).  But I think a hint returned from
+>>> dma_buf_map() would do the job?
+>>
+>> I see at least three possible solutions to this problem.
+>>
+>> 1. At dma_buf_unmap() time, the exporter will tell the importer that the
+>> buffer will move, and that it should be unmapped from whatever the importer
+>> mapped it to. That's probably the easiest solution to implement on the
+>> importer's side, but I expect it to be difficult for the exporter to know at
+>> dma_buf_unmap() time if the buffer will need to be moved or not.
+>>
+>> 2. Adding a callback to request the importer to unmap the buffer. This might
+>> be racy, and locking might be difficult to handle.
+>>
+>> 3. At dma_buf_unmap() time, keep importer's mappings around. The exporter is
+>> then free to move the buffer if needed, in which case the mappings will be
+>> invalid. This shouldn't be a problem in theory, as the buffer isn't being used
+>> by the importer at that time, but can cause stability issues when dealing with
+>> rogue hardware as this would punch holes in the IOMMU fence. At dma_buf_map()
+>> time the exporter would tell the importer whether the buffer moved or not. If
+>> it moved, the importer will tear down the mappings it kept, and create new
+>> ones.
+>>
+>> Variations around those 3 possible solutions are possible.
+>
+> While preparing my fosdem presentation about dma_buf I've thought quite a
+> bit what we still need for forceful unmap support/persistent
+> mappings/dynamic dma_buf/whatever you want to call it. And it's a lot, and
+> we have quite a few lower hanging fruits to reap (like cpu access and mmap
+> support for importer). So I propose instead:
+>
+> 4. Just hang onto the device mappings for as long as it's convenient and/or
+> necessary and feel guilty about it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/v4l2-common.c |  102 ++++++++++++++++++++++++++++++-------
- include/media/v4l2-common.h       |   15 +++++
- 2 files changed, 99 insertions(+), 18 deletions(-)
+for v4l2/vb2, I'd like to at least request some sort of
+BUF_PREPARE_IS_EXPENSIVE flag, so we don't penalize devices where
+remapping is not expensive.  Ie. the camera driver could set this flag
+so vb2 core knows not unmap()/re-map() between frames.
 
-diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-index 5c6100f..f133961 100644
---- a/drivers/media/video/v4l2-common.c
-+++ b/drivers/media/video/v4l2-common.c
-@@ -567,24 +567,24 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
- 		const char *name;
- 	} dv_presets[] = {
- 		{ 0, 0, "Invalid" },		/* V4L2_DV_INVALID */
--		{ 720,  480, "480p@59.94" },	/* V4L2_DV_480P59_94 */
--		{ 720,  576, "576p@50" },	/* V4L2_DV_576P50 */
--		{ 1280, 720, "720p@24" },	/* V4L2_DV_720P24 */
--		{ 1280, 720, "720p@25" },	/* V4L2_DV_720P25 */
--		{ 1280, 720, "720p@30" },	/* V4L2_DV_720P30 */
--		{ 1280, 720, "720p@50" },	/* V4L2_DV_720P50 */
--		{ 1280, 720, "720p@59.94" },	/* V4L2_DV_720P59_94 */
--		{ 1280, 720, "720p@60" },	/* V4L2_DV_720P60 */
--		{ 1920, 1080, "1080i@29.97" },	/* V4L2_DV_1080I29_97 */
--		{ 1920, 1080, "1080i@30" },	/* V4L2_DV_1080I30 */
--		{ 1920, 1080, "1080i@25" },	/* V4L2_DV_1080I25 */
--		{ 1920, 1080, "1080i@50" },	/* V4L2_DV_1080I50 */
--		{ 1920, 1080, "1080i@60" },	/* V4L2_DV_1080I60 */
--		{ 1920, 1080, "1080p@24" },	/* V4L2_DV_1080P24 */
--		{ 1920, 1080, "1080p@25" },	/* V4L2_DV_1080P25 */
--		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
--		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
--		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
-+		{ 720,  480, "720x480p59.94" },	/* V4L2_DV_480P59_94 */
-+		{ 720,  576, "720x576p50" },	/* V4L2_DV_576P50 */
-+		{ 1280, 720, "1280x720p24" },	/* V4L2_DV_720P24 */
-+		{ 1280, 720, "1280x720p25" },	/* V4L2_DV_720P25 */
-+		{ 1280, 720, "1280x720p30" },	/* V4L2_DV_720P30 */
-+		{ 1280, 720, "1280x720p50" },	/* V4L2_DV_720P50 */
-+		{ 1280, 720, "1280x720p59.94" },/* V4L2_DV_720P59_94 */
-+		{ 1280, 720, "1280x720p60" },	/* V4L2_DV_720P60 */
-+		{ 0, 0, "Invalid" },		/* V4L2_DV_1080I29_97 */
-+		{ 0, 0, "Invalid" },		/* V4L2_DV_1080I30 */
-+		{ 0, 0, "Invalid" },		/* V4L2_DV_1080I25 */
-+		{ 1920, 1080, "1920x1080i50" },	/* V4L2_DV_1080I50 */
-+		{ 1920, 1080, "1920x1080i60" },	/* V4L2_DV_1080I60 */
-+		{ 1920, 1080, "1920x1080p24" },	/* V4L2_DV_1080P24 */
-+		{ 1920, 1080, "1920x1080p25" },	/* V4L2_DV_1080P25 */
-+		{ 1920, 1080, "1920x1080p30" },	/* V4L2_DV_1080P30 */
-+		{ 1920, 1080, "1920x1080p50" },	/* V4L2_DV_1080P50 */
-+		{ 1920, 1080, "1920x1080p60" },	/* V4L2_DV_1080P60 */
- 	};
- 
- 	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-@@ -598,6 +598,72 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
- }
- EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
- 
-+bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
-+			  const struct v4l2_dv_timings *t2)
-+{
-+	if (t1->type != t2->type || t1->type != V4L2_DV_BT_656_1120)
-+		return false;
-+	return !memcmp(&t1->bt, &t2->bt, &t1->bt.standards - &t1->bt.width);
-+}
-+EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
-+
-+bool v4l_match_dv_timings_fuzzy(const struct v4l2_dv_timings *t1,
-+			  const struct v4l2_dv_timings *t2,
-+			  u32 clock_resolution, u32 flags)
-+{
-+	const struct v4l2_bt_timings *bt1, *bt2;
-+	unsigned v_blank1, v_blank2;
-+	u32 clock_diff;
-+
-+	if (t1->type != t2->type || t1->type != V4L2_DV_BT_656_1120)
-+		return false;
-+	bt1 = &t1->bt;
-+	bt2 = &t2->bt;
-+	if (bt1->interlaced != bt2->interlaced)
-+		return false;
-+	v_blank1 = bt1->vfrontporch + bt1->vsync + bt1->vbackporch +
-+		   bt1->il_vfrontporch + bt1->il_vsync + bt1->il_vbackporch;
-+	v_blank2 = bt2->vfrontporch + bt2->vsync + bt2->vbackporch +
-+		   bt2->il_vfrontporch + bt2->il_vsync + bt2->il_vbackporch;
-+	if (bt1->height != bt2->height)
-+		return false;
-+	if ((flags & V4L_MATCH_BT_HAVE_ACTIVE_HEIGHT) &&
-+			v_blank1 != v_blank2)
-+		return false;
-+	if ((flags & V4L_MATCH_BT_HAVE_V_POL) &&
-+			(bt1->polarities & V4L2_DV_VSYNC_POS_POL) !=
-+			(bt2->polarities & V4L2_DV_VSYNC_POS_POL))
-+		return false;
-+	if ((flags & V4L_MATCH_BT_HAVE_H_POL) &&
-+			(bt1->polarities & V4L2_DV_HSYNC_POS_POL) !=
-+			(bt2->polarities & V4L2_DV_HSYNC_POS_POL))
-+		return false;
-+	if ((flags & V4L_MATCH_BT_HAVE_VSYNC) &&
-+			bt1->vsync != bt2->vsync)
-+		return false;
-+	if ((flags & V4L_MATCH_BT_HAVE_HSYNC) &&
-+			bt1->hsync != bt2->hsync)
-+		return false;
-+	if (flags & V4L_MATCH_BT_HAVE_WIDTH) {
-+		unsigned h_blank1 = bt1->hfrontporch + bt1->hsync +
-+					bt1->hbackporch;
-+		unsigned h_blank2 = bt2->hfrontporch + bt2->hsync +
-+					bt2->hbackporch;
-+
-+		if (bt1->width != bt2->width)
-+			return false;
-+		if ((flags & V4L_MATCH_BT_HAVE_ACTIVE_WIDTH) &&
-+				h_blank1 != h_blank2)
-+			return false;
-+	}
-+	if (bt1->pixelclock > bt2->pixelclock)
-+		clock_diff = bt1->pixelclock - bt2->pixelclock;
-+	else
-+		clock_diff = bt2->pixelclock - bt1->pixelclock;
-+	return clock_diff < clock_resolution;
-+}
-+EXPORT_SYMBOL_GPL(v4l_match_dv_timings_fuzzy);
-+
- const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
- 		const struct v4l2_discrete_probe *probe,
- 		s32 width, s32 height)
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index a298ec4..4469696 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -202,6 +202,21 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
- 			   unsigned int hmax, unsigned int halign,
- 			   unsigned int salign);
- int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info);
-+bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
-+			  const struct v4l2_dv_timings *t2);
-+
-+#define V4L_MATCH_BT_HAVE_WIDTH		(1 << 0)
-+#define V4L_MATCH_BT_HAVE_ACTIVE_HEIGHT	(1 << 1)
-+#define V4L_MATCH_BT_HAVE_ACTIVE_WIDTH	(1 << 2)
-+#define V4L_MATCH_BT_HAVE_V_POL		(1 << 3)
-+#define V4L_MATCH_BT_HAVE_H_POL		(1 << 4)
-+#define V4L_MATCH_BT_HAVE_VSYNC		(1 << 5)
-+#define V4L_MATCH_BT_HAVE_HSYNC		(1 << 6)
-+
-+bool v4l_match_dv_timings_fuzzy(const struct v4l2_dv_timings *t1,
-+			  const struct v4l2_dv_timings *t2,
-+			  u32 clock_resolution,
-+			  u32 flags);
- 
- struct v4l2_discrete_probe {
- 	const struct v4l2_frmsize_discrete	*sizes;
--- 
-1.7.8.3
+In my case, for v4l2 + encoder, I really need the unmapping/remapping
+between frames, at least if there is anything else going on competing
+for buffers.  But in my case, the exporter remaps to a contiguous
+(sorta) "virtual" address that the camera can see, so there is no
+expensive mapping on the importer side of things.
 
+
+BR,
+-R
+
+
+> The reason is that going fully static isn't worse than a half-baked
+> dynamic version of dma_buf, but the half-baked dynamic one has the
+> downside that we can ignore the issue and feel good about things ;-)
+>
+> Cheers, Daniel
+> --
+> Daniel Vetter
+> daniel.vetter@ffwll.ch - +41 (0) 79 364 57 48 - http://blog.ffwll.ch
+>
