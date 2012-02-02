@@ -1,55 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:47780 "EHLO multi.imgtec.com"
+Received: from smtp.nokia.com ([147.243.128.24]:50943 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753089Ab2B0Lxo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Feb 2012 06:53:44 -0500
-Message-ID: <4F4B6EC5.1070806@imgtec.com>
-Date: Mon, 27 Feb 2012 11:53:41 +0000
-From: James Hogan <james.hogan@imgtec.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	<linux-media@vger.kernel.org>,
-	linux-kernel <linux-kernel@vger.kernel.org>
-Subject: [RESEND] [PATCH] media: ir-sony-decoder: 15bit function decode fix
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+	id S1754513Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 14/31] v4l: Improve sub-device documentation for pad ops
+Date: Fri,  3 Feb 2012 01:54:34 +0200
+Message-Id: <1328226891-8968-14-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The raw Sony IR decoder decodes 15bit messages slightly incorrectly.
-To decode the function number, it shifts the bits right by 7 so that the
-function is in bits 7:1, masks with 0xFD (0b11111101), and does an 8 bit
-reverse so it ends up in bits 6:0. The mask should be 0xFE to correspond
-with bits 7:1 (0b11111110).
+Document that format related configuration is done through pad ops in case
+the driver does use the media framework.
 
-The old mask had the effect of dropping the MSB of the function number
-from bit 6, and leaving the LSB of the device number in bit 7.
-
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
+ Documentation/video4linux/v4l2-framework.txt |    9 +++++++++
+ 1 files changed, 9 insertions(+), 0 deletions(-)
 
-(note, i don't have a 15bit sony remote to test this with, but i'm
-pretty confident of it's correctness based on this:
-http://picprojects.org.uk/projects/sirc/sonysirc.pdf )
-
- drivers/media/rc/ir-sony-decoder.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
-index d5e2b50..dab98b3 100644
---- a/drivers/media/rc/ir-sony-decoder.c
-+++ b/drivers/media/rc/ir-sony-decoder.c
-@@ -130,7 +130,7 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
- 		case 15:
- 			device    = bitrev8((data->bits >>  0) & 0xFF);
- 			subdevice = 0;
--			function  = bitrev8((data->bits >>  7) & 0xFD);
-+			function  = bitrev8((data->bits >>  7) & 0xFE);
- 			break;
- 		case 20:
- 			device    = bitrev8((data->bits >>  5) & 0xF8);
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index 659b2ba..f06c563 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -262,11 +262,16 @@ struct v4l2_subdev_video_ops {
+ 	...
+ };
+ 
++struct v4l2_subdev_pad_ops {
++	...
++};
++
+ struct v4l2_subdev_ops {
+ 	const struct v4l2_subdev_core_ops  *core;
+ 	const struct v4l2_subdev_tuner_ops *tuner;
+ 	const struct v4l2_subdev_audio_ops *audio;
+ 	const struct v4l2_subdev_video_ops *video;
++	const struct v4l2_subdev_pad_ops *video;
+ };
+ 
+ The core ops are common to all subdevs, the other categories are implemented
+@@ -303,6 +308,10 @@ Don't forget to cleanup the media entity before the sub-device is destroyed:
+ 
+ 	media_entity_cleanup(&sd->entity);
+ 
++If the subdev driver intends to process video and integrate with the media
++framework, it must implement format related functionality using
++v4l2_subdev_pad_ops instead of v4l2_subdev_video_ops.
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
+ 
 -- 
-1.7.2.3
-
+1.7.2.5
 
