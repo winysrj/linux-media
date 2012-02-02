@@ -1,82 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:28203 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932507Ab2BNVsX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:48:23 -0500
-From: linuxtv@stefanringel.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 01/22] mt2063: trivial change
-Date: Tue, 14 Feb 2012 22:47:25 +0100
-Message-Id: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:61503 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933313Ab2BBTxa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 14:53:30 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Mel Gorman" <mel@csn.ul.ie>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Russell King'" <linux@arm.linux.org.uk>,
+	"'Andrew Morton'" <akpm@linux-foundation.org>,
+	"'KAMEZAWA Hiroyuki'" <kamezawa.hiroyu@jp.fujitsu.com>,
+	"'Daniel Walker'" <dwalker@codeaurora.org>,
+	"'Arnd Bergmann'" <arnd@arndb.de>,
+	"'Jesse Barker'" <jesse.barker@linaro.org>,
+	"'Jonathan Corbet'" <corbet@lwn.net>,
+	"'Shariq Hasnain'" <shariq.hasnain@linaro.org>,
+	"'Chunsang Jeong'" <chunsang.jeong@linaro.org>,
+	"'Dave Hansen'" <dave@linux.vnet.ibm.com>,
+	"'Benjamin Gaignard'" <benjamin.gaignard@linaro.org>
+Subject: Re: [PATCH 02/15] mm: page_alloc: update migrate type of pages on pcp
+ when isolating
+References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
+ <1327568457-27734-3-git-send-email-m.szyprowski@samsung.com>
+ <20120130111522.GE25268@csn.ul.ie> <op.v8wlu8ws3l0zgt@mpn-glaptop>
+ <20120130161447.GU25268@csn.ul.ie>
+ <022e01cce034$bc6cf440$3546dcc0$%szyprowski@samsung.com>
+ <20120202124729.GA5796@csn.ul.ie>
+Date: Thu, 02 Feb 2012 20:53:25 +0100
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v82hjbd13l0zgt@mpn-glaptop>
+In-Reply-To: <20120202124729.GA5796@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+> On Tue, Jan 31, 2012 at 05:23:59PM +0100, Marek Szyprowski wrote:
+>> Pages, which have incorrect migrate type on free finally
+>> causes pageblock migration type change from MIGRATE_CMA to MIGRATE_MOVABLE.
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
----
- drivers/media/common/tuners/mt2063.c |   23 +++++++++++++++--------
- 1 files changed, 15 insertions(+), 8 deletions(-)
+On Thu, 02 Feb 2012 13:47:29 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
+> I'm not quite seeing this. In free_hot_cold_page(), the pageblock
+> type is checked so the page private should be set to MIGRATE_CMA or
+> MIGRATE_ISOLATE for the CMA area. It's not clear how this can change a
+> pageblock to MIGRATE_MOVABLE in error.
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 0ed9091..872e9c0 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -1,12 +1,13 @@
- /*
-- * Driver for mt2063 Micronas tuner
-+ * Driver for microtune mt2063 tuner
-  *
-  * Copyright (c) 2011 Mauro Carvalho Chehab <mchehab@redhat.com>
-+ * Copyright (c) 2012 Stefan Ringel <linuxtv@stefanringel.de>
-  *
-  * This driver came from a driver originally written by:
-- *		Henry Wang <Henry.wang@AzureWave.com>
-+ *             Henry Wang <Henry.wang@AzureWave.com>
-  * Made publicly available by Terratec, at:
-- *	http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
-+ *     http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
-  * The original driver's license is GPL, as declared with MODULE_LICENSE()
-  *
-  * This program is free software; you can redistribute it and/or modify
-@@ -29,13 +30,14 @@
- 
- static unsigned int debug;
- module_param(debug, int, 0644);
--MODULE_PARM_DESC(debug, "Set Verbosity level");
-+MODULE_PARM_DESC(debug, "Set debug level");
- 
--#define dprintk(level, fmt, arg...) do {				\
--if (debug >= level)							\
--	printk(KERN_DEBUG "mt2063 %s: " fmt, __func__, ## arg);	\
--} while (0)
- 
-+/* debug level
-+ * 0 don't debug
-+ * 1 called functions without i2c comunications
-+ * 2 additional calculating, result etc.
-+ * 3 maximum debug information
- 
- /* positive error codes used internally */
- 
-@@ -60,6 +62,10 @@ if (debug >= level)							\
-  *  check against this version number to make sure that
-  *  it matches the version that the tuner driver knows about.
-  */
-+#define dprintk(level, fmt, arg...) do {			\
-+if (debug >= level)						\
-+	printk(KERN_DEBUG "mt2063 %s: " fmt, __func__, ##arg);	\
-+} while (0)
- 
- /* DECT Frequency Avoidance */
- #define MT2063_DECT_AVOID_US_FREQS      0x00000001
-@@ -2305,3 +2311,4 @@ EXPORT_SYMBOL_GPL(tuner_MT2063_ClearPowerMaskBits);
- MODULE_AUTHOR("Mauro Carvalho Chehab <mchehab@redhat.com>");
- MODULE_DESCRIPTION("MT2063 Silicon tuner");
- MODULE_LICENSE("GPL");
-+MODULE_VERSION("0.2");
+Here's what I think may happen:
+
+When drain_all_pages() is called, __free_one_page() is called for each page on
+pcp list with migrate type deducted from page_private() which is MIGRATE_CMA.
+This result in the page being put on MIGRATE_CMA freelist even though its
+pageblock's migrate type is MIGRATE_ISOLATE.
+
+When allocation happens and pcp list is empty, rmqueue_bulk() will get executed
+with migratetype argument set to MIGRATE_MOVABLE.  It calls __rmqueue() to grab
+some pages and because the page described above is on MIGRATE_CMA freelist it
+may be returned back to rmqueue_bulk().
+
+But, pageblock's migrate type is not MIGRATE_CMA but MIGRATE_ISOLATE, so the
+following code:
+
+#ifdef CONFIG_CMA
+		if (is_pageblock_cma(page))
+			set_page_private(page, MIGRATE_CMA);
+		else
+#endif
+			set_page_private(page, migratetype);
+
+will set it's private to MIGRATE_MOVABLE and in the end the page lands back
+on MIGRATE_MOVABLE pcp list but this time with page_private == MIGRATE_MOVABLE
+and not MIGRATE_CMA.
+
+One more drain_all_pages() (which may happen since alloc_contig_range() calls
+set_migratetype_isolate() for each block) and next __rmqueue_fallback() may
+convert the whole pageblock to MIGRATE_MOVABLE.
+
+I know, this sounds crazy and improbable, but I couldn't find an easier path
+to destruction.  As you pointed, once the page is allocated, free_hot_cold_page()
+will do the right thing by reading pageblock's migrate type.
+
+Marek is currently experimenting with various patches including the following
+change:
+
+#ifdef CONFIG_CMA
+                 int mt = get_pageblock_migratetype(page);
+                 if (is_migrate_cma(mt) || mt == MIGRATE_ISOLATE)
+                         set_page_private(page, mt);
+                 else
+#endif
+                         set_page_private(page, migratetype);
+
+As a matter of fact, if __rmqueue() was changed to return migrate type of the
+freelist it took page from, we could avoid this get_pageblock_migratetype() all
+together.  For now, however, I'd rather not go that way just yet -- I'll be happy
+to dig into it once CMA gets merged.
+
 -- 
-1.7.7.6
-
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
