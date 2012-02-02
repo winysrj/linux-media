@@ -1,57 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1174 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755437Ab2BCJ35 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:29:57 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.128.24]:50924 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753979Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 4/6] videobuf: only start streaming in poll() if so requested by the poll mask.
-Date: Fri,  3 Feb 2012 10:28:43 +0100
-Message-Id: <c9146bb921a78af683ce6f2344472ad37e6c69d5.1328260650.git.hans.verkuil@cisco.com>
-In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
-References: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 11/31] v4l: Document raw bayer 4CC codes
+Date: Fri,  3 Feb 2012 01:54:31 +0200
+Message-Id: <1328226891-8968-11-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Document guidelines how 4CC codes should be named. Only raw bayer is
+included currently. Other formats should be documented later on.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/video/videobuf-core.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
+ Documentation/video4linux/4CCs.txt |   32 ++++++++++++++++++++++++++++++++
+ 1 files changed, 32 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/4CCs.txt
 
-diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
-index de4fa4e..ffdf59c 100644
---- a/drivers/media/video/videobuf-core.c
-+++ b/drivers/media/video/videobuf-core.c
-@@ -1129,6 +1129,7 @@ unsigned int videobuf_poll_stream(struct file *file,
- 				  struct videobuf_queue *q,
- 				  poll_table *wait)
- {
-+	unsigned long req_events = poll_requested_events(wait);
- 	struct videobuf_buffer *buf = NULL;
- 	unsigned int rc = 0;
- 
-@@ -1137,7 +1138,7 @@ unsigned int videobuf_poll_stream(struct file *file,
- 		if (!list_empty(&q->stream))
- 			buf = list_entry(q->stream.next,
- 					 struct videobuf_buffer, stream);
--	} else {
-+	} else if (req_events & (POLLIN | POLLRDNORM)) {
- 		if (!q->reading)
- 			__videobuf_read_start(q);
- 		if (!q->reading) {
+diff --git a/Documentation/video4linux/4CCs.txt b/Documentation/video4linux/4CCs.txt
+new file mode 100644
+index 0000000..bb4a97d
+--- /dev/null
++++ b/Documentation/video4linux/4CCs.txt
+@@ -0,0 +1,32 @@
++Guidelines for Linux4Linux pixel format 4CCs
++============================================
++
++Guidelines for Video4Linux 4CC codes defined using v4l2_fourcc() are
++specified in this document. First of the characters defines the nature of
++the pixel format, compression and colour space. The interpretation of the
++other three characters depends on the first one.
++
++Existing 4CCs may not obey these guidelines.
++
++Formats
++=======
++
++Raw bayer
++---------
++
++The following first charcters are used by raw bayer formats:
++
++	B: raw bayer, uncompressed
++	b: raw bayer, DPCM compressed
++	a: A-law compressed
++	u: u-law compressed
++
++2nd character: pixel order
++	B: BGGR
++	G: GBRG
++	g: GRBG
++	R: RGGB
++
++3rd character: uncompressed bits-per-pixel 0--9, A--
++
++4th character: compressed bits-per-pixel 0--9, A--
 -- 
-1.7.8.3
+1.7.2.5
 
