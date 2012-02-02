@@ -1,93 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:53250 "EHLO
-	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757726Ab2BXQBt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 11:01:49 -0500
-From: Danny Kukawka <danny.kukawka@bisect.de>
-To: "David S. Miller" <davem@davemloft.net>,
-	Andy Gospodarek <andy@greyhouse.net>,
-	Guo-Fu Tseng <cooldavid@cooldavid.org>,
-	Petko Manolov <petkan@users.sourceforge.net>,
-	"VMware, Inc." <pv-drivers@vmware.com>,
-	"John W. Linville" <linville@tuxdriver.com>, linux390@de.ibm.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Danny Kukawka <dkukawka@suse.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Joe Perches <joe@perches.com>,
-	Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
-	Jiri Pirko <jpirko@redhat.com>, netdev@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-	libertas-dev@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-hams@vger.kernel.org, linux-mips@linux-mips.org
-Subject: [PATCH 00/12] Part 2: check given MAC address, if invalid return -EADDRNOTAVAIL 
-Date: Fri, 24 Feb 2012 17:01:10 +0100
-Message-Id: <1330099282-4588-1-git-send-email-danny.kukawka@bisect.de>
+Received: from smtp.nokia.com ([147.243.128.24]:50908 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753804Ab2BBXzC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:02 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 02/31] v4l: Document integer menu controls
+Date: Fri,  3 Feb 2012 01:54:22 +0200
+Message-Id: <1328226891-8968-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Second Part of series patches to unifiy the return value of 
-.ndo_set_mac_address if the given address isn't valid.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |    6 +++
+ .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
+ 3 files changed, 53 insertions(+), 2 deletions(-)
 
-These changes check if a given (MAC) address is valid in 
-.ndo_set_mac_address, if invalid return -EADDRNOTAVAIL 
-as eth_mac_addr() already does if is_valid_ether_addr() fails.
-
-These patches are against net-next.
-
-Danny Kukawka (12):
-  ethernet: .ndo_set_mac_address: check given address, if invalid
-    return -EADDRNOTAVAIL
-  cris/eth_v10: check given MAC address, if invalid return
-    -EADDRNOTAVAIL
-  dvb_net: check given MAC address, if invalid return -EADDRNOTAVAIL
-  fddi/skfp: check given MAC address, if invalid return -EADDRNOTAVAIL
-  team: check given MAC address, if invalid return -EADDRNOTAVAIL
-  tokenring: check given MAC address, if invalid return -EADDRNOTAVAIL
-  usb/rtl8150: check given MAC address, if invalid return
-    -EADDRNOTAVAIL
-  vmxnet3: check given MAC address, if invalid return -EADDRNOTAVAIL
-  wan/lapbether: check given MAC address, if invalid return
-    -EADDRNOTAVAIL
-  wireless: check given MAC address, if invalid return -EADDRNOTAVAIL
-  s390/net/qeth_l2_main: check given MAC address, if invalid return
-    -EADDRNOTAVAIL
-  rose: check given MAC address, if invalid return -EADDRNOTAVAIL
-
- drivers/media/dvb/dvb-core/dvb_net.c               |    5 ++++-
- drivers/net/cris/eth_v10.c                         |    3 +++
- drivers/net/ethernet/amd/amd8111e.c                |    3 +++
- drivers/net/ethernet/amd/atarilance.c              |    3 +++
- drivers/net/ethernet/chelsio/cxgb/cxgb2.c          |    3 +++
- drivers/net/ethernet/cisco/enic/enic_main.c        |    3 +++
- drivers/net/ethernet/freescale/fec_mpc52xx.c       |    3 +++
- drivers/net/ethernet/jme.c                         |    3 +++
- drivers/net/ethernet/micrel/ks8851_mll.c           |    3 +++
- drivers/net/ethernet/micrel/ksz884x.c              |    3 +++
- drivers/net/ethernet/seeq/sgiseeq.c                |    3 +++
- drivers/net/ethernet/sgi/ioc3-eth.c                |    3 +++
- drivers/net/ethernet/tehuti/tehuti.c               |    3 +++
- drivers/net/fddi/skfp/skfddi.c                     |    3 +++
- drivers/net/team/team.c                            |    3 +++
- drivers/net/tokenring/3c359.c                      |    4 ++++
- drivers/net/tokenring/lanstreamer.c                |    4 ++++
- drivers/net/tokenring/olympic.c                    |    4 ++++
- drivers/net/tokenring/tms380tr.c                   |    3 +++
- drivers/net/usb/rtl8150.c                          |    3 +++
- drivers/net/vmxnet3/vmxnet3_drv.c                  |    3 +++
- drivers/net/wan/lapbether.c                        |    5 +++++
- drivers/net/wireless/airo.c                        |    3 +++
- drivers/net/wireless/atmel.c                       |    3 +++
- .../net/wireless/brcm80211/brcmfmac/dhd_linux.c    |    5 ++++-
- drivers/net/wireless/hostap/hostap_main.c          |    3 +++
- drivers/net/wireless/libertas/main.c               |    3 +++
- drivers/net/wireless/mwifiex/main.c                |    3 +++
- drivers/net/wireless/zd1201.c                      |    2 ++
- drivers/s390/net/qeth_l2_main.c                    |    3 +++
- net/rose/rose_dev.c                                |    3 +++
- 31 files changed, 99 insertions(+), 2 deletions(-)
-
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index c93298f..8cd5c96 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2400,6 +2400,16 @@ details.</para>
+       </orderedlist>
+     </section>
+ 
++    <section>
++      <title>V4L2 in Linux 3.4</title>
++      <orderedlist>
++        <listitem>
++	  <para>Added integer menus, the new type will be
++	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
++        </listitem>
++      </orderedlist>
++    </section>
++
+     <section id="other">
+       <title>Relation of V4L2 to other Linux multimedia APIs</title>
+ 
+diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
+index dce3fef..3b857d5 100644
+--- a/Documentation/DocBook/media/v4l/v4l2.xml
++++ b/Documentation/DocBook/media/v4l/v4l2.xml
+@@ -128,6 +128,12 @@ structs, ioctls) must be noted in more detail in the history chapter
+ applications. -->
+ 
+       <revision>
++	<revnumber>3.4</revnumber>
++	<date>2012-01-26</date>
++	<authorinitials>sa</authorinitials>
++	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
++      </revision>
++      <revision>
+ 	<revnumber>3.3</revnumber>
+ 	<date>2012-01-11</date>
+ 	<authorinitials>hv</authorinitials>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+index 36660d3..505f020 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
+@@ -215,11 +215,12 @@ the array to zero.</entry>
+ 
+     <table pgwide="1" frame="none" id="v4l2-querymenu">
+       <title>struct <structname>v4l2_querymenu</structname></title>
+-      <tgroup cols="3">
++      <tgroup cols="4">
+ 	&cs-str;
+ 	<tbody valign="top">
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>id</structfield></entry>
+ 	    <entry>Identifies the control, set by the application
+ from the respective &v4l2-queryctrl;
+@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>index</structfield></entry>
+ 	    <entry>Index of the menu item, starting at zero, set by
+ 	    the application.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry>union</entry>
++	    <entry></entry>
++	    <entry></entry>
++	    <entry></entry>
++	  </row>
++	  <row>
++	    <entry></entry>
+ 	    <entry>__u8</entry>
+ 	    <entry><structfield>name</structfield>[32]</entry>
+ 	    <entry>Name of the menu item, a NUL-terminated ASCII
+-string. This information is intended for the user.</entry>
++string. This information is intended for the user. This field is valid
++for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
++	  </row>
++	  <row>
++	    <entry></entry>
++	    <entry>__s64</entry>
++	    <entry><structfield>value</structfield></entry>
++	    <entry>
++              Value of the integer menu item. This field is valid for
++              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
++              controls.
++            </entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
++	    <entry></entry>
+ 	    <entry><structfield>reserved</structfield></entry>
+ 	    <entry>Reserved for future extensions. Drivers must set
+ the array to zero.</entry>
+@@ -292,6 +313,20 @@ the menu items can be enumerated with the
+ <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
+ 	  </row>
+ 	  <row>
++	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
++	    <entry>&ge; 0</entry>
++	    <entry>1</entry>
++	    <entry>N-1</entry>
++	    <entry>
++              The control has a menu of N choices. The values of the
++              menu items can be enumerated with the
++              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
++              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
++              except that instead of strings, the menu items are
++              signed 64-bit integers.
++            </entry>
++	  </row>
++	  <row>
+ 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
+ 	    <entry>0</entry>
+ 	    <entry>n/a</entry>
 -- 
-1.7.8.3
+1.7.2.5
 
