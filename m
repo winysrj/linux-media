@@ -1,176 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:59099 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119Ab2BQTes (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 14:34:48 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 17 Feb 2012 20:30:32 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv22 12/16] mm: trigger page reclaim in alloc_contig_range() to
- stabilise watermarks
-In-reply-to: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329507036-24362-13-git-send-email-m.szyprowski@samsung.com>
-References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp.nokia.com ([147.243.1.47]:43159 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754208Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 09/31] v4l: Image source control class
+Date: Fri,  3 Feb 2012 01:54:29 +0200
+Message-Id: <1328226891-8968-9-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-alloc_contig_range() performs memory allocation so it also should keep
-track on keeping the correct level of memory watermarks. This commit adds
-a call to *_slowpath style reclaim to grab enough pages to make sure that
-the final collection of contiguous pages from freelists will not starve
-the system.
+Add image source control class. This control class is intended to contain
+low level controls which deal with control of the image capture process ---
+the A/D converter in image sensors, for example.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- include/linux/mmzone.h |    9 +++++++
- mm/page_alloc.c        |   62 ++++++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 71 insertions(+), 0 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml       |   86 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 ++
+ drivers/media/video/v4l2-ctrls.c                   |    7 ++
+ include/linux/videodev2.h                          |    9 ++
+ 4 files changed, 108 insertions(+), 0 deletions(-)
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 82f4fa5..6a6c2cc 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -63,8 +63,10 @@ enum {
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index a1be378..6842e80 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3379,4 +3379,90 @@ interface and may change in the future.</para>
+       </table>
  
- #ifdef CONFIG_CMA
- #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
-+#  define cma_wmark_pages(zone)	zone->min_cma_pages
- #else
- #  define is_migrate_cma(migratetype) false
-+#  define cma_wmark_pages(zone) 0
- #endif
- 
- #define for_each_migratetype_order(order, type) \
-@@ -371,6 +373,13 @@ struct zone {
- 	/* see spanned/present_pages for more description */
- 	seqlock_t		span_seqlock;
- #endif
-+#ifdef CONFIG_CMA
-+	/*
-+	 * CMA needs to increase watermark levels during the allocation
-+	 * process to make sure that the system is not starved.
-+	 */
-+	unsigned long		min_cma_pages;
-+#endif
- 	struct free_area	free_area[MAX_ORDER];
- 
- #ifndef CONFIG_SPARSEMEM
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index e42b4a3..443f623 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5035,6 +5035,11 @@ static void __setup_per_zone_wmarks(void)
- 
- 		zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp >> 2);
- 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
+     </section>
 +
-+		zone->watermark[WMARK_MIN] += cma_wmark_pages(zone);
-+		zone->watermark[WMARK_LOW] += cma_wmark_pages(zone);
-+		zone->watermark[WMARK_HIGH] += cma_wmark_pages(zone);
++    <section id="image-source-controls">
++      <title>Image Source Control Reference</title>
 +
- 		setup_zone_migrate_reserve(zone);
- 		spin_unlock_irqrestore(&zone->lock, flags);
++      <note>
++	<title>Experimental</title>
++
++	<para>This is an <link
++	linkend="experimental">experimental</link> interface and may
++	change in the future.</para>
++      </note>
++
++      <para>
++	The Image Source control class is intended for low-level
++	control of image source devices such as image sensors. The
++	devices feature an analogue to digital converter and a bus
++	transmitter to transmit the image data out of the device.
++      </para>
++
++      <table pgwide="1" frame="none" id="image-source-control-id">
++      <title>Image Source Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry>
++	    <entry>class</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_VBLANK</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Vertical blanking. The idle
++	    preriod after every frame during which no image data is
++	    produced. The unit of vertical blanking is a line. Every
++	    line has length of the image width plus horizontal
++	    blanking at the pixel clock specified by struct
++	    v4l2_mbus_framefmt <xref linkend="v4l2-mbus-framefmt"
++	    />.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_HBLANK</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Horizontal blanking. The idle
++	    preriod after every line of image data during which no
++	    image data is produced. The unit of horizontal blanking is
++	    pixels.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Analogue gain is gain affecting
++	    all colour components in the pixel matrix. The gain
++	    operation is performed in the analogue domain before A/D
++	    conversion.
++	    </entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++    </section>
++
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b17a7aa..f420034 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -265,6 +265,12 @@ These controls are described in <xref
+ These controls are described in <xref
+ 		linkend="flash-controls" />.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
++	    <entry>0x9d0000</entry> <entry>The class containing image
++	    source controls. These controls are described in <xref
++	    linkend="image-source-controls" />.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index 139ba42..37249b7 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -607,6 +607,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+ 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
+ 
++	/* Image source controls */
++	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image source controls";
++	case V4L2_CID_IMAGE_SOURCE_VBLANK:	return "Vertical blanking";
++	case V4L2_CID_IMAGE_SOURCE_HBLANK:	return "Horizontal blanking";
++	case V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN: return "Analogue gain";
++
+ 	default:
+ 		return NULL;
  	}
-@@ -5637,6 +5642,56 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
- 	return ret > 0 ? 0 : ret;
- }
+@@ -704,6 +710,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_CLASS:
+ 	case V4L2_CID_FM_TX_CLASS:
+ 	case V4L2_CID_FLASH_CLASS:
++	case V4L2_CID_IMAGE_SOURCE_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index a80c03d..277aa5c 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1136,6 +1136,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
++#define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009d0000	/* Image source controls */
  
-+/*
-+ * Update zone's cma pages counter used for watermark level calculation.
-+ */
-+static inline void __update_cma_watermarks(struct zone *zone, int count)
-+{
-+	unsigned long flags;
-+	spin_lock_irqsave(&zone->lock, flags);
-+	zone->min_cma_pages += count;
-+	spin_unlock_irqrestore(&zone->lock, flags);
-+	setup_per_zone_wmarks();
-+}
-+
-+/*
-+ * Trigger memory pressure bump to reclaim some pages in order to be able to
-+ * allocate 'count' pages in single page units. Does similar work as
-+ *__alloc_pages_slowpath() function.
-+ */
-+static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
-+{
-+	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
-+	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
-+	int did_some_progress = 0;
-+	int order = 1;
-+	unsigned long watermark;
-+
-+	/*
-+	 * Increase level of watermarks to force kswapd do his job
-+	 * to stabilise at new watermark level.
-+	 */
-+	__update_cma_watermarks(zone, count);
-+
-+	/* Obey watermarks as if the page was being allocated */
-+	watermark = low_wmark_pages(zone) + count;
-+	while (!zone_watermark_ok(zone, 0, watermark, 0, 0)) {
-+		wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
-+
-+		did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
-+						      NULL);
-+		if (!did_some_progress) {
-+			/* Exhausted what can be done so it's blamo time */
-+			out_of_memory(zonelist, gfp_mask, order, NULL);
-+		}
-+	}
-+
-+	/* Restore original watermark levels. */
-+	__update_cma_watermarks(zone, -count);
-+
-+	return count;
-+}
-+
- /**
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-@@ -5735,6 +5790,13 @@ int alloc_contig_range(unsigned long start, unsigned long end,
- 		goto done;
- 	}
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1749,6 +1750,14 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
  
-+	/*
-+	 * Reclaim enough pages to make sure that contiguous allocation
-+	 * will not starve the system.
-+	 */
-+	__reclaim_pages(zone, GFP_HIGHUSER_MOVABLE, end-start);
++/* Image source controls */
++#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
++#define V4L2_CID_IMAGE_SOURCE_CLASS		(V4L2_CTRL_CLASS_IMAGE_SOURCE | 1)
 +
-+	/* Grab isolated pages from freelists. */
- 	outer_end = isolate_freepages_range(outer_start, end);
- 	if (!outer_end) {
- 		ret = -EBUSY;
++#define V4L2_CID_IMAGE_SOURCE_VBLANK		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
++#define V4L2_CID_IMAGE_SOURCE_HBLANK		(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
++#define V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN	(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
++
+ /*
+  *	T U N I N G
+  */
 -- 
-1.7.1
-
+1.7.2.5
 
