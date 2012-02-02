@@ -1,56 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:37098 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751862Ab2BZOQV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Feb 2012 09:16:21 -0500
-Received: by eaah12 with SMTP id h12so1821354eaa.19
-        for <linux-media@vger.kernel.org>; Sun, 26 Feb 2012 06:16:20 -0800 (PST)
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:34988 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753926Ab2BBXMf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 18:12:35 -0500
+Received: by vbjk17 with SMTP id k17so2163025vbj.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 15:12:34 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <1330226857-8651-2-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<1330226857-8651-2-git-send-email-laurent.pinchart@ideasonboard.com>
-Date: Sun, 26 Feb 2012 11:16:19 -0300
-Message-ID: <CAOMZO5B9=fGGWMxKfr+DfRmSHj4CExS5d5WTzXT_EoH2L=LG2A@mail.gmail.com>
-Subject: Re: [PATCH 01/11] v4l: Add driver for Micron MT9M032 camera sensor
-From: Fabio Estevam <festevam@gmail.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+In-Reply-To: <4F2B16DF.3040400@gmail.com>
+References: <4F2AC7BF.4040006@ukfsn.org>
+	<4F2ADDCB.4060200@gmail.com>
+	<CAGoCfiyTHNkr3gNAZUefeZN88-5Vd9SEyGUeFjYO-ddG1WqgzA@mail.gmail.com>
+	<4F2B16DF.3040400@gmail.com>
+Date: Thu, 2 Feb 2012 18:12:34 -0500
+Message-ID: <CAGoCfiybOLL2Owz2KaPG2AuMueHYKmN18A8tQ7WXVkhTuRobZQ@mail.gmail.com>
+Subject: Re: PCTV 290e page allocation failure
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: gennarone@gmail.com
+Cc: Andy Furniss <andyqos@ukfsn.org>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Feb 26, 2012 at 12:27 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
+On Thu, Feb 2, 2012 at 6:06 PM, Gianluca Gennari <gennarone@gmail.com> wrote:
+> Il 02/02/2012 20:07, Devin Heitmueller ha scritto:
+> Hi Devin,
+> thanks for the explanation. The CPU is MIPS based (not ARM) but I guess
+> there is not much of a difference from this point of view.
+> As I mentioned in my first reply, I never had this kind of errors when I
+> was using a dvb-usb USB stick. Now I'm trying to replicate the problem
+> with a Terratec Hybrid XS (em28xx-dvb + zl10353 + xc2028), and so far
+> I've stressed it for a few hours without problems. We will see in a day
+> or two if I can make it fail in the same way.
 
-> +static int __init mt9m032_init(void)
-> +{
-> +       int rval;
-> +
-> +       rval = i2c_add_driver(&mt9m032_i2c_driver);
-> +       if (rval)
-> +               pr_err("%s: failed registering " MT9M032_NAME "\n", __func__);
-> +
-> +       return rval;
-> +}
-> +
-> +static void mt9m032_exit(void)
-> +{
-> +       i2c_del_driver(&mt9m032_i2c_driver);
-> +}
-> +
-> +module_init(mt9m032_init);
-> +module_exit(mt9m032_exit);
+I'm pretty sure this will happen under MIPS as well.  That said, you
+will typically hit this condition if you stop streaming and then
+restart it several hours into operation.  In other words, make sure
+you're not just watching/streaming video for a few hours and thinking
+you're stressing the particular use case.  You need to stop/start to
+hit it.
 
-module_i2c_driver could be used here instead.
+I haven't looked that closely at dvb_usb's memory allocation strategy.
+ Perhaps it allocates the memory up front, or perhaps it doesn't
+demand coherent memory (something which will work on x86 and maybe
+MIPS, but will cause an immediate panic on ARM).
 
-> +
-> +MODULE_AUTHOR("Martin Hostettler");
+I've run into this issue myself on an embedded target with em28xx and
+ARM.  I plan on hacking a fix to statically allocate the buffers at
+driver init, but I cannot imagine that being a change that would be
+accepted into the upstream kernel.
 
-E-mail address missing.
+It probably makes sense to figure out whether MIPS requires coherent
+memory like ARM does.  If it doesn't then you can probably just hack
+your copy of the em28xx driver to not ask for coherent memory.  If it
+does require coherent memory, then you'll probably need to allocate
+the memory up front.
 
-Regards,
+Cheers,
 
-Fabio Estevam
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
