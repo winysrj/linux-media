@@ -1,128 +1,233 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:62782 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757449Ab2BCSr4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 13:47:56 -0500
-Received: by eaah12 with SMTP id h12so1546231eaa.19
-        for <linux-media@vger.kernel.org>; Fri, 03 Feb 2012 10:47:54 -0800 (PST)
-Message-ID: <4F2C2BD6.1010007@gmail.com>
-Date: Fri, 03 Feb 2012 19:47:50 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Andy Furniss <andyqos@ukfsn.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: PCTV 290e page allocation failure
-References: <4F2AC7BF.4040006@ukfsn.org> <4F2ADDCB.4060200@gmail.com> <4F2AEA81.90506@ukfsn.org> <4F2B184F.4030709@gmail.com> <4F2BBF3E.1030809@ukfsn.org>
-In-Reply-To: <4F2BBF3E.1030809@ukfsn.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.1.48]:18923 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754605Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 24/31] omap3isp: Default link validation for ccp2, csi2, preview and resizer
+Date: Fri,  3 Feb 2012 01:54:44 +0200
+Message-Id: <1328226891-8968-24-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 03/02/2012 12:04, Andy Furniss ha scritto:
-> Gianluca Gennari wrote:
-> 
->>> What kernel are you using?
->>>
->>> I see someone else had problems with>  3.0, I've got a 3.08 built on
->>> this box, I'll try it out when I get a chance to reboot, though it took
->>> a couple of days to show on my current kernel.
->>>
->>> Andy.
->>>
->>
->> Hi Andy,
->> I'm running 3.1.0 but I back-ported a few patches from 3.2.0 to update
->> the PCTV 290e driver to the latest version.
->> In the past months I run 2.6.18/2.6.31/3.0.3 before buying the PCTV
->> 290e, but I never had this problem with the old dvb-usb stick.
-> 
-> Hi,
-> 
-> I tried my 3.08 but changed back as I was getting corrupted HD streams.
-> 
-> Maybe because the config for that kernel was no SMP and no preemption.
-> 
-> I did do lots of cat /proc/buddyinfo and echo m > /proc/sysrq-trigger
-> and it looks like having lots of files open is my problem - but I didn't
-> run long enough to provoke a fail.
-> 
-> It seems even if the above commands show no continuous DMA above 16k
-> when you actually try and use it the kernel defrags so it works and the
-> output will then show larger chunks available for a while.
-> 
-> When I had 2xPCI running it was mainly on 2.6.26 and I was also using
-> legacy IDE - I wonder if that behaved differently with 00s of open files
-> - or maybe it's just that PCIs (remaining one is cx88) just don't ask
-> for big 64k DMA buffers.
-> 
-> 
+Use default link validation for ccp2, csi2, preview and resizer. On ccp2,
+csi2 and ccdc we also collect information on external subdevs as one may be
+connected to those entities.
 
-Hi,
-I was able to reproduce the crash with the Terratec Hybrid card after
-about 1 day of use (switching between the mediaplayer and the DVB-T tuner):
+The CCDC link validation still must be done separately.
 
-usbtunerhelper: page allocation failure: order:4, mode:0x10d0
-Call Trace:
-[<80550be0>] dump_stack+0x8/0x34
-[<8008aca0>] warn_alloc_failed+0xc4/0x144
-[<8008b868>] __alloc_pages_nodemask+0x40c/0x678
-[<8008bbd0>] __get_free_pages+0x18/0x80
-[<8001101c>] mips_dma_alloc_coherent+0x5c/0x114
-[<e16a7e9c>] em28xx_init_isoc+0x10c/0x3e4 [em28xx]
-[<e174b71c>] em28xx_start_feed+0x12c/0x164 [em28xx_dvb]
-[<803ce924>] dmx_ts_feed_start_filtering+0x5c/0x134
-[<803cac84>] dvb_dmxdev_start_feed+0xd4/0x158
-[<803cd2b4>] dvb_demux_do_ioctl+0x578/0x654
-[<803ca420>] dvb_usercopy+0x88/0x204
-[<800d6e94>] do_vfs_ioctl+0xa0/0x6c0
-[<800d74f8>] sys_ioctl+0x44/0xa8
-[<8000ecfc>] stack_done+0x20/0x40
+Also set pipe->external correctly as we go
 
-Mem-Info:
-Normal per-cpu:
-CPU    0: hi:  186, btch:  31 usd:   0
-CPU    1: hi:  186, btch:  31 usd:   0
-active_anon:16570 inactive_anon:27 isolated_anon:0
- active_file:21560 inactive_file:21546 isolated_file:0
- unevictable:0 dirty:2 writeback:0 unstable:0
- free:3996 slab_reclaimable:2042 slab_unreclaimable:2124
- mapped:2392 shmem:31 pagetables:126 bounce:0
-Normal free:15984kB min:2876kB low:3592kB high:4312kB
-active_anon:66280kB inactive_anon:108kB active_file:86240kB
-inactive_file:86184kB unevictable:0kB isolated(anon):0kB
-isolated(file):0kB present:518144kB mlocked:0kB dirty:8kB writeback:0kB
-mapped:9568kB shmem:124kB slab_reclaimable:8168kB
-slab_unreclaimable:8496kB kernel_stack:712kB pagetables:504kB
-unstable:0kB bounce:0kB writeback_tmp:0kB pages_scanned:0
-all_unreclaimable? no
-lowmem_reserve[]: 0 0
-Normal: 2556*4kB 540*8kB 80*16kB 3*32kB 1*64kB 0*128kB 0*256kB 0*512kB
-0*1024kB 0*2048kB 0*4096kB = 15984kB
-43141 total pagecache pages
-0 pages in swap cache
-Swap cache stats: add 0, delete 0, find 0/0
-Free swap  = 0kB
-Total swap = 0kB
-131072 pages RAM
-58145 pages reserved
-10852 pages shared
-59573 pages non-shared
-unable to allocate 36096 bytes for transfer buffer 0
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispccdc.c    |   23 +++++++++++++++++++++++
+ drivers/media/video/omap3isp/ispccp2.c    |   20 ++++++++++++++++++++
+ drivers/media/video/omap3isp/ispcsi2.c    |   19 +++++++++++++++++++
+ drivers/media/video/omap3isp/isppreview.c |    2 ++
+ drivers/media/video/omap3isp/ispresizer.c |    2 ++
+ drivers/media/video/omap3isp/ispvideo.c   |    4 ++++
+ 6 files changed, 70 insertions(+), 0 deletions(-)
 
-free:
-             total         used         free       shared      buffers
-Mem:        291708       274656        17052            0         7592
--/+ buffers:             267064        24644
-Swap:            0            0            0
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index a74a797..6aff241 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -1999,6 +1999,27 @@ static int ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
+ }
+ 
++static int ccdc_link_validate(struct v4l2_subdev *sd,
++			      struct media_link *link,
++			      struct v4l2_subdev_format *source_fmt,
++			      struct v4l2_subdev_format *sink_fmt)
++{
++	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
++	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
++	int rval;
++
++	/* We've got a parallel sensor here. */
++	if (ccdc->input == CCDC_INPUT_PARALLEL) {
++		pipe->external =
++			media_entity_to_v4l2_subdev(link->source->entity);
++		rval = omap3isp_get_external_info(pipe, link);
++		if (rval < 0)
++			return 0;
++	}
++
++	return 0;
++}
++
+ /*
+  * ccdc_init_formats - Initialize formats on all pads
+  * @sd: ISP CCDC V4L2 subdevice
+@@ -2041,6 +2062,7 @@ static const struct v4l2_subdev_pad_ops ccdc_v4l2_pad_ops = {
+ 	.enum_frame_size = ccdc_enum_frame_size,
+ 	.get_fmt = ccdc_get_format,
+ 	.set_fmt = ccdc_set_format,
++	.link_validate = ccdc_link_validate,
+ };
+ 
+ /* V4L2 subdev operations */
+@@ -2150,6 +2172,7 @@ static int ccdc_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations ccdc_media_ops = {
+ 	.link_setup = ccdc_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
+diff --git a/drivers/media/video/omap3isp/ispccp2.c b/drivers/media/video/omap3isp/ispccp2.c
+index 70ddbf3..4fb34ee 100644
+--- a/drivers/media/video/omap3isp/ispccp2.c
++++ b/drivers/media/video/omap3isp/ispccp2.c
+@@ -819,6 +819,24 @@ static int ccp2_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
+ }
+ 
++static int ccp2_link_validate(struct v4l2_subdev *sd, struct media_link *link,
++			      struct v4l2_subdev_format *source_fmt,
++			      struct v4l2_subdev_format *sink_fmt)
++{
++	struct isp_ccp2_device *ccp2 = v4l2_get_subdevdata(sd);
++	struct isp_pipeline *pipe = to_isp_pipeline(&ccp2->subdev.entity);
++	int rval;
++
++	pipe->external = media_entity_to_v4l2_subdev(link->source->entity);
++	rval = omap3isp_get_external_info(pipe, link);
++	if (rval < 0)
++		return rval;
++
++	return v4l2_subdev_link_validate_default(sd, link, source_fmt,
++						 sink_fmt);
++}
++
++
+ /*
+  * ccp2_init_formats - Initialize formats on all pads
+  * @sd: ISP CCP2 V4L2 subdevice
+@@ -925,6 +943,7 @@ static const struct v4l2_subdev_pad_ops ccp2_sd_pad_ops = {
+ 	.enum_frame_size = ccp2_enum_frame_size,
+ 	.get_fmt = ccp2_get_format,
+ 	.set_fmt = ccp2_set_format,
++	.link_validate = ccp2_link_validate,
+ };
+ 
+ /* subdev operations */
+@@ -1021,6 +1040,7 @@ static int ccp2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations ccp2_media_ops = {
+ 	.link_setup = ccp2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ /*
+diff --git a/drivers/media/video/omap3isp/ispcsi2.c b/drivers/media/video/omap3isp/ispcsi2.c
+index fcb5168..9313f7c 100644
+--- a/drivers/media/video/omap3isp/ispcsi2.c
++++ b/drivers/media/video/omap3isp/ispcsi2.c
+@@ -1012,6 +1012,23 @@ static int csi2_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
+ }
+ 
++static int csi2_link_validate(struct v4l2_subdev *sd, struct media_link *link,
++			      struct v4l2_subdev_format *source_fmt,
++			      struct v4l2_subdev_format *sink_fmt)
++{
++	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(sd);
++	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
++	int rval;
++
++	pipe->external = media_entity_to_v4l2_subdev(link->source->entity);
++	rval = omap3isp_get_external_info(pipe, link);
++	if (rval < 0)
++		return rval;
++
++	return v4l2_subdev_link_validate_default(sd, link, source_fmt,
++						 sink_fmt);
++}
++
+ /*
+  * csi2_init_formats - Initialize formats on all pads
+  * @sd: ISP CSI2 V4L2 subdevice
+@@ -1107,6 +1124,7 @@ static const struct v4l2_subdev_pad_ops csi2_pad_ops = {
+ 	.enum_frame_size = csi2_enum_frame_size,
+ 	.get_fmt = csi2_get_format,
+ 	.set_fmt = csi2_set_format,
++	.link_validate = csi2_link_validate,
+ };
+ 
+ /* subdev operations */
+@@ -1181,6 +1199,7 @@ static int csi2_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations csi2_media_ops = {
+ 	.link_setup = csi2_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
+diff --git a/drivers/media/video/omap3isp/isppreview.c b/drivers/media/video/omap3isp/isppreview.c
+index 6d0fb2c..c2bf500 100644
+--- a/drivers/media/video/omap3isp/isppreview.c
++++ b/drivers/media/video/omap3isp/isppreview.c
+@@ -1981,6 +1981,7 @@ static const struct v4l2_subdev_pad_ops preview_v4l2_pad_ops = {
+ 	.set_fmt = preview_set_format,
+ 	.get_crop = preview_get_crop,
+ 	.set_crop = preview_set_crop,
++	.link_validate = v4l2_subdev_link_validate_default,
+ };
+ 
+ /* subdev operations */
+@@ -2076,6 +2077,7 @@ static int preview_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations preview_media_ops = {
+ 	.link_setup = preview_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 6958a9e..6ce2349 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1532,6 +1532,7 @@ static const struct v4l2_subdev_pad_ops resizer_v4l2_pad_ops = {
+ 	.set_fmt = resizer_set_format,
+ 	.get_crop = resizer_g_crop,
+ 	.set_crop = resizer_s_crop,
++	.link_validate = v4l2_subdev_link_validate_default,
+ };
+ 
+ /* subdev operations */
+@@ -1603,6 +1604,7 @@ static int resizer_link_setup(struct media_entity *entity,
+ /* media operations */
+ static const struct media_entity_operations resizer_media_ops = {
+ 	.link_setup = resizer_link_setup,
++	.link_validate = v4l2_subdev_link_validate,
+ };
+ 
+ void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index 17522db..f1c68ca 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -993,6 +993,10 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	 */
+ 	pipe = video->video.entity.pipe
+ 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
++	pipe->external = NULL;
++	pipe->external_rate = 0;
++	pipe->external_bpp = 0;
++
+ 	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+ 	if (ret < 0)
+ 		goto err_media_entity_pipeline_start;
+-- 
+1.7.2.5
 
-(the box has 512 MB but about 220 MB are reserved for the framebuffer)
-
-So there is no doubt it's a generic problem (as Devin already pointed
-out) and not restricted to the PCTV 290e.
-
-I will now try to reproduce the issue with a dvb-usb driver.
-
-Regards,
-Gianluca
