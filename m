@@ -1,51 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gx0-f174.google.com ([209.85.161.174]:44088 "EHLO
-	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759175Ab2BONdg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Feb 2012 08:33:36 -0500
-Received: by ggnh1 with SMTP id h1so590708ggn.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2012 05:33:35 -0800 (PST)
-From: Fabio Estevam <festevam@gmail.com>
+Received: from smtp.nokia.com ([147.243.1.48]:18892 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754190Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, javier.martin@vista-silicon.com,
-	kernel@pengutronix.de, mchehab@infradead.org,
-	Fabio Estevam <festevam@gmail.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH 3/3] media: video: mx2_camera.c: Remove unneeded dev_dbg
-Date: Wed, 15 Feb 2012 11:33:21 -0200
-Message-Id: <1329312801-20501-3-git-send-email-festevam@gmail.com>
-In-Reply-To: <1329312801-20501-1-git-send-email-festevam@gmail.com>
-References: <1329312801-20501-1-git-send-email-festevam@gmail.com>
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 08/31] v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
+Date: Fri,  3 Feb 2012 01:54:28 +0200
+Message-Id: <1328226891-8968-8-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-csi clock frequency is already shown by:
+These two IOCTLS are obsoleted by VIDIOC_SUBDEV_G_SELECTION and
+VIDIOC_SUBDEV_S_SELECTION. Mark them obsolete.
 
-dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
-		clk_get_rate(pcdev->clk_csi));
-
-,so no need to have the dev_dbg call to present the same information.
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/video/mx2_camera.c |    3 ---
- 1 files changed, 0 insertions(+), 3 deletions(-)
+ Documentation/DocBook/media/v4l/compat.xml         |    7 +++++++
+ .../DocBook/media/v4l/vidioc-subdev-g-crop.xml     |    9 ++++++---
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 689cb42..42ad401 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -1555,9 +1555,6 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 		goto exit_kfree;
- 	}
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 0c498db..da9b3bd 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2541,6 +2541,13 @@ interfaces and should not be implemented in new drivers.</para>
+ <constant>VIDIOC_S_MPEGCOMP</constant> ioctls. Use Extended Controls,
+ <xref linkend="extended-controls" />.</para>
+         </listitem>
++        <listitem>
++	  <para><constant>VIDIOC_SUBDEV_G_CROP</constant> and
++	  <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctls. Use
++	  <constant>VIDIOC_SUBDEV_G_SELECTION</constant> and
++	  <constant>VIDIOC_SUBDEV_S_SELECTION</constant>, <xref
++	  linkend="vidioc-subdev-g-selection" />.</para>
++        </listitem>
+       </itemizedlist>
+     </section>
+   </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
+index 0619732..4cddd78 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
+@@ -58,9 +58,12 @@
+     <title>Description</title>
  
--	dev_dbg(&pdev->dev, "Camera clock frequency: %ld\n",
--			clk_get_rate(pcdev->clk_csi));
--
- 	/* Initialize DMA */
- #ifdef CONFIG_MACH_MX27
- 	if (cpu_is_mx27()) {
+     <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
++      <title>Obsolete</title>
++
++      <para>This is an <link linkend="obsolete">obsolete</link>
++      interface and may be removed in the future. It is superseded by
++      <link linkend="vidioc-subdev-g-selection">the selection
++      API</link>.</para>
+     </note>
+ 
+     <para>To retrieve the current crop rectangle applications set the
 -- 
-1.7.1
+1.7.2.5
 
