@@ -1,76 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34969 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752755Ab2BVLMy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 06:12:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 28/33] omap3isp: Move setting constaints above media_entity_pipeline_start
-Date: Wed, 22 Feb 2012 12:12:58 +0100
-Message-ID: <1529298.XktDfWDNzA@avalon>
-In-Reply-To: <1329703032-31314-28-git-send-email-sakari.ailus@iki.fi>
-References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-28-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp.nokia.com ([147.243.128.26]:44537 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754722Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 25/31] omap3isp: Implement proper CCDC link validation, check pixel rate
+Date: Fri,  3 Feb 2012 01:54:45 +0200
+Message-Id: <1328226891-8968-25-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Implement correct link validation for the CCDC. Use external_rate from
+isp_pipeline to configurat vp divisor and check that external_rate does not
+exceed our data rate limitations.
 
-Thanks for the patch.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispccdc.c |   69 +++++++++++++++++++++++++++++--
+ 1 files changed, 64 insertions(+), 5 deletions(-)
 
-On Monday 20 February 2012 03:57:07 Sakari Ailus wrote:
-
-Could you please briefly explain why this is needed ?
-
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/omap3isp/ispvideo.c |   11 +++++------
->  1 files changed, 5 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispvideo.c
-> b/drivers/media/video/omap3isp/ispvideo.c index f1c68ca..2e4786d 100644
-> --- a/drivers/media/video/omap3isp/ispvideo.c
-> +++ b/drivers/media/video/omap3isp/ispvideo.c
-> @@ -304,8 +304,6 @@ static int isp_video_validate_pipeline(struct
-> isp_pipeline *pipe) struct v4l2_subdev *subdev;
->  	int ret;
-> 
-> -	pipe->max_rate = pipe->l3_ick;
-> -
->  	subdev = isp_video_remote_subdev(pipe->output, NULL);
->  	if (subdev == NULL)
->  		return -EPIPE;
-> @@ -997,6 +995,11 @@ isp_video_streamon(struct file *file, void *fh, enum
-> v4l2_buf_type type) pipe->external_rate = 0;
->  	pipe->external_bpp = 0;
-> 
-> +	if (video->isp->pdata->set_constraints)
-> +		video->isp->pdata->set_constraints(video->isp, true);
-> +	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
-> +	pipe->max_rate = pipe->l3_ick;
-> +
->  	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
->  	if (ret < 0)
->  		goto err_media_entity_pipeline_start;
-> @@ -1031,10 +1034,6 @@ isp_video_streamon(struct file *file, void *fh, enum
-> v4l2_buf_type type) pipe->output = far_end;
->  	}
-> 
-> -	if (video->isp->pdata->set_constraints)
-> -		video->isp->pdata->set_constraints(video->isp, true);
-> -	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
-> -
->  	/* Validate the pipeline and update its state. */
->  	ret = isp_video_validate_pipeline(pipe);
->  	if (ret < 0)
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 6aff241..1555891 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -836,8 +836,8 @@ static void ccdc_config_vp(struct isp_ccdc_device *ccdc)
+ 
+ 	if (pipe->input)
+ 		div = DIV_ROUND_UP(l3_ick, pipe->max_rate);
+-	else if (ccdc->vpcfg.pixelclk)
+-		div = l3_ick / ccdc->vpcfg.pixelclk;
++	else if (pipe->external_rate)
++		div = l3_ick / pipe->external_rate;
+ 
+ 	div = clamp(div, 2U, max_div);
+ 	fmtcfg_vp |= (div - 2) << ISPCCDC_FMTCFG_VPIF_FRQ_SHIFT;
+@@ -1749,7 +1749,18 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
+ 	}
+ 
+ 	switch (enable) {
+-	case ISP_PIPELINE_STREAM_CONTINUOUS:
++	case ISP_PIPELINE_STREAM_CONTINUOUS: {
++		struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
++		unsigned int rate = UINT_MAX;
++
++		/*
++		 * Check that maximum allowed rate isn't exceeded by
++		 * the pixel rate.
++		 */
++		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
++		if (pipe->external_rate > rate)
++			return -ENOSPC;
++
+ 		if (ccdc->output & CCDC_OUTPUT_MEMORY)
+ 			omap3isp_sbl_enable(isp, OMAP3_ISP_SBL_CCDC_WRITE);
+ 
+@@ -1758,6 +1769,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
+ 
+ 		ccdc->underrun = 0;
+ 		break;
++	}
+ 
+ 	case ISP_PIPELINE_STREAM_SINGLESHOT:
+ 		if (ccdc->output & CCDC_OUTPUT_MEMORY &&
+@@ -1999,6 +2011,37 @@ static int ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
+ }
+ 
++/*
++ * Decide whether desired output pixel code can be obtained with
++ * the lane shifter by shifting the input pixel code.
++ * @in: input pixelcode to shifter
++ * @out: output pixelcode from shifter
++ * @additional_shift: # of bits the sensor's LSB is offset from CAMEXT[0]
++ *
++ * return true if the combination is possible
++ * return false otherwise
++ */
++static bool ccdc_is_shiftable(enum v4l2_mbus_pixelcode in,
++			      enum v4l2_mbus_pixelcode out,
++			      unsigned int additional_shift)
++{
++	const struct isp_format_info *in_info, *out_info;
++
++	if (in == out)
++		return true;
++
++	in_info = omap3isp_video_format_info(in);
++	out_info = omap3isp_video_format_info(out);
++
++	if ((in_info->flavor == 0) || (out_info->flavor == 0))
++		return false;
++
++	if (in_info->flavor != out_info->flavor)
++		return false;
++
++	return in_info->bpp - out_info->bpp + additional_shift <= 6;
++}
++
+ static int ccdc_link_validate(struct v4l2_subdev *sd,
+ 			      struct media_link *link,
+ 			      struct v4l2_subdev_format *source_fmt,
+@@ -2008,13 +2051,31 @@ static int ccdc_link_validate(struct v4l2_subdev *sd,
+ 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+ 	int rval;
+ 
++	/* Check if the two ends match */
++	if (source_fmt->format.width != sink_fmt->format.width ||
++	    source_fmt->format.height != sink_fmt->format.height)
++		return -EPIPE;
++
+ 	/* We've got a parallel sensor here. */
+ 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
++		struct isp_parallel_platform_data *pdata =
++			&((struct isp_v4l2_subdevs_group *)
++			  media_entity_to_v4l2_subdev(link->source->entity)
++			  ->host_priv)->bus.parallel;
++		unsigned long parallel_shift = pdata->data_lane_shift * 2;
++		/* Lane shifter may be used to drop bits on CCDC sink pad */
++		if (!ccdc_is_shiftable(source_fmt->format.code,
++				       sink_fmt->format.code, parallel_shift))
++			return -EPIPE;
++
+ 		pipe->external =
+ 			media_entity_to_v4l2_subdev(link->source->entity);
+ 		rval = omap3isp_get_external_info(pipe, link);
+ 		if (rval < 0)
+ 			return 0;
++	} else {
++		if (source_fmt->format.code != sink_fmt->format.code)
++			return -EPIPE;
+ 	}
+ 
+ 	return 0;
+@@ -2299,8 +2360,6 @@ int omap3isp_ccdc_init(struct isp_device *isp)
+ 	ccdc->clamp.oblen = 0;
+ 	ccdc->clamp.dcsubval = 0;
+ 
+-	ccdc->vpcfg.pixelclk = 0;
+-
+ 	ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
+ 	ccdc_apply_controls(ccdc);
+ 
 -- 
-Regards,
+1.7.2.5
 
-Laurent Pinchart
