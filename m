@@ -1,60 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweb02do.versatel-west.de ([62.214.96.173]:48625 "HELO
-	mxweb02do.versatel-west.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1752120Ab2BVRpK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 12:45:10 -0500
-Received: from cinnamon-sage.de (i577A828E.versanet.de [87.122.130.142])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q1MHcLrO023634
-	for <linux-media@vger.kernel.org>; Wed, 22 Feb 2012 18:38:22 +0100
-Received: from 192.168.23.2:49388 by cinnamon-sage.de for <eddb@rker.me.uk>,<linux-media@vger.kernel.org> ; 22.02.2012 18:38:21
-Message-ID: <4F45280D.1000304@cinnamon-sage.de>
-Date: Wed, 22 Feb 2012 18:38:21 +0100
-From: Lars Hanisch <dvb@cinnamon-sage.de>
-MIME-Version: 1.0
-To: Edd Barker <eddb@rker.me.uk>
-CC: linux-media@vger.kernel.org
-Subject: Re: Cine CT v6
-References: <4F44E821.2010804@rker.me.uk>
-In-Reply-To: <4F44E821.2010804@rker.me.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from mail-we0-f174.google.com ([74.125.82.174]:39455 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176Ab2BBWf0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 17:35:26 -0500
+Received: by werb13 with SMTP id b13so2250049wer.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 14:35:25 -0800 (PST)
+Message-ID: <1328222117.3572.27.camel@tvbox>
+Subject: Re: DVB TS/PES filters
+From: Malcolm Priestley <tvboxspy@gmail.com>
+Reply-To: linux-media@vger.kernel.org
+To: linux-media@vger.kernel.org
+Date: Thu, 02 Feb 2012 22:35:17 +0000
+In-Reply-To: <20120202190420.45629a9b@tiber>
+References: <20120126154015.01eb2c18@tiber> <20120201133234.0b6222bc@junior>
+	 <4F29791C.6060201@flensrocker.de> <20120202190420.45629a9b@tiber>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu, 2012-02-02 at 19:04 +0000, Tony Houghton wrote:
+> On Wed, 01 Feb 2012 18:40:44 +0100
+> Lars Hanisch <dvb@flensrocker.de> wrote:
+> 
+> > Am 01.02.2012 14:32, schrieb Tony Houghton:
+> > > On Thu, 26 Jan 2012 15:40:15 +0000 Tony Houghton<h@realh.co.uk>
+> > > wrote:
+> > >
+> > >> I could do with a little more information about DMX_SET_PES_FILTER.
+> > >> Specifically I want to use an output type of DMX_OUT_TS_TAP. I
+> > >> believe there's a limit on how many filters can be set, but I don't
+> > >> know whether the kernel imposes such a limit or whether it depends
+> > >> on the hardware, If the latter, how can I read the limit?
+> > >
+> > > Can anyone help me get more information about this (and the "magic
+> > > number" pid of 8192 for the whole stream)?
+> > 
+> >   In the TS-header there are 13 bits for the PID, so it can be from 0
+> >   to 8191.  Therefore dvb-core interprets 8192 (and greater values I
+> >   think) as "all PIDs".
+> 
+> Thanks for that. But it would be really helpful if I could find out
+> whether there really is a limit to the number of filters and whether
+> it's hardware dependent or the kernel.
 
-Am 22.02.2012 14:05, schrieb Edd Barker:
-> Hi Members
->
-> I've just got a Cine CT v6 card and have having a bit of trouble. I want to use dvb-t only, I've followed the
-> instructions here...
->
-> http://linuxtv.org/wiki/index.php/Digital_Devices_DuoFlex_C%26T
->
-> The card is now appearing in /dev/dvb/adapter0 & /dev/dvb/adapter1. However only one frontend is showing up and if I try
-> to scan dvb-t I get an error that I'm sure means I'm trying to use dvb-c tuner.
->
-> WARNING: frontend type (QAM) is not compatible with requested tuning type (OFDM)
->
-> I'm running on Ubuntu 11.10, 3.0.0-16 kernal. Is this something anyone else has come across or knows what I can do to
-> use the dvb-t frontend?
+The hardware usually only filters the TS packets unprocessed.
 
-  You can use dvb-fe-tool to switch the type of delivery system used as a default for old applications.
-  In the near past the drivers of hybrid cards were changed so there's only one frontend for all delivery systems, since 
-they can only be opened mutually exclusive.
+Hardware TS filtering is typically 16, 32 or 64. Nearly all can be
+turned off(unfiltered).
 
-  There should be an PPA at Launchpad with a recent version of the tools/utils, but I don't have the URL at the moment.
+dvb-usb devices the unfiltered limit is 255.
 
-Regards,
-Lars.
+The most TS streams usually contain 20 to 40 or so.
 
->
-> Thanks
-> Edd
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at http://vger.kernel.org/majordomo-info.html
->
