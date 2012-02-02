@@ -1,172 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:14440 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751425Ab2BCMTE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 07:19:04 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 03 Feb 2012 13:18:45 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 02/15] mm: compaction: introduce isolate_migratepages_range().
-In-reply-to: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1328271538-14502-3-git-send-email-m.szyprowski@samsung.com>
-References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail81.extendcp.co.uk ([79.170.40.81]:48582 "EHLO
+	mail81.extendcp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932610Ab2BBTEK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 14:04:10 -0500
+Received: from 188-222-111-86.zone13.bethere.co.uk ([188.222.111.86] helo=tiber)
+	by mail81.extendcp.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.77)
+	id 1Rt1x3-0001Nv-Qh
+	for linux-media@vger.kernel.org; Thu, 02 Feb 2012 19:04:09 +0000
+Received: from [127.0.0.1] (helo=tiber)
+	by tiber with esmtp (Exim 4.77)
+	(envelope-from <h@realh.co.uk>)
+	id 1Rt1xE-0002QI-2y
+	for linux-media@vger.kernel.org; Thu, 02 Feb 2012 19:04:20 +0000
+Date: Thu, 2 Feb 2012 19:04:20 +0000
+From: Tony Houghton <h@realh.co.uk>
+To: linux-media@vger.kernel.org
+Subject: Re: DVB TS/PES filters
+Message-ID: <20120202190420.45629a9b@tiber>
+In-Reply-To: <4F29791C.6060201@flensrocker.de>
+References: <20120126154015.01eb2c18@tiber>
+	<20120201133234.0b6222bc@junior>
+	<4F29791C.6060201@flensrocker.de>
+Reply-To: linux-media@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+On Wed, 01 Feb 2012 18:40:44 +0100
+Lars Hanisch <dvb@flensrocker.de> wrote:
 
-This commit introduces isolate_migratepages_range() function which
-extracts functionality from isolate_migratepages() so that it can be
-used on arbitrary PFN ranges.
+> Am 01.02.2012 14:32, schrieb Tony Houghton:
+> > On Thu, 26 Jan 2012 15:40:15 +0000 Tony Houghton<h@realh.co.uk>
+> > wrote:
+> >
+> >> I could do with a little more information about DMX_SET_PES_FILTER.
+> >> Specifically I want to use an output type of DMX_OUT_TS_TAP. I
+> >> believe there's a limit on how many filters can be set, but I don't
+> >> know whether the kernel imposes such a limit or whether it depends
+> >> on the hardware, If the latter, how can I read the limit?
+> >
+> > Can anyone help me get more information about this (and the "magic
+> > number" pid of 8192 for the whole stream)?
+> 
+>   In the TS-header there are 13 bits for the PID, so it can be from 0
+>   to 8191.  Therefore dvb-core interprets 8192 (and greater values I
+>   think) as "all PIDs".
 
-isolate_migratepages() function is implemented as a simple wrapper
-around isolate_migratepages_range().
-
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- mm/compaction.c |   75 +++++++++++++++++++++++++++++++++++++++---------------
- 1 files changed, 54 insertions(+), 21 deletions(-)
-
-diff --git a/mm/compaction.c b/mm/compaction.c
-index 71a58f6..62902b6 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -250,31 +250,34 @@ typedef enum {
- 	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
- } isolate_migrate_t;
- 
--/*
-- * Isolate all pages that can be migrated from the block pointed to by
-- * the migrate scanner within compact_control.
-+/**
-+ * isolate_migratepages_range() - isolate all migrate-able pages in range.
-+ * @zone:	Zone pages are in.
-+ * @cc:		Compaction control structure.
-+ * @low_pfn:	The first PFN of the range.
-+ * @end_pfn:	The one-past-the-last PFN of the range.
-+ *
-+ * Isolate all pages that can be migrated from the range specified by
-+ * [low_pfn, end_pfn).  Returns zero if there is a fatal signal
-+ * pending), otherwise PFN of the first page that was not scanned
-+ * (which may be both less, equal to or more then end_pfn).
-+ *
-+ * Assumes that cc->migratepages is empty and cc->nr_migratepages is
-+ * zero.
-+ *
-+ * Apart from cc->migratepages and cc->nr_migratetypes this function
-+ * does not modify any cc's fields, in particular it does not modify
-+ * (or read for that matter) cc->migrate_pfn.
-  */
--static isolate_migrate_t isolate_migratepages(struct zone *zone,
--					struct compact_control *cc)
-+static unsigned long
-+isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
-+			   unsigned long low_pfn, unsigned long end_pfn)
- {
--	unsigned long low_pfn, end_pfn;
- 	unsigned long last_pageblock_nr = 0, pageblock_nr;
- 	unsigned long nr_scanned = 0, nr_isolated = 0;
- 	struct list_head *migratelist = &cc->migratepages;
- 	isolate_mode_t mode = ISOLATE_ACTIVE|ISOLATE_INACTIVE;
- 
--	/* Do not scan outside zone boundaries */
--	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
--
--	/* Only scan within a pageblock boundary */
--	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
--
--	/* Do not cross the free scanner or scan within a memory hole */
--	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
--		cc->migrate_pfn = end_pfn;
--		return ISOLATE_NONE;
--	}
--
- 	/*
- 	 * Ensure that there are not too many pages isolated from the LRU
- 	 * list by either parallel reclaimers or compaction. If there are,
-@@ -283,12 +286,12 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
- 	while (unlikely(too_many_isolated(zone))) {
- 		/* async migration should just abort */
- 		if (!cc->sync)
--			return ISOLATE_ABORT;
-+			return 0;
- 
- 		congestion_wait(BLK_RW_ASYNC, HZ/10);
- 
- 		if (fatal_signal_pending(current))
--			return ISOLATE_ABORT;
-+			return 0;
- 	}
- 
- 	/* Time to isolate some pages for migration */
-@@ -374,10 +377,40 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
- 	acct_isolated(zone, cc);
- 
- 	spin_unlock_irq(&zone->lru_lock);
--	cc->migrate_pfn = low_pfn;
- 
- 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
- 
-+	return low_pfn;
-+}
-+
-+/*
-+ * Isolate all pages that can be migrated from the block pointed to by
-+ * the migrate scanner within compact_control.
-+ */
-+static isolate_migrate_t isolate_migratepages(struct zone *zone,
-+					struct compact_control *cc)
-+{
-+	unsigned long low_pfn, end_pfn;
-+
-+	/* Do not scan outside zone boundaries */
-+	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
-+
-+	/* Only scan within a pageblock boundary */
-+	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
-+
-+	/* Do not cross the free scanner or scan within a memory hole */
-+	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
-+		cc->migrate_pfn = end_pfn;
-+		return ISOLATE_NONE;
-+	}
-+
-+	/* Perform the isolation */
-+	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
-+	if (!low_pfn)
-+		return ISOLATE_ABORT;
-+
-+	cc->migrate_pfn = low_pfn;
-+
- 	return ISOLATE_SUCCESS;
- }
- 
--- 
-1.7.1.569.g6f426
-
+Thanks for that. But it would be really helpful if I could find out
+whether there really is a limit to the number of filters and whether
+it's hardware dependent or the kernel.
