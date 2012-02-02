@@ -1,58 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59157 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751612Ab2BDLby (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 06:31:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Q] Interleaved formats on the media bus
-Date: Sat, 04 Feb 2012 12:30:08 +0100
-Message-ID: <3142039.4Ht9bV5jFQ@avalon>
-In-Reply-To: <4F2D14ED.8080105@iki.fi>
-References: <4F27CF29.5090905@samsung.com> <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.17.10]:53398 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754063Ab2BBIdF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 03:33:05 -0500
+Date: Thu, 2 Feb 2012 01:08:14 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Fernandez Gonzalo <gfernandez@copreci.es>
+cc: linux-media@vger.kernel.org
+Subject: Re: OV2640 and iMX25PDK - help needed
+In-Reply-To: <C85ED22A0FD4B54195E2F05309F9D3FF07234D15@CORREO.cp.local>
+Message-ID: <Pine.LNX.4.64.1202020040500.28897@axis700.grange>
+References: <C85ED22A0FD4B54195E2F05309F9D3FF07234D15@CORREO.cp.local>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello Gonzalo
 
-On Saturday 04 February 2012 13:22:21 Sakari Ailus wrote:
-> Sylwester Nawrocki wrote:
-> > On 02/01/2012 11:00 AM, Sakari Ailus wrote:
-> >> I'd guess that all the ISP would do to such formats is to write them to
-> >> memory since I don't see much use for either in ISPs --- both typically
-> >> are
-> >> output of the ISP.
-> > 
-> > Yep, correct. In fact in those cases the sensor has complicated ISP built
-> > in, so everything a bridge have to do is to pass data over to user space.
-> > 
-> > Also non-image data might need to be passed to user space as well.
+On Tue, 31 Jan 2012, Fernandez Gonzalo wrote:
+
+> Hi all,
 > 
-> How does one know in the user space which part of the video buffer
-> contains jpeg data and which part is yuv? Does the data contain some
-> kind of header, or how is this done currently?
-> 
-> I'd be much in favour or using a separate channel ID as Guennadi asked;
-> that way you could quite probably save one memory copy as well. But if
-> the hardware already exists and behaves badly there's usually not much
-> you can do about it.
+> I've been working for a while with an iMX25PDK using the BSP provided by
+> Freescale (L2.6.31). The camera driver (V4L2-int) and examples do the
+> job quite well but I need to move my design to a more recent kernel.
+> I've been extensively googling but haven't found any info/examples about
+> how to run the mx2_camera driver in the i.MX25PDK. I'm stuck at this,
+> could someone point me in the right direction? Thank you in advance...
 
-If I'm not mistaken, the sensor doesn't send data in separate channels but 
-interleaves them in a single channel (possibly with headers or fixed-size 
-packets - Sylwester, could you comment on that ?). That makes it pretty 
-difficult to do anything else than pass-through capture.
+i.MX25PDK is supported in the mainline kernel 
+(arch/arm/mach-imx/mach-mx25_3ds.c), but it doesn't attach any cameras. 
+Unfortunately, I also don't currently see any i.MX2x platforms in the 
+mainline with cameras, so, you have to begin by looking at 
+arch/arm/plat-mxc/include/mach/mx2_cam.h, at 
+arch/arm/plat-mxc/devices/platform-mx2-camera.c for the 
+imx27_add_mx2_camera() function and maybe some i.MX3x or i.MX1 examples.
 
--- 
-Regards,
-
-Laurent Pinchart
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
