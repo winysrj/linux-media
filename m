@@ -1,57 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:61280 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759237Ab2BONzp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Feb 2012 08:55:45 -0500
-Message-ID: <4F3BB94E.7010204@redhat.com>
-Date: Wed, 15 Feb 2012 11:55:26 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:46926 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754361Ab2BBXGM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 18:06:12 -0500
+Received: by eaah12 with SMTP id h12so1242831eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 15:06:10 -0800 (PST)
+Message-ID: <4F2B16DF.3040400@gmail.com>
+Date: Fri, 03 Feb 2012 00:06:07 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-CC: Fabio Estevam <festevam@gmail.com>,
-	Randy Dunlap <rdunlap@xenotime.net>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: linux-next: Tree for Jan 20 (drivers/media/radio/wl128x/)
-References: <20120120131243.7c867c7b96c75819b68aec8d@canb.auug.org.au> <4F1A0783.9010501@xenotime.net> <CAMuHMdX8=x-=DQu0SCbqYK00+sP8a-kR=9KrUptAq-gqOXHAhA@mail.gmail.com> <CAMuHMdWofPn9gUdPJwUDm0rqWrzKAnc=yqzDwQqrr7ZCDz6VkA@mail.gmail.com> <CAOMZO5BxFi8z-6B4GNLfibHPjBz1viH0tacoUEfVA-pjDhZjdA@mail.gmail.com> <CAMuHMdU-HQsjL-gcdr5XtK8fh+LAa-nY59K2r44hKkxeQ=P04w@mail.gmail.com>
-In-Reply-To: <CAMuHMdU-HQsjL-gcdr5XtK8fh+LAa-nY59K2r44hKkxeQ=P04w@mail.gmail.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Andy Furniss <andyqos@ukfsn.org>, linux-media@vger.kernel.org
+Subject: Re: PCTV 290e page allocation failure
+References: <4F2AC7BF.4040006@ukfsn.org>	<4F2ADDCB.4060200@gmail.com> <CAGoCfiyTHNkr3gNAZUefeZN88-5Vd9SEyGUeFjYO-ddG1WqgzA@mail.gmail.com>
+In-Reply-To: <CAGoCfiyTHNkr3gNAZUefeZN88-5Vd9SEyGUeFjYO-ddG1WqgzA@mail.gmail.com>
 Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 15-02-2012 07:47, Geert Uytterhoeven escreveu:
-> On Tue, Feb 14, 2012 at 20:31, Fabio Estevam <festevam@gmail.com> wrote:
->> On 2/14/12, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
->>
->>> Ping?
->>>
->>> Build breakage in mainline since at least 3 weeks.
->>
->> From what I recall Randy proposed a patch for fixing this issue:
->> http://patchwork.linuxtv.org/patch/9750/
+Il 02/02/2012 20:07, Devin Heitmueller ha scritto:
+> On Thu, Feb 2, 2012 at 2:02 PM, Gianluca Gennari <gennarone@gmail.com> wrote:
+>> I'm trying to reproduce the problem with another em28xx-dvb device to
+>> see if it is not restricted to the PCTV 290e. Before the PCTV 290e, I
+>> was using a different device with a driver based on the dvb-usb
+>> framework, and I never observed similar crashes.
 > 
-> Still, someone (preferably the maintainer) should take the appropriate
-> action(s) to get the patch in mainline.
+> On ARM based platforms it is very likely you will run into this issue
+> with most USB based tuners.  It's because over time there is memory
+> fragmentation that occurs which prevents being able to allocate large
+> enough chunks of coherent memory.
+> 
+> Making such a scenario work would require hacks to the driver code to
+> preallocate the memory in some form of static pool at system boot (or
+> perhaps at driver initialization), and then reuse that memory instead
+> of attempting to allocate it as needed.
+> 
+> Devin
+> 
 
-I'll be doing it today.
+Hi Devin,
+thanks for the explanation. The CPU is MIPS based (not ARM) but I guess
+there is not much of a difference from this point of view.
+As I mentioned in my first reply, I never had this kind of errors when I
+was using a dvb-usb USB stick. Now I'm trying to replicate the problem
+with a Terratec Hybrid XS (em28xx-dvb + zl10353 + xc2028), and so far
+I've stressed it for a few hours without problems. We will see in a day
+or two if I can make it fail in the same way.
 
-> 
-> Thanks!
-> 
-> Gr{oetje,eeting}s,
-> 
->                         Geert
-> 
-> --
-> Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-> 
-> In personal conversations with technical people, I call myself a hacker. But
-> when I'm talking to journalists I just say "programmer" or something like that.
->                                 -- Linus Torvalds
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Regards,
+Gianluca
+
 
