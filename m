@@ -1,87 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16180 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752973Ab2BVQtE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:49:04 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 22 Feb 2012 17:48:44 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv23 03/16] mm: compaction: introduce map_pages()
-In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329929337-16648-4-git-send-email-m.szyprowski@samsung.com>
-References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp.nokia.com ([147.243.1.48]:18910 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754470Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 21/31] omap3isp: Add lane configuration to platform data
+Date: Fri,  3 Feb 2012 01:54:41 +0200
+Message-Id: <1328226891-8968-21-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Add lane configuration (order of clock and data lane) to platform data on
+both CCP2 and CSI-2.
 
-This commit creates a map_pages() function which map pages freed
-using split_free_pages().  This merely moves some code from
-isolate_freepages() so that it can be reused in other places.
-
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- mm/compaction.c |   15 +++++++++++----
- 1 files changed, 11 insertions(+), 4 deletions(-)
+ drivers/media/video/omap3isp/ispcsiphy.h |   15 ++-------------
+ include/media/omap3isp.h                 |   25 +++++++++++++++++++++++++
+ 2 files changed, 27 insertions(+), 13 deletions(-)
 
-diff --git a/mm/compaction.c b/mm/compaction.c
-index ee20fc0..d9d7b35 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -127,6 +127,16 @@ static bool suitable_migration_target(struct page *page)
- 	return false;
- }
+diff --git a/drivers/media/video/omap3isp/ispcsiphy.h b/drivers/media/video/omap3isp/ispcsiphy.h
+index 9596dc6..e93a661 100644
+--- a/drivers/media/video/omap3isp/ispcsiphy.h
++++ b/drivers/media/video/omap3isp/ispcsiphy.h
+@@ -27,22 +27,11 @@
+ #ifndef OMAP3_ISP_CSI_PHY_H
+ #define OMAP3_ISP_CSI_PHY_H
  
-+static void map_pages(struct list_head *list)
-+{
-+	struct page *page;
++#include <media/omap3isp.h>
 +
-+	list_for_each_entry(page, list, lru) {
-+		arch_alloc_page(page, 0);
-+		kernel_map_pages(page, 1, 1);
-+	}
-+}
+ struct isp_csi2_device;
+ struct regulator;
+ 
+-struct csiphy_lane {
+-	u8 pos;
+-	u8 pol;
+-};
+-
+-#define ISP_CSIPHY2_NUM_DATA_LANES	2
+-#define ISP_CSIPHY1_NUM_DATA_LANES	1
+-
+-struct isp_csiphy_lanes_cfg {
+-	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
+-	struct csiphy_lane clk;
+-};
+-
+ struct isp_csiphy_dphy_cfg {
+ 	u8 ths_term;
+ 	u8 ths_settle;
+diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
+index 3f4928d..4d94be5 100644
+--- a/include/media/omap3isp.h
++++ b/include/media/omap3isp.h
+@@ -91,6 +91,29 @@ enum {
+ };
+ 
+ /**
++ * struct isp_csiphy_lane: CCP2/CSI2 lane position and polarity
++ * @pos: position of the lane
++ * @pol: polarity of the lane
++ */
++struct isp_csiphy_lane {
++	u8 pos;
++	u8 pol;
++};
 +
- /*
-  * Based on information in the current compact_control, find blocks
-  * suitable for isolating free pages from and then isolate them.
-@@ -206,10 +216,7 @@ static void isolate_freepages(struct zone *zone,
- 	}
++#define ISP_CSIPHY1_NUM_DATA_LANES	1
++#define ISP_CSIPHY2_NUM_DATA_LANES	2
++
++/**
++ * struct isp_csiphy_lanes_cfg - CCP2/CSI2 lane configuration
++ * @data: Configuration of one or two data lanes
++ * @clk: Clock lane configuration
++ */
++struct isp_csiphy_lanes_cfg {
++	struct isp_csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
++	struct isp_csiphy_lane clk;
++};
++
++/**
+  * struct isp_ccp2_platform_data - CCP2 interface platform data
+  * @strobe_clk_pol: Strobe/clock polarity
+  *		0 - Non Inverted, 1 - Inverted
+@@ -109,6 +132,7 @@ struct isp_ccp2_platform_data {
+ 	unsigned int ccp2_mode:1;
+ 	unsigned int phy_layer:1;
+ 	unsigned int vpclk_div:2;
++	struct isp_csiphy_lanes_cfg lanecfg;
+ };
  
- 	/* split_free_page does not map the pages */
--	list_for_each_entry(page, freelist, lru) {
--		arch_alloc_page(page, 0);
--		kernel_map_pages(page, 1, 1);
--	}
-+	map_pages(freelist);
+ /**
+@@ -119,6 +143,7 @@ struct isp_ccp2_platform_data {
+ struct isp_csi2_platform_data {
+ 	unsigned crc:1;
+ 	unsigned vpclk_div:2;
++	struct isp_csiphy_lanes_cfg lanecfg;
+ };
  
- 	cc->free_pfn = high_pfn;
- 	cc->nr_freepages = nr_freepages;
+ struct isp_subdev_i2c_board_info {
 -- 
-1.7.1.569.g6f426
+1.7.2.5
 
