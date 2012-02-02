@@ -1,73 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:53216 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756971Ab2BYXOh convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 18:14:37 -0500
-Received: by wibhm11 with SMTP id hm11so628361wib.19
-        for <linux-media@vger.kernel.org>; Sat, 25 Feb 2012 15:14:35 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CALF0-+V99jWjnxYC-fdLGF8ggYukMjiRpkEGj+fY4j3kE-K-Jg@mail.gmail.com>
-References: <CALF0-+V99jWjnxYC-fdLGF8ggYukMjiRpkEGj+fY4j3kE-K-Jg@mail.gmail.com>
-Date: Sat, 25 Feb 2012 15:14:35 -0800
-Message-ID: <CABi1daHoWASPq6XmrfW3JYSmzQEZmZMMyfHNmabM4cgZV0j4EA@mail.gmail.com>
-Subject: Re: [question] v4l read() operation
-From: Dave Hylands <dhylands@gmail.com>
-To: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
-Cc: devel@driverdev.osuosl.org,
-	kernelnewbies <kernelnewbies@kernelnewbies.org>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp.nokia.com ([147.243.1.48]:18901 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754020Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:03 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 19/31] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
+Date: Fri,  3 Feb 2012 01:54:39 +0200
+Message-Id: <1328226891-8968-19-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel
+This register is available only in OMAP3630.
 
-2012/2/25 Ezequiel García <elezegarcia@gmail.com>:
-> Hi,
->
-> If I register a video device with this fops:
->
-> static const struct v4l2_file_operations v4l2_fops = {
->        .owner      = THIS_MODULE,
->        .open        = xxx_open,
->        .unlocked_ioctl = xxx_unlocked_ioctl,
->        .poll           = xxx_poll,
->        .mmap      = xxx_mmap,
-> };
->
-> then if I "cat" the device
->
-> $ cat /dev/video0
->
-> Who is supporting read() ?
->
-> I thought it could be v4l2_read(),
-> however this function seems to return EINVAL:
->
-> static ssize_t v4l2_read(struct file *filp, char __user *buf,
->                size_t sz, loff_t *off)
-> {
->        struct video_device *vdev = video_devdata(filp);
->        int ret = -ENODEV;
->
->        if (!vdev->fops->read)
->                return -EINVAL;
->        if (vdev->lock && mutex_lock_interruptible(vdev->lock))
->                return -ERESTARTSYS;
->        if (video_is_registered(vdev))
->                ret = vdev->fops->read(filp, buf, sz, off);
->        if (vdev->lock)
->                mutex_unlock(vdev->lock);
->        return ret;
-> }
+The original patch was submitted by Vimarsh Zutshi.
 
-I'm not all that familiar with v4l, but based on what you've posted,
-you need to populate the read routine in your v4l2_fops structure to
-support read.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/control.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index 0ba68d3..f3acf09 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -183,6 +183,7 @@
+ #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
+ #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
+ #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
+ 
+ /* OMAP44xx control efuse offsets */
+ #define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
 -- 
-Dave Hylands
-Shuswap, BC, Canada
-http://www.davehylands.com
+1.7.2.5
+
