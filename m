@@ -1,97 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:48240 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754694Ab2BJMXv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 07:23:51 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LZ60077FFRPL550@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Feb 2012 12:23:49 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZ600ALPFRPW9@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Feb 2012 12:23:49 +0000 (GMT)
-Date: Fri, 10 Feb 2012 13:23:45 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH] s5p-g2d: Added support for clk_prepare
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	Kamil Debski <k.debski@samsung.com>
-Message-id: <1328876626-6931-1-git-send-email-k.debski@samsung.com>
+Received: from oproxy3-pub.bluehost.com ([69.89.21.8]:42912 "HELO
+	oproxy3-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754657Ab2BBRme (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 12:42:34 -0500
+Message-ID: <4F2AD89E.70805@xenotime.net>
+Date: Thu, 02 Feb 2012 10:40:30 -0800
+From: Randy Dunlap <rdunlap@xenotime.net>
+MIME-Version: 1.0
+To: Manjunatha Halli <x0130808@ti.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] Re: linux-next: Tree for Feb 2 (media/radio/wl128x)
+References: <20120202144516.11b33e667a7cbb8d85d96226@canb.auug.org.au> <4F2AD0E4.6020801@xenotime.net> <4F2AC5F8.1000901@ti.com>
+In-Reply-To: <4F2AC5F8.1000901@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+On 02/02/2012 09:20 AM, Manjunatha Halli wrote:
+> Hi Randy Dunlap,
+> 
+> In config file you are missing the CONFIG_TI_ST config which builds the TI's shared transport driver upon which the FM driver works.
+> 
+> Please select this config in drivers/misc/ti-st/Kconfig which will solve the problem.
+
+Wrong answer.
+
+The problem seems to be that GPIOLIB is not enabled, but wl128x Kconfig says:
+
+config RADIO_WL128X
+	tristate "Texas Instruments WL128x FM Radio"
+	depends on VIDEO_V4L2 && RFKILL
+	select TI_ST if NET && GPIOLIB
+
+so TI_ST is not selected here.
+
+The Kconfig files should handle this properly.
+
+Here is one possible fix for you to consider.
+
 ---
- drivers/media/video/s5p-g2d/g2d.c |   22 ++++++++++++++++++++--
- 1 files changed, 20 insertions(+), 2 deletions(-)
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index febaa67..351080a 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -693,18 +693,30 @@ static int g2d_probe(struct platform_device *pdev)
- 		goto unmap_regs;
- 	}
+Fix build errors when GPIOLIB is not enabled.
+Fix wl128x Kconfig to depend on GPIOLIB since TI_ST also
+depends on GPIOLIB.
+
+(.text+0xe6d60): undefined reference to `st_register'
+(.text+0xe7016): undefined reference to `st_unregister'
+(.text+0xe70ce): undefined reference to `st_unregister'
+
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Cc: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/media/radio/wl128x/Kconfig |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- linux-next-20120202.orig/drivers/media/radio/wl128x/Kconfig
++++ linux-next-20120202/drivers/media/radio/wl128x/Kconfig
+@@ -4,8 +4,8 @@
+ menu "Texas Instruments WL128x FM driver (ST based)"
+ config RADIO_WL128X
+ 	tristate "Texas Instruments WL128x FM Radio"
+-	depends on VIDEO_V4L2 && RFKILL
+-	select TI_ST if NET && GPIOLIB
++	depends on VIDEO_V4L2 && RFKILL && GPIOLIB
++	select TI_ST if NET
+ 	help
+ 	Choose Y here if you have this FM radio chip.
  
-+	ret = clk_prepare(dev->clk);
-+	if (ret) {
-+		dev_err(&pdev->dev, "failed to prepare g2d clock\n");
-+		goto put_clk;
-+	}
-+
- 	dev->gate = clk_get(&pdev->dev, "fimg2d");
- 	if (IS_ERR_OR_NULL(dev->gate)) {
- 		dev_err(&pdev->dev, "failed to get g2d clock gate\n");
- 		ret = -ENXIO;
--		goto put_clk;
-+		goto unprep_clk;
-+	}
-+
-+	ret = clk_prepare(dev->gate);
-+	if (ret) {
-+		dev_err(&pdev->dev, "failed to prepare g2d clock gate\n");
-+		goto put_clk_gate;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
- 	if (!res) {
- 		dev_err(&pdev->dev, "failed to find IRQ\n");
- 		ret = -ENXIO;
--		goto put_clk_gate;
-+		goto unprep_clk_gate;
- 	}
- 
- 	dev->irq = res->start;
-@@ -764,8 +776,12 @@ alloc_ctx_cleanup:
- 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- rel_irq:
- 	free_irq(dev->irq, dev);
-+unprep_clk_gate:
-+	clk_unprepare(dev->gate);
- put_clk_gate:
- 	clk_put(dev->gate);
-+unprep_clk:
-+	clk_unprepare(dev->clk);
- put_clk:
- 	clk_put(dev->clk);
- unmap_regs:
-@@ -787,7 +803,9 @@ static int g2d_remove(struct platform_device *pdev)
- 	v4l2_device_unregister(&dev->v4l2_dev);
- 	vb2_dma_contig_cleanup_ctx(dev->alloc_ctx);
- 	free_irq(dev->irq, dev);
-+	clk_unprepare(dev->gate);
- 	clk_put(dev->gate);
-+	clk_unprepare(dev->clk);
- 	clk_put(dev->clk);
- 	iounmap(dev->regs);
- 	release_resource(dev->res_regs);
+
+> Regards
+> Manju
+> 
+> On 02/02/2012 12:07 PM, Randy Dunlap wrote:
+>> On 02/01/2012 07:45 PM, Stephen Rothwell wrote:
+>>> Hi all,
+>>>
+>>> Changes since 20120201:
+>>
+>> drivers/built-in.o: In function `fmc_prepare':
+>> (.text+0xe6d60): undefined reference to `st_register'
+>> drivers/built-in.o: In function `fmc_prepare':
+>> (.text+0xe7016): undefined reference to `st_unregister'
+>> drivers/built-in.o: In function `fmc_release':
+>> (.text+0xe70ce): undefined reference to `st_unregister'
+>>
+>>
+>> Full randconfig file is attached.
+
+
 -- 
-1.7.0.4
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
