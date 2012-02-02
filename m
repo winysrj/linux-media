@@ -1,245 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3918 "EHLO
-	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872Ab2B1LGZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 06:06:25 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv1 PATCH 1/6] videodev2.h: add enum/query/cap dv_timings ioctls.
-Date: Tue, 28 Feb 2012 12:06:17 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl> <f884dc30bd71901ea5dad39dc3310fa5a7d9e9c2.1328262332.git.hans.verkuil@cisco.com> <4F4CB27E.7040005@redhat.com>
-In-Reply-To: <4F4CB27E.7040005@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202281206.17474.hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.128.24]:50949 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754743Ab2BBXzE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 18:55:04 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
+	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: [PATCH v2 26/31] omap3isp: Move setting constaints above media_entity_pipeline_start
+Date: Fri,  3 Feb 2012 01:54:46 +0200
+Message-Id: <1328226891-8968-26-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
+References: <20120202235231.GC841@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, February 28, 2012 11:54:54 Mauro Carvalho Chehab wrote:
-> Em 03-02-2012 08:06, Hans Verkuil escreveu:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > These new ioctls make it possible for the dv_timings API to replace
-> > the dv_preset API eventually.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  include/linux/videodev2.h |  110 ++++++++++++++++++++++++++++++++++++++++----
-> >  1 files changed, 100 insertions(+), 10 deletions(-)
-> > 
-> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-> > index 0db0503..e59cd02 100644
-> > --- a/include/linux/videodev2.h
-> > +++ b/include/linux/videodev2.h
-> > @@ -987,28 +987,42 @@ struct v4l2_dv_enum_preset {
-> >   */
-> >  
-> >  /* BT.656/BT.1120 timing data */
-> > +
-> > +/*
-> > + * A note regarding vertical interlaced timings: height refers to the total
-> > + * height of the frame (= two fields). The blanking timings refer
-> > + * to the blanking of each field. So the height of the active frame is
-> > + * calculated as follows:
-> > + *
-> > + * act_height = height - vfrontporch - vsync - vbackporch -
-> > + *                       il_vfrontporch - il_vsync - il_vbackporch
-> > + *
-> > + * The active height of each field is act_height / 2.
-> > + */
-> >  struct v4l2_bt_timings {
-> > -	__u32	width;		/* width in pixels */
-> > -	__u32	height;		/* height in lines */
-> > +	__u32	width;		/* total frame width in pixels */
-> > +	__u32	height;		/* total frame height in lines */
-> >  	__u32	interlaced;	/* Interlaced or progressive */
-> >  	__u32	polarities;	/* Positive or negative polarity */
-> >  	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
-> > -	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
-> > +	__u32	hfrontporch;	/* Horizontal front porch in pixels */
-> >  	__u32	hsync;		/* Horizontal Sync length in pixels */
-> >  	__u32	hbackporch;	/* Horizontal back porch in pixels */
-> >  	__u32	vfrontporch;	/* Vertical front porch in pixels */
-> >  	__u32	vsync;		/* Vertical Sync length in lines */
-> >  	__u32	vbackporch;	/* Vertical back porch in lines */
-> > -	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
-> > -				 * interlaced field formats
-> > +	__u32	il_vfrontporch;	/* Vertical front porch for the even field
-> > +				 * (aka field 2) of interlaced field formats
-> >  				 */
-> > -	__u32	il_vsync;	/* Vertical sync length for bottom field of
-> > -				 * interlaced field formats
-> > +	__u32	il_vsync;	/* Vertical sync length for the even field
-> > +				 * (aka field 2) of interlaced field formats
-> >  				 */
-> > -	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
-> > -				 * interlaced field formats
-> > +	__u32	il_vbackporch;	/* Vertical back porch for the even field
-> > +				 * (aka field 2) of interlaced field formats
-> >  				 */
-> > -	__u32	reserved[16];
-> > +	__u32	standards;	/* Standards the timing belongs to */
-> > +	__u32	flags;		/* Flags */
-> > +	__u32	reserved[14];
-> >  } __attribute__ ((packed));
-> >  
-> >  /* Interlaced or progressive format */
-> > @@ -1019,6 +1033,37 @@ struct v4l2_bt_timings {
-> >  #define V4L2_DV_VSYNC_POS_POL	0x00000001
-> >  #define V4L2_DV_HSYNC_POS_POL	0x00000002
-> >  
-> > +/* Timings standards */
-> > +#define V4L2_DV_BT_STD_CEA861	(1 << 0)  /* CEA-861 Digital TV Profile */
-> > +#define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
-> > +#define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
-> > +#define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
-> > +
-> > +/* Flags */
-> > +
-> > +/* CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
-> > +   GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
-> > +   intervals are reduced, allowing a higher resolution over the same
-> > +   bandwidth. This is a read-only flag. */
-> > +#define V4L2_DV_FL_REDUCED_BLANKING		(1 << 0)
-> 
-> > +/* CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
-> > +   of six. These formats can be optionally played at 1 / 1.001 speed to
-> > +   be compatible with the normal NTSC framerate of 29.97 frames per second.
-> > +   This is a read-only flag. */
-> > +#define V4L2_DV_FL_NTSC_COMPATIBLE		(1 << 1)
-> > +/* CEA-861 specific: only valid for video transmitters, the flag is cleared
-> > +   by receivers.
-> > +   If the framerate of the format is a multiple of six, then the pixelclock
-> > +   used to set up the transmitter is divided by 1.001 to make it compatible
-> > +   with NTSC framerates. Otherwise this flag is cleared. If the transmitter
-> > +   can't generate such frequencies, then the flag will also be cleared. */
-> > +#define V4L2_DV_FL_DIVIDE_CLOCK_BY_1_001	(1 << 2)
-> 
-> The two above have a conceptual problem: NTSC has nothing to do with the frequency.
-> 
-> While, in practice, NTSC is only used on Countries with 60Hz power supply, and a
-> 1000/1001 shift is used there, to avoid flicker with the light bulbs, the 
-> standard doesn't mean a 29.97 Hz frame rate. 
-> 
-> If you take a look at CEA-861, it doesn't mention there NTSC (well, except for a 
-> reference for the existing standards), to avoid such conceptual issue.
-> 
-> Besides that,  PAL/M (and PAL/60) also uses a 29.97 Hz frame rate, in order to avoid 
-> flicker.
-> 
-> So, please don't call the flag as "NTSC_COMPATIBLE", and please fix the comments
-> to either not mention NTSC, or to use something more generic, like replacing:
-> 
-> 	"...be compatible with the normal NTSC framerateof 29.97 frames per second."
-> with
-> 	"...be compatible with 60Hz based standards that use a framerate of 29.97
-> 	 frames per second, like NTSC and PAL/M."
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-I'll try and find a more neutral term. I'm not satisfied with the name either.
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index f1c68ca..2e4786d 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -304,8 +304,6 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 	struct v4l2_subdev *subdev;
+ 	int ret;
+ 
+-	pipe->max_rate = pipe->l3_ick;
+-
+ 	subdev = isp_video_remote_subdev(pipe->output, NULL);
+ 	if (subdev == NULL)
+ 		return -EPIPE;
+@@ -997,6 +995,11 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe->external_rate = 0;
+ 	pipe->external_bpp = 0;
+ 
++	if (video->isp->pdata->set_constraints)
++		video->isp->pdata->set_constraints(video->isp, true);
++	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
++	pipe->max_rate = pipe->l3_ick;
++
+ 	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+ 	if (ret < 0)
+ 		goto err_media_entity_pipeline_start;
+@@ -1031,10 +1034,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		pipe->output = far_end;
+ 	}
+ 
+-	if (video->isp->pdata->set_constraints)
+-		video->isp->pdata->set_constraints(video->isp, true);
+-	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+-
+ 	/* Validate the pipeline and update its state. */
+ 	ret = isp_video_validate_pipeline(pipe);
+ 	if (ret < 0)
+-- 
+1.7.2.5
 
-> 
-> > +/* Specific to interlaced formats: if set, then field 1 is really one half-line
-> > +   longer and field 2 is really one half-line shorter, so each field has
-> > +   exactly the same number of half-lines. Whether half-lines can be detected
-> > +   or used depends on the hardware. */
-> > +#define V4L2_DV_FL_HALF_LINE			(1 << 0)
-> > +
-> >  
-> >  /* DV timings */
-> >  struct v4l2_dv_timings {
-> > @@ -1032,6 +1077,47 @@ struct v4l2_dv_timings {
-> >  /* Values for the type field */
-> >  #define V4L2_DV_BT_656_1120	0	/* BT.656/1120 timing type */
-> >  
-> > +
-> > +/* DV timings enumeration */
-> > +struct v4l2_enum_dv_timings {
-> > +	__u32 index;
-> > +	__u32 reserved[3];
-> > +	struct v4l2_dv_timings timings;
-> > +};
-> > +
-> > +/* BT.656/BT.1120 timing capabilities */
-> > +struct v4l2_bt_timings_cap {
-> > +	__u32	min_width;	/* width in pixels */
-> > +	__u32	max_width;	/* width in pixels */
-> > +	__u32	min_height;	/* height in lines */
-> > +	__u32	max_height;	/* height in lines */
-> > +	__u64	min_pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
-> > +	__u64	max_pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
-> > +	__u32	standards;	/* Supported standards */
-> > +	__u32	capabilities;	/* See below */
-> > +	__u32	reserved[16];
-> > +} __attribute__ ((packed));
-> 
-> Hmm... why to define a new struct here, instead of just use struct v4l2_bt_timings ?
-
-Perhaps there is some misunderstanding here? Struct v4l2_bt_timings defines the
-timings of a particular format. Struct v4l2_bt_timings_cap defines the range of
-timings that the hardware is capable of. The fields are quite different between
-the two.
-
-> 
-> > +
-> > +/* Supports interlaced formats */
-> > +#define V4L2_DV_BT_CAP_INTERLACED	(1 << 0)
-> > +/* Supports progressive formats */
-> > +#define V4L2_DV_BT_CAP_PROGRESSIVE	(1 << 1)
-> > +/* Supports CVT/GTF reduced blanking */
-> > +#define V4L2_DV_BT_CAP_REDUCED_BLANKING	(1 << 2)
-> > +/* Supports custom formats */
-> > +#define V4L2_DV_BT_CAP_CUSTOM		(1 << 3)
-> > +
-> > +/* DV timings capabilities */
-> > +struct v4l2_dv_timings_cap {
-> > +	__u32 type;
-> 
-> What are the posible values for type?
-
-Same as the type of v4l2_dv_timings. I'll clarify this.
-
-> Btw, it is a good idea to use kernel-doc-nano to describe the structures:
-> 
-> /**
->  * struct v4l2_dv_timings_cap - DV timings capabilities
->  * @type:	some description
-> ...
->  */
-> 
-> As it documents better what is defined there.
-
-Certainly.
-
-> > +	__u32 reserved[3];
-> > +	union {
-> > +		struct v4l2_bt_timings_cap bt;
-> > +		__u32 raw_data[32];
-> > +	};
-> > +};
-> > +
-> > +
-> >  /*
-> >   *	V I D E O   I N P U T S
-> >   */
-> > @@ -2318,6 +2404,10 @@ struct v4l2_create_buffers {
-> >  #define VIDIOC_G_SELECTION	_IOWR('V', 94, struct v4l2_selection)
-> >  #define VIDIOC_S_SELECTION	_IOWR('V', 95, struct v4l2_selection)
-> >  
-> > +#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 96, struct v4l2_enum_dv_timings)
-> > +#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 97, struct v4l2_dv_timings)
-> > +#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 98, struct v4l2_dv_timings_cap)
-> > +
-> >  /* Reminder: when adding new ioctls please add support for them to
-> >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-> >  
-> 
-
-Thanks for reviewing this!
-
-Regards,
-
-	Hans
