@@ -1,96 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1333 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754650Ab2BBK2T (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 05:28:19 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>
-Subject: [RFCv7 PATCH 0/4] Add poll_requested_events() function.
-Date: Thu,  2 Feb 2012 11:26:53 +0100
-Message-Id: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:61124 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756295Ab2BBOBo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 09:01:44 -0500
+Received: by eaah12 with SMTP id h12so1073656eaa.19
+        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 06:01:43 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1202020040500.28897@axis700.grange>
+References: <C85ED22A0FD4B54195E2F05309F9D3FF07234D15@CORREO.cp.local>
+	<Pine.LNX.4.64.1202020040500.28897@axis700.grange>
+Date: Thu, 2 Feb 2012 12:01:43 -0200
+Message-ID: <CAOMZO5Cfb=4fkqkmdkN6OcLAZVszxGNB8X6q4bDU_oFwnnjt6Q@mail.gmail.com>
+Subject: Re: OV2640 and iMX25PDK - help needed
+From: Fabio Estevam <festevam@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Cc: Fernandez Gonzalo <gfernandez@copreci.es>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On 2/1/12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> Hello Gonzalo
+>
+> On Tue, 31 Jan 2012, Fernandez Gonzalo wrote:
+>
+>> Hi all,
+>>
+>> I've been working for a while with an iMX25PDK using the BSP provided by
+>> Freescale (L2.6.31). The camera driver (V4L2-int) and examples do the
+>> job quite well but I need to move my design to a more recent kernel.
+>> I've been extensively googling but haven't found any info/examples about
+>> how to run the mx2_camera driver in the i.MX25PDK. I'm stuck at this,
+>> could someone point me in the right direction? Thank you in advance...
+>
+> i.MX25PDK is supported in the mainline kernel
+> (arch/arm/mach-imx/mach-mx25_3ds.c), but it doesn't attach any cameras.
+> Unfortunately, I also don't currently see any i.MX2x platforms in the
+> mainline with cameras, so, you have to begin by looking at
+> arch/arm/plat-mxc/include/mach/mx2_cam.h, at
+> arch/arm/plat-mxc/devices/platform-mx2-camera.c for the
+> imx27_add_mx2_camera() function and maybe some i.MX3x or i.MX1 examples.
 
-This is the seventh version of this patch series (the fifth and sixth where
-never posted and where internal iterations only).
+Javier has been doing a lot of work on mx2-camera lately.
 
-Al Viro had concerns about silent API changes. I have made an extensive
-analysis of that in my comments in patch 2/4.
+Javier,
 
-This patch series is rebased to v3.3-rc2. The changes compared to the
-previously posted version are:
+Is mach-imx27_visstrim_m10 board connected to a CMOS camera? Do you
+have patches for adding camera support to mach-imx27_visstrim_m10?
 
-- I have renamed the qproc field to pq_proc to prevent any driver that tries
-  to access that directly to fail. No kernel driver does this, BTW.
+Thanks,
 
-- I added a new poll_does_not_wait() inline that returns true if it is known
-  that poll() will not wait on return. This removes the last reason for
-  looking inside the poll_table struct. include/net/sock.h has been adapted
-  to use this new inline (and it is the only place inside the kernel that
-  need this).
-
-I hope that the analysis I made answers any remaining concerns about possible
-silent API changes.
-
-This patch series is also available here:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/pollv7
-
-It was suggested to me that creating a new poll system call might be an option
-as well. I've attempted that as well and code implementing that can be found
-here:
-
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/pollwithkey
-
-However, I think this turned out to be very messy. And because some drivers
-call the poll fop directly or through some framework I could not be certain I
-was not introducing any errors.
-
-If it is really required to change the API in some way, then I would suggest
-changing this:
-
-typedef struct poll_table_struct {
-        poll_queue_proc pq_proc;
-        unsigned long key;
-} poll_table;
-
-to this:
-
-struct poll_table {
-        poll_queue_proc pq_proc;
-        unsigned long key;
-};
-
-and adapting all users.
-
-However, I honestly do not think this is necessary at all. But if it is the
-only way to get this in, then I'll do the work. The media/video subsystem really
-needs this functionality. Also note that previous versions of this patch have
-been in linux-next for months now.
-
-The first version of this patch was posted July 1st, 2011. I really hope that
-it won't take another six months to get a review from a fs developer. As this
-LWN article (http://lwn.net/Articles/450658/) said: 'There has been little
-discussion of the patch; it doesn't seem like there is any real reason for it
-not to go in for 3.1.'
-
-The earliest this can go in now is 3.4. The only reason it takes so long is
-that it has been almost impossible to get a Ack or comments or even just a
-simple reply from the fs developers. That is really frustrating, I'm sorry
-to say.
-
-Anyway, comments, reviews, etc. are very welcome.
-
-Regards,
-
-	Hans
-
+Fabio Estevm
