@@ -1,68 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:38741 "EHLO
-	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751186Ab2BVNZJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 08:25:09 -0500
-From: Danny Kukawka <danny.kukawka@bisect.de>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Danny Kukawka <dkukawka@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Rusty Russell <rusty@rustcorp.com.au>, mchehab@redhat.com
-Subject: [RESEND][PATCH v2 1/2] cx18-driver: fix handling of 'radio' module parameter
-Date: Wed, 22 Feb 2012 14:24:55 +0100
-Message-Id: <1329917096-19438-2-git-send-email-danny.kukawka@bisect.de>
-In-Reply-To: <1329917096-19438-1-git-send-email-danny.kukawka@bisect.de>
-References: <1329917096-19438-1-git-send-email-danny.kukawka@bisect.de>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:38946 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755125Ab2BBDc1 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2012 22:32:27 -0500
+Received: by qcqw6 with SMTP id w6so1139890qcq.19
+        for <linux-media@vger.kernel.org>; Wed, 01 Feb 2012 19:32:26 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <4F2996A9.2000809@gmail.com>
+References: <1328089723-18482-1-git-send-email-sachin.kamat@linaro.org>
+	<4F2996A9.2000809@gmail.com>
+Date: Thu, 2 Feb 2012 09:02:26 +0530
+Message-ID: <CAK9yfHx6wvAi+C1xY7uC5pUVdY08q-zmdc_60L8DpTJzEfqvhA@mail.gmail.com>
+Subject: Re: [PATCH v4] [media] s5p-g2d: Add HFLIP and VFLIP support
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kyungmin.park@samsung.com, patches@linaro.org,
+	Kamil Debski <k.debski@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reverse cx18-driver part of commit
-90ab5ee94171b3e28de6bb42ee30b527014e0be7 and change
-module_param_array() type from bool to int to fix
-compiler warning:
+Hi Sylwester,
 
-In function â€˜__check_radioâ€™:
-113:1: warning: return from incompatible pointer type [enabled by default]
-At top level:
-113:1: warning: initialization from incompatible pointer type [enabled by default]
-113:1: warning: (near initialization for â€˜__param_arr_radio.numâ€™) [enabled by default]
+On 2 February 2012 01:16, Sylwester Nawrocki <snjw23@gmail.com> wrote:
+> Hi Sachin,
+>
+> On 02/01/2012 10:48 AM, Sachin Kamat wrote:
+>> Add support for flipping the image horizontally and vertically.
+>>
+>> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+>> ---
+>>   drivers/media/video/s5p-g2d/g2d-hw.c |    5 +++++
+>>   drivers/media/video/s5p-g2d/g2d.c    |   27 ++++++++++++++++++++-------
+>>   drivers/media/video/s5p-g2d/g2d.h    |    4 ++++
+>>   3 files changed, 29 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
+>> index 39937cf..5b86cbe 100644
+>> --- a/drivers/media/video/s5p-g2d/g2d-hw.c
+>> +++ b/drivers/media/video/s5p-g2d/g2d-hw.c
+>> @@ -77,6 +77,11 @@ void g2d_set_rop4(struct g2d_dev *d, u32 r)
+>>       w(r, ROP4_REG);
+>>   }
+>>
+>> +void g2d_set_flip(struct g2d_dev *d, u32 r)
+>> +{
+>> +     w(r, SRC_MSK_DIRECT_REG);
+>> +}
+>
+> nit: This could be added instead to g2d.h as a "static inline" function.
 
-v2: corrected version, don't change to module_param_named(), change
-    all to int/uint
+ATM, i prefer to keep it this way in sync with other similar functions.
 
-Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
----
- drivers/media/video/cx18/cx18-driver.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+> Whether you decide to change it or not:
+>
+>  Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
-index 349bd9c..9355745 100644
---- a/drivers/media/video/cx18/cx18-driver.c
-+++ b/drivers/media/video/cx18/cx18-driver.c
-@@ -75,7 +75,7 @@ static int radio[CX18_MAX_CARDS] = { -1, -1, -1, -1, -1, -1, -1, -1,
- 				     -1, -1, -1, -1, -1, -1, -1, -1 };
- static unsigned cardtype_c = 1;
- static unsigned tuner_c = 1;
--static bool radio_c = 1;
-+static unsigned radio_c = 1;
- static char pal[] = "--";
- static char secam[] = "--";
- static char ntsc[] = "-";
-@@ -110,7 +110,7 @@ static int retry_mmio = 1;
- int cx18_debug;
- 
- module_param_array(tuner, int, &tuner_c, 0644);
--module_param_array(radio, bool, &radio_c, 0644);
-+module_param_array(radio, int, &radio_c, 0644);
- module_param_array(cardtype, int, &cardtype_c, 0644);
- module_param_string(pal, pal, sizeof(pal), 0644);
- module_param_string(secam, secam, sizeof(secam), 0644);
+Thanks Sylwester.
+
+
+>
+> I assume Kamil is going to add locking in subsequent patch(es).
+>
+> --
+>
+> Regards,
+> Sylwester
+
+
+
 -- 
-1.7.8.3
-
+With warm regards,
+Sachin
