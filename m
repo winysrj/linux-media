@@ -1,51 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58435 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752707Ab2BZD1e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 22:27:34 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH 09/11] mt9m032: Remove unneeded register read
-Date: Sun, 26 Feb 2012 04:27:35 +0100
-Message-Id: <1330226857-8651-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:33682 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752817Ab2BBRVD (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 Feb 2012 12:21:03 -0500
+Message-ID: <4F2AC5F8.1000901@ti.com>
+Date: Thu, 2 Feb 2012 11:20:56 -0600
+From: Manjunatha Halli <x0130808@ti.com>
+MIME-Version: 1.0
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	<linux-next@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: Re: linux-next: Tree for Feb 2 (media/radio/wl128x)
+References: <20120202144516.11b33e667a7cbb8d85d96226@canb.auug.org.au> <4F2AD0E4.6020801@xenotime.net>
+In-Reply-To: <4F2AD0E4.6020801@xenotime.net>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There's not need to read register MT9M032_READ_MODE1 when setting up the
-PLL. Remove the read call.
+Hi Randy Dunlap,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m032.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+In config file you are missing the CONFIG_TI_ST config which builds the 
+TI's shared transport driver upon which the FM driver works.
 
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index b636ad4..8109bf1 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -223,7 +223,7 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
- 	unsigned int pre_div;
- 	unsigned int pll_out_div;
- 	unsigned int pll_mul;
--	int res, ret;
-+	int ret;
- 
- 	pre_div = 6;
- 
-@@ -244,9 +244,6 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
- 							/* more reserved, Continuous */
- 							/* Master Mode */
- 	if (!ret)
--		res = mt9m032_read_reg(client, MT9M032_READ_MODE1);
--
--	if (!ret)
- 		ret = mt9m032_write_reg(client, MT9M032_FORMATTER1, 0x111e);
- 					/* Set 14-bit mode, select 7 divider */
- 
--- 
-1.7.3.4
+Please select this config in drivers/misc/ti-st/Kconfig which will solve 
+the problem.
+
+Regards
+Manju
+
+On 02/02/2012 12:07 PM, Randy Dunlap wrote:
+> On 02/01/2012 07:45 PM, Stephen Rothwell wrote:
+>> Hi all,
+>>
+>> Changes since 20120201:
+>
+> drivers/built-in.o: In function `fmc_prepare':
+> (.text+0xe6d60): undefined reference to `st_register'
+> drivers/built-in.o: In function `fmc_prepare':
+> (.text+0xe7016): undefined reference to `st_unregister'
+> drivers/built-in.o: In function `fmc_release':
+> (.text+0xe70ce): undefined reference to `st_unregister'
+>
+>
+> Full randconfig file is attached.
+>
+>
 
