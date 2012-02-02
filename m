@@ -1,227 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753430Ab2BVQtF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:49:05 -0500
-Date: Wed, 22 Feb 2012 17:48:45 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv23 04/16] mm: compaction: introduce isolate_freepages_range()
-In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329929337-16648-5-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:50639 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754384Ab2BBSUb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 13:20:31 -0500
+Message-ID: <4F2AD3E9.1070804@ti.com>
+Date: Thu, 2 Feb 2012 12:20:25 -0600
+From: Manjunatha Halli <x0130808@ti.com>
+MIME-Version: 1.0
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	<linux-next@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] Re: linux-next: Tree for Feb 2 (media/radio/wl128x)
+References: <20120202144516.11b33e667a7cbb8d85d96226@canb.auug.org.au> <4F2AD0E4.6020801@xenotime.net> <4F2AC5F8.1000901@ti.com> <4F2AD89E.70805@xenotime.net>
+In-Reply-To: <4F2AD89E.70805@xenotime.net>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+On 02/02/2012 12:40 PM, Randy Dunlap wrote:
+> On 02/02/2012 09:20 AM, Manjunatha Halli wrote:
+>> Hi Randy Dunlap,
+>>
+>> In config file you are missing the CONFIG_TI_ST config which builds the TI's shared transport driver upon which the FM driver works.
+>>
+>> Please select this config in drivers/misc/ti-st/Kconfig which will solve the problem.
+> Wrong answer.
+>
+> The problem seems to be that GPIOLIB is not enabled, but wl128x Kconfig says:
+>
+> config RADIO_WL128X
+> 	tristate "Texas Instruments WL128x FM Radio"
+> 	depends on VIDEO_V4L2&&  RFKILL
+> 	select TI_ST if NET&&  GPIOLIB
+>
+> so TI_ST is not selected here.
+>
+> The Kconfig files should handle this properly.
+>
+> Here is one possible fix for you to consider.
+>
+> ---
+> From: Randy Dunlap<rdunlap@xenotime.net>
+>
+> Fix build errors when GPIOLIB is not enabled.
+> Fix wl128x Kconfig to depend on GPIOLIB since TI_ST also
+> depends on GPIOLIB.
+>
+> (.text+0xe6d60): undefined reference to `st_register'
+> (.text+0xe7016): undefined reference to `st_unregister'
+> (.text+0xe70ce): undefined reference to `st_unregister'
+>
+> Signed-off-by: Randy Dunlap<rdunlap@xenotime.net>
+> Cc: Manjunatha Halli<manjunatha_halli@ti.com>
+> ---
+>   drivers/media/radio/wl128x/Kconfig |    4 ++--
+>   1 file changed, 2 insertions(+), 2 deletions(-)
+>
+> --- linux-next-20120202.orig/drivers/media/radio/wl128x/Kconfig
+> +++ linux-next-20120202/drivers/media/radio/wl128x/Kconfig
+> @@ -4,8 +4,8 @@
+>   menu "Texas Instruments WL128x FM driver (ST based)"
+>   config RADIO_WL128X
+>   	tristate "Texas Instruments WL128x FM Radio"
+> -	depends on VIDEO_V4L2&&  RFKILL
+> -	select TI_ST if NET&&  GPIOLIB
+> +	depends on VIDEO_V4L2&&  RFKILL&&  GPIOLIB
+> +	select TI_ST if NET
+>   	help
+>   	Choose Y here if you have this FM radio chip.
+>
+>
+>> Regards
+>> Manju
+>>
+>> On 02/02/2012 12:07 PM, Randy Dunlap wrote:
+>>> On 02/01/2012 07:45 PM, Stephen Rothwell wrote:
+>>>> Hi all,
+>>>>
+>>>> Changes since 20120201:
+>>> drivers/built-in.o: In function `fmc_prepare':
+>>> (.text+0xe6d60): undefined reference to `st_register'
+>>> drivers/built-in.o: In function `fmc_prepare':
+>>> (.text+0xe7016): undefined reference to `st_unregister'
+>>> drivers/built-in.o: In function `fmc_release':
+>>> (.text+0xe70ce): undefined reference to `st_unregister'
+>>>
+>>>
+>>> Full randconfig file is attached.
+>
 
-This commit introduces isolate_freepages_range() function which
-generalises isolate_freepages_block() so that it can be used on
-arbitrary PFN ranges.
+This solutions seems fine for me...
 
-isolate_freepages_block() is left with only minor changes.
+My only concern is since TI_ST is already have GPIOLIB in its dependency 
+list is it OK to have the same thing in FM driver also?.
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
----
- mm/compaction.c |  111 ++++++++++++++++++++++++++++++++++++++++++++++---------
- 1 files changed, 93 insertions(+), 18 deletions(-)
-
-diff --git a/mm/compaction.c b/mm/compaction.c
-index d9d7b35..06b198f 100644
---- a/mm/compaction.c
-+++ b/mm/compaction.c
-@@ -54,24 +54,20 @@ static unsigned long release_freepages(struct list_head *freelist)
- 	return count;
- }
- 
--/* Isolate free pages onto a private freelist. Must hold zone->lock */
--static unsigned long isolate_freepages_block(struct zone *zone,
--				unsigned long blockpfn,
--				struct list_head *freelist)
-+/*
-+ * Isolate free pages onto a private freelist. Caller must hold zone->lock.
-+ * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
-+ * pages inside of the pageblock (even though it may still end up isolating
-+ * some pages).
-+ */
-+static unsigned long isolate_freepages_block(unsigned long blockpfn,
-+				unsigned long end_pfn,
-+				struct list_head *freelist,
-+				bool strict)
- {
--	unsigned long zone_end_pfn, end_pfn;
- 	int nr_scanned = 0, total_isolated = 0;
- 	struct page *cursor;
- 
--	/* Get the last PFN we should scan for free pages at */
--	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
--	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
--
--	/* Find the first usable PFN in the block to initialse page cursor */
--	for (; blockpfn < end_pfn; blockpfn++) {
--		if (pfn_valid_within(blockpfn))
--			break;
--	}
- 	cursor = pfn_to_page(blockpfn);
- 
- 	/* Isolate free pages. This assumes the block is valid */
-@@ -79,15 +75,23 @@ static unsigned long isolate_freepages_block(struct zone *zone,
- 		int isolated, i;
- 		struct page *page = cursor;
- 
--		if (!pfn_valid_within(blockpfn))
-+		if (!pfn_valid_within(blockpfn)) {
-+			if (strict)
-+				return 0;
- 			continue;
-+		}
- 		nr_scanned++;
- 
--		if (!PageBuddy(page))
-+		if (!PageBuddy(page)) {
-+			if (strict)
-+				return 0;
- 			continue;
-+		}
- 
- 		/* Found a free page, break it into order-0 pages */
- 		isolated = split_free_page(page);
-+		if (!isolated && strict)
-+			return 0;
- 		total_isolated += isolated;
- 		for (i = 0; i < isolated; i++) {
- 			list_add(&page->lru, freelist);
-@@ -105,6 +109,73 @@ static unsigned long isolate_freepages_block(struct zone *zone,
- 	return total_isolated;
- }
- 
-+/**
-+ * isolate_freepages_range() - isolate free pages.
-+ * @start_pfn: The first PFN to start isolating.
-+ * @end_pfn:   The one-past-last PFN.
-+ *
-+ * Non-free pages, invalid PFNs, or zone boundaries within the
-+ * [start_pfn, end_pfn) range are considered errors, cause function to
-+ * undo its actions and return zero.
-+ *
-+ * Otherwise, function returns one-past-the-last PFN of isolated page
-+ * (which may be greater then end_pfn if end fell in a middle of
-+ * a free page).
-+ */
-+static unsigned long
-+isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn)
-+{
-+	unsigned long isolated, pfn, block_end_pfn, flags;
-+	struct zone *zone = NULL;
-+	LIST_HEAD(freelist);
-+
-+	if (pfn_valid(start_pfn))
-+		zone = page_zone(pfn_to_page(start_pfn));
-+
-+	for (pfn = start_pfn; pfn < end_pfn; pfn += isolated) {
-+		if (!pfn_valid(pfn) || zone != page_zone(pfn_to_page(pfn)))
-+			break;
-+
-+		/*
-+		 * On subsequent iterations ALIGN() is actually not needed,
-+		 * but we keep it that we not to complicate the code.
-+		 */
-+		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
-+		block_end_pfn = min(block_end_pfn, end_pfn);
-+
-+		spin_lock_irqsave(&zone->lock, flags);
-+		isolated = isolate_freepages_block(pfn, block_end_pfn,
-+						   &freelist, true);
-+		spin_unlock_irqrestore(&zone->lock, flags);
-+
-+		/*
-+		 * In strict mode, isolate_freepages_block() returns 0 if
-+		 * there are any holes in the block (ie. invalid PFNs or
-+		 * non-free pages).
-+		 */
-+		if (!isolated)
-+			break;
-+
-+		/*
-+		 * If we managed to isolate pages, it is always (1 << n) *
-+		 * pageblock_nr_pages for some non-negative n.  (Max order
-+		 * page may span two pageblocks).
-+		 */
-+	}
-+
-+	/* split_free_page does not map the pages */
-+	map_pages(&freelist);
-+
-+	if (pfn < end_pfn) {
-+		/* Loop terminated early, cleanup. */
-+		release_freepages(&freelist);
-+		return 0;
-+	}
-+
-+	/* We don't use freelists for anything. */
-+	return pfn;
-+}
-+
- /* Returns true if the page is within a block suitable for migration to */
- static bool suitable_migration_target(struct page *page)
- {
-@@ -145,7 +216,7 @@ static void isolate_freepages(struct zone *zone,
- 				struct compact_control *cc)
- {
- 	struct page *page;
--	unsigned long high_pfn, low_pfn, pfn;
-+	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
- 	unsigned long flags;
- 	int nr_freepages = cc->nr_freepages;
- 	struct list_head *freelist = &cc->freepages;
-@@ -165,6 +236,8 @@ static void isolate_freepages(struct zone *zone,
- 	 */
- 	high_pfn = min(low_pfn, pfn);
- 
-+	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
-+
- 	/*
- 	 * Isolate free pages until enough are available to migrate the
- 	 * pages on cc->migratepages. We stop searching if the migrate
-@@ -201,7 +274,9 @@ static void isolate_freepages(struct zone *zone,
- 		isolated = 0;
- 		spin_lock_irqsave(&zone->lock, flags);
- 		if (suitable_migration_target(page)) {
--			isolated = isolate_freepages_block(zone, pfn, freelist);
-+			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
-+			isolated = isolate_freepages_block(pfn, end_pfn,
-+							   freelist, false);
- 			nr_freepages += isolated;
- 		}
- 		spin_unlock_irqrestore(&zone->lock, flags);
--- 
-1.7.1.569.g6f426
+Manju
 
