@@ -1,106 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:44522 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754305Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 18:55:03 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3592 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751604Ab2BCJ3r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:29:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v2 12/31] v4l: Add DPCM compressed formats
-Date: Fri,  3 Feb 2012 01:54:32 +0200
-Message-Id: <1328226891-8968-12-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
-References: <20120202235231.GC841@valkosipuli.localdomain>
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Davide Libenzi <davidel@xmailserver.org>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Enke Chen <enkechen@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 2/6] ivtv: only start streaming in poll() if polling for input.
+Date: Fri,  3 Feb 2012 10:28:41 +0100
+Message-Id: <1850ba798baf5d9af1a329ad6bd87de0662bea59.1328260650.git.hans.verkuil@cisco.com>
+In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
+References: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add three other colour orders for 10-bit to 8-bit DPCM compressed formats.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Andy Walls <awalls@md.metrocast.net>
 ---
- Documentation/DocBook/media/v4l/pixfmt-srggb10.xml |    2 +-
- .../DocBook/media/v4l/pixfmt-srggb10dpcm8.xml      |   29 ++++++++++++++++++++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- include/linux/videodev2.h                          |    3 ++
- 4 files changed, 34 insertions(+), 1 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
+ drivers/media/video/ivtv/ivtv-fileops.c |    6 ++++--
+ 1 files changed, 4 insertions(+), 2 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-index 7b27409..c1c62a9 100644
---- a/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10.xml
-@@ -1,4 +1,4 @@
--    <refentry>
-+    <refentry id="pixfmt-srggb10">
-       <refmeta>
- 	<refentrytitle>V4L2_PIX_FMT_SRGGB10 ('RG10'),
- 	 V4L2_PIX_FMT_SGRBG10 ('BA10'),
-diff --git a/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-new file mode 100644
-index 0000000..40455f1
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/pixfmt-srggb10dpcm8.xml
-@@ -0,0 +1,29 @@
-+    <refentry>
-+      <refmeta>
-+	<refentrytitle>
-+	 V4L2_PIX_FMT_SRGGB10DPCM8 ('bBA8'),
-+	 V4L2_PIX_FMT_SGBRG10DPCM8 ('bGA8'),
-+	 V4L2_PIX_FMT_SGRBG10DPCM8 ('BD10'),
-+	 V4L2_PIX_FMT_SBGGR10DPCM8 ('bRA8'),
-+	 </refentrytitle>
-+	&manvol;
-+      </refmeta>
-+      <refnamediv>
-+	<refname id="V4L2-PIX-FMT-SRGGB10DPCM8"><constant>V4L2_PIX_FMT_SRGGB10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGRBG10DPCM8"><constant>V4L2_PIX_FMT_SGRBG10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SGBRG10DPCM8"><constant>V4L2_PIX_FMT_SGBRG10DPCM8</constant></refname>
-+	<refname id="V4L2-PIX-FMT-SBGGR10DPCM8"><constant>V4L2_PIX_FMT_SBGGR10DPCM8</constant></refname>
-+	<refpurpose>10-bit Bayer formats compressed to 8 bits</refpurpose>
-+      </refnamediv>
-+      <refsect1>
-+	<title>Description</title>
-+
-+	<para>The following four pixel formats are raw sRGB / Bayer formats
-+	with 10 bits per colour compressed to 8 bits each, using DPCM
-+	compression. DPCM, differential pulse-code modulation, is lossy.
-+	Each colour component consumes 8 bits of memory. In other respects
-+	this format is similar to <xref
-+	linkend="pixfmt-srggb10">.</xref></para>
-+
-+      </refsect1>
-+    </refentry>
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 31eaae2..74d4fcd 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -673,6 +673,7 @@ access the palette, this must be done with ioctls of the Linux framebuffer API.<
-     &sub-srggb8;
-     &sub-sbggr16;
-     &sub-srggb10;
-+    &sub-srggb10dpcm8;
-     &sub-srggb12;
-   </section>
+diff --git a/drivers/media/video/ivtv/ivtv-fileops.c b/drivers/media/video/ivtv/ivtv-fileops.c
+index 2cd6c89..956a75a 100644
+--- a/drivers/media/video/ivtv/ivtv-fileops.c
++++ b/drivers/media/video/ivtv/ivtv-fileops.c
+@@ -746,8 +746,9 @@ unsigned int ivtv_v4l2_dec_poll(struct file *filp, poll_table *wait)
+ 	return res;
+ }
  
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index ed56c5c..dbade0e 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -378,7 +378,10 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_SGRBG12 v4l2_fourcc('B', 'A', '1', '2') /* 12  GRGR.. BGBG.. */
- #define V4L2_PIX_FMT_SRGGB12 v4l2_fourcc('R', 'G', '1', '2') /* 12  RGRG.. GBGB.. */
- 	/* 10bit raw bayer DPCM compressed to 8 bits */
-+#define V4L2_PIX_FMT_SBGGR10DPCM8 v4l2_fourcc('b', 'B', 'A', '8')
-+#define V4L2_PIX_FMT_SGBRG10DPCM8 v4l2_fourcc('b', 'G', 'A', '8')
- #define V4L2_PIX_FMT_SGRBG10DPCM8 v4l2_fourcc('B', 'D', '1', '0')
-+#define V4L2_PIX_FMT_SRGGB10DPCM8 v4l2_fourcc('b', 'R', 'A', '8')
- 	/*
- 	 * 10bit raw bayer, expanded to 16 bits
- 	 * xxxxrrrrrrrrrrxxxxgggggggggg xxxxggggggggggxxxxbbbbbbbbbb...
+-unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table * wait)
++unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct ivtv_open_id *id = fh2id(filp->private_data);
+ 	struct ivtv *itv = id->itv;
+ 	struct ivtv_stream *s = &itv->streams[id->type];
+@@ -755,7 +756,8 @@ unsigned int ivtv_v4l2_enc_poll(struct file *filp, poll_table * wait)
+ 	unsigned res = 0;
+ 
+ 	/* Start a capture if there is none */
+-	if (!eof && !test_bit(IVTV_F_S_STREAMING, &s->s_flags)) {
++	if (!eof && !test_bit(IVTV_F_S_STREAMING, &s->s_flags) &&
++			(req_events & (POLLIN | POLLRDNORM))) {
+ 		int rc;
+ 
+ 		rc = ivtv_start_capture(id);
 -- 
-1.7.2.5
+1.7.8.3
 
