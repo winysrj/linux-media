@@ -1,243 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:54437 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754563Ab2BFSda (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 13:33:30 -0500
-Date: Mon, 6 Feb 2012 19:33:20 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
-Subject: Re: [PATCH v3 3/4] media i.MX27 camera: improve discard buffer
- handling.
-In-Reply-To: <1327925653-13310-3-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1202061907020.10363@axis700.grange>
-References: <1327925653-13310-1-git-send-email-javier.martin@vista-silicon.com>
- <1327925653-13310-3-git-send-email-javier.martin@vista-silicon.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1327 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753199Ab2BCKGQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 05:06:16 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv1 PATCH 1/6] videodev2.h: add enum/query/cap dv_timings ioctls.
+Date: Fri,  3 Feb 2012 11:06:01 +0100
+Message-Id: <f884dc30bd71901ea5dad39dc3310fa5a7d9e9c2.1328262332.git.hans.verkuil@cisco.com>
+In-Reply-To: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
+References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the update! Let's see, whether this one can be improved a bit 
-more.
+These new ioctls make it possible for the dv_timings API to replace
+the dv_preset API eventually.
 
-On Mon, 30 Jan 2012, Javier Martin wrote:
-
-> The way discard buffer was previously handled lead
-> to possible races that made a buffer that was not
-> yet ready to be overwritten by new video data. This
-> is easily detected at 25fps just adding "#define DEBUG"
-> to enable the "memset" check and seeing how the image
-> is corrupted.
-> 
-> A new "discard" queue and two discard buffers have
-> been added to make them flow trough the pipeline
-> of queues and thus provide suitable event ordering.
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  Changes since v2:
->  - Remove BUG_ON when active list is empty.
->  - Replace empty list checks with warnings.
-
-I think, the best would be to warn and bail out, instead of implicitly 
-crashing.
-
-> 
-> ---
->  drivers/media/video/mx2_camera.c |  280 +++++++++++++++++++++-----------------
->  1 files changed, 153 insertions(+), 127 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index 35ab971..e7ccd97 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-
-[snip]
-
-> @@ -706,8 +806,9 @@ static int mx2_stop_streaming(struct vb2_queue *q)
->  	unsigned long flags;
->  	u32 cntl;
->  
-> -	spin_lock_irqsave(&pcdev->lock, flags);
->  	if (mx27_camera_emma(pcdev)) {
-> +		spin_lock_irqsave(&pcdev->lock, flags);
-> +
->  		cntl = readl(pcdev->base_emma + PRP_CNTL);
->  		if (prp->cfg.channel == 1) {
->  			writel(cntl & ~PRP_CNTL_CH1EN,
-> @@ -716,8 +817,18 @@ static int mx2_stop_streaming(struct vb2_queue *q)
->  			writel(cntl & ~PRP_CNTL_CH2EN,
->  			       pcdev->base_emma + PRP_CNTL);
->  		}
-> +		INIT_LIST_HEAD(&pcdev->capture);
-> +		INIT_LIST_HEAD(&pcdev->active_bufs);
-> +		INIT_LIST_HEAD(&pcdev->discard);
-> +
-> +		spin_unlock_irqrestore(&pcdev->lock, flags);
-> +
-> +		dma_free_coherent(ici->v4l2_dev.dev,
-> +			pcdev->discard_size, pcdev->discard_buffer,
-> +			pcdev->discard_buffer_dma);
-> +		pcdev->discard_buffer = NULL;
-
-AFAICS, the IRQ handler runs without taking any locks, so, there's a 
-theoretical SMP race here with using the discard buffers from the ISR. So, 
-I think, you'd have to add some locking to the ISR and here do something 
-like
-
-+		x = pcdev->discard_buffer;
-+		pcdev->discard_buffer = NULL;
-+
-+		spin_unlock_irqrestore(&pcdev->lock, flags);
-+
-+		dma_free_coherent(ici->v4l2_dev.dev,
-+			pcdev->discard_size, x,
-+			pcdev->discard_buffer_dma);
-
-
->  	}
-> -	spin_unlock_irqrestore(&pcdev->lock, flags);
-> +
-
-You're adding an empty line here.
-
->  
->  	return 0;
->  }
-
-[snip]
-
-> @@ -1179,18 +1212,23 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
->  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  		int bufnum)
->  {
-
-This function is called from the ISR, so, I presume, you'll have to 
-spin_lock() somewhere here.
-
-> -	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
->  	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->  	struct mx2_buffer *buf;
->  	struct vb2_buffer *vb;
->  	unsigned long phys;
->  
-> -	if (!list_empty(&pcdev->active_bufs)) {
-> -		buf = list_entry(pcdev->active_bufs.next,
-> -			struct mx2_buffer, queue);
-> +	buf = list_entry(pcdev->active_bufs.next,
-> +			 struct mx2_buffer, queue);
->  
-> -		BUG_ON(buf->bufnum != bufnum);
-> +	BUG_ON(buf->bufnum != bufnum);
->  
-> +	if (buf->discard) {
-> +		/*
-> +		 * Discard buffer must not be returned to user space.
-> +		 * Just return it to the discard queue.
-> +		 */
-> +		list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
-> +	} else {
->  		vb = &buf->vb;
->  #ifdef DEBUG
->  		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-> @@ -1212,6 +1250,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  			}
->  		}
->  #endif
-> +
->  		dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb,
->  				vb2_plane_vaddr(vb, 0),
->  				vb2_get_plane_payload(vb, 0));
-> @@ -1225,29 +1264,23 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  	pcdev->frame_count++;
->  
->  	if (list_empty(&pcdev->capture)) {
-> -		if (prp->cfg.channel == 1) {
-> -			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
-> -					PRP_DEST_RGB1_PTR + 4 * bufnum);
-> -		} else {
-> -			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
-> -						PRP_DEST_Y_PTR -
-> -						0x14 * bufnum);
-> -			if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
-> -				writel(pcdev->discard_buffer_dma + imgsize,
-> -				       pcdev->base_emma + PRP_DEST_CB_PTR -
-> -				       0x14 * bufnum);
-> -				writel(pcdev->discard_buffer_dma +
-> -				       ((5 * imgsize) / 4), pcdev->base_emma +
-> -				       PRP_DEST_CR_PTR - 0x14 * bufnum);
-> -			}
-> -		}
-> +		if (list_empty(&pcdev->discard))
-> +			dev_warn(pcdev->dev, "%s: trying to access empty discard list\n",
-> +				 __func__);
-
-It is good, that you check for this error, but
-
-> +
-> +		buf = list_entry(pcdev->discard.next,
-> +			struct mx2_buffer, queue);
-> +		buf->bufnum = bufnum;
-> +
-> +		list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
-> +		mx27_update_emma_buf(pcdev, pcdev->discard_buffer_dma, bufnum);
-
-here even in the above error case you continue to access the invalid list 
-entry... 
-
->  		return;
->  	}
->  
->  	buf = list_entry(pcdev->capture.next,
->  			struct mx2_buffer, queue);
->  
-> -	buf->bufnum = !bufnum;
-> +	buf->bufnum = bufnum;
->  
->  	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
->  
-> @@ -1255,18 +1288,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  	buf->state = MX2_STATE_ACTIVE;
->  
->  	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-> -	if (prp->cfg.channel == 1) {
-> -		writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
-> -	} else {
-> -		writel(phys, pcdev->base_emma +
-> -				PRP_DEST_Y_PTR - 0x14 * bufnum);
-> -		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
-> -			writel(phys + imgsize, pcdev->base_emma +
-> -					PRP_DEST_CB_PTR - 0x14 * bufnum);
-> -			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
-> -					PRP_DEST_CR_PTR - 0x14 * bufnum);
-> -		}
-> -	}
-> +	mx27_update_emma_buf(pcdev, phys, bufnum);
->  }
->  
->  static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
-> @@ -1275,6 +1297,10 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
->  	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
->  	struct mx2_buffer *buf;
->  
-> +	if (list_empty(&pcdev->active_bufs))
-> +		dev_warn(pcdev->dev, "%s: called while active list is empty\n",
-> +			__func__);
-> +
-
-Similarly here: if this is a possible condition, shouldn't you nicely bail 
-out here? Of course, interrupts have to be acked still.
-
->  	if (status & (1 << 7)) { /* overflow */
->  		u32 cntl;
->  		/*
-
-Thanks
-Guennadi
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ include/linux/videodev2.h |  110 ++++++++++++++++++++++++++++++++++++++++----
+ 1 files changed, 100 insertions(+), 10 deletions(-)
+
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index 0db0503..e59cd02 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -987,28 +987,42 @@ struct v4l2_dv_enum_preset {
+  */
+ 
+ /* BT.656/BT.1120 timing data */
++
++/*
++ * A note regarding vertical interlaced timings: height refers to the total
++ * height of the frame (= two fields). The blanking timings refer
++ * to the blanking of each field. So the height of the active frame is
++ * calculated as follows:
++ *
++ * act_height = height - vfrontporch - vsync - vbackporch -
++ *                       il_vfrontporch - il_vsync - il_vbackporch
++ *
++ * The active height of each field is act_height / 2.
++ */
+ struct v4l2_bt_timings {
+-	__u32	width;		/* width in pixels */
+-	__u32	height;		/* height in lines */
++	__u32	width;		/* total frame width in pixels */
++	__u32	height;		/* total frame height in lines */
+ 	__u32	interlaced;	/* Interlaced or progressive */
+ 	__u32	polarities;	/* Positive or negative polarity */
+ 	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
+-	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
++	__u32	hfrontporch;	/* Horizontal front porch in pixels */
+ 	__u32	hsync;		/* Horizontal Sync length in pixels */
+ 	__u32	hbackporch;	/* Horizontal back porch in pixels */
+ 	__u32	vfrontporch;	/* Vertical front porch in pixels */
+ 	__u32	vsync;		/* Vertical Sync length in lines */
+ 	__u32	vbackporch;	/* Vertical back porch in lines */
+-	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
+-				 * interlaced field formats
++	__u32	il_vfrontporch;	/* Vertical front porch for the even field
++				 * (aka field 2) of interlaced field formats
+ 				 */
+-	__u32	il_vsync;	/* Vertical sync length for bottom field of
+-				 * interlaced field formats
++	__u32	il_vsync;	/* Vertical sync length for the even field
++				 * (aka field 2) of interlaced field formats
+ 				 */
+-	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
+-				 * interlaced field formats
++	__u32	il_vbackporch;	/* Vertical back porch for the even field
++				 * (aka field 2) of interlaced field formats
+ 				 */
+-	__u32	reserved[16];
++	__u32	standards;	/* Standards the timing belongs to */
++	__u32	flags;		/* Flags */
++	__u32	reserved[14];
+ } __attribute__ ((packed));
+ 
+ /* Interlaced or progressive format */
+@@ -1019,6 +1033,37 @@ struct v4l2_bt_timings {
+ #define V4L2_DV_VSYNC_POS_POL	0x00000001
+ #define V4L2_DV_HSYNC_POS_POL	0x00000002
+ 
++/* Timings standards */
++#define V4L2_DV_BT_STD_CEA861	(1 << 0)  /* CEA-861 Digital TV Profile */
++#define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
++#define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
++#define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
++
++/* Flags */
++
++/* CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
++   GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
++   intervals are reduced, allowing a higher resolution over the same
++   bandwidth. This is a read-only flag. */
++#define V4L2_DV_FL_REDUCED_BLANKING		(1 << 0)
++/* CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
++   of six. These formats can be optionally played at 1 / 1.001 speed to
++   be compatible with the normal NTSC framerate of 29.97 frames per second.
++   This is a read-only flag. */
++#define V4L2_DV_FL_NTSC_COMPATIBLE		(1 << 1)
++/* CEA-861 specific: only valid for video transmitters, the flag is cleared
++   by receivers.
++   If the framerate of the format is a multiple of six, then the pixelclock
++   used to set up the transmitter is divided by 1.001 to make it compatible
++   with NTSC framerates. Otherwise this flag is cleared. If the transmitter
++   can't generate such frequencies, then the flag will also be cleared. */
++#define V4L2_DV_FL_DIVIDE_CLOCK_BY_1_001	(1 << 2)
++/* Specific to interlaced formats: if set, then field 1 is really one half-line
++   longer and field 2 is really one half-line shorter, so each field has
++   exactly the same number of half-lines. Whether half-lines can be detected
++   or used depends on the hardware. */
++#define V4L2_DV_FL_HALF_LINE			(1 << 0)
++
+ 
+ /* DV timings */
+ struct v4l2_dv_timings {
+@@ -1032,6 +1077,47 @@ struct v4l2_dv_timings {
+ /* Values for the type field */
+ #define V4L2_DV_BT_656_1120	0	/* BT.656/1120 timing type */
+ 
++
++/* DV timings enumeration */
++struct v4l2_enum_dv_timings {
++	__u32 index;
++	__u32 reserved[3];
++	struct v4l2_dv_timings timings;
++};
++
++/* BT.656/BT.1120 timing capabilities */
++struct v4l2_bt_timings_cap {
++	__u32	min_width;	/* width in pixels */
++	__u32	max_width;	/* width in pixels */
++	__u32	min_height;	/* height in lines */
++	__u32	max_height;	/* height in lines */
++	__u64	min_pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
++	__u64	max_pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
++	__u32	standards;	/* Supported standards */
++	__u32	capabilities;	/* See below */
++	__u32	reserved[16];
++} __attribute__ ((packed));
++
++/* Supports interlaced formats */
++#define V4L2_DV_BT_CAP_INTERLACED	(1 << 0)
++/* Supports progressive formats */
++#define V4L2_DV_BT_CAP_PROGRESSIVE	(1 << 1)
++/* Supports CVT/GTF reduced blanking */
++#define V4L2_DV_BT_CAP_REDUCED_BLANKING	(1 << 2)
++/* Supports custom formats */
++#define V4L2_DV_BT_CAP_CUSTOM		(1 << 3)
++
++/* DV timings capabilities */
++struct v4l2_dv_timings_cap {
++	__u32 type;
++	__u32 reserved[3];
++	union {
++		struct v4l2_bt_timings_cap bt;
++		__u32 raw_data[32];
++	};
++};
++
++
+ /*
+  *	V I D E O   I N P U T S
+  */
+@@ -2318,6 +2404,10 @@ struct v4l2_create_buffers {
+ #define VIDIOC_G_SELECTION	_IOWR('V', 94, struct v4l2_selection)
+ #define VIDIOC_S_SELECTION	_IOWR('V', 95, struct v4l2_selection)
+ 
++#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 96, struct v4l2_enum_dv_timings)
++#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 97, struct v4l2_dv_timings)
++#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 98, struct v4l2_dv_timings_cap)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+-- 
+1.7.8.3
+
