@@ -1,67 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3227 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754915Ab2BCJ3y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:29:54 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 3/6] videobuf2: only start streaming in poll() if so requested by the poll mask.
-Date: Fri,  3 Feb 2012 10:28:42 +0100
-Message-Id: <743b77f12f9a3e29fd5cbcc821bb864cb8c1fab6.1328260650.git.hans.verkuil@cisco.com>
-In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
-References: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
+Received: from cantor2.suse.de ([195.135.220.15]:50723 "EHLO mx2.suse.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753562Ab2BCWR4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Feb 2012 17:17:56 -0500
+Date: Fri, 3 Feb 2012 23:17:53 +0100 (CET)
+From: Jiri Kosina <jkosina@suse.cz>
+To: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Masanari Iida <standby24x7@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [trivial] media: Fix typo in mixer_drv.c and
+ hdmi_drv.c
+In-Reply-To: <CAH9JG2USF-FYX0SL-y0Gby8oNvA=sFBV7uyvP+4oaa1nxRU5qA@mail.gmail.com>
+Message-ID: <alpine.LNX.2.00.1202032317420.25026@pobox.suse.cz>
+References: <1327841453-1674-1-git-send-email-standby24x7@gmail.com> <CAH9JG2USF-FYX0SL-y0Gby8oNvA=sFBV7uyvP+4oaa1nxRU5qA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, 30 Jan 2012, Kyungmin Park wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Pawel Osciak <pawel@osciak.com>
----
- drivers/media/video/videobuf2-core.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-index 2e8f1df..0b1c771 100644
---- a/drivers/media/video/videobuf2-core.c
-+++ b/drivers/media/video/videobuf2-core.c
-@@ -1647,6 +1647,7 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q);
-  */
- unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- {
-+	unsigned long req_events = poll_requested_events(wait);
- 	unsigned long flags;
- 	unsigned int ret;
- 	struct vb2_buffer *vb = NULL;
-@@ -1655,12 +1656,14 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	 * Start file I/O emulator only if streaming API has not been used yet.
- 	 */
- 	if (q->num_buffers == 0 && q->fileio == NULL) {
--		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ)) {
-+		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
-+				(req_events & (POLLIN | POLLRDNORM))) {
- 			ret = __vb2_init_fileio(q, 1);
- 			if (ret)
- 				return POLLERR;
- 		}
--		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE)) {
-+		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE) &&
-+				(req_events & (POLLOUT | POLLWRNORM))) {
- 			ret = __vb2_init_fileio(q, 0);
- 			if (ret)
- 				return POLLERR;
+Applied, thanks.
+
+> > Correct typo "sucessful" to "successful" in
+> > drivers/media/video/s5p-tv/mixer_drv.c
+> > drivers/media/video/s5p-tv/hdmi_drv.c
+> >
+> > Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+> > ---
+> >  drivers/media/video/s5p-tv/hdmi_drv.c  |    4 ++--
+> >  drivers/media/video/s5p-tv/mixer_drv.c |    2 +-
+> >  2 files changed, 3 insertions(+), 3 deletions(-)
+> >
+> > diff --git a/drivers/media/video/s5p-tv/hdmi_drv.c
+> > b/drivers/media/video/s5p-tv/hdmi_drv.c
+> > index 8b41a04..3e0dd09 100644
+> > --- a/drivers/media/video/s5p-tv/hdmi_drv.c
+> > +++ b/drivers/media/video/s5p-tv/hdmi_drv.c
+> > @@ -962,7 +962,7 @@ static int __devinit hdmi_probe(struct platform_device
+> > *pdev)
+> >  	/* storing subdev for call that have only access to struct device */
+> >  	dev_set_drvdata(dev, sd);
+> >
+> > -	dev_info(dev, "probe sucessful\n");
+> > +	dev_info(dev, "probe successful\n");
+> >
+> >  	return 0;
+> >
+> > @@ -1000,7 +1000,7 @@ static int __devexit hdmi_remove(struct
+> > platform_device *pdev)
+> >  	iounmap(hdmi_dev->regs);
+> >  	hdmi_resources_cleanup(hdmi_dev);
+> >  	kfree(hdmi_dev);
+> > -	dev_info(dev, "remove sucessful\n");
+> > +	dev_info(dev, "remove successful\n");
+> >
+> >  	return 0;
+> >  }
+> > diff --git a/drivers/media/video/s5p-tv/mixer_drv.c
+> > b/drivers/media/video/s5p-tv/mixer_drv.c
+> > index 0064309..a2c0c25 100644
+> > --- a/drivers/media/video/s5p-tv/mixer_drv.c
+> > +++ b/drivers/media/video/s5p-tv/mixer_drv.c
+> > @@ -444,7 +444,7 @@ static int __devexit mxr_remove(struct platform_device
+> > *pdev)
+> >
+> >  	kfree(mdev);
+> >
+> > -	dev_info(dev, "remove sucessful\n");
+> > +	dev_info(dev, "remove successful\n");
+> >  	return 0;
+> >  }
+
 -- 
-1.7.8.3
-
+Jiri Kosina
+SUSE Labs
