@@ -1,198 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:14440 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753366Ab2BCMTK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 07:19:10 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 03 Feb 2012 13:18:56 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 13/15] X86: integrate CMA with DMA-mapping subsystem
-In-reply-to: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1328271538-14502-14-git-send-email-m.szyprowski@samsung.com>
-References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1355 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755024Ab2BCNJW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 08:09:22 -0500
+Received: from alastor.dyndns.org (215.80-203-102.nextgentel.com [80.203.102.215])
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id q13D9JYi008863
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 3 Feb 2012 14:09:21 +0100 (CET)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.localnet (marune.xs4all.nl [82.95.89.49])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 72E4635C0004
+	for <linux-media@vger.kernel.org>; Fri,  3 Feb 2012 14:09:19 +0100 (CET)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.4] Updating ISA Radio drivers :-)
+Date: Fri, 3 Feb 2012 14:09:18 +0100
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202031409.18394.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds support for CMA to dma-mapping subsystem for x86
-architecture that uses common pci-dma/pci-nommu implementation. This
-allows to test CMA on KVM/QEMU and a lot of common x86 boxes.
+Hi Mauro,
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-CC: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Arnd Bergmann <arnd@arndb.de>
----
- arch/x86/Kconfig                      |    1 +
- arch/x86/include/asm/dma-contiguous.h |   13 +++++++++++++
- arch/x86/include/asm/dma-mapping.h    |    4 ++++
- arch/x86/kernel/pci-dma.c             |   18 ++++++++++++++++--
- arch/x86/kernel/pci-nommu.c           |    8 +-------
- arch/x86/kernel/setup.c               |    2 ++
- 6 files changed, 37 insertions(+), 9 deletions(-)
- create mode 100644 arch/x86/include/asm/dma-contiguous.h
+One of the things I've wanted to do for some time is to start upgrading
+all drivers to the latest V4L2 frameworks and ensuring that they pass
+the v4l2-compliance tests.
 
-diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
-index 5bed94e..de6e069 100644
---- a/arch/x86/Kconfig
-+++ b/arch/x86/Kconfig
-@@ -31,6 +31,7 @@ config X86
- 	select ARCH_WANT_OPTIONAL_GPIOLIB
- 	select ARCH_WANT_FRAME_POINTERS
- 	select HAVE_DMA_ATTRS
-+	select HAVE_DMA_CONTIGUOUS if !SWIOTLB
- 	select HAVE_KRETPROBES
- 	select HAVE_OPTPROBES
- 	select HAVE_FTRACE_MCOUNT_RECORD
-diff --git a/arch/x86/include/asm/dma-contiguous.h b/arch/x86/include/asm/dma-contiguous.h
-new file mode 100644
-index 0000000..8fb117d
---- /dev/null
-+++ b/arch/x86/include/asm/dma-contiguous.h
-@@ -0,0 +1,13 @@
-+#ifndef ASMX86_DMA_CONTIGUOUS_H
-+#define ASMX86_DMA_CONTIGUOUS_H
-+
-+#ifdef __KERNEL__
-+
-+#include <linux/device.h>
-+#include <linux/dma-contiguous.h>
-+#include <asm-generic/dma-contiguous.h>
-+
-+static inline void dma_contiguous_early_fixup(phys_addr_t base, unsigned long size) { }
-+
-+#endif
-+#endif
-diff --git a/arch/x86/include/asm/dma-mapping.h b/arch/x86/include/asm/dma-mapping.h
-index ed3065f..90ac6f0 100644
---- a/arch/x86/include/asm/dma-mapping.h
-+++ b/arch/x86/include/asm/dma-mapping.h
-@@ -13,6 +13,7 @@
- #include <asm/io.h>
- #include <asm/swiotlb.h>
- #include <asm-generic/dma-coherent.h>
-+#include <linux/dma-contiguous.h>
- 
- #ifdef CONFIG_ISA
- # define ISA_DMA_BIT_MASK DMA_BIT_MASK(24)
-@@ -61,6 +62,9 @@ extern int dma_set_mask(struct device *dev, u64 mask);
- extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 					dma_addr_t *dma_addr, gfp_t flag);
- 
-+extern void dma_generic_free_coherent(struct device *dev, size_t size,
-+				      void *vaddr, dma_addr_t dma_addr);
-+
- static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
- {
- 	if (!dev->dma_mask)
-diff --git a/arch/x86/kernel/pci-dma.c b/arch/x86/kernel/pci-dma.c
-index 1c4d769..d3c3723 100644
---- a/arch/x86/kernel/pci-dma.c
-+++ b/arch/x86/kernel/pci-dma.c
-@@ -99,14 +99,18 @@ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
- 				 dma_addr_t *dma_addr, gfp_t flag)
- {
- 	unsigned long dma_mask;
--	struct page *page;
-+	struct page *page = NULL;
-+	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
- 	dma_addr_t addr;
- 
- 	dma_mask = dma_alloc_coherent_mask(dev, flag);
- 
- 	flag |= __GFP_ZERO;
- again:
--	page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
-+	if (!(flag & GFP_ATOMIC))
-+		page = dma_alloc_from_contiguous(dev, count, get_order(size));
-+	if (!page)
-+		page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
- 	if (!page)
- 		return NULL;
- 
-@@ -126,6 +130,16 @@ again:
- 	return page_address(page);
- }
- 
-+void dma_generic_free_coherent(struct device *dev, size_t size, void *vaddr,
-+			       dma_addr_t dma_addr)
-+{
-+	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
-+	struct page *page = virt_to_page(vaddr);
-+
-+	if (!dma_release_from_contiguous(dev, page, count))
-+		free_pages((unsigned long)vaddr, get_order(size));
-+}
-+
- /*
-  * See <Documentation/x86/x86_64/boot-options.txt> for the iommu kernel
-  * parameter documentation.
-diff --git a/arch/x86/kernel/pci-nommu.c b/arch/x86/kernel/pci-nommu.c
-index 3af4af8..656566f 100644
---- a/arch/x86/kernel/pci-nommu.c
-+++ b/arch/x86/kernel/pci-nommu.c
-@@ -74,12 +74,6 @@ static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
- 	return nents;
- }
- 
--static void nommu_free_coherent(struct device *dev, size_t size, void *vaddr,
--				dma_addr_t dma_addr)
--{
--	free_pages((unsigned long)vaddr, get_order(size));
--}
--
- static void nommu_sync_single_for_device(struct device *dev,
- 			dma_addr_t addr, size_t size,
- 			enum dma_data_direction dir)
-@@ -97,7 +91,7 @@ static void nommu_sync_sg_for_device(struct device *dev,
- 
- struct dma_map_ops nommu_dma_ops = {
- 	.alloc_coherent		= dma_generic_alloc_coherent,
--	.free_coherent		= nommu_free_coherent,
-+	.free_coherent		= dma_generic_free_coherent,
- 	.map_sg			= nommu_map_sg,
- 	.map_page		= nommu_map_page,
- 	.sync_single_for_device = nommu_sync_single_for_device,
-diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
-index d7d5099..be6795f 100644
---- a/arch/x86/kernel/setup.c
-+++ b/arch/x86/kernel/setup.c
-@@ -50,6 +50,7 @@
- #include <asm/pci-direct.h>
- #include <linux/init_ohci1394_dma.h>
- #include <linux/kvm_para.h>
-+#include <linux/dma-contiguous.h>
- 
- #include <linux/errno.h>
- #include <linux/kernel.h>
-@@ -938,6 +939,7 @@ void __init setup_arch(char **cmdline_p)
- 	}
- #endif
- 	memblock.current_limit = get_max_mapped();
-+	dma_contiguous_reserve(0);
- 
- 	/*
- 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
--- 
-1.7.1.569.g6f426
+So I started out with some of the oldest drivers around: the ISA radio
+drivers :-)
 
+Partially because they are easy to convert, partially because it is fun to
+work with old hardware like that every so often.
+
+I have tested this with actual hardware for the aimslab, aztech and gemtek
+drivers.
+
+Since you can load ISA drivers even if there is no actual hardware, I was
+able to run the other drivers through v4l2-compliance as well. I couldn't
+test whether it actually works, of course, but at least it doesn't crash...
+
+The original RFC patch series is here:
+
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg42091.html
+
+Not surprisingly there were no comments.
+
+This series is identical, except for being updated to use the new helper
+functions that are part of the radio-keene patch set:
+
+http://www.spinics.net/lists/linux-media/msg43852.html
+
+If you want, you can pull from my radio-isa2 branch to get both the isa
+driver changes and the radio-keene + helper functions changes.
+
+Regards,
+
+	Hans
+
+The following changes since commit 59b30294e14fa6a370fdd2bc2921cca1f977ef16:
+
+  Merge branch 'v4l_for_linus' into staging/for_v3.4 (2012-01-23 18:11:30 -0200)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git radio-isa2
+
+Hans Verkuil (16):
+      v4l2: standardize log start/end message.
+      v4l2-subdev: add start/end messages for log_status.
+      v4l2-ctrls: add helper functions for control events.
+      vivi: use v4l2_ctrl_subscribe_event.
+      radio-keene: add a driver for the Keene FM Transmitter.
+      hid-core: ignore the Keene FM transmitter.
+      radio-isa: add framework for ISA radio drivers.
+      radio-aimslab: Convert to radio-isa.
+      radio-aztech: Convert to radio-isa.
+      radio-gemtek: Convert to radio-isa.
+      radio-rtrack2: Convert to radio-isa.
+      radio-terratec: Convert to radio-isa.
+      radio-trust: Convert to radio-isa.
+      radio-typhoon: Convert to radio-isa.
+      radio-zoltrix: Convert to radio-isa.
+      radio/Kconfig: cleanup.
+
+ drivers/hid/hid-core.c                        |   10 +
+ drivers/hid/hid-ids.h                         |    1 +
+ drivers/media/radio/Kconfig                   |  123 +++----
+ drivers/media/radio/Makefile                  |    2 +
+ drivers/media/radio/radio-aimslab.c           |  439 ++++++-----------------
+ drivers/media/radio/radio-aztech.c            |  371 ++++---------------
+ drivers/media/radio/radio-gemtek.c            |  493 +++++--------------------
+ drivers/media/radio/radio-isa.c               |  339 +++++++++++++++++
+ drivers/media/radio/radio-isa.h               |  105 ++++++
+ drivers/media/radio/radio-keene.c             |  427 +++++++++++++++++++++
+ drivers/media/radio/radio-rtrack2.c           |  332 ++++-------------
+ drivers/media/radio/radio-terratec.c          |  364 +++---------------
+ drivers/media/radio/radio-trust.c             |  387 +++++---------------
+ drivers/media/radio/radio-typhoon.c           |  365 ++++---------------
+ drivers/media/radio/radio-zoltrix.c           |  441 ++++++-----------------
+ drivers/media/video/bt8xx/bttv-driver.c       |    4 -
+ drivers/media/video/cx18/cx18-ioctl.c         |    4 -
+ drivers/media/video/ivtv/ivtv-ioctl.c         |    5 -
+ drivers/media/video/pwc/pwc-v4l.c             |   10 +-
+ drivers/media/video/saa7164/saa7164-encoder.c |    6 -
+ drivers/media/video/saa7164/saa7164-vbi.c     |    6 -
+ drivers/media/video/v4l2-ctrls.c              |   32 ++
+ drivers/media/video/v4l2-ioctl.c              |    6 +
+ drivers/media/video/v4l2-subdev.c             |   12 +-
+ drivers/media/video/vivi.c                    |   23 +-
+ include/media/v4l2-ctrls.h                    |   13 +
+ 26 files changed, 1683 insertions(+), 2637 deletions(-)
+ create mode 100644 drivers/media/radio/radio-isa.c
+ create mode 100644 drivers/media/radio/radio-isa.h
+ create mode 100644 drivers/media/radio/radio-keene.c
