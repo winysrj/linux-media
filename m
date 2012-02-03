@@ -1,104 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:57088 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752767Ab2BEAEi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 19:04:38 -0500
-Date: Sun, 5 Feb 2012 01:04:30 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-cc: Sylwester Nawrocki <snjw23@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Q] Interleaved formats on the media bus
-In-Reply-To: <4F2D5231.4000703@iki.fi>
-Message-ID: <Pine.LNX.4.64.1202050046050.3770@axis700.grange>
-References: <4F27CF29.5090905@samsung.com> <20120201100007.GA841@valkosipuli.localdomain>
- <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi> <4F2D4E2D.1030107@gmail.com>
- <4F2D5231.4000703@iki.fi>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3823 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752558Ab2BCJlG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:41:06 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/6] Add poll_requested_events() function.
+Date: Fri, 3 Feb 2012 10:40:10 +0100
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Davide Libenzi <davidel@xmailserver.org>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Enke Chen <enkechen@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202031040.10513.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 4 Feb 2012, Sakari Ailus wrote:
-
-> Hi Sylwester,
+On Friday, February 03, 2012 10:28:39 Hans Verkuil wrote:
+> Hi all,
 > 
-> Sylwester Nawrocki wrote:
-> > On 02/04/2012 12:22 PM, Sakari Ailus wrote:
-
-[snip]
-
-> >> I'd be much in favour or using a separate channel ID as Guennadi asked;
-> >> that way you could quite probably save one memory copy as well. But if
-> >> the hardware already exists and behaves badly there's usually not much
-> >> you can do about it.
-> > 
-> > As I explained above I suspect that the sensor sends each image data type
-> > on separate channels (I'm not 100% sure) but the bridge is unable to DMA
-> > it into separate memory regions.
-> > 
-> > Currently we have no support in V4L2 for specifying separate image data 
-> > format per MIPI-CSI2 channel. Maybe the solution is just about that - 
-> > adding support for virtual channels and a possibility to specify an image 
-> > format separately per each channel ?
-> > Still, there would be nothing telling how the channels are interleaved :-/
+> This is the eighth version of this patch series and the last as far as
+> I am concerned.
 > 
-> _If_ the sensor sends YUV and compressed JPEG data in separate CSI-2
-> channels then definitely the correct way to implement this is to take
-> this kind of setup into account in the frame format description --- we
-> do need that quite badly.
+> See this link for the previous version and the associated thread:
 > 
-> However, this doesn't really help you with your current problem, and
-> perhaps just creating a custom format for your sensor driver is the best
-> way to go for the time being.
+> http://www.gossamer-threads.com/lists/linux/kernel/1486261
+> 
+> The changes compared to version 7 are:
+> 
+> - rebased to the linux-media staging/for_v3.4 branch.
+> - renamed the poll_table fields to _qproc and _key as per Andrew's suggestion.
+> - all poll changes are back in one patch (the first). With the renaming of
+>   fields it made more sense to have it as one patch.
+> - added the video4linux changes as well that depend on this new poll
+>   behavior. This makes it ready to be merged in linux-media and linux-next.
+> 
+> Mauro, can you get this patch series in linux-next as soon as possible?
+> 
+> If anyone has any problems/comments/remarks regarding this patch series,
+> then please speak up now and not one day before the 3.4 merge window opens...
 
-As fas as I understand, the problem is not the sensor but the bridge. So, 
-following your logic you would have to create a new format for each sensor 
-with similar capabilities, if you want to connect it to this bridge. This 
-doesn't seem like a good idea to me.
+I forgot to mention that this patch series is also available in git:
 
-May I again do some shameless self-advertising: soc-camera had to deal 
-with this kind of problem since some time and we have a solution for it.
+The following changes since commit 59b30294e14fa6a370fdd2bc2921cca1f977ef16:
 
-The problem is actually not _quite_ identical, it has nothing to do with 
-interleaved formats, but I think, essentially the problem is: how to 
-configure bridges to process some generic (video) data when no specialised 
-support for this data format is available or implemented yet. This is what 
-we call a pass-through mode. All bridges I've met so far have a capability 
-to receive and store in memory some generic video data, for which you 
-basically just configure the number of bytes per line and the number of 
-lines per frame.
+  Merge branch 'v4l_for_linus' into staging/for_v3.4 (2012-01-23 18:11:30 -0200)
 
-The solution, that we use in soc-camera is to define format descriptors, 
-that can be used to calculate those generic parameters for each supported 
-format. I am talking about the mbus_fmt[] array and the 
-soc_mbus_bytes_per_line() function in soc_mediabus.c. So, my suggestion 
-would be to use something similar for this case too: use some high-level 
-description for this format, including any channel information, that 
-advanced bridges can use to properly separate the date, and a function, 
-that interprets that high-level description and provides the low-level 
-details like bytes-per-line, necessary to configure bridges, unable to 
-handle the data natively. Ideally, of course, I would suggest to convert 
-that file to a generic API, usable for all V4L2 drivers (basically, just 
-rename a couple of structs and functions) and extend it to handle 
-interleaved formats.
+are available in the git repository at:
 
-> But. When someone attaches this kind of
-> sensor to another CSI-2 receiver that can separate the data from
-> different channels, I think we should start working towards for a
-> correct solution which this driver also should support.
+  git://linuxtv.org/hverkuil/media_tree.git pollv8
 
-Exactly.
+Hans Verkuil (6):
+      poll: add poll_requested_events() and poll_does_not_wait() functions
+      ivtv: only start streaming in poll() if polling for input.
+      videobuf2: only start streaming in poll() if so requested by the poll mask.
+      videobuf: only start streaming in poll() if so requested by the poll mask.
+      videobuf2-core: also test for pending events.
+      vivi: let vb2_poll handle events.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/ivtv/ivtv-fileops.c |    6 ++-
+ drivers/media/video/videobuf-core.c     |    3 +-
+ drivers/media/video/videobuf2-core.c    |   48 +++++++++++++++++++++---------
+ drivers/media/video/vivi.c              |    9 +-----
+ fs/eventpoll.c                          |   18 +++++++++--
+ fs/select.c                             |   40 +++++++++++--------------
+ include/linux/poll.h                    |   37 ++++++++++++++++++++----
+ include/net/sock.h                      |    2 +-
+ net/unix/af_unix.c                      |    2 +-
+ 9 files changed, 106 insertions(+), 59 deletions(-)
