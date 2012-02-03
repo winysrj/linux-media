@@ -1,61 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from multi.imgtec.com ([194.200.65.239]:34176 "EHLO multi.imgtec.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751186Ab2BVM6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 07:58:12 -0500
-Message-ID: <4F44E65E.8010604@imgtec.com>
-Date: Wed, 22 Feb 2012 12:58:06 +0000
-From: James Hogan <james.hogan@imgtec.com>
-MIME-Version: 1.0
-To: linux-kernel <linux-kernel@vger.kernel.org>,
-	<linux-media@vger.kernel.org>, Pekka Enberg <penberg@kernel.org>,
-	Jarod Wilson <jarod@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>
-Subject: [PATCH RESEND] rc/ir-raw: fix BUG_ON, using kfifo_rec_ptr_1 instead
- of kfifo
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1229 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755433Ab2BCJ34 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:29:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Davide Libenzi <davidel@xmailserver.org>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Enke Chen <enkechen@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 6/6] vivi: let vb2_poll handle events.
+Date: Fri,  3 Feb 2012 10:28:45 +0100
+Message-Id: <095585387c5248fec3291daef9f9a32eaf4a6f14.1328260650.git.hans.verkuil@cisco.com>
+In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
+References: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Raw IR events are passed to the raw event thread through a kfifo. The
-size of the event struct is 12 bytes, and space for 512 events is
-reserved in the kfifo (6144 bytes), however this is rounded down to 4096
-bytes (the next power of 2) by __kfifo_alloc().
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-4096 bytes is not divisible by 12 therefore if the fifo fills up, a
-third of a record will be written in the end of the kfifo by
-ir_raw_event_store() because the recsize of the fifo is 0 (it doesn't
-have records). When this is read by ir_raw_event_thread() a corrupted or
-partial record will be read, and in the case of a partial record the
-BUG_ON(retval != sizeof(ev)) gets hit too.
+The vb2_poll function now tests for events and sets POLLPRI accordingly.
+So there it is no longer necessary to test for it in the vivi driver.
 
-According to samples/kfifo/record-example.c struct kfifo_rec_ptr_1 can
-handle records of a length between 0 and 255 bytes, so change struct
-ir_raw_event_ctrl to use that instead of struct kfifo.
-
-Signed-off-by: James Hogan <james.hogan@imgtec.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/rc/rc-core-priv.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/video/vivi.c |    9 +--------
+ 1 files changed, 1 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
-index c6ca870..989ea08 100644
---- a/drivers/media/rc/rc-core-priv.h
-+++ b/drivers/media/rc/rc-core-priv.h
-@@ -35,7 +35,7 @@ struct ir_raw_event_ctrl {
- 	struct list_head		list;		/* to keep track of raw clients */
- 	struct task_struct		*thread;
- 	spinlock_t			lock;
--	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
-+	struct kfifo_rec_ptr_1		kfifo;		/* fifo for the pulse/space durations */
- 	ktime_t				last_event;	/* when last event occurred */
- 	enum raw_event_type		last_type;	/* last event type */
- 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 84ea88d..3983680 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -1058,17 +1058,10 @@ static unsigned int
+ vivi_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct vivi_dev *dev = video_drvdata(file);
+-	struct v4l2_fh *fh = file->private_data;
+ 	struct vb2_queue *q = &dev->vb_vidq;
+-	unsigned int res;
+ 
+ 	dprintk(dev, 1, "%s\n", __func__);
+-	res = vb2_poll(q, file, wait);
+-	if (v4l2_event_pending(fh))
+-		res |= POLLPRI;
+-	else
+-		poll_wait(file, &fh->wait, wait);
+-	return res;
++	return vb2_poll(q, file, wait);
+ }
+ 
+ static int vivi_close(struct file *file)
 -- 
-1.7.2.3
-
+1.7.8.3
 
