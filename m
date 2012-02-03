@@ -1,58 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59764 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751796Ab2BUOhl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Feb 2012 09:37:41 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 05/33] v4l: vdev_to_v4l2_subdev() should have return type "struct v4l2_subdev *"
-Date: Tue, 21 Feb 2012 15:37:39 +0100
-Message-ID: <1872813.c6cpg0FnTW@avalon>
-In-Reply-To: <1329703032-31314-5-git-send-email-sakari.ailus@iki.fi>
-References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-5-git-send-email-sakari.ailus@iki.fi>
+Received: from gir.skynet.ie ([193.1.99.77]:60336 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756499Ab2BCOJF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Feb 2012 09:09:05 -0500
+Date: Fri, 3 Feb 2012 14:09:02 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv20 00/15] Contiguous Memory Allocator
+Message-ID: <20120203140902.GH5796@csn.ul.ie>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-Thanks for the patch.
-
-On Monday 20 February 2012 03:56:44 Sakari Ailus wrote:
-> vdev_to_v4l2_subdev() should return struct v4l2_subdev *, not void *. Fix
-> this.
+On Fri, Feb 03, 2012 at 01:18:43PM +0100, Marek Szyprowski wrote:
+> Welcome everyone again!
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> This is yet another quick update on Contiguous Memory Allocator patches.
+> This version includes another set of code cleanups requested by Mel
+> Gorman and a few minor bug fixes. I really hope that this version will
+> be accepted for merging and future development will be handled by
+> incremental patches.
 
-Sounds like you've been bitten by this :-)
+FWIW, I've acked all I'm going to ack of this series and made some
+suggestions on follow-ups on the core MM parts that could be done
+in-tree. I think the current reclaim logic is going to burn CMA with
+race conditions but it is a CMA-specific problem so watch out for
+that :)
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+As before, I did not even look at the CMA driver itself or the
+arch-specific parts. I'm assuming Arnd has that side of things covered.
 
-> ---
->  include/media/v4l2-subdev.h |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index feab950..bcaf6b8 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -545,7 +545,7 @@ struct v4l2_subdev {
->  #define media_entity_to_v4l2_subdev(ent) \
->  	container_of(ent, struct v4l2_subdev, entity)
->  #define vdev_to_v4l2_subdev(vdev) \
-> -	video_get_drvdata(vdev)
-> +	((struct v4l2_subdev *)video_get_drvdata(vdev))
-> 
->  /*
->   * Used for storing subdev information per file handle
+Thanks Marek.
+
 -- 
-Regards,
-
-Laurent Pinchart
+Mel Gorman
+SUSE Labs
