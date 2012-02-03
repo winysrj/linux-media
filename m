@@ -1,136 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:42767 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750776Ab2BAFPD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2012 00:15:03 -0500
-Received: by pbdu11 with SMTP id u11so776081pbd.19
-        for <linux-media@vger.kernel.org>; Tue, 31 Jan 2012 21:15:02 -0800 (PST)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, kyungmin.park@samsung.com,
-	k.debski@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH v3] [media] s5p-g2d: Add HFLIP and VFLIP support
-Date: Wed,  1 Feb 2012 10:39:49 +0530
-Message-Id: <1328072989-12498-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:14440 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751425Ab2BCMTE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 07:19:04 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 03 Feb 2012 13:18:45 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 02/15] mm: compaction: introduce isolate_migratepages_range().
+In-reply-to: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1328271538-14502-3-git-send-email-m.szyprowski@samsung.com>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for flipping the image horizontally and vertically.
+From: Michal Nazarewicz <mina86@mina86.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+This commit introduces isolate_migratepages_range() function which
+extracts functionality from isolate_migratepages() so that it can be
+used on arbitrary PFN ranges.
+
+isolate_migratepages() function is implemented as a simple wrapper
+around isolate_migratepages_range().
+
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 ---
- drivers/media/video/s5p-g2d/g2d-hw.c |    5 +++++
- drivers/media/video/s5p-g2d/g2d.c    |   23 ++++++++++++++++++-----
- drivers/media/video/s5p-g2d/g2d.h    |    4 ++++
- 3 files changed, 27 insertions(+), 5 deletions(-)
+ mm/compaction.c |   75 +++++++++++++++++++++++++++++++++++++++---------------
+ 1 files changed, 54 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/media/video/s5p-g2d/g2d-hw.c b/drivers/media/video/s5p-g2d/g2d-hw.c
-index 39937cf..5b86cbe 100644
---- a/drivers/media/video/s5p-g2d/g2d-hw.c
-+++ b/drivers/media/video/s5p-g2d/g2d-hw.c
-@@ -77,6 +77,11 @@ void g2d_set_rop4(struct g2d_dev *d, u32 r)
- 	w(r, ROP4_REG);
- }
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 71a58f6..62902b6 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -250,31 +250,34 @@ typedef enum {
+ 	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
+ } isolate_migrate_t;
  
-+void g2d_set_flip(struct g2d_dev *d, u32 r)
-+{
-+	w(r, SRC_MSK_DIRECT_REG);
-+}
-+
- u32 g2d_cmd_stretch(u32 e)
+-/*
+- * Isolate all pages that can be migrated from the block pointed to by
+- * the migrate scanner within compact_control.
++/**
++ * isolate_migratepages_range() - isolate all migrate-able pages in range.
++ * @zone:	Zone pages are in.
++ * @cc:		Compaction control structure.
++ * @low_pfn:	The first PFN of the range.
++ * @end_pfn:	The one-past-the-last PFN of the range.
++ *
++ * Isolate all pages that can be migrated from the range specified by
++ * [low_pfn, end_pfn).  Returns zero if there is a fatal signal
++ * pending), otherwise PFN of the first page that was not scanned
++ * (which may be both less, equal to or more then end_pfn).
++ *
++ * Assumes that cc->migratepages is empty and cc->nr_migratepages is
++ * zero.
++ *
++ * Apart from cc->migratepages and cc->nr_migratetypes this function
++ * does not modify any cc's fields, in particular it does not modify
++ * (or read for that matter) cc->migrate_pfn.
+  */
+-static isolate_migrate_t isolate_migratepages(struct zone *zone,
+-					struct compact_control *cc)
++static unsigned long
++isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
++			   unsigned long low_pfn, unsigned long end_pfn)
  {
- 	e &= 1;
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index febaa67..c615101 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -178,6 +178,7 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct g2d_ctx *ctx = container_of(ctrl->handler, struct g2d_ctx,
- 								ctrl_handler);
-+
- 	switch (ctrl->id) {
- 	case V4L2_CID_COLORFX:
- 		if (ctrl->val == V4L2_COLORFX_NEGATIVE)
-@@ -185,6 +186,11 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
- 		else
- 			ctx->rop = ROP4_COPY;
- 		break;
-+
-+	case V4L2_CID_HFLIP:
-+		ctx->flip = ctx->ctrl_hflip->val | (ctx->ctrl_vflip->val << 1);
-+		break;
-+
- 	default:
- 		v4l2_err(&ctx->dev->v4l2_dev, "unknown control\n");
- 		return -EINVAL;
-@@ -200,11 +206,7 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
- {
- 	struct g2d_dev *dev = ctx->dev;
+-	unsigned long low_pfn, end_pfn;
+ 	unsigned long last_pageblock_nr = 0, pageblock_nr;
+ 	unsigned long nr_scanned = 0, nr_isolated = 0;
+ 	struct list_head *migratelist = &cc->migratepages;
+ 	isolate_mode_t mode = ISOLATE_ACTIVE|ISOLATE_INACTIVE;
  
--	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 1);
--	if (ctx->ctrl_handler.error) {
--		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
--		return ctx->ctrl_handler.error;
+-	/* Do not scan outside zone boundaries */
+-	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
+-
+-	/* Only scan within a pageblock boundary */
+-	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
+-
+-	/* Do not cross the free scanner or scan within a memory hole */
+-	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
+-		cc->migrate_pfn = end_pfn;
+-		return ISOLATE_NONE;
 -	}
-+	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
+-
+ 	/*
+ 	 * Ensure that there are not too many pages isolated from the LRU
+ 	 * list by either parallel reclaimers or compaction. If there are,
+@@ -283,12 +286,12 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 	while (unlikely(too_many_isolated(zone))) {
+ 		/* async migration should just abort */
+ 		if (!cc->sync)
+-			return ISOLATE_ABORT;
++			return 0;
  
- 	v4l2_ctrl_new_std_menu(
- 		&ctx->ctrl_handler,
-@@ -214,11 +216,20 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
- 		~((1 << V4L2_COLORFX_NONE) | (1 << V4L2_COLORFX_NEGATIVE)),
- 		V4L2_COLORFX_NONE);
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
  
-+
-+	ctx->ctrl_hflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
-+						V4L2_CID_HFLIP, 0, 1, 1, 0);
-+
-+	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
-+						V4L2_CID_VFLIP, 0, 1, 1, 0);
-+
- 	if (ctx->ctrl_handler.error) {
- 		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
- 		return ctx->ctrl_handler.error;
+ 		if (fatal_signal_pending(current))
+-			return ISOLATE_ABORT;
++			return 0;
  	}
  
-+	v4l2_ctrl_cluster(2, &ctx->ctrl_hflip);
+ 	/* Time to isolate some pages for migration */
+@@ -374,10 +377,40 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 	acct_isolated(zone, cc);
+ 
+ 	spin_unlock_irq(&zone->lru_lock);
+-	cc->migrate_pfn = low_pfn;
+ 
+ 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
+ 
++	return low_pfn;
++}
 +
- 	return 0;
++/*
++ * Isolate all pages that can be migrated from the block pointed to by
++ * the migrate scanner within compact_control.
++ */
++static isolate_migrate_t isolate_migratepages(struct zone *zone,
++					struct compact_control *cc)
++{
++	unsigned long low_pfn, end_pfn;
++
++	/* Do not scan outside zone boundaries */
++	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
++
++	/* Only scan within a pageblock boundary */
++	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
++
++	/* Do not cross the free scanner or scan within a memory hole */
++	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
++		cc->migrate_pfn = end_pfn;
++		return ISOLATE_NONE;
++	}
++
++	/* Perform the isolation */
++	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
++	if (!low_pfn)
++		return ISOLATE_ABORT;
++
++	cc->migrate_pfn = low_pfn;
++
+ 	return ISOLATE_SUCCESS;
  }
  
-@@ -564,6 +575,8 @@ static void device_run(void *prv)
- 	g2d_set_dst_addr(dev, vb2_dma_contig_plane_dma_addr(dst, 0));
- 
- 	g2d_set_rop4(dev, ctx->rop);
-+	g2d_set_flip(dev, ctx->flip);
-+
- 	if (ctx->in.c_width != ctx->out.c_width ||
- 		ctx->in.c_height != ctx->out.c_height)
- 		cmd |= g2d_cmd_stretch(1);
-diff --git a/drivers/media/video/s5p-g2d/g2d.h b/drivers/media/video/s5p-g2d/g2d.h
-index 5eae901..78848d2 100644
---- a/drivers/media/video/s5p-g2d/g2d.h
-+++ b/drivers/media/video/s5p-g2d/g2d.h
-@@ -57,8 +57,11 @@ struct g2d_ctx {
- 	struct v4l2_m2m_ctx     *m2m_ctx;
- 	struct g2d_frame	in;
- 	struct g2d_frame	out;
-+	struct v4l2_ctrl	*ctrl_hflip;
-+	struct v4l2_ctrl	*ctrl_vflip;
- 	struct v4l2_ctrl_handler ctrl_handler;
- 	u32 rop;
-+	u32 flip;
- };
- 
- struct g2d_fmt {
-@@ -77,6 +80,7 @@ void g2d_set_dst_addr(struct g2d_dev *d, dma_addr_t a);
- void g2d_start(struct g2d_dev *d);
- void g2d_clear_int(struct g2d_dev *d);
- void g2d_set_rop4(struct g2d_dev *d, u32 r);
-+void g2d_set_flip(struct g2d_dev *d, u32 r);
- u32 g2d_cmd_stretch(u32 e);
- void g2d_set_cmd(struct g2d_dev *d, u32 c);
- 
 -- 
-1.7.4.1
+1.7.1.569.g6f426
 
