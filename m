@@ -1,112 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog104.obsmtp.com ([74.125.149.73]:44146 "EHLO
-	na3sys009aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754182Ab2BEPIJ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Feb 2012 10:08:09 -0500
-Received: by mail-lpp01m010-f53.google.com with SMTP id d3so3067593lah.40
-        for <linux-media@vger.kernel.org>; Sun, 05 Feb 2012 07:08:07 -0800 (PST)
+Received: from gir.skynet.ie ([193.1.99.77]:60148 "EHLO gir.skynet.ie"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754261Ab2BCNxY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Feb 2012 08:53:24 -0500
+Date: Fri, 3 Feb 2012 13:53:20 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 08/15] mm: mmzone: MIGRATE_CMA migration type added
+Message-ID: <20120203135320.GF5796@csn.ul.ie>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+ <1328271538-14502-9-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <4F2D19E2.7060309@iki.fi>
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
-	<201201201729.00230.laurent.pinchart@ideasonboard.com>
-	<000601ccd9ae$5bd5fff0$1381ffd0$%szyprowski@samsung.com>
-	<201201231048.47433.laurent.pinchart@ideasonboard.com>
-	<CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com>
-	<20120125232816.GA15297@valkosipuli.localdomain>
-	<20120126112726.GC3896@phenom.ffwll.local>
-	<4F25278B.3090903@iki.fi>
-	<20120129130340.GA4312@phenom.ffwll.local>
-	<20120130220139.GB16140@valkosipuli.localdomain>
-	<CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
-	<4F2D19E2.7060309@iki.fi>
-Date: Sun, 5 Feb 2012 09:08:07 -0600
-Message-ID: <CAO8GWq=AhLOKOHQ=xBb+T0FEZeTrvbymP9L=pG9FpWq=1wrdiw@mail.gmail.com>
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-From: "Clark, Rob" <rob@ti.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1328271538-14502-9-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 4, 2012 at 5:43 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Rob,
->
-> Clark, Rob wrote:
->> On Mon, Jan 30, 2012 at 4:01 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
->>>
->>>> So to summarize I understand your constraints - gpu drivers have worked
->>>> like v4l a few years ago. The thing I'm trying to achieve with this
->>>> constant yelling is just to raise awereness for these issues so that
->>>> people aren't suprised when drm starts pulling tricks on dma_bufs.
->>>
->>> I think we should be able to mark dma_bufs non-relocatable so also DRM can
->>> work with these buffers. Or alternatively, as Laurent proposed, V4L2 be
->>> prepared for moving the buffers around. Are there other reasons to do so
->>> than paging them out of system memory to make room for something else?
->>
->> fwiw, from GPU perspective, the DRM device wouldn't be actively
->> relocating buffers just for the fun of it.  I think it is more that we
->> want to give the GPU driver the flexibility to relocate when it really
->> needs to.  For example, maybe user has camera app running, then puts
->> it in the background and opens firefox which tries to allocate a big
->> set of pixmaps putting pressure on GPU memory..
->>
->> I guess the root issue is who is doing the IOMMU programming for the
->> camera driver.  I guess if this is something built in to the camera
->> driver then when it calls dma_buf_map() it probably wants some hint
->> that the backing pages haven't moved so in the common case (ie. buffer
->> hasn't moved) it doesn't have to do anything expensive.
->>
->> On omap4 v4l2+drm example I have running, it is actually the DRM
->> driver doing the "IOMMU" programming.. so v4l2 camera really doesn't
->> need to care about it.  (And the IOMMU programming here is pretty
->
-> This part sounds odd to me. Well, I guess it _could_ be done that way,
-> but the ISP IOMMU could be as well different as the one in DRM. That's
-> the case on OMAP 3, for example.
+On Fri, Feb 03, 2012 at 01:18:51PM +0100, Marek Szyprowski wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
+> 
+> The MIGRATE_CMA migration type has two main characteristics:
+> (i) only movable pages can be allocated from MIGRATE_CMA
+> pageblocks and (ii) page allocator will never change migration
+> type of MIGRATE_CMA pageblocks.
+> 
+> This guarantees (to some degree) that page in a MIGRATE_CMA page
+> block can always be migrated somewhere else (unless there's no
+> memory left in the system).
+> 
+> It is designed to be used for allocating big chunks (eg. 10MiB)
+> of physically contiguous memory.  Once driver requests
+> contiguous memory, pages from MIGRATE_CMA pageblocks may be
+> migrated away to create a contiguous block.
+> 
+> To minimise number of migrations, MIGRATE_CMA migration type
+> is the last type tried when page allocator falls back to other
+> migration types then requested.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-Yes, this is a difference between OMAP4 and OMAP3..  although I think
-the intention is that OMAP3 type scenarios, if the IOMMU mapping was
-done through the dma mapping API, then it could still be done (and
-cached) by the exporter.
+Minor comments that can be handled as a follow-up but otherwise
 
->> fast.)  But I suppose this maybe doesn't represent all cases.  I
->> suppose if a camera didn't really sit behind an IOMMU but uses
->> something more like a DMA descriptor list would want to know if it
->> needed to regenerate it's descriptor list.  Or likewise if camera has
->> an IOMMU that isn't really using the IOMMU framework (although maybe
->> that is easier to solve).  But I think a hint returned from
->> dma_buf_map() would do the job?
->
-> An alternative to IOMMU I think in practice would mean CMA-allocated
-> buffers.
->
-> I need to think about this a bit and understand how this would really
-> work to properly comment this.
->
-> For example, how does one mlock() something that isn't mapped to process
-> memory --- think of a dma buffer not mapped to the user space process
-> address space?
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 
-The scatter list that the exporter gives you should be locked/pinned
-already so importer should not need to call mlock()
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index 238fcec..993c375 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -750,6 +750,26 @@ void __meminit __free_pages_bootmem(struct page *page, unsigned int order)
+>  	__free_pages(page, order);
+>  }
+>  
+> +#ifdef CONFIG_CMA
+> +/*
+> + * Free whole pageblock and set it's migration type to MIGRATE_CMA.
+> + */
+> +void __init init_cma_reserved_pageblock(struct page *page)
+> +{
+> +	unsigned i = pageblock_nr_pages;
+> +	struct page *p = page;
+> +
+> +	do {
+> +		__ClearPageReserved(p);
+> +		set_page_count(p, 0);
+> +	} while (++p, --i);
+> +
+> +	set_page_refcounted(page);
+> +	set_pageblock_migratetype(page, MIGRATE_CMA);
+> +	__free_pages(page, pageblock_order);
+> +	totalram_pages += pageblock_nr_pages;
+> +}
+> +#endif
+>  
 
-BR,
--R
+This chunk is not used with the patch. Usually a hunk like this would
+be part of the patch that used it.  Functionally it looks ok but
+I see that the function that calls it is *not* __init. That should
+trigger a section warning. Do a make CONFIG_DEBUG_SECTION_MISMATCH=y
+and clean it up if necessary.
 
-> Cheers,
->
-> --
-> Sakari Ailus
-> sakari.ailus@iki.fi
+>  /*
+>   * The order of subdivision here is critical for the IO subsystem.
+> @@ -875,10 +895,15 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+>   * This array describes the order lists are fallen back to when
+>   * the free lists for the desirable migrate type are depleted
+>   */
+> -static int fallbacks[MIGRATE_TYPES][3] = {
+> -	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+> -	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+> -	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
+> +static int fallbacks[MIGRATE_TYPES][4] = {
+> +	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,     MIGRATE_RESERVE },
+> +	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,     MIGRATE_RESERVE },
+> +#ifdef CONFIG_CMA
+> +	[MIGRATE_MOVABLE]     = { MIGRATE_CMA,         MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
+> +	[MIGRATE_CMA]         = { MIGRATE_RESERVE }, /* Never used */
+> +#else
+> +	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE,   MIGRATE_RESERVE },
+> +#endif
+>  	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
+>  	[MIGRATE_ISOLATE]     = { MIGRATE_RESERVE }, /* Never used */
+>  };
+> @@ -995,11 +1020,18 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+>  			 * pages to the preferred allocation list. If falling
+>  			 * back for a reclaimable kernel allocation, be more
+>  			 * aggressive about taking ownership of free pages
+> +			 *
+> +			 * On the other hand, never change migration
+> +			 * type of MIGRATE_CMA pageblocks nor move CMA
+> +			 * pages on different free lists. We don't
+> +			 * want unmovable pages to be allocated from
+> +			 * MIGRATE_CMA areas.
+>  			 */
+> -			if (unlikely(current_order >= (pageblock_order >> 1)) ||
+> -					start_migratetype == MIGRATE_RECLAIMABLE ||
+> -					page_group_by_mobility_disabled) {
+> -				unsigned long pages;
+> +			if (!is_migrate_cma(migratetype) &&
+> +			    (unlikely(current_order >= pageblock_order / 2) ||
+> +			     start_migratetype == MIGRATE_RECLAIMABLE ||
+> +			     page_group_by_mobility_disabled)) {
+> +				int pages;
+>  				pages = move_freepages_block(zone, page,
+>  								start_migratetype);
+>  
+> @@ -1017,11 +1049,14 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+>  			rmv_page_order(page);
+>  
+>  			/* Take ownership for orders >= pageblock_order */
+> -			if (current_order >= pageblock_order)
+> +			if (current_order >= pageblock_order &&
+> +			    !is_migrate_cma(migratetype))
+>  				change_pageblock_range(page, current_order,
+>  							start_migratetype);
+>  
+> -			expand(zone, page, order, current_order, area, migratetype);
+> +			expand(zone, page, order, current_order, area,
+> +			       is_migrate_cma(migratetype)
+> +			     ? migratetype : start_migratetype);
+>  
+>  			trace_mm_page_alloc_extfrag(page, order, current_order,
+>  				start_migratetype, migratetype);
+> @@ -1072,7 +1107,7 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
+>  			unsigned long count, struct list_head *list,
+>  			int migratetype, int cold)
+>  {
+> -	int i;
+> +	int mt = migratetype, i;
+>  
+>  	spin_lock(&zone->lock);
+>  	for (i = 0; i < count; ++i) {
+> @@ -1093,7 +1128,12 @@ static int rmqueue_bulk(struct zone *zone, unsigned int order,
+>  			list_add(&page->lru, list);
+>  		else
+>  			list_add_tail(&page->lru, list);
+> -		set_page_private(page, migratetype);
+> +#ifdef CONFIG_CMA
+> +		mt = get_pageblock_migratetype(page);
+> +		if (!is_migrate_cma(mt) && mt != MIGRATE_ISOLATE)
+> +			mt = migratetype;
+> +#endif
+> +		set_page_private(page, mt);
+
+Ok, so while I'm not happy with the CONFIG_CMA bit here, so be it for
+now. There are a few things I would like to see with it though in the
+future
+
+1. Add a comment explaning why it is necessary only for CONFIG_CMA.
+   Put all the ugliness in the changelog if you like, it's already
+   been written up in a mail so you can cut and paste the changelog
+
+2. If there exists a second hunk that has this sort of ugliness,
+   consider doing something like
+
+#ifdef CONFIG_CMA
+#define CMA_BUILD 1
+#else
+#define CMA_BUILD 0
+#endif
+
+if (CONFIG_CMA) {
+	int mt = get_pageblock_migratetype(page);
+	if (!is_migrate_cma(mt) && mt != MIGRATE_ISOLATE)
+		mt = migratetype;
+}
+
+That can be slightly tidier and easier to follow while still getting
+optimised out for !CONFIG_CMA
+
+3. Consider trying to get rid of the CONFIG_CMA part entirely. Do this
+   by having a readmostly static variable that is *only* set
+   while MIGRATE_ISOLATE pageblocks exist. If they exist, then
+   unconditionally do this paranoid check documenting that both memory
+   hotplug and CMA benefit from it. The advantage is that you get
+   the careful checking that you want but incur the cost in the page
+   allocator *only* when you are actively trying to allocate with CMA.
+
+e.g.
+
+static int nr_migrate_isolate __read_mostly;
+
+int set_migratetype_isolate(struct page *page)
+{
+	....
+	nr_migrate_isolate++;
+	....
+}
+
+void unset_migratetype_isolate(struct page *page)
+{
+	...
+	nr_migrate_isolate--;
+	...
+}
+
+Be careful to get the accounting of nr_migrate_isolate right during
+memory hot-remove if unset_migratetype_isolate is not called because
+the memory is offlined.In rmqueue_bulk() then do
+
+	/*
+	 * During memory hot-remove and during CMA allocation, be
+	 * careful that pages that were added to the per-cpu
+	 * lists before the pageblock was marked MIGRATE_ISOLATE and
+	 * not moved properly are accounted for properly
+	 */
+	if (nr_migrate_isolate) {
+		int mt = get_pageblock_migratetype(page);
+		if (!is_migrate_cma(mt) && mt != MIGRATE_ISOLATE)
+			mt = migratetype;
+	}
+
+Make sense?
+		
+-- 
+Mel Gorman
+SUSE Labs
