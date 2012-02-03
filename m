@@ -1,117 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:43496 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754907Ab2BJMXw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 07:23:52 -0500
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LZ6006PQFRRVA@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Feb 2012 12:23:51 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZ600MF4FRQP9@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Feb 2012 12:23:50 +0000 (GMT)
-Date: Fri, 10 Feb 2012 13:23:46 +0100
-From: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH] s5p-g2d: Added locking for writing control values to registers
-In-reply-to: <1328876626-6931-1-git-send-email-k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, kyungmin.park@samsung.com,
-	Kamil Debski <k.debski@samsung.com>
-Message-id: <1328876626-6931-2-git-send-email-k.debski@samsung.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:39280 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753366Ab2BCMTF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 07:19:05 -0500
+Date: Fri, 03 Feb 2012 13:18:46 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 03/15] mm: compaction: introduce map_pages()
+In-reply-to: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1328271538-14502-4-git-send-email-m.szyprowski@samsung.com>
 MIME-version: 1.0
 Content-type: TEXT/PLAIN
 Content-transfer-encoding: 7BIT
-References: <1328876626-6931-1-git-send-email-k.debski@samsung.com>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While at it I have removed an unused default case (control fw takes care of that).
+From: Michal Nazarewicz <mina86@mina86.com>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+This commit creates a map_pages() function which map pages freed
+using split_free_pages().  This merely moves some code from
+isolate_freepages() so that it can be reused in other places.
+
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 ---
- drivers/media/video/s5p-g2d/g2d.c |   14 ++++++++++----
- drivers/media/video/s5p-g2d/g2d.h |    2 +-
- 2 files changed, 11 insertions(+), 5 deletions(-)
+ mm/compaction.c |   15 +++++++++++----
+ 1 files changed, 11 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/s5p-g2d/g2d.c b/drivers/media/video/s5p-g2d/g2d.c
-index e41357f..789de74 100644
---- a/drivers/media/video/s5p-g2d/g2d.c
-+++ b/drivers/media/video/s5p-g2d/g2d.c
-@@ -178,6 +178,9 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct g2d_ctx *ctx = container_of(ctrl->handler, struct g2d_ctx,
- 								ctrl_handler);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&ctx->dev->ctrl_lock, flags);
- 	switch (ctrl->id) {
- 	case V4L2_CID_COLORFX:
- 		if (ctrl->val == V4L2_COLORFX_NEGATIVE)
-@@ -190,10 +193,8 @@ static int g2d_s_ctrl(struct v4l2_ctrl *ctrl)
- 		ctx->flip = ctx->ctrl_hflip->val | (ctx->ctrl_vflip->val << 1);
- 		break;
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 62902b6..9bbcc53 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -127,6 +127,16 @@ static bool suitable_migration_target(struct page *page)
+ 	return false;
+ }
  
--	default:
--		v4l2_err(&ctx->dev->v4l2_dev, "unknown control\n");
--		return -EINVAL;
++static void map_pages(struct list_head *list)
++{
++	struct page *page;
++
++	list_for_each_entry(page, list, lru) {
++		arch_alloc_page(page, 0);
++		kernel_map_pages(page, 1, 1);
++	}
++}
++
+ /*
+  * Based on information in the current compact_control, find blocks
+  * suitable for isolating free pages from and then isolate them.
+@@ -206,10 +216,7 @@ static void isolate_freepages(struct zone *zone,
  	}
-+	spin_unlock_irqrestore(&ctx->dev->ctrl_lock, flags);
- 	return 0;
- }
  
-@@ -558,6 +559,7 @@ static void device_run(void *prv)
- 	struct g2d_ctx *ctx = prv;
- 	struct g2d_dev *dev = ctx->dev;
- 	struct vb2_buffer *src, *dst;
-+	unsigned long flags;
- 	u32 cmd = 0;
+ 	/* split_free_page does not map the pages */
+-	list_for_each_entry(page, freelist, lru) {
+-		arch_alloc_page(page, 0);
+-		kernel_map_pages(page, 1, 1);
+-	}
++	map_pages(freelist);
  
- 	dev->curr = ctx;
-@@ -568,6 +570,8 @@ static void device_run(void *prv)
- 	clk_enable(dev->gate);
- 	g2d_reset(dev);
- 
-+	spin_lock_irqsave(&dev->ctrl_lock, flags);
-+
- 	g2d_set_src_size(dev, &ctx->in);
- 	g2d_set_src_addr(dev, vb2_dma_contig_plane_dma_addr(src, 0));
- 
-@@ -582,6 +586,8 @@ static void device_run(void *prv)
- 		cmd |= g2d_cmd_stretch(1);
- 	g2d_set_cmd(dev, cmd);
- 	g2d_start(dev);
-+
-+	spin_unlock_irqrestore(&dev->ctrl_lock, flags);
- }
- 
- static irqreturn_t g2d_isr(int irq, void *prv)
-@@ -671,7 +677,7 @@ static int g2d_probe(struct platform_device *pdev)
- 	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
- 	if (!dev)
- 		return -ENOMEM;
--	spin_lock_init(&dev->irqlock);
-+	spin_lock_init(&dev->ctrl_lock);
- 	mutex_init(&dev->mutex);
- 	atomic_set(&dev->num_inst, 0);
- 	init_waitqueue_head(&dev->irq_queue);
-diff --git a/drivers/media/video/s5p-g2d/g2d.h b/drivers/media/video/s5p-g2d/g2d.h
-index 78848d2..1b82065 100644
---- a/drivers/media/video/s5p-g2d/g2d.h
-+++ b/drivers/media/video/s5p-g2d/g2d.h
-@@ -20,7 +20,7 @@ struct g2d_dev {
- 	struct v4l2_m2m_dev	*m2m_dev;
- 	struct video_device	*vfd;
- 	struct mutex		mutex;
--	spinlock_t		irqlock;
-+	spinlock_t		ctrl_lock;
- 	atomic_t		num_inst;
- 	struct vb2_alloc_ctx	*alloc_ctx;
- 	struct resource		*res_regs;
+ 	cc->free_pfn = high_pfn;
+ 	cc->nr_freepages = nr_freepages;
 -- 
-1.7.0.4
+1.7.1.569.g6f426
 
