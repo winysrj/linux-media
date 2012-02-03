@@ -1,65 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4303 "EHLO mx1.redhat.com"
+Received: from gir.skynet.ie ([193.1.99.77]:59919 "EHLO gir.skynet.ie"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755239Ab2B1R3L (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 12:29:11 -0500
-Message-ID: <4F4D0EE2.4030908@redhat.com>
-Date: Tue, 28 Feb 2012 14:29:06 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+	id S1756277Ab2BCNax (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Feb 2012 08:30:53 -0500
+Date: Fri, 3 Feb 2012 13:30:50 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCH 03/15] mm: compaction: introduce map_pages()
+Message-ID: <20120203133050.GE5796@csn.ul.ie>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+ <1328271538-14502-4-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-To: =?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.mmm@gmail.com>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: cx25840: allow setting radio audio mode stereo/mono
-References: <CAEN_-SB9X_3OrLAG7D6kotprtu6Xza3=XSeVZFsV937tWJK3yQ@mail.gmail.com>
-In-Reply-To: <CAEN_-SB9X_3OrLAG7D6kotprtu6Xza3=XSeVZFsV937tWJK3yQ@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=iso-8859-15
+Content-Disposition: inline
+In-Reply-To: <1328271538-14502-4-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 16-01-2012 13:32, Miroslav Slugeň escreveu:
+On Fri, Feb 03, 2012 at 01:18:46PM +0100, Marek Szyprowski wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
 > 
-> cx25840_s_tuner_radio_support.patch
-
-Signed-off-by: is missing.
+> This commit creates a map_pages() function which map pages freed
+> using split_free_pages().  This merely moves some code from
+> isolate_freepages() so that it can be reused in other places.
 > 
-> 
-> Signed-off-by: Miroslav Slugen <thunder.mmm@gmail.com>
-> From: Miroslav Slugen <thunder.mmm@gmail.com>
-> Date: Mon, 12 Dec 2011 00:19:34 +0100
-> Subject: [PATCH] cx25840_s_tuner should support also radio mode for setting
->  stereo and mono.
-> 
-> ---
-> diff -Naurp a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
-> --- a/drivers/media/video/cx25840/cx25840-core.c	2012-01-12 20:42:45.000000000 +0100
-> +++ b/drivers/media/video/cx25840/cx25840-core.c	2012-01-16 16:18:06.181583026 +0100
-> @@ -1628,9 +1628,14 @@ static int cx25840_s_tuner(struct v4l2_s
->  	struct cx25840_state *state = to_state(sd);
->  	struct i2c_client *client = v4l2_get_subdevdata(sd);
->  
-> -	if (state->radio || is_cx2583x(state))
-> +	if (is_cx2583x(state))
->  		return 0;
->  
-> +	/* FM radio supports only mono and stereo modes */
-> +	if ((state->radio) &&
-> +	    (vt->audmode != V4L2_TUNER_MODE_MONO) &&
-> +	    (vt->audmode != V4L2_TUNER_MODE_STEREO)) return -EINVAL;
-> +
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-Well, this is true for all radio devices: only mono/stereo modes are supported.
-A check like that probably makes sense at the V4L2 core [1], as otherwise, the
-same test would be needed on all radio drivers.
+Acked-by: Mel Gorman <mel@csn.ul.ie>
 
-[1] drivers/media/video/v4l2-ioctl.c
-
-Regards,
-Mauro
-
->  	switch (vt->audmode) {
->  		case V4L2_TUNER_MODE_MONO:
->  			/* mono      -> mono
-> -- 1.7.2.3
-> 
-
+-- 
+Mel Gorman
+SUSE Labs
