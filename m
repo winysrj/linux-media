@@ -1,176 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1859 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753851Ab2BXJAj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 04:00:39 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH] tea575x: fix HW seek
-Date: Fri, 24 Feb 2012 10:00:01 +0100
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-References: <201202181745.49819.linux@rainbow-software.org> <201202211044.14925.hverkuil@xs4all.nl> <201202220935.29155.linux@rainbow-software.org>
-In-Reply-To: <201202220935.29155.linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202241000.01922.hverkuil@xs4all.nl>
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:14440 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754164Ab2BCMTI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 07:19:08 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Fri, 03 Feb 2012 13:18:47 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCH 04/15] mm: compaction: introduce isolate_freepages_range()
+In-reply-to: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1328271538-14502-5-git-send-email-m.szyprowski@samsung.com>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday, February 22, 2012 09:35:28 Ondrej Zary wrote:
-> On Tuesday 21 February 2012, Hans Verkuil wrote:
-> > On Saturday, February 18, 2012 17:45:45 Ondrej Zary wrote:
-> > > Fix HW seek in TEA575x to work properly:
-> > >  - a delay must be present after search start and before first register
-> > > read or the seek does weird things
-> > >  - when the search stops, the new frequency is not available immediately,
-> > > we must wait until it appears in the register (fortunately, we can clear
-> > > the frequency bits when starting the search as it starts at the frequency
-> > > currently set, not from the value written)
-> > >  - sometimes, seek remains on the current frequency (or moves only a
-> > > little), so repeat it until it moves by at least 50 kHz
-> > >
-> > > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> > >
-> > > --- a/sound/i2c/other/tea575x-tuner.c
-> > > +++ b/sound/i2c/other/tea575x-tuner.c
-> > > @@ -89,7 +89,7 @@ static void snd_tea575x_write(struct snd_tea575x *tea,
-> > > unsigned int val) tea->ops->set_pins(tea, 0);
-> > >  }
-> > >
-> > > -static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
-> > > +static u32 snd_tea575x_read(struct snd_tea575x *tea)
-> > >  {
-> > >  	u16 l, rdata;
-> > >  	u32 data = 0;
-> > > @@ -120,6 +120,27 @@ static unsigned int snd_tea575x_read(struct
-> > > snd_tea575x *tea) return data;
-> > >  }
-> > >
-> > > +static void snd_tea575x_get_freq(struct snd_tea575x *tea)
-> > > +{
-> > > +	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
-> > > +
-> > > +	if (freq == 0) {
-> > > +		tea->freq = 0;
-> >
-> > Wouldn't it be better to return -EBUSY in this case? VIDIOC_G_FREQUENCY
-> > should not return frequencies outside the valid frequency range. In this
-> > case returning -EBUSY seems to make more sense to me.
-> 
-> The device returns zero frequency when the scan fails to find a frequency. 
-> This is not an error, just an indication that "nothing" is tuned. So maybe we 
-> can return some bogus frequency in vidioc_g_frequency (like FREQ_LO) in this 
-> case (don't know if -EBUSY will break anything). But HW seek should get the 
-> real one (i.e. zero when it's there).
+From: Michal Nazarewicz <mina86@mina86.com>
 
-How about the following patch? vidioc_g_frequency just returns the last set
-frequency and the hw_seek restores the original frequency if it can't find
-another channel.
+This commit introduces isolate_freepages_range() function which
+generalises isolate_freepages_block() so that it can be used on
+arbitrary PFN ranges.
 
-Also note that the check for < 50 kHz in hw_seek actually checked for < 500 kHz.
-I've fixed that, but I can't test it.
+isolate_freepages_block() is left with only minor changes.
 
-Do you also know what happens at the boundaries of the frequency range? Does
-it wrap around, or do you get a timeout?
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+---
+ mm/compaction.c |  111 ++++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 93 insertions(+), 18 deletions(-)
 
-Regards,
-
-	Hans
-
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index 474bb81..1bdf1f3 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -120,14 +120,12 @@ static u32 snd_tea575x_read(struct snd_tea575x *tea)
- 	return data;
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 9bbcc53..9fef891 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -54,24 +54,20 @@ static unsigned long release_freepages(struct list_head *freelist)
+ 	return count;
  }
  
--static void snd_tea575x_get_freq(struct snd_tea575x *tea)
-+static u32 snd_tea575x_get_freq(struct snd_tea575x *tea)
+-/* Isolate free pages onto a private freelist. Must hold zone->lock */
+-static unsigned long isolate_freepages_block(struct zone *zone,
+-				unsigned long blockpfn,
+-				struct list_head *freelist)
++/*
++ * Isolate free pages onto a private freelist. Caller must hold zone->lock.
++ * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
++ * pages inside of the pageblock (even though it may still end up isolating
++ * some pages).
++ */
++static unsigned long isolate_freepages_block(unsigned long blockpfn,
++				unsigned long end_pfn,
++				struct list_head *freelist,
++				bool strict)
  {
- 	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
+-	unsigned long zone_end_pfn, end_pfn;
+ 	int nr_scanned = 0, total_isolated = 0;
+ 	struct page *cursor;
  
--	if (freq == 0) {
--		tea->freq = 0;
--		return;
+-	/* Get the last PFN we should scan for free pages at */
+-	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+-	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
+-
+-	/* Find the first usable PFN in the block to initialse page cursor */
+-	for (; blockpfn < end_pfn; blockpfn++) {
+-		if (pfn_valid_within(blockpfn))
+-			break;
 -	}
-+	if (freq == 0)
-+		return freq;
+ 	cursor = pfn_to_page(blockpfn);
  
- 	/* freq *= 12.5 */
- 	freq *= 125;
-@@ -138,7 +136,7 @@ static void snd_tea575x_get_freq(struct snd_tea575x *tea)
- 	else
- 		freq -= TEA575X_FMIF;
+ 	/* Isolate free pages. This assumes the block is valid */
+@@ -79,15 +75,23 @@ static unsigned long isolate_freepages_block(struct zone *zone,
+ 		int isolated, i;
+ 		struct page *page = cursor;
  
--	tea->freq = clamp(freq * 16, FREQ_LO, FREQ_HI); /* from kHz */
-+	return clamp(freq * 16, FREQ_LO, FREQ_HI); /* from kHz */
+-		if (!pfn_valid_within(blockpfn))
++		if (!pfn_valid_within(blockpfn)) {
++			if (strict)
++				return 0;
+ 			continue;
++		}
+ 		nr_scanned++;
+ 
+-		if (!PageBuddy(page))
++		if (!PageBuddy(page)) {
++			if (strict)
++				return 0;
+ 			continue;
++		}
+ 
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
++		if (!isolated && strict)
++			return 0;
+ 		total_isolated += isolated;
+ 		for (i = 0; i < isolated; i++) {
+ 			list_add(&page->lru, freelist);
+@@ -105,6 +109,73 @@ static unsigned long isolate_freepages_block(struct zone *zone,
+ 	return total_isolated;
  }
  
- static void snd_tea575x_set_freq(struct snd_tea575x *tea)
-@@ -224,8 +222,6 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- 	if (f->tuner != 0)
- 		return -EINVAL;
- 	f->type = V4L2_TUNER_RADIO;
--	if (!tea->cannot_read_data)
--		snd_tea575x_get_freq(tea);
- 	f->frequency = tea->freq;
- 	return 0;
- }
-@@ -248,14 +244,12 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 					struct v4l2_hw_freq_seek *a)
- {
- 	struct snd_tea575x *tea = video_drvdata(file);
--	int i, old_freq;
- 	unsigned long timeout;
-+	int i;
- 
- 	if (tea->cannot_read_data)
- 		return -ENOTTY;
- 
--	snd_tea575x_get_freq(tea);
--	old_freq = tea->freq;
- 	/* clear the frequency, HW will fill it in */
- 	tea->val &= ~TEA575X_BIT_FREQ_MASK;
- 	tea->val |= TEA575X_BIT_SEARCH;
-@@ -271,26 +265,33 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 		if (schedule_timeout_interruptible(msecs_to_jiffies(10))) {
- 			/* some signal arrived, stop search */
- 			tea->val &= ~TEA575X_BIT_SEARCH;
--			snd_tea575x_write(tea, tea->val);
-+			snd_tea575x_set_freq(tea);
- 			return -ERESTARTSYS;
- 		}
- 		if (!(snd_tea575x_read(tea) & TEA575X_BIT_SEARCH)) {
-+			u32 freq;
++/**
++ * isolate_freepages_range() - isolate free pages.
++ * @start_pfn: The first PFN to start isolating.
++ * @end_pfn:   The one-past-last PFN.
++ *
++ * Non-free pages, invalid PFNs, or zone boundaries within the
++ * [start_pfn, end_pfn) range are considered errors, cause function to
++ * undo its actions and return zero.
++ *
++ * Otherwise, function returns one-past-the-last PFN of isolated page
++ * (which may be greater then end_pfn if end fell in a middle of
++ * a free page).
++ */
++static unsigned long
++isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long isolated, pfn, block_end_pfn, flags;
++	struct zone *zone = NULL;
++	LIST_HEAD(freelist);
 +
- 			/* Found a frequency, wait until it can be read */
- 			for (i = 0; i < 100; i++) {
- 				msleep(10);
--				snd_tea575x_get_freq(tea);
--				if (tea->freq != 0) /* available */
-+				freq = snd_tea575x_get_freq(tea);
-+				if (freq) /* available */
- 					break;
- 			}
-+			if (freq == 0) /* shouldn't happen */
-+				break;
- 			/* if we moved by less than 50 kHz, continue seeking */
--			if (abs(old_freq - tea->freq) < 16 * 500) {
-+			if (abs(tea->freq - freq) < 16 * 50) {
- 				snd_tea575x_write(tea, tea->val);
- 				continue;
- 			}
-+			tea->freq = freq;
- 			tea->val &= ~TEA575X_BIT_SEARCH;
- 			return 0;
- 		}
- 	}
-+	tea->val &= ~TEA575X_BIT_SEARCH;
-+	snd_tea575x_set_freq(tea);
- 	return -ETIMEDOUT;
- }
++	if (pfn_valid(start_pfn))
++		zone = page_zone(pfn_to_page(start_pfn));
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn += isolated) {
++		if (!pfn_valid(pfn) || zone != page_zone(pfn_to_page(pfn)))
++			break;
++
++		/*
++		 * On subsequent iterations ALIGN() is actually not needed,
++		 * but we keep it that we not to complicate the code.
++		 */
++		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
++		block_end_pfn = min(block_end_pfn, end_pfn);
++
++		spin_lock_irqsave(&zone->lock, flags);
++		isolated = isolate_freepages_block(pfn, block_end_pfn,
++						   &freelist, true);
++		spin_unlock_irqrestore(&zone->lock, flags);
++
++		/*
++		 * In strict mode, isolate_freepages_block() returns 0 if
++		 * there are any holes in the block (ie. invalid PFNs or
++		 * non-free pages).
++		 */
++		if (!isolated)
++			break;
++
++		/*
++		 * If we managed to isolate pages, it is always (1 << n) *
++		 * pageblock_nr_pages for some non-negative n.  (Max order
++		 * page may span two pageblocks).
++		 */
++	}
++
++	/* split_free_page does not map the pages */
++	map_pages(&freelist);
++
++	if (pfn < end_pfn) {
++		/* Loop terminated early, cleanup. */
++		release_freepages(&freelist);
++		return 0;
++	}
++
++	/* We don't use freelists for anything. */
++	return pfn;
++}
++
+ /* Returns true if the page is within a block suitable for migration to */
+ static bool suitable_migration_target(struct page *page)
+ {
+@@ -145,7 +216,7 @@ static void isolate_freepages(struct zone *zone,
+ 				struct compact_control *cc)
+ {
+ 	struct page *page;
+-	unsigned long high_pfn, low_pfn, pfn;
++	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
+ 	unsigned long flags;
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
+@@ -165,6 +236,8 @@ static void isolate_freepages(struct zone *zone,
+ 	 */
+ 	high_pfn = min(low_pfn, pfn);
  
++	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
++
+ 	/*
+ 	 * Isolate free pages until enough are available to migrate the
+ 	 * pages on cc->migratepages. We stop searching if the migrate
+@@ -201,7 +274,9 @@ static void isolate_freepages(struct zone *zone,
+ 		isolated = 0;
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		if (suitable_migration_target(page)) {
+-			isolated = isolate_freepages_block(zone, pfn, freelist);
++			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
++			isolated = isolate_freepages_block(pfn, end_pfn,
++							   freelist, false);
+ 			nr_freepages += isolated;
+ 		}
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+-- 
+1.7.1.569.g6f426
+
