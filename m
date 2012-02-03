@@ -1,149 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:60803 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756762Ab2BMPbX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 10:31:23 -0500
-Received: by ghrr11 with SMTP id r11so2376270ghr.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 07:31:23 -0800 (PST)
-Date: Mon, 13 Feb 2012 23:31:38 +0800
-From: "=?utf-8?B?bmliYmxlLm1heA==?=" <nibble.max@gmail.com>
-To: "=?utf-8?B?S29uc3RhbnRpbiBEaW1pdHJvdg==?=" <kosio.dimitrov@gmail.com>
-Cc: "=?utf-8?B?bGludXgtbWVkaWE=?=" <linux-media@vger.kernel.org>,
-	"=?utf-8?B?QW5kcmVhcyBNYWly?=" <amair.sob@googlemail.com>
-References: <CAJZeATR2RcbhH9zNQwkHRoy4hKTK02xzk8LBwCzvkSisoZePCg@mail.gmail.com>
-Subject: =?utf-8?B?UmU6IFJlOiBNeXN0aXF1ZSBTYVRpWC1TMiBTa3kgWHByZXNzIERVQUwgY2FyZA==?=
-Message-ID: <201202132331357092722@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain;
-	charset="utf-8"
-Content-Transfer-Encoding: base64
+Received: from mtv-iport-4.cisco.com ([173.36.130.15]:60053 "EHLO
+	mtv-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755085Ab2BCByi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 20:54:38 -0500
+Message-ID: <4F2B3F53.7040601@cisco.com>
+Date: Thu, 02 Feb 2012 17:58:43 -0800
+From: Enke Chen <enkechen@cisco.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Davide Libenzi <davidel@xmailserver.org>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Enke Chen <enkechen@cisco.com>
+Subject: Re: [RFCv7 PATCH 0/4] Add poll_requested_events() function.
+References: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGVsbG8gS29uc3RhbnRpbiwNCkkgdGhpbmsgIkJlc3R1bmFyIiBkbyBtYWtlIHRoZSB0d28gd3Jv
-bmcgdGhpbmdzLg0KT25lLCB0aGV5IHB1dCB0aGUgY29weXJpZ2h0IHdpdGhvdXQgeW91ciBwZXJt
-aXNzaW9uLiANCkJ1dCBJIGRvdXRlIHRoYXQgeW91IGNvcHkgYW5kIHBhc3RlIHRoZSBNb250YWdl
-IFRlY2hub2xvZ3kncyByZWZlcmVuY2UgY29kZSBhbmQgd2h5IG5vdCBwdXQgTW9udGFnZSBjb3B5
-cmlnaHQ/DQpUd28sIHRoZXkgd3JpdGUgdGhlIGNvZGUgYmFzZWQgb24gdGhlIGRzMzAwMC5jIGZp
-bGUgd2hpY2ggeW91IGNyZWF0ZWQsIGV2ZW4gdGhleSBlbmhhbmNlIGFuZCBmaXggc29tZSBidWdz
-Lg0KDQpUaGV5IGJ1aWxkIHRoZSBwcm9kdWN0cyBiYXNlZCBvbiBNb250YWdlIFRlY2hub2xvZ3kg
-YWR2YW5jZWQgTTg4RFMzMTAzIGNoaXAsIHdoaWNoIGlzIHRvdGFsbHkgYSBuZXcgY2hpcCBkaWZm
-ZXJlbnQgZnJvbSBvbGQgZHMzMDAwLg0KQW5kIHRoZXkgYXJlIHRoZSBmaXJzdCBjb21wYW55IHRv
-IGFkb3B0IHRoaXMgbmV3IGNoaXAgb24gdGhlIFNhdGVsbGl0ZSBEVkItUzIgdHVuZXIgY2FyZHMu
-DQpUaGV5IGRvIHRoZSByaWdodCB0aGluZyBub3cgdGhhdCBjcmVhdGUgYSBuZXcgZmlsZSBuYW1l
-ZCBtODhkczMxMDMuYyBmb3IgdGhlIG5ldyBjaGlwIGluIGxpbnV4IG1lZGlhIHRyZWUuDQpodHRw
-Oi8vd3d3LmR2YnNreS5uZXQvZG93bmxvYWQvYnN0LXBhdGNoLnRhci5neiANCg0KQnIsDQoNCjIw
-MTItMDItMTMgDQoNCg0KDQpuaWJibGUubWF4IA0KDQoNCg0K5Y+R5Lu25Lq677yaIEtvbnN0YW50
-aW4gRGltaXRyb3YgDQrlj5HpgIHml7bpl7TvvJogMjAxMS0xMi0yOSAgMTg6MjU6MzcgDQrmlLbk
-u7bkurrvvJogQW5kcmVhcyBNYWlyIA0K5oqE6YCB77yaIGxpbnV4LW1lZGlhIA0K5Li76aKY77ya
-IFJlOiBNeXN0aXF1ZSBTYVRpWC1TMiBTa3kgWHByZXNzIERVQUwgY2FyZCANCmhlbGxvIEFuZHJl
-YXMsDQppJ3ZlIGNoZWNrZWQgdGhlIExpbnV4IGRyaXZlcnMgZm9yIHRoZSBjYXJkIHlvdSByZWZl
-cnJlZCB0byBhbmQNCndob2V2ZXIgbWFkZSBpdCBpcyBicmVha2luZyBhbGwgdGhlIHJ1bGVzIGNs
-YWltaW5nIGNvcHlyaWdodCBvdmVyIHRoZQ0Kd2hvbGUgZHJpdmVyIGFkZGluZyBhdCB0aGUgYmVn
-aW5uaW5nOg0KIkNvcHlyaWdodCAoQykgMjAxMCBCZXN0dW5hciBJbmMuIg0Kd2hlbiB0aGV5IGp1
-c3QgcGF0Y2hlZCB0aGUgZHJpdmVyIHZlcnkgc2xpZ2h0bHkgYWRkaW5nIG9ubHkgbmV3DQppbml0
-aWFsaXphdGlvbiB2YWx1ZXMgLSBpZiB0aGV5IHdpc2ggdGhleSBjYW4gY2xhaW0gY29weXJpZ2h0
-IG9ubHkNCm92ZXIgdGhvc2Ugc21hbGwgY2hhbmdlcyAoZXZlbiB0aGV5IGFyZSBqdXN0IG51bWJl
-ciBjb25zdGFudHMgcHJvdmlkZWQNCmJ5IHRoZSBjaGlwIG1ha2VyKS4gaW4gYW55IGNhc2UgdGhh
-dCdzIHJpZGljdWxvdXMsIGJlY2F1c2UgaSBtYWRlIHRoYXQNCmRyaXZlciBhbmQgdGhlIGNvcHly
-aWdodCBub3RpY2UgaXM6DQpodHRwOi8vZ2l0LmxpbnV4dHYub3JnL21lZGlhX3RyZWUuZ2l0L2Js
-b2IvNjFjNGYyYzgxYzYxZjczNTQ5OTI4ZGZkOWYzZThmMjZhYTM2YThjZjovZHJpdmVycy9tZWRp
-YS9kdmIvZnJvbnRlbmRzL2RzMzAwMC5jDQogICAgTW9udGFnZSBUZWNobm9sb2d5IERTMzAwMC9U
-UzIwMjAgLSBEVkJTL1MyIERlbW9kdWxhdG9yL1R1bmVyIGRyaXZlcg0KICAgIENvcHlyaWdodCAo
-QykgMjAwOSBLb25zdGFudGluIERpbWl0cm92IDxrb3Npby5kaW1pdHJvdkBnbWFpbC5jb20+DQog
-ICAgQ29weXJpZ2h0IChDKSAyMDA5IFR1cmJvU2lnaHQuY29tDQphbmQgaSBzdHJvbmdseSBvcHBv
-c2VkIHRoYXQgY29weXJpZ2h0IG1hc3NhZ2UgY2FuIGJlIGNoYW5nZWQgaW4gdGhlDQp3YXkgbGlr
-ZSB0aGV5IGRpZCBlc3BlY2lhbGx5IG92ZXIgdGhlIGNoYW5nZXMgdGhleSBtYWRlLg0KYWxzbywg
-dGhlIHdob2xlICdkczMwMDAnIGRyaXZlciwgZXZlbiBpdCdzIGxpY2Vuc2VkIHVuZGVyIEdQTCwg
-d2FzDQpzdWJtaXR0ZWQgdG8gdGhlIExpbnV4IGtlcm5lbCB3aXRob3V0IG15IGZvcm1hbCBwZXJt
-aXNzaW9uIHRoYXQgdG8gYmUNCmRvbmUsIGkuZS4geW91IGNhbiB0aGluayBmb3IgdGhhdCBhcyBp
-dCB3YXMgbGVha2VkIHRvIHRoZSBMaW51eCBrZXJuZWwNCmZyb20gdGhpcmQtcGFydGllcyBhbmQg
-bm90IHRoZSBkcml2ZXIgYXV0aG9yIGFuZCBjb3B5cmlnaHQtaG9sZGVyLg0Kc28sIGl0IHNlZW1z
-IHRvIG1lICJCZXN0dW5hciBJbmMiIGlzIHNvbWUgb2JzY3VyZSBDaGluZXNlIGNvbXBhbnkgbW9z
-dA0KcHJvYmFibHkgY2xvbmluZyBoYXJkd2FyZSByYXRoZXIgdGhhbiBzcGVudCBhbnkgdGltZSBk
-b2luZw0KZGV2ZWxvcG1lbnQsIHdoaWNoIG9yIGNvdXJzZSBhbHNvIGRvbid0IGhvbm9yIHRoZSB3
-b3JrIHB1dCBpbg0KZGV2ZWxvcG1lbnQgb2Ygb3Blbi1zb3VyY2UgZHJpdmVyIGZvciB0aGUgY2hp
-cHMgdGhleSdyZSB1c2luZyBhbmQgdHJ5DQp2ZXJ5IGhhcmQgdG8gbWFrZSBpdCBsb29rIGxpa2Ug
-dGhleSBkaWQgaXQgb3IgdGhhdCB0aGV5IGRpZCBzb21ldGhpbmcNCm1vcmUgc2lnbmlmaWNhbnQg
-dGhhbiB3aGF0IHRoZXkgYWN0dWFsbHkgZGlkLiBpJ20gc3VyZSB5b3UgY2FuDQp1bmRlcnN0YW5k
-IG15IHBvc2l0aW9uIGFuZCBteSBvcGluaW9uIHRoYXQgc3VjaCBjb21wYW5pZXMgc2hvdWxkbid0
-IGJlDQpzdXBwb3J0ZWQgaW4gYW55IHBvc3NpYmxlIHdheS4NCmJlc3QgcmVnYXJkcywNCmtvbnN0
-YW50aW4NCk9uIFRodSwgRGVjIDI5LCAyMDExIGF0IDExOjA3IEFNLCBBbmRyZWFzIE1haXIgPGFt
-YWlyLnNvYkBnb29nbGVtYWlsLmNvbT4gd3JvdGU6DQo+IEhlbGxvLA0KPg0KPiBJJ20gdXNpbmcg
-dGhhdCBjYXJkIGluIG15IExpbnV4IFZEUiBib3g6DQo+IGh0dHA6Ly93d3cuZHZic2hvcC5uZXQv
-cHJvZHVjdF9pbmZvLnBocC9pbmZvL3AyNDQwX015c3RpcXVlLVNhVGlYLVMyLVNreS1YcHJlc3Mt
-RFVBTC0tVVNBTFMtLURpc2VxQy0xLTItLVdpbi1MaW51eC5odG1sDQo+DQo+IFRoYXQncyB0aGUg
-bHNwY2kgb3V0cHV0Og0KPiA9PT09PT09PT09PSBTTklQID09PT09PT09PQ0KPiAkIGxzcGNpIC12
-dnZubg0KPiAwMjowMC4wIE11bHRpbWVkaWEgdmlkZW8gY29udHJvbGxlciBbMDQwMF06IENvbmV4
-YW50IFN5c3RlbXMsIEluYy4NCj4gQ1gyMzg4NSBQQ0kgVmlkZW8gYW5kIEF1ZGlvIERlY29kZXIg
-WzE0ZjE6ODg1Ml0gKHJldiAwMikNCj4gICAgICAgIFN1YnN5c3RlbTogRGV2aWNlIFs0MjU0OjA5
-NTJdDQo+ICAgICAgICBDb250cm9sOiBJL08tIE1lbSsgQnVzTWFzdGVyKyBTcGVjQ3ljbGUtIE1l
-bVdJTlYtIFZHQVNub29wLQ0KPiBQYXJFcnItIFN0ZXBwaW5nLSBTRVJSLSBGYXN0QjJCLSBEaXNJ
-TlR4LQ0KPiAgICAgICAgU3RhdHVzOiBDYXArIDY2TUh6LSBVREYtIEZhc3RCMkItIFBhckVyci0g
-REVWU0VMPWZhc3QgPlRBYm9ydC0NCj4gPFRBYm9ydC0gPE1BYm9ydC0gPlNFUlItIDxQRVJSLSBJ
-TlR4LQ0KPiAgICAgICAgTGF0ZW5jeTogMCwgQ2FjaGUgTGluZSBTaXplOiA2NCBieXRlcw0KPiAg
-ICAgICAgSW50ZXJydXB0OiBwaW4gQSByb3V0ZWQgdG8gSVJRIDE2DQo+ICAgICAgICBSZWdpb24g
-MDogTWVtb3J5IGF0IGZlNDAwMDAwICg2NC1iaXQsIG5vbi1wcmVmZXRjaGFibGUpIFtzaXplPTJN
-XQ0KPiAgICAgICAgQ2FwYWJpbGl0aWVzOiBbNDBdIEV4cHJlc3MgKHYxKSBFbmRwb2ludCwgTVNJ
-IDAwDQo+ICAgICAgICAgICAgICAgIERldkNhcDogTWF4UGF5bG9hZCAxMjggYnl0ZXMsIFBoYW50
-RnVuYyAwLCBMYXRlbmN5IEwwcw0KPiA8NjRucywgTDEgPDF1cw0KPiAgICAgICAgICAgICAgICAg
-ICAgICAgIEV4dFRhZy0gQXR0bkJ0bi0gQXR0bkluZC0gUHdySW5kLSBSQkUtIEZMUmVzZXQtDQo+
-ICAgICAgICAgICAgICAgIERldkN0bDogUmVwb3J0IGVycm9yczogQ29ycmVjdGFibGUtIE5vbi1G
-YXRhbC0gRmF0YWwtDQo+IFVuc3VwcG9ydGVkLQ0KPiAgICAgICAgICAgICAgICAgICAgICAgIFJs
-eGRPcmQtIEV4dFRhZy0gUGhhbnRGdW5jLSBBdXhQd3ItIE5vU25vb3ArDQo+ICAgICAgICAgICAg
-ICAgICAgICAgICAgTWF4UGF5bG9hZCAxMjggYnl0ZXMsIE1heFJlYWRSZXEgNTEyIGJ5dGVzDQo+
-ICAgICAgICAgICAgICAgIERldlN0YTogQ29yckVyci0gVW5jb3JyRXJyKyBGYXRhbEVyci0gVW5z
-dXBwUmVxKw0KPiBBdXhQd3ItIFRyYW5zUGVuZC0NCj4gICAgICAgICAgICAgICAgTG5rQ2FwOiBQ
-b3J0ICMwLCBTcGVlZCAyLjVHVC9zLCBXaWR0aCB4MSwgQVNQTSBMMHMgTDEsDQo+IExhdGVuY3kg
-TDAgPDJ1cywgTDEgPDR1cw0KPiAgICAgICAgICAgICAgICAgICAgICAgIENsb2NrUE0tIFN1cnBy
-aXNlLSBMTEFjdFJlcC0gQndOb3QtDQo+ICAgICAgICAgICAgICAgIExua0N0bDogQVNQTSBEaXNh
-YmxlZDsgUkNCIDY0IGJ5dGVzIERpc2FibGVkLSBSZXRyYWluLSBDb21tQ2xrKw0KPiAgICAgICAg
-ICAgICAgICAgICAgICAgIEV4dFN5bmNoLSBDbG9ja1BNLSBBdXRXaWREaXMtIEJXSW50LSBBdXRC
-V0ludC0NCj4gICAgICAgICAgICAgICAgTG5rU3RhOiBTcGVlZCAyLjVHVC9zLCBXaWR0aCB4MSwg
-VHJFcnItIFRyYWluLQ0KPiBTbG90Q2xrKyBETEFjdGl2ZS0gQldNZ210LSBBQldNZ210LQ0KPiAg
-ICAgICAgQ2FwYWJpbGl0aWVzOiBbODBdIFBvd2VyIE1hbmFnZW1lbnQgdmVyc2lvbiAyDQo+ICAg
-ICAgICAgICAgICAgIEZsYWdzOiBQTUVDbGstIERTSSsgRDErIEQyKyBBdXhDdXJyZW50PTBtQQ0K
-PiBQTUUoRDArLEQxKyxEMissRDNob3QrLEQzY29sZC0pDQo+ICAgICAgICAgICAgICAgIFN0YXR1
-czogRDAgTm9Tb2Z0UnN0LSBQTUUtRW5hYmxlLSBEU2VsPTAgRFNjYWxlPTAgUE1FLQ0KPiAgICAg
-ICAgQ2FwYWJpbGl0aWVzOiBbOTBdIFZpdGFsIFByb2R1Y3QgRGF0YQ0KPiAgICAgICAgICAgICAg
-ICBQcm9kdWN0IE5hbWU6ICINCj4gICAgICAgICAgICAgICAgRW5kDQo+ICAgICAgICBDYXBhYmls
-aXRpZXM6IFthMF0gTVNJOiBFbmFibGUtIENvdW50PTEvMSBNYXNrYWJsZS0gNjRiaXQrDQo+ICAg
-ICAgICAgICAgICAgIEFkZHJlc3M6IDAwMDAwMDAwMDAwMDAwMDAgIERhdGE6IDAwMDANCj4gICAg
-ICAgIENhcGFiaWxpdGllczogWzEwMF0gQWR2YW5jZWQgRXJyb3IgUmVwb3J0aW5nDQo+ICAgICAg
-ICAgICAgICAgIFVFU3RhOiAgRExQLSBTREVTLSBUTFAtIEZDUC0gQ21wbHRUTy0gQ21wbHRBYnJ0
-LQ0KPiBVbnhDbXBsdC0gUnhPRi0gTWFsZlRMUC0gRUNSQy0gVW5zdXBSZXErIEFDU1Zpb2wtDQo+
-ICAgICAgICAgICAgICAgIFVFTXNrOiAgRExQLSBTREVTLSBUTFAtIEZDUC0gQ21wbHRUTy0gQ21w
-bHRBYnJ0LQ0KPiBVbnhDbXBsdC0gUnhPRi0gTWFsZlRMUC0gRUNSQy0gVW5zdXBSZXEtIEFDU1Zp
-b2wtDQo+ICAgICAgICAgICAgICAgIFVFU3ZydDogRExQKyBTREVTLSBUTFAtIEZDUCsgQ21wbHRU
-Ty0gQ21wbHRBYnJ0LQ0KPiBVbnhDbXBsdC0gUnhPRisgTWFsZlRMUCsgRUNSQy0gVW5zdXBSZXEt
-IEFDU1Zpb2wtDQo+ICAgICAgICAgICAgICAgIENFU3RhOiAgUnhFcnItIEJhZFRMUC0gQmFkRExM
-UC0gUm9sbG92ZXItIFRpbWVvdXQtIE5vbkZhdGFsRXJyLQ0KPiAgICAgICAgICAgICAgICBDRU1z
-azogIFJ4RXJyLSBCYWRUTFAtIEJhZERMTFAtIFJvbGxvdmVyLSBUaW1lb3V0LSBOb25GYXRhbEVy
-ci0NCj4gICAgICAgICAgICAgICAgQUVSQ2FwOiBGaXJzdCBFcnJvciBQb2ludGVyOiAxNCwgR2Vu
-Q2FwLSBDR2VuRW4tIENoa0NhcC0gQ2hrRW4tDQo+ICAgICAgICBDYXBhYmlsaXRpZXM6IFsyMDBd
-IFZpcnR1YWwgQ2hhbm5lbCA8Pz4NCj4gICAgICAgIEtlcm5lbCBkcml2ZXIgaW4gdXNlOiBjeDIz
-ODg1DQo+ICAgICAgICBLZXJuZWwgbW9kdWxlczogY3gyMzg4NQ0KPiA9PT09PT09PT09PSBTTkFQ
-ID09PT09PT09PQ0KPg0KPiBTbyB0aGlzIGlzIGRpZmZlcmVudCB0byB3aGF0J3Mgd3JpdHRlbiBh
-dA0KPiBodHRwOi8vbGludXh0di5vcmcvd2lraS9pbmRleC5waHAvTXlzdGlxdWVfU2FUaVgtUzJf
-RHVhbA0KPiBJIGd1ZXNzIGl0J3MgbW9yZSBsaWtlIHRoYXQgY2FyZDogaHR0cDovL2xpbnV4dHYu
-b3JnL3dpa2kvaW5kZXgucGhwL0RWQlNLWV9TOTUyDQo+DQo+IEknbSB1c2luZyB0aGUgZHJpdmVy
-cyBmb3VuZCBhdCBodHRwOi8vd3d3LmR2YnNreS5uZXQvU3VwcG9ydC5odG1sDQo+IChodHRwOi8v
-d3d3LmR2YnNreS5uZXQvZG93bmxvYWQvbGludXgtMy4wLW1lZGlhLTIwMTExMDI0LWJzdC0xMTEy
-MDUudGFyLmd6KS4NCj4gSSBkaWRuJ3QgZ2V0IHRoYXQgY2FyZCBydW5uaW5nIHdpdGgga2VybmVs
-IDMuMC42IGFuZCBoYXZlbid0IHNlZW4NCj4gc3VwcG9ydCBmb3IgdGhhdCBjYXJkIGluIGFueSBs
-aW51eHR2Lm9yZyByZXBvc2l0b3J5IEkndmUgbG9va2VkIGludG8uDQo+DQo+IE5vdyBJIHdvbmRl
-cjoNCj4gLSBXaG8gaXMgcmVzcG9uc2libGUgZm9yIHRoYXQgZHJpdmVycz8gU29tZW9uZSBhdCBE
-VkJTa3kubmV0Pw0KPiAtIElzIHRoZXJlIGEgY2hhbmNlIHRvIGdldCB0aGF0IGRyaXZlcnMgaW50
-byB0aGUga2VybmVsPw0KPiAtIEhhcyBhbnlib2R5IGVsc2Ugb24gdGhpcyBsaXN0IHRoaXMgY2Fy
-ZCBydW5uaW5nPw0KPg0KPiBCZXN0IHJlZ2FyZHMsDQo+IEFuZHJlYXMNCj4gLS0NCj4gaHR0cDov
-L2FuZHJlYXMudmRyLWRldmVsb3Blci5vcmcgLS0tIFZEUkFkbWluLUFNICYgRW5pZ21hTkcgJiBW
-RFJTeW1ib2xzDQo+IFZEUiB1c2VyICMzMDMNCj4gLS0NCj4gVG8gdW5zdWJzY3JpYmUgZnJvbSB0
-aGlzIGxpc3Q6IHNlbmQgdGhlIGxpbmUgInVuc3Vic2NyaWJlIGxpbnV4LW1lZGlhIiBpbg0KPiB0
-aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFqb3Jkb21vQHZnZXIua2VybmVsLm9yZw0KPiBNb3Jl
-IG1ham9yZG9tbyBpbmZvIGF0ICBodHRwOi8vdmdlci5rZXJuZWwub3JnL21ham9yZG9tby1pbmZv
-Lmh0bWwNCi0tDQpUbyB1bnN1YnNjcmliZSBmcm9tIHRoaXMgbGlzdDogc2VuZCB0aGUgbGluZSAi
-dW5zdWJzY3JpYmUgbGludXgtbWVkaWEiIGluDQp0aGUgYm9keSBvZiBhIG1lc3NhZ2UgdG8gbWFq
-b3Jkb21vQHZnZXIua2VybmVsLm9yZw0KTW9yZSBtYWpvcmRvbW8gaW5mbyBhdCAgaHR0cDovL3Zn
-ZXIua2VybmVsLm9yZy9tYWpvcmRvbW8taW5mby5odG1sDQo=
+Hi, folks:
+
+I would like to voice my support for Hans' patch.
+
+1) The functionality provided by this patch is needed.  I have been 
+involved in an app that implements a use-land sockets (using FUSE). 
+Passing the accurate poll events is essential in the app.  We have been 
+using a local patch that is similar (but not identical) for more than a 
+year.  IMO the functionality of passing accurate and consistent events 
+to a driver is basic, and should be provided by Linux.
+
+2) The patch is safe as far as I can tell.  Without the patch, unwanted 
+events may be passed to a driver. However once the poll returns to the 
+kernel, the unwanted events would be masked out by the kernel anyway and 
+would not be passed to an app.  Thus a driver that relies on the 
+unwanted events would not work anyway.
+
+Thanks.   -- Enke
+
+On 2/2/12 2:26 AM, Hans Verkuil wrote:
+> Hi all,
+>
+> This is the seventh version of this patch series (the fifth and sixth where
+> never posted and where internal iterations only).
+>
+> Al Viro had concerns about silent API changes. I have made an extensive
+> analysis of that in my comments in patch 2/4.
+>
+> This patch series is rebased to v3.3-rc2. The changes compared to the
+> previously posted version are:
+>
+> - I have renamed the qproc field to pq_proc to prevent any driver that tries
+>    to access that directly to fail. No kernel driver does this, BTW.
+>
+> - I added a new poll_does_not_wait() inline that returns true if it is known
+>    that poll() will not wait on return. This removes the last reason for
+>    looking inside the poll_table struct. include/net/sock.h has been adapted
+>    to use this new inline (and it is the only place inside the kernel that
+>    need this).
+>
+> I hope that the analysis I made answers any remaining concerns about possible
+> silent API changes.
+>
+> This patch series is also available here:
+>
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/pollv7
+>
+> It was suggested to me that creating a new poll system call might be an option
+> as well. I've attempted that as well and code implementing that can be found
+> here:
+>
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/pollwithkey
+>
+> However, I think this turned out to be very messy. And because some drivers
+> call the poll fop directly or through some framework I could not be certain I
+> was not introducing any errors.
+>
+> If it is really required to change the API in some way, then I would suggest
+> changing this:
+>
+> typedef struct poll_table_struct {
+>          poll_queue_proc pq_proc;
+>          unsigned long key;
+> } poll_table;
+>
+> to this:
+>
+> struct poll_table {
+>          poll_queue_proc pq_proc;
+>          unsigned long key;
+> };
+>
+> and adapting all users.
+>
+> However, I honestly do not think this is necessary at all. But if it is the
+> only way to get this in, then I'll do the work. The media/video subsystem really
+> needs this functionality. Also note that previous versions of this patch have
+> been in linux-next for months now.
+>
+> The first version of this patch was posted July 1st, 2011. I really hope that
+> it won't take another six months to get a review from a fs developer. As this
+> LWN article (http://lwn.net/Articles/450658/) said: 'There has been little
+> discussion of the patch; it doesn't seem like there is any real reason for it
+> not to go in for 3.1.'
+>
+> The earliest this can go in now is 3.4. The only reason it takes so long is
+> that it has been almost impossible to get a Ack or comments or even just a
+> simple reply from the fs developers. That is really frustrating, I'm sorry
+> to say.
+>
+> Anyway, comments, reviews, etc. are very welcome.
+>
+> Regards,
+>
+> 	Hans
+>
 
