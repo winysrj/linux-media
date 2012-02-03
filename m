@@ -1,69 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61127 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753795Ab2BUJYp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Feb 2012 04:24:45 -0500
-Date: Tue, 21 Feb 2012 10:24:29 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	s.hauer@pengutronix.de
-Subject: Re: [PATCH] media: i.MX27 camera: Add resizing support.
-In-Reply-To: <CACKLOr2uOab=yS6iE2A871=dEfWH5jFDcoL7FQ2=nKOyJkHN-A@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1202211020040.18412@axis700.grange>
-References: <1329219332-27620-1-git-send-email-javier.martin@vista-silicon.com>
- <Pine.LNX.4.64.1202201413300.2836@axis700.grange>
- <CACKLOr1KT2A1Zd_xsVXPGW8X6e57v6xTZTm46wdfNfwwf9-MYQ@mail.gmail.com>
- <Pine.LNX.4.64.1202210936420.18412@axis700.grange>
- <CACKLOr2uOab=yS6iE2A871=dEfWH5jFDcoL7FQ2=nKOyJkHN-A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1174 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755437Ab2BCJ35 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:29:57 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Davide Libenzi <davidel@xmailserver.org>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Enke Chen <enkechen@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 4/6] videobuf: only start streaming in poll() if so requested by the poll mask.
+Date: Fri,  3 Feb 2012 10:28:43 +0100
+Message-Id: <c9146bb921a78af683ce6f2344472ad37e6c69d5.1328260650.git.hans.verkuil@cisco.com>
+In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
+References: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 21 Feb 2012, javier Martin wrote:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On 21 February 2012 09:39, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> > Hi Javier
-> >
-> > One more thing occurred to me: I don't see anywhere in your patch checking
-> > for supported pixel (fourcc) formats. I don't think the PRP can resize
-> > arbitrary formats? Most likely these would be limited to some YUV, and,
-> > possibly, some RGB formats?
-> 
-> The PrP can resize every format which is supported as input by the eMMa.
-> 
-> Currently, the driver supports 2 input formats: RGB565 and YUV422
-> (YUYV)  (see mx27_emma_prp_table[]).
-
-That's not how I understand it. The mx27_emma_prp_table[] array has 2 
-entries: the first one is indeed configured for RGB565, and the second one 
-is converting input YUV422 to output YUV420. But the former one is not 
-really that specific format, rather it is a generic configuration used as 
-a pass-through mode for generic 16-bit formats.
-
-BTW, does that mean, that on i.MX27 the driver currently doesn't support 
-8-bit formats like Bayer?
-
-Thanks
-Guennadi
-
-> Since the commit of resizing registers is done in the stream_start
-> callback this makes sure that resizing won't be applied to unknown
-> formats.
-> 
-> Regards.
-> -- 
-> Javier Martin
-> Vista Silicon S.L.
-> CDTUC - FASE C - Oficina S-345
-> Avda de los Castros s/n
-> 39005- Santander. Cantabria. Spain
-> +34 942 25 32 60
-> www.vista-silicon.com
-
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/videobuf-core.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/videobuf-core.c b/drivers/media/video/videobuf-core.c
+index de4fa4e..ffdf59c 100644
+--- a/drivers/media/video/videobuf-core.c
++++ b/drivers/media/video/videobuf-core.c
+@@ -1129,6 +1129,7 @@ unsigned int videobuf_poll_stream(struct file *file,
+ 				  struct videobuf_queue *q,
+ 				  poll_table *wait)
+ {
++	unsigned long req_events = poll_requested_events(wait);
+ 	struct videobuf_buffer *buf = NULL;
+ 	unsigned int rc = 0;
+ 
+@@ -1137,7 +1138,7 @@ unsigned int videobuf_poll_stream(struct file *file,
+ 		if (!list_empty(&q->stream))
+ 			buf = list_entry(q->stream.next,
+ 					 struct videobuf_buffer, stream);
+-	} else {
++	} else if (req_events & (POLLIN | POLLRDNORM)) {
+ 		if (!q->reading)
+ 			__videobuf_read_start(q);
+ 		if (!q->reading) {
+-- 
+1.7.8.3
+
