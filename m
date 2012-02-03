@@ -1,97 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:16691 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119Ab2BQTeg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 14:34:36 -0500
-Date: Fri, 17 Feb 2012 20:30:30 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv22 10/16] mm: Serialize access to min_free_kbytes
-In-reply-to: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329507036-24362-11-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:34095 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754066Ab2BCPsU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 10:48:20 -0500
+Received: by vcge1 with SMTP id e1so2665785vcg.19
+        for <linux-media@vger.kernel.org>; Fri, 03 Feb 2012 07:48:19 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <4F212167.9090607@samsung.com>
+References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
+ <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com> <4F212167.9090607@samsung.com>
+From: Pawel Osciak <pawel@osciak.com>
+Date: Fri, 3 Feb 2012 07:47:39 -0800
+Message-ID: <CAMm-=zCfNVP497-4o7FUOjkcQW7F2RPhuPO62YrwK9C_1Z+ctQ@mail.gmail.com>
+Subject: Re: [PATCH 05/10] v4l: add buffer exporting via dmabuf
+To: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
+	daniel@ffwll.ch, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
+	laurent.pinchart@ideasonboard.com
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mel Gorman <mgorman@suse.de>
+Hi Tomasz,
+I like the direction in which you are going with the userspace
+handling. This is almost exactly as I envisioned it. I have one
+comment though:
 
-There is a race between the min_free_kbytes sysctl, memory hotplug
-and transparent hugepage support enablement.  Memory hotplug uses a
-zonelists_mutex to avoid a race when building zonelists. Reuse it to
-serialise watermark updates.
+On Thu, Jan 26, 2012 at 01:48, Tomasz Stanislawski
+<t.stanislaws@samsung.com> wrote:
 
-[a.p.zijlstra@chello.nl: Older patch fixed the race with spinlock]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
----
- mm/page_alloc.c |   23 +++++++++++++++--------
- 1 files changed, 15 insertions(+), 8 deletions(-)
+[snip]
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 5d23933..444e3fd 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -4976,14 +4976,7 @@ static void setup_per_zone_lowmem_reserve(void)
- 	calculate_totalreserve_pages();
- }
- 
--/**
-- * setup_per_zone_wmarks - called when min_free_kbytes changes
-- * or when memory is hot-{added|removed}
-- *
-- * Ensures that the watermark[min,low,high] values for each zone are set
-- * correctly with respect to min_free_kbytes.
-- */
--void setup_per_zone_wmarks(void)
-+static void __setup_per_zone_wmarks(void)
- {
- 	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
- 	unsigned long lowmem_pages = 0;
-@@ -5038,6 +5031,20 @@ void setup_per_zone_wmarks(void)
- 	calculate_totalreserve_pages();
- }
- 
-+/**
-+ * setup_per_zone_wmarks - called when min_free_kbytes changes
-+ * or when memory is hot-{added|removed}
-+ *
-+ * Ensures that the watermark[min,low,high] values for each zone are set
-+ * correctly with respect to min_free_kbytes.
-+ */
-+void setup_per_zone_wmarks(void)
-+{
-+	mutex_lock(&zonelists_mutex);
-+	__setup_per_zone_wmarks();
-+	mutex_unlock(&zonelists_mutex);
-+}
-+
- /*
-  * The inactive anon list should be small enough that the VM never has to
-  * do too much work, but large enough that each inactive page has a chance
+>        /* setup polling */
+>        struct pollfd fds[2] = {
+>                { .fd = f_in, .events = POLLIN },
+>                { .fd = f_out, .events = POLLOUT },
+>        };
+>
+>        while ((ret = poll(fds, 2, 5000)) > 0) {
+>                struct v4l2_buffer buf;
+>                struct v4l2_plane plane;
+>
+>                memset(&buf, 0, sizeof buf);
+>                memset(&plane, 0, sizeof plane);
+>                buf.m.planes = &plane;
+>                buf.length = 1;
+>
+>                if (fds[0].revents & POLLIN) {
+>                        /* dequeue buffer */
+>                        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+>                        buf.memory = V4L2_MEMORY_MMAP;
+>                        ret = ioctl(f_in, VIDIOC_DQBUF, &buf);
+>                        BYE_ON(ret, "VIDIOC_DQBUF failed: %s\n", ERRSTR);
+>
+>                        /* enqueue buffer */
+>                        buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+>                        buf.memory = V4L2_MEMORY_DMABUF;
+>                        plane.m.fd = fd[buf.index];
+>                        ret = ioctl(f_out, VIDIOC_QBUF, &buf);
+>                        BYE_ON(ret, "VIDIOC_QBUF failed: %s\n", ERRSTR);
+>                }
+
+This passes fd, so the OUTPUT driver will get the correct buffer from dmabuf.
+
+>                if (fds[1].revents & POLLOUT) {
+>                        /* dequeue buffer */
+>                        buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
+>                        buf.memory = V4L2_MEMORY_DMABUF;
+>                        ret = ioctl(f_out, VIDIOC_DQBUF, &buf);
+>                        BYE_ON(ret, "VIDIOC_DQBUF failed: %s\n", ERRSTR);
+>
+>                        /* enqueue buffer */
+>                        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
+>                        buf.memory = V4L2_MEMORY_MMAP;
+>                        ret = ioctl(f_in, VIDIOC_QBUF, &buf);
+>                        BYE_ON(ret, "VIDIOC_QBUF failed: %s\n", ERRSTR);
+>                }
+
+This, however, relies on the indexes to be equal for the same
+buffers/planes in both drivers. I don't see why we should restrict
+ourselves to that. In fact, we must not. You should have a reverse
+mapping of fd->index for the INPUT device and use the fd returned in
+buf by DQBUF from OUTPUT device to look-up the correct index to be
+passed to the INPUT device.
+
+>        }
+>
+>        BYE_ON(ret == 0, "polling timeout\n");
+>        BYE_ON(1, "polling stopped: %s\n", ERRSTR);
+>
+>        return 0;
+> }
+
+
+
 -- 
-1.7.1
-
-
+Best regards,
+Pawel Osciak
