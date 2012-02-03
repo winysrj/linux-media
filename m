@@ -1,139 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:28462 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753572Ab2BPRWM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Feb 2012 12:22:12 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LZH007IGXKYXT80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:10 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZH00JKQXKY6C@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:10 +0000 (GMT)
-Date: Thu, 16 Feb 2012 18:22:00 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/6] s5p-fimc: convert to clk_prepare()/clk_unprepare()
-In-reply-to: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtpi3.ngi.it ([88.149.128.33]:36760 "EHLO smtpi3.ngi.it"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755406Ab2BCK2P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 Feb 2012 05:28:15 -0500
+Received: from [127.0.0.1] (unknown [81.174.56.138])
+	by smtpi3.ngi.it (Postfix) with ESMTP id 151AA318CEE
+	for <linux-media@vger.kernel.org>; Fri,  3 Feb 2012 11:20:58 +0100 (CET)
+Message-ID: <4F2BB50A.8080104@robertoragusa.it>
+Date: Fri, 03 Feb 2012 11:20:58 +0100
+From: Roberto Ragusa <mail@robertoragusa.it>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1329412925-5872-2-git-send-email-s.nawrocki@samsung.com>
-References: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
+Subject: Re: DVB TS/PES filters
+References: <20120126154015.01eb2c18@tiber>
+In-Reply-To: <20120126154015.01eb2c18@tiber>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/video/s5p-fimc/fimc-core.c |   29 ++++++++++++++++++++---------
- drivers/media/video/s5p-fimc/mipi-csis.c |   28 +++++++++++++++++++---------
- 2 files changed, 39 insertions(+), 18 deletions(-)
+On 01/26/2012 04:40 PM, Tony Houghton wrote:
+> I could do with a little more information about DMX_SET_PES_FILTER.
+> Specifically I want to use an output type of DMX_OUT_TS_TAP. I believe
+> there's a limit on how many filters can be set, but I don't know whether
+> the kernel imposes such a limit or whether it depends on the hardware,
+> If the latter, how can I read the limit?
+> 
+> I looked at the code for GStreamer's dvbsrc and that defines a limit of
+> 32 filters. It also implies that using the "magic number" 8192 as the
+> pid requests the entire stream.
+> 
+> I can't find information about these things in the API docs. Is there
+> somewhere I can get more details.
+> 
+> If I ended up wanting enough pids to exceed the limit would it work to
+> allow LIMIT - 1 individual pid filters to be set, then after that set
+> one for 8192 instead and clear all the others?
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index 81bcbb9..a6b4580 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1602,24 +1602,35 @@ static void fimc_clk_put(struct fimc_dev *fimc)
- {
- 	int i;
- 	for (i = 0; i < fimc->num_clocks; i++) {
--		if (fimc->clock[i])
--			clk_put(fimc->clock[i]);
-+		if (IS_ERR_OR_NULL(fimc->clock[i]))
-+			continue;
-+		clk_unprepare(fimc->clock[i]);
-+		clk_put(fimc->clock[i]);
-+		fimc->clock[i] = NULL;
- 	}
- }
- 
- static int fimc_clk_get(struct fimc_dev *fimc)
- {
--	int i;
-+	int i, ret;
-+
- 	for (i = 0; i < fimc->num_clocks; i++) {
- 		fimc->clock[i] = clk_get(&fimc->pdev->dev, fimc_clocks[i]);
--		if (!IS_ERR_OR_NULL(fimc->clock[i]))
--			continue;
--		dev_err(&fimc->pdev->dev, "failed to get fimc clock: %s\n",
--			fimc_clocks[i]);
--		return -ENXIO;
-+		if (IS_ERR(fimc->clock[i]))
-+			goto err;
-+		ret = clk_prepare(fimc->clock[i]);
-+		if (ret < 0) {
-+			clk_put(fimc->clock[i]);
-+			fimc->clock[i] = NULL;
-+			goto err;
-+		}
- 	}
--
- 	return 0;
-+err:
-+	fimc_clk_put(fimc);
-+	dev_err(&fimc->pdev->dev, "failed to get clock: %s\n",
-+		fimc_clocks[i]);
-+	return -ENXIO;
- }
- 
- static int fimc_m2m_suspend(struct fimc_dev *fimc)
-diff --git a/drivers/media/video/s5p-fimc/mipi-csis.c b/drivers/media/video/s5p-fimc/mipi-csis.c
-index 130335c..58c4075 100644
---- a/drivers/media/video/s5p-fimc/mipi-csis.c
-+++ b/drivers/media/video/s5p-fimc/mipi-csis.c
-@@ -258,26 +258,36 @@ static void s5pcsis_clk_put(struct csis_state *state)
- {
- 	int i;
- 
--	for (i = 0; i < NUM_CSIS_CLOCKS; i++)
--		if (!IS_ERR_OR_NULL(state->clock[i]))
--			clk_put(state->clock[i]);
-+	for (i = 0; i < NUM_CSIS_CLOCKS; i++) {
-+		if (IS_ERR_OR_NULL(state->clock[i]))
-+			continue;
-+		clk_unprepare(state->clock[i]);
-+		clk_put(state->clock[i]);
-+		state->clock[i] = NULL;
-+	}
- }
- 
- static int s5pcsis_clk_get(struct csis_state *state)
- {
- 	struct device *dev = &state->pdev->dev;
--	int i;
-+	int i, ret;
- 
- 	for (i = 0; i < NUM_CSIS_CLOCKS; i++) {
- 		state->clock[i] = clk_get(dev, csi_clock_name[i]);
--		if (IS_ERR(state->clock[i])) {
--			s5pcsis_clk_put(state);
--			dev_err(dev, "failed to get clock: %s\n",
--				csi_clock_name[i]);
--			return -ENXIO;
-+		if (IS_ERR(state->clock[i]))
-+			goto err;
-+		ret = clk_prepare(state->clock[i]);
-+		if (ret < 0) {
-+			clk_put(state->clock[i]);
-+			state->clock[i] = NULL;
-+			goto err;
- 		}
- 	}
- 	return 0;
-+err:
-+	s5pcsis_clk_put(state);
-+	dev_err(dev, "failed to get clock: %s\n", csi_clock_name[i]);
-+	return -ENXIO;
- }
- 
- static int s5pcsis_s_power(struct v4l2_subdev *sd, int on)
+It has been a long time since I touched this, anyway...
+
+Yes 8192 is "all PIDs"; this has to be supported by the hardware, which
+usually does. All the packets go to the userspace process.
+
+If you ask filters, the kernel uses the HW filters if available/enough,
+otherwise it switches to software filtering at the kernel level. Your application
+sees only the packets it asked, but the kernel may be getting everything
+and filtering itself; this can have some performance implication on slow
+(USB) buses.
+
+I suggest you to experiment a little to discover if I said something wrong
+and if your hardware (driver) behaves as I said.
+
+
 -- 
-1.7.9
-
+   Roberto Ragusa    mail at robertoragusa.it
