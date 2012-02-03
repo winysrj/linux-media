@@ -1,147 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:24810 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751690Ab2BTB5t (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:57:49 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3191 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755435Ab2BCJ34 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:29:56 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 02/33] v4l: Document integer menu controls
-Date: Mon, 20 Feb 2012 03:56:41 +0200
-Message-Id: <1329703032-31314-2-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Cc: Al Viro <viro@zeniv.linux.org.uk>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Davide Libenzi <davidel@xmailserver.org>,
+	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	"David S. Miller" <davem@davemloft.net>,
+	Enke Chen <enkechen@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 5/6] videobuf2-core: also test for pending events.
+Date: Fri,  3 Feb 2012 10:28:44 +0100
+Message-Id: <1f5cb3c703963a39a9ac182af9a3fe50f87b0a72.1328260650.git.hans.verkuil@cisco.com>
+In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
+References: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/compat.xml         |   10 +++++
- Documentation/DocBook/media/v4l/v4l2.xml           |    6 +++
- .../DocBook/media/v4l/vidioc-queryctrl.xml         |   39 +++++++++++++++++++-
- 3 files changed, 53 insertions(+), 2 deletions(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index c93298f..8cd5c96 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2400,6 +2400,16 @@ details.</para>
-       </orderedlist>
-     </section>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Pawel Osciak <pawel@osciak.com>
+---
+ drivers/media/video/videobuf2-core.c |   41 +++++++++++++++++++++++----------
+ 1 files changed, 28 insertions(+), 13 deletions(-)
+
+diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
+index 0b1c771..3786d88 100644
+--- a/drivers/media/video/videobuf2-core.c
++++ b/drivers/media/video/videobuf2-core.c
+@@ -19,6 +19,9 @@
+ #include <linux/slab.h>
+ #include <linux/sched.h>
  
-+    <section>
-+      <title>V4L2 in Linux 3.4</title>
-+      <orderedlist>
-+        <listitem>
-+	  <para>Added integer menus, the new type will be
-+	  V4L2_CTRL_TYPE_INTEGER_MENU.</para>
-+        </listitem>
-+      </orderedlist>
-+    </section>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-fh.h>
++#include <media/v4l2-event.h>
+ #include <media/videobuf2-core.h>
+ 
+ static int debug;
+@@ -1642,15 +1645,28 @@ static int __vb2_cleanup_fileio(struct vb2_queue *q);
+  * For OUTPUT queues, if a buffer is ready to be dequeued, the file descriptor
+  * will be reported as available for writing.
+  *
++ * If the driver uses struct v4l2_fh, then vb2_poll() will also check for any
++ * pending events.
++ *
+  * The return values from this function are intended to be directly returned
+  * from poll handler in driver.
+  */
+ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ {
++	struct video_device *vfd = video_devdata(file);
+ 	unsigned long req_events = poll_requested_events(wait);
+-	unsigned long flags;
+-	unsigned int ret;
+ 	struct vb2_buffer *vb = NULL;
++	unsigned int res = 0;
++	unsigned long flags;
 +
-     <section id="other">
-       <title>Relation of V4L2 to other Linux multimedia APIs</title>
++	if (test_bit(V4L2_FL_USES_V4L2_FH, &vfd->flags)) {
++		struct v4l2_fh *fh = file->private_data;
++
++		if (v4l2_event_pending(fh))
++			res = POLLPRI;
++		else if (req_events & POLLPRI)
++			poll_wait(file, &fh->wait, wait);
++	}
  
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index dcf9e33..ff11a13 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -128,6 +128,12 @@ structs, ioctls) must be noted in more detail in the history chapter
- applications. -->
+ 	/*
+ 	 * Start file I/O emulator only if streaming API has not been used yet.
+@@ -1658,19 +1674,17 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	if (q->num_buffers == 0 && q->fileio == NULL) {
+ 		if (!V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_READ) &&
+ 				(req_events & (POLLIN | POLLRDNORM))) {
+-			ret = __vb2_init_fileio(q, 1);
+-			if (ret)
+-				return POLLERR;
++			if (__vb2_init_fileio(q, 1))
++				return res | POLLERR;
+ 		}
+ 		if (V4L2_TYPE_IS_OUTPUT(q->type) && (q->io_modes & VB2_WRITE) &&
+ 				(req_events & (POLLOUT | POLLWRNORM))) {
+-			ret = __vb2_init_fileio(q, 0);
+-			if (ret)
+-				return POLLERR;
++			if (__vb2_init_fileio(q, 0))
++				return res | POLLERR;
+ 			/*
+ 			 * Write to OUTPUT queue can be done immediately.
+ 			 */
+-			return POLLOUT | POLLWRNORM;
++			return res | POLLOUT | POLLWRNORM;
+ 		}
+ 	}
  
-       <revision>
-+	<revnumber>3.4</revnumber>
-+	<date>2012-01-26</date>
-+	<authorinitials>sa</authorinitials>
-+	<revremark>Added V4L2_CTRL_TYPE_INTEGER_MENU.</revremark>
-+      </revision>
-+      <revision>
- 	<revnumber>3.3</revnumber>
- 	<date>2012-01-11</date>
- 	<authorinitials>hv</authorinitials>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-index 36660d3..505f020 100644
---- a/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-queryctrl.xml
-@@ -215,11 +215,12 @@ the array to zero.</entry>
+@@ -1678,7 +1692,7 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 	 * There is nothing to wait for if no buffers have already been queued.
+ 	 */
+ 	if (list_empty(&q->queued_list))
+-		return POLLERR;
++		return res | POLLERR;
  
-     <table pgwide="1" frame="none" id="v4l2-querymenu">
-       <title>struct <structname>v4l2_querymenu</structname></title>
--      <tgroup cols="3">
-+      <tgroup cols="4">
- 	&cs-str;
- 	<tbody valign="top">
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>id</structfield></entry>
- 	    <entry>Identifies the control, set by the application
- from the respective &v4l2-queryctrl;
-@@ -227,18 +228,38 @@ from the respective &v4l2-queryctrl;
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>index</structfield></entry>
- 	    <entry>Index of the menu item, starting at zero, set by
- 	    the application.</entry>
- 	  </row>
- 	  <row>
-+	    <entry>union</entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
- 	    <entry>__u8</entry>
- 	    <entry><structfield>name</structfield>[32]</entry>
- 	    <entry>Name of the menu item, a NUL-terminated ASCII
--string. This information is intended for the user.</entry>
-+string. This information is intended for the user. This field is valid
-+for <constant>V4L2_CTRL_FLAG_MENU</constant> type controls.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__s64</entry>
-+	    <entry><structfield>value</structfield></entry>
-+	    <entry>
-+              Value of the integer menu item. This field is valid for
-+              <constant>V4L2_CTRL_FLAG_INTEGER_MENU</constant> type
-+              controls.
-+            </entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-+	    <entry></entry>
- 	    <entry><structfield>reserved</structfield></entry>
- 	    <entry>Reserved for future extensions. Drivers must set
- the array to zero.</entry>
-@@ -292,6 +313,20 @@ the menu items can be enumerated with the
- <constant>VIDIOC_QUERYMENU</constant> ioctl.</entry>
- 	  </row>
- 	  <row>
-+	    <entry><constant>V4L2_CTRL_TYPE_INTEGER_MENU</constant></entry>
-+	    <entry>&ge; 0</entry>
-+	    <entry>1</entry>
-+	    <entry>N-1</entry>
-+	    <entry>
-+              The control has a menu of N choices. The values of the
-+              menu items can be enumerated with the
-+              <constant>VIDIOC_QUERYMENU</constant> ioctl. This is
-+              similar to <constant>V4L2_CTRL_TYPE_MENU</constant>
-+              except that instead of strings, the menu items are
-+              signed 64-bit integers.
-+            </entry>
-+	  </row>
-+	  <row>
- 	    <entry><constant>V4L2_CTRL_TYPE_BITMASK</constant></entry>
- 	    <entry>0</entry>
- 	    <entry>n/a</entry>
+ 	poll_wait(file, &q->done_wq, wait);
+ 
+@@ -1693,10 +1707,11 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
+ 
+ 	if (vb && (vb->state == VB2_BUF_STATE_DONE
+ 			|| vb->state == VB2_BUF_STATE_ERROR)) {
+-		return (V4L2_TYPE_IS_OUTPUT(q->type)) ? POLLOUT | POLLWRNORM :
+-			POLLIN | POLLRDNORM;
++		return (V4L2_TYPE_IS_OUTPUT(q->type)) ?
++				res | POLLOUT | POLLWRNORM :
++				res | POLLIN | POLLRDNORM;
+ 	}
+-	return 0;
++	return res;
+ }
+ EXPORT_SYMBOL_GPL(vb2_poll);
+ 
 -- 
-1.7.2.5
+1.7.8.3
 
