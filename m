@@ -1,51 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:50533 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751511Ab2BOPxs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Feb 2012 10:53:48 -0500
-Received: by bkcjm19 with SMTP id jm19so1069389bkc.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2012 07:53:47 -0800 (PST)
-Message-ID: <4F3BD50A.3010608@uni-bielefeld.de>
-Date: Wed, 15 Feb 2012 16:53:46 +0100
-From: Robert Abel <abel@uni-bielefeld.de>
-Reply-To: abel@uni-bielefeld.de
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:45103 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750847Ab2BDPi5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 10:38:57 -0500
+Received: by eekc14 with SMTP id c14so1547199eek.19
+        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 07:38:56 -0800 (PST)
+Message-ID: <4F2D510A.1040503@gmail.com>
+Date: Sat, 04 Feb 2012 16:38:50 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [libv4l] Bytes per Line
-Content-Type: text/plain; charset=ISO-8859-1
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+References: <4F27CF29.5090905@samsung.com> <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi> <3142039.4Ht9bV5jFQ@avalon>
+In-Reply-To: <3142039.4Ht9bV5jFQ@avalon>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-First off, I hope this is the right mailing list I'm writing to.
+On 02/04/2012 12:30 PM, Laurent Pinchart wrote:
+>> I'd be much in favour or using a separate channel ID as Guennadi asked;
+>> that way you could quite probably save one memory copy as well. But if
+>> the hardware already exists and behaves badly there's usually not much
+>> you can do about it.
+> 
+> If I'm not mistaken, the sensor doesn't send data in separate channels but
 
-Basically, I found that libv4l and its conversion functions usually
-choose to ignore v4l2_pix_format.bytesperline, which seems to work out
-most of the time.
+I suspect it might be sending data on separate virtual channels, but the
+bridge won't understand that and will just return one data plane in memory.
+The sensor might well send the data in one channel, I don't know myself yet.
 
-I'm currently working with the mt9v032 camera on a Gumstix Overo board.
-The mt9v032's driver pads output lines to 768 pixels, giving 0x900 bytes
-per line. All code in bayer.c (the camera uses raw bayer pattern) is
-written to assume bytesperline = width and thus everything goes horribly
-wrong.
+In either case we end up with a mixed data in memory, that must be parsed,
+which is likely best done in the user space.
+Also please see my previous answer to Sakari, there is some more details
+there.
 
-I patched the issue for bayer => rgbbgr24 and will possibly fix it for
-bayer => yuv as well.
-However, I am going to run some tests using test patterns comparing
-bayer => rgb to bayer => yuv => rgb, where the bayer => yuv part is done
-in hardware. Yet, the code for yuv => rgb does also not take
-bytesperline into account.
+> interleaves them in a single channel (possibly with headers or fixed-size
+> packets - Sylwester, could you comment on that ?). That makes it pretty
+> difficult to do anything else than pass-through capture.
 
-Is there a general understanding that v4l media drivers must not pad
-their data, or that libv4l is ignoring padding?
-I've worked with some webcams in the past and they all padded their
-data, so I'm wondering if assuming bytesperline = width was done on
-purpose and by design of out of necessity (speed..?) or if it just
-happened to work for most people?
+I'm not entirely sure the sensor doesn't send the data in separate virtual
+channels. Certainly the bridge cannot DMA each channel into separate memory
+buffers.
 
-Thanks,
+--
 
-Robert
+Regards,
+Sylwester
