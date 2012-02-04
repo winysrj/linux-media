@@ -1,228 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:62901 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758083Ab2B2OzO convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Feb 2012 09:55:14 -0500
-Received: by vbbff1 with SMTP id ff1so2758424vbb.19
-        for <linux-media@vger.kernel.org>; Wed, 29 Feb 2012 06:55:14 -0800 (PST)
+Received: from smtp.nokia.com ([147.243.1.47]:50010 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752359Ab2BDLn7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Feb 2012 06:43:59 -0500
+Message-ID: <4F2D19E2.7060309@iki.fi>
+Date: Sat, 04 Feb 2012 13:43:30 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAKnK67TPGB8+HHUW9Ppk8XkLOrXTsYP9TmLmpsdUX-JxmeDNVA@mail.gmail.com>
-References: <CAH9_wRN5=nHtB9M3dL4wvZGL3+mb4_TfS=uPun_13D7n0E3CKA@mail.gmail.com>
-	<CAKnK67T=obVTWkzZqVtv+PninjkbLp1os5AnsoZ+j=NGFFMWLA@mail.gmail.com>
-	<CAH9_wRNGERctBxYT5NNEHOhuzWZYF2yKxG4BA6pzPzBWPy8_3Q@mail.gmail.com>
-	<CAH9_wRN9bA8JTViBA6sWk9aVOU1Pbr5bPFvNh2MCsGUVjnr9qg@mail.gmail.com>
-	<CAKnK67Qk6pJ1LQBsi_V3OfadzEXHV8RnaOOxT3MK7Hu4zsk9dg@mail.gmail.com>
-	<CAH9_wRPu0X29oTcQvFHZou2B9ZTBT74kFbRWBJY2b6x4ftYzEg@mail.gmail.com>
-	<CAKnK67TPGB8+HHUW9Ppk8XkLOrXTsYP9TmLmpsdUX-JxmeDNVA@mail.gmail.com>
-Date: Wed, 29 Feb 2012 20:25:14 +0530
-Message-ID: <CAH9_wRM-2QZkOeWJHPvZcBwRGKxdqefh4fiRzKFtFpWK+ziz4g@mail.gmail.com>
-Subject: Re: Video Capture Issue
-From: Sriram V <vshrirama@gmail.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org
+To: "Clark, Rob" <rob@ti.com>
+CC: Daniel Vetter <daniel@ffwll.ch>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Sumit Semwal <sumit.semwal@ti.com>,
+	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
+	arnd@arndb.de, jesse.barker@linaro.org, patches@linaro.org
+Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
+References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <201201201729.00230.laurent.pinchart@ideasonboard.com> <000601ccd9ae$5bd5fff0$1381ffd0$%szyprowski@samsung.com> <201201231048.47433.laurent.pinchart@ideasonboard.com> <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com> <20120125232816.GA15297@valkosipuli.localdomain> <20120126112726.GC3896@phenom.ffwll.local> <4F25278B.3090903@iki.fi> <20120129130340.GA4312@phenom.ffwll.local> <20120130220139.GB16140@valkosipuli.localdomain> <CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
+In-Reply-To: <CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Aguirre Sergio,
-  1) Looks like it could be a data lane issue. OMAP detects lots of
-ERRSOTSYNCHS errors
-     on the datalanes (CSI2_COMPLEXIO_IRQSTATUS)
-  2)  Even if i configure it to use only one data lane on both sides. It detects
-      errors on other data lanes.
+Hi Rob,
 
-That explains the abnormally high number of these error interrupts and a
-frame completion interrupt once in a while.
+Clark, Rob wrote:
+> On Mon, Jan 30, 2012 at 4:01 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+>>
+>>> So to summarize I understand your constraints - gpu drivers have worked
+>>> like v4l a few years ago. The thing I'm trying to achieve with this
+>>> constant yelling is just to raise awereness for these issues so that
+>>> people aren't suprised when drm starts pulling tricks on dma_bufs.
+>>
+>> I think we should be able to mark dma_bufs non-relocatable so also DRM can
+>> work with these buffers. Or alternatively, as Laurent proposed, V4L2 be
+>> prepared for moving the buffers around. Are there other reasons to do so
+>> than paging them out of system memory to make room for something else?
+> 
+> fwiw, from GPU perspective, the DRM device wouldn't be actively
+> relocating buffers just for the fun of it.  I think it is more that we
+> want to give the GPU driver the flexibility to relocate when it really
+> needs to.  For example, maybe user has camera app running, then puts
+> it in the background and opens firefox which tries to allocate a big
+> set of pixmaps putting pressure on GPU memory..
+> 
+> I guess the root issue is who is doing the IOMMU programming for the
+> camera driver.  I guess if this is something built in to the camera
+> driver then when it calls dma_buf_map() it probably wants some hint
+> that the backing pages haven't moved so in the common case (ie. buffer
+> hasn't moved) it doesn't have to do anything expensive.
+> 
+> On omap4 v4l2+drm example I have running, it is actually the DRM
+> driver doing the "IOMMU" programming.. so v4l2 camera really doesn't
+> need to care about it.  (And the IOMMU programming here is pretty
 
-I guess, I need to check my configuration settings.
+This part sounds odd to me. Well, I guess it _could_ be done that way,
+but the ISP IOMMU could be as well different as the one in DRM. That's
+the case on OMAP 3, for example.
 
-Thanks,
-Sriram
+> fast.)  But I suppose this maybe doesn't represent all cases.  I
+> suppose if a camera didn't really sit behind an IOMMU but uses
+> something more like a DMA descriptor list would want to know if it
+> needed to regenerate it's descriptor list.  Or likewise if camera has
+> an IOMMU that isn't really using the IOMMU framework (although maybe
+> that is easier to solve).  But I think a hint returned from
+> dma_buf_map() would do the job?
 
+An alternative to IOMMU I think in practice would mean CMA-allocated
+buffers.
 
+I need to think about this a bit and understand how this would really
+work to properly comment this.
 
-On Tue, Feb 28, 2012 at 9:12 PM, Aguirre, Sergio <saaguirre@ti.com> wrote:
-> Hi Sriram,
->
-> On Tue, Feb 28, 2012 at 8:46 AM, Sriram V <vshrirama@gmail.com> wrote:
->> Hi Aguirre Sergio,
->>
->> On Tue, Feb 28, 2012 at 9:08 AM, Aguirre, Sergio <saaguirre@ti.com> wrote:
->>> Sriram,
->>>
->>> On Sun, Feb 26, 2012 at 8:54 AM, Sriram V <vshrirama@gmail.com> wrote:
->>>> Hi,
->>>>  When I take the dump of the buffer which is pointed by "DATA MEM
->>>> PING ADDRESS". It always shows 0x55.
->>>>  Even if i write 0x00 to the address. I do notice that it quickly
->>>> changes to 0x55.
->>>>  Under what conditions could this happen? What am i missing here.
->>>
->>> If you're using "yavta" for capture, notice that it clears out the
->>> buffers before queuing them in:
->>>
->>> static int video_queue_buffer(struct device *dev, int index, enum
->>> buffer_fill_mode fill)
->>> {
->>>        struct v4l2_buffer buf;
->>>        int ret;
->>>
->>>        ...
->>>        ...
->>>        if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
->>>                ...
->>>        } else {
->>>                if (fill & BUFFER_FILL_FRAME)
->>>                        memset(dev->buffers[buf.index].mem, 0x55, dev->buffers[index].size);
->>>                if (fill & BUFFER_FILL_PADDING)
->>>                        memset(dev->buffers[buf.index].mem + dev->buffers[index].size,
->>>                               0x55, dev->buffers[index].padding);
->>>        }
->>>        ...
->>> }
->>>
->>> So, just make sure this condition is not met.
->>>
->>>>
->>
->> Unfortunately, this condition is met.  For some reason, ISS thinks
->> it has got valid frame. Whereas the Image data is not populated into
->> the buffers.
->> The register CSI2_CTX_CTRL1_i[COUNT] keeps getting toggled between 0 and 1
->> indicating a frame arrival.
->>
->> I also notice that on some frames, The first 0x200 bytes contains data
->> other than 0x55
->> and the rest are 0x55.
->>
->> Probably this could be related to resolution settings or hsync and
->> vsync settings.
->> Probably, my chip configuration is faulty.
->
-> Hmm, sounds like it.
->
-> Can you try adding this to the top of the file?
->
-> #define DEBUG
->
-> So that the dev_dbg() prints get executed?
->
-> I'm curious to see if you detect any ComplexIO errors on omap4iss_csi2_isr()...
->
->>
->>>>  I do notice that the OMAP4 ISS is tested to work with OV5640 (YUV422
->>>> Frames) and OV5650 (Raw Data)
->>>>  When you say 422 Frames only. Do you mean 422-8Bit Mode?.
->>>
->>> Yes. When saving YUV422 to memory, you can only use this mode AFAIK.
->>>
->>>>
->>>>  I havent tried RAW12 which my device gives, Do i have to update only
->>>> the Data Format Selection register
->>>>  of the ISS  for RAW12?
->>>
->>> Ok, now it makes sense.
->>>
->>> So, if your CSI2 source is giving, you need to make sure:
->>>
->>> CSI2_CTX_CTRL2_0.FORMAT[9:0] is:
->>>
->>> - 0xAC: RAW12 + EXP16
->>> or
->>> - 0x2C: RAW12
->>>
->>> The difference is that the EXP16 variant, will save to memory in
->>> expansion to 2 bytes, instead of 12 bits, so it'll be byte aligned.
->>>
->>> Can you try attached patch?
->>
->> With RAW12 configuration, I dont see any interrupts at all.
->
-> Ok,
->
-> Then this means your CSI2 transmitter (sensor) is actually sending
-> YUV422, and not RAW12.
->
-> Nevermind that patch then...
->
-> Regards,
-> Sergio
->>
->>
->>>
->>> Regards,
->>> Sergio
->>>
->>>>
->>>>  Please advice.
->>>>
->>>>
->>>> On Thu, Feb 23, 2012 at 11:24 PM, Sriram V <vshrirama@gmail.com> wrote:
->>>>> Hi,
->>>>>  1) An Hexdump of the captured file shows 0x55 at all locations.
->>>>>      Is there any buffer location i need to check.
->>>>>  2) I have tried with  "devel" branch.
->>>>>  3) Changing the polarities doesnt help either.
->>>>>  4) The sensor is giving out YUV422 8Bit Mode,
->>>>>      Will 0x52001074 = 0x0A00001E (UYVY Format)  it bypass the ISP
->>>>>       and dump directly into memory.
->>>>>
->>>>> On 2/23/12, Aguirre, Sergio <saaguirre@ti.com> wrote:
->>>>>> Hi Sriram,
->>>>>>
->>>>>> On Thu, Feb 23, 2012 at 11:25 AM, Sriram V <vshrirama@gmail.com> wrote:
->>>>>>> Hi,
->>>>>>>  1) I am trying to get a HDMI to CSI Bridge chip working with OMAP4 ISS.
->>>>>>>      The issue is the captured frames are completely green in color.
->>>>>>
->>>>>> Sounds like the buffer is all zeroes, can you confirm?
->>>>>>
->>>>>>>  2) The Chip is configured to output VGA Color bar sequence with
->>>>>>> YUV422-8Bit and
->>>>>>>       uses datalane 0 only.
->>>>>>>  3) The Format on OMAP4 ISS  is UYVY (Register 0x52001074 = 0x0A00001E)
->>>>>>>  I am trying to directly dump the data into memory without ISP processing.
->>>>>>>
->>>>>>>
->>>>>>>  Please advice.
->>>>>>
->>>>>> Just to be clear on your environment, which branch/commitID are you based
->>>>>> on?
->>>>>>
->>>>>> Regards,
->>>>>> Sergio
->>>>>>
->>>>>>>
->>>>>>> --
->>>>>>> Regards,
->>>>>>> Sriram
->>>>>>> --
->>>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>>
->>>>>
->>>>>
->>>>> --
->>>>> Regards,
->>>>> Sriram
->>>>
->>>>
->>>>
->>>> --
->>>> Regards,
->>>> Sriram
->>
->>
->>
->> --
->> Regards,
->> Sriram
+For example, how does one mlock() something that isn't mapped to process
+memory --- think of a dma buffer not mapped to the user space process
+address space?
 
-
+Cheers,
 
 -- 
-Regards,
-Sriram
+Sakari Ailus
+sakari.ailus@iki.fi
