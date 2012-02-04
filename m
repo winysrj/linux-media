@@ -1,96 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50377 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670Ab2BQSPG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 13:15:06 -0500
-Date: Fri, 17 Feb 2012 20:15:01 +0200
+Received: from smtp.nokia.com ([147.243.128.24]:31125 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750847Ab2BDPoH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Feb 2012 10:44:07 -0500
+Message-ID: <4F2D5231.4000703@iki.fi>
+Date: Sat, 04 Feb 2012 17:43:45 +0200
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC/PATCH 1/6] V4L: Add V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 media
- bus format
-Message-ID: <20120217181501.GH7784@valkosipuli.localdomain>
-References: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
- <1329416639-19454-2-git-send-email-s.nawrocki@samsung.com>
- <20120216194615.GF7784@valkosipuli.localdomain>
- <4F3E6395.4070208@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <4F3E6395.4070208@samsung.com>
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+References: <4F27CF29.5090905@samsung.com> <20120201100007.GA841@valkosipuli.localdomain> <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi> <4F2D4E2D.1030107@gmail.com>
+In-Reply-To: <4F2D4E2D.1030107@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Sylwester,
 
-On Fri, Feb 17, 2012 at 03:26:29PM +0100, Sylwester Nawrocki wrote:
-> On 02/16/2012 08:46 PM, Sakari Ailus wrote:
-> > On Thu, Feb 16, 2012 at 07:23:54PM +0100, Sylwester Nawrocki wrote:
-> >> This patch adds media bus pixel code for the interleaved JPEG/YUYV image
-> >> format used by S5C73MX Samsung cameras. The interleaved image data is
-> >> transferred on MIPI-CSI2 bus as User Defined Byte-based Data.
-> >>
-> >> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> ---
-> >>  include/linux/v4l2-mediabus.h |    3 +++
-> >>  1 files changed, 3 insertions(+), 0 deletions(-)
-> >>
-> >> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-> >> index 5ea7f75..c2f0e4e 100644
-> >> --- a/include/linux/v4l2-mediabus.h
-> >> +++ b/include/linux/v4l2-mediabus.h
-> >> @@ -92,6 +92,9 @@ enum v4l2_mbus_pixelcode {
-> >>  
-> >>  	/* JPEG compressed formats - next is 0x4002 */
-> >>  	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
-> >> +
-> >> +	/* Interleaved JPEG and YUV formats - next is 0x4102 */
-> >> +	V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 = 0x4101,
-> >>  };
-> > 
-> > Thanks for the patch. Just a tiny comment:
-> > 
-> > I'd go with a new hardware-specific buffer range, e.g. 0x5000.
+Sylwester Nawrocki wrote:
+> On 02/04/2012 12:22 PM, Sakari Ailus wrote:
+>> Sylwester Nawrocki wrote:
+>>> On 02/01/2012 11:00 AM, Sakari Ailus wrote:
+>>>> I'd guess that all the ISP would do to such formats is to write them to
+>>>> memory since I don't see much use for either in ISPs --- both typically are
+>>>> output of the ISP.
+>>>
+>>> Yep, correct. In fact in those cases the sensor has complicated ISP built in,
+>>> so everything a bridge have to do is to pass data over to user space.
+>>>
+>>> Also non-image data might need to be passed to user space as well.
+>>
+>> How does one know in the user space which part of the video buffer
+>> contains jpeg data and which part is yuv? Does the data contain some
+>> kind of header, or how is this done currently?
 > 
-> Sure, that makes more sense. But I guess you mean "format" not "buffer" range ?
-
-Yeah, a format that begins a new range.
-
-> > Guennadi also proposed an interesting idea: a "pass-through" format. Does
-> > your format have dimensions that the driver would use for something or is
-> > that just a blob?
+> There is an additional data appended to the image data. Part of it must
+> be retrieved out of the main DMA channel. I someway missed to mention in
+> the previous e-mails that the bridge is somehow retarded, probably because
+> of the way is has been evolving over time. That is, it originally 
+> supported only the parallel video bus and then a MIPI-CSI2 frontend was 
+> added. So it cannot split MIPI-CSI data channels into separate memory 
+> buffers, AFAIK - at this stage. I think it just ignores the VC field of 
+> the Data Identifier (DI), but it's just a guess for now.
 > 
-> It's just a blob for the drivers, dimensions may be needed for subdevs to
-> compute overall size of data for example. But the host driver, in case of
-> Samsung devices, basically just needs to know the total size of frame data.
+> If you look at the S5PV210 datasheet and the MIPI-CSIS device registers,
+> at the end of the IO region it has 4 x ~4kiB internal buffers for 
+> "non-image" data. These buffers must be emptied in the interrupt handler 
+> and I'm going to need this data in user space in order to decode data 
+> from sensors.
 > 
-> I'm afraid the host would have to additionally configure subdevs in the data
-> pipeline in case of hardware-specific format, when we have used a single
-> binary blob media bus format identifier. For example MIPI-CSI2 data format
-> would have to be set up along the pipeline. There might be more attributes
-> in the future like this. Not sure if we want to go that path ?
+> Sounds like a 2-plane buffers is a way to go, one plane for interleaved
+> YUV/JPEG and the second one for the "metadata".
 > 
-> I'll try and see how it would look like with a single "pass-through" format.
-> Probably using g/s_mbus_config operations ?
+> I originally thought about a separate buffer queue at the MIPI-CSIS driver,
+> but it likely would have added unnecessary complication in the applications.
+> 
+>> I'd be much in favour or using a separate channel ID as Guennadi asked;
+>> that way you could quite probably save one memory copy as well. But if
+>> the hardware already exists and behaves badly there's usually not much
+>> you can do about it.
+> 
+> As I explained above I suspect that the sensor sends each image data type
+> on separate channels (I'm not 100% sure) but the bridge is unable to DMA
+> it into separate memory regions.
+> 
+> Currently we have no support in V4L2 for specifying separate image data 
+> format per MIPI-CSI2 channel. Maybe the solution is just about that - 
+> adding support for virtual channels and a possibility to specify an image 
+> format separately per each channel ?
+> Still, there would be nothing telling how the channels are interleaved :-/
 
-I think we could use the framesize control to tell the size of the frame, or
-however it is done for jpeg blobs.
+_If_ the sensor sends YUV and compressed JPEG data in separate CSI-2
+channels then definitely the correct way to implement this is to take
+this kind of setup into account in the frame format description --- we
+do need that quite badly.
 
-The issue I see in the pass-through mode is that the user would have no
-information whatsoever what he's getting. This would be perhaps fixed by
-adding the frame format descriptor: it could contain information how to
-handle the data. (Just thinking out loud. :))
+However, this doesn't really help you with your current problem, and
+perhaps just creating a custom format for your sensor driver is the best
+way to go for the time being. But. When someone attaches this kind of
+sensor to another CSI-2 receiver that can separate the data from
+different channels, I think we should start working towards for a
+correct solution which this driver also should support.
 
-I'm fine keeping this approach with sensor specific pixel code for now at
-least, but we must mark it experimental IMHO.
+With information on the frame format, the CSI-2 hardware could properly
+write the data into two separate buffers. Possibly it should provide two
+video nodes, but I'm not sure about that. A multi-plane buffer is
+another option.
 
-Kind regards,
+Cheers,
 
 -- 
 Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+sakari.ailus@iki.fi
