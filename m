@@ -1,61 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45530 "EHLO
-	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753697Ab2BNHzx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 02:55:53 -0500
-Date: Tue, 14 Feb 2012 16:54:10 +0900
-From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv21 06/16] mm: page_alloc: introduce alloc_contig_range()
-Message-Id: <20120214165410.fb8b68ea.kamezawa.hiroyu@jp.fujitsu.com>
-In-Reply-To: <1328895151-5196-7-git-send-email-m.szyprowski@samsung.com>
-References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
-	<1328895151-5196-7-git-send-email-m.szyprowski@samsung.com>
+Received: from mailout-de.gmx.net ([213.165.64.22]:55187 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1750738Ab2BDJWj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 04:22:39 -0500
+Message-ID: <1328347353.3999.3.camel@Zweitbox>
+Subject: Re: Current drivers for Hauppauge NOVA-S Plus broken (?)
+From: =?ISO-8859-1?Q?J=FCrgen?= Hein <jurhein@gmx.de>
+To: linux-media@vger.kernel.org
+Date: Sat, 04 Feb 2012 10:22:33 +0100
+In-Reply-To: <1328009971.2853.9.camel@Zweitbox>
+References: <1328009971.2853.9.camel@Zweitbox>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 8bit
 Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 10 Feb 2012 18:32:21 +0100
-Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-
-> From: Michal Nazarewicz <mina86@mina86.com>
+Am Dienstag, den 31.01.2012, 12:39 +0100 schrieb Jürgen Hein:
+> Hallo,
 > 
-> This commit adds the alloc_contig_range() function which tries
-> to allocate given range of pages.  It tries to migrate all
-> already allocated pages that fall in the range thus freeing them.
-> Once all pages in the range are freed they are removed from the
-> buddy system thus allocated for the caller to use.
+> with the current drivers from media_build_experimental for hauppauge
+> NOVA-S Plus (Conexant 2388x (bt878 successor) support (VIDEO_CX88)
+> cx8800...)does this here not more. Picture and sound with significant
+> dropouts.
 > 
-> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> Acked-by: Mel Gorman <mel@csn.ul.ie>
-> Tested-by: Rob Clark <rob.clark@linaro.org>
-> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-Hmm, I may have to refactoring memory hot unplug code using this :)
+> With the drivers of 11.2011 is working properly.
+> 
+> 
+I have something wrong?
 
-Thanks,
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Or why do I get no answer? 
+> 
+
+Regards
 
 
