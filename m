@@ -1,67 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58431 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503Ab2BZD13 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 22:27:29 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH 00/11] MT9M032 sensor driver
-Date: Sun, 26 Feb 2012 04:27:26 +0100
-Message-Id: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from smtp.nokia.com ([147.243.1.48]:22204 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754175Ab2BDUXm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 Feb 2012 15:23:42 -0500
+Message-ID: <4F2D93BA.7070703@iki.fi>
+Date: Sat, 04 Feb 2012 22:23:22 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <snjw23@gmail.com>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: Re: [PATCH v2 09/31] v4l: Image source control class
+References: <20120202235231.GC841@valkosipuli.localdomain> <1328226891-8968-9-git-send-email-sakari.ailus@iki.fi> <4F2D7C28.6010909@gmail.com>
+In-Reply-To: <4F2D7C28.6010909@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everybody,
+Hi Sylwester,
 
-Here's a new driver for the Aptina MT9M032 sensor, written by Martin
-Hostettler. I've reviewed the original version posted on the list a couple of
-weeks ago, and agreed with Martin that I would write the cleanup patches I
-deemed necessary and/or useful and post the result. Here it is.
+Thanks for the review!
 
-The first patch is Martin's original driver untouched for ease of review. I
-can squash some of the other patches onto it if needed after review is
-complete.
+Sylwester Nawrocki wrote:
+> On 02/03/2012 12:54 AM, Sakari Ailus wrote:
+>> Add image source control class. This control class is intended to contain
+>> low level controls which deal with control of the image capture process ---
+>> the A/D converter in image sensors, for example.
+>>
+>> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+>> ---
+>>   Documentation/DocBook/media/v4l/controls.xml       |   86 ++++++++++++++++++++
+>>   .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 ++
+>>   drivers/media/video/v4l2-ctrls.c                   |    7 ++
+>>   include/linux/videodev2.h                          |    9 ++
+>>   4 files changed, 108 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+>> index a1be378..6842e80 100644
+>> --- a/Documentation/DocBook/media/v4l/controls.xml
+>> +++ b/Documentation/DocBook/media/v4l/controls.xml
+>> @@ -3379,4 +3379,90 @@ interface and may change in the future.</para>
+>>         </table>
+>>
+>>       </section>
+>> +
+>> +<section id="image-source-controls">
+>> +<title>Image Source Control Reference</title>
+>> +
+>> +<note>
+>> +	<title>Experimental</title>
+>> +
+>> +	<para>This is an<link
+>> +	linkend="experimental">experimental</link>  interface and may
+>> +	change in the future.</para>
+>> +</note>
+>> +
+>> +<para>
+>> +	The Image Source control class is intended for low-level
+>> +	control of image source devices such as image sensors. The
+>> +	devices feature an analogue to digital converter and a bus
+>> +	transmitter to transmit the image data out of the device.
+>> +</para>
+>> +
+>> +<table pgwide="1" frame="none" id="image-source-control-id">
+>> +<title>Image Source Control IDs</title>
+>> +
+>> +<tgroup cols="4">
+>> +	<colspec colname="c1" colwidth="1*" />
+>> +	<colspec colname="c2" colwidth="6*" />
+>> +	<colspec colname="c3" colwidth="2*" />
+>> +	<colspec colname="c4" colwidth="6*" />
+>> +	<spanspec namest="c1" nameend="c2" spanname="id" />
+>> +	<spanspec namest="c2" nameend="c4" spanname="descr" />
+>> +	<thead>
+>> +	<row>
+>> +	<entry spanname="id" align="left">ID</entry>
+>> +	<entry align="left">Type</entry>
+>> +	</row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
+>> +	</row>
+>> +	</thead>
+>> +	<tbody valign="top">
+>> +	<row><entry></entry></row>
+>> +	<row>
+>> +	<entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry>
+>> +	<entry>class</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_VBLANK</constant></entry>
+>> +	<entry>integer</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry spanname="descr">Vertical blanking. The idle
+>> +	    preriod after every frame during which no image data is
+>> +	    produced. The unit of vertical blanking is a line. Every
+>> +	    line has length of the image width plus horizontal
+>> +	    blanking at the pixel clock specified by struct
+>> +	    v4l2_mbus_framefmt<xref linkend="v4l2-mbus-framefmt"
+> 
+> The pixel clock is no longer specified by struct v4l2_mbus_framefmt, it's
+> now determined by V4L2_CID_IMAGE_PROC_LINK_FREQ controls, right ?
 
-Patch 10/11 adds a generic PLL setup code for several Aptina sensors. I will
-post a patch for the MT9P031 sensor driver to use that code separately from
-this set.
+I've had so many references to the pixel rate in the media bus frame
+format that it was inevitable some must have been left. :-o
 
-I would like to push the patches in time for v3.4. Martin, could you please
-review the set and test it with your hardware if possible ?
+The V4L2_CID_IMAGE_PROC_PIXEL_RATE control will replace this.
 
-Laurent Pinchart (10):
-  mt9m032: Reorder code into section and whitespace cleanups
-  mt9m032: Make get/set format/crop operations consistent across
-    drivers
-  mt9m032: Use module_i2c_driver() macro
-  mt9m032: Enclose to_dev() macro argument in brackets
-  mt9m032: Pass an i2c_client pointer to the register read/write
-    functions
-  mt9m032: Put HFLIP and VFLIP controls in a cluster
-  mt9m032: Compute PLL parameters at runtime
-  mt9m032: Remove unneeded register read
-  v4l: Aptina-style sensor PLL support
-  mt9m032: Use generic PLL setup code
+> When you drop the class name from the control names, it is perhaps better
+> to just use V4L2_CID_LINK_FREQUENCY name.
 
-Martin Hostettler (1):
-  v4l: Add driver for Micron MT9M032 camera sensor
+I'll do that to the next patch.set.
 
- drivers/media/video/Kconfig      |   11 +
- drivers/media/video/Makefile     |    5 +
- drivers/media/video/aptina-pll.c |  120 ++++++
- drivers/media/video/aptina-pll.h |   55 +++
- drivers/media/video/mt9m032.c    |  820 ++++++++++++++++++++++++++++++++++++++
- include/media/mt9m032.h          |   36 ++
- 6 files changed, 1047 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/aptina-pll.c
- create mode 100644 drivers/media/video/aptina-pll.h
- create mode 100644 drivers/media/video/mt9m032.c
- create mode 100644 include/media/mt9m032.h
+>> +	    />.</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_HBLANK</constant></entry>
+>> +	<entry>integer</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry spanname="descr">Horizontal blanking. The idle
+>> +	    preriod after every line of image data during which no
+> 
+> s/preriod/period
+
+Fixed.
+
+>> +	    image data is produced. The unit of horizontal blanking is
+>> +	    pixels.</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN</constant></entry>
+>> +	<entry>integer</entry>
+>> +	</row>
+>> +	<row>
+>> +	<entry spanname="descr">Analogue gain is gain affecting
+>> +	    all colour components in the pixel matrix. The gain
+>> +	    operation is performed in the analogue domain before A/D
+>> +	    conversion.
+>> +	</entry>
+>> +	</row>
+>> +	<row><entry></entry></row>
+>> +	</tbody>
+>> +</tgroup>
+>> +</table>
+>> +
+>> +</section>
+>> +
+>>   </section>
+>> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>> index b17a7aa..f420034 100644
+>> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+>> @@ -265,6 +265,12 @@ These controls are described in<xref
+>>   These controls are described in<xref
+>>   		linkend="flash-controls" />.</entry>
+>>   	</row>
+>> +	<row>
+>> +	<entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
+>> +	<entry>0x9d0000</entry>  <entry>The class containing image
+>> +	    source controls. These controls are described in<xref
+>> +	    linkend="image-source-controls" />.</entry>
+>> +	</row>
+>>   	</tbody>
+>>         </tgroup>
+>>       </table>
+>> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+>> index 139ba42..37249b7 100644
+>> --- a/drivers/media/video/v4l2-ctrls.c
+>> +++ b/drivers/media/video/v4l2-ctrls.c
+>> @@ -607,6 +607,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+>>   	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+>>   	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
+>>
+>> +	/* Image source controls */
+>> +	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image source controls";
+>> +	case V4L2_CID_IMAGE_SOURCE_VBLANK:	return "Vertical blanking";
+>> +	case V4L2_CID_IMAGE_SOURCE_HBLANK:	return "Horizontal blanking";
+>> +	case V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN: return "Analogue gain";
+> 
+> All words in control descriptions need to be capitalized. :-)
+
+Fixed.
+
+Kind regards,
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+sakari.ailus@iki.fi
