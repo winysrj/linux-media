@@ -1,93 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:42742 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750840Ab2BEMqa (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 5 Feb 2012 07:46:30 -0500
-Received: by obcva7 with SMTP id va7so5851028obc.19
-        for <linux-media@vger.kernel.org>; Sun, 05 Feb 2012 04:46:30 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54413 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751573Ab2BDLes (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 06:34:48 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+Date: Sat, 04 Feb 2012 12:34:39 +0100
+Message-ID: <4637542.W3k3fJhoQF@avalon>
+In-Reply-To: <4F2A7000.7080201@samsung.com>
+References: <4F27CF29.5090905@samsung.com> <201202021055.19705.laurent.pinchart@ideasonboard.com> <4F2A7000.7080201@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <1328226891-8968-11-git-send-email-sakari.ailus@iki.fi>
-References: <20120202235231.GC841@valkosipuli.localdomain>
-	<1328226891-8968-11-git-send-email-sakari.ailus@iki.fi>
-Date: Sun, 5 Feb 2012 18:16:30 +0530
-Message-ID: <CA+V-a8vvtr=XzpCEQjbsDP3RTenxPpvFHQMFFdS3BA0F_UFo7g@mail.gmail.com>
-Subject: Re: [PATCH v2 11/31] v4l: Document raw bayer 4CC codes
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@samsung.com, riverful@gmail.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sakari,
+Hi Sylwester,
 
-Thanks for the patch.
+On Thursday 02 February 2012 12:14:08 Sylwester Nawrocki wrote:
+> On 02/02/2012 10:55 AM, Laurent Pinchart wrote:
+> > Do all those sensors interleave the data in the same way ? This sounds
+> > quite
+> No, each one uses it's own interleaving method.
+> 
+> > hackish and vendor-specific to me, I'm not sure if we should try to
+> > generalize that. Maybe vendor-specific media bus format codes would be
+> > the way to go. I don't expect ISPs to understand the format, they will
+> > likely be configured in pass-through mode. Instead of adding explicit
+> > support for all those weird formats to all ISP drivers, it might make
+> > sense to add a "binary blob" media bus code to be used by the ISP.
+> 
+> This could work, except that there is no way to match a fourcc with media
+> bus code. Different fourcc would map to same media bus code, making it
+> impossible for the brigde to handle multiple sensors or one sensor
+> supporting multiple interleaved formats. Moreover there is a need to map
+> media bus code to the MIPI-CSI data ID. What if one sensor sends "binary"
+> blob with MIPI-CSI "User Define Data 1" and the other with "User Define
+> Data 2" ?
 
-On 2/3/12, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Document guidelines how 4CC codes should be named. Only raw bayer is
-> included currently. Other formats should be documented later on.
->
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  Documentation/video4linux/4CCs.txt |   32 ++++++++++++++++++++++++++++++++
->  1 files changed, 32 insertions(+), 0 deletions(-)
->  create mode 100644 Documentation/video4linux/4CCs.txt
->
-> diff --git a/Documentation/video4linux/4CCs.txt
-> b/Documentation/video4linux/4CCs.txt
-> new file mode 100644
-> index 0000000..bb4a97d
-> --- /dev/null
-> +++ b/Documentation/video4linux/4CCs.txt
-> @@ -0,0 +1,32 @@
-> +Guidelines for Linux4Linux pixel format 4CCs
-> +============================================
-> +
-> +Guidelines for Video4Linux 4CC codes defined using v4l2_fourcc() are
-> +specified in this document. First of the characters defines the nature of
-> +the pixel format, compression and colour space. The interpretation of the
-> +other three characters depends on the first one.
-> +
-> +Existing 4CCs may not obey these guidelines.
-> +
-> +Formats
-> +=======
-> +
-> +Raw bayer
-> +---------
-> +
-> +The following first charcters are used by raw bayer formats:
-   A small spelling mistake 'charcters', just pointing out since its a
-documentation file :-)
+My gut feeling is that the information should be retrieved from the sensor 
+driver. This is all pretty vendor-specific, and adding explicit support for 
+such sensors to each bridge driver wouldn't be very clean. Could the bridge 
+query the sensor using a subdev operation ?
 
+> Maybe we could create e.g. V4L2_MBUS_FMT_USER?, for each MIPI-CSI User
+> Defined data identifier, but as I remember it was decided not to map
+> MIPI-CSI data codes directly onto media bus pixel codes.
+
+Would setting the format directly on the sensor subdev be an option ?
+
+-- 
 Regards,
---Prabhakar Lad
 
-> +
-> +	B: raw bayer, uncompressed
-> +	b: raw bayer, DPCM compressed
-> +	a: A-law compressed
-> +	u: u-law compressed
-> +
-> +2nd character: pixel order
-> +	B: BGGR
-> +	G: GBRG
-> +	g: GRBG
-> +	R: RGGB
-> +
-> +3rd character: uncompressed bits-per-pixel 0--9, A--
-> +
-> +4th character: compressed bits-per-pixel 0--9, A--
-> --
-> 1.7.2.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+Laurent Pinchart
