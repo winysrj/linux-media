@@ -1,93 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.copreci.es ([194.30.93.3]:62152 "EHLO srvdmz.cp.local"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754601Ab2BJPnN convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 10:43:13 -0500
-Content-class: urn:content-classes:message
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:41295 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750788Ab2BDP0k convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 10:26:40 -0500
+Received: by ghrr11 with SMTP id r11so2091719ghr.19
+        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 07:26:40 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+In-Reply-To: <4F2D1AFD.1070808@mlbassoc.com>
+References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com>
+	<4F182013.90401@mlbassoc.com>
+	<CA+2YH7vMFgzwrdBsXzBdYKG5kb8bTwtPnAnp8z_zjFFQenzzFQ@mail.gmail.com>
+	<201201201319.45490.laurent.pinchart@ideasonboard.com>
+	<4F26D3A4.6010907@mlbassoc.com>
+	<4F2D1AFD.1070808@mlbassoc.com>
+Date: Sat, 4 Feb 2012 16:26:39 +0100
+Message-ID: <CA+2YH7vpny0hpaNdrGwwzN6Q1fkuiNfBhqJXv4orew_S1=nTww@mail.gmail.com>
+Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
+From: Enrico <ebutera@users.berlios.de>
+To: Gary Thomas <gary@mlbassoc.com>
+Cc: linux-media@vger.kernel.org,
+	Javier Martinez Canillas <martinez.javier@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
-Subject: RE: OV2640 and iMX25PDK - help needed
-Date: Fri, 10 Feb 2012 16:38:50 +0100
-Message-ID: <C85ED22A0FD4B54195E2F05309F9D3FF0731261D@CORREO.cp.local>
-References: <C85ED22A0FD4B54195E2F05309F9D3FF07234D15@CORREO.cp.local><Pine.LNX.4.64.1202020040500.28897@axis700.grange><CAOMZO5Cfb=4fkqkmdkN6OcLAZVszxGNB8X6q4bDU_oFwnnjt6Q@mail.gmail.com> <CACKLOr2TMkLjhWMAxuLbjqj4Uin6mx9NeGpzZqJ8u-+f6+JX5w@mail.gmail.com>
-From: "Fernandez Gonzalo" <gfernandez@copreci.es>
-To: <linux-media@vger.kernel.org>
-Cc: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>,
-	"javier Martin" <javier.martin@vista-silicon.com>,
-	"Fabio Estevam" <festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again,
-
->Hi,
->
->On 2 February 2012 15:01, Fabio Estevam <festevam@gmail.com> wrote:
->> On 2/1/12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
->>> Hello Gonzalo
+On Sat, Feb 4, 2012 at 12:48 PM, Gary Thomas <gary@mlbassoc.com> wrote:
+> On 2012-01-30 10:30, Gary Thomas wrote:
+>>
+>> On 2012-01-20 05:19, Laurent Pinchart wrote:
 >>>
->>> On Tue, 31 Jan 2012, Fernandez Gonzalo wrote:
+>>> Hi Enrico,
 >>>
->>>> Hi all,
+>>> On Thursday 19 January 2012 15:17:57 Enrico wrote:
 >>>>
->>>> I've been working for a while with an iMX25PDK using the BSP
-provided by
->>>> Freescale (L2.6.31). The camera driver (V4L2-int) and examples do
-the
->>>> job quite well but I need to move my design to a more recent
-kernel.
->>>> I've been extensively googling but haven't found any info/examples
-about
->>>> how to run the mx2_camera driver in the i.MX25PDK. I'm stuck at
-this,
->>>> could someone point me in the right direction? Thank you in
-advance...
+>>>> On Thu, Jan 19, 2012 at 2:52 PM, Gary Thomas<gary@mlbassoc.com> wrote:
+>>>>>
+>>>>> On 2012-01-19 06:35, Gary Thomas wrote:
+>>>>>>
+>>>>>> My camera init code is attached. In the previous kernel, the I2C bus
+>>>>>> was
+>>>>>> probed implicitly when I initialized the OMAP3ISP. I thought I
+>>>>>> remembered some discussion about how that worked (maybe changing), so
+>>>>>> this is probably
+>>>>>> where the problem starts.
+>>>>>>
+>>>>>> If you have an example, I can check my setup against it.
+>>>>>
+>>>>>
+>>>>> Note: I reworked how the sensor+I2C was initialized to be
+>>>>> omap3_init_camera(&cobra3530p73_isp_platform_data);
+>>>>>
+>>>>>
+>>>>> omap_register_i2c_bus(cobra3530p73_isp_platform_data.subdevs->subdevs[0]
+>>>>> .i2c_adapter_id, 400,
+>>>>>
+>>>>> cobra3530p73_isp_platform_data.subdevs->subdevs[0].board_info, 1);
+>>>>>
+>>>>> The TVP5150 is now found, but 'media-ctl -p' still dies :-(
+>>>>
+>>>>
+>>>> Have a look at [1] (the linux_3.2.bb file to see the list of
+>>>> patches,inside linux-3.2 directory for the actual patches), it's based
+>>>> on mainline kernel 3.2 and the bt656 patches i submitted months ago,
+>>>> it should be easy to adapt it for you board.
+>>>>
+>>>> <rant>
+>>>> Really, there are patches for all these problems since months (from
+>>>> me, Javier, TI), but because no maintainer cared (apart from Laurent)
+>>>> they were never reviewed/applied and there is always someone who comes
+>>>> back with all the usual problems (additional yuv format, bt656 mode,
+>>>> tvp5150 that doesn't work...).
+>>>> </rant>
 >>>
->>> i.MX25PDK is supported in the mainline kernel
->>> (arch/arm/mach-imx/mach-mx25_3ds.c), but it doesn't attach any
-cameras.
->>> Unfortunately, I also don't currently see any i.MX2x platforms in
-the
->>> mainline with cameras, so, you have to begin by looking at
->>> arch/arm/plat-mxc/include/mach/mx2_cam.h, at
->>> arch/arm/plat-mxc/devices/platform-mx2-camera.c for the
->>> imx27_add_mx2_camera() function and maybe some i.MX3x or i.MX1
-examples.
+>>>
+>>> I totally understand your feeling.
+>>>
+>>> I'd like to get YUV support integrated in the OMAP3 ISP driver. However,
+>>> I
+>>> have no YUV image source hardware, so I can only review the patches but
+>>> not
+>>> test them.
+>>>
+>>> If someone can rebase the existing patches on top of
+>>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
+>>> omap3isp-yuv and test them, then I'll review the result.
+>>>
 >>
->> Javier has been doing a lot of work on mx2-camera lately.
+>> The attached patches produce a working setup against Laurent's tree above.
+>> That said, I don't recall exactly where which changes came from (I'm old
+>> school and not very git savvy, sorry). I've CC'd all the folks I think
+>> provided at least part of these changes. Perhaps we can all work together
+>> to come up with a proper set of patches which can be pushed upstream
+>> for this, once and for all?
 >>
->> Javier,
+>> Thanks
 >>
->> Is mach-imx27_visstrim_m10 board connected to a CMOS camera? Do you
->> have patches for adding camera support to mach-imx27_visstrim_m10?
 >
->visstrim_m10 is connected to a tvp5150 but it uses the same interface
->as a CMOS sensor. Let me find some time to send a patch that I have
->pending in my queue. Then it can be used by Gonzalo as a reference.
->
->Regards.
->-- 
->Javier Martin
->Vista Silicon S.L.
->CDTUC - FASE C - Oficina S-345
->Avda de los Castros s/n
->39005- Santander. Cantabria. Spain
->+34 942 25 32 60
->www.vista-silicon.com
+> Ping!  Is no one but me interested in getting these changes into
+> the mainline?
 
-I've been finally able to attach the ov2640 camera in the i.MX25PDK.
-I've had some problems with the clocks, but a quick dirty fix looks to
-solve this issue (I'll work on cleaner solution later).
+I am interested, i didn't have time to test it but i will for sure.
 
-Now I have to send the camera stream to "somewhere". In the example
-provided by Freescale based on L2.6.31, "somewhere" is the framebuffer,
-and this is done using VIDIOC_S_FBUF and VIDIOC_OVERLAY ioctls. As these
-2 ioctls are not currently implemented in soc_camera.c, I was wondefing
-if it exist a different preferred method to implement this
-functionality?
+And i think it's important to test non bt656/yuv sensors too, but i
+have no hardware for that.
 
-Regards,
-Gonzalo. 
+Enrico
