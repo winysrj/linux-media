@@ -1,61 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4732 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753199Ab2BCKGO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 05:06:14 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [RFCv1 PATCH 0/6] Improved/New timings API
-Date: Fri,  3 Feb 2012 11:06:00 +0100
-Message-Id: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:62081 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753674Ab2BDScN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 13:32:13 -0500
+Received: by eekc14 with SMTP id c14so1610783eek.19
+        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 10:32:12 -0800 (PST)
+Message-ID: <4F2D79A9.8030504@gmail.com>
+Date: Sat, 04 Feb 2012 19:32:09 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+References: <4F27CF29.5090905@samsung.com> <20120201100007.GA841@valkosipuli.localdomain> <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi> <4F2D4E2D.1030107@gmail.com> <4F2D5231.4000703@iki.fi>
+In-Reply-To: <4F2D5231.4000703@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Sakari,
 
-This is an implementation of this RFC:
+On 02/04/2012 04:43 PM, Sakari Ailus wrote:
+>> As I explained above I suspect that the sensor sends each image data type
+>> on separate channels (I'm not 100% sure) but the bridge is unable to DMA
+>> it into separate memory regions.
+>>
+>> Currently we have no support in V4L2 for specifying separate image data
+>> format per MIPI-CSI2 channel. Maybe the solution is just about that -
+>> adding support for virtual channels and a possibility to specify an image
+>> format separately per each channel ?
+>> Still, there would be nothing telling how the channels are interleaved :-/
+> 
+> _If_ the sensor sends YUV and compressed JPEG data in separate CSI-2
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg38168.html
+As I learned MIPI-CSI2 specifies 3 data interleaving methods, at: packet, 
+frame and virtual channel level. I'm almost certain I'm dealing now with
+packet level interleaving, but VC interleaving might need to be supported  
+very soon.
 
-The goal is that with these additions the existing DV_PRESET API can be
-removed eventually. It's always painful to admit, but that wasn't the best
-API ever :-)
+> channels then definitely the correct way to implement this is to take
+> this kind of setup into account in the frame format description --- we
+> do need that quite badly.
 
-To my dismay I discovered that some of the preset defines were even impossible:
-there are no interlaced 1920x1080i25/29.97/30 formats.
+Yeah, I will probably want to focus more on that after completing the
+camera control works.
 
-I have been testing this new code with the adv7604 HDMI receiver as used here:
+> However, this doesn't really help you with your current problem, and
+> perhaps just creating a custom format for your sensor driver is the best
+> way to go for the time being. But. When someone attaches this kind of
 
-http://git.linuxtv.org/hverkuil/cisco.git/shortlog/refs/heads/test-timings
+Yes, this is what I started with. What do you think about creating media 
+bus codes directly corresponding the the user defined MIPI-CSI data types ?
 
-This is my development/test branch, so the code is a bit messy.
+> sensor to another CSI-2 receiver that can separate the data from
+> different channels, I think we should start working towards for a
+> correct solution which this driver also should support.
 
-One problem that I always had with the older proposals is that there was no
-easy way to just select a specific standard (e.g. 720p60). By creating the
-linux/v4l2-dv-timings.h header this is now very easy to do, both for drivers
-and applications.
+Sure. We would also include description of bus receiver/transmitter 
+capabilities, e.g. telling explicitly which interleaving methods are 
+supported.
 
-I also took special care on how to distinguish between e.g. 720p60 and 720p59.94.
-See the documentation for more information.
+> With information on the frame format, the CSI-2 hardware could properly
+> write the data into two separate buffers. Possibly it should provide two
+> video nodes, but I'm not sure about that. A multi-plane buffer is
+> another option.
 
-Note that the QUERY_DV_TIMINGS and DV_TIMINGS_CAP ioctls will be marked
-experimental. Particularly the latter ioctl might well change in the future as
-I do not have enough experience to tell whether DV_TIMINGS_CAP is sufficiently
-detailed.
+Indeed. I think both solutions are equally correct and there should be no
+need to restrict us to one or the other. I would leave decision up to the
+driver authors, as one option will be more appropriate in some cases than
+the other.
 
-I would like to get some feedback on this approach, just to make sure I don't
-need to start over.
+--
 
-In the meantime I will be working on code to detect CVT and GTF video timings
-since that is needed to verify that that part works correctly as well.
-
-And once everyone agrees to the API, then I will try and add this API to all
-drivers that currently use the preset API. That way there will be a decent
-path forward to eventually remove the preset API (sooner rather than later
-IMHO).
-
-Regards,
-
-	Hans
-
+Thanks,
+Sylwester
