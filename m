@@ -1,95 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:12028 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751021Ab2BJRct (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 12:32:49 -0500
-Date: Fri, 10 Feb 2012 18:32:25 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv21 10/16] mm: Serialize access to min_free_kbytes
-In-reply-to: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1328895151-5196-11-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:48402 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754319Ab2BDTCf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 14:02:35 -0500
+Received: by eekc14 with SMTP id c14so1618313eek.19
+        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 11:02:34 -0800 (PST)
+Message-ID: <4F2D80C1.2050808@gmail.com>
+Date: Sat, 04 Feb 2012 20:02:25 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: Re: [PATCH v2 04/31] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+ IOCTLs
+References: <20120202235231.GC841@valkosipuli.localdomain> <1328226891-8968-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1328226891-8968-4-git-send-email-sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mel Gorman <mgorman@suse.de>
+On 02/03/2012 12:54 AM, Sakari Ailus wrote:
+> Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
+> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+> 
+> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+> 
+> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+> ---
+>   drivers/media/video/v4l2-subdev.c |   34 +++++++++++++++++++++---------
+>   include/linux/v4l2-subdev.h       |   41 +++++++++++++++++++++++++++++++++++++
+>   include/media/v4l2-subdev.h       |   21 +++++++++++++++---
+>   3 files changed, 82 insertions(+), 14 deletions(-)
+> 
+...
+> diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+> index ed29cbb..192993a 100644
+> --- a/include/linux/v4l2-subdev.h
+> +++ b/include/linux/v4l2-subdev.h
+> @@ -123,6 +123,43 @@ struct v4l2_subdev_frame_interval_enum {
+>   	__u32 reserved[9];
+>   };
+> 
+> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1<<  0)
+> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1<<  1)
+> +#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1<<  2)
+> +
+> +/* active cropping area */
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0
+> +/* cropping bounds */
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			2
 
-There is a race between the min_free_kbytes sysctl, memory hotplug
-and transparent hugepage support enablement.  Memory hotplug uses a
-zonelists_mutex to avoid a race when building zonelists. Reuse it to
-serialise watermark updates.
+You've dropped the DEFAULT targets but the target numbers stayed 
+unchanged. How about using hex numbers ? e.g.
 
-[a.p.zijlstra@chello.nl: Older patch fixed the race with spinlock]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
----
- mm/page_alloc.c |   23 +++++++++++++++--------
- 1 files changed, 15 insertions(+), 8 deletions(-)
+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		0x0100
+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0101
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 7d9f36e..06c66b5 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -4976,14 +4976,7 @@ static void setup_per_zone_lowmem_reserve(void)
- 	calculate_totalreserve_pages();
- }
- 
--/**
-- * setup_per_zone_wmarks - called when min_free_kbytes changes
-- * or when memory is hot-{added|removed}
-- *
-- * Ensures that the watermark[min,low,high] values for each zone are set
-- * correctly with respect to min_free_kbytes.
-- */
--void setup_per_zone_wmarks(void)
-+static void __setup_per_zone_wmarks(void)
- {
- 	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
- 	unsigned long lowmem_pages = 0;
-@@ -5038,6 +5031,20 @@ void setup_per_zone_wmarks(void)
- 	calculate_totalreserve_pages();
- }
- 
-+/**
-+ * setup_per_zone_wmarks - called when min_free_kbytes changes
-+ * or when memory is hot-{added|removed}
-+ *
-+ * Ensures that the watermark[min,low,high] values for each zone are set
-+ * correctly with respect to min_free_kbytes.
-+ */
-+void setup_per_zone_wmarks(void)
-+{
-+	mutex_lock(&zonelists_mutex);
-+	__setup_per_zone_wmarks();
-+	mutex_unlock(&zonelists_mutex);
-+}
-+
- /*
-  * The inactive anon list should be small enough that the VM never has to
-  * do too much work, but large enough that each inactive page has a chance
--- 
-1.7.1.569.g6f426
+?
+> +/* current composing area */
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		256
+> +/* composing bounds */
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		258
+> +
+> +
+> +/**
+> + * struct v4l2_subdev_selection - selection info
+> + *
+> + * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
+> + * @pad: pad number, as reported by the media API
+> + * @target: selection target, used to choose one of possible rectangles
+> + * @flags: constraints flags
 
+s/constraints/constraint ?
+
+> + * @r: coordinates of selection window
+
+s/selection/ the selection ?
+
+> + * @reserved: for future use, rounds structure size to 64 bytes, set to zero
+> + *
+> + * Hardware may use multiple helper window to process a video stream.
+
+s/window/windows ?
+
+> + * The structure is used to exchange this selection areas between
+> + * an application and a driver.
+> + */
+> +struct v4l2_subdev_selection {
+> +	__u32 which;
+> +	__u32 pad;
+> +	__u32 target;
+> +	__u32 flags;
+> +	struct v4l2_rect r;
+> +	__u32 reserved[8];
+> +};
+> +
+
+--
+
+Regards,
+Sylwester
