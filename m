@@ -1,62 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:59626 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754254Ab2BPSnY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Feb 2012 13:43:24 -0500
-Received: by lagu2 with SMTP id u2so2769422lag.19
-        for <linux-media@vger.kernel.org>; Thu, 16 Feb 2012 10:43:22 -0800 (PST)
-Message-ID: <4F3D4E42.8040808@gmail.com>
-Date: Thu, 16 Feb 2012 19:43:14 +0100
-From: =?ISO-8859-1?Q?Roger_M=E5rtensson?= <roger.martensson@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 00/35] Add a driver for Terratec H7
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail81.extendcp.co.uk ([79.170.40.81]:46576 "EHLO
+	mail81.extendcp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754969Ab2BESwc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2012 13:52:32 -0500
+Received: from 188-222-111-86.zone13.bethere.co.uk ([188.222.111.86] helo=tiber)
+	by mail81.extendcp.com with esmtpsa (TLSv1:AES256-SHA:256)
+	(Exim 4.77)
+	id 1Ru7CQ-0004lh-ND
+	for linux-media@vger.kernel.org; Sun, 05 Feb 2012 18:52:30 +0000
+Received: from [127.0.0.1] (helo=tiber)
+	by tiber with esmtp (Exim 4.77)
+	(envelope-from <h@realh.co.uk>)
+	id 1Ru7CT-00053J-MW
+	for linux-media@vger.kernel.org; Sun, 05 Feb 2012 18:52:33 +0000
+Date: Sun, 5 Feb 2012 18:52:33 +0000
+From: Tony Houghton <h@realh.co.uk>
+To: linux-media@vger.kernel.org
+Subject: Re: TBS 6920 remote
+Message-ID: <20120205185233.3ca5024a@tiber>
+In-Reply-To: <CAH4Ag-BZ+Csasy=yk5sNt7_Q5maFuxga2PqeXtJrRYvVLa8zzA@mail.gmail.com>
+References: <20120203171250.52278c25@junior>
+	<CAH4Ag-BZ+Csasy=yk5sNt7_Q5maFuxga2PqeXtJrRYvVLa8zzA@mail.gmail.com>
+Reply-To: linux-media@vger.kernel.org
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab skrev 2012-01-21 17:04:
-> Terratec H7 is a Cypress FX2 device with a mt2063 tuner and a drx-k
-> demod. This series add support for it. It started with a public
-> tree found at:
-> 	 http://linux.terratec.de/files/TERRATEC_H7/20110323_TERRATEC_H7_Linux.tar.gz
->
-> The driver were almost completely re-written, and it is now working,
-> at least with DVB-C. I don't have a DVB-T signal here for testing,
-> but I suspect it should also work fine.
->
-> The FX2 firmware has a NEC IR decoder. The driver has support for
-> it. The default keytable has support for the black Terratec IR
-> and for the grey IR with orange keys.
->
-> The CI support inside the driver is similar to the one found at the
-> az6027 driver. I don't have a CI module here, so it is not tested.
->
-> Tests and feedback are welcome.
+On Fri, 3 Feb 2012 17:28:59 +0000
+Simon Jones <sijones2010@gmail.com> wrote:
 
-A small feedback report.
+> On 3 February 2012 17:12, Tony Houghton <h@realh.co.uk> wrote:
+> > I've got a TBS 6920 PCI-E DVB-S2 card, which explicitly claims Linux
+> > compatibility on the box. It works as a satellite receiver, but I get no
+> > response from the remote control (trying to read /dev/input/event5). I
+> > think this is its entry in /proc/bus/input/devices:
+> 
+> TBS have there own media tree for their cards, they do not submit the
+> drivers upstream for inclusion in the kernel, if you go to the
+> manufacturer site you'll get support from their forums. But it has
+> been very well known they have issues with remote support.
 
-I've tested with the latest media_build and can watch unencrypted 
-channels on the DVB-C network I'm connected to.
+Thanks. It seems that there was a bug in their driver which prevented
+some keys from working, but AFIACT it's fixed now. The code is GPL so is
+it just lack of interest/demand that's stopped it from going into the
+main kernel?
 
-It seems that the CI-module doesn't work. Nothing happens when I insert 
-a CAM-module with our without a programme card.
-I haven't tried to use the IR yet.
-
-  * Okänt - identifierat
-  * Engelska
-  * Svenska
-  * Franska
-  * Tyska
-
-  * Engelska
-  * Svenska
-  * Franska
-  * Tyska
-
-<javascript:void(0);>
+I think I'll pass on having to maintain a 3rd party driver whenever the
+Debian kernel upgrades. The remote is missing some quite important keys
+like Play, so they seem to have only considered it for live viewing, not
+for PVRs. I'll probably end up buying a separate USB remote or
+continuing to use a portable keyboard.
