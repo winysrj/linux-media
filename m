@@ -1,178 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:28281 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761250Ab2BNVs2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:48:28 -0500
-From: linuxtv@stefanringel.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 20/22] mt2063: change set_params function
-Date: Tue, 14 Feb 2012 22:47:44 +0100
-Message-Id: <1329256066-8844-20-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
-References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:62394 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754131Ab2BEEZl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 23:25:41 -0500
+MIME-Version: 1.0
+In-Reply-To: <1328271538-14502-13-git-send-email-m.szyprowski@samsung.com>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+	<1328271538-14502-13-git-send-email-m.szyprowski@samsung.com>
+Date: Sun, 5 Feb 2012 12:25:40 +0800
+Message-ID: <CAJd=RBBPOwftZJUfe3xc6y24=T8un5hPk0wEOT_5v6WMCbDSag@mail.gmail.com>
+Subject: Re: [PATCH 12/15] drivers: add Contiguous Memory Allocator
+From: Hillf Danton <dhillf@gmail.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Hillf Danton <dhillf@gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+On Fri, Feb 3, 2012 at 8:18 PM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> The Contiguous Memory Allocator is a set of helper functions for DMA
+> mapping framework that improves allocations of contiguous memory chunks.
+>
+> CMA grabs memory on system boot, marks it with CMA_MIGRATE_TYPE and
+> gives back to the system. Kernel is allowed to allocate movable pages
+> within CMA's managed memory so that it can be used for example for page
+> cache when DMA mapping do not use it. On dma_alloc_from_contiguous()
+> request such pages are migrated out of CMA area to free required
+> contiguous block and fulfill the request. This allows to allocate large
+> contiguous chunks of memory at any time assuming that there is enough
+> free memory available in the system.
+>
+> This code is heavily based on earlier works by Michal Nazarewicz.
+>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> CC: Michal Nazarewicz <mina86@mina86.com>
+> Acked-by: Arnd Bergmann <arnd@arndb.de>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+> ---
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
----
- drivers/media/common/tuners/mt2063.c |  111 ++++++++++++++--------------------
- 1 files changed, 46 insertions(+), 65 deletions(-)
+[...]
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index fb0a38b..0c5d472 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -320,20 +320,66 @@ err:
- 	return ret;
- }
- 
-+static int mt2063_set_params(struct dvb_frontend *fe)
- {
-+	struct mt2063_state *state = fe->tuner_priv;
-+	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
-+	u32 freq, bw;
-+	int ret = 0;
- 
-+	dprintk(1, "\n");
- 
-+	mutex_lock(&state->lock);
- 
-+	/* open gate */
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
- 
-+	/* all calculation is in kHz */
-+	freq = c->frequency / 1000;
- 
-+	switch (c->delivery_system) {
-+	case SYS_DVBT:
-+		if (c->bandwidth_hz == 0) {
-+			ret = -EINVAL;
-+			goto err;
- 		}
-+		bw = c->bandwidth_hz / 1000;
-+		state->mode = MT2063_OFFAIR_COFDM;
-+		state->if2 = 36000;
-+		break;
-+	case SYS_DVBC_ANNEX_A:
-+	case SYS_DVBC_ANNEX_C:
-+		bw = c->bandwidth_hz / 1000;
-+		state->mode = MT2063_CABLE_QAM;
-+		state->if2 = 36000;
-+		break;
-+	case SYS_ATSC:
-+		/* TODO */
-+	default:
-+		ret = -EINVAL;
-+		goto err;
- 	}
- 
-+	state->frequency = freq;
-+	/* for spurcheck */
-+	state->bw = bw;
- 
-+	dprintk(2, "Set input frequency to %d kHz.\n", freq);
- 
-+	ret = mt2063_set_mode(state, state->mode);
-+	if (ret < 0)
-+		goto err;
- 
-+	ret = mt2063_tune(state);
- 
-+err:
-+	/* close gate */
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
- 
-+	mutex_unlock(&state->lock);
-+	return ret;
- }
- 
- static int mt2063_init(struct dvb_frontend *fe)
-@@ -570,79 +616,14 @@ static struct dvb_tuner_ops mt2063_ops = {
- 	.get_if_frequency = mt2063_get_if_frequency,
- 	/* TODO */
- };
--/*
-- * As defined on EN 300 429, the DVB-C roll-off factor is 0.15.
-- * So, the amount of the needed bandwith is given by:
-- *	Bw = Symbol_rate * (1 + 0.15)
-- * As such, the maximum symbol rate supported by 6 MHz is given by:
-- *	max_symbol_rate = 6 MHz / 1.15 = 5217391 Bauds
-- */
--#define MAX_SYMBOL_RATE_6MHz	5217391
- 
--static int mt2063_set_params(struct dvb_frontend *fe)
- {
--	struct dtv_frontend_properties *c = &fe->dtv_property_cache;
--	struct mt2063_state *state = fe->tuner_priv;
--	int status;
--	s32 pict_car;
--	s32 pict2chanb_vsb;
--	s32 ch_bw;
--	s32 if_mid;
--	s32 rcvr_mode;
--
--	if (!state->init) {
--		status = mt2063_init(fe);
--		if (status < 0)
--			return status;
--	}
- 
--	dprintk(2, "\n");
- 
--	if (c->bandwidth_hz == 0)
--		return -EINVAL;
--	if (c->bandwidth_hz <= 6000000)
--		ch_bw = 6000000;
--	else if (c->bandwidth_hz <= 7000000)
--		ch_bw = 7000000;
--	else
--		ch_bw = 8000000;
- 
--	switch (c->delivery_system) {
--	case SYS_DVBT:
--		rcvr_mode = MT2063_OFFAIR_COFDM;
--		pict_car = 36125000;
--		pict2chanb_vsb = -(ch_bw / 2);
- 		break;
--	case SYS_DVBC_ANNEX_A:
--	case SYS_DVBC_ANNEX_C:
--		rcvr_mode = MT2063_CABLE_QAM;
--		pict_car = 36125000;
--		pict2chanb_vsb = -(ch_bw / 2);
- 		break;
- 	default:
--		return -EINVAL;
--	}
--	if_mid = pict_car - (pict2chanb_vsb + (ch_bw / 2));
--
--	state->AS_Data.f_LO2_Step = 125000;	/* FIXME: probably 5000 for FM */
--	state->AS_Data.f_out = if_mid;
--	state->AS_Data.f_out_bw = ch_bw + 750000;
--	status = MT2063_SetReceiverMode(state, rcvr_mode);
--	if (status < 0)
--		return status;
--
--	dprintk(1, "Tuning to frequency: %d, bandwidth %d, foffset %d\n",
--		c->frequency, ch_bw, pict2chanb_vsb);
--
--	status = MT2063_Tune(state, (c->frequency + (pict2chanb_vsb + (ch_bw / 2))));
--
--	if (status < 0)
--		return status;
--
--	state->frequency = c->frequency;
--	return 0;
--}
--
- 		return -ENODEV;
- 
- 		return -ENODEV;
--- 
-1.7.7.6
+> +/*
+> + * Contiguous Memory Allocator
+> + *
+> + *   The Contiguous Memory Allocator (CMA) makes it possible to
+> + *   allocate big contiguous chunks of memory after the system has
+> + *   booted.
+> + *
+> + * Why is it needed?
+> + *
+> + *   Various devices on embedded systems have no scatter-getter and/or
+> + *   IO map support and require contiguous blocks of memory to
+> + *   operate.  They include devices such as cameras, hardware video
+> + *   coders, etc.
+> + *
+> + *   Such devices often require big memory buffers (a full HD frame
+> + *   is, for instance, more then 2 mega pixels large, i.e. more than 6
+> + *   MB of memory), which makes mechanisms such as kmalloc() or
+> + *   alloc_page() ineffective.
+> + *
+> + *   At the same time, a solution where a big memory region is
+> + *   reserved for a device is suboptimal since often more memory is
+> + *   reserved then strictly required and, moreover, the memory is
+> + *   inaccessible to page system even if device drivers don't use it.
+> + *
+> + *   CMA tries to solve this issue by operating on memory regions
+> + *   where only movable pages can be allocated from.  This way, kernel
+> + *   can use the memory for pagecache and when device driver requests
+> + *   it, allocated pages can be migrated.
+> + *
 
+Without boot mem reservation, what is the successful rate of CMA to
+serve requests of 1MiB, 2MiB, 4MiB and 8MiB chunks?
