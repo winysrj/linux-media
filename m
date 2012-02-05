@@ -1,82 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:42400 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753889Ab2BPSYI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Feb 2012 13:24:08 -0500
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LZI00GKN0G4O3@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Feb 2012 18:24:04 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZI000JF0G33H@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Feb 2012 18:24:04 +0000 (GMT)
-Date: Thu, 16 Feb 2012 19:23:55 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC/PATCH 2/6] V4L: Add V4L2_PIX_FMT_JPG_YUV_S5C fourcc definition
-In-reply-to: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:64062 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754613Ab2BECVK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 21:21:10 -0500
+Received: by werb13 with SMTP id b13so3546062wer.19
+        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 18:21:09 -0800 (PST)
+Message-ID: <4F2DE790.9080805@gmail.com>
+Date: Sun, 05 Feb 2012 02:21:04 +0000
+From: Jonathan McCrohan <jmccrohan@gmail.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1329416639-19454-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
+Subject: dvb-apps: add scan files for Ireland (ie-*)
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_PIX_FMT_JPG_YUV_S5C is a two-plane image format generated
-by S5C73M3 camera. The first plane contains interleaved JPEG and
-YUYV data and the second one the meta data containing offsets
-(pointers) to the YUYV data blocks. First 4 bytes of the meta
-data plane indicate total size of the image data plane, subsequent
-4 bytes indicate actual size of the meta data and the remainder
-is a list of offsets to YUYV blocks within the first plane.
-All numbers are 4 byte unsigned integers.
+# HG changeset patch
+# User Jonathan McCrohan <jmccrohan@gmail.com>
+# Date 1328407970 0
+# Node ID 068772e2c579c9e8c32c81d2e7b5b6978e6afe7f
+# Parent  69fc03702a6489ae46c50a3a5514df714d3832e8
+add scan files for Ireland (ie-*)
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- Documentation/DocBook/media/v4l/pixfmt.xml |    8 ++++++++
- include/linux/videodev2.h                  |    1 +
- 2 files changed, 9 insertions(+), 0 deletions(-)
+Signed-off-by: Jonathan McCrohan <jmccrohan@gmail.com>
 
-diff --git a/Documentation/DocBook/media/v4l/pixfmt.xml b/Documentation/DocBook/media/v4l/pixfmt.xml
-index 31eaae2..0512f2b 100644
---- a/Documentation/DocBook/media/v4l/pixfmt.xml
-+++ b/Documentation/DocBook/media/v4l/pixfmt.xml
-@@ -999,6 +999,14 @@ the other bits are set to 0.</entry>
- 	    <entry>Old 6-bit greyscale format. Only the least significant 6 bits of each byte are used,
- the other bits are set to 0.</entry>
- 	  </row>
-+	  <row id="V4L2-PIX-FMT-JPG-YUYV-S5C">
-+	    <entry><constant>V4L2_PIX_FMT_JPG_YUYV_S5C</constant></entry>
-+	    <entry>'S5CJ'</entry>
-+	    <entry>Two-planar format used by Samsung S5C73MX cameras.The first plane contains
-+interleaved JPEG and YUYV data and the second one the meta data containing a list of offsets
-+to the YUYV data blocks within first plane. All numbers in the second plane are 4-byte unsigned
-+integers.</entry>
-+	  </row>
- 	</tbody>
-       </tgroup>
-     </table>
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 740b35b..4fdba17 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -415,6 +415,7 @@ struct v4l2_pix_format {
- #define V4L2_PIX_FMT_KONICA420  v4l2_fourcc('K', 'O', 'N', 'I') /* YUV420 planar in blocks of 256 pixels */
- #define V4L2_PIX_FMT_JPGL	v4l2_fourcc('J', 'P', 'G', 'L') /* JPEG-Lite */
- #define V4L2_PIX_FMT_SE401      v4l2_fourcc('S', '4', '0', '1') /* se401 janggu compressed rgb */
-+#define V4L2_PIX_FMT_JPG_YUYV_S5C v4l2_fourcc('S', '5', 'C', 'J') /* S5C73M3 interleaved JPEG/YUYV */
- 
- /*
-  *	F O R M A T   E N U M E R A T I O N
--- 
-1.7.9
-
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-CairnHill
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-CairnHill	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Cairn Hill
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-ClermontCarn
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-ClermontCarn	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Clermont Carn
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 730000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH53: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Dungarvan
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-Dungarvan	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Dungarvan
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 746000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH55: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-HolywellHill
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-HolywellHill	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Holywell Hill
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 546000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH30: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Kippure
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-Kippure	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Kippure
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 738000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH54: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Maghera
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-Maghera	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Maghera 
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 690000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH48: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-MountLeinster
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-MountLeinster	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Mount Leinster 
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 666000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH45: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Mullaghanish
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-Mullaghanish	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Mullaghanish 
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 474000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH21: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-SpurHill
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-SpurHill	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Spur Hill 
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 666000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH45: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-ThreeRock
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-ThreeRock	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Three Rock
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 738000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH54: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-Truskmore
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-Truskmore	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Truskmore
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 730000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH53: Saorview
+diff -r 69fc03702a64 -r 068772e2c579 util/scan/dvb-t/ie-WoodcockHill
+--- /dev/null	Thu Jan 01 00:00:00 1970 +0000
++++ b/util/scan/dvb-t/ie-WoodcockHill	Sun Feb 05 02:12:50 2012 +0000
+@@ -0,0 +1,4 @@
++# Ireland, Woodcock Hill
++# Generated from http://www.rtenl.ie/wp-content/uploads/2011/12/SAORVIEW-Frequencies-Rev-1.0.pdf
++# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++T 682000000 8MHz 3/4 NONE QAM16 2k 1/32 NONE # CH47: Saorview
