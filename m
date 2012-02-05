@@ -1,50 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog115.obsmtp.com ([74.125.149.238]:43914 "EHLO
-	na3sys009aog115.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752919Ab2BRRxr convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 Feb 2012 12:53:47 -0500
-MIME-Version: 1.0
-In-Reply-To: <4F3EADAA.9090702@redhat.com>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com>
-	<1654816.MX2JJ87BEo@avalon>
-	<1775349.d0yvHiVdjB@avalon>
-	<4F3EADAA.9090702@redhat.com>
-Date: Sat, 18 Feb 2012 11:53:45 -0600
-Message-ID: <CAO8GWqk8ETrYT7VKL2Mdis3-6iYo8rkeEJObYXTngXDH=HzjAA@mail.gmail.com>
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
- 2012 - Notes
-From: "Clark, Rob" <rob@ti.com>
-To: Adam Jackson <ajax@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from charon.podzimek.org ([83.240.118.45]:58764 "EHLO podzimek.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753260Ab2BEXtd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 Feb 2012 18:49:33 -0500
+Message-ID: <4F2F145C.6000405@podzimek.org>
+Date: Mon, 06 Feb 2012 00:44:28 +0100
+From: Andrej Podzimek <andrej@podzimek.org>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="=_charon-23237-1328485469-0001-2"
+To: linux-media@vger.kernel.org
+Subject: AverTV Volar HD PRO
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Feb 17, 2012 at 1:42 PM, Adam Jackson <ajax@redhat.com> wrote:
-> On 2/16/12 6:25 PM, Laurent Pinchart wrote:
->
->> † Helper functions will be implemented in the subsystems to convert
->> between
->> † that generic structure and the various subsystem-specific structures.
->
->
-> I guess. †I don't really see a reason not to unify the structs too, but then
-> I don't have binary blobs to pretend to be ABI-compatible with.
->
+This is a MIME-formatted message.  If you see this text it means that your
+E-mail software does not support MIME-formatted messages.
 
-this is just for where timing struct is exposed to userspace
+--=_charon-23237-1328485469-0001-2
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-BR,
--R
+Hello,
+
+this USB stick (07ca:a835) used to work fine with the 3.0 and 3.1 kernel =
+series, using one of the howtos in this thread: http://forum.ubuntu-it.or=
+g/index.php/topic,384436.msg3370690.html
+
+However, there were some build errors with my current kernel 3.2.4, so I =
+tried to update the entire media tree instead, as described here: http://=
+git.linuxtv.org/media_build.git
+
+Unfortunately, the device doesn't work. These are the dmesg messages that=
+ appear after plugging the receiver in:
+
+	usb 3-1.2: new high-speed USB device number 6 using ehci_hcd
+	WARNING: You are using an experimental version of the media stack.
+	        As the driver is backported to an older kernel, it doesn't offer=
+
+	        enough quality for its usage in production.
+	        Use it with care.
+	Latest git patches (needed if you report a bug to linux-media@vger.kerne=
+l.org):
+	        59b30294e14fa6a370fdd2bc2921cca1f977ef16 Merge branch 'v4l_for_l=
+inus' into staging/for_v3.4
+	        72565224609a23a60d10fcdf42f87a2fa8f7b16d [media] cxd2820r: sleep=
+ on DVB-T/T2 delivery system switch
+	        46de20a78ae4b122b79fc02633e9a6c3d539ecad [media] anysee: fix CI =
+init
+	WARNING: You are using an experimental version of the media stack.
+	        As the driver is backported to an older kernel, it doesn't offer=
+
+	        enough quality for its usage in production.
+	        Use it with care.
+	Latest git patches (needed if you report a bug to linux-media@vger.kerne=
+l.org):
+	        59b30294e14fa6a370fdd2bc2921cca1f977ef16 Merge branch 'v4l_for_l=
+inus' into staging/for_v3.4
+	        72565224609a23a60d10fcdf42f87a2fa8f7b16d [media] cxd2820r: sleep=
+ on DVB-T/T2 delivery system switch
+	        46de20a78ae4b122b79fc02633e9a6c3d539ecad [media] anysee: fix CI =
+init
+	IR NEC protocol handler initialized
+	IR RC5(x) protocol handler initialized
+	usbcore: registered new interface driver dvb_usb_af9035
+	IR RC6 protocol handler initialized
+	IR JVC protocol handler initialized
+	IR Sony protocol handler initialized
+	IR SANYO protocol handler initialized
+	IR MCE Keyboard/mouse protocol handler initialized
+	lirc_dev: IR Remote Control driver registered, major 249
+	IR LIRC bridge handler initialized
+
+Surprisingly, the tda18218 module doesn't load automatically (I guess it =
+should) and loading it manually doesn't help. So the device doesn't get i=
+nitialized at all and there are no messages about firmware loading. (The =
+firmware file is in /lib/firmware, of course.)
+
+Is it possible to make the device work somehow? The receiver worked fine =
+with older kernels (using the howto from ubuntu-it.org linked above) and =
+the remote controller was usable as well.
+
+Andrej
+
+
+
+--=_charon-23237-1328485469-0001-2
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: Elektronick√Ω podpis S/MIME
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIIWDDCC
+BjQwggQcoAMCAQICASAwDQYJKoZIhvcNAQEFBQAwfTELMAkGA1UEBhMCSUwxFjAUBgNVBAoT
+DVN0YXJ0Q29tIEx0ZC4xKzApBgNVBAsTIlNlY3VyZSBEaWdpdGFsIENlcnRpZmljYXRlIFNp
+Z25pbmcxKTAnBgNVBAMTIFN0YXJ0Q29tIENlcnRpZmljYXRpb24gQXV0aG9yaXR5MB4XDTA3
+MTAyNDIxMDI1NVoXDTE3MTAyNDIxMDI1NVowgYwxCzAJBgNVBAYTAklMMRYwFAYDVQQKEw1T
+dGFydENvbSBMdGQuMSswKQYDVQQLEyJTZWN1cmUgRGlnaXRhbCBDZXJ0aWZpY2F0ZSBTaWdu
+aW5nMTgwNgYDVQQDEy9TdGFydENvbSBDbGFzcyAyIFByaW1hcnkgSW50ZXJtZWRpYXRlIENs
+aWVudCBDQTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMsohUWcASz7GfKrpTOM
+KqANy9BV7V0igWdGxA8IU77L3aTxErQ+fcxtDYZ36Z6GH0YFn7fq5RADteP0AYzrCA+EQTfi
+8q1+kA3m0nwtwXG94M5sIqsvs7lRP1aycBke/s5g9hJHryZ2acScnzczjBCAo7X1v5G3yw8M
+DP2m2RCye0KfgZ4nODerZJVzhAlOD9YejvAXZqHksw56HzElVIoYSZ3q4+RJuPXXfIoyby+Y
+2m1E+YzX5iCZXBx05gk6MKAW1vaw4/v2OOLy6FZH3XHHtOkzUreG//CsFnB9+uaYSlR65cdG
+zTsmoIK8WH1ygoXhRBm98SD7Hf/r3FELNvUCAwEAAaOCAa0wggGpMA8GA1UdEwEB/wQFMAMB
+Af8wDgYDVR0PAQH/BAQDAgEGMB0GA1UdDgQWBBSuVYNv7DHKufcd+q9rMfPIHeOsuzAfBgNV
+HSMEGDAWgBROC+8apEBbpRdphzDKNGhD0EGu8jBmBggrBgEFBQcBAQRaMFgwJwYIKwYBBQUH
+MAGGG2h0dHA6Ly9vY3NwLnN0YXJ0c3NsLmNvbS9jYTAtBggrBgEFBQcwAoYhaHR0cDovL3d3
+dy5zdGFydHNzbC5jb20vc2ZzY2EuY3J0MFsGA1UdHwRUMFIwJ6AloCOGIWh0dHA6Ly93d3cu
+c3RhcnRzc2wuY29tL3Nmc2NhLmNybDAnoCWgI4YhaHR0cDovL2NybC5zdGFydHNzbC5jb20v
+c2ZzY2EuY3JsMIGABgNVHSAEeTB3MHUGCysGAQQBgbU3AQIBMGYwLgYIKwYBBQUHAgEWImh0
+dHA6Ly93d3cuc3RhcnRzc2wuY29tL3BvbGljeS5wZGYwNAYIKwYBBQUHAgEWKGh0dHA6Ly93
+d3cuc3RhcnRzc2wuY29tL2ludGVybWVkaWF0ZS5wZGYwDQYJKoZIhvcNAQEFBQADggIBADqp
+Jw3I07QWke9plNBpxUxcffc7nUrIQpJHDci91DFG7fVhHRkMZ1J+BKg5UNUxIFJ2Z9B90Mic
+c/NXcs7kPBRdn6XGO/vPc87Y6R+cWS9Nc9+fp3Enmsm94OxOwI9wn8qnr/6o3mD4noP9Jphw
+UPTXwHovjavRnhUQHLfo/i2NG0XXgTHXS2Xm0kVUozXqpYpAdumMiB/vezj1QHQJDmUdPYMc
+p+reg9901zkyT3fDW/ivJVv6pWtkh6Pw2ytZT7mvg7YhX3V50Nv860cV11mocUVcqBLv0gcT
++HBDYtbuvexNftwNQKD5193A7zN4vG7CTYkXxytSjKuXrpEatEiFPxWgb84nVj25SU5q/r1X
+hwby6mLhkbaXslkVtwEWT3Van49rKjlK4XrUKYYWtnfzq6aSak5u0Vpxd1rY79tWhD3EdCvO
+hNz/QplNa+VkIsrcp7+8ZhP1l1b2U6MaxIVteuVMD3X0vziIwr7jxYae9FZjbxlpUemqXjcC
+0QaFfN7qI0JsQMALL7iGRBg7K0CoOBzECdD3fuZil5kU/LP9cr1BK31U0Uy651bFnAMMMkqh
+AChIbn0ei72VnbpSsrrSdF0BAGYQ8vyHae5aCg+H75dVCV33K6FuxZrf09yTz+Vx/PkdRUYk
+XmZz/OTfyJXsUOUXrym6KvI2rYpccSk5MIIGyjCCBbKgAwIBAgICC0YwDQYJKoZIhvcNAQEF
+BQAwgYwxCzAJBgNVBAYTAklMMRYwFAYDVQQKEw1TdGFydENvbSBMdGQuMSswKQYDVQQLEyJT
+ZWN1cmUgRGlnaXRhbCBDZXJ0aWZpY2F0ZSBTaWduaW5nMTgwNgYDVQQDEy9TdGFydENvbSBD
+bGFzcyAyIFByaW1hcnkgSW50ZXJtZWRpYXRlIENsaWVudCBDQTAeFw0xMDA5MjcwMDQ4NTZa
+Fw0xMjA5MjcwOTU2MjhaMIHCMSAwHgYDVQQNExcyNjQzNTYtVXpwMjgycUhIdGJDYjVkMzEL
+MAkGA1UEBhMCQ1oxFTATBgNVBAgTDFpsaW5za3kgS3JhajENMAsGA1UEBxMEWmxpbjEtMCsG
+A1UECxMkU3RhcnRDb20gVmVyaWZpZWQgQ2VydGlmaWNhdGUgTWVtYmVyMRgwFgYDVQQDEw9B
+bmRyZWogUG9kemltZWsxIjAgBgkqhkiG9w0BCQEWE2FuZHJlakBwb2R6aW1lay5vcmcwggEi
+MA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCuV1E4S+VpLLg5f08+DbZeXsYKK/OK4Fxu
+uQf5K328gDJ58NveR920dP8nU1GVANhOsMVDdxkzYnu+Jybj+67rsrN0AX/XiZ2aXVvWmtZG
+JRPchHALBu3zC42Fl9rp0aRDfvgS45YNVf7lgIS5+vkYweuSRnLlFi072vdq+CU4jVkHYX1n
+nplvjaRLs3Z5sQTs6P6kV5DBqPanP8Hh3eC7rBf5zsbAOLLbqI3/fcKX6ylrm4VYhNvxcPo/
+pqhv0SnIPGf3QoSvn726DW2aHzfcp2WXiaaPMC/lkrSJUWfGwGr5XVM3/Y1bqiIi84vFMgcJ
+8LUx1iLzwcwLU9pBkXjLAgMBAAGjggL8MIIC+DAJBgNVHRMEAjAAMAsGA1UdDwQEAwIEsDAd
+BgNVHSUEFjAUBggrBgEFBQcDAgYIKwYBBQUHAwQwHQYDVR0OBBYEFPcZIS+eaYpk8EbOkSWn
+se2ahXsXMB8GA1UdIwQYMBaAFK5Vg2/sMcq59x36r2sx88gd46y7MB4GA1UdEQQXMBWBE2Fu
+ZHJlakBwb2R6aW1lay5vcmcwggFCBgNVHSAEggE5MIIBNTCCATEGCysGAQQBgbU3AQICMIIB
+IDAuBggrBgEFBQcCARYiaHR0cDovL3d3dy5zdGFydHNzbC5jb20vcG9saWN5LnBkZjA0Bggr
+BgEFBQcCARYoaHR0cDovL3d3dy5zdGFydHNzbC5jb20vaW50ZXJtZWRpYXRlLnBkZjCBtwYI
+KwYBBQUHAgIwgaowFBYNU3RhcnRDb20gTHRkLjADAgEBGoGRTGltaXRlZCBMaWFiaWxpdHks
+IHNlZSBzZWN0aW9uICpMZWdhbCBMaW1pdGF0aW9ucyogb2YgdGhlIFN0YXJ0Q29tIENlcnRp
+ZmljYXRpb24gQXV0aG9yaXR5IFBvbGljeSBhdmFpbGFibGUgYXQgaHR0cDovL3d3dy5zdGFy
+dHNzbC5jb20vcG9saWN5LnBkZjBjBgNVHR8EXDBaMCugKaAnhiVodHRwOi8vd3d3LnN0YXJ0
+c3NsLmNvbS9jcnR1Mi1jcmwuY3JsMCugKaAnhiVodHRwOi8vY3JsLnN0YXJ0c3NsLmNvbS9j
+cnR1Mi1jcmwuY3JsMIGOBggrBgEFBQcBAQSBgTB/MDkGCCsGAQUFBzABhi1odHRwOi8vb2Nz
+cC5zdGFydHNzbC5jb20vc3ViL2NsYXNzMi9jbGllbnQvY2EwQgYIKwYBBQUHMAKGNmh0dHA6
+Ly93d3cuc3RhcnRzc2wuY29tL2NlcnRzL3N1Yi5jbGFzczIuY2xpZW50LmNhLmNydDAjBgNV
+HRIEHDAahhhodHRwOi8vd3d3LnN0YXJ0c3NsLmNvbS8wDQYJKoZIhvcNAQEFBQADggEBAIQj
+bUQ4zvWEpdE0UdtYVp6ZXzp/ECzXIyXpKiFmE1F5r89zmEymgWhRkF/SoncC8XLY/OzKylOy
+pmEE7CgjetUmWBlqkqLjHiTsVczjfEWZT+ShAt1A8NLUl9uvzMVNUHH4rrEP4v3L4zUzslf4
+RxCBMi4JmfzRiNLESkAY0PT01Q+uDAn+/02fnOpsStp/kxFIC6fXV+GSog5GWqQCLf3c36S9
+cSwC1EkDQKLNDMV+YsU1jjFa1a1FgkZq04jMM7yzyADyR8L30JzKClFBuswFoFnd/MyCg1eE
+/sDrzTVdiD5+VLSTE9K5sFsR8RQJU4c1ybhMB3IrBh6Ej03w8P4wggkCMIIE6qADAgECAgEB
+MA0GCSqGSIb3DQEBDQUAMIGkMRswGQYDVQQDDBJQb2R6aW1layBTZWNvbmQgQ0ExCzAJBgNV
+BAYTAkNaMRcwFQYDVQQIDA5abMOtbnNrw70ga3JhajEOMAwGA1UEBwwFWmzDrW4xFTATBgNV
+BAoMDHBvZHppbWVrLm9yZzEVMBMGA1UECwwMcG9kemltZWsub3JnMSEwHwYJKoZIhvcNAQkB
+FhJhZG1pbkBwb2R6aW1lay5vcmcwHhcNMTExMTEyMDczMjM2WhcNMTIxMTExMDczMjM2WjCB
+ojELMAkGA1UEBhMCQ1oxFzAVBgNVBAgMDlpsw61uc2vDvSBrcmFqMQ4wDAYDVQQHDAVabMOt
+bjEVMBMGA1UECgwMcG9kemltZWsub3JnMRUwEwYDVQQLDAxwb2R6aW1lay5vcmcxGDAWBgNV
+BAMMD0FuZHJlaiBQb2R6aW1lazEiMCAGCSqGSIb3DQEJARYTYW5kcmVqQHBvZHppbWVrLm9y
+ZzCCAiIwDQYJKoZIhvcNAQEBBQADggIPADCCAgoCggIBALxMoxJQNi2E8unWsRCWI+xmHQMs
+8tlC614npapzcZ2EThwtwmX3aoRdFbfqqe7JGuV0ZmPZzxA2dmtl1w86pJ6kMo+Bgh42T+cx
+COvY/AC+Fml/9h4GAUzC0II8LbKWwCIECFT8qzjB8VLHQkSpip1D4Ppf/uMOll8eg+jC0c9X
+gn9H7K0f8oeQEdUlc3gu2llqGHscWK+D06N1vDBN5hA3EWpCruHC7PM3hLnewaPOodgYyreC
+WRChJ+9SRFzcWhbiUW9LDSqAFOZV8xhNP7S76Xnh4xqiFCzOSsiK6+UP6AGBg1omIfYegg9u
+7bE9SfBfY23u2+L0HtTA74MFdtU6Jqxml5u0MUafrwEjthigyKH6tbof1kyIQliyFs0bk0B/
+2w3YWmY9WHefOAN4GvKQV1SdzQnNTgjICQJ8JbGmKVeZ8aaBVKTe4djfdIKja+MtLjlIlHza
+cKw//hJBVQM1esOB5viWFbFlwJ6HRvzHnppg1BotxqxlKCWT9aJrb5XFRR4GthTuAEhRGRdh
+feWMAqj9O2mGdK7w8oYxY40l8JndUjBv+G50QvSOy2fNpEigULN0mXLZplwCwlIwcNzv7bTW
+6aOSGb7/juTZ/JnysjPagnWgy8A7HaA2NjaL9fWPUAKQ5FjqRk42a75ninn9WSZI9kNumM2c
+lzNrmWDRAgMBAAGjggE9MIIBOTAJBgNVHRMEAjAAMB0GA1UdDgQWBBTUgyi2Wl3BeUOo7nCJ
+lwFgSGnUtjCB2QYDVR0jBIHRMIHOgBTMIGIK4t686ysH0wIuZOUeimzbjqGBqqSBpzCBpDEb
+MBkGA1UEAwwSUG9kemltZWsgU2Vjb25kIENBMQswCQYDVQQGEwJDWjEXMBUGA1UECAwOWmzD
+rW5za8O9IGtyYWoxDjAMBgNVBAcMBVpsw61uMRUwEwYDVQQKDAxwb2R6aW1lay5vcmcxFTAT
+BgNVBAsMDHBvZHppbWVrLm9yZzEhMB8GCSqGSIb3DQEJARYSYWRtaW5AcG9kemltZWsub3Jn
+ggkAhTSA+YEUo4MwMQYJYIZIAYb4QgEEBCQWImh0dHBzOi8vY2EucG9kemltZWsub3JnL2Nh
+LWNybC5wZW0wDQYJKoZIhvcNAQENBQADggQBAGE95mXj97Ps3WnPjgN6YnZjEjuZVFgXIgq1
+gdgK6fcPi10n1fFHFhQtRGTOhpm39rOK5jgBd54/ftblTmgKN7/BFZb7i1Rx2rbvn5opl6ee
+eTloj5EoejKbaD1LINsPM9mMWHIkxFM1g+JY+DawHOrHvvvTTegIIqd0BPcqC3Q2hu1TP+8D
+Xaw/rygGvw1ICF1wPhyvBchsvSNow0MIKAjzAg1V+5N+SXAjbub8ZoBwB1Wn63lWefMzvEov
+p4QfafyGsxWGIXFzPeQBCOKJehASSN/Uec1NnMJfFty4qk5cuanbcdQAe72LblvLsK0hAFRp
+6ricZ9WIMyCgsT2aeRHMfUlZC58f7N6Zo3PjxT5tqfvEvCeKL+wiQQ4qEnVbsk3miSU3fx7a
+pvuUJ4vl1aSThzCfyiEEjMkq9jqAjC2s599Bm/YXNictSsMdz0rMgR+BYuq4NwurGzC0rYaZ
+By/kiOzq4dx4Hpk+mANpe/wMpQG9ozJZskUycbnOOBbxFSRANr8H3pAyF23CBRJaCeLQ1IZK
+/F//YXr0snIasqnC2wHxV0QIFNrKhcAeQxq4Uh1J1Hti3tCD0rHHXfvAa0XjvgUvuOY/8fqU
+XbuUlUhPkLJjstoWy9ZMcqJ9lKSqm4j7ngG0apJAKbpgqapglXjKw3tfJMwNO+nlfAAkcYJJ
+UahOws9iBoY97V3jZvmpJyTMtr+GchJVWAKAGonX/T3u/ToNhYm4v5WLolWKEXL4QE3p11J/
+OAuvyuoBpRgtkTInGDcyNT6nP5I5dXiN/7hEXB/rzlg090MAMjxhIvY9O8EoYMdE0LRxM1qz
+Z4fm0RvlgRvL+Yfswl5BrhpBcHD9wZMGHcKdazRDRFSL7q+PbIqTu0woJci0uU5hnQQp1fpa
+q6dnkKHHCFmw+LmMf0CHGrNvTdfqFdOc11U+/Uv3emfMHf6+Z8SUWE5/7Tg7EpkXRnp1QEx1
+iLrL5su1555JK/hG3IvWMQV+n5hIoGIJFT3YDiel+mjMVA9R8cqR5Khe7P09H7eC1XD6uhl9
+JZqyYql6UzC3Ysdh/bs6OTLBw6rDlIr/1t+jcCUUjEPhxTlEtHWn4xncMussBQoZWalRyMj4
+2vt3x/K9wleeSosu1a2dSIH+WyYBkYur7BhmNhkQ7GxzOX4u6UQLyUdGbTe3eGY66zB1AtwP
+WWbHVFfCW7brw53iz9JBFF0qhZqtbh1nrFCWV4Xtm+TSxU4XP3dlrfA7kR8yU5RNrBdm1Dxr
+SXnZozMdWryUefhWg4/CX/IJLLN38i6zTcl9KgRsp6RT3CtsRyu9vO9BhmG9ixO3OPWIEqL9
+Ccaiv8UWqN4Z7CDyGv466DTXEgj9Ay+y9jExggP7MIID9wIBATCBkzCBjDELMAkGA1UEBhMC
+SUwxFjAUBgNVBAoTDVN0YXJ0Q29tIEx0ZC4xKzApBgNVBAsTIlNlY3VyZSBEaWdpdGFsIENl
+cnRpZmljYXRlIFNpZ25pbmcxODA2BgNVBAMTL1N0YXJ0Q29tIENsYXNzIDIgUHJpbWFyeSBJ
+bnRlcm1lZGlhdGUgQ2xpZW50IENBAgILRjAJBgUrDgMCGgUAoIICPDAYBgkqhkiG9w0BCQMx
+CwYJKoZIhvcNAQcBMBwGCSqGSIb3DQEJBTEPFw0xMjAyMDUyMzQ0MjhaMCMGCSqGSIb3DQEJ
+BDEWBBQXooIkFY/QpmtB1MOwsPnK7uvLyzBfBgkqhkiG9w0BCQ8xUjBQMAsGCWCGSAFlAwQB
+AjAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcNAwICAUAwBwYFKw4DAgcw
+DQYIKoZIhvcNAwICASgwgbsGCSsGAQQBgjcQBDGBrTCBqjCBpDEbMBkGA1UEAwwSUG9kemlt
+ZWsgU2Vjb25kIENBMQswCQYDVQQGEwJDWjEXMBUGA1UECAwOWmzDrW5za8O9IGtyYWoxDjAM
+BgNVBAcMBVpsw61uMRUwEwYDVQQKDAxwb2R6aW1lay5vcmcxFTATBgNVBAsMDHBvZHppbWVr
+Lm9yZzEhMB8GCSqGSIb3DQEJARYSYWRtaW5AcG9kemltZWsub3JnAgEBMIG9BgsqhkiG9w0B
+CRACCzGBraCBqjCBpDEbMBkGA1UEAwwSUG9kemltZWsgU2Vjb25kIENBMQswCQYDVQQGEwJD
+WjEXMBUGA1UECAwOWmzDrW5za8O9IGtyYWoxDjAMBgNVBAcMBVpsw61uMRUwEwYDVQQKDAxw
+b2R6aW1lay5vcmcxFTATBgNVBAsMDHBvZHppbWVrLm9yZzEhMB8GCSqGSIb3DQEJARYSYWRt
+aW5AcG9kemltZWsub3JnAgEBMA0GCSqGSIb3DQEBAQUABIIBAISpliTEJyZMAs+a3FZiAxHw
+rnT/sVAdQzPpskdEj4cCqcH8buPzw49wQ1Y/qbweZtmkVPJpm+CNkiJBT6UpFVN1APk9yJmj
+6k+Iqq54m6yXa2wfs1+D147a6o081954RFrhv3CT62jYixGqqcSB4O32C8azBItKCEp+LScR
+K3N2R3xqZE+9xXnduGMf21K7LhNVQNKXGHu4hgSHH/QFACMcxAABDtOewCC8c2bRh74bCrkn
+zfLr4YXTygeNR0wqwyVRuJogJRiNduI5gAsiLvZHGvDEmEobz9hV5l1j0vPAcVxKeDHWVWkp
+Nuij8NEJy2rMkvpvR6dTVQDevHsfnFkAAAAAAAA=
+--=_charon-23237-1328485469-0001-2--
