@@ -1,108 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:38888 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753103Ab2BZXk6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Feb 2012 18:40:58 -0500
-Message-ID: <4F4AC2D5.1060007@iki.fi>
-Date: Mon, 27 Feb 2012 01:40:05 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:50138 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754702Ab2BEOYq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2012 09:24:46 -0500
+Received: by eekc14 with SMTP id c14so1851796eek.19
+        for <linux-media@vger.kernel.org>; Sun, 05 Feb 2012 06:24:45 -0800 (PST)
+Message-ID: <4F2E9129.10102@gmail.com>
+Date: Sun, 05 Feb 2012 15:24:41 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 26/33] omap3isp: Default link validation for ccp2,
- csi2, preview and resizer
-References: <20120220015605.GI7784@valkosipuli.localdomain> <4620159.TXeRQHhZdd@avalon> <20120225013436.GC12602@valkosipuli.localdomain> <2204981.cc3x3nBuNt@avalon>
-In-Reply-To: <2204981.cc3x3nBuNt@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	dacohen@gmail.com, andriy.shevchenko@linux.intel.com,
+	t.stanislaws@samsung.com, tuukkat76@gmail.com,
+	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com
+Subject: Re: [PATCH v2 04/31] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+ IOCTLs
+References: <20120202235231.GC841@valkosipuli.localdomain> <1328226891-8968-4-git-send-email-sakari.ailus@iki.fi> <4F2D80C1.2050808@gmail.com> <4F2D9581.1040809@iki.fi> <4F2DB332.9020106@gmail.com> <20120205090414.GB7784@valkosipuli.localdomain>
+In-Reply-To: <20120205090414.GB7784@valkosipuli.localdomain>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sakari,
 
-Laurent Pinchart wrote:
-> Hi Sakari,
-> 
-> On Saturday 25 February 2012 03:34:36 Sakari Ailus wrote:
->> On Wed, Feb 22, 2012 at 12:01:26PM +0100, Laurent Pinchart wrote:
->>> On Monday 20 February 2012 03:57:05 Sakari Ailus wrote:
->>>> Use default link validation for ccp2, csi2, preview and resizer. On
->>>> ccp2, csi2 and ccdc we also collect information on external subdevs as
->>>> one may be connected to those entities.
->>>>
->>>> The CCDC link validation still must be done separately.
->>>>
->>>> Also set pipe->external correctly as we go
-> 
-> [snip]
-> 
->>>> @@ -1999,6 +1999,27 @@ static int ccdc_set_format(struct v4l2_subdev
->>>> *sd,
->>>> struct v4l2_subdev_fh *fh, return 0;
->>>>
->>>>  }
->>>>
->>>> +static int ccdc_link_validate(struct v4l2_subdev *sd,
->>>> +			      struct media_link *link,
->>>> +			      struct v4l2_subdev_format *source_fmt,
->>>> +			      struct v4l2_subdev_format *sink_fmt)
->>>> +{
->>>> +	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
->>>> +	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
->>>> +	int rval;
->>>> +
->>>> +	/* We've got a parallel sensor here. */
->>>> +	if (ccdc->input == CCDC_INPUT_PARALLEL) {
->>>> +		pipe->external =
->>>> +			media_entity_to_v4l2_subdev(link->source->entity);
->>>> +		rval = omap3isp_get_external_info(pipe, link);
->>>> +		if (rval < 0)
->>>> +			return 0;
->>>> +	}
->>>
->>> Pending my comments on 25/33, this wouldn't be needed in this patch, and
->>> could be squashed with 27/33.
+On 02/05/2012 10:04 AM, Sakari Ailus wrote:
+>>> I wanted to keep the target numbers the same since we're still using
+>>> exactly the same as the V4L2.
 >>
->> If I moved this code out of pipeline validation, I'd have to walk the graph
->> one additional time. Do you think it's worth it, or are there easier ways to
->> find the external entity connected to a pipeline?
+>> You're right, keeping the numbers same for subdevs and regular video
+>> nodes may be important. I'm wondering whether we should use same
+>> definitions for subdevs, rather than inventing new ones ? In case we
+>> associate the selection targets with controls some target identifiers
+>> must not actually be different. Whether the control belongs directly
+>> to a video node control handler or is inherited from a sub-device the
+>> selection target would have to be same. I'm referring here to an auto
+>> focus rectangle selection target base for instance.
+>> I guess including videodev2.h from v4l2-subdev.h is not an option, if
+>> at all necessary ?
 > 
-> If I understand you correctly, the problem is that 
-> omap3isp_get_external_info() can only be called when the external entity has 
-> been located, and the CCDC link validation operation would be called before 
-> that. Is that correct ?
-> 
-> One option would be to locate the external entity before validating the link. 
-> When the validation pipeline walk operation gets to the CCDC entity, it would 
-> first follow the link, check if the connected entity is external (and in that 
-> case sotre it in pipe->external and call omap3isp_get_external_info()), and 
-> then only call the CCDC link validation operation.
-> 
-> The other option is to leave the code as-is :-) Or rather modify it slightly: 
-> assigning the entity to pipe->external and calling 
-> omap3isp_get_external_info() should be done in ispvideo.c at pipeline 
-> validation time.
+> I think you're right; there would be advantages of using the same
+> definitions. On the other hand, there may be subtle and not so subtle
+> differences what these rectangles actually mean between the two interfaces.
 
-I've modified it so that the entities which are part of the pipe will be
-disovered by media_entity_pipeline_start() and stored in struct
-media_pipeline.entities (as bitmask).
+Until now those analogous rectangles mean different things for subdevs and 
+for video devnodes. It then doesn't matter that much what numbers identify
+them, or even the numbers should be made distinct by design to make any 
+attempts to use them interchangeably fail right away.
 
-It's trivial to figure out the external entity from that one in the ISP
-driver.
+A little worrying is that with this approach we diverge from a situation
+where a selection target id _do_ actually mean the same for the two 
+interfaces.
 
-I did it so since I assume pretty much every single driver supporting
-any non-linear data path must perform the same. It's also almost no work
-in doing this in the above function, compared to a relatively
-significant headache in the ISP driver.
+Ideally I would see all the targets defined centrally with definitions that 
+would be telling explicitly what is different and what is not for both
+interfaces.
 
-I'll resend the patchset once I've gotten your reply on my selections
-documentation changes. :-)
+> The interface is quite similar to controls but the purpose it is used for is
+> quite different: not many interdependencies are expected with controls
+> whereas selections have many. The reason for this is we're using them to
+> control various kinds of image processing functionality which might not be
+> even similar on V4L2 subdev nodes and V4L2 nodes: the former is a superset
+> of the latter.
 
-Cheers,
+I see your point. Maybe using selections with controls is a Bad Idea(tm) ? :)
+However inventing a new ioctls for auto exposure/focus/wb seems a bit 
+pointless..
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+> I'd like to have Laurent's opinion on this.
+
+--
+
+Regards,
+Sylwester
