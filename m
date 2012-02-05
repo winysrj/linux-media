@@ -1,184 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1327 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753199Ab2BCKGQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 05:06:16 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 1/6] videodev2.h: add enum/query/cap dv_timings ioctls.
-Date: Fri,  3 Feb 2012 11:06:01 +0100
-Message-Id: <f884dc30bd71901ea5dad39dc3310fa5a7d9e9c2.1328262332.git.hans.verkuil@cisco.com>
-In-Reply-To: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
+Received: from oproxy8-pub.bluehost.com ([69.89.22.20]:49032 "HELO
+	oproxy8-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1751330Ab2BEUch (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2012 15:32:37 -0500
+Message-ID: <4F2EE762.1030801@xenotime.net>
+Date: Sun, 05 Feb 2012 12:32:34 -0800
+From: Randy Dunlap <rdunlap@xenotime.net>
+MIME-Version: 1.0
+To: Manjunatha Halli <x0130808@ti.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] Re: linux-next: Tree for Feb 2 (media/radio/wl128x)
+References: <20120202144516.11b33e667a7cbb8d85d96226@canb.auug.org.au> <4F2AD0E4.6020801@xenotime.net> <4F2AC5F8.1000901@ti.com> <4F2AD89E.70805@xenotime.net> <4F2AD3E9.1070804@ti.com>
+In-Reply-To: <4F2AD3E9.1070804@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 02/02/2012 10:20 AM, Manjunatha Halli wrote:
+> On 02/02/2012 12:40 PM, Randy Dunlap wrote:
+>> On 02/02/2012 09:20 AM, Manjunatha Halli wrote:
+>>> Hi Randy Dunlap,
+>>>
+>>> In config file you are missing the CONFIG_TI_ST config which builds the TI's shared transport driver upon which the FM driver works.
+>>>
+>>> Please select this config in drivers/misc/ti-st/Kconfig which will solve the problem.
+>> Wrong answer.
+>>
+>> The problem seems to be that GPIOLIB is not enabled, but wl128x Kconfig says:
+>>
+>> config RADIO_WL128X
+>>     tristate "Texas Instruments WL128x FM Radio"
+>>     depends on VIDEO_V4L2&&  RFKILL
+>>     select TI_ST if NET&&  GPIOLIB
+>>
+>> so TI_ST is not selected here.
+>>
+>> The Kconfig files should handle this properly.
+>>
+>> Here is one possible fix for you to consider.
+>>
+>> ---
+>> From: Randy Dunlap<rdunlap@xenotime.net>
+>>
+>> Fix build errors when GPIOLIB is not enabled.
+>> Fix wl128x Kconfig to depend on GPIOLIB since TI_ST also
+>> depends on GPIOLIB.
+>>
+>> (.text+0xe6d60): undefined reference to `st_register'
+>> (.text+0xe7016): undefined reference to `st_unregister'
+>> (.text+0xe70ce): undefined reference to `st_unregister'
+>>
+>> Signed-off-by: Randy Dunlap<rdunlap@xenotime.net>
+>> Cc: Manjunatha Halli<manjunatha_halli@ti.com>
+>> ---
+>>   drivers/media/radio/wl128x/Kconfig |    4 ++--
+>>   1 file changed, 2 insertions(+), 2 deletions(-)
+>>
+>> --- linux-next-20120202.orig/drivers/media/radio/wl128x/Kconfig
+>> +++ linux-next-20120202/drivers/media/radio/wl128x/Kconfig
+>> @@ -4,8 +4,8 @@
+>>   menu "Texas Instruments WL128x FM driver (ST based)"
+>>   config RADIO_WL128X
+>>       tristate "Texas Instruments WL128x FM Radio"
+>> -    depends on VIDEO_V4L2&&  RFKILL
+>> -    select TI_ST if NET&&  GPIOLIB
+>> +    depends on VIDEO_V4L2&&  RFKILL&&  GPIOLIB
+>> +    select TI_ST if NET
+>>       help
+>>       Choose Y here if you have this FM radio chip.
+>>
+>>
+>>> Regards
+>>> Manju
+>>>
+>>> On 02/02/2012 12:07 PM, Randy Dunlap wrote:
+>>>> On 02/01/2012 07:45 PM, Stephen Rothwell wrote:
+>>>>> Hi all,
+>>>>>
+>>>>> Changes since 20120201:
+>>>> drivers/built-in.o: In function `fmc_prepare':
+>>>> (.text+0xe6d60): undefined reference to `st_register'
+>>>> drivers/built-in.o: In function `fmc_prepare':
+>>>> (.text+0xe7016): undefined reference to `st_unregister'
+>>>> drivers/built-in.o: In function `fmc_release':
+>>>> (.text+0xe70ce): undefined reference to `st_unregister'
+>>>>
+>>>>
+>>>> Full randconfig file is attached.
+>>
+> 
+> This solutions seems fine for me...
+> 
+> My only concern is since TI_ST is already have GPIOLIB in its dependency list is it OK to have the same thing in FM driver also?.
 
-These new ioctls make it possible for the dv_timings API to replace
-the dv_preset API eventually.
+Sure, it's OK.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/linux/videodev2.h |  110 ++++++++++++++++++++++++++++++++++++++++----
- 1 files changed, 100 insertions(+), 10 deletions(-)
 
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 0db0503..e59cd02 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -987,28 +987,42 @@ struct v4l2_dv_enum_preset {
-  */
- 
- /* BT.656/BT.1120 timing data */
-+
-+/*
-+ * A note regarding vertical interlaced timings: height refers to the total
-+ * height of the frame (= two fields). The blanking timings refer
-+ * to the blanking of each field. So the height of the active frame is
-+ * calculated as follows:
-+ *
-+ * act_height = height - vfrontporch - vsync - vbackporch -
-+ *                       il_vfrontporch - il_vsync - il_vbackporch
-+ *
-+ * The active height of each field is act_height / 2.
-+ */
- struct v4l2_bt_timings {
--	__u32	width;		/* width in pixels */
--	__u32	height;		/* height in lines */
-+	__u32	width;		/* total frame width in pixels */
-+	__u32	height;		/* total frame height in lines */
- 	__u32	interlaced;	/* Interlaced or progressive */
- 	__u32	polarities;	/* Positive or negative polarity */
- 	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
--	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
-+	__u32	hfrontporch;	/* Horizontal front porch in pixels */
- 	__u32	hsync;		/* Horizontal Sync length in pixels */
- 	__u32	hbackporch;	/* Horizontal back porch in pixels */
- 	__u32	vfrontporch;	/* Vertical front porch in pixels */
- 	__u32	vsync;		/* Vertical Sync length in lines */
- 	__u32	vbackporch;	/* Vertical back porch in lines */
--	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
--				 * interlaced field formats
-+	__u32	il_vfrontporch;	/* Vertical front porch for the even field
-+				 * (aka field 2) of interlaced field formats
- 				 */
--	__u32	il_vsync;	/* Vertical sync length for bottom field of
--				 * interlaced field formats
-+	__u32	il_vsync;	/* Vertical sync length for the even field
-+				 * (aka field 2) of interlaced field formats
- 				 */
--	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
--				 * interlaced field formats
-+	__u32	il_vbackporch;	/* Vertical back porch for the even field
-+				 * (aka field 2) of interlaced field formats
- 				 */
--	__u32	reserved[16];
-+	__u32	standards;	/* Standards the timing belongs to */
-+	__u32	flags;		/* Flags */
-+	__u32	reserved[14];
- } __attribute__ ((packed));
- 
- /* Interlaced or progressive format */
-@@ -1019,6 +1033,37 @@ struct v4l2_bt_timings {
- #define V4L2_DV_VSYNC_POS_POL	0x00000001
- #define V4L2_DV_HSYNC_POS_POL	0x00000002
- 
-+/* Timings standards */
-+#define V4L2_DV_BT_STD_CEA861	(1 << 0)  /* CEA-861 Digital TV Profile */
-+#define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
-+#define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
-+#define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
-+
-+/* Flags */
-+
-+/* CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
-+   GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
-+   intervals are reduced, allowing a higher resolution over the same
-+   bandwidth. This is a read-only flag. */
-+#define V4L2_DV_FL_REDUCED_BLANKING		(1 << 0)
-+/* CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
-+   of six. These formats can be optionally played at 1 / 1.001 speed to
-+   be compatible with the normal NTSC framerate of 29.97 frames per second.
-+   This is a read-only flag. */
-+#define V4L2_DV_FL_NTSC_COMPATIBLE		(1 << 1)
-+/* CEA-861 specific: only valid for video transmitters, the flag is cleared
-+   by receivers.
-+   If the framerate of the format is a multiple of six, then the pixelclock
-+   used to set up the transmitter is divided by 1.001 to make it compatible
-+   with NTSC framerates. Otherwise this flag is cleared. If the transmitter
-+   can't generate such frequencies, then the flag will also be cleared. */
-+#define V4L2_DV_FL_DIVIDE_CLOCK_BY_1_001	(1 << 2)
-+/* Specific to interlaced formats: if set, then field 1 is really one half-line
-+   longer and field 2 is really one half-line shorter, so each field has
-+   exactly the same number of half-lines. Whether half-lines can be detected
-+   or used depends on the hardware. */
-+#define V4L2_DV_FL_HALF_LINE			(1 << 0)
-+
- 
- /* DV timings */
- struct v4l2_dv_timings {
-@@ -1032,6 +1077,47 @@ struct v4l2_dv_timings {
- /* Values for the type field */
- #define V4L2_DV_BT_656_1120	0	/* BT.656/1120 timing type */
- 
-+
-+/* DV timings enumeration */
-+struct v4l2_enum_dv_timings {
-+	__u32 index;
-+	__u32 reserved[3];
-+	struct v4l2_dv_timings timings;
-+};
-+
-+/* BT.656/BT.1120 timing capabilities */
-+struct v4l2_bt_timings_cap {
-+	__u32	min_width;	/* width in pixels */
-+	__u32	max_width;	/* width in pixels */
-+	__u32	min_height;	/* height in lines */
-+	__u32	max_height;	/* height in lines */
-+	__u64	min_pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
-+	__u64	max_pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
-+	__u32	standards;	/* Supported standards */
-+	__u32	capabilities;	/* See below */
-+	__u32	reserved[16];
-+} __attribute__ ((packed));
-+
-+/* Supports interlaced formats */
-+#define V4L2_DV_BT_CAP_INTERLACED	(1 << 0)
-+/* Supports progressive formats */
-+#define V4L2_DV_BT_CAP_PROGRESSIVE	(1 << 1)
-+/* Supports CVT/GTF reduced blanking */
-+#define V4L2_DV_BT_CAP_REDUCED_BLANKING	(1 << 2)
-+/* Supports custom formats */
-+#define V4L2_DV_BT_CAP_CUSTOM		(1 << 3)
-+
-+/* DV timings capabilities */
-+struct v4l2_dv_timings_cap {
-+	__u32 type;
-+	__u32 reserved[3];
-+	union {
-+		struct v4l2_bt_timings_cap bt;
-+		__u32 raw_data[32];
-+	};
-+};
-+
-+
- /*
-  *	V I D E O   I N P U T S
-  */
-@@ -2318,6 +2404,10 @@ struct v4l2_create_buffers {
- #define VIDIOC_G_SELECTION	_IOWR('V', 94, struct v4l2_selection)
- #define VIDIOC_S_SELECTION	_IOWR('V', 95, struct v4l2_selection)
- 
-+#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 96, struct v4l2_enum_dv_timings)
-+#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 97, struct v4l2_dv_timings)
-+#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 98, struct v4l2_dv_timings_cap)
-+
- /* Reminder: when adding new ioctls please add support for them to
-    drivers/media/video/v4l2-compat-ioctl32.c as well! */
- 
 -- 
-1.7.8.3
-
+~Randy
+*** Remember to use Documentation/SubmitChecklist when testing your code ***
