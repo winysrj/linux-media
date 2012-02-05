@@ -1,102 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:34095 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754066Ab2BCPsU convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 10:48:20 -0500
-Received: by vcge1 with SMTP id e1so2665785vcg.19
-        for <linux-media@vger.kernel.org>; Fri, 03 Feb 2012 07:48:19 -0800 (PST)
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:57351 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753786Ab2BEAgE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 19:36:04 -0500
+Received: by eekc14 with SMTP id c14so1694410eek.19
+        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 16:36:03 -0800 (PST)
+Message-ID: <4F2DCEF0.5070701@gmail.com>
+Date: Sun, 05 Feb 2012 01:36:00 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <4F212167.9090607@samsung.com>
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com>
- <1327326675-8431-6-git-send-email-t.stanislaws@samsung.com> <4F212167.9090607@samsung.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Fri, 3 Feb 2012 07:47:39 -0800
-Message-ID: <CAMm-=zCfNVP497-4o7FUOjkcQW7F2RPhuPO62YrwK9C_1Z+ctQ@mail.gmail.com>
-Subject: Re: [PATCH 05/10] v4l: add buffer exporting via dmabuf
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+References: <4F27CF29.5090905@samsung.com> <20120201100007.GA841@valkosipuli.localdomain> <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi> <4F2D4E2D.1030107@gmail.com> <4F2D5231.4000703@iki.fi> <4F2D79A9.8030504@gmail.com> <Pine.LNX.4.64.1202050041001.3770@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1202050041001.3770@axis700.grange>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
-I like the direction in which you are going with the userspace
-handling. This is almost exactly as I envisioned it. I have one
-comment though:
+On 02/05/2012 12:44 AM, Guennadi Liakhovetski wrote:
+>> Yes, this is what I started with. What do you think about creating media
 
-On Thu, Jan 26, 2012 at 01:48, Tomasz Stanislawski
-<t.stanislaws@samsung.com> wrote:
+Actually now I have something like V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 
+(I1 indicating interleaving method), so it is not so tightly tied 
+to a particular sensor. 
 
-[snip]
+>> bus codes directly corresponding the the user defined MIPI-CSI data types ?
+> 
+> We've discussed this before with Laurent, IIRC, and the decision was, that
+> since a "typical" CSI-2 configuration includes a CSI-2 phy, interfacing to
+> a "standard" bridge, that can also receive parallel data directly, and the
+> phy normally has a 1-to-1 mapping from CSI-2 formats to mediabus codes,
+> so, we can just as well directly use respective mediabus codes to
+> configure CSI-2 phys.
 
->        /* setup polling */
->        struct pollfd fds[2] = {
->                { .fd = f_in, .events = POLLIN },
->                { .fd = f_out, .events = POLLOUT },
->        };
->
->        while ((ret = poll(fds, 2, 5000)) > 0) {
->                struct v4l2_buffer buf;
->                struct v4l2_plane plane;
->
->                memset(&buf, 0, sizeof buf);
->                memset(&plane, 0, sizeof plane);
->                buf.m.planes = &plane;
->                buf.length = 1;
->
->                if (fds[0].revents & POLLIN) {
->                        /* dequeue buffer */
->                        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->                        buf.memory = V4L2_MEMORY_MMAP;
->                        ret = ioctl(f_in, VIDIOC_DQBUF, &buf);
->                        BYE_ON(ret, "VIDIOC_DQBUF failed: %s\n", ERRSTR);
->
->                        /* enqueue buffer */
->                        buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
->                        buf.memory = V4L2_MEMORY_DMABUF;
->                        plane.m.fd = fd[buf.index];
->                        ret = ioctl(f_out, VIDIOC_QBUF, &buf);
->                        BYE_ON(ret, "VIDIOC_QBUF failed: %s\n", ERRSTR);
->                }
+OK. The 1-to-1 mapping is true only for MIPI-CSI defined image formats AFAICS.
+Let's take JPEG as an example, AFAIU there is nothing in the standard indicating
+which User Defined Data Type should be used for JPEG. If some bridge/sensor pair
+uses User1 for V4L2_MBUS_FMT_JPEG_1X8 and other uses User2 then there is no way
+to make any of these sensors work with any bridge without code modifications. 
+Looks like we would need MIPI-CSI DT field in format description data structure 
+((like) struct soc_mbus_lookup).
 
-This passes fd, so the OUTPUT driver will get the correct buffer from dmabuf.
+--
 
->                if (fds[1].revents & POLLOUT) {
->                        /* dequeue buffer */
->                        buf.type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
->                        buf.memory = V4L2_MEMORY_DMABUF;
->                        ret = ioctl(f_out, VIDIOC_DQBUF, &buf);
->                        BYE_ON(ret, "VIDIOC_DQBUF failed: %s\n", ERRSTR);
->
->                        /* enqueue buffer */
->                        buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
->                        buf.memory = V4L2_MEMORY_MMAP;
->                        ret = ioctl(f_in, VIDIOC_QBUF, &buf);
->                        BYE_ON(ret, "VIDIOC_QBUF failed: %s\n", ERRSTR);
->                }
-
-This, however, relies on the indexes to be equal for the same
-buffers/planes in both drivers. I don't see why we should restrict
-ourselves to that. In fact, we must not. You should have a reverse
-mapping of fd->index for the INPUT device and use the fd returned in
-buf by DQBUF from OUTPUT device to look-up the correct index to be
-passed to the INPUT device.
-
->        }
->
->        BYE_ON(ret == 0, "polling timeout\n");
->        BYE_ON(1, "polling stopped: %s\n", ERRSTR);
->
->        return 0;
-> }
-
-
-
--- 
-Best regards,
-Pawel Osciak
+Thanks,
+Sylwester
