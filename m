@@ -1,69 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:42655 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932066Ab2BBOhc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 09:37:32 -0500
-Received: by wgbdt10 with SMTP id dt10so2646684wgb.1
-        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 06:37:31 -0800 (PST)
+Received: from moutng.kundenserver.de ([212.227.126.171]:57088 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752767Ab2BEAEi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 19:04:38 -0500
+Date: Sun, 5 Feb 2012 01:04:30 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+In-Reply-To: <4F2D5231.4000703@iki.fi>
+Message-ID: <Pine.LNX.4.64.1202050046050.3770@axis700.grange>
+References: <4F27CF29.5090905@samsung.com> <20120201100007.GA841@valkosipuli.localdomain>
+ <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi> <4F2D4E2D.1030107@gmail.com>
+ <4F2D5231.4000703@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAOMZO5Cfb=4fkqkmdkN6OcLAZVszxGNB8X6q4bDU_oFwnnjt6Q@mail.gmail.com>
-References: <C85ED22A0FD4B54195E2F05309F9D3FF07234D15@CORREO.cp.local>
-	<Pine.LNX.4.64.1202020040500.28897@axis700.grange>
-	<CAOMZO5Cfb=4fkqkmdkN6OcLAZVszxGNB8X6q4bDU_oFwnnjt6Q@mail.gmail.com>
-Date: Thu, 2 Feb 2012 15:37:31 +0100
-Message-ID: <CACKLOr2TMkLjhWMAxuLbjqj4Uin6mx9NeGpzZqJ8u-+f6+JX5w@mail.gmail.com>
-Subject: Re: OV2640 and iMX25PDK - help needed
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Fernandez Gonzalo <gfernandez@copreci.es>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Sat, 4 Feb 2012, Sakari Ailus wrote:
 
-On 2 February 2012 15:01, Fabio Estevam <festevam@gmail.com> wrote:
-> On 2/1/12, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
->> Hello Gonzalo
->>
->> On Tue, 31 Jan 2012, Fernandez Gonzalo wrote:
->>
->>> Hi all,
->>>
->>> I've been working for a while with an iMX25PDK using the BSP provided by
->>> Freescale (L2.6.31). The camera driver (V4L2-int) and examples do the
->>> job quite well but I need to move my design to a more recent kernel.
->>> I've been extensively googling but haven't found any info/examples about
->>> how to run the mx2_camera driver in the i.MX25PDK. I'm stuck at this,
->>> could someone point me in the right direction? Thank you in advance...
->>
->> i.MX25PDK is supported in the mainline kernel
->> (arch/arm/mach-imx/mach-mx25_3ds.c), but it doesn't attach any cameras.
->> Unfortunately, I also don't currently see any i.MX2x platforms in the
->> mainline with cameras, so, you have to begin by looking at
->> arch/arm/plat-mxc/include/mach/mx2_cam.h, at
->> arch/arm/plat-mxc/devices/platform-mx2-camera.c for the
->> imx27_add_mx2_camera() function and maybe some i.MX3x or i.MX1 examples.
->
-> Javier has been doing a lot of work on mx2-camera lately.
->
-> Javier,
->
-> Is mach-imx27_visstrim_m10 board connected to a CMOS camera? Do you
-> have patches for adding camera support to mach-imx27_visstrim_m10?
+> Hi Sylwester,
+> 
+> Sylwester Nawrocki wrote:
+> > On 02/04/2012 12:22 PM, Sakari Ailus wrote:
 
-visstrim_m10 is connected to a tvp5150 but it uses the same interface
-as a CMOS sensor. Let me find some time to send a patch that I have
-pending in my queue. Then it can be used by Gonzalo as a reference.
+[snip]
 
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+> >> I'd be much in favour or using a separate channel ID as Guennadi asked;
+> >> that way you could quite probably save one memory copy as well. But if
+> >> the hardware already exists and behaves badly there's usually not much
+> >> you can do about it.
+> > 
+> > As I explained above I suspect that the sensor sends each image data type
+> > on separate channels (I'm not 100% sure) but the bridge is unable to DMA
+> > it into separate memory regions.
+> > 
+> > Currently we have no support in V4L2 for specifying separate image data 
+> > format per MIPI-CSI2 channel. Maybe the solution is just about that - 
+> > adding support for virtual channels and a possibility to specify an image 
+> > format separately per each channel ?
+> > Still, there would be nothing telling how the channels are interleaved :-/
+> 
+> _If_ the sensor sends YUV and compressed JPEG data in separate CSI-2
+> channels then definitely the correct way to implement this is to take
+> this kind of setup into account in the frame format description --- we
+> do need that quite badly.
+> 
+> However, this doesn't really help you with your current problem, and
+> perhaps just creating a custom format for your sensor driver is the best
+> way to go for the time being.
+
+As fas as I understand, the problem is not the sensor but the bridge. So, 
+following your logic you would have to create a new format for each sensor 
+with similar capabilities, if you want to connect it to this bridge. This 
+doesn't seem like a good idea to me.
+
+May I again do some shameless self-advertising: soc-camera had to deal 
+with this kind of problem since some time and we have a solution for it.
+
+The problem is actually not _quite_ identical, it has nothing to do with 
+interleaved formats, but I think, essentially the problem is: how to 
+configure bridges to process some generic (video) data when no specialised 
+support for this data format is available or implemented yet. This is what 
+we call a pass-through mode. All bridges I've met so far have a capability 
+to receive and store in memory some generic video data, for which you 
+basically just configure the number of bytes per line and the number of 
+lines per frame.
+
+The solution, that we use in soc-camera is to define format descriptors, 
+that can be used to calculate those generic parameters for each supported 
+format. I am talking about the mbus_fmt[] array and the 
+soc_mbus_bytes_per_line() function in soc_mediabus.c. So, my suggestion 
+would be to use something similar for this case too: use some high-level 
+description for this format, including any channel information, that 
+advanced bridges can use to properly separate the date, and a function, 
+that interprets that high-level description and provides the low-level 
+details like bytes-per-line, necessary to configure bridges, unable to 
+handle the data natively. Ideally, of course, I would suggest to convert 
+that file to a generic API, usable for all V4L2 drivers (basically, just 
+rename a couple of structs and functions) and extend it to handle 
+interleaved formats.
+
+> But. When someone attaches this kind of
+> sensor to another CSI-2 receiver that can separate the data from
+> different channels, I think we should start working towards for a
+> correct solution which this driver also should support.
+
+Exactly.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
