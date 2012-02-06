@@ -1,70 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:45423 "EHLO mail.atlantis.sk"
+Received: from proxima.lp0.eu ([81.2.80.65]:51961 "EHLO proxima.lp0.eu"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756370Ab2BGW1s (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Feb 2012 17:27:48 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: alsa-devel@alsa-project.org
-Subject: Re: [alsa-devel] tea575x-tuner improvements & use in maxiradio
-Date: Tue, 7 Feb 2012 23:20:19 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1328447827-9842-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1328447827-9842-1-git-send-email-hverkuil@xs4all.nl>
+	id S1755317Ab2BFWFU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Feb 2012 17:05:20 -0500
+Message-ID: <4F304CAD.5080700@simon.arlott.org.uk>
+Date: Mon, 06 Feb 2012 21:57:01 +0000
+From: Simon Arlott <simon@fire.lp0.eu>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: lkml@vger.kernel.org, linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] dvb-core: fix DVBFE_ALGO_HW retune bug
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201202072320.30911.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 05 February 2012 14:17:05 Hans Verkuil wrote:
-> These patches improve the tea575x-tuner module to make it up to date with
-> the latest V4L2 frameworks.
->
-> The maxiradio driver has also been converted to use the tea575x-tuner and
-> I've used that card to test it.
->
-> Unfortunately, this card can't read the data pin, so the new hardware seek
-> functionality has been tested only partially (yes, it seeks, but when it
-> finds a channel I can't read back the frequency).
->
-> Ondrej, are you able to test these patches for the sound cards that use
-> this tea575x tuner?
->
-> Note that these two patches rely on other work that I did and that hasn't
-> been merged yet. So it is best to pull from my git tree:
->
-> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/radio-pc
->i2
->
-> You can use the v4l-utils repository (http://git.linuxtv.org/v4l-utils.git)
-> to test the drivers: the v4l2-compliance test should succeed and with
-> v4l2-ctl you can test the hardware seek:
->
-> To seek down:
->
-> v4l2-ctl -d /dev/radio0 --freq-seek=dir=0
->
-> To seek up:
->
-> v4l2-ctl -d /dev/radio0 --freq-seek=dir=1
->
-> To do the compliance test:
->
-> v4l2-compliance -r /dev/radio0
+Commit 7e07222 breaks DVBFE_ALGO_HW tuning after a retune is requested,
+which causes bad tuning on my TBS 6920.
 
-It seems to work (tested with SF64-PCR - snd_fm801) but the seek is severely 
-broken. Reading the frequency immediately after seek does not work, it always 
-returns the old value (haven't found a delay that works). Reading it later 
-(copied back snd_tea575x_get_freq function) works. The chip seeks randomly up 
-or down, ignoring UP/DOWN flag and often stops at wrong place (only noise) or 
-even outside the FM range.
+[    0.769091] pci 0000:06:00.0: [14f1:8852] type 0 class 0x000400
+[   19.733530] CORE cx23885[0]: subsystem: 6920:8888, board: TurboSight TBS 6920 [card=14,autodetected]
+[  762.824912] cx24116_load_firmware: FW version 1.23.86.1
 
-So I strongly suggest not to enable this (mis-)feature. The HW seems to be 
-completely broken (unless there's some weird bug in the code).
+7e0722215a510921cbb73ab4c37477d4dcb91bf8 [media] dvb-core: Don't pass DVBv3 parameters on tune() fops
 
+Although re_tune is set to true when FESTATE_RETUNE occurs, it is never
+set back to false which the old code used to do when !FESTATE_RETUNE.
+
+This patch sets re_tune to false if !(state & FESTATE_RETUNE).
+
+$ szap-s2 -a 2 "Channel 5"
+reading channels from file '/home/simon/.szap/channels.conf'
+zapping to 247 'Channel 5':
+delivery DVB-S, modulation QPSK
+sat 0, frequency 10964 MHz H, symbolrate 22000000, coderate 5/6, rolloff 0.35
+vpid 0x092a, apid 0x092b, sid 0x092d
+using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
+status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr eb33 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cec0 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+status 1f | signal cec0 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+
+Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
+---
+ drivers/media/dvb/dvb-core/dvb_frontend.c |    2 ++
+ 1 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
+index fbbe545..4555baa 100644
+--- a/drivers/media/dvb/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
+@@ -655,6 +655,8 @@ restart:
+ 					dprintk("%s: Retune requested, FESTATE_RETUNE\n", __func__);
+ 					re_tune = true;
+ 					fepriv->state = FESTATE_TUNED;
++				} else {
++					re_tune = false;
+ 				}
+ 
+ 				if (fe->ops.tune)
+-- 
+1.7.8.rc3
 
 -- 
-Ondrej Zary
+Simon Arlott
