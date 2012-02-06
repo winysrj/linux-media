@@ -1,45 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:46256 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751658Ab2BTSXX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Feb 2012 13:23:23 -0500
-Received: by eekc14 with SMTP id c14so2365651eek.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Feb 2012 10:23:22 -0800 (PST)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:46516 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754381Ab2BFMvz convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 07:51:55 -0500
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1202201916410.2836@axis700.grange>
-References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
-	<Pine.LNX.4.64.1202201916410.2836@axis700.grange>
-Date: Mon, 20 Feb 2012 16:23:22 -0200
-Message-ID: <CAOMZO5AAeqHZFqpZYB_riSCQvCRSjQtR2EqpZvC5V3TRyzuWJQ@mail.gmail.com>
-Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
-From: Fabio Estevam <festevam@gmail.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	kernel@pengutronix.de, Fabio Estevam <fabio.estevam@freescale.com>
+In-Reply-To: <op.v87mpive3l0zgt@mpn-glaptop>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+	<1328271538-14502-13-git-send-email-m.szyprowski@samsung.com>
+	<CAJd=RBBPOwftZJUfe3xc6y24=T8un5hPk0wEOT_5v6WMCbDSag@mail.gmail.com>
+	<op.v87mpive3l0zgt@mpn-glaptop>
+Date: Mon, 6 Feb 2012 20:51:54 +0800
+Message-ID: <CAJd=RBCqw=4AEDZU5aPexX2+xVKVhB+uo-ta2hviSAJO63axvw@mail.gmail.com>
+Subject: Re: [PATCH 12/15] drivers: add Contiguous Memory Allocator
+From: Hillf Danton <dhillf@gmail.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 20, 2012 at 4:17 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Mon, 20 Feb 2012, Fabio Estevam wrote:
+2012/2/5 Michal Nazarewicz <mina86@mina86.com>:
+> On Sun, 05 Feb 2012 05:25:40 +0100, Hillf Danton <dhillf@gmail.com> wrote:
+>>
+>> Without boot mem reservation, what is the successful rate of CMA to
+>> serve requests of 1MiB, 2MiB, 4MiB and 8MiB chunks?
 >
->> Align mx3_camera driver with the other soc camera driver implementations
->> by allocating the camera object via kzalloc.
 >
-> Sorry, any specific reason, why you think this "aligning" is so important?
+> CMA will work as long as you manage to get some pageblocks marked as
+> MIGRATE_CMA and move all non-movable pages away.  You might try and get it
+> done after system has booted but we have not tried nor tested it.
 
-Not really.
+Better to include whatever test results in change log.
 
-Just compared it with all other soc camera drivers I found and
-mx3_camera was the only one that uses "vzalloc"
-
-Any specific reason that requires mx3_camera to use "vzalloc" instead
-of "kzalloc"?
-
-Tested with kzalloc and it worked fine on my mx31pdk.
-
-Regards,
-
-Fabio Estevam
+And no more questions ;)
