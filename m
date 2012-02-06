@@ -1,198 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:56259 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755907Ab2BHPOw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2012 10:14:52 -0500
-Date: Wed, 08 Feb 2012 16:14:46 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 11/15] mm: trigger page reclaim in alloc_contig_range() to
- stabilize watermarks
-In-reply-to: <20120203140428.GG5796@csn.ul.ie>
-To: 'Mel Gorman' <mel@csn.ul.ie>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Arnd Bergmann' <arnd@arndb.de>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>,
-	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>,
-	'Rob Clark' <rob.clark@linaro.org>,
-	'Ohad Ben-Cohen' <ohad@wizery.com>
-Message-id: <000001cce674$64bb67e0$2e3237a0$%szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-language: pl
-Content-transfer-encoding: 7BIT
-References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
- <1328271538-14502-12-git-send-email-m.szyprowski@samsung.com>
- <20120203140428.GG5796@csn.ul.ie>
+Received: from mail.kapsi.fi ([217.30.184.167]:56948 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754963Ab2BFMnF (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 6 Feb 2012 07:43:05 -0500
+Message-ID: <4F2FCAAD.3070706@iki.fi>
+Date: Mon, 06 Feb 2012 14:42:21 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] IT913X Version 1 and Version 2 keymaps
+References: <1328135384.2552.20.camel@tvbox>
+In-Reply-To: <1328135384.2552.20.camel@tvbox>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On 02/02/2012 12:29 AM, Malcolm Priestley wrote:
+> IT913X V1 V2 keymaps
+>
+> Signed-off-by: Malcolm Priestley<tvboxspy@gmail.com>
+>
+> ---
+>   drivers/media/rc/keymaps/Makefile       |    2 +
+>   drivers/media/rc/keymaps/rc-it913x-v1.c |   95 +++++++++++++++++++++++++++++++
+>   drivers/media/rc/keymaps/rc-it913x-v2.c |   94 ++++++++++++++++++++++++++++++
+>   include/media/rc-map.h                  |    2 +
+>   4 files changed, 193 insertions(+), 0 deletions(-)
+>   create mode 100644 drivers/media/rc/keymaps/rc-it913x-v1.c
+>   create mode 100644 drivers/media/rc/keymaps/rc-it913x-v2.c
+>
+> diff --git a/drivers/media/rc/keymaps/Makefile b/drivers/media/rc/keymaps/Makefile
+> index 36e4d5e..9514d82 100644
+> --- a/drivers/media/rc/keymaps/Makefile
+> +++ b/drivers/media/rc/keymaps/Makefile
+> @@ -41,6 +41,8 @@ obj-$(CONFIG_RC_MAP) += rc-adstech-dvb-t-pci.o \
+>   			rc-imon-mce.o \
+>   			rc-imon-pad.o \
+>   			rc-iodata-bctv7e.o \
+> +			rc-it913x-v1.o \
+> +			rc-it913x-v2.o \
+>   			rc-kaiomy.o \
+>   			rc-kworld-315u.o \
+>   			rc-kworld-plus-tv-analog.o \
+> diff --git a/drivers/media/rc/keymaps/rc-it913x-v1.c b/drivers/media/rc/keymaps/rc-it913x-v1.c
+> new file mode 100644
+> index 0000000..0ac775f
+> --- /dev/null
+> +++ b/drivers/media/rc/keymaps/rc-it913x-v1.c
+> @@ -0,0 +1,95 @@
+> +/* ITE Generic remotes Version 1
+> + *
+> + * Copyright (C) 2012 Malcolm Priestley (tvboxspy@gmail.com)
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include<media/rc-map.h>
+> +#include<linux/module.h>
+> +
+> +
+> +static struct rc_map_table it913x_v1_rc[] = {
+> +	/* Type 1 */
+> +	{ 0x61d601, KEY_VIDEO },           /* Source */
+> +	{ 0x61d602, KEY_3 },
+> +	{ 0x61d603, KEY_POWER },           /* ShutDown */
+> +	{ 0x61d604, KEY_1 },
+> +	{ 0x61d605, KEY_5 },
+> +	{ 0x61d606, KEY_6 },
+> +	{ 0x61d607, KEY_CHANNELDOWN },     /* CH- */
+> +	{ 0x61d608, KEY_2 },
+> +	{ 0x61d609, KEY_CHANNELUP },       /* CH+ */
+> +	{ 0x61d60a, KEY_9 },
+> +	{ 0x61d60b, KEY_ZOOM },            /* Zoom */
+> +	{ 0x61d60c, KEY_7 },
+> +	{ 0x61d60d, KEY_8 },
+> +	{ 0x61d60e, KEY_VOLUMEUP },        /* Vol+ */
+> +	{ 0x61d60f, KEY_4 },
+> +	{ 0x61d610, KEY_ESC },             /* [back up arrow] */
+> +	{ 0x61d611, KEY_0 },
+> +	{ 0x61d612, KEY_OK },              /* [enter arrow] */
+> +	{ 0x61d613, KEY_VOLUMEDOWN },      /* Vol- */
+> +	{ 0x61d614, KEY_RECORD },          /* Rec */
+> +	{ 0x61d615, KEY_STOP },            /* Stop */
+> +	{ 0x61d616, KEY_PLAY },            /* Play */
+> +	{ 0x61d617, KEY_MUTE },            /* Mute */
+> +	{ 0x61d618, KEY_UP },
+> +	{ 0x61d619, KEY_DOWN },
+> +	{ 0x61d61a, KEY_LEFT },
+> +	{ 0x61d61b, KEY_RIGHT },
+> +	{ 0x61d61c, KEY_RED },
+> +	{ 0x61d61d, KEY_GREEN },
+> +	{ 0x61d61e, KEY_YELLOW },
+> +	{ 0x61d61f, KEY_BLUE },
+> +	{ 0x61d643, KEY_POWER2 },          /* [red power button] */
 
-On Friday, February 03, 2012 3:04 PM Mel Gorman wrote:
+That remote is already there. Use existing remote instead of adding new 
+one with different name. It is RC_MAP_MSI_DIGIVOX_III
 
-> On Fri, Feb 03, 2012 at 01:18:54PM +0100, Marek Szyprowski wrote:
-> > alloc_contig_range() performs memory allocation so it also should keep
-> > track on keeping the correct level of memory watermarks. This commit adds
-> > a call to *_slowpath style reclaim to grab enough pages to make sure that
-> > the final collection of contiguous pages from freelists will not starve
-> > the system.
-> >
-> > Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > CC: Michal Nazarewicz <mina86@mina86.com>
-> > Tested-by: Rob Clark <rob.clark@linaro.org>
-> > Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-> > Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-> 
-> I still do not intend to ack this patch and any damage is confined to
-> CMA but I have a few comments anyway.
-> 
-> > ---
-> >  mm/page_alloc.c |   47 +++++++++++++++++++++++++++++++++++++++++++++++
-> >  1 files changed, 47 insertions(+), 0 deletions(-)
-> >
-> > diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-> > index 983ccba..371a79f 100644
-> > --- a/mm/page_alloc.c
-> > +++ b/mm/page_alloc.c
-> > @@ -5632,6 +5632,46 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned
-> long end)
-> >  	return ret > 0 ? 0 : ret;
-> >  }
-> >
-> > +/*
-> > + * Trigger memory pressure bump to reclaim some pages in order to be able to
-> > + * allocate 'count' pages in single page units. Does similar work as
-> > + *__alloc_pages_slowpath() function.
-> > + */
-> > +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
-> > +{
-> > +	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
-> > +	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
-> > +	int did_some_progress = 0;
-> > +	int order = 1;
-> > +	unsigned long watermark;
-> > +
-> > +	/*
-> > +	 * Increase level of watermarks to force kswapd do his job
-> > +	 * to stabilize at new watermark level.
-> > +	 */
-> > +	min_free_kbytes += count * PAGE_SIZE / 1024;
-> 
-> There is a risk of overflow here although it is incredibly
-> small. Still, a potentially nicer way of doing this was
-> 
-> count << (PAGE_SHIFT - 10)
-> 
-> > +	setup_per_zone_wmarks();
-> > +
-> 
-> Nothing prevents two or more processes updating the wmarks at the same
-> time which is racy and unpredictable. Today it is not much of a problem
-> but CMA makes this path hotter than it was and you may see weirdness
-> if two processes are updating zonelists at the same time. Swap-over-NFS
-> actually starts with a patch that serialises setup_per_zone_wmarks()
-> 
-> You also potentially have a BIG problem here if this happens
-> 
-> min_free_kbytes = 32768
-> Process a: min_free_kbytes  += 65536
-> Process a: start direct reclaim
-> echo 16374 > /proc/sys/vm/min_free_kbytes
-> Process a: exit direct_reclaim
-> Process a: min_free_kbytes -= 65536
-> 
-> min_free_kbytes now wraps negative and the machine hangs.
-> 
-> The damage is confined to CMA though so I am not going to lose sleep
-> over it but you might want to consider at least preventing parallel
-> updates to min_free_kbytes from proc.
 
-Right. This approach was definitely too hacky. What do you think about replacing 
-it with the following code (I assume that setup_per_zone_wmarks() serialization 
-patch will be merged anyway so I skipped it here):
+> +	/* Type 2 - 20 buttons */
+> +	{ 0x807f0d, KEY_0 },
+> +	{ 0x807f04, KEY_1 },
+> +	{ 0x807f05, KEY_2 },
+> +	{ 0x807f06, KEY_3 },
+> +	{ 0x807f07, KEY_4 },
+> +	{ 0x807f08, KEY_5 },
+> +	{ 0x807f09, KEY_6 },
+> +	{ 0x807f0a, KEY_7 },
+> +	{ 0x807f1b, KEY_8 },
+> +	{ 0x807f1f, KEY_9 },
+> +	{ 0x807f12, KEY_POWER },
+> +	{ 0x807f01, KEY_MEDIA_REPEAT}, /* Recall */
+> +	{ 0x807f19, KEY_PAUSE }, /* Timeshift */
+> +	{ 0x807f1e, KEY_VOLUMEUP }, /* 2 x -/+ Keys not marked */
+> +	{ 0x807f03, KEY_VOLUMEDOWN }, /* Volume defined as right hand*/
+> +	{ 0x807f1a, KEY_CHANNELUP },
+> +	{ 0x807f02, KEY_CHANNELDOWN },
+> +	{ 0x807f0c, KEY_ZOOM },
+> +	{ 0x807f00, KEY_RECORD },
+> +	{ 0x807f0e, KEY_STOP },
 
-diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
-index 82f4fa5..bb9ae41 100644
---- a/include/linux/mmzone.h
-+++ b/include/linux/mmzone.h
-@@ -371,6 +371,13 @@ struct zone {
-        /* see spanned/present_pages for more description */
-        seqlock_t               span_seqlock;
- #endif
-+#ifdef CONFIG_CMA
-+       /*
-+        * CMA needs to increase watermark levels during the allocation
-+        * process to make sure that the system is not starved.
-+        */
-+       unsigned long           min_cma_pages;
-+#endif
-        struct free_area        free_area[MAX_ORDER];
+That is NEC basic - 16 bit, not 24 bit. That remote seems to be here 
+also. It is RC_MAP_TERRATEC_SLIM_2. Use existing instead of define new.
 
- #ifndef CONFIG_SPARSEMEM
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 824fb37..1ca52f0 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5044,6 +5044,11 @@ void setup_per_zone_wmarks(void)
+> +};
+> +
+> +static struct rc_map_list it913x_v1_map = {
+> +	.map = {
+> +		.scan    = it913x_v1_rc,
+> +		.size    = ARRAY_SIZE(it913x_v1_rc),
+> +		.rc_type = RC_TYPE_NEC,
+> +		.name    = RC_MAP_IT913X_V1,
+> +	}
+> +};
+> +
+> +static int __init init_rc_it913x_v1_map(void)
+> +{
+> +	return rc_map_register(&it913x_v1_map);
+> +}
+> +
+> +static void __exit exit_rc_it913x_v1_map(void)
+> +{
+> +	rc_map_unregister(&it913x_v1_map);
+> +}
+> +
+> +module_init(init_rc_it913x_v1_map)
+> +module_exit(exit_rc_it913x_v1_map)
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
+> diff --git a/drivers/media/rc/keymaps/rc-it913x-v2.c b/drivers/media/rc/keymaps/rc-it913x-v2.c
+> new file mode 100644
+> index 0000000..28e376e
+> --- /dev/null
+> +++ b/drivers/media/rc/keymaps/rc-it913x-v2.c
+> @@ -0,0 +1,94 @@
+> +/* ITE Generic remotes Version 2
+> + *
+> + * Copyright (C) 2012 Malcolm Priestley (tvboxspy@gmail.com)
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License as published by
+> + * the Free Software Foundation; either version 2 of the License, or
+> + * (at your option) any later version.
+> + */
+> +
+> +#include<media/rc-map.h>
+> +#include<linux/module.h>
+> +
+> +
+> +static struct rc_map_table it913x_v2_rc[] = {
+> +	/* Type 1 */
+> +	/* 9005 remote */
+> +	{ 0x807f12, KEY_POWER2 },	/* Power (RED POWER BUTTON)*/
+> +	{ 0x807f1a, KEY_VIDEO },	/* Source */
+> +	{ 0x807f1e, KEY_MUTE },		/* Mute */
+> +	{ 0x807f01, KEY_RECORD },	/* Record */
+> +	{ 0x807f02, KEY_CHANNELUP },	/* Channel+ */
+> +	{ 0x807f03, KEY_TIME },		/* TimeShift */
+> +	{ 0x807f04, KEY_VOLUMEUP },	/* Volume- */
+> +	{ 0x807f05, KEY_SCREEN },	/* FullScreen */
+> +	{ 0x807f06, KEY_VOLUMEDOWN },	/* Volume- */
+> +	{ 0x807f07, KEY_0 },		/* 0 */
+> +	{ 0x807f08, KEY_CHANNELDOWN },	/* Channel- */
+> +	{ 0x807f09, KEY_PREVIOUS },	/* Recall */
+> +	{ 0x807f0a, KEY_1 },		/* 1 */
+> +	{ 0x807f1b, KEY_2 },		/* 2 */
+> +	{ 0x807f1f, KEY_3 },		/* 3 */
+> +	{ 0x807f0c, KEY_4 },		/* 4 */
+> +	{ 0x807f0d, KEY_5 },		/* 5 */
+> +	{ 0x807f0e, KEY_6 },		/* 6 */
+> +	{ 0x807f00, KEY_7 },		/* 7 */
+> +	{ 0x807f0f, KEY_8 },		/* 8 */
+> +	{ 0x807f19, KEY_9 },		/* 9 */
 
-                zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp >> 2);
-                zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
-+#ifdef CONFIG_CMA
-+               zone->watermark[WMARK_MIN] += zone->min_cma_pages;
-+               zone->watermark[WMARK_LOW] += zone->min_cma_pages;
-+               zone->watermark[WMARK_HIGH] += zone->min_cma_pages;
-+#endif
-                setup_zone_migrate_reserve(zone);
-                spin_unlock_irqrestore(&zone->lock, flags);
-        }
-@@ -5625,13 +5630,15 @@ static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
-        struct zonelist *zonelist = node_zonelist(0, gfp_mask);
-        int did_some_progress = 0;
-        int order = 1;
--       unsigned long watermark;
-+       unsigned long watermark, flags;
+That is also 16 bit NEC basic.
 
-        /*
-         * Increase level of watermarks to force kswapd do his job
-         * to stabilize at new watermark level.
-         */
--       min_free_kbytes += count * PAGE_SIZE / 1024;
-+       spin_lock_irqsave(&zone->lock, flags);
-+       zone->min_cma_pages += count;
-+       spin_unlock_irqrestore(&zone->lock, flags);
-        setup_per_zone_wmarks();
+> +
+> +	/* Type 2 */
+> +	/* keys stereo, snapshot unassigned */
+> +	{ 0x866b00, KEY_0 },
+> +	{ 0x866b1b, KEY_1 },
+> +	{ 0x866b02, KEY_2 },
+> +	{ 0x866b03, KEY_3 },
+> +	{ 0x866b04, KEY_4 },
+> +	{ 0x866b05, KEY_5 },
+> +	{ 0x866b06, KEY_6 },
+> +	{ 0x866b07, KEY_7 },
+> +	{ 0x866b08, KEY_8 },
+> +	{ 0x866b09, KEY_9 },
+> +	{ 0x866b12, KEY_POWER },
+> +	{ 0x866b13, KEY_MUTE },
+> +	{ 0x866b0a, KEY_PREVIOUS }, /* Recall */
+> +	{ 0x866b1e, KEY_PAUSE },
+> +	{ 0x866b0c, KEY_VOLUMEUP },
+> +	{ 0x866b18, KEY_VOLUMEDOWN },
+> +	{ 0x866b0b, KEY_CHANNELUP },
+> +	{ 0x866b18, KEY_CHANNELDOWN },
+> +	{ 0x866b10, KEY_ZOOM },
+> +	{ 0x866b1d, KEY_RECORD },
+> +	{ 0x866b0e, KEY_STOP },
+> +	{ 0x866b11, KEY_EPG},
+> +	{ 0x866b1a, KEY_FASTFORWARD },
+> +	{ 0x866b0f, KEY_REWIND },
+> +	{ 0x866b1c, KEY_TV },
+> +	{ 0x866b1b, KEY_TEXT },
+> +
+> +};
+> +
+> +static struct rc_map_list it913x_v2_map = {
+> +	.map = {
+> +		.scan    = it913x_v2_rc,
+> +		.size    = ARRAY_SIZE(it913x_v2_rc),
+> +		.rc_type = RC_TYPE_NEC,
+> +		.name    = RC_MAP_IT913X_V2,
+> +	}
+> +};
+> +
+> +static int __init init_rc_it913x_v2_map(void)
+> +{
+> +	return rc_map_register(&it913x_v2_map);
+> +}
+> +
+> +static void __exit exit_rc_it913x_v2_map(void)
+> +{
+> +	rc_map_unregister(&it913x_v2_map);
+> +}
+> +
+> +module_init(init_rc_it913x_v2_map)
+> +module_exit(exit_rc_it913x_v2_map)
+> +
+> +MODULE_LICENSE("GPL");
+> +MODULE_AUTHOR("Malcolm Priestley tvboxspy@gmail.com");
+> diff --git a/include/media/rc-map.h b/include/media/rc-map.h
+> index f688bde..5b988d7 100644
+> --- a/include/media/rc-map.h
+> +++ b/include/media/rc-map.h
+> @@ -102,6 +102,8 @@ void rc_map_init(void);
+>   #define RC_MAP_IMON_MCE                  "rc-imon-mce"
+>   #define RC_MAP_IMON_PAD                  "rc-imon-pad"
+>   #define RC_MAP_IODATA_BCTV7E             "rc-iodata-bctv7e"
+> +#define RC_MAP_IT913X_V1                 "rc-it913x-v1"
+> +#define RC_MAP_IT913X_V2                 "rc-it913x-v2"
+>   #define RC_MAP_KAIOMY                    "rc-kaiomy"
+>   #define RC_MAP_KWORLD_315U               "rc-kworld-315u"
+>   #define RC_MAP_KWORLD_PLUS_TV_ANALOG     "rc-kworld-plus-tv-analog"
 
-        /* Obey watermarks as if the page was being allocated */
-@@ -5648,7 +5655,9 @@ static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
-        }
 
-        /* Restore original watermark levels. */
--       min_free_kbytes -= count * PAGE_SIZE / 1024;
-+       spin_lock_irqsave(&zone->lock, flags);
-+       zone->min_cma_pages -= count;
-+       spin_unlock_irqrestore(&zone->lock, flags);
-        setup_per_zone_wmarks();
+regards
+Antti
 
-        return count;
-
-Best regards
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
-
-
+http://palosaari.fi/
