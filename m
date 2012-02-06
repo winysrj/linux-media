@@ -1,190 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:40796 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755898Ab2BYDtU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 22:49:20 -0500
-Date: Sat, 25 Feb 2012 05:49:15 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: snjw23@gmail.com, laurent.pinchart@ideasonboard.com,
-	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com,
-	g.liakhovetski@gmx.de, dacohen@gmail.com
-Subject: [RFC] Frame format descriptors
-Message-ID: <20120225034915.GH12602@valkosipuli.localdomain>
+Received: from moutng.kundenserver.de ([212.227.17.10]:54437 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754563Ab2BFSda (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 13:33:30 -0500
+Date: Mon, 6 Feb 2012 19:33:20 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
+Subject: Re: [PATCH v3 3/4] media i.MX27 camera: improve discard buffer
+ handling.
+In-Reply-To: <1327925653-13310-3-git-send-email-javier.martin@vista-silicon.com>
+Message-ID: <Pine.LNX.4.64.1202061907020.10363@axis700.grange>
+References: <1327925653-13310-1-git-send-email-javier.martin@vista-silicon.com>
+ <1327925653-13310-3-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Javier
 
-We've been talking some time about frame format desciptors. I don't mean just
-image data --- there can be metadata and image data which cannot be
-currently described using struct v4l2_mbus_framefmt, such as JPEG images and
-snapshots. I thought it was about the time to write an RFC.
+Thanks for the update! Let's see, whether this one can be improved a bit 
+more.
 
-I think we should have additional ways to describe the frame format, a part
-of thee frame is already described by struct v4l2_mbus_framefmt which only
-describes image data.
+On Mon, 30 Jan 2012, Javier Martin wrote:
 
+> The way discard buffer was previously handled lead
+> to possible races that made a buffer that was not
+> yet ready to be overwritten by new video data. This
+> is easily detected at 25fps just adding "#define DEBUG"
+> to enable the "memset" check and seeing how the image
+> is corrupted.
+> 
+> A new "discard" queue and two discard buffers have
+> been added to make them flow trough the pipeline
+> of queues and thus provide suitable event ordering.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  Changes since v2:
+>  - Remove BUG_ON when active list is empty.
+>  - Replace empty list checks with warnings.
 
-Background
-==========
+I think, the best would be to warn and bail out, instead of implicitly 
+crashing.
 
-I want to first begin by listing known use cases. There are a number of
-variations of these use cases that would be nice to be supported. It depends
-not only on the sensor but also on the receiver driver i.e. how it is able
-to handle the data it receives.
+> 
+> ---
+>  drivers/media/video/mx2_camera.c |  280 +++++++++++++++++++++-----------------
+>  1 files changed, 153 insertions(+), 127 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 35ab971..e7ccd97 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
 
-1. Sensor metadata. Sensors produce interesting kinds of metadata. Typically
-the metadata format is very hardware specific. It is known the metadata can
-consist e.g. register values or floating point numbers describing sensor
-state. The metadata may have certain length or it can span a few lines at
-the beginning or the end of the frame, or both.
+[snip]
 
-2. JPEG images. JPEG images are produced by some sensors either separately
-or combined with the regular image data frame.
+> @@ -706,8 +806,9 @@ static int mx2_stop_streaming(struct vb2_queue *q)
+>  	unsigned long flags;
+>  	u32 cntl;
+>  
+> -	spin_lock_irqsave(&pcdev->lock, flags);
+>  	if (mx27_camera_emma(pcdev)) {
+> +		spin_lock_irqsave(&pcdev->lock, flags);
+> +
+>  		cntl = readl(pcdev->base_emma + PRP_CNTL);
+>  		if (prp->cfg.channel == 1) {
+>  			writel(cntl & ~PRP_CNTL_CH1EN,
+> @@ -716,8 +817,18 @@ static int mx2_stop_streaming(struct vb2_queue *q)
+>  			writel(cntl & ~PRP_CNTL_CH2EN,
+>  			       pcdev->base_emma + PRP_CNTL);
+>  		}
+> +		INIT_LIST_HEAD(&pcdev->capture);
+> +		INIT_LIST_HEAD(&pcdev->active_bufs);
+> +		INIT_LIST_HEAD(&pcdev->discard);
+> +
+> +		spin_unlock_irqrestore(&pcdev->lock, flags);
+> +
+> +		dma_free_coherent(ici->v4l2_dev.dev,
+> +			pcdev->discard_size, pcdev->discard_buffer,
+> +			pcdev->discard_buffer_dma);
+> +		pcdev->discard_buffer = NULL;
 
-3. Interleaved YUV and JPEG data. Separating the two may only done in
-software, so the driver has no option but to consider both as blobs.
+AFAICS, the IRQ handler runs without taking any locks, so, there's a 
+theoretical SMP race here with using the discard buffers from the ISR. So, 
+I think, you'd have to add some locking to the ISR and here do something 
+like
 
-4. Regular image data frames. Described by struct v4l2_mbus_framefmt.
-
-5. Multi-format images. See the end of the messagefor more information.
-
-Some busses such as the CSI-2 are able to transport some of this on separate
-channels. This provides logical separation of different parts of the frame
-while still sharing the same physical bus. Some sensors are known to send
-the metadata on the same channel as the regular image data frame.
-
-I currently don't know of cases where the frame format could be
-significantly changed, with the exception that the sensor may either produce
-YUV, JPEG or both of the two. Changing the frame format is best done by
-other means than referring to the frame format itself: there hardly is
-reason to inform the user about the frame format, at least currently.
-
-Most of the time it's possible to use the hardware to separate the different
-parts of the buffer e.g. into separate memory areas or into separate planes
-of a multi-plane buffer, but not quite always (the case we don't care
-about).
-
-This leads me to think we need two relatively independent things: to describe
-frame format and provide ways to provide the non-image part of the frame to
-user space.
-
-
-Frame format descriptor
-=======================
-
-The frame format descriptor describes the layout of the frame, not only the
-image data but also other parts of it. What struct v4l2_mbus_framefmt
-describes is part of it. Changes to v4l2_mbus_framefmt affect the frame
-format descriptor rather than the other way around.
-
-enum {
-	V4L2_SUBDEV_FRAME_FORMAT_TYPE_CSI2,
-	V4L2_SUBDEV_FRAME_FORMAT_TYPE_CCP2,
-	V4L2_SUBDEV_FRAME_FORMAT_TYPE_PARALLEL,
-};
-
-struct v4l2_subdev_frame_format {
-	int type;
-	struct v4l2_subdev_frame_format_entry *ent[];
-	int nent;
-};
-
-#define V4L2_SUBDEV_FRAME_FORMAT_ENTRY_FLAG_BLOB	(1 << 0)
-#define V4L2_SUBDEV_FRAME_FORMAT_ENTRY_FLAG_LEN_IS_MAX	(1 << 1)
-
-struct v4l2_subdev_frame_format_entry {
-	u8 bpp;
-	u16 flags;
-	u32 pixelcode;
-	union {
-		struct {
-			u16 width;
-			u16 height;
-		};
-		u32 length; /* if BLOB flag is set */
-	};
-	union {
-		struct v4l2_subdev_frame_format_entry_csi2 csi2;
-		struct v4l2_subdev_frame_format_entry_ccp2 ccp2;
-		struct v4l2_subdev_frame_format_entry_parallel par;
-	};
-};
-
-struct v4l2_subdev_frame_format_entry_csi2 {
-	u8 channel;
-};
-
-struct v4l2_subdev_frame_format_entry_ccp2 {
-};
-
-struct v4l2_subdev_frame_format_entry_parallel {
-};
-
-The frame format is defined by the sensor, and the sensor provides a subdev
-pad op to obtain the frame format. This op is used by the csi-2 receiver
-driver.
++		x = pcdev->discard_buffer;
++		pcdev->discard_buffer = NULL;
++
++		spin_unlock_irqrestore(&pcdev->lock, flags);
++
++		dma_free_coherent(ici->v4l2_dev.dev,
++			pcdev->discard_size, x,
++			pcdev->discard_buffer_dma);
 
 
-Non-image data (metadata or other blobs)
-========================================
+>  	}
+> -	spin_unlock_irqrestore(&pcdev->lock, flags);
+> +
 
-There are several ways to pass non-image data to user space. Often the
-receiver is able to write the metadata to a different memory location than
-the image data whereas sometimes the receiver isn't able to separate the
-two. Separating the two has one important benefit: the metadata is available
-for the user space automatic exposure algorithm as soon as it has been
-written to system memory. We have two cases:
+You're adding an empty line here.
 
-1. Metadata part of the same buffer (receiver unable to separate the two).
-The receiver uses multi-plane buffer type. Multi-plane buffer's each plane
-should have independent pixelcode field: the sensor metadata formats are
-highly sensor dependent whereas the image formats are not.
+>  
+>  	return 0;
+>  }
 
-2. Non-videodata arrives through a separate buffer queue (and thus also
-video node). The user may activate the link to second video node to activate
-metadata capture.
+[snip]
 
-Then, how does the user decide which one to choose when the sensor driver
-would be able to separate the two but the user might not want that? The user
-might also want to just not capture the metadata in the first place, even if
-the sensor produced it.
+> @@ -1179,18 +1212,23 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+>  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+>  		int bufnum)
+>  {
 
-The same decision also affects the number of links from the receiver to
-video nodes, as well as the number of video nodes: the media graph would
-have to be dynamic rather than static. Dynamic graphs are not supported
-currently either.
+This function is called from the ISR, so, I presume, you'll have to 
+spin_lock() somewhere here.
 
+> -	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
+>  	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+>  	struct mx2_buffer *buf;
+>  	struct vb2_buffer *vb;
+>  	unsigned long phys;
+>  
+> -	if (!list_empty(&pcdev->active_bufs)) {
+> -		buf = list_entry(pcdev->active_bufs.next,
+> -			struct mx2_buffer, queue);
+> +	buf = list_entry(pcdev->active_bufs.next,
+> +			 struct mx2_buffer, queue);
+>  
+> -		BUG_ON(buf->bufnum != bufnum);
+> +	BUG_ON(buf->bufnum != bufnum);
+>  
+> +	if (buf->discard) {
+> +		/*
+> +		 * Discard buffer must not be returned to user space.
+> +		 * Just return it to the discard queue.
+> +		 */
+> +		list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
+> +	} else {
+>  		vb = &buf->vb;
+>  #ifdef DEBUG
+>  		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+> @@ -1212,6 +1250,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+>  			}
+>  		}
+>  #endif
+> +
+>  		dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb,
+>  				vb2_plane_vaddr(vb, 0),
+>  				vb2_get_plane_payload(vb, 0));
+> @@ -1225,29 +1264,23 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+>  	pcdev->frame_count++;
+>  
+>  	if (list_empty(&pcdev->capture)) {
+> -		if (prp->cfg.channel == 1) {
+> -			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
+> -					PRP_DEST_RGB1_PTR + 4 * bufnum);
+> -		} else {
+> -			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
+> -						PRP_DEST_Y_PTR -
+> -						0x14 * bufnum);
+> -			if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
+> -				writel(pcdev->discard_buffer_dma + imgsize,
+> -				       pcdev->base_emma + PRP_DEST_CB_PTR -
+> -				       0x14 * bufnum);
+> -				writel(pcdev->discard_buffer_dma +
+> -				       ((5 * imgsize) / 4), pcdev->base_emma +
+> -				       PRP_DEST_CR_PTR - 0x14 * bufnum);
+> -			}
+> -		}
+> +		if (list_empty(&pcdev->discard))
+> +			dev_warn(pcdev->dev, "%s: trying to access empty discard list\n",
+> +				 __func__);
 
-Multi-format image frames
-=========================
+It is good, that you check for this error, but
 
-This is actually another use case. I separated the further description from
-the others since this topic could warrant an RFC on its own.
+> +
+> +		buf = list_entry(pcdev->discard.next,
+> +			struct mx2_buffer, queue);
+> +		buf->bufnum = bufnum;
+> +
+> +		list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
+> +		mx27_update_emma_buf(pcdev, pcdev->discard_buffer_dma, bufnum);
 
-Some sensors are able to produce snapshots (downscaled versions of the same
-frames) when capturing still photos. This kind of sensors are typically used
-in conjunction with simple receivers without ISP.
+here even in the above error case you continue to access the invalid list 
+entry... 
 
-How to control this feeature? The link between the sensor and the receiver
-models both the physical connection and the properties of the images
-produced at one end and consumed in the other.
+>  		return;
+>  	}
+>  
+>  	buf = list_entry(pcdev->capture.next,
+>  			struct mx2_buffer, queue);
+>  
+> -	buf->bufnum = !bufnum;
+> +	buf->bufnum = bufnum;
+>  
+>  	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+>  
+> @@ -1255,18 +1288,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+>  	buf->state = MX2_STATE_ACTIVE;
+>  
+>  	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+> -	if (prp->cfg.channel == 1) {
+> -		writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
+> -	} else {
+> -		writel(phys, pcdev->base_emma +
+> -				PRP_DEST_Y_PTR - 0x14 * bufnum);
+> -		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
+> -			writel(phys + imgsize, pcdev->base_emma +
+> -					PRP_DEST_CB_PTR - 0x14 * bufnum);
+> -			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
+> -					PRP_DEST_CR_PTR - 0x14 * bufnum);
+> -		}
+> -	}
+> +	mx27_update_emma_buf(pcdev, phys, bufnum);
+>  }
+>  
+>  static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+> @@ -1275,6 +1297,10 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+>  	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
+>  	struct mx2_buffer *buf;
+>  
+> +	if (list_empty(&pcdev->active_bufs))
+> +		dev_warn(pcdev->dev, "%s: called while active list is empty\n",
+> +			__func__);
+> +
 
-With the above proposal, the snapshots could be provided to user space as
-blobs, with sensor drivers providing private ioctl or two to control the
-feature. How many such sensors do we currently have and how uniformly is the
-snapshot feature implemented in them?
+Similarly here: if this is a possible condition, shouldn't you nicely bail 
+out here? Of course, interrupts have to be acked still.
 
+>  	if (status & (1 << 7)) { /* overflow */
+>  		u32 cntl;
+>  		/*
 
-Questions and comments are the most welcome.
-
-Kind regards,
-
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
