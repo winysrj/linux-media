@@ -1,52 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:12333 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757371Ab2BBVOo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 16:14:44 -0500
-Date: Thu, 2 Feb 2012 22:15:06 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Tuukka Toivonen <tuukkat76@gmail.com>
-Subject: [PATCH] media, adp1653: Remove unneeded include of version.h from
- drivers/media/video/adp1653.c
-Message-ID: <alpine.LNX.2.00.1202022212550.16813@swampdragon.chaosbits.net>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:46711 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754653Ab2BFMqx convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 07:46:53 -0500
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+In-Reply-To: <op.v87mrdg83l0zgt@mpn-glaptop>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+	<1328271538-14502-6-git-send-email-m.szyprowski@samsung.com>
+	<CAJd=RBBsTxV4bM_QEbKaU=uKkFTNgPEK4yTiLjbE0TaEp4KA7w@mail.gmail.com>
+	<op.v87mrdg83l0zgt@mpn-glaptop>
+Date: Mon, 6 Feb 2012 20:46:51 +0800
+Message-ID: <CAJd=RBAsRA-yggVSmijJPTLM2kKiLKWrTS9RjtESgPDc3pYTug@mail.gmail.com>
+Subject: Re: [PATCH 05/15] mm: compaction: export some of the functions
+From: Hillf Danton <dhillf@gmail.com>
+To: Michal Nazarewicz <mina86@mina86.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Jesper Juhl <jj@chaosbits.net>
----
- drivers/media/video/adp1653.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+2012/2/5 Michal Nazarewicz <mina86@mina86.com>:
+>> On Fri, Feb 3, 2012 at 8:18 PM, Marek Szyprowski
+>> <m.szyprowski@samsung.com> wrote:
+>>>
+>>> From: Michal Nazarewicz <mina86@mina86.com>
+>>>
+>>> This commit exports some of the functions from compaction.c file
+>>> outside of it adding their declaration into internal.h header
+>>> file so that other mm related code can use them.
+>>>
+>>> This forced compaction.c to always be compiled (as opposed to being
+>>> compiled only if CONFIG_COMPACTION is defined) but as to avoid
+>>> introducing code that user did not ask for, part of the compaction.c
+>>> is now wrapped in on #ifdef.
+>
+>
+> On Sun, 05 Feb 2012 08:40:08 +0100, Hillf Danton <dhillf@gmail.com> wrote:
+>>
+>> What if both compaction and CMA are not enabled?
+>
+>
+> What about it?  If both are enabled, both will be compiled and usable.
+>
 
-  compile tested only.
-
-diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-index 12eedf4..badbdb6 100644
---- a/drivers/media/video/adp1653.c
-+++ b/drivers/media/video/adp1653.c
-@@ -35,7 +35,6 @@
- #include <linux/i2c.h>
- #include <linux/module.h>
- #include <linux/slab.h>
--#include <linux/version.h>
- #include <media/adp1653.h>
- #include <media/v4l2-device.h>
- 
--- 
-1.7.9
-
-
--- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
-
+Better if enforced compilation of compaction is addressed in separate
+patch in the patchset, according to the rule that one patch is delivered
+with one issue concerned.
