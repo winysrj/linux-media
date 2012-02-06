@@ -1,70 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:44449 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752087Ab2BWRy6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Feb 2012 12:54:58 -0500
-Received: by vbjk17 with SMTP id k17so987537vbj.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Feb 2012 09:54:57 -0800 (PST)
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:46373 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754193Ab2BFLso (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 06:48:44 -0500
+Received: by qcqw6 with SMTP id w6so3303884qcq.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2012 03:48:43 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <CAKnK67T=obVTWkzZqVtv+PninjkbLp1os5AnsoZ+j=NGFFMWLA@mail.gmail.com>
-References: <CAH9_wRN5=nHtB9M3dL4wvZGL3+mb4_TfS=uPun_13D7n0E3CKA@mail.gmail.com>
-	<CAKnK67T=obVTWkzZqVtv+PninjkbLp1os5AnsoZ+j=NGFFMWLA@mail.gmail.com>
-Date: Thu, 23 Feb 2012 23:24:57 +0530
-Message-ID: <CAH9_wRNGERctBxYT5NNEHOhuzWZYF2yKxG4BA6pzPzBWPy8_3Q@mail.gmail.com>
-Subject: Re: Video Capture Issue
-From: Sriram V <vshrirama@gmail.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org
+In-Reply-To: <20120205185233.3ca5024a@tiber>
+References: <20120203171250.52278c25@junior>
+	<CAH4Ag-BZ+Csasy=yk5sNt7_Q5maFuxga2PqeXtJrRYvVLa8zzA@mail.gmail.com>
+	<20120205185233.3ca5024a@tiber>
+Date: Mon, 6 Feb 2012 11:48:43 +0000
+Message-ID: <CAH4Ag-BL3V2th8tu78iE3toCo2SxbRHVpNzMB6jEfs2C5iuzBQ@mail.gmail.com>
+Subject: Re: TBS 6920 remote
+From: Simon Jones <sijones2010@gmail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-  1) An Hexdump of the captured file shows 0x55 at all locations.
-      Is there any buffer location i need to check.
-  2) I have tried with  "devel" branch.
-  3) Changing the polarities doesnt help either.
-  4) The sensor is giving out YUV422 8Bit Mode,
-      Will 0x52001074 = 0x0A00001E (UYVY Format)  it bypass the ISP
-       and dump directly into memory.
+> Thanks. It seems that there was a bug in their driver which prevented
+> some keys from working, but AFIACT it's fixed now. The code is GPL so is
+> it just lack of interest/demand that's stopped it from going into the
+> main kernel?
 
-On 2/23/12, Aguirre, Sergio <saaguirre@ti.com> wrote:
-> Hi Sriram,
->
-> On Thu, Feb 23, 2012 at 11:25 AM, Sriram V <vshrirama@gmail.com> wrote:
->> Hi,
->>  1) I am trying to get a HDMI to CSI Bridge chip working with OMAP4 ISS.
->>      The issue is the captured frames are completely green in color.
->
-> Sounds like the buffer is all zeroes, can you confirm?
->
->>  2) The Chip is configured to output VGA Color bar sequence with
->> YUV422-8Bit and
->>       uses datalane 0 only.
->>  3) The Format on OMAP4 ISS  is UYVY (Register 0x52001074 = 0x0A00001E)
->>  I am trying to directly dump the data into memory without ISP processing.
->>
->>
->>  Please advice.
->
-> Just to be clear on your environment, which branch/commitID are you based
-> on?
->
-> Regards,
-> Sergio
->
->>
->> --
->> Regards,
->> Sriram
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+They have an NDA with a chip supplier so can't release the full
+source, I think there is a binary blob somewhere that makes it so you
+can't include them.
 
+> I think I'll pass on having to maintain a 3rd party driver whenever the
+> Debian kernel upgrades. The remote is missing some quite important keys
+> like Play, so they seem to have only considered it for live viewing, not
+> for PVRs. I'll probably end up buying a separate USB remote or
+> continuing to use a portable keyboard.
 
--- 
-Regards,
-Sriram
+I have an MCE remote, ebay has HP remote and receiver cheap enough,
+they are also rc6 encoding so you can use one-for-all remote etc easy
+enough, and drivers are in kernel so only a manor change to lirc to
+get it working.
+
+You don't have to use lirc but I couldn't be bothered trying to map
+the keys in X.
