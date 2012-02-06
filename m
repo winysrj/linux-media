@@ -1,96 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:16180 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab2BVQtD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:49:03 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Wed, 22 Feb 2012 17:48:42 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv23 01/16] mm: page_alloc: remove trailing whitespace
-In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329929337-16648-2-git-send-email-m.szyprowski@samsung.com>
-References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mail-we0-f174.google.com ([74.125.82.174]:50466 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756066Ab2BFXFM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 18:05:12 -0500
+Received: by werb13 with SMTP id b13so4641897wer.19
+        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2012 15:05:11 -0800 (PST)
+Message-ID: <1328569501.4855.3.camel@tvbox>
+Subject: [PATCH] lmedm04 ver 1.96 Turn off PID filter by default.
+From: Malcolm Priestley <tvboxspy@gmail.com>
+To: linux-media@vger.kernel.org
+Date: Mon, 06 Feb 2012 23:05:01 +0000
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Problems with the PID setting stalling demux on applications like VDR and MythTV.
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
+The PID filter is now defaulted to OFF.
+
+Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
 ---
- mm/page_alloc.c |   14 +++++++-------
- 1 files changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/dvb/dvb-usb/lmedm04.c |    7 +++----
+ 1 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 896cd4f..ba50b48 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -526,10 +526,10 @@ static inline int page_is_buddy(struct page *page, struct page *buddy,
-  * free pages of length of (1 << order) and marked with _mapcount -2. Page's
-  * order is recorded in page_private(page) field.
-  * So when we are allocating or freeing one, we can derive the state of the
-- * other.  That is, if we allocate a small block, and both were   
-- * free, the remainder of the region must be split into blocks.   
-+ * other.  That is, if we allocate a small block, and both were
-+ * free, the remainder of the region must be split into blocks.
-  * If a block is freed, and its buddy is also free, then this
-- * triggers coalescing into a block of larger size.            
-+ * triggers coalescing into a block of larger size.
-  *
-  * -- wli
-  */
-@@ -1074,17 +1074,17 @@ retry_reserve:
- 	return page;
- }
+diff --git a/drivers/media/dvb/dvb-usb/lmedm04.c b/drivers/media/dvb/dvb-usb/lmedm04.c
+index b3fe05b..a5ad561 100644
+--- a/drivers/media/dvb/dvb-usb/lmedm04.c
++++ b/drivers/media/dvb/dvb-usb/lmedm04.c
+@@ -104,8 +104,7 @@ MODULE_PARM_DESC(firmware, "set default firmware 0=Sharp7395 1=LG");
  
--/* 
-+/*
-  * Obtain a specified number of elements from the buddy allocator, all under
-  * a single hold of the lock, for efficiency.  Add them to the supplied list.
-  * Returns the number of new pages which were placed at *list.
-  */
--static int rmqueue_bulk(struct zone *zone, unsigned int order, 
-+static int rmqueue_bulk(struct zone *zone, unsigned int order,
- 			unsigned long count, struct list_head *list,
- 			int migratetype, int cold)
+ static int pid_filter;
+ module_param_named(pid, pid_filter, int, 0644);
+-MODULE_PARM_DESC(pid, "set default 0=on 1=off");
+-
++MODULE_PARM_DESC(pid, "set default 0=default 1=off 2=on");
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+@@ -653,7 +652,7 @@ static int lme2510_identify_state(struct usb_device *udev,
+ 		struct dvb_usb_device_description **desc,
+ 		int *cold)
  {
- 	int i;
--	
-+
- 	spin_lock(&zone->lock);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype);
-@@ -4309,7 +4309,7 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
- 	init_waitqueue_head(&pgdat->kswapd_wait);
- 	pgdat->kswapd_max_order = 0;
- 	pgdat_page_cgroup_init(pgdat);
--	
-+
- 	for (j = 0; j < MAX_NR_ZONES; j++) {
- 		struct zone *zone = pgdat->node_zones + j;
- 		unsigned long size, realsize, memmap_pages;
+-	if (pid_filter > 0)
++	if (pid_filter != 2)
+ 		props->adapter[0].fe[0].caps &=
+ 			~DVB_USB_ADAP_NEED_PID_FILTERING;
+ 	*cold = 0;
+@@ -1295,5 +1294,5 @@ module_usb_driver(lme2510_driver);
+ 
+ MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
+ MODULE_DESCRIPTION("LME2510(C) DVB-S USB2.0");
+-MODULE_VERSION("1.91");
++MODULE_VERSION("1.96");
+ MODULE_LICENSE("GPL");
 -- 
-1.7.1.569.g6f426
+1.7.8.3
+
 
