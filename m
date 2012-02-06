@@ -1,47 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from isp-bos-02.edutel.nl ([88.159.1.183]:54349 "EHLO
-	isp-bos-01.edutel.nl" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755690Ab2BXSz1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 13:55:27 -0500
-From: linux@eikelenboom.it
+Received: from mailout03.t-online.de ([194.25.134.81]:59493 "EHLO
+	mailout03.t-online.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752857Ab2BFHmh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 02:42:37 -0500
+Message-ID: <4F2F845E.3060700@t-online.de>
+Date: Mon, 06 Feb 2012 08:42:22 +0100
+From: Knut Petersen <Knut_Petersen@t-online.de>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Cc: shu.lin@conexant.com, hiep.huynh@conexant.com, stoth@linuxtv.org,
-	hans.verkuil@cisco.com, mchehab@infradead.org,
-	S Eikelenboom <linux@eikelenboom.it>
-Subject: [PATCH] cx25821: Add a card definition for "No brand" cards that have: subvendor = 0x0000 subdevice = 0x0000
-Date: Fri, 24 Feb 2012 19:49:42 +0100
-Message-Id: <1330109382-16505-2-git-send-email-linux@eikelenboom.it>
-In-Reply-To: <1330109382-16505-1-git-send-email-linux@eikelenboom.it>
-References: <1330109382-16505-1-git-send-email-linux@eikelenboom.it>
+Subject: [BUG 3.3-rc2] Hauppauge WinTV Nova-HD-S2 broken
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: S Eikelenboom <linux@eikelenboom.it>
+DVB-S TV and radio reception is broken with kernel 3.3-rc2 and kaffeine 1.2.2,
+it works perfectly with kernel 3.2.4.
 
-Signed-off-by: Sander Eikelenboom <linux@eikelenboom.it>
----
- drivers/media/video/cx25821/cx25821-core.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
+video: distorted, only 1-2 fps
+audio: distorted
+system load: significantly reduced
 
-diff --git a/drivers/media/video/cx25821/cx25821-core.c b/drivers/media/video/cx25821/cx25821-core.c
-index f617474..a69ea04 100644
---- a/drivers/media/video/cx25821/cx25821-core.c
-+++ b/drivers/media/video/cx25821/cx25821-core.c
-@@ -1475,6 +1475,13 @@ static DEFINE_PCI_DEVICE_TABLE(cx25821_pci_tbl) = {
- 		.subvendor = 0x14f1,
- 		.subdevice = 0x0920,
- 	},
-+        {
-+                /* CX25821 No Brand */
-+                .vendor = 0x14f1,
-+                .device = 0x8210,
-+                .subvendor = 0x0000,
-+                .subdevice = 0x0000,
-+        },
- 	{
- 		/* --- end of list --- */
- 	}
--- 
-1.7.2.5
+software:
+========
+kernel: 3.3-rc2 (current git master)
+Xorg : X.Org X Server 1.11.99.902 (1.12.0 RC 2) (current git master)
+dvb-fe-cx24116.fw: version 1.26.90.0
 
+hardware:
+========
+AOpen i915GMm-hfs, Pentium M Dothan, 2MHz, 2GB RAM,
+Hauppauge WinTV Nova-HD-S2
+
+cu,
+  Knut
