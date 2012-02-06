@@ -1,117 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4035 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965223Ab2B2Jue (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Feb 2012 04:50:34 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] Add missing slab.h to fix linux-next compile errors
-Date: Wed, 29 Feb 2012 10:50:27 +0100
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:50968 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755304Ab2BFWEg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 17:04:36 -0500
+Received: by wgbdt10 with SMTP id dt10so6665719wgb.1
+        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2012 14:04:34 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202291050.27369.hverkuil@xs4all.nl>
+In-Reply-To: <CADfx-VT0ygk7=KTxUZ5HN49R3earJ_i188NSX1rZV136KF4r-Q@mail.gmail.com>
+References: <CAEBdq3G0A-9WKCh-WY9OgaPi_wd4OUUGfLv-LAyUPaJp6uzF6w@mail.gmail.com>
+	<CADfx-VT0ygk7=KTxUZ5HN49R3earJ_i188NSX1rZV136KF4r-Q@mail.gmail.com>
+Date: Mon, 6 Feb 2012 20:04:34 -0200
+Message-ID: <CAEBdq3GWCGFFc5x4O5E-QT1Lit0gj6B0a_pqdHK4c45_NDR=HQ@mail.gmail.com>
+Subject: Re: ISDB-T Tuner stopped working...
+From: Bruno Lima <bslima19@gmail.com>
+To: Felipe Magno de Almeida <felipe.m.almeida@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+hi Felipe,
+I am using the same USB dongle as you.
+Same Linux version and firmware dibcom 1.20, i think there is no new
+version available.
 
-diff --git a/drivers/media/radio/radio-aimslab.c b/drivers/media/radio/radio-aimslab.c
-index 862dfce..98e0c8c 100644
---- a/drivers/media/radio/radio-aimslab.c
-+++ b/drivers/media/radio/radio-aimslab.c
-@@ -32,6 +32,7 @@
- #include <linux/delay.h>	/* msleep			*/
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/io.h>		/* outb, outb_p			*/
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
-diff --git a/drivers/media/radio/radio-aztech.c b/drivers/media/radio/radio-aztech.c
-index 8117fdf..177bcbd 100644
---- a/drivers/media/radio/radio-aztech.c
-+++ b/drivers/media/radio/radio-aztech.c
-@@ -21,6 +21,7 @@
- #include <linux/delay.h>	/* udelay			*/
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/io.h>		/* outb, outb_p			*/
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-ctrls.h>
-diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
-index 9d7fdae..2e639ce 100644
---- a/drivers/media/radio/radio-gemtek.c
-+++ b/drivers/media/radio/radio-gemtek.c
-@@ -29,6 +29,7 @@
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/mutex.h>
- #include <linux/io.h>		/* outb, outb_p			*/
-+#include <linux/slab.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include "radio-isa.h"
-diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
-index 02bcead..06f9063 100644
---- a/drivers/media/radio/radio-isa.c
-+++ b/drivers/media/radio/radio-isa.c
-@@ -26,6 +26,7 @@
- #include <linux/delay.h>
- #include <linux/videodev2.h>
- #include <linux/io.h>
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-fh.h>
-diff --git a/drivers/media/radio/radio-terratec.c b/drivers/media/radio/radio-terratec.c
-index 2b82dd7..be10a80 100644
---- a/drivers/media/radio/radio-terratec.c
-+++ b/drivers/media/radio/radio-terratec.c
-@@ -26,6 +26,7 @@
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/mutex.h>
- #include <linux/io.h>		/* outb, outb_p			*/
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include "radio-isa.h"
-diff --git a/drivers/media/radio/radio-trust.c b/drivers/media/radio/radio-trust.c
-index 0703a80..26a8c60 100644
---- a/drivers/media/radio/radio-trust.c
-+++ b/drivers/media/radio/radio-trust.c
-@@ -21,6 +21,7 @@
- #include <linux/ioport.h>
- #include <linux/videodev2.h>
- #include <linux/io.h>
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include "radio-isa.h"
-diff --git a/drivers/media/radio/radio-typhoon.c b/drivers/media/radio/radio-typhoon.c
-index 145d10c..eb72a4d 100644
---- a/drivers/media/radio/radio-typhoon.c
-+++ b/drivers/media/radio/radio-typhoon.c
-@@ -33,6 +33,7 @@
- #include <linux/ioport.h>	/* request_region		  */
- #include <linux/videodev2.h>	/* kernel radio structs           */
- #include <linux/io.h>		/* outb, outb_p                   */
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include "radio-isa.h"
-diff --git a/drivers/media/radio/radio-zoltrix.c b/drivers/media/radio/radio-zoltrix.c
-index 33dc089..026e88e 100644
---- a/drivers/media/radio/radio-zoltrix.c
-+++ b/drivers/media/radio/radio-zoltrix.c
-@@ -45,6 +45,7 @@
- #include <linux/videodev2.h>	/* kernel radio structs           */
- #include <linux/mutex.h>
- #include <linux/io.h>		/* outb, outb_p                   */
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include "radio-isa.h"
+in the tuner i am using the struct isdbt_parameters; presented in the
+other struct frontend_parameters;
+that's why i am asking about some changes in the API, because it stopped work.
+
+Thanks :D
+
+
+Bruno Seabra Mendonça Lima
+
+
+
+
+On Mon, Feb 6, 2012 at 7:17 PM, Felipe Magno de Almeida
+<felipe.m.almeida@gmail.com> wrote:
+> On Mon, Feb 6, 2012 at 6:48 PM, Bruno Lima <bslima19@gmail.com> wrote:
+>> Hi,
+>
+> Hello Bruno Lima,
+>
+>> I made a tuner last year for the ISDB-T and was working fine until december.
+>> Now that i am back at work, the tuner is only getting 1SEG signal.
+>
+> What is your tuner? What is your tuner driver? What firmware version
+> is it using?
+> What kernel version are you using? Did you dvbscan it? With what frequencies?
+>
+> I can use my PixelView dib0700 ISDB-Tb with Linux 3.2.2 very well. Both
+> One-seg and Full-seg channels.
+>
+>> Did something changed in the API ?
+>>
+>> Att,
+>>
+>> Bruno Seabra Mendonça Lima
+>> --
+>
+>
+> --
+> Felipe Magno de Almeida
