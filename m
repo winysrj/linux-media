@@ -1,72 +1,20 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:10678 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755766Ab2BWOh7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Feb 2012 09:37:59 -0500
-Date: Thu, 23 Feb 2012 15:38:57 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: S5P-TV: Warning for regulator unbalanced disables
-In-reply-to: <4F45C3C1.8030507@linaro.org>
-To: Tushar Behera <tushar.behera@linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-samsung-soc@vger.kernel.org"
-	<linux-samsung-soc@vger.kernel.org>
-Cc: Thomas Abraham <thomas.abraham@linaro.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	=?utf-8?B?67CV6rK966+8?= <kyungmin.park@samsung.com>
-Message-id: <ADF13DA15EB3FE4FBA487CCC7BEFDF362702C855C8@bssrvexch01>
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Content-language: en-US
-Content-transfer-encoding: base64
-References: <4F45C3C1.8030507@linaro.org>
+Received: from mail-bk0-f66.google.com ([209.85.214.66]:60936 "EHLO
+	mail-bk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751596Ab2BFKQM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 05:16:12 -0500
+Received: by bkaq10 with SMTP id q10so614342bka.1
+        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2012 02:16:11 -0800 (PST)
+MIME-Version: 1.0
+Date: Mon, 6 Feb 2012 11:15:20 +0100
+Message-ID: <CADAKW8NbTzf7cKBMXWiP9ptPYtYNAKmwH61NEcFDXCH1vAPO3g@mail.gmail.com>
+Subject: i need a personal assistant
+From: Robert Johnson <pffdh23@gmail.com>
+To: undisclosed-recipients:;
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-SGkgVHVzaGFyLA0KDQpPbiBUaHVyc2RheSwgRmVicnVhcnkgMjMsIDIwMTIgNTo0MyBBTSBZb3Ug
-d3JvdGU6DQoNCj4gQWZ0ZXIgaW1wbGVtZW50aW5nIGdlbnBkIGZyYW1ld29yayBmb3IgRVhZTk9T
-NCwgKFJlZiBjb21taXQgOTFjZmJkNA0KPiAiQVJNOiBFWFlOT1M6IEhvb2sgdXAgcG93ZXIgZG9t
-YWlucyB0byBnZW5lcmljIHBvd2VyIGRvbWFpbg0KPiBpbmZyYXN0cnVjdHVyZSIgaW4gS3Vramlu
-J3MgZm9yLW5leHQgYnJhbmNoKSwgd2UgYXJlIGdldHRpbmcgZm9sbG93aW5nDQo+IHdhcm5pbmcg
-ZnJvbSBzNXAtaGRtaSBkcml2ZXIuDQo+DQo+IFRoZSB0ZXN0IHdhcyBkb25lIG9uIE9yaWdlbiBi
-b2FyZCB3aXRoIGNvZGUgYmFzZWQgb24gMy4zLXJjNCBhbmQNCj4gS3VramluJ3MgZm9yLW5leHQg
-YnJhbmNoLiBbMV0NCj4NCj4gLS0tLS0tLS0tLS0tWyBjdXQgaGVyZSBdLS0tLS0tLS0tLS0tDQo+
-IFdBUk5JTkc6IGF0IGRyaXZlcnMvcmVndWxhdG9yL2NvcmUuYzoxNTAzIF9yZWd1bGF0b3JfZGlz
-YWJsZSsweGY4LzB4MTY0KCkNCg0KKHNuaXBwZWQpDQoNClRoYW5rcyBmb3IgdGhlIHJlcG9ydC4g
-V2Uga25vdyBhYm91dCB0aGlzIGlzc3VlLiBJdCBpcyBub3QgcmVhbGx5IHJlbGF0ZWQgdG8NCnJl
-Z3VsYXRvcnMgbm9yIHM1cC10diBkcml2ZXIuIFRoZXJlIGlzIHNvbWV0aGluZyBicm9rZW4gKG9y
-IG1pc3VzZWQpIGluIHRoZQ0KZ2VuX3BkIGRyaXZlciBhbmQgaXRzIGltcGxlbWVudGF0aW9uIGZv
-ciBFeHlzbm80IGh3LiBJZiB5b3UgZGlnIGEgYml0IGludG8NCnRoZSBwcm9ibGVtIFlvdSBjYW4g
-b2JzZXJ2ZSB0aGUgZm9sbG93aW5nIGNhbGwgc2VxdWVuY2Ugb24gZGV2aWNlIHByb2JlOg0KDQpl
-eHlub3M0X2dlbnBkX2VuYWJsZSgpDQpzNXBfdHZfcnVudGltZV9kaXNhYmxlKCkNCmV4eW5vczRf
-Z2VucGRfZGlzYWJsZSgpDQoNClNvIHRoZSBjYWxsIHRvIHM1cF90dl9ydW50aW1lX2Rpc2FibGUg
-aXMgbm90IGJhbGFuY2VkIHdpdGggczVwX3R2X3J1bnRpbWVfcmVzdW1lKCkNCndoYXQgY2F1c2Vz
-IHRoZSBlcnJvciB5b3UgaGF2ZSBwb3N0ZWQuIEl0IGxvb2tzIHRoYXQgcnVudGltZSBwdyBmcmFt
-ZXdvcmsgbWFrZXMNCnNvbWUgd3JvbmcgYXNzdW1wdGlvbnMgYWJvdXQgdGhlIHN0YXRlIG9mIHRo
-ZSBkZXZpY2Ugb25jZSBwb3dlciBkb21haW4gaGFzIGJlZW4NCnJlZ2lzdGVyZWQuDQoNClRoZSBz
-YW1lIHByb2JsZW0gYXBwZWFycyBmb3IgczVwLWZpbWMgYW5kIHM1cC1tZmMsIGFsdGhvdWdoIGl0
-IGlzIG5vdCBvYnNlcnZlZA0KYXMga2VybmVsIGVycm9yLCBidXQgdGhlc2UgZGV2aWNlcyBhbHNv
-IHN1ZmZlcnMgZnJvbSBpdCAtIHRoZWlyIGNsb2NrcyBnZXQgZGlzYWJsZWQNCm9uZSB0aW1lIHRv
-byBtdWNoIHNvIHRoZXkgZG8gbm90IG9wZXJhdGUgY29ycmVjdGx5Lg0KDQpXZSBhcmUgaW52ZXN0
-aWdhdGluZyB0aGlzIGlzc3VlIGZ1cnRoZXIuDQoNCkJlc3QgcmVnYXJkcw0KLS0NCk1hcmVrIFN6
-eXByb3dza2kNClNhbXN1bmcgUG9sYW5kIFImRCBDZW50ZXINCg0KDQpUaGUgYWJvdmUgbWVzc2Fn
-ZSBpcyBpbnRlbmRlZCBzb2xlbHkgZm9yIHRoZSBuYW1lZCBhZGRyZXNzZWUgYW5kIG1heSBjb250
-YWluIHRyYWRlIHNlY3JldCwgaW5kdXN0cmlhbCB0ZWNobm9sb2d5IG9yIHByaXZpbGVnZWQgYW5k
-IGNvbmZpZGVudGlhbCBpbmZvcm1hdGlvbiBvdGhlcndpc2UgcHJvdGVjdGVkIHVuZGVyIGFwcGxp
-Y2FibGUgbGF3LiBBbnkgdW5hdXRob3JpemVkIGRpc3NlbWluYXRpb24sIGRpc3RyaWJ1dGlvbiwg
-Y29weWluZyBvciB1c2Ugb2YgdGhlIGluZm9ybWF0aW9uIGNvbnRhaW5lZCBpbiB0aGlzIGNvbW11
-bmljYXRpb24gaXMgc3RyaWN0bHkgcHJvaGliaXRlZC4gSWYgeW91IGhhdmUgcmVjZWl2ZWQgdGhp
-cyBjb21tdW5pY2F0aW9uIGluIGVycm9yLCBwbGVhc2Ugbm90aWZ5IHNlbmRlciBieSBlbWFpbCBh
-bmQgZGVsZXRlIHRoaXMgY29tbXVuaWNhdGlvbiBpbW1lZGlhdGVseS4NCg0KDQpQb3d5xbxzemEg
-d2lhZG9tb8WbxIcgcHJ6ZXpuYWN6b25hIGplc3Qgd3nFgsSFY3puaWUgZGxhIGFkcmVzYXRhIG5p
-bmllanN6ZWogd2lhZG9tb8WbY2kgaSBtb8W8ZSB6YXdpZXJhxIcgaW5mb3JtYWNqZSBixJlkxIVj
-ZSB0YWplbW5pY8SFIGhhbmRsb3fEhSwgdGFqZW1uaWPEhSBwcnplZHNpxJliaW9yc3R3YSBvcmF6
-IGluZm9ybWFjamUgbyBjaGFyYWt0ZXJ6ZSBwb3VmbnltIGNocm9uaW9uZSBvYm93acSFenVqxIVj
-eW1pIHByemVwaXNhbWkgcHJhd2EuIEpha2lla29sd2llayBuaWV1cHJhd25pb25lIGljaCByb3pw
-b3dzemVjaG5pYW5pZSwgZHlzdHJ5YnVjamEsIGtvcGlvd2FuaWUgbHViIHXFvHljaWUgaW5mb3Jt
-YWNqaSB6YXdhcnR5Y2ggdyBwb3d5xbxzemVqIHdpYWRvbW/Fm2NpIGplc3QgemFicm9uaW9uZS4g
-SmXFm2xpIG90cnp5bWHFgmXFmyBwb3d5xbxzesSFIHdpYWRvbW/Fm8SHIG9tecWCa293bywgdXBy
-emVqbWllIHByb3N6xJkgcG9pbmZvcm11aiBvIHR5bSBmYWtjaWUgZHJvZ8SFIG1haWxvd8SFIG5h
-ZGF3Y8SZIHRlaiB3aWFkb21vxZtjaSBvcmF6IG5pZXp3xYJvY3puaWUgdXN1xYQgcG93ecW8c3rE
-hSB3aWFkb21vxZvEhyB6ZSBzd29qZWdvIGtvbXB1dGVyYS4NCg==
+-- 
+u frm crg ad i need a personal assistant i can pay u $500 wkly no txt
+4 info email me only @ johnsonrobert755@gmail.com
