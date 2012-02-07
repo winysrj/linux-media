@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:57555 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756496Ab2BPB41 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Feb 2012 20:56:27 -0500
-Received: by obcva7 with SMTP id va7so2361008obc.19
-        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2012 17:56:27 -0800 (PST)
+Received: from mail-1.atlantis.sk ([80.94.52.57]:45423 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756370Ab2BGW1s (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 Feb 2012 17:27:48 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: Re: [alsa-devel] tea575x-tuner improvements & use in maxiradio
+Date: Tue, 7 Feb 2012 23:20:19 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1328447827-9842-1-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1328447827-9842-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <201202151827.29929.hselasky@c2i.net>
-References: <201202151827.29929.hselasky@c2i.net>
-Date: Thu, 16 Feb 2012 09:56:27 +0800
-Message-ID: <CANudz+tv5hJWLmqe4gbkNMJ3L97kVC4ziNAJkk47izk2UTqQbA@mail.gmail.com>
-Subject: Re: Division by zero in UVC driver
-From: loody <miloody@gmail.com>
-To: Hans Petter Selasky <hselasky@c2i.net>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	linux-uvc-devel@lists.berlios.de
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201202072320.30911.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-hi
-2012/2/16 Hans Petter Selasky <hselasky@c2i.net>:
-> Hi,
+On Sunday 05 February 2012 14:17:05 Hans Verkuil wrote:
+> These patches improve the tea575x-tuner module to make it up to date with
+> the latest V4L2 frameworks.
 >
-> After getting through the compilation issues regarding the uvc_debugfs, I am
-> now facing another problem, which I think is more generic.
+> The maxiradio driver has also been converted to use the tea575x-tuner and
+> I've used that card to test it.
 >
-> The FreeBSD port of the Linux UVC driver, webcamd, gives a division by zero
-> inside the UVC driver, because it does not properly check if the returned SOF
-> counter is the same like the previous one. This can also happen on Linux if
-> the UVC capable device is plugged exactly when the EHCI/OHCI/UHCI SOF counter
-> is equal to zero!
+> Unfortunately, this card can't read the data pin, so the new hardware seek
+> functionality has been tested only partially (yes, it seeks, but when it
+> finds a channel I can't read back the frequency).
 >
-> Also please note that the SOF counter will only be updated after the each
-> completed ISOCHRONOUS transfer on FreeBSD, due to limitations in LibUSB.
+> Ondrej, are you able to test these patches for the sound cards that use
+> this tea575x tuner?
 >
-> Debug info:
+> Note that these two patches rely on other work that I did and that hasn't
+> been merged yet. So it is best to pull from my git tree:
 >
-> (gdb) list
-> 651             else if (sof > mean + (1024 << 16))
-> 652                     sof -= 2048 << 16;
-> 653
-> 654             y = (u64)(y2 - y1) * (u64)sof + (u64)y1 * (u64)x2
-> 655               - (u64)y2 * (u64)x1;
-> 656             y = div_u64(y, x2 - x1);
-> 657
-> 658             div = div_u64_rem(y, NSEC_PER_SEC, &rem);
-> 659             ts.tv_sec = first->host_ts.tv_sec - 1 + div;
-> 660             ts.tv_nsec = first->host_ts.tv_nsec + rem;
-> (gdb)
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/radio-pc
+>i2
 >
-> Program received signal SIGFPE, Arithmetic exception.
-> [Switching to Thread 80100a3c0 (LWP 100096/webcamd)]
-> 0x00000000005e9337 in div_u64 (rem=71210779720321120, div=0)
->    at kernel/linux_func.c:1649
-> 1649    {
-> (gdb) bt
-> #0  0x00000000005e9337 in div_u64 (rem=71210779720321120, div=0)
->    at kernel/linux_func.c:1649
-> #1  0x00000000005169f7 in uvc_video_clock_update (stream=0x8010bf500,
->    v4l2_buf=0x801138a00, buf=0x801138a00)
->    at media_tree/drivers/media/video/uvc/uvc_video.c:656
-> #2  0x00000000005125c3 in uvc_buffer_finish (vb=Variable "vb" is not
-> available.
-> )
->    at media_tree/drivers/media/video/uvc/uvc_queue.c:114
-> #3  0x00000000004ae76a in vb2_dqbuf (q=0x8010bf5b8, b=0x7fffff1f9d30,
->    nonblocking=0 '\0') at media_tree/drivers/media/video/videobuf2-
-> core.c:1334
-> #4  0x000000000051236f in uvc_dequeue_buffer (queue=0x8010bf5b8,
->    buf=0x7fffff1f9d30, nonblocking=0)
->    at media_tree/drivers/media/video/uvc/uvc_queue.c:193
-> #5  0x0000000000513c50 in uvc_v4l2_do_ioctl (file=0x80111d418, cmd=3227014673,
->    arg=0x7fffff1f9d30) at media_tree/drivers/media/video/uvc/uvc_v4l2.c:958
-> #6  0x0000000000444780 in video_usercopy (file=0x80111d418, cmd=3227014673,
->    arg=65536, func=0x513050 <uvc_v4l2_do_ioctl>)
->    at media_tree/drivers/media/video/v4l2-ioctl.c:2456
-> #7  0x0000000000443b40 in v4l2_ioctl (filp=0x80111d418, cmd=3227014673,
->    arg=65536) at media_tree/drivers/media/video/v4l2-dev.c:339
-> #8  0x00000000005ea4aa in linux_ioctl (handle=0x80111d400, fflags=0,
->    cmd=3227014673, arg=0x10000) at kernel/linux_file.c:120
-> #9  0x00000000005ef01a in v4b_ioctl (cdev=Variable "cdev" is not available.
-> ) at webcamd.c:261
-> #10 0x0000000800a249e6 in cuse_wait_and_process ()
-Maybe it is better forwarding this mail to uvc mail list
+> You can use the v4l-utils repository (http://git.linuxtv.org/v4l-utils.git)
+> to test the drivers: the v4l2-compliance test should succeed and with
+> v4l2-ctl you can test the hardware seek:
+>
+> To seek down:
+>
+> v4l2-ctl -d /dev/radio0 --freq-seek=dir=0
+>
+> To seek up:
+>
+> v4l2-ctl -d /dev/radio0 --freq-seek=dir=1
+>
+> To do the compliance test:
+>
+> v4l2-compliance -r /dev/radio0
+
+It seems to work (tested with SF64-PCR - snd_fm801) but the seek is severely 
+broken. Reading the frequency immediately after seek does not work, it always 
+returns the old value (haven't found a delay that works). Reading it later 
+(copied back snd_tea575x_get_freq function) works. The chip seeks randomly up 
+or down, ignoring UP/DOWN flag and often stops at wrong place (only noise) or 
+even outside the FM range.
+
+So I strongly suggest not to enable this (mis-)feature. The HW seems to be 
+completely broken (unless there's some weird bug in the code).
 
 
 -- 
-Regards,
+Ondrej Zary
