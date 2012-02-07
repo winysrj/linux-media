@@ -1,64 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:36949 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750866Ab2BPTqU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Feb 2012 14:46:20 -0500
-Date: Thu, 16 Feb 2012 21:46:15 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC/PATCH 1/6] V4L: Add V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 media
- bus format
-Message-ID: <20120216194615.GF7784@valkosipuli.localdomain>
-References: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
- <1329416639-19454-2-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1329416639-19454-2-git-send-email-s.nawrocki@samsung.com>
+Received: from zone0.gcu-squad.org ([212.85.147.21]:19510 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751413Ab2BGIJH convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2012 03:09:07 -0500
+Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=endymion.delvare)
+	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1RuhL8-00084z-H8
+	(TLSv1:AES128-SHA:128)
+	(envelope-from <khali@linux-fr.org>)
+	for linux-media@vger.kernel.org; Tue, 07 Feb 2012 10:27:54 +0100
+Date: Tue, 7 Feb 2012 09:08:53 +0100
+From: Jean Delvare <khali@linux-fr.org>
+To: LMML <linux-media@vger.kernel.org>
+Subject: PCTV teleScope: good or not?
+Message-ID: <20120207090853.7c0dda9d@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi all,
 
-On Thu, Feb 16, 2012 at 07:23:54PM +0100, Sylwester Nawrocki wrote:
-> This patch adds media bus pixel code for the interleaved JPEG/YUYV image
-> format used by S5C73MX Samsung cameras. The interleaved image data is
-> transferred on MIPI-CSI2 bus as User Defined Byte-based Data.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  include/linux/v4l2-mediabus.h |    3 +++
->  1 files changed, 3 insertions(+), 0 deletions(-)
-> 
-> diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-> index 5ea7f75..c2f0e4e 100644
-> --- a/include/linux/v4l2-mediabus.h
-> +++ b/include/linux/v4l2-mediabus.h
-> @@ -92,6 +92,9 @@ enum v4l2_mbus_pixelcode {
->  
->  	/* JPEG compressed formats - next is 0x4002 */
->  	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
-> +
-> +	/* Interleaved JPEG and YUV formats - next is 0x4102 */
-> +	V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 = 0x4101,
->  };
+I am considering buying a PCTV teleScope USB DVB-T device (aka "73a")
+second-hand:
+http://www.pctvsystems.com/Products/ProductsEuropeAsia/Digitalproducts/PCTVTelescope/tabid/163/language/en-GB/Default.aspx
 
-Thanks for the patch. Just a tiny comment:
+>From http://linuxtv.org/wiki/index.php/DVB-T_USB_Devices I read that
+the device is supported since kernel 2.6.26, which looks promising.
+However, before I actually buy it, I would love to hear from someone
+actually using this device under Linux. Anyone? Is there anything to
+worry about, or can I just buy it?
 
-I'd go with a new hardware-specific buffer range, e.g. 0x5000.
-
-Guennadi also proposed an interesting idea: a "pass-through" format. Does
-your format have dimensions that the driver would use for something or is
-that just a blob?
-
-Kind regards,
-
+Thanks,
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+Jean Delvare
