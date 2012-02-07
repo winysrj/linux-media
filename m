@@ -1,326 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine02.qualcomm.com ([199.106.114.251]:4087 "EHLO
-	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932327Ab2B2F5O (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Feb 2012 00:57:14 -0500
-Message-ID: <4F4DBE34.4000808@codeaurora.org>
-Date: Wed, 29 Feb 2012 11:27:08 +0530
-From: Ravi Kumar V <kumarrav@codeaurora.org>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:53009 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752117Ab2BGQBs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2012 11:01:48 -0500
+Received: by eaah12 with SMTP id h12so2872660eaa.19
+        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2012 08:01:47 -0800 (PST)
+Message-ID: <4F314AE7.90308@gmail.com>
+Date: Tue, 07 Feb 2012 17:01:43 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-To: James Hogan <james@albanarts.com>
-CC: tsoni@codeaurora.org, linux-arm-msm@vger.kernel.org,
-	linux-kernel@vger.kernel.org, Jarod Wilson <jarod@redhat.com>,
-	bryanh@codeaurora.org, linux-arm-kernel@lists.infradead.org,
-	Anssi Hannula <anssi.hannula@iki.fi>, davidb@codeaurora.org,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	"Juan J. Garcia de Soria" <skandalfo@gmail.com>
-Subject: Re: [PATCH v3 1/1] rc: Add support for GPIO based IR Receiver driver.
-References: <1330408300-21939-1-git-send-email-kumarrav@codeaurora.org> <20120228202944.GA9373@balrog>
-In-Reply-To: <20120228202944.GA9373@balrog>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+CC: Andy Furniss <andyqos@ukfsn.org>, linux-media@vger.kernel.org
+Subject: Re: PCTV 290e page allocation failure
+References: <4F2AC7BF.4040006@ukfsn.org>	<4F2ADDCB.4060200@gmail.com>	<CAGoCfiyTHNkr3gNAZUefeZN88-5Vd9SEyGUeFjYO-ddG1WqgzA@mail.gmail.com>	<4F2B16DF.3040400@gmail.com>	<CAGoCfiybOLL2Owz2KaPG2AuMueHYKmN18A8tQ7WXVkhTuRobZQ@mail.gmail.com>	<4F310091.80107@gmail.com> <CAGoCfiwXj58Men1Yi3OoH7CYAbiB7-KXs9fV8QkEnn3Y8Qe=sw@mail.gmail.com>
+In-Reply-To: <CAGoCfiwXj58Men1Yi3OoH7CYAbiB7-KXs9fV8QkEnn3Y8Qe=sw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 2/29/2012 1:59 AM, James Hogan wrote:
-> On Tue, Feb 28, 2012 at 11:21:40AM +0530, Ravi Kumar V wrote:
->> Adds GPIO based IR Receiver driver. It decodes signals using decoders
->> available in rc framework.
->>
->> Signed-off-by: Ravi Kumar V<kumarrav@codeaurora.org>
->
-> Looks good to me (but I'm no expert).
->
-> Cheers
-> James
->
-Thanks for review and good suggestions
+Il 07/02/2012 16:18, Devin Heitmueller ha scritto:
+> On Tue, Feb 7, 2012 at 5:44 AM, Gianluca Gennari <gennarone@gmail.com> wrote:
+>> 1) dvb-usb drivers allocate the URBs when the device is connected, and
+>> they are never freed/reallocated until the device is disconnected; on
+>> the other hand, the em28xx driver allocates the URBs only when the data
+>> starts streaming and frees them when the stream stops, so the URBs are
+>> freed/reallocated every time the user zaps to a new channel;
+> 
+> Correct, the current strategy is to optimized to minimize memory use
+> when the device is not active, as opposed to tying up the memory when
+> it's not in use (obviously at the cost of the memory possibly not
+> being available on certain ARM/MIPS platforms).
 
->>
->> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
->> index aeb7f43..6f63ded 100644
->> --- a/drivers/media/rc/Kconfig
->> +++ b/drivers/media/rc/Kconfig
->> @@ -256,4 +256,13 @@ config RC_LOOPBACK
->>   	   To compile this driver as a module, choose M here: the module will
->>   	   be called rc_loopback.
->>
->> +config IR_GPIO_CIR
->> +	tristate "GPIO IR remote control"
->> +	depends on RC_CORE
->> +	---help---
->> +	   Say Y if you want to use GPIO based IR Receiver.
->> +
->> +	   To compile this driver as a module, choose M here: the module will
->> +	   be called gpio-ir-recv.
->> +
->>   endif #RC_CORE
->> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
->> index 2156e78..9b3568e 100644
->> --- a/drivers/media/rc/Makefile
->> +++ b/drivers/media/rc/Makefile
->> @@ -25,3 +25,4 @@ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
->>   obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
->>   obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
->>   obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
->> +obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
->> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
->> new file mode 100644
->> index 0000000..6744479
->> --- /dev/null
->> +++ b/drivers/media/rc/gpio-ir-recv.c
->> @@ -0,0 +1,205 @@
->> +/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 and
->> + * only version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + */
->> +
->> +#include<linux/kernel.h>
->> +#include<linux/init.h>
->> +#include<linux/module.h>
->> +#include<linux/interrupt.h>
->> +#include<linux/gpio.h>
->> +#include<linux/slab.h>
->> +#include<linux/platform_device.h>
->> +#include<linux/irq.h>
->> +#include<media/rc-core.h>
->> +#include<media/gpio-ir-recv.h>
->> +
->> +#define GPIO_IR_DRIVER_NAME	"gpio-rc-recv"
->> +#define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
->> +
->> +struct gpio_rc_dev {
->> +	struct rc_dev *rcdev;
->> +	unsigned int gpio_nr;
->> +	bool active_low;
->> +};
->> +
->> +static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
->> +{
->> +	struct gpio_rc_dev *gpio_dev = dev_id;
->> +	unsigned int gval;
->> +	int rc = 0;
->> +	enum raw_event_type type = IR_SPACE;
->> +
->> +	gval = gpio_get_value_cansleep(gpio_dev->gpio_nr);
->> +
->> +	if (gval<  0)
->> +		goto err_get_value;
->> +
->> +	if (gpio_dev->active_low)
->> +		gval = !gval;
->> +
->> +	if (gval == 1)
->> +		type = IR_PULSE;
->> +
->> +	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
->> +	if (rc<  0)
->> +		goto err_get_value;
->> +
->> +	ir_raw_event_handle(gpio_dev->rcdev);
->> +
->> +err_get_value:
->> +	return IRQ_HANDLED;
->> +}
->> +
->> +static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
->> +{
->> +	struct gpio_rc_dev *gpio_dev;
->> +	struct rc_dev *rcdev;
->> +	const struct gpio_ir_recv_platform_data *pdata =
->> +					pdev->dev.platform_data;
->> +	int rc;
->> +
->> +	if (!pdata)
->> +		return -EINVAL;
->> +
->> +	if (pdata->gpio_nr<  0)
->> +		return -EINVAL;
->> +
->> +	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
->> +	if (!gpio_dev)
->> +		return -ENOMEM;
->> +
->> +	rcdev = rc_allocate_device();
->> +	if (!rcdev) {
->> +		rc = -ENOMEM;
->> +		goto err_allocate_device;
->> +	}
->> +
->> +	rcdev->driver_type = RC_DRIVER_IR_RAW;
->> +	rcdev->allowed_protos = RC_TYPE_ALL;
->> +	rcdev->input_name = GPIO_IR_DEVICE_NAME;
->> +	rcdev->input_id.bustype = BUS_HOST;
->> +	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
->> +	rcdev->map_name = RC_MAP_EMPTY;
->> +
->> +	gpio_dev->rcdev = rcdev;
->> +	gpio_dev->gpio_nr = pdata->gpio_nr;
->> +	gpio_dev->active_low = pdata->active_low;
->> +
->> +	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
->> +	if (rc<  0)
->> +		goto err_gpio_request;
->> +	rc  = gpio_direction_input(pdata->gpio_nr);
->> +	if (rc<  0)
->> +		goto err_gpio_direction_input;
->> +
->> +	rc = rc_register_device(rcdev);
->> +	if (rc<  0) {
->> +		dev_err(&pdev->dev, "failed to register rc device\n");
->> +		goto err_register_rc_device;
->> +	}
->> +
->> +	platform_set_drvdata(pdev, gpio_dev);
->> +
->> +	rc = request_any_context_irq(gpio_to_irq(pdata->gpio_nr),
->> +				gpio_ir_recv_irq,
->> +			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
->> +					"gpio-ir-recv-irq", gpio_dev);
->> +	if (rc<  0)
->> +		goto err_request_irq;
->> +
->> +	return 0;
->> +
->> +err_request_irq:
->> +	platform_set_drvdata(pdev, NULL);
->> +	rc_unregister_device(rcdev);
->> +err_register_rc_device:
->> +err_gpio_direction_input:
->> +	gpio_free(pdata->gpio_nr);
->> +err_gpio_request:
->> +	rc_free_device(rcdev);
->> +	rcdev = NULL;
->> +err_allocate_device:
->> +	kfree(gpio_dev);
->> +	return rc;
->> +}
->> +
->> +static int __devexit gpio_ir_recv_remove(struct platform_device *pdev)
->> +{
->> +	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
->> +
->> +	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
->> +	platform_set_drvdata(pdev, NULL);
->> +	rc_unregister_device(gpio_dev->rcdev);
->> +	gpio_free(gpio_dev->gpio_nr);
->> +	rc_free_device(gpio_dev->rcdev);
->> +	kfree(gpio_dev);
->> +	return 0;
->> +}
->> +
->> +#ifdef CONFIG_PM
->> +static int gpio_ir_recv_suspend(struct device *dev)
->> +{
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
->> +
->> +	if (device_may_wakeup(dev))
->> +		enable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
->> +	else
->> +		disable_irq(gpio_to_irq(gpio_dev->gpio_nr));
->> +
->> +	return 0;
->> +}
->> +
->> +static int gpio_ir_recv_resume(struct device *dev)
->> +{
->> +	struct platform_device *pdev = to_platform_device(dev);
->> +	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
->> +
->> +	if (device_may_wakeup(dev))
->> +		disable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
->> +	else
->> +		enable_irq(gpio_to_irq(gpio_dev->gpio_nr));
->> +
->> +	return 0;
->> +}
->> +
->> +static const struct dev_pm_ops gpio_ir_recv_pm_ops = {
->> +	.suspend        = gpio_ir_recv_suspend,
->> +	.resume         = gpio_ir_recv_resume,
->> +};
->> +#endif
->> +
->> +static struct platform_driver gpio_ir_recv_driver = {
->> +	.probe  = gpio_ir_recv_probe,
->> +	.remove = __devexit_p(gpio_ir_recv_remove),
->> +	.driver = {
->> +		.name   = GPIO_IR_DRIVER_NAME,
->> +		.owner  = THIS_MODULE,
->> +#ifdef CONFIG_PM
->> +		.pm	=&gpio_ir_recv_pm_ops,
->> +#endif
->> +	},
->> +};
->> +
->> +static int __init gpio_ir_recv_init(void)
->> +{
->> +	return platform_driver_register(&gpio_ir_recv_driver);
->> +}
->> +module_init(gpio_ir_recv_init);
->> +
->> +static void __exit gpio_ir_recv_exit(void)
->> +{
->> +	platform_driver_unregister(&gpio_ir_recv_driver);
->> +}
->> +module_exit(gpio_ir_recv_exit);
->> +
->> +MODULE_DESCRIPTION("GPIO IR Receiver driver");
->> +MODULE_LICENSE("GPL v2");
->> diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
->> new file mode 100644
->> index 0000000..61a7fbb
->> --- /dev/null
->> +++ b/include/media/gpio-ir-recv.h
->> @@ -0,0 +1,22 @@
->> +/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 and
->> + * only version 2 as published by the Free Software Foundation.
->> + *
->> + * This program is distributed in the hope that it will be useful,
->> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
->> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
->> + * GNU General Public License for more details.
->> + */
->> +
->> +#ifndef __GPIO_IR_RECV_H__
->> +#define __GPIO_IR_RECV_H__
->> +
->> +struct gpio_ir_recv_platform_data {
->> +	unsigned int gpio_nr;
->> +	bool active_low;
->> +};
->> +
->> +#endif /* __GPIO_IR_RECV_H__ */
->> +
->> --
->> Sent by a consultant of the Qualcomm Innovation Center, Inc.
->> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
->>
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Please read the FAQ at  http://www.tux.org/lkml/
->
-> _______________________________________________
-> linux-arm-kernel mailing list
-> linux-arm-kernel@lists.infradead.org
-> http://lists.infradead.org/mailman/listinfo/linux-arm-kernel
+Ok, that's clear.
 
+>> 2) dvb-usb drivers typically allocate 10 URBs each with a 4k buffer (but
+>> the exact size of the buffer is board dependent); instead, em28xx
+>> allocates 5 URBs with buffers of size 64xMaxPacketSize (which is 940
+>> byte for the PCTV 290e).
+>>
+>> This means a typical dvb-usb driver uses about 40k of coherent memory,
+>> while the PCTV 290e takes about 300k! And this 300k of coherent memory
+>> are freed/reallocated each time the user selects a new channel.
+>>
+>> I played a bit with the size of the buffers; I found out that both the
+>> PCTV 290e and the Terratec Hybrid XS work perfectly fine with 4k
+>> buffers, just like the usb-dvb drivers. So the PCTV 290e only needs 20k
+>> of coherent memory instead of the 300k currently allocated (this is
+>> equivalent to set EM28XX_DVB_MAX_PACKETS to just 4 instead of 64).
+> 
+> This one is a bit harder to speculate on.  Are you actually capturing
+> all the packets and ensuring there are no packets being dropped (e.g.
+> looking for discontinuities)?  Have you tried it with modulation types
+> that are high bandwidth?  Have you tried capturing an entire stream
+> with PID filtering disabled?  The change you described may "appear" to
+> be working when in fact it's only working for a subset of real-world
+> use cases.
 
--- 
-Sent by a consultant of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+On the MIPS STB, PID filtering is always disabled. The highest bandwidth
+modulation I have available in my area is a QAM256 DVB-T2 multiplex, and
+it appears to be working fine.
+
+Lowering the buffer size below 4k, I can see some image corruption
+(green stripes of macro-blocks). So 4k must be on the edge.
+
+I have not tried to capture the entire stream yet. So far, I'm basically
+just using the devices.
+
+> Also, the buffer management may be appropriate for the em2874/em2884,
+> but be broken for other devices such as the em288[0123].  Testing
+> would be required to ensure it's not introducing regressions.  In
+> particular, the 2874/2884 had architecture changes which may result in
+> differences in behavior (the register map is significantly different,
+> for example).
+
+Of course, I'm not proposing to force all existing drivers to use 4k
+buffers instead of 60k. What I want to show is that there is room for
+optimization in this area. In fact I like the idea of the kernel module
+parameter to set the buffer size: the default behavior is unchanged, but
+users can test lower values.
+
+>> Also, I prepared a proof-of-concept patch to mimic the usb-dvb URB
+>> management; this means the URBs are allocated when the USB device is
+>> probed, and are freed when the device is disconnected (the patch code
+>> checks for changes in the requested buffer size, but this can never
+>> happen in digital mode).
+> 
+> I don't have any specific problem with such a change assuming it is
+> properly vetted against other devices.
+
+Ok.
+
+>> I've tested the patch (with 4k buffers) with both my em28xx sticks and
+>> both work perfectly fine on my PC as well as on my MIPS set-top-box.
+>> Analog mode is not tested.
+> 
+> Again, the big question here is surrounding your testing methodology.
+> If you could expand on how you're testing, that would be helpful in
+> assessing how well the patch will really work.
+
+Please note that the buffer size and the buffer allocation strategy (at
+runtime or at driver initialization) are two completely different
+topics. The first can cause regressions, the second should not produce
+any functional change (bugs excluded).
+
+Regards,
+Gianluca
