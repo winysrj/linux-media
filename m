@@ -1,260 +1,496 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:28298 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761253Ab2BNVs3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:48:29 -0500
-From: linuxtv@stefanringel.de
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:42957 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753664Ab2BGKPC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2012 05:15:02 -0500
+Received: by wgbdt10 with SMTP id dt10so7164435wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2012 02:15:00 -0800 (PST)
+From: Javier Martin <javier.martin@vista-silicon.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 21/22] mt2063: change mt2063_init
-Date: Tue, 14 Feb 2012 22:47:45 +0100
-Message-Id: <1329256066-8844-21-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
-References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+Cc: s.hauer@pengutronix.de, g.liakhovetski@gmx.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v4 3/4] media i.MX27 camera: improve discard buffer handling.
+Date: Tue,  7 Feb 2012 11:14:42 +0100
+Message-Id: <1328609682-18014-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+The way discard buffer was previously handled lead
+to possible races that made a buffer that was not
+yet ready to be overwritten by new video data. This
+is easily detected at 25fps just adding "#define DEBUG"
+to enable the "memset" check and seeing how the image
+is corrupted.
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+A new "discard" queue and two discard buffers have
+been added to make them flow trough the pipeline
+of queues and thus provide suitable event ordering.
+
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- drivers/media/common/tuners/mt2063.c |  186 ++++++++++++----------------------
- 1 files changed, 63 insertions(+), 123 deletions(-)
+ - Add proper locking to avoid races between IRQ and stop callbacks.
+ - If a list is unexpectedly empty want the user and bail out.
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 0c5d472..7dd1d7c 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -384,165 +384,105 @@ err:
+---
+ drivers/media/video/mx2_camera.c |  287 +++++++++++++++++++++-----------------
+ 1 files changed, 161 insertions(+), 126 deletions(-)
+
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 35ab971..3880d24 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -237,7 +237,8 @@ struct mx2_buffer {
+ 	struct list_head		queue;
+ 	enum mx2_buffer_state		state;
  
- static int mt2063_init(struct dvb_frontend *fe)
- {
--	u32 status;
- 	struct mt2063_state *state = fe->tuner_priv;
--	u8 all_resets = 0xF0;	/* reset/load bits */
- 	const u8 *def = NULL;
--	char *step;
--	u32 FCRUN;
--	s32 maxReads;
--	u32 fcu_osc;
--	u32 i;
--
--	dprintk(2, "\n");
--
--	state->rcvr_mode = MT2063_CABLE_QAM;
--
--	/*  Read the Part/Rev code from the tuner */
--	status = mt2063_read(state, MT2063_REG_PART_REV,
--			     &state->reg[MT2063_REG_PART_REV], 1);
--	if (status < 0) {
--		printk(KERN_ERR "Can't read mt2063 part ID\n");
--		return status;
--	}
-+	u8 xo_lock = 1, i;
+-	int bufnum;
++	int				bufnum;
++	bool				discard;
+ };
  
--	/* Check the part/rev code */
--	switch (state->reg[MT2063_REG_PART_REV]) {
--	case MT2063_B0:
--		step = "B0";
--		break;
--	case MT2063_B1:
--		step = "B1";
--		break;
--	case MT2063_B2:
--		step = "B2";
--		break;
--	case MT2063_B3:
--		step = "B3";
--		break;
--	default:
--		printk(KERN_ERR "mt2063: Unknown mt2063 device ID (0x%02x)\n",
--		       state->reg[MT2063_REG_PART_REV]);
--		return -ENODEV;	/*  Wrong tuner Part/Rev code */
--	}
-+	dprintk(1, "\n");
+ struct mx2_camera_dev {
+@@ -256,6 +257,7 @@ struct mx2_camera_dev {
  
--	/*  Check the 2nd byte of the Part/Rev code from the tuner */
--	status = mt2063_read(state, MT2063_REG_RSVD_3B,
--			     &state->reg[MT2063_REG_RSVD_3B], 1);
-+	mutex_lock(&state->lock);
+ 	struct list_head	capture;
+ 	struct list_head	active_bufs;
++	struct list_head	discard;
  
--	/* b7 != 0 ==> NOT MT2063 */
--	if (status < 0 || ((state->reg[MT2063_REG_RSVD_3B] & 0x80) != 0x00)) {
--		printk(KERN_ERR "mt2063: Unknown part ID (0x%02x%02x)\n",
--		       state->reg[MT2063_REG_PART_REV],
--		       state->reg[MT2063_REG_RSVD_3B]);
--		return -ENODEV;	/*  Wrong tuner Part/Rev code */
--	}
-+	/* open gate */
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
+ 	spinlock_t		lock;
+ 
+@@ -268,6 +270,7 @@ struct mx2_camera_dev {
+ 
+ 	u32			csicr1;
+ 
++	struct mx2_buffer	buf_discard[2];
+ 	void			*discard_buffer;
+ 	dma_addr_t		discard_buffer_dma;
+ 	size_t			discard_size;
+@@ -329,6 +332,29 @@ static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
+ 	return &mx27_emma_prp_table[0];
+ };
+ 
++static void mx27_update_emma_buf(struct mx2_camera_dev *pcdev,
++				 unsigned long phys, int bufnum)
++{
++	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
 +
-+	/* power on */
-+	mt2063_shutdown(state, MT2063_NONE_SD);
- 
--	printk(KERN_INFO "mt2063: detected a mt2063 %s\n", step);
-+	/* reset */
-+	mt2063_write(state, MT2063_REG_LO2CQ_3, 0xf0);
- 
--	/*  Reset the tuner  */
--	status = mt2063_write(state, MT2063_REG_LO2CQ_3, &all_resets, 1);
--	if (status < 0)
--		return status;
-+	/* debug dump */
-+	if (debug >= 3) {
-+		/* print all register after reset */
-+		u8 reg[64];
-+		/* fill all reg */
-+		for (i = 0; i < 64; i++) {
-+			mt2063_read(state, i, &reg[i]);
++	if (prp->cfg.channel == 1) {
++		writel(phys, pcdev->base_emma +
++				PRP_DEST_RGB1_PTR + 4 * bufnum);
++	} else {
++		writel(phys, pcdev->base_emma +
++			PRP_DEST_Y_PTR - 0x14 * bufnum);
++		if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
++			u32 imgsize = pcdev->icd->user_height *
++					pcdev->icd->user_width;
++
++			writel(phys + imgsize, pcdev->base_emma +
++				PRP_DEST_CB_PTR - 0x14 * bufnum);
++			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
++				PRP_DEST_CR_PTR - 0x14 * bufnum);
 +		}
-+		print_hex_dump(KERN_DEBUG, "mt2063: ",
-+			DUMP_PREFIX_OFFSET, 16, 1, reg, 64, false);
 +	}
++}
++
+ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+ {
+ 	unsigned long flags;
+@@ -377,7 +403,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+ 	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
  
--	/* change all of the default values that vary from the HW reset values */
--	/*  def = (state->reg[PART_REV] == MT2063_B0) ? MT2063B0_defaults : MT2063B1_defaults; */
--	switch (state->reg[MT2063_REG_PART_REV]) {
-+	/* load defaults */
-+	switch (state->tuner_id) {
- 	case MT2063_B3:
- 		def = MT2063B3_defaults;
- 		break;
+ 	pcdev->icd = icd;
+-	pcdev->frame_count = -1;
++	pcdev->frame_count = 0;
+ 
+ 	dev_info(icd->parent, "Camera driver attached to camera %d\n",
+ 		 icd->devnum);
+@@ -397,13 +423,6 @@ static void mx2_camera_remove_device(struct soc_camera_device *icd)
+ 
+ 	mx2_camera_deactivate(pcdev);
+ 
+-	if (pcdev->discard_buffer) {
+-		dma_free_coherent(ici->v4l2_dev.dev, pcdev->discard_size,
+-				pcdev->discard_buffer,
+-				pcdev->discard_buffer_dma);
+-		pcdev->discard_buffer = NULL;
+-	}
 -
- 	case MT2063_B1:
- 		def = MT2063B1_defaults;
- 		break;
--
- 	case MT2063_B0:
- 		def = MT2063B0_defaults;
- 		break;
--
- 	default:
--		return -ENODEV;
-+		def = MT2063B1_defaults;
- 		break;
+ 	pcdev->icd = NULL;
+ }
+ 
+@@ -640,7 +659,6 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
+ 	 */
+ 
+ 	spin_lock_irqsave(&pcdev->lock, flags);
+-	list_del_init(&buf->queue);
+ 	if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
+ 		if (pcdev->fb1_active == buf) {
+ 			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
+@@ -656,6 +674,34 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
+ 	spin_unlock_irqrestore(&pcdev->lock, flags);
+ }
+ 
++static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
++		int bytesperline)
++{
++	struct soc_camera_host *ici =
++		to_soc_camera_host(icd->parent);
++	struct mx2_camera_dev *pcdev = ici->priv;
++	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
++
++	writel((icd->user_width << 16) | icd->user_height,
++	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
++	writel(prp->cfg.src_pixel,
++	       pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
++	if (prp->cfg.channel == 1) {
++		writel((icd->user_width << 16) | icd->user_height,
++			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
++		writel(bytesperline,
++			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
++		writel(prp->cfg.ch1_pixel,
++			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
++	} else { /* channel 2 */
++		writel((icd->user_width << 16) | icd->user_height,
++			pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
++	}
++
++	/* Enable interrupts */
++	writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
++}
++
+ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+ {
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
+@@ -663,6 +709,10 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
++	struct vb2_buffer *vb;
++	struct mx2_buffer *buf;
++	unsigned long phys;
++	int bytesperline;
+ 
+ 	if (mx27_camera_emma(pcdev)) {
+ 		unsigned long flags;
+@@ -670,6 +720,56 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+ 			return -EINVAL;
+ 
+ 		spin_lock_irqsave(&pcdev->lock, flags);
++
++		buf = list_entry(pcdev->capture.next,
++				 struct mx2_buffer, queue);
++		buf->bufnum = 0;
++		vb = &buf->vb;
++		buf->state = MX2_STATE_ACTIVE;
++
++		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
++		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
++		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
++
++		buf = list_entry(pcdev->capture.next,
++				 struct mx2_buffer, queue);
++		buf->bufnum = 1;
++		vb = &buf->vb;
++		buf->state = MX2_STATE_ACTIVE;
++
++		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
++		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
++		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
++
++		bytesperline = soc_mbus_bytes_per_line(icd->user_width,
++				icd->current_fmt->host_fmt);
++		if (bytesperline < 0)
++			return bytesperline;
++
++		/*
++		 * I didn't manage to properly enable/disable the prp
++		 * on a per frame basis during running transfers,
++		 * thus we allocate a buffer here and use it to
++		 * discard frames when no buffer is available.
++		 * Feel free to work on this ;)
++		 */
++		pcdev->discard_size = icd->user_height * bytesperline;
++		pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
++				pcdev->discard_size, &pcdev->discard_buffer_dma,
++				GFP_KERNEL);
++		if (!pcdev->discard_buffer)
++			return -ENOMEM;
++
++		pcdev->buf_discard[0].discard = true;
++		list_add_tail(&pcdev->buf_discard[0].queue,
++				      &pcdev->discard);
++
++		pcdev->buf_discard[1].discard = true;
++		list_add_tail(&pcdev->buf_discard[1].queue,
++				      &pcdev->discard);
++
++		mx27_camera_emma_buf_init(icd, bytesperline);
++
+ 		if (prp->cfg.channel == 1) {
+ 			writel(PRP_CNTL_CH1EN |
+ 				PRP_CNTL_CSIEN |
+@@ -704,10 +804,12 @@ static int mx2_stop_streaming(struct vb2_queue *q)
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+ 	unsigned long flags;
++	void *b;
+ 	u32 cntl;
+ 
+-	spin_lock_irqsave(&pcdev->lock, flags);
+ 	if (mx27_camera_emma(pcdev)) {
++		spin_lock_irqsave(&pcdev->lock, flags);
++
+ 		cntl = readl(pcdev->base_emma + PRP_CNTL);
+ 		if (prp->cfg.channel == 1) {
+ 			writel(cntl & ~PRP_CNTL_CH1EN,
+@@ -716,8 +818,18 @@ static int mx2_stop_streaming(struct vb2_queue *q)
+ 			writel(cntl & ~PRP_CNTL_CH2EN,
+ 			       pcdev->base_emma + PRP_CNTL);
+ 		}
++		INIT_LIST_HEAD(&pcdev->capture);
++		INIT_LIST_HEAD(&pcdev->active_bufs);
++		INIT_LIST_HEAD(&pcdev->discard);
++
++		b = pcdev->discard_buffer;
++		pcdev->discard_buffer = NULL;
++
++		spin_unlock_irqrestore(&pcdev->lock, flags);
++
++		dma_free_coherent(ici->v4l2_dev.dev,
++			pcdev->discard_size, b, pcdev->discard_buffer_dma);
  	}
- 
--	while (status >= 0 && *def) {
-+	while (*def) {
- 		u8 reg = *def++;
- 		u8 val = *def++;
--		status = mt2063_write(state, reg, &val, 1);
-+		mt2063_write(state, reg, val);
- 	}
--	if (status < 0)
--		return status;
- 
--	/*  Wait for FIFF location to complete.  */
--	FCRUN = 1;
--	maxReads = 10;
--	while (status >= 0 && (FCRUN != 0) && (maxReads-- > 0)) {
-+	/* wait to lock */
-+	while (!xo_lock) {
- 		msleep(2);
--		status = mt2063_read(state,
--					 MT2063_REG_XO_STATUS,
--					 &state->
--					 reg[MT2063_REG_XO_STATUS], 1);
--		FCRUN = (state->reg[MT2063_REG_XO_STATUS] & 0x40) >> 6;
-+		mt2063_read(state, MT2063_REG_XO_STATUS, &xo_lock);
-+		xo_lock = (xo_lock & 0x40) >> 6;
- 	}
- 
--	if (FCRUN != 0 || status < 0)
--		return -ENODEV;
--
--	status = mt2063_read(state,
--			   MT2063_REG_FIFFC,
--			   &state->reg[MT2063_REG_FIFFC], 1);
--	if (status < 0)
--		return status;
-+	/* set RF AGC on */
-+	mt2063_set_reg_mask(state, MT2063_REG_PD1_TGT, 0x40, 0x40);
- 
--	/* Read back all the registers from the tuner */
--	status = mt2063_read(state,
--				MT2063_REG_PART_REV,
--				state->reg, MT2063_REG_END_REGS);
--	if (status < 0)
--		return status;
-+	/* first IF Filter Queue enable and first IF Filter queue */
-+	mt2063_set_reg_mask(state, MT2063_REG_FIFF_CTRL2,
-+		(1 << 7) | (0 << 4), 0xf0);
-+	/* trigger FIFF calibration, needed after changing FIFFQ */
-+	mt2063_set_reg_mask(state, MT2063_REG_FIFF_CTRL, 0x01, 0x01);
-+	mt2063_set_reg_mask(state, MT2063_REG_FIFF_CTRL, 0x00, 0x01);
- 
- 	/* set DNC1 GC on */
- 	mt2063_set_reg_mask(state, MT2063_REG_DNC_GAIN, 0x00, 0x03);
- 	/* set DNC2 GC on */
- 	mt2063_set_reg_mask(state, MT2063_REG_VGA_GAIN, 0x00, 0x03);
-+	/* set PD2MUX = 0 */
-+	mt2063_set_reg_mask(state, MT2063_REG_RSVD_20, 0x00, 0x40);
- 
--	/*
--	 **   Fetch the FCU osc value and use it and the fRef value to
--	 **   scale all of the Band Max values
--	 */
-+	/* ac LNA max */
-+	mt2063_set_reg_mask(state, MT2063_REG_LNA_OV, 0x1f, 0x1f);
-+
-+	/* ac RF max */
-+	mt2063_set_reg_mask(state, MT2063_REG_RF_OV, 0x1f, 0x1f);
- 
--	state->reg[MT2063_REG_CTUNE_CTRL] = 0x0A;
--	status = mt2063_write(state, MT2063_REG_CTUNE_CTRL,
--			      &state->reg[MT2063_REG_CTUNE_CTRL], 1);
--	if (status < 0)
--		return status;
--
--	/*  Read the ClearTune filter calibration value  */
--	status = mt2063_read(state, MT2063_REG_FIFFC,
--			     &state->reg[MT2063_REG_FIFFC], 1);
--	if (status < 0)
--		return status;
--
--	fcu_osc = state->reg[MT2063_REG_FIFFC];
--
--	state->reg[MT2063_REG_CTUNE_CTRL] = 0x00;
--	status = mt2063_write(state, MT2063_REG_CTUNE_CTRL,
--			      &state->reg[MT2063_REG_CTUNE_CTRL], 1);
--	if (status < 0)
--		return status;
--
--	/*  Adjust each of the values in the ClearTune filter cross-over table  */
--	for (i = 0; i < 31; i++)
--		state->CTFiltMax[i] = (state->CTFiltMax[i] / 768) * (fcu_osc + 640);
--
--	status = MT2063_SoftwareShutdown(state, 1);
--	if (status < 0)
--		return status;
--	status = MT2063_ClearPowerMaskBits(state, MT2063_ALL_SD);
--	if (status < 0)
--		return status;
--
--	state->init = true;
-+	/* first IF ATN */
-+	if (state->tuner_id == MT2063_B0)
-+		mt2063_set_reg_mask(state, MT2063_REG_FIF_OV, 5, 0x1f);
-+	else
-+		mt2063_set_reg_mask(state, MT2063_REG_FIF_OV, 29, 0x1f);
-+
-+	/* set ClearTune in auto mode */
-+	mt2063_set_reg_mask(state, MT2063_REG_CTUNE_CTRL, 0x00, 0x08);
-+
-+	/* set Bypass in auto mode */
-+	mt2063_set_reg_mask(state, MT2063_REG_BYP_CTRL, 0x00, 0x80);
-+
-+	/* close gate */
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+
-+	mutex_unlock(&state->lock);
+-	spin_unlock_irqrestore(&pcdev->lock, flags);
  
  	return 0;
  }
+@@ -771,63 +883,6 @@ static int mx27_camera_emma_prp_reset(struct mx2_camera_dev *pcdev)
+ 	return -ETIMEDOUT;
+ }
+ 
+-static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+-		int bytesperline)
+-{
+-	struct soc_camera_host *ici =
+-		to_soc_camera_host(icd->parent);
+-	struct mx2_camera_dev *pcdev = ici->priv;
+-	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+-	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
+-
+-	if (prp->cfg.channel == 1) {
+-		writel(pcdev->discard_buffer_dma,
+-				pcdev->base_emma + PRP_DEST_RGB1_PTR);
+-		writel(pcdev->discard_buffer_dma,
+-				pcdev->base_emma + PRP_DEST_RGB2_PTR);
+-
+-		writel((icd->user_width << 16) | icd->user_height,
+-			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+-		writel((icd->user_width << 16) | icd->user_height,
+-			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
+-		writel(bytesperline,
+-			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
+-		writel(prp->cfg.src_pixel,
+-			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+-		writel(prp->cfg.ch1_pixel,
+-			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
+-	} else { /* channel 2 */
+-		writel(pcdev->discard_buffer_dma,
+-			pcdev->base_emma + PRP_DEST_Y_PTR);
+-		writel(pcdev->discard_buffer_dma,
+-			pcdev->base_emma + PRP_SOURCE_Y_PTR);
+-
+-		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
+-			writel(pcdev->discard_buffer_dma + imgsize,
+-				pcdev->base_emma + PRP_DEST_CB_PTR);
+-			writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
+-				pcdev->base_emma + PRP_DEST_CR_PTR);
+-			writel(pcdev->discard_buffer_dma + imgsize,
+-				pcdev->base_emma + PRP_SOURCE_CB_PTR);
+-			writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
+-				pcdev->base_emma + PRP_SOURCE_CR_PTR);
+-		}
+-
+-		writel((icd->user_width << 16) | icd->user_height,
+-			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+-
+-		writel((icd->user_width << 16) | icd->user_height,
+-			pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
+-
+-		writel(prp->cfg.src_pixel,
+-			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+-
+-	}
+-
+-	/* Enable interrupts */
+-	writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
+-}
+-
+ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+ 		__u32 pixfmt)
+ {
+@@ -911,27 +966,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
+ 		ret = mx27_camera_emma_prp_reset(pcdev);
+ 		if (ret)
+ 			return ret;
+-
+-		if (pcdev->discard_buffer)
+-			dma_free_coherent(ici->v4l2_dev.dev,
+-				pcdev->discard_size, pcdev->discard_buffer,
+-				pcdev->discard_buffer_dma);
+-
+-		/*
+-		 * I didn't manage to properly enable/disable the prp
+-		 * on a per frame basis during running transfers,
+-		 * thus we allocate a buffer here and use it to
+-		 * discard frames when no buffer is available.
+-		 * Feel free to work on this ;)
+-		 */
+-		pcdev->discard_size = icd->user_height * bytesperline;
+-		pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
+-				pcdev->discard_size, &pcdev->discard_buffer_dma,
+-				GFP_KERNEL);
+-		if (!pcdev->discard_buffer)
+-			return -ENOMEM;
+-
+-		mx27_camera_emma_buf_init(icd, bytesperline);
+ 	} else if (cpu_is_mx25()) {
+ 		writel((bytesperline * icd->user_height) >> 2,
+ 				pcdev->base_csi + CSIRXCNT);
+@@ -1179,18 +1213,23 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 		int bufnum)
+ {
+-	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
+ 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+ 	struct mx2_buffer *buf;
+ 	struct vb2_buffer *vb;
+ 	unsigned long phys;
+ 
+-	if (!list_empty(&pcdev->active_bufs)) {
+-		buf = list_entry(pcdev->active_bufs.next,
+-			struct mx2_buffer, queue);
++	buf = list_entry(pcdev->active_bufs.next,
++			 struct mx2_buffer, queue);
+ 
+-		BUG_ON(buf->bufnum != bufnum);
++	BUG_ON(buf->bufnum != bufnum);
+ 
++	if (buf->discard) {
++		/*
++		 * Discard buffer must not be returned to user space.
++		 * Just return it to the discard queue.
++		 */
++		list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
++	} else {
+ 		vb = &buf->vb;
+ #ifdef DEBUG
+ 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+@@ -1225,29 +1264,25 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 	pcdev->frame_count++;
+ 
+ 	if (list_empty(&pcdev->capture)) {
+-		if (prp->cfg.channel == 1) {
+-			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
+-					PRP_DEST_RGB1_PTR + 4 * bufnum);
+-		} else {
+-			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
+-						PRP_DEST_Y_PTR -
+-						0x14 * bufnum);
+-			if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
+-				writel(pcdev->discard_buffer_dma + imgsize,
+-				       pcdev->base_emma + PRP_DEST_CB_PTR -
+-				       0x14 * bufnum);
+-				writel(pcdev->discard_buffer_dma +
+-				       ((5 * imgsize) / 4), pcdev->base_emma +
+-				       PRP_DEST_CR_PTR - 0x14 * bufnum);
+-			}
++		if (list_empty(&pcdev->discard)) {
++			dev_warn(pcdev->dev, "%s: trying to access empty discard list\n",
++				 __func__);
++			return;
+ 		}
++
++		buf = list_entry(pcdev->discard.next,
++			struct mx2_buffer, queue);
++		buf->bufnum = bufnum;
++
++		list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
++		mx27_update_emma_buf(pcdev, pcdev->discard_buffer_dma, bufnum);
+ 		return;
+ 	}
+ 
+ 	buf = list_entry(pcdev->capture.next,
+ 			struct mx2_buffer, queue);
+ 
+-	buf->bufnum = !bufnum;
++	buf->bufnum = bufnum;
+ 
+ 	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+ 
+@@ -1255,18 +1290,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 	buf->state = MX2_STATE_ACTIVE;
+ 
+ 	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+-	if (prp->cfg.channel == 1) {
+-		writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
+-	} else {
+-		writel(phys, pcdev->base_emma +
+-				PRP_DEST_Y_PTR - 0x14 * bufnum);
+-		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
+-			writel(phys + imgsize, pcdev->base_emma +
+-					PRP_DEST_CB_PTR - 0x14 * bufnum);
+-			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
+-					PRP_DEST_CR_PTR - 0x14 * bufnum);
+-		}
+-	}
++	mx27_update_emma_buf(pcdev, phys, bufnum);
+ }
+ 
+ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+@@ -1274,6 +1298,15 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ 	struct mx2_camera_dev *pcdev = data;
+ 	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
+ 	struct mx2_buffer *buf;
++	unsigned long flags;
++
++	spin_lock_irqsave(&pcdev->lock, flags);
++
++	if (list_empty(&pcdev->active_bufs)) {
++		dev_warn(pcdev->dev, "%s: called while active list is empty\n",
++			__func__);
++		goto irq_ok;
++	}
+ 
+ 	if (status & (1 << 7)) { /* overflow */
+ 		u32 cntl;
+@@ -1290,9 +1323,8 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ 		       pcdev->base_emma + PRP_CNTL);
+ 		writel(cntl, pcdev->base_emma + PRP_CNTL);
+ 	}
+-	if ((((status & (3 << 5)) == (3 << 5)) ||
+-		((status & (3 << 3)) == (3 << 3)))
+-			&& !list_empty(&pcdev->active_bufs)) {
++	if (((status & (3 << 5)) == (3 << 5)) ||
++		((status & (3 << 3)) == (3 << 3))) {
+ 		/*
+ 		 * Both buffers have triggered, process the one we're expecting
+ 		 * to first
+@@ -1307,6 +1339,8 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ 	if ((status & (1 << 5)) || (status & (1 << 3)))
+ 		mx27_camera_frame_done_emma(pcdev, 1);
+ 
++irq_ok:
++	spin_unlock_irqrestore(&pcdev->lock, flags);
+ 	writel(status, pcdev->base_emma + PRP_INTRSTATUS);
+ 
+ 	return IRQ_HANDLED;
+@@ -1418,6 +1452,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 
+ 	INIT_LIST_HEAD(&pcdev->capture);
+ 	INIT_LIST_HEAD(&pcdev->active_bufs);
++	INIT_LIST_HEAD(&pcdev->discard);
+ 	spin_lock_init(&pcdev->lock);
+ 
+ 	/*
 -- 
-1.7.7.6
+1.7.0.4
 
