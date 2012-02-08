@@ -1,104 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38309 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755224Ab2BBKTY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 05:19:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Clark, Rob" <rob@ti.com>
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-Date: Thu, 2 Feb 2012 11:19:44 +0100
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, patches@linaro.org
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <20120130220139.GB16140@valkosipuli.localdomain> <CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
-In-Reply-To: <CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
+Received: from mail-qy0-f174.google.com ([209.85.216.174]:58578 "EHLO
+	mail-qy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756774Ab2BHMYV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2012 07:24:21 -0500
+Received: by qcqw6 with SMTP id w6so244350qcq.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Feb 2012 04:24:20 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202021119.44794.laurent.pinchart@ideasonboard.com>
+Date: Wed, 8 Feb 2012 13:24:20 +0100
+Message-ID: <CAO+60fyyvqbO6NQ6f4EQ88+DQFEkqTogiNQi5WddfNW_o6Jg0w@mail.gmail.com>
+Subject: Issue with Afatech AF9015 DVB-T USB
+From: =?UTF-8?Q?Mile_Davidovi=C4=87?= <mile.davidovic@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
+Hello
+I am currently trying to use Afatech AF9015 DVB-T USB card. Generaly
+it is working fine on my PC and MIPS SoC.
 
-On Tuesday 31 January 2012 16:38:35 Clark, Rob wrote:
-> On Mon, Jan 30, 2012 at 4:01 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> >> So to summarize I understand your constraints - gpu drivers have worked
-> >> like v4l a few years ago. The thing I'm trying to achieve with this
-> >> constant yelling is just to raise awereness for these issues so that
-> >> people aren't suprised when drm starts pulling tricks on dma_bufs.
-> > 
-> > I think we should be able to mark dma_bufs non-relocatable so also DRM
-> > can work with these buffers. Or alternatively, as Laurent proposed, V4L2
-> > be prepared for moving the buffers around. Are there other reasons to do
-> > so than paging them out of system memory to make room for something
-> > else?
-> 
-> fwiw, from GPU perspective, the DRM device wouldn't be actively
-> relocating buffers just for the fun of it.  I think it is more that we
-> want to give the GPU driver the flexibility to relocate when it really
-> needs to.  For example, maybe user has camera app running, then puts
-> it in the background and opens firefox which tries to allocate a big
-> set of pixmaps putting pressure on GPU memory..
+Except one part which is currently blocking me:
 
-On an embedded system putting the camera application in the background will 
-usually stop streaming, so buffers will be unmapped. On other systems, or even 
-on some embedded systems, that will not be the case though.
+Currently I am trying to record whole TS using dvbsnoop or dvbstream tool.
+It seems that I am unable to stream whole TS using following cmd:
+dvbstream 8192
 
-I'm perfectly fine with relocating buffers when needed. What I want is to 
-avoid unmapping and remapping them for every frame if they haven't moved. I'm 
-sure we can come up with an API to handle that.
+Also: dvbsnoop -s ts -tsraw -crc does not work.
+It seems that dvbsnoop is blocked in read ...
 
-> I guess the root issue is who is doing the IOMMU programming for the camera
-> driver. I guess if this is something built in to the camera driver then when
-> it calls dma_buf_map() it probably wants some hint that the backing pages
-> haven't moved so in the common case (ie. buffer hasn't moved) it doesn't
-> have to do anything expensive.
+I make quick check and it seems that DVB_USB_ADAP_HAS_PID_FILTER is
+enabled for this card.
 
-It will likely depend on the camera hardware. For the OMAP3 ISP, the driver 
-calls the IOMMU API explictly, but if I understand it correctly there's a plan 
-to move IOMMU support to the DMA API.
+Has anyone succeeded in making Afatech card working in necessary mode?
 
-> On omap4 v4l2+drm example I have running, it is actually the DRM driver
-> doing the "IOMMU" programming.. so v4l2 camera really doesn't need to care
-> about it.  (And the IOMMU programming here is pretty fast.)  But I suppose
-> this maybe doesn't represent all cases. I suppose if a camera didn't really
-> sit behind an IOMMU but uses something more like a DMA descriptor list would
-> want to know if it needed to regenerate it's descriptor list. Or likewise if
-> camera has an IOMMU that isn't really using the IOMMU framework (although
-> maybe that is easier to solve).  But I think a hint returned from
-> dma_buf_map() would do the job?
-
-I see at least three possible solutions to this problem.
-
-1. At dma_buf_unmap() time, the exporter will tell the importer that the 
-buffer will move, and that it should be unmapped from whatever the importer 
-mapped it to. That's probably the easiest solution to implement on the 
-importer's side, but I expect it to be difficult for the exporter to know at 
-dma_buf_unmap() time if the buffer will need to be moved or not.
-
-2. Adding a callback to request the importer to unmap the buffer. This might 
-be racy, and locking might be difficult to handle.
-
-3. At dma_buf_unmap() time, keep importer's mappings around. The exporter is 
-then free to move the buffer if needed, in which case the mappings will be 
-invalid. This shouldn't be a problem in theory, as the buffer isn't being used 
-by the importer at that time, but can cause stability issues when dealing with 
-rogue hardware as this would punch holes in the IOMMU fence. At dma_buf_map() 
-time the exporter would tell the importer whether the buffer moved or not. If 
-it moved, the importer will tear down the mappings it kept, and create new 
-ones.
-
-Variations around those 3 possible solutions are possible.
-
--- 
-Regards,
-
-Laurent Pinchart
+Thanks in advance
+MD
