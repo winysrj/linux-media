@@ -1,52 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:40465 "EHLO
-	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753704Ab2BWANb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 19:13:31 -0500
-Date: Thu, 23 Feb 2012 00:15:03 +0000
-From: Alan Cox <alan@lxorguk.ukuu.org.uk>
-To: "Clark, Rob" <rob@ti.com>
-Cc: Chris Wilson <chris@chris-wilson.co.uk>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
- 2012 - Notes
-Message-ID: <20120223001503.550ea0a5@pyramind.ukuu.org.uk>
-In-Reply-To: <CAO8GWqnVLfu5p3yNbE-BNqXfUu=2JX3S82GoJFS1baRwV126pQ@mail.gmail.com>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com>
-	<1775349.d0yvHiVdjB@avalon>
-	<20120217095554.GA5511@phenom.ffwll.local>
-	<2168398.Pv8ir5xFGf@avalon>
-	<alpine.LFD.2.02.1202221559510.3721@casper.infradead.org>
-	<20120222162424.GE4872@phenom.ffwll.local>
-	<e39f63$3q903a@fmsmga002.fm.intel.com>
-	<CAO8GWqnVLfu5p3yNbE-BNqXfUu=2JX3S82GoJFS1baRwV126pQ@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail.kapsi.fi ([217.30.184.167]:53912 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932107Ab2BHNdo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Feb 2012 08:33:44 -0500
+Message-ID: <4F3279B6.7000106@iki.fi>
+Date: Wed, 08 Feb 2012 15:33:42 +0200
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: =?UTF-8?B?TWlsZSBEYXZpZG92acSH?= <mile.davidovic@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Issue with Afatech AF9015 DVB-T USB
+References: <CAO+60fyyvqbO6NQ6f4EQ88+DQFEkqTogiNQi5WddfNW_o6Jg0w@mail.gmail.com>
+In-Reply-To: <CAO+60fyyvqbO6NQ6f4EQ88+DQFEkqTogiNQi5WddfNW_o6Jg0w@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> and when doing 2d accel on a 3d core..  it basically amounts to
-> putting a shader compiler in the kernel.   Wheeee!
+On 08.02.2012 14:24, Mile Davidović wrote:
+> Hello
+> I am currently trying to use Afatech AF9015 DVB-T USB card. Generaly
+> it is working fine on my PC and MIPS SoC.
+>
+> Except one part which is currently blocking me:
+>
+> Currently I am trying to record whole TS using dvbsnoop or dvbstream tool.
+> It seems that I am unable to stream whole TS using following cmd:
+> dvbstream 8192
 
-What I did for the GMA500 is to use the GTT to do scrolling by rewriting
-the framebuffer GTT tables so they work as a circular buffer and doing a
-bit of alignment of buffers.
+dvbstream -f 666000 -o 8192 > stream.ts
 
-The end result is faster than most accelerated 2D scrolls unsurprisingly.
+> Also: dvbsnoop -s ts -tsraw -crc does not work.
+> It seems that dvbsnoop is blocked in read ...
+>
+> I make quick check and it seems that DVB_USB_ADAP_HAS_PID_FILTER is
+> enabled for this card.
+>
+> Has anyone succeeded in making Afatech card working in necessary mode?
+>
+> Thanks in advance
+> MD
 
-Even faster would be to map enough of the start of the object on the end
-of the range in repeat and just roll the frame buffer base. That would
-get it down to a couple of 32bit I/O writes..
+regards
+Antti
 
-Alan
+-- 
+http://palosaari.fi/
