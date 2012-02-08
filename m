@@ -1,101 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:42441 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754575Ab2BWW2n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Feb 2012 17:28:43 -0500
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: [PATCH 0/3] Support for AF9035/AF9033
-Date: Thu, 23 Feb 2012 23:28:36 +0100
-Cc: linux-media@vger.kernel.org
-References: <201202222320.56583.hfvogt@gmx.net> <4F467E80.4060302@iki.fi>
-In-Reply-To: <4F467E80.4060302@iki.fi>
+Received: from mail.kapsi.fi ([217.30.184.167]:41316 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750916Ab2BHNyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Feb 2012 08:54:20 -0500
+Message-ID: <4F327E8A.6010800@iki.fi>
+Date: Wed, 08 Feb 2012 15:54:18 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
+To: Malcolm Priestley <tvboxspy@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/2] IT913X Version 1 and Version 2 keymaps
+References: <1328135384.2552.20.camel@tvbox> <4F2FCAAD.3070706@iki.fi> <1328548004.2331.15.camel@tvbox>
+In-Reply-To: <1328548004.2331.15.camel@tvbox>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201202232328.36340.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, 23. Februar 2012 schrieb Antti Palosaari:
-> On 23.02.2012 00:20, Hans-Frieder Vogt wrote:
-> > I have written a driver for the AF9035&  AF9033 (called af903x), based on
-> > the various drivers and information floating around for these chips.
-> > Currently, my driver only supports the devices that I am able to test.
-> > These are
-> > - Terratec T5 Ver.2 (also known as T6)
-> > - Avermedia Volar HD Nano (A867)
-> > 
-> > The driver supports:
-> > - diversity and dual tuner (when the first frontend is used, it is in
-> > diversity mode, when two frontends are used in dual tuner mode)
-> > - multiple devices
-> > - pid filtering
-> > - remote control in NEC and RC-6 mode (currently not switchable, but
-> > depending on device)
-> > - support for kernel 3.1, 3.2 and 3.3 series
-> > 
-> > I have not tried to split the driver in a DVB-T receiver (af9035) and a
-> > frontend (af9033), because I do not see the sense in doing that for a
-> > demodulator, that seems to be always used in combination with the very
-> > same receiver.
-> 
-> That was how I originally implemented it. Reason for that is simple:
-> af9033 demodulator exists as single chip. I think it is also used for
-> dual tuner devices or is there 2 af9035 chips used, like one is master
-> and one is slave and working as a demod?
-> 
-> Situation is rather same for af9005/af9003 and af9015/af9013. Search
-> from the mailing list and see there is devices using af9003 demod but as
-> it is not split correctly from the af9005 those devices are never
-> supported (due to fact af9003 demod is not split out).
-> 
-> Reason behind my af9035/af9033 is not merged to the Kernel is that I
-> never found people from ITE who was able to give permission to merge
-> that. As it contains some vendor code I didn't want to merge it without
-> permission.
-> 
-> It is not many day work to write all vendor code out from the driver and
-> get it clean. If you want I can do it for you and merge that to the
-> Kernel. You can then take whole driver and start hacking if you wish.
-> What do you think? I am currently busy as hell and I don't want more
-> drivers to maintain so you can take maintaining responsibility.
-> 
-> > The patch is split in three parts:
-> > Patch 1: support for tuner fitipower FC0012
-> > Patch 2: basic driver
-> > Patch 3: firmware
-> > 
-> > Hans-Frieder Vogt                       e-mail: hfvogt<at>  gmx .dot. net
-> 
-> regards
-> Antti
+On 06.02.2012 19:06, Malcolm Priestley wrote:
+> On Mon, 2012-02-06 at 14:42 +0200, Antti Palosaari wrote:
+>> On 02/02/2012 12:29 AM, Malcolm Priestley wrote:
+>>> IT913X V1 V2 keymaps
+>>> +static struct rc_map_table it913x_v1_rc[] = {
+>>> +	/* Type 1 */
 
-Antti,
+>>
+>> That remote is already there. Use existing remote instead of adding new
+>> one with different name. It is RC_MAP_MSI_DIGIVOX_III
+>>
+> The driver originally used this map.
+>
+> RC_MAP_MSI_DIGIVOX_III and RC_MAP_KWORLD_315U also are the same map.
 
-of course I understand that the af9033 is a separate chip, but still I don't 
-know of any device that uses the af9033 without the af9035. Clearly, the 
-situation is very similar with the other Afatech chips and you managed the 
-"splitting job" very well for the af9015/af9013 and for the af9005/af9003 
-chips. In fact, when you look at the EEPROM code and the register sequence 
-(not the actual addresses, they have been moved), then it seems that in 
-particular the af9015 and the af9035 have quite a lot in common (The main 
-difference in the description on the afatech web page is the "low power" for 
-the af9035).
-The main reason for me to leave the code together is rather the diversity 
-code. I liked the idea of the driver selecting diversity and dual tuner code 
-depending on how many tuners are actually used, and I simply struggled to make 
-a clean split between frontend and main driver code.
+Yes it is. As you likely saw from the comments I have added:
+/* This remote seems to be same as rc-kworld-315u.c. Anyhow, add new 
+remote since rc-kworld-315u.c lacks NEC extended address byte. */
 
-Thanks very much for your offer to support me in getting rid of vendor code. 
-Honestly I was of the opinion that I already got rid of all of it, but if you 
-still see some then I really appreciate if you can help me removing it once 
-and for all. I am happy to do the maintainer job on that driver, but if it can 
-be improved using some of your experience that would be great!
-Thanks very much!
+The reason I was forced to add new keymap instead of fixing 
+RC_MAP_KWORLD_315U was simple I didn't have em28xx device to test and 
+fix it at that time. So I added new correct keymap. Fix should be done 
+for em28xx driver to handle 24bit NEC extended.
 
-Regards,
 
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+>>> +	/* Type 2 - 20 buttons */
+>>> +	{ 0x807f0d, KEY_0 },
+>>> +	{ 0x807f0e, KEY_STOP },
+>>
+>> That is NEC basic - 16 bit, not 24 bit. That remote seems to be here
+>> also. It is RC_MAP_TERRATEC_SLIM_2. Use existing instead of define new.
+>>
+>
+> All ITE NEC remotes are 32bit with 0xff00 mask. However, they are
+> modified to 24 bit or 16 bit.
+
+That is wrong assumption. NEC sends always physically 32bit. Original 
+NEC is is still 16bit long as payload. Other 16bit are reduntant and are 
+used for checksum. If you XOR byte0 and byte1 you got 0xff. Same applies 
+for byte2 and byte3.
+Using 0xff00 you give as example => 0xff XOR 0x00 = 0xFF.
+And for remote in question, 0x80 XOR 7f = 0xFF.
+
+> The both maps need to merged because they share the same product ID.
+
+Yes, thats tricky part. I still don't see idea to put all possible 
+remotes to one file. If you look AF9015 driver you can see same problem. 
+And maybe many others too. That was one reason for RC-core too. The idea 
+was to upload keytable from the userspace in that case.
+
+>>> +static struct rc_map_table it913x_v2_rc[] = {
+>>> +	/* Type 1 */
+>>> +	/* 9005 remote */
+>>> +	{ 0x807f12, KEY_POWER2 },	/* Power (RED POWER BUTTON)*/
+>>
+>> That is also 16 bit NEC basic.
+>>
+> This is a different map.
+>
+> All the maps will soon need to be 32bit, HID type interfaces need the
+> 32bit map uploaded.
+
+It does not matter what HID wants. As those are simply checksums you can 
+calculate those easily in the driver. See af9015 for example. And some 
+other drivers too, IIRC DiBcom at least.
+
+IMHO all NEC should be defined as full 32 bit code. I asked that many 
+times when RC-core was introduced and I was converting af9015 to 
+RC-core. But it is now differently, only payload bytes are defined to 
+the keytable and checksum bytes left out. That was spoken many times on 
+the mailing list. Try to search some discussion, af9015 + rc-core is 
+good starting point.
+
+regards
+Antti
+-- 
+http://palosaari.fi/
