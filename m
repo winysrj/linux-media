@@ -1,38 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:45895 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755828Ab2BBMC7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 07:02:59 -0500
-Date: Thu, 2 Feb 2012 13:02:57 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-input@vger.kernel.org,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH 6/6] hid-core: ignore the Keene FM transmitter.
-In-Reply-To: <b385adb918f71c1276e9f0cee4e1501b2186dca5.1328183271.git.hans.verkuil@cisco.com>
-Message-ID: <alpine.LNX.2.00.1202021301420.18918@pobox.suse.cz>
-References: <1328183796-3168-1-git-send-email-hverkuil@xs4all.nl> <b385adb918f71c1276e9f0cee4e1501b2186dca5.1328183271.git.hans.verkuil@cisco.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from i118-21-156-233.s30.a048.ap.plala.or.jp ([118.21.156.233]:50332
+	"EHLO rinabert.homeip.net" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755846Ab2BHLdb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Feb 2012 06:33:31 -0500
+From: Masanari Iida <standby24x7@gmail.com>
+To: mchehab@infradead.org, linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, trivial@kernel.org,
+	standby24x7@gmail.com
+Subject: [PATCH] [trivial] mantis: Fix typo in mantis_hif.c
+Date: Wed,  8 Feb 2012 20:28:23 +0900
+Message-Id: <1328700503-1661-1-git-send-email-standby24x7@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2 Feb 2012, Hans Verkuil wrote:
+Correct typo "Adater" to "Adapter" in
+drivers/media/dvb/mantis/mantis_hif.c
 
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> The Keene FM transmitter USB device has the same USB ID as
-> the Logitech AudioHub Speaker, but it should ignore the hid.
-> Check if the name is that of the Keene device.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Masanari Iida <standby24x7@gmail.com>
+---
+ drivers/media/dvb/mantis/mantis_hif.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-Mauro, feel free to take this one with the rest of the patchset with my
-
-	Signed-off-by: Jiri Kosina <jkosina@suse.cz>
-
-Thanks,
-
+diff --git a/drivers/media/dvb/mantis/mantis_hif.c b/drivers/media/dvb/mantis/mantis_hif.c
+index 672cf4d..10c68df 100644
+--- a/drivers/media/dvb/mantis/mantis_hif.c
++++ b/drivers/media/dvb/mantis/mantis_hif.c
+@@ -76,7 +76,7 @@ static int mantis_hif_write_wait(struct mantis_ca *ca)
+ 		udelay(500);
+ 		timeout++;
+ 		if (timeout > 100) {
+-			dprintk(MANTIS_ERROR, 1, "Adater(%d) Slot(0): Write operation timed out!", mantis->num);
++			dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Write operation timed out!", mantis->num);
+ 			rc = -ETIMEDOUT;
+ 			break;
+ 		}
 -- 
-Jiri Kosina
-SUSE Labs
+1.7.6.5
+
