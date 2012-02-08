@@ -1,82 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57726 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751356Ab2BMOKV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 09:10:21 -0500
-Date: Mon, 13 Feb 2012 15:10:12 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	s.hauer@pengutronix.de
-Subject: Re: [PATCH 5/6] media: i.MX27 camera: fix compilation warning.
-In-Reply-To: <1329141115-23133-6-git-send-email-javier.martin@vista-silicon.com>
-Message-ID: <Pine.LNX.4.64.1202131508080.8277@axis700.grange>
-References: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
- <1329141115-23133-6-git-send-email-javier.martin@vista-silicon.com>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:53653 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755304Ab2BHT6P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 Feb 2012 14:58:15 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: Re: [alsa-devel] tea575x-tuner improvements & use in maxiradio
+Date: Wed, 8 Feb 2012 20:57:43 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1328447827-9842-1-git-send-email-hverkuil@xs4all.nl> <201202072320.30911.linux@rainbow-software.org> <201202080829.25201.hverkuil@xs4all.nl>
+In-Reply-To: <201202080829.25201.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201202082057.48045.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+On Wednesday 08 February 2012 08:29:25 Hans Verkuil wrote:
+> On Tuesday, February 07, 2012 23:20:19 Ondrej Zary wrote:
+> > On Sunday 05 February 2012 14:17:05 Hans Verkuil wrote:
+> > > These patches improve the tea575x-tuner module to make it up to date
+> > > with the latest V4L2 frameworks.
+> > >
+> > > The maxiradio driver has also been converted to use the tea575x-tuner
+> > > and I've used that card to test it.
+> > >
+> > > Unfortunately, this card can't read the data pin, so the new hardware
+> > > seek functionality has been tested only partially (yes, it seeks, but
+> > > when it finds a channel I can't read back the frequency).
+> > >
+> > > Ondrej, are you able to test these patches for the sound cards that use
+> > > this tea575x tuner?
+> > >
+> > > Note that these two patches rely on other work that I did and that
+> > > hasn't been merged yet. So it is best to pull from my git tree:
+> > >
+> > > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/radi
+> > >o-pc i2
+> > >
+> > > You can use the v4l-utils repository
+> > > (http://git.linuxtv.org/v4l-utils.git) to test the drivers: the
+> > > v4l2-compliance test should succeed and with v4l2-ctl you can test the
+> > > hardware seek:
+> > >
+> > > To seek down:
+> > >
+> > > v4l2-ctl -d /dev/radio0 --freq-seek=dir=0
+> > >
+> > > To seek up:
+> > >
+> > > v4l2-ctl -d /dev/radio0 --freq-seek=dir=1
+> > >
+> > > To do the compliance test:
+> > >
+> > > v4l2-compliance -r /dev/radio0
+> >
+> > It seems to work (tested with SF64-PCR - snd_fm801) but the seek is
+> > severely broken. Reading the frequency immediately after seek does not
+> > work, it always returns the old value (haven't found a delay that works).
+> > Reading it later (copied back snd_tea575x_get_freq function) works. The
+> > chip seeks randomly up or down, ignoring UP/DOWN flag and often stops at
+> > wrong place (only noise) or even outside the FM range.
+> >
+> > So I strongly suggest not to enable this (mis-)feature. The HW seems to
+> > be completely broken (unless there's some weird bug in the code).
+>
+> Well, it seemed like a good idea at the time :-) I'll remove this
+> 'feature', it's really not worth our time to try and make this work for
+> these old cards.
+>
+> I wonder if you are able to test the ISA radio-sf16fmr2.c driver? I'm not
+> sure if you have the hardware, but since I changed this driver to use the
+> proper isa kernel framework I'd like to have this tested if possible.
 
-On Mon, 13 Feb 2012, Javier Martin wrote:
+The driver works, provided that linux/slab.h is included. It oopses on rmmod
+because dev_set_drvdata() call is missing from init.
+This patch fixes all of that and also removes (now useless) static fmr2_card:
 
-> 
-> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
-> ---
->  drivers/media/video/mx2_camera.c |   16 ++++++++--------
->  1 files changed, 8 insertions(+), 8 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index d9028f1..8ccdb4a 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -1210,7 +1210,9 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
->  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  		int bufnum, bool err)
->  {
-> +#ifdef DEBUG
->  	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-> +#endif
->  	struct mx2_buffer *buf;
->  	struct vb2_buffer *vb;
->  	unsigned long phys;
-> @@ -1232,18 +1234,16 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->  		if (prp->cfg.channel == 1) {
->  			if (readl(pcdev->base_emma + PRP_DEST_RGB1_PTR +
->  				4 * bufnum) != phys) {
-> -				dev_err(pcdev->dev, "%p != %p\n", phys,
-> -						readl(pcdev->base_emma +
-> -							PRP_DEST_RGB1_PTR +
-> -							4 * bufnum));
-> +				dev_err(pcdev->dev, "%p != %p\n", (void *)phys,
-> +					(void *)readl(pcdev->base_emma +
-> +					PRP_DEST_RGB1_PTR + 4 * bufnum));
->  			}
->  		} else {
->  			if (readl(pcdev->base_emma + PRP_DEST_Y_PTR -
->  				0x14 * bufnum) != phys) {
-> -				dev_err(pcdev->dev, "%p != %p\n", phys,
-> -						readl(pcdev->base_emma +
-> -							PRP_DEST_Y_PTR -
-> -							0x14 * bufnum));
-> +				dev_err(pcdev->dev, "%p != %p\n", (void *)phys,
-> +					(void *)readl(pcdev->base_emma +
-> +					PRP_DEST_Y_PTR - 0x14 * bufnum));
+--- a/drivers/media/radio/radio-sf16fmr2.c
++++ b/drivers/media/radio/radio-sf16fmr2.c
+@@ -9,6 +9,7 @@
+ #include <linux/delay.h>
+ #include <linux/module.h>	/* Modules 			*/
+ #include <linux/init.h>		/* Initdata			*/
++#include <linux/slab.h>
+ #include <linux/ioport.h>	/* request_region		*/
+ #include <linux/io.h>		/* outb, outb_p			*/
+ #include <linux/isa.h>
+@@ -32,7 +33,6 @@ struct fmr2 {
+ 
+ /* the port is hardwired so no need to support multiple cards */
+ #define FMR2_PORT	0x384
+-static struct fmr2 fmr2_card;
+ 
+ /* TEA575x tuner pins */
+ #define STR_DATA	(1 << 0)
+@@ -188,7 +188,7 @@ static int fmr2_tea_ext_init(struct snd_tea575x *tea)
+ 
+ static int __init fmr2_probe(struct device *pdev, unsigned int dev)
+ {
+-	struct fmr2 *fmr2 = &fmr2_card;
++	struct fmr2 *fmr2;
+ 	int err;
+ 
+ 	fmr2 = kzalloc(sizeof(*fmr2), GFP_KERNEL);
+@@ -229,6 +229,7 @@ static int __init fmr2_probe(struct device *pdev, unsigned int dev)
+ 	}
+ 
+ 	printk(KERN_INFO "radio-sf16fmr2: SF16-FMR2 radio card at 0x%x.\n", fmr2->io);
++	dev_set_drvdata(pdev, fmr2);
+ 	return 0;
+ }
+ 
 
-I think, just using %lx would be better.
 
->  			}
->  		}
->  #endif
-> -- 
-> 1.7.0.4
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Ondrej Zary
