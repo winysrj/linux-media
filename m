@@ -1,34 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:59951 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755725Ab2BLTFE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Feb 2012 14:05:04 -0500
-Message-ID: <4F380D5C.5050201@iki.fi>
-Date: Sun, 12 Feb 2012 21:05:00 +0200
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-qw0-f46.google.com ([209.85.216.46]:40783 "EHLO
+	mail-qw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752517Ab2BHO6x convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2012 09:58:53 -0500
+Received: by qadc10 with SMTP id c10so3538217qad.19
+        for <linux-media@vger.kernel.org>; Wed, 08 Feb 2012 06:58:53 -0800 (PST)
 MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Status of RTL283xU support?
-References: <CAO=zWDJD19uCJJfdZQVQzHOSxLcXb11D+Avw--YV5mCk8qxPww@mail.gmail.com> <CAO=zWDJREu+AomDtuWTf5CaTwJh4BbQ79b4BtYJODhGvTqW9fg@mail.gmail.com> <4ED5364B.9070106@gmail.com> <4F380CB9.9010904@gmail.com>
-In-Reply-To: <4F380CB9.9010904@gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <4F3279B6.7000106@iki.fi>
+References: <CAO+60fyyvqbO6NQ6f4EQ88+DQFEkqTogiNQi5WddfNW_o6Jg0w@mail.gmail.com>
+	<4F3279B6.7000106@iki.fi>
+Date: Wed, 8 Feb 2012 15:58:52 +0100
+Message-ID: <CAO+60fy91Cbd+172u1qA8J28SXSDO6pDtqh9=U=itC59NNGQ2g@mail.gmail.com>
+Subject: Re: Issue with Afatech AF9015 DVB-T USB
+From: =?UTF-8?Q?Mile_Davidovi=C4=87?= <mile.davidovic@gmail.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12.02.2012 21:02, poma wrote:
-> On 29.11.2011 20:45, poma wrote:
-> ..
-> Don't forget to read/edit "Makefile" for 3.2.* kernels,
-> uncomment line:
-> INCLUDE_EXTRA_DVB := include-320
-?
+Thank You.
 
-> rgds,
-> poma
+Kind regards
+MD
 
-Antti
-
--- 
-http://palosaari.fi/
+On Wed, Feb 8, 2012 at 2:33 PM, Antti Palosaari <crope@iki.fi> wrote:
+> On 08.02.2012 14:24, Mile Davidović wrote:
+>>
+>> Hello
+>> I am currently trying to use Afatech AF9015 DVB-T USB card. Generaly
+>> it is working fine on my PC and MIPS SoC.
+>>
+>> Except one part which is currently blocking me:
+>>
+>> Currently I am trying to record whole TS using dvbsnoop or dvbstream tool.
+>> It seems that I am unable to stream whole TS using following cmd:
+>> dvbstream 8192
+>
+>
+> dvbstream -f 666000 -o 8192 > stream.ts
+>
+>
+>> Also: dvbsnoop -s ts -tsraw -crc does not work.
+>> It seems that dvbsnoop is blocked in read ...
+>>
+>> I make quick check and it seems that DVB_USB_ADAP_HAS_PID_FILTER is
+>> enabled for this card.
+>>
+>> Has anyone succeeded in making Afatech card working in necessary mode?
+>>
+>> Thanks in advance
+>> MD
+>
+>
+> regards
+> Antti
+>
+> --
+> http://palosaari.fi/
