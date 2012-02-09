@@ -1,50 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailgate.plextek.co.uk ([62.254.222.163]:16387 "EHLO
-	mailgate.plextek.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755900Ab2BGOCr convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2012 09:02:47 -0500
-Content-class: urn:content-classes:message
+Received: from moutng.kundenserver.de ([212.227.126.187]:50500 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753881Ab2BIWg5 convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2012 17:36:57 -0500
+Date: Thu, 9 Feb 2012 23:36:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
+Subject: Re: [PATCH v4 3/4] media i.MX27 camera: improve discard buffer
+ handling.
+In-Reply-To: <CACKLOr0ioy2rxKY7PUBDCBPaQG0FUv0Drt-GNgBnNmFDt05T-w@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1202092328450.18719@axis700.grange>
+References: <1328609682-18014-1-git-send-email-javier.martin@vista-silicon.com>
+ <CACKLOr0ioy2rxKY7PUBDCBPaQG0FUv0Drt-GNgBnNmFDt05T-w@mail.gmail.com>
 MIME-Version: 1.0
-Subject: Setting routing of v4l2 subdevice
-Date: Tue, 7 Feb 2012 13:49:53 -0000
-Message-ID: <8C9A6B7580601F4FBDC0ED4C1D6A9B1D0638DC3B@plextek3.plextek.lan>
-From: "Adam Sutton" <adam.sutton@plextek.com>
-To: <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Javier
 
-I'm trying to get the camera working on our Android platform and I'm
-having some trouble understanding how to select the appropriate input.
+On Thu, 9 Feb 2012, javier Martin wrote:
 
-The platform specifics are:
+> Hi Guennadi,
+> I understand you are probably quite busy right now but it would be
+> great if you could ack this patch. The sooner you merge it the sooner
+> I will start working on the cleanup series. I've got some time on my
+> hands now.
 
-Analog camera (PAL-I) -> TVP5150 TV decoder -> iMX53 IPU/CSI
+Yes, I can take this version, at the same time, I have a couple of 
+comments, that you might find useful to address in a clean-up patch;-) Or 
+just leave them as they are...
 
-Note: The TVP driver is not the one currently in the mainline kernel,
-I've had to modify it back to the old int-device format to be compatible
-with the Freescale IPU/CSI drivers. 
+[anip]
 
-The TVP chip has 2 analog inputs which can be selected over the I2C
-interface. The driver includes a V4L2 ioctl
-(vidioc_int_s_video_routing_num) for selecting the required one.
 
-My question is how do I go about accessing this from userland. The
-closest thing I can see if the VIDIOC_S_INPUT ioctl, but this get picked
-up by the freescale CSI driver (mxc_v4l2_capture.c), which also has 2
-possible input paths to select between (although we only ever use 1). I
-had initially hacked this ioctl in the freescale driver to pass the call
-to the TVP driver, but this doesn't feel right and I'm sure there must
-be a better way to handle this.
+> > @@ -1274,6 +1298,15 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+> >        struct mx2_camera_dev *pcdev = data;
+> >        unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
+> >        struct mx2_buffer *buf;
+> > +       unsigned long flags;
+> > +
+> > +       spin_lock_irqsave(&pcdev->lock, flags);
 
-Any suggestions welcome,
-Adam
-Plextek Limited
-Registered Address: London Road, Great Chesterford, Essex, CB10 1NY, UK Company Registration No. 2305889
-VAT Registration No. GB 918 4425 15
-Tel: +44 1799 533 200. Fax: +44 1799 533 201 Web:http://www.plextek.com 
-Electronics Design and Consultancy
+It wasn't an accident, that I wrote "spin_lock()" - without the "_irqsave" 
+part. You are in an ISR here, and this is the only IRQ, that your driver 
+has to protect against, so, here, I think, you don't have to block other 
+IRQs.
 
+> > +
+> > +       if (list_empty(&pcdev->active_bufs)) {
+> > +               dev_warn(pcdev->dev, "%s: called while active list is empty\n",
+> > +                       __func__);
+> > +               goto irq_ok;
+
+This means, you return IRQ_HANDLED here without even checking whether any 
+of your status bits are actually set. So, if you get an interrupt here 
+with an empty list, it might indeed be the case of a shared IRQ, in which 
+case you'd have to return IRQ_NONE.
+
+> > +       }
+> >
+> >        if (status & (1 << 7)) { /* overflow */
+> >                u32 cntl;
+
+As I said - we can keep this version, but maybe you'll like to improve at 
+least the latter of the above two snippets.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
