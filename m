@@ -1,62 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:30282 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212Ab2BTB7O (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:59:14 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 20/33] omap3isp: Move definitions required by board code under include/media.
-Date: Mon, 20 Feb 2012 03:56:59 +0200
-Message-Id: <1329703032-31314-20-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:53506 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753427Ab2BIQVj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2012 11:21:39 -0500
+Received: by eekc14 with SMTP id c14so640732eek.19
+        for <linux-media@vger.kernel.org>; Thu, 09 Feb 2012 08:21:38 -0800 (PST)
+Message-ID: <4F33F28F.3040704@gmail.com>
+Date: Thu, 09 Feb 2012 17:21:35 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
+MIME-Version: 1.0
+To: Andrej Podzimek <andrej@podzimek.org>, linux-media@vger.kernel.org
+Subject: Re: AverTV Volar HD PRO
+References: <4F2F145C.6000405@podzimek.org> <4F2F3BE1.7030801@gmail.com> <4F30B22B.9050708@podzimek.org>
+In-Reply-To: <4F30B22B.9050708@podzimek.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-XCLK definitions are often required by the board code. Move them to public
-include file.
+Il 07/02/2012 06:10, Andrej Podzimek ha scritto:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isp.h |    4 ----
- include/media/omap3isp.h           |    4 ++++
- 2 files changed, 4 insertions(+), 4 deletions(-)
+> An attempt to scan channels in Kaffeine always fails before the progress
+> bar reaches 20% and lots of messages like this appear in dmesg:
+> 
+>     af9035: recv bulk message failed:-110
+>     af9033: I2C read failed reg:0047
+>     af9035: recv bulk message failed:-110
+>     af9033: I2C read failed reg:0047
+>     af9035: recv bulk message failed:-110
+>     af9033: I2C read failed reg:0045
+>     af9035: recv bulk message failed:-110
+>     af9033: I2C read failed reg:0048
+>     af9035: recv bulk message failed:-110
+>     af9033: I2C read failed reg:0047
+>     af9035: recv bulk message failed:-110
+>     af9033: I2C read failed reg:002c
+>     af9035: recv bulk message failed:-110
+>     af9033: I2C read failed reg:0047
+>     af9035: recv bulk message failed:-110
+>     af9033: I2C read failed reg:0048
 
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index d96603e..2e78041 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -237,10 +237,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 			       const struct isp_parallel_platform_data *pdata,
- 			       unsigned int shift);
- 
--#define ISP_XCLK_NONE			0
--#define ISP_XCLK_A			1
--#define ISP_XCLK_B			2
--
- struct isp_device *omap3isp_get(struct isp_device *isp);
- void omap3isp_put(struct isp_device *isp);
- 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 042849a..3f4928d 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -29,6 +29,10 @@
- struct i2c_board_info;
- struct isp_device;
- 
-+#define ISP_XCLK_NONE			0
-+#define ISP_XCLK_A			1
-+#define ISP_XCLK_B			2
-+
- enum isp_interface_type {
- 	ISP_INTERFACE_PARALLEL,
- 	ISP_INTERFACE_CSI2A_PHY2,
--- 
-1.7.2.5
+Hi Andrej,
+I contacted the original creator of the patch that you used previously
+(Xgaz on Ubuntu.it forums).
 
+He passed this suggestion to me (coming from a Spanish user):
+
+
+For people having the kernel message "af9035: recv bulk message
+failed:-110", it's due a problem with the power save mode. To solve it,
+create the file "/etc/modprobe.d/options.conf" with this content:
+
+options dvb-core dvb_powerdown_on_sleep=0
+
+
+So basically you may need to disable the power saving functionalities to
+make the device working again.
+
+Since the only functional difference between the old and the new patch
+version is in the remote code (which I removed), probably this code was
+preventing your device to go into sleep mode, so it was hotter but
+worked fine.
+
+Please report if this helps.
+
+Regards,
+Gianluca
