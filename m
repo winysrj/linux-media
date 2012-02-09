@@ -1,95 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ftp.meprolight.com ([194.90.149.17]:37823 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1750985Ab2B0I6T convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Feb 2012 03:58:19 -0500
-From: Alex Gershgorin <alexg@meprolight.com>
-To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 27 Feb 2012 10:58:10 +0200
-Subject: RE: i.mx35 live video
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2C8966B28C@MEP-EXCH.meprolight.com>
-In-Reply-To: <Pine.LNX.4.64.1202262154550.17982@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:28080 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758483Ab2BIXyb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2012 18:54:31 -0500
+Date: Fri, 10 Feb 2012 00:55:07 +0100 (CET)
+From: Jesper Juhl <jj@chaosbits.net>
+To: Thierry Reding <thierry.reding@avionic-design.de>
+cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Dan Carpenter <dan.carpenter@oracle.com>,
+	Greg Kroah-Hartman <gregkh@suse.de>,
+	Curtis McEnroe <programble@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] tm6000: Don't use pointer after freeing it in
+ tm6000_ir_fini()
+In-Reply-To: <20120206070939.GA19754@avionic-0098.mockup.avionic-design.de>
+Message-ID: <alpine.LNX.2.00.1202100054540.32491@swampdragon.chaosbits.net>
+References: <alpine.LNX.2.00.1201290239460.20079@swampdragon.chaosbits.net> <20120206070939.GA19754@avionic-0098.mockup.avionic-design.de>
 MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon, 6 Feb 2012, Thierry Reding wrote:
 
-
------Original Message-----
-From: Guennadi Liakhovetski [mailto:g.liakhovetski@gmx.de] 
-Sent: Sunday, February 26, 2012 10:58 PM
-To: Alex Gershgorin
-Cc: linux-media@vger.kernel.org
-Subject: RE: i.mx35 live video
-
-On Sun, 26 Feb 2012, Alex Gershgorin wrote:
-
-> > Thanks Guennadi for your quick response ,  
+> * Jesper Juhl wrote:
+> > In tm6000_ir_fini() there seems to be a problem. 
+> > rc_unregister_device(ir->rc); calls rc_free_device() on the pointer it is 
+> > given, which frees it.
 > > 
-> > >Hi Alex
+> > Subsequently the function does:
+> > 
+> >   if (!ir->polling)
+> >     __tm6000_ir_int_stop(ir->rc);
+> > 
+> > and __tm6000_ir_int_stop() dereferences the pointer it is given, which
+> > has already been freed.
+> > 
+> > and it also does:
+> > 
+> >   tm6000_ir_stop(ir->rc);
+> > 
+> > which also dereferences the (already freed) pointer.
+> > 
+> > So, it seems that the call to rc_unregister_device() should be move
+> > below the calls to __tm6000_ir_int_stop() and tm6000_ir_stop(), so
+> > those don't operate on a already freed pointer.
+> > 
+> > But, I must admit that I don't know this code *at all*, so someone who
+> > knows the code should take a careful look before applying this
+> > patch. It is based purely on inspection of facts of what is beeing
+> > freed where and not at all on understanding what the code does or why.
+> > I don't even have a means to test it, so beyond testing that the
+> > change compiles it has seen no testing what-so-ever.
+> > 
+> > Anyway, here's a proposed patch.
+> > 
+> > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+> > ---
+> >  drivers/media/video/tm6000/tm6000-input.c |    3 +--
+> >  1 files changed, 1 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
+> > index 7844607..859eb90 100644
+> > --- a/drivers/media/video/tm6000/tm6000-input.c
+> > +++ b/drivers/media/video/tm6000/tm6000-input.c
+> > @@ -481,8 +481,6 @@ int tm6000_ir_fini(struct tm6000_core *dev)
 > >  
-> > > Hi Guennadi,
-> > >
-> > > We would like to use I.MX35 processor in new project.
-> > > An important element of the project is to obtain life video from the camera and display it on display.
-> > > For these purposes, we want to use mainline Linux kernel which supports all the necessary drivers for the implementation of this task.
-> > > As I understand that soc_camera is not currently supported userptr method, in which case how I can configure the video pipeline in user space
-> > > to get the live video on display, without the intervention of the processor.
-> > 
-> > >soc-camera does support USERPTR, also the mx3_camera driver claims to
-> > >support it.
-> > 
-> > I based on soc-camera.txt document.
+> >  	dprintk(2, "%s\n",__func__);
+> >  
+> > -	rc_unregister_device(ir->rc);
+> > -
+> >  	if (!ir->polling)
+> >  		__tm6000_ir_int_stop(ir->rc);
+> >  
+> > @@ -492,6 +490,7 @@ int tm6000_ir_fini(struct tm6000_core *dev)
+> >  	tm6000_flash_led(dev, 0);
+> >  	ir->pwled = 0;
+> >  
+> > +	rc_unregister_device(ir->rc);
+> >  
+> >  	kfree(ir);
+> >  	dev->ir = NULL;
+> > -- 
+> > 1.7.8.4
 > 
-> > Yeah, I really have to update it...
+> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
 > 
-> > The soc-camera subsystem provides a unified API between camera host drivers and
-> > camera sensor drivers. It implements a V4L2 interface to the user, currently
-> > only the mmap method is supported.
-> > 
-> > In any case, I glad that this supported :-) 
-> > 
-> > What do you think it is possible to implement video streaming without 
-> > the intervention of the processor?
-> 
-> >It might be difficult to completely eliminate the CPU, at the very least 
-> >you need to queue and dequeue buffers to and from the V4L driver. To avoid 
-> >even that, in principle, you could try to use only one buffer, but I don't 
-> >think the current version of the mx3_camera driver would be very happy 
-> >about that. You could take 2 buffers and use panning, then you'd just have 
-> >to send queue and dequeue buffers and pan the display. But in any case, 
-> >you probably will have to process buffers, but your most important 
-> >advantage is, that you won't have to copy data, you only have to move 
-> >pointers around.
-> 
-> The method that you describe is exactly what I had in mind.
-> It would be more correct to say it is "minimum" CPU intervention and not without CPU intervention. 
+Thanks :-)
 
-> As far I understand, I can implement MMAP method for frame buffer device 
-> and pass this pointer directly to mx3_camera driver with use USERPTR 
-> method, then send queue and dequeue buffers to mx3_camera driver.
-> What is not clear, if it is possible to pass the same pointer of frame 
-> buffer in mx3_camera, if the driver is using two buffers?
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
 
-<Sorry, I really don't know for sure. It should work, but I don't think I 
-<tested thid myself nor I remember anybody reporting having tested this 
-<mode. So, you can either try to search mailing list archives, or just test 
-<it. Begin with a simpler mode - USERPTR with separately allocated buffers 
-<and copying them manually to the framebuffer, then try to switch to just 
-<one buffer in this same mode, then switch to direct framebuffer memory.
-
-Thanks Gennady this a good road map, in the near future I will be testing it and will get back to you.
-
-Regards,
-Alex Gershgorin
-
-
-
-
- 
- 
