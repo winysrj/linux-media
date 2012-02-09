@@ -1,54 +1,213 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.160]:28274 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757309Ab2BNVs2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:48:28 -0500
-From: linuxtv@stefanringel.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 19/22] mt2063: remove old get_if_frequency
-Date: Tue, 14 Feb 2012 22:47:43 +0100
-Message-Id: <1329256066-8844-19-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
-References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:48579 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753924Ab2BIWqR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Feb 2012 17:46:17 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: alsa-devel@alsa-project.org
+Subject: Re: [alsa-devel] tea575x-tuner improvements & use in maxiradio
+Date: Thu, 9 Feb 2012 23:45:46 +0100
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1328447827-9842-1-git-send-email-hverkuil@xs4all.nl> <201202072320.30911.linux@rainbow-software.org> <201202080829.25201.hverkuil@xs4all.nl>
+In-Reply-To: <201202080829.25201.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201202092345.50342.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+On Wednesday 08 February 2012 08:29:25 Hans Verkuil wrote:
+> On Tuesday, February 07, 2012 23:20:19 Ondrej Zary wrote:
+> > On Sunday 05 February 2012 14:17:05 Hans Verkuil wrote:
+> > > These patches improve the tea575x-tuner module to make it up to date
+> > > with the latest V4L2 frameworks.
+> > >
+> > > The maxiradio driver has also been converted to use the tea575x-tuner
+> > > and I've used that card to test it.
+> > >
+> > > Unfortunately, this card can't read the data pin, so the new hardware
+> > > seek functionality has been tested only partially (yes, it seeks, but
+> > > when it finds a channel I can't read back the frequency).
+> > >
+> > > Ondrej, are you able to test these patches for the sound cards that use
+> > > this tea575x tuner?
+> > >
+> > > Note that these two patches rely on other work that I did and that
+> > > hasn't been merged yet. So it is best to pull from my git tree:
+> > >
+> > > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/radi
+> > >o-pc i2
+> > >
+> > > You can use the v4l-utils repository
+> > > (http://git.linuxtv.org/v4l-utils.git) to test the drivers: the
+> > > v4l2-compliance test should succeed and with v4l2-ctl you can test the
+> > > hardware seek:
+> > >
+> > > To seek down:
+> > >
+> > > v4l2-ctl -d /dev/radio0 --freq-seek=dir=0
+> > >
+> > > To seek up:
+> > >
+> > > v4l2-ctl -d /dev/radio0 --freq-seek=dir=1
+> > >
+> > > To do the compliance test:
+> > >
+> > > v4l2-compliance -r /dev/radio0
+> >
+> > It seems to work (tested with SF64-PCR - snd_fm801) but the seek is
+> > severely broken. Reading the frequency immediately after seek does not
+> > work, it always returns the old value (haven't found a delay that works).
+> > Reading it later (copied back snd_tea575x_get_freq function) works. The
+> > chip seeks randomly up or down, ignoring UP/DOWN flag and often stops at
+> > wrong place (only noise) or even outside the FM range.
+> >
+> > So I strongly suggest not to enable this (mis-)feature. The HW seems to
+> > be completely broken (unless there's some weird bug in the code).
+>
+> Well, it seemed like a good idea at the time :-) I'll remove this
+> 'feature', it's really not worth our time to try and make this work for
+> these old cards.
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
----
- drivers/media/common/tuners/mt2063.c |   14 --------------
- 1 files changed, 0 insertions(+), 14 deletions(-)
+I fixed it somehow. Now it works most of the time.
+The important things:
+ - a delay must be present after search start and before first register read
+   or the seek does weird things
+ - when the search stops, the new frequency is not available immediately, we
+   must wait until it appears in the register (fortunately, we can clear the
+   frequency bits when starting the search as it starts at the frequency
+   currently set, not from the value written)
+ - sometimes, seek remains on the current frequency (or moves only a little),
+   so repeat it until it moves by at least 50 kHz
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 8d8e638..fb0a38b 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -643,22 +643,8 @@ static int mt2063_set_params(struct dvb_frontend *fe)
- 	return 0;
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -89,7 +89,7 @@ static void snd_tea575x_write(struct snd_tea575x *tea, unsigned int val)
+ 		tea->ops->set_pins(tea, 0);
  }
  
--static int mt2063_get_if_frequency(struct dvb_frontend *fe, u32 *freq)
--{
--	struct mt2063_state *state = fe->tuner_priv;
--
--	dprintk(2, "\n");
--
--	if (!state->init)
- 		return -ENODEV;
+-static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
++static u32 snd_tea575x_read(struct snd_tea575x *tea)
+ {
+ 	u16 l, rdata;
+ 	u32 data = 0;
+@@ -120,6 +120,27 @@ static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
+ 	return data;
+ }
  
--	*freq = state->AS_Data.f_out;
++static void snd_tea575x_get_freq(struct snd_tea575x *tea)
++{
++	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
++
++	if (freq == 0) {
++		tea->freq = 0;
++		return;
++	}
++
++	/* freq *= 12.5 */
++	freq *= 125;
++	freq /= 10;
++	/* crystal fixup */
++	if (tea->tea5759)
++		freq += TEA575X_FMIF;
++	else
++		freq -= TEA575X_FMIF;
++
++	tea->freq = clamp(freq * 16, FREQ_LO, FREQ_HI); /* from kHz */
++}
++
+ static void snd_tea575x_set_freq(struct snd_tea575x *tea)
+ {
+ 	u32 freq = tea->freq;
+@@ -203,6 +224,8 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 	if (f->tuner != 0)
+ 		return -EINVAL;
+ 	f->type = V4L2_TUNER_RADIO;
++	if (!tea->cannot_read_data)
++		snd_tea575x_get_freq(tea);
+ 	f->frequency = tea->freq;
+ 	return 0;
+ }
+@@ -225,36 +248,50 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
+ 					struct v4l2_hw_freq_seek *a)
+ {
+ 	struct snd_tea575x *tea = video_drvdata(file);
++	int i, old_freq;
++	unsigned long timeout;
+ 
+ 	if (tea->cannot_read_data)
+ 		return -ENOTTY;
++
++	snd_tea575x_get_freq(tea);
++	old_freq = tea->freq;
++	/* clear the frequency, HW will fill it in */
++	tea->val &= ~TEA575X_BIT_FREQ_MASK;
+ 	tea->val |= TEA575X_BIT_SEARCH;
+-	tea->val &= ~TEA575X_BIT_UPDOWN;
+ 	if (a->seek_upward)
+ 		tea->val |= TEA575X_BIT_UPDOWN;
++	else
++		tea->val &= ~TEA575X_BIT_UPDOWN;
+ 	snd_tea575x_write(tea, tea->val);
++	timeout = jiffies + msecs_to_jiffies(10000);
+ 	for (;;) {
+-		unsigned val = snd_tea575x_read(tea);
 -
--	dprintk(1, "IF frequency: %d\n", *freq);
--
+-		if (!(val & TEA575X_BIT_SEARCH)) {
+-			/* Found a frequency */
+-			val &= TEA575X_BIT_FREQ_MASK;
+-			val = (val * 10) / 125;
+-			if (tea->tea5759)
+-				val += TEA575X_FMIF;
+-			else
+-				val -= TEA575X_FMIF;
+-			tea->freq = clamp(val * 16, FREQ_LO, FREQ_HI);
+-			return 0;
+-		}
++		if (time_after(jiffies, timeout))
++			break;
+ 		if (schedule_timeout_interruptible(msecs_to_jiffies(10))) {
+ 			/* some signal arrived, stop search */
+ 			tea->val &= ~TEA575X_BIT_SEARCH;
+ 			snd_tea575x_write(tea, tea->val);
+ 			return -ERESTARTSYS;
+ 		}
++		if (!(snd_tea575x_read(tea) & TEA575X_BIT_SEARCH)) {
++			/* Found a frequency, wait until it can be read */
++			for (i = 0; i < 100; i++) {
++				msleep(10);
++				snd_tea575x_get_freq(tea);
++				if (tea->freq != 0) /* available */
++					break;
++			}
++			/* if we moved by less than 50 kHz, continue seeking */
++			if (abs(old_freq - tea->freq) < 16 * 500) {
++				snd_tea575x_write(tea, tea->val);
++				continue;
++			}
++			tea->val &= ~TEA575X_BIT_SEARCH;
++			return 0;
++		}
+ 	}
 -	return 0;
--}
--
- 		return -ENODEV;
++	return -ETIMEDOUT;
+ }
  
+ static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -318,7 +355,7 @@ int snd_tea575x_init(struct snd_tea575x *tea)
+ 			return -ENODEV;
+ 	}
  
--- 
-1.7.7.6
+-	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
++	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_5_28;
+ 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
+ 	snd_tea575x_set_freq(tea);
+ 
 
+
+
+-- 
+Ondrej Zary
