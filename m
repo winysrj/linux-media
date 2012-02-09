@@ -1,54 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail81.extendcp.co.uk ([79.170.40.81]:46576 "EHLO
-	mail81.extendcp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754969Ab2BESwc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2012 13:52:32 -0500
-Received: from 188-222-111-86.zone13.bethere.co.uk ([188.222.111.86] helo=tiber)
-	by mail81.extendcp.com with esmtpsa (TLSv1:AES256-SHA:256)
-	(Exim 4.77)
-	id 1Ru7CQ-0004lh-ND
-	for linux-media@vger.kernel.org; Sun, 05 Feb 2012 18:52:30 +0000
-Received: from [127.0.0.1] (helo=tiber)
-	by tiber with esmtp (Exim 4.77)
-	(envelope-from <h@realh.co.uk>)
-	id 1Ru7CT-00053J-MW
-	for linux-media@vger.kernel.org; Sun, 05 Feb 2012 18:52:33 +0000
-Date: Sun, 5 Feb 2012 18:52:33 +0000
-From: Tony Houghton <h@realh.co.uk>
-To: linux-media@vger.kernel.org
-Subject: Re: TBS 6920 remote
-Message-ID: <20120205185233.3ca5024a@tiber>
-In-Reply-To: <CAH4Ag-BZ+Csasy=yk5sNt7_Q5maFuxga2PqeXtJrRYvVLa8zzA@mail.gmail.com>
-References: <20120203171250.52278c25@junior>
-	<CAH4Ag-BZ+Csasy=yk5sNt7_Q5maFuxga2PqeXtJrRYvVLa8zzA@mail.gmail.com>
-Reply-To: linux-media@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37364 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752828Ab2BIPL0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2012 10:11:26 -0500
+Received: by wics10 with SMTP id s10so1297843wic.19
+        for <linux-media@vger.kernel.org>; Thu, 09 Feb 2012 07:11:25 -0800 (PST)
+From: Patrick Boettcher <pboettcher@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: SDR FM demodulation
+Date: Thu, 9 Feb 2012 16:11:21 +0100
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <4F33DFB8.4080702@iki.fi>
+In-Reply-To: <4F33DFB8.4080702@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201202091611.21095.pboettcher@kernellabs.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 3 Feb 2012 17:28:59 +0000
-Simon Jones <sijones2010@gmail.com> wrote:
-
-> On 3 February 2012 17:12, Tony Houghton <h@realh.co.uk> wrote:
-> > I've got a TBS 6920 PCI-E DVB-S2 card, which explicitly claims Linux
-> > compatibility on the box. It works as a satellite receiver, but I get no
-> > response from the remote control (trying to read /dev/input/event5). I
-> > think this is its entry in /proc/bus/input/devices:
+On Thursday 09 February 2012 16:01:12 Antti Palosaari wrote:
+> I have taken radio sniffs from FM capable Realtek DVB-T device. Looks
+> like demodulator ADC samples IF frequency and pass all the sampled
+> data to the application. Application is then responsible for
+> decoding that. Device supports DVB-T, FM and DAB. I can guess  both
+> FM and DAB are demodulated by software.
 > 
-> TBS have there own media tree for their cards, they do not submit the
-> drivers upstream for inclusion in the kernel, if you go to the
-> manufacturer site you'll get support from their forums. But it has
-> been very well known they have issues with remote support.
+> Here is 17 second, 83 MB, FM radio sniff:
+> http://palosaari.fi/linux/v4l-dvb/rtl2832u_fm/
+> Decode it and listen some Finnish speak ;)
+> 
+> Could someone help to decode it? I tried GNU Radio, but I failed
+> likely because I didn't have enough knowledge... GNU Radio and
+> Octave or Matlab are way to go.
 
-Thanks. It seems that there was a bug in their driver which prevented
-some keys from working, but AFIACT it's fixed now. The code is GPL so is
-it just lack of interest/demand that's stopped it from going into the
-main kernel?
+For someone to decode it, you would need to give more information about 
+the format of the stream. Like the sampling frequency, the sample-format 
+and then the IF-frequency.
 
-I think I'll pass on having to maintain a 3rd party driver whenever the
-Debian kernel upgrades. The remote is missing some quite important keys
-like Play, so they seem to have only considered it for live viewing, not
-for PVRs. I'll probably end up buying a separate USB remote or
-continuing to use a portable keyboard.
+I never did something like myself, but from what I saw in gnuradio there 
+should be everything to make a FM-demod based on the data.
+
+regards,
+--
+Patrick Boettcher
+
+Kernel Labs Inc.
+http://www.kernellabs.com/
