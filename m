@@ -1,86 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:50010 "EHLO mgw-sa01.nokia.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:58443 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752359Ab2BDLn7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Feb 2012 06:43:59 -0500
-Message-ID: <4F2D19E2.7060309@iki.fi>
-Date: Sat, 04 Feb 2012 13:43:30 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	id S1751215Ab2BIPVn (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 Feb 2012 10:21:43 -0500
+Message-ID: <4F33E485.10704@iki.fi>
+Date: Thu, 09 Feb 2012 17:21:41 +0200
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: "Clark, Rob" <rob@ti.com>
-CC: Daniel Vetter <daniel@ffwll.ch>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, patches@linaro.org
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com> <201201201729.00230.laurent.pinchart@ideasonboard.com> <000601ccd9ae$5bd5fff0$1381ffd0$%szyprowski@samsung.com> <201201231048.47433.laurent.pinchart@ideasonboard.com> <CAKMK7uGSWQSq=tdoSp54ksXuwUD6z=FusSJf7=uzSp5Jm6t6sA@mail.gmail.com> <20120125232816.GA15297@valkosipuli.localdomain> <20120126112726.GC3896@phenom.ffwll.local> <4F25278B.3090903@iki.fi> <20120129130340.GA4312@phenom.ffwll.local> <20120130220139.GB16140@valkosipuli.localdomain> <CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
-In-Reply-To: <CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Patrick Boettcher <pboettcher@kernellabs.com>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: SDR FM demodulation
+References: <4F33DFB8.4080702@iki.fi> <201202091611.21095.pboettcher@kernellabs.com>
+In-Reply-To: <201202091611.21095.pboettcher@kernellabs.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Rob,
-
-Clark, Rob wrote:
-> On Mon, Jan 30, 2012 at 4:01 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+On 09.02.2012 17:11, Patrick Boettcher wrote:
+> On Thursday 09 February 2012 16:01:12 Antti Palosaari wrote:
+>> I have taken radio sniffs from FM capable Realtek DVB-T device. Looks
+>> like demodulator ADC samples IF frequency and pass all the sampled
+>> data to the application. Application is then responsible for
+>> decoding that. Device supports DVB-T, FM and DAB. I can guess  both
+>> FM and DAB are demodulated by software.
 >>
->>> So to summarize I understand your constraints - gpu drivers have worked
->>> like v4l a few years ago. The thing I'm trying to achieve with this
->>> constant yelling is just to raise awereness for these issues so that
->>> people aren't suprised when drm starts pulling tricks on dma_bufs.
+>> Here is 17 second, 83 MB, FM radio sniff:
+>> http://palosaari.fi/linux/v4l-dvb/rtl2832u_fm/
+>> Decode it and listen some Finnish speak ;)
 >>
->> I think we should be able to mark dma_bufs non-relocatable so also DRM can
->> work with these buffers. Or alternatively, as Laurent proposed, V4L2 be
->> prepared for moving the buffers around. Are there other reasons to do so
->> than paging them out of system memory to make room for something else?
-> 
-> fwiw, from GPU perspective, the DRM device wouldn't be actively
-> relocating buffers just for the fun of it.  I think it is more that we
-> want to give the GPU driver the flexibility to relocate when it really
-> needs to.  For example, maybe user has camera app running, then puts
-> it in the background and opens firefox which tries to allocate a big
-> set of pixmaps putting pressure on GPU memory..
-> 
-> I guess the root issue is who is doing the IOMMU programming for the
-> camera driver.  I guess if this is something built in to the camera
-> driver then when it calls dma_buf_map() it probably wants some hint
-> that the backing pages haven't moved so in the common case (ie. buffer
-> hasn't moved) it doesn't have to do anything expensive.
-> 
-> On omap4 v4l2+drm example I have running, it is actually the DRM
-> driver doing the "IOMMU" programming.. so v4l2 camera really doesn't
-> need to care about it.  (And the IOMMU programming here is pretty
+>> Could someone help to decode it? I tried GNU Radio, but I failed
+>> likely because I didn't have enough knowledge... GNU Radio and
+>> Octave or Matlab are way to go.
+>
+> For someone to decode it, you would need to give more information about
+> the format of the stream. Like the sampling frequency, the sample-format
+> and then the IF-frequency.
 
-This part sounds odd to me. Well, I guess it _could_ be done that way,
-but the ISP IOMMU could be as well different as the one in DRM. That's
-the case on OMAP 3, for example.
+You can see sampling format easily looking hexdump or open file in 
+Audacity. It is 8bit unsigned samples, 2 channels (I & Q).
 
-> fast.)  But I suppose this maybe doesn't represent all cases.  I
-> suppose if a camera didn't really sit behind an IOMMU but uses
-> something more like a DMA descriptor list would want to know if it
-> needed to regenerate it's descriptor list.  Or likewise if camera has
-> an IOMMU that isn't really using the IOMMU framework (although maybe
-> that is easier to solve).  But I think a hint returned from
-> dma_buf_map() would do the job?
+No knowledge about IF... For good guess is to try some general used IFs.
 
-An alternative to IOMMU I think in practice would mean CMA-allocated
-buffers.
+Sampling freq can be calculated using sample info and the fact it is 
+about 17 sec. sample size = 86919168 Bytes, time 17 sec. 2 channels, 1 
+byte sample => 2556446,11765 sample/sec (~2.5 MHz!)
 
-I need to think about this a bit and understand how this would really
-work to properly comment this.
+> I never did something like myself, but from what I saw in gnuradio there
+> should be everything to make a FM-demod based on the data.
 
-For example, how does one mlock() something that isn't mapped to process
-memory --- think of a dma buffer not mapped to the user space process
-address space?
+Yes there was a lot of block and those were rather easy to connect using 
+graphical interface (gnuradio-companion). But I don't know exactly what 
+block are needed and what are parameters. I used file-sink => 
+fm-modulator => audio-sink. Likely not enough :i
 
-Cheers,
+Without any earlier experience it is rather challenging. But if there is 
+someone who have done that earlier using USRP SDR he could likely do it 
+easier :)
 
+regards
+Antti
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+http://palosaari.fi/
