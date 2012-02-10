@@ -1,56 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:39455 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751176Ab2BBWf0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 17:35:26 -0500
-Received: by werb13 with SMTP id b13so2250049wer.19
-        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 14:35:25 -0800 (PST)
-Message-ID: <1328222117.3572.27.camel@tvbox>
-Subject: Re: DVB TS/PES filters
-From: Malcolm Priestley <tvboxspy@gmail.com>
-Reply-To: linux-media@vger.kernel.org
-To: linux-media@vger.kernel.org
-Date: Thu, 02 Feb 2012 22:35:17 +0000
-In-Reply-To: <20120202190420.45629a9b@tiber>
-References: <20120126154015.01eb2c18@tiber> <20120201133234.0b6222bc@junior>
-	 <4F29791C.6060201@flensrocker.de> <20120202190420.45629a9b@tiber>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:12028 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759604Ab2BJRcv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 12:32:51 -0500
+Date: Fri, 10 Feb 2012 18:32:21 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv21 06/16] mm: page_alloc: introduce alloc_contig_range()
+In-reply-to: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1328895151-5196-7-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2012-02-02 at 19:04 +0000, Tony Houghton wrote:
-> On Wed, 01 Feb 2012 18:40:44 +0100
-> Lars Hanisch <dvb@flensrocker.de> wrote:
-> 
-> > Am 01.02.2012 14:32, schrieb Tony Houghton:
-> > > On Thu, 26 Jan 2012 15:40:15 +0000 Tony Houghton<h@realh.co.uk>
-> > > wrote:
-> > >
-> > >> I could do with a little more information about DMX_SET_PES_FILTER.
-> > >> Specifically I want to use an output type of DMX_OUT_TS_TAP. I
-> > >> believe there's a limit on how many filters can be set, but I don't
-> > >> know whether the kernel imposes such a limit or whether it depends
-> > >> on the hardware, If the latter, how can I read the limit?
-> > >
-> > > Can anyone help me get more information about this (and the "magic
-> > > number" pid of 8192 for the whole stream)?
-> > 
-> >   In the TS-header there are 13 bits for the PID, so it can be from 0
-> >   to 8191.  Therefore dvb-core interprets 8192 (and greater values I
-> >   think) as "all PIDs".
-> 
-> Thanks for that. But it would be really helpful if I could find out
-> whether there really is a limit to the number of filters and whether
-> it's hardware dependent or the kernel.
+From: Michal Nazarewicz <mina86@mina86.com>
 
-The hardware usually only filters the TS packets unprocessed.
+This commit adds the alloc_contig_range() function which tries
+to allocate given range of pages.  It tries to migrate all
+already allocated pages that fall in the range thus freeing them.
+Once all pages in the range are freed they are removed from the
+buddy system thus allocated for the caller to use.
 
-Hardware TS filtering is typically 16, 32 or 64. Nearly all can be
-turned off(unfiltered).
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+---
+ include/linux/gfp.h |    8 ++
+ mm/page_alloc.c     |  185 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 193 insertions(+), 0 deletions(-)
 
-dvb-usb devices the unfiltered limit is 255.
-
-The most TS streams usually contain 20 to 40 or so.
+diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+index 581e74b..052a5b6 100644
+--- a/include/linux/gfp.h
++++ b/include/linux/gfp.h
+@@ -391,4 +391,12 @@ static inline bool pm_suspended_storage(void)
+ }
+ #endif /* CONFIG_PM_SLEEP */
+ 
++#ifdef CONFIG_CMA
++
++/* The below functions must be run on a range from a single zone. */
++extern int alloc_contig_range(unsigned long start, unsigned long end);
++extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
++
++#endif
++
+ #endif /* __LINUX_GFP_H */
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 7fe7697..f820bfa 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -57,6 +57,7 @@
+ #include <linux/ftrace_event.h>
+ #include <linux/memcontrol.h>
+ #include <linux/prefetch.h>
++#include <linux/migrate.h>
+ #include <linux/page-debug-flags.h>
+ 
+ #include <asm/tlbflush.h>
+@@ -5505,6 +5506,190 @@ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+ 
++#ifdef CONFIG_CMA
++
++static unsigned long pfn_align_to_maxpage_down(unsigned long pfn)
++{
++	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
++}
++
++static unsigned long pfn_align_to_maxpage_up(unsigned long pfn)
++{
++	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
++}
++
++static struct page *
++__alloc_contig_migrate_alloc(struct page *page, unsigned long private,
++			     int **resultp)
++{
++	return alloc_page(GFP_HIGHUSER_MOVABLE);
++}
++
++/* [start, end) must belong to a single zone. */
++static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
++{
++	/* This function is based on compact_zone() from compaction.c. */
++
++	unsigned long pfn = start;
++	unsigned int tries = 0;
++	int ret = 0;
++
++	struct compact_control cc = {
++		.nr_migratepages = 0,
++		.order = -1,
++		.zone = page_zone(pfn_to_page(start)),
++		.sync = true,
++	};
++	INIT_LIST_HEAD(&cc.migratepages);
++
++	migrate_prep_local();
++
++	while (pfn < end || !list_empty(&cc.migratepages)) {
++		if (fatal_signal_pending(current)) {
++			ret = -EINTR;
++			break;
++		}
++
++		if (list_empty(&cc.migratepages)) {
++			cc.nr_migratepages = 0;
++			pfn = isolate_migratepages_range(cc.zone, &cc,
++							 pfn, end);
++			if (!pfn) {
++				ret = -EINTR;
++				break;
++			}
++			tries = 0;
++		} else if (++tries == 5) {
++			ret = ret < 0 ? ret : -EBUSY;
++			break;
++		}
++
++		ret = migrate_pages(&cc.migratepages,
++				    __alloc_contig_migrate_alloc,
++				    0, false, true);
++	}
++
++	putback_lru_pages(&cc.migratepages);
++	return ret > 0 ? 0 : ret;
++}
++
++/**
++ * alloc_contig_range() -- tries to allocate given range of pages
++ * @start:	start PFN to allocate
++ * @end:	one-past-the-last PFN to allocate
++ *
++ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
++ * aligned, however it's the caller's responsibility to guarantee that
++ * we are the only thread that changes migrate type of pageblocks the
++ * pages fall in.
++ *
++ * The PFN range must belong to a single zone.
++ *
++ * Returns zero on success or negative error code.  On success all
++ * pages which PFN is in [start, end) are allocated for the caller and
++ * need to be freed with free_contig_range().
++ */
++int alloc_contig_range(unsigned long start, unsigned long end)
++{
++	struct zone *zone = page_zone(pfn_to_page(start));
++	unsigned long outer_start, outer_end;
++	int ret = 0, order;
++
++	/*
++	 * What we do here is we mark all pageblocks in range as
++	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
++	 * align the range to MAX_ORDER pages so that page allocator
++	 * won't try to merge buddies from different pageblocks and
++	 * change MIGRATE_ISOLATE to some other migration type.
++	 *
++	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
++	 * migrate the pages from an unaligned range (ie. pages that
++	 * we are interested in).  This will put all the pages in
++	 * range back to page allocator as MIGRATE_ISOLATE.
++	 *
++	 * When this is done, we take the pages in range from page
++	 * allocator removing them from the buddy system.  This way
++	 * page allocator will never consider using them.
++	 *
++	 * This lets us mark the pageblocks back as
++	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
++	 * MAX_ORDER aligned range but not in the unaligned, original
++	 * range are put back to page allocator so that buddy can use
++	 * them.
++	 */
++
++	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
++				       pfn_align_to_maxpage_up(end));
++	if (ret)
++		goto done;
++
++	ret = __alloc_contig_migrate_range(start, end);
++	if (ret)
++		goto done;
++
++	/*
++	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
++	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
++	 * more, all pages in [start, end) are free in page allocator.
++	 * What we are going to do is to allocate all pages from
++	 * [start, end) (that is remove them from page allocator).
++	 *
++	 * The only problem is that pages at the beginning and at the
++	 * end of interesting range may be not aligned with pages that
++	 * page allocator holds, ie. they can be part of higher order
++	 * pages.  Because of this, we reserve the bigger range and
++	 * once this is done free the pages we are not interested in.
++	 *
++	 * We don't have to hold zone->lock here because the pages are
++	 * isolated thus they won't get removed from buddy.
++	 */
++
++	lru_add_drain_all();
++	drain_all_pages();
++
++	order = 0;
++	outer_start = start;
++	while (!PageBuddy(pfn_to_page(outer_start))) {
++		if (++order >= MAX_ORDER) {
++			ret = -EBUSY;
++			goto done;
++		}
++		outer_start &= ~0UL << order;
++	}
++
++	/* Make sure the range is really isolated. */
++	if (test_pages_isolated(outer_start, end)) {
++		pr_warn("alloc_contig_range test_pages_isolated(%lx, %lx) failed\n",
++		       outer_start, end);
++		ret = -EBUSY;
++		goto done;
++	}
++
++	outer_end = isolate_freepages_range(outer_start, end);
++	if (!outer_end) {
++		ret = -EBUSY;
++		goto done;
++	}
++
++	/* Free head and tail (if any) */
++	if (start != outer_start)
++		free_contig_range(outer_start, start - outer_start);
++	if (end != outer_end)
++		free_contig_range(end, outer_end - end);
++
++done:
++	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
++				pfn_align_to_maxpage_up(end));
++	return ret;
++}
++
++void free_contig_range(unsigned long pfn, unsigned nr_pages)
++{
++	for (; nr_pages--; ++pfn)
++		__free_page(pfn_to_page(pfn));
++}
++#endif
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+  * All pages in the range must be isolated before calling this.
+-- 
+1.7.1.569.g6f426
 
