@@ -1,56 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpi3.ngi.it ([88.149.128.33]:36760 "EHLO smtpi3.ngi.it"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755406Ab2BCK2P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Feb 2012 05:28:15 -0500
-Received: from [127.0.0.1] (unknown [81.174.56.138])
-	by smtpi3.ngi.it (Postfix) with ESMTP id 151AA318CEE
-	for <linux-media@vger.kernel.org>; Fri,  3 Feb 2012 11:20:58 +0100 (CET)
-Message-ID: <4F2BB50A.8080104@robertoragusa.it>
-Date: Fri, 03 Feb 2012 11:20:58 +0100
-From: Roberto Ragusa <mail@robertoragusa.it>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: DVB TS/PES filters
-References: <20120126154015.01eb2c18@tiber>
-In-Reply-To: <20120126154015.01eb2c18@tiber>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:12028 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751021Ab2BJRct (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 12:32:49 -0500
+Date: Fri, 10 Feb 2012 18:32:25 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv21 10/16] mm: Serialize access to min_free_kbytes
+In-reply-to: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1328895151-5196-11-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 01/26/2012 04:40 PM, Tony Houghton wrote:
-> I could do with a little more information about DMX_SET_PES_FILTER.
-> Specifically I want to use an output type of DMX_OUT_TS_TAP. I believe
-> there's a limit on how many filters can be set, but I don't know whether
-> the kernel imposes such a limit or whether it depends on the hardware,
-> If the latter, how can I read the limit?
-> 
-> I looked at the code for GStreamer's dvbsrc and that defines a limit of
-> 32 filters. It also implies that using the "magic number" 8192 as the
-> pid requests the entire stream.
-> 
-> I can't find information about these things in the API docs. Is there
-> somewhere I can get more details.
-> 
-> If I ended up wanting enough pids to exceed the limit would it work to
-> allow LIMIT - 1 individual pid filters to be set, then after that set
-> one for 8192 instead and clear all the others?
+From: Mel Gorman <mgorman@suse.de>
 
-It has been a long time since I touched this, anyway...
+There is a race between the min_free_kbytes sysctl, memory hotplug
+and transparent hugepage support enablement.  Memory hotplug uses a
+zonelists_mutex to avoid a race when building zonelists. Reuse it to
+serialise watermark updates.
 
-Yes 8192 is "all PIDs"; this has to be supported by the hardware, which
-usually does. All the packets go to the userspace process.
+[a.p.zijlstra@chello.nl: Older patch fixed the race with spinlock]
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+---
+ mm/page_alloc.c |   23 +++++++++++++++--------
+ 1 files changed, 15 insertions(+), 8 deletions(-)
 
-If you ask filters, the kernel uses the HW filters if available/enough,
-otherwise it switches to software filtering at the kernel level. Your application
-sees only the packets it asked, but the kernel may be getting everything
-and filtering itself; this can have some performance implication on slow
-(USB) buses.
-
-I suggest you to experiment a little to discover if I said something wrong
-and if your hardware (driver) behaves as I said.
-
-
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 7d9f36e..06c66b5 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -4976,14 +4976,7 @@ static void setup_per_zone_lowmem_reserve(void)
+ 	calculate_totalreserve_pages();
+ }
+ 
+-/**
+- * setup_per_zone_wmarks - called when min_free_kbytes changes
+- * or when memory is hot-{added|removed}
+- *
+- * Ensures that the watermark[min,low,high] values for each zone are set
+- * correctly with respect to min_free_kbytes.
+- */
+-void setup_per_zone_wmarks(void)
++static void __setup_per_zone_wmarks(void)
+ {
+ 	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
+ 	unsigned long lowmem_pages = 0;
+@@ -5038,6 +5031,20 @@ void setup_per_zone_wmarks(void)
+ 	calculate_totalreserve_pages();
+ }
+ 
++/**
++ * setup_per_zone_wmarks - called when min_free_kbytes changes
++ * or when memory is hot-{added|removed}
++ *
++ * Ensures that the watermark[min,low,high] values for each zone are set
++ * correctly with respect to min_free_kbytes.
++ */
++void setup_per_zone_wmarks(void)
++{
++	mutex_lock(&zonelists_mutex);
++	__setup_per_zone_wmarks();
++	mutex_unlock(&zonelists_mutex);
++}
++
+ /*
+  * The inactive anon list should be small enough that the VM never has to
+  * do too much work, but large enough that each inactive page has a chance
 -- 
-   Roberto Ragusa    mail at robertoragusa.it
+1.7.1.569.g6f426
+
