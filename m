@@ -1,171 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:40975 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933656Ab2BBXwh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 18:52:37 -0500
-Date: Fri, 3 Feb 2012 01:52:31 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <dacohen@gmail.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
-	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com
-Subject: [PATCH v2 0/31] V4L2 subdev and sensor control changes, SMIA++
- driver and N9 camera board code
-Message-ID: <20120202235231.GC841@valkosipuli.localdomain>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:48388 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754262Ab2BJIBw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 03:01:52 -0500
+Received: by lagu2 with SMTP id u2so2149719lag.19
+        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2012 00:01:50 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1202092328450.18719@axis700.grange>
+References: <1328609682-18014-1-git-send-email-javier.martin@vista-silicon.com>
+	<CACKLOr0ioy2rxKY7PUBDCBPaQG0FUv0Drt-GNgBnNmFDt05T-w@mail.gmail.com>
+	<Pine.LNX.4.64.1202092328450.18719@axis700.grange>
+Date: Fri, 10 Feb 2012 09:01:50 +0100
+Message-ID: <CACKLOr0p_ggtftXu1G1VbG7g+ZBvD4H707NY4o8-tAz6kP5epw@mail.gmail.com>
+Subject: Re: [PATCH v4 3/4] media i.MX27 camera: improve discard buffer handling.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi everyone,
+Hi Guennadi,
 
-This the second version of my patchset that contains:
-
-- Integer menu controls [2],
-- Selection IOCTL for subdevs [3],
-- Sensor control changes [5,7],
-- link_validate() media entity and V4L2 subdev pad ops,
-- OMAP 3 ISP driver improvements [4],
-- SMIA++ sensor driver,
-- rm680/rm696 board code (a.k.a Nokia N9 and N950) and
-- Other V4L2 and media improvements (see individual patches)
-
-My proposal on the selection / property API is that the V4L2 subdev
-interface will have the selection API. The property API should be targeted
-to the media controller interface instead. The selection API will provide
-real, required features required by SMIA++ driver as well as many other
-driver such as the OMAP 3 ISP driver. The property API is not well
-understood nor discussed in the community and it will take likely at least
-half a year before it will be usable. Drivers implementing the property API
-would use generic wrapper functions to provide the selection API.
-
-Changes to version 1 [8] include:
-
-- OMAP 3 ISP driver
-  - Swapped order of csi receiver's lane definitions
-  - Rewrote omap 3 isp link validation patches almost completely
-    - Information on connected external entity collected to isp_pipeline
-    - Information collected during link checking and used at streamon
-
-- Media entity link validation
-  - Error handling fixes
-
-- SMIA++ driver
-  - Selection API bugfixes
-  - Report correct pixel order right from boot
-  - Move link rate control to subdev connected to subdev external to the
-    sensor (e.g. ISP's CSI-2 receiver)
-  - Introduce proper serialisation
-  - Deny changing some controls when streaming (flipping and link rate)
-  - Control handler setup moved from streamon time to first subdev open
-  - There is no source compose target
-  - Bugfixes
-
-- Media bus pixel codes
-  - Documentation fix for dpcm compressed formats
-  - Added patch for 4CC guidelines (raw bayer only for now)
-
-- Selections
-  - Improved selections documentation
-  - Added more selections examples
-  - Compose target is not available on source pads anymore [9]
-  - Dropped default targets
-
-- V4L2
-  - Add documentation on link_validate()
-  - link_validate() and relater functions  depends on CONFIG_MEDIA_CONTROLLER
-  - Skip link validation for links on which stream_count was non-zero
-  - Do not validate link if entity's stream count is non-zero
-  - Use v4l2_subdev_link_validate_default() if no link_validate pad op is set
-  - Allow changing control handler mutex: this enables a driver to provide
-    multiple subdevs but use only one mutex. Default mutex (part of struct
-    v4l2_ctrl_handler) is set in v4l2_ctrl_handler_init().
-  - Split image source class into two: image source and image processing
-
-Changes to the RFC v1 [6] include:
-
-- Integer controls:
-  - Target Linux 3.4 instead of 3.3
-  - Proper control type check in querymenu
-  - vivi compile fixes
-
-- Subdev selections
-  - Pad try fields combined to single struct
-  - Correctly set sel.which based on crop->which in crop fall-back
-
-- Subdev selection documentation
-  - Better explanation on image processing in subdevs
-  - Added a diagram to visualise subdev configuration
-  - Fixed DocBook syntax issues
-  - Mark VIDIOC_SUBDEV_S_CROP and VIDIOC_SUBDEV_G_CROP obsolete
-
-- Pixel rate
-  - Pixel rate is now a 64-bit control, not part of v4l2_mbus_framefmt
-  - Unit for pixel rate is pixels / second
-  - Pixel rate is read-only
-
-- Link frequency is now in Hz --- documented as such also
-
-- Link validation instead of pipeline validation
-  - Each link is validated by calling link_validate op
-    - Added link validation op to media_entity_ops
-  - Link validation op in pad ops makes this easy for subdev drivers
-  - media_entity_pipeline_start() may return an error code now
-    - This might affect other drivers, but will warn in compilation.
-      No adverse effects are caused if the driver does not use
-      link_validate().
-
-- OMAP 3 ISP
-  - Make lanecfg as part of the platform data structure, not pointer
-  - Document lane configuration structures
-  - Link validation moved to respective subdev drivers from ispvideo.c
-    - isp_validate_pipeline() removed
-
-- SMIA++ driver
-  - Update pixel order based on vflip and hflip
-  - Cleanups in the main driver, register definitions and PLL code
-  - Depend on V4L2_V4L2_SUBDEV_API and MEDIA_CONTROLLER
-  - Use pr_* macros instead of printk
-  - Improved error handling for i2c_transfer()
-  - Removed useless definitions
-  - Don't access try crop / compose directly but use helper functions
-  - Add xshutdown to platform data
-  - Move driver under smiapp directory
-
-- rm680 board code
-  - Use REGULATOR_SUPPLY() where possible
-  - Removed printk()'s
-  - Don't include private smiapp headers
+On 9 February 2012 23:36, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> Hi Javier
+>
+> On Thu, 9 Feb 2012, javier Martin wrote:
+>
+>> Hi Guennadi,
+>> I understand you are probably quite busy right now but it would be
+>> great if you could ack this patch. The sooner you merge it the sooner
+>> I will start working on the cleanup series. I've got some time on my
+>> hands now.
+>
+> Yes, I can take this version, at the same time, I have a couple of
+> comments, that you might find useful to address in a clean-up patch;-) Or
+> just leave them as they are...
 
 
-References:
+Of course,
+I'm the most interested person on this driver being as better as possible.
 
-[1] http://www.spinics.net/lists/linux-omap/msg61295.html
+> [anip]
+>
+>
+>> > @@ -1274,6 +1298,15 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+>> >        struct mx2_camera_dev *pcdev = data;
+>> >        unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
+>> >        struct mx2_buffer *buf;
+>> > +       unsigned long flags;
+>> > +
+>> > +       spin_lock_irqsave(&pcdev->lock, flags);
+>
+> It wasn't an accident, that I wrote "spin_lock()" - without the "_irqsave"
+> part. You are in an ISR here, and this is the only IRQ, that your driver
+> has to protect against, so, here, I think, you don't have to block other
+> IRQs.
 
-[2] http://www.spinics.net/lists/linux-media/msg40796.html
+Ok,
+>> > +
+>> > +       if (list_empty(&pcdev->active_bufs)) {
+>> > +               dev_warn(pcdev->dev, "%s: called while active list is empty\n",
+>> > +                       __func__);
+>> > +               goto irq_ok;
+>
+> This means, you return IRQ_HANDLED here without even checking whether any
+> of your status bits are actually set. So, if you get an interrupt here
+> with an empty list, it might indeed be the case of a shared IRQ, in which
+> case you'd have to return IRQ_NONE.
 
-[3] http://www.spinics.net/lists/linux-media/msg41503.html
+Got it.
 
-[4] http://www.spinics.net/lists/linux-media/msg41542.html
+>> > +       }
+>> >
+>> >        if (status & (1 << 7)) { /* overflow */
+>> >                u32 cntl;
+>
+> As I said - we can keep this version, but maybe you'll like to improve at
+> least the latter of the above two snippets.
 
-[5] http://www.spinics.net/lists/linux-media/msg40861.html
+I'd rather you merge this as it is, because it really fixes a driver
+which is currently buggy. I'll send a clean up series adressing the
+following issues next week:
+1. Eliminate the unwanted "goto".
+2. Use list_first_entry() macro.
+3. Use spin_lock() in ISR.
+4. Return IRQ_NONE if list is empty and no status bit is set.
+5. Integrate discard buffers in a more efficient way.
 
-[6] http://www.spinics.net/lists/linux-media/msg41765.html
-
-[7] http://www.spinics.net/lists/linux-media/msg42848.html
-
-[8] http://www.spinics.net/lists/linux-media/msg42991.html
-
-[9] http://www.spinics.net/lists/linux-media/msg43810.html
-
-Kind regards,
-
+Regards.
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
