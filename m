@@ -1,81 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:64560 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932586Ab2B2NoL convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:57288 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757927Ab2BJInE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Feb 2012 08:44:11 -0500
+	Fri, 10 Feb 2012 03:43:04 -0500
+Date: Fri, 10 Feb 2012 09:42:52 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Sylwester Nawrocki <snjw23@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+In-Reply-To: <12779203.vQPWKN8eZf@avalon>
+Message-ID: <Pine.LNX.4.64.1202100934070.5787@axis700.grange>
+References: <4F27CF29.5090905@samsung.com> <4116034.kVC1fDZsLk@avalon>
+ <4F32FBBB.7020007@gmail.com> <12779203.vQPWKN8eZf@avalon>
 MIME-Version: 1.0
-In-Reply-To: <op.wafz3gv53l0zgt@mpn-glaptop>
-References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
- <CAGsJ_4wgVcVjtAa6Qpki=8jSON7MfwJ8yumJ1YXE5p8L3PqUzw@mail.gmail.com>
- <op.wafuu3kr3l0zgt@mpn-glaptop> <CAGsJ_4yk+Ca4RDP=sYaXvEKuJzYNhyZWQ7jfKnpR+zCm=3Dq6Q@mail.gmail.com>
- <op.wafz3gv53l0zgt@mpn-glaptop>
-From: Barry Song <21cnbao@gmail.com>
-Date: Wed, 29 Feb 2012 21:43:49 +0800
-Message-ID: <CAGsJ_4zYttky4+FbzmmaPzQ4b3HwjnpwhX_vE7My9J=ytm20RA@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCHv23 00/16] Contiguous Memory Allocator
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, Ohad Ben-Cohen <ohad@wizery.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Russell King <linux@arm.linux.org.uk>,
-	Arnd Bergmann <arnd@arndb.de>,
-	Jonathan Corbet <corbet@lwn.net>, Mel Gorman <mel@csn.ul.ie>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/2/29 Michal Nazarewicz <mina86@mina86.com>:
-> On Wed, 29 Feb 2012 14:34:02 +0100, Barry Song <21cnbao@gmail.com> wrote:
->
->> 2012/2/29 Michal Nazarewicz <mina86@mina86.com>:
->>>
->>> On Wed, 29 Feb 2012 10:35:42 +0100, Barry Song <21cnbao@gmail.com> wrote:
->>>>
->>>> and i also write a simple kernel helper to test the CMA:
->
->
->>> Would it make sense to make a patch out of it putting it to tools/cma (or
->>> similar)?
->
->
->> i can send a patch for this. i am just thinking, should it be placed
->> in tools/ as a test utility or Documents/ as an example to explain CMA
->> to users who want to use cma.
->
->
-> I'd put it in tools/.
+...thinking about this interleaved data, is there anything else left, that 
+the following scheme would be failing to describe:
 
-ok. i will handle this.
+* The data is sent in repeated blocks (periods)
+* Each block can be fully described by a list of format specifiers, each 
+containing
+** data format code
+** number of alignment bytes
+** number of data bytes
 
->
->
->> i also think we should have a seperate document to explain cma in details
->> in documents/, and my helper program can be placed there.
->
->
-> I'm currently writing an article for LWN which I hope will also lead to
-> something
-> worth putting in Documentation/.
->
+Can there actually be anything more complicated than that?
 
-fine.
-
->
-> --
-> Best regards,                                         _     _
-> .o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-> ..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-> ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
-
--barry
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
