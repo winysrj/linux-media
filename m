@@ -1,110 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:57888 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751756Ab2BLL3s (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:31650 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754173Ab2BJKTp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Feb 2012 06:29:48 -0500
-Received: by wgbdt10 with SMTP id dt10so4046608wgb.1
-        for <linux-media@vger.kernel.org>; Sun, 12 Feb 2012 03:29:47 -0800 (PST)
-Message-ID: <1329046178.2773.9.camel@tvbox>
-Subject: [PATCH] it913x ver 1.26 change to remove interruptible mutex locks.
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Sun, 12 Feb 2012 11:29:38 +0000
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
+	Fri, 10 Feb 2012 05:19:45 -0500
+Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
+ by mailout2.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LZ6006C7A0VU3@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Feb 2012 10:19:43 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZ60000TA0VII@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Feb 2012 10:19:43 +0000 (GMT)
+Date: Fri, 10 Feb 2012 11:19:42 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [Q] Interleaved formats on the media bus
+In-reply-to: <Pine.LNX.4.64.1202100934070.5787@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Message-id: <4F34EF3E.2090004@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7BIT
+References: <4F27CF29.5090905@samsung.com> <4116034.kVC1fDZsLk@avalon>
+ <4F32FBBB.7020007@gmail.com> <12779203.vQPWKN8eZf@avalon>
+ <Pine.LNX.4.64.1202100934070.5787@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some virtual I2C commands are missed along some PID filtering
-commands resulting complete stall of driver.
+On 02/10/2012 09:42 AM, Guennadi Liakhovetski wrote:
+> ...thinking about this interleaved data, is there anything else left, that 
+> the following scheme would be failing to describe:
+> 
+> * The data is sent in repeated blocks (periods)
 
-Since dvb-usb cannot handle the -EAGAIN error and commands
-generally should not be missed mutex_lock is used instead.
+The data is sent in irregular chunks of varying size (few hundred of bytes
+for example).
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
----
- drivers/media/dvb/dvb-usb/it913x.c |   27 +++++++++++++--------------
- 1 files changed, 13 insertions(+), 14 deletions(-)
+> * Each block can be fully described by a list of format specifiers, each 
+> containing
+> ** data format code
+> ** number of alignment bytes
+> ** number of data bytes
 
-diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
-index 2560652..bfadf12 100644
---- a/drivers/media/dvb/dvb-usb/it913x.c
-+++ b/drivers/media/dvb/dvb-usb/it913x.c
-@@ -263,8 +263,8 @@ static int it913x_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 	int ret;
- 	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
- 
--	if (mutex_lock_interruptible(&adap->dev->i2c_mutex) < 0)
--			return -EAGAIN;
-+	mutex_lock(&adap->dev->i2c_mutex);
-+
- 	deb_info(1, "PID_C  (%02x)", onoff);
- 
- 	ret = it913x_wr_reg(udev, pro, PID_EN, onoff);
-@@ -280,8 +280,8 @@ static int it913x_pid_filter(struct dvb_usb_adapter *adap,
- 	int ret;
- 	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
- 
--	if (mutex_lock_interruptible(&adap->dev->i2c_mutex) < 0)
--			return -EAGAIN;
-+	mutex_lock(&adap->dev->i2c_mutex);
-+
- 	deb_info(1, "PID_F  (%02x)", onoff);
- 
- 	ret = it913x_wr_reg(udev, pro, PID_LSB, (u8)(pid & 0xff));
-@@ -316,8 +316,8 @@ static int it913x_i2c_xfer(struct i2c_adapter *adap, struct i2c_msg msg[],
- 	int ret;
- 	u32 reg;
- 	u8 pro;
--	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
--			return -EAGAIN;
-+
-+	mutex_lock(&d->i2c_mutex);
- 
- 	debug_data_snipet(1, "Message out", msg[0].buf);
- 	deb_info(2, "num of messages %d address %02x", num, msg[0].addr);
-@@ -358,8 +358,7 @@ static int it913x_rc_query(struct dvb_usb_device *d)
- 	int ret;
- 	u32 key;
- 	/* Avoid conflict with frontends*/
--	if (mutex_lock_interruptible(&d->i2c_mutex) < 0)
--			return -EAGAIN;
-+	mutex_lock(&d->i2c_mutex);
- 
- 	ret = it913x_io(d->udev, READ_LONG, PRO_LINK, CMD_IR_GET,
- 		0, 0, &ibuf[0], sizeof(ibuf));
-@@ -603,15 +602,15 @@ static int it913x_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 	int ret = 0;
- 	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
- 
--	if (mutex_lock_interruptible(&adap->dev->i2c_mutex) < 0)
--			return -EAGAIN;
- 	deb_info(1, "STM  (%02x)", onoff);
- 
--	if (!onoff)
--		ret = it913x_wr_reg(adap->dev->udev, pro, PID_RST, 0x1);
-+	if (!onoff) {
-+		mutex_lock(&adap->dev->i2c_mutex);
- 
-+		ret = it913x_wr_reg(adap->dev->udev, pro, PID_RST, 0x1);
- 
--	mutex_unlock(&adap->dev->i2c_mutex);
-+		mutex_unlock(&adap->dev->i2c_mutex);
-+	}
- 
- 	return ret;
- }
-@@ -885,5 +884,5 @@ module_usb_driver(it913x_driver);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("it913x USB 2 Driver");
--MODULE_VERSION("1.25");
-+MODULE_VERSION("1.26");
- MODULE_LICENSE("GPL");
+Each frame would have its own list of such format specifiers, as the data
+chunk sizes vary from frame to frame. Therefore the above is unfortunately
+more a frame meta data, rather than a static frame description.
+
+> Can there actually be anything more complicated than that?
+
+There is an embedded data at end of frame (could be also at the beginning)
+which describes layout of the interleaved data.
+
+Some data types would have padding bytes.
+
+Even if we somehow find a way to describe the frame on media bus, using a set
+of properties, it would be difficult to pass this information to user space.
+A similar description would have to be probably exposed to applications, now
+everything is described in user space by a single fourcc..
+
+
+Regards,
 -- 
-1.7.8.3
-
-
-
+Sylwester Nawrocki
+Samsung Poland R&D Center
