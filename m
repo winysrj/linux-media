@@ -1,95 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:37923 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753942Ab2BPGaQ (ORCPT
+Received: from mail81.extendcp.co.uk ([79.170.40.81]:37118 "EHLO
+	mail81.extendcp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759670Ab2BJSZ7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Feb 2012 01:30:16 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Petter Selasky <hselasky@c2i.net>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Division by zero in UVC driver
-Date: Thu, 16 Feb 2012 07:30:17 +0100
-Message-ID: <12311511.XtqQ6s9rAx@avalon>
-In-Reply-To: <201202151827.29929.hselasky@c2i.net>
-References: <201202151827.29929.hselasky@c2i.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 10 Feb 2012 13:25:59 -0500
+Date: Fri, 10 Feb 2012 18:25:56 +0000
+From: Tony Houghton <h@realh.co.uk>
+To: Jan Panteltje <panteltje@yahoo.com>, linux-media@vger.kernel.org
+Subject: Re: General question about IR remote signals  from USB DVB tuner
+Message-ID: <20120210182556.005b6b47@junior>
+In-Reply-To: <1328891689.25568.YahooMailClassic@web39302.mail.mud.yahoo.com>
+References: <1328891689.25568.YahooMailClassic@web39302.mail.mud.yahoo.com>
+Mime-Version: 1.0
+Content-Type: multipart/mixed; boundary="MP_/KpNTESlefx2=abKP5L39Bpp"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+--MP_/KpNTESlefx2=abKP5L39Bpp
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
 
-On Wednesday 15 February 2012 18:27:29 Hans Petter Selasky wrote:
-> Hi,
-> 
-> After getting through the compilation issues regarding the uvc_debugfs, I am
-> now facing another problem, which I think is more generic.
-> 
-> The FreeBSD port of the Linux UVC driver, webcamd, gives a division by zero
-> inside the UVC driver, because it does not properly check if the returned
-> SOF counter is the same like the previous one. This can also happen on
-> Linux if the UVC capable device is plugged exactly when the EHCI/OHCI/UHCI
-> SOF counter is equal to zero!
+On Fri, 10 Feb 2012 08:34:49 -0800 (PST)
+Jan Panteltje <panteltje@yahoo.com> wrote:
 
-It's a know bug (at least to me :-)). Does 
-http://git.linuxtv.org/pinchartl/uvcvideo.git/commit/5c97eb2eb9c45dad8825de7754ceb33699451978 
-fix your problem ? I've queued that patch in my tree for v3.4.
-
-> Also please note that the SOF counter will only be updated after the each
-> completed ISOCHRONOUS transfer on FreeBSD, due to limitations in LibUSB.
+> I recently bought a Terratec cinergy S2 USB  HD receiver.
+> I got everything working just fine in Linux and get excellent
+> reception.
+> This thing came with a small remote controller, and I notice
+> that the  output of this remote appears as ASCII characters on stdin,
+> on any terminal that I open...
+> Wrote a small GUI application that sets the input focus to a hidden
+> input field, and can process the numbers from this remote that way,
+> but of course this only works if the mouse has selected that
+> application.
 > 
-> Debug info:
-> 
-> (gdb) list
-> 651		else if (sof > mean + (1024 << 16))
-> 652			sof -= 2048 << 16;
-> 653
-> 654		y = (u64)(y2 - y1) * (u64)sof + (u64)y1 * (u64)x2
-> 655		  - (u64)y2 * (u64)x1;
-> 656		y = div_u64(y, x2 - x1);
-> 657
-> 658		div = div_u64_rem(y, NSEC_PER_SEC, &rem);
-> 659		ts.tv_sec = first->host_ts.tv_sec - 1 + div;
-> 660		ts.tv_nsec = first->host_ts.tv_nsec + rem;
-> (gdb)
-> 
-> Program received signal SIGFPE, Arithmetic exception.
-> [Switching to Thread 80100a3c0 (LWP 100096/webcamd)]
-> 0x00000000005e9337 in div_u64 (rem=71210779720321120, div=0)
->     at kernel/linux_func.c:1649
-> 1649	{
-> (gdb) bt
-> #0  0x00000000005e9337 in div_u64 (rem=71210779720321120, div=0)
->     at kernel/linux_func.c:1649
-> #1  0x00000000005169f7 in uvc_video_clock_update (stream=0x8010bf500,
->     v4l2_buf=0x801138a00, buf=0x801138a00)
->     at media_tree/drivers/media/video/uvc/uvc_video.c:656
-> #2  0x00000000005125c3 in uvc_buffer_finish (vb=Variable "vb" is not
-> available.
-> )
->     at media_tree/drivers/media/video/uvc/uvc_queue.c:114
-> #3  0x00000000004ae76a in vb2_dqbuf (q=0x8010bf5b8, b=0x7fffff1f9d30,
->     nonblocking=0 '\0') at media_tree/drivers/media/video/videobuf2-
-> core.c:1334
-> #4  0x000000000051236f in uvc_dequeue_buffer (queue=0x8010bf5b8,
->     buf=0x7fffff1f9d30, nonblocking=0)
->     at media_tree/drivers/media/video/uvc/uvc_queue.c:193
-> #5  0x0000000000513c50 in uvc_v4l2_do_ioctl (file=0x80111d418,
-> cmd=3227014673, arg=0x7fffff1f9d30) at
-> media_tree/drivers/media/video/uvc/uvc_v4l2.c:958 #6  0x0000000000444780 in
-> video_usercopy (file=0x80111d418, cmd=3227014673, arg=65536, func=0x513050
-> <uvc_v4l2_do_ioctl>)
->     at media_tree/drivers/media/video/v4l2-ioctl.c:2456
-> #7  0x0000000000443b40 in v4l2_ioctl (filp=0x80111d418, cmd=3227014673,
->     arg=65536) at media_tree/drivers/media/video/v4l2-dev.c:339
-> #8  0x00000000005ea4aa in linux_ioctl (handle=0x80111d400, fflags=0,
->     cmd=3227014673, arg=0x10000) at kernel/linux_file.c:120
-> #9  0x00000000005ef01a in v4b_ioctl (cdev=Variable "cdev" is not available.
-> ) at webcamd.c:261
-> #10 0x0000000800a249e6 in cuse_wait_and_process ()
+> Thinking about this I think that the driver dumps the received remote
+> control characters simply to stdout.
 
--- 
-Regards,
+Something fairly low level processes the input events and converts them
+to keyboard events. IIRC this happens on the console as well as in X.
 
-Laurent Pinchart
+> If this is so, does there perhaps exists a /dev/dvb/adapterX/remoteX
+> interface in the specs so I could modify that driver to send the codes
+> there?
+
+The events can be read from /dev/input/eventX. You can do something like
+parse /proc/bus/input/devices to work out which device corresponds to
+your remote. The structure of the events etc is defined in
+/usr/include/linux/input.h. The EVIOCGRAB ioctl is useful to grab the
+events exclusively for your application and stop them appearing on the
+console.
+
+I don't know exactly what the fields in input_event are supposed to
+mean, and IME their significance can vary with remote and with kernel
+version. If you can find more information about this, please send a copy
+to me because I'm about to unsubscribe from linux-media. If you can't
+find the information you'll probably find it useful to experiment with
+the attached python script (treat as Public Domain).
+
+--MP_/KpNTESlefx2=abKP5L39Bpp
+Content-Type: text/x-python
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment; filename=testdevinput.py
+
+#!/usr/bin/env python
+
+import os
+import struct
+import sys
+
+SIZEOF_INPUT_EVENT = struct.calcsize('llHHi')
+# time (2 * long), type, code, value
+
+quiet = False
+
+def main_loop(fd):
+    while True:
+        s = os.read(fd, SIZEOF_INPUT_EVENT)
+        if len(s) != SIZEOF_INPUT_EVENT:
+            print >>sys.stderr, "Read %d bytes, expected %d" % \
+                    (len(s), SIZEOF_INPUT_EVENT)
+            break
+        [tsec, tusec, type, code, value] = struct.unpack('llHHi', s)
+        if not quiet or type:
+            print "T:%10.2f t:%02x c:%02x v:%02x" % \
+                    (tsec + float(tusec) / 1000000, type, code, value)
+
+def main():
+    if sys.argv[1] == '-q':
+        global quiet
+        quiet = True
+        filename = sys.argv[2]
+    else:
+        filename = sys.argv[1]
+    fd = os.open(filename, os.O_RDONLY)
+    main_loop(fd)
+
+if __name__ == '__main__':
+    main()
+
+--MP_/KpNTESlefx2=abKP5L39Bpp--
