@@ -1,48 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34800 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757319Ab2BNVzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:55:24 -0500
-Message-ID: <4F3AD84B.1030800@redhat.com>
-Date: Tue, 14 Feb 2012 16:55:23 -0500
-From: Jarod Wilson <jarod@redhat.com>
-MIME-Version: 1.0
-To: W R <gridmuncher@hotmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Fintek driver linux
-References: <BLU145-W35C32BF2C2E1EDFD8DC5F4BD800@phx.gbl>,<4F2822AE.1020705@redhat.com>,<BLU145-W31A99136480C1FBA4E0AC7BD770@phx.gbl>,<4F356866.6090208@redhat.com> <BLU145-W1658A220E336DBC96C53D7BD7C0@phx.gbl>,<4F3ABF41.9060800@redhat.com> <BLU145-W31DB93CC932394E4E288E2BD7C0@phx.gbl>
-In-Reply-To: <BLU145-W31DB93CC932394E4E288E2BD7C0@phx.gbl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:10174 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759059Ab2BJKbz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 05:31:55 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=ISO-8859-1
+Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LZ6003XIAL5Z130@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Feb 2012 10:31:53 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZ600BCZAL4L7@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 Feb 2012 10:31:53 +0000 (GMT)
+Date: Fri, 10 Feb 2012 11:31:52 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [Q] Interleaved formats on the media bus
+In-reply-to: <4F34EF3E.2090004@samsung.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Message-id: <4F34F218.6000509@samsung.com>
+References: <4F27CF29.5090905@samsung.com> <4116034.kVC1fDZsLk@avalon>
+ <4F32FBBB.7020007@gmail.com> <12779203.vQPWKN8eZf@avalon>
+ <Pine.LNX.4.64.1202100934070.5787@axis700.grange>
+ <4F34EF3E.2090004@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/14/2012 04:25 PM, W R wrote:
-> Thanks for your quick reply. It does seem like I have the old version:
->
-> cat /proc/bus/input/devices
->
-> *I: Bus=0019 Vendor=1934 Product=0004 Version=0008*
+On 02/10/2012 11:19 AM, Sylwester Nawrocki wrote:
+> On 02/10/2012 09:42 AM, Guennadi Liakhovetski wrote:
+> Even if we somehow find a way to describe the frame on media bus, using a set
+> of properties, it would be difficult to pass this information to user space.
+> A similar description would have to be probably exposed to applications, now
+> everything is described in user space by a single fourcc..
 
-Hm, okay, so the changes for newer hardware shouldn't matter at all.
+OK, we could associate a fourcc with an entry of some static table entry,
+thus avoiding vendor specific media bus codes and leaving only vendor/sensor
+specific fourcc. But still I'm not sure we can come up with a capable enough
+frame description.
 
-> N: Name="Fintek LPC SuperIO Consumer IR Transceiver"
-> P: Phys=fintek/cir0
-...
-> Is there anything out of the ordinary? Any way to find out which modules
-> that cause the problem and can maybe be removed?
-
-Nothing out of the ordinary, no. You'd have to capture serial console 
-output or a vmcore from the time of the crash to really get a better 
-idea of where its falling down. The panic trace ought to give a clue 
-where to start looking.
-
-I can't recall, have you tried using this under Windows, and if so, was 
-it stable there? A hardware fault is always a possibility, especially 
-when there's only a single report of something like this. Then again, 
-this is a fairly young driver. But I never saw anything like this in my 
-own testing during driver devel, nor did Fintek. :\
-
+Thanks,
 -- 
-Jarod Wilson
-jarod@redhat.com
+Sylwester Nawrocki
+Samsung Poland R&D Center
