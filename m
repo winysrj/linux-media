@@ -1,109 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:65056 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753302Ab2BZXfW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Feb 2012 18:35:22 -0500
-Message-ID: <4F4AC1B2.1000607@iki.fi>
-Date: Mon, 27 Feb 2012 01:35:14 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Chris Whittenburg <whittenburg@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: OMAP CCDC with sensors that are always on...
-References: <CABcw_OmQEV2K0Hgvnh7xtCNQUmf5pa4ftZJwRFdkM68Hftp=Rg@mail.gmail.com> <CABcw_Om4VNCn_a73tZBBgb_1OzVTQRkQWDZcoasT6CA-JasH+w@mail.gmail.com> <20120224234801.GB12602@valkosipuli.localdomain> <4984891.IGZ3Td2Zlk@avalon>
-In-Reply-To: <4984891.IGZ3Td2Zlk@avalon>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:12028 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759621Ab2BJRcx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 12:32:53 -0500
+Date: Fri, 10 Feb 2012 18:32:27 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv21 12/16] mm: trigger page reclaim in alloc_contig_range() to
+ stabilise watermarks
+In-reply-to: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1328895151-5196-13-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+alloc_contig_range() performs memory allocation so it also should keep
+track on keeping the correct level of memory watermarks. This commit adds
+a call to *_slowpath style reclaim to grab enough pages to make sure that
+the final collection of contiguous pages from freelists will not starve
+the system.
 
-Laurent Pinchart wrote:
-> Hi Chris,
-> 
-> On Saturday 25 February 2012 01:48:02 Sakari Ailus wrote:
->> On Fri, Feb 17, 2012 at 05:32:31PM -0600, Chris Whittenburg wrote:
->>> I fixed my sensor to respect a "run" signal from the omap, so that now
->>> it only sends data when the ccdc is expecting it.
->>>
->>> This fixed my problem, and now I can capture the 640x1440 frames.
->>>
->>> At least the first one...
->>>
->>> Subsequent frames are always full of 0x55, like the ISP didn't write
->>> anything into them.
->>>
->>> I still get the VD0 interrupts, and I checked that WEN in the
->>> CCDC_SYN_MODE register is set, and that the EXWEN bit is clear.
->>>
->>> I'm using the command:
->>> yavta -c2 -p -F --skip 0 -f Y8 -s 640x1440 /dev/video2
->>>
->>> Here are my register settings:
->>>
->>> [ 6534.029907] omap3isp omap3isp: -------------CCDC Register
->>> dump------------- [ 6534.029907] omap3isp omap3isp: ###CCDC
->>> PCR=0x00000000
->>> [ 6534.029937] omap3isp omap3isp: ###CCDC SYN_MODE=0x00030f00
->>> [ 6534.029937] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
->>> [ 6534.029937] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
->>> [ 6534.029968] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000027f
->>> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
->>> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_LINES=0x0000059f
->>> [ 6534.029998] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
->>> [ 6534.029998] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x00000280
->>> [ 6534.029998] omap3isp omap3isp: ###CCDC SDOFST=0x00000000
->>> [ 6534.030029] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
->>> [ 6534.030029] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
->>> [ 6534.030029] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
->>> [ 6534.030059] omap3isp omap3isp: ###CCDC COLPTN=0xbb11bb11
->>> [ 6534.030059] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
->>> [ 6534.030059] omap3isp omap3isp: ###CCDC FPC=0x00000000
->>> [ 6534.030090] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
->>> [ 6534.030090] omap3isp omap3isp: ###CCDC VDINT=0x059e03c0
->>> [ 6534.030090] omap3isp omap3isp: ###CCDC ALAW=0x00000000
->>> [ 6534.030120] omap3isp omap3isp: ###CCDC REC656IF=0x00000000
->>> [ 6534.030120] omap3isp omap3isp: ###CCDC CFG=0x00008000
->>> [ 6534.030120] omap3isp omap3isp: ###CCDC FMTCFG=0x0000e000
->>> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_HORZ=0x00000280
->>> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_VERT=0x000005a0
->>> [ 6534.030151] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
->>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
->>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
->>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
->>> [ 6534.030212] omap3isp omap3isp: ###CCDC VP_OUT=0x0b3e2800
->>> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
->>> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
->>> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
->>> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
->>> [ 6534.030242] omap3isp omap3isp:
->>> --------------------------------------------
->>>
->>> Output frame 0 is always good, while output frame 1 is 0x5555.
->>>
->>> I believe my sensor is respecting the clocks required before and after
->>> the frame.
->>>
->>> Could the ISP driver be writing my data to some unexpected location
->>> rather than to the v4l2 buffer?
->>>
->>> Is there a way to determine if the CCDC is writing to memory or not?
->>
->> How long vertical blanking do you have? It shouldn't have an effect, though.
-> 
-> It definitely can :-) If vertical blanking isn't long enough, the CCDC will 
-> start processing the next frame before the driver gets time to update the 
-> hardware with the pointer to the next buffer. The first frame will then be 
-> overwritten.
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+---
+ include/linux/mmzone.h |    9 +++++++
+ mm/page_alloc.c        |   62 ++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 71 insertions(+), 0 deletions(-)
 
-Sure, but in that case no buffers should be dequeued from the driver
-either --- as they should always be marked faulty since reprogramming
-the CCDC isn't possible.
-
-Regards,
-
+diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+index 82f4fa5..6a6c2cc 100644
+--- a/include/linux/mmzone.h
++++ b/include/linux/mmzone.h
+@@ -63,8 +63,10 @@ enum {
+ 
+ #ifdef CONFIG_CMA
+ #  define is_migrate_cma(migratetype) unlikely((migratetype) == MIGRATE_CMA)
++#  define cma_wmark_pages(zone)	zone->min_cma_pages
+ #else
+ #  define is_migrate_cma(migratetype) false
++#  define cma_wmark_pages(zone) 0
+ #endif
+ 
+ #define for_each_migratetype_order(order, type) \
+@@ -371,6 +373,13 @@ struct zone {
+ 	/* see spanned/present_pages for more description */
+ 	seqlock_t		span_seqlock;
+ #endif
++#ifdef CONFIG_CMA
++	/*
++	 * CMA needs to increase watermark levels during the allocation
++	 * process to make sure that the system is not starved.
++	 */
++	unsigned long		min_cma_pages;
++#endif
+ 	struct free_area	free_area[MAX_ORDER];
+ 
+ #ifndef CONFIG_SPARSEMEM
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 793c4e4..2fedd36 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5035,6 +5035,11 @@ static void __setup_per_zone_wmarks(void)
+ 
+ 		zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp >> 2);
+ 		zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
++
++		zone->watermark[WMARK_MIN] += cma_wmark_pages(zone);
++		zone->watermark[WMARK_LOW] += cma_wmark_pages(zone);
++		zone->watermark[WMARK_HIGH] += cma_wmark_pages(zone);
++
+ 		setup_zone_migrate_reserve(zone);
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+ 	}
+@@ -5637,6 +5642,56 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+ 	return ret > 0 ? 0 : ret;
+ }
+ 
++/*
++ * Update zone's cma pages counter used for watermark level calculation.
++ */
++static inline void __update_cma_wmark_pages(struct zone *zone, int count)
++{
++	unsigned long flags;
++	spin_lock_irqsave(&zone->lock, flags);
++	zone->min_cma_pages += count;
++	spin_unlock_irqrestore(&zone->lock, flags);
++	setup_per_zone_wmarks();
++}
++
++/*
++ * Trigger memory pressure bump to reclaim some pages in order to be able to
++ * allocate 'count' pages in single page units. Does similar work as
++ *__alloc_pages_slowpath() function.
++ */
++static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
++{
++	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
++	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
++	int did_some_progress = 0;
++	int order = 1;
++	unsigned long watermark;
++
++	/*
++	 * Increase level of watermarks to force kswapd do his job
++	 * to stabilise at new watermark level.
++	 */
++	__modify_min_cma_pages(zone, count);
++
++	/* Obey watermarks as if the page was being allocated */
++	watermark = low_wmark_pages(zone) + count;
++	while (!zone_watermark_ok(zone, 0, watermark, 0, 0)) {
++		wake_all_kswapd(order, zonelist, high_zoneidx, zone_idx(zone));
++
++		did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
++						      NULL);
++		if (!did_some_progress) {
++			/* Exhausted what can be done so it's blamo time */
++			out_of_memory(zonelist, gfp_mask, order, NULL);
++		}
++	}
++
++	/* Restore original watermark levels. */
++	__modify_min_cma_pages(zone, -count);
++
++	return count;
++}
++
+ /**
+  * alloc_contig_range() -- tries to allocate given range of pages
+  * @start:	start PFN to allocate
+@@ -5735,6 +5790,13 @@ int alloc_contig_range(unsigned long start, unsigned long end,
+ 		goto done;
+ 	}
+ 
++	/*
++	 * Reclaim enough pages to make sure that contiguous allocation
++	 * will not starve the system.
++	 */
++	__reclaim_pages(zone, GFP_HIGHUSER_MOVABLE, end-start);
++
++	/* Grab isolated pages from freelists. */
+ 	outer_end = isolate_freepages_range(outer_start, end);
+ 	if (!outer_end) {
+ 		ret = -EBUSY;
 -- 
-Sakari Ailus
-sakari.ailus@iki.fi
+1.7.1.569.g6f426
+
