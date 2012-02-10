@@ -1,43 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:49775 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756058Ab2BHQpg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2012 11:45:36 -0500
-From: Henrique Camargo <henrique@henriquecamargo.com>
-To: linux-kernel@vger.kernel.org
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	matti.j.aaltonen@nokia.com, laurent.pinchart@ideasonboard.com,
-	mchehab@infradead.org,
-	Henrique Camargo <henrique@henriquecamargo.com>,
-	Diogo Luvizon <diogoluvizon@gmail.com>
-Subject: [PATCH] media: davinci: added module.h to resolve unresolved macros
-Date: Wed,  8 Feb 2012 14:44:30 -0200
-Message-Id: <1328719470-30571-1-git-send-email-henrique@henriquecamargo.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58431 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754722Ab2BJRDy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 12:03:54 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kruno Mrak <kruno.mrak@matrix-vision.de>
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
+Subject: Re: omap3isp: sequence number in v4l2 buffer not incremented
+Date: Fri, 10 Feb 2012 18:03:51 +0100
+Message-ID: <2282092.nIujHkTqeG@avalon>
+In-Reply-To: <4F35434E.6020405@matrix-vision.de>
+References: <4F202102.5070701@matrix-vision.de> <3002082.9RrLpdpVPL@avalon> <4F35434E.6020405@matrix-vision.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Included module.h explicitly to resolve the macros THIS_MODULE and 
-MODULE_LICENSE. This avoids compilations errors as those defines were not 
-declared.
+Hi Kruno,
 
-Signed-off-by: Henrique Camargo <henrique@henriquecamargo.com>
-Signed-off-by: Diogo Luvizon <diogoluvizon@gmail.com>
----
- drivers/media/video/davinci/isif.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+On Friday 10 February 2012 17:18:22 Kruno Mrak wrote:
+> Laurent,
+> 
+> thank you for the patch.
+> It was a bit tricky to get it work as our kernel is based
+> on 2.6.38, but i succeeded.
+> The frame_number is incremented now.
 
-diff --git a/drivers/media/video/davinci/isif.c b/drivers/media/video/davinci/isif.c
-index 1e63852..5278fe7 100644
---- a/drivers/media/video/davinci/isif.c
-+++ b/drivers/media/video/davinci/isif.c
-@@ -34,6 +34,7 @@
- #include <linux/videodev2.h>
- #include <linux/clk.h>
- #include <linux/err.h>
-+#include <linux/module.h>
- 
- #include <mach/mux.h>
- 
+Thanks for the confirmation. I'll test the patch with the CCP2 and CSI2 
+receivers, and I'll then push it to mainline.
+
+> The following changes are not clear to me, are they really necessary to
+> get frame_number incremented?
+
+It isn't when using the CCDC parallel input. It removes frame number 
+incrementation from the CCP2 module, as the frame number is now incremented in 
+the CCDC module.
+
+> @@ -350,7 +337,6 @@ static void ccp2_lcx_config(struct isp_ccp2_device
+> *ccp2,
+>  	      ISPCCP2_LC01_IRQSTATUS_LC0_CRC_IRQ |
+>  	      ISPCCP2_LC01_IRQSTATUS_LC0_FSP_IRQ |
+>  	      ISPCCP2_LC01_IRQSTATUS_LC0_FW_IRQ |
+> -	      ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ |
+>  	      ISPCCP2_LC01_IRQSTATUS_LC0_FSC_IRQ |
+>  	      ISPCCP2_LC01_IRQSTATUS_LC0_SSC_IRQ;
+> 
+> @@ -378,21 +378,17 @@ static void csi2_timing_config(struct isp_device *isp,
+> static void csi2_irq_ctx_set(struct isp_device *isp,
+>  			     struct isp_csi2_device *csi2, int enable)
+>  {
+> -	u32 reg = ISPCSI2_CTX_IRQSTATUS_FE_IRQ;
+>  	int i;
+> 
+> -	if (csi2->use_fs_irq)
+> -		reg |= ISPCSI2_CTX_IRQSTATUS_FS_IRQ;
+> -
+>  	for (i = 0; i < 8; i++) {
+> -		isp_reg_writel(isp, reg, csi2->regs1,
+> +		isp_reg_writel(isp, ISPCSI2_CTX_IRQSTATUS_FE_IRQ, csi2->regs1,
+>  			       ISPCSI2_CTX_IRQSTATUS(i));
+>  		if (enable)
+>  			isp_reg_set(isp, csi2->regs1, ISPCSI2_CTX_IRQENABLE(i),
+> -				    reg);
+> +				    ISPCSI2_CTX_IRQSTATUS_FE_IRQ);
+>  		else
+>  			isp_reg_clr(isp, csi2->regs1, ISPCSI2_CTX_IRQENABLE(i),
+> -				    reg);
+> +				    ISPCSI2_CTX_IRQSTATUS_FE_IRQ);
+>  	}
+>  }
+
 -- 
-1.7.8.3
+Regards,
 
+Laurent Pinchart
