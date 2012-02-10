@@ -1,69 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4168 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755452Ab2BCJbY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:31:24 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrew Morton <akpm@linux-foundation.org>
-Subject: Re: [RFCv7 PATCH 0/4] Add poll_requested_events() function.
-Date: Fri, 3 Feb 2012 10:30:36 +0100
-Cc: linux-media@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>
-References: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl> <20120202144823.ce00767d.akpm@linux-foundation.org>
-In-Reply-To: <20120202144823.ce00767d.akpm@linux-foundation.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202031030.36350.hverkuil@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:58002 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754703Ab2BJPgu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 10:36:50 -0500
+Date: Fri, 10 Feb 2012 16:36:43 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: RE: [PATCH 11/15] mm: trigger page reclaim in alloc_contig_range() to
+ stabilize watermarks
+In-reply-to: <20120210111913.GP5796@csn.ul.ie>
+To: 'Mel Gorman' <mel@csn.ul.ie>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Dave Hansen' <dave@linux.vnet.ibm.com>,
+	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>,
+	'Rob Clark' <rob.clark@linaro.org>,
+	'Ohad Ben-Cohen' <ohad@wizery.com>
+Message-id: <00d101cce809$cabaa100$602fe300$%szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-language: pl
+Content-transfer-encoding: 7BIT
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+ <1328271538-14502-12-git-send-email-m.szyprowski@samsung.com>
+ <20120203140428.GG5796@csn.ul.ie>
+ <000001cce674$64bb67e0$2e3237a0$%szyprowski@samsung.com>
+ <20120210111913.GP5796@csn.ul.ie>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, February 02, 2012 23:48:23 Andrew Morton wrote:
-> On Thu,  2 Feb 2012 11:26:53 +0100
-> Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> 
-> > The first version of this patch was posted July 1st, 2011. I really hope that
-> > it won't take another six months to get a review from a fs developer. As this
-> > LWN article (http://lwn.net/Articles/450658/) said: 'There has been little
-> > discussion of the patch; it doesn't seem like there is any real reason for it
-> > not to go in for 3.1.'
-> > 
-> > The earliest this can go in now is 3.4. The only reason it takes so long is
-> > that it has been almost impossible to get a Ack or comments or even just a
-> > simple reply from the fs developers. That is really frustrating, I'm sorry
-> > to say.
-> 
-> Yup.  Nobody really maintains the poll/select code.  It happens to sit
-> under fs/ so nominally belongs to the "fs maintainers".  The logs for
-> fs/select.c seem to show me as the usual committer, but I wouldn't
-> claim particular expertise in this area - I'm more a tube-unclogger
-> here.  Probably Al knows the code as well or better than anyone else. 
-> It's good that he looked at an earlier version of the patches.
-> 
-> fs/eventpoll.c has an identified maintainer, but he has been vigorously
-> hiding from us for a year or so.  I'm the commit monkey for eventpoll,
-> in a similar state to fs/select.c.
-> 
-> So ho hum, all we can do is our best.  You're an experienced kernel
-> developer who has put a lot of work into the code.  I suggest that you
-> get your preferred version into linux-next ASAP then send Linus a pull
-> request for 3.4-rc1, explaining the situation.  If the code wasn't
-> already in linux-next I would put it in -mm today, for 3.4-rc1.
+Hello,
 
-Thank you very much for your reply. This was very helpful!
+On Friday, February 10, 2012 12:19 PM Mel Gorman wrote:
 
-Regards,
-
-	Hans
-
+> On Wed, Feb 08, 2012 at 04:14:46PM +0100, Marek Szyprowski wrote:
+> > > > <SNIP>
+> > > > +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
+> > > > +{
+> > > > +	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+> > > > +	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
+> > > > +	int did_some_progress = 0;
+> > > > +	int order = 1;
+> > > > +	unsigned long watermark;
+> > > > +
+> > > > +	/*
+> > > > +	 * Increase level of watermarks to force kswapd do his job
+> > > > +	 * to stabilize at new watermark level.
+> > > > +	 */
+> > > > +	min_free_kbytes += count * PAGE_SIZE / 1024;
+> > >
+> > > There is a risk of overflow here although it is incredibly
+> > > small. Still, a potentially nicer way of doing this was
+> > >
+> > > count << (PAGE_SHIFT - 10)
+> > >
+> > > > +	setup_per_zone_wmarks();
+> > > > +
+> > >
+> > > Nothing prevents two or more processes updating the wmarks at the same
+> > > time which is racy and unpredictable. Today it is not much of a problem
+> > > but CMA makes this path hotter than it was and you may see weirdness
+> > > if two processes are updating zonelists at the same time. Swap-over-NFS
+> > > actually starts with a patch that serialises setup_per_zone_wmarks()
+> > >
+> > > You also potentially have a BIG problem here if this happens
+> > >
+> > > min_free_kbytes = 32768
+> > > Process a: min_free_kbytes  += 65536
+> > > Process a: start direct reclaim
+> > > echo 16374 > /proc/sys/vm/min_free_kbytes
+> > > Process a: exit direct_reclaim
+> > > Process a: min_free_kbytes -= 65536
+> > >
+> > > min_free_kbytes now wraps negative and the machine hangs.
+> > >
+> > > The damage is confined to CMA though so I am not going to lose sleep
+> > > over it but you might want to consider at least preventing parallel
+> > > updates to min_free_kbytes from proc.
+> >
+> > Right. This approach was definitely too hacky. What do you think about replacing
+> > it with the following code (I assume that setup_per_zone_wmarks() serialization
+> > patch will be merged anyway so I skipped it here):
+> >
 > 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> It's part of a larger series and the rest of that series is
+> controversial. That single patch can be split out obviously so feel free
+> to add it to your series and stick your Signed-off-by on the end of it.
+
+Ok, I will grab it from that series.
+
+> > diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+> > index 82f4fa5..bb9ae41 100644
+> > --- a/include/linux/mmzone.h
+> > +++ b/include/linux/mmzone.h
+> > @@ -371,6 +371,13 @@ struct zone {
+> >         /* see spanned/present_pages for more description */
+> >         seqlock_t               span_seqlock;
+> >  #endif
+> > +#ifdef CONFIG_CMA
+> > +       /*
+> > +        * CMA needs to increase watermark levels during the allocation
+> > +        * process to make sure that the system is not starved.
+> > +        */
+> > +       unsigned long           min_cma_pages;
+> > +#endif
+> >         struct free_area        free_area[MAX_ORDER];
+> >
+> >  #ifndef CONFIG_SPARSEMEM
+> > diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> > index 824fb37..1ca52f0 100644
+> > --- a/mm/page_alloc.c
+> > +++ b/mm/page_alloc.c
+> > @@ -5044,6 +5044,11 @@ void setup_per_zone_wmarks(void)
+> >
+> >                 zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp >> 2);
+> >                 zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
+> > +#ifdef CONFIG_CMA
+> > +               zone->watermark[WMARK_MIN] += zone->min_cma_pages;
+> > +               zone->watermark[WMARK_LOW] += zone->min_cma_pages;
+> > +               zone->watermark[WMARK_HIGH] += zone->min_cma_pages;
+> > +#endif
+> >                 setup_zone_migrate_reserve(zone);
+> >                 spin_unlock_irqrestore(&zone->lock, flags);
+> >         }
 > 
+> This is better in that it is not vunerable to parallel updates of
+> min_free_kbytes. It would be slightly tidier to introduce something
+> like cma_wmark_pages() that returns min_cma_pages if CONFIG_CMA and 0
+> otherwise. Use the helper to get right of this ifdef CONFIG_CMA within
+> setup_per_zone_wmarks().
+
+Thanks for the hint. I will submit this change soon.
+ 
+> You'll still have the problem of kswapd not taking CMA pages properly into
+> account when deciding whether to reclaim or not though.
+
+This will only affect CMA clients, I hope we can fix this later once the patches
+get merged. I would really like to get it into v3.4, what means that it should be
+tested in next asap.
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
+
