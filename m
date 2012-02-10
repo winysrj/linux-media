@@ -1,59 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58659 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756674Ab2BPAwX (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:11998 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751086Ab2BJRcg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Feb 2012 19:52:23 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Danny Kukawka <danny.kukawka@bisect.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Danny Kukawka <dkukawka@suse.de>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] mt9p031.c included media/v4l2-subdev.h twice
-Date: Thu, 16 Feb 2012 01:52:22 +0100
-Message-ID: <3038951.aMMalgvgKS@avalon>
-In-Reply-To: <1329333655-32103-1-git-send-email-danny.kukawka@bisect.de>
-References: <1329333655-32103-1-git-send-email-danny.kukawka@bisect.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 10 Feb 2012 12:32:36 -0500
+Date: Fri, 10 Feb 2012 18:32:16 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv21 01/16] mm: page_alloc: remove trailing whitespace
+In-reply-to: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1328895151-5196-2-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Danny,
+From: Michal Nazarewicz <mina86@mina86.com>
 
-Thanks for the patch.
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+---
+ mm/page_alloc.c |   18 +++++++++---------
+ 1 files changed, 9 insertions(+), 9 deletions(-)
 
-On Wednesday 15 February 2012 20:20:55 Danny Kukawka wrote:
-> drivers/media/video/mt9p031.c included 'media/v4l2-subdev.h' twice,
-> remove the duplicate.
-> 
-> Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I'll push the patch through my tree.
-
-> ---
->  drivers/media/video/mt9p031.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/mt9p031.c b/drivers/media/video/mt9p031.c
-> index 93c3ec7..dd937df 100644
-> --- a/drivers/media/video/mt9p031.c
-> +++ b/drivers/media/video/mt9p031.c
-> @@ -19,7 +19,6 @@
->  #include <linux/log2.h>
->  #include <linux/pm.h>
->  #include <linux/slab.h>
-> -#include <media/v4l2-subdev.h>
->  #include <linux/videodev2.h>
-> 
->  #include <media/mt9p031.h>
-
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index d2186ec..7fe7697 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -513,10 +513,10 @@ static inline int page_is_buddy(struct page *page, struct page *buddy,
+  * free pages of length of (1 << order) and marked with _mapcount -2. Page's
+  * order is recorded in page_private(page) field.
+  * So when we are allocating or freeing one, we can derive the state of the
+- * other.  That is, if we allocate a small block, and both were   
+- * free, the remainder of the region must be split into blocks.   
++ * other.  That is, if we allocate a small block, and both were
++ * free, the remainder of the region must be split into blocks.
+  * If a block is freed, and its buddy is also free, then this
+- * triggers coalescing into a block of larger size.            
++ * triggers coalescing into a block of larger size.
+  *
+  * -- wli
+  */
+@@ -1061,17 +1061,17 @@ retry_reserve:
+ 	return page;
+ }
+ 
+-/* 
++/*
+  * Obtain a specified number of elements from the buddy allocator, all under
+  * a single hold of the lock, for efficiency.  Add them to the supplied list.
+  * Returns the number of new pages which were placed at *list.
+  */
+-static int rmqueue_bulk(struct zone *zone, unsigned int order, 
++static int rmqueue_bulk(struct zone *zone, unsigned int order,
+ 			unsigned long count, struct list_head *list,
+ 			int migratetype, int cold)
+ {
+ 	int i;
+-	
++
+ 	spin_lock(&zone->lock);
+ 	for (i = 0; i < count; ++i) {
+ 		struct page *page = __rmqueue(zone, order, migratetype);
+@@ -4258,7 +4258,7 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
+ 	init_waitqueue_head(&pgdat->kswapd_wait);
+ 	pgdat->kswapd_max_order = 0;
+ 	pgdat_page_cgroup_init(pgdat);
+-	
++
+ 	for (j = 0; j < MAX_NR_ZONES; j++) {
+ 		struct zone *zone = pgdat->node_zones + j;
+ 		unsigned long size, realsize, memmap_pages;
+@@ -5081,11 +5081,11 @@ int __meminit init_per_zone_wmark_min(void)
+ module_init(init_per_zone_wmark_min)
+ 
+ /*
+- * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so 
++ * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so
+  *	that we can call two helper functions whenever min_free_kbytes
+  *	changes.
+  */
+-int min_free_kbytes_sysctl_handler(ctl_table *table, int write, 
++int min_free_kbytes_sysctl_handler(ctl_table *table, int write,
+ 	void __user *buffer, size_t *length, loff_t *ppos)
+ {
+ 	proc_dointvec(table, write, buffer, length, ppos);
 -- 
-Regards,
+1.7.1.569.g6f426
 
-Laurent Pinchart
