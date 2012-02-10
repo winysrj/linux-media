@@ -1,122 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:53653 "EHLO mail.atlantis.sk"
+Received: from gir.skynet.ie ([193.1.99.77]:52606 "EHLO gir.skynet.ie"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755304Ab2BHT6P (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Feb 2012 14:58:15 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: alsa-devel@alsa-project.org
-Subject: Re: [alsa-devel] tea575x-tuner improvements & use in maxiradio
-Date: Wed, 8 Feb 2012 20:57:43 +0100
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1328447827-9842-1-git-send-email-hverkuil@xs4all.nl> <201202072320.30911.linux@rainbow-software.org> <201202080829.25201.hverkuil@xs4all.nl>
-In-Reply-To: <201202080829.25201.hverkuil@xs4all.nl>
+	id S1754606Ab2BJLTR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 06:19:17 -0500
+Date: Fri, 10 Feb 2012 11:19:13 +0000
+From: Mel Gorman <mel@csn.ul.ie>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	'Michal Nazarewicz' <mina86@mina86.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Russell King' <linux@arm.linux.org.uk>,
+	'Andrew Morton' <akpm@linux-foundation.org>,
+	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
+	'Daniel Walker' <dwalker@codeaurora.org>,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Jesse Barker' <jesse.barker@linaro.org>,
+	'Jonathan Corbet' <corbet@lwn.net>,
+	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
+	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
+	'Dave Hansen' <dave@linux.vnet.ibm.com>,
+	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>,
+	'Rob Clark' <rob.clark@linaro.org>,
+	'Ohad Ben-Cohen' <ohad@wizery.com>
+Subject: Re: [PATCH 11/15] mm: trigger page reclaim in alloc_contig_range()
+ to stabilize watermarks
+Message-ID: <20120210111913.GP5796@csn.ul.ie>
+References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+ <1328271538-14502-12-git-send-email-m.szyprowski@samsung.com>
+ <20120203140428.GG5796@csn.ul.ie>
+ <000001cce674$64bb67e0$2e3237a0$%szyprowski@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-15
 Content-Disposition: inline
-Message-Id: <201202082057.48045.linux@rainbow-software.org>
+In-Reply-To: <000001cce674$64bb67e0$2e3237a0$%szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 08 February 2012 08:29:25 Hans Verkuil wrote:
-> On Tuesday, February 07, 2012 23:20:19 Ondrej Zary wrote:
-> > On Sunday 05 February 2012 14:17:05 Hans Verkuil wrote:
-> > > These patches improve the tea575x-tuner module to make it up to date
-> > > with the latest V4L2 frameworks.
-> > >
-> > > The maxiradio driver has also been converted to use the tea575x-tuner
-> > > and I've used that card to test it.
-> > >
-> > > Unfortunately, this card can't read the data pin, so the new hardware
-> > > seek functionality has been tested only partially (yes, it seeks, but
-> > > when it finds a channel I can't read back the frequency).
-> > >
-> > > Ondrej, are you able to test these patches for the sound cards that use
-> > > this tea575x tuner?
-> > >
-> > > Note that these two patches rely on other work that I did and that
-> > > hasn't been merged yet. So it is best to pull from my git tree:
-> > >
-> > > http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/radi
-> > >o-pc i2
-> > >
-> > > You can use the v4l-utils repository
-> > > (http://git.linuxtv.org/v4l-utils.git) to test the drivers: the
-> > > v4l2-compliance test should succeed and with v4l2-ctl you can test the
-> > > hardware seek:
-> > >
-> > > To seek down:
-> > >
-> > > v4l2-ctl -d /dev/radio0 --freq-seek=dir=0
-> > >
-> > > To seek up:
-> > >
-> > > v4l2-ctl -d /dev/radio0 --freq-seek=dir=1
-> > >
-> > > To do the compliance test:
-> > >
-> > > v4l2-compliance -r /dev/radio0
-> >
-> > It seems to work (tested with SF64-PCR - snd_fm801) but the seek is
-> > severely broken. Reading the frequency immediately after seek does not
-> > work, it always returns the old value (haven't found a delay that works).
-> > Reading it later (copied back snd_tea575x_get_freq function) works. The
-> > chip seeks randomly up or down, ignoring UP/DOWN flag and often stops at
-> > wrong place (only noise) or even outside the FM range.
-> >
-> > So I strongly suggest not to enable this (mis-)feature. The HW seems to
-> > be completely broken (unless there's some weird bug in the code).
->
-> Well, it seemed like a good idea at the time :-) I'll remove this
-> 'feature', it's really not worth our time to try and make this work for
-> these old cards.
->
-> I wonder if you are able to test the ISA radio-sf16fmr2.c driver? I'm not
-> sure if you have the hardware, but since I changed this driver to use the
-> proper isa kernel framework I'd like to have this tested if possible.
+On Wed, Feb 08, 2012 at 04:14:46PM +0100, Marek Szyprowski wrote:
+> > > <SNIP>
+> > > +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
+> > > +{
+> > > +	enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+> > > +	struct zonelist *zonelist = node_zonelist(0, gfp_mask);
+> > > +	int did_some_progress = 0;
+> > > +	int order = 1;
+> > > +	unsigned long watermark;
+> > > +
+> > > +	/*
+> > > +	 * Increase level of watermarks to force kswapd do his job
+> > > +	 * to stabilize at new watermark level.
+> > > +	 */
+> > > +	min_free_kbytes += count * PAGE_SIZE / 1024;
+> > 
+> > There is a risk of overflow here although it is incredibly
+> > small. Still, a potentially nicer way of doing this was
+> > 
+> > count << (PAGE_SHIFT - 10)
+> > 
+> > > +	setup_per_zone_wmarks();
+> > > +
+> > 
+> > Nothing prevents two or more processes updating the wmarks at the same
+> > time which is racy and unpredictable. Today it is not much of a problem
+> > but CMA makes this path hotter than it was and you may see weirdness
+> > if two processes are updating zonelists at the same time. Swap-over-NFS
+> > actually starts with a patch that serialises setup_per_zone_wmarks()
+> > 
+> > You also potentially have a BIG problem here if this happens
+> > 
+> > min_free_kbytes = 32768
+> > Process a: min_free_kbytes  += 65536
+> > Process a: start direct reclaim
+> > echo 16374 > /proc/sys/vm/min_free_kbytes
+> > Process a: exit direct_reclaim
+> > Process a: min_free_kbytes -= 65536
+> > 
+> > min_free_kbytes now wraps negative and the machine hangs.
+> > 
+> > The damage is confined to CMA though so I am not going to lose sleep
+> > over it but you might want to consider at least preventing parallel
+> > updates to min_free_kbytes from proc.
+> 
+> Right. This approach was definitely too hacky. What do you think about replacing 
+> it with the following code (I assume that setup_per_zone_wmarks() serialization 
+> patch will be merged anyway so I skipped it here):
+> 
 
-The driver works, provided that linux/slab.h is included. It oopses on rmmod
-because dev_set_drvdata() call is missing from init.
-This patch fixes all of that and also removes (now useless) static fmr2_card:
+It's part of a larger series and the rest of that series is
+controversial. That single patch can be split out obviously so feel free
+to add it to your series and stick your Signed-off-by on the end of it.
 
---- a/drivers/media/radio/radio-sf16fmr2.c
-+++ b/drivers/media/radio/radio-sf16fmr2.c
-@@ -9,6 +9,7 @@
- #include <linux/delay.h>
- #include <linux/module.h>	/* Modules 			*/
- #include <linux/init.h>		/* Initdata			*/
-+#include <linux/slab.h>
- #include <linux/ioport.h>	/* request_region		*/
- #include <linux/io.h>		/* outb, outb_p			*/
- #include <linux/isa.h>
-@@ -32,7 +33,6 @@ struct fmr2 {
- 
- /* the port is hardwired so no need to support multiple cards */
- #define FMR2_PORT	0x384
--static struct fmr2 fmr2_card;
- 
- /* TEA575x tuner pins */
- #define STR_DATA	(1 << 0)
-@@ -188,7 +188,7 @@ static int fmr2_tea_ext_init(struct snd_tea575x *tea)
- 
- static int __init fmr2_probe(struct device *pdev, unsigned int dev)
- {
--	struct fmr2 *fmr2 = &fmr2_card;
-+	struct fmr2 *fmr2;
- 	int err;
- 
- 	fmr2 = kzalloc(sizeof(*fmr2), GFP_KERNEL);
-@@ -229,6 +229,7 @@ static int __init fmr2_probe(struct device *pdev, unsigned int dev)
- 	}
- 
- 	printk(KERN_INFO "radio-sf16fmr2: SF16-FMR2 radio card at 0x%x.\n", fmr2->io);
-+	dev_set_drvdata(pdev, fmr2);
- 	return 0;
- }
- 
+> diff --git a/include/linux/mmzone.h b/include/linux/mmzone.h
+> index 82f4fa5..bb9ae41 100644
+> --- a/include/linux/mmzone.h
+> +++ b/include/linux/mmzone.h
+> @@ -371,6 +371,13 @@ struct zone {
+>         /* see spanned/present_pages for more description */
+>         seqlock_t               span_seqlock;
+>  #endif
+> +#ifdef CONFIG_CMA
+> +       /*
+> +        * CMA needs to increase watermark levels during the allocation
+> +        * process to make sure that the system is not starved.
+> +        */
+> +       unsigned long           min_cma_pages;
+> +#endif
+>         struct free_area        free_area[MAX_ORDER];
+> 
+>  #ifndef CONFIG_SPARSEMEM
+> diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+> index 824fb37..1ca52f0 100644
+> --- a/mm/page_alloc.c
+> +++ b/mm/page_alloc.c
+> @@ -5044,6 +5044,11 @@ void setup_per_zone_wmarks(void)
+> 
+>                 zone->watermark[WMARK_LOW]  = min_wmark_pages(zone) + (tmp >> 2);
+>                 zone->watermark[WMARK_HIGH] = min_wmark_pages(zone) + (tmp >> 1);
+> +#ifdef CONFIG_CMA
+> +               zone->watermark[WMARK_MIN] += zone->min_cma_pages;
+> +               zone->watermark[WMARK_LOW] += zone->min_cma_pages;
+> +               zone->watermark[WMARK_HIGH] += zone->min_cma_pages;
+> +#endif
+>                 setup_zone_migrate_reserve(zone);
+>                 spin_unlock_irqrestore(&zone->lock, flags);
+>         }
 
+This is better in that it is not vunerable to parallel updates of
+min_free_kbytes. It would be slightly tidier to introduce something
+like cma_wmark_pages() that returns min_cma_pages if CONFIG_CMA and 0
+otherwise. Use the helper to get right of this ifdef CONFIG_CMA within
+setup_per_zone_wmarks().
 
+You'll still have the problem of kswapd not taking CMA pages properly into
+account when deciding whether to reclaim or not though.
 
 -- 
-Ondrej Zary
+Mel Gorman
+SUSE Labs
