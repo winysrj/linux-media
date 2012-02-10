@@ -1,111 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:59733 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212Ab2BTB71 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:59:27 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 23/33] omap3isp: Add lane configuration to platform data
-Date: Mon, 20 Feb 2012 03:57:02 +0200
-Message-Id: <1329703032-31314-23-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Received: from moutng.kundenserver.de ([212.227.126.186]:49381 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754568Ab2BJLwP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 06:52:15 -0500
+Date: Fri, 10 Feb 2012 12:51:59 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+In-Reply-To: <4F35011C.8030701@samsung.com>
+Message-ID: <Pine.LNX.4.64.1202101242270.5787@axis700.grange>
+References: <4F27CF29.5090905@samsung.com> <4116034.kVC1fDZsLk@avalon>
+ <4F32FBBB.7020007@gmail.com> <12779203.vQPWKN8eZf@avalon>
+ <Pine.LNX.4.64.1202100934070.5787@axis700.grange> <4F34EF3E.2090004@samsung.com>
+ <Pine.LNX.4.64.1202101131280.5787@axis700.grange> <4F34F83F.4060703@samsung.com>
+ <Pine.LNX.4.64.1202101202090.5787@axis700.grange> <4F35011C.8030701@samsung.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add lane configuration (order of clock and data lane) to platform data on
-both CCP2 and CSI-2.
+On Fri, 10 Feb 2012, Sylwester Nawrocki wrote:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> On 02/10/2012 12:15 PM, Guennadi Liakhovetski wrote:
+> >>>> On 02/10/2012 09:42 AM, Guennadi Liakhovetski wrote:
+> >>>>> ...thinking about this interleaved data, is there anything else left, that 
+> >>>>> the following scheme would be failing to describe:
+> >>>>>
+> >>>>> * The data is sent in repeated blocks (periods)
+> >>>>
+> >>>> The data is sent in irregular chunks of varying size (few hundred of bytes
+> >>>> for example).
+> >>>
+> >>> Right, the data includes headers. How about sensors providing 
+> >>> header-parsing callbacks?
+> >>
+> >> This implies processing of headers/footers in kernel space to some generic 
+> >> format. It might work, but sometimes there might be an unwanted performance 
+> >> loss. However I wouldn't expect it to be that significant, depends on how 
+> >> the format of an embedded data from the sensor looks like. Processing 4KiB
+> >> of data could be acceptable.
+> > 
+> > In principle I agree - (ideally) no processing in the kernel _at all_. 
+> > Just pass the complete frame data as is to the user-space. But if we need 
+> > any internal knowledge at all about the data, maybe callbacks would be a 
+> > better option, than trying to develop a generic descriptor. Perhaps, 
+> > something like "get me the location of n'th block of data of format X."
+> 
+> Hmm, I thought about only processing frame embedded data to some generic
+> format. I find the callbacks for extracting the data in the kernel 
+> impractical, with full HD video stream you may want to use some sort of
+> hardware accelerated processing, like using NEON for example. We can 
+> allow this only by leaving the deinterleave process to the user space.
+
+Sorry for confusion:-) I'm not proposing to implement this now nor do I 
+have a specific use-case for this. This was just an abstract idea about 
+how we could do this _if_ we ever need any internal information about the 
+data anywhere outside of the sensor driver. So, so far this doesn't have 
+any practical implications.
+
+OTOH - how we parse the data in the user-space. The obvious way would be 
+the one, that seems to be currently favoured here too - just use a 
+vendor-specific fourcc. OTOH, maybe it would be better to do something 
+like the above - define new (subdev) IOCTLs to parse headers and extract 
+necessary data blocks. Yes, it adds overhead, but if the user-space anyway 
+has to "manually" process the data, maybe this could be tolerated.
+
+Thanks
+Guennadi
 ---
- drivers/media/video/omap3isp/ispcsiphy.h |   15 ++-------------
- include/media/omap3isp.h                 |   25 +++++++++++++++++++++++++
- 2 files changed, 27 insertions(+), 13 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/ispcsiphy.h b/drivers/media/video/omap3isp/ispcsiphy.h
-index 9596dc6..e93a661 100644
---- a/drivers/media/video/omap3isp/ispcsiphy.h
-+++ b/drivers/media/video/omap3isp/ispcsiphy.h
-@@ -27,22 +27,11 @@
- #ifndef OMAP3_ISP_CSI_PHY_H
- #define OMAP3_ISP_CSI_PHY_H
- 
-+#include <media/omap3isp.h>
-+
- struct isp_csi2_device;
- struct regulator;
- 
--struct csiphy_lane {
--	u8 pos;
--	u8 pol;
--};
--
--#define ISP_CSIPHY2_NUM_DATA_LANES	2
--#define ISP_CSIPHY1_NUM_DATA_LANES	1
--
--struct isp_csiphy_lanes_cfg {
--	struct csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
--	struct csiphy_lane clk;
--};
--
- struct isp_csiphy_dphy_cfg {
- 	u8 ths_term;
- 	u8 ths_settle;
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 3f4928d..4d94be5 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -91,6 +91,29 @@ enum {
- };
- 
- /**
-+ * struct isp_csiphy_lane: CCP2/CSI2 lane position and polarity
-+ * @pos: position of the lane
-+ * @pol: polarity of the lane
-+ */
-+struct isp_csiphy_lane {
-+	u8 pos;
-+	u8 pol;
-+};
-+
-+#define ISP_CSIPHY1_NUM_DATA_LANES	1
-+#define ISP_CSIPHY2_NUM_DATA_LANES	2
-+
-+/**
-+ * struct isp_csiphy_lanes_cfg - CCP2/CSI2 lane configuration
-+ * @data: Configuration of one or two data lanes
-+ * @clk: Clock lane configuration
-+ */
-+struct isp_csiphy_lanes_cfg {
-+	struct isp_csiphy_lane data[ISP_CSIPHY2_NUM_DATA_LANES];
-+	struct isp_csiphy_lane clk;
-+};
-+
-+/**
-  * struct isp_ccp2_platform_data - CCP2 interface platform data
-  * @strobe_clk_pol: Strobe/clock polarity
-  *		0 - Non Inverted, 1 - Inverted
-@@ -109,6 +132,7 @@ struct isp_ccp2_platform_data {
- 	unsigned int ccp2_mode:1;
- 	unsigned int phy_layer:1;
- 	unsigned int vpclk_div:2;
-+	struct isp_csiphy_lanes_cfg lanecfg;
- };
- 
- /**
-@@ -119,6 +143,7 @@ struct isp_ccp2_platform_data {
- struct isp_csi2_platform_data {
- 	unsigned crc:1;
- 	unsigned vpclk_div:2;
-+	struct isp_csiphy_lanes_cfg lanecfg;
- };
- 
- struct isp_subdev_i2c_board_info {
--- 
-1.7.2.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
