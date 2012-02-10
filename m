@@ -1,63 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:49906 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:61230 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752657Ab2BTPN6 (ORCPT
+	with ESMTP id S1755210Ab2BJIQt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Feb 2012 10:13:58 -0500
-Date: Mon, 20 Feb 2012 16:13:44 +0100 (CET)
+	Fri, 10 Feb 2012 03:16:49 -0500
+Date: Fri, 10 Feb 2012 09:16:47 +0100 (CET)
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Fabio Estevam <festevam@gmail.com>
-cc: linux-media@vger.kernel.org, javier.martin@vista-silicon.com,
-	kernel@pengutronix.de, mchehab@infradead.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: Re: [PATCH 1/3] media: video: mx2_camera.c: Fix build warning by
- initializing 'res_emma'
-In-Reply-To: <1329312801-20501-1-git-send-email-festevam@gmail.com>
-Message-ID: <Pine.LNX.4.64.1202201612250.2836@axis700.grange>
-References: <1329312801-20501-1-git-send-email-festevam@gmail.com>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
+Subject: Re: [PATCH v4 3/4] media i.MX27 camera: improve discard buffer
+ handling.
+In-Reply-To: <CACKLOr0p_ggtftXu1G1VbG7g+ZBvD4H707NY4o8-tAz6kP5epw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1202100915350.5787@axis700.grange>
+References: <1328609682-18014-1-git-send-email-javier.martin@vista-silicon.com>
+ <CACKLOr0ioy2rxKY7PUBDCBPaQG0FUv0Drt-GNgBnNmFDt05T-w@mail.gmail.com>
+ <Pine.LNX.4.64.1202092328450.18719@axis700.grange>
+ <CACKLOr0p_ggtftXu1G1VbG7g+ZBvD4H707NY4o8-tAz6kP5epw@mail.gmail.com>
 MIME-Version: 1.0
 Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio
+Hi Javier
 
-On Wed, 15 Feb 2012, Fabio Estevam wrote:
+On Fri, 10 Feb 2012, javier Martin wrote:
 
-> Fix the following build warning:
-> 
-> drivers/media/video/mx2_camera.c: In function 'mx2_camera_probe':
-> drivers/media/video/mx2_camera.c:1527: warning: 'res_emma' may be used uninitialized in this function
+[snip]
 
-This warning should be no longer occur after recent patches from Javier 
-Martin, that should appear in 3.4.
+> I'd rather you merge this as it is, because it really fixes a driver
+> which is currently buggy. I'll send a clean up series adressing the
+> following issues next week:
+> 1. Eliminate the unwanted "goto".
+> 2. Use list_first_entry() macro.
+> 3. Use spin_lock() in ISR.
+> 4. Return IRQ_NONE if list is empty and no status bit is set.
+> 5. Integrate discard buffers in a more efficient way.
+
+Ok, let's do that.
 
 Thanks
 Guennadi
-
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> ---
->  drivers/media/video/mx2_camera.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-> index 04aab0c..5888e33 100644
-> --- a/drivers/media/video/mx2_camera.c
-> +++ b/drivers/media/video/mx2_camera.c
-> @@ -1524,7 +1524,7 @@ out:
->  static int __devinit mx2_camera_probe(struct platform_device *pdev)
->  {
->  	struct mx2_camera_dev *pcdev;
-> -	struct resource *res_csi, *res_emma;
-> +	struct resource *res_csi, *res_emma = NULL;
->  	void __iomem *base_csi;
->  	int irq_csi, irq_emma;
->  	irq_handler_t mx2_cam_irq_handler = cpu_is_mx25() ? mx25_camera_irq
-> -- 
-> 1.7.1
-> 
-
 ---
 Guennadi Liakhovetski, Ph.D.
 Freelance Open-Source Software Developer
