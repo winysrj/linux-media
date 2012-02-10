@@ -1,90 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47251 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752390Ab2BQStP (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:57689 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931Ab2BJV5K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 13:49:15 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Semwal, Sumit" <sumit.semwal@ti.com>
-Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jesse Barnes <jbarnes@virtuousgeek.org>,
-	Rob Clark <rob@ti.com>, Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linux-fbdev@vger.kernel.org
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC 2012 - Notes
-Date: Fri, 17 Feb 2012 19:49:01 +0100
-Message-ID: <20147090.P4saEu3B42@avalon>
-In-Reply-To: <CAB2ybb_-ULCsfS48u7HQiRDLG5y-X2rmyXvHBcCRtc=m-732hQ@mail.gmail.com>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com> <1775349.d0yvHiVdjB@avalon> <CAB2ybb_-ULCsfS48u7HQiRDLG5y-X2rmyXvHBcCRtc=m-732hQ@mail.gmail.com>
+	Fri, 10 Feb 2012 16:57:10 -0500
+Received: by bkcjm19 with SMTP id jm19so3185923bkc.19
+        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2012 13:57:08 -0800 (PST)
+Message-ID: <4F3592AB.4000607@googlemail.com>
+Date: Fri, 10 Feb 2012 22:56:59 +0100
+From: Gregor Jasny <gjasny@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Announcing v4l-utils-0.8.6
+Content-Type: multipart/signed; micalg=pgp-sha256;
+ protocol="application/pgp-signature";
+ boundary="------------enigF7B9576FE9ED128F40EB3BA0"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sumit,
+This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
+--------------enigF7B9576FE9ED128F40EB3BA0
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: quoted-printable
 
-On Friday 17 February 2012 16:37:35 Semwal, Sumit wrote:
-> On Fri, Feb 17, 2012 at 4:55 AM, Laurent Pinchart wrote: 
-> > Hello everybody,
-> > 
-> > First of all, I would like to thank all the attendees for their
-> > participation in the mini-summit that helped make the meeting a success.
-> 
-> <snip>
-> 
-> > ***  dma-buf Implementation in V4L2 ***
-> > 
-> >  Goal: Implement the dma-buf API in V4L2.
-> > 
-> >  Sumit Semwal has submitted patches to implement the dma-buf importer role
-> > in videobuf2. Tomasz Stanislawski has then submitted incremental patches
-> > to add exporter role support.
-> > 
-> >  Action points:
-> >  - Create a git branch to host all the latest patches. Sumit will provide
-> >    that.
-> 
-> Against my Action Item: I have created the following branch at my
-> github (obviously, it is an RFC branch only)
+Hi,
 
-That was very fast :-) Thank you for your work on this.
+I'm happy to announce the release of v4l-utils-0.8.6. It contains mostly
+backports from the development branch. The most interesting addition is
+the new upside down table matching algorithm targeted at ASUS notebooks.
+It will hopefully reduce the upside down table update frequency for
+those machines.
 
-> tree: git://github.com/sumitsemwal/kernel-omap4.git
-> branch: 3.3rc3-v4l2-dmabuf-RFCv1
-> 
-> As the name partially suggests, it is based out of:
-> 3.3-rc3 +
-> dmav6 [1] +
-> some minor dma-buf updates [2] +
-> my v4l2-as-importer RFC [3] +
-> Tomasz' RFC for v4l2-as-exporter (and related patches) [4]
-> 
-> Since Tomasz' RFC had a patch-pair which first removed and then added
-> drivers/media/video/videobuf2-dma-contig.c file, I 'combined' these
-> into one - but since the patch-pair heavily refactored the file, I am
-> not able to take responsibility of completeness / correctness of the
-> same.
+Full changelog:
 
-No worries. The branch's main purpose is to provide people with a starting 
-point to use dma-buf, patch review will go through mailing lists anyway.
+v4l-utils-0.8.6
+---------------
+* libv4l changes (0.9.x backports)
+  * Add support for libjpeg >=3D v7
+  * Add new matching algorithm for upside down table (gjasny)
+  * Add some more laptop models to the upside down devices table
+(hdegoede, gjasny)
+  * Retry with another frame on JPEG header decode errors (hdegoede)
+  * Improved JL2005BCD support (Theodore Kilgore, hdegoede)
+  * Set errno to EIO if getting 4 consecutive EAGAIN convert errors
+(hdegoede)
+  * Make software autowhitebalance converge faster (hdegoede)
+  * Add quirk support for forced tinyjpeg fallback (hdegoede)
 
-> [1]:
-> http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/3.3
-> -rc2-dma-v6 [2]: git://git.linaro.org/people/sumitsemwal/linux-3.x.git 'dev'
-> branch [3]:
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/4296
-> 6/focus=42968 [4]:
-> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/4379
-> 3
+Go get it here:
+http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.6.tar.bz2
 
--- 
-Regards,
+You can always find the latest developments and the stable branch here:
+http://git.linuxtv.org/v4l-utils.git
 
-Laurent Pinchart
+Thanks,
+Gregor
+
+PS: Ubuntu users, you can this version for Oneiric and Precise via the
+ppa:libv4l/stable PPA.
+
+
+--------------enigF7B9576FE9ED128F40EB3BA0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
+
+iQIcBAEBCAAGBQJPNZKxAAoJEBmaZPrftQD/hMgQAIhGA34TVB+/IhTOIycapDTh
+SYLS/0jqaOeRRguWPcme+mjl7cj179xRKebi+9nIi8nIE+4caL+6lRpZ6WdkeThf
+RJ6UpzYxw466JRVltfeu38c0YHBPVr9B33Cf9Qh0kucjFhiEYOOKgR2HCkagSyq3
+jmbUMZk4QNA+AWfi97fUNlHZybe3YCS5Hzc2uYKDLMd9zN22bkp5CoFaBZ3WUf/Y
+eCMhSH1DYw/bgzTDTw2f1kBRtTmOp7IZIYpKohgOYs6jC8yzuUwaHn6URCXGhgjQ
+ErO0IpU9hdITBUdLJMFmbnlUK8iixQX81oMW2chun1L7iv3W7nFYwfwSFapf6wgt
+WyUiixhCrSq3NSPRAazq/xJZwVfnvkz+cCV3IjdCujOR8kxpVwsdffFaJi4gshUj
+Bbqby7PUyzo21bWbPEnwktpFj2lHr38QMEPWoGT7WRQm2wJcbS3TPLh0hm1wMPiw
+8sRz8lE4sluY+YMOoCihAxzQJWh5kEHr3S570D0gYCfRU4hUy412EncXIc9NCSqg
+6prqH12P2oG9xlYr4M7Knc6kTwQ1ANVeP6hmwSuod75PpoVFtwMLq4MCX8A6+KmH
+K5ztsCJ/tguO+/4C1k/vgZcDWXpInjWQs8wMux+zEZI+l7q63vwR4mIVeT1fizGg
+rWJnmaS+0AHkDd6pBlV2
+=daWs
+-----END PGP SIGNATURE-----
+
+--------------enigF7B9576FE9ED128F40EB3BA0--
