@@ -1,52 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga14.intel.com ([143.182.124.37]:7332 "EHLO mga14.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750878Ab2BOPIM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 Feb 2012 10:08:12 -0500
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: "linux-media @ vger . kernel . org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	David Cohen <dacohen@gmail.com>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCH] media: video: append $(srctree) to -I parameters
-Date: Wed, 15 Feb 2012 17:08:01 +0200
-Message-Id: <1329318481-8530-1-git-send-email-andriy.shevchenko@linux.intel.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:65367 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758930Ab2BJKeD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 Feb 2012 05:34:03 -0500
+Date: Fri, 10 Feb 2012 11:33:49 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
+	<riverful.kim@samsung.com>,
+	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
+	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [Q] Interleaved formats on the media bus
+In-Reply-To: <4F34EF3E.2090004@samsung.com>
+Message-ID: <Pine.LNX.4.64.1202101131280.5787@axis700.grange>
+References: <4F27CF29.5090905@samsung.com> <4116034.kVC1fDZsLk@avalon>
+ <4F32FBBB.7020007@gmail.com> <12779203.vQPWKN8eZf@avalon>
+ <Pine.LNX.4.64.1202100934070.5787@axis700.grange> <4F34EF3E.2090004@samsung.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without this we have got the warnings like following if build with "make W=1
-O=/var/tmp":
-   CHECK   drivers/media/video/videobuf-vmalloc.c
-   CC [M]  drivers/media/video/videobuf-vmalloc.o
- +cc1: warning: drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
- +cc1: warning: drivers/media/dvb/frontends: No such file or directory [enabled by default]
- +cc1: warning: drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
- +cc1: warning: drivers/media/dvb/frontends: No such file or directory [enabled by default]
-   LD      drivers/media/built-in.o
+On Fri, 10 Feb 2012, Sylwester Nawrocki wrote:
 
-Some details could be found in [1] as well.
+> On 02/10/2012 09:42 AM, Guennadi Liakhovetski wrote:
+> > ...thinking about this interleaved data, is there anything else left, that 
+> > the following scheme would be failing to describe:
+> > 
+> > * The data is sent in repeated blocks (periods)
+> 
+> The data is sent in irregular chunks of varying size (few hundred of bytes
+> for example).
 
-[1] http://comments.gmane.org/gmane.linux.kbuild.devel/7733
+Right, the data includes headers. How about sensors providing 
+header-parsing callbacks?
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Thanks
+Guennadi
+
+> 
+> > * Each block can be fully described by a list of format specifiers, each 
+> > containing
+> > ** data format code
+> > ** number of alignment bytes
+> > ** number of data bytes
+> 
+> Each frame would have its own list of such format specifiers, as the data
+> chunk sizes vary from frame to frame. Therefore the above is unfortunately
+> more a frame meta data, rather than a static frame description.
+> 
+> > Can there actually be anything more complicated than that?
+> 
+> There is an embedded data at end of frame (could be also at the beginning)
+> which describes layout of the interleaved data.
+> 
+> Some data types would have padding bytes.
+> 
+> Even if we somehow find a way to describe the frame on media bus, using a set
+> of properties, it would be difficult to pass this information to user space.
+> A similar description would have to be probably exposed to applications, now
+> everything is described in user space by a single fourcc..
+> 
+> 
+> Regards,
+> -- 
+> Sylwester Nawrocki
+> Samsung Poland R&D Center
+> 
+
 ---
- drivers/media/video/Makefile |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
-
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 3541388..3bf0aa8 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -199,6 +199,6 @@ obj-y	+= davinci/
- 
- obj-$(CONFIG_ARCH_OMAP)	+= omap/
- 
--ccflags-y += -Idrivers/media/dvb/dvb-core
--ccflags-y += -Idrivers/media/dvb/frontends
--ccflags-y += -Idrivers/media/common/tuners
-+ccflags-y += -I$(srctree)/drivers/media/dvb/dvb-core
-+ccflags-y += -I$(srctree)/drivers/media/dvb/frontends
-+ccflags-y += -I$(srctree)/drivers/media/common/tuners
--- 
-1.7.9
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
