@@ -1,43 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:42877 "EHLO
-	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1759448Ab2BJPBu (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:35523 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755174Ab2BKPzk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 10:01:50 -0500
-From: Danny Kukawka <danny.kukawka@bisect.de>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Danny Kukawka <dkukawka@suse.de>, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] mt2063: remove mt2063_setTune from header
-Date: Fri, 10 Feb 2012 16:01:41 +0100
-Message-Id: <1328886101-22701-1-git-send-email-danny.kukawka@bisect.de>
+	Sat, 11 Feb 2012 10:55:40 -0500
+Date: Sat, 11 Feb 2012 16:55:37 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Alistair Buxton <a.j.buxton@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: SDR FM demodulation
+Message-ID: <20120211155537.GA24193@minime.bse>
+References: <4F33DFB8.4080702@iki.fi>
+ <CAO-Op+Fn0AxiqD4367O7H7AziR4g2vnFCMtsVcu1iRvf6P5iYw@mail.gmail.com>
+ <4F36632A.3010700@iki.fi>
+ <20120211151548.GA23806@minime.bse>
+ <4F368A31.7010607@iki.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <4F368A31.7010607@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 99ac54125490f16f7434f82fcb73bbb88290b38e removed
-the function mt2063_setTune() from mt2063.c. Remove it
-also from the header file.
+On Sat, Feb 11, 2012 at 05:33:05PM +0200, Antti Palosaari wrote:
+> I opened my device and there is Elonics E4000 [1] silicon tuner.
+> That tuner seems to be a little crazy beast! Supports frequencies
+> from 64 to 1678 MHz and very many modulations. So for my eyes it is
+> almost idea cheap SDR. No idea what is supported max bw ADC can
+> sample...
 
-Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
----
- drivers/media/common/tuners/mt2063.h |    4 ----
- 1 files changed, 0 insertions(+), 4 deletions(-)
+I just tried to find the XC3028 product brief.
+It seems XCeive has recently been bought by a company called CrestaTech
+that have a USB/PCIe chipset for a small universal receiver and a PC
+based SDR suite for TV/radio/GPS decoding.
 
-diff --git a/drivers/media/common/tuners/mt2063.h b/drivers/media/common/tuners/mt2063.h
-index 62d0e8e..3f5cfd9 100644
---- a/drivers/media/common/tuners/mt2063.h
-+++ b/drivers/media/common/tuners/mt2063.h
-@@ -23,10 +23,6 @@ static inline struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
- 	return NULL;
- }
- 
--int mt2063_setTune(struct dvb_frontend *fe, u32 f_in,
--				   u32 bw_in,
--				   enum MTTune_atv_standard tv_type);
--
- /* FIXME: Should use the standard DVB attachment interfaces */
- unsigned int tuner_MT2063_SoftwareShutdown(struct dvb_frontend *fe);
- unsigned int tuner_MT2063_ClearPowerMaskBits(struct dvb_frontend *fe);
--- 
-1.7.7.3
-
+  Daniel
