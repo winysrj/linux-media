@@ -1,84 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:63805 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751690Ab2BTB5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:57:51 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 03/33] vivi: Add an integer menu test control
-Date: Mon, 20 Feb 2012 03:56:42 +0200
-Message-Id: <1329703032-31314-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Received: from mailout-de.gmx.net ([213.165.64.23]:58975 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753199Ab2BKLdu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 11 Feb 2012 06:33:50 -0500
+Date: Sat, 11 Feb 2012 12:33:47 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Alistair Buxton <a.j.buxton@gmail.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: SDR FM demodulation
+Message-ID: <20120211113347.GA22110@minime.bse>
+References: <4F33DFB8.4080702@iki.fi>
+ <CAO-Op+Fn0AxiqD4367O7H7AziR4g2vnFCMtsVcu1iRvf6P5iYw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAO-Op+Fn0AxiqD4367O7H7AziR4g2vnFCMtsVcu1iRvf6P5iYw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an integer menu test control for the vivi driver.
+On Sat, Feb 11, 2012 at 07:00:16AM +0000, Alistair Buxton wrote:
+> The source file appears to be about 2 to 2.2 million samples per
+> second. Any higher than that and the person speaking sounds like a
+> chipmunk. Maybe 22050 * 1000 or 1024? Does any Finnish station
+> broadcast "pips" like the BBC does? That could be used to determine
+> the actual rate.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/vivi.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+The stereo carrier is at 19kHz and RDS is centered around 57kHz.
+I'd say this is 2048kHz sampling rate.
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 5e8b071..d75a1e4 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -177,6 +177,7 @@ struct vivi_dev {
- 	struct v4l2_ctrl	   *menu;
- 	struct v4l2_ctrl	   *string;
- 	struct v4l2_ctrl	   *bitmask;
-+	struct v4l2_ctrl	   *int_menu;
- 
- 	spinlock_t                 slock;
- 	struct mutex		   mutex;
-@@ -503,6 +504,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 			dev->boolean->cur.val,
- 			dev->menu->qmenu[dev->menu->cur.val],
- 			dev->string->cur.string);
-+	snprintf(str, sizeof(str), " integer_menu %lld, value %d ",
-+			dev->int_menu->qmenu_int[dev->int_menu->cur.val],
-+			dev->int_menu->cur.val);
-+	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	mutex_unlock(&dev->ctrl_handler.lock);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	if (dev->button_pressed) {
-@@ -1165,6 +1170,22 @@ static const struct v4l2_ctrl_config vivi_ctrl_bitmask = {
- 	.step = 0,
- };
- 
-+static const s64 vivi_ctrl_int_menu_values[] = {
-+	1, 1, 2, 3, 5, 8, 13, 21, 42,
-+};
-+
-+static const struct v4l2_ctrl_config vivi_ctrl_int_menu = {
-+	.ops = &vivi_ctrl_ops,
-+	.id = VIVI_CID_CUSTOM_BASE + 7,
-+	.name = "Integer menu",
-+	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
-+	.min = 1,
-+	.max = 8,
-+	.def = 4,
-+	.menu_skip_mask = 0x02,
-+	.qmenu_int = vivi_ctrl_int_menu_values,
-+};
-+
- static const struct v4l2_file_operations vivi_fops = {
- 	.owner		= THIS_MODULE,
- 	.open           = v4l2_fh_open,
-@@ -1275,6 +1296,7 @@ static int __init vivi_create_instance(int inst)
- 	dev->menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_menu, NULL);
- 	dev->string = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_string, NULL);
- 	dev->bitmask = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_bitmask, NULL);
-+	dev->int_menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_int_menu, NULL);
- 	if (hdl->error) {
- 		ret = hdl->error;
- 		goto unreg_dev;
--- 
-1.7.2.5
-
+  Daniel
