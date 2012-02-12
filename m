@@ -1,49 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:59510 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754168Ab2BDXoo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 18:44:44 -0500
-Date: Sun, 5 Feb 2012 00:44:40 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <snjw23@gmail.com>
-cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Q] Interleaved formats on the media bus
-In-Reply-To: <4F2D79A9.8030504@gmail.com>
-Message-ID: <Pine.LNX.4.64.1202050041001.3770@axis700.grange>
-References: <4F27CF29.5090905@samsung.com> <20120201100007.GA841@valkosipuli.localdomain>
- <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi> <4F2D4E2D.1030107@gmail.com>
- <4F2D5231.4000703@iki.fi> <4F2D79A9.8030504@gmail.com>
+Received: from nm21-vm2.bullet.mail.ne1.yahoo.com ([98.138.91.209]:37148 "HELO
+	nm21-vm2.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1751274Ab2BLIdz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 Feb 2012 03:33:55 -0500
+Message-ID: <1329035221.45427.YahooMailClassic@web39301.mail.mud.yahoo.com>
+Date: Sun, 12 Feb 2012 00:27:01 -0800 (PST)
+From: Jan Panteltje <panteltje@yahoo.com>
+Subject: Request to move the DVB-infrared remote output to for example /dev/dvb/adaptorX/irX
+To: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 4 Feb 2012, Sylwester Nawrocki wrote:
 
-> Hi Sakari,
+Reason:
+The current output from IR remotes in DVB seems to go to /dev/input/eventX
+This causes huge problems with other applications,
+because the pressed keys appear in those applications as input,
+even if no DVB application is running,
+all that is required is that the DVB USB device is plugged in (that will load the related modules).
 
-[snip]
+An example of disaster caused by the current system:
 
-> Yes, this is what I started with. What do you think about creating media 
-> bus codes directly corresponding the the user defined MIPI-CSI data types ?
+You are filling in your tax form.
+Kid pressed some keys on the remote, it has 100 ms auto repeat.
+Your income is now 20 digits, most of those '9', the form is closed,
+and send.
 
-We've discussed this before with Laurent, IIRC, and the decision was, that 
-since a "typical" CSI-2 configuration includes a CSI-2 phy, interfacing to 
-a "standard" bridge, that can also receive parallel data directly, and the 
-phy normally has a 1-to-1 mapping from CSI-2 formats to mediabus codes, 
-so, we can just as well directly use respective mediabus codes to 
-configure CSI-2 phys.
+You are bidding on an item on ebay, you got it for 10 million dollars now.
+Try explaining that to a seller.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+You are watching a movie with mplayer, it exits because for example you went past EOF,
+or audio video sync suddenly changes, what not.
+Same for xine, and if those are run full screen it is a 100% hit every time.
+
+Basically the /dev/input/eventX goes to any application or application input field that
+has the focus in that moment.
+That does not have to be visible at all to the user!
+
+This behavior in itself I already consider a fatal bug or design flaw.
+
+The other issue is that, with USB DVB devices, it is possible to have more than one connected
+(I have 2, terrestrial and satellite), and it would make a lot more sense to get the IR
+codes from /dev/dv/adaptorX/IR..X from a consistency POV. (and ONLY when you open that device for read).
+
+I know about the possibility to grab the output for an application all by itself
+with ioctl(), but this requires the DVB application to actually be started.
+The /dev/input/ method dumps data to inputs without ANY DVB application started.
+BAD.
+
+Well, I have stated my concern, I can work around this myself I think,
+but for normal users this can cause big havoc.
+Even if you throw away the DVB remote, there are many other remotes in the room,
+DVD player, TV, etc, and it cannot be guaranteed that no codes from those will not mess up
+input fields (and CLOSE THESE causing actions taken !!!!) in some application.
+
+
