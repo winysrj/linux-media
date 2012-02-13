@@ -1,86 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:57689 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752931Ab2BJV5K (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:57726 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751356Ab2BMOKV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 16:57:10 -0500
-Received: by bkcjm19 with SMTP id jm19so3185923bkc.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2012 13:57:08 -0800 (PST)
-Message-ID: <4F3592AB.4000607@googlemail.com>
-Date: Fri, 10 Feb 2012 22:56:59 +0100
-From: Gregor Jasny <gjasny@googlemail.com>
+	Mon, 13 Feb 2012 09:10:21 -0500
+Date: Mon, 13 Feb 2012 15:10:12 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	s.hauer@pengutronix.de
+Subject: Re: [PATCH 5/6] media: i.MX27 camera: fix compilation warning.
+In-Reply-To: <1329141115-23133-6-git-send-email-javier.martin@vista-silicon.com>
+Message-ID: <Pine.LNX.4.64.1202131508080.8277@axis700.grange>
+References: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
+ <1329141115-23133-6-git-send-email-javier.martin@vista-silicon.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Announcing v4l-utils-0.8.6
-Content-Type: multipart/signed; micalg=pgp-sha256;
- protocol="application/pgp-signature";
- boundary="------------enigF7B9576FE9ED128F40EB3BA0"
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an OpenPGP/MIME signed message (RFC 2440 and 3156)
---------------enigF7B9576FE9ED128F40EB3BA0
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: quoted-printable
+Hi Javier
 
-Hi,
+On Mon, 13 Feb 2012, Javier Martin wrote:
 
-I'm happy to announce the release of v4l-utils-0.8.6. It contains mostly
-backports from the development branch. The most interesting addition is
-the new upside down table matching algorithm targeted at ASUS notebooks.
-It will hopefully reduce the upside down table update frequency for
-those machines.
+> 
+> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+> ---
+>  drivers/media/video/mx2_camera.c |   16 ++++++++--------
+>  1 files changed, 8 insertions(+), 8 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index d9028f1..8ccdb4a 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
+> @@ -1210,7 +1210,9 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+>  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+>  		int bufnum, bool err)
+>  {
+> +#ifdef DEBUG
+>  	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+> +#endif
+>  	struct mx2_buffer *buf;
+>  	struct vb2_buffer *vb;
+>  	unsigned long phys;
+> @@ -1232,18 +1234,16 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+>  		if (prp->cfg.channel == 1) {
+>  			if (readl(pcdev->base_emma + PRP_DEST_RGB1_PTR +
+>  				4 * bufnum) != phys) {
+> -				dev_err(pcdev->dev, "%p != %p\n", phys,
+> -						readl(pcdev->base_emma +
+> -							PRP_DEST_RGB1_PTR +
+> -							4 * bufnum));
+> +				dev_err(pcdev->dev, "%p != %p\n", (void *)phys,
+> +					(void *)readl(pcdev->base_emma +
+> +					PRP_DEST_RGB1_PTR + 4 * bufnum));
+>  			}
+>  		} else {
+>  			if (readl(pcdev->base_emma + PRP_DEST_Y_PTR -
+>  				0x14 * bufnum) != phys) {
+> -				dev_err(pcdev->dev, "%p != %p\n", phys,
+> -						readl(pcdev->base_emma +
+> -							PRP_DEST_Y_PTR -
+> -							0x14 * bufnum));
+> +				dev_err(pcdev->dev, "%p != %p\n", (void *)phys,
+> +					(void *)readl(pcdev->base_emma +
+> +					PRP_DEST_Y_PTR - 0x14 * bufnum));
 
-Full changelog:
+I think, just using %lx would be better.
 
-v4l-utils-0.8.6
----------------
-* libv4l changes (0.9.x backports)
-  * Add support for libjpeg >=3D v7
-  * Add new matching algorithm for upside down table (gjasny)
-  * Add some more laptop models to the upside down devices table
-(hdegoede, gjasny)
-  * Retry with another frame on JPEG header decode errors (hdegoede)
-  * Improved JL2005BCD support (Theodore Kilgore, hdegoede)
-  * Set errno to EIO if getting 4 consecutive EAGAIN convert errors
-(hdegoede)
-  * Make software autowhitebalance converge faster (hdegoede)
-  * Add quirk support for forced tinyjpeg fallback (hdegoede)
+>  			}
+>  		}
+>  #endif
+> -- 
+> 1.7.0.4
 
-Go get it here:
-http://linuxtv.org/downloads/v4l-utils/v4l-utils-0.8.6.tar.bz2
-
-You can always find the latest developments and the stable branch here:
-http://git.linuxtv.org/v4l-utils.git
-
-Thanks,
-Gregor
-
-PS: Ubuntu users, you can this version for Oneiric and Precise via the
-ppa:libv4l/stable PPA.
-
-
---------------enigF7B9576FE9ED128F40EB3BA0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Comment: Using GnuPG with Mozilla - http://enigmail.mozdev.org/
-
-iQIcBAEBCAAGBQJPNZKxAAoJEBmaZPrftQD/hMgQAIhGA34TVB+/IhTOIycapDTh
-SYLS/0jqaOeRRguWPcme+mjl7cj179xRKebi+9nIi8nIE+4caL+6lRpZ6WdkeThf
-RJ6UpzYxw466JRVltfeu38c0YHBPVr9B33Cf9Qh0kucjFhiEYOOKgR2HCkagSyq3
-jmbUMZk4QNA+AWfi97fUNlHZybe3YCS5Hzc2uYKDLMd9zN22bkp5CoFaBZ3WUf/Y
-eCMhSH1DYw/bgzTDTw2f1kBRtTmOp7IZIYpKohgOYs6jC8yzuUwaHn6URCXGhgjQ
-ErO0IpU9hdITBUdLJMFmbnlUK8iixQX81oMW2chun1L7iv3W7nFYwfwSFapf6wgt
-WyUiixhCrSq3NSPRAazq/xJZwVfnvkz+cCV3IjdCujOR8kxpVwsdffFaJi4gshUj
-Bbqby7PUyzo21bWbPEnwktpFj2lHr38QMEPWoGT7WRQm2wJcbS3TPLh0hm1wMPiw
-8sRz8lE4sluY+YMOoCihAxzQJWh5kEHr3S570D0gYCfRU4hUy412EncXIc9NCSqg
-6prqH12P2oG9xlYr4M7Knc6kTwQ1ANVeP6hmwSuod75PpoVFtwMLq4MCX8A6+KmH
-K5ztsCJ/tguO+/4C1k/vgZcDWXpInjWQs8wMux+zEZI+l7q63vwR4mIVeT1fizGg
-rWJnmaS+0AHkDd6pBlV2
-=daWs
------END PGP SIGNATURE-----
-
---------------enigF7B9576FE9ED128F40EB3BA0--
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
