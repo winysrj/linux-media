@@ -1,144 +1,511 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2416 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751567Ab2BUJor (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:65169 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755631Ab2BMR7e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Feb 2012 04:44:47 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH] tea575x: fix HW seek
-Date: Tue, 21 Feb 2012 10:44:14 +0100
-Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-References: <201202181745.49819.linux@rainbow-software.org>
-In-Reply-To: <201202181745.49819.linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202211044.14925.hverkuil@xs4all.nl>
+	Mon, 13 Feb 2012 12:59:34 -0500
+Received: by eaah12 with SMTP id h12so1868661eaa.19
+        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 09:59:32 -0800 (PST)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: dheitmueller@kernellabs.com, andyqos@ukfsn.org,
+	Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] em28xx: pre-allocate DVB isoc transfer buffers
+Date: Mon, 13 Feb 2012 18:59:22 +0100
+Message-Id: <1329155962-22896-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday, February 18, 2012 17:45:45 Ondrej Zary wrote:
-> Fix HW seek in TEA575x to work properly:
->  - a delay must be present after search start and before first register read
->    or the seek does weird things
->  - when the search stops, the new frequency is not available immediately, we
->    must wait until it appears in the register (fortunately, we can clear the
->    frequency bits when starting the search as it starts at the frequency
->    currently set, not from the value written)
->  - sometimes, seek remains on the current frequency (or moves only a little),
->    so repeat it until it moves by at least 50 kHz
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> 
-> --- a/sound/i2c/other/tea575x-tuner.c
-> +++ b/sound/i2c/other/tea575x-tuner.c
-> @@ -89,7 +89,7 @@ static void snd_tea575x_write(struct snd_tea575x *tea, unsigned int val)
->  		tea->ops->set_pins(tea, 0);
->  }
->  
-> -static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
-> +static u32 snd_tea575x_read(struct snd_tea575x *tea)
->  {
->  	u16 l, rdata;
->  	u32 data = 0;
-> @@ -120,6 +120,27 @@ static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
->  	return data;
->  }
->  
-> +static void snd_tea575x_get_freq(struct snd_tea575x *tea)
-> +{
-> +	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
-> +
-> +	if (freq == 0) {
-> +		tea->freq = 0;
+(was: Re: PCTV 290e page allocation failure)
 
-Wouldn't it be better to return -EBUSY in this case? VIDIOC_G_FREQUENCY
-should not return frequencies outside the valid frequency range. In this case
-returning -EBUSY seems to make more sense to me.
+On MIPS/ARM set-top-boxes, as well as old x86 PCs, memory allocation failures
+in the em28xx driver are common, due to memory fragmentation over time, that
+makes impossible to allocate large chunks of coherent memory.
+A typical system with 256/512 MB of RAM fails after just 1 day of uptime (see
+the old thread for detailed reports and crashlogs).
 
-I'm proposing adding this patch:
+In fact, the em28xx driver allocates memory for USB isoc transfers at runtime,
+as opposite to the dvb-usb drivers that allocates the USB buffers when the
+device is initialized, and frees them when the device is disconnected.
 
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index 474bb81..02da22f 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -120,14 +120,12 @@ static u32 snd_tea575x_read(struct snd_tea575x *tea)
- 	return data;
- }
+Moreover, in digital mode the USB isoc transfer buffers are freed, allocated
+and cleared every time the user selects a new channel, wasting time and
+resources.
+
+This patch solves both problems by allocating DVB isoc transfer buffers in
+em28xx_usb_probe(), and freeing them in em28xx_usb_disconnect().
+In fact, the buffers size and number depend only on the max USB packet size
+that is parsed from the USB descriptors in em28xx_usb_probe(), so it can
+never change for a given device.
+
+This approach makes no sense in analog mode (as the buffer size depends on
+the alternate mode selected at runtime), the patch creates two separate sets
+of buffers for digital and analog modes.
+
+For digital-only devices, USB buffers are created when the device is probed
+and freed when the device is disconnected.
+For analog-only devices, nothing changes: isoc buffers are created at runtime.
+For hybrid devices, two sets of buffers are maintained: the digital-mode
+buffers are created when the device is probed, and freed when the device is
+disconnected; analog-mode buffers are created/destroyed at runtime as before.
+So, in analog mode, digital and analog buffers coexists at the same time: this
+can be justified by the fact that digital mode is by far more commonly used
+nowadays, so it makes sense to optimize the driver for this use case scenario.
+
+The patch has been tested in the last few days on a x86 PC and a MIPS
+set-top-box, with the PCTV 290e (digital only) and the Terratec Hybrid XS
+(hybrid device). With the latter, I switched several times between analog and
+digital mode (Kaffeine/TvTime) with no issue at all.
+I unplugged/plugged the devices several times with no problem.
+Also, after over 3 days of normal usage in the MPIS set-top-box, the PCTV 290e
+was still up and running.
+
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/video/em28xx/em28xx-cards.c |   16 +++-
+ drivers/media/video/em28xx/em28xx-core.c  |  145 +++++++++++++++++++----------
+ drivers/media/video/em28xx/em28xx-dvb.c   |   14 +--
+ drivers/media/video/em28xx/em28xx-video.c |   10 +-
+ drivers/media/video/em28xx/em28xx.h       |   23 ++++-
+ 5 files changed, 142 insertions(+), 66 deletions(-)
+
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index 2aa772a..5c06bac 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -3307,6 +3307,17 @@ static int em28xx_usb_probe(struct usb_interface *interface,
+ 		goto unlock_and_free;
+ 	}
  
--static void snd_tea575x_get_freq(struct snd_tea575x *tea)
-+static int snd_tea575x_get_freq(struct snd_tea575x *tea)
++	if (has_dvb) {
++		/* pre-allocate DVB isoc transfer buffers */
++		retval = em28xx_alloc_isoc(dev, EM28XX_DIGITAL_MODE,
++					   EM28XX_DVB_MAX_PACKETS,
++					   EM28XX_DVB_NUM_BUFS,
++					   dev->dvb_max_pkt_size);
++		if (retval) {
++			goto unlock_and_free;
++		}
++	}
++
+ 	request_modules(dev);
+ 
+ 	/* Should be the last thing to do, to avoid newer udev's to
+@@ -3379,7 +3390,7 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 		     video_device_node_name(dev->vdev));
+ 
+ 		dev->state |= DEV_MISCONFIGURED;
+-		em28xx_uninit_isoc(dev);
++		em28xx_uninit_isoc(dev, dev->mode);
+ 		dev->state |= DEV_DISCONNECTED;
+ 		wake_up_interruptible(&dev->wait_frame);
+ 		wake_up_interruptible(&dev->wait_stream);
+@@ -3388,6 +3399,9 @@ static void em28xx_usb_disconnect(struct usb_interface *interface)
+ 		em28xx_release_resources(dev);
+ 	}
+ 
++	/* free DVB isoc buffers */
++	em28xx_uninit_isoc(dev, EM28XX_DIGITAL_MODE);
++
+ 	mutex_unlock(&dev->lock);
+ 
+ 	em28xx_close_extension(dev);
+diff --git a/drivers/media/video/em28xx/em28xx-core.c b/drivers/media/video/em28xx/em28xx-core.c
+index 0aacc96..53a9fb9 100644
+--- a/drivers/media/video/em28xx/em28xx-core.c
++++ b/drivers/media/video/em28xx/em28xx-core.c
+@@ -666,6 +666,7 @@ int em28xx_capture_start(struct em28xx *dev, int start)
+ 
+ 	return rc;
+ }
++EXPORT_SYMBOL_GPL(em28xx_capture_start);
+ 
+ int em28xx_vbi_supported(struct em28xx *dev)
  {
- 	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
- 
--	if (freq == 0) {
--		tea->freq = 0;
--		return;
--	}
-+	if (freq == 0)
-+		return -EBUSY;
- 
- 	/* freq *= 12.5 */
- 	freq *= 125;
-@@ -139,6 +137,7 @@ static void snd_tea575x_get_freq(struct snd_tea575x *tea)
- 		freq -= TEA575X_FMIF;
- 
- 	tea->freq = clamp(freq * 16, FREQ_LO, FREQ_HI); /* from kHz */
-+	return 0;
- }
- 
- static void snd_tea575x_set_freq(struct snd_tea575x *tea)
-@@ -220,14 +219,15 @@ static int vidioc_g_frequency(struct file *file, void *priv,
- 					struct v4l2_frequency *f)
+@@ -961,146 +962,192 @@ static void em28xx_irq_callback(struct urb *urb)
+ /*
+  * Stop and Deallocate URBs
+  */
+-void em28xx_uninit_isoc(struct em28xx *dev)
++void em28xx_uninit_isoc(struct em28xx *dev, enum em28xx_mode mode)
  {
- 	struct snd_tea575x *tea = video_drvdata(file);
-+	int ret = 0;
+ 	struct urb *urb;
++	struct em28xx_usb_isoc_bufs *isoc_bufs;
+ 	int i;
  
- 	if (f->tuner != 0)
- 		return -EINVAL;
- 	f->type = V4L2_TUNER_RADIO;
- 	if (!tea->cannot_read_data)
--		snd_tea575x_get_freq(tea);
-+		ret = snd_tea575x_get_freq(tea);
- 	f->frequency = tea->freq;
--	return 0;
-+	return ret;
- }
+-	em28xx_isocdbg("em28xx: called em28xx_uninit_isoc\n");
++	em28xx_isocdbg("em28xx: called em28xx_uninit_isoc in mode %d\n", mode);
++
++	if (mode == EM28XX_DIGITAL_MODE)
++		isoc_bufs = &dev->isoc_ctl.digital_bufs;
++	else
++		isoc_bufs = &dev->isoc_ctl.analog_bufs;
  
- static int vidioc_s_frequency(struct file *file, void *priv,
-@@ -250,11 +250,14 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 	struct snd_tea575x *tea = video_drvdata(file);
- 	int i, old_freq;
- 	unsigned long timeout;
-+	int ret;
+ 	dev->isoc_ctl.nfields = -1;
+-	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
+-		urb = dev->isoc_ctl.urb[i];
++	for (i = 0; i < isoc_bufs->num_bufs; i++) {
++		urb = isoc_bufs->urb[i];
+ 		if (urb) {
+ 			if (!irqs_disabled())
+ 				usb_kill_urb(urb);
+ 			else
+ 				usb_unlink_urb(urb);
  
- 	if (tea->cannot_read_data)
- 		return -ENOTTY;
- 
--	snd_tea575x_get_freq(tea);
-+	ret = snd_tea575x_get_freq(tea);
-+	if (ret)
-+		return ret;
- 	old_freq = tea->freq;
- 	/* clear the frequency, HW will fill it in */
- 	tea->val &= ~TEA575X_BIT_FREQ_MASK;
-@@ -278,8 +281,8 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
- 			/* Found a frequency, wait until it can be read */
- 			for (i = 0; i < 100; i++) {
- 				msleep(10);
--				snd_tea575x_get_freq(tea);
--				if (tea->freq != 0) /* available */
-+				ret = snd_tea575x_get_freq(tea);
-+				if (ret == 0) /* available */
- 					break;
+-			if (dev->isoc_ctl.transfer_buffer[i]) {
++			if (isoc_bufs->transfer_buffer[i]) {
+ 				usb_free_coherent(dev->udev,
+ 					urb->transfer_buffer_length,
+-					dev->isoc_ctl.transfer_buffer[i],
++					isoc_bufs->transfer_buffer[i],
+ 					urb->transfer_dma);
  			}
- 			/* if we moved by less than 50 kHz, continue seeking */
+ 			usb_free_urb(urb);
+-			dev->isoc_ctl.urb[i] = NULL;
++			isoc_bufs->urb[i] = NULL;
+ 		}
+-		dev->isoc_ctl.transfer_buffer[i] = NULL;
++		isoc_bufs->transfer_buffer[i] = NULL;
+ 	}
+ 
+-	kfree(dev->isoc_ctl.urb);
+-	kfree(dev->isoc_ctl.transfer_buffer);
++	kfree(isoc_bufs->urb);
++	kfree(isoc_bufs->transfer_buffer);
+ 
+-	dev->isoc_ctl.urb = NULL;
+-	dev->isoc_ctl.transfer_buffer = NULL;
+-	dev->isoc_ctl.num_bufs = 0;
++	isoc_bufs->urb = NULL;
++	isoc_bufs->transfer_buffer = NULL;
++	isoc_bufs->num_bufs = 0;
+ 
+ 	em28xx_capture_start(dev, 0);
+ }
+ EXPORT_SYMBOL_GPL(em28xx_uninit_isoc);
+ 
+ /*
+- * Allocate URBs and start IRQ
++ * Allocate URBs
+  */
+-int em28xx_init_isoc(struct em28xx *dev, int max_packets,
+-		     int num_bufs, int max_pkt_size,
+-		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb))
++int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
++		      int max_packets, int num_bufs, int max_pkt_size)
+ {
+-	struct em28xx_dmaqueue *dma_q = &dev->vidq;
+-	struct em28xx_dmaqueue *vbi_dma_q = &dev->vbiq;
++	struct em28xx_usb_isoc_bufs *isoc_bufs;
+ 	int i;
+ 	int sb_size, pipe;
+ 	struct urb *urb;
+ 	int j, k;
+-	int rc;
+ 
+-	em28xx_isocdbg("em28xx: called em28xx_prepare_isoc\n");
++	em28xx_isocdbg("em28xx: called em28xx_alloc_isoc in mode %d\n", mode);
++
++	if (mode == EM28XX_DIGITAL_MODE)
++		isoc_bufs = &dev->isoc_ctl.digital_bufs;
++	else
++		isoc_bufs = &dev->isoc_ctl.analog_bufs;
+ 
+ 	/* De-allocates all pending stuff */
+-	em28xx_uninit_isoc(dev);
++	em28xx_uninit_isoc(dev, mode);
+ 
+-	dev->isoc_ctl.isoc_copy = isoc_copy;
+-	dev->isoc_ctl.num_bufs = num_bufs;
++	isoc_bufs->num_bufs = num_bufs;
+ 
+-	dev->isoc_ctl.urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
+-	if (!dev->isoc_ctl.urb) {
++	isoc_bufs->urb = kzalloc(sizeof(void *)*num_bufs,  GFP_KERNEL);
++	if (!isoc_bufs->urb) {
+ 		em28xx_errdev("cannot alloc memory for usb buffers\n");
+ 		return -ENOMEM;
+ 	}
+ 
+-	dev->isoc_ctl.transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
+-					      GFP_KERNEL);
+-	if (!dev->isoc_ctl.transfer_buffer) {
++	isoc_bufs->transfer_buffer = kzalloc(sizeof(void *)*num_bufs,
++					     GFP_KERNEL);
++	if (!isoc_bufs->transfer_buffer) {
+ 		em28xx_errdev("cannot allocate memory for usb transfer\n");
+-		kfree(dev->isoc_ctl.urb);
++		kfree(isoc_bufs->urb);
+ 		return -ENOMEM;
+ 	}
+ 
+-	dev->isoc_ctl.max_pkt_size = max_pkt_size;
++	isoc_bufs->max_pkt_size = max_pkt_size;
++	isoc_bufs->num_packets = max_packets;
+ 	dev->isoc_ctl.vid_buf = NULL;
+ 	dev->isoc_ctl.vbi_buf = NULL;
+ 
+-	sb_size = max_packets * dev->isoc_ctl.max_pkt_size;
++	sb_size = isoc_bufs->num_packets * isoc_bufs->max_pkt_size;
+ 
+ 	/* allocate urbs and transfer buffers */
+-	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
+-		urb = usb_alloc_urb(max_packets, GFP_KERNEL);
++	for (i = 0; i < isoc_bufs->num_bufs; i++) {
++		urb = usb_alloc_urb(isoc_bufs->num_packets, GFP_KERNEL);
+ 		if (!urb) {
+ 			em28xx_err("cannot alloc isoc_ctl.urb %i\n", i);
+-			em28xx_uninit_isoc(dev);
++			em28xx_uninit_isoc(dev, mode);
+ 			return -ENOMEM;
+ 		}
+-		dev->isoc_ctl.urb[i] = urb;
++		isoc_bufs->urb[i] = urb;
+ 
+-		dev->isoc_ctl.transfer_buffer[i] = usb_alloc_coherent(dev->udev,
++		isoc_bufs->transfer_buffer[i] = usb_alloc_coherent(dev->udev,
+ 			sb_size, GFP_KERNEL, &urb->transfer_dma);
+-		if (!dev->isoc_ctl.transfer_buffer[i]) {
++		if (!isoc_bufs->transfer_buffer[i]) {
+ 			em28xx_err("unable to allocate %i bytes for transfer"
+ 					" buffer %i%s\n",
+ 					sb_size, i,
+ 					in_interrupt() ? " while in int" : "");
+-			em28xx_uninit_isoc(dev);
++			em28xx_uninit_isoc(dev, mode);
+ 			return -ENOMEM;
+ 		}
+-		memset(dev->isoc_ctl.transfer_buffer[i], 0, sb_size);
++		memset(isoc_bufs->transfer_buffer[i], 0, sb_size);
+ 
+ 		/* FIXME: this is a hack - should be
+ 			'desc.bEndpointAddress & USB_ENDPOINT_NUMBER_MASK'
+ 			should also be using 'desc.bInterval'
+ 		 */
+ 		pipe = usb_rcvisocpipe(dev->udev,
+-				       dev->mode == EM28XX_ANALOG_MODE ?
++				       mode == EM28XX_ANALOG_MODE ?
+ 				       EM28XX_EP_ANALOG : EM28XX_EP_DIGITAL);
+ 
+ 		usb_fill_int_urb(urb, dev->udev, pipe,
+-				 dev->isoc_ctl.transfer_buffer[i], sb_size,
++				 isoc_bufs->transfer_buffer[i], sb_size,
+ 				 em28xx_irq_callback, dev, 1);
+ 
+-		urb->number_of_packets = max_packets;
++		urb->number_of_packets = isoc_bufs->num_packets;
+ 		urb->transfer_flags = URB_ISO_ASAP | URB_NO_TRANSFER_DMA_MAP;
+ 
+ 		k = 0;
+-		for (j = 0; j < max_packets; j++) {
++		for (j = 0; j < isoc_bufs->num_packets; j++) {
+ 			urb->iso_frame_desc[j].offset = k;
+ 			urb->iso_frame_desc[j].length =
+-						dev->isoc_ctl.max_pkt_size;
+-			k += dev->isoc_ctl.max_pkt_size;
++						isoc_bufs->max_pkt_size;
++			k += isoc_bufs->max_pkt_size;
+ 		}
+ 	}
+ 
++	return 0;
++}
++EXPORT_SYMBOL_GPL(em28xx_alloc_isoc);
++
++/*
++ * Allocate URBs and start IRQ
++ */
++int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
++		     int max_packets, int num_bufs, int max_pkt_size,
++		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb))
++{
++	struct em28xx_dmaqueue *dma_q = &dev->vidq;
++	struct em28xx_dmaqueue *vbi_dma_q = &dev->vbiq;
++	struct em28xx_usb_isoc_bufs *isoc_bufs;
++	int i;
++	int rc;
++	int alloc;
++
++	em28xx_isocdbg("em28xx: called em28xx_init_isoc in mode %d\n", mode);
++
++	dev->isoc_ctl.isoc_copy = isoc_copy;
++
++	if (mode == EM28XX_DIGITAL_MODE) {
++		isoc_bufs = &dev->isoc_ctl.digital_bufs;
++		/* no need to free/alloc isoc buffers in digital mode */
++		alloc = 0;
++	} else {
++		isoc_bufs = &dev->isoc_ctl.analog_bufs;
++		alloc = 1;
++	}
++
++	if (alloc) {
++		rc = em28xx_alloc_isoc(dev, mode, max_packets,
++				       num_bufs, max_pkt_size);
++		if (rc)
++			return rc;
++	}
++
+ 	init_waitqueue_head(&dma_q->wq);
+ 	init_waitqueue_head(&vbi_dma_q->wq);
+ 
+ 	em28xx_capture_start(dev, 1);
+ 
+ 	/* submit urbs and enables IRQ */
+-	for (i = 0; i < dev->isoc_ctl.num_bufs; i++) {
+-		rc = usb_submit_urb(dev->isoc_ctl.urb[i], GFP_ATOMIC);
++	for (i = 0; i < isoc_bufs->num_bufs; i++) {
++		rc = usb_submit_urb(isoc_bufs->urb[i], GFP_ATOMIC);
+ 		if (rc) {
+ 			em28xx_err("submit of urb %i failed (error=%i)\n", i,
+ 				   rc);
+-			em28xx_uninit_isoc(dev);
++			em28xx_uninit_isoc(dev, mode);
+ 			return rc;
+ 		}
+ 	}
+diff --git a/drivers/media/video/em28xx/em28xx-dvb.c b/drivers/media/video/em28xx/em28xx-dvb.c
+index aabbf48..fbd9010 100644
+--- a/drivers/media/video/em28xx/em28xx-dvb.c
++++ b/drivers/media/video/em28xx/em28xx-dvb.c
+@@ -61,9 +61,6 @@ if (debug >= level) 						\
+ 	printk(KERN_DEBUG "%s/2-dvb: " fmt, dev->name, ## arg);	\
+ } while (0)
+ 
+-#define EM28XX_DVB_NUM_BUFS 5
+-#define EM28XX_DVB_MAX_PACKETS 64
+-
+ struct em28xx_dvb {
+ 	struct dvb_frontend        *fe[2];
+ 
+@@ -172,20 +169,21 @@ static int em28xx_start_streaming(struct em28xx_dvb *dvb)
+ 	max_dvb_packet_size = dev->dvb_max_pkt_size;
+ 	if (max_dvb_packet_size < 0)
+ 		return max_dvb_packet_size;
+-	dprintk(1, "Using %d buffers each with %d bytes\n",
++	dprintk(1, "Using %d buffers each with %d x %d bytes\n",
+ 		EM28XX_DVB_NUM_BUFS,
++		EM28XX_DVB_MAX_PACKETS,
+ 		max_dvb_packet_size);
+ 
+-	return em28xx_init_isoc(dev, EM28XX_DVB_MAX_PACKETS,
+-				EM28XX_DVB_NUM_BUFS, max_dvb_packet_size,
+-				em28xx_dvb_isoc_copy);
++	return em28xx_init_isoc(dev, EM28XX_DIGITAL_MODE,
++				EM28XX_DVB_MAX_PACKETS, EM28XX_DVB_NUM_BUFS,
++				max_dvb_packet_size, em28xx_dvb_isoc_copy);
+ }
+ 
+ static int em28xx_stop_streaming(struct em28xx_dvb *dvb)
+ {
+ 	struct em28xx *dev = dvb->adapter.priv;
+ 
+-	em28xx_uninit_isoc(dev);
++	em28xx_capture_start(dev, 0);
+ 
+ 	em28xx_set_mode(dev, EM28XX_SUSPEND);
+ 
+diff --git a/drivers/media/video/em28xx/em28xx-video.c b/drivers/media/video/em28xx/em28xx-video.c
+index 613300b..324b695 100644
+--- a/drivers/media/video/em28xx/em28xx-video.c
++++ b/drivers/media/video/em28xx/em28xx-video.c
+@@ -760,17 +760,19 @@ buffer_prepare(struct videobuf_queue *vq, struct videobuf_buffer *vb,
+ 			goto fail;
+ 	}
+ 
+-	if (!dev->isoc_ctl.num_bufs)
++	if (!dev->isoc_ctl.analog_bufs.num_bufs)
+ 		urb_init = 1;
+ 
+ 	if (urb_init) {
+ 		if (em28xx_vbi_supported(dev) == 1)
+-			rc = em28xx_init_isoc(dev, EM28XX_NUM_PACKETS,
++			rc = em28xx_init_isoc(dev, EM28XX_ANALOG_MODE,
++					      EM28XX_NUM_PACKETS,
+ 					      EM28XX_NUM_BUFS,
+ 					      dev->max_pkt_size,
+ 					      em28xx_isoc_copy_vbi);
+ 		else
+-			rc = em28xx_init_isoc(dev, EM28XX_NUM_PACKETS,
++			rc = em28xx_init_isoc(dev, EM28XX_ANALOG_MODE,
++					      EM28XX_NUM_PACKETS,
+ 					      EM28XX_NUM_BUFS,
+ 					      dev->max_pkt_size,
+ 					      em28xx_isoc_copy);
+@@ -2267,7 +2269,7 @@ static int em28xx_v4l2_close(struct file *filp)
+ 		v4l2_device_call_all(&dev->v4l2_dev, 0, core, s_power, 0);
+ 
+ 		/* do this before setting alternate! */
+-		em28xx_uninit_isoc(dev);
++		em28xx_uninit_isoc(dev, EM28XX_ANALOG_MODE);
+ 		em28xx_set_mode(dev, EM28XX_SUSPEND);
+ 
+ 		/* set alternate 0 */
+diff --git a/drivers/media/video/em28xx/em28xx.h b/drivers/media/video/em28xx/em28xx.h
+index 22e252b..2ae6815 100644
+--- a/drivers/media/video/em28xx/em28xx.h
++++ b/drivers/media/video/em28xx/em28xx.h
+@@ -151,12 +151,14 @@
+ 
+ /* number of buffers for isoc transfers */
+ #define EM28XX_NUM_BUFS 5
++#define EM28XX_DVB_NUM_BUFS 5
+ 
+ /* number of packets for each buffer
+    windows requests only 64 packets .. so we better do the same
+    this is what I found out for all alternate numbers there!
+  */
+ #define EM28XX_NUM_PACKETS 64
++#define EM28XX_DVB_MAX_PACKETS 64
+ 
+ #define EM28XX_INTERLACED_DEFAULT 1
+ 
+@@ -197,10 +199,13 @@ enum em28xx_mode {
+ 
+ struct em28xx;
+ 
+-struct em28xx_usb_isoc_ctl {
++struct em28xx_usb_isoc_bufs {
+ 		/* max packet size of isoc transaction */
+ 	int				max_pkt_size;
+ 
++		/* number of packets in each buffer */
++	int				num_packets;
++
+ 		/* number of allocated urbs */
+ 	int				num_bufs;
+ 
+@@ -209,6 +214,14 @@ struct em28xx_usb_isoc_ctl {
+ 
+ 		/* transfer buffers for isoc transfer */
+ 	char				**transfer_buffer;
++};
++
++struct em28xx_usb_isoc_ctl {
++		/* isoc transfer buffers for analog mode */
++	struct em28xx_usb_isoc_bufs	analog_bufs;
++
++		/* isoc transfer buffers for digital mode */
++	struct em28xx_usb_isoc_bufs	digital_bufs;
+ 
+ 		/* Last buffer command and region */
+ 	u8				cmd;
+@@ -676,10 +689,12 @@ int em28xx_vbi_supported(struct em28xx *dev);
+ int em28xx_set_outfmt(struct em28xx *dev);
+ int em28xx_resolution_set(struct em28xx *dev);
+ int em28xx_set_alternate(struct em28xx *dev);
+-int em28xx_init_isoc(struct em28xx *dev, int max_packets,
+-		     int num_bufs, int max_pkt_size,
++int em28xx_alloc_isoc(struct em28xx *dev, enum em28xx_mode mode,
++		      int max_packets, int num_bufs, int max_pkt_size);
++int em28xx_init_isoc(struct em28xx *dev, enum em28xx_mode mode,
++		     int max_packets, int num_bufs, int max_pkt_size,
+ 		     int (*isoc_copy) (struct em28xx *dev, struct urb *urb));
+-void em28xx_uninit_isoc(struct em28xx *dev);
++void em28xx_uninit_isoc(struct em28xx *dev, enum em28xx_mode mode);
+ int em28xx_isoc_dvb_max_packetsize(struct em28xx *dev);
+ int em28xx_set_mode(struct em28xx *dev, enum em28xx_mode set_mode);
+ int em28xx_gpio_set(struct em28xx *dev, struct em28xx_reg_seq *gpio);
+-- 
+1.7.0.4
 
-If you are OK with this, then I'll put everything together and make a final
-pull request.
-
-Regards,
-
-	Hans
