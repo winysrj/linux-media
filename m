@@ -1,35 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:56514 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236Ab2BMNwH (ORCPT
+Received: from mail-pz0-f52.google.com ([209.85.210.52]:35722 "EHLO
+	mail-pz0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754366Ab2BMTi1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 08:52:07 -0500
-Received: by werb13 with SMTP id b13so3480142wer.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 05:52:05 -0800 (PST)
+	Mon, 13 Feb 2012 14:38:27 -0500
+Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
+To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	"Robert Nelson" <robertcnelson@gmail.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org, "Ohad Ben-Cohen" <ohad@wizery.com>,
+	"Daniel Walker" <dwalker@codeaurora.org>,
+	"Russell King" <linux@arm.linux.org.uk>,
+	"Arnd Bergmann" <arnd@arndb.de>,
+	"Jonathan Corbet" <corbet@lwn.net>, "Mel Gorman" <mel@csn.ul.ie>,
+	"Dave Hansen" <dave@linux.vnet.ibm.com>,
+	"Jesse Barker" <jesse.barker@linaro.org>,
+	"Kyungmin Park" <kyungmin.park@samsung.com>,
+	"Andrew Morton" <akpm@linux-foundation.org>,
+	"Rob Clark" <rob.clark@linaro.org>,
+	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
+Subject: Re: [Linaro-mm-sig] [PATCHv21 12/16] mm: trigger page reclaim in
+ alloc_contig_range() to stabilise watermarks
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+ <1328895151-5196-13-git-send-email-m.szyprowski@samsung.com>
+ <CAOCHtYi01NVp1j=MX+0-z7ygW5tJuoswn8eWTQp+0Z5mMGdeQw@mail.gmail.com>
+Date: Mon, 13 Feb 2012 11:38:22 -0800
 MIME-Version: 1.0
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
-	s.hauer@pengutronix.de
-Subject: [PATCH 0/6] media: i.MX27 camera: Clean up series.
-Date: Mon, 13 Feb 2012 14:51:49 +0100
-Message-Id: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
+Content-Transfer-Encoding: 8BIT
+From: "Michal Nazarewicz" <mina86@mina86.com>
+Message-ID: <op.v9mt58ch3l0zgt@mpn-glaptop>
+In-Reply-To: <CAOCHtYi01NVp1j=MX+0-z7ygW5tJuoswn8eWTQp+0Z5mMGdeQw@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-This is the clean up series I promised to send this week. This has to be
-applied on top of my previous patches.
+> On Fri, Feb 10, 2012 at 11:32 AM, Marek Szyprowski
+> <m.szyprowski@samsung.com> wrote:
+>> @@ -5637,6 +5642,56 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+>>        return ret > 0 ? 0 : ret;
+>>  }
+>>
+>> +/*
+>> + * Update zone's cma pages counter used for watermark level calculation.
+>> + */
+>> +static inline void __update_cma_wmark_pages(struct zone *zone, int count)
+>> +{
+>> +       unsigned long flags;
+>> +       spin_lock_irqsave(&zone->lock, flags);
+>> +       zone->min_cma_pages += count;
+>> +       spin_unlock_irqrestore(&zone->lock, flags);
+>> +       setup_per_zone_wmarks();
+>> +}
+>> +
+>> +/*
+>> + * Trigger memory pressure bump to reclaim some pages in order to be able to
+>> + * allocate 'count' pages in single page units. Does similar work as
+>> + *__alloc_pages_slowpath() function.
+>> + */
+>> +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
+>> +{
+>> +       enum zone_type high_zoneidx = gfp_zone(gfp_mask);
+>> +       struct zonelist *zonelist = node_zonelist(0, gfp_mask);
+>> +       int did_some_progress = 0;
+>> +       int order = 1;
+>> +       unsigned long watermark;
+>> +
+>> +       /*
+>> +        * Increase level of watermarks to force kswapd do his job
+>> +        * to stabilise at new watermark level.
+>> +        */
+>> +       __modify_min_cma_pages(zone, count);
 
-These are already discussed issues so I don't think you have any concerns
-with them.
+On Mon, 13 Feb 2012 10:57:58 -0800, Robert Nelson <robertcnelson@gmail.com> wrote:
+> Hi Marek,   This ^^^ function doesn't seem to exist in this patchset,
+> is it in another set posted to lkml?
 
-While I wait for your confirmation, I'm going to prepare a new patch in order
-to provide video resizing support.
+This should read __update_cma_wmark_pages().  Sorry for the incorrect patch.
 
-[PATCH 1/6] media: i.MX27 camera: Remove goto from mx2_videobuf_queue().
-[PATCH 2/6] media: i.MX27 camera: Use list_first_entry() whenever possible.
-[PATCH 3/6] media: i.MX27 camera: Use spin_lock() inside the IRQ handler.
-[PATCH 4/6] media: i.MX27 camera: return IRQ_NONE if no IRQ status bit is set.
-[PATCH 5/6] media: i.MX27 camera: fix compilation warning.
-[PATCH 6/6] media: i.MX27 camera:  more efficient discard buffer handling.
+-- 
+Best regards,                                         _     _
+.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
+..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
+ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
