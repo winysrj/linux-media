@@ -1,51 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:43188 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754033Ab2BEOeV convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 Feb 2012 09:34:21 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Marek Szyprowski" <m.szyprowski@samsung.com>,
-	"Hillf Danton" <dhillf@gmail.com>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [PATCH 05/15] mm: compaction: export some of the functions
-References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
- <1328271538-14502-6-git-send-email-m.szyprowski@samsung.com>
- <CAJd=RBBsTxV4bM_QEbKaU=uKkFTNgPEK4yTiLjbE0TaEp4KA7w@mail.gmail.com>
-Date: Sun, 05 Feb 2012 15:34:15 +0100
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v87mrdg83l0zgt@mpn-glaptop>
-In-Reply-To: <CAJd=RBBsTxV4bM_QEbKaU=uKkFTNgPEK4yTiLjbE0TaEp4KA7w@mail.gmail.com>
+Received: from smtp.ispras.ru ([83.149.198.202]:53251 "EHLO smtp.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756905Ab2BMP1d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 Feb 2012 10:27:33 -0500
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, ldv-project@ispras.ru
+Subject: [PATCH] staging: go7007: fix mismatch in mutex lock-unlock in [read|write]_reg_fp
+Date: Mon, 13 Feb 2012 16:01:32 +0100
+Message-Id: <1329145292-5855-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> On Fri, Feb 3, 2012 at 8:18 PM, Marek Szyprowski
-> <m.szyprowski@samsung.com> wrote:
->> From: Michal Nazarewicz <mina86@mina86.com>
->>
->> This commit exports some of the functions from compaction.c file
->> outside of it adding their declaration into internal.h header
->> file so that other mm related code can use them.
->>
->> This forced compaction.c to always be compiled (as opposed to being
->> compiled only if CONFIG_COMPACTION is defined) but as to avoid
->> introducing code that user did not ask for, part of the compaction.c
->> is now wrapped in on #ifdef.
+If go7007_usb_vendor_request() fails in write_reg_fp()
+or in read_reg_fp(), the usb->i2c_lock mutex left locked.
 
-On Sun, 05 Feb 2012 08:40:08 +0100, Hillf Danton <dhillf@gmail.com> wrote:
-> What if both compaction and CMA are not enabled?
+The patch moves mutex_unlock(&usb->i2c_lock) before check
+for go7007_usb_vendor_request() returned value.
 
-What about it?  If both are enabled, both will be compiled and usable.
+Found by Linux Driver Verification project (linuxtesting.org).
 
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/staging/media/go7007/s2250-board.c |   16 ++++++++++------
+ 1 files changed, 10 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/staging/media/go7007/s2250-board.c b/drivers/staging/media/go7007/s2250-board.c
+index e7736a9..014d384 100644
+--- a/drivers/staging/media/go7007/s2250-board.c
++++ b/drivers/staging/media/go7007/s2250-board.c
+@@ -192,6 +192,7 @@ static int write_reg_fp(struct i2c_client *client, u16 addr, u16 val)
+ {
+ 	struct go7007 *go = i2c_get_adapdata(client->adapter);
+ 	struct go7007_usb *usb;
++	int rc;
+ 	u8 *buf;
+ 	struct s2250 *dec = i2c_get_clientdata(client);
+ 
+@@ -216,12 +217,13 @@ static int write_reg_fp(struct i2c_client *client, u16 addr, u16 val)
+ 		kfree(buf);
+ 		return -EINTR;
+ 	}
+-	if (go7007_usb_vendor_request(go, 0x57, addr, val, buf, 16, 1) < 0) {
++	rc = go7007_usb_vendor_request(go, 0x57, addr, val, buf, 16, 1);
++	mutex_unlock(&usb->i2c_lock);
++	if (rc < 0) {
+ 		kfree(buf);
+-		return -EFAULT;
++		return rc;
+ 	}
+ 
+-	mutex_unlock(&usb->i2c_lock);
+ 	if (buf[0] == 0) {
+ 		unsigned int subaddr, val_read;
+ 
+@@ -254,6 +256,7 @@ static int read_reg_fp(struct i2c_client *client, u16 addr, u16 *val)
+ {
+ 	struct go7007 *go = i2c_get_adapdata(client->adapter);
+ 	struct go7007_usb *usb;
++	int rc;
+ 	u8 *buf;
+ 
+ 	if (go == NULL)
+@@ -276,11 +279,12 @@ static int read_reg_fp(struct i2c_client *client, u16 addr, u16 *val)
+ 		kfree(buf);
+ 		return -EINTR;
+ 	}
+-	if (go7007_usb_vendor_request(go, 0x58, addr, 0, buf, 16, 1) < 0) {
++	rc = go7007_usb_vendor_request(go, 0x58, addr, 0, buf, 16, 1);
++	mutex_unlock(&usb->i2c_lock);
++	if (rc < 0) {
+ 		kfree(buf);
+-		return -EFAULT;
++		return rc;
+ 	}
+-	mutex_unlock(&usb->i2c_lock);
+ 
+ 	*val = (buf[0] << 8) | buf[1];
+ 	kfree(buf);
 -- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+1.7.4.1
+
