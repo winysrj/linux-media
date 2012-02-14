@@ -1,87 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:58617 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753789Ab2BKCIt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 21:08:49 -0500
-Subject: Re: SDR FM demodulation
-From: Andy Walls <awalls@md.metrocast.net>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Date: Fri, 10 Feb 2012 21:08:38 -0500
-In-Reply-To: <4F33E485.10704@iki.fi>
-References: <4F33DFB8.4080702@iki.fi>
-	 <201202091611.21095.pboettcher@kernellabs.com> <4F33E485.10704@iki.fi>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx1.redhat.com ([209.132.183.28]:34800 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757319Ab2BNVzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 16:55:24 -0500
+Message-ID: <4F3AD84B.1030800@redhat.com>
+Date: Tue, 14 Feb 2012 16:55:23 -0500
+From: Jarod Wilson <jarod@redhat.com>
+MIME-Version: 1.0
+To: W R <gridmuncher@hotmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Fintek driver linux
+References: <BLU145-W35C32BF2C2E1EDFD8DC5F4BD800@phx.gbl>,<4F2822AE.1020705@redhat.com>,<BLU145-W31A99136480C1FBA4E0AC7BD770@phx.gbl>,<4F356866.6090208@redhat.com> <BLU145-W1658A220E336DBC96C53D7BD7C0@phx.gbl>,<4F3ABF41.9060800@redhat.com> <BLU145-W31DB93CC932394E4E288E2BD7C0@phx.gbl>
+In-Reply-To: <BLU145-W31DB93CC932394E4E288E2BD7C0@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-ID: <1328926119.16025.6.camel@palomino.walls.org>
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2012-02-09 at 17:21 +0200, Antti Palosaari wrote:
-> On 09.02.2012 17:11, Patrick Boettcher wrote:
-> > On Thursday 09 February 2012 16:01:12 Antti Palosaari wrote:
-> >> I have taken radio sniffs from FM capable Realtek DVB-T device. Looks
-> >> like demodulator ADC samples IF frequency and pass all the sampled
-> >> data to the application. Application is then responsible for
-> >> decoding that. Device supports DVB-T, FM and DAB. I can guess  both
-> >> FM and DAB are demodulated by software.
-> >>
-> >> Here is 17 second, 83 MB, FM radio sniff:
-> >> http://palosaari.fi/linux/v4l-dvb/rtl2832u_fm/
-> >> Decode it and listen some Finnish speak ;)
-> >>
-> >> Could someone help to decode it? I tried GNU Radio, but I failed
-> >> likely because I didn't have enough knowledge... GNU Radio and
-> >> Octave or Matlab are way to go.
-> >
-> > For someone to decode it, you would need to give more information about
-> > the format of the stream. Like the sampling frequency, the sample-format
-> > and then the IF-frequency.
-> 
-> You can see sampling format easily looking hexdump or open file in 
-> Audacity. It is 8bit unsigned samples, 2 channels (I & Q).
-> 
-> No knowledge about IF... For good guess is to try some general used IFs.
-> 
-> Sampling freq can be calculated using sample info and the fact it is 
-> about 17 sec. sample size = 86919168 Bytes, time 17 sec. 2 channels, 1 
-> byte sample => 2556446,11765 sample/sec (~2.5 MHz!)
+On 02/14/2012 04:25 PM, W R wrote:
+> Thanks for your quick reply. It does seem like I have the old version:
+>
+> cat /proc/bus/input/devices
+>
+> *I: Bus=0019 Vendor=1934 Product=0004 Version=0008*
 
-Randomly checking some of the data with GNUplot, if 2.5 Msps is the
-sampling rate, then the fastest freq I saw was about 50 kHz.
+Hm, okay, so the changes for newer hardware shouldn't matter at all.
 
-Maybe you have an FM compsite baseband signal:
-http://en.wikipedia.org/wiki/FM_broadcast#Other_subcarrier_services
+> N: Name="Fintek LPC SuperIO Consumer IR Transceiver"
+> P: Phys=fintek/cir0
+...
+> Is there anything out of the ordinary? Any way to find out which modules
+> that cause the problem and can maybe be removed?
 
-If you low pass filter with digital filter with (an equivalent to) a 17
-kHz cutoff, you may just be left with the mono L+R channel.
+Nothing out of the ordinary, no. You'd have to capture serial console 
+output or a vmcore from the time of the crash to really get a better 
+idea of where its falling down. The panic trace ought to give a clue 
+where to start looking.
 
-I am assuming the I&Q channels in the data are 8 bit LPCM so
+I can't recall, have you tried using this under Windows, and if so, was 
+it stable there? A hardware fault is always a possibility, especially 
+when there's only a single report of something like this. Then again, 
+this is a fairly young driver. But I never saw anything like this in my 
+own testing during driver devel, nor did Fintek. :\
 
-	x = (c-128)/128.0 
-
-normalizes an usigned byte sample value c in 0 to 255 to a float value x
-in -1.0 to 1.0.
-
-Regards,
-Andy
-
-> > I never did something like myself, but from what I saw in gnuradio there
-> > should be everything to make a FM-demod based on the data.
-> 
-> Yes there was a lot of block and those were rather easy to connect using 
-> graphical interface (gnuradio-companion). But I don't know exactly what 
-> block are needed and what are parameters. I used file-sink => 
-> fm-modulator => audio-sink. Likely not enough :i
-> 
-> Without any earlier experience it is rather challenging. But if there is 
-> someone who have done that earlier using USRP SDR he could likely do it 
-> easier :)
-> 
-> regards
-> Antti
-
-
+-- 
+Jarod Wilson
+jarod@redhat.com
