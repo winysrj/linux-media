@@ -1,108 +1,222 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:48402 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754319Ab2BDTCf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 14:02:35 -0500
-Received: by eekc14 with SMTP id c14so1618313eek.19
-        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 11:02:34 -0800 (PST)
-Message-ID: <4F2D80C1.2050808@gmail.com>
-Date: Sat, 04 Feb 2012 20:02:25 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: Re: [PATCH v2 04/31] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
- IOCTLs
-References: <20120202235231.GC841@valkosipuli.localdomain> <1328226891-8968-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1328226891-8968-4-git-send-email-sakari.ailus@iki.fi>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mo-p00-ob.rzone.de ([81.169.146.161]:28208 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932528Ab2BNVsY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 16:48:24 -0500
+From: linuxtv@stefanringel.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH 06/22] mt2063: remove remove up + down converter
+Date: Tue, 14 Feb 2012 22:47:30 +0100
+Message-Id: <1329256066-8844-6-git-send-email-linuxtv@stefanringel.de>
+In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/03/2012 12:54 AM, Sakari Ailus wrote:
-> Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
-> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
-> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
-> 
-> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
-> 
-> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
-> ---
->   drivers/media/video/v4l2-subdev.c |   34 +++++++++++++++++++++---------
->   include/linux/v4l2-subdev.h       |   41 +++++++++++++++++++++++++++++++++++++
->   include/media/v4l2-subdev.h       |   21 +++++++++++++++---
->   3 files changed, 82 insertions(+), 14 deletions(-)
-> 
-...
-> diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-> index ed29cbb..192993a 100644
-> --- a/include/linux/v4l2-subdev.h
-> +++ b/include/linux/v4l2-subdev.h
-> @@ -123,6 +123,43 @@ struct v4l2_subdev_frame_interval_enum {
->   	__u32 reserved[9];
->   };
-> 
-> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1<<  0)
-> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1<<  1)
-> +#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1<<  2)
-> +
-> +/* active cropping area */
-> +#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0
-> +/* cropping bounds */
-> +#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			2
+From: Stefan Ringel <linuxtv@stefanringel.de>
 
-You've dropped the DEFAULT targets but the target numbers stayed 
-unchanged. How about using hex numbers ? e.g.
+Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+---
+ drivers/media/common/tuners/mt2063.c |  161 ----------------------------------
+ 1 files changed, 0 insertions(+), 161 deletions(-)
 
-#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		0x0100
-#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0101
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index ee59ebe..31cb636 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -40,20 +40,6 @@ static LIST_HEAD(hybrid_tuner_instance_list);
+  * 1 called functions without i2c comunications
+  * 2 additional calculating, result etc.
+  * 3 maximum debug information
+-
+-/*  Info: Upconverter frequency is out of range (may be reason for MT_UPC_UNLOCK) */
+-#define MT2063_UPC_RANGE                    (0x04000000)
+-
+-/*  Info: Downconverter frequency is out of range (may be reason for MT_DPC_UNLOCK) */
+-#define MT2063_DNC_RANGE                    (0x08000000)
+-
+-/*
+- *  Constant defining the version of the following structure
+- *  and therefore the API for this code.
+- *
+- *  When compiling the tuner driver, the preprocessor will
+- *  check against this version number to make sure that
+- *  it matches the version that the tuner driver knows about.
+  */
+ #define dprintk(level, fmt, arg...) do {			\
+ if (debug >= level)						\
+@@ -83,16 +69,6 @@ enum MT2063_Mask_Bits {
+ };
+ 
+ /*
+- *  Possible values for MT2063_DNC_OUTPUT
+- */
+-enum MT2063_DNC_Output_Enable {
+-	MT2063_DNC_NONE = 0,
+-	MT2063_DNC_1,
+-	MT2063_DNC_2,
+-	MT2063_DNC_BOTH
+-};
+-
+-/*
+  *  Two-wire serial bus subaddresses of the tuner registers.
+  *  Also known as the tuner's register addresses.
+  */
+@@ -469,152 +445,15 @@ static const u8 FIFOVDIS[]	= {  0,  0,  0,  0,  0,  0 };
+ static const u8 ACFIFMAX[]	= { 29, 29, 29, 29, 29, 29 };
+ static const u8 PD2TGT[]	= { 40, 33, 38, 42, 30, 38 };
+ 
+-/*
+- * mt2063_set_dnc_output_enable()
+- */
+-static u32 mt2063_get_dnc_output_enable(struct mt2063_state *state,
+-					enum MT2063_DNC_Output_Enable *pValue)
+-{
+-	dprintk(2, "\n");
+-
+-	if ((state->reg[MT2063_REG_DNC_GAIN] & 0x03) == 0x03) {	/* if DNC1 is off */
+-		if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
+-			*pValue = MT2063_DNC_NONE;
+-		else
+-			*pValue = MT2063_DNC_2;
+-	} else {	/* DNC1 is on */
+-		if ((state->reg[MT2063_REG_VGA_GAIN] & 0x03) == 0x03)	/* if DNC2 is off */
+-			*pValue = MT2063_DNC_1;
+-		else
+-			*pValue = MT2063_DNC_BOTH;
+-	}
+-	return 0;
+-}
+-
+-/*
+- * mt2063_set_dnc_output_enable()
+- */
+-static u32 mt2063_set_dnc_output_enable(struct mt2063_state *state,
+-					enum MT2063_DNC_Output_Enable nValue)
+ {
+-	u32 status = 0;	/* Status to be returned        */
+-	u8 val = 0;
+ 
+-	dprintk(2, "\n");
+ 
+-	/* selects, which DNC output is used */
+-	switch (nValue) {
+-	case MT2063_DNC_NONE:
+-		val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
+-		if (state->reg[MT2063_REG_DNC_GAIN] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_DNC_GAIN,
+-					  val);
+ 
+-		val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
+-		if (state->reg[MT2063_REG_VGA_GAIN] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_VGA_GAIN,
+-					  val);
+ 
+-		val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
+-		if (state->reg[MT2063_REG_RSVD_20] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_RSVD_20,
+-					  val);
+ 
+ 		break;
+-	case MT2063_DNC_1:
+-		val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
+-		if (state->reg[MT2063_REG_DNC_GAIN] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_DNC_GAIN,
+-					  val);
+-
+-		val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | 0x03;	/* Set DNC2GC=3 */
+-		if (state->reg[MT2063_REG_VGA_GAIN] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_VGA_GAIN,
+-					  val);
+-
+-		val = (state->reg[MT2063_REG_RSVD_20] & ~0x40);	/* Set PD2MUX=0 */
+-		if (state->reg[MT2063_REG_RSVD_20] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_RSVD_20,
+-					  val);
+-
+-		break;
+-	case MT2063_DNC_2:
+-		val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | 0x03;	/* Set DNC1GC=3 */
+-		if (state->reg[MT2063_REG_DNC_GAIN] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_DNC_GAIN,
+-					  val);
+-
+-		val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
+-		if (state->reg[MT2063_REG_VGA_GAIN] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_VGA_GAIN,
+-					  val);
+-
+-		val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
+-		if (state->reg[MT2063_REG_RSVD_20] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_RSVD_20,
+-					  val);
+-
+-		break;
+-	case MT2063_DNC_BOTH:
+-		val = (state->reg[MT2063_REG_DNC_GAIN] & 0xFC) | (DNC1GC[state->rcvr_mode] & 0x03);	/* Set DNC1GC=x */
+-		if (state->reg[MT2063_REG_DNC_GAIN] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_DNC_GAIN,
+-					  val);
+-
+-		val = (state->reg[MT2063_REG_VGA_GAIN] & 0xFC) | (DNC2GC[state->rcvr_mode] & 0x03);	/* Set DNC2GC=x */
+-		if (state->reg[MT2063_REG_VGA_GAIN] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_VGA_GAIN,
+-					  val);
+-
+-		val = (state->reg[MT2063_REG_RSVD_20] | 0x40);	/* Set PD2MUX=1 */
+-		if (state->reg[MT2063_REG_RSVD_20] !=
+-		    val)
+-			status |=
+-			    mt2063_setreg(state,
+-					  MT2063_REG_RSVD_20,
+-					  val);
+-
+ 		break;
+ 	default:
+-		break;
+-	}
+-
+-	return status;
+-}
+-
+ /*
+  * MT2063_SetReceiverMode() - Set the MT2063 receiver mode, according with
+  * 			      the selected enum mt2063_delivery_sys type.
+-- 
+1.7.7.6
 
-?
-> +/* current composing area */
-> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		256
-> +/* composing bounds */
-> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		258
-> +
-> +
-> +/**
-> + * struct v4l2_subdev_selection - selection info
-> + *
-> + * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
-> + * @pad: pad number, as reported by the media API
-> + * @target: selection target, used to choose one of possible rectangles
-> + * @flags: constraints flags
-
-s/constraints/constraint ?
-
-> + * @r: coordinates of selection window
-
-s/selection/ the selection ?
-
-> + * @reserved: for future use, rounds structure size to 64 bytes, set to zero
-> + *
-> + * Hardware may use multiple helper window to process a video stream.
-
-s/window/windows ?
-
-> + * The structure is used to exchange this selection areas between
-> + * an application and a driver.
-> + */
-> +struct v4l2_subdev_selection {
-> +	__u32 which;
-> +	__u32 pad;
-> +	__u32 target;
-> +	__u32 flags;
-> +	struct v4l2_rect r;
-> +	__u32 reserved[8];
-> +};
-> +
-
---
-
-Regards,
-Sylwester
