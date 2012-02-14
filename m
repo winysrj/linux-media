@@ -1,44 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweb4.versatel.de ([82.140.32.187]:53345 "EHLO
-	mxweb4.versatel.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751420Ab2BATUI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2012 14:20:08 -0500
-Received: from cinnamon-sage.de (i577A1B03.versanet.de [87.122.27.3])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q11HeheT006948
-	for <linux-media@vger.kernel.org>; Wed, 1 Feb 2012 18:40:43 +0100
-Received: from 192.168.23.2:49442 by cinnamon-sage.de for <h@realh.co.uk>,<linux-media@vger.kernel.org> ; 01.02.2012 18:40:42
-Message-ID: <4F29791C.6060201@flensrocker.de>
-Date: Wed, 01 Feb 2012 18:40:44 +0100
-From: Lars Hanisch <dvb@flensrocker.de>
-MIME-Version: 1.0
-To: Tony Houghton <h@realh.co.uk>
-CC: linux-media@vger.kernel.org
-Subject: Re: DVB TS/PES filters
-References: <20120126154015.01eb2c18@tiber> <20120201133234.0b6222bc@junior>
-In-Reply-To: <20120201133234.0b6222bc@junior>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:33510 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751763Ab2BNIbJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 03:31:09 -0500
+Date: Tue, 14 Feb 2012 17:29:02 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv21 08/16] mm: mmzone: MIGRATE_CMA migration type added
+Message-Id: <20120214172902.d76cfb31.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <1328895151-5196-9-git-send-email-m.szyprowski@samsung.com>
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+	<1328895151-5196-9-git-send-email-m.szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri, 10 Feb 2012 18:32:23 +0100
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-Am 01.02.2012 14:32, schrieb Tony Houghton:
-> On Thu, 26 Jan 2012 15:40:15 +0000
-> Tony Houghton<h@realh.co.uk>  wrote:
->
->> I could do with a little more information about DMX_SET_PES_FILTER.
->> Specifically I want to use an output type of DMX_OUT_TS_TAP. I believe
->> there's a limit on how many filters can be set, but I don't know
->> whether the kernel imposes such a limit or whether it depends on the
->> hardware, If the latter, how can I read the limit?
->
-> Can anyone help me get more information about this (and the "magic
-> number" pid of 8192 for the whole stream)?
+> From: Michal Nazarewicz <mina86@mina86.com>
+> 
+> The MIGRATE_CMA migration type has two main characteristics:
+> (i) only movable pages can be allocated from MIGRATE_CMA
+> pageblocks and (ii) page allocator will never change migration
+> type of MIGRATE_CMA pageblocks.
+> 
+> This guarantees (to some degree) that page in a MIGRATE_CMA page
+> block can always be migrated somewhere else (unless there's no
+> memory left in the system).
+> 
+> It is designed to be used for allocating big chunks (eg. 10MiB)
+> of physically contiguous memory.  Once driver requests
+> contiguous memory, pages from MIGRATE_CMA pageblocks may be
+> migrated away to create a contiguous block.
+> 
+> To minimise number of migrations, MIGRATE_CMA migration type
+> is the last type tried when page allocator falls back to other
+> migration types when requested.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Acked-by: Mel Gorman <mel@csn.ul.ie>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-  In the TS-header there are 13 bits for the PID, so it can be from 0 to 8191.
-  Therefore dvb-core interprets 8192 (and greater values I think) as "all PIDs".
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Regards,
-Lars.
