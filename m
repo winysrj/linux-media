@@ -1,112 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:63063 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752388Ab2BHWsd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 Feb 2012 17:48:33 -0500
-Received: by eekc14 with SMTP id c14so354082eek.19
-        for <linux-media@vger.kernel.org>; Wed, 08 Feb 2012 14:48:31 -0800 (PST)
-Message-ID: <4F32FBBB.7020007@gmail.com>
-Date: Wed, 08 Feb 2012 23:48:27 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Q] Interleaved formats on the media bus
-References: <4F27CF29.5090905@samsung.com> <4637542.W3k3fJhoQF@avalon> <4F2D641A.5020900@gmail.com> <4116034.kVC1fDZsLk@avalon>
-In-Reply-To: <4116034.kVC1fDZsLk@avalon>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:40974 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1759293Ab2BNSyT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 13:54:19 -0500
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id q1EIsJFN007237
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 14 Feb 2012 13:54:19 -0500
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] fintek-cir: add support for newer chip version
+Date: Tue, 14 Feb 2012 16:54:13 -0200
+Message-Id: <1329245653-27896-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Acked-by: Jarod Wilson <jarod@redhat.com>
+Reviewed-by: Jarod Wilson <jarod@redhat.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/rc/fintek-cir.c |   26 ++++++++++++++++++--------
+ drivers/media/rc/fintek-cir.h |    4 +++-
+ 2 files changed, 21 insertions(+), 9 deletions(-)
 
-On 02/05/2012 02:30 PM, Laurent Pinchart wrote:
-> On Saturday 04 February 2012 18:00:10 Sylwester Nawrocki wrote:
->> On 02/04/2012 12:34 PM, Laurent Pinchart wrote:
->>> On Thursday 02 February 2012 12:14:08 Sylwester Nawrocki wrote:
->>>> On 02/02/2012 10:55 AM, Laurent Pinchart wrote:
->>>>> Do all those sensors interleave the data in the same way ? This sounds
->>>>> quite
->>>>
->>>> No, each one uses it's own interleaving method.
->>>>
->>>>> hackish and vendor-specific to me, I'm not sure if we should try to
->>>>> generalize that. Maybe vendor-specific media bus format codes would be
->>>>> the way to go. I don't expect ISPs to understand the format, they will
->>>>> likely be configured in pass-through mode. Instead of adding explicit
->>>>> support for all those weird formats to all ISP drivers, it might make
->>>>> sense to add a "binary blob" media bus code to be used by the ISP.
->>>>
->>>> This could work, except that there is no way to match a fourcc with media
->>>> bus code. Different fourcc would map to same media bus code, making it
->>>> impossible for the brigde to handle multiple sensors or one sensor
->>>> supporting multiple interleaved formats. Moreover there is a need to map
->>>> media bus code to the MIPI-CSI data ID. What if one sensor sends "binary"
->>>> blob with MIPI-CSI "User Define Data 1" and the other with "User Define
->>>> Data 2" ?
->>>
->>> My gut feeling is that the information should be retrieved from the sensor
->>> driver. This is all pretty vendor-specific, and adding explicit support
->>> for such sensors to each bridge driver wouldn't be very clean. Could the
->>> bridge
->>
->> We have many standard pixel codes in include/linux/v4l2-mediabus.h, yet each
->> bridge driver supports only a subset of them. I wouldn't expect a sudden
->> need for all existing bridge drivers to support some strange interleaved
->> image formats.
-> 
-> Those media bus codes are standard, so implementing explicit support for them
-> in bridge drivers is fine with me. What I want to avoid is adding explicit
-> support for sensor-specific formats to bridges. There should be no dependency
-> between the bridge and the sensor.
+diff --git a/drivers/media/rc/fintek-cir.c b/drivers/media/rc/fintek-cir.c
+index 7f7079b..392d4be 100644
+--- a/drivers/media/rc/fintek-cir.c
++++ b/drivers/media/rc/fintek-cir.c
+@@ -117,7 +117,7 @@ static u8 fintek_cir_reg_read(struct fintek_dev *fintek, u8 offset)
+ static void cir_dump_regs(struct fintek_dev *fintek)
+ {
+ 	fintek_config_mode_enable(fintek);
+-	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
++	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
+ 
+ 	pr_reg("%s: Dump CIR logical device registers:\n", FINTEK_DRIVER_NAME);
+ 	pr_reg(" * CR CIR BASE ADDR: 0x%x\n",
+@@ -143,7 +143,7 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
+ 	u8 chip_major, chip_minor;
+ 	u8 vendor_major, vendor_minor;
+ 	u8 portsel, ir_class;
+-	u16 vendor;
++	u16 vendor, chip;
+ 	int ret = 0;
+ 
+ 	fintek_config_mode_enable(fintek);
+@@ -176,6 +176,7 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
+ 
+ 	chip_major = fintek_cr_read(fintek, GCR_CHIP_ID_HI);
+ 	chip_minor = fintek_cr_read(fintek, GCR_CHIP_ID_LO);
++	chip  = chip_major << 8 | chip_minor;
+ 
+ 	vendor_major = fintek_cr_read(fintek, GCR_VENDOR_ID_HI);
+ 	vendor_minor = fintek_cr_read(fintek, GCR_VENDOR_ID_LO);
+@@ -192,6 +193,15 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
+ 	fintek->chip_major  = chip_major;
+ 	fintek->chip_minor  = chip_minor;
+ 	fintek->chip_vendor = vendor;
++
++	/*
++	 * Newer reviews of this chipset uses port 8 instead of 5
++	 */
++	if ((chip != 0x0408) || (chip != 0x0804))
++		fintek->logical_dev_cir = LOGICAL_DEV_CIR_REV2;
++	else
++		fintek->logical_dev_cir = LOGICAL_DEV_CIR_REV1;
++
+ 	spin_unlock_irqrestore(&fintek->fintek_lock, flags);
+ 
+ 	return ret;
+@@ -200,7 +210,7 @@ static int fintek_hw_detect(struct fintek_dev *fintek)
+ static void fintek_cir_ldev_init(struct fintek_dev *fintek)
+ {
+ 	/* Select CIR logical device and enable */
+-	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
++	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
+ 	fintek_cr_write(fintek, LOGICAL_DEV_ENABLE, CIR_CR_DEV_EN);
+ 
+ 	/* Write allocated CIR address and IRQ information to hardware */
+@@ -381,7 +391,7 @@ static irqreturn_t fintek_cir_isr(int irq, void *data)
+ 	fit_dbg_verbose("%s firing", __func__);
+ 
+ 	fintek_config_mode_enable(fintek);
+-	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
++	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
+ 	fintek_config_mode_disable(fintek);
+ 
+ 	/*
+@@ -422,7 +432,7 @@ static void fintek_enable_cir(struct fintek_dev *fintek)
+ 	fintek_config_mode_enable(fintek);
+ 
+ 	/* enable the CIR logical device */
+-	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
++	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
+ 	fintek_cr_write(fintek, LOGICAL_DEV_ENABLE, CIR_CR_DEV_EN);
+ 
+ 	fintek_config_mode_disable(fintek);
+@@ -439,7 +449,7 @@ static void fintek_disable_cir(struct fintek_dev *fintek)
+ 	fintek_config_mode_enable(fintek);
+ 
+ 	/* disable the CIR logical device */
+-	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
++	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
+ 	fintek_cr_write(fintek, LOGICAL_DEV_DISABLE, CIR_CR_DEV_EN);
+ 
+ 	fintek_config_mode_disable(fintek);
+@@ -611,7 +621,7 @@ static int fintek_suspend(struct pnp_dev *pdev, pm_message_t state)
+ 	fintek_config_mode_enable(fintek);
+ 
+ 	/* disable cir logical dev */
+-	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
++	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
+ 	fintek_cr_write(fintek, LOGICAL_DEV_DISABLE, CIR_CR_DEV_EN);
+ 
+ 	fintek_config_mode_disable(fintek);
+@@ -634,7 +644,7 @@ static int fintek_resume(struct pnp_dev *pdev)
+ 
+ 	/* Enable CIR logical device */
+ 	fintek_config_mode_enable(fintek);
+-	fintek_select_logical_dev(fintek, LOGICAL_DEV_CIR);
++	fintek_select_logical_dev(fintek, fintek->logical_dev_cir);
+ 	fintek_cr_write(fintek, LOGICAL_DEV_ENABLE, CIR_CR_DEV_EN);
+ 
+ 	fintek_config_mode_disable(fintek);
+diff --git a/drivers/media/rc/fintek-cir.h b/drivers/media/rc/fintek-cir.h
+index 1b10b20..82516a1 100644
+--- a/drivers/media/rc/fintek-cir.h
++++ b/drivers/media/rc/fintek-cir.h
+@@ -88,6 +88,7 @@ struct fintek_dev {
+ 	u8 chip_major;
+ 	u8 chip_minor;
+ 	u16 chip_vendor;
++	u8 logical_dev_cir;
+ 
+ 	/* hardware features */
+ 	bool hw_learning_capable;
+@@ -172,7 +173,8 @@ struct fintek_dev {
+ #define LOGICAL_DEV_ENABLE	0x01
+ 
+ /* Logical device number of the CIR function */
+-#define LOGICAL_DEV_CIR		0x05
++#define LOGICAL_DEV_CIR_REV1	0x05
++#define LOGICAL_DEV_CIR_REV2	0x08
+ 
+ /* CIR Logical Device (LDN 0x08) config registers */
+ #define CIR_CR_COMMAND_INDEX	0x04
+-- 
+1.7.8
 
-OK, I see your point. Naturally I agree here, even though sometimes the hardware
-engineers make this process of getting rid of the dependencies more painful that
-it really could be.
-
->>> query the sensor using a subdev operation ?
->>
->> There is also a MIPI-CSI2 receiver in between that needs to be configured.
->> I.e. it must know that it processes the User Defined Data 1, which implies
->> certain pixel alignment, etc. So far a media bus pixel codes have been
->> a base information to handle such things.
-> 
-> For CSI user-defined data types, I still think that the information required
-> to configure the CSI receiver should come from the sensor. Only the sensor
-> knows what user-defined data type it will generate.
-
-I agree. Should we have separate callback at the sensor ops for this or should 
-it belong to a bigger data structure (like the "frame description" structure 
-mentioned before) ? The latter might be more reasonable.
-
->>>> Maybe we could create e.g. V4L2_MBUS_FMT_USER?, for each MIPI-CSI User
->>>> Defined data identifier, but as I remember it was decided not to map
->>>> MIPI-CSI data codes directly onto media bus pixel codes.
->>>
->>> Would setting the format directly on the sensor subdev be an option ?
->>
->> Do you mean setting a MIPI-CSI2 format ?
-> 
-> No, I mean setting the media bus code on the sensor output pad to a vendor-
-> specific value.
-
-I'm afraid we need a vendor/sensor specific format identifier since the sensor
-produces truly vendor specific format. In fact this format is made to overcome
-hardware limitations of the video bridge. We can of course standardize things 
-like: embedded (non-image) data presence and size at beginning and an end of 
-frame, MIPI-CSIS2 data type, interleaving method (different data type and/or 
-virtual channel), etc. But still there will be some crap that is relevant to 
-only one hardware type and it would need to be distinguished in some way.
-
---
-
-Regards,
-Sylwester
