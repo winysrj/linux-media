@@ -1,78 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:41319 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753816Ab2BGF4e convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2012 00:56:34 -0500
-Received: by vbjk17 with SMTP id k17so4401085vbj.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2012 21:56:33 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAHAyoxyo3uw3npFmCmYiOE0akPqJt2X_R1MqZJ6Dk7dbPhdFjg@mail.gmail.com>
-References: <CAHAyoxyo3uw3npFmCmYiOE0akPqJt2X_R1MqZJ6Dk7dbPhdFjg@mail.gmail.com>
-Date: Tue, 7 Feb 2012 00:56:33 -0500
-Message-ID: <CAHAyoxw=t5CMQD2DPsZy9JV94fUXG=DNoNxvra9JYrLb_Jy5Fg@mail.gmail.com>
-Subject: Re: [GIT PULL] adding support for Xceive XC5000C tuner... |
- git://linuxtv.org/mkrufky/tuners xc5000
-From: Michael Krufky <mkrufky@kernellabs.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-Cc: Steven Toth <stoth@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:45530 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753697Ab2BNHzx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 02:55:53 -0500
+Date: Tue, 14 Feb 2012 16:54:10 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv21 06/16] mm: page_alloc: introduce alloc_contig_range()
+Message-Id: <20120214165410.fb8b68ea.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <1328895151-5196-7-git-send-email-m.szyprowski@samsung.com>
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+	<1328895151-5196-7-git-send-email-m.szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 7, 2012 at 12:06 AM, Michael Krufky <mkrufky@kernellabs.com> wrote:
-> Please review / ack / merge:
->
-> The following changes since commit 59b30294e14fa6a370fdd2bc2921cca1f977ef16:
->  Mauro Carvalho Chehab (1):
->        Merge branch 'v4l_for_linus' into staging/for_v3.4
->
-> are available in the git repository at:
->
->  git://linuxtv.org/mkrufky/tuners xc5000
->
-> Michael Krufky (5):
->      xc5000: allow drivers to set desired firmware in xc5000_attach
->      xc5000: add XC5000C_DEFAULT_FIRMWARE: dvb-fe-xc5000c-41.024.5-31875.fw
->      tuner: add support for Xceive XC5000C
->      tveeprom: add support for Xceive XC5000C tuner
->      remove unneeded #define's in xc5000.h
->
->  drivers/media/common/tuners/tuner-types.c |    4 ++++
->  drivers/media/common/tuners/xc5000.c      |   27 +++++++++++++++++++++------
->  drivers/media/common/tuners/xc5000.h      |   13 +++++++++++++
->  drivers/media/video/tuner-core.c          |   15 +++++++++++++++
->  drivers/media/video/tveeprom.c            |    2 +-
->  include/media/tuner.h                     |    1 +
->  6 files changed, 55 insertions(+), 7 deletions(-)
+On Fri, 10 Feb 2012 18:32:21 +0100
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-...adding one more:
+> From: Michal Nazarewicz <mina86@mina86.com>
+> 
+> This commit adds the alloc_contig_range() function which tries
+> to allocate given range of pages.  It tries to migrate all
+> already allocated pages that fall in the range thus freeing them.
+> Once all pages in the range are freed they are removed from the
+> buddy system thus allocated for the caller to use.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Acked-by: Mel Gorman <mel@csn.ul.ie>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-The following changes since commit 59b30294e14fa6a370fdd2bc2921cca1f977ef16:
-  Mauro Carvalho Chehab (1):
-        Merge branch 'v4l_for_linus' into staging/for_v3.4
+Hmm, I may have to refactoring memory hot unplug code using this :)
 
-are available in the git repository at:
+Thanks,
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-  git://linuxtv.org/mkrufky/tuners xc5000
 
-Michael Krufky (6):
-      xc5000: allow drivers to set desired firmware in xc5000_attach
-      xc5000: add XC5000C_DEFAULT_FIRMWARE: dvb-fe-xc5000c-41.024.5-31875.fw
-      tuner: add support for Xceive XC5000C
-      tveeprom: add support for Xceive XC5000C tuner
-      remove unneeded #define's in xc5000.h
-      xc5000: remove static dependencies on xc5000 created by previous
-changesets
-
- drivers/media/common/tuners/tuner-types.c |    4 ++
- drivers/media/common/tuners/xc5000.c      |   45 +++++++++++++++++++++++++----
- drivers/media/common/tuners/xc5000.h      |    8 +++++
- drivers/media/video/tuner-core.c          |   15 +++++++++
- drivers/media/video/tveeprom.c            |    2 +-
- include/media/tuner.h                     |    1 +
- 6 files changed, 68 insertions(+), 7 deletions(-)
-
-Cheers,
--Mike
