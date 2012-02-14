@@ -1,48 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:42239 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755751Ab2BXR7Z convert rfc822-to-8bit (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.162]:28277 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761231Ab2BNVs2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 12:59:25 -0500
-MIME-Version: 1.0
-In-Reply-To: <1330099282-4588-1-git-send-email-danny.kukawka@bisect.de>
-References: <1330099282-4588-1-git-send-email-danny.kukawka@bisect.de>
-From: =?ISO-8859-2?Q?Micha=B3_Miros=B3aw?= <mirqus@gmail.com>
-Date: Fri, 24 Feb 2012 18:59:04 +0100
-Message-ID: <CAHXqBFK=u+MchBn=D31h6nhp-R9GTNbaC18QJA937zjXc60UQw@mail.gmail.com>
-Subject: Re: [PATCH 00/12] Part 2: check given MAC address, if invalid return -EADDRNOTAVAIL
-To: Danny Kukawka <danny.kukawka@bisect.de>
-Cc: "David S. Miller" <davem@davemloft.net>,
-	Andy Gospodarek <andy@greyhouse.net>,
-	Guo-Fu Tseng <cooldavid@cooldavid.org>,
-	Petko Manolov <petkan@users.sourceforge.net>,
-	"VMware, Inc." <pv-drivers@vmware.com>,
-	"John W. Linville" <linville@tuxdriver.com>, linux390@de.ibm.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Danny Kukawka <dkukawka@suse.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Joe Perches <joe@perches.com>,
-	Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
-	Jiri Pirko <jpirko@redhat.com>, netdev@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-	libertas-dev@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-hams@vger.kernel.org, linux-mips@linux-mips.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Tue, 14 Feb 2012 16:48:28 -0500
+From: linuxtv@stefanringel.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH 14/22] mt2063: remove get_status
+Date: Tue, 14 Feb 2012 22:47:38 +0100
+Message-Id: <1329256066-8844-14-git-send-email-linuxtv@stefanringel.de>
+In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/2/24 Danny Kukawka <danny.kukawka@bisect.de>:
-> Second Part of series patches to unifiy the return value of
-> .ndo_set_mac_address if the given address isn't valid.
->
-> These changes check if a given (MAC) address is valid in
-> .ndo_set_mac_address, if invalid return -EADDRNOTAVAIL
-> as eth_mac_addr() already does if is_valid_ether_addr() fails.
+From: Stefan Ringel <linuxtv@stefanringel.de>
 
-Why not just fix dev_set_mac_address() and make do_setlink() use that?
-Checks are specific to address family, not device model I assume.
+Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+---
+ drivers/media/common/tuners/mt2063.c |   12 ------------
+ 1 files changed, 0 insertions(+), 12 deletions(-)
 
-Best Regards,
-Michał Mirosław
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index 452c517..3af5242 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -460,24 +460,12 @@ static int mt2063_init(struct dvb_frontend *fe)
+ 	return 0;
+ }
+ 
+-static int mt2063_get_status(struct dvb_frontend *fe, u32 *tuner_status)
+ {
+ 	struct mt2063_state *state = fe->tuner_priv;
+-	int status;
+ 
+-	dprintk(2, "\n");
+ 
+-	if (!state->init)
+-		return -ENODEV;
+ 
+-	*tuner_status = 0;
+-	status = mt2063_lockStatus(state);
+-	if (status < 0)
+-		return status;
+-	if (status)
+-		*tuner_status = TUNER_STATUS_LOCKED;
+ 
+-	dprintk(1, "Tuner status: %d", *tuner_status);
+ 
+ 	return 0;
+ }
+-- 
+1.7.7.6
+
