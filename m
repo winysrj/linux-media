@@ -1,208 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:34863 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754395Ab2B0Umb (ORCPT
+Received: from mail-pw0-f46.google.com ([209.85.160.46]:42637 "EHLO
+	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761264Ab2BNWJ4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Feb 2012 15:42:31 -0500
-Message-ID: <4F4BEAB3.4080101@gmx.de>
-Date: Mon, 27 Feb 2012 21:42:27 +0100
-From: Andreas Regel <andreas.regel@gmx.de>
+	Tue, 14 Feb 2012 17:09:56 -0500
+Received: by pbcun15 with SMTP id un15so830823pbc.19
+        for <linux-media@vger.kernel.org>; Tue, 14 Feb 2012 14:09:56 -0800 (PST)
 MIME-Version: 1.0
-To: abraham.manu@gmail.com
-CC: linux-media@vger.kernel.org
-Subject: [PATCH 3/3] stv090x: On STV0903 do not set registers of the second
- path.
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAGoCfiwH8pYmJLB_4rkXF7gqfe2_PhFDz3XyNFO6VHsUQq=8tw@mail.gmail.com>
+References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
+	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
+	<20111020162340.GC7530@jannau.net>
+	<CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com>
+	<20111020170811.GD7530@jannau.net>
+	<CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com>
+	<CAOTqeXpJfk-ENgxhELo03LBHqdtf957knXQzOjYo0YO7sGcAbg@mail.gmail.com>
+	<CAOTqeXpY3uvy7Dq3fi1wTD5nRx1r1LMo7=XEfJdxyURY2opKuw@mail.gmail.com>
+	<4EB7CD59.1010303@redhat.com>
+	<CAOTqeXoavdYLkfp+FRLj3v24z2m+xZHiKhnOOiHJhZ+Y858y9w@mail.gmail.com>
+	<CANOx78GENFQXfuX0OeYPa=YCHREk3H2OKmKQhkEsQx9qFieksg@mail.gmail.com>
+	<CAGoCfiwH8pYmJLB_4rkXF7gqfe2_PhFDz3XyNFO6VHsUQq=8tw@mail.gmail.com>
+Date: Tue, 14 Feb 2012 17:09:55 -0500
+Message-ID: <CANOx78GKYv9fdHx6ZVABojMBHJCXH3Y8YCGg2nK+HrBjPw-74g@mail.gmail.com>
+Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
+ firmware versions > 0.15
+From: Jarod Wilson <jarod@wilsonet.com>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Taylor Ralph <taylor.ralph@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Janne Grunau <j@jannau.net>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sometimes there is a problem when trying to access the non-existing 
-registers of the second demodulator path on the STV0903.
-This change removes the calls in case the driver is used on a STV0903.
+On Tue, Feb 14, 2012 at 4:32 PM, Devin Heitmueller
+<dheitmueller@kernellabs.com> wrote:
+> On Tue, Feb 14, 2012 at 3:43 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
+>> Looks sane to me, and really needs to get in ASAP. I'd even suggest we
+>> get it sent to stable, as these newer firmware HDPVR are pretty wonky
+>> with any current kernel.
+>>
+>> Acked-by: Jarod Wilson <jarod@redhat.com>
+>> Reviewed-by: Jarod Wilson <jarod@redhat.com>
+>> CC: stable@vger.kernel.org
+>
+> Where did the process break down here?  Taylor did this patch *months*
+> ago, and there has been absolutely no comment with why it wouldn't go
+> upstream.  If he hadn't been diligent in pinging the ML repeatedly, it
+> would have been lost.
 
-Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
----
-  drivers/media/dvb/frontends/stv090x.c |  141 
-++++++++++++++++++++++++++++++--
-  1 files changed, 132 insertions(+), 9 deletions(-)
+It looks like for some reason, the v3 patch got eaten. :\
 
-diff --git a/drivers/media/dvb/frontends/stv090x.c 
-b/drivers/media/dvb/frontends/stv090x.c
-index afbd50c..ce064a3 100644
---- a/drivers/media/dvb/frontends/stv090x.c
-+++ b/drivers/media/dvb/frontends/stv090x.c
-@@ -4268,7 +4268,7 @@ err:
-  	return -1;
-  }
-  -static int stv090x_set_tspath(struct stv090x_state *state)
-+static int stv0900_set_tspath(struct stv090x_state *state)
-  {
-  	u32 reg;
-  @@ -4539,6 +4539,121 @@ err:
-  	return -1;
-  }
-  +static int stv0903_set_tspath(struct stv090x_state *state)
-+{
-+	u32 reg;
-+
-+	if (state->internal->dev_ver >= 0x20) {
-+		switch (state->config->ts1_mode) {
-+		case STV090x_TSMODE_PARALLEL_PUNCTURED:
-+		case STV090x_TSMODE_DVBCI:
-+			stv090x_write_reg(state, STV090x_TSGENERAL, 0x00);
-+			break;
-+
-+		case STV090x_TSMODE_SERIAL_PUNCTURED:
-+		case STV090x_TSMODE_SERIAL_CONTINUOUS:
-+		default:
-+			stv090x_write_reg(state, STV090x_TSGENERAL, 0x0c);
-+			break;
-+		}
-+	} else {
-+		switch (state->config->ts1_mode) {
-+		case STV090x_TSMODE_PARALLEL_PUNCTURED:
-+		case STV090x_TSMODE_DVBCI:
-+			stv090x_write_reg(state, STV090x_TSGENERAL1X, 0x10);
-+			break;
-+
-+		case STV090x_TSMODE_SERIAL_PUNCTURED:
-+		case STV090x_TSMODE_SERIAL_CONTINUOUS:
-+		default:
-+			stv090x_write_reg(state, STV090x_TSGENERAL1X, 0x14);
-+			break;
-+		}
-+	}
-+
-+	switch (state->config->ts1_mode) {
-+	case STV090x_TSMODE_PARALLEL_PUNCTURED:
-+		reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_SERIAL_FIELD, 0x00);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_DVBCI_FIELD, 0x00);
-+		if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
-+			goto err;
-+		break;
-+
-+	case STV090x_TSMODE_DVBCI:
-+		reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_SERIAL_FIELD, 0x00);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_DVBCI_FIELD, 0x01);
-+		if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
-+			goto err;
-+		break;
-+
-+	case STV090x_TSMODE_SERIAL_PUNCTURED:
-+		reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_SERIAL_FIELD, 0x01);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_DVBCI_FIELD, 0x00);
-+		if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
-+			goto err;
-+		break;
-+
-+	case STV090x_TSMODE_SERIAL_CONTINUOUS:
-+		reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_SERIAL_FIELD, 0x01);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_DVBCI_FIELD, 0x01);
-+		if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
-+			goto err;
-+		break;
-+
-+	default:
-+		break;
-+	}
-+
-+	if (state->config->ts1_clk > 0) {
-+		u32 speed;
-+
-+		switch (state->config->ts1_mode) {
-+		case STV090x_TSMODE_PARALLEL_PUNCTURED:
-+		case STV090x_TSMODE_DVBCI:
-+		default:
-+			speed = state->internal->mclk /
-+				(state->config->ts1_clk / 4);
-+			if (speed < 0x08)
-+				speed = 0x08;
-+			if (speed > 0xFF)
-+				speed = 0xFF;
-+			break;
-+		case STV090x_TSMODE_SERIAL_PUNCTURED:
-+		case STV090x_TSMODE_SERIAL_CONTINUOUS:
-+			speed = state->internal->mclk /
-+				(state->config->ts1_clk / 32);
-+			if (speed < 0x20)
-+				speed = 0x20;
-+			if (speed > 0xFF)
-+				speed = 0xFF;
-+			break;
-+		}
-+		reg = stv090x_read_reg(state, STV090x_P1_TSCFGM);
-+		STV090x_SETFIELD_Px(reg, TSFIFO_MANSPEED_FIELD, 3);
-+		if (stv090x_write_reg(state, STV090x_P1_TSCFGM, reg) < 0)
-+			goto err;
-+		if (stv090x_write_reg(state, STV090x_P1_TSSPEED, speed) < 0)
-+			goto err;
-+	}
-+
-+	reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
-+	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 0x01);
-+	if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
-+		goto err;
-+	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 0x00);
-+	if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
-+		goto err;
-+
-+	return 0;
-+err:
-+	dprintk(FE_ERROR, 1, "I/O error");
-+	return -1;
-+}
-+
-  static int stv090x_init(struct dvb_frontend *fe)
-  {
-  	struct stv090x_state *state = fe->demodulator_priv;
-@@ -4601,8 +4716,13 @@ static int stv090x_init(struct dvb_frontend *fe)
-  	if (stv090x_i2c_gate_ctrl(state, 0) < 0)
-  		goto err;
-  -	if (stv090x_set_tspath(state) < 0)
--		goto err;
-+	if (state->device == STV0900) {
-+		if (stv0900_set_tspath(state) < 0)
-+			goto err;
-+	} else {
-+		if (stv0903_set_tspath(state) < 0)
-+			goto err;
-+	}
-   	return 0;
-  @@ -4643,23 +4763,26 @@ static int stv090x_setup(struct dvb_frontend *fe)
-  	/* Stop Demod */
-  	if (stv090x_write_reg(state, STV090x_P1_DMDISTATE, 0x5c) < 0)
-  		goto err;
--	if (stv090x_write_reg(state, STV090x_P2_DMDISTATE, 0x5c) < 0)
--		goto err;
-+	if (state->device == STV0900)
-+		if (stv090x_write_reg(state, STV090x_P2_DMDISTATE, 0x5c) < 0)
-+			goto err;
-   	msleep(5);
-   	/* Set No Tuner Mode */
-  	if (stv090x_write_reg(state, STV090x_P1_TNRCFG, 0x6c) < 0)
-  		goto err;
--	if (stv090x_write_reg(state, STV090x_P2_TNRCFG, 0x6c) < 0)
--		goto err;
-+	if (state->device == STV0900)
-+		if (stv090x_write_reg(state, STV090x_P2_TNRCFG, 0x6c) < 0)
-+			goto err;
-   	/* I2C repeater OFF */
-  	STV090x_SETFIELD_Px(reg, ENARPT_LEVEL_FIELD, config->repeater_level);
-  	if (stv090x_write_reg(state, STV090x_P1_I2CRPT, reg) < 0)
-  		goto err;
--	if (stv090x_write_reg(state, STV090x_P2_I2CRPT, reg) < 0)
--		goto err;
-+	if (state->device == STV0900)
-+		if (stv090x_write_reg(state, STV090x_P2_I2CRPT, reg) < 0)
-+			goto err;
-   	if (stv090x_write_reg(state, STV090x_NCOARSE, 0x13) < 0) /* set PLL 
-divider */
-  		goto err;
+http://patchwork.linuxtv.org/patch/8183/ is the v2, in state Changes
+Requested, but you can see in the comments a mail that says v3 is
+attached, which contains the requested change (added s-o-b). A v3
+patch object is nowhere to be found though. The patch *was* indeed
+attached to the mail though, I've got it here in my linux-media
+mailbox.
+
+So at least on this one, I think I'm blaming patchwork, but it would
+be good to better understand how that patch got eaten, and to know if
+indeed its happened to other patches as well.
+
 -- 
-1.7.2.5
-
+Jarod Wilson
+jarod@wilsonet.com
