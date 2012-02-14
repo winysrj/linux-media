@@ -1,86 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.ispras.ru ([83.149.198.202]:53251 "EHLO smtp.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756905Ab2BMP1d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 10:27:33 -0500
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, ldv-project@ispras.ru
-Subject: [PATCH] staging: go7007: fix mismatch in mutex lock-unlock in [read|write]_reg_fp
-Date: Mon, 13 Feb 2012 16:01:32 +0100
-Message-Id: <1329145292-5855-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mo-p00-ob.rzone.de ([81.169.146.162]:28282 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761251Ab2BNVs2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 16:48:28 -0500
+From: linuxtv@stefanringel.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH 12/22] mt2063: remove LockStatus
+Date: Tue, 14 Feb 2012 22:47:36 +0100
+Message-Id: <1329256066-8844-12-git-send-email-linuxtv@stefanringel.de>
+In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If go7007_usb_vendor_request() fails in write_reg_fp()
-or in read_reg_fp(), the usb->i2c_lock mutex left locked.
+From: Stefan Ringel <linuxtv@stefanringel.de>
 
-The patch moves mutex_unlock(&usb->i2c_lock) before check
-for go7007_usb_vendor_request() returned value.
-
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
 ---
- drivers/staging/media/go7007/s2250-board.c |   16 ++++++++++------
- 1 files changed, 10 insertions(+), 6 deletions(-)
+ drivers/media/common/tuners/mt2063.c |   36 ----------------------------------
+ 1 files changed, 0 insertions(+), 36 deletions(-)
 
-diff --git a/drivers/staging/media/go7007/s2250-board.c b/drivers/staging/media/go7007/s2250-board.c
-index e7736a9..014d384 100644
---- a/drivers/staging/media/go7007/s2250-board.c
-+++ b/drivers/staging/media/go7007/s2250-board.c
-@@ -192,6 +192,7 @@ static int write_reg_fp(struct i2c_client *client, u16 addr, u16 val)
- {
- 	struct go7007 *go = i2c_get_adapdata(client->adapter);
- 	struct go7007_usb *usb;
-+	int rc;
- 	u8 *buf;
- 	struct s2250 *dec = i2c_get_clientdata(client);
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index 24c2c93..8cc58a1 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -179,46 +179,10 @@ static int mt2063_set_mode(struct mt2063_state *state, enum mt2063_delsys Mode)
+ 	 *
+ 	 *
+ 	 */
+-/**
+- * mt2063_lockStatus - Checks to see if LO1 and LO2 are locked
+- *
+- * @state:	struct mt2063_state pointer
+- *
+- * This function returns 0, if no lock, 1 if locked and a value < 1 if error
+- */
+-static unsigned int mt2063_lockStatus(struct mt2063_state *state)
+-{
+-	const u32 nMaxWait = 100;	/*  wait a maximum of 100 msec   */
+-	const u32 nPollRate = 2;	/*  poll status bits every 2 ms */
+-	const u32 nMaxLoops = nMaxWait / nPollRate;
+-	const u8 LO1LK = 0x80;
+-	u8 LO2LK = 0x08;
+-	u32 status;
+-	u32 nDelays = 0;
+-
+-	dprintk(2, "\n");
+-
+-	/*  LO2 Lock bit was in a different place for B0 version  */
+-	if (state->tuner_id == MT2063_B0)
+-		LO2LK = 0x40;
  
-@@ -216,12 +217,13 @@ static int write_reg_fp(struct i2c_client *client, u16 addr, u16 val)
- 		kfree(buf);
- 		return -EINTR;
- 	}
--	if (go7007_usb_vendor_request(go, 0x57, addr, val, buf, 16, 1) < 0) {
-+	rc = go7007_usb_vendor_request(go, 0x57, addr, val, buf, 16, 1);
-+	mutex_unlock(&usb->i2c_lock);
-+	if (rc < 0) {
- 		kfree(buf);
--		return -EFAULT;
-+		return rc;
- 	}
+ 	do {
+-		status = mt2063_read(state, MT2063_REG_LO_STATUS,
+-				     &state->reg[MT2063_REG_LO_STATUS], 1);
+-
+-		if (status < 0)
+-			return status;
+-
+-		if ((state->reg[MT2063_REG_LO_STATUS] & (LO1LK | LO2LK)) ==
+-		    (LO1LK | LO2LK)) {
+-			return TUNER_STATUS_LOCKED | TUNER_STATUS_STEREO;
+ 		}
+-		msleep(nPollRate);	/*  Wait between retries  */
+-	} while (++nDelays < nMaxLoops);
  
--	mutex_unlock(&usb->i2c_lock);
- 	if (buf[0] == 0) {
- 		unsigned int subaddr, val_read;
+-	/*
+-	 * Got no lock or partial lock
+-	 */
+ 	return 0;
+ }
  
-@@ -254,6 +256,7 @@ static int read_reg_fp(struct i2c_client *client, u16 addr, u16 *val)
- {
- 	struct go7007 *go = i2c_get_adapdata(client->adapter);
- 	struct go7007_usb *usb;
-+	int rc;
- 	u8 *buf;
- 
- 	if (go == NULL)
-@@ -276,11 +279,12 @@ static int read_reg_fp(struct i2c_client *client, u16 addr, u16 *val)
- 		kfree(buf);
- 		return -EINTR;
- 	}
--	if (go7007_usb_vendor_request(go, 0x58, addr, 0, buf, 16, 1) < 0) {
-+	rc = go7007_usb_vendor_request(go, 0x58, addr, 0, buf, 16, 1);
-+	mutex_unlock(&usb->i2c_lock);
-+	if (rc < 0) {
- 		kfree(buf);
--		return -EFAULT;
-+		return rc;
- 	}
--	mutex_unlock(&usb->i2c_lock);
- 
- 	*val = (buf[0] << 8) | buf[1];
- 	kfree(buf);
 -- 
-1.7.4.1
+1.7.7.6
 
