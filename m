@@ -1,32 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qw0-f53.google.com ([209.85.216.53]:49739 "EHLO
-	mail-qw0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752764Ab2BFOZe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 09:25:34 -0500
-Received: by qafk1 with SMTP id k1so3663973qaf.19
-        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2012 06:25:33 -0800 (PST)
+Received: from mail-we0-f174.google.com ([74.125.82.174]:45528 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757012Ab2BNTZa convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 14:25:30 -0500
 MIME-Version: 1.0
-In-Reply-To: <20120206133520.788eeb3f@junior>
-References: <20120203171250.52278c25@junior>
-	<CAH4Ag-BZ+Csasy=yk5sNt7_Q5maFuxga2PqeXtJrRYvVLa8zzA@mail.gmail.com>
-	<20120205185233.3ca5024a@tiber>
-	<CAH4Ag-BL3V2th8tu78iE3toCo2SxbRHVpNzMB6jEfs2C5iuzBQ@mail.gmail.com>
-	<20120206133520.788eeb3f@junior>
-Date: Mon, 6 Feb 2012 14:25:33 +0000
-Message-ID: <CAH4Ag-AkTUWuawF=yDnb-UzXY5G4B6pVoK2qd7ODGia57CEjNQ@mail.gmail.com>
-Subject: Re: TBS 6920 remote
-From: Simon Jones <sijones2010@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <CAMuHMdX8=x-=DQu0SCbqYK00+sP8a-kR=9KrUptAq-gqOXHAhA@mail.gmail.com>
+References: <20120120131243.7c867c7b96c75819b68aec8d@canb.auug.org.au>
+	<4F1A0783.9010501@xenotime.net>
+	<CAMuHMdX8=x-=DQu0SCbqYK00+sP8a-kR=9KrUptAq-gqOXHAhA@mail.gmail.com>
+Date: Tue, 14 Feb 2012 20:25:27 +0100
+Message-ID: <CAMuHMdWofPn9gUdPJwUDm0rqWrzKAnc=yqzDwQqrr7ZCDz6VkA@mail.gmail.com>
+Subject: Re: linux-next: Tree for Jan 20 (drivers/media/radio/wl128x/)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Randy Dunlap <rdunlap@xenotime.net>,
+	Fabio Estevam <festevam@gmail.com>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Tue, Jan 24, 2012 at 22:33, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+> On Sat, Jan 21, 2012 at 01:32, Randy Dunlap <rdunlap@xenotime.net> wrote:
+>> On 01/19/2012 06:12 PM, Stephen Rothwell wrote:
+>>> Changes since 20120119:
+>>
+>> on x86_64:
+>>
+>> ERROR: "st_register" [drivers/media/radio/wl128x/fm_drv.ko] undefined!
+>> ERROR: "st_unregister" [drivers/media/radio/wl128x/fm_drv.ko] undefined!
 >
-> The 6920 uses a Conexant chipset and everything except the remote works
-> with a standard kernel, but I did have to install the firmware manually.
-> Is the binary part for the remote? I would have thought it was only for
-> other chipsets.
+> Also in m68k allmodconfig since a while:
+> http://kisskb.ellerman.id.au/kisskb/buildresult/5427875/
+>
+> config RADIO_WL128X
+>        tristate "Texas Instruments WL128x FM Radio"
+>        depends on VIDEO_V4L2 && RFKILL
+>        select TI_ST if NET && GPIOLIB
+>
+> config TI_ST
+>        tristate "Shared transport core driver"
+>        depends on NET && GPIOLIB
+>        select FW_LOADER
+>
+> On m68k allmodconfig, GPIOLIB is not enabled, hence TI_ST
+> will not be selected, and st_{,un}register() won't be there.
+> Shouldn't the whole RADIO_WL128X depend on NET && GPIOLIB?
+> Or depend on TI_ST, instead of selecting it?
+>
+> BTW, shouldn't it be called ti_st_un{,un}register()?
+> At first I thought the link error was related to SCSI tape drives ;-)
 
-Apologies then, I thought they were still maintaining a separate tree,
-maybe am confusing myself with a different manufacturer that wouldn't
-release the source.
+Ping?
+
+Build breakage in mainline since at least 3 weeks.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
