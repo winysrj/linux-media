@@ -1,295 +1,396 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754157Ab2BVQtK (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:35505 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754002Ab2BNLfp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:49:10 -0500
-Date: Wed, 22 Feb 2012 17:48:50 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv23 09/16] mm: page_isolation: MIGRATE_CMA isolation functions
- added
-In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329929337-16648-10-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+	Tue, 14 Feb 2012 06:35:45 -0500
+Received: by wgbdt10 with SMTP id dt10so5832274wgb.1
+        for <linux-media@vger.kernel.org>; Tue, 14 Feb 2012 03:35:44 -0800 (PST)
+MIME-Version: 1.0
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
+	s.hauer@pengutronix.de,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH] media: i.MX27 camera: Add resizing support.
+Date: Tue, 14 Feb 2012 12:35:32 +0100
+Message-Id: <1329219332-27620-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+If the attached video sensor cannot provide the
+requested image size, try to use resizing engine
+included in the eMMa-PrP IP.
 
-This commit changes various functions that change pages and
-pageblocks migrate type between MIGRATE_ISOLATE and
-MIGRATE_MOVABLE in such a way as to allow to work with
-MIGRATE_CMA migrate type.
+This patch supports both averaging and bilinear
+algorithms.
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
 ---
- include/linux/gfp.h            |    3 ++-
- include/linux/page-isolation.h |   18 +++++++++---------
- mm/memory-failure.c            |    2 +-
- mm/memory_hotplug.c            |    6 +++---
- mm/page_alloc.c                |   18 ++++++++++++------
- mm/page_isolation.c            |   15 ++++++++-------
- 6 files changed, 35 insertions(+), 27 deletions(-)
+ drivers/media/video/mx2_camera.c |  251 +++++++++++++++++++++++++++++++++++++-
+ 1 files changed, 249 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/gfp.h b/include/linux/gfp.h
-index 78d32a7..1e49be4 100644
---- a/include/linux/gfp.h
-+++ b/include/linux/gfp.h
-@@ -394,7 +394,8 @@ static inline bool pm_suspended_storage(void)
- #ifdef CONFIG_CMA
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 9e84368..6516ee4 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -19,6 +19,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/errno.h>
+ #include <linux/fs.h>
++#include <linux/gcd.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+@@ -204,10 +205,25 @@
+ #define PRP_INTR_LBOVF		(1 << 7)
+ #define PRP_INTR_CH2OVF		(1 << 8)
  
- /* The below functions must be run on a range from a single zone. */
--extern int alloc_contig_range(unsigned long start, unsigned long end);
-+extern int alloc_contig_range(unsigned long start, unsigned long end,
-+			      unsigned migratetype);
- extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
++/* Resizing registers */
++#define PRP_RZ_VALID_TBL_LEN(x)	((x) << 24)
++#define PRP_RZ_VALID_BILINEAR	(1 << 31)
++
+ #define mx27_camera_emma(pcdev)	(cpu_is_mx27() && pcdev->use_emma)
  
- /* CMA stuff */
-diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
-index 051c1b1..3bdcab3 100644
---- a/include/linux/page-isolation.h
-+++ b/include/linux/page-isolation.h
-@@ -3,7 +3,7 @@
+ #define MAX_VIDEO_MEM	16
  
- /*
-  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
-- * If specified range includes migrate types other than MOVABLE,
-+ * If specified range includes migrate types other than MOVABLE or CMA,
-  * this will fail with -EBUSY.
-  *
-  * For isolating all pages in the range finally, the caller have to
-@@ -11,27 +11,27 @@
-  * test it.
-  */
- extern int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
-+start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			 unsigned migratetype);
++#define RESIZE_NUM_MIN	1
++#define RESIZE_NUM_MAX	20
++#define BC_COEF		3
++#define SZ_COEF		(1 << BC_COEF)
++
++#define RESIZE_DIR_H	0
++#define RESIZE_DIR_V	1
++
++#define RESIZE_ALGO_BILINEAR 0
++#define RESIZE_ALGO_AVERAGING 1
++
+ struct mx2_prp_cfg {
+ 	int channel;
+ 	u32 in_fmt;
+@@ -217,6 +233,13 @@ struct mx2_prp_cfg {
+ 	u32 irq_flags;
+ };
  
- /*
-  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
-  * target range is [start_pfn, end_pfn)
-  */
- extern int
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
-+undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			unsigned migratetype);
++/* prp resizing parameters */
++struct emma_prp_resize {
++	int		algo; /* type of algorithm used */
++	int		len; /* number of coefficients */
++	unsigned char	s[RESIZE_NUM_MAX]; /* table of coefficients */
++};
++
+ /* prp configuration for a client-host fmt pair */
+ struct mx2_fmt_cfg {
+ 	enum v4l2_mbus_pixelcode	in_fmt;
+@@ -278,6 +301,8 @@ struct mx2_camera_dev {
+ 	dma_addr_t		discard_buffer_dma;
+ 	size_t			discard_size;
+ 	struct mx2_fmt_cfg	*emma_prp;
++	struct emma_prp_resize	resizing[2];
++	unsigned int		s_width, s_height;
+ 	u32			frame_count;
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+ };
+@@ -687,7 +712,7 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
  
- /*
-- * test all pages in [start_pfn, end_pfn)are isolated or not.
-+ * Test all pages in [start_pfn, end_pfn) are isolated or not.
-  */
--extern int
--test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
-+int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
- 
- /*
-- * Internal funcs.Changes pageblock's migrate type.
-- * Please use make_pagetype_isolated()/make_pagetype_movable().
-+ * Internal functions. Changes pageblock's migrate type.
-  */
- extern int set_migratetype_isolate(struct page *page);
--extern void unset_migratetype_isolate(struct page *page);
-+extern void unset_migratetype_isolate(struct page *page, unsigned migratetype);
- 
- 
- #endif
-diff --git a/mm/memory-failure.c b/mm/memory-failure.c
-index 0f6033b..4eea81e 100644
---- a/mm/memory-failure.c
-+++ b/mm/memory-failure.c
-@@ -1404,7 +1404,7 @@ static int get_any_page(struct page *p, unsigned long pfn, int flags)
- 		/* Not a free page */
- 		ret = 1;
- 	}
--	unset_migratetype_isolate(p);
-+	unset_migratetype_isolate(p, MIGRATE_MOVABLE);
- 	unlock_memory_hotplug();
- 	return ret;
- }
-diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
-index 6629faf..fc898cb 100644
---- a/mm/memory_hotplug.c
-+++ b/mm/memory_hotplug.c
-@@ -891,7 +891,7 @@ static int __ref offline_pages(unsigned long start_pfn,
- 	nr_pages = end_pfn - start_pfn;
- 
- 	/* set above range as isolated */
--	ret = start_isolate_page_range(start_pfn, end_pfn);
-+	ret = start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- 	if (ret)
- 		goto out;
- 
-@@ -956,7 +956,7 @@ repeat:
- 	   We cannot do rollback at this point. */
- 	offline_isolated_pages(start_pfn, end_pfn);
- 	/* reset pagetype flags and makes migrate type to be MOVABLE */
--	undo_isolate_page_range(start_pfn, end_pfn);
-+	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- 	/* removal success */
- 	zone->present_pages -= offlined_pages;
- 	zone->zone_pgdat->node_present_pages -= offlined_pages;
-@@ -981,7 +981,7 @@ failed_removal:
- 		start_pfn, end_pfn);
- 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
- 	/* pushback to free area */
--	undo_isolate_page_range(start_pfn, end_pfn);
-+	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
- 
- out:
- 	unlock_memory_hotplug();
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 07bddbe..e590b95 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5595,7 +5595,7 @@ out:
- 	return ret;
+-	writel((icd->user_width << 16) | icd->user_height,
++	writel((pcdev->s_width << 16) | pcdev->s_height,
+ 	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
+ 	writel(prp->cfg.src_pixel,
+ 	       pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
+@@ -707,6 +732,74 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
+ 	writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
  }
  
--void unset_migratetype_isolate(struct page *page)
-+void unset_migratetype_isolate(struct page *page, unsigned migratetype)
++static void mx2_prp_resize_commit(struct mx2_camera_dev *pcdev)
++{
++	int dir;
++
++	for (dir = RESIZE_DIR_H; dir <= RESIZE_DIR_V; dir++) {
++		unsigned char *s = pcdev->resizing[dir].s;
++		int len = pcdev->resizing[dir].len;
++		unsigned int coeff[2] = {0, 0};
++		unsigned int valid  = 0;
++		int i;
++
++		if (len == 0)
++			continue;
++
++		for (i = RESIZE_NUM_MAX - 1; i >= 0; i--) {
++			int j;
++
++			j = i > 9 ? 1 : 0;
++			coeff[j] = (coeff[j] << BC_COEF) |
++			(s[i] & (SZ_COEF - 1));
++
++			if (i == 5 || i == 15)
++				coeff[j] <<= 1;
++
++			valid = (valid << 1) | (s[i] >> BC_COEF);
++		}
++
++		valid |= PRP_RZ_VALID_TBL_LEN(len);
++
++		if (pcdev->resizing[dir].algo == RESIZE_ALGO_BILINEAR)
++			valid |= PRP_RZ_VALID_BILINEAR;
++
++		if (pcdev->emma_prp->cfg.channel == 1) {
++			if (dir == RESIZE_DIR_H) {
++				writel(coeff[0], pcdev->base_emma +
++							PRP_CH1_RZ_HORI_COEF1);
++				writel(coeff[1], pcdev->base_emma +
++							PRP_CH1_RZ_HORI_COEF2);
++				writel(valid, pcdev->base_emma +
++							PRP_CH1_RZ_HORI_VALID);
++			} else {
++				writel(coeff[0], pcdev->base_emma +
++							PRP_CH1_RZ_VERT_COEF1);
++				writel(coeff[1], pcdev->base_emma +
++							PRP_CH1_RZ_VERT_COEF2);
++				writel(valid, pcdev->base_emma +
++							PRP_CH1_RZ_VERT_VALID);
++			}
++		} else {
++			if (dir == RESIZE_DIR_H) {
++				writel(coeff[0], pcdev->base_emma +
++							PRP_CH2_RZ_HORI_COEF1);
++				writel(coeff[1], pcdev->base_emma +
++							PRP_CH2_RZ_HORI_COEF2);
++				writel(valid, pcdev->base_emma +
++							PRP_CH2_RZ_HORI_VALID);
++			} else {
++				writel(coeff[0], pcdev->base_emma +
++							PRP_CH2_RZ_VERT_COEF1);
++				writel(coeff[1], pcdev->base_emma +
++							PRP_CH2_RZ_VERT_COEF2);
++				writel(valid, pcdev->base_emma +
++							PRP_CH2_RZ_VERT_VALID);
++			}
++		}
++	}
++}
++
+ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
  {
- 	struct zone *zone;
- 	unsigned long flags;
-@@ -5603,8 +5603,8 @@ void unset_migratetype_isolate(struct page *page)
- 	spin_lock_irqsave(&zone->lock, flags);
- 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 		goto out;
--	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
--	move_freepages_block(zone, page, MIGRATE_MOVABLE);
-+	set_pageblock_migratetype(page, migratetype);
-+	move_freepages_block(zone, page, migratetype);
- out:
- 	spin_unlock_irqrestore(&zone->lock, flags);
- }
-@@ -5680,6 +5680,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * alloc_contig_range() -- tries to allocate given range of pages
-  * @start:	start PFN to allocate
-  * @end:	one-past-the-last PFN to allocate
-+ * @migratetype:	migratetype of the underlaying pageblocks (either
-+ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
-+ *			in range must have the same migratetype and it must
-+ *			be either of the two.
-  *
-  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
-  * aligned, however it's the caller's responsibility to guarantee that
-@@ -5692,7 +5696,8 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
-  * pages which PFN is in [start, end) are allocated for the caller and
-  * need to be freed with free_contig_range().
-  */
--int alloc_contig_range(unsigned long start, unsigned long end)
-+int alloc_contig_range(unsigned long start, unsigned long end,
-+		       unsigned migratetype)
- {
- 	struct zone *zone = page_zone(pfn_to_page(start));
- 	unsigned long outer_start, outer_end;
-@@ -5722,7 +5727,8 @@ int alloc_contig_range(unsigned long start, unsigned long end)
- 	 */
+ 	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
+@@ -773,6 +866,8 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		list_add_tail(&pcdev->buf_discard[1].queue,
+ 				      &pcdev->discard);
  
- 	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
--				       pfn_align_to_maxpage_up(end));
-+				       pfn_align_to_maxpage_up(end),
-+				       migratetype);
- 	if (ret)
- 		goto done;
++		mx2_prp_resize_commit(pcdev);
++
+ 		mx27_camera_emma_buf_init(icd, bytesperline);
  
-@@ -5782,7 +5788,7 @@ int alloc_contig_range(unsigned long start, unsigned long end)
- 
- done:
- 	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
--				pfn_align_to_maxpage_up(end));
-+				pfn_align_to_maxpage_up(end), migratetype);
- 	return ret;
+ 		if (prp->cfg.channel == 1) {
+@@ -1059,6 +1154,119 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
+ 	return formats;
  }
  
-diff --git a/mm/page_isolation.c b/mm/page_isolation.c
-index 4ae42bb..c9f0477 100644
---- a/mm/page_isolation.c
-+++ b/mm/page_isolation.c
-@@ -24,6 +24,7 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
-  * to be MIGRATE_ISOLATE.
-  * @start_pfn: The lower PFN of the range to be isolated.
-  * @end_pfn: The upper PFN of the range to be isolated.
-+ * @migratetype: migrate type to set in error recovery.
-  *
-  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
-  * the range will never be allocated. Any free pages and pages freed in the
-@@ -32,8 +33,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
-  * start_pfn/end_pfn must be aligned to pageblock_order.
-  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
-  */
--int
--start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			     unsigned migratetype)
++static int mx2_emmaprp_resize(struct mx2_camera_dev *pcdev,
++			      struct v4l2_mbus_framefmt *mf_in,
++			      struct v4l2_pix_format *pix_out)
++{
++	int num, den;
++	unsigned long m;
++	int i, dir;
++
++	for (dir = RESIZE_DIR_H; dir <= RESIZE_DIR_V; dir++) {
++		unsigned char *s = pcdev->resizing[dir].s;
++		int len = 0;
++		int in, out;
++
++		if (dir == RESIZE_DIR_H) {
++			in = mf_in->width;
++			out = pix_out->width;
++		} else {
++			in = mf_in->height;
++			out = pix_out->height;
++		}
++
++		if (in < out)
++			return -EINVAL;
++		else if (in == out)
++			continue;
++
++		/* Calculate ratio */
++		m = gcd(in, out);
++		num = in / m;
++		den = out / m;
++		if (num > RESIZE_NUM_MAX)
++			return -EINVAL;
++
++		if ((num >= 2 * den) && (den == 1) &&
++		    (num < 9) && (!(num & 0x01))) {
++			int sum = 0;
++			int j;
++
++			/* Average scaling for > 2:1 ratios */
++			/* Support can be added for num >=9 and odd values */
++
++			pcdev->resizing[dir].algo = RESIZE_ALGO_AVERAGING;
++			len = num;
++
++			for (i = 0; i < (len / 2); i++)
++				s[i] = 8;
++
++			do {
++				for (i = 0; i < (len / 2); i++) {
++					s[i] = s[i] >> 1;
++					sum = 0;
++					for (j = 0; j < (len / 2); j++)
++						sum += s[j];
++					if (sum == 4)
++						break;
++				}
++			} while (sum != 4);
++
++			for (i = (len / 2); i < len; i++)
++				s[i] = s[len - i - 1];
++
++			s[len - 1] |= SZ_COEF;
++		} else {
++			/* bilinear scaling for < 2:1 ratios */
++			int v; /* overflow counter */
++			int coeff, nxt; /* table output */
++			int in_pos_inc = 2 * den;
++			int out_pos = num;
++			int out_pos_inc = 2 * num;
++			int init_carry = num - den;
++			int carry = init_carry;
++
++			pcdev->resizing[dir].algo = RESIZE_ALGO_BILINEAR;
++			v = den + in_pos_inc;
++			do {
++				coeff = v - out_pos;
++				out_pos += out_pos_inc;
++				carry += out_pos_inc;
++				for (nxt = 0; v < out_pos; nxt++) {
++					v += in_pos_inc;
++					carry -= in_pos_inc;
++				}
++
++				if (len > RESIZE_NUM_MAX)
++					return -EINVAL;
++
++				coeff = ((coeff << BC_COEF) +
++					(in_pos_inc >> 1)) / in_pos_inc;
++
++				if (coeff >= (SZ_COEF - 1))
++					coeff--;
++
++				coeff |= SZ_COEF;
++				s[len] = (unsigned char)coeff;
++				len++;
++
++				for (i = 1; i < nxt; i++) {
++					if (len >= RESIZE_NUM_MAX)
++						return -EINVAL;
++					s[len] = 0;
++					len++;
++				}
++			} while (carry != init_carry);
++		}
++		pcdev->resizing[dir].len = len;
++		if (dir == RESIZE_DIR_H)
++			mf_in->width = mf_in->width * den / num;
++		else
++			mf_in->height = mf_in->height * den / num;
++	}
++	return 0;
++}
++
+ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ 			       struct v4l2_format *f)
  {
- 	unsigned long pfn;
- 	unsigned long undo_pfn;
-@@ -56,7 +57,7 @@ undo:
- 	for (pfn = start_pfn;
- 	     pfn < undo_pfn;
- 	     pfn += pageblock_nr_pages)
--		unset_migratetype_isolate(pfn_to_page(pfn));
-+		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
+@@ -1070,6 +1278,9 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ 	struct v4l2_mbus_framefmt mf;
+ 	int ret;
  
- 	return -EBUSY;
- }
-@@ -64,8 +65,8 @@ undo:
- /*
-  * Make isolated pages available again.
-  */
--int
--undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-+int undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
-+			    unsigned migratetype)
- {
- 	unsigned long pfn;
- 	struct page *page;
-@@ -77,7 +78,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
- 		page = __first_valid_page(pfn, pageblock_nr_pages);
- 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
- 			continue;
--		unset_migratetype_isolate(page);
-+		unset_migratetype_isolate(page, migratetype);
- 	}
++	dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
++		__func__, pix->width, pix->height);
++
+ 	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
+ 	if (!xlate) {
+ 		dev_warn(icd->parent, "Format %x not found\n",
+@@ -1087,6 +1298,18 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ 	if (ret < 0 && ret != -ENOIOCTLCMD)
+ 		return ret;
+ 
++	/* Store width and height returned by the sensor for resizing */
++	pcdev->s_width = mf.width;
++	pcdev->s_height = mf.height;
++	dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
++		__func__, pcdev->s_width, pcdev->s_height);
++
++	memset(pcdev->resizing, 0, sizeof(struct emma_prp_resize) << 1);
++	if (mf.width != pix->width || mf.height != pix->height) {
++		if (mx2_emmaprp_resize(pcdev, &mf, pix) < 0)
++			return -EINVAL;
++	}
++
+ 	if (mf.code != xlate->code)
+ 		return -EINVAL;
+ 
+@@ -1100,6 +1323,9 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+ 		pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
+ 						xlate->host_fmt->fourcc);
+ 
++	dev_dbg(icd->parent, "%s: returned params: width = %d, height = %d\n",
++		__func__, pix->width, pix->height);
++
  	return 0;
  }
-@@ -86,7 +87,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
-  * all pages in [start_pfn...end_pfn) must be in the same zone.
-  * zone->lock must be held before call this.
-  *
-- * Returns 1 if all pages in the range is isolated.
-+ * Returns 1 if all pages in the range are isolated.
-  */
- static int
- __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn)
+ 
+@@ -1109,11 +1335,16 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+ 	const struct soc_camera_format_xlate *xlate;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+-	struct v4l2_mbus_framefmt mf;
+ 	__u32 pixfmt = pix->pixelformat;
++	struct v4l2_mbus_framefmt mf;
++	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	struct mx2_camera_dev *pcdev = ici->priv;
+ 	unsigned int width_limit;
+ 	int ret;
+ 
++	dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
++		__func__, pix->width, pix->height);
++
+ 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
+ 	if (pixfmt && !xlate) {
+ 		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
+@@ -1163,6 +1394,19 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 	if (ret < 0)
+ 		return ret;
+ 
++	/* Store width and height returned by the sensor for resizing */
++	pcdev->s_width = mf.width;
++	pcdev->s_height = mf.height;
++	dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
++		__func__, pcdev->s_width, pcdev->s_height);
++
++	/* If the sensor does not support image size try PrP resizing */
++	memset(pcdev->resizing, 0, sizeof(struct emma_prp_resize) << 1);
++	if (mf.width != pix->width || mf.height != pix->height) {
++		if (mx2_emmaprp_resize(pcdev, &mf, pix) < 0)
++			return -EINVAL;
++	}
++
+ 	if (mf.field == V4L2_FIELD_ANY)
+ 		mf.field = V4L2_FIELD_NONE;
+ 	/*
+@@ -1181,6 +1425,9 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
+ 	pix->field	= mf.field;
+ 	pix->colorspace	= mf.colorspace;
+ 
++	dev_dbg(icd->parent, "%s: returned params: width = %d, height = %d\n",
++		__func__, pix->width, pix->height);
++
+ 	return 0;
+ }
+ 
 -- 
-1.7.1.569.g6f426
+1.7.0.4
 
