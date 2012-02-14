@@ -1,102 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:50639 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754384Ab2BBSUb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 13:20:31 -0500
-Message-ID: <4F2AD3E9.1070804@ti.com>
-Date: Thu, 2 Feb 2012 12:20:25 -0600
-From: Manjunatha Halli <x0130808@ti.com>
+Received: from mailfe05.c2i.net ([212.247.154.130]:51985 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755364Ab2BNVWp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 16:22:45 -0500
+Received: from [176.74.208.111] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
+  by mailfe05.swip.net (CommuniGate Pro SMTP 5.4.2)
+  with ESMTPA id 237339976 for linux-media@vger.kernel.org; Tue, 14 Feb 2012 22:17:42 +0100
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [PATCH] Make the USB Video Class debug filesystem support compile  time optional.
+Date: Tue, 14 Feb 2012 22:15:51 +0100
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	<linux-next@vger.kernel.org>, LKML <linux-kernel@vger.kernel.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Manjunatha Halli <manjunatha_halli@ti.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] Re: linux-next: Tree for Feb 2 (media/radio/wl128x)
-References: <20120202144516.11b33e667a7cbb8d85d96226@canb.auug.org.au> <4F2AD0E4.6020801@xenotime.net> <4F2AC5F8.1000901@ti.com> <4F2AD89E.70805@xenotime.net>
-In-Reply-To: <4F2AD89E.70805@xenotime.net>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Type: text/plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201202142215.51388.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/02/2012 12:40 PM, Randy Dunlap wrote:
-> On 02/02/2012 09:20 AM, Manjunatha Halli wrote:
->> Hi Randy Dunlap,
->>
->> In config file you are missing the CONFIG_TI_ST config which builds the TI's shared transport driver upon which the FM driver works.
->>
->> Please select this config in drivers/misc/ti-st/Kconfig which will solve the problem.
-> Wrong answer.
->
-> The problem seems to be that GPIOLIB is not enabled, but wl128x Kconfig says:
->
-> config RADIO_WL128X
-> 	tristate "Texas Instruments WL128x FM Radio"
-> 	depends on VIDEO_V4L2&&  RFKILL
-> 	select TI_ST if NET&&  GPIOLIB
->
-> so TI_ST is not selected here.
->
-> The Kconfig files should handle this properly.
->
-> Here is one possible fix for you to consider.
->
-> ---
-> From: Randy Dunlap<rdunlap@xenotime.net>
->
-> Fix build errors when GPIOLIB is not enabled.
-> Fix wl128x Kconfig to depend on GPIOLIB since TI_ST also
-> depends on GPIOLIB.
->
-> (.text+0xe6d60): undefined reference to `st_register'
-> (.text+0xe7016): undefined reference to `st_unregister'
-> (.text+0xe70ce): undefined reference to `st_unregister'
->
-> Signed-off-by: Randy Dunlap<rdunlap@xenotime.net>
-> Cc: Manjunatha Halli<manjunatha_halli@ti.com>
-> ---
->   drivers/media/radio/wl128x/Kconfig |    4 ++--
->   1 file changed, 2 insertions(+), 2 deletions(-)
->
-> --- linux-next-20120202.orig/drivers/media/radio/wl128x/Kconfig
-> +++ linux-next-20120202/drivers/media/radio/wl128x/Kconfig
-> @@ -4,8 +4,8 @@
->   menu "Texas Instruments WL128x FM driver (ST based)"
->   config RADIO_WL128X
->   	tristate "Texas Instruments WL128x FM Radio"
-> -	depends on VIDEO_V4L2&&  RFKILL
-> -	select TI_ST if NET&&  GPIOLIB
-> +	depends on VIDEO_V4L2&&  RFKILL&&  GPIOLIB
-> +	select TI_ST if NET
->   	help
->   	Choose Y here if you have this FM radio chip.
->
->
->> Regards
->> Manju
->>
->> On 02/02/2012 12:07 PM, Randy Dunlap wrote:
->>> On 02/01/2012 07:45 PM, Stephen Rothwell wrote:
->>>> Hi all,
->>>>
->>>> Changes since 20120201:
->>> drivers/built-in.o: In function `fmc_prepare':
->>> (.text+0xe6d60): undefined reference to `st_register'
->>> drivers/built-in.o: In function `fmc_prepare':
->>> (.text+0xe7016): undefined reference to `st_unregister'
->>> drivers/built-in.o: In function `fmc_release':
->>> (.text+0xe70ce): undefined reference to `st_unregister'
->>>
->>>
->>> Full randconfig file is attached.
->
+The following patch makes the recently added DEBUGFS for UVC optional.
 
-This solutions seems fine for me...
+--HPS
 
-My only concern is since TI_ST is already have GPIOLIB in its dependency 
-list is it OK to have the same thing in FM driver also?.
+Signed-off-by: Hans Petter Selasky <hselasky@c2i.net>
+---
+ drivers/media/video/uvc/Kconfig      |    9 +++++++++
+ drivers/media/video/uvc/Makefile     |    5 ++++-
+ drivers/media/video/uvc/uvc_driver.c |   12 ++++++++++--
+ 3 files changed, 23 insertions(+), 3 deletions(-)
 
-Manju
-
+diff --git a/drivers/media/video/uvc/Kconfig b/drivers/media/video/uvc/Kconfig
+index 6c197da..45e89a9 100644
+--- a/drivers/media/video/uvc/Kconfig
++++ b/drivers/media/video/uvc/Kconfig
+@@ -7,6 +7,15 @@ config USB_VIDEO_CLASS
+ 
+ 	  For more information see: <http://linux-uvc.berlios.de/>
+ 
++config USB_VIDEO_CLASS_DEBUGFS
++	bool "UVC debugfs support"
++	default y
++	---help---
++	  This option makes the USB Video Class driver build with
++	  debugfs support.
++
++	  If you are in doubt, say Y.
++
+ config USB_VIDEO_CLASS_INPUT_EVDEV
+ 	bool "UVC input events device support"
+ 	default y
+diff --git a/drivers/media/video/uvc/Makefile b/drivers/media/video/uvc/Makefile
+index c26d12f..a152a2a 100644
+--- a/drivers/media/video/uvc/Makefile
++++ b/drivers/media/video/uvc/Makefile
+@@ -1,5 +1,8 @@
+ uvcvideo-objs  := uvc_driver.o uvc_queue.o uvc_v4l2.o uvc_video.o uvc_ctrl.o \
+-		  uvc_status.o uvc_isight.o uvc_debugfs.o
++		  uvc_status.o uvc_isight.o
++ifeq ($(CONFIG_USB_VIDEO_CLASS_DEBUGFS),y)
++uvcvideo-objs  += uvc_debugfs.o
++endif
+ ifeq ($(CONFIG_MEDIA_CONTROLLER),y)
+ uvcvideo-objs  += uvc_entity.o
+ endif
+diff --git a/drivers/media/video/uvc/uvc_driver.c 
+b/drivers/media/video/uvc/uvc_driver.c
+index a240d43..291f77b 100644
+--- a/drivers/media/video/uvc/uvc_driver.c
++++ b/drivers/media/video/uvc/uvc_driver.c
+@@ -1676,7 +1676,9 @@ static void uvc_unregister_video(struct uvc_device *dev)
+ 		video_unregister_device(stream->vdev);
+ 		stream->vdev = NULL;
+ 
++#ifdef CONFIG_USB_VIDEO_CLASS_DEBUGFS
+ 		uvc_debugfs_cleanup_stream(stream);
++#endif
+ 	}
+ 
+ 	/* Decrement the stream count and call uvc_delete explicitly if there
+@@ -1702,8 +1704,9 @@ static int uvc_register_video(struct uvc_device *dev,
+ 		return ret;
+ 	}
+ 
++#ifdef CONFIG_USB_VIDEO_CLASS_DEBUGFS
+ 	uvc_debugfs_init_stream(stream);
+-
++#endif
+ 	/* Register the device with V4L. */
+ 	vdev = video_device_alloc();
+ 	if (vdev == NULL) {
+@@ -2411,11 +2414,14 @@ static int __init uvc_init(void)
+ {
+ 	int ret;
+ 
++#ifdef CONFIG_USB_VIDEO_CLASS_DEBUGFS
+ 	uvc_debugfs_init();
+-
++#endif
+ 	ret = usb_register(&uvc_driver.driver);
+ 	if (ret < 0) {
++#ifdef CONFIG_USB_VIDEO_CLASS_DEBUGFS
+ 		uvc_debugfs_cleanup();
++#endif
+ 		return ret;
+ 	}
+ 
+@@ -2426,7 +2432,9 @@ static int __init uvc_init(void)
+ static void __exit uvc_cleanup(void)
+ {
+ 	usb_deregister(&uvc_driver.driver);
++#ifdef CONFIG_USB_VIDEO_CLASS_DEBUGFS
+ 	uvc_debugfs_cleanup();
++#endif
+ }
+ 
+ module_init(uvc_init);
+-- 
+1.7.6
