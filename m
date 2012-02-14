@@ -1,342 +1,291 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58435 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503Ab2BZD1b (ORCPT
+Received: from wolverine02.qualcomm.com ([199.106.114.251]:53849 "EHLO
+	wolverine02.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755168Ab2BNJWu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 22:27:31 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH 02/11] mt9m032: Reorder code into section and whitespace cleanups
-Date: Sun, 26 Feb 2012 04:27:28 +0100
-Message-Id: <1330226857-8651-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 14 Feb 2012 04:22:50 -0500
+From: Ravi Kumar V <kumarrav@codeaurora.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Anssi Hannula <anssi.hannula@iki.fi>,
+	"Juan J. Garcia de Soria" <skandalfo@gmail.com>,
+	linux-media@vger.kernel.org, davidb@codeaurora.org,
+	bryanh@codeaurora.org, tsoni@codeaurora.org,
+	Ravi Kumar V <kumarrav@codeaurora.org>,
+	linux-kernel@vger.kernel.org, linux-arm-msm@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH] msm: rc: Add support for MSM GPIO based IR Receiver driver.
+Date: Tue, 14 Feb 2012 14:52:34 +0530
+Message-Id: <1329211354-12944-1-git-send-email-kumarrav@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m032.c |  162 +++++++++++++++++++++-------------------
- 1 files changed, 85 insertions(+), 77 deletions(-)
+Adds GPIO based IR Receiver driver. It decodes signals using decoders
+available in rc framework.
 
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index eb701e7..31ba86b 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -30,12 +30,11 @@
- #include <linux/v4l2-mediabus.h>
+Change-Id: Ic8b6bf5f3e7b9ad8fc68f7940cdb00749016f53b
+Signed-off-by: Ravi Kumar V <kumarrav@codeaurora.org>
+---
+ drivers/media/rc/Kconfig        |    9 ++
+ drivers/media/rc/Makefile       |    1 +
+ drivers/media/rc/gpio-ir-recv.c |  189 +++++++++++++++++++++++++++++++++++++++
+ include/media/gpio-ir-recv.h    |   23 +++++
+ 4 files changed, 222 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/rc/gpio-ir-recv.c
+ create mode 100644 include/media/gpio-ir-recv.h
+
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index aeb7f43..6f63ded 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -256,4 +256,13 @@ config RC_LOOPBACK
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called rc_loopback.
  
- #include <media/media-entity.h>
-+#include <media/mt9m032.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- 
--#include <media/mt9m032.h>
--
- #define MT9M032_CHIP_VERSION			0x00
- #define     MT9M032_CHIP_VERSION_VALUE		0x1402
- #define MT9M032_ROW_START			0x01
-@@ -73,24 +72,18 @@
- #define     MT9M032_FORMATTER2_DOUT_EN		0x1000
- #define     MT9M032_FORMATTER2_PIXCLK_EN	0x2000
- 
--#define MT9M032_MAX_BLANKING_ROWS		0x7ff
--
--
- /*
-- * The availible MT9M032 datasheet is missing documentation for register 0x10
-+ * The available MT9M032 datasheet is missing documentation for register 0x10
-  * MT9P031 seems to be close enough, so use constants from that datasheet for
-  * now.
-  * But keep the name MT9P031 to remind us, that this isn't really confirmed
-  * for this sensor.
-  */
--
- #define MT9P031_PLL_CONTROL			0x10
- #define     MT9P031_PLL_CONTROL_PWROFF		0x0050
- #define     MT9P031_PLL_CONTROL_PWRON		0x0051
- #define     MT9P031_PLL_CONTROL_USEPLL		0x0052
- 
--
--
- /*
-  * width and height include active boundry and black parts
-  *
-@@ -108,9 +101,7 @@
- #define MT9M032_WIDTH				1600
- #define MT9M032_HEIGHT				1152
- #define MT9M032_MINIMALSIZE			32
--
--#define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
--#define to_dev(sensor)	&((struct i2c_client *)v4l2_get_subdevdata(&sensor->subdev))->dev
-+#define MT9M032_MAX_BLANKING_ROWS		0x7ff
- 
- struct mt9m032 {
- 	struct v4l2_subdev subdev;
-@@ -129,6 +120,8 @@ struct mt9m032 {
- 	struct v4l2_ctrl *hflip, *vflip;
- };
- 
-+#define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
-+#define to_dev(sensor)	&((struct i2c_client *)v4l2_get_subdevdata(&sensor->subdev))->dev
- 
- static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
- {
-@@ -145,7 +138,6 @@ static int mt9m032_write_reg(struct mt9m032 *sensor, u8 reg,
- 	return i2c_smbus_write_word_swapped(client, reg, data);
- }
- 
--
- static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
- {
- 	int effective_width;
-@@ -173,23 +165,23 @@ static int mt9m032_update_timing(struct mt9m032 *sensor,
- 	row_time = mt9m032_row_time(sensor, crop->width);
- 
- 	additional_blanking_rows = div_u64(((u64)1000000000) * interval->numerator,
--	                                  ((u64)interval->denominator) * row_time)
--	                           - crop->height;
-+					  ((u64)interval->denominator) * row_time)
-+				   - crop->height;
- 
- 	if (additional_blanking_rows > MT9M032_MAX_BLANKING_ROWS) {
- 		/* hardware limits to 11 bit values */
- 		interval->denominator = 1000;
- 		interval->numerator = div_u64((crop->height + MT9M032_MAX_BLANKING_ROWS)
--		                              * ((u64)row_time) * interval->denominator,
-+					      * ((u64)row_time) * interval->denominator,
- 					      1000000000);
- 		additional_blanking_rows = div_u64(((u64)1000000000) * interval->numerator,
--	                                  ((u64)interval->denominator) * row_time)
--	                           - crop->height;
-+					  ((u64)interval->denominator) * row_time)
-+				   - crop->height;
- 	}
- 	/* enforce minimal 1.6ms blanking time. */
- 	min_blank = 1600000 / row_time;
- 	additional_blanking_rows = clamp(additional_blanking_rows,
--	                                 min_blank, MT9M032_MAX_BLANKING_ROWS);
-+					 min_blank, MT9M032_MAX_BLANKING_ROWS);
- 
- 	return mt9m032_write_reg(sensor, MT9M032_VBLANK, additional_blanking_rows);
- }
-@@ -224,17 +216,51 @@ static int update_formatter2(struct mt9m032 *sensor, bool streaming)
- 	return mt9m032_write_reg(sensor, MT9M032_FORMATTER2, reg_val);
- }
- 
--static int mt9m032_s_stream(struct v4l2_subdev *subdev, int streaming)
-+static int mt9m032_setup_pll(struct mt9m032 *sensor)
- {
--	struct mt9m032 *sensor = to_mt9m032(subdev);
--	int ret;
-+	struct mt9m032_platform_data* pdata = sensor->pdata;
-+	u16 reg_pll1;
-+	unsigned int pre_div;
-+	int res, ret;
- 
--	ret = update_formatter2(sensor, streaming);
-+	/* TODO: also support other pre-div values */
-+	if (pdata->pll_pre_div != 6) {
-+		dev_warn(to_dev(sensor),
-+			"Unsupported PLL pre-divisor value %u, using default 6\n",
-+			pdata->pll_pre_div);
-+	}
-+	pre_div = 6;
++config IR_GPIO_CIR
++	tristate "GPIO IR remote control"
++	depends on RC_CORE
++	---help---
++	   Say Y if you want to use GPIO based IR Receiver.
 +
-+	sensor->pix_clock = pdata->ext_clock * pdata->pll_mul /
-+		(pre_div * pdata->pll_out_div);
++	   To compile this driver as a module, choose M here: the module will
++	   be called gpio-ir-recv.
 +
-+	reg_pll1 = ((pdata->pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
-+		   | pdata->pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT;
-+
-+	ret = mt9m032_write_reg(sensor, MT9M032_PLL_CONFIG1, reg_pll1);
- 	if (!ret)
--		sensor->streaming = streaming;
-+		ret = mt9m032_write_reg(sensor,
-+					MT9P031_PLL_CONTROL,
-+					MT9P031_PLL_CONTROL_PWRON | MT9P031_PLL_CONTROL_USEPLL);
-+
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor, MT9M032_READ_MODE1, 0x8006);
-+							/* more reserved, Continuous */
-+							/* Master Mode */
-+	if (!ret)
-+		res = mt9m032_read_reg(sensor, MT9M032_READ_MODE1);
-+
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor, MT9M032_FORMATTER1, 0x111e);
-+					/* Set 14-bit mode, select 7 divider */
-+
- 	return ret;
- }
- 
-+/* -----------------------------------------------------------------------------
-+ * Subdev pad operations
+ endif #RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 2156e78..9b3568e 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -25,3 +25,4 @@ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+ obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
+ obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
+ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
++obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+new file mode 100644
+index 0000000..cf6e7f6
+--- /dev/null
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -0,0 +1,189 @@
++/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
 +
- static int mt9m032_enum_mbus_code(struct v4l2_subdev *subdev,
- 				  struct v4l2_subdev_fh *fh,
- 				  struct v4l2_subdev_mbus_code_enum *code)
-@@ -424,6 +450,21 @@ static int mt9m032_set_frame_interval(struct v4l2_subdev *subdev,
- 	return ret;
- }
- 
-+static int mt9m032_s_stream(struct v4l2_subdev *subdev, int streaming)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+	int ret;
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/gpio.h>
++#include <linux/slab.h>
++#include <linux/platform_device.h>
++#include <linux/irq.h>
++#include <media/rc-core.h>
++#include <media/gpio-ir-recv.h>
 +
-+	ret = update_formatter2(sensor, streaming);
-+	if (!ret)
-+		sensor->streaming = streaming;
-+	return ret;
-+}
++#define GPIO_IR_DRIVER_NAME	"gpio-rc-recv"
++#define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
 +
-+/* -----------------------------------------------------------------------------
-+ * V4L2 subdev core operations
-+ */
-+
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int mt9m032_g_register(struct v4l2_subdev *sd,
- 			      struct v4l2_dbg_register *reg)
-@@ -466,6 +507,10 @@ static int mt9m032_s_register(struct v4l2_subdev *sd,
- }
- #endif
- 
-+/* -----------------------------------------------------------------------------
-+ * V4L2 subdev control operations
-+ */
-+
- static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool hflip)
- {
- 	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
-@@ -532,51 +577,10 @@ static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
- 	return mt9m032_write_reg(sensor, MT9M032_GAIN_ALL, reg_val);
- }
- 
--static int mt9m032_setup_pll(struct mt9m032 *sensor)
--{
--	struct mt9m032_platform_data* pdata = sensor->pdata;
--	u16 reg_pll1;
--	unsigned int pre_div;
--	int res, ret;
--
--	/* TODO: also support other pre-div values */
--	if (pdata->pll_pre_div != 6) {
--		dev_warn(to_dev(sensor),
--			"Unsupported PLL pre-divisor value %u, using default 6\n",
--			pdata->pll_pre_div);
--	}
--	pre_div = 6;
--
--	sensor->pix_clock = pdata->ext_clock * pdata->pll_mul /
--		(pre_div * pdata->pll_out_div);
--
--	reg_pll1 = ((pdata->pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
--		   | pdata->pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT;
--
--	ret = mt9m032_write_reg(sensor, MT9M032_PLL_CONFIG1, reg_pll1);
--	if (!ret)
--		ret = mt9m032_write_reg(sensor,
--		                        MT9P031_PLL_CONTROL,
--		                        MT9P031_PLL_CONTROL_PWRON | MT9P031_PLL_CONTROL_USEPLL);
--
--	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_READ_MODE1, 0x8006);
--							/* more reserved, Continuous */
--							/* Master Mode */
--	if (!ret)
--		res = mt9m032_read_reg(sensor, MT9M032_READ_MODE1);
--
--	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_FORMATTER1, 0x111e);
--					/* Set 14-bit mode, select 7 divider */
--
--	return ret;
--}
--
- static int mt9m032_try_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	if (ctrl->id == V4L2_CID_GAIN && ctrl->val >= 63) {
--		 /* round because of multiplier used for values >= 63 */
-+		/* round because of multiplier used for values >= 63 */
- 		ctrl->val &= ~1;
- 	}
- 
-@@ -605,17 +609,12 @@ static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
- 	}
- }
- 
--static const struct v4l2_subdev_video_ops mt9m032_video_ops = {
--	.s_stream = mt9m032_s_stream,
--	.g_frame_interval = mt9m032_get_frame_interval,
--	.s_frame_interval = mt9m032_set_frame_interval,
--};
--
- static struct v4l2_ctrl_ops mt9m032_ctrl_ops = {
- 	.s_ctrl = mt9m032_set_ctrl,
- 	.try_ctrl = mt9m032_try_ctrl,
- };
- 
-+/* -------------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops mt9m032_core_ops = {
- #ifdef CONFIG_VIDEO_ADV_DEBUG
-@@ -624,6 +623,12 @@ static const struct v4l2_subdev_core_ops mt9m032_core_ops = {
- #endif
- };
- 
-+static const struct v4l2_subdev_video_ops mt9m032_video_ops = {
-+	.s_stream = mt9m032_s_stream,
-+	.g_frame_interval = mt9m032_get_frame_interval,
-+	.s_frame_interval = mt9m032_set_frame_interval,
++struct gpio_rc_dev {
++	struct rc_dev *rcdev;
++	struct mutex lock;
++	unsigned int gpio_nr;
++	bool active_low;
++	bool can_wakeup;
 +};
 +
- static const struct v4l2_subdev_pad_ops mt9m032_pad_ops = {
- 	.enum_mbus_code = mt9m032_enum_mbus_code,
- 	.enum_frame_size = mt9m032_enum_frame_size,
-@@ -639,6 +644,10 @@ static const struct v4l2_subdev_ops mt9m032_ops = {
- 	.pad = &mt9m032_pad_ops,
- };
- 
-+/* -----------------------------------------------------------------------------
-+ * Driver initialization and probing
++static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
++{
++	struct gpio_rc_dev *gpio_dev = dev_id;
++	unsigned int gval;
++	int rc = 0;
++	enum raw_event_type type = IR_SPACE;
++
++	mutex_lock(&gpio_dev->lock);
++	gval = gpio_get_value_cansleep(gpio_dev->gpio_nr);
++
++	if (gval < 0)
++		goto err_get_value;
++
++	if (gpio_dev->active_low)
++		gval = !gval;
++
++	if (gval == 1)
++		type = IR_PULSE;
++
++	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
++	if (rc < 0)
++		goto err_get_value;
++
++	ir_raw_event_handle(gpio_dev->rcdev);
++
++err_get_value:
++	mutex_unlock(&gpio_dev->lock);
++
++	return IRQ_HANDLED;
++}
++
++static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
++{
++	struct gpio_rc_dev *gpio_dev;
++	struct rc_dev *rcdev;
++	const struct gpio_ir_recv_platform_data *pdata =
++					pdev->dev.platform_data;
++	int rc;
++
++	if (!pdata)
++		return -EINVAL;
++
++	if (pdata->gpio_nr < 0)
++		return -EINVAL;
++
++	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
++	if (!gpio_dev)
++		return -ENOMEM;
++
++	mutex_init(&gpio_dev->lock);
++
++	rcdev = rc_allocate_device();
++	if (!rcdev) {
++		rc = -ENOMEM;
++		goto err_allocate_device;
++	}
++
++	rcdev->driver_type = RC_DRIVER_IR_RAW;
++	rcdev->allowed_protos = RC_TYPE_NEC;
++	rcdev->input_name = GPIO_IR_DEVICE_NAME;
++	rcdev->input_id.bustype = BUS_HOST;
++	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
++	rcdev->map_name = RC_MAP_EMPTY;
++
++	gpio_dev->rcdev = rcdev;
++	gpio_dev->gpio_nr = pdata->gpio_nr;
++	gpio_dev->active_low = pdata->active_low;
++	gpio_dev->can_wakeup = pdata->can_wakeup;
++
++
++	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
++	if (rc < 0)
++		goto err_gpio_request;
++	rc  = gpio_direction_input(pdata->gpio_nr);
++	if (rc < 0)
++		goto err_gpio_direction_input;
++
++	rc = rc_register_device(rcdev);
++	if (rc < 0) {
++		dev_err(&pdev->dev, "failed to register rc device\n");
++		goto err_register_rc_device;
++	}
++
++	platform_set_drvdata(pdev, gpio_dev);
++
++	rc = request_threaded_irq(gpio_to_irq(pdata->gpio_nr),
++			NULL, gpio_ir_recv_irq,
++			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
++			"gpio-ir-recv-irq", gpio_dev);
++	if (rc < 0)
++		goto err_request_irq;
++
++	if (pdata->can_wakeup == true) {
++		rc = enable_irq_wake(gpio_to_irq(pdata->gpio_nr));
++		if (rc < 0)
++			goto err_enable_irq_wake;
++	}
++
++	return 0;
++
++err_enable_irq_wake:
++	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
++err_request_irq:
++	platform_set_drvdata(pdev, NULL);
++	rc_unregister_device(rcdev);
++err_register_rc_device:
++err_gpio_direction_input:
++	gpio_free(pdata->gpio_nr);
++err_gpio_request:
++	rc_free_device(rcdev);
++	rcdev = NULL;
++err_allocate_device:
++	mutex_destroy(&gpio_dev->lock);
++	kfree(gpio_dev);
++	return rc;
++}
++
++static int __devexit gpio_ir_recv_remove(struct platform_device *pdev)
++{
++	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
++
++	disable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
++	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
++	platform_set_drvdata(pdev, NULL);
++	rc_unregister_device(gpio_dev->rcdev);
++	gpio_free(gpio_dev->gpio_nr);
++	rc_free_device(gpio_dev->rcdev);
++	mutex_destroy(&gpio_dev->lock);
++	kfree(gpio_dev);
++	return 0;
++}
++
++static struct platform_driver gpio_ir_recv_driver = {
++	.probe  = gpio_ir_recv_probe,
++	.remove = __devexit_p(gpio_ir_recv_remove),
++	.driver = {
++		.name   = GPIO_IR_DRIVER_NAME,
++		.owner  = THIS_MODULE,
++	},
++};
++
++static int __init gpio_ir_recv_init(void)
++{
++	return platform_driver_register(&gpio_ir_recv_driver);
++}
++module_init(gpio_ir_recv_init);
++
++static void __exit gpio_ir_recv_exit(void)
++{
++	platform_driver_unregister(&gpio_ir_recv_driver);
++}
++module_exit(gpio_ir_recv_exit);
++
++MODULE_DESCRIPTION("GPIO IR Receiver driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
+new file mode 100644
+index 0000000..3eab611
+--- /dev/null
++++ b/include/media/gpio-ir-recv.h
+@@ -0,0 +1,23 @@
++/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
 + */
 +
- static int mt9m032_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *devid)
- {
-@@ -706,7 +715,6 @@ static int mt9m032_probe(struct i2c_client *client,
- 	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
- 			  V4L2_CID_EXPOSURE, 0, 8000, 1, 1700);    /* 1.7ms */
- 
--
- 	if (sensor->ctrls.error) {
- 		ret = sensor->ctrls.error;
- 		dev_err(&client->dev, "control initialization error %d\n", ret);
-@@ -793,16 +801,16 @@ static int mt9m032_remove(struct i2c_client *client)
- }
- 
- static const struct i2c_device_id mt9m032_id_table[] = {
--	{MT9M032_NAME, 0},
--	{}
-+	{ MT9M032_NAME, 0 },
-+	{ }
- };
- 
- MODULE_DEVICE_TABLE(i2c, mt9m032_id_table);
- 
- static struct i2c_driver mt9m032_i2c_driver = {
- 	.driver = {
--		   .name = MT9M032_NAME,
--		   },
-+		.name = MT9M032_NAME,
-+	},
- 	.probe = mt9m032_probe,
- 	.remove = mt9m032_remove,
- 	.id_table = mt9m032_id_table,
++#ifndef __GPIO_IR_RECV_H__
++#define __GPIO_IR_RECV_H__
++
++struct gpio_ir_recv_platform_data {
++	unsigned int gpio_nr;
++	bool active_low;
++	bool can_wakeup;
++};
++
++#endif /* __GPIO_IR_RECV_H__ */
++
 -- 
-1.7.3.4
+Sent by a consultant of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
 
