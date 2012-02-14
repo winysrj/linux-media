@@ -1,51 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54429 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751612Ab2BDLhC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 06:37:02 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Q] Interleaved formats on the media bus
-Date: Sat, 04 Feb 2012 12:36:53 +0100
-Message-ID: <2245415.4hXgTppUEj@avalon>
-In-Reply-To: <Pine.LNX.4.64.1202021125210.13860@axis700.grange>
-References: <4F27CF29.5090905@samsung.com> <201202021055.19705.laurent.pinchart@ideasonboard.com> <Pine.LNX.4.64.1202021125210.13860@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:38091 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751300Ab2BNIkA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 03:40:00 -0500
+Date: Tue, 14 Feb 2012 17:38:21 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv21 10/16] mm: Serialize access to min_free_kbytes
+Message-Id: <20120214173821.8a214716.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <1328895151-5196-11-git-send-email-m.szyprowski@samsung.com>
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+	<1328895151-5196-11-git-send-email-m.szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Fri, 10 Feb 2012 18:32:25 +0100
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-On Thursday 02 February 2012 12:00:57 Guennadi Liakhovetski wrote:
-> On Thu, 2 Feb 2012, Laurent Pinchart wrote:
-> > Do all those sensors interleave the data in the same way ? This sounds
-> > quite hackish and vendor-specific to me, I'm not sure if we should try to
-> > generalize that. Maybe vendor-specific media bus format codes would be
-> > the way to go. I don't expect ISPs to understand the format, they will
-> > likely be configured in pass-through mode. Instead of adding explicit
-> > support for all those weird formats to all ISP drivers, it might make
-> > sense to add a "binary blob" media bus code to be used by the ISP.
+> From: Mel Gorman <mgorman@suse.de>
 > 
-> Yes, I agree, that those formats will be just forwarded as is by ISPs, but
-> the user-space wants to know the contents, so, it might be more useful to
-> provide information about specific components, even if their packing
-> layout cannot be defined in a generic way with offsets and sizes. Even
-> saying "you're getting formats YUYV and JPEG in vendor-specific packing
-> #N" might be more useful, than just "vendor-specific format #N".
+> There is a race between the min_free_kbytes sysctl, memory hotplug
+> and transparent hugepage support enablement.  Memory hotplug uses a
+> zonelists_mutex to avoid a race when building zonelists. Reuse it to
+> serialise watermark updates.
+> 
+> [a.p.zijlstra@chello.nl: Older patch fixed the race with spinlock]
+> Signed-off-by: Mel Gorman <mgorman@suse.de>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-That's right. A single media bus code might not be the best option indeed. 
-Vendor-specific blob codes (and 4CCs) then ?
+At linux-next, conflicted with "mm: add extra free kbytes tunable"
 
--- 
-Regards,
+To the logic,
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Laurent Pinchart
