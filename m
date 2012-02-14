@@ -1,76 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:50500 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753881Ab2BIWg5 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2012 17:36:57 -0500
-Date: Thu, 9 Feb 2012 23:36:49 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
-Subject: Re: [PATCH v4 3/4] media i.MX27 camera: improve discard buffer
- handling.
-In-Reply-To: <CACKLOr0ioy2rxKY7PUBDCBPaQG0FUv0Drt-GNgBnNmFDt05T-w@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1202092328450.18719@axis700.grange>
-References: <1328609682-18014-1-git-send-email-javier.martin@vista-silicon.com>
- <CACKLOr0ioy2rxKY7PUBDCBPaQG0FUv0Drt-GNgBnNmFDt05T-w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:34023 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751830Ab2BNIdG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 03:33:06 -0500
+Date: Tue, 14 Feb 2012 17:31:17 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv21 09/16] mm: page_isolation: MIGRATE_CMA isolation
+ functions added
+Message-Id: <20120214173117.3f0bf523.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <1328895151-5196-10-git-send-email-m.szyprowski@samsung.com>
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+	<1328895151-5196-10-git-send-email-m.szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+On Fri, 10 Feb 2012 18:32:24 +0100
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-On Thu, 9 Feb 2012, javier Martin wrote:
+> From: Michal Nazarewicz <mina86@mina86.com>
+> 
+> This commit changes various functions that change pages and
+> pageblocks migrate type between MIGRATE_ISOLATE and
+> MIGRATE_MOVABLE in such a way as to allow to work with
+> MIGRATE_CMA migrate type.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-> Hi Guennadi,
-> I understand you are probably quite busy right now but it would be
-> great if you could ack this patch. The sooner you merge it the sooner
-> I will start working on the cleanup series. I've got some time on my
-> hands now.
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
-Yes, I can take this version, at the same time, I have a couple of 
-comments, that you might find useful to address in a clean-up patch;-) Or 
-just leave them as they are...
-
-[anip]
-
-
-> > @@ -1274,6 +1298,15 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
-> >        struct mx2_camera_dev *pcdev = data;
-> >        unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
-> >        struct mx2_buffer *buf;
-> > +       unsigned long flags;
-> > +
-> > +       spin_lock_irqsave(&pcdev->lock, flags);
-
-It wasn't an accident, that I wrote "spin_lock()" - without the "_irqsave" 
-part. You are in an ISR here, and this is the only IRQ, that your driver 
-has to protect against, so, here, I think, you don't have to block other 
-IRQs.
-
-> > +
-> > +       if (list_empty(&pcdev->active_bufs)) {
-> > +               dev_warn(pcdev->dev, "%s: called while active list is empty\n",
-> > +                       __func__);
-> > +               goto irq_ok;
-
-This means, you return IRQ_HANDLED here without even checking whether any 
-of your status bits are actually set. So, if you get an interrupt here 
-with an empty list, it might indeed be the case of a shared IRQ, in which 
-case you'd have to return IRQ_NONE.
-
-> > +       }
-> >
-> >        if (status & (1 << 7)) { /* overflow */
-> >                u32 cntl;
-
-As I said - we can keep this version, but maybe you'll like to improve at 
-least the latter of the above two snippets.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
