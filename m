@@ -1,61 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50830 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755459Ab2BVLYp (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:28211 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932539Ab2BNVsY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 06:24:45 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 30/33] omap3isp: Add resizer data rate configuration to resizer_set_stream
-Date: Wed, 22 Feb 2012 12:24:48 +0100
-Message-ID: <1709623.OrBLBvPVIp@avalon>
-In-Reply-To: <1329703032-31314-30-git-send-email-sakari.ailus@iki.fi>
-References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-30-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 14 Feb 2012 16:48:24 -0500
+From: linuxtv@stefanringel.de
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH 03/22] mt2063: add hybrid
+Date: Tue, 14 Feb 2012 22:47:27 +0100
+Message-Id: <1329256066-8844-3-git-send-email-linuxtv@stefanringel.de>
+In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Stefan Ringel <linuxtv@stefanringel.de>
 
-Thanks for the patch.
+Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+---
+ drivers/media/common/tuners/mt2063.c |   57 +++++++++++++++++++++++-----------
+ 1 files changed, 39 insertions(+), 18 deletions(-)
 
-On Monday 20 February 2012 03:57:09 Sakari Ailus wrote:
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/omap3isp/ispresizer.c |    4 ++++
->  1 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispresizer.c
-> b/drivers/media/video/omap3isp/ispresizer.c index 6ce2349..81e1bc4 100644
-> --- a/drivers/media/video/omap3isp/ispresizer.c
-> +++ b/drivers/media/video/omap3isp/ispresizer.c
-> @@ -1147,9 +1147,13 @@ static int resizer_set_stream(struct v4l2_subdev *sd,
-> int enable) struct device *dev = to_device(res);
-> 
->  	if (res->state == ISP_PIPELINE_STREAM_STOPPED) {
-> +		struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
-> +
->  		if (enable == ISP_PIPELINE_STREAM_STOPPED)
->  			return 0;
-> 
-> +		omap3isp_resizer_max_rate(res, &pipe->max_rate);
-> +
->  		omap3isp_subclk_enable(isp, OMAP3_ISP_SUBCLK_RESIZER);
->  		resizer_configure(res);
->  		resizer_print_status(res);
-
-What about moving this to link validation ?
-
-Could you please also remove it from isp_video_validate_pipeline() in this 
-patch ? It would make review easier.
-
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index 9f3a546..d5a9dd9 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -32,6 +32,8 @@ static unsigned int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "Set debug level");
+ 
++static DEFINE_MUTEX(mt2063_list_mutex);
++static LIST_HEAD(hybrid_tuner_instance_list);
+ 
+ /* debug level
+  * 0 don't debug
+@@ -2247,29 +2249,48 @@ static struct dvb_tuner_ops mt2063_ops = {
+ };
+ 
+ struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+-				   struct mt2063_config *config,
+-				   struct i2c_adapter *i2c)
++                   struct mt2063_config *config,
++                   struct i2c_adapter *i2c)
+ {
+ 	struct mt2063_state *state = NULL;
++	int instance, ret;
++
++	dprintk(1, "\n");
++
++	mutex_lock(&mt2063_list_mutex);
++
++	instance = hybrid_tuner_request_state(struct mt2063_state, state,
++                                          hybrid_tuner_instance_list,
++                                          i2c, config->tuner_address,
++                                          "mt2063");
++
++	switch(instance) {
++	case 0:
++		goto fail;
++	case 1:
++		/* new instance */
++		state->i2c = i2c;
++		state->i2c_addr = config->tuner_address;
++		/* find chip */
++		mutex_init(&state->lock);
++		state->frontend = fe;
++		if (ret < 0)
++			goto fail;
++		fe->tuner_priv = state;
++		fe->ops.tuner_ops = mt2063_ops;
++		break;
++	default:
++		fe->tuner_priv = state;
++		fe->ops.tuner_ops = mt2063_ops;
++		break;
++	}
++	mutex_unlock(&mt2063_list_mutex);
+ 
+-	dprintk(2, "\n");
+-
+-	state = kzalloc(sizeof(struct mt2063_state), GFP_KERNEL);
+-	if (state == NULL)
+-		goto error;
+-
+-	state->config = config;
+-	state->i2c = i2c;
+-	state->frontend = fe;
+-	state->reference = config->refclock / 1000;	/* kHz */
+-	fe->tuner_priv = state;
+-	fe->ops.tuner_ops = mt2063_ops;
+-
+-	printk(KERN_INFO "%s: Attaching MT2063\n", __func__);
+ 	return fe;
+ 
+-error:
+-	kfree(state);
++fail:
++	hybrid_tuner_release_state(state);
++	mutex_unlock(&mt2063_list_mutex);
+ 	return NULL;
+ }
+ EXPORT_SYMBOL_GPL(mt2063_attach);
 -- 
-Regards,
+1.7.7.6
 
-Laurent Pinchart
