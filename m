@@ -1,50 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.161]:28275 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761237Ab2BNVs2 (ORCPT
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:47752 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756189Ab2BNH56 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:48:28 -0500
-From: linuxtv@stefanringel.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 11/22] mt2063: remove get_bandwidth
-Date: Tue, 14 Feb 2012 22:47:35 +0100
-Message-Id: <1329256066-8844-11-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
-References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+	Tue, 14 Feb 2012 02:57:58 -0500
+Date: Tue, 14 Feb 2012 16:56:16 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv21 07/16] mm: page_alloc: change fallbacks array
+ handling
+Message-Id: <20120214165616.8b8e36f8.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <1328895151-5196-8-git-send-email-m.szyprowski@samsung.com>
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+	<1328895151-5196-8-git-send-email-m.szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+On Fri, 10 Feb 2012 18:32:22 +0100
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
----
- drivers/media/common/tuners/mt2063.c |    9 ---------
- 1 files changed, 0 insertions(+), 9 deletions(-)
+> From: Michal Nazarewicz <mina86@mina86.com>
+> 
+> This commit adds a row for MIGRATE_ISOLATE type to the fallbacks array
+> which was missing from it.  It also, changes the array traversal logic
+> a little making MIGRATE_RESERVE an end marker.  The letter change,
+> removes the implicit MIGRATE_UNMOVABLE from the end of each row which
+> was read by __rmqueue_fallback() function.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Acked-by: Mel Gorman <mel@csn.ul.ie>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index dfa2e28..24c2c93 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -773,18 +773,9 @@ static int mt2063_get_if_frequency(struct dvb_frontend *fe, u32 *freq)
- 	return 0;
- }
- 
--static int mt2063_get_bandwidth(struct dvb_frontend *fe, u32 *bw)
--{
--	struct mt2063_state *state = fe->tuner_priv;
--
--	dprintk(2, "\n");
--
--	if (!state->init)
- 		return -ENODEV;
- 
--	*bw = state->AS_Data.f_out_bw - 750000;
- 
--	dprintk(1, "bandwidth: %d\n", *bw);
- 
- 	return 0;
- }
--- 
-1.7.7.6
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
