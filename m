@@ -1,39 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59046 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752288Ab2BUQmh (ORCPT
+Received: from fgwmail6.fujitsu.co.jp ([192.51.44.36]:54704 "EHLO
+	fgwmail6.fujitsu.co.jp" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753108Ab2BNHs7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Feb 2012 11:42:37 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 10/33] v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
-Date: Tue, 21 Feb 2012 17:42:40 +0100
-Message-ID: <2997581.ShKoEXplc9@avalon>
-In-Reply-To: <1329703032-31314-10-git-send-email-sakari.ailus@iki.fi>
-References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-10-git-send-email-sakari.ailus@iki.fi>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 14 Feb 2012 02:48:59 -0500
+Date: Tue, 14 Feb 2012 16:47:16 +0900
+From: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv21 05/16] mm: compaction: export some of the functions
+Message-Id: <20120214164716.371623c0.kamezawa.hiroyu@jp.fujitsu.com>
+In-Reply-To: <1328895151-5196-6-git-send-email-m.szyprowski@samsung.com>
+References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+	<1328895151-5196-6-git-send-email-m.szyprowski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Fri, 10 Feb 2012 18:32:20 +0100
+Marek Szyprowski <m.szyprowski@samsung.com> wrote:
 
-Thanks for the patch.
-
-On Monday 20 February 2012 03:56:49 Sakari Ailus wrote:
-> These two IOCTLS are obsoleted by VIDIOC_SUBDEV_G_SELECTION and
-> VIDIOC_SUBDEV_S_SELECTION. Mark them obsolete.
+> From: Michal Nazarewicz <mina86@mina86.com>
 > 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> This commit exports some of the functions from compaction.c file
+> outside of it adding their declaration into internal.h header
+> file so that other mm related code can use them.
+> 
+> This forced compaction.c to always be compiled (as opposed to being
+> compiled only if CONFIG_COMPACTION is defined) but as to avoid
+> introducing code that user did not ask for, part of the compaction.c
+> is now wrapped in on #ifdef.
+> 
+> Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> Acked-by: Mel Gorman <mel@csn.ul.ie>
+> Tested-by: Rob Clark <rob.clark@linaro.org>
+> Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+> Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reivewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
 
--- 
-Regards,
+Onto linux-next(Feb13), becasue of a patch
+" mm: compaction: make compact_control order signed", 
+ (41f0810873917dc3a05ec955651f6d7edf1e8946)
 
-Laurent Pinchart
+compaction_control.order should be changed to be signed.
+
+
