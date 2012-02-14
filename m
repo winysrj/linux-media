@@ -1,46 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ukfsn.org ([77.75.108.3]:53094 "EHLO mail.ukfsn.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751206Ab2BGO5e (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Feb 2012 09:57:34 -0500
-Received: from localhost (smtp-filter.ukfsn.org [192.168.54.205])
-	by mail.ukfsn.org (Postfix) with ESMTP id C68DEDEB6D
-	for <linux-media@vger.kernel.org>; Tue,  7 Feb 2012 14:57:32 +0000 (GMT)
-Received: from mail.ukfsn.org ([192.168.54.25])
-	by localhost (smtp-filter.ukfsn.org [192.168.54.205]) (amavisd-new, port 10024)
-	with ESMTP id lrLVR5RIH9KT for <linux-media@vger.kernel.org>;
-	Tue,  7 Feb 2012 15:31:45 +0000 (GMT)
-Received: from [192.168.0.3] (unknown [78.32.18.90])
-	by mail.ukfsn.org (Postfix) with ESMTP id 9BFDEDEB6A
-	for <linux-media@vger.kernel.org>; Tue,  7 Feb 2012 14:57:32 +0000 (GMT)
-Message-ID: <4F313BDC.1000100@ukfsn.org>
-Date: Tue, 07 Feb 2012 14:57:32 +0000
-From: Andy Furniss <andyqos@ukfsn.org>
-MIME-Version: 1.0
+Received: from mo-p00-ob.rzone.de ([81.169.146.160]:28278 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1760886Ab2BNVs2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 Feb 2012 16:48:28 -0500
+From: linuxtv@stefanringel.de
 To: linux-media@vger.kernel.org
-Subject: Re: PCTV 290e page allocation failure
-References: <4F2AC7BF.4040006@ukfsn.org>
-In-Reply-To: <4F2AC7BF.4040006@ukfsn.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
+Subject: [PATCH 22/22] mt2063: add mt2063_find_chip
+Date: Tue, 14 Feb 2012 22:47:46 +0100
+Message-Id: <1329256066-8844-22-git-send-email-linuxtv@stefanringel.de>
+In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Andy Furniss wrote:
+From: Stefan Ringel <linuxtv@stefanringel.de>
 
-> At first the PCTV worked OK, but now I've been getting a page allocation
-> failure. After this happens I can't use the PVTV until I re-plug it.
+Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
+---
+ drivers/media/common/tuners/mt2063.c |   43 ++++++++++++++++++++++++++++++++++
+ 1 files changed, 43 insertions(+), 0 deletions(-)
 
-Further testing on this shows that even if I free up lots of memory with
+diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
+index 7dd1d7c..a717479 100644
+--- a/drivers/media/common/tuners/mt2063.c
++++ b/drivers/media/common/tuners/mt2063.c
+@@ -557,18 +557,60 @@ static struct dvb_tuner_ops mt2063_ops = {
+ 	/* TODO */
+ };
+ 
++static int mt2063_find_chip(struct mt2063_state *state)
+ {
++	int err;
++	u8 chip = 0, chip_hi = 0;
++	char *step;
++	struct dvb_frontend *fe = state->frontend;
+ 
++	dprintk(1, "\n");
+ 
++	/* open gate */
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 1);
+ 
++	/* Read the Part/Rev code from the tuner */
++	err = mt2063_read(state, MT2063_REG_PART_REV, &chip);
++	if (err < 0) {
++		printk(KERN_ERR "Can't read mt2063 part ID\n");
++		return -ENODEV;
++	}
++
++	/* Check the part/rev code */
++	switch (chip) {
++	case MT2063_B0:
++		step = "B0";
+ 		break;
++	case MT2063_B1:
++		step = "B1";
++		break;
++	case MT2063_B2:
++		step = "B2";
++		break;
++	case MT2063_B3:
++		step = "B3";
+ 		break;
+ 	default:
++		printk(KERN_ERR "mt2063: Unknown mt2063 device ID (0x%02x)\n",
++			chip);
+ 		return -ENODEV;
++	}
+ 
++	/* Check the 2nd byte of the Part/Rev code from the tuner */
++	mt2063_read(state, MT2063_REG_RSVD_3B, &chip_hi);
++	if ((chip_hi & 0x80) != 0x00) {
++		printk(KERN_ERR "mt2063: Unknown part ID (0x%02x%02x)\n",
++			chip, chip_hi);
+ 		return -ENODEV;
++	}
+ 
++	printk(KERN_INFO "mt2063: detected a mt2063 rev %s", step);
++	state->tuner_id = chip;
+ 
++	/* close gate */
++	if (fe->ops.i2c_gate_ctrl)
++		fe->ops.i2c_gate_ctrl(fe, 0);
+ 
+ 	return 0;
+ }
+@@ -599,6 +641,7 @@ struct dvb_frontend *mt2063_attach(struct dvb_frontend *fe,
+ 		/* find chip */
+ 		mutex_init(&state->lock);
+ 		state->frontend = fe;
++		ret = mt2063_find_chip(state);
+ 		if (ret < 0)
+ 			goto fail;
+ 		fe->tuner_priv = state;
+-- 
+1.7.7.6
 
-sync;echo 3 > /proc/sys/vm/drop_caches giving -
-
-DMA: 55*4kB 55*8kB 57*16kB 53*32kB 40*64kB 26*128kB 9*256kB 4*512kB 
-2*1024kB 0*2048kB 0*4096kB = 15556kB
-Normal: 2996*4kB 2169*8kB 1616*16kB 1021*32kB 596*64kB 221*128kB 
-45*256kB 2*512kB 0*1024kB 0*2048kB 0*4096kB = 166840kB
-
-It will still fail if it has already failed and not been replugged.
-
-It's not failing to allocate - it's just not trying to allocate AFAICT , 
-which I guess counts as a bug?
