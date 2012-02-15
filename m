@@ -1,25 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from isp-bos-01.edutel.nl ([88.159.1.182]:46420 "EHLO
-	isp-bos-01.edutel.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752685Ab2BXRod (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:43365 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758170Ab2BOJrH convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 12:44:33 -0500
-From: linux@eikelenboom.it
-To: linux-media@vger.kernel.org
-Cc: shu.lin@conexant.com, hiep.huynh@conexant.com, stoth@linuxtv.org,
-	hans.verkuil@cisco.com, mchehab@infradead.org
-Subject: [PATCH] media/cx25821: Add a card definition for "No brand" cards
-Date: Fri, 24 Feb 2012 18:23:09 +0100
-Message-Id: <1330104190-1220-1-git-send-email-linux@eikelenboom.it>
+	Wed, 15 Feb 2012 04:47:07 -0500
+MIME-Version: 1.0
+In-Reply-To: <CAOMZO5BxFi8z-6B4GNLfibHPjBz1viH0tacoUEfVA-pjDhZjdA@mail.gmail.com>
+References: <20120120131243.7c867c7b96c75819b68aec8d@canb.auug.org.au>
+	<4F1A0783.9010501@xenotime.net>
+	<CAMuHMdX8=x-=DQu0SCbqYK00+sP8a-kR=9KrUptAq-gqOXHAhA@mail.gmail.com>
+	<CAMuHMdWofPn9gUdPJwUDm0rqWrzKAnc=yqzDwQqrr7ZCDz6VkA@mail.gmail.com>
+	<CAOMZO5BxFi8z-6B4GNLfibHPjBz1viH0tacoUEfVA-pjDhZjdA@mail.gmail.com>
+Date: Wed, 15 Feb 2012 10:47:05 +0100
+Message-ID: <CAMuHMdU-HQsjL-gcdr5XtK8fh+LAa-nY59K2r44hKkxeQ=P04w@mail.gmail.com>
+Subject: Re: linux-next: Tree for Jan 20 (drivers/media/radio/wl128x/)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: Randy Dunlap <rdunlap@xenotime.net>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+On Tue, Feb 14, 2012 at 20:31, Fabio Estevam <festevam@gmail.com> wrote:
+> On 2/14/12, Geert Uytterhoeven <geert@linux-m68k.org> wrote:
+>
+>> Ping?
+>>
+>> Build breakage in mainline since at least 3 weeks.
+>
+> From what I recall Randy proposed a patch for fixing this issue:
+> http://patchwork.linuxtv.org/patch/9750/
 
-My "No Brand" cx25821 based card wasn't recognized by the cx25821 module, because the subvendor and subdevice both are 0x0000.
-This patch adds a card definition for these "No Brand" cards.
-With this patch the device is confirmed to be working with this module.
+Still, someone (preferably the maintainer) should take the appropriate
+action(s) to get the patch in mainline.
+
+Thanks!
+
+Gr{oetje,eeting}s,
+
+                        Geert
 
 --
-Sander
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
 
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
