@@ -1,49 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailfe03.c2i.net ([212.247.154.66]:33013 "EHLO swip.net"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752092Ab2BTTVY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Feb 2012 14:21:24 -0500
-From: Hans Petter Selasky <hselasky@c2i.net>
-To: James Hogan <james@albanarts.com>
-Subject: Re: [BUG] divide by zero in uvc_video_clock_update, v3.3-rc4
-Date: Mon, 20 Feb 2012 20:19:32 +0100
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-References: <20120219234151.GA32005@balrog>
-In-Reply-To: <20120219234151.GA32005@balrog>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202202019.32756.hselasky@c2i.net>
+Received: from mga14.intel.com ([143.182.124.37]:7332 "EHLO mga14.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750878Ab2BOPIM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Feb 2012 10:08:12 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: "linux-media @ vger . kernel . org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCH] media: video: append $(srctree) to -I parameters
+Date: Wed, 15 Feb 2012 17:08:01 +0200
+Message-Id: <1329318481-8530-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 20 February 2012 00:41:51 James Hogan wrote:
-> Hi,
-> 
-> I just tried v3.3-rc4 on an Acer Aspire One Happy 2 netbook. I happened
-> to open the settings dialog box of kopete, which shows a view of the
-> webcam. The kernel switched to a text console with a register dump (see
-> below), indicating a divide error in uvc_video_clock_update.
-> 
-> The IP is on 7482, a divide, presumably by %r11 (see objdump output below)
-> which is 0 in the register dump. It appears to be the div_u64 in
-> uvc_video_clock_update().
-> 
-> I haven't tried any other recent kernel versions.
-> 
-> My asm is rusty and I don't really have any time to look further into it.
-> Is this enough to go on?
-> 
-> Thanks
-> James
+Without this we have got the warnings like following if build with "make W=1
+O=/var/tmp":
+   CHECK   drivers/media/video/videobuf-vmalloc.c
+   CC [M]  drivers/media/video/videobuf-vmalloc.o
+ +cc1: warning: drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
+ +cc1: warning: drivers/media/dvb/frontends: No such file or directory [enabled by default]
+ +cc1: warning: drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
+ +cc1: warning: drivers/media/dvb/frontends: No such file or directory [enabled by default]
+   LD      drivers/media/built-in.o
 
-Hi,
+Some details could be found in [1] as well.
 
-This is a known issue which has been fixed by:
+[1] http://comments.gmane.org/gmane.linux.kbuild.devel/7733
 
-http://git.linuxtv.org/pinchartl/uvcvideo.git/commit/5c97eb2eb9c45dad8825de7754ceb33699451978
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+---
+ drivers/media/video/Makefile |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
---HPS
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 3541388..3bf0aa8 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -199,6 +199,6 @@ obj-y	+= davinci/
+ 
+ obj-$(CONFIG_ARCH_OMAP)	+= omap/
+ 
+-ccflags-y += -Idrivers/media/dvb/dvb-core
+-ccflags-y += -Idrivers/media/dvb/frontends
+-ccflags-y += -Idrivers/media/common/tuners
++ccflags-y += -I$(srctree)/drivers/media/dvb/dvb-core
++ccflags-y += -I$(srctree)/drivers/media/dvb/frontends
++ccflags-y += -I$(srctree)/drivers/media/common/tuners
+-- 
+1.7.9
+
