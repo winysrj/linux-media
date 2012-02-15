@@ -1,85 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:43157 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754119Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 18:55:03 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:44088 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759175Ab2BONdg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Feb 2012 08:33:36 -0500
+Received: by ggnh1 with SMTP id h1so590708ggn.19
+        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2012 05:33:35 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v2 03/31] vivi: Add an integer menu test control
-Date: Fri,  3 Feb 2012 01:54:23 +0200
-Message-Id: <1328226891-8968-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
-References: <20120202235231.GC841@valkosipuli.localdomain>
+Cc: g.liakhovetski@gmx.de, javier.martin@vista-silicon.com,
+	kernel@pengutronix.de, mchehab@infradead.org,
+	Fabio Estevam <festevam@gmail.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH 3/3] media: video: mx2_camera.c: Remove unneeded dev_dbg
+Date: Wed, 15 Feb 2012 11:33:21 -0200
+Message-Id: <1329312801-20501-3-git-send-email-festevam@gmail.com>
+In-Reply-To: <1329312801-20501-1-git-send-email-festevam@gmail.com>
+References: <1329312801-20501-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an integer menu test control for the vivi driver.
+csi clock frequency is already shown by:
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+dev_info(&pdev->dev, "MX2 Camera (CSI) driver probed, clock frequency: %ld\n",
+		clk_get_rate(pcdev->clk_csi));
+
+,so no need to have the dev_dbg call to present the same information.
+
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
 ---
- drivers/media/video/vivi.c |   22 ++++++++++++++++++++++
- 1 files changed, 22 insertions(+), 0 deletions(-)
+ drivers/media/video/mx2_camera.c |    3 ---
+ 1 files changed, 0 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 84ea88d..b58a2d8 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -177,6 +177,7 @@ struct vivi_dev {
- 	struct v4l2_ctrl	   *menu;
- 	struct v4l2_ctrl	   *string;
- 	struct v4l2_ctrl	   *bitmask;
-+	struct v4l2_ctrl	   *int_menu;
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 689cb42..42ad401 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -1555,9 +1555,6 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ 		goto exit_kfree;
+ 	}
  
- 	spinlock_t                 slock;
- 	struct mutex		   mutex;
-@@ -503,6 +504,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
- 			dev->boolean->cur.val,
- 			dev->menu->qmenu[dev->menu->cur.val],
- 			dev->string->cur.string);
-+	snprintf(str, sizeof(str), " integer_menu %lld, value %d ",
-+			dev->int_menu->qmenu_int[dev->int_menu->cur.val],
-+			dev->int_menu->cur.val);
-+	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	mutex_unlock(&dev->ctrl_handler.lock);
- 	gen_text(dev, vbuf, line++ * 16, 16, str);
- 	if (dev->button_pressed) {
-@@ -1184,6 +1189,22 @@ static const struct v4l2_ctrl_config vivi_ctrl_bitmask = {
- 	.step = 0,
- };
- 
-+static const s64 vivi_ctrl_int_menu_values[] = {
-+	1, 1, 2, 3, 5, 8, 13, 21, 42,
-+};
-+
-+static const struct v4l2_ctrl_config vivi_ctrl_int_menu = {
-+	.ops = &vivi_ctrl_ops,
-+	.id = VIVI_CID_CUSTOM_BASE + 7,
-+	.name = "Integer menu",
-+	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
-+	.min = 1,
-+	.max = 8,
-+	.def = 4,
-+	.menu_skip_mask = 0x02,
-+	.qmenu_int = vivi_ctrl_int_menu_values,
-+};
-+
- static const struct v4l2_file_operations vivi_fops = {
- 	.owner		= THIS_MODULE,
- 	.open           = v4l2_fh_open,
-@@ -1294,6 +1315,7 @@ static int __init vivi_create_instance(int inst)
- 	dev->menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_menu, NULL);
- 	dev->string = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_string, NULL);
- 	dev->bitmask = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_bitmask, NULL);
-+	dev->int_menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_int_menu, NULL);
- 	if (hdl->error) {
- 		ret = hdl->error;
- 		goto unreg_dev;
+-	dev_dbg(&pdev->dev, "Camera clock frequency: %ld\n",
+-			clk_get_rate(pcdev->clk_csi));
+-
+ 	/* Initialize DMA */
+ #ifdef CONFIG_MACH_MX27
+ 	if (cpu_is_mx27()) {
 -- 
-1.7.2.5
+1.7.1
 
