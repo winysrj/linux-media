@@ -1,118 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog103.obsmtp.com ([74.125.149.71]:40848 "EHLO
-	na3sys009aog103.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756341Ab2BBOBh convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 09:01:37 -0500
-Received: by ggki2 with SMTP id i2so1109103ggk.15
-        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 06:01:36 -0800 (PST)
+Received: from mailfe03.c2i.net ([212.247.154.66]:60444 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752722Ab2BOROc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Feb 2012 12:14:32 -0500
+Received: from [176.74.208.111] (account mc467741@c2i.net HELO laptop002.hselasky.homeunix.org)
+  by mailfe03.swip.net (CommuniGate Pro SMTP 5.4.2)
+  with ESMTPA id 74051152 for linux-media@vger.kernel.org; Wed, 15 Feb 2012 18:14:30 +0100
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Make the USB Video Class debug filesystem support compile  time optional.
+Date: Wed, 15 Feb 2012 18:12:39 +0100
+References: <201202142215.51388.hselasky@c2i.net>
+In-Reply-To: <201202142215.51388.hselasky@c2i.net>
 MIME-Version: 1.0
-In-Reply-To: <201202021119.44794.laurent.pinchart@ideasonboard.com>
-References: <1325760118-27997-1-git-send-email-sumit.semwal@ti.com>
-	<20120130220139.GB16140@valkosipuli.localdomain>
-	<CAO8GWqmxZbyrZoc-35RGpREJ7Z0ixQ3L+1xBkdhGbYT_31t-Og@mail.gmail.com>
-	<201202021119.44794.laurent.pinchart@ideasonboard.com>
-Date: Thu, 2 Feb 2012 08:01:35 -0600
-Message-ID: <CAO8GWqknNtFOUUKKEqL053jR5WwqOmraHGsy9h4OnU=-yj7XOQ@mail.gmail.com>
-Subject: Re: [RFCv1 2/4] v4l:vb2: add support for shared buffer (dma_buf)
-From: "Clark, Rob" <rob@ti.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Sumit Semwal <sumit.semwal@ti.com>,
-	linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	arnd@arndb.de, jesse.barker@linaro.org, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202151812.39703.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Feb 2, 2012 at 4:19 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Rob,
->
-> On Tuesday 31 January 2012 16:38:35 Clark, Rob wrote:
->> On Mon, Jan 30, 2012 at 4:01 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
->> >> So to summarize I understand your constraints - gpu drivers have worked
->> >> like v4l a few years ago. The thing I'm trying to achieve with this
->> >> constant yelling is just to raise awereness for these issues so that
->> >> people aren't suprised when drm starts pulling tricks on dma_bufs.
->> >
->> > I think we should be able to mark dma_bufs non-relocatable so also DRM
->> > can work with these buffers. Or alternatively, as Laurent proposed, V4L2
->> > be prepared for moving the buffers around. Are there other reasons to do
->> > so than paging them out of system memory to make room for something
->> > else?
->>
->> fwiw, from GPU perspective, the DRM device wouldn't be actively
->> relocating buffers just for the fun of it.  I think it is more that we
->> want to give the GPU driver the flexibility to relocate when it really
->> needs to.  For example, maybe user has camera app running, then puts
->> it in the background and opens firefox which tries to allocate a big
->> set of pixmaps putting pressure on GPU memory..
->
-> On an embedded system putting the camera application in the background will
-> usually stop streaming, so buffers will be unmapped. On other systems, or even
-> on some embedded systems, that will not be the case though.
->
-> I'm perfectly fine with relocating buffers when needed. What I want is to
-> avoid unmapping and remapping them for every frame if they haven't moved. I'm
-> sure we can come up with an API to handle that.
->
->> I guess the root issue is who is doing the IOMMU programming for the camera
->> driver. I guess if this is something built in to the camera driver then when
->> it calls dma_buf_map() it probably wants some hint that the backing pages
->> haven't moved so in the common case (ie. buffer hasn't moved) it doesn't
->> have to do anything expensive.
->
-> It will likely depend on the camera hardware. For the OMAP3 ISP, the driver
-> calls the IOMMU API explictly, but if I understand it correctly there's a plan
-> to move IOMMU support to the DMA API.
->
->> On omap4 v4l2+drm example I have running, it is actually the DRM driver
->> doing the "IOMMU" programming.. so v4l2 camera really doesn't need to care
->> about it.  (And the IOMMU programming here is pretty fast.)  But I suppose
->> this maybe doesn't represent all cases. I suppose if a camera didn't really
->> sit behind an IOMMU but uses something more like a DMA descriptor list would
->> want to know if it needed to regenerate it's descriptor list. Or likewise if
->> camera has an IOMMU that isn't really using the IOMMU framework (although
->> maybe that is easier to solve).  But I think a hint returned from
->> dma_buf_map() would do the job?
->
-> I see at least three possible solutions to this problem.
->
-> 1. At dma_buf_unmap() time, the exporter will tell the importer that the
-> buffer will move, and that it should be unmapped from whatever the importer
-> mapped it to. That's probably the easiest solution to implement on the
-> importer's side, but I expect it to be difficult for the exporter to know at
-> dma_buf_unmap() time if the buffer will need to be moved or not.
->
-> 2. Adding a callback to request the importer to unmap the buffer. This might
-> be racy, and locking might be difficult to handle.
->
-> 3. At dma_buf_unmap() time, keep importer's mappings around. The exporter is
-> then free to move the buffer if needed, in which case the mappings will be
-> invalid. This shouldn't be a problem in theory, as the buffer isn't being used
-> by the importer at that time, but can cause stability issues when dealing with
-> rogue hardware as this would punch holes in the IOMMU fence. At dma_buf_map()
-> time the exporter would tell the importer whether the buffer moved or not. If
-> it moved, the importer will tear down the mappings it kept, and create new
-> ones.
+On Tuesday 14 February 2012 22:15:51 Hans Petter Selasky wrote:
+> The following patch makes the recently added DEBUGFS for UVC optional.
+> 
+> --HPS
+> 
 
-I was leaning towards door #3.. rogue hw is a good point, but I think
-that would be an issue in general if hw kept accessing the buffer when
-it wasn't supposed to.
+Please ignore this patch. It appears that the DEBUGFS can be disabled by 
+including the correct debugfs.h header file.
 
-BR,
--R
-
-> Variations around those 3 possible solutions are possible.
->
-> --
-> Regards,
->
-> Laurent Pinchart
+--HPS
