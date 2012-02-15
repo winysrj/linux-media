@@ -1,55 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:46926 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754361Ab2BBXGM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 18:06:12 -0500
-Received: by eaah12 with SMTP id h12so1242831eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 02 Feb 2012 15:06:10 -0800 (PST)
-Message-ID: <4F2B16DF.3040400@gmail.com>
-Date: Fri, 03 Feb 2012 00:06:07 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Andy Furniss <andyqos@ukfsn.org>, linux-media@vger.kernel.org
-Subject: Re: PCTV 290e page allocation failure
-References: <4F2AC7BF.4040006@ukfsn.org>	<4F2ADDCB.4060200@gmail.com> <CAGoCfiyTHNkr3gNAZUefeZN88-5Vd9SEyGUeFjYO-ddG1WqgzA@mail.gmail.com>
-In-Reply-To: <CAGoCfiyTHNkr3gNAZUefeZN88-5Vd9SEyGUeFjYO-ddG1WqgzA@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:56304 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759150Ab2BONda (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Feb 2012 08:33:30 -0500
+Received: by yhoo21 with SMTP id o21so610315yho.19
+        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2012 05:33:30 -0800 (PST)
+From: Fabio Estevam <festevam@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, javier.martin@vista-silicon.com,
+	kernel@pengutronix.de, mchehab@infradead.org,
+	Fabio Estevam <festevam@gmail.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH 1/3] media: video: mx2_camera.c: Fix build warning by initializing 'res_emma'
+Date: Wed, 15 Feb 2012 11:33:19 -0200
+Message-Id: <1329312801-20501-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 02/02/2012 20:07, Devin Heitmueller ha scritto:
-> On Thu, Feb 2, 2012 at 2:02 PM, Gianluca Gennari <gennarone@gmail.com> wrote:
->> I'm trying to reproduce the problem with another em28xx-dvb device to
->> see if it is not restricted to the PCTV 290e. Before the PCTV 290e, I
->> was using a different device with a driver based on the dvb-usb
->> framework, and I never observed similar crashes.
-> 
-> On ARM based platforms it is very likely you will run into this issue
-> with most USB based tuners.  It's because over time there is memory
-> fragmentation that occurs which prevents being able to allocate large
-> enough chunks of coherent memory.
-> 
-> Making such a scenario work would require hacks to the driver code to
-> preallocate the memory in some form of static pool at system boot (or
-> perhaps at driver initialization), and then reuse that memory instead
-> of attempting to allocate it as needed.
-> 
-> Devin
-> 
+Fix the following build warning:
 
-Hi Devin,
-thanks for the explanation. The CPU is MIPS based (not ARM) but I guess
-there is not much of a difference from this point of view.
-As I mentioned in my first reply, I never had this kind of errors when I
-was using a dvb-usb USB stick. Now I'm trying to replicate the problem
-with a Terratec Hybrid XS (em28xx-dvb + zl10353 + xc2028), and so far
-I've stressed it for a few hours without problems. We will see in a day
-or two if I can make it fail in the same way.
+drivers/media/video/mx2_camera.c: In function 'mx2_camera_probe':
+drivers/media/video/mx2_camera.c:1527: warning: 'res_emma' may be used uninitialized in this function
 
-Regards,
-Gianluca
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+ drivers/media/video/mx2_camera.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 04aab0c..5888e33 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -1524,7 +1524,7 @@ out:
+ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+ {
+ 	struct mx2_camera_dev *pcdev;
+-	struct resource *res_csi, *res_emma;
++	struct resource *res_csi, *res_emma = NULL;
+ 	void __iomem *base_csi;
+ 	int irq_csi, irq_emma;
+ 	irq_handler_t mx2_cam_irq_handler = cpu_is_mx25() ? mx25_camera_irq
+-- 
+1.7.1
 
