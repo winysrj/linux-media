@@ -1,56 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:28277 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761231Ab2BNVs2 (ORCPT
+Received: from 124-248-200-42.sunnyvision.com ([124.248.200.42]:39001 "EHLO
+	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
+	with ESMTP id S1756085Ab2BOLOu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:48:28 -0500
-From: linuxtv@stefanringel.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 14/22] mt2063: remove get_status
-Date: Tue, 14 Feb 2012 22:47:38 +0100
-Message-Id: <1329256066-8844-14-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
-References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+	Wed, 15 Feb 2012 06:14:50 -0500
+Message-ID: <7HrtlkyEz6iEli@party.seed.net.tw>
+From: dedicatedhk@yahoo.com.hk
+Subject: Dedicated Server
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
+Date: Wed, 15 Feb 2012 17:16:50 +0800 (HKT)
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+ear All,
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
----
- drivers/media/common/tuners/mt2063.c |   12 ------------
- 1 files changed, 0 insertions(+), 12 deletions(-)
+We have our own datacenter in Hong Kong & provide email/application/web rental service to clients.We are APNIC member & provide clean IP to clients.
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 452c517..3af5242 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -460,24 +460,12 @@ static int mt2063_init(struct dvb_frontend *fe)
- 	return 0;
- }
+Dell=3F PowerEdge=3F EnterpriseRack Mount Server
+-Intel(R) Xeon(R) E3-1240 Processor (3.3GHz, 8M Cache, Turbo, 4C/8T, 80W)
+-8GB RAM, 2x4GB, 1333MHz, DDR-3, Dual Ranked UDIMMs
+-500GB, 3.5", 6Gbps SAS x 2
+-Raid 1 Mirroring Protection
+-Remote KVM (iDRAC6 Enterprise)
+
+Dell(TM) PowerEdge(TM) R410 Rack Mount Server
+-Intel(R) Quad Core E5606 Xeon(R) CPU, 2.13GHz, 4M Cache, 4.86 GT/s QPI
+-4GB Memory (2x2GB), 1333MHz Dual Ranked RDIMMs Fully-Buffered
+-500GB 7.2K RPM SATAII 3.5" Hard Drive x 2
+-iDRAC6 Enterprise or Express (Remote KVM Management)
+
+Every Dedicated Server Hosting Solution Also Includes: 
  
--static int mt2063_get_status(struct dvb_frontend *fe, u32 *tuner_status)
- {
- 	struct mt2063_state *state = fe->tuner_priv;
--	int status;
- 
--	dprintk(2, "\n");
- 
--	if (!state->init)
--		return -ENODEV;
- 
--	*tuner_status = 0;
--	status = mt2063_lockStatus(state);
--	if (status < 0)
--		return status;
--	if (status)
--		*tuner_status = TUNER_STATUS_LOCKED;
- 
--	dprintk(1, "Tuner status: %d", *tuner_status);
- 
- 	return 0;
- }
--- 
-1.7.7.6
+Software Specification 
+- CentOS / Fedora / Debian / FreeBSD / Ubuntu / Redhat Linux 
+- Full root-level access 
+- Data Center Facilities 
+- Shared Local & International Bandwidth 
+- 2 IP Addresses Allocation 
+- Un-interruptible Power Supply (UPS) backed up by private diesel generator 
+- FM200=A1=A7based fire suppression system 
+- 24x7 CRAC Air Conditioning and Humidity Control 
+- 24x7 Security Control 
+- 24x7 Remote Hand Service 
+
+Pls send us email for further information.Thanks,
+
+Boris 
+boris@dedicatedserver.com.hk 
+
+If you do not wish to further receive this event message, email "borislamsv2@gmail.com" to unsubscribe this message or remove your email from the list.
+
 
