@@ -1,20 +1,25 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f66.google.com ([209.85.214.66]:60936 "EHLO
-	mail-bk0-f66.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751596Ab2BFKQM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 05:16:12 -0500
-Received: by bkaq10 with SMTP id q10so614342bka.1
-        for <linux-media@vger.kernel.org>; Mon, 06 Feb 2012 02:16:11 -0800 (PST)
-MIME-Version: 1.0
-Date: Mon, 6 Feb 2012 11:15:20 +0100
-Message-ID: <CADAKW8NbTzf7cKBMXWiP9ptPYtYNAKmwH61NEcFDXCH1vAPO3g@mail.gmail.com>
-Subject: i need a personal assistant
-From: Robert Johnson <pffdh23@gmail.com>
+Received: from www.chubut.gov.ar ([200.41.229.190]:46839 "EHLO
+	mail.chubut.gov.ar" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753103Ab2BOVzg convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Feb 2012 16:55:36 -0500
+Message-ID: <20120215181715.ir9pao6iw0gkssgs@mail.chubut.gov.ar>
+Date: Wed, 15 Feb 2012 18:17:15 -0300
+From: Irish Lotto <irishlotto@yahoo.co.uk>
+Reply-to: irn.irs3@w.cn
 To: undisclosed-recipients:;
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re:
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset=ISO-8859-1;
+	DelSp="Yes";
+	format="flowed"
+Content-Disposition: inline
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
--- 
-u frm crg ad i need a personal assistant i can pay u $500 wkly no txt
-4 info email me only @ johnsonrobert755@gmail.com
+
+
+You won £750,000 GBP. Send Name, Age, occupation, Country.
