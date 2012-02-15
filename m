@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga02.intel.com ([134.134.136.20]:60862 "EHLO mga02.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751509Ab2BQI5S (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 03:57:18 -0500
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCHv2 1/7] media: video: append $(srctree) to -I parameters
-Date: Fri, 17 Feb 2012 10:57:07 +0200
-Message-Id: <1329469034-25493-1-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <2218117.VoHfpPQjC4@avalon>
-References: <2218117.VoHfpPQjC4@avalon>
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:50533 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751511Ab2BOPxs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 Feb 2012 10:53:48 -0500
+Received: by bkcjm19 with SMTP id jm19so1069389bkc.19
+        for <linux-media@vger.kernel.org>; Wed, 15 Feb 2012 07:53:47 -0800 (PST)
+Message-ID: <4F3BD50A.3010608@uni-bielefeld.de>
+Date: Wed, 15 Feb 2012 16:53:46 +0100
+From: Robert Abel <abel@uni-bielefeld.de>
+Reply-To: abel@uni-bielefeld.de
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: [libv4l] Bytes per Line
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without this we have got the warnings like following if build with "make W=1
-O=/var/tmp":
-   CHECK   drivers/media/video/videobuf-vmalloc.c
-   CC [M]  drivers/media/video/videobuf-vmalloc.o
- +cc1: warning: drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
- +cc1: warning: drivers/media/dvb/frontends: No such file or directory [enabled by default]
- +cc1: warning: drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
- +cc1: warning: drivers/media/dvb/frontends: No such file or directory [enabled by default]
-   LD      drivers/media/built-in.o
+Hi,
 
-Some details could be found in [1] as well.
+First off, I hope this is the right mailing list I'm writing to.
 
-[1] http://comments.gmane.org/gmane.linux.kbuild.devel/7733
+Basically, I found that libv4l and its conversion functions usually
+choose to ignore v4l2_pix_format.bytesperline, which seems to work out
+most of the time.
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/video/Makefile |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+I'm currently working with the mt9v032 camera on a Gumstix Overo board.
+The mt9v032's driver pads output lines to 768 pixels, giving 0x900 bytes
+per line. All code in bayer.c (the camera uses raw bayer pattern) is
+written to assume bytesperline = width and thus everything goes horribly
+wrong.
 
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 3541388..3bf0aa8 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -199,6 +199,6 @@ obj-y	+= davinci/
- 
- obj-$(CONFIG_ARCH_OMAP)	+= omap/
- 
--ccflags-y += -Idrivers/media/dvb/dvb-core
--ccflags-y += -Idrivers/media/dvb/frontends
--ccflags-y += -Idrivers/media/common/tuners
-+ccflags-y += -I$(srctree)/drivers/media/dvb/dvb-core
-+ccflags-y += -I$(srctree)/drivers/media/dvb/frontends
-+ccflags-y += -I$(srctree)/drivers/media/common/tuners
--- 
-1.7.9
+I patched the issue for bayer => rgbbgr24 and will possibly fix it for
+bayer => yuv as well.
+However, I am going to run some tests using test patterns comparing
+bayer => rgb to bayer => yuv => rgb, where the bayer => yuv part is done
+in hardware. Yet, the code for yuv => rgb does also not take
+bytesperline into account.
 
+Is there a general understanding that v4l media drivers must not pad
+their data, or that libv4l is ignoring padding?
+I've worked with some webcams in the past and they all padded their
+data, so I'm wondering if assuming bytesperline = width was done on
+purpose and by design of out of necessity (speed..?) or if it just
+happened to work for most people?
+
+Thanks,
+
+Robert
