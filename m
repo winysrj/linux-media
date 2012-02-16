@@ -1,85 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-59.sunnyvision.com ([124.248.200.59]:36386 "EHLO
-	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754690Ab2BVTpN (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:39417 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753580Ab2BPRWM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 14:45:13 -0500
-Message-ID: <wxAaC8hBkjR039@gcn.net.tw>
-From: design@dedicatedserver.com.hk
-Subject: Cloud server Promotion!!
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Thu, 23 Feb 2012 01:53:28 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+	Thu, 16 Feb 2012 12:22:12 -0500
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LZH00G2HXKYO3@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:10 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZH00N5BXKX4C@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:10 +0000 (GMT)
+Date: Thu, 16 Feb 2012 18:21:59 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/6] s5p-fimc driver updates
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear all, 
+This patch series includes a few updates for s5p-fimc/s5p-csis drivers,
+like support for VIDIOC_PREPARE/CREATE_BUFS and VIDIOC_G/S_SELECTION ioctls,
+addition of clk_prepare/unprepare (required for upcoming common struct clk)
+and conversion to the device managed resources.
 
-Please see below price list for cloud server package.
+Sylwester Nawrocki (6):
+  s5p-fimc: convert to clk_prepare()/clk_unprepare()
+  s5p-csis: Add explicit dependency on REGULATOR
+  s5p-fimc: Convert to the device managed resources
+  s5p-fimc: Add support for VIDIOC_PREPARE_BUF/CREATE_BUFS ioctls
+  s5p-fimc: Replace the crop ioctls with VIDIOC_S/G_SELECTION
+  s5p-csis: Convert to the device managed resources
 
-SuperCloud 512
-=A1E Dedicated CPU: 1.8GHZ
-=A1E Dedicated RAM: 512MB
-=A1E Disk Space: 20GB
-=A1E Bandwidth: 200GB
-HK$199/month
+ drivers/media/video/Kconfig                 |    3 +-
+ drivers/media/video/s5p-fimc/fimc-capture.c |  121 +++++++++++++++++++++------
+ drivers/media/video/s5p-fimc/fimc-core.c    |   85 +++++++------------
+ drivers/media/video/s5p-fimc/fimc-core.h    |    2 -
+ drivers/media/video/s5p-fimc/fimc-mdevice.c |    7 +-
+ drivers/media/video/s5p-fimc/mipi-csis.c    |  109 ++++++++++---------------
+ 6 files changed, 173 insertions(+), 154 deletions(-)
 
-SuperCloud 768
-=A1E Dedicated CPU: 2.4GHZ
-=A1E Dedicated RAM: 768MB
-=A1E Disk Space: 40GB
-=A1E Bandwidth: 300GB
-HK$399/month
-
-SuperCloud 1024
-=A1E Dedicated CPU: 3.0GHZ
-=A1E Dedicated RAM: 1024MB
-=A1E Disk Space: 60GB
-=A1E Bandwidth: 400GB
-HK$599/month
-
-SuperCloud 1536
-=A1E Dedicated CPU: 3.6GHZ
-=A1E Dedicated RAM: 1536MB
-=A1E Disk Space: 80GB
-=A1E Bandwidth: 600GB
-HK$699/month
-
-SuperCloud 2048
-=A1E Dedicated CPU: 4.2GHZ
-=A1E Dedicated RAM: 2048MB
-=A1E Disk Space: 100GB
-=A1E Bandwidth: 800GB
-HK$799/month
-
-SuperCoud 4096
-=A1E Dedicated CPU: 5.4GHZ
-=A1E Dedicated RAM: 4096MB
-=A1E Disk Space: 150GB
-=A1E Bandwidth: 1600GB
-HK$999/month
-
-SuperCloud 8G
-=A1E Dedicated CPU: 9.6GHZ
-=A1E Dedicated RAM: 8GB
-=A1E Disk Space: 300GB
-=A1E Bandwidth: 3000GB
-HK$1,299/month
-
-SuperCloud 12G
-=A1E Dedicated CPU: 12GHZ
-=A1E Dedicated RAM: 12GB
-=A1E Disk Space: 500GB
-=A1E Bandwidth: 5000GB
-HK$1,499/month
-
-Should you have any need. Please feel free to contact me, Thanks.
-
-Best Regards,
-Eric Chan
-Senior Sales Executive
-
-If you do not wish to further receive this event message, email subscriber@dedicatedserver.com.hk to unsubscribe this message or remove your email from the list.
-
+-- 
+1.7.9
 
