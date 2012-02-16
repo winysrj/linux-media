@@ -1,119 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:41716 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751236Ab2BMNwJ (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:42400 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753701Ab2BPSYH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 08:52:09 -0500
-Received: by wgbdt10 with SMTP id dt10so4927974wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 05:52:08 -0800 (PST)
-MIME-Version: 1.0
-From: Javier Martin <javier.martin@vista-silicon.com>
+	Thu, 16 Feb 2012 13:24:07 -0500
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LZI00GPH0G4NK@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 18:24:04 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZI00JQD0G31U@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 18:24:04 +0000 (GMT)
+Date: Thu, 16 Feb 2012 19:23:53 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC/PATCH 0/6] Interleaved image data on media bus
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
-	s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 2/6] media: i.MX27 camera: Use list_first_entry() whenever possible.
-Date: Mon, 13 Feb 2012 14:51:51 +0100
-Message-Id: <1329141115-23133-3-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com
+Message-id: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello,
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |   28 +++++++++++++---------------
- 1 files changed, 13 insertions(+), 15 deletions(-)
+This patch series presents a method of capturing interleaved YUYV/JPEG image
+frames with the S5P/EXYNOS FIMC and MIPI-CSIS devices I went for to support 
+a camera (sensor) that outputs interleaved image data at single User Defined 
+MIPI-CSI2 data format. Such data is a combined two frames where each frame's 
+resolution is separately configurable, i.e. both frames can have different
+resolution. Additionally the sensor generates relatively small amount of 
+meta data which is necessary for interpreting the interleaved format.  
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 1f046a3..13be305 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -458,7 +458,7 @@ static void mx25_camera_frame_done(struct mx2_camera_dev *pcdev, int fb,
- 		buf = NULL;
- 		writel(0, pcdev->base_csi + fb_reg);
- 	} else {
--		buf = list_entry(pcdev->capture.next, struct mx2_buffer,
-+		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
- 				queue);
- 		vb = &buf->vb;
- 		list_del(&buf->queue);
-@@ -718,8 +718,8 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 
- 		spin_lock_irqsave(&pcdev->lock, flags);
- 
--		buf = list_entry(pcdev->capture.next,
--				 struct mx2_buffer, queue);
-+		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
-+				       queue);
- 		buf->bufnum = 0;
- 		vb = &buf->vb;
- 		buf->state = MX2_STATE_ACTIVE;
-@@ -728,8 +728,8 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
- 		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
--		buf = list_entry(pcdev->capture.next,
--				 struct mx2_buffer, queue);
-+		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
-+				       queue);
- 		buf->bufnum = 1;
- 		vb = &buf->vb;
- 		buf->state = MX2_STATE_ACTIVE;
-@@ -1215,8 +1215,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 	struct vb2_buffer *vb;
- 	unsigned long phys;
- 
--	buf = list_entry(pcdev->active_bufs.next,
--			 struct mx2_buffer, queue);
-+	buf = list_first_entry(&pcdev->active_bufs, struct mx2_buffer, queue);
- 
- 	BUG_ON(buf->bufnum != bufnum);
- 
-@@ -1270,8 +1269,8 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 			return;
- 		}
- 
--		buf = list_entry(pcdev->discard.next,
--			struct mx2_buffer, queue);
-+		buf = list_first_entry(&pcdev->discard, struct mx2_buffer,
-+				       queue);
- 		buf->bufnum = bufnum;
- 
- 		list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
-@@ -1279,8 +1278,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 		return;
- 	}
- 
--	buf = list_entry(pcdev->capture.next,
--			struct mx2_buffer, queue);
-+	buf = list_first_entry(&pcdev->capture, struct mx2_buffer, queue);
- 
- 	buf->bufnum = bufnum;
- 
-@@ -1309,8 +1307,8 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
- 	}
- 
- 	if (status & (1 << 7)) { /* overflow */
--		buf = list_entry(pcdev->active_bufs.next,
--			struct mx2_buffer, queue);
-+		buf = list_first_entry(&pcdev->active_bufs, struct mx2_buffer,
-+				       queue);
- 		mx27_camera_frame_done_emma(pcdev,
- 					buf->bufnum, true);
- 		status &= ~(1 << 7);
-@@ -1320,8 +1318,8 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
- 		 * Both buffers have triggered, process the one we're expecting
- 		 * to first
- 		 */
--		buf = list_entry(pcdev->active_bufs.next,
--			struct mx2_buffer, queue);
-+		buf = list_first_entry(&pcdev->active_bufs, struct mx2_buffer,
-+				       queue);
- 		mx27_camera_frame_done_emma(pcdev, buf->bufnum, false);
- 		status &= ~(1 << (6 - buf->bufnum)); /* mark processed */
- 	} else if ((status & (1 << 6)) || (status & (1 << 4))) {
+I decided to use two-planar buffers for this, rather than using separate
+buffer queues for the image and the meta data. Since both data are captured
+at different devices and matching those data in user space might be hard to
+achieve, and would add to complexity in the applications significantly.
+
+So here is the initial patch series, I'm sending it early to possibly get
+some better ideas...or just to have some background for discussion. :)
+
+I suppose the get/set_frame_config callbacks are most open issues. I intended
+these callbacks and the associated data structure as helpers for performing
+additional configuration for transmission of more complex data than just
+single raw image frame on media bus. I'm open to changing it, that's mainly
+to indicate we really need such sort of an API.
+
+
+Thoughts ?
+
+--
+
+Regards,
+Sylwester
+
+Sylwester Nawrocki (6):
+  V4L: Add V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 media bus format
+  V4L: Add V4L2_PIX_FMT_JPG_YUV_S5C fourcc definition
+  V4L: Add g_embedded_data subdev callback
+  V4L: Add get/set_frame_config subdev callbacks
+  s5p-fimc: Add support for V4L2_PIX_FMT_JPG_YUYV_S5C fourcc
+  s5p-csis: Add support for non-image data packets capture
+
+ Documentation/DocBook/media/v4l/pixfmt.xml  |    8 +
+ drivers/media/video/s5p-fimc/fimc-capture.c |  123 ++++++++---
+ drivers/media/video/s5p-fimc/fimc-core.c    |   37 +++-
+ drivers/media/video/s5p-fimc/fimc-core.h    |   22 ++-
+ drivers/media/video/s5p-fimc/fimc-reg.c     |    5 +-
+ drivers/media/video/s5p-fimc/mipi-csis.c    |  312 +++++++++++++++++++++++++--
+ include/linux/v4l2-mediabus.h               |    3 +
+ include/linux/videodev2.h                   |    1 +
+ include/media/v4l2-subdev.h                 |   28 +++
+ 9 files changed, 483 insertions(+), 56 deletions(-)
+
 -- 
-1.7.0.4
+1.7.9
 
