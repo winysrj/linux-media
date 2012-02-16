@@ -1,76 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:61435 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751186Ab2BVNgg (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:18685 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751133Ab2BPRWM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 08:36:36 -0500
-From: Arnd Bergmann <arnd@arndb.de>
-To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
-Subject: Re: [PATCHv22 14/16] X86: integrate CMA with DMA-mapping subsystem
-Date: Wed, 22 Feb 2012 13:36:09 +0000
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	"Ohad Ben-Cohen" <ohad@wizery.com>
-References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com> <20120221161802.f6a28085.akpm@linux-foundation.org> <20120222090930.GS22562@n2100.arm.linux.org.uk>
-In-Reply-To: <20120222090930.GS22562@n2100.arm.linux.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202221336.09808.arnd@arndb.de>
+	Thu, 16 Feb 2012 12:22:12 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LZH00LQ7XKYPJ80@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:10 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZH00BR6XKYPG@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:10 +0000 (GMT)
+Date: Thu, 16 Feb 2012 18:22:01 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/6] s5p-csis: Add explicit dependency on REGULATOR
+In-reply-to: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1329412925-5872-3-git-send-email-s.nawrocki@samsung.com>
+References: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wednesday 22 February 2012, Russell King - ARM Linux wrote:
-> On Tue, Feb 21, 2012 at 04:18:02PM -0800, Andrew Morton wrote:
-> > After a while I got it to compile for i386.  arm didn't go so well,
-> > partly because arm allmodconfig is presently horked (something to do
-> > with Kconfig not setting PHYS_OFFSET) and partly because arm defconfig
-> > doesn't permit CMA to be set.  Got bored, gave up.
-> 
-> That's not going to get fixed, unfortunately.  It requires us to find
-> some way to force various options to certain states on all*config
-> builds, because not surprisingly a value of 'y', 'm' or 'n' doesn't
-> work for integer or hex config options.
-> 
-> So the only way all*config can be used on ARM is with a seed config file
-> to force various options to particular states to ensure that we end up
-> with a sane configuration that avoids crap like that.
-> 
-> Alternatively, we need a way to tell kconfig that various options are to
-> be set in certain ways in the Kconfig files for all*config to avoid it
-> wanting values for hex or int options.
+The driver used the regulator API so it should depend on REGULATOR.
 
-I usually set KCONFIG_ALLCONFIG to a file containing the extra options
-I want, for another reason: As long as we are building platforms
-separately, all{no,yes,mod}config and randconfig will always build
-for the versatile platform instead of something more modern.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/Kconfig |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
 
-We could change that and make mach-vexpress the default, but we can
-also wait until we have the initial multiplatform support done and
-then use that one.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 9adada0..0eb7f3f 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -1116,7 +1116,8 @@ config VIDEO_ATMEL_ISI
+ 
+ config VIDEO_S5P_MIPI_CSIS
+ 	tristate "Samsung S5P and EXYNOS4 MIPI CSI receiver driver"
+-	depends on VIDEO_V4L2 && PM_RUNTIME && PLAT_S5P && VIDEO_V4L2_SUBDEV_API
++	depends on VIDEO_V4L2 && PM_RUNTIME && PLAT_S5P && \
++		   VIDEO_V4L2_SUBDEV_API && REGULATOR
+ 	---help---
+ 	  This is a v4l2 driver for Samsung S5P/EXYNOS4 MIPI-CSI receiver.
+ 
+-- 
+1.7.9
 
-Building vexpress_defconfig (or most other defconfig, I would expect)
-works fine with the CMA series applied. This should also work,
-but there a few bugs in unrelated device drivers that would need to get
-fixed first.
-
-make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -sj3 allmodconfig \ 	
-	KCONFIG_ALLCONFIG=$PWD/arch/arm/configs/vexpress_defconfig
-
-	Arnd
