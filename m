@@ -1,95 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from swampdragon.chaosbits.net ([90.184.90.115]:28080 "EHLO
-	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758483Ab2BIXyb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2012 18:54:31 -0500
-Date: Fri, 10 Feb 2012 00:55:07 +0100 (CET)
-From: Jesper Juhl <jj@chaosbits.net>
-To: Thierry Reding <thierry.reding@avionic-design.de>
-cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Dan Carpenter <dan.carpenter@oracle.com>,
-	Greg Kroah-Hartman <gregkh@suse.de>,
-	Curtis McEnroe <programble@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] tm6000: Don't use pointer after freeing it in
- tm6000_ir_fini()
-In-Reply-To: <20120206070939.GA19754@avionic-0098.mockup.avionic-design.de>
-Message-ID: <alpine.LNX.2.00.1202100054540.32491@swampdragon.chaosbits.net>
-References: <alpine.LNX.2.00.1201290239460.20079@swampdragon.chaosbits.net> <20120206070939.GA19754@avionic-0098.mockup.avionic-design.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:31505 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754041Ab2BPSYI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 Feb 2012 13:24:08 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LZI007W10G4XR80@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 18:24:04 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZI00FAL0G3MA@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 18:24:04 +0000 (GMT)
+Date: Thu, 16 Feb 2012 19:23:56 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC/PATCH 3/6] V4L: Add g_embedded_data subdev callback
+In-reply-to: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
+	sakari.ailus@iki.fi, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1329416639-19454-4-git-send-email-s.nawrocki@samsung.com>
+References: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 6 Feb 2012, Thierry Reding wrote:
+The g_embedded_data callback allows the host to retrieve frame embedded
+(meta) data from a certain subdev. This callback can be implemented by
+an image sensor or a MIPI-CSI receiver, allowing to read embedded frame
+data from a subdev or just query it for the data size.
 
-> * Jesper Juhl wrote:
-> > In tm6000_ir_fini() there seems to be a problem. 
-> > rc_unregister_device(ir->rc); calls rc_free_device() on the pointer it is 
-> > given, which frees it.
-> > 
-> > Subsequently the function does:
-> > 
-> >   if (!ir->polling)
-> >     __tm6000_ir_int_stop(ir->rc);
-> > 
-> > and __tm6000_ir_int_stop() dereferences the pointer it is given, which
-> > has already been freed.
-> > 
-> > and it also does:
-> > 
-> >   tm6000_ir_stop(ir->rc);
-> > 
-> > which also dereferences the (already freed) pointer.
-> > 
-> > So, it seems that the call to rc_unregister_device() should be move
-> > below the calls to __tm6000_ir_int_stop() and tm6000_ir_stop(), so
-> > those don't operate on a already freed pointer.
-> > 
-> > But, I must admit that I don't know this code *at all*, so someone who
-> > knows the code should take a careful look before applying this
-> > patch. It is based purely on inspection of facts of what is beeing
-> > freed where and not at all on understanding what the code does or why.
-> > I don't even have a means to test it, so beyond testing that the
-> > change compiles it has seen no testing what-so-ever.
-> > 
-> > Anyway, here's a proposed patch.
-> > 
-> > Signed-off-by: Jesper Juhl <jj@chaosbits.net>
-> > ---
-> >  drivers/media/video/tm6000/tm6000-input.c |    3 +--
-> >  1 files changed, 1 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/tm6000/tm6000-input.c b/drivers/media/video/tm6000/tm6000-input.c
-> > index 7844607..859eb90 100644
-> > --- a/drivers/media/video/tm6000/tm6000-input.c
-> > +++ b/drivers/media/video/tm6000/tm6000-input.c
-> > @@ -481,8 +481,6 @@ int tm6000_ir_fini(struct tm6000_core *dev)
-> >  
-> >  	dprintk(2, "%s\n",__func__);
-> >  
-> > -	rc_unregister_device(ir->rc);
-> > -
-> >  	if (!ir->polling)
-> >  		__tm6000_ir_int_stop(ir->rc);
-> >  
-> > @@ -492,6 +490,7 @@ int tm6000_ir_fini(struct tm6000_core *dev)
-> >  	tm6000_flash_led(dev, 0);
-> >  	ir->pwled = 0;
-> >  
-> > +	rc_unregister_device(ir->rc);
-> >  
-> >  	kfree(ir);
-> >  	dev->ir = NULL;
-> > -- 
-> > 1.7.8.4
-> 
-> Reviewed-by: Thierry Reding <thierry.reding@avionic-design.de>
-> 
-Thanks :-)
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ include/media/v4l2-subdev.h |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f0f3358..be74061 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -274,6 +274,14 @@ struct v4l2_subdev_audio_ops {
+    s_mbus_config: set a certain mediabus configuration. This operation is added
+ 	for compatibility with soc-camera drivers and should not be used by new
+ 	software.
++
++   g_embedded_data: retrieve the frame embedded data (frame header or footer).
++	After a full frame has been transmitted the host can query a subdev
++	for frame meta data using this operation. Metadata size is returned
++	in @size, and the actual metadata in memory pointed by @data. When
++	@buf is NULL the subdev will return only the metadata size. The
++	subdevs can adjust @size to a lower value but must not write more
++	data than the @size's original value.
+  */
+ struct v4l2_subdev_video_ops {
+ 	int (*s_routing)(struct v4l2_subdev *sd, u32 input, u32 output, u32 config);
+@@ -321,6 +329,8 @@ struct v4l2_subdev_video_ops {
+ 			     struct v4l2_mbus_config *cfg);
+ 	int (*s_mbus_config)(struct v4l2_subdev *sd,
+ 			     const struct v4l2_mbus_config *cfg);
++	int (*g_embedded_data)(struct v4l2_subdev *sd, unsigned int *size,
++			       void **buf);
+ };
+ 
+ /*
 -- 
-Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
-Don't top-post http://www.catb.org/jargon/html/T/top-post.html
-Plain text mails only, please.
+1.7.9
 
