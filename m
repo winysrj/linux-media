@@ -1,288 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:53665 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751714Ab2BQPET (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:28462 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753654Ab2BPRWN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 10:04:19 -0500
-Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LZJ005LZLV5YR@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 17 Feb 2012 15:04:17 +0000 (GMT)
+	Thu, 16 Feb 2012 12:22:13 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LZH007JDXKZXR80@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:11 +0000 (GMT)
 Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZJ00B8XLV4WB@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 17 Feb 2012 15:04:17 +0000 (GMT)
-Date: Fri, 17 Feb 2012 16:04:12 +0100
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZH008JGXKYX9@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:11 +0000 (GMT)
+Date: Thu, 16 Feb 2012 18:22:04 +0100
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/2] s5p-jpeg: Use struct v4l2_fh
-In-reply-to: <1329491053-3071-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [PATCH 5/6] s5p-fimc: Replace the crop ioctls with VIDIOC_S/G_SELECTION
+In-reply-to: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
 Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
 	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1329491053-3071-2-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329491053-3071-1-git-send-email-s.nawrocki@samsung.com>
+Message-id: <1329412925-5872-6-git-send-email-s.nawrocki@samsung.com>
+References: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch is a prerequisite for per file handle control handlers.
+Add support for cropping and composition setup on the video capture
+node through VIDIOC_S/G_SELECTION ioctls. S/G_CROP, CROPCAP ioctls
+are still  supported for applications since the core will translate
+them to *_selection handler calls.
 
 Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
 Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/s5p-jpeg/jpeg-core.c |   65 +++++++++++++++++------------
- drivers/media/video/s5p-jpeg/jpeg-core.h |    2 +
- 2 files changed, 40 insertions(+), 27 deletions(-)
+ drivers/media/video/s5p-fimc/fimc-capture.c |  104 +++++++++++++++++++-------
+ 1 files changed, 76 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
-index 1105a87..c368c4f 100644
---- a/drivers/media/video/s5p-jpeg/jpeg-core.c
-+++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
-@@ -203,6 +203,11 @@ static const unsigned char hactblg0[162] = {
- 	0xf9, 0xfa
- };
+diff --git a/drivers/media/video/s5p-fimc/fimc-capture.c b/drivers/media/video/s5p-fimc/fimc-capture.c
+index b2fc0b5..b06efd2 100644
+--- a/drivers/media/video/s5p-fimc/fimc-capture.c
++++ b/drivers/media/video/s5p-fimc/fimc-capture.c
+@@ -1035,52 +1035,101 @@ static int fimc_cap_prepare_buf(struct file *file, void *priv,
+ 	return vb2_prepare_buf(&fimc->vid_cap.vbq, b);
+ }
  
-+static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
-+{
-+	return container_of(fh, struct s5p_jpeg_ctx, fh);
-+}
-+
- static inline void jpeg_set_qtbl(void __iomem *regs, const unsigned char *qtbl,
- 		   unsigned long tab, int len)
+-static int fimc_cap_cropcap(struct file *file, void *fh,
+-			    struct v4l2_cropcap *cr)
++static int fimc_cap_g_selection(struct file *file, void *fh,
++				struct v4l2_selection *s)
  {
-@@ -276,12 +281,16 @@ static int s5p_jpeg_open(struct file *file)
- 	struct video_device *vfd = video_devdata(file);
- 	struct s5p_jpeg_ctx *ctx;
- 	struct s5p_jpeg_fmt *out_fmt;
-+	int ret = 0;
+ 	struct fimc_dev *fimc = video_drvdata(file);
+-	struct fimc_frame *f = &fimc->vid_cap.ctx->s_frame;
++	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
++	struct fimc_frame *f = &ctx->s_frame;
  
- 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
- 	if (!ctx)
- 		return -ENOMEM;
+-	if (cr->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
+ 		return -EINVAL;
  
--	file->private_data = ctx;
-+	v4l2_fh_init(&ctx->fh, vfd);
-+	file->private_data = &ctx->fh;
-+	v4l2_fh_add(&ctx->fh);
+-	cr->bounds.left		= 0;
+-	cr->bounds.top		= 0;
+-	cr->bounds.width	= f->o_width;
+-	cr->bounds.height	= f->o_height;
+-	cr->defrect		= cr->bounds;
++	switch (s->target) {
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++		f = &ctx->d_frame;
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++		s->r.left = 0;
++		s->r.top = 0;
++		s->r.width = f->o_width;
++		s->r.height = f->o_height;
++		return 0;
+ 
+-	return 0;
++	case V4L2_SEL_TGT_COMPOSE_ACTIVE:
++		f = &ctx->d_frame;
++	case V4L2_SEL_TGT_CROP_ACTIVE:
++		s->r.left = f->offs_h;
++		s->r.top = f->offs_v;
++		s->r.width = f->width;
++		s->r.height = f->height;
++		return 0;
++	}
 +
- 	ctx->jpeg = jpeg;
- 	if (vfd == jpeg->vfd_encoder) {
- 		ctx->mode = S5P_JPEG_ENCODE;
-@@ -293,22 +302,28 @@ static int s5p_jpeg_open(struct file *file)
++	return -EINVAL;
+ }
  
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(jpeg->m2m_dev, ctx, queue_init);
- 	if (IS_ERR(ctx->m2m_ctx)) {
--		int err = PTR_ERR(ctx->m2m_ctx);
--		kfree(ctx);
--		return err;
-+		ret = PTR_ERR(ctx->m2m_ctx);
-+		goto error;
- 	}
- 
- 	ctx->out_q.fmt = out_fmt;
- 	ctx->cap_q.fmt = s5p_jpeg_find_format(ctx->mode, V4L2_PIX_FMT_YUYV);
+-static int fimc_cap_g_crop(struct file *file, void *fh, struct v4l2_crop *cr)
++/* Return 1 if rectangle a is enclosed in rectangle b, or 0 otherwise. */
++int enclosed_rectangle(struct v4l2_rect *a, struct v4l2_rect *b)
+ {
+-	struct fimc_dev *fimc = video_drvdata(file);
+-	struct fimc_frame *f = &fimc->vid_cap.ctx->s_frame;
 -
+-	cr->c.left	= f->offs_h;
+-	cr->c.top	= f->offs_v;
+-	cr->c.width	= f->width;
+-	cr->c.height	= f->height;
++	if (a->left < b->left || a->top < b->top)
++		return 0;
++	if (a->left + a->width > b->left + b->width)
++		return 0;
++	if (a->top + a->height > b->top + b->height)
++		return 0;
+ 
+-	return 0;
++	return 1;
+ }
+ 
+-static int fimc_cap_s_crop(struct file *file, void *fh, struct v4l2_crop *cr)
++static int fimc_cap_s_selection(struct file *file, void *fh,
++				struct v4l2_selection *s)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
+-	struct fimc_frame *ff;
++	struct v4l2_rect rect = s->r;
++	struct fimc_frame *f;
+ 	unsigned long flags;
++	unsigned int pad;
++
++	if (s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
++		return -EINVAL;
+ 
+-	fimc_capture_try_crop(ctx, &cr->c, FIMC_SD_PAD_SINK);
+-	ff = &ctx->s_frame;
++	switch (s->target) {
++	case V4L2_SEL_TGT_COMPOSE_DEFAULT:
++	case V4L2_SEL_TGT_COMPOSE_BOUNDS:
++	case V4L2_SEL_TGT_COMPOSE_ACTIVE:
++		f = &ctx->d_frame;
++		pad = FIMC_SD_PAD_SOURCE;
++		break;
++	case V4L2_SEL_TGT_CROP_BOUNDS:
++	case V4L2_SEL_TGT_CROP_DEFAULT:
++	case V4L2_SEL_TGT_CROP_ACTIVE:
++		f = &ctx->s_frame;
++		pad = FIMC_SD_PAD_SINK;
++		break;
++	default:
++		return -EINVAL;
++	}
+ 
++	fimc_capture_try_crop(ctx, &rect, pad);
++
++	if (s->flags & V4L2_SEL_FLAG_LE &&
++	    !enclosed_rectangle(&rect, &s->r))
++		return -ERANGE;
++
++	if (s->flags & V4L2_SEL_FLAG_GE &&
++	    !enclosed_rectangle(&s->r, &rect))
++		return -ERANGE;
++
++	s->r = rect;
+ 	spin_lock_irqsave(&fimc->slock, flags);
+-	set_frame_crop(ff, cr->c.left, cr->c.top, cr->c.width, cr->c.height);
+-	set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
++	set_frame_crop(f, s->r.left, s->r.top, s->r.width,
++		       s->r.height);
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+ 
++	set_bit(ST_CAPT_APPLY_CFG, &fimc->state);
  	return 0;
-+
-+error:
-+	v4l2_fh_del(&ctx->fh);
-+	v4l2_fh_exit(&ctx->fh);
-+	kfree(ctx);
-+	return ret;
  }
  
- static int s5p_jpeg_release(struct file *file)
- {
--	struct s5p_jpeg_ctx *ctx = file->private_data;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
+@@ -1104,9 +1153,8 @@ static const struct v4l2_ioctl_ops fimc_capture_ioctl_ops = {
+ 	.vidioc_streamon		= fimc_cap_streamon,
+ 	.vidioc_streamoff		= fimc_cap_streamoff,
  
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
-+	v4l2_fh_del(&ctx->fh);
-+	v4l2_fh_exit(&ctx->fh);
- 	kfree(ctx);
+-	.vidioc_g_crop			= fimc_cap_g_crop,
+-	.vidioc_s_crop			= fimc_cap_s_crop,
+-	.vidioc_cropcap			= fimc_cap_cropcap,
++	.vidioc_g_selection		= fimc_cap_g_selection,
++	.vidioc_s_selection		= fimc_cap_s_selection,
  
- 	return 0;
-@@ -317,14 +332,14 @@ static int s5p_jpeg_release(struct file *file)
- static unsigned int s5p_jpeg_poll(struct file *file,
- 				 struct poll_table_struct *wait)
- {
--	struct s5p_jpeg_ctx *ctx = file->private_data;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
- 
- 	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
- }
- 
- static int s5p_jpeg_mmap(struct file *file, struct vm_area_struct *vma)
- {
--	struct s5p_jpeg_ctx *ctx = file->private_data;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
- 
- 	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
- }
-@@ -448,7 +463,7 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
- static int s5p_jpeg_querycap(struct file *file, void *priv,
- 			   struct v4l2_capability *cap)
- {
--	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	if (ctx->mode == S5P_JPEG_ENCODE) {
- 		strlcpy(cap->driver, S5P_JPEG_M2M_NAME " encoder",
-@@ -497,9 +512,7 @@ static int enum_fmt(struct s5p_jpeg_fmt *formats, int n,
- static int s5p_jpeg_enum_fmt_vid_cap(struct file *file, void *priv,
- 				   struct v4l2_fmtdesc *f)
- {
--	struct s5p_jpeg_ctx *ctx;
--
--	ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	if (ctx->mode == S5P_JPEG_ENCODE)
- 		return enum_fmt(formats_enc, NUM_FORMATS_ENC, f,
-@@ -511,9 +524,7 @@ static int s5p_jpeg_enum_fmt_vid_cap(struct file *file, void *priv,
- static int s5p_jpeg_enum_fmt_vid_out(struct file *file, void *priv,
- 				   struct v4l2_fmtdesc *f)
- {
--	struct s5p_jpeg_ctx *ctx;
--
--	ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	if (ctx->mode == S5P_JPEG_ENCODE)
- 		return enum_fmt(formats_enc, NUM_FORMATS_ENC, f,
-@@ -538,7 +549,7 @@ static int s5p_jpeg_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 	struct vb2_queue *vq;
- 	struct s5p_jpeg_q_data *q_data = NULL;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
--	struct s5p_jpeg_ctx *ct = priv;
-+	struct s5p_jpeg_ctx *ct = fh_to_ctx(priv);
- 
- 	vq = v4l2_m2m_get_vq(ct->m2m_ctx, f->type);
- 	if (!vq)
-@@ -659,8 +670,8 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct s5p_jpeg_fmt *fmt,
- static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
- 				  struct v4l2_format *f)
- {
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 	struct s5p_jpeg_fmt *fmt;
--	struct s5p_jpeg_ctx *ctx = priv;
- 
- 	fmt = s5p_jpeg_find_format(ctx->mode, f->fmt.pix.pixelformat);
- 	if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
-@@ -676,8 +687,8 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
- static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
- 				  struct v4l2_format *f)
- {
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 	struct s5p_jpeg_fmt *fmt;
--	struct s5p_jpeg_ctx *ctx = priv;
- 
- 	fmt = s5p_jpeg_find_format(ctx->mode, f->fmt.pix.pixelformat);
- 	if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
-@@ -728,7 +739,7 @@ static int s5p_jpeg_s_fmt_vid_cap(struct file *file, void *priv,
- 	if (ret)
- 		return ret;
- 
--	return s5p_jpeg_s_fmt(priv, f);
-+	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
- }
- 
- static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
-@@ -740,13 +751,13 @@ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
- 	if (ret)
- 		return ret;
- 
--	return s5p_jpeg_s_fmt(priv, f);
-+	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
- }
- 
- static int s5p_jpeg_reqbufs(struct file *file, void *priv,
- 			  struct v4l2_requestbuffers *reqbufs)
- {
--	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
- }
-@@ -754,14 +765,14 @@ static int s5p_jpeg_reqbufs(struct file *file, void *priv,
- static int s5p_jpeg_querybuf(struct file *file, void *priv,
- 			   struct v4l2_buffer *buf)
- {
--	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
- }
- 
- static int s5p_jpeg_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
- {
--	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
- }
-@@ -769,7 +780,7 @@ static int s5p_jpeg_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
- static int s5p_jpeg_dqbuf(struct file *file, void *priv,
- 			  struct v4l2_buffer *buf)
- {
--	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
- }
-@@ -777,7 +788,7 @@ static int s5p_jpeg_dqbuf(struct file *file, void *priv,
- static int s5p_jpeg_streamon(struct file *file, void *priv,
- 			   enum v4l2_buf_type type)
- {
--	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
- }
-@@ -785,7 +796,7 @@ static int s5p_jpeg_streamon(struct file *file, void *priv,
- static int s5p_jpeg_streamoff(struct file *file, void *priv,
- 			    enum v4l2_buf_type type)
- {
--	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
- }
-@@ -793,7 +804,7 @@ static int s5p_jpeg_streamoff(struct file *file, void *priv,
- int s5p_jpeg_g_selection(struct file *file, void *priv,
- 			 struct v4l2_selection *s)
- {
--	struct s5p_jpeg_ctx *ctx = priv;
-+	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
- 
- 	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
- 	    s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.h b/drivers/media/video/s5p-jpeg/jpeg-core.h
-index facad61..4dd705f 100644
---- a/drivers/media/video/s5p-jpeg/jpeg-core.h
-+++ b/drivers/media/video/s5p-jpeg/jpeg-core.h
-@@ -14,6 +14,7 @@
- #define JPEG_CORE_H_
- 
- #include <media/v4l2-device.h>
-+#include <media/v4l2-fh.h>
- 
- #define S5P_JPEG_M2M_NAME		"s5p-jpeg"
- 
-@@ -125,6 +126,7 @@ struct s5p_jpeg_ctx {
- 	struct v4l2_m2m_ctx	*m2m_ctx;
- 	struct s5p_jpeg_q_data	out_q;
- 	struct s5p_jpeg_q_data	cap_q;
-+	struct v4l2_fh		fh;
- 	bool			hdr_parsed;
- };
- 
+ 	.vidioc_enum_input		= fimc_cap_enum_input,
+ 	.vidioc_s_input			= fimc_cap_s_input,
 -- 
 1.7.9
 
