@@ -1,41 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:38862 "EHLO
-	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754079Ab2BKC3N (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:53926 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751510Ab2BQJYd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 21:29:13 -0500
-Received: by obcva7 with SMTP id va7so4534286obc.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2012 18:29:12 -0800 (PST)
-Subject: Re: SDR FM demodulation
-From: David Hagood <david.hagood@gmail.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Patrick Boettcher <pboettcher@kernellabs.com>,
-	linux-media <linux-media@vger.kernel.org>
-In-Reply-To: <1328926119.16025.6.camel@palomino.walls.org>
-References: <4F33DFB8.4080702@iki.fi>
-	 <201202091611.21095.pboettcher@kernellabs.com> <4F33E485.10704@iki.fi>
-	 <1328926119.16025.6.camel@palomino.walls.org>
-Content-Type: text/plain; charset="UTF-8"
-Date: Fri, 10 Feb 2012 20:29:10 -0600
-Message-ID: <1328927350.11652.11.camel@chumley>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 17 Feb 2012 04:24:33 -0500
+Date: Fri, 17 Feb 2012 10:24:13 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+cc: linux-media@vger.kernel.org, Fabio Estevam <festevam@gmail.com>,
+	javier.martin@vista-silicon.com, baruch@tkos.co.il
+Subject: Re: [PATCH 1/2] media/video mx2_camera: make using emma mandatory
+ for i.MX27
+In-Reply-To: <1329469749-18099-2-git-send-email-s.hauer@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1202171022050.22632@axis700.grange>
+References: <1329469749-18099-1-git-send-email-s.hauer@pengutronix.de>
+ <1329469749-18099-2-git-send-email-s.hauer@pengutronix.de>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 2012-02-10 at 21:08 -0500, Andy Walls wrote:
+Hi Sascha
+
+Thanks for the patch. Just one question:
+
+On Fri, 17 Feb 2012, Sascha Hauer wrote:
+
+> The i.MX27 dma support was introduced with the initial commit of
+> this driver and originally created by me. However, I never got
+> this stable due to the racy dma engine and used the EMMA engine
+> instead. As the DMA support is most probably unused and broken in
+> its current state, remove it. This also helps us to get rid of
+> another user of the legacy i.MX DMA support,
+> Also, remove the dependency on ARCH_MX* macros as these are scheduled
+> for removal.
 > 
-> Randomly checking some of the data with GNUplot, if 2.5 Msps is the
-> sampling rate, then the fastest freq I saw was about 50 kHz.
-How'd you analyze the data - assume it was baseband I/Q and do an FFT?
-If so, and if this was digitized baseband, you should have seen the FM
-stereo pilot tone at 19kHz.
+> This patch only removes the use_emma variable and assumes it's
+> hardcoded '1'. The resulting dead code is removed in the next patch.
+> 
+> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+> ---
+>  drivers/media/video/mx2_camera.c |   21 ++++++++-------------
+>  1 files changed, 8 insertions(+), 13 deletions(-)
+> 
+> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+> index 04aab0c..65709e4 100644
+> --- a/drivers/media/video/mx2_camera.c
+> +++ b/drivers/media/video/mx2_camera.c
 
-If it's digitized IF, you should be able to run it through a rectangular
-to polar conversion (compute mag = I^2+Q^2 and phase = arctan(I/Q) (use
-a proper 4 quadrant arctan), then compute frequency by the delta between
-the phase samples. Mag should be constant, frequency would then be your
-audio.
+[snip]
 
+> @@ -1620,7 +1616,6 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
+>  
+>  		if (res_emma && irq_emma >= 0) {
+>  			dev_info(&pdev->dev, "Using EMMA\n");
+> -			pcdev->use_emma = 1;
+>  			pcdev->res_emma = res_emma;
+>  			pcdev->irq_emma = irq_emma;
+>  			if (mx27_camera_emma_init(pcdev))
 
+If emma is becoming the only way to use this driver on i.MX27, shouldn't 
+the EMMA memory and IRQ resources become compulsory? I.e., if any of them 
+is missing we should error out?
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
