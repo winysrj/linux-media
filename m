@@ -1,99 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:40327 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753668Ab2BCPne convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 10:43:34 -0500
-Received: by vcge1 with SMTP id e1so2661841vcg.19
-        for <linux-media@vger.kernel.org>; Fri, 03 Feb 2012 07:43:33 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <1327326675-8431-4-git-send-email-t.stanislaws@samsung.com>
-References: <1327326675-8431-1-git-send-email-t.stanislaws@samsung.com> <1327326675-8431-4-git-send-email-t.stanislaws@samsung.com>
-From: Pawel Osciak <pawel@osciak.com>
-Date: Fri, 3 Feb 2012 07:42:53 -0800
-Message-ID: <CAMm-=zDjPSG58tWXNRejmzZmrYXdmS9vtia7g5UP_9Qb3Xk6qQ@mail.gmail.com>
-Subject: Re: [PATCH 03/10] media: vb2: add prepare/finish callbacks to allocators
-To: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: linaro-mm-sig@lists.linaro.org, linux-media@vger.kernel.org,
-	sumit.semwal@ti.com, jesse.barker@linaro.org, rob@ti.com,
-	daniel@ffwll.ch, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com, hverkuil@xs4all.nl,
-	laurent.pinchart@ideasonboard.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:16691 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752119Ab2BQTeg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Feb 2012 14:34:36 -0500
+Date: Fri, 17 Feb 2012 20:30:30 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv22 10/16] mm: Serialize access to min_free_kbytes
+In-reply-to: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329507036-24362-11-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Tomasz,
+From: Mel Gorman <mgorman@suse.de>
 
-On Mon, Jan 23, 2012 at 05:51, Tomasz Stanislawski
-<t.stanislaws@samsung.com> wrote:
-> From: Marek Szyprowski <m.szyprowski@samsung.com>
->
-> Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-> ---
->  drivers/media/video/videobuf2-core.c |   11 +++++++++++
->  include/media/videobuf2-core.h       |    2 ++
->  2 files changed, 13 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/video/videobuf2-core.c b/drivers/media/video/videobuf2-core.c
-> index 4c3a82e..cb85874 100644
-> --- a/drivers/media/video/videobuf2-core.c
-> +++ b/drivers/media/video/videobuf2-core.c
-> @@ -836,6 +836,7 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->  {
->        struct vb2_queue *q = vb->vb2_queue;
->        unsigned long flags;
-> +       int plane;
->
->        if (vb->state != VB2_BUF_STATE_ACTIVE)
->                return;
-> @@ -846,6 +847,10 @@ void vb2_buffer_done(struct vb2_buffer *vb, enum vb2_buffer_state state)
->        dprintk(4, "Done processing on buffer %d, state: %d\n",
->                        vb->v4l2_buf.index, vb->state);
->
-> +       /* sync buffers */
-> +       for (plane = 0; plane < vb->num_planes; ++plane)
-> +               call_memop(q, finish, vb->planes[plane].mem_priv);
-> +
->        /* Add the buffer to the done buffers list */
->        spin_lock_irqsave(&q->done_lock, flags);
->        vb->state = state;
-> @@ -1136,9 +1141,15 @@ err:
->  static void __enqueue_in_driver(struct vb2_buffer *vb)
->  {
->        struct vb2_queue *q = vb->vb2_queue;
-> +       int plane;
->
->        vb->state = VB2_BUF_STATE_ACTIVE;
->        atomic_inc(&q->queued_count);
-> +
-> +       /* sync buffers */
-> +       for (plane = 0; plane < vb->num_planes; ++plane)
-> +               call_memop(q, prepare, vb->planes[plane].mem_priv);
-> +
->        q->ops->buf_queue(vb);
->  }
->
-> diff --git a/include/media/videobuf2-core.h b/include/media/videobuf2-core.h
-> index 35607f7..d8b8171 100644
-> --- a/include/media/videobuf2-core.h
-> +++ b/include/media/videobuf2-core.h
-> @@ -76,6 +76,8 @@ struct vb2_fileio_data;
->  */
->  struct vb2_mem_ops {
->        void            *(*alloc)(void *alloc_ctx, unsigned long size);
-> +       void            (*prepare)(void *buf_priv);
-> +       void            (*finish)(void *buf_priv);
->        void            (*put)(void *buf_priv);
->
->        void            *(*get_userptr)(void *alloc_ctx, unsigned long vaddr,
-> --
-> 1.7.5.4
->
+There is a race between the min_free_kbytes sysctl, memory hotplug
+and transparent hugepage support enablement.  Memory hotplug uses a
+zonelists_mutex to avoid a race when building zonelists. Reuse it to
+serialise watermark updates.
 
-Those callbacks need to be documented in struct vb2_mem_ops
-documentation in code. Apart from that the patch looks good.
+[a.p.zijlstra@chello.nl: Older patch fixed the race with spinlock]
+Signed-off-by: Mel Gorman <mgorman@suse.de>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+---
+ mm/page_alloc.c |   23 +++++++++++++++--------
+ 1 files changed, 15 insertions(+), 8 deletions(-)
 
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 5d23933..444e3fd 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -4976,14 +4976,7 @@ static void setup_per_zone_lowmem_reserve(void)
+ 	calculate_totalreserve_pages();
+ }
+ 
+-/**
+- * setup_per_zone_wmarks - called when min_free_kbytes changes
+- * or when memory is hot-{added|removed}
+- *
+- * Ensures that the watermark[min,low,high] values for each zone are set
+- * correctly with respect to min_free_kbytes.
+- */
+-void setup_per_zone_wmarks(void)
++static void __setup_per_zone_wmarks(void)
+ {
+ 	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
+ 	unsigned long lowmem_pages = 0;
+@@ -5038,6 +5031,20 @@ void setup_per_zone_wmarks(void)
+ 	calculate_totalreserve_pages();
+ }
+ 
++/**
++ * setup_per_zone_wmarks - called when min_free_kbytes changes
++ * or when memory is hot-{added|removed}
++ *
++ * Ensures that the watermark[min,low,high] values for each zone are set
++ * correctly with respect to min_free_kbytes.
++ */
++void setup_per_zone_wmarks(void)
++{
++	mutex_lock(&zonelists_mutex);
++	__setup_per_zone_wmarks();
++	mutex_unlock(&zonelists_mutex);
++}
++
+ /*
+  * The inactive anon list should be small enough that the VM never has to
+  * do too much work, but large enough that each inactive page has a chance
 -- 
-Best regards,
-Pawel Osciak
+1.7.1
+
+
