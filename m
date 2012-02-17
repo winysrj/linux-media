@@ -1,92 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:52259 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754271Ab2BIVr2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Feb 2012 16:47:28 -0500
-References: <4F33DFB8.4080702@iki.fi> <201202091611.21095.pboettcher@kernellabs.com> <4F33E485.10704@iki.fi>
-In-Reply-To: <4F33E485.10704@iki.fi>
+Received: from na3sys009aog105.obsmtp.com ([74.125.149.75]:40385 "EHLO
+	na3sys009aog105.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751061Ab2BQLH4 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Feb 2012 06:07:56 -0500
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: SDR FM demodulation
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Thu, 09 Feb 2012 16:47:13 -0500
-To: Antti Palosaari <crope@iki.fi>,
-	Patrick Boettcher <pboettcher@kernellabs.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Message-ID: <53fd5fba-9207-4703-b1b8-b39b19e70551@email.android.com>
+In-Reply-To: <1775349.d0yvHiVdjB@avalon>
+References: <201201171126.42675.laurent.pinchart@ideasonboard.com>
+ <1654816.MX2JJ87BEo@avalon> <1775349.d0yvHiVdjB@avalon>
+From: "Semwal, Sumit" <sumit.semwal@ti.com>
+Date: Fri, 17 Feb 2012 16:37:35 +0530
+Message-ID: <CAB2ybb_-ULCsfS48u7HQiRDLG5y-X2rmyXvHBcCRtc=m-732hQ@mail.gmail.com>
+Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
+ 2012 - Notes
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jesse Barnes <jbarnes@virtuousgeek.org>,
+	Rob Clark <rob@ti.com>, Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Alexander Deucher <alexander.deucher@amd.com>,
+	linux-media@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-fbdev@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Antti Palosaari <crope@iki.fi> wrote:
-
->On 09.02.2012 17:11, Patrick Boettcher wrote:
->> On Thursday 09 February 2012 16:01:12 Antti Palosaari wrote:
->>> I have taken radio sniffs from FM capable Realtek DVB-T device.
->Looks
->>> like demodulator ADC samples IF frequency and pass all the sampled
->>> data to the application. Application is then responsible for
->>> decoding that. Device supports DVB-T, FM and DAB. I can guess  both
->>> FM and DAB are demodulated by software.
->>>
->>> Here is 17 second, 83 MB, FM radio sniff:
->>> http://palosaari.fi/linux/v4l-dvb/rtl2832u_fm/
->>> Decode it and listen some Finnish speak ;)
->>>
->>> Could someone help to decode it? I tried GNU Radio, but I failed
->>> likely because I didn't have enough knowledge... GNU Radio and
->>> Octave or Matlab are way to go.
->>
->> For someone to decode it, you would need to give more information
->about
->> the format of the stream. Like the sampling frequency, the
->sample-format
->> and then the IF-frequency.
->
->You can see sampling format easily looking hexdump or open file in 
->Audacity. It is 8bit unsigned samples, 2 channels (I & Q).
->
->No knowledge about IF... For good guess is to try some general used
->IFs.
->
->Sampling freq can be calculated using sample info and the fact it is 
->about 17 sec. sample size = 86919168 Bytes, time 17 sec. 2 channels, 1 
->byte sample => 2556446,11765 sample/sec (~2.5 MHz!)
->
->> I never did something like myself, but from what I saw in gnuradio
->there
->> should be everything to make a FM-demod based on the data.
->
->Yes there was a lot of block and those were rather easy to connect
->using 
->graphical interface (gnuradio-companion). But I don't know exactly what
->
->block are needed and what are parameters. I used file-sink => 
->fm-modulator => audio-sink. Likely not enough :i
->
->Without any earlier experience it is rather challenging. But if there
->is 
->someone who have done that earlier using USRP SDR he could likely do it
->
->easier :)
->
->regards
->Antti
->-- 
->http://palosaari.fi/
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hello Laurent, Everyone:
 
 
-Implement a phased locked loop (phase comparator, low pass filter, and VCO) that is centered reasonably close to the IF.  The output of the LPF of the PLL should be the demodulated signal, IIRC.
+On Fri, Feb 17, 2012 at 4:55 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hello everybody,
+>
+> First of all, I would like to thank all the attendees for their participation
+> in the mini-summit that helped make the meeting a success.
+>
+<snip>
+> ***  dma-buf Implementation in V4L2 ***
+>
+>  Goal: Implement the dma-buf API in V4L2.
+>
+>  Sumit Semwal has submitted patches to implement the dma-buf importer role in
+>  videobuf2. Tomasz Stanislawski has then submitted incremental patches to add
+>  exporter role support.
+>
+>  Action points:
+>  - Create a git branch to host all the latest patches. Sumit will provide
+>    that.
+>
+>
+Against my Action Item: I have created the following branch at my
+github (obviously, it is an RFC branch only)
 
-Maybe this matlab (octave) file will help you:
-http://www.mathworks.com/matlabcentral/fileexchange/24167-simple-pll-demostration
+tree: git://github.com/sumitsemwal/kernel-omap4.git
+branch: 3.3rc3-v4l2-dmabuf-RFCv1
 
-Regards,
-Andy
+As the name partially suggests, it is based out of:
+3.3-rc3 +
+dmav6 [1] +
+some minor dma-buf updates [2] +
+my v4l2-as-importer RFC [3] +
+Tomasz' RFC for v4l2-as-exporter (and related patches) [4]
+
+Since Tomasz' RFC had a patch-pair which first removed and then added
+drivers/media/video/videobuf2-dma-contig.c file, I 'combined' these
+into one - but since the patch-pair heavily refactored the file, I am
+not able to take responsibility of completeness / correctness of the
+same.
+
+[1]: http://git.infradead.org/users/kmpark/linux-samsung/shortlog/refs/heads/3.3-rc2-dma-v6
+[2]: git://git.linaro.org/people/sumitsemwal/linux-3.x.git 'dev' branch
+[3]: http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/42966/focus=42968
+[4]: http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/43793
+
+Best regards,
+~Sumit.
