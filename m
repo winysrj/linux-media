@@ -1,276 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58438 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752503Ab2BZD1c (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 22:27:32 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH 03/11] mt9m032: Make get/set format/crop operations consistent across drivers
-Date: Sun, 26 Feb 2012 04:27:29 +0100
-Message-Id: <1330226857-8651-4-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mga03.intel.com ([143.182.124.21]:48319 "EHLO mga03.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752026Ab2BQI5U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Feb 2012 03:57:20 -0500
+From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Subject: [PATCHv2 5/7] media: ivtv: append $(srctree) to -I parameters
+Date: Fri, 17 Feb 2012 10:57:11 +0200
+Message-Id: <1329469034-25493-5-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1329469034-25493-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <2218117.VoHfpPQjC4@avalon>
+ <1329469034-25493-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Modify the get/set format/crop operation handlers to match the existing
-pad-aware Aptina sensor drivers.
+Without this we have got the warnings like following if build with "make W=1
+O=/var/tmp":
+  cc1: warning: drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 ---
- drivers/media/video/mt9m032.c |  128 ++++++++++++++++++-----------------------
- 1 files changed, 57 insertions(+), 71 deletions(-)
+ drivers/media/video/ivtv/Makefile |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index 31ba86b..ec8eca9 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -150,17 +150,15 @@ static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
- }
+diff --git a/drivers/media/video/ivtv/Makefile b/drivers/media/video/ivtv/Makefile
+index 71ab76a..77de8a4 100644
+--- a/drivers/media/video/ivtv/Makefile
++++ b/drivers/media/video/ivtv/Makefile
+@@ -7,8 +7,8 @@ ivtv-objs	:= ivtv-routing.o ivtv-cards.o ivtv-controls.o \
+ obj-$(CONFIG_VIDEO_IVTV) += ivtv.o
+ obj-$(CONFIG_VIDEO_FB_IVTV) += ivtvfb.o
  
- static int mt9m032_update_timing(struct mt9m032 *sensor,
--				 struct v4l2_fract *interval,
--				 const struct v4l2_rect *crop)
-+				 struct v4l2_fract *interval)
- {
-+	struct v4l2_rect *crop = &sensor->crop;
- 	unsigned long row_time;
- 	int additional_blanking_rows;
- 	int min_blank;
- 
- 	if (!interval)
- 		interval = &sensor->frame_interval;
--	if (!crop)
--		crop = &sensor->crop;
- 
- 	row_time = mt9m032_row_time(sensor, crop->width);
- 
-@@ -186,21 +184,20 @@ static int mt9m032_update_timing(struct mt9m032 *sensor,
- 	return mt9m032_write_reg(sensor, MT9M032_VBLANK, additional_blanking_rows);
- }
- 
--static int mt9m032_update_geom_timing(struct mt9m032 *sensor,
--				 const struct v4l2_rect *crop)
-+static int mt9m032_update_geom_timing(struct mt9m032 *sensor)
- {
- 	int ret;
- 
--	ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_SIZE, crop->width - 1);
-+	ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_SIZE, sensor->crop.width - 1);
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_ROW_SIZE, crop->height - 1);
-+		ret = mt9m032_write_reg(sensor, MT9M032_ROW_SIZE, sensor->crop.height - 1);
- 	/* offsets compensate for black border */
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_START, crop->left);
-+		ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_START, sensor->crop.left);
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_ROW_START, crop->top);
-+		ret = mt9m032_write_reg(sensor, MT9M032_ROW_START, sensor->crop.top);
- 	if (!ret)
--		ret = mt9m032_update_timing(sensor, NULL, crop);
-+		ret = mt9m032_update_timing(sensor, NULL);
- 	return ret;
- }
- 
-@@ -265,8 +262,9 @@ static int mt9m032_enum_mbus_code(struct v4l2_subdev *subdev,
- 				  struct v4l2_subdev_fh *fh,
- 				  struct v4l2_subdev_mbus_code_enum *code)
- {
--	if (code->index != 0 || code->pad != 0)
-+	if (code->index != 0)
- 		return -EINVAL;
-+
- 	code->code = V4L2_MBUS_FMT_Y8_1X8;
- 	return 0;
- }
-@@ -275,7 +273,7 @@ static int mt9m032_enum_frame_size(struct v4l2_subdev *subdev,
- 				   struct v4l2_subdev_fh *fh,
- 				   struct v4l2_subdev_frame_size_enum *fse)
- {
--	if (fse->index != 0 || fse->code != V4L2_MBUS_FMT_Y8_1X8 || fse->pad != 0)
-+	if (fse->index != 0 || fse->code != V4L2_MBUS_FMT_Y8_1X8)
- 		return -EINVAL;
- 
- 	fse->min_width = MT9M032_WIDTH;
-@@ -288,14 +286,15 @@ static int mt9m032_enum_frame_size(struct v4l2_subdev *subdev,
- 
- /**
-  * __mt9m032_get_pad_crop() - get crop rect
-- * @sensor:	pointer to the sensor struct
-- * @fh:	filehandle for getting the try crop rect from
-- * @which:	select try or active crop rect
-+ * @sensor: pointer to the sensor struct
-+ * @fh: filehandle for getting the try crop rect from
-+ * @which: select try or active crop rect
-+ *
-  * Returns a pointer the current active or fh relative try crop rect
-  */
--static struct v4l2_rect *__mt9m032_get_pad_crop(struct mt9m032 *sensor,
--						struct v4l2_subdev_fh *fh,
--						u32 which)
-+static struct v4l2_rect *
-+__mt9m032_get_pad_crop(struct mt9m032 *sensor, struct v4l2_subdev_fh *fh,
-+		       enum v4l2_subdev_format_whence which)
- {
- 	switch (which) {
- 	case V4L2_SUBDEV_FORMAT_TRY:
-@@ -309,14 +308,15 @@ static struct v4l2_rect *__mt9m032_get_pad_crop(struct mt9m032 *sensor,
- 
- /**
-  * __mt9m032_get_pad_format() - get format
-- * @sensor:	pointer to the sensor struct
-- * @fh:	filehandle for getting the try format from
-- * @which:	select try or active format
-+ * @sensor: pointer to the sensor struct
-+ * @fh: filehandle for getting the try format from
-+ * @which: select try or active format
-+ *
-  * Returns a pointer the current active or fh relative try format
-  */
--static struct v4l2_mbus_framefmt *__mt9m032_get_pad_format(struct mt9m032 *sensor,
--							   struct v4l2_subdev_fh *fh,
--							   u32 which)
-+static struct v4l2_mbus_framefmt *
-+__mt9m032_get_pad_format(struct mt9m032 *sensor, struct v4l2_subdev_fh *fh,
-+			 enum v4l2_subdev_format_whence which)
- {
- 	switch (which) {
- 	case V4L2_SUBDEV_FORMAT_TRY:
-@@ -333,12 +333,8 @@ static int mt9m032_get_pad_format(struct v4l2_subdev *subdev,
- 				  struct v4l2_subdev_format *fmt)
- {
- 	struct mt9m032 *sensor = to_mt9m032(subdev);
--	struct v4l2_mbus_framefmt *format;
--
--	format = __mt9m032_get_pad_format(sensor, fh, fmt->which);
--
--	fmt->format = *format;
- 
-+	fmt->format = *__mt9m032_get_pad_format(sensor, fh, fmt->which);
- 	return 0;
- }
- 
-@@ -365,11 +361,8 @@ static int mt9m032_get_crop(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *f
- 			    struct v4l2_subdev_crop *crop)
- {
- 	struct mt9m032 *sensor = to_mt9m032(subdev);
--	struct v4l2_rect *curcrop;
- 
--	curcrop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
--
--	crop->rect = *curcrop;
-+	crop->rect = *__mt9m032_get_pad_crop(sensor, fh, crop->which);
- 
- 	return 0;
- }
-@@ -378,47 +371,40 @@ static int mt9m032_set_crop(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *f
- 		     struct v4l2_subdev_crop *crop)
- {
- 	struct mt9m032 *sensor = to_mt9m032(subdev);
--	struct v4l2_mbus_framefmt tmp_format;
--	struct v4l2_rect tmp_crop_rect;
- 	struct v4l2_mbus_framefmt *format;
--	struct v4l2_rect *crop_rect;
--	int ret = 0;
-+	struct v4l2_rect *__crop;
-+	struct v4l2_rect rect;
- 
- 	if (sensor->streaming)
- 		return -EBUSY;
- 
--	format = __mt9m032_get_pad_format(sensor, fh, crop->which);
--	crop_rect = __mt9m032_get_pad_crop(sensor, fh, crop->which);
--	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
--		tmp_crop_rect = *crop_rect;
--		tmp_format = *format;
--		format = &tmp_format;
--		crop_rect = &tmp_crop_rect;
-+	rect.top = clamp(crop->rect.top, 0,
-+			 MT9M032_HEIGHT - MT9M032_MINIMALSIZE) & ~1;
-+	rect.left = clamp(crop->rect.left, 0,
-+			  MT9M032_WIDTH - MT9M032_MINIMALSIZE);
-+	rect.height = clamp(crop->rect.height, MT9M032_MINIMALSIZE,
-+			    MT9M032_HEIGHT - rect.top);
-+	rect.width = clamp(crop->rect.width, MT9M032_MINIMALSIZE,
-+			   MT9M032_WIDTH - rect.left) & ~1;
-+
-+	__crop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
-+
-+	if (rect.width != __crop->width || rect.height != __crop->height) {
-+		/* Reset the output image size if the crop rectangle size has
-+		 * been modified.
-+		 */
-+		format = __mt9m032_get_pad_format(sensor, fh, crop->which);
-+		format->width = rect.width;
-+		format->height = rect.height;
- 	}
- 
--	crop_rect->top = clamp(crop->rect.top, 0,
--			       MT9M032_HEIGHT - MT9M032_MINIMALSIZE) & ~1;
--	crop_rect->left = clamp(crop->rect.left, 0,
--			       MT9M032_WIDTH - MT9M032_MINIMALSIZE);
--	crop_rect->height = clamp(crop->rect.height, MT9M032_MINIMALSIZE,
--				  MT9M032_HEIGHT - crop_rect->top);
--	crop_rect->width = clamp(crop->rect.width, MT9M032_MINIMALSIZE,
--				 MT9M032_WIDTH - crop_rect->left) & ~1;
--
--	format->height = crop_rect->height;
--	format->width = crop_rect->width;
--
--	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
--		ret = mt9m032_update_geom_timing(sensor, crop_rect);
--
--		if (!ret) {
--			sensor->crop = tmp_crop_rect;
--			sensor->format = tmp_format;
--		}
--		return ret;
--	}
-+	*__crop = rect;
-+	crop->rect = rect;
- 
--	return ret;
-+	if (crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-+		return 0;
-+
-+	return mt9m032_update_geom_timing(sensor);
- }
- 
- static int mt9m032_get_frame_interval(struct v4l2_subdev *subdev,
-@@ -426,8 +412,7 @@ static int mt9m032_get_frame_interval(struct v4l2_subdev *subdev,
- {
- 	struct mt9m032 *sensor = to_mt9m032(subdev);
- 
--	fi->pad = 0;
--	memset(fi->reserved, 0, sizeof(fi->reserved));
-+	memset(fi, 0, sizeof(*fi));
- 	fi->interval = sensor->frame_interval;
- 
- 	return 0;
-@@ -444,9 +429,10 @@ static int mt9m032_set_frame_interval(struct v4l2_subdev *subdev,
- 
- 	memset(fi->reserved, 0, sizeof(fi->reserved));
- 
--	ret = mt9m032_update_timing(sensor, &fi->interval, NULL);
-+	ret = mt9m032_update_timing(sensor, &fi->interval);
- 	if (!ret)
- 		sensor->frame_interval = fi->interval;
-+
- 	return ret;
- }
- 
-@@ -742,7 +728,7 @@ static int mt9m032_probe(struct i2c_client *client,
- 	v4l2_ctrl_handler_setup(&sensor->ctrls);
- 
- 	/* SIZE */
--	ret = mt9m032_update_geom_timing(sensor, &sensor->crop);
-+	ret = mt9m032_update_geom_timing(sensor);
- 	if (ret < 0)
- 		goto free_ctrl;
+-ccflags-y += -Idrivers/media/video
+-ccflags-y += -Idrivers/media/common/tuners
+-ccflags-y += -Idrivers/media/dvb/dvb-core
+-ccflags-y += -Idrivers/media/dvb/frontends
++ccflags-y += -I$(srctree)/drivers/media/video
++ccflags-y += -I$(srctree)/drivers/media/common/tuners
++ccflags-y += -I$(srctree)/drivers/media/dvb/dvb-core
++ccflags-y += -I$(srctree)/drivers/media/dvb/frontends
  
 -- 
-1.7.3.4
+1.7.9
 
