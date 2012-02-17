@@ -1,78 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:37429 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751212Ab2BZATs (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:37507 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751668Ab2BQPET (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 19:19:48 -0500
-References: <CALF0-+V99jWjnxYC-fdLGF8ggYukMjiRpkEGj+fY4j3kE-K-Jg@mail.gmail.com>
-In-Reply-To: <CALF0-+V99jWjnxYC-fdLGF8ggYukMjiRpkEGj+fY4j3kE-K-Jg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [question] v4l read() operation
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Sat, 25 Feb 2012 19:17:51 -0500
-To: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>,
-	devel@driverdev.osuosl.org,
-	kernelnewbies <kernelnewbies@kernelnewbies.org>,
-	linux-media@vger.kernel.org
-Message-ID: <9a9380ab-67ad-4481-b757-ff0ab34d7c31@email.android.com>
+	Fri, 17 Feb 2012 10:04:19 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LZJ0060GLV5NR70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 17 Feb 2012 15:04:17 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZJ00MC7LV4QU@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 17 Feb 2012 15:04:17 +0000 (GMT)
+Date: Fri, 17 Feb 2012 16:04:11 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/2] Add support for JPEG controls in s5p-jpeg driver
+To: linux-media@vger.kernel.org
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com
+Message-id: <1329491053-3071-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-"Ezequiel García" <elezegarcia@gmail.com> wrote:
+Hello,
 
->Hi,
->
->If I register a video device with this fops:
->
->static const struct v4l2_file_operations v4l2_fops = {
->        .owner      = THIS_MODULE,
->        .open        = xxx_open,
->        .unlocked_ioctl = xxx_unlocked_ioctl,
->        .poll           = xxx_poll,
->        .mmap      = xxx_mmap,
->};
->
->then if I "cat" the device
->
->$ cat /dev/video0
->
->Who is supporting read() ?
->
->I thought it could be v4l2_read(),
->however this function seems to return EINVAL:
->
->static ssize_t v4l2_read(struct file *filp, char __user *buf,
->                size_t sz, loff_t *off)
->{
->        struct video_device *vdev = video_devdata(filp);
->        int ret = -ENODEV;
->
->        if (!vdev->fops->read)
->                return -EINVAL;
->        if (vdev->lock && mutex_lock_interruptible(vdev->lock))
->                return -ERESTARTSYS;
->        if (video_is_registered(vdev))
->                ret = vdev->fops->read(filp, buf, sz, off);
->        if (vdev->lock)
->                mutex_unlock(vdev->lock);
->        return ret;
->}
->
->Thanks,
->Ezequiel.
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
+These two patches add support for JPEG controls and remove VIDIOC_G/S_JPEGCOMP
+ioctl handlers in the s5p-jpeg JPEG codec driver.
 
-Please read the v4l2 specification.  Drivers can support the read/write methods or streaming IO methods (using mmap) or both.
+The relevant JPEG class patches can be found in git repository at:
 
-Often it is the case that drivers for MPEG encoders or other chips that produce container formats use read/write.  Drivers for chips the provide raw frames often use streaming IO.
+http://git.infradead.org/users/kmpark/linux-2.6-samsung/shortlog/refs/heads/media-for-next
 
-Note that the videobuf2 framework can provide read/write method emulation for a driver IIRC.
 
-- Andy
+Sylwester Nawrocki (2):
+  s5p-jpeg: Use struct v4l2_fh
+  s5p-jpeg: Add JPEG controls support
+
+ drivers/media/video/s5p-jpeg/jpeg-core.c |  182 +++++++++++++++++++++---------
+ drivers/media/video/s5p-jpeg/jpeg-core.h |   11 ++-
+ drivers/media/video/s5p-jpeg/jpeg-hw.h   |   18 ++-
+ 3 files changed, 151 insertions(+), 60 deletions(-)
+
+---
+Thanks,
+Sylwester
+
