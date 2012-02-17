@@ -1,132 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58445 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752726Ab2BZD1g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 22:27:36 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH 11/11] mt9m032: Use generic PLL setup code
-Date: Sun, 26 Feb 2012 04:27:37 +0100
-Message-Id: <1330226857-8651-12-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:35930 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751660Ab2BQTnL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Feb 2012 14:43:11 -0500
+Message-ID: <4F3EADAA.9090702@redhat.com>
+Date: Fri, 17 Feb 2012 14:42:34 -0500
+From: Adam Jackson <ajax@redhat.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-fbdev@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	dri-devel@lists.freedesktop.org,
+	Alexander Deucher <alexander.deucher@amd.com>,
+	Rob Clark <rob@ti.com>, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
+ 2012 - Notes
+References: <201201171126.42675.laurent.pinchart@ideasonboard.com> <1654816.MX2JJ87BEo@avalon> <1775349.d0yvHiVdjB@avalon>
+In-Reply-To: <1775349.d0yvHiVdjB@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Compute the PLL parameters at runtime using the generic Aptina PLL
-helper.
+On 2/16/12 6:25 PM, Laurent Pinchart wrote:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m032.c |   57 ++++++++++++++++++++++++++++-------------
- include/media/mt9m032.h       |    2 +-
- 2 files changed, 40 insertions(+), 19 deletions(-)
+> ***  Common video mode data structure and EDID parser ***
+>
+>    Goal: Sharing an EDID parser between DRM/KMS, FBDEV and V4L2.
+>
+>    The DRM EDID parser is currently the most advanced implementation and will
+>    be taken as a starting point.
+>
+>    Different subsystems use different data structures to describe video
+>    mode/timing information:
+>
+>    - struct drm_mode_modeinfo in DRM/KMS
+>    - struct fb_videomode in FBDEV
+>    - struct v4l2_bt_timings in V4L2
+>
+>    A new common video mode/timing data structure (struct media_video_mode_info,
+>    exact name is to be defined), not tied to any specific subsystem, is
+>    required to share the EDID parser. That structure won't be exported to
+>    userspace.
+>
+>    Helper functions will be implemented in the subsystems to convert between
+>    that generic structure and the various subsystem-specific structures.
 
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index 8109bf1..5fb891a 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -35,6 +35,8 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-subdev.h>
- 
-+#include "aptina-pll.h"
-+
- #define MT9M032_CHIP_VERSION			0x00
- #define     MT9M032_CHIP_VERSION_VALUE		0x1402
- #define MT9M032_ROW_START			0x01
-@@ -61,6 +63,7 @@
- #define MT9M032_GAIN_BLUE			0x2c
- #define MT9M032_GAIN_RED			0x2d
- #define MT9M032_GAIN_GREEN2			0x2e
-+
- /* write only */
- #define MT9M032_GAIN_ALL			0x35
- #define     MT9M032_GAIN_DIGITAL_MASK		0x7f
-@@ -83,6 +86,8 @@
- #define     MT9P031_PLL_CONTROL_PWROFF		0x0050
- #define     MT9P031_PLL_CONTROL_PWRON		0x0051
- #define     MT9P031_PLL_CONTROL_USEPLL		0x0052
-+#define MT9P031_PLL_CONFIG2			0x11
-+#define     MT9P031_PLL_CONFIG2_P1_DIV_MASK	0x1f
- 
- /*
-  * width and height include active boundry and black parts
-@@ -218,27 +223,43 @@ static int update_formatter2(struct mt9m032 *sensor, bool streaming)
- static int mt9m032_setup_pll(struct mt9m032 *sensor)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
--	struct mt9m032_platform_data* pdata = sensor->pdata;
--	u16 reg_pll1;
--	unsigned int pre_div;
--	unsigned int pll_out_div;
--	unsigned int pll_mul;
-+	struct mt9m032_platform_data *pdata = sensor->pdata;
-+	struct aptina_pll_limits limits;
-+	struct aptina_pll pll;
- 	int ret;
- 
--	pre_div = 6;
--
--	sensor->pix_clock = pdata->ext_clock * pll_mul /
--		(pre_div * pll_out_div);
-+	limits.ext_clock_min = 8000000;
-+	limits.ext_clock_max = 16500000;
-+	limits.int_clock_min = 2000000;
-+	limits.int_clock_max = 24000000;
-+	limits.out_clock_min = 322000000;
-+	limits.out_clock_max = 693000000;
-+	limits.pix_clock_max = 99000000;
-+	limits.n_min = 1;
-+	limits.n_max = 64;
-+	limits.m_min = 16;
-+	limits.m_max = 255;
-+	limits.p1_min = 1;
-+	limits.p1_max = 128;
-+
-+	pll.ext_clock = pdata->ext_clock;
-+	pll.pix_clock = pdata->pix_clock;
-+
-+	ret = aptina_pll_configure(&client->dev, &pll, &limits);
-+	if (ret < 0)
-+		return ret;
- 
--	reg_pll1 = ((pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
--		 | (pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT);
-+	sensor->pix_clock = pll.pix_clock;
- 
--	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
-+	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1,
-+				(pll.m << MT9M032_PLL_CONFIG1_MUL_SHIFT)
-+				| (pll.p1 - 1));
- 	if (!ret)
--		ret = mt9m032_write_reg(client,
--					MT9P031_PLL_CONTROL,
--					MT9P031_PLL_CONTROL_PWRON | MT9P031_PLL_CONTROL_USEPLL);
--
-+		ret = mt9m032_write_reg(client, MT9P031_PLL_CONFIG2, pll.n - 1);
-+	if (!ret)
-+		ret = mt9m032_write_reg(client, MT9P031_PLL_CONTROL,
-+					MT9P031_PLL_CONTROL_PWRON |
-+					MT9P031_PLL_CONTROL_USEPLL);
- 	if (!ret)
- 		ret = mt9m032_write_reg(client, MT9M032_READ_MODE1, 0x8006);
- 							/* more reserved, Continuous */
-diff --git a/include/media/mt9m032.h b/include/media/mt9m032.h
-index 4e84840..804e0a5 100644
---- a/include/media/mt9m032.h
-+++ b/include/media/mt9m032.h
-@@ -29,7 +29,7 @@
- 
- struct mt9m032_platform_data {
- 	u32 ext_clock;
--	u32 int_clock;
-+	u32 pix_clock;
- 	int invert_pixclock;
- 
- };
--- 
-1.7.3.4
+I guess.  I don't really see a reason not to unify the structs too, but 
+then I don't have binary blobs to pretend to be ABI-compatible with.
 
+>    The mode list is stored in the DRM connector in the EDID parser. A new mode
+>    list data structure can be added, or a callback function can be used by the
+>    parser to give modes one at a time to the caller.
+>
+>    3D needs to be taken into account (this is similar to interlacing).
+
+Would also be pleasant if the new mode structure had a reasonable way of 
+representing borders, we copied that mistake from xserver and have been 
+regretting it.
+
+>    Action points:
+>    - Laurent to work on a proposal. The DRM/KMS EDID parser will be reused.
+
+I'm totally in favor of this.  I've long loathed fbdev having such a 
+broken parser, I just never got around to fixing it since we don't use 
+fbdev in any real way.
+
+The existing drm_edid.c needs a little detangling, DDC fetch and EDID 
+parse should be better split.  Shouldn't be too terrible though.
+
+Has the embedded world seen any adoption of DisplayID?  I wrote a fair 
+bit of a parser for it at one point [1] but I've yet to find a machine 
+that's required it.
+
+> ***  Split KMS and GPU Drivers ***
+>
+>    Goal: Split KMS and GPU drivers with in kernel API inbetween.
+>
+>    In most (all ?) SoCs, the GPU and the display controller are separate
+>    devices. Splitting them into separate drivers would allow reusing the GPU
+>    driver with different devices (e.g. using a single common PowerVR kernel
+>    module with different display controller drivers). The same approach can be
+>    used on the desktop for the multi-GPU case and the USB display case.
+>
+>    - OMAP already separates the GPU and DSS drivers, but the GPU driver is some
+>    kind of DSS plugin. This isn't a long-term approach.
+>    - Exynos also separates the GPU and FIMD drivers. It's hard to merge GPU
+>    into  display subsystem since UMP, GPU has own memory management codes.
+>
+>    One of the biggest challenges would be to get GPU vendors to use this new
+>    model. ARM could help here, by making the Mali kernel driver split from the
+>    display controller drivers. Once one vendor jumps onboard, others could have
+>    a bigger incentive to follow.
+
+Honestly I want this for Intel already, given how identical Poulsbo's 
+display block is to gen3.
+
+> ***  HDMI CEC Support ***
+>
+>    Goal: Support HDMI CEC and offer a userspace API for applications.
+>
+>    A new kernel API is needed and must be usable by KMS, V4L2 and possibly
+>    LIRC. There's ongoing effort from Cisco to implement HDMI CEC support. Given
+>    their background, V4L2 is their initial target. A proposal is available at
+>    http://www.mail-archive.com/linux-media@vger.kernel.org/msg29241.html with a
+>    sample implementation at
+>    http://git.linuxtv.org/hverkuil/cisco.git/shortlog/refs/heads/cobalt-
+> mainline
+>    (drivers/media/video/adv7604.c and ad9389b.c.
+>
+>    In order to avoid API duplication, a new CEC subsystem is probably needed.
+>    CEC could be modeled as a bus, or as a network device. With the network
+>    device approach, we could have both kernel and userspace protocol handlers.
+
+I'm not a huge fan of userspace protocol for this.  Seems like it'd just 
+give people more license to do their own subtly-incompatible things that 
+only work between devices of the same vendor.  Interoperability is the 
+_whole_ point of CEC.  (Yes I know every vendor tries to spin it as 
+their own magical branded thing, but I'd appreciate it if they grew up.)
+
+[1] - 
+http://cgit.freedesktop.org/xorg/xserver/tree/hw/xfree86/modes/xf86DisplayIDModes.c
+
+- ajax
