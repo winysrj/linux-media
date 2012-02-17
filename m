@@ -1,112 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:14440 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755260Ab2BCMTM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 07:19:12 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 03 Feb 2012 13:18:53 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCH 10/15] mm: extract reclaim code from
- __alloc_pages_direct_reclaim()
-In-reply-to: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1328271538-14502-11-git-send-email-m.szyprowski@samsung.com>
-References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40180 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751432Ab2BQJJP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Feb 2012 04:09:15 -0500
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Fabio Estevam <festevam@gmail.com>, g.liakhovetski@gmx.de,
+	javier.martin@vista-silicon.com, baruch@tkos.co.il
+Subject: i.MX27 camera: remove i.MX27 DMA support
+Date: Fri, 17 Feb 2012 10:09:07 +0100
+Message-Id: <1329469749-18099-1-git-send-email-s.hauer@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch extracts common reclaim code from __alloc_pages_direct_reclaim()
-function to separate function: __perform_reclaim() which can be later used
-by alloc_contig_range().
+i.MX27 DMA support was initially introduced by me and I never got
+this to work properly. As this is also uses a legacy DMA API and
+is the source of ifdeffery in the driver, remove it.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- mm/page_alloc.c |   30 +++++++++++++++++++++---------
- 1 files changed, 21 insertions(+), 9 deletions(-)
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 947879c..983ccba 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -2094,16 +2094,13 @@ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
- }
- #endif /* CONFIG_COMPACTION */
- 
--/* The really slow allocator path where we enter direct reclaim */
--static inline struct page *
--__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int migratetype, unsigned long *did_some_progress)
-+/* Perform direct synchronous page reclaim */
-+static int
-+__perform_reclaim(gfp_t gfp_mask, unsigned int order, struct zonelist *zonelist,
-+		  nodemask_t *nodemask)
- {
--	struct page *page = NULL;
- 	struct reclaim_state reclaim_state;
--	bool drained = false;
-+	int progress;
- 
- 	cond_resched();
- 
-@@ -2114,7 +2111,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
- 	reclaim_state.reclaimed_slab = 0;
- 	current->reclaim_state = &reclaim_state;
- 
--	*did_some_progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
-+	progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
- 
- 	current->reclaim_state = NULL;
- 	lockdep_clear_current_reclaim_state();
-@@ -2122,6 +2119,21 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
- 
- 	cond_resched();
- 
-+	return progress;
-+}
-+
-+/* The really slow allocator path where we enter direct reclaim */
-+static inline struct page *
-+__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
-+	struct zonelist *zonelist, enum zone_type high_zoneidx,
-+	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
-+	int migratetype, unsigned long *did_some_progress)
-+{
-+	struct page *page = NULL;
-+	bool drained = false;
-+
-+	*did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
-+					       nodemask);
- 	if (unlikely(!(*did_some_progress)))
- 		return NULL;
- 
--- 
-1.7.1.569.g6f426
+Sascha Hauer (2):
+      media/video mx2_camera: make using emma mandatory for i.MX27
+      media/video mx2_camera: remove now unused code
 
+ drivers/media/video/mx2_camera.c |  244 +++++---------------------------------
+ 1 files changed, 28 insertions(+), 216 deletions(-)
