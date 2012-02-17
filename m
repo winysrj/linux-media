@@ -1,243 +1,288 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:41716 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756567Ab2BMNwQ (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:53665 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751714Ab2BQPET (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 08:52:16 -0500
-Received: by mail-ww0-f44.google.com with SMTP id dt10so4927974wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 05:52:15 -0800 (PST)
-MIME-Version: 1.0
-From: Javier Martin <javier.martin@vista-silicon.com>
+	Fri, 17 Feb 2012 10:04:19 -0500
+Received: from euspt1 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LZJ005LZLV5YR@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 17 Feb 2012 15:04:17 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZJ00B8XLV4WB@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 17 Feb 2012 15:04:17 +0000 (GMT)
+Date: Fri, 17 Feb 2012 16:04:12 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 1/2] s5p-jpeg: Use struct v4l2_fh
+In-reply-to: <1329491053-3071-1-git-send-email-s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
-	s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 6/6] media: i.MX27 camera:  more efficient discard buffer handling.
-Date: Mon, 13 Feb 2012 14:51:55 +0100
-Message-Id: <1329141115-23133-7-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
+Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
+	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1329491053-3071-2-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329491053-3071-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some elements of 'mx2_buffer' are grouped together in another
-auxiliary structure. This way we don't need to have unused
-'vb2_buffer' structures for both discard buffers.
+This patch is a prerequisite for per file handle control handlers.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/video/mx2_camera.c |   77 ++++++++++++++++++++++----------------
- 1 files changed, 45 insertions(+), 32 deletions(-)
+ drivers/media/video/s5p-jpeg/jpeg-core.c |   65 +++++++++++++++++------------
+ drivers/media/video/s5p-jpeg/jpeg-core.h |    2 +
+ 2 files changed, 40 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 8ccdb4a..de0a19c 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -230,15 +230,18 @@ enum mx2_buffer_state {
- 	MX2_STATE_DONE,
+diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.c b/drivers/media/video/s5p-jpeg/jpeg-core.c
+index 1105a87..c368c4f 100644
+--- a/drivers/media/video/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/video/s5p-jpeg/jpeg-core.c
+@@ -203,6 +203,11 @@ static const unsigned char hactblg0[162] = {
+ 	0xf9, 0xfa
  };
  
-+struct mx2_buf_internal {
-+	struct list_head	queue;
-+	int			bufnum;
-+	bool			discard;
-+};
-+
- /* buffer for one video frame */
- struct mx2_buffer {
- 	/* common v4l buffer stuff -- must be first */
- 	struct vb2_buffer		vb;
--	struct list_head		queue;
- 	enum mx2_buffer_state		state;
--
--	int				bufnum;
--	bool				discard;
-+	struct mx2_buf_internal		internal;
- };
- 
- struct mx2_camera_dev {
-@@ -270,7 +273,7 @@ struct mx2_camera_dev {
- 
- 	u32			csicr1;
- 
--	struct mx2_buffer	buf_discard[2];
-+	struct mx2_buf_internal buf_discard[2];
- 	void			*discard_buffer;
- 	dma_addr_t		discard_buffer_dma;
- 	size_t			discard_size;
-@@ -279,6 +282,11 @@ struct mx2_camera_dev {
- 	struct vb2_alloc_ctx	*alloc_ctx;
- };
- 
-+static struct mx2_buffer *mx2_ibuf_to_buf(struct mx2_buf_internal *int_buf)
++static inline struct s5p_jpeg_ctx *fh_to_ctx(struct v4l2_fh *fh)
 +{
-+	return container_of(int_buf, struct mx2_buffer, internal);
++	return container_of(fh, struct s5p_jpeg_ctx, fh);
 +}
 +
- static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
- 	/*
- 	 * This is a generic configuration which is valid for most
-@@ -459,9 +467,9 @@ static void mx25_camera_frame_done(struct mx2_camera_dev *pcdev, int fb,
- 		writel(0, pcdev->base_csi + fb_reg);
- 	} else {
- 		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
--				queue);
-+				internal.queue);
- 		vb = &buf->vb;
--		list_del(&buf->queue);
-+		list_del(&buf->internal.queue);
- 		buf->state = MX2_STATE_ACTIVE;
- 		writel(vb2_dma_contig_plane_dma_addr(vb, 0),
- 		       pcdev->base_csi + fb_reg);
-@@ -578,7 +586,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 	spin_lock_irqsave(&pcdev->lock, flags);
- 
- 	buf->state = MX2_STATE_QUEUED;
--	list_add_tail(&buf->queue, &pcdev->capture);
-+	list_add_tail(&buf->internal.queue, &pcdev->capture);
- 
- 	if (cpu_is_mx25()) {
- 		u32 csicr3, dma_inten = 0;
-@@ -596,7 +604,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 		}
- 
- 		if (dma_inten) {
--			list_del(&buf->queue);
-+			list_del(&buf->internal.queue);
- 			buf->state = MX2_STATE_ACTIVE;
- 
- 			csicr3 = readl(pcdev->base_csi + CSICR3);
-@@ -719,23 +727,23 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 		spin_lock_irqsave(&pcdev->lock, flags);
- 
- 		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
--				       queue);
--		buf->bufnum = 0;
-+				       internal.queue);
-+		buf->internal.bufnum = 0;
- 		vb = &buf->vb;
- 		buf->state = MX2_STATE_ACTIVE;
- 
- 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
--		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
-+		mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
- 		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
- 		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
--				       queue);
--		buf->bufnum = 1;
-+				       internal.queue);
-+		buf->internal.bufnum = 1;
- 		vb = &buf->vb;
- 		buf->state = MX2_STATE_ACTIVE;
- 
- 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
--		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
-+		mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
- 		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
- 		bytesperline = soc_mbus_bytes_per_line(icd->user_width,
-@@ -1213,21 +1221,25 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- #ifdef DEBUG
- 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
- #endif
-+	struct mx2_buf_internal *ibuf;
- 	struct mx2_buffer *buf;
- 	struct vb2_buffer *vb;
- 	unsigned long phys;
- 
--	buf = list_first_entry(&pcdev->active_bufs, struct mx2_buffer, queue);
-+	ibuf = list_first_entry(&pcdev->active_bufs, struct mx2_buf_internal,
-+			       queue);
- 
--	BUG_ON(buf->bufnum != bufnum);
-+	BUG_ON(ibuf->bufnum != bufnum);
- 
--	if (buf->discard) {
-+	if (ibuf->discard) {
- 		/*
- 		 * Discard buffer must not be returned to user space.
- 		 * Just return it to the discard queue.
- 		 */
- 		list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
- 	} else {
-+		buf = mx2_ibuf_to_buf(ibuf);
-+
- 		vb = &buf->vb;
- #ifdef DEBUG
- 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-@@ -1251,7 +1263,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 				vb2_plane_vaddr(vb, 0),
- 				vb2_get_plane_payload(vb, 0));
- 
--		list_del_init(&buf->queue);
-+		list_del_init(&buf->internal.queue);
- 		do_gettimeofday(&vb->v4l2_buf.timestamp);
- 		vb->v4l2_buf.sequence = pcdev->frame_count;
- 		if (err)
-@@ -1269,18 +1281,19 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 			return;
- 		}
- 
--		buf = list_first_entry(&pcdev->discard, struct mx2_buffer,
--				       queue);
--		buf->bufnum = bufnum;
-+		ibuf = list_first_entry(&pcdev->discard,
-+					struct mx2_buf_internal, queue);
-+		ibuf->bufnum = bufnum;
- 
- 		list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
- 		mx27_update_emma_buf(pcdev, pcdev->discard_buffer_dma, bufnum);
- 		return;
- 	}
- 
--	buf = list_first_entry(&pcdev->capture, struct mx2_buffer, queue);
-+	buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
-+			       internal.queue);
- 
--	buf->bufnum = bufnum;
-+	buf->internal.bufnum = bufnum;
- 
- 	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
-@@ -1295,7 +1308,7 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ static inline void jpeg_set_qtbl(void __iomem *regs, const unsigned char *qtbl,
+ 		   unsigned long tab, int len)
  {
- 	struct mx2_camera_dev *pcdev = data;
- 	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
--	struct mx2_buffer *buf;
-+	struct mx2_buf_internal *ibuf;
+@@ -276,12 +281,16 @@ static int s5p_jpeg_open(struct file *file)
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct s5p_jpeg_ctx *ctx;
+ 	struct s5p_jpeg_fmt *out_fmt;
++	int ret = 0;
  
- 	spin_lock(&pcdev->lock);
+ 	ctx = kzalloc(sizeof *ctx, GFP_KERNEL);
+ 	if (!ctx)
+ 		return -ENOMEM;
  
-@@ -1310,10 +1323,10 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+-	file->private_data = ctx;
++	v4l2_fh_init(&ctx->fh, vfd);
++	file->private_data = &ctx->fh;
++	v4l2_fh_add(&ctx->fh);
++
+ 	ctx->jpeg = jpeg;
+ 	if (vfd == jpeg->vfd_encoder) {
+ 		ctx->mode = S5P_JPEG_ENCODE;
+@@ -293,22 +302,28 @@ static int s5p_jpeg_open(struct file *file)
+ 
+ 	ctx->m2m_ctx = v4l2_m2m_ctx_init(jpeg->m2m_dev, ctx, queue_init);
+ 	if (IS_ERR(ctx->m2m_ctx)) {
+-		int err = PTR_ERR(ctx->m2m_ctx);
+-		kfree(ctx);
+-		return err;
++		ret = PTR_ERR(ctx->m2m_ctx);
++		goto error;
  	}
  
- 	if (status & (1 << 7)) { /* overflow */
--		buf = list_first_entry(&pcdev->active_bufs, struct mx2_buffer,
--				       queue);
-+		ibuf = list_first_entry(&pcdev->active_bufs,
-+					struct mx2_buf_internal, queue);
- 		mx27_camera_frame_done_emma(pcdev,
--					buf->bufnum, true);
-+					ibuf->bufnum, true);
- 		status &= ~(1 << 7);
- 	} else if (((status & (3 << 5)) == (3 << 5)) ||
- 		((status & (3 << 3)) == (3 << 3))) {
-@@ -1321,10 +1334,10 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
- 		 * Both buffers have triggered, process the one we're expecting
- 		 * to first
- 		 */
--		buf = list_first_entry(&pcdev->active_bufs, struct mx2_buffer,
--				       queue);
--		mx27_camera_frame_done_emma(pcdev, buf->bufnum, false);
--		status &= ~(1 << (6 - buf->bufnum)); /* mark processed */
-+		ibuf = list_first_entry(&pcdev->active_bufs,
-+					struct mx2_buf_internal, queue);
-+		mx27_camera_frame_done_emma(pcdev, ibuf->bufnum, false);
-+		status &= ~(1 << (6 - ibuf->bufnum)); /* mark processed */
- 	} else if ((status & (1 << 6)) || (status & (1 << 4))) {
- 		mx27_camera_frame_done_emma(pcdev, 0, false);
- 	} else if ((status & (1 << 5)) || (status & (1 << 3))) {
+ 	ctx->out_q.fmt = out_fmt;
+ 	ctx->cap_q.fmt = s5p_jpeg_find_format(ctx->mode, V4L2_PIX_FMT_YUYV);
+-
+ 	return 0;
++
++error:
++	v4l2_fh_del(&ctx->fh);
++	v4l2_fh_exit(&ctx->fh);
++	kfree(ctx);
++	return ret;
+ }
+ 
+ static int s5p_jpeg_release(struct file *file)
+ {
+-	struct s5p_jpeg_ctx *ctx = file->private_data;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
+ 
+ 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
++	v4l2_fh_del(&ctx->fh);
++	v4l2_fh_exit(&ctx->fh);
+ 	kfree(ctx);
+ 
+ 	return 0;
+@@ -317,14 +332,14 @@ static int s5p_jpeg_release(struct file *file)
+ static unsigned int s5p_jpeg_poll(struct file *file,
+ 				 struct poll_table_struct *wait)
+ {
+-	struct s5p_jpeg_ctx *ctx = file->private_data;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
+ 
+ 	return v4l2_m2m_poll(file, ctx->m2m_ctx, wait);
+ }
+ 
+ static int s5p_jpeg_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	struct s5p_jpeg_ctx *ctx = file->private_data;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(file->private_data);
+ 
+ 	return v4l2_m2m_mmap(file, ctx->m2m_ctx, vma);
+ }
+@@ -448,7 +463,7 @@ static bool s5p_jpeg_parse_hdr(struct s5p_jpeg_q_data *result,
+ static int s5p_jpeg_querycap(struct file *file, void *priv,
+ 			   struct v4l2_capability *cap)
+ {
+-	struct s5p_jpeg_ctx *ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	if (ctx->mode == S5P_JPEG_ENCODE) {
+ 		strlcpy(cap->driver, S5P_JPEG_M2M_NAME " encoder",
+@@ -497,9 +512,7 @@ static int enum_fmt(struct s5p_jpeg_fmt *formats, int n,
+ static int s5p_jpeg_enum_fmt_vid_cap(struct file *file, void *priv,
+ 				   struct v4l2_fmtdesc *f)
+ {
+-	struct s5p_jpeg_ctx *ctx;
+-
+-	ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	if (ctx->mode == S5P_JPEG_ENCODE)
+ 		return enum_fmt(formats_enc, NUM_FORMATS_ENC, f,
+@@ -511,9 +524,7 @@ static int s5p_jpeg_enum_fmt_vid_cap(struct file *file, void *priv,
+ static int s5p_jpeg_enum_fmt_vid_out(struct file *file, void *priv,
+ 				   struct v4l2_fmtdesc *f)
+ {
+-	struct s5p_jpeg_ctx *ctx;
+-
+-	ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	if (ctx->mode == S5P_JPEG_ENCODE)
+ 		return enum_fmt(formats_enc, NUM_FORMATS_ENC, f,
+@@ -538,7 +549,7 @@ static int s5p_jpeg_g_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 	struct vb2_queue *vq;
+ 	struct s5p_jpeg_q_data *q_data = NULL;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+-	struct s5p_jpeg_ctx *ct = priv;
++	struct s5p_jpeg_ctx *ct = fh_to_ctx(priv);
+ 
+ 	vq = v4l2_m2m_get_vq(ct->m2m_ctx, f->type);
+ 	if (!vq)
+@@ -659,8 +670,8 @@ static int vidioc_try_fmt(struct v4l2_format *f, struct s5p_jpeg_fmt *fmt,
+ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ 				  struct v4l2_format *f)
+ {
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 	struct s5p_jpeg_fmt *fmt;
+-	struct s5p_jpeg_ctx *ctx = priv;
+ 
+ 	fmt = s5p_jpeg_find_format(ctx->mode, f->fmt.pix.pixelformat);
+ 	if (!fmt || !(fmt->types & MEM2MEM_CAPTURE)) {
+@@ -676,8 +687,8 @@ static int s5p_jpeg_try_fmt_vid_cap(struct file *file, void *priv,
+ static int s5p_jpeg_try_fmt_vid_out(struct file *file, void *priv,
+ 				  struct v4l2_format *f)
+ {
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 	struct s5p_jpeg_fmt *fmt;
+-	struct s5p_jpeg_ctx *ctx = priv;
+ 
+ 	fmt = s5p_jpeg_find_format(ctx->mode, f->fmt.pix.pixelformat);
+ 	if (!fmt || !(fmt->types & MEM2MEM_OUTPUT)) {
+@@ -728,7 +739,7 @@ static int s5p_jpeg_s_fmt_vid_cap(struct file *file, void *priv,
+ 	if (ret)
+ 		return ret;
+ 
+-	return s5p_jpeg_s_fmt(priv, f);
++	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
+ }
+ 
+ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
+@@ -740,13 +751,13 @@ static int s5p_jpeg_s_fmt_vid_out(struct file *file, void *priv,
+ 	if (ret)
+ 		return ret;
+ 
+-	return s5p_jpeg_s_fmt(priv, f);
++	return s5p_jpeg_s_fmt(fh_to_ctx(priv), f);
+ }
+ 
+ static int s5p_jpeg_reqbufs(struct file *file, void *priv,
+ 			  struct v4l2_requestbuffers *reqbufs)
+ {
+-	struct s5p_jpeg_ctx *ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	return v4l2_m2m_reqbufs(file, ctx->m2m_ctx, reqbufs);
+ }
+@@ -754,14 +765,14 @@ static int s5p_jpeg_reqbufs(struct file *file, void *priv,
+ static int s5p_jpeg_querybuf(struct file *file, void *priv,
+ 			   struct v4l2_buffer *buf)
+ {
+-	struct s5p_jpeg_ctx *ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	return v4l2_m2m_querybuf(file, ctx->m2m_ctx, buf);
+ }
+ 
+ static int s5p_jpeg_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ {
+-	struct s5p_jpeg_ctx *ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
+ }
+@@ -769,7 +780,7 @@ static int s5p_jpeg_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
+ static int s5p_jpeg_dqbuf(struct file *file, void *priv,
+ 			  struct v4l2_buffer *buf)
+ {
+-	struct s5p_jpeg_ctx *ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	return v4l2_m2m_dqbuf(file, ctx->m2m_ctx, buf);
+ }
+@@ -777,7 +788,7 @@ static int s5p_jpeg_dqbuf(struct file *file, void *priv,
+ static int s5p_jpeg_streamon(struct file *file, void *priv,
+ 			   enum v4l2_buf_type type)
+ {
+-	struct s5p_jpeg_ctx *ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	return v4l2_m2m_streamon(file, ctx->m2m_ctx, type);
+ }
+@@ -785,7 +796,7 @@ static int s5p_jpeg_streamon(struct file *file, void *priv,
+ static int s5p_jpeg_streamoff(struct file *file, void *priv,
+ 			    enum v4l2_buf_type type)
+ {
+-	struct s5p_jpeg_ctx *ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	return v4l2_m2m_streamoff(file, ctx->m2m_ctx, type);
+ }
+@@ -793,7 +804,7 @@ static int s5p_jpeg_streamoff(struct file *file, void *priv,
+ int s5p_jpeg_g_selection(struct file *file, void *priv,
+ 			 struct v4l2_selection *s)
+ {
+-	struct s5p_jpeg_ctx *ctx = priv;
++	struct s5p_jpeg_ctx *ctx = fh_to_ctx(priv);
+ 
+ 	if (s->type != V4L2_BUF_TYPE_VIDEO_OUTPUT &&
+ 	    s->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+diff --git a/drivers/media/video/s5p-jpeg/jpeg-core.h b/drivers/media/video/s5p-jpeg/jpeg-core.h
+index facad61..4dd705f 100644
+--- a/drivers/media/video/s5p-jpeg/jpeg-core.h
++++ b/drivers/media/video/s5p-jpeg/jpeg-core.h
+@@ -14,6 +14,7 @@
+ #define JPEG_CORE_H_
+ 
+ #include <media/v4l2-device.h>
++#include <media/v4l2-fh.h>
+ 
+ #define S5P_JPEG_M2M_NAME		"s5p-jpeg"
+ 
+@@ -125,6 +126,7 @@ struct s5p_jpeg_ctx {
+ 	struct v4l2_m2m_ctx	*m2m_ctx;
+ 	struct s5p_jpeg_q_data	out_q;
+ 	struct s5p_jpeg_q_data	cap_q;
++	struct v4l2_fh		fh;
+ 	bool			hdr_parsed;
+ };
+ 
 -- 
-1.7.0.4
+1.7.9
 
