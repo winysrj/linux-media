@@ -1,54 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51515 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752950Ab2BVJKE (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51439 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752084Ab2BQSVu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 04:10:04 -0500
-Date: Wed, 22 Feb 2012 09:09:30 +0000
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Andrew Morton <akpm@linux-foundation.org>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv22 14/16] X86: integrate CMA with DMA-mapping subsystem
-Message-ID: <20120222090930.GS22562@n2100.arm.linux.org.uk>
-References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com> <1329507036-24362-15-git-send-email-m.szyprowski@samsung.com> <20120221161802.f6a28085.akpm@linux-foundation.org>
+	Fri, 17 Feb 2012 13:21:50 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCHv2 1/7] media: video: append $(srctree) to -I parameters
+Date: Fri, 17 Feb 2012 19:19:24 +0100
+Message-ID: <12313292.IcES5uVq6k@avalon>
+In-Reply-To: <1329469034-25493-1-git-send-email-andriy.shevchenko@linux.intel.com>
+References: <2218117.VoHfpPQjC4@avalon> <1329469034-25493-1-git-send-email-andriy.shevchenko@linux.intel.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20120221161802.f6a28085.akpm@linux-foundation.org>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 21, 2012 at 04:18:02PM -0800, Andrew Morton wrote:
-> After a while I got it to compile for i386.  arm didn't go so well,
-> partly because arm allmodconfig is presently horked (something to do
-> with Kconfig not setting PHYS_OFFSET) and partly because arm defconfig
-> doesn't permit CMA to be set.  Got bored, gave up.
+Hi Andy,
 
-That's not going to get fixed, unfortunately.  It requires us to find
-some way to force various options to certain states on all*config
-builds, because not surprisingly a value of 'y', 'm' or 'n' doesn't
-work for integer or hex config options.
+Thanks for the patches.
 
-So the only way all*config can be used on ARM is with a seed config file
-to force various options to particular states to ensure that we end up
-with a sane configuration that avoids crap like that.
+On Friday 17 February 2012 10:57:07 Andy Shevchenko wrote:
+> Without this we have got the warnings like following if build with "make W=1
+> O=/var/tmp":
+>    CHECK   drivers/media/video/videobuf-vmalloc.c
+>    CC [M]  drivers/media/video/videobuf-vmalloc.o
+>  +cc1: warning: drivers/media/dvb/dvb-core: No such file or directory
+> [enabled by default] +cc1: warning: drivers/media/dvb/frontends: No such
+> file or directory [enabled by default] +cc1: warning:
+> drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
+> +cc1: warning: drivers/media/dvb/frontends: No such file or directory
+> [enabled by default] LD      drivers/media/built-in.o
+> 
+> Some details could be found in [1] as well.
+> 
+> [1] http://comments.gmane.org/gmane.linux.kbuild.devel/7733
+> 
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Alternatively, we need a way to tell kconfig that various options are to
-be set in certain ways in the Kconfig files for all*config to avoid it
-wanting values for hex or int options.
+For the whole series,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> ---
+>  drivers/media/video/Makefile |    6 +++---
+>  1 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+> index 3541388..3bf0aa8 100644
+> --- a/drivers/media/video/Makefile
+> +++ b/drivers/media/video/Makefile
+> @@ -199,6 +199,6 @@ obj-y	+= davinci/
+> 
+>  obj-$(CONFIG_ARCH_OMAP)	+= omap/
+> 
+> -ccflags-y += -Idrivers/media/dvb/dvb-core
+> -ccflags-y += -Idrivers/media/dvb/frontends
+> -ccflags-y += -Idrivers/media/common/tuners
+> +ccflags-y += -I$(srctree)/drivers/media/dvb/dvb-core
+> +ccflags-y += -I$(srctree)/drivers/media/dvb/frontends
+> +ccflags-y += -I$(srctree)/drivers/media/common/tuners
+
+-- 
+Regards,
+
+Laurent Pinchart
