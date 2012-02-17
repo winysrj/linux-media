@@ -1,105 +1,200 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:59693 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212Ab2BTB7W (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:59:22 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 22/33] omap3isp: Assume media_entity_pipeline_start may fail
-Date: Mon, 20 Feb 2012 03:57:01 +0200
-Message-Id: <1329703032-31314-22-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:16737 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754959Ab2BQTfC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 Feb 2012 14:35:02 -0500
+Date: Fri, 17 Feb 2012 20:30:34 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv22 14/16] X86: integrate CMA with DMA-mapping subsystem
+In-reply-to: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329507036-24362-15-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since media_entity_pipeline_start() now does link validation, it may
-actually fail. Perform the error handling.
+This patch adds support for CMA to dma-mapping subsystem for x86
+architecture that uses common pci-dma/pci-nommu implementation. This
+allows to test CMA on KVM/QEMU and a lot of common x86 boxes.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+CC: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
 ---
- drivers/media/video/omap3isp/ispvideo.c |   20 ++++++++++++--------
- 1 files changed, 12 insertions(+), 8 deletions(-)
+ arch/x86/Kconfig                      |    1 +
+ arch/x86/include/asm/dma-contiguous.h |   13 +++++++++++++
+ arch/x86/include/asm/dma-mapping.h    |    4 ++++
+ arch/x86/kernel/pci-dma.c             |   18 ++++++++++++++++--
+ arch/x86/kernel/pci-nommu.c           |    8 +-------
+ arch/x86/kernel/setup.c               |    2 ++
+ 6 files changed, 37 insertions(+), 9 deletions(-)
+ create mode 100644 arch/x86/include/asm/dma-contiguous.h
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index c191f13..17522db 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -993,14 +993,16 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	 */
- 	pipe = video->video.entity.pipe
- 	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
--	media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
-+	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
-+	if (ret < 0)
-+		goto err_media_entity_pipeline_start;
+diff --git a/arch/x86/Kconfig b/arch/x86/Kconfig
+index 5bed94e..de6e069 100644
+--- a/arch/x86/Kconfig
++++ b/arch/x86/Kconfig
+@@ -31,6 +31,7 @@ config X86
+ 	select ARCH_WANT_OPTIONAL_GPIOLIB
+ 	select ARCH_WANT_FRAME_POINTERS
+ 	select HAVE_DMA_ATTRS
++	select HAVE_DMA_CONTIGUOUS if !SWIOTLB
+ 	select HAVE_KRETPROBES
+ 	select HAVE_OPTPROBES
+ 	select HAVE_FTRACE_MCOUNT_RECORD
+diff --git a/arch/x86/include/asm/dma-contiguous.h b/arch/x86/include/asm/dma-contiguous.h
+new file mode 100644
+index 0000000..c092416
+--- /dev/null
++++ b/arch/x86/include/asm/dma-contiguous.h
+@@ -0,0 +1,13 @@
++#ifndef ASMX86_DMA_CONTIGUOUS_H
++#define ASMX86_DMA_CONTIGUOUS_H
++
++#ifdef __KERNEL__
++
++#include <linux/types.h>
++#include <asm-generic/dma-contiguous.h>
++
++static inline void
++dma_contiguous_early_fixup(phys_addr_t base, unsigned long size) { }
++
++#endif
++#endif
+diff --git a/arch/x86/include/asm/dma-mapping.h b/arch/x86/include/asm/dma-mapping.h
+index ed3065f..90ac6f0 100644
+--- a/arch/x86/include/asm/dma-mapping.h
++++ b/arch/x86/include/asm/dma-mapping.h
+@@ -13,6 +13,7 @@
+ #include <asm/io.h>
+ #include <asm/swiotlb.h>
+ #include <asm-generic/dma-coherent.h>
++#include <linux/dma-contiguous.h>
  
- 	/* Verify that the currently configured format matches the output of
- 	 * the connected subdev.
- 	 */
- 	ret = isp_video_check_format(video, vfh);
- 	if (ret < 0)
--		goto error;
-+		goto err_isp_video_check_format;
+ #ifdef CONFIG_ISA
+ # define ISA_DMA_BIT_MASK DMA_BIT_MASK(24)
+@@ -61,6 +62,9 @@ extern int dma_set_mask(struct device *dev, u64 mask);
+ extern void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 					dma_addr_t *dma_addr, gfp_t flag);
  
- 	video->bpl_padding = ret;
- 	video->bpl_value = vfh->format.fmt.pix.bytesperline;
-@@ -1017,7 +1019,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	} else {
- 		if (far_end == NULL) {
- 			ret = -EPIPE;
--			goto error;
-+			goto err_isp_video_check_format;
- 		}
++extern void dma_generic_free_coherent(struct device *dev, size_t size,
++				      void *vaddr, dma_addr_t dma_addr);
++
+ static inline bool dma_capable(struct device *dev, dma_addr_t addr, size_t size)
+ {
+ 	if (!dev->dma_mask)
+diff --git a/arch/x86/kernel/pci-dma.c b/arch/x86/kernel/pci-dma.c
+index 1c4d769..d3c3723 100644
+--- a/arch/x86/kernel/pci-dma.c
++++ b/arch/x86/kernel/pci-dma.c
+@@ -99,14 +99,18 @@ void *dma_generic_alloc_coherent(struct device *dev, size_t size,
+ 				 dma_addr_t *dma_addr, gfp_t flag)
+ {
+ 	unsigned long dma_mask;
+-	struct page *page;
++	struct page *page = NULL;
++	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
+ 	dma_addr_t addr;
  
- 		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
-@@ -1032,7 +1034,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 	/* Validate the pipeline and update its state. */
- 	ret = isp_video_validate_pipeline(pipe);
- 	if (ret < 0)
--		goto error;
-+		goto err_isp_video_check_format;
+ 	dma_mask = dma_alloc_coherent_mask(dev, flag);
  
- 	pipe->error = false;
+ 	flag |= __GFP_ZERO;
+ again:
+-	page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
++	if (!(flag & GFP_ATOMIC))
++		page = dma_alloc_from_contiguous(dev, count, get_order(size));
++	if (!page)
++		page = alloc_pages_node(dev_to_node(dev), flag, get_order(size));
+ 	if (!page)
+ 		return NULL;
  
-@@ -1054,7 +1056,7 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+@@ -126,6 +130,16 @@ again:
+ 	return page_address(page);
+ }
  
- 	ret = omap3isp_video_queue_streamon(&vfh->queue);
- 	if (ret < 0)
--		goto error;
-+		goto err_isp_video_check_format;
++void dma_generic_free_coherent(struct device *dev, size_t size, void *vaddr,
++			       dma_addr_t dma_addr)
++{
++	unsigned int count = PAGE_ALIGN(size) >> PAGE_SHIFT;
++	struct page *page = virt_to_page(vaddr);
++
++	if (!dma_release_from_contiguous(dev, page, count))
++		free_pages((unsigned long)vaddr, get_order(size));
++}
++
+ /*
+  * See <Documentation/x86/x86_64/boot-options.txt> for the iommu kernel
+  * parameter documentation.
+diff --git a/arch/x86/kernel/pci-nommu.c b/arch/x86/kernel/pci-nommu.c
+index 3af4af8..656566f 100644
+--- a/arch/x86/kernel/pci-nommu.c
++++ b/arch/x86/kernel/pci-nommu.c
+@@ -74,12 +74,6 @@ static int nommu_map_sg(struct device *hwdev, struct scatterlist *sg,
+ 	return nents;
+ }
  
- 	/* In sensor-to-memory mode, the stream can be started synchronously
- 	 * to the stream on command. In memory-to-memory mode, it will be
-@@ -1064,19 +1066,21 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 		ret = omap3isp_pipeline_set_stream(pipe,
- 					      ISP_PIPELINE_STREAM_CONTINUOUS);
- 		if (ret < 0)
--			goto error;
-+			goto err_omap3isp_set_stream;
- 		spin_lock_irqsave(&video->queue->irqlock, flags);
- 		if (list_empty(&video->dmaqueue))
- 			video->dmaqueue_flags |= ISP_VIDEO_DMAQUEUE_UNDERRUN;
- 		spin_unlock_irqrestore(&video->queue->irqlock, flags);
+-static void nommu_free_coherent(struct device *dev, size_t size, void *vaddr,
+-				dma_addr_t dma_addr)
+-{
+-	free_pages((unsigned long)vaddr, get_order(size));
+-}
+-
+ static void nommu_sync_single_for_device(struct device *dev,
+ 			dma_addr_t addr, size_t size,
+ 			enum dma_data_direction dir)
+@@ -97,7 +91,7 @@ static void nommu_sync_sg_for_device(struct device *dev,
+ 
+ struct dma_map_ops nommu_dma_ops = {
+ 	.alloc_coherent		= dma_generic_alloc_coherent,
+-	.free_coherent		= nommu_free_coherent,
++	.free_coherent		= dma_generic_free_coherent,
+ 	.map_sg			= nommu_map_sg,
+ 	.map_page		= nommu_map_page,
+ 	.sync_single_for_device = nommu_sync_single_for_device,
+diff --git a/arch/x86/kernel/setup.c b/arch/x86/kernel/setup.c
+index d7d5099..be6795f 100644
+--- a/arch/x86/kernel/setup.c
++++ b/arch/x86/kernel/setup.c
+@@ -50,6 +50,7 @@
+ #include <asm/pci-direct.h>
+ #include <linux/init_ohci1394_dma.h>
+ #include <linux/kvm_para.h>
++#include <linux/dma-contiguous.h>
+ 
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+@@ -938,6 +939,7 @@ void __init setup_arch(char **cmdline_p)
  	}
+ #endif
+ 	memblock.current_limit = get_max_mapped();
++	dma_contiguous_reserve(0);
  
--error:
- 	if (ret < 0) {
-+err_omap3isp_set_stream:
- 		omap3isp_video_queue_streamoff(&vfh->queue);
-+err_isp_video_check_format:
-+		media_entity_pipeline_stop(&video->video.entity);
-+err_media_entity_pipeline_start:
- 		if (video->isp->pdata->set_constraints)
- 			video->isp->pdata->set_constraints(video->isp, false);
--		media_entity_pipeline_stop(&video->video.entity);
- 		/* The DMA queue must be emptied here, otherwise CCDC interrupts
- 		 * that will get triggered the next time the CCDC is powered up
- 		 * will try to access buffers that might have been freed but
+ 	/*
+ 	 * NOTE: On x86-32, only from this point on, fixmaps are ready for use.
 -- 
-1.7.2.5
+1.7.1
+
 
