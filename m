@@ -1,74 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.meprolight.com ([194.90.149.17]:40700 "EHLO meprolight.com"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752084Ab2BZR4d convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Feb 2012 12:56:33 -0500
-From: Alex Gershgorin <alexg@meprolight.com>
-To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Sun, 26 Feb 2012 19:56:24 +0200
-Subject: RE: i.mx35 live video
-Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2C8966B28A@MEP-EXCH.meprolight.com>
-In-Reply-To: <Pine.LNX.4.64.1202261454530.17982@axis700.grange>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+Received: from home.keithp.com ([63.227.221.253]:33523 "EHLO keithp.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752694Ab2BSI41 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 03:56:27 -0500
+From: Keith Packard <keithp@keithp.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-fbdev@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	dri-devel@lists.freedesktop.org,
+	Alexander Deucher <alexander.deucher@amd.com>,
+	Rob Clark <rob@ti.com>, linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC 2012 - Notes
+In-Reply-To: <1775349.d0yvHiVdjB@avalon>
+References: <201201171126.42675.laurent.pinchart@ideasonboard.com> <1654816.MX2JJ87BEo@avalon> <1775349.d0yvHiVdjB@avalon>
+Date: Sat, 18 Feb 2012 13:56:49 +1300
+Message-ID: <867gzlarhq.fsf@sumi.keithp.com>
 MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+<#part sign=pgpmime>
+On Fri, 17 Feb 2012 00:25:51 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
 
-
-
-> Thanks Guennadi for your quick response ,  
+> ***  Synchronous pipeline changes ***
 > 
-> >Hi Alex
->  
-> > Hi Guennadi,
-> >
-> > We would like to use I.MX35 processor in new project.
-> > An important element of the project is to obtain life video from the camera and display it on display.
-> > For these purposes, we want to use mainline Linux kernel which supports all the necessary drivers for the implementation of this task.
-> > As I understand that soc_camera is not currently supported userptr method, in which case how I can configure the video pipeline in user space
-> > to get the live video on display, without the intervention of the processor.
+>   Goal: Create an API to apply complex changes to a video pipeline atomically.
 > 
-> >soc-camera does support USERPTR, also the mx3_camera driver claims to
-> >support it.
-> 
-> I based on soc-camera.txt document.
+>   Needed for complex camera use cases. On the DRM/KMS side, the approach is to
+>   use one big ioctl to configure the whole pipeline.
 
-> Yeah, I really have to update it...
+This is the only credible approach for most desktop chips -- you must
+have the whole configuration available before you can make any
+commitment to supporting the requested modes.
 
-> The soc-camera subsystem provides a unified API between camera host drivers and
-> camera sensor drivers. It implements a V4L2 interface to the user, currently
-> only the mmap method is supported.
-> 
-> In any case, I glad that this supported :-) 
-> 
-> What do you think it is possible to implement video streaming without 
-> the intervention of the processor?
+>   One solution is a commit ioctl, through the media controller device, that
+>   would be dispatched to entities internally with a prepare step and a commit
+>   step.
 
->It might be difficult to completely eliminate the CPU, at the very least 
->you need to queue and dequeue buffers to and from the V4L driver. To avoid 
->even that, in principle, you could try to use only one buffer, but I don't 
->think the current version of the mx3_camera driver would be very happy 
->about that. You could take 2 buffers and use panning, then you'd just have 
->to send queue and dequeue buffers and pan the display. But in any case, 
->you probably will have to process buffers, but your most important 
->advantage is, that you won't have to copy data, you only have to move 
->pointers around.
+The current plan for the i915 KMS code is to use a single ioctl -- the
+application sends a buffer full of configuration commands down to the
+kernel which can then figure out whether it can be supported or not.
 
-The method that you describe is exactly what I had in mind.
-It would be more correct to say it is "minimum" CPU intervention and not without CPU intervention. 
-As far I understand, I can implement MMAP method for frame buffer device and pass this pointer directly to mx3_camera driver with use USERPTR method, then send queue and dequeue buffers to mx3_camera driver.
-What is not clear, if it is possible to pass the same pointer of frame buffer in mx3_camera, if the driver is using two buffers?
+The kernel will have to store the intermediate data until the commit
+arrives anyways, and you still need a central authority in the kernel
+controlling the final commit decision.
 
-Thanks,
-Alex Gershgorin
-
-
-
- 
-
- 
+-- 
+keith.packard@intel.com
