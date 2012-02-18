@@ -1,121 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34390 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750783Ab2BVKz4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 05:55:56 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 25/33] omap3isp: Introduce omap3isp_get_external_info()
-Date: Wed, 22 Feb 2012 11:55:58 +0100
-Message-ID: <3168869.IBFJLUCLKu@avalon>
-In-Reply-To: <1329703032-31314-25-git-send-email-sakari.ailus@iki.fi>
-References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-25-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:54575 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752801Ab2BRQqQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 18 Feb 2012 11:46:16 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] tea575x: fix HW seek
+Date: Sat, 18 Feb 2012 17:45:45 +0100
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201202181745.49819.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Fix HW seek in TEA575x to work properly:
+ - a delay must be present after search start and before first register read
+   or the seek does weird things
+ - when the search stops, the new frequency is not available immediately, we
+   must wait until it appears in the register (fortunately, we can clear the
+   frequency bits when starting the search as it starts at the frequency
+   currently set, not from the value written)
+ - sometimes, seek remains on the current frequency (or moves only a little),
+   so repeat it until it moves by at least 50 kHz
 
-Thanks for the patch.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-On Monday 20 February 2012 03:57:04 Sakari Ailus wrote:
-> omap3isp_get_external_info() will retrieve external subdev's bits-per-pixel
-> and pixel rate for the use of other ISP subdevs at streamon time.
-> omap3isp_get_external_info() is used during pipeline validation.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/omap3isp/isp.c |   48
-> ++++++++++++++++++++++++++++++++++++ drivers/media/video/omap3isp/isp.h |  
->  3 ++
->  2 files changed, 51 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/isp.c
-> b/drivers/media/video/omap3isp/isp.c index 12d5f92..89a9bf8 100644
-> --- a/drivers/media/video/omap3isp/isp.c
-> +++ b/drivers/media/video/omap3isp/isp.c
-> @@ -353,6 +353,54 @@ void omap3isp_hist_dma_done(struct isp_device *isp)
->  	}
->  }
-> 
-> +int omap3isp_get_external_info(struct isp_pipeline *pipe,
-> +			       struct media_link *link)
-> +{
-> +	struct isp_device *isp =
-> +		container_of(pipe, struct isp_video, pipe)->isp;
-> +	struct v4l2_subdev_format fmt;
-> +	struct v4l2_ext_controls ctrls;
-> +	struct v4l2_ext_control ctrl;
-> +	int ret;
-> +
-> +	if (!pipe->external)
-> +		return 0;
-> +
-> +	if (pipe->external_rate)
-> +		return 0;
-> +
-> +	memset(&fmt, 0, sizeof(fmt));
-> +
-> +	fmt.pad = link->source->index;
-> +	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> +	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(link->sink->entity),
-> +			       pad, get_fmt, NULL, &fmt);
-> +	if (ret < 0)
-> +		return -EPIPE;
-> +
-> +	pipe->external_bpp = omap3isp_video_format_info(fmt.format.code)->bpp;
-> +
-> +	memset(&ctrls, 0, sizeof(ctrls));
-> +	memset(&ctrl, 0, sizeof(ctrl));
-> +
-> +	ctrl.id = V4L2_CID_PIXEL_RATE;
-> +
-> +	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
-> +	ctrls.count = 1;
-> +	ctrls.controls = &ctrl;
-> +
-> +	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
-> +	if (ret < 0) {
-> +		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
-> +			 pipe->external->name);
-> +		return ret;
-> +	}
-> +
-> +	pipe->external_rate = ctrl.value64;
-> +
-> +	return 0;
-> +}
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -89,7 +89,7 @@ static void snd_tea575x_write(struct snd_tea575x *tea, unsigned int val)
+ 		tea->ops->set_pins(tea, 0);
+ }
+ 
+-static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
++static u32 snd_tea575x_read(struct snd_tea575x *tea)
+ {
+ 	u16 l, rdata;
+ 	u32 data = 0;
+@@ -120,6 +120,27 @@ static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
+ 	return data;
+ }
+ 
++static void snd_tea575x_get_freq(struct snd_tea575x *tea)
++{
++	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
++
++	if (freq == 0) {
++		tea->freq = 0;
++		return;
++	}
++
++	/* freq *= 12.5 */
++	freq *= 125;
++	freq /= 10;
++	/* crystal fixup */
++	if (tea->tea5759)
++		freq += TEA575X_FMIF;
++	else
++		freq -= TEA575X_FMIF;
++
++	tea->freq = clamp(freq * 16, FREQ_LO, FREQ_HI); /* from kHz */
++}
++
+ static void snd_tea575x_set_freq(struct snd_tea575x *tea)
+ {
+ 	u32 freq = tea->freq;
+@@ -203,6 +224,8 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 	if (f->tuner != 0)
+ 		return -EINVAL;
+ 	f->type = V4L2_TUNER_RADIO;
++	if (!tea->cannot_read_data)
++		snd_tea575x_get_freq(tea);
+ 	f->frequency = tea->freq;
+ 	return 0;
+ }
+@@ -225,36 +248,50 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
+ 					struct v4l2_hw_freq_seek *a)
+ {
+ 	struct snd_tea575x *tea = video_drvdata(file);
++	int i, old_freq;
++	unsigned long timeout;
+ 
+ 	if (tea->cannot_read_data)
+ 		return -ENOTTY;
++
++	snd_tea575x_get_freq(tea);
++	old_freq = tea->freq;
++	/* clear the frequency, HW will fill it in */
++	tea->val &= ~TEA575X_BIT_FREQ_MASK;
+ 	tea->val |= TEA575X_BIT_SEARCH;
+-	tea->val &= ~TEA575X_BIT_UPDOWN;
+ 	if (a->seek_upward)
+ 		tea->val |= TEA575X_BIT_UPDOWN;
++	else
++		tea->val &= ~TEA575X_BIT_UPDOWN;
+ 	snd_tea575x_write(tea, tea->val);
++	timeout = jiffies + msecs_to_jiffies(10000);
+ 	for (;;) {
+-		unsigned val = snd_tea575x_read(tea);
+-
+-		if (!(val & TEA575X_BIT_SEARCH)) {
+-			/* Found a frequency */
+-			val &= TEA575X_BIT_FREQ_MASK;
+-			val = (val * 10) / 125;
+-			if (tea->tea5759)
+-				val += TEA575X_FMIF;
+-			else
+-				val -= TEA575X_FMIF;
+-			tea->freq = clamp(val * 16, FREQ_LO, FREQ_HI);
+-			return 0;
+-		}
++		if (time_after(jiffies, timeout))
++			break;
+ 		if (schedule_timeout_interruptible(msecs_to_jiffies(10))) {
+ 			/* some signal arrived, stop search */
+ 			tea->val &= ~TEA575X_BIT_SEARCH;
+ 			snd_tea575x_write(tea, tea->val);
+ 			return -ERESTARTSYS;
+ 		}
++		if (!(snd_tea575x_read(tea) & TEA575X_BIT_SEARCH)) {
++			/* Found a frequency, wait until it can be read */
++			for (i = 0; i < 100; i++) {
++				msleep(10);
++				snd_tea575x_get_freq(tea);
++				if (tea->freq != 0) /* available */
++					break;
++			}
++			/* if we moved by less than 50 kHz, continue seeking */
++			if (abs(old_freq - tea->freq) < 16 * 500) {
++				snd_tea575x_write(tea, tea->val);
++				continue;
++			}
++			tea->val &= ~TEA575X_BIT_SEARCH;
++			return 0;
++		}
+ 	}
+-	return 0;
++	return -ETIMEDOUT;
+ }
+ 
+ static int tea575x_s_ctrl(struct v4l2_ctrl *ctrl)
+@@ -318,7 +355,7 @@ int snd_tea575x_init(struct snd_tea575x *tea)
+ 			return -ENODEV;
+ 	}
+ 
+-	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_10_40;
++	tea->val = TEA575X_BIT_BAND_FM | TEA575X_BIT_SEARCH_5_28;
+ 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
+ 	snd_tea575x_set_freq(tea);
+ 
 
-What about moving this to ispvideo.c ? You could then call the function from 
-isp_video_streamon() only, and make it static.
 
-> +
->  static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
->  {
->  	static const char *name[] = {
-> diff --git a/drivers/media/video/omap3isp/isp.h
-> b/drivers/media/video/omap3isp/isp.h index 2e78041..8b0bc2d 100644
-> --- a/drivers/media/video/omap3isp/isp.h
-> +++ b/drivers/media/video/omap3isp/isp.h
-> @@ -222,6 +222,9 @@ struct isp_device {
-> 
->  void omap3isp_hist_dma_done(struct isp_device *isp);
-> 
-> +int omap3isp_get_external_info(struct isp_pipeline *pipe,
-> +			       struct media_link *link);
-> +
->  void omap3isp_flush(struct isp_device *isp);
-> 
->  int omap3isp_module_sync_idle(struct media_entity *me, wait_queue_head_t
-> *wait,
+
 -- 
-Regards,
-
-Laurent Pinchart
+Ondrej Zary
