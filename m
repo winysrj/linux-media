@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:61298 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751643Ab2BMOkQ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57878 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752760Ab2BSI5v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 09:40:16 -0500
-Received: by wgbdt10 with SMTP id dt10so4969260wgb.1
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 06:40:15 -0800 (PST)
+	Sun, 19 Feb 2012 03:57:51 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Ryan <ryanphilips19@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: omap4 v4l media-ctl usage
+Date: Sun, 19 Feb 2012 09:57:45 +0100
+Message-ID: <2215470.hR2vMaHYCK@avalon>
+In-Reply-To: <CANMsd02vLtdmrV-eHuBJ4SAc6PiYG8tw1+OvSXYAJ83zcoe7Hw@mail.gmail.com>
+References: <CANMsd02vLtdmrV-eHuBJ4SAc6PiYG8tw1+OvSXYAJ83zcoe7Hw@mail.gmail.com>
 MIME-Version: 1.0
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
-	s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v2 5/6] media: i.MX27 camera: fix compilation warning.
-Date: Mon, 13 Feb 2012 15:40:01 +0100
-Message-Id: <1329144001-7902-1-git-send-email-javier.martin@vista-silicon.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Ryan,
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |   16 ++++++++--------
- 1 files changed, 8 insertions(+), 8 deletions(-)
+On Saturday 18 February 2012 20:59:57 Ryan wrote:
+> hello,
+> I am using media-ctl on the panda board. The sensor gets detected. But
+> media-ctl doesnt print anything.
+> The kernel is cloned from omap4 v4l git tree: commit id:
+> 3bc023462a68f78bb0273848f5ab08a01b434ffa
+> 
+> what could be wrong in here?
+> 
+> ~ # ./media-ctl -p
+> Opening media device /dev/media0
+> Enumerating entities
+> Found 0 entities
+> Enumerating pads and links
+> Device topology
+> 
+> What steps i need to follow get output from sensor in terms of
+> arguments to media-ctl and yavta.
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index d9028f1..06017a0 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -1210,7 +1210,9 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
- static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 		int bufnum, bool err)
- {
-+#ifdef DEBUG
- 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-+#endif
- 	struct mx2_buffer *buf;
- 	struct vb2_buffer *vb;
- 	unsigned long phys;
-@@ -1232,18 +1234,16 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 		if (prp->cfg.channel == 1) {
- 			if (readl(pcdev->base_emma + PRP_DEST_RGB1_PTR +
- 				4 * bufnum) != phys) {
--				dev_err(pcdev->dev, "%p != %p\n", phys,
--						readl(pcdev->base_emma +
--							PRP_DEST_RGB1_PTR +
--							4 * bufnum));
-+				dev_err(pcdev->dev, "%lx != %x\n", phys,
-+					readl(pcdev->base_emma +
-+					PRP_DEST_RGB1_PTR + 4 * bufnum));
- 			}
- 		} else {
- 			if (readl(pcdev->base_emma + PRP_DEST_Y_PTR -
- 				0x14 * bufnum) != phys) {
--				dev_err(pcdev->dev, "%p != %p\n", phys,
--						readl(pcdev->base_emma +
--							PRP_DEST_Y_PTR -
--							0x14 * bufnum));
-+				dev_err(pcdev->dev, "%lx != %x\n", phys,
-+					readl(pcdev->base_emma +
-+					PRP_DEST_Y_PTR - 0x14 * bufnum));
- 			}
- 		}
- #endif
+Could you please first make sure that media-ctl has be compiled against header 
+files from the kernel running on your board ?
+
 -- 
-1.7.0.4
+Regards,
 
+Laurent Pinchart
