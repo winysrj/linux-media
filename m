@@ -1,392 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:55909 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752584Ab2BUIja convert rfc822-to-8bit (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:39773 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751194Ab2BSXl5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Feb 2012 03:39:30 -0500
-Date: Tue, 21 Feb 2012 09:39:10 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: javier Martin <javier.martin@vista-silicon.com>
-cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	s.hauer@pengutronix.de
-Subject: Re: [PATCH] media: i.MX27 camera: Add resizing support.
-In-Reply-To: <CACKLOr1KT2A1Zd_xsVXPGW8X6e57v6xTZTm46wdfNfwwf9-MYQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1202210936420.18412@axis700.grange>
-References: <1329219332-27620-1-git-send-email-javier.martin@vista-silicon.com>
- <Pine.LNX.4.64.1202201413300.2836@axis700.grange>
- <CACKLOr1KT2A1Zd_xsVXPGW8X6e57v6xTZTm46wdfNfwwf9-MYQ@mail.gmail.com>
+	Sun, 19 Feb 2012 18:41:57 -0500
+Received: by wics10 with SMTP id s10so2561611wic.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Feb 2012 15:41:55 -0800 (PST)
+Date: Sun, 19 Feb 2012 23:41:51 +0000
+From: James Hogan <james@albanarts.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [BUG] divide by zero in uvc_video_clock_update, v3.3-rc4
+Message-ID: <20120219234151.GA32005@balrog>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Javier
+Hi,
 
-One more thing occurred to me: I don't see anywhere in your patch checking 
-for supported pixel (fourcc) formats. I don't think the PRP can resize 
-arbitrary formats? Most likely these would be limited to some YUV, and, 
-possibly, some RGB formats?
+I just tried v3.3-rc4 on an Acer Aspire One Happy 2 netbook. I happened
+to open the settings dialog box of kopete, which shows a view of the
+webcam. The kernel switched to a text console with a register dump (see below),
+indicating a divide error in uvc_video_clock_update.
+
+The IP is on 7482, a divide, presumably by %r11 (see objdump output below)
+which is 0 in the register dump. It appears to be the div_u64 in
+uvc_video_clock_update().
+
+I haven't tried any other recent kernel versions.
+
+My asm is rusty and I don't really have any time to look further into it. Is
+this enough to go on?
 
 Thanks
-Guennadi
+James
 
-On Tue, 21 Feb 2012, javier Martin wrote:
 
-> Hi Guennadi,
-> thank you for your review.
-> 
-> On 20 February 2012 15:13, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> >> @@ -707,6 +732,74 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
-> >>       writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
-> >>  }
-> >>
-> >> +static void mx2_prp_resize_commit(struct mx2_camera_dev *pcdev)
-> >> +{
-> >> +     int dir;
-> >> +
-> >> +     for (dir = RESIZE_DIR_H; dir <= RESIZE_DIR_V; dir++) {
-> >> +             unsigned char *s = pcdev->resizing[dir].s;
-> >> +             int len = pcdev->resizing[dir].len;
-> >> +             unsigned int coeff[2] = {0, 0};
-> >> +             unsigned int valid  = 0;
-> >> +             int i;
-> >> +
-> >> +             if (len == 0)
-> >> +                     continue;
-> >> +
-> >> +             for (i = RESIZE_NUM_MAX - 1; i >= 0; i--) {
-> >> +                     int j;
-> >> +
-> >> +                     j = i > 9 ? 1 : 0;
-> >> +                     coeff[j] = (coeff[j] << BC_COEF) |
-> >> +                     (s[i] & (SZ_COEF - 1));
-> >
-> > Please, remember to indent line continuations.
-> 
-> Yes, sorry.
-> 
-> >
-> >> +
-> >> +                     if (i == 5 || i == 15)
-> >> +                             coeff[j] <<= 1;
-> >> +
-> >> +                     valid = (valid << 1) | (s[i] >> BC_COEF);
-> >> +             }
-> >> +
-> >> +             valid |= PRP_RZ_VALID_TBL_LEN(len);
-> >> +
-> >> +             if (pcdev->resizing[dir].algo == RESIZE_ALGO_BILINEAR)
-> >> +                     valid |= PRP_RZ_VALID_BILINEAR;
-> >> +
-> >> +             if (pcdev->emma_prp->cfg.channel == 1) {
-> >
-> > Maybe put horizontal and vertical register addresses in an array too to
-> > avoid this "if?" Just an idea - if you don't think, the code would look
-> > nicer, just leave as is.
-> 
-> I don't know about that, we can't avoid the fact that the code would
-> look more compact but I think it would be less clear.
-> 
-> >> +                     if (dir == RESIZE_DIR_H) {
-> >> +                             writel(coeff[0], pcdev->base_emma +
-> >> +                                                     PRP_CH1_RZ_HORI_COEF1);
-> >> +                             writel(coeff[1], pcdev->base_emma +
-> >> +                                                     PRP_CH1_RZ_HORI_COEF2);
-> >> +                             writel(valid, pcdev->base_emma +
-> >> +                                                     PRP_CH1_RZ_HORI_VALID);
-> >> +                     } else {
-> >> +                             writel(coeff[0], pcdev->base_emma +
-> >> +                                                     PRP_CH1_RZ_VERT_COEF1);
-> >> +                             writel(coeff[1], pcdev->base_emma +
-> >> +                                                     PRP_CH1_RZ_VERT_COEF2);
-> >> +                             writel(valid, pcdev->base_emma +
-> >> +                                                     PRP_CH1_RZ_VERT_VALID);
-> >> +                     }
-> >> +             } else {
-> >> +                     if (dir == RESIZE_DIR_H) {
-> >> +                             writel(coeff[0], pcdev->base_emma +
-> >> +                                                     PRP_CH2_RZ_HORI_COEF1);
-> >> +                             writel(coeff[1], pcdev->base_emma +
-> >> +                                                     PRP_CH2_RZ_HORI_COEF2);
-> >> +                             writel(valid, pcdev->base_emma +
-> >> +                                                     PRP_CH2_RZ_HORI_VALID);
-> >> +                     } else {
-> >> +                             writel(coeff[0], pcdev->base_emma +
-> >> +                                                     PRP_CH2_RZ_VERT_COEF1);
-> >> +                             writel(coeff[1], pcdev->base_emma +
-> >> +                                                     PRP_CH2_RZ_VERT_COEF2);
-> >> +                             writel(valid, pcdev->base_emma +
-> >> +                                                     PRP_CH2_RZ_VERT_VALID);
-> >> +                     }
-> >> +             }
-> >> +     }
-> >> +}
-> >> +
-> >>  static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
-> >>  {
-> >>       struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-> >> @@ -773,6 +866,8 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
-> >>               list_add_tail(&pcdev->buf_discard[1].queue,
-> >>                                     &pcdev->discard);
-> >>
-> >> +             mx2_prp_resize_commit(pcdev);
-> >> +
-> >>               mx27_camera_emma_buf_init(icd, bytesperline);
-> >>
-> >>               if (prp->cfg.channel == 1) {
-> >> @@ -1059,6 +1154,119 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
-> >>       return formats;
-> >>  }
-> >>
-> >> +static int mx2_emmaprp_resize(struct mx2_camera_dev *pcdev,
-> >> +                           struct v4l2_mbus_framefmt *mf_in,
-> >> +                           struct v4l2_pix_format *pix_out)
-> >> +{
-> >> +     int num, den;
-> >> +     unsigned long m;
-> >> +     int i, dir;
-> >> +
-> >> +     for (dir = RESIZE_DIR_H; dir <= RESIZE_DIR_V; dir++) {
-> >> +             unsigned char *s = pcdev->resizing[dir].s;
-> >> +             int len = 0;
-> >> +             int in, out;
-> >> +
-> >> +             if (dir == RESIZE_DIR_H) {
-> >> +                     in = mf_in->width;
-> >> +                     out = pix_out->width;
-> >> +             } else {
-> >> +                     in = mf_in->height;
-> >> +                     out = pix_out->height;
-> >> +             }
-> >> +
-> >> +             if (in < out)
-> >> +                     return -EINVAL;
-> >> +             else if (in == out)
-> >> +                     continue;
-> >> +
-> >> +             /* Calculate ratio */
-> >> +             m = gcd(in, out);
-> >> +             num = in / m;
-> >> +             den = out / m;
-> >> +             if (num > RESIZE_NUM_MAX)
-> >> +                     return -EINVAL;
-> >> +
-> >> +             if ((num >= 2 * den) && (den == 1) &&
-> >> +                 (num < 9) && (!(num & 0x01))) {
-> >> +                     int sum = 0;
-> >> +                     int j;
-> >> +
-> >> +                     /* Average scaling for > 2:1 ratios */
-> >
-> > ">=" rather than ">"
-> 
-> You are right.
-> 
-> >> +                     /* Support can be added for num >=9 and odd values */
-> >
-> > So, this is only used for downscaling by 1/2, 1/4, 1/6, and 1/8?
-> 
-> Yes.
-> 
-> >> +
-> >> +                     pcdev->resizing[dir].algo = RESIZE_ALGO_AVERAGING;
-> >> +                     len = num;
-> >> +
-> >> +                     for (i = 0; i < (len / 2); i++)
-> >> +                             s[i] = 8;
-> >> +
-> >> +                     do {
-> >> +                             for (i = 0; i < (len / 2); i++) {
-> >> +                                     s[i] = s[i] >> 1;
-> >> +                                     sum = 0;
-> >> +                                     for (j = 0; j < (len / 2); j++)
-> >> +                                             sum += s[j];
-> >> +                                     if (sum == 4)
-> >> +                                             break;
-> >> +                             }
-> >> +                     } while (sum != 4);
-> >> +
-> >> +                     for (i = (len / 2); i < len; i++)
-> >> +                             s[i] = s[len - i - 1];
-> >> +
-> >> +                     s[len - 1] |= SZ_COEF;
-> >> +             } else {
-> >> +                     /* bilinear scaling for < 2:1 ratios */
-> >> +                     int v; /* overflow counter */
-> >> +                     int coeff, nxt; /* table output */
-> >> +                     int in_pos_inc = 2 * den;
-> >> +                     int out_pos = num;
-> >> +                     int out_pos_inc = 2 * num;
-> >> +                     int init_carry = num - den;
-> >> +                     int carry = init_carry;
-> >> +
-> >> +                     pcdev->resizing[dir].algo = RESIZE_ALGO_BILINEAR;
-> >> +                     v = den + in_pos_inc;
-> >> +                     do {
-> >> +                             coeff = v - out_pos;
-> >> +                             out_pos += out_pos_inc;
-> >> +                             carry += out_pos_inc;
-> >> +                             for (nxt = 0; v < out_pos; nxt++) {
-> >> +                                     v += in_pos_inc;
-> >> +                                     carry -= in_pos_inc;
-> >> +                             }
-> >> +
-> >> +                             if (len > RESIZE_NUM_MAX)
-> >> +                                     return -EINVAL;
-> >> +
-> >> +                             coeff = ((coeff << BC_COEF) +
-> >> +                                     (in_pos_inc >> 1)) / in_pos_inc;
-> >> +
-> >> +                             if (coeff >= (SZ_COEF - 1))
-> >> +                                     coeff--;
-> >> +
-> >> +                             coeff |= SZ_COEF;
-> >> +                             s[len] = (unsigned char)coeff;
-> >> +                             len++;
-> >> +
-> >> +                             for (i = 1; i < nxt; i++) {
-> >> +                                     if (len >= RESIZE_NUM_MAX)
-> >> +                                             return -EINVAL;
-> >> +                                     s[len] = 0;
-> >> +                                     len++;
-> >> +                             }
-> >> +                     } while (carry != init_carry);
-> >> +             }
-> >> +             pcdev->resizing[dir].len = len;
-> >> +             if (dir == RESIZE_DIR_H)
-> >> +                     mf_in->width = mf_in->width * den / num;
-> >> +             else
-> >> +                     mf_in->height = mf_in->height * den / num;
-> >
-> > Aren't your calculations exact, so that here you can just use
-> > pix_out->width and pix_out->height?
-> 
-> Yes, they are. I can save these operations. Thank you.
-> 
-> >> +     }
-> >> +     return 0;
-> >> +}
-> >> +
-> >>  static int mx2_camera_set_fmt(struct soc_camera_device *icd,
-> >>                              struct v4l2_format *f)
-> >>  {
-> >> @@ -1070,6 +1278,9 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
-> >>       struct v4l2_mbus_framefmt mf;
-> >>       int ret;
-> >>
-> >> +     dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
-> >> +             __func__, pix->width, pix->height);
-> >> +
-> >>       xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
-> >>       if (!xlate) {
-> >>               dev_warn(icd->parent, "Format %x not found\n",
-> >> @@ -1087,6 +1298,18 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
-> >>       if (ret < 0 && ret != -ENOIOCTLCMD)
-> >>               return ret;
-> >>
-> >> +     /* Store width and height returned by the sensor for resizing */
-> >> +     pcdev->s_width = mf.width;
-> >> +     pcdev->s_height = mf.height;
-> >> +     dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
-> >> +             __func__, pcdev->s_width, pcdev->s_height);
-> >> +
-> >> +     memset(pcdev->resizing, 0, sizeof(struct emma_prp_resize) << 1);
-> >
-> > I think, just sizeof(pcdev->resizing) will do the trick.
-> 
-> No problem.
-> 
-> >> +     if (mf.width != pix->width || mf.height != pix->height) {
-> >> +             if (mx2_emmaprp_resize(pcdev, &mf, pix) < 0)
-> >> +                     return -EINVAL;
-> >
-> > Hmmm... This looks like a regression, not an improvement - you return more
-> > errors now, than without this resizing support. Wouldn't it be possible to
-> > fall back to the current behaviour if prp resizing is impossible?
-> 
-> You are right. I did this for testing purposes and forgot to update it.
-> 
-> >> +     }
-> >> +
-> >>       if (mf.code != xlate->code)
-> >>               return -EINVAL;
-> >>
-> >> @@ -1100,6 +1323,9 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
-> >>               pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
-> >>                                               xlate->host_fmt->fourcc);
-> >>
-> >> +     dev_dbg(icd->parent, "%s: returned params: width = %d, height = %d\n",
-> >> +             __func__, pix->width, pix->height);
-> >> +
-> >>       return 0;
-> >>  }
-> >>
-> >> @@ -1109,11 +1335,16 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
-> >>       struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> >>       const struct soc_camera_format_xlate *xlate;
-> >>       struct v4l2_pix_format *pix = &f->fmt.pix;
-> >> -     struct v4l2_mbus_framefmt mf;
-> >>       __u32 pixfmt = pix->pixelformat;
-> >> +     struct v4l2_mbus_framefmt mf;
-> >
-> > This swap doesn't seem to be needed.
-> 
-> Fine, I'll fix it.
-> 
-> >> +     struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> >> +     struct mx2_camera_dev *pcdev = ici->priv;
-> >>       unsigned int width_limit;
-> >>       int ret;
-> >>
-> >> +     dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
-> >> +             __func__, pix->width, pix->height);
-> >> +
-> >>       xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
-> >>       if (pixfmt && !xlate) {
-> >>               dev_warn(icd->parent, "Format %x not found\n", pixfmt);
-> >> @@ -1163,6 +1394,19 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
-> >>       if (ret < 0)
-> >>               return ret;
-> >>
-> >> +     /* Store width and height returned by the sensor for resizing */
-> >> +     pcdev->s_width = mf.width;
-> >> +     pcdev->s_height = mf.height;
-> >
-> > You don't need these in .try_fmt().
-> 
-> Right.
-> 
-> >> +     dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
-> >> +             __func__, pcdev->s_width, pcdev->s_height);
-> >> +
-> >> +     /* If the sensor does not support image size try PrP resizing */
-> >> +     memset(pcdev->resizing, 0, sizeof(struct emma_prp_resize) << 1);
-> >
-> > Same for sizeof()
-> >
-> >> +     if (mf.width != pix->width || mf.height != pix->height) {
-> >> +             if (mx2_emmaprp_resize(pcdev, &mf, pix) < 0)
-> >> +                     return -EINVAL;
-> >
-> > .try_fmt() really shouldn't fail.
-> 
-> It's the same issue as with s_fmt, I will fix it.
-> 
-> I'll try to send a v2 tomorrow.
-> 
-> Regards.
-> -- 
-> Javier Martin
-> Vista Silicon S.L.
-> CDTUC - FASE C - Oficina S-345
-> Avda de los Castros s/n
-> 39005- Santander. Cantabria. Spain
-> +34 942 25 32 60
-> www.vista-silicon.com
-> 
+objdump output:
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+    7468:       48 69 c0 00 ca 9a 3b    imul   $0x3b9aca00,%rax,%rax
+    746f:       48 29 d0                sub    %rdx,%rax
+    7472:       8d 97 00 36 65 c4       lea    -0x3b9aca00(%rdi),%edx
+    7478:       48 0f af 55 a8          imul   -0x58(%rbp),%rdx
+    747d:       48 01 d0                add    %rdx,%rax
+    7480:       31 d2                   xor    %edx,%edx
+    7482:       49 f7 f3                div    %r11
+    7485:       48 ba 53 5a 9b a0 2f    movabs $0x44b82fa09b5a53,%rdx
+    748c:       b8 44 00 
+          - (u64)y2 * (u64)x1;
+        y = div_u64(y, x2 - x1);
+
+        div = div_u64_rem(y, NSEC_PER_SEC, &rem);
+        ts.tv_sec = first->host_ts.tv_sec - 1 + div;
+
+kernel log:
+
+divide error: 0000 [#1] SMP 
+CPU 1 
+Modules linked in: sunrpc 8021q garp stp llc cpufreq_ondemand acpi_cpufreq freq_table mperf ip6t_REJECT nf_conntrack_ipv4 nf_conntrack_ipv6 nf_defrag_ipv6 nf_defrag_ipv4 xt_state nf_conntrack ip6table_filter ip6_tables rfcomm bnep arc4 brcmsmac mac80211 snd_hda_codec_realtek btusb bluetooth snd_hda_intel uvcvideo snd_hda_codec videobuf2_core videodev snd_hwdep snd_seq brcmutil cfg80211 snd_seq_device snd_pcm acer_wmi sparse_keymap snd_timer media v4l2_compat_ioctl32 videobuf2_vmalloc rfkill crc8 cordic videobuf2_memops bcma iTCO_wdt iTCO_vendor_support r8169 snd i2c_i801 microcode serio_raw joydev mii pcspkr soundcore snd_page_alloc wmi i915 drm_kms_helper drm i2c_algo_bit i2c_core video [last unloaded: scsi_wait_scan]
+
+Pid: 1393, comm: kopete Not tainted 3.3.0-rc4 #104 Acer AOHAPPY2/JE06_PT 
+RIP: 0010:[<ffffffffa0267482>]  [<ffffffffa0267482>] uvc_video_clock_update+0x1d2/0x3b0 [uvcvideo]
+RSP: 0018:ffff880018741ac8  EFLAGS: 00010046
+RAX: 0000060d5419b0a3 RBX: ffff88003aba1800 RCX: 0000000008650000
+RDX: 0000000000000000 RSI: 0000000008650000 RDI: 000000003b9c96c9
+RBP: ffff880018741b98 R08: 000000003b9c96c9 R09: 0000000000000098
+R10: 0000000000000079 R11: 0000000000000000 R12: ffff880010fd9780
+R13: ffff880010fd9760 R14: 000000000bc1c40b R15: ffff88003aba1d50
+FS:  00007f2cf7e28840(0000) GS:ffff88003f280000(0000) knlGS:0000000000000000
+CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+CR2: 000000000229cf0c CR3: 0000000018724000 CR4: 00000000000006e0
+DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+Process kopete (pid: 1393, threadinfo ffff880018740000, task ffff880018641720)
+Stack:
+ ffff8800034772d0 0000000000000000 ffff880018741b28 ffff880021eaef80
+ ffff880018741b18 0000000000000000 ffff880016613900 0000000002f04820
+ 0000000000000000 0000000000000000 ffff880018741ea4 0000000000000000
+Call Trace:
+ [<ffffffff81191266>] ? do_sys_poll+0x416/0x500
+ [<ffffffffa0262f66>] uvc_buffer_finish+0x26/0x30 [uvcvideo]
+ [<ffffffffa023073a>] vb2_dqbuf+0x23a/0x3c0 [videobuf2_core]
+ [<ffffffff81290a74>] ? avc_has_perm_flags+0x74/0x90
+ [<ffffffff8160e7f6>] ? mutex_lock_interruptible+0x16/0x50
+ [<ffffffff815a14e4>] ? unix_stream_recvmsg+0x674/0x780
+ [<ffffffffa02632c8>] uvc_dequeue_buffer+0x48/0x70 [uvcvideo]
+ [<ffffffffa0264df4>] uvc_v4l2_do_ioctl+0xd64/0x1290 [uvcvideo]
+ [<ffffffffa02102d0>] video_usercopy+0x120/0x550 [videodev]
+ [<ffffffffa0264090>] ? uvc_v4l2_open+0x130/0x130 [uvcvideo]
+ [<ffffffff81290a74>] ? avc_has_perm_flags+0x74/0x90
+ [<ffffffffa02637e9>] uvc_v4l2_ioctl+0x29/0x70 [uvcvideo]
+ [<ffffffffa020f3db>] v4l2_ioctl+0xcb/0x160 [videodev]
+ [<ffffffff8118f018>] do_vfs_ioctl+0x98/0x550
+ [<ffffffff8118f561>] sys_ioctl+0x91/0xa0
+ [<ffffffff81618be9>] system_call_fastpath+0x16/0x1b
+Code: f2 48 89 45 a8 89 c8 41 89 cb 49 0f af d0 41 29 f3 48 69 c0 00 ca 9a 3b 48 29 d0 8d 97 00 36 65 c4 48 0f af 55 a8 48 01 d0 31 d2 <49> f7 f3 48 ba 53 5a 9b a0 2f b8 44 00 4d 8b 5c 24 08 49 89 c0 
+RIP  [<ffffffffa0267482>] uvc_video_clock_update+0x1d2/0x3b0 [uvcvideo]
+ RSP <ffff880018741ac8>
+---[ end trace d8809c0cd76234c6 ]---
+uvcvideo: Failed to resubmit video URB (-27).
+uvcvideo: Failed to resubmit video URB (-27).
+uvcvideo: Failed to resubmit video URB (-27).
+uvcvideo: Failed to resubmit video URB (-27).
+uvcvideo: Failed to resubmit video URB (-27).
