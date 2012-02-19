@@ -1,87 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:58651 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750943Ab2BVQ2b convert rfc822-to-8bit (ORCPT
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:45751 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754465Ab2BSQEZ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:28:31 -0500
+	Sun, 19 Feb 2012 11:04:25 -0500
+Received: by eaah12 with SMTP id h12so1911895eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Feb 2012 08:04:24 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <20120222162424.GE4872@phenom.ffwll.local>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com>
-	<1775349.d0yvHiVdjB@avalon>
-	<20120217095554.GA5511@phenom.ffwll.local>
-	<2168398.Pv8ir5xFGf@avalon>
-	<alpine.LFD.2.02.1202221559510.3721@casper.infradead.org>
-	<20120222162424.GE4872@phenom.ffwll.local>
-Date: Wed, 22 Feb 2012 10:28:30 -0600
-Message-ID: <CAF6AEGs5iNbZB5SOcGWkvQu4Yh98KbWWkWkv3mS_noA76utExw@mail.gmail.com>
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
- 2012 - Notes
-From: Rob Clark <rob@ti.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: James Simmons <jsimmons@infradead.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
+In-Reply-To: <CANMsd03DFeLKWCHYAyQmuiCsBwmXGisOmt7OrAvR0=RDrdh3RA@mail.gmail.com>
+References: <CANMsd02vLtdmrV-eHuBJ4SAc6PiYG8tw1+OvSXYAJ83zcoe7Hw@mail.gmail.com>
+	<2215470.hR2vMaHYCK@avalon>
+	<CANMsd03DFeLKWCHYAyQmuiCsBwmXGisOmt7OrAvR0=RDrdh3RA@mail.gmail.com>
+Date: Sun, 19 Feb 2012 21:34:24 +0530
+Message-ID: <CANMsd0272pwvdd35QJGpDJLH=MtMdXxHYygXdL_PSaPHpav2Xg@mail.gmail.com>
+Subject: Re: omap4 v4l media-ctl usage
+From: Ryan <ryanphilips19@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 22, 2012 at 10:24 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Wed, Feb 22, 2012 at 04:03:21PM +0000, James Simmons wrote:
->>
->> > > Imo we should ditch this - fb accel doesn't belong into the kernel. Even
->> > > on hw that still has a blitter for easy 2d accel without a complete 3d
->> > > state setup necessary, it's not worth it. Chris Wilson from our team once
->> > > played around with implementing fb accel in the kernel (i915 hw still has
->> > > a blitter engine in the latest generations). He quickly noticed that to
->> > > have decent speed, competitive with s/w rendering by the cpu he needs the
->> > > entire batch and buffer management stuff from userspace. And to really
->> > > beat the cpu, you need even more magic.
->> > >
->> > > If you want fast 2d accel, use something like cairo.
->> >
->> > Our conclusion on this is that we should not expose an explicit 2D
->> > acceleration API at the kernel level. If really needed, hardware 2D
->> > acceleration could be implemented as a DRM device to handle memory management,
->> > commands ring setup, synchronization, ... but I'm not even sure if that's
->> > worth it. I might not have conveyed it well in my notes.
->>
->> Fbcon scrolling at be painful at HD or better modes. Fbcon needs 3
->> possible accels; copyarea, imageblit, and fillrect. The first two could be
->> hooked from the TTM layer. Its something I plan to experiment to see if
->> its worth it.
+Hi Laurent,
+
+It actually blocks at VIDIOC_DQBUF ioctl and not in STREAMON ioctl.
+Looks like the data is not available.
+
+Any way of verifying if OMAP is receiving data. Wonder why i keep
+interrupts though?
+Is my media-ctl setting up things correctly?
+
+Thank you.
+
+Regards,
+Ryan
+
+
+On Sun, Feb 19, 2012 at 7:47 PM, Ryan <ryanphilips19@googlemail.com> wrote:
+> Hi Laurent,
 >
-> Let's bite into this ;-) I know that fbcon scrolling totally sucks on big
-> screens, but I also think it's a total waste of time to fix this. Imo
-> fbcon has 2 use-cases:
-> - display an OOSP.
-> - allow me to run fsck (or any other desaster-recovery stuff).
+> On Sun, Feb 19, 2012 at 2:27 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Ryan,
+>>
+>> On Saturday 18 February 2012 20:59:57 Ryan wrote:
+>>> hello,
+>>> I am using media-ctl on the panda board. The sensor gets detected. But
+>>> media-ctl doesnt print anything.
+>>> The kernel is cloned from omap4 v4l git tree: commit id:
+>>> 3bc023462a68f78bb0273848f5ab08a01b434ffa
+>>>
+>>> what could be wrong in here?
+>>>
+>>> ~ # ./media-ctl -p
+>>> Opening media device /dev/media0
+>>> Enumerating entities
+>>> Found 0 entities
+>>> Enumerating pads and links
+>>> Device topology
+>>>
+>>> What steps i need to follow get output from sensor in terms of
+>>> arguments to media-ctl and yavta.
+>>
+>> Could you please first make sure that media-ctl has be compiled against header
+>> files from the kernel running on your board ?
+>>
 >
-> It can do that quite fine already.
-
-and for just fbcon scrolling, if you really wanted to you could
-implement it by just shuffling pages around in a GART..
-
-(although, someone, *please* re-write fbcon)
-
-BR,
--R
-
-> Flamy yours, Daniel
-> --
-> Daniel Vetter
-> Mail: daniel@ffwll.ch
-> Mobile: +41 (0)79 365 57 48
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Thank you, That did the trick, Now i am able to run media-ctl. I am
+> trying to capture YUV422.
+> When i run yavta, It blocks infinitely at STREAM ON, I see that the
+> ISS interrupts keeps incrementing.
+> Am i missing something?
+>
+> #yavta /dev/video0  -n1 -c5 -s640x480 -fUYVY -Ftest.yuv
+> Device /dev/video0 opened: OMAP4 ISS CSI2a output (media).
+> Video format set: width: 640 height: 480 buffer size: 614400
+> Video format: UYVY (59565955) 640x480
+> 1 buffers requested.
+> length: 614400 offset: 0
+> Buffer 0 mapped at address 0x4028e000.
+> [  577.605590] Enable STREAM ON>..
+>
+>
+> After configuring using the media-ctl, This is how my device topology
+> looks like:
+> Is this okay?
+>
+> Device topology
+> - entity 1: OMAP4 ISS CSI2a (2 pads, 2 links)
+>            type V4L2 subdev subtype Unknown
+>            device node name /dev/v4l-subdev0
+>        pad0: Sink [UYVY 640x480]
+>                <- "ov5640 3-0036":0 [ENABLED,IMMUTABLE]
+>        pad1: Source [UYVY 640x480]
+>                -> "OMAP4 ISS CSI2a output":0 [ENABLED]
+>
+> - entity 2: OMAP4 ISS CSI2a output (1 pad, 1 link)
+>            type Node subtype V4L
+>            device node name /dev/video0
+>        pad0: Sink
+>                <- "OMAP4 ISS CSI2a":1 [ENABLED]
+>
+> - entity 3: ov5640 3-0036 (1 pad, 1 link)
+>            type V4L2 subdev subtype Unknown
+>            device node name /dev/v4l-subdev1
+>        pad0: Source [UYVY 640x480]
+>                -> "OMAP4 ISS CSI2a":0 [ENABLED,IMMUTABLE]
+>
+>
+>
+> Thank you,
+>
+> Regards,
+> Ryan
+>
+>
+>> --
+>> Regards,
+>>
+>> Laurent Pinchart
