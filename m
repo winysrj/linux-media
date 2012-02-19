@@ -1,98 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.47]:43158 "EHLO mgw-sa01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754226Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 18:55:03 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v2 05/31] v4l: Support s_crop and g_crop through s/g_selection
-Date: Fri,  3 Feb 2012 01:54:25 +0200
-Message-Id: <1328226891-8968-5-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
-References: <20120202235231.GC841@valkosipuli.localdomain>
+Received: from mail-ey0-f174.google.com ([209.85.215.174]:33299 "EHLO
+	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753898Ab2BSORD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 09:17:03 -0500
+Received: by eaah12 with SMTP id h12so1890585eaa.19
+        for <linux-media@vger.kernel.org>; Sun, 19 Feb 2012 06:17:01 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <2215470.hR2vMaHYCK@avalon>
+References: <CANMsd02vLtdmrV-eHuBJ4SAc6PiYG8tw1+OvSXYAJ83zcoe7Hw@mail.gmail.com>
+	<2215470.hR2vMaHYCK@avalon>
+Date: Sun, 19 Feb 2012 19:47:01 +0530
+Message-ID: <CANMsd03DFeLKWCHYAyQmuiCsBwmXGisOmt7OrAvR0=RDrdh3RA@mail.gmail.com>
+Subject: Re: omap4 v4l media-ctl usage
+From: Ryan <ryanphilips19@googlemail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Fall back to s_selection if s_crop isn't implemented by a driver. Same for
-g_selection / g_crop.
+Hi Laurent,
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/v4l2-subdev.c |   37 +++++++++++++++++++++++++++++++++++--
- 1 files changed, 35 insertions(+), 2 deletions(-)
+On Sun, Feb 19, 2012 at 2:27 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Ryan,
+>
+> On Saturday 18 February 2012 20:59:57 Ryan wrote:
+>> hello,
+>> I am using media-ctl on the panda board. The sensor gets detected. But
+>> media-ctl doesnt print anything.
+>> The kernel is cloned from omap4 v4l git tree: commit id:
+>> 3bc023462a68f78bb0273848f5ab08a01b434ffa
+>>
+>> what could be wrong in here?
+>>
+>> ~ # ./media-ctl -p
+>> Opening media device /dev/media0
+>> Enumerating entities
+>> Found 0 entities
+>> Enumerating pads and links
+>> Device topology
+>>
+>> What steps i need to follow get output from sensor in terms of
+>> arguments to media-ctl and yavta.
+>
+> Could you please first make sure that media-ctl has be compiled against header
+> files from the kernel running on your board ?
+>
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 6bc5039..2c8d467 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -220,6 +220,8 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 
- 	case VIDIOC_SUBDEV_G_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
-+		struct v4l2_subdev_selection sel;
-+		int rval;
- 
- 		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
- 		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-@@ -228,11 +230,27 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (crop->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
--		return v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+		rval = v4l2_subdev_call(sd, pad, get_crop, subdev_fh, crop);
-+		if (rval != -ENOIOCTLCMD)
-+			return rval;
-+
-+		memset(&sel, 0, sizeof(sel));
-+		sel.which = crop->which;
-+		sel.pad = crop->pad;
-+		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
-+
-+		rval = v4l2_subdev_call(
-+			sd, pad, get_selection, subdev_fh, &sel);
-+
-+		crop->rect = sel.r;
-+
-+		return rval;
- 	}
- 
- 	case VIDIOC_SUBDEV_S_CROP: {
- 		struct v4l2_subdev_crop *crop = arg;
-+		struct v4l2_subdev_selection sel;
-+		int rval;
- 
- 		if (crop->which != V4L2_SUBDEV_FORMAT_TRY &&
- 		    crop->which != V4L2_SUBDEV_FORMAT_ACTIVE)
-@@ -241,7 +259,22 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		if (crop->pad >= sd->entity.num_pads)
- 			return -EINVAL;
- 
--		return v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+		rval = v4l2_subdev_call(sd, pad, set_crop, subdev_fh, crop);
-+		if (rval != -ENOIOCTLCMD)
-+			return rval;
-+
-+		memset(&sel, 0, sizeof(sel));
-+		sel.which = crop->which;
-+		sel.pad = crop->pad;
-+		sel.target = V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE;
-+		sel.r = crop->rect;
-+
-+		rval = v4l2_subdev_call(
-+			sd, pad, set_selection, subdev_fh, &sel);
-+
-+		crop->rect = sel.r;
-+
-+		return rval;
- 	}
- 
- 	case VIDIOC_SUBDEV_ENUM_MBUS_CODE: {
--- 
-1.7.2.5
+Thank you, That did the trick, Now i am able to run media-ctl. I am
+trying to capture YUV422.
+When i run yavta, It blocks infinitely at STREAM ON, I see that the
+ISS interrupts keeps incrementing.
+Am i missing something?
 
+#yavta /dev/video0  -n1 -c5 -s640x480 -fUYVY -Ftest.yuv
+Device /dev/video0 opened: OMAP4 ISS CSI2a output (media).
+Video format set: width: 640 height: 480 buffer size: 614400
+Video format: UYVY (59565955) 640x480
+1 buffers requested.
+length: 614400 offset: 0
+Buffer 0 mapped at address 0x4028e000.
+[  577.605590] Enable STREAM ON>..
+
+
+After configuring using the media-ctl, This is how my device topology
+looks like:
+Is this okay?
+
+Device topology
+- entity 1: OMAP4 ISS CSI2a (2 pads, 2 links)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev0
+        pad0: Sink [UYVY 640x480]
+                <- "ov5640 3-0036":0 [ENABLED,IMMUTABLE]
+        pad1: Source [UYVY 640x480]
+                -> "OMAP4 ISS CSI2a output":0 [ENABLED]
+
+- entity 2: OMAP4 ISS CSI2a output (1 pad, 1 link)
+            type Node subtype V4L
+            device node name /dev/video0
+        pad0: Sink
+                <- "OMAP4 ISS CSI2a":1 [ENABLED]
+
+- entity 3: ov5640 3-0036 (1 pad, 1 link)
+            type V4L2 subdev subtype Unknown
+            device node name /dev/v4l-subdev1
+        pad0: Source [UYVY 640x480]
+                -> "OMAP4 ISS CSI2a":0 [ENABLED,IMMUTABLE]
+
+
+
+Thank you,
+
+Regards,
+Ryan
+
+
+> --
+> Regards,
+>
+> Laurent Pinchart
