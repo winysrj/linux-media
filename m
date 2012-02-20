@@ -1,195 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:22204 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754175Ab2BDUXm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 4 Feb 2012 15:23:42 -0500
-Message-ID: <4F2D93BA.7070703@iki.fi>
-Date: Sat, 04 Feb 2012 22:23:22 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.171]:49607 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752146Ab2BTSRQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Feb 2012 13:17:16 -0500
+Date: Mon, 20 Feb 2012 19:17:14 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Fabio Estevam <festevam@gmail.com>
+cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	kernel@pengutronix.de, Fabio Estevam <fabio.estevam@freescale.com>
+Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
+In-Reply-To: <1329761467-14417-1-git-send-email-festevam@gmail.com>
+Message-ID: <Pine.LNX.4.64.1202201916410.2836@axis700.grange>
+References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <snjw23@gmail.com>
-CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	dacohen@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: Re: [PATCH v2 09/31] v4l: Image source control class
-References: <20120202235231.GC841@valkosipuli.localdomain> <1328226891-8968-9-git-send-email-sakari.ailus@iki.fi> <4F2D7C28.6010909@gmail.com>
-In-Reply-To: <4F2D7C28.6010909@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Mon, 20 Feb 2012, Fabio Estevam wrote:
 
-Thanks for the review!
+> Align mx3_camera driver with the other soc camera driver implementations
+> by allocating the camera object via kzalloc.
 
-Sylwester Nawrocki wrote:
-> On 02/03/2012 12:54 AM, Sakari Ailus wrote:
->> Add image source control class. This control class is intended to contain
->> low level controls which deal with control of the image capture process ---
->> the A/D converter in image sensors, for example.
->>
->> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
->> ---
->>   Documentation/DocBook/media/v4l/controls.xml       |   86 ++++++++++++++++++++
->>   .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 ++
->>   drivers/media/video/v4l2-ctrls.c                   |    7 ++
->>   include/linux/videodev2.h                          |    9 ++
->>   4 files changed, 108 insertions(+), 0 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
->> index a1be378..6842e80 100644
->> --- a/Documentation/DocBook/media/v4l/controls.xml
->> +++ b/Documentation/DocBook/media/v4l/controls.xml
->> @@ -3379,4 +3379,90 @@ interface and may change in the future.</para>
->>         </table>
->>
->>       </section>
->> +
->> +<section id="image-source-controls">
->> +<title>Image Source Control Reference</title>
->> +
->> +<note>
->> +	<title>Experimental</title>
->> +
->> +	<para>This is an<link
->> +	linkend="experimental">experimental</link>  interface and may
->> +	change in the future.</para>
->> +</note>
->> +
->> +<para>
->> +	The Image Source control class is intended for low-level
->> +	control of image source devices such as image sensors. The
->> +	devices feature an analogue to digital converter and a bus
->> +	transmitter to transmit the image data out of the device.
->> +</para>
->> +
->> +<table pgwide="1" frame="none" id="image-source-control-id">
->> +<title>Image Source Control IDs</title>
->> +
->> +<tgroup cols="4">
->> +	<colspec colname="c1" colwidth="1*" />
->> +	<colspec colname="c2" colwidth="6*" />
->> +	<colspec colname="c3" colwidth="2*" />
->> +	<colspec colname="c4" colwidth="6*" />
->> +	<spanspec namest="c1" nameend="c2" spanname="id" />
->> +	<spanspec namest="c2" nameend="c4" spanname="descr" />
->> +	<thead>
->> +	<row>
->> +	<entry spanname="id" align="left">ID</entry>
->> +	<entry align="left">Type</entry>
->> +	</row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
->> +	</row>
->> +	</thead>
->> +	<tbody valign="top">
->> +	<row><entry></entry></row>
->> +	<row>
->> +	<entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry>
->> +	<entry>class</entry>
->> +	</row>
->> +	<row>
->> +	<entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
->> +	</row>
->> +	<row>
->> +	<entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_VBLANK</constant></entry>
->> +	<entry>integer</entry>
->> +	</row>
->> +	<row>
->> +	<entry spanname="descr">Vertical blanking. The idle
->> +	    preriod after every frame during which no image data is
->> +	    produced. The unit of vertical blanking is a line. Every
->> +	    line has length of the image width plus horizontal
->> +	    blanking at the pixel clock specified by struct
->> +	    v4l2_mbus_framefmt<xref linkend="v4l2-mbus-framefmt"
+Sorry, any specific reason, why you think this "aligning" is so important? 
+I personally don't see any.
+
+Thanks
+Guennadi
+
 > 
-> The pixel clock is no longer specified by struct v4l2_mbus_framefmt, it's
-> now determined by V4L2_CID_IMAGE_PROC_LINK_FREQ controls, right ?
-
-I've had so many references to the pixel rate in the media bus frame
-format that it was inevitable some must have been left. :-o
-
-The V4L2_CID_IMAGE_PROC_PIXEL_RATE control will replace this.
-
-> When you drop the class name from the control names, it is perhaps better
-> to just use V4L2_CID_LINK_FREQUENCY name.
-
-I'll do that to the next patch.set.
-
->> +	    />.</entry>
->> +	</row>
->> +	<row>
->> +	<entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_HBLANK</constant></entry>
->> +	<entry>integer</entry>
->> +	</row>
->> +	<row>
->> +	<entry spanname="descr">Horizontal blanking. The idle
->> +	    preriod after every line of image data during which no
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+> ---
+>  drivers/media/video/mx3_camera.c |    2 +-
+>  1 files changed, 1 insertions(+), 1 deletions(-)
 > 
-> s/preriod/period
-
-Fixed.
-
->> +	    image data is produced. The unit of horizontal blanking is
->> +	    pixels.</entry>
->> +	</row>
->> +	<row>
->> +	<entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN</constant></entry>
->> +	<entry>integer</entry>
->> +	</row>
->> +	<row>
->> +	<entry spanname="descr">Analogue gain is gain affecting
->> +	    all colour components in the pixel matrix. The gain
->> +	    operation is performed in the analogue domain before A/D
->> +	    conversion.
->> +	</entry>
->> +	</row>
->> +	<row><entry></entry></row>
->> +	</tbody>
->> +</tgroup>
->> +</table>
->> +
->> +</section>
->> +
->>   </section>
->> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
->> index b17a7aa..f420034 100644
->> --- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
->> +++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
->> @@ -265,6 +265,12 @@ These controls are described in<xref
->>   These controls are described in<xref
->>   		linkend="flash-controls" />.</entry>
->>   	</row>
->> +	<row>
->> +	<entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
->> +	<entry>0x9d0000</entry>  <entry>The class containing image
->> +	    source controls. These controls are described in<xref
->> +	    linkend="image-source-controls" />.</entry>
->> +	</row>
->>   	</tbody>
->>         </tgroup>
->>       </table>
->> diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
->> index 139ba42..37249b7 100644
->> --- a/drivers/media/video/v4l2-ctrls.c
->> +++ b/drivers/media/video/v4l2-ctrls.c
->> @@ -607,6 +607,12 @@ const char *v4l2_ctrl_get_name(u32 id)
->>   	case V4L2_CID_FLASH_CHARGE:		return "Charge";
->>   	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
->>
->> +	/* Image source controls */
->> +	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image source controls";
->> +	case V4L2_CID_IMAGE_SOURCE_VBLANK:	return "Vertical blanking";
->> +	case V4L2_CID_IMAGE_SOURCE_HBLANK:	return "Horizontal blanking";
->> +	case V4L2_CID_IMAGE_SOURCE_ANALOGUE_GAIN: return "Analogue gain";
+> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
+> index 7452277..cccd574 100644
+> --- a/drivers/media/video/mx3_camera.c
+> +++ b/drivers/media/video/mx3_camera.c
+> @@ -1159,7 +1159,7 @@ static int __devinit mx3_camera_probe(struct platform_device *pdev)
+>  		goto egetres;
+>  	}
+>  
+> -	mx3_cam = vzalloc(sizeof(*mx3_cam));
+> +	mx3_cam = kzalloc(sizeof(*mx3_cam), GFP_KERNEL);
+>  	if (!mx3_cam) {
+>  		dev_err(&pdev->dev, "Could not allocate mx3 camera object\n");
+>  		err = -ENOMEM;
+> -- 
+> 1.7.1
 > 
-> All words in control descriptions need to be capitalized. :-)
 
-Fixed.
-
-Kind regards,
-
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
