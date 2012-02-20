@@ -1,59 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:58100 "EHLO mail.kapsi.fi"
+Received: from smtp.nokia.com ([147.243.128.24]:30476 "EHLO mgw-da01.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754843Ab2BKPdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Feb 2012 10:33:08 -0500
-Message-ID: <4F368A31.7010607@iki.fi>
-Date: Sat, 11 Feb 2012 17:33:05 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Alistair Buxton <a.j.buxton@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	=?ISO-8859-1?Q?Daniel_Gl=F6ckner?= <daniel-gl@gmx.net>
-Subject: Re: SDR FM demodulation
-References: <4F33DFB8.4080702@iki.fi> <CAO-Op+Fn0AxiqD4367O7H7AziR4g2vnFCMtsVcu1iRvf6P5iYw@mail.gmail.com> <4F36632A.3010700@iki.fi> <20120211151548.GA23806@minime.bse>
-In-Reply-To: <20120211151548.GA23806@minime.bse>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	id S1753438Ab2BTB7t (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:59:49 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 28/33] omap3isp: Move setting constaints above media_entity_pipeline_start
+Date: Mon, 20 Feb 2012 03:57:07 +0200
+Message-Id: <1329703032-31314-28-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.02.2012 17:15, Daniel Glöckner wrote:
-> All in all, I don't think there can be one API that fits all devices
-> without limiting their functionality. Maybe a UVC or LabVIEW like interface
-> with blocks for tuners, ADCs, decimators, DMA sinks, etc. is suitable,
-> but then applications will end up being tailored to a small number
-> of topologies or require manual configuration. For most people the
-> only use would probably be to listen to FM radio.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispvideo.c |   11 +++++------
+ 1 files changed, 5 insertions(+), 6 deletions(-)
 
-For me I would like to see that more interesting SDR than FM radio :)
-I should look how famous USRP/USRP2 are connected to the GNU Radio and 
-maybe try similar approach. I think it is userspace interface but it 
-fits fine. It is always possible load device us normal Kernel driven 
-DVB-T and if user like to use it as SDR then user should blacklist just 
-kernel driver.
-
-I opened my device and there is Elonics E4000 [1] silicon tuner. That 
-tuner seems to be a little crazy beast! Supports frequencies from 64 to 
-1678 MHz and very many modulations. So for my eyes it is almost idea 
-cheap SDR. No idea what is supported max bw ADC can sample...
-
-DVB-T (174-240MHz, 470-854MHz)
-ISDB-T (470-862MHz)
-DVB-H (470-854MHz, 1672-1678MHz)
-CMMB (470-862MHz)
-D-TMB (470-862MHz)
-T-DMB (174-240MHz, 1452-1492MHz)
-DAB (174-240MHz, 1452-1492MHz)
-MediaFLO (470-862, 1452-1492MHz)
-GPS L1 band (1575MHz)
-FM radio (64-108MHz)
-
-
-[1] http://www.elonics.com/product.do?id=1
-
-
-regards
-Antti
+diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
+index f1c68ca..2e4786d 100644
+--- a/drivers/media/video/omap3isp/ispvideo.c
++++ b/drivers/media/video/omap3isp/ispvideo.c
+@@ -304,8 +304,6 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+ 	struct v4l2_subdev *subdev;
+ 	int ret;
+ 
+-	pipe->max_rate = pipe->l3_ick;
+-
+ 	subdev = isp_video_remote_subdev(pipe->output, NULL);
+ 	if (subdev == NULL)
+ 		return -EPIPE;
+@@ -997,6 +995,11 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 	pipe->external_rate = 0;
+ 	pipe->external_bpp = 0;
+ 
++	if (video->isp->pdata->set_constraints)
++		video->isp->pdata->set_constraints(video->isp, true);
++	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
++	pipe->max_rate = pipe->l3_ick;
++
+ 	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+ 	if (ret < 0)
+ 		goto err_media_entity_pipeline_start;
+@@ -1031,10 +1034,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
+ 		pipe->output = far_end;
+ 	}
+ 
+-	if (video->isp->pdata->set_constraints)
+-		video->isp->pdata->set_constraints(video->isp, true);
+-	pipe->l3_ick = clk_get_rate(video->isp->clock[ISP_CLK_L3_ICK]);
+-
+ 	/* Validate the pipeline and update its state. */
+ 	ret = isp_video_validate_pipeline(pipe);
+ 	if (ret < 0)
 -- 
-http://palosaari.fi/
+1.7.2.5
+
