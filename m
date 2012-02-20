@@ -1,54 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:49413 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751760Ab2BTAS2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 19:18:28 -0500
-Received: by eekc14 with SMTP id c14so2067553eek.19
-        for <linux-media@vger.kernel.org>; Sun, 19 Feb 2012 16:18:27 -0800 (PST)
-Message-ID: <4F419151.40907@gmail.com>
-Date: Mon, 20 Feb 2012 01:18:25 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] em28xx: pre-allocate DVB isoc transfer buffers
-References: <1329155962-22896-1-git-send-email-gennarone@gmail.com> <4F4189EB.6020202@yahoo.com>
-In-Reply-To: <4F4189EB.6020202@yahoo.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from smtp.nokia.com ([147.243.128.26]:63805 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751690Ab2BTB5v (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:57:51 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 03/33] vivi: Add an integer menu test control
+Date: Mon, 20 Feb 2012 03:56:42 +0200
+Message-Id: <1329703032-31314-3-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 20/02/2012 00:46, Chris Rankin ha scritto:
-> Gianluca,
-> 
-> One quick comment about your patch; I've noticed that you've declared
-> two new "GPL only" symbols:
-> 
-> EXPORT_SYMBOL_GPL(em28xx_capture_start);
-> EXPORT_SYMBOL_GPL(em28xx_alloc_isoc);
-> 
-> I'm not sure what the exact policy is with GPL symbols, but I do know
-> what Al Viro posted recently on the subject:
-> 
-> http://thread.gmane.org/gmane.linux.file-systems/61372
-> 
-> Do we really need EXPORT_SYMBOL_GPL() here?
-> 
-> Cheers,
-> Chris
-> 
+Add an integer menu test control for the vivi driver.
 
-Hi Chris,
-thanks for the comment.
-The two new symbols are used in place of the old em28xx_init_isoc and
-em28xx_uninit_isoc in two different modules (em28xx and em28xx-dvb).
-Since the old symbols are exported through EXPORT_SYMBOL_GPL(), I did
-the same with the new ones.
-This choice should not break any non-GPL module, as this symbols are
-meant to be used only in the em28xx* modules, just like the old ones.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/vivi.c |   22 ++++++++++++++++++++++
+ 1 files changed, 22 insertions(+), 0 deletions(-)
 
-Regards,
-Gianluca
+diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
+index 5e8b071..d75a1e4 100644
+--- a/drivers/media/video/vivi.c
++++ b/drivers/media/video/vivi.c
+@@ -177,6 +177,7 @@ struct vivi_dev {
+ 	struct v4l2_ctrl	   *menu;
+ 	struct v4l2_ctrl	   *string;
+ 	struct v4l2_ctrl	   *bitmask;
++	struct v4l2_ctrl	   *int_menu;
+ 
+ 	spinlock_t                 slock;
+ 	struct mutex		   mutex;
+@@ -503,6 +504,10 @@ static void vivi_fillbuff(struct vivi_dev *dev, struct vivi_buffer *buf)
+ 			dev->boolean->cur.val,
+ 			dev->menu->qmenu[dev->menu->cur.val],
+ 			dev->string->cur.string);
++	snprintf(str, sizeof(str), " integer_menu %lld, value %d ",
++			dev->int_menu->qmenu_int[dev->int_menu->cur.val],
++			dev->int_menu->cur.val);
++	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	mutex_unlock(&dev->ctrl_handler.lock);
+ 	gen_text(dev, vbuf, line++ * 16, 16, str);
+ 	if (dev->button_pressed) {
+@@ -1165,6 +1170,22 @@ static const struct v4l2_ctrl_config vivi_ctrl_bitmask = {
+ 	.step = 0,
+ };
+ 
++static const s64 vivi_ctrl_int_menu_values[] = {
++	1, 1, 2, 3, 5, 8, 13, 21, 42,
++};
++
++static const struct v4l2_ctrl_config vivi_ctrl_int_menu = {
++	.ops = &vivi_ctrl_ops,
++	.id = VIVI_CID_CUSTOM_BASE + 7,
++	.name = "Integer menu",
++	.type = V4L2_CTRL_TYPE_INTEGER_MENU,
++	.min = 1,
++	.max = 8,
++	.def = 4,
++	.menu_skip_mask = 0x02,
++	.qmenu_int = vivi_ctrl_int_menu_values,
++};
++
+ static const struct v4l2_file_operations vivi_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open           = v4l2_fh_open,
+@@ -1275,6 +1296,7 @@ static int __init vivi_create_instance(int inst)
+ 	dev->menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_menu, NULL);
+ 	dev->string = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_string, NULL);
+ 	dev->bitmask = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_bitmask, NULL);
++	dev->int_menu = v4l2_ctrl_new_custom(hdl, &vivi_ctrl_int_menu, NULL);
+ 	if (hdl->error) {
+ 		ret = hdl->error;
+ 		goto unreg_dev;
+-- 
+1.7.2.5
+
