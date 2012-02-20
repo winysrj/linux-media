@@ -1,57 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:56514 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756517Ab2BMNwL (ORCPT
+Received: from mx3-phx2.redhat.com ([209.132.183.24]:37966 "EHLO
+	mx3-phx2.redhat.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753761Ab2BTQTY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 08:52:11 -0500
-Received: by mail-we0-f174.google.com with SMTP id b13so3480142wer.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 05:52:10 -0800 (PST)
+	Mon, 20 Feb 2012 11:19:24 -0500
+Date: Mon, 20 Feb 2012 11:19:09 -0500 (EST)
+From: David Airlie <airlied@redhat.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-fbdev@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	dri-devel@lists.freedesktop.org,
+	Alexander Deucher <alexander.deucher@amd.com>,
+	Rob Clark <rob@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org, Daniel Vetter <daniel@ffwll.ch>
+Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC	2012 - Notes
+Message-ID: <23a20eb7-2ce0-447a-a991-100dfaeb8571@zmail16.collab.prod.int.phx2.redhat.com>
+In-Reply-To: <Pine.LNX.4.64.1202201633100.2836@axis700.grange>
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 MIME-Version: 1.0
-From: Javier Martin <javier.martin@vista-silicon.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
-	s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 3/6] media: i.MX27 camera: Use spin_lock() inside the IRQ handler.
-Date: Mon, 13 Feb 2012 14:51:52 +0100
-Message-Id: <1329141115-23133-4-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We don't need to use spin_lock_irqsave() since there are not
-any other IRQs that can race with this ISR.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |    5 ++---
- 1 files changed, 2 insertions(+), 3 deletions(-)
+> 
+> I'm certainly absolutely in favour of creating a common EDID parser,
+> and
+> the DRM/KMS implementation might indeed be the most complete /
+> advanced
+> one, but at least back in 2010 as I was working on the sh-mobile HDMI
+> driver, some functinality was still missing there, which I had to add
+> to
+> fbdev independently. Unless those features have been added to DRM /
+> KMS
+> since then you might want to use the fbdev version. See
+> 
+> http://thread.gmane.org/gmane.linux.ports.arm.omap/55193/focus=55337
+> 
+> as well as possibly some other discussions from that period
+> 
+> http://marc.info/?l=linux-fbdev&r=1&b=201010&w=4
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 13be305..34b43a4 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -1296,9 +1296,8 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
- 	struct mx2_camera_dev *pcdev = data;
- 	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
- 	struct mx2_buffer *buf;
--	unsigned long flags;
- 
--	spin_lock_irqsave(&pcdev->lock, flags);
-+	spin_lock(&pcdev->lock);
- 
- 	if (list_empty(&pcdev->active_bufs)) {
- 		dev_warn(pcdev->dev, "%s: called while active list is empty\n",
-@@ -1329,7 +1328,7 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
- 	}
- 
- irq_ok:
--	spin_unlock_irqrestore(&pcdev->lock, flags);
-+	spin_unlock(&pcdev->lock);
- 	writel(status, pcdev->base_emma + PRP_INTRSTATUS);
- 
- 	return IRQ_HANDLED;
--- 
-1.7.0.4
+One feature missing from the drm EDID parser doesn't mean the fbdev one is better in all cases.
 
+Whoever takes over the merging process will have to check for missing bits anyways to avoid regressions.
+
+> > 
+> > I think we should include kernel cmdline video mode parsing here,
+> > afaik
+> > kms and fbdev are rather similar (won't work if they're too
+> > different,
+> > obviously).
+> 
+> This has been a pretty hot discussion topic wrt sh-mobile LCDC / HDMI
+> too:-) The goal was to (1) take into account driver's capabilities:
+> not
+> all standard HDMI modes were working properly, (2) use EDID data, (3)
+> give
+> the user a chance to select a specific mode. Also here a generic
+> solution
+> would be very welcome, without breaking existing configurations, of
+> course:)
+
+The reason the drm has a more enhanced command line parser is to allow
+for multiple devices otherwise it should parse mostly the same I thought
+I based the drm one directly on the fbdev one + connector specifiers.
+
+Dave.
