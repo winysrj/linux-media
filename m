@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:45103 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750847Ab2BDPi5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 10:38:57 -0500
-Received: by eekc14 with SMTP id c14so1547199eek.19
-        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 07:38:56 -0800 (PST)
-Message-ID: <4F2D510A.1040503@gmail.com>
-Date: Sat, 04 Feb 2012 16:38:50 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [Q] Interleaved formats on the media bus
-References: <4F27CF29.5090905@samsung.com> <4F2924F8.3040408@samsung.com> <4F2D14ED.8080105@iki.fi> <3142039.4Ht9bV5jFQ@avalon>
-In-Reply-To: <3142039.4Ht9bV5jFQ@avalon>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:9627 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752514Ab2BTJdq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Feb 2012 04:33:46 -0500
+Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
+ by mailout1.w1.samsung.com
+ (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
+ with ESMTP id <0LZO004T4QK7MF@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Feb 2012 09:33:43 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZO00K2WQK7UR@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Feb 2012 09:33:43 +0000 (GMT)
+Date: Mon, 20 Feb 2012 10:33:32 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 1/3] s5k6aa: Make subdev name independent of the I2C slave
+ address
+In-reply-to: <1329730414-7757-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1329730414-7757-2-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329730414-7757-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Initialize the subdev name properly so it doesn't have an I2C
+bus and slave address appended to it.
 
-On 02/04/2012 12:30 PM, Laurent Pinchart wrote:
->> I'd be much in favour or using a separate channel ID as Guennadi asked;
->> that way you could quite probably save one memory copy as well. But if
->> the hardware already exists and behaves badly there's usually not much
->> you can do about it.
-> 
-> If I'm not mistaken, the sensor doesn't send data in separate channels but
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/s5k6aa.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-I suspect it might be sending data on separate virtual channels, but the
-bridge won't understand that and will just return one data plane in memory.
-The sensor might well send the data in one channel, I don't know myself yet.
+diff --git a/drivers/media/video/s5k6aa.c b/drivers/media/video/s5k6aa.c
+index 0df7f2a..68df8d5 100644
+--- a/drivers/media/video/s5k6aa.c
++++ b/drivers/media/video/s5k6aa.c
+@@ -1582,8 +1582,8 @@ static int s5k6aa_probe(struct i2c_client *client,
+ 	s5k6aa->inv_vflip = pdata->vert_flip;
+ 
+ 	sd = &s5k6aa->sd;
+-	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+ 	v4l2_i2c_subdev_init(sd, client, &s5k6aa_subdev_ops);
++	strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+ 
+ 	sd->internal_ops = &s5k6aa_subdev_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-- 
+1.7.9
 
-In either case we end up with a mixed data in memory, that must be parsed,
-which is likely best done in the user space.
-Also please see my previous answer to Sakari, there is some more details
-there.
-
-> interleaves them in a single channel (possibly with headers or fixed-size
-> packets - Sylwester, could you comment on that ?). That makes it pretty
-> difficult to do anything else than pass-through capture.
-
-I'm not entirely sure the sensor doesn't send the data in separate virtual
-channels. Certainly the bridge cannot DMA each channel into separate memory
-buffers.
-
---
-
-Regards,
-Sylwester
