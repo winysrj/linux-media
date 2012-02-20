@@ -1,115 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:53202 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119Ab2BQTen (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 14:34:43 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 17 Feb 2012 20:30:31 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv22 11/16] mm: extract reclaim code from
- __alloc_pages_direct_reclaim()
-In-reply-to: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329507036-24362-12-git-send-email-m.szyprowski@samsung.com>
-References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
+Received: from smtp.nokia.com ([147.243.1.48]:59657 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753212Ab2BTB7o (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:59:44 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 27/33] omap3isp: Implement proper CCDC link validation, check pixel rate
+Date: Mon, 20 Feb 2012 03:57:06 +0200
+Message-Id: <1329703032-31314-27-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch extracts common reclaim code from __alloc_pages_direct_reclaim()
-function to separate function: __perform_reclaim() which can be later used
-by alloc_contig_range().
+Implement correct link validation for the CCDC. Use external_rate from
+isp_pipeline to configurat vp divisor and check that external_rate does not
+exceed our data rate limitations.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- mm/page_alloc.c |   30 +++++++++++++++++++++---------
- 1 files changed, 21 insertions(+), 9 deletions(-)
+ drivers/media/video/omap3isp/ispccdc.c |   69 +++++++++++++++++++++++++++++--
+ 1 files changed, 64 insertions(+), 5 deletions(-)
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 444e3fd..e42b4a3 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -2092,16 +2092,13 @@ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+diff --git a/drivers/media/video/omap3isp/ispccdc.c b/drivers/media/video/omap3isp/ispccdc.c
+index 6aff241..1555891 100644
+--- a/drivers/media/video/omap3isp/ispccdc.c
++++ b/drivers/media/video/omap3isp/ispccdc.c
+@@ -836,8 +836,8 @@ static void ccdc_config_vp(struct isp_ccdc_device *ccdc)
+ 
+ 	if (pipe->input)
+ 		div = DIV_ROUND_UP(l3_ick, pipe->max_rate);
+-	else if (ccdc->vpcfg.pixelclk)
+-		div = l3_ick / ccdc->vpcfg.pixelclk;
++	else if (pipe->external_rate)
++		div = l3_ick / pipe->external_rate;
+ 
+ 	div = clamp(div, 2U, max_div);
+ 	fmtcfg_vp |= (div - 2) << ISPCCDC_FMTCFG_VPIF_FRQ_SHIFT;
+@@ -1749,7 +1749,18 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
+ 	}
+ 
+ 	switch (enable) {
+-	case ISP_PIPELINE_STREAM_CONTINUOUS:
++	case ISP_PIPELINE_STREAM_CONTINUOUS: {
++		struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
++		unsigned int rate = UINT_MAX;
++
++		/*
++		 * Check that maximum allowed rate isn't exceeded by
++		 * the pixel rate.
++		 */
++		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
++		if (pipe->external_rate > rate)
++			return -ENOSPC;
++
+ 		if (ccdc->output & CCDC_OUTPUT_MEMORY)
+ 			omap3isp_sbl_enable(isp, OMAP3_ISP_SBL_CCDC_WRITE);
+ 
+@@ -1758,6 +1769,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int enable)
+ 
+ 		ccdc->underrun = 0;
+ 		break;
++	}
+ 
+ 	case ISP_PIPELINE_STREAM_SINGLESHOT:
+ 		if (ccdc->output & CCDC_OUTPUT_MEMORY &&
+@@ -1999,6 +2011,37 @@ static int ccdc_set_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	return 0;
  }
- #endif /* CONFIG_COMPACTION */
  
--/* The really slow allocator path where we enter direct reclaim */
--static inline struct page *
--__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int migratetype, unsigned long *did_some_progress)
-+/* Perform direct synchronous page reclaim */
-+static int
-+__perform_reclaim(gfp_t gfp_mask, unsigned int order, struct zonelist *zonelist,
-+		  nodemask_t *nodemask)
- {
--	struct page *page = NULL;
- 	struct reclaim_state reclaim_state;
--	bool drained = false;
-+	int progress;
- 
- 	cond_resched();
- 
-@@ -2112,7 +2109,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
- 	reclaim_state.reclaimed_slab = 0;
- 	current->reclaim_state = &reclaim_state;
- 
--	*did_some_progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
-+	progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
- 
- 	current->reclaim_state = NULL;
- 	lockdep_clear_current_reclaim_state();
-@@ -2120,6 +2117,21 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
- 
- 	cond_resched();
- 
-+	return progress;
++/*
++ * Decide whether desired output pixel code can be obtained with
++ * the lane shifter by shifting the input pixel code.
++ * @in: input pixelcode to shifter
++ * @out: output pixelcode from shifter
++ * @additional_shift: # of bits the sensor's LSB is offset from CAMEXT[0]
++ *
++ * return true if the combination is possible
++ * return false otherwise
++ */
++static bool ccdc_is_shiftable(enum v4l2_mbus_pixelcode in,
++			      enum v4l2_mbus_pixelcode out,
++			      unsigned int additional_shift)
++{
++	const struct isp_format_info *in_info, *out_info;
++
++	if (in == out)
++		return true;
++
++	in_info = omap3isp_video_format_info(in);
++	out_info = omap3isp_video_format_info(out);
++
++	if ((in_info->flavor == 0) || (out_info->flavor == 0))
++		return false;
++
++	if (in_info->flavor != out_info->flavor)
++		return false;
++
++	return in_info->bpp - out_info->bpp + additional_shift <= 6;
 +}
 +
-+/* The really slow allocator path where we enter direct reclaim */
-+static inline struct page *
-+__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
-+	struct zonelist *zonelist, enum zone_type high_zoneidx,
-+	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
-+	int migratetype, unsigned long *did_some_progress)
-+{
-+	struct page *page = NULL;
-+	bool drained = false;
+ static int ccdc_link_validate(struct v4l2_subdev *sd,
+ 			      struct media_link *link,
+ 			      struct v4l2_subdev_format *source_fmt,
+@@ -2008,13 +2051,31 @@ static int ccdc_link_validate(struct v4l2_subdev *sd,
+ 	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+ 	int rval;
+ 
++	/* Check if the two ends match */
++	if (source_fmt->format.width != sink_fmt->format.width ||
++	    source_fmt->format.height != sink_fmt->format.height)
++		return -EPIPE;
 +
-+	*did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
-+					       nodemask);
- 	if (unlikely(!(*did_some_progress)))
- 		return NULL;
+ 	/* We've got a parallel sensor here. */
+ 	if (ccdc->input == CCDC_INPUT_PARALLEL) {
++		struct isp_parallel_platform_data *pdata =
++			&((struct isp_v4l2_subdevs_group *)
++			  media_entity_to_v4l2_subdev(link->source->entity)
++			  ->host_priv)->bus.parallel;
++		unsigned long parallel_shift = pdata->data_lane_shift * 2;
++		/* Lane shifter may be used to drop bits on CCDC sink pad */
++		if (!ccdc_is_shiftable(source_fmt->format.code,
++				       sink_fmt->format.code, parallel_shift))
++			return -EPIPE;
++
+ 		pipe->external =
+ 			media_entity_to_v4l2_subdev(link->source->entity);
+ 		rval = omap3isp_get_external_info(pipe, link);
+ 		if (rval < 0)
+ 			return 0;
++	} else {
++		if (source_fmt->format.code != sink_fmt->format.code)
++			return -EPIPE;
+ 	}
+ 
+ 	return 0;
+@@ -2299,8 +2360,6 @@ int omap3isp_ccdc_init(struct isp_device *isp)
+ 	ccdc->clamp.oblen = 0;
+ 	ccdc->clamp.dcsubval = 0;
+ 
+-	ccdc->vpcfg.pixelclk = 0;
+-
+ 	ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
+ 	ccdc_apply_controls(ccdc);
  
 -- 
-1.7.1
-
+1.7.2.5
 
