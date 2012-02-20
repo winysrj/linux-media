@@ -1,674 +1,204 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44152 "EHLO mx1.redhat.com"
+Received: from smtp.nokia.com ([147.243.1.48]:58494 "EHLO mgw-sa02.nokia.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752872Ab2B1LBG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 06:01:06 -0500
-Message-ID: <4F4CB3ED.3080509@redhat.com>
-Date: Tue, 28 Feb 2012 08:01:01 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFCv1 PATCH 4/6] V4L2 spec: document the new V4L2 DV timings
- ioctls.
-References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl> <fdc4106fec26b04be848f3e0147bc635691d8f87.1328262332.git.hans.verkuil@cisco.com>
-In-Reply-To: <fdc4106fec26b04be848f3e0147bc635691d8f87.1328262332.git.hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	id S1751690Ab2BTB54 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:57:56 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 04/33] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Date: Mon, 20 Feb 2012 03:56:43 +0200
+Message-Id: <1329703032-31314-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 03-02-2012 08:06, Hans Verkuil escreveu:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
+VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
 
-The comments for patch 1 apply here. So, I won't repeat myself ;) There's just one
-minor comment below.
+VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
 
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  Documentation/DocBook/media/v4l/v4l2.xml           |    3 +
->  .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    |  205 ++++++++++++++++++++
->  .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   |  113 +++++++++++
->  .../DocBook/media/v4l/vidioc-g-dv-timings.xml      |  120 +++++++++++-
->  .../DocBook/media/v4l/vidioc-query-dv-timings.xml  |   98 ++++++++++
->  5 files changed, 531 insertions(+), 8 deletions(-)
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
->  create mode 100644 Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-> 
-> diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-> index dce3fef..8bc2ccd 100644
-> --- a/Documentation/DocBook/media/v4l/v4l2.xml
-> +++ b/Documentation/DocBook/media/v4l/v4l2.xml
-> @@ -481,10 +481,12 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-dbg-g-chip-ident;
->      &sub-dbg-g-register;
->      &sub-dqevent;
-> +    &sub-dv-timings-cap;
->      &sub-encoder-cmd;
->      &sub-enumaudio;
->      &sub-enumaudioout;
->      &sub-enum-dv-presets;
-> +    &sub-enum-dv-timings;
->      &sub-enum-fmt;
->      &sub-enum-framesizes;
->      &sub-enum-frameintervals;
-> @@ -519,6 +521,7 @@ and discussions on the V4L mailing list.</revremark>
->      &sub-querycap;
->      &sub-queryctrl;
->      &sub-query-dv-preset;
-> +    &sub-query-dv-timings;
->      &sub-querystd;
->      &sub-prepare-buf;
->      &sub-reqbufs;
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-> new file mode 100644
-> index 0000000..0477de1
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-> @@ -0,0 +1,205 @@
-> +<refentry id="vidioc-dv-timings-cap">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_DV_TIMINGS_CAP</refname>
-> +    <refpurpose>The capabilities of the Digital Video receiver/transmitter</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_dv_timings_cap *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_DV_TIMINGS_CAP</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>To query the available timings, applications initialize the
-> +<structfield>index</structfield> field and zero the reserved array of &v4l2-dv-timings-cap;
-> +and call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl with a pointer to this
-> +structure. Drivers fill the rest of the structure or return an
-> +&EINVAL; when the index is out of bounds. To enumerate all supported DV timings,
-> +applications shall begin at index zero, incrementing by one until the
-> +driver returns <errorcode>EINVAL</errorcode>. Note that drivers may enumerate a
-> +different set of DV timings after switching the video input or
-> +output.</para>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-bt-timings-cap">
-> +      <title>struct <structname>v4l2_bt_timings_cap</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>min_width</structfield></entry>
-> +	    <entry>Minimum width of the active video in pixels.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>max_width</structfield></entry>
-> +	    <entry>Maximum width of the active video in pixels.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>min_height</structfield></entry>
-> +	    <entry>Minimum height of the active video in lines.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>max_height</structfield></entry>
-> +	    <entry>Maximum height of the active video in lines.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u64</entry>
-> +	    <entry><structfield>min_pixelclock</structfield></entry>
-> +	    <entry>Minimum pixelclock frequency in Hz.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u64</entry>
-> +	    <entry><structfield>max_pixelclock</structfield></entry>
-> +	    <entry>Maximum pixelclock frequency in Hz.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>standards</structfield></entry>
-> +	    <entry>The video standard(s) supported by the hardware.
-> +	    See <xref linkend="dv-bt-standards"/> for a list of standards.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>capabilities</structfield></entry>
-> +	    <entry>Several flags giving more information about the capabilities.
-> +	    See <xref linkend="dv-bt-cap-capabilities"/> for a description of the flags.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[16]</entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-dv-timings-cap">
-> +      <title>struct <structname>v4l2_dv_timings_cap</structname></title>
-> +      <tgroup cols="4">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>type</structfield></entry>
-> +	    <entry>Type of DV timings as listed in <xref linkend="dv-timing-types"/>.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[3]</entry>
-> +	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>union</entry>
-> +	    <entry><structfield></structfield></entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>&v4l2-bt-timings-cap;</entry>
-> +	    <entry><structfield>bt</structfield></entry>
-> +	    <entry>BT.656/1120 timings capabilities of the hardware.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>raw_data</structfield>[32]</entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +
-> +    <table pgwide="1" frame="none" id="dv-bt-cap-capabilities">
-> +      <title>DV BT Timing capabilities</title>
-> +      <tgroup cols="2">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>Flag</entry>
-> +	    <entry>Description</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_BT_CAP_INTERLACED</entry>
-> +	    <entry>Interlaced formats are supported.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_BT_CAP_PROGRESSIVE</entry>
-> +	    <entry>Progressive formats are supported.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_BT_CAP_REDUCED_BLANKING</entry>
-> +	    <entry>CVT/GTF specific: the timings can make use of reduced blanking (CVT)
-> +or the 'Secondary GTF' curve (GTF).
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_BT_CAP_CUSTOM</entry>
-> +	    <entry>Can support non-standard timings, i.e. timings not belonging to the
-> +standards set in the <structfield>standards</structfield> field.
-> +	    </entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    &return-value;
-> +  </refsect1>
-> +</refentry>
-> +
-> +<!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "v4l2.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +-->
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-> new file mode 100644
-> index 0000000..edd6964
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-> @@ -0,0 +1,113 @@
-> +<refentry id="vidioc-enum-dv-timings">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_ENUM_DV_TIMINGS</refname>
-> +    <refpurpose>Enumerate supported Digital Video timings</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_enum_dv_timings *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_ENUM_DV_TIMINGS</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>While some DV receivers or transmitters support a wide range of timings, others
-> +support only a limited number of timings. With this ioctl applications can enumerate a list
-> +of known supported timings. Call &VIDIOC-DV-TIMINGS-CAP; to check if it also supports other
-> +standards or even custom timings that are not in this list.</para>
-> +
-> +    <para>To query the available timings, applications initialize the
-> +<structfield>index</structfield> field and zero the reserved array of &v4l2-enum-dv-timings;
-> +and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl with a pointer to this
-> +structure. Drivers fill the rest of the structure or return an
-> +&EINVAL; when the index is out of bounds. To enumerate all supported DV timings,
-> +applications shall begin at index zero, incrementing by one until the
-> +driver returns <errorcode>EINVAL</errorcode>. Note that drivers may enumerate a
-> +different set of DV timings after switching the video input or
-> +output.</para>
-> +
-> +    <table pgwide="1" frame="none" id="v4l2-enum-dv-timings">
-> +      <title>struct <structname>v4l2_enum_dv_timings</structname></title>
-> +      <tgroup cols="3">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>index</structfield></entry>
-> +	    <entry>Number of the DV timings, set by the
-> +application.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[3]</entry>
-> +	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>&v4l2-dv-timings;</entry>
-> +	    <entry><structfield>timings</structfield></entry>
-> +	    <entry>The timings.</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    &return-value;
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><errorcode>EINVAL</errorcode></term>
-> +	<listitem>
-> +	  <para>The &v4l2-enum-dv-timings; <structfield>index</structfield>
-> +is out of bounds.</para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +</refentry>
-> +
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/v4l2-subdev.c |   34 +++++++++++++++++++++---------
+ include/linux/v4l2-subdev.h       |   41 +++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-subdev.h       |   21 +++++++++++++++---
+ 3 files changed, 82 insertions(+), 14 deletions(-)
 
-
-> +<!--
-> +Local Variables:
-> +mode: sgml
-> +sgml-parent-document: "v4l2.sgml"
-> +indent-tabs-mode: nil
-> +End:
-> +-->
-
-Don't insert editor-specific parameters at the file! That violates CodingStyle.
-
-
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-> index 4a8648a..bffd26c 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-> @@ -83,12 +83,13 @@ or the timing values are not correct, the driver returns &EINVAL;.</para>
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>width</structfield></entry>
-> -	    <entry>Width of the active video in pixels</entry>
-> +	    <entry>Width of the active video in pixels.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>height</structfield></entry>
-> -	    <entry>Height of the active video in lines</entry>
-> +	    <entry>Height of the active video frame in lines. So for interlaced formats the
-> +	    height of the active video in each field is <structfield>height</structfield>/2.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -125,32 +126,52 @@ bit 0 (V4L2_DV_VSYNC_POS_POL) is for vertical sync polarity and bit 1 (V4L2_DV_H
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>vfrontporch</structfield></entry>
-> -	    <entry>Vertical front porch in lines</entry>
-> +	    <entry>Vertical front porch in lines. For interlaced formats this refers to the
-> +	    odd field (aka field 1).</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>vsync</structfield></entry>
-> -	    <entry>Vertical sync length in lines</entry>
-> +	    <entry>Vertical sync length in lines. For interlaced formats this refers to the
-> +	    odd field (aka field 1).</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>vbackporch</structfield></entry>
-> -	    <entry>Vertical back porch in lines</entry>
-> +	    <entry>Vertical back porch in lines. For interlaced formats this refers to the
-> +	    odd field (aka field 1).</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>il_vfrontporch</structfield></entry>
-> -	    <entry>Vertical front porch in lines for bottom field of interlaced field formats</entry>
-> +	    <entry>Vertical front porch in lines for the even field (aka field 2) of
-> +	    interlaced field formats.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>il_vsync</structfield></entry>
-> -	    <entry>Vertical sync length in lines for bottom field of interlaced field formats</entry>
-> +	    <entry>Vertical sync length in lines for the even field (aka field 2) of
-> +	    interlaced field formats.</entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
->  	    <entry><structfield>il_vbackporch</structfield></entry>
-> -	    <entry>Vertical back porch in lines for bottom field of interlaced field formats</entry>
-> +	    <entry>Vertical back porch in lines for the even field (aka field 2) of
-> +	    interlaced field formats.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>standards</structfield></entry>
-> +	    <entry>The video standard(s) this format belongs to. This will be filled in by
-> +	    the driver. Applications must set this to 0. See <xref linkend="dv-bt-standards"/>
-> +	    for a list of standards.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>flags</structfield></entry>
-> +	    <entry>Several flags giving more information about the format.
-> +	    See <xref linkend="dv-bt-flags"/> for a description of the flags.
-> +	    </entry>
->  	  </row>
->  	</tbody>
->        </tgroup>
-> @@ -211,6 +232,89 @@ bit 0 (V4L2_DV_VSYNC_POS_POL) is for vertical sync polarity and bit 1 (V4L2_DV_H
->  	</tbody>
->        </tgroup>
->      </table>
-> +    <table pgwide="1" frame="none" id="dv-bt-standards">
-> +      <title>DV BT Timing standards</title>
-> +      <tgroup cols="2">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>Timing standard</entry>
-> +	    <entry>Description</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_BT_STD_CEA861</entry>
-> +	    <entry>The timings follow the CEA-861 Digital TV Profile standard</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_BT_STD_DMT</entry>
-> +	    <entry>The timings follow the VESA Discrete Monitor Timings standard</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_BT_STD_CVT</entry>
-> +	    <entry>The timings follow the VESA Coordinated Video Timings standard</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_BT_STD_GTF</entry>
-> +	    <entry>The timings follow the VESA Generalized Timings Formula standard</entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
-> +    <table pgwide="1" frame="none" id="dv-bt-flags">
-> +      <title>DV BT Timing flags</title>
-> +      <tgroup cols="2">
-> +	&cs-str;
-> +	<tbody valign="top">
-> +	  <row>
-> +	    <entry>Flag</entry>
-> +	    <entry>Description</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry></entry>
-> +	    <entry></entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_FL_REDUCED_BLANKING</entry>
-> +	    <entry>CVT/GTF specific: the timings use reduced blanking (CVT) or the 'Secondary
-> +GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
-> +intervals are reduced, allowing a higher resolution over the same
-> +bandwidth. This is a read-only flag, applications must not set this.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_FL_NTSC_COMPATIBLE</entry>
-> +	    <entry>CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
-> +of six. These formats can be optionally played at 1 / 1.001 speed to
-> +be compatible with the normal NTSC framerate of 29.97 frames per second.
-> +This is a read-only flag, applications must not set this.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_FL_DIVIDE_CLOCK_BY_1_001</entry>
-> +	    <entry>CEA-861 specific: only valid for video transmitters, the flag is cleared
-> +by receivers. It is also only valid for formats with the V4L2_DV_FL_NTSC_COMPATIBLE flag
-> +set, for other formats the flag will be cleared by the driver.
-> +
-> +If the application sets this flag, then the pixelclock used to set up the transmitter is
-> +divided by 1.001 to make it compatible with NTSC framerates. If the transmitter
-> +can't generate such frequencies, then the flag will also be cleared.
-> +	    </entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>V4L2_DV_FL_HALF_LINE</entry>
-> +	    <entry>Specific to interlaced formats: if set, then field 1 (aka the odd field)
-> +is really one half-line longer and field 2 (aka the even field) is really one half-line
-> +shorter, so each field has exactly the same number of half-lines. Whether half-lines can be
-> +detected or used depends on the hardware.
-> +	    </entry>
-> +	  </row>
-> +	</tbody>
-> +      </tgroup>
-> +    </table>
->    </refsect1>
->    <refsect1>
->      &return-value;
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-> new file mode 100644
-> index 0000000..9d7ac43
-> --- /dev/null
-> +++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-> @@ -0,0 +1,98 @@
-> +<refentry id="vidioc-query-dv-timings">
-> +  <refmeta>
-> +    <refentrytitle>ioctl VIDIOC_QUERY_DV_TIMINGS</refentrytitle>
-> +    &manvol;
-> +  </refmeta>
-> +
-> +  <refnamediv>
-> +    <refname>VIDIOC_QUERY_DV_TIMINGS</refname>
-> +    <refpurpose>Sense the DV preset received by the current
-> +input</refpurpose>
-> +  </refnamediv>
-> +
-> +  <refsynopsisdiv>
-> +    <funcsynopsis>
-> +      <funcprototype>
-> +	<funcdef>int <function>ioctl</function></funcdef>
-> +	<paramdef>int <parameter>fd</parameter></paramdef>
-> +	<paramdef>int <parameter>request</parameter></paramdef>
-> +	<paramdef>struct v4l2_dv_timings *<parameter>argp</parameter></paramdef>
-> +      </funcprototype>
-> +    </funcsynopsis>
-> +  </refsynopsisdiv>
-> +
-> +  <refsect1>
-> +    <title>Arguments</title>
-> +
-> +    <variablelist>
-> +	<varlistentry>
-> +	<term><parameter>fd</parameter></term>
-> +	<listitem>
-> +	  <para>&fd;</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>request</parameter></term>
-> +	<listitem>
-> +	  <para>VIDIOC_QUERY_DV_TIMINGS</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><parameter>argp</parameter></term>
-> +	<listitem>
-> +	  <para></para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    <title>Description</title>
-> +
-> +    <para>The hardware may be able to detect the current DV timings
-> +automatically, similar to sensing the video standard. To do so, applications
-> +call <constant>VIDIOC_QUERY_DV_TIMINGS</constant> with a pointer to a
-> +&v4l2-dv-timings;. Once the hardware detects the timings, it will fill in the
-> +timings structure.
-> +
-> +If the timings could not be detected because there was no signal, then
-> +<errorcode>ENOLINK</errorcode> is returned. If a signal was detected, but
-> +it was unstable and the receiver could not lock to the signal, then
-> +<errorcode>ENOLCK</errorcode> is returned. If the receiver could lock to the signal,
-> +but the format is unsupported (e.g. because the pixelclock is out of range
-> +of the hardware capabilities), then the driver fills in whatever timings it
-> +could find and returns <errorcode>ERANGE</errorcode>. In that case the application
-> +can call &VIDIOC-DV-TIMINGS-CAP; to compare the found timings with the hardware's
-> +capabilities in order to give more precise feedback to the user.
-> +</para>
-> +  </refsect1>
-> +
-> +  <refsect1>
-> +    &return-value;
-> +
-> +    <variablelist>
-> +      <varlistentry>
-> +	<term><errorcode>ENOLINK</errorcode></term>
-> +	<listitem>
-> +	  <para>No timings could be detected because no signal was found.
-> +</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>ENOLCK</errorcode></term>
-> +	<listitem>
-> +	  <para>The signal was unstable and the hardware could not lock on to it.
-> +</para>
-> +	</listitem>
-> +      </varlistentry>
-> +      <varlistentry>
-> +	<term><errorcode>ERANGE</errorcode></term>
-> +	<listitem>
-> +	  <para>Timings were found, but they are out of range of the hardware
-> +capabilities.
-> +</para>
-> +	</listitem>
-> +      </varlistentry>
-> +    </variablelist>
-> +  </refsect1>
-> +</refentry>
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index 6fe88e9..30c7fd9 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -35,14 +35,9 @@
+ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	/* Allocate try format and crop in the same memory block */
+-	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
+-			      * sd->entity.num_pads, GFP_KERNEL);
+-	if (fh->try_fmt == NULL)
++	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
++	if (fh->pad == NULL)
+ 		return -ENOMEM;
+-
+-	fh->try_crop = (struct v4l2_rect *)
+-		(fh->try_fmt + sd->entity.num_pads);
+ #endif
+ 	return 0;
+ }
+@@ -50,9 +45,8 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
+ static void subdev_fh_free(struct v4l2_subdev_fh *fh)
+ {
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	kfree(fh->try_fmt);
+-	fh->try_fmt = NULL;
+-	fh->try_crop = NULL;
++	kfree(fh->pad);
++	fh->pad = NULL;
+ #endif
+ }
+ 
+@@ -293,6 +287,26 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
+ 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
+ 					fie);
+ 	}
++
++	case VIDIOC_SUBDEV_G_SELECTION: {
++		struct v4l2_subdev_selection *sel = arg;
++
++		if (sel->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(
++			sd, pad, get_selection, subdev_fh, sel);
++	}
++
++	case VIDIOC_SUBDEV_S_SELECTION: {
++		struct v4l2_subdev_selection *sel = arg;
++
++		if (sel->pad >= sd->entity.num_pads)
++			return -EINVAL;
++
++		return v4l2_subdev_call(
++			sd, pad, set_selection, subdev_fh, sel);
++	}
+ #endif
+ 	default:
+ 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+index ed29cbb..6c84390 100644
+--- a/include/linux/v4l2-subdev.h
++++ b/include/linux/v4l2-subdev.h
+@@ -123,6 +123,43 @@ struct v4l2_subdev_frame_interval_enum {
+ 	__u32 reserved[9];
+ };
+ 
++#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
++#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
++#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
++
++/* active cropping area */
++#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0x0000
++/* cropping bounds */
++#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
++/* current composing area */
++#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		0x0100
++/* composing bounds */
++#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
++
++
++/**
++ * struct v4l2_subdev_selection - selection info
++ *
++ * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
++ * @pad: pad number, as reported by the media API
++ * @target: selection target, used to choose one of possible rectangles
++ * @flags: constraint flags
++ * @r: coordinates of the selection window
++ * @reserved: for future use, rounds structure size to 64 bytes, set to zero
++ *
++ * Hardware may use multiple helper windows to process a video stream.
++ * The structure is used to exchange this selection areas between
++ * an application and a driver.
++ */
++struct v4l2_subdev_selection {
++	__u32 which;
++	__u32 pad;
++	__u32 target;
++	__u32 flags;
++	struct v4l2_rect r;
++	__u32 reserved[8];
++};
++
+ #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+ #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+@@ -137,5 +174,9 @@ struct v4l2_subdev_frame_interval_enum {
+ 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
+ #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
+ #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
++#define VIDIOC_SUBDEV_G_SELECTION \
++	_IOWR('V', 61, struct v4l2_subdev_selection)
++#define VIDIOC_SUBDEV_S_SELECTION \
++	_IOWR('V', 62, struct v4l2_subdev_selection)
+ 
+ #endif
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index f0f3358..feab950 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
+ 		       struct v4l2_subdev_crop *crop);
+ 	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 		       struct v4l2_subdev_crop *crop);
++	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			     struct v4l2_subdev_selection *sel);
++	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++			     struct v4l2_subdev_selection *sel);
+ };
+ 
+ struct v4l2_subdev_ops {
+@@ -549,8 +553,11 @@ struct v4l2_subdev {
+ struct v4l2_subdev_fh {
+ 	struct v4l2_fh vfh;
+ #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+-	struct v4l2_mbus_framefmt *try_fmt;
+-	struct v4l2_rect *try_crop;
++	struct {
++		struct v4l2_mbus_framefmt try_fmt;
++		struct v4l2_rect try_crop;
++		struct v4l2_rect try_compose;
++	} *pad;
+ #endif
+ };
+ 
+@@ -561,13 +568,19 @@ struct v4l2_subdev_fh {
+ static inline struct v4l2_mbus_framefmt *
+ v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
+ {
+-	return &fh->try_fmt[pad];
++	return &fh->pad[pad].try_fmt;
+ }
+ 
+ static inline struct v4l2_rect *
+ v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
+ {
+-	return &fh->try_crop[pad];
++	return &fh->pad[pad].try_crop;
++}
++
++static inline struct v4l2_rect *
++v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
++{
++	return &fh->pad[pad].try_compose;
+ }
+ #endif
+ 
+-- 
+1.7.2.5
 
