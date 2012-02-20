@@ -1,120 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1355 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755024Ab2BCNJW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 08:09:22 -0500
-Received: from alastor.dyndns.org (215.80-203-102.nextgentel.com [80.203.102.215])
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id q13D9JYi008863
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 3 Feb 2012 14:09:21 +0100 (CET)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from durdane.localnet (marune.xs4all.nl [82.95.89.49])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 72E4635C0004
-	for <linux-media@vger.kernel.org>; Fri,  3 Feb 2012 14:09:19 +0100 (CET)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.4] Updating ISA Radio drivers :-)
-Date: Fri, 3 Feb 2012 14:09:18 +0100
+Received: from smtp-68.nebula.fi ([83.145.220.68]:51550 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752282Ab2BTDoJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 22:44:09 -0500
+Date: Mon, 20 Feb 2012 05:44:04 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Ryan <ryanphilips19@googlemail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org, saaguirre@ti.com
+Subject: Re: omap4 v4l media-ctl usage
+Message-ID: <20120220034404.GK7784@valkosipuli.localdomain>
+References: <CANMsd02vLtdmrV-eHuBJ4SAc6PiYG8tw1+OvSXYAJ83zcoe7Hw@mail.gmail.com>
+ <2215470.hR2vMaHYCK@avalon>
+ <CANMsd03DFeLKWCHYAyQmuiCsBwmXGisOmt7OrAvR0=RDrdh3RA@mail.gmail.com>
+ <CANMsd0272pwvdd35QJGpDJLH=MtMdXxHYygXdL_PSaPHpav2Xg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202031409.18394.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CANMsd0272pwvdd35QJGpDJLH=MtMdXxHYygXdL_PSaPHpav2Xg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Ryan,
 
-One of the things I've wanted to do for some time is to start upgrading
-all drivers to the latest V4L2 frameworks and ensuring that they pass
-the v4l2-compliance tests.
+On Sun, Feb 19, 2012 at 09:34:24PM +0530, Ryan wrote:
+> It actually blocks at VIDIOC_DQBUF ioctl and not in STREAMON ioctl.
+> Looks like the data is not available.
+> 
+> Any way of verifying if OMAP is receiving data. Wonder why i keep
+> interrupts though?
 
-So I started out with some of the oldest drivers around: the ISA radio
-drivers :-)
+You do get or do not get interrupts?
 
-Partially because they are easy to convert, partially because it is fun to
-work with old hardware like that every so often.
+> Is my media-ctl setting up things correctly?
 
-I have tested this with actual hardware for the aimslab, aztech and gemtek
-drivers.
+In principle at least, yes. Streamon should fail if there's something wrong
+in the configuration.
 
-Since you can load ISA drivers even if there is no actual hardware, I was
-able to run the other drivers through v4l2-compliance as well. I couldn't
-test whether it actually works, of course, but at least it doesn't crash...
+Cc Sergio.
 
-The original RFC patch series is here:
+> On Sun, Feb 19, 2012 at 7:47 PM, Ryan <ryanphilips19@googlemail.com> wrote:
+> > Hi Laurent,
+> >
+> > On Sun, Feb 19, 2012 at 2:27 PM, Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com> wrote:
+> >> Hi Ryan,
+> >>
+> >> On Saturday 18 February 2012 20:59:57 Ryan wrote:
+> >>> hello,
+> >>> I am using media-ctl on the panda board. The sensor gets detected. But
+> >>> media-ctl doesnt print anything.
+> >>> The kernel is cloned from omap4 v4l git tree: commit id:
+> >>> 3bc023462a68f78bb0273848f5ab08a01b434ffa
+> >>>
+> >>> what could be wrong in here?
+> >>>
+> >>> ~ # ./media-ctl -p
+> >>> Opening media device /dev/media0
+> >>> Enumerating entities
+> >>> Found 0 entities
+> >>> Enumerating pads and links
+> >>> Device topology
+> >>>
+> >>> What steps i need to follow get output from sensor in terms of
+> >>> arguments to media-ctl and yavta.
+> >>
+> >> Could you please first make sure that media-ctl has be compiled against header
+> >> files from the kernel running on your board ?
+> >>
+> >
+> > Thank you, That did the trick, Now i am able to run media-ctl. I am
+> > trying to capture YUV422.
+> > When i run yavta, It blocks infinitely at STREAM ON, I see that the
+> > ISS interrupts keeps incrementing.
+> > Am i missing something?
+> >
+> > #yavta /dev/video0  -n1 -c5 -s640x480 -fUYVY -Ftest.yuv
+> > Device /dev/video0 opened: OMAP4 ISS CSI2a output (media).
+> > Video format set: width: 640 height: 480 buffer size: 614400
+> > Video format: UYVY (59565955) 640x480
+> > 1 buffers requested.
+> > length: 614400 offset: 0
+> > Buffer 0 mapped at address 0x4028e000.
+> > [  577.605590] Enable STREAM ON>..
+> >
+> >
+> > After configuring using the media-ctl, This is how my device topology
+> > looks like:
+> > Is this okay?
+> >
+> > Device topology
+> > - entity 1: OMAP4 ISS CSI2a (2 pads, 2 links)
+> >            type V4L2 subdev subtype Unknown
+> >            device node name /dev/v4l-subdev0
+> >        pad0: Sink [UYVY 640x480]
+> >                <- "ov5640 3-0036":0 [ENABLED,IMMUTABLE]
+> >        pad1: Source [UYVY 640x480]
+> >                -> "OMAP4 ISS CSI2a output":0 [ENABLED]
+> >
+> > - entity 2: OMAP4 ISS CSI2a output (1 pad, 1 link)
+> >            type Node subtype V4L
+> >            device node name /dev/video0
+> >        pad0: Sink
+> >                <- "OMAP4 ISS CSI2a":1 [ENABLED]
+> >
+> > - entity 3: ov5640 3-0036 (1 pad, 1 link)
+> >            type V4L2 subdev subtype Unknown
+> >            device node name /dev/v4l-subdev1
+> >        pad0: Source [UYVY 640x480]
+> >                -> "OMAP4 ISS CSI2a":0 [ENABLED,IMMUTABLE]
+> >
+> >
+> >
+> > Thank you,
+> >
+> > Regards,
+> > Ryan
+> >
+> >
+> >> --
+> >> Regards,
+> >>
+> >> Laurent Pinchart
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg42091.html
-
-Not surprisingly there were no comments.
-
-This series is identical, except for being updated to use the new helper
-functions that are part of the radio-keene patch set:
-
-http://www.spinics.net/lists/linux-media/msg43852.html
-
-If you want, you can pull from my radio-isa2 branch to get both the isa
-driver changes and the radio-keene + helper functions changes.
-
-Regards,
-
-	Hans
-
-The following changes since commit 59b30294e14fa6a370fdd2bc2921cca1f977ef16:
-
-  Merge branch 'v4l_for_linus' into staging/for_v3.4 (2012-01-23 18:11:30 -0200)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git radio-isa2
-
-Hans Verkuil (16):
-      v4l2: standardize log start/end message.
-      v4l2-subdev: add start/end messages for log_status.
-      v4l2-ctrls: add helper functions for control events.
-      vivi: use v4l2_ctrl_subscribe_event.
-      radio-keene: add a driver for the Keene FM Transmitter.
-      hid-core: ignore the Keene FM transmitter.
-      radio-isa: add framework for ISA radio drivers.
-      radio-aimslab: Convert to radio-isa.
-      radio-aztech: Convert to radio-isa.
-      radio-gemtek: Convert to radio-isa.
-      radio-rtrack2: Convert to radio-isa.
-      radio-terratec: Convert to radio-isa.
-      radio-trust: Convert to radio-isa.
-      radio-typhoon: Convert to radio-isa.
-      radio-zoltrix: Convert to radio-isa.
-      radio/Kconfig: cleanup.
-
- drivers/hid/hid-core.c                        |   10 +
- drivers/hid/hid-ids.h                         |    1 +
- drivers/media/radio/Kconfig                   |  123 +++----
- drivers/media/radio/Makefile                  |    2 +
- drivers/media/radio/radio-aimslab.c           |  439 ++++++-----------------
- drivers/media/radio/radio-aztech.c            |  371 ++++---------------
- drivers/media/radio/radio-gemtek.c            |  493 +++++--------------------
- drivers/media/radio/radio-isa.c               |  339 +++++++++++++++++
- drivers/media/radio/radio-isa.h               |  105 ++++++
- drivers/media/radio/radio-keene.c             |  427 +++++++++++++++++++++
- drivers/media/radio/radio-rtrack2.c           |  332 ++++-------------
- drivers/media/radio/radio-terratec.c          |  364 +++---------------
- drivers/media/radio/radio-trust.c             |  387 +++++---------------
- drivers/media/radio/radio-typhoon.c           |  365 ++++---------------
- drivers/media/radio/radio-zoltrix.c           |  441 ++++++-----------------
- drivers/media/video/bt8xx/bttv-driver.c       |    4 -
- drivers/media/video/cx18/cx18-ioctl.c         |    4 -
- drivers/media/video/ivtv/ivtv-ioctl.c         |    5 -
- drivers/media/video/pwc/pwc-v4l.c             |   10 +-
- drivers/media/video/saa7164/saa7164-encoder.c |    6 -
- drivers/media/video/saa7164/saa7164-vbi.c     |    6 -
- drivers/media/video/v4l2-ctrls.c              |   32 ++
- drivers/media/video/v4l2-ioctl.c              |    6 +
- drivers/media/video/v4l2-subdev.c             |   12 +-
- drivers/media/video/vivi.c                    |   23 +-
- include/media/v4l2-ctrls.h                    |   13 +
- 26 files changed, 1683 insertions(+), 2637 deletions(-)
- create mode 100644 drivers/media/radio/radio-isa.c
- create mode 100644 drivers/media/radio/radio-isa.h
- create mode 100644 drivers/media/radio/radio-keene.c
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
