@@ -1,181 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:37201 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1750843Ab2BYXmU (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:42482 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751298Ab2BTB4L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 18:42:20 -0500
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: Oliver Schinagl <oliver@schinagl.nl>
-Subject: Re: [PATCH 0/3] Support for AF9035/AF9033
-Date: Sun, 26 Feb 2012 00:42:12 +0100
-Cc: linux-media@vger.kernel.org
-References: <201202222320.56583.hfvogt@gmx.net> <4F4760CB.50400@schinagl.nl> <4F4764DA.4080102@schinagl.nl>
-In-Reply-To: <4F4764DA.4080102@schinagl.nl>
+	Sun, 19 Feb 2012 20:56:11 -0500
+Date: Mon, 20 Feb 2012 03:56:05 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	David Cohen <dacohen@gmail.com>,
+	Sylwester Nawrocki <snjw23@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	tuukkat76@gmail.com, Kamil Debski <k.debski@samsung.com>,
+	Kim HeungJun <riverful@gmail.com>, teturtia@gmail.com
+Subject: [PATCH v3 0/33] V4L2 subdev and sensor control changes, SMIA++
+ driver and N9 camera board code
+Message-ID: <20120220015605.GI7784@valkosipuli.localdomain>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202260042.13053.hfvogt@gmx.net>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, 24. Februar 2012 schrieb Oliver Schinagl:
-> On 24-02-12 11:04, Oliver Schinagl wrote:
-> > On 23-02-12 23:02, Hans-Frieder Vogt wrote:
-> >> Am Donnerstag, 23. Februar 2012 schrieb Oliver Schinagl:
-> >>> Hi Hans,
-> >>> 
-> >>> I also have an AF9035 based device, the Asus 3100 Mini Plus. It has an
-> >>> AF9035B demodulator and uses an FCI2580 tuner. I've used the driver
-> >>> supplied by afa in the past, but haven't tested it in the last few
-> >>> months. I have a git repository for that driver at
-> >>> http://git.schinagl.nl/AF903x_SRC.git (it is also linked from
-> >>> http://www.linuxtv.org/wiki/index.php/Asus_U3100_Mini_plus_DVB-T).
-> >>> 
-> >>> So when you say it is also coupled with the same tuner, that's not true
-> >>> 
-> >>> :) With that driver there where a bunch of other tuners that are used
-> >>> 
-> >>> with this chip. I think the Asus EEEPC supported a USB dvb tuner at
-> >>> some
-> >>> point and there are reverences in that code for it.
-> >>> 
-> >>> As of the legality of the code, that is uncertain. The module (compiled
-> >>> from all these sources) is very specifically marked as GPL. Most
-> >>> headers/source files have no copyright notice at all, some however do,
-> >>> but no license in it.
-> >>> 
-> >>> I asked about afa-tech and there driver status a while ago, but I guess
-> >>> there is no news as of yet?
-> >>> 
-> >>> To summarize, I would love to test your driver, and I think i can code
-> >>> something up for my tuner, once these are split?
-> >>> 
-> >>> Oliver
-> >>> 
-> >>> On 22-02-12 23:20, Hans-Frieder Vogt wrote:
-> >>>> I have written a driver for the AF9035&   AF9033 (called af903x),
-> >>>> based on
-> >>>> the various drivers and information floating around for these chips.
-> >>>> Currently, my driver only supports the devices that I am able to test.
-> >>>> These are
-> >>>> - Terratec T5 Ver.2 (also known as T6)
-> >>>> - Avermedia Volar HD Nano (A867)
-> >>>> 
-> >>>> The driver supports:
-> >>>> - diversity and dual tuner (when the first frontend is used, it is in
-> >>>> diversity mode, when two frontends are used in dual tuner mode)
-> >>>> - multiple devices
-> >>>> - pid filtering
-> >>>> - remote control in NEC and RC-6 mode (currently not switchable, but
-> >>>> depending on device)
-> >>>> - support for kernel 3.1, 3.2 and 3.3 series
-> >>>> 
-> >>>> I have not tried to split the driver in a DVB-T receiver (af9035)
-> >>>> and a
-> >>>> frontend (af9033), because I do not see the sense in doing that for a
-> >>>> demodulator, that seems to be always used in combination with the very
-> >>>> same receiver.
-> >>>> 
-> >>>> The patch is split in three parts:
-> >>>> Patch 1: support for tuner fitipower FC0012
-> >>>> Patch 2: basic driver
-> >>>> Patch 3: firmware
-> >>>> 
-> >>>> Hans-Frieder Vogt                       e-mail: hfvogt<at>   gmx
-> >>>> .dot. net
-> >> 
-> >> Hi Oliver,
-> >> 
-> >> the AF9035B is in fact a DVB-T demodulator with an integrated USB
-> >> interface +
-> >> further interfaces (I erroneously called it receiver). It needs a
-> >> tuner to be
-> >> a full DVB-T stick (it seems that the it9135 is basically the AF9035
-> >> + an
-> >> integrated tuner).
-> >> 
-> >> the Terratec T5 Rev. 2 and T6 consists of an AF9035B, an AF9033B (Second
-> >> demodulator) and dual FC0012 tuners
-> >> the Avermedia Volar HD Nano (A867) uses an AF9035B and an Mxl5007t tuner
-> >> your Asus 3100 mini uses the FCI2580 tuner.
-> >> 
-> >> If there is a driver for the FCI2580 tuner then it is not a big issue
-> >> to make
-> >> it usable with the af903x driver.
-> > 
-> > The driver is 'available' but in the AF903x_SRC package. If I would
-> > take the endevour into writing a driver for the FCI2580, what driver
-> > would be best suited as template you reccon?
-> > 
-> >> I know of these Afatech drivers, but the main disadvantage of them is
-> >> in my
-> >> eyes that they
-> >> - have a lot of useless and unused code
-> >> - define own error codes (instead of using the standard error codes)
-> >> - have a compiled in firmware
-> > 
-> > This bit I don't understand. I have not found any binary image in the
-> > source tree at all. If the firmware is compiled from the sources, it
-> > is compiled into the driver, and not uploaded to the stick when
-> > plugged in.
-> > 
-> > The other firmware is as mentioned the infrared receive 'table', which
-> > provides some mapping I guess?
-> 
-> I was wrong, there is a headerfile, 'api/firmware.h' that does indeed
-> contain binary only data. Very ugly indeed.
-> 
-> Is this firmware specific for the AF903x chip or for the tuners? Looking
-> at the code it seems firmware.h contains firmware for a lot different
-> combinations, but I think 1 image is 'used'.  I notice that one of your
-> firmwares contains a version number of 0.00.00 and the other one
-> v.10.something. Firmware.h lists the version as v.8.something so it
-> seems that there's several firmwares in circulation. I wonder if
-> firmwares are backwards compatible with various boards...
-> 
+Hi everyone,
 
-All firmware that I packed in the firmware files is specific for the AF903x chip 
-and probably some configuration of the chip. This is however just a suggestion 
-based on the fact that windows drivers for the af9035 typically contain 
-several firmwares and several scripts (initialisation code, address/value 
-pairs) that are selected based on an unknown logic. Maybe all af9035/af9033 
-devices can be run with a single firmware, but for the moment I chose to create 
-several firmware files.
-The tuner related initialisation is in the af903x-tuners file and should 
-therefore not hinder running all af9035 devices (i.e. with various tuner 
-types) with a single firmware.
+This the third version of my patchset that contains:
 
-The firmware file dvb-usb-af9035-03.fw was created based on an USB snoop of the 
-Terratec T6 driver. The Windows driver has the version 10.09.20.01 and I just 
-recorded that in the firmware.
-The firmware file dvb-usb-af9035-04.fw was created from the firmware.h file of the 
-Avermedia Linux driver v1.0.28. I should have used this version number, but 
-(due to laziness) called it simply 00.00.00.00.
-To make it more confusing, there is also a "link" version number and an "ofdm" 
-version number...
+- Integer menu controls [2],
+- Selection IOCTL for subdevs [3],
+- Sensor control changes [5,7],
+- link_validate() media entity and V4L2 subdev pad ops,
+- OMAP 3 ISP driver improvements [4],
+- SMIA++ sensor driver,
+- rm680/rm696 board code (a.k.a Nokia N9 and N950) and
+- Other V4L2 and media improvements (see individual patches)
 
-> >> - have all supported tuners directly compiled in, which means that they
-> >> prevent tuner support to be shared between various drivers
-> >> 
-> >> So, you see, there are good reasons to write a new driver for these
-> >> devices.
-> >> 
-> >> The point with the legality: I agree that the AF903X_SRC driver is
-> >> unclear in
-> >> that respect. The glue code (under src) is explicitly marked as GPL,
-> >> but the
-> >> api code (under api) isn't marked.
-> >> Luckily, there is the it9135-driver from Jason Dong which is clearly
-> >> GPL and
-> >> which uses the same functions. Therefore there is effectivly example
-> >> code from
-> >> Afatech/Ite technology available that is under GPL.
-> >> 
-> >> Cheers,
-> >> 
-> >> Hans-Frieder Vogt                       e-mail: hfvogt<at>  gmx .dot.
-> >> net
+The Docbook documentation in HTML format can be found in [11].
+
+Changes to version 2 [10] include:
+
+- V4L2
+  - Image source controls
+    - Documentation no longer refers to "pixel clock" in v4l2_mbus_framefmt
+      (this should have been the last reference to those!!)
+    - Capitalise first letters in control names
+  - Selections
+    - Use hex numbers for targets
+  - Return NULL instead of invalid pointer when accessing non-existend pads
+    in v4l2_subdev_get_try_{format,crop,compose} (new patch)
+  - Put link validation definitions in v4l2-subdev.h behind
+    #ifdef CONFIG_MEDIA_CONTROLLER ... #endif
+  - Spelling fixes (selections and 4cc guidelines)
+  - Change vdev_to_v4l2_subdev() return type to struct v4l2_subdev * (new
+    patch)
+
+- SMIA++ driver
+  - Clock tree calculation fixes
+  - Control handler setup usage fixes at smiapp_open()
+  - Don't access non-existent pads
+
+Changes to version 1 [8] include:
+
+- OMAP 3 ISP driver
+  - Swapped order of csi receiver's lane definitions
+  - Rewrote omap 3 isp link validation patches almost completely
+    - Information on connected external entity collected to isp_pipeline
+    - Information collected during link checking and used at streamon
+
+- Media entity link validation
+  - Error handling fixes
+
+- SMIA++ driver
+  - Selection API bugfixes
+  - Report correct pixel order right from boot
+  - Move link rate control to subdev connected to subdev external to the
+    sensor (e.g. ISP's CSI-2 receiver)
+  - Introduce proper serialisation
+  - Deny changing some controls when streaming (flipping and link rate)
+  - Control handler setup moved from streamon time to first subdev open
+  - There is no source compose target
+  - Bugfixes
+
+- Media bus pixel codes
+  - Documentation fix for dpcm compressed formats
+  - Added patch for 4CC guidelines (raw bayer only for now)
+
+- Selections
+  - Improved selections documentation
+  - Added more selections examples
+  - Compose target is not available on source pads anymore [9]
+  - Dropped default targets
+
+- V4L2
+  - Add documentation on link_validate()
+  - link_validate() and relater functions  depends on CONFIG_MEDIA_CONTROLLER
+  - Skip link validation for links on which stream_count was non-zero
+  - Do not validate link if entity's stream count is non-zero
+  - Use v4l2_subdev_link_validate_default() if no link_validate pad op is set
+  - Allow changing control handler mutex: this enables a driver to provide
+    multiple subdevs but use only one mutex. Default mutex (part of struct
+    v4l2_ctrl_handler) is set in v4l2_ctrl_handler_init().
+  - Split image source class into two: image source and image processing
+
+Changes to the RFC v1 [6] include:
+
+- Integer controls:
+  - Target Linux 3.4 instead of 3.3
+  - Proper control type check in querymenu
+  - vivi compile fixes
+
+- Subdev selections
+  - Pad try fields combined to single struct
+  - Correctly set sel.which based on crop->which in crop fall-back
+
+- Subdev selection documentation
+  - Better explanation on image processing in subdevs
+  - Added a diagram to visualise subdev configuration
+  - Fixed DocBook syntax issues
+  - Mark VIDIOC_SUBDEV_S_CROP and VIDIOC_SUBDEV_G_CROP obsolete
+
+- Pixel rate
+  - Pixel rate is now a 64-bit control, not part of v4l2_mbus_framefmt
+  - Unit for pixel rate is pixels / second
+  - Pixel rate is read-only
+
+- Link frequency is now in Hz --- documented as such also
+
+- Link validation instead of pipeline validation
+  - Each link is validated by calling link_validate op
+    - Added link validation op to media_entity_ops
+  - Link validation op in pad ops makes this easy for subdev drivers
+  - media_entity_pipeline_start() may return an error code now
+    - This might affect other drivers, but will warn in compilation.
+      No adverse effects are caused if the driver does not use
+      link_validate().
+
+- OMAP 3 ISP
+  - Make lanecfg as part of the platform data structure, not pointer
+  - Document lane configuration structures
+  - Link validation moved to respective subdev drivers from ispvideo.c
+    - isp_validate_pipeline() removed
+
+- SMIA++ driver
+  - Update pixel order based on vflip and hflip
+  - Cleanups in the main driver, register definitions and PLL code
+  - Depend on V4L2_V4L2_SUBDEV_API and MEDIA_CONTROLLER
+  - Use pr_* macros instead of printk
+  - Improved error handling for i2c_transfer()
+  - Removed useless definitions
+  - Don't access try crop / compose directly but use helper functions
+  - Add xshutdown to platform data
+  - Move driver under smiapp directory
+
+- rm680 board code
+  - Use REGULATOR_SUPPLY() where possible
+  - Removed printk()'s
+  - Don't include private smiapp headers
 
 
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+References:
+
+[1] http://www.spinics.net/lists/linux-omap/msg61295.html
+
+[2] http://www.spinics.net/lists/linux-media/msg40796.html
+
+[3] http://www.spinics.net/lists/linux-media/msg41503.html
+
+[4] http://www.spinics.net/lists/linux-media/msg41542.html
+
+[5] http://www.spinics.net/lists/linux-media/msg40861.html
+
+[6] http://www.spinics.net/lists/linux-media/msg41765.html
+
+[7] http://www.spinics.net/lists/linux-media/msg42848.html
+
+[8] http://www.spinics.net/lists/linux-media/msg42991.html
+
+[9] http://www.spinics.net/lists/linux-media/msg43810.html
+
+[10] http://www.spinics.net/lists/linux-media/msg43888.html
+
+[11] http://www.retiisi.org.uk/v4l2/tmp/media_api/
+
+Kind regards,
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
+--
+To unsubscribe from this list: send the line "unsubscribe linux-media" in
+the body of a message to majordomo@vger.kernel.org
+More majordomo info at  http://vger.kernel.org/majordomo-info.html
