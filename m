@@ -1,230 +1,198 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:44225 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753552Ab2BPRWN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Feb 2012 12:22:13 -0500
-Received: from euspt2 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LZH000W2XKYQ4@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:10 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZH00JRSXKYZO@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Feb 2012 17:22:10 +0000 (GMT)
-Date: Thu, 16 Feb 2012 18:22:02 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 3/6] s5p-fimc: Convert to the device managed resources
-In-reply-to: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp.nokia.com ([147.243.1.47]:65210 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753208Ab2BTB6c (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:58:32 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: m.szyprowski@samsung.com, riverful.kim@samsung.com,
-	sw0312.kim@samsung.com, s.nawrocki@samsung.com,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1329412925-5872-4-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329412925-5872-1-git-send-email-s.nawrocki@samsung.com>
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 11/33] v4l: Image source control class
+Date: Mon, 20 Feb 2012 03:56:50 +0200
+Message-Id: <1329703032-31314-11-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The devm_* functions are used in the platform device probe() for data
-that is freed on driver removal. The managed device layer takes care
-of undoing actions taken in the probe callback() and freeing resources
-on driver detach. This eliminates the need for manually releasing
-resources and simplifies error handling.
+Add image source control class. This control class is intended to contain
+low level controls which deal with control of the image capture process ---
+the A/D converter in image sensors, for example.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- drivers/media/video/s5p-fimc/fimc-core.c    |   56 ++++++---------------------
- drivers/media/video/s5p-fimc/fimc-core.h    |    2 -
- drivers/media/video/s5p-fimc/fimc-mdevice.c |    7 +--
- 3 files changed, 14 insertions(+), 51 deletions(-)
+ Documentation/DocBook/media/v4l/controls.xml       |   86 ++++++++++++++++++++
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    6 ++
+ drivers/media/video/v4l2-ctrls.c                   |    7 ++
+ include/linux/videodev2.h                          |    9 ++
+ 4 files changed, 108 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.c b/drivers/media/video/s5p-fimc/fimc-core.c
-index a6b4580..e184e65 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.c
-+++ b/drivers/media/video/s5p-fimc/fimc-core.c
-@@ -1678,8 +1678,6 @@ static int fimc_probe(struct platform_device *pdev)
- 	struct s5p_platform_fimc *pdata;
- 	int ret = 0;
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 3f3d2e2..2257db4 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3438,4 +3438,90 @@ interface and may change in the future.</para>
+       </table>
  
--	dev_dbg(&pdev->dev, "%s():\n", __func__);
--
- 	drv_data = (struct samsung_fimc_driverdata *)
- 		platform_get_device_id(pdev)->driver_data;
+     </section>
++
++    <section id="image-source-controls">
++      <title>Image Source Control Reference</title>
++
++      <note>
++	<title>Experimental</title>
++
++	<para>This is an <link
++	linkend="experimental">experimental</link> interface and may
++	change in the future.</para>
++      </note>
++
++      <para>
++	The Image Source control class is intended for low-level
++	control of image source devices such as image sensors. The
++	devices feature an analogue to digital converter and a bus
++	transmitter to transmit the image data out of the device.
++      </para>
++
++      <table pgwide="1" frame="none" id="image-source-control-id">
++      <title>Image Source Control IDs</title>
++
++      <tgroup cols="4">
++	<colspec colname="c1" colwidth="1*" />
++	<colspec colname="c2" colwidth="6*" />
++	<colspec colname="c3" colwidth="2*" />
++	<colspec colname="c4" colwidth="6*" />
++	<spanspec namest="c1" nameend="c2" spanname="id" />
++	<spanspec namest="c2" nameend="c4" spanname="descr" />
++	<thead>
++	  <row>
++	    <entry spanname="id" align="left">ID</entry>
++	    <entry align="left">Type</entry>
++	  </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
++	  </row>
++	</thead>
++	<tbody valign="top">
++	  <row><entry></entry></row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_IMAGE_SOURCE_CLASS</constant></entry>
++	    <entry>class</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">The IMAGE_SOURCE class descriptor.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_VBLANK</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Vertical blanking. The idle period
++	    after every frame during which no image data is produced.
++	    The unit of vertical blanking is a line. Every line has
++	    length of the image width plus horizontal blanking at the
++	    pixel rate defined by
++	    <constant>V4L2_CID_PIXEL_RATE</constant> control in the
++	    same sub-device.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_HBLANK</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Horizontal blanking. The idle
++	    period after every line of image data during which no
++	    image data is produced. The unit of horizontal blanking is
++	    pixels.</entry>
++	  </row>
++	  <row>
++	    <entry spanname="id"><constant>V4L2_CID_ANALOGUE_GAIN</constant></entry>
++	    <entry>integer</entry>
++	  </row>
++	  <row>
++	    <entry spanname="descr">Analogue gain is gain affecting
++	    all colour components in the pixel matrix. The gain
++	    operation is performed in the analogue domain before A/D
++	    conversion.
++	    </entry>
++	  </row>
++	  <row><entry></entry></row>
++	</tbody>
++      </tgroup>
++      </table>
++
++    </section>
++
+ </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+index b17a7aa..f420034 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
+@@ -265,6 +265,12 @@ These controls are described in <xref
+ These controls are described in <xref
+ 		linkend="flash-controls" />.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>V4L2_CTRL_CLASS_IMAGE_SOURCE</constant></entry>
++	    <entry>0x9d0000</entry> <entry>The class containing image
++	    source controls. These controls are described in <xref
++	    linkend="image-source-controls" />.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
+index f0484bd..3ca6bc7 100644
+--- a/drivers/media/video/v4l2-ctrls.c
++++ b/drivers/media/video/v4l2-ctrls.c
+@@ -623,6 +623,12 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_FLASH_CHARGE:		return "Charge";
+ 	case V4L2_CID_FLASH_READY:		return "Ready to Strobe";
  
-@@ -1689,7 +1687,7 @@ static int fimc_probe(struct platform_device *pdev)
- 		return -EINVAL;
++	/* Image source controls */
++	case V4L2_CID_IMAGE_SOURCE_CLASS:	return "Image Source Controls";
++	case V4L2_CID_VBLANK:			return "Vertical Blanking";
++	case V4L2_CID_HBLANK:			return "Horizontal Blanking";
++	case V4L2_CID_ANALOGUE_GAIN:		return "Analogue Gain";
++
+ 	default:
+ 		return NULL;
  	}
+@@ -722,6 +728,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_CLASS:
+ 	case V4L2_CID_FM_TX_CLASS:
+ 	case V4L2_CID_FLASH_CLASS:
++	case V4L2_CID_IMAGE_SOURCE_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+index e3c6302..ca64202 100644
+--- a/include/linux/videodev2.h
++++ b/include/linux/videodev2.h
+@@ -1136,6 +1136,7 @@ struct v4l2_ext_controls {
+ #define V4L2_CTRL_CLASS_CAMERA 0x009a0000	/* Camera class controls */
+ #define V4L2_CTRL_CLASS_FM_TX 0x009b0000	/* FM Modulator control class */
+ #define V4L2_CTRL_CLASS_FLASH 0x009c0000	/* Camera flash controls */
++#define V4L2_CTRL_CLASS_IMAGE_SOURCE 0x009d0000	/* Image source controls */
  
--	fimc = kzalloc(sizeof(struct fimc_dev), GFP_KERNEL);
-+	fimc = devm_kzalloc(&pdev->dev, sizeof(*fimc), GFP_KERNEL);
- 	if (!fimc)
- 		return -ENOMEM;
+ #define V4L2_CTRL_ID_MASK      	  (0x0fffffff)
+ #define V4L2_CTRL_ID2CLASS(id)    ((id) & 0x0fff0000UL)
+@@ -1762,6 +1763,14 @@ enum v4l2_flash_strobe_source {
+ #define V4L2_CID_FLASH_CHARGE			(V4L2_CID_FLASH_CLASS_BASE + 11)
+ #define V4L2_CID_FLASH_READY			(V4L2_CID_FLASH_CLASS_BASE + 12)
  
-@@ -1700,51 +1698,35 @@ static int fimc_probe(struct platform_device *pdev)
- 	pdata = pdev->dev.platform_data;
- 	fimc->pdata = pdata;
- 
--
- 	init_waitqueue_head(&fimc->irq_queue);
- 	spin_lock_init(&fimc->slock);
- 	mutex_init(&fimc->lock);
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		dev_err(&pdev->dev, "failed to find the registers\n");
--		ret = -ENOENT;
--		goto err_info;
--	}
--
--	fimc->regs_res = request_mem_region(res->start, resource_size(res),
--			dev_name(&pdev->dev));
--	if (!fimc->regs_res) {
--		dev_err(&pdev->dev, "failed to obtain register region\n");
--		ret = -ENOENT;
--		goto err_info;
--	}
--
--	fimc->regs = ioremap(res->start, resource_size(res));
--	if (!fimc->regs) {
--		dev_err(&pdev->dev, "failed to map registers\n");
--		ret = -ENXIO;
--		goto err_req_region;
-+	fimc->regs = devm_request_and_ioremap(&pdev->dev, res);
-+	if (fimc->regs == NULL) {
-+		dev_err(&pdev->dev, "Failed to obtain io memory\n");
-+		return -ENOENT;
- 	}
- 
- 	res = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
--	if (!res) {
--		dev_err(&pdev->dev, "failed to get IRQ resource\n");
--		ret = -ENXIO;
--		goto err_regs_unmap;
-+	if (res == NULL) {
-+		dev_err(&pdev->dev, "Failed to get IRQ resource\n");
-+		return -ENXIO;
- 	}
- 	fimc->irq = res->start;
- 
- 	fimc->num_clocks = MAX_FIMC_CLOCKS;
- 	ret = fimc_clk_get(fimc);
- 	if (ret)
--		goto err_regs_unmap;
-+		return ret;
- 	clk_set_rate(fimc->clock[CLK_BUS], drv_data->lclk_frequency);
- 	clk_enable(fimc->clock[CLK_BUS]);
- 
- 	platform_set_drvdata(pdev, fimc);
- 
--	ret = request_irq(fimc->irq, fimc_irq_handler, 0, pdev->name, fimc);
-+	ret = devm_request_irq(&pdev->dev, fimc->irq, fimc_irq_handler,
-+			       0, pdev->name, fimc);
- 	if (ret) {
- 		dev_err(&pdev->dev, "failed to install irq (%d)\n", ret);
- 		goto err_clk;
-@@ -1753,7 +1735,7 @@ static int fimc_probe(struct platform_device *pdev)
- 	pm_runtime_enable(&pdev->dev);
- 	ret = pm_runtime_get_sync(&pdev->dev);
- 	if (ret < 0)
--		goto err_irq;
-+		goto err_clk;
- 	/* Initialize contiguous memory allocator */
- 	fimc->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
- 	if (IS_ERR(fimc->alloc_ctx)) {
-@@ -1768,17 +1750,8 @@ static int fimc_probe(struct platform_device *pdev)
- 
- err_pm:
- 	pm_runtime_put(&pdev->dev);
--err_irq:
--	free_irq(fimc->irq, fimc);
- err_clk:
- 	fimc_clk_put(fimc);
--err_regs_unmap:
--	iounmap(fimc->regs);
--err_req_region:
--	release_resource(fimc->regs_res);
--	kfree(fimc->regs_res);
--err_info:
--	kfree(fimc);
- 	return ret;
- }
- 
-@@ -1865,11 +1838,6 @@ static int __devexit fimc_remove(struct platform_device *pdev)
- 
- 	clk_disable(fimc->clock[CLK_BUS]);
- 	fimc_clk_put(fimc);
--	free_irq(fimc->irq, fimc);
--	iounmap(fimc->regs);
--	release_resource(fimc->regs_res);
--	kfree(fimc->regs_res);
--	kfree(fimc);
- 
- 	dev_info(&pdev->dev, "driver unloaded\n");
- 	return 0;
-diff --git a/drivers/media/video/s5p-fimc/fimc-core.h b/drivers/media/video/s5p-fimc/fimc-core.h
-index 4e20560..a18291e 100644
---- a/drivers/media/video/s5p-fimc/fimc-core.h
-+++ b/drivers/media/video/s5p-fimc/fimc-core.h
-@@ -434,7 +434,6 @@ struct fimc_ctx;
-  * @num_clocks: the number of clocks managed by this device instance
-  * @clock:	clocks required for FIMC operation
-  * @regs:	the mapped hardware registers
-- * @regs_res:	the resource claimed for IO registers
-  * @irq:	FIMC interrupt number
-  * @irq_queue:	interrupt handler waitqueue
-  * @v4l2_dev:	root v4l2_device
-@@ -454,7 +453,6 @@ struct fimc_dev {
- 	u16				num_clocks;
- 	struct clk			*clock[MAX_FIMC_CLOCKS];
- 	void __iomem			*regs;
--	struct resource			*regs_res;
- 	int				irq;
- 	wait_queue_head_t		irq_queue;
- 	struct v4l2_device		*v4l2_dev;
-diff --git a/drivers/media/video/s5p-fimc/fimc-mdevice.c b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-index 8ea4ee1..087ea09 100644
---- a/drivers/media/video/s5p-fimc/fimc-mdevice.c
-+++ b/drivers/media/video/s5p-fimc/fimc-mdevice.c
-@@ -753,7 +753,7 @@ static int __devinit fimc_md_probe(struct platform_device *pdev)
- 	struct fimc_md *fmd;
- 	int ret;
- 
--	fmd = kzalloc(sizeof(struct fimc_md), GFP_KERNEL);
-+	fmd = devm_kzalloc(&pdev->dev, sizeof(*fmd), GFP_KERNEL);
- 	if (!fmd)
- 		return -ENOMEM;
- 
-@@ -774,7 +774,7 @@ static int __devinit fimc_md_probe(struct platform_device *pdev)
- 	ret = v4l2_device_register(&pdev->dev, &fmd->v4l2_dev);
- 	if (ret < 0) {
- 		v4l2_err(v4l2_dev, "Failed to register v4l2_device: %d\n", ret);
--		goto err1;
-+		return ret;
- 	}
- 	ret = media_device_register(&fmd->media_dev);
- 	if (ret < 0) {
-@@ -816,8 +816,6 @@ err3:
- 	fimc_md_unregister_entities(fmd);
- err2:
- 	v4l2_device_unregister(&fmd->v4l2_dev);
--err1:
--	kfree(fmd);
- 	return ret;
- }
- 
-@@ -831,7 +829,6 @@ static int __devexit fimc_md_remove(struct platform_device *pdev)
- 	fimc_md_unregister_entities(fmd);
- 	media_device_unregister(&fmd->media_dev);
- 	fimc_md_put_clocks(fmd);
--	kfree(fmd);
- 	return 0;
- }
- 
++/* Image source controls */
++#define V4L2_CID_IMAGE_SOURCE_CLASS_BASE	(V4L2_CTRL_CLASS_IMAGE_SOURCE | 0x900)
++#define V4L2_CID_IMAGE_SOURCE_CLASS		(V4L2_CTRL_CLASS_IMAGE_SOURCE | 1)
++
++#define V4L2_CID_VBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 1)
++#define V4L2_CID_HBLANK				(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 2)
++#define V4L2_CID_ANALOGUE_GAIN			(V4L2_CID_IMAGE_SOURCE_CLASS_BASE + 3)
++
+ /*
+  *	T U N I N G
+  */
 -- 
-1.7.9
+1.7.2.5
 
