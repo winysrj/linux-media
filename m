@@ -1,37 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:35204 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753979Ab2BMQLk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 11:11:40 -0500
-Received: by wics10 with SMTP id s10so3559648wic.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 08:11:39 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <jh3ep3$bm8$1@dough.gmane.org>
-References: <1327161877-16784-1-git-send-email-mchehab@redhat.com>
- <CAJ_iqtbzWGjLFUbMu4useGeb2739ikRYSnQCm5E4Lej1SJ-vpQ@mail.gmail.com>
- <CAJ_iqtY2y5+jo2rirm1LbfDHVytcnaXE5x+KuA_MD-H5N4pnwA@mail.gmail.com>
- <CAJ_iqtauqw0KPO19q4cc527tKv-0PW-SLoQGfb_dob4Nwv8g6A@mail.gmail.com> <jh3ep3$bm8$1@dough.gmane.org>
-From: Eddi De Pieri <eddi@depieri.net>
-Date: Mon, 13 Feb 2012 17:11:19 +0100
-Message-ID: <CAKdnbx6z-Z63RxtHTEE4AtiOV08a6886qO03D+dGoX=LDN_JMw@mail.gmail.com>
-Subject: Re: [PATCH 00/35] Add a driver for Terratec H7
-To: Jason Krolo <jasonjvk@aol.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp.nokia.com ([147.243.128.26]:64030 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753046Ab2BTB60 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:58:26 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 10/33] v4l: Mark VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP obsolete
+Date: Mon, 20 Feb 2012 03:56:49 +0200
+Message-Id: <1329703032-31314-10-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jason,
+These two IOCTLS are obsoleted by VIDIOC_SUBDEV_G_SELECTION and
+VIDIOC_SUBDEV_S_SELECTION. Mark them obsolete.
 
-> I didn't test dvb-t terrestrial, but under /dev/dvb i have only one adapter.
-> Is there no need for two, one for cable, another for terrestrial?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/compat.xml         |    7 +++++++
+ .../DocBook/media/v4l/vidioc-subdev-g-crop.xml     |    9 ++++++---
+ 2 files changed, 13 insertions(+), 3 deletions(-)
 
-Try using dvb-fe-tool from following git:
+diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
+index 0c498db..da9b3bd 100644
+--- a/Documentation/DocBook/media/v4l/compat.xml
++++ b/Documentation/DocBook/media/v4l/compat.xml
+@@ -2541,6 +2541,13 @@ interfaces and should not be implemented in new drivers.</para>
+ <constant>VIDIOC_S_MPEGCOMP</constant> ioctls. Use Extended Controls,
+ <xref linkend="extended-controls" />.</para>
+         </listitem>
++        <listitem>
++	  <para><constant>VIDIOC_SUBDEV_G_CROP</constant> and
++	  <constant>VIDIOC_SUBDEV_S_CROP</constant> ioctls. Use
++	  <constant>VIDIOC_SUBDEV_G_SELECTION</constant> and
++	  <constant>VIDIOC_SUBDEV_S_SELECTION</constant>, <xref
++	  linkend="vidioc-subdev-g-selection" />.</para>
++        </listitem>
+       </itemizedlist>
+     </section>
+   </section>
+diff --git a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
+index 0619732..4cddd78 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-subdev-g-crop.xml
+@@ -58,9 +58,12 @@
+     <title>Description</title>
+ 
+     <note>
+-      <title>Experimental</title>
+-      <para>This is an <link linkend="experimental">experimental</link>
+-      interface and may change in the future.</para>
++      <title>Obsolete</title>
++
++      <para>This is an <link linkend="obsolete">obsolete</link>
++      interface and may be removed in the future. It is superseded by
++      <link linkend="vidioc-subdev-g-selection">the selection
++      API</link>.</para>
+     </note>
+ 
+     <para>To retrieve the current crop rectangle applications set the
+-- 
+1.7.2.5
 
-"http://git.linuxtv.org/mchehab/experimental-v4l-utils.git/shortlog/refs/heads/dvbv5-0.0.1"
-
-This tool allow switching the delivery system from DVB-C to DVB-T (and
-other if supported)
-
-Eddi
