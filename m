@@ -1,56 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3234 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755035Ab2BBK2b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 05:28:31 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp.nokia.com ([147.243.1.48]:59368 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753212Ab2BTB7B (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:59:01 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv7 PATCH 3/4] net/sock.h: use poll_does_not_wait() in sock_poll_wait()
-Date: Thu,  2 Feb 2012 11:26:56 +0100
-Message-Id: <d2c03c4e81aa4fbc8c621241e7016a2c4aa65382.1328176079.git.hans.verkuil@cisco.com>
-In-Reply-To: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <a92b9a00741769f3c38a54d3a6799509f9089452.1328176079.git.hans.verkuil@cisco.com>
-References: <a92b9a00741769f3c38a54d3a6799509f9089452.1328176079.git.hans.verkuil@cisco.com>
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 17/33] v4l: Implement v4l2_subdev_link_validate()
+Date: Mon, 20 Feb 2012 03:56:56 +0200
+Message-Id: <1329703032-31314-17-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+v4l2_subdev_link_validate() is the default op for validating a link. In V4L2
+subdev context, it is used to call a pad op which performs the proper link
+check without much extra work.
 
-In order to determine whether poll_wait() might actually wait the
-poll_table pointer was tested in sock_poll_wait(). This is no longer
-sufficient, instead poll_does_not_wait() should be called. That function
-also tests whether pt->pq_proc is non-NULL.
-
-Without this change smp_mb() could be called unnecessarily in some
-circumstances, causing a performance hit.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
- include/net/sock.h |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ Documentation/video4linux/v4l2-framework.txt |   12 +++++
+ drivers/media/video/v4l2-subdev.c            |   69 ++++++++++++++++++++++++++
+ include/media/v4l2-subdev.h                  |   12 +++++
+ 3 files changed, 93 insertions(+), 0 deletions(-)
 
-diff --git a/include/net/sock.h b/include/net/sock.h
-index 91c1c8b..da7f2ec 100644
---- a/include/net/sock.h
-+++ b/include/net/sock.h
-@@ -1824,7 +1824,7 @@ static inline bool wq_has_sleeper(struct socket_wq *wq)
- static inline void sock_poll_wait(struct file *filp,
- 		wait_queue_head_t *wait_address, poll_table *p)
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index f06c563..9d341bc 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -312,6 +312,18 @@ If the subdev driver intends to process video and integrate with the media
+ framework, it must implement format related functionality using
+ v4l2_subdev_pad_ops instead of v4l2_subdev_video_ops.
+ 
++In that case, the subdev driver may set the link_validate field to provide
++its own link validation function. The link validation function is called for
++every link in the pipeline where both of the ends of the links are V4L2
++sub-devices. The driver is still responsible for validating the correctness
++of the format configuration between sub-devices and video nodes.
++
++If link_validate op is not set, the default function
++v4l2_subdev_link_validate_default() is used instead. This function ensures
++that width, height and the media bus pixel code are equal on both source and
++sink of the link. Subdev drivers are also free to use this function to
++perform the checks mentioned above in addition to their own checks.
++
+ A device (bridge) driver needs to register the v4l2_subdev with the
+ v4l2_device:
+ 
+diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
+index ef27144..d2ec552 100644
+--- a/drivers/media/video/v4l2-subdev.c
++++ b/drivers/media/video/v4l2-subdev.c
+@@ -379,6 +379,75 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+ 	.poll = subdev_poll,
+ };
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
++				      struct media_link *link,
++				      struct v4l2_subdev_format *source_fmt,
++				      struct v4l2_subdev_format *sink_fmt)
++{
++	if (source_fmt->format.width != sink_fmt->format.width
++	    || source_fmt->format.height != sink_fmt->format.height
++	    || source_fmt->format.code != sink_fmt->format.code)
++		return -EINVAL;
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
++
++static struct v4l2_subdev_format
++*v4l2_subdev_link_validate_get_format(struct media_pad *pad,
++				      struct v4l2_subdev_format *fmt)
++{
++	int rval;
++
++	switch (media_entity_type(pad->entity)) {
++	case MEDIA_ENT_T_V4L2_SUBDEV:
++		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
++		fmt->pad = pad->index;
++		rval = v4l2_subdev_call(media_entity_to_v4l2_subdev(
++						pad->entity),
++					pad, get_fmt, NULL, fmt);
++		if (rval < 0)
++			return NULL;
++		return fmt;
++	default:
++		WARN(1, "Driver bug! Wrong media entity type %d, entity %s\n",
++		     media_entity_type(pad->entity), pad->entity->name);
++		/* Fall through */
++	case MEDIA_ENT_T_DEVNODE_V4L:
++		return NULL;
++	}
++}
++
++int v4l2_subdev_link_validate(struct media_link *link)
++{
++	struct v4l2_subdev *sink;
++	struct v4l2_subdev_format _sink_fmt, _source_fmt;
++	struct v4l2_subdev_format *sink_fmt, *source_fmt;
++	int rval;
++
++	source_fmt = v4l2_subdev_link_validate_get_format(
++		link->source, &_source_fmt);
++	if (!source_fmt)
++		return 0;
++
++	sink_fmt = v4l2_subdev_link_validate_get_format(
++		link->sink, &_sink_fmt);
++	if (!sink_fmt)
++		return 0;
++
++	sink = media_entity_to_v4l2_subdev(link->sink->entity);
++
++	rval = v4l2_subdev_call(sink, pad, link_validate, link,
++				source_fmt, sink_fmt);
++	if (rval < 0 && rval != -ENOIOCTLCMD)
++		return rval;
++	return v4l2_subdev_link_validate_default(sink, link, source_fmt,
++						 sink_fmt);
++}
++EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
++#endif /* CONFIG_MEDIA_CONTROLLER */
++
+ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
  {
--	if (p && wait_address) {
-+	if (!poll_does_not_wait(p) && wait_address) {
- 		poll_wait(filp, wait_address, p);
- 		/*
- 		 * We need to be sure we are in sync with the
+ 	INIT_LIST_HEAD(&sd->list);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index d48dae5..f115608 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -470,6 +470,11 @@ struct v4l2_subdev_pad_ops {
+ 			     struct v4l2_subdev_selection *sel);
+ 	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 			     struct v4l2_subdev_selection *sel);
++#ifdef CONFIG_MEDIA_CONTROLLER
++	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
++			     struct v4l2_subdev_format *source_fmt,
++			     struct v4l2_subdev_format *sink_fmt);
++#endif /* CONFIG_MEDIA_CONTROLLER */
+ };
+ 
+ struct v4l2_subdev_ops {
+@@ -603,6 +608,13 @@ static inline void *v4l2_get_subdev_hostdata(const struct v4l2_subdev *sd)
+ 	return sd->host_priv;
+ }
+ 
++#ifdef CONFIG_MEDIA_CONTROLLER
++int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
++				      struct media_link *link,
++				      struct v4l2_subdev_format *source_fmt,
++				      struct v4l2_subdev_format *sink_fmt);
++int v4l2_subdev_link_validate(struct media_link *link);
++#endif /* CONFIG_MEDIA_CONTROLLER */
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
 -- 
-1.7.8.3
+1.7.2.5
 
