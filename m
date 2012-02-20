@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:60191 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1751268Ab2B0Wfk convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:17954 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752505Ab2BTJdq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Feb 2012 17:35:40 -0500
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
-To: Daniel =?iso-8859-1?q?Gl=F6ckner?= <daniel-gl@gmx.net>
-Subject: Re: [PATCH 3/3] Firmware for AF9035/AF9033 driver
-Date: Mon, 27 Feb 2012 23:35:25 +0100
-Cc: linux-media@vger.kernel.org
-References: <201202222322.02424.hfvogt@gmx.net> <20120227003321.GA25060@minime.bse>
-In-Reply-To: <20120227003321.GA25060@minime.bse>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201202272335.25221.hfvogt@gmx.net>
+	Mon, 20 Feb 2012 04:33:46 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0LZO00EC4QK7SR50@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Feb 2012 09:33:43 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0LZO00GEGQK7I9@spt1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 20 Feb 2012 09:33:43 +0000 (GMT)
+Date: Mon, 20 Feb 2012 10:33:34 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 3/3] noon010pc30: Make subdev name independent of the I2C slave
+ address
+In-reply-to: <1329730414-7757-1-git-send-email-s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Message-id: <1329730414-7757-4-git-send-email-s.nawrocki@samsung.com>
+References: <1329730414-7757-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Montag, 27. Februar 2012 schrieb Daniel Glöckner:
-> On Wed, Feb 22, 2012 at 11:22:02PM +0100, Hans-Frieder Vogt wrote:
-> > 00000040: Firmware_CODELENGTH bytes
-> 
-> Some time ago I analyzed the firmware of the AF9035.
-> The firmware download command inside the on-chip ROM expects chunks
-> with a 7 byte header:
-> 
-> Byte 0: MCS 51 core
-> 	There are two inside the AF9035 (1=Link and 2=OFDM) with
-> 	separate address spaces
-> Byte 1-2: Big endian destination address
-> Byte 3-4: Big endian number of data bytes following the header
-> Byte 5-6: Big endian header checksum, apparently ignored by the chip
-> 	Calculated as ~(h[0]*256+h[1]+h[2]*256+h[3]+h[4]*256)
-> 
-> This might help locate the firmware inside the Windows drivers.
-> The Windows drivers often contain two copies of the same firmware.
-> 
->   Daniel
+Initialize the subdev name properly so it doesn't have an I2C
+bus and slave address appended to it.
 
-Daniel,
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/video/noon010pc30.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-impressive!!!
+diff --git a/drivers/media/video/noon010pc30.c b/drivers/media/video/noon010pc30.c
+index 50838bf..d0904c5 100644
+--- a/drivers/media/video/noon010pc30.c
++++ b/drivers/media/video/noon010pc30.c
+@@ -725,8 +725,8 @@ static int noon010_probe(struct i2c_client *client,
+ 
+ 	mutex_init(&info->lock);
+ 	sd = &info->sd;
+-	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+ 	v4l2_i2c_subdev_init(sd, client, &noon010_ops);
++	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+ 
+ 	sd->internal_ops = &noon010_subdev_internal_ops;
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+-- 
+1.7.9
 
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
