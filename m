@@ -1,342 +1,508 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ey0-f174.google.com ([209.85.215.174]:64232 "EHLO
-	mail-ey0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754181Ab2BWQkV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Feb 2012 11:40:21 -0500
-Received: by eaah12 with SMTP id h12so661766eaa.19
-        for <linux-media@vger.kernel.org>; Thu, 23 Feb 2012 08:40:20 -0800 (PST)
-Message-ID: <4F466BEF.9050204@gmail.com>
-Date: Thu, 23 Feb 2012 17:40:15 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
-MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] Support for AF9035/AF9033
-References: <201202222320.56583.hfvogt@gmx.net>
-In-Reply-To: <201202222320.56583.hfvogt@gmx.net>
-Content-Type: multipart/mixed;
- boundary="------------090206030503010402080203"
+Received: from smtp.nokia.com ([147.243.128.26]:60070 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753410Ab2BTCAM (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 21:00:12 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 33/33] rm680: Add camera init
+Date: Mon, 20 Feb 2012 03:57:12 +0200
+Message-Id: <1329703032-31314-33-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a multi-part message in MIME format.
---------------090206030503010402080203
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+From: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 
-Il 22/02/2012 23:20, Hans-Frieder Vogt ha scritto:
-> I have written a driver for the AF9035 & AF9033 (called af903x), based on the 
-> various drivers and information floating around for these chips.
-> Currently, my driver only supports the devices that I am able to test. These 
-> are
-> - Terratec T5 Ver.2 (also known as T6)
-> - Avermedia Volar HD Nano (A867)
-> 
-> The driver supports:
-> - diversity and dual tuner (when the first frontend is used, it is in diversity 
-> mode, when two frontends are used in dual tuner mode)
-> - multiple devices
-> - pid filtering
-> - remote control in NEC and RC-6 mode (currently not switchable, but depending 
-> on device)
-> - support for kernel 3.1, 3.2 and 3.3 series
-> 
-> I have not tried to split the driver in a DVB-T receiver (af9035) and a 
-> frontend (af9033), because I do not see the sense in doing that for a 
-> demodulator, that seems to be always used in combination with the very same 
-> receiver.
-> 
-> The patch is split in three parts:
-> Patch 1: support for tuner fitipower FC0012
-> Patch 2: basic driver
-> Patch 3: firmware
-> 
-> Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+This currently introduces an extra file to the arch/arm/mach-omap2
+directory: board-rm680-camera.c. Keeping the device tree in mind, the
+context of the file could be represented as static data with one exception:
+the external clock to the sensor.
 
-Hi Hans,
-thank you for the new af903x driver.
-A few comments:
+This external clock is provided by the OMAP 3 SoC and required by the
+sensor. The issue is that the clock originates from the ISP and not from
+PRCM block as the other clocks and thus is not supported by the clock
+framework. Otherwise the sensor driver could just clk_get() and clk_enable()
+it, just like the regulators and gpios.
 
-1) I think you should set up a git repository with your driver and then
-send a PULL request to the list; as it is, the first patch is affected
-by line-wrapping problems so it must be manually edited to be
-applicable, and the second patch is compressed so it will be ignored by
-patchwork.
-
-2) There are a couple of small errors in the patches (see my attached
-patches): in the dvb-usb Makefile,  DVB_USB_AF903X must be replaced by
-CONFIG_DVB_USB_AF903X otherwise the driver will not compile; also, in
-the dvb_frontend_ops struct, the field info.type should be removed for
-kernels >= 3.3.0.
-
-3) The USB VID/PID IDs should be moved into dvb-usb-ids.h (see patch 3);
-I also added a few IDs from the Avermedia A867 driver*. As your driver
-supports both AF9007 and mxl5007t tuners I think this is safe.
-
-*http://www.avermedia.com/Support/DownloadCount.aspx?FDFId=4591
-
-4) the driver also looks for a firmware file called "af35irtbl.bin" that
-comes from the "official" ITEtech driver (if it's not present the driver
-works anyway, but it prints an error message);
-
-I tested the driver with an Avermedia A867 stick (it's an OEM stick also
-known as the Sky Italia Digital Key with blue led: 07ca:a867) on a
-Ubuntu 10.04 system with kernel 2.6.32-38-generic-pae and the latest
-media_build tree installed.
-
-The good news:
-the driver loads properly, and, using Kaffeine, I could watch several
-channels with a small portable antenna; I could also perform a full
-frequency scan, finding several UHF and VHF stations. Signal strength
-and SNR reports works really well, and they seems to give a "realistic"
-figure of the signal quality (with both the portable and the rooftop
-antenna).
-When the stick is unplugged from the USB port, the driver unloads properly.
-
-The bad news:
-the driver seems to "lock" the application when it tries to tune a weak
-channel: in this cases, Kaffeine becomes unresponsive and sometimes it
-gives a stream error; for the same reason, the full scan fails to find
-all stations and takes a long time to complete.
-Also, when I tried to extract the stick from the USB port during one of
-this "freezing" periods, the system crashed :-(
-I reproduced this bug 3 times, and the last time I was able to see a
-kernel dump for a moment: the function that crashed the kernel was
-"af903x_streaming_ctrl".
-Neither of those issues are present with the Avermedia A867 original
-driver or Antti Palosaari's af9035 driver modified to support the A867
-stick.
-
-I hope this feedback will be useful to improve the driver.
-
-Best regards,
-Gianluca Gennari
-
---------------090206030503010402080203
-Content-Type: text/x-patch;
- name="0001-af903x-fixed-Makefile.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0001-af903x-fixed-Makefile.patch"
-
-[PATCH 1/3] af903x: fixed Makefile
-
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+Signed-off-by: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
 ---
- drivers/media/dvb/dvb-usb/Makefile |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ arch/arm/mach-omap2/Makefile             |    3 +-
+ arch/arm/mach-omap2/board-rm680-camera.c |  375 ++++++++++++++++++++++++++++++
+ arch/arm/mach-omap2/board-rm680.c        |   38 +++
+ 3 files changed, 415 insertions(+), 1 deletions(-)
+ create mode 100644 arch/arm/mach-omap2/board-rm680-camera.c
 
-diff --git a/drivers/media/dvb/dvb-usb/Makefile b/drivers/media/dvb/dvb-usb/Makefile
-index 75780e2..49c5425 100644
---- a/drivers/media/dvb/dvb-usb/Makefile
-+++ b/drivers/media/dvb/dvb-usb/Makefile
-@@ -76,7 +76,7 @@ dvb-usb-af9015-objs = af9015.o
- obj-$(CONFIG_DVB_USB_AF9015) += dvb-usb-af9015.o
+diff --git a/arch/arm/mach-omap2/Makefile b/arch/arm/mach-omap2/Makefile
+index fc9b238..f92cc92 100644
+--- a/arch/arm/mach-omap2/Makefile
++++ b/arch/arm/mach-omap2/Makefile
+@@ -206,7 +206,8 @@ obj-$(CONFIG_MACH_OMAP3_PANDORA)	+= board-omap3pandora.o
+ obj-$(CONFIG_MACH_OMAP_3430SDP)		+= board-3430sdp.o
+ obj-$(CONFIG_MACH_NOKIA_N8X0)		+= board-n8x0.o
+ obj-$(CONFIG_MACH_NOKIA_RM680)		+= board-rm680.o \
+-					   sdram-nokia.o
++					   sdram-nokia.o \
++					   board-rm680-camera.o
+ obj-$(CONFIG_MACH_NOKIA_RX51)		+= board-rx51.o \
+ 					   sdram-nokia.o \
+ 					   board-rx51-peripherals.o \
+diff --git a/arch/arm/mach-omap2/board-rm680-camera.c b/arch/arm/mach-omap2/board-rm680-camera.c
+new file mode 100644
+index 0000000..5059821
+--- /dev/null
++++ b/arch/arm/mach-omap2/board-rm680-camera.c
+@@ -0,0 +1,375 @@
++/**
++ * arch/arm/mach-omap2/board-rm680-camera.c
++ *
++ * Copyright (C) 2010--2012 Nokia Corporation
++ * Contact: Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>
++ *
++ * Based on board-rx71-camera.c by Vimarsh Zutshi
++ * Based on board-rx51-camera.c by Sakari Ailus
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ *
++ */
++
++#include <linux/delay.h>
++#include <linux/gpio.h>
++#include <linux/i2c.h>
++#include <linux/mm.h>
++#include <linux/platform_device.h>
++#include <linux/videodev2.h>
++
++#include <asm/mach-types.h>
++#include <plat/omap-pm.h>
++
++#include <media/omap3isp.h>
++#include <media/smiapp.h>
++
++#include "../../../drivers/media/video/omap3isp/isp.h"
++#include "devices.h"
++
++#define SEC_CAMERA_RESET_GPIO	97
++
++#define RM680_PRI_SENSOR	1
++#define RM680_PRI_LENS		2
++#define RM680_SEC_SENSOR	3
++#define MAIN_CAMERA_XCLK	ISP_XCLK_A
++#define SEC_CAMERA_XCLK		ISP_XCLK_B
++
++/*
++ *
++ * Main Camera Module EXTCLK
++ * Used by the sensor and the actuator driver.
++ *
++ */
++static struct camera_xclk {
++	u32 hz;
++	u32 lock;
++	u8 xclksel;
++} cameras_xclk;
++
++static DEFINE_MUTEX(lock_xclk);
++
++static int rm680_update_xclk(struct v4l2_subdev *subdev, u32 hz, u32 which,
++			     u8 xclksel)
++{
++	struct isp_device *isp = v4l2_dev_to_isp_device(subdev->v4l2_dev);
++	int ret;
++
++	mutex_lock(&lock_xclk);
++
++	if (which == RM680_SEC_SENSOR) {
++		if (cameras_xclk.xclksel == MAIN_CAMERA_XCLK) {
++			ret = -EBUSY;
++			goto done;
++		}
++	} else {
++		if (cameras_xclk.xclksel == SEC_CAMERA_XCLK) {
++			ret = -EBUSY;
++			goto done;
++		}
++	}
++
++	if (hz) {	/* Turn on */
++		cameras_xclk.lock |= which;
++		if (cameras_xclk.hz == 0) {
++			isp->platform_cb.set_xclk(isp, hz, xclksel);
++			cameras_xclk.hz = hz;
++			cameras_xclk.xclksel = xclksel;
++		}
++	} else {	/* Turn off */
++		cameras_xclk.lock &= ~which;
++		if (cameras_xclk.lock == 0) {
++			isp->platform_cb.set_xclk(isp, 0, xclksel);
++			cameras_xclk.hz = 0;
++			cameras_xclk.xclksel = 0;
++		}
++	}
++
++	ret = cameras_xclk.hz;
++
++done:
++	mutex_unlock(&lock_xclk);
++	return ret;
++}
++
++/*
++ *
++ * Main Camera Sensor
++ *
++ */
++
++static int rm680_main_camera_set_xclk(struct v4l2_subdev *sd, int hz)
++{
++	return rm680_update_xclk(sd, hz, RM680_PRI_SENSOR, MAIN_CAMERA_XCLK);
++}
++
++static struct smiapp_flash_strobe_parms rm680_main_camera_strobe_setup = {
++	.mode			= 0x0c,
++	.strobe_width_high_us	= 100000,
++	.strobe_delay		= 0,
++	.stobe_start_point	= 0,
++	.trigger		= 0,
++};
++
++static struct smiapp_platform_data rm696_main_camera_platform_data = {
++	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
++	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
++	.nvm_size		= 16 * 64,
++	.ext_clk		= (9.6 * 1000 * 1000),
++	.lanes			= 2,
++	/* bit rate / ddr / lanes */
++	.op_sys_clock		= (s64 []){ 796800000 / 2 / 2,
++					    840000000 / 2 / 2,
++					    1996800000 / 2 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
++	.strobe_setup		= &rm680_main_camera_strobe_setup,
++	.set_xclk		= rm680_main_camera_set_xclk,
++	.xshutdown		= SMIAPP_NO_XSHUTDOWN,
++};
++
++static struct smiapp_platform_data rm680_main_camera_platform_data = {
++	.i2c_addr_dfl		= SMIAPP_DFL_I2C_ADDR,
++	.i2c_addr_alt		= SMIAPP_ALT_I2C_ADDR,
++	.nvm_size		= 16 * 64,
++	.ext_clk		= (9.6 * 1000 * 1000),
++	.lanes			= 2,
++	.op_sys_clock		= (s64 []){ 840000000 / 2 / 2,
++					    1334400000 / 2 / 2,
++					    1593600000 / 2 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CSI2,
++	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
++	.strobe_setup		= &rm680_main_camera_strobe_setup,
++	.set_xclk		= rm680_main_camera_set_xclk,
++	.xshutdown		= SMIAPP_NO_XSHUTDOWN,
++};
++
++/*
++ *
++ * SECONDARY CAMERA Sensor
++ *
++ */
++
++#define SEC_CAMERA_XCLK		ISP_XCLK_B
++
++static int rm680_sec_camera_set_xclk(struct v4l2_subdev *sd, int hz)
++{
++	return rm680_update_xclk(sd, hz, RM680_SEC_SENSOR, SEC_CAMERA_XCLK);
++}
++
++static struct smiapp_platform_data rm696_sec_camera_platform_data = {
++	.ext_clk		= (10.8 * 1000 * 1000),
++	.lanes			= 1,
++	/* bit rate / ddr */
++	.op_sys_clock		= (s64 []){ 13770000 * 10 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
++	.module_board_orient	= SMIAPP_MODULE_BOARD_ORIENT_180,
++	.set_xclk		= rm680_sec_camera_set_xclk,
++	.xshutdown		= SEC_CAMERA_RESET_GPIO,
++};
++
++static struct smiapp_platform_data rm680_sec_camera_platform_data = {
++	.ext_clk		= (10.8 * 1000 * 1000),
++	.lanes			= 1,
++	/* bit rate / ddr */
++	.op_sys_clock		= (s64 []){ 11880000 * 10 / 2, 0 },
++	.csi_signalling_mode	= SMIAPP_CSI_SIGNALLING_MODE_CCP2_DATA_CLOCK,
++	.set_xclk		= rm680_sec_camera_set_xclk,
++	.xshutdown		= SEC_CAMERA_RESET_GPIO,
++};
++
++/*
++ *
++ * Init all the modules
++ *
++ */
++
++#define CAMERA_I2C_BUS_NUM		2
++#define AD5836_I2C_BUS_NUM		2
++#define AS3645A_I2C_BUS_NUM		2
++
++static struct i2c_board_info rm696_camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
++		.platform_data = &rm696_main_camera_platform_data,
++	},
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
++		.platform_data = &rm696_sec_camera_platform_data,
++	},
++};
++
++static struct i2c_board_info rm680_camera_i2c_devices[] = {
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_ALT_I2C_ADDR),
++		.platform_data = &rm680_main_camera_platform_data,
++	},
++	{
++		I2C_BOARD_INFO(SMIAPP_NAME, SMIAPP_DFL_I2C_ADDR),
++		.platform_data = &rm680_sec_camera_platform_data,
++	},
++};
++
++static struct isp_subdev_i2c_board_info rm696_camera_primary_subdevs[] = {
++	{
++		.board_info = &rm696_camera_i2c_devices[0],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm696_camera_secondary_subdevs[] = {
++	{
++		.board_info = &rm696_camera_i2c_devices[1],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm680_camera_primary_subdevs[] = {
++	{
++		.board_info = &rm680_camera_i2c_devices[0],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_subdev_i2c_board_info rm680_camera_secondary_subdevs[] = {
++	{
++		.board_info = &rm680_camera_i2c_devices[1],
++		.i2c_adapter_id = CAMERA_I2C_BUS_NUM,
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group rm696_camera_subdevs[] = {
++	{
++		.subdevs = rm696_camera_primary_subdevs,
++		.interface = ISP_INTERFACE_CSI2A_PHY2,
++		.bus = { .csi2 = {
++			.crc		= 1,
++			.vpclk_div	= 1,
++			.lanecfg	= {
++				.clk = {
++					.pol = 1,
++					.pos = 2,
++				},
++				.data[0] = {
++					.pol = 1,
++					.pos = 1,
++				},
++				.data[1] = {
++					.pol = 1,
++					.pos = 3,
++				},
++			},
++		} },
++	},
++	{
++		.subdevs = rm696_camera_secondary_subdevs,
++		.interface = ISP_INTERFACE_CCP2B_PHY1,
++		.bus = { .ccp2 = {
++			.strobe_clk_pol	= 0,
++			.crc		= 0,
++			.ccp2_mode	= 0,
++			.phy_layer	= 0,
++			.vpclk_div	= 2,
++			.lanecfg	= {
++				.clk = {
++					.pol = 0,
++					.pos = 1,
++				},
++				.data[0] = {
++					.pol = 0,
++					.pos = 2,
++				},
++			},
++		} },
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_v4l2_subdevs_group rm680_camera_subdevs[] = {
++	{
++		.subdevs = rm680_camera_primary_subdevs,
++		.interface = ISP_INTERFACE_CSI2A_PHY2,
++		.bus = { .csi2 = {
++			.crc		= 1,
++			.vpclk_div	= 1,
++			.lanecfg	= {
++				.clk = {
++					.pol = 1,
++					.pos = 2,
++				},
++				.data[0] = {
++					.pol = 1,
++					.pos = 3,
++				},
++				.data[1] = {
++					.pol = 1,
++					.pos = 1,
++				},
++			},
++		} },
++	},
++	{
++		.subdevs = rm680_camera_secondary_subdevs,
++		.interface = ISP_INTERFACE_CCP2B_PHY1,
++		.bus = { .ccp2 = {
++			.strobe_clk_pol	= 0,
++			.crc		= 0,
++			.ccp2_mode	= 0,
++			.phy_layer	= 0,
++			.vpclk_div	= 2,
++			.lanecfg	= {
++				.clk = {
++					.pol = 0,
++					.pos = 1,
++				},
++				.data[0] = {
++					.pol = 0,
++					.pos = 2,
++				},
++			},
++		} },
++	},
++	{ NULL, 0, },
++};
++
++static struct isp_platform_data rm696_isp_platform_data = {
++	.subdevs = rm696_camera_subdevs,
++};
++
++static struct isp_platform_data rm680_isp_platform_data = {
++	.subdevs = rm680_camera_subdevs,
++};
++
++static inline int board_is_rm680(void)
++{
++	return (system_rev & 0x00f0) == 0x0020;
++}
++
++void __init rm680_camera_init(void)
++{
++	struct isp_platform_data *pdata;
++
++	if (board_is_rm680())
++		pdata = &rm680_isp_platform_data;
++	else
++		pdata = &rm696_isp_platform_data;
++
++	if (omap3_init_camera(pdata) < 0)
++		pr_warn("%s: unable to register camera platform device\n",
++			__func__);
++}
+diff --git a/arch/arm/mach-omap2/board-rm680.c b/arch/arm/mach-omap2/board-rm680.c
+index 8678b38..71607a70 100644
+--- a/arch/arm/mach-omap2/board-rm680.c
++++ b/arch/arm/mach-omap2/board-rm680.c
+@@ -66,6 +66,39 @@ static struct platform_device rm680_vemmc_device = {
+ 	},
+ };
  
- dvb-usb-af903x-objs = af903x-core.o af903x-devices.o af903x-fe.o af903x-tuners.o
--obj-$(DVB_USB_AF903X) += dvb-usb-af903x.o
-+obj-$(CONFIG_DVB_USB_AF903X) += dvb-usb-af903x.o
++#define REGULATOR_INIT_DATA(_name, _min, _max, _apply, _ops_mask) \
++	static struct regulator_init_data _name##_data = { \
++		.constraints = { \
++			.name                   = #_name, \
++			.min_uV                 = _min, \
++			.max_uV                 = _max, \
++			.apply_uV               = _apply, \
++			.valid_modes_mask       = REGULATOR_MODE_NORMAL | \
++						REGULATOR_MODE_STANDBY, \
++			.valid_ops_mask         = _ops_mask, \
++		}, \
++		.num_consumer_supplies  = ARRAY_SIZE(_name##_consumers), \
++		.consumer_supplies      = _name##_consumers, \
++}
++#define REGULATOR_INIT_DATA_FIXED(_name, _voltage) \
++	REGULATOR_INIT_DATA(_name, _voltage, _voltage, true, \
++				REGULATOR_CHANGE_STATUS | REGULATOR_CHANGE_MODE)
++
++static struct regulator_consumer_supply rm680_vaux2_consumers[] = {
++	REGULATOR_SUPPLY("VDD_CSIPHY1", "omap3isp"),	/* OMAP ISP */
++	REGULATOR_SUPPLY("VDD_CSIPHY2", "omap3isp"),	/* OMAP ISP */
++	REGULATOR_SUPPLY("vaux2", NULL),
++};
++REGULATOR_INIT_DATA_FIXED(rm680_vaux2, 1800000);
++
++static struct regulator_consumer_supply rm680_vaux3_consumers[] = {
++	REGULATOR_SUPPLY("VANA", "2-0037"),	/* Main Camera Sensor */
++	REGULATOR_SUPPLY("VANA", "2-000e"),	/* Main Camera Lens */
++	REGULATOR_SUPPLY("VANA", "2-0010"),	/* Front Camera */
++	REGULATOR_SUPPLY("vaux3", NULL),
++};
++REGULATOR_INIT_DATA_FIXED(rm680_vaux3, 2800000);
++
+ static struct platform_device *rm680_peripherals_devices[] __initdata = {
+ 	&rm680_vemmc_device,
+ };
+@@ -82,6 +115,8 @@ static struct twl4030_gpio_platform_data rm680_gpio_data = {
+ static struct twl4030_platform_data rm680_twl_data = {
+ 	.gpio			= &rm680_gpio_data,
+ 	/* add rest of the children here */
++	.vaux2			= &rm680_vaux2_data,
++	.vaux3			= &rm680_vaux3_data,
+ };
  
- dvb-usb-cinergyT2-objs = cinergyT2-core.o cinergyT2-fe.o
- obj-$(CONFIG_DVB_USB_CINERGY_T2) += dvb-usb-cinergyT2.o
--- 
-1.7.0.4
-
-
---------------090206030503010402080203
-Content-Type: text/x-patch;
- name="0002-af903x-removed-frontend-info.type-for-kernel-3.3.0.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename*0="0002-af903x-removed-frontend-info.type-for-kernel-3.3.0.patc";
- filename*1="h"
-
-[PATCH 2/3] af903x: removed frontend info.type for kernels >= 3.3.0
-
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/dvb/dvb-usb/af903x-fe.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/af903x-fe.c b/drivers/media/dvb/dvb-usb/af903x-fe.c
-index a782c96..8d58efb 100644
---- a/drivers/media/dvb/dvb-usb/af903x-fe.c
-+++ b/drivers/media/dvb/dvb-usb/af903x-fe.c
-@@ -2110,7 +2110,9 @@ static struct dvb_frontend_ops af903x_ops = {
+ static void __init rm680_i2c_init(void)
+@@ -129,6 +164,8 @@ static struct omap_board_mux board_mux[] __initdata = {
+ };
  #endif
- 	.info = {
- 		.name = "AF903X USB DVB-T",
-+#if LINUX_VERSION_CODE < KERNEL_VERSION(3,3,0)
- 		.type = FE_OFDM,
-+#endif
- 		.frequency_min      = AF903X_FE_FREQ_MIN,
- 		.frequency_max      = AF903X_FE_FREQ_MAX,
- 		.frequency_stepsize = 62500,
--- 
-1.7.0.4
-
-
---------------090206030503010402080203
-Content-Type: text/x-patch;
- name="0003-af903x-add-new-USB-VID-PID-IDs.patch"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename="0003-af903x-add-new-USB-VID-PID-IDs.patch"
-
-[PATCH 3/3] af903x: add new USB VID/PID IDs and move definitions to dvb-usb-ids.h
-
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/dvb/dvb-usb/af903x-devices.c |   72 +++++++++++++++++++++++-----
- drivers/media/dvb/dvb-usb/dvb-usb-ids.h    |   16 ++++++
- 2 files changed, 76 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/dvb/dvb-usb/af903x-devices.c b/drivers/media/dvb/dvb-usb/af903x-devices.c
-index 21ece97..06e96f4 100644
---- a/drivers/media/dvb/dvb-usb/af903x-devices.c
-+++ b/drivers/media/dvb/dvb-usb/af903x-devices.c
-@@ -1216,18 +1216,50 @@ enum af903x_table_entry {
- 	AFATECH_AF9035,
- 	TERRATEC_T6,		/* Terratec T6 */
- 	TERRATEC_T5_REV2,	/* Terratec T5 Rev.2 */
-+	AVERMEDIA_TWINSTAR,	/* Avermedia TwinStar */
- 	AVERMEDIA_A867,		/* Avermedia HD Volar / A867 */
-+	AVERMEDIA_A333,		/* Avermedia A333 */
-+	AVERMEDIA_B867,
-+	AVERMEDIA_1867,
-+	AVERMEDIA_0337,
-+	AVERMEDIA_0867,
-+	AVERMEDIA_F337,
-+	AVERMEDIA_3867,
- };
  
- struct usb_device_id af903x_usb_table[] = {
--	[AFATECH_1000] = { USB_DEVICE(0x15A4,0x1000) },
--	[AFATECH_1001] = { USB_DEVICE(0x15A4,0x1001) },
--	[AFATECH_1002] = { USB_DEVICE(0x15A4,0x1002) },
--	[AFATECH_1003] = { USB_DEVICE(0x15A4,0x1003) },
--	[AFATECH_AF9035] = { USB_DEVICE(0x15A4,0x9035) },
--	[TERRATEC_T6] = { USB_DEVICE(0x0ccd,0x10b3) },
--	[TERRATEC_T5_REV2] = { USB_DEVICE(0x0ccd,0x10b7) },
--	[AVERMEDIA_A867] = { USB_DEVICE(0x07ca,0x1867) },
-+	[AFATECH_1000] = {USB_DEVICE(USB_VID_AFATECH,
-+				USB_PID_AFATECH_AF9035_1000)},
-+	[AFATECH_1001] = {USB_DEVICE(USB_VID_AFATECH,
-+				USB_PID_AFATECH_AF9035_1001)},
-+	[AFATECH_1002] = {USB_DEVICE(USB_VID_AFATECH,
-+				USB_PID_AFATECH_AF9035_1002)},
-+	[AFATECH_1003] = {USB_DEVICE(USB_VID_AFATECH,
-+				USB_PID_AFATECH_AF9035_1003)},
-+	[AFATECH_AF9035] = {USB_DEVICE(USB_VID_AFATECH,
-+				USB_PID_AFATECH_AF9035_9035)},
-+	[TERRATEC_T6] = {USB_DEVICE(USB_VID_TERRATEC,
-+				USB_PID_TERRATEC_T6)},
-+	[TERRATEC_T5_REV2] = {USB_DEVICE(USB_VID_TERRATEC,
-+				USB_PID_TERRATEC_T5_REV2)},
-+	[AVERMEDIA_TWINSTAR] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_A825)},
-+	[AVERMEDIA_A333] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_A333)},
-+	[AVERMEDIA_B867] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_B867)},
-+	[AVERMEDIA_1867] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_1867)},
-+	[AVERMEDIA_0337] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_0337)},
-+	[AVERMEDIA_A867] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_A867)},
-+	[AVERMEDIA_0867] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_0867)},
-+	[AVERMEDIA_F337] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_F337)},
-+	[AVERMEDIA_3867] = {USB_DEVICE(USB_VID_AVERMEDIA,
-+				USB_PID_AVERMEDIA_3867)},
- 	{ 0},		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, af903x_usb_table);
-@@ -1310,9 +1342,9 @@ struct dvb_usb_device_properties af903x_properties[] = {
- 			.rc_codes	= NULL, /* will be set in
- 						   af903x_identify_state */
- 		},
--		.num_device_descs =4,
-+		.num_device_descs = 6,
- 		.devices =  {
--			{   	"ITEtech USB2.0 DVB-T Recevier",
-+			{   	"ITEtech AF903x USB2.0 DVB-T Receiver",
- 				{ &af903x_usb_table[AFATECH_1000],
- 				  &af903x_usb_table[AFATECH_1001],
- 				  &af903x_usb_table[AFATECH_1002], 
-@@ -1329,8 +1361,24 @@ struct dvb_usb_device_properties af903x_properties[] = {
- 				{ NULL },
- 			},
- 			{
--				"AVerMedia A867 DVB-T Recevier",
--				{ &af903x_usb_table[AVERMEDIA_A867], NULL},
-+				"Avermedia TwinStar",
-+				{ &af903x_usb_table[AVERMEDIA_TWINSTAR], NULL},
-+				{ NULL },
-+			},
-+			{
-+				"AVerMedia A333 DVB-T Receiver",
-+				{ &af903x_usb_table[AVERMEDIA_A333],
-+				  &af903x_usb_table[AVERMEDIA_B867], NULL},
-+                            	{ NULL },
-+			},
-+			{
-+				"AVerMedia A867 DVB-T Receiver",
-+				{ &af903x_usb_table[AVERMEDIA_1867],
-+				  &af903x_usb_table[AVERMEDIA_0337],
-+				  &af903x_usb_table[AVERMEDIA_A867],
-+				  &af903x_usb_table[AVERMEDIA_0867],
-+				  &af903x_usb_table[AVERMEDIA_F337],
-+				  &af903x_usb_table[AVERMEDIA_3867], NULL},
-                             	{ NULL },
- 			},
- 			{NULL},
-diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-index 9c3dae1..6ed83fd 100644
---- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-+++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
-@@ -75,6 +75,11 @@
- #define USB_PID_AFATECH_AF9005				0x9020
- #define USB_PID_AFATECH_AF9015_9015			0x9015
- #define USB_PID_AFATECH_AF9015_9016			0x9016
-+#define USB_PID_AFATECH_AF9035_1000			0x1000
-+#define USB_PID_AFATECH_AF9035_1001			0x1001
-+#define USB_PID_AFATECH_AF9035_1002			0x1002
-+#define USB_PID_AFATECH_AF9035_1003			0x1003
-+#define USB_PID_AFATECH_AF9035_9035			0x9035
- #define USB_PID_TREKSTOR_DVBT				0x901b
- #define USB_VID_ALINK_DTU				0xf170
- #define USB_PID_ANSONIC_DVBT_USB			0x6000
-@@ -218,6 +223,15 @@
- #define USB_PID_AVERMEDIA_A850T				0x850b
- #define USB_PID_AVERMEDIA_A805				0xa805
- #define USB_PID_AVERMEDIA_A815M				0x815a
-+#define USB_PID_AVERMEDIA_A825				0x0825
-+#define USB_PID_AVERMEDIA_A333				0xa333
-+#define USB_PID_AVERMEDIA_B867				0xb867
-+#define USB_PID_AVERMEDIA_1867				0x1867
-+#define USB_PID_AVERMEDIA_0337				0x0337
-+#define USB_PID_AVERMEDIA_A867				0xa867
-+#define USB_PID_AVERMEDIA_0867				0x0867
-+#define USB_PID_AVERMEDIA_F337				0xf337
-+#define USB_PID_AVERMEDIA_3867				0x3867
- #define USB_PID_TECHNOTREND_CONNECT_S2400               0x3006
- #define USB_PID_TECHNOTREND_CONNECT_CT3650		0x300d
- #define USB_PID_TERRATEC_CINERGY_DT_XS_DIVERSITY	0x005a
-@@ -231,6 +245,8 @@
- #define USB_PID_TERRATEC_H7_2				0x10a3
- #define USB_PID_TERRATEC_T3				0x10a0
- #define USB_PID_TERRATEC_T5				0x10a1
-+#define USB_PID_TERRATEC_T5_REV2			0x10b7
-+#define USB_PID_TERRATEC_T6				0x10b3
- #define USB_PID_PINNACLE_EXPRESSCARD_320CX		0x022e
- #define USB_PID_PINNACLE_PCTV2000E			0x022c
- #define USB_PID_PINNACLE_PCTV_DVB_T_FLASH		0x0228
++void rm680_camera_init(void);
++
+ static void __init rm680_init(void)
+ {
+ 	struct omap_sdrc_params *sdrc_params;
+@@ -141,6 +178,7 @@ static void __init rm680_init(void)
+ 
+ 	usb_musb_init(NULL);
+ 	rm680_peripherals_init();
++	rm680_camera_init();
+ }
+ 
+ MACHINE_START(NOKIA_RM680, "Nokia RM-680 board")
 -- 
-1.7.0.4
+1.7.2.5
 
-
---------------090206030503010402080203--
