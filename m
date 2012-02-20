@@ -1,64 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38504 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751902Ab2BZO2Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Feb 2012 09:28:24 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: linux-media@vger.kernel.org,
-	Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: Re: [PATCH 01/11] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Sun, 26 Feb 2012 15:28:29 +0100
-Message-ID: <1684336.vSGXv4O9Ho@avalon>
-In-Reply-To: <CAOMZO5B9=fGGWMxKfr+DfRmSHj4CExS5d5WTzXT_EoH2L=LG2A@mail.gmail.com>
-References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com> <1330226857-8651-2-git-send-email-laurent.pinchart@ideasonboard.com> <CAOMZO5B9=fGGWMxKfr+DfRmSHj4CExS5d5WTzXT_EoH2L=LG2A@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp.nokia.com ([147.243.128.24]:30317 "EHLO mgw-da01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753212Ab2BTB7S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:59:18 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 21/33] omap3: add definition for CONTROL_CAMERA_PHY_CTRL
+Date: Mon, 20 Feb 2012 03:57:00 +0200
+Message-Id: <1329703032-31314-21-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+This register is available only in OMAP3630.
 
-Thanks for the review.
+The original patch was submitted by Vimarsh Zutshi.
 
-On Sunday 26 February 2012 11:16:19 Fabio Estevam wrote:
-> On Sun, Feb 26, 2012 at 12:27 AM, Laurent Pinchart wrote:
-> > +static int __init mt9m032_init(void)
-> > +{
-> > +       int rval;
-> > +
-> > +       rval = i2c_add_driver(&mt9m032_i2c_driver);
-> > +       if (rval)
-> > +               pr_err("%s: failed registering " MT9M032_NAME "\n",
-> > __func__); +
-> > +       return rval;
-> > +}
-> > +
-> > +static void mt9m032_exit(void)
-> > +{
-> > +       i2c_del_driver(&mt9m032_i2c_driver);
-> > +}
-> > +
-> > +module_init(mt9m032_init);
-> > +module_exit(mt9m032_exit);
-> 
-> module_i2c_driver could be used here instead.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ arch/arm/mach-omap2/control.h |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
 
-That's fixed by patch 4/11. As explained in the cover letter, patch 01/11 is 
-the original driver as submitted by Martin. I've decided not to change it to 
-make review easier. I can then squash some of the other patches onto this one 
-when pushing the set upstream. 
+diff --git a/arch/arm/mach-omap2/control.h b/arch/arm/mach-omap2/control.h
+index 0ba68d3..f3acf09 100644
+--- a/arch/arm/mach-omap2/control.h
++++ b/arch/arm/mach-omap2/control.h
+@@ -183,6 +183,7 @@
+ #define OMAP3630_CONTROL_FUSE_OPP120_VDD1       (OMAP2_CONTROL_GENERAL + 0x0120)
+ #define OMAP3630_CONTROL_FUSE_OPP50_VDD2        (OMAP2_CONTROL_GENERAL + 0x0128)
+ #define OMAP3630_CONTROL_FUSE_OPP100_VDD2       (OMAP2_CONTROL_GENERAL + 0x012C)
++#define OMAP3630_CONTROL_CAMERA_PHY_CTRL	(OMAP2_CONTROL_GENERAL + 0x02f0)
  
-> > +
-> > +MODULE_AUTHOR("Martin Hostettler");
-> 
-> E-mail address missing.
-
-Good point. Martin, can I add your e-mail address here ?
-
+ /* OMAP44xx control efuse offsets */
+ #define OMAP44XX_CONTROL_FUSE_IVA_OPP50		0x22C
 -- 
-Regards,
+1.7.2.5
 
-Laurent Pinchart
