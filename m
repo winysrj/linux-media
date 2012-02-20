@@ -1,78 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proxima.lp0.eu ([81.2.80.65]:51961 "EHLO proxima.lp0.eu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755317Ab2BFWFU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 Feb 2012 17:05:20 -0500
-Message-ID: <4F304CAD.5080700@simon.arlott.org.uk>
-Date: Mon, 06 Feb 2012 21:57:01 +0000
-From: Simon Arlott <simon@fire.lp0.eu>
-MIME-Version: 1.0
-To: lkml@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] dvb-core: fix DVBFE_ALGO_HW retune bug
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from 124-248-200-57.sunnyvision.com ([124.248.200.57]:49688 "EHLO
+	teamb04.edmhongkong.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752611Ab2BTTIo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Feb 2012 14:08:44 -0500
+Message-ID: <Dtd1L@giga.net.tw>
+From: woodyng1985@yahoo.com.hk
+Subject: Hong Kong Server Rental Solution
+Content-Type: text/plain;
+Content-Transfer-Encoding: Quoted-Printable
+Date: Tue, 21 Feb 2012 00:11:55 +0800 (HKT)
+To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 7e07222 breaks DVBFE_ALGO_HW tuning after a retune is requested,
-which causes bad tuning on my TBS 6920.
+For now, our TIA TIER 3+ IDC Dedicated Server Rental service is on a discount period!!
 
-[    0.769091] pci 0000:06:00.0: [14f1:8852] type 0 class 0x000400
-[   19.733530] CORE cx23885[0]: subsystem: 6920:8888, board: TurboSight TBS 6920 [card=14,autodetected]
-[  762.824912] cx24116_load_firmware: FW version 1.23.86.1
+-=09   Intel(R) Xeon(R) E3-1220 Processor (3.10GHz, 8M Cache, Turbo, 4C/4T, 80W)
+-=09   4GB RAM, 1x4GB, 1333MHz, DDR-3, Single Ranked UDIMMs
+-=09   500GB, 3.5", SATA II x 2 Enterprise Hard Disk
+-=09   Raid 1 Mirroring Protection
+-                  Un-limit Data Transfer Bandwidth
 
-7e0722215a510921cbb73ab4c37477d4dcb91bf8 [media] dvb-core: Don't pass DVBv3 parameters on tune() fops
 
-Although re_tune is set to true when FESTATE_RETUNE occurs, it is never
-set back to false which the old code used to do when !FESTATE_RETUNE.
+Please contact +852 6756 9148 or email to woody@dedicatedserver.com.hk for any enquiry. Thanks.
 
-This patch sets re_tune to false if !(state & FESTATE_RETUNE).
 
-$ szap-s2 -a 2 "Channel 5"
-reading channels from file '/home/simon/.szap/channels.conf'
-zapping to 247 'Channel 5':
-delivery DVB-S, modulation QPSK
-sat 0, frequency 10964 MHz H, symbolrate 22000000, coderate 5/6, rolloff 0.35
-vpid 0x092a, apid 0x092b, sid 0x092d
-using '/dev/dvb/adapter2/frontend0' and '/dev/dvb/adapter2/demux0'
-status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr eb33 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cf40 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cec0 | snr eccd | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-status 1f | signal cec0 | snr 0000 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+Best Regards,
+Woody Ng
 
-Signed-off-by: Simon Arlott <simon@fire.lp0.eu>
----
- drivers/media/dvb/dvb-core/dvb_frontend.c |    2 ++
- 1 files changed, 2 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-core/dvb_frontend.c b/drivers/media/dvb/dvb-core/dvb_frontend.c
-index fbbe545..4555baa 100644
---- a/drivers/media/dvb/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb/dvb-core/dvb_frontend.c
-@@ -655,6 +655,8 @@ restart:
- 					dprintk("%s: Retune requested, FESTATE_RETUNE\n", __func__);
- 					re_tune = true;
- 					fepriv->state = FESTATE_TUNED;
-+				} else {
-+					re_tune = false;
- 				}
- 
- 				if (fe->ops.tune)
--- 
-1.7.8.rc3
 
--- 
-Simon Arlott
+If you do not wish to further receive this event message, email "subscriber@dedicatedserver.com.hk" to unsubscribe this message or revoe your email from the list.
+
+
