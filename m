@@ -1,22 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zcs1.iconnect.zm ([196.12.12.90]:57548 "EHLO
-	zcs-cluster1.iconnect.zm" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752323Ab2BHOO6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Feb 2012 09:14:58 -0500
-Date: Wed, 8 Feb 2012 16:06:29 +0200 (SAST)
-From: "Dr. Fatih Baja" <clephdapp@iconnect.zm>
-Reply-To: "Dr. Fatih Baja" <drfatihbaja55@hotmail.co.uk>
-Message-ID: <395973777.31346.1328709989521.JavaMail.root@zcs1.iconnect.zm>
-Subject: 
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: undisclosed-recipients:;
+Received: from smtp.nokia.com ([147.243.1.47]:16770 "EHLO mgw-sa01.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753410Ab2BTB75 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:59:57 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 30/33] omap3isp: Add resizer data rate configuration to resizer_set_stream
+Date: Mon, 20 Feb 2012 03:57:09 +0200
+Message-Id: <1329703032-31314-30-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/video/omap3isp/ispresizer.c |    4 ++++
+ 1 files changed, 4 insertions(+), 0 deletions(-)
 
-
-Dear Friend,I have a very important and vital information for you which will benefit us and you have to know about it. Please contact me through my email so we can talk about it; Dr. Fatih Baja
+diff --git a/drivers/media/video/omap3isp/ispresizer.c b/drivers/media/video/omap3isp/ispresizer.c
+index 6ce2349..81e1bc4 100644
+--- a/drivers/media/video/omap3isp/ispresizer.c
++++ b/drivers/media/video/omap3isp/ispresizer.c
+@@ -1147,9 +1147,13 @@ static int resizer_set_stream(struct v4l2_subdev *sd, int enable)
+ 	struct device *dev = to_device(res);
+ 
+ 	if (res->state == ISP_PIPELINE_STREAM_STOPPED) {
++		struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
++
+ 		if (enable == ISP_PIPELINE_STREAM_STOPPED)
+ 			return 0;
+ 
++		omap3isp_resizer_max_rate(res, &pipe->max_rate);
++
+ 		omap3isp_subclk_enable(isp, OMAP3_ISP_SUBCLK_RESIZER);
+ 		resizer_configure(res);
+ 		resizer_print_status(res);
+-- 
+1.7.2.5
 
