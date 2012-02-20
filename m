@@ -1,29 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:54726 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754975Ab2BLTCW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Feb 2012 14:02:22 -0500
-Received: by eekc14 with SMTP id c14so1613272eek.19
-        for <linux-media@vger.kernel.org>; Sun, 12 Feb 2012 11:02:21 -0800 (PST)
-Message-ID: <4F380CB9.9010904@gmail.com>
-Date: Sun, 12 Feb 2012 20:02:17 +0100
-From: poma <pomidorabelisima@gmail.com>
+Received: from mailfe03.c2i.net ([212.247.154.66]:33013 "EHLO swip.net"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752092Ab2BTTVY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 Feb 2012 14:21:24 -0500
+From: Hans Petter Selasky <hselasky@c2i.net>
+To: James Hogan <james@albanarts.com>
+Subject: Re: [BUG] divide by zero in uvc_video_clock_update, v3.3-rc4
+Date: Mon, 20 Feb 2012 20:19:32 +0100
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+References: <20120219234151.GA32005@balrog>
+In-Reply-To: <20120219234151.GA32005@balrog>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Status of RTL283xU support?
-References: <CAO=zWDJD19uCJJfdZQVQzHOSxLcXb11D+Avw--YV5mCk8qxPww@mail.gmail.com> <CAO=zWDJREu+AomDtuWTf5CaTwJh4BbQ79b4BtYJODhGvTqW9fg@mail.gmail.com> <4ED5364B.9070106@gmail.com>
-In-Reply-To: <4ED5364B.9070106@gmail.com>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201202202019.32756.hselasky@c2i.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 29.11.2011 20:45, poma wrote:
-..
-Don't forget to read/edit "Makefile" for 3.2.* kernels,
-uncomment line:
-INCLUDE_EXTRA_DVB := include-320
+On Monday 20 February 2012 00:41:51 James Hogan wrote:
+> Hi,
+> 
+> I just tried v3.3-rc4 on an Acer Aspire One Happy 2 netbook. I happened
+> to open the settings dialog box of kopete, which shows a view of the
+> webcam. The kernel switched to a text console with a register dump (see
+> below), indicating a divide error in uvc_video_clock_update.
+> 
+> The IP is on 7482, a divide, presumably by %r11 (see objdump output below)
+> which is 0 in the register dump. It appears to be the div_u64 in
+> uvc_video_clock_update().
+> 
+> I haven't tried any other recent kernel versions.
+> 
+> My asm is rusty and I don't really have any time to look further into it.
+> Is this enough to go on?
+> 
+> Thanks
+> James
 
-rgds,
-poma
+Hi,
+
+This is a known issue which has been fixed by:
+
+http://git.linuxtv.org/pinchartl/uvcvideo.git/commit/5c97eb2eb9c45dad8825de7754ceb33699451978
+
+--HPS
