@@ -1,63 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy1-pub.bluehost.com ([66.147.249.253]:38389 "HELO
-	oproxy1-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S965622Ab2B1Pyn (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59361 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752506Ab2BTLtq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 10:54:43 -0500
-Message-ID: <4F4CF8C6.4030305@xenotime.net>
-Date: Tue, 28 Feb 2012 07:54:46 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
+	Mon, 20 Feb 2012 06:49:46 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: James Hogan <james@albanarts.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [GIT PULL FOR v3.3] uvcvideo divide by 0 fix
+Date: Mon, 20 Feb 2012 12:49:39 +0100
+Message-ID: <1689974.qoel1Ujv1I@avalon>
+In-Reply-To: <20120219234151.GA32005@balrog>
+References: <20120219234151.GA32005@balrog>
 MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@xenotime.net>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: linux-next: Tree for Feb 23 (media/radio)
-References: <20120223143722.d8814b493df968c229da5f20@canb.auug.org.au> <4F46AC34.8090704@xenotime.net>
-In-Reply-To: <4F46AC34.8090704@xenotime.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/23/2012 01:14 PM, Randy Dunlap wrote:
+Hi Mauro,
 
-> On 02/22/2012 07:37 PM, Stephen Rothwell wrote:
->> Hi all,
->>
->> Changes since 20120222:
-> 
+The following changes since commit b01543dfe67bb1d191998e90d20534dc354de059:
 
+  Linux 3.3-rc4 (2012-02-18 15:53:33 -0800)
 
-ping.
+are available in the git repository at:
+  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-stable
 
-These build errors still happen in linux-next 20120228.
+The patch fixes a divide by 0 bug reported by a couple of users already. Could 
+you please make sure it gets into v3.3 ?
 
+Laurent Pinchart (1):
+      uvcvideo: Avoid division by 0 in timestamp calculation
 
-> 
-> on i386:
-> 
-> Looks like several source files need to #include <linux/slab.h>:
-> 
-> 
-> drivers/media/radio/radio-isa.c:246:3: error: implicit declaration of function 'kfree'
-> drivers/media/radio/radio-aztech.c:72:9: error: implicit declaration of function 'kzalloc'
-> drivers/media/radio/radio-aztech.c:72:22: warning: initialization makes pointer from integer without a cast
-> drivers/media/radio/radio-typhoon.c:76:9: error: implicit declaration of function 'kzalloc'
-> drivers/media/radio/radio-typhoon.c:76:23: warning: initialization makes pointer from integer without a cast
-> drivers/media/radio/radio-terratec.c:57:2: error: implicit declaration of function 'kzalloc'
-> drivers/media/radio/radio-terratec.c:57:2: warning: return makes pointer from integer without a cast
-> drivers/media/radio/radio-aimslab.c:67:9: error: implicit declaration of function 'kzalloc'
-> drivers/media/radio/radio-aimslab.c:67:22: warning: initialization makes pointer from integer without a cast
-> drivers/media/radio/radio-zoltrix.c:80:9: error: implicit declaration of function 'kzalloc'
-> drivers/media/radio/radio-zoltrix.c:80:24: warning: initialization makes pointer from integer without a cast
-> drivers/media/radio/radio-gemtek.c:183:9: error: implicit declaration of function 'kzalloc'
-> drivers/media/radio/radio-gemtek.c:183:22: warning: initialization makes pointer from integer without a cast
-> drivers/media/radio/radio-trust.c:57:9: error: implicit declaration of function 'kzalloc'
-> drivers/media/radio/radio-trust.c:57:21: warning: initialization makes pointer from integer without a cast
-> 
-
-
+ drivers/media/video/uvc/uvc_video.c |   14 +++++++++-----
+ 1 files changed, 9 insertions(+), 5 deletions(-)
 
 -- 
-~Randy
+Regards,
+
+Laurent Pinchart
