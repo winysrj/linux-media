@@ -1,115 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:50732 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755620Ab2BCJby convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:31:54 -0500
-MIME-version: 1.0
-Content-type: text/plain; charset=utf-8
-Date: Fri, 03 Feb 2012 10:31:50 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCH 02/15] mm: page_alloc: update migrate type of pages on pcp
- when isolating
-In-reply-to: <op.v82hjbd13l0zgt@mpn-glaptop>
-To: 'Michal Nazarewicz' <mina86@mina86.com>,
-	'Mel Gorman' <mel@csn.ul.ie>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'Andrew Morton' <akpm@linux-foundation.org>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Arnd Bergmann' <arnd@arndb.de>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>,
-	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>
-Message-id: <008101cce256$a85e29f0$f91a7dd0$%szyprowski@samsung.com>
-Content-language: pl
-Content-transfer-encoding: 8BIT
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <1327568457-27734-3-git-send-email-m.szyprowski@samsung.com>
- <20120130111522.GE25268@csn.ul.ie> <op.v8wlu8ws3l0zgt@mpn-glaptop>
- <20120130161447.GU25268@csn.ul.ie>
- <022e01cce034$bc6cf440$3546dcc0$%szyprowski@samsung.com>
- <20120202124729.GA5796@csn.ul.ie> <op.v82hjbd13l0zgt@mpn-glaptop>
+Received: from smtp.nokia.com ([147.243.1.48]:59098 "EHLO mgw-sa02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753208Ab2BTB6l (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 Feb 2012 20:58:41 -0500
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: [PATCH v3 13/33] v4l: Document raw bayer 4CC codes
+Date: Mon, 20 Feb 2012 03:56:52 +0200
+Message-Id: <1329703032-31314-13-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Document guidelines how 4CC codes should be named. Only raw bayer is
+included currently. Other formats should be documented later on.
 
-On Thursday, February 02, 2012 8:53 PM Michał Nazarewicz wrote:
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/video4linux/4CCs.txt |   32 ++++++++++++++++++++++++++++++++
+ 1 files changed, 32 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/video4linux/4CCs.txt
 
-> > On Tue, Jan 31, 2012 at 05:23:59PM +0100, Marek Szyprowski wrote:
-> >> Pages, which have incorrect migrate type on free finally
-> >> causes pageblock migration type change from MIGRATE_CMA to MIGRATE_MOVABLE.
-> 
-> On Thu, 02 Feb 2012 13:47:29 +0100, Mel Gorman <mel@csn.ul.ie> wrote:
-> > I'm not quite seeing this. In free_hot_cold_page(), the pageblock
-> > type is checked so the page private should be set to MIGRATE_CMA or
-> > MIGRATE_ISOLATE for the CMA area. It's not clear how this can change a
-> > pageblock to MIGRATE_MOVABLE in error.
-> 
-> Here's what I think may happen:
-> 
-> When drain_all_pages() is called, __free_one_page() is called for each page on
-> pcp list with migrate type deducted from page_private() which is MIGRATE_CMA.
-> This result in the page being put on MIGRATE_CMA freelist even though its
-> pageblock's migrate type is MIGRATE_ISOLATE.
-> 
-> When allocation happens and pcp list is empty, rmqueue_bulk() will get executed
-> with migratetype argument set to MIGRATE_MOVABLE.  It calls __rmqueue() to grab
-> some pages and because the page described above is on MIGRATE_CMA freelist it
-> may be returned back to rmqueue_bulk().
-> 
-> But, pageblock's migrate type is not MIGRATE_CMA but MIGRATE_ISOLATE, so the
-> following code:
-> 
-> #ifdef CONFIG_CMA
-> 		if (is_pageblock_cma(page))
-> 			set_page_private(page, MIGRATE_CMA);
-> 		else
-> #endif
-> 			set_page_private(page, migratetype);
-> 
-> will set it's private to MIGRATE_MOVABLE and in the end the page lands back
-> on MIGRATE_MOVABLE pcp list but this time with page_private == MIGRATE_MOVABLE
-> and not MIGRATE_CMA.
-> 
-> One more drain_all_pages() (which may happen since alloc_contig_range() calls
-> set_migratetype_isolate() for each block) and next __rmqueue_fallback() may
-> convert the whole pageblock to MIGRATE_MOVABLE.
-> 
-> I know, this sounds crazy and improbable, but I couldn't find an easier path
-> to destruction.  As you pointed, once the page is allocated, free_hot_cold_page()
-> will do the right thing by reading pageblock's migrate type.
-> 
-> Marek is currently experimenting with various patches including the following
-> change:
-> 
-> #ifdef CONFIG_CMA
->                  int mt = get_pageblock_migratetype(page);
->                  if (is_migrate_cma(mt) || mt == MIGRATE_ISOLATE)
->                          set_page_private(page, mt);
->                  else
-> #endif
->                          set_page_private(page, migratetype);
-> 
-> As a matter of fact, if __rmqueue() was changed to return migrate type of the
-> freelist it took page from, we could avoid this get_pageblock_migratetype() all
-> together.  For now, however, I'd rather not go that way just yet -- I'll be happy
-> to dig into it once CMA gets merged.
-
-After this and some other changes I'm unable to reproduce that issue. I did a whole
-night tests and it still works fine, so it looks that it has been finally solved.
-I will post v20 patchset soon :)
-
-Best regards
+diff --git a/Documentation/video4linux/4CCs.txt b/Documentation/video4linux/4CCs.txt
+new file mode 100644
+index 0000000..41241af
+--- /dev/null
++++ b/Documentation/video4linux/4CCs.txt
+@@ -0,0 +1,32 @@
++Guidelines for Linux4Linux pixel format 4CCs
++============================================
++
++Guidelines for Video4Linux 4CC codes defined using v4l2_fourcc() are
++specified in this document. First of the characters defines the nature of
++the pixel format, compression and colour space. The interpretation of the
++other three characters depends on the first one.
++
++Existing 4CCs may not obey these guidelines.
++
++Formats
++=======
++
++Raw bayer
++---------
++
++The following first characters are used by raw bayer formats:
++
++	B: raw bayer, uncompressed
++	b: raw bayer, DPCM compressed
++	a: A-law compressed
++	u: u-law compressed
++
++2nd character: pixel order
++	B: BGGR
++	G: GBRG
++	g: GRBG
++	R: RGGB
++
++3rd character: uncompressed bits-per-pixel 0--9, A--
++
++4th character: compressed bits-per-pixel 0--9, A--
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
+1.7.2.5
 
