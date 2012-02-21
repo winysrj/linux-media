@@ -1,66 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from acsinet15.oracle.com ([141.146.126.227]:27575 "EHLO
-	acsinet15.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754135Ab2BXSh6 (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2416 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567Ab2BUJor (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 13:37:58 -0500
-Date: Fri, 24 Feb 2012 21:39:50 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-Cc: mchehab@infradead.org, gregkh@linuxfoundation.org,
-	devel@driverdev.osuosl.org, tomas.winkler@intel.com,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 5/9] staging: easycap: Push video registration to
- easycap_register_video()
-Message-ID: <20120224183950.GC3649@mwanda>
-References: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
- <1330097062-31663-5-git-send-email-elezegarcia@gmail.com>
+	Tue, 21 Feb 2012 04:44:47 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH] tea575x: fix HW seek
+Date: Tue, 21 Feb 2012 10:44:14 +0100
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+References: <201202181745.49819.linux@rainbow-software.org>
+In-Reply-To: <201202181745.49819.linux@rainbow-software.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="KN5l+BnMqAQyZLvT"
-Content-Disposition: inline
-In-Reply-To: <1330097062-31663-5-git-send-email-elezegarcia@gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202211044.14925.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Saturday, February 18, 2012 17:45:45 Ondrej Zary wrote:
+> Fix HW seek in TEA575x to work properly:
+>  - a delay must be present after search start and before first register read
+>    or the seek does weird things
+>  - when the search stops, the new frequency is not available immediately, we
+>    must wait until it appears in the register (fortunately, we can clear the
+>    frequency bits when starting the search as it starts at the frequency
+>    currently set, not from the value written)
+>  - sometimes, seek remains on the current frequency (or moves only a little),
+>    so repeat it until it moves by at least 50 kHz
+> 
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> 
+> --- a/sound/i2c/other/tea575x-tuner.c
+> +++ b/sound/i2c/other/tea575x-tuner.c
+> @@ -89,7 +89,7 @@ static void snd_tea575x_write(struct snd_tea575x *tea, unsigned int val)
+>  		tea->ops->set_pins(tea, 0);
+>  }
+>  
+> -static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
+> +static u32 snd_tea575x_read(struct snd_tea575x *tea)
+>  {
+>  	u16 l, rdata;
+>  	u32 data = 0;
+> @@ -120,6 +120,27 @@ static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
+>  	return data;
+>  }
+>  
+> +static void snd_tea575x_get_freq(struct snd_tea575x *tea)
+> +{
+> +	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
+> +
+> +	if (freq == 0) {
+> +		tea->freq = 0;
 
---KN5l+BnMqAQyZLvT
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Wouldn't it be better to return -EBUSY in this case? VIDIOC_G_FREQUENCY
+should not return frequencies outside the valid frequency range. In this case
+returning -EBUSY seems to make more sense to me.
 
-On Fri, Feb 24, 2012 at 12:24:18PM -0300, Ezequiel Garcia wrote:
-> +		rc = easycap_register_video(peasycap);
-> +		if (rc < 0)
->  			return -ENODEV;
+I'm proposing adding this patch:
 
-Don't resend.  These are beautiful patches you are sending and I
-wouldn't want to slow you down.  But it would have been better to
-return rc here.
+diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
+index 474bb81..02da22f 100644
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -120,14 +120,12 @@ static u32 snd_tea575x_read(struct snd_tea575x *tea)
+ 	return data;
+ }
+ 
+-static void snd_tea575x_get_freq(struct snd_tea575x *tea)
++static int snd_tea575x_get_freq(struct snd_tea575x *tea)
+ {
+ 	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
+ 
+-	if (freq == 0) {
+-		tea->freq = 0;
+-		return;
+-	}
++	if (freq == 0)
++		return -EBUSY;
+ 
+ 	/* freq *= 12.5 */
+ 	freq *= 125;
+@@ -139,6 +137,7 @@ static void snd_tea575x_get_freq(struct snd_tea575x *tea)
+ 		freq -= TEA575X_FMIF;
+ 
+ 	tea->freq = clamp(freq * 16, FREQ_LO, FREQ_HI); /* from kHz */
++	return 0;
+ }
+ 
+ static void snd_tea575x_set_freq(struct snd_tea575x *tea)
+@@ -220,14 +219,15 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 					struct v4l2_frequency *f)
+ {
+ 	struct snd_tea575x *tea = video_drvdata(file);
++	int ret = 0;
+ 
+ 	if (f->tuner != 0)
+ 		return -EINVAL;
+ 	f->type = V4L2_TUNER_RADIO;
+ 	if (!tea->cannot_read_data)
+-		snd_tea575x_get_freq(tea);
++		ret = snd_tea575x_get_freq(tea);
+ 	f->frequency = tea->freq;
+-	return 0;
++	return ret;
+ }
+ 
+ static int vidioc_s_frequency(struct file *file, void *priv,
+@@ -250,11 +250,14 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
+ 	struct snd_tea575x *tea = video_drvdata(file);
+ 	int i, old_freq;
+ 	unsigned long timeout;
++	int ret;
+ 
+ 	if (tea->cannot_read_data)
+ 		return -ENOTTY;
+ 
+-	snd_tea575x_get_freq(tea);
++	ret = snd_tea575x_get_freq(tea);
++	if (ret)
++		return ret;
+ 	old_freq = tea->freq;
+ 	/* clear the frequency, HW will fill it in */
+ 	tea->val &= ~TEA575X_BIT_FREQ_MASK;
+@@ -278,8 +281,8 @@ static int vidioc_s_hw_freq_seek(struct file *file, void *fh,
+ 			/* Found a frequency, wait until it can be read */
+ 			for (i = 0; i < 100; i++) {
+ 				msleep(10);
+-				snd_tea575x_get_freq(tea);
+-				if (tea->freq != 0) /* available */
++				ret = snd_tea575x_get_freq(tea);
++				if (ret == 0) /* available */
+ 					break;
+ 			}
+ 			/* if we moved by less than 50 kHz, continue seeking */
 
-regards,
-dan carpenter
+If you are OK with this, then I'll put everything together and make a final
+pull request.
 
+Regards,
 
---KN5l+BnMqAQyZLvT
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.11 (GNU/Linux)
-
-iQIcBAEBAgAGBQJPR9l1AAoJEOnZkXI/YHqRM08QAITpW8L+tVEBS6NC+2aPzAdY
-3HYdMyU4E+XstnD+OIXcTIMua1omb4K0rq4TjFxmtHdKDgZJ0G3OuluDGsAvYNQ+
-cZnyKcb4vhRmyY+Ji5gA6uOs2hIT3AKGZCATw7HnXHGFPfUTGm6O+XrHNItfsacA
-x72mBCE9aiLLF6FEAQJRT9ZTS+CV/eTFs2zCBZTuOXEIQEd5nL4RKYzFX7LicmzB
-mfXqkpKSEtaPyPZoF3Iy7rxLDoRTCbkk0rtTUd1gs0FXOtQZm7UHFWOqeedJfXXi
-2RuyvPkEDZKn2qzGafhvwUHfiBBDwHn/8r7ueD3GkAfrqKhriplFjVB1CS/2HXc6
-BRSfwX7w0FM+OWKqU9VhCehqJs8Mtwqi3UNj3H8IfDXLoWiFeRfGeS/oCGi7N4eO
-XjieMQGSSBM0QQfhzTSGchh12SP1AlQvkFBY83ffDFhaA8QX7rpSGDgEau/i3mfM
-YMkhnfu5ImZcThid2wyN5ZAu8qR61lNFh7fWZF64HGw0C8bp8LpN2GpGkA7TNo40
-LHOjdxhWRFvbqWB339lgpGn37yCn9SZmdFHwKIZ3rINo69YDc2+1D+0wzD8MMoZL
-1XesiDw2IYnnFscEo9ek8Z4JPBrZp1vIxv95uoOafqUNdiaKPNjQ7XNOJL3gP8xJ
-JGJK7V5HqcWq0vRIgDc8
-=qrZJ
------END PGP SIGNATURE-----
-
---KN5l+BnMqAQyZLvT--
+	Hans
