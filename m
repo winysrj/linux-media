@@ -1,63 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:50938 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754425Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 18:55:03 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v2 18/31] omap3isp: Move definitions required by board code under include/media.
-Date: Fri,  3 Feb 2012 01:54:38 +0200
-Message-Id: <1328226891-8968-18-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
-References: <20120202235231.GC841@valkosipuli.localdomain>
+Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:46698 "EHLO
+	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752274Ab2BUJOQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Feb 2012 04:14:16 -0500
+Received: by lagu2 with SMTP id u2so7374240lag.19
+        for <linux-media@vger.kernel.org>; Tue, 21 Feb 2012 01:14:15 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1202210936420.18412@axis700.grange>
+References: <1329219332-27620-1-git-send-email-javier.martin@vista-silicon.com>
+	<Pine.LNX.4.64.1202201413300.2836@axis700.grange>
+	<CACKLOr1KT2A1Zd_xsVXPGW8X6e57v6xTZTm46wdfNfwwf9-MYQ@mail.gmail.com>
+	<Pine.LNX.4.64.1202210936420.18412@axis700.grange>
+Date: Tue, 21 Feb 2012 10:14:15 +0100
+Message-ID: <CACKLOr2uOab=yS6iE2A871=dEfWH5jFDcoL7FQ2=nKOyJkHN-A@mail.gmail.com>
+Subject: Re: [PATCH] media: i.MX27 camera: Add resizing support.
+From: javier Martin <javier.martin@vista-silicon.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	s.hauer@pengutronix.de
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-XCLK definitions are often required by the board code. Move them to public
-include file.
+On 21 February 2012 09:39, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
+> Hi Javier
+>
+> One more thing occurred to me: I don't see anywhere in your patch checking
+> for supported pixel (fourcc) formats. I don't think the PRP can resize
+> arbitrary formats? Most likely these would be limited to some YUV, and,
+> possibly, some RGB formats?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/isp.h |    4 ----
- include/media/omap3isp.h           |    4 ++++
- 2 files changed, 4 insertions(+), 4 deletions(-)
+The PrP can resize every format which is supported as input by the eMMa.
 
-diff --git a/drivers/media/video/omap3isp/isp.h b/drivers/media/video/omap3isp/isp.h
-index d96603e..2e78041 100644
---- a/drivers/media/video/omap3isp/isp.h
-+++ b/drivers/media/video/omap3isp/isp.h
-@@ -237,10 +237,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 			       const struct isp_parallel_platform_data *pdata,
- 			       unsigned int shift);
- 
--#define ISP_XCLK_NONE			0
--#define ISP_XCLK_A			1
--#define ISP_XCLK_B			2
--
- struct isp_device *omap3isp_get(struct isp_device *isp);
- void omap3isp_put(struct isp_device *isp);
- 
-diff --git a/include/media/omap3isp.h b/include/media/omap3isp.h
-index 042849a..3f4928d 100644
---- a/include/media/omap3isp.h
-+++ b/include/media/omap3isp.h
-@@ -29,6 +29,10 @@
- struct i2c_board_info;
- struct isp_device;
- 
-+#define ISP_XCLK_NONE			0
-+#define ISP_XCLK_A			1
-+#define ISP_XCLK_B			2
-+
- enum isp_interface_type {
- 	ISP_INTERFACE_PARALLEL,
- 	ISP_INTERFACE_CSI2A_PHY2,
+Currently, the driver supports 2 input formats: RGB565 and YUV422
+(YUYV)  (see mx27_emma_prp_table[]).
+
+Since the commit of resizing registers is done in the stream_start
+callback this makes sure that resizing won't be applied to unknown
+formats.
+
+Regards.
 -- 
-1.7.2.5
-
+Javier Martin
+Vista Silicon S.L.
+CDTUC - FASE C - Oficina S-345
+Avda de los Castros s/n
+39005- Santander. Cantabria. Spain
++34 942 25 32 60
+www.vista-silicon.com
