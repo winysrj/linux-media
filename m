@@ -1,48 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from racoon.tvdr.de ([188.40.50.18]:48966 "EHLO racoon.tvdr.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755335Ab2B2Ilo (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Feb 2012 03:41:44 -0500
-Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
-	by racoon.tvdr.de (8.14.3/8.14.3) with ESMTP id q1T8OTtm032236
-	for <linux-media@vger.kernel.org>; Wed, 29 Feb 2012 09:24:29 +0100
-Received: from [192.168.100.10] (hawk.tvdr.de [192.168.100.10])
-	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id q1T8O0El018951
-	for <linux-media@vger.kernel.org>; Wed, 29 Feb 2012 09:24:00 +0100
-Message-ID: <4F4DE0A0.5060706@tvdr.de>
-Date: Wed, 29 Feb 2012 09:24:00 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Received: from filtteri1.pp.htv.fi ([213.243.153.184]:39089 "EHLO
+	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752693Ab2BUVaO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Feb 2012 16:30:14 -0500
+Date: Tue, 21 Feb 2012 21:30:07 +0000 (UTC)
+From: Aaro Koskinen <aaro.koskinen@iki.fi>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv22 13/16] drivers: add Contiguous Memory Allocator
+In-Reply-To: <1329507036-24362-14-git-send-email-m.szyprowski@samsung.com>
+Message-ID: <alpine.DEB.2.00.1202212121560.962@localhost>
+References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com> <1329507036-24362-14-git-send-email-m.szyprowski@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-media] [PATCH 2/2] stb0899: fixed reading of IF_AGC_GAIN
- register
-References: <4F4D1FAC.5050703@gmx.de>
-In-Reply-To: <4F4D1FAC.5050703@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> When reading IF_AGC_GAIN register a wrong value for the base address
-> register was used (STB0899_DEMOD instead of STB0899_S2DEMOD). That
-> lead to a wrong signal strength value on DVB-S2 transponders.
->
-> Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
-> ---
->  drivers/media/dvb/frontends/stb0899_drv.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
->
-> diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
-> index 4a58afc..a2e9eba 100644
-> --- a/drivers/media/dvb/frontends/stb0899_drv.c
-> +++ b/drivers/media/dvb/frontends/stb0899_drv.c
-> @@ -983,7 +983,7 @@ static int stb0899_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
->          break;
->      case SYS_DVBS2:
->          if (internal->lock) {
-> -            reg = STB0899_READ_S2REG(STB0899_DEMOD, IF_AGC_GAIN);
-> +            reg = STB0899_READ_S2REG(STB0899_S2DEMOD, IF_AGC_GAIN);
->              val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
->               *strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
+Hi,
 
-Acked-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+On Fri, 17 Feb 2012, Marek Szyprowski wrote:
+> +/**
+> + * dma_release_from_contiguous() - release allocated pages
+> + * @dev:   Pointer to device for which the pages were allocated.
+> + * @pages: Allocated pages.
+> + * @count: Number of allocated pages.
+> + *
+> + * This function releases memory allocated by dma_alloc_from_contiguous().
+> + * It returns false when provided pages do not belong to contiguous area and
+> + * true otherwise.
+> + */
+> +bool dma_release_from_contiguous(struct device *dev, struct page *pages,
+> +				 int count)
+> +{
+> +	struct cma *cma = dev_get_cma_area(dev);
+> +	unsigned long pfn;
+> +
+> +	if (!cma || !pages)
+> +		return false;
+> +
+> +	pr_debug("%s(page %p)\n", __func__, (void *)pages);
+> +
+> +	pfn = page_to_pfn(pages);
+> +
+> +	if (pfn < cma->base_pfn || pfn >= cma->base_pfn + cma->count)
+> +		return false;
+> +
+> +	VM_BUG_ON(pfn + count > cma->base_pfn);
+
+Are you sure the VM_BUG_ON() condition is correct here?
+
+> +	mutex_lock(&cma_mutex);
+> +	bitmap_clear(cma->bitmap, pfn - cma->base_pfn, count);
+> +	free_contig_range(pfn, count);
+> +	mutex_unlock(&cma_mutex);
+> +
+> +	return true;
+> +}
+
+A.
