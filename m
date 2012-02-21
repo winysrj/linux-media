@@ -1,40 +1,223 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:45039 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075Ab2BTL7o (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56911 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755458Ab2BUOgL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Feb 2012 06:59:44 -0500
-Received: by eekc14 with SMTP id c14so2213998eek.19
-        for <linux-media@vger.kernel.org>; Mon, 20 Feb 2012 03:59:43 -0800 (PST)
-Message-ID: <4F4235AC.2010101@gmail.com>
-Date: Mon, 20 Feb 2012 12:59:40 +0100
-From: Gianluca Gennari <gennarone@gmail.com>
-Reply-To: gennarone@gmail.com
+	Tue, 21 Feb 2012 09:36:11 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 04/33] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Date: Tue, 21 Feb 2012 15:34:58 +0100
+Message-ID: <5386387.qzxKKZLZiE@avalon>
+In-Reply-To: <1329703032-31314-4-git-send-email-sakari.ailus@iki.fi>
+References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-4-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Eddi De Pieri <eddi@depieri.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] smsdvb - fix UNDEFINED delivery on driver hotplug
-References: <CAKdnbx4BJ6PN5TEUBiueF9Q7gscRDSPAObzPFUFsbKK0HmbyZg@mail.gmail.com> <CAKdnbx7FFd0WaCSrD+6MCoX5_Vy=gy-D0aNk+cXs5x67-s1W6g@mail.gmail.com>
-In-Reply-To: <CAKdnbx7FFd0WaCSrD+6MCoX5_Vy=gy-D0aNk+cXs5x67-s1W6g@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Il 14/02/2012 23:35, Eddi De Pieri ha scritto:
-> Someone can confirm my changes?
-> 
-> Regards,
-> 
-> Eddi
+Hi Sakari,
 
-Hi Eddi,
-your patch makes sense to me, but I think you will have to resubmit it
-to the list, as the original mail has never been published (I can only
-see your reply to it). Also, your patch is not listed on patchwork, so
-it must have been lost.
+Thanks for the patch.
 
+On Monday 20 February 2012 03:56:43 Sakari Ailus wrote:
+> Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
+> IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
+> VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+> 
+> VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/v4l2-subdev.c |   34 +++++++++++++++++++++---------
+>  include/linux/v4l2-subdev.h       |   41
+> +++++++++++++++++++++++++++++++++++++ include/media/v4l2-subdev.h       |  
+> 21 +++++++++++++++---
+>  3 files changed, 82 insertions(+), 14 deletions(-)
+> 
+> diff --git a/drivers/media/video/v4l2-subdev.c
+> b/drivers/media/video/v4l2-subdev.c index 6fe88e9..30c7fd9 100644
+> --- a/drivers/media/video/v4l2-subdev.c
+> +++ b/drivers/media/video/v4l2-subdev.c
+> @@ -35,14 +35,9 @@
+>  static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev
+> *sd) {
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> -	/* Allocate try format and crop in the same memory block */
+> -	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
+> -			      * sd->entity.num_pads, GFP_KERNEL);
+> -	if (fh->try_fmt == NULL)
+> +	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
+> +	if (fh->pad == NULL)
+>  		return -ENOMEM;
+> -
+> -	fh->try_crop = (struct v4l2_rect *)
+> -		(fh->try_fmt + sd->entity.num_pads);
+>  #endif
+>  	return 0;
+>  }
+> @@ -50,9 +45,8 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh,
+> struct v4l2_subdev *sd) static void subdev_fh_free(struct v4l2_subdev_fh
+> *fh)
+>  {
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> -	kfree(fh->try_fmt);
+> -	fh->try_fmt = NULL;
+> -	fh->try_crop = NULL;
+> +	kfree(fh->pad);
+> +	fh->pad = NULL;
+>  #endif
+>  }
+> 
+> @@ -293,6 +287,26 @@ static long subdev_do_ioctl(struct file *file, unsigned
+> int cmd, void *arg) return v4l2_subdev_call(sd, pad, enum_frame_interval,
+> subdev_fh, fie);
+>  	}
+> +
+> +	case VIDIOC_SUBDEV_G_SELECTION: {
+> +		struct v4l2_subdev_selection *sel = arg;
+> +
+> +		if (sel->pad >= sd->entity.num_pads)
+> +			return -EINVAL;
+
+Shouldn't you verify the which field as well, as done for the crop ioctls ?
+
+> +
+> +		return v4l2_subdev_call(
+> +			sd, pad, get_selection, subdev_fh, sel);
+> +	}
+> +
+> +	case VIDIOC_SUBDEV_S_SELECTION: {
+> +		struct v4l2_subdev_selection *sel = arg;
+> +
+> +		if (sel->pad >= sd->entity.num_pads)
+> +			return -EINVAL;
+> +
+> +		return v4l2_subdev_call(
+> +			sd, pad, set_selection, subdev_fh, sel);
+> +	}
+>  #endif
+>  	default:
+>  		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
+> diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
+> index ed29cbb..6c84390 100644
+> --- a/include/linux/v4l2-subdev.h
+> +++ b/include/linux/v4l2-subdev.h
+> @@ -123,6 +123,43 @@ struct v4l2_subdev_frame_interval_enum {
+>  	__u32 reserved[9];
+>  };
+> 
+> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
+> +#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
+> +#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
+> +
+> +/* active cropping area */
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0x0000
+> +/* cropping bounds */
+> +#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
+> +/* current composing area */
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		0x0100
+> +/* composing bounds */
+> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		0x0102
+> +
+> +
+> +/**
+> + * struct v4l2_subdev_selection - selection info
+> + *
+> + * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
+> + * @pad: pad number, as reported by the media API
+> + * @target: selection target, used to choose one of possible rectangles
+> + * @flags: constraint flags
+> + * @r: coordinates of the selection window
+> + * @reserved: for future use, rounds structure size to 64 bytes, set to
+> zero
+
+I'm not sure we need to mention that the reserved fields round the structure 
+size to 64 bytes.
+
+> + *
+> + * Hardware may use multiple helper windows to process a video stream.
+> + * The structure is used to exchange this selection areas between
+> + * an application and a driver.
+> + */
+> +struct v4l2_subdev_selection {
+> +	__u32 which;
+> +	__u32 pad;
+> +	__u32 target;
+> +	__u32 flags;
+> +	struct v4l2_rect r;
+> +	__u32 reserved[8];
+> +};
+> +
+>  #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
+>  #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
+>  #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
+> @@ -137,5 +174,9 @@ struct v4l2_subdev_frame_interval_enum {
+>  			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
+>  #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
+>  #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
+> +#define VIDIOC_SUBDEV_G_SELECTION \
+> +	_IOWR('V', 61, struct v4l2_subdev_selection)
+> +#define VIDIOC_SUBDEV_S_SELECTION \
+> +	_IOWR('V', 62, struct v4l2_subdev_selection)
+> 
+>  #endif
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index f0f3358..feab950 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
+>  		       struct v4l2_subdev_crop *crop);
+>  	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>  		       struct v4l2_subdev_crop *crop);
+> +	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> +			     struct v4l2_subdev_selection *sel);
+> +	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> +			     struct v4l2_subdev_selection *sel);
+>  };
+> 
+>  struct v4l2_subdev_ops {
+> @@ -549,8 +553,11 @@ struct v4l2_subdev {
+>  struct v4l2_subdev_fh {
+>  	struct v4l2_fh vfh;
+>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+> -	struct v4l2_mbus_framefmt *try_fmt;
+> -	struct v4l2_rect *try_crop;
+> +	struct {
+> +		struct v4l2_mbus_framefmt try_fmt;
+> +		struct v4l2_rect try_crop;
+> +		struct v4l2_rect try_compose;
+> +	} *pad;
+>  #endif
+>  };
+> 
+> @@ -561,13 +568,19 @@ struct v4l2_subdev_fh {
+>  static inline struct v4l2_mbus_framefmt *
+>  v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
+>  {
+> -	return &fh->try_fmt[pad];
+> +	return &fh->pad[pad].try_fmt;
+>  }
+> 
+>  static inline struct v4l2_rect *
+>  v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
+>  {
+> -	return &fh->try_crop[pad];
+> +	return &fh->pad[pad].try_crop;
+> +}
+> +
+> +static inline struct v4l2_rect *
+> +v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
+> +{
+> +	return &fh->pad[pad].try_compose;
+>  }
+>  #endif
+-- 
 Regards,
-Gianluca
 
-
+Laurent Pinchart
