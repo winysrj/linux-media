@@ -1,91 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:57693 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751217Ab2BGPSf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2012 10:18:35 -0500
-Received: by vcge1 with SMTP id e1so4689325vcg.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2012 07:18:34 -0800 (PST)
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:61365 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752032Ab2BUQ0e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 Feb 2012 11:26:34 -0500
+Received: by bkcjm19 with SMTP id jm19so5486995bkc.19
+        for <linux-media@vger.kernel.org>; Tue, 21 Feb 2012 08:26:32 -0800 (PST)
+Message-ID: <4F43C5B5.9020506@googlemail.com>
+Date: Tue, 21 Feb 2012 17:26:29 +0100
+From: =?ISO-8859-15?Q?Paolo_Pant=F2?= <munix9@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <4F310091.80107@gmail.com>
-References: <4F2AC7BF.4040006@ukfsn.org>
-	<4F2ADDCB.4060200@gmail.com>
-	<CAGoCfiyTHNkr3gNAZUefeZN88-5Vd9SEyGUeFjYO-ddG1WqgzA@mail.gmail.com>
-	<4F2B16DF.3040400@gmail.com>
-	<CAGoCfiybOLL2Owz2KaPG2AuMueHYKmN18A8tQ7WXVkhTuRobZQ@mail.gmail.com>
-	<4F310091.80107@gmail.com>
-Date: Tue, 7 Feb 2012 10:18:34 -0500
-Message-ID: <CAGoCfiwXj58Men1Yi3OoH7CYAbiB7-KXs9fV8QkEnn3Y8Qe=sw@mail.gmail.com>
-Subject: Re: PCTV 290e page allocation failure
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: gennarone@gmail.com
-Cc: Andy Furniss <andyqos@ukfsn.org>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org
+Subject: [PATCH] rtl28xxu: add another Freecom usb id
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 7, 2012 at 5:44 AM, Gianluca Gennari <gennarone@gmail.com> wrote:
-> 1) dvb-usb drivers allocate the URBs when the device is connected, and
-> they are never freed/reallocated until the device is disconnected; on
-> the other hand, the em28xx driver allocates the URBs only when the data
-> starts streaming and frees them when the stream stops, so the URBs are
-> freed/reallocated every time the user zaps to a new channel;
 
-Correct, the current strategy is to optimized to minimize memory use
-when the device is not active, as opposed to tying up the memory when
-it's not in use (obviously at the cost of the memory possibly not
-being available on certain ARM/MIPS platforms).
+Besides sticks with the usb id 14AA:0160, there exists also some
+with 14AA:0161 - this is the output in /var/log/messages:
 
-> 2) dvb-usb drivers typically allocate 10 URBs each with a 4k buffer (but
-> the exact size of the buffer is board dependent); instead, em28xx
-> allocates 5 URBs with buffers of size 64xMaxPacketSize (which is 940
-> byte for the PCTV 290e).
->
-> This means a typical dvb-usb driver uses about 40k of coherent memory,
-> while the PCTV 290e takes about 300k! And this 300k of coherent memory
-> are freed/reallocated each time the user selects a new channel.
->
-> I played a bit with the size of the buffers; I found out that both the
-> PCTV 290e and the Terratec Hybrid XS work perfectly fine with 4k
-> buffers, just like the usb-dvb drivers. So the PCTV 290e only needs 20k
-> of coherent memory instead of the 300k currently allocated (this is
-> equivalent to set EM28XX_DVB_MAX_PACKETS to just 4 instead of 64).
+usb 1-1: new high-speed USB device number 2 using ehci_hcd
+usb 1-1: New USB device found, idVendor=14aa, idProduct=0161
+usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+usb 1-1: Product: Freecom DVB-T
+usb 1-1: Manufacturer: Freecom DVB-T
+usb 1-1: SerialNumber: 00000000000036742
 
-This one is a bit harder to speculate on.  Are you actually capturing
-all the packets and ensuring there are no packets being dropped (e.g.
-looking for discontinuities)?  Have you tried it with modulation types
-that are high bandwidth?  Have you tried capturing an entire stream
-with PID filtering disabled?  The change you described may "appear" to
-be working when in fact it's only working for a subset of real-world
-use cases.
+The patch is based on the code at
+http://git.linuxtv.org/anttip/media_tree.git/shortlog/refs/heads/realtek
 
-Also, the buffer management may be appropriate for the em2874/em2884,
-but be broken for other devices such as the em288[0123].  Testing
-would be required to ensure it's not introducing regressions.  In
-particular, the 2874/2884 had architecture changes which may result in
-differences in behavior (the register map is significantly different,
-for example).
 
-> Also, I prepared a proof-of-concept patch to mimic the usb-dvb URB
-> management; this means the URBs are allocated when the USB device is
-> probed, and are freed when the device is disconnected (the patch code
-> checks for changes in the requested buffer size, but this can never
-> happen in digital mode).
+Signed-off-by: Paolo Pantò <munix9@googlemail.com>
+---
+ drivers/media/dvb/dvb-usb/dvb-usb-ids.h |    1 +
+ drivers/media/dvb/dvb-usb/rtl28xxu.c    |    4 ++++
+ 2 files changed, 5 insertions(+), 0 deletions(-)
 
-I don't have any specific problem with such a change assuming it is
-properly vetted against other devices.
+diff --git a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+index 3d9a166..ba330ed 100644
+--- a/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
++++ b/drivers/media/dvb/dvb-usb/dvb-usb-ids.h
+@@ -128,6 +128,7 @@
+ #define USB_PID_E3C_EC168_4				0x1001
+ #define USB_PID_E3C_EC168_5				0x1002
+ #define USB_PID_FREECOM_DVBT				0x0160
++#define USB_PID_FREECOM_DVBT_2				0x0161
+ #define USB_PID_UNIWILL_STK7700P			0x6003
+ #define USB_PID_GENIUS_TVGO_DVB_T03			0x4012
+ #define USB_PID_GRANDTEC_DVBT_USB_COLD			0x0fa0
+diff --git a/drivers/media/dvb/dvb-usb/rtl28xxu.c b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+index 548e3ee..5124231 100644
+--- a/drivers/media/dvb/dvb-usb/rtl28xxu.c
++++ b/drivers/media/dvb/dvb-usb/rtl28xxu.c
+@@ -767,6 +767,7 @@ err:
+ enum rtl28xxu_usb_table_entry {
+ 	RTL2831U_0BDA_2831,
+ 	RTL2831U_14AA_0160,
++	RTL2831U_14AA_0161,
+ };
 
-> I've tested the patch (with 4k buffers) with both my em28xx sticks and
-> both work perfectly fine on my PC as well as on my MIPS set-top-box.
-> Analog mode is not tested.
+ static struct usb_device_id rtl28xxu_table[] = {
+@@ -775,6 +776,8 @@ static struct usb_device_id rtl28xxu_table[] = {
+ 		USB_DEVICE(USB_VID_REALTEK, USB_PID_REALTEK_RTL2831U)},
+ 	[RTL2831U_14AA_0160] = {
+ 		USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_FREECOM_DVBT)},
++	[RTL2831U_14AA_0161] = {
++		USB_DEVICE(USB_VID_WIDEVIEW, USB_PID_FREECOM_DVBT_2)},
 
-Again, the big question here is surrounding your testing methodology.
-If you could expand on how you're testing, that would be helpful in
-assessing how well the patch will really work.
+ 	/* RTL2832U */
+ 	{} /* terminating entry */
+@@ -840,6 +843,7 @@ static struct dvb_usb_device_properties rtl28xxu_properties[] = {
+ 				.name = "Freecom USB2.0 DVB-T",
+ 				.warm_ids = {
+ 					&rtl28xxu_table[RTL2831U_14AA_0160],
++					&rtl28xxu_table[RTL2831U_14AA_0161],
+ 				},
+ 			},
+ 		}
+--
 
-Thanks,
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
