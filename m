@@ -1,69 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:38718 "EHLO
-	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751186Ab2BVNZE (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.22]:46743 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1753817Ab2BVWVF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 08:25:04 -0500
-From: Danny Kukawka <danny.kukawka@bisect.de>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Danny Kukawka <dkukawka@suse.de>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	ivtv-devel@ivtvdriver.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Rusty Russell <rusty@rustcorp.com.au>, mchehab@redhat.com
-Subject: [RESEND][PATCH v2 2/2] ivtv-driver: fix handling of 'radio' module parameter
-Date: Wed, 22 Feb 2012 14:24:56 +0100
-Message-Id: <1329917096-19438-3-git-send-email-danny.kukawka@bisect.de>
-In-Reply-To: <1329917096-19438-1-git-send-email-danny.kukawka@bisect.de>
-References: <1329917096-19438-1-git-send-email-danny.kukawka@bisect.de>
+	Wed, 22 Feb 2012 17:21:05 -0500
+From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 0/3] Support for AF9035/AF9033
+Date: Wed, 22 Feb 2012 23:20:56 +0100
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202222320.56583.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Reverse ivtv-driver part of commit
-90ab5ee94171b3e28de6bb42ee30b527014e0be7 and change
-module_param_array() type from bool to int to fix
-compiler warning:
+I have written a driver for the AF9035 & AF9033 (called af903x), based on the 
+various drivers and information floating around for these chips.
+Currently, my driver only supports the devices that I am able to test. These 
+are
+- Terratec T5 Ver.2 (also known as T6)
+- Avermedia Volar HD Nano (A867)
 
-In function ‘__check_radio’:
-113:1: warning: return from incompatible pointer type [enabled by default]
-At top level:
-113:1: warning: initialization from incompatible pointer type [enabled by default]
-113:1: warning: (near initialization for ‘__param_arr_radio.num’) [enabled by default]
+The driver supports:
+- diversity and dual tuner (when the first frontend is used, it is in diversity 
+mode, when two frontends are used in dual tuner mode)
+- multiple devices
+- pid filtering
+- remote control in NEC and RC-6 mode (currently not switchable, but depending 
+on device)
+- support for kernel 3.1, 3.2 and 3.3 series
 
-v2: set radio_c to true instead of 1 since it's bool
-v3: corrected version, don't change to module_param_named(), change
-    all to int/uint
+I have not tried to split the driver in a DVB-T receiver (af9035) and a 
+frontend (af9033), because I do not see the sense in doing that for a 
+demodulator, that seems to be always used in combination with the very same 
+receiver.
 
-Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
----
- drivers/media/video/ivtv/ivtv-driver.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+The patch is split in three parts:
+Patch 1: support for tuner fitipower FC0012
+Patch 2: basic driver
+Patch 3: firmware
 
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 107e9e6..ab6ed116 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -99,7 +99,7 @@ static int i2c_clock_period[IVTV_MAX_CARDS] = { -1, -1, -1, -1, -1, -1, -1, -1,
- 
- static unsigned int cardtype_c = 1;
- static unsigned int tuner_c = 1;
--static bool radio_c = 1;
-+static unsigned int radio_c = 1;
- static unsigned int i2c_clock_period_c = 1;
- static char pal[] = "---";
- static char secam[] = "--";
-@@ -139,7 +139,7 @@ static int tunertype = -1;
- static int newi2c = -1;
- 
- module_param_array(tuner, int, &tuner_c, 0644);
--module_param_array(radio, bool, &radio_c, 0644);
-+module_param_array(radio, int, &radio_c, 0644);
- module_param_array(cardtype, int, &cardtype_c, 0644);
- module_param_string(pal, pal, sizeof(pal), 0644);
- module_param_string(secam, secam, sizeof(secam), 0644);
--- 
-1.7.8.3
-
+Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
