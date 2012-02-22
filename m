@@ -1,106 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yx0-f174.google.com ([209.85.213.174]:49727 "EHLO
-	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757222Ab2BXPYv (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:59070 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752884Ab2BVQtE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 10:24:51 -0500
-Received: by mail-yx0-f174.google.com with SMTP id m8so1156267yen.19
-        for <linux-media@vger.kernel.org>; Fri, 24 Feb 2012 07:24:51 -0800 (PST)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: mchehab@infradead.org, gregkh@linuxfoundation.org
-Cc: tomas.winkler@intel.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, dan.carpenter@oracle.com,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 5/9] staging: easycap: Push video registration to easycap_register_video()
-Date: Fri, 24 Feb 2012 12:24:18 -0300
-Message-Id: <1330097062-31663-5-git-send-email-elezegarcia@gmail.com>
-In-Reply-To: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
-References: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
+	Wed, 22 Feb 2012 11:49:04 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: TEXT/PLAIN
+Date: Wed, 22 Feb 2012 17:48:43 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv23 02/16] mm: compaction: introduce isolate_migratepages_range()
+In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329929337-16648-3-git-send-email-m.szyprowski@samsung.com>
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
----
- drivers/staging/media/easycap/easycap_main.c |   58 +++++++++++++++-----------
- 1 files changed, 33 insertions(+), 25 deletions(-)
+From: Michal Nazarewicz <mina86@mina86.com>
 
-diff --git a/drivers/staging/media/easycap/easycap_main.c b/drivers/staging/media/easycap/easycap_main.c
-index 480164d..68af1a2 100644
---- a/drivers/staging/media/easycap/easycap_main.c
-+++ b/drivers/staging/media/easycap/easycap_main.c
-@@ -3291,6 +3291,37 @@ static const struct v4l2_file_operations v4l2_fops = {
- 	.mmap		= easycap_mmap,
- };
+This commit introduces isolate_migratepages_range() function which
+extracts functionality from isolate_migratepages() so that it can be
+used on arbitrary PFN ranges.
+
+isolate_migratepages() function is implemented as a simple wrapper
+around isolate_migratepages_range().
+
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ mm/compaction.c |   75 +++++++++++++++++++++++++++++++++++++++---------------
+ 1 files changed, 54 insertions(+), 21 deletions(-)
+
+diff --git a/mm/compaction.c b/mm/compaction.c
+index 74a8c82..ee20fc0 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -250,31 +250,34 @@ typedef enum {
+ 	ISOLATE_SUCCESS,	/* Pages isolated, migrate */
+ } isolate_migrate_t;
  
-+static int easycap_register_video(struct easycap *peasycap)
-+{
-+	/*
-+	 * FIXME: This is believed to be harmless,
-+	 * but may well be unnecessary or wrong.
-+	 */
-+	peasycap->video_device.v4l2_dev = NULL;
-+
-+	strcpy(&peasycap->video_device.name[0], "easycapdc60");
-+	peasycap->video_device.fops = &v4l2_fops;
-+	peasycap->video_device.minor = -1;
-+	peasycap->video_device.release = (void *)(&videodev_release);
-+
-+	video_set_drvdata(&(peasycap->video_device), (void *)peasycap);
-+
-+	if (0 != (video_register_device(&(peasycap->video_device),
-+					VFL_TYPE_GRABBER, -1))) {
-+		err("Not able to register with videodev");
-+		videodev_release(&(peasycap->video_device));
-+		return -ENODEV;
-+	}
-+
-+	peasycap->registered_video++;
-+
-+	SAM("registered with videodev: %i=minor\n",
-+	    peasycap->video_device.minor);
-+	    peasycap->minor = peasycap->video_device.minor;
-+
-+	return 0;
+-/*
+- * Isolate all pages that can be migrated from the block pointed to by
+- * the migrate scanner within compact_control.
++/**
++ * isolate_migratepages_range() - isolate all migrate-able pages in range.
++ * @zone:	Zone pages are in.
++ * @cc:		Compaction control structure.
++ * @low_pfn:	The first PFN of the range.
++ * @end_pfn:	The one-past-the-last PFN of the range.
++ *
++ * Isolate all pages that can be migrated from the range specified by
++ * [low_pfn, end_pfn).  Returns zero if there is a fatal signal
++ * pending), otherwise PFN of the first page that was not scanned
++ * (which may be both less, equal to or more then end_pfn).
++ *
++ * Assumes that cc->migratepages is empty and cc->nr_migratepages is
++ * zero.
++ *
++ * Apart from cc->migratepages and cc->nr_migratetypes this function
++ * does not modify any cc's fields, in particular it does not modify
++ * (or read for that matter) cc->migrate_pfn.
+  */
+-static isolate_migrate_t isolate_migratepages(struct zone *zone,
+-					struct compact_control *cc)
++static unsigned long
++isolate_migratepages_range(struct zone *zone, struct compact_control *cc,
++			   unsigned long low_pfn, unsigned long end_pfn)
+ {
+-	unsigned long low_pfn, end_pfn;
+ 	unsigned long last_pageblock_nr = 0, pageblock_nr;
+ 	unsigned long nr_scanned = 0, nr_isolated = 0;
+ 	struct list_head *migratelist = &cc->migratepages;
+ 	isolate_mode_t mode = ISOLATE_ACTIVE|ISOLATE_INACTIVE;
+ 
+-	/* Do not scan outside zone boundaries */
+-	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
+-
+-	/* Only scan within a pageblock boundary */
+-	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
+-
+-	/* Do not cross the free scanner or scan within a memory hole */
+-	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
+-		cc->migrate_pfn = end_pfn;
+-		return ISOLATE_NONE;
+-	}
+-
+ 	/*
+ 	 * Ensure that there are not too many pages isolated from the LRU
+ 	 * list by either parallel reclaimers or compaction. If there are,
+@@ -283,12 +286,12 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 	while (unlikely(too_many_isolated(zone))) {
+ 		/* async migration should just abort */
+ 		if (!cc->sync)
+-			return ISOLATE_ABORT;
++			return 0;
+ 
+ 		congestion_wait(BLK_RW_ASYNC, HZ/10);
+ 
+ 		if (fatal_signal_pending(current))
+-			return ISOLATE_ABORT;
++			return 0;
+ 	}
+ 
+ 	/* Time to isolate some pages for migration */
+@@ -396,10 +399,40 @@ static isolate_migrate_t isolate_migratepages(struct zone *zone,
+ 	acct_isolated(zone, cc);
+ 
+ 	spin_unlock_irq(&zone->lru_lock);
+-	cc->migrate_pfn = low_pfn;
+ 
+ 	trace_mm_compaction_isolate_migratepages(nr_scanned, nr_isolated);
+ 
++	return low_pfn;
 +}
 +
- /*
-  * When the device is plugged, this function is called three times,
-  * one for each interface.
-@@ -3667,32 +3698,9 @@ static int easycap_usb_probe(struct usb_interface *intf,
- 		JOM(4, "registered device instance: %s\n",
- 			peasycap->v4l2_device.name);
++/*
++ * Isolate all pages that can be migrated from the block pointed to by
++ * the migrate scanner within compact_control.
++ */
++static isolate_migrate_t isolate_migratepages(struct zone *zone,
++					struct compact_control *cc)
++{
++	unsigned long low_pfn, end_pfn;
++
++	/* Do not scan outside zone boundaries */
++	low_pfn = max(cc->migrate_pfn, zone->zone_start_pfn);
++
++	/* Only scan within a pageblock boundary */
++	end_pfn = ALIGN(low_pfn + pageblock_nr_pages, pageblock_nr_pages);
++
++	/* Do not cross the free scanner or scan within a memory hole */
++	if (end_pfn > cc->free_pfn || !pfn_valid(low_pfn)) {
++		cc->migrate_pfn = end_pfn;
++		return ISOLATE_NONE;
++	}
++
++	/* Perform the isolation */
++	low_pfn = isolate_migratepages_range(zone, cc, low_pfn, end_pfn);
++	if (!low_pfn)
++		return ISOLATE_ABORT;
++
++	cc->migrate_pfn = low_pfn;
++
+ 	return ISOLATE_SUCCESS;
+ }
  
--		/*
--		 * FIXME: This is believed to be harmless,
--		 * but may well be unnecessary or wrong.
--		 */
--		peasycap->video_device.v4l2_dev = NULL;
--
--
--		strcpy(&peasycap->video_device.name[0], "easycapdc60");
--		peasycap->video_device.fops = &v4l2_fops;
--		peasycap->video_device.minor = -1;
--		peasycap->video_device.release = (void *)(&videodev_release);
--
--		video_set_drvdata(&(peasycap->video_device), (void *)peasycap);
--
--		if (0 != (video_register_device(&(peasycap->video_device),
--							VFL_TYPE_GRABBER, -1))) {
--			err("Not able to register with videodev");
--			videodev_release(&(peasycap->video_device));
-+		rc = easycap_register_video(peasycap);
-+		if (rc < 0)
- 			return -ENODEV;
--		}
--
--		peasycap->registered_video++;
--		SAM("registered with videodev: %i=minor\n",
--						peasycap->video_device.minor);
--		peasycap->minor = peasycap->video_device.minor;
--
- 		break;
- 	}
- 	/* 1: Audio control */
 -- 
-1.7.3.4
+1.7.1.569.g6f426
 
