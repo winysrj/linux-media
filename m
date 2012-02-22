@@ -1,82 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cantor2.suse.de ([195.135.220.15]:50723 "EHLO mx2.suse.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753562Ab2BCWR4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 3 Feb 2012 17:17:56 -0500
-Date: Fri, 3 Feb 2012 23:17:53 +0100 (CET)
-From: Jiri Kosina <jkosina@suse.cz>
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Masanari Iida <standby24x7@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [trivial] media: Fix typo in mixer_drv.c and
- hdmi_drv.c
-In-Reply-To: <CAH9JG2USF-FYX0SL-y0Gby8oNvA=sFBV7uyvP+4oaa1nxRU5qA@mail.gmail.com>
-Message-ID: <alpine.LNX.2.00.1202032317420.25026@pobox.suse.cz>
-References: <1327841453-1674-1-git-send-email-standby24x7@gmail.com> <CAH9JG2USF-FYX0SL-y0Gby8oNvA=sFBV7uyvP+4oaa1nxRU5qA@mail.gmail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39936 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755836Ab2BVLBY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 06:01:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 26/33] omap3isp: Default link validation for ccp2, csi2, preview and resizer
+Date: Wed, 22 Feb 2012 12:01:26 +0100
+Message-ID: <4620159.TXeRQHhZdd@avalon>
+In-Reply-To: <1329703032-31314-26-git-send-email-sakari.ailus@iki.fi>
+References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-26-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 30 Jan 2012, Kyungmin Park wrote:
+Hi Sakari,
 
-> Acked-by: Kyungmin Park <kyungmin.park@samsung.com>
+Thanks for the patch.
 
-Applied, thanks.
+On Monday 20 February 2012 03:57:05 Sakari Ailus wrote:
+> Use default link validation for ccp2, csi2, preview and resizer. On ccp2,
+> csi2 and ccdc we also collect information on external subdevs as one may be
+> connected to those entities.
+> 
+> The CCDC link validation still must be done separately.
+> 
+> Also set pipe->external correctly as we go
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/omap3isp/ispccdc.c    |   23 +++++++++++++++++++++++
+>  drivers/media/video/omap3isp/ispccp2.c    |   20 ++++++++++++++++++++
+>  drivers/media/video/omap3isp/ispcsi2.c    |   19 +++++++++++++++++++
+>  drivers/media/video/omap3isp/isppreview.c |    2 ++
+>  drivers/media/video/omap3isp/ispresizer.c |    2 ++
+>  drivers/media/video/omap3isp/ispvideo.c   |    4 ++++
+>  6 files changed, 70 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> b/drivers/media/video/omap3isp/ispccdc.c index a74a797..6aff241 100644
+> --- a/drivers/media/video/omap3isp/ispccdc.c
+> +++ b/drivers/media/video/omap3isp/ispccdc.c
+> @@ -1999,6 +1999,27 @@ static int ccdc_set_format(struct v4l2_subdev *sd,
+> struct v4l2_subdev_fh *fh, return 0;
+>  }
+> 
+> +static int ccdc_link_validate(struct v4l2_subdev *sd,
+> +			      struct media_link *link,
+> +			      struct v4l2_subdev_format *source_fmt,
+> +			      struct v4l2_subdev_format *sink_fmt)
+> +{
+> +	struct isp_ccdc_device *ccdc = v4l2_get_subdevdata(sd);
+> +	struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity);
+> +	int rval;
+> +
+> +	/* We've got a parallel sensor here. */
+> +	if (ccdc->input == CCDC_INPUT_PARALLEL) {
+> +		pipe->external =
+> +			media_entity_to_v4l2_subdev(link->source->entity);
+> +		rval = omap3isp_get_external_info(pipe, link);
+> +		if (rval < 0)
+> +			return 0;
+> +	}
 
-> > Correct typo "sucessful" to "successful" in
-> > drivers/media/video/s5p-tv/mixer_drv.c
-> > drivers/media/video/s5p-tv/hdmi_drv.c
-> >
-> > Signed-off-by: Masanari Iida <standby24x7@gmail.com>
-> > ---
-> >  drivers/media/video/s5p-tv/hdmi_drv.c  |    4 ++--
-> >  drivers/media/video/s5p-tv/mixer_drv.c |    2 +-
-> >  2 files changed, 3 insertions(+), 3 deletions(-)
-> >
-> > diff --git a/drivers/media/video/s5p-tv/hdmi_drv.c
-> > b/drivers/media/video/s5p-tv/hdmi_drv.c
-> > index 8b41a04..3e0dd09 100644
-> > --- a/drivers/media/video/s5p-tv/hdmi_drv.c
-> > +++ b/drivers/media/video/s5p-tv/hdmi_drv.c
-> > @@ -962,7 +962,7 @@ static int __devinit hdmi_probe(struct platform_device
-> > *pdev)
-> >  	/* storing subdev for call that have only access to struct device */
-> >  	dev_set_drvdata(dev, sd);
-> >
-> > -	dev_info(dev, "probe sucessful\n");
-> > +	dev_info(dev, "probe successful\n");
-> >
-> >  	return 0;
-> >
-> > @@ -1000,7 +1000,7 @@ static int __devexit hdmi_remove(struct
-> > platform_device *pdev)
-> >  	iounmap(hdmi_dev->regs);
-> >  	hdmi_resources_cleanup(hdmi_dev);
-> >  	kfree(hdmi_dev);
-> > -	dev_info(dev, "remove sucessful\n");
-> > +	dev_info(dev, "remove successful\n");
-> >
-> >  	return 0;
-> >  }
-> > diff --git a/drivers/media/video/s5p-tv/mixer_drv.c
-> > b/drivers/media/video/s5p-tv/mixer_drv.c
-> > index 0064309..a2c0c25 100644
-> > --- a/drivers/media/video/s5p-tv/mixer_drv.c
-> > +++ b/drivers/media/video/s5p-tv/mixer_drv.c
-> > @@ -444,7 +444,7 @@ static int __devexit mxr_remove(struct platform_device
-> > *pdev)
-> >
-> >  	kfree(mdev);
-> >
-> > -	dev_info(dev, "remove sucessful\n");
-> > +	dev_info(dev, "remove successful\n");
-> >  	return 0;
-> >  }
+Pending my comments on 25/33, this wouldn't be needed in this patch, and could 
+be squashed with 27/33.
 
+> +
+> +	return 0;
+> +}
+> +
+>  /*
+>   * ccdc_init_formats - Initialize formats on all pads
+>   * @sd: ISP CCDC V4L2 subdevice
+> @@ -2041,6 +2062,7 @@ static const struct v4l2_subdev_pad_ops
+> ccdc_v4l2_pad_ops = { .enum_frame_size = ccdc_enum_frame_size,
+>  	.get_fmt = ccdc_get_format,
+>  	.set_fmt = ccdc_set_format,
+> +	.link_validate = ccdc_link_validate,
+>  };
+> 
+>  /* V4L2 subdev operations */
+> @@ -2150,6 +2172,7 @@ static int ccdc_link_setup(struct media_entity
+> *entity, /* media operations */
+>  static const struct media_entity_operations ccdc_media_ops = {
+>  	.link_setup = ccdc_link_setup,
+> +	.link_validate = v4l2_subdev_link_validate,
+>  };
+> 
+>  void omap3isp_ccdc_unregister_entities(struct isp_ccdc_device *ccdc)
+> diff --git a/drivers/media/video/omap3isp/ispccp2.c
+> b/drivers/media/video/omap3isp/ispccp2.c index 70ddbf3..4fb34ee 100644
+> --- a/drivers/media/video/omap3isp/ispccp2.c
+> +++ b/drivers/media/video/omap3isp/ispccp2.c
+> @@ -819,6 +819,24 @@ static int ccp2_set_format(struct v4l2_subdev *sd,
+> struct v4l2_subdev_fh *fh, return 0;
+>  }
+> 
+> +static int ccp2_link_validate(struct v4l2_subdev *sd, struct media_link
+> *link, +			      struct v4l2_subdev_format *source_fmt,
+> +			      struct v4l2_subdev_format *sink_fmt)
+> +{
+> +	struct isp_ccp2_device *ccp2 = v4l2_get_subdevdata(sd);
+> +	struct isp_pipeline *pipe = to_isp_pipeline(&ccp2->subdev.entity);
+> +	int rval;
+> +
+> +	pipe->external = media_entity_to_v4l2_subdev(link->source->entity);
+> +	rval = omap3isp_get_external_info(pipe, link);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	return v4l2_subdev_link_validate_default(sd, link, source_fmt,
+> +						 sink_fmt);
+
+That's the default behaviour, if omap3isp_get_external_info() is moved to 
+ispvideo.c you can just leave .link_validate as NULL.
+
+> +}
+> +
+> +
+>  /*
+>   * ccp2_init_formats - Initialize formats on all pads
+>   * @sd: ISP CCP2 V4L2 subdevice
+> @@ -925,6 +943,7 @@ static const struct v4l2_subdev_pad_ops ccp2_sd_pad_ops
+> = { .enum_frame_size = ccp2_enum_frame_size,
+>  	.get_fmt = ccp2_get_format,
+>  	.set_fmt = ccp2_set_format,
+> +	.link_validate = ccp2_link_validate,
+>  };
+> 
+>  /* subdev operations */
+> @@ -1021,6 +1040,7 @@ static int ccp2_link_setup(struct media_entity
+> *entity, /* media operations */
+>  static const struct media_entity_operations ccp2_media_ops = {
+>  	.link_setup = ccp2_link_setup,
+> +	.link_validate = v4l2_subdev_link_validate,
+>  };
+> 
+>  /*
+> diff --git a/drivers/media/video/omap3isp/ispcsi2.c
+> b/drivers/media/video/omap3isp/ispcsi2.c index fcb5168..9313f7c 100644
+> --- a/drivers/media/video/omap3isp/ispcsi2.c
+> +++ b/drivers/media/video/omap3isp/ispcsi2.c
+> @@ -1012,6 +1012,23 @@ static int csi2_set_format(struct v4l2_subdev *sd,
+> struct v4l2_subdev_fh *fh, return 0;
+>  }
+> 
+> +static int csi2_link_validate(struct v4l2_subdev *sd, struct media_link
+> *link, +			      struct v4l2_subdev_format *source_fmt,
+> +			      struct v4l2_subdev_format *sink_fmt)
+> +{
+> +	struct isp_csi2_device *csi2 = v4l2_get_subdevdata(sd);
+> +	struct isp_pipeline *pipe = to_isp_pipeline(&csi2->subdev.entity);
+> +	int rval;
+> +
+> +	pipe->external = media_entity_to_v4l2_subdev(link->source->entity);
+> +	rval = omap3isp_get_external_info(pipe, link);
+> +	if (rval < 0)
+> +		return rval;
+> +
+> +	return v4l2_subdev_link_validate_default(sd, link, source_fmt,
+> +						 sink_fmt);
+
+Same here.
+
+> +}
+> +
+>  /*
+>   * csi2_init_formats - Initialize formats on all pads
+>   * @sd: ISP CSI2 V4L2 subdevice
+> @@ -1107,6 +1124,7 @@ static const struct v4l2_subdev_pad_ops csi2_pad_ops =
+> { .enum_frame_size = csi2_enum_frame_size,
+>  	.get_fmt = csi2_get_format,
+>  	.set_fmt = csi2_set_format,
+> +	.link_validate = csi2_link_validate,
+>  };
+> 
+>  /* subdev operations */
+> @@ -1181,6 +1199,7 @@ static int csi2_link_setup(struct media_entity
+> *entity, /* media operations */
+>  static const struct media_entity_operations csi2_media_ops = {
+>  	.link_setup = csi2_link_setup,
+> +	.link_validate = v4l2_subdev_link_validate,
+>  };
+> 
+>  void omap3isp_csi2_unregister_entities(struct isp_csi2_device *csi2)
+> diff --git a/drivers/media/video/omap3isp/isppreview.c
+> b/drivers/media/video/omap3isp/isppreview.c index 6d0fb2c..c2bf500 100644
+> --- a/drivers/media/video/omap3isp/isppreview.c
+> +++ b/drivers/media/video/omap3isp/isppreview.c
+> @@ -1981,6 +1981,7 @@ static const struct v4l2_subdev_pad_ops
+> preview_v4l2_pad_ops = { .set_fmt = preview_set_format,
+>  	.get_crop = preview_get_crop,
+>  	.set_crop = preview_set_crop,
+> +	.link_validate = v4l2_subdev_link_validate_default,
+
+You can leave this as NULL as well.
+
+>  };
+> 
+>  /* subdev operations */
+> @@ -2076,6 +2077,7 @@ static int preview_link_setup(struct media_entity
+> *entity, /* media operations */
+>  static const struct media_entity_operations preview_media_ops = {
+>  	.link_setup = preview_link_setup,
+> +	.link_validate = v4l2_subdev_link_validate,
+>  };
+> 
+>  void omap3isp_preview_unregister_entities(struct isp_prev_device *prev)
+> diff --git a/drivers/media/video/omap3isp/ispresizer.c
+> b/drivers/media/video/omap3isp/ispresizer.c index 6958a9e..6ce2349 100644
+> --- a/drivers/media/video/omap3isp/ispresizer.c
+> +++ b/drivers/media/video/omap3isp/ispresizer.c
+> @@ -1532,6 +1532,7 @@ static const struct v4l2_subdev_pad_ops
+> resizer_v4l2_pad_ops = { .set_fmt = resizer_set_format,
+>  	.get_crop = resizer_g_crop,
+>  	.set_crop = resizer_s_crop,
+> +	.link_validate = v4l2_subdev_link_validate_default,
+
+And this too.
+
+>  };
+> 
+>  /* subdev operations */
+> @@ -1603,6 +1604,7 @@ static int resizer_link_setup(struct media_entity
+> *entity, /* media operations */
+>  static const struct media_entity_operations resizer_media_ops = {
+>  	.link_setup = resizer_link_setup,
+> +	.link_validate = v4l2_subdev_link_validate,
+>  };
+> 
+>  void omap3isp_resizer_unregister_entities(struct isp_res_device *res)
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index 17522db..f1c68ca 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -993,6 +993,10 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) */
+>  	pipe = video->video.entity.pipe
+>  	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
+> +	pipe->external = NULL;
+> +	pipe->external_rate = 0;
+> +	pipe->external_bpp = 0;
+> +
+>  	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+>  	if (ret < 0)
+>  		goto err_media_entity_pipeline_start;
 -- 
-Jiri Kosina
-SUSE Labs
+Regards,
+
+Laurent Pinchart
