@@ -1,55 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vw0-f46.google.com ([209.85.212.46]:63218 "EHLO
-	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757270Ab2BNVct (ORCPT
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:52962 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753295Ab2BVUeK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:32:49 -0500
-Received: by vbjk17 with SMTP id k17so324185vbj.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Feb 2012 13:32:49 -0800 (PST)
+	Wed, 22 Feb 2012 15:34:10 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: PnP support for the new ISA radio framework?
+Date: Wed, 22 Feb 2012 21:33:29 +0100
+Cc: linux-media@vger.kernel.org
+References: <201202181733.34599.linux@rainbow-software.org>
+In-Reply-To: <201202181733.34599.linux@rainbow-software.org>
 MIME-Version: 1.0
-In-Reply-To: <CANOx78GENFQXfuX0OeYPa=YCHREk3H2OKmKQhkEsQx9qFieksg@mail.gmail.com>
-References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
-	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-	<20111020162340.GC7530@jannau.net>
-	<CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com>
-	<20111020170811.GD7530@jannau.net>
-	<CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com>
-	<CAOTqeXpJfk-ENgxhELo03LBHqdtf957knXQzOjYo0YO7sGcAbg@mail.gmail.com>
-	<CAOTqeXpY3uvy7Dq3fi1wTD5nRx1r1LMo7=XEfJdxyURY2opKuw@mail.gmail.com>
-	<4EB7CD59.1010303@redhat.com>
-	<CAOTqeXoavdYLkfp+FRLj3v24z2m+xZHiKhnOOiHJhZ+Y858y9w@mail.gmail.com>
-	<CANOx78GENFQXfuX0OeYPa=YCHREk3H2OKmKQhkEsQx9qFieksg@mail.gmail.com>
-Date: Tue, 14 Feb 2012 16:32:48 -0500
-Message-ID: <CAGoCfiwH8pYmJLB_4rkXF7gqfe2_PhFDz3XyNFO6VHsUQq=8tw@mail.gmail.com>
-Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
- firmware versions > 0.15
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Jarod Wilson <jarod@wilsonet.com>
-Cc: Taylor Ralph <taylor.ralph@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Janne Grunau <j@jannau.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201202222133.34620.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Feb 14, 2012 at 3:43 PM, Jarod Wilson <jarod@wilsonet.com> wrote:
-> Looks sane to me, and really needs to get in ASAP. I'd even suggest we
-> get it sent to stable, as these newer firmware HDPVR are pretty wonky
-> with any current kernel.
+On Saturday 18 February 2012 17:33:32 Ondrej Zary wrote:
+> Hello,
+> there are some ISA radio cards with PnP support (e.g. SF16-FMI) but the new
+> ISA radio framework has no PnP support.
 >
-> Acked-by: Jarod Wilson <jarod@redhat.com>
-> Reviewed-by: Jarod Wilson <jarod@redhat.com>
-> CC: stable@vger.kernel.org
+> I got AOpen FX-3D/Pro Radio card which is AD1816 with Gemtek radio - and
+> with PnP. But radio-gemtek fails to load because the radio I/O port is not
+> enabled (and the driver does not support PnP).
+>
+> Tried to add PnP support to radio-isa but failed. Splitted non-isa_driver
+> related parts from radio_isa_probe() to a separate function and tried to
+> create radio_isa_pnp_probe() only to realize that I'm not able to access
+> struct radio_isa_driver.
+>
+> radio_isa_probe() relies on the fact that "driver" (struct isa_driver) is
+> the first element of struct radio_isa_driver, so these two structs have the
+> same pointer:
+> HW radio driver registers the driver by calling:
+>   isa_register_driver(&gemtek_driver.driver, GEMTEK_MAX);
+> radio_isa_probe() in radio-isa.c does:
+>   struct radio_isa_driver *drv = pdev->platform_data;
+>
+> So adding struct pnp_driver to struct radio_isa_driver does not seem to be
+> possible.
 
-Where did the process break down here?  Taylor did this patch *months*
-ago, and there has been absolutely no comment with why it wouldn't go
-upstream.  If he hadn't been diligent in pinging the ML repeatedly, it
-would have been lost.
+Adding PnP support to original radio-gemtek (before conversion to ISA radio
+framework) is easy. A patch like this (mostly copied from radio-cadet) allows
+radio on AOpen FX-3D/Pro Radio card to work.
+But how to do this with the new driver?
 
-Are there other patches that have hit the ML that aren't getting upstream?
 
-Devin
+--- a/drivers/media/radio/radio-gemtek.c
++++ b/drivers/media/radio/radio-gemtek.c
+@@ -23,6 +23,7 @@
+ #include <linux/videodev2.h>	/* kernel radio structs		*/
+ #include <linux/mutex.h>
+ #include <linux/io.h>		/* outb, outb_p			*/
++#include <linux/pnp.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+ 
+@@ -329,6 +330,46 @@ static int gemtek_verify(struct gemtek *gt, int port)
+ 	return 1;
+ }
+ 
++#ifdef CONFIG_PNP
++
++static struct pnp_device_id gemtek_pnp_devices[] = {
++	/* AOpen FX-3D/Pro Radio */
++	{.id = "ADS7183", .driver_data = 0},
++	{.id = ""}
++};
++
++MODULE_DEVICE_TABLE(pnp, gemtek_pnp_devices);
++
++static int gemtek_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
++{
++	if (!dev)
++		return -ENODEV;
++	/* only support one device */
++	if (io > 0)
++		return -EBUSY;
++
++	if (!pnp_port_valid(dev, 0))
++		return -ENODEV;
++
++	io = pnp_port_start(dev, 0);
++
++	printk(KERN_INFO "radio-gemtek: PnP reports device at %#x\n", io);
++
++	return io;
++}
++
++static struct pnp_driver gemtek_pnp_driver = {
++	.name		= "radio-gemtek",
++	.id_table	= gemtek_pnp_devices,
++	.probe		= gemtek_pnp_probe,
++	.remove		= NULL,
++};
++
++#else
++static struct pnp_driver gemtek_pnp_driver;
++#endif
++
++
+ /*
+  * Automatic probing for card.
+  */
+@@ -536,8 +577,11 @@ static int __init gemtek_init(void)
+ 	mutex_init(&gt->lock);
+ 
+ 	gt->verified = -1;
++	if (io < 0)
++		pnp_register_driver(&gemtek_pnp_driver);
++	else
++		gemtek_probe(gt);
+ 	gt->io = io;
+-	gemtek_probe(gt);
+ 	if (gt->io) {
+ 		if (!request_region(gt->io, 1, "gemtek")) {
+ 			v4l2_err(v4l2_dev, "I/O port 0x%x already in use.\n", gt->io);
+@@ -608,6 +652,7 @@ static void __exit gemtek_exit(void)
+ 	video_unregister_device(&gt->vdev);
+ 	v4l2_device_unregister(&gt->v4l2_dev);
+ 	release_region(gt->io, 1);
++	pnp_unregister_driver(&gemtek_pnp_driver);
+ }
+ 
+ module_init(gemtek_init);
+
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Ondrej Zary
