@@ -1,459 +1,787 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yw0-f46.google.com ([209.85.213.46]:65384 "EHLO
-	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757222Ab2BXPYk (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754246Ab2BVQtP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 10:24:40 -0500
-Received: by yhoo21 with SMTP id o21so1155342yho.19
-        for <linux-media@vger.kernel.org>; Fri, 24 Feb 2012 07:24:39 -0800 (PST)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: mchehab@infradead.org, gregkh@linuxfoundation.org
-Cc: tomas.winkler@intel.com, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, dan.carpenter@oracle.com,
-	Ezequiel Garcia <elezegarcia@gmail.com>
-Subject: [PATCH 1/9] staging: easycap: Split device struct alloc and retrieval code
-Date: Fri, 24 Feb 2012 12:24:14 -0300
-Message-Id: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
+	Wed, 22 Feb 2012 11:49:15 -0500
+Date: Wed, 22 Feb 2012 17:48:54 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv23 13/16] drivers: add Contiguous Memory Allocator
+In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329929337-16648-14-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When the device is probed a driver struct is either
-allocated or retrieved.
-This operation is logically splitted in several functions.
+The Contiguous Memory Allocator is a set of helper functions for DMA
+mapping framework that improves allocations of contiguous memory chunks.
 
-Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+CMA grabs memory on system boot, marks it with MIGRATE_CMA migrate type
+and gives back to the system. Kernel is allowed to allocate only movable
+pages within CMA's managed memory so that it can be used for example for
+page cache when DMA mapping do not use it. On
+dma_alloc_from_contiguous() request such pages are migrated out of CMA
+area to free required contiguous block and fulfill the request. This
+allows to allocate large contiguous chunks of memory at any time
+assuming that there is enough free memory available in the system.
+
+This code is heavily based on earlier works by Michal Nazarewicz.
+
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
 ---
- drivers/staging/media/easycap/easycap_main.c |  384 +++++++++++++++-----------
- 1 files changed, 216 insertions(+), 168 deletions(-)
+ Documentation/kernel-parameters.txt  |    5 +
+ arch/Kconfig                         |    3 +
+ drivers/base/Kconfig                 |   89 ++++++++
+ drivers/base/Makefile                |    1 +
+ drivers/base/dma-contiguous.c        |  401 ++++++++++++++++++++++++++++++++++
+ include/asm-generic/dma-contiguous.h |   28 +++
+ include/linux/device.h               |    4 +
+ include/linux/dma-contiguous.h       |  110 +++++++++
+ 8 files changed, 641 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/base/dma-contiguous.c
+ create mode 100644 include/asm-generic/dma-contiguous.h
+ create mode 100644 include/linux/dma-contiguous.h
 
-diff --git a/drivers/staging/media/easycap/easycap_main.c b/drivers/staging/media/easycap/easycap_main.c
-index d0fe34a..c4198be 100644
---- a/drivers/staging/media/easycap/easycap_main.c
-+++ b/drivers/staging/media/easycap/easycap_main.c
-@@ -2842,6 +2842,209 @@ static void easycap_complete(struct urb *purb)
- 	return;
- }
+diff --git a/Documentation/kernel-parameters.txt b/Documentation/kernel-parameters.txt
+index 9677556..7369cee 100644
+--- a/Documentation/kernel-parameters.txt
++++ b/Documentation/kernel-parameters.txt
+@@ -508,6 +508,11 @@ bytes respectively. Such letter suffixes can also be entirely omitted.
+ 			Also note the kernel might malfunction if you disable
+ 			some critical bits.
  
-+static struct easycap *alloc_easycap(u8 bInterfaceNumber)
-+{
-+	struct easycap *peasycap;
-+	int i;
++	cma=nn[MG]	[ARM,KNL]
++			Sets the size of kernel global memory area for contiguous
++			memory allocations. For more information, see
++			include/linux/dma-contiguous.h
 +
-+	peasycap = kzalloc(sizeof(struct easycap), GFP_KERNEL);
-+	if (!peasycap) {
-+		SAY("ERROR: Could not allocate peasycap\n");
-+		return NULL;
-+	}
+ 	cmo_free_hint=	[PPC] Format: { yes | no }
+ 			Specify whether pages are marked as being inactive
+ 			when they are freed.  This is used in CMO environments
+diff --git a/arch/Kconfig b/arch/Kconfig
+index 5e403de..93ec4b5 100644
+--- a/arch/Kconfig
++++ b/arch/Kconfig
+@@ -134,6 +134,9 @@ config HAVE_ARCH_TRACEHOOK
+ config HAVE_DMA_ATTRS
+ 	bool
+ 
++config HAVE_DMA_CONTIGUOUS
++	bool
 +
-+	if (mutex_lock_interruptible(&mutex_dongle)) {
-+		SAY("ERROR: cannot lock mutex_dongle\n");
-+		kfree(peasycap);
-+		return NULL;
-+	}
+ config USE_GENERIC_SMP_HELPERS
+ 	bool
+ 
+diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+index 9aa618a..9b21469 100644
+--- a/drivers/base/Kconfig
++++ b/drivers/base/Kconfig
+@@ -192,4 +192,93 @@ config DMA_SHARED_BUFFER
+ 	  APIs extension; the file's descriptor can then be passed on to other
+ 	  driver.
+ 
++config CMA
++	bool "Contiguous Memory Allocator (EXPERIMENTAL)"
++	depends on HAVE_DMA_CONTIGUOUS && HAVE_MEMBLOCK && EXPERIMENTAL
++	select MIGRATION
++	help
++	  This enables the Contiguous Memory Allocator which allows drivers
++	  to allocate big physically-contiguous blocks of memory for use with
++	  hardware components that do not support I/O map nor scatter-gather.
 +
-+	/* Find a free dongle in easycapdc60_dongle array */
-+	for (i = 0; i < DONGLE_MANY; i++) {
++	  For more information see <include/linux/dma-contiguous.h>.
++	  If unsure, say "n".
 +
-+		if ((!easycapdc60_dongle[i].peasycap) &&
-+		    (!mutex_is_locked(&easycapdc60_dongle[i].mutex_video)) &&
-+		    (!mutex_is_locked(&easycapdc60_dongle[i].mutex_audio))) {
++if CMA
 +
-+			easycapdc60_dongle[i].peasycap = peasycap;
-+			peasycap->isdongle = i;
-+			JOM(8, "intf[%i]: peasycap-->easycap"
-+				"_dongle[%i].peasycap\n",
-+				bInterfaceNumber, i);
-+			break;
-+		}
-+	}
++config CMA_DEBUG
++	bool "CMA debug messages (DEVELOPMENT)"
++	depends on DEBUG_KERNEL
++	help
++	  Turns on debug messages in CMA.  This produces KERN_DEBUG
++	  messages for every CMA call as well as various messages while
++	  processing calls such as dma_alloc_from_contiguous().
++	  This option does not affect warning and error messages.
 +
-+	mutex_unlock(&mutex_dongle);
++comment "Default contiguous memory area size:"
 +
-+	if (i >= DONGLE_MANY) {
-+		SAM("ERROR: too many dongles\n");
-+		kfree(peasycap);
-+		return NULL;
-+	}
++config CMA_SIZE_MBYTES
++	int "Size in Mega Bytes"
++	depends on !CMA_SIZE_SEL_PERCENTAGE
++	default 16
++	help
++	  Defines the size (in MiB) of the default memory area for Contiguous
++	  Memory Allocator.
 +
-+	return peasycap;
-+}
++config CMA_SIZE_PERCENTAGE
++	int "Percentage of total memory"
++	depends on !CMA_SIZE_SEL_MBYTES
++	default 10
++	help
++	  Defines the size of the default memory area for Contiguous Memory
++	  Allocator as a percentage of the total memory in the system.
++
++choice
++	prompt "Selected region size"
++	default CMA_SIZE_SEL_ABSOLUTE
++
++config CMA_SIZE_SEL_MBYTES
++	bool "Use mega bytes value only"
++
++config CMA_SIZE_SEL_PERCENTAGE
++	bool "Use percentage value only"
++
++config CMA_SIZE_SEL_MIN
++	bool "Use lower value (minimum)"
++
++config CMA_SIZE_SEL_MAX
++	bool "Use higher value (maximum)"
++
++endchoice
++
++config CMA_ALIGNMENT
++	int "Maximum PAGE_SIZE order of alignment for contiguous buffers"
++	range 4 9
++	default 8
++	help
++	  DMA mapping framework by default aligns all buffers to the smallest
++	  PAGE_SIZE order which is greater than or equal to the requested buffer
++	  size. This works well for buffers up to a few hundreds kilobytes, but
++	  for larger buffers it just a memory waste. With this parameter you can
++	  specify the maximum PAGE_SIZE order for contiguous buffers. Larger
++	  buffers will be aligned only to this specified order. The order is
++	  expressed as a power of two multiplied by the PAGE_SIZE.
++
++	  For example, if your system defaults to 4KiB pages, the order value
++	  of 8 means that the buffers will be aligned up to 1MiB only.
++
++	  If unsure, leave the default value "8".
++
++config CMA_AREAS
++	int "Maximum count of the CMA device-private areas"
++	default 7
++	help
++	  CMA allows to create CMA areas for particular devices. This parameter
++	  sets the maximum number of such device private CMA areas in the
++	  system.
++
++	  If unsure, leave the default value "7".
++
++endif
++
+ endmenu
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index b6d1b9c..5aa2d70 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -6,6 +6,7 @@ obj-y			:= core.o bus.o dd.o syscore.o \
+ 			   attribute_container.o transport_class.o \
+ 			   topology.o
+ obj-$(CONFIG_DEVTMPFS)	+= devtmpfs.o
++obj-$(CONFIG_CMA) += dma-contiguous.o
+ obj-y			+= power/
+ obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
+ obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
+diff --git a/drivers/base/dma-contiguous.c b/drivers/base/dma-contiguous.c
+new file mode 100644
+index 0000000..78efb03
+--- /dev/null
++++ b/drivers/base/dma-contiguous.c
+@@ -0,0 +1,401 @@
++/*
++ * Contiguous Memory Allocator for DMA mapping framework
++ * Copyright (c) 2010-2011 by Samsung Electronics.
++ * Written by:
++ *	Marek Szyprowski <m.szyprowski@samsung.com>
++ *	Michal Nazarewicz <mina86@mina86.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License or (at your optional) any later version of the license.
++ */
++
++#define pr_fmt(fmt) "cma: " fmt
++
++#ifdef CONFIG_CMA_DEBUG
++#ifndef DEBUG
++#  define DEBUG
++#endif
++#endif
++
++#include <asm/page.h>
++#include <asm/dma-contiguous.h>
++
++#include <linux/memblock.h>
++#include <linux/err.h>
++#include <linux/mm.h>
++#include <linux/mutex.h>
++#include <linux/page-isolation.h>
++#include <linux/slab.h>
++#include <linux/swap.h>
++#include <linux/mm_types.h>
++#include <linux/dma-contiguous.h>
++
++#ifndef SZ_1M
++#define SZ_1M (1 << 20)
++#endif
++
++struct cma {
++	unsigned long	base_pfn;
++	unsigned long	count;
++	unsigned long	*bitmap;
++};
++
++struct cma *dma_contiguous_default_area;
++
++#ifdef CONFIG_CMA_SIZE_MBYTES
++#define CMA_SIZE_MBYTES CONFIG_CMA_SIZE_MBYTES
++#else
++#define CMA_SIZE_MBYTES 0
++#endif
 +
 +/*
-+ * FIXME: Identify the appropriate pointer peasycap for interfaces
-+ * 1 and 2. The address of peasycap->pusb_device is reluctantly used
-+ * for this purpose.
++ * Default global CMA area size can be defined in kernel's .config.
++ * This is usefull mainly for distro maintainers to create a kernel
++ * that works correctly for most supported systems.
++ * The size can be set in bytes or as a percentage of the total memory
++ * in the system.
++ *
++ * Users, who want to set the size of global CMA area for their system
++ * should use cma= kernel parameter.
 + */
-+static struct easycap *get_easycap(struct usb_device *usbdev,
-+				   u8 bInterfaceNumber)
++static const unsigned long size_bytes = CMA_SIZE_MBYTES * SZ_1M;
++static long size_cmdline = -1;
++
++static int __init early_cma(char *p)
 +{
-+	int i;
-+	struct easycap *peasycap;
++	pr_debug("%s(%s)\n", __func__, p);
++	size_cmdline = memparse(p, &p);
++	return 0;
++}
++early_param("cma", early_cma);
 +
-+	for (i = 0; i < DONGLE_MANY; i++) {
-+		if (easycapdc60_dongle[i].peasycap->pusb_device == usbdev) {
-+			peasycap = easycapdc60_dongle[i].peasycap;
-+			JOT(8, "intf[%i]: dongle[%i].peasycap\n",
-+					bInterfaceNumber, i);
-+			break;
-+		}
-+	}
-+	if (i >= DONGLE_MANY) {
-+		SAY("ERROR: peasycap is unknown when probing interface %i\n",
-+			bInterfaceNumber);
-+		return NULL;
-+	}
-+	if (!peasycap) {
-+		SAY("ERROR: peasycap is NULL when probing interface %i\n",
-+			bInterfaceNumber);
-+		return NULL;
-+	}
++#ifdef CONFIG_CMA_SIZE_PERCENTAGE
 +
-+	return peasycap;
++static unsigned long __init __maybe_unused cma_early_percent_memory(void)
++{
++	struct memblock_region *reg;
++	unsigned long total_pages = 0;
++
++	/*
++	 * We cannot use memblock_phys_mem_size() here, because
++	 * memblock_analyze() has not been called yet.
++	 */
++	for_each_memblock(memory, reg)
++		total_pages += memblock_region_memory_end_pfn(reg) -
++			       memblock_region_memory_base_pfn(reg);
++
++	return (total_pages * CONFIG_CMA_SIZE_PERCENTAGE / 100) << PAGE_SHIFT;
 +}
 +
-+static void init_easycap(struct easycap *peasycap,
-+			 struct usb_device *usbdev,
-+			 struct usb_interface *intf,
-+			 u8 bInterfaceNumber)
++#else
++
++static inline __maybe_unused unsigned long cma_early_percent_memory(void)
 +{
-+	/* Save usb_device and usb_interface */
-+	peasycap->pusb_device = usbdev;
-+	peasycap->pusb_interface = intf;
-+
-+	peasycap->minor = -1;
-+	kref_init(&peasycap->kref);
-+	JOM(8, "intf[%i]: after kref_init(..._video) "
-+		"%i=peasycap->kref.refcount.counter\n",
-+		bInterfaceNumber, peasycap->kref.refcount.counter);
-+
-+	/* module params */
-+	peasycap->gain = (s8)clamp(easycap_gain, 0, 31);
-+
-+	init_waitqueue_head(&peasycap->wq_video);
-+	init_waitqueue_head(&peasycap->wq_audio);
-+	init_waitqueue_head(&peasycap->wq_trigger);
-+
-+	peasycap->allocation_video_struct = sizeof(struct easycap);
-+
-+	peasycap->microphone = false;
-+
-+	peasycap->video_interface = -1;
-+	peasycap->video_altsetting_on = -1;
-+	peasycap->video_altsetting_off = -1;
-+	peasycap->video_endpointnumber = -1;
-+	peasycap->video_isoc_maxframesize = -1;
-+	peasycap->video_isoc_buffer_size = -1;
-+
-+	peasycap->audio_interface = -1;
-+	peasycap->audio_altsetting_on = -1;
-+	peasycap->audio_altsetting_off = -1;
-+	peasycap->audio_endpointnumber = -1;
-+	peasycap->audio_isoc_maxframesize = -1;
-+	peasycap->audio_isoc_buffer_size = -1;
-+
-+	peasycap->frame_buffer_many = FRAME_BUFFER_MANY;
-+}
-+
-+static int populate_inputset(struct easycap *peasycap)
-+{
-+	struct inputset *inputset;
-+	struct easycap_format *peasycap_format;
-+	struct v4l2_pix_format *pix;
-+	int m, i, k, mask, fmtidx;
-+	s32 value;
-+
-+	inputset = peasycap->inputset;
-+
-+	/* FIXME: peasycap->ntsc is not yet initialized */
-+	fmtidx = peasycap->ntsc ? NTSC_M : PAL_BGHIN;
-+
-+	m = 0;
-+	mask = 0;
-+	for (i = 0; easycap_standard[i].mask != 0xffff; i++) {
-+		if (fmtidx == easycap_standard[i].v4l2_standard.index) {
-+			m++;
-+			for (k = 0; k < INPUT_MANY; k++)
-+				inputset[k].standard_offset = i;
-+			mask = easycap_standard[i].mask;
-+		}
-+	}
-+
-+	if (m != 1) {
-+		SAM("ERROR: inputset->standard_offset unpopulated, %i=m\n", m);
-+		return -ENOENT;
-+	}
-+
-+	peasycap_format = &easycap_format[0];
-+	m = 0;
-+	for (i = 0; peasycap_format->v4l2_format.fmt.pix.width; i++) {
-+		pix = &peasycap_format->v4l2_format.fmt.pix;
-+		if (((peasycap_format->mask & 0x0F) == (mask & 0x0F))
-+			&& pix->field == V4L2_FIELD_NONE
-+			&& pix->pixelformat == V4L2_PIX_FMT_UYVY
-+			&& pix->width  == 640 && pix->height == 480) {
-+			m++;
-+			for (k = 0; k < INPUT_MANY; k++)
-+				inputset[k].format_offset = i;
-+			break;
-+		}
-+		peasycap_format++;
-+	}
-+	if (m != 1) {
-+		SAM("ERROR: inputset[]->format_offset unpopulated\n");
-+		return -ENOENT;
-+	}
-+
-+	m = 0;
-+	for (i = 0; easycap_control[i].id != 0xffffffff; i++) {
-+		value = easycap_control[i].default_value;
-+		if (V4L2_CID_BRIGHTNESS == easycap_control[i].id) {
-+			m++;
-+			for (k = 0; k < INPUT_MANY; k++)
-+				inputset[k].brightness = value;
-+		} else if (V4L2_CID_CONTRAST == easycap_control[i].id) {
-+			m++;
-+			for (k = 0; k < INPUT_MANY; k++)
-+				inputset[k].contrast = value;
-+		} else if (V4L2_CID_SATURATION == easycap_control[i].id) {
-+			m++;
-+			for (k = 0; k < INPUT_MANY; k++)
-+				inputset[k].saturation = value;
-+		} else if (V4L2_CID_HUE == easycap_control[i].id) {
-+			m++;
-+			for (k = 0; k < INPUT_MANY; k++)
-+				inputset[k].hue = value;
-+		}
-+	}
-+
-+	if (m != 4) {
-+		SAM("ERROR: inputset[]->brightness underpopulated\n");
-+		return -ENOENT;
-+	}
-+
-+	for (k = 0; k < INPUT_MANY; k++)
-+		inputset[k].input = k;
-+	JOM(4, "populated inputset[]\n");
-+
 +	return 0;
 +}
 +
- static const struct v4l2_file_operations v4l2_fops = {
- 	.owner		= THIS_MODULE,
- 	.open		= easycap_open_noinode,
-@@ -2863,7 +3066,6 @@ static int easycap_usb_probe(struct usb_interface *intf,
- 	struct usb_interface_descriptor *interface;
- 	struct urb *purb;
- 	struct easycap *peasycap;
--	int ndong;
- 	struct data_urb *pdata_urb;
- 	int i, j, k, m, rc;
- 	u8 bInterfaceNumber;
-@@ -2874,11 +3076,6 @@ static int easycap_usb_probe(struct usb_interface *intf,
- 	int okepn[8];
- 	int okmps[8];
- 	int maxpacketsize;
--	u16 mask;
--	s32 value;
--	struct easycap_format *peasycap_format;
--	int fmtidx;
--	struct inputset *inputset;
- 
- 	usbdev = interface_to_usbdev(intf);
- 
-@@ -2916,76 +3113,16 @@ static int easycap_usb_probe(struct usb_interface *intf,
- 	 * interfaces 1 and 2 are probed.
- 	 */
- 	if (0 == bInterfaceNumber) {
--		peasycap = kzalloc(sizeof(struct easycap), GFP_KERNEL);
--		if (!peasycap) {
--			SAY("ERROR: Could not allocate peasycap\n");
--			return -ENOMEM;
--		}
--
--		/* Perform urgent initializations */
--		peasycap->minor = -1;
--		kref_init(&peasycap->kref);
--		JOM(8, "intf[%i]: after kref_init(..._video) "
--				"%i=peasycap->kref.refcount.counter\n",
--				bInterfaceNumber, peasycap->kref.refcount.counter);
--
--		/* module params */
--		peasycap->gain = (s8)clamp(easycap_gain, 0, 31);
--
--		init_waitqueue_head(&peasycap->wq_video);
--		init_waitqueue_head(&peasycap->wq_audio);
--		init_waitqueue_head(&peasycap->wq_trigger);
--
--		if (mutex_lock_interruptible(&mutex_dongle)) {
--			SAY("ERROR: cannot down mutex_dongle\n");
--			return -ERESTARTSYS;
--		}
--
--		for (ndong = 0; ndong < DONGLE_MANY; ndong++) {
--			if ((!easycapdc60_dongle[ndong].peasycap) &&
--					(!mutex_is_locked(&easycapdc60_dongle
--						[ndong].mutex_video)) &&
--					(!mutex_is_locked(&easycapdc60_dongle
--						[ndong].mutex_audio))) {
--				easycapdc60_dongle[ndong].peasycap = peasycap;
--				peasycap->isdongle = ndong;
--				JOM(8, "intf[%i]: peasycap-->easycap"
--						"_dongle[%i].peasycap\n",
--						bInterfaceNumber, ndong);
--				break;
--			}
--		}
--
--		if (DONGLE_MANY <= ndong) {
--			SAM("ERROR: too many dongles\n");
--			mutex_unlock(&mutex_dongle);
++#endif
++
++/**
++ * dma_contiguous_reserve() - reserve area for contiguous memory handling
++ * @limit: End address of the reserved memory (optional, 0 for any).
++ *
++ * This function reserves memory from early allocator. It should be
++ * called by arch specific code once the early allocator (memblock or bootmem)
++ * has been activated and all other subsystems have already allocated/reserved
++ * memory.
++ */
++void __init dma_contiguous_reserve(phys_addr_t limit)
++{
++	unsigned long selected_size = 0;
++
++	pr_debug("%s(limit %08lx)\n", __func__, (unsigned long)limit);
++
++	if (size_cmdline != -1) {
++		selected_size = size_cmdline;
++	} else {
++#ifdef CONFIG_CMA_SIZE_SEL_MBYTES
++		selected_size = size_bytes;
++#elif defined(CONFIG_CMA_SIZE_SEL_PERCENTAGE)
++		selected_size = cma_early_percent_memory();
++#elif defined(CONFIG_CMA_SIZE_SEL_MIN)
++		selected_size = min(size_bytes, cma_early_percent_memory());
++#elif defined(CONFIG_CMA_SIZE_SEL_MAX)
++		selected_size = max(size_bytes, cma_early_percent_memory());
++#endif
++	}
++
++	if (selected_size) {
++		pr_debug("%s: reserving %ld MiB for global area\n", __func__,
++			 selected_size / SZ_1M);
++
++		dma_declare_contiguous(NULL, selected_size, 0, limit);
++	}
++};
++
++static DEFINE_MUTEX(cma_mutex);
++
++static __init int cma_activate_area(unsigned long base_pfn, unsigned long count)
++{
++	unsigned long pfn = base_pfn;
++	unsigned i = count >> pageblock_order;
++	struct zone *zone;
++
++	WARN_ON_ONCE(!pfn_valid(pfn));
++	zone = page_zone(pfn_to_page(pfn));
++
++	do {
++		unsigned j;
++		base_pfn = pfn;
++		for (j = pageblock_nr_pages; j; --j, pfn++) {
++			WARN_ON_ONCE(!pfn_valid(pfn));
++			if (page_zone(pfn_to_page(pfn)) != zone)
++				return -EINVAL;
++		}
++		init_cma_reserved_pageblock(pfn_to_page(base_pfn));
++	} while (--i);
++	return 0;
++}
++
++static __init struct cma *cma_create_area(unsigned long base_pfn,
++				     unsigned long count)
++{
++	int bitmap_size = BITS_TO_LONGS(count) * sizeof(long);
++	struct cma *cma;
++	int ret = -ENOMEM;
++
++	pr_debug("%s(base %08lx, count %lx)\n", __func__, base_pfn, count);
++
++	cma = kmalloc(sizeof *cma, GFP_KERNEL);
++	if (!cma)
++		return ERR_PTR(-ENOMEM);
++
++	cma->base_pfn = base_pfn;
++	cma->count = count;
++	cma->bitmap = kzalloc(bitmap_size, GFP_KERNEL);
++
++	if (!cma->bitmap)
++		goto no_mem;
++
++	ret = cma_activate_area(base_pfn, count);
++	if (ret)
++		goto error;
++
++	pr_debug("%s: returned %p\n", __func__, (void *)cma);
++	return cma;
++
++error:
++	kfree(cma->bitmap);
++no_mem:
++	kfree(cma);
++	return ERR_PTR(ret);
++}
++
++static struct cma_reserved {
++	phys_addr_t start;
++	unsigned long size;
++	struct device *dev;
++} cma_reserved[MAX_CMA_AREAS] __initdata;
++static unsigned cma_reserved_count __initdata;
++
++static int __init cma_init_reserved_areas(void)
++{
++	struct cma_reserved *r = cma_reserved;
++	unsigned i = cma_reserved_count;
++
++	pr_debug("%s()\n", __func__);
++
++	for (; i; --i, ++r) {
++		struct cma *cma;
++		cma = cma_create_area(PFN_DOWN(r->start),
++				      r->size >> PAGE_SHIFT);
++		if (!IS_ERR(cma))
++			dev_set_cma_area(r->dev, cma);
++	}
++	return 0;
++}
++core_initcall(cma_init_reserved_areas);
++
++/**
++ * dma_declare_contiguous() - reserve area for contiguous memory handling
++ *			      for particular device
++ * @dev:   Pointer to device structure.
++ * @size:  Size of the reserved memory.
++ * @base:  Start address of the reserved memory (optional, 0 for any).
++ * @limit: End address of the reserved memory (optional, 0 for any).
++ *
++ * This function reserves memory for specified device. It should be
++ * called by board specific code when early allocator (memblock or bootmem)
++ * is still activate.
++ */
++int __init dma_declare_contiguous(struct device *dev, unsigned long size,
++				  phys_addr_t base, phys_addr_t limit)
++{
++	struct cma_reserved *r = &cma_reserved[cma_reserved_count];
++	unsigned long alignment;
++
++	pr_debug("%s(size %lx, base %08lx, limit %08lx)\n", __func__,
++		 (unsigned long)size, (unsigned long)base,
++		 (unsigned long)limit);
++
++	/* Sanity checks */
++	if (cma_reserved_count == ARRAY_SIZE(cma_reserved)) {
++		pr_err("Not enough slots for CMA reserved regions!\n");
++		return -ENOSPC;
++	}
++
++	if (!size)
++		return -EINVAL;
++
++	/* Sanitise input arguments */
++	alignment = PAGE_SIZE << max(MAX_ORDER, pageblock_order);
++	base = ALIGN(base, alignment);
++	size = ALIGN(size, alignment);
++	limit &= ~(alignment - 1);
++
++	/* Reserve memory */
++	if (base) {
++		if (memblock_is_region_reserved(base, size) ||
++		    memblock_reserve(base, size) < 0) {
++			base = -EBUSY;
++			goto err;
++		}
++	} else {
 +		/*
-+		 * Alloc structure and save it in a free slot in
-+		 * easycapdc60_dongle array
++		 * Use __memblock_alloc_base() since
++		 * memblock_alloc_base() panic()s.
 +		 */
-+		peasycap = alloc_easycap(bInterfaceNumber);
-+		if (!peasycap)
- 			return -ENOMEM;
--		}
--		mutex_unlock(&mutex_dongle);
++		phys_addr_t addr = __memblock_alloc_base(size, alignment, limit);
++		if (!addr) {
++			base = -ENOMEM;
++			goto err;
++		} else if (addr + size > ~(unsigned long)0) {
++			memblock_free(addr, size);
++			base = -EINVAL;
++			goto err;
++		} else {
++			base = addr;
++		}
++	}
++
++	/*
++	 * Each reserved area must be initialised later, when more kernel
++	 * subsystems (like slab allocator) are available.
++	 */
++	r->start = base;
++	r->size = size;
++	r->dev = dev;
++	cma_reserved_count++;
++	pr_info("CMA: reserved %ld MiB at %08lx\n", size / SZ_1M,
++		(unsigned long)base);
++
++	/* Architecture specific contiguous memory fixup. */
++	dma_contiguous_early_fixup(base, size);
++	return 0;
++err:
++	pr_err("CMA: failed to reserve %ld MiB\n", size / SZ_1M);
++	return base;
++}
++
++/**
++ * dma_alloc_from_contiguous() - allocate pages from contiguous area
++ * @dev:   Pointer to device for which the allocation is performed.
++ * @count: Requested number of pages.
++ * @align: Requested alignment of pages (in PAGE_SIZE order).
++ *
++ * This function allocates memory buffer for specified device. It uses
++ * device specific contiguous memory area if available or the default
++ * global one. Requires architecture specific get_dev_cma_area() helper
++ * function.
++ */
++struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++				       unsigned int align)
++{
++	unsigned long mask, pfn, pageno, start = 0;
++	struct cma *cma = dev_get_cma_area(dev);
++	int ret;
++
++	if (!cma || !cma->count)
++		return NULL;
++
++	if (align > CONFIG_CMA_ALIGNMENT)
++		align = CONFIG_CMA_ALIGNMENT;
++
++	pr_debug("%s(cma %p, count %d, align %d)\n", __func__, (void *)cma,
++		 count, align);
++
++	if (!count)
++		return NULL;
++
++	mask = (1 << align) - 1;
++
++	mutex_lock(&cma_mutex);
++
++	for (;;) {
++		pageno = bitmap_find_next_zero_area(cma->bitmap, cma->count,
++						    start, count, mask);
++		if (pageno >= cma->count) {
++			ret = -ENOMEM;
++			goto error;
++		}
++
++		pfn = cma->base_pfn + pageno;
++		ret = alloc_contig_range(pfn, pfn + count, MIGRATE_CMA);
++		if (ret == 0) {
++			bitmap_set(cma->bitmap, pageno, count);
++			break;
++		} else if (ret != -EBUSY) {
++			goto error;
++		}
++		pr_debug("%s(): memory range at %p is busy, retrying\n",
++			 __func__, pfn_to_page(pfn));
++		/* try again with a bit different memory target */
++		start = pageno + mask + 1;
++	}
++
++	mutex_unlock(&cma_mutex);
++
++	pr_debug("%s(): returned %p\n", __func__, pfn_to_page(pfn));
++	return pfn_to_page(pfn);
++error:
++	mutex_unlock(&cma_mutex);
++	return NULL;
++}
++
++/**
++ * dma_release_from_contiguous() - release allocated pages
++ * @dev:   Pointer to device for which the pages were allocated.
++ * @pages: Allocated pages.
++ * @count: Number of allocated pages.
++ *
++ * This function releases memory allocated by dma_alloc_from_contiguous().
++ * It returns false when provided pages do not belong to contiguous area and
++ * true otherwise.
++ */
++bool dma_release_from_contiguous(struct device *dev, struct page *pages,
++				 int count)
++{
++	struct cma *cma = dev_get_cma_area(dev);
++	unsigned long pfn;
++
++	if (!cma || !pages)
++		return false;
++
++	pr_debug("%s(page %p)\n", __func__, (void *)pages);
++
++	pfn = page_to_pfn(pages);
++
++	if (pfn < cma->base_pfn || pfn >= cma->base_pfn + cma->count)
++		return false;
++
++	VM_BUG_ON(pfn + count > cma->base_pfn + cma->count);
++
++	mutex_lock(&cma_mutex);
++	bitmap_clear(cma->bitmap, pfn - cma->base_pfn, count);
++	free_contig_range(pfn, count);
++	mutex_unlock(&cma_mutex);
++
++	return true;
++}
+diff --git a/include/asm-generic/dma-contiguous.h b/include/asm-generic/dma-contiguous.h
+new file mode 100644
+index 0000000..c544356
+--- /dev/null
++++ b/include/asm-generic/dma-contiguous.h
+@@ -0,0 +1,28 @@
++#ifndef ASM_DMA_CONTIGUOUS_H
++#define ASM_DMA_CONTIGUOUS_H
++
++#ifdef __KERNEL__
++#ifdef CONFIG_CMA
++
++#include <linux/device.h>
++#include <linux/dma-contiguous.h>
++
++static inline struct cma *dev_get_cma_area(struct device *dev)
++{
++	if (dev && dev->cma_area)
++		return dev->cma_area;
++	return dma_contiguous_default_area;
++}
++
++static inline void dev_set_cma_area(struct device *dev, struct cma *cma)
++{
++	if (dev)
++		dev->cma_area = cma;
++	if (!dev || !dma_contiguous_default_area)
++		dma_contiguous_default_area = cma;
++}
++
++#endif
++#endif
++
++#endif
+diff --git a/include/linux/device.h b/include/linux/device.h
+index f62e216..f0d8fad 100644
+--- a/include/linux/device.h
++++ b/include/linux/device.h
+@@ -665,6 +665,10 @@ struct device {
  
--		peasycap->allocation_video_struct = sizeof(struct easycap);
--
--		/* and further initialize the structure */
--		peasycap->pusb_device = usbdev;
--		peasycap->pusb_interface = intf;
--
--		peasycap->microphone = false;
--
--		peasycap->video_interface = -1;
--		peasycap->video_altsetting_on = -1;
--		peasycap->video_altsetting_off = -1;
--		peasycap->video_endpointnumber = -1;
--		peasycap->video_isoc_maxframesize = -1;
--		peasycap->video_isoc_buffer_size = -1;
--
--		peasycap->audio_interface = -1;
--		peasycap->audio_altsetting_on = -1;
--		peasycap->audio_altsetting_off = -1;
--		peasycap->audio_endpointnumber = -1;
--		peasycap->audio_isoc_maxframesize = -1;
--		peasycap->audio_isoc_buffer_size = -1;
--
--		peasycap->frame_buffer_many = FRAME_BUFFER_MANY;
-+		/* Perform basic struct initialization */
-+		init_easycap(peasycap, usbdev, intf, bInterfaceNumber);
+ 	struct dma_coherent_mem	*dma_mem; /* internal for coherent mem
+ 					     override */
++#ifdef CONFIG_CMA
++	struct cma *cma_area;		/* contiguous memory area for dma
++					   allocations */
++#endif
+ 	/* arch specific additions */
+ 	struct dev_archdata	archdata;
  
- 		/* Dynamically fill in the available formats */
- 		rc = easycap_video_fillin_formats();
-@@ -2996,103 +3133,14 @@ static int easycap_usb_probe(struct usb_interface *intf,
- 		JOM(4, "%i formats available\n", rc);
- 
- 		/* Populate easycap.inputset[] */
--		inputset = peasycap->inputset;
--		fmtidx = peasycap->ntsc ? NTSC_M : PAL_BGHIN;
--		m = 0;
--		mask = 0;
--		for (i = 0; 0xFFFF != easycap_standard[i].mask; i++) {
--			if (fmtidx == easycap_standard[i].v4l2_standard.index) {
--				m++;
--				for (k = 0; k < INPUT_MANY; k++)
--					inputset[k].standard_offset = i;
--
--				mask = easycap_standard[i].mask;
--			}
--		}
--		if (1 != m) {
--			SAM("ERROR: "
--			    "inputset->standard_offset unpopulated, %i=m\n", m);
--			return -ENOENT;
--		}
--
--		peasycap_format = &easycap_format[0];
--		m = 0;
--		for (i = 0; peasycap_format->v4l2_format.fmt.pix.width; i++) {
--			struct v4l2_pix_format *pix =
--				&peasycap_format->v4l2_format.fmt.pix;
--			if (((peasycap_format->mask & 0x0F) == (mask & 0x0F)) &&
--			    pix->field == V4L2_FIELD_NONE &&
--			    pix->pixelformat == V4L2_PIX_FMT_UYVY &&
--			    pix->width  == 640 && pix->height == 480) {
--				m++;
--				for (k = 0; k < INPUT_MANY; k++)
--					inputset[k].format_offset = i;
--				break;
--			}
--			peasycap_format++;
--		}
--		if (1 != m) {
--			SAM("ERROR: inputset[]->format_offset unpopulated\n");
--			return -ENOENT;
--		}
--
--		m = 0;
--		for (i = 0; 0xFFFFFFFF != easycap_control[i].id; i++) {
--			value = easycap_control[i].default_value;
--			if (V4L2_CID_BRIGHTNESS == easycap_control[i].id) {
--				m++;
--				for (k = 0; k < INPUT_MANY; k++)
--					inputset[k].brightness = value;
--			} else if (V4L2_CID_CONTRAST == easycap_control[i].id) {
--				m++;
--				for (k = 0; k < INPUT_MANY; k++)
--					inputset[k].contrast = value;
--			} else if (V4L2_CID_SATURATION == easycap_control[i].id) {
--				m++;
--				for (k = 0; k < INPUT_MANY; k++)
--					inputset[k].saturation = value;
--			} else if (V4L2_CID_HUE == easycap_control[i].id) {
--				m++;
--				for (k = 0; k < INPUT_MANY; k++)
--					inputset[k].hue = value;
--			}
--		}
--
--		if (4 != m) {
--			SAM("ERROR: inputset[]->brightness underpopulated\n");
--			return -ENOENT;
--		}
--		for (k = 0; k < INPUT_MANY; k++)
--			inputset[k].input = k;
--		JOM(4, "populated inputset[]\n");
-+		rc = populate_inputset(peasycap);
-+		if (rc < 0)
-+			return rc;
- 		JOM(4, "finished initialization\n");
- 	} else {
--
--		/*
--		 * FIXME: Identify the appropriate pointer
--		 * peasycap for interfaces 1 and 2.
--		 * The address of peasycap->pusb_device
--		 * is reluctantly used for this purpose.
--		 */
--		for (ndong = 0; ndong < DONGLE_MANY; ndong++) {
--			if (usbdev == easycapdc60_dongle[ndong].peasycap->
--									pusb_device) {
--				peasycap = easycapdc60_dongle[ndong].peasycap;
--				JOT(8, "intf[%i]: dongle[%i].peasycap\n",
--						bInterfaceNumber, ndong);
--				break;
--			}
--		}
--		if (DONGLE_MANY <= ndong) {
--			SAY("ERROR: peasycap is unknown when probing interface %i\n",
--								bInterfaceNumber);
-+		peasycap = get_easycap(usbdev, bInterfaceNumber);
-+		if (!peasycap)
- 			return -ENODEV;
--		}
--		if (!peasycap) {
--			SAY("ERROR: peasycap is NULL when probing interface %i\n",
--								bInterfaceNumber);
--			return -ENODEV;
--		}
- 	}
- 
- 	if ((USB_CLASS_VIDEO == bInterfaceClass) ||
+diff --git a/include/linux/dma-contiguous.h b/include/linux/dma-contiguous.h
+new file mode 100644
+index 0000000..2f303e4
+--- /dev/null
++++ b/include/linux/dma-contiguous.h
+@@ -0,0 +1,110 @@
++#ifndef __LINUX_CMA_H
++#define __LINUX_CMA_H
++
++/*
++ * Contiguous Memory Allocator for DMA mapping framework
++ * Copyright (c) 2010-2011 by Samsung Electronics.
++ * Written by:
++ *	Marek Szyprowski <m.szyprowski@samsung.com>
++ *	Michal Nazarewicz <mina86@mina86.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of the
++ * License or (at your optional) any later version of the license.
++ */
++
++/*
++ * Contiguous Memory Allocator
++ *
++ *   The Contiguous Memory Allocator (CMA) makes it possible to
++ *   allocate big contiguous chunks of memory after the system has
++ *   booted.
++ *
++ * Why is it needed?
++ *
++ *   Various devices on embedded systems have no scatter-getter and/or
++ *   IO map support and require contiguous blocks of memory to
++ *   operate.  They include devices such as cameras, hardware video
++ *   coders, etc.
++ *
++ *   Such devices often require big memory buffers (a full HD frame
++ *   is, for instance, more then 2 mega pixels large, i.e. more than 6
++ *   MB of memory), which makes mechanisms such as kmalloc() or
++ *   alloc_page() ineffective.
++ *
++ *   At the same time, a solution where a big memory region is
++ *   reserved for a device is suboptimal since often more memory is
++ *   reserved then strictly required and, moreover, the memory is
++ *   inaccessible to page system even if device drivers don't use it.
++ *
++ *   CMA tries to solve this issue by operating on memory regions
++ *   where only movable pages can be allocated from.  This way, kernel
++ *   can use the memory for pagecache and when device driver requests
++ *   it, allocated pages can be migrated.
++ *
++ * Driver usage
++ *
++ *   CMA should not be used by the device drivers directly. It is
++ *   only a helper framework for dma-mapping subsystem.
++ *
++ *   For more information, see kernel-docs in drivers/base/dma-contiguous.c
++ */
++
++#ifdef __KERNEL__
++
++struct cma;
++struct page;
++struct device;
++
++#ifdef CONFIG_CMA
++
++/*
++ * There is always at least global CMA area and a few optional device
++ * private areas configured in kernel .config.
++ */
++#define MAX_CMA_AREAS	(1 + CONFIG_CMA_AREAS)
++
++extern struct cma *dma_contiguous_default_area;
++
++void dma_contiguous_reserve(phys_addr_t addr_limit);
++int dma_declare_contiguous(struct device *dev, unsigned long size,
++			   phys_addr_t base, phys_addr_t limit);
++
++struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++				       unsigned int order);
++bool dma_release_from_contiguous(struct device *dev, struct page *pages,
++				 int count);
++
++#else
++
++#define MAX_CMA_AREAS	(0)
++
++static inline void dma_contiguous_reserve(phys_addr_t limit) { }
++
++static inline
++int dma_declare_contiguous(struct device *dev, unsigned long size,
++			   phys_addr_t base, phys_addr_t limit)
++{
++	return -ENOSYS;
++}
++
++static inline
++struct page *dma_alloc_from_contiguous(struct device *dev, int count,
++				       unsigned int order)
++{
++	return NULL;
++}
++
++static inline
++bool dma_release_from_contiguous(struct device *dev, struct page *pages,
++				 int count)
++{
++	return false;
++}
++
++#endif
++
++#endif
++
++#endif
 -- 
-1.7.3.4
+1.7.1.569.g6f426
 
