@@ -1,110 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:48053 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751756Ab2BLLbu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Feb 2012 06:31:50 -0500
-Received: by werb13 with SMTP id b13so2918306wer.19
-        for <linux-media@vger.kernel.org>; Sun, 12 Feb 2012 03:31:49 -0800 (PST)
-Message-ID: <1329046301.2773.10.camel@tvbox>
-Subject: [PATCH] it913x ver 1.27 Allow PID 8192 to turn PID filter off
-From: Malcolm Priestley <tvboxspy@gmail.com>
-To: linux-media@vger.kernel.org
-Date: Sun, 12 Feb 2012 11:31:41 +0000
-Content-Type: text/plain; charset="UTF-8"
+Received: from multi.imgtec.com ([194.200.65.239]:34176 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751186Ab2BVM6M (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 07:58:12 -0500
+Message-ID: <4F44E65E.8010604@imgtec.com>
+Date: Wed, 22 Feb 2012 12:58:06 +0000
+From: James Hogan <james.hogan@imgtec.com>
+MIME-Version: 1.0
+To: linux-kernel <linux-kernel@vger.kernel.org>,
+	<linux-media@vger.kernel.org>, Pekka Enberg <penberg@kernel.org>,
+	Jarod Wilson <jarod@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	Lucas De Marchi <lucas.demarchi@profusion.mobi>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>
+Subject: [PATCH RESEND] rc/ir-raw: fix BUG_ON, using kfifo_rec_ptr_1 instead
+ of kfifo
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
-Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allow PID 8192 to turn PID filter off in USB high speed.
+Raw IR events are passed to the raw event thread through a kfifo. The
+size of the event struct is 12 bytes, and space for 512 events is
+reserved in the kfifo (6144 bytes), however this is rounded down to 4096
+bytes (the next power of 2) by __kfifo_alloc().
 
-The PID number is still written to the PID index and will only
-turn on again if that index is set to 0.
+4096 bytes is not divisible by 12 therefore if the fifo fills up, a
+third of a record will be written in the end of the kfifo by
+ir_raw_event_store() because the recsize of the fifo is 0 (it doesn't
+have records). When this is read by ir_raw_event_thread() a corrupted or
+partial record will be read, and in the case of a partial record the
+BUG_ON(retval != sizeof(ev)) gets hit too.
 
-Signed-off-by: Malcolm Priestley <tvboxspy@gmail.com>
+According to samples/kfifo/record-example.c struct kfifo_rec_ptr_1 can
+handle records of a length between 0 and 255 bytes, so change struct
+ir_raw_event_ctrl to use that instead of struct kfifo.
+
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
 ---
- drivers/media/dvb/dvb-usb/it913x.c |   18 ++++++++++++++++--
- 1 files changed, 16 insertions(+), 2 deletions(-)
+ drivers/media/rc/rc-core-priv.h |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/dvb/dvb-usb/it913x.c b/drivers/media/dvb/dvb-usb/it913x.c
-index bfadf12..cfa415b 100644
---- a/drivers/media/dvb/dvb-usb/it913x.c
-+++ b/drivers/media/dvb/dvb-usb/it913x.c
-@@ -64,6 +64,7 @@ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
- struct it913x_state {
- 	u8 id;
- 	struct ite_config it913x_config;
-+	u8 pid_filter_onoff;
- };
- 
- struct ite_config it913x_config;
-@@ -259,6 +260,7 @@ static u32 it913x_query(struct usb_device *udev, u8 pro)
- 
- static int it913x_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
-+	struct it913x_state *st = adap->dev->priv;
- 	struct usb_device *udev = adap->dev->udev;
- 	int ret;
- 	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
-@@ -267,7 +269,7 @@ static int it913x_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 
- 	deb_info(1, "PID_C  (%02x)", onoff);
- 
--	ret = it913x_wr_reg(udev, pro, PID_EN, onoff);
-+	ret = it913x_wr_reg(udev, pro, PID_EN, st->pid_filter_onoff);
- 
- 	mutex_unlock(&adap->dev->i2c_mutex);
- 	return ret;
-@@ -276,6 +278,7 @@ static int it913x_pid_filter_ctrl(struct dvb_usb_adapter *adap, int onoff)
- static int it913x_pid_filter(struct dvb_usb_adapter *adap,
- 		int index, u16 pid, int onoff)
- {
-+	struct it913x_state *st = adap->dev->priv;
- 	struct usb_device *udev = adap->dev->udev;
- 	int ret;
- 	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
-@@ -292,6 +295,13 @@ static int it913x_pid_filter(struct dvb_usb_adapter *adap,
- 
- 	ret |= it913x_wr_reg(udev, pro, PID_INX, (u8)(index & 0x1f));
- 
-+	if (udev->speed == USB_SPEED_HIGH && pid == 0x2000) {
-+			ret |= it913x_wr_reg(udev, pro, PID_EN, !onoff);
-+			st->pid_filter_onoff = !onoff;
-+	} else
-+		st->pid_filter_onoff =
-+			adap->fe_adap[adap->active_fe].pid_filtering;
-+
- 	mutex_unlock(&adap->dev->i2c_mutex);
- 	return 0;
- }
-@@ -599,6 +609,7 @@ static int it913x_identify_state(struct usb_device *udev,
- 
- static int it913x_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- {
-+	struct it913x_state *st = adap->dev->priv;
- 	int ret = 0;
- 	u8 pro = (adap->id == 0) ? DEV_0_DMOD : DEV_1_DMOD;
- 
-@@ -610,6 +621,9 @@ static int it913x_streaming_ctrl(struct dvb_usb_adapter *adap, int onoff)
- 		ret = it913x_wr_reg(adap->dev->udev, pro, PID_RST, 0x1);
- 
- 		mutex_unlock(&adap->dev->i2c_mutex);
-+		st->pid_filter_onoff =
-+			adap->fe_adap[adap->active_fe].pid_filtering;
-+
- 	}
- 
- 	return ret;
-@@ -884,5 +898,5 @@ module_usb_driver(it913x_driver);
- 
- MODULE_AUTHOR("Malcolm Priestley <tvboxspy@gmail.com>");
- MODULE_DESCRIPTION("it913x USB 2 Driver");
--MODULE_VERSION("1.26");
-+MODULE_VERSION("1.27");
- MODULE_LICENSE("GPL");
+diff --git a/drivers/media/rc/rc-core-priv.h b/drivers/media/rc/rc-core-priv.h
+index c6ca870..989ea08 100644
+--- a/drivers/media/rc/rc-core-priv.h
++++ b/drivers/media/rc/rc-core-priv.h
+@@ -35,7 +35,7 @@ struct ir_raw_event_ctrl {
+ 	struct list_head		list;		/* to keep track of raw clients */
+ 	struct task_struct		*thread;
+ 	spinlock_t			lock;
+-	struct kfifo			kfifo;		/* fifo for the pulse/space durations */
++	struct kfifo_rec_ptr_1		kfifo;		/* fifo for the pulse/space durations */
+ 	ktime_t				last_event;	/* when last event occurred */
+ 	enum raw_event_type		last_type;	/* last event type */
+ 	struct rc_dev			*dev;		/* pointer to the parent rc_dev */
 -- 
-1.7.8.3
-
+1.7.2.3
 
 
