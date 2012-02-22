@@ -1,75 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pz0-f46.google.com ([209.85.210.46]:46427 "EHLO
-	mail-pz0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753412Ab2BUKOE (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:63857 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752815Ab2BVM1L convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Feb 2012 05:14:04 -0500
-From: santosh nayak <santoshprasadnayak@gmail.com>
-To: awalls@md.metrocast.net
-Cc: mchehab@infradead.org, ivtv-devel@ivtvdriver.org,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	kernel-janitors@vger.kernel.org,
-	Santosh Nayak <santoshprasadnayak@gmail.com>
-Subject: [PATCH 2/2] Driver: video: Use the macro DMA_BIT_MASK().
-Date: Tue, 21 Feb 2012 15:43:31 +0530
-Message-Id: <1329819211-8359-1-git-send-email-santoshprasadnayak@gmail.com>
+	Wed, 22 Feb 2012 07:27:11 -0500
+Date: Wed, 22 Feb 2012 13:26:51 +0100 (CET)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: javier Martin <javier.martin@vista-silicon.com>
+cc: linux-media@vger.kernel.org, mchehab@infradead.org,
+	s.hauer@pengutronix.de
+Subject: Re: [PATCH] media: i.MX27 camera: Add resizing support.
+In-Reply-To: <CACKLOr013RDDWuddOMfzgRGPL90skw3UMQwo=2MLdU1o5LSX-Q@mail.gmail.com>
+Message-ID: <alpine.DEB.2.00.1202221325540.3136@axis700.grange>
+References: <1329219332-27620-1-git-send-email-javier.martin@vista-silicon.com> <Pine.LNX.4.64.1202201413300.2836@axis700.grange> <CACKLOr1KT2A1Zd_xsVXPGW8X6e57v6xTZTm46wdfNfwwf9-MYQ@mail.gmail.com>
+ <CACKLOr013RDDWuddOMfzgRGPL90skw3UMQwo=2MLdU1o5LSX-Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Santosh Nayak <santoshprasadnayak@gmail.com>
+On Wed, 22 Feb 2012, javier Martin wrote:
 
-Use the macro DMA_BIT_MASK instead of the constant  0xffffffff.
+> >>> @@ -1087,6 +1298,18 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
+> >>>       if (ret < 0 && ret != -ENOIOCTLCMD)
+> >>>               return ret;
+> >>>
+> >>> +     /* Store width and height returned by the sensor for resizing */
+> >>> +     pcdev->s_width = mf.width;
+> >>> +     pcdev->s_height = mf.height;
+> >>> +     dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
+> >>> +             __func__, pcdev->s_width, pcdev->s_height);
+> >>> +
+> >>> +     memset(pcdev->resizing, 0, sizeof(struct emma_prp_resize) << 1);
+> >>
+> >> I think, just sizeof(pcdev->resizing) will do the trick.
+> 
+> No, it doesn't work because pcdev->resizing is a pointer whose size is 
+> 4bytes.
 
-Signed-off-by: Santosh Nayak <santoshprasadnayak@gmail.com>
+Sorry?
+
++	struct emma_prp_resize  resizing[2];
+
+.resizing is an array of 2 "struct emma_prp_resize" objects.
+
+Thanks
+Guennadi
+
+> I will just left this unchanged with your permission.
+> 
+> Regards.
+> -- 
+> Javier Martin
+> Vista Silicon S.L.
+> CDTUC - FASE C - Oficina S-345
+> Avda de los Castros s/n
+> 39005- Santander. Cantabria. Spain
+> +34 942 25 32 60
+> www.vista-silicon.com
+> 
+
 ---
- drivers/media/video/cx18/cx18-driver.c |    4 ++--
- drivers/media/video/ivtv/ivtv-driver.c |    4 ++--
- 2 files changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
-index 349bd9c..08118e5 100644
---- a/drivers/media/video/cx18/cx18-driver.c
-+++ b/drivers/media/video/cx18/cx18-driver.c
-@@ -38,7 +38,7 @@
- #include "cx18-ioctl.h"
- #include "cx18-controls.h"
- #include "tuner-xc2028.h"
--
-+#include <linux/dma-mapping.h>
- #include <media/tveeprom.h>
- 
- /* If you have already X v4l cards, then set this to X. This way
-@@ -812,7 +812,7 @@ static int cx18_setup_pci(struct cx18 *cx, struct pci_dev *pci_dev,
- 		CX18_ERR("Can't enable device %d!\n", cx->instance);
- 		return -EIO;
- 	}
--	if (pci_set_dma_mask(pci_dev, 0xffffffff)) {
-+	if (pci_set_dma_mask(pci_dev, DMA_BIT_MASK(32))) {
- 		CX18_ERR("No suitable DMA available, card %d\n", cx->instance);
- 		return -EIO;
- 	}
-diff --git a/drivers/media/video/ivtv/ivtv-driver.c b/drivers/media/video/ivtv/ivtv-driver.c
-index 107e9e6..d84e5df 100644
---- a/drivers/media/video/ivtv/ivtv-driver.c
-+++ b/drivers/media/video/ivtv/ivtv-driver.c
-@@ -55,7 +55,7 @@
- #include "ivtv-routing.h"
- #include "ivtv-controls.h"
- #include "ivtv-gpio.h"
--
-+#include <linux/dma-mapping.h>
- #include <media/tveeprom.h>
- #include <media/saa7115.h>
- #include <media/v4l2-chip-ident.h>
-@@ -813,7 +813,7 @@ static int ivtv_setup_pci(struct ivtv *itv, struct pci_dev *pdev,
- 		IVTV_ERR("Can't enable device!\n");
- 		return -EIO;
- 	}
--	if (pci_set_dma_mask(pdev, 0xffffffff)) {
-+	if (pci_set_dma_mask(pdev, DMA_BIT_MASK(32))) {
- 		IVTV_ERR("No suitable DMA available.\n");
- 		return -EIO;
- 	}
--- 
-1.7.4.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
