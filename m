@@ -1,326 +1,280 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:62136 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753144Ab2BTU3h (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752973Ab2BVQtL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Feb 2012 15:29:37 -0500
-Date: Mon, 20 Feb 2012 20:29:30 +0000
-From: James Hogan <james@albanarts.com>
-To: Ravi Kumar V <kumarrav@codeaurora.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Trilok soni <tsoni@codeaurora.org>,
-	David Brown <davidb@codeaurora.org>, bryanh@codeaurora.org,
-	Jarod Wilson <jarod@redhat.com>,
-	Anssi Hannula <anssi.hannula@iki.fi>,
-	"Juan J. Garcia de Soria" <skandalfo@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH v2 1/1] rc: Add support for GPIO based IR Receiver driver.
-Message-ID: <20120220202930.GB32005@balrog>
-References: <1329731272-31476-1-git-send-email-kumarrav@codeaurora.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1329731272-31476-1-git-send-email-kumarrav@codeaurora.org>
+	Wed, 22 Feb 2012 11:49:11 -0500
+Date: Wed, 22 Feb 2012 17:48:47 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv23 06/16] mm: page_alloc: introduce alloc_contig_range()
+In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329929337-16648-7-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Feb 20, 2012 at 03:17:52PM +0530, Ravi Kumar V wrote:
-> Adds GPIO based IR Receiver driver. It decodes signals using decoders
-> available in rc framework.
-> 
-> Signed-off-by: Ravi Kumar V <kumarrav@codeaurora.org>
-> ---
->  drivers/media/rc/Kconfig        |    9 ++
->  drivers/media/rc/Makefile       |    1 +
->  drivers/media/rc/gpio-ir-recv.c |  189 +++++++++++++++++++++++++++++++++++++++
->  include/media/gpio-ir-recv.h    |   23 +++++
->  4 files changed, 222 insertions(+), 0 deletions(-)
->  create mode 100644 drivers/media/rc/gpio-ir-recv.c
->  create mode 100644 include/media/gpio-ir-recv.h
-> 
-> diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
-> index aeb7f43..6f63ded 100644
-> --- a/drivers/media/rc/Kconfig
-> +++ b/drivers/media/rc/Kconfig
-> @@ -256,4 +256,13 @@ config RC_LOOPBACK
->  	   To compile this driver as a module, choose M here: the module will
->  	   be called rc_loopback.
->  
-> +config IR_GPIO_CIR
-> +	tristate "GPIO IR remote control"
-> +	depends on RC_CORE
-> +	---help---
-> +	   Say Y if you want to use GPIO based IR Receiver.
-> +
-> +	   To compile this driver as a module, choose M here: the module will
-> +	   be called gpio-ir-recv.
-> +
->  endif #RC_CORE
-> diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
-> index 2156e78..9b3568e 100644
-> --- a/drivers/media/rc/Makefile
-> +++ b/drivers/media/rc/Makefile
-> @@ -25,3 +25,4 @@ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
->  obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
->  obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
->  obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
-> +obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
-> diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-> new file mode 100644
-> index 0000000..cf6e7f6
-> --- /dev/null
-> +++ b/drivers/media/rc/gpio-ir-recv.c
-> @@ -0,0 +1,189 @@
-> +/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#include <linux/kernel.h>
-> +#include <linux/init.h>
-> +#include <linux/module.h>
-> +#include <linux/interrupt.h>
-> +#include <linux/gpio.h>
-> +#include <linux/slab.h>
-> +#include <linux/platform_device.h>
-> +#include <linux/irq.h>
-> +#include <media/rc-core.h>
-> +#include <media/gpio-ir-recv.h>
-> +
-> +#define GPIO_IR_DRIVER_NAME	"gpio-rc-recv"
-> +#define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
-> +
-> +struct gpio_rc_dev {
-> +	struct rc_dev *rcdev;
-> +	struct mutex lock;
+From: Michal Nazarewicz <mina86@mina86.com>
 
-I could be completely wrong here, but is this lock necessary since data
-is only read, and it's only used by a single interrupt handler?
+This commit adds the alloc_contig_range() function which tries
+to allocate given range of pages.  It tries to migrate all
+already allocated pages that fall in the range thus freeing them.
+Once all pages in the range are freed they are removed from the
+buddy system thus allocated for the caller to use.
 
-> +	unsigned int gpio_nr;
-> +	bool active_low;
-> +	bool can_wakeup;
-> +};
-> +
-> +static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
-> +{
-> +	struct gpio_rc_dev *gpio_dev = dev_id;
-> +	unsigned int gval;
-> +	int rc = 0;
-> +	enum raw_event_type type = IR_SPACE;
-> +
-> +	mutex_lock(&gpio_dev->lock);
-> +	gval = gpio_get_value_cansleep(gpio_dev->gpio_nr);
-> +
-> +	if (gval < 0)
-> +		goto err_get_value;
-> +
-> +	if (gpio_dev->active_low)
-> +		gval = !gval;
-> +
-> +	if (gval == 1)
-> +		type = IR_PULSE;
-> +
-> +	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
-> +	if (rc < 0)
-> +		goto err_get_value;
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ include/linux/gfp.h |    8 ++
+ mm/page_alloc.c     |  185 +++++++++++++++++++++++++++++++++++++++++++++++++++
+ 2 files changed, 193 insertions(+), 0 deletions(-)
 
-Since ir_raw_event_store_edge just puts the event into a kfifo for the
-ir-raw thread to handle, does this really have to be a threaded IRQ? I'd
-have thought you'd get more accurate time measurements (especially on
-slower/embedded CPUs) if the IRQ is serviced as soon as possible.
+diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+index 581e74b..052a5b6 100644
+--- a/include/linux/gfp.h
++++ b/include/linux/gfp.h
+@@ -391,4 +391,12 @@ static inline bool pm_suspended_storage(void)
+ }
+ #endif /* CONFIG_PM_SLEEP */
+ 
++#ifdef CONFIG_CMA
++
++/* The below functions must be run on a range from a single zone. */
++extern int alloc_contig_range(unsigned long start, unsigned long end);
++extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
++
++#endif
++
+ #endif /* __LINUX_GFP_H */
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index ba50b48..24094058 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -57,6 +57,7 @@
+ #include <linux/ftrace_event.h>
+ #include <linux/memcontrol.h>
+ #include <linux/prefetch.h>
++#include <linux/migrate.h>
+ #include <linux/page-debug-flags.h>
+ 
+ #include <asm/tlbflush.h>
+@@ -5563,6 +5564,190 @@ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+ 
++#ifdef CONFIG_CMA
++
++static unsigned long pfn_align_to_maxpage_down(unsigned long pfn)
++{
++	return pfn & ~(MAX_ORDER_NR_PAGES - 1);
++}
++
++static unsigned long pfn_align_to_maxpage_up(unsigned long pfn)
++{
++	return ALIGN(pfn, MAX_ORDER_NR_PAGES);
++}
++
++static struct page *
++__alloc_contig_migrate_alloc(struct page *page, unsigned long private,
++			     int **resultp)
++{
++	return alloc_page(GFP_HIGHUSER_MOVABLE);
++}
++
++/* [start, end) must belong to a single zone. */
++static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
++{
++	/* This function is based on compact_zone() from compaction.c. */
++
++	unsigned long pfn = start;
++	unsigned int tries = 0;
++	int ret = 0;
++
++	struct compact_control cc = {
++		.nr_migratepages = 0,
++		.order = -1,
++		.zone = page_zone(pfn_to_page(start)),
++		.sync = true,
++	};
++	INIT_LIST_HEAD(&cc.migratepages);
++
++	migrate_prep_local();
++
++	while (pfn < end || !list_empty(&cc.migratepages)) {
++		if (fatal_signal_pending(current)) {
++			ret = -EINTR;
++			break;
++		}
++
++		if (list_empty(&cc.migratepages)) {
++			cc.nr_migratepages = 0;
++			pfn = isolate_migratepages_range(cc.zone, &cc,
++							 pfn, end);
++			if (!pfn) {
++				ret = -EINTR;
++				break;
++			}
++			tries = 0;
++		} else if (++tries == 5) {
++			ret = ret < 0 ? ret : -EBUSY;
++			break;
++		}
++
++		ret = migrate_pages(&cc.migratepages,
++				    __alloc_contig_migrate_alloc,
++				    0, false, true);
++	}
++
++	putback_lru_pages(&cc.migratepages);
++	return ret > 0 ? 0 : ret;
++}
++
++/**
++ * alloc_contig_range() -- tries to allocate given range of pages
++ * @start:	start PFN to allocate
++ * @end:	one-past-the-last PFN to allocate
++ *
++ * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
++ * aligned, however it's the caller's responsibility to guarantee that
++ * we are the only thread that changes migrate type of pageblocks the
++ * pages fall in.
++ *
++ * The PFN range must belong to a single zone.
++ *
++ * Returns zero on success or negative error code.  On success all
++ * pages which PFN is in [start, end) are allocated for the caller and
++ * need to be freed with free_contig_range().
++ */
++int alloc_contig_range(unsigned long start, unsigned long end)
++{
++	struct zone *zone = page_zone(pfn_to_page(start));
++	unsigned long outer_start, outer_end;
++	int ret = 0, order;
++
++	/*
++	 * What we do here is we mark all pageblocks in range as
++	 * MIGRATE_ISOLATE.  Because of the way page allocator work, we
++	 * align the range to MAX_ORDER pages so that page allocator
++	 * won't try to merge buddies from different pageblocks and
++	 * change MIGRATE_ISOLATE to some other migration type.
++	 *
++	 * Once the pageblocks are marked as MIGRATE_ISOLATE, we
++	 * migrate the pages from an unaligned range (ie. pages that
++	 * we are interested in).  This will put all the pages in
++	 * range back to page allocator as MIGRATE_ISOLATE.
++	 *
++	 * When this is done, we take the pages in range from page
++	 * allocator removing them from the buddy system.  This way
++	 * page allocator will never consider using them.
++	 *
++	 * This lets us mark the pageblocks back as
++	 * MIGRATE_CMA/MIGRATE_MOVABLE so that free pages in the
++	 * MAX_ORDER aligned range but not in the unaligned, original
++	 * range are put back to page allocator so that buddy can use
++	 * them.
++	 */
++
++	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
++				       pfn_align_to_maxpage_up(end));
++	if (ret)
++		goto done;
++
++	ret = __alloc_contig_migrate_range(start, end);
++	if (ret)
++		goto done;
++
++	/*
++	 * Pages from [start, end) are within a MAX_ORDER_NR_PAGES
++	 * aligned blocks that are marked as MIGRATE_ISOLATE.  What's
++	 * more, all pages in [start, end) are free in page allocator.
++	 * What we are going to do is to allocate all pages from
++	 * [start, end) (that is remove them from page allocator).
++	 *
++	 * The only problem is that pages at the beginning and at the
++	 * end of interesting range may be not aligned with pages that
++	 * page allocator holds, ie. they can be part of higher order
++	 * pages.  Because of this, we reserve the bigger range and
++	 * once this is done free the pages we are not interested in.
++	 *
++	 * We don't have to hold zone->lock here because the pages are
++	 * isolated thus they won't get removed from buddy.
++	 */
++
++	lru_add_drain_all();
++	drain_all_pages();
++
++	order = 0;
++	outer_start = start;
++	while (!PageBuddy(pfn_to_page(outer_start))) {
++		if (++order >= MAX_ORDER) {
++			ret = -EBUSY;
++			goto done;
++		}
++		outer_start &= ~0UL << order;
++	}
++
++	/* Make sure the range is really isolated. */
++	if (test_pages_isolated(outer_start, end)) {
++		pr_warn("alloc_contig_range test_pages_isolated(%lx, %lx) failed\n",
++		       outer_start, end);
++		ret = -EBUSY;
++		goto done;
++	}
++
++	outer_end = isolate_freepages_range(outer_start, end);
++	if (!outer_end) {
++		ret = -EBUSY;
++		goto done;
++	}
++
++	/* Free head and tail (if any) */
++	if (start != outer_start)
++		free_contig_range(outer_start, start - outer_start);
++	if (end != outer_end)
++		free_contig_range(end, outer_end - end);
++
++done:
++	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
++				pfn_align_to_maxpage_up(end));
++	return ret;
++}
++
++void free_contig_range(unsigned long pfn, unsigned nr_pages)
++{
++	for (; nr_pages--; ++pfn)
++		__free_page(pfn_to_page(pfn));
++}
++#endif
++
+ #ifdef CONFIG_MEMORY_HOTREMOVE
+ /*
+  * All pages in the range must be isolated before calling this.
+-- 
+1.7.1.569.g6f426
 
-If it needs to be threaded so that the gpio read can sleep, perhaps it
-could make use of a hard irq if the gpio can be accessed atomically, and
-fall back to threaded if not.
-
-> +
-> +	ir_raw_event_handle(gpio_dev->rcdev);
-> +
-> +err_get_value:
-> +	mutex_unlock(&gpio_dev->lock);
-> +
-> +	return IRQ_HANDLED;
-> +}
-> +
-> +static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
-> +{
-> +	struct gpio_rc_dev *gpio_dev;
-> +	struct rc_dev *rcdev;
-> +	const struct gpio_ir_recv_platform_data *pdata =
-> +					pdev->dev.platform_data;
-> +	int rc;
-> +
-> +	if (!pdata)
-> +		return -EINVAL;
-> +
-> +	if (pdata->gpio_nr < 0)
-> +		return -EINVAL;
-> +
-> +	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
-> +	if (!gpio_dev)
-> +		return -ENOMEM;
-> +
-> +	mutex_init(&gpio_dev->lock);
-> +
-> +	rcdev = rc_allocate_device();
-> +	if (!rcdev) {
-> +		rc = -ENOMEM;
-> +		goto err_allocate_device;
-> +	}
-> +
-> +	rcdev->driver_type = RC_DRIVER_IR_RAW;
-> +	rcdev->allowed_protos = RC_TYPE_NEC;
-
-Is this necessary, since the driver is protocol agnostic?
-
-> +	rcdev->input_name = GPIO_IR_DEVICE_NAME;
-> +	rcdev->input_id.bustype = BUS_HOST;
-> +	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
-> +	rcdev->map_name = RC_MAP_EMPTY;
-> +
-> +	gpio_dev->rcdev = rcdev;
-> +	gpio_dev->gpio_nr = pdata->gpio_nr;
-> +	gpio_dev->active_low = pdata->active_low;
-> +	gpio_dev->can_wakeup = pdata->can_wakeup;
-> +
-> +
-> +	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
-> +	if (rc < 0)
-> +		goto err_gpio_request;
-> +	rc  = gpio_direction_input(pdata->gpio_nr);
-> +	if (rc < 0)
-> +		goto err_gpio_direction_input;
-> +
-> +	rc = rc_register_device(rcdev);
-> +	if (rc < 0) {
-> +		dev_err(&pdev->dev, "failed to register rc device\n");
-> +		goto err_register_rc_device;
-> +	}
-> +
-> +	platform_set_drvdata(pdev, gpio_dev);
-> +
-> +	rc = request_threaded_irq(gpio_to_irq(pdata->gpio_nr),
-> +			NULL, gpio_ir_recv_irq,
-> +			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
-> +			"gpio-ir-recv-irq", gpio_dev);
-> +	if (rc < 0)
-> +		goto err_request_irq;
-> +
-> +	if (pdata->can_wakeup == true) {
-> +		rc = enable_irq_wake(gpio_to_irq(pdata->gpio_nr));
-> +		if (rc < 0)
-> +			goto err_enable_irq_wake;
-
-would this be better done in a suspend/resume callback, along with
-device_may_wakeup and device_set_wakeup_capable/device_init_wakeup so
-that it can be enabled and disabled with sysfs?
-
-Cheers
-James
-
-> +	}
-> +
-> +	return 0;
-> +
-> +err_enable_irq_wake:
-> +	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
-> +err_request_irq:
-> +	platform_set_drvdata(pdev, NULL);
-> +	rc_unregister_device(rcdev);
-> +err_register_rc_device:
-> +err_gpio_direction_input:
-> +	gpio_free(pdata->gpio_nr);
-> +err_gpio_request:
-> +	rc_free_device(rcdev);
-> +	rcdev = NULL;
-> +err_allocate_device:
-> +	mutex_destroy(&gpio_dev->lock);
-> +	kfree(gpio_dev);
-> +	return rc;
-> +}
-> +
-> +static int __devexit gpio_ir_recv_remove(struct platform_device *pdev)
-> +{
-> +	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
-> +
-> +	disable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
-> +	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
-> +	platform_set_drvdata(pdev, NULL);
-> +	rc_unregister_device(gpio_dev->rcdev);
-> +	gpio_free(gpio_dev->gpio_nr);
-> +	rc_free_device(gpio_dev->rcdev);
-> +	mutex_destroy(&gpio_dev->lock);
-> +	kfree(gpio_dev);
-> +	return 0;
-> +}
-> +
-> +static struct platform_driver gpio_ir_recv_driver = {
-> +	.probe  = gpio_ir_recv_probe,
-> +	.remove = __devexit_p(gpio_ir_recv_remove),
-> +	.driver = {
-> +		.name   = GPIO_IR_DRIVER_NAME,
-> +		.owner  = THIS_MODULE,
-> +	},
-> +};
-> +
-> +static int __init gpio_ir_recv_init(void)
-> +{
-> +	return platform_driver_register(&gpio_ir_recv_driver);
-> +}
-> +module_init(gpio_ir_recv_init);
-> +
-> +static void __exit gpio_ir_recv_exit(void)
-> +{
-> +	platform_driver_unregister(&gpio_ir_recv_driver);
-> +}
-> +module_exit(gpio_ir_recv_exit);
-> +
-> +MODULE_DESCRIPTION("GPIO IR Receiver driver");
-> +MODULE_LICENSE("GPL v2");
-> diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
-> new file mode 100644
-> index 0000000..3eab611
-> --- /dev/null
-> +++ b/include/media/gpio-ir-recv.h
-> @@ -0,0 +1,23 @@
-> +/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License version 2 and
-> + * only version 2 as published by the Free Software Foundation.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + * GNU General Public License for more details.
-> + */
-> +
-> +#ifndef __GPIO_IR_RECV_H__
-> +#define __GPIO_IR_RECV_H__
-> +
-> +struct gpio_ir_recv_platform_data {
-> +	unsigned int gpio_nr;
-> +	bool active_low;
-> +	bool can_wakeup;
-> +};
-> +
-> +#endif /* __GPIO_IR_RECV_H__ */
-> +
-> -- 
-> Sent by a consultant of the Qualcomm Innovation Center, Inc.
-> The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-kernel" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Please read the FAQ at  http://www.tux.org/lkml/
