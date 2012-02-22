@@ -1,71 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog110.obsmtp.com ([207.126.144.129]:46742 "EHLO
-	eu1sys200aog110.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750932Ab2BAFBk convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 1 Feb 2012 00:01:40 -0500
-From: Bhupesh SHARMA <bhupesh.sharma@st.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	Rabin VINCENT <rabin.vincent@stericsson.com>,
-	Linus WALLEIJ <linus.walleij@stericsson.com>
-Date: Wed, 1 Feb 2012 13:01:22 +0800
-Subject: Handling <Ctrl-c> like events in 's_power' implementation when we
- have a GPIO controlling the sensor CE
-Message-ID: <D5ECB3C7A6F99444980976A8C6D896384ED2897780@EAPEX1MAIL1.st.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753772Ab2BVQtG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 11:49:06 -0500
+Date: Wed, 22 Feb 2012 17:48:48 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv23 07/16] mm: page_alloc: change fallbacks array handling
+In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329929337-16648-8-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Michal Nazarewicz <mina86@mina86.com>
 
-I don't know if you are the right person to ask this query (since
-it is also related to GPIO stuff), but here goes:
+This commit adds a row for MIGRATE_ISOLATE type to the fallbacks array
+which was missing from it.  It also, changes the array traversal logic
+a little making MIGRATE_RESERVE an end marker.  The letter change,
+removes the implicit MIGRATE_UNMOVABLE from the end of each row which
+was read by __rmqueue_fallback() function.
 
-Our board has a I2C controlled camera sensor whose Chip Enable (CE)
-pin is driven via a GPIO. This GPIO is made available by a I2C-to-GPIO
-expander chip (STMPE801, see user manual [1])
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ mm/page_alloc.c |    9 +++++----
+ 1 files changed, 5 insertions(+), 4 deletions(-)
 
-Now, when we implement the 's_power' routines as specified by the soc-camera
-framework, a peculiar issue arises:
-
-The 's_power' routine simply toggles the CE of the sensor as per the power-on/off
-command received from the framework/bridge driver. And this works absolutely fine
-in normal cases. As we have a GPIO on a external chip (STMPE801) we need to use 
-*_cansleep variants of the gpio_set/get routines (see [2] for reference) to toggle
-the GPIO values to power-on/off the sensor chip.
-
-Now, when we terminate a user application (a standard application like 'capture'
-available as a reference v4l2 test application) which was capturing a large
-number of frames from the sensor, using 'ctrl-c', I see that 's_power' is 
-correctly called with a power-off argument. However, the I2C controller driver
-(we use the standard SYNOPSYS designware device driver present in mainline,
-see [3]) returns -ERESTARTSYS in response to the write command we had requested
-for putting the sensor to power-off state (as it has received the <ctrl-c> kill
-signal).
-
-But as the gpio_set_val_* variants are inherently 'void' implementations, we have
-no mechanism to use and handle the -ERESTARTSYS value in the 's_power' implementation.
-I also found that the standard 'soc_camera.c' does not check the return value in
-'soc_camera_power_off' routines, but that is a easily fixable issue.
-
-Now, I want your opinions on how to get out of this mess.
-Perhaps changes in GPIO implementations? Or am I missing
-something here.
-
-References:
-[1] http://www.st.com/internet/analog/product/154542.jsp
-[2] http://lxr.linux.no/linux+v3.1.5/Documentation/gpio.txt#L195
-[3] http://lxr.linux.no/linux+v3.1.5/drivers/i2c/busses/i2c-designware.c
-
-Regards,
-Bhupesh 
-
-
-
-
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 24094058..ad840a7 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -888,11 +888,12 @@ struct page *__rmqueue_smallest(struct zone *zone, unsigned int order,
+  * This array describes the order lists are fallen back to when
+  * the free lists for the desirable migrate type are depleted
+  */
+-static int fallbacks[MIGRATE_TYPES][MIGRATE_TYPES-1] = {
++static int fallbacks[MIGRATE_TYPES][3] = {
+ 	[MIGRATE_UNMOVABLE]   = { MIGRATE_RECLAIMABLE, MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+ 	[MIGRATE_RECLAIMABLE] = { MIGRATE_UNMOVABLE,   MIGRATE_MOVABLE,   MIGRATE_RESERVE },
+ 	[MIGRATE_MOVABLE]     = { MIGRATE_RECLAIMABLE, MIGRATE_UNMOVABLE, MIGRATE_RESERVE },
+-	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE,     MIGRATE_RESERVE,   MIGRATE_RESERVE }, /* Never used */
++	[MIGRATE_RESERVE]     = { MIGRATE_RESERVE }, /* Never used */
++	[MIGRATE_ISOLATE]     = { MIGRATE_RESERVE }, /* Never used */
+ };
+ 
+ /*
+@@ -987,12 +988,12 @@ __rmqueue_fallback(struct zone *zone, int order, int start_migratetype)
+ 	/* Find the largest possible block of pages in the other list */
+ 	for (current_order = MAX_ORDER-1; current_order >= order;
+ 						--current_order) {
+-		for (i = 0; i < MIGRATE_TYPES - 1; i++) {
++		for (i = 0;; i++) {
+ 			migratetype = fallbacks[start_migratetype][i];
+ 
+ 			/* MIGRATE_RESERVE handled later if necessary */
+ 			if (migratetype == MIGRATE_RESERVE)
+-				continue;
++				break;
+ 
+ 			area = &(zone->free_area[current_order]);
+ 			if (list_empty(&area->free_list[migratetype]))
+-- 
+1.7.1.569.g6f426
 
