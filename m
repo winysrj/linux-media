@@ -1,74 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:61146 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751372Ab2BMVdZ convert rfc822-to-8bit (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:51515 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752950Ab2BVJKE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 16:33:25 -0500
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Robert Nelson" <robertcnelson@gmail.com>
-Cc: "Marek Szyprowski" <m.szyprowski@samsung.com>,
+	Wed, 22 Feb 2012 04:10:04 -0500
+Date: Wed, 22 Feb 2012 09:09:30 +0000
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Andrew Morton <akpm@linux-foundation.org>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
 	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
 	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org, "Ohad Ben-Cohen" <ohad@wizery.com>,
-	"Daniel Walker" <dwalker@codeaurora.org>,
-	"Russell King" <linux@arm.linux.org.uk>,
-	"Arnd Bergmann" <arnd@arndb.de>,
-	"Jonathan Corbet" <corbet@lwn.net>, "Mel Gorman" <mel@csn.ul.ie>,
-	"Dave Hansen" <dave@linux.vnet.ibm.com>,
-	"Jesse Barker" <jesse.barker@linaro.org>,
-	"Kyungmin Park" <kyungmin.park@samsung.com>,
-	"Andrew Morton" <akpm@linux-foundation.org>,
-	"Rob Clark" <rob.clark@linaro.org>,
-	"KAMEZAWA Hiroyuki" <kamezawa.hiroyu@jp.fujitsu.com>
-Subject: Re: [Linaro-mm-sig] [PATCHv21 12/16] mm: trigger page reclaim in
- alloc_contig_range() to stabilise watermarks
-References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
- <1328895151-5196-13-git-send-email-m.szyprowski@samsung.com>
- <CAOCHtYi01NVp1j=MX+0-z7ygW5tJuoswn8eWTQp+0Z5mMGdeQw@mail.gmail.com>
- <op.v9mt58ch3l0zgt@mpn-glaptop>
- <CAOCHtYjc39ThfrcAqdsxNf-bFqKzu=T8=O_W9Cg3cRNzQnX-OQ@mail.gmail.com>
-Date: Mon, 13 Feb 2012 13:33:21 -0800
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Subject: Re: [PATCHv22 14/16] X86: integrate CMA with DMA-mapping subsystem
+Message-ID: <20120222090930.GS22562@n2100.arm.linux.org.uk>
+References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com> <1329507036-24362-15-git-send-email-m.szyprowski@samsung.com> <20120221161802.f6a28085.akpm@linux-foundation.org>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-From: "Michal Nazarewicz" <mina86@mina86.com>
-Message-ID: <op.v9mzhvxt3l0zgt@mpn-glaptop>
-In-Reply-To: <CAOCHtYjc39ThfrcAqdsxNf-bFqKzu=T8=O_W9Cg3cRNzQnX-OQ@mail.gmail.com>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20120221161802.f6a28085.akpm@linux-foundation.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->> On Fri, Feb 10, 2012 at 11:32 AM, Marek Szyprowski
->>> +static int __reclaim_pages(struct zone *zone, gfp_t gfp_mask, int count)
->>> +{
->>> +       enum zone_type high_zoneidx = gfp_zone(gfp_mask);
->>> +       struct zonelist *zonelist = node_zonelist(0, gfp_mask);
->>> +       int did_some_progress = 0;
->>> +       int order = 1;
->>> +       unsigned long watermark;
->>> +
->>> +       /*
->>> +        * Increase level of watermarks to force kswapd do his job
->>> +        * to stabilise at new watermark level.
->>> +        */
->>> +       __modify_min_cma_pages(zone, count);
+On Tue, Feb 21, 2012 at 04:18:02PM -0800, Andrew Morton wrote:
+> After a while I got it to compile for i386.  arm didn't go so well,
+> partly because arm allmodconfig is presently horked (something to do
+> with Kconfig not setting PHYS_OFFSET) and partly because arm defconfig
+> doesn't permit CMA to be set.  Got bored, gave up.
 
-> 2012/2/13 Michal Nazarewicz <mina86@mina86.com>:
->> This should read __update_cma_wmark_pages().  Sorry for the incorrect patch.
+That's not going to get fixed, unfortunately.  It requires us to find
+some way to force various options to certain states on all*config
+builds, because not surprisingly a value of 'y', 'm' or 'n' doesn't
+work for integer or hex config options.
 
-On Mon, 13 Feb 2012 13:15:13 -0800, Robert Nelson <robertcnelson@gmail.com> wrote:
-> Thanks Michal, that fixed it..
+So the only way all*config can be used on ARM is with a seed config file
+to force various options to particular states to ensure that we end up
+with a sane configuration that avoids crap like that.
 
-You are most welcome.
-
-> cma-v21 with Rob Clark's omapdrm works great on the Beagle xM..
-
-Can we take that as:
-
-Tested-by: Robert Nelson <robertcnelson@gmail.com>
-
-? ;)
-
--- 
-Best regards,                                         _     _
-.o. | Liege of Serenely Enlightened Majesty of      o' \,=./ `o
-..o | Computer Science,  Michał “mina86” Nazarewicz    (o o)
-ooo +----<email/xmpp: mpn@google.com>--------------ooO--(_)--Ooo--
+Alternatively, we need a way to tell kconfig that various options are to
+be set in certain ways in the Kconfig files for all*config to avoid it
+wanting values for hex or int options.
