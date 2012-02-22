@@ -1,74 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zone0.gcu-squad.org ([212.85.147.21]:40091 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755056Ab2BLTDR (ORCPT
+Received: from mxweb02do.versatel-west.de ([62.214.96.173]:48625 "HELO
+	mxweb02do.versatel-west.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752120Ab2BVRpK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 Feb 2012 14:03:17 -0500
-Date: Sun, 12 Feb 2012 20:03:03 +0100
-From: Jean Delvare <khali@linux-fr.org>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [PATCH] cx22702: Fix signal strength
-Message-ID: <20120212200303.04e6b316@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Wed, 22 Feb 2012 12:45:10 -0500
+Received: from cinnamon-sage.de (i577A828E.versanet.de [87.122.130.142])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q1MHcLrO023634
+	for <linux-media@vger.kernel.org>; Wed, 22 Feb 2012 18:38:22 +0100
+Received: from 192.168.23.2:49388 by cinnamon-sage.de for <eddb@rker.me.uk>,<linux-media@vger.kernel.org> ; 22.02.2012 18:38:21
+Message-ID: <4F45280D.1000304@cinnamon-sage.de>
+Date: Wed, 22 Feb 2012 18:38:21 +0100
+From: Lars Hanisch <dvb@cinnamon-sage.de>
+MIME-Version: 1.0
+To: Edd Barker <eddb@rker.me.uk>
+CC: linux-media@vger.kernel.org
+Subject: Re: Cine CT v6
+References: <4F44E821.2010804@rker.me.uk>
+In-Reply-To: <4F44E821.2010804@rker.me.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The signal strength value returned is not quite correct, it decreases
-when I increase the gain of my antenna, and vice versa. It also
-doesn't span over the whole 0x0000-0xffff range. Compute a value which
-at least increases when signal strength increases, and spans the whole
-allowed range.
+Hi,
 
-In practice I get 67% with my antenna fully amplified and 51% with
-no amplification. This is close enough to what I get on my other
-DVB-T adapter with the same antenna.
+Am 22.02.2012 14:05, schrieb Edd Barker:
+> Hi Members
+>
+> I've just got a Cine CT v6 card and have having a bit of trouble. I want to use dvb-t only, I've followed the
+> instructions here...
+>
+> http://linuxtv.org/wiki/index.php/Digital_Devices_DuoFlex_C%26T
+>
+> The card is now appearing in /dev/dvb/adapter0 & /dev/dvb/adapter1. However only one frontend is showing up and if I try
+> to scan dvb-t I get an error that I'm sure means I'm trying to use dvb-c tuner.
+>
+> WARNING: frontend type (QAM) is not compatible with requested tuning type (OFDM)
+>
+> I'm running on Ubuntu 11.10, 3.0.0-16 kernal. Is this something anyone else has come across or knows what I can do to
+> use the dvb-t frontend?
 
-Signed-off-by: Jean Delvare <khali@linux-fr.org>
-Cc: Steven Toth <stoth@kernellabs.com>
----
-This was written without a datasheet so this is essentially
-guess work.
+  You can use dvb-fe-tool to switch the type of delivery system used as a default for old applications.
+  In the near past the drivers of hybrid cards were changed so there's only one frontend for all delivery systems, since 
+they can only be opened mutually exclusive.
 
- drivers/media/dvb/frontends/cx22702.c |   22 +++++++++++++++++++---
- 1 file changed, 19 insertions(+), 3 deletions(-)
+  There should be an PPA at Launchpad with a recent version of the tools/utils, but I don't have the URL at the moment.
 
---- linux-3.3-rc3.orig/drivers/media/dvb/frontends/cx22702.c	2012-02-11 08:28:15.000000000 +0100
-+++ linux-3.3-rc3/drivers/media/dvb/frontends/cx22702.c	2012-02-12 14:45:33.361921465 +0100
-@@ -502,10 +502,26 @@ static int cx22702_read_signal_strength(
- 	u16 *signal_strength)
- {
- 	struct cx22702_state *state = fe->demodulator_priv;
-+	u8 reg23;
- 
--	u16 rs_ber;
--	rs_ber = cx22702_readreg(state, 0x23);
--	*signal_strength = (rs_ber << 8) | rs_ber;
-+	/*
-+	 * Experience suggests that the strength signal register works as
-+	 * follows:
-+	 * - In the absence of signal, value is 0xff.
-+	 * - In the presence of a weak signal, bit 7 is set, not sure what
-+	 *   the lower 7 bits mean.
-+	 * - In the presence of a strong signal, the register holds a 7-bit
-+	 *   value (bit 7 is cleared), with greater values standing for
-+	 *   weaker signals.
-+	 */
-+	reg23 = cx22702_readreg(state, 0x23);
-+	if (reg23 & 0x80) {
-+		*signal_strength = 0;
-+	} else {
-+		reg23 = ~reg23 & 0x7f;
-+		/* Scale to 16 bit */
-+		*signal_strength = (reg23 << 9) | (reg23 << 2) | (reg23 >> 5);
-+	}
- 
- 	return 0;
- }
+Regards,
+Lars.
 
-
--- 
-Jean Delvare
+>
+> Thanks
+> Edd
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>
