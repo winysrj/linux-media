@@ -1,175 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49128 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750788Ab2BVLLE (ORCPT
+Received: from jaguar.purple-paw.com ([79.99.64.40]:39842 "EHLO
+	jaguar.purple-paw.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751623Ab2BVNFl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 06:11:04 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: Re: [PATCH v3 27/33] omap3isp: Implement proper CCDC link validation, check pixel rate
-Date: Wed, 22 Feb 2012 12:11:07 +0100
-Message-ID: <2683690.y1jIJeGq9p@avalon>
-In-Reply-To: <1329703032-31314-27-git-send-email-sakari.ailus@iki.fi>
-References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-27-git-send-email-sakari.ailus@iki.fi>
+	Wed, 22 Feb 2012 08:05:41 -0500
+Received: from host81-134-21-140.in-addr.btopenworld.com ([81.134.21.140]:7238 helo=[172.16.1.12])
+	by jaguar.purple-paw.com with esmtpa (Exim 4.69)
+	(envelope-from <eddb@rker.me.uk>)
+	id 1S0Bt6-0000U5-0W
+	for linux-media@vger.kernel.org; Wed, 22 Feb 2012 13:05:40 +0000
+Message-ID: <4F44E821.2010804@rker.me.uk>
+Date: Wed, 22 Feb 2012 13:05:37 +0000
+From: Edd Barker <eddb@rker.me.uk>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: Cine CT v6
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Members
 
-Thanks for the patch.
+I've just got a Cine CT v6 card and have having a bit of trouble. I want 
+to use dvb-t only,  I've followed the instructions here...
 
-On Monday 20 February 2012 03:57:06 Sakari Ailus wrote:
-> Implement correct link validation for the CCDC. Use external_rate from
-> isp_pipeline to configurat vp divisor and check that external_rate does not
-> exceed our data rate limitations.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> ---
->  drivers/media/video/omap3isp/ispccdc.c |   69
-> +++++++++++++++++++++++++++++-- 1 files changed, 64 insertions(+), 5
-> deletions(-)
-> 
-> diff --git a/drivers/media/video/omap3isp/ispccdc.c
-> b/drivers/media/video/omap3isp/ispccdc.c index 6aff241..1555891 100644
-> --- a/drivers/media/video/omap3isp/ispccdc.c
-> +++ b/drivers/media/video/omap3isp/ispccdc.c
-> @@ -836,8 +836,8 @@ static void ccdc_config_vp(struct isp_ccdc_device *ccdc)
-> 
->  	if (pipe->input)
->  		div = DIV_ROUND_UP(l3_ick, pipe->max_rate);
-> -	else if (ccdc->vpcfg.pixelclk)
-> -		div = l3_ick / ccdc->vpcfg.pixelclk;
-> +	else if (pipe->external_rate)
-> +		div = l3_ick / pipe->external_rate;
-> 
->  	div = clamp(div, 2U, max_div);
->  	fmtcfg_vp |= (div - 2) << ISPCCDC_FMTCFG_VPIF_FRQ_SHIFT;
-> @@ -1749,7 +1749,18 @@ static int ccdc_set_stream(struct v4l2_subdev *sd,
-> int enable) }
-> 
->  	switch (enable) {
-> -	case ISP_PIPELINE_STREAM_CONTINUOUS:
-> +	case ISP_PIPELINE_STREAM_CONTINUOUS: {
-> +		struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
-> +		unsigned int rate = UINT_MAX;
-> +
-> +		/*
-> +		 * Check that maximum allowed rate isn't exceeded by
-> +		 * the pixel rate.
-> +		 */
-> +		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
-> +		if (pipe->external_rate > rate)
-> +			return -ENOSPC;
-> +
+http://linuxtv.org/wiki/index.php/Digital_Devices_DuoFlex_C%26T
 
-What about checking this at pipeline validation time ?
+The card is now appearing in /dev/dvb/adapter0 & /dev/dvb/adapter1. 
+However only one frontend is showing up and if I try to scan dvb-t I get 
+an error that I'm sure means I'm trying to use dvb-c tuner.
 
->  		if (ccdc->output & CCDC_OUTPUT_MEMORY)
->  			omap3isp_sbl_enable(isp, OMAP3_ISP_SBL_CCDC_WRITE);
-> 
-> @@ -1758,6 +1769,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int
-> enable)
-> 
->  		ccdc->underrun = 0;
->  		break;
-> +	}
-> 
->  	case ISP_PIPELINE_STREAM_SINGLESHOT:
->  		if (ccdc->output & CCDC_OUTPUT_MEMORY &&
-> @@ -1999,6 +2011,37 @@ static int ccdc_set_format(struct v4l2_subdev *sd,
-> struct v4l2_subdev_fh *fh, return 0;
->  }
-> 
-> +/*
-> + * Decide whether desired output pixel code can be obtained with
-> + * the lane shifter by shifting the input pixel code.
-> + * @in: input pixelcode to shifter
-> + * @out: output pixelcode from shifter
-> + * @additional_shift: # of bits the sensor's LSB is offset from CAMEXT[0]
-> + *
-> + * return true if the combination is possible
-> + * return false otherwise
-> + */
-> +static bool ccdc_is_shiftable(enum v4l2_mbus_pixelcode in,
-> +			      enum v4l2_mbus_pixelcode out,
-> +			      unsigned int additional_shift)
-> +{
-> +	const struct isp_format_info *in_info, *out_info;
-> +
-> +	if (in == out)
-> +		return true;
-> +
-> +	in_info = omap3isp_video_format_info(in);
-> +	out_info = omap3isp_video_format_info(out);
-> +
-> +	if ((in_info->flavor == 0) || (out_info->flavor == 0))
-> +		return false;
-> +
-> +	if (in_info->flavor != out_info->flavor)
-> +		return false;
-> +
-> +	return in_info->bpp - out_info->bpp + additional_shift <= 6;
-> +}
-> +
->  static int ccdc_link_validate(struct v4l2_subdev *sd,
->  			      struct media_link *link,
->  			      struct v4l2_subdev_format *source_fmt,
-> @@ -2008,13 +2051,31 @@ static int ccdc_link_validate(struct v4l2_subdev
-> *sd, struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity); int
-> rval;
-> 
-> +	/* Check if the two ends match */
-> +	if (source_fmt->format.width != sink_fmt->format.width ||
-> +	    source_fmt->format.height != sink_fmt->format.height)
-> +		return -EPIPE;
-> +
->  	/* We've got a parallel sensor here. */
->  	if (ccdc->input == CCDC_INPUT_PARALLEL) {
+WARNING: frontend type (QAM) is not compatible with requested tuning 
+type (OFDM)
 
-The lane shifter is usable with the CCP2 and CSI2 inputs as well. The 
-parallel_shift value is restricted to parallel input though. Please perform 
-the same check as done in isp_video_validate_pipeline().
+I'm running on Ubuntu 11.10, 3.0.0-16 kernal.  Is this something anyone 
+else has come across or knows what I can do to use the dvb-t frontend?
 
-Revies would also be easier if you removed the CCDC-specific code from 
-isp_video_validate_pipeline() in this patch.
-
-> +		struct isp_parallel_platform_data *pdata =
-> +			&((struct isp_v4l2_subdevs_group *)
-> +			  media_entity_to_v4l2_subdev(link->source->entity)
-> +			  ->host_priv)->bus.parallel;
-> +		unsigned long parallel_shift = pdata->data_lane_shift * 2;
-> +		/* Lane shifter may be used to drop bits on CCDC sink pad */
-> +		if (!ccdc_is_shiftable(source_fmt->format.code,
-> +				       sink_fmt->format.code, parallel_shift))
-> +			return -EPIPE;
-> +
->  		pipe->external =
->  			media_entity_to_v4l2_subdev(link->source->entity);
->  		rval = omap3isp_get_external_info(pipe, link);
->  		if (rval < 0)
->  			return 0;
-> +	} else {
-> +		if (source_fmt->format.code != sink_fmt->format.code)
-> +			return -EPIPE;
->  	}
-> 
->  	return 0;
-> @@ -2299,8 +2360,6 @@ int omap3isp_ccdc_init(struct isp_device *isp)
->  	ccdc->clamp.oblen = 0;
->  	ccdc->clamp.dcsubval = 0;
-> 
-> -	ccdc->vpcfg.pixelclk = 0;
-> -
->  	ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
->  	ccdc_apply_controls(ccdc);
--- 
-Regards,
-
-Laurent Pinchart
+Thanks
+Edd
