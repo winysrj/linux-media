@@ -1,265 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m020-f174.google.com ([209.85.217.174]:45125 "EHLO
-	mail-lpp01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751413Ab2BGIKV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 7 Feb 2012 03:10:21 -0500
-Received: by lbom4 with SMTP id m4so1401894lbo.19
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2012 00:10:20 -0800 (PST)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55208 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755111Ab2BVKFE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 05:05:04 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 15/33] media: Add link_validate() op to check links to the sink pad
+Date: Wed, 22 Feb 2012 11:05:05 +0100
+Message-ID: <5784618.o1kpFOLhve@avalon>
+In-Reply-To: <1329703032-31314-15-git-send-email-sakari.ailus@iki.fi>
+References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-15-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1202061907020.10363@axis700.grange>
-References: <1327925653-13310-1-git-send-email-javier.martin@vista-silicon.com>
-	<1327925653-13310-3-git-send-email-javier.martin@vista-silicon.com>
-	<Pine.LNX.4.64.1202061907020.10363@axis700.grange>
-Date: Tue, 7 Feb 2012 09:10:18 +0100
-Message-ID: <CACKLOr0Lwym-EymCRxfC4iZKkWz-uV-RtKgi=QpDuA91VFMScg@mail.gmail.com>
-Subject: Re: [PATCH v3 3/4] media i.MX27 camera: improve discard buffer handling.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
-thank you for your attention.
+Hi Sakari,
 
-On 6 February 2012 19:33, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Hi Javier
->
-> Thanks for the update! Let's see, whether this one can be improved a bit
-> more.
->
-> On Mon, 30 Jan 2012, Javier Martin wrote:
->
->> The way discard buffer was previously handled lead
->> to possible races that made a buffer that was not
->> yet ready to be overwritten by new video data. This
->> is easily detected at 25fps just adding "#define DEBUG"
->> to enable the "memset" check and seeing how the image
->> is corrupted.
->>
->> A new "discard" queue and two discard buffers have
->> been added to make them flow trough the pipeline
->> of queues and thus provide suitable event ordering.
->>
->> Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
->> ---
->>  Changes since v2:
->>  - Remove BUG_ON when active list is empty.
->>  - Replace empty list checks with warnings.
->
-> I think, the best would be to warn and bail out, instead of implicitly
-> crashing.
->
->>
->> ---
->>  drivers/media/video/mx2_camera.c |  280 +++++++++++++++++++++-----------------
->>  1 files changed, 153 insertions(+), 127 deletions(-)
->>
->> diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
->> index 35ab971..e7ccd97 100644
->> --- a/drivers/media/video/mx2_camera.c
->> +++ b/drivers/media/video/mx2_camera.c
->
-> [snip]
->
->> @@ -706,8 +806,9 @@ static int mx2_stop_streaming(struct vb2_queue *q)
->>       unsigned long flags;
->>       u32 cntl;
->>
->> -     spin_lock_irqsave(&pcdev->lock, flags);
->>       if (mx27_camera_emma(pcdev)) {
->> +             spin_lock_irqsave(&pcdev->lock, flags);
->> +
->>               cntl = readl(pcdev->base_emma + PRP_CNTL);
->>               if (prp->cfg.channel == 1) {
->>                       writel(cntl & ~PRP_CNTL_CH1EN,
->> @@ -716,8 +817,18 @@ static int mx2_stop_streaming(struct vb2_queue *q)
->>                       writel(cntl & ~PRP_CNTL_CH2EN,
->>                              pcdev->base_emma + PRP_CNTL);
->>               }
->> +             INIT_LIST_HEAD(&pcdev->capture);
->> +             INIT_LIST_HEAD(&pcdev->active_bufs);
->> +             INIT_LIST_HEAD(&pcdev->discard);
->> +
->> +             spin_unlock_irqrestore(&pcdev->lock, flags);
->> +
->> +             dma_free_coherent(ici->v4l2_dev.dev,
->> +                     pcdev->discard_size, pcdev->discard_buffer,
->> +                     pcdev->discard_buffer_dma);
->> +             pcdev->discard_buffer = NULL;
->
-> AFAICS, the IRQ handler runs without taking any locks, so, there's a
-> theoretical SMP race here with using the discard buffers from the ISR. So,
-> I think, you'd have to add some locking to the ISR and here do something
-> like
->
-> +               x = pcdev->discard_buffer;
-> +               pcdev->discard_buffer = NULL;
+Thanks for the patch.
+
+On Monday 20 February 2012 03:56:54 Sakari Ailus wrote:
+> The purpose of the link_validate() op is to allow an entity driver to ensure
+> that the properties of the pads at the both ends of the link are suitable
+> for starting the pipeline. link_validate is called on sink pads on active
+> links which belong to the active part of the graph.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  Documentation/media-framework.txt |   19 +++++++++++++
+>  drivers/media/media-entity.c      |   53
+> +++++++++++++++++++++++++++++++++++- include/media/media-entity.h      |   
+> 5 ++-
+>  3 files changed, 73 insertions(+), 4 deletions(-)
+> 
+> diff --git a/Documentation/media-framework.txt
+> b/Documentation/media-framework.txt index 3a0f879..0e90169 100644
+> --- a/Documentation/media-framework.txt
+> +++ b/Documentation/media-framework.txt
+> @@ -335,6 +335,9 @@ the media_entity pipe field.
+>  Calls to media_entity_pipeline_start() can be nested. The pipeline pointer
+> must be identical for all nested calls to the function.
+> 
+> +media_entity_pipeline_start() may return an error. In that case, it will
+> +clean up any the changes it did by itself.
 > +
-> +               spin_unlock_irqrestore(&pcdev->lock, flags);
+>  When stopping the stream, drivers must notify the entities with
+> 
+>  	media_entity_pipeline_stop(struct media_entity *entity);
+> @@ -351,3 +354,19 @@ If other operations need to be disallowed on streaming
+> entities (such as changing entities configuration parameters) drivers can
+> explicitly check the media_entity stream_count field to find out if an
+> entity is streaming. This operation must be done with the media_device
+> graph_mutex held.
 > +
-> +               dma_free_coherent(ici->v4l2_dev.dev,
-> +                       pcdev->discard_size, x,
-> +                       pcdev->discard_buffer_dma);
+> +
+> +Link validation
+> +---------------
+> +
+> +Link validation is performed from media_entity_pipeline_start() for any
 
-Hmm, you are definitely right. I have to protect access to
-discard_buffer too. Good you noticed.
+s/from/by/ ?
 
->
->>       }
->> -     spin_unlock_irqrestore(&pcdev->lock, flags);
->> +
->
-> You're adding an empty line here.
+> +entity which has sink pads in the pipeline. The
+> +media_entity::link_validate() callback is used for that purpose. In
+> +link_validate() callback, entity driver should check that the properties of
+> +the source pad of the connected entity and its own sink pad match. It is up
+> +to the type of the entity (and in the end, the properties of the hardware)
+> +what matching actually means.
+> +
+> +Subsystems should facilitate link validation by providing subsystem
+> specific
+> +helper functions to provide easy access for commonly needed information,
+> and
+> +in the end provide a way to use driver-specific callbacks.
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 056138f..678ec07 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -214,23 +214,72 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+>   * pipeline pointer must be identical for all nested calls to
+>   * media_entity_pipeline_start().
+>   */
+> -void media_entity_pipeline_start(struct media_entity *entity,
+> -				 struct media_pipeline *pipe)
+> +__must_check int media_entity_pipeline_start(struct media_entity *entity,
+> +					     struct media_pipeline *pipe)
+>  {
+>  	struct media_device *mdev = entity->parent;
+>  	struct media_entity_graph graph;
+> +	struct media_entity *entity_err = entity;
+> +	int ret = 0;
+> 
+>  	mutex_lock(&mdev->graph_mutex);
+> 
+>  	media_entity_graph_walk_start(&graph, entity);
+> 
+>  	while ((entity = media_entity_graph_walk_next(&graph))) {
+> +		int i;
+> +
 
-Sorry, I'll fix it.
+entity->num_link is unsigned, what about making i an unsigned int ?
 
->>
->>       return 0;
->>  }
->
-> [snip]
->
->> @@ -1179,18 +1212,23 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
->>  static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>               int bufnum)
->>  {
->
-> This function is called from the ISR, so, I presume, you'll have to
-> spin_lock() somewhere here.
+>  		entity->stream_count++;
+>  		WARN_ON(entity->pipe && entity->pipe != pipe);
+>  		entity->pipe = pipe;
+> +
+> +		/* Already streaming --- no need to check. */
+> +		if (entity->stream_count > 1)
+> +			continue;
+> +
+> +		if (!entity->ops || !entity->ops->link_validate)
+> +			continue;
+> +
+> +		for (i = 0; i < entity->num_links; i++) {
+> +			struct media_link *link = &entity->links[i];
+> +
+> +			/* Is this pad part of an enabled link? */
+> +			if ((link->flags & MEDIA_LNK_FL_ENABLED)
+> +			    != MEDIA_LNK_FL_ENABLED)
 
-Yes, otherwise I can have a lot of possible races here.
+Just nickpicking, if you wrote it
 
->> -     u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
->>       struct mx2_fmt_cfg *prp = pcdev->emma_prp;
->>       struct mx2_buffer *buf;
->>       struct vb2_buffer *vb;
->>       unsigned long phys;
->>
->> -     if (!list_empty(&pcdev->active_bufs)) {
->> -             buf = list_entry(pcdev->active_bufs.next,
->> -                     struct mx2_buffer, queue);
->> +     buf = list_entry(pcdev->active_bufs.next,
->> +                      struct mx2_buffer, queue);
->>
->> -             BUG_ON(buf->bufnum != bufnum);
->> +     BUG_ON(buf->bufnum != bufnum);
->>
->> +     if (buf->discard) {
->> +             /*
->> +              * Discard buffer must not be returned to user space.
->> +              * Just return it to the discard queue.
->> +              */
->> +             list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
->> +     } else {
->>               vb = &buf->vb;
->>  #ifdef DEBUG
->>               phys = vb2_dma_contig_plane_dma_addr(vb, 0);
->> @@ -1212,6 +1250,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>                       }
->>               }
->>  #endif
->> +
->>               dev_dbg(pcdev->dev, "%s (vb=0x%p) 0x%p %lu\n", __func__, vb,
->>                               vb2_plane_vaddr(vb, 0),
->>                               vb2_get_plane_payload(vb, 0));
->> @@ -1225,29 +1264,23 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>       pcdev->frame_count++;
->>
->>       if (list_empty(&pcdev->capture)) {
->> -             if (prp->cfg.channel == 1) {
->> -                     writel(pcdev->discard_buffer_dma, pcdev->base_emma +
->> -                                     PRP_DEST_RGB1_PTR + 4 * bufnum);
->> -             } else {
->> -                     writel(pcdev->discard_buffer_dma, pcdev->base_emma +
->> -                                             PRP_DEST_Y_PTR -
->> -                                             0x14 * bufnum);
->> -                     if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
->> -                             writel(pcdev->discard_buffer_dma + imgsize,
->> -                                    pcdev->base_emma + PRP_DEST_CB_PTR -
->> -                                    0x14 * bufnum);
->> -                             writel(pcdev->discard_buffer_dma +
->> -                                    ((5 * imgsize) / 4), pcdev->base_emma +
->> -                                    PRP_DEST_CR_PTR - 0x14 * bufnum);
->> -                     }
->> -             }
->> +             if (list_empty(&pcdev->discard))
->> +                     dev_warn(pcdev->dev, "%s: trying to access empty discard list\n",
->> +                              __func__);
->
-> It is good, that you check for this error, but
->
->> +
->> +             buf = list_entry(pcdev->discard.next,
->> +                     struct mx2_buffer, queue);
->> +             buf->bufnum = bufnum;
->> +
->> +             list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
->> +             mx27_update_emma_buf(pcdev, pcdev->discard_buffer_dma, bufnum);
->
-> here even in the above error case you continue to access the invalid list
-> entry...
+			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
 
-OK, I will gently bail out.
+it would fit on a single line :-)
 
->>               return;
->>       }
->>
->>       buf = list_entry(pcdev->capture.next,
->>                       struct mx2_buffer, queue);
->>
->> -     buf->bufnum = !bufnum;
->> +     buf->bufnum = bufnum;
->>
->>       list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
->>
->> @@ -1255,18 +1288,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
->>       buf->state = MX2_STATE_ACTIVE;
->>
->>       phys = vb2_dma_contig_plane_dma_addr(vb, 0);
->> -     if (prp->cfg.channel == 1) {
->> -             writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
->> -     } else {
->> -             writel(phys, pcdev->base_emma +
->> -                             PRP_DEST_Y_PTR - 0x14 * bufnum);
->> -             if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
->> -                     writel(phys + imgsize, pcdev->base_emma +
->> -                                     PRP_DEST_CB_PTR - 0x14 * bufnum);
->> -                     writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
->> -                                     PRP_DEST_CR_PTR - 0x14 * bufnum);
->> -             }
->> -     }
->> +     mx27_update_emma_buf(pcdev, phys, bufnum);
->>  }
->>
->>  static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
->> @@ -1275,6 +1297,10 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
->>       unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
->>       struct mx2_buffer *buf;
->>
->> +     if (list_empty(&pcdev->active_bufs))
->> +             dev_warn(pcdev->dev, "%s: called while active list is empty\n",
->> +                     __func__);
->> +
->
-> Similarly here: if this is a possible condition, shouldn't you nicely bail
-> out here? Of course, interrupts have to be acked still.
+> +				continue;
+> +
+> +			/* Are we the sink or not? */
+> +			if (link->sink->entity != entity)
+> +				continue;
+> +
+> +			ret = entity->ops->link_validate(link);
+> +			if (ret < 0 && ret != -ENOIOCTLCMD)
+> +				break;
 
-Yeah, let me fix that.
+You could goto error directly here, this would avoid checking the ret value 
+after the loop, and you could also avoid initializing ret to 0.
 
-
-Guennadi, before I send v4:
-Do you agree with the other patches 1, 2 and 4?
-
+> +		}
+> +		if (ret < 0 && ret != -ENOIOCTLCMD)
+> +			goto error;
+>  	}
+> 
+>  	mutex_unlock(&mdev->graph_mutex);
+> +
+> +	return 0;
+> +
+> +error:
+> +	/*
+> +	 * Link validation on graph failed. We revert what we did and
+> +	 * return the error.
+> +	 */
+> +	media_entity_graph_walk_start(&graph, entity_err);
+> +	do {
+> +		entity_err = media_entity_graph_walk_next(&graph);
+> +		entity_err->stream_count--;
+> +		if (entity_err->stream_count == 0)
+> +			entity_err->pipe = NULL;
+> +	} while (entity_err != entity);
+> +
+> +	mutex_unlock(&mdev->graph_mutex);
+> +
+> +	return ret;
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
+> 
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 29e7bba..0c16f51 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -46,6 +46,7 @@ struct media_entity_operations {
+>  	int (*link_setup)(struct media_entity *entity,
+>  			  const struct media_pad *local,
+>  			  const struct media_pad *remote, u32 flags);
+> +	int (*link_validate)(struct media_link *link);
+>  };
+> 
+>  struct media_entity {
+> @@ -140,8 +141,8 @@ void media_entity_graph_walk_start(struct
+> media_entity_graph *graph, struct media_entity *entity);
+>  struct media_entity *
+>  media_entity_graph_walk_next(struct media_entity_graph *graph);
+> -void media_entity_pipeline_start(struct media_entity *entity,
+> -		struct media_pipeline *pipe);
+> +__must_check int media_entity_pipeline_start(struct media_entity *entity,
+> +					     struct media_pipeline *pipe);
+>  void media_entity_pipeline_stop(struct media_entity *entity);
+> 
+>  #define media_entity_call(entity, operation, args...)			\
 
 -- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
+Regards,
+
+Laurent Pinchart
