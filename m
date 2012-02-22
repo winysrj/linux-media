@@ -1,51 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:5054 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757091Ab2BXTPm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 14:15:42 -0500
-Message-ID: <4F47E1DA.9040407@redhat.com>
-Date: Fri, 24 Feb 2012 17:15:38 -0200
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Linus Torvalds <torvalds@linux-foundation.org>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 3.3-rc5] media fixes
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753430Ab2BVQtF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 11:49:05 -0500
+Date: Wed, 22 Feb 2012 17:48:45 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv23 04/16] mm: compaction: introduce isolate_freepages_range()
+In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329929337-16648-5-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Latest commit at the branch: 
-fda27874de91d5a8b9a018b3bc74b14578994908 [media] hdpvr: update picture controls to support firmware versions > 0.15
-The following changes since commit b01543dfe67bb1d191998e90d20534dc354de059:
+From: Michal Nazarewicz <mina86@mina86.com>
 
-  Linux 3.3-rc4 (2012-02-18 15:53:33 -0800)
+This commit introduces isolate_freepages_range() function which
+generalises isolate_freepages_block() so that it can be used on
+arbitrary PFN ranges.
 
-are available in the git repository at:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+isolate_freepages_block() is left with only minor changes.
 
-Janne Grunau (1):
-      [media] hdpvr: fix race conditon during start of streaming
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ mm/compaction.c |  111 ++++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 files changed, 93 insertions(+), 18 deletions(-)
 
-Jarod Wilson (1):
-      [media] imon: don't wedge hardware after early callbacks
-
-Laurent Pinchart (1):
-      [media] omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
-
-Randy Dunlap (1):
-      [media] wl128x: fix build errors when GPIOLIB is not enabled
-
-Taylor Ralph (1):
-      [media] hdpvr: update picture controls to support firmware versions > 0.15
-
- drivers/media/radio/wl128x/Kconfig      |    4 +-
- drivers/media/rc/imon.c                 |   26 +++++++++++++++---
- drivers/media/video/hdpvr/hdpvr-core.c  |   18 ++++++++++--
- drivers/media/video/hdpvr/hdpvr-video.c |   46 ++++++++++++++++++++++---------
- drivers/media/video/hdpvr/hdpvr.h       |    1 +
- drivers/media/video/omap3isp/ispccdc.c  |    2 +-
- 6 files changed, 74 insertions(+), 23 deletions(-)
+diff --git a/mm/compaction.c b/mm/compaction.c
+index d9d7b35..06b198f 100644
+--- a/mm/compaction.c
++++ b/mm/compaction.c
+@@ -54,24 +54,20 @@ static unsigned long release_freepages(struct list_head *freelist)
+ 	return count;
+ }
+ 
+-/* Isolate free pages onto a private freelist. Must hold zone->lock */
+-static unsigned long isolate_freepages_block(struct zone *zone,
+-				unsigned long blockpfn,
+-				struct list_head *freelist)
++/*
++ * Isolate free pages onto a private freelist. Caller must hold zone->lock.
++ * If @strict is true, will abort returning 0 on any invalid PFNs or non-free
++ * pages inside of the pageblock (even though it may still end up isolating
++ * some pages).
++ */
++static unsigned long isolate_freepages_block(unsigned long blockpfn,
++				unsigned long end_pfn,
++				struct list_head *freelist,
++				bool strict)
+ {
+-	unsigned long zone_end_pfn, end_pfn;
+ 	int nr_scanned = 0, total_isolated = 0;
+ 	struct page *cursor;
+ 
+-	/* Get the last PFN we should scan for free pages at */
+-	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
+-	end_pfn = min(blockpfn + pageblock_nr_pages, zone_end_pfn);
+-
+-	/* Find the first usable PFN in the block to initialse page cursor */
+-	for (; blockpfn < end_pfn; blockpfn++) {
+-		if (pfn_valid_within(blockpfn))
+-			break;
+-	}
+ 	cursor = pfn_to_page(blockpfn);
+ 
+ 	/* Isolate free pages. This assumes the block is valid */
+@@ -79,15 +75,23 @@ static unsigned long isolate_freepages_block(struct zone *zone,
+ 		int isolated, i;
+ 		struct page *page = cursor;
+ 
+-		if (!pfn_valid_within(blockpfn))
++		if (!pfn_valid_within(blockpfn)) {
++			if (strict)
++				return 0;
+ 			continue;
++		}
+ 		nr_scanned++;
+ 
+-		if (!PageBuddy(page))
++		if (!PageBuddy(page)) {
++			if (strict)
++				return 0;
+ 			continue;
++		}
+ 
+ 		/* Found a free page, break it into order-0 pages */
+ 		isolated = split_free_page(page);
++		if (!isolated && strict)
++			return 0;
+ 		total_isolated += isolated;
+ 		for (i = 0; i < isolated; i++) {
+ 			list_add(&page->lru, freelist);
+@@ -105,6 +109,73 @@ static unsigned long isolate_freepages_block(struct zone *zone,
+ 	return total_isolated;
+ }
+ 
++/**
++ * isolate_freepages_range() - isolate free pages.
++ * @start_pfn: The first PFN to start isolating.
++ * @end_pfn:   The one-past-last PFN.
++ *
++ * Non-free pages, invalid PFNs, or zone boundaries within the
++ * [start_pfn, end_pfn) range are considered errors, cause function to
++ * undo its actions and return zero.
++ *
++ * Otherwise, function returns one-past-the-last PFN of isolated page
++ * (which may be greater then end_pfn if end fell in a middle of
++ * a free page).
++ */
++static unsigned long
++isolate_freepages_range(unsigned long start_pfn, unsigned long end_pfn)
++{
++	unsigned long isolated, pfn, block_end_pfn, flags;
++	struct zone *zone = NULL;
++	LIST_HEAD(freelist);
++
++	if (pfn_valid(start_pfn))
++		zone = page_zone(pfn_to_page(start_pfn));
++
++	for (pfn = start_pfn; pfn < end_pfn; pfn += isolated) {
++		if (!pfn_valid(pfn) || zone != page_zone(pfn_to_page(pfn)))
++			break;
++
++		/*
++		 * On subsequent iterations ALIGN() is actually not needed,
++		 * but we keep it that we not to complicate the code.
++		 */
++		block_end_pfn = ALIGN(pfn + 1, pageblock_nr_pages);
++		block_end_pfn = min(block_end_pfn, end_pfn);
++
++		spin_lock_irqsave(&zone->lock, flags);
++		isolated = isolate_freepages_block(pfn, block_end_pfn,
++						   &freelist, true);
++		spin_unlock_irqrestore(&zone->lock, flags);
++
++		/*
++		 * In strict mode, isolate_freepages_block() returns 0 if
++		 * there are any holes in the block (ie. invalid PFNs or
++		 * non-free pages).
++		 */
++		if (!isolated)
++			break;
++
++		/*
++		 * If we managed to isolate pages, it is always (1 << n) *
++		 * pageblock_nr_pages for some non-negative n.  (Max order
++		 * page may span two pageblocks).
++		 */
++	}
++
++	/* split_free_page does not map the pages */
++	map_pages(&freelist);
++
++	if (pfn < end_pfn) {
++		/* Loop terminated early, cleanup. */
++		release_freepages(&freelist);
++		return 0;
++	}
++
++	/* We don't use freelists for anything. */
++	return pfn;
++}
++
+ /* Returns true if the page is within a block suitable for migration to */
+ static bool suitable_migration_target(struct page *page)
+ {
+@@ -145,7 +216,7 @@ static void isolate_freepages(struct zone *zone,
+ 				struct compact_control *cc)
+ {
+ 	struct page *page;
+-	unsigned long high_pfn, low_pfn, pfn;
++	unsigned long high_pfn, low_pfn, pfn, zone_end_pfn, end_pfn;
+ 	unsigned long flags;
+ 	int nr_freepages = cc->nr_freepages;
+ 	struct list_head *freelist = &cc->freepages;
+@@ -165,6 +236,8 @@ static void isolate_freepages(struct zone *zone,
+ 	 */
+ 	high_pfn = min(low_pfn, pfn);
+ 
++	zone_end_pfn = zone->zone_start_pfn + zone->spanned_pages;
++
+ 	/*
+ 	 * Isolate free pages until enough are available to migrate the
+ 	 * pages on cc->migratepages. We stop searching if the migrate
+@@ -201,7 +274,9 @@ static void isolate_freepages(struct zone *zone,
+ 		isolated = 0;
+ 		spin_lock_irqsave(&zone->lock, flags);
+ 		if (suitable_migration_target(page)) {
+-			isolated = isolate_freepages_block(zone, pfn, freelist);
++			end_pfn = min(pfn + pageblock_nr_pages, zone_end_pfn);
++			isolated = isolate_freepages_block(pfn, end_pfn,
++							   freelist, false);
+ 			nr_freepages += isolated;
+ 		}
+ 		spin_unlock_irqrestore(&zone->lock, flags);
+-- 
+1.7.1.569.g6f426
 
