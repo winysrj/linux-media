@@ -1,178 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vx0-f174.google.com ([209.85.220.174]:37665 "EHLO
-	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964840Ab2B1Oqo convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:61435 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751186Ab2BVNgg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 09:46:44 -0500
-Received: by vcqp1 with SMTP id p1so2532962vcq.19
-        for <linux-media@vger.kernel.org>; Tue, 28 Feb 2012 06:46:43 -0800 (PST)
+	Wed, 22 Feb 2012 08:36:36 -0500
+From: Arnd Bergmann <arnd@arndb.de>
+To: "Russell King - ARM Linux" <linux@arm.linux.org.uk>
+Subject: Re: [PATCHv22 14/16] X86: integrate CMA with DMA-mapping subsystem
+Date: Wed, 22 Feb 2012 13:36:09 +0000
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org,
+	Michal Nazarewicz <mina86@mina86.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Shariq Hasnain <shariq.hasnain@linaro.org>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	"Ohad Ben-Cohen" <ohad@wizery.com>
+References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com> <20120221161802.f6a28085.akpm@linux-foundation.org> <20120222090930.GS22562@n2100.arm.linux.org.uk>
+In-Reply-To: <20120222090930.GS22562@n2100.arm.linux.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <CAKnK67Qk6pJ1LQBsi_V3OfadzEXHV8RnaOOxT3MK7Hu4zsk9dg@mail.gmail.com>
-References: <CAH9_wRN5=nHtB9M3dL4wvZGL3+mb4_TfS=uPun_13D7n0E3CKA@mail.gmail.com>
-	<CAKnK67T=obVTWkzZqVtv+PninjkbLp1os5AnsoZ+j=NGFFMWLA@mail.gmail.com>
-	<CAH9_wRNGERctBxYT5NNEHOhuzWZYF2yKxG4BA6pzPzBWPy8_3Q@mail.gmail.com>
-	<CAH9_wRN9bA8JTViBA6sWk9aVOU1Pbr5bPFvNh2MCsGUVjnr9qg@mail.gmail.com>
-	<CAKnK67Qk6pJ1LQBsi_V3OfadzEXHV8RnaOOxT3MK7Hu4zsk9dg@mail.gmail.com>
-Date: Tue, 28 Feb 2012 20:16:43 +0530
-Message-ID: <CAH9_wRPu0X29oTcQvFHZou2B9ZTBT74kFbRWBJY2b6x4ftYzEg@mail.gmail.com>
-Subject: Re: Video Capture Issue
-From: Sriram V <vshrirama@gmail.com>
-To: "Aguirre, Sergio" <saaguirre@ti.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202221336.09808.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Aguirre Sergio,
+On Wednesday 22 February 2012, Russell King - ARM Linux wrote:
+> On Tue, Feb 21, 2012 at 04:18:02PM -0800, Andrew Morton wrote:
+> > After a while I got it to compile for i386.  arm didn't go so well,
+> > partly because arm allmodconfig is presently horked (something to do
+> > with Kconfig not setting PHYS_OFFSET) and partly because arm defconfig
+> > doesn't permit CMA to be set.  Got bored, gave up.
+> 
+> That's not going to get fixed, unfortunately.  It requires us to find
+> some way to force various options to certain states on all*config
+> builds, because not surprisingly a value of 'y', 'm' or 'n' doesn't
+> work for integer or hex config options.
+> 
+> So the only way all*config can be used on ARM is with a seed config file
+> to force various options to particular states to ensure that we end up
+> with a sane configuration that avoids crap like that.
+> 
+> Alternatively, we need a way to tell kconfig that various options are to
+> be set in certain ways in the Kconfig files for all*config to avoid it
+> wanting values for hex or int options.
 
-On Tue, Feb 28, 2012 at 9:08 AM, Aguirre, Sergio <saaguirre@ti.com> wrote:
-> Sriram,
->
-> On Sun, Feb 26, 2012 at 8:54 AM, Sriram V <vshrirama@gmail.com> wrote:
->> Hi,
->>  When I take the dump of the buffer which is pointed by "DATA MEM
->> PING ADDRESS". It always shows 0x55.
->>  Even if i write 0x00 to the address. I do notice that it quickly
->> changes to 0x55.
->>  Under what conditions could this happen? What am i missing here.
->
-> If you're using "yavta" for capture, notice that it clears out the
-> buffers before queuing them in:
->
-> static int video_queue_buffer(struct device *dev, int index, enum
-> buffer_fill_mode fill)
-> {
->        struct v4l2_buffer buf;
->        int ret;
->
->        ...
->        ...
->        if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
->                ...
->        } else {
->                if (fill & BUFFER_FILL_FRAME)
->                        memset(dev->buffers[buf.index].mem, 0x55, dev->buffers[index].size);
->                if (fill & BUFFER_FILL_PADDING)
->                        memset(dev->buffers[buf.index].mem + dev->buffers[index].size,
->                               0x55, dev->buffers[index].padding);
->        }
->        ...
-> }
->
-> So, just make sure this condition is not met.
->
->>
+I usually set KCONFIG_ALLCONFIG to a file containing the extra options
+I want, for another reason: As long as we are building platforms
+separately, all{no,yes,mod}config and randconfig will always build
+for the versatile platform instead of something more modern.
 
-Unfortunately, this condition is met.  For some reason, ISS thinks
-it has got valid frame. Whereas the Image data is not populated into
-the buffers.
-The register CSI2_CTX_CTRL1_i[COUNT] keeps getting toggled between 0 and 1
-indicating a frame arrival.
+We could change that and make mach-vexpress the default, but we can
+also wait until we have the initial multiplatform support done and
+then use that one.
 
-I also notice that on some frames, The first 0x200 bytes contains data
-other than 0x55
-and the rest are 0x55.
+Building vexpress_defconfig (or most other defconfig, I would expect)
+works fine with the CMA series applied. This should also work,
+but there a few bugs in unrelated device drivers that would need to get
+fixed first.
 
-Probably this could be related to resolution settings or hsync and
-vsync settings.
-Probably, my chip configuration is faulty.
+make ARCH=arm CROSS_COMPILE=arm-linux-gnueabi- -sj3 allmodconfig \ 	
+	KCONFIG_ALLCONFIG=$PWD/arch/arm/configs/vexpress_defconfig
 
->>  I do notice that the OMAP4 ISS is tested to work with OV5640 (YUV422
->> Frames) and OV5650 (Raw Data)
->>  When you say 422 Frames only. Do you mean 422-8Bit Mode?.
->
-> Yes. When saving YUV422 to memory, you can only use this mode AFAIK.
->
->>
->>  I havent tried RAW12 which my device gives, Do i have to update only
->> the Data Format Selection register
->>  of the ISS  for RAW12?
->
-> Ok, now it makes sense.
->
-> So, if your CSI2 source is giving, you need to make sure:
->
-> CSI2_CTX_CTRL2_0.FORMAT[9:0] is:
->
-> - 0xAC: RAW12 + EXP16
-> or
-> - 0x2C: RAW12
->
-> The difference is that the EXP16 variant, will save to memory in
-> expansion to 2 bytes, instead of 12 bits, so it'll be byte aligned.
->
-> Can you try attached patch?
-
-With RAW12 configuration, I dont see any interrupts at all.
-
-
->
-> Regards,
-> Sergio
->
->>
->>  Please advice.
->>
->>
->> On Thu, Feb 23, 2012 at 11:24 PM, Sriram V <vshrirama@gmail.com> wrote:
->>> Hi,
->>>  1) An Hexdump of the captured file shows 0x55 at all locations.
->>>      Is there any buffer location i need to check.
->>>  2) I have tried with  "devel" branch.
->>>  3) Changing the polarities doesnt help either.
->>>  4) The sensor is giving out YUV422 8Bit Mode,
->>>      Will 0x52001074 = 0x0A00001E (UYVY Format)  it bypass the ISP
->>>       and dump directly into memory.
->>>
->>> On 2/23/12, Aguirre, Sergio <saaguirre@ti.com> wrote:
->>>> Hi Sriram,
->>>>
->>>> On Thu, Feb 23, 2012 at 11:25 AM, Sriram V <vshrirama@gmail.com> wrote:
->>>>> Hi,
->>>>>  1) I am trying to get a HDMI to CSI Bridge chip working with OMAP4 ISS.
->>>>>      The issue is the captured frames are completely green in color.
->>>>
->>>> Sounds like the buffer is all zeroes, can you confirm?
->>>>
->>>>>  2) The Chip is configured to output VGA Color bar sequence with
->>>>> YUV422-8Bit and
->>>>>       uses datalane 0 only.
->>>>>  3) The Format on OMAP4 ISS  is UYVY (Register 0x52001074 = 0x0A00001E)
->>>>>  I am trying to directly dump the data into memory without ISP processing.
->>>>>
->>>>>
->>>>>  Please advice.
->>>>
->>>> Just to be clear on your environment, which branch/commitID are you based
->>>> on?
->>>>
->>>> Regards,
->>>> Sergio
->>>>
->>>>>
->>>>> --
->>>>> Regards,
->>>>> Sriram
->>>>> --
->>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>>> the body of a message to majordomo@vger.kernel.org
->>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>
->>>
->>>
->>> --
->>> Regards,
->>> Sriram
->>
->>
->>
->> --
->> Regards,
->> Sriram
-
-
-
--- 
-Regards,
-Sriram
+	Arnd
