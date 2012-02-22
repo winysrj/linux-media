@@ -1,49 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp1-g21.free.fr ([212.27.42.1]:42734 "EHLO smtp1-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965099Ab2B1LEX convert rfc822-to-8bit (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754094Ab2BVQtH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 06:04:23 -0500
-Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
-	by smtp1-g21.free.fr (Postfix) with ESMTP id 859ED940114
-	for <linux-media@vger.kernel.org>; Tue, 28 Feb 2012 12:04:16 +0100 (CET)
-Date: Tue, 28 Feb 2012 12:05:48 +0100
-From: Jean-Francois Moine <moinejf@free.fr>
-To: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 3.4] gspca for_v3.4
-Message-ID: <20120228120548.186ee4bc@tele>
-In-Reply-To: <4F4BE111.6090805@gmail.com>
-References: <20120227130606.1f432e7b@tele>
- <4F4BE111.6090805@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 22 Feb 2012 11:49:07 -0500
+Date: Wed, 22 Feb 2012 17:48:52 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv23 11/16] mm: extract reclaim code from
+ __alloc_pages_direct_reclaim()
+In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329929337-16648-12-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 27 Feb 2012 21:01:21 +0100
-Sylwester Nawrocki <snjw23@gmail.com> wrote:
+This patch extracts common reclaim code from __alloc_pages_direct_reclaim()
+function to separate function: __perform_reclaim() which can be later used
+by alloc_contig_range().
 
-> This patch will conflict with patch:
-> 
->  gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-> 
-> from my recent pull request http://patchwork.linuxtv.org/patch/10022/
-> 
-> How should we proceed with that ? Do you want me to remove the above patch 
-> from my pull request, or would you rebase your change set on top of mine ?
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Michal Nazarewicz <mina86@mina86.com>
+Acked-by: Mel Gorman <mel@csn.ul.ie>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ mm/page_alloc.c |   30 +++++++++++++++++++++---------
+ 1 files changed, 21 insertions(+), 9 deletions(-)
 
-Hi Sylwester,
-
-Sorry for the problem, I thought your patch was already in the media
-tree.
-
-I checked the changes in zc3xx.c, and I have made many commits. So, it
-would be simpler if you would remove your patch. I could give you a
-merged one once the media tree would be updated.
-
-Best regards.
-
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 0aa8079..7a0d286 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -2143,16 +2143,13 @@ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
+ }
+ #endif /* CONFIG_COMPACTION */
+ 
+-/* The really slow allocator path where we enter direct reclaim */
+-static inline struct page *
+-__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
+-	struct zonelist *zonelist, enum zone_type high_zoneidx,
+-	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
+-	int migratetype, unsigned long *did_some_progress)
++/* Perform direct synchronous page reclaim */
++static int
++__perform_reclaim(gfp_t gfp_mask, unsigned int order, struct zonelist *zonelist,
++		  nodemask_t *nodemask)
+ {
+-	struct page *page = NULL;
+ 	struct reclaim_state reclaim_state;
+-	bool drained = false;
++	int progress;
+ 
+ 	cond_resched();
+ 
+@@ -2163,7 +2160,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
+ 	reclaim_state.reclaimed_slab = 0;
+ 	current->reclaim_state = &reclaim_state;
+ 
+-	*did_some_progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
++	progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
+ 
+ 	current->reclaim_state = NULL;
+ 	lockdep_clear_current_reclaim_state();
+@@ -2171,6 +2168,21 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
+ 
+ 	cond_resched();
+ 
++	return progress;
++}
++
++/* The really slow allocator path where we enter direct reclaim */
++static inline struct page *
++__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
++	struct zonelist *zonelist, enum zone_type high_zoneidx,
++	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
++	int migratetype, unsigned long *did_some_progress)
++{
++	struct page *page = NULL;
++	bool drained = false;
++
++	*did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
++					       nodemask);
+ 	if (unlikely(!(*did_some_progress)))
+ 		return NULL;
+ 
 -- 
-Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
-Jef		|		http://moinejf.free.fr/
+1.7.1.569.g6f426
+
