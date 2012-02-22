@@ -1,56 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from home.keithp.com ([63.227.221.253]:33523 "EHLO keithp.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752694Ab2BSI41 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 03:56:27 -0500
-From: Keith Packard <keithp@keithp.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	Rob Clark <rob@ti.com>, linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC 2012 - Notes
-In-Reply-To: <1775349.d0yvHiVdjB@avalon>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com> <1654816.MX2JJ87BEo@avalon> <1775349.d0yvHiVdjB@avalon>
-Date: Sat, 18 Feb 2012 13:56:49 +1300
-Message-ID: <867gzlarhq.fsf@sumi.keithp.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:45482 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754613Ab2BVKse (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 05:48:34 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 22/33] omap3isp: Assume media_entity_pipeline_start may fail
+Date: Wed, 22 Feb 2012 11:48:36 +0100
+Message-ID: <2545266.6oAz1XvV7f@avalon>
+In-Reply-To: <1329703032-31314-22-git-send-email-sakari.ailus@iki.fi>
+References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-22-git-send-email-sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-<#part sign=pgpmime>
-On Fri, 17 Feb 2012 00:25:51 +0100, Laurent Pinchart <laurent.pinchart@ideasonboard.com> wrote:
+Hi Sakari,
 
-> ***  Synchronous pipeline changes ***
+Thanks for the patch.
+
+On Monday 20 February 2012 03:57:01 Sakari Ailus wrote:
+> Since media_entity_pipeline_start() now does link validation, it may
+> actually fail. Perform the error handling.
 > 
->   Goal: Create an API to apply complex changes to a video pipeline atomically.
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/omap3isp/ispvideo.c |   20 ++++++++++++--------
+>  1 files changed, 12 insertions(+), 8 deletions(-)
 > 
->   Needed for complex camera use cases. On the DRM/KMS side, the approach is to
->   use one big ioctl to configure the whole pipeline.
+> diff --git a/drivers/media/video/omap3isp/ispvideo.c
+> b/drivers/media/video/omap3isp/ispvideo.c index c191f13..17522db 100644
+> --- a/drivers/media/video/omap3isp/ispvideo.c
+> +++ b/drivers/media/video/omap3isp/ispvideo.c
+> @@ -993,14 +993,16 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) */
+>  	pipe = video->video.entity.pipe
+>  	     ? to_isp_pipeline(&video->video.entity) : &video->pipe;
+> -	media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+> +	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
+> +	if (ret < 0)
+> +		goto err_media_entity_pipeline_start;
+> 
+>  	/* Verify that the currently configured format matches the output of
+>  	 * the connected subdev.
+>  	 */
+>  	ret = isp_video_check_format(video, vfh);
+>  	if (ret < 0)
+> -		goto error;
+> +		goto err_isp_video_check_format;
+> 
+>  	video->bpl_padding = ret;
+>  	video->bpl_value = vfh->format.fmt.pix.bytesperline;
+> @@ -1017,7 +1019,7 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) } else {
+>  		if (far_end == NULL) {
+>  			ret = -EPIPE;
+> -			goto error;
+> +			goto err_isp_video_check_format;
+>  		}
+> 
+>  		state = ISP_PIPELINE_STREAM_INPUT | ISP_PIPELINE_IDLE_INPUT;
+> @@ -1032,7 +1034,7 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) /* Validate the pipeline and update its state. */
+>  	ret = isp_video_validate_pipeline(pipe);
+>  	if (ret < 0)
+> -		goto error;
+> +		goto err_isp_video_check_format;
+> 
+>  	pipe->error = false;
+> 
+> @@ -1054,7 +1056,7 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type)
+> 
+>  	ret = omap3isp_video_queue_streamon(&vfh->queue);
+>  	if (ret < 0)
+> -		goto error;
+> +		goto err_isp_video_check_format;
+> 
+>  	/* In sensor-to-memory mode, the stream can be started synchronously
+>  	 * to the stream on command. In memory-to-memory mode, it will be
+> @@ -1064,19 +1066,21 @@ isp_video_streamon(struct file *file, void *fh, enum
+> v4l2_buf_type type) ret = omap3isp_pipeline_set_stream(pipe,
+>  					      ISP_PIPELINE_STREAM_CONTINUOUS);
+>  		if (ret < 0)
+> -			goto error;
+> +			goto err_omap3isp_set_stream;
+>  		spin_lock_irqsave(&video->queue->irqlock, flags);
+>  		if (list_empty(&video->dmaqueue))
+>  			video->dmaqueue_flags |= ISP_VIDEO_DMAQUEUE_UNDERRUN;
+>  		spin_unlock_irqrestore(&video->queue->irqlock, flags);
+>  	}
+> 
+> -error:
+>  	if (ret < 0) {
+> +err_omap3isp_set_stream:
+>  		omap3isp_video_queue_streamoff(&vfh->queue);
+> +err_isp_video_check_format:
+> +		media_entity_pipeline_stop(&video->video.entity);
+> +err_media_entity_pipeline_start:
+>  		if (video->isp->pdata->set_constraints)
+>  			video->isp->pdata->set_constraints(video->isp, false);
+> -		media_entity_pipeline_stop(&video->video.entity);
+>  		/* The DMA queue must be emptied here, otherwise CCDC interrupts
+>  		 * that will get triggered the next time the CCDC is powered up
+>  		 * will try to access buffers that might have been freed but
 
-This is the only credible approach for most desktop chips -- you must
-have the whole configuration available before you can make any
-commitment to supporting the requested modes.
-
->   One solution is a commit ioctl, through the media controller device, that
->   would be dispatched to entities internally with a prepare step and a commit
->   step.
-
-The current plan for the i915 KMS code is to use a single ioctl -- the
-application sends a buffer full of configuration commands down to the
-kernel which can then figure out whether it can be supported or not.
-
-The kernel will have to store the intermediate data until the commit
-arrives anyways, and you still need a central authority in the kernel
-controlling the final commit decision.
+As you add error labels, you can remove the if (ret < 0) test and move error 
+handling to a separate block. set_constraint() should be called before 
+media_entity_pipeline_stop() in that case. Another option is to leave error 
+handling untouched, and to return directly when media_entity_pipeline_start() 
+fails (after unlocking the mutex of course).
 
 -- 
-keith.packard@intel.com
+Regards,
+
+Laurent Pinchart
