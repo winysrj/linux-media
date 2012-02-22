@@ -1,62 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1229 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755433Ab2BCJ34 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:29:56 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 6/6] vivi: let vb2_poll handle events.
-Date: Fri,  3 Feb 2012 10:28:45 +0100
-Message-Id: <095585387c5248fec3291daef9f9a32eaf4a6f14.1328260650.git.hans.verkuil@cisco.com>
-In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
-References: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
+Received: from mga01.intel.com ([192.55.52.88]:25595 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753772Ab2BVQgm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 11:36:42 -0500
+Message-Id: <e39f63$3q903a@fmsmga002.fm.intel.com>
+From: Chris Wilson <chris@chris-wilson.co.uk>
+Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC 2012 - Notes
+To: Daniel Vetter <daniel@ffwll.ch>,
+	James Simmons <jsimmons@infradead.org>
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-fbdev@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Pawel Osciak <pawel@osciak.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	dri-devel@lists.freedesktop.org,
+	Alexander Deucher <alexander.deucher@amd.com>,
+	Rob Clark <rob@ti.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	linux-media@vger.kernel.org
+In-Reply-To: <20120222162424.GE4872@phenom.ffwll.local>
+References: <201201171126.42675.laurent.pinchart@ideasonboard.com> <1775349.d0yvHiVdjB@avalon> <20120217095554.GA5511@phenom.ffwll.local> <2168398.Pv8ir5xFGf@avalon> <alpine.LFD.2.02.1202221559510.3721@casper.infradead.org> <20120222162424.GE4872@phenom.ffwll.local>
+Date: Wed, 22 Feb 2012 16:36:32 +0000
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, 22 Feb 2012 17:24:24 +0100, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Wed, Feb 22, 2012 at 04:03:21PM +0000, James Simmons wrote:
+> > Fbcon scrolling at be painful at HD or better modes. Fbcon needs 3 
+> > possible accels; copyarea, imageblit, and fillrect. The first two could be 
+> > hooked from the TTM layer. Its something I plan to experiment to see if 
+> > its worth it.
+> 
+> Let's bite into this ;-) I know that fbcon scrolling totally sucks on big
+> screens, but I also think it's a total waste of time to fix this. Imo
+> fbcon has 2 use-cases:
+> - display an OOSP.
+> - allow me to run fsck (or any other desaster-recovery stuff).
+3. Show panics.
 
-The vb2_poll function now tests for events and sets POLLPRI accordingly.
-So there it is no longer necessary to test for it in the vivi driver.
+Ensuring that nothing prevents the switch to fbcon and displaying the
+panic message is the reason why we haven't felt inclined to accelerate
+fbcon - it just gets messy for no real gain.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/video/vivi.c |    9 +--------
- 1 files changed, 1 insertions(+), 8 deletions(-)
+For example: https://bugs.freedesktop.org/attachment.cgi?id=48933
+which doesn't handle flushing of pending updates via the GPU when
+writing with the CPU during interrupts (i.e. a panic).
+-Chris
 
-diff --git a/drivers/media/video/vivi.c b/drivers/media/video/vivi.c
-index 84ea88d..3983680 100644
---- a/drivers/media/video/vivi.c
-+++ b/drivers/media/video/vivi.c
-@@ -1058,17 +1058,10 @@ static unsigned int
- vivi_poll(struct file *file, struct poll_table_struct *wait)
- {
- 	struct vivi_dev *dev = video_drvdata(file);
--	struct v4l2_fh *fh = file->private_data;
- 	struct vb2_queue *q = &dev->vb_vidq;
--	unsigned int res;
- 
- 	dprintk(dev, 1, "%s\n", __func__);
--	res = vb2_poll(q, file, wait);
--	if (v4l2_event_pending(fh))
--		res |= POLLPRI;
--	else
--		poll_wait(file, &fh->wait, wait);
--	return res;
-+	return vb2_poll(q, file, wait);
- }
- 
- static int vivi_close(struct file *file)
 -- 
-1.7.8.3
-
+Chris Wilson, Intel Open Source Technology Centre
