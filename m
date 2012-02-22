@@ -1,500 +1,247 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:58418 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab2B0Q3l convert rfc822-to-8bit (ORCPT
+Received: from mail-ww0-f44.google.com ([74.125.82.44]:52038 "EHLO
+	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754763Ab2BVK7p (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Feb 2012 11:29:41 -0500
+	Wed, 22 Feb 2012 05:59:45 -0500
+Received: by wgbdt10 with SMTP id dt10so6587214wgb.1
+        for <linux-media@vger.kernel.org>; Wed, 22 Feb 2012 02:59:44 -0800 (PST)
 MIME-Version: 1.0
-In-Reply-To: <201202250916.02506.hverkuil@xs4all.nl>
-References: <1330114471-26435-1-git-send-email-manjunatha_halli@ti.com>
- <1330114471-26435-3-git-send-email-manjunatha_halli@ti.com>
- <1330114471-26435-4-git-send-email-manjunatha_halli@ti.com> <201202250916.02506.hverkuil@xs4all.nl>
-From: halli manjunatha <manjunatha_halli@ti.com>
-Date: Mon, 27 Feb 2012 10:29:18 -0600
-Message-ID: <CAMT6PycHM0Pa+NovFaAaHGJ9nnwKEpXyMacH-5DBvFUacFkzjw@mail.gmail.com>
-Subject: Re: [PATCH 3/3] wl128x: Add sysfs based support for FM features
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Manjunatha Halli <x0130808@ti.com>, shahed@ti.com
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+From: Javier Martin <javier.martin@vista-silicon.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, s.hauer@pengutronix.de,
+	mchehab@infradead.org,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH v2 6/6] media: i.MX27 camera: more efficient discard buffer handling.
+Date: Wed, 22 Feb 2012 11:59:34 +0100
+Message-Id: <1329908374-19769-2-git-send-email-javier.martin@vista-silicon.com>
+In-Reply-To: <1329908374-19769-1-git-send-email-javier.martin@vista-silicon.com>
+References: <1329908374-19769-1-git-send-email-javier.martin@vista-silicon.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Some elements of 'mx2_buffer' are grouped together in another
+auxiliary structure. This way we don't need to have unused
+'vb2_buffer' structures for both discard buffers.
 
-Agreed I don't mind to create new controls for below things
+Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+---
+ Changes since v1:
+ - Adapt to [PATCH v4 4/4] media i.MX27 camera: handle overflows properly.
 
-1) FM RX Band selection (US/Europe, Japan and Russian bands)
-2) FM RX RDS AF turn ON/OFF
-3) FM RX RSSI level set/get
-4) FM TX Alternate Frequency set/get
-5) FM RX De-Emphasis mode set/get
+---
+ drivers/media/video/mx2_camera.c |   77 ++++++++++++++++++++++----------------
+ 1 files changed, 45 insertions(+), 32 deletions(-)
 
-However, previously you have suggested me to hide few controls (like
-band selection) from the user but few of our application wanted
-controls like above and that is why I have created the sysfs entries.
+diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
+index 96a10af..fcb6b3f 100644
+--- a/drivers/media/video/mx2_camera.c
++++ b/drivers/media/video/mx2_camera.c
+@@ -230,15 +230,18 @@ enum mx2_buffer_state {
+ 	MX2_STATE_DONE,
+ };
+ 
++struct mx2_buf_internal {
++	struct list_head	queue;
++	int			bufnum;
++	bool			discard;
++};
++
+ /* buffer for one video frame */
+ struct mx2_buffer {
+ 	/* common v4l buffer stuff -- must be first */
+ 	struct vb2_buffer		vb;
+-	struct list_head		queue;
+ 	enum mx2_buffer_state		state;
+-
+-	int				bufnum;
+-	bool				discard;
++	struct mx2_buf_internal		internal;
+ };
+ 
+ struct mx2_camera_dev {
+@@ -270,7 +273,7 @@ struct mx2_camera_dev {
+ 
+ 	u32			csicr1;
+ 
+-	struct mx2_buffer	buf_discard[2];
++	struct mx2_buf_internal buf_discard[2];
+ 	void			*discard_buffer;
+ 	dma_addr_t		discard_buffer_dma;
+ 	size_t			discard_size;
+@@ -279,6 +282,11 @@ struct mx2_camera_dev {
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+ };
+ 
++static struct mx2_buffer *mx2_ibuf_to_buf(struct mx2_buf_internal *int_buf)
++{
++	return container_of(int_buf, struct mx2_buffer, internal);
++}
++
+ static struct mx2_fmt_cfg mx27_emma_prp_table[] = {
+ 	/*
+ 	 * This is a generic configuration which is valid for most
+@@ -459,9 +467,9 @@ static void mx25_camera_frame_done(struct mx2_camera_dev *pcdev, int fb,
+ 		writel(0, pcdev->base_csi + fb_reg);
+ 	} else {
+ 		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
+-				queue);
++				internal.queue);
+ 		vb = &buf->vb;
+-		list_del(&buf->queue);
++		list_del(&buf->internal.queue);
+ 		buf->state = MX2_STATE_ACTIVE;
+ 		writel(vb2_dma_contig_plane_dma_addr(vb, 0),
+ 		       pcdev->base_csi + fb_reg);
+@@ -578,7 +586,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
+ 	spin_lock_irqsave(&pcdev->lock, flags);
+ 
+ 	buf->state = MX2_STATE_QUEUED;
+-	list_add_tail(&buf->queue, &pcdev->capture);
++	list_add_tail(&buf->internal.queue, &pcdev->capture);
+ 
+ 	if (cpu_is_mx25()) {
+ 		u32 csicr3, dma_inten = 0;
+@@ -596,7 +604,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
+ 		}
+ 
+ 		if (dma_inten) {
+-			list_del(&buf->queue);
++			list_del(&buf->internal.queue);
+ 			buf->state = MX2_STATE_ACTIVE;
+ 
+ 			csicr3 = readl(pcdev->base_csi + CSICR3);
+@@ -719,23 +727,23 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
+ 		spin_lock_irqsave(&pcdev->lock, flags);
+ 
+ 		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
+-				       queue);
+-		buf->bufnum = 0;
++				       internal.queue);
++		buf->internal.bufnum = 0;
+ 		vb = &buf->vb;
+ 		buf->state = MX2_STATE_ACTIVE;
+ 
+ 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+-		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
++		mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
+ 		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+ 
+ 		buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
+-				       queue);
+-		buf->bufnum = 1;
++				       internal.queue);
++		buf->internal.bufnum = 1;
+ 		vb = &buf->vb;
+ 		buf->state = MX2_STATE_ACTIVE;
+ 
+ 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+-		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
++		mx27_update_emma_buf(pcdev, phys, buf->internal.bufnum);
+ 		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+ 
+ 		bytesperline = soc_mbus_bytes_per_line(icd->user_width,
+@@ -1213,21 +1221,25 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ #ifdef DEBUG
+ 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
+ #endif
++	struct mx2_buf_internal *ibuf;
+ 	struct mx2_buffer *buf;
+ 	struct vb2_buffer *vb;
+ 	unsigned long phys;
+ 
+-	buf = list_first_entry(&pcdev->active_bufs, struct mx2_buffer, queue);
++	ibuf = list_first_entry(&pcdev->active_bufs, struct mx2_buf_internal,
++			       queue);
+ 
+-	BUG_ON(buf->bufnum != bufnum);
++	BUG_ON(ibuf->bufnum != bufnum);
+ 
+-	if (buf->discard) {
++	if (ibuf->discard) {
+ 		/*
+ 		 * Discard buffer must not be returned to user space.
+ 		 * Just return it to the discard queue.
+ 		 */
+ 		list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
+ 	} else {
++		buf = mx2_ibuf_to_buf(ibuf);
++
+ 		vb = &buf->vb;
+ #ifdef DEBUG
+ 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
+@@ -1251,7 +1263,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 				vb2_plane_vaddr(vb, 0),
+ 				vb2_get_plane_payload(vb, 0));
+ 
+-		list_del_init(&buf->queue);
++		list_del_init(&buf->internal.queue);
+ 		do_gettimeofday(&vb->v4l2_buf.timestamp);
+ 		vb->v4l2_buf.sequence = pcdev->frame_count;
+ 		if (err)
+@@ -1269,18 +1281,19 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
+ 			return;
+ 		}
+ 
+-		buf = list_first_entry(&pcdev->discard, struct mx2_buffer,
+-				       queue);
+-		buf->bufnum = bufnum;
++		ibuf = list_first_entry(&pcdev->discard,
++					struct mx2_buf_internal, queue);
++		ibuf->bufnum = bufnum;
+ 
+ 		list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
+ 		mx27_update_emma_buf(pcdev, pcdev->discard_buffer_dma, bufnum);
+ 		return;
+ 	}
+ 
+-	buf = list_first_entry(&pcdev->capture, struct mx2_buffer, queue);
++	buf = list_first_entry(&pcdev->capture, struct mx2_buffer,
++			       internal.queue);
+ 
+-	buf->bufnum = bufnum;
++	buf->internal.bufnum = bufnum;
+ 
+ 	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
+ 
+@@ -1295,7 +1308,7 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ {
+ 	struct mx2_camera_dev *pcdev = data;
+ 	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
+-	struct mx2_buffer *buf;
++	struct mx2_buf_internal *ibuf;
+ 
+ 	spin_lock(&pcdev->lock);
+ 
+@@ -1315,10 +1328,10 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ 		       pcdev->base_emma + PRP_CNTL);
+ 		writel(cntl, pcdev->base_emma + PRP_CNTL);
+ 
+-		buf = list_first_entry(pcdev->active_bufs.next,
+-			struct mx2_buffer, queue);
++		ibuf = list_first_entry(&pcdev->active_bufs,
++					struct mx2_buf_internal, queue);
+ 		mx27_camera_frame_done_emma(pcdev,
+-					buf->bufnum, true);
++					ibuf->bufnum, true);
+ 
+ 		status &= ~(1 << 7);
+ 	} else if (((status & (3 << 5)) == (3 << 5)) ||
+@@ -1327,10 +1340,10 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
+ 		 * Both buffers have triggered, process the one we're expecting
+ 		 * to first
+ 		 */
+-		buf = list_first_entry(&pcdev->active_bufs, struct mx2_buffer,
+-				       queue);
+-		mx27_camera_frame_done_emma(pcdev, buf->bufnum, false);
+-		status &= ~(1 << (6 - buf->bufnum)); /* mark processed */
++		ibuf = list_first_entry(&pcdev->active_bufs,
++					struct mx2_buf_internal, queue);
++		mx27_camera_frame_done_emma(pcdev, ibuf->bufnum, false);
++		status &= ~(1 << (6 - ibuf->bufnum)); /* mark processed */
+ 	} else if ((status & (1 << 6)) || (status & (1 << 4))) {
+ 		mx27_camera_frame_done_emma(pcdev, 0, false);
+ 	} else if ((status & (1 << 5)) || (status & (1 << 3))) {
+-- 
+1.7.0.4
 
-Please suggest me how can I move forward with new controls or with sysfs?
-
-Regards
-Manju
-
-
-On Sat, Feb 25, 2012 at 2:16 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->
-> Hi Manjunatha!
->
-> On Friday, February 24, 2012 21:14:31 manjunatha_halli@ti.com wrote:
-> > From: Manjunatha Halli <x0130808@ti.com>
-> >
-> > This patch adds support for below features via sysfs file system
-> >
-> > 1) FM RX Band selection (US/Europe, Japan and Russian bands)
-> > 2) FM RX RDS AF turn ON/OFF
-> > 3) FM RX RSSI level set/get
-> > 4) FM TX Alternate Frequency set/get
-> > 5) FM RX De-Emphasis mode set/get
->
-> Why sysfs? Wouldn't it make more sense to create controls for this?
-> That's the V4L way...
->
-> Regards,
->
->        Hans
->
-> >
-> > Also this patch fixes below issues
-> >
-> > 1) FM audio volume gain       setting
-> > 2) Default rssi       level is set to 8 instead of 20
-> > 3) Issue related to audio mute/unmute
-> > 4)Enable FM RX AF support in driver
-> > 5)In wrap_around seek mode try for once
-> >
-> > Signed-off-by: Manjunatha Halli <x0130808@ti.com>
-> > ---
-> >  drivers/media/radio/wl128x/fmdrv.h        |    1 +
-> >  drivers/media/radio/wl128x/fmdrv_common.c |   11 ++-
-> >  drivers/media/radio/wl128x/fmdrv_common.h |   26 +++--
-> >  drivers/media/radio/wl128x/fmdrv_rx.c     |   13 ++-
-> >  drivers/media/radio/wl128x/fmdrv_tx.c     |    6 +-
-> >  drivers/media/radio/wl128x/fmdrv_v4l2.c   |  188 ++++++++++++++++++++++++++++-
-> >  6 files changed, 225 insertions(+), 20 deletions(-)
-> >
-> > diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
-> > index d84ad9d..8fe773d 100644
-> > --- a/drivers/media/radio/wl128x/fmdrv.h
-> > +++ b/drivers/media/radio/wl128x/fmdrv.h
-> > @@ -196,6 +196,7 @@ struct fmtx_data {
-> >       u16 aud_mode;
-> >       u32 preemph;
-> >       u32 tx_frq;
-> > +     u32 af_frq;
-> >       struct tx_rds rds;
-> >  };
-> >
-> > diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
-> > index fcce61a..1a580a7 100644
-> > --- a/drivers/media/radio/wl128x/fmdrv_common.c
-> > +++ b/drivers/media/radio/wl128x/fmdrv_common.c
-> > @@ -58,6 +58,13 @@ static struct region_info region_configs[] = {
-> >        .top_freq = 90000,     /* 90 MHz */
-> >        .fm_band = 1,
-> >        },
-> > +     /* Russian (OIRT) band */
-> > +     {
-> > +      .chanl_space = FM_CHANNEL_SPACING_200KHZ * FM_FREQ_MUL,
-> > +      .bot_freq = 65800,     /* 65.8 MHz */
-> > +      .top_freq = 74000,     /* 74 MHz */
-> > +      .fm_band = 2,
-> > +      },
-> >  };
-> >
-> >  /* Band selection */
-> > @@ -659,7 +666,7 @@ static void fm_rx_update_af_cache(struct fmdev *fmdev, u8 af)
-> >       if (reg_idx == FM_BAND_JAPAN && af > FM_RDS_MAX_AF_JAPAN)
-> >               return;
-> >
-> > -     freq = fmdev->rx.region.bot_freq + (af * 100);
-> > +     freq = fmdev->rx.region.bot_freq + (af * FM_KHZ);
-> >       if (freq == fmdev->rx.freq) {
-> >               fmdbg("Current freq(%d) is matching with received AF(%d)\n",
-> >                               fmdev->rx.freq, freq);
-> > @@ -1576,7 +1583,7 @@ int fmc_prepare(struct fmdev *fmdev)
-> >       fmdev->rx.rds.flag = FM_RDS_DISABLE;
-> >       fmdev->rx.freq = FM_UNDEFINED_FREQ;
-> >       fmdev->rx.rds_mode = FM_RDS_SYSTEM_RDS;
-> > -     fmdev->rx.af_mode = FM_RX_RDS_AF_SWITCH_MODE_OFF;
-> > +     fmdev->rx.af_mode = FM_RX_RDS_AF_SWITCH_MODE_ON;
-> >       fmdev->irq_info.retry = 0;
-> >
-> >       fmdev->tx_data.tx_frq = FM_UNDEFINED_FREQ;
-> > diff --git a/drivers/media/radio/wl128x/fmdrv_common.h b/drivers/media/radio/wl128x/fmdrv_common.h
-> > index 196ff7d..aaa54bc 100644
-> > --- a/drivers/media/radio/wl128x/fmdrv_common.h
-> > +++ b/drivers/media/radio/wl128x/fmdrv_common.h
-> > @@ -203,6 +203,7 @@ struct fm_event_msg_hdr {
-> >  /* Band types */
-> >  #define FM_BAND_EUROPE_US    0
-> >  #define FM_BAND_JAPAN                1
-> > +#define FM_BAND_RUSSIAN              2
-> >
-> >  /* Seek directions */
-> >  #define FM_SEARCH_DIRECTION_DOWN     0
-> > @@ -216,14 +217,11 @@ struct fm_event_msg_hdr {
-> >
-> >  /* Min and Max volume */
-> >  #define FM_RX_VOLUME_MIN     0
-> > -#define FM_RX_VOLUME_MAX     70
-> > -
-> > -/* Volume gain step */
-> > -#define FM_RX_VOLUME_GAIN_STEP       0x370
-> > +#define FM_RX_VOLUME_MAX     0xffff
-> >
-> >  /* Mute modes */
-> > -#define      FM_MUTE_ON              0
-> > -#define FM_MUTE_OFF          1
-> > +#define FM_MUTE_OFF          0
-> > +#define      FM_MUTE_ON              1
-> >  #define      FM_MUTE_ATTENUATE       2
-> >
-> >  #define FM_RX_UNMUTE_MODE            0x00
-> > @@ -238,8 +236,8 @@ struct fm_event_msg_hdr {
-> >  #define FM_RX_RF_DEPENDENT_MUTE_OFF  0
-> >
-> >  /* RSSI threshold min and max */
-> > -#define FM_RX_RSSI_THRESHOLD_MIN     -128
-> > -#define FM_RX_RSSI_THRESHOLD_MAX     127
-> > +#define FM_RX_RSSI_THRESHOLD_MIN     0       /* 0 dBuV */
-> > +#define FM_RX_RSSI_THRESHOLD_MAX     127     /* 191.1477 dBuV */
-> >
-> >  /* Stereo/Mono mode */
-> >  #define FM_STEREO_MODE               0
-> > @@ -352,8 +350,8 @@ struct fm_event_msg_hdr {
-> >   * Default RX mode configuration. Chip will be configured
-> >   * with this default values after loading RX firmware.
-> >   */
-> > -#define FM_DEFAULT_RX_VOLUME         10
-> > -#define FM_DEFAULT_RSSI_THRESHOLD    20
-> > +#define FM_DEFAULT_RX_VOLUME         10000
-> > +#define FM_DEFAULT_RSSI_THRESHOLD    8       /* 12.0408 dBuV */
-> >
-> >  /* Range for TX power level in units for dB/uV */
-> >  #define FM_PWR_LVL_LOW                       91
-> > @@ -403,5 +401,13 @@ int fmc_get_mode(struct fmdev *, u8 *);
-> >  #define FM_CHANNEL_SPACING_200KHZ 4
-> >  #define FM_FREQ_MUL 50
-> >
-> > +#define FM_US_BAND_LOW               87500
-> > +#define FM_US_BAND_HIGH              180000
-> > +#define FM_JAPAN_BAND_LOW    76000
-> > +#define FM_JAPAN_BAND_HIGH   90000
-> > +
-> > +#define FM_KHZ                       100
-> > +
-> > +
-> >  #endif
-> >
-> > diff --git a/drivers/media/radio/wl128x/fmdrv_rx.c b/drivers/media/radio/wl128x/fmdrv_rx.c
-> > index a806bda..0965270 100644
-> > --- a/drivers/media/radio/wl128x/fmdrv_rx.c
-> > +++ b/drivers/media/radio/wl128x/fmdrv_rx.c
-> > @@ -276,6 +276,10 @@ again:
-> >                       /* Calculate frequency index to write */
-> >                       next_frq = (fmdev->rx.freq -
-> >                                       fmdev->rx.region.bot_freq) / FM_FREQ_MUL;
-> > +
-> > +                     /* If no valid chanel then report default frequency */
-> > +                     wrap_around = 0;
-> > +
-> >                       goto again;
-> >               }
-> >       } else {
-> > @@ -290,6 +294,7 @@ again:
-> >                               ((u32)curr_frq * FM_FREQ_MUL));
-> >
-> >       }
-> > +
-> >       /* Reset RDS cache and current station pointers */
-> >       fm_rx_reset_rds_cache(fmdev);
-> >       fm_rx_reset_station_info(fmdev);
-> > @@ -310,7 +315,6 @@ int fm_rx_set_volume(struct fmdev *fmdev, u16 vol_to_set)
-> >                          FM_RX_VOLUME_MIN, FM_RX_VOLUME_MAX);
-> >               return -EINVAL;
-> >       }
-> > -     vol_to_set *= FM_RX_VOLUME_GAIN_STEP;
-> >
-> >       payload = vol_to_set;
-> >       ret = fmc_send_cmd(fmdev, VOLUME_SET, REG_WR, &payload,
-> > @@ -333,7 +337,7 @@ int fm_rx_get_volume(struct fmdev *fmdev, u16 *curr_vol)
-> >               return -ENOMEM;
-> >       }
-> >
-> > -     *curr_vol = fmdev->rx.volume / FM_RX_VOLUME_GAIN_STEP;
-> > +     *curr_vol = fmdev->rx.volume;
-> >
-> >       return 0;
-> >  }
-> > @@ -364,7 +368,8 @@ int fm_rx_set_region(struct fmdev *fmdev, u8 region_to_set)
-> >       int ret;
-> >
-> >       if (region_to_set != FM_BAND_EUROPE_US &&
-> > -         region_to_set != FM_BAND_JAPAN) {
-> > +         region_to_set != FM_BAND_JAPAN &&
-> > +         region_to_set != FM_BAND_RUSSIAN) {
-> >               fmerr("Invalid band\n");
-> >               return -EINVAL;
-> >       }
-> > @@ -550,7 +555,7 @@ int fm_rx_set_rssi_threshold(struct fmdev *fmdev, short rssi_lvl_toset)
-> >               fmerr("Invalid RSSI threshold level\n");
-> >               return -EINVAL;
-> >       }
-> > -     payload = (u16)rssi_lvl_toset;
-> > +     payload = (u16) rssi_lvl_toset;
-> >       ret = fmc_send_cmd(fmdev, SEARCH_LVL_SET, REG_WR, &payload,
-> >                       sizeof(payload), NULL, NULL);
-> >       if (ret < 0)
-> > diff --git a/drivers/media/radio/wl128x/fmdrv_tx.c b/drivers/media/radio/wl128x/fmdrv_tx.c
-> > index 6d879fb..52e5120 100644
-> > --- a/drivers/media/radio/wl128x/fmdrv_tx.c
-> > +++ b/drivers/media/radio/wl128x/fmdrv_tx.c
-> > @@ -177,10 +177,10 @@ int fm_tx_set_af(struct fmdev *fmdev, u32 af)
-> >
-> >       fmdbg("AF: %d\n", af);
-> >
-> > -     af = (af - 87500) / 100;
-> > +     fmdev->tx_data.af_frq = af;
-> > +     af = (af - FM_US_BAND_LOW) / FM_KHZ;
-> >       payload = (u16)af;
-> > -     ret = fmc_send_cmd(fmdev, TA_SET, REG_WR, &payload,
-> > -                     sizeof(payload), NULL, NULL);
-> > +     ret = fmc_send_cmd(fmdev, AF, REG_WR, &payload, sizeof(payload), NULL, NULL);
-> >       if (ret < 0)
-> >               return ret;
-> >
-> > diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-> > index b9da1ae..4bd7bf1 100644
-> > --- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-> > +++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-> > @@ -110,6 +110,184 @@ static u32 fm_v4l2_fops_poll(struct file *file, struct poll_table_struct *pts)
-> >       return 0;
-> >  }
-> >
-> > +/**********************************************************************/
-> > +/* functions called from sysfs subsystem */
-> > +
-> > +static ssize_t show_fmtx_af(struct device *dev,
-> > +             struct device_attribute *attr, char *buf)
-> > +{
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     return sprintf(buf, "%d\n", fmdev->tx_data.af_frq);
-> > +}
-> > +
-> > +static ssize_t store_fmtx_af(struct device *dev,
-> > +             struct device_attribute *attr, char *buf, size_t size)
-> > +{
-> > +     int ret;
-> > +     unsigned long af_freq;
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     if (kstrtoul(buf, 0, &af_freq))
-> > +             return -EINVAL;
-> > +
-> > +     ret = fm_tx_set_af(fmdev, af_freq);
-> > +     if (ret < 0) {
-> > +             fmerr("Failed to set FM TX AF Frequency\n");
-> > +             return ret;
-> > +     }
-> > +     return size;
-> > +}
-> > +
-> > +static ssize_t show_fmrx_deemphasis(struct device *dev,
-> > +             struct device_attribute *attr, char *buf)
-> > +{
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     return sprintf(buf, "%d\n", (fmdev->rx.deemphasis_mode ==
-> > +                             FM_RX_EMPHASIS_FILTER_50_USEC) ? 50 : 75);
-> > +}
-> > +
-> > +static ssize_t store_fmrx_deemphasis(struct device *dev,
-> > +             struct device_attribute *attr, char *buf, size_t size)
-> > +{
-> > +     int ret;
-> > +     unsigned long deemph_mode;
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     if (kstrtoul(buf, 0, &deemph_mode))
-> > +             return -EINVAL;
-> > +
-> > +     if (deemph_mode != 50 && deemph_mode != 75)
-> > +             return -EINVAL;
-> > +
-> > +     if (deemph_mode == 50)
-> > +             deemph_mode = FM_RX_EMPHASIS_FILTER_50_USEC;
-> > +     else
-> > +             deemph_mode = FM_RX_EMPHASIS_FILTER_75_USEC;
-> > +
-> > +     ret = fm_rx_set_deemphasis_mode(fmdev, deemph_mode);
-> > +     if (ret < 0) {
-> > +             fmerr("Failed to set De-emphasis Mode\n");
-> > +             return ret;
-> > +     }
-> > +
-> > +     return size;
-> > +}
-> > +
-> > +static ssize_t show_fmrx_af(struct device *dev,
-> > +             struct device_attribute *attr, char *buf)
-> > +{
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     return sprintf(buf, "%d\n", fmdev->rx.af_mode);
-> > +}
-> > +
-> > +static ssize_t store_fmrx_af(struct device *dev,
-> > +             struct device_attribute *attr, char *buf, size_t size)
-> > +{
-> > +     int ret;
-> > +     unsigned long af_mode;
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     if (kstrtoul(buf, 0, &af_mode))
-> > +             return -EINVAL;
-> > +
-> > +     if (af_mode < 0 || af_mode > 1)
-> > +             return -EINVAL;
-> > +
-> > +     ret = fm_rx_set_af_switch(fmdev, af_mode);
-> > +     if (ret < 0) {
-> > +             fmerr("Failed to set AF Switch\n");
-> > +             return ret;
-> > +     }
-> > +
-> > +     return size;
-> > +}
-> > +
-> > +static ssize_t show_fmrx_band(struct device *dev,
-> > +             struct device_attribute *attr, char *buf)
-> > +{
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     return sprintf(buf, "%d\n", fmdev->rx.region.fm_band);
-> > +}
-> > +
-> > +static ssize_t store_fmrx_band(struct device *dev,
-> > +             struct device_attribute *attr, char *buf, size_t size)
-> > +{
-> > +     int ret;
-> > +     unsigned long fm_band;
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     if (kstrtoul(buf, 0, &fm_band))
-> > +             return -EINVAL;
-> > +
-> > +     if (fm_band < FM_BAND_EUROPE_US || fm_band > FM_BAND_RUSSIAN)
-> > +             return -EINVAL;
-> > +
-> > +     ret = fm_rx_set_region(fmdev, fm_band);
-> > +     if (ret < 0) {
-> > +             fmerr("Failed to set FM Band\n");
-> > +             return ret;
-> > +     }
-> > +
-> > +     return size;
-> > +}
-> > +
-> > +static ssize_t show_fmrx_rssi_lvl(struct device *dev,
-> > +             struct device_attribute *attr, char *buf)
-> > +{
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     return sprintf(buf, "%d\n", fmdev->rx.rssi_threshold);
-> > +}
-> > +static ssize_t store_fmrx_rssi_lvl(struct device *dev,
-> > +             struct device_attribute *attr, char *buf, size_t size)
-> > +{
-> > +     int ret;
-> > +     unsigned long rssi_lvl;
-> > +     struct fmdev *fmdev = dev_get_drvdata(dev);
-> > +
-> > +     if (kstrtoul(buf, 0, &rssi_lvl))
-> > +             return -EINVAL;
-> > +
-> > +     ret = fm_rx_set_rssi_threshold(fmdev, rssi_lvl);
-> > +     if (ret < 0) {
-> > +             fmerr("Failed to set RSSI level\n");
-> > +             return ret;
-> > +     }
-> > +
-> > +     return size;
-> > +}
-> > +
-> > +/* structures specific for sysfs entries */
-> > +static struct kobj_attribute v4l2_fmtx_rds_af =
-> > +__ATTR(fmtx_rds_af, 0666, (void *)show_fmtx_af, (void *)store_fmtx_af);
-> > +
-> > +static struct kobj_attribute v4l2_fm_deemph_mode =
-> > +__ATTR(fmrx_deemph_mode, 0666, (void *)show_fmrx_deemphasis, (void *)store_fmrx_deemphasis);
-> > +
-> > +static struct kobj_attribute v4l2_fm_rds_af =
-> > +__ATTR(fmrx_rds_af, 0666, (void *)show_fmrx_af, (void *)store_fmrx_af);
-> > +
-> > +static struct kobj_attribute v4l2_fm_band =
-> > +__ATTR(fmrx_band, 0666, (void *)show_fmrx_band, (void *)store_fmrx_band);
-> > +
-> > +static struct kobj_attribute v4l2_fm_rssi_lvl =
-> > +__ATTR(fmrx_rssi_lvl, 0666, (void *) show_fmrx_rssi_lvl, (void *)store_fmrx_rssi_lvl);
-> > +
-> > +static struct attribute *v4l2_fm_attrs[] = {
-> > +     &v4l2_fmtx_rds_af.attr,
-> > +     &v4l2_fm_deemph_mode.attr,
-> > +     &v4l2_fm_rds_af.attr,
-> > +     &v4l2_fm_band.attr,
-> > +     &v4l2_fm_rssi_lvl.attr,
-> > +     NULL,
-> > +};
-> > +static struct attribute_group v4l2_fm_attr_grp = {
-> > +     .attrs = v4l2_fm_attrs,
-> > +};
-> >  /*
-> >   * Handle open request for "/dev/radioX" device.
-> >   * Start with FM RX mode as default.
-> > @@ -142,6 +320,12 @@ static int fm_v4l2_fops_open(struct file *file)
-> >       }
-> >       radio_disconnected = 1;
-> >
-> > +     /* Register sysfs entries */
-> > +     ret = sysfs_create_group(&fmdev->radio_dev->dev.kobj, &v4l2_fm_attr_grp);
-> > +     if (ret) {
-> > +             pr_err("failed to create sysfs entries");
-> > +             return ret;
-> > +     }
-> >       return ret;
-> >  }
-> >
-> > @@ -162,6 +346,8 @@ static int fm_v4l2_fops_release(struct file *file)
-> >               return ret;
-> >       }
-> >
-> > +     sysfs_remove_group(&fmdev->radio_dev->dev.kobj, &v4l2_fm_attr_grp);
-> > +
-> >       ret = fmc_release(fmdev);
-> >       if (ret < 0) {
-> >               fmerr("FM CORE release failed\n");
-> > @@ -582,7 +768,7 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
-> >                       FM_RX_VOLUME_MAX, 1, FM_RX_VOLUME_MAX);
-> >
-> >       v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-> > -                     V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
-> > +                     V4L2_CID_AUDIO_MUTE, 0, 1, 1, 0);
-> >
-> >       v4l2_ctrl_new_std(&fmdev->ctrl_handler, &fm_ctrl_ops,
-> >                       V4L2_CID_RDS_TX_PI, 0x0, 0xffff, 1, 0x0);
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
