@@ -1,96 +1,295 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:41316 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750916Ab2BHNyU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 Feb 2012 08:54:20 -0500
-Message-ID: <4F327E8A.6010800@iki.fi>
-Date: Wed, 08 Feb 2012 15:54:18 +0200
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Malcolm Priestley <tvboxspy@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 2/2] IT913X Version 1 and Version 2 keymaps
-References: <1328135384.2552.20.camel@tvbox> <4F2FCAAD.3070706@iki.fi> <1328548004.2331.15.camel@tvbox>
-In-Reply-To: <1328548004.2331.15.camel@tvbox>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754157Ab2BVQtK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 11:49:10 -0500
+Date: Wed, 22 Feb 2012 17:48:50 +0100
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: [PATCHv23 09/16] mm: page_isolation: MIGRATE_CMA isolation functions
+ added
+In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-mm@kvack.org,
+	linaro-mm-sig@lists.linaro.org
+Cc: Michal Nazarewicz <mina86@mina86.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Russell King <linux@arm.linux.org.uk>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
+	Daniel Walker <dwalker@codeaurora.org>,
+	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
+	Jesse Barker <jesse.barker@linaro.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Chunsang Jeong <chunsang.jeong@linaro.org>,
+	Dave Hansen <dave@linux.vnet.ibm.com>,
+	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
+	Rob Clark <rob.clark@linaro.org>,
+	Ohad Ben-Cohen <ohad@wizery.com>
+Message-id: <1329929337-16648-10-git-send-email-m.szyprowski@samsung.com>
+MIME-version: 1.0
+Content-type: TEXT/PLAIN
+Content-transfer-encoding: 7BIT
+References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06.02.2012 19:06, Malcolm Priestley wrote:
-> On Mon, 2012-02-06 at 14:42 +0200, Antti Palosaari wrote:
->> On 02/02/2012 12:29 AM, Malcolm Priestley wrote:
->>> IT913X V1 V2 keymaps
->>> +static struct rc_map_table it913x_v1_rc[] = {
->>> +	/* Type 1 */
+From: Michal Nazarewicz <mina86@mina86.com>
 
->>
->> That remote is already there. Use existing remote instead of adding new
->> one with different name. It is RC_MAP_MSI_DIGIVOX_III
->>
-> The driver originally used this map.
->
-> RC_MAP_MSI_DIGIVOX_III and RC_MAP_KWORLD_315U also are the same map.
+This commit changes various functions that change pages and
+pageblocks migrate type between MIGRATE_ISOLATE and
+MIGRATE_MOVABLE in such a way as to allow to work with
+MIGRATE_CMA migrate type.
 
-Yes it is. As you likely saw from the comments I have added:
-/* This remote seems to be same as rc-kworld-315u.c. Anyhow, add new 
-remote since rc-kworld-315u.c lacks NEC extended address byte. */
+Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
+Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
+Tested-by: Rob Clark <rob.clark@linaro.org>
+Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
+Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Tested-by: Robert Nelson <robertcnelson@gmail.com>
+---
+ include/linux/gfp.h            |    3 ++-
+ include/linux/page-isolation.h |   18 +++++++++---------
+ mm/memory-failure.c            |    2 +-
+ mm/memory_hotplug.c            |    6 +++---
+ mm/page_alloc.c                |   18 ++++++++++++------
+ mm/page_isolation.c            |   15 ++++++++-------
+ 6 files changed, 35 insertions(+), 27 deletions(-)
 
-The reason I was forced to add new keymap instead of fixing 
-RC_MAP_KWORLD_315U was simple I didn't have em28xx device to test and 
-fix it at that time. So I added new correct keymap. Fix should be done 
-for em28xx driver to handle 24bit NEC extended.
-
-
->>> +	/* Type 2 - 20 buttons */
->>> +	{ 0x807f0d, KEY_0 },
->>> +	{ 0x807f0e, KEY_STOP },
->>
->> That is NEC basic - 16 bit, not 24 bit. That remote seems to be here
->> also. It is RC_MAP_TERRATEC_SLIM_2. Use existing instead of define new.
->>
->
-> All ITE NEC remotes are 32bit with 0xff00 mask. However, they are
-> modified to 24 bit or 16 bit.
-
-That is wrong assumption. NEC sends always physically 32bit. Original 
-NEC is is still 16bit long as payload. Other 16bit are reduntant and are 
-used for checksum. If you XOR byte0 and byte1 you got 0xff. Same applies 
-for byte2 and byte3.
-Using 0xff00 you give as example => 0xff XOR 0x00 = 0xFF.
-And for remote in question, 0x80 XOR 7f = 0xFF.
-
-> The both maps need to merged because they share the same product ID.
-
-Yes, thats tricky part. I still don't see idea to put all possible 
-remotes to one file. If you look AF9015 driver you can see same problem. 
-And maybe many others too. That was one reason for RC-core too. The idea 
-was to upload keytable from the userspace in that case.
-
->>> +static struct rc_map_table it913x_v2_rc[] = {
->>> +	/* Type 1 */
->>> +	/* 9005 remote */
->>> +	{ 0x807f12, KEY_POWER2 },	/* Power (RED POWER BUTTON)*/
->>
->> That is also 16 bit NEC basic.
->>
-> This is a different map.
->
-> All the maps will soon need to be 32bit, HID type interfaces need the
-> 32bit map uploaded.
-
-It does not matter what HID wants. As those are simply checksums you can 
-calculate those easily in the driver. See af9015 for example. And some 
-other drivers too, IIRC DiBcom at least.
-
-IMHO all NEC should be defined as full 32 bit code. I asked that many 
-times when RC-core was introduced and I was converting af9015 to 
-RC-core. But it is now differently, only payload bytes are defined to 
-the keytable and checksum bytes left out. That was spoken many times on 
-the mailing list. Try to search some discussion, af9015 + rc-core is 
-good starting point.
-
-regards
-Antti
+diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+index 78d32a7..1e49be4 100644
+--- a/include/linux/gfp.h
++++ b/include/linux/gfp.h
+@@ -394,7 +394,8 @@ static inline bool pm_suspended_storage(void)
+ #ifdef CONFIG_CMA
+ 
+ /* The below functions must be run on a range from a single zone. */
+-extern int alloc_contig_range(unsigned long start, unsigned long end);
++extern int alloc_contig_range(unsigned long start, unsigned long end,
++			      unsigned migratetype);
+ extern void free_contig_range(unsigned long pfn, unsigned nr_pages);
+ 
+ /* CMA stuff */
+diff --git a/include/linux/page-isolation.h b/include/linux/page-isolation.h
+index 051c1b1..3bdcab3 100644
+--- a/include/linux/page-isolation.h
++++ b/include/linux/page-isolation.h
+@@ -3,7 +3,7 @@
+ 
+ /*
+  * Changes migrate type in [start_pfn, end_pfn) to be MIGRATE_ISOLATE.
+- * If specified range includes migrate types other than MOVABLE,
++ * If specified range includes migrate types other than MOVABLE or CMA,
+  * this will fail with -EBUSY.
+  *
+  * For isolating all pages in the range finally, the caller have to
+@@ -11,27 +11,27 @@
+  * test it.
+  */
+ extern int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			 unsigned migratetype);
+ 
+ /*
+  * Changes MIGRATE_ISOLATE to MIGRATE_MOVABLE.
+  * target range is [start_pfn, end_pfn)
+  */
+ extern int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn);
++undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			unsigned migratetype);
+ 
+ /*
+- * test all pages in [start_pfn, end_pfn)are isolated or not.
++ * Test all pages in [start_pfn, end_pfn) are isolated or not.
+  */
+-extern int
+-test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
++int test_pages_isolated(unsigned long start_pfn, unsigned long end_pfn);
+ 
+ /*
+- * Internal funcs.Changes pageblock's migrate type.
+- * Please use make_pagetype_isolated()/make_pagetype_movable().
++ * Internal functions. Changes pageblock's migrate type.
+  */
+ extern int set_migratetype_isolate(struct page *page);
+-extern void unset_migratetype_isolate(struct page *page);
++extern void unset_migratetype_isolate(struct page *page, unsigned migratetype);
+ 
+ 
+ #endif
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 0f6033b..4eea81e 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -1404,7 +1404,7 @@ static int get_any_page(struct page *p, unsigned long pfn, int flags)
+ 		/* Not a free page */
+ 		ret = 1;
+ 	}
+-	unset_migratetype_isolate(p);
++	unset_migratetype_isolate(p, MIGRATE_MOVABLE);
+ 	unlock_memory_hotplug();
+ 	return ret;
+ }
+diff --git a/mm/memory_hotplug.c b/mm/memory_hotplug.c
+index 6629faf..fc898cb 100644
+--- a/mm/memory_hotplug.c
++++ b/mm/memory_hotplug.c
+@@ -891,7 +891,7 @@ static int __ref offline_pages(unsigned long start_pfn,
+ 	nr_pages = end_pfn - start_pfn;
+ 
+ 	/* set above range as isolated */
+-	ret = start_isolate_page_range(start_pfn, end_pfn);
++	ret = start_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 	if (ret)
+ 		goto out;
+ 
+@@ -956,7 +956,7 @@ repeat:
+ 	   We cannot do rollback at this point. */
+ 	offline_isolated_pages(start_pfn, end_pfn);
+ 	/* reset pagetype flags and makes migrate type to be MOVABLE */
+-	undo_isolate_page_range(start_pfn, end_pfn);
++	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 	/* removal success */
+ 	zone->present_pages -= offlined_pages;
+ 	zone->zone_pgdat->node_present_pages -= offlined_pages;
+@@ -981,7 +981,7 @@ failed_removal:
+ 		start_pfn, end_pfn);
+ 	memory_notify(MEM_CANCEL_OFFLINE, &arg);
+ 	/* pushback to free area */
+-	undo_isolate_page_range(start_pfn, end_pfn);
++	undo_isolate_page_range(start_pfn, end_pfn, MIGRATE_MOVABLE);
+ 
+ out:
+ 	unlock_memory_hotplug();
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 07bddbe..e590b95 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -5595,7 +5595,7 @@ out:
+ 	return ret;
+ }
+ 
+-void unset_migratetype_isolate(struct page *page)
++void unset_migratetype_isolate(struct page *page, unsigned migratetype)
+ {
+ 	struct zone *zone;
+ 	unsigned long flags;
+@@ -5603,8 +5603,8 @@ void unset_migratetype_isolate(struct page *page)
+ 	spin_lock_irqsave(&zone->lock, flags);
+ 	if (get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 		goto out;
+-	set_pageblock_migratetype(page, MIGRATE_MOVABLE);
+-	move_freepages_block(zone, page, MIGRATE_MOVABLE);
++	set_pageblock_migratetype(page, migratetype);
++	move_freepages_block(zone, page, migratetype);
+ out:
+ 	spin_unlock_irqrestore(&zone->lock, flags);
+ }
+@@ -5680,6 +5680,10 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * alloc_contig_range() -- tries to allocate given range of pages
+  * @start:	start PFN to allocate
+  * @end:	one-past-the-last PFN to allocate
++ * @migratetype:	migratetype of the underlaying pageblocks (either
++ *			#MIGRATE_MOVABLE or #MIGRATE_CMA).  All pageblocks
++ *			in range must have the same migratetype and it must
++ *			be either of the two.
+  *
+  * The PFN range does not have to be pageblock or MAX_ORDER_NR_PAGES
+  * aligned, however it's the caller's responsibility to guarantee that
+@@ -5692,7 +5696,8 @@ static int __alloc_contig_migrate_range(unsigned long start, unsigned long end)
+  * pages which PFN is in [start, end) are allocated for the caller and
+  * need to be freed with free_contig_range().
+  */
+-int alloc_contig_range(unsigned long start, unsigned long end)
++int alloc_contig_range(unsigned long start, unsigned long end,
++		       unsigned migratetype)
+ {
+ 	struct zone *zone = page_zone(pfn_to_page(start));
+ 	unsigned long outer_start, outer_end;
+@@ -5722,7 +5727,8 @@ int alloc_contig_range(unsigned long start, unsigned long end)
+ 	 */
+ 
+ 	ret = start_isolate_page_range(pfn_align_to_maxpage_down(start),
+-				       pfn_align_to_maxpage_up(end));
++				       pfn_align_to_maxpage_up(end),
++				       migratetype);
+ 	if (ret)
+ 		goto done;
+ 
+@@ -5782,7 +5788,7 @@ int alloc_contig_range(unsigned long start, unsigned long end)
+ 
+ done:
+ 	undo_isolate_page_range(pfn_align_to_maxpage_down(start),
+-				pfn_align_to_maxpage_up(end));
++				pfn_align_to_maxpage_up(end), migratetype);
+ 	return ret;
+ }
+ 
+diff --git a/mm/page_isolation.c b/mm/page_isolation.c
+index 4ae42bb..c9f0477 100644
+--- a/mm/page_isolation.c
++++ b/mm/page_isolation.c
+@@ -24,6 +24,7 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * to be MIGRATE_ISOLATE.
+  * @start_pfn: The lower PFN of the range to be isolated.
+  * @end_pfn: The upper PFN of the range to be isolated.
++ * @migratetype: migrate type to set in error recovery.
+  *
+  * Making page-allocation-type to be MIGRATE_ISOLATE means free pages in
+  * the range will never be allocated. Any free pages and pages freed in the
+@@ -32,8 +33,8 @@ __first_valid_page(unsigned long pfn, unsigned long nr_pages)
+  * start_pfn/end_pfn must be aligned to pageblock_order.
+  * Returns 0 on success and -EBUSY if any part of range cannot be isolated.
+  */
+-int
+-start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int start_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			     unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	unsigned long undo_pfn;
+@@ -56,7 +57,7 @@ undo:
+ 	for (pfn = start_pfn;
+ 	     pfn < undo_pfn;
+ 	     pfn += pageblock_nr_pages)
+-		unset_migratetype_isolate(pfn_to_page(pfn));
++		unset_migratetype_isolate(pfn_to_page(pfn), migratetype);
+ 
+ 	return -EBUSY;
+ }
+@@ -64,8 +65,8 @@ undo:
+ /*
+  * Make isolated pages available again.
+  */
+-int
+-undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
++int undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn,
++			    unsigned migratetype)
+ {
+ 	unsigned long pfn;
+ 	struct page *page;
+@@ -77,7 +78,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+ 		page = __first_valid_page(pfn, pageblock_nr_pages);
+ 		if (!page || get_pageblock_migratetype(page) != MIGRATE_ISOLATE)
+ 			continue;
+-		unset_migratetype_isolate(page);
++		unset_migratetype_isolate(page, migratetype);
+ 	}
+ 	return 0;
+ }
+@@ -86,7 +87,7 @@ undo_isolate_page_range(unsigned long start_pfn, unsigned long end_pfn)
+  * all pages in [start_pfn...end_pfn) must be in the same zone.
+  * zone->lock must be held before call this.
+  *
+- * Returns 1 if all pages in the range is isolated.
++ * Returns 1 if all pages in the range are isolated.
+  */
+ static int
+ __test_page_isolated_in_pageblock(unsigned long pfn, unsigned long end_pfn)
 -- 
-http://palosaari.fi/
+1.7.1.569.g6f426
+
