@@ -1,273 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58438 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34390 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752644Ab2BZD1d (ORCPT
+	with ESMTP id S1750783Ab2BVKz4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 22:27:33 -0500
+	Wed, 22 Feb 2012 05:55:56 -0500
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH 06/11] mt9m032: Pass an i2c_client pointer to the register read/write functions
-Date: Sun, 26 Feb 2012 04:27:32 +0100
-Message-Id: <1330226857-8651-7-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 25/33] omap3isp: Introduce omap3isp_get_external_info()
+Date: Wed, 22 Feb 2012 11:55:58 +0100
+Message-ID: <3168869.IBFJLUCLKu@avalon>
+In-Reply-To: <1329703032-31314-25-git-send-email-sakari.ailus@iki.fi>
+References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-25-git-send-email-sakari.ailus@iki.fi>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the mt9m032 * argument to register read/write functions with an
-i2c_client *. As the register access functions are often called several
-times in a single location, this removes several casts at runtime.
+Hi Sakari,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/mt9m032.c |   75 ++++++++++++++++++++---------------------
- 1 files changed, 37 insertions(+), 38 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-index b8e97ad..726e3ca 100644
---- a/drivers/media/video/mt9m032.c
-+++ b/drivers/media/video/mt9m032.c
-@@ -124,18 +124,13 @@ struct mt9m032 {
- #define to_dev(sensor) \
- 	(&((struct i2c_client *)v4l2_get_subdevdata(&(sensor)->subdev))->dev)
- 
--static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
-+static int mt9m032_read_reg(struct i2c_client *client, u8 reg)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
--
- 	return i2c_smbus_read_word_swapped(client, reg);
- }
- 
--static int mt9m032_write_reg(struct mt9m032 *sensor, u8 reg,
--		     const u16 data)
-+static int mt9m032_write_reg(struct i2c_client *client, u8 reg, const u16 data)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
--
- 	return i2c_smbus_write_word_swapped(client, reg, data);
- }
- 
-@@ -153,6 +148,7 @@ static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
- static int mt9m032_update_timing(struct mt9m032 *sensor,
- 				 struct v4l2_fract *interval)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
- 	struct v4l2_rect *crop = &sensor->crop;
- 	unsigned long row_time;
- 	int additional_blanking_rows;
-@@ -182,21 +178,22 @@ static int mt9m032_update_timing(struct mt9m032 *sensor,
- 	additional_blanking_rows = clamp(additional_blanking_rows,
- 					 min_blank, MT9M032_MAX_BLANKING_ROWS);
- 
--	return mt9m032_write_reg(sensor, MT9M032_VBLANK, additional_blanking_rows);
-+	return mt9m032_write_reg(client, MT9M032_VBLANK, additional_blanking_rows);
- }
- 
- static int mt9m032_update_geom_timing(struct mt9m032 *sensor)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
- 	int ret;
- 
--	ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_SIZE, sensor->crop.width - 1);
-+	ret = mt9m032_write_reg(client, MT9M032_COLUMN_SIZE, sensor->crop.width - 1);
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_ROW_SIZE, sensor->crop.height - 1);
-+		ret = mt9m032_write_reg(client, MT9M032_ROW_SIZE, sensor->crop.height - 1);
- 	/* offsets compensate for black border */
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_START, sensor->crop.left);
-+		ret = mt9m032_write_reg(client, MT9M032_COLUMN_START, sensor->crop.left);
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_ROW_START, sensor->crop.top);
-+		ret = mt9m032_write_reg(client, MT9M032_ROW_START, sensor->crop.top);
- 	if (!ret)
- 		ret = mt9m032_update_timing(sensor, NULL);
- 	return ret;
-@@ -204,6 +201,7 @@ static int mt9m032_update_geom_timing(struct mt9m032 *sensor)
- 
- static int update_formatter2(struct mt9m032 *sensor, bool streaming)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
- 	u16 reg_val =   MT9M032_FORMATTER2_DOUT_EN
- 		      | 0x0070;  /* parts reserved! */
- 				 /* possibly for changing to 14-bit mode */
-@@ -211,11 +209,12 @@ static int update_formatter2(struct mt9m032 *sensor, bool streaming)
- 	if (streaming)
- 		reg_val |= MT9M032_FORMATTER2_PIXCLK_EN;   /* pixclock enable */
- 
--	return mt9m032_write_reg(sensor, MT9M032_FORMATTER2, reg_val);
-+	return mt9m032_write_reg(client, MT9M032_FORMATTER2, reg_val);
- }
- 
- static int mt9m032_setup_pll(struct mt9m032 *sensor)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
- 	struct mt9m032_platform_data* pdata = sensor->pdata;
- 	u16 reg_pll1;
- 	unsigned int pre_div;
-@@ -235,21 +234,21 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
- 	reg_pll1 = ((pdata->pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
- 		   | pdata->pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT;
- 
--	ret = mt9m032_write_reg(sensor, MT9M032_PLL_CONFIG1, reg_pll1);
-+	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor,
-+		ret = mt9m032_write_reg(client,
- 					MT9P031_PLL_CONTROL,
- 					MT9P031_PLL_CONTROL_PWRON | MT9P031_PLL_CONTROL_USEPLL);
- 
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_READ_MODE1, 0x8006);
-+		ret = mt9m032_write_reg(client, MT9M032_READ_MODE1, 0x8006);
- 							/* more reserved, Continuous */
- 							/* Master Mode */
- 	if (!ret)
--		res = mt9m032_read_reg(sensor, MT9M032_READ_MODE1);
-+		res = mt9m032_read_reg(client, MT9M032_READ_MODE1);
- 
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_FORMATTER1, 0x111e);
-+		ret = mt9m032_write_reg(client, MT9M032_FORMATTER1, 0x111e);
- 					/* Set 14-bit mode, select 7 divider */
- 
- 	return ret;
-@@ -465,7 +464,7 @@ static int mt9m032_g_register(struct v4l2_subdev *sd,
- 	if (reg->match.addr != client->addr)
- 		return -ENODEV;
- 
--	val = mt9m032_read_reg(sensor, reg->reg);
-+	val = mt9m032_read_reg(client, reg->reg);
- 	if (val < 0)
- 		return -EIO;
- 
-@@ -487,10 +486,7 @@ static int mt9m032_s_register(struct v4l2_subdev *sd,
- 	if (reg->match.addr != client->addr)
- 		return -ENODEV;
- 
--	if (mt9m032_write_reg(sensor, reg->reg, reg->val) < 0)
--		return -EIO;
--
--	return 0;
-+	return mt9m032_write_reg(client, reg->reg, reg->val);
- }
- #endif
- 
-@@ -500,12 +496,13 @@ static int mt9m032_s_register(struct v4l2_subdev *sd,
- 
- static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool hflip)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
- 	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
- 		      | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
- 		      | MT9M032_READ_MODE2_ROW_BLC
- 		      | 0x0007;
- 
--	return mt9m032_write_reg(sensor, MT9M032_READ_MODE2, reg_val);
-+	return mt9m032_write_reg(client, MT9M032_READ_MODE2, reg_val);
- }
- 
- static int mt9m032_set_hflip(struct mt9m032 *sensor, s32 val)
-@@ -520,6 +517,7 @@ static int mt9m032_set_vflip(struct mt9m032 *sensor, s32 val)
- 
- static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
- 	int shutter_width;
- 	u16 high_val, low_val;
- 	int ret;
-@@ -530,15 +528,16 @@ static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
- 	high_val = (shutter_width >> 16) & 0xf;
- 	low_val = shutter_width & 0xffff;
- 
--	ret = mt9m032_write_reg(sensor, MT9M032_SHUTTER_WIDTH_HIGH, high_val);
-+	ret = mt9m032_write_reg(client, MT9M032_SHUTTER_WIDTH_HIGH, high_val);
- 	if (!ret)
--		ret = mt9m032_write_reg(sensor, MT9M032_SHUTTER_WIDTH_LOW, low_val);
-+		ret = mt9m032_write_reg(client, MT9M032_SHUTTER_WIDTH_LOW, low_val);
- 
- 	return ret;
- }
- 
- static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
- {
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
- 	int digital_gain_val;	/* in 1/8th (0..127) */
- 	int analog_mul;		/* 0 or 1 */
- 	int analog_gain_val;	/* in 1/16th. (0..63) */
-@@ -561,7 +560,7 @@ static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
- 		  | (analog_mul & 1) << MT9M032_GAIN_AMUL_SHIFT
- 		  | (analog_gain_val & MT9M032_GAIN_ANALOG_MASK);
- 
--	return mt9m032_write_reg(sensor, MT9M032_GAIN_ALL, reg_val);
-+	return mt9m032_write_reg(client, MT9M032_GAIN_ALL, reg_val);
- }
- 
- static int mt9m032_try_ctrl(struct v4l2_ctrl *ctrl)
-@@ -666,7 +665,7 @@ static int mt9m032_probe(struct i2c_client *client,
- 	 * the code will need to be extended with the appropriate platform
- 	 * callback to setup the clock.
- 	 */
--	chip_version = mt9m032_read_reg(sensor, MT9M032_CHIP_VERSION);
-+	chip_version = mt9m032_read_reg(client, MT9M032_CHIP_VERSION);
- 	if (chip_version == MT9M032_CHIP_VERSION_VALUE) {
- 		dev_info(&client->dev, "mt9m032: detected sensor.\n");
- 	} else {
-@@ -714,10 +713,10 @@ static int mt9m032_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		goto free_ctrl;
- 
--	ret = mt9m032_write_reg(sensor, MT9M032_RESET, 1);	/* reset on */
-+	ret = mt9m032_write_reg(client, MT9M032_RESET, 1);	/* reset on */
- 	if (ret < 0)
- 		goto free_ctrl;
--	mt9m032_write_reg(sensor, MT9M032_RESET, 0);	/* reset off */
-+	mt9m032_write_reg(client, MT9M032_RESET, 0);	/* reset off */
- 	if (ret < 0)
- 		goto free_ctrl;
- 
-@@ -733,31 +732,31 @@ static int mt9m032_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		goto free_ctrl;
- 
--	ret = mt9m032_write_reg(sensor, 0x41, 0x0000);	/* reserved !!! */
-+	ret = mt9m032_write_reg(client, 0x41, 0x0000);	/* reserved !!! */
- 	if (ret < 0)
- 		goto free_ctrl;
--	ret = mt9m032_write_reg(sensor, 0x42, 0x0003);	/* reserved !!! */
-+	ret = mt9m032_write_reg(client, 0x42, 0x0003);	/* reserved !!! */
- 	if (ret < 0)
- 		goto free_ctrl;
--	ret = mt9m032_write_reg(sensor, 0x43, 0x0003);	/* reserved !!! */
-+	ret = mt9m032_write_reg(client, 0x43, 0x0003);	/* reserved !!! */
- 	if (ret < 0)
- 		goto free_ctrl;
--	ret = mt9m032_write_reg(sensor, 0x7f, 0x0000);	/* reserved !!! */
-+	ret = mt9m032_write_reg(client, 0x7f, 0x0000);	/* reserved !!! */
- 	if (ret < 0)
- 		goto free_ctrl;
- 	if (sensor->pdata->invert_pixclock) {
--		mt9m032_write_reg(sensor, MT9M032_PIX_CLK_CTRL, MT9M032_PIX_CLK_CTRL_INV_PIXCLK);
-+		mt9m032_write_reg(client, MT9M032_PIX_CLK_CTRL, MT9M032_PIX_CLK_CTRL_INV_PIXCLK);
- 		if (ret < 0)
- 			goto free_ctrl;
- 	}
- 
--	res = mt9m032_read_reg(sensor, MT9M032_PIX_CLK_CTRL);
-+	res = mt9m032_read_reg(client, MT9M032_PIX_CLK_CTRL);
- 
--	ret = mt9m032_write_reg(sensor, MT9M032_RESTART, 1); /* Restart on */
-+	ret = mt9m032_write_reg(client, MT9M032_RESTART, 1); /* Restart on */
- 	if (ret < 0)
- 		goto free_ctrl;
- 	msleep(100);
--	ret = mt9m032_write_reg(sensor, MT9M032_RESTART, 0); /* Restart off */
-+	ret = mt9m032_write_reg(client, MT9M032_RESTART, 0); /* Restart off */
- 	if (ret < 0)
- 		goto free_ctrl;
- 	msleep(100);
+On Monday 20 February 2012 03:57:04 Sakari Ailus wrote:
+> omap3isp_get_external_info() will retrieve external subdev's bits-per-pixel
+> and pixel rate for the use of other ISP subdevs at streamon time.
+> omap3isp_get_external_info() is used during pipeline validation.
+> 
+> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> ---
+>  drivers/media/video/omap3isp/isp.c |   48
+> ++++++++++++++++++++++++++++++++++++ drivers/media/video/omap3isp/isp.h |  
+>  3 ++
+>  2 files changed, 51 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/video/omap3isp/isp.c
+> b/drivers/media/video/omap3isp/isp.c index 12d5f92..89a9bf8 100644
+> --- a/drivers/media/video/omap3isp/isp.c
+> +++ b/drivers/media/video/omap3isp/isp.c
+> @@ -353,6 +353,54 @@ void omap3isp_hist_dma_done(struct isp_device *isp)
+>  	}
+>  }
+> 
+> +int omap3isp_get_external_info(struct isp_pipeline *pipe,
+> +			       struct media_link *link)
+> +{
+> +	struct isp_device *isp =
+> +		container_of(pipe, struct isp_video, pipe)->isp;
+> +	struct v4l2_subdev_format fmt;
+> +	struct v4l2_ext_controls ctrls;
+> +	struct v4l2_ext_control ctrl;
+> +	int ret;
+> +
+> +	if (!pipe->external)
+> +		return 0;
+> +
+> +	if (pipe->external_rate)
+> +		return 0;
+> +
+> +	memset(&fmt, 0, sizeof(fmt));
+> +
+> +	fmt.pad = link->source->index;
+> +	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> +	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(link->sink->entity),
+> +			       pad, get_fmt, NULL, &fmt);
+> +	if (ret < 0)
+> +		return -EPIPE;
+> +
+> +	pipe->external_bpp = omap3isp_video_format_info(fmt.format.code)->bpp;
+> +
+> +	memset(&ctrls, 0, sizeof(ctrls));
+> +	memset(&ctrl, 0, sizeof(ctrl));
+> +
+> +	ctrl.id = V4L2_CID_PIXEL_RATE;
+> +
+> +	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
+> +	ctrls.count = 1;
+> +	ctrls.controls = &ctrl;
+> +
+> +	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
+> +	if (ret < 0) {
+> +		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
+> +			 pipe->external->name);
+> +		return ret;
+> +	}
+> +
+> +	pipe->external_rate = ctrl.value64;
+> +
+> +	return 0;
+> +}
+
+What about moving this to ispvideo.c ? You could then call the function from 
+isp_video_streamon() only, and make it static.
+
+> +
+>  static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
+>  {
+>  	static const char *name[] = {
+> diff --git a/drivers/media/video/omap3isp/isp.h
+> b/drivers/media/video/omap3isp/isp.h index 2e78041..8b0bc2d 100644
+> --- a/drivers/media/video/omap3isp/isp.h
+> +++ b/drivers/media/video/omap3isp/isp.h
+> @@ -222,6 +222,9 @@ struct isp_device {
+> 
+>  void omap3isp_hist_dma_done(struct isp_device *isp);
+> 
+> +int omap3isp_get_external_info(struct isp_pipeline *pipe,
+> +			       struct media_link *link);
+> +
+>  void omap3isp_flush(struct isp_device *isp);
+> 
+>  int omap3isp_module_sync_idle(struct media_entity *me, wait_queue_head_t
+> *wait,
 -- 
-1.7.3.4
+Regards,
 
+Laurent Pinchart
