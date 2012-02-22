@@ -1,66 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:45103 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752039Ab2BYKNX convert rfc822-to-8bit (ORCPT
+Received: from mailout-de.gmx.net ([213.165.64.23]:48620 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752501Ab2BVNVX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 05:13:23 -0500
+	Wed, 22 Feb 2012 08:21:23 -0500
+Received: from [127.0.0.1] (localhost [127.0.0.1])
+	by dino.fritz.box (Postfix) with ESMTPS id 663F3D612A8
+	for <linux-media@vger.kernel.org>; Wed, 22 Feb 2012 14:21:11 +0100 (CET)
+Message-ID: <4F44EBC6.504@gmx.net>
+Date: Wed, 22 Feb 2012 14:21:10 +0100
+From: "C. Hemsing" <C.Hemsing@gmx.net>
 MIME-Version: 1.0
-In-Reply-To: <CAHXqBFK=u+MchBn=D31h6nhp-R9GTNbaC18QJA937zjXc60UQw@mail.gmail.com>
-References: <1330099282-4588-1-git-send-email-danny.kukawka@bisect.de>
-	<CAHXqBFK=u+MchBn=D31h6nhp-R9GTNbaC18QJA937zjXc60UQw@mail.gmail.com>
-Date: Sat, 25 Feb 2012 11:13:21 +0100
-Message-ID: <CAMuHMdVZ8eVdRLtsq23XCLtA4wU7cTc-mLebAQ4QzO=gkuNMWQ@mail.gmail.com>
-Subject: Re: [PATCH 00/12] Part 2: check given MAC address, if invalid return -EADDRNOTAVAIL
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: =?UTF-8?B?TWljaGHFgiBNaXJvc8WCYXc=?= <mirqus@gmail.com>
-Cc: Danny Kukawka <danny.kukawka@bisect.de>,
-	"David S. Miller" <davem@davemloft.net>,
-	Andy Gospodarek <andy@greyhouse.net>,
-	Guo-Fu Tseng <cooldavid@cooldavid.org>,
-	Petko Manolov <petkan@users.sourceforge.net>,
-	"VMware, Inc." <pv-drivers@vmware.com>,
-	"John W. Linville" <linville@tuxdriver.com>, linux390@de.ibm.com,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Danny Kukawka <dkukawka@suse.de>,
-	Stephen Hemminger <shemminger@vyatta.com>,
-	Joe Perches <joe@perches.com>,
-	Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
-	Jiri Pirko <jpirko@redhat.com>, netdev@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
-	libertas-dev@lists.infradead.org, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
-	linux-hams@vger.kernel.org, linux-mips@linux-mips.org
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+To: linux-media@vger.kernel.org
+Subject: saa7134 card, Creatix CTX953/CTX941
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/2/24 Michał Mirosław <mirqus@gmail.com>:
-> 2012/2/24 Danny Kukawka <danny.kukawka@bisect.de>:
->> Second Part of series patches to unifiy the return value of
->> .ndo_set_mac_address if the given address isn't valid.
->>
->> These changes check if a given (MAC) address is valid in
->> .ndo_set_mac_address, if invalid return -EADDRNOTAVAIL
->> as eth_mac_addr() already does if is_valid_ether_addr() fails.
->
-> Why not just fix dev_set_mac_address() and make do_setlink() use that?
+To the maintainer of the saa7134 modules, especially the Creatix 953 driver:
 
-BTW, it's also called from dev_set_mac_address().
+I have a Creatix CTX941 (minipci) hybrid card.
 
-> Checks are specific to address family, not device model I assume.
+I contacted the vendor Creatix and according to their information the
+CTX941 board is virtually the same as the CTX953.
 
-Indeed, why can't this be done in one single place, instead of sprinkling these
-checks over all drivers, missing all out-of-tree (note: I don't care) and all
-soon-to-be-submitted drivers?
+When loading the board as card 134 (CTX953), the following kernel 
+messages are being generated:
 
-Gr{oetje,eeting}s,
+saa7134 0000:06:06.0: PCI INT A -> GSI 20 (level, low) -> IRQ 20
+saa7133[0]: found at 0000:06:06.0, rev: 209, irq: 20, latency: 181, 
+mmio: 0xb0007000
+saa7133[0]: subsystem: 16be:0009, board: Medion/Creatix CTX953 Hybrid 
+[card=134,insmod option]
+saa7133[0]: board init: gpio is 0
+IRQ 20/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+saa7133[0]: i2c eeprom 00: be 16 09 00 54 20 1c 00 43 43 a9 1c 55 d2 b2 92
+saa7133[0]: i2c eeprom 10: 00 ff 86 0f ff 20 ff 00 01 50 32 79 01 3c ca 50
+saa7133[0]: i2c eeprom 20: 01 40 01 02 02 03 01 00 06 ff 00 25 02 51 96 2b
+saa7133[0]: i2c eeprom 30: a7 58 7a 1f 03 8e 84 5e da 7a 04 b3 05 87 b2 3c
+saa7133[0]: i2c eeprom 40: ff 21 00 c2 96 10 03 22 15 10 fd 79 44 9f c2 8f
+saa7133[0]: i2c eeprom 50: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 60: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 70: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 80: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom 90: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom a0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom b0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom c0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom d0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom e0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+saa7133[0]: i2c eeprom f0: ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff ff
+i2c i2c-0: Invalid 7-bit address 0x7a
+tuner 0-004b: chip found @ 0x96 (saa7133[0])
+tda829x 0-004b: setting tuner address to 61
+tda829x 0-004b: type set to tda8290+75a
+saa7133[0]: registered device video0 [v4l2]
+saa7133[0]: registered device vbi0
+saa7134 ALSA driver for DMA sound loaded
+IRQ 20/saa7133[0]: IRQF_DISABLED is not guaranteed on shared IRQs
+saa7133[0]/alsa: saa7133[0] at 0xb0007000 irq 20 registered as card -2
+dvb_init() allocating 1 frontend
+DVB: registering new adapter (saa7133[0])
+DVB: registering adapter 0 frontend 0 (Philips TDA10046H DVB-T)...
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+tda827x_probe_version: could not read from tuner at addr: 0xc0
 
-                        Geert
+and consequently when I try to tuned to a dvb-t channel, the kernel emits:
 
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+tda1004x: setting up plls for 48MHz sampling clock
+tda1004x: found firmware revision 29 -- ok
+tda827x_probe_version: could not read from tuner at addr: 0xc0
+tda827xo_set_params: could not write to tuner at addr: 0xc0
+tda827xo_set_params: could not write to tuner at addr: 0xc0
+tda827xo_set_params: could not write to tuner at addr: 0xc0
+tda827x_probe_version: could not read from tuner at addr: 0xc0
 
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
+As it seems tda827x cannot address the tuner registers.
+
+1) Has the CTX953 ever been working (I've seen the
+"could not read from tuner at addr: 0xc0"
+elsewhere.
+2) Is it working currently?
+3) If yes to 1) and 2), what could be the difference to the CTX941 ?
+
+Cheers,
+Chris
