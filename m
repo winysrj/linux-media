@@ -1,64 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:30235 "EHLO mgw-da01.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753212Ab2BTB7J (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:59:09 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 19/33] omap3isp: Support additional in-memory compressed bayer formats
-Date: Mon, 20 Feb 2012 03:56:58 +0200
-Message-Id: <1329703032-31314-19-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Received: from lxorguk.ukuu.org.uk ([81.2.110.251]:40465 "EHLO
+	lxorguk.ukuu.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753704Ab2BWANb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 Feb 2012 19:13:31 -0500
+Date: Thu, 23 Feb 2012 00:15:03 +0000
+From: Alan Cox <alan@lxorguk.ukuu.org.uk>
+To: "Clark, Rob" <rob@ti.com>
+Cc: Chris Wilson <chris@chris-wilson.co.uk>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	linux-fbdev@vger.kernel.org,
+	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	dri-devel@lists.freedesktop.org,
+	Alexander Deucher <alexander.deucher@amd.com>,
+	linux-media@vger.kernel.org,
+	Marek Szyprowski <m.szyprowski@samsung.com>
+Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
+ 2012 - Notes
+Message-ID: <20120223001503.550ea0a5@pyramind.ukuu.org.uk>
+In-Reply-To: <CAO8GWqnVLfu5p3yNbE-BNqXfUu=2JX3S82GoJFS1baRwV126pQ@mail.gmail.com>
+References: <201201171126.42675.laurent.pinchart@ideasonboard.com>
+	<1775349.d0yvHiVdjB@avalon>
+	<20120217095554.GA5511@phenom.ffwll.local>
+	<2168398.Pv8ir5xFGf@avalon>
+	<alpine.LFD.2.02.1202221559510.3721@casper.infradead.org>
+	<20120222162424.GE4872@phenom.ffwll.local>
+	<e39f63$3q903a@fmsmga002.fm.intel.com>
+	<CAO8GWqnVLfu5p3yNbE-BNqXfUu=2JX3S82GoJFS1baRwV126pQ@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This also prevents accessing NULL pointer in csi2_try_format().
+> and when doing 2d accel on a 3d core..  it basically amounts to
+> putting a shader compiler in the kernel.   Wheeee!
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/video/omap3isp/ispvideo.c |   13 +++++++++++++
- 1 files changed, 13 insertions(+), 0 deletions(-)
+What I did for the GMA500 is to use the GTT to do scrolling by rewriting
+the framebuffer GTT tables so they work as a circular buffer and doing a
+bit of alignment of buffers.
 
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index b020700..c191f13 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -46,6 +46,10 @@
-  * Helper functions
-  */
- 
-+/*
-+ * NOTE: When adding new media bus codes, always remember to add
-+ * corresponding in-memory formats to the table below!!!
-+ */
- static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
- 	  V4L2_MBUS_FMT_Y8_1X8, V4L2_MBUS_FMT_Y8_1X8,
-@@ -68,9 +72,18 @@ static struct isp_format_info formats[] = {
- 	{ V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
- 	  V4L2_MBUS_FMT_SRGGB8_1X8, V4L2_MBUS_FMT_SRGGB8_1X8,
- 	  V4L2_PIX_FMT_SRGGB8, 8, },
-+	{ V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8, V4L2_MBUS_FMT_SBGGR10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SBGGR10_1X10, 0,
-+	  V4L2_PIX_FMT_SBGGR10DPCM8, 8, },
-+	{ V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8, V4L2_MBUS_FMT_SGBRG10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SGBRG10_1X10, 0,
-+	  V4L2_PIX_FMT_SGBRG10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8, V4L2_MBUS_FMT_SGRBG10_DPCM8_1X8,
- 	  V4L2_MBUS_FMT_SGRBG10_1X10, 0,
- 	  V4L2_PIX_FMT_SGRBG10DPCM8, 8, },
-+	{ V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8, V4L2_MBUS_FMT_SRGGB10_DPCM8_1X8,
-+	  V4L2_MBUS_FMT_SRGGB10_1X10, 0,
-+	  V4L2_PIX_FMT_SRGGB10DPCM8, 8, },
- 	{ V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR10_1X10,
- 	  V4L2_MBUS_FMT_SBGGR10_1X10, V4L2_MBUS_FMT_SBGGR8_1X8,
- 	  V4L2_PIX_FMT_SBGGR10, 10, },
--- 
-1.7.2.5
+The end result is faster than most accelerated 2D scrolls unsurprisingly.
 
+Even faster would be to map enough of the start of the object on the end
+of the range in repeat and just roll the frame buffer base. That would
+get it down to a couple of 32bit I/O writes..
+
+Alan
