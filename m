@@ -1,109 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gy0-f174.google.com ([209.85.160.174]:41295 "EHLO
-	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750788Ab2BDP0k convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 Feb 2012 10:26:40 -0500
-Received: by ghrr11 with SMTP id r11so2091719ghr.19
-        for <linux-media@vger.kernel.org>; Sat, 04 Feb 2012 07:26:40 -0800 (PST)
+Received: from smtp.nokia.com ([147.243.128.26]:59156 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754817Ab2BXLub (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Feb 2012 06:50:31 -0500
+Message-ID: <4F465582.6020502@iki.fi>
+Date: Thu, 23 Feb 2012 17:04:34 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <4F2D1AFD.1070808@mlbassoc.com>
-References: <EBE38CF866F2F94F95FA9A8CB3EF2284069CAE@singex1.aptina.com>
-	<4F182013.90401@mlbassoc.com>
-	<CA+2YH7vMFgzwrdBsXzBdYKG5kb8bTwtPnAnp8z_zjFFQenzzFQ@mail.gmail.com>
-	<201201201319.45490.laurent.pinchart@ideasonboard.com>
-	<4F26D3A4.6010907@mlbassoc.com>
-	<4F2D1AFD.1070808@mlbassoc.com>
-Date: Sat, 4 Feb 2012 16:26:39 +0100
-Message-ID: <CA+2YH7vpny0hpaNdrGwwzN6Q1fkuiNfBhqJXv4orew_S1=nTww@mail.gmail.com>
-Subject: Re: [PATCH] Adding YUV input support for OMAP3ISP driver
-From: Enrico <ebutera@users.berlios.de>
-To: Gary Thomas <gary@mlbassoc.com>
-Cc: linux-media@vger.kernel.org,
-	Javier Martinez Canillas <martinez.javier@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 15/33] media: Add link_validate() op to check links
+ to the sink pad
+References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-15-git-send-email-sakari.ailus@iki.fi> <5784618.o1kpFOLhve@avalon>
+In-Reply-To: <5784618.o1kpFOLhve@avalon>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Feb 4, 2012 at 12:48 PM, Gary Thomas <gary@mlbassoc.com> wrote:
-> On 2012-01-30 10:30, Gary Thomas wrote:
->>
->> On 2012-01-20 05:19, Laurent Pinchart wrote:
->>>
->>> Hi Enrico,
->>>
->>> On Thursday 19 January 2012 15:17:57 Enrico wrote:
->>>>
->>>> On Thu, Jan 19, 2012 at 2:52 PM, Gary Thomas<gary@mlbassoc.com> wrote:
->>>>>
->>>>> On 2012-01-19 06:35, Gary Thomas wrote:
->>>>>>
->>>>>> My camera init code is attached. In the previous kernel, the I2C bus
->>>>>> was
->>>>>> probed implicitly when I initialized the OMAP3ISP. I thought I
->>>>>> remembered some discussion about how that worked (maybe changing), so
->>>>>> this is probably
->>>>>> where the problem starts.
->>>>>>
->>>>>> If you have an example, I can check my setup against it.
->>>>>
->>>>>
->>>>> Note: I reworked how the sensor+I2C was initialized to be
->>>>> omap3_init_camera(&cobra3530p73_isp_platform_data);
->>>>>
->>>>>
->>>>> omap_register_i2c_bus(cobra3530p73_isp_platform_data.subdevs->subdevs[0]
->>>>> .i2c_adapter_id, 400,
->>>>>
->>>>> cobra3530p73_isp_platform_data.subdevs->subdevs[0].board_info, 1);
->>>>>
->>>>> The TVP5150 is now found, but 'media-ctl -p' still dies :-(
->>>>
->>>>
->>>> Have a look at [1] (the linux_3.2.bb file to see the list of
->>>> patches,inside linux-3.2 directory for the actual patches), it's based
->>>> on mainline kernel 3.2 and the bt656 patches i submitted months ago,
->>>> it should be easy to adapt it for you board.
->>>>
->>>> <rant>
->>>> Really, there are patches for all these problems since months (from
->>>> me, Javier, TI), but because no maintainer cared (apart from Laurent)
->>>> they were never reviewed/applied and there is always someone who comes
->>>> back with all the usual problems (additional yuv format, bt656 mode,
->>>> tvp5150 that doesn't work...).
->>>> </rant>
->>>
->>>
->>> I totally understand your feeling.
->>>
->>> I'd like to get YUV support integrated in the OMAP3 ISP driver. However,
->>> I
->>> have no YUV image source hardware, so I can only review the patches but
->>> not
->>> test them.
->>>
->>> If someone can rebase the existing patches on top of
->>> http://git.linuxtv.org/pinchartl/media.git/shortlog/refs/heads/omap3isp-
->>> omap3isp-yuv and test them, then I'll review the result.
->>>
->>
->> The attached patches produce a working setup against Laurent's tree above.
->> That said, I don't recall exactly where which changes came from (I'm old
->> school and not very git savvy, sorry). I've CC'd all the folks I think
->> provided at least part of these changes. Perhaps we can all work together
->> to come up with a proper set of patches which can be pushed upstream
->> for this, once and for all?
->>
->> Thanks
->>
->
-> Ping!  Is no one but me interested in getting these changes into
-> the mainline?
+Hi Laurent
 
-I am interested, i didn't have time to test it but i will for sure.
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thanks for the patch.
 
-And i think it's important to test non bt656/yuv sensors too, but i
-have no hardware for that.
+Thanks for the review!
 
-Enrico
+> On Monday 20 February 2012 03:56:54 Sakari Ailus wrote:
+>> The purpose of the link_validate() op is to allow an entity driver to ensure
+>> that the properties of the pads at the both ends of the link are suitable
+>> for starting the pipeline. link_validate is called on sink pads on active
+>> links which belong to the active part of the graph.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> ---
+>>  Documentation/media-framework.txt |   19 +++++++++++++
+>>  drivers/media/media-entity.c      |   53
+>> +++++++++++++++++++++++++++++++++++- include/media/media-entity.h      |   
+>> 5 ++-
+>>  3 files changed, 73 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/Documentation/media-framework.txt
+>> b/Documentation/media-framework.txt index 3a0f879..0e90169 100644
+>> --- a/Documentation/media-framework.txt
+>> +++ b/Documentation/media-framework.txt
+>> @@ -335,6 +335,9 @@ the media_entity pipe field.
+>>  Calls to media_entity_pipeline_start() can be nested. The pipeline pointer
+>> must be identical for all nested calls to the function.
+>>
+>> +media_entity_pipeline_start() may return an error. In that case, it will
+>> +clean up any the changes it did by itself.
+>> +
+>>  When stopping the stream, drivers must notify the entities with
+>>
+>>  	media_entity_pipeline_stop(struct media_entity *entity);
+>> @@ -351,3 +354,19 @@ If other operations need to be disallowed on streaming
+>> entities (such as changing entities configuration parameters) drivers can
+>> explicitly check the media_entity stream_count field to find out if an
+>> entity is streaming. This operation must be done with the media_device
+>> graph_mutex held.
+>> +
+>> +
+>> +Link validation
+>> +---------------
+>> +
+>> +Link validation is performed from media_entity_pipeline_start() for any
+> 
+> s/from/by/ ?
+> 
+>> +entity which has sink pads in the pipeline. The
+>> +media_entity::link_validate() callback is used for that purpose. In
+>> +link_validate() callback, entity driver should check that the properties of
+>> +the source pad of the connected entity and its own sink pad match. It is up
+>> +to the type of the entity (and in the end, the properties of the hardware)
+>> +what matching actually means.
+>> +
+>> +Subsystems should facilitate link validation by providing subsystem
+>> specific
+>> +helper functions to provide easy access for commonly needed information,
+>> and
+>> +in the end provide a way to use driver-specific callbacks.
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index 056138f..678ec07 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -214,23 +214,72 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_next);
+>>   * pipeline pointer must be identical for all nested calls to
+>>   * media_entity_pipeline_start().
+>>   */
+>> -void media_entity_pipeline_start(struct media_entity *entity,
+>> -				 struct media_pipeline *pipe)
+>> +__must_check int media_entity_pipeline_start(struct media_entity *entity,
+>> +					     struct media_pipeline *pipe)
+>>  {
+>>  	struct media_device *mdev = entity->parent;
+>>  	struct media_entity_graph graph;
+>> +	struct media_entity *entity_err = entity;
+>> +	int ret = 0;
+>>
+>>  	mutex_lock(&mdev->graph_mutex);
+>>
+>>  	media_entity_graph_walk_start(&graph, entity);
+>>
+>>  	while ((entity = media_entity_graph_walk_next(&graph))) {
+>> +		int i;
+>> +
+> 
+> entity->num_link is unsigned, what about making i an unsigned int ?
+
+Fixed.
+
+>>  		entity->stream_count++;
+>>  		WARN_ON(entity->pipe && entity->pipe != pipe);
+>>  		entity->pipe = pipe;
+>> +
+>> +		/* Already streaming --- no need to check. */
+>> +		if (entity->stream_count > 1)
+>> +			continue;
+>> +
+>> +		if (!entity->ops || !entity->ops->link_validate)
+>> +			continue;
+>> +
+>> +		for (i = 0; i < entity->num_links; i++) {
+>> +			struct media_link *link = &entity->links[i];
+>> +
+>> +			/* Is this pad part of an enabled link? */
+>> +			if ((link->flags & MEDIA_LNK_FL_ENABLED)
+>> +			    != MEDIA_LNK_FL_ENABLED)
+> 
+> Just nickpicking, if you wrote it
+> 
+> 			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
+> 
+> it would fit on a single line :-)
+> 
+>> +				continue;
+>> +
+>> +			/* Are we the sink or not? */
+>> +			if (link->sink->entity != entity)
+>> +				continue;
+>> +
+>> +			ret = entity->ops->link_validate(link);
+>> +			if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +				break;
+> 
+> You could goto error directly here, this would avoid checking the ret value 
+> after the loop, and you could also avoid initializing ret to 0.
+
+Good point. Fixed.
+
+>> +		}
+>> +		if (ret < 0 && ret != -ENOIOCTLCMD)
+>> +			goto error;
+>>  	}
+>>
+>>  	mutex_unlock(&mdev->graph_mutex);
+>> +
+>> +	return 0;
+>> +
+>> +error:
+>> +	/*
+>> +	 * Link validation on graph failed. We revert what we did and
+>> +	 * return the error.
+>> +	 */
+>> +	media_entity_graph_walk_start(&graph, entity_err);
+>> +	do {
+>> +		entity_err = media_entity_graph_walk_next(&graph);
+>> +		entity_err->stream_count--;
+>> +		if (entity_err->stream_count == 0)
+>> +			entity_err->pipe = NULL;
+>> +	} while (entity_err != entity);
+>> +
+>> +	mutex_unlock(&mdev->graph_mutex);
+>> +
+>> +	return ret;
+>>  }
+>>  EXPORT_SYMBOL_GPL(media_entity_pipeline_start);
+>>
+>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+>> index 29e7bba..0c16f51 100644
+>> --- a/include/media/media-entity.h
+>> +++ b/include/media/media-entity.h
+>> @@ -46,6 +46,7 @@ struct media_entity_operations {
+>>  	int (*link_setup)(struct media_entity *entity,
+>>  			  const struct media_pad *local,
+>>  			  const struct media_pad *remote, u32 flags);
+>> +	int (*link_validate)(struct media_link *link);
+>>  };
+>>
+>>  struct media_entity {
+>> @@ -140,8 +141,8 @@ void media_entity_graph_walk_start(struct
+>> media_entity_graph *graph, struct media_entity *entity);
+>>  struct media_entity *
+>>  media_entity_graph_walk_next(struct media_entity_graph *graph);
+>> -void media_entity_pipeline_start(struct media_entity *entity,
+>> -		struct media_pipeline *pipe);
+>> +__must_check int media_entity_pipeline_start(struct media_entity *entity,
+>> +					     struct media_pipeline *pipe);
+>>  void media_entity_pipeline_stop(struct media_entity *entity);
+>>
+>>  #define media_entity_call(entity, operation, args...)			\
+> 
+
+
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
