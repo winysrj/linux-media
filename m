@@ -1,112 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:53092 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754327Ab2BQTdj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 14:33:39 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Date: Fri, 17 Feb 2012 20:30:21 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv22 01/16] mm: page_alloc: remove trailing whitespace
-In-reply-to: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329507036-24362-2-git-send-email-m.szyprowski@samsung.com>
-References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com>
+Received: from na3sys009aog118.obsmtp.com ([74.125.149.244]:40438 "EHLO
+	na3sys009aog118.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752068Ab2BWRd1 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Feb 2012 12:33:27 -0500
+Received: by mail-qw0-f48.google.com with SMTP id h8so1925007qau.14
+        for <linux-media@vger.kernel.org>; Thu, 23 Feb 2012 09:33:26 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAH9_wRN5=nHtB9M3dL4wvZGL3+mb4_TfS=uPun_13D7n0E3CKA@mail.gmail.com>
+References: <CAH9_wRN5=nHtB9M3dL4wvZGL3+mb4_TfS=uPun_13D7n0E3CKA@mail.gmail.com>
+From: "Aguirre, Sergio" <saaguirre@ti.com>
+Date: Thu, 23 Feb 2012 11:33:06 -0600
+Message-ID: <CAKnK67T=obVTWkzZqVtv+PninjkbLp1os5AnsoZ+j=NGFFMWLA@mail.gmail.com>
+Subject: Re: Video Capture Issue
+To: Sriram V <vshrirama@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Michal Nazarewicz <mina86@mina86.com>
+Hi Sriram,
 
-Signed-off-by: Michal Nazarewicz <mina86@mina86.com>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
----
- mm/page_alloc.c |   18 +++++++++---------
- 1 files changed, 9 insertions(+), 9 deletions(-)
+On Thu, Feb 23, 2012 at 11:25 AM, Sriram V <vshrirama@gmail.com> wrote:
+> Hi,
+>  1) I am trying to get a HDMI to CSI Bridge chip working with OMAP4 ISS.
+>      The issue is the captured frames are completely green in color.
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index d2186ec..7fe7697 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -513,10 +513,10 @@ static inline int page_is_buddy(struct page *page, struct page *buddy,
-  * free pages of length of (1 << order) and marked with _mapcount -2. Page's
-  * order is recorded in page_private(page) field.
-  * So when we are allocating or freeing one, we can derive the state of the
-- * other.  That is, if we allocate a small block, and both were   
-- * free, the remainder of the region must be split into blocks.   
-+ * other.  That is, if we allocate a small block, and both were
-+ * free, the remainder of the region must be split into blocks.
-  * If a block is freed, and its buddy is also free, then this
-- * triggers coalescing into a block of larger size.            
-+ * triggers coalescing into a block of larger size.
-  *
-  * -- wli
-  */
-@@ -1061,17 +1061,17 @@ retry_reserve:
- 	return page;
- }
- 
--/* 
-+/*
-  * Obtain a specified number of elements from the buddy allocator, all under
-  * a single hold of the lock, for efficiency.  Add them to the supplied list.
-  * Returns the number of new pages which were placed at *list.
-  */
--static int rmqueue_bulk(struct zone *zone, unsigned int order, 
-+static int rmqueue_bulk(struct zone *zone, unsigned int order,
- 			unsigned long count, struct list_head *list,
- 			int migratetype, int cold)
- {
- 	int i;
--	
-+
- 	spin_lock(&zone->lock);
- 	for (i = 0; i < count; ++i) {
- 		struct page *page = __rmqueue(zone, order, migratetype);
-@@ -4258,7 +4258,7 @@ static void __paginginit free_area_init_core(struct pglist_data *pgdat,
- 	init_waitqueue_head(&pgdat->kswapd_wait);
- 	pgdat->kswapd_max_order = 0;
- 	pgdat_page_cgroup_init(pgdat);
--	
-+
- 	for (j = 0; j < MAX_NR_ZONES; j++) {
- 		struct zone *zone = pgdat->node_zones + j;
- 		unsigned long size, realsize, memmap_pages;
-@@ -5081,11 +5081,11 @@ int __meminit init_per_zone_wmark_min(void)
- module_init(init_per_zone_wmark_min)
- 
- /*
-- * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so 
-+ * min_free_kbytes_sysctl_handler - just a wrapper around proc_dointvec() so
-  *	that we can call two helper functions whenever min_free_kbytes
-  *	changes.
-  */
--int min_free_kbytes_sysctl_handler(ctl_table *table, int write, 
-+int min_free_kbytes_sysctl_handler(ctl_table *table, int write,
- 	void __user *buffer, size_t *length, loff_t *ppos)
- {
- 	proc_dointvec(table, write, buffer, length, ppos);
--- 
-1.7.1
+Sounds like the buffer is all zeroes, can you confirm?
 
+>  2) The Chip is configured to output VGA Color bar sequence with
+> YUV422-8Bit and
+>       uses datalane 0 only.
+>  3) The Format on OMAP4 ISS  is UYVY (Register 0x52001074 = 0x0A00001E)
+>  I am trying to directly dump the data into memory without ISP processing.
+>
+>
+>  Please advice.
 
+Just to be clear on your environment, which branch/commitID are you based on?
+
+Regards,
+Sergio
+
+>
+> --
+> Regards,
+> Sriram
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
