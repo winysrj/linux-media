@@ -1,45 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:53398 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754063Ab2BBIdF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 03:33:05 -0500
-Date: Thu, 2 Feb 2012 01:08:14 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Fernandez Gonzalo <gfernandez@copreci.es>
-cc: linux-media@vger.kernel.org
-Subject: Re: OV2640 and iMX25PDK - help needed
-In-Reply-To: <C85ED22A0FD4B54195E2F05309F9D3FF07234D15@CORREO.cp.local>
-Message-ID: <Pine.LNX.4.64.1202020040500.28897@axis700.grange>
-References: <C85ED22A0FD4B54195E2F05309F9D3FF07234D15@CORREO.cp.local>
+Received: from jaguar.purple-paw.com ([79.99.64.40]:41457 "EHLO
+	jaguar.purple-paw.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752002Ab2BWLnt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 Feb 2012 06:43:49 -0500
+Message-ID: <4F462670.7060707@rker.me.uk>
+Date: Thu, 23 Feb 2012 11:43:44 +0000
+From: Edd Barker <eddb@rker.me.uk>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Lars Hanisch <dvb@cinnamon-sage.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: Cine CT v6
+References: <4F44E821.2010804@rker.me.uk> <4F45280D.1000304@cinnamon-sage.de>
+In-Reply-To: <4F45280D.1000304@cinnamon-sage.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Gonzalo
+Thanks Lars,
 
-On Tue, 31 Jan 2012, Fernandez Gonzalo wrote:
+dvb-fe-tool worked great, appreciate the help.
 
-> Hi all,
-> 
-> I've been working for a while with an iMX25PDK using the BSP provided by
-> Freescale (L2.6.31). The camera driver (V4L2-int) and examples do the
-> job quite well but I need to move my design to a more recent kernel.
-> I've been extensively googling but haven't found any info/examples about
-> how to run the mx2_camera driver in the i.MX25PDK. I'm stuck at this,
-> could someone point me in the right direction? Thank you in advance...
+Regards
+Edd
 
-i.MX25PDK is supported in the mainline kernel 
-(arch/arm/mach-imx/mach-mx25_3ds.c), but it doesn't attach any cameras. 
-Unfortunately, I also don't currently see any i.MX2x platforms in the 
-mainline with cameras, so, you have to begin by looking at 
-arch/arm/plat-mxc/include/mach/mx2_cam.h, at 
-arch/arm/plat-mxc/devices/platform-mx2-camera.c for the 
-imx27_add_mx2_camera() function and maybe some i.MX3x or i.MX1 examples.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+On 22/02/2012 17:38, Lars Hanisch wrote:
+> Hi,
+>
+> Am 22.02.2012 14:05, schrieb Edd Barker:
+>> Hi Members
+>>
+>> I've just got a Cine CT v6 card and have having a bit of trouble. I
+>> want to use dvb-t only, I've followed the
+>> instructions here...
+>>
+>> http://linuxtv.org/wiki/index.php/Digital_Devices_DuoFlex_C%26T
+>>
+>> The card is now appearing in /dev/dvb/adapter0 & /dev/dvb/adapter1.
+>> However only one frontend is showing up and if I try
+>> to scan dvb-t I get an error that I'm sure means I'm trying to use
+>> dvb-c tuner.
+>>
+>> WARNING: frontend type (QAM) is not compatible with requested tuning
+>> type (OFDM)
+>>
+>> I'm running on Ubuntu 11.10, 3.0.0-16 kernal. Is this something anyone
+>> else has come across or knows what I can do to
+>> use the dvb-t frontend?
+>
+> You can use dvb-fe-tool to switch the type of delivery system used as a
+> default for old applications.
+> In the near past the drivers of hybrid cards were changed so there's
+> only one frontend for all delivery systems, since they can only be
+> opened mutually exclusive.
+>
+> There should be an PPA at Launchpad with a recent version of the
+> tools/utils, but I don't have the URL at the moment.
+>
+> Regards,
+> Lars.
+>
+>>
+>> Thanks
+>> Edd
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at http://vger.kernel.org/majordomo-info.html
+>>
