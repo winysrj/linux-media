@@ -1,75 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 124-248-200-54.sunnyvision.com ([124.248.200.54]:59851 "EHLO
-	teamb02.edmhongkong.com" rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org
-	with ESMTP id S1756086Ab2BWXtp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Feb 2012 18:49:45 -0500
-Message-ID: <gZg8B@ksts.seed.net.tw>
-From: otto@cloudluca.com
-Subject: Web Design Service
-Content-Type: text/plain;
-Content-Transfer-Encoding: Quoted-Printable
-Date: Fri, 24 Feb 2012 01:13:10 +0800 (HKT)
-To: unlisted-recipients:; (no To-header on input)@canuck.infradead.org
+Received: from smtp.nokia.com ([147.243.128.26]:59215 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754817Ab2BXLug (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Feb 2012 06:50:36 -0500
+Message-ID: <4F466459.2060709@iki.fi>
+Date: Thu, 23 Feb 2012 18:07:53 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 17/33] v4l: Implement v4l2_subdev_link_validate()
+References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-17-git-send-email-sakari.ailus@iki.fi> <2874788.a4NfdnO7z7@avalon>
+In-Reply-To: <2874788.a4NfdnO7z7@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Sir / Madam, 
+Hi Laurent,
 
-Good morning, this is Otto from Cloudluca.com. 
+Laurent Pinchart wrote:
+> Hi Sakari,
+> 
+> Thanks for the patch.
 
-We are a web design house and programming service provider. As 14 years experience, we are professional to develop a website for your business. 
+Thanks for your comments!!
 
-In the Chinese New Year Festival, we have the following offer for your corporate. Please check. 
+> On Monday 20 February 2012 03:56:56 Sakari Ailus wrote:
+>> v4l2_subdev_link_validate() is the default op for validating a link. In V4L2
+>> subdev context, it is used to call a pad op which performs the proper link
+>> check without much extra work.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> ---
+>>  Documentation/video4linux/v4l2-framework.txt |   12 +++++
+>>  drivers/media/video/v4l2-subdev.c            |   69
+>> ++++++++++++++++++++++++++ include/media/v4l2-subdev.h                  |  
+>> 12 +++++
+>>  3 files changed, 93 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/Documentation/video4linux/v4l2-framework.txt
+>> b/Documentation/video4linux/v4l2-framework.txt index f06c563..9d341bc
+>> 100644
+>> --- a/Documentation/video4linux/v4l2-framework.txt
+>> +++ b/Documentation/video4linux/v4l2-framework.txt
+>> @@ -312,6 +312,18 @@ If the subdev driver intends to process video and
+>> integrate with the media framework, it must implement format related
+>> functionality using
+>>  v4l2_subdev_pad_ops instead of v4l2_subdev_video_ops.
+>>
+>> +In that case, the subdev driver may set the link_validate field to provide
+>> +its own link validation function. The link validation function is called
+>> for +every link in the pipeline where both of the ends of the links are
+>> V4L2 +sub-devices. The driver is still responsible for validating the
+>> correctness +of the format configuration between sub-devices and video
+>> nodes.
+>> +
+>> +If link_validate op is not set, the default function
+>> +v4l2_subdev_link_validate_default() is used instead. This function ensures
+>> +that width, height and the media bus pixel code are equal on both source
+>> and +sink of the link. Subdev drivers are also free to use this function to
+>> +perform the checks mentioned above in addition to their own checks. +
+>>  A device (bridge) driver needs to register the v4l2_subdev with the
+>>  v4l2_device:
+>>
+>> diff --git a/drivers/media/video/v4l2-subdev.c
+>> b/drivers/media/video/v4l2-subdev.c index ef27144..d2ec552 100644
+>> --- a/drivers/media/video/v4l2-subdev.c
+>> +++ b/drivers/media/video/v4l2-subdev.c
+>> @@ -379,6 +379,75 @@ const struct v4l2_file_operations v4l2_subdev_fops = {
+>>  	.poll = subdev_poll,
+>>  };
+>>
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+>> +				      struct media_link *link,
+>> +				      struct v4l2_subdev_format *source_fmt,
+>> +				      struct v4l2_subdev_format *sink_fmt)
+>> +{
+>> +	if (source_fmt->format.width != sink_fmt->format.width
+>> +	    || source_fmt->format.height != sink_fmt->format.height
+>> +	    || source_fmt->format.code != sink_fmt->format.code)
+>> +		return -EINVAL;
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate_default);
+>> +
+>> +static struct v4l2_subdev_format
+>> +*v4l2_subdev_link_validate_get_format(struct media_pad *pad,
+>> +				      struct v4l2_subdev_format *fmt)
+> 
+> Why do you return a pointer to the passed struct v4l2_subdev_format instead of 
+> just an error code ?
 
-Service=09Package
+I don't remember. ;-) I'll replace that with an integer return value for
+the next version.
 
-Web Development and Programing Service
-*********************************************************
-1)=09Website Design Service =09=09=09($13,000)
+>> +{
+>> +	int rval;
+> 
+> I would have used ret instead of rval as that's the preferred variable name in 
+> this file (OK, I'm cheating, there's a single instance of ret, and I wrote 
+> that one ;-)).
 
-=09Maximum 10 Web Pages Development                                                 
-=09(Site Map will be confirmed later)
-=09All the tailor-made webpage design is included:
--=09Theme / Visual Concept Development;
--=09Design Study and Analysis / Art Direction;
--=09Original Artwork & Layout Design;
--=09Steady Web page development;
--=09HTML Development for Search Engine Applicable;
+If you can get a patch through to Documentation/CodingStyle that
+recognises "ret" as the variable name for return value, I'll change it.
+How about that? ;-) ;-)
 
-2)=09Web Programing Service =09=09=09($15,000)
+>> +
+>> +	switch (media_entity_type(pad->entity)) {
+>> +	case MEDIA_ENT_T_V4L2_SUBDEV:
+>> +		fmt->which = V4L2_SUBDEV_FORMAT_ACTIVE;
+>> +		fmt->pad = pad->index;
+>> +		rval = v4l2_subdev_call(media_entity_to_v4l2_subdev(
+>> +						pad->entity),
+>> +					pad, get_fmt, NULL, fmt);
+>> +		if (rval < 0)
+>> +			return NULL;
+>> +		return fmt;
+>> +	default:
+>> +		WARN(1, "Driver bug! Wrong media entity type %d, entity %s\n",
+>> +		     media_entity_type(pad->entity), pad->entity->name);
+>> +		/* Fall through */
+>> +	case MEDIA_ENT_T_DEVNODE_V4L:
+>> +		return NULL;
+>> +	}
+>> +}
+>> +
+>> +int v4l2_subdev_link_validate(struct media_link *link)
+>> +{
+>> +	struct v4l2_subdev *sink;
+>> +	struct v4l2_subdev_format _sink_fmt, _source_fmt;
+>> +	struct v4l2_subdev_format *sink_fmt, *source_fmt;
+>> +	int rval;
+>> +
+>> +	source_fmt = v4l2_subdev_link_validate_get_format(
+>> +		link->source, &_source_fmt);
+>> +	if (!source_fmt)
+>> +		return 0;
+>> +
+>> +	sink_fmt = v4l2_subdev_link_validate_get_format(
+>> +		link->sink, &_sink_fmt);
+>> +	if (!sink_fmt)
+>> +		return 0;
+>> +
+>> +	sink = media_entity_to_v4l2_subdev(link->sink->entity);
+>> +
+>> +	rval = v4l2_subdev_call(sink, pad, link_validate, link,
+>> +				source_fmt, sink_fmt);
+>> +	if (rval < 0 && rval != -ENOIOCTLCMD)
+>> +		return rval;
+>> +	return v4l2_subdev_link_validate_default(sink, link, source_fmt,
+>> +						 sink_fmt);
+> 
+> I don't think you should call v4l2_subdev_link_validate_default() if the 
+> link_validate operation is implemented and returns that the link is valid. The 
+> subdev might have weaker requirements than the default.
 
-Content Management System (For 5 web pages)                                 
--=09Standard CMS function for add / edit fields 
--=09Max. 10 fields per each CMS section
--=09CMS fields only for Text fields and photos upload fields
--=09Photos upload only support (.jpg / .png / .bmp) 
--=09Each field for one photos
--=0920 pages / section for CMS function
--=09Database support with un-limit data create;
--=09Admin Panel with Login function (1 login account)
+Right; the link validation should succeed by default. I'll remove that part.
+
+>> +}
+>> +EXPORT_SYMBOL_GPL(v4l2_subdev_link_validate);
+>> +#endif /* CONFIG_MEDIA_CONTROLLER */
+>> +
+>>  void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops
+>> *ops) {
+>>  	INIT_LIST_HEAD(&sd->list);
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index d48dae5..f115608 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -470,6 +470,11 @@ struct v4l2_subdev_pad_ops {
+>>  			     struct v4l2_subdev_selection *sel);
+>>  	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>>  			     struct v4l2_subdev_selection *sel);
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +	int (*link_validate)(struct v4l2_subdev *sd, struct media_link *link,
+>> +			     struct v4l2_subdev_format *source_fmt,
+>> +			     struct v4l2_subdev_format *sink_fmt);
+>> +#endif /* CONFIG_MEDIA_CONTROLLER */
+>>  };
+>>
+>>  struct v4l2_subdev_ops {
+>> @@ -603,6 +608,13 @@ static inline void *v4l2_get_subdev_hostdata(const
+>> struct v4l2_subdev *sd) return sd->host_priv;
+>>  }
+>>
+>> +#ifdef CONFIG_MEDIA_CONTROLLER
+>> +int v4l2_subdev_link_validate_default(struct v4l2_subdev *sd,
+>> +				      struct media_link *link,
+>> +				      struct v4l2_subdev_format *source_fmt,
+>> +				      struct v4l2_subdev_format *sink_fmt);
+>> +int v4l2_subdev_link_validate(struct media_link *link);
+>> +#endif /* CONFIG_MEDIA_CONTROLLER */
+>>  void v4l2_subdev_init(struct v4l2_subdev *sd,
+>>  		      const struct v4l2_subdev_ops *ops);
 
 
-*********************************************************
-
-Promotion Price: =09HKD $28,000.00
-Lead Time: =09=0932 working days
-
-If you have more special requirement, please let us know and we will provide more detail to you. 
-
-Please feel free to contact me.The following is my contact information. 
-
-Contact No: (852) 5108 9664
-
-Skype: yschiu2001 (yschiu2001@yahoo.com.hk)
-
-MSN: yschiu2001@yahoo.com.hk
-
-Email: otto@dedicatedserver.com.hk
-
-If you do not wish to further receive this event message, email "subscriber@dedicatedserver.com.hk" to unsubscribe this message or remove your email from the list. 
-
-Best Regards
-Otto Chiu
-
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
