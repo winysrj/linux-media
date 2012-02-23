@@ -1,100 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lpp01m010-f46.google.com ([209.85.215.46]:48388 "EHLO
-	mail-lpp01m010-f46.google.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754262Ab2BJIBw (ORCPT
+Received: from gateway07.websitewelcome.com ([67.18.66.25]:58846 "EHLO
+	gateway07.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751134Ab2BWBes (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 03:01:52 -0500
-Received: by lagu2 with SMTP id u2so2149719lag.19
-        for <linux-media@vger.kernel.org>; Fri, 10 Feb 2012 00:01:50 -0800 (PST)
+	Wed, 22 Feb 2012 20:34:48 -0500
+Received: from gator886.hostgator.com (gator886.hostgator.com [174.120.40.226])
+	by gateway07.websitewelcome.com (Postfix) with ESMTP id 55489E0A10220
+	for <linux-media@vger.kernel.org>; Wed, 22 Feb 2012 18:37:44 -0600 (CST)
+Message-ID: <4F458A52.1000302@sensoray.com>
+Date: Wed, 22 Feb 2012 16:37:38 -0800
+From: dean anderson <linux-dev@sensoray.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1202092328450.18719@axis700.grange>
-References: <1328609682-18014-1-git-send-email-javier.martin@vista-silicon.com>
-	<CACKLOr0ioy2rxKY7PUBDCBPaQG0FUv0Drt-GNgBnNmFDt05T-w@mail.gmail.com>
-	<Pine.LNX.4.64.1202092328450.18719@axis700.grange>
-Date: Fri, 10 Feb 2012 09:01:50 +0100
-Message-ID: <CACKLOr0p_ggtftXu1G1VbG7g+ZBvD4H707NY4o8-tAz6kP5epw@mail.gmail.com>
-Subject: Re: [PATCH v4 3/4] media i.MX27 camera: improve discard buffer handling.
-From: javier Martin <javier.martin@vista-silicon.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, s.hauer@pengutronix.de
-Content-Type: text/plain; charset=ISO-8859-1
+To: Dan Carpenter <dan.carpenter@oracle.com>
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Dean Anderson <linux-dev@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pete Eberlein <pete@sensoray.com>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [patch 2/2] [media] s2255drv: fix some endian bugs
+References: <20120217064410.GB3666@elgon.mountain>
+In-Reply-To: <20120217064410.GB3666@elgon.mountain>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Dan,
 
-On 9 February 2012 23:36, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> Hi Javier
+The original code has an issue on big endian hardware.  The patch looks ok.
+
+Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
+
+On 2/16/2012 10:44 PM, Dan Carpenter wrote:
+> I don't have this hardware and I don't know the subsystem very well.  So
+> please review this patch carefully.  The original code definitely looks
+> buggy though.
 >
-> On Thu, 9 Feb 2012, javier Martin wrote:
+> Sparse complains about some endian bugs where little endian bugs are
+> treated as cpu endian.
 >
->> Hi Guennadi,
->> I understand you are probably quite busy right now but it would be
->> great if you could ack this patch. The sooner you merge it the sooner
->> I will start working on the cleanup series. I've got some time on my
->> hands now.
+> Signed-off-by: Dan Carpenter<dan.carpenter@oracle.com>
+> ---
 >
-> Yes, I can take this version, at the same time, I have a couple of
-> comments, that you might find useful to address in a clean-up patch;-) Or
-> just leave them as they are...
-
-
-Of course,
-I'm the most interested person on this driver being as better as possible.
-
-> [anip]
+> diff --git a/drivers/media/video/s2255drv.c b/drivers/media/video/s2255drv.c
+> index 3505242..4894cbb 100644
+> --- a/drivers/media/video/s2255drv.c
+> +++ b/drivers/media/video/s2255drv.c
+> @@ -134,7 +134,7 @@
 >
+>   /* usb config commands */
+>   #define IN_DATA_TOKEN	cpu_to_le32(0x2255c0de)
+> -#define CMD_2255	cpu_to_le32(0xc2255000)
+> +#define CMD_2255	0xc2255000
+>   #define CMD_SET_MODE	cpu_to_le32((CMD_2255 | 0x10))
+>   #define CMD_START	cpu_to_le32((CMD_2255 | 0x20))
+>   #define CMD_STOP	cpu_to_le32((CMD_2255 | 0x30))
+> @@ -2025,7 +2025,7 @@ static int save_frame(struct s2255_dev *dev, struct s2255_pipeinfo *pipe_info)
+>   					pdata[1]);
+>   				offset = jj + PREFIX_SIZE;
+>   				bframe = 1;
+> -				cc = pdword[1];
+> +				cc = le32_to_cpu(pdword[1]);
+>   				if (cc>= MAX_CHANNELS) {
+>   					printk(KERN_ERR
+>   					       "bad channel\n");
+> @@ -2034,22 +2034,22 @@ static int save_frame(struct s2255_dev *dev, struct s2255_pipeinfo *pipe_info)
+>   				/* reverse it */
+>   				dev->cc = G_chnmap[cc];
+>   				channel =&dev->channel[dev->cc];
+> -				payload =  pdword[3];
+> +				payload =  le32_to_cpu(pdword[3]);
+>   				if (payload>  channel->req_image_size) {
+>   					channel->bad_payload++;
+>   					/* discard the bad frame */
+>   					return -EINVAL;
+>   				}
+>   				channel->pkt_size = payload;
+> -				channel->jpg_size = pdword[4];
+> +				channel->jpg_size = le32_to_cpu(pdword[4]);
+>   				break;
+>   			case S2255_MARKER_RESPONSE:
 >
->> > @@ -1274,6 +1298,15 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
->> >        struct mx2_camera_dev *pcdev = data;
->> >        unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
->> >        struct mx2_buffer *buf;
->> > +       unsigned long flags;
->> > +
->> > +       spin_lock_irqsave(&pcdev->lock, flags);
+>   				pdata += DEF_USB_BLOCK;
+>   				jj += DEF_USB_BLOCK;
+> -				if (pdword[1]>= MAX_CHANNELS)
+> +				if (le32_to_cpu(pdword[1])>= MAX_CHANNELS)
+>   					break;
+> -				cc = G_chnmap[pdword[1]];
+> +				cc = G_chnmap[le32_to_cpu(pdword[1])];
+>   				if (cc>= MAX_CHANNELS)
+>   					break;
+>   				channel =&dev->channel[cc];
+> @@ -2072,11 +2072,11 @@ static int save_frame(struct s2255_dev *dev, struct s2255_pipeinfo *pipe_info)
+>   					wake_up(&dev->fw_data->wait_fw);
+>   					break;
+>   				case S2255_RESPONSE_STATUS:
+> -					channel->vidstatus = pdword[3];
+> +					channel->vidstatus = le32_to_cpu(pdword[3]);
+>   					channel->vidstatus_ready = 1;
+>   					wake_up(&channel->wait_vidstatus);
+>   					dprintk(5, "got vidstatus %x chan %d\n",
+> -						pdword[3], cc);
+> +						le32_to_cpu(pdword[3]), cc);
+>   					break;
+>   				default:
+>   					printk(KERN_INFO "s2255 unknown resp\n");
+> @@ -2603,10 +2603,11 @@ static int s2255_probe(struct usb_interface *interface,
+>   		__le32 *pRel;
+>   		pRel = (__le32 *)&dev->fw_data->fw->data[fw_size - 4];
+>   		printk(KERN_INFO "s2255 dsp fw version %x\n", *pRel);
+> -		dev->dsp_fw_ver = *pRel;
+> -		if (*pRel<  S2255_CUR_DSP_FWVER)
+> +		dev->dsp_fw_ver = le32_to_cpu(*pRel);
+> +		if (dev->dsp_fw_ver<  S2255_CUR_DSP_FWVER)
+>   			printk(KERN_INFO "s2255: f2255usb.bin out of date.\n");
+> -		if (dev->pid == 0x2257&&  *pRel<  S2255_MIN_DSP_COLORFILTER)
+> +		if (dev->pid == 0x2257&&
+> +				dev->dsp_fw_ver<  S2255_MIN_DSP_COLORFILTER)
+>   			printk(KERN_WARNING "s2255: 2257 requires firmware %d"
+>   			       " or above.\n", S2255_MIN_DSP_COLORFILTER);
+>   	}
 >
-> It wasn't an accident, that I wrote "spin_lock()" - without the "_irqsave"
-> part. You are in an ISR here, and this is the only IRQ, that your driver
-> has to protect against, so, here, I think, you don't have to block other
-> IRQs.
 
-Ok,
->> > +
->> > +       if (list_empty(&pcdev->active_bufs)) {
->> > +               dev_warn(pcdev->dev, "%s: called while active list is empty\n",
->> > +                       __func__);
->> > +               goto irq_ok;
->
-> This means, you return IRQ_HANDLED here without even checking whether any
-> of your status bits are actually set. So, if you get an interrupt here
-> with an empty list, it might indeed be the case of a shared IRQ, in which
-> case you'd have to return IRQ_NONE.
-
-Got it.
-
->> > +       }
->> >
->> >        if (status & (1 << 7)) { /* overflow */
->> >                u32 cntl;
->
-> As I said - we can keep this version, but maybe you'll like to improve at
-> least the latter of the above two snippets.
-
-I'd rather you merge this as it is, because it really fixes a driver
-which is currently buggy. I'll send a clean up series adressing the
-following issues next week:
-1. Eliminate the unwanted "goto".
-2. Use list_first_entry() macro.
-3. Use spin_lock() in ISR.
-4. Return IRQ_NONE if list is empty and no status bit is set.
-5. Integrate discard buffers in a more efficient way.
-
-Regards.
--- 
-Javier Martin
-Vista Silicon S.L.
-CDTUC - FASE C - Oficina S-345
-Avda de los Castros s/n
-39005- Santander. Cantabria. Spain
-+34 942 25 32 60
-www.vista-silicon.com
