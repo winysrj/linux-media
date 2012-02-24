@@ -1,52 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:56672 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab2BVQD3 (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:48592 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752719Ab2BXKDn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:03:29 -0500
-Date: Wed, 22 Feb 2012 16:03:21 +0000 (GMT)
-From: James Simmons <jsimmons@infradead.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	Rob Clark <rob@ti.com>, linux-media@vger.kernel.org,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
- 2012 - Notes
-In-Reply-To: <2168398.Pv8ir5xFGf@avalon>
-Message-ID: <alpine.LFD.2.02.1202221559510.3721@casper.infradead.org>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com> <1775349.d0yvHiVdjB@avalon> <20120217095554.GA5511@phenom.ffwll.local> <2168398.Pv8ir5xFGf@avalon>
+	Fri, 24 Feb 2012 05:03:43 -0500
+Received: by wicr5 with SMTP id r5so96853wic.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Feb 2012 02:03:41 -0800 (PST)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Fri, 24 Feb 2012 11:03:41 +0100
+Message-ID: <CAL9G6WVTWTZpmkaCo0G4h5f1bOXBMOpT-yOZ5m90LXUCf9iv=g@mail.gmail.com>
+Subject: TeVii S470 on kernel 3.2
+From: Josu Lazkano <josu.lazkano@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello all, I just upgrade from Debian Squeeze to Debian Wheezy (3.2
+kernel), and the TeVii S470 DVB-S2 card doesn't work now. It doesn't
+find any channels.
 
-> > Imo we should ditch this - fb accel doesn't belong into the kernel. Even
-> > on hw that still has a blitter for easy 2d accel without a complete 3d
-> > state setup necessary, it's not worth it. Chris Wilson from our team once
-> > played around with implementing fb accel in the kernel (i915 hw still has
-> > a blitter engine in the latest generations). He quickly noticed that to
-> > have decent speed, competitive with s/w rendering by the cpu he needs the
-> > entire batch and buffer management stuff from userspace. And to really
-> > beat the cpu, you need even more magic.
-> > 
-> > If you want fast 2d accel, use something like cairo.
-> 
-> Our conclusion on this is that we should not expose an explicit 2D 
-> acceleration API at the kernel level. If really needed, hardware 2D 
-> acceleration could be implemented as a DRM device to handle memory management, 
-> commands ring setup, synchronization, ... but I'm not even sure if that's 
-> worth it. I might not have conveyed it well in my notes.
+This is the dmesg:
 
-Fbcon scrolling at be painful at HD or better modes. Fbcon needs 3 
-possible accels; copyarea, imageblit, and fillrect. The first two could be 
-hooked from the TTM layer. Its something I plan to experiment to see if 
-its worth it.
+...
+[    9.727623] cx23885 driver version 0.0.3 loaded
+[    9.728317] ACPI: PCI Interrupt Link [LN4A] enabled at IRQ 19
+[    9.728346] cx23885 0000:05:00.0: PCI INT A -> Link[LN4A] -> GSI 19
+(level, low) -> IRQ 19
+[    9.728981] CORE cx23885[0]: subsystem: d470:9022, board: TeVii
+S470 [card=15,autodetected]
+[    9.862639] cx23885_dvb_register() allocating 1 frontend(s)
+[    9.863046] cx23885[0]: cx23885 based dvb card
+[    9.874022] IR NEC protocol handler initialized
+[    9.899672] DS3000 chip version: 0.192 attached.
+[    9.899682] DVB: registering new adapter (cx23885[0])
+[    9.899690] DVB: registering adapter 7 frontend 0 (Montage
+Technology DS3000/TS2020)...
+[    9.927578] TeVii S470 MAC= 00:18:bd:5b:31:1e
+[    9.927588] cx23885_dev_checkrevision() Hardware revision = 0xb0
+[    9.927599] cx23885[0]/0: found at 0000:05:00.0, rev: 2, irq: 19,
+latency: 0, mmio: 0xfea00000
+[    9.927612] cx23885 0000:05:00.0: setting latency timer to 64
+...
+
+The device is on /dev/dvb/adapter7. I have this messages on dmesg when
+it try to scan channels:
+
+ds3000_firmware_ondemand: Waiting for firmware upload (dvb-fe-ds3000.fw)...
+ds3000_firmware_ondemand: Waiting for firmware upload(2)...
+
+The firmware is there:
+
+$ ls -l /lib/firmware/ | grep ds3000
+-rw-r--r-- 1 root root  8192 Feb 20 22:51 dvb-fe-ds3000.fw
+
+I have on the same machine a TeVii S660 DVB-S2 and it is working great.
+
+I will appreciate any help. Thanks and best regards.
+
+-- 
+Josu Lazkano
