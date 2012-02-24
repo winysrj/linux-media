@@ -1,664 +1,545 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3939 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753199Ab2BCKGU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 05:06:20 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv1 PATCH 4/6] V4L2 spec: document the new V4L2 DV timings ioctls.
-Date: Fri,  3 Feb 2012 11:06:04 +0100
-Message-Id: <fdc4106fec26b04be848f3e0147bc635691d8f87.1328262332.git.hans.verkuil@cisco.com>
-In-Reply-To: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <f884dc30bd71901ea5dad39dc3310fa5a7d9e9c2.1328262332.git.hans.verkuil@cisco.com>
-References: <f884dc30bd71901ea5dad39dc3310fa5a7d9e9c2.1328262332.git.hans.verkuil@cisco.com>
+Received: from mail-gx0-f174.google.com ([209.85.161.174]:43519 "EHLO
+	mail-gx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757222Ab2BXPZE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Feb 2012 10:25:04 -0500
+Received: by mail-gx0-f174.google.com with SMTP id h1so1169999ggn.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Feb 2012 07:25:03 -0800 (PST)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: mchehab@infradead.org, gregkh@linuxfoundation.org
+Cc: tomas.winkler@intel.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, dan.carpenter@oracle.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 9/9] staging: easycap: Split easycap_delete() into several pieces
+Date: Fri, 24 Feb 2012 12:24:22 -0300
+Message-Id: <1330097062-31663-9-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
+References: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The patch splits easycap_delete(), which is in charge of
+buffer deallocation, into smaller functions each
+deallocating a specific kind of buffer.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
- Documentation/DocBook/media/v4l/v4l2.xml           |    3 +
- .../DocBook/media/v4l/vidioc-dv-timings-cap.xml    |  205 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-enum-dv-timings.xml   |  113 +++++++++++
- .../DocBook/media/v4l/vidioc-g-dv-timings.xml      |  120 +++++++++++-
- .../DocBook/media/v4l/vidioc-query-dv-timings.xml  |   98 ++++++++++
- 5 files changed, 531 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
- create mode 100644 Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
+ drivers/staging/media/easycap/easycap_main.c |  445 ++++++++++++++-----------
+ 1 files changed, 249 insertions(+), 196 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/v4l2.xml b/Documentation/DocBook/media/v4l/v4l2.xml
-index dce3fef..8bc2ccd 100644
---- a/Documentation/DocBook/media/v4l/v4l2.xml
-+++ b/Documentation/DocBook/media/v4l/v4l2.xml
-@@ -481,10 +481,12 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-dbg-g-chip-ident;
-     &sub-dbg-g-register;
-     &sub-dqevent;
-+    &sub-dv-timings-cap;
-     &sub-encoder-cmd;
-     &sub-enumaudio;
-     &sub-enumaudioout;
-     &sub-enum-dv-presets;
-+    &sub-enum-dv-timings;
-     &sub-enum-fmt;
-     &sub-enum-framesizes;
-     &sub-enum-frameintervals;
-@@ -519,6 +521,7 @@ and discussions on the V4L mailing list.</revremark>
-     &sub-querycap;
-     &sub-queryctrl;
-     &sub-query-dv-preset;
-+    &sub-query-dv-timings;
-     &sub-querystd;
-     &sub-prepare-buf;
-     &sub-reqbufs;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-new file mode 100644
-index 0000000..0477de1
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-dv-timings-cap.xml
-@@ -0,0 +1,205 @@
-+<refentry id="vidioc-dv-timings-cap">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_DV_TIMINGS_CAP</refentrytitle>
-+    &manvol;
-+  </refmeta>
+diff --git a/drivers/staging/media/easycap/easycap_main.c b/drivers/staging/media/easycap/easycap_main.c
+index 76a2c5b..aed9537 100644
+--- a/drivers/staging/media/easycap/easycap_main.c
++++ b/drivers/staging/media/easycap/easycap_main.c
+@@ -701,202 +701,6 @@ static int videodev_release(struct video_device *pvideo_device)
+ 	return 0;
+ }
+ 
+-/*
+- * This function is called from within easycap_usb_disconnect() and is
+- * protected by semaphores set and cleared by easycap_usb_disconnect().
+- * By this stage the device has already been physically unplugged,
+- * so peasycap->pusb_device is no longer valid.
+- */
+-static void easycap_delete(struct kref *pkref)
+-{
+-	struct easycap *peasycap;
+-	struct data_urb *pdata_urb;
+-	struct list_head *plist_head, *plist_next;
+-	int k, m, gone, kd;
+-	int allocation_video_urb;
+-	int allocation_video_page;
+-	int allocation_video_struct;
+-	int allocation_audio_urb;
+-	int allocation_audio_page;
+-	int allocation_audio_struct;
+-	int registered_video, registered_audio;
+-
+-	peasycap = container_of(pkref, struct easycap, kref);
+-	if (!peasycap) {
+-		SAM("ERROR: peasycap is NULL: cannot perform deletions\n");
+-		return;
+-	}
+-	kd = easycap_isdongle(peasycap);
+-
+-	/* Free video urbs */
+-	if (peasycap->purb_video_head) {
+-		m = 0;
+-		list_for_each(plist_head, peasycap->purb_video_head) {
+-			pdata_urb = list_entry(plist_head,
+-						struct data_urb, list_head);
+-			if (pdata_urb && pdata_urb->purb) {
+-				usb_free_urb(pdata_urb->purb);
+-				pdata_urb->purb = NULL;
+-				peasycap->allocation_video_urb--;
+-				m++;
+-			}
+-		}
+-
+-		JOM(4, "%i video urbs freed\n", m);
+-		JOM(4, "freeing video data_urb structures.\n");
+-		m = 0;
+-		list_for_each_safe(plist_head, plist_next,
+-					peasycap->purb_video_head) {
+-			pdata_urb = list_entry(plist_head,
+-						struct data_urb, list_head);
+-			if (pdata_urb) {
+-				peasycap->allocation_video_struct -=
+-						sizeof(struct data_urb);
+-				kfree(pdata_urb);
+-				m++;
+-			}
+-		}
+-		JOM(4, "%i video data_urb structures freed\n", m);
+-		JOM(4, "setting peasycap->purb_video_head=NULL\n");
+-		peasycap->purb_video_head = NULL;
+-	}
+-
+-	/* Free video isoc buffers */
+-	JOM(4, "freeing video isoc buffers.\n");
+-	m = 0;
+-	for (k = 0;  k < VIDEO_ISOC_BUFFER_MANY;  k++) {
+-		if (peasycap->video_isoc_buffer[k].pgo) {
+-			free_pages((unsigned long)
+-				   peasycap->video_isoc_buffer[k].pgo,
+-					VIDEO_ISOC_ORDER);
+-			peasycap->video_isoc_buffer[k].pgo = NULL;
+-			peasycap->allocation_video_page -=
+-						BIT(VIDEO_ISOC_ORDER);
+-			m++;
+-		}
+-	}
+-	JOM(4, "isoc video buffers freed: %i pages\n",
+-			m * (0x01 << VIDEO_ISOC_ORDER));
+-	/* Free video field buffers */
+-	JOM(4, "freeing video field buffers.\n");
+-	gone = 0;
+-	for (k = 0;  k < FIELD_BUFFER_MANY;  k++) {
+-		for (m = 0;  m < FIELD_BUFFER_SIZE/PAGE_SIZE;  m++) {
+-			if (peasycap->field_buffer[k][m].pgo) {
+-				free_page((unsigned long)
+-					  peasycap->field_buffer[k][m].pgo);
+-				peasycap->field_buffer[k][m].pgo = NULL;
+-				peasycap->allocation_video_page -= 1;
+-				gone++;
+-			}
+-		}
+-	}
+-	JOM(4, "video field buffers freed: %i pages\n", gone);
+-
+-	/* Free video frame buffers */
+-	JOM(4, "freeing video frame buffers.\n");
+-	gone = 0;
+-	for (k = 0;  k < FRAME_BUFFER_MANY;  k++) {
+-		for (m = 0;  m < FRAME_BUFFER_SIZE/PAGE_SIZE;  m++) {
+-			if (peasycap->frame_buffer[k][m].pgo) {
+-				free_page((unsigned long)
+-					  peasycap->frame_buffer[k][m].pgo);
+-				peasycap->frame_buffer[k][m].pgo = NULL;
+-				peasycap->allocation_video_page -= 1;
+-				gone++;
+-			}
+-		}
+-	}
+-	JOM(4, "video frame buffers freed: %i pages\n", gone);
+-
+-	/* Free audio urbs */
+-	if (peasycap->purb_audio_head) {
+-		JOM(4, "freeing audio urbs\n");
+-		m = 0;
+-		list_for_each(plist_head, (peasycap->purb_audio_head)) {
+-			pdata_urb = list_entry(plist_head,
+-					struct data_urb, list_head);
+-			if (pdata_urb && pdata_urb->purb) {
+-				usb_free_urb(pdata_urb->purb);
+-				pdata_urb->purb = NULL;
+-				peasycap->allocation_audio_urb--;
+-				m++;
+-			}
+-		}
+-		JOM(4, "%i audio urbs freed\n", m);
+-		JOM(4, "freeing audio data_urb structures.\n");
+-		m = 0;
+-		list_for_each_safe(plist_head, plist_next,
+-					peasycap->purb_audio_head) {
+-			pdata_urb = list_entry(plist_head,
+-					struct data_urb, list_head);
+-			if (pdata_urb) {
+-				peasycap->allocation_audio_struct -=
+-							sizeof(struct data_urb);
+-				kfree(pdata_urb);
+-				m++;
+-			}
+-		}
+-		JOM(4, "%i audio data_urb structures freed\n", m);
+-		JOM(4, "setting peasycap->purb_audio_head=NULL\n");
+-		peasycap->purb_audio_head = NULL;
+-	}
+-
+-	/* Free audio isoc buffers */
+-	JOM(4, "freeing audio isoc buffers.\n");
+-	m = 0;
+-	for (k = 0;  k < AUDIO_ISOC_BUFFER_MANY;  k++) {
+-		if (peasycap->audio_isoc_buffer[k].pgo) {
+-			free_pages((unsigned long)
+-					(peasycap->audio_isoc_buffer[k].pgo),
+-					AUDIO_ISOC_ORDER);
+-			peasycap->audio_isoc_buffer[k].pgo = NULL;
+-			peasycap->allocation_audio_page -=
+-					BIT(AUDIO_ISOC_ORDER);
+-			m++;
+-		}
+-	}
+-	JOM(4, "easyoss_delete(): isoc audio buffers freed: %i pages\n",
+-					m * (0x01 << AUDIO_ISOC_ORDER));
+-	JOM(4, "freeing easycap structure.\n");
+-	allocation_video_urb    = peasycap->allocation_video_urb;
+-	allocation_video_page   = peasycap->allocation_video_page;
+-	allocation_video_struct = peasycap->allocation_video_struct;
+-	registered_video        = peasycap->registered_video;
+-	allocation_audio_urb    = peasycap->allocation_audio_urb;
+-	allocation_audio_page   = peasycap->allocation_audio_page;
+-	allocation_audio_struct = peasycap->allocation_audio_struct;
+-	registered_audio        = peasycap->registered_audio;
+-
+-	if (0 <= kd && DONGLE_MANY > kd) {
+-		if (mutex_lock_interruptible(&mutex_dongle)) {
+-			SAY("ERROR: cannot down mutex_dongle\n");
+-		} else {
+-			JOM(4, "locked mutex_dongle\n");
+-			easycapdc60_dongle[kd].peasycap = NULL;
+-			mutex_unlock(&mutex_dongle);
+-			JOM(4, "unlocked mutex_dongle\n");
+-			JOT(4, "   null-->dongle[%i].peasycap\n", kd);
+-			allocation_video_struct -= sizeof(struct easycap);
+-		}
+-	} else {
+-		SAY("ERROR: cannot purge dongle[].peasycap");
+-	}
+-
+-	kfree(peasycap);
+-
+-	SAY("%8i=video urbs    after all deletions\n", allocation_video_urb);
+-	SAY("%8i=video pages   after all deletions\n", allocation_video_page);
+-	SAY("%8i=video structs after all deletions\n", allocation_video_struct);
+-	SAY("%8i=video devices after all deletions\n", registered_video);
+-	SAY("%8i=audio urbs    after all deletions\n", allocation_audio_urb);
+-	SAY("%8i=audio pages   after all deletions\n", allocation_audio_page);
+-	SAY("%8i=audio structs after all deletions\n", allocation_audio_struct);
+-	SAY("%8i=audio devices after all deletions\n", registered_audio);
+-
+-	JOT(4, "ending.\n");
+-	return;
+-}
+ /*****************************************************************************/
+ static unsigned int easycap_poll(struct file *file, poll_table *wait)
+ {
+@@ -2875,6 +2679,56 @@ static struct easycap *alloc_easycap(u8 bInterfaceNumber)
+ 	return peasycap;
+ }
+ 
++static void free_easycap(struct easycap *peasycap)
++{
++	int allocation_video_urb;
++	int allocation_video_page;
++	int allocation_video_struct;
++	int allocation_audio_urb;
++	int allocation_audio_page;
++	int allocation_audio_struct;
++	int registered_video, registered_audio;
++	int kd;
 +
-+  <refnamediv>
-+    <refname>VIDIOC_DV_TIMINGS_CAP</refname>
-+    <refpurpose>The capabilities of the Digital Video receiver/transmitter</refpurpose>
-+  </refnamediv>
++	JOM(4, "freeing easycap structure.\n");
++	allocation_video_urb    = peasycap->allocation_video_urb;
++	allocation_video_page   = peasycap->allocation_video_page;
++	allocation_video_struct = peasycap->allocation_video_struct;
++	registered_video        = peasycap->registered_video;
++	allocation_audio_urb    = peasycap->allocation_audio_urb;
++	allocation_audio_page   = peasycap->allocation_audio_page;
++	allocation_audio_struct = peasycap->allocation_audio_struct;
++	registered_audio        = peasycap->registered_audio;
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_dv_timings_cap *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++	kd = easycap_isdongle(peasycap);
++	if (0 <= kd && DONGLE_MANY > kd) {
++		if (mutex_lock_interruptible(&mutex_dongle)) {
++			SAY("ERROR: cannot down mutex_dongle\n");
++		} else {
++			JOM(4, "locked mutex_dongle\n");
++			easycapdc60_dongle[kd].peasycap = NULL;
++			mutex_unlock(&mutex_dongle);
++			JOM(4, "unlocked mutex_dongle\n");
++			JOT(4, "   null-->dongle[%i].peasycap\n", kd);
++			allocation_video_struct -= sizeof(struct easycap);
++		}
++	} else {
++		SAY("ERROR: cannot purge dongle[].peasycap");
++	}
 +
-+  <refsect1>
-+    <title>Arguments</title>
++	/* Free device structure */
++	kfree(peasycap);
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_DV_TIMINGS_CAP</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
++	SAY("%8i=video urbs    after all deletions\n", allocation_video_urb);
++	SAY("%8i=video pages   after all deletions\n", allocation_video_page);
++	SAY("%8i=video structs after all deletions\n", allocation_video_struct);
++	SAY("%8i=video devices after all deletions\n", registered_video);
++	SAY("%8i=audio urbs    after all deletions\n", allocation_audio_urb);
++	SAY("%8i=audio pages   after all deletions\n", allocation_audio_page);
++	SAY("%8i=audio structs after all deletions\n", allocation_audio_struct);
++	SAY("%8i=audio devices after all deletions\n", registered_audio);
++}
 +
-+  <refsect1>
-+    <title>Description</title>
+ /*
+  * FIXME: Identify the appropriate pointer peasycap for interfaces
+  * 1 and 2. The address of peasycap->pusb_device is reluctantly used
+@@ -3073,6 +2927,26 @@ static int alloc_framebuffers(struct easycap *peasycap)
+ 	return 0;
+ }
+ 
++static void free_framebuffers(struct easycap *peasycap)
++{
++	int k, m, gone;
 +
-+    <para>To query the available timings, applications initialize the
-+<structfield>index</structfield> field and zero the reserved array of &v4l2-dv-timings-cap;
-+and call the <constant>VIDIOC_DV_TIMINGS_CAP</constant> ioctl with a pointer to this
-+structure. Drivers fill the rest of the structure or return an
-+&EINVAL; when the index is out of bounds. To enumerate all supported DV timings,
-+applications shall begin at index zero, incrementing by one until the
-+driver returns <errorcode>EINVAL</errorcode>. Note that drivers may enumerate a
-+different set of DV timings after switching the video input or
-+output.</para>
++	JOM(4, "freeing video frame buffers.\n");
++	gone = 0;
++	for (k = 0;  k < FRAME_BUFFER_MANY;  k++) {
++		for (m = 0;  m < FRAME_BUFFER_SIZE/PAGE_SIZE;  m++) {
++			if (peasycap->frame_buffer[k][m].pgo) {
++				free_page((unsigned long)
++					peasycap->frame_buffer[k][m].pgo);
++				peasycap->frame_buffer[k][m].pgo = NULL;
++				peasycap->allocation_video_page -= 1;
++				gone++;
++			}
++		}
++	}
++	JOM(4, "video frame buffers freed: %i pages\n", gone);
++}
 +
-+    <table pgwide="1" frame="none" id="v4l2-bt-timings-cap">
-+      <title>struct <structname>v4l2_bt_timings_cap</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>min_width</structfield></entry>
-+	    <entry>Minimum width of the active video in pixels.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>max_width</structfield></entry>
-+	    <entry>Maximum width of the active video in pixels.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>min_height</structfield></entry>
-+	    <entry>Minimum height of the active video in lines.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>max_height</structfield></entry>
-+	    <entry>Maximum height of the active video in lines.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>min_pixelclock</structfield></entry>
-+	    <entry>Minimum pixelclock frequency in Hz.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u64</entry>
-+	    <entry><structfield>max_pixelclock</structfield></entry>
-+	    <entry>Maximum pixelclock frequency in Hz.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>standards</structfield></entry>
-+	    <entry>The video standard(s) supported by the hardware.
-+	    See <xref linkend="dv-bt-standards"/> for a list of standards.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>capabilities</structfield></entry>
-+	    <entry>Several flags giving more information about the capabilities.
-+	    See <xref linkend="dv-bt-cap-capabilities"/> for a description of the flags.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[16]</entry>
-+	    <entry></entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
+ static int alloc_fieldbuffers(struct easycap *peasycap)
+ {
+ 	int i, j;
+@@ -3112,6 +2986,26 @@ static int alloc_fieldbuffers(struct easycap *peasycap)
+ 	return 0;
+ }
+ 
++static void free_fieldbuffers(struct easycap *peasycap)
++{
++	int k, m, gone;
 +
-+    <table pgwide="1" frame="none" id="v4l2-dv-timings-cap">
-+      <title>struct <structname>v4l2_dv_timings_cap</structname></title>
-+      <tgroup cols="4">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>type</structfield></entry>
-+	    <entry>Type of DV timings as listed in <xref linkend="dv-timing-types"/>.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[3]</entry>
-+	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>union</entry>
-+	    <entry><structfield></structfield></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>&v4l2-bt-timings-cap;</entry>
-+	    <entry><structfield>bt</structfield></entry>
-+	    <entry>BT.656/1120 timings capabilities of the hardware.</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>raw_data</structfield>[32]</entry>
-+	    <entry></entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
++	JOM(4, "freeing video field buffers.\n");
++	gone = 0;
++	for (k = 0;  k < FIELD_BUFFER_MANY;  k++) {
++		for (m = 0;  m < FIELD_BUFFER_SIZE/PAGE_SIZE;  m++) {
++			if (peasycap->field_buffer[k][m].pgo) {
++				free_page((unsigned long)
++					  peasycap->field_buffer[k][m].pgo);
++				peasycap->field_buffer[k][m].pgo = NULL;
++				peasycap->allocation_video_page -= 1;
++				gone++;
++			}
++		}
++	}
++	JOM(4, "video field buffers freed: %i pages\n", gone);
++}
 +
-+    <table pgwide="1" frame="none" id="dv-bt-cap-capabilities">
-+      <title>DV BT Timing capabilities</title>
-+      <tgroup cols="2">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>Flag</entry>
-+	    <entry>Description</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_BT_CAP_INTERLACED</entry>
-+	    <entry>Interlaced formats are supported.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_BT_CAP_PROGRESSIVE</entry>
-+	    <entry>Progressive formats are supported.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_BT_CAP_REDUCED_BLANKING</entry>
-+	    <entry>CVT/GTF specific: the timings can make use of reduced blanking (CVT)
-+or the 'Secondary GTF' curve (GTF).
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_BT_CAP_CUSTOM</entry>
-+	    <entry>Can support non-standard timings, i.e. timings not belonging to the
-+standards set in the <structfield>standards</structfield> field.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
+ static int alloc_isocbuffers(struct easycap *peasycap)
+ {
+ 	int i;
+@@ -3142,6 +3036,27 @@ static int alloc_isocbuffers(struct easycap *peasycap)
+ 	return 0;
+ }
+ 
++static void free_isocbuffers(struct easycap *peasycap)
++{
++	int k, m;
 +
-+  <refsect1>
-+    &return-value;
-+  </refsect1>
-+</refentry>
++	JOM(4, "freeing video isoc buffers.\n");
++	m = 0;
++	for (k = 0;  k < VIDEO_ISOC_BUFFER_MANY;  k++) {
++		if (peasycap->video_isoc_buffer[k].pgo) {
++			free_pages((unsigned long)
++				   peasycap->video_isoc_buffer[k].pgo,
++					VIDEO_ISOC_ORDER);
++			peasycap->video_isoc_buffer[k].pgo = NULL;
++			peasycap->allocation_video_page -=
++						BIT(VIDEO_ISOC_ORDER);
++			m++;
++		}
++	}
++	JOM(4, "isoc video buffers freed: %i pages\n",
++			m * (0x01 << VIDEO_ISOC_ORDER));
++}
 +
-+<!--
-+Local Variables:
-+mode: sgml
-+sgml-parent-document: "v4l2.sgml"
-+indent-tabs-mode: nil
-+End:
-+-->
-diff --git a/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-new file mode 100644
-index 0000000..edd6964
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-enum-dv-timings.xml
-@@ -0,0 +1,113 @@
-+<refentry id="vidioc-enum-dv-timings">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_ENUM_DV_TIMINGS</refentrytitle>
-+    &manvol;
-+  </refmeta>
+ static int create_video_urbs(struct easycap *peasycap)
+ {
+ 	struct urb *purb;
+@@ -3234,6 +3149,45 @@ static int create_video_urbs(struct easycap *peasycap)
+ 	return 0;
+ }
+ 
++static void free_video_urbs(struct easycap *peasycap)
++{
++	struct list_head *plist_head, *plist_next;
++	struct data_urb *pdata_urb;
++	int m;
 +
-+  <refnamediv>
-+    <refname>VIDIOC_ENUM_DV_TIMINGS</refname>
-+    <refpurpose>Enumerate supported Digital Video timings</refpurpose>
-+  </refnamediv>
++	if (peasycap->purb_video_head) {
++		m = 0;
++		list_for_each(plist_head, peasycap->purb_video_head) {
++			pdata_urb = list_entry(plist_head,
++					struct data_urb, list_head);
++			if (pdata_urb && pdata_urb->purb) {
++				usb_free_urb(pdata_urb->purb);
++				pdata_urb->purb = NULL;
++				peasycap->allocation_video_urb--;
++				m++;
++			}
++		}
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_enum_dv_timings *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++		JOM(4, "%i video urbs freed\n", m);
++		JOM(4, "freeing video data_urb structures.\n");
++		m = 0;
++		list_for_each_safe(plist_head, plist_next,
++					peasycap->purb_video_head) {
++			pdata_urb = list_entry(plist_head,
++					struct data_urb, list_head);
++			if (pdata_urb) {
++				peasycap->allocation_video_struct -=
++					sizeof(struct data_urb);
++				kfree(pdata_urb);
++				m++;
++			}
++		}
++		JOM(4, "%i video data_urb structures freed\n", m);
++		JOM(4, "setting peasycap->purb_video_head=NULL\n");
++		peasycap->purb_video_head = NULL;
++	}
++}
 +
-+  <refsect1>
-+    <title>Arguments</title>
+ static int alloc_audio_buffers(struct easycap *peasycap)
+ {
+ 	void *pbuf;
+@@ -3263,6 +3217,27 @@ static int alloc_audio_buffers(struct easycap *peasycap)
+ 	return 0;
+ }
+ 
++static void free_audio_buffers(struct easycap *peasycap)
++{
++	int k, m;
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_ENUM_DV_TIMINGS</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
++	JOM(4, "freeing audio isoc buffers.\n");
++	m = 0;
++	for (k = 0;  k < AUDIO_ISOC_BUFFER_MANY;  k++) {
++		if (peasycap->audio_isoc_buffer[k].pgo) {
++			free_pages((unsigned long)
++					(peasycap->audio_isoc_buffer[k].pgo),
++					AUDIO_ISOC_ORDER);
++			peasycap->audio_isoc_buffer[k].pgo = NULL;
++			peasycap->allocation_audio_page -=
++					BIT(AUDIO_ISOC_ORDER);
++			m++;
++		}
++	}
++	JOM(4, "easyoss_delete(): isoc audio buffers freed: %i pages\n",
++					m * (0x01 << AUDIO_ISOC_ORDER));
++}
 +
-+  <refsect1>
-+    <title>Description</title>
+ static int create_audio_urbs(struct easycap *peasycap)
+ {
+ 	struct urb *purb;
+@@ -3351,6 +3326,45 @@ static int create_audio_urbs(struct easycap *peasycap)
+ 	return 0;
+ }
+ 
++static void free_audio_urbs(struct easycap *peasycap)
++{
++	struct list_head *plist_head, *plist_next;
++	struct data_urb *pdata_urb;
++	int m;
 +
-+    <para>While some DV receivers or transmitters support a wide range of timings, others
-+support only a limited number of timings. With this ioctl applications can enumerate a list
-+of known supported timings. Call &VIDIOC-DV-TIMINGS-CAP; to check if it also supports other
-+standards or even custom timings that are not in this list.</para>
++	if (peasycap->purb_audio_head) {
++		JOM(4, "freeing audio urbs\n");
++		m = 0;
++		list_for_each(plist_head, (peasycap->purb_audio_head)) {
++			pdata_urb = list_entry(plist_head,
++					struct data_urb, list_head);
++			if (pdata_urb && pdata_urb->purb) {
++				usb_free_urb(pdata_urb->purb);
++				pdata_urb->purb = NULL;
++				peasycap->allocation_audio_urb--;
++				m++;
++			}
++		}
++		JOM(4, "%i audio urbs freed\n", m);
++		JOM(4, "freeing audio data_urb structures.\n");
++		m = 0;
++		list_for_each_safe(plist_head, plist_next,
++					peasycap->purb_audio_head) {
++			pdata_urb = list_entry(plist_head,
++					struct data_urb, list_head);
++			if (pdata_urb) {
++				peasycap->allocation_audio_struct -=
++							sizeof(struct data_urb);
++				kfree(pdata_urb);
++				m++;
++			}
++		}
++		JOM(4, "%i audio data_urb structures freed\n", m);
++		JOM(4, "setting peasycap->purb_audio_head=NULL\n");
++		peasycap->purb_audio_head = NULL;
++	}
++}
 +
-+    <para>To query the available timings, applications initialize the
-+<structfield>index</structfield> field and zero the reserved array of &v4l2-enum-dv-timings;
-+and call the <constant>VIDIOC_ENUM_DV_TIMINGS</constant> ioctl with a pointer to this
-+structure. Drivers fill the rest of the structure or return an
-+&EINVAL; when the index is out of bounds. To enumerate all supported DV timings,
-+applications shall begin at index zero, incrementing by one until the
-+driver returns <errorcode>EINVAL</errorcode>. Note that drivers may enumerate a
-+different set of DV timings after switching the video input or
-+output.</para>
+ static void config_easycap(struct easycap *peasycap,
+ 			   u8 bInterfaceNumber,
+ 			   u8 bInterfaceClass,
+@@ -3389,6 +3403,45 @@ static void config_easycap(struct easycap *peasycap,
+ 	}
+ }
+ 
++/*
++ * This function is called from within easycap_usb_disconnect() and is
++ * protected by semaphores set and cleared by easycap_usb_disconnect().
++ * By this stage the device has already been physically unplugged,
++ * so peasycap->pusb_device is no longer valid.
++ */
++static void easycap_delete(struct kref *pkref)
++{
++	struct easycap *peasycap;
 +
-+    <table pgwide="1" frame="none" id="v4l2-enum-dv-timings">
-+      <title>struct <structname>v4l2_enum_dv_timings</structname></title>
-+      <tgroup cols="3">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>index</structfield></entry>
-+	    <entry>Number of the DV timings, set by the
-+application.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>reserved</structfield>[3]</entry>
-+	    <entry>Reserved for future extensions. Drivers must set the array to zero.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>&v4l2-dv-timings;</entry>
-+	    <entry><structfield>timings</structfield></entry>
-+	    <entry>The timings.</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+  </refsect1>
++	peasycap = container_of(pkref, struct easycap, kref);
++	if (!peasycap) {
++		SAM("ERROR: peasycap is NULL: cannot perform deletions\n");
++		return;
++	}
 +
-+  <refsect1>
-+    &return-value;
++	/* Free video urbs */
++	free_video_urbs(peasycap);
 +
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>EINVAL</errorcode></term>
-+	<listitem>
-+	  <para>The &v4l2-enum-dv-timings; <structfield>index</structfield>
-+is out of bounds.</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
++	/* Free video isoc buffers */
++	free_isocbuffers(peasycap);
 +
-+<!--
-+Local Variables:
-+mode: sgml
-+sgml-parent-document: "v4l2.sgml"
-+indent-tabs-mode: nil
-+End:
-+-->
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-index 4a8648a..bffd26c 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
-@@ -83,12 +83,13 @@ or the timing values are not correct, the driver returns &EINVAL;.</para>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>width</structfield></entry>
--	    <entry>Width of the active video in pixels</entry>
-+	    <entry>Width of the active video in pixels.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>height</structfield></entry>
--	    <entry>Height of the active video in lines</entry>
-+	    <entry>Height of the active video frame in lines. So for interlaced formats the
-+	    height of the active video in each field is <structfield>height</structfield>/2.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
-@@ -125,32 +126,52 @@ bit 0 (V4L2_DV_VSYNC_POS_POL) is for vertical sync polarity and bit 1 (V4L2_DV_H
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>vfrontporch</structfield></entry>
--	    <entry>Vertical front porch in lines</entry>
-+	    <entry>Vertical front porch in lines. For interlaced formats this refers to the
-+	    odd field (aka field 1).</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>vsync</structfield></entry>
--	    <entry>Vertical sync length in lines</entry>
-+	    <entry>Vertical sync length in lines. For interlaced formats this refers to the
-+	    odd field (aka field 1).</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>vbackporch</structfield></entry>
--	    <entry>Vertical back porch in lines</entry>
-+	    <entry>Vertical back porch in lines. For interlaced formats this refers to the
-+	    odd field (aka field 1).</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>il_vfrontporch</structfield></entry>
--	    <entry>Vertical front porch in lines for bottom field of interlaced field formats</entry>
-+	    <entry>Vertical front porch in lines for the even field (aka field 2) of
-+	    interlaced field formats.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>il_vsync</structfield></entry>
--	    <entry>Vertical sync length in lines for bottom field of interlaced field formats</entry>
-+	    <entry>Vertical sync length in lines for the even field (aka field 2) of
-+	    interlaced field formats.</entry>
- 	  </row>
- 	  <row>
- 	    <entry>__u32</entry>
- 	    <entry><structfield>il_vbackporch</structfield></entry>
--	    <entry>Vertical back porch in lines for bottom field of interlaced field formats</entry>
-+	    <entry>Vertical back porch in lines for the even field (aka field 2) of
-+	    interlaced field formats.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>standards</structfield></entry>
-+	    <entry>The video standard(s) this format belongs to. This will be filled in by
-+	    the driver. Applications must set this to 0. See <xref linkend="dv-bt-standards"/>
-+	    for a list of standards.</entry>
-+	  </row>
-+	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>flags</structfield></entry>
-+	    <entry>Several flags giving more information about the format.
-+	    See <xref linkend="dv-bt-flags"/> for a description of the flags.
-+	    </entry>
- 	  </row>
- 	</tbody>
-       </tgroup>
-@@ -211,6 +232,89 @@ bit 0 (V4L2_DV_VSYNC_POS_POL) is for vertical sync polarity and bit 1 (V4L2_DV_H
- 	</tbody>
-       </tgroup>
-     </table>
-+    <table pgwide="1" frame="none" id="dv-bt-standards">
-+      <title>DV BT Timing standards</title>
-+      <tgroup cols="2">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>Timing standard</entry>
-+	    <entry>Description</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_BT_STD_CEA861</entry>
-+	    <entry>The timings follow the CEA-861 Digital TV Profile standard</entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_BT_STD_DMT</entry>
-+	    <entry>The timings follow the VESA Discrete Monitor Timings standard</entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_BT_STD_CVT</entry>
-+	    <entry>The timings follow the VESA Coordinated Video Timings standard</entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_BT_STD_GTF</entry>
-+	    <entry>The timings follow the VESA Generalized Timings Formula standard</entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-+    <table pgwide="1" frame="none" id="dv-bt-flags">
-+      <title>DV BT Timing flags</title>
-+      <tgroup cols="2">
-+	&cs-str;
-+	<tbody valign="top">
-+	  <row>
-+	    <entry>Flag</entry>
-+	    <entry>Description</entry>
-+	  </row>
-+	  <row>
-+	    <entry></entry>
-+	    <entry></entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_FL_REDUCED_BLANKING</entry>
-+	    <entry>CVT/GTF specific: the timings use reduced blanking (CVT) or the 'Secondary
-+GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
-+intervals are reduced, allowing a higher resolution over the same
-+bandwidth. This is a read-only flag, applications must not set this.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_FL_NTSC_COMPATIBLE</entry>
-+	    <entry>CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
-+of six. These formats can be optionally played at 1 / 1.001 speed to
-+be compatible with the normal NTSC framerate of 29.97 frames per second.
-+This is a read-only flag, applications must not set this.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_FL_DIVIDE_CLOCK_BY_1_001</entry>
-+	    <entry>CEA-861 specific: only valid for video transmitters, the flag is cleared
-+by receivers. It is also only valid for formats with the V4L2_DV_FL_NTSC_COMPATIBLE flag
-+set, for other formats the flag will be cleared by the driver.
++	/* Free video field buffers */
++	free_fieldbuffers(peasycap);
 +
-+If the application sets this flag, then the pixelclock used to set up the transmitter is
-+divided by 1.001 to make it compatible with NTSC framerates. If the transmitter
-+can't generate such frequencies, then the flag will also be cleared.
-+	    </entry>
-+	  </row>
-+	  <row>
-+	    <entry>V4L2_DV_FL_HALF_LINE</entry>
-+	    <entry>Specific to interlaced formats: if set, then field 1 (aka the odd field)
-+is really one half-line longer and field 2 (aka the even field) is really one half-line
-+shorter, so each field has exactly the same number of half-lines. Whether half-lines can be
-+detected or used depends on the hardware.
-+	    </entry>
-+	  </row>
-+	</tbody>
-+      </tgroup>
-+    </table>
-   </refsect1>
-   <refsect1>
-     &return-value;
-diff --git a/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-new file mode 100644
-index 0000000..9d7ac43
---- /dev/null
-+++ b/Documentation/DocBook/media/v4l/vidioc-query-dv-timings.xml
-@@ -0,0 +1,98 @@
-+<refentry id="vidioc-query-dv-timings">
-+  <refmeta>
-+    <refentrytitle>ioctl VIDIOC_QUERY_DV_TIMINGS</refentrytitle>
-+    &manvol;
-+  </refmeta>
++	/* Free video frame buffers */
++	free_framebuffers(peasycap);
 +
-+  <refnamediv>
-+    <refname>VIDIOC_QUERY_DV_TIMINGS</refname>
-+    <refpurpose>Sense the DV preset received by the current
-+input</refpurpose>
-+  </refnamediv>
++	/* Free audio urbs */
++	free_audio_urbs(peasycap);
 +
-+  <refsynopsisdiv>
-+    <funcsynopsis>
-+      <funcprototype>
-+	<funcdef>int <function>ioctl</function></funcdef>
-+	<paramdef>int <parameter>fd</parameter></paramdef>
-+	<paramdef>int <parameter>request</parameter></paramdef>
-+	<paramdef>struct v4l2_dv_timings *<parameter>argp</parameter></paramdef>
-+      </funcprototype>
-+    </funcsynopsis>
-+  </refsynopsisdiv>
++	/* Free audio isoc buffers */
++	free_audio_buffers(peasycap);
 +
-+  <refsect1>
-+    <title>Arguments</title>
++	free_easycap(peasycap);
 +
-+    <variablelist>
-+	<varlistentry>
-+	<term><parameter>fd</parameter></term>
-+	<listitem>
-+	  <para>&fd;</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>request</parameter></term>
-+	<listitem>
-+	  <para>VIDIOC_QUERY_DV_TIMINGS</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><parameter>argp</parameter></term>
-+	<listitem>
-+	  <para></para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
++	JOT(4, "ending.\n");
++}
 +
-+  <refsect1>
-+    <title>Description</title>
-+
-+    <para>The hardware may be able to detect the current DV timings
-+automatically, similar to sensing the video standard. To do so, applications
-+call <constant>VIDIOC_QUERY_DV_TIMINGS</constant> with a pointer to a
-+&v4l2-dv-timings;. Once the hardware detects the timings, it will fill in the
-+timings structure.
-+
-+If the timings could not be detected because there was no signal, then
-+<errorcode>ENOLINK</errorcode> is returned. If a signal was detected, but
-+it was unstable and the receiver could not lock to the signal, then
-+<errorcode>ENOLCK</errorcode> is returned. If the receiver could lock to the signal,
-+but the format is unsupported (e.g. because the pixelclock is out of range
-+of the hardware capabilities), then the driver fills in whatever timings it
-+could find and returns <errorcode>ERANGE</errorcode>. In that case the application
-+can call &VIDIOC-DV-TIMINGS-CAP; to compare the found timings with the hardware's
-+capabilities in order to give more precise feedback to the user.
-+</para>
-+  </refsect1>
-+
-+  <refsect1>
-+    &return-value;
-+
-+    <variablelist>
-+      <varlistentry>
-+	<term><errorcode>ENOLINK</errorcode></term>
-+	<listitem>
-+	  <para>No timings could be detected because no signal was found.
-+</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ENOLCK</errorcode></term>
-+	<listitem>
-+	  <para>The signal was unstable and the hardware could not lock on to it.
-+</para>
-+	</listitem>
-+      </varlistentry>
-+      <varlistentry>
-+	<term><errorcode>ERANGE</errorcode></term>
-+	<listitem>
-+	  <para>Timings were found, but they are out of range of the hardware
-+capabilities.
-+</para>
-+	</listitem>
-+      </varlistentry>
-+    </variablelist>
-+  </refsect1>
-+</refentry>
+ static const struct v4l2_file_operations v4l2_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= easycap_open_noinode,
 -- 
-1.7.8.3
+1.7.3.4
 
