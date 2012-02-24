@@ -1,41 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from wolverine01.qualcomm.com ([199.106.114.254]:21084 "EHLO
-	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752120Ab2B1Fux (ORCPT
+Received: from mail-yx0-f174.google.com ([209.85.213.174]:49727 "EHLO
+	mail-yx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757222Ab2BXPYq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 00:50:53 -0500
-From: Ravi Kumar V <kumarrav@codeaurora.org>
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Jarod Wilson <jarod@redhat.com>,
-	Anssi Hannula <anssi.hannula@iki.fi>,
-	"Juan J. Garcia de Soria" <skandalfo@gmail.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	tsoni@codeaurora.org, davidb@codeaurora.org, bryanh@codeaurora.org,
-	Ravi Kumar V <kumarrav@codeaurora.org>,
-	linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v3 0/1] Add support for GPIO IR receiver driver 
-Date: Tue, 28 Feb 2012 11:20:38 +0530
-Message-Id: <1330408238-21880-1-git-send-email-kumarrav@codeaurora.org>
+	Fri, 24 Feb 2012 10:24:46 -0500
+Received: by yenm8 with SMTP id m8so1156267yen.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Feb 2012 07:24:45 -0800 (PST)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: mchehab@infradead.org, gregkh@linuxfoundation.org
+Cc: tomas.winkler@intel.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, dan.carpenter@oracle.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 3/9] staging: easycap: Push bInterfaceNumber saving to config_easycap()
+Date: Fri, 24 Feb 2012 12:24:16 -0300
+Message-Id: <1330097062-31663-3-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
+References: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This driver is for GPIO based IR receivers, it can listen only to IR receiver
-modules which gives demodulated signal as output, this driver only passes the
-interrupt events to rc framework where pulse and space widths are calculated
-and input to decoders avaliable.
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
+---
+ drivers/staging/media/easycap/easycap_main.c |   72 +++++++++++++++-----------
+ 1 files changed, 41 insertions(+), 31 deletions(-)
 
-Ravi Kumar V (1):
-  rc: Add support for GPIO based IR Receiver driver.
-
- drivers/media/rc/Kconfig        |    9 ++
- drivers/media/rc/Makefile       |    1 +
- drivers/media/rc/gpio-ir-recv.c |  205 +++++++++++++++++++++++++++++++++++++++
- include/media/gpio-ir-recv.h    |   22 ++++
- 4 files changed, 237 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/rc/gpio-ir-recv.c
- create mode 100644 include/media/gpio-ir-recv.h
-
+diff --git a/drivers/staging/media/easycap/easycap_main.c b/drivers/staging/media/easycap/easycap_main.c
+index 6d7cdef..9d6dc09 100644
+--- a/drivers/staging/media/easycap/easycap_main.c
++++ b/drivers/staging/media/easycap/easycap_main.c
+@@ -3242,6 +3242,44 @@ static int create_video_urbs(struct easycap *peasycap)
+ 	return 0;
+ }
+ 
++static void config_easycap(struct easycap *peasycap,
++			   u8 bInterfaceNumber,
++			   u8 bInterfaceClass,
++			   u8 bInterfaceSubClass)
++{
++	if ((USB_CLASS_VIDEO == bInterfaceClass) ||
++	    (USB_CLASS_VENDOR_SPEC == bInterfaceClass)) {
++		if (-1 == peasycap->video_interface) {
++			peasycap->video_interface = bInterfaceNumber;
++			JOM(4, "setting peasycap->video_interface=%i\n",
++				peasycap->video_interface);
++		} else {
++			if (peasycap->video_interface != bInterfaceNumber) {
++				SAM("ERROR: attempting to reset "
++				    "peasycap->video_interface\n");
++				SAM("...... continuing with "
++				    "%i=peasycap->video_interface\n",
++				    peasycap->video_interface);
++			}
++		}
++	} else if ((USB_CLASS_AUDIO == bInterfaceClass) &&
++		   (USB_SUBCLASS_AUDIOSTREAMING == bInterfaceSubClass)) {
++		if (-1 == peasycap->audio_interface) {
++			peasycap->audio_interface = bInterfaceNumber;
++			JOM(4, "setting peasycap->audio_interface=%i\n",
++				peasycap->audio_interface);
++		} else {
++			if (peasycap->audio_interface != bInterfaceNumber) {
++				SAM("ERROR: attempting to reset "
++				    "peasycap->audio_interface\n");
++				SAM("...... continuing with "
++				    "%i=peasycap->audio_interface\n",
++				    peasycap->audio_interface);
++			}
++		}
++	}
++}
++
+ static const struct v4l2_file_operations v4l2_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= easycap_open_noinode,
+@@ -3340,37 +3378,9 @@ static int easycap_usb_probe(struct usb_interface *intf,
+ 			return -ENODEV;
+ 	}
+ 
+-	if ((USB_CLASS_VIDEO == bInterfaceClass) ||
+-	    (USB_CLASS_VENDOR_SPEC == bInterfaceClass)) {
+-		if (-1 == peasycap->video_interface) {
+-			peasycap->video_interface = bInterfaceNumber;
+-			JOM(4, "setting peasycap->video_interface=%i\n",
+-							peasycap->video_interface);
+-		} else {
+-			if (peasycap->video_interface != bInterfaceNumber) {
+-				SAM("ERROR: attempting to reset "
+-						"peasycap->video_interface\n");
+-				SAM("...... continuing with "
+-						"%i=peasycap->video_interface\n",
+-						peasycap->video_interface);
+-			}
+-		}
+-	} else if ((USB_CLASS_AUDIO == bInterfaceClass) &&
+-		   (USB_SUBCLASS_AUDIOSTREAMING == bInterfaceSubClass)) {
+-		if (-1 == peasycap->audio_interface) {
+-			peasycap->audio_interface = bInterfaceNumber;
+-			JOM(4, "setting peasycap->audio_interface=%i\n",
+-							 peasycap->audio_interface);
+-		} else {
+-			if (peasycap->audio_interface != bInterfaceNumber) {
+-				SAM("ERROR: attempting to reset "
+-						"peasycap->audio_interface\n");
+-				SAM("...... continuing with "
+-						"%i=peasycap->audio_interface\n",
+-						peasycap->audio_interface);
+-			}
+-		}
+-	}
++	config_easycap(peasycap, bInterfaceNumber,
++				 bInterfaceClass,
++				 bInterfaceSubClass);
+ 
+ 	/*
+ 	 * Investigate all altsettings. This is done in detail
 -- 
-Sent by a consultant of the Qualcomm Innovation Center, Inc.
-The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
+1.7.3.4
 
