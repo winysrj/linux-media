@@ -1,339 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:42694 "EHLO
-	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755134Ab2B1VJJ (ORCPT
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:38650 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752235Ab2BXPpQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 16:09:09 -0500
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [RFC PATCH] PnP support for the new ISA radio framework
-Date: Tue, 28 Feb 2012 22:08:35 +0100
-Cc: linux-media@vger.kernel.org
-References: <201202181733.34599.linux@rainbow-software.org> <201202222133.34620.linux@rainbow-software.org> <201202241035.13232.hverkuil@xs4all.nl>
-In-Reply-To: <201202241035.13232.hverkuil@xs4all.nl>
+	Fri, 24 Feb 2012 10:45:16 -0500
+Received: by eekc4 with SMTP id c4so992472eek.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Feb 2012 07:45:15 -0800 (PST)
+Message-ID: <4F47B071.2080707@gmail.com>
+Date: Fri, 24 Feb 2012 16:44:49 +0100
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Content-Type: text/plain;
-  charset="iso-8859-1"
+To: Hans-Frieder Vogt <hfvogt@gmx.net>, linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] Support for AF9035/AF9033
+References: <201202222320.56583.hfvogt@gmx.net> <4F466BEF.9050204@gmail.com> <201202232312.11761.hfvogt@gmx.net>
+In-Reply-To: <201202232312.11761.hfvogt@gmx.net>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201202282208.39343.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
-this is the first attempt to add PnP support to the new ISA radio framework.
-I don't like the region_size function parameter - it's needed because PnP
-reports longer port range than drv->region_size.
-
-There is a small patch to radio-gemtek at the end that uses this PnP support
-for AOpen FX-3D/Pro Radio card (it works).
-
-
-diff --git a/drivers/media/radio/radio-isa.c b/drivers/media/radio/radio-isa.c
-index 02bcead..8722728 100644
---- a/drivers/media/radio/radio-isa.c
-+++ b/drivers/media/radio/radio-isa.c
-@@ -26,6 +26,7 @@
- #include <linux/delay.h>
- #include <linux/videodev2.h>
- #include <linux/io.h>
-+#include <linux/slab.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-fh.h>
-@@ -198,56 +199,31 @@ static bool radio_isa_valid_io(const struct radio_isa_driver *drv, int io)
- 	return false;
- }
- 
--int radio_isa_probe(struct device *pdev, unsigned int dev)
-+struct radio_isa_card *radio_isa_alloc(struct radio_isa_driver *drv,
-+				struct device *pdev)
- {
--	struct radio_isa_driver *drv = pdev->platform_data;
--	const struct radio_isa_ops *ops = drv->ops;
- 	struct v4l2_device *v4l2_dev;
--	struct radio_isa_card *isa;
--	int res;
-+	struct radio_isa_card *isa = drv->ops->alloc();
-+	if (!isa)
-+		return NULL;
- 
--	isa = drv->ops->alloc();
--	if (isa == NULL)
--		return -ENOMEM;
- 	dev_set_drvdata(pdev, isa);
- 	isa->drv = drv;
--	isa->io = drv->io_params[dev];
- 	v4l2_dev = &isa->v4l2_dev;
- 	strlcpy(v4l2_dev->name, dev_name(pdev), sizeof(v4l2_dev->name));
- 
--	if (drv->probe && ops->probe) {
--		int i;
--
--		for (i = 0; i < drv->num_of_io_ports; ++i) {
--			int io = drv->io_ports[i];
--
--			if (request_region(io, drv->region_size, v4l2_dev->name)) {
--				bool found = ops->probe(isa, io);
--
--				release_region(io, drv->region_size);
--				if (found) {
--					isa->io = io;
--					break;
--				}
--			}
--		}
--	}
--
--	if (!radio_isa_valid_io(drv, isa->io)) {
--		int i;
-+	return isa;
-+}
- 
--		if (isa->io < 0)
--			return -ENODEV;
--		v4l2_err(v4l2_dev, "you must set an I/O address with io=0x%03x",
--				drv->io_ports[0]);
--		for (i = 1; i < drv->num_of_io_ports; i++)
--			printk(KERN_CONT "/0x%03x", drv->io_ports[i]);
--		printk(KERN_CONT ".\n");
--		kfree(isa);
--		return -EINVAL;
--	}
-+int radio_isa_common_probe(struct radio_isa_card *isa, struct device *pdev,
-+				int radio_nr, unsigned region_size)
-+{
-+	const struct radio_isa_driver *drv = isa->drv;
-+	const struct radio_isa_ops *ops = drv->ops;
-+	struct v4l2_device *v4l2_dev = &isa->v4l2_dev;
-+	int res;
- 
--	if (!request_region(isa->io, drv->region_size, v4l2_dev->name)) {
-+	if (!request_region(isa->io, region_size, v4l2_dev->name)) {
- 		v4l2_err(v4l2_dev, "port 0x%x already in use\n", isa->io);
- 		kfree(isa);
- 		return -EBUSY;
-@@ -300,8 +276,8 @@ int radio_isa_probe(struct device *pdev, unsigned int dev)
- 		v4l2_err(v4l2_dev, "Could not setup card\n");
- 		goto err_node_reg;
- 	}
--	res = video_register_device(&isa->vdev, VFL_TYPE_RADIO,
--					drv->radio_nr_params[dev]);
-+	res = video_register_device(&isa->vdev, VFL_TYPE_RADIO, radio_nr);
-+
- 	if (res < 0) {
- 		v4l2_err(v4l2_dev, "Could not register device node\n");
- 		goto err_node_reg;
-@@ -316,24 +292,107 @@ err_node_reg:
- err_hdl:
- 	v4l2_device_unregister(&isa->v4l2_dev);
- err_dev_reg:
--	release_region(isa->io, drv->region_size);
-+	release_region(isa->io, region_size);
- 	kfree(isa);
- 	return res;
- }
-+
-+int radio_isa_probe(struct device *pdev, unsigned int dev)
-+{
-+	struct radio_isa_driver *drv = pdev->platform_data;
-+	const struct radio_isa_ops *ops = drv->ops;
-+	struct v4l2_device *v4l2_dev;
-+	struct radio_isa_card *isa;
-+
-+	isa = radio_isa_alloc(drv, pdev);
-+	if (!isa)
-+		return -ENOMEM;
-+	isa->io = drv->io_params[dev];
-+	v4l2_dev = &isa->v4l2_dev;
-+
-+	if (drv->probe && ops->probe) {
-+		int i;
-+
-+		for (i = 0; i < drv->num_of_io_ports; ++i) {
-+			int io = drv->io_ports[i];
-+
-+			if (request_region(io, drv->region_size, v4l2_dev->name)) {
-+				bool found = ops->probe(isa, io);
-+
-+				release_region(io, drv->region_size);
-+				if (found) {
-+					isa->io = io;
-+					break;
-+				}
-+			}
-+		}
-+	}
-+
-+	if (!radio_isa_valid_io(drv, isa->io)) {
-+		int i;
-+
-+		if (isa->io < 0)
-+			return -ENODEV;
-+		v4l2_err(v4l2_dev, "you must set an I/O address with io=0x%03x",
-+				drv->io_ports[0]);
-+		for (i = 1; i < drv->num_of_io_ports; i++)
-+			printk(KERN_CONT "/0x%03x", drv->io_ports[i]);
-+		printk(KERN_CONT ".\n");
-+		kfree(isa);
-+		return -EINVAL;
-+	}
-+
-+	return radio_isa_common_probe(isa, pdev, drv->radio_nr_params[dev],
-+					drv->region_size);
-+}
- EXPORT_SYMBOL_GPL(radio_isa_probe);
- 
--int radio_isa_remove(struct device *pdev, unsigned int dev)
-+int radio_isa_common_remove(struct radio_isa_card *isa, unsigned region_size)
- {
--	struct radio_isa_card *isa = dev_get_drvdata(pdev);
- 	const struct radio_isa_ops *ops = isa->drv->ops;
- 
- 	ops->s_mute_volume(isa, true, isa->volume ? isa->volume->cur.val : 0);
- 	video_unregister_device(&isa->vdev);
- 	v4l2_ctrl_handler_free(&isa->hdl);
- 	v4l2_device_unregister(&isa->v4l2_dev);
--	release_region(isa->io, isa->drv->region_size);
-+	release_region(isa->io, region_size);
- 	v4l2_info(&isa->v4l2_dev, "Removed radio card %s\n", isa->drv->card);
- 	kfree(isa);
- 	return 0;
- }
-+
-+#ifdef CONFIG_PNP
-+int radio_isa_pnp_probe(struct pnp_dev *dev, const struct pnp_device_id *dev_id)
-+{
-+	struct pnp_driver *pnp_drv = to_pnp_driver(dev->dev.driver);
-+	struct radio_isa_driver *drv = container_of(pnp_drv,
-+					struct radio_isa_driver, pnp_driver);
-+	struct radio_isa_card *isa;
-+
-+	if (!pnp_port_valid(dev, 0))
-+		return -ENODEV;
-+
-+	isa = radio_isa_alloc(drv, &dev->dev);
-+	if (!isa)
-+		return -ENOMEM;
-+
-+	isa->io = pnp_port_start(dev, 0);
-+
-+	return radio_isa_common_probe(isa, &dev->dev, 0, pnp_port_len(dev, 0));
-+}
-+EXPORT_SYMBOL_GPL(radio_isa_pnp_probe);
-+
-+int radio_isa_pnp_remove(struct pnp_dev *dev)
-+{
-+	struct radio_isa_card *isa = dev_get_drvdata(&dev->dev);
-+	return radio_isa_common_remove(isa, pnp_port_len(dev, 0));
-+}
-+EXPORT_SYMBOL_GPL(radio_isa_pnp_remove);
-+#endif
-+
-+int radio_isa_remove(struct device *pdev, unsigned int dev)
-+{
-+	struct radio_isa_card *isa = dev_get_drvdata(pdev);
-+	return radio_isa_common_remove(isa, isa->drv->region_size);
-+}
- EXPORT_SYMBOL_GPL(radio_isa_remove);
-diff --git a/drivers/media/radio/radio-isa.h b/drivers/media/radio/radio-isa.h
-index 8a0ea84..0e7dc25 100644
---- a/drivers/media/radio/radio-isa.h
-+++ b/drivers/media/radio/radio-isa.h
-@@ -24,6 +24,7 @@
- #define _RADIO_ISA_H_
- 
- #include <linux/isa.h>
-+#include <linux/pnp.h>
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-@@ -76,6 +77,9 @@ struct radio_isa_ops {
- /* Top level structure needed to instantiate the cards */
- struct radio_isa_driver {
- 	struct isa_driver driver;
-+#ifdef CONFIG_PNP
-+	struct pnp_driver pnp_driver;
-+#endif
- 	const struct radio_isa_ops *ops;
- 	/* The module_param_array with the specified I/O ports */
- 	int *io_params;
-@@ -101,5 +105,10 @@ struct radio_isa_driver {
- int radio_isa_match(struct device *pdev, unsigned int dev);
- int radio_isa_probe(struct device *pdev, unsigned int dev);
- int radio_isa_remove(struct device *pdev, unsigned int dev);
-+#ifdef CONFIG_PNP
-+int radio_isa_pnp_probe(struct pnp_dev *dev,
-+			const struct pnp_device_id *dev_id);
-+int radio_isa_pnp_remove(struct pnp_dev *dev);
-+#endif
- 
- #endif
+Il 23/02/2012 23:12, Hans-Frieder Vogt ha scritto:
+> Am Donnerstag, 23. Februar 2012 schrieb Gianluca Gennari:
+>> Il 22/02/2012 23:20, Hans-Frieder Vogt ha scritto:
+>>> I have written a driver for the AF9035 & AF9033 (called af903x), based on
+>>> the various drivers and information floating around for these chips.
+>>> Currently, my driver only supports the devices that I am able to test.
+>>> These are
+>>> - Terratec T5 Ver.2 (also known as T6)
+>>> - Avermedia Volar HD Nano (A867)
+>>>
+>>> The driver supports:
+>>> - diversity and dual tuner (when the first frontend is used, it is in
+>>> diversity mode, when two frontends are used in dual tuner mode)
+>>> - multiple devices
+>>> - pid filtering
+>>> - remote control in NEC and RC-6 mode (currently not switchable, but
+>>> depending on device)
+>>> - support for kernel 3.1, 3.2 and 3.3 series
+>>>
+>>> I have not tried to split the driver in a DVB-T receiver (af9035) and a
+>>> frontend (af9033), because I do not see the sense in doing that for a
+>>> demodulator, that seems to be always used in combination with the very
+>>> same receiver.
+>>>
+>>> The patch is split in three parts:
+>>> Patch 1: support for tuner fitipower FC0012
+>>> Patch 2: basic driver
+>>> Patch 3: firmware
+>>>
+>>> Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+>>
+>> Hi Hans,
+>> thank you for the new af903x driver.
+>> A few comments:
+>>
+>> 1) I think you should set up a git repository with your driver and then
+>> send a PULL request to the list; as it is, the first patch is affected
+>> by line-wrapping problems so it must be manually edited to be
+>> applicable, and the second patch is compressed so it will be ignored by
+>> patchwork.
+>>
+>> 2) There are a couple of small errors in the patches (see my attached
+>> patches): in the dvb-usb Makefile,  DVB_USB_AF903X must be replaced by
+>> CONFIG_DVB_USB_AF903X otherwise the driver will not compile; also, in
+>> the dvb_frontend_ops struct, the field info.type should be removed for
+>> kernels >= 3.3.0.
+>>
+>> 3) The USB VID/PID IDs should be moved into dvb-usb-ids.h (see patch 3);
+>> I also added a few IDs from the Avermedia A867 driver*. As your driver
+>> supports both AF9007 and mxl5007t tuners I think this is safe.
+>>
+>> *http://www.avermedia.com/Support/DownloadCount.aspx?FDFId=4591
+>>
+>> 4) the driver also looks for a firmware file called "af35irtbl.bin" that
+>> comes from the "official" ITEtech driver (if it's not present the driver
+>> works anyway, but it prints an error message);
+>>
+>> I tested the driver with an Avermedia A867 stick (it's an OEM stick also
+>> known as the Sky Italia Digital Key with blue led: 07ca:a867) on a
+>> Ubuntu 10.04 system with kernel 2.6.32-38-generic-pae and the latest
+>> media_build tree installed.
+>>
+>> The good news:
+>> the driver loads properly, and, using Kaffeine, I could watch several
+>> channels with a small portable antenna; I could also perform a full
+>> frequency scan, finding several UHF and VHF stations. Signal strength
+>> and SNR reports works really well, and they seems to give a "realistic"
+>> figure of the signal quality (with both the portable and the rooftop
+>> antenna).
+>> When the stick is unplugged from the USB port, the driver unloads properly.
+>>
+>> The bad news:
+>> the driver seems to "lock" the application when it tries to tune a weak
+>> channel: in this cases, Kaffeine becomes unresponsive and sometimes it
+>> gives a stream error; for the same reason, the full scan fails to find
+>> all stations and takes a long time to complete.
+>> Also, when I tried to extract the stick from the USB port during one of
+>> this "freezing" periods, the system crashed :-(
+>> I reproduced this bug 3 times, and the last time I was able to see a
+>> kernel dump for a moment: the function that crashed the kernel was
+>> "af903x_streaming_ctrl".
+>> Neither of those issues are present with the Avermedia A867 original
+>> driver or Antti Palosaari's af9035 driver modified to support the A867
+>> stick.
+>>
+>> I hope this feedback will be useful to improve the driver.
+>>
+>> Best regards,
+>> Gianluca Gennari
+> 
+> Gianluca,
+> 
+> thanks very much for your comments and patches. I will try the patches over 
+> the weekend.
+> 
+> With respect to your comment about the locking: I suspect this is because I 
+> have used quite a lot of mutex locks. In particular the dual tuner stick 
+> behaves very sensitive to any code changes and I have fought for months (no 
+> joke) to get it working reasonably well (besides the bad reception problems).
+> A lot of the complexity in the driver is for the dual tuner and to support the 
+> diversity feature.
 
 
+Hi Hans,
+I'm not an expert on this kind of problems, so take this further
+comments with a grain of salt.
 
-diff --git a/drivers/media/radio/radio-gemtek.c b/drivers/media/radio/radio-gemtek.c
-index 9d7fdae..6ea0e23 100644
---- a/drivers/media/radio/radio-gemtek.c
-+++ b/drivers/media/radio/radio-gemtek.c
-@@ -29,6 +29,8 @@
- #include <linux/videodev2.h>	/* kernel radio structs		*/
- #include <linux/mutex.h>
- #include <linux/io.h>		/* outb, outb_p			*/
-+#include <linux/pnp.h>
-+#include <linux/slab.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
- #include "radio-isa.h"
-@@ -282,6 +284,16 @@ static const struct radio_isa_ops gemtek_ops = {
- 
- static const int gemtek_ioports[] = { 0x20c, 0x30c, 0x24c, 0x34c, 0x248, 0x28c };
- 
-+#ifdef CONFIG_PNP
-+static struct pnp_device_id gemtek_pnp_devices[] = {
-+	/* AOpen FX-3D/Pro Radio */
-+	{.id = "ADS7183", .driver_data = 0},
-+	{.id = ""}
-+};
-+
-+MODULE_DEVICE_TABLE(pnp, gemtek_pnp_devices);
-+#endif
-+
- static struct radio_isa_driver gemtek_driver = {
- 	.driver = {
- 		.match		= radio_isa_match,
-@@ -291,6 +303,14 @@ static struct radio_isa_driver gemtek_driver = {
- 			.name	= "radio-gemtek",
- 		},
- 	},
-+#ifdef CONFIG_PNP
-+	.pnp_driver = {
-+		.name		= "radio-gemtek",
-+		.id_table	= gemtek_pnp_devices,
-+		.probe		= radio_isa_pnp_probe,
-+		.remove		= radio_isa_pnp_remove,
-+	},
-+#endif
- 	.io_params = io,
- 	.radio_nr_params = radio_nr,
- 	.io_ports = gemtek_ioports,
-@@ -304,12 +324,14 @@ static struct radio_isa_driver gemtek_driver = {
- static int __init gemtek_init(void)
- {
- 	gemtek_driver.probe = probe;
-+	pnp_register_driver(&gemtek_driver.pnp_driver);
- 	return isa_register_driver(&gemtek_driver.driver, GEMTEK_MAX);
- }
- 
- static void __exit gemtek_exit(void)
- {
- 	hardmute = 1;	/* Turn off PLL */
-+	pnp_unregister_driver(&gemtek_driver.pnp_driver);
- 	isa_unregister_driver(&gemtek_driver.driver);
- }
- 
+I see you always use mutex_lock(), while both the it913x driver and
+Antti's af9035 driver are often using mutex_lock_interruptible() and
+returning -EAGAIN when the lock request is interrupted. Could this be
+the reason of the kernel crash when the stick is unplugged from the USB
+port?
 
+Moreover, you are requesting a mutex lock even for functions that are
+just reading a bunch of registers (for example, to get the status or the
+SNR/signal strength values). Is this really necessary? I guess this is
+what is making Kaffeine unresponsive while the driver is struggling to
+tune a weak channel.
 
+Finally, I noticed that af903x_set_bus_tuner() is just setting up the
+tuner_desc data structure. Is a mutex_lock really necessary in this
+function?
 
--- 
-Ondrej Zary
+A possible small bug: af903x_streaming_ctrl is always returning 0. I
+think it should be returning "ret" in case of errors.
+
+> As to the af35irtbl.bin firmware: this is something I just copied from previous 
+> drivers. I will probably just throw it out, because, as you also saw, it is 
+> not needed (only needed for the HID mode of the remote control).
+> 
+> Thanks very much for your input!
+> 
+> Regards,
+> 
+> Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+> 
+
+Thank you for your effort.
+
+Regards,
+Gianluca
