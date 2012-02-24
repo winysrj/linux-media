@@ -1,84 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from darkcity.gna.ch ([195.226.6.51]:54465 "EHLO mail.gna.ch"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1754036Ab2BWHkz convert rfc822-to-8bit (ORCPT
+Received: from wp188.webpack.hosteurope.de ([80.237.132.195]:53250 "EHLO
+	wp188.webpack.hosteurope.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757726Ab2BXQBt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Feb 2012 02:40:55 -0500
-Message-ID: <1329982447.24753.15.camel@thor.local>
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
- 2012 - Notes
-From: Michel =?ISO-8859-1?Q?D=E4nzer?= <michel@daenzer.net>
-To: Rob Clark <rob@ti.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org
-Date: Thu, 23 Feb 2012 08:34:07 +0100
-In-Reply-To: <CAF6AEGs5iNbZB5SOcGWkvQu4Yh98KbWWkWkv3mS_noA76utExw@mail.gmail.com>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com>
-	 <1775349.d0yvHiVdjB@avalon> <20120217095554.GA5511@phenom.ffwll.local>
-	 <2168398.Pv8ir5xFGf@avalon>
-	 <alpine.LFD.2.02.1202221559510.3721@casper.infradead.org>
-	 <20120222162424.GE4872@phenom.ffwll.local>
-	 <CAF6AEGs5iNbZB5SOcGWkvQu4Yh98KbWWkWkv3mS_noA76utExw@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 8BIT
-Mime-Version: 1.0
+	Fri, 24 Feb 2012 11:01:49 -0500
+From: Danny Kukawka <danny.kukawka@bisect.de>
+To: "David S. Miller" <davem@davemloft.net>,
+	Andy Gospodarek <andy@greyhouse.net>,
+	Guo-Fu Tseng <cooldavid@cooldavid.org>,
+	Petko Manolov <petkan@users.sourceforge.net>,
+	"VMware, Inc." <pv-drivers@vmware.com>,
+	"John W. Linville" <linville@tuxdriver.com>, linux390@de.ibm.com,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Danny Kukawka <dkukawka@suse.de>,
+	Stephen Hemminger <shemminger@vyatta.com>,
+	Joe Perches <joe@perches.com>,
+	Jeff Kirsher <jeffrey.t.kirsher@intel.com>,
+	Jiri Pirko <jpirko@redhat.com>, netdev@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-wireless@vger.kernel.org,
+	libertas-dev@lists.infradead.org, linux-kernel@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-s390@vger.kernel.org,
+	linux-hams@vger.kernel.org, linux-mips@linux-mips.org
+Subject: [PATCH 00/12] Part 2: check given MAC address, if invalid return -EADDRNOTAVAIL 
+Date: Fri, 24 Feb 2012 17:01:10 +0100
+Message-Id: <1330099282-4588-1-git-send-email-danny.kukawka@bisect.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mit, 2012-02-22 at 10:28 -0600, Rob Clark wrote: 
-> On Wed, Feb 22, 2012 at 10:24 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> > On Wed, Feb 22, 2012 at 04:03:21PM +0000, James Simmons wrote:
-> >>
-> >> > > Imo we should ditch this - fb accel doesn't belong into the kernel. Even
-> >> > > on hw that still has a blitter for easy 2d accel without a complete 3d
-> >> > > state setup necessary, it's not worth it. Chris Wilson from our team once
-> >> > > played around with implementing fb accel in the kernel (i915 hw still has
-> >> > > a blitter engine in the latest generations). He quickly noticed that to
-> >> > > have decent speed, competitive with s/w rendering by the cpu he needs the
-> >> > > entire batch and buffer management stuff from userspace. And to really
-> >> > > beat the cpu, you need even more magic.
-> >> > >
-> >> > > If you want fast 2d accel, use something like cairo.
-> >> >
-> >> > Our conclusion on this is that we should not expose an explicit 2D
-> >> > acceleration API at the kernel level. If really needed, hardware 2D
-> >> > acceleration could be implemented as a DRM device to handle memory management,
-> >> > commands ring setup, synchronization, ... but I'm not even sure if that's
-> >> > worth it. I might not have conveyed it well in my notes.
-> >>
-> >> Fbcon scrolling at be painful at HD or better modes. Fbcon needs 3
-> >> possible accels; copyarea, imageblit, and fillrect. The first two could be
-> >> hooked from the TTM layer. Its something I plan to experiment to see if
-> >> its worth it.
-> >
-> > Let's bite into this ;-) I know that fbcon scrolling totally sucks on big
-> > screens, but I also think it's a total waste of time to fix this. Imo
-> > fbcon has 2 use-cases:
-> > - display an OOSP.
-> > - allow me to run fsck (or any other desaster-recovery stuff).
-> >
-> > It can do that quite fine already.
-> 
-> and for just fbcon scrolling, if you really wanted to you could
-> implement it by just shuffling pages around in a GART..
+Second Part of series patches to unifiy the return value of 
+.ndo_set_mac_address if the given address isn't valid.
 
-Keep in mind there are still discrete GPUs :), where scanning out from
-anything but VRAM may not be feasible, and direct CPU access to
-(especially reads from) VRAM tends to be very slow.
+These changes check if a given (MAC) address is valid in 
+.ndo_set_mac_address, if invalid return -EADDRNOTAVAIL 
+as eth_mac_addr() already does if is_valid_ether_addr() fails.
 
-However, for fbcon that can be addressed in each driver (as is done e.g.
-in nouveau), and has nothing to do with any userspace interface.
+These patches are against net-next.
 
+Danny Kukawka (12):
+  ethernet: .ndo_set_mac_address: check given address, if invalid
+    return -EADDRNOTAVAIL
+  cris/eth_v10: check given MAC address, if invalid return
+    -EADDRNOTAVAIL
+  dvb_net: check given MAC address, if invalid return -EADDRNOTAVAIL
+  fddi/skfp: check given MAC address, if invalid return -EADDRNOTAVAIL
+  team: check given MAC address, if invalid return -EADDRNOTAVAIL
+  tokenring: check given MAC address, if invalid return -EADDRNOTAVAIL
+  usb/rtl8150: check given MAC address, if invalid return
+    -EADDRNOTAVAIL
+  vmxnet3: check given MAC address, if invalid return -EADDRNOTAVAIL
+  wan/lapbether: check given MAC address, if invalid return
+    -EADDRNOTAVAIL
+  wireless: check given MAC address, if invalid return -EADDRNOTAVAIL
+  s390/net/qeth_l2_main: check given MAC address, if invalid return
+    -EADDRNOTAVAIL
+  rose: check given MAC address, if invalid return -EADDRNOTAVAIL
+
+ drivers/media/dvb/dvb-core/dvb_net.c               |    5 ++++-
+ drivers/net/cris/eth_v10.c                         |    3 +++
+ drivers/net/ethernet/amd/amd8111e.c                |    3 +++
+ drivers/net/ethernet/amd/atarilance.c              |    3 +++
+ drivers/net/ethernet/chelsio/cxgb/cxgb2.c          |    3 +++
+ drivers/net/ethernet/cisco/enic/enic_main.c        |    3 +++
+ drivers/net/ethernet/freescale/fec_mpc52xx.c       |    3 +++
+ drivers/net/ethernet/jme.c                         |    3 +++
+ drivers/net/ethernet/micrel/ks8851_mll.c           |    3 +++
+ drivers/net/ethernet/micrel/ksz884x.c              |    3 +++
+ drivers/net/ethernet/seeq/sgiseeq.c                |    3 +++
+ drivers/net/ethernet/sgi/ioc3-eth.c                |    3 +++
+ drivers/net/ethernet/tehuti/tehuti.c               |    3 +++
+ drivers/net/fddi/skfp/skfddi.c                     |    3 +++
+ drivers/net/team/team.c                            |    3 +++
+ drivers/net/tokenring/3c359.c                      |    4 ++++
+ drivers/net/tokenring/lanstreamer.c                |    4 ++++
+ drivers/net/tokenring/olympic.c                    |    4 ++++
+ drivers/net/tokenring/tms380tr.c                   |    3 +++
+ drivers/net/usb/rtl8150.c                          |    3 +++
+ drivers/net/vmxnet3/vmxnet3_drv.c                  |    3 +++
+ drivers/net/wan/lapbether.c                        |    5 +++++
+ drivers/net/wireless/airo.c                        |    3 +++
+ drivers/net/wireless/atmel.c                       |    3 +++
+ .../net/wireless/brcm80211/brcmfmac/dhd_linux.c    |    5 ++++-
+ drivers/net/wireless/hostap/hostap_main.c          |    3 +++
+ drivers/net/wireless/libertas/main.c               |    3 +++
+ drivers/net/wireless/mwifiex/main.c                |    3 +++
+ drivers/net/wireless/zd1201.c                      |    2 ++
+ drivers/s390/net/qeth_l2_main.c                    |    3 +++
+ net/rose/rose_dev.c                                |    3 +++
+ 31 files changed, 99 insertions(+), 2 deletions(-)
 
 -- 
-Earthling Michel Dänzer           |                   http://www.amd.com
-Libre software enthusiast         |          Debian, X and DRI developer
+1.7.8.3
+
