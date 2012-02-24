@@ -1,74 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:31650 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754173Ab2BJKTp (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:52122 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757925Ab2BXUOd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 05:19:45 -0500
-Received: from euspt1 (mailout2.w1.samsung.com [210.118.77.12])
- by mailout2.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LZ6006C7A0VU3@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Feb 2012 10:19:43 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZ60000TA0VII@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Feb 2012 10:19:43 +0000 (GMT)
-Date: Fri, 10 Feb 2012 11:19:42 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [Q] Interleaved formats on the media bus
-In-reply-to: <Pine.LNX.4.64.1202100934070.5787@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Message-id: <4F34EF3E.2090004@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7BIT
-References: <4F27CF29.5090905@samsung.com> <4116034.kVC1fDZsLk@avalon>
- <4F32FBBB.7020007@gmail.com> <12779203.vQPWKN8eZf@avalon>
- <Pine.LNX.4.64.1202100934070.5787@axis700.grange>
+	Fri, 24 Feb 2012 15:14:33 -0500
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <shahed@ti.com>, <linux-kernel@vger.kernel.org>,
+	Randy Dunlap <rdunlap@xenotime.net>,
+	Manjunatha Halli <manjunatha_halli@ti.com>
+Subject: [PATCH 1/3] wl128x: Fix build errors when GPIOLIB is not enabled.
+Date: Fri, 24 Feb 2012 14:14:29 -0600
+Message-ID: <1330114471-26435-2-git-send-email-manjunatha_halli@ti.com>
+In-Reply-To: <1330114471-26435-1-git-send-email-manjunatha_halli@ti.com>
+References: <1330114471-26435-1-git-send-email-manjunatha_halli@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/2012 09:42 AM, Guennadi Liakhovetski wrote:
-> ...thinking about this interleaved data, is there anything else left, that 
-> the following scheme would be failing to describe:
-> 
-> * The data is sent in repeated blocks (periods)
+From: Randy Dunlap <rdunlap@xenotime.net>
 
-The data is sent in irregular chunks of varying size (few hundred of bytes
-for example).
+Fix wl128x Kconfig to depend on GPIOLIB since TI_ST also
+depends on GPIOLIB.
 
-> * Each block can be fully described by a list of format specifiers, each 
-> containing
-> ** data format code
-> ** number of alignment bytes
-> ** number of data bytes
+(.text+0xe6d60): undefined reference to `st_register'
+(.text+0xe7016): undefined reference to `st_unregister'
+(.text+0xe70ce): undefined reference to `st_unregister'
 
-Each frame would have its own list of such format specifiers, as the data
-chunk sizes vary from frame to frame. Therefore the above is unfortunately
-more a frame meta data, rather than a static frame description.
+Signed-off-by: Randy Dunlap <rdunlap@xenotime.net>
+Signed-off-by: Manjunatha Halli <manjunatha_halli@ti.com>
+---
+ drivers/media/radio/wl128x/Kconfig |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
 
-> Can there actually be anything more complicated than that?
-
-There is an embedded data at end of frame (could be also at the beginning)
-which describes layout of the interleaved data.
-
-Some data types would have padding bytes.
-
-Even if we somehow find a way to describe the frame on media bus, using a set
-of properties, it would be difficult to pass this information to user space.
-A similar description would have to be probably exposed to applications, now
-everything is described in user space by a single fourcc..
-
-
-Regards,
+diff --git a/drivers/media/radio/wl128x/Kconfig b/drivers/media/radio/wl128x/Kconfig
+index 86b2857..ea1e654 100644
+--- a/drivers/media/radio/wl128x/Kconfig
++++ b/drivers/media/radio/wl128x/Kconfig
+@@ -4,8 +4,8 @@
+ menu "Texas Instruments WL128x FM driver (ST based)"
+ config RADIO_WL128X
+ 	tristate "Texas Instruments WL128x FM Radio"
+-	depends on VIDEO_V4L2 && RFKILL
+-	select TI_ST if NET && GPIOLIB
++	depends on VIDEO_V4L2 && RFKILL && GPIOLIB
++	select TI_ST if NET
+ 	help
+ 	Choose Y here if you have this FM radio chip.
+ 
 -- 
-Sylwester Nawrocki
-Samsung Poland R&D Center
+1.7.4.1
+
