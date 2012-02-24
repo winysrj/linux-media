@@ -1,47 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:48319 "EHLO mga03.intel.com"
+Received: from mx1.redhat.com ([209.132.183.28]:33301 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752026Ab2BQI5U (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 Feb 2012 03:57:20 -0500
-From: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Subject: [PATCHv2 5/7] media: ivtv: append $(srctree) to -I parameters
-Date: Fri, 17 Feb 2012 10:57:11 +0200
-Message-Id: <1329469034-25493-5-git-send-email-andriy.shevchenko@linux.intel.com>
-In-Reply-To: <1329469034-25493-1-git-send-email-andriy.shevchenko@linux.intel.com>
-References: <2218117.VoHfpPQjC4@avalon>
- <1329469034-25493-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	id S1755141Ab2BXT2a (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Feb 2012 14:28:30 -0500
+Message-ID: <4F47E4B1.10405@redhat.com>
+Date: Fri, 24 Feb 2012 17:27:45 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Michael Krufky <mkrufky@linuxtv.org>
+CC: Mike Isely <isely@pobox.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Communications nexus for pvrusb2 driver <pvrusb2@isely.net>,
+	stable@kernel.org
+Subject: Re: pvrusb2: fix 7MHz & 8MHz DVB-T tuner support for HVR1900 rev
+ D1F5
+References: <CAOcJUbwqtvWy+O5guZBj7T2f61=8oe+gwqH6Fbifu1PVz+THzQ@mail.gmail.com>
+In-Reply-To: <CAOcJUbwqtvWy+O5guZBj7T2f61=8oe+gwqH6Fbifu1PVz+THzQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Without this we have got the warnings like following if build with "make W=1
-O=/var/tmp":
-  cc1: warning: drivers/media/dvb/dvb-core: No such file or directory [enabled by default]
+Em 07-02-2012 15:08, Michael Krufky escreveu:
+> There are some new revisions of the HVR-1900 around whose DVB-T
+> support is broken without this small bug-fix.  Please merge asap -
+> this fix needs to go to stable kernels as well.  It applies cleanly
+> against *all* recent kernels.
+> 
+> The following changes since commit 805a6af8dba5dfdd35ec35dc52ec0122400b2610:
+> 
+>   Linux 3.2 (2012-01-04 15:55:44 -0800)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/mkrufky/hauppauge surrey
+> 
+> Michael Krufky (1):
+>       pvrusb2: fix 7MHz & 8MHz DVB-T tuner support for HVR1900 rev D1F5
+> 
+>  drivers/media/video/pvrusb2/pvrusb2-devattr.c |   10 ++++++++++
+>  1 files changed, 10 insertions(+), 0 deletions(-)
 
-Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
----
- drivers/media/video/ivtv/Makefile |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+> The D1F5 revision of the WinTV HVR-1900 uses a tda18271c2 tuner
+> instead of a tda18271c1 tuner as used in revision D1E9. To
+> account for this, we must hardcode the frontend configuration
+> to use the same IF frequency configuration for both revisions
+> of the device.
 
-diff --git a/drivers/media/video/ivtv/Makefile b/drivers/media/video/ivtv/Makefile
-index 71ab76a..77de8a4 100644
---- a/drivers/media/video/ivtv/Makefile
-+++ b/drivers/media/video/ivtv/Makefile
-@@ -7,8 +7,8 @@ ivtv-objs	:= ivtv-routing.o ivtv-cards.o ivtv-controls.o \
- obj-$(CONFIG_VIDEO_IVTV) += ivtv.o
- obj-$(CONFIG_VIDEO_FB_IVTV) += ivtvfb.o
- 
--ccflags-y += -Idrivers/media/video
--ccflags-y += -Idrivers/media/common/tuners
--ccflags-y += -Idrivers/media/dvb/dvb-core
--ccflags-y += -Idrivers/media/dvb/frontends
-+ccflags-y += -I$(srctree)/drivers/media/video
-+ccflags-y += -I$(srctree)/drivers/media/common/tuners
-+ccflags-y += -I$(srctree)/drivers/media/dvb/dvb-core
-+ccflags-y += -I$(srctree)/drivers/media/dvb/frontends
- 
--- 
-1.7.9
+No, you don't need to hardcode the IF. Just use the get_if_frequency
+callback at the demod, and it will work with whatever frequency you
+use at the tuner.
 
+Regards,
+Mauro
