@@ -1,69 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:59098 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753208Ab2BTB6l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:58:41 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 13/33] v4l: Document raw bayer 4CC codes
-Date: Mon, 20 Feb 2012 03:56:52 +0200
-Message-Id: <1329703032-31314-13-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Received: from mail-yw0-f46.google.com ([209.85.213.46]:65384 "EHLO
+	mail-yw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757222Ab2BXPYs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Feb 2012 10:24:48 -0500
+Received: by mail-yw0-f46.google.com with SMTP id o21so1155342yho.19
+        for <linux-media@vger.kernel.org>; Fri, 24 Feb 2012 07:24:48 -0800 (PST)
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: mchehab@infradead.org, gregkh@linuxfoundation.org
+Cc: tomas.winkler@intel.com, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, dan.carpenter@oracle.com,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: [PATCH 4/9] staging: easycap: Initialize 'ntsc' parameter before usage
+Date: Fri, 24 Feb 2012 12:24:17 -0300
+Message-Id: <1330097062-31663-4-git-send-email-elezegarcia@gmail.com>
+In-Reply-To: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
+References: <1330097062-31663-1-git-send-email-elezegarcia@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document guidelines how 4CC codes should be named. Only raw bayer is
-included currently. Other formats should be documented later on.
+This parameter is now initialized at init_easycap(),
+this way we assure it won't be used uninitialized.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Signed-off-by: Ezequiel Garcia <elezegarcia@gmail.com>
 ---
- Documentation/video4linux/4CCs.txt |   32 ++++++++++++++++++++++++++++++++
- 1 files changed, 32 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/video4linux/4CCs.txt
+ drivers/staging/media/easycap/easycap_main.c |    8 ++++----
+ 1 files changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/video4linux/4CCs.txt b/Documentation/video4linux/4CCs.txt
-new file mode 100644
-index 0000000..41241af
---- /dev/null
-+++ b/Documentation/video4linux/4CCs.txt
-@@ -0,0 +1,32 @@
-+Guidelines for Linux4Linux pixel format 4CCs
-+============================================
+diff --git a/drivers/staging/media/easycap/easycap_main.c b/drivers/staging/media/easycap/easycap_main.c
+index 9d6dc09..480164d 100644
+--- a/drivers/staging/media/easycap/easycap_main.c
++++ b/drivers/staging/media/easycap/easycap_main.c
+@@ -2960,6 +2960,10 @@ static void init_easycap(struct easycap *peasycap,
+ 	peasycap->audio_isoc_buffer_size = -1;
+ 
+ 	peasycap->frame_buffer_many = FRAME_BUFFER_MANY;
 +
-+Guidelines for Video4Linux 4CC codes defined using v4l2_fourcc() are
-+specified in this document. First of the characters defines the nature of
-+the pixel format, compression and colour space. The interpretation of the
-+other three characters depends on the first one.
-+
-+Existing 4CCs may not obey these guidelines.
-+
-+Formats
-+=======
-+
-+Raw bayer
-+---------
-+
-+The following first characters are used by raw bayer formats:
-+
-+	B: raw bayer, uncompressed
-+	b: raw bayer, DPCM compressed
-+	a: A-law compressed
-+	u: u-law compressed
-+
-+2nd character: pixel order
-+	B: BGGR
-+	G: GBRG
-+	g: GRBG
-+	R: RGGB
-+
-+3rd character: uncompressed bits-per-pixel 0--9, A--
-+
-+4th character: compressed bits-per-pixel 0--9, A--
++	peasycap->ntsc = easycap_ntsc;
++	JOM(8, "defaulting initially to %s\n",
++		easycap_ntsc ? "NTSC" : "PAL");
+ }
+ 
+ static int populate_inputset(struct easycap *peasycap)
+@@ -2972,7 +2976,6 @@ static int populate_inputset(struct easycap *peasycap)
+ 
+ 	inputset = peasycap->inputset;
+ 
+-	/* FIXME: peasycap->ntsc is not yet initialized */
+ 	fmtidx = peasycap->ntsc ? NTSC_M : PAL_BGHIN;
+ 
+ 	m = 0;
+@@ -3650,9 +3653,6 @@ static int easycap_usb_probe(struct usb_interface *intf,
+ 		 * because some udev rules triggers easycap_open()
+ 		 * immediately after registration, causing a clash.
+ 		 */
+-		peasycap->ntsc = easycap_ntsc;
+-		JOM(8, "defaulting initially to %s\n",
+-			easycap_ntsc ? "NTSC" : "PAL");
+ 		rc = reset(peasycap);
+ 		if (rc) {
+ 			SAM("ERROR: reset() rc = %i\n", rc);
 -- 
-1.7.2.5
+1.7.3.4
 
