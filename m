@@ -1,39 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:56771 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1752381Ab2B0AdY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Feb 2012 19:33:24 -0500
-Date: Mon, 27 Feb 2012 01:33:21 +0100
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Hans-Frieder Vogt <hfvogt@gmx.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 3/3] Firmware for AF9035/AF9033 driver
-Message-ID: <20120227003321.GA25060@minime.bse>
-References: <201202222322.02424.hfvogt@gmx.net>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:35834 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757916Ab2BXUOd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Feb 2012 15:14:33 -0500
+From: <manjunatha_halli@ti.com>
+To: <linux-media@vger.kernel.org>
+CC: <shahed@ti.com>, <linux-kernel@vger.kernel.org>,
+	Manjunatha Halli <x0130808@ti.com>
+Subject: [PATCH 0/3] [media] wl128x: Fixes and few new features
+Date: Fri, 24 Feb 2012 14:14:28 -0600
+Message-ID: <1330114471-26435-1-git-send-email-manjunatha_halli@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201202222322.02424.hfvogt@gmx.net>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 22, 2012 at 11:22:02PM +0100, Hans-Frieder Vogt wrote:
-> 00000040: Firmware_CODELENGTH bytes
+From: Manjunatha Halli <x0130808@ti.com>
 
-Some time ago I analyzed the firmware of the AF9035.
-The firmware download command inside the on-chip ROM expects chunks
-with a 7 byte header:
+Mauro and the list,
 
-Byte 0: MCS 51 core
-	There are two inside the AF9035 (1=Link and 2=OFDM) with
-	separate address spaces
-Byte 1-2: Big endian destination address
-Byte 3-4: Big endian number of data bytes following the header
-Byte 5-6: Big endian header checksum, apparently ignored by the chip
-	Calculated as ~(h[0]*256+h[1]+h[2]*256+h[3]+h[4]*256)
+This patch set Fix build errors when GPIOLIB is not enabled.
 
-This might help locate the firmware inside the Windows drivers.
-The Windows drivers often contain two copies of the same firmware.
+Also this patch adds few new features to TI's FM driver fetures
+are listed below,
 
-  Daniel
+	1) FM TX RDS Support (RT, PS, AF, PI, PTY)
+	2) FM RX Russian band support
+	3) FM RX AF set/get
+	4) FM RX De-emphasis mode set/get
+
+Along with new features this patch also fixes few issues in the driver
+like default rssi level for seek, unnecessory logs etc.
+
+Manjunatha Halli (2):
+  wl128x: Add support for FM TX RDS
+  wl128x: Add sysfs based support for FM features
+
+Randy Dunlap (1):
+  wl128x: Fix build errors when GPIOLIB is not enabled.
+
+ drivers/media/radio/wl128x/Kconfig        |    4 +-
+ drivers/media/radio/wl128x/fmdrv.h        |    1 +
+ drivers/media/radio/wl128x/fmdrv_common.c |   28 +++-
+ drivers/media/radio/wl128x/fmdrv_common.h |   41 +++--
+ drivers/media/radio/wl128x/fmdrv_rx.c     |   15 ++-
+ drivers/media/radio/wl128x/fmdrv_tx.c     |   47 +++----
+ drivers/media/radio/wl128x/fmdrv_tx.h     |    3 +-
+ drivers/media/radio/wl128x/fmdrv_v4l2.c   |  235 ++++++++++++++++++++++++++++-
+ 8 files changed, 316 insertions(+), 58 deletions(-)
+
+-- 
+1.7.4.1
+
