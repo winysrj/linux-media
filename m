@@ -1,95 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:55254 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754115Ab2BVQtI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:49:08 -0500
-Date: Wed, 22 Feb 2012 17:48:51 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv23 10/16] mm: Serialize access to min_free_kbytes
-In-reply-to: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1329929337-16648-11-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329929337-16648-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:5054 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757091Ab2BXTPm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Feb 2012 14:15:42 -0500
+Message-ID: <4F47E1DA.9040407@redhat.com>
+Date: Fri, 24 Feb 2012 17:15:38 -0200
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Linus Torvalds <torvalds@linux-foundation.org>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 3.3-rc5] media fixes
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mel Gorman <mgorman@suse.de>
+Latest commit at the branch: 
+fda27874de91d5a8b9a018b3bc74b14578994908 [media] hdpvr: update picture controls to support firmware versions > 0.15
+The following changes since commit b01543dfe67bb1d191998e90d20534dc354de059:
 
-There is a race between the min_free_kbytes sysctl, memory hotplug
-and transparent hugepage support enablement.  Memory hotplug uses a
-zonelists_mutex to avoid a race when building zonelists. Reuse it to
-serialise watermark updates.
+  Linux 3.3-rc4 (2012-02-18 15:53:33 -0800)
 
-[a.p.zijlstra@chello.nl: Older patch fixed the race with spinlock]
-Signed-off-by: Mel Gorman <mgorman@suse.de>
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Reviewed-by: KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
----
- mm/page_alloc.c |   23 +++++++++++++++--------
- 1 files changed, 15 insertions(+), 8 deletions(-)
+are available in the git repository at:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index e590b95..0aa8079 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -5027,14 +5027,7 @@ static void setup_per_zone_lowmem_reserve(void)
- 	calculate_totalreserve_pages();
- }
- 
--/**
-- * setup_per_zone_wmarks - called when min_free_kbytes changes
-- * or when memory is hot-{added|removed}
-- *
-- * Ensures that the watermark[min,low,high] values for each zone are set
-- * correctly with respect to min_free_kbytes.
-- */
--void setup_per_zone_wmarks(void)
-+static void __setup_per_zone_wmarks(void)
- {
- 	unsigned long pages_min = min_free_kbytes >> (PAGE_SHIFT - 10);
- 	unsigned long pages_low = extra_free_kbytes >> (PAGE_SHIFT - 10);
-@@ -5095,6 +5088,20 @@ void setup_per_zone_wmarks(void)
- 	calculate_totalreserve_pages();
- }
- 
-+/**
-+ * setup_per_zone_wmarks - called when min_free_kbytes changes
-+ * or when memory is hot-{added|removed}
-+ *
-+ * Ensures that the watermark[min,low,high] values for each zone are set
-+ * correctly with respect to min_free_kbytes.
-+ */
-+void setup_per_zone_wmarks(void)
-+{
-+	mutex_lock(&zonelists_mutex);
-+	__setup_per_zone_wmarks();
-+	mutex_unlock(&zonelists_mutex);
-+}
-+
- /*
-  * The inactive anon list should be small enough that the VM never has to
-  * do too much work, but large enough that each inactive page has a chance
--- 
-1.7.1.569.g6f426
+Janne Grunau (1):
+      [media] hdpvr: fix race conditon during start of streaming
+
+Jarod Wilson (1):
+      [media] imon: don't wedge hardware after early callbacks
+
+Laurent Pinchart (1):
+      [media] omap3isp: Fix crash caused by subdevs now having a pointer to devnodes
+
+Randy Dunlap (1):
+      [media] wl128x: fix build errors when GPIOLIB is not enabled
+
+Taylor Ralph (1):
+      [media] hdpvr: update picture controls to support firmware versions > 0.15
+
+ drivers/media/radio/wl128x/Kconfig      |    4 +-
+ drivers/media/rc/imon.c                 |   26 +++++++++++++++---
+ drivers/media/video/hdpvr/hdpvr-core.c  |   18 ++++++++++--
+ drivers/media/video/hdpvr/hdpvr-video.c |   46 ++++++++++++++++++++++---------
+ drivers/media/video/hdpvr/hdpvr.h       |    1 +
+ drivers/media/video/omap3isp/ispccdc.c  |    2 +-
+ 6 files changed, 74 insertions(+), 23 deletions(-)
 
