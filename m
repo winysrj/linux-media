@@ -1,78 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58431 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754722Ab2BJRDy (ORCPT
+Received: from smtp1.sscnet.ucla.edu ([128.97.229.231]:50721 "EHLO
+	smtp1.sscnet.ucla.edu" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756783Ab2BYXBK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 12:03:54 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kruno Mrak <kruno.mrak@matrix-vision.de>
-Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi
-Subject: Re: omap3isp: sequence number in v4l2 buffer not incremented
-Date: Fri, 10 Feb 2012 18:03:51 +0100
-Message-ID: <2282092.nIujHkTqeG@avalon>
-In-Reply-To: <4F35434E.6020405@matrix-vision.de>
-References: <4F202102.5070701@matrix-vision.de> <3002082.9RrLpdpVPL@avalon> <4F35434E.6020405@matrix-vision.de>
+	Sat, 25 Feb 2012 18:01:10 -0500
+Received: from localhost (localhost.localdomain [127.0.0.1])
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id q1PMeTUY018423
+	for <linux-media@vger.kernel.org>; Sat, 25 Feb 2012 14:40:29 -0800
+Received: from smtp1.sscnet.ucla.edu ([127.0.0.1])
+	by localhost (smtp1.sscnet.ucla.edu [127.0.0.1]) (amavisd-new, port 10024)
+	with ESMTP id QB37v2SO3YD0 for <linux-media@vger.kernel.org>;
+	Sat, 25 Feb 2012 14:40:22 -0800 (PST)
+Received: from [192.168.1.12] (ABTS-KK-dynamic-029.215.172.122.airtelbroadband.in [122.172.215.29] (may be forged))
+	(authenticated bits=0)
+	by smtp1.sscnet.ucla.edu (8.13.8/8.13.8) with ESMTP id q1PMeIqS018411
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Sat, 25 Feb 2012 14:40:21 -0800
+Message-ID: <4F49634E.3070709@cogweb.net>
+Date: Sun, 26 Feb 2012 04:10:14 +0530
+From: David Liontooth <lionteeth@cogweb.net>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: linux-media@vger.kernel.org
+Subject: Status of DVB-C cards with CI
+References: <S1753518Ab2BYVN0/20120225211326Z+189@vger.kernel.org>
+In-Reply-To: <S1753518Ab2BYVN0/20120225211326Z+189@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kruno,
 
-On Friday 10 February 2012 17:18:22 Kruno Mrak wrote:
-> Laurent,
-> 
-> thank you for the patch.
-> It was a bit tricky to get it work as our kernel is based
-> on 2.6.38, but i succeeded.
-> The frame_number is incremented now.
+I'm trying to put together a box with DVB-C PCIe (or PCI) cards and CI 
+support for recording in Denmark.
 
-Thanks for the confirmation. I'll test the patch with the CCP2 and CSI2 
-receivers, and I'll then push it to mainline.
+Is there support for any such cards in Linuxtv or mainline?
 
-> The following changes are not clear to me, are they really necessary to
-> get frame_number incremented?
+In Denmark, as I understand it, even the main national public station is 
+encrypted, and as of January 2012 the transport stream is MPEG4.
 
-It isn't when using the CCDC parallel input. It removes frame number 
-incrementation from the CCP2 module, as the frame number is now incremented in 
-the CCDC module.
+NetUp's Dual DVB TC CI 
+(http://www.netup.tv/en-EN/dual_dvb-t-c-ci_card.php) appears to have the 
+features I'm looking for, but the driver is not in mainline. Are there 
+other options?
 
-> @@ -350,7 +337,6 @@ static void ccp2_lcx_config(struct isp_ccp2_device
-> *ccp2,
->  	      ISPCCP2_LC01_IRQSTATUS_LC0_CRC_IRQ |
->  	      ISPCCP2_LC01_IRQSTATUS_LC0_FSP_IRQ |
->  	      ISPCCP2_LC01_IRQSTATUS_LC0_FW_IRQ |
-> -	      ISPCCP2_LC01_IRQSTATUS_LC0_FS_IRQ |
->  	      ISPCCP2_LC01_IRQSTATUS_LC0_FSC_IRQ |
->  	      ISPCCP2_LC01_IRQSTATUS_LC0_SSC_IRQ;
-> 
-> @@ -378,21 +378,17 @@ static void csi2_timing_config(struct isp_device *isp,
-> static void csi2_irq_ctx_set(struct isp_device *isp,
->  			     struct isp_csi2_device *csi2, int enable)
->  {
-> -	u32 reg = ISPCSI2_CTX_IRQSTATUS_FE_IRQ;
->  	int i;
-> 
-> -	if (csi2->use_fs_irq)
-> -		reg |= ISPCSI2_CTX_IRQSTATUS_FS_IRQ;
-> -
->  	for (i = 0; i < 8; i++) {
-> -		isp_reg_writel(isp, reg, csi2->regs1,
-> +		isp_reg_writel(isp, ISPCSI2_CTX_IRQSTATUS_FE_IRQ, csi2->regs1,
->  			       ISPCSI2_CTX_IRQSTATUS(i));
->  		if (enable)
->  			isp_reg_set(isp, csi2->regs1, ISPCSI2_CTX_IRQENABLE(i),
-> -				    reg);
-> +				    ISPCSI2_CTX_IRQSTATUS_FE_IRQ);
->  		else
->  			isp_reg_clr(isp, csi2->regs1, ISPCSI2_CTX_IRQENABLE(i),
-> -				    reg);
-> +				    ISPCSI2_CTX_IRQSTATUS_FE_IRQ);
->  	}
->  }
+Appreciate any suggestions!
 
--- 
-Regards,
-
-Laurent Pinchart
+David
