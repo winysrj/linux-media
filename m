@@ -1,546 +1,190 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mgw2.diku.dk ([130.225.96.92]:56497 "EHLO mgw2.diku.dk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751144Ab2BIKpT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 Feb 2012 05:45:19 -0500
-From: Julia Lawall <Julia.Lawall@lip6.fr>
-To: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: kernel-janitors@vger.kernel.org,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: [PATCH] use devm_ functions
-Date: Thu,  9 Feb 2012 11:45:10 +0100
-Message-Id: <1328784311-27272-1-git-send-email-Julia.Lawall@lip6.fr>
+Received: from smtp-68.nebula.fi ([83.145.220.68]:40243 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753660Ab2BYBma (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 24 Feb 2012 20:42:30 -0500
+Date: Sat, 25 Feb 2012 03:42:25 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 27/33] omap3isp: Implement proper CCDC link
+ validation, check pixel rate
+Message-ID: <20120225014225.GD12602@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
+ <1329703032-31314-27-git-send-email-sakari.ailus@iki.fi>
+ <2683690.y1jIJeGq9p@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2683690.y1jIJeGq9p@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The semantic patch (http://coccinelle.lip6.fr/) used in generating this
-patch is as follows.  Some manual cleanup was required.  This improves on
-the previous version in that allocated values are allowed to be renamed
-before they are freed.
-
-virtual after_start
-virtual returned
-virtual arg
-virtual get
-
-// ---------------------------------------------------------------------
-// find functions
-
-@plat depends on !after_start@
-identifier i,pfn,rfn;
-position p;
-@@
-
-struct platform_driver i@p = {
-  .probe = pfn,
-  .remove = (<+...rfn...+>),
-};
-
-// ---------------------------------------------------------------------
-// set up iteration
-
-@initialize:ocaml@
-
-type ret = UseReturned | UseReturned2 of string | UseArg | UseGet
-
-let add pfn rfn alloc free devm_alloc file rule =
-   let it = new iteration() in
-   it#set_files [file];
-   it#add_virtual_rule After_start;
-   (match rule with
-      UseReturned -> it#add_virtual_rule Returned
-    | UseReturned2(free) -> it#add_virtual_rule Returned;
-      it#add_virtual_identifier Second_free free
-    | UseArg -> it#add_virtual_rule Arg
-    | UseGet -> it#add_virtual_rule Get);
-   if not (pfn="") then it#add_virtual_identifier Pfn pfn;
-   if not (rfn="") then it#add_virtual_identifier Rfn rfn;
-   if not (alloc="") then it#add_virtual_identifier Alloc alloc;
-   if not (free="") then it#add_virtual_identifier Free free;
-   if not (devm_alloc="") then it#add_virtual_identifier Devm_alloc devm_alloc;
-   it#register()
-
-@script:ocaml@
-pfn << plat.pfn;
-rfn << plat.rfn;
-p << plat.p;
-@@
-
-let file = (List.hd p).file in
-add pfn rfn "kmalloc" "kfree" "devm_kzalloc" file UseReturned;
-add pfn rfn "kzalloc" "kfree" "devm_kzalloc" file UseReturned;
-add pfn rfn "ioremap" "iounmap" "devm_ioremap" file UseReturned;
-add pfn rfn "ioremap_nocache" "iounmap" "devm_ioremap_nocache" file
-   UseReturned;
-
-add pfn rfn "request_irq" "free_irq" "devm_request_irq" file UseArg;
-add pfn rfn "request_threaded_irq" "free_irq" "devm_request_threaded_irq" file
-  UseArg;
-add pfn rfn "dma_alloc_coherent" "dma_free_coherent" "dmam_alloc_coherent"
-  file UseArg;
-add pfn rfn "dma_alloc_noncoherent" "dma_free_noncoherent"
-  "dmam_alloc_noncoherent" file UseArg;
-
-(* several possibilities... *)
-add pfn rfn "request_region" "release_region" "devm_request_region" file
-  UseGet;
-add pfn rfn "request_mem_region" "release_mem_region"
-  "devm_request_mem_region" file UseGet;
-add pfn rfn "request_region" "release_region" "devm_request_region" file
-  UseArg;
-add pfn rfn "request_mem_region" "release_mem_region"
-  "devm_request_mem_region" file UseArg;
-(* fix a bug at the same time *)
-add pfn rfn "request_region" "release_resource" "devm_request_region" file
-  (UseReturned2("kfree"));
-add pfn rfn "request_mem_region" "release_resource"
-  "devm_request_mem_region" file (UseReturned2("kfree"));
-add pfn rfn "ioport_map" "ioport_unmap" "devm_ioport_map" file UseReturned
-
-// ---------------------------------------------------------------------
-// process the initial definition of the probe function
-
-@preprobe@
-identifier virtual.pfn;
-position p;
-@@
-
-pfn@p(...) { ... }
-
-@probe@
-identifier pfn;
-position preprobe.p;
-@@
-
-pfn@p(...) { ... }
-
-@labelled_return@
-identifier probe.pfn,l;
-expression e;
-@@
-
-pfn(...) { <+... l: return e; ...+> }
-
-// ---------------------------------------------------------------------
-// transform functions where free uses the result
-
-@prb depends on returned exists@
-identifier probe.pfn,pdev,virtual.alloc,virtual.free,virtual.second_free;
-expression x,y,e;
-expression list args;
-position p1,p2,p3;
-type T1,T2,T3;
-@@
-
-pfn(struct platform_device *pdev) { ... when any
-x = (T1)alloc@p1(args)
-<... when strict
-     when any
-     when forall
-(
-y = x;
-... when != y = e
-    when != &y
-free@p2((T2)y,...);
-... when != x
-    when != y
-second_free@p3((T3)y,...);
-|
-y = x;
-... when != y = e
-    when != &y
-free@p2((T2)y,...);
-|
-free@p2((T2)x,...);
-... when != x
-second_free@p3((T3)x,...);
-|
-free@p2((T2)x,...);
-)
-...>
-}
-
-@reme exists@
-identifier virtual.rfn,virtual.free;
-expression prb.x,prb.y;
-type T;
-@@
-
-rfn(...) { ... free((T)\(x\|y\),...); ... }
-
-@rem depends on reme@
-identifier virtual.rfn,virtual.free,virtual.second_free;
-expression prb.x,prb.y;
-position p4,p5;
-type T,T1;
-@@
-
-rfn(...) {
-<... when strict
-(
-free@p4((T)\(x\|y\),...);
-... when != x
-second_free@p5((T1)\(x\|y\),...);
-|
-free@p4((T)\(x\|y\),...);
-)
-...>
-}
-
-@bad@
-identifier virtual.free;
-expression prb.x,prb.y;
-position p != {prb.p2,rem.p4};
-type T;
-@@
-
-free@p((T)\(x\|y\),...)
-
-@modif depends on rem && !bad@
-expression x;
-identifier prb.pdev,virtual.alloc,virtual.free,virtual.devm_alloc;
-identifier virtual.second_free;
-expression list args;
-position prb.p1,prb.p2,prb.p3,rem.p4,rem.p5;
-type T;
-@@
-
-(
-- free@p2(...);
-|
-- second_free@p3(...);
-|
-- free@p4(...);
-|
-- second_free@p5(...);
-|
-  x =
-- alloc@p1(
-+ devm_alloc(&pdev->dev,
-    args)
-|
-  x = 
-- (T)alloc@p1(
-+ (T)devm_alloc(&pdev->dev,
-    args)
-)
-
-// ---------------------------------------------------------------------
-// transform functions where free uses the first argument
-
-@prbx depends on arg exists@
-identifier probe.pfn,pdev,virtual.alloc,virtual.free;
-expression x,y,e;
-expression list args;
-position p1,p2;
-@@
-
-pfn(struct platform_device *pdev) { ... when any
-alloc@p1(x,args)
-<... when strict
-     when any
-     when forall
-(
-y = x;
-... when != y = e
-    when != &y
-free@p2(y,...);
-|
-free@p2(x,...)
-)
-...>
-}
-
-@remxe exists@
-identifier virtual.rfn, virtual.free;
-expression prbx.x,prbx.y;
-@@
-
-rfn(...) { ... free(\(x\|y\),...); ... }
-
-@remx depends on remxe@
-identifier virtual.rfn, virtual.free;
-expression prbx.x,prbx.y;
-position p3;
-@@
-
-rfn(...) {
-<... when strict
-free@p3(\(x\|y\),...)
-...>
-}
-
-@badx@
-identifier virtual.free;
-expression prbx.x,prbx.y;
-position p != {prbx.p2,remx.p3};
-@@
-
-free@p(\(x\|y\),...)
-
-@modifx depends on remx && !badx@
-expression x;
-identifier prbx.pdev,virtual.alloc,virtual.free,virtual.devm_alloc;
-expression list args;
-position prbx.p1,prbx.p2,remx.p3;
-@@
-
-(
-- free@p2(...);
-|
-- free@p3(...);
-|
-- alloc@p1(
-+ devm_alloc(&pdev->dev,
-   x,args)
-)
-
-// ---------------------------------------------------------------------
-// transform functions where free uses the result of platform_get_resource
-
-@prbg depends on get exists@
-identifier probe.pfn,pdev,virtual.alloc,virtual.free;
-expression x,y,e;
-expression list args;
-position p1,p2;
-@@
-
-pfn(struct platform_device *pdev) { ... when any
-alloc@p1(x,args)
-<... when strict
-     when any
-     when forall
-(
-y = x;
-... when != y = e
-    when != &y
-free@p2(y,...);
-|
-free@p2(x,...)
-)
-...>
-}
-
-@remge exists@
-identifier virtual.rfn, virtual.free;
-identifier z;
-identifier pdev;
-expression e;
-@@
-
-rfn(struct platform_device *pdev) { ... when any
-z = platform_get_resource(pdev, IORESOURCE_MEM, 0)
-... when != z = e
-    when != &z
-free(z->start,...)
-...
-}
-
-@remg depends on remge@
-identifier virtual.rfn, virtual.free;
-identifier z;
-identifier pdev;
-position p3;
-expression e;
-@@
-
-rfn(struct platform_device *pdev) {
-<... when strict
-z = platform_get_resource(pdev, IORESOURCE_MEM, 0)
-... when strict
-    when != z = e
-    when != &z
-free@p3(z->start,...)
-...>
-}
-
-@badg@
-identifier virtual.free;
-position p != {prbg.p2,remg.p3};
-@@
-
-free@p(...)
-
-@modifg depends on remg && !badg@
-expression x;
-identifier prbg.pdev,virtual.alloc,virtual.free,virtual.devm_alloc;
-expression list args;
-position prbg.p1,prbg.p2,remg.p3;
-@@
-
-(
-- free@p2(...);
-|
-- free@p3(...);
-|
-- alloc@p1(
-+ devm_alloc(&pdev->dev,
-   x,args)
-)
-
-// ---------------------------------------------------------------------
-// cleanup, if the drvdata was only used to enable the free
-// probably only relevant for kmalloc/kzalloc
-
-@dclean depends on modif || modifx || modifg@
-identifier virtual.rfn, pdev, i;
-type T;
-@@
-
-rfn(struct platform_device *pdev) { ...
-(
-- T i = platform_get_drvdata(pdev);
-|
-- T i = dev_get_drvdata(&pdev->drv);
-|
-- T i;
-  ... when != i
-(
-- i = platform_get_drvdata(pdev);
-|
-- i = dev_get_drvdata(&pdev->drv);
-)
-)
-... when != i
-}
-
-@rclean depends on modif || modifx || modifg@
-identifier virtual.rfn, pdev, i;
-type T;
-@@
-
-rfn(struct platform_device *pdev) { ...
-(
-- T i = platform_get_resource(pdev,...);
-|
-- T i;
-  ... when != i
-- i = platform_get_resource(pdev,...);
-)
-... when != i
-}
-
-// ---------------------------------------------------------------------
-// cleanup empty ifs, etc
-
-@depends on modif || modifx || modifg@
-identifier probe.pfn;
-@@
-
-pfn(...) { <...
-- if (...) {}
-...> }
-
-@depends on modif || modifx || modifg@
-identifier virtual.rfn;
-@@
-
-rfn(...) { <...
-- if (...) {}
-...> }
-
-@depends on modif || modifx || modifg@
-identifier probe.pfn;
-expression ret,e;
-@@
-
-pfn(...) { <...
-+ return
-- ret =
- e;
-- return ret;
-...> }
-
-@depends on modif || modifx || modifg@
-identifier virtual.rfn;
-expression ret,e;
-@@
-
-rfn(...) { <...
-+ return
-- ret =
- e;
-- return ret;
-...> }
-
-// ---------------------------------------------------------------------
-
-// this is likely to leave dead code, if l: is preceded by a return
-// because we are control-flow based, there is no way to match on that
-@depends on labelled_return && (modif || modifx || modifg)@
-identifier l,l1,l2;
-expression e;
-statement S;
-identifier probe.pfn;
-identifier i;
-statement S1,S2;
-@@
-
-pfn(...) { <...
-- goto l;
-+ goto l2;
-...
--l:
-<... when != S
-     when any
-l1:
-...>
-l2:
-(
- (<+...i...+>);
-|
- if (...) S1 else S2
-|
- while (...) S1
-|
- for (...;...;...) S1
-|
- return e;
-)
-...> }
-
-@depends on !labelled_return && (modif || modifx || modifg)@
-identifier l,l1,l2;
-expression e;
-statement S;
-identifier probe.pfn;
-identifier i;
-statement S1,S2;
-@@
-
-pfn(...) { <...
-(
-- goto l;
-+ goto l2;
-...
--l:
-<... when != S
-     when any
-l1:
-...>
-l2:
-(
- (<+...i...+>);
-|
- if (...) S1 else S2
-|
- while (...) S1
-|
- for (...;...;...) S1
-)
-|
-- goto l;
-+ return e;
-...
--l:
-<... when != S
-     when any
-l1:
-...>
-return e;
-)
-...> }
-
+Hi Laurent,
+
+Thanks for your comments.
+
+On Wed, Feb 22, 2012 at 12:11:07PM +0100, Laurent Pinchart wrote:
+> On Monday 20 February 2012 03:57:06 Sakari Ailus wrote:
+> > Implement correct link validation for the CCDC. Use external_rate from
+> > isp_pipeline to configurat vp divisor and check that external_rate does not
+> > exceed our data rate limitations.
+> > 
+> > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > ---
+> >  drivers/media/video/omap3isp/ispccdc.c |   69
+> > +++++++++++++++++++++++++++++-- 1 files changed, 64 insertions(+), 5
+> > deletions(-)
+> > 
+> > diff --git a/drivers/media/video/omap3isp/ispccdc.c
+> > b/drivers/media/video/omap3isp/ispccdc.c index 6aff241..1555891 100644
+> > --- a/drivers/media/video/omap3isp/ispccdc.c
+> > +++ b/drivers/media/video/omap3isp/ispccdc.c
+> > @@ -836,8 +836,8 @@ static void ccdc_config_vp(struct isp_ccdc_device *ccdc)
+> > 
+> >  	if (pipe->input)
+> >  		div = DIV_ROUND_UP(l3_ick, pipe->max_rate);
+> > -	else if (ccdc->vpcfg.pixelclk)
+> > -		div = l3_ick / ccdc->vpcfg.pixelclk;
+> > +	else if (pipe->external_rate)
+> > +		div = l3_ick / pipe->external_rate;
+> > 
+> >  	div = clamp(div, 2U, max_div);
+> >  	fmtcfg_vp |= (div - 2) << ISPCCDC_FMTCFG_VPIF_FRQ_SHIFT;
+> > @@ -1749,7 +1749,18 @@ static int ccdc_set_stream(struct v4l2_subdev *sd,
+> > int enable) }
+> > 
+> >  	switch (enable) {
+> > -	case ISP_PIPELINE_STREAM_CONTINUOUS:
+> > +	case ISP_PIPELINE_STREAM_CONTINUOUS: {
+> > +		struct isp_pipeline *pipe = to_isp_pipeline(&sd->entity);
+> > +		unsigned int rate = UINT_MAX;
+> > +
+> > +		/*
+> > +		 * Check that maximum allowed rate isn't exceeded by
+> > +		 * the pixel rate.
+> > +		 */
+> > +		omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
+> > +		if (pipe->external_rate > rate)
+> > +			return -ENOSPC;
+> > +
+> 
+> What about checking this at pipeline validation time ?
+
+If the external entity is found before pipeline validation, then I can move
+this there. I agree in principle that's the right thing to do.
+
+> >  		if (ccdc->output & CCDC_OUTPUT_MEMORY)
+> >  			omap3isp_sbl_enable(isp, OMAP3_ISP_SBL_CCDC_WRITE);
+> > 
+> > @@ -1758,6 +1769,7 @@ static int ccdc_set_stream(struct v4l2_subdev *sd, int
+> > enable)
+> > 
+> >  		ccdc->underrun = 0;
+> >  		break;
+> > +	}
+> > 
+> >  	case ISP_PIPELINE_STREAM_SINGLESHOT:
+> >  		if (ccdc->output & CCDC_OUTPUT_MEMORY &&
+> > @@ -1999,6 +2011,37 @@ static int ccdc_set_format(struct v4l2_subdev *sd,
+> > struct v4l2_subdev_fh *fh, return 0;
+> >  }
+> > 
+> > +/*
+> > + * Decide whether desired output pixel code can be obtained with
+> > + * the lane shifter by shifting the input pixel code.
+> > + * @in: input pixelcode to shifter
+> > + * @out: output pixelcode from shifter
+> > + * @additional_shift: # of bits the sensor's LSB is offset from CAMEXT[0]
+> > + *
+> > + * return true if the combination is possible
+> > + * return false otherwise
+> > + */
+> > +static bool ccdc_is_shiftable(enum v4l2_mbus_pixelcode in,
+> > +			      enum v4l2_mbus_pixelcode out,
+> > +			      unsigned int additional_shift)
+> > +{
+> > +	const struct isp_format_info *in_info, *out_info;
+> > +
+> > +	if (in == out)
+> > +		return true;
+> > +
+> > +	in_info = omap3isp_video_format_info(in);
+> > +	out_info = omap3isp_video_format_info(out);
+> > +
+> > +	if ((in_info->flavor == 0) || (out_info->flavor == 0))
+> > +		return false;
+> > +
+> > +	if (in_info->flavor != out_info->flavor)
+> > +		return false;
+> > +
+> > +	return in_info->bpp - out_info->bpp + additional_shift <= 6;
+> > +}
+> > +
+> >  static int ccdc_link_validate(struct v4l2_subdev *sd,
+> >  			      struct media_link *link,
+> >  			      struct v4l2_subdev_format *source_fmt,
+> > @@ -2008,13 +2051,31 @@ static int ccdc_link_validate(struct v4l2_subdev
+> > *sd, struct isp_pipeline *pipe = to_isp_pipeline(&ccdc->subdev.entity); int
+> > rval;
+> > 
+> > +	/* Check if the two ends match */
+> > +	if (source_fmt->format.width != sink_fmt->format.width ||
+> > +	    source_fmt->format.height != sink_fmt->format.height)
+> > +		return -EPIPE;
+> > +
+> >  	/* We've got a parallel sensor here. */
+> >  	if (ccdc->input == CCDC_INPUT_PARALLEL) {
+> 
+> The lane shifter is usable with the CCP2 and CSI2 inputs as well. The 
+> parallel_shift value is restricted to parallel input though. Please perform 
+> the same check as done in isp_video_validate_pipeline().
+
+Good catch. I'll fix this.
+
+> Revies would also be easier if you removed the CCDC-specific code from 
+> isp_video_validate_pipeline() in this patch.
+
+Ok. I see what I could do for the next version.
+
+> > +		struct isp_parallel_platform_data *pdata =
+> > +			&((struct isp_v4l2_subdevs_group *)
+> > +			  media_entity_to_v4l2_subdev(link->source->entity)
+> > +			  ->host_priv)->bus.parallel;
+> > +		unsigned long parallel_shift = pdata->data_lane_shift * 2;
+> > +		/* Lane shifter may be used to drop bits on CCDC sink pad */
+> > +		if (!ccdc_is_shiftable(source_fmt->format.code,
+> > +				       sink_fmt->format.code, parallel_shift))
+> > +			return -EPIPE;
+> > +
+> >  		pipe->external =
+> >  			media_entity_to_v4l2_subdev(link->source->entity);
+> >  		rval = omap3isp_get_external_info(pipe, link);
+> >  		if (rval < 0)
+> >  			return 0;
+> > +	} else {
+> > +		if (source_fmt->format.code != sink_fmt->format.code)
+> > +			return -EPIPE;
+> >  	}
+> > 
+> >  	return 0;
+> > @@ -2299,8 +2360,6 @@ int omap3isp_ccdc_init(struct isp_device *isp)
+> >  	ccdc->clamp.oblen = 0;
+> >  	ccdc->clamp.dcsubval = 0;
+> > 
+> > -	ccdc->vpcfg.pixelclk = 0;
+> > -
+> >  	ccdc->update = OMAP3ISP_CCDC_BLCLAMP;
+> >  	ccdc_apply_controls(ccdc);
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
