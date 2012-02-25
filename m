@@ -1,396 +1,151 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:35505 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754002Ab2BNLfp (ORCPT
+Received: from mail-vw0-f46.google.com ([209.85.212.46]:52088 "EHLO
+	mail-vw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757686Ab2BYTfp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 06:35:45 -0500
-Received: by wgbdt10 with SMTP id dt10so5832274wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 14 Feb 2012 03:35:44 -0800 (PST)
+	Sat, 25 Feb 2012 14:35:45 -0500
+Received: by vbbff1 with SMTP id ff1so142176vbb.19
+        for <linux-media@vger.kernel.org>; Sat, 25 Feb 2012 11:35:44 -0800 (PST)
 MIME-Version: 1.0
-From: Javier Martin <javier.martin@vista-silicon.com>
+Reply-To: martin@herrman.nl
+In-Reply-To: <CADR1r6jR+zrWMJoq9zKKVw+ucjFCc4BshfxZxhPoKfNduiFx-w@mail.gmail.com>
+References: <CADR1r6jbuGD5hecgC-gzVda1G=vCcOn4oMsf5TxcyEVWsWdVuQ@mail.gmail.com>
+	<01cc01ccce54$4f9e9770$eedbc650$@coexsi.fr>
+	<CADR1r6iKj7MrTVx4aObbMUVswwT-8LMgGR=BVtpX9r+PKWzw9g@mail.gmail.com>
+	<4F0B6480.30900@kaiser-linux.li>
+	<CADR1r6jR+zrWMJoq9zKKVw+ucjFCc4BshfxZxhPoKfNduiFx-w@mail.gmail.com>
+Date: Sat, 25 Feb 2012 20:35:43 +0100
+Message-ID: <CADR1r6jSO7c-k-31t730s8ozx8Z8jJHhK4-xXH+RmcZz7qE=iQ@mail.gmail.com>
+Subject: Re: [DVB Digital Devices Cine CT V6] status support
+From: Martin Herrman <martin@herrman.nl>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
-	s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH] media: i.MX27 camera: Add resizing support.
-Date: Tue, 14 Feb 2012 12:35:32 +0100
-Message-Id: <1329219332-27620-1-git-send-email-javier.martin@vista-silicon.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-If the attached video sensor cannot provide the
-requested image size, try to use resizing engine
-included in the eMMa-PrP IP.
+Op 10 januari 2012 09:12 schreef Martin Herrman
+<martin.herrman@gmail.com> het volgende:
+>
+> 2012/1/9 Thomas Kaiser <linux-dvb@kaiser-linux.li>:
+>
+> > Hello Martin
+> >
+> > I use the DD Cine CT V6 with DVB-C. It works without problems.
+> > I got the driver before Oliver integrated it in his tree. Therefor I did
+> > not
+> > compile Olivers tree, yet.
+> >
+> > At the moment I run the card on Ubuntu 11.10 with kernel 3.0.0-14.
+> >
+> > Hope this helps.
+> >
+> > Thomas
+>
+> Hi Thomas,
+>
+> that is very good news, thanks a lot for the confirmation. Time to
+> order one myself!
+>
+> Regards,
+>
+> Martin
 
-This patch supports both averaging and bilinear
-algorithms.
+So.. couple of weeks later, the card arrived, and I have some time to
+play with it.
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |  251 +++++++++++++++++++++++++++++++++++++-
- 1 files changed, 249 insertions(+), 2 deletions(-)
+Note that I'm running latest stable Ubuntu 64-bit with kernel 3.0.0-16-generic.
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 9e84368..6516ee4 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -19,6 +19,7 @@
- #include <linux/dma-mapping.h>
- #include <linux/errno.h>
- #include <linux/fs.h>
-+#include <linux/gcd.h>
- #include <linux/interrupt.h>
- #include <linux/kernel.h>
- #include <linux/mm.h>
-@@ -204,10 +205,25 @@
- #define PRP_INTR_LBOVF		(1 << 7)
- #define PRP_INTR_CH2OVF		(1 << 8)
- 
-+/* Resizing registers */
-+#define PRP_RZ_VALID_TBL_LEN(x)	((x) << 24)
-+#define PRP_RZ_VALID_BILINEAR	(1 << 31)
-+
- #define mx27_camera_emma(pcdev)	(cpu_is_mx27() && pcdev->use_emma)
- 
- #define MAX_VIDEO_MEM	16
- 
-+#define RESIZE_NUM_MIN	1
-+#define RESIZE_NUM_MAX	20
-+#define BC_COEF		3
-+#define SZ_COEF		(1 << BC_COEF)
-+
-+#define RESIZE_DIR_H	0
-+#define RESIZE_DIR_V	1
-+
-+#define RESIZE_ALGO_BILINEAR 0
-+#define RESIZE_ALGO_AVERAGING 1
-+
- struct mx2_prp_cfg {
- 	int channel;
- 	u32 in_fmt;
-@@ -217,6 +233,13 @@ struct mx2_prp_cfg {
- 	u32 irq_flags;
- };
- 
-+/* prp resizing parameters */
-+struct emma_prp_resize {
-+	int		algo; /* type of algorithm used */
-+	int		len; /* number of coefficients */
-+	unsigned char	s[RESIZE_NUM_MAX]; /* table of coefficients */
-+};
-+
- /* prp configuration for a client-host fmt pair */
- struct mx2_fmt_cfg {
- 	enum v4l2_mbus_pixelcode	in_fmt;
-@@ -278,6 +301,8 @@ struct mx2_camera_dev {
- 	dma_addr_t		discard_buffer_dma;
- 	size_t			discard_size;
- 	struct mx2_fmt_cfg	*emma_prp;
-+	struct emma_prp_resize	resizing[2];
-+	unsigned int		s_width, s_height;
- 	u32			frame_count;
- 	struct vb2_alloc_ctx	*alloc_ctx;
- };
-@@ -687,7 +712,7 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
- 
--	writel((icd->user_width << 16) | icd->user_height,
-+	writel((pcdev->s_width << 16) | pcdev->s_height,
- 	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
- 	writel(prp->cfg.src_pixel,
- 	       pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
-@@ -707,6 +732,74 @@ static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
- 	writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
- }
- 
-+static void mx2_prp_resize_commit(struct mx2_camera_dev *pcdev)
-+{
-+	int dir;
-+
-+	for (dir = RESIZE_DIR_H; dir <= RESIZE_DIR_V; dir++) {
-+		unsigned char *s = pcdev->resizing[dir].s;
-+		int len = pcdev->resizing[dir].len;
-+		unsigned int coeff[2] = {0, 0};
-+		unsigned int valid  = 0;
-+		int i;
-+
-+		if (len == 0)
-+			continue;
-+
-+		for (i = RESIZE_NUM_MAX - 1; i >= 0; i--) {
-+			int j;
-+
-+			j = i > 9 ? 1 : 0;
-+			coeff[j] = (coeff[j] << BC_COEF) |
-+			(s[i] & (SZ_COEF - 1));
-+
-+			if (i == 5 || i == 15)
-+				coeff[j] <<= 1;
-+
-+			valid = (valid << 1) | (s[i] >> BC_COEF);
-+		}
-+
-+		valid |= PRP_RZ_VALID_TBL_LEN(len);
-+
-+		if (pcdev->resizing[dir].algo == RESIZE_ALGO_BILINEAR)
-+			valid |= PRP_RZ_VALID_BILINEAR;
-+
-+		if (pcdev->emma_prp->cfg.channel == 1) {
-+			if (dir == RESIZE_DIR_H) {
-+				writel(coeff[0], pcdev->base_emma +
-+							PRP_CH1_RZ_HORI_COEF1);
-+				writel(coeff[1], pcdev->base_emma +
-+							PRP_CH1_RZ_HORI_COEF2);
-+				writel(valid, pcdev->base_emma +
-+							PRP_CH1_RZ_HORI_VALID);
-+			} else {
-+				writel(coeff[0], pcdev->base_emma +
-+							PRP_CH1_RZ_VERT_COEF1);
-+				writel(coeff[1], pcdev->base_emma +
-+							PRP_CH1_RZ_VERT_COEF2);
-+				writel(valid, pcdev->base_emma +
-+							PRP_CH1_RZ_VERT_VALID);
-+			}
-+		} else {
-+			if (dir == RESIZE_DIR_H) {
-+				writel(coeff[0], pcdev->base_emma +
-+							PRP_CH2_RZ_HORI_COEF1);
-+				writel(coeff[1], pcdev->base_emma +
-+							PRP_CH2_RZ_HORI_COEF2);
-+				writel(valid, pcdev->base_emma +
-+							PRP_CH2_RZ_HORI_VALID);
-+			} else {
-+				writel(coeff[0], pcdev->base_emma +
-+							PRP_CH2_RZ_VERT_COEF1);
-+				writel(coeff[1], pcdev->base_emma +
-+							PRP_CH2_RZ_VERT_COEF2);
-+				writel(valid, pcdev->base_emma +
-+							PRP_CH2_RZ_VERT_VALID);
-+			}
-+		}
-+	}
-+}
-+
- static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-@@ -773,6 +866,8 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 		list_add_tail(&pcdev->buf_discard[1].queue,
- 				      &pcdev->discard);
- 
-+		mx2_prp_resize_commit(pcdev);
-+
- 		mx27_camera_emma_buf_init(icd, bytesperline);
- 
- 		if (prp->cfg.channel == 1) {
-@@ -1059,6 +1154,119 @@ static int mx2_camera_get_formats(struct soc_camera_device *icd,
- 	return formats;
- }
- 
-+static int mx2_emmaprp_resize(struct mx2_camera_dev *pcdev,
-+			      struct v4l2_mbus_framefmt *mf_in,
-+			      struct v4l2_pix_format *pix_out)
-+{
-+	int num, den;
-+	unsigned long m;
-+	int i, dir;
-+
-+	for (dir = RESIZE_DIR_H; dir <= RESIZE_DIR_V; dir++) {
-+		unsigned char *s = pcdev->resizing[dir].s;
-+		int len = 0;
-+		int in, out;
-+
-+		if (dir == RESIZE_DIR_H) {
-+			in = mf_in->width;
-+			out = pix_out->width;
-+		} else {
-+			in = mf_in->height;
-+			out = pix_out->height;
-+		}
-+
-+		if (in < out)
-+			return -EINVAL;
-+		else if (in == out)
-+			continue;
-+
-+		/* Calculate ratio */
-+		m = gcd(in, out);
-+		num = in / m;
-+		den = out / m;
-+		if (num > RESIZE_NUM_MAX)
-+			return -EINVAL;
-+
-+		if ((num >= 2 * den) && (den == 1) &&
-+		    (num < 9) && (!(num & 0x01))) {
-+			int sum = 0;
-+			int j;
-+
-+			/* Average scaling for > 2:1 ratios */
-+			/* Support can be added for num >=9 and odd values */
-+
-+			pcdev->resizing[dir].algo = RESIZE_ALGO_AVERAGING;
-+			len = num;
-+
-+			for (i = 0; i < (len / 2); i++)
-+				s[i] = 8;
-+
-+			do {
-+				for (i = 0; i < (len / 2); i++) {
-+					s[i] = s[i] >> 1;
-+					sum = 0;
-+					for (j = 0; j < (len / 2); j++)
-+						sum += s[j];
-+					if (sum == 4)
-+						break;
-+				}
-+			} while (sum != 4);
-+
-+			for (i = (len / 2); i < len; i++)
-+				s[i] = s[len - i - 1];
-+
-+			s[len - 1] |= SZ_COEF;
-+		} else {
-+			/* bilinear scaling for < 2:1 ratios */
-+			int v; /* overflow counter */
-+			int coeff, nxt; /* table output */
-+			int in_pos_inc = 2 * den;
-+			int out_pos = num;
-+			int out_pos_inc = 2 * num;
-+			int init_carry = num - den;
-+			int carry = init_carry;
-+
-+			pcdev->resizing[dir].algo = RESIZE_ALGO_BILINEAR;
-+			v = den + in_pos_inc;
-+			do {
-+				coeff = v - out_pos;
-+				out_pos += out_pos_inc;
-+				carry += out_pos_inc;
-+				for (nxt = 0; v < out_pos; nxt++) {
-+					v += in_pos_inc;
-+					carry -= in_pos_inc;
-+				}
-+
-+				if (len > RESIZE_NUM_MAX)
-+					return -EINVAL;
-+
-+				coeff = ((coeff << BC_COEF) +
-+					(in_pos_inc >> 1)) / in_pos_inc;
-+
-+				if (coeff >= (SZ_COEF - 1))
-+					coeff--;
-+
-+				coeff |= SZ_COEF;
-+				s[len] = (unsigned char)coeff;
-+				len++;
-+
-+				for (i = 1; i < nxt; i++) {
-+					if (len >= RESIZE_NUM_MAX)
-+						return -EINVAL;
-+					s[len] = 0;
-+					len++;
-+				}
-+			} while (carry != init_carry);
-+		}
-+		pcdev->resizing[dir].len = len;
-+		if (dir == RESIZE_DIR_H)
-+			mf_in->width = mf_in->width * den / num;
-+		else
-+			mf_in->height = mf_in->height * den / num;
-+	}
-+	return 0;
-+}
-+
- static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 			       struct v4l2_format *f)
- {
-@@ -1070,6 +1278,9 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 	struct v4l2_mbus_framefmt mf;
- 	int ret;
- 
-+	dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
-+		__func__, pix->width, pix->height);
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pix->pixelformat);
- 	if (!xlate) {
- 		dev_warn(icd->parent, "Format %x not found\n",
-@@ -1087,6 +1298,18 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 	if (ret < 0 && ret != -ENOIOCTLCMD)
- 		return ret;
- 
-+	/* Store width and height returned by the sensor for resizing */
-+	pcdev->s_width = mf.width;
-+	pcdev->s_height = mf.height;
-+	dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
-+		__func__, pcdev->s_width, pcdev->s_height);
-+
-+	memset(pcdev->resizing, 0, sizeof(struct emma_prp_resize) << 1);
-+	if (mf.width != pix->width || mf.height != pix->height) {
-+		if (mx2_emmaprp_resize(pcdev, &mf, pix) < 0)
-+			return -EINVAL;
-+	}
-+
- 	if (mf.code != xlate->code)
- 		return -EINVAL;
- 
-@@ -1100,6 +1323,9 @@ static int mx2_camera_set_fmt(struct soc_camera_device *icd,
- 		pcdev->emma_prp = mx27_emma_prp_get_format(xlate->code,
- 						xlate->host_fmt->fourcc);
- 
-+	dev_dbg(icd->parent, "%s: returned params: width = %d, height = %d\n",
-+		__func__, pix->width, pix->height);
-+
- 	return 0;
- }
- 
-@@ -1109,11 +1335,16 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
- 	const struct soc_camera_format_xlate *xlate;
- 	struct v4l2_pix_format *pix = &f->fmt.pix;
--	struct v4l2_mbus_framefmt mf;
- 	__u32 pixfmt = pix->pixelformat;
-+	struct v4l2_mbus_framefmt mf;
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	struct mx2_camera_dev *pcdev = ici->priv;
- 	unsigned int width_limit;
- 	int ret;
- 
-+	dev_dbg(icd->parent, "%s: requested params: width = %d, height = %d\n",
-+		__func__, pix->width, pix->height);
-+
- 	xlate = soc_camera_xlate_by_fourcc(icd, pixfmt);
- 	if (pixfmt && !xlate) {
- 		dev_warn(icd->parent, "Format %x not found\n", pixfmt);
-@@ -1163,6 +1394,19 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	if (ret < 0)
- 		return ret;
- 
-+	/* Store width and height returned by the sensor for resizing */
-+	pcdev->s_width = mf.width;
-+	pcdev->s_height = mf.height;
-+	dev_dbg(icd->parent, "%s: sensor params: width = %d, height = %d\n",
-+		__func__, pcdev->s_width, pcdev->s_height);
-+
-+	/* If the sensor does not support image size try PrP resizing */
-+	memset(pcdev->resizing, 0, sizeof(struct emma_prp_resize) << 1);
-+	if (mf.width != pix->width || mf.height != pix->height) {
-+		if (mx2_emmaprp_resize(pcdev, &mf, pix) < 0)
-+			return -EINVAL;
-+	}
-+
- 	if (mf.field == V4L2_FIELD_ANY)
- 		mf.field = V4L2_FIELD_NONE;
- 	/*
-@@ -1181,6 +1425,9 @@ static int mx2_camera_try_fmt(struct soc_camera_device *icd,
- 	pix->field	= mf.field;
- 	pix->colorspace	= mf.colorspace;
- 
-+	dev_dbg(icd->parent, "%s: returned params: width = %d, height = %d\n",
-+		__func__, pix->width, pix->height);
-+
- 	return 0;
- }
- 
--- 
-1.7.0.4
+First I tried the drivers from
+http://linuxtv.org/hg/~endriss/media_build_experimental/. In that
+case, dmesg output is:
 
+[   11.728370] WARNING: You are using an experimental version of the
+media stack.
+[   11.728372]  As the driver is backported to an older kernel, it doesn't offer
+[   11.728373]  enough quality for its usage in production.
+[   11.728373]  Use it with care.
+[   11.728374] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[   11.728375]  59b30294e14fa6a370fdd2bc2921cca1f977ef16 Merge branch
+'v4l_for_linus' into staging/for_v3.4
+[   11.728376]  72565224609a23a60d10fcdf42f87a2fa8f7b16d [media]
+cxd2820r: sleep on DVB-T/T2 delivery system switch
+[   11.728377]  46de20a78ae4b122b79fc02633e9a6c3d539ecad [media]
+anysee: fix CI init
+[   11.728852] ddbridge: disagrees about version of symbol cxd2099_attach
+[   11.728856] ddbridge: Unknown symbol cxd2099_attach (err -22)
+
+So I started to try the build instructions found here:
+
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+
+And after compile, install and a reboot, dmesg output is:
+
+(..)
+[   11.592959] Adding 976892k swap on /dev/sdb2.  Priority:-2
+extents:1 across:976892k
+[   11.628781] WARNING: You are using an experimental version of the
+media stack.
+[   11.628784]  As the driver is backported to an older kernel, it doesn't offer
+[   11.628785]  enough quality for its usage in production.
+[   11.628785]  Use it with care.
+[   11.628786] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[   11.628787]  a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e [media]
+xc5000: declare firmware configuration structures as static const
+[   11.628788]  6fab81dfdc7b48c2e30ab05e9b30afb0c418bbbe [media]
+xc5000: drivers should specify chip revision rather than firmware
+[   11.628790]  ddea427fb3e64d817d4432e5efd2abbfc4ddb02e [media]
+xc5000: remove static dependencies on xc5000 created by previous
+changesets
+[   11.629238] Digital Devices PCIE bridge driver, Copyright (C)
+2010-11 Digital Devices GmbH
+[   11.629298] DDBridge 0000:03:00.0: PCI INT A -> GSI 18 (level, low) -> IRQ 18
+[   11.629306] DDBridge driver detected: Digital Devices PCIe bridge
+[   11.629331] HW 00010007 FW 00010003
+[   11.632593] cfg80211: Calling CRDA to update world regulatory domain
+[   11.643411] rt2800pci 0000:05:01.0: PCI INT A -> GSI 19 (level,
+low) -> IRQ 19
+(..)
+[   11.781023] cfg80211:     (5735000 KHz - 5835000 KHz @ 40000 KHz),
+(300 mBi, 2000 mBm)
+[   11.844516] skipping empty audio interface (v1)
+[   11.844528] snd-usb-audio: probe of 1-3:1.0 failed with error -5
+[   11.844540] skipping empty audio interface (v1)
+[   11.844546] snd-usb-audio: probe of 1-3:1.1 failed with error -5
+[   11.845406] Linux media interface: v0.10
+[   11.868177] Linux video capture interface: v2.00
+[   11.868181] WARNING: You are using an experimental version of the
+media stack.
+[   11.868182]  As the driver is backported to an older kernel, it doesn't offer
+[   11.868183]  enough quality for its usage in production.
+[   11.868184]  Use it with care.
+[   11.868184] Latest git patches (needed if you report a bug to
+linux-media@vger.kernel.org):
+[   11.868185]  a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e [media]
+xc5000: declare firmware configuration structures as static const
+[   11.868187]  6fab81dfdc7b48c2e30ab05e9b30afb0c418bbbe [media]
+xc5000: drivers should specify chip revision rather than firmware
+[   11.868188]  ddea427fb3e64d817d4432e5efd2abbfc4ddb02e [media]
+xc5000: remove static dependencies on xc5000 created by previous
+changesets
+[   12.110903] EXT4-fs (md1): re-mounted. Opts: errors=remount-ro,user_xattr
+[   12.213875] usbcore: registered new interface driver snd-usb-audio
+[   12.213906] uvcvideo: Found UVC 1.00 device <unnamed> (046d:0990)
+[   12.229795] input: UVC Camera (046d:0990) as
+/devices/pci0000:00/0000:00:1a.7/usb1/1-3/1-3:1.0/input/input6
+[   12.229904] usbcore: registered new interface driver uvcvideo
+[   12.229906] USB Video Class driver (1.1.1)
+(..)
+
+lsmod shows that ddbridge and dvb_core are loaded. /dev/ddbrigde/card0
+is created. My webcam is available as a device below /dev/v4l/, but no
+entries exist for the tv-tuner card.
+
+I can manually load cxd2820r, which loads succesfully, but has no effect.
+
+Which driver should be used?
+
+Any hints are grealy appreciated!
+
+Martin
