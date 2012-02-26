@@ -1,66 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog114.obsmtp.com ([74.125.149.211]:40106 "EHLO
-	na3sys009aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751334Ab2BVQkH (ORCPT
+Received: from mxweb03do.versatel-west.de ([62.214.96.174]:36032 "HELO
+	mxweb03do.versatel-west.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with SMTP id S1752111Ab2BZKL2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 11:40:07 -0500
+	Sun, 26 Feb 2012 05:11:28 -0500
+Received: from cinnamon-sage.de (i577A7B7C.versanet.de [87.122.123.124])
+	(authenticated bits=0)
+	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q1QABJki006848
+	for <linux-media@vger.kernel.org>; Sun, 26 Feb 2012 11:11:20 +0100
+Received: from 192.168.23.2:49256 by cinnamon-sage.de for <martin@herrman.nl>,<linux-media@vger.kernel.org> ; 26.02.2012 11:11:19
+Message-ID: <4F4A0547.9060903@cinnamon-sage.de>
+Date: Sun, 26 Feb 2012 11:11:19 +0100
+From: Lars Hanisch <dvb@cinnamon-sage.de>
 MIME-Version: 1.0
-In-Reply-To: <e39f63$3q903a@fmsmga002.fm.intel.com>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com>
-	<1775349.d0yvHiVdjB@avalon>
-	<20120217095554.GA5511@phenom.ffwll.local>
-	<2168398.Pv8ir5xFGf@avalon>
-	<alpine.LFD.2.02.1202221559510.3721@casper.infradead.org>
-	<20120222162424.GE4872@phenom.ffwll.local>
-	<e39f63$3q903a@fmsmga002.fm.intel.com>
-Date: Wed, 22 Feb 2012 10:40:05 -0600
-Message-ID: <CAO8GWqnVLfu5p3yNbE-BNqXfUu=2JX3S82GoJFS1baRwV126pQ@mail.gmail.com>
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
- 2012 - Notes
-From: "Clark, Rob" <rob@ti.com>
-To: Chris Wilson <chris@chris-wilson.co.uk>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	James Simmons <jsimmons@infradead.org>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: martin@herrman.nl
+CC: linux-media@vger.kernel.org
+Subject: Re: [DVB Digital Devices Cine CT V6] status support
+References: <CADR1r6jbuGD5hecgC-gzVda1G=vCcOn4oMsf5TxcyEVWsWdVuQ@mail.gmail.com> <01cc01ccce54$4f9e9770$eedbc650$@coexsi.fr> <CADR1r6iKj7MrTVx4aObbMUVswwT-8LMgGR=BVtpX9r+PKWzw9g@mail.gmail.com> <4F0B6480.30900@kaiser-linux.li> <CADR1r6jR+zrWMJoq9zKKVw+ucjFCc4BshfxZxhPoKfNduiFx-w@mail.gmail.com> <CADR1r6jSO7c-k-31t730s8ozx8Z8jJHhK4-xXH+RmcZz7qE=iQ@mail.gmail.com>
+In-Reply-To: <CADR1r6jSO7c-k-31t730s8ozx8Z8jJHhK4-xXH+RmcZz7qE=iQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Feb 22, 2012 at 10:36 AM, Chris Wilson <chris@chris-wilson.co.uk> wrote:
-> On Wed, 22 Feb 2012 17:24:24 +0100, Daniel Vetter <daniel@ffwll.ch> wrote:
->> On Wed, Feb 22, 2012 at 04:03:21PM +0000, James Simmons wrote:
->> > Fbcon scrolling at be painful at HD or better modes. Fbcon needs 3
->> > possible accels; copyarea, imageblit, and fillrect. The first two could be
->> > hooked from the TTM layer. Its something I plan to experiment to see if
->> > its worth it.
+Hi,
+
+Am 25.02.2012 20:35, schrieb Martin Herrman:
+> Op 10 januari 2012 09:12 schreef Martin Herrman
+> <martin.herrman@gmail.com>  het volgende:
 >>
->> Let's bite into this ;-) I know that fbcon scrolling totally sucks on big
->> screens, but I also think it's a total waste of time to fix this. Imo
->> fbcon has 2 use-cases:
->> - display an OOSP.
->> - allow me to run fsck (or any other desaster-recovery stuff).
-> 3. Show panics.
+>> 2012/1/9 Thomas Kaiser<linux-dvb@kaiser-linux.li>:
+>>
+>>> Hello Martin
+>>>
+>>> I use the DD Cine CT V6 with DVB-C. It works without problems.
+>>> I got the driver before Oliver integrated it in his tree. Therefor I did
+>>> not
+>>> compile Olivers tree, yet.
+>>>
+>>> At the moment I run the card on Ubuntu 11.10 with kernel 3.0.0-14.
+>>>
+>>> Hope this helps.
+>>>
+>>> Thomas
+>>
+>> Hi Thomas,
+>>
+>> that is very good news, thanks a lot for the confirmation. Time to
+>> order one myself!
+>>
+>> Regards,
+>>
+>> Martin
 >
-> Ensuring that nothing prevents the switch to fbcon and displaying the
-> panic message is the reason why we haven't felt inclined to accelerate
-> fbcon - it just gets messy for no real gain.
-
-and when doing 2d accel on a 3d core..  it basically amounts to
-putting a shader compiler in the kernel.   Wheeee!
-
-> For example: https://bugs.freedesktop.org/attachment.cgi?id=48933
-> which doesn't handle flushing of pending updates via the GPU when
-> writing with the CPU during interrupts (i.e. a panic).
-> -Chris
+> So.. couple of weeks later, the card arrived, and I have some time to
+> play with it.
 >
+> Note that I'm running latest stable Ubuntu 64-bit with kernel 3.0.0-16-generic.
+
+  Since you are using Ubuntu, you can find a nearly up-to-date dkms of linux-media with the patches of Oliver Endriss at
+  https://launchpad.net/~yavdr/+archive/main called linux-media-dkms
+
+  With this my Cine-C/T with a ddbridge runs without any problems.
+
+Regards,
+Lars.
+
+>
+> First I tried the drivers from
+> http://linuxtv.org/hg/~endriss/media_build_experimental/. In that
+> case, dmesg output is:
+>
+> [   11.728370] WARNING: You are using an experimental version of the
+> media stack.
+> [   11.728372]  As the driver is backported to an older kernel, it doesn't offer
+> [   11.728373]  enough quality for its usage in production.
+> [   11.728373]  Use it with care.
+> [   11.728374] Latest git patches (needed if you report a bug to
+> linux-media@vger.kernel.org):
+> [   11.728375]  59b30294e14fa6a370fdd2bc2921cca1f977ef16 Merge branch
+> 'v4l_for_linus' into staging/for_v3.4
+> [   11.728376]  72565224609a23a60d10fcdf42f87a2fa8f7b16d [media]
+> cxd2820r: sleep on DVB-T/T2 delivery system switch
+> [   11.728377]  46de20a78ae4b122b79fc02633e9a6c3d539ecad [media]
+> anysee: fix CI init
+> [   11.728852] ddbridge: disagrees about version of symbol cxd2099_attach
+> [   11.728856] ddbridge: Unknown symbol cxd2099_attach (err -22)
+>
+> So I started to try the build instructions found here:
+>
+> http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
+>
+> And after compile, install and a reboot, dmesg output is:
+>
+> (..)
+> [   11.592959] Adding 976892k swap on /dev/sdb2.  Priority:-2
+> extents:1 across:976892k
+> [   11.628781] WARNING: You are using an experimental version of the
+> media stack.
+> [   11.628784]  As the driver is backported to an older kernel, it doesn't offer
+> [   11.628785]  enough quality for its usage in production.
+> [   11.628785]  Use it with care.
+> [   11.628786] Latest git patches (needed if you report a bug to
+> linux-media@vger.kernel.org):
+> [   11.628787]  a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e [media]
+> xc5000: declare firmware configuration structures as static const
+> [   11.628788]  6fab81dfdc7b48c2e30ab05e9b30afb0c418bbbe [media]
+> xc5000: drivers should specify chip revision rather than firmware
+> [   11.628790]  ddea427fb3e64d817d4432e5efd2abbfc4ddb02e [media]
+> xc5000: remove static dependencies on xc5000 created by previous
+> changesets
+> [   11.629238] Digital Devices PCIE bridge driver, Copyright (C)
+> 2010-11 Digital Devices GmbH
+> [   11.629298] DDBridge 0000:03:00.0: PCI INT A ->  GSI 18 (level, low) ->  IRQ 18
+> [   11.629306] DDBridge driver detected: Digital Devices PCIe bridge
+> [   11.629331] HW 00010007 FW 00010003
+> [   11.632593] cfg80211: Calling CRDA to update world regulatory domain
+> [   11.643411] rt2800pci 0000:05:01.0: PCI INT A ->  GSI 19 (level,
+> low) ->  IRQ 19
+> (..)
+> [   11.781023] cfg80211:     (5735000 KHz - 5835000 KHz @ 40000 KHz),
+> (300 mBi, 2000 mBm)
+> [   11.844516] skipping empty audio interface (v1)
+> [   11.844528] snd-usb-audio: probe of 1-3:1.0 failed with error -5
+> [   11.844540] skipping empty audio interface (v1)
+> [   11.844546] snd-usb-audio: probe of 1-3:1.1 failed with error -5
+> [   11.845406] Linux media interface: v0.10
+> [   11.868177] Linux video capture interface: v2.00
+> [   11.868181] WARNING: You are using an experimental version of the
+> media stack.
+> [   11.868182]  As the driver is backported to an older kernel, it doesn't offer
+> [   11.868183]  enough quality for its usage in production.
+> [   11.868184]  Use it with care.
+> [   11.868184] Latest git patches (needed if you report a bug to
+> linux-media@vger.kernel.org):
+> [   11.868185]  a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e [media]
+> xc5000: declare firmware configuration structures as static const
+> [   11.868187]  6fab81dfdc7b48c2e30ab05e9b30afb0c418bbbe [media]
+> xc5000: drivers should specify chip revision rather than firmware
+> [   11.868188]  ddea427fb3e64d817d4432e5efd2abbfc4ddb02e [media]
+> xc5000: remove static dependencies on xc5000 created by previous
+> changesets
+> [   12.110903] EXT4-fs (md1): re-mounted. Opts: errors=remount-ro,user_xattr
+> [   12.213875] usbcore: registered new interface driver snd-usb-audio
+> [   12.213906] uvcvideo: Found UVC 1.00 device<unnamed>  (046d:0990)
+> [   12.229795] input: UVC Camera (046d:0990) as
+> /devices/pci0000:00/0000:00:1a.7/usb1/1-3/1-3:1.0/input/input6
+> [   12.229904] usbcore: registered new interface driver uvcvideo
+> [   12.229906] USB Video Class driver (1.1.1)
+> (..)
+>
+> lsmod shows that ddbridge and dvb_core are loaded. /dev/ddbrigde/card0
+> is created. My webcam is available as a device below /dev/v4l/, but no
+> entries exist for the tv-tuner card.
+>
+> I can manually load cxd2820r, which loads succesfully, but has no effect.
+>
+> Which driver should be used?
+>
+> Any hints are grealy appreciated!
+>
+> Martin
 > --
-> Chris Wilson, Intel Open Source Technology Centre
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
