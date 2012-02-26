@@ -1,72 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:58615 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752790Ab2BTB6G (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 Feb 2012 20:58:06 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
-	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
-	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
-Subject: [PATCH v3 06/33] v4l: Check pad number in get try pointer functions
-Date: Mon, 20 Feb 2012 03:56:45 +0200
-Message-Id: <1329703032-31314-6-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120220015605.GI7784@valkosipuli.localdomain>
-References: <20120220015605.GI7784@valkosipuli.localdomain>
+Received: from mail-gw-out2.cc.tut.fi ([130.230.160.33]:52036 "EHLO
+	mail-gw-out2.cc.tut.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752840Ab2BZWnV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Feb 2012 17:43:21 -0500
+Message-ID: <4F4AB586.2030205@iki.fi>
+Date: Mon, 27 Feb 2012 00:43:18 +0200
+From: Anssi Hannula <anssi.hannula@iki.fi>
+MIME-Version: 1.0
+To: Ralph Metzler <rjkm@metzlerbros.de>
+CC: Issa Gorissen <flop.m@usa.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	S-bastien RAILLARD <sr@coexsi.fr>,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: cxd2099 CI on DDBridge not working (was: Re: DVB nGene CI : TS Discontinuities
+ issues)
+References: <501PekNLl1856S04.1305119557@web04.cms.usa.net> <4DCC45D7.8090405@usa.net> <19917.7169.579857.44894@morden.metzler> <4F4A67AB.1070103@iki.fi> <20298.44716.921452.814171@morden.metzler>
+In-Reply-To: <20298.44716.921452.814171@morden.metzler>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Unify functions to get try pointers and validate the pad number accessed by
-the user.
+27.02.2012 00:14, Ralph Metzler kirjoitti:
+> Anssi Hannula writes:
+>  > > I had it running for an hour and had no discontinuities (except at
+>  > > restarts, might have to look into buffer flushing).
+>  > > I tested it with nGene and Octopus boards on an Asus ION2 board and on a
+>  > > Marvell Kirkwood based ARM board.
+>  > 
+>  > Should your test code (quoted below) work with e.g. Octopus DDBridge on
+>  > vanilla 3.2.6 kernel, without any additional initialization needed
+>  > through ca0 or so?
+>  > 
+>  > When I try it here like that, the reader thread simply blocks
+>  > indefinitely on the first read, while the writer thread continues to
+>  > write packets into the device.
+>  > Am I missing something, or is this a bug?
+> 
+> 
+> Yes, it should work as it is. 
+> I assume you adjusted the adapter numbers of course.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- include/media/v4l2-subdev.h |   31 ++++++++++++++-----------------
- 1 files changed, 14 insertions(+), 17 deletions(-)
+I did. Do you have any idea on what could be the cause of the issue or
+any debugging tips?
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index bcaf6b8..d48dae5 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -565,23 +565,20 @@ struct v4l2_subdev_fh {
- 	container_of(fh, struct v4l2_subdev_fh, vfh)
- 
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--static inline struct v4l2_mbus_framefmt *
--v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
--{
--	return &fh->pad[pad].try_fmt;
--}
--
--static inline struct v4l2_rect *
--v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
--{
--	return &fh->pad[pad].try_crop;
--}
--
--static inline struct v4l2_rect *
--v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
--{
--	return &fh->pad[pad].try_compose;
--}
-+#define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
-+	static inline struct rtype *					\
-+	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
-+				       unsigned int pad)		\
-+	{								\
-+		if (unlikely(pad > vdev_to_v4l2_subdev(			\
-+				     fh->vfh.vdev->entity.num_pads)	\
-+			return NULL;					\
-+		return &fh->pad[pad].field_name;			\
-+	}
-+
-+__V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
-+__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_compose)
-+__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
- #endif
- 
- extern const struct v4l2_file_operations v4l2_subdev_fops;
+I have also tried to do actual decrypting with the CI. As expected, the
+same thing happened, i.e. data was written but no data was read (CAM in
+ca0 also responds properly to VDR).
+
 -- 
-1.7.2.5
-
+Anssi Hannula
