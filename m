@@ -1,496 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ww0-f44.google.com ([74.125.82.44]:42957 "EHLO
-	mail-ww0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753664Ab2BGKPC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 Feb 2012 05:15:02 -0500
-Received: by wgbdt10 with SMTP id dt10so7164435wgb.1
-        for <linux-media@vger.kernel.org>; Tue, 07 Feb 2012 02:15:00 -0800 (PST)
-From: Javier Martin <javier.martin@vista-silicon.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58445 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752726Ab2BZD1g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Feb 2012 22:27:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: s.hauer@pengutronix.de, g.liakhovetski@gmx.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH v4 3/4] media i.MX27 camera: improve discard buffer handling.
-Date: Tue,  7 Feb 2012 11:14:42 +0100
-Message-Id: <1328609682-18014-1-git-send-email-javier.martin@vista-silicon.com>
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH 11/11] mt9m032: Use generic PLL setup code
+Date: Sun, 26 Feb 2012 04:27:37 +0100
+Message-Id: <1330226857-8651-12-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The way discard buffer was previously handled lead
-to possible races that made a buffer that was not
-yet ready to be overwritten by new video data. This
-is easily detected at 25fps just adding "#define DEBUG"
-to enable the "memset" check and seeing how the image
-is corrupted.
+Compute the PLL parameters at runtime using the generic Aptina PLL
+helper.
 
-A new "discard" queue and two discard buffers have
-been added to make them flow trough the pipeline
-of queues and thus provide suitable event ordering.
-
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- - Add proper locking to avoid races between IRQ and stop callbacks.
- - If a list is unexpectedly empty want the user and bail out.
+ drivers/media/video/mt9m032.c |   57 ++++++++++++++++++++++++++++-------------
+ include/media/mt9m032.h       |    2 +-
+ 2 files changed, 40 insertions(+), 19 deletions(-)
 
----
- drivers/media/video/mx2_camera.c |  287 +++++++++++++++++++++-----------------
- 1 files changed, 161 insertions(+), 126 deletions(-)
-
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index 35ab971..3880d24 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -237,7 +237,8 @@ struct mx2_buffer {
- 	struct list_head		queue;
- 	enum mx2_buffer_state		state;
+diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
+index 8109bf1..5fb891a 100644
+--- a/drivers/media/video/mt9m032.c
++++ b/drivers/media/video/mt9m032.c
+@@ -35,6 +35,8 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-subdev.h>
  
--	int bufnum;
-+	int				bufnum;
-+	bool				discard;
++#include "aptina-pll.h"
++
+ #define MT9M032_CHIP_VERSION			0x00
+ #define     MT9M032_CHIP_VERSION_VALUE		0x1402
+ #define MT9M032_ROW_START			0x01
+@@ -61,6 +63,7 @@
+ #define MT9M032_GAIN_BLUE			0x2c
+ #define MT9M032_GAIN_RED			0x2d
+ #define MT9M032_GAIN_GREEN2			0x2e
++
+ /* write only */
+ #define MT9M032_GAIN_ALL			0x35
+ #define     MT9M032_GAIN_DIGITAL_MASK		0x7f
+@@ -83,6 +86,8 @@
+ #define     MT9P031_PLL_CONTROL_PWROFF		0x0050
+ #define     MT9P031_PLL_CONTROL_PWRON		0x0051
+ #define     MT9P031_PLL_CONTROL_USEPLL		0x0052
++#define MT9P031_PLL_CONFIG2			0x11
++#define     MT9P031_PLL_CONFIG2_P1_DIV_MASK	0x1f
+ 
+ /*
+  * width and height include active boundry and black parts
+@@ -218,27 +223,43 @@ static int update_formatter2(struct mt9m032 *sensor, bool streaming)
+ static int mt9m032_setup_pll(struct mt9m032 *sensor)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+-	struct mt9m032_platform_data* pdata = sensor->pdata;
+-	u16 reg_pll1;
+-	unsigned int pre_div;
+-	unsigned int pll_out_div;
+-	unsigned int pll_mul;
++	struct mt9m032_platform_data *pdata = sensor->pdata;
++	struct aptina_pll_limits limits;
++	struct aptina_pll pll;
+ 	int ret;
+ 
+-	pre_div = 6;
+-
+-	sensor->pix_clock = pdata->ext_clock * pll_mul /
+-		(pre_div * pll_out_div);
++	limits.ext_clock_min = 8000000;
++	limits.ext_clock_max = 16500000;
++	limits.int_clock_min = 2000000;
++	limits.int_clock_max = 24000000;
++	limits.out_clock_min = 322000000;
++	limits.out_clock_max = 693000000;
++	limits.pix_clock_max = 99000000;
++	limits.n_min = 1;
++	limits.n_max = 64;
++	limits.m_min = 16;
++	limits.m_max = 255;
++	limits.p1_min = 1;
++	limits.p1_max = 128;
++
++	pll.ext_clock = pdata->ext_clock;
++	pll.pix_clock = pdata->pix_clock;
++
++	ret = aptina_pll_configure(&client->dev, &pll, &limits);
++	if (ret < 0)
++		return ret;
+ 
+-	reg_pll1 = ((pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
+-		 | (pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT);
++	sensor->pix_clock = pll.pix_clock;
+ 
+-	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
++	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1,
++				(pll.m << MT9M032_PLL_CONFIG1_MUL_SHIFT)
++				| (pll.p1 - 1));
+ 	if (!ret)
+-		ret = mt9m032_write_reg(client,
+-					MT9P031_PLL_CONTROL,
+-					MT9P031_PLL_CONTROL_PWRON | MT9P031_PLL_CONTROL_USEPLL);
+-
++		ret = mt9m032_write_reg(client, MT9P031_PLL_CONFIG2, pll.n - 1);
++	if (!ret)
++		ret = mt9m032_write_reg(client, MT9P031_PLL_CONTROL,
++					MT9P031_PLL_CONTROL_PWRON |
++					MT9P031_PLL_CONTROL_USEPLL);
+ 	if (!ret)
+ 		ret = mt9m032_write_reg(client, MT9M032_READ_MODE1, 0x8006);
+ 							/* more reserved, Continuous */
+diff --git a/include/media/mt9m032.h b/include/media/mt9m032.h
+index 4e84840..804e0a5 100644
+--- a/include/media/mt9m032.h
++++ b/include/media/mt9m032.h
+@@ -29,7 +29,7 @@
+ 
+ struct mt9m032_platform_data {
+ 	u32 ext_clock;
+-	u32 int_clock;
++	u32 pix_clock;
+ 	int invert_pixclock;
+ 
  };
- 
- struct mx2_camera_dev {
-@@ -256,6 +257,7 @@ struct mx2_camera_dev {
- 
- 	struct list_head	capture;
- 	struct list_head	active_bufs;
-+	struct list_head	discard;
- 
- 	spinlock_t		lock;
- 
-@@ -268,6 +270,7 @@ struct mx2_camera_dev {
- 
- 	u32			csicr1;
- 
-+	struct mx2_buffer	buf_discard[2];
- 	void			*discard_buffer;
- 	dma_addr_t		discard_buffer_dma;
- 	size_t			discard_size;
-@@ -329,6 +332,29 @@ static struct mx2_fmt_cfg *mx27_emma_prp_get_format(
- 	return &mx27_emma_prp_table[0];
- };
- 
-+static void mx27_update_emma_buf(struct mx2_camera_dev *pcdev,
-+				 unsigned long phys, int bufnum)
-+{
-+	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-+
-+	if (prp->cfg.channel == 1) {
-+		writel(phys, pcdev->base_emma +
-+				PRP_DEST_RGB1_PTR + 4 * bufnum);
-+	} else {
-+		writel(phys, pcdev->base_emma +
-+			PRP_DEST_Y_PTR - 0x14 * bufnum);
-+		if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
-+			u32 imgsize = pcdev->icd->user_height *
-+					pcdev->icd->user_width;
-+
-+			writel(phys + imgsize, pcdev->base_emma +
-+				PRP_DEST_CB_PTR - 0x14 * bufnum);
-+			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
-+				PRP_DEST_CR_PTR - 0x14 * bufnum);
-+		}
-+	}
-+}
-+
- static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
- {
- 	unsigned long flags;
-@@ -377,7 +403,7 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
- 
- 	pcdev->icd = icd;
--	pcdev->frame_count = -1;
-+	pcdev->frame_count = 0;
- 
- 	dev_info(icd->parent, "Camera driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -397,13 +423,6 @@ static void mx2_camera_remove_device(struct soc_camera_device *icd)
- 
- 	mx2_camera_deactivate(pcdev);
- 
--	if (pcdev->discard_buffer) {
--		dma_free_coherent(ici->v4l2_dev.dev, pcdev->discard_size,
--				pcdev->discard_buffer,
--				pcdev->discard_buffer_dma);
--		pcdev->discard_buffer = NULL;
--	}
--
- 	pcdev->icd = NULL;
- }
- 
-@@ -640,7 +659,6 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
- 	 */
- 
- 	spin_lock_irqsave(&pcdev->lock, flags);
--	list_del_init(&buf->queue);
- 	if (cpu_is_mx25() && buf->state == MX2_STATE_ACTIVE) {
- 		if (pcdev->fb1_active == buf) {
- 			pcdev->csicr1 &= ~CSICR1_FB1_DMA_INTEN;
-@@ -656,6 +674,34 @@ static void mx2_videobuf_release(struct vb2_buffer *vb)
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
-+static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
-+		int bytesperline)
-+{
-+	struct soc_camera_host *ici =
-+		to_soc_camera_host(icd->parent);
-+	struct mx2_camera_dev *pcdev = ici->priv;
-+	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-+
-+	writel((icd->user_width << 16) | icd->user_height,
-+	       pcdev->base_emma + PRP_SRC_FRAME_SIZE);
-+	writel(prp->cfg.src_pixel,
-+	       pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
-+	if (prp->cfg.channel == 1) {
-+		writel((icd->user_width << 16) | icd->user_height,
-+			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
-+		writel(bytesperline,
-+			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
-+		writel(prp->cfg.ch1_pixel,
-+			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
-+	} else { /* channel 2 */
-+		writel((icd->user_width << 16) | icd->user_height,
-+			pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
-+	}
-+
-+	/* Enable interrupts */
-+	writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
-+}
-+
- static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- {
- 	struct soc_camera_device *icd = soc_camera_from_vb2q(q);
-@@ -663,6 +709,10 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 		to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
-+	struct vb2_buffer *vb;
-+	struct mx2_buffer *buf;
-+	unsigned long phys;
-+	int bytesperline;
- 
- 	if (mx27_camera_emma(pcdev)) {
- 		unsigned long flags;
-@@ -670,6 +720,56 @@ static int mx2_start_streaming(struct vb2_queue *q, unsigned int count)
- 			return -EINVAL;
- 
- 		spin_lock_irqsave(&pcdev->lock, flags);
-+
-+		buf = list_entry(pcdev->capture.next,
-+				 struct mx2_buffer, queue);
-+		buf->bufnum = 0;
-+		vb = &buf->vb;
-+		buf->state = MX2_STATE_ACTIVE;
-+
-+		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-+		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
-+		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
-+
-+		buf = list_entry(pcdev->capture.next,
-+				 struct mx2_buffer, queue);
-+		buf->bufnum = 1;
-+		vb = &buf->vb;
-+		buf->state = MX2_STATE_ACTIVE;
-+
-+		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-+		mx27_update_emma_buf(pcdev, phys, buf->bufnum);
-+		list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
-+
-+		bytesperline = soc_mbus_bytes_per_line(icd->user_width,
-+				icd->current_fmt->host_fmt);
-+		if (bytesperline < 0)
-+			return bytesperline;
-+
-+		/*
-+		 * I didn't manage to properly enable/disable the prp
-+		 * on a per frame basis during running transfers,
-+		 * thus we allocate a buffer here and use it to
-+		 * discard frames when no buffer is available.
-+		 * Feel free to work on this ;)
-+		 */
-+		pcdev->discard_size = icd->user_height * bytesperline;
-+		pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
-+				pcdev->discard_size, &pcdev->discard_buffer_dma,
-+				GFP_KERNEL);
-+		if (!pcdev->discard_buffer)
-+			return -ENOMEM;
-+
-+		pcdev->buf_discard[0].discard = true;
-+		list_add_tail(&pcdev->buf_discard[0].queue,
-+				      &pcdev->discard);
-+
-+		pcdev->buf_discard[1].discard = true;
-+		list_add_tail(&pcdev->buf_discard[1].queue,
-+				      &pcdev->discard);
-+
-+		mx27_camera_emma_buf_init(icd, bytesperline);
-+
- 		if (prp->cfg.channel == 1) {
- 			writel(PRP_CNTL_CH1EN |
- 				PRP_CNTL_CSIEN |
-@@ -704,10 +804,12 @@ static int mx2_stop_streaming(struct vb2_queue *q)
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
- 	unsigned long flags;
-+	void *b;
- 	u32 cntl;
- 
--	spin_lock_irqsave(&pcdev->lock, flags);
- 	if (mx27_camera_emma(pcdev)) {
-+		spin_lock_irqsave(&pcdev->lock, flags);
-+
- 		cntl = readl(pcdev->base_emma + PRP_CNTL);
- 		if (prp->cfg.channel == 1) {
- 			writel(cntl & ~PRP_CNTL_CH1EN,
-@@ -716,8 +818,18 @@ static int mx2_stop_streaming(struct vb2_queue *q)
- 			writel(cntl & ~PRP_CNTL_CH2EN,
- 			       pcdev->base_emma + PRP_CNTL);
- 		}
-+		INIT_LIST_HEAD(&pcdev->capture);
-+		INIT_LIST_HEAD(&pcdev->active_bufs);
-+		INIT_LIST_HEAD(&pcdev->discard);
-+
-+		b = pcdev->discard_buffer;
-+		pcdev->discard_buffer = NULL;
-+
-+		spin_unlock_irqrestore(&pcdev->lock, flags);
-+
-+		dma_free_coherent(ici->v4l2_dev.dev,
-+			pcdev->discard_size, b, pcdev->discard_buffer_dma);
- 	}
--	spin_unlock_irqrestore(&pcdev->lock, flags);
- 
- 	return 0;
- }
-@@ -771,63 +883,6 @@ static int mx27_camera_emma_prp_reset(struct mx2_camera_dev *pcdev)
- 	return -ETIMEDOUT;
- }
- 
--static void mx27_camera_emma_buf_init(struct soc_camera_device *icd,
--		int bytesperline)
--{
--	struct soc_camera_host *ici =
--		to_soc_camera_host(icd->parent);
--	struct mx2_camera_dev *pcdev = ici->priv;
--	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
--	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
--
--	if (prp->cfg.channel == 1) {
--		writel(pcdev->discard_buffer_dma,
--				pcdev->base_emma + PRP_DEST_RGB1_PTR);
--		writel(pcdev->discard_buffer_dma,
--				pcdev->base_emma + PRP_DEST_RGB2_PTR);
--
--		writel((icd->user_width << 16) | icd->user_height,
--			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
--		writel((icd->user_width << 16) | icd->user_height,
--			pcdev->base_emma + PRP_CH1_OUT_IMAGE_SIZE);
--		writel(bytesperline,
--			pcdev->base_emma + PRP_DEST_CH1_LINE_STRIDE);
--		writel(prp->cfg.src_pixel,
--			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
--		writel(prp->cfg.ch1_pixel,
--			pcdev->base_emma + PRP_CH1_PIXEL_FORMAT_CNTL);
--	} else { /* channel 2 */
--		writel(pcdev->discard_buffer_dma,
--			pcdev->base_emma + PRP_DEST_Y_PTR);
--		writel(pcdev->discard_buffer_dma,
--			pcdev->base_emma + PRP_SOURCE_Y_PTR);
--
--		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
--			writel(pcdev->discard_buffer_dma + imgsize,
--				pcdev->base_emma + PRP_DEST_CB_PTR);
--			writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
--				pcdev->base_emma + PRP_DEST_CR_PTR);
--			writel(pcdev->discard_buffer_dma + imgsize,
--				pcdev->base_emma + PRP_SOURCE_CB_PTR);
--			writel(pcdev->discard_buffer_dma + ((5 * imgsize) / 4),
--				pcdev->base_emma + PRP_SOURCE_CR_PTR);
--		}
--
--		writel((icd->user_width << 16) | icd->user_height,
--			pcdev->base_emma + PRP_SRC_FRAME_SIZE);
--
--		writel((icd->user_width << 16) | icd->user_height,
--			pcdev->base_emma + PRP_CH2_OUT_IMAGE_SIZE);
--
--		writel(prp->cfg.src_pixel,
--			pcdev->base_emma + PRP_SRC_PIXEL_FORMAT_CNTL);
--
--	}
--
--	/* Enable interrupts */
--	writel(prp->cfg.irq_flags, pcdev->base_emma + PRP_INTR_CNTL);
--}
--
- static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
- 		__u32 pixfmt)
- {
-@@ -911,27 +966,6 @@ static int mx2_camera_set_bus_param(struct soc_camera_device *icd,
- 		ret = mx27_camera_emma_prp_reset(pcdev);
- 		if (ret)
- 			return ret;
--
--		if (pcdev->discard_buffer)
--			dma_free_coherent(ici->v4l2_dev.dev,
--				pcdev->discard_size, pcdev->discard_buffer,
--				pcdev->discard_buffer_dma);
--
--		/*
--		 * I didn't manage to properly enable/disable the prp
--		 * on a per frame basis during running transfers,
--		 * thus we allocate a buffer here and use it to
--		 * discard frames when no buffer is available.
--		 * Feel free to work on this ;)
--		 */
--		pcdev->discard_size = icd->user_height * bytesperline;
--		pcdev->discard_buffer = dma_alloc_coherent(ici->v4l2_dev.dev,
--				pcdev->discard_size, &pcdev->discard_buffer_dma,
--				GFP_KERNEL);
--		if (!pcdev->discard_buffer)
--			return -ENOMEM;
--
--		mx27_camera_emma_buf_init(icd, bytesperline);
- 	} else if (cpu_is_mx25()) {
- 		writel((bytesperline * icd->user_height) >> 2,
- 				pcdev->base_csi + CSIRXCNT);
-@@ -1179,18 +1213,23 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
- static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 		int bufnum)
- {
--	u32 imgsize = pcdev->icd->user_height * pcdev->icd->user_width;
- 	struct mx2_fmt_cfg *prp = pcdev->emma_prp;
- 	struct mx2_buffer *buf;
- 	struct vb2_buffer *vb;
- 	unsigned long phys;
- 
--	if (!list_empty(&pcdev->active_bufs)) {
--		buf = list_entry(pcdev->active_bufs.next,
--			struct mx2_buffer, queue);
-+	buf = list_entry(pcdev->active_bufs.next,
-+			 struct mx2_buffer, queue);
- 
--		BUG_ON(buf->bufnum != bufnum);
-+	BUG_ON(buf->bufnum != bufnum);
- 
-+	if (buf->discard) {
-+		/*
-+		 * Discard buffer must not be returned to user space.
-+		 * Just return it to the discard queue.
-+		 */
-+		list_move_tail(pcdev->active_bufs.next, &pcdev->discard);
-+	} else {
- 		vb = &buf->vb;
- #ifdef DEBUG
- 		phys = vb2_dma_contig_plane_dma_addr(vb, 0);
-@@ -1225,29 +1264,25 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 	pcdev->frame_count++;
- 
- 	if (list_empty(&pcdev->capture)) {
--		if (prp->cfg.channel == 1) {
--			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
--					PRP_DEST_RGB1_PTR + 4 * bufnum);
--		} else {
--			writel(pcdev->discard_buffer_dma, pcdev->base_emma +
--						PRP_DEST_Y_PTR -
--						0x14 * bufnum);
--			if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
--				writel(pcdev->discard_buffer_dma + imgsize,
--				       pcdev->base_emma + PRP_DEST_CB_PTR -
--				       0x14 * bufnum);
--				writel(pcdev->discard_buffer_dma +
--				       ((5 * imgsize) / 4), pcdev->base_emma +
--				       PRP_DEST_CR_PTR - 0x14 * bufnum);
--			}
-+		if (list_empty(&pcdev->discard)) {
-+			dev_warn(pcdev->dev, "%s: trying to access empty discard list\n",
-+				 __func__);
-+			return;
- 		}
-+
-+		buf = list_entry(pcdev->discard.next,
-+			struct mx2_buffer, queue);
-+		buf->bufnum = bufnum;
-+
-+		list_move_tail(pcdev->discard.next, &pcdev->active_bufs);
-+		mx27_update_emma_buf(pcdev, pcdev->discard_buffer_dma, bufnum);
- 		return;
- 	}
- 
- 	buf = list_entry(pcdev->capture.next,
- 			struct mx2_buffer, queue);
- 
--	buf->bufnum = !bufnum;
-+	buf->bufnum = bufnum;
- 
- 	list_move_tail(pcdev->capture.next, &pcdev->active_bufs);
- 
-@@ -1255,18 +1290,7 @@ static void mx27_camera_frame_done_emma(struct mx2_camera_dev *pcdev,
- 	buf->state = MX2_STATE_ACTIVE;
- 
- 	phys = vb2_dma_contig_plane_dma_addr(vb, 0);
--	if (prp->cfg.channel == 1) {
--		writel(phys, pcdev->base_emma + PRP_DEST_RGB1_PTR + 4 * bufnum);
--	} else {
--		writel(phys, pcdev->base_emma +
--				PRP_DEST_Y_PTR - 0x14 * bufnum);
--		if (prp->cfg.out_fmt == PRP_CNTL_CH2_OUT_YUV420) {
--			writel(phys + imgsize, pcdev->base_emma +
--					PRP_DEST_CB_PTR - 0x14 * bufnum);
--			writel(phys + ((5 * imgsize) / 4), pcdev->base_emma +
--					PRP_DEST_CR_PTR - 0x14 * bufnum);
--		}
--	}
-+	mx27_update_emma_buf(pcdev, phys, bufnum);
- }
- 
- static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
-@@ -1274,6 +1298,15 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
- 	struct mx2_camera_dev *pcdev = data;
- 	unsigned int status = readl(pcdev->base_emma + PRP_INTRSTATUS);
- 	struct mx2_buffer *buf;
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&pcdev->lock, flags);
-+
-+	if (list_empty(&pcdev->active_bufs)) {
-+		dev_warn(pcdev->dev, "%s: called while active list is empty\n",
-+			__func__);
-+		goto irq_ok;
-+	}
- 
- 	if (status & (1 << 7)) { /* overflow */
- 		u32 cntl;
-@@ -1290,9 +1323,8 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
- 		       pcdev->base_emma + PRP_CNTL);
- 		writel(cntl, pcdev->base_emma + PRP_CNTL);
- 	}
--	if ((((status & (3 << 5)) == (3 << 5)) ||
--		((status & (3 << 3)) == (3 << 3)))
--			&& !list_empty(&pcdev->active_bufs)) {
-+	if (((status & (3 << 5)) == (3 << 5)) ||
-+		((status & (3 << 3)) == (3 << 3))) {
- 		/*
- 		 * Both buffers have triggered, process the one we're expecting
- 		 * to first
-@@ -1307,6 +1339,8 @@ static irqreturn_t mx27_camera_emma_irq(int irq_emma, void *data)
- 	if ((status & (1 << 5)) || (status & (1 << 3)))
- 		mx27_camera_frame_done_emma(pcdev, 1);
- 
-+irq_ok:
-+	spin_unlock_irqrestore(&pcdev->lock, flags);
- 	writel(status, pcdev->base_emma + PRP_INTRSTATUS);
- 
- 	return IRQ_HANDLED;
-@@ -1418,6 +1452,7 @@ static int __devinit mx2_camera_probe(struct platform_device *pdev)
- 
- 	INIT_LIST_HEAD(&pcdev->capture);
- 	INIT_LIST_HEAD(&pcdev->active_bufs);
-+	INIT_LIST_HEAD(&pcdev->discard);
- 	spin_lock_init(&pcdev->lock);
- 
- 	/*
 -- 
-1.7.0.4
+1.7.3.4
 
