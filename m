@@ -1,20 +1,25 @@
 Return-Path: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 Received: from mail.tu-berlin.de ([130.149.7.33])
 	by www.linuxtv.org with esmtp (Exim 4.72)
-	(envelope-from <mile.davidovic@gmail.com>) id 1Rv49k-0004eC-T5
-	for linux-dvb@linuxtv.org; Wed, 08 Feb 2012 10:50:05 +0100
-Received: from mail-qy0-f182.google.com ([209.85.216.182])
-	by mail.tu-berlin.de (exim-4.75/mailfrontend-4) with esmtps
-	[TLSv1:RC4-SHA:128] for <linux-dvb@linuxtv.org>
-	id 1Rv49k-0000jT-BK; Wed, 08 Feb 2012 10:49:40 +0100
-Received: by qcmt40 with SMTP id t40so218911qcm.41
-	for <linux-dvb@linuxtv.org>; Wed, 08 Feb 2012 01:49:38 -0800 (PST)
+	(envelope-from <lists@rewt.org.uk>) id 1S1UhV-000663-1U
+	for linux-dvb@linuxtv.org; Sun, 26 Feb 2012 04:23:32 +0100
+Received: from abby.lhr1.as41113.net ([91.208.177.20]
+	helo=hosted.mx.as41113.net)
+	by mail.tu-berlin.de (exim-4.75/mailfrontend-3) with esmtp
+	for <linux-dvb@linuxtv.org>
+	id 1S1UhU-0002GV-Fs; Sun, 26 Feb 2012 04:23:05 +0100
+Received: from [172.16.11.44] (unknown [91.208.177.192])
+	(using TLSv1 with cipher DHE-RSA-AES256-SHA (256/256 bits))
+	(No client certificate requested)
+	(Authenticated sender: lists@rewt.org.uk)
+	by hosted.mx.as41113.net (Postfix) with ESMTPSA id 0FE0022813
+	for <linux-dvb@linuxtv.org>; Sun, 26 Feb 2012 03:22:53 +0000 (UTC)
+Message-ID: <4F49A586.30200@rewt.org.uk>
+Date: Sun, 26 Feb 2012 03:22:46 +0000
+From: Joe Holden <lists@rewt.org.uk>
 MIME-Version: 1.0
-Date: Wed, 8 Feb 2012 10:49:38 +0100
-Message-ID: <CAO+60fymZsTw1oaqry77odkoOzOk4VnwmVB1FPzf6KwxqEWmMg@mail.gmail.com>
-From: =?UTF-8?Q?Mile_Davidovi=C4=87?= <mile.davidovic@gmail.com>
 To: linux-dvb@linuxtv.org
-Subject: [linux-dvb] Afatech AF9015 DVB-T USB2.0 receiver
+Subject: [linux-dvb] [Fwd: DM1105N]
 Reply-To: linux-media@vger.kernel.org
 List-Unsubscribe: <http://www.linuxtv.org/cgi-bin/mailman/options/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=unsubscribe>
@@ -23,26 +28,39 @@ List-Post: <mailto:linux-dvb@linuxtv.org>
 List-Help: <mailto:linux-dvb-request@linuxtv.org?subject=help>
 List-Subscribe: <http://www.linuxtv.org/cgi-bin/mailman/listinfo/linux-dvb>,
 	<mailto:linux-dvb-request@linuxtv.org?subject=subscribe>
-Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset="us-ascii"; Format="flowed"
 Sender: linux-dvb-bounces@linuxtv.org
 Errors-To: linux-dvb-bounces+mchehab=redhat.com@linuxtv.org
 List-ID: <linux-dvb@linuxtv.org>
 
-Hello folks
-I would like to record whole TS using dvbsnoop (or any other tool)
-from Afatech AF9015 card.
-Unfortunately I did not succeeded in this, dvbsnoop is blocked in read
-function.
+Hi guys,
 
-AFAIK, this option (recording whole TS) must be supported in Afatech FW.
+I've got a DM1105 (revision "n") that doesn't seem to attach, even using
+   the unbranded card option, it's branded as "Digitale" but looks to be
+a generic DM1105...
 
-Has anyone tried to record full TS using Afatech card?
+I get the typical "could not attach frontend" but alongside that the
+driver doesn't report a mac (all zeros)
 
-If this is not possible, which USB DVB-T card has support for this?
+What do I need to enable in the kernel to get debug messages that may be
+useful in diagnosing why it can't attach?
 
-Regards
-MD
+00:0a.0 Ethernet controller: Device 195d:1105 (rev 10)
+         Subsystem: Device 195d:1105
+         Control: I/O+ Mem+ BusMaster- SpecCycle- MemWINV- VGASnoop-
+ParErr- Stepping- SERR- FastB2B- DisINTx-
+         Status: Cap- 66MHz- UDF- FastB2B- ParErr- DEVSEL=medium
+>TAbort- <TAbort- <MAbort- >SERR- <PERR+ INTx-
+         Interrupt: pin A routed to IRQ 17
+         Region 0: I/O ports at e000 [size=256]
+         Kernel modules: dm1105
+
+Any pointers appreciated!
+
+Thanks,
+J
+
 
 _______________________________________________
 linux-dvb users mailing list
