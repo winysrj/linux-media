@@ -1,65 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from oproxy6-pub.bluehost.com ([67.222.54.6]:54998 "HELO
-	oproxy6-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756964Ab2BWVOc (ORCPT
+Received: from mo-p00-ob.rzone.de ([81.169.146.162]:20234 "EHLO
+	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752390Ab2BZWOa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 Feb 2012 16:14:32 -0500
-Message-ID: <4F46AC34.8090704@xenotime.net>
-Date: Thu, 23 Feb 2012 13:14:28 -0800
-From: Randy Dunlap <rdunlap@xenotime.net>
+	Sun, 26 Feb 2012 17:14:30 -0500
+From: Ralph Metzler <rjkm@metzlerbros.de>
 MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-CC: linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
-	linux-media@vger.kernel.org
-Subject: Re: linux-next: Tree for Feb 23 (media/radio)
-References: <20120223143722.d8814b493df968c229da5f20@canb.auug.org.au>
-In-Reply-To: <20120223143722.d8814b493df968c229da5f20@canb.auug.org.au>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: text/plain; charset=us-ascii
 Content-Transfer-Encoding: 7bit
+Message-ID: <20298.44716.921452.814171@morden.metzler>
+Date: Sun, 26 Feb 2012 23:14:04 +0100
+To: Anssi Hannula <anssi.hannula@iki.fi>
+Cc: Issa Gorissen <flop.m@usa.net>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	S-bastien RAILLARD <sr@coexsi.fr>,
+	Oliver Endriss <o.endriss@gmx.de>
+Subject: Re: DVB nGene CI : TS Discontinuities issues
+In-Reply-To: <4F4A67AB.1070103@iki.fi>
+References: <501PekNLl1856S04.1305119557@web04.cms.usa.net>
+	<4DCC45D7.8090405@usa.net>
+	<19917.7169.579857.44894@morden.metzler>
+	<4F4A67AB.1070103@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/22/2012 07:37 PM, Stephen Rothwell wrote:
-> Hi all,
->
-> Changes since 20120222:
+Anssi Hannula writes:
+ > > I had it running for an hour and had no discontinuities (except at
+ > > restarts, might have to look into buffer flushing).
+ > > I tested it with nGene and Octopus boards on an Asus ION2 board and on a
+ > > Marvell Kirkwood based ARM board.
+ > 
+ > Should your test code (quoted below) work with e.g. Octopus DDBridge on
+ > vanilla 3.2.6 kernel, without any additional initialization needed
+ > through ca0 or so?
+ > 
+ > When I try it here like that, the reader thread simply blocks
+ > indefinitely on the first read, while the writer thread continues to
+ > write packets into the device.
+ > Am I missing something, or is this a bug?
 
 
-on i386:
+Yes, it should work as it is. 
+I assume you adjusted the adapter numbers of course.
 
-Looks like several source files need to #include <linux/slab.h>:
 
 
-drivers/media/radio/radio-isa.c:246:3: error: implicit declaration of 
-function 'kfree'
-drivers/media/radio/radio-aztech.c:72:9: error: implicit declaration of 
-function 'kzalloc'
-drivers/media/radio/radio-aztech.c:72:22: warning: initialization makes 
-pointer from integer without a cast
-drivers/media/radio/radio-typhoon.c:76:9: error: implicit declaration of 
-function 'kzalloc'
-drivers/media/radio/radio-typhoon.c:76:23: warning: initialization makes 
-pointer from integer without a cast
-drivers/media/radio/radio-terratec.c:57:2: error: implicit declaration 
-of function 'kzalloc'
-drivers/media/radio/radio-terratec.c:57:2: warning: return makes pointer 
-from integer without a cast
-drivers/media/radio/radio-aimslab.c:67:9: error: implicit declaration of 
-function 'kzalloc'
-drivers/media/radio/radio-aimslab.c:67:22: warning: initialization makes 
-pointer from integer without a cast
-drivers/media/radio/radio-zoltrix.c:80:9: error: implicit declaration of 
-function 'kzalloc'
-drivers/media/radio/radio-zoltrix.c:80:24: warning: initialization makes 
-pointer from integer without a cast
-drivers/media/radio/radio-gemtek.c:183:9: error: implicit declaration of 
-function 'kzalloc'
-drivers/media/radio/radio-gemtek.c:183:22: warning: initialization makes 
-pointer from integer without a cast
-drivers/media/radio/radio-trust.c:57:9: error: implicit declaration of 
-function 'kzalloc'
-drivers/media/radio/radio-trust.c:57:21: warning: initialization makes 
-pointer from integer without a cast
-
--- 
-~Randy
+Regards,
+Ralph
