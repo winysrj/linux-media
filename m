@@ -1,70 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:49305 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1759375Ab2BJSWR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 13:22:17 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=us-ascii
-Date: Fri, 10 Feb 2012 19:10:40 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: RE: [PATCHv19 00/15] Contiguous Memory Allocator
-In-reply-to: <20120127162624.40cba14e.akpm@linux-foundation.org>
-To: 'Andrew Morton' <akpm@linux-foundation.org>,
-	'Arnd Bergmann' <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	'Michal Nazarewicz' <mina86@mina86.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Russell King' <linux@arm.linux.org.uk>,
-	'KAMEZAWA Hiroyuki' <kamezawa.hiroyu@jp.fujitsu.com>,
-	'Daniel Walker' <dwalker@codeaurora.org>,
-	'Mel Gorman' <mel@csn.ul.ie>,
-	'Jesse Barker' <jesse.barker@linaro.org>,
-	'Jonathan Corbet' <corbet@lwn.net>,
-	'Shariq Hasnain' <shariq.hasnain@linaro.org>,
-	'Chunsang Jeong' <chunsang.jeong@linaro.org>,
-	'Dave Hansen' <dave@linux.vnet.ibm.com>,
-	'Benjamin Gaignard' <benjamin.gaignard@linaro.org>
-Message-id: <00d901cce81f$4c3edc40$e4bc94c0$%szyprowski@samsung.com>
-Content-language: pl
-References: <1327568457-27734-1-git-send-email-m.szyprowski@samsung.com>
- <201201261531.40551.arnd@arndb.de>
- <20120127162624.40cba14e.akpm@linux-foundation.org>
+Received: from smtp.nokia.com ([147.243.128.26]:60979 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751226Ab2BZBJm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Feb 2012 20:09:42 -0500
+Message-ID: <4F498641.7080809@iki.fi>
+Date: Sun, 26 Feb 2012 03:09:21 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 25/33] omap3isp: Introduce omap3isp_get_external_info()
+References: <20120220015605.GI7784@valkosipuli.localdomain> <1329703032-31314-25-git-send-email-sakari.ailus@iki.fi> <3168869.IBFJLUCLKu@avalon>
+In-Reply-To: <3168869.IBFJLUCLKu@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrew,
+Hi Laurent,
 
-On Saturday, January 28, 2012 1:26 AM Andrew Morton wrote:
-
-> These patches don't seem to have as many acked-bys and reviewed-bys as
-> I'd expect.  Given the scope and duration of this, it would be useful
-> to gather these up.  But please ensure they are real ones - people
-> sometimes like to ack things without showing much sign of having
-> actually read them.
+Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> Also there is the supreme tag: "Tested-by:.".  Ohad (at least) has been
-> testing the code.  Let's mention that.
+> Thanks for the patch.
 > 
+> On Monday 20 February 2012 03:57:04 Sakari Ailus wrote:
+>> omap3isp_get_external_info() will retrieve external subdev's bits-per-pixel
+>> and pixel rate for the use of other ISP subdevs at streamon time.
+>> omap3isp_get_external_info() is used during pipeline validation.
+>>
+>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>> ---
+>>  drivers/media/video/omap3isp/isp.c |   48
+>> ++++++++++++++++++++++++++++++++++++ drivers/media/video/omap3isp/isp.h |  
+>>  3 ++
+>>  2 files changed, 51 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/video/omap3isp/isp.c
+>> b/drivers/media/video/omap3isp/isp.c index 12d5f92..89a9bf8 100644
+>> --- a/drivers/media/video/omap3isp/isp.c
+>> +++ b/drivers/media/video/omap3isp/isp.c
+>> @@ -353,6 +353,54 @@ void omap3isp_hist_dma_done(struct isp_device *isp)
+>>  	}
+>>  }
+>>
+>> +int omap3isp_get_external_info(struct isp_pipeline *pipe,
+>> +			       struct media_link *link)
+>> +{
+>> +	struct isp_device *isp =
+>> +		container_of(pipe, struct isp_video, pipe)->isp;
+>> +	struct v4l2_subdev_format fmt;
+>> +	struct v4l2_ext_controls ctrls;
+>> +	struct v4l2_ext_control ctrl;
+>> +	int ret;
+>> +
+>> +	if (!pipe->external)
+>> +		return 0;
+>> +
+>> +	if (pipe->external_rate)
+>> +		return 0;
+>> +
+>> +	memset(&fmt, 0, sizeof(fmt));
+>> +
+>> +	fmt.pad = link->source->index;
+>> +	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+>> +	ret = v4l2_subdev_call(media_entity_to_v4l2_subdev(link->sink->entity),
+>> +			       pad, get_fmt, NULL, &fmt);
+>> +	if (ret < 0)
+>> +		return -EPIPE;
+>> +
+>> +	pipe->external_bpp = omap3isp_video_format_info(fmt.format.code)->bpp;
+>> +
+>> +	memset(&ctrls, 0, sizeof(ctrls));
+>> +	memset(&ctrl, 0, sizeof(ctrl));
+>> +
+>> +	ctrl.id = V4L2_CID_PIXEL_RATE;
+>> +
+>> +	ctrls.ctrl_class = V4L2_CTRL_ID2CLASS(ctrl.id);
+>> +	ctrls.count = 1;
+>> +	ctrls.controls = &ctrl;
+>> +
+>> +	ret = v4l2_g_ext_ctrls(pipe->external->ctrl_handler, &ctrls);
+>> +	if (ret < 0) {
+>> +		dev_warn(isp->dev, "no pixel rate control in subdev %s\n",
+>> +			 pipe->external->name);
+>> +		return ret;
+>> +	}
+>> +
+>> +	pipe->external_rate = ctrl.value64;
+>> +
+>> +	return 0;
+>> +}
 > 
-> The patches do seem to have been going round in ever-decreasing circles
-> lately and I think we have decided to merge them (yes?) so we may as well
-> get on and do that and sort out remaining issues in-tree.
+> What about moving this to ispvideo.c ? You could then call the function from 
+> isp_video_streamon() only, and make it static.
 
-It looks that the CMA patch series reached the final version - I've just 
-posted version 21 a few minutes ago. Most of the patches got acks from either 
-Mel or Arnd and the remaining few needs only minor tweaking, but they affect
-only CMA users, which we hope to fix once the series is merged. That's why I
-would like to ask You to merge these patches to Your tree and finally give
-them a try in linux-next kernel.
+Done.
 
-Best regards
+>> +
+>>  static inline void isp_isr_dbg(struct isp_device *isp, u32 irqstatus)
+>>  {
+>>  	static const char *name[] = {
+>> diff --git a/drivers/media/video/omap3isp/isp.h
+>> b/drivers/media/video/omap3isp/isp.h index 2e78041..8b0bc2d 100644
+>> --- a/drivers/media/video/omap3isp/isp.h
+>> +++ b/drivers/media/video/omap3isp/isp.h
+>> @@ -222,6 +222,9 @@ struct isp_device {
+>>
+>>  void omap3isp_hist_dma_done(struct isp_device *isp);
+>>
+>> +int omap3isp_get_external_info(struct isp_pipeline *pipe,
+>> +			       struct media_link *link);
+>> +
+>>  void omap3isp_flush(struct isp_device *isp);
+>>
+>>  int omap3isp_module_sync_idle(struct media_entity *me, wait_queue_head_t
+>> *wait,
+
+
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
-
+Sakari Ailus
+sakari.ailus@iki.fi
