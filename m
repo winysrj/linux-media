@@ -1,57 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mo-p00-ob.rzone.de ([81.169.146.162]:28273 "EHLO
-	mo-p00-ob.rzone.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755490Ab2BNVs2 (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:64477 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751745Ab2BZQ6C (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 16:48:28 -0500
-From: linuxtv@stefanringel.de
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, Stefan Ringel <linuxtv@stefanringel.de>
-Subject: [PATCH 15/22] mt_2063: add mt2063_sleep
-Date: Tue, 14 Feb 2012 22:47:39 +0100
-Message-Id: <1329256066-8844-15-git-send-email-linuxtv@stefanringel.de>
-In-Reply-To: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
-References: <1329256066-8844-1-git-send-email-linuxtv@stefanringel.de>
+	Sun, 26 Feb 2012 11:58:02 -0500
+Received: by werb13 with SMTP id b13so2344042wer.19
+        for <linux-media@vger.kernel.org>; Sun, 26 Feb 2012 08:58:01 -0800 (PST)
+Message-ID: <4F4A6493.1080004@gmail.com>
+Date: Sun, 26 Feb 2012 17:57:55 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH/RFC][DRAFT] V4L: Add camera auto focus controls
+References: <1326749622-11446-1-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1326749622-11446-1-git-send-email-sylvester.nawrocki@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Stefan Ringel <linuxtv@stefanringel.de>
+Hi,
 
-Signed-off-by: Stefan Ringel <linuxtv@stefanringel.de>
----
- drivers/media/common/tuners/mt2063.c |   12 ++++++++++++
- 1 files changed, 12 insertions(+), 0 deletions(-)
+On 01/16/2012 10:33 PM, Sylwester Nawrocki wrote:
+> diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> index 012a296..0808b12 100644
+> --- a/include/linux/videodev2.h
+> +++ b/include/linux/videodev2.h
+> @@ -1662,6 +1662,34 @@ enum  v4l2_exposure_auto_type {
+>   #define V4L2_CID_IRIS_ABSOLUTE			(V4L2_CID_CAMERA_CLASS_BASE+17)
+>   #define V4L2_CID_IRIS_RELATIVE			(V4L2_CID_CAMERA_CLASS_BASE+18)
+>
+> +#define V4L2_CID_AUTO_FOCUS_START		(V4L2_CID_CAMERA_CLASS_BASE+19)
+> +#define V4L2_CID_AUTO_FOCUS_STOP		(V4L2_CID_CAMERA_CLASS_BASE+20)
+> +#define V4L2_CID_AUTO_FOCUS_STATUS		(V4L2_CID_CAMERA_CLASS_BASE+21)
+> +enum v4l2_auto_focus_status {
+> +	V4L2_AUTO_FOCUS_STATUS_IDLE		= 0,
+> +	V4L2_AUTO_FOCUS_STATUS_BUSY		= 1,
+> +	V4L2_AUTO_FOCUS_STATUS_SUCCESS		= 2,
+> +	V4L2_AUTO_FOCUS_STATUS_FAIL		= 3,
+> +};
+> +
+> +#define V4L2_CID_AUTO_FOCUS_DISTANCE		(V4L2_CID_CAMERA_CLASS_BASE+22)
+> +enum v4l2_auto_focus_distance {
+> +	V4L2_AUTO_FOCUS_DISTANCE_NORMAL		= 0,
+> +	V4L2_AUTO_FOCUS_DISTANCE_MACRO		= 1,
+> +	V4L2_AUTO_FOCUS_DISTANCE_INFINITY	= 2,
+> +};
+> +
+> +#define V4L2_CID_AUTO_FOCUS_SELECTION		(V4L2_CID_CAMERA_CLASS_BASE+23)
+> +enum v4l2_auto_focus_selection {
+> +	V4L2_AUTO_FOCUS_SELECTION_NORMAL	= 0,
+> +	V4L2_AUTO_FOCUS_SELECTION_SPOT		= 1,
+> +	V4L2_AUTO_FOCUS_SELECTION_RECTANGLE	= 2,
+> +};
 
-diff --git a/drivers/media/common/tuners/mt2063.c b/drivers/media/common/tuners/mt2063.c
-index 3af5242..0e26744 100644
---- a/drivers/media/common/tuners/mt2063.c
-+++ b/drivers/media/common/tuners/mt2063.c
-@@ -460,13 +460,25 @@ static int mt2063_init(struct dvb_frontend *fe)
- 	return 0;
- }
- 
-+static int mt2063_sleep(struct dvb_frontend *fe)
- {
- 	struct mt2063_state *state = fe->tuner_priv;
- 
-+	dprintk(1, "\n");
-+	mutex_lock(&state->lock);
- 
-+	/* open gate */
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
- 
-+	/* set all power bits off */
-+	mt2063_shutdown(state, MT2063_ALL_SD);
- 
-+	/* close gate */
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
- 
-+	mutex_unlock(&state->lock);
- 	return 0;
- }
- 
--- 
-1.7.7.6
+I'd like to ask your advice, I've found those two above controls 
+rather painful in use. After changing V4L2_CID_AUTO_FOCUS_SELECTION to
 
+#define V4L2_CID_AUTO_FOCUS_AREA		(V4L2_CID_CAMERA_CLASS_BASE+23)
+enum v4l2_auto_focus_selection {
+	V4L2_AUTO_FOCUS_SELECTION_ALL		= 0,
+	V4L2_AUTO_FOCUS_SELECTION_SPOT		= 1,
+	V4L2_AUTO_FOCUS_SELECTION_RECTANGLE	= 2,
+};
+
+I tried use them with the M-5MOLS sensor driver where there is only 
+one register for setting following automatic focus modes:
+
+NORMAL AUTO (single-shot),
+MACRO,
+INFINITY,
+SPOT,
+FACE_DETECTION
+
+The issue is that when V4L2_CID_AUTO_FOCUS_AREA is set to for example
+V4L2_AUTO_FOCUS_SELECTION_SPOT, none of the menu entries of
+V4L2_CID_AUTO_FOCUS_DISTANCE is valid.
+
+So it would really be better to use single control for automatic focus
+mode. A private control could handle that. But there will be more than
+one sensor driver needing such a control, so I thought about an
+additional header, e.g. samsung_camera.h in include/linux/ that would 
+define reguired control IDs and menus in the camera class private id 
+range.
+
+What do you think about it ?
+
+
+> +#define V4L2_CID_AUTO_FOCUS_X_POSITION		(V4L2_CID_CAMERA_CLASS_BASE+24)
+> +#define V4L2_CID_AUTO_FOCUS_Y_POSITION		(V4L2_CID_CAMERA_CLASS_BASE+25)
+...
+
+--
+
+Regards,
+Sylwester
