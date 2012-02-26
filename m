@@ -1,23 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:36425 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S964818Ab2B1Oig convert rfc822-to-8bit (ORCPT
+Received: from mail.meprolight.com ([194.90.149.17]:40700 "EHLO meprolight.com"
+	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1752084Ab2BZR4d convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 09:38:36 -0500
-Received: from dbdp20.itg.ti.com ([172.24.170.38])
-	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1SEcYO5026688
-	for <linux-media@vger.kernel.org>; Tue, 28 Feb 2012 08:38:35 -0600
-From: "Nori, Sekhar" <nsekhar@ti.com>
-To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
-	LMML <linux-media@vger.kernel.org>
-CC: dlos <davinci-linux-open-source@linux.davincidsp.com>
-Subject: RE: [PATCH 1/4] davinci: vpif: add check for genuine interrupts in
- the isr
-Date: Tue, 28 Feb 2012 14:38:31 +0000
-Message-ID: <DF0F476B391FA8409C78302C7BA518B6317D6C67@DBDE01.ent.ti.com>
-References: <1327503934-28186-1-git-send-email-manjunath.hadli@ti.com>
- <1327503934-28186-2-git-send-email-manjunath.hadli@ti.com>
-In-Reply-To: <1327503934-28186-2-git-send-email-manjunath.hadli@ti.com>
+	Sun, 26 Feb 2012 12:56:33 -0500
+From: Alex Gershgorin <alexg@meprolight.com>
+To: 'Guennadi Liakhovetski' <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Date: Sun, 26 Feb 2012 19:56:24 +0200
+Subject: RE: i.mx35 live video
+Message-ID: <4875438356E7CA4A8F2145FCD3E61C0B2C8966B28A@MEP-EXCH.meprolight.com>
+In-Reply-To: <Pine.LNX.4.64.1202261454530.17982@axis700.grange>
 Content-Language: en-US
 Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
@@ -25,27 +18,57 @@ MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Manju,
 
-On Wed, Jan 25, 2012 at 20:35:31, Hadli, Manjunath wrote:
-> add a condition to in the isr to check for interrupt ownership and
 
-"to" is misplaced here?
 
-> channel number to make sure we do not service wrong interrupts.
->
-> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
+> Thanks Guennadi for your quick response ,  
+> 
+> >Hi Alex
+>  
+> > Hi Guennadi,
+> >
+> > We would like to use I.MX35 processor in new project.
+> > An important element of the project is to obtain life video from the camera and display it on display.
+> > For these purposes, we want to use mainline Linux kernel which supports all the necessary drivers for the implementation of this task.
+> > As I understand that soc_camera is not currently supported userptr method, in which case how I can configure the video pipeline in user space
+> > to get the live video on display, without the intervention of the processor.
+> 
+> >soc-camera does support USERPTR, also the mx3_camera driver claims to
+> >support it.
+> 
+> I based on soc-camera.txt document.
 
-I think it will be nice to expand on the "why" this patch
-is required a little bit.
+> Yeah, I really have to update it...
 
-What is the usage case where you can get wrong interrupts?
-What exactly happens if you service wrong interrupts?
+> The soc-camera subsystem provides a unified API between camera host drivers and
+> camera sensor drivers. It implements a V4L2 interface to the user, currently
+> only the mmap method is supported.
+> 
+> In any case, I glad that this supported :-) 
+> 
+> What do you think it is possible to implement video streaming without 
+> the intervention of the processor?
 
-Explaining these in the commit message will help the maintainers
-take a call on the criticality of this patch (whether it should
-be queued in the current -rc cycle or not).
+>It might be difficult to completely eliminate the CPU, at the very least 
+>you need to queue and dequeue buffers to and from the V4L driver. To avoid 
+>even that, in principle, you could try to use only one buffer, but I don't 
+>think the current version of the mx3_camera driver would be very happy 
+>about that. You could take 2 buffers and use panning, then you'd just have 
+>to send queue and dequeue buffers and pan the display. But in any case, 
+>you probably will have to process buffers, but your most important 
+>advantage is, that you won't have to copy data, you only have to move 
+>pointers around.
+
+The method that you describe is exactly what I had in mind.
+It would be more correct to say it is "minimum" CPU intervention and not without CPU intervention. 
+As far I understand, I can implement MMAP method for frame buffer device and pass this pointer directly to mx3_camera driver with use USERPTR method, then send queue and dequeue buffers to mx3_camera driver.
+What is not clear, if it is possible to pass the same pointer of frame buffer in mx3_camera, if the driver is using two buffers?
 
 Thanks,
-Sekhar
+Alex Gershgorin
 
+
+
+ 
+
+ 
