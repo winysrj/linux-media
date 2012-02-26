@@ -1,57 +1,273 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:58290 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751882Ab2BVR0s (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58438 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752644Ab2BZD1d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 12:26:48 -0500
-Date: Wed, 22 Feb 2012 17:26:40 +0000 (GMT)
-From: James Simmons <jsimmons@infradead.org>
-To: "Clark, Rob" <rob@ti.com>
-cc: Chris Wilson <chris@chris-wilson.co.uk>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	linux-fbdev@vger.kernel.org,
-	Sakari Ailus <sakari.ailus@maxwell.research.nokia.com>,
-	Marcus Lorentzon <marcus.lorentzon@linaro.org>,
-	Pawel Osciak <pawel@osciak.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	dri-devel@lists.freedesktop.org,
-	Alexander Deucher <alexander.deucher@amd.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: Kernel Display and Video API Consolidation mini-summit at ELC
- 2012 - Notes
-In-Reply-To: <CAO8GWqnVLfu5p3yNbE-BNqXfUu=2JX3S82GoJFS1baRwV126pQ@mail.gmail.com>
-Message-ID: <alpine.LFD.2.02.1202221723480.11138@casper.infradead.org>
-References: <201201171126.42675.laurent.pinchart@ideasonboard.com> <1775349.d0yvHiVdjB@avalon> <20120217095554.GA5511@phenom.ffwll.local> <2168398.Pv8ir5xFGf@avalon> <alpine.LFD.2.02.1202221559510.3721@casper.infradead.org> <20120222162424.GE4872@phenom.ffwll.local>
- <e39f63$3q903a@fmsmga002.fm.intel.com> <CAO8GWqnVLfu5p3yNbE-BNqXfUu=2JX3S82GoJFS1baRwV126pQ@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sat, 25 Feb 2012 22:27:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH 06/11] mt9m032: Pass an i2c_client pointer to the register read/write functions
+Date: Sun, 26 Feb 2012 04:27:32 +0100
+Message-Id: <1330226857-8651-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Replace the mt9m032 * argument to register read/write functions with an
+i2c_client *. As the register access functions are often called several
+times in a single location, this removes several casts at runtime.
 
-> > Ensuring that nothing prevents the switch to fbcon and displaying the
-> > panic message is the reason why we haven't felt inclined to accelerate
-> > fbcon - it just gets messy for no real gain.
-> 
-> and when doing 2d accel on a 3d core..  it basically amounts to
-> putting a shader compiler in the kernel.   Wheeee!
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/mt9m032.c |   75 ++++++++++++++++++++---------------------
+ 1 files changed, 37 insertions(+), 38 deletions(-)
 
-Yikes. I'm not suggesting that. In fact I doubt accelerating the imageblit
-would be worthy it due to the small size of the images being pushed. The 
-real cost is the copyarea which is used for scrolling when no panning is 
-available. 
+diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
+index b8e97ad..726e3ca 100644
+--- a/drivers/media/video/mt9m032.c
++++ b/drivers/media/video/mt9m032.c
+@@ -124,18 +124,13 @@ struct mt9m032 {
+ #define to_dev(sensor) \
+ 	(&((struct i2c_client *)v4l2_get_subdevdata(&(sensor)->subdev))->dev)
+ 
+-static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
++static int mt9m032_read_reg(struct i2c_client *client, u8 reg)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+-
+ 	return i2c_smbus_read_word_swapped(client, reg);
+ }
+ 
+-static int mt9m032_write_reg(struct mt9m032 *sensor, u8 reg,
+-		     const u16 data)
++static int mt9m032_write_reg(struct i2c_client *client, u8 reg, const u16 data)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+-
+ 	return i2c_smbus_write_word_swapped(client, reg, data);
+ }
+ 
+@@ -153,6 +148,7 @@ static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
+ static int mt9m032_update_timing(struct mt9m032 *sensor,
+ 				 struct v4l2_fract *interval)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	struct v4l2_rect *crop = &sensor->crop;
+ 	unsigned long row_time;
+ 	int additional_blanking_rows;
+@@ -182,21 +178,22 @@ static int mt9m032_update_timing(struct mt9m032 *sensor,
+ 	additional_blanking_rows = clamp(additional_blanking_rows,
+ 					 min_blank, MT9M032_MAX_BLANKING_ROWS);
+ 
+-	return mt9m032_write_reg(sensor, MT9M032_VBLANK, additional_blanking_rows);
++	return mt9m032_write_reg(client, MT9M032_VBLANK, additional_blanking_rows);
+ }
+ 
+ static int mt9m032_update_geom_timing(struct mt9m032 *sensor)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	int ret;
+ 
+-	ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_SIZE, sensor->crop.width - 1);
++	ret = mt9m032_write_reg(client, MT9M032_COLUMN_SIZE, sensor->crop.width - 1);
+ 	if (!ret)
+-		ret = mt9m032_write_reg(sensor, MT9M032_ROW_SIZE, sensor->crop.height - 1);
++		ret = mt9m032_write_reg(client, MT9M032_ROW_SIZE, sensor->crop.height - 1);
+ 	/* offsets compensate for black border */
+ 	if (!ret)
+-		ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_START, sensor->crop.left);
++		ret = mt9m032_write_reg(client, MT9M032_COLUMN_START, sensor->crop.left);
+ 	if (!ret)
+-		ret = mt9m032_write_reg(sensor, MT9M032_ROW_START, sensor->crop.top);
++		ret = mt9m032_write_reg(client, MT9M032_ROW_START, sensor->crop.top);
+ 	if (!ret)
+ 		ret = mt9m032_update_timing(sensor, NULL);
+ 	return ret;
+@@ -204,6 +201,7 @@ static int mt9m032_update_geom_timing(struct mt9m032 *sensor)
+ 
+ static int update_formatter2(struct mt9m032 *sensor, bool streaming)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	u16 reg_val =   MT9M032_FORMATTER2_DOUT_EN
+ 		      | 0x0070;  /* parts reserved! */
+ 				 /* possibly for changing to 14-bit mode */
+@@ -211,11 +209,12 @@ static int update_formatter2(struct mt9m032 *sensor, bool streaming)
+ 	if (streaming)
+ 		reg_val |= MT9M032_FORMATTER2_PIXCLK_EN;   /* pixclock enable */
+ 
+-	return mt9m032_write_reg(sensor, MT9M032_FORMATTER2, reg_val);
++	return mt9m032_write_reg(client, MT9M032_FORMATTER2, reg_val);
+ }
+ 
+ static int mt9m032_setup_pll(struct mt9m032 *sensor)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	struct mt9m032_platform_data* pdata = sensor->pdata;
+ 	u16 reg_pll1;
+ 	unsigned int pre_div;
+@@ -235,21 +234,21 @@ static int mt9m032_setup_pll(struct mt9m032 *sensor)
+ 	reg_pll1 = ((pdata->pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
+ 		   | pdata->pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT;
+ 
+-	ret = mt9m032_write_reg(sensor, MT9M032_PLL_CONFIG1, reg_pll1);
++	ret = mt9m032_write_reg(client, MT9M032_PLL_CONFIG1, reg_pll1);
+ 	if (!ret)
+-		ret = mt9m032_write_reg(sensor,
++		ret = mt9m032_write_reg(client,
+ 					MT9P031_PLL_CONTROL,
+ 					MT9P031_PLL_CONTROL_PWRON | MT9P031_PLL_CONTROL_USEPLL);
+ 
+ 	if (!ret)
+-		ret = mt9m032_write_reg(sensor, MT9M032_READ_MODE1, 0x8006);
++		ret = mt9m032_write_reg(client, MT9M032_READ_MODE1, 0x8006);
+ 							/* more reserved, Continuous */
+ 							/* Master Mode */
+ 	if (!ret)
+-		res = mt9m032_read_reg(sensor, MT9M032_READ_MODE1);
++		res = mt9m032_read_reg(client, MT9M032_READ_MODE1);
+ 
+ 	if (!ret)
+-		ret = mt9m032_write_reg(sensor, MT9M032_FORMATTER1, 0x111e);
++		ret = mt9m032_write_reg(client, MT9M032_FORMATTER1, 0x111e);
+ 					/* Set 14-bit mode, select 7 divider */
+ 
+ 	return ret;
+@@ -465,7 +464,7 @@ static int mt9m032_g_register(struct v4l2_subdev *sd,
+ 	if (reg->match.addr != client->addr)
+ 		return -ENODEV;
+ 
+-	val = mt9m032_read_reg(sensor, reg->reg);
++	val = mt9m032_read_reg(client, reg->reg);
+ 	if (val < 0)
+ 		return -EIO;
+ 
+@@ -487,10 +486,7 @@ static int mt9m032_s_register(struct v4l2_subdev *sd,
+ 	if (reg->match.addr != client->addr)
+ 		return -ENODEV;
+ 
+-	if (mt9m032_write_reg(sensor, reg->reg, reg->val) < 0)
+-		return -EIO;
+-
+-	return 0;
++	return mt9m032_write_reg(client, reg->reg, reg->val);
+ }
+ #endif
+ 
+@@ -500,12 +496,13 @@ static int mt9m032_s_register(struct v4l2_subdev *sd,
+ 
+ static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool hflip)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
+ 		      | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
+ 		      | MT9M032_READ_MODE2_ROW_BLC
+ 		      | 0x0007;
+ 
+-	return mt9m032_write_reg(sensor, MT9M032_READ_MODE2, reg_val);
++	return mt9m032_write_reg(client, MT9M032_READ_MODE2, reg_val);
+ }
+ 
+ static int mt9m032_set_hflip(struct mt9m032 *sensor, s32 val)
+@@ -520,6 +517,7 @@ static int mt9m032_set_vflip(struct mt9m032 *sensor, s32 val)
+ 
+ static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	int shutter_width;
+ 	u16 high_val, low_val;
+ 	int ret;
+@@ -530,15 +528,16 @@ static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
+ 	high_val = (shutter_width >> 16) & 0xf;
+ 	low_val = shutter_width & 0xffff;
+ 
+-	ret = mt9m032_write_reg(sensor, MT9M032_SHUTTER_WIDTH_HIGH, high_val);
++	ret = mt9m032_write_reg(client, MT9M032_SHUTTER_WIDTH_HIGH, high_val);
+ 	if (!ret)
+-		ret = mt9m032_write_reg(sensor, MT9M032_SHUTTER_WIDTH_LOW, low_val);
++		ret = mt9m032_write_reg(client, MT9M032_SHUTTER_WIDTH_LOW, low_val);
+ 
+ 	return ret;
+ }
+ 
+ static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
+ {
++	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	int digital_gain_val;	/* in 1/8th (0..127) */
+ 	int analog_mul;		/* 0 or 1 */
+ 	int analog_gain_val;	/* in 1/16th. (0..63) */
+@@ -561,7 +560,7 @@ static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
+ 		  | (analog_mul & 1) << MT9M032_GAIN_AMUL_SHIFT
+ 		  | (analog_gain_val & MT9M032_GAIN_ANALOG_MASK);
+ 
+-	return mt9m032_write_reg(sensor, MT9M032_GAIN_ALL, reg_val);
++	return mt9m032_write_reg(client, MT9M032_GAIN_ALL, reg_val);
+ }
+ 
+ static int mt9m032_try_ctrl(struct v4l2_ctrl *ctrl)
+@@ -666,7 +665,7 @@ static int mt9m032_probe(struct i2c_client *client,
+ 	 * the code will need to be extended with the appropriate platform
+ 	 * callback to setup the clock.
+ 	 */
+-	chip_version = mt9m032_read_reg(sensor, MT9M032_CHIP_VERSION);
++	chip_version = mt9m032_read_reg(client, MT9M032_CHIP_VERSION);
+ 	if (chip_version == MT9M032_CHIP_VERSION_VALUE) {
+ 		dev_info(&client->dev, "mt9m032: detected sensor.\n");
+ 	} else {
+@@ -714,10 +713,10 @@ static int mt9m032_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto free_ctrl;
+ 
+-	ret = mt9m032_write_reg(sensor, MT9M032_RESET, 1);	/* reset on */
++	ret = mt9m032_write_reg(client, MT9M032_RESET, 1);	/* reset on */
+ 	if (ret < 0)
+ 		goto free_ctrl;
+-	mt9m032_write_reg(sensor, MT9M032_RESET, 0);	/* reset off */
++	mt9m032_write_reg(client, MT9M032_RESET, 0);	/* reset off */
+ 	if (ret < 0)
+ 		goto free_ctrl;
+ 
+@@ -733,31 +732,31 @@ static int mt9m032_probe(struct i2c_client *client,
+ 	if (ret < 0)
+ 		goto free_ctrl;
+ 
+-	ret = mt9m032_write_reg(sensor, 0x41, 0x0000);	/* reserved !!! */
++	ret = mt9m032_write_reg(client, 0x41, 0x0000);	/* reserved !!! */
+ 	if (ret < 0)
+ 		goto free_ctrl;
+-	ret = mt9m032_write_reg(sensor, 0x42, 0x0003);	/* reserved !!! */
++	ret = mt9m032_write_reg(client, 0x42, 0x0003);	/* reserved !!! */
+ 	if (ret < 0)
+ 		goto free_ctrl;
+-	ret = mt9m032_write_reg(sensor, 0x43, 0x0003);	/* reserved !!! */
++	ret = mt9m032_write_reg(client, 0x43, 0x0003);	/* reserved !!! */
+ 	if (ret < 0)
+ 		goto free_ctrl;
+-	ret = mt9m032_write_reg(sensor, 0x7f, 0x0000);	/* reserved !!! */
++	ret = mt9m032_write_reg(client, 0x7f, 0x0000);	/* reserved !!! */
+ 	if (ret < 0)
+ 		goto free_ctrl;
+ 	if (sensor->pdata->invert_pixclock) {
+-		mt9m032_write_reg(sensor, MT9M032_PIX_CLK_CTRL, MT9M032_PIX_CLK_CTRL_INV_PIXCLK);
++		mt9m032_write_reg(client, MT9M032_PIX_CLK_CTRL, MT9M032_PIX_CLK_CTRL_INV_PIXCLK);
+ 		if (ret < 0)
+ 			goto free_ctrl;
+ 	}
+ 
+-	res = mt9m032_read_reg(sensor, MT9M032_PIX_CLK_CTRL);
++	res = mt9m032_read_reg(client, MT9M032_PIX_CLK_CTRL);
+ 
+-	ret = mt9m032_write_reg(sensor, MT9M032_RESTART, 1); /* Restart on */
++	ret = mt9m032_write_reg(client, MT9M032_RESTART, 1); /* Restart on */
+ 	if (ret < 0)
+ 		goto free_ctrl;
+ 	msleep(100);
+-	ret = mt9m032_write_reg(sensor, MT9M032_RESTART, 0); /* Restart off */
++	ret = mt9m032_write_reg(client, MT9M032_RESTART, 0); /* Restart off */
+ 	if (ret < 0)
+ 		goto free_ctrl;
+ 	msleep(100);
+-- 
+1.7.3.4
 
-> > For example: https://bugs.freedesktop.org/attachment.cgi?id=48933
-> > which doesn't handle flushing of pending updates via the GPU when
-> > writing with the CPU during interrupts (i.e. a panic).
-> > -Chris
-> >
-> > --
-> > Chris Wilson, Intel Open Source Technology Centre
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
