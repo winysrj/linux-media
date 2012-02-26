@@ -1,50 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:37364 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752828Ab2BIPL0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 Feb 2012 10:11:26 -0500
-Received: by wics10 with SMTP id s10so1297843wic.19
-        for <linux-media@vger.kernel.org>; Thu, 09 Feb 2012 07:11:25 -0800 (PST)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: SDR FM demodulation
-Date: Thu, 9 Feb 2012 16:11:21 +0100
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <4F33DFB8.4080702@iki.fi>
-In-Reply-To: <4F33DFB8.4080702@iki.fi>
+Received: from swampdragon.chaosbits.net ([90.184.90.115]:22143 "EHLO
+	swampdragon.chaosbits.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752928Ab2BZW7R (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Feb 2012 17:59:17 -0500
+Date: Sun, 26 Feb 2012 23:57:13 +0100 (CET)
+From: Jesper Juhl <jj@chaosbits.net>
+To: linux-kernel@vger.kernel.org
+cc: trivial@kernel.org, linux-media@vger.kernel.org,
+	Olivier Grenie <olivier.grenie@dibcom.fr>,
+	Patrick Boettcher <patrick.boettcher@dibcom.fr>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH][trivial] media, DiB0090: remove redundant ';' from
+ dib0090_fw_identify()
+Message-ID: <alpine.LNX.2.00.1202262355210.6089@swampdragon.chaosbits.net>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202091611.21095.pboettcher@kernellabs.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 09 February 2012 16:01:12 Antti Palosaari wrote:
-> I have taken radio sniffs from FM capable Realtek DVB-T device. Looks
-> like demodulator ADC samples IF frequency and pass all the sampled
-> data to the application. Application is then responsible for
-> decoding that. Device supports DVB-T, FM and DAB. I can guess  both
-> FM and DAB are demodulated by software.
-> 
-> Here is 17 second, 83 MB, FM radio sniff:
-> http://palosaari.fi/linux/v4l-dvb/rtl2832u_fm/
-> Decode it and listen some Finnish speak ;)
-> 
-> Could someone help to decode it? I tried GNU Radio, but I failed
-> likely because I didn't have enough knowledge... GNU Radio and
-> Octave or Matlab are way to go.
+One semi-colon is enough.
 
-For someone to decode it, you would need to give more information about 
-the format of the stream. Like the sampling frequency, the sample-format 
-and then the IF-frequency.
+Signed-off-by: Jesper Juhl <jj@chaosbits.net>
+---
+ drivers/media/dvb/frontends/dib0090.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I never did something like myself, but from what I saw in gnuradio there 
-should be everything to make a FM-demod based on the data.
+diff --git a/drivers/media/dvb/frontends/dib0090.c b/drivers/media/dvb/frontends/dib0090.c
+index 224d81e..d9fe60b 100644
+--- a/drivers/media/dvb/frontends/dib0090.c
++++ b/drivers/media/dvb/frontends/dib0090.c
+@@ -519,7 +519,7 @@ static int dib0090_fw_identify(struct dvb_frontend *fe)
+ 	return 0;
+ 
+ identification_error:
+-	return -EIO;;
++	return -EIO;
+ }
+ 
+ static void dib0090_reset_digital(struct dvb_frontend *fe, const struct dib0090_config *cfg)
+-- 
+1.7.9.2
 
-regards,
---
-Patrick Boettcher
 
-Kernel Labs Inc.
-http://www.kernellabs.com/
+-- 
+Jesper Juhl <jj@chaosbits.net>       http://www.chaosbits.net/
+Don't top-post http://www.catb.org/jargon/html/T/top-post.html
+Plain text mails only, please.
+
