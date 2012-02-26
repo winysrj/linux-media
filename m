@@ -1,78 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from filtteri1.pp.htv.fi ([213.243.153.184]:39089 "EHLO
-	filtteri1.pp.htv.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752693Ab2BUVaO (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48684 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753311Ab2BZXmZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 Feb 2012 16:30:14 -0500
-Date: Tue, 21 Feb 2012 21:30:07 +0000 (UTC)
-From: Aaro Koskinen <aaro.koskinen@iki.fi>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Michal Nazarewicz <mina86@mina86.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Subject: Re: [PATCHv22 13/16] drivers: add Contiguous Memory Allocator
-In-Reply-To: <1329507036-24362-14-git-send-email-m.szyprowski@samsung.com>
-Message-ID: <alpine.DEB.2.00.1202212121560.962@localhost>
-References: <1329507036-24362-1-git-send-email-m.szyprowski@samsung.com> <1329507036-24362-14-git-send-email-m.szyprowski@samsung.com>
+	Sun, 26 Feb 2012 18:42:25 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Chris Whittenburg <whittenburg@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: OMAP CCDC with sensors that are always on...
+Date: Mon, 27 Feb 2012 00:42:31 +0100
+Message-ID: <6307239.U344RCScuO@avalon>
+In-Reply-To: <4F4AC1B2.1000607@iki.fi>
+References: <CABcw_OmQEV2K0Hgvnh7xtCNQUmf5pa4ftZJwRFdkM68Hftp=Rg@mail.gmail.com> <4984891.IGZ3Td2Zlk@avalon> <4F4AC1B2.1000607@iki.fi>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII; format=flowed
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-On Fri, 17 Feb 2012, Marek Szyprowski wrote:
-> +/**
-> + * dma_release_from_contiguous() - release allocated pages
-> + * @dev:   Pointer to device for which the pages were allocated.
-> + * @pages: Allocated pages.
-> + * @count: Number of allocated pages.
-> + *
-> + * This function releases memory allocated by dma_alloc_from_contiguous().
-> + * It returns false when provided pages do not belong to contiguous area and
-> + * true otherwise.
-> + */
-> +bool dma_release_from_contiguous(struct device *dev, struct page *pages,
-> +				 int count)
-> +{
-> +	struct cma *cma = dev_get_cma_area(dev);
-> +	unsigned long pfn;
-> +
-> +	if (!cma || !pages)
-> +		return false;
-> +
-> +	pr_debug("%s(page %p)\n", __func__, (void *)pages);
-> +
-> +	pfn = page_to_pfn(pages);
-> +
-> +	if (pfn < cma->base_pfn || pfn >= cma->base_pfn + cma->count)
-> +		return false;
-> +
-> +	VM_BUG_ON(pfn + count > cma->base_pfn);
+On Monday 27 February 2012 01:35:14 Sakari Ailus wrote:
+> Laurent Pinchart wrote:
+> > On Saturday 25 February 2012 01:48:02 Sakari Ailus wrote:
+> >> On Fri, Feb 17, 2012 at 05:32:31PM -0600, Chris Whittenburg wrote:
+> >>> I fixed my sensor to respect a "run" signal from the omap, so that now
+> >>> it only sends data when the ccdc is expecting it.
+> >>> 
+> >>> This fixed my problem, and now I can capture the 640x1440 frames.
+> >>> 
+> >>> At least the first one...
+> >>> 
+> >>> Subsequent frames are always full of 0x55, like the ISP didn't write
+> >>> anything into them.
+> >>> 
+> >>> I still get the VD0 interrupts, and I checked that WEN in the
+> >>> CCDC_SYN_MODE register is set, and that the EXWEN bit is clear.
+> >>> 
+> >>> I'm using the command:
+> >>> yavta -c2 -p -F --skip 0 -f Y8 -s 640x1440 /dev/video2
+> >>> 
+> >>> Here are my register settings:
+> >>> 
+> >>> [ 6534.029907] omap3isp omap3isp: -------------CCDC Register
+> >>> dump------------- [ 6534.029907] omap3isp omap3isp: ###CCDC
+> >>> PCR=0x00000000
+> >>> [ 6534.029937] omap3isp omap3isp: ###CCDC SYN_MODE=0x00030f00
+> >>> [ 6534.029937] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
+> >>> [ 6534.029937] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
+> >>> [ 6534.029968] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000027f
+> >>> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
+> >>> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_LINES=0x0000059f
+> >>> [ 6534.029998] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
+> >>> [ 6534.029998] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x00000280
+> >>> [ 6534.029998] omap3isp omap3isp: ###CCDC SDOFST=0x00000000
+> >>> [ 6534.030029] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
+> >>> [ 6534.030029] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
+> >>> [ 6534.030029] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
+> >>> [ 6534.030059] omap3isp omap3isp: ###CCDC COLPTN=0xbb11bb11
+> >>> [ 6534.030059] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
+> >>> [ 6534.030059] omap3isp omap3isp: ###CCDC FPC=0x00000000
+> >>> [ 6534.030090] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
+> >>> [ 6534.030090] omap3isp omap3isp: ###CCDC VDINT=0x059e03c0
+> >>> [ 6534.030090] omap3isp omap3isp: ###CCDC ALAW=0x00000000
+> >>> [ 6534.030120] omap3isp omap3isp: ###CCDC REC656IF=0x00000000
+> >>> [ 6534.030120] omap3isp omap3isp: ###CCDC CFG=0x00008000
+> >>> [ 6534.030120] omap3isp omap3isp: ###CCDC FMTCFG=0x0000e000
+> >>> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_HORZ=0x00000280
+> >>> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_VERT=0x000005a0
+> >>> [ 6534.030151] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
+> >>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
+> >>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
+> >>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
+> >>> [ 6534.030212] omap3isp omap3isp: ###CCDC VP_OUT=0x0b3e2800
+> >>> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
+> >>> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
+> >>> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
+> >>> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
+> >>> [ 6534.030242] omap3isp omap3isp:
+> >>> --------------------------------------------
+> >>> 
+> >>> Output frame 0 is always good, while output frame 1 is 0x5555.
+> >>> 
+> >>> I believe my sensor is respecting the clocks required before and after
+> >>> the frame.
+> >>> 
+> >>> Could the ISP driver be writing my data to some unexpected location
+> >>> rather than to the v4l2 buffer?
+> >>> 
+> >>> Is there a way to determine if the CCDC is writing to memory or not?
+> >> 
+> >> How long vertical blanking do you have? It shouldn't have an effect,
+> >> though.
+> > It definitely can :-) If vertical blanking isn't long enough, the CCDC
+> > will start processing the next frame before the driver gets time to update
+> > the hardware with the pointer to the next buffer. The first frame will
+> > then be overwritten.
+> 
+> Sure, but in that case no buffers should be dequeued from the driver
+> either --- as they should always be marked faulty since reprogramming
+> the CCDC isn't possible.
 
-Are you sure the VM_BUG_ON() condition is correct here?
+Does the driver detect that ?
 
-> +	mutex_lock(&cma_mutex);
-> +	bitmap_clear(cma->bitmap, pfn - cma->base_pfn, count);
-> +	free_contig_range(pfn, count);
-> +	mutex_unlock(&cma_mutex);
-> +
-> +	return true;
-> +}
+-- 
+Regards,
 
-A.
+Laurent Pinchart
