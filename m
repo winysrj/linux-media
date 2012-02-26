@@ -1,53 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.22]:37534 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755310Ab2B1Skp (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38504 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751902Ab2BZO2Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 13:40:45 -0500
-Message-ID: <4F4D1FA8.1090100@gmx.de>
-Date: Tue, 28 Feb 2012 19:40:40 +0100
-From: Andreas Regel <andreas.regel@gmx.de>
+	Sun, 26 Feb 2012 09:28:24 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: Re: [PATCH 01/11] v4l: Add driver for Micron MT9M032 camera sensor
+Date: Sun, 26 Feb 2012 15:28:29 +0100
+Message-ID: <1684336.vSGXv4O9Ho@avalon>
+In-Reply-To: <CAOMZO5B9=fGGWMxKfr+DfRmSHj4CExS5d5WTzXT_EoH2L=LG2A@mail.gmail.com>
+References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com> <1330226857-8651-2-git-send-email-laurent.pinchart@ideasonboard.com> <CAOMZO5B9=fGGWMxKfr+DfRmSHj4CExS5d5WTzXT_EoH2L=LG2A@mail.gmail.com>
 MIME-Version: 1.0
-To: Manu Abraham <abraham.manu@gmail.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] stb0899: set FE_HAS_SIGNAL flag in read_status
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In stb0899_read_status the FE_HAS_SIGNAL flag was not set in case of a
-successful carrier lock. This change fixes that.
+Hi Fabio,
 
-Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
----
-  drivers/media/dvb/frontends/stb0899_drv.c |    4 ++--
-  1 files changed, 2 insertions(+), 2 deletions(-)
+Thanks for the review.
 
-diff --git a/drivers/media/dvb/frontends/stb0899_drv.c 
-b/drivers/media/dvb/frontends/stb0899_drv.c
-index 38565be..4a58afc 100644
---- a/drivers/media/dvb/frontends/stb0899_drv.c
-+++ b/drivers/media/dvb/frontends/stb0899_drv.c
-@@ -1071,7 +1071,7 @@ static int stb0899_read_status(struct dvb_frontend 
-*fe, enum fe_status *status)
-  			reg  = stb0899_read_reg(state, STB0899_VSTATUS);
-  			if (STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg)) {
-  				dprintk(state->verbose, FE_DEBUG, 1, "--------> FE_HAS_CARRIER | 
-FE_HAS_LOCK");
--				*status |= FE_HAS_CARRIER | FE_HAS_LOCK;
-+				*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
-   				reg = stb0899_read_reg(state, STB0899_PLPARM);
-  				if (STB0899_GETFIELD(VITCURPUN, reg)) {
-@@ -1088,7 +1088,7 @@ static int stb0899_read_status(struct dvb_frontend 
-*fe, enum fe_status *status)
-  		if (internal->lock) {
-  			reg = STB0899_READ_S2REG(STB0899_S2DEMOD, DMD_STAT2);
-  			if (STB0899_GETFIELD(UWP_LOCK, reg) && STB0899_GETFIELD(CSM_LOCK, 
-reg)) {
--				*status |= FE_HAS_CARRIER;
-+				*status |= FE_HAS_SIGNAL | FE_HAS_CARRIER;
-  				dprintk(state->verbose, FE_DEBUG, 1,
-  					"UWP & CSM Lock ! ---> DVB-S2 FE_HAS_CARRIER");
-  -- 1.7.2.5
+On Sunday 26 February 2012 11:16:19 Fabio Estevam wrote:
+> On Sun, Feb 26, 2012 at 12:27 AM, Laurent Pinchart wrote:
+> > +static int __init mt9m032_init(void)
+> > +{
+> > +       int rval;
+> > +
+> > +       rval = i2c_add_driver(&mt9m032_i2c_driver);
+> > +       if (rval)
+> > +               pr_err("%s: failed registering " MT9M032_NAME "\n",
+> > __func__); +
+> > +       return rval;
+> > +}
+> > +
+> > +static void mt9m032_exit(void)
+> > +{
+> > +       i2c_del_driver(&mt9m032_i2c_driver);
+> > +}
+> > +
+> > +module_init(mt9m032_init);
+> > +module_exit(mt9m032_exit);
+> 
+> module_i2c_driver could be used here instead.
 
+That's fixed by patch 4/11. As explained in the cover letter, patch 01/11 is 
+the original driver as submitted by Martin. I've decided not to change it to 
+make review easier. I can then squash some of the other patches onto this one 
+when pushing the set upstream. 
+ 
+> > +
+> > +MODULE_AUTHOR("Martin Hostettler");
+> 
+> E-mail address missing.
+
+Good point. Martin, can I add your e-mail address here ?
+
+-- 
+Regards,
+
+Laurent Pinchart
