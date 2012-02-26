@@ -1,131 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:33539 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756683Ab2BXKFH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 05:05:07 -0500
-Message-ID: <4F4760CB.50400@schinagl.nl>
-Date: Fri, 24 Feb 2012 11:04:59 +0100
-From: Oliver Schinagl <oliver@schinagl.nl>
-MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] Support for AF9035/AF9033
-References: <201202222320.56583.hfvogt@gmx.net> <4F460492.4000203@schinagl.nl> <201202232302.24843.hfvogt@gmx.net>
-In-Reply-To: <201202232302.24843.hfvogt@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58443 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752644Ab2BZD1g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 Feb 2012 22:27:36 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH 10/11] v4l: Aptina-style sensor PLL support
+Date: Sun, 26 Feb 2012 04:27:36 +0100
+Message-Id: <1330226857-8651-11-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add a generic helper function to compute PLL parameters for PLL found in
+several Aptina sensors.
 
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/video/Kconfig      |    4 +
+ drivers/media/video/Makefile     |    4 +
+ drivers/media/video/aptina-pll.c |  120 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/video/aptina-pll.h |   55 +++++++++++++++++
+ 4 files changed, 183 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/video/aptina-pll.c
+ create mode 100644 drivers/media/video/aptina-pll.h
 
-On 23-02-12 23:02, Hans-Frieder Vogt wrote:
-> Am Donnerstag, 23. Februar 2012 schrieb Oliver Schinagl:
->> Hi Hans,
->>
->> I also have an AF9035 based device, the Asus 3100 Mini Plus. It has an
->> AF9035B demodulator and uses an FCI2580 tuner. I've used the driver
->> supplied by afa in the past, but haven't tested it in the last few
->> months. I have a git repository for that driver at
->> http://git.schinagl.nl/AF903x_SRC.git (it is also linked from
->> http://www.linuxtv.org/wiki/index.php/Asus_U3100_Mini_plus_DVB-T).
->>
->> So when you say it is also coupled with the same tuner, that's not true
->>
->> :) With that driver there where a bunch of other tuners that are used
->>
->> with this chip. I think the Asus EEEPC supported a USB dvb tuner at some
->> point and there are reverences in that code for it.
->>
->> As of the legality of the code, that is uncertain. The module (compiled
->> from all these sources) is very specifically marked as GPL. Most
->> headers/source files have no copyright notice at all, some however do,
->> but no license in it.
->>
->> I asked about afa-tech and there driver status a while ago, but I guess
->> there is no news as of yet?
->>
->> To summarize, I would love to test your driver, and I think i can code
->> something up for my tuner, once these are split?
->>
->> Oliver
->>
->> On 22-02-12 23:20, Hans-Frieder Vogt wrote:
->>> I have written a driver for the AF9035&   AF9033 (called af903x), based on
->>> the various drivers and information floating around for these chips.
->>> Currently, my driver only supports the devices that I am able to test.
->>> These are
->>> - Terratec T5 Ver.2 (also known as T6)
->>> - Avermedia Volar HD Nano (A867)
->>>
->>> The driver supports:
->>> - diversity and dual tuner (when the first frontend is used, it is in
->>> diversity mode, when two frontends are used in dual tuner mode)
->>> - multiple devices
->>> - pid filtering
->>> - remote control in NEC and RC-6 mode (currently not switchable, but
->>> depending on device)
->>> - support for kernel 3.1, 3.2 and 3.3 series
->>>
->>> I have not tried to split the driver in a DVB-T receiver (af9035) and a
->>> frontend (af9033), because I do not see the sense in doing that for a
->>> demodulator, that seems to be always used in combination with the very
->>> same receiver.
->>>
->>> The patch is split in three parts:
->>> Patch 1: support for tuner fitipower FC0012
->>> Patch 2: basic driver
->>> Patch 3: firmware
->>>
->>> Hans-Frieder Vogt                       e-mail: hfvogt<at>   gmx .dot. net
->>> --
->>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> Hi Oliver,
->
-> the AF9035B is in fact a DVB-T demodulator with an integrated USB interface +
-> further interfaces (I erroneously called it receiver). It needs a tuner to be
-> a full DVB-T stick (it seems that the it9135 is basically the AF9035 + an
-> integrated tuner).
->
-> the Terratec T5 Rev. 2 and T6 consists of an AF9035B, an AF9033B (Second
-> demodulator) and dual FC0012 tuners
-> the Avermedia Volar HD Nano (A867) uses an AF9035B and an Mxl5007t tuner
-> your Asus 3100 mini uses the FCI2580 tuner.
->
-> If there is a driver for the FCI2580 tuner then it is not a big issue to make
-> it usable with the af903x driver.
-The driver is 'available' but in the AF903x_SRC package. If I would take 
-the endevour into writing a driver for the FCI2580, what driver would be 
-best suited as template you reccon?
-> I know of these Afatech drivers, but the main disadvantage of them is in my
-> eyes that they
-> - have a lot of useless and unused code
-> - define own error codes (instead of using the standard error codes)
-> - have a compiled in firmware
-This bit I don't understand. I have not found any binary image in the 
-source tree at all. If the firmware is compiled from the sources, it is 
-compiled into the driver, and not uploaded to the stick when plugged in.
+diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
+index 02afc02..b255c29 100644
+--- a/drivers/media/video/Kconfig
++++ b/drivers/media/video/Kconfig
+@@ -133,6 +133,9 @@ menu "Encoders, decoders, sensors and other helper chips"
+ 
+ comment "Audio decoders, processors and mixers"
+ 
++config VIDEO_APTINA_PLL
++	tristate
++
+ config VIDEO_TVAUDIO
+ 	tristate "Simple audio decoder chips"
+ 	depends on VIDEO_V4L2 && I2C
+@@ -946,6 +949,7 @@ config SOC_CAMERA_MT9M001
+ config VIDEO_MT9M032
+ 	tristate "MT9M032 camera sensor support"
+ 	depends on I2C && VIDEO_V4L2
++	select VIDEO_APTINA_PLL
+ 	help
+ 	  This driver supports MT9M032 cameras from Micron, monochrome
+ 	  models only.
+diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
+index 2fa78d6..06d33ed 100644
+--- a/drivers/media/video/Makefile
++++ b/drivers/media/video/Makefile
+@@ -22,6 +22,10 @@ endif
+ 
+ obj-$(CONFIG_VIDEO_V4L2_COMMON) += v4l2-common.o
+ 
++# Helper modules
++
++obj-$(CONFIG_VIDEO_APTINA_PLL) += aptina-pll.o
++
+ # All i2c modules must come first:
+ 
+ obj-$(CONFIG_VIDEO_TUNER) += tuner.o
+diff --git a/drivers/media/video/aptina-pll.c b/drivers/media/video/aptina-pll.c
+new file mode 100644
+index 0000000..e4df9ec
+--- /dev/null
++++ b/drivers/media/video/aptina-pll.c
+@@ -0,0 +1,120 @@
++/*
++ * Aptina Sensor PLL Configuration
++ *
++ * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#include <linux/device.h>
++#include <linux/gcd.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++
++#include "aptina-pll.h"
++
++int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
++			 const struct aptina_pll_limits *limits)
++{
++	unsigned int mf_min;
++	unsigned int mf_max;
++	unsigned int mf;
++	unsigned int clock;
++	unsigned int div;
++	unsigned int p1;
++	unsigned int n;
++	unsigned int m;
++
++	if (pll->ext_clock < limits->ext_clock_min ||
++	    pll->ext_clock > limits->ext_clock_max) {
++		dev_err(dev, "pll: invalid external clock frequency.\n");
++		return -EINVAL;
++	}
++
++	if (pll->pix_clock > limits->pix_clock_max) {
++		dev_err(dev, "pll: invalid pixel clock frequency.\n");
++		return -EINVAL;
++	}
++
++	/* Compute the multiplier M and combined N*P1 divisor. */
++	div = gcd(pll->pix_clock, pll->ext_clock);
++	pll->m = pll->pix_clock / div;
++	div = pll->ext_clock / div;
++
++	/* We now have the smallest M and N*P1 values that will result in the
++	 * desired pixel clock frequency, but they might be out of the valid
++	 * range. Compute the factor by which we should multiply them given the
++	 * following constraints:
++	 *
++	 * - minimum/maximum multiplier
++	 * - minimum/maximum multiplier output clock frequency assuming the
++	 *   minimum/maximum N value
++	 * - minimum/maximum combined N*P1 divisor
++	 */
++	mf_min = DIV_ROUND_UP(limits->m_min, pll->m);
++	mf_min = max(mf_min, limits->out_clock_min /
++		     (pll->ext_clock / limits->n_min * pll->m));
++	mf_min = max(mf_min, limits->n_min * limits->p1_min / div);
++	mf_max = limits->m_max / pll->m;
++	mf_max = min(mf_max, limits->out_clock_max /
++		    (pll->ext_clock / limits->n_max * pll->m));
++	mf_max = min(mf_max, DIV_ROUND_UP(limits->n_max * limits->p1_max, div));
++
++	dev_dbg(dev, "pll: mf min %u max %u\n", mf_min, mf_max);
++	if (mf_min > mf_max) {
++		dev_err(dev, "pll: no valid combined N*P1 divisor.\n");
++		return -EINVAL;
++	}
++
++	/* Find the highest acceptable P1 value and compute the corresponding N
++	 * divisor. Make sure the P1 value is even.
++	 */
++	for (mf = mf_min; mf <= mf_max; ++mf) {
++		m = pll->m * mf;
++
++		for (p1 = limits->p1_max & ~1; p1 > limits->p1_min; p1 -= 2) {
++			if ((div * mf) % p1)
++				continue;
++
++			n = div * mf / p1;
++
++			clock = pll->ext_clock / n;
++			if (clock < limits->int_clock_min ||
++			    clock > limits->int_clock_max)
++				continue;
++
++			clock *= m;
++			if (clock < limits->out_clock_min ||
++			    clock > limits->out_clock_max)
++				continue;
++
++			goto found;
++		}
++	}
++
++	dev_err(dev, "pll: no valid N and P1 divisors found.\n");
++	return -EINVAL;
++
++found:
++	pll->n = n;
++	pll->m = m;
++	pll->p1 = p1;
++
++	dev_dbg(dev, "PLL: ext clock %u N %u M %u P1 %u pix clock %u\n",
++		 pll->ext_clock, pll->n, pll->m, pll->p1, pll->pix_clock);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(aptina_pll_configure);
+diff --git a/drivers/media/video/aptina-pll.h b/drivers/media/video/aptina-pll.h
+new file mode 100644
+index 0000000..36a9363
+--- /dev/null
++++ b/drivers/media/video/aptina-pll.h
+@@ -0,0 +1,55 @@
++/*
++ * Aptina Sensor PLL Configuration
++ *
++ * Copyright (C) 2012 Laurent Pinchart <laurent.pinchart@ideasonboard.com>
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful, but
++ * WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++ * General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program; if not, write to the Free Software
++ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
++ * 02110-1301 USA
++ */
++
++#ifndef __APTINA_PLL_H
++#define __APTINA_PLL_H
++
++struct aptina_pll {
++	unsigned int ext_clock;
++	unsigned int pix_clock;
++
++	unsigned int n;
++	unsigned int m;
++	unsigned int p1;
++};
++
++struct aptina_pll_limits {
++	unsigned int ext_clock_min;
++	unsigned int ext_clock_max;
++	unsigned int int_clock_min;
++	unsigned int int_clock_max;
++	unsigned int out_clock_min;
++	unsigned int out_clock_max;
++	unsigned int pix_clock_max;
++
++	unsigned int n_min;
++	unsigned int n_max;
++	unsigned int m_min;
++	unsigned int m_max;
++	unsigned int p1_min;
++	unsigned int p1_max;
++};
++
++struct device;
++
++int aptina_pll_configure(struct device *dev, struct aptina_pll *pll,
++			 const struct aptina_pll_limits *limits);
++
++#endif /* __APTINA_PLL_H */
+-- 
+1.7.3.4
 
-The other firmware is as mentioned the infrared receive 'table', which 
-provides some mapping I guess?
-> - have all supported tuners directly compiled in, which means that they
-> prevent tuner support to be shared between various drivers
->
-> So, you see, there are good reasons to write a new driver for these devices.
->
-> The point with the legality: I agree that the AF903X_SRC driver is unclear in
-> that respect. The glue code (under src) is explicitly marked as GPL, but the
-> api code (under api) isn't marked.
-> Luckily, there is the it9135-driver from Jason Dong which is clearly GPL and
-> which uses the same functions. Therefore there is effectivly example code from
-> Afatech/Ite technology available that is under GPL.
->
-> Cheers,
->
-> Hans-Frieder Vogt                       e-mail: hfvogt<at>  gmx .dot. net
