@@ -1,58 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:49607 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752146Ab2BTSRQ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58435 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752674Ab2BZD1c (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Feb 2012 13:17:16 -0500
-Date: Mon, 20 Feb 2012 19:17:14 +0100 (CET)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Fabio Estevam <festevam@gmail.com>
-cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	kernel@pengutronix.de, Fabio Estevam <fabio.estevam@freescale.com>
-Subject: Re: [PATCH] video: mx3_camera: Allocate camera object via kzalloc
-In-Reply-To: <1329761467-14417-1-git-send-email-festevam@gmail.com>
-Message-ID: <Pine.LNX.4.64.1202201916410.2836@axis700.grange>
-References: <1329761467-14417-1-git-send-email-festevam@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sat, 25 Feb 2012 22:27:32 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH 05/11] mt9m032: Enclose to_dev() macro argument in brackets
+Date: Sun, 26 Feb 2012 04:27:31 +0100
+Message-Id: <1330226857-8651-6-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 20 Feb 2012, Fabio Estevam wrote:
+To make the macro safer to use, enclose its argument in brackets in the
+macro's body.
 
-> Align mx3_camera driver with the other soc camera driver implementations
-> by allocating the camera object via kzalloc.
-
-Sorry, any specific reason, why you think this "aligning" is so important? 
-I personally don't see any.
-
-Thanks
-Guennadi
-
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> ---
->  drivers/media/video/mx3_camera.c |    2 +-
->  1 files changed, 1 insertions(+), 1 deletions(-)
-> 
-> diff --git a/drivers/media/video/mx3_camera.c b/drivers/media/video/mx3_camera.c
-> index 7452277..cccd574 100644
-> --- a/drivers/media/video/mx3_camera.c
-> +++ b/drivers/media/video/mx3_camera.c
-> @@ -1159,7 +1159,7 @@ static int __devinit mx3_camera_probe(struct platform_device *pdev)
->  		goto egetres;
->  	}
->  
-> -	mx3_cam = vzalloc(sizeof(*mx3_cam));
-> +	mx3_cam = kzalloc(sizeof(*mx3_cam), GFP_KERNEL);
->  	if (!mx3_cam) {
->  		dev_err(&pdev->dev, "Could not allocate mx3 camera object\n");
->  		err = -ENOMEM;
-> -- 
-> 1.7.1
-> 
-
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/video/mt9m032.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
+index 8f8b8b9..b8e97ad 100644
+--- a/drivers/media/video/mt9m032.c
++++ b/drivers/media/video/mt9m032.c
+@@ -121,7 +121,8 @@ struct mt9m032 {
+ };
+ 
+ #define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
+-#define to_dev(sensor)	&((struct i2c_client *)v4l2_get_subdevdata(&sensor->subdev))->dev
++#define to_dev(sensor) \
++	(&((struct i2c_client *)v4l2_get_subdevdata(&(sensor)->subdev))->dev)
+ 
+ static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
+ {
+-- 
+1.7.3.4
+
