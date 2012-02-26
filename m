@@ -1,416 +1,286 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3040 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755425Ab2BCJ3z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 Feb 2012 04:29:55 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 1/6] poll: add poll_requested_events() and poll_does_not_wait() functions
-Date: Fri,  3 Feb 2012 10:28:40 +0100
-Message-Id: <0a2613f950f1865c6c2675c27186e73a8c3dfe94.1328260650.git.hans.verkuil@cisco.com>
-In-Reply-To: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328261325-8452-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:42405 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365Ab2BZQdb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Feb 2012 11:33:31 -0500
+Received: by eekc41 with SMTP id c41so402893eek.19
+        for <linux-media@vger.kernel.org>; Sun, 26 Feb 2012 08:33:29 -0800 (PST)
+Message-ID: <4F4A5ED0.4060204@gmail.com>
+Date: Sun, 26 Feb 2012 17:33:20 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl, teturtia@gmail.com, pradeep.sawlani@gmail.com,
+	g.liakhovetski@gmx.de, dacohen@gmail.com
+Subject: Re: [RFC] Frame format descriptors
+References: <20120225034915.GH12602@valkosipuli.localdomain>
+In-Reply-To: <20120225034915.GH12602@valkosipuli.localdomain>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sakari,
 
-In some cases the poll() implementation in a driver has to do different
-things depending on the events the caller wants to poll for. An example is
-when a driver needs to start a DMA engine if the caller polls for POLLIN,
-but doesn't want to do that if POLLIN is not requested but instead only
-POLLOUT or POLLPRI is requested. This is something that can happen in the
-video4linux subsystem among others.
+thank you for the RFC. Nice work!
 
-Unfortunately, the current epoll/poll/select implementation doesn't provide
-that information reliably. The poll_table_struct does have it: it has a key
-field with the event mask. But once a poll() call matches one or more bits
-of that mask any following poll() calls are passed a NULL poll_table pointer.
+On 02/25/2012 04:49 AM, Sakari Ailus wrote:
+> Hi all,
+> 
+> We've been talking some time about frame format desciptors. I don't mean just
+> image data --- there can be metadata and image data which cannot be
+> currently described using struct v4l2_mbus_framefmt, such as JPEG images and
+> snapshots. I thought it was about the time to write an RFC.
+> 
+> I think we should have additional ways to describe the frame format, a part
+> of thee frame is already described by struct v4l2_mbus_framefmt which only
+> describes image data.
+> 
+> 
+> Background
+> ==========
+> 
+> I want to first begin by listing known use cases. There are a number of
+> variations of these use cases that would be nice to be supported. It depends
+> not only on the sensor but also on the receiver driver i.e. how it is able
+> to handle the data it receives.
+> 
+> 1. Sensor metadata. Sensors produce interesting kinds of metadata. Typically
+> the metadata format is very hardware specific. It is known the metadata can
+> consist e.g. register values or floating point numbers describing sensor
+> state. The metadata may have certain length or it can span a few lines at
+> the beginning or the end of the frame, or both.
+> 
+> 2. JPEG images. JPEG images are produced by some sensors either separately
+> or combined with the regular image data frame.
+> 
+> 3. Interleaved YUV and JPEG data. Separating the two may only done in
+> software, so the driver has no option but to consider both as blobs.
+> 
+> 4. Regular image data frames. Described by struct v4l2_mbus_framefmt.
+> 
+> 5. Multi-format images. See the end of the messagefor more information.
+> 
+> Some busses such as the CSI-2 are able to transport some of this on separate
+> channels. This provides logical separation of different parts of the frame
+> while still sharing the same physical bus. Some sensors are known to send
 
-Also, the eventpoll implementation always left the key field at ~0 instead
-of using the requested events mask.
+AFAICS data on separate channels are mostly considered as separate streams,
+like JPEG, MPEG or audio. Probably more often parts of same stream are
+just carried with different Data Type, or not even that.
 
-This was changed in eventpoll.c so the key field now contains the actual
-events that should be polled for as set by the caller.
+> the metadata on the same channel as the regular image data frame.
+> 
+> I currently don't know of cases where the frame format could be
+> significantly changed, with the exception that the sensor may either produce
+> YUV, JPEG or both of the two. Changing the frame format is best done by
+> other means than referring to the frame format itself: there hardly is
+> reason to inform the user about the frame format, at least currently.
 
-The solution to the NULL poll_table pointer is to set the qproc field to
-NULL in poll_table once poll() matches the events, not the poll_table
-pointer itself. That way drivers can obtain the mask through a new
-poll_requested_events inline.
+Not quite so. User space is usually interested where each data can be found 
+in memory. Either we provide this information through a fourcc or in some 
+other ways. Snapshot in V4L2 is currently virtually not supported. 
+For instance, consider a use case where camera produces a data frame which 
+consists of JPEG compressed frame with 3000 x 2000 pixel resolution and 
+320x240 pixels YUYV frame. JPEG data is padded so the YUYV data starts at 
+a specific offset within the container frame, known to the sensor. 
+Something like:
 
-The poll_table_struct can still be NULL since some kernel code calls it
-internally (netfs_state_poll() in ./drivers/staging/pohmelfs/netfs.h). In
-that case poll_requested_events() returns ~0 (i.e. all events).
++---------------------+
+|                     |
+|                     |
+|  JPEG  3000 x 2000  |
+|                     |
+|                     |
++~ ~ ~ ~ ~ ~ ~ ~ ~ ~ ~+
+| JPEG buffer padding |
+|                     |
++---------------------+ YUYV data offset
+|                     |
+|  YUYV 320 x 240     |
+|                     |
++---------------------+ Thumbnail data offset
+|                     |
+|YUV or JPEG thumbnail|
+|     96 x 72         |
++---------------------+
 
-Very rarely drivers might want to know whether poll_wait will actually wait.
-If another earlier file descriptor in the set already matched the events the
-caller wanted to wait for, then the kernel will return from the select() call
-without waiting. This might be useful information in order to avoid doing
-expensive work.
+There is additionally a third plane there, that contains the thumbnail image 
+data.
 
-A new helper function poll_does_not_wait() is added that drivers can use to
-detect this situation. This is now used in sock_poll_wait() in
-include/net/sock.h. This was the only place in the kernel that needed this
-information.
+So user space wants to know all the offsets and sizes in order to interpret 
+what's in a v4l2 buffer.
 
-Drivers should no longer access any of the poll_table internals, but use the
-poll_requested_events() and poll_does_not_wait() access functions instead.
-In order to enforce that the poll_table fields are now prepended with an
-underscore and a comment was added warning against using them directly.
+This information could be provided to user space in several ways, using:
 
-This required a change in unix_dgram_poll() in unix/af_unix.c which used the
-key field to get the requested events. It's been replaced by a call to
-poll_requested_events().
+- controls,
+- private ioctl at sensor subdev,
+- additional v4l2 buffer plane containing all required data with some
+  pre-defined layout,
+- ... 
 
-For qproc it was especially important to change its name since the behavior of
-that field changes with this patch since this function pointer can now be NULL
-when that wasn't possible in the past.
 
-Any driver accessing the qproc or key fields directly will now fail to compile.
+> Most of the time it's possible to use the hardware to separate the different
+> parts of the buffer e.g. into separate memory areas or into separate planes
+> of a multi-plane buffer, but not quite always (the case we don't care
+> about).
 
-Some notes regarding the correctness of this patch: the driver's poll()
-function is called with a 'struct poll_table_struct *wait' argument. This
-pointer may or may not be NULL, drivers can never rely on it being one or
-the other as that depends on whether or not an earlier file descriptor in
-the select()'s fdset matched the requested events.
+I'm wondering, if there is any sensor/bridge pair in mainline that is capable
+of storing data into separate memory regions ?
 
-There are only three things a driver can do with the wait argument:
+> This leads me to think we need two relatively independent things: to describe
+> frame format and provide ways to provide the non-image part of the frame to
+> user space.
+> 
+> 
+> Frame format descriptor
+> =======================
+> 
+> The frame format descriptor describes the layout of the frame, not only the
+> image data but also other parts of it. What struct v4l2_mbus_framefmt
+> describes is part of it. Changes to v4l2_mbus_framefmt affect the frame
+> format descriptor rather than the other way around.
+> 
+> enum {
+> 	V4L2_SUBDEV_FRAME_FORMAT_TYPE_CSI2,
+> 	V4L2_SUBDEV_FRAME_FORMAT_TYPE_CCP2,
+> 	V4L2_SUBDEV_FRAME_FORMAT_TYPE_PARALLEL,
+> };
+> 
+> struct v4l2_subdev_frame_format {
+> 	int type;
+> 	struct v4l2_subdev_frame_format_entry *ent[];
+> 	int nent;
+> };
+> 
+> #define V4L2_SUBDEV_FRAME_FORMAT_ENTRY_FLAG_BLOB	(1<<  0)
+> #define V4L2_SUBDEV_FRAME_FORMAT_ENTRY_FLAG_LEN_IS_MAX	(1<<  1)
 
-1) obtain the key field:
+I'm just wondering whether flags indicating explicitly if the format entry 
+corresponds to frame header/footer are needed, e.g. 
 
-	events = wait ? wait->key : ~0;
+#define V4L2_SUBDEV_FRAMEFMT_ENTRY_FL_HEADER	(1 << 2)
+#define V4L2_SUBDEV_FRAMEFMT_ENTRY_FL_FOOTER	(1 << 3)
 
-   This will still work although it should be replaced with the new
-   poll_requested_events() function (which does exactly the same).
-   This will now even work better, since wait is no longer set to NULL
-   unnecessarily.
+> struct v4l2_subdev_frame_format_entry {
+> 	u8 bpp;
+> 	u16 flags;
+> 	u32 pixelcode;
+> 	union {
+> 		struct {
+> 			u16 width;
+> 			u16 height;
+> 		};
+> 		u32 length; /* if BLOB flag is set */
+> 	};
 
-2) use the qproc callback. This could be deadly since qproc can now be
-   NULL. Renaming qproc should prevent this from happening. There are no
-   kernel drivers that actually access this callback directly, BTW.
+I would prefer to not use a union for these. It would be nice to ensure 
+the subdevs are able to expose pixel resolution _and_ the data frame length.
 
-3) test whether wait == NULL to determine whether poll would return without
-   waiting. This is no longer sufficient as the correct test is now
-   wait == NULL || wait->_qproc == NULL.
+Additionally it would be quite essential to contain the entry offset in here. 
 
-   However, the worst that can happen here is a slight performance hit in
-   the case where wait != NULL and wait->_qproc == NULL. In that case the
-   driver will assume that poll_wait() will actually add the fd to the set
-   of waiting file descriptors. Of course, poll_wait() will not do that
-   since it tests for wait->_qproc. This will not break anything, though.
+> 	union {
+> 		struct v4l2_subdev_frame_format_entry_csi2 csi2;
+> 		struct v4l2_subdev_frame_format_entry_ccp2 ccp2;
+> 		struct v4l2_subdev_frame_format_entry_parallel par;
+> 	};
+> };
+> 
+> struct v4l2_subdev_frame_format_entry_csi2 {
+> 	u8 channel;
 
-   There is only one place in the whole kernel where this happens
-   (sock_poll_wait() in include/net/sock.h) and that code will be replaced
-   by a call to poll_does_not_wait() in the next patch.
+Didn't you consider adding the Data Type field here for User Defined data 
+formats ? Data multiplexing on physical CSI2 bus may be done with different 
+channels, different data types, or both.
 
-   Note that even if wait->_qproc != NULL drivers cannot rely on poll_wait()
-   actually waiting. The next file descriptor from the set might match the
-   event mask and thus any possible waits will never happen.
+> };
+> 
+> struct v4l2_subdev_frame_format_entry_ccp2 {
+> };
+> 
+> struct v4l2_subdev_frame_format_entry_parallel {
+> };
+> 
+> The frame format is defined by the sensor, and the sensor provides a subdev
+> pad op to obtain the frame format. This op is used by the csi-2 receiver
+> driver.
+> 
+> 
+> Non-image data (metadata or other blobs)
+> ========================================
+> 
+> There are several ways to pass non-image data to user space. Often the
+> receiver is able to write the metadata to a different memory location than
+> the image data whereas sometimes the receiver isn't able to separate the
+> two. Separating the two has one important benefit: the metadata is available
+> for the user space automatic exposure algorithm as soon as it has been
+> written to system memory. We have two cases:
+> 
+> 1. Metadata part of the same buffer (receiver unable to separate the two).
+> The receiver uses multi-plane buffer type. Multi-plane buffer's each plane
+> should have independent pixelcode field: the sensor metadata formats are
+> highly sensor dependent whereas the image formats are not.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Reviewed-by: Jonathan Corbet <corbet@lwn.net>
-Cc: Al Viro <viro@zeniv.linux.org.uk>
-Cc: Davide Libenzi <davidel@xmailserver.org>
-Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
----
- fs/eventpoll.c       |   18 +++++++++++++++---
- fs/select.c          |   40 ++++++++++++++++++----------------------
- include/linux/poll.h |   37 +++++++++++++++++++++++++++++++------
- include/net/sock.h   |    2 +-
- net/unix/af_unix.c   |    2 +-
- 5 files changed, 66 insertions(+), 33 deletions(-)
+I guess we could try and add a pixelcode field to struct v4l2_pix_format_mplane
+and a special "pixelformat" value that would indicate that per-plane pixelcodes 
+should be used.
 
-diff --git a/fs/eventpoll.c b/fs/eventpoll.c
-index aabdfc3..7497c1a 100644
---- a/fs/eventpoll.c
-+++ b/fs/eventpoll.c
-@@ -682,9 +682,12 @@ static int ep_read_events_proc(struct eventpoll *ep, struct list_head *head,
- 			       void *priv)
- {
- 	struct epitem *epi, *tmp;
-+	poll_table pt;
- 
-+	init_poll_funcptr(&pt, NULL);
- 	list_for_each_entry_safe(epi, tmp, head, rdllink) {
--		if (epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt._key = epi->event.events;
-+		if (epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 		    epi->event.events)
- 			return POLLIN | POLLRDNORM;
- 		else {
-@@ -1065,6 +1068,7 @@ static int ep_insert(struct eventpoll *ep, struct epoll_event *event,
- 	/* Initialize the poll table using the queue callback */
- 	epq.epi = epi;
- 	init_poll_funcptr(&epq.pt, ep_ptable_queue_proc);
-+	epq.pt._key = event->events;
- 
- 	/*
- 	 * Attach the item to the poll hooks and get current event bits.
-@@ -1159,6 +1163,9 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
- {
- 	int pwake = 0;
- 	unsigned int revents;
-+	poll_table pt;
-+
-+	init_poll_funcptr(&pt, NULL);
- 
- 	/*
- 	 * Set the new event interest mask before calling f_op->poll();
-@@ -1166,13 +1173,14 @@ static int ep_modify(struct eventpoll *ep, struct epitem *epi, struct epoll_even
- 	 * f_op->poll() call and the new event set registering.
- 	 */
- 	epi->event.events = event->events;
-+	pt._key = event->events;
- 	epi->event.data = event->data; /* protected by mtx */
- 
- 	/*
- 	 * Get current event bits. We can safely use the file* here because
- 	 * its usage count has been increased by the caller of this function.
- 	 */
--	revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL);
-+	revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt);
- 
- 	/*
- 	 * If the item is "hot" and it is not registered inside the ready
-@@ -1207,6 +1215,9 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
- 	unsigned int revents;
- 	struct epitem *epi;
- 	struct epoll_event __user *uevent;
-+	poll_table pt;
-+
-+	init_poll_funcptr(&pt, NULL);
- 
- 	/*
- 	 * We can loop without lock because we are passed a task private list.
-@@ -1219,7 +1230,8 @@ static int ep_send_events_proc(struct eventpoll *ep, struct list_head *head,
- 
- 		list_del_init(&epi->rdllink);
- 
--		revents = epi->ffd.file->f_op->poll(epi->ffd.file, NULL) &
-+		pt._key = epi->event.events;
-+		revents = epi->ffd.file->f_op->poll(epi->ffd.file, &pt) &
- 			epi->event.events;
- 
- 		/*
-diff --git a/fs/select.c b/fs/select.c
-index d33418f..caf0987 100644
---- a/fs/select.c
-+++ b/fs/select.c
-@@ -223,7 +223,7 @@ static void __pollwait(struct file *filp, wait_queue_head_t *wait_address,
- 	get_file(filp);
- 	entry->filp = filp;
- 	entry->wait_address = wait_address;
--	entry->key = p->key;
-+	entry->key = p->_key;
- 	init_waitqueue_func_entry(&entry->wait, pollwake);
- 	entry->wait.private = pwq;
- 	add_wait_queue(wait_address, &entry->wait);
-@@ -386,13 +386,11 @@ get_max:
- static inline void wait_key_set(poll_table *wait, unsigned long in,
- 				unsigned long out, unsigned long bit)
- {
--	if (wait) {
--		wait->key = POLLEX_SET;
--		if (in & bit)
--			wait->key |= POLLIN_SET;
--		if (out & bit)
--			wait->key |= POLLOUT_SET;
--	}
-+	wait->_key = POLLEX_SET;
-+	if (in & bit)
-+		wait->_key |= POLLIN_SET;
-+	if (out & bit)
-+		wait->_key |= POLLOUT_SET;
- }
- 
- int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
-@@ -414,7 +412,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 	poll_initwait(&table);
- 	wait = &table.pt;
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		wait = NULL;
-+		wait->_qproc = NULL;
- 		timed_out = 1;
- 	}
- 
-@@ -459,17 +457,17 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 					if ((mask & POLLIN_SET) && (in & bit)) {
- 						res_in |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 					if ((mask & POLLOUT_SET) && (out & bit)) {
- 						res_out |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 					if ((mask & POLLEX_SET) && (ex & bit)) {
- 						res_ex |= bit;
- 						retval++;
--						wait = NULL;
-+						wait->_qproc = NULL;
- 					}
- 				}
- 			}
-@@ -481,7 +479,7 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
- 				*rexp = res_ex;
- 			cond_resched();
- 		}
--		wait = NULL;
-+		wait->_qproc = NULL;
- 		if (retval || timed_out || signal_pending(current))
- 			break;
- 		if (table.error) {
-@@ -720,7 +718,7 @@ struct poll_list {
-  * interested in events matching the pollfd->events mask, and the result
-  * matching that mask is both recorded in pollfd->revents and returned. The
-  * pwait poll_table will be used by the fd-provided poll handler for waiting,
-- * if non-NULL.
-+ * if pwait->_qproc is non-NULL.
-  */
- static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
- {
-@@ -738,9 +736,7 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
- 		if (file != NULL) {
- 			mask = DEFAULT_POLLMASK;
- 			if (file->f_op && file->f_op->poll) {
--				if (pwait)
--					pwait->key = pollfd->events |
--							POLLERR | POLLHUP;
-+				pwait->_key = pollfd->events | POLLERR | POLLHUP;
- 				mask = file->f_op->poll(file, pwait);
- 			}
- 			/* Mask out unneeded events. */
-@@ -763,7 +759,7 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 
- 	/* Optimise the no-wait case */
- 	if (end_time && !end_time->tv_sec && !end_time->tv_nsec) {
--		pt = NULL;
-+		pt->_qproc = NULL;
- 		timed_out = 1;
- 	}
- 
-@@ -781,22 +777,22 @@ static int do_poll(unsigned int nfds,  struct poll_list *list,
- 			for (; pfd != pfd_end; pfd++) {
- 				/*
- 				 * Fish for events. If we found one, record it
--				 * and kill the poll_table, so we don't
-+				 * and kill poll_table->_qproc, so we don't
- 				 * needlessly register any other waiters after
- 				 * this. They'll get immediately deregistered
- 				 * when we break out and return.
- 				 */
- 				if (do_pollfd(pfd, pt)) {
- 					count++;
--					pt = NULL;
-+					pt->_qproc = NULL;
- 				}
- 			}
- 		}
- 		/*
- 		 * All waiters have already been registered, so don't provide
--		 * a poll_table to them on the next loop iteration.
-+		 * a poll_table->_qproc to them on the next loop iteration.
- 		 */
--		pt = NULL;
-+		pt->_qproc = NULL;
- 		if (!count) {
- 			count = wait->error;
- 			if (signal_pending(current))
-diff --git a/include/linux/poll.h b/include/linux/poll.h
-index cf40010..48fe8bc 100644
---- a/include/linux/poll.h
-+++ b/include/linux/poll.h
-@@ -32,21 +32,46 @@ struct poll_table_struct;
-  */
- typedef void (*poll_queue_proc)(struct file *, wait_queue_head_t *, struct poll_table_struct *);
- 
-+/*
-+ * Do not touch the structure directly, use the access functions
-+ * poll_does_not_wait() and poll_requested_events() instead.
-+ */
- typedef struct poll_table_struct {
--	poll_queue_proc qproc;
--	unsigned long key;
-+	poll_queue_proc _qproc;
-+	unsigned long _key;
- } poll_table;
- 
- static inline void poll_wait(struct file * filp, wait_queue_head_t * wait_address, poll_table *p)
- {
--	if (p && wait_address)
--		p->qproc(filp, wait_address, p);
-+	if (p && p->_qproc && wait_address)
-+		p->_qproc(filp, wait_address, p);
-+}
-+
-+/*
-+ * Return true if it is guaranteed that poll will not wait. This is the case
-+ * if the poll() of another file descriptor in the set got an event, so there
-+ * is no need for waiting.
-+ */
-+static inline bool poll_does_not_wait(const poll_table *p)
-+{
-+	return p == NULL || p->_qproc == NULL;
-+}
-+
-+/*
-+ * Return the set of events that the application wants to poll for.
-+ * This is useful for drivers that need to know whether a DMA transfer has
-+ * to be started implicitly on poll(). You typically only want to do that
-+ * if the application is actually polling for POLLIN and/or POLLOUT.
-+ */
-+static inline unsigned long poll_requested_events(const poll_table *p)
-+{
-+	return p ? p->_key : ~0UL;
- }
- 
- static inline void init_poll_funcptr(poll_table *pt, poll_queue_proc qproc)
- {
--	pt->qproc = qproc;
--	pt->key   = ~0UL; /* all events enabled */
-+	pt->_qproc = qproc;
-+	pt->_key   = ~0UL; /* all events enabled */
- }
- 
- struct poll_table_entry {
-diff --git a/include/net/sock.h b/include/net/sock.h
-index bb972d2..9f4f923 100644
---- a/include/net/sock.h
-+++ b/include/net/sock.h
-@@ -1824,7 +1824,7 @@ static inline bool wq_has_sleeper(struct socket_wq *wq)
- static inline void sock_poll_wait(struct file *filp,
- 		wait_queue_head_t *wait_address, poll_table *p)
- {
--	if (p && wait_address) {
-+	if (!poll_does_not_wait(p) && wait_address) {
- 		poll_wait(filp, wait_address, p);
- 		/*
- 		 * We need to be sure we are in sync with the
-diff --git a/net/unix/af_unix.c b/net/unix/af_unix.c
-index aad8fb6..8bc65ed 100644
---- a/net/unix/af_unix.c
-+++ b/net/unix/af_unix.c
-@@ -2186,7 +2186,7 @@ static unsigned int unix_dgram_poll(struct file *file, struct socket *sock,
- 	}
- 
- 	/* No write status requested, avoid expensive OUT tests. */
--	if (wait && !(wait->key & (POLLWRBAND | POLLWRNORM | POLLOUT)))
-+	if (!(poll_requested_events(wait) & (POLLWRBAND | POLLWRNORM | POLLOUT)))
- 		return mask;
- 
- 	writable = unix_writable(sk);
--- 
-1.7.8.3
+> 2. Non-videodata arrives through a separate buffer queue (and thus also
+> video node). The user may activate the link to second video node to activate
+> metadata capture.
+>
+> Then, how does the user decide which one to choose when the sensor driver
+> would be able to separate the two but the user might not want that? The user
 
+Things like these are normally done by setting required data format on video 
+nodes, aren't they ?
+
+And wouldn't link activation/deactivation be enough for the metadata part ?
+Some links/video nodes might just remain unused.
+
+> might also want to just not capture the metadata in the first place, even if
+> the sensor produced it.
+
+Perhaps, just properly interpreting VIDIOC_STREAMOFF/STREAMON on such video
+node would do ?
+
+> The same decision also affects the number of links from the receiver to
+> video nodes, as well as the number of video nodes: the media graph would
+> have to be dynamic rather than static. Dynamic graphs are not supported
+> currently either.
+> 
+> 
+> Multi-format image frames
+> =========================
+> 
+> This is actually another use case. I separated the further description from
+> the others since this topic could warrant an RFC on its own.
+> 
+> Some sensors are able to produce snapshots (downscaled versions of the same
+> frames) when capturing still photos. This kind of sensors are typically used
+> in conjunction with simple receivers without ISP.
+> 
+> How to control this feeature? The link between the sensor and the receiver
+> models both the physical connection and the properties of the images
+> produced at one end and consumed in the other.
+> 
+> With the above proposal, the snapshots could be provided to user space as
+> blobs, with sensor drivers providing private ioctl or two to control the
+> feature. How many such sensors do we currently have and how uniformly is the
+> snapshot feature implemented in them?
+
+There is one sensor I know of that produces downscaled version of still image
+in RAW (YUV) format - M-5MOLS. It's is called a post-view image. And this 
+feature is not supported currently in mainline. I expect one more sensor like
+that one in near future. Most likely ISPs inside Application Processors that
+run their own firmware will support something similar.
+
+> 
+> Questions and comments are the most welcome.
+
+--
+
+Regards,
+Sylwester
