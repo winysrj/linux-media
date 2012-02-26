@@ -1,57 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:9627 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752528Ab2BTJdq (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58435 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752696Ab2BZD1d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 Feb 2012 04:33:46 -0500
-Received: from euspt2 (mailout1.w1.samsung.com [210.118.77.11])
- by mailout1.w1.samsung.com
- (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14 2004))
- with ESMTP id <0LZO004T4QK7MF@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Feb 2012 09:33:43 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZO00K2XQK7UR@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 20 Feb 2012 09:33:43 +0000 (GMT)
-Date: Mon, 20 Feb 2012 10:33:33 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/3] m5mols: Make subdev name independent of the I2C slave
- address
-In-reply-to: <1329730414-7757-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 25 Feb 2012 22:27:33 -0500
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1329730414-7757-3-git-send-email-s.nawrocki@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1329730414-7757-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
+Subject: [PATCH 07/11] mt9m032: Put HFLIP and VFLIP controls in a cluster
+Date: Sun, 26 Feb 2012 04:27:33 +0100
+Message-Id: <1330226857-8651-8-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Initialize the subdev name properly so it doesn't have an I2C
-bus and slave address appended to it.
+HFLIP and VFLIP are often set together to rotate the image by 180°.
+Putting the controls in a cluster makes sure they will always be applied
+together, getting rid of a race condition that could result in one bad
+frame.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/video/m5mols/m5mols_core.c |    2 +-
- 1 files changed, 1 insertions(+), 1 deletions(-)
+ drivers/media/video/mt9m032.c |   43 +++++++++++++++++++---------------------
+ 1 files changed, 20 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/video/m5mols/m5mols_core.c b/drivers/media/video/m5mols/m5mols_core.c
-index 5e50c31..5f9722f 100644
---- a/drivers/media/video/m5mols/m5mols_core.c
-+++ b/drivers/media/video/m5mols/m5mols_core.c
-@@ -997,8 +997,8 @@ static int __devinit m5mols_probe(struct i2c_client *client,
- 	}
+diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
+index 726e3ca..7b458d9 100644
+--- a/drivers/media/video/mt9m032.c
++++ b/drivers/media/video/mt9m032.c
+@@ -107,7 +107,12 @@ struct mt9m032 {
+ 	struct v4l2_subdev subdev;
+ 	struct media_pad pad;
+ 	struct mt9m032_platform_data *pdata;
++
+ 	struct v4l2_ctrl_handler ctrls;
++	struct {
++		struct v4l2_ctrl *hflip;
++		struct v4l2_ctrl *vflip;
++	};
  
- 	sd = &info->sd;
--	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
- 	v4l2_i2c_subdev_init(sd, client, &m5mols_ops);
-+	strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
- 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	bool streaming;
  
- 	sd->internal_ops = &m5mols_subdev_internal_ops;
+@@ -116,8 +121,6 @@ struct mt9m032 {
+ 	struct v4l2_mbus_framefmt format;	/* height and width always the same as in crop */
+ 	struct v4l2_rect crop;
+ 	struct v4l2_fract frame_interval;
+-
+-	struct v4l2_ctrl *hflip, *vflip;
+ };
+ 
+ #define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
+@@ -498,23 +501,13 @@ static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool hflip)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+ 	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
+-		      | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
+-		      | MT9M032_READ_MODE2_ROW_BLC
+-		      | 0x0007;
++		    | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
++		    | MT9M032_READ_MODE2_ROW_BLC
++		    | 0x0007;
+ 
+ 	return mt9m032_write_reg(client, MT9M032_READ_MODE2, reg_val);
+ }
+ 
+-static int mt9m032_set_hflip(struct mt9m032 *sensor, s32 val)
+-{
+-	return update_read_mode2(sensor, sensor->vflip->cur.val, val);
+-}
+-
+-static int mt9m032_set_vflip(struct mt9m032 *sensor, s32 val)
+-{
+-	return update_read_mode2(sensor, val, sensor->hflip->cur.val);
+-}
+-
+ static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
+@@ -575,17 +568,17 @@ static int mt9m032_try_ctrl(struct v4l2_ctrl *ctrl)
+ 
+ static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
+ {
+-	struct mt9m032 *sensor = container_of(ctrl->handler, struct mt9m032, ctrls);
++	struct mt9m032 *sensor =
++		container_of(ctrl->handler, struct mt9m032, ctrls);
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_GAIN:
+ 		return mt9m032_set_gain(sensor, ctrl->val);
+ 
+ 	case V4L2_CID_HFLIP:
+-		return mt9m032_set_hflip(sensor, ctrl->val);
+-
+ 	case V4L2_CID_VFLIP:
+-		return mt9m032_set_vflip(sensor, ctrl->val);
++		return update_read_mode2(sensor, sensor->vflip->val,
++					 sensor->hflip->val);
+ 
+ 	case V4L2_CID_EXPOSURE:
+ 		return mt9m032_set_exposure(sensor, ctrl->val);
+@@ -694,10 +687,14 @@ static int mt9m032_probe(struct i2c_client *client,
+ 	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+ 			  V4L2_CID_GAIN, 0, 127, 1, 64);
+ 
+-	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+-			  V4L2_CID_HFLIP, 0, 1, 1, 0);
+-	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+-			  V4L2_CID_VFLIP, 0, 1, 1, 0);
++	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls,
++					  &mt9m032_ctrl_ops,
++					  V4L2_CID_HFLIP, 0, 1, 1, 0);
++	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls,
++					  &mt9m032_ctrl_ops,
++					  V4L2_CID_VFLIP, 0, 1, 1, 0);
++	v4l2_ctrl_cluster(2, &sensor->hflip);
++
+ 	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
+ 			  V4L2_CID_EXPOSURE, 0, 8000, 1, 1700);    /* 1.7ms */
+ 
 -- 
-1.7.9
+1.7.3.4
 
