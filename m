@@ -1,74 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:51782 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754068Ab2B0UB0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Feb 2012 15:01:26 -0500
-Received: by wejx9 with SMTP id x9so526796wej.19
-        for <linux-media@vger.kernel.org>; Mon, 27 Feb 2012 12:01:25 -0800 (PST)
-Message-ID: <4F4BE111.6090805@gmail.com>
-Date: Mon, 27 Feb 2012 21:01:21 +0100
-From: Sylwester Nawrocki <snjw23@gmail.com>
+Received: from smtp.nokia.com ([147.243.128.26]:42123 "EHLO mgw-da02.nokia.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753489Ab2B0M12 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Feb 2012 07:27:28 -0500
+Message-ID: <4F4B76A4.1070106@iki.fi>
+Date: Mon, 27 Feb 2012 14:27:16 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-To: Jean-Francois Moine <moinejf@free.fr>
-CC: linux-media@vger.kernel.org
-Subject: Re: [GIT PATCHES FOR 3.4] gspca for_v3.4
-References: <20120227130606.1f432e7b@tele>
-In-Reply-To: <20120227130606.1f432e7b@tele>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 06/33] v4l: Check pad number in get try pointer functions
+References: <20120220015605.GI7784@valkosipuli.localdomain> <13169127.hYcu4cXEAL@avalon> <4F45D562.9070705@iki.fi> <1369718.FBzRs8PirJ@avalon>
+In-Reply-To: <1369718.FBzRs8PirJ@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-François,
+Hi Laurent,
 
-On 02/27/2012 01:06 PM, Jean-Francois Moine wrote:
-> The following changes since commit a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e:
+Laurent Pinchart wrote:
+> Hi Sakari,
 > 
->    [media] xc5000: declare firmware configuration structures as static const (2012-02-14 17:22:46 -0200)
+> On Thursday 23 February 2012 07:57:54 Sakari Ailus wrote:
+>> Laurent Pinchart wrote:
+>>> On Monday 20 February 2012 03:56:45 Sakari Ailus wrote:
+>>>> Unify functions to get try pointers and validate the pad number accessed
+>>>> by
+>>>> the user.
+>>>>
+>>>> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+>>>> ---
+>>>>
+>>>>  include/media/v4l2-subdev.h |   31 ++++++++++++++-----------------
+>>>>  1 files changed, 14 insertions(+), 17 deletions(-)
+>>>>
+>>>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>>>> index bcaf6b8..d48dae5 100644
+>>>> --- a/include/media/v4l2-subdev.h
+>>>> +++ b/include/media/v4l2-subdev.h
+>>>> @@ -565,23 +565,20 @@ struct v4l2_subdev_fh {
+>>>>
+>>>>  	container_of(fh, struct v4l2_subdev_fh, vfh)
+>>>>  
+>>>>  #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
+>>>>
+>>>> -static inline struct v4l2_mbus_framefmt *
+>>>> -v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
+>>>> -{
+>>>> -	return &fh->pad[pad].try_fmt;
+>>>> -}
+>>>> -
+>>>> -static inline struct v4l2_rect *
+>>>> -v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
+>>>> -{
+>>>> -	return &fh->pad[pad].try_crop;
+>>>> -}
+>>>> -
+>>>> -static inline struct v4l2_rect *
+>>>> -v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
+>>>> -{
+>>>> -	return &fh->pad[pad].try_compose;
+>>>> -}
+>>>> +#define __V4L2_SUBDEV_MK_GET_TRY(rtype, fun_name, field_name)		\
+>>>> +	static inline struct rtype *					\
+>>>> +	v4l2_subdev_get_try_##fun_name(struct v4l2_subdev_fh *fh,	\
+>>>> +				       unsigned int pad)		\
+>>>> +	{								\
+>>>> +		if (unlikely(pad > vdev_to_v4l2_subdev(			\
+>>>> +				     fh->vfh.vdev->entity.num_pads)	\
+>>>> +			return NULL;					\
+>>>> +		return &fh->pad[pad].field_name;			\
+>>>> +	}
+>>>> +
+>>>> +__V4L2_SUBDEV_MK_GET_TRY(v4l2_mbus_framefmt, format, try_fmt)
+>>>> +__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, crop, try_compose)
+>>>> +__V4L2_SUBDEV_MK_GET_TRY(v4l2_rect, compose, try_compose)
+>>>>
+>>>>  #endif
+>>>>  
+>>>>  extern const struct v4l2_file_operations v4l2_subdev_fops;
+>>>
+>>> I'm not sure if this is a good idea. Drivers usually access the active and
+>>> try formats/rectangles through a single function that checks the which
+>>> argument and returns the active format/rectangle from the driver-specific
+>>> device structure, or calls v4l2_subdev_get_try_*. The pad number should
+>>> be checked for both active and try formats/rectangles, as both can result
+>>> in accessing a wrong memory location.
+>>>
+>>> Furthermore, only in-kernel access to the active/try formats/rectangles
+>>> need to be checked, as the pad argument to subdev ioctls are already
+>>> checked in v4l2-subdev.c. If your goal is to catch buggy kernel code
+>>> here, a BUG_ON might be more suitable (although accessing the NULL
+>>> pointer would result in an oops anyway).
+>>
+>> This was basically the reason for the memory corryption issue I had some
+>> time ago with the driver. The drivers (typically, I guess) need to
+>> access this data also to validate the following selection rectangles
+>> inside the subdev.
+>>
+>> The active rectangles are also driver's own property so it's the matter
+>> of driver to access them properly. In principle the same goes for the
+>> try rectangles, but the fact still is that this patch would have caught
+>> the bad accesses right at the time they were made. I feel it's just too
+>> easy to give the function a faulty pad number --- see the SMIA++ driver
+>> for an example.
+>>
+>> I'd prefer to keep this change, and also I'm fine with doing BUG()
+>> instead of returning NULL.
 > 
-> are available in the git repository at:
-> 
->    git://linuxtv.org/jfrancois/gspca.git for_v3.4
-> 
-> for you to fetch changes up to 1b9ace2d5769c1676c96a6dc70ea84d2dea17140:
-> 
->    gspca - zc3xx: Set the exposure at start of hv7131r (2012-02-27 12:49:49 +0100)
-> 
-> ----------------------------------------------------------------
-> Jean-François Moine (13):
->        gspca - pac7302: Add new webcam 06f8:301b
->        gspca - pac7302: Cleanup source
->        gspca - pac7302: Simplify the function pkt_scan
->        gspca - pac7302: Use the new video control mechanism
->        gspca - pac7302: Do autogain setting work
->        gspca - sonixj: Remove the jpeg control
->        gspca - sonixj: Add exposure, gain and auto exposure for po2030n
->        gspca - zc3xx: Adjust the JPEG decompression tables
+> I think I would prefer a BUG() as well. I'm OK with keeping the check. If 
+> drivers were bug-free this wouldn't be needed at all of course :-)
 
-This patch will conflict with patch:
+Changed to BUG_ON() in the next revision.
 
- gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
-
-from my recent pull request http://patchwork.linuxtv.org/patch/10022/
-
-How should we proceed with that ? Do you want me to remove the above patch 
-from my pull request, or would you rebase your change set on top of mine ?
-
---
-Best regards,
-Sylwester
-
->        gspca - zc3xx: Do automatic transfer control for hv7131r and pas202b
->        gspca - zc3xx: Remove the low level traces
->        gspca - zc3xx: Cleanup source
->        gspca - zc3xx: Fix bad sensor values when changing autogain
->        gspca - zc3xx: Set the exposure at start of hv7131r
-> 
->   Documentation/video4linux/gspca.txt |    1 +
->   drivers/media/video/gspca/pac7302.c |  583 ++++++++++-------------------------
->   drivers/media/video/gspca/sonixj.c  |  185 +++++++++---
->   drivers/media/video/gspca/zc3xx.c   |  295 ++++++++++++------
->   4 files changed, 511 insertions(+), 553 deletions(-)
-> 
-
+-- 
+Sakari Ailus
+sakari.ailus@iki.fi
