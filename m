@@ -1,54 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:43155 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752000Ab2BMNwH (ORCPT
+Received: from smtp1-g21.free.fr ([212.27.42.1]:48995 "EHLO smtp1-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752766Ab2B0MEo convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 Feb 2012 08:52:07 -0500
-Received: by werb13 with SMTP id b13so3480160wer.19
-        for <linux-media@vger.kernel.org>; Mon, 13 Feb 2012 05:52:06 -0800 (PST)
-MIME-Version: 1.0
-From: Javier Martin <javier.martin@vista-silicon.com>
+	Mon, 27 Feb 2012 07:04:44 -0500
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 59E72940182
+	for <linux-media@vger.kernel.org>; Mon, 27 Feb 2012 13:04:35 +0100 (CET)
+Date: Mon, 27 Feb 2012 13:06:06 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, mchehab@infradead.org,
-	s.hauer@pengutronix.de,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 1/6] media: i.MX27 camera: Remove goto from mx2_videobuf_queue().
-Date: Mon, 13 Feb 2012 14:51:50 +0100
-Message-Id: <1329141115-23133-2-git-send-email-javier.martin@vista-silicon.com>
-In-Reply-To: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
-References: <1329141115-23133-1-git-send-email-javier.martin@vista-silicon.com>
+Subject: [GIT PATCHES FOR 3.4] gspca for_v3.4
+Message-ID: <20120227130606.1f432e7b@tele>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The following changes since commit a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e:
 
-Signed-off-by: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/video/mx2_camera.c |    5 +----
- 1 files changed, 1 insertions(+), 4 deletions(-)
+  [media] xc5000: declare firmware configuration structures as static const (2012-02-14 17:22:46 -0200)
 
-diff --git a/drivers/media/video/mx2_camera.c b/drivers/media/video/mx2_camera.c
-index e70d26f..1f046a3 100644
---- a/drivers/media/video/mx2_camera.c
-+++ b/drivers/media/video/mx2_camera.c
-@@ -580,9 +580,7 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 	buf->state = MX2_STATE_QUEUED;
- 	list_add_tail(&buf->queue, &pcdev->capture);
- 
--	if (mx27_camera_emma(pcdev)) {
--		goto out;
--	} else { /* cpu_is_mx25() */
-+	if (cpu_is_mx25()) {
- 		u32 csicr3, dma_inten = 0;
- 
- 		if (pcdev->fb1_active == NULL) {
-@@ -618,7 +616,6 @@ static void mx2_videobuf_queue(struct vb2_buffer *vb)
- 		}
- 	}
- 
--out:
- 	spin_unlock_irqrestore(&pcdev->lock, flags);
- }
- 
+are available in the git repository at:
+
+  git://linuxtv.org/jfrancois/gspca.git for_v3.4
+
+for you to fetch changes up to 1b9ace2d5769c1676c96a6dc70ea84d2dea17140:
+
+  gspca - zc3xx: Set the exposure at start of hv7131r (2012-02-27 12:49:49 +0100)
+
+----------------------------------------------------------------
+Jean-François Moine (13):
+      gspca - pac7302: Add new webcam 06f8:301b
+      gspca - pac7302: Cleanup source
+      gspca - pac7302: Simplify the function pkt_scan
+      gspca - pac7302: Use the new video control mechanism
+      gspca - pac7302: Do autogain setting work
+      gspca - sonixj: Remove the jpeg control
+      gspca - sonixj: Add exposure, gain and auto exposure for po2030n
+      gspca - zc3xx: Adjust the JPEG decompression tables
+      gspca - zc3xx: Do automatic transfer control for hv7131r and pas202b
+      gspca - zc3xx: Remove the low level traces
+      gspca - zc3xx: Cleanup source
+      gspca - zc3xx: Fix bad sensor values when changing autogain
+      gspca - zc3xx: Set the exposure at start of hv7131r
+
+ Documentation/video4linux/gspca.txt |    1 +
+ drivers/media/video/gspca/pac7302.c |  583 ++++++++++-------------------------
+ drivers/media/video/gspca/sonixj.c  |  185 +++++++++---
+ drivers/media/video/gspca/zc3xx.c   |  295 ++++++++++++------
+ 4 files changed, 511 insertions(+), 553 deletions(-)
+
 -- 
-1.7.0.4
-
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
