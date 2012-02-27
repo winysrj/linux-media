@@ -1,202 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:46661 "EHLO
-	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S965548Ab2B1Pmf convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 10:42:35 -0500
-Received: by mail-qy0-f181.google.com with SMTP id d17so2112934qcs.12
-        for <linux-media@vger.kernel.org>; Tue, 28 Feb 2012 07:42:34 -0800 (PST)
+Received: from mail-ee0-f46.google.com ([74.125.83.46]:64866 "EHLO
+	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755597Ab2B0VZb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Feb 2012 16:25:31 -0500
+Received: by eekc41 with SMTP id c41so934625eek.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Feb 2012 13:25:30 -0800 (PST)
+Message-ID: <4F4BF4C1.2050803@gmail.com>
+Date: Mon, 27 Feb 2012 22:25:21 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAH9_wRPu0X29oTcQvFHZou2B9ZTBT74kFbRWBJY2b6x4ftYzEg@mail.gmail.com>
-References: <CAH9_wRN5=nHtB9M3dL4wvZGL3+mb4_TfS=uPun_13D7n0E3CKA@mail.gmail.com>
- <CAKnK67T=obVTWkzZqVtv+PninjkbLp1os5AnsoZ+j=NGFFMWLA@mail.gmail.com>
- <CAH9_wRNGERctBxYT5NNEHOhuzWZYF2yKxG4BA6pzPzBWPy8_3Q@mail.gmail.com>
- <CAH9_wRN9bA8JTViBA6sWk9aVOU1Pbr5bPFvNh2MCsGUVjnr9qg@mail.gmail.com>
- <CAKnK67Qk6pJ1LQBsi_V3OfadzEXHV8RnaOOxT3MK7Hu4zsk9dg@mail.gmail.com> <CAH9_wRPu0X29oTcQvFHZou2B9ZTBT74kFbRWBJY2b6x4ftYzEg@mail.gmail.com>
-From: "Aguirre, Sergio" <saaguirre@ti.com>
-Date: Tue, 28 Feb 2012 09:42:14 -0600
-Message-ID: <CAKnK67TPGB8+HHUW9Ppk8XkLOrXTsYP9TmLmpsdUX-JxmeDNVA@mail.gmail.com>
-Subject: Re: Video Capture Issue
-To: Sriram V <vshrirama@gmail.com>
-Cc: linux-media@vger.kernel.org
+To: Sakari Ailus <sakari.ailus@iki.fi>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, m.szyprowski@samsung.com,
+	riverful.kim@samsung.com, sw0312.kim@samsung.com,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC/PATCH 1/6] V4L: Add V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 media
+ bus format
+References: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com> <1329416639-19454-2-git-send-email-s.nawrocki@samsung.com> <20120216194615.GF7784@valkosipuli.localdomain> <4F3E6395.4070208@samsung.com> <20120217181501.GH7784@valkosipuli.localdomain> <4F3FC914.9060702@gmail.com> <4F4AB167.7020906@iki.fi>
+In-Reply-To: <4F4AB167.7020906@iki.fi>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sriram,
+Hi Sakari,
 
-On Tue, Feb 28, 2012 at 8:46 AM, Sriram V <vshrirama@gmail.com> wrote:
-> Hi Aguirre Sergio,
->
-> On Tue, Feb 28, 2012 at 9:08 AM, Aguirre, Sergio <saaguirre@ti.com> wrote:
->> Sriram,
+On 02/26/2012 11:25 PM, Sakari Ailus wrote:
+>>> I think we could use the framesize control to tell the size of the frame, or
+>>> however it is done for jpeg blobs.
 >>
->> On Sun, Feb 26, 2012 at 8:54 AM, Sriram V <vshrirama@gmail.com> wrote:
->>> Hi,
->>>  When I take the dump of the buffer which is pointed by "DATA MEM
->>> PING ADDRESS". It always shows 0x55.
->>>  Even if i write 0x00 to the address. I do notice that it quickly
->>> changes to 0x55.
->>>  Under what conditions could this happen? What am i missing here.
->>
->> If you're using "yavta" for capture, notice that it clears out the
->> buffers before queuing them in:
->>
->> static int video_queue_buffer(struct device *dev, int index, enum
->> buffer_fill_mode fill)
->> {
->>        struct v4l2_buffer buf;
->>        int ret;
->>
->>        ...
->>        ...
->>        if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
->>                ...
->>        } else {
->>                if (fill & BUFFER_FILL_FRAME)
->>                        memset(dev->buffers[buf.index].mem, 0x55, dev->buffers[index].size);
->>                if (fill & BUFFER_FILL_PADDING)
->>                        memset(dev->buffers[buf.index].mem + dev->buffers[index].size,
->>                               0x55, dev->buffers[index].padding);
->>        }
->>        ...
->> }
->>
->> So, just make sure this condition is not met.
->>
->>>
->
-> Unfortunately, this condition is met.  For some reason, ISS thinks
-> it has got valid frame. Whereas the Image data is not populated into
-> the buffers.
-> The register CSI2_CTX_CTRL1_i[COUNT] keeps getting toggled between 0 and 1
-> indicating a frame arrival.
->
-> I also notice that on some frames, The first 0x200 bytes contains data
-> other than 0x55
-> and the rest are 0x55.
->
-> Probably this could be related to resolution settings or hsync and
-> vsync settings.
-> Probably, my chip configuration is faulty.
+>> Yes, we could add a standard framesize control to the Image Source class but it
+>> will solve only part of the problem. Nevertheless it might be worth to have it.
+>> It could be used by applications to configure subdevs directly, while the host
+>> drivers could use e.g. s/g_frame_config op for that.
+> 
+> (I think we could continue this discussion in the context of the RFC.)
 
-Hmm, sounds like it.
+Sure, let's continue in your RFC thread.
 
-Can you try adding this to the top of the file?
+>>> The issue I see in the pass-through mode is that the user would have no
+>>> information whatsoever what he's getting. This would be perhaps fixed by
+>>> adding the frame format descriptor: it could contain information how to
+>>> handle the data. (Just thinking out loud. :))
+>>
+>> Do you mean a user space application by "user" ?
+> 
+> Yeah.
+> 
+>> I'd like to clearly separate blob media bus pixel codes and hardware-specific
+>> blob fourccs. If we don't want to change fundamental assumptions of V4L2
+>> we likely need separate fourccs for each weird format.
+>>
+>> I can imagine "pass-through" media bus pixel code but a transparent fourcc
+>> sounds like a higher abstraction. :)
+> 
+> I agree... how about this:
+> 
+> We currently provide the information on the media bus pixel code to the
+> CSI-2 receivers but most of the time it's not necessary for them to know
+> what the pixel code exactly is: it doesn't do anything with the data but
+> writes it to memory. Bits uncompressed, compressed and the compression
+> method are enough --- if uncompression is desired. Even pixel order
+> isn't always needed.
 
-#define DEBUG
+I don't think so. For all image formats defined by MIPI-CSI2 standard a pixel 
+code is necessary. Sample compression or bit expansion is most of the time 
+related to a specific image format. A MIPI-CSI2 receiver must know an exact 
+image format, otherwise it won't be able to decode data from the low level 
+protocol.
 
-So that the dev_dbg() prints get executed?
+> What might make sense is to provide generic table with pixel code
+> related information, such as bits compressed and uncompressed, pixel
+> order, compression method and default 4CC.
 
-I'm curious to see if you detect any ComplexIO errors on omap4iss_csi2_isr()...
+This doesn't look like an improvement to me, most of these information we 
+now have in single 4-byte media bus pixel code. Do you want the drivers 
+to search such tables by comparing all those parameters ?
 
->
->>>  I do notice that the OMAP4 ISS is tested to work with OV5640 (YUV422
->>> Frames) and OV5650 (Raw Data)
->>>  When you say 422 Frames only. Do you mean 422-8Bit Mode?.
->>
->> Yes. When saving YUV422 to memory, you can only use this mode AFAIK.
->>
->>>
->>>  I havent tried RAW12 which my device gives, Do i have to update only
->>> the Data Format Selection register
->>>  of the ISS  for RAW12?
->>
->> Ok, now it makes sense.
->>
->> So, if your CSI2 source is giving, you need to make sure:
->>
->> CSI2_CTX_CTRL2_0.FORMAT[9:0] is:
->>
->> - 0xAC: RAW12 + EXP16
->> or
->> - 0x2C: RAW12
->>
->> The difference is that the EXP16 variant, will save to memory in
->> expansion to 2 bytes, instead of 12 bits, so it'll be byte aligned.
->>
->> Can you try attached patch?
->
-> With RAW12 configuration, I dont see any interrupts at all.
+> Custom formats would only be present in this table without individual
+> CSI-2 receiver drivers having to know about them. Same goes with 4CC's.
 
-Ok,
+Media bus/fourcc translation tables will always be driver-specific. There 
+have already been discussions about centralizing such tables IIRC. All you
+can have is probably just some default ("statistical") fourcc, which is really
+useful for nothing. 
 
-Then this means your CSI2 transmitter (sensor) is actually sending
-YUV422, and not RAW12.
+Having a bunch of parameters for each custom format could be useful probably
+only if we've dropped an assumption that each hardware specific data format 
+gets it's own fourcc, and have exposed those parameters to the user space.
 
-Nevermind that patch then...
+The multi-planar formats complicate things further. Now the fourcc determines
+whether a v4l2 buffer is has more than one data plane.
+
+--
 
 Regards,
-Sergio
->
->
->>
->> Regards,
->> Sergio
->>
->>>
->>>  Please advice.
->>>
->>>
->>> On Thu, Feb 23, 2012 at 11:24 PM, Sriram V <vshrirama@gmail.com> wrote:
->>>> Hi,
->>>>  1) An Hexdump of the captured file shows 0x55 at all locations.
->>>>      Is there any buffer location i need to check.
->>>>  2) I have tried with  "devel" branch.
->>>>  3) Changing the polarities doesnt help either.
->>>>  4) The sensor is giving out YUV422 8Bit Mode,
->>>>      Will 0x52001074 = 0x0A00001E (UYVY Format)  it bypass the ISP
->>>>       and dump directly into memory.
->>>>
->>>> On 2/23/12, Aguirre, Sergio <saaguirre@ti.com> wrote:
->>>>> Hi Sriram,
->>>>>
->>>>> On Thu, Feb 23, 2012 at 11:25 AM, Sriram V <vshrirama@gmail.com> wrote:
->>>>>> Hi,
->>>>>>  1) I am trying to get a HDMI to CSI Bridge chip working with OMAP4 ISS.
->>>>>>      The issue is the captured frames are completely green in color.
->>>>>
->>>>> Sounds like the buffer is all zeroes, can you confirm?
->>>>>
->>>>>>  2) The Chip is configured to output VGA Color bar sequence with
->>>>>> YUV422-8Bit and
->>>>>>       uses datalane 0 only.
->>>>>>  3) The Format on OMAP4 ISS  is UYVY (Register 0x52001074 = 0x0A00001E)
->>>>>>  I am trying to directly dump the data into memory without ISP processing.
->>>>>>
->>>>>>
->>>>>>  Please advice.
->>>>>
->>>>> Just to be clear on your environment, which branch/commitID are you based
->>>>> on?
->>>>>
->>>>> Regards,
->>>>> Sergio
->>>>>
->>>>>>
->>>>>> --
->>>>>> Regards,
->>>>>> Sriram
->>>>>> --
->>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>>>>> the body of a message to majordomo@vger.kernel.org
->>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>>>>
->>>>
->>>>
->>>> --
->>>> Regards,
->>>> Sriram
->>>
->>>
->>>
->>> --
->>> Regards,
->>> Sriram
->
->
->
-> --
-> Regards,
-> Sriram
+Sylwester
