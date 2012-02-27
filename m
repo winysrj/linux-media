@@ -1,80 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:16545 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754891Ab2BJLf7 (ORCPT
+Received: from smtp-68.nebula.fi ([83.145.220.68]:59239 "EHLO
+	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753250Ab2B0A5w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 06:35:59 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt1 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LZ6003PHDJXZ140@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Feb 2012 11:35:57 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZ600CWSDJXQ8@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 Feb 2012 11:35:57 +0000 (GMT)
-Date: Fri, 10 Feb 2012 12:35:56 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [Q] Interleaved formats on the media bus
-In-reply-to: <Pine.LNX.4.64.1202101202090.5787@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <snjw23@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"HeungJun Kim/Mobile S/W Platform Lab(DMC)/E3"
-	<riverful.kim@samsung.com>,
-	"Seung-Woo Kim/Mobile S/W Platform Lab(DMC)/E4"
-	<sw0312.kim@samsung.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Message-id: <4F35011C.8030701@samsung.com>
-References: <4F27CF29.5090905@samsung.com> <4116034.kVC1fDZsLk@avalon>
- <4F32FBBB.7020007@gmail.com> <12779203.vQPWKN8eZf@avalon>
- <Pine.LNX.4.64.1202100934070.5787@axis700.grange>
- <4F34EF3E.2090004@samsung.com>
- <Pine.LNX.4.64.1202101131280.5787@axis700.grange>
- <4F34F83F.4060703@samsung.com>
- <Pine.LNX.4.64.1202101202090.5787@axis700.grange>
+	Sun, 26 Feb 2012 19:57:52 -0500
+Date: Mon, 27 Feb 2012 02:57:47 +0200
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, hverkuil@xs4all.nl,
+	teturtia@gmail.com, dacohen@gmail.com, snjw23@gmail.com,
+	andriy.shevchenko@linux.intel.com, t.stanislaws@samsung.com,
+	tuukkat76@gmail.com, k.debski@gmail.com, riverful@gmail.com
+Subject: Re: [PATCH v3 04/33] v4l: VIDIOC_SUBDEV_S_SELECTION and
+ VIDIOC_SUBDEV_G_SELECTION IOCTLs
+Message-ID: <20120227005747.GI12602@valkosipuli.localdomain>
+References: <20120220015605.GI7784@valkosipuli.localdomain>
+ <1429308.tLqNDhgYvj@avalon>
+ <4F45D633.7080008@iki.fi>
+ <1411719.Jn3cQENcA7@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1411719.Jn3cQENcA7@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02/10/2012 12:15 PM, Guennadi Liakhovetski wrote:
->>>> On 02/10/2012 09:42 AM, Guennadi Liakhovetski wrote:
->>>>> ...thinking about this interleaved data, is there anything else left, that 
->>>>> the following scheme would be failing to describe:
->>>>>
->>>>> * The data is sent in repeated blocks (periods)
->>>>
->>>> The data is sent in irregular chunks of varying size (few hundred of bytes
->>>> for example).
->>>
->>> Right, the data includes headers. How about sensors providing 
->>> header-parsing callbacks?
->>
->> This implies processing of headers/footers in kernel space to some generic 
->> format. It might work, but sometimes there might be an unwanted performance 
->> loss. However I wouldn't expect it to be that significant, depends on how 
->> the format of an embedded data from the sensor looks like. Processing 4KiB
->> of data could be acceptable.
+Hi Laurent,
+
+On Mon, Feb 27, 2012 at 01:22:34AM +0100, Laurent Pinchart wrote:
+> Hi Sakari,
 > 
-> In principle I agree - (ideally) no processing in the kernel _at all_. 
-> Just pass the complete frame data as is to the user-space. But if we need 
-> any internal knowledge at all about the data, maybe callbacks would be a 
-> better option, than trying to develop a generic descriptor. Perhaps, 
-> something like "get me the location of n'th block of data of format X."
+> On Thursday 23 February 2012 08:01:23 Sakari Ailus wrote:
+> > Laurent Pinchart wrote:
+> > > [snip]
+> > > 
+> > >> +/* active cropping area */
+> > >> +#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0x0000
+> > >> +/* cropping bounds */
+> > >> +#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			0x0002
+> > >> +/* current composing area */
+> > >> +#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		0x0100
+> > >> +/* composing bounds */
+> > > 
+> > > I'm not sure if ACTIVE is a good name here. It sounds confusing as we
+> > > already have V4L2_SUBDEV_FORMAT_ACTIVE.
+> > 
+> > We are using V4L2_SEL_TGT_COMPOSE_ACTIVE on V4L2 nodes already --- the
+> > name I'm using here just mirrors the naming on V4L2 device nodes. If I
+> > choose a different name here, some of that analogy is lost.
+> > 
+> > That said, I'm not against changing this but the equivalent change
+> > should then be made on V4L2 selection API for consistency.
+> 
+> I'm not against changing the V4L2 selection API either :-) Just think about 
+> developers talking about "try crop active" or "active crop bounds". Even 
+> worse, will "active crop" refer to the active target or the active "which" ? 
+> That will be very confusing.
 
-Hmm, I thought about only processing frame embedded data to some generic
-format. I find the callbacks for extracting the data in the kernel 
-impractical, with full HD video stream you may want to use some sort of
-hardware accelerated processing, like using NEON for example. We can 
-allow this only by leaving the deinterleave process to the user space.
+I think I understand your concern. An easy solution would be to rename
+active targets to something else, but what would that be exactly?
 
-> Notice, this does not (necessarily) have anything to do with the previous 
-> discussion, concerning the way, how the CSI receiver should be getting its 
-> configuration.
+Also I can't currently think non-active rectangles would have use with which
+== try as they're not (typically) changeable. I guess this doesn't matter in
+resolving the issue.
 
---
+Current?
+Effective?
+Real?
+Brisk?
 
-Regards,
-Sylwester
+Cheers,
+
+-- 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
