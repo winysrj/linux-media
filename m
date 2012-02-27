@@ -1,69 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:42013 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752903Ab2BAJBV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 Feb 2012 04:01:21 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: text/plain; charset=ISO-8859-1
-Received: from euspt1 ([210.118.77.13]) by mailout3.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LYP001TYIE7XU20@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 01 Feb 2012 09:01:19 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt1.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LYP00M2NIE6Q0@spt1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 01 Feb 2012 09:01:19 +0000 (GMT)
-Date: Wed, 01 Feb 2012 10:01:18 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH v3] [media] s5p-g2d: Add HFLIP and VFLIP support
-In-reply-to: <1328072989-12498-1-git-send-email-sachin.kamat@linaro.org>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org,
-	kyungmin.park@samsung.com, k.debski@samsung.com, patches@linaro.org
-Message-id: <4F28FF5E.30407@samsung.com>
-References: <1328072989-12498-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mailout-de.gmx.net ([213.165.64.22]:34503 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754395Ab2B0UmY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Feb 2012 15:42:24 -0500
+Message-ID: <4F4BEAAB.3000603@gmx.de>
+Date: Mon, 27 Feb 2012 21:42:19 +0100
+From: Andreas Regel <andreas.regel@gmx.de>
+MIME-Version: 1.0
+To: abraham.manu@gmail.com
+CC: linux-media@vger.kernel.org
+Subject: [PATCH 1/3] stv090x: Fix typo in register macros
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Fix typo in register macros of ERRCNT2.
 
-On 02/01/2012 06:09 AM, Sachin Kamat wrote:
-> @@ -200,11 +206,7 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
->  {
->  	struct g2d_dev *dev = ctx->dev;
->  
-> -	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 1);
-> -	if (ctx->ctrl_handler.error) {
-> -		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
-> -		return ctx->ctrl_handler.error;
-> -	}
-> +	v4l2_ctrl_handler_init(&ctx->ctrl_handler, 3);
->  
->  	v4l2_ctrl_new_std_menu(
->  		&ctx->ctrl_handler,
-> @@ -214,11 +216,20 @@ int g2d_setup_ctrls(struct g2d_ctx *ctx)
->  		~((1 << V4L2_COLORFX_NONE) | (1 << V4L2_COLORFX_NEGATIVE)),
->  		V4L2_COLORFX_NONE);
->  
-> +
-> +	ctx->ctrl_hflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
-> +						V4L2_CID_HFLIP, 0, 1, 1, 0);
-> +
-> +	ctx->ctrl_vflip = v4l2_ctrl_new_std(&ctx->ctrl_handler, &g2d_ctrl_ops,
-> +						V4L2_CID_VFLIP, 0, 1, 1, 0);
-> +
->  	if (ctx->ctrl_handler.error) {
->  		v4l2_err(&dev->v4l2_dev, "v4l2_ctrl_handler_init failed\n");
+Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
+---
+  drivers/media/dvb/frontends/stv090x.c     |    2 +-
+  drivers/media/dvb/frontends/stv090x_reg.h |    4 ++--
+  2 files changed, 3 insertions(+), 3 deletions(-)
 
-It's not only v4l2_ctrl_handler_init() that might have failed at this point,
-therefore you need to also call v4l2_ctrl_handler_free() here. There is an
-example of that in Documentation/v4l2-controls.txt.
+diff --git a/drivers/media/dvb/frontends/stv090x.c 
+b/drivers/media/dvb/frontends/stv090x.c
+index 4aef187..6c3c095 100644
+--- a/drivers/media/dvb/frontends/stv090x.c
++++ b/drivers/media/dvb/frontends/stv090x.c
+@@ -3526,7 +3526,7 @@ static int stv090x_read_per(struct dvb_frontend 
+*fe, u32 *per)
+  	} else {
+  		/* Counter 2 */
+  		reg = STV090x_READ_DEMOD(state, ERRCNT22);
+-		h = STV090x_GETFIELD_Px(reg, ERR_CNT2_FIELD);
++		h = STV090x_GETFIELD_Px(reg, ERR_CNT22_FIELD);
+   		reg = STV090x_READ_DEMOD(state, ERRCNT21);
+  		m = STV090x_GETFIELD_Px(reg, ERR_CNT21_FIELD);
+diff --git a/drivers/media/dvb/frontends/stv090x_reg.h 
+b/drivers/media/dvb/frontends/stv090x_reg.h
+index 93741ee..26c8885 100644
+--- a/drivers/media/dvb/frontends/stv090x_reg.h
++++ b/drivers/media/dvb/frontends/stv090x_reg.h
+@@ -2232,8 +2232,8 @@
+  #define STV090x_P2_ERRCNT22				STV090x_Px_ERRCNT22(2)
+  #define STV090x_OFFST_Px_ERRCNT2_OLDVALUE_FIELD		7
+  #define STV090x_WIDTH_Px_ERRCNT2_OLDVALUE_FIELD		1
+-#define STV090x_OFFST_Px_ERR_CNT2_FIELD			0
+-#define STV090x_WIDTH_Px_ERR_CNT2_FIELD			7
++#define STV090x_OFFST_Px_ERR_CNT22_FIELD		0
++#define STV090x_WIDTH_Px_ERR_CNT22_FIELD		7
+   #define STV090x_Px_ERRCNT21(__x)			(0xF59E - (__x - 1) * 0x200)
+  #define STV090x_P1_ERRCNT21				STV090x_Px_ERRCNT21(1)
+-- 
+1.7.2.5
 
->  		return ctx->ctrl_handler.error;
->  	}
-
---
-
-Thanks,
-Sylwester
