@@ -1,110 +1,159 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48684 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753311Ab2BZXmZ (ORCPT
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:55665 "EHLO
+	mail.atlantis.sk" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1753559Ab2B0SMr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 Feb 2012 18:42:25 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Chris Whittenburg <whittenburg@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: OMAP CCDC with sensors that are always on...
-Date: Mon, 27 Feb 2012 00:42:31 +0100
-Message-ID: <6307239.U344RCScuO@avalon>
-In-Reply-To: <4F4AC1B2.1000607@iki.fi>
-References: <CABcw_OmQEV2K0Hgvnh7xtCNQUmf5pa4ftZJwRFdkM68Hftp=Rg@mail.gmail.com> <4984891.IGZ3Td2Zlk@avalon> <4F4AC1B2.1000607@iki.fi>
+	Mon, 27 Feb 2012 13:12:47 -0500
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] tea575x: fix HW seek
+Date: Mon, 27 Feb 2012 19:11:58 +0100
+Cc: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+References: <201202181745.49819.linux@rainbow-software.org> <201202262202.55787.linux@rainbow-software.org> <201202270942.40162.hverkuil@xs4all.nl>
+In-Reply-To: <201202270942.40162.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201202271912.08152.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On Monday 27 February 2012 09:42:40 Hans Verkuil wrote:
+> On Sunday, February 26, 2012 22:02:51 Ondrej Zary wrote:
+> > On Friday 24 February 2012 10:00:01 Hans Verkuil wrote:
+> > > On Wednesday, February 22, 2012 09:35:28 Ondrej Zary wrote:
+> > > > On Tuesday 21 February 2012, Hans Verkuil wrote:
+> > > > > On Saturday, February 18, 2012 17:45:45 Ondrej Zary wrote:
+> > > > > > Fix HW seek in TEA575x to work properly:
+> > > > > >  - a delay must be present after search start and before first
+> > > > > > register read or the seek does weird things
+> > > > > >  - when the search stops, the new frequency is not available
+> > > > > > immediately, we must wait until it appears in the register
+> > > > > > (fortunately, we can clear the frequency bits when starting the
+> > > > > > search as it starts at the frequency currently set, not from the
+> > > > > > value written)
+> > > > > >  - sometimes, seek remains on the current frequency (or moves
+> > > > > > only a little), so repeat it until it moves by at least 50 kHz
+> > > > > >
+> > > > > > Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> > > > > >
+> > > > > > --- a/sound/i2c/other/tea575x-tuner.c
+> > > > > > +++ b/sound/i2c/other/tea575x-tuner.c
+> > > > > > @@ -89,7 +89,7 @@ static void snd_tea575x_write(struct
+> > > > > > snd_tea575x *tea, unsigned int val) tea->ops->set_pins(tea, 0);
+> > > > > >  }
+> > > > > >
+> > > > > > -static unsigned int snd_tea575x_read(struct snd_tea575x *tea)
+> > > > > > +static u32 snd_tea575x_read(struct snd_tea575x *tea)
+> > > > > >  {
+> > > > > >  	u16 l, rdata;
+> > > > > >  	u32 data = 0;
+> > > > > > @@ -120,6 +120,27 @@ static unsigned int snd_tea575x_read(struct
+> > > > > > snd_tea575x *tea) return data;
+> > > > > >  }
+> > > > > >
+> > > > > > +static void snd_tea575x_get_freq(struct snd_tea575x *tea)
+> > > > > > +{
+> > > > > > +	u32 freq = snd_tea575x_read(tea) & TEA575X_BIT_FREQ_MASK;
+> > > > > > +
+> > > > > > +	if (freq == 0) {
+> > > > > > +		tea->freq = 0;
+> > > > >
+> > > > > Wouldn't it be better to return -EBUSY in this case?
+> > > > > VIDIOC_G_FREQUENCY should not return frequencies outside the valid
+> > > > > frequency range. In this case returning -EBUSY seems to make more
+> > > > > sense to me.
+> > > >
+> > > > The device returns zero frequency when the scan fails to find a
+> > > > frequency. This is not an error, just an indication that "nothing" is
+> > > > tuned. So maybe we can return some bogus frequency in
+> > > > vidioc_g_frequency (like FREQ_LO) in this case (don't know if -EBUSY
+> > > > will break anything). But HW seek should get the real one (i.e. zero
+> > > > when it's there).
+> > >
+> > > How about the following patch? vidioc_g_frequency just returns the last
+> > > set frequency and the hw_seek restores the original frequency if it
+> > > can't find another channel.
+> >
+> > Seems to work. That's probably the right thing to do.
+> >
+> > > Also note that the check for < 50 kHz in hw_seek actually checked for <
+> > > 500 kHz. I've fixed that, but I can't test it.
+> >
+> > Thanks. It finds more stations now. To improve reliability, an additional
+> > check should be added - the seek sometimes stop at the same station, just
+> > a bit more than 50kHz of the original frequency, often in wrong
+> > direction. Something like this:
+> >
+> > --- a/sound/i2c/other/tea575x-tuner.c
+> > +++ b/sound/i2c/other/tea575x-tuner.c
+> > @@ -280,8 +280,13 @@ static int vidioc_s_hw_freq_seek(struct file *file,
+> > void *fh,
+> >                         }
+> >                         if (freq == 0) /* shouldn't happen */
+> >                                 break;
+> > -                       /* if we moved by less than 50 kHz, continue
+> > seeking */
+> > -                       if (abs(tea->freq - freq) < 16 * 50) {
+> > +                       /*
+> > +                        * if we moved by less than 50 kHz, or in the
+> > wrong +                        * direction, continue seeking
+> > +                        */
+> > +                       if (abs(tea->freq - freq) < 16 * 50 ||
+> > +                           (a->seek_upward && freq < tea->freq) ||
+> > +                           (!a->seek_upward && freq > tea->freq)) {
+> >                                 snd_tea575x_write(tea, tea->val);
+> >                                 continue;
+> >                         }
+>
+> Added to the patch series.
+>
+> > > Do you also know what happens at the boundaries of the frequency range?
+> > > Does it wrap around, or do you get a timeout?
+> >
+> > No wraparound, it times out so the original frequency is restored. I
+> > wonder if -ETIMEDOUT is correct here.
+>
+> That's actually wrong, it should be -EAGAIN according to the spec.
+>
+> I'm now returning -EINVAL if the wrap_around value is not supported and
+> I've updated the spec to mention that possibility explicitly.
+>
+> My latest tree is here:
+>
+> The following changes since commit
+> a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e:
+>
+>   [media] xc5000: declare firmware configuration structures as static const
+> (2012-02-14 17:22:46 -0200)
+>
+> are available in the git repository at:
+>   git://linuxtv.org/hverkuil/media_tree.git radio-pci
+>
+> Hans Verkuil (4):
+>       tea575x-tuner: update to latest V4L2 framework requirements.
+>       tea575x: fix HW seek
+>       radio-maxiradio: use the tea575x framework.
+>       V4L2 Spec: return -EINVAL on unsupported wrap_around value.
+>
+>  .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |    6 +-
+>  drivers/media/radio/Kconfig                        |    2 +-
+>  drivers/media/radio/radio-maxiradio.c              |  379
+> ++++---------------- drivers/media/radio/radio-sf16fmr2.c               |  
+> 61 +++-
+>  include/sound/tea575x-tuner.h                      |    6 +-
+>  sound/i2c/other/tea575x-tuner.c                    |  169 ++++++---
+>  sound/pci/es1968.c                                 |   15 +
+>  sound/pci/fm801.c                                  |   20 +-
+>  8 files changed, 273 insertions(+), 385 deletions(-)
+>
+> If there are no more comments, then I want to make a pull request for this
+> by the end of the week.
 
-On Monday 27 February 2012 01:35:14 Sakari Ailus wrote:
-> Laurent Pinchart wrote:
-> > On Saturday 25 February 2012 01:48:02 Sakari Ailus wrote:
-> >> On Fri, Feb 17, 2012 at 05:32:31PM -0600, Chris Whittenburg wrote:
-> >>> I fixed my sensor to respect a "run" signal from the omap, so that now
-> >>> it only sends data when the ccdc is expecting it.
-> >>> 
-> >>> This fixed my problem, and now I can capture the 640x1440 frames.
-> >>> 
-> >>> At least the first one...
-> >>> 
-> >>> Subsequent frames are always full of 0x55, like the ISP didn't write
-> >>> anything into them.
-> >>> 
-> >>> I still get the VD0 interrupts, and I checked that WEN in the
-> >>> CCDC_SYN_MODE register is set, and that the EXWEN bit is clear.
-> >>> 
-> >>> I'm using the command:
-> >>> yavta -c2 -p -F --skip 0 -f Y8 -s 640x1440 /dev/video2
-> >>> 
-> >>> Here are my register settings:
-> >>> 
-> >>> [ 6534.029907] omap3isp omap3isp: -------------CCDC Register
-> >>> dump------------- [ 6534.029907] omap3isp omap3isp: ###CCDC
-> >>> PCR=0x00000000
-> >>> [ 6534.029937] omap3isp omap3isp: ###CCDC SYN_MODE=0x00030f00
-> >>> [ 6534.029937] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
-> >>> [ 6534.029937] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
-> >>> [ 6534.029968] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000027f
-> >>> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
-> >>> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_LINES=0x0000059f
-> >>> [ 6534.029998] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
-> >>> [ 6534.029998] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x00000280
-> >>> [ 6534.029998] omap3isp omap3isp: ###CCDC SDOFST=0x00000000
-> >>> [ 6534.030029] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
-> >>> [ 6534.030029] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
-> >>> [ 6534.030029] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
-> >>> [ 6534.030059] omap3isp omap3isp: ###CCDC COLPTN=0xbb11bb11
-> >>> [ 6534.030059] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
-> >>> [ 6534.030059] omap3isp omap3isp: ###CCDC FPC=0x00000000
-> >>> [ 6534.030090] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
-> >>> [ 6534.030090] omap3isp omap3isp: ###CCDC VDINT=0x059e03c0
-> >>> [ 6534.030090] omap3isp omap3isp: ###CCDC ALAW=0x00000000
-> >>> [ 6534.030120] omap3isp omap3isp: ###CCDC REC656IF=0x00000000
-> >>> [ 6534.030120] omap3isp omap3isp: ###CCDC CFG=0x00008000
-> >>> [ 6534.030120] omap3isp omap3isp: ###CCDC FMTCFG=0x0000e000
-> >>> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_HORZ=0x00000280
-> >>> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_VERT=0x000005a0
-> >>> [ 6534.030151] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
-> >>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
-> >>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
-> >>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
-> >>> [ 6534.030212] omap3isp omap3isp: ###CCDC VP_OUT=0x0b3e2800
-> >>> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
-> >>> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
-> >>> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
-> >>> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
-> >>> [ 6534.030242] omap3isp omap3isp:
-> >>> --------------------------------------------
-> >>> 
-> >>> Output frame 0 is always good, while output frame 1 is 0x5555.
-> >>> 
-> >>> I believe my sensor is respecting the clocks required before and after
-> >>> the frame.
-> >>> 
-> >>> Could the ISP driver be writing my data to some unexpected location
-> >>> rather than to the v4l2 buffer?
-> >>> 
-> >>> Is there a way to determine if the CCDC is writing to memory or not?
-> >> 
-> >> How long vertical blanking do you have? It shouldn't have an effect,
-> >> though.
-> > It definitely can :-) If vertical blanking isn't long enough, the CCDC
-> > will start processing the next frame before the driver gets time to update
-> > the hardware with the pointer to the next buffer. The first frame will
-> > then be overwritten.
-> 
-> Sure, but in that case no buffers should be dequeued from the driver
-> either --- as they should always be marked faulty since reprogramming
-> the CCDC isn't possible.
+It works. Tested with SF16-FMR2, SF64-PCR, SF64-PCE2 and SF256-PCP.
 
-Does the driver detect that ?
 
 -- 
-Regards,
-
-Laurent Pinchart
+Ondrej Zary
