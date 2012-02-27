@@ -1,59 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:31505 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753734Ab2BPSYH (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:51782 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754068Ab2B0UB0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Feb 2012 13:24:07 -0500
-MIME-version: 1.0
-Content-transfer-encoding: 7BIT
-Content-type: TEXT/PLAIN
-Received: from euspt2 ([210.118.77.14]) by mailout4.w1.samsung.com
- (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
- with ESMTP id <0LZI007W10G4XR80@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Feb 2012 18:24:04 +0000 (GMT)
-Received: from linux.samsung.com ([106.116.38.10])
- by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
- 2004)) with ESMTPA id <0LZI00FAK0G3MA@spt2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 Feb 2012 18:24:04 +0000 (GMT)
-Date: Thu, 16 Feb 2012 19:23:54 +0100
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC/PATCH 1/6] V4L: Add V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 media bus
- format
-In-reply-to: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, laurent.pinchart@ideasonboard.com,
-	sakari.ailus@iki.fi, m.szyprowski@samsung.com,
-	riverful.kim@samsung.com, sw0312.kim@samsung.com,
-	s.nawrocki@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Message-id: <1329416639-19454-2-git-send-email-s.nawrocki@samsung.com>
-References: <1329416639-19454-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 27 Feb 2012 15:01:26 -0500
+Received: by wejx9 with SMTP id x9so526796wej.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Feb 2012 12:01:25 -0800 (PST)
+Message-ID: <4F4BE111.6090805@gmail.com>
+Date: Mon, 27 Feb 2012 21:01:21 +0100
+From: Sylwester Nawrocki <snjw23@gmail.com>
+MIME-Version: 1.0
+To: Jean-Francois Moine <moinejf@free.fr>
+CC: linux-media@vger.kernel.org
+Subject: Re: [GIT PATCHES FOR 3.4] gspca for_v3.4
+References: <20120227130606.1f432e7b@tele>
+In-Reply-To: <20120227130606.1f432e7b@tele>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds media bus pixel code for the interleaved JPEG/YUYV image
-format used by S5C73MX Samsung cameras. The interleaved image data is
-transferred on MIPI-CSI2 bus as User Defined Byte-based Data.
+Hi Jean-François,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- include/linux/v4l2-mediabus.h |    3 +++
- 1 files changed, 3 insertions(+), 0 deletions(-)
+On 02/27/2012 01:06 PM, Jean-Francois Moine wrote:
+> The following changes since commit a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e:
+> 
+>    [media] xc5000: declare firmware configuration structures as static const (2012-02-14 17:22:46 -0200)
+> 
+> are available in the git repository at:
+> 
+>    git://linuxtv.org/jfrancois/gspca.git for_v3.4
+> 
+> for you to fetch changes up to 1b9ace2d5769c1676c96a6dc70ea84d2dea17140:
+> 
+>    gspca - zc3xx: Set the exposure at start of hv7131r (2012-02-27 12:49:49 +0100)
+> 
+> ----------------------------------------------------------------
+> Jean-François Moine (13):
+>        gspca - pac7302: Add new webcam 06f8:301b
+>        gspca - pac7302: Cleanup source
+>        gspca - pac7302: Simplify the function pkt_scan
+>        gspca - pac7302: Use the new video control mechanism
+>        gspca - pac7302: Do autogain setting work
+>        gspca - sonixj: Remove the jpeg control
+>        gspca - sonixj: Add exposure, gain and auto exposure for po2030n
+>        gspca - zc3xx: Adjust the JPEG decompression tables
 
-diff --git a/include/linux/v4l2-mediabus.h b/include/linux/v4l2-mediabus.h
-index 5ea7f75..c2f0e4e 100644
---- a/include/linux/v4l2-mediabus.h
-+++ b/include/linux/v4l2-mediabus.h
-@@ -92,6 +92,9 @@ enum v4l2_mbus_pixelcode {
- 
- 	/* JPEG compressed formats - next is 0x4002 */
- 	V4L2_MBUS_FMT_JPEG_1X8 = 0x4001,
-+
-+	/* Interleaved JPEG and YUV formats - next is 0x4102 */
-+	V4L2_MBUS_FMT_VYUY_JPEG_I1_1X8 = 0x4101,
- };
- 
- /**
--- 
-1.7.9
+This patch will conflict with patch:
+
+ gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+
+from my recent pull request http://patchwork.linuxtv.org/patch/10022/
+
+How should we proceed with that ? Do you want me to remove the above patch 
+from my pull request, or would you rebase your change set on top of mine ?
+
+--
+Best regards,
+Sylwester
+
+>        gspca - zc3xx: Do automatic transfer control for hv7131r and pas202b
+>        gspca - zc3xx: Remove the low level traces
+>        gspca - zc3xx: Cleanup source
+>        gspca - zc3xx: Fix bad sensor values when changing autogain
+>        gspca - zc3xx: Set the exposure at start of hv7131r
+> 
+>   Documentation/video4linux/gspca.txt |    1 +
+>   drivers/media/video/gspca/pac7302.c |  583 ++++++++++-------------------------
+>   drivers/media/video/gspca/sonixj.c  |  185 +++++++++---
+>   drivers/media/video/gspca/zc3xx.c   |  295 ++++++++++++------
+>   4 files changed, 511 insertions(+), 553 deletions(-)
+> 
 
