@@ -1,130 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm28.bullet.mail.sp2.yahoo.com ([98.139.91.98]:30757 "HELO
-	nm28.bullet.mail.sp2.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1750913Ab2BKTBS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 11 Feb 2012 14:01:18 -0500
-Message-ID: <1328986876.41543.YahooMailClassic@web39302.mail.mud.yahoo.com>
-Date: Sat, 11 Feb 2012 11:01:16 -0800 (PST)
-From: Jan Panteltje <panteltje@yahoo.com>
-Subject: Re: General question about IR remote signals  from USB DVB tuner
-To: Tony Houghton <h@realh.co.uk>
-Cc: linux-media@vger.kernel.org
+Received: from multi.imgtec.com ([194.200.65.239]:47780 "EHLO multi.imgtec.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753089Ab2B0Lxo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Feb 2012 06:53:44 -0500
+Message-ID: <4F4B6EC5.1070806@imgtec.com>
+Date: Mon, 27 Feb 2012 11:53:41 +0000
+From: James Hogan <james.hogan@imgtec.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="916410903-54364689-1328986876=:41543"
+To: Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Paul Gortmaker <paul.gortmaker@windriver.com>,
+	<linux-media@vger.kernel.org>,
+	linux-kernel <linux-kernel@vger.kernel.org>
+Subject: [RESEND] [PATCH] media: ir-sony-decoder: 15bit function decode fix
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---916410903-54364689-1328986876=:41543
-Content-Type: text/plain; charset=us-ascii
+The raw Sony IR decoder decodes 15bit messages slightly incorrectly.
+To decode the function number, it shifts the bits right by 7 so that the
+function is in bits 7:1, masks with 0xFD (0b11111101), and does an 8 bit
+reverse so it ends up in bits 6:0. The mask should be 0xFE to correspond
+with bits 7:1 (0b11111110).
 
-This little demo C program looks for the IR input device,
-parses the IR output and can start any application on any remote key press
-or release.
-Compile with gcc -o test50 test50.c
-I have added a start xterm, a start firefox, and a kill firefox
-as example.
-add your own as needed.
-Have fun:-)
+The old mask had the effect of dropping the MSB of the function number
+from bit 6, and leaving the LSB of the device number in bit 7.
+
+Signed-off-by: James Hogan <james.hogan@imgtec.com>
+---
+
+(note, i don't have a 15bit sony remote to test this with, but i'm
+pretty confident of it's correctness based on this:
+http://picprojects.org.uk/projects/sirc/sonysirc.pdf )
+
+ drivers/media/rc/ir-sony-decoder.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/rc/ir-sony-decoder.c b/drivers/media/rc/ir-sony-decoder.c
+index d5e2b50..dab98b3 100644
+--- a/drivers/media/rc/ir-sony-decoder.c
++++ b/drivers/media/rc/ir-sony-decoder.c
+@@ -130,7 +130,7 @@ static int ir_sony_decode(struct rc_dev *dev, struct ir_raw_event ev)
+ 		case 15:
+ 			device    = bitrev8((data->bits >>  0) & 0xFF);
+ 			subdevice = 0;
+-			function  = bitrev8((data->bits >>  7) & 0xFD);
++			function  = bitrev8((data->bits >>  7) & 0xFE);
+ 			break;
+ 		case 20:
+ 			device    = bitrev8((data->bits >>  5) & 0xF8);
+-- 
+1.7.2.3
 
 
---916410903-54364689-1328986876=:41543
-Content-Type: application/octet-stream; name="test50.c"
-Content-Transfer-Encoding: base64
-Content-Disposition: attachment; filename="test50.c"
-
-LyoKQ29weXJpZ2h0IEphbiBQYW50ZWx0amUgMjAxMi1hbHdheXMKcmVsZWFz
-ZWQgdW5kZXIgdGhlIEdQTC4KVGhpcyBpcyBhIHNtYWxsIHByb2dyYW0gdGhh
-dCBncmFicyBrZXlzIGZyb20gdGhlIFRlcnJhdGVjIENpbmVyZ3kgUzIgVVNC
-IEhEIHJlbW90ZSBhbmQgc3RhcnRzIHNvbWUgYXBwbGljYXRpb25zLgpUaGlz
-IGp1c3QgZGVtbyBjb2RlLCBubyBzcGVjaWFsIHB1cnBvc2UsCmJ1dCBpdCBz
-aG93cyB0aGF0IGxpdHRsZSByZW1vdGUgY2FuIGJlIHVzZWQgdG8gZG8gYW55
-dGhpbmcgeW91ciBQQyBjYW4gZG8sIG5vdCBqdXN0IFRWLgpTaG91bGQgYmUg
-ZWFzeSB0byBhZGFwdCB0aGlzIGZvciBvdGhlciBEVkIgSVIgcmVtb3RlIGNv
-bnRyb2xsZXJzLgpZb3UgY2FuIGZpbmQgdGhlIGtleSB2YWx1ZXMgYnkgcHJl
-c3NpbmcgdGhlIGtleXMgb24gdGhlIHJlbW90ZSBhbmQgd2F0Y2hpbmcgdGhl
-IG91dHB1dCBvZiB0aGlzIHByb2dyYW0sCnRoZW4gYWRkIHlvdXIgb3duIGNv
-ZGUgZm9yIGVhY2gga2V5IHByZXNzIGFuZCByZWxlYXNlIGFzIG5lZWRlZC4K
-CmZpbGVuYW1lIHRlc3Q1MC5jCmNvbXBpbGUgd2l0aDogZ2NjIC1vIHRlc3Q1
-MCB0ZXN0NTAuYwpydW4gd2l0aDoKLi90ZXN0NTAKcHJlcyBrZXlzIG9uIElS
-IHJlbW90ZSwKa2V5ICcxJyBzdGFydHMgYW4geHRlcm0KRU5URVIgc3RhcnRz
-IGZpcmVmb3gKa2V5IDIga2lsbHMgZmlyZWZveAoqLwoKCiNpbmNsdWRlIDxz
-dGRpby5oPgojaW5jbHVkZSA8c3RkbGliLmg+CiNpbmNsdWRlIDxzdHJpbmcu
-aD4KI2luY2x1ZGUgPHN0cmluZ3MuaD4KI2luY2x1ZGUgPHN5cy90aW1lLmg+
-CiNpbmNsdWRlIDxzaWduYWwuaD4KI2luY2x1ZGUgPHB3ZC5oPgojaW5jbHVk
-ZSA8bWF0aC5oPgojaW5jbHVkZSA8dGltZS5oPgojaW5jbHVkZSA8c3lzL3N0
-YXQuaD4KI2luY2x1ZGUgPHN5cy93YWl0Lmg+CiNpbmNsdWRlIDxlcnJuby5o
-PgojaW5jbHVkZSA8ZmNudGwuaD4KI2luY2x1ZGUgPHB0aHJlYWQuaD4KI2lu
-Y2x1ZGUgPHN5cy9wb2xsLmg+CiNpbmNsdWRlIDxzdGRpbnQuaD4KI2luY2x1
-ZGUgPGxvY2FsZS5oPgojaW5jbHVkZSA8dW5pc3RkLmg+CiNpbmNsdWRlIDxz
-eXMvdHlwZXMuaD4KI2luY2x1ZGUgPHN5cy9pby5oPgojaW5jbHVkZSA8c3lz
-L2lvY3RsLmg+CiNpbmNsdWRlIDxjdHlwZS5oPgojaW5jbHVkZSA8bGludXgv
-ZHZiL2Zyb250ZW5kLmg+CiNpbmNsdWRlIDxsaW51eC9kdmIvZG14Lmg+Cgoj
-aW5jbHVkZSA8bGludXgvaW5wdXQuaD4KCi8qCmxvb2tpbmcgZm9yIHNvbWV0
-aGluZyBsaWtlOgovZGV2L2lucHV0L2J5LXBhdGgvcGNpLTAwMDA6MDQ6MDAu
-MC1ldmVudC1pcgoqLwoKCmludCBtYWluKGludCBhcmdjLCBjaGFyICoqYXJn
-dikKewppbnQgYSwgYiwgYywgaSwgajsKaW50IGZkOwpGSUxFICpmcHRyOwpp
-bnQgZGF0YVsxMDI0XTsKY2hhciB0ZW1wWzEwMjRdOwpjaGFyIGlyX2Rldmlj
-ZVsxMDI0XTsKRklMRSAqcHB0cjsKaW50IGZvdW5kX2ZsYWcgPSAwOwppbnQg
-a2V5X2NvZGUsIGtleV9wcmVzc2VkOwoKLyogZ29pbmcgdG8gcGFyc2UgdGhl
-IHJlc3VsdCBvZiBscyBpbiAvZGV2L2lucHV0L2J5LXBhdGgvICovCnBwdHIg
-PSBwb3BlbigibHMgLS1jb2xvcj1ub25lIC9kZXYvaW5wdXQvYnktcGF0aC8i
-LCAiciIpOwp0ZW1wWzBdID0gMDsKaiA9IDA7CmZvcihpID0gMDsgaSA8IDEw
-MjQ7IGkrKykKCXsKCWMgPSBmZ2V0YyhwcHRyKTsKCWlmKCBmZW9mKHBwdHIp
-ICkKCQl7CgkJaXJfZGV2aWNlW2ldID0gMDsKCQlicmVhazsKCQl9CQoKCWlm
-KGMgPT0gMTApIC8vIExGCgkJewoJCXRlbXBbal0gPSAwOwoJCWogPSAwOwoJ
-CWlmKHN0cnN0cih0ZW1wLCAiZXZlbnQtaXIiKSAhPSAwKQoJCQl7Ci8vCQkJ
-ZnByaW50ZihzdGRlcnIsICJmb3VuZCBpdCwgaT0lZCB0ZW1wPSVzXG4iLCBp
-LCB0ZW1wKTsKCQkJZm91bmRfZmxhZyA9IDE7CgkJCWJyZWFrOwoJCQl9CgkJ
-aiA9IDA7CQkJCQoJCX0KCWVsc2UKCQl7CgkJdGVtcFtqXSA9IGM7CgkJaisr
-OwoJCX0KCX0KcGNsb3NlKHBwdHIpOwoKaWYoISBmb3VuZF9mbGFnKQoJewoJ
-ZnByaW50ZihzdGRlcnIsICJjb3VsZCBub3QgZmluZCBldmVudC1pciBkZXZp
-Y2UsIGFib3J0aW5nLlxuIik7CgkKCWV4aXQoMSk7Cgl9CgovL2ZwcmludGYo
-c3RkZXJyLCAidGVtcD0lc1xuIiwgdGVtcCk7CgpzcHJpbnRmKGlyX2Rldmlj
-ZSwgIi9kZXYvaW5wdXQvYnktcGF0aC8lcyIsIHRlbXApOwpmcHJpbnRmKHN0
-ZGVyciwgInRyeWluZyBpcl9kZXZpY2U9JXNcbiIsIGlyX2RldmljZSk7Cgpm
-cHRyID0gZm9wZW4oaXJfZGV2aWNlLCAiciIpOwppZighIGZwdHIpCgl7Cglm
-cHJpbnRmKHN0ZGVyciwgImNvdWxkIG5vdCBvcGVuIC9kZXYvaW5wdXQvZXZl
-bnQxMyBmb3IgcmVhZCxhYm9ydGluZy5cbiIpOwoJCglleGl0KDEpOwoJfQoK
-LyogZ3JhYiB0aGUgZGV2aWNlIGZvciB1cyBhbG9uZSwgdGhpcyBwcmV2ZW50
-cyBvdXRwdXQgdG8gb3RoZXIgYXBwbGljYXRpb25zLCBhcyB0aGF0IHdvdWxk
-IGNhdXNlIGhhdm9jICovCmEgPSBpb2N0bChmaWxlbm8oZnB0ciksIEVWSU9D
-R1JBQik7CmlmKGEgPCAwKQoJewoJZnByaW50ZihzdGRlcnIsICJpb2N0bCBF
-VklPQ0dSQUIgZmFpbGVkIGJlY2F1c2UgIik7CglwZXJyb3IoIiIpOwoJCgll
-eGl0KDEpOwoJfQoKLy9mcHJpbnRmKHN0ZGVyciwgImZwdHI9JXBcbiIsIGZw
-dHIpOwoKLyoKcmVhZCB0aGUgY29ycmVjdCBudW1iZXIgb2YgYnl0ZXMgZnJv
-bSB0aGUgZGV2aWNlIGZvciBvbmUga2V5IGV2ZW50LgoqKioqIE5PVEU6IHRo
-aXMgbnVtYmVyIDQ4IGlzIGVtcGlyaWNhbCBhbmQgd29ya3MgZm9yIG15IFRl
-cnJhdGVjQ2luZXJ5IFMyIFVTQiByZW1vdGUsIG90aGVyIHJlbW90ZXMgbWF5
-IHBlcmhhcHMgcmVxdWlyZSAgYWRpZmZlcmVudCB2YWx1ZS4gKioqKgptYXli
-ZSByZWFkIGl0IHdpdGggYW4gaW9jdGxmcm9tIGlucHV0X2tleW1hcF9lbnRy
-eSA/IHNlZSAvdXNyL2luY2x1ZGUvbGludXgvaW5wdXQuaCAKKi8KCkZJTEUg
-KnBwdHIxOwpGSUxFICpwcHRyMjsKCndoaWxlKDEpCgl7Cglmb3IoaSA9IDA7
-IGkgPCA0ODsgaSsrKQoJCXsKCQljID0gZmdldGMoZnB0cik7CgkJaWYoZmVv
-ZihmcHRyKSApYnJlYWs7CgoJCS8qCgkJZmllbGQgMTggaGFzIHRoZSBrZXkg
-dmFsdWUgCgkJZmllbGQgMjAgaGFzIHRoZSBrZXkgcHJlc3NlZC0gcmVsZWFz
-ZWQgZmxhZwoJCSovIAoJCWlmKGkgPT0gMTgpIGtleV9jb2RlID0gZGF0YVsx
-OF07CgkJaWYoaSA9PSAyMCkga2V5X3ByZXNzZWQgPSBkYXRhWzIwXTsKCgkJ
-ZGF0YVtpXSA9IGM7CQoJCX0gLyogZW5kIGZvciBlYWNoYnl0ZSBpbiBhIGZp
-ZWxkICovCgoJZG9fa2V5cyhrZXlfY29kZSwga2V5X3ByZXNzZWQpOwoJCQoJ
-ZnByaW50ZihzdGRlcnIsICJcbiIpOwoJfSAvKmVuZCB3aGlsZSByZWFkIGZp
-ZWxkcyByZXN1bHRpbmcgZnJvbSBha2V5IHByZXNzICovCgpleGl0KDApOwp9
-IC8qIGVuZCBmdW5jdGlvbiBtYWluICovCgkKCgpkb19rZXlzKGludCBrZXlf
-Y29kZSwgaW50IGtleV9wcmVzc2VkKQp7CkZJTEUgKnBwdHI7CgovKiBkbyB5
-b3VyIHRoaW5ncyBoZXJlLCB0aGlzIGNhbiBiZSB1c2VkIHRvIGRvIGFueXRo
-aW5nIG9uIGEga2V5IHByZXNzIGFuZCBrZXkgcmVsZWFzZSwganVzdCBzb21l
-IHNpbGx5IGV4YW1wbGVzICovCmlmKGtleV9wcmVzc2VkKQoJewoJZnByaW50
-ZihzdGRlcnIsICJrZXkgJTAyeCBwcmVzc2VkXG4iLCBrZXlfY29kZSk7CgoJ
-c3dpdGNoKGtleV9jb2RlKQoJCXsKCQljYXNlIDB4MDI6IC8vIGtleSAnMScK
-CQkJcG9wZW4oInh0ZXJtIiwgInciKTsKCQkJLyogbm8gcGNsb3NlLCBleGl0
-aW5nIHh0ZXJtIHdpbGwgZG8gdGhhdCAqLyAgCgkJYnJlYWs7CgkJCQkJCgkJ
-Y2FzZSAweDYwOiAvLyBFTlRFUgoJCQlwb3BlbigiZmlyZWZveCAmIiwgInci
-KTsKCQkJYnJlYWs7CgkJCQkKCQl9CgoKCX0gLyogZW5kIGlmIGtleSBwcmVz
-c2VkICovCmVsc2UKCXsJCQoJZnByaW50ZihzdGRlcnIsICJrZXkgJTAyeCBy
-ZWxlYXNlZFxuIiwga2V5X2NvZGUpOwkJCgkJCglzd2l0Y2goa2V5X2NvZGUp
-CgkJewoJCWNhc2UgMHgwMzogLy8ga2V5ICcyJwkJCQoJCQlwb3Blbigia2ls
-bGFsbCAtS0lMTCBmaXJlZm94LWJpbiIsICJyIik7CgkJCWJyZWFrOwoJCX0K
-Cgl9IC8qIGFuZGlmIGtleSByZWxlYXNlZCAqLwoKfSAvKiBlbmQgZnVuY3Rp
-b24gZG9fa2V5cyAqLwoKCgoKCg==
-
---916410903-54364689-1328986876=:41543--
