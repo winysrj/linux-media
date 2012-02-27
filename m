@@ -1,55 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:38080 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753926Ab2BBWsZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 17:48:25 -0500
-Date: Thu, 2 Feb 2012 14:48:23 -0800
-From: Andrew Morton <akpm@linux-foundation.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Al Viro <viro@zeniv.linux.org.uk>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Davide Libenzi <davidel@xmailserver.org>,
-	linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
-	"David S. Miller" <davem@davemloft.net>,
-	Enke Chen <enkechen@cisco.com>
-Subject: Re: [RFCv7 PATCH 0/4] Add poll_requested_events() function.
-Message-Id: <20120202144823.ce00767d.akpm@linux-foundation.org>
-In-Reply-To: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
-References: <1328178417-3876-1-git-send-email-hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout-de.gmx.net ([213.165.64.23]:56771 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1752381Ab2B0AdY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 Feb 2012 19:33:24 -0500
+Date: Mon, 27 Feb 2012 01:33:21 +0100
+From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
+To: Hans-Frieder Vogt <hfvogt@gmx.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/3] Firmware for AF9035/AF9033 driver
+Message-ID: <20120227003321.GA25060@minime.bse>
+References: <201202222322.02424.hfvogt@gmx.net>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201202222322.02424.hfvogt@gmx.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu,  2 Feb 2012 11:26:53 +0100
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
+On Wed, Feb 22, 2012 at 11:22:02PM +0100, Hans-Frieder Vogt wrote:
+> 00000040: Firmware_CODELENGTH bytes
 
-> The first version of this patch was posted July 1st, 2011. I really hope that
-> it won't take another six months to get a review from a fs developer. As this
-> LWN article (http://lwn.net/Articles/450658/) said: 'There has been little
-> discussion of the patch; it doesn't seem like there is any real reason for it
-> not to go in for 3.1.'
-> 
-> The earliest this can go in now is 3.4. The only reason it takes so long is
-> that it has been almost impossible to get a Ack or comments or even just a
-> simple reply from the fs developers. That is really frustrating, I'm sorry
-> to say.
+Some time ago I analyzed the firmware of the AF9035.
+The firmware download command inside the on-chip ROM expects chunks
+with a 7 byte header:
 
-Yup.  Nobody really maintains the poll/select code.  It happens to sit
-under fs/ so nominally belongs to the "fs maintainers".  The logs for
-fs/select.c seem to show me as the usual committer, but I wouldn't
-claim particular expertise in this area - I'm more a tube-unclogger
-here.  Probably Al knows the code as well or better than anyone else. 
-It's good that he looked at an earlier version of the patches.
+Byte 0: MCS 51 core
+	There are two inside the AF9035 (1=Link and 2=OFDM) with
+	separate address spaces
+Byte 1-2: Big endian destination address
+Byte 3-4: Big endian number of data bytes following the header
+Byte 5-6: Big endian header checksum, apparently ignored by the chip
+	Calculated as ~(h[0]*256+h[1]+h[2]*256+h[3]+h[4]*256)
 
-fs/eventpoll.c has an identified maintainer, but he has been vigorously
-hiding from us for a year or so.  I'm the commit monkey for eventpoll,
-in a similar state to fs/select.c.
+This might help locate the firmware inside the Windows drivers.
+The Windows drivers often contain two copies of the same firmware.
 
-So ho hum, all we can do is our best.  You're an experienced kernel
-developer who has put a lot of work into the code.  I suggest that you
-get your preferred version into linux-next ASAP then send Linus a pull
-request for 3.4-rc1, explaining the situation.  If the code wasn't
-already in linux-next I would put it in -mm today, for 3.4-rc1.
-
+  Daniel
