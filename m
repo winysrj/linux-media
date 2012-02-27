@@ -1,166 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:33657 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757097Ab2BXKW0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 05:22:26 -0500
-Message-ID: <4F4764DA.4080102@schinagl.nl>
-Date: Fri, 24 Feb 2012 11:22:18 +0100
-From: Oliver Schinagl <oliver@schinagl.nl>
+Received: from mailout-de.gmx.net ([213.165.64.23]:34863 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1754395Ab2B0Umb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Feb 2012 15:42:31 -0500
+Message-ID: <4F4BEAB3.4080101@gmx.de>
+Date: Mon, 27 Feb 2012 21:42:27 +0100
+From: Andreas Regel <andreas.regel@gmx.de>
 MIME-Version: 1.0
-To: Hans-Frieder Vogt <hfvogt@gmx.net>
+To: abraham.manu@gmail.com
 CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] Support for AF9035/AF9033
-References: <201202222320.56583.hfvogt@gmx.net> <4F460492.4000203@schinagl.nl> <201202232302.24843.hfvogt@gmx.net> <4F4760CB.50400@schinagl.nl>
-In-Reply-To: <4F4760CB.50400@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Subject: [PATCH 3/3] stv090x: On STV0903 do not set registers of the second
+ path.
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Sometimes there is a problem when trying to access the non-existing 
+registers of the second demodulator path on the STV0903.
+This change removes the calls in case the driver is used on a STV0903.
 
+Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
+---
+  drivers/media/dvb/frontends/stv090x.c |  141 
+++++++++++++++++++++++++++++++--
+  1 files changed, 132 insertions(+), 9 deletions(-)
 
-On 24-02-12 11:04, Oliver Schinagl wrote:
->
->
-> On 23-02-12 23:02, Hans-Frieder Vogt wrote:
->> Am Donnerstag, 23. Februar 2012 schrieb Oliver Schinagl:
->>> Hi Hans,
->>>
->>> I also have an AF9035 based device, the Asus 3100 Mini Plus. It has an
->>> AF9035B demodulator and uses an FCI2580 tuner. I've used the driver
->>> supplied by afa in the past, but haven't tested it in the last few
->>> months. I have a git repository for that driver at
->>> http://git.schinagl.nl/AF903x_SRC.git (it is also linked from
->>> http://www.linuxtv.org/wiki/index.php/Asus_U3100_Mini_plus_DVB-T).
->>>
->>> So when you say it is also coupled with the same tuner, that's not true
->>>
->>> :) With that driver there where a bunch of other tuners that are used
->>>
->>> with this chip. I think the Asus EEEPC supported a USB dvb tuner at 
->>> some
->>> point and there are reverences in that code for it.
->>>
->>> As of the legality of the code, that is uncertain. The module (compiled
->>> from all these sources) is very specifically marked as GPL. Most
->>> headers/source files have no copyright notice at all, some however do,
->>> but no license in it.
->>>
->>> I asked about afa-tech and there driver status a while ago, but I guess
->>> there is no news as of yet?
->>>
->>> To summarize, I would love to test your driver, and I think i can code
->>> something up for my tuner, once these are split?
->>>
->>> Oliver
->>>
->>> On 22-02-12 23:20, Hans-Frieder Vogt wrote:
->>>> I have written a driver for the AF9035&   AF9033 (called af903x), 
->>>> based on
->>>> the various drivers and information floating around for these chips.
->>>> Currently, my driver only supports the devices that I am able to test.
->>>> These are
->>>> - Terratec T5 Ver.2 (also known as T6)
->>>> - Avermedia Volar HD Nano (A867)
->>>>
->>>> The driver supports:
->>>> - diversity and dual tuner (when the first frontend is used, it is in
->>>> diversity mode, when two frontends are used in dual tuner mode)
->>>> - multiple devices
->>>> - pid filtering
->>>> - remote control in NEC and RC-6 mode (currently not switchable, but
->>>> depending on device)
->>>> - support for kernel 3.1, 3.2 and 3.3 series
->>>>
->>>> I have not tried to split the driver in a DVB-T receiver (af9035) 
->>>> and a
->>>> frontend (af9033), because I do not see the sense in doing that for a
->>>> demodulator, that seems to be always used in combination with the very
->>>> same receiver.
->>>>
->>>> The patch is split in three parts:
->>>> Patch 1: support for tuner fitipower FC0012
->>>> Patch 2: basic driver
->>>> Patch 3: firmware
->>>>
->>>> Hans-Frieder Vogt                       e-mail: hfvogt<at>   gmx 
->>>> .dot. net
->>>> -- 
->>>> To unsubscribe from this list: send the line "unsubscribe 
->>>> linux-media" in
->>>> the body of a message to majordomo@vger.kernel.org
->>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>> -- 
->>> To unsubscribe from this list: send the line "unsubscribe 
->>> linux-media" in
->>> the body of a message to majordomo@vger.kernel.org
->>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->> Hi Oliver,
->>
->> the AF9035B is in fact a DVB-T demodulator with an integrated USB 
->> interface +
->> further interfaces (I erroneously called it receiver). It needs a 
->> tuner to be
->> a full DVB-T stick (it seems that the it9135 is basically the AF9035 
->> + an
->> integrated tuner).
->>
->> the Terratec T5 Rev. 2 and T6 consists of an AF9035B, an AF9033B (Second
->> demodulator) and dual FC0012 tuners
->> the Avermedia Volar HD Nano (A867) uses an AF9035B and an Mxl5007t tuner
->> your Asus 3100 mini uses the FCI2580 tuner.
->>
->> If there is a driver for the FCI2580 tuner then it is not a big issue 
->> to make
->> it usable with the af903x driver.
-> The driver is 'available' but in the AF903x_SRC package. If I would 
-> take the endevour into writing a driver for the FCI2580, what driver 
-> would be best suited as template you reccon?
->> I know of these Afatech drivers, but the main disadvantage of them is 
->> in my
->> eyes that they
->> - have a lot of useless and unused code
->> - define own error codes (instead of using the standard error codes)
->> - have a compiled in firmware
-> This bit I don't understand. I have not found any binary image in the 
-> source tree at all. If the firmware is compiled from the sources, it 
-> is compiled into the driver, and not uploaded to the stick when 
-> plugged in.
->
-> The other firmware is as mentioned the infrared receive 'table', which 
-> provides some mapping I guess?
-I was wrong, there is a headerfile, 'api/firmware.h' that does indeed 
-contain binary only data. Very ugly indeed.
+diff --git a/drivers/media/dvb/frontends/stv090x.c 
+b/drivers/media/dvb/frontends/stv090x.c
+index afbd50c..ce064a3 100644
+--- a/drivers/media/dvb/frontends/stv090x.c
++++ b/drivers/media/dvb/frontends/stv090x.c
+@@ -4268,7 +4268,7 @@ err:
+  	return -1;
+  }
+  -static int stv090x_set_tspath(struct stv090x_state *state)
++static int stv0900_set_tspath(struct stv090x_state *state)
+  {
+  	u32 reg;
+  @@ -4539,6 +4539,121 @@ err:
+  	return -1;
+  }
+  +static int stv0903_set_tspath(struct stv090x_state *state)
++{
++	u32 reg;
++
++	if (state->internal->dev_ver >= 0x20) {
++		switch (state->config->ts1_mode) {
++		case STV090x_TSMODE_PARALLEL_PUNCTURED:
++		case STV090x_TSMODE_DVBCI:
++			stv090x_write_reg(state, STV090x_TSGENERAL, 0x00);
++			break;
++
++		case STV090x_TSMODE_SERIAL_PUNCTURED:
++		case STV090x_TSMODE_SERIAL_CONTINUOUS:
++		default:
++			stv090x_write_reg(state, STV090x_TSGENERAL, 0x0c);
++			break;
++		}
++	} else {
++		switch (state->config->ts1_mode) {
++		case STV090x_TSMODE_PARALLEL_PUNCTURED:
++		case STV090x_TSMODE_DVBCI:
++			stv090x_write_reg(state, STV090x_TSGENERAL1X, 0x10);
++			break;
++
++		case STV090x_TSMODE_SERIAL_PUNCTURED:
++		case STV090x_TSMODE_SERIAL_CONTINUOUS:
++		default:
++			stv090x_write_reg(state, STV090x_TSGENERAL1X, 0x14);
++			break;
++		}
++	}
++
++	switch (state->config->ts1_mode) {
++	case STV090x_TSMODE_PARALLEL_PUNCTURED:
++		reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
++		STV090x_SETFIELD_Px(reg, TSFIFO_SERIAL_FIELD, 0x00);
++		STV090x_SETFIELD_Px(reg, TSFIFO_DVBCI_FIELD, 0x00);
++		if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
++			goto err;
++		break;
++
++	case STV090x_TSMODE_DVBCI:
++		reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
++		STV090x_SETFIELD_Px(reg, TSFIFO_SERIAL_FIELD, 0x00);
++		STV090x_SETFIELD_Px(reg, TSFIFO_DVBCI_FIELD, 0x01);
++		if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
++			goto err;
++		break;
++
++	case STV090x_TSMODE_SERIAL_PUNCTURED:
++		reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
++		STV090x_SETFIELD_Px(reg, TSFIFO_SERIAL_FIELD, 0x01);
++		STV090x_SETFIELD_Px(reg, TSFIFO_DVBCI_FIELD, 0x00);
++		if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
++			goto err;
++		break;
++
++	case STV090x_TSMODE_SERIAL_CONTINUOUS:
++		reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
++		STV090x_SETFIELD_Px(reg, TSFIFO_SERIAL_FIELD, 0x01);
++		STV090x_SETFIELD_Px(reg, TSFIFO_DVBCI_FIELD, 0x01);
++		if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
++			goto err;
++		break;
++
++	default:
++		break;
++	}
++
++	if (state->config->ts1_clk > 0) {
++		u32 speed;
++
++		switch (state->config->ts1_mode) {
++		case STV090x_TSMODE_PARALLEL_PUNCTURED:
++		case STV090x_TSMODE_DVBCI:
++		default:
++			speed = state->internal->mclk /
++				(state->config->ts1_clk / 4);
++			if (speed < 0x08)
++				speed = 0x08;
++			if (speed > 0xFF)
++				speed = 0xFF;
++			break;
++		case STV090x_TSMODE_SERIAL_PUNCTURED:
++		case STV090x_TSMODE_SERIAL_CONTINUOUS:
++			speed = state->internal->mclk /
++				(state->config->ts1_clk / 32);
++			if (speed < 0x20)
++				speed = 0x20;
++			if (speed > 0xFF)
++				speed = 0xFF;
++			break;
++		}
++		reg = stv090x_read_reg(state, STV090x_P1_TSCFGM);
++		STV090x_SETFIELD_Px(reg, TSFIFO_MANSPEED_FIELD, 3);
++		if (stv090x_write_reg(state, STV090x_P1_TSCFGM, reg) < 0)
++			goto err;
++		if (stv090x_write_reg(state, STV090x_P1_TSSPEED, speed) < 0)
++			goto err;
++	}
++
++	reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
++	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 0x01);
++	if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
++		goto err;
++	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 0x00);
++	if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
++		goto err;
++
++	return 0;
++err:
++	dprintk(FE_ERROR, 1, "I/O error");
++	return -1;
++}
++
+  static int stv090x_init(struct dvb_frontend *fe)
+  {
+  	struct stv090x_state *state = fe->demodulator_priv;
+@@ -4601,8 +4716,13 @@ static int stv090x_init(struct dvb_frontend *fe)
+  	if (stv090x_i2c_gate_ctrl(state, 0) < 0)
+  		goto err;
+  -	if (stv090x_set_tspath(state) < 0)
+-		goto err;
++	if (state->device == STV0900) {
++		if (stv0900_set_tspath(state) < 0)
++			goto err;
++	} else {
++		if (stv0903_set_tspath(state) < 0)
++			goto err;
++	}
+   	return 0;
+  @@ -4643,23 +4763,26 @@ static int stv090x_setup(struct dvb_frontend *fe)
+  	/* Stop Demod */
+  	if (stv090x_write_reg(state, STV090x_P1_DMDISTATE, 0x5c) < 0)
+  		goto err;
+-	if (stv090x_write_reg(state, STV090x_P2_DMDISTATE, 0x5c) < 0)
+-		goto err;
++	if (state->device == STV0900)
++		if (stv090x_write_reg(state, STV090x_P2_DMDISTATE, 0x5c) < 0)
++			goto err;
+   	msleep(5);
+   	/* Set No Tuner Mode */
+  	if (stv090x_write_reg(state, STV090x_P1_TNRCFG, 0x6c) < 0)
+  		goto err;
+-	if (stv090x_write_reg(state, STV090x_P2_TNRCFG, 0x6c) < 0)
+-		goto err;
++	if (state->device == STV0900)
++		if (stv090x_write_reg(state, STV090x_P2_TNRCFG, 0x6c) < 0)
++			goto err;
+   	/* I2C repeater OFF */
+  	STV090x_SETFIELD_Px(reg, ENARPT_LEVEL_FIELD, config->repeater_level);
+  	if (stv090x_write_reg(state, STV090x_P1_I2CRPT, reg) < 0)
+  		goto err;
+-	if (stv090x_write_reg(state, STV090x_P2_I2CRPT, reg) < 0)
+-		goto err;
++	if (state->device == STV0900)
++		if (stv090x_write_reg(state, STV090x_P2_I2CRPT, reg) < 0)
++			goto err;
+   	if (stv090x_write_reg(state, STV090x_NCOARSE, 0x13) < 0) /* set PLL 
+divider */
+  		goto err;
+-- 
+1.7.2.5
 
-Is this firmware specific for the AF903x chip or for the tuners? Looking 
-at the code it seems firmware.h contains firmware for a lot different 
-combinations, but I think 1 image is 'used'.  I notice that one of your 
-firmwares contains a version number of 0.00.00 and the other one 
-v.10.something. Firmware.h lists the version as v.8.something so it 
-seems that there's several firmwares in circulation. I wonder if 
-firmwares are backwards compatible with various boards...
->> - have all supported tuners directly compiled in, which means that they
->> prevent tuner support to be shared between various drivers
->>
->> So, you see, there are good reasons to write a new driver for these 
->> devices.
->>
->> The point with the legality: I agree that the AF903X_SRC driver is 
->> unclear in
->> that respect. The glue code (under src) is explicitly marked as GPL, 
->> but the
->> api code (under api) isn't marked.
->> Luckily, there is the it9135-driver from Jason Dong which is clearly 
->> GPL and
->> which uses the same functions. Therefore there is effectivly example 
->> code from
->> Afatech/Ite technology available that is under GPL.
->>
->> Cheers,
->>
->> Hans-Frieder Vogt                       e-mail: hfvogt<at>  gmx .dot. 
->> net
-> -- 
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
