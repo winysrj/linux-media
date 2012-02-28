@@ -1,62 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail81.extendcp.co.uk ([79.170.40.81]:45880 "EHLO
-	mail81.extendcp.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755222Ab2BFNf1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 08:35:27 -0500
-Received: from 188-222-111-86.zone13.bethere.co.uk ([188.222.111.86] helo=junior)
-	by mail81.extendcp.com with esmtpa (Exim 4.77)
-	id 1RuOj2-0007RP-HQ
-	for linux-media@vger.kernel.org; Mon, 06 Feb 2012 13:35:22 +0000
-Date: Mon, 6 Feb 2012 13:35:20 +0000
-From: Tony Houghton <h@realh.co.uk>
-To: linux-media@vger.kernel.org
-Subject: Re: TBS 6920 remote
-Message-ID: <20120206133520.788eeb3f@junior>
-In-Reply-To: <CAH4Ag-BL3V2th8tu78iE3toCo2SxbRHVpNzMB6jEfs2C5iuzBQ@mail.gmail.com>
-References: <20120203171250.52278c25@junior>
-	<CAH4Ag-BZ+Csasy=yk5sNt7_Q5maFuxga2PqeXtJrRYvVLa8zzA@mail.gmail.com>
-	<20120205185233.3ca5024a@tiber>
-	<CAH4Ag-BL3V2th8tu78iE3toCo2SxbRHVpNzMB6jEfs2C5iuzBQ@mail.gmail.com>
-Reply-To: linux-media@vger.kernel.org
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-tul01m020-f174.google.com ([209.85.214.174]:33141 "EHLO
+	mail-tul01m020-f174.google.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754297Ab2B1ALa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 Feb 2012 19:11:30 -0500
+Received: by obcva7 with SMTP id va7so6139434obc.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Feb 2012 16:11:30 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CABi1daHoWASPq6XmrfW3JYSmzQEZmZMMyfHNmabM4cgZV0j4EA@mail.gmail.com>
+References: <CALF0-+V99jWjnxYC-fdLGF8ggYukMjiRpkEGj+fY4j3kE-K-Jg@mail.gmail.com>
+	<CABi1daHoWASPq6XmrfW3JYSmzQEZmZMMyfHNmabM4cgZV0j4EA@mail.gmail.com>
+Date: Mon, 27 Feb 2012 21:11:29 -0300
+Message-ID: <CALF0-+XREdz+EgzUvj6fpk46r7U4YOV7uxaO9Xtr43-NdBLqgg@mail.gmail.com>
+Subject: Re: [question] v4l read() operation
+From: =?ISO-8859-1?Q?Ezequiel_Garc=EDa?= <elezegarcia@gmail.com>
+To: Dave Hylands <dhylands@gmail.com>
+Cc: devel@driverdev.osuosl.org,
+	kernelnewbies <kernelnewbies@kernelnewbies.org>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 6 Feb 2012 11:48:43 +0000
-Simon Jones <sijones2010@gmail.com> wrote:
+Hi Dave,
 
-> > Thanks. It seems that there was a bug in their driver which
-> > prevented some keys from working, but AFIACT it's fixed now. The
-> > code is GPL so is it just lack of interest/demand that's stopped it
-> > from going into the main kernel?
-> 
-> They have an NDA with a chip supplier so can't release the full
-> source, I think there is a binary blob somewhere that makes it so you
-> can't include them.
+2012/2/25 Dave Hylands <dhylands@gmail.com>:
+>
+> I'm not all that familiar with v4l, but based on what you've posted,
+> you need to populate the read routine in your v4l2_fops structure to
+> support read.
+>
 
-The 6920 uses a Conexant chipset and everything except the remote works
-with a standard kernel, but I did have to install the firmware manually.
-Is the binary part for the remote? I would have thought it was only for
-other chipsets.
+My bad! You are totally right: I forgot about my webcam.
+When I did:
 
-> > I think I'll pass on having to maintain a 3rd party driver whenever
-> > the Debian kernel upgrades. The remote is missing some quite
-> > important keys like Play, so they seem to have only considered it
-> > for live viewing, not for PVRs. I'll probably end up buying a
-> > separate USB remote or continuing to use a portable keyboard.
-> 
-> I have an MCE remote, ebay has HP remote and receiver cheap enough,
-> they are also rc6 encoding so you can use one-for-all remote etc easy
-> enough, and drivers are in kernel so only a manor change to lirc to
-> get it working.
+$ cat /dev/video0
 
-Ah yes, those HP ones look serviceable and affordable, thanks.
+I was actually getting data from my webcam (which supports read),
+and not from the easycap device, which is /dev/video1.
 
-> You don't have to use lirc but I couldn't be bothered trying to map
-> the keys in X.
+So, everything makes sense now:
 
-It would be better if more applications had a nice frontend to "train"
-them to use certain keys, either as the remote appearing as a keyboard,
-or by reading input events (which is very easy).
+$ cat /dev/video1
+
+...
+open("/dev/video1", O_RDONLY|O_LARGEFILE) = 3
+...
+read(3, 0x8835000, 32768)               = -1 EINVAL (Invalid argument)
+
+This is clearly shown by the piece of code mentioned before.
+
+Thanks and sorry for the noise,
+Ezequiel.
