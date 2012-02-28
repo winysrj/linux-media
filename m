@@ -1,43 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:46516 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754381Ab2BFMvz convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 Feb 2012 07:51:55 -0500
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1392 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754855Ab2B1KUG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Feb 2012 05:20:06 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.4] tea575x update to latest V4L2 framework requirements
+Date: Tue, 28 Feb 2012 11:19:42 +0100
+Cc: alsa-devel@alsa-project.org,
+	Ondrej Zary <linux@rainbow-software.org>
 MIME-Version: 1.0
-In-Reply-To: <op.v87mpive3l0zgt@mpn-glaptop>
-References: <1328271538-14502-1-git-send-email-m.szyprowski@samsung.com>
-	<1328271538-14502-13-git-send-email-m.szyprowski@samsung.com>
-	<CAJd=RBBPOwftZJUfe3xc6y24=T8un5hPk0wEOT_5v6WMCbDSag@mail.gmail.com>
-	<op.v87mpive3l0zgt@mpn-glaptop>
-Date: Mon, 6 Feb 2012 20:51:54 +0800
-Message-ID: <CAJd=RBCqw=4AEDZU5aPexX2+xVKVhB+uo-ta2hviSAJO63axvw@mail.gmail.com>
-Subject: Re: [PATCH 12/15] drivers: add Contiguous Memory Allocator
-From: Hillf Danton <dhillf@gmail.com>
-To: Michal Nazarewicz <mina86@mina86.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202281119.42794.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2012/2/5 Michal Nazarewicz <mina86@mina86.com>:
-> On Sun, 05 Feb 2012 05:25:40 +0100, Hillf Danton <dhillf@gmail.com> wrote:
->>
->> Without boot mem reservation, what is the successful rate of CMA to
->> serve requests of 1MiB, 2MiB, 4MiB and 8MiB chunks?
->
->
-> CMA will work as long as you manage to get some pageblocks marked as
-> MIGRATE_CMA and move all non-movable pages away.  You might try and get it
-> done after system has booted but we have not tried nor tested it.
+Hi Mauro,
 
-Better to include whatever test results in change log.
+This patch series updates the tea575x drivers to the latest V4L2 framework
+requirements, converts radio-maxiradio to tea575x as well and adds hwseek
+support to these drivers.
 
-And no more questions ;)
+All changes are V4L related, even though some of the patches touch sound
+drivers (but only the V4L parts of those sound drivers).
+
+Tested with SF16-FMR2, SF64-PCR, SF64-PCE2, SF256-PCP (Ondrej) and maxiradio
+(Hans).
+
+Regards,
+
+	Hans
+
+The following changes since commit a3db60bcf7671cc011ab4f848cbc40ff7ab52c1e:
+
+  [media] xc5000: declare firmware configuration structures as static const (2012-02-14 17:22:46 -0200)
+
+are available in the git repository at:
+  git://linuxtv.org/hverkuil/media_tree.git radio-pci
+
+Hans Verkuil (4):
+      tea575x-tuner: update to latest V4L2 framework requirements.
+      tea575x: fix HW seek
+      radio-maxiradio: use the tea575x framework.
+      V4L2 Spec: return -EINVAL on unsupported wrap_around value.
+
+ .../DocBook/media/v4l/vidioc-s-hw-freq-seek.xml    |    6 +-
+ drivers/media/radio/Kconfig                        |    2 +-
+ drivers/media/radio/radio-maxiradio.c              |  379 ++++----------------
+ drivers/media/radio/radio-sf16fmr2.c               |   61 +++-
+ include/sound/tea575x-tuner.h                      |    6 +-
+ sound/i2c/other/tea575x-tuner.c                    |  169 ++++++---
+ sound/pci/es1968.c                                 |   15 +
+ sound/pci/fm801.c                                  |   20 +-
+ 8 files changed, 273 insertions(+), 385 deletions(-)
