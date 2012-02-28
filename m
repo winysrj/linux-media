@@ -1,73 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pw0-f46.google.com ([209.85.160.46]:33177 "EHLO
-	mail-pw0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757250Ab2BNUnw convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:42955 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965035Ab2B1LPq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 Feb 2012 15:43:52 -0500
-Received: by pbcun15 with SMTP id un15so769021pbc.19
-        for <linux-media@vger.kernel.org>; Tue, 14 Feb 2012 12:43:52 -0800 (PST)
-MIME-Version: 1.0
-In-Reply-To: <CAOTqeXoavdYLkfp+FRLj3v24z2m+xZHiKhnOOiHJhZ+Y858y9w@mail.gmail.com>
-References: <CAOTqeXouWiYaRkKKO-1iQ5SJEb7RUXJpHdfe9-YeSzwXxdUVfg@mail.gmail.com>
-	<CAGoCfiyCPD-W3xeqD4+AE3xCo-bj05VAy4aHXMNXP7P124ospQ@mail.gmail.com>
-	<20111020162340.GC7530@jannau.net>
-	<CAGoCfiwXjQsAEVfFiNA5CNw1PVuO0npO63pGb91rpbPuKGvwZQ@mail.gmail.com>
-	<20111020170811.GD7530@jannau.net>
-	<CAGoCfiz38bdpnz0dLfs2p4PjLR1dDm_5d_y34ACpNd6W62G7-w@mail.gmail.com>
-	<CAOTqeXpJfk-ENgxhELo03LBHqdtf957knXQzOjYo0YO7sGcAbg@mail.gmail.com>
-	<CAOTqeXpY3uvy7Dq3fi1wTD5nRx1r1LMo7=XEfJdxyURY2opKuw@mail.gmail.com>
-	<4EB7CD59.1010303@redhat.com>
-	<CAOTqeXoavdYLkfp+FRLj3v24z2m+xZHiKhnOOiHJhZ+Y858y9w@mail.gmail.com>
-Date: Tue, 14 Feb 2012 15:43:51 -0500
-Message-ID: <CANOx78GENFQXfuX0OeYPa=YCHREk3H2OKmKQhkEsQx9qFieksg@mail.gmail.com>
-Subject: Re: [PATCH] [media] hdpvr: update picture controls to support
- firmware versions > 0.15
-From: Jarod Wilson <jarod@wilsonet.com>
-To: Taylor Ralph <taylor.ralph@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Janne Grunau <j@jannau.net>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+	Tue, 28 Feb 2012 06:15:46 -0500
+MIME-version: 1.0
+Content-transfer-encoding: 7BIT
+Content-type: text/plain; charset=UTF-8
+Received: from euspt2 ([210.118.77.13]) by mailout3.w1.samsung.com
+ (Sun Java(tm) System Messaging Server 6.3-8.04 (built Jul 29 2009; 32bit))
+ with ESMTP id <0M0300J01OM8H280@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 28 Feb 2012 11:15:44 +0000 (GMT)
+Received: from linux.samsung.com ([106.116.38.10])
+ by spt2.w1.samsung.com (iPlanet Messaging Server 5.2 Patch 2 (built Jul 14
+ 2004)) with ESMTPA id <0M03001ZXOM7R4@spt2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 28 Feb 2012 11:15:44 +0000 (GMT)
+Date: Tue, 28 Feb 2012 12:15:43 +0100
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [GIT PATCHES FOR 3.4] gspca for_v3.4
+In-reply-to: <20120228120548.186ee4bc@tele>
+To: Jean-Francois Moine <moinejf@free.fr>
+Cc: linux-media@vger.kernel.org
+Message-id: <4F4CB75F.4050907@samsung.com>
+References: <20120227130606.1f432e7b@tele> <4F4BE111.6090805@gmail.com>
+ <20120228120548.186ee4bc@tele>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Nov 7, 2011 at 7:54 PM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
-> On Mon, Nov 7, 2011 at 7:21 AM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> Em 21-10-2011 01:33, Taylor Ralph escreveu:
->>> On Thu, Oct 20, 2011 at 3:26 PM, Taylor Ralph <taylor.ralph@gmail.com> wrote:
->>>> On Thu, Oct 20, 2011 at 2:14 PM, Devin Heitmueller
->>>> <dheitmueller@kernellabs.com> wrote:
->>>>> On Thu, Oct 20, 2011 at 1:08 PM, Janne Grunau <j@jannau.net> wrote:
->>>>>> I think such scenario is unlikely but I don't know it for sure and
->>>>>> I don't want to force anyone to test every firmware version.
->>>>>> Ignoring them for firmware version < 16 should be safe since we assume
->>>>>> they had no effect. Returning -EINVAL might break API-ignoring
->>>>>> applications written with the HD PVR in mind but I think it's a better
->>>>>> approach than silently ignoring those controls.
->>>>>
->>>>> At this point, let's just make it so that the old behavior is
->>>>> unchanged for old firmwares, meaning from both an API standpoint as
->>>>> well as what the values are.  At some point if somebody cares enough
->>>>> to go back and fix the support so that the controls actually work with
->>>>> old firmwares, they can take that up as a separate task.  In reality,
->>>>> it is likely that nobody will ever do that, as the "easy answer" is
->>>>> just to upgrade to firmware 16.
->>>>>
->>>>> Taylor, could you please tweak your patch to that effect and resubmit?
->>>>>
->>>>
->>>> Sure, I'll try to get to it tonight and have it tested.
+Hi Jean-Francois,
 
-Looks sane to me, and really needs to get in ASAP. I'd even suggest we
-get it sent to stable, as these newer firmware HDPVR are pretty wonky
-with any current kernel.
+On 02/28/2012 12:05 PM, Jean-Francois Moine wrote:
+> On Mon, 27 Feb 2012 21:01:21 +0100
+> Sylwester Nawrocki <snjw23@gmail.com> wrote:
+> 
+>> This patch will conflict with patch:
+>>
+>>  gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+>>
+>> from my recent pull request http://patchwork.linuxtv.org/patch/10022/
+>>
+>> How should we proceed with that ? Do you want me to remove the above patch 
+>> from my pull request, or would you rebase your change set on top of mine ?
+> 
+> Hi Sylwester,
+> 
+> Sorry for the problem, I thought your patch was already in the media
+> tree.
 
-Acked-by: Jarod Wilson <jarod@redhat.com>
-Reviewed-by: Jarod Wilson <jarod@redhat.com>
-CC: stable@vger.kernel.org
+Sorry about the delay, I was holding on for quite some time with pushing
+the patch upstream.
 
+> I checked the changes in zc3xx.c, and I have made many commits. So, it
+> would be simpler if you would remove your patch. I could give you a
+> merged one once the media tree would be updated.
+
+OK, if it's easier please carry the patch in your tree. Otherwise, let me
+handle it after our pull request are included in the media tree.
+
+Best regards,
 -- 
-Jarod Wilson
-jarod@wilsonet.com
+Sylwester Nawrocki
+Samsung Poland R&D Center
