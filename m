@@ -1,275 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.24]:50952 "EHLO mgw-da01.nokia.com"
+Received: from mx1.redhat.com ([209.132.183.28]:4303 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754949Ab2BBXzE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 18:55:04 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v2 29/31] omap3isp: Remove isp_validate_pipeline and other old stuff
-Date: Fri,  3 Feb 2012 01:54:49 +0200
-Message-Id: <1328226891-8968-29-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
-References: <20120202235231.GC841@valkosipuli.localdomain>
+	id S1755239Ab2B1R3L (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Feb 2012 12:29:11 -0500
+Message-ID: <4F4D0EE2.4030908@redhat.com>
+Date: Tue, 28 Feb 2012 14:29:06 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: =?UTF-8?B?TWlyb3NsYXYgU2x1Z2XFiA==?= <thunder.mmm@gmail.com>
+CC: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: cx25840: allow setting radio audio mode stereo/mono
+References: <CAEN_-SB9X_3OrLAG7D6kotprtu6Xza3=XSeVZFsV937tWJK3yQ@mail.gmail.com>
+In-Reply-To: <CAEN_-SB9X_3OrLAG7D6kotprtu6Xza3=XSeVZFsV937tWJK3yQ@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove isp_set_pixel_clock().
+Em 16-01-2012 13:32, Miroslav Slugeň escreveu:
+> 
+> cx25840_s_tuner_radio_support.patch
 
-Remove set_pixel_clock() callback from platform callbacks since the same
-information is now passed to the ISP driver by other means.
+Signed-off-by: is missing.
+> 
+> 
+> Signed-off-by: Miroslav Slugen <thunder.mmm@gmail.com>
+> From: Miroslav Slugen <thunder.mmm@gmail.com>
+> Date: Mon, 12 Dec 2011 00:19:34 +0100
+> Subject: [PATCH] cx25840_s_tuner should support also radio mode for setting
+>  stereo and mono.
+> 
+> ---
+> diff -Naurp a/drivers/media/video/cx25840/cx25840-core.c b/drivers/media/video/cx25840/cx25840-core.c
+> --- a/drivers/media/video/cx25840/cx25840-core.c	2012-01-12 20:42:45.000000000 +0100
+> +++ b/drivers/media/video/cx25840/cx25840-core.c	2012-01-16 16:18:06.181583026 +0100
+> @@ -1628,9 +1628,14 @@ static int cx25840_s_tuner(struct v4l2_s
+>  	struct cx25840_state *state = to_state(sd);
+>  	struct i2c_client *client = v4l2_get_subdevdata(sd);
+>  
+> -	if (state->radio || is_cx2583x(state))
+> +	if (is_cx2583x(state))
+>  		return 0;
+>  
+> +	/* FM radio supports only mono and stereo modes */
+> +	if ((state->radio) &&
+> +	    (vt->audmode != V4L2_TUNER_MODE_MONO) &&
+> +	    (vt->audmode != V4L2_TUNER_MODE_STEREO)) return -EINVAL;
+> +
 
-Remove struct ispccdc_vp since the only field in this structure, pixelclk,
-is no longer used.
+Well, this is true for all radio devices: only mono/stereo modes are supported.
+A check like that probably makes sense at the V4L2 core [1], as otherwise, the
+same test would be needed on all radio drivers.
 
-Remove isp_video_is_shiftable() --- this will live on as ccdc_is_shiftable
-in ispccdc.c.
+[1] drivers/media/video/v4l2-ioctl.c
 
-Remove isp_video_validate_pipeline(). Pipeline validation is now split into
-appropriate subdevs, so this can be removed.
+Regards,
+Mauro
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/omap3isp/isp.c      |   14 ---
- drivers/media/video/omap3isp/ispccdc.h  |   10 --
- drivers/media/video/omap3isp/ispvideo.c |  139 -------------------------------
- 3 files changed, 0 insertions(+), 163 deletions(-)
-
-diff --git a/drivers/media/video/omap3isp/isp.c b/drivers/media/video/omap3isp/isp.c
-index ae67f49..ea34075 100644
---- a/drivers/media/video/omap3isp/isp.c
-+++ b/drivers/media/video/omap3isp/isp.c
-@@ -329,19 +329,6 @@ void omap3isp_configure_bridge(struct isp_device *isp,
- 	isp_reg_writel(isp, ispctrl_val, OMAP3_ISP_IOMEM_MAIN, ISP_CTRL);
- }
- 
--/**
-- * isp_set_pixel_clock - Configures the ISP pixel clock
-- * @isp: OMAP3 ISP device
-- * @pixelclk: Average pixel clock in Hz
-- *
-- * Set the average pixel clock required by the sensor. The ISP will use the
-- * lowest possible memory bandwidth settings compatible with the clock.
-- **/
--static void isp_set_pixel_clock(struct isp_device *isp, unsigned int pixelclk)
--{
--	isp->isp_ccdc.vpcfg.pixelclk = pixelclk;
--}
--
- void omap3isp_hist_dma_done(struct isp_device *isp)
- {
- 	if (omap3isp_ccdc_busy(&isp->isp_ccdc) ||
-@@ -2118,7 +2105,6 @@ static int isp_probe(struct platform_device *pdev)
- 
- 	isp->autoidle = autoidle;
- 	isp->platform_cb.set_xclk = isp_set_xclk;
--	isp->platform_cb.set_pixel_clock = isp_set_pixel_clock;
- 
- 	mutex_init(&isp->isp_mutex);
- 	spin_lock_init(&isp->stat_lock);
-diff --git a/drivers/media/video/omap3isp/ispccdc.h b/drivers/media/video/omap3isp/ispccdc.h
-index 6d0264b..e570abe 100644
---- a/drivers/media/video/omap3isp/ispccdc.h
-+++ b/drivers/media/video/omap3isp/ispccdc.h
-@@ -80,14 +80,6 @@ struct ispccdc_syncif {
- 	u8 bt_r656_en;
- };
- 
--/*
-- * struct ispccdc_vp - Structure for Video Port parameters
-- * @pixelclk: Input pixel clock in Hz
-- */
--struct ispccdc_vp {
--	unsigned int pixelclk;
--};
--
- enum ispccdc_lsc_state {
- 	LSC_STATE_STOPPED = 0,
- 	LSC_STATE_STOPPING = 1,
-@@ -161,7 +153,6 @@ struct ispccdc_lsc {
-  * @update: Bitmask of controls to update during the next interrupt
-  * @shadow_update: Controls update in progress by userspace
-  * @syncif: Interface synchronization configuration
-- * @vpcfg: Video port configuration
-  * @underrun: A buffer underrun occurred and a new buffer has been queued
-  * @state: Streaming state
-  * @lock: Serializes shadow_update with interrupt handler
-@@ -190,7 +181,6 @@ struct isp_ccdc_device {
- 	unsigned int shadow_update;
- 
- 	struct ispccdc_syncif syncif;
--	struct ispccdc_vp vpcfg;
- 
- 	unsigned int underrun:1;
- 	enum isp_pipeline_stream_state state;
-diff --git a/drivers/media/video/omap3isp/ispvideo.c b/drivers/media/video/omap3isp/ispvideo.c
-index 2e4786d..07832c8 100644
---- a/drivers/media/video/omap3isp/ispvideo.c
-+++ b/drivers/media/video/omap3isp/ispvideo.c
-@@ -130,37 +130,6 @@ omap3isp_video_format_info(enum v4l2_mbus_pixelcode code)
- }
- 
- /*
-- * Decide whether desired output pixel code can be obtained with
-- * the lane shifter by shifting the input pixel code.
-- * @in: input pixelcode to shifter
-- * @out: output pixelcode from shifter
-- * @additional_shift: # of bits the sensor's LSB is offset from CAMEXT[0]
-- *
-- * return true if the combination is possible
-- * return false otherwise
-- */
--static bool isp_video_is_shiftable(enum v4l2_mbus_pixelcode in,
--		enum v4l2_mbus_pixelcode out,
--		unsigned int additional_shift)
--{
--	const struct isp_format_info *in_info, *out_info;
--
--	if (in == out)
--		return true;
--
--	in_info = omap3isp_video_format_info(in);
--	out_info = omap3isp_video_format_info(out);
--
--	if ((in_info->flavor == 0) || (out_info->flavor == 0))
--		return false;
--
--	if (in_info->flavor != out_info->flavor)
--		return false;
--
--	return in_info->bpp - out_info->bpp + additional_shift <= 6;
--}
--
--/*
-  * isp_video_mbus_to_pix - Convert v4l2_mbus_framefmt to v4l2_pix_format
-  * @video: ISP video instance
-  * @mbus: v4l2_mbus_framefmt format (input)
-@@ -284,107 +253,6 @@ isp_video_far_end(struct isp_video *video)
- 	return far_end;
- }
- 
--/*
-- * Validate a pipeline by checking both ends of all links for format
-- * discrepancies.
-- *
-- * Compute the minimum time per frame value as the maximum of time per frame
-- * limits reported by every block in the pipeline.
-- *
-- * Return 0 if all formats match, or -EPIPE if at least one link is found with
-- * different formats on its two ends or if the pipeline doesn't start with a
-- * video source (either a subdev with no input pad, or a non-subdev entity).
-- */
--static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
--{
--	struct isp_device *isp = pipe->output->isp;
--	struct v4l2_subdev_format fmt_source;
--	struct v4l2_subdev_format fmt_sink;
--	struct media_pad *pad;
--	struct v4l2_subdev *subdev;
--	int ret;
--
--	subdev = isp_video_remote_subdev(pipe->output, NULL);
--	if (subdev == NULL)
--		return -EPIPE;
--
--	while (1) {
--		unsigned int shifter_link;
--		/* Retrieve the sink format */
--		pad = &subdev->entity.pads[0];
--		if (!(pad->flags & MEDIA_PAD_FL_SINK))
--			break;
--
--		fmt_sink.pad = pad->index;
--		fmt_sink.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--		ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt_sink);
--		if (ret < 0 && ret != -ENOIOCTLCMD)
--			return -EPIPE;
--
--		/* Update the maximum frame rate */
--		if (subdev == &isp->isp_res.subdev)
--			omap3isp_resizer_max_rate(&isp->isp_res,
--						  &pipe->max_rate);
--
--		/* Check ccdc maximum data rate when data comes from sensor
--		 * TODO: Include ccdc rate in pipe->max_rate and compare the
--		 *       total pipe rate with the input data rate from sensor.
--		 */
--		if (subdev == &isp->isp_ccdc.subdev && pipe->input == NULL) {
--			unsigned int rate = UINT_MAX;
--
--			omap3isp_ccdc_max_rate(&isp->isp_ccdc, &rate);
--			if (isp->isp_ccdc.vpcfg.pixelclk > rate)
--				return -ENOSPC;
--		}
--
--		/* If sink pad is on CCDC, the link has the lane shifter
--		 * in the middle of it. */
--		shifter_link = subdev == &isp->isp_ccdc.subdev;
--
--		/* Retrieve the source format. Return an error if no source
--		 * entity can be found, and stop checking the pipeline if the
--		 * source entity isn't a subdev.
--		 */
--		pad = media_entity_remote_source(pad);
--		if (pad == NULL)
--			return -EPIPE;
--
--		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
--			break;
--
--		subdev = media_entity_to_v4l2_subdev(pad->entity);
--
--		fmt_source.pad = pad->index;
--		fmt_source.which = V4L2_SUBDEV_FORMAT_ACTIVE;
--		ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt_source);
--		if (ret < 0 && ret != -ENOIOCTLCMD)
--			return -EPIPE;
--
--		/* Check if the two ends match */
--		if (fmt_source.format.width != fmt_sink.format.width ||
--		    fmt_source.format.height != fmt_sink.format.height)
--			return -EPIPE;
--
--		if (shifter_link) {
--			unsigned int parallel_shift = 0;
--			if (isp->isp_ccdc.input == CCDC_INPUT_PARALLEL) {
--				struct isp_parallel_platform_data *pdata =
--					&((struct isp_v4l2_subdevs_group *)
--					      subdev->host_priv)->bus.parallel;
--				parallel_shift = pdata->data_lane_shift * 2;
--			}
--			if (!isp_video_is_shiftable(fmt_source.format.code,
--						fmt_sink.format.code,
--						parallel_shift))
--				return -EPIPE;
--		} else if (fmt_source.format.code != fmt_sink.format.code)
--			return -EPIPE;
--	}
--
--	return 0;
--}
--
- static int
- __isp_video_get_format(struct isp_video *video, struct v4l2_format *format)
- {
-@@ -1034,13 +902,6 @@ isp_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
- 		pipe->output = far_end;
- 	}
- 
--	/* Validate the pipeline and update its state. */
--	ret = isp_video_validate_pipeline(pipe);
--	if (ret < 0)
--		goto err_isp_video_check_format;
--
--	pipe->error = false;
--
- 	spin_lock_irqsave(&pipe->lock, flags);
- 	pipe->state &= ~ISP_PIPELINE_STREAM;
- 	pipe->state |= state;
--- 
-1.7.2.5
+>  	switch (vt->audmode) {
+>  		case V4L2_TUNER_MODE_MONO:
+>  			/* mono      -> mono
+> -- 1.7.2.3
+> 
 
