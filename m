@@ -1,206 +1,304 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2492 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965035Ab2B1LS1 (ORCPT
+Received: from wolverine01.qualcomm.com ([199.106.114.254]:21262 "EHLO
+	wolverine01.qualcomm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab2B1Fvz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 Feb 2012 06:18:27 -0500
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [RFCv1 PATCH 5/6] v4l2-common: add new support functions to match DV timings.
-Date: Tue, 28 Feb 2012 12:18:19 +0100
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl> <68cfc6be5d701f44ae06331be08a57c311169004.1328262332.git.hans.verkuil@cisco.com> <4F4CB47B.1020606@redhat.com>
-In-Reply-To: <4F4CB47B.1020606@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202281218.19380.hverkuil@xs4all.nl>
+	Tue, 28 Feb 2012 00:51:55 -0500
+From: Ravi Kumar V <kumarrav@codeaurora.org>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Jarod Wilson <jarod@redhat.com>,
+	Anssi Hannula <anssi.hannula@iki.fi>,
+	"Juan J. Garcia de Soria" <skandalfo@gmail.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	tsoni@codeaurora.org, davidb@codeaurora.org, bryanh@codeaurora.org,
+	Ravi Kumar V <kumarrav@codeaurora.org>,
+	linux-arm-msm@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v3 1/1] rc: Add support for GPIO based IR Receiver driver.
+Date: Tue, 28 Feb 2012 11:21:40 +0530
+Message-Id: <1330408300-21939-1-git-send-email-kumarrav@codeaurora.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday, February 28, 2012 12:03:23 Mauro Carvalho Chehab wrote:
-> Em 03-02-2012 08:06, Hans Verkuil escreveu:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/video/v4l2-common.c |  102 ++++++++++++++++++++++++++++++-------
-> >  include/media/v4l2-common.h       |   15 +++++
-> >  2 files changed, 99 insertions(+), 18 deletions(-)
-> > 
-> > diff --git a/drivers/media/video/v4l2-common.c b/drivers/media/video/v4l2-common.c
-> > index 5c6100f..f133961 100644
-> > --- a/drivers/media/video/v4l2-common.c
-> > +++ b/drivers/media/video/v4l2-common.c
-> > @@ -567,24 +567,24 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
-> >  		const char *name;
-> >  	} dv_presets[] = {
-> >  		{ 0, 0, "Invalid" },		/* V4L2_DV_INVALID */
-> > -		{ 720,  480, "480p@59.94" },	/* V4L2_DV_480P59_94 */
-> > -		{ 720,  576, "576p@50" },	/* V4L2_DV_576P50 */
-> > -		{ 1280, 720, "720p@24" },	/* V4L2_DV_720P24 */
-> > -		{ 1280, 720, "720p@25" },	/* V4L2_DV_720P25 */
-> > -		{ 1280, 720, "720p@30" },	/* V4L2_DV_720P30 */
-> > -		{ 1280, 720, "720p@50" },	/* V4L2_DV_720P50 */
-> > -		{ 1280, 720, "720p@59.94" },	/* V4L2_DV_720P59_94 */
-> > -		{ 1280, 720, "720p@60" },	/* V4L2_DV_720P60 */
-> > -		{ 1920, 1080, "1080i@29.97" },	/* V4L2_DV_1080I29_97 */
-> > -		{ 1920, 1080, "1080i@30" },	/* V4L2_DV_1080I30 */
-> > -		{ 1920, 1080, "1080i@25" },	/* V4L2_DV_1080I25 */
-> > -		{ 1920, 1080, "1080i@50" },	/* V4L2_DV_1080I50 */
-> > -		{ 1920, 1080, "1080i@60" },	/* V4L2_DV_1080I60 */
-> > -		{ 1920, 1080, "1080p@24" },	/* V4L2_DV_1080P24 */
-> > -		{ 1920, 1080, "1080p@25" },	/* V4L2_DV_1080P25 */
-> > -		{ 1920, 1080, "1080p@30" },	/* V4L2_DV_1080P30 */
-> > -		{ 1920, 1080, "1080p@50" },	/* V4L2_DV_1080P50 */
-> > -		{ 1920, 1080, "1080p@60" },	/* V4L2_DV_1080P60 */
-> > +		{ 720,  480, "720x480p59.94" },	/* V4L2_DV_480P59_94 */
-> > +		{ 720,  576, "720x576p50" },	/* V4L2_DV_576P50 */
-> > +		{ 1280, 720, "1280x720p24" },	/* V4L2_DV_720P24 */
-> > +		{ 1280, 720, "1280x720p25" },	/* V4L2_DV_720P25 */
-> > +		{ 1280, 720, "1280x720p30" },	/* V4L2_DV_720P30 */
-> > +		{ 1280, 720, "1280x720p50" },	/* V4L2_DV_720P50 */
-> > +		{ 1280, 720, "1280x720p59.94" },/* V4L2_DV_720P59_94 */
-> > +		{ 1280, 720, "1280x720p60" },	/* V4L2_DV_720P60 */
-> 
-> > +		{ 0, 0, "Invalid" },		/* V4L2_DV_1080I29_97 */
-> > +		{ 0, 0, "Invalid" },		/* V4L2_DV_1080I30 */
-> > +		{ 0, 0, "Invalid" },		/* V4L2_DV_1080I25 */
-> 
-> Huh? That seems to be causing a regression.
+Adds GPIO based IR Receiver driver. It decodes signals using decoders
+available in rc framework.
 
-I'm not quite certain how to handle this. The problem is that these three
-formats literally do not exist. I'm entirely to blame for this and I've no
-idea how I ended up adding these formats.
+Signed-off-by: Ravi Kumar V <kumarrav@codeaurora.org>
+---
+ drivers/media/rc/Kconfig        |    9 ++
+ drivers/media/rc/Makefile       |    1 +
+ drivers/media/rc/gpio-ir-recv.c |  205 +++++++++++++++++++++++++++++++++++++++
+ include/media/gpio-ir-recv.h    |   22 ++++
+ 4 files changed, 237 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/rc/gpio-ir-recv.c
+ create mode 100644 include/media/gpio-ir-recv.h
 
-Changing this table was my, possibly misguided, attempt to at least let
-the application know that these formats are bogus.
+diff --git a/drivers/media/rc/Kconfig b/drivers/media/rc/Kconfig
+index aeb7f43..6f63ded 100644
+--- a/drivers/media/rc/Kconfig
++++ b/drivers/media/rc/Kconfig
+@@ -256,4 +256,13 @@ config RC_LOOPBACK
+ 	   To compile this driver as a module, choose M here: the module will
+ 	   be called rc_loopback.
+ 
++config IR_GPIO_CIR
++	tristate "GPIO IR remote control"
++	depends on RC_CORE
++	---help---
++	   Say Y if you want to use GPIO based IR Receiver.
++
++	   To compile this driver as a module, choose M here: the module will
++	   be called gpio-ir-recv.
++
+ endif #RC_CORE
+diff --git a/drivers/media/rc/Makefile b/drivers/media/rc/Makefile
+index 2156e78..9b3568e 100644
+--- a/drivers/media/rc/Makefile
++++ b/drivers/media/rc/Makefile
+@@ -25,3 +25,4 @@ obj-$(CONFIG_IR_REDRAT3) += redrat3.o
+ obj-$(CONFIG_IR_STREAMZAP) += streamzap.o
+ obj-$(CONFIG_IR_WINBOND_CIR) += winbond-cir.o
+ obj-$(CONFIG_RC_LOOPBACK) += rc-loopback.o
++obj-$(CONFIG_IR_GPIO_CIR) += gpio-ir-recv.o
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+new file mode 100644
+index 0000000..6744479
+--- /dev/null
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -0,0 +1,205 @@
++/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/interrupt.h>
++#include <linux/gpio.h>
++#include <linux/slab.h>
++#include <linux/platform_device.h>
++#include <linux/irq.h>
++#include <media/rc-core.h>
++#include <media/gpio-ir-recv.h>
++
++#define GPIO_IR_DRIVER_NAME	"gpio-rc-recv"
++#define GPIO_IR_DEVICE_NAME	"gpio_ir_recv"
++
++struct gpio_rc_dev {
++	struct rc_dev *rcdev;
++	unsigned int gpio_nr;
++	bool active_low;
++};
++
++static irqreturn_t gpio_ir_recv_irq(int irq, void *dev_id)
++{
++	struct gpio_rc_dev *gpio_dev = dev_id;
++	unsigned int gval;
++	int rc = 0;
++	enum raw_event_type type = IR_SPACE;
++
++	gval = gpio_get_value_cansleep(gpio_dev->gpio_nr);
++
++	if (gval < 0)
++		goto err_get_value;
++
++	if (gpio_dev->active_low)
++		gval = !gval;
++
++	if (gval == 1)
++		type = IR_PULSE;
++
++	rc = ir_raw_event_store_edge(gpio_dev->rcdev, type);
++	if (rc < 0)
++		goto err_get_value;
++
++	ir_raw_event_handle(gpio_dev->rcdev);
++
++err_get_value:
++	return IRQ_HANDLED;
++}
++
++static int __devinit gpio_ir_recv_probe(struct platform_device *pdev)
++{
++	struct gpio_rc_dev *gpio_dev;
++	struct rc_dev *rcdev;
++	const struct gpio_ir_recv_platform_data *pdata =
++					pdev->dev.platform_data;
++	int rc;
++
++	if (!pdata)
++		return -EINVAL;
++
++	if (pdata->gpio_nr < 0)
++		return -EINVAL;
++
++	gpio_dev = kzalloc(sizeof(struct gpio_rc_dev), GFP_KERNEL);
++	if (!gpio_dev)
++		return -ENOMEM;
++
++	rcdev = rc_allocate_device();
++	if (!rcdev) {
++		rc = -ENOMEM;
++		goto err_allocate_device;
++	}
++
++	rcdev->driver_type = RC_DRIVER_IR_RAW;
++	rcdev->allowed_protos = RC_TYPE_ALL;
++	rcdev->input_name = GPIO_IR_DEVICE_NAME;
++	rcdev->input_id.bustype = BUS_HOST;
++	rcdev->driver_name = GPIO_IR_DRIVER_NAME;
++	rcdev->map_name = RC_MAP_EMPTY;
++
++	gpio_dev->rcdev = rcdev;
++	gpio_dev->gpio_nr = pdata->gpio_nr;
++	gpio_dev->active_low = pdata->active_low;
++
++	rc = gpio_request(pdata->gpio_nr, "gpio-ir-recv");
++	if (rc < 0)
++		goto err_gpio_request;
++	rc  = gpio_direction_input(pdata->gpio_nr);
++	if (rc < 0)
++		goto err_gpio_direction_input;
++
++	rc = rc_register_device(rcdev);
++	if (rc < 0) {
++		dev_err(&pdev->dev, "failed to register rc device\n");
++		goto err_register_rc_device;
++	}
++
++	platform_set_drvdata(pdev, gpio_dev);
++
++	rc = request_any_context_irq(gpio_to_irq(pdata->gpio_nr),
++				gpio_ir_recv_irq,
++			IRQF_TRIGGER_FALLING | IRQF_TRIGGER_RISING,
++					"gpio-ir-recv-irq", gpio_dev);
++	if (rc < 0)
++		goto err_request_irq;
++
++	return 0;
++
++err_request_irq:
++	platform_set_drvdata(pdev, NULL);
++	rc_unregister_device(rcdev);
++err_register_rc_device:
++err_gpio_direction_input:
++	gpio_free(pdata->gpio_nr);
++err_gpio_request:
++	rc_free_device(rcdev);
++	rcdev = NULL;
++err_allocate_device:
++	kfree(gpio_dev);
++	return rc;
++}
++
++static int __devexit gpio_ir_recv_remove(struct platform_device *pdev)
++{
++	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
++
++	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
++	platform_set_drvdata(pdev, NULL);
++	rc_unregister_device(gpio_dev->rcdev);
++	gpio_free(gpio_dev->gpio_nr);
++	rc_free_device(gpio_dev->rcdev);
++	kfree(gpio_dev);
++	return 0;
++}
++
++#ifdef CONFIG_PM
++static int gpio_ir_recv_suspend(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
++
++	if (device_may_wakeup(dev))
++		enable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
++	else
++		disable_irq(gpio_to_irq(gpio_dev->gpio_nr));
++
++	return 0;
++}
++
++static int gpio_ir_recv_resume(struct device *dev)
++{
++	struct platform_device *pdev = to_platform_device(dev);
++	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
++
++	if (device_may_wakeup(dev))
++		disable_irq_wake(gpio_to_irq(gpio_dev->gpio_nr));
++	else
++		enable_irq(gpio_to_irq(gpio_dev->gpio_nr));
++
++	return 0;
++}
++
++static const struct dev_pm_ops gpio_ir_recv_pm_ops = {
++	.suspend        = gpio_ir_recv_suspend,
++	.resume         = gpio_ir_recv_resume,
++};
++#endif
++
++static struct platform_driver gpio_ir_recv_driver = {
++	.probe  = gpio_ir_recv_probe,
++	.remove = __devexit_p(gpio_ir_recv_remove),
++	.driver = {
++		.name   = GPIO_IR_DRIVER_NAME,
++		.owner  = THIS_MODULE,
++#ifdef CONFIG_PM
++		.pm	= &gpio_ir_recv_pm_ops,
++#endif
++	},
++};
++
++static int __init gpio_ir_recv_init(void)
++{
++	return platform_driver_register(&gpio_ir_recv_driver);
++}
++module_init(gpio_ir_recv_init);
++
++static void __exit gpio_ir_recv_exit(void)
++{
++	platform_driver_unregister(&gpio_ir_recv_driver);
++}
++module_exit(gpio_ir_recv_exit);
++
++MODULE_DESCRIPTION("GPIO IR Receiver driver");
++MODULE_LICENSE("GPL v2");
+diff --git a/include/media/gpio-ir-recv.h b/include/media/gpio-ir-recv.h
+new file mode 100644
+index 0000000..61a7fbb
+--- /dev/null
++++ b/include/media/gpio-ir-recv.h
+@@ -0,0 +1,22 @@
++/* Copyright (c) 2012, Code Aurora Forum. All rights reserved.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 and
++ * only version 2 as published by the Free Software Foundation.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ */
++
++#ifndef __GPIO_IR_RECV_H__
++#define __GPIO_IR_RECV_H__
++
++struct gpio_ir_recv_platform_data {
++	unsigned int gpio_nr;
++	bool active_low;
++};
++
++#endif /* __GPIO_IR_RECV_H__ */
++
+-- 
+Sent by a consultant of the Qualcomm Innovation Center, Inc.
+The Qualcomm Innovation Center, Inc. is a member of the Code Aurora Forum.
 
-No drivers currently support these formats (for obvious reasons).
-
-An alternative is to make a feature-removal entry, saying that these three
-formats are removed in 3.5, and until then leave this table as is.
-
-What do you think?
-
-Regards,
-
-	Hans
-
-> 
-> > +		{ 1920, 1080, "1920x1080i50" },	/* V4L2_DV_1080I50 */
-> > +		{ 1920, 1080, "1920x1080i60" },	/* V4L2_DV_1080I60 */
-> > +		{ 1920, 1080, "1920x1080p24" },	/* V4L2_DV_1080P24 */
-> > +		{ 1920, 1080, "1920x1080p25" },	/* V4L2_DV_1080P25 */
-> > +		{ 1920, 1080, "1920x1080p30" },	/* V4L2_DV_1080P30 */
-> > +		{ 1920, 1080, "1920x1080p50" },	/* V4L2_DV_1080P50 */
-> > +		{ 1920, 1080, "1920x1080p60" },	/* V4L2_DV_1080P60 */
-> >  	};
-> >  
-> >  	if (info == NULL || preset >= ARRAY_SIZE(dv_presets))
-> > @@ -598,6 +598,72 @@ int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info)
-> >  }
-> >  EXPORT_SYMBOL_GPL(v4l_fill_dv_preset_info);
-> >  
-> > +bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
-> > +			  const struct v4l2_dv_timings *t2)
-> > +{
-> > +	if (t1->type != t2->type || t1->type != V4L2_DV_BT_656_1120)
-> > +		return false;
-> > +	return !memcmp(&t1->bt, &t2->bt, &t1->bt.standards - &t1->bt.width);
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l_match_dv_timings);
-> > +
-> > +bool v4l_match_dv_timings_fuzzy(const struct v4l2_dv_timings *t1,
-> > +			  const struct v4l2_dv_timings *t2,
-> > +			  u32 clock_resolution, u32 flags)
-> > +{
-> > +	const struct v4l2_bt_timings *bt1, *bt2;
-> > +	unsigned v_blank1, v_blank2;
-> > +	u32 clock_diff;
-> > +
-> > +	if (t1->type != t2->type || t1->type != V4L2_DV_BT_656_1120)
-> > +		return false;
-> > +	bt1 = &t1->bt;
-> > +	bt2 = &t2->bt;
-> > +	if (bt1->interlaced != bt2->interlaced)
-> > +		return false;
-> > +	v_blank1 = bt1->vfrontporch + bt1->vsync + bt1->vbackporch +
-> > +		   bt1->il_vfrontporch + bt1->il_vsync + bt1->il_vbackporch;
-> > +	v_blank2 = bt2->vfrontporch + bt2->vsync + bt2->vbackporch +
-> > +		   bt2->il_vfrontporch + bt2->il_vsync + bt2->il_vbackporch;
-> > +	if (bt1->height != bt2->height)
-> > +		return false;
-> > +	if ((flags & V4L_MATCH_BT_HAVE_ACTIVE_HEIGHT) &&
-> > +			v_blank1 != v_blank2)
-> > +		return false;
-> > +	if ((flags & V4L_MATCH_BT_HAVE_V_POL) &&
-> > +			(bt1->polarities & V4L2_DV_VSYNC_POS_POL) !=
-> > +			(bt2->polarities & V4L2_DV_VSYNC_POS_POL))
-> > +		return false;
-> > +	if ((flags & V4L_MATCH_BT_HAVE_H_POL) &&
-> > +			(bt1->polarities & V4L2_DV_HSYNC_POS_POL) !=
-> > +			(bt2->polarities & V4L2_DV_HSYNC_POS_POL))
-> > +		return false;
-> > +	if ((flags & V4L_MATCH_BT_HAVE_VSYNC) &&
-> > +			bt1->vsync != bt2->vsync)
-> > +		return false;
-> > +	if ((flags & V4L_MATCH_BT_HAVE_HSYNC) &&
-> > +			bt1->hsync != bt2->hsync)
-> > +		return false;
-> > +	if (flags & V4L_MATCH_BT_HAVE_WIDTH) {
-> > +		unsigned h_blank1 = bt1->hfrontporch + bt1->hsync +
-> > +					bt1->hbackporch;
-> > +		unsigned h_blank2 = bt2->hfrontporch + bt2->hsync +
-> > +					bt2->hbackporch;
-> > +
-> > +		if (bt1->width != bt2->width)
-> > +			return false;
-> > +		if ((flags & V4L_MATCH_BT_HAVE_ACTIVE_WIDTH) &&
-> > +				h_blank1 != h_blank2)
-> > +			return false;
-> > +	}
-> > +	if (bt1->pixelclock > bt2->pixelclock)
-> > +		clock_diff = bt1->pixelclock - bt2->pixelclock;
-> > +	else
-> > +		clock_diff = bt2->pixelclock - bt1->pixelclock;
-> > +	return clock_diff < clock_resolution;
-> > +}
-> > +EXPORT_SYMBOL_GPL(v4l_match_dv_timings_fuzzy);
-> > +
-> >  const struct v4l2_frmsize_discrete *v4l2_find_nearest_format(
-> >  		const struct v4l2_discrete_probe *probe,
-> >  		s32 width, s32 height)
-> > diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> > index a298ec4..4469696 100644
-> > --- a/include/media/v4l2-common.h
-> > +++ b/include/media/v4l2-common.h
-> > @@ -202,6 +202,21 @@ void v4l_bound_align_image(unsigned int *w, unsigned int wmin,
-> >  			   unsigned int hmax, unsigned int halign,
-> >  			   unsigned int salign);
-> >  int v4l_fill_dv_preset_info(u32 preset, struct v4l2_dv_enum_preset *info);
-> > +bool v4l_match_dv_timings(const struct v4l2_dv_timings *t1,
-> > +			  const struct v4l2_dv_timings *t2);
-> > +
-> > +#define V4L_MATCH_BT_HAVE_WIDTH		(1 << 0)
-> > +#define V4L_MATCH_BT_HAVE_ACTIVE_HEIGHT	(1 << 1)
-> > +#define V4L_MATCH_BT_HAVE_ACTIVE_WIDTH	(1 << 2)
-> > +#define V4L_MATCH_BT_HAVE_V_POL		(1 << 3)
-> > +#define V4L_MATCH_BT_HAVE_H_POL		(1 << 4)
-> > +#define V4L_MATCH_BT_HAVE_VSYNC		(1 << 5)
-> > +#define V4L_MATCH_BT_HAVE_HSYNC		(1 << 6)
-> > +
-> > +bool v4l_match_dv_timings_fuzzy(const struct v4l2_dv_timings *t1,
-> > +			  const struct v4l2_dv_timings *t2,
-> > +			  u32 clock_resolution,
-> > +			  u32 flags);
-> >  
-> >  struct v4l2_discrete_probe {
-> >  	const struct v4l2_frmsize_discrete	*sizes;
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
