@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:50964 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750828Ab2BPJ2A (ORCPT
+Received: from oproxy1-pub.bluehost.com ([66.147.249.253]:38389 "HELO
+	oproxy1-pub.bluehost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S965622Ab2B1Pyn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 Feb 2012 04:28:00 -0500
-Date: Thu, 16 Feb 2012 11:27:55 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Danny Kukawka <danny.kukawka@bisect.de>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Danny Kukawka <dkukawka@suse.de>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Paul Gortmaker <paul.gortmaker@windriver.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] adp1653: included linux/module.h twice
-Message-ID: <20120216092755.GD7784@valkosipuli.localdomain>
-References: <1329333644-32048-1-git-send-email-danny.kukawka@bisect.de>
+	Tue, 28 Feb 2012 10:54:43 -0500
+Message-ID: <4F4CF8C6.4030305@xenotime.net>
+Date: Tue, 28 Feb 2012 07:54:46 -0800
+From: Randy Dunlap <rdunlap@xenotime.net>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1329333644-32048-1-git-send-email-danny.kukawka@bisect.de>
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org
+Subject: Re: linux-next: Tree for Feb 23 (media/radio)
+References: <20120223143722.d8814b493df968c229da5f20@canb.auug.org.au> <4F46AC34.8090704@xenotime.net>
+In-Reply-To: <4F46AC34.8090704@xenotime.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Danny,
+On 02/23/2012 01:14 PM, Randy Dunlap wrote:
 
-On Wed, Feb 15, 2012 at 08:20:44PM +0100, Danny Kukawka wrote:
-> drivers/media/video/adp1653.c included 'linux/module.h' twice,
-> remove the duplicate.
+> On 02/22/2012 07:37 PM, Stephen Rothwell wrote:
+>> Hi all,
+>>
+>> Changes since 20120222:
 > 
-> Signed-off-by: Danny Kukawka <danny.kukawka@bisect.de>
-> ---
->  drivers/media/video/adp1653.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
+
+
+ping.
+
+These build errors still happen in linux-next 20120228.
+
+
 > 
-> diff --git a/drivers/media/video/adp1653.c b/drivers/media/video/adp1653.c
-> index 12eedf4..6e7d094 100644
-> --- a/drivers/media/video/adp1653.c
-> +++ b/drivers/media/video/adp1653.c
-> @@ -33,7 +33,6 @@
->  #include <linux/delay.h>
->  #include <linux/module.h>
->  #include <linux/i2c.h>
-> -#include <linux/module.h>
->  #include <linux/slab.h>
->  #include <linux/version.h>
->  #include <media/adp1653.h>
+> on i386:
+> 
+> Looks like several source files need to #include <linux/slab.h>:
+> 
+> 
+> drivers/media/radio/radio-isa.c:246:3: error: implicit declaration of function 'kfree'
+> drivers/media/radio/radio-aztech.c:72:9: error: implicit declaration of function 'kzalloc'
+> drivers/media/radio/radio-aztech.c:72:22: warning: initialization makes pointer from integer without a cast
+> drivers/media/radio/radio-typhoon.c:76:9: error: implicit declaration of function 'kzalloc'
+> drivers/media/radio/radio-typhoon.c:76:23: warning: initialization makes pointer from integer without a cast
+> drivers/media/radio/radio-terratec.c:57:2: error: implicit declaration of function 'kzalloc'
+> drivers/media/radio/radio-terratec.c:57:2: warning: return makes pointer from integer without a cast
+> drivers/media/radio/radio-aimslab.c:67:9: error: implicit declaration of function 'kzalloc'
+> drivers/media/radio/radio-aimslab.c:67:22: warning: initialization makes pointer from integer without a cast
+> drivers/media/radio/radio-zoltrix.c:80:9: error: implicit declaration of function 'kzalloc'
+> drivers/media/radio/radio-zoltrix.c:80:24: warning: initialization makes pointer from integer without a cast
+> drivers/media/radio/radio-gemtek.c:183:9: error: implicit declaration of function 'kzalloc'
+> drivers/media/radio/radio-gemtek.c:183:22: warning: initialization makes pointer from integer without a cast
+> drivers/media/radio/radio-trust.c:57:9: error: implicit declaration of function 'kzalloc'
+> drivers/media/radio/radio-trust.c:57:21: warning: initialization makes pointer from integer without a cast
+> 
 
-Thanks for the patch. However, I've got a patch in my tree that already
-contains this change.
 
-Kind regards,
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+~Randy
