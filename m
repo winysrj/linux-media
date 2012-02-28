@@ -1,205 +1,178 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.1.48]:18893 "EHLO mgw-sa02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753982Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 18:55:03 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v2 04/31] v4l: VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION IOCTLs
-Date: Fri,  3 Feb 2012 01:54:24 +0200
-Message-Id: <1328226891-8968-4-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
-References: <20120202235231.GC841@valkosipuli.localdomain>
+Received: from mail-vx0-f174.google.com ([209.85.220.174]:37665 "EHLO
+	mail-vx0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964840Ab2B1Oqo convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Feb 2012 09:46:44 -0500
+Received: by vcqp1 with SMTP id p1so2532962vcq.19
+        for <linux-media@vger.kernel.org>; Tue, 28 Feb 2012 06:46:43 -0800 (PST)
+MIME-Version: 1.0
+In-Reply-To: <CAKnK67Qk6pJ1LQBsi_V3OfadzEXHV8RnaOOxT3MK7Hu4zsk9dg@mail.gmail.com>
+References: <CAH9_wRN5=nHtB9M3dL4wvZGL3+mb4_TfS=uPun_13D7n0E3CKA@mail.gmail.com>
+	<CAKnK67T=obVTWkzZqVtv+PninjkbLp1os5AnsoZ+j=NGFFMWLA@mail.gmail.com>
+	<CAH9_wRNGERctBxYT5NNEHOhuzWZYF2yKxG4BA6pzPzBWPy8_3Q@mail.gmail.com>
+	<CAH9_wRN9bA8JTViBA6sWk9aVOU1Pbr5bPFvNh2MCsGUVjnr9qg@mail.gmail.com>
+	<CAKnK67Qk6pJ1LQBsi_V3OfadzEXHV8RnaOOxT3MK7Hu4zsk9dg@mail.gmail.com>
+Date: Tue, 28 Feb 2012 20:16:43 +0530
+Message-ID: <CAH9_wRPu0X29oTcQvFHZou2B9ZTBT74kFbRWBJY2b6x4ftYzEg@mail.gmail.com>
+Subject: Re: Video Capture Issue
+From: Sriram V <vshrirama@gmail.com>
+To: "Aguirre, Sergio" <saaguirre@ti.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for VIDIOC_SUBDEV_S_SELECTION and VIDIOC_SUBDEV_G_SELECTION
-IOCTLs. They replace functionality provided by VIDIOC_SUBDEV_S_CROP and
-VIDIOC_SUBDEV_G_CROP IOCTLs and also add new functionality (composing).
+Hi Aguirre Sergio,
 
-VIDIOC_SUBDEV_G_CROP and VIDIOC_SUBDEV_S_CROP continue to be supported.
+On Tue, Feb 28, 2012 at 9:08 AM, Aguirre, Sergio <saaguirre@ti.com> wrote:
+> Sriram,
+>
+> On Sun, Feb 26, 2012 at 8:54 AM, Sriram V <vshrirama@gmail.com> wrote:
+>> Hi,
+>>  When I take the dump of the buffer which is pointed by "DATA MEM
+>> PING ADDRESS". It always shows 0x55.
+>>  Even if i write 0x00 to the address. I do notice that it quickly
+>> changes to 0x55.
+>>  Under what conditions could this happen? What am i missing here.
+>
+> If you're using "yavta" for capture, notice that it clears out the
+> buffers before queuing them in:
+>
+> static int video_queue_buffer(struct device *dev, int index, enum
+> buffer_fill_mode fill)
+> {
+>        struct v4l2_buffer buf;
+>        int ret;
+>
+>        ...
+>        ...
+>        if (dev->type == V4L2_BUF_TYPE_VIDEO_OUTPUT) {
+>                ...
+>        } else {
+>                if (fill & BUFFER_FILL_FRAME)
+>                        memset(dev->buffers[buf.index].mem, 0x55, dev->buffers[index].size);
+>                if (fill & BUFFER_FILL_PADDING)
+>                        memset(dev->buffers[buf.index].mem + dev->buffers[index].size,
+>                               0x55, dev->buffers[index].padding);
+>        }
+>        ...
+> }
+>
+> So, just make sure this condition is not met.
+>
+>>
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/video/v4l2-subdev.c |   34 +++++++++++++++++++++---------
- include/linux/v4l2-subdev.h       |   41 +++++++++++++++++++++++++++++++++++++
- include/media/v4l2-subdev.h       |   21 +++++++++++++++---
- 3 files changed, 82 insertions(+), 14 deletions(-)
+Unfortunately, this condition is met.  For some reason, ISS thinks
+it has got valid frame. Whereas the Image data is not populated into
+the buffers.
+The register CSI2_CTX_CTRL1_i[COUNT] keeps getting toggled between 0 and 1
+indicating a frame arrival.
 
-diff --git a/drivers/media/video/v4l2-subdev.c b/drivers/media/video/v4l2-subdev.c
-index 41d118e..6bc5039 100644
---- a/drivers/media/video/v4l2-subdev.c
-+++ b/drivers/media/video/v4l2-subdev.c
-@@ -35,14 +35,9 @@
- static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	/* Allocate try format and crop in the same memory block */
--	fh->try_fmt = kzalloc((sizeof(*fh->try_fmt) + sizeof(*fh->try_crop))
--			      * sd->entity.num_pads, GFP_KERNEL);
--	if (fh->try_fmt == NULL)
-+	fh->pad = kzalloc(sizeof(*fh->pad) * sd->entity.num_pads, GFP_KERNEL);
-+	if (fh->pad == NULL)
- 		return -ENOMEM;
--
--	fh->try_crop = (struct v4l2_rect *)
--		(fh->try_fmt + sd->entity.num_pads);
- #endif
- 	return 0;
- }
-@@ -50,9 +45,8 @@ static int subdev_fh_init(struct v4l2_subdev_fh *fh, struct v4l2_subdev *sd)
- static void subdev_fh_free(struct v4l2_subdev_fh *fh)
- {
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	kfree(fh->try_fmt);
--	fh->try_fmt = NULL;
--	fh->try_crop = NULL;
-+	kfree(fh->pad);
-+	fh->pad = NULL;
- #endif
- }
- 
-@@ -285,6 +279,26 @@ static long subdev_do_ioctl(struct file *file, unsigned int cmd, void *arg)
- 		return v4l2_subdev_call(sd, pad, enum_frame_interval, subdev_fh,
- 					fie);
- 	}
-+
-+	case VIDIOC_SUBDEV_G_SELECTION: {
-+		struct v4l2_subdev_selection *sel = arg;
-+
-+		if (sel->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(
-+			sd, pad, get_selection, subdev_fh, sel);
-+	}
-+
-+	case VIDIOC_SUBDEV_S_SELECTION: {
-+		struct v4l2_subdev_selection *sel = arg;
-+
-+		if (sel->pad >= sd->entity.num_pads)
-+			return -EINVAL;
-+
-+		return v4l2_subdev_call(
-+			sd, pad, set_selection, subdev_fh, sel);
-+	}
- #endif
- 	default:
- 		return v4l2_subdev_call(sd, core, ioctl, cmd, arg);
-diff --git a/include/linux/v4l2-subdev.h b/include/linux/v4l2-subdev.h
-index ed29cbb..192993a 100644
---- a/include/linux/v4l2-subdev.h
-+++ b/include/linux/v4l2-subdev.h
-@@ -123,6 +123,43 @@ struct v4l2_subdev_frame_interval_enum {
- 	__u32 reserved[9];
- };
- 
-+#define V4L2_SUBDEV_SEL_FLAG_SIZE_GE			(1 << 0)
-+#define V4L2_SUBDEV_SEL_FLAG_SIZE_LE			(1 << 1)
-+#define V4L2_SUBDEV_SEL_FLAG_KEEP_CONFIG		(1 << 2)
-+
-+/* active cropping area */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_ACTIVE			0
-+/* cropping bounds */
-+#define V4L2_SUBDEV_SEL_TGT_CROP_BOUNDS			2
-+/* current composing area */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_ACTIVE		256
-+/* composing bounds */
-+#define V4L2_SUBDEV_SEL_TGT_COMPOSE_BOUNDS		258
-+
-+
-+/**
-+ * struct v4l2_subdev_selection - selection info
-+ *
-+ * @which: either V4L2_SUBDEV_FORMAT_ACTIVE or V4L2_SUBDEV_FORMAT_TRY
-+ * @pad: pad number, as reported by the media API
-+ * @target: selection target, used to choose one of possible rectangles
-+ * @flags: constraints flags
-+ * @r: coordinates of selection window
-+ * @reserved: for future use, rounds structure size to 64 bytes, set to zero
-+ *
-+ * Hardware may use multiple helper window to process a video stream.
-+ * The structure is used to exchange this selection areas between
-+ * an application and a driver.
-+ */
-+struct v4l2_subdev_selection {
-+	__u32 which;
-+	__u32 pad;
-+	__u32 target;
-+	__u32 flags;
-+	struct v4l2_rect r;
-+	__u32 reserved[8];
-+};
-+
- #define VIDIOC_SUBDEV_G_FMT	_IOWR('V',  4, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_S_FMT	_IOWR('V',  5, struct v4l2_subdev_format)
- #define VIDIOC_SUBDEV_G_FRAME_INTERVAL \
-@@ -137,5 +174,9 @@ struct v4l2_subdev_frame_interval_enum {
- 			_IOWR('V', 75, struct v4l2_subdev_frame_interval_enum)
- #define VIDIOC_SUBDEV_G_CROP	_IOWR('V', 59, struct v4l2_subdev_crop)
- #define VIDIOC_SUBDEV_S_CROP	_IOWR('V', 60, struct v4l2_subdev_crop)
-+#define VIDIOC_SUBDEV_G_SELECTION \
-+	_IOWR('V', 61, struct v4l2_subdev_selection)
-+#define VIDIOC_SUBDEV_S_SELECTION \
-+	_IOWR('V', 62, struct v4l2_subdev_selection)
- 
- #endif
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index f0f3358..feab950 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -466,6 +466,10 @@ struct v4l2_subdev_pad_ops {
- 		       struct v4l2_subdev_crop *crop);
- 	int (*get_crop)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
- 		       struct v4l2_subdev_crop *crop);
-+	int (*get_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_selection *sel);
-+	int (*set_selection)(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_selection *sel);
- };
- 
- struct v4l2_subdev_ops {
-@@ -549,8 +553,11 @@ struct v4l2_subdev {
- struct v4l2_subdev_fh {
- 	struct v4l2_fh vfh;
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	struct v4l2_mbus_framefmt *try_fmt;
--	struct v4l2_rect *try_crop;
-+	struct {
-+		struct v4l2_mbus_framefmt try_fmt;
-+		struct v4l2_rect try_crop;
-+		struct v4l2_rect try_compose;
-+	} *pad;
- #endif
- };
- 
-@@ -561,13 +568,19 @@ struct v4l2_subdev_fh {
- static inline struct v4l2_mbus_framefmt *
- v4l2_subdev_get_try_format(struct v4l2_subdev_fh *fh, unsigned int pad)
- {
--	return &fh->try_fmt[pad];
-+	return &fh->pad[pad].try_fmt;
- }
- 
- static inline struct v4l2_rect *
- v4l2_subdev_get_try_crop(struct v4l2_subdev_fh *fh, unsigned int pad)
- {
--	return &fh->try_crop[pad];
-+	return &fh->pad[pad].try_crop;
-+}
-+
-+static inline struct v4l2_rect *
-+v4l2_subdev_get_try_compose(struct v4l2_subdev_fh *fh, unsigned int pad)
-+{
-+	return &fh->pad[pad].try_compose;
- }
- #endif
- 
+I also notice that on some frames, The first 0x200 bytes contains data
+other than 0x55
+and the rest are 0x55.
+
+Probably this could be related to resolution settings or hsync and
+vsync settings.
+Probably, my chip configuration is faulty.
+
+>>  I do notice that the OMAP4 ISS is tested to work with OV5640 (YUV422
+>> Frames) and OV5650 (Raw Data)
+>>  When you say 422 Frames only. Do you mean 422-8Bit Mode?.
+>
+> Yes. When saving YUV422 to memory, you can only use this mode AFAIK.
+>
+>>
+>>  I havent tried RAW12 which my device gives, Do i have to update only
+>> the Data Format Selection register
+>>  of the ISS  for RAW12?
+>
+> Ok, now it makes sense.
+>
+> So, if your CSI2 source is giving, you need to make sure:
+>
+> CSI2_CTX_CTRL2_0.FORMAT[9:0] is:
+>
+> - 0xAC: RAW12 + EXP16
+> or
+> - 0x2C: RAW12
+>
+> The difference is that the EXP16 variant, will save to memory in
+> expansion to 2 bytes, instead of 12 bits, so it'll be byte aligned.
+>
+> Can you try attached patch?
+
+With RAW12 configuration, I dont see any interrupts at all.
+
+
+>
+> Regards,
+> Sergio
+>
+>>
+>>  Please advice.
+>>
+>>
+>> On Thu, Feb 23, 2012 at 11:24 PM, Sriram V <vshrirama@gmail.com> wrote:
+>>> Hi,
+>>>  1) An Hexdump of the captured file shows 0x55 at all locations.
+>>>      Is there any buffer location i need to check.
+>>>  2) I have tried with  "devel" branch.
+>>>  3) Changing the polarities doesnt help either.
+>>>  4) The sensor is giving out YUV422 8Bit Mode,
+>>>      Will 0x52001074 = 0x0A00001E (UYVY Format)  it bypass the ISP
+>>>       and dump directly into memory.
+>>>
+>>> On 2/23/12, Aguirre, Sergio <saaguirre@ti.com> wrote:
+>>>> Hi Sriram,
+>>>>
+>>>> On Thu, Feb 23, 2012 at 11:25 AM, Sriram V <vshrirama@gmail.com> wrote:
+>>>>> Hi,
+>>>>>  1) I am trying to get a HDMI to CSI Bridge chip working with OMAP4 ISS.
+>>>>>      The issue is the captured frames are completely green in color.
+>>>>
+>>>> Sounds like the buffer is all zeroes, can you confirm?
+>>>>
+>>>>>  2) The Chip is configured to output VGA Color bar sequence with
+>>>>> YUV422-8Bit and
+>>>>>       uses datalane 0 only.
+>>>>>  3) The Format on OMAP4 ISS  is UYVY (Register 0x52001074 = 0x0A00001E)
+>>>>>  I am trying to directly dump the data into memory without ISP processing.
+>>>>>
+>>>>>
+>>>>>  Please advice.
+>>>>
+>>>> Just to be clear on your environment, which branch/commitID are you based
+>>>> on?
+>>>>
+>>>> Regards,
+>>>> Sergio
+>>>>
+>>>>>
+>>>>> --
+>>>>> Regards,
+>>>>> Sriram
+>>>>> --
+>>>>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>>> the body of a message to majordomo@vger.kernel.org
+>>>>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>>
+>>>
+>>>
+>>> --
+>>> Regards,
+>>> Sriram
+>>
+>>
+>>
+>> --
+>> Regards,
+>> Sriram
+
+
+
 -- 
-1.7.2.5
-
+Regards,
+Sriram
