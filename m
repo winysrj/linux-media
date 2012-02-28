@@ -1,58 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.copreci.es ([194.30.93.3]:62799 "EHLO srvdmz.cp.local"
-	rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1753201Ab2BBNsR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 Feb 2012 08:48:17 -0500
-Content-class: urn:content-classes:message
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="us-ascii"
+Received: from arroyo.ext.ti.com ([192.94.94.40]:36425 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964818Ab2B1Oig convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Feb 2012 09:38:36 -0500
+Received: from dbdp20.itg.ti.com ([172.24.170.38])
+	by arroyo.ext.ti.com (8.13.7/8.13.7) with ESMTP id q1SEcYO5026688
+	for <linux-media@vger.kernel.org>; Tue, 28 Feb 2012 08:38:35 -0600
+From: "Nori, Sekhar" <nsekhar@ti.com>
+To: "Hadli, Manjunath" <manjunath.hadli@ti.com>,
+	LMML <linux-media@vger.kernel.org>
+CC: dlos <davinci-linux-open-source@linux.davincidsp.com>
+Subject: RE: [PATCH 1/4] davinci: vpif: add check for genuine interrupts in
+ the isr
+Date: Tue, 28 Feb 2012 14:38:31 +0000
+Message-ID: <DF0F476B391FA8409C78302C7BA518B6317D6C67@DBDE01.ent.ti.com>
+References: <1327503934-28186-1-git-send-email-manjunath.hadli@ti.com>
+ <1327503934-28186-2-git-send-email-manjunath.hadli@ti.com>
+In-Reply-To: <1327503934-28186-2-git-send-email-manjunath.hadli@ti.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
 Content-Transfer-Encoding: 8BIT
-Subject: RE: OV2640 and iMX25PDK - help needed
-Date: Thu, 2 Feb 2012 14:48:13 +0100
-Message-ID: <C85ED22A0FD4B54195E2F05309F9D3FF0727F19F@CORREO.cp.local>
-References: <C85ED22A0FD4B54195E2F05309F9D3FF07234D15@CORREO.cp.local> <Pine.LNX.4.64.1202020040500.28897@axis700.grange>
-From: "Fernandez Gonzalo" <gfernandez@copreci.es>
-To: "Guennadi Liakhovetski" <g.liakhovetski@gmx.de>
-Cc: <linux-media@vger.kernel.org>
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Manju,
 
->Hello Gonzalo
->
->On Tue, 31 Jan 2012, Fernandez Gonzalo wrote:
->
->>> Hi all,
->>> 
->>> I've been working for a while with an iMX25PDK using the BSP
-provided by
->>> Freescale (L2.6.31). The camera driver (V4L2-int) and examples do
-the
->>> job quite well but I need to move my design to a more recent kernel.
->>> I've been extensively googling but haven't found any info/examples
-about
->>> how to run the mx2_camera driver in the i.MX25PDK. I'm stuck at
-this,
->>> could someone point me in the right direction? Thank you in
-advance...
->
->i.MX25PDK is supported in the mainline kernel 
->(arch/arm/mach-imx/mach-mx25_3ds.c), but it doesn't attach any cameras.
+On Wed, Jan 25, 2012 at 20:35:31, Hadli, Manjunath wrote:
+> add a condition to in the isr to check for interrupt ownership and
 
->Unfortunately, I also don't currently see any i.MX2x platforms in the 
->mainline with cameras, so, you have to begin by looking at 
->arch/arm/plat-mxc/include/mach/mx2_cam.h, at 
->arch/arm/plat-mxc/devices/platform-mx2-camera.c for the 
->imx27_add_mx2_camera() function and maybe some i.MX3x or i.MX1
-examples.
+"to" is misplaced here?
+
+> channel number to make sure we do not service wrong interrupts.
 >
->Thanks
->Guennadi
+> Signed-off-by: Manjunath Hadli <manjunath.hadli@ti.com>
 
-Thank you very much for the tip !!! 
-I'll look at the files you have pointed.
+I think it will be nice to expand on the "why" this patch
+is required a little bit.
 
-Regards,
-Gonzalo.
+What is the usage case where you can get wrong interrupts?
+What exactly happens if you service wrong interrupts?
+
+Explaining these in the commit message will help the maintainers
+take a call on the criticality of this patch (whether it should
+be queued in the current -rc cycle or not).
+
+Thanks,
+Sekhar
+
