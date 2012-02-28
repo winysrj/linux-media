@@ -1,166 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mxweb01do.versatel-west.de ([62.214.96.172]:33443 "HELO
-	mxweb01do.versatel-west.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S1754728Ab2B0TAl (ORCPT
+Received: from mail-gy0-f174.google.com ([209.85.160.174]:62968 "EHLO
+	mail-gy0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755069Ab2B1AWJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 Feb 2012 14:00:41 -0500
-Received: from cinnamon-sage.de (i577A809C.versanet.de [87.122.128.156])
-	(authenticated bits=0)
-	by ens28fl.versatel.de (8.12.11.20060308/8.12.11) with SMTP id q1RJ0W3H017550
-	for <linux-media@vger.kernel.org>; Mon, 27 Feb 2012 20:00:32 +0100
-Received: from 192.168.23.2:49717 by cinnamon-sage.de for <martin@herrman.nl>,<linux-media@vger.kernel.org> ; 27.02.2012 20:00:31
-Message-ID: <4F4BD2CE.5090403@cinnamon-sage.de>
-Date: Mon, 27 Feb 2012 20:00:30 +0100
-From: Lars Hanisch <dvb@cinnamon-sage.de>
+	Mon, 27 Feb 2012 19:22:09 -0500
+Received: by ghrr11 with SMTP id r11so55971ghr.19
+        for <linux-media@vger.kernel.org>; Mon, 27 Feb 2012 16:22:09 -0800 (PST)
 MIME-Version: 1.0
-To: martin@herrman.nl
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [DVB Digital Devices Cine CT V6] status support
-References: <CADR1r6jbuGD5hecgC-gzVda1G=vCcOn4oMsf5TxcyEVWsWdVuQ@mail.gmail.com> <01cc01ccce54$4f9e9770$eedbc650$@coexsi.fr> <CADR1r6iKj7MrTVx4aObbMUVswwT-8LMgGR=BVtpX9r+PKWzw9g@mail.gmail.com> <4F0B6480.30900@kaiser-linux.li> <CADR1r6jR+zrWMJoq9zKKVw+ucjFCc4BshfxZxhPoKfNduiFx-w@mail.gmail.com> <CADR1r6jSO7c-k-31t730s8ozx8Z8jJHhK4-xXH+RmcZz7qE=iQ@mail.gmail.com> <4F4A0547.9060903@cinnamon-sage.de> <CADR1r6i6dz4UoyB2sF9EPm2AQcY09kzhX=yQjq9uL8QBXQ7mTQ@mail.gmail.com>
-In-Reply-To: <CADR1r6i6dz4UoyB2sF9EPm2AQcY09kzhX=yQjq9uL8QBXQ7mTQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Reply-To: whittenburg@gmail.com
+In-Reply-To: <4F4AC779.2060003@iki.fi>
+References: <CABcw_OmQEV2K0Hgvnh7xtCNQUmf5pa4ftZJwRFdkM68Hftp=Rg@mail.gmail.com>
+	<4984891.IGZ3Td2Zlk@avalon>
+	<4F4AC1B2.1000607@iki.fi>
+	<6307239.U344RCScuO@avalon>
+	<4F4AC779.2060003@iki.fi>
+Date: Mon, 27 Feb 2012 18:22:08 -0600
+Message-ID: <CABcw_Okn+-kVx3mHFfyLENOoMWQpfVaop-VuDXWMHyghxeYX_w@mail.gmail.com>
+Subject: Re: OMAP CCDC with sensors that are always on...
+From: Chris Whittenburg <whittenburg@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Thank you both for your assistance.
 
-  Please use "reply all", otherwise the list will not benefit from your experience. ;-)
+I was able to make it work by correcting my vsync and hsync inputs,
+adjusting the vertical blanking, and finally taking out all my debug
+cruft that had built up.
 
-Am 27.02.2012 19:27, schrieb Martin Herrman:
-> Op 26 februari 2012 11:11 heeft Lars Hanisch<dvb@cinnamon-sage.de>
-> het volgende geschreven:
+It's nice that my changes were limited to the
+board-omap3beagle-camera.c and my custom camera driver file, which I
+was able to base on the fsr172x driver (thanks Laurent and AJ).
+
+-chris
+
+
+On Sun, Feb 26, 2012 at 5:59 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Laurent,
 >
->>   Since you are using Ubuntu, you can find a nearly up-to-date dkms of
->> linux-media with the patches of Oliver Endriss at
->>   https://launchpad.net/~yavdr/+archive/main called linux-media-dkms
+> Laurent Pinchart wrote:
+>> On Monday 27 February 2012 01:35:14 Sakari Ailus wrote:
+>>> Laurent Pinchart wrote:
+>>>> On Saturday 25 February 2012 01:48:02 Sakari Ailus wrote:
+>>>>> On Fri, Feb 17, 2012 at 05:32:31PM -0600, Chris Whittenburg wrote:
+>>>>>> I fixed my sensor to respect a "run" signal from the omap, so that now
+>>>>>> it only sends data when the ccdc is expecting it.
+>>>>>>
+>>>>>> This fixed my problem, and now I can capture the 640x1440 frames.
+>>>>>>
+>>>>>> At least the first one...
+>>>>>>
+>>>>>> Subsequent frames are always full of 0x55, like the ISP didn't write
+>>>>>> anything into them.
+>>>>>>
+>>>>>> I still get the VD0 interrupts, and I checked that WEN in the
+>>>>>> CCDC_SYN_MODE register is set, and that the EXWEN bit is clear.
+>>>>>>
+>>>>>> I'm using the command:
+>>>>>> yavta -c2 -p -F --skip 0 -f Y8 -s 640x1440 /dev/video2
+>>>>>>
+>>>>>> Here are my register settings:
+>>>>>>
+>>>>>> [ 6534.029907] omap3isp omap3isp: -------------CCDC Register
+>>>>>> dump------------- [ 6534.029907] omap3isp omap3isp: ###CCDC
+>>>>>> PCR=0x00000000
+>>>>>> [ 6534.029937] omap3isp omap3isp: ###CCDC SYN_MODE=0x00030f00
+>>>>>> [ 6534.029937] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
+>>>>>> [ 6534.029937] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
+>>>>>> [ 6534.029968] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000027f
+>>>>>> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
+>>>>>> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_LINES=0x0000059f
+>>>>>> [ 6534.029998] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
+>>>>>> [ 6534.029998] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x00000280
+>>>>>> [ 6534.029998] omap3isp omap3isp: ###CCDC SDOFST=0x00000000
+>>>>>> [ 6534.030029] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
+>>>>>> [ 6534.030029] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
+>>>>>> [ 6534.030029] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
+>>>>>> [ 6534.030059] omap3isp omap3isp: ###CCDC COLPTN=0xbb11bb11
+>>>>>> [ 6534.030059] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
+>>>>>> [ 6534.030059] omap3isp omap3isp: ###CCDC FPC=0x00000000
+>>>>>> [ 6534.030090] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
+>>>>>> [ 6534.030090] omap3isp omap3isp: ###CCDC VDINT=0x059e03c0
+>>>>>> [ 6534.030090] omap3isp omap3isp: ###CCDC ALAW=0x00000000
+>>>>>> [ 6534.030120] omap3isp omap3isp: ###CCDC REC656IF=0x00000000
+>>>>>> [ 6534.030120] omap3isp omap3isp: ###CCDC CFG=0x00008000
+>>>>>> [ 6534.030120] omap3isp omap3isp: ###CCDC FMTCFG=0x0000e000
+>>>>>> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_HORZ=0x00000280
+>>>>>> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_VERT=0x000005a0
+>>>>>> [ 6534.030151] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
+>>>>>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
+>>>>>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
+>>>>>> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
+>>>>>> [ 6534.030212] omap3isp omap3isp: ###CCDC VP_OUT=0x0b3e2800
+>>>>>> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
+>>>>>> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
+>>>>>> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
+>>>>>> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
+>>>>>> [ 6534.030242] omap3isp omap3isp:
+>>>>>> --------------------------------------------
+>>>>>>
+>>>>>> Output frame 0 is always good, while output frame 1 is 0x5555.
+>>>>>>
+>>>>>> I believe my sensor is respecting the clocks required before and after
+>>>>>> the frame.
+>>>>>>
+>>>>>> Could the ISP driver be writing my data to some unexpected location
+>>>>>> rather than to the v4l2 buffer?
+>>>>>>
+>>>>>> Is there a way to determine if the CCDC is writing to memory or not?
+>>>>>
+>>>>> How long vertical blanking do you have? It shouldn't have an effect,
+>>>>> though.
+>>>> It definitely can :-) If vertical blanking isn't long enough, the CCDC
+>>>> will start processing the next frame before the driver gets time to update
+>>>> the hardware with the pointer to the next buffer. The first frame will
+>>>> then be overwritten.
+>>>
+>>> Sure, but in that case no buffers should be dequeued from the driver
+>>> either --- as they should always be marked faulty since reprogramming
+>>> the CCDC isn't possible.
 >>
->>   With this my Cine-C/T with a ddbridge runs without any problems.
+>> Does the driver detect that ?
 >
-> Thomas and Lars,
+> It does. The CCDC is disabled in VD1 interrupt which should arrive well
+> before VD0. The CCDC continues to process frame until the end of it, and
+> once it becomes idle, a new buffer address is programmed. At least as
+> far as I remember and how the code looks like to me this late in the
+> evening. ;)
 >
-> thanks to both of you for your input.
+> Chris: are you capturing at CCDC output video node?
 >
-> I first tried the solution proposed by Lars because it seems to be
-> more future-proof. After install of linux-media-dkms package (note: it
-> took me a while to find out which kernel packages I had to install to
-> have linux-media-dkms installation find the kernel sources) and a
-> reboot, dmesg shows:
+> It might also make sense to check whether VD1 and VD0 interrupts arrive
+> as expected. (I.e. VD1 first, then VD0 on each frame.)
 >
-> [    7.316117] WARNING: You are using an experimental version of the
-> media stack.
-> [    7.316124]  As the driver is backported to an older kernel, it doesn't offer
-> [    7.316125]  enough quality for its usage in production.
-> [    7.316125]  Use it with care.
-> [    7.316126] Latest git patches (needed if you report a bug to
-> linux-media@vger.kernel.org):
-> [    7.316127]  59b30294e14fa6a370fdd2bc2921cca1f977ef16 Merge branch
-> 'v4l_for_linus' into staging/for_v3.4
-> [    7.316128]  72565224609a23a60d10fcdf42f87a2fa8f7b16d [media]
-> cxd2820r: sleep on DVB-T/T2 delivery system switch
-> [    7.316129]  46de20a78ae4b122b79fc02633e9a6c3d539ecad [media]
-> anysee: fix CI init
-> [    7.355344] cfg80211: Calling CRDA to update world regulatory domain
-> [    7.612757] Digital Devices PCIE bridge driver, Copyright (C)
-> 2010-11 Digital Devices GmbH
-> [    7.612805] DDBridge 0000:03:00.0: PCI INT A ->  GSI 18 (level, low) ->  IRQ 18
-> [    7.612813] DDBridge driver detected: Digital Devices DVBCT V6.1 DVB adapter
-> [    7.612838] HW 00010007 REG 00010003
-> [    7.613010] DDBridge 0000:03:00.0: irq 45 for MSI/MSI-X
-> [    7.614652] Port 0 (TAB 1): DUAL DVB-C/T
-> [    7.615277] Port 1 (TAB 2): NO MODULE
-> [    7.615904] Port 2 (TAB 3): NO MODULE
-> [    7.616278] DVB: registering new adapter (DDBridge)
-> [    7.616280] DVB: registering new adapter (DDBridge)
-> (..)
-> [    7.873616] Linux media interface: v0.10
-> [    8.021310] stv0367 found
-> [    8.028799] Linux video capture interface: v2.00
-> [    8.028801] WARNING: You are using an experimental version of the
-> media stack.
-> [    8.028802]  As the driver is backported to an older kernel, it doesn't offer
-> [    8.028803]  enough quality for its usage in production.
-> [    8.028804]  Use it with care.
-> [    8.028804] Latest git patches (needed if you report a bug to
-> linux-media@vger.kernel.org):
-> [    8.028805]  59b30294e14fa6a370fdd2bc2921cca1f977ef16 Merge branch
-> 'v4l_for_linus' into staging/for_v3.4
-> [    8.028806]  72565224609a23a60d10fcdf42f87a2fa8f7b16d [media]
-> cxd2820r: sleep on DVB-T/T2 delivery system switch
-> [    8.028808]  46de20a78ae4b122b79fc02633e9a6c3d539ecad [media]
-> anysee: fix CI init
-> [    8.216959] skipping empty audio interface (v1)
-> [    8.216970] snd-usb-audio: probe of 1-3:1.0 failed with error -5
-> [    8.216979] skipping empty audio interface (v1)
-> [    8.216984] snd-usb-audio: probe of 1-3:1.1 failed with error -5
-> [    8.227179] AV200 0000:05:00.0: PCI INT A ->  GSI 20 (level, low) ->  IRQ 20
-> [    8.229650] uvcvideo: disagrees about version of symbol video_devdata
-> [    8.229653] uvcvideo: Unknown symbol video_devdata (err -22)
-> [    8.229670] uvcvideo: disagrees about version of symbol
-> video_unregister_device
-> [    8.229672] uvcvideo: Unknown symbol video_unregister_device (err -22)
-> [    8.229681] uvcvideo: disagrees about version of symbol video_device_alloc
-> [    8.229683] uvcvideo: Unknown symbol video_device_alloc (err -22)
-> [    8.229691] uvcvideo: disagrees about version of symbol v4l2_device_register
-> [    8.229693] uvcvideo: Unknown symbol v4l2_device_register (err -22)
-> [    8.229701] uvcvideo: disagrees about version of symbol
-> __video_register_device
-> [    8.229703] uvcvideo: Unknown symbol __video_register_device (err -22)
-> [    8.229707] uvcvideo: disagrees about version of symbol
-> v4l2_device_unregister
-> [    8.229709] uvcvideo: Unknown symbol v4l2_device_unregister (err -22)
-> [    8.229713] uvcvideo: disagrees about version of symbol video_usercopy
-> [    8.229715] uvcvideo: Unknown symbol video_usercopy (err -22)
-> [    8.229718] uvcvideo: disagrees about version of symbol video_device_release
-> [    8.229720] uvcvideo: Unknown symbol video_device_release (err -22)
-> [    8.311744] tda18212dd: ChipID 4724
-> [    8.312165] tda18212dd: PowerState 02
-> [    8.331053] HDA Intel 0000:01:00.1: PCI INT B ->  GSI 17 (level,
-> low) ->  IRQ 17
-> [    8.331107] HDA Intel 0000:01:00.1: irq 46 for MSI/MSI-X
-> [    8.331131] HDA Intel 0000:01:00.1: setting latency timer to 64
+> Regards,
 >
-> I think that the second part indicates a problem with my webcam, which
-> worked like a charm before :-)
-> (it is a logitech 9000 pro)
-
-  In mixed environments it's always difficult to combine all the various developer and mainline trees to get working 
-drivers for all used hardware...
-  But I'm no expert in configuring the dkms, it may have worked flawless... :)
-
-Lars.
-
->
-> lsmod output:
->
-> root@desktop:/home/martin# lsmod | grep dd
-> tda18212dd             17291  2
-> stv0367dd              21759  2
-> ddbridge               32964  4
-> dvb_core              109744  1 ddbridge
-> cxd2099                13281  1 ddbridge
->
-> And devices are created:
->
-> root@desktop:/home/martin# ls -ltr /dev/dvb/*
-> /dev/dvb/adapter0:
-> total 0
-> crw-rw----+ 1 root video 212, 2 2012-02-27 19:14 net0
-> crw-rw----+ 1 root video 212, 3 2012-02-27 19:14 frontend0
-> crw-rw----+ 1 root video 212, 1 2012-02-27 19:14 dvr0
-> crw-rw----+ 1 root video 212, 0 2012-02-27 19:14 demux0
->
-> /dev/dvb/adapter1:
-> total 0
-> crw-rw----+ 1 root video 212, 6 2012-02-27 19:14 net0
-> crw-rw----+ 1 root video 212, 7 2012-02-27 19:14 frontend0
-> crw-rw----+ 1 root video 212, 5 2012-02-27 19:14 dvr0
-> crw-rw----+ 1 root video 212, 4 2012-02-27 19:14 demux0
->
-> So, everything seems to be recognized, and I can start playing around
-> with tvheadend etc.
->
-> Thanks a lot for your help!
->
-> Martin
->
+> --
+> Sakari Ailus
+> sakari.ailus@iki.fi
