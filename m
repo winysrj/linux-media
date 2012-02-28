@@ -1,148 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-68.nebula.fi ([83.145.220.68]:39710 "EHLO
-	smtp-68.nebula.fi" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752675Ab2BXXsI (ORCPT
+Received: from smtp-vbr16.xs4all.nl ([194.109.24.36]:3918 "EHLO
+	smtp-vbr16.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752872Ab2B1LGZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 Feb 2012 18:48:08 -0500
-Date: Sat, 25 Feb 2012 01:48:02 +0200
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Chris Whittenburg <whittenburg@gmail.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com
-Subject: Re: OMAP CCDC with sensors that are always on...
-Message-ID: <20120224234801.GB12602@valkosipuli.localdomain>
-References: <CABcw_OmQEV2K0Hgvnh7xtCNQUmf5pa4ftZJwRFdkM68Hftp=Rg@mail.gmail.com>
- <CABcw_Om4VNCn_a73tZBBgb_1OzVTQRkQWDZcoasT6CA-JasH+w@mail.gmail.com>
+	Tue, 28 Feb 2012 06:06:25 -0500
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [RFCv1 PATCH 1/6] videodev2.h: add enum/query/cap dv_timings ioctls.
+Date: Tue, 28 Feb 2012 12:06:17 +0100
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+References: <1328263566-21620-1-git-send-email-hverkuil@xs4all.nl> <f884dc30bd71901ea5dad39dc3310fa5a7d9e9c2.1328262332.git.hans.verkuil@cisco.com> <4F4CB27E.7040005@redhat.com>
+In-Reply-To: <4F4CB27E.7040005@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CABcw_Om4VNCn_a73tZBBgb_1OzVTQRkQWDZcoasT6CA-JasH+w@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201202281206.17474.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Chris,
+On Tuesday, February 28, 2012 11:54:54 Mauro Carvalho Chehab wrote:
+> Em 03-02-2012 08:06, Hans Verkuil escreveu:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > These new ioctls make it possible for the dv_timings API to replace
+> > the dv_preset API eventually.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  include/linux/videodev2.h |  110 ++++++++++++++++++++++++++++++++++++++++----
+> >  1 files changed, 100 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
+> > index 0db0503..e59cd02 100644
+> > --- a/include/linux/videodev2.h
+> > +++ b/include/linux/videodev2.h
+> > @@ -987,28 +987,42 @@ struct v4l2_dv_enum_preset {
+> >   */
+> >  
+> >  /* BT.656/BT.1120 timing data */
+> > +
+> > +/*
+> > + * A note regarding vertical interlaced timings: height refers to the total
+> > + * height of the frame (= two fields). The blanking timings refer
+> > + * to the blanking of each field. So the height of the active frame is
+> > + * calculated as follows:
+> > + *
+> > + * act_height = height - vfrontporch - vsync - vbackporch -
+> > + *                       il_vfrontporch - il_vsync - il_vbackporch
+> > + *
+> > + * The active height of each field is act_height / 2.
+> > + */
+> >  struct v4l2_bt_timings {
+> > -	__u32	width;		/* width in pixels */
+> > -	__u32	height;		/* height in lines */
+> > +	__u32	width;		/* total frame width in pixels */
+> > +	__u32	height;		/* total frame height in lines */
+> >  	__u32	interlaced;	/* Interlaced or progressive */
+> >  	__u32	polarities;	/* Positive or negative polarity */
+> >  	__u64	pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
+> > -	__u32	hfrontporch;	/* Horizpontal front porch in pixels */
+> > +	__u32	hfrontporch;	/* Horizontal front porch in pixels */
+> >  	__u32	hsync;		/* Horizontal Sync length in pixels */
+> >  	__u32	hbackporch;	/* Horizontal back porch in pixels */
+> >  	__u32	vfrontporch;	/* Vertical front porch in pixels */
+> >  	__u32	vsync;		/* Vertical Sync length in lines */
+> >  	__u32	vbackporch;	/* Vertical back porch in lines */
+> > -	__u32	il_vfrontporch;	/* Vertical front porch for bottom field of
+> > -				 * interlaced field formats
+> > +	__u32	il_vfrontporch;	/* Vertical front porch for the even field
+> > +				 * (aka field 2) of interlaced field formats
+> >  				 */
+> > -	__u32	il_vsync;	/* Vertical sync length for bottom field of
+> > -				 * interlaced field formats
+> > +	__u32	il_vsync;	/* Vertical sync length for the even field
+> > +				 * (aka field 2) of interlaced field formats
+> >  				 */
+> > -	__u32	il_vbackporch;	/* Vertical back porch for bottom field of
+> > -				 * interlaced field formats
+> > +	__u32	il_vbackporch;	/* Vertical back porch for the even field
+> > +				 * (aka field 2) of interlaced field formats
+> >  				 */
+> > -	__u32	reserved[16];
+> > +	__u32	standards;	/* Standards the timing belongs to */
+> > +	__u32	flags;		/* Flags */
+> > +	__u32	reserved[14];
+> >  } __attribute__ ((packed));
+> >  
+> >  /* Interlaced or progressive format */
+> > @@ -1019,6 +1033,37 @@ struct v4l2_bt_timings {
+> >  #define V4L2_DV_VSYNC_POS_POL	0x00000001
+> >  #define V4L2_DV_HSYNC_POS_POL	0x00000002
+> >  
+> > +/* Timings standards */
+> > +#define V4L2_DV_BT_STD_CEA861	(1 << 0)  /* CEA-861 Digital TV Profile */
+> > +#define V4L2_DV_BT_STD_DMT	(1 << 1)  /* VESA Discrete Monitor Timings */
+> > +#define V4L2_DV_BT_STD_CVT	(1 << 2)  /* VESA Coordinated Video Timings */
+> > +#define V4L2_DV_BT_STD_GTF	(1 << 3)  /* VESA Generalized Timings Formula */
+> > +
+> > +/* Flags */
+> > +
+> > +/* CVT/GTF specific: timing uses reduced blanking (CVT) or the 'Secondary
+> > +   GTF' curve (GTF). In both cases the horizontal and/or vertical blanking
+> > +   intervals are reduced, allowing a higher resolution over the same
+> > +   bandwidth. This is a read-only flag. */
+> > +#define V4L2_DV_FL_REDUCED_BLANKING		(1 << 0)
+> 
+> > +/* CEA-861 specific: set for CEA-861 formats with a framerate of a multiple
+> > +   of six. These formats can be optionally played at 1 / 1.001 speed to
+> > +   be compatible with the normal NTSC framerate of 29.97 frames per second.
+> > +   This is a read-only flag. */
+> > +#define V4L2_DV_FL_NTSC_COMPATIBLE		(1 << 1)
+> > +/* CEA-861 specific: only valid for video transmitters, the flag is cleared
+> > +   by receivers.
+> > +   If the framerate of the format is a multiple of six, then the pixelclock
+> > +   used to set up the transmitter is divided by 1.001 to make it compatible
+> > +   with NTSC framerates. Otherwise this flag is cleared. If the transmitter
+> > +   can't generate such frequencies, then the flag will also be cleared. */
+> > +#define V4L2_DV_FL_DIVIDE_CLOCK_BY_1_001	(1 << 2)
+> 
+> The two above have a conceptual problem: NTSC has nothing to do with the frequency.
+> 
+> While, in practice, NTSC is only used on Countries with 60Hz power supply, and a
+> 1000/1001 shift is used there, to avoid flicker with the light bulbs, the 
+> standard doesn't mean a 29.97 Hz frame rate. 
+> 
+> If you take a look at CEA-861, it doesn't mention there NTSC (well, except for a 
+> reference for the existing standards), to avoid such conceptual issue.
+> 
+> Besides that,  PAL/M (and PAL/60) also uses a 29.97 Hz frame rate, in order to avoid 
+> flicker.
+> 
+> So, please don't call the flag as "NTSC_COMPATIBLE", and please fix the comments
+> to either not mention NTSC, or to use something more generic, like replacing:
+> 
+> 	"...be compatible with the normal NTSC framerateof 29.97 frames per second."
+> with
+> 	"...be compatible with 60Hz based standards that use a framerate of 29.97
+> 	 frames per second, like NTSC and PAL/M."
 
-Cc Laurent.
+I'll try and find a more neutral term. I'm not satisfied with the name either.
 
-On Fri, Feb 17, 2012 at 05:32:31PM -0600, Chris Whittenburg wrote:
-> I fixed my sensor to respect a "run" signal from the omap, so that now
-> it only sends data when the ccdc is expecting it.
 > 
-> This fixed my problem, and now I can capture the 640x1440 frames.
+> > +/* Specific to interlaced formats: if set, then field 1 is really one half-line
+> > +   longer and field 2 is really one half-line shorter, so each field has
+> > +   exactly the same number of half-lines. Whether half-lines can be detected
+> > +   or used depends on the hardware. */
+> > +#define V4L2_DV_FL_HALF_LINE			(1 << 0)
+> > +
+> >  
+> >  /* DV timings */
+> >  struct v4l2_dv_timings {
+> > @@ -1032,6 +1077,47 @@ struct v4l2_dv_timings {
+> >  /* Values for the type field */
+> >  #define V4L2_DV_BT_656_1120	0	/* BT.656/1120 timing type */
+> >  
+> > +
+> > +/* DV timings enumeration */
+> > +struct v4l2_enum_dv_timings {
+> > +	__u32 index;
+> > +	__u32 reserved[3];
+> > +	struct v4l2_dv_timings timings;
+> > +};
+> > +
+> > +/* BT.656/BT.1120 timing capabilities */
+> > +struct v4l2_bt_timings_cap {
+> > +	__u32	min_width;	/* width in pixels */
+> > +	__u32	max_width;	/* width in pixels */
+> > +	__u32	min_height;	/* height in lines */
+> > +	__u32	max_height;	/* height in lines */
+> > +	__u64	min_pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
+> > +	__u64	max_pixelclock;	/* Pixel clock in HZ. Ex. 74.25MHz->74250000 */
+> > +	__u32	standards;	/* Supported standards */
+> > +	__u32	capabilities;	/* See below */
+> > +	__u32	reserved[16];
+> > +} __attribute__ ((packed));
 > 
-> At least the first one...
-> 
-> Subsequent frames are always full of 0x55, like the ISP didn't write
-> anything into them.
-> 
-> I still get the VD0 interrupts, and I checked that WEN in the
-> CCDC_SYN_MODE register is set, and that the EXWEN bit is clear.
-> 
-> I'm using the command:
-> yavta -c2 -p -F --skip 0 -f Y8 -s 640x1440 /dev/video2
-> 
-> Here are my register settings:
-> 
-> [ 6534.029907] omap3isp omap3isp: -------------CCDC Register dump-------------
-> [ 6534.029907] omap3isp omap3isp: ###CCDC PCR=0x00000000
-> [ 6534.029937] omap3isp omap3isp: ###CCDC SYN_MODE=0x00030f00
-> [ 6534.029937] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
-> [ 6534.029937] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
-> [ 6534.029968] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000027f
-> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
-> [ 6534.029968] omap3isp omap3isp: ###CCDC VERT_LINES=0x0000059f
-> [ 6534.029998] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
-> [ 6534.029998] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x00000280
-> [ 6534.029998] omap3isp omap3isp: ###CCDC SDOFST=0x00000000
-> [ 6534.030029] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
-> [ 6534.030029] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
-> [ 6534.030029] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
-> [ 6534.030059] omap3isp omap3isp: ###CCDC COLPTN=0xbb11bb11
-> [ 6534.030059] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
-> [ 6534.030059] omap3isp omap3isp: ###CCDC FPC=0x00000000
-> [ 6534.030090] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
-> [ 6534.030090] omap3isp omap3isp: ###CCDC VDINT=0x059e03c0
-> [ 6534.030090] omap3isp omap3isp: ###CCDC ALAW=0x00000000
-> [ 6534.030120] omap3isp omap3isp: ###CCDC REC656IF=0x00000000
-> [ 6534.030120] omap3isp omap3isp: ###CCDC CFG=0x00008000
-> [ 6534.030120] omap3isp omap3isp: ###CCDC FMTCFG=0x0000e000
-> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_HORZ=0x00000280
-> [ 6534.030151] omap3isp omap3isp: ###CCDC FMT_VERT=0x000005a0
-> [ 6534.030151] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
-> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
-> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
-> [ 6534.030181] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
-> [ 6534.030212] omap3isp omap3isp: ###CCDC VP_OUT=0x0b3e2800
-> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
-> [ 6534.030212] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
-> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
-> [ 6534.030242] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
-> [ 6534.030242] omap3isp omap3isp: --------------------------------------------
-> 
-> Output frame 0 is always good, while output frame 1 is 0x5555.
-> 
-> I believe my sensor is respecting the clocks required before and after
-> the frame.
-> 
-> Could the ISP driver be writing my data to some unexpected location
-> rather than to the v4l2 buffer?
-> 
-> Is there a way to determine if the CCDC is writing to memory or not?
+> Hmm... why to define a new struct here, instead of just use struct v4l2_bt_timings ?
 
-How long vertical blanking do you have? It shouldn't have an effect, though.
+Perhaps there is some misunderstanding here? Struct v4l2_bt_timings defines the
+timings of a particular format. Struct v4l2_bt_timings_cap defines the range of
+timings that the hardware is capable of. The fields are quite different between
+the two.
 
-Is the polarity of the hs/vs signals correct in platform data?
+> 
+> > +
+> > +/* Supports interlaced formats */
+> > +#define V4L2_DV_BT_CAP_INTERLACED	(1 << 0)
+> > +/* Supports progressive formats */
+> > +#define V4L2_DV_BT_CAP_PROGRESSIVE	(1 << 1)
+> > +/* Supports CVT/GTF reduced blanking */
+> > +#define V4L2_DV_BT_CAP_REDUCED_BLANKING	(1 << 2)
+> > +/* Supports custom formats */
+> > +#define V4L2_DV_BT_CAP_CUSTOM		(1 << 3)
+> > +
+> > +/* DV timings capabilities */
+> > +struct v4l2_dv_timings_cap {
+> > +	__u32 type;
+> 
+> What are the posible values for type?
 
-> On Wed, Feb 15, 2012 at 11:29 AM, Chris Whittenburg
-> <whittenburg@gmail.com> wrote:
-> > Maybe this is more of a OMAP specific question, but I'm using a
-> > beagleboard-xm with a custom image sensor on a 3.0.17 kernel.
-> >
-> > Everything configures ok with:
-> >
-> > media-ctl -r
-> > media-ctl -l '"xrtcam 2-0048":0->"OMAP3 ISP CCDC":0[1]'
-> > media-ctl -l '"OMAP3 ISP CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-> > media-ctl -f '"xrtcam 2-0048":0 [Y8 640x1440]'
-> > media-ctl -f '"OMAP3 ISP CCDC":1 [Y8 640x1440]'
-> > media-ctl -e 'OMAP3 ISP CCDC output'
-> >
-> > root@beagleboard:~# ./setup.sh
-> > Resetting all links to inactive
-> > Setting up link 16:0 -> 5:0 [1]
-> > Setting up link 5:1 -> 6:0 [1]
-> > Setting up format Y8 640x1440 on pad irtcam 2-0048/0
-> > Format set: Y8 640x1440
-> > Setting up format Y8 640x1440 on pad OMAP3 ISP CCDC/0
-> > Format set: Y8 640x1440
-> > Setting up format Y8 640x1440 on pad OMAP3 ISP CCDC/1
-> > Format set: Y8 640x1440
-> > /dev/video2
-> >
-> > But when I go to capture, with:
-> > yavta -c2 -p -F --skip 0 -f Y8 -s 640x1440 /dev/video2
-> >
-> > I don't seem to get any interrupts.  Actually I get some HS_VS_IRQ
-> > after I launch yavta, but before I press return at the "Press enter to
-> > start capture" prompt.  After that, I don't believe I am getting any
-> > interrupts.
-> >
-> > The one problem I see is that my sensor is always spewing data into
-> > the CCDC on HS,VS, PCLK, and D0 to D7.
-> >
-> > I know I have been told with other sensors that I need to only turn
-> > XCLK on to the sensor when I am capturing.
-> >
-> > Could this be my problem here?  What exactly happens if you are always
-> > sending data?  Does the ISP get hung up?
-> >
-> > Thanks for any pointers,
-> > Chris
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Same as the type of v4l2_dv_timings. I'll clarify this.
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	jabber/XMPP/Gmail: sailus@retiisi.org.uk
+> Btw, it is a good idea to use kernel-doc-nano to describe the structures:
+> 
+> /**
+>  * struct v4l2_dv_timings_cap - DV timings capabilities
+>  * @type:	some description
+> ...
+>  */
+> 
+> As it documents better what is defined there.
+
+Certainly.
+
+> > +	__u32 reserved[3];
+> > +	union {
+> > +		struct v4l2_bt_timings_cap bt;
+> > +		__u32 raw_data[32];
+> > +	};
+> > +};
+> > +
+> > +
+> >  /*
+> >   *	V I D E O   I N P U T S
+> >   */
+> > @@ -2318,6 +2404,10 @@ struct v4l2_create_buffers {
+> >  #define VIDIOC_G_SELECTION	_IOWR('V', 94, struct v4l2_selection)
+> >  #define VIDIOC_S_SELECTION	_IOWR('V', 95, struct v4l2_selection)
+> >  
+> > +#define VIDIOC_ENUM_DV_TIMINGS  _IOWR('V', 96, struct v4l2_enum_dv_timings)
+> > +#define VIDIOC_QUERY_DV_TIMINGS  _IOR('V', 97, struct v4l2_dv_timings)
+> > +#define VIDIOC_DV_TIMINGS_CAP   _IOWR('V', 98, struct v4l2_dv_timings_cap)
+> > +
+> >  /* Reminder: when adding new ioctls please add support for them to
+> >     drivers/media/video/v4l2-compat-ioctl32.c as well! */
+> >  
+> 
+
+Thanks for reviewing this!
+
+Regards,
+
+	Hans
