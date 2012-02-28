@@ -1,279 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.nokia.com ([147.243.128.26]:44505 "EHLO mgw-da02.nokia.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753895Ab2BBXzD (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 Feb 2012 18:55:03 -0500
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, dacohen@gmail.com,
-	snjw23@gmail.com, andriy.shevchenko@linux.intel.com,
-	t.stanislaws@samsung.com, tuukkat76@gmail.com,
-	k.debski@samsung.com, riverful@gmail.com, hverkuil@xs4all.nl,
-	teturtia@gmail.com
-Subject: [PATCH v2 01/31] v4l: Introduce integer menu controls
-Date: Fri,  3 Feb 2012 01:54:21 +0200
-Message-Id: <1328226891-8968-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <20120202235231.GC841@valkosipuli.localdomain>
-References: <20120202235231.GC841@valkosipuli.localdomain>
+Received: from mailout-de.gmx.net ([213.165.64.23]:35248 "HELO
+	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1755310Ab2B1Sks (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Feb 2012 13:40:48 -0500
+Message-ID: <4F4D1FAC.5050703@gmx.de>
+Date: Tue, 28 Feb 2012 19:40:44 +0100
+From: Andreas Regel <andreas.regel@gmx.de>
+MIME-Version: 1.0
+To: Manu Abraham <abraham.manu@gmail.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] stb0899: fixed reading of IF_AGC_GAIN register
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create a new control type called V4L2_CTRL_TYPE_INTEGER_MENU. Integer menu
-controls are just like menu controls but the menu items are 64-bit integers
-rather than strings.
+When reading IF_AGC_GAIN register a wrong value for the base address
+register was used (STB0899_DEMOD instead of STB0899_S2DEMOD). That
+lead to a wrong signal strength value on DVB-S2 transponders.
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
 ---
- drivers/media/video/v4l2-ctrls.c |   74 +++++++++++++++++++++++++++++---------
- include/linux/videodev2.h        |    6 +++-
- include/media/v4l2-ctrls.h       |    6 +++-
- 3 files changed, 67 insertions(+), 19 deletions(-)
+  drivers/media/dvb/frontends/stb0899_drv.c |    2 +-
+  1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/video/v4l2-ctrls.c b/drivers/media/video/v4l2-ctrls.c
-index cccd42b..139ba42 100644
---- a/drivers/media/video/v4l2-ctrls.c
-+++ b/drivers/media/video/v4l2-ctrls.c
-@@ -805,7 +805,8 @@ static void fill_event(struct v4l2_event *ev, struct v4l2_ctrl *ctrl, u32 change
- 		ev->u.ctrl.value64 = ctrl->cur.val64;
- 	ev->u.ctrl.minimum = ctrl->minimum;
- 	ev->u.ctrl.maximum = ctrl->maximum;
--	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU
-+	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
- 		ev->u.ctrl.step = 1;
- 	else
- 		ev->u.ctrl.step = ctrl->step;
-@@ -1036,10 +1037,13 @@ static int validate_new_int(const struct v4l2_ctrl *ctrl, s32 *pval)
- 		return 0;
- 
- 	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 		if (val < ctrl->minimum || val > ctrl->maximum)
- 			return -ERANGE;
--		if (ctrl->qmenu[val][0] == '\0' ||
--		    (ctrl->menu_skip_mask & (1 << val)))
-+		if (ctrl->menu_skip_mask & (1 << val))
-+			return -EINVAL;
-+		if (ctrl->type == V4L2_CTRL_TYPE_MENU &&
-+		    ctrl->qmenu[val][0] == '\0')
- 			return -EINVAL;
- 		return 0;
- 
-@@ -1067,6 +1071,7 @@ static int validate_new(const struct v4l2_ctrl *ctrl, struct v4l2_ext_control *c
- 	case V4L2_CTRL_TYPE_INTEGER:
- 	case V4L2_CTRL_TYPE_BOOLEAN:
- 	case V4L2_CTRL_TYPE_MENU:
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
- 	case V4L2_CTRL_TYPE_BITMASK:
- 	case V4L2_CTRL_TYPE_BUTTON:
- 	case V4L2_CTRL_TYPE_CTRL_CLASS:
-@@ -1296,7 +1301,8 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, const char *name, enum v4l2_ctrl_type type,
- 			s32 min, s32 max, u32 step, s32 def,
--			u32 flags, const char * const *qmenu, void *priv)
-+			u32 flags, const char * const *qmenu,
-+			const s64 *qmenu_int, void *priv)
- {
- 	struct v4l2_ctrl *ctrl;
- 	unsigned sz_extra = 0;
-@@ -1309,6 +1315,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	    (type == V4L2_CTRL_TYPE_INTEGER && step == 0) ||
- 	    (type == V4L2_CTRL_TYPE_BITMASK && max == 0) ||
- 	    (type == V4L2_CTRL_TYPE_MENU && qmenu == NULL) ||
-+	    (type == V4L2_CTRL_TYPE_INTEGER_MENU && qmenu_int == NULL) ||
- 	    (type == V4L2_CTRL_TYPE_STRING && max == 0)) {
- 		handler_set_err(hdl, -ERANGE);
- 		return NULL;
-@@ -1319,6 +1326,7 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	}
- 	if ((type == V4L2_CTRL_TYPE_INTEGER ||
- 	     type == V4L2_CTRL_TYPE_MENU ||
-+	     type == V4L2_CTRL_TYPE_INTEGER_MENU ||
- 	     type == V4L2_CTRL_TYPE_BOOLEAN) &&
- 	    (def < min || def > max)) {
- 		handler_set_err(hdl, -ERANGE);
-@@ -1353,7 +1361,10 @@ static struct v4l2_ctrl *v4l2_ctrl_new(struct v4l2_ctrl_handler *hdl,
- 	ctrl->minimum = min;
- 	ctrl->maximum = max;
- 	ctrl->step = step;
--	ctrl->qmenu = qmenu;
-+	if (type == V4L2_CTRL_TYPE_MENU)
-+		ctrl->qmenu = qmenu;
-+	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
-+		ctrl->qmenu_int = qmenu_int;
- 	ctrl->priv = priv;
- 	ctrl->cur.val = ctrl->val = ctrl->default_value = def;
- 
-@@ -1380,6 +1391,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 	struct v4l2_ctrl *ctrl;
- 	const char *name = cfg->name;
- 	const char * const *qmenu = cfg->qmenu;
-+	const s64 *qmenu_int = cfg->qmenu_int;
- 	enum v4l2_ctrl_type type = cfg->type;
- 	u32 flags = cfg->flags;
- 	s32 min = cfg->min;
-@@ -1391,18 +1403,24 @@ struct v4l2_ctrl *v4l2_ctrl_new_custom(struct v4l2_ctrl_handler *hdl,
- 		v4l2_ctrl_fill(cfg->id, &name, &type, &min, &max, &step,
- 								&def, &flags);
- 
--	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU);
-+	is_menu = (cfg->type == V4L2_CTRL_TYPE_MENU ||
-+		   cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU);
- 	if (is_menu)
- 		WARN_ON(step);
- 	else
- 		WARN_ON(cfg->menu_skip_mask);
--	if (is_menu && qmenu == NULL)
-+	if (cfg->type == V4L2_CTRL_TYPE_MENU && qmenu == NULL)
- 		qmenu = v4l2_ctrl_get_menu(cfg->id);
-+	else if (cfg->type == V4L2_CTRL_TYPE_INTEGER_MENU &&
-+		 qmenu_int == NULL) {
-+		handler_set_err(hdl, -EINVAL);
-+		return NULL;
-+	}
- 
- 	ctrl = v4l2_ctrl_new(hdl, cfg->ops, cfg->id, name,
- 			type, min, max,
- 			is_menu ? cfg->menu_skip_mask : step,
--			def, flags, qmenu, priv);
-+			def, flags, qmenu, qmenu_int, priv);
- 	if (ctrl)
- 		ctrl->is_private = cfg->is_private;
- 	return ctrl;
-@@ -1419,12 +1437,13 @@ struct v4l2_ctrl *v4l2_ctrl_new_std(struct v4l2_ctrl_handler *hdl,
- 	u32 flags;
- 
- 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
--	if (type == V4L2_CTRL_TYPE_MENU) {
-+	if (type == V4L2_CTRL_TYPE_MENU
-+	    || type == V4L2_CTRL_TYPE_INTEGER_MENU) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--				    min, max, step, def, flags, NULL, NULL);
-+			     min, max, step, def, flags, NULL, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std);
- 
-@@ -1446,7 +1465,7 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--				    0, max, mask, def, flags, qmenu, NULL);
-+			     0, max, mask, def, flags, qmenu, NULL, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
- 
-@@ -1610,6 +1629,9 @@ static void log_ctrl(const struct v4l2_ctrl *ctrl,
- 	case V4L2_CTRL_TYPE_MENU:
- 		printk(KERN_CONT "%s", ctrl->qmenu[ctrl->cur.val]);
- 		break;
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		printk(KERN_CONT "%lld", ctrl->qmenu_int[ctrl->cur.val]);
-+		break;
- 	case V4L2_CTRL_TYPE_BITMASK:
- 		printk(KERN_CONT "0x%08x", ctrl->cur.val);
- 		break;
-@@ -1746,7 +1768,8 @@ int v4l2_queryctrl(struct v4l2_ctrl_handler *hdl, struct v4l2_queryctrl *qc)
- 	qc->minimum = ctrl->minimum;
- 	qc->maximum = ctrl->maximum;
- 	qc->default_value = ctrl->default_value;
--	if (ctrl->type == V4L2_CTRL_TYPE_MENU)
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU
-+	    || ctrl->type == V4L2_CTRL_TYPE_INTEGER_MENU)
- 		qc->step = 1;
- 	else
- 		qc->step = ctrl->step;
-@@ -1776,16 +1799,33 @@ int v4l2_querymenu(struct v4l2_ctrl_handler *hdl, struct v4l2_querymenu *qm)
- 
- 	qm->reserved = 0;
- 	/* Sanity checks */
--	if (ctrl->qmenu == NULL ||
--	    i < ctrl->minimum || i > ctrl->maximum)
-+	switch (ctrl->type) {
-+	case V4L2_CTRL_TYPE_MENU:
-+		if (ctrl->qmenu == NULL)
-+			return -EINVAL;
-+		break;
-+	case V4L2_CTRL_TYPE_INTEGER_MENU:
-+		if (ctrl->qmenu_int == NULL)
-+			return -EINVAL;
-+		break;
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	if (i < ctrl->minimum || i > ctrl->maximum)
- 		return -EINVAL;
-+
- 	/* Use mask to see if this menu item should be skipped */
- 	if (ctrl->menu_skip_mask & (1 << i))
- 		return -EINVAL;
- 	/* Empty menu items should also be skipped */
--	if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
--		return -EINVAL;
--	strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
-+	if (ctrl->type == V4L2_CTRL_TYPE_MENU) {
-+		if (ctrl->qmenu[i] == NULL || ctrl->qmenu[i][0] == '\0')
-+			return -EINVAL;
-+		strlcpy(qm->name, ctrl->qmenu[i], sizeof(qm->name));
-+	} else {
-+		qm->value = ctrl->qmenu_int[i];
-+	}
- 	return 0;
- }
- EXPORT_SYMBOL(v4l2_querymenu);
-diff --git a/include/linux/videodev2.h b/include/linux/videodev2.h
-index 0db0503..a80c03d 100644
---- a/include/linux/videodev2.h
-+++ b/include/linux/videodev2.h
-@@ -1150,6 +1150,7 @@ enum v4l2_ctrl_type {
- 	V4L2_CTRL_TYPE_CTRL_CLASS    = 6,
- 	V4L2_CTRL_TYPE_STRING        = 7,
- 	V4L2_CTRL_TYPE_BITMASK       = 8,
-+	V4L2_CTRL_TYPE_INTEGER_MENU = 9,
- };
- 
- /*  Used in the VIDIOC_QUERYCTRL ioctl for querying controls */
-@@ -1169,7 +1170,10 @@ struct v4l2_queryctrl {
- struct v4l2_querymenu {
- 	__u32		id;
- 	__u32		index;
--	__u8		name[32];	/* Whatever */
-+	union {
-+		__u8	name[32];	/* Whatever */
-+		__s64	value;
-+	};
- 	__u32		reserved;
- };
- 
-diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-index eeb3df6..f7819e7 100644
---- a/include/media/v4l2-ctrls.h
-+++ b/include/media/v4l2-ctrls.h
-@@ -129,7 +129,10 @@ struct v4l2_ctrl {
- 		u32 step;
- 		u32 menu_skip_mask;
- 	};
--	const char * const *qmenu;
-+	union {
-+		const char * const *qmenu;
-+		const s64 *qmenu_int;
-+	};
- 	unsigned long flags;
- 	union {
- 		s32 val;
-@@ -219,6 +222,7 @@ struct v4l2_ctrl_config {
- 	u32 flags;
- 	u32 menu_skip_mask;
- 	const char * const *qmenu;
-+	const s64 *qmenu_int;
- 	unsigned int is_private:1;
- };
- 
+diff --git a/drivers/media/dvb/frontends/stb0899_drv.c 
+b/drivers/media/dvb/frontends/stb0899_drv.c
+index 4a58afc..a2e9eba 100644
+--- a/drivers/media/dvb/frontends/stb0899_drv.c
++++ b/drivers/media/dvb/frontends/stb0899_drv.c
+@@ -983,7 +983,7 @@ static int stb0899_read_signal_strength(struct 
+dvb_frontend *fe, u16 *strength)
+  		break;
+  	case SYS_DVBS2:
+  		if (internal->lock) {
+-			reg = STB0899_READ_S2REG(STB0899_DEMOD, IF_AGC_GAIN);
++			reg = STB0899_READ_S2REG(STB0899_S2DEMOD, IF_AGC_GAIN);
+  			val = STB0899_GETFIELD(IF_AGC_GAIN, reg);
+   			*strength = stb0899_table_lookup(stb0899_dvbs2rf_tab, 
+ARRAY_SIZE(stb0899_dvbs2rf_tab) - 1, val);
 -- 
 1.7.2.5
 
