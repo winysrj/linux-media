@@ -1,950 +1,886 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58433 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752644Ab2BZD1a (ORCPT
+Received: from cassarossa.samfundet.no ([129.241.93.19]:59896 "EHLO
+	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756462Ab2B1BX1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 Feb 2012 22:27:30 -0500
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Mon, 27 Feb 2012 20:23:27 -0500
+Received: from pannekake.samfundet.no ([2001:700:300:1800::dddd] ident=unknown)
+	by cassarossa.samfundet.no with esmtps (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <sesse@samfundet.no>)
+	id 1S2BTX-0000A1-D2
+	for linux-media@vger.kernel.org; Tue, 28 Feb 2012 02:03:33 +0100
+Received: from sesse by pannekake.samfundet.no with local (Exim 4.72)
+	(envelope-from <sesse@samfundet.no>)
+	id 1S2BTW-0004wp-T5
+	for linux-media@vger.kernel.org; Tue, 28 Feb 2012 02:03:31 +0100
+Date: Tue, 28 Feb 2012 02:03:30 +0100
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
 To: linux-media@vger.kernel.org
-Cc: Martin Hostettler <martin@neutronstar.dyndns.org>
-Subject: [PATCH 01/11] v4l: Add driver for Micron MT9M032 camera sensor
-Date: Sun, 26 Feb 2012 04:27:27 +0100
-Message-Id: <1330226857-8651-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1330226857-8651-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [PATCH] Various nits, fixes and hacks for mantis CA support on SMP
+Message-ID: <20120228010330.GA25786@uio.no>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="IS0zKkzwUGydFO0o"
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Martin Hostettler <martin@neutronstar.dyndns.org>
 
-The MT9M032 is a parallel 1.6MP sensor from Micron controlled through I2C.
+--IS0zKkzwUGydFO0o
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 
-The driver creates a V4L2 subdevice. It currently supports cropping, gain,
-exposure and v/h flipping controls in monochrome mode with an
-external pixel clock.
+Hi,
 
-Signed-off-by: Martin Hostettler <martin@neutronstar.dyndns.org>
----
- drivers/media/video/Kconfig   |    7 +
- drivers/media/video/Makefile  |    1 +
- drivers/media/video/mt9m032.c |  832 +++++++++++++++++++++++++++++++++++++++++
- include/media/mt9m032.h       |   38 ++
- 4 files changed, 878 insertions(+), 0 deletions(-)
- create mode 100644 drivers/media/video/mt9m032.c
- create mode 100644 include/media/mt9m032.h
+This patch, against 3.3-rc4, is basically a conglomerate of patches that
+together seem to make CA support on mantis working and stable, even on SMP
+systems. (I'm using a Terratec Cinergy DVB-S2 card with a Conax CAM, with
+mumudvb as userspace.) There are a few fixes from this mailing list and some
+of my own; the end result is too ugly to include, and there are still things
+I don't understand at all, but I hope it can be useful for some.
 
-diff --git a/drivers/media/video/Kconfig b/drivers/media/video/Kconfig
-index 9adada0..02afc02 100644
---- a/drivers/media/video/Kconfig
-+++ b/drivers/media/video/Kconfig
-@@ -943,6 +943,13 @@ config SOC_CAMERA_MT9M001
- 	  This driver supports MT9M001 cameras from Micron, monochrome
- 	  and colour models.
- 
-+config VIDEO_MT9M032
-+	tristate "MT9M032 camera sensor support"
-+	depends on I2C && VIDEO_V4L2
-+	help
-+	  This driver supports MT9M032 cameras from Micron, monochrome
-+	  models only.
-+
- config SOC_CAMERA_MT9M111
- 	tristate "mt9m111, mt9m112 and mt9m131 support"
- 	depends on SOC_CAMERA && I2C
-diff --git a/drivers/media/video/Makefile b/drivers/media/video/Makefile
-index 3541388..2fa78d6 100644
---- a/drivers/media/video/Makefile
-+++ b/drivers/media/video/Makefile
-@@ -78,6 +78,7 @@ obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
- 
- obj-$(CONFIG_SOC_CAMERA_IMX074)		+= imx074.o
- obj-$(CONFIG_SOC_CAMERA_MT9M001)	+= mt9m001.o
-+obj-$(CONFIG_VIDEO_MT9M032)             += mt9m032.o
- obj-$(CONFIG_SOC_CAMERA_MT9M111)	+= mt9m111.o
- obj-$(CONFIG_SOC_CAMERA_MT9T031)	+= mt9t031.o
- obj-$(CONFIG_SOC_CAMERA_MT9T112)	+= mt9t112.o
-diff --git a/drivers/media/video/mt9m032.c b/drivers/media/video/mt9m032.c
-new file mode 100644
-index 0000000..eb701e7
---- /dev/null
-+++ b/drivers/media/video/mt9m032.c
-@@ -0,0 +1,832 @@
-+/*
-+ * Driver for MT9M032 CMOS Image Sensor from Micron
-+ *
-+ * Copyright (C) 2010-2011 Lund Engineering
-+ * Contact: Gil Lund <gwlund@lundeng.com>
-+ * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ */
-+
-+#include <linux/delay.h>
-+#include <linux/i2c.h>
-+#include <linux/init.h>
-+#include <linux/kernel.h>
-+#include <linux/math64.h>
-+#include <linux/module.h>
-+#include <linux/slab.h>
-+#include <linux/v4l2-mediabus.h>
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include <media/mt9m032.h>
-+
-+#define MT9M032_CHIP_VERSION			0x00
-+#define     MT9M032_CHIP_VERSION_VALUE		0x1402
-+#define MT9M032_ROW_START			0x01
-+#define MT9M032_COLUMN_START			0x02
-+#define MT9M032_ROW_SIZE			0x03
-+#define MT9M032_COLUMN_SIZE			0x04
-+#define MT9M032_HBLANK				0x05
-+#define MT9M032_VBLANK				0x06
-+#define MT9M032_SHUTTER_WIDTH_HIGH		0x08
-+#define MT9M032_SHUTTER_WIDTH_LOW		0x09
-+#define MT9M032_PIX_CLK_CTRL			0x0a
-+#define     MT9M032_PIX_CLK_CTRL_INV_PIXCLK	0x8000
-+#define MT9M032_RESTART				0x0b
-+#define MT9M032_RESET				0x0d
-+#define MT9M032_PLL_CONFIG1			0x11
-+#define     MT9M032_PLL_CONFIG1_OUTDIV_MASK	0x3f
-+#define     MT9M032_PLL_CONFIG1_MUL_SHIFT	8
-+#define MT9M032_READ_MODE1			0x1e
-+#define MT9M032_READ_MODE2			0x20
-+#define     MT9M032_READ_MODE2_VFLIP_SHIFT	15
-+#define     MT9M032_READ_MODE2_HFLIP_SHIFT	14
-+#define     MT9M032_READ_MODE2_ROW_BLC		0x40
-+#define MT9M032_GAIN_GREEN1			0x2b
-+#define MT9M032_GAIN_BLUE			0x2c
-+#define MT9M032_GAIN_RED			0x2d
-+#define MT9M032_GAIN_GREEN2			0x2e
-+/* write only */
-+#define MT9M032_GAIN_ALL			0x35
-+#define     MT9M032_GAIN_DIGITAL_MASK		0x7f
-+#define     MT9M032_GAIN_DIGITAL_SHIFT		8
-+#define     MT9M032_GAIN_AMUL_SHIFT		6
-+#define     MT9M032_GAIN_ANALOG_MASK		0x3f
-+#define MT9M032_FORMATTER1			0x9e
-+#define MT9M032_FORMATTER2			0x9f
-+#define     MT9M032_FORMATTER2_DOUT_EN		0x1000
-+#define     MT9M032_FORMATTER2_PIXCLK_EN	0x2000
-+
-+#define MT9M032_MAX_BLANKING_ROWS		0x7ff
-+
-+
-+/*
-+ * The availible MT9M032 datasheet is missing documentation for register 0x10
-+ * MT9P031 seems to be close enough, so use constants from that datasheet for
-+ * now.
-+ * But keep the name MT9P031 to remind us, that this isn't really confirmed
-+ * for this sensor.
-+ */
-+
-+#define MT9P031_PLL_CONTROL			0x10
-+#define     MT9P031_PLL_CONTROL_PWROFF		0x0050
-+#define     MT9P031_PLL_CONTROL_PWRON		0x0051
-+#define     MT9P031_PLL_CONTROL_USEPLL		0x0052
-+
-+
-+
-+/*
-+ * width and height include active boundry and black parts
-+ *
-+ * column    0-  15 active boundry
-+ * column   16-1455 image
-+ * column 1456-1471 active boundry
-+ * column 1472-1599 black
-+ *
-+ * row       0-  51 black
-+ * row      53-  59 active boundry
-+ * row      60-1139 image
-+ * row    1140-1147 active boundry
-+ * row    1148-1151 black
-+ */
-+#define MT9M032_WIDTH				1600
-+#define MT9M032_HEIGHT				1152
-+#define MT9M032_MINIMALSIZE			32
-+
-+#define to_mt9m032(sd)	container_of(sd, struct mt9m032, subdev)
-+#define to_dev(sensor)	&((struct i2c_client *)v4l2_get_subdevdata(&sensor->subdev))->dev
-+
-+struct mt9m032 {
-+	struct v4l2_subdev subdev;
-+	struct media_pad pad;
-+	struct mt9m032_platform_data *pdata;
-+	struct v4l2_ctrl_handler ctrls;
-+
-+	bool streaming;
-+
-+	int pix_clock;
-+
-+	struct v4l2_mbus_framefmt format;	/* height and width always the same as in crop */
-+	struct v4l2_rect crop;
-+	struct v4l2_fract frame_interval;
-+
-+	struct v4l2_ctrl *hflip, *vflip;
-+};
-+
-+
-+static int mt9m032_read_reg(struct mt9m032 *sensor, u8 reg)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-+
-+	return i2c_smbus_read_word_swapped(client, reg);
-+}
-+
-+static int mt9m032_write_reg(struct mt9m032 *sensor, u8 reg,
-+		     const u16 data)
-+{
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-+
-+	return i2c_smbus_write_word_swapped(client, reg, data);
-+}
-+
-+
-+static unsigned long mt9m032_row_time(struct mt9m032 *sensor, int width)
-+{
-+	int effective_width;
-+	u64 ns;
-+
-+	effective_width = width + 716; /* emperical value */
-+	ns = div_u64(((u64)1000000000) * effective_width, sensor->pix_clock);
-+	dev_dbg(to_dev(sensor),	"MT9M032 line time: %llu ns\n", ns);
-+	return ns;
-+}
-+
-+static int mt9m032_update_timing(struct mt9m032 *sensor,
-+				 struct v4l2_fract *interval,
-+				 const struct v4l2_rect *crop)
-+{
-+	unsigned long row_time;
-+	int additional_blanking_rows;
-+	int min_blank;
-+
-+	if (!interval)
-+		interval = &sensor->frame_interval;
-+	if (!crop)
-+		crop = &sensor->crop;
-+
-+	row_time = mt9m032_row_time(sensor, crop->width);
-+
-+	additional_blanking_rows = div_u64(((u64)1000000000) * interval->numerator,
-+	                                  ((u64)interval->denominator) * row_time)
-+	                           - crop->height;
-+
-+	if (additional_blanking_rows > MT9M032_MAX_BLANKING_ROWS) {
-+		/* hardware limits to 11 bit values */
-+		interval->denominator = 1000;
-+		interval->numerator = div_u64((crop->height + MT9M032_MAX_BLANKING_ROWS)
-+		                              * ((u64)row_time) * interval->denominator,
-+					      1000000000);
-+		additional_blanking_rows = div_u64(((u64)1000000000) * interval->numerator,
-+	                                  ((u64)interval->denominator) * row_time)
-+	                           - crop->height;
-+	}
-+	/* enforce minimal 1.6ms blanking time. */
-+	min_blank = 1600000 / row_time;
-+	additional_blanking_rows = clamp(additional_blanking_rows,
-+	                                 min_blank, MT9M032_MAX_BLANKING_ROWS);
-+
-+	return mt9m032_write_reg(sensor, MT9M032_VBLANK, additional_blanking_rows);
-+}
-+
-+static int mt9m032_update_geom_timing(struct mt9m032 *sensor,
-+				 const struct v4l2_rect *crop)
-+{
-+	int ret;
-+
-+	ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_SIZE, crop->width - 1);
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor, MT9M032_ROW_SIZE, crop->height - 1);
-+	/* offsets compensate for black border */
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor, MT9M032_COLUMN_START, crop->left);
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor, MT9M032_ROW_START, crop->top);
-+	if (!ret)
-+		ret = mt9m032_update_timing(sensor, NULL, crop);
-+	return ret;
-+}
-+
-+static int update_formatter2(struct mt9m032 *sensor, bool streaming)
-+{
-+	u16 reg_val =   MT9M032_FORMATTER2_DOUT_EN
-+		      | 0x0070;  /* parts reserved! */
-+				 /* possibly for changing to 14-bit mode */
-+
-+	if (streaming)
-+		reg_val |= MT9M032_FORMATTER2_PIXCLK_EN;   /* pixclock enable */
-+
-+	return mt9m032_write_reg(sensor, MT9M032_FORMATTER2, reg_val);
-+}
-+
-+static int mt9m032_s_stream(struct v4l2_subdev *subdev, int streaming)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+	int ret;
-+
-+	ret = update_formatter2(sensor, streaming);
-+	if (!ret)
-+		sensor->streaming = streaming;
-+	return ret;
-+}
-+
-+static int mt9m032_enum_mbus_code(struct v4l2_subdev *subdev,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->index != 0 || code->pad != 0)
-+		return -EINVAL;
-+	code->code = V4L2_MBUS_FMT_Y8_1X8;
-+	return 0;
-+}
-+
-+static int mt9m032_enum_frame_size(struct v4l2_subdev *subdev,
-+				   struct v4l2_subdev_fh *fh,
-+				   struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	if (fse->index != 0 || fse->code != V4L2_MBUS_FMT_Y8_1X8 || fse->pad != 0)
-+		return -EINVAL;
-+
-+	fse->min_width = MT9M032_WIDTH;
-+	fse->max_width = MT9M032_WIDTH;
-+	fse->min_height = MT9M032_HEIGHT;
-+	fse->max_height = MT9M032_HEIGHT;
-+
-+	return 0;
-+}
-+
-+/**
-+ * __mt9m032_get_pad_crop() - get crop rect
-+ * @sensor:	pointer to the sensor struct
-+ * @fh:	filehandle for getting the try crop rect from
-+ * @which:	select try or active crop rect
-+ * Returns a pointer the current active or fh relative try crop rect
-+ */
-+static struct v4l2_rect *__mt9m032_get_pad_crop(struct mt9m032 *sensor,
-+						struct v4l2_subdev_fh *fh,
-+						u32 which)
-+{
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_crop(fh, 0);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &sensor->crop;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+/**
-+ * __mt9m032_get_pad_format() - get format
-+ * @sensor:	pointer to the sensor struct
-+ * @fh:	filehandle for getting the try format from
-+ * @which:	select try or active format
-+ * Returns a pointer the current active or fh relative try format
-+ */
-+static struct v4l2_mbus_framefmt *__mt9m032_get_pad_format(struct mt9m032 *sensor,
-+							   struct v4l2_subdev_fh *fh,
-+							   u32 which)
-+{
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(fh, 0);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &sensor->format;
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+static int mt9m032_get_pad_format(struct v4l2_subdev *subdev,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	format = __mt9m032_get_pad_format(sensor, fh, fmt->which);
-+
-+	fmt->format = *format;
-+
-+	return 0;
-+}
-+
-+static int mt9m032_set_pad_format(struct v4l2_subdev *subdev,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+
-+	if (sensor->streaming)
-+		return -EBUSY;
-+
-+	/*
-+	 * fmt->format.colorspace, fmt->format.code and fmt->format.field are ignored
-+	 * and thus forced to fixed values by the get call below.
-+	 *
-+	 * fmt->format.width, fmt->format.height are forced to the values set via crop
-+	 */
-+
-+	return mt9m032_get_pad_format(subdev, fh, fmt);
-+}
-+
-+static int mt9m032_get_crop(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			    struct v4l2_subdev_crop *crop)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+	struct v4l2_rect *curcrop;
-+
-+	curcrop = __mt9m032_get_pad_crop(sensor, fh, crop->which);
-+
-+	crop->rect = *curcrop;
-+
-+	return 0;
-+}
-+
-+static int mt9m032_set_crop(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+		     struct v4l2_subdev_crop *crop)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+	struct v4l2_mbus_framefmt tmp_format;
-+	struct v4l2_rect tmp_crop_rect;
-+	struct v4l2_mbus_framefmt *format;
-+	struct v4l2_rect *crop_rect;
-+	int ret = 0;
-+
-+	if (sensor->streaming)
-+		return -EBUSY;
-+
-+	format = __mt9m032_get_pad_format(sensor, fh, crop->which);
-+	crop_rect = __mt9m032_get_pad_crop(sensor, fh, crop->which);
-+	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-+		tmp_crop_rect = *crop_rect;
-+		tmp_format = *format;
-+		format = &tmp_format;
-+		crop_rect = &tmp_crop_rect;
-+	}
-+
-+	crop_rect->top = clamp(crop->rect.top, 0,
-+			       MT9M032_HEIGHT - MT9M032_MINIMALSIZE) & ~1;
-+	crop_rect->left = clamp(crop->rect.left, 0,
-+			       MT9M032_WIDTH - MT9M032_MINIMALSIZE);
-+	crop_rect->height = clamp(crop->rect.height, MT9M032_MINIMALSIZE,
-+				  MT9M032_HEIGHT - crop_rect->top);
-+	crop_rect->width = clamp(crop->rect.width, MT9M032_MINIMALSIZE,
-+				 MT9M032_WIDTH - crop_rect->left) & ~1;
-+
-+	format->height = crop_rect->height;
-+	format->width = crop_rect->width;
-+
-+	if (crop->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
-+		ret = mt9m032_update_geom_timing(sensor, crop_rect);
-+
-+		if (!ret) {
-+			sensor->crop = tmp_crop_rect;
-+			sensor->format = tmp_format;
-+		}
-+		return ret;
-+	}
-+
-+	return ret;
-+}
-+
-+static int mt9m032_get_frame_interval(struct v4l2_subdev *subdev,
-+				      struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+
-+	fi->pad = 0;
-+	memset(fi->reserved, 0, sizeof(fi->reserved));
-+	fi->interval = sensor->frame_interval;
-+
-+	return 0;
-+}
-+
-+static int mt9m032_set_frame_interval(struct v4l2_subdev *subdev,
-+				      struct v4l2_subdev_frame_interval *fi)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+	int ret;
-+
-+	if (sensor->streaming)
-+		return -EBUSY;
-+
-+	memset(fi->reserved, 0, sizeof(fi->reserved));
-+
-+	ret = mt9m032_update_timing(sensor, &fi->interval, NULL);
-+	if (!ret)
-+		sensor->frame_interval = fi->interval;
-+	return ret;
-+}
-+
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+static int mt9m032_g_register(struct v4l2_subdev *sd,
-+			      struct v4l2_dbg_register *reg)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-+	int val;
-+
-+	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-+		return -EINVAL;
-+	if (reg->match.addr != client->addr)
-+		return -ENODEV;
-+
-+	val = mt9m032_read_reg(sensor, reg->reg);
-+	if (val < 0)
-+		return -EIO;
-+
-+	reg->size = 2;
-+	reg->val = val;
-+
-+	return 0;
-+}
-+
-+static int mt9m032_s_register(struct v4l2_subdev *sd,
-+			      struct v4l2_dbg_register *reg)
-+{
-+	struct mt9m032 *sensor = to_mt9m032(sd);
-+	struct i2c_client *client = v4l2_get_subdevdata(&sensor->subdev);
-+
-+	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-+		return -EINVAL;
-+
-+	if (reg->match.addr != client->addr)
-+		return -ENODEV;
-+
-+	if (mt9m032_write_reg(sensor, reg->reg, reg->val) < 0)
-+		return -EIO;
-+
-+	return 0;
-+}
-+#endif
-+
-+static int update_read_mode2(struct mt9m032 *sensor, bool vflip, bool hflip)
-+{
-+	int reg_val = (!!vflip) << MT9M032_READ_MODE2_VFLIP_SHIFT
-+		      | (!!hflip) << MT9M032_READ_MODE2_HFLIP_SHIFT
-+		      | MT9M032_READ_MODE2_ROW_BLC
-+		      | 0x0007;
-+
-+	return mt9m032_write_reg(sensor, MT9M032_READ_MODE2, reg_val);
-+}
-+
-+static int mt9m032_set_hflip(struct mt9m032 *sensor, s32 val)
-+{
-+	return update_read_mode2(sensor, sensor->vflip->cur.val, val);
-+}
-+
-+static int mt9m032_set_vflip(struct mt9m032 *sensor, s32 val)
-+{
-+	return update_read_mode2(sensor, val, sensor->hflip->cur.val);
-+}
-+
-+static int mt9m032_set_exposure(struct mt9m032 *sensor, s32 val)
-+{
-+	int shutter_width;
-+	u16 high_val, low_val;
-+	int ret;
-+
-+	/* shutter width is in row times */
-+	shutter_width = (val * 1000) / mt9m032_row_time(sensor, sensor->crop.width);
-+
-+	high_val = (shutter_width >> 16) & 0xf;
-+	low_val = shutter_width & 0xffff;
-+
-+	ret = mt9m032_write_reg(sensor, MT9M032_SHUTTER_WIDTH_HIGH, high_val);
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor, MT9M032_SHUTTER_WIDTH_LOW, low_val);
-+
-+	return ret;
-+}
-+
-+static int mt9m032_set_gain(struct mt9m032 *sensor, s32 val)
-+{
-+	int digital_gain_val;	/* in 1/8th (0..127) */
-+	int analog_mul;		/* 0 or 1 */
-+	int analog_gain_val;	/* in 1/16th. (0..63) */
-+	u16 reg_val;
-+
-+	digital_gain_val = 51; /* from setup example */
-+
-+	if (val < 63) {
-+		analog_mul = 0;
-+		analog_gain_val = val;
-+	} else {
-+		analog_mul = 1;
-+		analog_gain_val = val / 2;
-+	}
-+
-+	/* a_gain = (1+analog_mul) + (analog_gain_val+1)/16 */
-+	/* overall_gain = a_gain * (1 + digital_gain_val / 8) */
-+
-+	reg_val = (digital_gain_val & MT9M032_GAIN_DIGITAL_MASK) << MT9M032_GAIN_DIGITAL_SHIFT
-+		  | (analog_mul & 1) << MT9M032_GAIN_AMUL_SHIFT
-+		  | (analog_gain_val & MT9M032_GAIN_ANALOG_MASK);
-+
-+	return mt9m032_write_reg(sensor, MT9M032_GAIN_ALL, reg_val);
-+}
-+
-+static int mt9m032_setup_pll(struct mt9m032 *sensor)
-+{
-+	struct mt9m032_platform_data* pdata = sensor->pdata;
-+	u16 reg_pll1;
-+	unsigned int pre_div;
-+	int res, ret;
-+
-+	/* TODO: also support other pre-div values */
-+	if (pdata->pll_pre_div != 6) {
-+		dev_warn(to_dev(sensor),
-+			"Unsupported PLL pre-divisor value %u, using default 6\n",
-+			pdata->pll_pre_div);
-+	}
-+	pre_div = 6;
-+
-+	sensor->pix_clock = pdata->ext_clock * pdata->pll_mul /
-+		(pre_div * pdata->pll_out_div);
-+
-+	reg_pll1 = ((pdata->pll_out_div - 1) & MT9M032_PLL_CONFIG1_OUTDIV_MASK)
-+		   | pdata->pll_mul << MT9M032_PLL_CONFIG1_MUL_SHIFT;
-+
-+	ret = mt9m032_write_reg(sensor, MT9M032_PLL_CONFIG1, reg_pll1);
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor,
-+		                        MT9P031_PLL_CONTROL,
-+		                        MT9P031_PLL_CONTROL_PWRON | MT9P031_PLL_CONTROL_USEPLL);
-+
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor, MT9M032_READ_MODE1, 0x8006);
-+							/* more reserved, Continuous */
-+							/* Master Mode */
-+	if (!ret)
-+		res = mt9m032_read_reg(sensor, MT9M032_READ_MODE1);
-+
-+	if (!ret)
-+		ret = mt9m032_write_reg(sensor, MT9M032_FORMATTER1, 0x111e);
-+					/* Set 14-bit mode, select 7 divider */
-+
-+	return ret;
-+}
-+
-+static int mt9m032_try_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	if (ctrl->id == V4L2_CID_GAIN && ctrl->val >= 63) {
-+		 /* round because of multiplier used for values >= 63 */
-+		ctrl->val &= ~1;
-+	}
-+
-+	return 0;
-+}
-+
-+static int mt9m032_set_ctrl(struct v4l2_ctrl *ctrl)
-+{
-+	struct mt9m032 *sensor = container_of(ctrl->handler, struct mt9m032, ctrls);
-+
-+	switch (ctrl->id) {
-+	case V4L2_CID_GAIN:
-+		return mt9m032_set_gain(sensor, ctrl->val);
-+
-+	case V4L2_CID_HFLIP:
-+		return mt9m032_set_hflip(sensor, ctrl->val);
-+
-+	case V4L2_CID_VFLIP:
-+		return mt9m032_set_vflip(sensor, ctrl->val);
-+
-+	case V4L2_CID_EXPOSURE:
-+		return mt9m032_set_exposure(sensor, ctrl->val);
-+
-+	default:
-+		return -EINVAL;
-+	}
-+}
-+
-+static const struct v4l2_subdev_video_ops mt9m032_video_ops = {
-+	.s_stream = mt9m032_s_stream,
-+	.g_frame_interval = mt9m032_get_frame_interval,
-+	.s_frame_interval = mt9m032_set_frame_interval,
-+};
-+
-+static struct v4l2_ctrl_ops mt9m032_ctrl_ops = {
-+	.s_ctrl = mt9m032_set_ctrl,
-+	.try_ctrl = mt9m032_try_ctrl,
-+};
-+
-+
-+static const struct v4l2_subdev_core_ops mt9m032_core_ops = {
-+#ifdef CONFIG_VIDEO_ADV_DEBUG
-+	.g_register = mt9m032_g_register,
-+	.s_register = mt9m032_s_register,
-+#endif
-+};
-+
-+static const struct v4l2_subdev_pad_ops mt9m032_pad_ops = {
-+	.enum_mbus_code = mt9m032_enum_mbus_code,
-+	.enum_frame_size = mt9m032_enum_frame_size,
-+	.get_fmt = mt9m032_get_pad_format,
-+	.set_fmt = mt9m032_set_pad_format,
-+	.set_crop = mt9m032_set_crop,
-+	.get_crop = mt9m032_get_crop,
-+};
-+
-+static const struct v4l2_subdev_ops mt9m032_ops = {
-+	.core = &mt9m032_core_ops,
-+	.video = &mt9m032_video_ops,
-+	.pad = &mt9m032_pad_ops,
-+};
-+
-+static int mt9m032_probe(struct i2c_client *client,
-+			 const struct i2c_device_id *devid)
-+{
-+	struct mt9m032 *sensor;
-+	int chip_version;
-+	int res, ret;
-+
-+	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
-+		dev_warn(&client->adapter->dev,
-+			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
-+		return -EIO;
-+	}
-+
-+	if (!client->dev.platform_data)
-+		return -ENODEV;
-+
-+	sensor = kzalloc(sizeof(*sensor), GFP_KERNEL);
-+	if (sensor == NULL)
-+		return -ENOMEM;
-+
-+	sensor->pdata = client->dev.platform_data;
-+
-+	v4l2_i2c_subdev_init(&sensor->subdev, client, &mt9m032_ops);
-+	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	/*
-+	 * This driver was developed with a camera module with seperate external
-+	 * pix clock. For setups which use the clock from the camera interface
-+	 * the code will need to be extended with the appropriate platform
-+	 * callback to setup the clock.
-+	 */
-+	chip_version = mt9m032_read_reg(sensor, MT9M032_CHIP_VERSION);
-+	if (chip_version == MT9M032_CHIP_VERSION_VALUE) {
-+		dev_info(&client->dev, "mt9m032: detected sensor.\n");
-+	} else {
-+		dev_warn(&client->dev, "mt9m032: error: detected unsupported chip version 0x%x\n",
-+			 chip_version);
-+		ret = -ENODEV;
-+		goto free_sensor;
-+	}
-+
-+	sensor->frame_interval.numerator = 1;
-+	sensor->frame_interval.denominator = 30;
-+
-+	sensor->crop.left = 416;
-+	sensor->crop.top = 360;
-+	sensor->crop.width = 640;
-+	sensor->crop.height = 480;
-+
-+	sensor->format.width = sensor->crop.width;
-+	sensor->format.height = sensor->crop.height;
-+	sensor->format.code = V4L2_MBUS_FMT_Y8_1X8;
-+	sensor->format.field = V4L2_FIELD_NONE;
-+	sensor->format.colorspace = V4L2_COLORSPACE_SRGB;
-+
-+	v4l2_ctrl_handler_init(&sensor->ctrls, 4);
-+
-+	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-+			  V4L2_CID_GAIN, 0, 127, 1, 64);
-+
-+	sensor->hflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-+			  V4L2_CID_HFLIP, 0, 1, 1, 0);
-+	sensor->vflip = v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-+			  V4L2_CID_VFLIP, 0, 1, 1, 0);
-+	v4l2_ctrl_new_std(&sensor->ctrls, &mt9m032_ctrl_ops,
-+			  V4L2_CID_EXPOSURE, 0, 8000, 1, 1700);    /* 1.7ms */
-+
-+
-+	if (sensor->ctrls.error) {
-+		ret = sensor->ctrls.error;
-+		dev_err(&client->dev, "control initialization error %d\n", ret);
-+		goto free_ctrl;
-+	}
-+
-+	sensor->subdev.ctrl_handler = &sensor->ctrls;
-+	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_init(&sensor->subdev.entity, 1, &sensor->pad, 0);
-+	if (ret < 0)
-+		goto free_ctrl;
-+
-+	ret = mt9m032_write_reg(sensor, MT9M032_RESET, 1);	/* reset on */
-+	if (ret < 0)
-+		goto free_ctrl;
-+	mt9m032_write_reg(sensor, MT9M032_RESET, 0);	/* reset off */
-+	if (ret < 0)
-+		goto free_ctrl;
-+
-+	ret = mt9m032_setup_pll(sensor);
-+	if (ret < 0)
-+		goto free_ctrl;
-+	msleep(10);
-+
-+	v4l2_ctrl_handler_setup(&sensor->ctrls);
-+
-+	/* SIZE */
-+	ret = mt9m032_update_geom_timing(sensor, &sensor->crop);
-+	if (ret < 0)
-+		goto free_ctrl;
-+
-+	ret = mt9m032_write_reg(sensor, 0x41, 0x0000);	/* reserved !!! */
-+	if (ret < 0)
-+		goto free_ctrl;
-+	ret = mt9m032_write_reg(sensor, 0x42, 0x0003);	/* reserved !!! */
-+	if (ret < 0)
-+		goto free_ctrl;
-+	ret = mt9m032_write_reg(sensor, 0x43, 0x0003);	/* reserved !!! */
-+	if (ret < 0)
-+		goto free_ctrl;
-+	ret = mt9m032_write_reg(sensor, 0x7f, 0x0000);	/* reserved !!! */
-+	if (ret < 0)
-+		goto free_ctrl;
-+	if (sensor->pdata->invert_pixclock) {
-+		mt9m032_write_reg(sensor, MT9M032_PIX_CLK_CTRL, MT9M032_PIX_CLK_CTRL_INV_PIXCLK);
-+		if (ret < 0)
-+			goto free_ctrl;
-+	}
-+
-+	res = mt9m032_read_reg(sensor, MT9M032_PIX_CLK_CTRL);
-+
-+	ret = mt9m032_write_reg(sensor, MT9M032_RESTART, 1); /* Restart on */
-+	if (ret < 0)
-+		goto free_ctrl;
-+	msleep(100);
-+	ret = mt9m032_write_reg(sensor, MT9M032_RESTART, 0); /* Restart off */
-+	if (ret < 0)
-+		goto free_ctrl;
-+	msleep(100);
-+	ret = update_formatter2(sensor, false);
-+	if (ret < 0)
-+		goto free_ctrl;
-+
-+	return ret;
-+
-+free_ctrl:
-+	v4l2_ctrl_handler_free(&sensor->ctrls);
-+
-+free_sensor:
-+	kfree(sensor);
-+	return ret;
-+}
-+
-+static int mt9m032_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
-+	struct mt9m032 *sensor = to_mt9m032(subdev);
-+
-+	v4l2_device_unregister_subdev(&sensor->subdev);
-+	v4l2_ctrl_handler_free(&sensor->ctrls);
-+	media_entity_cleanup(&sensor->subdev.entity);
-+	kfree(sensor);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id mt9m032_id_table[] = {
-+	{MT9M032_NAME, 0},
-+	{}
-+};
-+
-+MODULE_DEVICE_TABLE(i2c, mt9m032_id_table);
-+
-+static struct i2c_driver mt9m032_i2c_driver = {
-+	.driver = {
-+		   .name = MT9M032_NAME,
-+		   },
-+	.probe = mt9m032_probe,
-+	.remove = mt9m032_remove,
-+	.id_table = mt9m032_id_table,
-+};
-+
-+static int __init mt9m032_init(void)
-+{
-+	int rval;
-+
-+	rval = i2c_add_driver(&mt9m032_i2c_driver);
-+	if (rval)
-+		pr_err("%s: failed registering " MT9M032_NAME "\n", __func__);
-+
-+	return rval;
-+}
-+
-+static void mt9m032_exit(void)
-+{
-+	i2c_del_driver(&mt9m032_i2c_driver);
-+}
-+
-+module_init(mt9m032_init);
-+module_exit(mt9m032_exit);
-+
-+MODULE_AUTHOR("Martin Hostettler");
-+MODULE_DESCRIPTION("MT9M032 camera sensor driver");
-+MODULE_LICENSE("GPL v2");
-diff --git a/include/media/mt9m032.h b/include/media/mt9m032.h
-new file mode 100644
-index 0000000..94cefc5
---- /dev/null
-+++ b/include/media/mt9m032.h
-@@ -0,0 +1,38 @@
-+/*
-+ * Driver for MT9M032 CMOS Image Sensor from Micron
-+ *
-+ * Copyright (C) 2010-2011 Lund Engineering
-+ * Contact: Gil Lund <gwlund@lundeng.com>
-+ * Author: Martin Hostettler <martin@neutronstar.dyndns.org>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-+ * 02110-1301 USA
-+ *
-+ */
-+
-+#ifndef MT9M032_H
-+#define MT9M032_H
-+
-+#define MT9M032_NAME		"mt9m032"
-+#define MT9M032_I2C_ADDR	(0xb8 >> 1)
-+
-+struct mt9m032_platform_data {
-+	u32 ext_clock;
-+	u32 pll_pre_div;
-+	u32 pll_mul;
-+	u32 pll_out_div;
-+	int invert_pixclock;
-+
-+};
-+#endif /* MT9M032_H */
+Below is the list of what the patch does:
+
+ - I've followed the instructions from some post on this mailing list
+   to enable CAM support in the first place (mantis_set_direction move
+   to mantis_pci.c, uncomment mantis_ca_init).
+
+ - The MANTIS_GPIF_STATUS fix from http://patchwork.linuxtv.org/patch/8776/.
+   Not that it seems to change a lot for me, but it makes sense.
+
+ - I've fixed a ton of SMP-related bugs. Basically a lot of the members of
+   mantis_ca were accessed from several threads without a mutex, which is a
+   big no-no; I've mostly changed to using atomic operations here, although
+   I also added some locks were it made sense (e.g. when resetting the CAM).
+   The ca_lock is replaced by a more general int_stat_lock, which ideally
+   is held when banging on MANTIS_INT_STAT. (I have no hardware
+   documentation, so I'm afraid I don't really know the specifics here.)
+
+ - mantis_hif_write_wait() would never clear MANTIS_SBUF_OPDONE_BIT,
+   leading to a lot of operations never actually waiting for the callback.
+   I've added many such fixes, as well as debugging output when the
+   bit is in a surprising state (e.g., MANTIS_SBUF_OPDONE_BIT set before the
+   beginning of an operation, where it really should be cleared).
+
+ - Some operations check for timeout by testing if wait_event_timeout()
+   return -ERESTARTSYS. However, wait_event_timeout() can can never
+   do this; the return value for timeout is zero. I've fixed this
+   (well, I seemingly forgot one; have to do that in the next version :-) ).
+   Unfortunately, this make the problems in the next point a _lot_ worse,
+   since timeouts are now actually percolated up the stack.
+
+ - As others have noticed, sometimes, especially during DMA transfers,
+   the IRQ0 flag is never properly set and thus reads never return.
+   (The typical case for this is when we've just done a write and the
+   en50221 thread is waiting for the CAM status word to signal STATUSREG_DA;
+   if this doesn't happen in a reasonable amount of time, the upstream
+   libdvben50221.so will report errors back to mumudvb.) I have no idea why
+   this happens more often on SMP systems than on UMP systems, but they
+   really seem to do. I haven't found any reasonable workaround for reliable
+   polling either, so I'm making a hack -- if there's nothing returned in two
+   milliseconds, the read is simply assumed to have completed. This is an
+   unfortunate hack, but in practice it's identical to the previous behavior
+   except with a shorter timeout.
+
+ - A hack to fix a mutex issue in the DVB layer; dvb_usercopy(), which is
+   called on all ioctls, not only copies data to and from userspace,
+   but also takes a lock on the file descriptor, which means that only one ioctl 
+   can run at a time. This means that if one thread of mumudvb is busy trying
+   to get, say, the SNR from the frontend (which can hang due to the issue
+   above), the CAM thread's ioctl(fd, CA_GET_SLOT_INFO, ...) will hang,
+   even though it doesn't need to communicate with the hardware at all.
+   This obviously requires a better fix, but I don't know the generic DVB
+   layer well enough to say what it is. Maybe it's some sort of remnant
+   of from when all ioctl()s took the BKL. Note that on UMP kernels without
+   preemption, mutex_lock is to the best of my knowledge a no-op, so these
+   delay issues would not show up on non-SMP.
+
+ - Tiny cleanups: Removed some unused mmread()s and structure members.
+   Some debugging messages have been made more specific or clearer
+   (e.g. reads say what address they're from, the I2C subsystem reports
+   if there were any timeouts, the interrupt handler properly clears
+   the RISC status word so it isn't shown as <Unknown>).
+
+I'm still not happy with the bit-banging on the I2C interface (as opposed to
+dealing with it in the interrupt handler); I long suspected it for causing
+the IRQ0 problems, especially as they seem to have a sort-of similar issue
+with I2CDONE/I2CRACk never being set, but it seem the DMA transfers is really
+what causes it somehow, so I've left it alone.
+
+Anyway, if there are specific pieces people want me to split out for
+mainline, I'd be happy to do that and add the required Signed-Off-By lines
+etc. Let me know.
+
+/* Steinar */
 -- 
-1.7.3.4
+Homepage: http://www.sesse.net/
 
+--IS0zKkzwUGydFO0o
+Content-Type: text/x-diff; charset=utf-8
+Content-Disposition: attachment; filename="mantis-ca-various-hacks.diff"
+
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/dvb-core/dvbdev.c linux-3.3-rc4/drivers/media/dvb/dvb-core/dvbdev.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/dvb-core/dvbdev.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/dvb-core/dvbdev.c	2012-02-28 00:35:15.824921790 +0100
+@@ -417,10 +417,10 @@
+ 	}
+ 
+ 	/* call driver */
+-	mutex_lock(&dvbdev_mutex);
++//	mutex_lock(&dvbdev_mutex);
+ 	if ((err = func(file, cmd, parg)) == -ENOIOCTLCMD)
+ 		err = -EINVAL;
+-	mutex_unlock(&dvbdev_mutex);
++//	mutex_unlock(&dvbdev_mutex);
+ 
+ 	if (err < 0)
+ 		goto out;
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_ca.c linux-3.3-rc4/drivers/media/dvb/mantis/mantis_ca.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_ca.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_ca.c	2012-02-26 18:10:44.984296151 +0100
+@@ -34,6 +34,7 @@
+ #include "mantis_link.h"
+ #include "mantis_hif.h"
+ #include "mantis_reg.h"
++#include "mantis_pci.h"
+ 
+ #include "mantis_ca.h"
+ 
+@@ -95,11 +96,25 @@
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Slot(%d): Slot RESET", slot);
++	mutex_lock(&mantis->int_stat_lock);
++	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
++		dprintk(MANTIS_NOTICE, 1, "Slot(%d): Reset operation done before it started!", slot);
++	}
+ 	udelay(500); /* Wait.. */
+ 	mmwrite(0xda, MANTIS_PCMCIA_RESET); /* Leading edge assert */
+ 	udelay(500);
+ 	mmwrite(0x00, MANTIS_PCMCIA_RESET); /* Trailing edge deassert */
+ 	msleep(1000);
++
++	if (wait_event_timeout(ca->hif_opdone_wq,
++			       test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event),
++			       msecs_to_jiffies(500)) == -ERESTARTSYS) {
++
++		dprintk(MANTIS_ERROR, 1, "Slot(%d): Reset timeout!", slot);
++	} else {
++		dprintk(MANTIS_DEBUG, 1, "Slot(%d): Reset complete", slot);
++	}
++	mutex_unlock(&mantis->int_stat_lock);
+ 	dvb_ca_en50221_camready_irq(&ca->en50221, 0);
+ 
+ 	return 0;
+@@ -111,6 +126,7 @@
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Slot(%d): Slot shutdown", slot);
++	mantis_set_direction(mantis, 0);  /* Disable TS through CAM */
+ 
+ 	return 0;
+ }
+@@ -121,7 +137,7 @@
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Slot(%d): TS control", slot);
+-/*	mantis_set_direction(mantis, 1); */ /* Enable TS through CAM */
++	mantis_set_direction(mantis, 1);  /* Enable TS through CAM */
+ 
+ 	return 0;
+ }
+@@ -172,8 +188,6 @@
+ 	ca->en50221.poll_slot_status	= mantis_slot_status;
+ 	ca->en50221.data		= ca;
+ 
+-	mutex_init(&ca->ca_lock);
+-
+ 	init_waitqueue_head(&ca->hif_data_wq);
+ 	init_waitqueue_head(&ca->hif_opdone_wq);
+ 	init_waitqueue_head(&ca->hif_write_wq);
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_cards.c linux-3.3-rc4/drivers/media/dvb/mantis/mantis_cards.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_cards.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_cards.c	2012-02-28 00:44:39.252853492 +0100
+@@ -73,7 +73,7 @@
+ 
+ static irqreturn_t mantis_irq_handler(int irq, void *dev_id)
+ {
+-	u32 stat = 0, mask = 0, lstat = 0;
++	u32 stat = 0, mask = 0;
+ 	u32 rst_stat = 0, rst_mask = 0;
+ 
+ 	struct mantis_pci *mantis;
+@@ -88,19 +88,9 @@
+ 
+ 	stat = mmread(MANTIS_INT_STAT);
+ 	mask = mmread(MANTIS_INT_MASK);
+-	lstat = stat & ~MANTIS_INT_RISCSTAT;
+ 	if (!(stat & mask))
+ 		return IRQ_NONE;
+ 
+-	rst_mask  = MANTIS_GPIF_WRACK  |
+-		    MANTIS_GPIF_OTHERR |
+-		    MANTIS_SBUF_WSTO   |
+-		    MANTIS_GPIF_EXTIRQ;
+-
+-	rst_stat  = mmread(MANTIS_GPIF_STATUS);
+-	rst_stat &= rst_mask;
+-	mmwrite(rst_stat, MANTIS_GPIF_STATUS);
+-
+ 	mantis->mantis_int_stat = stat;
+ 	mantis->mantis_int_mask = mask;
+ 	dprintk(MANTIS_DEBUG, 0, "\n-- Stat=<%02x> Mask=<%02x> --", stat, mask);
+@@ -109,6 +99,15 @@
+ 	}
+ 	if (stat & MANTIS_INT_IRQ0) {
+ 		dprintk(MANTIS_DEBUG, 0, "<%s>", label[1]);
++
++		rst_mask  = MANTIS_GPIF_WRACK  |
++			MANTIS_GPIF_OTHERR |
++			MANTIS_SBUF_WSTO   |
++			MANTIS_GPIF_EXTIRQ;
++
++		rst_stat  = mmread(MANTIS_GPIF_STATUS);
++		mmwrite(rst_stat & rst_mask, MANTIS_GPIF_STATUS);
++
+ 		mantis->gpif_status = rst_stat;
+ 		wake_up(&ca->hif_write_wq);
+ 		schedule_work(&ca->hif_evm_work);
+@@ -142,7 +141,8 @@
+ 		wake_up(&mantis->i2c_wq);
+ 	}
+ 	mmwrite(stat, MANTIS_INT_STAT);
+-	stat &= ~(MANTIS_INT_RISCEN   | MANTIS_INT_I2CDONE |
++	stat &= ~(MANTIS_INT_RISCSTAT |
++	          MANTIS_INT_RISCEN   | MANTIS_INT_I2CDONE |
+ 		  MANTIS_INT_I2CRACK  | MANTIS_INT_PCMCIA7 |
+ 		  MANTIS_INT_PCMCIA6  | MANTIS_INT_PCMCIA5 |
+ 		  MANTIS_INT_PCMCIA4  | MANTIS_INT_PCMCIA3 |
+@@ -179,6 +179,7 @@
+ 	config			= (struct mantis_hwconfig *) pci_id->driver_data;
+ 	config->irq_handler	= &mantis_irq_handler;
+ 	mantis->hwconfig	= config;
++	mutex_init(&mantis->int_stat_lock);
+ 
+ 	err = mantis_pci_init(mantis);
+ 	if (err) {
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_common.h linux-3.3-rc4/drivers/media/dvb/mantis/mantis_common.h
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_common.h	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_common.h	2012-02-26 18:09:36.904298348 +0100
+@@ -161,9 +161,10 @@
+ 	 /*	A12 A13 A14		*/
+ 	u32			gpio_status;
+ 
+-	u32			gpif_status;
++	volatile unsigned long	gpif_status;
+ 
+ 	struct mantis_ca	*mantis_ca;
++	struct mutex		int_stat_lock;
+ 
+ 	wait_queue_head_t	uart_wq;
+ 	struct work_struct	uart_work;
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_core.c linux-3.3-rc4/drivers/media/dvb/mantis/mantis_core.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_core.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_core.c	2012-02-22 13:10:59.449330922 +0100
+@@ -213,23 +213,3 @@
+ 	udelay(100);
+ }
+ 
+-/* direction = 0 , no CI passthrough ; 1 , CI passthrough */
+-void mantis_set_direction(struct mantis_pci *mantis, int direction)
+-{
+-	u32 reg;
+-
+-	reg = mmread(0x28);
+-	dprintk(verbose, MANTIS_DEBUG, 1, "TS direction setup");
+-	if (direction == 0x01) {
+-		/* to CI */
+-		reg |= 0x04;
+-		mmwrite(reg, 0x28);
+-		reg &= 0xff - 0x04;
+-		mmwrite(reg, 0x28);
+-	} else {
+-		reg &= 0xff - 0x04;
+-		mmwrite(reg, 0x28);
+-		reg |= 0x04;
+-		mmwrite(reg, 0x28);
+-	}
+-}
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_dvb.c linux-3.3-rc4/drivers/media/dvb/mantis/mantis_dvb.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_dvb.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_dvb.c	2012-02-22 13:10:59.449330922 +0100
+@@ -239,6 +239,8 @@
+ 				mantis->fe = NULL;
+ 				goto err5;
+ 			}
++
++			mantis_ca_init(mantis);
+ 		}
+ 	}
+ 
+@@ -274,7 +276,6 @@
+ 	int err;
+ 
+ 	if (mantis->fe) {
+-		/* mantis_ca_exit(mantis); */
+ 		err = mantis_frontend_shutdown(mantis);
+ 		if (err != 0)
+ 			dprintk(MANTIS_ERROR, 1, "Frontend exit while POWER ON! <%d>", err);
+@@ -282,6 +283,7 @@
+ 		dvb_frontend_detach(mantis->fe);
+ 	}
+ 
++	mantis_ca_exit(mantis);
+ 	tasklet_kill(&mantis->tasklet);
+ 	dvb_net_release(&mantis->dvbnet);
+ 
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_evm.c linux-3.3-rc4/drivers/media/dvb/mantis/mantis_evm.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_evm.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_evm.c	2012-02-27 00:25:26.504654570 +0100
+@@ -20,6 +20,7 @@
+ 
+ #include <linux/kernel.h>
+ 
++#include <linux/atomic.h>
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+ #include <linux/interrupt.h>
+@@ -41,10 +42,7 @@
+ 	struct mantis_ca *ca = container_of(work, struct mantis_ca, hif_evm_work);
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 
+-	u32 gpif_stat, gpif_mask;
+-
+-	gpif_stat = mmread(MANTIS_GPIF_STATUS);
+-	gpif_mask = mmread(MANTIS_GPIF_IRQCFG);
++	u32 gpif_stat = mmread(MANTIS_GPIF_STATUS);
+ 
+ 	if (gpif_stat & MANTIS_GPIF_DETSTAT) {
+ 		if (gpif_stat & MANTIS_CARD_PLUGIN) {
+@@ -66,13 +64,13 @@
+ 		}
+ 	}
+ 
+-	if (mantis->gpif_status & MANTIS_GPIF_EXTIRQ)
++	if (gpif_stat & MANTIS_GPIF_EXTIRQ)
+ 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Ext IRQ", mantis->num);
+ 
+-	if (mantis->gpif_status & MANTIS_SBUF_WSTO)
++	if (gpif_stat & MANTIS_SBUF_WSTO)
+ 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer Timeout", mantis->num);
+ 
+-	if (mantis->gpif_status & MANTIS_GPIF_OTHERR)
++	if (gpif_stat & MANTIS_GPIF_OTHERR)
+ 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Alignment Error", mantis->num);
+ 
+ 	if (gpif_stat & MANTIS_SBUF_OVFLW)
+@@ -87,10 +85,13 @@
+ 	if (gpif_stat & MANTIS_SBUF_EMPTY)
+ 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer Empty", mantis->num);
+ 
+-	if (gpif_stat & MANTIS_SBUF_OPDONE) {
++	if (gpif_stat & MANTIS_SBUF_OPDONE)
+ 		dprintk(MANTIS_DEBUG, 1, "Event Mgr: Adapter(%d) Slot(0): Smart Buffer operation complete", mantis->num);
+-		ca->sbuf_status = MANTIS_SBUF_DATA_AVAIL;
+-		ca->hif_event = MANTIS_SBUF_OPDONE;
++
++	if (gpif_stat & MANTIS_SBUF_OPDONE) {
++		if (test_and_set_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
++			dprintk(MANTIS_NOTICE, 1, "Operation done, but SBUF_OPDONE bit was already set!");
++		}
+ 		wake_up(&ca->hif_opdone_wq);
+ 	}
+ }
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_hif.c linux-3.3-rc4/drivers/media/dvb/mantis/mantis_hif.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_hif.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_hif.c	2012-02-28 01:11:12.884867698 +0100
+@@ -22,6 +22,7 @@
+ #include <linux/signal.h>
+ #include <linux/sched.h>
+ 
++#include <linux/atomic.h>
+ #include <linux/interrupt.h>
+ #include <asm/io.h>
+ 
+@@ -44,44 +45,51 @@
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 	int rc = 0;
+ 
++	/*
++	 * HACK: Sometimes, especially during DMA transfers, and especially on
++	 * SMP systems (!), the IRQ-0 flag is never set, or at least we don't get it
++	 * (could it be that we're clearing it?). Thus, simply wait for 2 ms and then
++	 * assume we got an answer even if we didn't. This works around lots of CA
++	 * timeouts. The code with 500 ms wait and -EREMOTEIO is technically the
++	 * correct one, though.
++	 */
++#if 1
+ 	if (wait_event_timeout(ca->hif_opdone_wq,
+-			       ca->hif_event & MANTIS_SBUF_OPDONE,
+-			       msecs_to_jiffies(500)) == -ERESTARTSYS) {
++			       test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event),
++			       msecs_to_jiffies(2)) == 0) {
++
++		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Smart buffer operation timeout ! (ignoring)", mantis->num);
++	}
++#else
++	if (wait_event_timeout(ca->hif_opdone_wq,
++			       test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event),
++			       msecs_to_jiffies(500)) == 0) {
+ 
+ 		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Smart buffer operation timeout !", mantis->num);
+ 		rc = -EREMOTEIO;
+ 	}
++#endif
+ 	dprintk(MANTIS_DEBUG, 1, "Smart Buffer Operation complete");
+-	ca->hif_event &= ~MANTIS_SBUF_OPDONE;
+ 	return rc;
+ }
+ 
+ static int mantis_hif_write_wait(struct mantis_ca *ca)
+ {
+ 	struct mantis_pci *mantis = ca->ca_priv;
+-	u32 opdone = 0, timeout = 0;
+ 	int rc = 0;
+ 
+ 	if (wait_event_timeout(ca->hif_write_wq,
+-			       mantis->gpif_status & MANTIS_GPIF_WRACK,
+-			       msecs_to_jiffies(500)) == -ERESTARTSYS) {
++			       test_and_clear_bit(MANTIS_GPIF_WRACK_BIT, &mantis->gpif_status),
++			       msecs_to_jiffies(500)) == 0) {
+ 
+ 		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Write ACK timed out !", mantis->num);
+ 		rc = -EREMOTEIO;
+ 	}
+ 	dprintk(MANTIS_DEBUG, 1, "Write Acknowledged");
+-	mantis->gpif_status &= ~MANTIS_GPIF_WRACK;
+-	while (!opdone) {
+-		opdone = (mmread(MANTIS_GPIF_STATUS) & MANTIS_SBUF_OPDONE);
+-		udelay(500);
+-		timeout++;
+-		if (timeout > 100) {
+-			dprintk(MANTIS_ERROR, 1, "Adater(%d) Slot(0): Write operation timed out!", mantis->num);
+-			rc = -ETIMEDOUT;
+-			break;
+-		}
++	if (mantis_hif_sbuf_opdone_wait(ca) != 0) {
++		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): Write operation timeout !", mantis->num);
++		rc = -ETIMEDOUT;
+ 	}
+-	dprintk(MANTIS_DEBUG, 1, "HIF Write success");
+ 	return rc;
+ }
+ 
+@@ -91,8 +99,12 @@
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 	u32 hif_addr = 0, data, count = 4;
+ 
+-	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF Mem Read", mantis->num);
+-	mutex_lock(&ca->ca_lock);
++	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF Mem Read of 0x%x", mantis->num, addr);
++	mutex_lock(&mantis->int_stat_lock);
++	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
++		dprintk(MANTIS_NOTICE, 1, "Adapter(%d) Slot(0): Read operation done before it started!", mantis->num);
++	}
++
+ 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
+ 	hif_addr &= ~MANTIS_GPIF_PCMCIAIOM;
+ 	hif_addr |=  MANTIS_HIF_STATUS;
+@@ -100,17 +112,17 @@
+ 
+ 	mmwrite(hif_addr, MANTIS_GPIF_BRADDR);
+ 	mmwrite(count, MANTIS_GPIF_BRBYTES);
+-	udelay(20);
++	udelay(100);
+ 	mmwrite(hif_addr | MANTIS_GPIF_HIFRDWRN, MANTIS_GPIF_ADDR);
+ 
+ 	if (mantis_hif_sbuf_opdone_wait(ca) != 0) {
+ 		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): GPIF Smart Buffer operation failed", mantis->num);
+-		mutex_unlock(&ca->ca_lock);
++		mutex_unlock(&mantis->int_stat_lock);
+ 		return -EREMOTEIO;
+ 	}
+ 	data = mmread(MANTIS_GPIF_DIN);
+-	mutex_unlock(&ca->ca_lock);
+-	dprintk(MANTIS_DEBUG, 1, "Mem Read: 0x%02x", data);
++	mutex_unlock(&mantis->int_stat_lock);
++	dprintk(MANTIS_DEBUG, 1, "Mem Read: 0x%02x from 0x%02x", data, addr);
+ 	return (data >> 24) & 0xff;
+ }
+ 
+@@ -121,7 +133,10 @@
+ 	u32 hif_addr = 0;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF Mem Write", mantis->num);
+-	mutex_lock(&ca->ca_lock);
++	mutex_lock(&mantis->int_stat_lock);
++	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
++		dprintk(MANTIS_NOTICE, 1, "Adapter(%d) Slot(0): Write operation done before it started!", mantis->num);
++	}
+ 	hif_addr &= ~MANTIS_GPIF_HIFRDWRN;
+ 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
+ 	hif_addr &= ~MANTIS_GPIF_PCMCIAIOM;
+@@ -134,11 +149,11 @@
+ 
+ 	if (mantis_hif_write_wait(ca) != 0) {
+ 		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): HIF Smart Buffer operation failed", mantis->num);
+-		mutex_unlock(&ca->ca_lock);
++		mutex_unlock(&mantis->int_stat_lock);
+ 		return -EREMOTEIO;
+ 	}
+ 	dprintk(MANTIS_DEBUG, 1, "Mem Write: (0x%02x to 0x%02x)", data, addr);
+-	mutex_unlock(&ca->ca_lock);
++	mutex_unlock(&mantis->int_stat_lock);
+ 
+ 	return 0;
+ }
+@@ -148,8 +163,11 @@
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 	u32 data, hif_addr = 0;
+ 
+-	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF I/O Read", mantis->num);
+-	mutex_lock(&ca->ca_lock);
++	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF I/O Read of 0x%x", mantis->num, addr);
++	mutex_lock(&mantis->int_stat_lock);
++	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
++		dprintk(MANTIS_NOTICE, 1, "Adapter(%d) Slot(0): I/O read operation done before it started!", mantis->num);
++	}
+ 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
+ 	hif_addr |=  MANTIS_GPIF_PCMCIAIOM;
+ 	hif_addr |=  MANTIS_HIF_STATUS;
+@@ -162,13 +180,13 @@
+ 
+ 	if (mantis_hif_sbuf_opdone_wait(ca) != 0) {
+ 		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): HIF Smart Buffer operation failed", mantis->num);
+-		mutex_unlock(&ca->ca_lock);
++		mutex_unlock(&mantis->int_stat_lock);
+ 		return -EREMOTEIO;
+ 	}
+ 	data = mmread(MANTIS_GPIF_DIN);
+-	dprintk(MANTIS_DEBUG, 1, "I/O Read: 0x%02x", data);
++	dprintk(MANTIS_DEBUG, 1, "I/O Read: 0x%02x from 0x%02x", data, addr);
+ 	udelay(50);
+-	mutex_unlock(&ca->ca_lock);
++	mutex_unlock(&mantis->int_stat_lock);
+ 
+ 	return (u8) data;
+ }
+@@ -179,7 +197,10 @@
+ 	u32 hif_addr = 0;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Adapter(%d) Slot(0): Request HIF I/O Write", mantis->num);
+-	mutex_lock(&ca->ca_lock);
++	mutex_lock(&mantis->int_stat_lock);
++	if (test_and_clear_bit(MANTIS_SBUF_OPDONE_BIT, &ca->hif_event)) {
++		dprintk(MANTIS_NOTICE, 1, "Adapter(%d) Slot(0): I/O write operation done before it started!", mantis->num);
++	}
+ 	hif_addr &= ~MANTIS_GPIF_PCMCIAREG;
+ 	hif_addr &= ~MANTIS_GPIF_HIFRDWRN;
+ 	hif_addr |=  MANTIS_GPIF_PCMCIAIOM;
+@@ -191,11 +212,11 @@
+ 
+ 	if (mantis_hif_write_wait(ca) != 0) {
+ 		dprintk(MANTIS_ERROR, 1, "Adapter(%d) Slot(0): HIF Smart Buffer operation failed", mantis->num);
+-		mutex_unlock(&ca->ca_lock);
++		mutex_unlock(&mantis->int_stat_lock);
+ 		return -EREMOTEIO;
+ 	}
+ 	dprintk(MANTIS_DEBUG, 1, "I/O Write: (0x%02x to 0x%02x)", data, addr);
+-	mutex_unlock(&ca->ca_lock);
++	mutex_unlock(&mantis->int_stat_lock);
+ 	udelay(50);
+ 
+ 	return 0;
+@@ -210,7 +231,7 @@
+ 	slot[0].slave_cfg = 0x70773028;
+ 	dprintk(MANTIS_ERROR, 1, "Adapter(%d) Initializing Mantis Host Interface", mantis->num);
+ 
+-	mutex_lock(&ca->ca_lock);
++	mutex_lock(&mantis->int_stat_lock);
+ 	irqcfg = mmread(MANTIS_GPIF_IRQCFG);
+ 	irqcfg = MANTIS_MASK_BRRDY	|
+ 		 MANTIS_MASK_WRACK	|
+@@ -220,7 +241,7 @@
+ 		 MANTIS_MASK_OVFLW;
+ 
+ 	mmwrite(irqcfg, MANTIS_GPIF_IRQCFG);
+-	mutex_unlock(&ca->ca_lock);
++	mutex_unlock(&mantis->int_stat_lock);
+ 
+ 	return 0;
+ }
+@@ -231,9 +252,9 @@
+ 	u32 irqcfg;
+ 
+ 	dprintk(MANTIS_ERROR, 1, "Adapter(%d) Exiting Mantis Host Interface", mantis->num);
+-	mutex_lock(&ca->ca_lock);
++	mutex_lock(&mantis->int_stat_lock);
+ 	irqcfg = mmread(MANTIS_GPIF_IRQCFG);
+ 	irqcfg &= ~MANTIS_MASK_BRRDY;
+ 	mmwrite(irqcfg, MANTIS_GPIF_IRQCFG);
+-	mutex_unlock(&ca->ca_lock);
++	mutex_unlock(&mantis->int_stat_lock);
+ }
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_i2c.c linux-3.3-rc4/drivers/media/dvb/mantis/mantis_i2c.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_i2c.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_i2c.c	2012-02-28 00:45:59.556855037 +0100
+@@ -38,6 +38,7 @@
+ static int mantis_i2c_read(struct mantis_pci *mantis, const struct i2c_msg *msg)
+ {
+ 	u32 rxd, i, stat, trials;
++	u32 timeouts = 0;
+ 
+ 	dprintk(MANTIS_INFO, 0, "        %s:  Address=[0x%02x] <R>[ ",
+ 		__func__, msg->addr);
+@@ -51,6 +52,8 @@
+ 		if (i == (msg->len - 1))
+ 			rxd &= ~MANTIS_I2C_STOP;
+ 
++		//mutex_lock(&mantis->int_stat_lock);
++
+ 		mmwrite(MANTIS_INT_I2CDONE, MANTIS_INT_STAT);
+ 		mmwrite(rxd, MANTIS_I2CDATA_CTL);
+ 
+@@ -60,6 +63,9 @@
+ 			if (stat & MANTIS_INT_I2CDONE)
+ 				break;
+ 		}
++		if (trials == TRIALS) {
++			++timeouts;
++		}
+ 
+ 		dprintk(MANTIS_TMG, 0, "I2CDONE: trials=%d\n", trials);
+ 
+@@ -69,14 +75,23 @@
+ 			if (stat & MANTIS_INT_I2CRACK)
+ 				break;
+ 		}
++		if (trials == TRIALS) {
++			++timeouts;
++		}
+ 
+ 		dprintk(MANTIS_TMG, 0, "I2CRACK: trials=%d\n", trials);
+ 
+ 		rxd = mmread(MANTIS_I2CDATA_CTL);
+ 		msg->buf[i] = (u8)((rxd >> 8) & 0xFF);
+ 		dprintk(MANTIS_INFO, 0, "%02x ", msg->buf[i]);
++
++		//mutex_unlock(&mantis->int_stat_lock);
++	}
++	if (timeouts) {
++		dprintk(MANTIS_INFO, 0, "] %d timeouts\n", timeouts);
++	} else {
++		dprintk(MANTIS_INFO, 0, "]\n");
+ 	}
+-	dprintk(MANTIS_INFO, 0, "]\n");
+ 
+ 	return 0;
+ }
+@@ -85,6 +100,7 @@
+ {
+ 	int i;
+ 	u32 txd = 0, stat, trials;
++	u32 timeouts = 0;
+ 
+ 	dprintk(MANTIS_INFO, 0, "        %s: Address=[0x%02x] <W>[ ",
+ 		__func__, msg->addr);
+@@ -99,6 +115,8 @@
+ 		if (i == (msg->len - 1))
+ 			txd &= ~MANTIS_I2C_STOP;
+ 
++		//mutex_lock(&mantis->int_stat_lock);
++
+ 		mmwrite(MANTIS_INT_I2CDONE, MANTIS_INT_STAT);
+ 		mmwrite(txd, MANTIS_I2CDATA_CTL);
+ 
+@@ -108,6 +126,9 @@
+ 			if (stat & MANTIS_INT_I2CDONE)
+ 				break;
+ 		}
++		if (trials == TRIALS) {
++			++timeouts;
++		}
+ 
+ 		dprintk(MANTIS_TMG, 0, "I2CDONE: trials=%d\n", trials);
+ 
+@@ -117,10 +138,19 @@
+ 			if (stat & MANTIS_INT_I2CRACK)
+ 				break;
+ 		}
++		if (trials == TRIALS) {
++			++timeouts;
++		}
+ 
+ 		dprintk(MANTIS_TMG, 0, "I2CRACK: trials=%d\n", trials);
++
++		//mutex_unlock(&mantis->int_stat_lock);
++	}
++	if (timeouts) {
++		dprintk(MANTIS_INFO, 0, "] %d timeouts\n", timeouts);
++	} else {
++		dprintk(MANTIS_INFO, 0, "]\n");
+ 	}
+-	dprintk(MANTIS_INFO, 0, "]\n");
+ 
+ 	return 0;
+ }
+@@ -154,6 +184,8 @@
+ 			txd = msgs[i].addr << 25 | (0x1 << 24)
+ 						 | (msgs[i].buf[0] << 16)
+ 						 | MANTIS_I2C_RATE_3;
++		
++			//mutex_lock(&mantis->int_stat_lock);
+ 
+ 			mmwrite(txd, MANTIS_I2CDATA_CTL);
+ 			/* wait for xfer completion */
+@@ -183,6 +215,8 @@
+ 				break;
+ 			}
+ 			i += 2; /* Write/Read operation in one go */
++
++			//mutex_unlock(&mantis->int_stat_lock);
+ 		}
+ 
+ 		if (i < num) {
+@@ -241,12 +275,14 @@
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Initializing I2C ..");
+ 
++	mutex_lock(&mantis->int_stat_lock);
+ 	intstat = mmread(MANTIS_INT_STAT);
+ 	intmask = mmread(MANTIS_INT_MASK);
+ 	mmwrite(intstat, MANTIS_INT_STAT);
+ 	dprintk(MANTIS_DEBUG, 1, "Disabling I2C interrupt");
+ 	intmask = mmread(MANTIS_INT_MASK);
+ 	mmwrite((intmask & ~MANTIS_INT_I2CDONE), MANTIS_INT_MASK);
++	mutex_unlock(&mantis->int_stat_lock);
+ 
+ 	return 0;
+ }
+@@ -257,8 +293,10 @@
+ 	u32 intmask;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Disabling I2C interrupt");
++	mutex_lock(&mantis->int_stat_lock);
+ 	intmask = mmread(MANTIS_INT_MASK);
+ 	mmwrite((intmask & ~MANTIS_INT_I2CDONE), MANTIS_INT_MASK);
++	mutex_unlock(&mantis->int_stat_lock);
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Removing I2C adapter");
+ 	return i2c_del_adapter(&mantis->adapter);
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_link.h linux-3.3-rc4/drivers/media/dvb/mantis/mantis_link.h
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_link.h	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_link.h	2012-02-26 18:08:27.372300884 +0100
+@@ -25,12 +25,6 @@
+ #include <linux/workqueue.h>
+ #include "dvb_ca_en50221.h"
+ 
+-enum mantis_sbuf_status {
+-	MANTIS_SBUF_DATA_AVAIL		= 1,
+-	MANTIS_SBUF_DATA_EMPTY		= 2,
+-	MANTIS_SBUF_DATA_OVFLW		= 3
+-};
+-
+ struct mantis_slot {
+ 	u32				timeout;
+ 	u32				slave_cfg;
+@@ -48,20 +42,17 @@
+ 
+ 	struct work_struct		hif_evm_work;
+ 
+-	u32				hif_event;
++	volatile unsigned long 		hif_event;
+ 	wait_queue_head_t		hif_opdone_wq;
+ 	wait_queue_head_t		hif_brrdyw_wq;
+ 	wait_queue_head_t		hif_data_wq;
+ 	wait_queue_head_t		hif_write_wq; /* HIF Write op */
+ 
+-	enum mantis_sbuf_status		sbuf_status;
+-
+ 	enum mantis_slot_state		slot_state;
+ 
+ 	void				*ca_priv;
+ 
+ 	struct dvb_ca_en50221		en50221;
+-	struct mutex			ca_lock;
+ };
+ 
+ /* CA */
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_pci.c linux-3.3-rc4/drivers/media/dvb/mantis/mantis_pci.c
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_pci.c	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_pci.c	2012-02-26 03:19:11.017293980 +0100
+@@ -97,6 +97,7 @@
+ 	pci_read_config_byte(pdev, PCI_LATENCY_TIMER, &latency);
+ 	mantis->latency = latency;
+ 	mantis->revision = pdev->revision;
++	mantis_set_direction(mantis, 0);
+ 
+ 	dprintk(MANTIS_ERROR, 0, "    Mantis Rev %d [%04x:%04x], ",
+ 		mantis->revision,
+@@ -110,6 +111,7 @@
+ 		mantis->mantis_addr,
+ 		mantis->mmio);
+ 
++	mmwrite(0x00, MANTIS_INT_MASK);
+ 	err = request_irq(pdev->irq,
+ 			  config->irq_handler,
+ 			  IRQF_SHARED,
+@@ -165,6 +167,27 @@
+ }
+ EXPORT_SYMBOL_GPL(mantis_pci_exit);
+ 
++/* direction = 0 , no CI passthrough ; 1 , CI passthrough */
++void mantis_set_direction(struct mantis_pci *mantis, int direction)
++{
++	u32 reg;
++
++	reg = mmread(0x28);
++	dprintk(MANTIS_DEBUG, 1, "TS direction setup");
++	if (direction == 0x01) {
++		/* to CI */
++		reg |= 0x04;
++		mmwrite(reg, 0x28);
++		reg &= 0xff - 0x04;
++		mmwrite(reg, 0x28);
++	} else {
++		reg &= 0xff - 0x04;
++		mmwrite(reg, 0x28);
++		reg |= 0x04;
++		mmwrite(reg, 0x28);
++	}
++}
++
+ MODULE_DESCRIPTION("Mantis PCI DTV bridge driver");
+ MODULE_AUTHOR("Manu Abraham");
+ MODULE_LICENSE("GPL");
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_pci.h linux-3.3-rc4/drivers/media/dvb/mantis/mantis_pci.h
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_pci.h	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_pci.h	2012-02-22 13:10:59.449330922 +0100
+@@ -24,4 +24,6 @@
+ extern int mantis_pci_init(struct mantis_pci *mantis);
+ extern void mantis_pci_exit(struct mantis_pci *mantis);
+ 
++void mantis_set_direction(struct mantis_pci *mantis, int direction);
++
+ #endif /* __MANTIS_PCI_H */
+diff -ur orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_reg.h linux-3.3-rc4/drivers/media/dvb/mantis/mantis_reg.h
+--- orig/linux-3.3-rc4/drivers/media/dvb/mantis/mantis_reg.h	2012-02-19 00:53:33.000000000 +0100
++++ linux-3.3-rc4/drivers/media/dvb/mantis/mantis_reg.h	2012-02-25 18:07:25.834640939 +0100
+@@ -152,11 +152,13 @@
+ 
+ #define MANTIS_GPIF_STATUS		0x9c
+ #define MANTIS_SBUF_KILLOP		(0x01 << 15)
+-#define MANTIS_SBUF_OPDONE		(0x01 << 14)
++#define MANTIS_SBUF_OPDONE_BIT		14
++#define MANTIS_SBUF_OPDONE		(0x01 << MANTIS_SBUF_OPDONE_BIT)
+ #define MANTIS_SBUF_EMPTY		(0x01 << 13)
+ #define MANTIS_GPIF_DETSTAT		(0x01 <<  9)
+ #define MANTIS_GPIF_INTSTAT		(0x01 <<  8)
+-#define MANTIS_GPIF_WRACK		(0x01 <<  7)
++#define MANTIS_GPIF_WRACK_BIT		7
++#define MANTIS_GPIF_WRACK		(0x01 <<  MANTIS_GPIF_WRACK_BIT)
+ #define MANTIS_GPIF_BRRDY		(0x01 <<  6)
+ #define MANTIS_SBUF_OVFLW		(0x01 <<  5)
+ #define MANTIS_GPIF_OTHERR		(0x01 <<  4)
+
+--IS0zKkzwUGydFO0o--
