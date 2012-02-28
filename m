@@ -1,57 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout-de.gmx.net ([213.165.64.23]:56479 "HELO
-	mailout-de.gmx.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755764Ab2BVWWF (ORCPT
+Received: from cassarossa.samfundet.no ([129.241.93.19]:60242 "EHLO
+	cassarossa.samfundet.no" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756131Ab2B1Bpj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 Feb 2012 17:22:05 -0500
-From: "Hans-Frieder Vogt" <hfvogt@gmx.net>
+	Mon, 27 Feb 2012 20:45:39 -0500
+Received: from pannekake.samfundet.no ([2001:700:300:1800::dddd] ident=unknown)
+	by cassarossa.samfundet.no with esmtps (TLS1.0:RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <sesse@samfundet.no>)
+	id 1S2C8F-0002hW-Tw
+	for linux-media@vger.kernel.org; Tue, 28 Feb 2012 02:45:36 +0100
+Received: from sesse by pannekake.samfundet.no with local (Exim 4.72)
+	(envelope-from <sesse@samfundet.no>)
+	id 1S2C8F-0000ZJ-FM
+	for linux-media@vger.kernel.org; Tue, 28 Feb 2012 02:45:35 +0100
+Date: Tue, 28 Feb 2012 02:45:35 +0100
+From: "Steinar H. Gunderson" <sgunderson@bigfoot.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 3/3] Firmware for AF9035/AF9033 driver
-Date: Wed, 22 Feb 2012 23:22:02 +0100
+Subject: Re: [PATCH] Various nits, fixes and hacks for mantis CA support on
+ SMP
+Message-ID: <20120228014535.GA31217@uio.no>
+References: <20120228010330.GA25786@uio.no>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201202222322.02424.hfvogt@gmx.net>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <20120228010330.GA25786@uio.no>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Firmware for the AF9035/AF9033 driver.
+On Tue, Feb 28, 2012 at 02:03:30AM +0100, Steinar H. Gunderson wrote:
+> I'm still not happy with the bit-banging on the I2C interface (as opposed to
+> dealing with it in the interrupt handler); I long suspected it for causing
+> the IRQ0 problems, especially as they seem to have a sort-of similar issue
+> with I2CDONE/I2CRACk never being set, but it seem the DMA transfers is really
+> what causes it somehow, so I've left it alone.
 
-irmware format for af903x driver:
-copied from it9135-driver by Jason Dong (C) 2011 ITE Technologies, INC.
+There's one more thing I forgot to mention; deinitialization does not seem to
+work correctly. If I remove the mantis driver and reload it, the CAM is no
+longer detected correctly (when the 50211 driver tries to read the
+identification bits from the CAM memory space, they simply don't match
+anymore). This is annoying, as it means a reboot is required whenever one
+wants to test a new fix, but I haven't been able to figure out why it
+happens. Just wanted to mention so that nobody bangs their head in the wall
+too much due to hitting that problem :-)
 
-00000000: 8 chars "AF9035BX"    Identifier of firmware
-00000008: 4 bytes LE length of firmware following this:
-                32 + 4 + 4 + 4 + 4 + 4 + Firmware_CODELENGTH +
-                Firmware_SEGMENTLENGTH * Firmware_PARTITIONLENGTH * 5 +
-                5 + 2 + Firmware_scriptSets[0] * 5;
-0000000C: 32 chars firmware release version
-0000002C: 4 bytes BE link version
-00000030: 4 bytes BE ofdm version
-00000034: 4 bytes LE firmware code length (Firmware_CODELENGTH)
-00000038: 1 bytes number of firmware segments (Firmware_SEGMENTLENGTH)
-00000039: 3 bytes filler (0)
-0000003C: 1 bytes number of firmware partitions (Firmware_PARTITIONLENGTH)
-0000003D: 3 bytes filler (0)
-00000040: Firmware_CODELENGTH bytes
-0000abcd: description of firmware segments, for each segment in every 
-partition:
-        1 byte segment type (0: download firmware, 1: copy firmware, else: 
-direct write firmware)
-        4 bytes LE segment length
-0000bcde: 1 byte Firmware_SEGMENTLENGTH check
-0000bcdf: 1 byte Firmware_PARTITIONLENGTH check
-0000bce0: 3 bytes filler (0)
-0000bce3: 2 bytes LE number of firmware (demodulator) scripts
-0000bce5: list of firmware scripts, for each entry:
-        4 bytes LE address
-        1 byte value
-
-Signed-off-by: Hans-Frieder Vogt <hfvogt@gmx.net>
-
-http://home.arcor.de/hfvogt/af903x/dvb-usb-af9035-03.fw => for Terratec T5 
-Ver. 2 / T6
-http://home.arcor.de/hfvogt/af903x/dvb-usb-af9035-04.fw => for Avermedia A867
-
-Hans-Frieder Vogt                       e-mail: hfvogt <at> gmx .dot. net
+/* Steinar */
+-- 
+Homepage: http://www.sesse.net/
