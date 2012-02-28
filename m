@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from racoon.tvdr.de ([188.40.50.18]:48966 "EHLO racoon.tvdr.de"
+Received: from smtp1-g21.free.fr ([212.27.42.1]:42734 "EHLO smtp1-g21.free.fr"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755620Ab2B2Ilp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 Feb 2012 03:41:45 -0500
-Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
-	by racoon.tvdr.de (8.14.3/8.14.3) with ESMTP id q1T8PoL4032285
-	for <linux-media@vger.kernel.org>; Wed, 29 Feb 2012 09:25:50 +0100
-Received: from [192.168.100.10] (hawk.tvdr.de [192.168.100.10])
-	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id q1T8PLiA018997
-	for <linux-media@vger.kernel.org>; Wed, 29 Feb 2012 09:25:21 +0100
-Message-ID: <4F4DE0F1.60407@tvdr.de>
-Date: Wed, 29 Feb 2012 09:25:21 +0100
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
-MIME-Version: 1.0
+	id S965099Ab2B1LEX convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Feb 2012 06:04:23 -0500
+Received: from tele (unknown [IPv6:2a01:e35:2f5c:9de0:212:bfff:fe1e:9ce4])
+	by smtp1-g21.free.fr (Postfix) with ESMTP id 859ED940114
+	for <linux-media@vger.kernel.org>; Tue, 28 Feb 2012 12:04:16 +0100 (CET)
+Date: Tue, 28 Feb 2012 12:05:48 +0100
+From: Jean-Francois Moine <moinejf@free.fr>
 To: linux-media@vger.kernel.org
-Subject: Re: [linux-media] [PATCH 1/2] stb0899: set FE_HAS_SIGNAL flag in
- read_status
-References: <4F4D1FA8.1090100@gmx.de>
-In-Reply-To: <4F4D1FA8.1090100@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: Re: [GIT PATCHES FOR 3.4] gspca for_v3.4
+Message-ID: <20120228120548.186ee4bc@tele>
+In-Reply-To: <4F4BE111.6090805@gmail.com>
+References: <20120227130606.1f432e7b@tele>
+ <4F4BE111.6090805@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 28.02.2012 19:40, Andreas Regel wrote:
-> In stb0899_read_status the FE_HAS_SIGNAL flag was not set in case of a
-> successful carrier lock. This change fixes that.
->
-> Signed-off-by: Andreas Regel <andreas.regel@gmx.de>
-> ---
->  drivers/media/dvb/frontends/stb0899_drv.c |    4 ++--
->  1 files changed, 2 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/dvb/frontends/stb0899_drv.c b/drivers/media/dvb/frontends/stb0899_drv.c
-> index 38565be..4a58afc 100644
-> --- a/drivers/media/dvb/frontends/stb0899_drv.c
-> +++ b/drivers/media/dvb/frontends/stb0899_drv.c
-> @@ -1071,7 +1071,7 @@ static int stb0899_read_status(struct dvb_frontend *fe, enum fe_status *status)
->              reg  = stb0899_read_reg(state, STB0899_VSTATUS);
->              if (STB0899_GETFIELD(VSTATUS_LOCKEDVIT, reg)) {
->                  dprintk(state->verbose, FE_DEBUG, 1, "--------> FE_HAS_CARRIER | FE_HAS_LOCK");
-> -                *status |= FE_HAS_CARRIER | FE_HAS_LOCK;
-> +                *status |= FE_HAS_SIGNAL | FE_HAS_CARRIER | FE_HAS_LOCK;
->                   reg = stb0899_read_reg(state, STB0899_PLPARM);
->                  if (STB0899_GETFIELD(VITCURPUN, reg)) {
-> @@ -1088,7 +1088,7 @@ static int stb0899_read_status(struct dvb_frontend *fe, enum fe_status *status)
->          if (internal->lock) {
->              reg = STB0899_READ_S2REG(STB0899_S2DEMOD, DMD_STAT2);
->              if (STB0899_GETFIELD(UWP_LOCK, reg) && STB0899_GETFIELD(CSM_LOCK, reg)) {
-> -                *status |= FE_HAS_CARRIER;
-> +                *status |= FE_HAS_SIGNAL | FE_HAS_CARRIER;
->                  dprintk(state->verbose, FE_DEBUG, 1,
->                      "UWP & CSM Lock ! ---> DVB-S2 FE_HAS_CARRIER");
+On Mon, 27 Feb 2012 21:01:21 +0100
+Sylwester Nawrocki <snjw23@gmail.com> wrote:
 
-Acked-by: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+> This patch will conflict with patch:
+> 
+>  gspca: zc3xx: Add V4L2_CID_JPEG_COMPRESSION_QUALITY control support
+> 
+> from my recent pull request http://patchwork.linuxtv.org/patch/10022/
+> 
+> How should we proceed with that ? Do you want me to remove the above patch 
+> from my pull request, or would you rebase your change set on top of mine ?
+
+Hi Sylwester,
+
+Sorry for the problem, I thought your patch was already in the media
+tree.
+
+I checked the changes in zc3xx.c, and I have made many commits. So, it
+would be simpler if you would remove your patch. I could give you a
+merged one once the media tree would be updated.
+
+Best regards.
+
+-- 
+Ken ar c'hentañ	|	      ** Breizh ha Linux atav! **
+Jef		|		http://moinejf.free.fr/
