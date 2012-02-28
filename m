@@ -1,113 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:12028 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759593Ab2BJRcs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 Feb 2012 12:32:48 -0500
-Date: Fri, 10 Feb 2012 18:32:26 +0100
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-Subject: [PATCHv21 11/16] mm: extract reclaim code from
- __alloc_pages_direct_reclaim()
-In-reply-to: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
-To: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-mm@kvack.org,
-	linaro-mm-sig@lists.linaro.org
-Cc: Michal Nazarewicz <mina86@mina86.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Russell King <linux@arm.linux.org.uk>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	KAMEZAWA Hiroyuki <kamezawa.hiroyu@jp.fujitsu.com>,
-	Daniel Walker <dwalker@codeaurora.org>,
-	Mel Gorman <mel@csn.ul.ie>, Arnd Bergmann <arnd@arndb.de>,
-	Jesse Barker <jesse.barker@linaro.org>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Shariq Hasnain <shariq.hasnain@linaro.org>,
-	Chunsang Jeong <chunsang.jeong@linaro.org>,
-	Dave Hansen <dave@linux.vnet.ibm.com>,
-	Benjamin Gaignard <benjamin.gaignard@linaro.org>,
-	Rob Clark <rob.clark@linaro.org>,
-	Ohad Ben-Cohen <ohad@wizery.com>
-Message-id: <1328895151-5196-12-git-send-email-m.szyprowski@samsung.com>
-MIME-version: 1.0
-Content-type: TEXT/PLAIN
-Content-transfer-encoding: 7BIT
-References: <1328895151-5196-1-git-send-email-m.szyprowski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:18865 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965021Ab2B1WBi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 Feb 2012 17:01:38 -0500
+Message-ID: <4F4D4EBA.6000309@redhat.com>
+Date: Tue, 28 Feb 2012 19:01:30 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Randy Dunlap <rdunlap@xenotime.net>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, LKML <linux-kernel@vger.kernel.org>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: linux-next: Tree for Feb 23 (media/radio)
+References: <20120223143722.d8814b493df968c229da5f20@canb.auug.org.au> <4F46AC34.8090704@xenotime.net> <4F4CF8C6.4030305@xenotime.net>
+In-Reply-To: <4F4CF8C6.4030305@xenotime.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch extracts common reclaim code from __alloc_pages_direct_reclaim()
-function to separate function: __perform_reclaim() which can be later used
-by alloc_contig_range().
+Em 28-02-2012 12:54, Randy Dunlap escreveu:
+> On 02/23/2012 01:14 PM, Randy Dunlap wrote:
+> 
+>> On 02/22/2012 07:37 PM, Stephen Rothwell wrote:
+>>> Hi all,
+>>>
+>>> Changes since 20120222:
+>>
+> 
+> 
+> ping.
+> 
+> These build errors still happen in linux-next 20120228.
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Michal Nazarewicz <mina86@mina86.com>
-Acked-by: Mel Gorman <mel@csn.ul.ie>
-Tested-by: Rob Clark <rob.clark@linaro.org>
-Tested-by: Ohad Ben-Cohen <ohad@wizery.com>
-Tested-by: Benjamin Gaignard <benjamin.gaignard@linaro.org>
----
- mm/page_alloc.c |   30 +++++++++++++++++++++---------
- 1 files changed, 21 insertions(+), 9 deletions(-)
+It is likely due to Hans ISA patch series.
 
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 06c66b5..793c4e4 100644
---- a/mm/page_alloc.c
-+++ b/mm/page_alloc.c
-@@ -2092,16 +2092,13 @@ __alloc_pages_direct_compact(gfp_t gfp_mask, unsigned int order,
- }
- #endif /* CONFIG_COMPACTION */
- 
--/* The really slow allocator path where we enter direct reclaim */
--static inline struct page *
--__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
--	struct zonelist *zonelist, enum zone_type high_zoneidx,
--	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
--	int migratetype, unsigned long *did_some_progress)
-+/* Perform direct synchronous page reclaim */
-+static int
-+__perform_reclaim(gfp_t gfp_mask, unsigned int order, struct zonelist *zonelist,
-+		  nodemask_t *nodemask)
- {
--	struct page *page = NULL;
- 	struct reclaim_state reclaim_state;
--	bool drained = false;
-+	int progress;
- 
- 	cond_resched();
- 
-@@ -2112,7 +2109,7 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
- 	reclaim_state.reclaimed_slab = 0;
- 	current->reclaim_state = &reclaim_state;
- 
--	*did_some_progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
-+	progress = try_to_free_pages(zonelist, order, gfp_mask, nodemask);
- 
- 	current->reclaim_state = NULL;
- 	lockdep_clear_current_reclaim_state();
-@@ -2120,6 +2117,21 @@ __alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
- 
- 	cond_resched();
- 
-+	return progress;
-+}
-+
-+/* The really slow allocator path where we enter direct reclaim */
-+static inline struct page *
-+__alloc_pages_direct_reclaim(gfp_t gfp_mask, unsigned int order,
-+	struct zonelist *zonelist, enum zone_type high_zoneidx,
-+	nodemask_t *nodemask, int alloc_flags, struct zone *preferred_zone,
-+	int migratetype, unsigned long *did_some_progress)
-+{
-+	struct page *page = NULL;
-+	bool drained = false;
-+
-+	*did_some_progress = __perform_reclaim(gfp_mask, order, zonelist,
-+					       nodemask);
- 	if (unlikely(!(*did_some_progress)))
- 		return NULL;
- 
--- 
-1.7.1.569.g6f426
+Hans,
+
+Could you please add the proper include file to the ISA radio framework?
+
+Thanks!
+Mauro
+> 
+> 
+>>
+>> on i386:
+>>
+>> Looks like several source files need to #include <linux/slab.h>:
+>>
+>>
+>> drivers/media/radio/radio-isa.c:246:3: error: implicit declaration of function 'kfree'
+>> drivers/media/radio/radio-aztech.c:72:9: error: implicit declaration of function 'kzalloc'
+>> drivers/media/radio/radio-aztech.c:72:22: warning: initialization makes pointer from integer without a cast
+>> drivers/media/radio/radio-typhoon.c:76:9: error: implicit declaration of function 'kzalloc'
+>> drivers/media/radio/radio-typhoon.c:76:23: warning: initialization makes pointer from integer without a cast
+>> drivers/media/radio/radio-terratec.c:57:2: error: implicit declaration of function 'kzalloc'
+>> drivers/media/radio/radio-terratec.c:57:2: warning: return makes pointer from integer without a cast
+>> drivers/media/radio/radio-aimslab.c:67:9: error: implicit declaration of function 'kzalloc'
+>> drivers/media/radio/radio-aimslab.c:67:22: warning: initialization makes pointer from integer without a cast
+>> drivers/media/radio/radio-zoltrix.c:80:9: error: implicit declaration of function 'kzalloc'
+>> drivers/media/radio/radio-zoltrix.c:80:24: warning: initialization makes pointer from integer without a cast
+>> drivers/media/radio/radio-gemtek.c:183:9: error: implicit declaration of function 'kzalloc'
+>> drivers/media/radio/radio-gemtek.c:183:22: warning: initialization makes pointer from integer without a cast
+>> drivers/media/radio/radio-trust.c:57:9: error: implicit declaration of function 'kzalloc'
+>> drivers/media/radio/radio-trust.c:57:21: warning: initialization makes pointer from integer without a cast
+>>
+> 
+> 
+> 
 
